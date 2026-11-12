@@ -1,57 +1,81 @@
-"""Extending Mendel: the boxes stay, the labels change  (Biochemistrypedia explainer)
-
-Timed to the SPOKEN words: every self.at("...") cue waits for that phrase in audio/words.json.
-
-One idea: a cross always fills the same boxes (2 x 2 for one gene, 4 x 4 for two). What the
-boxes are CALLED depends on how the genes act.
-
-COLOR MAP (one color per concept, whole video)
-  YELLOW   = the yellow coat (mouse, Labrador); also the yellow allele dot
-  BLACKC   = the black coat / black allele (dark fill with a light rim)
-  CHOC     = chocolate (brown) coat
-  FLOWER_RED / PINK / WHITE = snapdragon flower colours (and the red / white allele dots)
-  TEXT     = genotype letters and dots (the fixed layer: what the boxes hold)
-  BLUE / ORANGE / PURPLE / TEAL = anonymous phenotype classes of the regrouping scenes,
-             always labelled next to the ratio; BLUE = colour made, GREY = no colour (9:7, 15:1)
-  GOLD     = ratios and the word "map" (what the boxes are labelled with)
-  GREEN    = rules that hold / survivors
-  RED      = death, a failed idea
-  GREY     = box outlines and secondary labels
-
-No molecules: alleles are round dots, genotypes are letter strings, plants and mice are simple shapes.
-"""
+"""Same Boxes, New Labels (chapter 1 of Extending Mendel). One world: a 2x2 grid of equal boxes.
+COLOURS: PURPLE purple flower, FRED red flower, PINK pink flower, PALE white flower, YELLOW yellow coat,
+BLACKC black coat (white outline), RED = dies. Boxes and genotypes are WHITE (the fixed deal)."""
 import numpy as np
 from bp_style import *  # noqa: F401,F403
 
 PURPLE = "#B58CD9"
-ORANGE = "#F29E4C"
 PINK = "#F08CB0"
-FLOWER_RED = "#E04656"
-WHITE = "#F2F2F2"
+FRED = "#E04656"
+PALE = "#D9DCE3"
 BLACKC = "#262A34"
-CHOC = "#8B5A3C"
-LABEL_ON_YELLOW = "#1b1d24"
+GC = np.array([0.0, -0.4, 0.0])
+BS = 2.4
 
 
-# ---------------------------------------------------------------------------------------------
-# helpers
-# ---------------------------------------------------------------------------------------------
+def bc(i):
+    return GC + np.array([(-1 if i % 2 == 0 else 1) * BS / 2, (1 if i < 2 else -1) * BS / 2, 0])
+
+
+def bob(m, amp=0.05, f=0.5, ph=0.0):
+    m._bt = ph
+
+    def up(mm, dt):
+        old = np.sin(2 * np.pi * f * mm._bt) * amp
+        mm._bt += dt
+        mm.shift(UP * (np.sin(2 * np.pi * f * mm._bt) * amp - old))
+    m.add_updater(up)
+    return m
+
+
+def pulse_fill(m, color, lo=0.05, hi=0.35, f=0.6):
+    m._pt = 0.0
+
+    def up(mm, dt):
+        mm._pt += dt
+        mm.set_fill(color, opacity=lo + (hi - lo) * (0.5 + 0.5 * np.sin(2 * np.pi * f * mm._pt)))
+    m.add_updater(up)
+    return m
+
+
+class Motes(VGroup):
+    pass
+
+
+class W(SpokenScene):
+    """SpokenScene plus a few faint drifting motes so the world never sits dead."""
+
+    def setup(self):
+        super().setup()
+        import random
+        rng = random.Random(os.environ.get("KX_SCENE_ID", "x"))
+        motes = VGroup()
+        for _ in range(16):
+            d = Dot(radius=rng.uniform(0.03, 0.06), color=rng.choice([TEAL, GREY, TEXT])).set_opacity(rng.uniform(0.15, 0.3))
+            d.move_to([rng.uniform(-6.8, 6.8), rng.uniform(-3.8, 3.8), 0])
+            d.v = (rng.uniform(-0.15, 0.15), rng.uniform(0.1, 0.3))
+
+            def drift(m, dt):
+                m.shift([m.v[0] * dt, m.v[1] * dt, 0])
+                if m.get_y() > 4.0:
+                    m.shift(DOWN * 8.0)
+                if abs(m.get_x()) > 7.2:
+                    m.shift(LEFT * 14.4 * np.sign(m.get_x()))
+            d.add_updater(drift)
+            motes.add(d)
+        motes.set_z_index(-10)
+        self.add(motes)
+
+
 def dot(kind, r=0.17):
-    """An allele: a round dot. Colour/fill says which allele."""
-    if kind == "red":
-        d = Circle(radius=r, stroke_color=FLOWER_RED, fill_color=FLOWER_RED, fill_opacity=1)
-    elif kind == "white":
-        d = Circle(radius=r, stroke_color=WHITE, fill_color=WHITE, fill_opacity=1)
-    elif kind == "yel":
-        d = Circle(radius=r, stroke_color=YELLOW, fill_color=YELLOW, fill_opacity=1)
-    elif kind == "blk":
-        d = Circle(radius=r, stroke_color=TEXT, fill_color=BLACKC, fill_opacity=1)
-    elif kind == "D":
-        d = Circle(radius=r, stroke_color=TEXT, fill_color=TEXT, fill_opacity=1)
-    else:  # "r": hollow ring
-        d = Circle(radius=r, stroke_color=TEXT, fill_color=BG, fill_opacity=1)
-    d.set_stroke(width=3)
-    return d
+    fills = {"yel": (YELLOW, YELLOW), "blk": (BLACKC, TEXT), "A": (BLUE, BLUE), "a": (GOLD, GOLD)}
+    fc, sc = fills[kind]
+    return Circle(radius=r, stroke_color=sc, stroke_width=3, fill_color=fc, fill_opacity=1)
+
+
+def token(letter, r=0.3):
+    d = dot(letter, r)
+    return VGroup(d, T(letter, 30, BG, weight=BOLD).move_to(d))
 
 
 def flower(color, s=1.0):
@@ -61,529 +85,512 @@ def flower(color, s=1.0):
         p = Circle(radius=0.28 * s, stroke_width=2, stroke_color=color, fill_color=color, fill_opacity=0.95)
         p.move_to(0.31 * s * np.array([np.cos(a), np.sin(a), 0]))
         petals.add(p)
-    ctr = Circle(radius=0.14 * s, stroke_width=0, fill_color=BG, fill_opacity=1)
-    g = VGroup(petals, ctr)
-    g.petals = petals
-    return g
+    return VGroup(petals, Circle(radius=0.14 * s, stroke_width=0, fill_color=BG, fill_opacity=1))
 
 
 def mouse(kind, s=1.0):
-    if kind == "yel":
-        col, edge = YELLOW, YELLOW
-        eye = BG
-    else:
-        col, edge = BLACKC, GREY
-        eye = TEXT
+    col, edge = (YELLOW, YELLOW) if kind == "yel" else (BLACKC, TEXT)
     kw = dict(stroke_color=edge, stroke_width=2, fill_color=col, fill_opacity=1)
     body = Ellipse(width=1.3 * s, height=0.8 * s, **kw)
     head = Circle(radius=0.32 * s, **kw).move_to([0.62 * s, 0.12 * s, 0])
     ear = Circle(radius=0.15 * s, **kw).move_to([0.5 * s, 0.44 * s, 0])
-    tail = ArcBetweenPoints([-0.62 * s, 0.0, 0], [-1.15 * s, 0.5 * s, 0], angle=-PI / 2,
-                            stroke_color=edge if kind != "yel" else YELLOW, stroke_width=4)
-    e = Circle(radius=0.045 * s, stroke_width=0, fill_color=eye, fill_opacity=1).move_to([0.74 * s, 0.2 * s, 0])
-    g = VGroup(tail, body, head, ear, e)
-    return g
+    eye = Dot([0.72 * s, 0.18 * s, 0], radius=0.05 * s, color=BG if kind == "yel" else TEXT)
+    tail = Line([-0.62 * s, 0, 0], [-1.0 * s, 0.25 * s, 0], stroke_color=edge, stroke_width=3)
+    return VGroup(tail, body, head, ear, eye)
 
 
-def xmark(center, size=0.5, color=RED, w=9):
-    c = np.array(center, float)
-    return VGroup(Line(c + [-size, -size, 0], c + [size, size, 0], stroke_width=w, color=color),
-                  Line(c + [-size, size, 0], c + [size, -size, 0], stroke_width=w, color=color))
+def pup(kind, r=0.38):
+    col, edge = (YELLOW, YELLOW) if kind == "yel" else (BLACKC, TEXT)
+    kw = dict(stroke_color=edge, stroke_width=2, fill_color=col, fill_opacity=1)
+    body = Circle(radius=r, **kw)
+    e1 = Circle(radius=r * 0.4, **kw).move_to([-r * 0.7, r * 0.8, 0])
+    e2 = Circle(radius=r * 0.4, **kw).move_to([r * 0.7, r * 0.8, 0])
+    eyes = VGroup(Dot([-r * 0.3, r * 0.1, 0], radius=r * 0.1, color=BG if kind == "yel" else TEXT),
+                  Dot([r * 0.3, r * 0.1, 0], radius=r * 0.1, color=BG if kind == "yel" else TEXT))
+    return VGroup(e1, e2, body, eyes)
 
 
-def check(center, size=0.5, color=GREEN, w=9):
-    c = np.array(center, float)
-    return VGroup(Line(c + [-size, 0.0, 0], c + [-size * 0.3, -size * 0.75, 0], stroke_width=w, color=color),
-                  Line(c + [-size * 0.3, -size * 0.75, 0], c + [size, size * 0.8, 0], stroke_width=w, color=color))
+PHEN = {"purple": (PURPLE, None, None), "white": (PALE, None, None), "red": (FRED, None, None),
+        "pink": (PINK, None, None), "yellow": (YELLOW, None, None), "black": (TEXT, BLACKC, TEXT),
+        "dies": (RED, None, None)}
 
 
-def left_at(mob, x, y):
-    mob.move_to([x, y, 0])
-    mob.shift(RIGHT * (x - mob.get_left()[0]))
-    return mob
+def pchip(name, size=32):
+    col, fill, tcol = PHEN[name]
+    lab = T(name, size, tcol or col)
+    box = RoundedRectangle(corner_radius=0.14, width=lab.width + 0.4, height=lab.height + 0.4, stroke_color=col,
+                           stroke_width=2.5, fill_color=fill or col, fill_opacity=1 if fill else 0.2)
+    return VGroup(box, lab.move_to(box))
 
 
-class Sq2:
-    """A two-by-two cross square. Gametes of the two parents run across the top and down the left."""
-
-    def __init__(self, center, t, top, left, r=0.2):
-        self.t = t
-        self.c = np.array([center[0], center[1], 0.0])
-        self.tiles, self.ctrs, self.gdots = [], [], []
-        self.top_dots = [dot(top[c], r).move_to(self.c + [(c - 0.5) * t, t + 0.45, 0]) for c in range(2)]
-        self.left_dots = [dot(left[rr], r).move_to(self.c + [-t - 0.45, (0.5 - rr) * t, 0]) for rr in range(2)]
-        for rr in range(2):
-            for c in range(2):
-                ctr = self.c + [(c - 0.5) * t, (0.5 - rr) * t, 0]
-                tile = RoundedRectangle(corner_radius=0.08, width=t, height=t, stroke_color=GREY, stroke_width=3,
-                                        fill_color=GREY, fill_opacity=0.08).move_to(ctr)
-                gd = VGroup(dot(left[rr], r).move_to(ctr + [-0.3, t / 2 - 0.4, 0]),
-                            dot(top[c], r).move_to(ctr + [0.3, t / 2 - 0.4, 0]))
-                self.tiles.append(tile)
-                self.ctrs.append(ctr)
-                self.gdots.append(gd)
-
-    def icon_pos(self, k):
-        return self.ctrs[k] + [0, -0.22, 0]
+def chip_at(i, name, size=32):
+    return pchip(name, size).move_to(bc(i) + DOWN * 0.6)
 
 
-G4 = [("B", "E"), ("b", "E"), ("B", "e"), ("b", "e")]
+def empty_chip(i):
+    r = RoundedRectangle(corner_radius=0.14, width=1.9, height=0.8, stroke_color=GREY, stroke_width=2.5)
+    return DashedVMobject(r, num_dashes=20).move_to(bc(i) + DOWN * 0.6)
 
 
-class Grid4:
-    """A four-by-four dihybrid square. cells[(r, c)] = VGroup(rect, label); .dom[(r, c)] = (has B, has E)."""
-
-    def __init__(self, center, cell=1.25):
-        self.cell = cell
-        self.c = np.array([center[0], center[1], 0.0])
-        self.cells, self.dom = {}, {}
-        self.top_lbl, self.left_lbl = [], []
-        for k, g in enumerate(G4):
-            lab = "".join(g)
-            self.top_lbl.append(M(lab, 24, GREY).move_to(self.c + [(k - 1.5) * cell, 2 * cell + 0.38, 0]))
-            self.left_lbl.append(M(lab, 24, GREY).move_to(self.c + [-2 * cell - 0.52, (1.5 - k) * cell, 0]))
-        for r in range(4):
-            for c in range(4):
-                a = "".join(sorted([G4[r][0], G4[c][0]], key=lambda x: x.islower()))
-                b = "".join(sorted([G4[r][1], G4[c][1]], key=lambda x: x.islower()))
-                rect = Rectangle(width=cell, height=cell, stroke_color=GREY, stroke_width=2.5,
-                                 fill_color=GREY, fill_opacity=0.08).move_to(self.c + [(c - 1.5) * cell, (1.5 - r) * cell, 0])
-                txt = M(a + b, 22, TEXT).move_to(rect)
-                self.cells[(r, c)] = VGroup(rect, txt)
-                self.dom[(r, c)] = ("B" in a, "E" in b)
-        self.all = VGroup(*self.cells.values())
-        self.heads = VGroup(*self.top_lbl, *self.left_lbl)
-
-    def paint(self, fn):
-        """fn(hasB, hasE) -> (fill, fill_opacity, stroke, text_color); returns animations."""
-        anims = []
-        for k, grp in self.cells.items():
-            fill, op, stroke, tc = fn(*self.dom[k])
-            anims.append(grp[0].animate.set_fill(fill, op).set_stroke(stroke))
-            anims.append(grp[1].animate.set_color(tc))
-        return anims
-
-    def block(self, rows, cols, color=GOLD, w=7):
-        pts = [self.cells[(r, c)][0].get_center() for r in rows for c in cols]
-        ctr = np.mean(pts, axis=0)
-        wd = (len(cols)) * self.cell
-        ht = (len(rows)) * self.cell
-        return Rectangle(width=wd, height=ht, stroke_color=color, stroke_width=w, fill_opacity=0).move_to(ctr)
+def edge_label(kind, j):
+    if kind == "text":
+        return T("A" if j == 0 else "a", 44)
+    k = "yel" if j == 0 else "blk"
+    return VGroup(dot(k, 0.26), T("yellow" if j == 0 else "black", 26, YELLOW if j == 0 else TEXT)).arrange(DOWN, buff=0.08)
 
 
-NEUTRAL = (GREY, 0.08, GREY, TEXT)
+class Grid:
+    def __init__(self, kind="text", geno=True):
+        self.boxes = VGroup(*[Square(BS, stroke_color=TEXT, stroke_width=3).move_to(bc(i)) for i in range(4)])
+        self.tops = VGroup(*[edge_label(kind, j).move_to([bc(j)[0], GC[1] + BS + 0.55, 0]) for j in range(2)])
+        sx = GC[0] - BS - (0.45 if kind == "text" else 0.62)
+        self.sides = VGroup(*[edge_label(kind, j).move_to([sx, bc(2 * j)[1], 0]) for j in range(2)])
+        if kind == "text":
+            gs = [T(s, 44) for s in ["AA", "Aa", "Aa", "aa"]]
+        else:
+            pr = [("yel", "yel"), ("yel", "blk"), ("yel", "blk"), ("blk", "blk")]
+            gs = [VGroup(dot(a, 0.21), dot(b, 0.21)).arrange(RIGHT, buff=0.15) for a, b in pr]
+        self.genos = VGroup(*[g.move_to(bc(i) + UP * 0.7) for i, g in enumerate(gs)])
+        self.all = VGroup(self.boxes, self.tops, self.sides, self.genos)
 
 
-def neutral(a, b):
-    return NEUTRAL
+def lock():
+    body = RoundedRectangle(corner_radius=0.1, width=1.1, height=0.85, stroke_color=GOLD, stroke_width=4, fill_color=GOLD, fill_opacity=0.3)
+    sh = Arc(radius=0.33, start_angle=0, angle=PI, stroke_color=GOLD, stroke_width=7).next_to(body, UP, buff=-0.02)
+    return VGroup(sh, body)
 
 
-def classes4(a, b):
-    """the four usual classes of a dihybrid cross, as anonymous hues"""
-    if a and b:
-        return (BLUE, 0.4, BLUE, TEXT)
-    if (not a) and b:
-        return (ORANGE, 0.4, ORANGE, TEXT)
-    if a and (not b):
-        return (PURPLE, 0.4, PURPLE, TEXT)
-    return (PINK, 0.4, PINK, TEXT)
-
-
-def lab_final(a, b):
-    if a and b:
-        return (BLACKC, 1.0, TEXT, TEXT)
-    if (not a) and b:
-        return (CHOC, 1.0, CHOC, TEXT)
-    return (YELLOW, 0.95, YELLOW, LABEL_ON_YELLOW)
-
-
-def swatch_row(color, text, size=26, x=1.0, y=0.0, fill=None, rim=None):
-    sw = Circle(radius=0.2, stroke_color=rim or color, stroke_width=3, fill_color=fill or color, fill_opacity=1)
-    t = T(text, size, TEXT)
-    g = VGroup(sw, t).arrange(RIGHT, buff=0.22)
-    return left_at(g, x, y)
-
-
+# --------------------------------------------------------------------------------------------
 class S00Title(TitleCard):
+    TITLE = "Same Boxes, New Labels"
     LESSON = "Extending Mendel"
-    TITLE = "The boxes stay, the labels change"
 
 
-# ---------------------------------------------------------------------------------------------
-class S01Puzzle(SpokenScene):
-    """yellow x yellow never breeds true -> Mendel's rules fail? no -> the map from genotype to phenotype changes."""
-
+class S01Hook(W):
     def construct(self):
+        m1 = mouse("yel", 1.2).move_to([-5.6, 2.0, 0])
+        m2 = mouse("yel", 1.2)
+        m2.rotate(PI, axis=UP)
+        m2.move_to([-2.4, 2.0, 0])
+        for k, m in enumerate((m1, m2)):
+            bob(m, 0.05, 0.5, k)
+        self.play(FadeIn(m1, shift=RIGHT * 0.3), FadeIn(m2, shift=LEFT * 0.3), run_time=1.6)
+        counter = T("true-breeding yellow lines: 0", 30, YELLOW).move_to([3.4, 3.3, 0])
+        xs = [-3.5, -2.1, -0.7, 0.7, 2.1, 3.5]
+
+        def litter(y, kinds):
+            g = VGroup(*[pup(k, 0.5).move_to([x, y, 0]) for x, k in zip(xs, kinds)])
+            for i, p in enumerate(g):
+                bob(p, 0.04, 0.4, i)
+            return g
         self.at("Mate two yellow mice")
-        m1 = mouse("yel", 1.2).move_to([-4.9, 2.0, 0])
-        m2 = mouse("yel", 1.2).move_to([-1.5, 2.0, 0])
-        x = T("x", 44, GREY).move_to([-3.2, 2.0, 0])
-        self.play(FadeIn(m1, shift=RIGHT * 0.2), FadeIn(m2, shift=LEFT * 0.2), FadeIn(x), run_time=0.6)
-        self.at("as often as you like")
-        ar = arr_down([-3.2, 1.1, 0], [-3.2, 0.2, 0])
-        pups = VGroup(mouse("yel", 0.95).move_to([-5.3, -1.0, 0]), mouse("yel", 0.95).move_to([-3.2, -1.0, 0]),
-                      mouse("blk", 0.95).move_to([-1.1, -1.0, 0]))
-        cap = T("some young are not yellow", 28, GREY).move_to([-3.2, -2.4, 0])
-        self.play(GrowArrow(ar), run_time=0.3)
-        self.play(LaggedStart(*[GrowFromCenter(p) for p in pups], lag_ratio=0.25), FadeIn(cap), run_time=0.8)
-        self.at("never get")
-        box = DashedVMobject(RoundedRectangle(corner_radius=0.2, width=4.7, height=5.3, stroke_color=GREY, stroke_width=3)
-                             .move_to([3.6, -0.1, 0]), num_dashes=60)
-        ym = mouse("yel", 1.3).move_to([3.6, 1.3, 0])
-        lab = T("breeds true?", 36).move_to([3.6, -0.5, 0])
-        q = T("all young yellow", 30, GREY).move_to([3.6, -1.5, 0])
-        self.play(FadeIn(box), FadeIn(ym), FadeIn(lab), FadeIn(q), run_time=0.6)
-        self.at("that breeds true")
-        xm = xmark([3.6, -0.1, 0], 2.0, RED, 10)
-        self.play(Create(xm), run_time=0.5)
-        # --- Mendel failed? ---
-        self.at("That looked like a failure")
-        old = VGroup(m1, m2, x, ar, pups, cap, box, ym, lab, q, xm)
-        mchip = chip("Mendel's rules", RED, size=64, pad=0.45).move_to([-1.3, 0.2, 0])
-        mx = xmark([4.5, 0.2, 0], 0.9, RED, 12)
-        self.play(FadeOut(old), run_time=0.4)
-        self.play(FadeIn(mchip, scale=0.9), Create(mx), run_time=0.5)
+        self.play(m1.animate.shift(RIGHT * 0.3), m2.animate.shift(LEFT * 0.3), run_time=1.2)
+        self.at("again and again")
+        l1 = litter(0.9, ["yel", "yel", "blk", "yel", "blk", "yel"])
+        self.play(LaggedStart(*[FadeIn(p, shift=DOWN * 0.4) for p in l1], lag_ratio=0.2), run_time=2.2)
+        self.at("One litter may be all yellow")
+        l2 = litter(-0.6, ["yel"] * 6)
+        self.play(LaggedStart(*[FadeIn(p, shift=DOWN * 0.4) for p in l2], lag_ratio=0.2), run_time=2.0)
+        self.at("no yellow line ever stays yellow")
+        l3 = litter(-2.1, ["yel", "blk", "yel", "yel", "yel", "blk"])
+        self.play(LaggedStart(*[FadeIn(p, shift=DOWN * 0.4) for p in l3], lag_ratio=0.15), FadeIn(counter), run_time=2.0)
+        self.finish()
+
+
+class S02Failure(W):
+    def construct(self):
+        tag = T("Lucien Cuénot, mouse crosses, early 1900s", 28, GREY).move_to([0, 3.2, 0])
+        self.play(FadeIn(tag), run_time=1.0)
+        q = T("Mendel failed?", 60, TEXT, font=TITLE_FONT).move_to([0, 0.6, 0])
+        self.at("failure of Mendel's")
+        self.play(Write(q), run_time=1.8)
         self.at("It was not")
-        mchip_g = chip("Mendel's rules", GREEN, size=64, pad=0.45).move_to(mchip)
-        ck = check([4.5, 0.2, 0], 0.9, GREEN, 12)
-        self.play(ReplacementTransform(mchip, mchip_g), ReplacementTransform(mx, ck), run_time=0.5)
-        self.at("Segregation and independent")
-        c1 = chip("segregation", GREEN, size=40, pad=0.3).move_to([-3.7, -1.4, 0])
-        c2 = chip("independent assortment", GREEN, size=40, pad=0.3).move_to([2.2, -1.4, 0])
-        self.play(mchip_g.animate.scale(0.8).move_to([0, 2.5, 0]), FadeOut(ck), run_time=0.4)
-        self.play(FadeIn(c1, shift=UP * 0.2), FadeIn(c2, shift=UP * 0.2), run_time=0.5)
-        self.at("keep working")
-        k1 = check(c1.get_top() + [0, 0.5, 0], 0.3, GREEN, 8)
-        k2 = check(c2.get_top() + [0, 0.5, 0], 0.3, GREEN, 8)
-        w = T("keep working", 44, GREEN).move_to([0, 1.1, 0])
-        self.play(Create(k1), Create(k2), FadeIn(w), run_time=0.5)
-        # --- the map ---
-        self.at("What changes")
-        self.play(FadeOut(VGroup(mchip_g, c1, c2, k1, k2, w)), run_time=0.4)
-        gt = chip("genotype", GREY, size=48, pad=0.36).move_to([-4.2, 1.7, 0])
-        gdots = VGroup(dot("yel", 0.36), dot("blk", 0.36)).arrange(RIGHT, buff=0.4).move_to([-4.2, -0.4, 0])
-        pt = chip("phenotype", GREY, size=48, pad=0.36).move_to([4.2, 1.7, 0])
-        pm = mouse("yel", 1.6).move_to([4.2, -0.4, 0])
-        mp = Arrow([-1.9, 0.6, 0], [1.5, 0.6, 0], buff=0, color=GOLD, stroke_width=9, tip_length=0.4)
-        mlab = T("map", 60, GOLD, weight=BOLD).move_to([0, 1.7, 0])
-        self.play(FadeIn(gt), FadeIn(gdots), FadeIn(pt), FadeIn(pm), run_time=0.5)
-        self.play(GrowArrow(mp), FadeIn(mlab), run_time=0.5)
-        self.play(Indicate(VGroup(mp, mlab), color=GOLD, scale_factor=1.12), run_time=0.8)
+        strike = Line(q.get_left() + LEFT * 0.2, q.get_right() + RIGHT * 0.2, color=RED, stroke_width=7).move_to(q)
+        self.play(Create(strike), run_time=0.8)
+        self.at("clue that inheritance")
+        self.play(FadeOut(q), FadeOut(strike), run_time=0.8)
+        b1 = RoundedRectangle(corner_radius=0.2, width=10, height=1.5, stroke_color=GOLD, fill_color=GOLD, fill_opacity=0.15).move_to([0, 0.9, 0])
+        t1 = T("layer 1: the deal", 40, GOLD).move_to(b1)
+        b2 = RoundedRectangle(corner_radius=0.2, width=10, height=1.5, stroke_color=TEAL, fill_color=TEAL, fill_opacity=0.15).move_to([0, -1.0, 0])
+        t2 = T("layer 2: the labels", 40, TEAL).move_to(b2)
+        self.at("works in two layers")
+        self.play(FadeIn(VGroup(b1, t1), shift=LEFT * 1.5), run_time=1.0)
+        self.play(FadeIn(VGroup(b2, t2), shift=RIGHT * 1.5), run_time=1.0)
         self.finish()
 
 
-def arr_down(a, b, color=GREY):
-    return Arrow(a, b, buff=0, color=color, stroke_width=6, tip_length=0.25)
-
-
-# ---------------------------------------------------------------------------------------------
-class S02Pink(SpokenScene):
-    """red x white -> pink F1; selfed -> 1 red : 2 pink : 1 white; the hidden 1:2:1 is in plain sight."""
-
+class S03Deal(W):
     def construct(self):
-        self.at("Cross red snapdragons")
-        fr = flower(FLOWER_RED, 2.0).move_to([-5.0, 0.9, 0])
-        dr = VGroup(dot("red", 0.25), dot("red", 0.25)).arrange(RIGHT, buff=0.35).move_to([-5.0, -1.1, 0])
-        x = T("x", 48, GREY).move_to([-3.4, 0.9, 0])
-        fw = flower(WHITE, 2.0).move_to([-1.8, 0.9, 0])
-        dw = VGroup(dot("white", 0.25), dot("white", 0.25)).arrange(RIGHT, buff=0.35).move_to([-1.8, -1.1, 0])
-        self.play(FadeIn(VGroup(fr, dr), shift=RIGHT * 0.2), FadeIn(x), FadeIn(VGroup(fw, dw), shift=LEFT * 0.2), run_time=0.7)
-        self.at("flower is pink")
-        ar = Arrow([-0.3, 0.9, 0], [1.3, 0.9, 0], buff=0, color=GREY, stroke_width=7, tip_length=0.3)
-        fp = flower(PINK, 2.0).move_to([3.6, 0.9, 0])
-        dp = VGroup(dot("red", 0.25), dot("white", 0.25)).arrange(RIGHT, buff=0.35).move_to([3.6, -1.1, 0])
-        f1 = T("F1", 44, GOLD, weight=BOLD).move_to([3.6, 2.9, 0])
-        self.play(GrowArrow(ar), run_time=0.3)
-        self.play(GrowFromCenter(fp), FadeIn(dp), FadeIn(f1), run_time=0.5)
-        self.at("incomplete dominance")
-        inc = T("incomplete dominance", 46, GOLD).move_to([0.0, -2.8, 0])
-        self.play(FadeIn(inc, shift=UP * 0.15), run_time=0.5)
-        # --- self the pink plants: the square ---
-        self.at("Self the pink plants")
-        sq = Sq2((-2.7, -0.35), 2.5, ("red", "white"), ("red", "white"))
-        small_f1 = VGroup(flower(PINK, 0.8), VGroup(dot("red", 0.14), dot("white", 0.14)).arrange(RIGHT, buff=0.22))
-        small_f1[1].next_to(small_f1[0], DOWN, buff=0.2)
-        small_f1.move_to([1.7, 2.4, 0])
-        sl = T("pink plants, selfed", 26, GREY).next_to(small_f1, RIGHT, buff=0.3)
-        self.play(FadeOut(VGroup(fr, dr, x, fw, dw, ar, inc, f1)), ReplacementTransform(VGroup(fp, dp), small_f1), run_time=0.6)
-        self.play(FadeIn(VGroup(*sq.tiles)), FadeIn(VGroup(*sq.top_dots, *sq.left_dots)), FadeIn(sl), run_time=0.5)
-        self.play(*[FadeIn(g) for g in sq.gdots], run_time=0.5)
-        self.at("red and white come back")
-        cols = [FLOWER_RED, PINK, PINK, WHITE]
-        fls = [flower(cols[k], 1.0).move_to(sq.icon_pos(k)) for k in range(4)]
-        self.play(LaggedStart(*[GrowFromCenter(f) for f in fls], lag_ratio=0.3), run_time=1.2)
-        self.at("one red")
-        rows = []
-        specs = [(FLOWER_RED, "1  red", 1.0), (PINK, "2  pink", 0.2), (WHITE, "1  white", -1.2)]
-        for col, txt, y in specs:
-            ic = flower(col, 0.55)
-            tx = T(txt, 34, TEXT)
-            g = VGroup(ic, tx).arrange(RIGHT, buff=0.35)
-            left_at(g, 1.9, y)
-            rows.append(g)
-        self.play(FadeIn(rows[0], shift=LEFT * 0.2), run_time=0.3)
-        self.at("two pink")
-        self.play(FadeIn(rows[1], shift=LEFT * 0.2), run_time=0.3)
-        self.at("one white")
-        self.play(FadeIn(rows[2], shift=LEFT * 0.2), run_time=0.3)
-        ratio = M("1 : 2 : 1", 62, GOLD).move_to([3.9, -2.3, 0])
-        self.play(Write(ratio), run_time=0.6)
+        head = T("layer 1: the deal", 32, GOLD).move_to([0, 3.3, 0])
+        self.play(FadeIn(head), run_time=0.8)
+
+        def cell(x):
+            c = Circle(radius=1.3, stroke_color=TEXT, stroke_width=3, fill_color=TEXT, fill_opacity=0.06).move_to([x, 1.0, 0])
+            ta = token("A", 0.4).move_to([x - 0.5, 1.0, 0])
+            tb = token("a", 0.4).move_to([x + 0.5, 1.0, 0])
+            return c, ta, tb
+        c1, a1, b1 = cell(-3.6)
+        c2, a2, b2 = cell(3.6)
+        lab1 = T("parent", 28, GREY).move_to([-3.6, 2.5, 0])
+        lab2 = T("parent", 28, GREY).move_to([3.6, 2.5, 0])
+        self.play(FadeIn(VGroup(c1, a1, b1, lab1)), FadeIn(VGroup(c2, a2, b2, lab2)), run_time=1.5)
+        self.at("At meiosis")
+        self.play(Indicate(c1, scale_factor=1.08), Indicate(c2, scale_factor=1.08), run_time=1.2)
+        self.at("separate into different gametes")
+        g = [Circle(radius=0.7, stroke_color=TEXT, stroke_width=3).move_to(p) for p in
+             [[-4.8, -0.9, 0], [-2.6, -0.9, 0], [2.6, -0.9, 0], [4.8, -0.9, 0]]]
+        self.play(FadeOut(c1), FadeOut(c2), FadeOut(lab1), FadeOut(lab2),
+                  a1.animate.move_to(g[0].get_center()), b1.animate.move_to(g[1].get_center()),
+                  a2.animate.move_to(g[2].get_center()), b2.animate.move_to(g[3].get_center()),
+                  *[FadeIn(x) for x in g], run_time=2.2)
+        child = Circle(radius=1.0, stroke_color=GREEN, stroke_width=3, fill_color=GREEN, fill_opacity=0.12).move_to([0, -2.4, 0])
+        self.at("each child gets one allele from each parent")
+        ar1 = Arrow(g[1].get_bottom(), child.get_left() + UP * 0.35, buff=0.1, color=GREY)
+        ar2 = Arrow(g[2].get_bottom(), child.get_right() + UP * 0.35, buff=0.1, color=GREY)
+        self.play(FadeIn(child), Create(ar1), Create(ar2), run_time=1.2)
+        self.play(b1.animate.move_to(child.get_center() + LEFT * 0.4), a2.animate.move_to(child.get_center() + RIGHT * 0.4), run_time=2.0)
+        lc = T("child", 32, GREEN).move_to([2.3, -2.4, 0])
+        self.play(FadeIn(lc), run_time=0.6)
+        self.finish()
+
+
+class S04Grid(W):
+    def construct(self):
+        G = Grid("text", geno=True)
+        live(G, 0.1)
+        self.at("Cross two parents")
+        self.play(Create(G.boxes), run_time=1.8)
+        self.play(FadeIn(G.tops), FadeIn(G.sides), run_time=1.2)
+        self.at("Each parent passes on")
+        halves = VGroup(*[T("1/2", 26, GOLD).next_to(G.tops[j], RIGHT, buff=0.12) for j in range(2)],
+                        *[T("1/2", 26, GOLD).next_to(G.sides[j], LEFT, buff=0.12) for j in range(2)])
+        self.play(LaggedStart(*[FadeIn(h, scale=1.2) for h in halves], lag_ratio=0.25), run_time=1.8)
+        self.at("gametes meet at random")
+        tag = T("fair deal: equal transmission, random meeting", 26, TEAL).move_to([0, -3.4, 0])
+        self.play(FadeIn(tag), run_time=1.0)
+        self.at("pairings fill four equally likely boxes")
+        for b in G.boxes:
+            b.set_fill(TEXT, opacity=0.0)
+        self.play(LaggedStart(*[b.animate.set_fill(TEXT, opacity=0.12) for b in G.boxes], lag_ratio=0.3), run_time=1.8)
+        self.at("One box gets two of the first allele")
+        self.play(FadeIn(G.genos[0], scale=1.2), run_time=0.6)
+        self.at("Two boxes get one of each")
+        self.play(FadeIn(G.genos[1], scale=1.2), FadeIn(G.genos[2], scale=1.2), run_time=0.7)
+        self.at("One box gets two of the second")
+        self.play(FadeIn(G.genos[3], scale=1.2), run_time=0.6)
+        ratio = M("1 : 2 : 1", 52, GOLD).move_to([4.6, -0.5, 0])
+        self.play(FadeIn(ratio, shift=LEFT * 0.3), run_time=0.8)
+        self.finish()
+
+
+def live(G, base=0.12):
+    for i, b in enumerate(G.boxes):
+        b._pt = i * 1.3
+        def up(mm, dt, base=base):
+            mm._pt += dt
+            if mm.get_fill_opacity() < 0.5 and mm.get_stroke_opacity() > 0:
+                mm.set_fill(TEXT, opacity=base * (0.4 + 1.2 * (0.5 + 0.5 * np.sin(2 * np.pi * 0.45 * mm._pt))))
+        b.add_updater(up)
+    for k, g in enumerate(list(G.genos) + list(G.tops) + list(G.sides)):
+        bob(g, 0.05, 0.4, k * 0.37)
+
+
+def bring_grid(sc, kind="text"):
+    G = Grid(kind)
+    for b in G.boxes:
+        b.set_fill(TEXT, opacity=0.12)
+    sc.add(G.all)
+    live(G)
+    return G
+
+
+class S05Layer2(W):
+    def construct(self):
+        G = bring_grid(self)
+        self.at("That deal is the part")
+        lk = lock().move_to([4.7, 0.9, 0])
+        lt = T("deal: fixed", 32, GOLD).move_to([4.7, -0.1, 0])
+        self.play(FadeIn(lk, scale=0.6), FadeIn(lt), run_time=1.2)
+        self.at("What changes is the label")
+        chips = [empty_chip(i) for i in range(4)]
+        for i, c in enumerate(chips):
+            bob(c, 0.06, 0.6, i)
+        self.play(LaggedStart(*[FadeIn(c, shift=DOWN * 0.2) for c in chips], lag_ratio=0.2), run_time=1.5)
+        self.finish()
+
+
+class S06Peas(W):
+    def construct(self):
+        G = bring_grid(self)
+        fl = flower(PURPLE, 2.0).move_to([-4.7, 0.3, 0])
+        bob(fl, 0.08, 0.4)
+        self.play(FadeIn(fl, scale=0.7), run_time=1.5)
+        self.at("one purple allele is enough")
+        c1 = chip_at(1, "purple")
+        self.play(FadeIn(c1, scale=1.2), run_time=0.8)
+        self.at("as purple as a plant with two")
+        c0, c2 = chip_at(0, "purple"), chip_at(2, "purple")
+        self.play(FadeIn(c0, scale=1.2), FadeIn(c2, scale=1.2), run_time=1.0)
+        self.at("three boxes share one label")
+        c3 = chip_at(3, "white")
+        a, b = bc(0), bc(3)
+        h = BS / 2 - 0.08
+        L = Polygon([a[0] - h, a[1] + h, 0], [bc(1)[0] + h, a[1] + h, 0], [bc(1)[0] + h, GC[1] - 0.0, 0],
+                    [GC[0], GC[1], 0], [GC[0], b[1] - h, 0], [a[0] - h, b[1] - h, 0], stroke_color=PURPLE, stroke_width=6)
+        self.play(FadeIn(c3, scale=1.2), Create(L), run_time=2.0)
+        lab = T("purple", 36, PURPLE).move_to([4.7, 0.7, 0])
+        self.at("Mendel's familiar ratio")
+        r = M("3 : 1", 52, GOLD).move_to([4.7, -0.5, 0])
+        self.play(FadeIn(lab), FadeIn(r, shift=LEFT * 0.3), run_time=1.0)
+        self.finish()
+
+
+class S07Snap(W):
+    def construct(self):
+        G = bring_grid(self)
+        red = flower(FRED, 1.5).move_to([-5.9, 2.3, 0])
+        wh = flower(PALE, 1.5).move_to([-3.5, 2.3, 0])
+        x = T("×", 44, GREY).move_to([-4.7, 2.3, 0])
+        pk = flower(PINK, 1.5).move_to([-4.7, -0.7, 0])
+        for k, f in enumerate((red, wh, pk)):
+            bob(f, 0.06, 0.4, k)
+        self.at("Cross red with white")
+        self.play(FadeIn(red, shift=RIGHT * 0.3), FadeIn(wh, shift=LEFT * 0.3), FadeIn(x), run_time=1.6)
+        self.at("every child is pink")
+        ar = Arrow([-4.7, 1.3, 0], [-4.7, 0.45, 0], buff=0, color=GREY)
+        lab = T("every F1 plant", 28, PINK).move_to([-4.7, -2.1, 0])
+        self.play(Create(ar), FadeIn(pk, shift=DOWN * 0.3), FadeIn(lab), run_time=1.6)
+        self.at("one red allele gives only a pink flower")
+        for i in (1, 2):
+            G.boxes[i].clear_updaters()
+            G.boxes[i].set_fill(PINK, opacity=0.12)
+        self.play(*[G.boxes[i].animate.set_fill(PINK, opacity=0.35) for i in (1, 2)], Indicate(pk, scale_factor=1.15, color=PINK), run_time=1.6)
+        self.finish()
+
+
+class S08Snap2(W):
+    def construct(self):
+        G = bring_grid(self)
+        pk = flower(PINK, 1.8).move_to([-4.5, 0.2, 0])
+        bob(pk, 0.06, 0.4)
+        self.add(pk)
+        self.at("pink plants pollinate themselves")
+        sa = CurvedArrow(pk.get_top() + LEFT * 0.5 + UP * 0.1, pk.get_top() + RIGHT * 0.5 + UP * 0.1, angle=-PI * 0.9, color=PINK)
+        self.play(Create(sa), run_time=1.4)
+        self.at("Red and white come back")
+        cr, cw = chip_at(0, "red"), chip_at(3, "white")
+        self.play(FadeIn(cr, scale=1.2), FadeIn(cw, scale=1.2), run_time=1.0)
+        self.at("Each box keeps its own label")
+        cp1, cp2 = chip_at(1, "pink"), chip_at(2, "pink")
+        self.play(FadeIn(cp1, scale=1.2), FadeIn(cp2, scale=1.2), run_time=1.0)
+        rs = VGroup(T("1 red", 34, FRED), T("2 pink", 34, PINK), T("1 white", 34, PALE)).arrange(DOWN, buff=0.25, aligned_edge=LEFT).move_to([4.8, -0.3, 0])
+        self.play(LaggedStart(*[FadeIn(r, shift=LEFT * 0.2) for r in rs], lag_ratio=0.3), run_time=1.5)
         self.at("Nothing blended")
-        self.play(Indicate(fls[0].petals, scale_factor=1.25, color=FLOWER_RED), Indicate(fls[3].petals, scale_factor=1.25, color=WHITE), run_time=0.8)
-        self.at("a pink plant is a heterozygote")
-        het = T("heterozygote", 28, GOLD)
-        left_at(het, 2.5, -0.45)
-        self.play(Circumscribe(sq.gdots[1], color=GOLD), Circumscribe(sq.gdots[2], color=GOLD),
-                  FadeIn(het), run_time=0.9)
-        self.at("In Mendel's peas")
-        hid = M("3 : 1", 62, GOLD).move_to(ratio)
-        cd = T("if red hid white, as in peas", 28, GREY).next_to(ratio, DOWN, buff=0.25)
-        self.play(fls[1].petals.animate.set_color(FLOWER_RED), fls[2].petals.animate.set_color(FLOWER_RED),
-                  FadeOut(*rows), FadeOut(het), ReplacementTransform(ratio, hid), FadeIn(cd), run_time=0.6)
-        self.at("but here the colors")
-        ratio2 = M("1 : 2 : 1", 62, GOLD).move_to(hid)
-        self.play(fls[1].petals.animate.set_color(PINK), fls[2].petals.animate.set_color(PINK),
-                  FadeIn(*rows), ReplacementTransform(hid, ratio2), FadeOut(cd), run_time=0.6)
+        bl = T("blending", 36, GREY).move_to([-4.5, -2.4, 0])
+        st = Line(bl.get_left() + LEFT * 0.1, bl.get_right() + RIGHT * 0.1, color=RED, stroke_width=6).move_to(bl)
+        self.play(FadeIn(bl), run_time=0.5)
+        self.play(Create(st), run_time=0.6)
+        self.play(FadeOut(bl), FadeOut(st), run_time=0.8)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S03Lethal(SpokenScene):
-    """A^y/a x A^y/a: one quarter die, survivors 2 yellow : 1 black; every live yellow mouse is a heterozygote."""
-
+class S09Mouse(W):
     def construct(self):
-        sq = Sq2((-2.7, -0.35), 2.5, ("yel", "blk"), ("yel", "blk"))
-        self.at("Now back to the yellow mouse")
-        p1 = VGroup(mouse("yel", 0.6), VGroup(dot("yel", 0.14), dot("blk", 0.14)).arrange(RIGHT, buff=0.2))
-        p1[1].next_to(p1[0], DOWN, buff=0.15)
-        p1.move_to([2.0, 2.45, 0])
-        p2 = p1.copy().move_to([5.2, 2.45, 0])
-        px = T("x", 36, GREY).move_to([3.6, 2.45, 0])
-        self.play(FadeIn(VGroup(*sq.tiles)), FadeIn(VGroup(*sq.top_dots, *sq.left_dots)), FadeIn(p1), FadeIn(p2), FadeIn(px),
-                  run_time=0.6)
-        self.play(*[FadeIn(g) for g in sq.gdots], run_time=0.5)
-        self.at("dominant for coat color")
-        kinds = ["yel", "yel", "yel", "blk"]
-        ms = [mouse(kinds[k], 1.0).move_to(sq.icon_pos(k) + [0.1, 0, 0]) for k in range(4)]
-        self.play(LaggedStart(*[GrowFromCenter(m) for m in ms], lag_ratio=0.25), run_time=1.0)
-        self.at("recessive for survival")
-        self.play(Circumscribe(sq.tiles[0], color=RED), run_time=0.8)
-        self.at("dies before implantation")
-        X = xmark(sq.ctrs[0] + [0, -0.2, 0], 0.8, RED, 12)
-        note = T("dies before implantation", 28, RED).move_to([3.6, 1.35, 0])
-        self.play(ms[0].animate.set_opacity(0.2), Create(X), FadeIn(note), run_time=0.6)
-        self.at("one quarter")
-        q = T("one quarter of conceptions die", 28, RED).move_to(note)
-        self.play(FadeOut(note), run_time=0.2)
-        self.play(FadeIn(q), run_time=0.3)
-        self.at("The survivors")
-        rings = VGroup(*[RoundedRectangle(corner_radius=0.08, width=2.5, height=2.5, stroke_color=GREEN, stroke_width=7)
-                         .move_to(sq.ctrs[k]) for k in (1, 2, 3)])
-        self.play(Create(rings), run_time=0.5)
-        self.at("too")
-        ty = T("2 yellow", 36, YELLOW).move_to([2.4, 0.35, 0])
-        self.play(FadeIn(ty, shift=UP * 0.1), run_time=0.3)
-        self.at("one black")
-        tc = T(":", 36).move_to([3.7, 0.35, 0])
-        tb = T("1 black", 36, TEXT).move_to([5.0, 0.35, 0])
-        self.play(FadeIn(tc), FadeIn(tb, shift=UP * 0.1), run_time=0.3)
-        self.at("twelve live pups")
-        pl = T("12 live pups", 26, GREY).move_to([3.6, -0.5, 0])
-        pups = VGroup(*[Circle(radius=0.2, stroke_color=GREY, stroke_width=3, fill_opacity=0).move_to([1.0 + i * 0.46, -1.25, 0])
-                        for i in range(12)])
-        self.play(FadeIn(pl), FadeIn(pups), run_time=0.5)
-        self.at("eight yellow")
-        self.play(LaggedStart(*[p.animate.set_fill(YELLOW, 1).set_stroke(YELLOW) for p in pups[:8]], lag_ratio=0.1), run_time=0.8)
-        self.at("four black")
-        self.play(LaggedStart(*[p.animate.set_fill(BLACKC, 1).set_stroke(TEXT) for p in pups[8:]], lag_ratio=0.1), run_time=0.5)
-        self.at("Every live yellow mouse")
-        het = T("heterozygote", 34, GOLD).move_to([3.6, -2.25, 0])
-        self.play(Circumscribe(sq.gdots[1], color=GOLD), Circumscribe(sq.gdots[2], color=GOLD),
-                  FadeIn(het), run_time=0.9)
-        self.at("That is why none")
-        why = T("so none breeds true", 32, TEXT).move_to([3.6, -3.0, 0])
-        self.play(FadeIn(why, shift=UP * 0.1), run_time=0.4)
+        G = Grid("text")
+        for b in G.boxes:
+            b.set_fill(TEXT, opacity=0.12)
+        self.add(G.all)
+        live(G)
+        self.at("Now the yellow mouse")
+        M2 = Grid("dots")
+        self.play(FadeOut(G.tops), FadeOut(G.sides), FadeOut(G.genos), run_time=0.7)
+        self.play(FadeIn(M2.tops), FadeIn(M2.sides), FadeIn(M2.genos), run_time=1.0)
+        m1 = mouse("yel", 1.3).move_to([-4.9, 1.1, 0])
+        m2 = mouse("yel", 1.3).move_to([-4.9, -1.4, 0])
+        bob(m1, 0.06, 0.5, 0), bob(m2, 0.06, 0.5, 1)
+        self.play(FadeIn(m1, shift=RIGHT * 0.3), run_time=1.0)
+        self.at("One yellow allele is enough")
+        c1 = chip_at(1, "yellow")
+        self.play(FadeIn(c1, scale=1.2), run_time=0.8)
+        self.at("Mate two yellow mice")
+        self.play(FadeIn(m2, shift=RIGHT * 0.3), run_time=1.0)
+        self.at("same four boxes appear")
+        c2, c3 = chip_at(2, "yellow"), chip_at(3, "black")
+        pulse_fill(G.boxes[0], YELLOW, 0.08, 0.35, 0.5)
+        self.play(FadeIn(c2, scale=1.2), FadeIn(c3, scale=1.2), run_time=1.2)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S04Epistasis(SpokenScene):
-    """BbEe x BbEe: 16 boxes in four classes; ee hides B; the last two classes merge: 9 black : 3 chocolate : 4 yellow."""
+def mouse_world(sc, chips=("yellow", "yellow", "black"), glow=True, dead=False):
+    G = Grid("dots")
+    for b in G.boxes:
+        b.set_fill(TEXT, opacity=0.12)
+    m1 = mouse("yel", 1.3).move_to([-4.9, 1.1, 0])
+    m2 = mouse("yel", 1.3).move_to([-4.9, -1.4, 0])
+    bob(m1, 0.06, 0.5, 0), bob(m2, 0.06, 0.5, 1)
+    cs = [chip_at(1, chips[0]), chip_at(2, chips[1]), chip_at(3, chips[2])]
+    sc.add(G.all, m1, m2, *cs)
+    live(G)
+    for k, c in enumerate(cs):
+        bob(c, 0.04, 0.5, k)
+    if glow:
+        pulse_fill(G.boxes[0], YELLOW, 0.08, 0.35, 0.5)
+    return G, m1, m2, cs
 
+
+def card():
+    t = VGroup(T("Two yellow alleles:", 28, GOLD), T("what label?", 28, GOLD)).arrange(DOWN, buff=0.15)
+    r = RoundedRectangle(corner_radius=0.2, width=t.width + 0.6, height=t.height + 0.6, stroke_color=GOLD, stroke_width=3, fill_color=GOLD, fill_opacity=0.1)
+    return VGroup(r, t.move_to(r)).move_to([4.7, 0.2, 0])
+
+
+class S10Predict(W):
     def construct(self):
-        g = Grid4((-2.7, -0.2), 1.25)
-        self.at("When two genes act")
-        self.play(FadeIn(g.heads), LaggedStart(*[FadeIn(c) for c in g.cells.values()], lag_ratio=0.02), run_time=0.8)
-        self.at("which is called")
-        ep = T("epistasis", 44, GOLD).move_to([3.6, 3.0, 0])
-        self.play(FadeIn(ep, shift=UP * 0.1), run_time=0.4)
-        self.at("In Labrador retrievers")
-        lr = T("Labrador retrievers", 28, GREY).move_to([3.6, 2.2, 0])
-        self.play(FadeIn(lr), run_time=0.3)
-        self.at("dominant")
-        r1 = swatch_row(BLACKC, "dominant B: black pigment", 26, 1.0, 1.4, fill=BLACKC, rim=TEXT)
-        self.play(FadeIn(r1, shift=LEFT * 0.2), run_time=0.4)
-        self.at("makes brown")
-        r2 = swatch_row(CHOC, "recessive b: brown, chocolate", 26, 1.0, 0.65)
-        self.play(FadeIn(r2, shift=LEFT * 0.2), run_time=0.4)
-        self.at("Cross two black dogs")
-        cr = M("BbEe  x  BbEe", 30, TEXT).move_to([3.6, -0.25, 0])
-        self.play(FadeIn(cr, shift=UP * 0.1), run_time=0.4)
-        self.at("the 16 boxes sort")
-        self.play(*g.paint(classes4), run_time=1.0)
-        self.at("But a dog with two copies")
-        blk = g.block((2, 3), (2, 3), GOLD, 8)
-        self.play(Create(blk), run_time=0.5)
-        self.at("yellow coat")
-        r3 = swatch_row(YELLOW, "ee: yellow", 28, 1.0, -1.15)
-        r3b = T("whatever its B genotype", 24, GREY)
-        left_at(r3b, 1.0, -1.8)
-        self.play(FadeIn(r3, shift=LEFT * 0.2), run_time=0.4)
-        self.at("whatever")
-        self.play(FadeIn(r3b), run_time=0.3)
-        self.at("the last two classes merge")
-        self.play(*g.paint(lab_final), FadeOut(blk), run_time=1.0)
-        self.at("9 black")
-        t1 = chip("9 black", TEXT, size=24, pad=0.16)
-        t2 = chip("3 chocolate", CHOC, size=24, pad=0.16)
-        t3 = chip("4 yellow", YELLOW, size=24, pad=0.16)
-        tl = VGroup(t1, t2, t3).arrange(RIGHT, buff=0.18)
-        fit(tl, max_w=5.7)
-        tl.move_to([3.5, -2.85, 0])
-        self.play(FadeIn(t1, shift=UP * 0.1), run_time=0.3)
-        self.at("3 chocolate")
-        self.play(FadeIn(t2, shift=UP * 0.1), run_time=0.3)
-        self.at("4 yellow")
-        self.play(FadeIn(t3, shift=UP * 0.1), run_time=0.3)
+        mouse_world(self)
+        cd = card()
+        self.at("what label goes in the box")
+        self.play(FadeIn(cd, shift=LEFT * 0.3), run_time=1.0)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S05Regroup(SpokenScene):
-    """the same sixteen boxes regrouped: 9:7, 12:3:1, 15:1."""
-
+class S11Pause(W):
     def construct(self):
-        g = Grid4((-2.7, -0.2), 1.25)
-        for k, grp in g.cells.items():  # the scene opens on s04's last picture
-            fill, op, stroke, tc = lab_final(*g.dom[k])
-            grp[0].set_fill(fill, op).set_stroke(stroke)
-            grp[1].set_color(tc)
-        self.add(g.heads, g.all)
-        self.at("Other interactions regroup")
-        title = T("same sixteen boxes", 32, GREY).move_to([3.6, 2.9, 0])
-        self.play(*g.paint(neutral), FadeIn(title), run_time=0.8)
-
-        def panel(head, lines):
-            h = T(head, 28, TEXT).move_to([3.6, 1.9, 0])
-            return h
-
-        # ---- 9 : 7 ----
-        self.at("If both genes need")
-        h1 = T("both genes need a\ndominant allele to make colour", 28, TEXT, line_spacing=0.8).move_to([3.6, 1.6, 0])
-        self.play(FadeIn(h1, shift=UP * 0.1), run_time=0.4)
-
-        def f97(a, b):
-            return (BLUE, 0.55, BLUE, TEXT) if (a and b) else (GREY, 0.25, GREY, TEXT)
-        r97 = M("9 : 7", 64, GOLD).move_to([3.6, 0.2, 0])
-        l97 = VGroup(swatch_row(BLUE, "colour: 9 boxes", 26, 1.4, -1.0), swatch_row(GREY, "no colour: 7 boxes", 26, 1.4, -1.7))
-        self.at("make color")
-        self.play(*g.paint(f97), run_time=0.7)
-        self.at("9 to 7")
-        self.play(FadeIn(r97), FadeIn(l97), run_time=0.5)
-        # ---- 12 : 3 : 1 ----
-        self.at("If a dominant allele at one gene")
-        h2 = T("a dominant allele at one\ngene hides the other", 28, TEXT, line_spacing=0.8).move_to([3.6, 1.6, 0])
-        self.play(*g.paint(neutral), FadeOut(VGroup(h1, r97, l97)), run_time=0.4)
-        self.play(FadeIn(h2), run_time=0.3)
-
-        def f1231(a, b):
-            if a:
-                return (PURPLE, 0.55, PURPLE, TEXT)
-            if b:
-                return (ORANGE, 0.55, ORANGE, TEXT)
-            return (TEAL, 0.55, TEAL, TEXT)
-        r1231 = M("12 : 3 : 1", 64, GOLD).move_to([3.6, 0.2, 0])
-        l1231 = VGroup(swatch_row(PURPLE, "12 boxes", 26, 2.4, -0.95), swatch_row(ORANGE, "3 boxes", 26, 2.4, -1.5),
-                       swatch_row(TEAL, "1 box", 26, 2.4, -2.05))
-        self.at("hides the other")
-        self.play(*g.paint(f1231), run_time=0.7)
-        self.at("12 to 3 to 1")
-        self.play(FadeIn(r1231), FadeIn(l1231), run_time=0.5)
-        # ---- 15 : 1 ----
-        self.at("If a dominant allele at either")
-        h3 = T("a dominant allele at either\ngene is enough", 28, TEXT, line_spacing=0.8).move_to([3.6, 1.6, 0])
-        self.play(*g.paint(neutral), FadeOut(VGroup(h2, r1231, l1231)), run_time=0.4)
-        self.play(FadeIn(h3), run_time=0.3)
-
-        def f151(a, b):
-            return (BLUE, 0.55, BLUE, TEXT) if (a or b) else (GREY, 0.25, GREY, TEXT)
-        r151 = M("15 : 1", 64, GOLD).move_to([3.6, 0.2, 0])
-        l151 = VGroup(swatch_row(BLUE, "colour: 15 boxes", 26, 1.4, -1.0), swatch_row(GREY, "no colour: 1 box", 26, 1.4, -1.7))
-        self.at("is enough")
-        self.play(*g.paint(f151), run_time=0.7)
-        self.at("15 to 1")
-        self.play(FadeIn(r151), FadeIn(l151), run_time=0.5)
-        # ---- only the labels ----
-        self.at("In every case")
-        fin = T("only the labels change", 36, GOLD).move_to([3.6, -2.95, 0])
-        self.play(Circumscribe(g.all, color=GOLD, buff=0.15), FadeIn(fin), run_time=1.0)
+        mouse_world(self)
+        cd = card()
+        self.add(cd)
+        ring = Circle(radius=0.4, stroke_color=GOLD, stroke_width=7).move_to([6.0, -3.1, 0])
+        self.add(ring)
+        self.play(Uncreate(ring), run_time=4.7, rate_func=linear)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S06Rule(SpokenScene):
-    """one fixed square, three labellings (3:1, 1:2:1, 2:1), then the genotype -> phenotype map."""
-
+class S12Reveal(W):
     def construct(self):
-        sq = Sq2((-2.7, -0.35), 2.5, ("D", "r"), ("D", "r"))
-        self.at("The boxes never changed")
-        self.play(FadeIn(VGroup(*sq.tiles)), FadeIn(VGroup(*sq.top_dots, *sq.left_dots)), run_time=0.6)
-        self.play(*[FadeIn(g) for g in sq.gdots], run_time=0.5)
-        lab = T("genotype boxes", 32, GREY).move_to([3.6, 2.7, 0])
-        self.play(FadeIn(lab), run_time=0.3)
-        self.at("only their labels")
-        self.play(Indicate(lab, color=GOLD), run_time=0.7)
-
-        def tint(k, col, op=0.5):
-            return sq.tiles[k].animate.set_fill(col, op).set_stroke(col)
-
-        # 3 : 1
-        self.at("One allele hides the other")
-        r31 = M("3 : 1", 72, GOLD).move_to([3.6, 0.7, 0])
-        l31 = T("one allele hides the other", 28, TEXT).move_to([3.6, -0.5, 0])
-        self.play(tint(0, BLUE), tint(1, BLUE), tint(2, BLUE), tint(3, ORANGE), FadeIn(r31), FadeIn(l31), run_time=0.7)
-        # 1 : 2 : 1
-        self.at("Neither hides")
-        r121 = M("1 : 2 : 1", 72, GOLD).move_to([3.6, 0.7, 0])
-        l121 = T("neither hides", 28, TEXT).move_to([3.6, -0.5, 0])
-        self.play(tint(1, PURPLE), tint(2, PURPLE), ReplacementTransform(r31, r121), ReplacementTransform(l31, l121), run_time=0.7)
-        # 2 : 1
-        self.at("one class dies")
-        r21 = M("2 : 1", 72, GOLD).move_to([3.6, 0.7, 0])
-        l21 = T("one class dies", 28, RED).move_to([3.6, -0.5, 0])
-        X = xmark(sq.ctrs[0] + [0, -0.2, 0], 0.8, RED, 12)
-        self.play(tint(1, BLUE), tint(2, BLUE), tiny_dim(sq.tiles[0]), Create(X),
-                  ReplacementTransform(r121, r21), ReplacementTransform(l121, l21), run_time=0.7)
-        self.at("Keep this rule")
-        self.play(FadeOut(VGroup(r21, l21, lab)), run_time=0.4)
-        self.at("Segregation keeps working")
-        sg = T("same boxes, every time", 32, GREEN).move_to([3.6, 2.1, 0])
-        self.play(FadeIn(sg, shift=UP * 0.1), Circumscribe(VGroup(*sq.tiles), color=GREEN, buff=0.15), run_time=1.0)
-        self.at("the map from genotype")
-        gt = chip("genotype", GREY, size=36, pad=0.28).move_to([3.6, 0.6, 0])
-        pt = chip("phenotype", GREY, size=36, pad=0.28).move_to([3.6, -2.2, 0])
-        mp = Arrow([3.6, 0.0, 0], [3.6, -1.55, 0], buff=0, color=GOLD, stroke_width=9, tip_length=0.35)
-        ml = T("map", 44, GOLD, weight=BOLD).next_to(mp, RIGHT, buff=0.35)
-        self.play(FadeIn(gt), run_time=0.3)
-        self.play(GrowArrow(mp), FadeIn(ml), FadeIn(pt), run_time=0.6)
-        self.at("changes")
-        self.play(Indicate(VGroup(mp, ml), color=GOLD, scale_factor=1.15), run_time=0.8)
+        G, m1, m2, cs = mouse_world(self)
+        cd = card()
+        self.add(cd)
+        self.at("That label is death")
+        dies = chip_at(0, "dies")
+        G.boxes[0].clear_updaters()
+        self.play(FadeOut(cd), FadeIn(dies, scale=1.3), run_time=1.0)
+        self.at("Two copies of the yellow allele")
+        self.play(Indicate(G.genos[0], color=RED, scale_factor=1.25), run_time=1.4)
+        self.at("very early before implantation")
+        note = VGroup(T("very early:", 32, RED), T("before implantation", 32, RED)).arrange(DOWN, buff=0.12).move_to([4.7, 0.3, 0])
+        self.play(FadeIn(note, shift=LEFT * 0.3), run_time=1.2)
+        self.at("that box goes dark")
+        dash = DashedVMobject(Square(BS, stroke_color=RED, stroke_width=3), num_dashes=24).move_to(bc(0))
+        self.play(G.boxes[0].animate.set_fill(BG, opacity=0.9).set_stroke(opacity=0), FadeIn(dash),
+                  dies.animate.set_opacity(0.45), G.genos[0].animate.set_opacity(0.3), FadeOut(note), run_time=2.0)
         self.finish()
 
 
-def tiny_dim(tile):
-    return tile.animate.set_fill(GREY, 0.15).set_stroke(RED)
+def dead_world(sc):
+    G, m1, m2, cs = mouse_world(sc, glow=False)
+    dies = chip_at(0, "dies").set_opacity(0.45)
+    G.boxes[0].set_fill(BG, opacity=0.9).set_stroke(opacity=0)
+    G.genos[0].set_opacity(0.3)
+    dash = DashedVMobject(Square(BS, stroke_color=RED, stroke_width=3), num_dashes=24).move_to(bc(0))
+    sc.add(dies, dash)
+    return G, m1, m2, cs
 
 
-class S07End(EndCard):
-    LINE = "Segregation never stops working, only the map from genotype to phenotype changes."
+class S13Ratio(W):
+    def construct(self):
+        G, m1, m2, cs = dead_world(self)
+        self.at("yellow outnumbers black")
+        r1 = M("2 yellow : 1 black", 26, YELLOW).move_to([4.7, 1.2, 0])
+        r2 = T("(among live pups)", 26, GREY).move_to([4.7, 0.55, 0])
+        self.play(FadeIn(r1, shift=LEFT * 0.3), FadeIn(r2), run_time=1.2)
+        self.at("every yellow pup is a heterozygote")
+        for i in (1, 2):
+            G.boxes[i].set_stroke(YELLOW, width=6)
+        self.play(*[Indicate(G.boxes[i], color=YELLOW, scale_factor=1.05) for i in (1, 2)], run_time=1.4)
+        pair = VGroup(dot("yel", 0.2), dot("blk", 0.2)).arrange(RIGHT, buff=0.2).move_to([4.6, -0.5, 0])
+        het = T("heterozygote", 34, YELLOW).move_to([4.6, -1.2, 0])
+        self.at("one yellow allele and one other")
+        self.play(FadeIn(pair, scale=1.3), FadeIn(het), run_time=1.2)
+        self.finish()
+
+
+class S14Why(W):
+    def construct(self):
+        G, m1, m2, cs = dead_world(self)
+        for i in (1, 2):
+            G.boxes[i].set_stroke(YELLOW, width=6)
+        self.at("no yellow mouse breeds true")
+        ps = [pup("yel", 0.3).move_to([-3.2, -3.35, 0]), pup("yel", 0.3).move_to([-1.2, -3.35, 0]), pup("blk", 0.3).move_to([1.2, -3.35, 0])]
+        for k, p in enumerate(ps):
+            bob(p, 0.04, 0.4, k)
+        self.play(LaggedStart(*[FadeIn(p, shift=UP * 0.3) for p in ps], lag_ratio=0.3), run_time=1.6)
+        self.at("no yellow allele at all")
+        ln = Line(ps[2].get_top() + UP * 0.05, bc(3) + DOWN * 1.2, color=TEXT, stroke_width=3)
+        self.play(Create(ln), Indicate(G.boxes[3], color=TEXT, scale_factor=1.06), run_time=1.4)
+        self.finish()
+
+
+def sgrid(cx, cols, dead=False):
+    s = 1.6
+    boxes = VGroup()
+    for i, c in enumerate(cols):
+        x = cx + (-1 if i % 2 == 0 else 1) * s / 2
+        y = -0.4 + (1 if i < 2 else -1) * s / 2
+        sq = Square(s, stroke_color=TEXT, stroke_width=3, fill_color=c, fill_opacity=0.9).move_to([x, y, 0])
+        if c == BLACKC:
+            sq.set_fill(BLACKC, opacity=1)
+        boxes.add(sq)
+    if dead:
+        boxes[0].set_fill(BG, opacity=0.9).set_stroke(opacity=0)
+        boxes.add(DashedVMobject(Square(s, stroke_color=RED, stroke_width=3), num_dashes=20).move_to(boxes[0]))
+    return boxes
+
+
+def three_grids():
+    gs = (sgrid(-4.2, [PURPLE, PURPLE, PURPLE, PALE]), sgrid(0, [FRED, PINK, PINK, PALE]),
+            sgrid(4.2, [YELLOW, YELLOW, YELLOW, BLACKC], dead=True))
+    for k, g in enumerate(gs):
+        bob(g, 0.06, 0.4, k * 0.9)
+    return gs
+
+
+class S15Rule(W):
+    def construct(self):
+        gs = three_grids()
+        self.play(LaggedStart(*[FadeIn(g, scale=0.8) for g in gs], lag_ratio=0.5), run_time=2.6)
+        self.at("Inheritance deals the boxes")
+        l1 = T("Inheritance deals the boxes.", 38).move_to([0, 3.0, 0])
+        self.play(FadeIn(l1, shift=DOWN * 0.2), run_time=1.0)
+        self.at("product does writes the labels")
+        l2 = T("The gene products write the labels.", 38, TEAL).move_to([0, 2.3, 0])
+        self.play(FadeIn(l2, shift=DOWN * 0.2), run_time=1.0)
+        self.at("share a label")
+        u1 = T("share a label", 28, PURPLE).move_to([-4.2, -2.55, 0])
+        self.play(FadeIn(u1), Indicate(gs[0], scale_factor=1.05), run_time=1.0)
+        self.at("keep their own")
+        u2 = T("keep their own", 28, PINK).move_to([0, -2.55, 0])
+        self.play(FadeIn(u2), Indicate(gs[1], scale_factor=1.05), run_time=1.0)
+        self.at("one can be")
+        u3 = T("dies: dropped", 28, RED).move_to([4.2, -2.55, 0])
+        self.play(FadeIn(u3), Indicate(gs[2], scale_factor=1.05), run_time=1.0)
+        self.finish()
+
+
+class S16Scope(W):
+    def construct(self):
+        gs = three_grids()
+        self.add(*gs)
+        tag = T("scope: fair deal, unlinked genes, one label per box", 28, TEAL).move_to([0, 2.7, 0])
+        fr = Rectangle(width=12.7, height=4.6, stroke_color=TEXT, stroke_width=3).move_to([0, -0.4, 0])
+        self.at("This holds while the deal is fair")
+        self.play(Create(fr), FadeIn(tag), run_time=4.0)
+        self.at("gives only a chance of a trait")
+        dl = DashedLine(fr.get_corner(DL), fr.get_corner(DR), color=GREY, stroke_width=4, dash_length=0.12)
+        t1 = T("where the rule stops:", 28, GREY).move_to([0, -3.0, 0])
+        t2 = T("a box with only a chance of a label", 28, GREY).move_to([0, -3.5, 0])
+        self.play(Create(dl), FadeIn(t1), run_time=1.5)
+        self.play(FadeIn(t2), run_time=1.0)
+        self.finish()
+
+
+class S17End(EndCard):
+    LINE = "Inheritance deals the boxes; gene products write the labels."
