@@ -5,12 +5,12 @@ course: "genetics"
 courseChapter: "Genetics and Molecular Biology · Unit 1: Inheritance"
 order: 303
 summary: >-
-  A cross predicts proportions, but real offspring come in counts that seldom match the ratio
-  exactly. This lesson gives you the two rules of probability that predict crosses of many genes
+  A cross predicts probabilities, and a probability predicts a spread of counts, not one exact
+  count, so real offspring seldom match the ratio exactly. This lesson gives you the two rules of probability that predict crosses of many genes
   without a Punnett square, the binomial for counting outcomes in a family, and the chi-square
   test for asking whether a deviation from a ratio is larger than chance would usually produce.
   Afterwards you can run the test and say what its p-value does and does not mean.
-hook: "A 9:3:3:1 ratio predicts 312.75 round yellow seeds among Mendel's 556, and he counted 315. How far off can a count be before the ratio is wrong?"
+hook: "A 9:3:3:1 ratio predicts 312.75 round yellow seeds among Mendel's 556, and he counted 315. How far off can a count be before chance stops being a good explanation?"
 
 estMinutes: 24
 objectives:
@@ -23,10 +23,32 @@ explainer:
   src: "/explainers/probability-and-crosses/explainer.mp4"
   captions: "/explainers/probability-and-crosses/explainer.vtt"
   poster: "/explainers/probability-and-crosses/poster.jpg"
-  title: "How Far Can a Count Stray?"
-  durationSec: 183.1
-  narration: "an AI narrator voice (Gemini, Charon) reading narration written from this lesson's text"
+  title: "A Ratio Predicts a Spread"
+  durationSec: 189.3
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+  takeaways:
+    - "A cross predicts probabilities, and real counts scatter around them."
+    - "For independent steps, multiply along a path: round and yellow is 3/4 × 3/4 = 9/16."
+    - "When several different outcomes count, add their paths."
+    - "These rules hold for unlinked genes; genes close together on one chromosome tend to be inherited together, and multiplying their single-gene chances fails."
+    - "Counts seldom match a ratio exactly; the question is how far a count can stray by chance."
+
+films:
+  - id: "chapter-2"
+    src: "/explainers/probability-and-crosses/chapter-2.mp4"
+    captions: "/explainers/probability-and-crosses/chapter-2.vtt"
+    poster: "/explainers/probability-and-crosses/chapter-2-poster.jpg"
+    title: "How Far Is Too Far?"
+    durationSec: 203.3
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+    takeaways:
+      - "Chi-square scores how far counts lie from a ratio, judging each miss against its expected count."
+      - "If the ratio holds, chi-square averages its degrees of freedom: three for four classes."
+      - "With 3 degrees of freedom, only 5% of chance results score above 7.81."
+      - "The p-value is the share of chance results at least as far off as yours, computed as if the ratio and the other assumptions held."
+      - "A large p-value gives no reason to reject the ratio; it does not prove it."
 
 scientists:
   - name: "Gregor Mendel"
@@ -84,7 +106,7 @@ scientists:
       Pearson had not subtracted them, so tests run his way were too lenient. Fisher's correction
       is the reason you count degrees of freedom with care. In 1936 he applied the test to
       Mendel's paper as a whole. By his reckoning the fits were good experiment by experiment, and taken together
-      they were better than chance would usually give. W. F. R. Weldon had raised a similar doubt in 1902, but Fisher's paper started a long debate about how
+      they were better than chance would usually give. W. F. R. Weldon had remarked on the closeness of the fit in 1902, but Fisher's paper started a long debate about how
       Mendel's data were gathered, which is still discussed. It also showed that the chi-square distribution can flag a
       fit that is too close, from its lower tail, as well as one that is too far, from the usual upper tail.
 
@@ -157,7 +179,7 @@ practiceQuestions:
       - "There is a 62% chance that the 9:3:3:1 hypothesis is true"
       - "There is a 38% chance that the 9:3:3:1 hypothesis is false"
       - "The counts prove that the two genes assort independently"
-      - "Counts this far from 9:3:3:1 are common if the ratio holds"
+      - "Counts at least this far from 9:3:3:1 are common if the ratio holds"
     answer: 3
     rationale: >-
       A p-value is calculated assuming the hypothesis is true: here, deviations at least this large
@@ -266,8 +288,10 @@ explainLevels:
       several separate ways to get an outcome, you add their chances. Real counts seldom match a
       ratio exactly, so geneticists use the chi-square test. They compare the counts they got with
       the counts the ratio predicts, add up the squared differences divided by the expected counts,
-      and look the total up in a table for the right degrees of freedom. A small total means counts like these are common if the ratio holds, so it could explain the
-      counts; a large one means such counts would be rare if the ratio held, which is a reason to doubt it.
+      and look the total up in a table for the right degrees of freedom. A moderate total means counts like these are common if the ratio holds, so
+      chance could explain them; a large one means such counts would be rare if the ratio held, which
+      is a reason to doubt it. A total very close to zero, experiment after experiment, is a warning
+      too: chance usually scatters counts more than that.
   - level: "college"
     label: "College"
     text: >-
@@ -278,8 +302,10 @@ explainLevels:
       independent offspring with constant probability p, the number of a given type is binomial:
       P(k) = [n!/(k!(n-k)!)] p^k (1-p)^(n-k), where the coefficient counts the orders. To test
       whether observed counts fit a hypothesis, compute expected counts as total times probability,
-      then chi-square = sum of (O - E)^2 / E, with degrees of freedom equal to classes minus one
-      minus the number of parameters estimated from the data. The p-value is the probability of a
+      then chi-square = sum of (O - E)^2 / E. For a ratio fixed in advance, degrees of freedom are
+      classes minus one; in the usual multinomial setting, subtract one more for each parameter
+      estimated efficiently from the same grouped counts (other estimation schemes change the null
+      distribution). The p-value is the probability of a
       statistic at least this large if the hypothesis and the rest of the model hold. Failing to
       reject is not proof.
   - level: "grad"
@@ -346,55 +372,78 @@ draft: false
 import ChiSquareCrossTester from '../../../components/ChiSquareCrossTester.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
 import EquationCard from '../../../components/EquationCard.astro';
+import LessonFilm from '../../../components/LessonFilm.astro';
 
 **Mendel crossed peas that differed in seed shape and seed colour and counted 556 seeds from the hybrids: 315 round yellow, 108 round green, 101 wrinkled yellow and 32 wrinkled green. A 9:3:3:1 ratio predicts 312.75, 104.25, 104.25 and 34.75. None of his counts matches.**
 
-That is normal. A ratio is a probability, and counts drawn from a probability scatter around it, the way ten coin tosses give exactly five heads only about one time in four. This lesson asks two questions. How do you predict the proportions of a cross involving many genes? And how far can a count stray from the prediction before you stop believing the prediction? The tools are two rules of probability, the binomial distribution, and the chi-square test.
+It could not: the expected counts are fractions of a seed. Even where a whole-number match is possible, it is uncommon: ten coin tosses give exactly five heads only about one time in four. The real question is whether misses of 2.25 to 3.75 seeds are the ordinary scatter of chance.
+
+After the first film's two-gene tree, this lesson adds when you may multiply, how to handle three genes and whole families, and how to tell ordinary scatter from a real misfit, with two rules of probability, the binomial distribution and the chi-square test.
+
+> **The one idea.** A cross predicts probabilities, and a probability predicts a spread of counts, not one count. Multiply along a path of independent steps, and add paths that cannot both happen. Then ask whether your counts sit inside the spread chance usually makes, using a score this lesson builds, called chi-square. If the ratio holds, the score averages the number of classes minus one (its **degrees of freedom**, for a ratio fixed in advance), so a score far above that is a reason to doubt the ratio. It is never proof either way.
+>
+> *Scope:* unlinked genes; offspring that are independent draws; every genotype equally likely to survive and scored correctly; a ratio fixed before counting; and about five or more expected in each class.
 
 ## Two rules: and means multiply, or means add
 
-A **gene** sits at a place on a chromosome called its **locus**, and its versions are **alleles**. An organism with two copies of the same allele is **homozygous**; with two different alleles, **heterozygous**. When a heterozygote (Aa) makes gametes, half carry A and half carry a, as you saw in [Mendel's peas](/lessons/mendels-peas/).
+A **gene** sits at a place on a chromosome called its **locus**, and its versions are **alleles**. An organism with two copies of the same allele is **homozygous**; with two different alleles, **heterozygous**. When a heterozygote (Aa) makes gametes, half carry A and half carry a, as you saw in [Mendel's peas](/lessons/mendels-peas/). A cross is written with ×: Aa × Aa means Aa crossed with Aa.
 
-Two events are **independent** when the outcome of one does not change the chance of the other. For independent events X and Y (any two events, not alleles), the chance of both is the product:
+Two events are **independent** when the outcome of one does not change the chance of the other, as with "the egg carries A" and "the sperm carries A". For independent events, the chance of both is the product (the **product rule**):
 
-> P(X and Y) = P(X) x P(Y)
+> P(X and Y) = P(X) × P(Y)
 
-Two events are **mutually exclusive** when they cannot both happen. For those, the chance of either is the sum:
+Two events are **mutually exclusive** when they cannot both happen; the chance of either is then the sum (the **sum rule**):
 
 > P(X or Y) = P(X) + P(Y)
 
-Apply them to Aa x Aa (between genotypes, the x means "crossed with"; between fractions, it means "times"). An offspring is AA when the egg carries A and the sperm carries A: 1/2 x 1/2 = 1/4. It is Aa in two exclusive ways (A from the egg and a from the sperm, or the reverse): 1/4 + 1/4 = 1/2. It shows the dominant phenotype, written A_ (the blank stands for either allele), if it is AA or Aa: 1/4 + 1/2 = 3/4.
+For Aa × Aa, an offspring is AA when the egg carries A and the sperm carries A: 1/2 × 1/2 = 1/4. It is Aa in two exclusive ways (A from the egg and a from the sperm, or the reverse): 1/4 + 1/4 = 1/2. It shows the dominant phenotype, written A_ (the blank stands for either allele), if it is AA or Aa: 1/4 + 1/2 = 3/4.
 
-Independence is an assumption, and you must earn it. Genes on different chromosomes, or far apart on one chromosome, assort independently: those on different chromosomes because of how chromosomes line up and separate in meiosis and those far apart on one chromosome because crossing over shuffles them about as often as not (see [chromosomes and meiosis](/lessons/chromosomes-and-meiosis/)). Genes close together on one chromosome tend to be inherited together, and the product rule then fails (see [linkage and mapping](/lessons/linkage-and-mapping/)). So every calculation below says **unlinked**, and means it.
+Independence is an assumption, and you must earn it. Genes on different chromosomes assort independently, because each pair of chromosomes lines up in meiosis without regard to the others. Genes far apart on one chromosome behave almost as if unlinked, because crossing over reshuffles them in close to half of the gametes (see [chromosomes and meiosis](/lessons/chromosomes-and-meiosis/)). Genes close together on one chromosome tend to be inherited together, so their single-gene chances can no longer simply be multiplied (see [linkage and mapping](/lessons/linkage-and-mapping/)). So every calculation below says **unlinked**, and means it.
 
-<LessonFigure src="/figures/probability-and-crosses/linked-or-unlinked-genes.webp" width={1200} height={676} alt="AI-generated illustration: three panels of chromosome schematics. Genes A and B on different chromosome pairs. Genes A and B far apart on one pair, with a crossing-over point between them. Genes A and B close together on one pair, bracketed as inherited together, with a crossover far from them." caption="Genes on different chromosomes, or far apart on one chromosome, assort independently, so the product rule applies. Genes close together on one chromosome tend to be inherited together, and the product rule then fails." />
+<LessonFigure src="/figures/probability-and-crosses/linked-or-unlinked-genes.webp" width={1200} height={676} alt="AI-generated illustration: three panels of chromosome schematics. Genes A and B on different chromosome pairs. Genes A and B far apart on one pair, with a crossing-over point between them. Genes A and B close together on one pair, bracketed as inherited together, with a crossover far from them." caption="Genes on different chromosomes assort independently, and genes far apart on one chromosome behave almost as if unlinked, so the product rule applies. Genes close together on one chromosome tend to be inherited together, so their single-gene chances cannot simply be multiplied." />
 
-## Many genes at once: follow the branches
+## Many genes at once: multiply along the branches
 
-A Punnett square for three genes has 64 boxes. You do not need it. Treat each gene as its own small cross, then multiply along branches: for each locus, branch into the dominant phenotype (3/4) or the recessive one (1/4), and the probability of a path is the product of the probabilities on it. This is the branch, or forked-line, method.
+A Punnett square for three genes has 64 boxes; you do not need it. Treat each gene as its own small cross: at each locus, branch into the dominant phenotype (3/4) or the recessive one (1/4). The first film drew this tree for two genes; a third gene adds a third fork, and a path's probability is still the product along it. This is the branch, or forked-line, method.
 
-**Worked problem, part 1.** Assume three unlinked genes, complete dominance at each, and no selection. Cross AaBbCc x AaBbCc.
+{/* Figure request for the visuals pass: a two-gene branch tree for AaBb × AaBb, 3/4 and 1/4 on each branch, 9/16, 3/16, 3/16 and 1/16 at the tips. Caption: "Multiply the probabilities along a path to get one outcome; add the paths when several outcomes count." */}
 
-1. *What fraction is A_ bb C_?* One path: 3/4 x 1/4 x 3/4 = 9/64.
-2. *What fraction is fully recessive, aabbcc?* 1/4 x 1/4 x 1/4 = 1/64.
-3. *What fraction shows the dominant phenotype for exactly two of the three traits?* There are three paths: recessive at A only, at B only, or at C only. Each has probability (3/4)(3/4)(1/4) = 9/64 (parentheses side by side mean multiply: 3 x 3 x 1 = 9 on top, 4 x 4 x 4 = 64 below). The paths are mutually exclusive, so add them: 3 x 9/64 = 27/64.
+**Predict.** Cross AaBbCc × AaBbCc, three unlinked genes with complete dominance at each. Is an offspring that shows the dominant phenotype for exactly two of the three traits more likely, less likely, or as likely as one that is dominant for all three?
 
-The third question is where students go wrong. "Exactly two" is an *or* question built from *and* pieces. Multiply along each path, then add the paths. Check by a different route: the eight paths fall into four groups with probabilities 27/64 (all dominant, (3/4)^3), 27/64 (exactly two), 9/64 (exactly one: three paths of 3/64 each) and 1/64 (none), which sum to 64/64.
+<details>
+<summary>Check your prediction</summary>
+
+Equally likely: 27/64 each. "All three dominant" is a single path, 3/4 × 3/4 × 3/4. Each "exactly two" path is less likely, 9/64, because one of its factors is 1/4. But there are three such paths, one for each trait that could be the recessive one, and that factor of three is the one most people forget.
+
+</details>
+
+**Worked problem, part 1.** Assume three unlinked genes, complete dominance at each, and no selection. Cross AaBbCc × AaBbCc.
+
+1. *What fraction is A_ bb C_?* One path: 3/4 × 1/4 × 3/4 = 9/64.
+2. *What fraction is fully recessive, aabbcc?* 1/4 × 1/4 × 1/4 = 1/64.
+3. *What fraction shows the dominant phenotype for exactly two of the three traits?* "Exactly two" is an *or* question built from *and* pieces. There are three paths: recessive at A only, at B only, or at C only. Each has probability 3/4 × 3/4 × 1/4 = 9/64. The paths are mutually exclusive, so add them: 3 × 9/64 = 27/64.
+
+A check that counts all eight paths is in Going deeper.
 
 ## Families: the binomial counts the birth orders
 
-A different question: two parents are both carriers (Aa) of a recessive allele, and they have four children. How many of the four will be aa? This is a probability exercise, not a forecast for any real family. Assume complete **penetrance** (every aa child shows the trait) and that each child is an independent event with probability 1/4.
+Now two parents are both carriers (Aa) of a recessive allele, and they have four children. How many of the four will be aa? This is a probability exercise, not a forecast for any real family. Assume complete **penetrance** (every aa child shows the trait) and that each child is an independent event with probability 1/4.
 
-Count first; the formula comes after.
+**Predict.** The couple's first child is aa. Is the chance that their second child is aa now more than 1/4, less than 1/4, or still 1/4?
+
+<details>
+<summary>Check your prediction</summary>
+
+Still 1/4. Each child is a fresh draw from the same two parents; the first changes nothing for the second. Believing that the family has "used up" its affected child is the gambler's fallacy; segregation has no memory.
+
+</details>
 
 **Worked problem, part 2.** n = 4 children, each with probability p = 1/4 of being aa.
 
-1. *Exactly one affected child.* One particular order, say the first child affected and the other three not, has probability (1/4)(3/4)(3/4)(3/4) = 27/256. The affected child could be first, second, third or fourth: four orders. So P = 4 x 27/256 = 108/256. Divide top and bottom by 4: 27/64, about 0.42.
-2. *At least one affected child.* Use the complement: "at least one" is everything except "none". P(none affected) = (3/4)^4 = 81/256. So P(at least one) = 1 - 81/256 = 175/256, about 0.68.
+1. *Exactly one affected child.* One particular order, say the first child affected and the other three not, has probability 1/4 × 3/4 × 3/4 × 3/4 = 27/256. The affected child could be first, second, third or fourth: four orders. So P = 4 × 27/256 = 108/256 = 27/64, about 0.42.
+2. *At least one affected child.* Use the complement: "at least one" is everything except "none". P(none affected) = (3/4)^4 = 81/256. So P(at least one) = 1 − 81/256 = 175/256, about 0.68.
 
-The factor of 4 is the step students forget. And note what independence means here. If the first child is affected, the chance for the second is still 1/4. Believing that the family has "used up" its affected child is the gambler's fallacy; segregation has no memory.
-
-Step 1 had two parts: the chance of one particular order, then the number of orders. The **binomial distribution** packs both into one formula, for any fixed number of independent trials, each with the same probability p of a given outcome:
+Step 1 had two parts: the chance of one particular order, then the number of orders, the factor most often forgotten. The **binomial distribution** packs both into one formula, for any fixed number of independent trials, each with the same probability p of a given outcome:
 
 <EquationCard
   purpose="The chance of exactly k outcomes of one kind in n independent trials, such as exactly k affected children in a family of n."
@@ -412,20 +461,37 @@ Step 1 had two parts: the chance of one particular order, then the number of ord
 >
   <Fragment slot="example">
     <p>Exactly two affected children out of four, p = 1/4.</p>
-    <p>Orders: 4! / (2! × 2!) = 24 / (2 × 2) = 6 (DDuu, DuDu, DuuD, uDDu, uDuD, uuDD, where D marks an affected child and u an unaffected one).</p>
+    <p>Orders: 4! / (2! × 2!) = 24 / (2 × 2) = 6 (●●○○, ●○●○, ●○○●, ○●●○, ○●○●, ○○●●, where a filled circle marks an affected child and an open circle an unaffected one, as in a pedigree).</p>
     <p>One order: (1/4)^2 × (3/4)^2 = 1/16 × 9/16 = 9/256.</p>
     <p>Total: 6 × 9/256 = 54/256 = 27/128, about 0.21.</p>
   </Fragment>
   <Fragment slot="derivation">
-    <p>Optional: the bracket for one affected child of four is 4! / (1! × 3!) = 24 / 6 = 4, the four orders counted by hand in step 1. Across k = 0 to 4 the order counts are 1, 4, 6, 4, 1. For small n you can list the orders; the factorials are a shortcut for when the list gets long.</p>
+    <p>The bracket for one affected child of four is 4! / (1! × 3!) = 24 / 6 = 4, the four orders counted by hand in step 1. Across k = 0 to 4 the order counts are 1, 4, 6, 4, 1. For small n you can list the orders; the factorials are a shortcut for when the list gets long.</p>
   </Fragment>
 </EquationCard>
 
+The card's check is the whole spread for one family. Among 256 real families, 81, 108, 54, 12 and 1 are only the expected numbers with 0 to 4 affected; the observed numbers would scatter. On average a family of four has one affected child (4 × 1/4 = 1), but no family is promised the average: the chance of exactly one is 108/256, about 42%, and of none, 81/256, about 32%.
+
+{/* Figure request for the visuals pass: binomial bars for four children, heights 81, 108, 54, 12 and 1 out of 256 for 0 to 4 affected. Caption: "Even when one child in four is expected to be affected, a family of four has no affected child about 32% of the time." */}
+
 ## Is the deviation chance? The chi-square test
 
-Now the opening question. Suppose a dihybrid F2 of 160 plants gives 98, 28, 26 and 8 in the four phenotype classes. Does it fit 9:3:3:1?
+Mendel's 556 seeds missed their expected counts by 2.25, 3.75, 3.25 and 2.75 seeds. Is that a lot? It depends on how far chance usually moves a count, which depends on the count's size.
 
-You need a single score for how far a set of counts sits from what you expected: small when the counts are close, bigger the more surprising they are. Karl Pearson's **chi-square** statistic, introduced in 1900, is that score:
+**Predict.** You toss a fair coin 10 times and get 6 heads. A friend tosses one 100 times and gets 60. The split is 60:40 both times. Which result is more surprising?
+
+<details>
+<summary>Check your prediction</summary>
+
+Your friend's. Chance moves a count by an amount that grows with the count, but more slowly than the count. Ten tosses expect 5 heads and miss by at least one about three times in four, so 6 is ordinary. A hundred tosses expect 50 and typically miss by about 5, so a miss of 10 is two typical misses. A split at least that lopsided comes up only about 6 times in 100.
+
+</details>
+
+So a fair score judges each miss against the scatter in its own class. The second film builds one on Mendel's seeds, then asks how large it gets when chance alone is at work.
+
+<LessonFilm film={frontmatter.films[0]} />
+
+Against replays of a true 9:3:3:1 cross, Mendel's seeds scored chi-square 0.47 with 3 degrees of freedom, p about 0.93. The score is Karl Pearson's **chi-square** statistic, introduced in 1900. Here is its arithmetic, and when the chance pile is the right comparison:
 
 <EquationCard
   purpose="One number for how far observed counts are from expected counts."
@@ -437,46 +503,85 @@ You need a single score for how far a set of counts sits from what you expected:
     ["E", "E", "the expected count in that class: the total times the predicted probability"],
   ]}
   toolkit={["powers"]}
-  check="If every observed count equals its expected count, each term is 0 and so is chi-square. Squaring makes shortfalls and excesses both count. Dividing by E means a miss of 10 matters more in a class expecting 50 than in one expecting 5,000."
+  check="Squaring makes shortfalls and excesses both count. Dividing by E weighs each squared miss against the size of its class, so a miss of 10 matters more in a class expecting 50 than in one expecting 5,000. Chance typically moves those counts by at most about 7 and 70; the exact figure, √(E(1 − p)) for a class of probability p, is close to √E only when p is small (see Going deeper)."
 >
   <Fragment slot="example">
-    <p>A made-up example to keep the arithmetic easy: 100 coin tosses give 60 heads and 40 tails, against 50 and 50 expected.</p>
-    <p>Heads: (60 − 50)² / 50 = 100 / 50 = 2. Tails: (40 − 50)² / 50 = 100 / 50 = 2. Chi-square = 4.</p>
-    <p>Now 10 tosses giving 6 heads and 4 tails, the same 60:40 split: (6 − 5)² / 5 + (4 − 5)² / 5 = 0.2 + 0.2 = 0.4. Same proportions, a tenth of the score, because a small sample strays easily by chance.</p>
+    <p>The coins from the prediction. 100 tosses, 60 heads and 40 tails, against 50 and 50 expected: (60 − 50)² / 50 + (40 − 50)² / 50 = 100 / 50 + 100 / 50 = 2 + 2 = 4.</p>
+    <p>10 tosses, 6 heads and 4 tails, the same 60:40 split: (6 − 5)² / 5 + (4 − 5)² / 5 = 0.2 + 0.2 = 0.4. Same proportions, a tenth of the score, because a small sample strays easily by chance.</p>
   </Fragment>
 </EquationCard>
 
-**Worked problem, part 3.** Assume independent plants, correct scoring and equal survival of all genotypes.
+> **The one idea, again.** A ratio predicts a spread of counts. If the ratio holds, chi-square lands on average at its degrees of freedom; well above that, chance becomes a poor explanation.
 
-1. *Expected counts.* Multiply the total by each probability: 160 x 9/16 = 90, 160 x 3/16 = 30, 30, and 160 x 1/16 = 10.
-2. *Each class.* (98 - 90)^2/90 = 64/90 = 0.711. (28 - 30)^2/30 = 4/30 = 0.133. (26 - 30)^2/30 = 16/30 = 0.533. (8 - 10)^2/10 = 4/10 = 0.400.
-3. *Sum.* chi-square = 1.78.
-4. *Degrees of freedom.* With four classes and a ratio fixed in advance, df = 4 - 1 = 3: once three counts and the total are known, the fourth is set. (Optional aside: if you had estimated a parameter from the data, you would subtract one more, the point Ronald Fisher made for contingency tables in 1922 and for the general case in 1924.)
-5. *Compare.* The critical value for 3 df at the 0.05 level, read from a chi-square table or software, is 7.81. You only compare two numbers. 1.78 is well below it; the p-value is about 0.62. The data are consistent with 9:3:3:1.
+**Worked problem, part 3.** A dihybrid F2 of 160 plants gives 98, 28, 26 and 8 in the four phenotype classes. Does it fit 9:3:3:1? Assume unlinked genes, independent plants, correct scoring and equal survival of all genotypes.
 
-Three rules keep the test honest. Use **counts**, never percentages or ratios, because the size of the sample is what makes a deviation surprising. Keep expected counts above about five in every class, or the chi-square approximation becomes poor; small families are a bad fit for this test. And keep the two kinds of test apart: a goodness-of-fit test against four classes has 3 df, while a 2 x 2 test of whether two traits are associated has 1 df.
+1. *Expected counts.* Multiply the total by each probability: 160 × 9/16 = 90, 160 × 3/16 = 30 (twice), and 160 × 1/16 = 10.
+2. *Each class.* (98 − 90)²/90 = 64/90 = 0.711. (28 − 30)²/30 = 4/30 = 0.133. (26 − 30)²/30 = 16/30 = 0.533. (8 − 10)²/10 = 4/10 = 0.400.
+3. *Sum.* Chi-square = 1.78.
+4. *Degrees of freedom.* The ratio was fixed in advance, but the four classes share one total: once three counts and the total are known, the fourth is set. So only three misses are free: df = 4 − 1 = 3. That is also why the chance pile balances at 3, not 4: each class adds a little under 1 on average, exactly 3 in all (Going deeper shows why).
+5. *Critical value.* The **critical value** is the score that only 5% of chance results exceed; with 3 df it is 7.81 (from a chi-square table or software). A score above it would reject 9:3:3:1 at the 0.05 level. 1.78 is far below it, and below the pile's average of 3.
+6. *p-value.* About 62% of chance results score above 1.78, so p ≈ 0.62. These counts are ordinary if 9:3:3:1 holds.
 
-Mendel's own 556 seeds give chi-square = 0.47 against 9:3:3:1, also with 3 df, p about 0.93.
+{/* Figure request for the visuals pass: the chance pile, a histogram of chi-square from many simulated 160-plant F2s with 9:3:3:1 true (a real multinomial simulation, not a drawn curve), the mean at 3 marked, the 5% beyond 7.81 shaded, and this F2's 1.78 marked. Caption: "If 9:3:3:1 holds, chi-square from a 160-plant F2 averages 3; only 5% of results exceed 7.81, and 62% exceed this F2's 1.78." */}
+
+Two conditions keep the comparison honest. Use **counts**, never percentages or ratios, because the size of the sample is what makes a miss surprising. And keep the expected count at about five or more in every class. Below that, the chi-square approximation becomes poor, and an exact test or a simulation of the cross does better. Going deeper covers this, and how the degrees of freedom change if you estimate a parameter from the data or test whether two traits are associated.
 
 ### What a p-value does and does not tell you
 
-A **p-value** is the probability of getting data at least this far from expectation *if the hypothesis and every other assumption of the model were true*. A p of 0.62 means a deviation this size is unremarkable under 9:3:3:1.
+A **p-value** is the probability of getting data at least this far from expectation *if the hypothesis and every other assumption of the model were true*. A p of 0.62 means a deviation this size is unremarkable under 9:3:3:1. It is not the probability that the hypothesis is true.
 
-It is not the probability that the hypothesis is true. And p > 0.05 does not prove the hypothesis: it means you **fail to reject** it. Other models may fit the same counts as well. A small p-value does not tell you which assumption failed, either: linkage, a lethal genotype and misscored plants can all inflate chi-square. Our F2 is consistent with independent assortment; it does not prove it.
+So p > 0.05 does not prove the hypothesis: it means you **fail to reject** it. Other models may fit the same counts as well, as in the design problem below. A small p-value does not tell you which assumption failed, either: linkage, a lethal genotype and misscored plants can all inflate chi-square.
+
+**Predict.** A student reports an F2 whose chi-square against 9:3:3:1 is 0.05, with 3 degrees of freedom: almost a perfect match. Should that reassure you?
+
+<details>
+<summary>Check your prediction</summary>
+
+Not entirely. Even when the ratio holds, chance scatters the counts: with 3 df, fewer than 1 chance result in 300 lands that close. One such result can be luck. But if experiment after experiment lands far below its degrees of freedom, the counts are closer than chance usually allows, and it is fair to ask how they were gathered and scored. The lower tail of the distribution, the scores near zero, flags a fit that is too close, as the upper tail flags one that is too far. Ronald Fisher made this argument about Mendel's own paper (see the anecdote "Too good to be true?").
+
+</details>
 
 <ChiSquareCrossTester />
 
 ### Design problem
 
-Two true-breeding white-flowered lines are crossed and the F1 is all purple. The F2 of 160 plants contains 96 purple and 64 white. Test a 3:1 ratio and a 9:7 ratio, decide which the data allow, and say what experiment you would do next.
+Two true-breeding white-flowered lines are crossed and the F1 is all purple. The F2 of 160 plants contains 96 purple and 64 white. Test a 3:1 ratio and a 9:7 ratio, decide which the data allow, and say what experiment you would do next. (A 9:7 ratio is what two genes give when each is needed for purple; [extending Mendel](/lessons/extending-mendel/) shows how.)
 
 <details>
 <summary>One way to do it</summary>
 
-**3:1.** Expected 120 purple and 40 white. Chi-square = (96 - 120)^2/120 + (64 - 40)^2/40 = 576/120 + 576/40 = 4.8 + 14.4 = 19.2, with 1 df. The critical value at 0.05 is 3.84, so 3:1 is rejected (p is far below 0.001).
+**3:1.** Expected 120 purple and 40 white. Chi-square = (96 − 120)^2/120 + (64 − 40)^2/40 = 576/120 + 576/40 = 4.8 + 14.4 = 19.2, with 1 df. The critical value at 0.05 is 3.84, so 3:1 is rejected (p is far below 0.001).
 
-**9:7.** Expected 160 x 9/16 = 90 and 160 x 7/16 = 70. Chi-square = 36/90 + 36/70 = 0.40 + 0.51 = 0.91, with 1 df, p about 0.34. Not rejected.
+**9:7.** Expected 160 × 9/16 = 90 and 160 × 7/16 = 70. Chi-square = 36/90 + 36/70 = 0.40 + 0.51 = 0.91, with 1 df, p about 0.34. Not rejected.
 
-**What next.** A good fit does not establish the model. A 5:3 ratio (100:60) fits these counts too, with chi-square about 0.43, and no one is proposing it. What 9:7 adds is a mechanism: two genes, each needed for purple, with each white parent lacking a different one. The F1 already pointed this way. If both white lines lacked the same gene, the F1 would be white too, so an all-purple F1 is the classic sign of two genes, and the 3:1 test checked a model the cross had already argued against. Test that mechanism with a cross whose outcome differs between models. Cross F2 white plants with each other in many pairs. Under a simple one-gene model, white x white gives white. Under two genes, some pairs (one carrying aa, the other bb, each with the other gene's dominant allele) give purple offspring. Crossing the F1 back to either white parent should give about 1 purple : 1 white, but a one-gene testcross also gives 1:1, so that cross checks the model without telling the models apart. How two genes produce 9:7 is the subject of [extending Mendel](/lessons/extending-mendel/).
+**What next.** A good fit does not establish the model: a 5:3 ratio (100:60) fits these counts too, with chi-square about 0.43, and no one is proposing it. What 9:7 adds is a mechanism: two genes, each needed for purple, with each white parent lacking a different one.
+
+The F1 had already pointed this way. In the simple model, where each white line carries a fully penetrant recessive loss-of-function mutation, two lines mutant in the same gene would give a white F1. So an all-purple F1 is the classic sign of two genes (exceptions such as intragenic complementation exist; see [complementation and pathways](/lessons/complementation-and-pathways/)), and the 3:1 test checked a model the cross had already argued against.
+
+So test the mechanism with a cross whose outcome differs between models: cross F2 white plants with each other in many pairs. Under one gene, white × white gives white. Under two genes, some pairs (one carrying aa, the other bb, each with the other gene's dominant allele) give purple offspring. Crossing the F1 back to a white parent will not separate the models: one gene and two genes both predict about 1 purple : 1 white.
 
 </details>
+
+## Going deeper
+
+### Why the chance pile balances at the degrees of freedom
+
+If the ratio holds, each class adds on average 1 − p to chi-square, where p is that class's predicted probability. The p's add to 1, so for k classes the averages add to k − 1, the degrees of freedom, at any sample size.
+
+The same fact corrects a common picture: chance does not move a class count by the square root of its expected count, √E, but by about √(E(1 − p)), because the classes share one total. For a small class the two are close; for a class that holds a large share of the total they are not. In the 160-plant F2, the 9/16 class typically misses by about 6.3 plants, not √90 ≈ 9.5. For Mendel's 556 seeds the typical misses are about 11.7, 9.2, 9.2 and 5.7 seeds, so his actual misses of 2.25 to 3.75 seeds are each between about a fifth and a half of a typical miss.
+
+### Degrees of freedom when you estimate from the data
+
+If, instead of fixing the ratio in advance, you estimate parameters efficiently from the same grouped counts you are testing, subtract one more degree of freedom for each, the point Ronald Fisher made for contingency tables in 1922 and for the general case in 1924. Other ways of estimating change the null distribution, so do not subtract mechanically (the Graduate level gives the case of estimates from ungrouped data). Keep the two kinds of test apart: a goodness-of-fit test against four classes has 3 df, while a 2 × 2 test of whether two traits are associated has 1 df.
+
+### Small expected counts
+
+The 0.05 line at 7.81 is accurate for the worked problem because every expected count there is 10 or more. In a simulation of 16-plant F2s, where the smallest expected count is 1, a true 9:3:3:1 was rejected 4.1% of the time, not 5%. That drift is why the rule asks for about five per class.
+
+### Counting all eight paths
+
+The eight paths of the three-gene cross in worked problem part 1 fall into four groups: all dominant, 27/64 ((3/4)^3); exactly two, 27/64; exactly one, 9/64 (three paths of 3/64 each); and none, 1/64. They sum to 64/64, a check that no path was missed.
+
+### Mendel, Fisher and the fit that was too close
+
+Fisher's 1936 re-analysis of Mendel's paper, and his argument that progeny tests with only ten seeds per plant should have given about 1.7 : 1, not 2 : 1, are told in the anecdotes "Too good to be true?" and "The hidden two-thirds". The Graduate level summarizes the proposed explanations; later analyses disagree about how strong the evidence for an excessive fit is.

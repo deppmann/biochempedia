@@ -1,0 +1,630 @@
+{
+ "slug": "speciation",
+ "title": "Speciation: How Barriers to Gene Flow Evolve",
+ "generated": {
+  "date": "2026-11-11",
+  "pipeline": "extract → Opus draft → Sonnet accuracy gate → Sonnet fixes",
+  "models": {
+   "draft": "claude-opus-5-5",
+   "gate": "claude-sonnet-5-5",
+   "fix": "claude-sonnet-5-5"
+  }
+ },
+ "lessonHash": "9aaff3e3b92f",
+ "sectionHashes": {
+  "(opening)": "80178805e1ff",
+  "Measuring barriers, and why their leaks multiply": "a7dc1faad0ce",
+  "Kinds of barrier: before and after the zygote": "bef734fbd0e4",
+  "How barriers evolve: divergent selection": "79cce8ef1dd9",
+  "Geography and mechanism are separate questions": "ee8a91e5479c",
+  "Polyploidy: isolation in one step": "a5a9e5f0ac8d",
+  "What counts as a species: criteria as evidence": "a71b883fb9f4",
+  "Design problem": "dcbe5137f2ae",
+  "The monkeyflower numbers": "a32aedbc7dec",
+  "An isolation index is not genome-wide separation": "146d8671bee6",
+  "Panama and the snapping shrimps": "ef34135c6aff"
+ },
+ "cards": [
+  {
+   "id": "speciation-c01",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In sexually reproducing organisms, what is speciation?",
+   "back": "The evolution of reproductive barriers that reduce gene flow between populations that once interbred.",
+   "quote": "speciation is the evolution of reproductive barriers that reduce gene flow between populations that once interbred."
+  },
+  {
+   "id": "speciation-c02",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why can several partial reproductive barriers block far more gene flow than any one of them?",
+   "back": "Gene flow is whatever leaks through each barrier in turn, so the fractions that get through multiply. Several modest leaks multiplied together leave very little.",
+   "quote": "is whatever leaks through a series of barriers, so the fractions that get through multiply."
+  },
+  {
+   "id": "speciation-c03",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A reproductive barrier's strength, {{c1::RI (reproductive isolation)}}, is the share of the gene flow reaching that barrier that it stops, measured against a control.",
+   "back": "",
+   "quote": "is the share of the gene flow reaching that barrier that it stops, measured against a control.",
+   "section": "Measuring barriers, and why their leaks multiply"
+  },
+  {
+   "id": "speciation-c04",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Range maps show two plant species growing together only 25% as often as they would if spread at random. What is the RI of the habitat barrier?",
+   "back": "RI = 1 − 0.25 = 0.75. The habitat barrier stops 75% of potential gene flow relative to the random-placement control.",
+   "quote": "if range maps show two species growing together only 40% as often as they would if spread at random",
+   "section": "Measuring barriers, and why their leaks multiply"
+  },
+  {
+   "id": "speciation-c05",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "For barriers acting in sequence and independently, total isolation = {{c1::1 − (1 − RI1) × (1 − RI2) × (1 − RI3)}}.",
+   "back": "One minus the product of the fractions each barrier lets through.",
+   "quote": "As a formula, the one idea reads: total isolation = 1 − (1 − RI1) × (1 − RI2) × (1 − RI3)",
+   "section": "Measuring barriers, and why their leaks multiply"
+  },
+  {
+   "id": "speciation-c06",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Three barriers act in sequence and independently: RI = 0.50, then 0.80, then 0.50. Find the total isolation and each barrier's credit.",
+   "back": "Gene flow left = 0.50 × 0.20 × 0.50 = 0.05, so total = 0.95. Credits: 0.50; 0.80 × 0.50 = 0.40; 0.50 × 0.10 = 0.05. They sum to 0.95.",
+   "why": "Each credit is the barrier's RI times the gene flow still reaching it, so credits add to the total.",
+   "quote": "The credits add up to the total isolation: 0.60 + 0.36 + 0.02 = 0.98.",
+   "section": "Measuring barriers, and why their leaks multiply"
+  },
+  {
+   "id": "speciation-c07",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "Why can barrier credits be added to get total isolation, while raw RI values cannot?",
+   "back": "Each credit is already weighted by the gene flow left for it. Raw strengths are not: in the monkeyflower-style ledger they sum to 2.00, more than all the gene flow there is.",
+   "quote": "Credits can be added because each is already weighted by the gene flow left for it",
+   "section": "Measuring barriers, and why their leaks multiply"
+  },
+  {
+   "id": "speciation-c08",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "In a ledger where habitat (RI 0.60) acts before pollinators (RI 0.90), why does habitat get more credit (0.60) than pollinators (0.36)?",
+   "back": "Habitat acts first and leaves pollinators only 0.40 of the gene flow to block; 0.90 × 0.40 = 0.36.",
+   "quote": "because habitat acts first and leaves pollinators only 0.40 to block",
+   "section": "Measuring barriers, and why their leaks multiply"
+  },
+  {
+   "id": "speciation-c09",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Barriers act in the order habitat (RI 0.60), pollinators (RI 0.90), hybrid fertility (RI 0.50). Pollinators are moved to act first. What happens to total isolation and to each barrier's credit?",
+   "back": "Total stays 0.98, since multiplication ignores order. Credit moves: pollinators 0.90, habitat 0.60 × 0.10 = 0.06, hybrid fertility still 0.02.",
+   "why": "A barrier's credit depends on its position as well as its strength, so \"which barrier matters most\" has an answer only for a stated order; in real pairs the life cycle sets it.",
+   "quote": "The total stays 0.98, because multiplication does not care about order.",
+   "section": "Measuring barriers, and why their leaks multiply"
+  },
+  {
+   "id": "speciation-c10",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "What does the 99.87% total isolation estimated for the monkeyflowers Mimulus lewisii and M. cardinalis represent, and what does it not show?",
+   "back": "Combined isolation across barriers through the life cycle, averaged over the two directions of gene flow. It does not show that the genomes never mix.",
+   "quote": "It is the mean of their estimates for the two directions of gene flow, not a sign that the genomes never mix",
+   "section": "Measuring barriers, and why their leaks multiply"
+  },
+  {
+   "id": "speciation-c11",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "What event divides prezygotic from postzygotic reproductive barriers?",
+   "back": "Formation of the zygote (fertilized egg). Prezygotic barriers act before it; postzygotic barriers act after a hybrid zygote forms.",
+   "quote": "prezygotic barriers act before it, postzygotic barriers after a hybrid zygote forms",
+   "section": "Kinds of barrier: before and after the zygote"
+  },
+  {
+   "id": "speciation-c12",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Name the five common prezygotic and two postzygotic barrier categories.",
+   "back": "Prezygotic: ecogeographic (habitat), temporal, behavioral, mechanical, gametic. Postzygotic: hybrid inviability, hybrid sterility.",
+   "quote": "Common textbook categories include these seven:",
+   "section": "Kinds of barrier: before and after the zygote"
+  },
+  {
+   "id": "speciation-c13",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Two flowering plant species grow intermixed and bloom at the same time, but each is visited by a different pollinator that rarely switches between them. Which barrier is this, and is it pre- or postzygotic?",
+   "back": "Behavioral isolation, prezygotic. In plants, pollinator preference plays the role that courtship or mate choice plays in animals.",
+   "quote": "Courtship, song, scent or mate preference differ; in plants, pollinator preference plays this role",
+   "section": "Kinds of barrier: before and after the zygote"
+  },
+  {
+   "id": "speciation-c14",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Two sea urchin species release eggs and sperm into the same water at the same time, but sperm of one fail to fertilize eggs of the other. Classify the barrier.",
+   "back": "Gametic isolation, a prezygotic barrier: the gametes are incompatible, so fertilization fails.",
+   "quote": "Egg and sperm, or pollen and stigma, are incompatible, so fertilization fails",
+   "section": "Kinds of barrier: before and after the zygote"
+  },
+  {
+   "id": "speciation-c15",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A cross between two animal species gives healthy adult hybrids that produce almost no offspring. Classify the barrier.",
+   "back": "Hybrid sterility, a postzygotic barrier: the hybrid zygote forms and survives, but its fertility is reduced or absent.",
+   "quote": "Hybrids survive but have reduced fertility or none",
+   "section": "Kinds of barrier: before and after the zygote"
+  },
+  {
+   "id": "speciation-c16",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Give two causes of hybrid sterility.",
+   "back": "Genes that changed separately in each lineage and work badly together in the hybrid; and chromosomes that pair poorly at meiosis.",
+   "quote": "Sterility often traces to genes that changed separately in each lineage and work badly together in a hybrid.",
+   "section": "Kinds of barrier: before and after the zygote"
+  },
+  {
+   "id": "speciation-c17",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "What is divergent selection?",
+   "back": "Selection that favours different traits in different places.",
+   "quote": "the mark of divergent selection, selection that favours different traits in different places",
+   "section": "How barriers evolve: divergent selection"
+  },
+  {
+   "id": "speciation-c18",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In plants, what commonly drives the evolution of prezygotic barriers?",
+   "back": "Adaptation to different pollinators and habitats. The barriers arise as by-products of that adaptation, which is ecological speciation.",
+   "quote": "in plants adaptation to different pollinators and habitats commonly drives the evolution of prezygotic barriers",
+   "section": "How barriers evolve: divergent selection"
+  },
+  {
+   "id": "speciation-c19",
+   "type": "experiment",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "For the monkeyflowers M. lewisii and M. cardinalis, what experiments showed that each species is adapted to its own elevation, and what did Ramsey and colleagues conclude about the main barriers?",
+   "back": "Transplant experiments. They concluded that ecological factors, products of adaptive divergence, were the main barriers between the pair.",
+   "quote": "transplant experiments showed that each species is adapted to the elevations where it normally grows",
+   "section": "How barriers evolve: divergent selection"
+  },
+  {
+   "id": "speciation-c20",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Several lakes each hold a benthic (bottom-feeding) and a limnetic (open-water) stickleback form, and each lake's pair arose independently. What mating-trial pattern would show that isolation follows ecology, and what does it point to?",
+   "back": "Benthic-limnetic pairs rarely spawn, even across lakes, while same-form pairs from different lakes spawn about as often as within one lake. This points to divergent selection as the likely cause.",
+   "why": "The trials do not show which traits drive mate preference, or where the forms first diverged.",
+   "quote": "benthic-limnetic stickleback isolation following ecology lake after lake, the mark of divergent selection",
+   "section": "How barriers evolve: divergent selection"
+  },
+  {
+   "id": "speciation-c21",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "How does reinforcement strengthen prezygotic isolation?",
+   "back": "Two forms meet and their hybrids do poorly, so individuals that avoid mating with the other form leave more offspring, and prezygotic isolation grows stronger.",
+   "quote": "In reinforcement, two forms meet and their hybrids do poorly, so individuals that avoid mating with the other form leave more offspring",
+   "section": "How barriers evolve: divergent selection"
+  },
+  {
+   "id": "speciation-c22",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "What is mutation-order speciation?",
+   "back": "Separate populations under similar selection fix different advantageous mutations that work badly together when the populations meet, so hybrids suffer. No divergent selection between habitats is needed.",
+   "quote": "separate populations under similar selection fix different advantageous mutations, and those mutations work badly together when the populations meet",
+   "section": "How barriers evolve: divergent selection"
+  },
+  {
+   "id": "speciation-c23",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "Two isolated fish populations under similar selection fix different advantageous mutations. Later their ranges meet, and hybrids do poorly. Name the mechanism that built the first barrier, then predict what selection may do to mate choice after contact.",
+   "back": "Mutation-order speciation built the postzygotic barrier. Because hybrids do poorly where the forms meet, reinforcement can then favour individuals that avoid the other form, strengthening prezygotic isolation.",
+   "why": "Rests on the two definitions: mutation-order needs no habitat difference; reinforcement needs contact plus poor hybrids.",
+   "quote": "so individuals that avoid mating with the other form leave more offspring, and prezygotic isolation grows stronger",
+   "section": "How barriers evolve: divergent selection"
+  },
+  {
+   "id": "speciation-c24",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "What separate questions do the geography and the mechanism of speciation answer?",
+   "back": "Geography: where the populations were while they diverged. Mechanism: what process built the barriers.",
+   "why": "Ecological speciation is a mechanism, not a third geographic mode; it can act in allopatry or sympatry.",
+   "quote": "Geography asks where the populations were while they diverged; mechanism asks what process built the barriers.",
+   "section": "Geography and mechanism are separate questions"
+  },
+  {
+   "id": "speciation-c25",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Distinguish allopatric from sympatric speciation.",
+   "back": "Allopatric: in populations that are physically separated. Sympatric: without a geographic barrier, within one area.",
+   "quote": "Allopatric speciation happens in populations that are physically separated.",
+   "section": "Geography and mechanism are separate questions"
+  },
+  {
+   "id": "speciation-c26",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A few lizards drift on debris to a distant island and found a population that later becomes a new species. Name the geographic mode and the route of separation.",
+   "back": "Allopatric speciation by dispersal: a few individuals founded a new population somewhere else.",
+   "why": "The other allopatric route, vicariance, is a new barrier such as a sea or mountain range dividing one population.",
+   "quote": "or by dispersal, when a few individuals found a new population somewhere else",
+   "section": "Geography and mechanism are separate questions"
+  },
+  {
+   "id": "speciation-c27",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Two cichlid species live together today in one small crater lake in Nicaragua. Does their coexistence show they diverged in that lake?",
+   "back": "No. Divergence in the lake and divergence elsewhere followed by secondary contact both end with the species living together. Telling them apart needs genetic data from possible source populations and model comparison.",
+   "quote": "or diverged elsewhere and met later, called secondary contact; both histories end with the species living together",
+   "section": "Geography and mechanism are separate questions"
+  },
+  {
+   "id": "speciation-c28",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "Design a study to decide whether two cichlid species in one crater lake diverged there (sympatric speciation) or arrived separately (secondary contact).",
+   "back": "Sample the lake and every plausible source population; genotype genome-wide; ask whether the lake species are each other's closest relatives; compare models of divergence with gene flow against isolation then contact; test for admixture; use crater age as an upper bound. Report support, not proof.",
+   "quote": "Simulate divergence with gene flow from the start against isolation followed by contact, and compare how well each fits the data.",
+   "section": "Design problem"
+  },
+  {
+   "id": "speciation-c29",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Species pairs split by the Isthmus of Panama were used to calibrate molecular clocks, assuming every pair split at closure. In seven snapping-shrimp pairs, genetic distance varies several-fold and larger distances go with lower cross-ocean mating in the lab. What does this imply for the calibration?",
+   "back": "The pairs were isolated at different times, some probably before final closure, so one split date for all pairs would miscalibrate the clock.",
+   "why": "Ancestral variation present before the split can also widen the spread of mitochondrial distances.",
+   "quote": "Biologists used species pairs split by it to calibrate molecular clocks, assuming every pair split when the land closed.",
+   "section": "Panama and the snapping shrimps"
+  },
+  {
+   "id": "speciation-c30",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "What is polyploidy, and in which group is polyploid speciation particularly frequent?",
+   "back": "A gain of extra whole chromosome sets. Polyploid speciation is particularly frequent in plants.",
+   "quote": "Polyploidy is a gain of extra whole chromosome sets",
+   "section": "Polyploidy: isolation in one step"
+  },
+  {
+   "id": "speciation-c31",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "When a hybrid between two species duplicates its genome, the route to a new species is called {{c1::allopolyploidy}}.",
+   "back": "Polyploid speciation most often happens together with hybridization.",
+   "quote": "a hybrid between two species duplicates its genome, a route called allopolyploidy",
+   "section": "Polyploidy: isolation in one step"
+  },
+  {
+   "id": "speciation-c32",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why does genome duplication give a new polyploid lineage partial reproductive isolation from its parents in a single generation?",
+   "back": "A cross back to a parent gives offspring with unmatched chromosome sets, which pair poorly at meiosis, so those offspring are often sterile.",
+   "quote": "a cross back to a parent gives offspring with unmatched chromosome sets, which pair poorly at meiosis, so those offspring are often sterile",
+   "section": "Polyploidy: isolation in one step"
+  },
+  {
+   "id": "speciation-c33",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A tetraploid plant lineage has just arisen from diploids in the same population. Predict the fertility of tetraploid x diploid offspring, and classify the barrier.",
+   "back": "Tetraploid x diploid offspring have unmatched chromosome sets and are often sterile: a partial postzygotic barrier, present from the first generation.",
+   "quote": "The duplication gives the new lineage partial reproductive isolation from its parent species in a single generation",
+   "section": "Polyploidy: isolation in one step"
+  },
+  {
+   "id": "speciation-c34",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A tetraploid plant arises within a diploid population and becomes partially isolated while growing in the same meadow. Classify this case by geography and by mechanism.",
+   "back": "Geography: sympatric, since no geographic barrier separates them. Mechanism: polyploidy, partial isolation from chromosome number, not divergent selection.",
+   "why": "Rests on keeping geography (where) and mechanism (what built the barrier) as separate questions.",
+   "quote": "Sympatric speciation happens without a geographic barrier, within one area.",
+   "section": "Geography and mechanism are separate questions"
+  },
+  {
+   "id": "speciation-c35",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "What is a metapopulation lineage?",
+   "back": "A series of connected populations, ancestors to descendants, that evolves as one unit through time.",
+   "quote": "a series of connected populations, ancestors to descendants, that evolves as one unit through time",
+   "section": "What counts as a species: criteria as evidence"
+  },
+  {
+   "id": "speciation-c36",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "How does the biological species criterion define species?",
+   "back": "Groups of actually or potentially interbreeding natural populations that are reproductively isolated from other such groups.",
+   "quote": "groups of actually or potentially interbreeding natural populations that are reproductively isolated from other such groups",
+   "section": "What counts as a species: criteria as evidence"
+  },
+  {
+   "id": "speciation-c37",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Two butterfly forms that fly together occasionally produce fertile hybrids. Does that alone show they are one species under the biological criterion?",
+   "back": "No. Occasional fertile hybrids do not by themselves erase isolation if the populations stay distinct, as in the Heliconius pair.",
+   "quote": "Occasional fertile hybrids do not by themselves erase that isolation if the populations stay distinct",
+   "section": "What counts as a species: criteria as evidence"
+  },
+  {
+   "id": "speciation-c38",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "What does the ecological species criterion use to separate species?",
+   "back": "The niche: the set of conditions and resources a population uses.",
+   "quote": "The ecological criterion separates species by their niche, the set of conditions and resources a population uses.",
+   "section": "What counts as a species: criteria as evidence"
+  },
+  {
+   "id": "speciation-c39",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "What are the two versions of the phylogenetic species criterion?",
+   "back": "A species must be diagnosable by fixed character differences, or it must be monophyletic (an ancestor and all its descendants).",
+   "quote": "One asks that a species be diagnosable by fixed character differences.",
+   "section": "What counts as a species: criteria as evidence"
+  },
+  {
+   "id": "speciation-c40",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A paleontologist has only fossil shells of two forms; a microbiologist has only an asexual microbe. Which species criterion is unusable in both cases, and what do paleontologists use instead?",
+   "back": "The biological criterion: asexual organisms do not interbreed, and fossils cannot be tested. Paleontologists use differences in form (morphological criteria).",
+   "quote": "It fails for asexual organisms, which do not interbreed at all, and for fossils, which cannot be tested.",
+   "section": "What counts as a species: criteria as evidence"
+  },
+  {
+   "id": "speciation-c41",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "In de Queiroz's unified species concept, why do species criteria often disagree for young species?",
+   "back": "Each criterion detects a property a lineage acquires as it separates, and those properties arise at different times.",
+   "quote": "The properties arise at different times, so for young species the criteria disagree.",
+   "section": "What counts as a species: criteria as evidence"
+  },
+  {
+   "id": "speciation-c42",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "Two young lizard populations have fixed differences in scale pattern and use distinct niches, but lab crosses give fertile hybrids and neither is monophyletic. Under de Queiroz's view, how strong is the case that they are separate species?",
+   "back": "Partial: two lines of evidence (diagnosability, niche) agree and two (interbreeding, monophyly) do not yet. Disagreement is expected early, since properties arise at different times; more agreement would strengthen the case.",
+   "why": "Criteria are lines of evidence, not rival definitions; fertile hybrids alone do not rule out two species.",
+   "quote": "In his unified concept they are lines of evidence, and the more agree, the stronger the case for separate evolution.",
+   "section": "What counts as a species: criteria as evidence"
+  },
+  {
+   "id": "speciation-c43",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "Monkeyflower isolation of 99.87% leaves about 0.13% of gene flow. If that leak could make neutral genome regions nearly alike, how do the species stay distinct?",
+   "back": "Selection keeps the barrier genes and adapted traits apart, even with some gene flow.",
+   "why": "An isolation index is not a migration rate, so the leak is only a toy illustration.",
+   "quote": "Species with strong isolation can stay distinct because selection keeps the barrier genes and adapted traits apart",
+   "section": "An isolation index is not genome-wide separation"
+  },
+  {
+   "id": "speciation-c44",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "For M. lewisii and M. cardinalis, ecogeographic isolation was estimated at 58.7% and pollinator isolation at 97.6%. Treating them as sequential, independent barriers, what total isolation do these two alone give?",
+   "back": "Left = 0.413 × 0.024 ≈ 0.0099, so total ≈ 0.990 (about 99.0%).",
+   "why": "The pollinator figure counts foraging bouts, and visits are not always pollen moved, so this is a rough estimate for this pair only.",
+   "quote": "ecogeographic isolation was estimated at 58.7% from herbarium records, 97.6% of pollinator foraging bouts in a mixed population stayed on one species",
+   "section": "The monkeyflower numbers"
+  },
+  {
+   "id": "speciation-c45",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Two plant species give hybrid seed when crossed by hand, yet in the wild almost no genes pass between them. Explain how both can be true and where the barriers likely came from.",
+   "back": "Hand crossing bypasses the habitat and pollinator barriers. In the wild, several partial barriers (habitat, pollinators, hybrid fitness) each leak a little and the leaks multiply, so total isolation is near complete. These barriers often arise as by-products of adapting to different places and pollinators.",
+   "why": "Rests on the multiplying-leaks rule plus ecological speciation.",
+   "quote": "Several partial barriers can therefore block far more gene flow than any one of them"
+  }
+ ]
+}

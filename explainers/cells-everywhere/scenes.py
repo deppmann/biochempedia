@@ -1,386 +1,778 @@
-"""Cells are everywhere: too small to see, still alive  (grade 7 Life Science explainer)
+"""The Size Test (Cells Are Everywhere, film 1)
 
-COLOR MAP (one color per concept, whole film)
-  BLUE   = cells and tiny living things
-  TEAL   = microscopes and their lenses
-  ORANGE = size limits (the eye's limit, the light microscope's limit)
-  YELLOW = vocabulary words as they are defined
-  GREEN  = results, totals, the cell theory, the answer
-  RED    = the crossed-out "guess"
-  GREY   = outlines, axes, neutral structure
+COLOUR MAP (one colour per concept, whole film)
+  BLUE   = the eye line (the limit of the eye, 100 um) and water
+  BROWN  = frog egg      PINK = human egg      GREEN = green alga
+  RED    = red blood cell  AMBER = bacterium   TEAL = Paramecium
+  YELLOW = vocabulary, counters, the dial
+  The size ladder is computed: y = Y0 + DEC * (log10(size in um) + 1).
 """
 import numpy as np
 from bp_style import *  # noqa: F401,F403
 
-ORANGE = "#F29E4C"
+BROWN = "#B9784A"
+PINK = "#F2B8CC"
+AMBER = "#F2A93B"
+PAPER = "#F2F2F2"
+STEEL = "#B8C0CC"
+
+AX = -4.6          # x of the ladder axis
+Y0 = -3.0          # y of 0.1 um
+DEC = 1.24         # height of one decade (one rung)
+EYE_X1 = 6.4       # right end of the eye line
 
 
-def vocab(text, size=36):
-    return T(text, size, YELLOW, weight=BOLD)
+def Y(v):
+    """y on screen of a size v in micrometres (log ladder)."""
+    return Y0 + DEC * (np.log10(v) + 1)
 
 
-def arr(a, b, color=GREY, w=5):
-    return Arrow(a, b, buff=0.08, color=color, stroke_width=w, tip_length=0.22,
-                 max_tip_length_to_length_ratio=0.45, max_stroke_width_to_length_ratio=12)
+RUNGS = [(0.1, "0.1 µm"), (1, "1 µm"), (10, "10 µm"), (100, "100 µm"), (1000, "1,000 µm"), (10000, "10 mm")]
+CELLS = {  # kind: (column x, real size in um, colour)
+    "frog": (-3.4, 1000, BROWN),
+    "human": (-2.0, 100, PINK),
+    "alga": (-0.2, 20, GREEN),
+    "rbc": (1.4, 7.7, RED),
+    "bact": (3.0, 2, AMBER),
+}
 
 
-def cell_shape(w=1.2, h=0.8, x=0, y=0, color=BLUE, op=0.18):
-    return Ellipse(width=w, height=h, stroke_color=color, stroke_width=4, fill_color=color, fill_opacity=op).move_to([x, y, 0])
+def icon(kind, s=1.0):
+    """Cartoon cell icon, always the same colour. Not drawn to scale (the ladder carries the size)."""
+    if kind == "frog":
+        g = VGroup(Circle(0.38 * s, stroke_color="#7A4A2A", stroke_width=3, fill_color=BROWN, fill_opacity=1),
+                   Circle(0.13 * s, stroke_width=0, fill_color="#D9A27A", fill_opacity=0.8).shift(UL * 0.15 * s))
+    elif kind == "human":
+        g = VGroup(Circle(0.3 * s, stroke_color="#C97A9A", stroke_width=3, fill_color=PINK, fill_opacity=1),
+                   Circle(0.1 * s, stroke_width=0, fill_color="#E58FB0", fill_opacity=0.9))
+    elif kind == "alga":
+        g = VGroup(Circle(0.3 * s, stroke_color="#2E7D32", stroke_width=3, fill_color=GREEN, fill_opacity=1),
+                   Circle(0.09 * s, stroke_width=0, fill_color="#B7E4A0", fill_opacity=0.9).shift(UL * 0.1 * s))
+    elif kind == "rbc":
+        g = VGroup(Ellipse(width=0.66 * s, height=0.5 * s, stroke_color="#9E2A2A", stroke_width=3, fill_color=RED, fill_opacity=1),
+                   Ellipse(width=0.26 * s, height=0.18 * s, stroke_width=0, fill_color="#9E2A2A", fill_opacity=0.65))
+    elif kind == "bact":
+        g = VGroup(RoundedRectangle(corner_radius=0.1 * s, width=0.6 * s, height=0.22 * s, stroke_color="#A86A10",
+                                    stroke_width=3, fill_color=AMBER, fill_opacity=1))
+    elif kind == "para":
+        body = Ellipse(width=1.0 * s, height=0.42 * s, stroke_color=TEAL, stroke_width=3, fill_color=TEAL, fill_opacity=0.55)
+        hairs = VGroup()
+        for th in np.linspace(0, 2 * np.pi, 26, endpoint=False):
+            p = np.array([0.5 * s * np.cos(th), 0.21 * s * np.sin(th), 0])
+            n = np.array([np.cos(th) * 0.5, np.sin(th) * 0.21, 0])
+            n = n / np.linalg.norm(n)
+            hairs.add(Line(p, p + n * 0.09 * s, color=TEAL, stroke_width=2))
+        g = VGroup(body, hairs)
+    else:
+        raise ValueError(kind)
+    return g
 
 
-def wander(mob, base, ax, ay, w1, w2, p, clock):
-    base = np.array(base, float)
-    mob.add_updater(lambda m, dt: m.move_to(base + np.array([ax * np.sin(w1 * clock() + p), ay * np.cos(w2 * clock() + 1.7 * p), 0])))
+def wobble(m, amp=0.04, w=1.3, ph=0.0):
+    """Slow ambient drift on a static object so a held frame is never dead."""
+    base = m.get_center().copy()
+    t = [ph]
+
+    def u(mm, dt):
+        t[0] += dt
+        mm.move_to(base + np.array([amp * np.sin(w * t[0] + ph), amp * np.cos(1.3 * w * t[0] + ph), 0]))
+    m.add_updater(u)
+    return m
 
 
-# Drawing helpers retain the old film's outlined cells, lenses and theory cards.
-def person(x=0, y=0):
-    head = Circle(0.28, color=GREY, stroke_width=4).shift(UP * 1.2)
-    body = RoundedRectangle(width=0.72, height=1.15, corner_radius=0.15,
-                            color=GREY, stroke_width=4).shift(UP * 0.25)
-    limbs = VGroup(Line([-0.3, 0.65, 0], [-0.8, -0.1, 0], color=GREY),
-                   Line([0.3, 0.65, 0], [0.8, -0.1, 0], color=GREY),
-                   Line([-0.2, -0.3, 0], [-0.5, -1.1, 0], color=GREY),
-                   Line([0.2, -0.3, 0], [0.5, -1.1, 0], color=GREY))
-    return VGroup(head, body, limbs).move_to([x, y, 0])
+def make_ladder():
+    axis = Line([AX, Y(0.1), 0], [AX, Y(10000), 0], color=STEEL, stroke_width=5)
+    ticks = [Line([AX - 0.14, Y(v), 0], [AX + 0.14, Y(v), 0], color=STEEL, stroke_width=4) for v, _ in RUNGS]
+    labs = []
+    for v, t in RUNGS:
+        lab = T(t, 28)
+        lab.move_to([AX - 0.22 - lab.width / 2, Y(v), 0])
+        labs.append(lab)
+    return axis, ticks, labs
 
 
-def oak(x=0, y=0):
-    trunk = Rectangle(width=0.35, height=1.5, color=GREY, stroke_width=4).shift(DOWN * 0.55)
-    crown = VGroup(*[Circle(0.65, color=GREY, fill_color=GREY, fill_opacity=0.08)
-                     .move_to([dx, dy, 0]) for dx, dy in [(-0.45, 0.45), (0.45, 0.45), (0, 1)]])
-    return VGroup(trunk, crown).move_to([x, y, 0])
+def grid(short=False):
+    x1 = -2.2 if short else EYE_X1
+    return VGroup(*[Line([AX, Y(v), 0], [x1, Y(v), 0], color="#2B3345", stroke_width=3) for v, _ in RUNGS if v != 100]).set_z_index(-3)
 
 
-def tiles(cols=2, rows=2, w=0.42, h=0.35):
-    return VGroup(*[RoundedRectangle(width=w, height=h, corner_radius=0.06,
-                    stroke_color=BLUE, stroke_width=2.5, fill_color=BLUE, fill_opacity=0.2)
-                   for _ in range(cols * rows)]).arrange_in_grid(rows, cols, buff=0.04)
+def eye_line(short=False):
+    x1 = -2.2 if short else EYE_X1
+    ln = Line([AX, Y(100), 0], [x1, Y(100), 0], color=BLUE, stroke_width=8)
+    lab = T("eye line" if short else "eye line, 100 µm", 28, BLUE, weight=BOLD)
+    lab.move_to([x1 - lab.width / 2 + 0.25, Y(100) + 0.3, 0])
+    return ln, lab
 
 
-def card_state(card, on, dur=0.4):
-    box, n, lab = card
-    return [box.animate.set_fill(GREEN, 0.35 if on else 0.08).set_stroke(GREEN, opacity=1 if on else 0.4),
-            n.animate.set_opacity(1 if on else 0.4), lab.animate.set_opacity(1 if on else 0.45)]
+def microscope(h=2.8):
+    s = h / 2.8
+    col = STEEL
+    base = RoundedRectangle(corner_radius=0.08, width=1.7, height=0.2, stroke_color=col, stroke_width=3, fill_color=col, fill_opacity=0.8).move_to([0, -1.4, 0])
+    arm = VMobject(color=col, stroke_width=14)
+    arm.set_points_smoothly([[0.55, -1.3, 0], [0.9, -0.6, 0], [0.85, 0.3, 0], [0.4, 0.95, 0]])
+    tube = Line([0.18, 1.2, 0], [-0.12, -0.05, 0], color=col, stroke_width=30)
+    eyep = Line([0.2, 1.25, 0], [0.26, 1.55, 0], color=col, stroke_width=16)
+    obj = Line([-0.13, -0.05, 0], [-0.16, -0.3, 0], color=TEAL, stroke_width=12)
+    stage = Line([-0.75, -0.7, 0], [0.6, -0.7, 0], color=col, stroke_width=9)
+    slide = Rectangle(width=0.7, height=0.07, stroke_width=0, fill_color=PAPER, fill_opacity=0.9).move_to([-0.2, -0.62, 0])
+    g = VGroup(base, arm, stage, slide, tube, eyep, obj)
+    g.scale(s)
+    g.lens = obj
+    return g
 
 
-def theory_cards():
-    texts = ["All living things are made of\none or more cells",
-             "The cell is the basic\nunit of life",
-             "All cells come from cells\nthat already exist"]
-    cards = VGroup()
-    for i, text in enumerate(texts):
-        box = RoundedRectangle(corner_radius=0.14, width=6.4, height=1.5,
-                               stroke_color=GREEN, stroke_width=3,
-                               fill_color=GREEN, fill_opacity=0.12)
-        n = T(str(i + 1), 40, GREEN, weight=BOLD).move_to(box.get_left() + RIGHT * 0.5)
-        lab = T(text, 27, TEXT).move_to(box.get_left() + RIGHT * (1 + T(text, 27).width / 2))
-        cards.add(VGroup(box, n, lab))
-    return cards.arrange(DOWN, buff=0.35).move_to([-3.2, -0.35, 0])
+def gauge(lm, center=(6.2, -0.2)):
+    """Dial gauge + readout, driven by a ValueTracker holding log10(magnification)."""
+    c = np.array([center[0], center[1], 0])
+    ring = Circle(0.46, stroke_color=STEEL, stroke_width=5, fill_color=BG, fill_opacity=1).move_to(c)
+
+    def ang():
+        return np.radians(-130 + lm.get_value() * 100)
+    ptr = always_redraw(lambda: Line(c, c + 0.36 * np.array([np.sin(ang()), np.cos(ang()), 0]), color=YELLOW, stroke_width=7))
+    hub = Dot(c, radius=0.06, color=YELLOW)
+    rd = always_redraw(lambda: M(f"{int(round(10 ** lm.get_value()))}x", 34, YELLOW, weight=BOLD).move_to([center[0] - 0.05, center[1] - 0.95, 0]))
+    return VGroup(ring, ptr, hub, rd)
 
 
-def daughters(x=3.65, y=0.5):
-    return VGroup(cell_shape(1.25, 1.15, x - 0.8, y),
-                  cell_shape(1.25, 1.15, x + 0.8, y))
+def make_card(kind, lm):
+    x, real, col = CELLS[kind]
 
+    def yy():
+        return Y(real * 10 ** lm.get_value())
+    box = RoundedRectangle(corner_radius=0.1, width=0.95, height=0.95, stroke_color=col, stroke_width=3, fill_color=PAPER, fill_opacity=1)
+    card = VGroup(box, icon(kind, 0.9))
+    card.move_to([x, yy(), 0])
+    card.add_updater(lambda m: m.move_to([x, yy(), 0]))
+    ptr = always_redraw(lambda: Line([AX, yy(), 0], [x - 0.48, yy(), 0], color=col, stroke_width=3).set_opacity(0.8))
+    return card, ptr
+
+
+def rule_text():
+    r = M("picture size = real size × magnification", 34, TEXT, weight=BOLD)
+    fit(r, max_w=10.6)
+    return r.move_to([1.0, -3.4, 0])
+
+
+def callout(lines, y, color=YELLOW, x=5.2):
+    g = VGroup(*[M(t, 28, color if i == len(lines) - 1 else TEXT, weight=BOLD) for i, t in enumerate(lines)]).arrange(DOWN, buff=0.12, aligned_edge=LEFT)
+    g.move_to([x, y, 0])
+    return g
+
+
+def schem():
+    return T("schematic", 22, STEEL).move_to([6.1, 3.62, 0])
+
+
+def ripples(center, r, n=3, period=3.0, color=BLUE):
+    rings = VGroup(*[Circle(radius=r * 0.3).move_to(center) for _ in range(n)])
+    clock = [0.0]
+
+    def upd(g, dt):
+        clock[0] += dt
+        for i, ring in enumerate(g):
+            ph = ((clock[0] / period) + i / n) % 1
+            ring.become(Circle(radius=r * (0.3 + 0.7 * ph), stroke_color=color, stroke_width=3, stroke_opacity=0.55 * (1 - ph)).move_to(center))
+    rings.add_updater(upd)
+    return rings
+
+
+class LS(SpokenScene):
+    def add_ladder(self, labels=True, short=False):
+        self.add(grid(short))
+        axis, ticks, labs = make_ladder()
+        self.axis, self.ticks, self.labs = axis, ticks, labs
+        self.ladder = VGroup(axis, *ticks, *labs)
+        self.add(self.ladder)
+        return self.ladder
+
+    def add_eye(self, short=False):
+        self.eye, self.eyelab = eye_line(short)
+        self.eyelab.set_z_index(20)
+        self.add(self.eye, self.eyelab)
+
+    def add_icons(self, kinds, wob=True):
+        self.icons = {}
+        for i, k in enumerate(kinds):
+            x, real, col = CELLS[k]
+            ic = icon(k, 1.35).move_to([x, Y(real), 0])
+            if wob:
+                wobble(ic, 0.06, 1.1 + 0.2 * i, i)
+            self.icons[k] = ic
+            self.add(ic)
+
+    def add_scope(self):
+        self.scope = microscope().move_to([4.45, -1.15, 0])
+        self.add(self.scope)
+        wobble(self.scope.lens, 0.0)  # placeholder, keeps lens in the same place
+        self.scope.lens.clear_updaters()
+        g = self.scope.lens
+        g.t = 0.0
+
+        def glow(m, dt):
+            m.t += dt
+            m.set_stroke(opacity=0.65 + 0.35 * np.sin(2.2 * m.t))
+        g.add_updater(glow)
+
+
+# ---------------------------------------------------------------- scenes
 
 class S00Title(TitleCard):
-    LESSON = "Cells are everywhere"
-    TITLE = "Too Small to See, Still Alive"
+    LESSON = "Cells Are Everywhere"
+    TITLE = "The Size Test"
 
 
-class S01Drop(SpokenScene):
+class S01Question(LS):
     def construct(self):
-        drop = Circle(radius=1.4, stroke_color=GREY, stroke_width=4,
-                      fill_color=GREY, fill_opacity=0.06).move_to([-4.4, 0.25, 0])
-        label = T("pond-water drop", 28).move_to([-4.4, -2, 0])
-        clear = T("looks clear", 30, GREY).move_to([-4.4, 2.4, 0])
-        self.at("A drop of pond water")
-        self.play(FadeIn(drop), FadeIn(label), run_time=0.55)
-        self.at("completely clear")
-        self.play(FadeIn(clear), run_time=0.45)
-
-        view = Circle(radius=1.65, stroke_color=TEAL, stroke_width=5,
-                      fill_color=TEAL, fill_opacity=0.05).move_to(drop)
-        mic = T("microscope view", 28, TEAL).move_to(clear)
-        blobs = VGroup(cell_shape(0.9, 0.5, -4.9, 0.9),
-                       cell_shape(0.7, 0.48, -3.7, 0.4), cell_shape(0.85, 0.55, -4.6, -0.5))
-        self.at("tiny living things")
-        self.play(Transform(drop, view), ReplacementTransform(clear, mic), FadeIn(blobs), run_time=0.6)
-
-        onion = VGroup(cell_shape(1.9, 2.2, 0, 0.25, color=GREY),
-                       Line([0, 1.3, 0], [0.15, 1.85, 0], color=GREY, stroke_width=4),
-                       T("onion", 28).move_to([0, -2, 0]))
-        human = VGroup(person(4.4, 0.3), T("you", 28).move_to([4.4, -2, 0]))
-        self.at("an onion")
-        self.play(FadeIn(onion), run_time=0.4)
-        self.at("and you")
-        self.play(FadeIn(human), run_time=0.3)
-        patches = VGroup(tiles(2, 3).move_to([0, 0.25, 0]),
-                         tiles(2, 2, 0.24, 0.28).move_to([4.4, 0.55, 0]))
-        self.at("all made of cells")
-        self.play(FadeIn(patches), *[Indicate(b, color=BLUE, scale_factor=1.1) for b in blobs], run_time=0.55)
+        jar = VGroup(
+            RoundedRectangle(corner_radius=0.3, width=2.2, height=2.7, stroke_color="#9FD3E6", stroke_width=5,
+                             fill_color=BLUE, fill_opacity=0.12),
+            Rectangle(width=1.5, height=0.28, stroke_color=STEEL, stroke_width=3, fill_color=STEEL, fill_opacity=0.7).shift(UP * 1.45),
+        ).move_to([-2.6, 1.2, 0])
+        slide = Rectangle(width=4.6, height=0.2, stroke_color="#9FD3E6", stroke_width=3, fill_color="#9FD3E6", fill_opacity=0.3).move_to([-2.6, -1.9, 0])
+        drop = Circle(0.2, stroke_color="#BFE6F2", stroke_width=3, fill_color=BLUE, fill_opacity=0.35).move_to([-2.6, -0.2, 0])
+        self.at("This drop")
+        self.play(FadeIn(jar, shift=DOWN * 0.3), FadeIn(slide), run_time=0.9)
+        self.play(FadeIn(drop, scale=0.5), run_time=0.3)
+        self.play(drop.animate.move_to([-2.6, -1.7, 0]), rate_func=rush_into, run_time=0.9)
+        flat = Ellipse(width=1.7, height=0.3, stroke_color="#BFE6F2", stroke_width=3, fill_color=BLUE, fill_opacity=0.3).move_to([-2.6, -1.68, 0])
+        self.play(Transform(drop, flat), run_time=0.6)
+        self.at("Is it")
+        q = T("?", 190, TEXT, weight=BOLD).move_to([4.5, 0.4, 0])
+        self.play(FadeIn(q, scale=0.4), run_time=0.7)
+        self.at("And if tiny living things")
+        big = Circle(2.5, stroke_color=BLUE, stroke_width=5, fill_color=BLUE, fill_opacity=0.14).move_to([0.3, 0.2, 0])
+        rip = ripples([0.3, 0.2, 0], 2.5)
+        self.play(FadeOut(jar), FadeOut(slide), ReplacementTransform(drop, big), run_time=1.4)
+        self.add(rip)
+        self.at("why can't your eyes")
+        self.play(big.animate.scale(1.12), q.animate.shift(RIGHT * 0.3), run_time=2.3, rate_func=linear)
+        self.at("To answer")
+        self.play(Indicate(q, color=YELLOW, scale_factor=1.12), run_time=1.0)
+        self.add(schem())
         self.finish()
 
 
-class S05Theory(SpokenScene):
+class S02Ruler(LS):
     def construct(self):
-        cell = cell_shape(4.0, 2.7, 0, 0.5)
-        label = T("smallest unit\nof life", 32, BLUE).move_to([0, -1.7, 0])
-        self.at("A cell is")
-        self.play(FadeIn(cell), run_time=0.5)
-        self.at("smallest unit")
-        self.play(FadeIn(label), run_time=0.5)
-        head = vocab("cell theory", 40).move_to([0, 3.15, 0])
-        self.at("The cell theory")
-        self.play(FadeIn(head), cell.animate.scale(0.7).move_to([3.65, 0.5, 0]),
-                  label.animate.move_to([3.65, -1.3, 0]), run_time=0.65)
-        cards = theory_cards()
-        self.at("All living things")
-        self.play(FadeIn(cards[0]), Indicate(cell, color=BLUE), run_time=0.6)
-        self.at("The cell is the basic")
-        self.play(FadeIn(cards[1]), run_time=0.6)
-        self.at("All cells come")
-        existing = T("an existing cell", 30, BLUE).move_to([3.65, -1.3, 0])
-        self.play(FadeIn(cards[2]), ReplacementTransform(label, existing), run_time=0.45)
-        self.at("cells that already exist")
-        # The original cell deforms into two; new cells do not appear from empty space.
-        pair = daughters()
-        pinch = VGroup(cell_shape(1.55, 1.5, 3.05, 0.5), cell_shape(1.55, 1.5, 4.25, 0.5))
-        self.play(ReplacementTransform(cell, pinch), run_time=0.45)
-        self.play(Transform(pinch, pair), ReplacementTransform(existing,
-                  T("new cells", 30, BLUE).move_to(existing)), run_time=0.55)
+        ruler = VGroup(Rectangle(width=12.6, height=1.7, stroke_color="#8A6D3B", stroke_width=4, fill_color="#D9B98A", fill_opacity=0.95))
+        ticks = VGroup(*[Line([x, 0.85, 0], [x, 0.3, 0], color="#4B3716", stroke_width=3) for x in np.arange(-6.3 + 0.35, 6.3, 0.7)])
+        ruler = VGroup(ruler, ticks).move_to([0, -0.4, 0])
+        ruler.shift(LEFT * 14)
+        self.add(ruler)
+        self.play(ruler.animate.shift(RIGHT * 14), run_time=1.3, rate_func=rush_from)
+        # two neighbouring marks
+        i = 9
+        t1, t2 = ticks[i], ticks[i + 1]
+        x1, x2 = t1.get_x(), t2.get_x()
+        self.at("Its smallest marks")
+        self.play(t1.animate.set_stroke(YELLOW, 7), t2.animate.set_stroke(YELLOW, 7), run_time=0.5)
+        br = Brace(Line([x1, 0.9, 0], [x2, 0.9, 0]), direction=UP, color=YELLOW)
+        lab = T("1 mm", 40, YELLOW, weight=BOLD).next_to(br, UP, buff=0.1)
+        self.play(GrowFromCenter(br), FadeIn(lab, shift=UP * 0.1), run_time=0.8)
+        self.at("Now split")
+        bar = Rectangle(width=11, height=1.5, stroke_color="#8A6D3B", stroke_width=4, fill_color="#D9B98A", fill_opacity=0.95).move_to([0, -0.2, 0])
+        br2 = Brace(Line([-5.5, 0.55, 0], [5.5, 0.55, 0]), direction=UP, color=YELLOW)
+        lab2 = T("1 mm", 40, YELLOW, weight=BOLD).next_to(br2, UP, buff=0.1)
+        self.play(FadeOut(ruler), ReplacementTransform(br, br2), ReplacementTransform(lab, lab2), FadeIn(bar), run_time=1.3)
+        self.at("into a thousand")
+        cnt = M("10", 48, YELLOW, weight=BOLD).move_to([0, -1.6, 0])
+        l10 = VGroup(*[Line([x, 0.55, 0], [x, -0.95, 0], color="#4B3716", stroke_width=3) for x in np.linspace(-5.5, 5.5, 11)[1:-1]])
+        self.play(Create(l10), FadeIn(cnt), run_time=0.8)
+        cnt2 = M("100", 48, YELLOW, weight=BOLD).move_to(cnt)
+        l100 = VGroup(*[Line([x, 0.55, 0], [x, -0.95, 0], color="#4B3716", stroke_width=1.5) for x in np.linspace(-5.5, 5.5, 101)[1:-1]])
+        self.play(FadeIn(l100), Transform(cnt, cnt2), run_time=0.7)
+        cnt3 = M("1,000", 48, YELLOW, weight=BOLD).move_to(cnt)
+        l1000 = VGroup(*[Line([x, 0.55, 0], [x, -0.95, 0], color="#4B3716", stroke_width=0.6) for x in np.linspace(-5.5, 5.5, 1001)[1:-1]])
+        self.play(FadeIn(l1000), Transform(cnt, cnt3), run_time=0.7)
+        self.at("Each tiny part")
+        sliver = Rectangle(width=0.02, height=1.5, stroke_width=0, fill_color=YELLOW, fill_opacity=1).move_to([-5.5 + 0.01, -0.2, 0])
+        arrow = Arrow([-4.4, -2.2, 0], [-5.45, -1.05, 0], color=YELLOW, buff=0.05, stroke_width=6)
+        self.play(FadeIn(sliver), GrowArrow(arrow), run_time=0.8)
+        self.at("one micrometer")
+        l1 = T("1 µm", 40, YELLOW, weight=BOLD).move_to([-3.6, -2.4, 0])
+        self.play(FadeIn(l1, shift=UP * 0.1), run_time=0.6)
+        eq = M("1 mm = 1,000 µm", 44, TEXT, weight=BOLD).move_to([2.2, -2.7, 0])
+        self.play(FadeIn(eq, shift=UP * 0.1), Indicate(sliver, color=YELLOW, scale_factor=1.0), run_time=0.8)
         self.finish()
 
 
-class S05Organisms(SpokenScene):
+class S03Eye(LS):
     def construct(self):
-        para = cell_shape(1.85, 3.15, 0, 0.25).rotate(-0.25)
-        self.at("Some organisms")
-        self.play(FadeIn(para), run_time=0.6)
-        uni = vocab("unicellular", 32).move_to([0, 2.65, 0])
-        self.at("They are unicellular")
-        self.play(FadeIn(uni), run_time=0.5)
-        pl = T("Paramecium\none cell", 28, BLUE).move_to([0, -2.1, 0])
-        self.at("A paramecium")
-        self.play(FadeIn(pl), Indicate(para, color=BLUE), run_time=0.6)
-        human = VGroup(person(0, 0.25), T("you", 28).move_to([0, -2, 0]))
-        tree = VGroup(oak(4.2, 0.25), T("oak tree", 28).move_to([4.2, -2, 0]))
-        multi = vocab("multicellular", 32).move_to([2.1, 2.65, 0])
-        self.at("You and an oak tree")
-        self.play(para.animate.scale(0.76).move_to([-4.4, 0.25, 0]),
-                  uni.animate.move_to([-4.4, 2.65, 0]), pl.animate.move_to([-4.4, -2, 0]),
-                  FadeIn(human), FadeIn(tree), run_time=0.6)
-        self.at("are multicellular")
-        self.play(FadeIn(multi), run_time=0.5)
-        patches = VGroup(tiles(2, 2, 0.24, 0.28).move_to([0, 0.5, 0]),
-                         tiles(3, 2, 0.35, 0.35).move_to([4.2, 0.75, 0]))
-        self.at("made of many cells")
-        self.play(FadeIn(patches), run_time=0.5)
-
-        small = cell_shape(0.35, 0.2, -3.8, 0)
-        pond_label = T("tiny pond animal", 28, BLUE).move_to([-3.8, -1.3, 0])
-        question = T("Tiny does not always mean one cell", 32).move_to([0, 2.8, 0])
-        self.at("Tiny does not always")
-        self.play(*[FadeOut(m) for m in list(self.mobjects)], FadeIn(small),
-                  FadeIn(pond_label), FadeIn(question), run_time=0.55)
-        animal = VGroup(cell_shape(3.1, 1.9, 2.5, 0), tiles(4, 2, 0.48, 0.52).move_to([2.5, 0, 0]))
-        link = arr([-3.3, 0, 0], [0.7, 0, 0], TEAL)
-        enlarged = T("enlarged: many cells", 28, BLUE).move_to([2.5, -1.6, 0])
-        self.at("Some tiny pond animals")
-        self.play(GrowArrow(link), TransformFromCopy(small, animal), FadeIn(enlarged), run_time=0.75)
+        bar = Rectangle(width=11, height=1.5, stroke_color="#8A6D3B", stroke_width=4, fill_color="#D9B98A", fill_opacity=0.95).move_to([0, -0.2, 0])
+        br = Brace(Line([-5.5, 0.55, 0], [5.5, 0.55, 0]), direction=UP, color=YELLOW)
+        lab = T("1 mm", 40, YELLOW, weight=BOLD).next_to(br, UP, buff=0.1)
+        self.play(FadeIn(bar), FadeIn(br), FadeIn(lab), run_time=0.6)
+        # cartoon eye
+        eye = VGroup(Ellipse(width=1.7, height=0.9, stroke_color=TEXT, stroke_width=4, fill_color=PAPER, fill_opacity=1),
+                     Circle(0.3, stroke_color=BLUE, stroke_width=3, fill_color=BLUE, fill_opacity=0.9),
+                     Dot(radius=0.13, color=BG)).move_to([-4.8, 2.7, 0])
+        self.play(FadeIn(eye, scale=0.6), run_time=0.8)
+        self.at("Most people")
+        pup = VGroup(eye[1], eye[2])
+        self.play(pup.animate.shift(DOWN * 0.12 + RIGHT * 0.12), run_time=0.7)
+        tenth = Rectangle(width=1.1, height=1.5, stroke_width=0, fill_color=BLUE, fill_opacity=0.9).move_to([-5.5 + 0.55, -0.2, 0])
+        self.at("smaller than about 100")
+        self.play(FadeIn(tenth), run_time=0.5)
+        brb = Brace(Line([-5.5, -0.95, 0], [-4.4, -0.95, 0]), direction=DOWN, color=BLUE)
+        blab = T("0.1 mm = 100 µm", 34, BLUE, weight=BOLD).move_to([-2.4, -1.75, 0])
+        self.play(GrowFromCenter(brb), FadeIn(blab, shift=UP * 0.1), run_time=0.8)
+        self.at("a tenth of a millimeter")
+        div = VGroup(*[Line([x, 0.55, 0], [x, -0.95, 0], color="#4B3716", stroke_width=3) for x in np.linspace(-5.5, 5.5, 11)[1:-1]])
+        self.play(Create(div), run_time=1.0)
+        self.play(Indicate(tenth, color=BLUE, scale_factor=1.05), run_time=0.8)
+        self.at("We will draw that limit")
+        ln, lnlab = eye_line()
+        axis, ticks, labs = make_ladder()
+        self.play(FadeOut(bar), FadeOut(br), FadeOut(lab), FadeOut(div), FadeOut(brb), FadeOut(blab), FadeOut(eye),
+                  FadeIn(axis), run_time=0.7)
+        self.play(ReplacementTransform(tenth, ln), run_time=1.5)
+        self.at("the eye line")
+        self.play(FadeIn(lnlab, shift=UP * 0.1), run_time=0.6)
+        self.play(Indicate(ln, color=BLUE, scale_factor=1.0), run_time=0.8)
         self.finish()
 
 
-class S06Answer(SpokenScene):
+class S04Ladder(LS):
     def construct(self):
-        th = vocab("theory", 44).move_to([0, 2.65, 0])
-        definition = T("a well-tested explanation\nbacked by a great deal of evidence", 34).move_to([0, 0.6, 0])
-        self.at("In science")
-        self.play(FadeIn(th), run_time=0.5)
-        self.at("a well")
-        self.play(FadeIn(definition), run_time=0.6)
-
-        scope = chip("better microscopes", TEAL, size=28).move_to([-4.2, 1.9, 0])
-        obs = chip("observations", GREEN, size=28).move_to([0.1, 1.9, 0])
-        theory = chip("cell theory", GREEN, size=30).move_to([4.4, 1.9, 0])
-        links = VGroup(arr(scope.get_right(), obs.get_left(), TEAL), arr(obs.get_right(), theory.get_left(), GREEN))
-        self.at("The cell theory grew")
-        self.play(FadeOut(th), FadeOut(definition), FadeIn(theory), run_time=0.55)
-        self.at("better microscopes")
-        self.play(FadeIn(scope), run_time=0.5)
-        self.at("gave new evidence")
-        self.play(FadeIn(obs), *[GrowArrow(a) for a in links], run_time=0.6)
-        plants = VGroup(tiles(3, 2, 0.6, 0.55).move_to([-3.5, -0.5, 0]),
-                        T("plant cells", 28, BLUE).move_to([-3.5, -1.7, 0]))
-        animals = VGroup(VGroup(*[cell_shape(0.8, 0.55) for _ in range(4)])
-                         .arrange_in_grid(2, 2, buff=0.15).move_to([0, -0.5, 0]),
-                         T("animal cells", 28, BLUE).move_to([0, -1.7, 0]))
-        observed = arr([-1.7, -0.4, 0], [0.1, 1.3, 0], GREEN)
-        self.at("Scientists found cells")
-        self.play(FadeIn(plants), FadeIn(animals), GrowArrow(observed), run_time=0.7)
-
-        old = VGroup(T("old idea", 28, RED).move_to([-3.4, 0, 0]),
-                     T("clear fluid → new cells", 28, GREY).move_to([-3.4, -0.8, 0]))
-        self.at("thought new cells")
-        self.play(FadeOut(plants), FadeOut(animals), FadeOut(observed), FadeIn(old), run_time=0.55)
-        cell = cell_shape(2.2, 1.5, 3.65, -0.75)
-        existing = T("an existing cell", 28, BLUE).move_to([3.65, -2.1, 0])
-        cross = VGroup(Line([-6.05, -1.1, 0], [-0.75, -0.5, 0], color=RED, stroke_width=6),
-                       Line([-6.05, -0.5, 0], [-0.75, -1.1, 0], color=RED, stroke_width=6))
-        self.at("More observations")
-        self.play(Create(cross), FadeIn(cell), FadeIn(existing), run_time=0.6)
-        self.at("when a cell divides")
-        pair = daughters(3.65, -0.75)
-        self.play(ReplacementTransform(cell, pair), ReplacementTransform(existing,
-                  T("new cells", 28, BLUE).move_to(existing)), run_time=0.8)
-        statements = ["All living things\nare made of one\nor more cells",
-                      "The cell is the\nbasic unit of life",
-                      "All cells come from\ncells that already\nexist"]
-        cards = VGroup()
-        for x, statement in zip([-4.35, 0, 4.35], statements):
-            box = RoundedRectangle(width=4.05, height=2.05, corner_radius=0.14,
-                                   color=GREEN, fill_color=GREEN, fill_opacity=0.12)
-            cards.add(VGroup(box, T(statement, 25).move_to(box)).move_to([x, 0.9, 0]))
-        evidence = T("supported by observations", 32, GREEN).move_to([0, -2.3, 0])
-        arrows = VGroup(*[arr([x, -1.75, 0], [x, -0.25, 0], GREEN) for x in [-4.35, 0, 4.35]])
-        self.at("The theory dropped")
-        self.play(*[FadeOut(m) for m in list(self.mobjects)], FadeIn(cards), run_time=0.55)
-        self.at("and kept the rest")
-        self.play(FadeIn(evidence), *[GrowArrow(a) for a in arrows], run_time=0.6)
+        self.add_eye()
+        axis, ticks, labs = make_ladder()
+        gl = {v: Line([AX, Y(v), 0], [EYE_X1, Y(v), 0], color="#2B3345", stroke_width=3).set_z_index(-3) for v, _ in RUNGS if v != 100}
+        self.play(Create(axis), run_time=0.6)
+        for (v, _), tk, lb in zip(RUNGS, ticks, labs):
+            anims = [FadeIn(tk), FadeIn(lb, shift=RIGHT * 0.1)]
+            if v in gl:
+                anims.append(Create(gl[v]))
+            self.play(*anims, run_time=0.35)
+        self.at("Each rung is ten times")
+        tags = VGroup()
+        climber = Dot(radius=0.14, color=YELLOW).move_to([AX, Y(0.1), 0])
+        trail = Line([AX, Y(0.1), 0], [AX, Y(0.1), 0], color=YELLOW, stroke_width=9)
+        self.add(trail, climber)
+        for i in range(5):
+            a, b = RUNGS[i][0], RUNGS[i + 1][0]
+            t = chip("× 10", YELLOW, 30, pad=0.14).move_to([AX + 0.95, (Y(a) + Y(b)) / 2, 0])
+            tags.add(t)
+            self.play(climber.animate.move_to([AX, Y(b), 0]),
+                      trail.animate.put_start_and_end_on([AX, Y(0.1), 0], [AX, Y(b), 0]),
+                      FadeIn(t, shift=UP * 0.15), run_time=0.55)
+            self.wait(0.1)
+        self.at("We place real cells")
+        self.play(FadeOut(tags), FadeOut(climber), FadeOut(trail), run_time=0.3)
+        slots = VGroup()
+        for k in ["frog", "human", "alga", "rbc", "bact"]:
+            x, real, col = CELLS[k]
+            s = DashedVMobject(Circle(0.5, stroke_color=col, stroke_width=3.5), num_dashes=14).move_to([x, Y(real), 0])
+            slots.add(s)
+            s.add_updater(lambda m, dt: m.rotate(0.6 * dt))
+            self.play(GrowFromCenter(s), run_time=0.3)
+        self.at("at their real sizes")
+        self.play(*[Indicate(s, color=STEEL, scale_factor=1.15) for s in slots], run_time=1.0)
         self.finish()
 
 
-class S02Limit(SpokenScene):
+class S05Cells(LS):
     def construct(self):
-        head = T("Most cells need help to be seen", 36).move_to([0, 2.8, 0])
-        cells = VGroup(cell_shape(0.9, 0.6, -4.6, 0.8), cell_shape(0.6, 0.4, -2.8, 0.8),
-                       cell_shape(0.8, 0.52, -1, 0.8))
-        axis = arr([-5.8, -0.25, 0], [5.8, -0.25, 0], GREY)
-        smaller = T("smaller details", 28, BLUE).move_to([-3, -1.25, 0])
-        note = T("schematic • not to scale", 22, GREY).move_to([0, -2.8, 0])
-        self.at("Most cells")
-        self.play(FadeIn(head), FadeIn(cells), GrowArrow(axis), FadeIn(smaller), FadeIn(note), run_time=0.7)
-        eye = Line([2, -0.5, 0], [2, 1.8, 0], color=ORANGE, stroke_width=5)
-        limit = T("eye limit\nabout 100 µm", 32, ORANGE).move_to([3.5, 1, 0])
-        self.at("Your eye can")
-        self.play(Create(eye), run_time=0.6)
+        self.add_ladder()
+        self.add_eye()
+        slots = {}
+        for k in CELLS:
+            x, real, col = CELLS[k]
+            s = DashedVMobject(Circle(0.5, stroke_color=col, stroke_width=3.5), num_dashes=14).move_to([x, Y(real), 0])
+            slots[k] = s
+            s.add_updater(lambda m, dt: m.rotate(0.6 * dt))
+            self.add(s)
+
+        def drop_in(k, dur=0.9):
+            x, real, col = CELLS[k]
+            ic = icon(k, 1.35).move_to([x, 3.6, 0])
+            self.add(ic)
+            self.play(ic.animate.move_to([x, Y(real), 0]), FadeOut(slots[k]), rate_func=rush_into, run_time=dur)
+            wobble(ic, 0.06, 1.2 + 0.15 * len(slots), len(slots))
+            return ic
+
+        self.at("A frog egg")
+        frog = drop_in("frog")
+        self.at("often about a millimeter")
+        ftag = T("often about 1,000 µm", 28, TEXT).move_to([-3.4 + 0.55 + 2.0 + 1.25, Y(1000) + 0.32, 0])
+        self.play(FadeIn(ftag, shift=RIGHT * 0.1), run_time=0.6)
+        self.at("It sits above")
+        self.play(Indicate(self.eye, color=BLUE, scale_factor=1.0), run_time=1.0)
+        self.at("so you can see it")
+        tick = VMobject(color=GREEN, stroke_width=8)
+        tick.set_points_as_corners([[-0.15, 0, 0], [0, -0.18, 0], [0.28, 0.2, 0]])
+        see = T("you can see it", 28, GREEN, weight=BOLD)
+        seeg = VGroup(tick, see).arrange(RIGHT, buff=0.2).move_to([-0.9, Y(1000) - 0.55, 0])
+        self.play(Create(tick), FadeIn(see, shift=RIGHT * 0.1), run_time=0.8)
+        self.at("A human egg")
+        human = drop_in("human")
         self.at("about 100")
-        self.play(FadeIn(limit), run_time=0.6)
-
-        mic = vocab("microscope", 38).move_to([0, 2.8, 0])
-        sample = Square(0.5, stroke_color=BLUE, stroke_width=4,
-                        fill_color=BLUE, fill_opacity=0.3).move_to([-4.6, 0.2, 0])
-        sl = T("sample", 28).move_to([-4.6, -1.9, 0])
-        lens = Ellipse(width=0.9, height=3.2, stroke_color=TEAL, stroke_width=5,
-                       fill_color=TEAL, fill_opacity=0.2).move_to([0, 0.2, 0])
-        ll = T("lenses", 28, TEAL).move_to([0, -1.9, 0])
-        self.at("A microscope uses lenses")
-        self.play(*[FadeOut(m) for m in list(self.mobjects)], FadeIn(mic), FadeIn(sample),
-                  FadeIn(sl), FadeIn(lens), FadeIn(ll), run_time=0.65)
-        image = Square(2.6, stroke_color=BLUE, stroke_width=4,
-                       fill_color=BLUE, fill_opacity=0.3).move_to([4.6, 0.2, 0])
-        il = T("larger image", 28, BLUE).move_to([4.6, -1.9, 0])
-        links = VGroup(arr([-3.8, 0.2, 0], [-0.7, 0.2, 0], TEAL),
-                       arr([0.7, 0.2, 0], [2.9, 0.2, 0], TEAL))
-        self.at("look larger")
-        self.play(*[GrowArrow(a) for a in links], TransformFromCopy(sample, image), FadeIn(il), run_time=0.6)
-        mag = vocab("magnification", 40).move_to(mic)
-        definition = T("how many times larger the image looks", 30).move_to([0, -3.1, 0])
-        self.at("Magnification tells us")
-        self.play(ReplacementTransform(mic, mag), FadeIn(definition), run_time=0.6)
+        htag = T("about 100 µm", 28, TEXT).move_to([-2.4, Y(100) - 0.72, 0])
+        self.play(FadeIn(htag, shift=UP * 0.1), run_time=0.6)
+        self.at("sits right on")
+        self.play(Indicate(self.eye, color=BLUE, scale_factor=1.0), Indicate(human, color=PINK, scale_factor=1.3), run_time=1.0)
+        self.at("A green alga")
+        alga = drop_in("alga", 0.8)
+        atag = T("20 µm", 28, TEXT).move_to([-0.2, Y(20) - 0.55, 0])
+        self.play(FadeIn(atag, shift=UP * 0.1), run_time=0.4)
+        self.at("a red blood cell")
+        rbc = drop_in("rbc", 0.7)
+        rtag = T("7.7 µm", 28, TEXT).move_to([1.4, Y(7.7) - 0.5, 0])
+        self.play(FadeIn(rtag, shift=UP * 0.1), run_time=0.4)
+        self.at("a bacterium")
+        bact = drop_in("bact", 0.6)
+        btag = T("2 µm", 28, TEXT).move_to([3.0, Y(2) - 0.45, 0])
+        self.play(FadeIn(btag, shift=UP * 0.1), run_time=0.4)
+        self.at("all sit below it")
+        hid = T("hidden", 34, YELLOW, weight=BOLD).move_to([1.4, 0.42, 0])
+        self.play(FadeIn(hid, shift=DOWN * 0.15), run_time=0.7)
+        self.play(*[Indicate(m, scale_factor=1.25) for m in (alga, rbc, bact)], run_time=1.0)
         self.finish()
 
 
-class S04Light(SpokenScene):
+class S06Most(LS):
     def construct(self):
-        title = T("Seeing fine detail", 38).move_to([0, 2.9, 0])
-        # An unresolved patch stays unresolved when enlarged.
-        patch = cell_shape(1.2, 0.9, -4, 0.5, op=0.55).set_stroke(width=0)
-        larger = cell_shape(2.6, 1.95, 0, 0.5, op=0.55).set_stroke(width=0)
-        link = arr([-3.1, 0.5, 0], [-1.65, 0.5, 0], GREY)
-        labels = VGroup(T("enlarged", 28, YELLOW).move_to([0, -1.3, 0]),
-                        T("same unresolved detail", 28, GREY).move_to([0, -2.2, 0]))
-        self.at("Seeing fine detail")
-        self.play(FadeIn(title), FadeIn(patch), GrowArrow(link), TransformFromCopy(patch, larger),
-                  FadeIn(labels), run_time=0.75)
-        lm = T("best light microscopes", 34, TEAL).move_to([0, 2.9, 0])
-        limit = M("finest detail: about 0.2 µm", 30, ORANGE).move_to([0, 1.5, 0])
-        self.at("The best light microscopes")
-        self.play(FadeOut(patch), FadeOut(larger), FadeOut(link), FadeOut(labels),
-                  ReplacementTransform(title, lm), run_time=0.6)
-        self.at("show details down")
-        marker = Line([-4.7, 0.6, 0], [4.7, 0.6, 0], color=ORANGE, stroke_width=4)
-        fine = VGroup(Dot([-0.4, -0.2, 0], radius=0.24, color=BLUE),
-                      Dot([0.4, -0.2, 0], radius=0.24, color=BLUE),
-                      T("fine detail", 28, BLUE).move_to([0, -1.1, 0]))
-        self.play(FadeIn(limit), Create(marker), FadeIn(fine), run_time=0.6)
-        school = T("school microscope", 30, TEAL).move_to([-3.7, -0.35, 0])
-        whole = VGroup(cell_shape(1.7, 1.15, -4.5, -1.9), cell_shape(1.4, 1.1, -2.55, -1.9))
-        whole_label = T("most whole cells", 26, BLUE).move_to([-3.6, -3.1, 0])
-        self.at("A school microscope")
-        self.play(FadeOut(fine), FadeIn(school), run_time=0.5)
-        self.at("shows most whole cells")
-        self.play(FadeIn(whole), FadeIn(whole_label), run_time=0.6)
-        electron = T("electron microscope", 30, TEAL).move_to([3.5, -0.35, 0])
-        beam = T("electrons", 26, TEAL).move_to([3.5, -1.05, 0])
-        self.at("Electron microscopes")
-        self.play(FadeIn(electron), run_time=0.5)
-        self.at("use electrons")
-        self.play(FadeIn(beam), run_time=0.5)
-        detail = VGroup(cell_shape(2.3, 1.2, 3.5, -2.05),
-                        VGroup(*[Rectangle(width=0.32, height=0.12, color=BLUE, fill_color=BLUE,
-                                 fill_opacity=0.5) for _ in range(3)]).arrange(DOWN, buff=0.15).move_to([3.5, -2.05, 0]))
-        detail_label = T("finer cell parts", 26, BLUE).move_to([3.5, -3.1, 0])
-        self.at("They showed cell parts")
-        self.play(FadeIn(detail), FadeIn(detail_label), run_time=0.65)
+        self.add_ladder()
+        self.add_eye()
+        self.add_icons(["frog", "human", "alga", "rbc", "bact"])
+        band = Rectangle(width=EYE_X1 - AX, height=Y(100) - Y(1), stroke_width=0, fill_color=YELLOW, fill_opacity=0.16)
+        band.move_to([(AX + EYE_X1) / 2, (Y(100) + Y(1)) / 2, 0])
+        band.set_z_index(-1)
+        self.at("Most cells")
+        self.play(GrowFromEdge(band, DOWN), run_time=1.3)
+        blab = T("most cells", 34, YELLOW, weight=BOLD).move_to([-0.9, Y(1) + 0.35, 0])
+        self.play(FadeIn(blab, shift=UP * 0.1), run_time=0.6)
+        self.at("about 1 and 100")
+        self.play(Indicate(self.labs[1], color=YELLOW, scale_factor=1.25), run_time=0.8)
+        self.play(Indicate(self.labs[3], color=YELLOW, scale_factor=1.25), run_time=0.8)
+        self.at("That puts most")
+        self.play(Indicate(self.eye, color=BLUE, scale_factor=1.0),
+                  *[Indicate(self.icons[k], scale_factor=1.3) for k in ("alga", "rbc", "bact")], run_time=1.4)
+        self.at("too small to see")
+        hid = T("hidden", 34, TEXT, weight=BOLD).move_to([1.4, 0.42, 0])
+        self.play(FadeIn(hid, shift=DOWN * 0.15), run_time=0.7)
+        self.play(Indicate(band, color=YELLOW, scale_factor=1.0), run_time=1.0)
         self.finish()
 
 
-class S06Shapes(SpokenScene):
+class S07Mag(LS):
     def construct(self):
-        title = T("Shape and size depend on job and organism", 34).move_to([0, 2.95, 0])
-        note = T("not to scale", 24, GREY).move_to([0, -3.25, 0])
-        varied = VGroup(cell_shape(3.2, 1.4, -3.6, 0.4), cell_shape(1.5, 2.4, 3.5, 0.4))
-        self.at("Cells differ")
-        self.play(FadeIn(title), FadeIn(note), FadeIn(varied), run_time=0.6)
-        self.at("depending on their job")
-        self.play(varied[0].animate.stretch(1.3, 1), varied[1].animate.stretch(1.3, 0), run_time=0.8)
-        face = VGroup(cell_shape(2.15, 2.0, -4.6, 0.4, op=0.32),
-                      cell_shape(1.0, 0.85, -4.6, 0.4, op=0.05))
-        face_label = T("face-on", 26, GREY).move_to([-4.6, -1.35, 0])
-        rbc = T("red blood cell", 30, BLUE).move_to([-3.3, 1.95, 0])
-        self.at("A red blood cell")
-        self.play(ReplacementTransform(varied[0], face), FadeOut(varied[1]),
-                  FadeIn(face_label), FadeIn(rbc), run_time=0.6)
-        # A biconcave profile shows both depressed faces, with thick rims.
-        edge = VMobject(stroke_color=BLUE, stroke_width=4, fill_color=BLUE, fill_opacity=0.25)
-        edge.set_points_smoothly([[-1.25, 0, 0], [-1, 0.4, 0], [-0.55, 0.3, 0],
-                                 [0, 0.14, 0], [0.55, 0.3, 0], [1, 0.4, 0], [1.25, 0, 0],
-                                 [1, -0.4, 0], [0.55, -0.3, 0], [0, -0.14, 0],
-                                 [-0.55, -0.3, 0], [-1, -0.4, 0], [-1.25, 0, 0]])
-        edge.move_to([-1.6, 0.4, 0])
-        edge_label = T("edge-on", 26, GREY).move_to([-1.6, -1.35, 0])
-        self.at("pressed in on both faces")
-        self.play(FadeIn(edge), FadeIn(edge_label), run_time=0.7)
-        body = cell_shape(0.9, 0.85, 2, 0.3)
-        branches = VGroup()
-        paths = [[(2.4, 0.3), (3.3, 0.4), (4.7, 0.8), (6, 0.7)],
-                 [(4.6, 0.78), (5, 1.4), (5.6, 1.65)],
-                 [(4, 0.6), (4.8, -0.4), (5.7, -0.65)],
-                 [(1.7, 0.6), (1.2, 1.1), (0.95, 1.65)],
-                 [(1.7, 0.05), (1.15, -0.8), (1.4, -1.35)]]
-        for pts in paths:
-            branch = VMobject(color=BLUE, stroke_width=4)
-            branch.set_points_as_corners([[x, y, 0] for x, y in pts])
-            branches.add(branch)
-        nerve_label = T("nerve cell", 30, BLUE).move_to([3.5, -2.1, 0])
-        self.at("A nerve cell")
-        self.play(FadeIn(body), FadeIn(nerve_label), run_time=0.5)
-        self.at("long thin branches")
-        self.play(*[Create(b) for b in branches], run_time=0.8)
+        self.add_ladder()
+        self.add_eye()
+        self.add_icons(["frog", "human", "alga", "rbc", "bact"])
+        scope = microscope().move_to([4.45 + 8, -1.45, 0])
+        self.add(scope)
+        self.at("A microscope uses")
+        self.play(scope.animate.move_to([4.45, -1.45, 0]), run_time=1.3, rate_func=rush_from)
+        g = scope.lens
+        g.t = 0.0
+
+        def glow(m, dt):
+            m.t += dt
+            m.set_stroke(opacity=0.65 + 0.35 * np.sin(2.2 * m.t))
+        g.add_updater(glow)
+        self.at("make small things")
+        small = icon("rbc", 0.9).move_to([3.7, 2.75, 0])
+        arrow = Arrow([4.15, 2.75, 0], [4.85, 2.75, 0], color=STEEL, buff=0.0, stroke_width=6)
+        self.play(FadeIn(small, scale=0.5), run_time=0.5)
+        big = icon("rbc", 2.2).move_to([5.7, 2.75, 0])
+        self.play(GrowArrow(arrow), FadeIn(big, scale=0.3), run_time=1.0)
+        lm = ValueTracker(0)
+        self.at("Magnification is")
+        gz = gauge(lm, center=(6.2, -0.45))
+        mlab = T("magnification", 24, YELLOW, weight=BOLD).move_to([5.65, 0.4, 0])
+        self.play(FadeIn(gz), FadeIn(mlab, shift=DOWN * 0.1), run_time=0.8)
+        self.at("larger the picture")
+        self.play(Indicate(big, scale_factor=1.15), run_time=0.8)
+        self.at("picture looks")
+        plab = T("picture", 30, TEXT, weight=BOLD).move_to([5.7, 1.95, 0])
+        self.play(FadeIn(plab, shift=UP * 0.1), run_time=0.4)
+        self.at("real thing")
+        rlab = T("real", 30, TEXT, weight=BOLD).move_to([3.7, 2.2, 0])
+        self.play(FadeIn(rlab, shift=UP * 0.1), run_time=0.4)
+        self.play(FadeOut(self.icons["frog"]), FadeOut(self.icons["human"]), run_time=0.6)
+        self.at("So the picture")
+        self.play(FadeOut(VGroup(small, big, arrow, plab, rlab, mlab)), run_time=0.5)
+        rule = rule_text()
+        self.play(Write(rule), run_time=3.6, rate_func=linear)
+        self.play(Indicate(rule, color=YELLOW, scale_factor=1.04), run_time=0.9)
         self.finish()
 
 
-class S07End(EndCard):
-    LINE = "All living things are made of cells, even ones too small to see."
+class S08Dial(LS):
+    def construct(self):
+        self.add_ladder()
+        self.add_eye()
+        self.add_icons(["alga", "rbc", "bact"])
+        self.add_scope()
+        self.add(rule_text())
+        lm = ValueTracker(0)
+        gz = gauge(lm)
+        self.add(gz)
+        cards = {}
+        ptrs = {}
+        for k in ("alga", "rbc", "bact"):
+            c, p = make_card(k, lm)
+            cards[k], ptrs[k] = c, p
+        self.at("Turn the dial up")
+        self.play(*[FadeIn(cards[k], scale=0.7) for k in cards], *[FadeIn(ptrs[k]) for k in ptrs], run_time=0.8)
+        self.at("every picture slides")
+        self.play(lm.animate.set_value(1.0), run_time=2.6, rate_func=smooth)
+        self.at("The cells do not change")
+        self.play(*[Indicate(self.icons[k], scale_factor=1.5) for k in self.icons], run_time=1.6)
+        self.at("Only their pictures")
+        self.play(*[Indicate(cards[k], color=PAPER, scale_factor=1.25) for k in cards], run_time=1.4)
+        self.wait(0.3)
+        self.at("Watch the red blood cell")
+        self.play(FadeOut(cards["alga"]), FadeOut(ptrs["alga"]), FadeOut(cards["bact"]), FadeOut(ptrs["bact"]),
+                  Indicate(cards["rbc"], color=PAPER, scale_factor=1.3), run_time=1.2)
+        self.at("At 40 times")
+        self.play(lm.animate.set_value(np.log10(40)), run_time=1.6, rate_func=smooth)
+        self.at("its picture is already")
+        co = callout(["7.7 µm × 40", "= 308 µm"], 2.6)
+        self.play(Write(co), run_time=1.6)
+        self.at("It has crossed")
+        self.play(Indicate(self.eye, color=BLUE, scale_factor=1.0), Indicate(cards["rbc"], color=PAPER, scale_factor=1.3), run_time=1.4)
+        self.finish()
+
+
+class S09Predict(LS):
+    def construct(self):
+        self.add_ladder()
+        self.add_eye()
+        self.add_icons(["alga", "rbc"])
+        self.add_scope()
+        self.add(rule_text())
+        lm = ValueTracker(np.log10(40))
+        dl = ValueTracker(np.log10(40))
+        gz = gauge(dl)
+        self.add(gz)
+        crbc, prbc = make_card("rbc", lm)
+        co = callout(["7.7 µm × 40", "= 308 µm"], 2.6)
+        self.add(crbc, prbc, co)
+        self.play(lm.animate.set_value(0), dl.animate.set_value(0), FadeOut(co), run_time=0.45)
+        self.play(FadeOut(crbc), FadeOut(prbc), run_time=0.15)
+        self.at("green alga")
+        lm_a = ValueTracker(0)
+        calg, palg = make_card("alga", lm_a)
+        halo = Circle(0.62, stroke_color=GREEN, stroke_width=6).move_to(calg)
+        self.play(FadeIn(calg, scale=0.7), FadeIn(palg), Create(halo), run_time=0.8)
+        halo.t = 0.0
+
+        def pulse(m, dt):
+            m.t += dt
+            m.set_stroke(opacity=0.5 + 0.5 * np.sin(3 * m.t))
+        halo.add_updater(pulse)
+        self.at("about 20")
+        alab = T("20 µm", 28, TEXT).move_to([-0.2, Y(20) - 0.88, 0])
+        self.play(FadeIn(alab, shift=UP * 0.1), run_time=0.5)
+        self.at("Set the dial")
+        self.play(dl.animate.set_value(1.0), run_time=1.0)
+        self.at("just 10 times")
+        self.play(Indicate(gz, color=YELLOW, scale_factor=1.2), run_time=1.0)
+        self.at("Will its picture")
+        q = T("?", 130, TEXT, weight=BOLD).move_to([5.2, 2.85, 0])
+        pp = T("Pause and predict", 30, YELLOW, weight=BOLD).move_to([4.9, 1.9, 0])
+        self.play(FadeIn(q, scale=0.4), FadeIn(pp, shift=UP * 0.1), run_time=0.8)
+        self.finish()
+
+
+class S10Pause(LS):
+    def construct(self):
+        self.add_ladder()
+        self.add_eye()
+        self.add_icons(["alga", "rbc"])
+        self.add_scope()
+        self.add(rule_text())
+        dl = ValueTracker(1.0)
+        self.add(gauge(dl))
+        lm = ValueTracker(0)
+        calg, palg = make_card("alga", lm)
+        halo = Circle(0.62, stroke_color=GREEN, stroke_width=6).move_to(calg)
+        halo.t = 0.0
+
+        def pulse(m, dt):
+            m.t += dt
+            m.set_stroke(opacity=0.5 + 0.5 * np.sin(3 * m.t))
+        halo.add_updater(pulse)
+        alab = T("20 µm", 28, TEXT).move_to([-0.2, Y(20) - 0.88, 0])
+        q = T("?", 130, TEXT, weight=BOLD).move_to([5.2, 2.85, 0])
+        pp = T("Pause and predict", 30, YELLOW, weight=BOLD).move_to([4.9, 1.9, 0])
+        q.t = 0.0
+
+        def qpulse(m, dt):
+            m.t += dt
+            m.set_opacity(0.65 + 0.35 * np.sin(3.5 * m.t))
+        q.add_updater(qpulse)
+        self.add(calg, palg, halo, alab, q, pp)
+        bar = Line([-4.2, -3.74, 0], [6.4, -3.74, 0], color=YELLOW, stroke_width=8)
+        self.add(bar)
+        self.play(Transform(bar, Line([6.4, -3.74, 0], [6.4, -3.74, 0], color=YELLOW, stroke_width=8)),
+                  run_time=self.narration_s - 0.3, rate_func=linear)
+        self.finish()
+
+
+class S11Reveal(LS):
+    def construct(self):
+        self.add_ladder()
+        self.add_eye()
+        self.add_icons(["alga", "rbc"])
+        self.add_scope()
+        self.add(rule_text())
+        dl = ValueTracker(1.0)
+        self.add(gauge(dl))
+        lm_a = ValueTracker(0)
+        lm_r = ValueTracker(0)
+        calg, palg = make_card("alga", lm_a)
+        alab = T("20 µm", 28, TEXT).move_to([-0.2, Y(20) - 0.88, 0])
+        q = T("?", 130, TEXT, weight=BOLD).move_to([5.2, 2.85, 0])
+        self.add(calg, palg, alab, q)
+        self.play(FadeOut(alab), FadeOut(q), lm_a.animate.set_value(1.0), run_time=1.8, rate_func=smooth)
+        self.at("Its picture is 200")
+        co = callout(["20 µm × 10", "= 200 µm"], 3.0)
+        self.play(Write(co), run_time=1.4)
+        self.at("twice the eye line")
+        self.play(Indicate(self.eye, color=BLUE, scale_factor=1.0), Indicate(calg, color=PAPER, scale_factor=1.3), run_time=1.6)
+        self.at("The red blood cell")
+        crbc, prbc = make_card("rbc", lm_r)
+        self.play(FadeIn(crbc, scale=0.7), FadeIn(prbc), Indicate(self.icons["rbc"], scale_factor=1.4), run_time=0.8)
+        self.at("at the same 10 times")
+        self.play(lm_r.animate.set_value(1.0), run_time=1.4, rate_func=smooth)
+        self.at("still sits below")
+        co2 = callout(["7.7 µm × 10", "= 77 µm: not yet"], 1.9, x=4.6)
+        self.play(Write(co2), run_time=1.2)
+        self.play(Indicate(crbc, color=PAPER, scale_factor=1.25), run_time=0.8)
+        self.finish()
+
+
+class S12School(LS):
+    def construct(self):
+        self.add_ladder()
+        self.add_eye()
+        self.add_icons(["alga", "rbc", "bact"])
+        self.add_scope()
+        self.add(rule_text())
+        lm = ValueTracker(0)
+        gz = gauge(lm)
+        self.add(gz)
+        cards, ptrs = {}, {}
+        for k in ("alga", "rbc", "bact"):
+            cards[k], ptrs[k] = make_card(k, lm)
+        self.play(*[FadeIn(cards[k], scale=0.7) for k in cards], *[FadeIn(ptrs[k]) for k in ptrs], run_time=0.8)
+        self.at("magnifies 40")
+        self.play(lm.animate.set_value(np.log10(40)), run_time=1.2)
+        self.at("100 or 400")
+        self.play(lm.animate.set_value(2.0), run_time=0.8)
+        self.at("400 times")
+        self.play(lm.animate.set_value(np.log10(400)), run_time=1.0)
+        self.at("At 400 times")
+        self.play(Indicate(self.eye, color=BLUE, scale_factor=1.0), run_time=1.0)
+        self.at("most cells pass")
+        labs = VGroup(*[M(f"{n} {t}", 26, c, weight=BOLD) for n, t, c in (("alga", "8,000 µm", GREEN), ("RBC ", "3,080 µm", RED), ("bact", "800 µm", AMBER))]).arrange(DOWN, buff=0.12, aligned_edge=LEFT).move_to([5.2, 2.5, 0])
+        self.play(FadeIn(labs, shift=UP * 0.1), *[Indicate(cards[k], color=PAPER, scale_factor=1.25) for k in cards], run_time=1.4)
+        self.at("Then you can see")
+        view = VGroup(Circle(2.15, stroke_color=TEXT, stroke_width=8, fill_color=PAPER, fill_opacity=0.96)).move_to([0.9, 0.5, 0])
+        self.play(FadeOut(labs), *[FadeOut(cards[k]) for k in cards], *[FadeOut(ptrs[k]) for k in ptrs], FadeIn(view, scale=0.6), *[FadeOut(self.icons[k]) for k in self.icons], run_time=0.8)
+        content = VGroup()
+        rng = np.random.default_rng(4)
+        specs = ([("alga", 0.8)] * 4) + ([("rbc", 0.75)] * 6) + ([("bact", 0.85)] * 8)
+        pts = []
+        while len(pts) < len(specs):
+            p = rng.uniform(-1.7, 1.7, 2)
+            if np.hypot(*p) < 1.7 and all(np.hypot(*(p - q)) > 0.55 for q in pts):
+                pts.append(p)
+        for (k, s), p in zip(specs, pts):
+            ic = icon(k, s * 1.2).move_to([0.9 + p[0], 0.5 + p[1], 0])
+            if k == "bact":
+                ic.rotate(rng.uniform(0, np.pi))
+            ic.scale(0.001)
+            content.add(ic)
+        self.add(content)
+        self.play(*[c.animate.scale(1000) for c in content], run_time=0.9, lag_ratio=0.05)
+        for i, c in enumerate(content):
+            wobble(c, 0.05, 0.9 + 0.1 * (i % 5), i)
+        self.at("shows them clearly")
+        note = VGroup(T("shapes need a clear lens", 26, TEXT), T("and a sample that stands out", 26, TEXT)).arrange(DOWN, buff=0.1)
+        note.move_to([0.9, -2.45, 0])
+        self.play(FadeIn(note, shift=UP * 0.1), run_time=0.8)
+        self.add(schem())
+        self.finish()
+
+
+class S13Close(LS):
+    def construct(self):
+        self.add_ladder(short=True)
+        self.add_eye(short=True)
+        c = np.array([2.6, 0.2, 0])
+        drop = Circle(2.55, stroke_color=BLUE, stroke_width=5, fill_color=BLUE, fill_opacity=0.14).move_to(c)
+        self.add(rule_text())
+        self.add(schem())
+        band = Rectangle(width=-2.2 - AX, height=Y(100) - Y(1), stroke_width=0, fill_color=YELLOW, fill_opacity=0.16)
+        band.move_to([(AX - 2.2) / 2, (Y(100) + Y(1)) / 2, 0])
+        band.set_z_index(-1)
+        blab = T("most cells", 28, YELLOW, weight=BOLD).move_to([-3.45, Y(10) - 0.2, 0])
+        self.add(band, blab)
+        rip = ripples(c, 2.55)
+        self.at("So a clear drop")
+        self.play(FadeIn(drop, scale=0.8), run_time=0.9)
+        self.add(rip)
+        # hidden residents
+        rng = np.random.default_rng(11)
+        res = []
+        for k, n, s in (("alga", 4, 1.4), ("bact", 6, 1.6)):
+            for _ in range(n):
+                a = rng.uniform(0, 2 * np.pi)
+                r = rng.uniform(0.2, 1.9)
+                ic = icon(k, s).move_to(c + np.array([r * np.cos(a), r * np.sin(a) * 0.9, 0]))
+                if k == "bact":
+                    ic.rotate(rng.uniform(0, np.pi))
+                ic.base = ic.get_center().copy()
+                ic.ph = rng.uniform(0, 6)
+                res.append(ic)
+        para = icon("para", 1.7).move_to(c)
+        para.ph = 0.0
+        lens = VGroup(Circle(1.35, stroke_color=TEXT, stroke_width=7, fill_color=PAPER, fill_opacity=0.9))
+        lens_c = c.copy()
+        st = {"t": 0.0, "R": 1.35}
+
+        def lens_pos(t):
+            return c + np.array([1.3 * np.sin(0.55 * t), 0.75 * np.sin(0.9 * t + 1.0), 0])
+
+        def drive(m, dt):
+            st["t"] += dt
+            t = st["t"]
+            m.move_to(lens_pos(t))
+            m.set_width(2 * st["R"])
+
+        lens.add_updater(drive)
+        for ic in res:
+            def vis(m, dt):
+                t = st["t"]
+                m.move_to(m.base + 0.06 * np.array([np.sin(1.3 * t + m.ph), np.cos(1.1 * t + m.ph), 0]))
+                d = np.linalg.norm(m.get_center() - lens_pos(t))
+                m.set_opacity(1.0 if d < st["R"] - 0.25 else 0.0)
+            ic.add_updater(vis)
+
+        def pvis(m, dt):
+            t = st["t"]
+            m.move_to(c + np.array([1.3 * np.sin(0.4 * t + 2.0), 0.7 * np.cos(0.6 * t), 0]))
+            m.set_opacity(1.0 if np.linalg.norm(m.get_center() - lens_pos(t)) < st["R"] - 0.3 else 0.0)
+        para.add_updater(pvis)
+        self.at("is not always empty")
+        lens.move_to(lens_pos(0))
+        self.add(*res, para)
+        self.play(FadeIn(lens, scale=0.7), run_time=0.8)
+        self.at("Most living things")
+        self.play(Indicate(band, color=YELLOW, scale_factor=1.0), run_time=1.2)
+        self.at("below the eye line")
+        self.play(Indicate(self.eye, color=BLUE, scale_factor=1.0), run_time=1.2)
+        self.at("where our eyes cannot reach")
+        self.wait(1.6)
+        self.at("That is why most cells")
+        self.play(Indicate(band, color=YELLOW, scale_factor=1.0), run_time=1.0)
+        self.at("until microscopes")
+        self.play(Indicate(lens, color=TEXT, scale_factor=1.08), run_time=1.2)
+        self.finish()
+
+
+class S14End(EndCard):
+    LINE = "Picture size = real size × magnification. Past 100 µm, it can show."
