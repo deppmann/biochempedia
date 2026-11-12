@@ -849,4 +849,4 @@ class S14Rule(B2):
 
 
 class S15End(EndCard):
-    LINE = "Homology means one gain on a shared branch; separate gains mean convergence."
+    LINE = "One gain on a shared branch means one origin."
