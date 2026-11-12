@@ -5,8 +5,9 @@ course: "organismal-biology"
 courseChapter: "Organismal Biology · Unit 3: Supply and exchange"
 order: 713
 summary: >-
-  Plasma dissolves very little oxygen, so how does blood carry enough of it, and how does it get
-  carbon dioxide back to the lungs? This lesson reads the oxygen dissociation curve, follows what
+  Hemoglobin releases its carrying capacity times the fall in saturation between lungs and
+  tissue, and its S-shaped curve keeps lung saturation near full while letting saturation fall
+  far in the tissues. This lesson reads the oxygen dissociation curve, follows what
   shifts it, from Bohr's 1904 dog-blood paper to fetal hemoglobin's weaker response to BPG, and
   compares carriers across animals, from horse myoglobin to icefish with no hemoglobin at all.
   Afterwards you can read saturation and P50 off a curve, predict a shift, calculate oxygen
@@ -14,19 +15,39 @@ summary: >-
 hook: "A litre of your arterial blood carries about 200 mL of oxygen. If that blood were plasma alone, it would carry about 3 mL. What makes up the difference, and how does carbon dioxide get back to the lungs?"
 estMinutes: 24
 objectives:
-  - "Read an oxygen dissociation curve: saturation against partial pressure, P50 (a higher P50 means lower affinity), the flat loading plateau and the steep unloading range, and explain the sigmoid shape as cooperative binding in two sentences."
+  - "Read an oxygen dissociation curve: saturation against partial pressure, P50 (a higher P50 means lower affinity), the flat loading plateau, the shoulder where resting blood unloads and the steep reserve below it, and explain the sigmoid shape as cooperative binding in two sentences."
   - "Predict a right shift (higher P50) from lower pH and higher carbon dioxide (the Bohr effect), higher temperature or more 2,3-BPG, and the reverse, and compare human fetal blood and myoglobin with adult human blood."
-  - "Calculate oxygen content from hemoglobin concentration, saturation and dissolved oxygen, and oxygen use from cardiac output by the Fick principle."
+  - "Calculate oxygen released from hemoglobin between lungs and tissue, oxygen content from hemoglobin concentration, saturation and dissolved oxygen, and oxygen use from cardiac output by the Fick principle."
   - "Describe carbon dioxide carriage as dissolved gas, bicarbonate (made in red cells by carbonic anhydrase, with chloride exchange) and carbamino compounds, and explain the Haldane effect."
 
 explainer:
   src: "/explainers/oxygen-transport/explainer.mp4"
   captions: "/explainers/oxygen-transport/explainer.vtt"
   poster: "/explainers/oxygen-transport/poster.jpg"
-  title: "Hemoglobin Loads Flat, Unloads Steep"
-  durationSec: 170.0
-  narration: "an AI narrator voice (Gemini, Charon) reading narration written from this lesson's text"
+  title: "Why Blood Needs an S-Shaped Carrier"
+  durationSec: 198.3
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+  takeaways:
+    - "Plasma alone would carry about 3 mL of oxygen per litre; hemoglobin in red cells raises that to about 200 mL."
+    - "Hemoglobin releases its carrying capacity times the drop in saturation between lungs and tissue."
+    - "Between lung and tissue pressures, a one-site carrier cannot both load fully and unload a lot: a loose grip leaves it four-fifths full, a tight grip keeps it nearly full in tissue."
+    - "Cooperative binding gives hemoglobin an S-shaped curve, so one carrier loads fully in the lungs and still unloads a lot in the tissues."
+
+films:
+  - id: "chapter-2"
+    src: "/explainers/oxygen-transport/chapter-2.mp4"
+    captions: "/explainers/oxygen-transport/chapter-2.vtt"
+    poster: "/explainers/oxygen-transport/chapter-2-poster.jpg"
+    title: "Bohr's Dog Blood: Shifting the Curve"
+    durationSec: 185.1
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+    takeaways:
+      - "Bohr, Hasselbalch and Krogh found that more carbon dioxide lowered oxygen binding in dog blood at the same oxygen pressure, most at low oxygen pressures; the design could not separate carbon dioxide from the acid it forms."
+      - "The Bohr effect is the fall in affinity when pH falls or carbon dioxide rises; it shifts the curve right and raises P50."
+      - "Higher temperature and more BPG also shift the curve right, but they are separate effects, not the Bohr effect."
+      - "A modest right shift barely changes loading in the lungs but raises release in working tissue, where carbon dioxide is high and PO2 low."
 
 scientists:
   - name: "Christian Bohr, with Karl Hasselbalch and August Krogh"
@@ -322,98 +343,143 @@ draft: false
 
 import OxygenContentFick from '../../../components/OxygenContentFick.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import LessonFilm from '../../../components/LessonFilm.astro';
 
-**A litre of your arterial blood carries about 200 mL of oxygen. If that blood were plasma alone, it would carry about 3 mL.**
+This text picks up where the first film stops. It builds on [gas exchange](/lessons/gas-exchange/), where oxygen enters the blood, and on [blood and vessels](/lessons/blood-and-vessels/) and [the heart](/lessons/circulation-and-heart/), which move it.
 
-Oxygen dissolves poorly in water, and plasma is mostly water. The difference is carried by hemoglobin, an iron-containing protein packed inside red blood cells. Its S-shaped binding curve lets blood load oxygen almost fully in the lungs and release a lot of it in tissues. This lesson is about how a carrier picks up oxygen in the lungs and releases it in tissues, what makes it release more, how different animals solve the same problem, and how carbon dioxide gets back the other way. It builds on [gas exchange](/lessons/gas-exchange/), where oxygen crosses into the blood, and on [blood and vessels](/lessons/blood-and-vessels/) and [the heart](/lessons/circulation-and-heart/), which move it.
+> **The one idea.** Each decilitre (dL, a tenth of a litre) of blood releases oxygen from hemoglobin equal to its **carrying capacity** (the oxygen its hemoglobin holds when fully loaded, about 20 mL per dL) times the fall in **saturation** (the share of binding sites holding oxygen) between the lungs and the tissue:
+> **oxygen released from hemoglobin = capacity × (saturation in the lungs − saturation in the tissue)**
+> Hemoglobin's S-shaped curve keeps the first saturation near full and lets the second fall far, so one carrier loads fully and still unloads a lot.
+>
+> *Scope:* adult human blood at equilibrium, with arterial blood near 100 mmHg and blood returning from resting tissues near 40 mmHg; mixed or regional venous PO2 can approach 20 mmHg in hard exercise. These are blood PO2 points, not universal tissue PO2 values, so "tissue" on the curve, here and in the films, means blood leaving the tissue. Over that range a one-site carrier cannot both load fully and unload a lot, and a modest right shift costs little in the lungs. Dissolved oxygen adds about 0.18 mL per dL, about 4%, to the resting release.
 
-## The idea: a carrier with an S-shaped curve
+## Where the points sit on the curve
 
-Gases move by diffusion from where their **partial pressure** is high to where it is low. Partial pressure is the share of a gas mixture's pressure due to one gas, written PO2 for oxygen and measured here in mmHg (1 Torr is essentially the same unit). In an adult human at rest, arterial PO2 is about 100 mmHg and the PO2 of blood returning from the body is about 40 mmHg.
+Gases diffuse from high to low **partial pressure**, the share of a gas mixture's pressure due to one gas, written PO2 for oxygen and measured in mmHg (millimetres of mercury). For blood, picture it sealed in a flask under gas: once oxygen stops moving between them, the gas's PO2 is the blood's.
 
-The amount of oxygen that dissolves is proportional to PO2: about 0.003 mL per dL of blood for each mmHg. At 100 mmHg that is 0.3 mL per dL, far too little. In mammals, almost all the oxygen rides on **hemoglobin**, an iron-containing protein packed inside red blood cells. Each human hemoglobin molecule has four chains, two alpha and two beta in the adult form, and four oxygen-binding sites.
+Dissolved oxygen is about 0.003 mL per dL for each mmHg, only 0.3 mL per dL at 100 mmHg, so almost all the oxygen rides on **hemoglobin**; the predominant adult human form, HbA, has four chains (two alpha and two beta) and four oxygen-binding sites. Saturation plotted against PO2 is the **oxygen dissociation curve**, S-shaped, or sigmoid, for adult human blood.
 
-The **saturation** of hemoglobin is the fraction of its binding sites that hold oxygen. Plot saturation against PO2 and you get the **oxygen dissociation curve**. For adult human blood it is S-shaped, or sigmoid. Above about 60 mmHg it is nearly flat: blood in the lungs loads almost fully, and a modest fall in lung PO2 costs little. Between about 10 and 40 mmHg it is steep: a small fall in tissue PO2 releases a large amount of oxygen.
+The first film's saturations come from the **Severinghaus model**, a standard equation fitted to human blood, with a capacity of 20.1 mL per dL (1.34 mL per g × 15 g hemoglobin per dL); the numbers are in Going deeper. The curve is nearly flat above about 60 mmHg and steepest between about 10 and 35 mmHg, so the resting point at 40 sits on the **shoulder** and the steep middle is the **reserve** for hard work.
 
-The **P50** is the PO2 at which hemoglobin is half saturated. It measures **affinity**, how tightly the carrier holds oxygen, in reverse: a higher P50 means lower affinity. In a standard model of human blood at 37 degrees C, pH 7.4 and a carbon dioxide pressure of 40 mmHg, P50 is 26.8 mmHg.
+The films' "grip" is the **P50**, the PO2 at which hemoglobin is half saturated. It measures **affinity**, how tightly the carrier holds oxygen; a tight grip is half full at a low pressure, so a higher P50 means lower affinity. In a standard model of human blood at 37 degrees C, pH 7.4 and a carbon dioxide pressure of 40 mmHg, P50 is 26.8 mmHg.
 
-The S shape comes from **cooperative binding**: oxygen binding at one site makes the remaining sites of the same molecule bind more readily. How the four chains pass that change between them is told in [protein binding and allostery](/lessons/protein-binding-allostery/). Think of a bus that fills slowly while it is empty and quickly once a few passengers are on, and empties the same way.
+The first film's two-shape cartoon of **cooperative binding** is a simplification; how the four chains actually pass the change is told in [protein binding and allostery](/lessons/protein-binding-allostery/).
 
-**Worked problem: how much oxygen does the body use?** Take an illustrative adult human at rest. Assume hemoglobin 15 g per dL, 1.34 mL of oxygen per g of fully saturated hemoglobin (a common working value; the theoretical figure is near 1.39), dissolved oxygen 0.003 mL per dL per mmHg, a steady state and a cardiac output of 5.0 L per min.
+## How much oxygen does the body use?
+
+Oxygen **delivery** is arterial oxygen content times the **cardiac output** (blood pumped by the heart each minute). At steady state, the **Fick principle** says oxygen use is cardiac output times the arterial-minus-mixed-venous difference in content.
+
+**Worked problem.** Take an illustrative adult human at rest. Assume hemoglobin 15 g per dL, 1.34 mL of oxygen per g of fully saturated hemoglobin (a common working value; see Going deeper), dissolved oxygen 0.003 mL per dL per mmHg and a cardiac output of 5.0 L per min.
 
 > **oxygen content = (1.34 x hemoglobin x saturation) + (0.003 x PO2)**
 > **oxygen use = cardiac output x (arterial content - venous content)**
 
 1. *Arterial blood* (saturation 98%, PO2 100 mmHg): bound = 1.34 x 15 x 0.98 = 19.70 mL per dL; dissolved = 0.003 x 100 = 0.30 mL per dL; total 20.00 mL per dL.
-2. *Mixed venous blood* (saturation 75%, PO2 40 mmHg): bound = 1.34 x 15 x 0.75 = 15.08 mL per dL; dissolved = 0.12 mL per dL; total 15.20 mL per dL.
+2. *Mixed venous blood* (blood returning from the whole body, mixed in the right side of the heart; saturation 75%, PO2 40 mmHg): bound = 1.34 x 15 x 0.75 = 15.08 mL per dL; dissolved = 0.12 mL per dL; total 15.20 mL per dL.
 3. *Difference*: 20.00 - 15.20 = 4.80 mL per dL. The tissues took 4.80 / 20.00 = 24% of the oxygen offered.
 4. *Fick principle*: 5.0 L per min is 50 dL per min. Delivery is 50 x 20.00 = 1,000 mL per min; use is 50 x 4.80 = 240 mL per min.
 
-Only 0.30 of 20.00 mL per dL, 1.5%, is dissolved. Notice too that three-quarters of the oxygen comes back unused. That venous reserve sits on the steep part of the curve, so tissues can draw on it in exercise, a point taken up in [muscle and movement](/lessons/muscle-and-movement/).
+The saturations are rounded; the 4.80 is 4.62 from hemoglobin (the film's 4.6) plus 0.18 dissolved, and dissolved oxygen is 1.5% of arterial content (0.30 of 20.00 mL per dL). The unused three-quarters is the reserve tissues draw on in exercise ([muscle and movement](/lessons/muscle-and-movement/)).
 
 <OxygenContentFick />
 
-## Shifting the curve: Bohr's dog blood, temperature and BPG
+What makes blood release more of that reserve in working tissue? The second film follows the experiment that first found out.
 
-In Copenhagen in 1903, Christian Bohr, working with Karl Hasselbalch and August Krogh, took fresh dog blood and exposed samples to gas at set oxygen pressures, measuring how much oxygen the blood bound. Then they raised the carbon dioxide in the gas and measured again at the same oxygen pressure. If carbon dioxide simply travelled alongside oxygen, the bound oxygen should not have changed. Instead, more carbon dioxide lowered oxygen binding, and the effect was largest at low oxygen pressures and small near full saturation.
+<LessonFilm film={frontmatter.films[0]} />
 
-That result showed a large effect of carbon dioxide on oxygen binding in dog blood, and it acts where it matters: in respiring tissue, carbon dioxide is high and PO2 is low. It did not say how carbon dioxide acts, since carbon dioxide also makes blood more acidic.
+## Shifting the curve: what the experiment left open
 
-Today the **Bohr effect** names the fall in hemoglobin's oxygen affinity when pH falls or carbon dioxide rises. Both shift the curve to the right, raising P50, so at the same PO2 the blood holds less oxygen and has released more. Two other changes also shift the curve right, and they are separate effects, not the Bohr effect:
+Bohr's experiment showed that carbon dioxide lowers affinity, but not how, since carbon dioxide also makes blood more acidic. Later work took up the question; the carbon dioxide section below shows both at work, the acid and carbon dioxide bound to the protein.
 
-- **Higher temperature** lowers affinity. Working muscle is warmer than resting muscle.
-- **More 2,3-bisphosphoglycerate (BPG)**, a small molecule made in red cells from a side branch of [glycolysis](/lessons/glycolysis/), lowers affinity. BPG binds preferentially to the deoxygenated form of hemoglobin.
+**BPG**, 2,3-bisphosphoglycerate, is made in red cells from a side branch of [glycolysis](/lessons/glycolysis/) and acts inside them. It binds preferentially to the deoxygenated, low-affinity form of hemoglobin, about one molecule per four-chain hemoglobin, in the cavity between the beta chains. By favouring that form, it raises P50.
 
-Reverse any of these, with higher pH, less carbon dioxide, lower temperature or less BPG, and the curve shifts left, toward higher affinity.
+Higher pH, less carbon dioxide, lower temperature or less BPG shift the curve left, toward higher affinity. A left-shifted carrier suits a supply that is not air in the lungs: another blood, as for the fetus, or blood feeding a store, as for myoglobin in muscle.
 
-## Fetus, muscle, body size and icefish
+## Other carriers, other settings
 
-The same problem of loading and unloading oxygen is solved differently in different places and animals.
+**Predict.** Fetal blood's curve sits to the left of the mother's. At the placenta, oxygen diffuses from the mother's blood into fetal blood, which has the lower PO2. How does the left shift help?
 
-*The human fetus.* Fetal blood picks up oxygen from the mother's blood in the placenta (see [animal reproduction](/lessons/animal-reproduction/)), and it has higher affinity than adult blood: its curve sits to the left. Fetal hemoglobin has gamma chains in place of the adult beta chains. In 1970 H. Franklin Bunn and Robin Briehl showed that, with BPG removed and then added back at the same concentration, adult hemoglobin's P50 rose about twofold while fetal hemoglobin's rose less. Fetal hemoglobin still binds BPG; it responds less to it.
+<details>
+<summary>Check your prediction</summary>
 
-*Myoglobin.* **Myoglobin** is a single-chain oxygen-binding protein in muscle. With one site there is no cooperation, and its curve is hyperbolic, rising steeply from zero and flattening early. Its P50 is far lower than that of blood: about a tenth, in a comparison of purified horse myoglobin with a model of human blood (numbers in Going deeper). Because myoglobin has such a low P50, it stays largely loaded until the PO2 inside muscle fibres is very low, so it can take up oxygen from blood and give it up when the PO2 falls, as in hard work.
+At its lower PO2, fetal blood still reaches a high saturation, so it takes up more oxygen than adult blood would there. Both bloods still carry oxygen; the net flow runs from mother to fetus, down the PO2 difference (see [animal reproduction](/lessons/animal-reproduction/)).
 
-*Body size.* Among mammals, small species tend to have higher P50 values than large ones, a pattern described by Knut Schmidt-Nielsen and J. L. Larimer in 1958, though the trend is loose and differs among lineages. A mouse uses more oxygen per gram of tissue than an elephant (see [size and scaling](/lessons/size-and-scaling/)), and lower affinity favours unloading. Other animals have shifts linked to altitude, such as the bar-headed goose and the llama, whose hemoglobins are described in [protein binding and allostery](/lessons/protein-binding-allostery/).
+</details>
 
-*Other carriers, and none.* Horseshoe crabs and octopuses carry oxygen on **hemocyanin**, a copper-containing protein dissolved in their blood rather than packed in cells; the fluid is called **hemolymph** in animals with an open circulation, such as horseshoe crabs, while octopuses have a closed circulation. It is colourless without oxygen and blue with it. Adult Antarctic icefish, family Channichthyidae, have almost no red cells and no working hemoglobin, as Johan Ruud reported in 1954. Their oxygen travels dissolved in plasma, in water near freezing that holds more dissolved gas than warm water.
+*The human fetus.* Fetal hemoglobin, which has gamma chains in place of the adult beta chains, still binds BPG but responds less to it, a large part of why fetal blood grips tighter. In 1970 H. Franklin Bunn and Robin Briehl showed that, with BPG removed and then added back at the same concentration, adult hemoglobin's P50 rose about twofold while fetal hemoglobin's rose less.
+
+*Myoglobin.* **Myoglobin**, a single-chain oxygen store in muscle, behaves much like the first film's tight one-site carrier: its curve is hyperbolic, rising steeply from zero and flattening early, and its P50 is about a tenth of blood's (Going deeper). It takes up oxygen from blood and gives it up only when the PO2 inside muscle fibres is very low, as in hard work.
+
+*Body size.* Among mammals, small species tend to have higher P50 values than large ones, a pattern described by Knut Schmidt-Nielsen and J. L. Larimer in 1958, though the trend is loose and differs among lineages. A mouse uses more oxygen per gram of tissue than an elephant (see [size and scaling](/lessons/size-and-scaling/)), and lower affinity favours unloading. Shifts linked to altitude, in the bar-headed goose and the llama, are in [protein binding and allostery](/lessons/protein-binding-allostery/).
+
+*Other carriers, and none.* Horseshoe crabs and octopuses carry oxygen on **hemocyanin**, a copper-containing protein dissolved in their blood instead of packed in cells. It is colourless without oxygen and blue with it. Adult Antarctic icefish have almost no red cells and no working hemoglobin, as Johan Ruud reported in 1954; their oxygen travels dissolved in plasma, in near-freezing water that holds more dissolved gas than warm water.
 
 <LessonFigure src="/figures/oxygen-transport/oxygen-carriers-compared.webp" width={1200} height={729} alt="AI-generated illustration: three panels comparing blood, red cells carrying oxygen in a human, free-floating blue hemocyanin proteins in an octopus (with a horseshoe crab beside it), and clear plasma with only dissolved oxygen in an Antarctic icefish." caption="Humans carry oxygen on hemoglobin packed in red cells; octopuses and horseshoe crabs on hemocyanin dissolved in their blood; adult Antarctic icefish have almost no red cells and no working hemoglobin, and their oxygen travels dissolved in plasma." />
 
 ## Carrying carbon dioxide back
 
-Carbon dioxide made in the tissues returns to the lungs in three forms. Most of it travels as bicarbonate, made inside red cells by the enzyme carbonic anhydrase. For the carbon dioxide added to blood in resting tissue, one careful review estimates about 85% as bicarbonate, about 10% dissolved and only about 5% bound to hemoglobin. These fractions are approximations: they depend on conditions and change in exercise. Many textbooks give hemoglobin a larger share, near a quarter, but that older figure is now thought too high.
+Carbon dioxide returns to the lungs mostly as **bicarbonate** (HCO3-, formed when carbon dioxide reacts with water). For resting tissue, one careful review estimates about 85% as bicarbonate, 10% dissolved and 5% on hemoglobin, approximations that depend on what is counted and change in exercise. Many textbooks give hemoglobin near a quarter, an older figure now thought too high.
 
 **Bicarbonate.** In red cells, the enzyme **carbonic anhydrase** speeds the reaction of carbon dioxide with water (see [enzyme action](/lessons/enzyme-action-basics/)):
 
 > **CO2 + H2O ⇌ H2CO3 ⇌ H+ + HCO3-**
 
-The bicarbonate leaves the red cell in exchange for a chloride ion through a membrane exchanger (see [membrane transport](/lessons/membrane-transport/)), and it travels in plasma. The hydrogen ions are largely buffered by hemoglobin, and they are the source of part of the Bohr effect in tissue capillaries. In the lungs, where carbon dioxide is low, the reactions run backwards and carbon dioxide diffuses out to be exhaled.
+The bicarbonate leaves the red cell in exchange for a chloride ion through a membrane exchanger (see [membrane transport](/lessons/membrane-transport/)) and travels in plasma. Hemoglobin takes up most of the hydrogen ions, acting as a buffer; this is one way carbon dioxide lowers hemoglobin's affinity in tissue capillaries, part of the Bohr effect. In the lungs the reactions run backwards and carbon dioxide diffuses out.
 
-**Carbamino compounds.** Some carbon dioxide binds directly to the end amino groups of hemoglobin's chains, forming **carbamino** compounds. It does not bind the iron where oxygen sits. Experiments that blocked those amino groups in horse hemoglobin removed the oxygen-linked part of this binding.
+**Carbamino compounds.** Some carbon dioxide binds directly to the end amino groups of hemoglobin's chains, forming **carbamino** compounds, not to the iron where oxygen sits. Blocking those amino groups in horse hemoglobin removed the oxygen-linked part of this binding.
 
-**The Haldane effect** is the other side of Bohr's linkage. At the same carbon dioxide pressure, deoxygenated blood carries more carbon dioxide than oxygenated blood; Christiansen, Douglas and Haldane described it in 1914. Deoxygenated hemoglobin buffers hydrogen ions better and forms more carbamino compounds. In the lungs, oxygenation releases hydrogen ions, which push bicarbonate back to carbon dioxide for exhalation. The Bohr effect is carbon dioxide and pH acting on oxygen binding; the Haldane effect is oxygen acting on carbon dioxide carriage. Bicarbonate also links to blood pH, which the [kidney](/lessons/kidney/) helps regulate.
+**Predict.** Deoxygenated hemoglobin takes up hydrogen ions more readily than oxygenated hemoglobin, and forms more carbamino compounds. So as blood loads oxygen in the lungs, does it hold more or less carbon dioxide at the same carbon dioxide pressure?
+
+<details>
+<summary>Check your prediction</summary>
+
+Less. As oxygen binds, hemoglobin lets go of its hydrogen ions and carbamino carbon dioxide; the hydrogen ions turn bicarbonate back into carbon dioxide, which is breathed away. This is the **Haldane effect**, described by Christiansen, Douglas and Haldane in 1914: at the same carbon dioxide pressure, deoxygenated blood carries more carbon dioxide than oxygenated blood. In tissue it runs the other way: deoxygenated hemoglobin removes the H+ made with each bicarbonate and lets the reaction run further to the right.
+
+</details>
+
+So the Bohr and Haldane effects are one coupling seen from each side: carbon dioxide and acid acting on oxygen binding, and oxygen acting on carbon dioxide carriage. For oxygen it is the one idea at work: working tissue's carbon dioxide and acid widen the fall in saturation between lung and tissue. Bicarbonate also links to blood pH, which the [kidney](/lessons/kidney/) helps regulate.
 
 ### Design problem
 
-Human fetal blood binds oxygen more tightly than adult blood. Is that higher affinity built into fetal hemoglobin itself, or does it come from how fetal hemoglobin responds to BPG? Design an experiment to tell.
+Human fetal blood binds oxygen more tightly than adult blood. Is that built into fetal hemoglobin itself, so it binds more tightly even in a test tube with no BPG, or does it come from its response to BPG? Design an experiment to tell.
 
 <details>
 <summary>One way to do it</summary>
 
-Separate the protein from its surroundings. Purify adult and fetal hemoglobin and strip both of BPG and other organic phosphates, as Bunn and Briehl did in 1970.
+Strip purified adult and fetal hemoglobin of BPG and other organic phosphates, as Bunn and Briehl did in 1970. First, measure each stripped hemoglobin's P50: if fetal hemoglobin were much tighter-binding on its own, its P50 would already be lower here.
 
-First, measure the P50 of each stripped hemoglobin. If fetal hemoglobin were much tighter-binding on its own, its P50 would already be lower here.
+Second, add back the same BPG concentration to both. Bunn and Briehl used 0.2 mM BPG and got the result described above, a weaker fetal response.
 
-Second, add back the same BPG concentration to both. Bunn and Briehl used 0.2 mM BPG and found that adult P50 rose about twofold while fetal P50 rose less. A smaller rise for fetal hemoglobin points to a weaker BPG response as the explanation.
-
-Hold everything else equal: pH, temperature, buffer, salt and hemoglobin concentration, since each changes P50. Measure several BPG concentrations to get a dose-response, not one point.
-
-Then check the result in whole blood, comparing cord blood with adult blood, as Enoki and colleagues did in 1972. Finally, note the limit: test-tube conditions may be far from body temperature, so repeat the comparison at 37 degrees C before applying the numbers to a living fetus.
+Hold pH, temperature, buffer, salt and hemoglobin concentration equal, since each changes P50, and test several BPG concentrations, not one. Then check whole blood, comparing cord blood with adult blood, as Enoki and colleagues did in 1972. Test-tube conditions may be far from body temperature, so repeat at 37 degrees C before applying the numbers to a living fetus.
 
 </details>
 
 ## Going deeper
+
+### The films' carriers, by the numbers
+
+Severinghaus model, capacity 20.1 mL per dL; the first film's points are the first row. A shift stretches the pressure axis of the whole curve, a simplification; the one-site carriers are imaginary. Dissolved oxygen would add 0.18 mL per dL to each release.
+
+| Carrier | Saturation at 100 mmHg | at 40 mmHg | at 20 mmHg | Released from hemoglobin, 100 to 40 |
+|---|---|---|---|---|
+| Adult human blood, P50 26.8 | 97.7% | 74.9% | 32.0% | 4.6 mL per dL |
+| Shifted right, P50 32 | 96.2% | 64.6% | 23.6% | 6.4 mL per dL |
+| One-site carrier, P50 26.8 | 78.9% | 59.9% | 42.7% | 3.8 mL per dL |
+| One-site carrier, P50 3 | 97.1% | 93.0% | 87.0% | 0.8 mL per dL |
+
+The right shift costs about 1.5 points of loading but raises resting release by about two-fifths; a large shift or a low lung PO2 would cost more. The loose one-site carrier releases almost as much at rest (3.8 against 4.6 mL per dL) but leaves the lungs about four-fifths full and has far less reserve (about 7 against 13 mL per dL down to 20 mmHg); the tight one releases under 1 mL per dL. Myoglobin escapes this by unloading at far lower pressures, inside muscle fibres.
+
+### Shoulder and reserve, by slope
+
+In the model, saturation changes by about 0.07 percentage points per mmHg at 100 mmHg, about 1.3 at 40 mmHg and about 2.6 near 25 mmHg.
+
+### Units and the 1.34 figure
+
+1 Torr is essentially the same unit as 1 mmHg. The worked problem's 1.34 mL of oxygen per g of fully saturated hemoglobin is a common working value; the theoretical figure is near 1.39.
+
+### Hemolymph
+
+In animals with an open circulation, such as horseshoe crabs, the fluid that carries hemocyanin is called **hemolymph**; octopuses have a closed circulation.
 
 ### Who found that BPG lowers affinity
 
