@@ -1,0 +1,561 @@
+{
+ "slug": "population-growth",
+ "title": "Population Growth and Regulation",
+ "generated": {
+  "date": "2026-11-12",
+  "pipeline": "extract → Opus draft → Sonnet accuracy gate → Sonnet fixes",
+  "models": {
+   "draft": "claude-opus-5-5",
+   "gate": "claude-sonnet-5-5",
+   "fix": "claude-sonnet-5-5"
+  }
+ },
+ "lessonHash": "e49351777f49",
+ "sectionHashes": {
+  "(opening)": "ac862725e9d5",
+  "A fixed per-capita rate: exponential growth": "7e6c19462bd7",
+  "A falling per-capita rate: the logistic model": "814809d91920",
+  "Tilting the line: what counts as a brake": "52ceececc842",
+  "What regulates real populations": "80517218b0c1",
+  "Checking a model against data": "4da197d63520",
+  "Design problem": "d790a036c3f6",
+  "Two equilibria": "27b886cbedef",
+  "Real per-capita lines are often curved": "4ec226238a55",
+  "Allee effects": "7068ec07820f",
+  "Chaos from the simplest model": "d811e89e3b12",
+  "Drake's Daphnia test": "23ea377f20cd"
+ },
+ "cards": [
+  {
+   "id": "population-growth-c01",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "In a closed population, total growth is the net per-capita rate times size: dN/dt = {{c1::(b − d) × N}}.",
+   "back": "b and d are per-capita birth and death rates per unit time.",
+   "quote": "A population's growth is its per-capita rate (births minus deaths per individual, per unit time) times its size: dN/dt = (b − d) × N."
+  },
+  {
+   "id": "population-growth-c02",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "When is a population regulated, in terms of its net per-capita growth rate?",
+   "back": "Only when the net per-capita rate falls as density rises, positive below some level and negative above it, so the population returns to that level from either side (negative density dependence).",
+   "why": "In real populations this feedback may act after a lag.",
+   "quote": "A population is regulated only when that net per-capita rate falls as density (individuals per unit area) rises, from positive below some level to negative above it"
+  },
+  {
+   "id": "population-growth-c03",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "What scope assumptions do both the exponential and logistic models make about the population?",
+   "back": "One closed population (no immigration or emigration) in a fixed area, so N and density rise together; no age structure; continuous time.",
+   "quote": "both models describe one closed population (no immigration or emigration) in a fixed area, so N and density rise together, with no age structure and continuous time."
+  },
+  {
+   "id": "population-growth-c04",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "What does the exponential model hold constant, and what does the logistic model hold constant and assume about the net per-capita rate?",
+   "back": "Exponential: b and d constant. Logistic: r and K constant, with b − d falling in a straight line from r at low density to zero at K, and crowding acting at once (no lag).",
+   "quote": "The logistic holds r and K constant and assumes the net rate b − d falls in a straight line, from r at low density to zero at K"
+  },
+  {
+   "id": "population-growth-c05",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "With a per-capita birth rate b and death rate d, the intrinsic rate of increase is r = {{c1::b − d}}.",
+   "back": "r is the per-capita rate when resources are not limiting.",
+   "quote": "With a per-capita birth rate b and death rate d, r = b − d",
+   "section": "A fixed per-capita rate: exponential growth"
+  },
+  {
+   "id": "population-growth-c06",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "In population growth models, what are the units of r, and of K?",
+   "back": "r is per unit time (per day, per year); K is a number of individuals.",
+   "why": "dN/dt is individuals per unit time and N is individuals, so r must be per unit time for dN/dt = rN to balance.",
+   "quote": "With a per-capita birth rate b and death rate d, r = b − d: if b = 0.5 per year and d = 0.3 per year, r = 0.2 per year.",
+   "section": "A fixed per-capita rate: exponential growth"
+  },
+  {
+   "id": "population-growth-c07",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A population of 50 grows exponentially with constant r = 0.1 per day. Using N(t) = N0 e^(rt), about how many individuals are there at day 10?",
+   "back": "rt = 0.1 × 10 = 1, e^1 = 2.718, so N(10) = 50 × 2.718 ≈ 136: more than one doubling (100), fewer than two (200).",
+   "quote": "N(5) = 100 × 2.718, about 272: more than one doubling (200), fewer than two (400).",
+   "section": "A fixed per-capita rate: exponential growth"
+  },
+  {
+   "id": "population-growth-c08",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "With r = 0.2 per day, the population multiplies by lambda = e^0.2 = 1.22 per day. Why is that a 22% rise, not 20%?",
+   "back": "r is a net rate acting at every instant, so newcomers start adding newcomers at once; growth compounds within the day.",
+   "quote": "a 22% rise per day, slightly more than 20% because newcomers start adding newcomers at once.",
+   "section": "A fixed per-capita rate: exponential growth"
+  },
+  {
+   "id": "population-growth-c09",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "Under exponential growth, over one time unit the population multiplies by lambda = {{c1::e^r}}.",
+   "back": "",
+   "quote": "Because r is a net rate (not a birth rate) acting at every instant, over one day the population multiplies by lambda = e^r",
+   "section": "A fixed per-capita rate: exponential growth"
+  },
+  {
+   "id": "population-growth-c10",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "Show why the exponential doubling time is ln 2 / r.",
+   "back": "Doubling means e^(rt) = 2. Taking the natural log of both sides gives rt = ln 2 = 0.693, so t = 0.693 / r.",
+   "quote": "Doubling means e^(rt) = 2; taking the natural log of both sides (ln undoes e; see e and ln) gives rt = ln 2 = 0.693",
+   "section": "A fixed per-capita rate: exponential growth"
+  },
+  {
+   "id": "population-growth-c11",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A population grows exponentially with constant r = 0.05 per year. What is its doubling time, and does it change when the population is ten times larger?",
+   "back": "t = ln 2 / r = 0.693 / 0.05 ≈ 13.9 years. It does not change: a constant r gives a constant doubling time at any N.",
+   "quote": "With r = 0.2 per day the population doubles every 3.47 days, whether it holds 100 individuals or 100,000.",
+   "section": "A fixed per-capita rate: exponential growth"
+  },
+  {
+   "id": "population-growth-c12",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A bacterial culture with unlimited resources rises from 1,000 to 8,000 cells in 6 hours, growing exponentially with constant r. Find the doubling time and r.",
+   "back": "8-fold is three doublings, so the doubling time is 6 / 3 = 2 hours. r = ln 2 / 2 = ln 8 / 6 ≈ 0.347 per hour.",
+   "quote": "A constant r means a constant doubling time, ln 2 / r.",
+   "section": "A fixed per-capita rate: exponential growth"
+  },
+  {
+   "id": "population-growth-c13",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "A logistic population has r = 0.3 per day and K = 2,000, with N = 500. Find the brake (1 − N/K) and dN/dt.",
+   "back": "N/K = 0.25, so the brake is 0.75. dN/dt = 0.3 × 500 × 0.75 = 112.5 individuals per day.",
+   "quote": "N/K = 0.25, so the brake is 1 − 0.25 = 0.75.",
+   "section": "A falling per-capita rate: the logistic model"
+  },
+  {
+   "id": "population-growth-c14",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "In the logistic model the per-capita growth rate is (1/N) dN/dt = {{c1::r(1 − N/K)}}.",
+   "back": "",
+   "quote": "Divide both sides by N for the per-capita rate: (1/N) dN/dt = r(1 − N/K)",
+   "section": "A falling per-capita rate: the logistic model"
+  },
+  {
+   "id": "population-growth-c15",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "In the logistic model, per-capita growth plotted against N is a straight line falling from r through zero at K, the {{c1::carrying capacity}}.",
+   "back": "",
+   "quote": "Against N this is a straight line falling from r through zero at K, the carrying capacity",
+   "section": "A falling per-capita rate: the logistic model"
+  },
+  {
+   "id": "population-growth-c16",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Why does total logistic growth dN/dt peak at N = K/2, and what is the peak value?",
+   "back": "dN/dt = rN(1 − N/K) multiplies a size that rises with N by a brake that falls with N; the product is largest at K/2, where it equals rK/4.",
+   "quote": "Peak total growth. At N = 500, dN/dt = 0.2 x 500 x 0.5 = 50 individuals per day, which is rK/4 = 0.2 x 1,000 / 4.",
+   "section": "A falling per-capita rate: the logistic model"
+  },
+  {
+   "id": "population-growth-c17",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "In a logistic population with r = 0.2 per day and K = 1,000, N = 100 and N = 900 give the same dN/dt (18 per day). Why?",
+   "back": "At 100 the per-capita rate is high (0.18) but few individuals carry it; at 900 there are many individuals but the per-capita rate is low (0.02).",
+   "quote": "At N = 100 and N = 900 the population has the same instantaneous growth rate, dN/dt = 18 individuals per day.",
+   "section": "A falling per-capita rate: the logistic model"
+  },
+  {
+   "id": "population-growth-c18",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "A logistic population with r = 0.4 per year and K = 500 receives immigrants that raise N to 600. What does the model predict right after, and why?",
+   "back": "It shrinks back toward K. Per-capita rate = 0.4 × (1 − 1.2) = −0.08 per year, so dN/dt = −48 per year, slowing as N nears 500.",
+   "quote": "At 1,200 the per-capita rate is 0.2 × (1 − 1.2) = −0.04 per day, so at that moment the population is shrinking at 48 a day",
+   "section": "A falling per-capita rate: the logistic model"
+  },
+  {
+   "id": "population-growth-c19",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Why is K in the logistic model an equilibrium rather than a ceiling?",
+   "back": "Below K the per-capita rate is positive and above K it is negative, so the population returns to K from either side; it can be pushed above K.",
+   "why": "From below, the continuous model rises smoothly to K and never overshoots, because feedback is instant.",
+   "quote": "K is a stable equilibrium, a level the population returns to from either side, not a ceiling.",
+   "section": "A falling per-capita rate: the logistic model"
+  },
+  {
+   "id": "population-growth-c20",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "Use N(t) = K / (1 + (K/N0 − 1) e^(−rt)) with K = 1,000, N0 = 200, r = 0.5 per day. Find N at day 4, and compare with the exponential projection.",
+   "back": "K/N0 − 1 = 4, rt = 2, e^−2 = 0.1353: N(4) = 1,000 / (1 + 0.541) ≈ 649. Exponential: 200 × e^2 = 200 × 7.389 ≈ 1,478.",
+   "quote": "The solution of the logistic equation (you can use it without deriving it) is N(t) = K / (1 + (K/N0 - 1) e^(-rt))",
+   "section": "A falling per-capita rate: the logistic model"
+  },
+  {
+   "id": "population-growth-c21",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "For the logistic population with K = 1,000, N0 = 200 and r = 0.5 per day, how long until it reaches K/2?",
+   "back": "Set N = 500: 1 + 4e^(−0.5t) = 2, so e^(−0.5t) = 1/4 and t = ln 4 / 0.5 = 1.386 / 0.5 ≈ 2.77 days.",
+   "quote": "Taking the natural log of both sides, t = ln 9 / 0.2 = 2.197 / 0.2 = 10.99 days.",
+   "section": "A falling per-capita rate: the logistic model"
+  },
+  {
+   "id": "population-growth-c22",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Name three logistic assumptions that field populations break.",
+   "back": "They have age structure, feedback has time lags, and K changes with season, weather and food supply.",
+   "why": "These can make a real population overshoot or cycle around K, though none always does.",
+   "quote": "And K changes with season, weather and food supply.",
+   "section": "A falling per-capita rate: the logistic model"
+  },
+  {
+   "id": "population-growth-c23",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "Two populations have the same N, but one is mostly juveniles. Which grows more slowly than its N suggests, and why does the logistic model miss the difference?",
+   "back": "The mostly-juvenile one. Juveniles do not breed; the logistic has no age structure.",
+   "quote": "Real populations have age structure: juveniles do not breed, so a population of mostly young animals grows more slowly than its N suggests.",
+   "section": "A falling per-capita rate: the logistic model"
+  },
+  {
+   "id": "population-growth-c24",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "In a deer population, food eaten this winter limits births next spring. Approaching K from below, how can its path differ from the continuous logistic's?",
+   "back": "It can overshoot K and then oscillate or cycle, because the brake reflects past density; the continuous logistic, with instant feedback, cannot overshoot. A lag makes this possible, not certain.",
+   "quote": "Feedback has time lags: food eaten this winter limits births next spring.",
+   "section": "A falling per-capita rate: the logistic model"
+  },
+  {
+   "id": "population-growth-c25",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Define a density-dependent factor and a density-independent factor.",
+   "back": "Density dependent: its per-capita effect changes with density (it tilts the per-capita line). Density independent: shifts the per-capita rate by the same amount at every density.",
+   "quote": "A density-dependent factor has a per-capita effect that changes with density; it tilts the line.",
+   "section": "Tilting the line: what counts as a brake"
+  },
+  {
+   "id": "population-growth-c26",
+   "type": "experiment",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "How would a field experiment show that food limits a population?",
+   "back": "Add food to some plots and compare numbers with untouched control plots; if numbers rise with added food, food was limiting there.",
+   "quote": "if adding food raises numbers compared with untouched control plots, food was limiting there.",
+   "section": "Tilting the line: what counts as a brake"
+  },
+  {
+   "id": "population-growth-c27",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "A logistic population has r = 0.3 per day and K = 1,200. A hazard removes 0.1 per individual per day at every density. Does the hazard regulate the population? Where does it settle?",
+   "back": "It does not regulate. It lowers the per-capita line by 0.1 with its slope unchanged, so zero is crossed where 0.3(1 − N/1,200) = 0.1, at N = 800. The tilt still comes from crowding.",
+   "quote": "The per-capita line drops by 0.05 at every density with its slope unchanged, so it crosses zero earlier",
+   "section": "Tilting the line: what counts as a brake"
+  },
+  {
+   "id": "population-growth-c28",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A frost kills 30 of 300 hares on a dense plot and 3 of 30 on a sparse plot. It killed ten times more on the dense plot. Is the frost density dependent here?",
+   "back": "No. The per-capita death rate is 10% on both plots; it kills more in total only because a fixed fraction of a bigger number is bigger.",
+   "quote": "It kills more in total only because a fixed fraction of a bigger number is bigger.",
+   "section": "Tilting the line: what counts as a brake"
+  },
+  {
+   "id": "population-growth-c29",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "Is a predator, or a frost, density dependent by its nature?",
+   "back": "No. Whether an agent is density dependent is a hypothesis, tested by measuring per-capita rates across densities.",
+   "quote": "Neither label comes with the agent: whether a predator or a frost is density dependent is a hypothesis, tested on per-capita rates.",
+   "section": "Tilting the line: what counts as a brake"
+  },
+  {
+   "id": "population-growth-c30",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Young reef fish from one generation are stocked at different densities across reefs, and the fraction dying rises with density. Does this show the population is regulated?",
+   "back": "No. It shows density-dependent deaths in space. Regulation is return through time, which needs long records, repeated density manipulations, or a tested demographic model built from per-capita rates.",
+   "quote": "Regulation is a claim about return through time, and showing it needs evidence through time",
+   "section": "What regulates real populations"
+  },
+  {
+   "id": "population-growth-c31",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "Name two limits of the Kluane snowshoe hare predator-exclusion treatments.",
+   "back": "Each predator treatment had one fenced block, and fences kept out lynx and coyotes but not birds of prey, so exclusion was partial.",
+   "quote": "the fences kept out lynx and coyotes but not birds of prey, so exclusion was partial.",
+   "section": "What regulates real populations"
+  },
+  {
+   "id": "population-growth-c32",
+   "type": "qa",
+   "level": 4,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "In Soay sheep on St Kilda, two populations of equal size under identical winter weather can follow different paths. Which logistic assumption does this break, and how?",
+   "back": "No population makeup (age and sex classes). Lambs, adult males and adult females respond differently to density and to weather, so the population's makeup changes the outcome; weather and density act together.",
+   "quote": "lambs, adult males and adult females respond differently to density and to winter weather, so two populations of equal size under identical weather can follow different paths.",
+   "section": "What regulates real populations"
+  },
+  {
+   "id": "population-growth-c33",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "A logistic curve fits a country's past census counts closely. Why does this not show that logistic crowding is at work?",
+   "back": "A close fit to points you already have does not show the equation's mechanism; a model earns trust by predicting populations it was not fitted to.",
+   "quote": "a close fit to points you already have does not show that the mechanism in the equation is at work.",
+   "section": "Checking a model against data"
+  },
+  {
+   "id": "population-growth-c34",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "Ecologists use {{c1::time series}}, counts of the same population year after year, and ask whether a high count is followed by a low per-capita growth rate the next year.",
+   "back": "",
+   "quote": "Ecologists use time series, counts of the same population year after year, and ask whether a high count is followed by a low per-capita growth rate the next year.",
+   "section": "Checking a model against data"
+  },
+  {
+   "id": "population-growth-c35",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Many short population time series, each tested alone, give little evidence of density dependence; analysed together they give strong evidence. What is the best interpretation?",
+   "back": "Low statistical power in short single series, not absent regulation: each series has too little data to detect an effect that is there.",
+   "quote": "That points to low statistical power in short single series (too little data for a test to detect an effect that is there), not absent regulation.",
+   "section": "Checking a model against data"
+  },
+  {
+   "id": "population-growth-c36",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In a crossed field design, hare density was about 2 times control with mammalian predators excluded, 3 times with food added, and 11 times with both. What do the null expectations and the result suggest?",
+   "back": "Independent multiplying effects predict 2 × 3 = 6 times; simply adding gains predicts 1 + 1 + 2 = 4 times. Observed 11 exceeds both, suggesting food and predation interact; with one block per predator treatment, this is suggested, not tested.",
+   "quote": "The observed 11 times exceeds both, which suggests that the two factors interact, as the authors concluded.",
+   "section": "Design problem"
+  },
+  {
+   "id": "population-growth-c37",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "Hares reached 11 times control density with food added and mammalian predators excluded. What does this not show, and what should come next?",
+   "back": "It does not show that food shortage drives the cyclic decline, and density ratios are not r or K. Next: replicate on more blocks, ideally in another region, and measure per-capita survival and reproduction against density in each treatment.",
+   "quote": "measure per-capita survival and reproduction against density in each treatment",
+   "section": "Design problem"
+  },
+  {
+   "id": "population-growth-c38",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "With r and K positive, what kind of equilibrium is N = 0 in the logistic model?",
+   "back": "Unstable: any population above zero grows away from it, while K is stable.",
+   "quote": "N = 0 is also an equilibrium of the logistic, but unstable: any population above zero grows away from it, while K is stable.",
+   "section": "Two equilibria"
+  },
+  {
+   "id": "population-growth-c39",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "A population with an Allee effect is knocked down to very low density. Contrast what the logistic model predicts with what the Allee effect implies.",
+   "back": "Logistic: per-capita growth is highest near zero, so it recovers. Allee: per-capita growth rises with density at low density, so falling lower slows growth and can push it further from its level.",
+   "why": "The logistic leaves positive density dependence out.",
+   "quote": "At very low density the per-capita rate can instead rise as density rises, so the line slopes up before it slopes down.",
+   "section": "Allee effects"
+  },
+  {
+   "id": "population-growth-c40",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "Why should a regression of per-capita growth on density from noisy counts be treated with caution?",
+   "back": "Sampling error in the counts can itself create spurious density dependence; real per-capita lines are also often curved, falling fast at low density then flattening.",
+   "quote": "sampling error in the counts can itself create spurious density dependence in a regression of growth on density.",
+   "section": "Real per-capita lines are often curved"
+  },
+  {
+   "id": "population-growth-c41",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "An insect with one generation per year shows erratic annual counts. A colleague concludes the environment must be erratic. What does the discrete-time logistic say?",
+   "back": "Not necessarily. With this year's crowding acting on next year's number, a discrete logistic can settle, oscillate or fluctuate chaotically depending on r, with nothing random in the equation.",
+   "quote": "can settle, oscillate, or fluctuate chaotically depending on r, with nothing random in the equation.",
+   "section": "Chaos from the simplest model"
+  },
+  {
+   "id": "population-growth-c42",
+   "type": "experiment",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "In tests on laboratory Daphnia magna populations, which extinction models predicted extinctions well on populations they were not fitted to?",
+   "back": "Models letting demographic chance vary with density predicted extinctions accurately or with slight bias; models assuming the same demographic chance at every density were severely biased and underpredicted them.",
+   "quote": "models that assumed demographic chance was the same at every density were severely biased and underpredicted them.",
+   "section": "Drake's Daphnia test"
+  }
+ ]
+}

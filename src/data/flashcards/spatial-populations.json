@@ -1,0 +1,613 @@
+{
+ "slug": "spatial-populations",
+ "title": "Movement and Spatial Populations",
+ "generated": {
+  "date": "2026-11-12",
+  "pipeline": "extract → Opus draft → Sonnet accuracy gate → Sonnet fixes",
+  "models": {
+   "draft": "claude-opus-5-5",
+   "gate": "claude-sonnet-5-5",
+   "fix": "claude-sonnet-5-5"
+  }
+ },
+ "lessonHash": "5289fe20ab89",
+ "sectionHashes": {
+  "(opening)": "8e5fcf009fdd",
+  "The ledger: colonization against extinction": "123943908f3c",
+  "What sets the rates: dispersal, sources and rescue": "b5050c835424",
+  "Two kinds of zero: occupancy": "361c16bcc4b0",
+  "Counting animals: mark-recapture": "a5d494e1c328",
+  "Design problem": "4061b3300f51",
+  "Small networks can be lost by chance": "826c9a1a76b1",
+  "Rescue makes e depend on p": "f59ee0692ad8",
+  "When connectivity hurts": "c9fbd80a3826",
+  "Spatial structure and predator-prey cycles": "a80d3352d969",
+  "Dynamic occupancy and the symbol ψ": "02482993a3a2"
+ },
+ "cards": [
+  {
+   "id": "spatial-populations-c01",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "In a metapopulation, how can a region keep a species even though no single patch keeps its population?",
+   "back": "Colonization beats extinction: the colonization rate c is greater than the extinction rate e, so patches refounded balance patches lost.",
+   "quote": "as long as colonization beats extinction: the colonization rate c is greater than the extinction rate e"
+  },
+  {
+   "id": "spatial-populations-c02",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "What does the deterministic Levins model assume about patches and rates?",
+   "back": "Many identical, equally reachable patches; constant rates; no attention to how many animals each patch holds.",
+   "quote": "this is the deterministic Levins model: many identical, equally reachable patches, constant rates, no attention to how many animals each patch holds."
+  },
+  {
+   "id": "spatial-populations-c03",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Why can a small, finite patch network lose every patch by chance even when c is greater than e?",
+   "back": "Once every patch is empty it stays empty: there is no source of colonists left, so a chance run of extinctions is permanent.",
+   "quote": "once every patch is empty it stays empty, so a small network can eventually lose every patch by chance even when c is greater than e"
+  },
+  {
+   "id": "spatial-populations-c04",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "A metapopulation is a set of local populations (the individuals that live and breed in one patch) linked by {{c1::dispersal}} across hostile ground.",
+   "back": "Hostile ground is land the animals can cross but not live on.",
+   "quote": "local populations linked by dispersal across hostile ground",
+   "section": "The ledger: colonization against extinction"
+  },
+  {
+   "id": "spatial-populations-c05",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Write the Levins ledger for the rate of change of the occupied fraction of patches, p.",
+   "back": "dp/dt = c p (1 − p) − e p",
+   "why": "Colonization needs occupied patches (p) sending colonists to empty ones (1 − p); extinction removes occupied patches at rate e.",
+   "quote": "Set dp/dt to zero: c p (1 − p) = e p.",
+   "section": "The ledger: colonization against extinction"
+  },
+  {
+   "id": "spatial-populations-c06",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Derive the Levins equilibrium occupied fraction from c p (1 − p) = e p.",
+   "back": "Divide by p (any network with occupied patches): c (1 − p) = e. Divide by c: 1 − p = e/c, so p* = 1 − e/c.",
+   "quote": "Divide by c and move p to one side: 1 − p = e/c, so p = 1 − e/c.",
+   "section": "The ledger: colonization against extinction"
+  },
+  {
+   "id": "spatial-populations-c07",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "In the Levins model, c = 0.5 and e = 0.2 per year, and 30% of patches are occupied (p = 0.3). Compute dp/dt. Is occupancy rising or falling?",
+   "back": "Colonization 0.5 × 0.3 × 0.7 = 0.105; extinction 0.2 × 0.3 = 0.06. dp/dt = +0.045 per year, so occupancy is rising (toward p* = 0.6).",
+   "quote": "dp/dt = 0.1 − 0.05 = +0.05 per year, so occupancy is still rising.",
+   "section": "The ledger: colonization against extinction"
+  },
+  {
+   "id": "spatial-populations-c08",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "A Levins network has c = 0.6 and e = 0.15 per year. What fraction of patches is occupied at equilibrium?",
+   "back": "e/c = 0.15/0.6 = 0.25, so p* = 1 − 0.25 = 0.75.",
+   "quote": "e/c = 0.5, so p* = 1 − 0.5 = 0.5: half the patches occupied on average.",
+   "section": "The ledger: colonization against extinction"
+  },
+  {
+   "id": "spatial-populations-c09",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "A Levins network sits at 0.75 occupancy with c = 0.4 per year. The extinction rate e rises to 0.4, equal to c. Is the network gone within two or three years?",
+   "back": "No. dp/dt = −0.4 p², so loss starts at 0.225 per year and slows as patches empty: about 0.47 after 2 years, 0.19 after 10, about 47 years to reach 0.05.",
+   "quote": "The ledger becomes dp/dt = −0.4 p², so occupancy falls at 0.4 × 0.75² = 0.225 per year at first",
+   "section": "The ledger: colonization against extinction"
+  },
+  {
+   "id": "spatial-populations-c10",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Why does finding animals in a patch network not show that the region is persisting?",
+   "back": "A network at or just past its threshold (e at or above c) declines slowly and can keep occupied patches for years while heading to zero.",
+   "quote": "So a network at or just past its threshold can keep occupied patches for years: seeing animals does not show the region is persisting.",
+   "section": "The ledger: colonization against extinction"
+  },
+  {
+   "id": "spatial-populations-c11",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "Two Levins networks both start at 0.75 occupancy with c = 0.4 per year. In one, e becomes 0.4; in the other, 0.8. Which one will monitoring flag as declining sooner, and what is the risk for the other?",
+   "back": "The e = 0.8 network falls to 0.05 in about 5.5 years; the e = 0.4 network takes about 47 years, so it can keep occupied patches for years while heading to zero.",
+   "why": "Rule: once e is at or above c, the closer e is to c, the slower the slide.",
+   "quote": "Once e is at or above c, the closer e is to c, the slower the slide (working in Going deeper).",
+   "section": "The ledger: colonization against extinction"
+  },
+  {
+   "id": "spatial-populations-c12",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Define dispersal in ecology.",
+   "back": "Movement from where an individual was born, or last bred, to where it breeds next.",
+   "quote": "Dispersal is movement from where an individual was born, or last bred, to where it breeds next.",
+   "section": "What sets the rates: dispersal, sources and rescue"
+  },
+  {
+   "id": "spatial-populations-c13",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Name the three stages of dispersal that can be measured separately.",
+   "back": "Departure, transfer across the landscape, and settlement.",
+   "quote": "It is what c is made of, in three stages that can be measured separately: departure, transfer across the landscape, and settlement.",
+   "section": "What sets the rates: dispersal, sources and rescue"
+  },
+  {
+   "id": "spatial-populations-c14",
+   "type": "experiment",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "In Glanville fritillary butterflies in the Åland Islands, the factors that explained departure explained little of how far butterflies went. What does this show about dispersal stages?",
+   "back": "The stages need not share causes, so they can be measured and explained separately.",
+   "quote": "the factors that explained departure explained little of the variation in how far butterflies went",
+   "section": "What sets the rates: dispersal, sources and rescue"
+  },
+  {
+   "id": "spatial-populations-c15",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "How does dispersal differ from migration, using a warbler as the example?",
+   "back": "Migration is a seasonal round trip: the warbler returns to the same areas each year. A dispersing warbler changes where it breeds and may move again later.",
+   "quote": "Dispersal is not migration, a seasonal round trip: a migrating warbler returns to the same areas each year",
+   "section": "What sets the rates: dispersal, sources and rescue"
+  },
+  {
+   "id": "spatial-populations-c16",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Besides refounding patches, what does dispersal carry between populations, and what is that process called?",
+   "back": "Genes. Dispersers that breed in their new population produce gene flow.",
+   "quote": "Dispersal also carries genes, the gene flow of drift, gene flow and competing explanations, with the arithmetic in population genetics.",
+   "section": "What sets the rates: dispersal, sources and rescue"
+  },
+  {
+   "id": "spatial-populations-c17",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "How does Pulliam's source-sink model differ from the Levins model?",
+   "back": "Pulliam follows births and deaths rather than occupied patches, and lets habitats differ; Levins treats every patch as equal and simply occupied or empty.",
+   "quote": "in a different kind of model that follows births and deaths rather than occupied patches, let habitats differ.",
+   "section": "What sets the rates: dispersal, sources and rescue"
+  },
+  {
+   "id": "spatial-populations-c18",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "In Pulliam's framework, what defines a source habitat?",
+   "back": "Local births exceed local deaths, and the surplus emigrates.",
+   "quote": "In a source, local births exceed local deaths, and the surplus emigrates.",
+   "section": "What sets the rates: dispersal, sources and rescue"
+  },
+  {
+   "id": "spatial-populations-c19",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "In Pulliam's framework, what defines a sink habitat?",
+   "back": "Local reproduction does not make up for local mortality; the population persists only because immigrants keep arriving.",
+   "quote": "In a sink, local reproduction does not make up for local mortality, and the population persists only because immigrants keep arriving.",
+   "section": "What sets the rates: dispersal, sources and rescue"
+  },
+  {
+   "id": "spatial-populations-c20",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "A road cuts off all immigration into a sink habitat that has held a steady population for decades. What happens to that population, and why?",
+   "back": "It declines toward local extinction. Local births do not replace local deaths, and the immigrants that made up the shortfall no longer arrive.",
+   "quote": "In a sink, local reproduction does not make up for local mortality, and the population persists only because immigrants keep arriving.",
+   "section": "What sets the rates: dispersal, sources and rescue"
+  },
+  {
+   "id": "spatial-populations-c21",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "A meadow holds the highest butterfly count in its region every year. Can you call it a source? What data would decide?",
+   "back": "Not from the count: a sink fed by a strong source can be full of animals. Birth and death rates, and how many animals arrive and leave, decide.",
+   "quote": "Birth and death rates, and how many animals arrive and leave, label a source; abundance does not.",
+   "section": "What sets the rates: dispersal, sources and rescue"
+  },
+  {
+   "id": "spatial-populations-c22",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Recolonization and the rescue effect both involve immigrants. How do they differ, and which Levins term does each affect?",
+   "back": "Recolonization refounds a patch after its population has gone (colonization term). Rescue: immigrants join a population still present and lower its chance of dying out (lowers e).",
+   "why": "The basic Levins model leaves the rescue effect out.",
+   "quote": "immigrants join a population that is still present and lower its chance of dying out",
+   "section": "What sets the rates: dispersal, sources and rescue"
+  },
+  {
+   "id": "spatial-populations-c23",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "A Levins network has c = 0.4 and e = 0.2 per year. Corridors raise c to 0.5, and rescue by immigrants lowers e to 0.15. What happens to equilibrium occupancy?",
+   "back": "Before: p* = 1 − 0.2/0.4 = 0.5. After: p* = 1 − 0.15/0.5 = 0.7. Occupancy rises from 0.5 to 0.7.",
+   "why": "Corridors can raise c and, where immigrants rescue populations still present, lower e.",
+   "quote": "Linking patches with corridors, strips of habitat between them, can raise c; where immigrants rescue populations that are still present, it can also lower e.",
+   "section": "What sets the rates: dispersal, sources and rescue"
+  },
+  {
+   "id": "spatial-populations-c24",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "Why can a simple comparison of patches with and without corridors not show that connection itself helps?",
+   "back": "A corridor adds habitat area as well as connection, so the design must separate the two effects.",
+   "quote": "But a corridor adds habitat area as well as connection, so an experiment must pull the two apart",
+   "section": "What sets the rates: dispersal, sources and rescue"
+  },
+  {
+   "id": "spatial-populations-c25",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A salamander occupies a pond and is detected on any one visit with probability 0.6, independently. What is the probability that three visits all miss it?",
+   "back": "Miss per visit = 1 − 0.6 = 0.4. All three missed: 0.4³ = 0.064.",
+   "quote": "If detection is 0.3 on each of three visits a year, independently, an occupied pond is missed on all three with probability 0.7³ = 0.343.",
+   "section": "Two kinds of zero: occupancy"
+  },
+  {
+   "id": "spatial-populations-c26",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Year after year, surveyors score every site with no detection on any visit as empty. How will occupancy, apparent extinction and apparent colonization be biased?",
+   "back": "Occupancy looks lower; extinction and colonization both look more frequent. A missed population is scored as a local extinction, and finding it again as a colonization.",
+   "quote": "A missed population is scored as a local extinction, and finding it again as a colonization",
+   "section": "Two kinds of zero: occupancy"
+  },
+  {
+   "id": "spatial-populations-c27",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "Occupied ponds truly lose their populations with yearly probability 0.1. Detection is 0.5 on each of three visits a year, independently, and non-detection is scored as absence. What apparent extinction probability results?",
+   "back": "Missed on all three: 0.5³ = 0.125. Apparent extinction = 0.1 + 0.9 × 0.125 = 0.2125, about 0.21, roughly twice the truth.",
+   "quote": "Apparent extinction is the true 0.1 plus surviving populations missed, 0.9 × 0.343: about 0.41, four times the truth.",
+   "section": "Two kinds of zero: occupancy"
+  },
+  {
+   "id": "spatial-populations-c28",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "Presence-only surveys of a toad network show high yearly turnover, and a report concludes the network is near collapse. Evaluate the claim and say what analysis is needed.",
+   "back": "High apparent turnover can be error in the record from missed detections, not nearness to collapse. A dynamic occupancy model, estimating detection alongside colonization and extinction, is needed.",
+   "quote": "This is error in the record, not a measure of how near the network is to collapse.",
+   "section": "Two kinds of zero: occupancy"
+  },
+  {
+   "id": "spatial-populations-c29",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "Why are the yearly colonization and extinction probabilities of a dynamic occupancy model not the same numbers as Levins c and e?",
+   "back": "Levins refounds an empty patch at rate c p, which grows with occupancy, and his c and e are continuous rates, not yearly probabilities.",
+   "quote": "Levins refounds an empty patch at rate c p, which grows with occupancy, and his c and e are continuous rates.",
+   "section": "Dynamic occupancy and the symbol ψ"
+  },
+  {
+   "id": "spatial-populations-c30",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "What proportion underlies the Lincoln-Petersen mark-recapture estimate, and what formula follows?",
+   "back": "The marked share of the second catch matches the marked share of the population: m2 / n2 = n1 / N, so N = n1 × n2 / m2.",
+   "quote": "the marked share of a second catch should match the marked share of the whole population.",
+   "section": "Counting animals: mark-recapture"
+  },
+  {
+   "id": "spatial-populations-c31",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Researchers mark and release 40 lizards. Later they catch 60, of which 8 are marked. Assuming a closed population and equal catchability, what is the Lincoln-Petersen estimate?",
+   "back": "N = n1 × n2 / m2 = 40 × 60 / 8 = 2,400 / 8 = 300 lizards.",
+   "quote": "Divide by m2: N = n1 × n2 / m2.",
+   "section": "Counting animals: mark-recapture"
+  },
+  {
+   "id": "spatial-populations-c32",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "Same lizard data (n1 = 40, n2 = 60, m2 = 8). What is the Chapman estimate?",
+   "back": "N = (41 × 61) / 9 − 1 = 2,501 / 9 − 1 ≈ 277.9 − 1 ≈ 277 lizards.",
+   "quote": "N = (n1 + 1)(n2 + 1) / (m2 + 1) - 1",
+   "section": "Counting animals: mark-recapture"
+  },
+  {
+   "id": "spatial-populations-c33",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "Why use the Chapman estimator instead of plain Lincoln-Petersen?",
+   "back": "The plain estimator runs high when samples are small. Adding one to each count reduces that bias and avoids dividing by zero if no marked animals are recaught.",
+   "quote": "Chapman's version adds one to each count, which reduces that bias and avoids dividing by zero if no marked animals are recaught",
+   "section": "Counting animals: mark-recapture"
+  },
+  {
+   "id": "spatial-populations-c34",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "List the assumptions of a two-sample mark-recapture estimate.",
+   "back": "The population is closed (no births, deaths or movement between occasions), every animal is equally catchable, and marks are neither lost nor misread.",
+   "quote": "Assume the population is closed (no births, deaths or movement between occasions), every animal is equally catchable, and marks are neither lost nor misread.",
+   "section": "Counting animals: mark-recapture"
+  },
+  {
+   "id": "spatial-populations-c35",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In a mark-recapture study, handling makes marked voles avoid traps afterward. Will the Lincoln-Petersen estimate be too high or too low, and why?",
+   "back": "Too high. Trap-shy marked voles are under-represented in the second catch, so m2 is too small and N = n1 × n2 / m2 too large.",
+   "quote": "trap-shy marked animals are under-represented in the second catch, so m2 is too small and N too large.",
+   "section": "Counting animals: mark-recapture"
+  },
+  {
+   "id": "spatial-populations-c36",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Between the marking and recapture occasions, many unmarked animals immigrate into a study area. How does this bias the Lincoln-Petersen estimate of the population present at marking?",
+   "back": "Too high, if the estimate refers to the population at marking; immigration breaks closure. Unmarked immigrants lower the marked share of the second catch, so m2 is smaller relative to n2 and N comes out larger.",
+   "why": "Rests on the closure assumption and on the marked share of the second catch estimating the marked share of the population.",
+   "quote": "Assume the population is closed (no births, deaths or movement between occasions)",
+   "section": "Counting animals: mark-recapture"
+  },
+  {
+   "id": "spatial-populations-c37",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "Why can traditional live-encounter mark-recapture not separate death from dispersal?",
+   "back": "It estimates apparent survival: an animal that emigrated permanently looks exactly like one that died.",
+   "quote": "one that emigrated permanently looks exactly like one that died",
+   "section": "Counting animals: mark-recapture"
+  },
+  {
+   "id": "spatial-populations-c38",
+   "type": "experiment",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "In moss patches on rocks (Gonzalez and colleagues 1998), species losses after six months were 14.5% in connected landscapes and 41% in both isolated and pseudocorridor treatments. What does the pseudocorridor result show?",
+   "back": "Pseudocorridors add similar moss area without connection and lost species like isolated patches, so the difference points to connection, not added area.",
+   "quote": "It adds similar moss area without the connection, and it lost species like the isolated patches, so the difference points to connection rather than added area.",
+   "section": "Design problem"
+  },
+  {
+   "id": "spatial-populations-c39",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "Fewer species were lost in corridor-connected moss patches than isolated ones. Why does this not prove a rescue effect?",
+   "back": "No movement was tracked, so recolonization after loss, or different conditions in connected moss, are not ruled out.",
+   "quote": "But no movement was tracked, so recolonization after loss, or different conditions in connected moss, are not ruled out.",
+   "section": "Design problem"
+  },
+  {
+   "id": "spatial-populations-c40",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "Design improvements to the moss corridor study so it can tell rescue from recolonization.",
+   "back": "Track movement (marking or genetic assignment); record each species in each patch at several times to separate fewer extinctions from more recolonizations; run longer and replicate across rocks and seasons.",
+   "quote": "Record each species in each patch at several times, to separate fewer extinctions from more recolonizations.",
+   "section": "Design problem"
+  },
+  {
+   "id": "spatial-populations-c41",
+   "type": "experiment",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "In longleaf pine savanna fragments (Damschen and colleagues 2019), what did 18 years of plant censuses find in connected versus unconnected fragments?",
+   "back": "Colonization 5% higher and extinction 2% lower each year in connected fragments, and nearly 14% more species after almost two decades.",
+   "why": "Unlike the moss study, it estimated colonization and extinction separately.",
+   "quote": "colonization 5% higher and extinction 2% lower each year in connected fragments, and nearly 14% more species after almost two decades",
+   "section": "Design problem"
+  },
+  {
+   "id": "spatial-populations-c42",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "A planner cites the moss-and-microarthropod corridor experiment as evidence that a corridor will save a forest mammal population. Evaluate.",
+   "back": "Overreach. The study is moss on rocks, centimetres to metres, with short-generation animals; it says nothing directly about forests or mammals.",
+   "quote": "It says nothing directly about forests or mammals.",
+   "section": "Design problem"
+  },
+  {
+   "id": "spatial-populations-c43",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "In a small patch network, is c greater than e sufficient for persistence?",
+   "back": "No: necessary but not sufficient. In an illustrative simulation, most 10-patch networks lost every patch within 100 years while 100-patch networks kept the species.",
+   "quote": "In a small network, c greater than e is necessary but not sufficient.",
+   "section": "Small networks can be lost by chance"
+  },
+  {
+   "id": "spatial-populations-c44",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "How does adding the rescue effect change the Levins model's extinction rate?",
+   "back": "e no longer is independent of occupancy: it falls as p rises, and in some versions this can produce alternative stable states.",
+   "quote": "Adding rescue makes e fall as p rises and, in some versions, can produce alternative stable states.",
+   "section": "Rescue makes e depend on p"
+  },
+  {
+   "id": "spatial-populations-c45",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "Does greater connectivity always slow diversity loss? Give the caution.",
+   "back": "Not in every model: simulations of 21 competing bird-like species found greater connectivity sped up diversity loss. It is a model result, not a field finding.",
+   "quote": "In simulations of 21 competing bird-like species, Schippers and colleagues (2015) found that greater connectivity sped up diversity loss.",
+   "section": "When connectivity hurts"
+  },
+  {
+   "id": "spatial-populations-c46",
+   "type": "experiment",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "Huffaker kept predatory and prey mites on arrays of oranges with food spread out and movement partly blocked, and saw three successive oscillations. What does this show, and what does it not?",
+   "back": "Spatial structure can prolong a predator-prey interaction. It is a finite run in one preparation, not proof of permanent coexistence.",
+   "quote": "a case that spatial structure can prolong a predator-prey interaction",
+   "section": "Spatial structure and predator-prey cycles"
+  }
+ ]
+}
