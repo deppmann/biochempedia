@@ -1,0 +1,612 @@
+{
+ "slug": "ecoevo-evidence-workshop",
+ "title": "Integrative Evidence Workshop",
+ "generated": {
+  "date": "2026-11-12",
+  "pipeline": "extract → Opus draft → Sonnet accuracy gate → Sonnet fixes",
+  "models": {
+   "draft": "claude-opus-5-5",
+   "gate": "claude-sonnet-5-5",
+   "fix": "claude-sonnet-5-5"
+  },
+  "refresh": "2026-11-12 ship: film re-tell cut; c20 re-anchored"
+ },
+ "lessonHash": "cdf0525a4f56",
+ "sectionHashes": {
+  "(opening)": "105fdc24bc2a",
+  "What eDNA detects and what it misses": "33192b3ec16d",
+  "Detection probability and an all-negative site": "3d8bd9b91388",
+  "Sampling design: field replicates versus PCR replicates": "96e92de8f497",
+  "What a positive can and cannot mean": "c4cef00a2bd2",
+  "Design problem": "9357359885ec",
+  "Reproducible analysis and the decision": "ced379cbf657",
+  "Whose data? CARE and FAIR": "32340ec37c7a",
+  "The model in one line": "70e542f60c14",
+  "When lab work could cross the line": "075a08fe73a9",
+  "The pseudoreplication arithmetic": "cec4cdbbbe53",
+  "Carrying the uncertainty through": "b871d7397577"
+ },
+ "cards": [
+  {
+   "id": "ecoevo-evidence-workshop-c01",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In an eDNA survey, why can a run of negative water samples never prove a species is absent?",
+   "back": "Each independent negative sample multiplies the occupied sites still hidden among the negatives by the miss chance, while empty sites stay put. The occupied share falls with every sample but never reaches zero.",
+   "why": "This holds when the prior is between 0 and 1 and a sample can both detect and miss.",
+   "quote": "So the share still occupied falls with every sample but never reaches zero."
+  },
+  {
+   "id": "ecoevo-evidence-workshop-c02",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In an eDNA survey, why can adding more qPCR wells or extractions to one water sample not raise that sample's detection above θ?",
+   "back": "Every well and extraction tests the same scoop of water. If that water holds no detectable DNA, no amount of lab work finds it. Only new water is a new try.",
+   "quote": "Wells and extractions from one water sample all test that sample's water, so they cannot lift its detection above the chance the water holds DNA."
+  },
+  {
+   "id": "ecoevo-evidence-workshop-c03",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "{{c1::Environmental DNA (eDNA)}} is DNA collected from an environmental sample, such as water, soil or air, rather than from the organism itself.",
+   "back": "For animals, much of it is DNA they shed.",
+   "quote": "Environmental DNA (eDNA) is DNA collected from an environmental sample, such as water, soil or air, rather than from the organism itself",
+   "section": "What eDNA detects and what it misses"
+  },
+  {
+   "id": "ecoevo-evidence-workshop-c04",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "In an eDNA occupancy survey, when does a site count as occupied?",
+   "back": "When the species uses it during the survey.",
+   "quote": "A site is occupied if the species uses it during the survey.",
+   "section": "What eDNA detects and what it misses"
+  },
+  {
+   "id": "ecoevo-evidence-workshop-c05",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In an eDNA qPCR survey, a false {{c1::negative}} is a miss: the organism or its DNA is present and nothing amplifies.",
+   "back": "",
+   "quote": "A false negative is a miss: the organism or its DNA is present and nothing amplifies.",
+   "section": "What eDNA detects and what it misses"
+  },
+  {
+   "id": "ecoevo-evidence-workshop-c06",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In an eDNA survey, what is a false positive, and what are two routes to one?",
+   "back": "A report of the target when it is absent. Two routes: contamination and a poorly specific assay.",
+   "quote": "A false positive is a report of the target when it is absent; contamination and a poorly specific assay are two routes.",
+   "section": "What eDNA detects and what it misses"
+  },
+  {
+   "id": "ecoevo-evidence-workshop-c07",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "In the nested eDNA detection model, what does θ (theta) measure?",
+   "back": "The chance that a water sample from an occupied pond holds the species' DNA in a form the assay can detect.",
+   "quote": "θ (theta, blue), the chance that a water sample from an occupied pond holds the species' DNA in a form the assay can detect",
+   "section": "What eDNA detects and what it misses"
+  },
+  {
+   "id": "ecoevo-evidence-workshop-c08",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "In the nested eDNA detection model, what do γ (gamma) and δ (delta) measure?",
+   "back": "γ: the chance an extraction captures DNA that is in the sample. δ: the chance one qPCR run amplifies captured DNA.",
+   "quote": "γ (gamma, green), the chance that an extraction captures DNA that is in the sample",
+   "section": "What eDNA detects and what it misses"
+  },
+  {
+   "id": "ecoevo-evidence-workshop-c09",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Why can θ be below 1 even when DNA fragments of the species remain in a water sample?",
+   "back": "Decay can leave too few intact copies of the target sequence in the scoop, even when shorter fragments remain, so the assay cannot detect it.",
+   "quote": "One reason θ is below 1 is decay: it can leave too few intact copies of the target sequence in the scoop, even when shorter fragments remain.",
+   "section": "What eDNA detects and what it misses"
+  },
+  {
+   "id": "ecoevo-evidence-workshop-c10",
+   "type": "experiment",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "DNA from three species was added to upland Welsh stream mesocosms and tracked by qPCR. What happened to it, and how far does the result generalize?",
+   "back": "Over 90% was lost within three hours and it was nondetectable within two days, faster in acidic water. It is one experimental system, not a universal eDNA lifetime.",
+   "quote": "DNA from three species fell by more than 90% within three hours and was nondetectable within two days, faster in acidic water",
+   "section": "What eDNA detects and what it misses"
+  },
+  {
+   "id": "ecoevo-evidence-workshop-c11",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In a four-pond newt eDNA dataset, two ponds amplified at least once, giving a naive occupancy estimate of 0.50. What does this estimate ignore?",
+   "back": "Misses. Ponds with no positives (S2, S3) may still be occupied. It also counts a pond with one lone positive as occupied only by assuming no false positives.",
+   "quote": "Two of four ponds amplified at least once, so the naive occupancy estimate is 2/4 = 0.50.",
+   "section": "Detection probability and an all-negative site"
+  },
+  {
+   "id": "ecoevo-evidence-workshop-c12",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "With independent replicates, replicates at one level all miss with the {{c1::product}} of their miss chances, and detection needs every step to succeed.",
+   "back": "The product rule from probability.",
+   "quote": "replicates at one level all miss with the product of their miss chances, and detection needs every step to succeed.",
+   "section": "Detection probability and an all-negative site"
+  },
+  {
+   "id": "ecoevo-evidence-workshop-c13",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Each qPCR run amplifies captured eDNA with δ = 0.38, independently. What is the chance that at least one of five wells amplifies it?",
+   "back": "One run misses with 1 − 0.38 = 0.62; all five miss with 0.62^5 = 0.092. So A = 1 − 0.092 = 0.908.",
+   "quote": "One run misses with 1 − 0.38 = 0.62; all five miss with 0.62^5 = 0.092.",
+   "section": "Detection probability and an all-negative site"
+  },
+  {
+   "id": "ecoevo-evidence-workshop-c14",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "One eDNA extraction captures DNA with γ = 0.49, and five wells then catch captured DNA with A = 0.908. With two independent extractions per water sample, what is the chance the lab finds DNA that is in the water (B)?",
+   "back": "One extraction succeeds with 0.49 × 0.908 = 0.445, missing with 0.555. Both miss with 0.555² = 0.308, so B = 0.692.",
+   "quote": "Both miss with 0.555² = 0.308, so the pair finds DNA in the water with B = 0.692.",
+   "section": "Detection probability and an all-negative site"
+  },
+  {
+   "id": "ecoevo-evidence-workshop-c15",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "The lab finds DNA that is in a water sample with B = 0.692, but the water from an occupied pond holds DNA only 60% of the time (θ = 0.60). Is the per-sample detection q closer to 0.69 or to 0.40, and why?",
+   "back": "Closer to 0.40: q = 0.60 × 0.692 = 0.415. The scoop sets the ceiling; lab steps can only lose detection, never add it.",
+   "quote": "q = 0.60 × 0.692 = 0.415, closer to 0.40: the scoop sets the ceiling.",
+   "section": "Detection probability and an all-negative site"
+  },
+  {
+   "id": "ecoevo-evidence-workshop-c16",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Each eDNA water sample detects an occupied pond with q = 0.415. The prior probability of occupancy is 0.20, with no false positives. Two independent samples are negative. Using 100 ponds, what is P(occupied | all negative)?",
+   "back": "m = 0.585² = 0.342. Of 100 ponds, 20 occupied; 20 × 0.342 = 6.8 hide among 6.8 + 80 = 86.8 all-negative ponds. 6.8 / 86.8 = 7.9%.",
+   "quote": "20 are occupied and 20 × 0.342 = 6.8 of them stay hidden among 6.8 + 80 = 86.8 all-negative ponds.",
+   "section": "Detection probability and an all-negative site"
+  },
+  {
+   "id": "ecoevo-evidence-workshop-c17",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In an eDNA occupancy model with no false positives, write P(occupied | all negative) from the prior and m, the chance all samples miss an occupied site.",
+   "back": "prior × m / [(1 − prior) + prior × m]",
+   "why": "Occupied sites that were missed, divided by all sites that tested negative (empty sites always test negative).",
+   "quote": "That share is the posterior (the probability after the data)",
+   "section": "Detection probability and an all-negative site"
+  },
+  {
+   "id": "ecoevo-evidence-workshop-c18",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A pond's posterior occupancy after two negative eDNA samples is 7.9% (q = 0.415, prior 0.20). The stop rule is to stop at 5% or below. Stop or continue, and how many more negative samples are needed?",
+   "back": "Continue: 7.9% is above 5%. One more negative sample gives m = 0.585³ = 0.200 and 0.040 / 0.840 = 4.8%, just under the line.",
+   "quote": "7.9% is above 5%, so sample again. A third negative sample gives m = 0.585³ = 0.200 and 0.040 / 0.840 = 4.8%, just under the line.",
+   "section": "Detection probability and an all-negative site"
+  },
+  {
+   "id": "ecoevo-evidence-workshop-c19",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "What three assumptions does the worked eDNA posterior for an all-negative pond rest on?",
+   "back": "No false positives (an empty pond always tests negative); closure (occupied or empty for the whole survey); independence at every level (samples, extractions, wells).",
+   "quote": "Assume no false positives (an empty pond always tests negative), S2 occupied or empty for the whole survey, and independence at every level",
+   "section": "Detection probability and an all-negative site"
+  },
+  {
+   "id": "ecoevo-evidence-workshop-c20",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "An eDNA design uses θ = 0.60, γ = 0.49, δ = 0.38, five wells per extraction, but only one extraction per sample. Prior 0.20. What is q, and the posterior after two negative samples?",
+   "back": "One extraction with five wells: 0.49 × 0.908 = 0.445. q = 0.60 × 0.445 = 0.267. m = 0.733² = 0.537. Posterior = 0.107 / (0.80 + 0.107) = 11.8%.",
+   "why": "Rests on q = θ × B: the sample detects only if the water holds DNA and the lab finds it.",
+   "quote": "A sample detects only if its water holds DNA and the lab finds it",
+   "section": "Detection probability and an all-negative site"
+  },
+  {
+   "id": "ecoevo-evidence-workshop-c21",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Each eDNA sample detects an occupied pond with q = 0.415. If the prior is 0.50 instead of 0.20, what is the posterior after two negative samples? Use odds.",
+   "back": "Prior odds 1. Each negative multiplies odds by 0.585: 0.585² = 0.342. Probability = 0.342 / 1.342 = 25.5%.",
+   "why": "Same data, higher prior, much higher posterior: the prior is a choice that must be stated.",
+   "quote": "In odds, each negative sample multiplies the odds of occupancy by 1 − q: the hidden-pond count in other words.",
+   "section": "The model in one line"
+  },
+  {
+   "id": "ecoevo-evidence-workshop-c22",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A pond gave 20 negative qPCR wells (2 samples × 2 extractions × 5 wells). θ = 0.60, γ = 0.49, δ = 0.38, prior 0.20. If each well is wrongly treated as an independent try, what posterior results, and why is it wrong?",
+   "back": "Per well 0.60 × 0.49 × 0.38 = 0.112; 0.888^20 = 0.094; posterior 2.3%, versus the correct 7.9%. Pseudoreplication: wells share one sample's water and extraction, so they are not independent tries.",
+   "quote": "Treating each of S2's 20 wells as an independent try detecting with 0.60 × 0.49 × 0.38 = 0.112 gives a miss probability of 0.888^20 = 0.094",
+   "section": "The pseudoreplication arithmetic"
+  },
+  {
+   "id": "ecoevo-evidence-workshop-c23",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In eDNA sampling design, why are field samples and PCR replicates different kinds of replication?",
+   "back": "PCR replicates retest one scoop of water, so they only reduce lab misses. Each independent field sample is a new chance that the water holds DNA.",
+   "quote": "Only new water is a new try at the scoop."
+  },
+  {
+   "id": "ecoevo-evidence-workshop-c24",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "In the newt eDNA worked problem, three negative samples give 4.8% with γ = 0.49 and a 5% stop rule. γ has a standard error of 0.07. If γ is one SE lower (0.42), stop or continue?",
+   "back": "Continue: three samples now give 5.9%, above 5%. The decision is sensitive to a borrowed parameter, so report it with its sensitivity.",
+   "quote": "Lowering γ by one standard error puts the third sample above 5%.",
+   "section": "Sampling design: field replicates versus PCR replicates"
+  },
+  {
+   "id": "ecoevo-evidence-workshop-c25",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "After two negative eDNA samples (posterior 7.9%, stop rule 5%), a team can either run unlimited wells on the two existing samples or collect a third water sample. Which reaches the stop rule?",
+   "back": "The third sample: 4.8%. Unlimited wells on two samples only reach 7.2%, still above 5%.",
+   "why": "Wells cannot lift a sample above θ; new water is a new try.",
+   "quote": "New water samples move the posterior; unlimited wells barely do.",
+   "section": "Sampling design: field replicates versus PCR replicates"
+  },
+  {
+   "id": "ecoevo-evidence-workshop-c26",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "In the newt eDNA worked problem, how much do the analyst's own choices of θ and prior change the number of negative samples needed?",
+   "back": "Across θ from 0.5 to 0.7 and priors from 0.1 to 0.3, the samples needed run from 2 to 5.",
+   "quote": "across θ from 0.5 to 0.7 and priors from 0.1 to 0.3, the negative samples needed run from 2 to 5.",
+   "section": "Sampling design: field replicates versus PCR replicates"
+  },
+  {
+   "id": "ecoevo-evidence-workshop-c27",
+   "type": "experiment",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "English newt eDNA surveys pooled twenty subsamples from around each pond into one water sample. What did pooling gain, and what did it cost?",
+   "back": "Gain: wider coverage of the pond. Cost: only one field sample per pond, so no field replicates to estimate θ.",
+   "quote": "twenty subsamples from around each pond were pooled into one water sample: wider coverage, but one field sample, leaving no field replicates to estimate θ.",
+   "section": "Sampling design: field replicates versus PCR replicates"
+  },
+  {
+   "id": "ecoevo-evidence-workshop-c28",
+   "type": "experiment",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "In a Texas wild pig eDNA trial, each site's ten samples were also analysed pooled. What did the pooled data do at sites known to be occupied, and what did the authors suspect?",
+   "back": "Pooled data underestimated occupancy. The authors suspected pooling diluted the DNA.",
+   "quote": "the authors suspected that pooling each site's ten samples diluted the DNA, and pooled data underestimated occupancy at sites known to be occupied.",
+   "section": "Sampling design: field replicates versus PCR replicates"
+  },
+  {
+   "id": "ecoevo-evidence-workshop-c29",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A pond gives one positive qPCR well out of twenty, and all blanks are clean. Why can a false positive still not be excluded?",
+   "back": "Clean blanks make contamination less likely but cannot exclude a rare, one-off event. Buxton and colleagues judged a sparse pattern like one well in twenty more likely than others to be a false positive.",
+   "quote": "Clean blanks make contamination less likely but cannot exclude a rare, one-off event.",
+   "section": "What a positive can and cannot mean"
+  },
+  {
+   "id": "ecoevo-evidence-workshop-c30",
+   "type": "experiment",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "For 2,958 English ponds surveyed for newt eDNA in 2019, two published models gave overall occupancy of 0.26 and 0.47. What separated them, and which was judged to overestimate?",
+   "back": "One model ignored false positives. With no ground truth, the authors judged that the model ignoring false positives overestimated.",
+   "quote": "their two published models, one of which ignored false positives, gave overall occupancy of 0.26 and 0.47 for the same 2,958 English ponds surveyed in 2019",
+   "section": "What a positive can and cannot mean"
+  },
+  {
+   "id": "ecoevo-evidence-workshop-c31",
+   "type": "experiment",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In the river Glatt below Lake Greifensee, DNA of the lake-dwelling water flea Daphnia longispina was detected as far as 12.3 km downstream. What does this show about river eDNA positives?",
+   "back": "In flowing water, a true DNA detection can falsely signal occupancy at that spot: the DNA can be carried from upstream.",
+   "quote": "in flowing water, a true DNA detection can falsely signal occupancy at that spot.",
+   "section": "What a positive can and cannot mean"
+  },
+  {
+   "id": "ecoevo-evidence-workshop-c32",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "An endangered mussel's eDNA is detected at one river site 5 km below a lake where the mussel lives. Name the three explanations and design a follow-up that separates them.",
+   "back": "Local population, DNA carried from the lake, or contamination. Run field, extraction and PCR blanks and sequence positives; sample from the lake outlet past the site and each tributary; take independent samples on separate dates; search the site directly.",
+   "why": "A local population would tend to add signal at and below the site; transport alone would tend to fade with distance.",
+   "quote": "A positive can mean a local population, DNA carried down from the lake, or contamination.",
+   "section": "Design problem"
+  },
+  {
+   "id": "ecoevo-evidence-workshop-c33",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "eDNA is sampled from a lake outlet downstream past a river site where a lake species was detected. What pattern points to a local population, and what pattern to transport alone?",
+   "back": "Local population: signal tends to be added at and below the site. Transport alone: signal tends to fade with distance from the lake. Streambed resettling and patchy flow blur both, so replicate and record flow.",
+   "quote": "A local population would tend to add signal at and below the site; transport alone would tend to fade with distance from the lake.",
+   "section": "Design problem"
+  },
+  {
+   "id": "ecoevo-evidence-workshop-c34",
+   "type": "qa",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "Why does a no-false-positive occupancy model fit a river eDNA detection below a lake only after transport is excluded?",
+   "back": "DNA carried from the lake is a true detection but a false positive for occupancy at this site. Until transport is ruled out, use a model that allows transport or other false positives, with stated assumptions.",
+   "quote": "DNA carried from the lake is a false positive for this site, so the no-false-positive model above fits only once transport is excluded",
+   "section": "Design problem"
+  },
+  {
+   "id": "ecoevo-evidence-workshop-c35",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In an eDNA data file, why must an inhibited qPCR well be recorded differently from a negative one?",
+   "back": "In an inhibited well, substances carried over from the sample blocked the PCR, so it gives no information about whether target DNA was present. It is not a negative.",
+   "quote": "an inhibited well, where substances carried over from the sample blocked the PCR, is not a negative.",
+   "section": "Reproducible analysis and the decision"
+  },
+  {
+   "id": "ecoevo-evidence-workshop-c36",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "Name four rules for reproducible computational analysis (Sandve and colleagues) that apply to an eDNA dataset.",
+   "back": "Replace manual editing with scripts; archive exact program versions; record every parameter and input; record random seeds when an analysis uses randomness.",
+   "quote": "replace manual editing with scripts, archive the exact program versions, record every parameter and input, and record random seeds whenever an analysis uses randomness.",
+   "section": "Reproducible analysis and the decision"
+  },
+  {
+   "id": "ecoevo-evidence-workshop-c37",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "Does FAIR (findable, accessible, interoperable, reusable) data mean data open to all?",
+   "back": "No. FAIR makes data usable by machines and people, and it permits authentication and authorization.",
+   "quote": "FAIR makes data usable by machines and people, and it permits authentication and authorization; it does not mean open to all.",
+   "section": "Whose data? CARE and FAIR"
+  },
+  {
+   "id": "ecoevo-evidence-workshop-c38",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "What do the four CARE principles for Indigenous data governance stand for?",
+   "back": "Collective Benefit, Authority to Control, Responsibility, Ethics. They add the question of who decides how data are used.",
+   "quote": "add the question of who decides: Collective Benefit (data should benefit Indigenous Peoples), Authority to Control (Indigenous Peoples determine governance protocols for their data)",
+   "section": "Whose data? CARE and FAIR"
+  },
+  {
+   "id": "ecoevo-evidence-workshop-c39",
+   "type": "qa",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "A team detects a rare species' eDNA in a community's water and wants to merge its results with that community's observations and release them. What must come first?",
+   "back": "The location is itself data the community may have authority to control. First identify the rights holders, the benefit and the permitted purpose, and get their protocols. A downloadable file is not permission.",
+   "why": "CARE (Authority to Control) alongside FAIR.",
+   "quote": "For eDNA, a rare species' location in a community's water is itself data whose release that community may have the authority to control.",
+   "section": "Whose data? CARE and FAIR"
+  },
+  {
+   "id": "ecoevo-evidence-workshop-c40",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "With w wells per extraction and k extractions per sample, A = 1 − (1 − δ)^w and q = {{c1::θ × [1 − (1 − γA)^k]}}.",
+   "back": "n independent samples miss an occupied site with m = (1 − q)^n.",
+   "quote": "A = 1 − (1 − δ)^w and q = θ × [1 − (1 − γA)^k]",
+   "section": "The model in one line"
+  },
+  {
+   "id": "ecoevo-evidence-workshop-c41",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "If eDNA lab work were perfect, so that q = θ = 0.60, with prior 0.20 and no false positives, what is the posterior after one negative sample, and after two?",
+   "back": "One: 0.20 × 0.40 / (0.80 + 0.08) = 9.1%. Two: m = 0.16, so 0.032 / 0.832 = 3.8%.",
+   "quote": "Perfect lab work makes q = θ = 0.60: one negative sample leaves 0.20 × 0.40 / (0.80 + 0.08) = 9.1%, two leave 3.8%.",
+   "section": "When lab work could cross the line"
+  },
+  {
+   "id": "ecoevo-evidence-workshop-c42",
+   "type": "qa",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "In the newt eDNA worked problem (θ = 0.60, γ = 0.49, prior 0.20, 5% stop rule), can extra lab work alone ever get two negative samples under the line? What does this show about the ceiling?",
+   "back": "Yes: with unlimited wells, four extractions per sample give 4.6% (three give 5.4%). The ceiling θ caps one sample's q, not the decision.",
+   "quote": "With unlimited wells an extraction still captures only with γ = 0.49, so q = 0.60 × [1 − 0.51^k] for k extractions",
+   "section": "When lab work could cross the line"
+  },
+  {
+   "id": "ecoevo-evidence-workshop-c43",
+   "type": "qa",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "A one-at-a-time sensitivity check shows that shifting γ by one standard error moves an eDNA stop decision across its line. What should a management analysis do instead?",
+   "back": "Compute the posterior across the joint uncertainty of γ, δ, θ and other fitted parameters, with relevant covariates, and test whether the decision changes.",
+   "why": "Borrowed point estimates hide their uncertainty and covariates such as month, pH and water-body type.",
+   "quote": "compute the posterior across the joint uncertainty of γ, δ, θ and the other fitted parameters, with relevant covariates, and test whether the decision changes.",
+   "section": "Carrying the uncertainty through"
+  },
+  {
+   "id": "ecoevo-evidence-workshop-c44",
+   "type": "qa",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A river eDNA survey takes one pooled water sample per site and reports occupancy from a no-false-positive model with independent replicates. Name two ways its posteriors could mislead.",
+   "back": "Transported DNA gives true detections that are false positives for the site, breaking the no-false-positive assumption. One pooled sample gives no field replicates to estimate θ, so detection is not estimated from the data.",
+   "why": "Rests on the model's stated assumptions and on field versus lab replication.",
+   "quote": "These equations assume no false positives, closure (occupancy fixed during sampling), conditional independence at every replicate level",
+   "section": "The model in one line"
+  }
+ ]
+}
