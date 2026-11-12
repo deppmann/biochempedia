@@ -165,7 +165,7 @@ class Lab:
         self.frame = panel_frame()
         self.bird = bird()
         self.bd = body_dots()
-        self.vb = Vial(0.0, -0.2, n=beak_n, seed=7)
+        self.vb = Vial(-0.2, -0.2, n=beak_n, seed=7)
         self.vc = Vial(-4.8, -2.35, n=cloa_n, seed=9)
         self.lab_b = T("beak drip", 28, TEXT).move_to(P(1.45, -1.3))
         self.lab_c = T("cloacal fluid\n(urine + feces)", 26, TEXT).move_to(P(-2.55, -2.55))
