@@ -5,28 +5,50 @@ course: "genetics"
 courseChapter: "Genetics and Molecular Biology · Unit 1: Inheritance"
 order: 304
 summary: >-
-  Mendel's 3:1 and 9:3:3:1 rest on four quiet assumptions: complete dominance, two alleles, equal
-  survival, and one gene per character. This lesson relaxes each in turn, with pink snapdragons,
-  the ABO blood groups, yellow mice and Labrador coats. Afterwards you can explain dominance in
-  terms of protein, predict 1:2:1, 2:1, 9:3:4, 9:7, 12:3:1 and 15:1 ratios from the genotypes
-  that produce them, and say why one genotype need not give one phenotype.
+  Inheritance deals the boxes, and the gene products write the labels. Mendel's 3:1 and 9:3:3:1 from Aa x Aa and AaBb x AaBb crosses need a fair deal of alleles to
+  gametes, which this lesson keeps, and his account made five quiet assumptions: complete
+  dominance, two alleles, every genotype surviving to be counted, one gene per character, and
+  one phenotype for each genotype. It relaxes each in turn, with pink snapdragons, the ABO blood groups, yellow mice, sweet peas and Labrador coats.
+  Afterwards you can explain dominance in terms of protein, predict 1:2:1, 2:1, 9:3:4, 9:7,
+  12:3:1, 13:3 and 15:1 ratios from the genotypes that produce them, and say where that idea
+  stops and why one genotype need not give one phenotype.
 hook: "Mate two yellow mice as often as you like: you will never get a yellow mouse that breeds true. Why?"
 
-estMinutes: 24
+estMinutes: 28
 objectives:
   - "Distinguish complete dominance, incomplete dominance and codominance, and explain dominance at the level of protein as enough product from one copy, too little from one copy (haploinsufficiency), a product that interferes (dominant negative), or a product with a new or excess activity (gain of function)."
   - "Use the ABO blood groups to explain multiple alleles and codominance, and the recessive lethal yellow allele of mice to explain the 2:1 ratio."
-  - "Recognize 9:3:4, 9:7, 12:3:1 and 15:1 as regroupings of the 9:3:3:1 classes, and derive each from a model of how two genes act on one trait."
+  - "Recognize 9:3:4, 9:7, 12:3:1, 13:3 and 15:1 as regroupings of the 9:3:3:1 classes, and derive each from a model of how two genes act on one trait."
   - "Define penetrance and expressivity and explain why other genes, environment and chance keep genotype from fully fixing phenotype."
 
 explainer:
   src: "/explainers/extending-mendel/explainer.mp4"
   captions: "/explainers/extending-mendel/explainer.vtt"
   poster: "/explainers/extending-mendel/poster.jpg"
-  title: "The Boxes Stay, the Labels Change"
-  durationSec: 153.3
-  narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+  title: "Same Boxes, New Labels"
+  durationSec: 194.5
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+  takeaways:
+    - "Meiosis sets which alleles enter each parent's gametes; with random fertilization, that decides which allele pairs a child can get and how often. That part never changes in this lesson."
+    - "What each allele's product does decides the label: a snapdragon with one red and one white allele is pink, while a pea with one purple allele is fully purple."
+    - "In mice, one yellow allele makes a yellow coat, but two kill the embryo early, so that genotype drops out of the count."
+    - "Every live yellow mouse is therefore a heterozygote, which is why yellow mice never breed true."
+
+films:
+  - id: "chapter-2"
+    src: "/explainers/extending-mendel/chapter-2.mp4"
+    captions: "/explainers/extending-mendel/chapter-2.vtt"
+    poster: "/explainers/extending-mendel/chapter-2-poster.jpg"
+    title: "Two Whites Make Purple"
+    durationSec: 183.6
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+    takeaways:
+      - "Two white-flowered sweet-pea strains gave purple hybrids."
+      - "In the simplest model, each strain is blocked at a different step of making pigment, and the hybrid gets a working copy of each step."
+      - "Selfing the hybrids gave about nine coloured to seven white: the usual sixteen two-gene boxes, with every box missing a step labelled white."
+      - "In a cross of two double heterozygotes with unlinked genes, the sixteen boxes stay the same; how the genes act decides which ones look alike."
 
 scientists:
   - name: "William Bateson"
@@ -96,8 +118,8 @@ techniques:
   - name: "Test cross and backcross to parental lines"
     blurb: >-
       An F1 is crossed to a homozygous recessive or to a parent line. Because the tester gives
-      only known alleles, the offspring classes report the gametes of the F1, which separates
-      one-gene from two-gene explanations.
+      only known alleles, the offspring classes report the gametes of the F1, which, together
+      with the F2, helps separate one-gene from two-gene explanations.
   - name: "Haemagglutination blood typing"
     blurb: >-
       Red cells are mixed with antibodies (originally, other people's serum) that recognize the A
@@ -296,7 +318,8 @@ explainLevels:
       I^A, I^B and i, exist in a population, while a diploid carries two. A recessive lethal shifts
       survivors to 2:1. Epistasis, one gene masking another, regroups the sixteen dihybrid
       classes: recessive epistasis gives 9:3:4, complementary genes 9:7, dominant epistasis
-      12:3:1, and duplicate genes 15:1. Penetrance (fraction of carriers affected) and
+      12:3:1, duplicate genes 15:1, and a dominant inhibitor at one gene with a recessive
+      colourless allele at the other 13:3. Penetrance (fraction of carriers affected) and
       expressivity (degree in those affected) measure how loosely genotype maps to phenotype.
   - level: "grad"
     label: "Graduate"
@@ -363,65 +386,127 @@ draft: false
 
 import DihybridInteractionExplorer from '../../../components/DihybridInteractionExplorer.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import LessonFilm from '../../../components/LessonFilm.astro';
 
 **Mate two yellow mice as often as you like, and you will never get a yellow mouse that breeds true.**
 
-Lucien Cuénot found this in his mouse crosses in the first years after Mendel's rules were taken up. It looked like a failure of Mendel. It was not. In [Mendel's peas](/lessons/mendels-peas/) four assumptions sat quietly under the 3:1 and the 9:3:3:1: one allele fully hides the other, a gene has two alleles, every genotype survives to be counted, and one gene controls one character. Relax each in turn and the ratios change in ways you can predict. For unlinked genes, segregation and independent assortment keep working in every case here. What changes is the map from genotype to phenotype.
+Lucien Cuénot found this in his mouse crosses in the first years after Mendel's rules were taken up. It looked like a failure of Mendel. It was not. The short answer: two copies of the yellow allele kill the embryo, so every live yellow mouse is a heterozygote. The first film, at the top of this page, shows this with three grids; this page adds where the labels come from and how far the idea reaches.
 
-## Dominance is a property of the heterozygote, not the allele
+First the terms. **Segregation** is the separation of a parent's two alleles into different gametes at meiosis, so each child gets one allele from each parent. **Independent assortment** means that alleles of unlinked genes segregate independently of each other ([Mendel's peas](/lessons/mendels-peas/)). A Punnett square lists the possible pairings of gametes, and each cell of the square, one gamete pairing, is a **box** ([probability and crosses](/lessons/probability-and-crosses/)).
 
-Cross red snapdragons (*Antirrhinum majus*) with white ones and the F1 flowers are pink. This is **incomplete dominance**: the heterozygote's phenotype lies between the two homozygotes'. Self the pink plants and red and white come back, at 1 red : 2 pink : 1 white. Nothing blended. With incomplete dominance the phenotype ratio simply equals the genotype ratio, so the hidden 1:2:1 of Mendel's peas is now in plain sight.
+> **The one idea.** Inheritance deals the boxes; the gene products write the labels. With a fair deal (each parent passes on either allele equally often, and gametes meet at random), the boxes are equally likely. Aa x Aa gives four (1 AA : 2 Aa : 1 aa); AaBb x AaBb, with the genes unlinked so each parent makes AB, Ab, aB and ab at 1/4 each, gives sixteen. Other parents give other counts, as the ABO cross below shows. Every ratio in this lesson is those same boxes with new labels. Some boxes share a label (dominance, epistasis), some keep their own (incomplete dominance, codominance), and one can be labelled "dies" and dropped from the count (a lethal).
+>
+> *Scope:* unlinked genes on autosomes, segregating normally, with one phenotype for each genotype. Linkage, sex linkage and segregation distortion change the boxes themselves, and incomplete penetrance gives a box a probability instead of a label.
 
-In **codominance**, the products of both alleles are detected in the heterozygote. People with the M and N alleles of the MN blood group carry both the M and the N antigens on their red cells, and an MN by MN cross gives 1 M : 2 MN : 1 N.
+That fair deal holds throughout this lesson. On top of it, Mendel's account of 3:1 and 9:3:3:1 made five quiet assumptions about the labels:
 
-Which word applies depends on what you measure. A person heterozygous for the sickle-cell allele of β-globin makes both normal and sickle haemoglobin, and both show on a gel: codominant. The same person usually does not have sickle cell disease: for anaemia, the allele is close to recessive.
+1. One allele fully hides the other.
+2. A gene has two alleles.
+3. Every genotype survives to be counted.
+4. One gene controls one character.
+5. Each genotype gives one phenotype.
 
-Why is one copy often enough? Think of a factory with two identical machines. Lose one and the other usually keeps up, because output rarely depends on running every machine at full speed. Most enzymes are like that (see [how enzymes work](/lessons/enzyme-action-basics/)), so an allele that makes no working enzyme is usually recessive. A loss of normal function can still be dominant in two ways.
+Relaxing the first, third or fourth relabels the boxes, so the ratio changes predictably. Relaxing the second leaves the deal alone but allows new genotypes, crosses and ratios (ABO, below). Relaxing the fifth is where the rule ends.
 
-- **Haploinsufficiency**: half the product is not enough. A fly with one working copy of *Notch* has nicked wings ([Notch signaling](/lessons/notch-signaling/)).
-- **Dominant negative**: the mutant product interferes with the normal one. If a protein works as a complex of four identical subunits and any bad subunit ruins the complex, a heterozygote that assembles subunits at random keeps only one complex in sixteen intact:
+## What you measure decides the word
 
-> **fraction of complexes with four normal subunits = (1/2) x (1/2) x (1/2) x (1/2) = 1/16, about 6%**
+In Mendel's peas, a plant with one purple allele has flowers as purple as a plant with two: **complete dominance**, three boxes sharing one label. The first film's snapdragons (*Antirrhinum majus*) wrote the labels differently. Red crossed with white gives pink F1 flowers, and selfing the pink plants brings back 1 red : 2 pink : 1 white. Nothing blended. This is **incomplete dominance**: the heterozygote's phenotype lies between the two homozygotes', so the phenotype ratio equals the genotype ratio and the 1:2:1 hidden in Mendel's peas is in plain sight.
 
-A null allele in the same gene would leave about half the normal number of working complexes. The dominant negative does worse than having no mutant protein at all.
+In **codominance**, the products of both alleles are detected in the heterozygote. People with the M and N alleles of the MN blood group carry both the M and the N antigens (molecules that antibodies recognize, here markers on the cell surface) on their red cells, and an MN by MN cross gives 1 M : 2 MN : 1 N.
 
-Dominance can also come from a gain of function: the mutant allele makes a product with a new or excess activity, or makes it in the wrong place, so one copy is enough to change the phenotype. The yellow mouse below is an example, because its coat colour comes from the agouti gene being switched on where it is normally silent.
+**Predict.** The sickle-cell allele is an allele of the gene for β-globin, one of the protein chains of haemoglobin. A heterozygote makes both normal and sickle haemoglobin, yet usually does not have sickle cell disease. Is the sickle-cell allele dominant, recessive or codominant?
+
+<details>
+<summary>Check your prediction</summary>
+
+It depends on what you measure. On a gel, where proteins are separated by charge in an electric field, both haemoglobins show as bands: codominant. For anaemia, since the person usually has no sickle cell disease, the allele is close to recessive. Dominance describes the heterozygote's phenotype for the trait you score, not the strength of an allele.
+
+</details>
 
 ## ABO: three alleles, two sugars and codominance
 
-A gene can have more than two alleles in a population, a set called **multiple alleles**. Each diploid person still carries only two. The ABO blood groups are the classic case. In the usual model there are three alleles at one locus:
+A gene can have more than two alleles in a population, a set called **multiple alleles**, though each diploid person carries only two. The ABO blood groups are the classic case. In the usual model there are three alleles at one locus (one gene's place on a chromosome):
 
-- **I^A** encodes a glycosyltransferase that adds N-acetylgalactosamine to a sugar chain on the cell surface called the H antigen, making the A antigen.
+- **I^A** encodes a glycosyltransferase, an enzyme that adds a sugar; this one adds N-acetylgalactosamine to a sugar chain on the cell surface called the H antigen, making the A antigen.
 - **I^B** encodes a nearly identical enzyme that adds galactose instead, making the B antigen. (The antigens are carbohydrates; see [carbohydrates](/lessons/carbohydrates/).)
 - **i** makes no working enzyme, so H is left unchanged.
 
-I^A and I^B are codominant: an I^A I^B person carries both antigens and is type AB. Each is dominant to i, because one working enzyme is enough to decorate the cells. So I^A I^A and I^A i are type A, I^B I^B and I^B i are type B, and ii is type O. Parents who are I^A i and I^B i can have children of all four types, each with probability 1/4.
+I^A and I^B are codominant: an I^A I^B person carries both antigens and is type AB. Each is dominant to i, because one working enzyme is enough to decorate the cells. So I^A I^A and I^A i are type A, I^B I^B and I^B i are type B, and ii is type O.
 
-<LessonFigure src="/figures/extending-mendel/abo-sugar-tips.webp" width={1200} height={811} alt="AI-generated illustration: four red blood cells with bead-string H antigen chains; type A cells carry gold square tips, type B gold round tips, type AB both, and type O none; above, the I^A and I^B enzymes add their sugars and the i enzyme is crossed out." caption="The H antigen is a sugar chain on the cell surface. I^A adds N-acetylgalactosamine to make A, I^B adds galactose to make B, and i makes no working enzyme, so H stays unchanged in type O." />
+**Predict.** A type A parent who is I^A i and a type B parent who is I^B i have children. Which blood types can the children have, and how likely is each?
 
-The history came in pieces. Karl Landsteiner described groups A, B and a third he called C (now O) in 1901; AB was reported in 1902 by Decastello and Sturli; and Felix Bernstein's analysis of population frequencies in the 1920s showed that three alleles at one locus fit. In 1990 Fumi-ichiro Yamamoto, Sen-itiroh Hakomori and colleagues reported that the A and B alleles they cloned differ at four amino acids, and that the O allele they studied lacks a single base, which shifts the reading frame.
+<details>
+<summary>Check your prediction</summary>
+
+All four, each with probability 1/4: I^A I^B is type AB, I^A i is type A, I^B i is type B, and ii is type O. The third allele did not change the deal; it made possible a cross whose four boxes each carry a different label.
+
+</details>
+
+<LessonFigure src="/figures/extending-mendel/abo-sugar-tips.webp" width={1200} height={811} alt="AI-generated illustration: four red blood cells with bead-string H antigen chains; type A cells carry gold square tips, type B gold round tips, type AB both, and type O none; above, the I^A and I^B enzymes add their sugars and the i enzyme is crossed out." caption="ABO type is set by which sugar tips the H antigen: I^A adds N-acetylgalactosamine to make A, I^B adds galactose to make B, an I^A I^B person carries both, and i makes no working enzyme, so H stays unchanged in type O." />
+
+Karl Landsteiner described the groups in 1901 (the rest of the history is in Going deeper). The molecules came in 1990, when Fumi-ichiro Yamamoto, Sen-itiroh Hakomori and colleagues reported that the A and B alleles they cloned differ at four amino acids, and that the O allele they studied lacks a single base, which shifts the reading frame (the grouping of bases into three-letter codons) so no working enzyme is made.
+
+## Why one copy is usually enough, and when it is not
+
+Why does one I^A allele make a person fully type A, while one red allele makes a snapdragon only pink? The answer lies in what each allele's product does. Start with the commonest kind of mutant allele, a **loss-of-function** allele, which makes no working product or too little. A heterozygote for a **null** allele, one that makes no product, has one working copy, so it often makes about half the normal amount; a partial loss of function, or feedback that turns up the working copy, can leave more. Whether that half shows depends on how the trait responds to the amount.
+
+For most enzymes, half is plenty, as with I^A over *i*. An enzyme in a pathway of many steps is rarely the only thing setting the output, so halving it slows the pathway only a little. In a toy model of ten equally important steps, halving one leaves about 91% of the output (Going deeper; see also [how enzymes work](/lessons/enzyme-action-basics/)). That is why most loss-of-function alleles of enzymes are recessive. If the trait tracks the amount of one product, as a pigment can, half the product gives a paler colour: one way to get a pink heterozygote.
+
+A loss of function can still be dominant, in two ways.
+
+**Haploinsufficiency: half is not enough.** Some proteins, often receptors, signals or structural parts whose output follows their dose, must be present in close to their full amount. *Notch*, a gene for a signaling receptor in flies, is the classic case: a fly with one working copy has notched wing tips, which gave the gene its name ([Notch signaling](/lessons/notch-signaling/)).
+
+**Dominant negative: the mutant product spoils the normal one.** Many proteins work as complexes of several identical subunits.
+
+**Predict.** A potassium channel is built from four identical subunits. Compare two heterozygotes. In the first, the mutant allele makes no protein at all (a null allele). In the second, it makes a subunit that joins channels and breaks any channel it is in. Subunits join channels at random. Which cell has less working channel?
+
+<details>
+<summary>Check your prediction</summary>
+
+The second, by far. In the first cell every channel is normal, built from half as many subunits. In the second, normal and mutant subunits are equally common, and each channel picks its four at random. A channel works only if all four picks are normal:
+
+> **fraction of working channels = (1/2) × (1/2) × (1/2) × (1/2) = 1/16, about 6%**
+
+So the first cell keeps about half the normal number of working channels and the second about 6% of normal. The dominant negative does worse than a null allele of the same gene, so it can be dominant when the null is not.
+
+</details>
+
+**Gain of function: a new or excess activity.** Some mutant alleles make a product that does too much of its normal job, a new job, or its job in the wrong place. One copy is enough to add that activity, so gain-of-function alleles are usually dominant. The yellow mouse is one.
 
 ## Alleles that kill: the 2:1 ratio
 
-Back to the yellow mouse. The yellow allele, A^y, is dominant for coat colour: A^y/a mice are yellow, a/a mice are non-agouti (black). It is recessive for survival: A^y/A^y embryos die before implantation. William Castle and Clarence Little proposed this in 1910, after finding that yellow by yellow matings gave about two yellow young for every non-yellow one.
+The mouse **agouti** gene gives wild-type mice their banded hairs: its product is a signal that switches pigment cells from black pigment to yellow, which lays a yellow band in each hair. The yellow allele, A^y, is dominant for coat colour: A^y/a mice are yellow, and a/a mice are black (no yellow band). It is recessive for survival: A^y/A^y embryos die before implantation, when the early embryo attaches to the wall of the uterus. William Castle and Clarence Little proposed this in 1910, after finding that yellow by yellow matings gave about two yellow young for every non-yellow one.
 
-**Worked problem, part 1.** Cross A^y/a x A^y/a. Assume equal transmission of the two alleles, random fertilization, and complete early death of A^y/A^y.
+How can one allele be dominant for one trait and recessive for another? In the model of Michaud and colleagues, one deletion acts on two genes. It switches agouti on where it is normally silent, making the coat yellow: a gain of function, so one copy is enough. It also disturbs a neighbouring gene that the early embryo needs, and the embryo dies only when both copies are disturbed (anecdote below).
+
+**Worked problem.** Cross A^y/a x A^y/a. Assume a fair deal and complete early death of A^y/A^y.
 
 **Step 1. Conceptions.** 1/4 A^y/A^y, 1/2 A^y/a, 1/4 a/a.
 
-**Step 2. Remove the dead class.** One quarter of conceptions die. The survivors are 1/2 and 1/4, in the ratio 2:1.
+**Step 2. Remove the dead class.** One quarter of conceptions die; the survivors, 1/2 and 1/4, are in the ratio 2:1.
 
 **Step 3. Phenotypes among live pups.** 2/3 yellow (A^y/a), 1/3 black (a/a). In 12 live pups, expect 8 yellow and 4 black.
 
-**Step 4. Litter size.** A^y/a x a/a gives 1/2 A^y/a and 1/2 a/a, and none die. With the same number of conceptions, the yellow by yellow litters average one quarter smaller.
+A **recessive lethal allele** is one that kills in two copies while one copy is survivable; the 2:1 is a ratio among survivors, and the 1:2:1 still holds at conception.
 
-So every live yellow mouse is a heterozygote, which is why none breeds true. A **recessive lethal allele** is one that kills in two copies while one copy is survivable; the 2:1 is a ratio among survivors, and the 1:2:1 still holds at conception.
+**Predict.** A breeder mates yellow mice either with yellow mates or with black (a/a) mates, with the same number of conceptions in each kind of mating. Which litters are smaller, and by how much?
 
-## Two genes, one trait: epistasis and the 9:3:3:1 family
+<details>
+<summary>Check your prediction</summary>
 
-When two genes act on one trait, a genotype at one can hide the effect of the other. This is **epistasis**. The gametes and their sixteen combinations stay exactly as in a dihybrid cross; only the phenotype labels change.
+The yellow by yellow litters, by about one quarter. A^y/a x a/a gives 1/2 A^y/a and 1/2 a/a, and none die. In yellow by yellow matings the A^y/A^y quarter dies, so three quarters of conceptions become live pups.
 
-**Worked problem, part 2.** In Labrador retrievers, the B allele (black pigment) is dominant to b (brown pigment), and the E allele (lets the hair make black or brown eumelanin) is dominant to e. An ee dog makes only yellow pheomelanin in its coat, so its coat is yellow whatever its B genotype, though B still shows in the colour of its nose. Assume the two loci are unlinked, and that both parents carry alleles at the other coat-colour loci (K among them) that let B and E show these effects; the example holds only for these two loci. Cross BbEe x BbEe.
+</details>
+
+So far each trait has been one gene's business. Bateson, Saunders and Punnett found a flower colour that took two.
+
+## Two genes, one trait: epistasis
+
+<LessonFilm film={frontmatter.films[0]} />
+
+In the second film the two genes hid each other evenly: a plant missing either step was white. Bateson's word gives the general term: **epistasis** is any case where the genotype at one gene hides the effect of another gene on the same trait. The hiding need not be even, and more than two classes can survive.
+
+**Worked problem.** In Labrador retrievers, the B allele (black pigment) is dominant to b (brown pigment, a coat called chocolate), and the E allele (lets the hair make black or brown eumelanin) is dominant to e. An ee dog makes only yellow pheomelanin in its coat, so its coat is yellow whatever its B genotype. Assume the two loci are unlinked, and that both parents carry alleles at other coat-colour loci that let B and E show these effects (details in Going deeper). Cross BbEe x BbEe. Write B_ for B with either allele: BB or Bb.
 
 **Step 1. Each locus alone.** P(B_) = 3/4, P(bb) = 1/4, P(E_) = 3/4, P(ee) = 1/4.
 
@@ -429,42 +514,86 @@ When two genes act on one trait, a genotype at one can hide the effect of the ot
 
 > **B_E_ = 3/4 x 3/4 = 9/16 black; bbE_ = 1/4 x 3/4 = 3/16 chocolate; B_ee + bbee = 3/16 + 1/16 = 4/16 yellow**
 
-The ratio is 9:3:4, a 9:3:3:1 with the last two classes merged. Because ee masks the B locus only when homozygous, this is **recessive epistasis**.
+The ratio is 9:3:4, a 9:3:3:1 with the last two classes merged. Because e masks the B locus only when homozygous, this is **recessive epistasis**. Same sixteen boxes, new labels: the four ee boxes share one.
 
-**Step 3. Counts.** In 64 pups, expect 64 x 9/16 = 36 black, 64 x 3/16 = 12 chocolate and 64 x 4/16 = 16 yellow, which sums to 64.
+**Step 3. Counts.** In 64 pups, expect 64 x 9/16 = 36 black, 64 x 3/16 = 12 chocolate and 64 x 4/16 = 16 yellow.
 
 **Step 4. A conditional question.** Among yellow pups, what fraction is bbee? Of the 4 yellow sixteenths, 1 is bbee, so P(bbee given yellow) = 1/4.
 
-Other interactions regroup the same sixteen classes:
+Other interactions regroup the same sixteen boxes. Read the third column, not the name: it is what you can derive.
 
-| Ratio | Model | Classic case |
-|---|---|---|
-| 9:3:4 | recessive epistasis | Labrador coat; mouse albino (cc) |
-| 9:7 | both dominant alleles needed (complementary genes) | sweet-pea flower colour |
-| 12:3:1 | a dominant allele at one gene masks the other | summer squash fruit colour |
-| 15:1 | a dominant allele at either gene is enough (duplicate genes) | shepherd's purse seed capsule shape |
+| Ratio | How the genes act | Which boxes share a label | Classic case |
+|---|---|---|---|
+| 9:3:4 | recessive epistasis: two recessive alleles at one gene hide the other gene | the 4 boxes homozygous recessive at the hiding gene | Labrador coat; mouse albino (cc) |
+| 9:7 | both dominant alleles needed (complementary genes) | the 7 boxes missing a dominant allele at either gene | sweet-pea flower colour |
+| 12:3:1 | a dominant allele at one gene masks the other (dominant epistasis) | the 12 boxes with that dominant allele | summer squash fruit colour |
+| 15:1 | a dominant allele at either gene is enough (duplicate genes) | the 15 boxes with any dominant allele | shepherd's purse seed capsule shape |
+| 13:3 | a dominant inhibitor at one gene, plus a colourless homozygous recessive at the other | the 12 boxes with the inhibitor allele, plus the 1 box homozygous colourless without it | White Leghorn x White Wyandotte chicken colour (design problem below) |
+
+In the F2 of a cross between double heterozygotes, a ratio in sixteenths with fewer than four classes is a clue that two unlinked genes act on one trait. The explorer shows four of these regroupings, with a random sample beside the expected counts.
 
 <DihybridInteractionExplorer />
 
-Humans have a recessive epistasis too. Rare hh people make no H antigen, so neither transferase has anything to modify, and in routine A and B typing their cells look like type O whatever their ABO genotype. Further tests show they lack H too, which sets them apart from ordinary type O.
+Humans have a recessive epistasis too. The A and B transferases need the H antigen to work on, and rare hh people make no H antigen (the Bombay phenotype).
 
-## Penetrance and expressivity: genotype does not fix phenotype
+**Predict.** A person is hh and I^A I^B. What does routine A and B typing report?
 
-So far each genotype gave one phenotype. Often it does not. **Penetrance** is the fraction of carriers of a genotype who show the trait. If 70 of 100 carriers are affected, penetrance is 70%. It describes a group, never a person. **Expressivity** is how strongly the trait shows in those who have it; with variable expressivity, the same genotype gives mild disease in one carrier and severe disease in another.
+<details>
+<summary>Check your prediction</summary>
 
-Three things loosen the map. Other genes: in UK Biobank participants carrying variants for familial hypercholesterolemia, the modelled probability of coronary disease by age 75 ranged from 17.5% to 77.9% across percentiles of a polygenic score, which adds up the small effects of many variants across the genome. Chance in development. And environment, of which phenylketonuria (PKU) is the clearest case. People with loss-of-function alleles in both copies of the gene for phenylalanine hydroxylase convert little or no phenylalanine to tyrosine; how little depends on the alleles. On an ordinary diet phenylalanine accumulates and causes severe intellectual disability; in children kept on a low-phenylalanine diet from early infancy, that outcome is largely prevented. The genotype is the same in both cases. What differs is what the diet supplies.
+Type O. Neither transferase has anything to modify, so the cells look like type O whatever the ABO genotype. Further tests show they lack H too, which sets them apart from ordinary type O. Every hh box carries one label, as every ee box did in the dogs.
+
+</details>
+
+## Where the rule ends: penetrance and expressivity
+
+So far each genotype gave one phenotype, the fifth assumption. Often it does not, and here the rule stops: a box gets a probability instead of a label. (Linkage, sex linkage and segregation distortion instead change the boxes themselves; see [linkage and mapping](/lessons/linkage-and-mapping/) and [sex linkage](/lessons/sex-linkage-and-beyond/).)
+
+**Penetrance** is the fraction of carriers of a genotype who show the trait. If 70 of 100 carriers are affected, penetrance is 70%. It is measured in a group; for one carrier it is a probability, not a verdict. **Expressivity** is how strongly the trait shows in those who have it; with variable expressivity, the same genotype gives mild disease in one carrier and severe disease in another.
+
+Three things loosen the map. Other genes: a polygenic score adds up the small effects of many variants across the genome, and in UK Biobank participants carrying variants for familial hypercholesterolemia, the modelled probability of coronary disease by age 75 ranged from 17.5% to 77.9% across percentiles of such a score (the study's caveats are in Going deeper). Chance in development: genetically identical animals raised side by side can differ, because development involves random molecular events. And environment, of which phenylketonuria (PKU) is the clearest case. People with loss-of-function alleles in both copies of the gene for phenylalanine hydroxylase convert little or no phenylalanine to tyrosine; how little depends on the alleles. On an ordinary diet phenylalanine accumulates and causes severe intellectual disability; in children kept on a low-phenylalanine diet from early infancy, that outcome is largely prevented. The genotype is the same; what differs is what the diet supplies.
 
 ### Design problem
 
-Two true-breeding white-flowered sweet-pea lines are crossed, and all the F1 plants are purple. Explain how two white parents give a purple child, predict the F2 from selfed F1 plants, and design crosses that show two genes are involved.
+White Leghorn and White Wyandotte chickens are both white. Leghorns carry a dominant inhibitor of colour, I; Wyandottes are homozygous for a recessive colourless allele, c. Take Leghorns as IICC (they carry what is needed for colour, but I stops it) and Wyandottes as iicc (nothing inhibits them, but cc makes no colour). A cross of the two gives white F1 birds, but the F2 is about 13 white to 3 coloured. Explain the F2, predict a testcross of the F1, and design crosses that show two genes are involved.
 
 <details>
 <summary>One way to do it</summary>
 
-Suppose purple pigment is made in two enzymatic steps, each needing a dominant allele at a different gene: A for step 1, B for step 2. Each white line is homozygous recessive for a different step, aaBB and AAbb. The F1 is AaBb and has a working copy of both steps, so it is purple.
+The F1 is IiCc, white because it carries I.
 
-Selfing AaBb with independent assortment gives 9 A_B_ purple, and 3 A_bb + 3 aaB_ + 1 aabb = 7 white: a 9:7 ratio.
+**The F2.** A bird is coloured only if it has no inhibitor (ii, probability 1/4) and at least one C (C_, probability 3/4): 1/4 x 3/4 = 3/16 coloured. The other 13/16 are white: 9 I_C_ + 3 I_cc + 1 iicc. It is a 9:3:3:1 with three classes sharing one label.
 
-Tests. Cross the F1 back to each parent line. AaBb x aaBB gives all B_, half Aa, so 1 purple : 1 white; AaBb x AAbb gives 1 purple : 1 white as well. A one-gene model with a dominant purple allele cannot be made from two true-breeding white parents in the first place. Then intercross F2 whites: an aaB_ plant crossed with an A_bb plant can give purple offspring, while two whites blocked at the same step give only white. Whites therefore fall into classes that do or do not restore colour together. That is the logic of [complementation and pathways](/lessons/complementation-and-pathways/), taken up later.
+**The testcross.** Cross the F1 with a Wyandotte (iicc). The F1 makes four kinds of gamete equally often, IC, Ic, iC and ic, and only iC gives a coloured chick: expect 1 coloured : 3 white.
+
+**Tests for two genes.** The F2 itself is the strongest. With one gene and two alleles, the F2 holds only the parental and F1 genotypes, all white, so any coloured F2 bird shows that more than one gene is at work, and 3/16 fits two unlinked genes. Next, cross coloured F2 birds with Wyandottes: under the model about one in three gives only coloured chicks (iiCC) and two in three give half coloured (iiCc). Crossed with Leghorns, coloured F2 birds give only white chicks, because I is dominant. Be careful with a single backcross to one parent line: its ratio can fit more than one model (Going deeper has a case). Sorting mutant lines by whether they restore function together is the logic of [complementation and pathways](/lessons/complementation-and-pathways/), taken up later.
 
 </details>
+
+## Going deeper
+
+### The history of ABO
+
+Karl Landsteiner described groups A, B and a third he called C (now O) in 1901; AB was reported in 1902 by Decastello and Sturli; and Felix Bernstein's analysis of population frequencies in the 1920s showed that three alleles at one locus fit.
+
+### Why halving an enzyme often barely shows
+
+Take a toy model that treats the steps of a linear pathway like resistances in series: the output (the flux) is proportional to 1 / (1/e1 + 1/e2 + ...), where each e is the activity of one enzyme. With ten equal enzymes the sum is 10/e; halving one makes it 11/e, which leaves 10/11, about 91%, of the flux. Halving one of three leaves 3/4, or 75%; if a single step sets the output, halving it leaves 50%. Real pathways need not follow this formula, since enzyme kinetics, regulation and how control is shared among the steps set their response, but the toy shows the pattern: one copy is usually enough when control is shared across many steps, and fails when output tracks the amount of one product. That is the line between a recessive loss of function and haploinsufficiency, or a pink heterozygote. For dominant negatives in the simplest model, where a complex of n identical subunits assembles at random, the mutant subunit is made as often as the normal one, and any mutant subunit spoils the complex it joins, (1/2)^n of complexes are intact: 1/4 for a dimer, 1/16 for a tetramer and about 1.6% for a hexamer.
+
+### The Labrador example's limits
+
+The worked problem follows only the B and E loci; the other coat-colour loci it sets aside include K. An ee dog's B genotype still shows in the colour of its nose.
+
+### Classical and statistical epistasis
+
+The epistasis in this lesson is classical: one gene masks another, and Mendelian classes regroup. Statistical epistasis, a departure from additivity in a population, is a related but different idea ([complex traits and GWAS](/lessons/complex-traits-and-gwas/)).
+
+### Two white parents, one purple child: the model and a trap
+
+The second film's model: pigment is made in two enzymatic steps, each needing a dominant allele at a different gene, A for step 1 and B for step 2. Each true-breeding white line is homozygous recessive for a different step, aaBB and AAbb. The F1, AaBb, has a working copy of both steps, so it is coloured (purple, as the real hybrids were). Selfing AaBb with independent assortment gives 9 A_B_ coloured, and 3 A_bb + 3 aaB_ + 1 aabb = 7 white: a 9:7 ratio. The model predicts only coloured against white; the real coloured F2 plants were purple or red, a split that took a further gene. A one-gene model with a dominant purple allele cannot be made from two true-breeding white parents.
+
+A tempting test is to backcross the F1 to each parent line: AaBb x aaBB gives 1 coloured : 1 white, and so does AaBb x AAbb. But that does not show two genes. In **interallelic complementation**, two mutant alleles of one gene, each white when homozygous, can together give a working product: w1w1 white, w2w2 white, w1w2 coloured. That one-gene model also gives 1:1 in the backcross. The F2 tells them apart: 9:7 for two genes against 1:1 for one. So does crossing the F1 with F2 whites: under one gene every white gives 1:1, while under two genes an aabb white gives 1 coloured : 3 white. Intercrossing F2 whites helps too: an aaB_ plant crossed with an A_bb plant can give coloured offspring, while two whites blocked at the same step give only white.
+
+### What the penetrance study can and cannot say
+
+Fahed and colleagues' estimates come from UK Biobank, a cohort healthier than the general population, and the polygenic scores were less precise outside the mostly European ancestry groups they were built on. Penetrance was not one number, and the numbers belong to that cohort.

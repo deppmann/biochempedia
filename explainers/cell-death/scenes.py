@@ -156,7 +156,7 @@ def dish_world(question=True):
     lab = T("time (schematic)", 28, TEXT).next_to(clk, DOWN, buff=0.14)
     items = [dish, cell, clk, lab]
     if question:
-        items.append(T("What happens to the ring?", 38, TEXT, weight=BOLD).move_to([0, 3.25, 0]))
+        items.append(T("What happens to the ring?", 38, TEXT, weight=BOLD).move_to([0, 3.38, 0]))
     return VGroup(*items)
 
 
@@ -456,7 +456,7 @@ class S08Ask(SpokenScene):
         self.play(Rotate(world[2][1], angle=-1.7, about_point=world[2][0].get_center()),
                   world[1][2].animate.rotate(0.45), run_time=1.2, rate_func=linear)
         self.at("What happens to its membrane")
-        q = T("What happens to the ring?", 38, TEXT, weight=BOLD).move_to([0, 3.25, 0])
+        q = T("What happens to the ring?", 38, TEXT, weight=BOLD).move_to([0, 3.38, 0])
         self.play(FadeIn(q, shift=DOWN * 0.12), Indicate(world[1][0], color=BLUE), run_time=0.8)
         self.play(world[1][0].animate.scale(1.025), run_time=0.55, rate_func=there_and_back)
         self.finish()
@@ -501,7 +501,7 @@ class S10Leak(SpokenScene):
                   about_point=world[2][0].get_center()), run_time=0.75)
         self.at("secondary necrosis")
         # Keep the label inside the dish with clear air above its lower boundary.
-        lab = T("secondary necrosis", 34, RED, weight=BOLD).move_to([-0.65, -2.65, 0])
+        lab = T("secondary necrosis", 34, RED, weight=BOLD).move_to([-0.65, 3.45, 0])
         self.play(FadeIn(lab), run_time=0.6)
         self.at("In a tissue")
         inset = RoundedRectangle(width=3.15, height=2.20, corner_radius=0.15,
@@ -626,9 +626,9 @@ class S13Return(SpokenScene):
         self.play(Indicate(neighbor, color=BLUE), run_time=0.65)
         self.at("quieter death")
         sealed = VGroup(Circle(radius=.42, color=BLUE, stroke_width=5),
-                        Circle(radius=.62, color=GREEN, stroke_width=5)).move_to([-2.5, -2.75, 0])
-        torn = broken_ring([2.35, -2.75, 0], .48, width=5)
-        red = VGroup(*[Dot([2.95 + .25*i, -2.75 + .12*(-1)**i, 0], radius=.07, color=RED) for i in range(3)])
+                        Circle(radius=.62, color=GREEN, stroke_width=5)).move_to([-2.5, -2.5, 0])
+        torn = broken_ring([2.35, -2.5, 0], .48, width=5)
+        red = VGroup(*[Dot([2.95 + .25*i, -2.5 + .12*(-1)**i, 0], radius=.07, color=RED) for i in range(3)])
         labels = VGroup(T("sealed and eaten", 28, TEXT).move_to([-2.5, -3.45, 0]),
                         T("torn and spilled", 28, TEXT).move_to([2.55, -3.45, 0]))
         self.play(FadeIn(VGroup(sealed, torn, red, labels)), run_time=0.8)
@@ -638,15 +638,3 @@ class S13Return(SpokenScene):
 class S14End(EndCard):
     LINE = "Apoptosis keeps the membrane intact early, often until the cell is eaten."
 
-    def construct(self):
-        line = VGroup(
-            T("Apoptosis keeps the membrane intact early,", 40, TEXT, font=TITLE_FONT),
-            T("often until the cell is eaten.", 40, TEXT, font=TITLE_FONT),
-        ).arrange(DOWN, buff=0.24).move_to([0, 0.35, 0])
-        # A wider ellipse leaves visible clearance around both ends of the sentence.
-        ring = Circle(radius=2.30, color=BLUE, stroke_width=7).stretch(2.60, 0).move_to([0, 0.35, 0])
-        site = T("biochemistrypedia.com", 28, GREY).move_to([0, -2.75, 0])
-        self.play(FadeIn(line, shift=UP * 0.12), run_time=0.65)
-        self.play(Create(ring), run_time=1.55)
-        self.play(FadeIn(site), run_time=0.4)
-        self.finish()
