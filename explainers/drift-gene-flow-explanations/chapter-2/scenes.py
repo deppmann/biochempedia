@@ -1068,4 +1068,4 @@ class S16Rule(HW):
 
 
 class S17End(EndCard):
-    LINE = "Drift spreads replicates apart while leaving their average alone."
+    LINE = "One line wanders; replicates show whether the average was pushed."
