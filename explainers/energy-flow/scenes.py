@@ -1,416 +1,687 @@
-"""Energy flow and productivity: where all the energy goes (Biochemistrypedia explainer)
+"""Three Doors: where the energy goes at each feeding step (Biochemistrypedia explainer, remake).
 
-Every number is the lesson's own made-up closed budget for one square metre over one year,
-in kJ per m^2 per year. Nothing here is a data set; the ten-percent bars are arithmetic only.
-
-COLOR MAP (one color per concept, whole video)
-  YELLOW = sunlight / gross primary production (the energy fixed)
-  GREEN  = production: net primary production and new consumer tissue
-  BLUE   = consumers and what they ingest
-  RED    = respiration, energy leaving as heat
-  ORANGE = detritus and everything that flows into it (feces, dead matter)
-  TEAL   = decomposers
-  PURPLE = efficiencies (ratios)
-  GREY   = outlines, notes
+One world all film: producers at the bottom, herbivores above, predators on top, a detritus box at
+the lower right. COLOUR MAP: GREEN producers / NPP; PURPLE production passed up; BROWN door, detritus;
+GREY (HEAT) respiration leaving as heat; YELLOW sunlight and GPP. All numbers are the lesson's
+made-up budget, kJ per m^2 per year. Boxes, pipes and cartoons are schematic.
 """
 import numpy as np
 from bp_style import *  # noqa: F401,F403
 
+_T, _M = T, M
+
+
+def T(text, size=30, *a, **k):
+    return _T(text, round(size * 1.25), *a, **k)
+
+
+def M(text, size=30, *a, **k):
+    return _M(text, round(size * 1.25), *a, **k)
+
+
 PURPLE = "#B58CD9"
-ORANGE = "#F29E4C"
-UNIT = "kJ per m² per year · made-up budget"
+BROWN = "#B9825A"
+HEAT = "#B4BBC8"
+PALE = "#DDE3EA"
+
+PROD_C = np.array([-4.1, -2.6, 0.0])
+HERB_C = np.array([-4.1, 0.3, 0.0])
+PRED_C = np.array([-4.1, 2.9, 0.0])
+SOIL_C = np.array([3.4, -2.95, 0.0])
+BW = 4.8
 
 
-def box(label, color, pos, w=2.7, h=1.3, size=28):
-    r = RoundedRectangle(corner_radius=0.16, width=w, height=h, stroke_color=color, stroke_width=3.5,
-                         fill_color=color, fill_opacity=0.18)
-    t = T(label, size, color)
-    g = VGroup(r, t).move_to(pos)
+def rbox(w, h, color, pos, op=0.15, sw=3.5):
+    return RoundedRectangle(corner_radius=0.16, width=w, height=h, stroke_color=color, stroke_width=sw,
+                            fill_color=color, fill_opacity=op).move_to(pos)
+
+
+def grass(c, s=1.0):
+    g = VGroup(*[Line(ORIGIN, [dx * 0.18 * s, 0.5 * s, 0]).set_stroke(GREEN, 4) for dx in (-2, -1, 0, 1, 2)])
+    return g.move_to(c)
+
+
+def hopper(c, s=1.0):
+    body = Ellipse(width=0.9 * s, height=0.42 * s, color=PALE, stroke_width=3).move_to(c)
+    head = Circle(radius=0.15 * s, color=PALE, stroke_width=3).move_to(c + np.array([0.52 * s, 0.1 * s, 0]))
+    legs = VGroup(*[Line(c + np.array([x * s, -0.1 * s, 0]), c + np.array([(x - 0.15) * s, -0.4 * s, 0]), color=PALE, stroke_width=3)
+                    for x in (-0.25, 0.0, 0.25)])
+    return VGroup(body, head, legs)
+
+
+def spider(c, s=1.0):
+    b = Circle(radius=0.2 * s, color=PALE, stroke_width=3).move_to(c)
+    h = Circle(radius=0.11 * s, color=PALE, stroke_width=3).move_to(c + np.array([0.28 * s, 0, 0]))
+    legs = VGroup()
+    for k, sg in enumerate((-1, 1)):
+        for j in range(4):
+            y = (j - 1.5) * 0.12 * s
+            legs.add(Line(c + np.array([0, y, 0]), c + np.array([sg * 0.45 * s, y + (j - 1.5) * 0.12 * s, 0]), color=PALE, stroke_width=2.5))
+    return VGroup(b, h, legs)
+
+
+def door(pos, color, w=0.46, h=1.05):
+    r = Rectangle(width=w, height=h, stroke_color=color, stroke_width=4, fill_color=color, fill_opacity=0.45).move_to(pos)
+    k = Dot(radius=0.05, color=TEXT).move_to(pos + np.array([w * 0.2, 0, 0]))
+    return VGroup(r, k)
+
+
+def stream(a, b, color, n=7, speed=0.3, r=0.09, wave=0.0):
+    """A looping stream of dots from a to b (a rate, drawn as motion)."""
+    a = np.array(a, float)
+    b = np.array(b, float)
+    g = VGroup(*[Dot(radius=r, color=color) for _ in range(n)])
+    g.t = 0.0
+    d = b - a
+    perp = np.array([-d[1], d[0], 0.0])
+    perp = perp / (np.linalg.norm(perp) + 1e-9)
+
+    def upd(m, dt):
+        m.t += dt
+        for i, dot in enumerate(m):
+            ph = (i / n + m.t * speed) % 1
+            dot.move_to(a + d * ph + perp * wave * np.sin(ph * 9 + i))
+            dot.set_opacity(float(min(1, ph * 6, (1 - ph) * 6)))
+    g.add_updater(upd)
+    upd(g, 0)
     return g
 
 
-def arr(a, b, color=GREY, w=6):
-    return Arrow(a, b, buff=0.0, color=color, stroke_width=w, tip_length=0.24,
-                 max_tip_length_to_length_ratio=0.5, max_stroke_width_to_length_ratio=14)
+def gauge(center, w, h, tr, color, op=0.5, maxh=None):
+    """A fill inside a box, tied to a tracker (0..1)."""
+    mh = maxh or h
+
+    def mk():
+        hh = max(tr.get_value() * mh, 0.01)
+        return Rectangle(width=w, height=hh, stroke_width=0, fill_color=color, fill_opacity=op).move_to(
+            center + np.array([0, -h / 2 + hh / 2, 0]))
+    return always_redraw(mk)
 
 
-def num(text, color, size=28):
-    return M(text, size, color, weight=BOLD)
+def lbl(text, pos, color=TEXT, size=30, edge=None, mono=False):
+    t = (M if mono else T)(text, size, color)
+    if edge is None:
+        return t.move_to(pos)
+    return t.move_to(pos, aligned_edge=edge)
 
 
-def lab(name, number, color, size=24, direction=DOWN, buff=0.04, align=ORIGIN):
-    """two-line label: number over name."""
-    g = VGroup(num(number, color, size + 2), T(name, size - 2, color)).arrange(direction, buff=buff)
-    return g
+def two(a, b, pos, ca, cb, sa=30, sb=30, edge=LEFT, mono_a=True):
+    g = VGroup((M if mono_a else T)(a, sa, ca, weight=BOLD) if False else (M if mono_a else T)(a, sa, ca),
+               T(b, sb, cb)).arrange(DOWN, buff=0.06, aligned_edge=edge)
+    return g.move_to(pos)
 
 
-def seg(x0, width, y, h, color, op=0.45):
-    return Rectangle(width=width, height=h, stroke_color=color, stroke_width=3, fill_color=color,
-                     fill_opacity=op).move_to([x0 + width / 2, y, 0])
+class World:
+    """Builds the carried objects in fixed places."""
+
+    def __init__(self, prod=True, herb=True, pred=True, soil=False, pf=1.0, hf=0.0):
+        self.pf = ValueTracker(pf)
+        self.hf = ValueTracker(hf)
+        self.prod_box = rbox(BW, 1.6, GREEN, PROD_C)
+        self.prod_fill = gauge(PROD_C, BW - 0.1, 1.5, self.pf, GREEN, 0.5, maxh=1.5)
+        self.prod_lab = T("Producers", 30, TEXT).move_to(PROD_C + np.array([-0.8, 0, 0]))
+        self.prod_art = grass(PROD_C + np.array([1.7, -0.3, 0]), 1.3)
+        self.prod = VGroup(self.prod_fill, self.prod_box, self.prod_lab, self.prod_art)
+        self.herb_box = rbox(BW, 1.7, PALE, HERB_C, op=0.08)
+        self.herb_fill = gauge(HERB_C, BW - 0.1, 1.6, self.hf, GREEN, 0.4, maxh=1.6)
+        self.herb_lab = T("Herbivores", 30, TEXT).move_to(HERB_C + np.array([-0.8, 0, 0]))
+        self.herb_art = hopper(HERB_C + np.array([1.6, 0, 0]), 1.3)
+        self.herb = VGroup(self.herb_fill, self.herb_box, self.herb_lab, self.herb_art)
+        self.pred_box = rbox(BW, 1.3, PALE, PRED_C, op=0.08)
+        self.pred_lab = T("Predators", 30, TEXT).move_to(PRED_C + np.array([-0.8, 0, 0]))
+        self.pred_art = spider(PRED_C + np.array([1.6, 0, 0]), 1.3)
+        self.pred = VGroup(self.pred_box, self.pred_lab, self.pred_art)
+        self.soil_box = rbox(6.2, 1.4, BROWN, SOIL_C, op=0.22)
+        self.soil_lab = T("Detritus", 30, BROWN).move_to(SOIL_C + np.array([-1.35, 0, 0]))
+        self.soil = VGroup(self.soil_box, self.soil_lab)
+        self.parts = []
+        if prod:
+            self.parts.append(self.prod)
+        if herb:
+            self.parts.append(self.herb)
+        if pred:
+            self.parts.append(self.pred)
+        if soil:
+            self.parts.append(self.soil)
+
+    def add_to(self, scene):
+        scene.add(*self.parts)
 
 
-def unit_note():
-    return T(UNIT, 22, GREY).move_to([-3.9, -3.3, 0])
+def critters():
+    """bacterium, fungus, worm inside the detritus box (schematic)."""
+    bac = RoundedRectangle(corner_radius=0.1, width=0.4, height=0.2, color=TEAL, stroke_width=3)
+    fun = VGroup(Arc(radius=0.2, start_angle=0, angle=PI, color="#D9C6A0", stroke_width=4),
+                 Line([0, 0, 0], [0, -0.22, 0], color="#D9C6A0", stroke_width=4)).move_to([0, 0, 0])
+    worm = ParametricFunction(lambda t: np.array([t, 0.1 * np.sin(4 * t), 0]), t_range=[-0.35, 0.35], color="#E3A3A3", stroke_width=5)
+    pos = [SOIL_C + np.array([0.5, 0.05, 0]), SOIL_C + np.array([1.5, 0.05, 0]), SOIL_C + np.array([2.4, 0.05, 0])]
+    for m in (bac, fun, worm):
+        m.scale(1.5)
+    for m, p in zip((bac, fun, worm), pos):
+        m.move_to(p)
+    return bac, fun, worm
 
 
+def wiggle(mob, amp=0.06, speed=2.0):
+    mob.base = mob.get_center().copy()
+    mob.tt = 0.0
+
+    def u(m, dt):
+        m.tt += dt
+        m.move_to(m.base + np.array([0, amp * np.sin(m.tt * speed), 0]))
+    mob.add_updater(u)
+
+
+def pulse(mob, base=0.4, amp=0.2, speed=2.5):
+    mob.tt = 0.0
+
+    def u(m, dt):
+        m.tt += dt
+        m.set_fill(opacity=base + amp * np.sin(m.tt * speed))
+    mob.add_updater(u)
+
+
+# =============================================================================================
 class S00Title(TitleCard):
-    LESSON = "Energy flow and productivity"
-    TITLE = "Where all the energy goes"
+    LESSON = "Energy Flow and Productivity"
+    TITLE = "Three Doors"
 
 
 # ---------------------------------------------------------------------------------------------
-def stage1():
-    """end state of scene 1, rebuilt at the start of scene 2."""
-    P = box("Producers", GREEN, [0, 0.2, 0], w=3.6, h=1.6, size=34)
-    sun = Circle(radius=0.32, stroke_color=YELLOW, stroke_width=3, fill_color=YELLOW, fill_opacity=0.9).move_to([0, 3.0, 0])
-    sun_l = T("sunlight", 24, YELLOW).next_to(sun, LEFT, buff=0.25)
-    sun_a = arr([0, 2.6, 0], [0, 1.02, 0], YELLOW, 7)
-    gpp = VGroup(num("12,000", YELLOW, 32), T("gross primary production", 24, YELLOW)).arrange(DOWN, buff=0.05, aligned_edge=LEFT)
-    gpp.next_to(sun_a, RIGHT, buff=0.3).shift(UP * 0.05)
-    heat_a = arr([1.85, 0.2, 0], [4.6, 0.2, 0], RED, 7)
-    heat_l = VGroup(num("6,000", RED, 30), T("respired, lost as heat", 24, RED)).arrange(DOWN, buff=0.05).next_to(heat_a, UP, buff=0.12).shift(RIGHT * 0.55)
-    npp_a = arr([0, -0.62, 0], [0, -2.2, 0], GREEN, 7)
-    npp_l = VGroup(num("6,000", GREEN, 30), T("net primary production", 24, GREEN)).arrange(DOWN, buff=0.05, aligned_edge=LEFT)
-    npp_l.next_to(npp_a, RIGHT, buff=0.3)
-    sun_all = VGroup(sun, sun_l, sun_a, gpp)
-    return P, sun, sun_l, sun_a, gpp, heat_a, heat_l, npp_a, npp_l
-
-
-class S01Fix(SpokenScene):
+class S01Question(SpokenScene):
     def construct(self):
-        P, sun, sun_l, sun_a, gpp, heat_a, heat_l, npp_a, npp_l = stage1()
-        self.at("Plants often respire")
-        self.play(FadeIn(P, scale=0.9), run_time=0.8)
-        self.at("one year")
-        unit = unit_note()
-        self.play(FadeIn(unit), run_time=0.5)
-        self.at("producers fix")
-        self.play(FadeIn(sun), FadeIn(sun_l), run_time=0.4)
-        self.play(GrowArrow(sun_a), run_time=0.6)
-        self.play(FadeIn(gpp, shift=RIGHT * 0.2), run_time=0.5)
+        patch = Square(side_length=3.4, stroke_color=TEXT, stroke_width=5, fill_color=GREEN, fill_opacity=0.22)
+        blades = VGroup(*[grass([x, y, 0], 0.7) for x in (-1.0, 0, 1.0) for y in (-0.9, 0.2)])
+        plab = T("1 m²", 40, TEXT).next_to(patch, UP, buff=0.2)
+        pt = VGroup(patch, blades)
+        self.play(FadeIn(pt), FadeIn(plab), run_time=self.beat(0.08))
+        self.at("square meter")
+        w = World()
+        sun = Circle(radius=0.32, stroke_color=YELLOW, stroke_width=3, fill_color=YELLOW, fill_opacity=0.9).move_to([0.9, -1.3, 0])
+        sun_s = stream([0.6, -1.5, 0], [-1.7, -2.4, 0], YELLOW, n=8, speed=0.35, r=0.1)
+        self.play(ReplacementTransform(pt, w.prod), FadeOut(plab), FadeIn(w.herb), FadeIn(w.pred),
+                  FadeIn(sun), FadeIn(sun_s), run_time=self.beat(0.16))
+        w.pf.set_value(1.0)
+        tr = ValueTracker(0)
+        self.add(tr)
+        count = always_redraw(lambda: M(f"{int(tr.get_value()):,}", 54, YELLOW).move_to([3.7, -0.1, 0]))
+        cl = T("kJ fixed per year", 30, YELLOW).move_to([3.7, -0.85, 0])
+        self.add(count)
+        self.play(FadeIn(cl), tr.animate.set_value(12000), run_time=self.t_of("year") - self.elapsed() + 0.3,
+                  rate_func=linear)
+        self.at("Why does so little")
+        q = T("?", 72, YELLOW, weight=BOLD).move_to(PRED_C + np.array([-0.2, 0.05, 0]))
+        q.move_to(np.array([-1.1, 2.9, 0]))
+        glow = w.pred_box.copy().set_stroke(YELLOW, 5).set_fill(YELLOW, 0.1)
+        pulse(glow, 0.1, 0.1)
+        self.play(FadeIn(q), FadeIn(glow), run_time=self.beat(0.06))
+        self.at("animals at the top")
+        self.play(Indicate(q, scale_factor=1.3, color=YELLOW), run_time=self.beat(0.1))
+        self.finish()
+
+
+# ---------------------------------------------------------------------------------------------
+class S02Rate(SpokenScene):
+    def construct(self):
+        w = World()
+        w.add_to(self)
+        sun = Circle(radius=0.32, stroke_color=YELLOW, stroke_width=3, fill_color=YELLOW, fill_opacity=0.9).move_to([0.9, -1.3, 0])
+        sun_s = stream([0.6, -1.5, 0], [-1.7, -2.4, 0], YELLOW, n=8, speed=0.35, r=0.1)
+        self.add(sun, sun_s)
+        yr = ValueTracker(0)
+        yr.add_updater(lambda m, dt: m.increment_value(dt * 2.2))
+        self.add(yr)
+        months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+
+        def cal():
+            v = yr.get_value() % 12
+            t = M(months[int(v)], 48, TEXT).move_to([3.4, 3.0, 0])
+            frame = RoundedRectangle(corner_radius=0.12, width=2.2, height=1.0, stroke_color=GREY, stroke_width=3).move_to([3.4, 3.0, 0])
+            bar = Rectangle(width=2.0 * (v / 12), height=0.08, stroke_width=0, fill_color=YELLOW, fill_opacity=0.9)
+            bar.move_to([2.4, 2.65, 0], aligned_edge=LEFT)
+            return VGroup(frame, t, bar)
+        cal_mob = always_redraw(cal)
+        self.play(FadeIn(cal_mob), run_time=self.beat(0.05))
+        self.at("Each one is a rate")
+        u = M("kJ per m² per year", 26, YELLOW).move_to([3.7, 1.5, 0])
+        self.play(FadeIn(u), run_time=self.beat(0.05))
+        self.at("That is production")
+        prod_tag = T("production = rate (flow)", 28, GREEN).move_to([0.9, -0.3, 0], aligned_edge=LEFT)
+        self.play(FadeIn(prod_tag, shift=RIGHT * 0.2), Indicate(sun_s, color=YELLOW, scale_factor=1.0), run_time=self.beat(0.06))
+        self.at("not the balance")
+        stock = T("biomass = stock (balance)", 28, GREEN).move_to([-1.2, -3.2, 0], aligned_edge=LEFT)
+        arr = Arrow([-1.25, -3.2, 0], [-1.7, -3.2, 0], buff=0, color=GREEN, stroke_width=6, tip_length=0.2)
+        self.play(FadeIn(stock), FadeIn(arr), Circumscribe(w.prod_box, color=GREEN, time_width=1.0), run_time=self.beat(0.08))
+        self.finish()
+
+
+# ---------------------------------------------------------------------------------------------
+def heat_prod(rate=0.3, n=7):
+    return stream([-1.7, -2.2, 0], [-0.6, 1.7, 0], HEAT, n=n, speed=rate, r=0.09, wave=0.18)
+
+
+class S03Gross(SpokenScene):
+    def construct(self):
+        w = World(pred=False)
+        w.add_to(self)
+        gpp = two("12,000", "GPP", [2.0, -2.5, 0], YELLOW, YELLOW, 48, 30)
+        self.add(gpp)
+        sun = Circle(radius=0.32, stroke_color=YELLOW, stroke_width=3, fill_color=YELLOW, fill_opacity=0.9).move_to([0.9, -1.0, 0])
+        sun_s = stream([0.6, -1.2, 0], [-1.7, -2.2, 0], YELLOW, n=8, speed=0.35, r=0.1)
+        self.add(sun, sun_s)
         self.at("gross primary production")
-        self.play(Indicate(gpp, color=YELLOW, scale_factor=1.08), run_time=0.8)
-        self.at("producers respire")
-        self.play(GrowArrow(heat_a), run_time=0.7)
-        self.play(FadeIn(heat_l, shift=UP * 0.1), run_time=0.4)
-        self.at("what is left")
-        self.play(GrowArrow(npp_a), run_time=0.6)
-        self.play(FadeIn(npp_l, shift=RIGHT * 0.2), run_time=0.4)
+        self.play(Indicate(gpp, color=YELLOW, scale_factor=1.15), run_time=self.beat(0.08))
+        self.at("The plants respire")
+        self.play(FadeOut(sun), FadeOut(sun_s), run_time=self.beat(0.04))
+        hs = heat_prod()
+        tag = VGroup(T("respired by producers", 30, HEAT), M("Ra: 6,000", 36, HEAT)).arrange(DOWN, buff=0.08, aligned_edge=LEFT)
+        tag.move_to([0.8, 2.0, 0], aligned_edge=LEFT)
+        self.play(FadeIn(hs), FadeIn(tag), run_time=self.beat(0.06))
+        self.at("In this budget it is half")
+        self.play(w.pf.animate.set_value(0.5), run_time=self.t_of("heat.") - self.elapsed() + 0.2, rate_func=smooth)
+        self.finish()
+
+
+class S04Net(SpokenScene):
+    def construct(self):
+        w = World(pred=False, pf=0.5)
+        w.add_to(self)
+        gpp = two("12,000", "GPP", [2.0, -2.5, 0], YELLOW, YELLOW, 48, 30)
+        hs = heat_prod(0.25, 5)
+        tag = VGroup(T("respired by producers", 30, HEAT), M("Ra: 6,000", 36, HEAT)).arrange(DOWN, buff=0.08, aligned_edge=LEFT)
+        tag.move_to([0.8, 2.0, 0], aligned_edge=LEFT)
+        self.add(gpp, hs, tag)
         self.at("net primary production")
-        self.play(Indicate(npp_l, color=GREEN, scale_factor=1.08), run_time=0.8)
+        self.play(FadeOut(tag), FadeOut(gpp), run_time=self.beat(0.06))
+        npp = two("NPP = 6,000", "net primary production", [2.0, -2.5, 0], GREEN, GREEN, 40, 28)
+        glow = w.prod_box.copy().set_stroke(GREEN, 8).set_fill(GREEN, 0.0)
+        pulse(glow, 0.0, 0.0)
+        self.play(FadeIn(npp), Create(glow), run_time=self.beat(0.1))
+        eq = M("NPP = GPP − Ra", 32, TEXT).move_to([0.4, -0.9, 0], aligned_edge=LEFT)
+        self.play(FadeIn(eq), run_time=self.beat(0.06))
+        self.at("all the energy left")
+        up = stream([-4.1, -1.8, 0], [-4.1, -0.6, 0], GREEN, n=4, speed=0.3, r=0.1)
+        hb = w.herb_box.copy().set_stroke(GREEN, 6)
+        self.play(FadeIn(up), FadeIn(hb), run_time=self.beat(0.08))
+        self.at("to eat or to store")
+        self.play(Indicate(npp, color=GREEN, scale_factor=1.1), run_time=self.beat(0.1))
         self.finish()
 
 
 # ---------------------------------------------------------------------------------------------
-PX, HX, RX = -3.7, 3.7, 4.7
-ROW = 1.0
-DPOS = [0.0, -1.9, 0]
+def doors_set():
+    brown = door([-1.55, -2.6, 0], BROWN)
+    grey = door([-1.55, 0.75, 0], HEAT)
+    pipe = Rectangle(width=0.34, height=1.35, stroke_color=PURPLE, stroke_width=3, fill_color=PURPLE, fill_opacity=0.6).move_to([-4.1, -1.17, 0])
+    return brown, grey, pipe
 
 
-def layout_p():
-    return box("Producers", GREEN, [PX, ROW, 0], w=3.3, h=1.5)
-
-
-def layout_heat(b, text, up=0.9):
-    a = arr(b.get_top(), b.get_top() + UP * up, RED, 6)
-    l = VGroup(num(text, RED, 26), T("heat", 24, RED)).arrange(RIGHT, buff=0.15).next_to(a, UP, buff=0.1)
-    return a, l
-
-
-class S02Graze(SpokenScene):
+class S05Doors(SpokenScene):
     def construct(self):
-        P, sun, sun_l, sun_a, gpp, heat_a, heat_l, npp_a, npp_l = stage1()
-        unit = unit_note()
-        self.add(P, sun, sun_l, sun_a, gpp, heat_a, heat_l, npp_a, npp_l, unit)
-        Pn = layout_p()
-        ha, hl = layout_heat(Pn, "6,000")
-        self.at("Now herbivores eat")
-        H = box("Herbivores", BLUE, [HX, ROW, 0], w=3.3, h=1.5)
-        self.play(FadeOut(VGroup(sun, sun_l, sun_a, gpp, npp_a, npp_l)),
-                  ReplacementTransform(P, Pn),
-                  ReplacementTransform(VGroup(heat_a, heat_l), VGroup(ha, hl)), run_time=1.0)
-        self.play(FadeIn(H, shift=LEFT * 0.3), run_time=0.6)
-        self.at("ingest")
-        a1 = arr([PX + 1.7, ROW, 0], [HX - 1.7, ROW, 0], BLUE, 7)
-        l1 = VGroup(num("1,800", BLUE, 28), T("ingested", 22, BLUE)).arrange(DOWN, buff=0.04).next_to(a1, UP, buff=0.1)
-        # keep label inside gap between the boxes
-        self.play(GrowArrow(a1), FadeIn(l1), run_time=0.7)
-        self.at("net primary production")
-        pct = T("30% of the NPP", 24, PURPLE).next_to(a1, DOWN, buff=0.25)
-        self.play(FadeIn(pct, shift=UP * 0.1), run_time=0.5)
-        self.at("never grazed")
-        D = box("Detritus", ORANGE, DPOS, w=3.2, h=1.4)
-        a2 = arr([PX, ROW - 0.8, 0], [-1.65, DPOS[1] + 0.15, 0], ORANGE, 7)
-        l2 = VGroup(num("4,200", ORANGE, 28), T("never grazed", 22, ORANGE)).arrange(DOWN, buff=0.04).move_to([-4.5, -0.9, 0])
-        self.play(GrowArrow(a2), FadeIn(l2), run_time=0.7)
-        self.at("enters detritus")
-        self.play(FadeIn(D, scale=0.9), run_time=0.5)
-        self.at("dead matter")
-        self.play(Indicate(D, color=ORANGE, scale_factor=1.06), run_time=0.9)
+        w = World(pred=False, pf=0.5)
+        w.add_to(self)
+        npp = two("NPP = 6,000", "net primary production", [2.0, -2.5, 0], GREEN, GREEN, 40, 28)
+        self.add(npp)
+        self.at("follow it up")
+        self.play(FadeOut(npp), Circumscribe(VGroup(w.prod_box, w.herb_box), color=GREEN), run_time=self.beat(0.1))
+        brown, grey, pipe = doors_set()
+        self.at("three ways out")
+        self.play(FadeIn(brown, shift=LEFT * 0.2), run_time=self.beat(0.05))
+        lb = T("detritus", 32, BROWN).move_to([-0.6, -2.0, 0], aligned_edge=LEFT)
+        self.play(FadeIn(lb), run_time=self.beat(0.03))
+        self.play(FadeIn(grey, shift=LEFT * 0.2), run_time=self.beat(0.05))
+        lg = T("heat", 32, HEAT).move_to([-1.1, 0.75, 0], aligned_edge=LEFT)
+        hs = stream([-1.5, 0.95, 0], [-0.7, 2.6, 0], HEAT, n=4, speed=0.3, r=0.09, wave=0.15)
+        self.play(FadeIn(lg), FadeIn(hs), run_time=self.beat(0.04))
+        self.play(FadeIn(pipe, shift=UP * 0.2), run_time=self.beat(0.05))
+        lp = T("passed up", 32, PURPLE).move_to([-3.2, -1.17, 0], aligned_edge=LEFT)
+        up = stream([-4.1, -1.8, 0], [-4.1, -0.55, 0], PURPLE, n=3, speed=0.3, r=0.08)
+        self.play(FadeIn(lp), FadeIn(up), run_time=self.beat(0.04))
+        self.at("Call them doors")
+        self.play(Wiggle(brown, scale_value=1.1), Wiggle(grey, scale_value=1.1), run_time=self.beat(0.12))
+        self.finish()
+
+
+def predict_group():
+    t1 = T("most is eaten", 36, TEXT)
+    b1 = RoundedRectangle(corner_radius=0.15, width=t1.width + 0.5, height=0.8, stroke_color=GREEN, stroke_width=3, fill_color=GREEN, fill_opacity=0.12)
+    o1 = VGroup(b1, t1.move_to(b1)).move_to([3.2, 0.3, 0])
+    t2 = T("only a little is eaten", 36, TEXT)
+    b2 = RoundedRectangle(corner_radius=0.15, width=t2.width + 0.5, height=0.8, stroke_color=GREEN, stroke_width=3, fill_color=GREEN, fill_opacity=0.12)
+    o2 = VGroup(b2, t2.move_to(b2)).move_to([3.2, -1.0, 0])
+    return o1, o2
+
+
+class S06Predict(SpokenScene):
+    def construct(self):
+        w = World(pred=False, pf=0.5)
+        w.add_to(self)
+        wiggle(w.herb_art, 0.08, 3.0)
+        blades = VGroup(*[grass([-5.0 + 0.55 * i, -1.65, 0], 0.5) for i in range(7)])
+        self.play(FadeIn(blades), run_time=self.beat(0.08))
+        o1, o2 = predict_group()
+        self.at("could eat most")
+        self.play(FadeIn(o1, shift=LEFT * 0.3), run_time=self.beat(0.08))
+        self.at("or only a little")
+        self.play(FadeIn(o2, shift=LEFT * 0.3), run_time=self.beat(0.08))
+        self.at("Which do you expect")
+        q = T("Which do you expect?", 40, YELLOW).move_to([3.2, 2.0, 0])
+        self.play(FadeIn(q), run_time=self.beat(0.08))
+        self.play(Indicate(o1, color=YELLOW), Indicate(o2, color=YELLOW), run_time=self.beat(0.15))
+        self.finish()
+
+
+class S07Pause(NarratedScene):
+    def construct(self):
+        w = World(pred=False, pf=0.5)
+        w.add_to(self)
+        wiggle(w.herb_art, 0.08, 3.0)
+        blades = VGroup(*[grass([-5.0 + 0.55 * i, -1.65, 0], 0.5) for i in range(7)])
+        o1, o2 = predict_group()
+        q = VGroup(T("Predict: how much of NPP", 36, YELLOW), T("do the herbivores eat?", 36, YELLOW)).arrange(DOWN, buff=0.1).move_to([2.8, 2.3, 0])
+        self.add(blades, o1, o2, q)
+        tr = ValueTracker(5.0)
+        tr.add_updater(lambda m, dt: m.increment_value(-dt))
+        self.add(tr)
+        cd = always_redraw(lambda: M(str(max(1, int(np.ceil(tr.get_value())))), 60, TEXT).move_to([3.2, -2.4, 0]))
+        self.add(cd)
+        self.wait(5.0)
+
+
+# ---------------------------------------------------------------------------------------------
+class S08Reveal(SpokenScene):
+    def construct(self):
+        w = World(pred=False, pf=0.5, soil=True)
+        w.add_to(self)
+        wiggle(w.herb_art, 0.08, 3.0)
+        brown, grey, pipe = doors_set()
+        self.add(brown, grey, pipe)
+        o1, o2 = predict_group()
+        self.add(o2)
+        self.play(FadeOut(o2[1]) if False else Indicate(o2, color=YELLOW), run_time=self.beat(0.06))
+        self.at("less than a third")
+        ing = stream([-4.4, -1.85, 0], [-4.4, -0.5, 0], GREEN, n=3, speed=0.3, r=0.09)
+        il = VGroup(M("ingested: 1,800", 26, GREEN), M("(30% of NPP)", 26, GREEN)).arrange(DOWN, buff=0.05, aligned_edge=LEFT).move_to([-3.7, -1.17, 0], aligned_edge=LEFT)
+        self.play(FadeOut(o2), FadeIn(ing), FadeIn(il), run_time=self.beat(0.08))
+        self.at("The rest is never eaten")
+        ul = VGroup(M("uneaten → detritus:", 26, BROWN), M("4,200", 36, BROWN)).arrange(DOWN, buff=0.05).move_to([4.0, -1.5, 0])
+        wide = stream([-1.4, -2.6, 0], [0.5, -2.9, 0], BROWN, n=18, speed=0.5, r=0.15)
+        pulse(w.soil_box, 0.22, 0.12, 2.0)
+        self.play(FadeIn(wide), FadeIn(ul), run_time=self.beat(0.07))
+        self.at("drops through the brown door")
+        self.play(Wiggle(brown, scale_value=1.15), run_time=self.beat(0.07))
+        self.at("Detritus is dead matter")
+        bac, fun, worm = critters()
+        self.at("bacteria")
+        self.play(FadeIn(bac, scale=1.5), run_time=self.beat(0.04))
+        self.at("fungi")
+        self.play(FadeIn(fun, scale=1.5), run_time=self.beat(0.04))
+        self.at("animals that eat it")
+        self.play(FadeIn(worm, scale=1.5), run_time=self.beat(0.04))
+        for m in (bac, fun, worm):
+            wiggle(m, 0.1, 3.0)
+        self.finish()
+
+
+def soil_stuff():
+    bac, fun, worm = critters()
+    for m in (bac, fun, worm):
+        wiggle(m, 0.1, 3.0)
+    return VGroup(bac, fun, worm)
+
+
+class S09Feces(SpokenScene):
+    def construct(self):
+        w = World(pred=False, pf=0.5, soil=True, hf=0.0)
+        w.add_to(self)
+        wiggle(w.herb_art, 0.15, 4.0)
+        brown, grey, pipe = doors_set()
+        self.add(brown, grey, pipe, soil_stuff())
+        ing = stream([-4.4, -1.85, 0], [-4.4, -0.5, 0], GREEN, n=4, speed=0.5, r=0.11)
+        self.add(ing)
+        il = VGroup(M("ingested: 1,800", 26, GREEN)).move_to([-3.7, -1.17, 0], aligned_edge=LEFT)
+        self.add(il)
+        self.at("much passes straight through")
+        self.play(FadeOut(il), run_time=self.beat(0.04))
+        fe = stream([-1.7, -0.1, 0], [1.2, -2.3, 0], BROWN, n=8, speed=0.3, r=0.12)
+        fl = VGroup(M("egested (feces):", 26, BROWN), M("1,080", 36, BROWN)).arrange(DOWN, buff=0.05).move_to([3.3, -0.3, 0])
+        self.play(FadeIn(fe), FadeIn(fl), run_time=self.beat(0.08))
+        w.hf.set_value(0.0)
+        self.play(w.hf.animate.set_value(0.6), run_time=self.beat(0.15))
+        al = VGroup(M("assimilated:", 26, GREEN), M("720", 36, GREEN)).arrange(DOWN, buff=0.05).move_to([3.3, 1.5, 0])
+        self.play(FadeIn(al), run_time=self.beat(0.06))
+        self.at("goes out the brown door")
+        self.play(Wiggle(brown, scale_value=1.15), run_time=self.beat(0.1))
+        self.at("into the same detritus")
+        self.play(Indicate(w.soil_box, color=BROWN, scale_factor=1.03), run_time=self.beat(0.15))
+        self.finish()
+
+
+class S10Heat(SpokenScene):
+    def construct(self):
+        w = World(pred=False, pf=0.5, soil=True, hf=0.6)
+        w.add_to(self)
+        wiggle(w.herb_art, 0.08, 3.0)
+        brown, grey, pipe = doors_set()
+        self.add(brown, grey, pipe, soil_stuff())
+        al = VGroup(M("assimilated:", 26, GREEN), M("720", 36, GREEN)).arrange(DOWN, buff=0.05).move_to([3.3, 1.2, 0])
+        self.add(al)
+        self.at("a large part is respired")
+        hs = stream([-1.5, 0.95, 0], [-0.2, 3.4, 0], HEAT, n=8, speed=0.3, r=0.1, wave=0.2)
+        hl = VGroup(M("respired → heat:", 26, HEAT), M("360", 36, HEAT)).arrange(DOWN, buff=0.05).move_to([3.2, 3.0, 0])
+        self.play(FadeIn(hs), FadeIn(hl), w.hf.animate.set_value(0.3), run_time=self.t_of("alive") - self.elapsed() + 0.4)
+        self.at("leaves through the gray door")
+        self.play(Wiggle(grey, scale_value=1.2), run_time=self.beat(0.12))
+        self.finish()
+
+
+class S11Up(SpokenScene):
+    def construct(self):
+        w = World(pred=True, pf=0.5, soil=True, hf=0.3)
+        w.add_to(self)
+        brown, grey, pipe = doors_set()
+        self.add(brown, grey, pipe, soil_stuff())
+        wide = stream([-1.4, -2.6, 0], [0.5, -2.9, 0], BROWN, n=14, speed=0.35, r=0.13)
+        self.add(wide)
+        self.at("new herbivore tissue")
+        kids = VGroup(*[hopper(HERB_C + np.array([1.05 + 0.6 * i, -0.2 + 0.1 * (i % 2), 0]), 0.5) for i in range(3)])
+        self.play(FadeOut(w.herb_art), FadeIn(kids, shift=UP * 0.2), w.hf.animate.set_value(0.0), run_time=self.beat(0.14))
+        self.at("That is the herbivore's production")
+        pl = VGroup(M("herbivore production:", 24, PURPLE), M("360", 36, PURPLE)).arrange(DOWN, buff=0.05).move_to([3.5, 1.5, 0])
+        up = stream([-4.1, -1.8, 0], [-4.1, -0.55, 0], PURPLE, n=3, speed=0.3, r=0.07)
+        self.play(FadeIn(pl), FadeIn(up), run_time=self.beat(0.08))
+        self.at("Predators can eat it")
+        q = T("?", 56, PURPLE, weight=BOLD).move_to(PRED_C + np.array([2.2, 0, 0]))
+        self.play(Indicate(w.pred_box, color=PURPLE, scale_factor=1.05), run_time=self.beat(0.1))
+        self.at("do not eat all")
+        self.play(Indicate(pl, color=PURPLE), run_time=self.beat(0.1))
         self.finish()
 
 
 # ---------------------------------------------------------------------------------------------
-def effic(big, small, color=PURPLE, size=40):
-    return VGroup(num(big, color, size), T(small, 22, color)).arrange(DOWN, buff=0.06)
+PX = 0.4  # x of the valve pipe
 
 
-class S03Herb(SpokenScene):
+def valve_world(self_):
+    w = World(pred=False, pf=0.5)
+    w.add_to(self_)
+    return w
+
+
+VY = [-0.9, 0.7, 2.3]
+VW = [0.8, 0.24, 0.1, 0.05]
+VLAB = [("consumption efficiency", "0.30", "lost to detritus", BROWN),
+        ("assimilation efficiency", "0.40", "lost to detritus", BROWN),
+        ("net production efficiency", "0.50", "lost as heat", HEAT)]
+
+
+def pipe_segs():
+    segs = VGroup()
+    ys = [-2.6, VY[0], VY[1], VY[2], 3.4]
+    for i in range(4):
+        y0, y1 = ys[i], ys[i + 1]
+        segs.add(Rectangle(width=max(VW[i], 0.05), height=y1 - y0, stroke_width=0, fill_color=PURPLE,
+                           fill_opacity=0.7).move_to([PX, (y0 + y1) / 2, 0]))
+    feeder = Line([-1.7, -2.6, 0], [PX - 0.4, -2.6, 0], color=PURPLE, stroke_width=8)
+    return segs, feeder
+
+
+def valve(y, color):
+    a = Polygon([-0.3, 0.25, 0], [0.3, 0.25, 0], [0, 0, 0], color=color, fill_color=color, fill_opacity=0.8, stroke_width=3)
+    b = Polygon([-0.3, -0.25, 0], [0.3, -0.25, 0], [0, 0, 0], color=color, fill_color=color, fill_opacity=0.8, stroke_width=3)
+    return VGroup(a, b).move_to([PX, y, 0])
+
+
+def vlabel(i, with_loss=True):
+    nm, num, loss, c = VLAB[i]
+    g = VGroup(T(nm, 28, PURPLE), M(num, 32, TEXT)).arrange(DOWN, buff=0.05, aligned_edge=LEFT)
+    return g.move_to([1.1, VY[i], 0], aligned_edge=LEFT)
+
+
+class S12Valves(SpokenScene):
     def construct(self):
-        unit = unit_note()
-        K = 0.0018
-        x0 = -5.4
-        top = seg(x0, 6000 * K, 2.55, 0.8, GREEN, 0.35)
-        top_l = VGroup(T("net primary production", 24, GREEN), num("6,000", GREEN, 28)).arrange(RIGHT, buff=0.2).next_to(top, UP, buff=0.18)
-        self.at("Follow the herbivores")
-        self.play(FadeIn(top), FadeIn(top_l), FadeIn(unit), run_time=0.7)
-        slice_ = seg(x0, 1800 * K, 2.55, 0.8, BLUE, 0.6)
-        self.at("They ingest")
-        self.play(FadeIn(slice_), run_time=0.4)
-        k2 = 0.006
-        yb = 0.35
-        bar = seg(x0, 1800 * k2, yb, 1.1, BLUE, 0.5)
-        ing_l = VGroup(T("ingested", 24, BLUE), num("1,800", BLUE, 28)).arrange(RIGHT, buff=0.2).next_to(bar, UP, buff=0.3)
-        self.play(ReplacementTransform(slice_.copy(), bar), run_time=0.9)
-        self.play(FadeIn(ing_l), run_time=0.4)
-        self.wait(0.2)
-        # egest
-        self.at("adjust")
-        egw, rsw, pdw = 1080 * k2, 360 * k2, 360 * k2
-        eg = seg(x0, egw, yb, 1.1, ORANGE, 0.5)
-        rest = seg(x0 + egw, rsw + pdw, yb, 1.1, BLUE, 0.5)
-        self.play(ReplacementTransform(bar, VGroup(eg, rest)), run_time=0.8)
-        eg_l = lab("egested as feces", "1,080", ORANGE).next_to(eg, DOWN, buff=0.2)
-        self.play(FadeIn(eg_l), run_time=0.4)
-        self.at("assimilated")
-        br = Brace(rest, UP, color=BLUE, buff=0.1)
-        as_l = VGroup(T("assimilated", 24, BLUE), num("720", BLUE, 28)).arrange(RIGHT, buff=0.2).next_to(br, UP, buff=0.1)
-        self.play(FadeOut(ing_l), GrowFromCenter(br), run_time=0.5)
-        self.play(FadeIn(as_l), run_time=0.4)
-        self.at("respire")
-        rs = seg(x0 + egw, rsw, yb, 1.1, RED, 0.5)
-        pd = seg(x0 + egw + rsw, pdw, yb, 1.1, BLUE, 0.5)
-        self.play(ReplacementTransform(rest, VGroup(rs, pd)), run_time=0.7)
-        rs_l = lab("respired", "360", RED).next_to(rs, DOWN, buff=0.2)
-        self.play(FadeIn(rs_l), run_time=0.4)
-        self.at("new tissue")
-        self.play(pd.animate.set_stroke(GREEN).set_fill(GREEN, 0.5), run_time=0.5)
-        pd_l = lab("production", "360", GREEN).next_to(pd, DOWN, buff=0.2)
-        self.play(FadeIn(pd_l), run_time=0.4)
-        self.at("three efficiencies")
-        e1 = effic("30%", "consumption")
-        e2 = effic("40%", "assimilation")
-        e3 = effic("50%", "net production")
-        eq = effic("6%", "transfer efficiency", color=PURPLE, size=48)
-        t1, t2, t3 = M("×", 36, GREY), M("×", 36, GREY), M("=", 36, GREY)
-        row = VGroup(e1, t1, e2, t2, e3, t3, eq).arrange(RIGHT, buff=0.4)
-        fit(row, max_w=12.2)
-        row.move_to([0.2, -2.4, 0])
-        for part in (e1, e2, e3):
-            self.play(FadeIn(part, shift=UP * 0.1), run_time=0.35)
-            if part is e1:
-                self.play(FadeIn(t1), run_time=0.1)
-            elif part is e2:
-                self.play(FadeIn(t2), run_time=0.1)
-        self.at("Multiplied")
-        self.play(FadeIn(t3), FadeIn(eq, scale=0.8), run_time=0.7)
+        w = valve_world(self)
+        hb = w.herb_box
+        segs, feeder = pipe_segs()
+        self.at("a fraction")
+        self.play(FadeIn(feeder), FadeIn(segs[0]), run_time=self.beat(0.06))
+        self.at("valve on the pipe")
+        self.play(FadeIn(segs[1:]), run_time=self.beat(0.06))
+        vals = [valve(VY[i], VLAB[i][3]) for i in range(3)]
+        loss = []
+        for i in range(3):
+            loss.append(stream([PX - 0.3, VY[i], 0], [PX - 1.9, VY[i] + 0.05, 0], VLAB[i][3], n=4, speed=0.4, r=0.09))
+        self.play(FadeIn(VGroup(*vals)), run_time=self.beat(0.06))
+        self.at("share eaten")
+        self.play(FadeIn(vlabel(0)), FadeIn(loss[0]), run_time=self.beat(0.06))
+        self.at("share absorbed")
+        self.play(FadeIn(vlabel(1)), FadeIn(loss[1]), run_time=self.beat(0.06))
+        self.at("made into tissue")
+        self.play(FadeIn(vlabel(2)), FadeIn(loss[2]), run_time=self.beat(0.06))
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S04Pred(SpokenScene):
+class S13Product(SpokenScene):
     def construct(self):
-        unit = unit_note()
-        K = 0.03
-        x0 = -5.4
-        yt = 2.4
-        top = seg(x0, 360 * K, yt, 0.8, GREEN, 0.4)
-        top_l = VGroup(T("herbivore production", 24, GREEN), num("360", GREEN, 28)).arrange(RIGHT, buff=0.2).next_to(top, UP, buff=0.18)
-        self.at("Predators keep the same books")
-        self.play(FadeIn(top), FadeIn(top_l), FadeIn(unit), run_time=0.7)
-        sl = seg(x0, 200 * K, yt, 0.8, BLUE, 0.6)
-        rm = seg(x0 + 200 * K, 160 * K, yt, 0.8, ORANGE, 0.5)
-        self.at("they ingest")
-        self.play(FadeIn(sl), run_time=0.4)
-        sl_l = VGroup(T("ingested", 22, BLUE), num("200", BLUE, 26)).arrange(RIGHT, buff=0.15).next_to(sl, DOWN, buff=0.15)
-        self.play(FadeIn(sl_l), run_time=0.3)
-        self.at("goes to detritus")
-        self.play(FadeIn(rm), run_time=0.4)
-        rm_l = VGroup(T("to detritus", 22, ORANGE), num("160", ORANGE, 26)).arrange(RIGHT, buff=0.15).next_to(rm, DOWN, buff=0.15)
-        self.play(FadeIn(rm_l), run_time=0.3)
-        yb = 0.2
-        bar = seg(x0, 200 * K, yb, 1.1, BLUE, 0.5)
-        self.play(ReplacementTransform(sl.copy(), bar), run_time=0.8)
-        self.at("adjust")
-        egw, rsw, pdw = 100 * K, 60 * K, 40 * K
-        eg = seg(x0, egw, yb, 1.1, ORANGE, 0.5)
-        rest = seg(x0 + egw, rsw + pdw, yb, 1.1, BLUE, 0.5)
-        self.play(ReplacementTransform(bar, VGroup(eg, rest)), run_time=0.7)
-        eg_l = lab("egested", "100", ORANGE).next_to(eg, DOWN, buff=0.2)
-        self.play(FadeIn(eg_l), run_time=0.3)
-        self.at("respire")
-        rs = seg(x0 + egw, rsw, yb, 1.1, RED, 0.5)
-        pd = seg(x0 + egw + rsw, pdw, yb, 1.1, BLUE, 0.5)
-        self.play(ReplacementTransform(rest, VGroup(rs, pd)), run_time=0.6)
-        rs_l = lab("respired", "60", RED).next_to(rs, DOWN, buff=0.2)
-        self.play(FadeIn(rs_l), run_time=0.3)
-        self.at("Their production is")
-        self.play(pd.animate.set_stroke(GREEN).set_fill(GREEN, 0.5), run_time=0.4)
-        pd_l = lab("production", "40", GREEN).next_to(pd, DOWN, buff=0.2).shift(RIGHT * 0.25)
-        self.play(FadeIn(pd_l), run_time=0.3)
-        self.at("transfer efficiency")
-        second = VGroup(num("11%", PURPLE, 52), T("second link: 40 / 360", 24, PURPLE)).arrange(DOWN, buff=0.08)
-        first = VGroup(num("6%", PURPLE, 52), T("first link: 360 / 6,000", 24, PURPLE)).arrange(DOWN, buff=0.08)
-        second.move_to([3.3, -2.2, 0]); first.move_to([-2.3, -2.2, 0])
-        self.play(FadeIn(second, shift=UP * 0.1), run_time=0.6)
-        self.at("first link")
-        self.play(FadeIn(first, shift=UP * 0.1), run_time=0.6)
-        self.at("no single number")
-        self.play(Indicate(VGroup(first, second), color=PURPLE, scale_factor=1.05), run_time=0.9)
+        w = valve_world(self)
+        segs, feeder = pipe_segs()
+        vals = VGroup(*[valve(VY[i], VLAB[i][3]) for i in range(3)])
+        labs = VGroup(*[vlabel(i) for i in range(3)])
+        loss = [stream([PX - 0.3, VY[i], 0], [PX - 1.9, VY[i] + 0.05, 0], VLAB[i][3], n=4, speed=0.4, r=0.09) for i in range(3)]
+        self.add(feeder, segs, vals, labs, *loss)
+        self.at("three valves in a row")
+        self.play(Indicate(vals, color=PURPLE), run_time=self.beat(0.1))
+        self.at("product of the three fractions")
+        nums = VGroup(*[labs[i][1].copy() for i in range(3)])
+        eq = M("0.30 × 0.40 × 0.50 = 0.06", 24, TEXT).move_to([2.7, 0.9, 0])
+        self.play(FadeOut(labs), FadeOut(vals), *[FadeOut(l) for l in loss], FadeOut(segs[1:]), FadeIn(nums), run_time=0.1)
+        self.play(ReplacementTransform(nums, eq), run_time=self.beat(0.15))
+        self.at("trophic transfer efficiency")
+        tl = T("trophic transfer efficiency", 28, PURPLE).move_to([2.7, 2.1, 0])
+        r6 = M("360 / 6,000 = 6%", 28, PURPLE).move_to([2.7, -0.4, 0])
+        self.play(FadeIn(tl), FadeIn(r6), run_time=self.beat(0.1))
+        self.play(Indicate(r6, color=PURPLE, scale_factor=1.12), Indicate(feeder, color=PURPLE), run_time=self.beat(0.1))
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S05Detritus(SpokenScene):
+class S14Ledger(SpokenScene):
     def construct(self):
-        unit = unit_note()
-        H = 4.4
-        k = H / 5540.0
-        tx0, tw = -0.3, 1.8
-        tcx = tx0 + tw / 2
-        ybot = -3.0
-        LX = -1.5   # right edge of the left-hand labels
-        tank = Rectangle(width=tw, height=H, stroke_color=ORANGE, stroke_width=3, fill_opacity=0).move_to([tcx, ybot + H / 2, 0])
-        title = T("Detritus", 28, ORANGE).move_to([tcx, 1.95, 0])
-        self.at("Now the detritus")
-        self.play(Create(tank), FadeIn(title), FadeIn(unit), run_time=0.9)
-        items = [("ungrazed plants", 4200, 0.55), ("herbivore feces", 1080, 0.35),
-                 ("predator feces", 100, 0.55), ("uneaten animal production", 160, 0.28)]
-        y = ybot
-        stack = []
-        labels = []
-        label_y = [-1.4, 0.2, 1.0, 1.8]
-        for (name, val, op), ly in zip(items, label_y):
-            h = val * k
-            s_ = Rectangle(width=tw, height=h, stroke_color=BG, stroke_width=2, fill_color=ORANGE, fill_opacity=op)
-            s_.move_to([tcx, y + h / 2, 0])
-            lbl = VGroup(T(name, 22, ORANGE), num(f"{val:,}", ORANGE, 24)).arrange(RIGHT, buff=0.15)
-            lbl.move_to([0, ly, 0]).align_to([LX, 0, 0], RIGHT)
-            ln = Line(lbl.get_right() + RIGHT * 0.1, [tx0, y + h / 2, 0], color=GREY, stroke_width=1.5)
-            stack.append(s_); labels.append(VGroup(lbl, ln))
-            y += h
-        self.at("Ungrazed plants")
-        self.play(FadeIn(stack[0], shift=DOWN * 0.1), FadeIn(labels[0]), run_time=0.8)
-        self.at("feces")
-        self.play(FadeIn(stack[1]), FadeIn(labels[1]), run_time=0.4)
-        self.play(FadeIn(stack[2]), FadeIn(labels[2]), run_time=0.4)
-        self.at("uneat")
-        self.play(FadeIn(stack[3]), FadeIn(labels[3]), run_time=0.5)
-        self.at("Together they come to")
-        tot = num("5,540", ORANGE, 30).move_to([tcx, 2.6, 0])
-        self.play(FadeIn(tot, shift=DOWN * 0.1), run_time=0.5)
-        self.at("The decomposers respire")
-        hr, ho = 3240 * k, 2300 * k
-        red = Rectangle(width=tw, height=hr, stroke_color=BG, stroke_width=2, fill_color=RED, fill_opacity=0.5).move_to([tcx, ybot + hr / 2, 0])
-        org = Rectangle(width=tw, height=ho, stroke_color=BG, stroke_width=2, fill_color=ORANGE, fill_opacity=0.5).move_to([tcx, ybot + hr + ho / 2, 0])
-        red_l = VGroup(T("decomposers respire", 22, TEAL), num("3,240", RED, 26), T("as heat", 22, RED)).arrange(DOWN, buff=0.06)
-        red_l.move_to([0, ybot + hr / 2, 0]).align_to([LX, 0, 0], RIGHT)
-        self.play(FadeOut(VGroup(*labels)), ReplacementTransform(VGroup(*stack), VGroup(red, org)), run_time=0.9)
-        self.play(FadeIn(red_l), run_time=0.4)
-        self.at("That leaves")
-        org_l = lab("left as detritus", "2,300", ORANGE)
-        org_l.move_to([0, ybot + hr + ho / 2, 0]).align_to([LX, 0, 0], RIGHT)
-        self.play(FadeIn(org_l), run_time=0.5)
-        self.at("more than every animal")
-        kk = 0.0011
-        xr = 2.0
-        d_bar = Rectangle(width=3240 * kk, height=0.7, stroke_color=RED, stroke_width=3, fill_color=RED, fill_opacity=0.5).move_to([xr + 3240 * kk / 2, 0.8, 0])
-        a_bar = Rectangle(width=420 * kk, height=0.7, stroke_color=RED, stroke_width=3, fill_color=RED, fill_opacity=0.5).move_to([xr + 420 * kk / 2, -0.8, 0])
-        d_l = VGroup(T("decomposers", 24, TEAL), num("3,240", RED, 26)).arrange(RIGHT, buff=0.2).next_to(d_bar, UP, buff=0.12, aligned_edge=LEFT)
-        a_l = VGroup(T("herbivores + predators", 24, BLUE), num("360 + 60 = 420", RED, 26)).arrange(DOWN, buff=0.04, aligned_edge=LEFT).next_to(a_bar, UP, buff=0.12, aligned_edge=LEFT)
-        self.play(GrowFromEdge(d_bar, LEFT), FadeIn(d_l), run_time=0.8)
-        self.play(GrowFromEdge(a_bar, LEFT), FadeIn(a_l), run_time=0.8)
-        self.at("most net primary production")
-        most = VGroup(T("most NPP never passed", 26, ORANGE), T("through an animal", 26, ORANGE)).arrange(DOWN, buff=0.08)
-        most.move_to([4.2, -2.3, 0])
-        self.play(FadeIn(most, shift=UP * 0.1), run_time=0.6)
+        w = World(pred=False, pf=0.5)
+        w.add_to(self)
+        brown, grey, pipe = doors_set()
+        self.add(brown, grey, pipe)
+        sc = 6.4 / 6000
+        x = 2.5
+        y0 = -3.3
+        pieces = [(4200, BROWN, "4,200 uneaten"), (1080, BROWN, "1,080 feces"), (360, HEAT, "360 heat"), (360, PURPLE, "360 passed up")]
+        label_y = [-1.0, 1.75, 2.4, 3.1]
+        outline = Rectangle(width=1.2, height=6.4, stroke_color=GREY, stroke_width=2).move_to([x, y0 + 3.2, 0])
+        self.add(outline)
+        self.at("three doors together")
+        yb = y0
+        bars = []
+        for i, (v, c, nm) in enumerate(pieces):
+            h = v * sc
+            r = Rectangle(width=1.2, height=h, stroke_color=c, stroke_width=3, fill_color=c, fill_opacity=0.55).move_to([x, yb + h / 2, 0])
+            lab = T(nm, 28, c).move_to([3.5, label_y[i], 0], aligned_edge=LEFT)
+            cl = Line([x + 0.62, yb + h / 2, 0], [3.45, label_y[i], 0], color=c, stroke_width=2)
+            self.play(FadeIn(r, shift=UP * 0.15), FadeIn(lab), FadeIn(cl), run_time=self.beat(0.09))
+            yb += h
+            bars.append(r)
+        self.at("In this budget")
+        br = Brace(Rectangle(width=1.2, height=6.4).move_to([x, y0 + 3.2, 0]), LEFT, color=TEXT)
+        tl = M("= 6,000 NPP", 24, TEXT).move_to([0.0, y0 + 3.2, 0])
+        self.play(FadeIn(br), FadeIn(tl), run_time=self.beat(0.08))
+        ck = VMobject(color=GREEN, stroke_width=10).set_points_as_corners([[0, 0, 0], [0.3, -0.35, 0], [0.9, 0.5, 0]]).move_to([5.4, 0.3, 0])
+        self.play(Create(ck), run_time=self.beat(0.08))
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S06Ledger(SpokenScene):
+class S15Multiply(SpokenScene):
     def construct(self):
-        unit = unit_note()
-        W = 11.0
-        k = W / 12000.0
-        x0 = -5.5
-        yb = 0.5
-        bh = 1.2
-        self.at("Now add it up")
-        full = Rectangle(width=W, height=bh, stroke_color=YELLOW, stroke_width=3, fill_opacity=0).move_to([0, yb, 0])
-        full_l = VGroup(T("fixed", 26, YELLOW), num("12,000", YELLOW, 30)).arrange(RIGHT, buff=0.2).next_to(full, UP, buff=0.65).shift(LEFT * 2.0)
-        br_full = Brace(full, UP, color=YELLOW, buff=0.1)
-        self.play(Create(full), FadeIn(unit), run_time=0.7)
-        self.play(GrowFromCenter(br_full), FadeIn(full_l), run_time=0.6)
-        self.at("Respiration totals")
-        parts = [6000, 360, 60, 3240]
-        x = x0
-        red = []
-        for p in parts:
-            s = seg(x, p * k, yb, bh, RED, 0.5)
-            s.set_stroke(BG, 2)
-            red.append(s); x += p * k
-        self.play(LaggedStart(*[FadeIn(s) for s in red], lag_ratio=0.3), run_time=1.4)
-        brr = Brace(VGroup(*red), DOWN, color=RED, buff=0.1)
-        rr = VGroup(T("respired", 26, RED), num("9,660", RED, 30)).arrange(RIGHT, buff=0.2).next_to(brr, DOWN, buff=0.1)
-        sm = num("6,000 + 360 + 60 + 3,240", RED, 24).next_to(rr, DOWN, buff=0.12)
-        self.play(GrowFromCenter(brr), FadeIn(rr), FadeIn(sm), run_time=0.7)
-        self.at("net ecosystem production")
-        o = seg(x, 2300 * k, yb, bh, ORANGE, 0.5); o.set_stroke(BG, 2)
-        x2 = x + 2300 * k
-        g = seg(x2, 40 * k, yb, bh, GREEN, 0.9); g.set_stroke(GREEN, 3)
-        self.play(FadeIn(o), FadeIn(g), run_time=0.7)
-        brn = Brace(VGroup(o, g), DOWN, color=GREEN, buff=0.1)
-        nep = VGroup(T("net ecosystem", 24, GREEN), T("production", 24, GREEN), num("2,340", GREEN, 30)).arrange(DOWN, buff=0.04)
-        nep.next_to(brn, DOWN, buff=0.1).shift(LEFT * 0.0)
-        nep.set_x(4.55)
-        self.play(GrowFromCenter(brn), FadeIn(nep), run_time=0.7)
-        self.at("That is the detritus")
-        o_l = lab("detritus", "2,300", ORANGE, 22).move_to([3.3, yb + 1.45, 0])
-        g_l = lab("predators", "+ 40", GREEN, 22).move_to([5.0, yb + 1.45, 0])
-        self.play(FadeIn(o_l), FadeIn(g_l), run_time=0.6)
-        self.at("The ledger closes")
-        closes = T("the ledger closes", 30, TEXT).move_to([0, -2.6, 0])
-        self.play(FadeIn(closes), Indicate(full, color=YELLOW, scale_factor=1.03), run_time=0.9)
-        # ten percent sketch
-        self.at("Suppose each step")
-        everything = VGroup(full, full_l, br_full, *red, brr, rr, sm, o, g, brn, nep, o_l, g_l, closes)
-        self.play(FadeOut(everything), run_time=0.6)
-        head = T("if each step passed on 10%", 30, PURPLE).move_to([0, 2.7, 0])
-        note = T("arithmetic, not data", 22, GREY).next_to(head, DOWN, buff=0.12)
-        self.play(FadeIn(head), FadeIn(note), run_time=0.5)
-        rows = []
-        vals = [("level 1: NPP", 100.0, "100%"), ("level 2", 10.0, "10%"), ("level 3", 1.0, "1%"), ("level 4", 0.1, "0.1%")]
-        x0b = -2.4
-        sc = 6.5 / 100.0
-        grp = VGroup()
-        for i, (nm, v, txt) in enumerate(vals):
-            y = 1.1 - i * 0.95
-            lb = T(nm, 24, TEXT).move_to([-4.6, y, 0]); lb.align_to([-6.3, 0, 0], LEFT)
-            bar = Rectangle(width=max(v * sc, 0.03), height=0.6, stroke_color=PURPLE, stroke_width=2, fill_color=PURPLE, fill_opacity=0.55)
-            bar.move_to([x0b + max(v * sc, 0.03) / 2, y, 0])
-            vl = num(txt, PURPLE, 26).next_to(bar, RIGHT, buff=0.2)
-            grp.add(VGroup(lb, bar, vl))
-        self.at("gets")
-        for r in grp:
-            self.play(FadeIn(r, shift=RIGHT * 0.15), run_time=0.5)
-        self.at("rough benchmark")
-        rule = T("a rough benchmark, not a law", 32, GOLD).move_to([0, -2.7, 0])
-        self.play(FadeIn(rule, shift=UP * 0.1), run_time=0.7)
-        self.at("Keep rates")
-        self.play(Indicate(rule, color=GOLD, scale_factor=1.06), run_time=0.8)
+        w = World(soil=True, pf=0.5)
+        w.add_to(self)
+        brown, grey, pipe = doors_set()
+        self.add(brown, grey, pipe, soil_stuff())
+        self.at("same three doors")
+        up2 = Rectangle(width=0.2, height=1.2, stroke_color=PURPLE, stroke_width=3, fill_color=PURPLE, fill_opacity=0.6).move_to([-4.1, 1.7, 0])
+        ing = stream([-4.1, 1.15, 0], [-4.1, 2.3, 0], PURPLE, n=3, speed=0.3, r=0.07)
+        il = VGroup(T("ingested by predators", 28, PURPLE), M("200", 36, PURPLE)).arrange(DOWN, buff=0.04, aligned_edge=LEFT).move_to([-3.3, 1.7, 0], aligned_edge=LEFT)
+        self.play(FadeIn(up2), FadeIn(ing), FadeIn(il), run_time=self.beat(0.1))
+        b2 = door([-1.55, 2.55, 0], BROWN, 0.3, 0.55)
+        g2 = door([-1.55, 3.25, 0], HEAT, 0.3, 0.4)
+        fe = stream([-1.7, 0.6, 0], [1.2, -2.3, 0], BROWN, n=4, speed=0.3, r=0.11)
+        fl = VGroup(M("uneaten → detritus:", 28, BROWN), M("160", 36, BROWN)).arrange(DOWN, buff=0.04).move_to([3.4, -0.5, 0])
+        self.play(FadeIn(fe), FadeIn(fl), FadeIn(b2), FadeIn(g2), run_time=self.beat(0.1))
+        self.at("So the fractions multiply")
+        boxes = VGroup()
+        pos = [(1.7, 3.0, 1.9, 0.9), (4.0, 3.0, 1.4, 0.7), (5.7, 3.0, 0.9, 0.5)]
+        arrs = VGroup()
+        for i, (x, y, bw, bh) in enumerate(pos):
+            bx = DashedVMobject(RoundedRectangle(corner_radius=0.1, width=bw, height=bh, stroke_color=PALE, stroke_width=2.5).move_to([x, y, 0]), num_dashes=24)
+            boxes.add(bx)
+        a0 = Arrow([-1.2, 2.9, 0], [0.7, 2.95, 0], buff=0, color=PURPLE, stroke_width=7, tip_length=0.2)
+        a1 = Arrow([2.7, 3.0, 0], [3.3, 3.0, 0], buff=0, color=PURPLE, stroke_width=4, tip_length=0.15)
+        a2 = Arrow([4.8, 3.0, 0], [5.2, 3.0, 0], buff=0, color=PURPLE, stroke_width=2.5, tip_length=0.1)
+        self.play(FadeIn(boxes), FadeIn(a0), FadeIn(a1), FadeIn(a2), run_time=self.beat(0.15))
+        self.at("production shrinks fast")
+        sl = VGroup(T("schematic: each level a", 26, GREY), T("fraction of the one below", 26, GREY)).arrange(DOWN, buff=0.05).move_to([4.0, 0.9, 0])
+        sl.set_color(HEAT)
+        self.play(FadeIn(sl), run_time=self.beat(0.08))
         self.finish()
 
 
-class S07End(EndCard):
-    LINE = "Keep rates in matching units, and keep the detritus."
+class S16Scope(SpokenScene):
+    def construct(self):
+        w = World(soil=True, pf=0.5)
+        w.add_to(self)
+        brown, grey, pipe = doors_set()
+        self.add(brown, grey, pipe)
+        sty = soil_stuff()
+        self.add(sty)
+        t1 = T("one period (usually a year)", 24, TEXT).move_to([0.6, 3.3, 0], aligned_edge=LEFT)
+        t2 = T("one currency per area", 24, TEXT).move_to([0.6, 2.5, 0], aligned_edge=LEFT)
+        t3 = VGroup(T("consumers eat no more than", 24, TEXT), T("the production below them", 24, TEXT)).arrange(DOWN, buff=0.08, aligned_edge=LEFT).move_to([0.6, 1.5, 0], aligned_edge=LEFT)
+        self.at("one period")
+        self.play(FadeIn(t1, shift=LEFT * 0.2), run_time=self.beat(0.05))
+        self.at("one currency")
+        self.play(FadeIn(t2, shift=LEFT * 0.2), run_time=self.beat(0.05))
+        self.at("consumers eat no more")
+        self.play(FadeIn(t3, shift=LEFT * 0.2), run_time=self.beat(0.06))
+        self.at("Energy never returns")
+        arr = DashedVMobject(Arrow([0.3, -2.5, 0], [-1.7, -2.5, 0], buff=0, color=RED, stroke_width=6, tip_length=0.25), num_dashes=10)
+        xx = VGroup(Line([-0.85, -2.3, 0], [-0.45, -2.7, 0]), Line([-0.85, -2.7, 0], [-0.45, -2.3, 0])).set_stroke(RED, 7)
+        nl = VGroup(T("energy:", 22, RED), T("no return", 22, RED)).arrange(DOWN, buff=0.03).move_to([-0.5, -1.55, 0])
+        self.play(FadeIn(arr), FadeIn(xx), FadeIn(nl), run_time=self.beat(0.08))
+        self.at("stored for a while")
+        tk = T("stored for a while", 26, BROWN).move_to([3.4, -1.9, 0])
+        self.play(FadeIn(tk), run_time=self.beat(0.05))
+        self.at("or leaves as heat")
+        h1 = stream([-1.6, -2.2, 0], [-1.0, 3.7, 0], HEAT, n=4, speed=0.18, r=0.09, wave=0.15)
+        h2 = stream([-1.6, 0.4, 0], [-0.55, 3.7, 0], HEAT, n=4, speed=0.18, r=0.09, wave=0.15)
+        self.play(FadeIn(h1), FadeIn(h2), run_time=self.beat(0.06))
+        self.finish()
+
+
+class S17End(EndCard):
+    LINE = "Three doors at every step; the shares passed up multiply."

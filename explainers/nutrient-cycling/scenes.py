@@ -1,316 +1,656 @@
-"""Nutrient cycling: nitrogen leaves when trees go  (Biochemistrypedia explainer)
+"""Nutrient cycling: The Loop Inside the Line (Biochemistrypedia explainer)
 
-COLOR MAP (one color per concept, whole video)
-  BLUE   = pools and plants (soil organic N, plants, trees)
-  GREEN  = inputs (deposition, fixation); also a net gain
-  RED    = outputs (stream, gas loss, nitrate washing out); also a net loss
-  YELLOW = the internal loop (mineralisation, 90)
-  ORANGE = the cut and herbicide
-  GOLD   = the budget rule
-  GREY   = boundary, labels, the uncut reference
+COLOUR MAP (same in the lesson and both films)
+  GOLD dashed line = the boundary     BLUE arrows = inputs crossing in
+  RED arrows = outputs crossing out   GREY ring of arrows = the internal loop
+  TEAL blocks = nitrogen              GREEN = trees
 """
+import os
 import numpy as np
 from bp_style import *  # noqa: F401,F403
 
-ORANGE = "#F29E4C"
 MINUS = "−"
-BX, BY, BW, BH = 0.0, -0.1, 8.0, 4.6      # the boundary
-SOIL_P = np.array([-2.3, -0.3, 0.0])
-PLANT_P = np.array([2.7, -0.3, 0.0])
-IN_Y = [1.3, -0.6]
-OUT_Y = [1.3, -0.6]
-UNITS = "invented numbers · kg N per hectare per year"
+SOIL_P = np.array([-2.6, -0.5, 0.0])
+AMM_P = np.array([2.6, -0.5, 0.0])
+TRE_P = np.array([2.6, 1.6, 0.0])
+LEA_P = np.array([-2.6, 1.6, 0.0])
+CTR = np.array([5.5, 3.05, 0.0])
+NOTE = "illustrative numbers · kg N per hectare per year"
 
 
-def arr(a, b, color=GREY, w=5, tip=0.22):
-    return Arrow(a, b, buff=0.0, color=color, stroke_width=w, tip_length=tip,
-                 max_tip_length_to_length_ratio=0.5, max_stroke_width_to_length_ratio=14)
+class Sc(SpokenScene):
+    """SpokenScene plus a faint field of drifting teal motes, so a held frame is never dead."""
+    def setup(self):
+        super().setup()
+        import random
+        rng = random.Random(os.environ.get("KX_SCENE_ID", "x"))
+        ms = VGroup()
+        for _ in range(30):
+            d = Dot(radius=rng.uniform(0.07, 0.14), color=TEAL).set_opacity(rng.uniform(0.25, 0.5))
+            d.move_to([rng.uniform(-6.6, 6.6), rng.uniform(-3.6, 3.6), 0])
+            d.v = (rng.uniform(-0.4, 0.4), rng.uniform(0.2, 0.6))
+
+            def drift(m, dt):
+                m.shift([m.v[0] * dt, m.v[1] * dt, 0])
+                if m.get_y() > 3.8:
+                    m.shift(DOWN * 7.6)
+                if abs(m.get_x()) > 6.7:
+                    m.shift(LEFT * 13.4 * (1 if m.get_x() > 0 else -1))
+            d.add_updater(drift)
+            ms.add(d)
+        ms.set_z_index(-10)
+        self.add(ms)
 
 
-def boundary(dashed=True):
-    r = RoundedRectangle(corner_radius=0.3, width=BW, height=BH, stroke_color=GREY, stroke_width=4).move_to([BX, BY, 0])
-    return DashedVMobject(r, num_dashes=60, dashed_ratio=0.55) if dashed else r
+def pulse(m, k=1.12, t=0.8):
+    return m.animate.scale(k).set_run_time(t).set_rate_func(there_and_back)
 
 
-def tag(text, pos, color=GREY, size=24):
-    return T(text, size, color).move_to(pos)
+def arr(a, b, color=GREY, w=6, tip=0.25):
+    return Arrow(np.array(a, dtype=float), np.array(b, dtype=float), buff=0.0, color=color, stroke_width=w,
+                 tip_length=tip, max_tip_length_to_length_ratio=0.5, max_stroke_width_to_length_ratio=40)
 
 
-def pool_chips():
-    soil = chip("Soil organic N", BLUE, 26).move_to(SOIL_P)
-    plant = chip("Plants", BLUE, 26).move_to(PLANT_P)
-    return soil, plant
+def node(text, color=TEAL, size=30):
+    lab = T(text, size, color)
+    box = RoundedRectangle(corner_radius=0.14, width=lab.width + 0.44, height=lab.height + 0.44, stroke_color=color,
+                           stroke_width=3, fill_color=BG, fill_opacity=1)
+    g = VGroup(box, lab.move_to(box))
+    g.set_z_index(3)
+    return g
 
 
-def flux_arrows():
-    """deposition, fixation in; stream, gas loss out. Returns dict of (arrow, label)."""
-    d = {}
-    d["dep"] = (arr([-6.3, IN_Y[0], 0], [-4.0, IN_Y[0], 0], GREEN), tag("deposition 8", [-5.15, IN_Y[0] + 0.42, 0], GREEN))
-    d["fix"] = (arr([-6.3, IN_Y[1], 0], [-4.0, IN_Y[1], 0], GREEN), tag("fixation 6", [-5.15, IN_Y[1] + 0.42, 0], GREEN))
-    d["str"] = (arr([4.0, OUT_Y[0], 0], [6.3, OUT_Y[0], 0], RED), tag("stream 3", [5.15, OUT_Y[0] + 0.42, 0], RED))
-    d["gas"] = (arr([4.0, OUT_Y[1], 0], [6.3, OUT_Y[1], 0], RED), tag("gas loss 2", [5.15, OUT_Y[1] + 0.42, 0], RED))
+def blk(color=TEAL, s=0.3):
+    b = Square(s, stroke_width=0, fill_color=color, fill_opacity=1)
+    b.set_z_index(1)
+    return b
+
+
+def flow(pts, n=3, period=4.0, color=TEAL):
+    """Teal blocks that keep sliding along a polyline: motion that never needs a cue."""
+    path = VMobject().set_points_as_corners([np.array(p, dtype=float) for p in pts])
+    g = VGroup()
+    for i in range(n):
+        b = blk(color)
+        b.ph = i / n
+        b.move_to(path.point_from_proportion(b.ph))
+
+        def upd(m, dt, path=path, period=period):
+            m.ph = (m.ph + dt / period) % 1.0
+            m.move_to(path.point_from_proportion(m.ph))
+        b.add_updater(upd)
+        g.add(b)
+    return g
+
+
+def boundary():
+    r = RoundedRectangle(corner_radius=0.3, width=9.4, height=6.0, stroke_color=GOLD, stroke_width=5).move_to([0, -0.3, 0])
+    d = DashedVMobject(r, num_dashes=70, dashed_ratio=0.55)
+    d.clk = 0.0
+
+    def pulse_w(m, dt):
+        m.clk += dt
+        if not getattr(m, "hold", False):
+            m.set_stroke(width=5 + 1.5 * np.sin(m.clk * 2.2))
+    d.add_updater(pulse_w)
     return d
 
 
-def loop_arrows():
-    up = arr(SOIL_P + np.array([1.6, 0.18, 0]), PLANT_P + np.array([-1.15, 0.18, 0]), YELLOW, 8)
-    dn = arr(PLANT_P + np.array([-1.15, -0.18, 0]), SOIL_P + np.array([1.6, -0.18, 0]), YELLOW, 8)
-    lab = M("90", 28, YELLOW).move_to([0.5, 0.55, 0])
-    return up, dn, lab
+def ground():
+    return Rectangle(width=9.4, height=0.4, stroke_width=0, fill_color=GREY, fill_opacity=0.25).move_to([0, -3.1, 0])
 
 
-def tri(h=0.9, w=0.72, color=BLUE):
-    return Polygon([-w / 2, -h / 2, 0], [w / 2, -h / 2, 0], [0, h / 2, 0], stroke_color=color, stroke_width=3,
-                   fill_color=color, fill_opacity=0.4)
+class Counter:
+    def __init__(self, v0=0):
+        self.tr = ValueTracker(v0)
+        self.box = RoundedRectangle(corner_radius=0.15, width=2.5, height=1.25, stroke_color=GOLD, stroke_width=3,
+                                    fill_color=BG, fill_opacity=1).move_to(CTR)
+        self.unit = T("kg N / hectare", 22, GREY).move_to(CTR + DOWN * 0.38)
+        tr = self.tr
+
+        def fmt(v):
+            r = int(round(v))
+            return "0" if r == 0 else f"{r:+d}"
+        self.val = always_redraw(lambda: M(fmt(tr.get_value()), 38, GOLD).move_to(CTR + UP * 0.17))
+        self.static = VGroup(self.box, self.unit)
+
+    def set(self, v, t=0.8):
+        return self.tr.animate.set_value(v).set_run_time(t)
 
 
-def stump(color=GREY):
-    return Rectangle(width=0.4, height=0.22, stroke_color=color, stroke_width=3, fill_color=color, fill_opacity=0.5)
+# --- shared pieces ----------------------------------------------------------------------------
+def in_arrows():
+    a1 = arr([-3.6, 3.7, 0], [-3.6, 2.1, 0], BLUE, 7)
+    a2 = arr([-0.4, 3.7, 0], [-0.4, 2.1, 0], BLUE, 7)
+    l1 = T("8 deposition", 28, BLUE).move_to([-2.05, 3.3, 0])
+    l2 = T("6 fixation", 28, BLUE).move_to([0.8, 3.3, 0])
+    return a1, a2, l1, l2
 
 
+def in_flows():
+    return VGroup(flow([[-3.6, 3.6, 0], [-3.6, 2.2, 0]], 3, 3.0), flow([[-0.4, 3.6, 0], [-0.4, 2.2, 0]], 3, 3.0))
+
+
+def out_arrows():
+    s = arr([3.4, 0.55, 0], [6.4, 0.55, 0], RED, 7)
+    g = arr([3.9, 1.9, 0], [3.9, 3.5, 0], RED, 7)
+    ls = T("3 stream", 28, RED).move_to([5.8, 1.1, 0])
+    lg = T("2 gas", 28, RED).move_to([2.95, 3.2, 0])
+    return s, g, ls, lg
+
+
+def out_flows():
+    return VGroup(flow([[3.5, 0.55, 0], [6.3, 0.55, 0]], 3, 3.0, TEAL), flow([[3.9, 2.0, 0], [3.9, 3.4, 0]], 2, 3.0))
+
+
+def ring_arrows(w=6, tip=0.25):
+    return VGroup(arr([-1.1, -0.5, 0], [1.3, -0.5, 0], GREY, w, tip),    # soil -> ammonium
+                  arr([2.6, 0.0, 0], [2.6, 1.1, 0], GREY, w, tip),        # ammonium -> trees
+                  arr([1.85, 1.6, 0], [-1.1, 1.6, 0], GREY, w, tip),      # trees -> leaves
+                  arr([-2.6, 1.1, 0], [-2.6, 0.0, 0], GREY, w, tip))      # leaves -> soil
+
+
+RING_SEG = [([-1.0, -0.5, 0], [1.2, -0.5, 0]), ([2.6, 0.05, 0], [2.6, 1.05, 0]),
+            ([1.8, 1.6, 0], [-1.0, 1.6, 0]), ([-2.6, 1.05, 0], [-2.6, 0.05, 0])]
+
+
+def seg_flow(i, n=2, period=2.6):
+    a, b = RING_SEG[i]
+    return flow([a, b], n, period)
+
+
+def tree(x, base, h=0.9, w=0.7, color=GREEN, trunk=0.3):
+    t = Rectangle(width=0.14, height=trunk, stroke_width=0, fill_color=GREY, fill_opacity=0.9).move_to([x, base + trunk / 2, 0])
+    c = Polygon([x - w / 2, base + trunk, 0], [x + w / 2, base + trunk, 0], [x, base + trunk + h, 0], stroke_width=0,
+                fill_color=color, fill_opacity=0.85)
+    return VGroup(t, c)
+
+
+def log(x, y=-2.78, w=0.9):
+    return Rectangle(width=w, height=0.24, stroke_width=0, fill_color=GREY, fill_opacity=0.9).move_to([x, y, 0])
+
+
+STAND_X = [-4.0 + 1.33 * i for i in range(7)]
+PILE = [(0.3 * (i % 4 - 1.5), 0.0 + 0.3 * (i // 4)) for i in range(8)]
+PILE_JIT = [(-0.35, 0.1), (0.2, -0.05), (-0.1, 0.3), (0.45, 0.0), (-0.5, -0.1), (0.1, 0.35), (0.55, 0.2), (-0.3, 0.25)]
+
+
+# --- cartoon valley of scenes 1 and 2 -----------------------------------------------------------
+def cartoon():
+    gr = Rectangle(width=13.2, height=0.4, stroke_width=0, fill_color=GREY, fill_opacity=0.25).move_to([0, -2.7, 0])
+    trees = VGroup(*[tree(x, -2.5, h=3.0, w=1.8, trunk=0.5) for x in (-5.4, -3.4, -1.4)])
+    stumps = VGroup(*[Rectangle(width=1.0, height=0.5, stroke_width=0, fill_color=GREY, fill_opacity=0.9).move_to([x, -2.25, 0]) for x in (1.0, 3.2, 5.4)])
+    logs = VGroup(*[Rectangle(width=1.2, height=0.3, stroke_width=0, fill_color="#B08A5A", fill_opacity=0.95).move_to([x, -2.35, 0]) for x in (2.1, 4.3)])
+    xs = np.linspace(0.2, 6.6, 40)
+    spts = [[x, -3.4 + 0.12 * np.sin(2.5 * x), 0] for x in xs]
+    stream = VMobject(stroke_color=RED, stroke_width=12).set_points_as_corners([np.array(p) for p in spts])
+    return gr, trees, stumps, logs, stream, spts
+
+
+# =================================================================================================
 class S00Title(TitleCard):
-    LESSON = "Nutrient cycling"
-    TITLE = "Nitrogen leaves when trees go"
+    LESSON = "Nutrient Cycling"
+    TITLE = "The Loop Inside the Line"
 
 
-# ---------------------------------------------------------------------------------------------
-class S01Cut(SpokenScene):
+class S01Question(Sc):
     def construct(self):
-        top = T("Hubbard Brook, New Hampshire", 26, GREY).move_to([0, 3.35, 0])
-        cx = [-3.4, 3.4]
-        boxes = [RoundedRectangle(corner_radius=0.3, width=4.8, height=3.3, stroke_color=GREY, stroke_width=4).move_to([x, 0.45, 0]) for x in cx]
-        offs = [(dx, dy) for dy in (0.6, -0.55) for dx in (-1.2, 0, 1.2)]
-        trees = [VGroup(*[tri().move_to([x + dx, 0.45 + dy, 0]) for dx, dy in offs]) for x in cx]
-        h_l = T("uncut watershed", 26, GREY).move_to([cx[0], 2.65, 0])
-        h_r = T("cut, regrowth suppressed", 26, ORANGE).move_to([cx[1], 2.65, 0])
-        s_l = arr([cx[0], -1.2, 0], [cx[0], -2.45, 0], RED, 4)
-        s_r0 = arr([cx[1], -1.2, 0], [cx[1], -2.45, 0], RED, 4)
-        n_l = T("nitrate in stream", 24, RED).move_to([cx[0], -2.95, 0])
-        n_r = T("nitrate in stream", 24, RED).move_to([cx[1], -2.95, 0])
-        self.play(FadeIn(top), *[Create(b) for b in boxes], FadeIn(trees[0]), FadeIn(trees[1]), FadeIn(h_l), run_time=0.8)
-        self.play(GrowArrow(s_l), GrowArrow(s_r0), FadeIn(n_l), FadeIn(n_r), run_time=0.5)
-        self.at("cut the forest")
-        stumps = VGroup(*[stump().move_to([cx[1] + dx, 0.45 + dy - 0.3, 0]) for dx, dy in offs])
-        self.play(ReplacementTransform(trees[1], stumps), run_time=1.0)
-        self.at("used herbicide")
-        self.play(FadeIn(h_r, shift=UP * 0.1), run_time=0.6)
-        self.at("far more nitrate")
-        s_r = arr([cx[1], -1.2, 0], [cx[1], -2.45, 0], RED, 20, tip=0.5)
-        self.play(ReplacementTransform(s_r0, s_r), run_time=0.8)
-        self.at("had been there all along")
-        dots = VGroup(*[Dot(radius=0.09, color=BLUE).move_to([cx[1] + dx, 0.45 + dy - 0.3, 0]) for dx, dy in offs])
-        dots2 = VGroup(*[Dot(radius=0.09, color=BLUE).move_to([cx[0] + dx, 0.45 + dy - 0.3, 0]) for dx, dy in offs])
-        ntag = T("nitrogen", 24, BLUE).move_to([0, -0.7, 0])
-        self.play(FadeIn(dots), FadeIn(dots2), FadeIn(ntag), run_time=0.6)
-        self.at("where it went")
-        self.play(*[d.animate.move_to([cx[1] + (i - 2.5) * 0.12, -1.9 - 0.0 * i, 0]).set_color(RED) for i, d in enumerate(dots)],
-                  run_time=1.4)
-        q = T("?", 100, YELLOW, weight=BOLD).move_to([0, 0.45, 0])
-        self.at("How would you know")
-        self.play(FadeIn(q, scale=0.6), FadeOut(ntag), run_time=0.5)
+        gr, trees, stumps, logs, stream, spts = cartoon()
+        self.play(FadeIn(gr), LaggedStart(*[GrowFromPoint(t, t.get_bottom()) for t in trees], lag_ratio=0.2),
+                  FadeIn(stumps), FadeIn(logs), Create(stream), run_time=1.6)
+        fl = flow(spts, 3, 6.0)
+        self.add(fl)
+        lf = T("forest", 28).move_to([-3.4, 1.7, 0])
+        self.add(lf)
+        self.at("come from")
+        q = T("?", 140, YELLOW, weight=BOLD).move_to([3.4, 1.2, 0])
+        self.play(FadeIn(q, scale=0.6), run_time=0.6)
+        self.at("cut a forest")
+        lc = T("cut, regrowth suppressed", 28).move_to([3.4, -0.4, 0])
+        self.play(FadeIn(lc, shift=UP * 0.1), Indicate(stumps, color=YELLOW), run_time=1.2)
+        self.at("far more nitrogen")
+        more = flow(spts, 8, 4.0)
+        nl = T("nitrogen", 28, TEAL).move_to([5.3, -1.6, 0])
+        self.play(stream.animate.set_stroke(width=22), FadeIn(more), FadeIn(nl), run_time=1.2)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S02Accounts(SpokenScene):
+class S02Boundary(Sc):
     def construct(self):
-        soil, plant = pool_chips()
-        bnd = boundary()
-        self.at("Keep accounts")
-        self.play(FadeIn(soil, shift=UP * 0.1), FadeIn(plant, shift=UP * 0.1), run_time=0.8)
-        self.at("A pool is")
-        pl = tag("pools: amounts held", [0.0, -1.55, 0], BLUE)
-        self.play(Indicate(soil, color=BLUE), Indicate(plant, color=BLUE), FadeIn(pl), run_time=1.2)
-        self.at("A flux is")
-        a_in = arr([-6.3, 0.9, 0], [-4.0 + 0.3, 0.9, 0], GREEN)
-        a_out = arr([3.7, -0.6, 0], [6.3, -0.6, 0], RED)
-        self.play(FadeOut(pl), run_time=0.3)
-        fl = tag("fluxes: transfers", [0.0, -1.55, 0], GREEN)
-        self.play(GrowArrow(a_in), FadeIn(fl), run_time=0.7)
-        self.at("deposit")
-        l_in = tag("deposit", [-5.15, 1.32, 0], GREEN)
-        self.play(FadeIn(l_in), run_time=0.4)
+        gr, trees, stumps, logs, stream, spts = cartoon()
+        fl = flow(spts, 8, 4.0)
+        self.add(gr, trees, stumps, logs, stream, fl)
+        self.at("logs stayed")
+        self.play(logs.animate.shift(UP * 0.35).set_run_time(0.7).set_rate_func(there_and_back), run_time=1.4)
+        self.at("find the source")
+        wg, wb = ground(), boundary()
+        self.play(FadeOut(VGroup(gr, trees, stumps, logs, stream, fl)), FadeIn(wg), run_time=1.2)
+        self.at("keep accounts")
+        c = Counter(0)
+        self.play(FadeIn(c.static), run_time=0.8)
+        self.add(c.val)
+        self.at("a bank")
+        self.play(pulse(c.box, 1.15), run_time=1.0)
+        self.at("draw a line")
+        self.play(Create(wb), run_time=2.0)
+        lb = T("boundary", 28, GOLD).move_to([0, 0.55, 0])
+        self.play(FadeIn(lb), run_time=0.5)
+        self.finish()
+
+
+class S03PoolFlux(Sc):
+    def construct(self):
+        wg, wb = ground(), boundary()
+        c = Counter(0)
+        self.add(wg, wb, c.static, c.val)
+        soil = node("soil organic N", TEAL).move_to(SOIL_P)
+        amm = node("ammonium, nitrate", TEAL, 26).move_to(AMM_P)
+        tre = node("trees", GREEN).move_to(TRE_P)
+        self.play(Indicate(wb, color=GOLD, scale_factor=1.0), run_time=1.2)
+        self.at("pools")
+        self.play(FadeIn(soil, shift=UP * 0.15), FadeIn(amm, shift=UP * 0.15), run_time=1.0)
+        self.play(pulse(soil), pulse(amm), run_time=1.0)
+        self.at("the trees")
+        self.play(FadeIn(tre, shift=UP * 0.15), pulse(tre), run_time=1.0)
+        self.at("pool is like a bank")
+        cap1 = T("pool = amount (kg per hectare)", 28, TEAL).move_to([0, -1.7, 0])
+        self.play(FadeIn(cap1), pulse(soil), pulse(amm), Indicate(tre, color=GREEN), run_time=1.5)
+        self.at("a flux")
+        cap2 = T("flux = kg per hectare per year", 28, YELLOW).move_to([0, -1.7, 0])
+        a = arr([2.6, 0.0, 0], [2.6, 1.1, 0], YELLOW, 8)
+        self.play(ReplacementTransform(cap1, cap2), GrowArrow(a), run_time=1.0)
+        fl = flow([[2.6, 0.05, 0], [2.6, 1.05, 0]], 2, 2.0)
+        self.add(fl)
+        self.play(Indicate(a, color=YELLOW, scale_factor=1.0), run_time=1.0)
         self.at("withdrawal")
-        l_out = tag("withdrawal", [5.0, -0.18, 0], RED)
-        self.play(GrowArrow(a_out), FadeIn(l_out), run_time=0.7)
-        self.at("Draw a boundary")
-        self.play(FadeOut(fl), Create(bnd), run_time=1.4)
-        bt = tag("boundary", [-2.8, 1.65, 0])
-        self.play(FadeIn(bt), run_time=0.4)
-        self.at("such as a year")
-        yr = tag("interval: one year", [2.5, 1.65, 0], GREY)
-        self.play(FadeIn(yr), run_time=0.6)
-        self.at("one rule holds")
-        rule = T(f"change in stock = inputs {MINUS} outputs", 36, GOLD).move_to([0, -3.1, 0])
-        self.play(Write(rule), run_time=1.6)
-        self.at("Change in stock")
-        self.play(Indicate(rule, color=GOLD, scale_factor=1.06), run_time=1.0)
+        self.play(Indicate(a, color=YELLOW, scale_factor=1.0), run_time=1.0)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S03Numbers(SpokenScene):
+def pools():
+    return (node("soil organic N", TEAL).move_to(SOIL_P), node("ammonium, nitrate", TEAL, 26).move_to(AMM_P),
+            node("trees", GREEN).move_to(TRE_P))
+
+
+class S04Inputs(Sc):
     def construct(self):
-        soil, plant = pool_chips()
-        bnd = boundary(dashed=False)
-        fa = flux_arrows()
-        units = T(UNITS, 24, GREY).move_to([0, 3.4, 0])
-        self.play(Create(bnd), FadeIn(soil), FadeIn(plant), run_time=0.5)
-        self.at("invented forest")
-        self.play(FadeIn(units), run_time=0.4)
-        self.at("illustrative")
-        self.play(Indicate(units, color=TEXT, scale_factor=1.08), run_time=1.0)
-        self.at("per hectare per year")
-        self.play(Indicate(units, color=TEXT, scale_factor=1.08), run_time=0.8)
-        self.at("Deposition from the air")
-        self.play(GrowArrow(fa["dep"][0]), FadeIn(fa["dep"][1]), run_time=0.7)
-        self.at("Fixation brings")
-        self.play(GrowArrow(fa["fix"][0]), FadeIn(fa["fix"][1]), run_time=0.7)
-        self.at("The stream carries")
-        self.play(GrowArrow(fa["str"][0]), FadeIn(fa["str"][1]), run_time=0.7)
-        self.at("returns 2")
-        self.play(GrowArrow(fa["gas"][0]), FadeIn(fa["gas"][1]), run_time=0.7)
-        t_in = T("in: 8 + 6 = 14", 30, GREEN).move_to([-4.0, -3.2, 0])
-        t_out = T("out: 3 + 2 = 5", 30, RED).move_to([4.0, -3.2, 0])
-        self.at("Inputs are")
-        self.play(Write(t_in), run_time=0.9)
-        self.at("Outputs are")
-        self.play(Write(t_out), run_time=0.9)
-        self.at("The forest gains")
-        net = T(f"14 {MINUS} 5 = +9", 38, GREEN, weight=BOLD).move_to([0, -3.2, 0])
-        self.play(Write(net), soil.animate.scale(1.12), plant.animate.scale(1.12), run_time=1.0)
-        self.at("stored in wood")
-        note = tag("stored in wood and soil", [0, -1.55, 0], BLUE)
-        self.play(FadeIn(note), run_time=0.6)
+        wg, wb = ground(), boundary()
+        c = Counter(0)
+        soil, amm, tre = pools()
+        self.add(wg, wb, c.static, c.val, soil, amm, tre)
+        tag = T(NOTE, 22, GREY).move_to([-2.2, -3.62, 0])
+        self.add(tag)
+        self.play(wb.animate.set_stroke(width=9), run_time=0.8)
+        self.play(wb.animate.set_stroke(width=5), run_time=0.8)
+        self.at("from the air")
+        a1, a2, l1, l2 = in_arrows()
+        self.play(GrowArrow(a1), run_time=1.2)
+        f1 = flow([[-3.6, 3.6, 0], [-3.6, 2.2, 0]], 3, 3.0)
+        self.add(f1)
+        self.at("deposit 8")
+        self.play(FadeIn(l1, shift=RIGHT * 0.1), run_time=0.8)
+        self.at("microbes fix")
+        self.play(GrowArrow(a2), run_time=1.0)
+        f2 = flow([[-0.4, 3.6, 0], [-0.4, 2.2, 0]], 3, 3.0)
+        self.add(f2)
+        self.at("six more")
+        self.play(FadeIn(l2, shift=RIGHT * 0.1), run_time=0.8)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S04Inside(SpokenScene):
+class S05Outputs(Sc):
     def construct(self):
-        soil, plant = pool_chips()
-        bnd = boundary(dashed=False)
-        fa = flux_arrows()
-        allfa = VGroup(*[m for v in fa.values() for m in v])
-        self.add(bnd, soil, plant, allfa)
-        self.play(allfa.animate.set_opacity(0.4), run_time=0.6)
-        self.at("soil organic nitrogen")
-        amt = M("4,500", 28, BLUE).next_to(soil, DOWN, buff=0.25)
-        self.play(Indicate(soil, color=BLUE), FadeIn(amt), run_time=1.0)
-        self.at("Decomposers release")
-        up, dn, lab = loop_arrows()
-        self.play(GrowArrow(up), FadeIn(lab), run_time=0.8)
-        self.at("as ammonium")
-        self.play(Indicate(lab, color=YELLOW, scale_factor=1.4), run_time=0.8)
-        self.at("Plants take it up")
-        self.play(Indicate(plant, color=BLUE), run_time=0.8)
-        self.at("about six times")
-        b1 = Rectangle(width=14 * 0.07, height=0.32, stroke_width=0, fill_color=GREEN, fill_opacity=0.9)
-        b2 = Rectangle(width=90 * 0.07, height=0.32, stroke_width=0, fill_color=YELLOW, fill_opacity=0.9)
-        b1.move_to([-2.8 + b1.width / 2, -3.0, 0]); b2.move_to([-2.8 + b2.width / 2, -3.5, 0])
-        l1 = T("inputs 14", 24, GREEN).move_to([-4.15, -3.0, 0])
-        l2 = T("flux 90", 24, YELLOW).move_to([-4.25, -3.5, 0])
-        self.play(FadeIn(l1), GrowFromEdge(b1, LEFT), run_time=0.5)
-        self.play(FadeIn(l2), GrowFromEdge(b2, LEFT), run_time=1.0)
-        self.at("never appeared")
-        self.play(FadeOut(VGroup(b1, b2, l1, l2)), allfa.animate.set_opacity(0.2), run_time=0.6)
-        self.at("so they cancel")
-        out_l = T(f"{MINUS}90 from soil", 26, YELLOW).move_to([-2.2, 1.55, 0])
-        in_l = T("+90 into plants", 26, YELLOW).move_to([2.2, 1.55, 0])
-        self.play(FadeIn(out_l), FadeIn(in_l), run_time=0.7)
-        zero = M(f"{MINUS}90 + 90 = 0", 36, YELLOW).move_to([0, -1.75, 0])
-        self.play(Write(zero), run_time=1.0)
-        self.at("does not mean")
-        self.wait(0.2)
-        self.at("largest flux")
-        self.play(Indicate(up, color=YELLOW, scale_factor=1.15), run_time=1.2)
+        wg, wb = ground(), boundary()
+        c = Counter(0)
+        soil, amm, tre = pools()
+        a1, a2, l1, l2 = in_arrows()
+        tag = T(NOTE, 22, GREY).move_to([-2.2, -3.62, 0])
+        self.add(wg, wb, c.static, c.val, soil, amm, tre, a1, a2, l1, l2, tag, in_flows())
+        self.play(Indicate(wb, color=GOLD, scale_factor=1.0), run_time=1.2)
+        s, g, ls, lg = out_arrows()
+        self.at("the stream carries three")
+        self.play(GrowArrow(s), run_time=1.0)
+        self.add(flow([[3.5, 0.55, 0], [6.3, 0.55, 0]], 3, 3.0))
+        self.play(FadeIn(ls), run_time=0.6)
+        self.at("microbes release two")
+        self.play(GrowArrow(g), run_time=1.0)
+        self.add(flow([[3.9, 2.0, 0], [3.9, 3.4, 0]], 2, 3.0))
+        self.play(FadeIn(lg), run_time=0.6)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S05Cut(SpokenScene):
+class S06Rule(Sc):
     def construct(self):
-        soil, plant = pool_chips()
-        bnd = boundary(dashed=False)
-        fa = flux_arrows()
-        up, dn, lab = loop_arrows()
-        amt = M("4,500", 28, BLUE).next_to(soil, DOWN, buff=0.25)
-        self.add(bnd, soil, plant, up, lab, *[m for v in fa.values() for m in v])
-        self.at("cut the forest")
-        cutl = T("forest cut, regrowth suppressed", 28, ORANGE).move_to([0, 3.35, 0])
-        self.play(FadeIn(cutl), plant.animate.set_color(GREY), up.animate.set_color(GREY), lab.animate.set_color(GREY), run_time=0.9)
-        self.at("Plant uptake stops")
-        blk = Line([PLANT_P[0] - 1.15, 0.0, 0], [PLANT_P[0] - 1.15, 0.4, 0], color=RED, stroke_width=8)
-        self.play(FadeOut(lab), FadeIn(blk), run_time=0.8)
-        self.at("keep releasing ammonium")
-        rel = T("ammonium released", 24, YELLOW).move_to(SOIL_P + np.array([0.0, 1.0, 0]))
-        self.play(FadeIn(rel), run_time=0.5)
-        self.at("turn it into nitrate")
-        nit = T("nitrate", 24, RED).move_to(SOIL_P + np.array([0.0, 1.0, 0]))
-        self.play(ReplacementTransform(rel, nit), run_time=0.6)
-        self.at("washes out")
-        route = Line(SOIL_P + np.array([0, 0.4, 0]), [-2.2, 1.3, 0])
-        dots = [Dot(radius=0.12, color=RED).move_to(SOIL_P + np.array([0, 0.4, 0])) for _ in range(5)]
-        self.add(*dots)
-        anims = []
-        for i, d in enumerate(dots):
-            path = VMobject().set_points_as_corners([SOIL_P + np.array([0, 0.4, 0]), np.array([SOIL_P[0], 1.3, 0]), np.array([4.0, 1.3, 0]), np.array([5.6, 1.3, 0])])
-            anims.append(Succession(Wait(0.2 * i), MoveAlongPath(d, path, run_time=1.5, rate_func=linear)))
-        self.play(AnimationGroup(*anims), run_time=2.3)
-        self.at("rises to")
-        thick = arr([4.0, OUT_Y[0], 0], [6.3, OUT_Y[0], 0], RED, 22, tip=0.55)
-        lab40 = tag("stream 40", [5.15, OUT_Y[0] + 0.55, 0], RED)
-        self.play(ReplacementTransform(fa["str"][0], thick), ReplacementTransform(fa["str"][1], lab40), FadeOut(nit), run_time=0.9)
-        self.at("Outputs are now")
-        t_out = T("out: 40 + 2 = 42", 30, RED).move_to([4.0, -3.2, 0])
-        t_in = T("in: 8 + 6 = 14", 30, GREEN).move_to([-4.0, -3.2, 0])
-        self.play(Write(t_out), FadeIn(t_in), run_time=1.0)
-        self.at("a loss of")
-        net = T(f"14 {MINUS} 42 = {MINUS}28", 38, RED, weight=BOLD).move_to([0, -3.2, 0])
-        self.play(Write(net), soil.animate.scale(0.9), run_time=1.0)
+        wg, wb = ground(), boundary()
+        c = Counter(0)
+        soil, amm, tre = pools()
+        a1, a2, l1, l2 = in_arrows()
+        s, g, ls, lg = out_arrows()
+        tag = T(NOTE, 22, GREY).move_to([-2.2, -3.62, 0])
+        self.add(wg, wb, c.static, c.val, soil, amm, tre, a1, a2, l1, l2, s, g, ls, lg, tag, in_flows(), out_flows())
+        self.play(Indicate(VGroup(a1, a2), color=YELLOW, scale_factor=1.0), run_time=1.0)
+        self.play(Indicate(VGroup(s, g), color=YELLOW, scale_factor=1.0), run_time=1.0)
+        self.at("change in stock")
+        e1 = T("change in stock", 30)
+        e2 = T("=", 30)
+        e3 = T("inputs", 30, BLUE)
+        e4 = T(MINUS, 30)
+        e5 = T("outputs", 30, RED)
+        eq = VGroup(e1, e2, e3, e4, e5).arrange(RIGHT, buff=0.25).move_to([0, -1.7, 0])
+        self.play(FadeIn(e1), run_time=0.4)
+        self.at("inputs")
+        self.play(FadeIn(e2), FadeIn(e3), run_time=0.3)
+        self.at("minus")
+        self.play(FadeIn(e4), run_time=0.2)
+        self.at("outputs")
+        self.play(FadeIn(e5), run_time=0.3)
+        self.at("this forest gains")
+        n1 = T("14", 34, BLUE)
+        n2 = T(MINUS, 34)
+        n3 = T("5", 34, RED)
+        n4 = T("=", 34)
+        n5 = T("+9", 34, GOLD)
+        n6 = T("per year", 30, GREY)
+        sm = VGroup(n1, n2, n3, n4, n5, n6).arrange(RIGHT, buff=0.25).move_to([0, -2.5, 0])
+        self.play(LaggedStart(*[FadeIn(x) for x in sm[:5]], lag_ratio=0.3), run_time=1.2)
+        self.at("each year")
+        self.play(FadeIn(n6), c.set(9, 0.8), run_time=0.8)
+        self.at("the line and the year")
+        self.play(wb.animate.set_stroke(width=9), run_time=0.4)
+        self.play(wb.animate.set_stroke(width=5), run_time=0.4)
+        self.at("and the year")
+        self.play(Indicate(n6, color=YELLOW), run_time=0.6)
+        self.at("must be stated")
+        self.play(c.set(18, 0.8))
+        self.at("before any adding")
+        self.play(c.set(27, 0.8))
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S06Rule(SpokenScene):
+def ring_nodes(amm_label="ammonium"):
+    return (node("soil organic N", TEAL).move_to(SOIL_P), node(amm_label, TEAL).move_to(AMM_P),
+            node("trees", GREEN).move_to(TRE_P), node("falling leaves", GREEN).move_to(LEA_P))
+
+
+class S07Loop(Sc):
     def construct(self):
-        ax_y = 0.8
-        sc = 0.08
-        axis = Line([-5.0, ax_y, 0], [5.0, ax_y, 0], color=GREY, stroke_width=3)
-        tl = T(f"net change, kg N per hectare per year · {chr(0x201c)}in this sketch{chr(0x201d)}: invented", 22, GREY)
-        tl = VGroup(T("invented numbers", 34, ORANGE, weight=BOLD), T("net change, kg N per hectare per year", 24, GREY)).arrange(DOWN, buff=0.1).move_to([0, 3.2, 0])
-        b1 = Rectangle(width=1.6, height=9 * sc, stroke_width=0, fill_color=GREEN, fill_opacity=0.9)
-        b1.move_to([-2.4, ax_y + 9 * sc / 2, 0])
-        b2 = Rectangle(width=1.6, height=28 * sc, stroke_width=0, fill_color=RED, fill_opacity=0.9)
-        b2.move_to([2.4, ax_y - 28 * sc / 2, 0])
-        v1 = T("+9 invented", 34, GREEN, weight=BOLD).next_to(b1, UP, buff=0.15)
-        v2 = T(f"{MINUS}28 invented", 34, RED, weight=BOLD).next_to(b2, DOWN, buff=0.15)
-        n1 = T("forest intact", 26, TEXT).move_to([-2.4, ax_y - 0.45, 0])
-        n2 = T("after the cut", 26, ORANGE).move_to([2.4, ax_y + 0.45, 0])
-        self.play(FadeIn(tl), Create(axis), run_time=0.6)
-        self.play(GrowFromEdge(b1, DOWN), FadeIn(n1), FadeIn(v1), GrowFromEdge(b2, UP), FadeIn(n2), FadeIn(v2), run_time=1.2)
-        self.at("That size is invented")
-        self.play(Indicate(tl, color=GREY), run_time=0.8)
-        self.at("stream losses of nitrate")
-        real = VGroup(T("Real Hubbard Brook result, 1970:", 26, TEAL, weight=BOLD),
-                      T("stream losses of nitrate and calcium rose above the uncut reference", 26, TEXT),
-                      T("the direction, not this size", 26, YELLOW)).arrange(DOWN, buff=0.18)
-        fit(real, 11.5)
-        real.move_to([0, -3.0, 0])
-        sep = DashedLine([-6.2, -2.3, 0], [6.2, -2.3, 0], color=TEAL, stroke_width=3)
-        self.play(Create(sep), FadeIn(real[0]), FadeIn(real[1]), run_time=1.0)
-        self.at("shows the direction")
-        self.play(FadeIn(real[2]), run_time=0.6)
-        self.at("What changed was")
-        self.play(b1.animate.set_opacity(0.35), v1.animate.set_opacity(0.35), run_time=0.8)
-        self.at("Keep the rule")
-        self.play(FadeOut(VGroup(real, sep, tl, axis, b1, b2, v1, v2, n1, n2)), run_time=0.6)
-        rule = T(f"change in stock = inputs {MINUS} outputs", 44, GOLD).move_to([0, 0.5, 0])
-        sub = T("for a stated boundary and interval", 32, GREY).move_to([0, -0.5, 0])
-        self.play(Write(rule), run_time=1.2)
-        self.play(FadeIn(sub), run_time=0.6)
+        wg, wb = ground(), boundary()
+        c = Counter(27)
+        soil, amm, tre = pools()
+        a1, a2, l1, l2 = in_arrows()
+        s, g, ls, lg = out_arrows()
+        outs = VGroup(a1, a2, l1, l2, s, g, ls, lg, in_flows(), out_flows())
+        self.add(wg, wb, c.static, c.val, soil, amm, tre, outs)
+        self.at("never crosses the line")
+        amm2 = node("ammonium", TEAL).move_to(AMM_P)
+        self.play(FadeOut(outs), ReplacementTransform(amm, amm2), run_time=1.5)
+        ring = ring_arrows()
+        lea = node("falling leaves", GREEN).move_to(LEA_P)
+        self.at("decomposers release")
+        dec = T("decomposers", 28, GREY).move_to([0.1, -1.1, 0])
+        self.play(GrowArrow(ring[0]), FadeIn(dec), run_time=1.0)
+        self.add(seg_flow(0))
+        self.at("dead leaves")
+        self.play(FadeIn(lea, shift=DOWN * 0.15), pulse(lea), run_time=1.0)
+        self.at("trees take it up")
+        self.play(GrowArrow(ring[1]), run_time=0.8)
+        self.add(seg_flow(1))
+        self.at("grow leaves")
+        self.play(GrowArrow(ring[2]), run_time=0.8)
+        self.add(seg_flow(2))
+        self.at("drop them again")
+        self.play(GrowArrow(ring[3]), run_time=0.8)
+        self.add(seg_flow(3))
         self.finish()
 
 
-class S07End(EndCard):
-    LINE = "Change in stock equals inputs minus outputs, for a stated boundary."
+def ring_world(counter_v, amm_label="ammonium"):
+    wg, wb = ground(), boundary()
+    c = Counter(counter_v)
+    soil, amm, tre, lea = ring_nodes(amm_label)
+    return wg, wb, c, soil, amm, tre, lea
+
+
+class S08Size(Sc):
+    def construct(self):
+        wg, wb, c, soil, amm, tre, lea = ring_world(27)
+        ring = ring_arrows()
+        self.add(wg, wb, c.static, c.val, soil, amm, tre, lea, ring, *[seg_flow(i) for i in range(4)])
+        self.at("that loop moves about")
+        ring2 = ring_arrows(16, 0.5)
+        self.play(Transform(ring, ring2), run_time=1.5)
+        self.at("90")
+        n = M("90", 52, TEXT).move_to([0.1, 0.95, 0])
+        u = T("kg N / hectare / year", 24, GREY).move_to([0.1, 0.25, 0])
+        self.play(FadeIn(n, scale=0.8), FadeIn(u), run_time=1.0)
+        self.at("biggest flux")
+        b90 = Rectangle(width=0.8, height=0.01, stroke_width=0, fill_color=GREY, fill_opacity=1).move_to([6.35, -3.2, 0], aligned_edge=DOWN)
+        b90 = Rectangle(width=0.8, height=4.2, stroke_width=0, fill_color=GREY, fill_opacity=1).move_to([6.35, -3.2 + 2.1, 0])
+        t90 = M("90", 30).move_to([6.35, 1.25, 0])
+        nm90 = T("loop", 24, GREY).move_to([6.35, -3.55, 0])
+        self.play(GrowFromEdge(b90, DOWN), FadeIn(t90), FadeIn(nm90), run_time=1.5)
+        self.at("far bigger")
+        self.play(Indicate(b90, color=YELLOW, scale_factor=1.0), run_time=1.0)
+        self.at("inputs together")
+        ia = arr([-2.0, 3.7, 0], [-2.0, 2.1, 0], BLUE, 6)
+        il = M("14", 30, BLUE).move_to([-1.2, 3.2, 0])
+        b14 = Rectangle(width=0.8, height=0.65, stroke_width=0, fill_color=BLUE, fill_opacity=1).move_to([5.2, -3.2 + 0.325, 0])
+        t14 = M("14", 30, BLUE).move_to([5.2, -2.35, 0])
+        nm14 = T("inputs", 24, BLUE).move_to([5.2, -3.55, 0])
+        self.play(GrowArrow(ia), FadeIn(il), GrowFromEdge(b14, DOWN), FadeIn(t14), FadeIn(nm14), run_time=1.5)
+        self.add(flow([[-2.0, 3.6, 0], [-2.0, 2.2, 0]], 2, 3.0))
+        self.finish()
+
+
+class S09Cancel(Sc):
+    def construct(self):
+        wg, wb, c, soil, amm, tre, lea = ring_world(27)
+        ring = ring_arrows(16, 0.5)
+        n = M("90", 52, TEXT).move_to([0.1, 0.95, 0])
+        u = T("kg N / hectare / year", 24, GREY).move_to([0.1, 0.25, 0])
+        self.add(wg, wb, c.static, c.val, soil, amm, tre, lea, ring, n, u, *[seg_flow(i) for i in range(4)])
+        self.at("the counter never")
+        self.play(pulse(c.box, 1.15), c.set(36, 0.8), run_time=1.2)
+        self.at("nitrogen leaving one pool")
+        a = M(MINUS + "90", 34, RED).move_to([-2.6, -1.6, 0])
+        self.play(FadeIn(a, shift=DOWN * 0.1), pulse(soil), run_time=1.0)
+        self.at("enters another pool")
+        b = M("+90", 34, BLUE).move_to([2.6, -1.6, 0])
+        self.play(FadeIn(b, shift=DOWN * 0.1), pulse(amm), run_time=1.0)
+        self.at("those transfers cancel")
+        fin = VGroup(M(MINUS + "90", 34, RED), M("+", 34), M("90", 34, BLUE), M("=", 34), M("0", 38, GOLD)).arrange(RIGHT, buff=0.3).move_to([0, -1.9, 0])
+        self.play(ReplacementTransform(VGroup(a, b), fin), run_time=1.5)
+        self.at("is bookkeeping")
+        self.play(Indicate(fin, color=YELLOW), run_time=1.2)
+        self.at("does not mean the loop is small")
+        self.play(Indicate(ring, color=YELLOW, scale_factor=1.0), Indicate(n, color=YELLOW), c.set(45, 0.8), run_time=1.5)
+        self.finish()
+
+
+def felled():
+    return VGroup(*[log(x) for x in STAND_X])
+
+
+class S10Predict(Sc):
+    def construct(self):
+        wg, wb, c, soil, amm, tre, lea = ring_world(45)
+        ring = ring_arrows(16, 0.5)
+        n = M("90", 52, TEXT).move_to([0.1, 0.95, 0])
+        u = T("kg N / hectare / year", 24, GREY).move_to([0.1, 0.25, 0])
+        fls = [seg_flow(i) for i in range(4)]
+        self.add(wg, wb, c.static, c.val, soil, amm, tre, lea, ring, n, u, *fls)
+        trees = VGroup(*[tree(x, -2.9) for x in STAND_X])
+        self.play(FadeIn(trees), run_time=0.5)
+        self.at("cut the trees")
+        lg = felled()
+        self.play(ReplacementTransform(trees, lg), run_time=1.2)
+        lab = T("trees left on site", 28, GREY).move_to([0, -2.2, 0])
+        self.play(FadeIn(lab), run_time=0.5)
+        self.at("keep new plants")
+        for _ in range(2):
+            self.play(ring[1].animate.set_opacity(0.15), tre.animate.set_opacity(0.4), fls[1].animate.set_opacity(0.1), run_time=0.2)
+            self.play(ring[1].animate.set_opacity(1), tre.animate.set_opacity(1), fls[1].animate.set_opacity(1), run_time=0.2)
+        self.play(ring[1].animate.set_opacity(0.15), tre.animate.set_opacity(0.4), FadeOut(fls[1]), FadeOut(fls[2]),
+                  ring[2].animate.set_opacity(0.15), run_time=0.6)
+        self.at("does the loop simply stop")
+        q = VGroup(T("stop, or", 38, YELLOW), T("go somewhere?", 38, YELLOW)).arrange(DOWN, buff=0.12).move_to([0.1, 0.55, 0])
+        self.play(FadeOut(n), FadeOut(u), FadeIn(q), run_time=0.8)
+        self.finish()
+
+
+class S11Pause(NarratedScene):
+    def construct(self):
+        wg, wb, c, soil, amm, tre, lea = ring_world(45)
+        ring = ring_arrows(16, 0.5)
+        ring[1].set_opacity(0.15)
+        ring[2].set_opacity(0.15)
+        tre.set_opacity(0.4)
+        lg = felled()
+        lab = T("trees left on site", 28, GREY).move_to([0, -2.2, 0])
+        q = VGroup(T("stop, or", 38, YELLOW), T("go somewhere?", 38, YELLOW)).arrange(DOWN, buff=0.12).move_to([0.1, 0.55, 0])
+        bg = Circle(radius=0.5, stroke_color=GREY, stroke_width=3).move_to([5.7, 0.4, 0])
+        arc = Circle(radius=0.5, stroke_color=YELLOW, stroke_width=8).move_to([5.7, 0.4, 0])
+        self.add(wg, wb, c.static, c.val, soil, amm, tre, lea, ring, lg, lab, q, bg, seg_flow(0), seg_flow(3))
+        self.play(Create(arc), run_time=5.0, rate_func=linear)
+        self.finish()
+
+
+class S12Reveal(Sc):
+    def construct(self):
+        wg, wb, c, soil, amm, tre, lea = ring_world(45)
+        ring = ring_arrows(16, 0.5)
+        ring[2].set_opacity(0.15)
+        tre.set_opacity(0.4)
+        lg = felled()
+        self.add(wg, wb, c.static, c.val, soil, amm, tre, lea, ring, lg, seg_flow(0), seg_flow(3))
+        self.at("goes somewhere")
+        self.play(Indicate(ring[0], color=YELLOW, scale_factor=1.0), run_time=1.2)
+        self.at("decomposers keep releasing")
+        self.play(FadeOut(ring[1]), run_time=0.4)
+        pile = VGroup()
+        for i, (dx, dy) in enumerate(PILE):
+            b = blk(TEAL, 0.24).move_to(AMM_P + np.array([dx, 0.55 + dy, 0]))
+            pile.add(b)
+            self.play(FadeIn(b, shift=LEFT * 0.4), run_time=0.35)
+            self.wait(0.2)
+        self.at("microbes turn the extra")
+        self.play(Indicate(pile, color=YELLOW), run_time=1.2)
+        self.at("into nitrate")
+        nit = node("nitrate", TEAL).move_to(AMM_P)
+        self.play(ReplacementTransform(amm, nit), run_time=1.0)
+        self.at("soil holds weakly")
+        parts = VGroup(*[Circle(radius=0.22, stroke_width=0, fill_color=GREY, fill_opacity=0.7).move_to([2.6 + dx, -1.5, 0]) for dx in (-0.8, 0, 0.8)])
+        self.play(FadeIn(parts), run_time=0.6)
+        self.play(*[b.animate.shift(np.array([PILE_JIT[i][0], PILE_JIT[i][1] - 0.2, 0])) for i, b in enumerate(pile)], run_time=1.5)
+        self.finish()
+
+
+def pile_static():
+    g = VGroup()
+    for i, (dx, dy) in enumerate(PILE):
+        g.add(blk(TEAL, 0.24).move_to(AMM_P + np.array([dx + PILE_JIT[i][0], 0.55 + dy + PILE_JIT[i][1] - 0.2, 0])))
+    return g
+
+
+class S13Leak(Sc):
+    def construct(self):
+        wg, wb, c, soil, amm, tre, lea = ring_world(45, "nitrate")
+        ring = ring_arrows(16, 0.5)
+        ring[1].set_opacity(0)
+        ring[2].set_opacity(0.15)
+        tre.set_opacity(0.4)
+        lg = felled()
+        pile = pile_static()
+        self.add(wg, wb, c.static, c.val, soil, amm, tre, lea, ring, lg, pile, seg_flow(0), seg_flow(3))
+        self.at("breaks open")
+        self.play(Indicate(pile, color=YELLOW), run_time=1.0)
+        self.at("spills across the line")
+        red = arr([3.4, -1.0, 0], [6.4, -2.6, 0], RED, 26, 0.6)
+        self.play(GrowArrow(red), run_time=1.5)
+        self.at("nitrate pours out")
+        lab = T("stream nitrate", 28, RED).move_to([5.1, -3.55, 0])
+        fl = flow([[3.5, -1.0, 0], [6.3, -2.55, 0]], 9, 2.5)
+        self.play(FadeOut(pile), FadeIn(fl), FadeIn(lab), run_time=1.0)
+        self.at("the counter turns negative")
+        sch = T("schematic", 22, GREY).move_to([5.5, 2.0, 0])
+        self.play(c.set(-40, 1.8), FadeIn(sch), run_time=1.8)
+        self.finish()
+
+
+def stream_valley(x, thick, flows_n, color=RED):
+    pass
+
+
+class S14Hubbard(Sc):
+    def construct(self):
+        def vb(cx):
+            r = RoundedRectangle(corner_radius=0.3, width=5.4, height=3.6, stroke_color=GOLD, stroke_width=5).move_to([cx, 0.3, 0])
+            return DashedVMobject(r, num_dashes=50, dashed_ratio=0.55)
+        vl, vr = vb(-3.4), vb(3.4)
+        stumps = VGroup(*[Rectangle(width=0.6, height=0.35, stroke_width=0, fill_color=GREY, fill_opacity=0.9).move_to([-3.4 + dx, -1.2, 0]) for dx in (-1.8, -0.6, 0.6, 1.8)])
+        trs = VGroup(*[tree(3.4 + dx, -1.45, h=1.3, w=0.9, trunk=0.35) for dx in (-1.8, -0.6, 0.6, 1.8)])
+        ll = T("cut, regrowth suppressed", 28).move_to([-3.4, 2.55, 0])
+        lr = T("uncut reference", 28).move_to([3.4, 2.55, 0])
+        self.play(Create(vl), Create(vr), run_time=1.5)
+        self.play(FadeIn(stumps), FadeIn(trs), FadeIn(ll), FadeIn(lr), run_time=1.0)
+        self.at("hubbard")
+        pin = VGroup(Circle(radius=0.16, stroke_width=0, fill_color=RED, fill_opacity=1),
+                     Triangle(stroke_width=0, fill_color=RED, fill_opacity=1).scale(0.14).rotate(PI).shift(DOWN * 0.2)).move_to([-3.0, 3.3, 0])
+        pt = T("Hubbard Brook, New Hampshire", 28, GOLD).move_to([0.3, 3.3, 0])
+        self.play(FadeIn(pin, shift=DOWN * 0.2), FadeIn(pt), run_time=1.0)
+        self.at("the stream from their cut watershed")
+        cut = arr([-3.4, -1.5, 0], [-3.4, -3.4, 0], RED, 8, 0.4)
+        self.play(GrowArrow(cut), run_time=0.9)
+        self.add(flow([[-3.4, -1.55, 0], [-3.4, -3.3, 0]], 3, 3.0))
+        self.at("far more nitrate")
+        cut2 = arr([-3.4, -1.5, 0], [-3.4, -3.4, 0], RED, 26, 0.6)
+        self.play(Transform(cut, cut2), run_time=1.0)
+        self.add(flow([[-3.4, -1.55, 0], [-3.4, -3.3, 0]], 7, 2.5))
+        nl = T("nitrate", 28, RED).move_to([-1.75, -2.3, 0])
+        self.play(FadeIn(nl), run_time=0.5)
+        self.at("and calcium")
+        cl = T("calcium", 28, RED).move_to([-1.75, -2.95, 0])
+        self.play(FadeIn(cl), run_time=0.5)
+        self.at("than the uncut one")
+        un = arr([3.4, -1.5, 0], [3.4, -3.4, 0], RED, 5, 0.3)
+        self.play(GrowArrow(un), run_time=0.8)
+        self.add(flow([[3.4, -1.55, 0], [3.4, -3.3, 0]], 1, 3.0))
+        sc = T("schematic; direction, not size", 24, GREY).move_to([0, -3.62, 0])
+        self.play(FadeIn(sc), run_time=0.5)
+        self.finish()
+
+
+class S15Meaning(Sc):
+    def construct(self):
+        wg, wb, c, soil, amm, tre, lea = ring_world(-40, "nitrate")
+        ring = ring_arrows(10, 0.4)
+        ring[1].set_opacity(0.15)
+        ring[2].set_opacity(0.15)
+        tre.set_opacity(0.4)
+        lg = felled()
+        self.add(wg, wb, c.static, c.val, soil, amm, tre, lea, ring, lg, seg_flow(0), seg_flow(3))
+        ba = arr([-3.6, 3.7, 0], [-3.6, 2.1, 0], BLUE, 7)
+        bl = T("rain input", 28, BLUE).move_to([-2.2, 3.3, 0])
+        self.play(GrowArrow(ba), FadeIn(bl), run_time=0.8)
+        self.add(flow([[-3.6, 3.6, 0], [-3.6, 2.2, 0]], 3, 3.0))
+        self.at("no more nitrogen")
+        p1 = T("rain input unchanged", 28, BLUE)
+        p2 = T("; the loop leaked out", 28, RED)
+        line = VGroup(p1, p2).arrange(RIGHT, buff=0.05).move_to([0, -3.62, 0])
+        self.play(Indicate(ba, color=YELLOW, scale_factor=1.0), FadeIn(p1), run_time=1.0)
+        self.at("recycled nitrogen was leaving")
+        red = arr([3.4, -1.0, 0], [6.4, -2.6, 0], RED, 26, 0.6)
+        self.play(GrowArrow(red), FadeIn(p2), run_time=1.2)
+        self.add(flow([[3.5, -1.0, 0], [6.3, -2.55, 0]], 8, 2.5))
+        self.at("a store changes only across")
+        self.play(wb.animate.set_stroke(width=10), run_time=0.8)
+        self.play(wb.animate.set_stroke(width=5), run_time=0.8)
+        self.at("the broken loop crossed it")
+        ring_c = Circle(radius=0.55, stroke_color=YELLOW, stroke_width=6).move_to([4.7, -1.8, 0])
+        self.play(Create(ring_c), run_time=0.8)
+        self.play(Indicate(red, color=YELLOW, scale_factor=1.0), run_time=0.8)
+        self.finish()
+
+
+class S16End(EndCard):
+    LINE = "Stores change only across the boundary; a broken loop can cross it."

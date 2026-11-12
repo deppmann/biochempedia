@@ -5,8 +5,8 @@ course: "ecology-evolution"
 courseChapter: "Ecology and Evolution · Unit 6: Global change and decisions"
 order: 524
 summary: >-
-  As climate warms, species are shifting their ranges toward the poles and uphill, unevenly, and that redistribution is already changing communities, how ecosystems work and human well-being. Climate acts alongside habitat loss to land use, the largest single driver of biodiversity decline on land, and alongside species moved by people, shifts in seasonal timing, ocean acidification and nitrogen deposition. This lesson sets out the evidence for each in turn. Afterwards you can compute how fast an isotherm moves up a mountain and how far a species lags behind it, and you can judge whether a study has detected a change, attributed it to a cause, or projected it under a scenario.
-hook: "As the climate warms, species are moving toward the poles and up mountains. Which species keep up, what does the reshuffling do to ecosystems and people, and what else is changing at the same time?"
+  Under warming, a range edge set by temperature keeps up only if it moves as fast as its isotherm, whose speed is the warming rate divided by the local temperature gradient, so ecologists measure how the gap between species and isotherm changes from a stated start. Land use, species moved by people, ocean acidification and nitrogen deposition act at the same time, so a shift shows that something changed, not what caused it. Species are shifting poleward and uphill, unevenly, and phenological shifts can change the offset between food supply and peak consumer demand, sometimes creating or widening a trophic mismatch. Afterwards you can compute how fast an isotherm moves up a mountain and how far a species lags behind it, and you can judge whether a study has detected a change, attributed it to a cause, or projected it under a scenario.
+hook: "A mountain warms 0.3 C in a decade. How far uphill must a beetle's range shift to stay as cool as before?"
 
 estMinutes: 24
 objectives:
@@ -21,10 +21,32 @@ explainer:
   src: "/explainers/global-change/explainer.mp4"
   captions: "/explainers/global-change/explainer.vtt"
   poster: "/explainers/global-change/poster.jpg"
-  title: "Species on the Move"
-  durationSec: 168.5
-  narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+  title: "The Climbing Line"
+  durationSec: 188.4
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+  takeaways:
+    - "Warming moves an isotherm, a line of equal temperature, poleward and uphill."
+    - "The isotherm's speed, the climate velocity, is the warming rate divided by how fast temperature changes across the land."
+    - "On a slope cooling 0.6 C per 100 m, warming of 0.3 C per decade moves the isotherm about 50 m uphill per decade."
+    - "In one European example, one metre uphill gives the cooling of about 1.5 km poleward; the exchange rate varies by place, so each shift is compared with its own isotherm."
+    - "A range keeps up only by moving as fast as its isotherm; a shift shows change, not its cause."
+
+films:
+  - id: "chapter-2"
+    src: "/explainers/global-change/chapter-2.mp4"
+    captions: "/explainers/global-change/chapter-2.vtt"
+    poster: "/explainers/global-change/chapter-2-poster.jpg"
+    title: "Two Forests, One Bird"
+    durationSec: 204.0
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+    takeaways:
+      - "Many spring events now come earlier, but interacting species often shift by different amounts, so an earlier date alone cannot show keeping up."
+      - "Trophic mismatch is the offset between peak food and peak demand, such as nestlings in the nest; unequal shifts can open or widen it."
+      - "In nine Dutch pied flycatcher populations, numbers fell about 90% over two decades where caterpillars peaked early, and weakly at most where they peaked late."
+      - "That comparison across sites supports a cost of mismatch, but the forests were not assigned their food timing."
+      - "In aviaries with food freely available, a warmer temperature pattern generally advanced great tits' laying, pointing to temperature as a likely cue."
 
 scientists:
   - name: "I-Ching Chen"
@@ -174,7 +196,7 @@ practiceQuestions:
     - Hydrogen ions combine with carbonate ions, lowering carbonate saturation
     - Bicarbonate falls, removing the carbon that shells are built from
     answer: 2
-    rationale: Carbonic acid releases hydrogen ions, and these combine with carbonate ions, lowering the saturation state of calcium carbonate, the measure of how readily shells and skeletons form. Surface seawater stays alkaline, above pH 7, so the below-pH-7 answer mistakes the direction of change for the end point. Dissolved carbon dioxide lowers pH rather than raising it. Bicarbonate rises, not falls, as hydrogen ions combine with carbonate, so the bicarbonate answer reverses the chemistry.
+    rationale: Carbonic acid releases hydrogen ions, and these combine with carbonate ions, lowering the saturation state of calcium carbonate, which compares the calcium and carbonate in the water with the amounts at which calcium carbonate neither forms nor dissolves. Surface seawater stays alkaline, above pH 7, so the below-pH-7 answer mistakes the direction of change for the end point. Dissolved carbon dioxide lowers pH rather than raising it. Bicarbonate rises, not falls, as hydrogen ions combine with carbonate, so the bicarbonate answer reverses the chemistry.
   - stem: "A 40-year record shows that a butterfly's northern range edge has moved 60 km north. On its own, what does this record establish?"
     choices:
       - "That the species is adjusting successfully"
@@ -335,79 +357,131 @@ draft: false
 
 import IsothermLagSlope from '../../../components/IsothermLagSlope.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import EquationCard from '../../../components/EquationCard.astro';
+import LessonFilm from '../../../components/LessonFilm.astro';
 
-**As the climate warms, species are shifting their ranges toward the poles and up mountains, and that movement is already changing which species live together.** Across the studies pooled in one 2011 synthesis, land species moved a median of about 17 kilometres toward the pole and 11 metres uphill every decade. Individual species varied widely around those medians, and many lag behind the climate they track. Moving species change how ecosystems work, and they touch people through food, disease and the carbon that land and sea store. Climate does not act alone. Reviews name habitat loss to farms, pasture and towns as the largest single driver of the decline of biodiversity on land, and in the same decades ships and planes carried species between continents, nitrogen fell from polluted air and carbon dioxide dissolved into the sea. This lesson takes the evidence for each change in turn, then shows how fast a species would have to move to keep pace with warming and how to tell a detected change from one that has been attributed to a cause.
+Eleven metres uphill a decade looks feeble beside 17 kilometres poleward, the first film's two medians. Which shift kept up? Raw distances cannot say, because a species is racing its isotherm, not a distance.
+
+> **The one idea.** Under warming, a range keeps up only by moving as fast as its **isotherm**, a line of equal temperature. The isotherm's speed, the **climate velocity**, is the warming rate divided by how fast temperature changes across the land; on a mountain that rate is the **lapse rate**, the drop in temperature with height. If a range started in step, its lag is the difference in speeds multiplied by the time.
+>
+> *Scope:* this is a model for a range edge set mainly by temperature, under steady warming and lapse rate. Ranges move through colonization and local loss over generations, not by animals walking, and a population can also persist without moving, through plasticity, evolution or cool pockets of habitat. A growing gap shows that something changed, not what caused it.
 
 ## Moving: species shift poleward and uphill
 
-A species' **range** is the area where its populations live and reproduce. As [climate and biomes](/lessons/climate-and-biomes/) showed, temperature falls with latitude and with elevation, so warming moves an **isotherm**, a line of equal temperature, poleward and uphill. If temperature sets the edge of a species' tolerable conditions, part of its [niche](/lessons/niches-and-distributions/), the edge should follow.
+A species' **range** is the area where its populations live and reproduce. Temperature falls with latitude and elevation ([climate and biomes](/lessons/climate-and-biomes/)), so if temperature sets the edge of a species' tolerable conditions, part of its [niche](/lessons/niches-and-distributions/), the edge should follow its isotherm poleward and uphill.
 
-Think of a tide line on a beach. As the tide comes in the line moves up the sand, and anything that stays just above the water has to keep moving with it.
+How was the movement shown? I-Ching Chen, Chris D. Thomas and colleagues pooled published range shifts of terrestrial species in a **meta-analysis**, a statistical synthesis of results from many studies (Science, 2011). Each data point was the mean shift of one taxonomic group in one region. Shifts were greatest in studies whose regions had warmed most. That match between shift and warming is what links the shifts to climate here, though it is a correlation across studies.
 
-How was this shown? I-Ching Chen, Chris D. Thomas and colleagues pooled published range shifts of terrestrial species in a **meta-analysis**, a statistical synthesis of results from many studies (Science, 2011). Each data point was the mean shift of one taxonomic group in one region. The median shift was **16.9 km per decade** toward higher latitudes and **11.0 m per decade** uphill, and shifts were greatest in studies whose regions had warmed most. That match between the size of a shift and the amount of warming is the evidence in this synthesis that links the shifts to climate, though it is a correlation across studies. On average, poleward shifts roughly kept pace with warming, but most uphill shifts fell short of what the warming predicted.
+Did the shifts keep up? In one European example the two medians track about the same temperature change, roughly 0.07 C per decade (Going deeper), so the medians alone cannot answer. Setting each study's shift against its own region's warming gave the verdict: poleward shifts on average roughly kept pace, but most uphill shifts fell short of what the warming predicted.
 
-The pattern holds in a larger data set and in the sea. In the BioShifts database of 30,534 range-shift records, Lenoir and colleagues (2020) found marine species moving poleward about six times faster than terrestrial ones. On land, species lagged further behind shifting isotherms, and human activities hindered their tracking of isotherm shifts in latitude.
+The pattern holds in the sea too. In BioShifts, a global database of 30,534 range-shift records, Lenoir and colleagues (2020) found marine species moving poleward about six times faster than terrestrial ones. Land species lagged further behind their shifting isotherms, and human activities hindered their tracking of isotherm shifts in latitude.
 
-**Why it matters.** Species do not move together, so communities come apart and reassemble. Some species arrive, others leave, and new mixtures form, including hosts and pathogens meeting in places they had not shared before (Van Hemert and colleagues, 2014, describe this for birds in the Arctic). Pecl and colleagues (Science, 2017) reviewed evidence that climate-driven redistribution is already altering the composition of ecological communities, and that it changes ecosystem functioning and human well-being, through the production of food, patterns of disease transmission and the storage of carbon.
+## Keeping pace: climate velocity on a mountain
 
-## Habitat loss and species moved by people
+How far behind its isotherm is a species on a slope? The first film's rule:
 
-Direct exploitation, such as fishing, hunting and logging, is another major driver that this lesson leaves aside.
+<EquationCard
+  purpose="How fast a line of equal temperature climbs a slope as the air warms: the climate velocity on a mountain."
+  eq="isotherm shift per decade = warming per decade / temperature drop per metre of elevation"
+  say="The isotherm's climb each decade is the decade's warming divided by the lapse rate."
+  symbols={[
+    ["isotherm shift per decade", "isotherm shift", "how far uphill the isotherm moves in ten years", "m per decade"],
+    ["warming per decade", "warming", "how much the air warms in ten years", "C per decade"],
+    ["temperature drop per metre of elevation", "lapse rate", "cooling per metre of height", "C per m"],
+  ]}
+  check="Keep the 100 m in the units: 0.3 / 0.6 is 0.5 of a 100-m step, so 50 m, not 0.5 m. A steeper lapse rate means a shorter climb."
+>
+  <Fragment slot="example">0.3 C per decade / 0.6 C per 100 m = 0.5 x 100 m = 50 m per decade uphill.</Fragment>
+</EquationCard>
 
-**Land use.** Converting forest and grassland to farms, pasture and towns removes habitat outright, and reviews name this habitat loss as the largest single driver of the decline in land biodiversity. Newbold and colleagues (Nature, 2015) modelled a global database of terrestrial assemblages and estimated that land use and related pressures have reduced within-sample species richness by an average of **13.6%**, and by **76.5%** in the worst-affected habitats. These are model estimates from sampled sites. Land use also acts together with climate. In average elevational shifts from 43 study sites, Guo, Lenoir and Bonebrake (2018) found that forest loss in warmer regions tended to accelerate upslope movement. An uphill shift is not by itself proof that climate acted alone.
+**Predict.** On the first film's slope, whose round figures are invented, the isotherm climbs **50 m per decade**. A species moves uphill at Chen and colleagues' terrestrial median, 11.0 m per decade, the one rate here from data, and starts in step with its isotherm. What share of the isotherm's shift does it match, and how far behind is it after 30 years?
 
-**Species moved by people.** An **alien species** is one moved by people beyond its native range (Blackburn and colleagues, 2014). Using Red List data, Bellard, Cassey and Blackburn (2016) found that alien species were the second most common threat associated with plant and vertebrate extinctions since 1500, and the most common for vertebrates. Impacts run through different mechanisms, including competition, predation and hybridisation, and they vary greatly among alien species, from minimal to massive. New aliens keep arriving: more than a third of all recorded first records of established aliens fall in 1970 to 2014 (Seebens and colleagues, 2017). A first record can lag behind the real introduction, so that curve tracks detection as well as arrival.
+<details>
+<summary>Check your prediction</summary>
+
+1. *Share.* 11.0 / 50 = 0.22, or **22%** of the isotherm's shift.
+2. *Lag over 30 years.* Over 3 decades the isotherm moves 3 x 50 = 150 m; the species moves 3 x 11.0 = 33 m. The species ends up **117 m** below the elevation that now has its former temperature.
+
+</details>
+
+Beyond the box's assumptions (constant warming and lapse rate, a range set by temperature alone), the sum assumes a species that started in step and no road, farm or cliff in the way. A real lag could reflect slow dispersal, cues other than temperature, competitors or predators already upslope, or loss of forest, and a particular species could be far ahead of its isotherm or far behind it.
+
+<IsothermLagSlope />
+
+**Why it matters.** Species do not move together, so communities come apart and reassemble, and hosts and pathogens meet in places they had not shared before (Van Hemert and colleagues, 2014, on Arctic birds). Pecl and colleagues (Science, 2017) reviewed evidence that climate-driven redistribution is already altering the composition of communities and changes ecosystem functioning and human well-being, through food production, disease transmission and carbon storage.
+
+A similar gap can open in **phenology**, the seasonal timing of life-cycle events, when a consumer and its food shift by different amounts; the second film follows one bird and its food.
+
+<LessonFilm film={frontmatter.films[0]} />
 
 ## Timing: phenology and mismatch
 
-**Phenology** is the seasonal timing of life-cycle events: leafing, flowering, migration, egg laying. Many spring events have moved earlier as springs have warmed, but interacting species do not all shift by the same amount. An earlier date is not evidence of successful adjustment.
+Besides the unassigned forests, the second film's "not yet" has a second reason: Both, Visser and colleagues (Nature, 2006) measured the cross-site caterpillar peaks in a single year (Going deeper), so the contrast supports, but does not by itself establish, a causal effect of timing on population size.
 
-Timing matters to [demography](/lessons/demography/) when a consumer and its food shift by different amounts. This is **trophic mismatch**: the period of greatest demand, such as nestlings in the nest, no longer lines up with the period of greatest supply. Christiaan Both, Marcel Visser and colleagues compared nine Dutch populations of the pied flycatcher, a long-distance migrant (Nature, 2006). Where caterpillars peaked early, flycatcher populations had declined by about 90% over the preceding two decades. Where food peaked late, and early breeders were still well timed, declines were weak at most. That contrast across sites supports, but does not by itself establish, a causal effect of timing on population size.
+A loss at the nest must also carry through to the number of adults before mismatch reaches [demography](/lessons/demography/).
 
-Lower breeding success does not always mean fewer adults. Visser and Gienapp (2019) describe great tits in which mismatch reduced the number of young that fledged, yet more of those young survived their first winter in years when few were produced, so population growth showed no detectable effect. A mismatch has to be linked to population change in the data, not assumed.
+**Predict.** In a great tit population, mismatch cuts the number of young that fledge, or leave the nest. Must the population shrink?
 
-What sets a bird's timing? In the field, warm springs and early laying go together, but warm springs also bring earlier food, so the pattern alone cannot say what the birds respond to. Marcel Visser, L. J. Holleman and S. P. Caro separated the two. They kept breeding pairs of great tits in climatized aviaries with food freely available, under warm or cold temperature patterns (Proceedings of the Royal Society B, 2009). The warm treatment generally advanced laying. Because food was unlimited, they interpreted temperature as likely acting as a cue, not only easing the energy cost of egg production.
+<details>
+<summary>Check your prediction</summary>
 
-<LessonFigure src="/figures/global-change/great-tit-aviary-design.webp" width={1200} height={800} alt="AI-generated illustration: two identical mesh aviaries side by side, each holding one pair of great tits and a full food dish. The left has a high thermometer and a warm tint, the right a low thermometer and a cool tint, with a gold double-headed arrow between them. A small inset shows the shared pair of birds and the full dish." caption="Visser, Holleman and Caro kept breeding pairs of great tits in climatized aviaries with food freely available, under warm or cold temperature patterns. Only the temperature pattern differed, which is why the warm treatment's earlier laying points to temperature as a cue." />
+Not necessarily. Visser and Gienapp (2019) describe great tits in which mismatch reduced the number of young that fledged, yet more of those young survived their first winter in years when few were produced, so population growth showed no detectable effect. That is **density dependence**: a rate, here first-winter survival, that changes with the number of animals, so a loss at the nest can be made up later. A mismatch has to be linked to population change in the data, not assumed.
 
-## Acidifying seas and nitrogen from the air
+</details>
+
+Visser, Holleman and Caro (Proceedings of the Royal Society B, 2009) ran the aviaries for six years, with warm and cold patterns 4 C apart in the period that mattered, and the warm treatment advanced laying in five; the cue is the authors' reading.
+
+<LessonFigure src="/figures/global-change/great-tit-aviary-design.webp" width={1200} height={800} alt="AI-generated illustration: two identical mesh aviaries side by side, each holding one pair of great tits and a full food dish. The left has a high thermometer and a warm tint, the right a low thermometer and a cool tint, with a gold double-headed arrow between them. A small inset shows the shared pair of birds and the full dish." caption="Visser, Holleman and Caro kept breeding pairs of great tits in climatized aviaries with food freely available, under warm or cold temperature patterns. Only the temperature pattern differed, which is why the warm treatment's earlier laying points to temperature as a likely cue." />
+
+## The other drivers: land, aliens, acid and nitrogen
+
+These drivers act alongside warming and need not act solely through a moving isotherm, though cleared land can also alter local climate; attribution to warming tests those plausible for the response, place and period. Direct exploitation, such as fishing, hunting and logging, is another major driver that this lesson leaves aside.
+
+**Land use.** Converting forest and grassland to farms, pasture and towns removes habitat outright; reviews, among them the IPBES global assessment (2019), name this habitat loss as the largest single driver of the decline in land biodiversity. Newbold and colleagues (Nature, 2015) modelled a global database of terrestrial assemblages and estimated that land use and related pressures have reduced within-sample species richness by an average of **13.6%**, and by **76.5%** in the worst-affected habitats. These are model estimates from sampled sites. Land use also acts with climate: in average elevational shifts from 43 study sites, Guo, Lenoir and Bonebrake (2018) found that forest loss in warmer regions tended to go with faster upslope movement, a correlation across sites consistent with the first film's cleared lower slope. An uphill shift is not by itself proof that climate acted alone.
+
+**Species moved by people.** An **alien species** is one moved by people beyond its native range (Blackburn and colleagues, 2014). Using IUCN Red List data, Bellard, Cassey and Blackburn (2016) found that alien species were the second most common threat associated with plant and vertebrate extinctions since 1500, and the most common for vertebrates. Impacts run through competition, predation, hybridisation and other mechanisms, and range from minimal to massive. New aliens keep arriving: more than a third of all recorded first records of established aliens fall in 1970 to 2014 (Seebens and colleagues, 2017), though a first record can lag the real introduction, so that curve tracks detection as well as arrival.
 
 **Ocean acidification.** Carbon dioxide dissolving in seawater forms carbonic acid (the equilibria are in [water and weak bonds](/lessons/water-weak-bonds/)):
 
 > **CO2 + H2O ⇌ H2CO3 ⇌ H+ + HCO3-, and H+ + CO3 2- → HCO3-**
+>
+> **Net: CO2 + H2O + CO3 2- → 2 HCO3-**
 
-The extra hydrogen ions lower pH, and by combining with carbonate ions they lower the **saturation state** of calcium carbonate, the measure of how readily shells and skeletons form. Surface seawater stays alkaline, above pH 7, while this happens; "acidification" names the direction of change. Pooling 228 studies, Kroeker and colleagues (2013) found that acidification on average lowered calcification, growth and survival, though groups differed widely. A later synthesis of 985 studies (Leung and colleagues, 2022) found many calcifiers, such as echinoderms, crustaceans and cephalopods, tolerant of near-future acidification, while corals, coccolithophores and calcifying algae appeared sensitive, and larvae were generally more sensitive than adults. Single experiments show the same spread. Ries, Cohen and McCorkle (Geology, 2009) held 18 species of benthic calcifiers at controlled CO2 levels, the highest about ten times pre-industrial: more than half calcified less, several calcified more and one did not respond.
+In plain terms, the acid's hydrogen ions lower pH and use up the carbonate that shells are built from, lowering the **saturation state** of calcium carbonate, which compares the calcium and carbonate in the water with the amounts at which calcium carbonate neither forms nor dissolves: above 1, forming the mineral is chemically favoured; below 1, unprotected calcium carbonate tends to dissolve. Organisms differ, and their calcification has no universal threshold at 1. Surface seawater stays alkaline, above pH 7, while this happens; "acidification" names the direction of change. Pooling 228 studies, Kroeker and colleagues (2013) found that acidification on average lowered calcification, growth and survival, with wide differences between groups. A later synthesis of 985 studies (Leung and colleagues, 2022) found many calcifiers, such as echinoderms, crustaceans and cephalopods, tolerant of near-future acidification, while corals, coccolithophores and calcifying algae appeared sensitive, and larvae were generally more sensitive than adults.
 
-**Nitrogen deposition.** Burning fuel and making fertilizer put reactive nitrogen into the air, where it falls on distant land (see [nutrient cycling](/lessons/nutrient-cycling/)). Nitrogen often limits plant growth, so the obvious guess is that more of it helps every plant. On Minnesota prairie, where ambient deposition was 6 kg N per hectare per year, Christopher Clark and David Tilman (Nature, 2008) found that adding just 10 kg N per hectare per year more reduced plant species number by **17%** relative to controls. In a second experiment, species number had recovered a decade after additions stopped, but species abundances had not. Why does a nutrient cut diversity? Added nitrogen tends to reinforce the dominance of a few species, and the resource they win differs between places: in one grassland experiment added light in the understory prevented the loss, implicating competition for light, while in a semi-arid grassland added water did. Soil acidification adds a further route, more so at high doses. How species loss changes ecosystem processes is the subject of [biodiversity and ecosystem function](/lessons/biodiversity-ecosystem-function/).
+**Predict.** Ries, Cohen and McCorkle (Geology, 2009) held 18 species of benthic (sea-floor) calcifiers at controlled CO2 levels, the highest about ten times pre-industrial. Did every species calcify less?
 
-## Keeping pace: climate velocity on a mountain
+<details>
+<summary>Check your prediction</summary>
 
-How far behind its climate is a species on a slope? The rate at which an isotherm moves across the landscape is called **climate velocity**. On a slope it depends on how fast the air warms and on the **lapse rate**, how fast temperature falls with height.
+No. More than half calcified less, several calcified more and one did not respond (tally in the anecdote on the blue mussel): the same spread as the syntheses.
 
-> **isotherm shift per decade = (warming per decade / temperature drop per metre of elevation)**
+</details>
 
-Suppose a mountainside warmed 0.3 C per decade, and temperature there falls 0.6 C per 100 m of elevation. Both numbers are invented round figures; only the species' rate below comes from data.
+**Nitrogen deposition.** Burning fuel and making fertilizer put reactive nitrogen into the air, and it falls on distant land ([nutrient cycling](/lessons/nutrient-cycling/)).
 
-1. *Isotherm speed.* 0.3 C per decade / 0.6 C per 100 m = 0.5 x 100 m = **50 m per decade** uphill.
-2. *Species speed.* Suppose a species moved at Chen and colleagues' terrestrial median, 11.0 m per decade. It would cover 11.0 / 50 = 0.22, or **22%** of the isotherm's shift.
-3. *Lag over 30 years.* Thirty years is 3 decades. The isotherm moves 3 x 50 = 150 m; the species moves 3 x 11.0 = 33 m. The species ends up **117 m** below the elevation that now has its former temperature.
-4. *Assumptions.* Warming and the lapse rate are constant, the species' range is set by temperature alone, and nothing such as a road, a farm or a cliff blocks it.
+**Predict.** Nitrogen often limits plant growth. On Minnesota prairie, where ambient deposition was 6 kg N per hectare per year, what would adding 10 kg N per hectare per year more do to the number of plant species?
 
-A real lag of that kind could reflect slow dispersal, cues other than temperature, competitors or predators already upslope, or loss of forest. And because the median hides wide variation, a particular species could be far ahead of the isotherm or far behind it.
+<details>
+<summary>Check your prediction</summary>
 
-<IsothermLagSlope />
+It cut it. Christopher Clark and David Tilman (Nature, 2008) found that the addition reduced plant species number by **17%** relative to controls. In a second experiment, species number had recovered a decade after additions stopped, but species abundances had not.
+
+</details>
+
+Why does a nutrient cut diversity? Added nitrogen tends to reinforce the dominance of a few species, and the resource they win differs between places: light in one grassland experiment, water in a semi-arid grassland. Soil acidification adds a further route, more so at high doses (all three in Going deeper). How species loss changes ecosystem processes is the subject of [biodiversity and ecosystem function](/lessons/biodiversity-ecosystem-function/).
 
 ## How strong is the attribution?
 
-Keep three kinds of claim apart.
+A gap says how far a species fell behind; attribution asks why. Keep three kinds of claim apart.
 
-- **Detection** shows that a change happened beyond what chance or natural variation would produce. Detecting a change does not by itself show what caused it.
-- **Attribution** links the change to a cause and tests the alternatives. In the IPCC's 2007 assessment (AR4; later assessments have updated the wording), "joint attribution" links a biological change to regional climate change and then links part of that climate change to human causes, while assessing plausible alternative explanations.
+- **Detection** shows that a change happened beyond what chance or natural variation would produce, not what caused it.
+- **Attribution** links the change to a cause and tests the alternatives. Attribution to human-caused warming takes two links: from the biological change to regional warming, then from regional warming to human causes (the IPCC's wording is in Going deeper).
 - **Projection** is what a model gives under a stated scenario of emissions or land use. It is a conditional result, not an observation of the future.
 
-Rosenzweig and colleagues (Nature, 2008) found that continental-scale warming associated with observed changes in physical and biological systems could not be explained by natural climate variation alone. Their observations were concentrated in Europe and North America, and the BioShifts range records are likewise biased toward the developed regions of the Northern Hemisphere, so global summaries describe a biased sample.
+Rosenzweig and colleagues (Nature, 2008) found that continental-scale warming associated with observed changes in physical and biological systems could not be explained by natural climate variation alone. Their data were concentrated in Europe and North America, and the BioShifts range records are likewise biased toward the developed regions of the Northern Hemisphere, so global summaries describe a biased sample.
 
-Within ecology, designs differ in strength. A **manipulation** assigns the driver: aviary temperatures, prairie nitrogen, seawater CO2. It shows cause in that preparation but says nothing about why the field warmed. A **comparison across sites** that differ in exposure, like the flycatcher forests, is stronger than a single trend but can be confounded. A **covariate-adjusted association**, such as a mixed model with warming and forest loss, can expose a confounder it measured and stays blind to one it did not. For any claim, ask five questions: what response was measured, what driver is proposed, what alternatives were tested, where the independent variation came from, and how large the uncertainty is. Decisions in [conservation](/lessons/conservation/) rest on those answers.
+Each design answers its own question, as the second film showed. A **manipulation** that assigns the driver (aviary temperature, prairie nitrogen, seawater CO2) shows cause in that preparation but not why the field warmed; a **comparison across sites** is stronger than a single trend but can be confounded; a **covariate-adjusted association**, a statistical model that includes measured rival drivers such as warming and forest loss, can expose a confounder it measured but not one it did not. For any claim, ask five questions: what response was measured, what driver is proposed, what alternatives were tested, where the independent variation came from, and how large the uncertainty is. Decisions in [conservation](/lessons/conservation/) rest on those answers.
 
 ### Design problem
 
@@ -416,35 +490,31 @@ At one site, a bird's laying date has advanced 10 days over 30 years, while the 
 <details>
 <summary>One way to do it</summary>
 
-First, the arithmetic: laying has moved 20 - 10 = 10 days later relative to the prey peak, so the bird matched half its prey's shift. Whether that widened the mismatch depends on how well timed the birds were at the start. That is one site's pattern, and much else changed in 30 years.
+First, the arithmetic: the prey peak moved 20 - 10 = 10 days more than laying, so the offset changed by 10 days and the bird matched half its prey's shift. Laying date stands in for peak demand only if the time from laying to hungry nestlings stays the same. Whether the change created a harmful mismatch depends on how well timed the birds were at the start, and much else changed in 30 years.
 
-1. *Replicate across populations.* Compare many populations whose prey peaks fall at different times, as Both and colleagues did for Dutch pied flycatchers. If mismatch matters, decline should be steepest where the gap is largest.
-2. *Measure every year.* Record the prey peak and laying dates annually, not in a single year, so the gap is known in each year.
-3. *Measure vital rates.* Track fecundity, nestling and juvenile survival, and adult survival, including on migration and in winter. Mismatch should show up mainly in breeding success and the survival of young. If a fall in adult survival on the wintering grounds explains most of the decline, mismatch is unlikely to be the main cause, though carry-over effects between seasons can blur that line.
+1. *Replicate across populations.* Compare many populations whose prey peaks differ in timing, as Both and colleagues did for Dutch pied flycatchers. If mismatch matters, decline should be steepest where the gap is largest.
+2. *Measure every year.* Record the prey peak and laying dates annually, not in a single year.
+3. *Measure vital rates, the rates of birth and survival.* Track fecundity (young produced), nestling and juvenile survival, and adult survival, including on migration and in winter. Mismatch should show up mainly in breeding success and the survival of young. If a fall in adult survival on the wintering grounds explains most of the decline, mismatch is unlikely to be the main cause, though carry-over effects, where one season's conditions affect the next, can blur that line.
 4. *Test alternatives.* Measure habitat change at the breeding site, conditions on the wintering grounds and along the route, predators and disease.
-5. *Experiment where possible.* Aviary work on great tits showed that temperature can act as a timing cue. Supplementary feeding after the natural peak could test whether food timing limits breeding success.
+5. *Experiment where possible.* Supplementary feeding after the natural peak could test whether food timing limits breeding success.
 
-Even a convincing case that mismatch drove the decline would attribute it to a change in timing, not yet to human-caused warming. That second step needs evidence that the local spring warming is itself attributable to human forcing.
+Even a convincing case that mismatch drove the decline attributes it to timing, not yet to human-caused warming; that needs evidence that the local spring warming is itself attributable to human forcing.
 
 </details>
 
 ## Going deeper
 
-### Inside the great-tit aviaries
+### One metre uphill, in kilometres poleward
 
-The aviary study used the great tit, Parus major, and ran for six years. The warm and cold temperature patterns differed by 4 C in the period that mattered, and the warm treatment advanced laying in five of the six years.
+One illustrative pair of stations: in 1991–2020 climate normals, the annual mean is 15.8 C at Rome Ciampino and 7.9 C at Stockholm, about 17.5 degrees of latitude (roughly 1,950 km) farther north, about 0.4 C per 100 km. With the first film's lapse rate of 0.6 C per 100 m, one metre uphill matches about 1.5 km poleward there. This is not a general conversion: gradients differ between regions, seasons and stations, so each study should use its own local gradient. On these figures Chen and colleagues' two medians each track roughly 0.07 C per decade.
+
+### The two links of attribution
+
+In the IPCC's 2007 assessment (AR4; later assessments have updated the wording), "joint attribution" links a biological change to regional climate change and then links part of that climate change to human causes, while assessing plausible alternative explanations.
 
 ### How the flycatcher food peaks were measured
 
 The pied flycatcher is Ficedula hypoleuca. The comparison was observational: the cross-site caterpillar peaks were measured in one year, 2003, and a second index of food timing came from the share of great tits laying second broods in 1985 to 1990.
-
-### Counting alien species
-
-Seebens and colleagues (2017) compiled 45,813 first records of established aliens, covering 16,926 species, and 37% of those records fell in 1970 to 2014.
-
-### The calcifier tally
-
-Ries, Cohen and McCorkle held their 18 species for 60 days. Ten calcified less at elevated CO2, seven calcified more at intermediate or high CO2, and the blue mussel did not respond.
 
 ### Why nitrogen cuts diversity: light, water and soil
 
