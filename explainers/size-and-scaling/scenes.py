@@ -930,4 +930,4 @@ class S17Rule(SpokenScene):
 
 
 class S18End(EndCard):
-    LINE = "Diffusion time grows with distance squared, so big, thick bodies need plumbing."
+    LINE = "Same shape, bigger body, longer path: stay thin, add surface, or pump."

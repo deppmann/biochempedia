@@ -652,4 +652,4 @@ class S14Checklist(SpokenScene):
 
 
 class S15End(EndCard):
-    LINE = "A leaf pays water for carbon; the two gaps set the price."
+    LINE = "In unsaturated air, leaves pay water for carbon; gaps set the price."

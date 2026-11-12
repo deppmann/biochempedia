@@ -819,4 +819,4 @@ class S14Close(Sc):
 
 
 class S15End(EndCard):
-    LINE = "Similar bodies do not prove kinship; test relatedness with independent evidence."
+    LINE = "A body plan describes an animal; independent evidence tests its ancestry."

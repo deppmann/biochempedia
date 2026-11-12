@@ -901,4 +901,4 @@ class S14Close(Sc):
 
 
 class S15End(EndCard):
-    LINE = "Fluid held in by muscle is a skeleton: narrower means longer."
+    LINE = "At constant volume, a narrower segment is a longer one."
