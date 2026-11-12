@@ -5,7 +5,9 @@ course: "high-school-biology"
 courseChapter: "Biology · Unit 2: Cells"
 order: 908
 summary: >-
-  Why does a cucumber slice left in salty water get lighter and go soft? You will set the salt
+  With no energy spent, a substance that can cross a membrane moves down its own gradient, and
+  for water that means toward the side with more trapped solute; moving a substance uphill costs
+  the cell energy, often from ATP. Why does a cucumber slice left in salty water get lighter and go soft? You will set the salt
   around a model cell and watch water move, switch on a protein pump, then read real mass data
   from a cucumber demonstration. Afterwards you can explain how a cell membrane lets some things
   in and keeps others out, and plan an osmosis test with potato pieces.
@@ -30,10 +32,30 @@ explainer:
   src: "/explainers/crossing-the-membrane/explainer.mp4"
   captions: "/explainers/crossing-the-membrane/explainer.vtt"
   poster: "/explainers/crossing-the-membrane/poster.jpg"
-  title: "Water Follows the Salt"
-  durationSec: 168.8
-  narration: "an AI narrator voice (Gemini, Charon) reading narration written from this lesson's text"
+  title: "Downhill for Free"
+  durationSec: 202.0
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+  takeaways:
+    - "Molecules move at random all the time; once they are spread evenly they still move, but there is no net movement."
+    - "In open water, with no energy spent, a substance moves on balance down its concentration gradient, from where it is more concentrated to where it is less."
+    - "The membrane's oily middle lets small molecules such as oxygen through, while charged ions such as sodium and chloride cross mainly through proteins."
+    - "Whatever can cross runs downhill for free, and water runs toward the side with more dissolved particles that cannot cross. That net movement of water is osmosis."
+
+films:
+  - id: "chapter-2"
+    src: "/explainers/crossing-the-membrane/chapter-2.mp4"
+    captions: "/explainers/crossing-the-membrane/chapter-2.vtt"
+    poster: "/explainers/crossing-the-membrane/chapter-2-poster.jpg"
+    title: "Paying to Go Uphill"
+    durationSec: 190.8
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+    takeaways:
+      - "Active transport uses energy from the cell, often from ATP, and it can move a substance against its gradient."
+      - "Each cycle, the sodium-potassium pump uses one ATP to move three sodium ions out and two potassium ions in, both uphill."
+      - "Sodium and potassium leak back down their gradients through channels all the time, so the pump must keep working to hold the differences."
+      - "Without ATP the pump stops, and the sodium and potassium differences slowly shrink."
 
 scientists: []
 
@@ -188,8 +210,9 @@ explainLevels:
       The cell membrane is a double layer of phospholipids with proteins in it, and it is
       selectively permeable: some substances cross easily and others hardly at all. Passive
       transport moves a substance from higher to lower concentration with no energy from the
-      cell. It includes diffusion, osmosis (the net movement of water toward the side with more
-      dissolved solute) and facilitated diffusion through protein channels and carriers. Active
+      cell. It includes diffusion, osmosis (the net movement of water across a membrane, usually
+      toward the side with more dissolved solute that cannot easily cross, until a push from the
+      other side stops it) and facilitated diffusion through protein channels and carriers. Active
       transport uses energy. Protein pumps spend ATP to move ions against their gradient, and
       endocytosis and exocytosis move large loads in membrane bubbles called vesicles. Membrane
       proteins and surface sugars also let cells receive signals and recognize each other.
@@ -253,99 +276,107 @@ import Support from '../../../components/Support.astro';
 import CER from '../../../components/CER.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
 import ScaffoldFigure from '../../../components/ScaffoldFigure.astro';
+import LessonFilm from '../../../components/LessonFilm.astro';
 
-**Leave one slice of cucumber in salty water and another in plain distilled water overnight. The salty slice gets lighter and turns soft and floppy, while the other slice gets heavier.** That happened in a filmed Open University demonstration. Something crossed the edge of the cucumber's cells, in opposite directions in the two dishes. The same question explains a stranger fact: drinking seawater leaves a person more dehydrated, not less.
+Now take the first film's rule into real cells. **Leave one slice of cucumber in salty water and another in plain distilled water overnight. The salty slice gets lighter and turns soft and floppy, while the other slice gets heavier.** That happened in a filmed Open University demonstration. The same idea explains a stranger fact: drinking seawater leaves a person more dehydrated, not less.
 
-<IdeaCheck items={[
-  { idea: 'Once molecules are spread out evenly, they stop moving.', answer: 'disagree', explain: 'Molecules in a liquid or gas never stop jiggling and bumping at room temperature. Once they are spread evenly, just as many move one way as the other, so nothing changes overall. Scientists call this no net movement.' },
-  { idea: 'Water always moves toward the side that has more water.', answer: 'disagree', explain: 'In osmosis, water moves on balance toward the side with more dissolved stuff, such as salt or sugar. That side has less free water, not more. Weighing plant tissue shows it: in the cucumber demonstration, the slice in salty water lost mass. You will read those numbers below.' },
-  { idea: 'The cell membrane is a solid wall with holes in it.', answer: 'disagree', explain: 'The membrane is a thin double layer of fatty molecules with proteins floating in it, and its parts can move. In a 1970 experiment, scientists fused a mouse cell with a human cell and marked each one’s surface proteins with glowing labels. In most fused cells the two sets of labels mixed within about 40 minutes at body temperature.' },
+> **The one idea.** With no energy spent, a substance that can cross a membrane moves on balance down its own gradient, from more concentrated to less. Water is no exception: it moves toward the side with more dissolved particles that cannot cross, because each drop there holds fewer water molecules. Moving a substance uphill, or carrying a big load in a bubble of membrane, costs the cell energy, often from ATP.
+>
+> *Scope:* water and uncharged substances crossing a cell membrane in dilute solutions like body fluids. A **solute** is any substance dissolved in water, such as salt or sugar. Charged ions also feel the membrane's voltage; Biology II covers that.
+
+<IdeaCheck title="Check what the first film showed, then one new idea. Agree or disagree?" items={[
+  { idea: 'Once molecules are spread out evenly, they stop moving.', answer: 'disagree', explain: 'They keep jiggling. As the film’s tally showed, crossings go on equally both ways: no net movement.' },
+  { idea: 'Water always moves toward the side that has more water.', answer: 'disagree', explain: 'Water moves on balance toward the side with more dissolved stuff that cannot cross, such as salt. The cucumber data below test that.' },
+  { idea: 'The cell membrane is a solid wall with holes in it.', answer: 'disagree', explain: 'The membrane is a thin double layer of fatty molecules with proteins in it, and its parts move. In a 1970 experiment, scientists fused a mouse cell with a human cell and tagged each one’s surface proteins with glowing labels. In most fused cells the two sets of labels mixed within about 40 minutes at body temperature.' },
 ]} />
 
 ## Explore: put a cell in salt water
 
-In the osmosis chamber you place a plant cell or a red blood cell in a solution and set how salty it is. Arrows show which way water moves on balance, and the cell swells, holds its size or shrinks. A second control switches on a protein pump that moves a substance from lower to higher concentration and counts the ATP it spends. The speeds in the model are for display, not measured rates.
+In the osmosis chamber you set how salty the solution is around a plant cell or a red blood cell. Arrows show net water movement, and the cell swells, holds its size or shrinks. A second control switches on a protein pump that moves a substance from lower to higher concentration and counts the ATP it spends. The speeds in the model are for display, not measured rates.
 
 <OsmosisChamber />
 
 **Try this.**
-1. Start with a red blood cell in a solution exactly as salty as the cell. Predict whether water stops moving. Then watch the arrows.
+1. Start with a red blood cell in a solution exactly as salty as the cell. Find how the arrows show crossings that go on with no net movement.
 2. Make the outside much less salty. Predict what the red blood cell will do. Then switch to a plant cell, keep the same solution, and compare.
 3. Make the outside much saltier than the cell. Predict which way the arrows point and what happens to each kind of cell.
-4. Turn on the pump. Predict whether it can keep working if the ATP runs out. Then test it.
+4. Turn on the pump. Note which way it moves its substance, compared with the water, and what the ATP counter does.
 
 ## Explain: a thin, choosy boundary
 
 <WordBank terms={['selectively permeable', 'concentration gradient', 'diffusion', 'osmosis', 'facilitated diffusion', 'passive transport', 'active transport', 'hypertonic', 'hypotonic', 'isotonic', 'endocytosis', 'exocytosis']} />
 
-Every cell has a **cell membrane**, the thin boundary that separates the inside of the cell from its surroundings.
-
-The membrane is built from phospholipids. Each phospholipid has a head that is attracted to water and two fatty tails that are not. In water, phospholipids line up in two layers. The heads face the watery outside and the watery inside of the cell. The tails point inward, toward each other, away from water.
+Every cell has a **cell membrane**, a thin boundary between the cell and its surroundings. The first film drew it as two rows of **phospholipids**, fat-like molecules with a water-loving head and two fatty tails that avoid water.
 
 <ScaffoldFigure src="/figures/crossing-the-membrane/membrane-section.webp" width={1200} height={800} keyItems={["phospholipid heads", "fatty tails", "channel protein", "carrier protein", "receptor protein", "sugar chains"]} given={[0, 1]} alt="AI-generated illustration: a side view of a cell membrane as two rows of phospholipids with heads facing out and tails meeting in the middle, crossed by a tunnel-shaped protein, a protein holding a small cargo, and a cup-topped protein holding a signal, with branched bead chains on the outer surface. Six numbered circles mark parts for the student to name." caption="The membrane is a double layer of phospholipids with proteins in it, and each kind of part has a job. Name the six numbered parts." />
 
-Proteins sit in this double layer, and many cross it from side to side. The parts can drift sideways, so the membrane is flexible, not a wall.
-
-Because of this build, the membrane is **selectively permeable**: it lets some substances cross easily and others hardly at all. Small molecules such as oxygen slip through the fatty middle. Charged ions such as sodium and chloride are almost entirely blocked and cross mainly through proteins.
+Proteins sit in this double layer, and many span it. The parts drift sideways, as the fused mouse and human cells showed, so the membrane is flexible, not a wall. It is **selectively permeable**: some substances cross easily and others hardly at all.
 
 The membrane does three jobs.
 
 - **Transport.** It controls which materials enter and leave the cell, and how.
-- **Communication.** Receptor proteins on the surface bind signal molecules from outside, such as hormones, and set off a response inside the cell.
+- **Communication.** Receptor proteins on the surface bind signal molecules from outside, such as many hormones, and set off a response inside the cell.
 - **Recognition.** Chains of sugar attached to surface proteins and lipids act like name tags. They help cells tell their own kind from others, which your immune system relies on.
 
-A screen door is one analogy: it lets air in and keeps flies out. The analogy breaks down because a screen has fixed holes, while a membrane chooses by size, charge and its proteins.
+A screen door is a fair analogy: it lets air in and keeps flies out. But a screen has fixed holes, while a membrane chooses by size, charge and its proteins.
 
 <Support min={2}>**Key idea:** The cell membrane is a moving double layer of lipids with proteins, and that build lets it choose what crosses, receive signals and recognize other cells.</Support>
 
 ## Explain: moving downhill with no energy
 
-A **concentration gradient** is a difference in how much of a substance is dissolved in one place compared with another. Molecules move at random all the time, so more cross from the crowded side than come back.
+**Passive transport** is movement across a membrane down a **concentration gradient**, the first film's difference in concentration between two places, and it needs no energy from the cell. It has three forms.
 
-**Passive transport** is movement across a membrane from higher to lower concentration that needs no energy from the cell. It has three forms.
-
-- **Diffusion** is the spreading of a substance from where it is more concentrated to where it is less concentrated.
+- **Diffusion** is spreading down a gradient, like the first film's dye and oxygen.
 - **Facilitated diffusion** is diffusion through a membrane protein. Channel proteins form water-friendly tunnels, and carrier proteins grab a molecule and change shape to pass it across. Glucose enters many of your cells by carriers, still moving from high to low.
-- **Osmosis** is the net movement of water across a selectively permeable membrane. Much of it goes through protein water channels.
+- **Osmosis** is the first film's net movement of water across a selectively permeable membrane.
 
-Here is the rule that trips people up: water moves on balance toward the side with more dissolved solute (a substance dissolved in the water, such as salt or sugar), because that side has less free water. Three words compare a solution with the inside of a cell. They count only solutes that cannot easily cross the membrane, such as salt.
+### Which solutes count for osmosis
+
+A solute that crosses freely spreads until it is even on both sides and leaves no lasting difference in water. So mainly solutes that cannot easily cross count, such as salt, which mostly cannot cross the lipid layer.
+
+Three words describe the solution outside a cell compared with the inside, counting only trapped solutes: *hyper-* means more, *hypo-* means less, *iso-* means the same.
+
+**Predict.** A plant cell and a red blood cell both sit in distilled water, and both are saltier inside. Water enters each one. What, if anything, stops it?
+
+<details>
+<summary>Check your prediction</summary>
+
+A plant cell has a stiff **cell wall** outside its membrane. As water enters, the cell presses on the wall and the wall presses back. That push is **turgor pressure**. It stops net water entry although the cell is still saltier inside (water still crosses both ways), and it holds up the leaves and stems of soft, nonwoody plants. A red blood cell has no wall, so it swells until it may burst.
+
+</details>
 
 | Solution outside the cell | Plain meaning | Net water movement | Plant cell | Red blood cell |
 |---|---|---|---|---|
-| **Hypertonic**: more solute than inside | Saltier outside | Out of the cell | Loses turgor; plant wilts | Shrinks |
-| **Hypotonic**: less solute than inside | Less salty outside | Into the cell | Firm, pressing on its wall | Swells, may burst |
-| **Isotonic**: same solute as inside | Balanced | None; water crosses both ways equally | Less firm than in hypotonic | Keeps its shape |
+| **Hypertonic**: more trapped solute than inside | Saltier outside | Out of the cell | Loses turgor and wilts, like salted lettuce; in strong salt the membrane pulls away from the wall | Shrinks |
+| **Isotonic**: same as inside | Balanced | None; water crosses both ways equally | Limp, with no push on its wall | Keeps its shape |
+| **Hypotonic**: less trapped solute than inside | Less salty outside | Into the cell, until something stops it | Swells until its wall pushes back; firm | Swells, may burst |
 
-A plant cell has a stiff wall outside its membrane, and water flowing in makes the cell press against it. That push is **turgor pressure**, and it holds up the leaves and stems of soft, nonwoody plants. In salty water, the cells lose water and turgor, so lettuce wilts and the cucumber slice goes floppy. A red blood cell has no wall, so in pure water it can swell until it bursts.
+{/* DIAGRAM: the same plant cell and red blood cell drawn in three beakers, with 1 hypertonic solution and water arrows out, 2 isotonic solution with arrows both ways, 3 hypotonic solution with water arrows in, 4 the cell wall holding the swollen plant cell. Caption: Water moves out of a cell in a hypertonic solution and into it in a hypotonic one, until a plant cell's wall pushes back. */}
 
-{/* DIAGRAM: the same plant cell and red blood cell drawn in three beakers, with 1 hypertonic solution and water arrows out, 2 isotonic solution with arrows both ways, 3 hypotonic solution with water arrows in, 4 the cell wall holding the swollen plant cell */}
+**Worked case: drinking seawater.** Seawater holds about 35 grams of dissolved salts in each kilogram, according to NOAA. That is far saltier than your body fluids, which pull on water about as much as a 0.9% salt solution. Swallowed seawater sits in your gut, not next to most of your cells. Once its salt is absorbed, the fluid around your cells gets saltier, which can draw water out of them by osmosis. NOAA explains that your kidneys can only make urine less salty than seawater, so getting rid of the extra salt takes more water than you drank. The body loses water overall.
 
-<Support min={2}>**Key idea:** Passive transport moves substances from high to low concentration with no energy from the cell, and in osmosis water moves toward the side with more dissolved solute.</Support>
+<Support min={2}>**Key idea:** Water runs toward the side with more trapped solute until the two sides balance or a push from the other side, such as a cell wall's, stops the net flow.</Support>
+
+A living animal cell, though, keeps sodium much higher outside and potassium much higher inside. The second film shows what holding those differences costs.
+
+<LessonFilm film={frontmatter.films[0]} />
 
 ## Explain: paying to move uphill
 
-**Active transport** is movement across a membrane that uses energy from the cell, often from ATP, and it can move a substance against its concentration gradient. ATP is the molecule that carries usable energy around the cell, as you saw in [the respiration lesson](/lessons/respiration-and-atp/).
-
-The best-known pump is the sodium-potassium pump in animal cells. Each cycle, it uses ATP to move three sodium ions out and two potassium ions in. Both trips go uphill: sodium is already higher outside, and potassium is already higher inside. Without ATP, the pump stops.
-
-Loads too big for any channel or pump travel in vesicles, small bubbles of membrane. This also needs energy.
+The second film's pump moved single ions uphill. That is **active transport**, paid for with the cell's energy, often from ATP ([the respiration lesson](/lessons/respiration-and-atp/)). Loads far too big for any channel or pump travel in **vesicles**, small bubbles of membrane, and this also needs energy.
 
 - **Endocytosis** brings material into the cell. The membrane folds inward around it, and the pocket pinches off as a vesicle inside the cell. Some white blood cells engulf bacteria this way.
 - **Exocytosis** releases material from the cell. A vesicle joins the cell membrane and spills its contents outside. [The organelles lesson](/lessons/organelles-as-a-system/) follows these vesicles.
 
 <LessonFigure src="/figures/crossing-the-membrane/endocytosis-and-exocytosis.webp" width={1200} height={676} alt="AI-generated illustration: two rows of three frames. Top: a particle outside a cell membrane, the membrane folding around it, and a vesicle pinched off inside. Bottom: a vesicle inside the cell, the vesicle joining the membrane, and its contents spilling outside." caption="Endocytosis folds the membrane around a load and pinches off a vesicle inside the cell; exocytosis runs the other way. Both use energy from the cell." />
 
-Seawater holds about 35 grams of dissolved salts in each kilogram, according to NOAA. That is far saltier than your body fluids, which have about the same pull on water as a 0.9% salt solution. NOAA explains that getting rid of the extra salt takes more water than the seawater supplied, so the body loses water overall.
-
 <Support min={2}>**Key idea:** Active transport uses energy, often from ATP, to move substances against their gradient or to carry big loads in vesicles by endocytosis and exocytosis.</Support>
 
 ## Elaborate: weighing cucumber slices
 
-In the Open University demonstration, one peeled cucumber slice went into water with added kitchen salt and one into distilled water. Each was blotted and weighed over time. Percent change in mass is:
+In the Open University demonstration, one peeled cucumber slice went into water with added kitchen salt and one into distilled water. Each was blotted and weighed over time.
 
-<LessonFigure src="/figures/crossing-the-membrane/cucumber-slices-demo.webp" width={1200} height={800} alt="AI-generated illustration: two glass dishes, one of salty water and one of distilled water, each with a peeled cucumber slice; a small strip shows a slice being blotted and weighed; below, the slice from salty water droops while the other stays flat." caption="The set-up of the cucumber demonstration: a slice in salty water and a slice in distilled water, each blotted and weighed over time." />
-
-> percent change in mass = 100 × (final mass − starting mass) ÷ starting mass
+<LessonFigure src="/figures/crossing-the-membrane/cucumber-slices-demo.webp" width={1200} height={800} alt="AI-generated illustration: two glass dishes, one of salty water and one of distilled water, each with a peeled cucumber slice; a small strip shows a slice being blotted and weighed; below, the slice from salty water droops while the other stays flat." caption="In salty water a cucumber slice loses water and goes soft; in distilled water it gains water and stays firm." />
 
 | Slice | Time in the liquid | Starting mass (g) | Mass then (g) | Change in mass (%) |
 |---|---|---|---|---|
@@ -356,13 +387,13 @@ In the Open University demonstration, one peeled cucumber slice went into water 
 | Distilled water | 2 hours | 22 | 24 | +9.1 |
 | Distilled water | Overnight | 22 | 30 | +36.4 |
 
-Source: Janet Sumner, Open University (OpenLearn) filmed demonstration and transcript, accessed October 2026; no date is given. Masses were read to the whole gram, the salt was added as two spoonfuls with no concentration reported, and there was one slice for each liquid. Mass is a stand-in for water: some liquid can also soak into the cut surface and the spaces between cells. Percent changes are calculated from the reported masses.
+Source: Janet Sumner, Open University (OpenLearn) filmed demonstration and transcript, accessed October 2026; no date is given. Masses were read to the whole gram, the salt was added as two spoonfuls with no concentration reported, and there was one slice for each liquid. Mass is a stand-in for water: some liquid can also soak into the cut surface and the spaces between cells. Percent changes are calculated from the reported masses:
+
+> percent change in mass = 100 × (final mass − starting mass) ÷ starting mass
 
 1. Describe the trend for each slice over time.
 2. The distilled-water slice gained 8 grams overnight and the salty slice lost 5 grams. Why is percent change a fairer way to compare them than grams?
 3. Can these data tell you the salt concentration at which a slice would neither gain nor lose mass? Explain what is missing.
-
-The Chesapeake Bay also spans a range of salt in nature. The Chesapeake Bay Program describes its head and tidal rivers as below 0.5 parts per thousand of salt and its mouth as averaging 25 to 30 parts per thousand.
 
 <CER
   task="Make a claim that answers this: why did the cucumber slice in salty water lose mass while the slice in distilled water gained it? Use the table."
@@ -374,7 +405,7 @@ The Chesapeake Bay also spans a range of salt in nature. The Chesapeake Bay Prog
 
 ### Design problem
 
-Plan an investigation to find the sugar concentration at which potato pieces neither gain nor lose mass. Name your variables, constants, control and sample size, and say how you will stay safe.
+Plan an investigation to find the sugar concentration at which potato pieces neither gain nor lose mass. Name your variables (what you change and what you measure), constants, control and sample size, and say how you will stay safe.
 
 <details>
 <summary>One way to do it</summary>
@@ -387,12 +418,22 @@ Plan an investigation to find the sugar concentration at which potato pieces nei
 - **Analysis:** plot mean percent change against concentration and find where the line crosses zero, between a gain and a loss. If every piece gained or every piece lost, the balance point lies outside your range.
 - **Safety:** care with the knife, labelled dishes, no tasting.
 
-The zero point estimates the solution in which the potato cells neither gain nor lose water under your conditions. It does not measure exactly what is dissolved inside the cells, because the cells' turgor pressure against their walls also affects how much water they take in.
+The zero point estimates where the potato cells neither gain nor lose water under your conditions. It does not measure exactly what is dissolved inside them, because their turgor pressure against their walls also affects how much water they take in.
 
 </details>
 
 ## Evaluate: check your thinking
 
-The salty water was hypertonic to the cucumber cells, so on balance water left them by osmosis. The cells lost turgor pressure, the slice got lighter, and it went soft. In distilled water the opposite happened.
+One rule answers both opening questions: with no energy spent, water runs toward more trapped solute. Cucumber cells lose water straight into the salty water around them. Seawater works in two steps, as the worked case showed: absorbed salt can draw water from your cells, and getting rid of that salt costs more water than you drank. The cell spends energy only to move a substance uphill, as the pump does, or to carry a load in a vesicle.
 
 **Science practices you used:** making predictions and testing them with a model, calculating percent change from measured masses, reading a data table and naming its limits, and planning a fair test with a control, repeated pieces and a mean.
+
+## Going deeper
+
+### How few water molecules are missing?
+
+For the first film's salty drop: in an idealized 0.9% salt solution, each unit of salt splits into a sodium and a chloride ion, and only about 5 or 6 of every 1,000 particles are those ions. So body fluid has only about half a percent less water than pure water, yet in pure water that small gap is enough to burst a red blood cell.
+
+### Salt in the Chesapeake Bay
+
+The Chesapeake Bay Program describes its head and tidal rivers as below 0.5 parts per thousand of salt and its mouth as averaging 25 to 30 parts per thousand. A cell from the bay's mouth, in balance with the water there, is placed in water from the bay's head. Is it in a hypertonic, isotonic or hypotonic solution? (Hypotonic: the water outside now holds far less trapped solute than the cell.)

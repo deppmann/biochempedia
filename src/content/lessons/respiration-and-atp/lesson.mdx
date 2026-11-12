@@ -5,8 +5,9 @@ course: "high-school-biology"
 courseChapter: "Biology · Unit 1: The chemistry of life"
 order: 905
 summary: >-
-  How does the energy in food become energy a cell can use, and what changes when oxygen runs short?
-  You run a virtual cell's energy budget with oxygen on and off, then read six years of Chesapeake Bay
+  Cells spend ATP and rebuild it by taking glucose apart; a glucose taken all the way to carbon
+  dioxide and water with oxygen rebuilds about 30 ATP, while a glucose that stops partway in fermentation
+  rebuilds 2, leaving most of the energy in lactate or ethanol. You run a virtual cell's energy budget with oxygen on and off, then read six years of Chesapeake Bay
   low-oxygen estimates. Afterwards you can write the respiration equation, explain how ATP carries
   energy, and compare respiration with fermentation.
 hook: "Why do your legs burn after a sprint, why does bread dough puff up, and why does the deep Chesapeake Bay lose its oxygen in summer?"
@@ -30,10 +31,31 @@ explainer:
   src: "/explainers/respiration-and-atp/explainer.mp4"
   captions: "/explainers/respiration-and-atp/explainer.vtt"
   poster: "/explainers/respiration-and-atp/poster.jpg"
-  title: "Food Energy Becomes ATP"
-  durationSec: 155.0
-  narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+  title: "Spending ATP, Rebuilding ATP"
+  durationSec: 195.3
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+  takeaways:
+    - "Cells do work by spending ATP, which becomes ADP and a phosphate when it reacts with water."
+    - "A cell keeps only a small supply of ATP, so it rebuilds ATP from ADP all the time."
+    - "The energy to rebuild ATP comes from taking glucose apart; the first steps run in the cytoplasm."
+    - "With oxygen, mitochondria finish the job, down to carbon dioxide and water; the whole route rebuilds about 30 ATP per glucose."
+    - "ATP is a molecule that carries energy; it is not energy itself."
+
+films:
+  - id: "chapter-2"
+    src: "/explainers/respiration-and-atp/chapter-2.mp4"
+    captions: "/explainers/respiration-and-atp/chapter-2.vtt"
+    poster: "/explainers/respiration-and-atp/chapter-2-poster.jpg"
+    title: "Stopping Partway"
+    durationSec: 191.0
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+    takeaways:
+      - "When oxygen-using respiration can't keep up, some glucose stops partway; each glucose that stops partway rebuilds just 2 ATP, while the mitochondria keep working on the rest."
+      - "In muscle the halves become lactate; in yeast they become ethanol and carbon dioxide, which makes dough rise."
+      - "Lactate and ethanol still hold over nine-tenths of glucose's energy, which is why fermentation yields so little ATP."
+      - "To rebuild the same ATP, a fermenting cell must break down about 15 times as much glucose."
 
 scientists: []
 
@@ -185,10 +207,10 @@ explainLevels:
       Cellular respiration breaks down glucose and other food molecules and uses the released energy
       to rebuild ATP from ADP and phosphate. With oxygen, the overall reaction is C6H12O6 + 6O2 →
       6CO2 + 6H2O + energy. The first steps run in the cytoplasm, and most ATP is made in the
-      mitochondria, about 30 to 32 ATP per glucose; in bacteria the electron transport steps run on the cell
-      membrane. ATP releases usable energy when it reacts with water and loses a phosphate group.
-      Without oxygen, muscle cells and yeast use fermentation, which the SOL calls anaerobic
-      respiration. It can be fast but gives only 2 ATP per glucose, making lactate in muscle and ethanol
+      mitochondria, about 30 to 32 ATP per glucose; in bacteria the electron transport steps, which make
+      most of the ATP, run on the cell membrane. ATP releases usable energy when it reacts with water and loses a phosphate group.
+      When oxygen is short, or ATP is needed faster than aerobic respiration can supply it, muscle
+      cells and yeast use fermentation, which the SOL calls anaerobic respiration. It can be fast but gives only 2 ATP per glucose, making lactate in muscle and ethanol
       plus carbon dioxide in yeast. Respiration and photosynthesis together cycle carbon, hydrogen
       and oxygen atoms.
   - level: "bio2"
@@ -249,20 +271,21 @@ import Support from '../../../components/Support.astro';
 import CER from '../../../components/CER.astro';
 import ScaffoldFigure from '../../../components/ScaffoldFigure.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import LessonFilm from '../../../components/LessonFilm.astro';
 
 **After a hard sprint up a few flights of stairs, your legs may burn and you may keep breathing hard for a few minutes. Meanwhile, bread dough in a warm kitchen puffs up with bubbles, and in summer, parts of the deep Chesapeake Bay hold very little oxygen.**
 
-Each of these is about how cells get usable energy out of food, with plenty of oxygen or with little. Respiration, fermentation and one small molecule, ATP, tie all three together.
+Your legs were stocked with sugar the whole time, yet a muscle can't pull with glucose directly. All three puzzles turn on one question: how far a cell takes glucose apart, and whether oxygen is used to do it.
 
 <IdeaCheck items={[
-  { idea: 'ATP is a kind of energy, like heat or light.', answer: 'disagree', explain: 'ATP is a molecule made of atoms you can count: an adenine-and-sugar part with three phosphate groups attached. Energy is released when ATP reacts with water and loses a phosphate, and the cell uses that energy for work. ATP carries energy; it is not energy.' },
+  { idea: 'ATP is a kind of energy, like heat or light.', answer: 'disagree', explain: 'ATP is a molecule made of atoms you can count: an adenine-and-sugar part with three phosphate groups attached. Energy is released when ATP reacts with water and loses a phosphate. ATP carries energy; it is not energy.' },
   { idea: 'Plants do photosynthesis, and animals do respiration.', answer: 'disagree', explain: 'Plant cells have mitochondria, just as animal cells do, and they break down sugar for ATP day and night. A plant sealed in a dark jar gives off carbon dioxide. In bright light, photosynthesis takes in more carbon dioxide than respiration releases, which hides the respiration from view.' },
-  { idea: 'Respiration is another word for breathing.', answer: 'disagree', explain: 'Breathing moves air in and out of your lungs. Cellular respiration is a chemical process inside cells that breaks down food molecules and uses the released energy to build ATP. The two are linked: breathing brings in the oxygen your cells use and removes the carbon dioxide they make. Yeast and bacteria have no lungs, yet many of them respire.' },
+  { idea: 'Respiration is another word for breathing.', answer: 'disagree', explain: 'Breathing moves air in and out of your lungs. Cellular respiration is a chemical process inside cells that releases energy from food to build ATP. The two are linked: breathing brings in the oxygen your cells use and removes the carbon dioxide they make. Yeast and bacteria have no lungs, yet many of them respire.' },
 ]} />
 
 ## Explore: run a cell’s energy budget
 
-In the simulation you run one cell’s energy budget. You choose whether oxygen is present and how much glucose arrives each second. Labelled bars show the ATP made per glucose, the ATP made per second, and which products pile up: carbon dioxide and water, lactate, or ethanol and carbon dioxide.
+In the simulation you choose whether oxygen is present and how much glucose arrives each second. Bars show the ATP made per glucose, the ATP made per second (how fast ATP is resupplied) and which products pile up.
 
 <CellEnergyBudget />
 
@@ -272,57 +295,63 @@ In the simulation you run one cell’s energy budget. You choose whether oxygen 
 3. Keep oxygen off and double the glucose supply. Predict whether ATP per second changes, and whether ATP per glucose changes.
 4. Turn oxygen back on. Predict how many glucose molecules the cell needs to make 60 ATP, then check.
 
-## Explain: how cells get energy out of glucose
+## Explain: ATP carries energy to where it is used
+
+> **The one idea.** A cell's jobs, from a muscle pulling to a nerve cell pumping charged particles to building proteins, run on ATP, not on glucose directly. The cell rebuilds ATP from ADP with energy from taking glucose apart. A glucose taken all the way down to carbon dioxide and water, with oxygen, rebuilds about 30 ATP. When oxygen-using respiration can't keep up, glucose that stops partway, at lactate or ethanol, rebuilds only 2. Most of its energy stays locked in those leftovers.
+>
+> *Scope:* glucose in plant, animal and fungal cells such as muscle and yeast, with classroom yields of about 30 and 2 ATP per glucose. ATP is the main carrier; a few jobs use others. Bacteria come up only briefly; how they make ATP without mitochondria is in Going deeper.
 
 <WordBank terms={['cellular respiration', 'mitochondria', 'ATP', 'ADP', 'aerobic', 'anaerobic', 'fermentation', 'lactate']} />
 
-Food holds energy in the way its atoms are bonded. The main example is glucose, the sugar from [Capturing Sunlight](/lessons/photosynthesis-energy-capture/).
+The first film showed **ATP** (adenosine triphosphate, three phosphate groups) losing its end phosphate to water to become **ADP** (adenosine diphosphate, two). It left out why that releases energy at all.
 
-**Cellular respiration** is the process in which cells break down glucose and other food molecules and use the released energy to build ATP. It goes on in the cells of plants, animals, fungi and many microbes.
+**Predict.** Breaking any chemical bond takes energy. So how can ATP release energy when its end phosphate comes off?
 
-When oxygen is available, the overall result fits in one line:
+<details>
+<summary>Check your prediction</summary>
 
-> glucose + oxygen → carbon dioxide + water + energy (much of it captured in ATP)
->
-> C6H12O6 + 6O2 → 6CO2 + 6H2O + energy
+The energy comes from the whole reaction, not from snapping one bond. The products, ADP and phosphate, end up more stable than ATP and water were, meaning lower in energy. That difference is the energy the cell can use. Think of a ball on a shelf. Pushing it over the edge takes a nudge, but it ends lower than it started, and the drop is what you get.
 
-Check the atoms. There are 6 carbons on each side, 12 hydrogens on each side, and 18 oxygens on each side. Matter is rearranged, not created or lost.
+</details>
 
-This equation is a summary. The real process runs as many small steps, each sped up by an enzyme (see [Enzymes at Work](/lessons/enzymes-at-work/)). The first steps happen in the cytoplasm. Most of the ATP is made in the **mitochondria** (one is a mitochondrion): organelles in plant, animal and fungal cells where the later steps of aerobic respiration happen. Bacteria have no mitochondria. In bacteria that use oxygen, the electron transport steps, which make most of the ATP, run on the cell membrane instead.
+ATP is like a rechargeable battery, drained by work and charged by respiration. Unlike a battery, though, ATP really changes into ADP and a loose phosphate, and is then rebuilt.
 
-How much ATP does one glucose give? For an animal cell, modern estimates say about 30 to 32 ATP per glucose. Real cells vary, because some energy leaks away along the way, and some cells, such as baker's yeast, get fewer.
+<Support min={2}>**Key idea:** ATP is a molecule, not energy; it releases usable energy when it loses a phosphate, and respiration supplies the energy to add the phosphate back.</Support>
 
-Part of the energy is released as heat, one reason you warm up when you exercise. No energy is made or destroyed: it moves from glucose into ATP and heat.
+## Explain: where ATP is rebuilt
+
+The first film built the respiration equation but skipped where the energy sits and whether the atoms add up. Glucose, the sugar from [Capturing Sunlight](/lessons/photosynthesis-energy-capture/), holds energy in how its atoms are bonded. Rearranged with oxygen into carbon dioxide and water, the same atoms sit lower in energy, like the ball on the floor. **Cellular respiration** is cells breaking down glucose and other food molecules and using the released energy to build ATP, in plants, animals, fungi and many microbes.
+
+> C6H12O6 + 6O2 → 6CO2 + 6H2O + energy (much of it captured in ATP)
+
+Check the atoms: 6 carbons, 12 hydrogens and 18 oxygens on each side. Matter is rearranged, not created or lost.
+
+The real process runs as many small steps, each sped up by an enzyme, usually a protein (see [Enzymes at Work](/lessons/enzymes-at-work/)). The first film placed the first steps in the **cytoplasm** and the rest in the **mitochondria** (one is a mitochondrion), organelles found in plant, animal and fungal cells.
+
+For an animal cell, modern estimates say about 30 to 32 ATP per glucose; real cells vary (see Going deeper). No energy is made or destroyed: it moves from glucose into ATP and heat.
 
 <ScaffoldFigure src="/figures/respiration-and-atp/aerobic-respiration-cell.webp" width={1200} height={800} keyItems={["glucose", "cytoplasm", "mitochondrion", "oxygen", "carbon dioxide and water", "ATP"]} given={[0, 2]} alt="AI-generated illustration: a round cell with sand-coloured blocks entering, a few small arrows in the open area, and one bean-shaped organelle with an inner fold; arrows bring one gas in and two products out, and gold tokens leave toward a work block. Six numbered circles mark parts to name." caption="A cell breaking down glucose with oxygen: the first steps happen in the open cytoplasm, and most of the ATP is made in the mitochondrion." />
 
 <Support min={2}>**Key idea:** Cells break down glucose with oxygen into carbon dioxide and water, mostly in the mitochondria, and capture part of the released energy in ATP.</Support>
 
-## Explain: ATP carries energy to where it is used
+All of that depended on oxygen-using respiration. A sprinting leg can need ATP faster than that route supplies it, even with its mitochondria working, and yeast sealed in dough gets almost no oxygen. The second film turns the oxygen down.
 
-Every working cell does jobs that cost energy. A muscle cell pulls, a nerve cell pumps charged particles across its membrane, and almost every cell builds proteins.
-
-**ATP** (adenosine triphosphate) is a small molecule that carries energy from the breakdown of food to the jobs that use energy. It has three phosphate groups in a row. When ATP reacts with water, the end phosphate group comes off. What is left is **ADP** (adenosine diphosphate), the same molecule with only two phosphate groups.
-
-> ATP + water → ADP + phosphate + released energy (used for cell work)
-
-The energy comes from the whole reaction, not from snapping one bond. Breaking any chemical bond takes energy. The products, ADP and phosphate, end up in a more stable arrangement than ATP and water started in, and that difference is the energy the cell can use.
-
-Running the reaction backwards, building ATP from ADP and phosphate, takes energy. Cellular respiration supplies it. So ATP and ADP go round in a cycle: respiration turns ADP back into ATP, and cell work turns ATP into ADP. A cell keeps only a small supply of ATP, so it rebuilds it all the time.
-
-ATP works a little like a rechargeable battery that is charged by respiration and drained by work. The analogy breaks in one place: a battery stays the same object, while ATP really changes into a different molecule and a loose phosphate, and is then rebuilt.
-
-
-<Support min={2}>**Key idea:** ATP is a molecule, not energy; it releases usable energy when it loses a phosphate, and respiration supplies the energy to add the phosphate back.</Support>
+<LessonFilm film={frontmatter.films[0]} />
 
 ## Explain: with oxygen and without it
 
-**Aerobic** means using oxygen. **Anaerobic** means without oxygen. In your muscles during a sprint, and in yeast inside dough, cells can keep making some ATP without oxygen.
+The second film showed glucose stopping partway for 2 ATP. It left out why a cell bothers with a last step that adds no ATP. **Aerobic** means using oxygen; **anaerobic** means without it. The first steps, which rebuild the 2 ATP, use up a small helper molecule (Biology II calls it NAD+). Turning the halves into lactate or ethanol hands that helper back, so the first steps can keep running. It is not all or nothing, as the second film showed.
 
-The SOL calls this anaerobic respiration. In your muscles and in yeast the process is called **fermentation**: a way of making a small amount of ATP from glucose without oxygen. Some microbes carry out anaerobic respiration in a stricter sense, using another substance such as nitrate or sulfate in place of oxygen.
+**What to call it.** Biologists call this route **fermentation**: making a small amount of ATP from glucose without oxygen. The SOL calls it anaerobic respiration, a name biologists also use for something different that some microbes do (see Going deeper).
 
-- In muscle cells, fermentation turns glucose into **lactate**, a small molecule. Lactate builds up when hard-working muscle makes it faster than it can be used. It is not just waste: the heart, other muscles and the liver use it as fuel or to rebuild glucose.
-- In yeast, fermentation turns glucose into ethanol and carbon dioxide. The carbon dioxide forms the bubbles that make bread dough rise. Baker's yeast given plenty of sugar ferments even when oxygen is present.
+**Predict.** If lactate still holds most of glucose's energy, does your body throw it away?
+
+<details>
+<summary>Check your prediction</summary>
+
+No. **Lactate**, the muscle's leftover, is not just waste: the heart, other muscles and the liver use it as fuel or to rebuild glucose.
+
+</details>
 
 | | Aerobic respiration | Fermentation |
 |---|---|---|
@@ -332,19 +361,20 @@ The SOL calls this anaerobic respiration. In your muscles and in yeast the proce
 | Products | Carbon dioxide and water | Muscle: lactate. Yeast: ethanol and carbon dioxide |
 | Speed | Often slower | Often faster |
 
-Fermentation gets far less ATP from each glucose, but it can make ATP quickly. How fast it is for the same amount of enzyme is still debated; see Going deeper.
+Whether fermentation is really faster for the same amount of enzyme is still debated (see Going deeper). About the burn and the breathing:
+- The burn is not caused by lactate alone; experiments point to a mix of acid, lactate and other chemicals.
+- Soreness the next day is a different effect, and lactate is not its cause.
+- You keep breathing hard after a sprint partly because your cells use extra oxygen while they recover.
 
-During a sprint your muscles use ATP faster than aerobic respiration alone can rebuild it, so after the first few seconds fermentation adds ATP and lactate builds up. The burn is not caused by lactate alone; experiments point to a mix of acid, lactate and other chemicals. Soreness the next day is a different effect, and lactate is not its cause. After the sprint you keep breathing hard partly because your cells use extra oxygen while they recover.
+Respiration and photosynthesis mirror each other. Photosynthesis uses light energy to build glucose from carbon dioxide and water, releasing oxygen; respiration breaks glucose back down with oxygen into carbon dioxide and water. Plants do both. The atoms go round and round between them, while energy arrives as light and leaves as heat (see [Matter Cycles](/lessons/matter-cycles/)).
 
-Respiration and photosynthesis mirror each other. Photosynthesis uses light energy to build glucose from carbon dioxide and water and releases oxygen. Respiration breaks glucose back down with oxygen into carbon dioxide and water. Plants do both. The atoms go round and round between them, while energy arrives as light and leaves as heat (see [Matter Cycles](/lessons/matter-cycles/)).
-
-<Support min={2}>**Key idea:** With oxygen, cells get about 30 ATP per glucose; without it, fermentation gets only 2 but can make ATP quickly, making lactate in muscle and ethanol plus carbon dioxide in yeast.</Support>
+<Support min={2}>**Key idea:** A glucose taken all the way down with oxygen gives about 30 ATP; one that stops partway in fermentation gives only 2 but can be fast, making lactate in muscle and ethanol plus carbon dioxide in yeast.</Support>
 
 ## Elaborate: the Bay’s summer oxygen gap
 
-In spring and summer, algae grow in the sunlit surface water, fed by nutrients that rivers carry in from the land, much of them from human activity. Many die and sink. In summer the warm surface layer does not mix well with the deep water, so little new oxygen reaches the bottom. Bacteria near the bottom break them down by aerobic respiration, which uses up the oxygen dissolved in the water. Water with less than 2 milligrams of oxygen per liter (2 mg/L) is called hypoxic.
+Here the all-the-way-down route is the problem. In spring and summer, algae grow in the sunlit surface water, fed by nutrients that rivers carry in from the land, much of them from human activity. Many die and sink, and near the bottom bacteria break them down by aerobic respiration, using up the dissolved oxygen. In summer the warm surface layer does not mix well with the deep water, so little new oxygen reaches the bottom. Water with less than 2 milligrams of oxygen per liter (2 mg/L) is hypoxic; a large patch of it is often called a dead zone.
 
-<LessonFigure src="/figures/respiration-and-atp/bay-oxygen-gap.webp" width={1200} height={800} alt="AI-generated illustration: a side view of the Bay with algae growing in the sunlit surface water, dead algae sinking to the bed, and small bacteria on the bed taking in oxygen; the bottom layer is outlined as low-oxygen water." caption="In summer, algae that die in the sunlit surface water sink, and bacteria near the bottom use up the oxygen as they break the algae down, leaving hypoxic water." />
+<LessonFigure src="/figures/respiration-and-atp/bay-oxygen-gap.webp" width={1200} height={800} alt="AI-generated illustration: a side view of the Bay with algae growing in the sunlit surface water, dead algae sinking to the bed, and small bacteria on the bed taking in oxygen; the bottom layer is outlined as low-oxygen water." caption="In summer, algae that die in the sunlit surface water sink, bacteria near the bottom use up the oxygen as they break the algae down, and little new oxygen mixes down, leaving hypoxic water." />
 
 | Year | Largest hypoxic volume on any one day (km³) |
 |---|---|
@@ -388,7 +418,10 @@ Plan an investigation to test whether bread yeast needs to be alive to make gas 
 
 ## Evaluate: check your thinking
 
-Your sprinting muscles use ATP faster than aerobic respiration alone can rebuild it, so fermentation adds quick ATP and lactate builds up, and experiments suggest the burn comes from a mix of chemicals. Yeast in dough ferments sugar and releases the carbon dioxide that makes the bubbles. In the deep Bay, bacteria break down sinking algae by aerobic respiration and use up the oxygen faster than it returns.
+In the sprint and the dough, how far glucose was taken apart set how much ATP came back; in the Bay, the oxygen it takes to go all the way down is the problem.
+- Sprint: when aerobic respiration alone can't rebuild ATP fast enough, fermentation adds quick ATP and lactate builds up.
+- Dough: yeast ferments sugar, and the carbon dioxide makes the bubbles.
+- Bay: bacteria break down sinking algae by aerobic respiration and use up oxygen faster than it returns.
 
 **Science practices you used:** making predictions and testing them with a model, reading a data table and finding a mean, planning a fair test with a control and repeated trials, and backing a claim with evidence while naming the limits of the data.
 
@@ -396,12 +429,20 @@ Your sprinting muscles use ATP faster than aerobic respiration alone can rebuild
 
 ### Is fermentation faster for the same amount of enzyme?
 
-A 2024 analysis estimated that, for the same mass of enzyme, the fermentation route made ATP about 2.1 times as fast as respiration in yeast and 3.1 times as fast in mammal cells. In the bacterium *E. coli*, though, respiration was faster. Scientists still debate this result, because another 2024 study found respiration more efficient for the same amount of protein, in yeast, immune cells and cancer cells. Studies disagree on whether fermentation is faster for the same amount of enzyme.
+A 2024 analysis estimated that, for the same mass of enzyme, the fermentation route made ATP about 2.1 times as fast as respiration in yeast and 3.1 times as fast in mammal cells. In the bacterium *E. coli*, though, respiration was faster. Scientists still debate this result, because another 2024 study found respiration more efficient for the same amount of protein, in yeast, immune cells and cancer cells. The debate bears on a puzzle: baker's yeast given plenty of sugar ferments even when oxygen is present.
 
 ### How big is the ATP yield from one glucose?
 
-Older textbooks say 36 to 38 ATP per glucose. The modern estimate of about 30 to 32 is lower because some energy leaks away along the way.
+Older textbooks say 36 to 38 ATP per glucose. The modern estimate of about 30 to 32 is lower mainly because each ATP turned out to cost more of the energy the mitochondrion stores across its inner membrane than older counts assumed; the total also depends on which shuttle passes electrons from the helper molecule in the cytoplasm to the electron transport steps in the mitochondrion. Real cells can get less, because some stored energy leaks away, and some, such as baker's yeast, get fewer.
 
 ### The first seconds of a sprint
 
 For the first few seconds of a sprint, a store called creatine phosphate refills ATP; then fermentation adds ATP and lactate builds up.
+
+### Bacteria
+
+Bacteria have no mitochondria. In those that use oxygen, the electron transport steps, which make most of the ATP, run on the cell membrane.
+
+### Anaerobic respiration in a stricter sense
+
+Some microbes carry out anaerobic respiration in a stricter sense, using another substance such as nitrate or sulfate in place of oxygen.
