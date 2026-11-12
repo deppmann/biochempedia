@@ -1,0 +1,609 @@
+{
+ "slug": "reading-phylogenetic-trees",
+ "title": "Reading Phylogenetic Trees",
+ "generated": {
+  "date": "2026-11-12",
+  "pipeline": "extract → Opus draft → Sonnet accuracy gate → Sonnet fixes",
+  "models": {
+   "draft": "claude-opus-5-5",
+   "gate": "claude-sonnet-5-5",
+   "fix": "claude-sonnet-5-5"
+  },
+  "refresh": "2026-11-11: film re-tell cut from lesson; c23 re-anchored"
+ },
+ "lessonHash": "373906e39dcc",
+ "sectionHashes": {
+  "(opening)": "106453bc5768",
+  "The parts of a tree": "cbbdcce38063",
+  "Reading relatedness from the MRCA": "c36482852949",
+  "Characters on branches: shared derived and shared ancestral": "5fb7f222c6e2",
+  "How trees are built and how confident to be": "788061ec91e3",
+  "Design problem": "0914fc678d56",
+  "When strong support is wrong": "9e86ec6fa1c7",
+  "The root of the animal tree": "89f9fea000df",
+  "Methods in more detail": "195cbfbeafef"
+ },
+ "cards": [
+  {
+   "id": "reading-phylogenetic-trees-c01",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "On a phylogenetic tree, where does relatedness live, and where does change live?",
+   "back": "Relatedness lives at the nodes; change lives on the branches.",
+   "quote": "Relatedness lives at the nodes; change lives on the branches."
+  },
+  {
+   "id": "reading-phylogenetic-trees-c02",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In the tree (lamprey, (shark, (trout, (frog, human)))), why is trout closer kin to human than to shark, although trout looks like a shark?",
+   "back": "The ancestor trout shares with human (node B) descends from, and so is more recent than, the one it shares with shark (node J). Looks do not decide relatedness; the MRCA does.",
+   "quote": "Trout is closer to you than to a shark because the ancestor it shares with you (node B) descends from"
+  },
+  {
+   "id": "reading-phylogenetic-trees-c03",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "When can a cladogram rank two nodes in time, and when can it not?",
+   "back": "Only when one node descends from the other. It cannot date nodes on separate branches.",
+   "quote": "A cladogram ranks two nodes in time only when one descends from the other; it cannot date nodes on separate branches."
+  },
+  {
+   "id": "reading-phylogenetic-trees-c04",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "On a rooted phylogenetic tree, what is an internal node?",
+   "back": "An inferred common ancestor of every lineage descending from it.",
+   "quote": "each internal node is an inferred common ancestor of every lineage descending from it",
+   "section": "The parts of a tree"
+  },
+  {
+   "id": "reading-phylogenetic-trees-c05",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "The {{c1::most recent common ancestor (MRCA)}} of a set of tips is the latest node from which all of them descend.",
+   "back": "",
+   "quote": "the most recent common ancestor (MRCA) of a set of tips is the latest node from which all of them descend",
+   "section": "The parts of a tree"
+  },
+  {
+   "id": "reading-phylogenetic-trees-c06",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A {{c1::clade}} is an ancestor and all of its descendants.",
+   "back": "",
+   "quote": "a clade is an ancestor and all of its descendants",
+   "section": "The parts of a tree"
+  },
+  {
+   "id": "reading-phylogenetic-trees-c07",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Two clades that are each other's closest relatives are {{c1::sister groups}}.",
+   "back": "",
+   "quote": "two clades that are each other's closest relatives are sister groups",
+   "section": "The parts of a tree"
+  },
+  {
+   "id": "reading-phylogenetic-trees-c08",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "On a rooted phylogenetic tree, the {{c1::root}} is the ancestor of everything on the tree.",
+   "back": "",
+   "quote": "the root is the ancestor of everything on the tree",
+   "section": "The parts of a tree"
+  },
+  {
+   "id": "reading-phylogenetic-trees-c09",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In the tree (lamprey, (shark, (trout, (frog, human)))), lamprey is the {{c1::outgroup}}, assumed to lie outside the group studied.",
+   "back": "",
+   "quote": "with lamprey as the outgroup, assumed to lie outside the group studied",
+   "section": "Reading relatedness from the MRCA"
+  },
+  {
+   "id": "reading-phylogenetic-trees-c10",
+   "type": "qa",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In the tree (lamprey, (shark, (trout, (frog, human)))), which node is the MRCA of shark and human, and which other tips descend from it?",
+   "back": "Node J, the node joining shark to the (trout, (frog, human)) clade. Trout and frog also descend from it; lamprey does not.",
+   "why": "Each pair of parentheses encloses one clade; the MRCA is the latest node from which all the chosen tips descend.",
+   "quote": "each pair of parentheses enclosing one clade",
+   "section": "Reading relatedness from the MRCA"
+  },
+  {
+   "id": "reading-phylogenetic-trees-c11",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "The tree (lamprey, (shark, (trout, (frog, human)))) is redrawn by rotating nodes so that human sits on the page right next to shark. Is human now more closely related to shark than trout is?",
+   "back": "No. Rotation changes only tip order; every clade keeps its members, so trout and human still meet at node B, which is more recent than node J.",
+   "quote": "Anything a node rotation can change, such as tip order, says nothing about relationships"
+  },
+  {
+   "id": "reading-phylogenetic-trees-c12",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A salmon is added to (lamprey, (shark, (trout, (frog, human)))) as trout's sister. Does trout's MRCA with human change? Does the number of nodes between trout and human change?",
+   "back": "MRCA: no, they still meet at node B. Node count: yes, from two to three (B, T and the new salmon-trout node).",
+   "why": "Node counts depend on which species were sampled; the MRCA does not. So node counts say nothing about relatedness.",
+   "quote": "Node counts depend on which species were sampled",
+   "section": "Reading relatedness from the MRCA"
+  },
+  {
+   "id": "reading-phylogenetic-trees-c13",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why is no living tip on a phylogenetic tree \"more evolved\" than another, and what is the one exception?",
+   "back": "Every living lineage has had the same time since the root. The exception is a fossil tip, whose lineage was sampled earlier.",
+   "quote": "a fossil tip, whose lineage is sampled earlier, has not had the same time since the root",
+   "section": "Reading relatedness from the MRCA"
+  },
+  {
+   "id": "reading-phylogenetic-trees-c14",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "What do branch lengths mean on a cladogram versus a molecular phylogram?",
+   "back": "On a cladogram only the branching order means anything. On a molecular phylogram, branch lengths are scaled to estimated sequence change, usually substitutions per site, not years.",
+   "quote": "On a molecular phylogram, branch lengths are scaled to estimated sequence change, usually substitutions per site, not years.",
+   "section": "Reading relatedness from the MRCA"
+  },
+  {
+   "id": "reading-phylogenetic-trees-c15",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "A tree scaled in time is a {{c1::chronogram}}.",
+   "back": "Converting change into time needs a molecular clock and a calibration.",
+   "quote": "A tree scaled in time is a chronogram, and converting change into time needs a molecular clock and a calibration",
+   "section": "Reading relatedness from the MRCA"
+  },
+  {
+   "id": "reading-phylogenetic-trees-c16",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "How does an outgroup tell an ancestral character state from a derived one?",
+   "back": "The outgroup's state is called ancestral; a state that arose on a branch inside the tree is derived.",
+   "quote": "Call the outgroup's state ancestral and a state that arose on a branch inside the tree derived.",
+   "section": "Characters on branches: shared derived and shared ancestral"
+  },
+  {
+   "id": "reading-phylogenetic-trees-c17",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "Why is calling the outgroup's state ancestral an inference rather than a guarantee?",
+   "back": "The outgroup's own lineage can change too, so careful studies compare several outgroups.",
+   "quote": "the outgroup's own lineage can change too, so careful studies compare several outgroups",
+   "section": "Characters on branches: shared derived and shared ancestral"
+  },
+  {
+   "id": "reading-phylogenetic-trees-c18",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why can a shared ancestral state not show which taxa are closest relatives, while a shared derived state can?",
+   "back": "A shared ancestral state was already present in an older ancestor, so it is homologous but groups nothing within the descendants. Only a gain inside the group being tested groups species.",
+   "quote": "Only a gain inside the group being tested groups species.",
+   "section": "Characters on branches: shared derived and shared ancestral"
+  },
+  {
+   "id": "reading-phylogenetic-trees-c19",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "When do two taxa share a character state by homology, and when by convergence?",
+   "back": "Homology: both inherit it from one gain on a shared branch, even if other lineages later lose it. Convergence: the state arose by separate gains.",
+   "quote": "Two taxa share a state by homology when both inherit it from one gain on a shared branch"
+  },
+  {
+   "id": "reading-phylogenetic-trees-c20",
+   "type": "qa",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Trout and shark both have gills and paired fins; human does not. Why does this not show that trout is closer to shark than to human?",
+   "back": "For that question these are shared ancestral states: their ancestor at node J already had them, and frog and human lost or changed them. Shared ancestral states cannot group species.",
+   "quote": "trout and shark share gills and paired fins because their ancestor at node J already had them",
+   "section": "Characters on branches: shared derived and shared ancestral"
+  },
+  {
+   "id": "reading-phylogenetic-trees-c21",
+   "type": "qa",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Jaws were gained on the branch into node J of (lamprey, (shark, (trout, (frog, human)))). Are jaws shared derived or shared ancestral (a) for grouping jawed vertebrates apart from lamprey, (b) for asking whether trout is closer to shark or to human?",
+   "back": "(a) Shared derived. (b) Shared ancestral, since shark, trout and human all inherit jaws from node J.",
+   "why": "The label depends on the group being tested: only a gain inside that group is derived for it.",
+   "quote": "Which label a state gets depends on the group you are testing.",
+   "section": "Characters on branches: shared derived and shared ancestral"
+  },
+  {
+   "id": "reading-phylogenetic-trees-c22",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "What derived state does trout share with humans but not with sharks?",
+   "back": "One air-filled organ: a lung in humans, a swim bladder in trout.",
+   "quote": "one air-filled organ, a lung in you and a swim bladder in trout, which a shark lacks",
+   "section": "Characters on branches: shared derived and shared ancestral"
+  },
+  {
+   "id": "reading-phylogenetic-trees-c23",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "On (lamprey, (shark, (trout, (frog, human)))), character X is 1 in trout and human, 0 in lamprey, shark and frog, with 0 ancestral. Counting every gain and loss as one change, what is the fewest number of changes, and which mappings reach it?",
+   "back": "Minimum 2. Gain on the branch from J to B plus a loss in frog = 2 (homology). Separate gains in trout and human = 2 (convergence). Gain from R to J plus losses in shark and frog = 3. The first two tie.",
+   "quote": "The second film's character X tied at two changes, one origin against two.",
+   "section": "Characters on branches: shared derived and shared ancestral"
+  },
+  {
+   "id": "reading-phylogenetic-trees-c24",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "On (lamprey, (shark, (trout, (frog, human)))), X is 1 in trout and human only, with 0 ancestral. A lungfish is added as sister to the frog-human clade. Does parsimony favour one origin of X or two if lungfish has X? If it lacks X?",
+   "back": "Has X: one origin (gain into B plus loss in frog = 2, versus 3 separate gains). Lacks X: two origins (gains in trout and human = 2, versus one gain plus losses in lungfish and frog = 3).",
+   "why": "Adding taxa broke the tie: only one mapping now reaches the minimum.",
+   "quote": "Only one mapping now reaches the minimum; that is what \"more taxa\" means in practice.",
+   "section": "Characters on branches: shared derived and shared ancestral"
+  },
+  {
+   "id": "reading-phylogenetic-trees-c25",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "On the tree (outgroup, (A, (B, (C, D)))), a trait is present in A, B, C and D and absent in the outgroup, taken as ancestral. What is the fewest number of changes, and does the trait show whether C is closer to D or to B?",
+   "back": "One gain, on the branch into the ingroup's common ancestor. It is shared derived for the ingroup as a whole but shared ancestral within it, so it says nothing about C, D and B.",
+   "why": "Same logic as jaws: derived for jawed vertebrates as a whole, ancestral for questions inside that group.",
+   "quote": "Jaws and paired fins, gained on the branch into J, are shared derived for the jawed vertebrates as a whole.",
+   "section": "Characters on branches: shared derived and shared ancestral"
+  },
+  {
+   "id": "reading-phylogenetic-trees-c26",
+   "type": "experiment",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "On a molecular tree of Greater Antillean Anolis lizards, species of the same ecomorph (such as twig specialists) on different islands were usually not each other's closest relatives. What did Losos and colleagues infer?",
+   "back": "That ecomorphs arose independently on different islands: convergence.",
+   "quote": "Losos and colleagues (1998) inferred that ecomorphs arose independently on different islands.",
+   "section": "Characters on branches: shared derived and shared ancestral"
+  },
+  {
+   "id": "reading-phylogenetic-trees-c27",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "How can a single-gene tree disagree with the species tree without any convergence?",
+   "back": "Incomplete lineage sorting: when lineages split quickly, an ancestral gene variant can sort into descendants in an order that differs from the species' splits.",
+   "quote": "when lineages split quickly, an ancestral gene variant can sort into descendants in an order that differs from the species' splits",
+   "section": "Characters on branches: shared derived and shared ancestral"
+  },
+  {
+   "id": "reading-phylogenetic-trees-c28",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "Why is a multiple sequence alignment itself a hypothesis?",
+   "back": "Lining sequences up so each column holds one position across all species assumes that each column's positions share an origin.",
+   "quote": "The alignment is itself a hypothesis that each column's positions share an origin",
+   "section": "How trees are built and how confident to be"
+  },
+  {
+   "id": "reading-phylogenetic-trees-c29",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "How does a distance method such as neighbor-joining build a phylogenetic tree?",
+   "back": "It turns the alignment into pairwise differences between taxa and builds a tree from them.",
+   "quote": "Distance methods, such as neighbor-joining, turn the alignment into pairwise differences between taxa and build a tree from them.",
+   "section": "How trees are built and how confident to be"
+  },
+  {
+   "id": "reading-phylogenetic-trees-c30",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Maximum parsimony finds the tree needing the {{c1::fewest character changes}}.",
+   "back": "",
+   "quote": "Maximum parsimony finds the tree needing the fewest character changes.",
+   "section": "How trees are built and how confident to be"
+  },
+  {
+   "id": "reading-phylogenetic-trees-c31",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "{{c1::Maximum likelihood}} uses an explicit model of sequence change and finds the tree under which the observed alignment is most probable.",
+   "back": "",
+   "quote": "Maximum likelihood uses an explicit model of sequence change and finds the tree under which the observed alignment is most probable.",
+   "section": "How trees are built and how confident to be"
+  },
+  {
+   "id": "reading-phylogenetic-trees-c32",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "What does Bayesian tree inference add to the data, and what does it report?",
+   "back": "It combines the data with prior assumptions and reports how probable each tree is under the model: its posterior probability.",
+   "quote": "Bayesian inference combines the data with prior assumptions and reports how probable each tree is under the model (its posterior probability).",
+   "section": "How trees are built and how confident to be"
+  },
+  {
+   "id": "reading-phylogenetic-trees-c33",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In a phylogenetic bootstrap, what does resampling the alignment columns with replacement do?",
+   "back": "It makes replicate alignments in which a column can be drawn twice and another left out; a tree is inferred from each replicate.",
+   "quote": "resampling with replacement means a column can be drawn twice and another left out",
+   "section": "How trees are built and how confident to be"
+  },
+  {
+   "id": "reading-phylogenetic-trees-c34",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "From 1,000 bootstrap replicate alignments, a clade appears in 640 of the inferred trees. What is its bootstrap value, and what does it mean?",
+   "back": "100 x 640 / 1,000 = 64. The clade appeared in 64% of replicate trees: a measure of how consistently the data recover it under the method, not a 64% chance it is true.",
+   "quote": "A bootstrap value tells you how consistently the characters in hand recover a clade under the method used.",
+   "section": "How trees are built and how confident to be"
+  },
+  {
+   "id": "reading-phylogenetic-trees-c35",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "How can a wrong clade receive bootstrap support near 100?",
+   "back": "If the model is wrong in a systematic way, the same wrong clade can come back from every replicate.",
+   "quote": "If the model is wrong in a systematic way, the same wrong clade can come back from every replicate.",
+   "section": "How trees are built and how confident to be"
+  },
+  {
+   "id": "reading-phylogenetic-trees-c36",
+   "type": "qa",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A vertebrate tree shows bootstrap 98 on (frog, human) and 72 on (trout, (frog, human)). A student says the tree proves trout is closer to humans than to sharks, with 72% probability. Evaluate both claims.",
+   "back": "Neither holds. 72 means the clade appeared in 72% of replicate trees, not a 72% chance of truth. A tree is a hypothesis: systematic model error, or a single gene's own history, could mislead even strongly supported clades.",
+   "why": "Bootstrap measures consistency under the method; trees are testable hypotheses.",
+   "quote": "Suppose the vertebrate tree carries bootstrap values of 98 on (frog, human) and 72 on (trout, (frog, human)).",
+   "section": "How trees are built and how confident to be"
+  },
+  {
+   "id": "reading-phylogenetic-trees-c37",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "What does a polytomy on a phylogenetic tree usually mean?",
+   "back": "A node with more than two descendant branches usually means the data could not resolve the order of splits. It is rarely evidence that the lineages split at once.",
+   "quote": "A node with more than two descendant branches, a polytomy, usually means the data were not strong enough to resolve the order of splits.",
+   "section": "How trees are built and how confident to be"
+  },
+  {
+   "id": "reading-phylogenetic-trees-c38",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Similar short-limbed twig lizards live on four Caribbean islands. Design a tree-based test of one origin plus dispersal versus independent origins on each island, and state each prediction.",
+   "back": "Sample all species on all islands plus mainland outgroups; sequence several genes; infer a tree by likelihood or Bayesian methods with support. One origin predicts a single twig clade, with no later shifts away from the twig form. Repeated origins predict each twig species nested among its own island's species.",
+   "quote": "Repeated origins predict that each island's twig species is nested among species from its own island",
+   "section": "Design problem"
+  },
+  {
+   "id": "reading-phylogenetic-trees-c39",
+   "type": "qa",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "In a test of whether twig lizards evolved once or repeatedly, why must the tree not be built from genes or traits that define the twig form?",
+   "back": "The test becomes circular: characters tied to the twig form would group twig species together by the very similarity being tested.",
+   "quote": "not genes or traits used to define the twig ecomorph, or the test becomes circular",
+   "section": "Design problem"
+  },
+  {
+   "id": "reading-phylogenetic-trees-c40",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In a test of island twig lizards, the twig species form one clade with bootstrap 50 in a single gene tree. Does this establish one origin plus dispersal?",
+   "back": "No. Support of 50 settles nothing, and one gene's tree can differ from the species tree. Strong support consistent across genes and methods would come closer, and even then convergence or its absence is an inference.",
+   "quote": "a twig clade at bootstrap 50 settles nothing, and strong support that is consistent across genes and methods comes closer",
+   "section": "Design problem"
+  },
+  {
+   "id": "reading-phylogenetic-trees-c41",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "Kapli and Telford (2020) simulated protein data on a known animal tree, with sponges first and amino-acid mixes varying among sites, then analysed it with a one-mix model. What happened, and what does it show?",
+   "back": "The wrong tree came back in 98 of 100 data sets, usually with high support. A poorly fitting model can recover a wrong tree consistently and support it strongly.",
+   "quote": "A model assuming one mix at every site returned the wrong tree in 98 of 100 data sets, usually with high support.",
+   "section": "When strong support is wrong"
+  },
+  {
+   "id": "reading-phylogenetic-trees-c42",
+   "type": "qa",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "In the Kapli and Telford simulations, data simulated with comb jellies branching first were recovered correctly every time. Why does this one-way error matter for real animal trees?",
+   "back": "In these simulations the simpler model recovered comb-jellies-first data correctly but gave the wrong tree for sponges-first data. The authors argued that strong real-data support for comb jellies first may be this kind of artefact.",
+   "quote": "data simulated with comb jellies branching first were recovered correctly every time, even by that simpler model",
+   "section": "When strong support is wrong"
+  },
+  {
+   "id": "reading-phylogenetic-trees-c43",
+   "type": "qa",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "Schultz and colleagues (2023) used gene linkage on chromosomes, with unicellular relatives of animals as outgroups, to place comb jellies as sister to all other animals. Why is their kind of evidence apt, and is the question settled?",
+   "back": "Shared derived linkages, polarized by outgroups, are the right kind of grouping evidence. Not settled: Copley (2025) argued their test overstated the significance of some linkages; it is a live dispute.",
+   "quote": "reported shared derived linkages grouping sponges with cnidarians, placozoans and bilaterians, which places comb jellies as the sister group of all other animals",
+   "section": "The root of the animal tree"
+  },
+  {
+   "id": "reading-phylogenetic-trees-c44",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "Besides an outgroup, what other ways can a phylogenetic tree be rooted?",
+   "back": "Midpoint rooting and clock rooting.",
+   "quote": "An outgroup is the usual way to root a tree, not the only one: midpoint and clock rooting also exist.",
+   "section": "Methods in more detail"
+  }
+ ]
+}

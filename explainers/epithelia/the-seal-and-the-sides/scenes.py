@@ -94,7 +94,7 @@ def add_wrap_motion(group, dx=.6, lo=-5.0, hi=3.7):
 
 
 def gut_world(proteins=True, particles=True, junction_stack=False):
-    gut = Rectangle(width=12.2, height=1.15, stroke_width=0, fill_color=BLUE,
+    gut = Rectangle(width=12.2, height=.85, stroke_width=0, fill_color=BLUE,
                     fill_opacity=.10).move_to([0, GUT_Y, 0])
     blood = Rectangle(width=12.2, height=1.15, stroke_width=0, fill_color=BLUE,
                       fill_opacity=.14).move_to([0, BLOOD_Y, 0])
@@ -108,7 +108,7 @@ def gut_world(proteins=True, particles=True, junction_stack=False):
     add_wrap_motion(flow, .85)
     dots = VGroup()
     if particles:
-        dots.add(*[glucose(x, GUT_Y + .22*((i % 3)-1)) for i, x in enumerate(np.linspace(-4.8, 3.5, 11))])
+        dots.add(*[glucose(x, GUT_Y + .14*((i % 3)-1)) for i, x in enumerate(np.linspace(-4.8, 3.5, 11))])
         add_wrap_motion(dots, .18)
     pro = VGroup()
     if proteins:
@@ -214,7 +214,7 @@ class S00LinkAndQuestion(SpokenScene, TitleCard):
     def construct(self):
         w = gut_world(True, True)
         self.add(w)
-        q = T("What makes a selective sheet?", 42, TEXT, weight=BOLD).move_to([0, 3.30, 0])
+        q = T("What makes a selective sheet?", 42, TEXT, weight=BOLD).move_to([0, 3.62, 0])
         panel = RoundedRectangle(width=q.width+.5, height=q.height+.20, corner_radius=.1,
                                  stroke_width=0, fill_color=BG, fill_opacity=.92).move_to(q)
         focus = VGroup(w[2][1], w[2][2], w[3][2], w[3][3], w[4][1])
@@ -243,7 +243,7 @@ class S01Title(TitleCard):
     def construct(self):
         w = gut_world(True, True)
         self.add(w)
-        title = T(self.TITLE, 50, TEXT, font=TITLE_FONT).move_to([0, 3.22, 0])
+        title = T(self.TITLE, 50, TEXT, font=TITLE_FONT).move_to([0, 3.58, 0])
         panel = RoundedRectangle(width=title.width+.65, height=title.height+.25, corner_radius=.12,
                                  stroke_width=0, fill_color=BG, fill_opacity=.93).move_to(title)
         self.play(FadeIn(panel), FadeIn(title, shift=UP*.12), run_time=.55)
@@ -292,7 +292,7 @@ class S03ClaudinStrands(SpokenScene):
         self.play(LaggedStart(*[Create(s) for s in strands], lag_ratio=.16), run_time=1.35)
         self.at("around each cell")
         blocks = VGroup(*[chip("claudin", GREEN, 28).move_to([x, y, 0])
-                          for x, y in [(-4.2,1.5),(-1.7,.75),(.5,-.45),(3.3,-1.5)]])
+                          for x, y in [(-4.2,1.5),(-4.0,.45),(.5,-.45),(3.3,-1.5)]])
         # Opaque backs keep the strand from running through the readable label.
         for block in blocks:
             block[0].set_fill(BG, opacity=1)
@@ -303,7 +303,7 @@ class S03ClaudinStrands(SpokenScene):
         opening = RoundedRectangle(width=.36, height=.82, corner_radius=.08, color=BG, stroke_width=0,
                                    fill_color=BG, fill_opacity=1).move_to([-.55, .55, 0])
         self.add(opening)
-        ions = VGroup(*[sodium(-2.4-.35*i, .55) for i in range(3)])
+        ions = VGroup(*[sodium(-2.4-.35*i, .55) for i in range(3)]).set_z_index(5)
         self.add(ions)
         self.play(ions.animate.shift(RIGHT*5.0), run_time=1.5, rate_func=linear)
         # Keep the large subject alive while the sentence about the route lands.
@@ -326,7 +326,7 @@ class S04TunedBarriers(SpokenScene):
     def construct(self):
         w = gut_world(False, False)
         self.add(w)
-        title = T("small intestine", 36, TEXT).move_to([0, 3.25, 0])
+        title = T("small intestine", 36, TEXT).move_to([0, 3.60, 0])
         slider_line = Line([-2.5, 2.25, 0], [2.5, 2.25, 0], color=GREY, stroke_width=5)
         ends = VGroup(T("relatively leaky", 28, TEXT).move_to([-3.9, 2.25, 0]),
                       T("tighter", 28, TEXT).move_to([3.3, 2.25, 0]))
@@ -365,7 +365,7 @@ class S05PredictTeer(SpokenScene):
         self.play(GrowArrow(current), lab[7].animate.shift(DOWN*.25), run_time=1.0)
         self.play(FadeOut(current), FadeIn(lab[8]), run_time=.6)
         self.at("if resistance falls")
-        q = T("Lower resistance = glucose leak?", 38, TEXT, weight=BOLD).move_to([0, 3.33, 0])
+        q = T("Lower resistance = glucose leak?", 38, TEXT, weight=BOLD).move_to([0, 3.58, 0])
         panel = RoundedRectangle(width=q.width+.5, height=q.height+.18, corner_radius=.1,
                                  stroke_width=0, fill_color=BG, fill_opacity=.94).move_to(q)
         g = glucose(4.1, -1.65, .21)
@@ -379,7 +379,7 @@ class S06PredictPause(Scene):
     def construct(self):
         lab = lab_insert(False)
         self.add(lab)
-        q = T("Lower resistance = glucose leak?", 38, TEXT, weight=BOLD).move_to([0, 3.33, 0])
+        q = T("Lower resistance = glucose leak?", 38, TEXT, weight=BOLD).move_to([0, 3.58, 0])
         panel = RoundedRectangle(width=q.width+.5, height=q.height+.18, corner_radius=.1,
                                  stroke_width=0, fill_color=BG, fill_opacity=.94).move_to(q)
         g = glucose(4.1, -1.65, .21)
@@ -393,7 +393,7 @@ class S07TeerAnswer(SpokenScene):
     def construct(self):
         lab = lab_insert(False)
         self.add(lab)
-        q = T("Lower resistance = glucose leak?", 38, TEXT, weight=BOLD).move_to([0, 3.33, 0])
+        q = T("Lower resistance = glucose leak?", 38, TEXT, weight=BOLD).move_to([0, 3.58, 0])
         panel = RoundedRectangle(width=q.width+.5, height=q.height+.18, corner_radius=.1,
                                  stroke_width=0, fill_color=BG, fill_opacity=.94).move_to(q)
         g = glucose(4.1, -1.65, .21)
@@ -420,6 +420,8 @@ class S07TeerAnswer(SpokenScene):
         tags = VGroup(chip("which ion?", BLUE, 28).move_to([-3.5, -.1, 0]),
                       chip("which route?", GREEN, 28).move_to([-.65, -.1, 0]),
                       chip("larger molecules?", GOLD, 28).move_to([2.0, -1.75, 0]))
+        for c in tags:
+            c[0].set_fill(BG, opacity=1); c.set_z_index(10)
         self.play(LaggedStart(*[FadeIn(t, shift=UP*.1) for t in tags], lag_ratio=.28), run_time=1.3)
         self.finish()
 
@@ -436,15 +438,17 @@ class S08TeerLimits(SpokenScene):
         token = chip("pore ?", GREEN, 30).move_to([-3.45, -2.6, 0])
         self.play(FadeOut(a), FadeOut(b), FadeIn(token), Indicate(lab[4], color=GREEN), run_time=.8)
         self.at("broader leaks")
-        leak = chip("broader leak ?", GREEN, 30).move_to([-.45, -2.6, 0])
+        leak = chip("broader leak ?", GREEN, 30).move_to([-.75, -2.6, 0])
         self.play(lab[4].animate.scale(1.45), FadeIn(leak), run_time=.8)
         self.at("or breaks")
-        brk = chip("break ?", GREEN, 30).move_to([2.2, -2.6, 0])
+        brk = chip("break ?", GREEN, 30).move_to([2.35, -2.6, 0])
         gap = Rectangle(width=.55, height=1.7, stroke_width=0, fill_color=BG, fill_opacity=1).move_to([.60, .25, 0])
+        for c in (token, leak, brk):
+            c[0].set_fill(BG, opacity=1); c.set_z_index(10)
         self.play(FadeIn(gap), FadeIn(brk), run_time=.8)
         self.at("design problem below")
-        design = chip("design problem below", TEXT, 28).move_to([3.2, 2.8, 0])
-        self.play(FadeIn(design), LaggedStart(*[Indicate(t, color=TEXT) for t in (token, leak, brk)], lag_ratio=.2), run_time=1.1)
+        design = chip("design problem below", TEXT, 28).move_to([0, 3.55, 0])
+        self.play(FadeIn(design), LaggedStart(*[Indicate(t[1], color=TEXT, scale_factor=1.08) for t in (token, leak, brk)], lag_ratio=.2), run_time=1.1)
         self.finish()
 
 
@@ -459,7 +463,7 @@ class S09FenceQualified(SpokenScene):
                        Line([-.25,1.48,0],[.25,1.48,0],color=GREEN,stroke_width=4))
         self.play(FadeIn(fence), run_time=.7)
         self.at("tested in the text below")
-        test = T("tested below ?", 28, TEXT).move_to([2.05, 2.20, 0])
+        test = T("tested below ?", 28, TEXT).move_to([4.30, 1.20, 0])
         self.play(FadeIn(test), run_time=.65)
         self.at("mark territories")
         self.play(Indicate(w[3][2], color=TEXT), Indicate(w[3][3], color=SLATE), run_time=.9)
@@ -498,7 +502,7 @@ class S10PolarityTerritories(SpokenScene):
         v1, v2 = Dot([cx-.4, 0, 0], radius=.18, color=BLUE), Dot([cx+.35, 0, 0], radius=.18, color=RED)
         self.add(v1, v2)
         self.play(v1.animate.move_to([cx-.28, TOP,0]), v2.animate.move_to([cx-.48, BASE,0]), run_time=1.2)
-        self.play(ReplacementTransform(v1, turnstile(cx-.28)), ReplacementTransform(v2, pump(cx-.48)), run_time=.7)
+        self.play(ReplacementTransform(v1, turnstile(cx-.28)), ReplacementTransform(v2, pump(cx-.48)), crumbs.animate.shift(DOWN*.55), crlab.animate.shift(DOWN*.55), run_time=.7)
         self.finish()
 
 
@@ -525,7 +529,7 @@ class S11JunctionStack(SpokenScene):
         self.at("gap junctions")
         gap = RoundedRectangle(width=.48, height=.22, corner_radius=.08, stroke_width=0,
                                fill_color=CYAN, fill_opacity=1).move_to([0, -1.55, 0])
-        glab = T("gap junction", 28, CYAN).move_to([1.45, -1.55, 0])
+        glab = T("gap junction", 28, CYAN).move_to([1.45, -1.95, 0])
         dots = VGroup(sodium(-2.0,-1.55,.065), glucose(-2.35,-1.55,.065))
         self.play(FadeIn(gap), FadeIn(glab), FadeIn(dots), run_time=.6)
         self.play(dots.animate.shift(RIGHT*4.5), pair[0].animate.set_fill(CELL_FILL, .29),
@@ -544,9 +548,9 @@ class S12BaseAnchor(SpokenScene):
         self.play(FadeIn(mat, shift=UP*.15), VGroup(pair[0], pair[1], pair[2], pair[3]).animate.shift(UP*.18), run_time=.9)
         self.at("hemidesmosomes connect")
         anchors = VGroup(*[Triangle(color=RED_BROWN, fill_color=RED_BROWN, fill_opacity=1).scale(.25).rotate(PI)
-                           .move_to([x,-2.42,0]) for x in (-2.7,2.7)])
+                           .move_to([x,-2.42,0]) for x in (-2.7,3.9)])
         cables = VGroup(*[ArcBetweenPoints([x-.8,-.2,0],[x,-2.35,0],angle=.35,color=PURPLE,stroke_width=8)
-                          for x in (-2.7,2.7)])
+                          for x in (-2.7,3.9)])
         mlab = T("basement membrane", 30, TAN).move_to([0,-3.35,0])
         self.play(Create(cables), FadeIn(anchors), FadeIn(mlab),
                   pair[0].animate.set_fill(CELL_FILL, .30), pair[1].animate.set_fill(CELL_FILL, .30), run_time=1.2)
@@ -601,13 +605,13 @@ class S14OrganizingRule(SpokenScene):
     def construct(self):
         w = gut_world(True, True, True)
         self.add(w)
-        rule = T("Division of labour", 42, TEXT, weight=BOLD).move_to([0,3.30,0])
+        rule = T("Division of labour", 42, TEXT, weight=BOLD).move_to([0,3.62,0])
         panel = RoundedRectangle(width=rule.width+.5,height=rule.height+.18,corner_radius=.1,
                                  stroke_width=0,fill_color=BG,fill_opacity=.93).move_to(rule)
         self.play(FadeIn(panel),FadeIn(rule),run_time=.7)
         self.at("a gate")
         icons = VGroup(chip("selective gate",GREEN,28).move_to([1.55,1.30,0]),
-                       chip("distinct faces",TEXT,28).move_to([-1.45,-.25,0]),
+                       chip("distinct faces",TEXT,28).move_to([-1.45,-1.05,0]),
                        chip("grip",ORANGE,28).move_to([1.55,.55,0]),
                        chip("anchor",RED_BROWN,28).move_to([1.55,-1.05,0]),
                        chip("channel",CYAN,28).move_to([1.55,-.25,0]))
@@ -622,18 +626,5 @@ class S14OrganizingRule(SpokenScene):
 
 
 class S15End(EndCard):
-    LINE = "Selective gates, distinct faces, and strong junctions divide the work."
+    LINE = "Epithelial barriers work by division of labour: gate, faces, grips, anchors."
 
-    def construct(self):
-        w = gut_world(True, True, True)
-        w.set_opacity(.25)
-        self.add(w)
-        line = T(self.LINE, 38, TEXT, font=TITLE_FONT).move_to([0,.20,0])
-        fit(line,max_w=11.4)
-        panel = RoundedRectangle(width=line.width+.7,height=line.height+.45,corner_radius=.15,
-                                 stroke_width=0,fill_color=BG,fill_opacity=.86).move_to(line)
-        self.play(FadeIn(panel),FadeIn(line,shift=UP*.1),run_time=.7)
-        self.play(LaggedStart(Indicate(w[4],color=GREEN),
-                              *[Indicate(m,color=c) for m,c in zip(w[9],(ORANGE,PURPLE,CYAN,RED_BROWN))],
-                              lag_ratio=.15),run_time=1.6)
-        self.finish()

@@ -1,0 +1,563 @@
+{
+ "slug": "probability-and-crosses",
+ "title": "Probability, Crosses and the Chi-Square Test",
+ "generated": {
+  "date": "2026-11-11",
+  "pipeline": "extract → Opus draft → Sonnet accuracy gate → Sonnet fixes",
+  "models": {
+   "draft": "claude-opus-5-5",
+   "gate": "claude-sonnet-5-5",
+   "fix": "claude-sonnet-5-5"
+  }
+ },
+ "lessonHash": "005e9a421c7c",
+ "sectionHashes": {
+  "(opening)": "5123a849b8ba",
+  "Two rules: and means multiply, or means add": "f2f299951746",
+  "Many genes at once: multiply along the branches": "eb72d9fc8519",
+  "Families: the binomial counts the birth orders": "7b9477ddd2b5",
+  "Is the deviation chance? The chi-square test": "a3b404f71170",
+  "What a p-value does and does not tell you": "fc2746123d87",
+  "Design problem": "7f90be545643",
+  "Why the chance pile balances at the degrees of freedom": "2fa56ab9203c",
+  "Degrees of freedom when you estimate from the data": "95c6329c1b52",
+  "Small expected counts": "733f5f0cec12",
+  "Counting all eight paths": "1279bdee38b3"
+ },
+ "cards": [
+  {
+   "id": "probability-and-crosses-c01",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "For independent events, the chance that both happen is the {{c1::product}} of their chances (the product rule).",
+   "back": "P(X and Y) = P(X) × P(Y)",
+   "quote": "For independent events, the chance of both is the product (the product rule):",
+   "section": "Two rules: and means multiply, or means add"
+  },
+  {
+   "id": "probability-and-crosses-c02",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "For mutually exclusive events, the chance that either happens is the {{c1::sum}} of their chances (the sum rule).",
+   "back": "P(X or Y) = P(X) + P(Y). Mutually exclusive means they cannot both happen.",
+   "quote": "Two events are mutually exclusive when they cannot both happen; the chance of either is then the sum (the sum rule):",
+   "section": "Two rules: and means multiply, or means add"
+  },
+  {
+   "id": "probability-and-crosses-c03",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In the cross Aa × Aa, why is the chance of an Aa offspring 1/2 rather than 1/4?",
+   "back": "Aa arises in two mutually exclusive ways: A from the egg and a from the sperm, or the reverse. Each is 1/2 × 1/2 = 1/4, and the sum rule adds them: 1/2.",
+   "quote": "It is Aa in two exclusive ways (A from the egg and a from the sperm, or the reverse): 1/4 + 1/4 = 1/2.",
+   "section": "Two rules: and means multiply, or means add"
+  },
+  {
+   "id": "probability-and-crosses-c04",
+   "type": "calc",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In the cross Aa × Aa with complete dominance, what fraction of offspring shows the dominant phenotype (A_)?",
+   "back": "3/4. A_ is AA or Aa, which are mutually exclusive: 1/4 + 1/2 = 3/4.",
+   "quote": "It shows the dominant phenotype, written A_ (the blank stands for either allele), if it is AA or Aa: 1/4 + 1/2 = 3/4.",
+   "section": "Two rules: and means multiply, or means add"
+  },
+  {
+   "id": "probability-and-crosses-c05",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why may single-gene chances be multiplied for genes on different chromosomes?",
+   "back": "They assort independently, because each pair of chromosomes lines up in meiosis without regard to the others. Independence is the condition the product rule needs.",
+   "quote": "Genes on different chromosomes assort independently, because each pair of chromosomes lines up in meiosis without regard to the others.",
+   "section": "Two rules: and means multiply, or means add"
+  },
+  {
+   "id": "probability-and-crosses-c06",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why can single-gene chances not simply be multiplied for two genes close together on one chromosome, when they can almost be multiplied for genes far apart on it?",
+   "back": "Close genes tend to be inherited together, so they are not independent. Far-apart genes behave almost as if unlinked, because crossing over reshuffles them in close to half of the gametes.",
+   "quote": "Genes close together on one chromosome tend to be inherited together, so their single-gene chances can no longer simply be multiplied",
+   "section": "Two rules: and means multiply, or means add"
+  },
+  {
+   "id": "probability-and-crosses-c07",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "What is the branch (forked-line) method for a cross of several unlinked genes?",
+   "back": "Treat each gene as its own small cross: at each locus branch into dominant (3/4) or recessive (1/4) phenotype. A path's probability is the product along it.",
+   "quote": "Treat each gene as its own small cross: at each locus, branch into the dominant phenotype (3/4) or the recessive one (1/4).",
+   "section": "Many genes at once: multiply along the branches"
+  },
+  {
+   "id": "probability-and-crosses-c08",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In the cross AaBbCc × AaBbCc (three unlinked genes, complete dominance, no selection), what fraction of offspring is A_ bb C_?",
+   "back": "One path: 3/4 × 1/4 × 3/4 = 9/64.",
+   "quote": "One path: 3/4 × 1/4 × 3/4 = 9/64.",
+   "section": "Many genes at once: multiply along the branches"
+  },
+  {
+   "id": "probability-and-crosses-c09",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In AaBbCc × AaBbCc (three unlinked genes, complete dominance), is an offspring dominant for exactly two of the three traits more, less or equally likely than one dominant for all three?",
+   "back": "Equally likely, 27/64 each. All three dominant is one path, (3/4)^3. Each exactly-two path is only 9/64, but there are three of them (any trait can be the recessive one), and exclusive paths add.",
+   "why": "The factor of three, counting which trait is recessive, is the one most people forget.",
+   "quote": "But there are three such paths, one for each trait that could be the recessive one, and that factor of three is the one most people forget.",
+   "section": "Many genes at once: multiply along the branches"
+  },
+  {
+   "id": "probability-and-crosses-c10",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In AaBbCc × AaBbCc (three unlinked genes, complete dominance), what fraction of offspring is dominant for exactly one of the three traits?",
+   "back": "9/64. Each such path has one 3/4 and two 1/4 factors: 3/4 × 1/4 × 1/4 = 3/64. Three exclusive paths (the dominant trait can be A, B or C): 3 × 3/64 = 9/64.",
+   "why": "Check: 27/64 + 27/64 + 9/64 + 1/64 = 64/64, so no path was missed.",
+   "quote": "exactly one, 9/64 (three paths of 3/64 each); and none, 1/64.",
+   "section": "Counting all eight paths"
+  },
+  {
+   "id": "probability-and-crosses-c11",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Two carrier parents (Aa) have a first child who is aa. Is the chance their second child is aa now still 1/4?",
+   "back": "Yes, still 1/4. Each child is an independent draw from the same parents; the first changes nothing for the second.",
+   "why": "Believing the family has used up its affected child is the gambler's fallacy.",
+   "quote": "Believing that the family has \"used up\" its affected child is the gambler's fallacy; segregation has no memory.",
+   "section": "Families: the binomial counts the birth orders"
+  },
+  {
+   "id": "probability-and-crosses-c12",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Complete {{c1::penetrance}} means every aa child shows the trait.",
+   "back": "This is an assumption of the exercise, not a general fact about genotypes.",
+   "quote": "Assume complete penetrance (every aa child shows the trait) and that each child is an independent event with probability 1/4.",
+   "section": "Families: the binomial counts the birth orders"
+  },
+  {
+   "id": "probability-and-crosses-c13",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "The binomial probability of k affected children out of n combines which two parts?",
+   "back": "The chance of one particular birth order, p^k (1 − p)^(n − k), multiplied by the number of orders, n! / (k! (n − k)!).",
+   "why": "The number of orders is the factor most often forgotten.",
+   "quote": "Step 1 had two parts: the chance of one particular order, then the number of orders, the factor most often forgotten.",
+   "section": "Families: the binomial counts the birth orders"
+  },
+  {
+   "id": "probability-and-crosses-c14",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Two carrier parents (Aa) have four children. Assuming complete penetrance and independent births, what is the chance that exactly one child is aa?",
+   "back": "One order: 1/4 × (3/4)^3 = 27/256. The affected child can be any of four, so 4 × 27/256 = 108/256 = 27/64, about 0.42.",
+   "quote": "So P = 4 × 27/256 = 108/256 = 27/64, about 0.42.",
+   "section": "Families: the binomial counts the birth orders"
+  },
+  {
+   "id": "probability-and-crosses-c15",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Two carrier parents (Aa) have four children. What is the chance that exactly two are aa?",
+   "back": "Orders: 4! / (2! × 2!) = 6. One order: (1/4)^2 × (3/4)^2 = 9/256. Total 6 × 9/256 = 54/256 = 27/128, about 0.21.",
+   "quote": "Total: 6 × 9/256 = 54/256 = 27/128, about 0.21.",
+   "section": "Families: the binomial counts the birth orders"
+  },
+  {
+   "id": "probability-and-crosses-c16",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Two carrier parents (Aa) have four children. What is the chance that at least one is aa, and what is the quickest route?",
+   "back": "Use the complement. P(none) = (3/4)^4 = 81/256, so P(at least one) = 1 − 81/256 = 175/256, about 0.68.",
+   "why": "\"At least one\" is everything except \"none\", which is a single term.",
+   "quote": "Use the complement: \"at least one\" is everything except \"none\".",
+   "section": "Families: the binomial counts the birth orders"
+  },
+  {
+   "id": "probability-and-crosses-c17",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Among 256 families of four children from two carrier (Aa) parents, how many are expected to have exactly three aa children?",
+   "back": "4 orders × (1/4)^3 × 3/4 = 4 × 3/256 = 12/256, so about 12 of 256 families (3/64).",
+   "why": "Expected only; observed numbers would scatter around it.",
+   "quote": "Among 256 real families, 81, 108, 54, 12 and 1 are only the expected numbers with 0 to 4 affected; the observed numbers would scatter.",
+   "section": "Families: the binomial counts the birth orders"
+  },
+  {
+   "id": "probability-and-crosses-c18",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Two carrier parents with four children expect one aa child on average. Why is that not what most families get?",
+   "back": "The mean is 4 × 1/4 = 1, but the chance of exactly one is only about 42% (108/256), and of none about 32% (81/256). A probability predicts a spread, not one count.",
+   "quote": "On average a family of four has one affected child (4 × 1/4 = 1), but no family is promised the average",
+   "section": "Families: the binomial counts the birth orders"
+  },
+  {
+   "id": "probability-and-crosses-c19",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Mendel's 556 dihybrid seeds (315, 108, 101, 32) match none of the 9:3:3:1 expected counts. Why is an exact match impossible here?",
+   "back": "The expected counts (312.75, 104.25, 104.25, 34.75) are fractions of a seed. The real question is whether the misses are ordinary chance scatter.",
+   "quote": "None of his counts matches. It could not: the expected counts are fractions of a seed."
+  },
+  {
+   "id": "probability-and-crosses-c20",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "How is the chi-square statistic computed from observed and expected counts?",
+   "back": "For each class, (observed − expected)² / expected; then sum over all classes.",
+   "why": "Dividing by the expected count judges each miss against the scatter normal for that class.",
+   "quote": "So a fair score judges each miss against the scatter in its own class.",
+   "section": "Is the deviation chance? The chi-square test"
+  },
+  {
+   "id": "probability-and-crosses-c21",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Coin A: 10 tosses, 6 heads. Coin B: 100 tosses, 60 heads. Compute chi-square against 50:50 for each. Which result is more surprising?",
+   "back": "B: (60 − 50)²/50 + (40 − 50)²/50 = 4. A: (6 − 5)²/5 + (4 − 5)²/5 = 0.4. Same proportions, a tenth of the score; B is more surprising.",
+   "why": "Chance moves a count by an amount that grows with the count, but more slowly than the count.",
+   "quote": "Same proportions, a tenth of the score, because a small sample strays easily by chance.",
+   "section": "Is the deviation chance? The chi-square test"
+  },
+  {
+   "id": "probability-and-crosses-c22",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "If the hypothesized ratio holds, chi-square lands on average at its {{c1::degrees of freedom}}.",
+   "back": "Well above that, chance becomes a poor explanation.",
+   "quote": "If the ratio holds, chi-square lands on average at its degrees of freedom; well above that, chance becomes a poor explanation.",
+   "section": "Is the deviation chance? The chi-square test"
+  },
+  {
+   "id": "probability-and-crosses-c23",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why does a chi-square test of four phenotype classes against a ratio fixed in advance have 3 degrees of freedom, not 4?",
+   "back": "The classes share one total: once three counts and the total are known, the fourth is set. Only three misses are free: df = 4 − 1.",
+   "quote": "The ratio was fixed in advance, but the four classes share one total: once three counts and the total are known, the fourth is set.",
+   "section": "Is the deviation chance? The chi-square test"
+  },
+  {
+   "id": "probability-and-crosses-c24",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A dihybrid F2 of 160 plants gives 98, 28, 26 and 8 in the four phenotype classes. Test against 9:3:3:1 (critical value 7.81 at 0.05 with 3 df).",
+   "back": "Expected 90, 30, 30, 10. Chi-square = 64/90 + 4/30 + 16/30 + 4/10 = 0.711 + 0.133 + 0.533 + 0.400 = 1.78, df 3. Below 7.81 (p ≈ 0.62): 9:3:3:1 is not rejected.",
+   "quote": "A dihybrid F2 of 160 plants gives 98, 28, 26 and 8 in the four phenotype classes.",
+   "section": "Is the deviation chance? The chi-square test"
+  },
+  {
+   "id": "probability-and-crosses-c25",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "The critical value is the chi-square score that only {{c1::5%}} of chance results exceed; with 3 df it is 7.81.",
+   "back": "A score above it rejects the ratio at the 0.05 level.",
+   "quote": "The critical value is the score that only 5% of chance results exceed; with 3 df it is 7.81 (from a chi-square table or software).",
+   "section": "Is the deviation chance? The chi-square test"
+  },
+  {
+   "id": "probability-and-crosses-c26",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why must a chi-square test use counts, never percentages or ratios?",
+   "back": "The size of the sample is what makes a miss surprising. Percentages erase sample size, so the same split scores the same at any n.",
+   "quote": "Use counts, never percentages or ratios, because the size of the sample is what makes a miss surprising.",
+   "section": "Is the deviation chance? The chi-square test"
+  },
+  {
+   "id": "probability-and-crosses-c27",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "What expected-count condition keeps a chi-square test honest, and what should replace it when the condition fails?",
+   "back": "About five or more expected in every class. Below that the chi-square approximation becomes poor; an exact test or a simulation of the cross does better.",
+   "quote": "And keep the expected count at about five or more in every class.",
+   "section": "Is the deviation chance? The chi-square test"
+  },
+  {
+   "id": "probability-and-crosses-c28",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A p-value is the probability of getting data {{c1::at least this far from expectation}} if the hypothesis and every other assumption of the model were true.",
+   "back": "It is not the probability that the hypothesis is true.",
+   "quote": "A p-value is the probability of getting data at least this far from expectation if the hypothesis and every other assumption of the model were true.",
+   "section": "What a p-value does and does not tell you"
+  },
+  {
+   "id": "probability-and-crosses-c29",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A chi-square test gives p > 0.05. Does that prove the hypothesized ratio?",
+   "back": "No. You fail to reject it. Other models may fit the same counts as well.",
+   "quote": "So p > 0.05 does not prove the hypothesis: it means you fail to reject it.",
+   "section": "What a p-value does and does not tell you"
+  },
+  {
+   "id": "probability-and-crosses-c30",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A dihybrid F2 gives a large chi-square against 9:3:3:1 and p far below 0.05. A student concludes the genes are linked. Is that justified?",
+   "back": "No. The test rejects the model but does not say which assumption failed: linkage, a lethal genotype or misscored plants can all inflate chi-square.",
+   "quote": "A small p-value does not tell you which assumption failed, either: linkage, a lethal genotype and misscored plants can all inflate chi-square.",
+   "section": "What a p-value does and does not tell you"
+  },
+  {
+   "id": "probability-and-crosses-c31",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "An F2 tested against 9:3:3:1 gives chi-square 0.05 with 3 df, an almost perfect match. Should that reassure you?",
+   "back": "Not entirely. With 3 df fewer than 1 chance result in 300 lands that close. One can be luck, but repeated scores far below the df suggest asking how the counts were gathered and scored.",
+   "why": "The lower tail flags a fit too close, as the upper tail flags one too far.",
+   "quote": "The lower tail of the distribution, the scores near zero, flags a fit that is too close, as the upper tail flags one that is too far.",
+   "section": "What a p-value does and does not tell you"
+  },
+  {
+   "id": "probability-and-crosses-c32",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Two true-breeding white-flowered lines give an all-purple F1. The F2 of 160 has 96 purple and 64 white. Test 3:1 and 9:7 (critical value 3.84 at 0.05, 1 df).",
+   "back": "3:1: expected 120 and 40; chi-square = 4.8 + 14.4 = 19.2, rejected. 9:7: expected 90 and 70; chi-square = 0.40 + 0.51 = 0.91, p about 0.34, not rejected.",
+   "quote": "Chi-square = 36/90 + 36/70 = 0.40 + 0.51 = 0.91, with 1 df, p about 0.34.",
+   "section": "Design problem"
+  },
+  {
+   "id": "probability-and-crosses-c33",
+   "type": "qa",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "An F2 of 96 purple and 64 white fits 9:7 well. Why does that fit alone not establish the two-gene model, and what does 9:7 offer that a fit does not?",
+   "back": "A 5:3 ratio fits these counts too (chi-square about 0.43), and no one proposes it. 9:7 adds a mechanism, two genes each needed for purple, which further crosses can test.",
+   "quote": "A good fit does not establish the model: a 5:3 ratio (100:60) fits these counts too, with chi-square about 0.43, and no one is proposing it.",
+   "section": "Design problem"
+  },
+  {
+   "id": "probability-and-crosses-c34",
+   "type": "qa",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Two true-breeding white-flowered lines are crossed and the F1 is all purple. In the simple model of recessive loss-of-function mutations, what does this suggest?",
+   "back": "The lines are mutant in different genes. Two lines mutant in the same gene would give a white F1, so an all-purple F1 is the classic sign of two genes.",
+   "why": "Exceptions such as intragenic complementation exist.",
+   "quote": "In the simple model, where each white line carries a fully penetrant recessive loss-of-function mutation, two lines mutant in the same gene would give a white F1.",
+   "section": "Design problem"
+  },
+  {
+   "id": "probability-and-crosses-c35",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "To decide whether white flowers in an F2 come from one gene or two genes each needed for purple, which cross separates the models, and which does not?",
+   "back": "Cross F2 white plants with each other in many pairs: one gene predicts only white; two genes predict some pairs (aa × bb types) giving purple. Backcrossing F1 to a white parent fails: both models predict about 1 purple : 1 white.",
+   "quote": "Under two genes, some pairs (one carrying aa, the other bb, each with the other gene's dominant allele) give purple offspring.",
+   "section": "Design problem"
+  },
+  {
+   "id": "probability-and-crosses-c36",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "Why does chi-square average k − 1 when a k-class ratio holds?",
+   "back": "Each class adds on average 1 − p, where p is that class's predicted probability. The p's sum to 1, so the averages sum to k − 1, at any sample size.",
+   "quote": "If the ratio holds, each class adds on average 1 − p to chi-square, where p is that class's predicted probability.",
+   "section": "Why the chance pile balances at the degrees of freedom"
+  },
+  {
+   "id": "probability-and-crosses-c37",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "How many degrees of freedom has a goodness-of-fit test against four classes, versus a 2 × 2 test of whether two traits are associated?",
+   "back": "Goodness of fit, four classes: 3 df. 2 × 2 association test: 1 df.",
+   "quote": "a goodness-of-fit test against four classes has 3 df, while a 2 × 2 test of whether two traits are associated has 1 df.",
+   "section": "Degrees of freedom when you estimate from the data"
+  },
+  {
+   "id": "probability-and-crosses-c38",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "A student tests a 16-plant dihybrid F2 against 9:3:3:1 with the usual 7.81 cutoff. What is wrong, and how does the test misbehave?",
+   "back": "The smallest expected count is 1, below about five, so the chi-square approximation is poor. In a simulation, a true 9:3:3:1 was rejected 4.1% of the time, not 5%. Use an exact test or a simulation.",
+   "quote": "In a simulation of 16-plant F2s, where the smallest expected count is 1, a true 9:3:3:1 was rejected 4.1% of the time, not 5%.",
+   "section": "Small expected counts"
+  },
+  {
+   "id": "probability-and-crosses-c39",
+   "type": "calc",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "An F2 of 400 plants gives 280 dominant and 120 recessive, tested against 3:1 (critical value 3.84, 1 df). Compare the result using counts with the result using percentages (70, 30 vs 75, 25).",
+   "back": "Counts: expected 300 and 100; chi-square = 400/300 + 400/100 = 1.33 + 4 = 5.33, so 3:1 is rejected. Percentages: 25/75 + 25/25 = 1.33, wrongly not rejected.",
+   "why": "Rests on the counts rule: sample size is what makes a miss surprising.",
+   "quote": "Chance moves a count by an amount that grows with the count, but more slowly than the count.",
+   "section": "Is the deviation chance? The chi-square test"
+  }
+ ]
+}
