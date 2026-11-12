@@ -700,4 +700,4 @@ class S15Takeaway(W):
 
 
 class S16End(EndCard):
-    LINE = "Cohesin is cut in two steps: arms free homologs, centromeres free sisters."
+    LINE = "Cutting arm cohesin frees homologs;\ncentromere cohesin holds sisters until anaphase II."

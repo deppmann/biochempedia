@@ -5,10 +5,10 @@ course: "life-science"
 courseChapter: "Life Science · Unit 1: Cells"
 order: 1004
 summary: >-
-  How does your body make new cells to fill in a scrape, and how does each new cell get a full set of
-  instructions? You step a model cell through interphase and the four stages of mitosis, then count real
-  onion root-tip cells in each stage. Afterwards you can describe the cell cycle and use counts to argue
-  which part takes the longest.
+  Before a cell divides, it copies every chromosome, then gives one copy of each to each new cell, so
+  both new cells get the same full set as the parent. You step a model cell through interphase and the
+  four stages of mitosis, then count real onion root-tip cells in each stage. Afterwards you can
+  describe the cell cycle and use counts to argue which part takes the longest.
 hook: "When you scrape your knee, where does the new skin come from?"
 estMinutes: 40
 supports: true
@@ -30,9 +30,29 @@ explainer:
   captions: "/explainers/cells-divide/explainer.vtt"
   poster: "/explainers/cells-divide/poster.jpg"
   title: "Copy First, Then Share"
-  durationSec: 127.6
-  narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+  durationSec: 200.6
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+  takeaways:
+    - "New body cells come from cells that were already there: near a scrape, skin cells divide, and some crawl into the gap."
+    - "In interphase a cell grows and copies every chromosome. A copied chromosome is still one chromosome, made of two joined copies."
+    - "In mitosis the chromosomes coil up (prophase), line up in the middle (metaphase), are pulled apart (anaphase) and end in two new nuclei as the cell splits (telophase)."
+    - "Copy first, then share: each daughter cell gets one copy of every chromosome, the same set as the parent cell."
+
+films:
+  - id: "chapter-2"
+    src: "/explainers/cells-divide/chapter-2.mp4"
+    captions: "/explainers/cells-divide/chapter-2.vtt"
+    poster: "/explainers/cells-divide/chapter-2-poster.jpg"
+    title: "A Photo That Tells Time"
+    durationSec: 189.4
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+    takeaways:
+      - "A stained root tip is a snapshot: each cell is caught at one moment of its own cycle."
+      - "When cells divide out of step, each at its own point, a longer stage tends to hold more cells in a snapshot."
+      - "A stage's share of the cells is a rough guide to its share of the time: 10 of 36 cells in prophase suggests about 7 of 24 hours."
+      - "The guide is rough: there are only 36 photos, nobody says how they were picked, and the 24-hour cycle is assumed."
 
 scientists: []
 
@@ -44,8 +64,9 @@ techniques:
       movie of one cell.
   - name: "Counting cells in each stage"
     blurb: >-
-      The number of cells in each stage is divided by the total to give a percent. If cells are caught
-      at random moments, a stage that lasts longer holds more cells. The percent of cells is only a rough guide to the percent of time.
+      The number of cells in each stage is divided by the total to give a percent. When cells divide out
+      of step, each at its own point, a longer stage tends to hold more cells in a snapshot. The percent
+      of cells is only a rough guide to the percent of time.
 
 structures: []
 
@@ -79,9 +100,10 @@ practiceQuestions:
     answer: 1
     rationale: >-
       Each chromosome is copied in interphase, and one copy of each goes to each new cell, so both get
-      4, the same as the parent. Getting 2 would happen only if the chromosomes were split without
-      being copied. Getting 8 counts the copies as extra chromosomes, but the copies are shared out.
-      Keeping just one chromosome would lose most of the instructions.
+      4, one of each, the same set as the parent. Getting 2 would happen only if the chromosomes were
+      split without being copied, and then each cell would be missing whole chromosomes. Getting 8
+      counts the copies as extra chromosomes, but the copies are shared out. Keeping just one
+      chromosome would lose most of the instructions.
   - stem: "In which stage of mitosis do the chromosomes line up across the middle of the cell?"
     choices:
       - "Metaphase"
@@ -148,7 +170,7 @@ practiceQuestions:
       - "Interphase takes most of the time in a cycle"
     answer: 3
     rationale: >-
-      If cells are caught at random moments, the stage with the most cells lasts the longest, so
+      When cells divide out of step, the stage with the most cells tends to last the longest, so
       interphase takes most of the cycle. Only 15 of 100 cells were dividing, so cells do not spend most
       of their time dividing. The counts say nothing about resting, and interphase cells are busy
       copying. The two counts are far apart, so the times are not the same.
@@ -164,7 +186,7 @@ explainLevels:
       mitosis it divides. The chromosomes coil up (prophase), line up in the middle (metaphase), are
       pulled apart so one copy of each goes to each end (anaphase), and end up in two new nuclei as the
       cell splits in two (telophase). Because copying comes first, each daughter cell gets a complete
-      set, the same number of chromosomes as the parent cell.
+      set: one copy of each chromosome, the same set as the parent cell.
   - level: "highschool"
     label: "Biology"
     text: >-
@@ -229,23 +251,28 @@ import Support from '../../../components/Support.astro';
 import CER from '../../../components/CER.astro';
 import ScaffoldFigure from '../../../components/ScaffoldFigure.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import LessonFilm from '../../../components/LessonFilm.astro';
 
-**Scrape your knee, and the spot is often covered with new skin in about one to two weeks. Where did those new skin cells come from?** Every cell comes from a cell that was already there. One cell splits and becomes two. But most cells carry a full set of instructions. How does each new cell get a complete set, with nothing missing?
+**The first film, above, showed where the new skin over a scrape comes from.** Its made-up model cell had just 4 **chromosomes**: threads in the [nucleus](/lessons/inside-a-cell/), the cell’s inner compartment, that carry its instructions ([DNA](/lessons/dna-the-code-of-life/)). A typical human body cell that has a nucleus has 46. How does each new cell get a full set, with nothing missing?
 
 <IdeaCheck items={[
-  { idea: 'When a cell divides, its chromosomes are split between the two new cells, so each new cell has fewer.', answer: 'disagree', explain: 'Before a cell divides, it copies every chromosome. Then one copy of each goes to each new cell. Scientists see this in stained cells under a microscope: the chromosomes look doubled before they separate, and each new cell ends up with the same number as the parent.' },
-  { idea: 'You grow mainly because your cells get bigger.', answer: 'disagree', explain: 'A cell does grow before it divides, often to about twice its starting size. Then it splits into two smaller cells, so most cells stay small. Growing mostly adds more cells, though some cells do get bigger. An adult has many more cells than a baby, not giant cells.' },
-  { idea: 'A cell spends most of its life dividing.', answer: 'disagree', explain: 'When scientists photograph a root tip, where cells divide often, most cells are not dividing at that moment. They are in a long stage of growing and copying. Counting cells in each stage shows which stages take the most time.' },
+  { idea: 'When a cell divides, its chromosomes are split between the two new cells, so each new cell has fewer.', answer: 'disagree', explain: 'Before a cell divides, it copies every chromosome. In stained cells under a microscope, the chromosomes look doubled before they separate, and each new cell ends up with the same set as the parent.' },
+  { idea: 'You grow mainly because your cells get bigger.', answer: 'disagree', explain: 'A cell does grow before it divides, often to about twice its starting size. Then it splits into two smaller cells, so most cells stay small. Growing mostly adds more cells, though some cells do get bigger.' },
+  { idea: 'A cell spends most of its life dividing.', answer: 'disagree', explain: 'When scientists photograph a root tip, where cells divide often, most cells are not dividing at that moment. They are in a long stage of growing and copying.' },
 ]} />
+
+> **The one idea: copy first, then share.** Before a cell divides, it copies every chromosome. Then mitosis, the dividing step, gives one copy of each chromosome to each new cell. So both get the same full set as the parent: one of every chromosome.
+>
+> *Where it applies:* body cells and one-celled living things that divide this way. Mistakes can happen. Sex cells come from a different kind of division (see Going deeper).
 
 ## Explore: heal a scrape, one cell at a time
 
-In the simulation, the left panel shows a strip of skin cells with a gap in it. You set how long one cell cycle takes and press start. A counter shows how many cells there are. The right panel follows one cell with 4 chromosomes through each stage. A counter shows how many chromosomes the cell has and whether each one is copied. A switch lets you skip the copying step.
+In the simulation, the left panel fills a skin gap with dividing cells; you set the cell-cycle time and watch a cell counter. The right panel steps one cell with 4 chromosomes and shows whether each is copied. A switch skips the copying.
 
 <HealTheScrape />
 
 **Try this.**
-1. Predict how long the gap will take to fill if you make the cell cycle shorter. Then test it and watch the counter.
+1. Predict how a shorter cell cycle changes the time to fill the gap. Then test it.
 2. Before you step the single cell, predict how many chromosomes each new cell will have at the end. Step through and count.
 3. Turn on "skip the copying." Predict how many chromosomes each new cell will get now. Then run it and compare.
 
@@ -253,68 +280,76 @@ In the simulation, the left panel shows a strip of skin cells with a gap in it. 
 
 <WordBank terms={['cell cycle', 'interphase', 'mitosis', 'chromosome', 'daughter cell', 'prophase', 'metaphase', 'anaphase', 'telophase']} />
 
-All living things grow and reproduce. When you grow, the number of cells in your body goes up. When you heal, new cells replace the ones you lost. In both cases, cells that already exist divide.
+All living things grow and reproduce. When you grow, the number of cells in your body goes up; when you heal, new cells replace the ones you lost. Either way, cells that already exist divide. Key words:
 
-Inside the nucleus are **chromosomes**, the threads that carry a cell’s instructions (DNA). You meet the [nucleus](/lessons/inside-a-cell/) and [DNA](/lessons/dna-the-code-of-life/) in other lessons. A typical human body cell that has a nucleus has 46 chromosomes.
+- The **cell cycle** is a cell’s steps from when it forms until it divides.
+- **Interphase** is when the cell grows and copies its chromosomes.
+- **Mitosis** is when the cell divides into two new cells with the same chromosomes.
+- Each new cell is a **daughter cell**; the cell that divided is the parent cell.
 
-The **cell cycle** is the series of steps a cell goes through from when it forms until it divides. It has two main parts.
+<LessonFigure src="/figures/cells-divide/copied-chromosome-still-one.webp" width={1200} height={800} alt="AI-generated illustration: a nucleus with four single coloured chromosomes, an arrow, and the same nucleus after copying, with four chromosomes drawn as X shapes, each made of two identical copies joined in the middle. A zoom shows one copied chromosome." caption="A cell with 4 chromosomes still has 4 after copying, each now two joined copies. The X is drawn for clarity: in interphase the copies stay thin and spread out, and they coil into a thick X only in prophase." />
 
-- **Interphase** is the part of the cycle when the cell grows and copies its chromosomes. It is usually the longest part. The cell is busy, not resting.
-- **Mitosis** is the part of the cycle when the cell divides into two new cells with the same chromosomes. Strictly, mitosis shares out the chromosomes into two new nuclei, and the rest of the cell splits at the end.
+Think of a recipe book. Tear it in half, and each person gets half the recipes. Copy it first, and each person gets the whole book. In a cell the “book” is many separate chromosomes, and each one is copied.
 
-Each new cell is called a **daughter cell**. The cell that divided is the parent cell.
+<Support min={2}>**Key idea:** Copy first, then share. In interphase a cell grows and copies its chromosomes, and in mitosis it divides into two daughter cells.</Support>
 
-Copying matters. A copied chromosome is still one chromosome. It is made of two identical copies joined together. So a cell with 4 chromosomes still has 4 after copying, but each one now has two copies.
+## Explain: spotting the four stages of mitosis
 
-<LessonFigure src="/figures/cells-divide/copied-chromosome-still-one.webp" width={1200} height={800} alt="AI-generated illustration: a nucleus with four single coloured chromosomes, an arrow, and the same nucleus after copying, now with four X-shaped chromosomes, each made of two identical copies joined in the middle. A zoom shows one copied chromosome." caption="A copied chromosome is still one chromosome, made of two identical copies joined together. A cell with 4 chromosomes still has 4 after copying." />
+To sort cells in a photo, you need what each stage looks like frozen:
 
-Think of a recipe book. If you tear it in half, each person gets half the recipes. If you copy it first, each person gets the whole book. The comparison breaks in one place: a cell does not decide to copy. Its molecules do the copying, step by step.
-
-<Support min={2}>**Key idea:** In interphase a cell grows and copies its chromosomes, and in mitosis it divides into two daughter cells.</Support>
-
-## Explain: the four stages of mitosis
-
-Mitosis has four stages. They always come in the same order.
-
-| Stage | What the chromosomes do |
+| Stage | What you see in a stained cell |
 |---|---|
-| **Prophase** | The chromosomes coil up and get thick enough to see. |
-| **Metaphase** | The chromosomes line up in a row across the middle of the cell. |
-| **Anaphase** | The two copies of each chromosome are pulled to opposite ends. |
-| **Telophase** | Two new nuclei form, and the cell splits into two. |
+| **Prophase** | Thick, coiled chromosomes, scattered, not in a row. |
+| **Metaphase** | Chromosomes lined up in a row across the middle. |
+| **Anaphase** | Two matching groups of chromosomes pulled to opposite ends. |
+| **Telophase** | Two new nuclei forming at the ends as the cell splits in two. |
 
-**Prophase** is the stage when the copied chromosomes coil up and become visible. **Metaphase** is the stage when they line up across the middle. **Anaphase** is the stage when the copies are pulled apart. Thin fibers in the cell do the pulling. **Telophase** is the stage when a new nucleus forms at each end and the cell splits. A plant cell has a stiff wall, so it cannot pinch. A new wall forms across its middle instead.
+Two things the first film left out: thin fibers in the cell do the pulling in anaphase, and a plant cell, with its stiff wall, cannot pinch in two in telophase; a new wall forms across its middle instead.
 
-<ScaffoldFigure src="/figures/cells-divide/mitosis-four-stages-strip.webp" width={1200} height={450} keyItems={["prophase", "metaphase", "anaphase", "telophase", "daughter cell"]} given={[1, 4]} alt="AI-generated illustration: one round cell shown in five numbered steps from left to right. Its four coloured chromosomes, each copied into two joined copies, first coil up, then line up across the middle, then have their copies pulled to opposite ends, then the cell pinches in two, ending as two cells that each hold four chromosomes, one of each colour." caption="Mitosis always goes in the same order, and copying first, then sharing one copy of each, means nothing is lost. Name the numbered stages and the cells at the end." />
+Name the numbered stages and the cells at the end.
 
-Count the chromosomes in a model cell. It starts with 4. In interphase, each of the 4 is copied. In anaphase, one copy of each goes to each end. Each daughter cell ends up with 4 chromosomes, the same as the parent cell. Skip the copying, and each daughter cell would get only 2.
+<ScaffoldFigure src="/figures/cells-divide/mitosis-four-stages-strip.webp" width={1200} height={450} keyItems={["prophase", "metaphase", "anaphase", "telophase", "daughter cell"]} given={[1, 4]} alt="AI-generated illustration: one round cell shown in five numbered steps from left to right. Its four coloured chromosomes, each copied into two joined copies, first coil up, then line up across the middle, then have their copies pulled to opposite ends, then the cell pinches in two, ending as two cells that each hold four chromosomes, one of each colour." caption="Mitosis always goes in the same order. A photo freezes each cell in just one of these frames." />
 
-Mistakes can happen, but in normal mitosis each daughter cell gets a complete set.
+**Why copy first?** Check your answer to Try this 3. Skip the copying, and the red, blue, green and yellow chromosomes must be split: say red and blue to one cell, green and yellow to the other. Each cell misses two whole chromosomes and their instructions; no split gives both cells all four colours. (This is a made-up test, not normal mitosis.) What matters is not the count alone: each new cell needs the right number, one of every kind.
 
-A one-celled living thing, such as an amoeba, reproduces by dividing. Its two daughter cells are two new amoebas. A different kind of division, **meiosis**, makes sex cells with half the parent’s genetic material. You study it in [Reproduction and Meiosis](/lessons/reproduction-and-meiosis/).
-
-<Support min={2}>**Key idea:** Because each chromosome is copied first, each daughter cell gets the same number of chromosomes as the parent cell.</Support>
+<Support min={2}>**Key idea:** Each chromosome is copied first, so each daughter cell gets one copy of each, the same set as the parent cell.</Support>
 
 ## Elaborate: count onion root-tip cells
 
-Near the tip of an onion root, cells divide often. A stained root tip is a snapshot. Each cell is caught at one moment of its cycle. If cells are caught at random moments, a longer stage holds more cells.
+**Reminder:** copy first, then share. But how long does copying take, compared with dividing? Cells near an onion root tip divide often, so a root tip can tell you.
 
-<LessonFigure src="/figures/cells-divide/onion-root-tip-snapshot.webp" width={1200} height={800} alt="AI-generated illustration: an onion sitting on a glass of water with roots growing down. A zoom of a root tip shows boxy stained cells, most with a plain nucleus and a few with dark chromosomes; a second zoom shows one plant cell forming a new wall across its middle." caption="A stained root tip is a snapshot of many cells at one moment, and most are in interphase. A plant cell builds a new wall across its middle instead of pinching. The cells drawn here are not the counts in the table." />
+**Predict.** Someone photographed 36 onion root-tip cells and sorted each into a stage. How many of the 36 do you think were in interphase: fewer than 10, 10 to 18, or more than 18? Write down your guess and one reason.
 
-| Stage | Cells counted |
-|---|---|
-| Interphase | 20 |
-| Prophase | 10 |
-| Metaphase | 3 |
-| Anaphase | 2 |
-| Telophase | 1 |
-| Total | 36 |
+The second film shows how a still photo can tell time.
 
-Source: The Biology Project, University of Arizona, onion (Allium cepa) root-tip cell cycle activity, completed-photo page dated 1997 and revised August 2004. It sorts 36 photographed cells. The activity says to assume one cycle takes 24 hours. That is a round number for the activity, not a measured time. The photos also seem to hold more dividing cells than you would usually see, because in a real root tip most cells are in interphase.
+<LessonFilm film={frontmatter.films[0]} />
+
+The second film worked out prophase only. Here are all 36 cells.
+
+<figure className="count-chart">
+  <svg viewBox="0 0 360 250" role="img" aria-label="Bar graph of onion root-tip cells counted in each stage, 36 cells in all: interphase 20, prophase 10, metaphase 3, anaphase 2, telophase 1." style={{ width: '100%', maxWidth: '34rem', height: 'auto', display: 'block', color: 'var(--ddp-color-ink)' }}>
+    <g fontSize="11" fill="currentColor">
+      {[0, 5, 10, 15, 20].map((v) => (<g><line x1="50" x2="345" y1={200 - v * 8} y2={200 - v * 8} stroke="currentColor" strokeOpacity={v === 0 ? 1 : 0.2} /><text x="44" y={204 - v * 8} textAnchor="end">{v}</text></g>))}
+      <line x1="50" y1="40" x2="50" y2="200" stroke="currentColor" />
+      <text x="14" y="120" textAnchor="middle" transform="rotate(-90 14 120)">Cells counted</text>
+      {[['Interphase', 20], ['Prophase', 10], ['Metaphase', 3], ['Anaphase', 2], ['Telophase', 1]].map(([name, n], i) => (<g><rect x={62 + i * 56} y={200 - n * 8} width="40" height={n * 8} style={{ fill: 'var(--ddp-color-primary)' }} /><text x={82 + i * 56} y={194 - n * 8} textAnchor="middle">{n}</text><text x={82 + i * 56} y="216" textAnchor="middle">{name}</text></g>))}
+      <text x="197" y="240" textAnchor="middle">Stage (36 onion root-tip cells in all)</text>
+    </g>
+  </svg>
+  <figcaption>Out of 36 photographed onion root-tip cells, 20 were in interphase, more than all four stages of mitosis together (20 cells against 16). Interphase is usually the longest part of the cycle.</figcaption>
+</figure>
+
+Each bar counts cells, one per photo. Was your prediction right?
+
+<LessonFigure src="/figures/cells-divide/onion-root-tip-snapshot.webp" width={1200} height={800} alt="AI-generated illustration: an onion sitting on a glass of water with roots growing down. A zoom of a root tip shows boxy stained cells, most with a plain nucleus and a few with dark chromosomes; a second zoom shows one plant cell forming a new wall across its middle. The cells drawn here are not the counts in the graph." caption="A stained root tip is a snapshot of many cells at one moment, and most are in interphase." />
+
+Use the second film’s steps: cells ÷ 36, then × 24 hours.
 
 1. Which stage has the most cells? What percent of the 36 cells is that?
-2. Find the percent for each stage. Do your five percents add up to about 100?
+2. Find the percent for each stage. Do your five percents add up to about 100? (Rounding can make it 99 or 101.)
 3. If one cycle takes 24 hours, about how many hours does interphase take?
+
+The second film’s rule needs cells that divide out of step. If they all divided together, like a school moving at one bell, one photo could catch nearly all in one stage and say nothing about time.
 
 <SentenceFrames frames={['The stage with the most cells is ___.', 'This stage takes the most time because ___.', 'One limit of these counts is ___.']} />
 
@@ -322,8 +357,8 @@ Source: The Biology Project, University of Arizona, onion (Allium cepa) root-tip
   task="Make a claim about which part of the cell cycle takes the longest, and what that tells you about how a cell gets ready to divide."
   claim="The counts show that ___ takes the longest part of the cell cycle."
   evidence="Out of 36 cells, ___ were in interphase. That is about ___ percent."
-  reasoning="A longer stage holds more cells at one moment, because ___. During this stage the cell ___."
-  model="Interphase takes the longest part of the cell cycle. Out of 36 onion root-tip cells, 20 were in interphase. That is about 56 percent, more than all four stages of mitosis together. A longer stage holds more cells at any moment. During interphase the cell grows and copies every chromosome, so it is ready to give each daughter cell a full set. One limit: these are only 36 photos, and the page does not say how they were picked. The 24-hour cycle is also an assumption."
+  reasoning="A longer stage tends to hold more cells at one moment, because ___. During this stage the cell ___."
+  model="Interphase takes the longest part of the cell cycle. Out of 36 onion root-tip cells, 20 were in interphase. That is about 56 percent, more than all four stages of mitosis together (20 cells against 16). When cells divide out of step, a longer stage tends to hold more cells in a snapshot. During interphase the cell grows and copies every chromosome, so it is ready to give each daughter cell a full set. One limit: these are only 36 photos, and nobody says how they were picked. The 24-hour cycle is also an assumption."
 />
 
 ### Design problem
@@ -347,6 +382,24 @@ Roots grow when cells near the tip divide and the new cells stretch. Faster grow
 
 ## Evaluate: check your thinking
 
-A scrape fills in because skin cells near the wound divide and make new cells, and some cells also crawl into the gap. Before each cell divides, it copies every chromosome in interphase. Then mitosis gives one copy of each chromosome to each daughter cell, so the instructions are not mixed up or lost.
+Interphase, when a cell grows and copies every chromosome, usually outlasts all of mitosis, so a snapshot of cells dividing out of step tends to catch more in interphase: here, 20 against 16.
 
-**Science practices you used:** making predictions and testing them with a model, organizing and reading counts in a table, finding percents to compare stages, and planning a fair test with repeated trials.
+**Science practices you used:** making predictions and testing them with a model, reading counts in a bar graph, finding percents to compare stages, and planning a fair test with repeated trials.
+
+## Going deeper
+
+### Where the onion numbers come from
+
+The counts come from The Biology Project, University of Arizona: an onion (Allium cepa) root-tip cell cycle activity, completed-photo page dated 1997 and revised August 2004, which sorts 36 photographed cells. Its 24-hour cycle is a round number for the activity, not a measured time, and the page does not say how the photos were picked. The photos also seem to hold more dividing cells than usual, because in a real root tip most cells are in interphase.
+
+### When a snapshot can tell time
+
+The second film named the share-of-cells rule's limits. A stained root tip is frozen, but scientists can film living cells and follow one through every stage.
+
+### Two fine points
+
+Strictly, mitosis shares out the chromosomes into two new nuclei, and the rest of the cell splits at the end. Where the recipe book breaks: a cell does not decide to copy, as a person would; its molecules do it, step by step.
+
+### One-celled living things and sex cells
+
+A one-celled living thing, such as an amoeba, reproduces by dividing. Its two daughter cells are two new amoebas. A different kind of division, **meiosis**, makes sex cells with half the parent’s genetic material. You study it in [Reproduction and Meiosis](/lessons/reproduction-and-meiosis/).

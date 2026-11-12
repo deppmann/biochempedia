@@ -731,4 +731,4 @@ class S19Handoff(SpokenScene):
 
 
 class S20End(EndCard):
-    LINE = "Every plant carries two copies; each gamete gets one, by coin toss."
+    LINE = "Pea plants carry two copies; each gamete gets one, by coin toss."
