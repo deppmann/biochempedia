@@ -837,4 +837,4 @@ class S17Idea(W):
 
 
 class S18End(EndCard):
-    LINE = "Meiosis deals one homolog per pair, by an independent coin toss."
+    LINE = "Meiosis I deals one homolog per pair, each by coin toss."

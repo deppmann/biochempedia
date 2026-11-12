@@ -5,10 +5,11 @@ course: "life-science"
 courseChapter: "Life Science · Unit 1: Cells"
 order: 1002
 summary: >-
-  What are the parts inside a cell, and how do they keep it alive together? You switch off one
-  cell part at a time in a model cell and read real measurements of how much space mitochondria
-  fill in different cells. Afterwards you can name the main organelles, say what each one does,
-  and use data to show that a cell's parts match its job.
+  A cell is one team of parts: every life job uses several parts at once, and cells with
+  different jobs often hold their parts in different amounts. You switch off one cell part at a time
+  in a model cell and read real measurements of how much space mitochondria fill in different
+  cells. Afterwards you can name the main organelles, say what each one does, and use data to
+  compare the parts of cells with different jobs.
 hook: "Why is a heart muscle cell crowded with mitochondria, while a fat cell is mostly one big drop of fat?"
 estMinutes: 40
 supports: true
@@ -29,10 +30,31 @@ explainer:
   src: "/explainers/inside-a-cell/explainer.mp4"
   captions: "/explainers/inside-a-cell/explainer.vtt"
   poster: "/explainers/inside-a-cell/poster.jpg"
-  title: "Cell Parts Work as One Team"
-  durationSec: 143.7
-  narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+  title: "One Cell, Many Jobs, Shared Space"
+  durationSec: 197.8
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+  takeaways:
+    - "An organelle is a small part inside a cell that does a special job."
+    - "Every life job, such as replacing a worn-out protein, uses several parts working together."
+    - "If the mitochondria stop, many jobs slow down, not just energy use."
+    - "Cells with different jobs often hold their parts in different amounts. A part's size alone does not tell you a cell's job."
+
+films:
+  - id: "chapter-2"
+    src: "/explainers/inside-a-cell/chapter-2.mp4"
+    captions: "/explainers/inside-a-cell/chapter-2.vtt"
+    poster: "/explainers/inside-a-cell/chapter-2-poster.jpg"
+    title: "Counting Dots to Measure a Cell"
+    durationSec: 186.2
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+    takeaways:
+      - "Scientists lay an even grid of dots over a picture of a thin cell slice and count the dots on each part."
+      - "Over many fairly chosen pictures, the share of dots on mitochondria estimates the share of the cell's volume they fill."
+      - "Mitochondria filled about a fifth to over a third of heart muscle cells in ten kinds of mammals."
+      - "In white fat cells from chicken embryos, fat droplets filled most of the space, and mitochondria less than 1%."
+      - "These measurements show a pattern across cells with different jobs, not proof of what causes it."
 
 scientists: []
 
@@ -45,8 +67,8 @@ techniques:
   - name: "Point counting"
     blurb: >-
       A grid of evenly spaced points is laid over a microscope picture, and you count how many
-      points land on each part. The share of points that land on mitochondria estimates the share of
-      the cell's volume they fill.
+      points land on each part. Over many fairly chosen pictures, the share of points that land on
+      mitochondria estimates the share of the cell's volume they fill.
 
 structures:
   - label: "Sugar (glucose), a food molecule whose energy cells release, partly in mitochondria"
@@ -162,7 +184,9 @@ practiceQuestions:
       Heart muscle cells work without a break and gave a much larger share of their space to
       mitochondria than the fat cells, which mostly store fat. That supports the claim that cells
       with different jobs hold different amounts. If all cells had the same amounts, the values would
-      match. The fat cells did have mitochondria, just few. Heart cells also have a nucleus.
+      match. The fat cells did have mitochondria; fat droplets filled most of their space, so the
+      claim that fat cells have no organelles except a fat drop is wrong. Heart cells also have a
+      nucleus, so mitochondria do not replace it.
 
 mcatQuestions: []
 
@@ -172,7 +196,7 @@ explainLevels:
     text: >-
       Many cells contain organelles, small parts that each do special jobs. The nucleus holds the
       instructions. The cell membrane controls what enters and leaves. Cytoplasm fills the cell. The
-      endoplasmic reticulum makes and moves proteins and fats. Mitochondria release energy stored in
+      endoplasmic reticulum helps make and move proteins and fats. Mitochondria release energy stored in
       food such as sugar and fats. Vacuoles store water, food and wastes. The parts work together as one system for
       growth, repair, reproduction, gas exchange, metabolism and response, so trouble in one part
       affects the others. Cells with different jobs have different amounts of each part, such as a
@@ -239,42 +263,38 @@ import Support from '../../../components/Support.astro';
 import CER from '../../../components/CER.astro';
 import ScaffoldFigure from '../../../components/ScaffoldFigure.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import LessonFilm from '../../../components/LessonFilm.astro';
 
-**At rest, your heart beats about 60 to 100 times a minute, roughly once or a little more each second. Its muscle cells are crowded with tiny parts called mitochondria.** A white fat cell under your skin is different. It is mostly one big drop of stored fat, with a thin rim of everything else. These two cells share many kinds of parts, but they use their space very differently. Why?
+**The first film opened with a puzzle: a heart muscle cell and a white fat cell share many kinds of parts, yet their floor plans look nothing alike.** At rest, your heart beats about 60 to 100 times a minute, so its muscle cells release a lot of energy, mostly from fats. A white fat cell has almost the opposite job: it stores fat for later. How much of each cell goes to each part, and does that match the job?
 
 <IdeaCheck items={[
-  { idea: 'Each part of a cell does its own job alone. If one part stops, the rest of the cell is fine.', answer: 'disagree', explain: 'The parts depend on one another. In a 1968 experiment on slices of guinea pig pancreas, chemicals that stopped energy release in the mitochondria also stopped new proteins from moving from one part of the cell to the next. One part failing slowed the work of others.' },
-  { idea: 'All cells have the same shape and size, with the same parts in the same amounts.', answer: 'disagree', explain: 'Electron microscope pictures show big differences. Mitochondria fill about a fifth to over a third of a heart muscle cell. In white fat cells they fill very little, and one fat drop fills most of the cell. A mature red blood cell has no mitochondria at all.' },
-  { idea: 'Mitochondria make energy.', answer: 'disagree', explain: 'Energy cannot be made from nothing. It only changes from one form to another. Mitochondria release the energy stored in food, in a form the cell can use. Scientists measure this by tracking the food and oxygen that cells take in and use.' },
+  { idea: 'Each part of a cell does its own job alone. If one part stops, the rest of the cell is fine.', answer: 'disagree', explain: 'The parts depend on one another. In a 1968 experiment, described below, chemicals that blocked energy release in the mitochondria also left new proteins made for export stuck in the ER.' },
+  { idea: 'All cells have the same shape and size, with the same parts in the same amounts.', answer: 'disagree', explain: 'Measurements show big differences. In the mammals measured, mitochondria fill about a fifth to over a third of a heart muscle cell. In white fat cells one fat drop fills most of the cell. A mature red blood cell has no mitochondria at all.' },
+  { idea: 'Mitochondria make energy.', answer: 'disagree', explain: 'Energy cannot be made, only changed from one form to another. Mitochondria do not make energy; they release the energy stored in food, in a form the cell can use. Scientists measure this by tracking the food and oxygen that cells take in and use.' },
 ]} />
 
-## Explore: switch off one part of a cell
+> **The one idea.** A cell is one team of parts. Every life job needs several parts working at once, and cells with different jobs often hold their parts in different amounts.
+>
+> *Where it holds:* plant and animal cells, though a few, like mature red blood cells, lack whole parts. No part plans anything; each follows chemistry. Heart and fat cells show a pattern, not a rule: a part's size alone does not tell you a cell's job.
 
-The cell-as-a-team model shows a cell as labelled blocks, one for each part. You pick a heart muscle cell, a fat storage cell or a leaf cell. Then you switch off one part at a time and watch six bars, one for each life process: growth, repair, reproduction, gas exchange, metabolism and response.
-
-<OrganelleTeam />
-
-**Try this.**
-1. Pick the heart muscle cell. Predict how many bars will drop if you switch off the mitochondria. Then test it.
-2. Turn the mitochondria back on. Switch off the cell membrane instead. Predict which bars drop, then check.
-3. Pick the fat storage cell and switch off the mitochondria again. Predict whether its bars drop as much as the heart cell’s did. Then compare.
+<LessonFigure src="/figures/inside-a-cell/heart-cell-and-fat-cell.webp" width={1200} height={800} alt="AI-generated illustration: a long heart muscle cell crowded with rows of gold bean-shaped mitochondria around one nucleus, beside a round white fat cell almost filled by one big pale fat drop, with a flattened nucleus and a few mitochondria squeezed into a thin rim." caption="Mitochondria fill a large share of a heart muscle cell; one fat drop fills most of a white fat cell. The two share many kinds of parts, in very different amounts." />
 
 ## Explain: the parts and their jobs
 
 <WordBank terms={['organelle', 'nucleus', 'cell membrane', 'cytoplasm', 'endoplasmic reticulum', 'mitochondria', 'vacuole', 'metabolism', 'photosynthesis', 'cellular respiration']} />
 
-Many cells contain organelles. An **organelle** is a small part inside a cell that does a special job. Here are the main parts. Plant and animal cells share the first five. The last, the vacuole, is large in plant cells; many animal cells have only small sacs instead.
+For reference, here are the first film's six parts, with details it left out. An **organelle** is a small part inside a cell that does a special job.
 
-- The **nucleus** holds the cell’s instructions. These instructions guide what the cell makes and does.
-- The **cell membrane** is the thin boundary around the cell. It controls what enters and leaves, and it lets the cell sense its surroundings.
-- The **cytoplasm** is everything inside the cell membrane except the nucleus: a jelly-like fluid and the organelles in it. Many reactions happen in the fluid.
-- The **endoplasmic reticulum** (ER) is a network of folded membranes. It helps make and move many proteins and fats.
-- **Mitochondria** release much of the energy stored in food such as sugar (glucose) and fats, in a form the cell can use.
-- A **vacuole** is a sac that stores water, food and wastes. In animal cells, small sacs called lysosomes break down wastes and worn-out parts.
+- **Nucleus:** holds the instructions that guide what the cell makes and does.
+- **Cell membrane:** controls what enters and leaves, and lets the cell sense its surroundings.
+- **Cytoplasm:** everything inside the membrane except the nucleus, fluid and organelles together. Many reactions happen in the fluid.
+- **Endoplasmic reticulum** (ER): folded membranes that help make and move many proteins and fats.
+- **Mitochondria:** release much of the energy stored in food such as sugar (glucose) and fats, in a form the cell can use.
+- **Vacuole:** stores water, food and wastes. Many animal cells have only small sacs, and sacs called lysosomes break down wastes and worn-out parts.
 
-<ScaffoldFigure src="/figures/inside-a-cell/animal-cell-six-parts.webp" width={1200} height={800} keyItems={["nucleus", "cell membrane", "cytoplasm", "endoplasmic reticulum", "mitochondria", "vacuole"]} given={[0, 1]} alt="AI-generated illustration: one large, soft-edged animal cell, opened up to show its inside. A round nucleus sits left of centre with folded ribbons curving beside it, bean-shaped parts and small round sacs are spread through the lower right, and pale fluid fills the rest. A double outline surrounds the cell. Six numbered circles mark parts for the student to name." caption="The main cell parts in this lesson, each with its own job. In an animal cell the storage sacs are small; a plant cell has one large vacuole. Name the six numbered parts." />
+<ScaffoldFigure src="/figures/inside-a-cell/animal-cell-six-parts.webp" width={1200} height={800} keyItems={["nucleus", "cell membrane", "cytoplasm", "endoplasmic reticulum", "mitochondria", "vacuole"]} given={[0, 1]} alt="AI-generated illustration: one large, soft-edged animal cell, opened up to show its inside. A round nucleus sits left of centre with folded ribbons curving beside it, bean-shaped parts and small round sacs are spread through the lower right, and pale fluid fills the rest. A double outline surrounds the cell. Six numbered circles mark parts for the student to name." caption="Six main parts share the cell's work. Name the six numbered parts." />
 
-Each job uses more than one part.
+The first film followed one job; the table maps the others.
 
 | Job | Parts that help |
 |---|---|
@@ -283,69 +303,85 @@ Each job uses more than one part.
 | Removing wastes | Cell membrane, vacuoles and other small sacs |
 | Responding to the environment | Cell membrane, nucleus |
 
-Not every cell has every part. A mature human red blood cell has no nucleus and no mitochondria. Bacteria have no nucleus, as you will see in [that lesson](/lessons/domains-kingdoms-and-dna/). Plant cells add a cell wall and a large central vacuole, and green plant cells also have chloroplasts, as shown in [that lesson](/lessons/plant-and-animal-cells/).
+Not every cell has every part. A mature human red blood cell has no nucleus and no mitochondria. Bacteria have no nucleus ([that lesson](/lessons/domains-kingdoms-and-dna/)). Plant cells share the first five parts and add a cell wall, a large central vacuole and, in green cells, chloroplasts ([that lesson](/lessons/plant-and-animal-cells/)).
 
 <Support min={2}>**Key idea:** Each organelle has a special job, and each job of the cell uses several organelles.</Support>
 
+## Explore: switch off one part of a cell
+
+Now test the team: switch off one part at a time and watch the six life-process bars.
+
+<OrganelleTeam />
+
+**Try this.**
+1. Pick the heart muscle cell and switch off the mitochondria. Count how many of the six bars drop.
+2. Turn the mitochondria back on. Switch off the cell membrane instead. Predict which bars drop, then check.
+3. Pick the fat storage cell and switch off the mitochondria again. Predict whether its bars drop as much as the heart cell’s did. Then compare.
+
 ## Explain: the parts work as a team
 
-A cell must repair itself, and many cells also grow and reproduce. Cells also exchange gases, carry out metabolism and respond. The organelles do all of this together.
+The first film's stalled repair job was a cartoon. Scientists saw a real case in 1968: in slices of guinea pig pancreas, chemicals that stopped energy release in the mitochondria left new proteins made for export stuck in the ER, unable to move on toward the cell's exit. The same teamwork runs every life process.
 
-- **Growth and repair.** Instructions from the nucleus guide which proteins and fats are made. The ER makes and moves many of them. Mitochondria release the energy for this building.
-- **Reproduction.** Before a cell divides, it grows and copies its instructions. You will see how in [that lesson](/lessons/cells-divide/).
-- **Gas exchange.** In a cell using oxygen, oxygen moves in across the cell membrane, and carbon dioxide moves out. Mitochondria use the oxygen. A leaf cell in light can do the reverse. [That lesson](/lessons/diffusion-and-osmosis/) shows how gases cross.
-- **Response.** A signal touches the cell membrane, and the cell changes what it does.
-
-**Metabolism** means all the chemical reactions inside the cell, such as building molecules up and breaking them down. Two examples matter most in this course. In **photosynthesis**, plant cells use radiant energy (light) to make sugar (glucose), as in [that lesson](/lessons/photosynthesis-feeds-the-world/). In **cellular respiration**, cells break down sugar and release its stored energy, as in [that lesson](/lessons/releasing-energy-from-food/).
-
-A cell is a bit like a sports team, where each player has a role. The comparison breaks in one way: no part decides or plans anything. Each part simply follows chemistry.
+- **Growth and repair** use the path the first film followed: nucleus, ER and mitochondria.
+- **Reproduction.** Before a cell divides, it grows and copies its instructions, so it needs the same team ([cell division](/lessons/cells-divide/)).
+- **Gas exchange.** In a cell using oxygen, oxygen moves in across the cell membrane, and carbon dioxide moves out. Mitochondria use the oxygen. A green leaf cell in bright light can give out more oxygen than it takes in, when photosynthesis runs faster than its respiration ([how gases cross](/lessons/diffusion-and-osmosis/)).
+- **Response.** A signal reaches the cell, often at the cell membrane, and the cell changes what it makes or does.
+- **Metabolism** means **all the chemical reactions inside the cell**, such as building molecules up and breaking them down. Two key examples: in **photosynthesis**, plant cells use radiant energy (light) to make sugar (glucose) ([photosynthesis](/lessons/photosynthesis-feeds-the-world/)). In **cellular respiration**, cells break down sugar and release its stored energy ([releasing energy](/lessons/releasing-energy-from-food/)).
 
 <Support min={2}>**Key idea:** Organelles work as one system, so trouble in one part slows many life processes.</Support>
 
-## Explain: same parts, different amounts
+Every job needs the team. But how much of a cell is each part? The second film shows how scientists measure it.
 
-Look again at the two cells from the start. Both have a nucleus, a membrane, cytoplasm, ER and mitochondria. But the amounts are very different.
+<LessonFilm film={frontmatter.films[0]} />
 
-A heart muscle cell works without a break, so it releases a lot of energy, mostly from fats. Mitochondria fill a large share of it. A typical white fat cell stores fat. One fat drop fills most of the cell, and the other parts sit in a thin rim.
+## Elaborate: same parts, different amounts
 
-<LessonFigure src="/figures/inside-a-cell/heart-cell-and-fat-cell.webp" width={1200} height={800} alt="AI-generated illustration: a long heart muscle cell crowded with rows of gold bean-shaped mitochondria around one nucleus, beside a round white fat cell almost filled by one big pale fat drop, with a flattened nucleus and a few mitochondria squeezed into a thin rim." caption="Both cells have the same kinds of parts, but in very different amounts. The heart muscle cell is crowded with mitochondria; the fat cell is mostly one fat drop." />
+The second film compared reported measurements for heart muscle and white fat cells; here are six more. First, test the pattern on one.
+
+**Predict.** A guinea pig pancreas cell builds digestive enzymes, which are proteins, and sends them out of the cell. Will its mitochondria fill as large a share as in heart muscle, or less?
+
+<details>
+<summary>Check your prediction</summary>
+
+Less: about 8.1%, below the whole heart range. Its job leans on making and moving protein, and the same study found that rough ER, the part of the ER where many proteins are made, filled about 22% of these cells.
+
+</details>
+
+Each block is about 2 percentage points of the cell's volume (one percentage point is one step on the percent scale, such as 8% to 9%). In the heart row, solid blocks reach the low end of the range and pale blocks the high end. Bars are rounded; the numbers are exact.
+
+| Cells measured | Mitochondria (% of cell volume) | Graph |
+|---|---|---|
+| Hummingbird flight muscle (rufous hummingbird) | 34.5 | █████████████████ |
+| Heart muscle, 10 kinds of mammals | 22 to 37 (range) | ███████████░░░░░░░░ |
+| Human arm muscle, elite skiers | 9.0 | ████▌ |
+| Human leg muscle, elite skiers | 8.6 | ████▌ |
+| Guinea pig pancreas cell that makes digestive enzymes | 8.1 | ████ |
+| Chicken brown-like fat cell, grown in a dish for 22 days | 4.2 | ██ |
+| Chicken white fat cell, embryo | 0.7 | ▏ |
+| Human red blood cell, mature and healthy | 0 (none) | (no bar) |
+
+1. Looking only at rows with a single value, which measured cell had the largest share of mitochondria? Which had the smallest share above zero? *The longest single bar is ___. The shortest bar above zero is ___.*
+2. Find the mean of the two skier values (add them, then divide by 2). *Skier muscle averages ___%, which is ___ than the heart range.*
+3. How many percentage points apart are the hummingbird muscle and the pancreas cell? *The hummingbird muscle share is ___ percentage points higher.*
+4. Which listed cells have the longest bars? Describe one pattern, then give one reason the table alone cannot show that a cell's job caused it. *The longest bars belong to ___. The table cannot prove cause because ___.*
+
+The studies measured the space mitochondria filled, not their number. Why is the white fat cell's bar so short? Going deeper works it out.
 
 <Support min={2}>**Key idea:** Cells with different jobs hold different amounts of each part.</Support>
-
-## Elaborate: how much space do mitochondria fill?
-
-Scientists took very thin slices of cells and photographed them with an electron microscope. Then they laid a grid of points over each picture and counted the points on mitochondria.
-
-<LessonFigure src="/figures/inside-a-cell/counting-points-on-mitochondria.webp" width={1200} height={800} alt="AI-generated illustration: a grey picture of a thin slice of a cell with oval mitochondria, covered by an even grid of dots. Dots that land on mitochondria are filled gold and the rest are hollow. A zoom shows one mitochondrion with gold dots on it and a hollow dot beside it." caption="Point counting: lay an even grid over a picture and count the points that land on mitochondria. The share of points estimates the share of the cell's volume they fill." />
-
-| Cells measured | Mitochondria (% of cell volume) |
-|---|---|
-| Hummingbird flight muscle (rufous hummingbird) | 34.5 |
-| Heart muscle, 10 kinds of mammals | 22 to 37 (range) |
-| Human arm muscle, elite skiers | 9.0 |
-| Human leg muscle, elite skiers | 8.6 |
-| Guinea pig pancreas cell that makes digestive enzymes | 8.1 |
-| Chicken brown-like fat cell, grown in a dish for 22 days | 4.2 |
-| Chicken white fat cell, embryo | 0.7 |
-| Human red blood cell, mature and healthy | 0 (none) |
-
-Sources: Mathieu-Costello and colleagues, 1992 (hummingbird); Barth and colleagues, 1992 (heart, ten species including humans); Ørtenblad and colleagues, 2018 (skiers, Norway); Bolender, 1974 (pancreas, five guinea pigs); Mezentseva and colleagues, 2008 (chicken cells). The red blood cell row is a textbook fact, not a measurement. Most rows come from different studies; the two skier rows share one study, and so do the two chicken rows.
-
-1. Looking only at rows with a single value, which measured cell had the largest share of mitochondria? Which had the smallest share above zero?
-2. Find the mean of the two skier values.
-3. How many percentage points apart are the hummingbird muscle and the pancreas cell?
 
 <CER
   task="Make a claim that answers the essential question: do a cell’s parts match its job? Use the table."
   claim="The data show that cells with ___ jobs have ___ amounts of mitochondria."
   evidence="Mitochondria filled ___% of ___ but only ___% of ___."
   reasoning="This makes sense because mitochondria ___, and a cell that ___ needs more of that."
-  model="Cells with different jobs give different amounts of space to mitochondria. Mitochondria filled 34.5% of hummingbird flight muscle and 22% to 37% of heart muscle, but only 0.7% of chicken white fat cells. Heart muscle works without a break and hummingbird flight muscle powers very fast wingbeats, so both release a lot of energy from food, and mitochondria release that energy. Elite skiers' muscles, which work hard but not nonstop, had far less, about 9%. Fat cells mostly store fat. One limit: the rows come from different studies, species and methods. These data show a pattern, but they do not prove what causes it."
+  model="Cells with different jobs give different amounts of space to mitochondria. Mitochondria filled 34.5% of hummingbird flight muscle and 22% to 37% of heart muscle, but only 0.7% of chicken white fat cells. Heart muscle works without a break and hummingbird flight muscle powers very fast wingbeats, so both release a lot of energy from food, the mitochondria's job. Elite skiers' muscles, which work hard but not nonstop, had far less, about 9%. Fat cells mostly store fat. The fat cell share is small partly because fat droplets take most of the space. One limit: the rows come from different studies, species and methods, so the data show a pattern but do not prove what causes it."
 />
 
 ### Design problem
 
-Scientists count points on a grid to measure space inside a cell. Does the spacing of the grid change your answer? Plan a test using a printed electron microscope picture of a cell and clear grids you draw yourself.
+Does the spacing of a counting grid change your answer? Plan a test using a printed electron microscope picture of a cell and clear grids you draw yourself.
+
+<LessonFigure src="/figures/inside-a-cell/counting-points-on-mitochondria.webp" width={1200} height={800} alt="AI-generated illustration: a grey picture of a thin slice of a cell with oval mitochondria, covered by an even grid of dots. Dots that land on mitochondria are filled gold and the rest are hollow. A zoom shows one mitochondrion with gold dots on it and a hollow dot beside it." caption="The counting rule your grids will use: the share of points that land on mitochondria estimates the share of the cell's volume they fill." />
 
 <details>
 <summary>One way to do it</summary>
@@ -363,6 +399,23 @@ Scientists count points on a grid to measure space inside a cell. Does the spaci
 
 ## Evaluate: check your thinking
 
-A heart muscle cell and a fat cell share many kinds of organelles. The heart cell works without a break, and it gives a large share of its space to mitochondria, which release energy from food. The fat cell stores fat, so one fat drop fills most of it. In both cells, the parts work together as one team.
+Back to the hook: the films and the table answer it with the same pattern, many shared parts in very different amounts. Two examples show the pattern; they do not make it a rule for every cell.
 
-**Science practices you used:** using a model and naming its limits, reading a data table, finding a mean and a difference, and planning a fair test with repeated trials.
+**Science practices you used:** using a model and naming its limits, reading a data table and a graph, finding a mean and a difference, and planning a fair test with repeated trials.
+
+## Going deeper
+
+### The fat cell's thin rim
+
+**Predict.** In the white fat cells, fat droplets filled about 90.9% and mitochondria about 0.7%. In the part that is not fat, do mitochondria fill closer to 1% or to the pancreas cell's 8%?
+
+<details>
+<summary>Check your prediction</summary>
+
+Closer to 8%. The part that is not fat is about 9.1% of the cell, and 0.7 out of 9.1 is about 7.7%. This is a rough estimate that assumes both numbers come from the same cells. The tiny share mostly reflects the fat taking the space.
+
+</details>
+
+### Where the numbers come from
+
+Sources: Mathieu-Costello and colleagues, 1992 (hummingbird); Barth and colleagues, 1992 (heart, ten species including humans); Ørtenblad and colleagues, 2018 (skiers, Norway); Bolender, 1974 (pancreas, five guinea pigs); Mezentseva and colleagues, 2008 (chicken cells). The red blood cell row is a textbook fact, not a measurement. Most rows come from different studies; the two skier rows share one study, and so do the two chicken rows.

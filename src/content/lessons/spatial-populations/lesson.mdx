@@ -5,13 +5,14 @@ course: "ecology-evolution"
 courseChapter: "Ecology and Evolution · Unit 3: Environments and populations"
 order: 515
 summary: >-
-  How does a species persist across a landscape when its local populations keep winking out, and
-  how do you count animals you rarely see? This lesson breaks dispersal into its stages, builds the
-  Levins metapopulation model and Pulliam's sources and sinks, reads corridor experiments at their
-  own scale, and works through mark-recapture and occupancy estimates. Afterwards you can compute
-  an equilibrium occupied fraction, a Lincoln-Petersen and Chapman abundance estimate, and the
-  chance that an occupied site was missed on every visit.
-hook: "Three visits, no toads heard. Is the pond empty?"
+  A region can keep a species even though no patch keeps its population, as long as the
+  colonization rate c is greater than the extinction rate e: in the Levins model occupancy then
+  settles at p* = 1 − e/c, where patches refounded balance patches lost. This lesson builds that ledger, breaks dispersal into its stages, adds
+  Pulliam's sources and sinks and the rescue effect, reads corridor experiments at their own
+  scale, and works through occupancy and mark-recapture estimates. Afterwards you can compute an
+  equilibrium occupied fraction, a Lincoln-Petersen and Chapman abundance estimate, and the chance
+  that an occupied site was missed on every visit.
+hook: "If each pond's frogs last only about a decade, why can a region still have frogs a century later?"
 
 estMinutes: 24
 objectives:
@@ -25,9 +26,31 @@ explainer:
   captions: "/explainers/spatial-populations/explainer.vtt"
   poster: "/explainers/spatial-populations/poster.jpg"
   title: "A Region Outlasts Its Ponds"
-  durationSec: 151.4
-  narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+  durationSec: 197.4
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+  takeaways:
+    - "In the Levins model each patch is simply occupied or empty, and p is the fraction occupied."
+    - "Occupancy rises by colonization, c p (1 − p), which needs both occupied and empty patches, and falls by local extinction, e p."
+    - "Occupancy settles where gains balance losses, at p* = 1 − e/c, so a region keeps a species only while colonization beats extinction: c greater than e."
+    - "Which patches are occupied keeps changing even when the fraction occupied does not."
+    - "The model assumes many identical, equally reachable patches with constant rates; a small network can still lose every patch by chance."
+
+films:
+  - id: "chapter-2"
+    src: "/explainers/spatial-populations/chapter-2.mp4"
+    captions: "/explainers/spatial-populations/chapter-2.vtt"
+    poster: "/explainers/spatial-populations/chapter-2-poster.jpg"
+    title: "Two Kinds of Zero"
+    durationSec: 178.0
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+    takeaways:
+      - "A survey zero can mean the species is absent, or that it was there and missed."
+      - "A history such as 010 shows a site that was occupied and missed on two of three visits."
+      - "If each visit independently detects an occupied site with probability 0.5, three visits all miss it one time in eight."
+      - "Visiting each site several times, while occupancy stays fixed, lets a model estimate detection and occupancy separately."
+      - "In Maryland in 2000, American toads were detected at 10 of 29 wetlands analysed, about 0.34, but estimated to occupy 0.49."
 
 scientists:
   - name: "Richard Levins"
@@ -119,7 +142,7 @@ techniques:
     blurb: >-
       Each site is visited several times within a period when its occupancy is assumed not to
       change, and detection or non-detection is recorded each time. The detection histories let a
-      model estimate the probability of detection and the fraction of sites occupied separately, provided the species is never recorded where it is absent and detection is independent among sites, with any variation in it modelled.
+      model estimate the probability of detection and the fraction of sites occupied separately, provided the species is never recorded where it is absent and detection is independent among sites and among visits, with any variation in it modelled.
   - name: "Corridor experiments with area controls"
     blurb: >-
       Habitat fragments are connected or left isolated, and some fragments receive about the same added
@@ -338,24 +361,17 @@ draft: false
 import LevinsOccupancy from '../../../components/LevinsOccupancy.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
 import EquationCard from '../../../components/EquationCard.astro';
+import LessonFilm from '../../../components/LessonFilm.astro';
 
-**Visit a pond three times, hear no toads, and you still cannot say the pond is empty.** Walk into a meadow full of butterflies and you still cannot say that population replaces itself. Both problems come from the same fact: many species live in patches, move between them, and are hard to see. This lesson asks how a species persists across patches that keep losing their populations, and how you count animals you mostly do not observe.
+The first film showed how a region outlasts its ponds. It left out three things: how fast a network is lost once the balance tips, what sets the two rates, and how to measure them on animals that hide. **Visit a pond three times, hear no toads, and you still cannot say it is empty.** [Population growth](/lessons/population-growth/) asked whether one population grows (its growth factor per time step, lambda, above or below 1) and [demography](/lessons/demography/) estimated its birth and survival rates; here the question moves up to a region of patches.
 
-## The idea: populations in patches
+> **The one idea.** A region can keep a species even though no patch keeps its population, as long as colonization beats extinction: the **colonization rate c is greater than the extinction rate e**. Then the fraction of patches occupied, p, settles at **p\* = 1 − e/c**, the level where patches refounded balance patches lost.
+>
+> *Scope:* this is the deterministic Levins model: many identical, equally reachable patches, constant rates, no attention to how many animals each patch holds. There p\* is the long-run occupied fraction, not a fixed set of ponds. A real, finite network only wanders near p\* for a while: once every patch is empty it stays empty, so a small network can eventually lose every patch by chance even when c is greater than e.
 
-Picture a string of ponds across farmland. Each pond holds a **local population**, the individuals that live and breed there, and the fields between are hostile ground. A **metapopulation** is a set of such local populations in separate patches, linked by dispersal.
+## The ledger: colonization against extinction
 
-**Dispersal** is movement from where an individual was born, or last bred, to where it breeds next. It has three stages that can be measured separately: **departure**, **transfer** across the landscape, and **settlement**. They need not share causes. DiLeo and colleagues (2022) used genetic assignment to reconstruct dispersal of the Glanville fritillary butterfly across five years and 232 habitat patches in the Åland Islands of Finland. The factors that explained departure explained little of the variation in how far butterflies went, and they found no effect of distance on survival after settling. A single "dispersal rate" would have hidden both results.
-
-Dispersal is not **migration**, the seasonal round trip that many birds and whales make between the same areas; in some insects, such as painted lady butterflies, the cycle is completed over several generations. A migrating warbler returns to the same areas each year; a dispersing one changes where it breeds, and it may move again later. Dispersal also carries genes between patches, the gene flow treated in [drift, gene flow and competing explanations](/lessons/drift-gene-flow-explanations/), with the arithmetic in [population genetics](/lessons/population-genetics/).
-
-<LessonFigure src="/figures/spatial-populations/dispersal-three-stages.webp" width={1200} height={800} alt="AI-generated illustration: a butterfly leaves one of a string of ponds, crosses fields along a dashed path, and settles at another pond, numbered departure, transfer and settlement; two small insets contrast one-way dispersal with a two-way seasonal migration." caption="Dispersal has three stages that can be measured separately: departure, transfer and settlement. Migration is a seasonal round trip; dispersal changes where an animal breeds." />
-
-This lesson builds on [demography](/lessons/demography/), where survival estimates appear, and on [population growth](/lessons/population-growth/), where a growth rate lambda above or below 1 decides whether a population grows. Here the question moves up a level: can a region keep a species when no single pond does?
-
-## Levins: persistence as colonization balancing extinction
-
-Richard Levins (1969) answered by ignoring how many animals each patch holds. Each patch is simply occupied or empty. Let p be the fraction of patches occupied. His equation is a ledger for p: patches gained by colonization minus patches lost to extinction.
+For the first film's **metapopulation**, local populations linked by dispersal across hostile ground, Richard Levins (1969) wrote the occupied-or-empty bookkeeping as a ledger:
 
 <EquationCard
   purpose="How fast the fraction of occupied patches changes: colonization adds patches, extinction removes them."
@@ -371,17 +387,13 @@ Richard Levins (1969) answered by ignoring how many animals each patch holds. Ea
   check="If p = 0 there are no colonists and no populations to lose, so nothing changes. If p = 1 there is no empty patch to colonize, so only the extinction term is left and occupancy can only fall."
 >
   <Fragment slot="example">
-    <p>Take the rates of worked problem 1 below, c = 0.4 and e = 0.1 per year, with half the patches occupied, p = 0.5.</p>
+    <p>Take c = 0.4 and e = 0.1 per year, with half the patches occupied, p = 0.5.</p>
     <p>Colonization: 0.4 × 0.5 × 0.5 = 0.1. Extinction: 0.1 × 0.5 = 0.05.</p>
     <p>dp/dt = 0.1 − 0.05 = +0.05 per year, so occupancy is still rising.</p>
   </Fragment>
 </EquationCard>
 
-Occupancy stops changing when the two terms balance. Find that level in three steps:
-
-1. Set dp/dt to zero: c p (1 − p) = e p.
-2. Divide both sides by p (for any network that has occupied patches): c (1 − p) = e.
-3. Divide by c and move p to one side: 1 − p = e/c, so p = 1 − e/c.
+Occupancy stops changing, at its **equilibrium**, when the two terms balance:
 
 <EquationCard
   purpose="The fraction of patches occupied once colonization and extinction balance."
@@ -393,44 +405,81 @@ Occupancy stops changing when the two terms balance. Find that level in three st
     ["c", "c", "the colonization rate", "per year"],
   ]}
   toolkit={["ratios"]}
-  check="With no extinction (e = 0), every patch ends up occupied, p* = 1. When e equals c, p* = 0. So p* is positive only when c is greater than e."
+  check="With no extinction (e = 0), every patch ends up occupied, p* = 1; when e equals c, p* = 0."
 >
   <Fragment slot="example">
-    <p>An invented middle case: c = 0.4 and e = 0.2 per year. e/c = 0.5, so p* = 1 − 0.5 = 0.5: half the patches occupied at any time.</p>
+    <p>An invented middle case: c = 0.4 and e = 0.2 per year. e/c = 0.5, so p* = 1 − 0.5 = 0.5: half the patches occupied on average.</p>
+  </Fragment>
+  <Fragment slot="derivation">
+    <p>1. Set dp/dt to zero: c p (1 − p) = e p.</p>
+    <p>2. Divide both sides by p (for any network that has occupied patches): c (1 − p) = e.</p>
+    <p>3. Divide by c and move p to one side: 1 − p = e/c, so p = 1 − e/c.</p>
   </Fragment>
 </EquationCard>
 
-The analogy is a row of lamps that fail at random and get relit from lamps still burning. Lamps are always going out, yet the row stays partly lit as long as relighting outpaces failure. The model's assumptions are strong: many identical patches, all equally reachable from every other, and constant rates. Real networks have big and small patches, near and far ones.
+**Predict.** A network sits at p\* = 0.75, with c = 0.4 and e = 0.1 per year. If e rises to 0.4, equal to c, the first film showed that no equilibrium above zero is left. Will the network be gone within two or three years?
 
-**Worked problem 1 (illustrative numbers).** Suppose a network has c = 0.4 per year and e = 0.1 per year.
+<details>
+<summary>Check your prediction</summary>
 
-1. *Equilibrium.* p* = 1 - 0.1/0.4 = 1 - 0.25 = **0.75**. Three patches in four are occupied at any time, though which ones keeps changing.
-2. *Raise extinction.* Now let e rise to 0.4 per year, equal to c. Then p* = 1 - 0.4/0.4 = **0**, and the network is lost.
-3. *It is lost slowly.* With c = e = 0.4, the colonization term 0.4 p (1 − p) = 0.4 p − 0.4 p^2, and subtracting the extinction term 0.4 p leaves dp/dt = -0.4 p^2. Starting from 0.75, occupancy falls at 0.4 x 0.75^2 = 0.4 x 0.5625 = 0.225 per year at first. The solution of that equation is 1/p = 1/0.75 + 0.4t. After 10 years: 1/p = 1.333 + 4 = 5.333, so p = 1/5.333, about 0.19.
+No. The ledger becomes dp/dt = −0.4 p², so occupancy falls at 0.4 × 0.75² = 0.225 per year at first, and the slide slows as fewer patches are left: about 0.47 is still occupied after 2 years, 0.39 after 3, and about one patch in five (0.19) after 10. Falling from 0.75 to 0.05 takes about 47 years here, against about 5.5 years if e were 0.8. Once e is at or above c, the closer e is to c, the slower the slide (working in Going deeper).
 
-That third step is the practical warning. A network at or just past its threshold can keep occupied patches for years, because decline is slowest near the threshold. Seeing animals in some patches does not show the region is persisting.
+</details>
+
+So a network at or just past its threshold can keep occupied patches for years: seeing animals does not show the region is persisting. The simulation runs these rules on 100 patches.
 
 <LevinsOccupancy />
 
-Spatial structure can also prolong interactions between species. C. B. Huffaker (1958) kept a predatory mite, *Typhlodromus occidentalis*, with its prey, the six-spotted mite *Eotetranychus sexmaculatus*, on arrays of oranges in the laboratory. When he spread out the food and added partial barriers to movement, the most complex arrangement sustained three successive oscillations before the run ended. That is a finite run in one preparation, not proof of permanent coexistence. Predator-prey cycles return in [predation](/lessons/predation/).
+## What sets the rates: dispersal, sources and rescue
 
-## Sources, sinks and corridors
+**Dispersal** is movement from where an individual was born, or last bred, to where it breeds next. It is what c is made of, in three stages that can be measured separately: **departure**, **transfer** across the landscape, and **settlement**. They need not share causes: in the Glanville fritillary butterfly in the Åland Islands of Finland, the factors that explained departure explained little of the variation in how far butterflies went (DiLeo and colleagues, 2022). Dispersal is not **migration**, a seasonal round trip: a migrating warbler returns to the same areas each year; a dispersing one changes where it breeds, and it may move again later. Dispersal also carries genes, the gene flow of [drift, gene flow and competing explanations](/lessons/drift-gene-flow-explanations/), with the arithmetic in [population genetics](/lessons/population-genetics/).
 
-Levins treats every patch as equal. H. Ronald Pulliam (1988), in a different kind of model that follows births and deaths rather than occupied patches, let habitats differ. In a **source**, local births exceed local deaths, and the surplus emigrates. In a **sink**, local reproduction does not make up for local mortality, and the population persists only because immigrants keep arriving. So a sink can be full of animals. Abundance does not label a source; birth and death rates do. This is also why a species can be found outside the conditions it can sustain, a point taken up in [niches and distributions](/lessons/niches-and-distributions/).
+<LessonFigure src="/figures/spatial-populations/dispersal-three-stages.webp" width={1200} height={800} alt="AI-generated illustration: a butterfly leaves one of a string of ponds, crosses fields along a dashed path, and settles at another pond, numbered departure, transfer and settlement; two small insets contrast one-way dispersal with a two-way seasonal migration." caption="Dispersal has three stages that can be measured separately: departure, transfer and settlement. Migration is a seasonal round trip; dispersal changes where an animal breeds." />
+
+Levins treats every patch as equal. H. Ronald Pulliam (1988), in a different kind of model that follows births and deaths rather than occupied patches, let habitats differ. Each habitat keeps its own ledger: births and immigrants (arrivals) in, deaths and emigrants (departures) out. In a **source**, local births exceed local deaths, and the surplus emigrates. In a **sink**, local reproduction does not make up for local mortality, and the population persists only because immigrants keep arriving.
+
+**Predict.** A meadow holds the most butterflies of any patch in the region, year after year. Is it a source?
+
+<details>
+<summary>Check your prediction</summary>
+
+You cannot tell from the count. A sink fed by a strong source can be full of animals. Birth and death rates, and how many animals arrive and leave, label a source; abundance does not. That is also why a species can be found outside the conditions it can sustain, a point taken up in [niches and distributions](/lessons/niches-and-distributions/).
+
+</details>
 
 <LessonFigure src="/figures/spatial-populations/source-sink-flow.webp" width={1200} height={800} alt="AI-generated illustration: a modest source patch sends a gold arrow of immigrants to a more crowded sink patch; two small balances show births outweighing deaths in the source and deaths outweighing births in the sink." caption="A source exports its surplus; a sink persists only because immigrants keep arriving, so it can be full of animals. Abundance does not label a source; birth and death rates do." />
 
-Two ways that movement keeps a patch occupied are often confused. The **rescue effect** (a term from Brown and Kodric-Brown, 1977) is immigration into a population that is still present, which lowers its chance of dying out. **Recolonization** refounds a patch after its population has gone. In model terms, rescue lowers e (the basic Levins model leaves rescue out), and recolonization is what the colonization term, c p(1 - p), describes.
+Two ways movement keeps patches occupied, often confused:
 
-Movement also brings a measurement trap. Survival estimated by traditional mark-recapture is **apparent survival**, the chance an animal is alive *and still in the study area*. An animal that emigrated permanently looks exactly like one that died.
+| | What movement does | Where it enters the ledger |
+|---|---|---|
+| **Recolonization** | refounds a patch after its population has gone | the colonization term, c p (1 − p) |
+| **Rescue effect** (Brown and Kodric-Brown, 1977) | immigrants join a population that is still present and lower its chance of dying out | lowers e for patches that receive immigrants; the basic Levins model leaves it out |
 
-If connection rescues populations, linking patches with **corridors**, strips of habitat between them, should reduce losses. Experiments support that in particular systems, as the design problem shows. Connectivity is not good in every model, though: in simulations of 21 competing bird-like species, Schippers and colleagues (2015) found that greater connectivity sped up diversity loss. That is a model result, a caution about extrapolation, not a field finding.
+Linking patches with **corridors**, strips of habitat between them, can raise c; where immigrants rescue populations that are still present, it can also lower e. But a corridor adds habitat area as well as connection, so an experiment must pull the two apart (design problem below). Connectivity does not help in every model (Going deeper).
 
-## Counting what you cannot see: mark-recapture and occupancy
+A sink, a rescued population, a corridor that raises c: each claim rests on knowing which patches are occupied, year by year, and that starts with whether the species was there at all.
 
-Every quantity above (c, e, births, deaths) has to be measured on animals that hide. Births and deaths need data on individuals; c and e need reliable records of which patches are occupied.
+<LessonFilm film={frontmatter.films[0]} />
 
-The simplest count of hidden animals uses a marked sample. The idea is a proportion: the share of marked animals in a second catch should match the share of the whole population you marked.
+## Two kinds of zero: occupancy
+
+The second film's repeat visits estimate occupancy within one season: the same kind of quantity as p in the Levins model, now measured in the field. It left out time. Across years, colonization and extinction are read from which sites switch between occupied and empty, and there the same zeros do more damage.
+
+**Predict.** A survey team scores every 000 history (no detection on any of three visits) as an absence, year after year. Will the network look more or less occupied, and more or less changeable, than it is?
+
+<details>
+<summary>Check your prediction</summary>
+
+Less occupied and more changeable. A missed population is scored as a local extinction, and finding it again as a colonization, so both transitions look more frequent while occupancy looks lower than it is. An illustration in yearly probabilities: empty ponds are colonized with probability 0.3 and occupied ones lost with probability 0.1, keeping three ponds in four occupied. If detection is 0.3 on each of three visits a year, independently, an occupied pond is missed on all three with probability 0.7³ = 0.343. Apparent extinction is the true 0.1 plus surviving populations missed, 0.9 × 0.343: about 0.41, four times the truth. Apparent colonization comes out near 0.40, and only 0.75 × (1 − 0.343), about 0.49, of ponds show a detection. This is error in the record, not a measure of how near the network is to collapse. **Dynamic occupancy models**, which estimate detection alongside colonization and extinction, correct for this; their yearly probabilities are field counterparts of c and e, not the same numbers (Going deeper).
+
+</details>
+
+<LessonFigure src="/figures/spatial-populations/occupancy-missed-visits.webp" width={1200} height={800} alt="AI-generated illustration: the same pond visited three times by an observer who finds nothing each time, recorded as 000; two small cut-aways show the pond empty, and the pond occupied by a toad hidden among the reeds." caption="A history of 000 fits an empty pond or an occupied one missed on every visit, so a survey zero is not proof of absence." />
+
+## Counting animals: mark-recapture
+
+Occupancy surveys repeated across years show how often sites are colonized and lost; source-sink claims need births, deaths and movement, which need data on individuals. The simplest count of hidden animals is a proportion: the marked share of a second catch should match the marked share of the whole population.
 
 <EquationCard
   purpose="Estimate the size of a population you cannot count, from one marking and one recapture."
@@ -454,40 +503,40 @@ The simplest count of hidden animals uses a marked sample. The idea is a proport
   </Fragment>
 </EquationCard>
 
-**Worked problem 2 (invented data).** You catch and mark 50 animals on the first occasion (n1 = 50), release them, and later catch 90 (n2 = 90), of which 20 are marked (m2 = 20). Assume the population is **closed** (no births, deaths or movement between occasions), every animal is **equally catchable**, and marks are neither lost nor misread.
+**Worked problem (invented data).** You catch and mark 50 animals on the first occasion (n1 = 50), release them, and later catch 90 (n2 = 90), of which 20 are marked (m2 = 20). Assume the population is **closed** (no births, deaths or movement between occasions), every animal is **equally catchable**, and marks are neither lost nor misread.
 
-1. *The logic.* The marked fraction in the second sample, 20/90, estimates the marked fraction of the population, 50/N.
-2. *Lincoln-Petersen.* N = n1 x n2 / m2 = 50 x 90 / 20 = 4,500 / 20 = **225 animals**.
-3. *Chapman.* The plain estimator runs high when samples are small, so Chapman's version adds one to each count (which also keeps it from dividing by zero if no marked animals are recaught):
+1. *Lincoln-Petersen.* The marked fraction 20/90 estimates 50/N, so N = n1 x n2 / m2 = 50 x 90 / 20 = 4,500 / 20 = **225 animals**.
+2. *Chapman.* The plain estimator runs high when samples are small; Chapman's version adds one to each count, which reduces that bias and avoids dividing by zero if no marked animals are recaught:
 
 > **N = (n1 + 1)(n2 + 1) / (m2 + 1) - 1**
 
 Add one to each count: 50 + 1 = 51, 90 + 1 = 91 and 20 + 1 = 21. Then N = (51 x 91) / 21 - 1 = 4,641 / 21 - 1 = 221 - 1 = **220 animals**.
 
-The overlap is 20, not 90. Using the whole second catch in the denominator is an easy slip to make. And 220 is an estimate, not a head count. Each assumption can fail. Trap-happy animals inflate m2 and shrink N; trap-shy ones do the reverse. Photo identification, as in a 2018 survey of free-roaming dogs in Quito, Ecuador, avoids handling but can mismatch individuals.
+The overlap is 20, not 90. And 220 is an estimate resting on every assumption, not a head count.
 
-For many species you cannot even mark individuals, only record whether a site has the species. **Occupancy** is the fraction of sites occupied. The trouble is that a non-detection is not an absence. MacKenzie and colleagues (2002) visited sites repeatedly while occupancy was assumed fixed, and recorded histories such as 010 (found on the second visit only) or 000.
+**Predict.** Suppose marked animals learn to avoid traps, so they are less likely than unmarked ones to be caught the second time. Will the estimate come out too high or too low?
 
-**Worked problem 3 (illustrative numbers).** A pond is occupied, and each visit detects the species with probability 0.5, independently.
+<details>
+<summary>Check your prediction</summary>
 
-1. *Three misses.* Each visit misses with probability 1 − 0.5 = 0.5, and independent misses multiply: P(000) = 0.5 x 0.5 x 0.5 = 0.5^3 = **0.125**. One occupied pond in eight looks empty. Each extra visit would halve that chance again.
-2. *Harder to detect.* At 0.3 per visit, each miss has probability 0.7, so P(000) = 0.7^3 = **0.343**. One in three.
-3. *The meaning.* A 000 history is consistent with an empty pond or an occupied one missed three times. The pattern of histories across many sites lets the model estimate both probabilities. In their Maryland data from 2000, MacKenzie and colleagues estimated that American toads occupied 0.49 of the 29 wetlands analysed, out of 32 surveyed. Across seasons, treating 000 as absence also distorts turnover: a missed population is scored as a local extinction, and finding it again later is scored as a colonization, so both e and c are biased. Dynamic occupancy models correct for this.
+Too high: trap-shy marked animals are under-represented in the second catch, so m2 is too small and N too large. Trap-happy animals do the reverse, inflating m2 and shrinking N. Photo identification, as in a 2018 survey of free-roaming dogs in Quito, Ecuador, avoids handling but can mismatch individuals.
 
-<LessonFigure src="/figures/spatial-populations/occupancy-missed-visits.webp" width={1200} height={800} alt="AI-generated illustration: the same pond visited three times by an observer who finds nothing each time, recorded as 000; two small cut-aways show the pond empty, and the pond occupied by a toad hidden among the reeds." caption="Three visits and no toads heard give the history 000. That fits an empty pond or an occupied one missed three times." />
+</details>
+
+Movement also breaks closure. Traditional live-encounter mark-recapture estimates **apparent survival**, the chance an animal is alive *and still in the study area*: one that emigrated permanently looks exactly like one that died, so the dispersal that keeps a metapopulation going blurs the death rates a source-sink claim needs.
 
 ### Design problem
 
-Gonzalez and colleagues (1998) worked with moss growing on limestone rocks in Derbyshire, England, home to tiny mites, springtails and other microarthropods. They cut the moss into patch systems of three kinds: patches joined by moss corridors; isolated patches; and patches with **pseudocorridors**, corridors of similar moss area broken by a small strip of bare rock, so with no continuous connection. After six months, species losses were 14.5% in connected landscapes and 41% in the isolated and pseudocorridor treatments. What can you conclude, what can you not, and how would you improve the study?
+Gonzalez and colleagues (1998) worked with moss on limestone rocks in Derbyshire, England, home to tiny mites, springtails and other microarthropods. They cut the moss into patch systems of three kinds: patches joined by moss corridors; isolated patches; and patches with **pseudocorridors**, corridors of similar moss area broken by a small strip of bare rock, so with no continuous connection. After six months, species losses were 14.5% in connected landscapes and 41% in the isolated and pseudocorridor treatments. What can you conclude, what can you not, and how would you improve the study?
 
-<LessonFigure src="/figures/spatial-populations/moss-corridor-design.webp" width={1200} height={800} alt="AI-generated illustration: three top-down panels of moss patches on grey limestone; in the first the patches are joined by continuous moss strips, in the second they are separate, and in the third broken strips of similar moss area lie between them with gaps; an inset shows tiny mites and springtails in moss." caption="The three patch systems of the moss experiment on limestone rocks in Derbyshire. The pseudocorridor holds a similar moss area to the corridor but no continuous connection. Schematic, not to scale." />
+<LessonFigure src="/figures/spatial-populations/moss-corridor-design.webp" width={1200} height={800} alt="AI-generated illustration: three top-down panels of moss patches on grey limestone; in the first the patches are joined by continuous moss strips, in the second they are separate, and in the third broken strips of similar moss area lie between them with gaps; an inset shows tiny mites and springtails in moss." caption="A pseudocorridor adds about as much moss as a corridor but no continuous connection, which is how the moss experiment separated connection from added area. Schematic, not to scale." />
 
 <details>
 <summary>One way to do it</summary>
 
-**What the pseudocorridor buys.** A corridor adds habitat as well as connection. The pseudocorridor adds similar moss area without the connection, and it lost species like the isolated patches. So the difference reflects connection, not area.
+**What the pseudocorridor buys.** It adds similar moss area without the connection, and it lost species like the isolated patches, so the difference points to connection rather than added area.
 
-**What it is consistent with.** Fewer losses where patches connect fits a rescue effect: immigrants arriving through corridors propped up dwindling populations. But no animal's movement was tracked, so recolonization after loss, or different conditions in connected moss, are not ruled out.
+**What it is consistent with.** Fewer losses where patches connect fits a rescue effect, immigrants arriving through corridors propping up dwindling populations. But no movement was tracked, so recolonization after loss, or different conditions in connected moss, are not ruled out.
 
 **Improvements.**
 1. Mark animals, or use genetic assignment, to measure movement through corridors.
@@ -495,6 +544,36 @@ Gonzalez and colleagues (1998) worked with moss growing on limestone rocks in De
 3. Run it longer than six months, and replicate across rocks and seasons.
 4. Keep the scale. This is moss on rocks, centimetres to metres, with animals of short generation time. It says nothing directly about forests or mammals.
 
-**A larger, longer contrast.** Damschen and colleagues (2019) arranged restored longleaf pine savanna fragments at the Savannah River Site, South Carolina, in blocks, one fragment per block connected by a corridor and the others not, followed the plants for 18 years and analysed 239 species. They reported annual colonization 5% higher and annual extinction 2% lower in connected fragments, and nearly 14% more species after almost two decades. Yearly censuses of every species let that design estimate colonization and extinction separately, which the moss study could not, and its length shows that small yearly differences accumulate. It also stays in its system: one site, plants, one corridor geometry.
+**A larger, longer contrast.** Damschen and colleagues (2019) censused 239 plant species yearly for 18 years in connected and unconnected longleaf pine savanna fragments in South Carolina, estimating colonization and extinction separately, which the moss study could not: colonization 5% higher and extinction 2% lower each year in connected fragments, and nearly 14% more species after almost two decades. It too stays in its system: one site, plants, one corridor geometry.
 
 </details>
+
+## Going deeper
+
+### Dispersal stages and migration
+
+DiLeo and colleagues (2022) reconstructed Glanville fritillary dispersal by genetic assignment across five years and 232 habitat patches, and also found no effect of distance on survival after settling. Migration varies too: in some insects, such as painted lady butterflies, the cycle is completed over several generations.
+
+### Small networks can be lost by chance
+
+In an illustrative simulation with c = 0.15 and e = 0.1 per year (p\* = 0.33), started half occupied, most 10-patch networks lost every patch within 100 years, while 100-patch networks kept the species. In a small network, c greater than e is necessary but not sufficient.
+
+### The exact path when c equals e
+
+With c = e = 0.4 from a start of 0.75, dp/dt = −0.4 p² has the solution 1/p = 1/0.75 + 0.4t. After 10 years 1/p = 1.333 + 4 = 5.333, so p is about 0.19; reaching p = 0.05 (1/p = 20) takes (20 − 1.333)/0.4, about 47 years. With e = 0.8 the ledger is dp/dt = −0.4 p (1 + p), and solving it the same way gives about 5.5 years.
+
+### Rescue makes e depend on p
+
+In the Levins model the extinction rate does not depend on regional occupancy. Adding rescue makes e fall as p rises and, in some versions, can produce alternative stable states.
+
+### When connectivity hurts
+
+In simulations of 21 competing bird-like species, Schippers and colleagues (2015) found that greater connectivity sped up diversity loss. That is a model result, a caution about extrapolation, not a field finding.
+
+### Spatial structure and predator-prey cycles
+
+C. B. Huffaker (1958) kept a predatory mite with its prey mite on arrays of oranges. With the food spread out and movement partly blocked, the most complex arrangement sustained three successive oscillations before the run ended: a finite run in one preparation, not proof of permanent coexistence, but a case that spatial structure can prolong a predator-prey interaction. Predator-prey cycles return in [predation](/lessons/predation/).
+
+### Dynamic occupancy and the symbol ψ
+
+Survey papers write occupancy as ψ (psi); this lesson keeps p, to match the Levins model. Later work by MacKenzie's group extended the method across seasons, estimating colonization and local extinction without mistaking missed detections for losses. Those yearly probabilities, written γ and ε, are not the Levins c and e: Levins refounds an empty patch at rate c p, which grows with occupancy, and his c and e are continuous rates. Linking the two takes an explicit model of how colonists spread.

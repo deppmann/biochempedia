@@ -938,4 +938,4 @@ class S17Scope(W):
 
 
 class S18End(EndCard):
-    LINE = "Drift scatters replicates; gene flow and selection push their average."
+    LINE = "Drift spreads replicates;\ngene flow and consistent selection push their average."

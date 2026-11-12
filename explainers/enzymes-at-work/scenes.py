@@ -1,534 +1,891 @@
-"""Enzymes at work: an enzyme works only while its active site keeps its shape (Biochemistrypedia explainer)
+"""Enzymes at work: Count the Working Sites (film 1 of 2, Biochemistrypedia explainer).
 
 Timed to the SPOKEN words: every self.at("...") cue waits for that phrase in audio/words.json.
 
-COLOR MAP (one color per concept, whole video)
-  BLUE   = the enzyme (catalase, bromelain)
-  YELLOW = the substrate (hydrogen peroxide; the protein chains of gelatin)
-  GREEN  = products, "works", the enzyme unchanged
-  RED    = denatured enzyme, "does not fit"
-  ORANGE = heat, temperature
-  TEAL   = activation energy (the hill)
-  PURPLE = pH and electric charge
-  GOLD   = pineapple pieces
-  GREY   = outlines, bowls, axes, weak attractions
+COLOUR MAP (one colour per concept, whole film and film 2)
+  BLUE   = enzyme (catalase); the working-sites counter
+  ORANGE = substrate (hydrogen peroxide)
+  GREEN  = products
+  GREY   = denatured (bent) enzyme, outlines
+  YELLOW = speed-per-site gauge
+  PURPLE = rate bar
 """
 import numpy as np
 from bp_style import *  # noqa: F401,F403
 
-PURPLE = "#B58CD9"
 ORANGE = "#F29E4C"
+PURPLE = "#B58CD9"
+TAN = "#C9A66B"
+LIVER = "#B5604A"
 
-
-# ---------------------------------------------------------------------------------------------
-# helpers
-# ---------------------------------------------------------------------------------------------
-def arr(a, b, color=GREY, w=5, tip=0.22):
-    return Arrow(a, b, buff=0.08, color=color, stroke_width=w, tip_length=tip,
-                 max_tip_length_to_length_ratio=0.45, max_stroke_width_to_length_ratio=12)
-
-
-# the enzyme: a labelled block with a pocket (the active site) cut into its top edge
 ENZ_PTS = [(-1.8, -1.0), (1.8, -1.0), (1.8, 1.0), (0.65, 1.0), (0.45, 0.2), (-0.45, 0.2), (-0.65, 1.0), (-1.8, 1.0)]
-# the same block after it has lost its shape: pocket closed up and slanted, body bulged
 ENZ_BAD = [(-1.9, -1.1), (1.7, -0.8), (2.0, 0.7), (0.95, 0.9), (0.85, 0.55), (0.35, 0.5), (0.0, 0.95), (-1.6, 1.1)]
+FIT = 0.58          # pocket centre above the block centre, in block units
 
 
-def enzyme(color=BLUE, s=1.0, pts=ENZ_PTS, fill=0.28):
-    p = Polygon(*[np.array([x, y, 0.0]) for x, y in pts], stroke_color=color, stroke_width=4,
+def enzyme(s=1.0, color=BLUE, pts=ENZ_PTS, fill=0.35, sw=4):
+    p = Polygon(*[np.array([x, y, 0.0]) for x, y in pts], stroke_color=color, stroke_width=sw,
                 fill_color=color, fill_opacity=fill).round_corners(0.12)
     return p.scale(s)
 
 
-def piece(color=YELLOW, s=1.0):
-    """substrate: a block shaped to fit the pocket (a schematic shape, not a molecule)."""
-    pts = [(-0.6, 0.37), (0.6, 0.37), (0.4, -0.37), (-0.4, -0.37)]
+def wedge(s=1.0, color=ORANGE, narrow=1.0):
+    w = 0.6 * narrow
+    pts = [(-w, 0.37), (w, 0.37), (0.4 * narrow, -0.37), (-0.4 * narrow, -0.37)]
     p = Polygon(*[np.array([x, y, 0.0]) for x, y in pts], stroke_color=color, stroke_width=3,
-                fill_color=color, fill_opacity=0.55).round_corners(0.06)
+                fill_color=color, fill_opacity=0.8).round_corners(0.06)
     return p.scale(s)
 
 
-def pocket_at(enz_center, s=1.0):
-    return np.array(enz_center) + np.array([0.0, 0.6 * s, 0.0])
+def products(center, s=1.0):
+    a = Circle(radius=0.26 * s, stroke_color=GREEN, stroke_width=3, fill_color=GREEN, fill_opacity=0.8)
+    b = Circle(radius=0.34 * s, stroke_color=GREEN, stroke_width=3, fill_color=GREEN, fill_opacity=0.5)
+    g = VGroup(a, b).arrange(RIGHT, buff=0.08)
+    return g.move_to(center)
 
 
-def wavy(x0, x1, y, amp=0.12, freq=3.0, ph=0.0, tilt=0.0, color=YELLOW, w=4):
-    xc = (x0 + x1) / 2
-    return ParametricFunction(lambda t: np.array([t, y + amp * np.sin(freq * t + ph) + tilt * (t - xc), 0]),
-                              t_range=[x0, x1], color=color, stroke_width=w, use_smoothing=False)
+def swim(m, ax=0.25, ay=0.18, sp=1.0, ph=0.0, rot=0.0):
+    """Gentle drifting that never fights an animation: it moves by changes in a sine offset."""
+    m._tt = 0.0
+    m._off = np.zeros(3)
+
+    def u(mm, dt):
+        mm._tt += dt
+        t = mm._tt * sp + ph
+        off = np.array([ax * np.sin(t), ay * np.cos(1.3 * t), 0.0])
+        mm.shift(off - mm._off)
+        mm._off = off
+        if rot:
+            mm.rotate(rot * dt * np.cos(t))
+    m.add_updater(u)
+    return m
 
 
-BOWL_Y = -0.2
-BOWL_W, BOWL_H = 5.0, 3.0
-BX = (-3.4, 3.4)
+def lab(text, size=30, color=TEXT, pos=ORIGIN, **kw):
+    return T(text, size=size, color=color, **kw).move_to(pos)
 
 
-def bowl(cx):
-    return RoundedRectangle(corner_radius=0.3, width=BOWL_W, height=BOWL_H, stroke_color=GREY, stroke_width=4,
-                            fill_color=GREY, fill_opacity=0.08).move_to([cx, BOWL_Y, 0])
+# ---------------------------------------------------------------------------------------------
+# one big enzyme, used in scenes 3 to 5
+# ---------------------------------------------------------------------------------------------
+ES = 1.55
+EC = np.array([0.0, -0.25, 0.0])
+POCKET = EC + np.array([0.0, FIT * ES, 0.0])
+QUEUE = np.array([-4.6, 0.3, 0.0])
 
 
-def loose_chains(cx):
-    """five loose chains (gelatin before it sets)."""
-    g = VGroup()
-    for k in range(5):
-        y = BOWL_Y - 0.9 + 0.38 * k
-        g.add(wavy(cx - 2.0, cx + 2.0, y, amp=0.09, freq=2.6 + 0.3 * k, ph=0.7 * k))
-    return g
+def big_enzyme():
+    e = enzyme(ES).move_to(EC)
+    name = lab("catalase", 34, TEXT, EC + DOWN * 0.65)
+    return e, name
 
 
-def net_chains(cx):
-    """the same five chains tangled into a net (same point count, so they can transform)."""
-    g = VGroup()
-    for k in range(5):
-        y = BOWL_Y - 0.55
-        tilt = [0.22, -0.22, 0.12, -0.12, 0.0][k]
-        g.add(wavy(cx - 2.0, cx + 2.0, y, amp=0.3, freq=3.0 + 0.9 * k, ph=1.1 * k, tilt=tilt))
-    return g
+class Film(SpokenScene):
+    pass
 
 
-def cut_chains(cx):
-    """chains cut into short pieces: built from the loose ones, then broken into fragments."""
-    g = VGroup()
-    for k in range(5):
-        y = BOWL_Y - 0.9 + 0.38 * k
-        ph = 0.7 * k
-        fr = 2.6 + 0.3 * k
-        for a, b in [(-2.0, -1.45), (-1.15, -0.5), (-0.2, 0.55), (0.85, 1.4), (1.7, 2.0)]:
-            g.add(wavy(cx + a + 0.04 * k, cx + b + 0.04 * k, y, amp=0.09, freq=fr, ph=ph, w=4))
-    return g
-
-
-def pine_bits(cx):
-    return VGroup(*[RoundedRectangle(corner_radius=0.08, width=0.42, height=0.42, stroke_color=GOLD, stroke_width=3,
-                                     fill_color=GOLD, fill_opacity=0.7).move_to([cx - 1.0 + 1.0 * i, BOWL_Y + 1.05, 0])
-                    for i in range(3)])
-
-
-def label(text, size=28, color=TEXT, **kw):
-    return T(text, size, color, **kw)
-
-
-def axes_lines(x0, x1, y0, y1):
-    ax = Arrow([x0, y0, 0], [x1, y0, 0], buff=0, color=GREY, stroke_width=4, tip_length=0.2)
-    ay = Arrow([x0, y0, 0], [x0, y1, 0], buff=0, color=GREY, stroke_width=4, tip_length=0.2)
-    return VGroup(ax, ay)
-
-
-def sstep(x):
-    x = np.clip(x, 0, 1)
-    return x * x * (3 - 2 * x)
-
-
+# ---------------------------------------------------------------------------------------------
+# title
+# ---------------------------------------------------------------------------------------------
 class S00Title(TitleCard):
-    LESSON = "Enzymes at work"
-    TITLE = "Enzymes only work in shape"
+    LESSON = "Enzymes at Work"
+    TITLE = "Count the Working Sites"
 
 
 # ---------------------------------------------------------------------------------------------
-class S01Pineapple(SpokenScene):
-    """fresh pineapple: gelatin stays runny; canned: it sets as the chains tangle into a net; the question."""
-
+# s01: the potato fizzes
+# ---------------------------------------------------------------------------------------------
+class S01Question(Film):
     def construct(self):
-        bl, br = bowl(BX[0]), bowl(BX[1])
-        tl = label("fresh pineapple", 32, GOLD).move_to([BX[0], 2.4, 0])
-        tr = label("canned pineapple", 32, GOLD).move_to([BX[1], 2.4, 0])
-        bitsL, bitsR = pine_bits(BX[0]), pine_bits(BX[1])
-        st_l = label("gelatin stays runny", 30).move_to([BX[0], -2.3, 0])
-        st_r = label("gelatin sets", 30).move_to([BX[1], -2.3, 0])
+        GX, GW, GTOP, GBOT = -2.8, 4.4, 2.2, -3.0
+        LIQ = 1.3
+        glass = RoundedRectangle(corner_radius=0.35, width=GW, height=GTOP - GBOT, stroke_color=TEXT, stroke_width=5,
+                                 fill_opacity=0).move_to([GX, (GTOP + GBOT) / 2, 0])
+        liquid = Rectangle(width=GW - 0.2, height=LIQ - GBOT - 0.1, stroke_width=0, fill_color=ORANGE,
+                           fill_opacity=0.22).move_to([GX, (LIQ + GBOT + 0.1) / 2, 0])
+        gl = lab("hydrogen peroxide", 28, ORANGE, [GX, -3.45, 0])
+        SX, SW, STOP = 3.9, 2.8, 0.7
+        sglass = RoundedRectangle(corner_radius=0.3, width=SW, height=STOP - GBOT, stroke_color=TEXT, stroke_width=5,
+                                  fill_opacity=0).move_to([SX, (STOP + GBOT) / 2, 0])
+        sliq = Rectangle(width=SW - 0.2, height=0.0 + (-0.1 - GBOT - 0.1) + 0.1, stroke_width=0, fill_color=ORANGE,
+                         fill_opacity=0.22).move_to([SX, (-0.1 + GBOT + 0.1) / 2, 0])
+        sl = lab("no potato: slow", 28, TEXT, [SX, -3.45, 0])
+        potato = Ellipse(width=2.3, height=1.3, stroke_color=TAN, stroke_width=4, fill_color=TAN,
+                         fill_opacity=0.9).move_to([GX, 3.2, 0])
+        spots = VGroup(*[Dot(radius=0.06, color="#8C7040") for _ in range(5)])
+        for d, (dx, dy) in zip(spots, [(-0.6, 0.15), (-0.1, -0.25), (0.4, 0.2), (0.7, -0.1), (-0.3, 0.3)]):
+            d.move_to(potato.get_center() + [dx, dy, 0])
+        potato = VGroup(potato, spots)
 
-        self.at("Stir fresh pineapple", lead=0.0)
-        self.play(FadeIn(bl), FadeIn(tl), FadeIn(bitsL, shift=DOWN * 0.6), run_time=0.9)
-        self.at("runny")
-        self.play(FadeIn(st_l), run_time=0.5)
-        self.at("canned pineapple")
-        self.play(FadeIn(br), FadeIn(tr), FadeIn(bitsR, shift=DOWN * 0.6), run_time=0.9)
-        self.at("it sets")
-        self.play(FadeIn(st_r), run_time=0.5)
+        on = ValueTracker(0.0)
+        foam = ValueTracker(0.0)
+        # bubbles
+        bubbles = VGroup()
+        rng = np.random.RandomState(3)
+        for i in range(16):
+            r = float(rng.uniform(0.07, 0.15))
+            b = Circle(radius=r, stroke_color=GREEN, stroke_width=3, fill_color=GREEN, fill_opacity=0.35)
+            b.p = i / 16.0
+            b.bx = float(rng.uniform(GX - 1.5, GX + 1.5))
+            b.sp = float(rng.uniform(0.28, 0.42))
+            b.ph = float(rng.uniform(0, 6))
 
-        chip_g = chip("gelatin is a protein", YELLOW, size=26).move_to([0, 3.15, 0])
-        chL, chR = loose_chains(BX[0]), loose_chains(BX[1])
-        self.at("Gelatin is a protein")
-        self.play(FadeIn(chip_g, shift=DOWN * 0.1), Create(chL), Create(chR), run_time=1.2)
-        self.at("tangle into a net")
-        st_r2 = label("long chains tangle into a net", 28).move_to([BX[1], -2.3, 0])
-        self.play(Transform(chR, net_chains(BX[1])), ReplacementTransform(st_r, st_r2), run_time=1.6)
-        self.at("traps water")
-        self.play(Indicate(chR, color=YELLOW, scale_factor=1.05), run_time=1.0)
+            def ub(m, dt):
+                m.p = (m.p + dt * m.sp * on.get_value()) % 1.0
+                y = -2.0 + m.p * (LIQ - -2.0)
+                m.move_to([m.bx + 0.12 * np.sin(8 * m.p + m.ph), y, 0])
+                m.set_stroke(opacity=min(1, on.get_value() * 2)).set_fill(opacity=0.35 * min(1, on.get_value() * 2))
+            b.add_updater(ub)
+            bubbles.add(b)
+        # foam head
+        foams = VGroup()
+        for i in range(10):
+            c = Circle(radius=0.2, stroke_color=TEXT, stroke_width=3, fill_color=TEXT, fill_opacity=0.5)
+            c.fx = GX - 1.8 + i * 0.4
+            c.fy = LIQ + 0.12 + 0.08 * (i % 2)
+            c.r0 = 0.17 + 0.04 * (i % 3)
 
-        qL = chip("What is in it?", GOLD, size=30).move_to([BX[0], -3.1, 0])
-        qR = chip("What did canning change?", ORANGE, size=30).move_to([BX[1], -3.1, 0])
-        self.at("What is in fresh pineapple")
-        self.play(FadeIn(qL, shift=UP * 0.1), run_time=0.6)
-        self.at("what did canning change")
-        self.play(FadeIn(qR, shift=UP * 0.1), run_time=0.6)
+            def uf(m, dt):
+                target = max(m.r0 * foam.get_value(), 0.001)
+                m.scale(target / (m.width / 2))
+                m.move_to([m.fx, m.fy + 0.3 * (m.width / 2) * 0.3, 0])
+                m.set_stroke(opacity=min(1.0, foam.get_value() * 3))
+            c.add_updater(uf)
+            foams.add(c)
+        # one slow bubble in the side glass
+        side = VGroup()
+        for i in range(2):
+            b = Circle(radius=0.1, stroke_color=GREEN, stroke_width=3, fill_color=GREEN, fill_opacity=0.35)
+            b.p = i * 0.5
+
+            def us(m, dt):
+                m.p = (m.p + dt * 0.19) % 1.0
+                m.move_to([SX + 0.15 * np.sin(6 * m.p), -2.7 + m.p * 2.5, 0])
+            b.add_updater(us)
+            side.add(b)
+
+        self.play(Create(glass), Create(sglass), FadeIn(liquid), FadeIn(sliq), FadeIn(gl), run_time=1.0)
+        self.add(foams, bubbles, side)
+        self.add(potato)
+        self.at("slice")
+        self.play(potato.animate.move_to([GX, -2.3, 0]), run_time=1.3, rate_func=rush_into)
+        self.play(potato.animate.shift(UP * 0.1), run_time=0.4)
+        swim(potato, ax=0.05, ay=0.04, sp=2.0)
+        self.at("fizzes")
+        self.play(on.animate.set_value(1.0), foam.animate.set_value(1.0), run_time=2.0)
+        self.at("something in the potato")
+        ring = SurroundingRectangle(potato, color=TEXT, buff=0.18, corner_radius=0.2, stroke_width=4)
+        self.play(Create(ring), run_time=0.7)
+        self.at("never used up")
+        q = lab("used up?", 48, TEXT, [GX, 3.05, 0])
+        self.play(FadeIn(q, shift=DOWN * 0.2), run_time=0.7)
+        self.at("hydrogen peroxide breaks down alone")
+        self.play(FadeOut(ring), FadeIn(sl), run_time=0.6)
+        self.at("the bubbles are oxygen")
+        og = lab("oxygen gas", 32, GREEN, [0.9, 1.3, 0])
+        arr = Arrow(og.get_left() + LEFT * 0.05, [GX + 1.3, 0.3, 0], buff=0.1, color=GREEN, stroke_width=5)
+        self.play(FadeIn(og), GrowArrow(arr), FadeOut(q), run_time=0.8)
         self.finish()
 
 
 # ---------------------------------------------------------------------------------------------
-class S02Enzyme(SpokenScene):
-    """metabolism = all the reactions; far too slow alone; an enzyme (a protein) speeds one up and is not used up."""
-
+# s02: catalase, an enzyme
+# ---------------------------------------------------------------------------------------------
+class S02Catalase(Film):
     def construct(self):
-        cell = Ellipse(width=9.6, height=4.4, stroke_color=GREY, stroke_width=4, fill_color=GREY, fill_opacity=0.06)
-        cell.move_to([0, 0.4, 0])
-        rng = np.random.RandomState(4)
-        spots = [(-3.2, 1.2), (-1.0, 1.5), (1.4, 1.4), (3.1, 0.9), (-3.4, -0.5), (-0.9, -0.2), (1.5, -0.3), (3.2, -0.9),
-                 (-2.0, -1.0), (0.2, 0.6)]
-        mini = VGroup()
-        for x, y in spots:
-            a = Dot([x - 0.5, y, 0], radius=0.11, color=YELLOW)
-            b = Dot([x + 0.5, y, 0], radius=0.11, color=GREEN)
-            ar = arr([x - 0.32, y, 0], [x + 0.3, y, 0], GREY, w=3, tip=0.14)
-            mini.add(VGroup(a, ar, b))
-        title = label("Metabolism", 44, TEXT).move_to([0, 3.15, 0])
-        sub = label("all the chemical reactions in a living thing", 30, GREY).move_to([0, -2.4, 0])
-        self.at("Metabolism means", lead=0.0)
-        self.play(FadeIn(title), Create(cell), run_time=0.8)
-        self.play(LaggedStart(*[FadeIn(m, scale=0.8) for m in mini], lag_ratio=0.06), run_time=0.9)
-        self.at("all the chemical reactions")
-        self.play(FadeIn(sub), run_time=0.6)
+        px, py = -4.3, 0.5
+        pot = Ellipse(width=4.4, height=4.0, stroke_color=TAN, stroke_width=5, fill_color=TAN, fill_opacity=0.35).move_to([px, py, 0])
+        cells = VGroup()
+        for gx in (-1.5, -0.5, 0.5, 1.5):
+            for gy in (-1.0, 0.0, 1.0):
+                if (gx / 2.2) ** 2 + (gy / 1.8) ** 2 < 0.9:
+                    cells.add(RoundedRectangle(corner_radius=0.18, width=0.88, height=0.88, stroke_color=TAN, stroke_width=3,
+                                               fill_color=TAN, fill_opacity=0.12).move_to([px + gx, py + gy, 0]))
+        potato = VGroup(pot, cells)
+        plab = lab("potato cells", 28, TAN, [px, -2.05, 0])
+        liver = Ellipse(width=3.0, height=2.4, stroke_color=LIVER, stroke_width=5, fill_color=LIVER, fill_opacity=0.5).move_to([5.1, 0.5, 0])
+        liver.rotate(0.25)
+        llab = lab("liver cells", 28, LIVER, [5.1, -1.2, 0])
+        big = enzyme(0.8).move_to([0.55, 0.5, 0])
+        bname = lab("catalase (an enzyme)", 30, BLUE, [0.55, -0.95, 0])
+        # little blue blocks inside cells
+        minis = VGroup()
+        for gx, gy in [(-0.5, 0.0), (0.5, 1.0), (-1.5, -1.0), (1.5, 0.0), (0.5, -1.0)]:
+            minis.add(enzyme(0.17).move_to([px + gx, py + gy, 0]))
+        lminis = VGroup(*[enzyme(0.17).move_to([5.1 + dx, 0.5 + dy, 0]) for dx, dy in [(-0.7, 0.3), (0.5, 0.5), (0.0, -0.4), (0.8, -0.2)]])
+        for m in list(minis) + list(lminis):
+            swim(m, ax=0.04, ay=0.04, sp=2.2, ph=float(np.random.RandomState(1).rand() * 6))
+        lines = VGroup(Line(minis[0].get_center() + RIGHT * 0.3, big.get_left() + LEFT * 0.05, color=BLUE, stroke_width=3))
 
-        # --- zoom to one reaction -----------------------------------------------------------------
-        a0 = Dot([-4.0, 0.2, 0], radius=0.34, color=YELLOW)
-        a0.set_fill(YELLOW, 0.9)
-        b0 = Dot([4.0, 0.2, 0], radius=0.34, color=GREEN)
-        b0.set_fill(GREEN, 0.25)
-        rx = arr([-3.4, 0.2, 0], [3.4, 0.2, 0], GREY, w=6, tip=0.3)
-        rxl = label("one reaction", 28, GREY).move_to([0, 0.8, 0])
-        bar_o = RoundedRectangle(corner_radius=0.15, width=8.0, height=0.45, stroke_color=GREY, stroke_width=3)
-        bar_o.move_to([0.4, -1.75, 0])
-        bar_f = Rectangle(width=0.4, height=0.45, stroke_width=0, fill_color=RED, fill_opacity=0.9)
-        bar_f.align_to(bar_o, LEFT).align_to(bar_o, DOWN).shift(RIGHT * 0.0)
-        bar_lbl = label("speed", 28, GREY).next_to(bar_o, LEFT, buff=0.3)
-        slow = label("body temperature, no help: far too slow", 28, RED).move_to([0, -2.6, 0])
-        self.at("Many would be far too slow")
-        self.play(FadeOut(cell), FadeOut(mini), FadeOut(title), FadeOut(sub),
-                  FadeIn(a0), FadeIn(b0), GrowArrow(rx), FadeIn(rxl), Create(bar_o), FadeIn(bar_lbl), run_time=1.0)
-        self.play(FadeIn(bar_f), FadeIn(slow), run_time=0.6)
-
-        enz = chip("enzyme", BLUE, size=36).move_to([0, 1.7, 0])
-        fast = label("with the enzyme: faster", 28, GREEN).move_to([0, -2.6, 0])
-        self.at("comes from enzymes")
-        self.play(FadeIn(enz, shift=DOWN * 0.2), run_time=0.6)
-        self.play(bar_f.animate.stretch_to_fit_width(7.9).align_to(bar_o, LEFT).set_fill(GREEN),
-                  ReplacementTransform(slow, fast), run_time=1.0)
-
-        prot = label("almost all enzymes are proteins", 28, BLUE).move_to([0, 2.65, 0])
-        self.at("almost all of them")
-        self.play(FadeIn(prot), run_time=0.6)
-
-        cat = label("catalyst", 44, BLUE, weight=BOLD).move_to([0, 3.15, 0])
-        self.at("is a catalyst")
-        self.play(FadeOut(prot), FadeIn(cat, scale=0.9), run_time=0.7)
-
-        self.at("without being used up")
-        prod = Dot([4.0, 0.2, 0], radius=0.34, color=GREEN)
-        prod.set_fill(GREEN, 0.9)
-        keep = label("the enzyme is not used up", 28, GREEN).move_to([0, 2.5, 0])
-        self.play(ReplacementTransform(a0, prod), FadeOut(b0), FadeIn(keep), Indicate(enz, color=GREEN, scale_factor=1.12),
-                  run_time=1.4)
+        self.play(FadeIn(pot), FadeIn(cells), FadeIn(plab), run_time=0.6)
+        swim(potato, ax=0.04, ay=0.04, sp=1.1)
+        self.at("catalase")
+        self.play(FadeIn(minis, lag_ratio=0.2), run_time=1.0)
+        self.play(FadeIn(big, scale=0.8), Create(lines), run_time=0.8)
+        swim(big, ax=0.06, ay=0.06, sp=1.4)
+        self.play(FadeIn(bname), run_time=0.6)
+        self.at("liver cells")
+        self.play(FadeIn(liver), FadeIn(llab), run_time=0.7)
+        self.play(FadeIn(lminis, lag_ratio=0.25), run_time=0.9)
+        self.at("an enzyme is a molecule")
+        self.play(Indicate(big, color=BLUE, scale_factor=1.12), run_time=1.0)
+        self.at("almost always a protein")
+        self.play(Indicate(bname, color=BLUE, scale_factor=1.05), run_time=1.0)
+        self.at("that speeds up")
+        eq = VGroup(T("hydrogen peroxide", 32, ORANGE), T("→", 32, TEXT), T("water + oxygen", 32, GREEN)).arrange(RIGHT, buff=0.3)
+        eq.move_to([0.55, -3.0, 0])
+        self.play(FadeIn(eq, shift=UP * 0.2), run_time=1.0)
         self.finish()
 
 
 # ---------------------------------------------------------------------------------------------
-class S03Site(SpokenScene):
-    """catalase: substrate fits the active site, becomes products, they leave, the enzyme is unchanged."""
-
+# s03: one catalase does one reaction
+# ---------------------------------------------------------------------------------------------
+class S03Cycle(Film):
     def construct(self):
-        K = 1.4
-        ec = np.array([0.0, -0.8, 0.0])
-        enz = enzyme(BLUE, K).move_to(ec)
-        enz_lbl = label("catalase", 40, BLUE, weight=BOLD).move_to(ec + np.array([0, -1.0, 0]))
-        sub_start = np.array([-4.6, 1.2, 0.0])
-        pk = pocket_at(ec, K)
+        enz, name = big_enzyme()
+        ghost = enzyme(ES).move_to(EC).set_fill(opacity=0).set_stroke(GREY, 3, opacity=0.7)
+        A = wedge(ES).move_to(QUEUE + UP * 1.7)
+        B = wedge(ES).move_to(QUEUE + DOWN * 0.3)
+        swim(A, 0.3, 0.2, 0.9, 0.0)
+        swim(B, 0.3, 0.2, 0.8, 2.0)
+        slab = lab("substrate:\nhydrogen peroxide", 28, ORANGE, QUEUE + UP * 3.0)
 
-        self.at("Take catalase", lead=0.0)
-        self.play(FadeIn(enz, shift=UP * 0.2), FadeIn(enz_lbl), run_time=0.9)
-
-        sub = piece(YELLOW, 1.2).move_to(sub_start)
-        sl1 = label("substrate", 32, YELLOW).move_to([-4.6, 2.2, 0])
-        sl2 = label("hydrogen peroxide", 28, YELLOW).move_to([-4.6, 0.3, 0])
-        self.at("The substrate is")
-        self.play(FadeIn(sub, scale=0.8), FadeIn(sl1), run_time=0.7)
-        self.at("hydrogen peroxide")
-        self.play(FadeIn(sl2), run_time=0.5)
-
-        self.at("fits into")
-        self.play(sub.animate.move_to([0, 1.7, 0]), run_time=0.6)
-        self.play(sub.animate.move_to(pk), run_time=0.6)
-        asl = label("active site", 36, BLUE, weight=BOLD).move_to([4.2, 2.3, 0])
-        asa = arr([3.1, 2.0, 0], [1.0, 0.35, 0], BLUE, w=5)
+        self.play(FadeIn(enz, scale=0.9), FadeIn(name), run_time=1.2)
+        self.add(ghost)
+        swim(enz, 0.0, 0.0)
+        self.at("its substrate")
+        self.play(FadeIn(A), FadeIn(B), FadeIn(slab), run_time=1.0)
+        self.at("the substrate drifts")
+        self.play(A.animate.move_to(POCKET + UP * 1.5 + LEFT * 0.4), run_time=1.5, rate_func=smooth)
+        sl = lab("active site", 32, TEXT, [4.0, 1.9, 0])
+        sar = Arrow(sl.get_left() + LEFT * 0.05, POCKET + RIGHT * 0.9, buff=0.1, color=TEXT, stroke_width=5)
         self.at("active site")
-        self.play(FadeIn(asl), GrowArrow(asa), run_time=0.6)
-        self.at("small pocket")
-        self.play(Indicate(enz, color=TEXT, scale_factor=1.03), run_time=0.9)
-
-        w1 = RoundedRectangle(corner_radius=0.1, width=0.5, height=0.46, stroke_color=GREEN, stroke_width=3,
-                              fill_color=GREEN, fill_opacity=0.6).move_to(pk + LEFT * 0.3)
-        o1 = RoundedRectangle(corner_radius=0.1, width=0.5, height=0.46, stroke_color=GREEN, stroke_width=3,
-                              fill_color=GREEN, fill_opacity=0.6).move_to(pk + RIGHT * 0.3)
-        prods = VGroup(w1, o1)
-        self.at("changes it into products")
-        self.play(ReplacementTransform(sub, prods), run_time=0.9)
-
-        pl = label("products", 32, GREEN).move_to([4.5, 0.2, 0])
-        wl = label("water", 30, GREEN).move_to([3.7, -2.1, 0])
-        ol = label("oxygen", 30, GREEN).move_to([5.3, -2.1, 0])
+        self.play(FadeIn(sl), GrowArrow(sar), A.animate.move_to(POCKET + UP * 0.5), run_time=0.7)
+        self.play(A.animate.move_to(POCKET), FadeOut(slab), run_time=0.8, rate_func=smooth)
+        self.at("a small pocket")
+        self.play(Indicate(sl, color=TEXT, scale_factor=1.12), run_time=0.8)
+        self.at("there it is turned")
+        self.play(Indicate(A, color=GREEN, scale_factor=1.15), run_time=0.8)
+        self.at("into products")
+        prod = products(POCKET, 1.3)
+        self.play(ReplacementTransform(A, prod), FadeOut(sl), FadeOut(sar), run_time=1.0)
         self.at("water and oxygen")
-        self.play(FadeIn(pl), run_time=0.5)
-        self.at("The products leave")
-        self.play(w1.animate.scale(1.8).move_to([3.7, -1.2, 0]), o1.animate.scale(1.8).move_to([5.3, -1.2, 0]),
-                  FadeIn(wl), FadeIn(ol), run_time=1.3)
-
-        un = label("enzyme unchanged", 32, GREEN).move_to([0, -3.1, 0])
-        self.at("is unchanged")
-        self.play(FadeIn(un), Indicate(enz, color=GREEN, scale_factor=1.04), run_time=0.9)
-        sub2 = piece(YELLOW, 1.2).move_to(sub_start)
-        self.at("another substrate molecule")
-        self.play(FadeIn(sub2, scale=0.8), run_time=0.3)
-        self.play(sub2.animate.move_to([0, 1.7, 0]), run_time=1.0)
+        plab = lab("water + oxygen", 32, GREEN, POCKET + UP * 1.3)
+        eq = VGroup(T("hydrogen peroxide", 30, ORANGE), T("→", 30, TEXT), T("water + oxygen", 30, GREEN)).arrange(RIGHT, buff=0.3)
+        eq.move_to([0, -3.2, 0])
+        self.play(FadeIn(plab), FadeIn(eq, shift=UP * 0.15), run_time=1.0)
+        swim(prod, 0.0, 0.05, 2.0)
+        self.at("the products leave")
+        self.play(prod.animate.move_to([3.9, 2.4, 0]), plab.animate.move_to([3.9, 3.2, 0]), run_time=1.3)
+        self.play(FadeOut(plab), prod.animate.set_opacity(0), run_time=0.4)
+        self.at("the enzyme is unchanged")
+        un = lab("same enzyme, unchanged", 32, BLUE, EC + DOWN * 1.95)
+        self.play(ghost.animate.set_stroke(TEXT, 6, opacity=1.0), FadeIn(un), run_time=0.8)
+        self.play(ghost.animate.set_stroke(GREY, 3, opacity=0.7), run_time=0.8)
+        self.play(Indicate(enz, color=BLUE, scale_factor=1.04), run_time=1.0)
         self.finish()
 
 
 # ---------------------------------------------------------------------------------------------
-def hill_fn(X, H):
-    """energy along a reaction (relative, in this sketch): starts high, ends lower, with a hill between."""
-    return 0.9 - 0.55 * sstep((X - 0.5) / 0.35 + 0.5) + H * np.exp(-((X - 0.45) / 0.13) ** 2)
-
-
-HX0, HX1 = -5.0, 5.0
-HY0, HSC = -2.1, 1.45
-
-
-def hpt(X, H):
-    return np.array([HX0 + (HX1 - HX0) * X, HY0 + HSC * hill_fn(X, H), 0.0])
-
-
-def hill(H, color):
-    return ParametricFunction(lambda t: hpt(t, H), t_range=[0, 1], color=color, stroke_width=6, use_smoothing=False)
-
-
-class S04Hill(SpokenScene):
-    """energy hill sketch: the ball must be pushed over it; the enzyme lowers it; more substrate reacts."""
-
+# s04: the next one, and the next: a catalyst
+# ---------------------------------------------------------------------------------------------
+class S04Catalyst(Film):
     def construct(self):
-        ax = axes_lines(-5.6, 5.6, -2.5, 3.0)
-        yl = label("energy (relative)", 26, GREY).rotate(PI / 2).move_to([-6.1, 0.3, 0])
-        xl = label("reaction progress", 26, GREY).move_to([0, -3.05, 0])
-        note = label("a sketch, not measured data", 24, GREY).move_to([3.4, 3.1, 0])
-        h_hi = hill(1.6, YELLOW)
-        ball = Dot(hpt(0.04, 1.6), radius=0.26, color=YELLOW)
-        ball.set_fill(YELLOW, 1)
+        enz, name = big_enzyme()
+        B = wedge(ES).move_to(QUEUE + DOWN * 0.3)
+        swim(B, 0.3, 0.2, 0.8, 2.0)
+        extra = wedge(ES).move_to(QUEUE + UP * 1.7)
+        swim(extra, 0.3, 0.2, 0.9, 0.0)
+        count = [0]
 
-        self.at("Picture a ball", lead=0.0)
-        self.play(Create(ax), FadeIn(yl), FadeIn(xl), FadeIn(note), run_time=0.9)
-        self.play(Create(h_hi), FadeIn(ball), run_time=1.2)
+        def tally():
+            return T(f"molecules changed: {count[0]}", 32, ORANGE).move_to([6.5, 3.25, 0], aligned_edge=RIGHT)
+        tl = tally()
+        self.add(enz, name, B, extra)
+        self.play(FadeIn(tl), run_time=0.4)
 
+        state = {"w": B, "q": extra}
+
+        def cycle(d):
+            w = state["w"]
+            self.play(w.animate.move_to(POCKET), run_time=max(0.1, 0.45 * d), rate_func=smooth)
+            pr = products(POCKET, ES)
+            count[0] += 1
+            new_tl = tally()
+            self.play(ReplacementTransform(w, pr), Transform(tl, new_tl), run_time=max(0.07, 0.15 * d))
+            nxt = wedge(ES).move_to(QUEUE + UP * 1.7)
+            swim(nxt, 0.3, 0.2, 0.9, count[0])
+            self.play(FadeOut(pr, shift=RIGHT * 2.5 + UP * 1.0), state["q"].animate.move_to(QUEUE + DOWN * 0.3),
+                      FadeIn(nxt), run_time=max(0.1, 0.4 * d))
+            state["w"] = state["q"]
+            state["q"] = nxt
+
+        # the first two slowly, matching the words
+        self.at("then it takes in")
+        cycle(1.2)
+        self.at("and the next")
+        cycle(1.2)
+        self.at("the same enzyme")
+        cycle(1.0)
+        cycle(1.0)
+        d = 0.9
+        t_cat = self.t_of("that makes it a catalyst") - 0.2
+        while self.elapsed() < t_cat - 0.5:
+            cycle(d)
+            d = max(0.45, d - 0.1)
+        self.at("that makes it a catalyst")
+        cl = lab("catalyst: not used up", 36, BLUE, EC + DOWN * 1.95)
+        self.play(FadeIn(cl, shift=UP * 0.1), run_time=0.7)
+        end = self.narration_s - 0.5
+        while self.elapsed() < end - 0.9:
+            cycle(0.45)
+        self.finish()
+
+
+# ---------------------------------------------------------------------------------------------
+# s05: shape and charges fit
+# ---------------------------------------------------------------------------------------------
+class S05Fit(Film):
+    def construct(self):
+        enz, name = big_enzyme()
+        circ = Circle(radius=1.15, stroke_color=TEXT, stroke_width=5, fill_color=TEXT, fill_opacity=0.12).move_to([-4.6, 2.3, 0])
+        bar = RoundedRectangle(corner_radius=0.2, width=3.0, height=0.6, stroke_color=TEXT, stroke_width=5,
+                               fill_color=TEXT, fill_opacity=0.12).move_to([4.6, 1.5, 0])
+        W = wedge(ES).move_to([-4.6, 0.4, 0])
+        wl = lab("hydrogen peroxide", 28, ORANGE, [-4.7, -0.7, 0])
+        for m, p in ((circ, 0.0), (bar, 1.5), (W, 3.0)):
+            swim(m, 0.2, 0.15, 0.9, p)
+        self.add(enz, name)
+        self.play(FadeIn(circ), FadeIn(bar), FadeIn(W), FadeIn(wl), run_time=0.6)
+        # the round shape tries first
+        self.at("why does this pocket")
+        rim = EC[1] + ES
+        self.play(circ.animate.move_to([0, rim + 1.15 + 0.04, 0]), run_time=1.0, rate_func=smooth)
+        olab = lab("other molecules", 30, TEXT, [4.6, 0.2, 0])
+        self.play(circ.animate.shift(UP * 0.15), FadeIn(olab), run_time=0.2)
+        self.play(circ.animate.move_to([-4.6, 2.3, 0]), run_time=0.6, rate_func=smooth)
+        self.play(bar.animate.move_to([0, rim + 0.3 + 0.04, 0]), run_time=0.8, rate_func=smooth)
+        self.play(bar.animate.shift(UP * 0.12), run_time=0.15)
+        self.play(bar.animate.move_to([4.6, 1.5, 0]), run_time=0.6, rate_func=smooth)
+        self.at("the active site's shape")
+        outline = Polygon(*[EC + np.array([x * ES, y * ES, 0]) for x, y in [(-0.65, 1.0), (-0.45, 0.2), (0.45, 0.2), (0.65, 1.0)]],
+                          stroke_color=TEXT, stroke_width=7, fill_opacity=0).set_stroke(TEXT, 7)
+        self.play(Create(outline), FadeOut(olab), run_time=0.6)
+        self.play(FadeOut(outline), run_time=0.3)
+        self.at("electric charges")
+        marks = VGroup(lab("+", 40, TEXT, EC + np.array([-1.05 * ES + 0.25, 0.55 * ES + 0.1, 0])),
+                       lab("–", 40, TEXT, EC + np.array([1.05 * ES - 0.25, 0.55 * ES + 0.1, 0])),
+                       lab("+", 40, TEXT, EC + np.array([0.0, 0.12 * ES - 0.1, 0])))
+        self.play(FadeIn(marks, lag_ratio=0.3), run_time=0.6)
+        wm = VGroup(lab("–", 36, BG, [0, 0, 0]), lab("+", 36, BG, [0, 0, 0]), lab("–", 36, BG, [0, 0, 0]))
+        W.clear_updaters()
+        self.play(W.animate.move_to([-4.2, 0.5, 0]), run_time=0.5)
+        wm[0].move_to(W.get_center() + LEFT * 0.5 + UP * 0.05)
+        wm[1].move_to(W.get_center() + RIGHT * 0.5 + UP * 0.05)
+        wm[2].move_to(W.get_center() + DOWN * 0.18)
+        wm[2].set_opacity(0)
+        wg = VGroup(W, wm)
+        self.play(FadeIn(wm[0]), FadeIn(wm[1]), FadeOut(wl), run_time=0.4)
+        self.at("fit only certain")
+        fl = lab("shape and charges fit", 34, TEXT, [0, -2.75, 0])
+        self.play(wg.animate.move_to(POCKET + UP * 1.2), FadeIn(fl), run_time=0.8)
+        self.play(wg.animate.move_to(POCKET), run_time=0.8, rate_func=smooth)
+        self.play(*[Indicate(m, color=YELLOW, scale_factor=1.5) for m in list(marks[:2]) + list(wm[:2])], run_time=0.7)
+        self.at("so each enzyme")
+        self.play(FadeOut(fl), FadeOut(marks), wg.animate.move_to([-4.6, 0.4, 0]).set_opacity(0.0), run_time=1.5, rate_func=smooth)
+        self.remove(wg)
+        self.at("one reaction")
+        ol = lab("usually one reaction", 34, BLUE, [0, -2.75, 0])
+        self.play(FadeIn(ol), run_time=0.6)
+        self.at("or a few similar")
+        S = wedge(ES, narrow=0.9).move_to([-4.6, -0.2, 0])
+        swim(S, 0.2, 0.15, 1.0)
+        sl = lab("or a few similar ones", 34, ORANGE, [0, -2.75, 0])
+        self.play(FadeIn(S), FadeOut(ol), FadeIn(sl), run_time=0.7)
+        S.clear_updaters()
+        self.play(S.animate.move_to(POCKET + UP * 0.9 + LEFT * 0.1), run_time=1.0)
+        self.play(S.animate.move_to(POCKET + DOWN * 0.03), run_time=1.0, rate_func=smooth)
+        self.finish()
+
+
+# ---------------------------------------------------------------------------------------------
+# the energy graph (s06, s07)
+# ---------------------------------------------------------------------------------------------
+YL, YR = -0.3, -1.6
+
+
+def curve_y(x, hh):
+    sig = 1.0 / (1.0 + np.exp(-(x - 0.6) / 0.9))
+    return YL + (YR - YL) * sig + hh * np.exp(-((x + 0.1) / 1.5) ** 2)
+
+
+def hump_top(hh):
+    xs = np.linspace(-1.5, 1.5, 61)
+    return max(curve_y(x, hh) for x in xs)
+
+
+def make_ball(Hh, x0, color=ORANGE, ph=0.0):
+    b = Circle(radius=0.28, stroke_color=color, stroke_width=3, fill_color=color, fill_opacity=0.9)
+    b.xt = ValueTracker(x0)
+    b._tt = ph
+
+    def u(m, dt):
+        m._tt += dt
+        x = m.xt.get_value() + 0.1 * np.sin(5.0 * m._tt + ph)
+        y = curve_y(x, Hh.get_value()) + 0.28 + 0.1 * abs(np.sin(3.2 * m._tt + ph))
+        m.move_to([x, y, 0])
+        c = GREEN if x > 1.6 else ORANGE
+        m.set_stroke(c).set_fill(c, 0.9)
+    b.add_updater(u)
+    return b
+
+
+def graph_frame():
+    ya = Line([-6.2, -2.6, 0], [-6.2, 3.1, 0], color=TEXT, stroke_width=4)
+    xa = Line([-6.2, -2.6, 0], [6.4, -2.6, 0], color=TEXT, stroke_width=4)
+    yl = lab("energy", 28, TEXT, [-6.55, 0.3, 0]).rotate(PI / 2)
+    xl = lab("reaction progress", 28, TEXT, [0.1, -3.1, 0])
+    tag = lab("schematic", 28, TEXT, [5.5, 3.4, 0])
+    return VGroup(ya, xa, yl, xl, tag)
+
+
+class S06Hill(Film):
+    def construct(self):
+        Hh = ValueTracker(3.2)
+        col = ValueTracker(0.0)
+        frame = graph_frame()
+        curve = always_redraw(lambda: ParametricFunction(lambda t: np.array([t, curve_y(t, Hh.get_value()), 0.0]),
+                                                         t_range=[-6.0, 6.2], stroke_width=7,
+                                                         color=interpolate_color(ManimColor(TEXT), ManimColor(BLUE), col.get_value())))
+        # activation-energy arrow
+        AX = -2.7
+
+        def act_arrow():
+            top = hump_top(Hh.get_value())
+            a = DoubleArrow([AX, YL, 0], [AX, top, 0], buff=0, color=TEXT, stroke_width=5, tip_length=0.2)
+            d = DashedLine([AX, top, 0], [-0.1, top, 0], color=TEXT, stroke_width=3)
+            return VGroup(a, d)
+        self.play(Create(frame), run_time=1.0)
+        self.play(Create(curve), run_time=1.6)
+        balls = [make_ball(Hh, -5.1, ph=0.0), make_ball(Hh, -4.4, ph=1.0), make_ball(Hh, -3.7, ph=2.1)]
+        self.at("picture a ball")
+        self.play(FadeIn(VGroup(*balls)), run_time=0.8)
         self.at("pushed over a hill")
-        push = arr([-5.2, -0.3, 0], [-4.35, -0.3, 0], YELLOW, w=6, tip=0.25)
-        self.play(GrowArrow(push), run_time=0.3)
-        up = ParametricFunction(lambda t: hpt(0.04 + 0.41 * t, 1.6), t_range=[0, 1])
-        down = ParametricFunction(lambda t: hpt(0.45 + 0.5 * t, 1.6), t_range=[0, 1])
-        self.play(MoveAlongPath(ball, up), FadeOut(push), run_time=1.0)
-        self.play(MoveAlongPath(ball, down), run_time=0.6, rate_func=rush_into)
+        b0 = balls[2]
+        self.play(b0.xt.animate.set_value(-0.9), run_time=1.3, rate_func=smooth)
+        self.play(b0.xt.animate.set_value(-3.0), run_time=0.8, rate_func=smooth)
+        self.at("rolls down")
+        self.play(b0.xt.animate.set_value(5.0), run_time=2.3, rate_func=smooth)
+        self.at("activation energy")
+        aa = act_arrow()
+        alab = lab("activation\nenergy", 30, TEXT, [-4.3, 1.4, 0])
+        self.play(FadeIn(aa), FadeIn(alab), run_time=0.9)
+        arrow_live = always_redraw(act_arrow)
+        self.remove(aa)
+        self.add(arrow_live)
+        self.at("like that hill")
+        self.play(Indicate(alab, color=TEXT, scale_factor=1.12), run_time=1.0)
+        self.at("an enzyme does not add")
+        bolt = Polygon([0.15, 0.5, 0], [-0.2, 0.0, 0], [0.0, 0.0, 0], [-0.15, -0.5, 0], [0.25, 0.1, 0], [0.05, 0.1, 0],
+                       stroke_color=GOLD, stroke_width=3, fill_color=GOLD, fill_opacity=0.9).scale(1.1).move_to([-4.7, -1.2, 0])
+        xx = VGroup(Line([-0.5, -0.5, 0], [0.5, 0.5, 0], color=RED, stroke_width=8), Line([-0.5, 0.5, 0], [0.5, -0.5, 0], color=RED, stroke_width=8)).move_to(bolt)
+        nl = lab("no energy added", 28, TEXT, [-4.2, -2.2, 0])
+        self.play(FadeIn(bolt), FadeIn(nl), run_time=0.5)
+        self.play(Create(xx), run_time=0.6)
+        el = chip("enzyme", BLUE, 30)
+        el.move_to([3.4, 2.5, 0])
+        self.play(FadeIn(el), col.animate.set_value(1.0), run_time=1.0)
+        self.at("it lowers the hill")
+        ghost = DashedVMobject(ParametricFunction(lambda t: np.array([t, curve_y(t, 3.2), 0.0]), t_range=[-2.4, 2.4], stroke_width=4, color=GREY), num_dashes=40)
+        self.add(ghost)
+        self.play(Hh.animate.set_value(1.6), FadeOut(bolt), FadeOut(xx), FadeOut(nl), run_time=2.2, rate_func=smooth)
+        self.play(Indicate(alab, color=BLUE, scale_factor=1.12), run_time=0.8)
+        self.finish()
 
-        pk = hpt(0.45, 1.6)
-        base = hpt(0.04, 1.6)
-        brk = DoubleArrow([pk[0] + 0.0, base[1], 0], [pk[0], pk[1] - 0.02, 0], buff=0, color=TEAL, stroke_width=5, tip_length=0.2)
-        brl = label("activation energy", 32, TEAL, weight=BOLD).move_to([pk[0] - 2.8, pk[1] + 0.75, 0])
-        base_line = DashedLine([HX0 + 0.3, base[1], 0], [pk[0] + 0.4, base[1], 0], color=GREY, stroke_width=3)
-        self.at("Activation energy")
-        self.play(Create(base_line), GrowFromCenter(brk), FadeIn(brl), run_time=1.0)
-        self.play(ball.animate.move_to(hpt(0.04, 1.6)), run_time=0.01)
 
-        noadd = label("the enzyme adds no energy", 30, BLUE).move_to([3.4, 2.45, 0])
-        self.at("does not add energy")
-        self.play(FadeIn(noadd), run_time=0.6)
+class S07More(Film):
+    def construct(self):
+        Hh = ValueTracker(1.6)
+        frame = graph_frame()
+        curve = always_redraw(lambda: ParametricFunction(lambda t: np.array([t, curve_y(t, Hh.get_value()), 0.0]),
+                                                         t_range=[-6.0, 6.2], stroke_width=7, color=BLUE))
+        rate = ValueTracker(0.14)
+        nvis = ValueTracker(2.0)
+        crossed = [0]
+        balls = VGroup()
+        N = 9
+        for i in range(N):
+            b = Circle(radius=0.28, stroke_color=ORANGE, stroke_width=3, fill_color=ORANGE, fill_opacity=0.9)
+            b.p = i / N
+            b.i = i
+            b.done = False
+            b.hop = 0.5 * i
 
-        # an enzyme cradles a substrate
-        mini_e = enzyme(BLUE, 0.42).move_to([4.2, 2.15, 0])
-        mini_s = piece(YELLOW, 0.42).move_to(pocket_at([4.2, 2.15, 0], 0.42))
-        mini_l = label("enzyme holds the substrate", 26, BLUE).move_to([4.2, 1.45, 0])
-        self.at("holds the substrate")
-        self.play(FadeOut(noadd), FadeIn(mini_e), FadeIn(mini_s), FadeIn(mini_l), run_time=0.7)
+            def u(m, dt):
+                vis = m.i < nvis.get_value()
+                m.p = (m.p + dt * rate.get_value()) % 1.0 if vis else m.p
+                x = -5.4 + 11.0 * m.p
+                y = curve_y(x, Hh.get_value()) + 0.28 + 0.1 * abs(np.sin(6 * m.p * 5 + m.hop))
+                m.move_to([x, y, 0])
+                c = GREEN if x > 1.6 else ORANGE
+                a = 0.0 if not vis else min(1.0, m.p * 8, (1 - m.p) * 8)
+                m.set_stroke(c, opacity=a).set_fill(c, 0.9 * a)
+                if x > 1.6 and not m.done:
+                    m.done = True
+                    crossed[0] += 1
+                if x <= 1.6:
+                    m.done = False
+            b.add_updater(u)
+            balls.add(b)
 
-        h_lo = hill(0.75, BLUE)
-        ghost = hill(1.6, GREY)
-        ghost.set_stroke(opacity=0.5)
-        gl = label("without the enzyme", 26, GREY).move_to([1.5, 2.05, 0])
-        pk2 = hpt(0.45, 0.75)
-        brk2 = DoubleArrow([pk[0], base[1], 0], [pk[0], pk2[1] - 0.02, 0], buff=0, color=TEAL, stroke_width=5, tip_length=0.2)
-        self.at("lowers the hill")
-        self.play(FadeIn(ghost), FadeIn(gl), ReplacementTransform(h_hi, h_lo), Transform(brk, brk2),
-                  brl.animate.move_to([pk[0] - 2.8, pk2[1] + 0.75, 0]), run_time=1.6)
-
-        balls = VGroup(*[Dot(hpt(0.04, 0.75), radius=0.2, color=YELLOW).set_fill(YELLOW, 1) for _ in range(4)])
-        path = ParametricFunction(lambda t: hpt(0.04 + 0.92 * t, 0.75), t_range=[0, 1])
-        self.at("more substrate reacts")
-        self.play(FadeOut(ball), FadeIn(balls), run_time=0.2)
-        self.play(LaggedStart(*[MoveAlongPath(b, path) for b in balls], lag_ratio=0.3), run_time=3.2,
-                  rate_func=linear)
+        def counter():
+            return T(f"crossed the hill: {crossed[0]}", 32, GREEN).move_to([-6.5, 3.3, 0], aligned_edge=LEFT)
+        cnt = always_redraw(counter)
+        self.add(frame, curve, balls)
+        self.add(cnt)
+        self.wait(0.1)
+        self.at("many more")
+        self.play(rate.animate.set_value(0.5), nvis.animate.set_value(9.0), run_time=1.8)
+        self.at("the hill is a graph")
+        tg = lab("a graph, not a place", 34, TEXT, [0.3, 2.3, 0])
+        self.play(FadeIn(tg, shift=UP * 0.1), run_time=0.8)
         self.finish()
 
 
 # ---------------------------------------------------------------------------------------------
-def rate_fn(u):
-    """rate against temperature (relative, in this sketch): rises, peaks, then falls steeply. u in 0..1."""
-    return np.exp(3.2 * u) / (1 + np.exp((u - 0.62) / 0.045))
+# the tube world (s08 to s13)
+# ---------------------------------------------------------------------------------------------
+TUBE_C = np.array([-2.0, -0.95, 0.0])
+GAUGE_C = np.array([5.0, 2.3, 0.0])
+GAUGE_R = 1.1
+BAR_X, BAR_BASE, BAR_H, BAR_W = 6.0, -3.0, 3.0, 1.0
+BS = 0.5
+SLOTS = [np.array([-5.0 + 2.05 * i, -0.35 if r == 0 else -2.25, 0.0]) for r in (0, 1) for i in range(4)]
 
 
-_US = np.linspace(0, 1, 400)
-_PK = float(_US[np.argmax([rate_fn(u) for u in _US])])
-_RMAX = rate_fn(_PK)
-PX0, PX1 = 0.2, 6.2
-PY0, PY1 = -1.9, 2.4
+class World:
+    pass
 
 
-def ppt(u):
-    return np.array([PX0 + (PX1 - PX0) * u, PY0 + (PY1 - PY0) * 0.92 * rate_fn(u) / _RMAX, 0.0])
+def counter_text(n):
+    return T(f"working sites: {n} of 8", 32, BLUE).move_to([-6.5, 3.4, 0], aligned_edge=LEFT)
 
 
-class S05Heat(SpokenScene):
-    """rate rises with temperature, peaks at the optimum, then falls as the enzyme loses its shape."""
+def tube_world(scene, n=8, bad=None, gauge=True, bar=True, eq=True, counter=True, flash=True, speed=0.5, wedges=True, add=True):
+    w = World()
+    w.tube = RoundedRectangle(corner_radius=0.5, width=8.6, height=4.3, stroke_color=GREY, stroke_width=5,
+                              fill_color=GREY, fill_opacity=0.1).move_to(TUBE_C)
+    w.blocks = []
+    for i, p in enumerate(SLOTS):
+        if bad == i:
+            b = enzyme(BS, GREY, ENZ_BAD, 0.4).move_to(p)
+            b.flash_on = False
+        else:
+            b = enzyme(BS).move_to(p)
+            b.flash_on = flash
+        b.fp = 0.9 + 0.37 * i
+        b._ft = 0.3 * i
+        b.base = 0.35
 
+        def uf(m, dt):
+            m._ft += dt
+            if m.flash_on:
+                ph = (m._ft % (2.0 + 0.2 * (m.fp % 1))) / 0.45
+                pulse = max(0.0, 1 - ph)
+                m.set_fill(BLUE, 0.35 + 0.55 * pulse)
+                m.set_stroke(BLUE, 4 + 3 * pulse)
+        b.add_updater(uf)
+        w.blocks.append(b)
+    w.wedges = []
+    if wedges:
+        for i in range(8):
+            wd = wedge(BS)
+            wd.move_to([-4.2 + 1.85 * (i % 4), -1.3 if i < 4 else 0.68, 0])
+            swim(wd, 0.45, 0.12, 0.7 + 0.1 * i, i * 1.3)
+            w.wedges.append(wd)
+    w.nt = ValueTracker(float(n))
+    w.st = ValueTracker(speed)
+    w.counter = counter_text(n)
+    # gauge
+    arc = Arc(radius=GAUGE_R, start_angle=0, angle=PI, stroke_color=YELLOW, stroke_width=7).move_to(GAUGE_C, aligned_edge=DOWN)
+    arc.move_to(GAUGE_C + UP * GAUGE_R * 0.64)
+    arc = Arc(radius=GAUGE_R, start_angle=0, angle=PI, stroke_color=YELLOW, stroke_width=7, arc_center=GAUGE_C)
+    needle = Line(GAUGE_C, GAUGE_C + UP * GAUGE_R * 0.85, color=YELLOW, stroke_width=7)
+
+    def un(m):
+        th = PI * (1 - w.st.get_value())
+        m.put_start_and_end_on(GAUGE_C, GAUGE_C + GAUGE_R * 0.85 * np.array([np.cos(th), np.sin(th), 0]))
+    needle.add_updater(un)
+    hub = Dot(GAUGE_C, radius=0.1, color=YELLOW)
+    w.glabel = lab("speed per site", 28, YELLOW, GAUGE_C + DOWN * 0.55)
+    w.gauge = VGroup(arc, needle, hub)
+    # rate bar
+    outline = Rectangle(width=BAR_W, height=BAR_H, stroke_color=PURPLE, stroke_width=4, fill_opacity=0).move_to([BAR_X, BAR_BASE + BAR_H / 2, 0])
+
+    def bar_fill():
+        h = max(BAR_H * (w.nt.get_value() / 8.0) * (w.st.get_value() / 0.5), 0.001)
+        return Rectangle(width=BAR_W - 0.08, height=h, stroke_width=0, fill_color=PURPLE, fill_opacity=0.9).move_to(
+            [BAR_X, BAR_BASE + h / 2 + 0.0, 0])
+    w.barfill = always_redraw(bar_fill)
+    w.bar = VGroup(outline)
+    w.blab = lab("rate", 28, PURPLE, [BAR_X, -3.45, 0])
+    # equation
+    parts = [T("rate", 30, PURPLE), T("=", 30, TEXT), T("working sites", 30, BLUE), T("×", 30, TEXT), T("speed of each site", 30, YELLOW)]
+    w.eqparts = parts
+    w.eq = VGroup(*parts).arrange(RIGHT, buff=0.2).move_to([-1.6, 2.6, 0])
+    if add:
+        scene.add(w.tube, *w.blocks, *w.wedges)
+        if counter:
+            scene.add(w.counter)
+        if gauge:
+            scene.add(w.gauge, w.glabel)
+        if bar:
+            scene.add(w.bar, w.barfill, w.blab)
+        if eq:
+            scene.add(w.eq)
+    return w
+
+
+class S08Tube(Film):
     def construct(self):
-        ec = np.array([-4.2, 0.4, 0.0])
-        s = 1.0
-        enz = enzyme(BLUE, s).move_to(ec)
-        sub = piece(YELLOW, s).move_to(pocket_at(ec, s))
-        elbl = label("enzyme", 32, BLUE).move_to(ec + np.array([0, -1.45, 0]))
-        ax = axes_lines(PX0, PX1 + 0.3, PY0, PY1 + 0.6)
-        xl = label("temperature", 30, ORANGE).move_to([3.3, -3.3, 0])
-        yl = label("rate (relative)", 26, GREY).rotate(PI / 2).move_to([-0.35, 0.3, 0])
-        note = label("a sketch", 24, GREY).move_to([5.5, 3.0, 0])
+        # start from the one big enzyme, then pull back
+        enz, name = big_enzyme()
+        wd = wedge(ES).move_to(POCKET)
+        self.add(enz, name, wd)
+        w = tube_world(self, counter=False, gauge=False, bar=False, eq=False, add=False)
+        first = w.blocks[0]
+        self.wait(0.4)
+        self.at("pull back")
+        self.play(enz.animate.scale(BS / ES).move_to(SLOTS[0]), FadeOut(name), FadeOut(wd),
+                  Create(w.tube), *[FadeIn(b) for b in w.blocks[1:]], *[FadeIn(x) for x in w.wedges], run_time=1.8, rate_func=smooth)
+        self.remove(enz)
+        self.add(first)
+        self.at("one per block")
+        note = lab("simplified: 1 block = 1 site", 28, TEXT, [-2.0, -3.52, 0])
+        self.play(FadeIn(note), run_time=0.6)
+        self.at("two things set")
+        self.wait(0.1)
+        self.at("first")
+        self.play(FadeIn(w.counter, shift=RIGHT * 0.2), run_time=0.8)
+        self.at("still in the shape")
+        self.play(Indicate(w.counter, color=BLUE, scale_factor=1.06), run_time=0.9)
+        self.at("second")
+        self.play(FadeIn(w.gauge), FadeIn(w.glabel), run_time=0.9)
+        self.at("how much product")
+        self.play(w.st.animate.set_value(0.58), run_time=0.7)
+        self.play(w.st.animate.set_value(0.42), run_time=0.7)
+        self.play(w.st.animate.set_value(0.5), run_time=0.6)
+        self.finish()
 
-        rise = ParametricFunction(lambda t: ppt(t * _PK), t_range=[0, 1], color=ORANGE, stroke_width=6, use_smoothing=False)
-        fall = ParametricFunction(lambda t: ppt(_PK + t * (0.9 - _PK)), t_range=[0, 1], color=RED, stroke_width=6,
-                                  use_smoothing=False)
 
-        self.add(enz, sub, elbl)
-        self.at("Warmer molecules", lead=0.0)
-        self.play(Create(ax), FadeIn(xl), FadeIn(yl), FadeIn(note), Wiggle(sub, scale_value=1.15, rotation_angle=0.06 * TAU),
-                  run_time=1.2)
-        self.at("up to a point")
-        self.play(Create(rise), run_time=2.2, rate_func=linear)
+class S09Rule(Film):
+    def construct(self):
+        w = tube_world(self, bar=False, eq=False)
+        note = lab("simplified: 1 block = 1 site", 28, TEXT, [-2.0, -3.52, 0])
+        self.add(note)
+        p = w.eqparts
+        w.nt.set_value(0.0)
+        self.at("the rate is the two")
+        self.add(w.barfill)
+        self.play(FadeIn(w.bar), FadeIn(w.blab), w.nt.animate.set_value(8.0), run_time=1.6)
+        self.play(Write(p[0]), Write(p[1]), run_time=0.8)
+        self.at("working sites")
+        self.play(Write(p[2]), run_time=0.8)
+        self.play(Write(p[3]), run_time=0.4)
+        self.at("speed of each")
+        self.play(Write(p[4]), run_time=1.0)
+        self.play(w.st.animate.set_value(0.58), run_time=0.5)
+        self.play(w.st.animate.set_value(0.5), run_time=0.5)
+        self.at("a site makes product")
+        b3 = w.blocks[2]
+        b3.flash_on = False
+        b3.set_fill(BLUE, 0.12).set_stroke(BLUE, 4)
+        W3 = w.wedges[2]
+        self.play(Indicate(b3, color=BLUE, scale_factor=1.2), run_time=0.9)
+        self.at("while a substrate sits")
+        W3.clear_updaters()
+        self.play(W3.animate.move_to(b3.get_center() + UP * FIT * BS), run_time=1.3, rate_func=smooth)
+        b3.flash_on = True
+        b3._ft = 0.0
+        self.play(Indicate(b3, color=BLUE, scale_factor=1.2), run_time=0.7)
+        self.at("so temperature")
+        chips = [chip(t, GREY, 28) for t in ("temperature", "pH", "substrate")]
+        row = VGroup(*chips).arrange(RIGHT, buff=0.5).move_to([-1.6, 1.7, 0])
+        for c in chips:
+            c[1].set_color(TEXT)
+        self.play(FadeIn(row, shift=UP * 0.15), run_time=0.8)
 
-        # weak attractions hold the shape, then heat shakes them apart
-        dashes = VGroup(*[DashedLine(ec + np.array([-1.3 * s, -0.2 - 0.3 * k, 0]), ec + np.array([1.3 * s, -0.2 - 0.3 * k, 0]),
-                                     color=GREY, stroke_width=3, dash_length=0.12) for k in range(3)])
-        dl = label("weak attractions", 26, GREY).move_to(ec + np.array([0, 1.6, 0]))
-        self.at("too much heat")
-        self.play(Create(fall), Wiggle(enz, scale_value=1.05, rotation_angle=0.03 * TAU), run_time=1.6, rate_func=linear)
-        self.at("weak attractions")
-        self.play(Create(dashes), FadeIn(dl), run_time=0.5)
-        bad = enzyme(RED, s, pts=ENZ_BAD).move_to(ec)
-        self.play(FadeOut(dashes, shift=DOWN * 0.1), FadeOut(dl), ReplacementTransform(enz, bad),
-                  sub.animate.move_to(ec + np.array([-0.1, 1.5 * s + 0.15, 0])), elbl.animate.set_color(RED), run_time=1.4)
+        def arrow_up(c, target):
+            return Arrow(c.get_top(), [target.get_center()[0], 2.3, 0], buff=0.05, color=TEXT, stroke_width=4,
+                         max_tip_length_to_length_ratio=0.5, tip_length=0.15)
+        self.at("temperature")
+        c0 = chips[0]
+        self.play(c0[0].animate.set_stroke(TEXT, 4).set_fill(TEXT, 0.2), GrowArrow(arrow_up(c0, p[2])), GrowArrow(arrow_up(c0, p[4])), run_time=0.8)
+        self.at("ph")
+        c1 = chips[1]
+        self.play(c1[0].animate.set_stroke(TEXT, 4).set_fill(TEXT, 0.2), GrowArrow(arrow_up(c1, p[2])), GrowArrow(arrow_up(c1, p[4])), run_time=0.8)
+        self.at("the amount of substrate")
+        c2 = chips[2]
+        self.play(c2[0].animate.set_stroke(ORANGE, 4).set_fill(ORANGE, 0.2), GrowArrow(arrow_up(c2, p[4])), run_time=0.8)
+        self.at("each turn one dial")
+        self.play(Indicate(w.counter, color=BLUE, scale_factor=1.06), Indicate(w.glabel, color=YELLOW, scale_factor=1.1), run_time=1.0)
+        self.finish()
 
-        den = label("denatured enzyme", 32, RED, weight=BOLD).move_to(ec + np.array([0, -1.45, 0]))
-        self.at("To denature")
-        self.play(ReplacementTransform(elbl, den), run_time=0.5)
-        home = sub.get_center().copy()
-        self.play(sub.animate.move_to(ec + np.array([0.3, 0.95, 0])), run_time=0.7)
-        self.play(sub.animate.move_to(home + LEFT * 0.4 + UP * 0.2), run_time=0.7)
-        self.at("is not dead")
-        self.play(Indicate(bad, color=RED, scale_factor=1.03), run_time=0.8)
-        self.play(sub.animate.move_to(ec + np.array([0.3, 0.95, 0])), run_time=0.7)
-        self.play(sub.animate.move_to(home + LEFT * 0.4 + UP * 0.2), run_time=0.7)
-        nf = label("active site no longer fits", 28, RED).move_to(ec + np.array([0, -2.15, 0]))
+
+class S10Predict(Film):
+    def construct(self):
+        w = tube_world(self)
+        self.at("suppose one active site")
+        bad = enzyme(BS, GREY, ENZ_BAD, 0.4).move_to(SLOTS[5])
+        old = w.blocks[5]
+        old.flash_on = False
+        self.at("bent out of shape")
+        self.play(Transform(old, bad), run_time=1.4)
+        old.flash_on = False
+        # a wedge bounces off it
+        wd = w.wedges[5]
+        wd.clear_updaters()
+        top = SLOTS[5] + UP * 0.75
         self.at("no longer fits")
-        self.play(FadeIn(nf), sub.animate.move_to(ec + np.array([0.3, 0.95, 0])), run_time=0.7)
-        self.play(sub.animate.move_to(home + LEFT * 0.4 + UP * 0.2), run_time=0.7)
-
-        pkp = ppt(_PK)
-        mk = Dot(pkp, radius=0.14, color=TEXT)
-        dline = DashedLine(pkp, [pkp[0], PY0, 0], color=GREY, stroke_width=3)
-        opt = label("optimum", 32, TEXT, weight=BOLD).move_to([pkp[0] - 0.1, pkp[1] + 0.45, 0])
-        self.at("The optimum")
-        self.play(FadeIn(mk, scale=1.8), Create(dline), FadeIn(opt), run_time=0.9)
-        t37 = label("37 °C", 30, TEXT).move_to([pkp[0], PY0 - 0.4, 0])
-        t37b = label("most human enzymes", 26, TEXT).move_to([pkp[0], PY0 - 0.8, 0])
-        self.at("Most human enzymes")
-        self.play(FadeIn(t37), FadeIn(t37b), run_time=0.7)
+        for _ in range(2):
+            self.play(wd.animate.move_to(top + UP * 0.55), run_time=0.5)
+            self.play(wd.animate.move_to(top + UP * 0.02), run_time=0.4, rate_func=rush_into)
+            self.play(wd.animate.move_to(top + UP * 0.8 + RIGHT * 0.5), run_time=0.4, rate_func=rush_from)
+        swim(wd, 0.35, 0.22, 0.9, 0.0)
+        self.at("what happens")
+        q1 = lab("?", 56, TEXT, w.counter.get_right() + RIGHT * 0.4)
+        q2 = lab("?", 56, TEXT, [BAR_X, BAR_BASE + BAR_H + 0.4, 0])
+        self.play(FadeIn(q1), FadeIn(q2), run_time=0.5)
+        self.play(Indicate(q1, color=TEXT, scale_factor=1.4), run_time=0.7)
+        self.at("to the rate")
+        self.play(Indicate(q2, color=TEXT, scale_factor=1.4), run_time=0.7)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S06Answer(SpokenScene):
-    """a best pH (charges); back to the pineapple: bromelain cuts the chains; canning denatures it; the rule."""
-
+class S11Pause(NarratedScene):
     def construct(self):
-        # --- pH strip --------------------------------------------------------------------------
-        strip = VGroup(*[Rectangle(width=0.62, height=0.5, stroke_color=PURPLE, stroke_width=2, fill_color=PURPLE,
-                                   fill_opacity=0.12 + 0.05 * i).move_to([-4.65 + 0.62 * i + 0.31, 2.6, 0]) for i in range(15)])
-        strip.move_to([0.6, 2.7, 0])
-        ticks = VGroup(*[label(str(n), 26, PURPLE).next_to(strip[n], UP, buff=0.15) for n in (0, 7, 14)])
-        phl = label("pH", 36, PURPLE, weight=BOLD).next_to(strip, LEFT, buff=0.35)
-        marker = Triangle(color=PURPLE, fill_opacity=1, stroke_width=0).scale(0.18).move_to(strip[7].get_bottom() + DOWN * 0.22)
-        best = label("each enzyme has a best pH", 30, PURPLE).move_to([0, 1.55, 0])
-        self.at("Each enzyme also", lead=0.0)
-        self.play(FadeIn(strip), FadeIn(ticks), FadeIn(phl), FadeIn(marker), run_time=0.9)
-        self.at("a best")
-        self.play(FadeIn(best), run_time=0.5)
-
-        ec = np.array([0.0, -1.0, 0.0])
-        enz = enzyme(BLUE, 1.0).move_to(ec)
-        pkc = pocket_at(ec, 1.0)
-
-        def badge(sign, pos, col=PURPLE):
-            c = Circle(radius=0.18, stroke_width=0, fill_color=col, fill_opacity=1)
-            return VGroup(c, T(sign, 24, BG, weight=BOLD).move_to(c)).move_to(pos)
-
-        plus = VGroup(badge("+", pkc + np.array([-0.2, -0.1, 0])), badge("+", pkc + np.array([0.2, -0.1, 0])))
-        sub = piece(YELLOW, 0.9).move_to(pkc + np.array([3.2, 1.2, 0]))
-        minus = VGroup(badge("\u2212", sub.get_center() + np.array([-0.2, 0, 0])), badge("\u2212", sub.get_center() + np.array([0.2, 0, 0])))
-        chg = label("electric charges", 30, PURPLE).move_to([0, -2.75, 0])
-        self.at("changes electric charges")
-        self.play(FadeIn(enz), FadeOut(best), FadeIn(sub), run_time=0.5)
-        self.play(FadeIn(plus), FadeIn(minus), FadeIn(chg), marker.animate.move_to(strip[3].get_bottom() + DOWN * 0.22), run_time=0.9)
-        near = pkc + np.array([0.0, 1.15, 0])
-        pull = arr(near + np.array([0, -0.15, 0]), pkc + np.array([0, 0.5, 0]), GREEN, w=4, tip=0.16)
-        sub_grp = VGroup(sub, minus)
-        self.play(sub_grp.animate.shift(near - sub.get_center()), run_time=0.8)
-        self.play(GrowArrow(pull), run_time=0.3)
-        self.at("may no longer attract")
-        chg2 = label("charges change, so they may no longer attract", 28, PURPLE).move_to([0, -2.75, 0])
-        sk = label("in this sketch", 24, GREY).move_to([0, -3.3, 0])
-        self.play(plus.animate.set_opacity(0.55), pull.animate.set_color(GREY).set_opacity(0.6),
-                  sub_grp.animate.shift(RIGHT * 0.5 + UP * 0.15), ReplacementTransform(chg, chg2), FadeIn(sk), run_time=1.0)
-
-        # --- back to the pineapple -----------------------------------------------------------------
-        self.at("Back to the pineapple")
-        old = VGroup(strip, ticks, phl, marker, enz, sub, plus, minus, chg2, pull, sk)
-        self.play(FadeOut(old), run_time=0.6)
-        bl, br = bowl(BX[0]), bowl(BX[1])
-        tl = label("fresh pineapple", 32, GOLD).move_to([BX[0], 2.75, 0])
-        tr = label("canned pineapple", 32, GOLD).move_to([BX[1], 2.75, 0])
-        bitsL, bitsR = pine_bits(BX[0]), pine_bits(BX[1])
-        chL, chR = loose_chains(BX[0]), loose_chains(BX[1])
-        self.play(FadeIn(bl), FadeIn(br), FadeIn(tl), FadeIn(tr), FadeIn(bitsL), FadeIn(bitsR), FadeIn(chL), FadeIn(chR),
-                  run_time=0.8)
-
-        brom = chip("bromelain", BLUE, size=28).move_to([BX[0], 1.95, 0])
-        self.at("contains bromelain")
-        self.play(FadeIn(brom, shift=DOWN * 0.15), run_time=0.6)
-        cutl = cut_chains(BX[0])
-        stl = label("chains cut: no net, runny", 28).move_to([BX[0], -2.3, 0])
-        self.at("cuts the protein chains")
-        self.play(ReplacementTransform(chL, cutl), FadeIn(stl), Indicate(brom, color=BLUE, scale_factor=1.1), run_time=1.4)
-
-        heat = label("canning heat", 30, ORANGE, weight=BOLD).move_to([BX[1], 1.95, 0])
-        self.at("Canning heats")
-        self.play(FadeIn(heat, shift=DOWN * 0.15), run_time=0.6)
-        brom2 = chip("denatured bromelain", RED, size=26).move_to([BX[1], 1.95, 0])
-        self.at("denature bromelain")
-        self.play(ReplacementTransform(heat, brom2), run_time=0.9)
-        str_ = label("gelatin sets", 28).move_to([BX[1], -2.3, 0])
-        self.at("canned gelatin sets")
-        self.play(Transform(chR, net_chains(BX[1])), FadeIn(str_), run_time=1.5)
+        w = tube_world(self, bad=5)
+        q1 = lab("?", 56, TEXT, w.counter.get_right() + RIGHT * 0.4)
+        q2 = lab("?", 56, TEXT, [BAR_X, BAR_BASE + BAR_H + 0.4, 0])
+        self.add(q1, q2)
+        ptxt = lab("Predict: counter? rate bar?", 36, TEXT, [-2.0, 1.75, 0])
+        self.add(ptxt)
+        ring_bg = Circle(radius=0.38, stroke_color=GREY, stroke_width=5).move_to([4.4, 0.4, 0])
+        tt = ValueTracker(0.0)
+        ring = always_redraw(lambda: Arc(radius=0.38, start_angle=PI / 2, angle=-TAU * max(tt.get_value(), 0.001),
+                                         stroke_color=TEXT, stroke_width=7, arc_center=[4.4, 0.4, 0]))
+        self.add(ring_bg, ring)
+        self.play(tt.animate.set_value(1.0), run_time=self.narration_s - 0.1, rate_func=linear)
         self.finish()
 
 
-class S07End(EndCard):
-    LINE = "An enzyme works only while its active site keeps its shape."
+class S12Reveal(Film):
+    def construct(self):
+        w = tube_world(self, bad=5)
+        q1 = lab("?", 56, TEXT, w.counter.get_right() + RIGHT * 0.4)
+        q2 = lab("?", 56, TEXT, [BAR_X, BAR_BASE + BAR_H + 0.4, 0])
+        self.add(q1, q2)
+        self.at("the counter drops")
+        self.wait(0.2)
+        self.at("seven of eight")
+        self.play(Transform(w.counter, counter_text(7)), FadeOut(q1), run_time=0.8)
+        self.at("that site is not working")
+        self.play(Indicate(w.blocks[5], color=GREY, scale_factor=1.3), run_time=1.0)
+        self.at("so the rate bar")
+        self.play(w.nt.animate.set_value(7.0), FadeOut(q2), run_time=1.2)
+        bt = BAR_BASE + BAR_H * 7 / 8
+        bracket = VGroup(Line([BAR_X - 0.65, bt, 0], [BAR_X - 0.65, BAR_BASE + BAR_H, 0], color=PURPLE, stroke_width=5),
+                         Line([BAR_X - 0.65, bt, 0], [BAR_X - 0.45, bt, 0], color=PURPLE, stroke_width=5),
+                         Line([BAR_X - 0.65, BAR_BASE + BAR_H, 0], [BAR_X - 0.45, BAR_BASE + BAR_H, 0], color=PURPLE, stroke_width=5))
+        bl = lab("1/8 of\nthe rate", 28, PURPLE, [4.35, BAR_BASE + BAR_H - 0.1, 0])
+        self.at("shrinks by an eighth")
+        self.play(FadeIn(bracket), FadeIn(bl), run_time=0.8)
+        self.at("the other seven sites")
+        sp = lab("speed per site:\nunchanged", 28, GREEN, GAUGE_C + DOWN * 0.8)
+        self.play(Transform(w.glabel, sp), Indicate(w.gauge, color=YELLOW, scale_factor=1.05), run_time=1.0)
+        self.at("run just as fast")
+        self.play(*[Indicate(b, color=BLUE, scale_factor=1.15) for i, b in enumerate(w.blocks) if i != 5], run_time=1.2)
+        self.finish()
+
+
+class S13Close(Film):
+    def construct(self):
+        w = tube_world(self, n=7, bad=5)
+        self.remove(w.tube)  # carried: the rebuilt state of film 12 is below, we start from it
+        self.add(w.tube)
+        w.counter.become(counter_text(7))
+        w.glabel.become(lab("speed per site:\nunchanged", 28, GREEN, GAUGE_C + DOWN * 0.8))
+        everything = [w.tube, *w.blocks, *w.wedges, w.counter, w.gauge, w.glabel, w.bar, w.barfill, w.blab, w.eq]
+        self.wait(0.2)
+        self.play(*[FadeOut(m) for m in everything], run_time=0.8)
+        for m in everything:
+            self.remove(m)
+        # side by side
+        lx, rx, cy = -3.6, 3.6, 0.2
+        badb = enzyme(1.5, GREY, ENZ_BAD, 0.4).move_to([lx, cy, 0])
+        goodb = enzyme(1.5).move_to([rx, cy, 0])
+        swim(badb, 0.05, 0.05, 1.5)
+        # a wedge bounces off the bent block, again and again
+        wb = wedge(1.5).move_to([lx, cy + 2.4, 0])
+        wb._tt = 0.0
+        topb = cy + 1.1 * 1.5 + 0.35
+
+        def ub(m, dt):
+            m._tt += dt
+            ph = (m._tt % 2.4) / 2.4
+            y = topb + 0.1 + 0.9 * abs(np.cos(PI * ph * 1.0))
+            m.move_to([lx - 0.1 + 0.25 * np.sin(1.4 * m._tt), y, 0])
+        wb.add_updater(ub)
+        # the working block cycles
+        wg = wedge(1.5).move_to([rx, cy + 2.5, 0])
+        pg = products([rx, cy + 0.6, 0], 1.5)
+        wg._tt = 0.0
+        pocket_y = cy + FIT * 1.5
+
+        def ug(m, dt):
+            m._tt += dt
+            ph = (m._tt % 3.0) / 3.0
+            if ph < 0.4:
+                m.move_to([rx, cy + 2.5 - (2.5 - FIT * 1.5) * smooth(ph / 0.4), 0])
+                m.set_opacity(1)
+                pg.set_opacity(0)
+                goodb.set_fill(BLUE, 0.35)
+            elif ph < 0.55:
+                m.move_to([rx, pocket_y, 0])
+                m.set_opacity(1)
+                pg.set_opacity(0)
+                goodb.set_fill(BLUE, 0.35 + 0.5 * (ph - 0.4) / 0.15)
+            else:
+                m.set_opacity(0)
+                q = (ph - 0.55) / 0.45
+                pg.move_to([rx + 1.2 * q, pocket_y + 0.4 + 1.6 * q, 0])
+                pg.set_opacity(1 - q)
+                goodb.set_fill(BLUE, 0.35)
+        wg.add_updater(ug)
+        nl = lab("not working", 40, TEXT, [lx, -2.1, 0])
+        gl = lab("working", 40, BLUE, [rx, -2.1, 0])
+        self.play(FadeIn(badb), FadeIn(goodb), run_time=1.0)
+        self.add(wb, wg, pg)
+        self.at("does not work slowly")
+        self.play(FadeIn(nl, shift=UP * 0.1), FadeIn(gl, shift=UP * 0.1), run_time=0.8)
+        self.at("it does not work at all")
+        self.play(Indicate(nl, color=TEXT, scale_factor=1.15), run_time=1.0)
+        self.at("anything that bends")
+        grp = [badb, goodb, wb, wg, pg, nl, gl]
+        w2 = tube_world(self, n=7, bad=5, add=False)
+        w2.glabel = lab("speed per site:\nunchanged", 28, GREEN, GAUGE_C + DOWN * 0.8)
+        w2.counter = counter_text(7)
+        for m in grp:
+            m.clear_updaters()
+        self.play(*[FadeOut(m) for m in grp], run_time=0.6)
+        self.add(w2.tube, *w2.blocks, *w2.wedges, w2.counter, w2.gauge, w2.glabel, w2.bar, w2.barfill, w2.blab, w2.eq)
+        w2.nt.set_value(7.0)
+        self.add(*[FadeIn(m).mobject for m in []])
+        self.at("lowers the count")
+        self.play(Indicate(w2.counter, color=BLUE, scale_factor=1.12), run_time=1.0)
+        self.finish()
+
+
+class S14End(EndCard):
+    LINE = "Rate = working active sites × speed of each site."

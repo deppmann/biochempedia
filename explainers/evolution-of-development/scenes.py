@@ -1,449 +1,608 @@
-"""Evolution of development: same protein, different switch  (Biochemistrypedia explainer)
+"""Same Protein, Different Switch (evolution of development), Biochemistrypedia film.
 
-Timed to the SPOKEN words: every self.at("...") cue waits for that phrase in audio/words.json.
-
-COLOR MAP (one color per concept, whole video)
-  BLUE   = the Pitx1 gene and its protein
-  PURPLE = the pelvis, and the pelvic enhancer Pel
-  GOLD   = the jaw / head tissue (and its enhancer)
-  GREEN  = marine allele / marine fish
-  ORANGE = Paxton allele / Paxton fish
-  PINK   = transcription factors
-  YELLOW = the question, the mapped region
-  WHITE  = the methods ladder
-  RED    = broken, deleted, a bad outcome
-  GREY   = outlines, chromosomes, de-emphasized, promoter / marker, Bear Paw Lake fry
+COLOR MAP (whole film)
+  BLUE   = marine fish and anything marine
+  ORANGE = Paxton Lake fish and anything Paxton
+  GOLD   = Pitx1 RNA (glows where the gene is used)
+  PURPLE = Pitx1 protein (blob)
+  GREY-WHITE = DNA, coding block
+  TEAL   = enhancer (switch tab)
+  RED    = broken / not working;  GREEN = same / tick / on
 """
 import numpy as np
 from bp_style import *  # noqa: F401,F403
 
 PURPLE = "#B58CD9"
 ORANGE = "#F29E4C"
-PINK = "#E88FB4"
+DNA_C = "#B9BFCC"
+LARVA = "#C9CED9"
+CLK = [0.0]
+PEL = (0.1, -0.68)
+JAW = (1.4, -0.2)
 
 
-# ---------------------------------------------------------------------------------------------
-# helpers
-# ---------------------------------------------------------------------------------------------
-def arr(a, b, color=GREY, w=5, tip=0.22):
-    return Arrow(a, b, buff=0.08, color=color, stroke_width=w, tip_length=tip,
-                 max_tip_length_to_length_ratio=0.45, max_stroke_width_to_length_ratio=12)
+def bubbles(sc, n=14, seed=1):
+    rng = np.random.RandomState(seed)
+    ds = VGroup()
+    for _ in range(n):
+        d = Dot(radius=rng.uniform(0.03, 0.08), color=TEAL).set_opacity(rng.uniform(0.12, 0.3))
+        d.move_to([rng.uniform(-6.9, 6.9), rng.uniform(-4, 4), 0])
+        d.v = (rng.uniform(-0.15, 0.15), rng.uniform(0.25, 0.6))
+
+        def up(m, dt):
+            m.shift([m.v[0] * dt, m.v[1] * dt, 0])
+            if m.get_y() > 4.2:
+                m.shift(DOWN * 8.4)
+        d.add_updater(up)
+        ds.add(d)
+    ds.set_z_index(-10)
+    sc.add(ds)
 
 
-def fish_body(color, pos, scale=1.0):
-    """Level, right-facing silhouette: body, tail, eye. Centered on pos."""
-    st = dict(stroke_color=color, stroke_width=3, fill_color=color, fill_opacity=0.22)
+def start(sc):
+    CLK[0] = 0.0
+    c = Dot(radius=0.01).set_opacity(0)
+
+    def tk(m, dt):
+        CLK[0] += dt
+    c.add_updater(tk)
+    sc.add(c)
+    bubbles(sc)
+
+
+def bob(m, amp=0.08, sp=1.4):
+    m._b = 0.0
+
+    def u(mm, dt):
+        d = amp * np.sin(sp * CLK[0])
+        mm.shift(UP * (d - mm._b))
+        mm._b = d
+    m.add_updater(u)
+    return m
+
+
+def pulse(m, amp=0.1, sp=3.2):
+    m._f = 1.0
+
+    def u(mm, dt):
+        f = 1 + amp * np.sin(sp * CLK[0])
+        mm.scale(f / mm._f)
+        mm._f = f
+    m.add_updater(u)
+    return m
+
+
+def fish(color, pos, s=1.0, pelvis="full"):
+    st = dict(stroke_color=color, stroke_width=3.5, fill_color=color, fill_opacity=0.22)
     body = Ellipse(width=3.6, height=1.4, **st)
     tail = Polygon([-1.7, 0, 0], [-2.6, 0.65, 0], [-2.6, -0.65, 0], **st)
     eye = Dot([1.2, 0.2, 0], radius=0.07, color=TEXT)
-    g = VGroup(body, tail, eye)
-    g.scale(scale, about_point=ORIGIN).shift(np.array([pos[0], pos[1], 0]))
+    pel = VGroup()
+    if pelvis in ("full", "stub"):
+        pel.add(RoundedRectangle(corner_radius=0.06, width=0.6, height=0.2, stroke_width=0,
+                                 fill_color=TEXT, fill_opacity=0.9).move_to([PEL[0], PEL[1], 0]))
+    if pelvis == "full":
+        pel.add(Line([-0.05, -0.72, 0], [-0.5, -1.75, 0], color=TEXT, stroke_width=6),
+                Line([0.25, -0.72, 0], [0.1, -1.75, 0], color=TEXT, stroke_width=6))
+    g = VGroup(tail, body, eye, pel)
+    g.scale(s, about_point=ORIGIN).shift(np.array([pos[0], pos[1], 0]))
+    g.s, g.o, g.pel = s, np.array([pos[0], pos[1], 0.0]), pel
     return g
 
 
-def spines(color, pos, scale=1.0, lens=(1.0, 1.0)):
-    """Two pelvic spines hanging from the belly. lens are lengths in unscaled units."""
-    starts = [np.array([0.05, -0.69, 0]), np.array([0.40, -0.68, 0])]
-    dirs = [np.array([-0.35, -1.0, 0]), np.array([-0.10, -1.0, 0])]
-    out = VGroup()
-    for s, d, L in zip(starts, dirs, lens):
-        d = d / np.linalg.norm(d)
-        out.add(Line(s * scale + np.array([pos[0], pos[1], 0]), (s + d * L) * scale + np.array([pos[0], pos[1], 0]),
-                     color=color, stroke_width=7))
-    return out
+def loc(g, p):
+    return g.o + np.array([p[0], p[1], 0]) * g.s
 
 
-def belly(pos, scale=1.0, dx=0.2, dy=-0.35):
-    return np.array([pos[0] + dx * scale, pos[1] + dy * scale, 0])
+def glow(pt, r=0.3):
+    return Circle(radius=r, stroke_width=0, fill_color=GOLD, fill_opacity=0.9).move_to(pt)
 
 
-def lamp(pos, r=0.2):
-    return Circle(radius=r, stroke_width=0, fill_color=PURPLE, fill_opacity=0.95).move_to(pos)
+def ring(pt, r=0.5, color=RED):
+    return Circle(radius=r, stroke_color=color, stroke_width=6, fill_opacity=0).move_to(pt)
+
+
+def xmark(pos, size=0.5, color=RED):
+    p = np.array([pos[0], pos[1], 0])
+    return VGroup(Line(p + [-size, -size, 0], p + [size, size, 0]), Line(p + [-size, size, 0], p + [size, -size, 0])).set_stroke(color, 9)
+
+
+def tickm(pos, color=GREEN, k=1.0):
+    p = np.array([pos[0], pos[1], 0])
+    return VGroup(Line(p + np.array([-0.25, 0.0, 0]) * k, p + np.array([-0.07, -0.22, 0]) * k),
+                  Line(p + np.array([-0.07, -0.22, 0]) * k, p + np.array([0.3, 0.26, 0]) * k)).set_stroke(color, 8)
+
+
+def blob(color, pos, r=0.5):
+    g = VGroup()
+    for k, o in [(1, (0, 0)), (0.7, (0.7, 0.4)), (0.65, (-0.7, 0.3)), (0.6, (0.2, -0.7))]:
+        g.add(Circle(radius=r * k, stroke_width=0, fill_color=color, fill_opacity=0.9)
+              .move_to(np.array([pos[0], pos[1], 0]) + np.array([o[0], o[1], 0]) * r))
+    return g
+
+
+def gblob(pos, r=0.32):
+    g = VGroup(Ellipse(width=r * 2.6, height=r * 1.7, stroke_color=GREY, stroke_width=3, fill_color=GREY, fill_opacity=0.55).rotate(0.4),
+               Ellipse(width=r * 1.2, height=r * 1.0, stroke_width=0, fill_color=GREY, fill_opacity=0.55).shift([r * 0.9, r * 0.5, 0]))
+    return g.move_to([pos[0], pos[1], 0])
+
+
+def dna_line(y):
+    return Line([-6.5, y, 0], [6.5, y, 0], color=DNA_C, stroke_width=10)
+
+
+def coding(y, x=-3.8, w=4.2):
+    blk = RoundedRectangle(corner_radius=0.12, width=w, height=1.0, stroke_color=DNA_C, stroke_width=3,
+                           fill_color="#2B2F3A", fill_opacity=1).move_to([x, y, 0])
+    return VGroup(blk, T("Pitx1 coding part", 30).move_to(blk))
+
+
+def tab(label, x, y, w=2.7, color=TEAL, up=True):
+    r = RoundedRectangle(corner_radius=0.1, width=w, height=0.75, stroke_color=color, stroke_width=3,
+                         fill_color=color, fill_opacity=0.35 if up else 0.1)
+    r.move_to([x, y + 0.55, 0])
+    return VGroup(r, T(label, 30).move_to(r))
+
+
+def wire(a, b):
+    return Line([a[0], a[1], 0], [b[0], b[1], 0], color=GOLD, stroke_width=5)
+
+
+def bead_row(color, cx, y, n=9):
+    xs = [cx + (i - (n - 1) / 2) * 0.5 for i in range(n)]
+    g = VGroup(Line([xs[0], y, 0], [xs[-1], y, 0], color=color, stroke_width=3))
+    for x in xs:
+        g.add(Circle(radius=0.19, stroke_width=0, fill_color=color, fill_opacity=0.95).move_to([x, y, 0]))
+    return g
 
 
 class S00Title(TitleCard):
     LESSON = "Evolution of development"
-    TITLE = "Same protein, different switch"
+    TITLE = "Same Protein, Different Switch"
 
 
-# ---------------------------------------------------------------------------------------------
-class S01Puzzle(SpokenScene):
-    """Two fish, one unchanged protein, one question."""
-
+class S01Question(SpokenScene):
     def construct(self):
-        mpos, ppos = (-3.4, 0.6), (3.4, 0.6)
-        m_fish = fish_body(GREEN, mpos)
-        p_fish = fish_body(ORANGE, ppos)
-        m_lbl = T("marine", 30, GREEN).move_to([-3.4, 2.2, 0])
-        p_lbl = T("Paxton Lake benthic", 30, ORANGE).move_to([3.4, 2.2, 0])
-        self.play(FadeIn(m_fish, shift=RIGHT * 0.3), FadeIn(m_lbl), run_time=0.8)
-        m_sp = spines(GREEN, mpos, 1.0, (1.0, 1.0))
-        self.at("two spines")
-        self.play(Create(m_sp), run_time=0.8)
-        self.at("lake")
-        self.play(FadeIn(p_fish, shift=LEFT * 0.3), FadeIn(p_lbl), run_time=0.8)
-        none = T("most have no pelvic bones", 24, ORANGE).move_to([3.4, -0.9, 0])
-        self.at("pelvic bones")
-        self.play(FadeIn(none, shift=UP * 0.1), run_time=0.7)
-
-        g1 = chip("Pitx1 gene", BLUE, 26).move_to([-3.4, -1.95, 0])
-        g2 = chip("Pitx1 gene", BLUE, 26).move_to([3.4, -1.95, 0])
-        self.at("gene most")
-        self.play(FadeIn(g1, shift=UP * 0.2), FadeIn(g2, shift=UP * 0.2), run_time=0.7)
-        pr1 = chip("Pitx1 protein", BLUE, 26).move_to([-3.4, -2.95, 0])
-        pr2 = chip("Pitx1 protein", BLUE, 26).move_to([3.4, -2.95, 0])
-        same = T("= same", 28, TEXT).move_to([0, -2.95, 0])
-        self.at("its protein")
-        self.play(FadeIn(pr1, shift=UP * 0.2), FadeIn(pr2, shift=UP * 0.2), run_time=0.7)
+        start(self)
+        f = fish(ORANGE, (-1.0, -0.5), 2.0, "none")
+        f.shift(RIGHT * 8)
+        self.add(f)
+        self.play(f.animate.shift(LEFT * 8), run_time=1.4)
+        bob(f)
+        rg = DashedVMobject(Circle(radius=0.6, color=ORANGE, stroke_width=5)).move_to(loc(f, PEL))
+        self.at("almost no")
+        self.play(Create(rg), run_time=1.0)
+        pb = blob(PURPLE, (4.9, 2.0), 0.7)
+        pl = T("Pitx1 protein", 34, PURPLE).move_to([4.9, 0.75, 0])
+        self.at("yet its")
+        self.play(GrowFromCenter(pb), FadeIn(pl), run_time=1.0)
+        un = T("unchanged", 34, GREEN).move_to([5.2, -0.2, 0])
+        tk = tickm((un.get_left()[0] - 0.4, -0.2))
         self.at("unchanged")
-        self.play(FadeIn(same), run_time=0.5)
-        q = T("How can the part shrink, with the protein unchanged?", 30, YELLOW).move_to([0, 3.15, 0])
-        self.at("How can")
-        self.play(FadeIn(q, shift=DOWN * 0.15), run_time=0.8)
+        self.play(Create(tk), FadeIn(un), run_time=0.9)
+        q = T("?", 150, YELLOW).move_to([2.6, 2.2, 0])
+        self.at("so what")
+        self.play(FadeIn(q, scale=0.5), run_time=0.7)
+        pulse(q)
+        self.at("kind of switch")
+        q.clear_updaters()
+        sw = chip("switch", TEAL, 40).move_to([2.6, 2.2, 0])
+        self.play(Transform(q, sw), run_time=1.0)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S02Switch(SpokenScene):
-    """The gene has separate enhancers; break the pelvic one."""
-
+class S02Fish(SpokenScene):
     def construct(self):
-        gene = RoundedRectangle(corner_radius=0.14, width=4.2, height=0.8, stroke_color=BLUE, stroke_width=3,
-                                fill_color=BLUE, fill_opacity=0.22).move_to([0, 1.2, 0])
-        gname = T("Pitx1 gene", 28, BLUE).move_to(gene)
-        self.play(FadeIn(gene), FadeIn(gname), run_time=0.6)
-        prot = chip("protein binds DNA", BLUE, 24).move_to([0, -0.7, 0])
-        a_p = arr([0, 0.78, 0], [0, -0.2, 0], BLUE)
-        self.at("makes a protein")
-        self.play(GrowArrow(a_p), FadeIn(prot, shift=DOWN * 0.15), run_time=0.7)
-        mice = T("mice without it: malformed hind limbs", 22, RED).move_to([0, -1.75, 0])
-        self.at("mice without")
-        self.play(FadeIn(mice, shift=UP * 0.1), run_time=0.7)
+        start(self)
+        b = fish(BLUE, (-3.3, 0.7), 1.3, "full")
+        b.shift(LEFT * 7)
+        self.add(b)
+        self.play(b.animate.shift(RIGHT * 7), run_time=2.2)
+        bob(b)
+        lb = T("marine", 34, BLUE).move_to([-3.3, 2.6, 0])
+        self.play(FadeIn(lb), run_time=0.5)
+        self.at("bony girdle")
+        pl = T("pelvis", 34, TEXT).move_to([-5.3, -1.1, 0])
+        self.play(Indicate(b.pel, color=WHITE, scale_factor=1.15), FadeIn(pl), run_time=1.4)
+        self.at("version of your")
+        dl = DashedLine([-3.5, -1.75, 0], [-3.5, -2.2, 0], color=GREY)
+        hl = T("like your hips and legs", 34, TEXT).move_to([-3.3, -2.6, 0])
+        sa = T("same ancestral structure", 30, TEXT).move_to([-3.3, -3.35, 0])
+        self.play(Create(dl), FadeIn(hl), run_time=0.8)
+        self.play(FadeIn(sa), run_time=0.8)
+        o = fish(ORANGE, (3.5, 0.7), 1.3, "full")
+        o.shift(RIGHT * 7)
+        self.at("paxton lake")
+        self.add(o)
+        self.play(o.animate.shift(LEFT * 7), run_time=2.0)
+        bob(o)
+        pin = VGroup(Dot(radius=0.12, color=RED), T("Paxton Lake, British Columbia", 34, ORANGE)).arrange(RIGHT, buff=0.2).move_to([2.9, 2.7, 0])
+        self.play(FadeIn(pin), run_time=0.8)
+        self.at("greatly reduced")
+        stub = o.pel
+        self.play(stub[1].animate.scale(0.05, about_point=stub[1].get_top()).set_opacity(0),
+                  stub[2].animate.scale(0.05, about_point=stub[2].get_top()).set_opacity(0), run_time=1.2)
+        gl = T("greatly reduced", 34, ORANGE).move_to([3.5, -1.3, 0])
+        self.play(FadeIn(gl), run_time=0.6)
+        self.at("pelvic bones")
+        none = T("most: none", 34, ORANGE).move_to([3.5, -1.3, 0])
+        self.play(FadeOut(stub[0]), Transform(gl, none), run_time=1.2)
+        self.finish()
 
-        # enhancers
-        ej = chip("jaw enhancer", GOLD, 26).move_to([-4.3, 2.85, 0])
-        ep = chip("pelvic enhancer", PURPLE, 26).move_to([4.3, 2.85, 0])
-        aj = arr([-3.0, 2.55, 0], [-1.5, 1.68, 0], GOLD)
-        ap = arr([3.0, 2.55, 0], [1.5, 1.68, 0], PURPLE)
-        self.at("several switches")
-        self.play(FadeOut(mice), FadeIn(ej, shift=DOWN * 0.2), FadeIn(ep, shift=DOWN * 0.2), run_time=0.6)
-        self.play(GrowArrow(aj), GrowArrow(ap), run_time=0.6)
+
+class S03Gene(SpokenScene):
+    def construct(self):
+        start(self)
+        y = 1.0
+        ln = dna_line(y)
+        cd = coding(y)
+        self.play(Create(ln), run_time=1.2)
+        self.play(FadeIn(cd), run_time=0.8)
+        self.at("its protein")
+        bl = blob(PURPLE, (-3.8, y), 0.6)
+        lab = T("Pitx1 protein", 34, PURPLE).move_to([-3.8, 3.4, 0])
+        self.play(GrowFromCenter(bl), run_time=0.5)
+        self.play(bl.animate.move_to([-3.8, 2.4, 0]), FadeIn(lab), run_time=0.9)
+        grp = VGroup(bl, lab)
+        self.at("transcription factor")
+        lab2 = T("transcription factor", 34, PURPLE).move_to(lab)
+        self.play(Transform(lab, lab2), run_time=0.8)
+        site = Rectangle(width=0.7, height=0.3, stroke_width=0, fill_color=WHITE, fill_opacity=0.7).move_to([1.0, y, 0])
+        self.at("binds dna")
+        self.play(grp.animate.shift(RIGHT * 4.8 + DOWN * 0.2), FadeIn(site), run_time=1.6)
+        tg = RoundedRectangle(corner_radius=0.12, width=2.6, height=0.9, stroke_color=GREEN, stroke_width=3,
+                              fill_color=GREEN, fill_opacity=0.05).move_to([4.7, y, 0])
+        tl = T("other gene", 30, GREEN).move_to(tg)
+        under = RoundedRectangle(corner_radius=0.12, width=2.6, height=0.9, stroke_width=0, fill_color="#0E1118", fill_opacity=1).move_to(tg)
+        tl.set_z_index(3)
+        tg.set_z_index(2)
+        under.set_z_index(1)
+        self.at("switches other")
+        self.add(under)
+        self.play(FadeIn(tg), FadeIn(tl), run_time=0.9)
+        self.at("on or off")
+        self.play(tg.animate.set_fill(GREEN, 0.7), tl.animate.set_color(WHITE), run_time=0.8)
+        self.at("in the")
+        self.remove(under)
+        self.play(FadeOut(grp), FadeOut(tl), FadeOut(tg), FadeOut(site), run_time=0.8)
+        r1 = bead_row(BLUE, 0.6, -0.5)
+        r2 = bead_row(ORANGE, 0.6, -1.5)
+        r2.shift(RIGHT * 2.5)
+        l1 = T("marine", 34, BLUE).move_to([-4.5, -0.5, 0])
+        l2 = T("Paxton", 34, ORANGE).move_to([-4.5, -1.5, 0])
+        self.play(FadeIn(r1), FadeIn(l1), FadeIn(r2), FadeIn(l2), run_time=1.0)
+        self.at("that protein")
+        self.play(r2.animate.shift(LEFT * 2.5), run_time=0.9)
+        links = VGroup(*[Line([r1[i].get_x(), -0.72, 0], [r1[i].get_x(), -1.28, 0], color=GREEN, stroke_width=3) for i in range(1, 10)])
+        st = T("same encoded protein (fish examined)", 34, GREEN)
+        box = SurroundingRectangle(st, color=GREEN, buff=0.18, corner_radius=0.12)
+        sg = VGroup(box, st).move_to([0, -3.0, 0])
+        self.at("unchanged")
+        self.play(Create(links), FadeIn(sg, scale=1.2), run_time=0.9)
+        self.finish()
+
+
+class S04Jobs(SpokenScene):
+    def construct(self):
+        start(self)
+        f = fish(LARVA, (3.7, -1.0), 1.4, "stub")
+        f.shift(RIGHT * 3)
+        self.add(f)
+        self.play(f.animate.shift(LEFT * 3), run_time=1.2)
+        bob(f)
+        gp = glow(loc(f, PEL))
+        gj = glow(loc(f, JAW))
+        bob(gp)
+        bob(gj)
+        hdr = T("Pitx1 used here", 34, GOLD).move_to([3.7, 0.8, 0])
+        self.at("pelvis gene")
+        self.play(FadeIn(gp, scale=0.3), FadeIn(hdr), run_time=0.9)
+        pl = T("pelvic region", 32, GOLD).move_to([2.9, -2.8, 0])
+        self.play(FadeIn(pl), run_time=0.5)
+        self.at("the jaw")
+        jl = T("jaw", 32, GOLD).move_to([5.7, -2.1, 0])
+        self.play(FadeIn(gj, scale=0.3), FadeIn(jl), run_time=0.9)
+        # mouse
+        body = Ellipse(width=1.7, height=1.0, stroke_color=LARVA, stroke_width=3, fill_color=LARVA, fill_opacity=0.2)
+        head = Circle(radius=0.42, stroke_color=LARVA, stroke_width=3, fill_color=LARVA, fill_opacity=0.2).move_to([1.05, 0.2, 0])
+        ear = Circle(radius=0.2, stroke_color=LARVA, stroke_width=3).move_to([0.95, 0.65, 0])
+        tail = ArcBetweenPoints([-0.85, 0, 0], [-1.7, 0.7, 0], angle=-1.2, color=LARVA, stroke_width=3)
+        eye = Dot([1.2, 0.3, 0], radius=0.05, color=TEXT)
+        mouse = VGroup(body, head, ear, tail, eye).scale(1.15).move_to([-4.2, 1.8, 0])
+        pb = blob(PURPLE, (-1.3, 1.8), 0.4)
+        xg = xmark((-1.3, 1.8), 0.45, GREY)
+        self.at("mice with")
+        self.play(FadeIn(mouse, shift=RIGHT * 0.3), run_time=0.9)
+        self.play(FadeIn(pb), Create(xg), run_time=0.8)
+        t1 = T("hind limbs malformed", 34, TEXT).move_to([-3.4, -0.1, 0])
+        t2 = T("other defects", 34, TEXT).move_to([-3.4, -1.1, 0])
+        t3 = T("does not survive", 34, RED).move_to([-3.4, -2.1, 0])
+        self.at("dye")
+        self.play(FadeIn(t3, shift=UP * 0.1), run_time=0.6)
+        self.at("malformed hind limbs")
+        self.play(FadeIn(t1, shift=UP * 0.1), run_time=0.6)
+        self.at("other defects")
+        self.play(FadeIn(t2, shift=UP * 0.1), run_time=0.6)
+        self.finish()
+
+
+def predict_world(sc, text=True, x_on=True):
+    """DNA with the coding block, larva on the right with gold RNA, grey blobs: the s05 frame."""
+    ln = dna_line(2.5)
+    cd = coding(2.5)
+    f = fish(LARVA, (3.7, -1.0), 1.4, "stub")
+    gp, gj = glow(loc(f, PEL)), glow(loc(f, JAW))
+    xm = xmark((-1.55, 3.05), 0.28)
+    bp, bj = gblob((3.85, 0.6)), gblob((5.6, 0.6))
+    qp = T("?", 36, YELLOW).move_to(bp)
+    qj = T("?", 36, YELLOW).move_to(bj)
+    return dict(ln=ln, cd=cd, f=f, gp=gp, gj=gj, xm=xm, bp=bp, bj=bj, qp=qp, qj=qj)
+
+
+class S05Predict(SpokenScene):
+    def construct(self):
+        start(self)
+        w = predict_world(self)
+        self.add(w["f"], w["gp"], w["gj"])
+        for k in ("f", "gp", "gj"):
+            bob(w[k])
+        self.play(Create(w["ln"]), FadeIn(w["cd"]), run_time=1.2)
+        self.at("broken")
+        self.play(Create(w["xm"]), run_time=0.7)
+        pp = blob(PURPLE, (3.85, 0.6), 0.3)
+        pj = blob(PURPLE, (5.6, 0.6), 0.3)
+        self.at("protein itself")
+        self.play(FadeIn(pp), FadeIn(pj), run_time=0.8)
+        t = VGroup(T("Broken protein:", 42, YELLOW), T("where is the damage?", 42, YELLOW)).arrange(DOWN, buff=0.25).move_to([-3.4, -0.6, 0])
+        self.at("where would")
+        self.play(FadeIn(t, shift=UP * 0.15), run_time=0.9)
+        self.at("damage")
+        self.play(Transform(pp, w["bp"]), Transform(pj, w["bj"]), run_time=1.0)
+        self.play(FadeIn(w["qp"]), FadeIn(w["qj"]), run_time=0.6)
+        self.finish()
+
+
+class S06Pause(NarratedScene):
+    def construct(self):
+        start(self)
+        w = predict_world(self)
+        t = VGroup(T("Broken protein:", 42, YELLOW), T("where is the damage?", 42, YELLOW)).arrange(DOWN, buff=0.25).move_to([-3.4, -0.6, 0])
+        self.add(w["ln"], w["cd"], w["f"], w["gp"], w["gj"], w["xm"], w["bp"], w["bj"], w["qp"], w["qj"], t)
+        for k in ("f", "gp", "gj"):
+            bob(w[k])
+        rg = Circle(radius=0.55, color=YELLOW, stroke_width=8).move_to([-3.4, 1.0, 0]).rotate(PI / 2).flip()
+        base = Circle(radius=0.55, color=GREY, stroke_width=3).move_to([-3.4, 1.0, 0])
+        self.add(base)
+        self.play(Create(rg), run_time=4.8, rate_func=linear)
+        self.finish()
+
+
+class S07Reveal(SpokenScene):
+    def construct(self):
+        start(self)
+        w = predict_world(self)
+        t = VGroup(T("Broken protein:", 42, YELLOW), T("where is the damage?", 42, YELLOW)).arrange(DOWN, buff=0.25).move_to([-3.4, -0.6, 0])
+        self.add(w["ln"], w["cd"], w["f"], w["gp"], w["gj"], w["xm"], w["bp"], w["bj"], w["qp"], w["qj"], t)
+        for k in ("f", "gp", "gj"):
+            bob(w[k])
+        self.at("everywhere the gene")
+        lab = VGroup(T("RNA made,", 42, GOLD), T("protein does not work", 42, RED)).arrange(DOWN, buff=0.25).move_to([-3.2, -0.6, 0])
+        self.play(FadeOut(t), FadeOut(w["qp"]), FadeOut(w["qj"]), run_time=0.5)
+        self.play(FadeIn(lab), run_time=0.6)
+        dj = Square(0.55, stroke_color=GREY, stroke_width=3, fill_color=BG, fill_opacity=1).move_to([5.6, 1.6, 0])
+        dp = Square(0.55, stroke_color=GREY, stroke_width=3, fill_color=BG, fill_opacity=1).move_to([3.85, 1.6, 0])
+        self.at("fail in")
+        self.play(FadeIn(dj), FadeIn(dp), run_time=0.8)
+        rj = ring(loc(w["f"], JAW), 0.55)
+        rp = ring(loc(w["f"], PEL), 0.55)
+        self.at("the jaw")
+        self.play(Create(rj), run_time=0.8)
+        self.at("the pelvis")
+        self.play(Create(rp), run_time=0.8)
+        self.at("lake fish do not")
+        o = fish(ORANGE, (-3.0, -1.0), 1.4, "none")
+        o.shift(LEFT * 6)
+        og = glow(loc(o, JAW))
+        og.shift(LEFT * 6)
+        self.add(o, og)
+        self.play(FadeOut(lab), FadeOut(w["ln"]), FadeOut(w["cd"]), FadeOut(w["xm"]), run_time=0.6)
+        self.play(o.animate.shift(RIGHT * 6), og.animate.shift(RIGHT * 6), run_time=1.6)
+        bob(o)
+        bob(og)
+        cap = T("Pitx1 RNA kept in", 34, GOLD)
+        cap2 = T("mouth and lower jaw", 34, GOLD)
+        cp = VGroup(cap, cap2).arrange(DOWN, buff=0.12).move_to([-3.0, -3.0, 0])
+        ban = T("not a broken protein", 46, TEXT).move_to([0, 3.1, 0])
+        self.play(FadeIn(cp), FadeIn(ban), run_time=1.0)
+        self.finish()
+
+
+class S08Enhancer(SpokenScene):
+    def construct(self):
+        start(self)
+        ln = dna_line(2.1)
+        cd = coding(2.1)
+        xm = xmark((-1.55, 2.65), 0.28)
+        f = fish(LARVA, (3.7, -1.0), 1.4, "stub")
+        self.add(ln, cd, xm, f)
+        bob(f)
+        self.at("the way out")
+        self.play(FadeOut(xm), run_time=0.8)
+        tp = tab("pelvic switch", 1.3, 2.1, up=False)
+        tj = tab("jaw switch", 4.3, 2.1, up=False)
+        el = T("enhancer: noncoding DNA", 32, TEAL).move_to([3.0, 3.45, 0])
         self.at("short stretch")
-        self.play(Indicate(ej, color=GOLD, scale_factor=1.12), Indicate(ep, color=PURPLE, scale_factor=1.12), run_time=1.0)
-
-        # tissues
-        frames, bars, names = {}, {}, {}
-        for key, x, col, nm in (("jaw", -4.6, GOLD, "jaw: Pitx1 use"), ("pel", 4.6, PURPLE, "pelvis: Pitx1 use")):
-            fr = Rectangle(width=2.2, height=2.6, stroke_color=GREY, stroke_width=2.5).move_to([x, -1.55, 0])
-            bar = Rectangle(width=1.0, height=2.2, stroke_width=0, fill_color=col, fill_opacity=0.85)
-            bar.move_to(fr.get_bottom() + UP * 1.1 + UP * 0.1)
-            frames[key], bars[key] = fr, bar
-            names[key] = T(nm, 24, col).move_to([x, -3.3, 0])
-        ag = arr([-1.3, 0.78, 0], [-3.9, -0.28, 0], GOLD)
-        ar = arr([1.3, 0.78, 0], [3.9, -0.28, 0], PURPLE)
-        self.at("raises a gene's use")
-        self.play(FadeIn(frames["jaw"]), FadeIn(frames["pel"]), GrowArrow(ag), GrowArrow(ar), run_time=0.6)
-        self.play(GrowFromEdge(bars["jaw"], DOWN), GrowFromEdge(bars["pel"], DOWN),
-                  FadeIn(names["jaw"]), FadeIn(names["pel"]), run_time=0.9)
+        self.play(FadeIn(tp[0]), FadeIn(tj[0]), FadeIn(el), run_time=1.0)
+        self.at("have several")
+        self.play(Indicate(tp[0], color=TEAL), Indicate(tj[0], color=TEAL), run_time=0.9)
+        gj = glow(loc(f, JAW))
+        gp = glow(loc(f, PEL))
+        wj = wire((4.3, 2.0), loc(f, JAW))
+        wp = wire((1.3, 2.0), loc(f, PEL))
+        wj.set_z_index(-1)
+        wp.set_z_index(-1)
         self.at("serve the jaw")
-        self.play(Indicate(ej, color=GOLD, scale_factor=1.12), Indicate(bars["jaw"], color=GOLD, scale_factor=1.05), run_time=0.9)
-        self.at("pelvis")
-        self.play(Indicate(ep, color=PURPLE, scale_factor=1.12), Indicate(bars["pel"], color=PURPLE, scale_factor=1.05), run_time=0.9)
-
-        # break the pelvic switch
-        self.at("Break the pelvic switch")
-        x1 = Line(ep.get_corner(UL) + [0.1, -0.1, 0], ep.get_corner(DR) + [-0.1, 0.1, 0], color=RED, stroke_width=7)
-        x2 = Line(ep.get_corner(DL) + [0.1, 0.1, 0], ep.get_corner(UR) + [-0.1, -0.1, 0], color=RED, stroke_width=7)
-        new_bar = Rectangle(width=1.0, height=0.45, stroke_width=0, fill_color=PURPLE, fill_opacity=0.85)
-        new_bar.move_to(frames["pel"].get_bottom() + UP * 0.1 + UP * 0.225)
-        self.play(ep[0].animate.set_stroke(RED), Create(x1), Create(x2), FadeOut(ap), FadeOut(ar), run_time=0.7)
-        self.play(Transform(bars["pel"], new_bar), run_time=0.9)
-        self.at("light stays on")
-        self.play(Indicate(bars["jaw"], color=GOLD, scale_factor=1.08), run_time=1.0)
+        self.play(FadeIn(tj[1]), tj[0].animate.set_fill(TEAL, 0.8), Create(wj), FadeIn(gj, scale=0.3), run_time=1.2)
+        bob(gj)
+        self.at("another the pelvis")
+        self.play(FadeIn(tp[1]), tp[0].animate.set_fill(TEAL, 0.8), Create(wp), FadeIn(gp, scale=0.3), run_time=1.2)
+        bob(gp)
+        self.at("jobs can overlap")
+        self.play(Indicate(gj, color=WHITE), Indicate(gp, color=WHITE), Indicate(wj, color=WHITE), Indicate(wp, color=WHITE), run_time=1.6)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S03Hybrid(SpokenScene):
-    """Mapped region -> cis or trans? -> one nucleus holding both alleles."""
-
+class S09Insitu(SpokenScene):
     def construct(self):
-        chrom = RoundedRectangle(corner_radius=0.12, width=11.0, height=0.4, stroke_color=GREY, stroke_width=3,
-                                 fill_color=GREY, fill_opacity=0.3).move_to([0, 1.9, 0])
-        chrom_lbl = T("chromosome", 24, GREY).move_to([-4.6, 2.55, 0])
-        self.play(FadeIn(chrom), FadeIn(chrom_lbl), run_time=0.7)
-        region = Rectangle(width=3.4, height=0.7, stroke_color=YELLOW, stroke_width=4, fill_color=YELLOW,
-                           fill_opacity=0.18).move_to([0.6, 1.9, 0])
-        reg_lbl = T("mapped region", 26, YELLOW).move_to([0.6, 1.1, 0])
-        gtick = Rectangle(width=0.22, height=0.9, stroke_width=0, fill_color=BLUE, fill_opacity=1).move_to([0.6, 1.9, 0])
-        glbl = T("Pitx1", 26, BLUE).move_to([0.6, 2.75, 0])
-        self.at("found a region")
-        self.play(FadeIn(region), FadeIn(reg_lbl), FadeIn(gtick), FadeIn(glbl), run_time=0.8)
-        others = VGroup(*[Rectangle(width=0.16, height=0.6, stroke_width=0, fill_color=GREY, fill_opacity=0.9).move_to([x, 1.9, 0])
-                          for x in (-0.6, -0.1, 1.1, 1.6, 2.0)])
-        self.at("many genes")
-        self.play(LaggedStart(*[FadeIn(o, scale=0.6) for o in others], lag_ratio=0.15), run_time=1.0)
-
-        cis = chip("cis:\nbeside the gene", PURPLE, 28).move_to([-3.4, -0.9, 0])
-        trans = chip("trans:\nanother gene's product", PINK, 28).move_to([3.4, -0.9, 0])
-        self.at("beside the gene")
-        self.play(FadeIn(cis, shift=UP * 0.2), run_time=0.7)
-        self.at("another gene")
-        self.play(FadeIn(trans, shift=UP * 0.2), run_time=0.7)
-
-        # one nucleus
-        nuc = Circle(radius=3.0, stroke_color=GREY, stroke_width=4, fill_color=GREY, fill_opacity=0.08).move_to([0, -0.2, 0])
-        self.at("can test for")
-        self.play(FadeOut(VGroup(chrom, chrom_lbl, region, reg_lbl, gtick, glbl, others, cis, trans)),
-                  FadeIn(nuc, scale=0.8), run_time=0.9)
-
-        def allele(y, col):
-            bar = RoundedRectangle(corner_radius=0.1, width=3.6, height=0.4, stroke_color=col, stroke_width=3,
-                                   fill_color=col, fill_opacity=0.3).move_to([0, y, 0])
-            tick = Rectangle(width=0.22, height=0.8, stroke_width=0, fill_color=BLUE, fill_opacity=1).move_to([0, y, 0])
-            return VGroup(bar, tick)
-        am = allele(0.9, GREEN)
-        ap = allele(-1.1, ORANGE)
-        lm = T("marine allele", 26, GREEN).move_to([-4.65, 0.9, 0])
-        lp = T("Paxton allele", 26, ORANGE).move_to([-4.65, -1.1, 0])
-        self.at("marine allele")
-        self.play(FadeIn(am, shift=RIGHT * 0.2), FadeIn(lm), run_time=0.7)
-        self.at("Paxton allele")
-        self.play(FadeIn(ap, shift=RIGHT * 0.2), FadeIn(lp), run_time=0.7)
-        nl = T("one nucleus", 26, GREY).move_to([4.6, 1.9, 0])
-        nline = Line([3.3, 1.7, 0], [2.6, 1.3, 0], color=GREY, stroke_width=2.5)
-        self.at("one nucleus")
-        self.play(FadeIn(nl), Create(nline), run_time=0.6)
-
-        pts = [(-2.2, 0.0), (-1.2, -0.2), (-0.2, 0.15), (0.9, -0.05), (1.9, 0.1), (2.2, -0.35), (-1.8, -0.4), (0.4, -0.4)]
-        dots = VGroup(*[Dot([x, y, 0], radius=0.13, color=PINK) for x, y in pts])
-        flab = T("same\ntranscription\nfactors", 24, PINK).move_to([4.75, -1.0, 0])
-        self.at("same transcription")
-        self.play(LaggedStart(*[FadeIn(d, scale=0.4) for d in dots], lag_ratio=0.1), FadeIn(flab), run_time=1.2)
-        self.play(*[d.animate.shift(RIGHT * 0.3 * (1 if i % 2 else -1)) for i, d in enumerate(dots)], run_time=0.8)
-        self.finish()
-
-
-# ---------------------------------------------------------------------------------------------
-class S04Ratio(SpokenScene):
-    """Invented 90:10 vs 50:50 split; cis verdict; then the real 2010 result."""
-
-    def construct(self):
-        tag = T("invented example: Pitx1 transcripts in F1 hybrids", 24, GREY).move_to([0, 3.15, 0])
+        start(self)
+        dish = RoundedRectangle(corner_radius=0.3, width=8.6, height=4.4, stroke_color=TEXT, stroke_width=3,
+                                fill_color=TEXT, fill_opacity=0.1).move_to([-2.4, -0.5, 0])
+        f = fish(ORANGE, (-1.9, -0.5), 1.7, "none")
+        self.play(FadeIn(dish), run_time=0.7)
+        self.play(FadeIn(f, shift=RIGHT * 0.5), run_time=1.0)
+        bob(f)
+        wave = lambda y, ph: ParametricFunction(lambda t: np.array([t, y + 0.16 * np.sin(5 * t + ph), 0]), t_range=[2.9, 6.3], stroke_width=6)
+        rna = wave(2.7, 0).set_color(GOLD)
+        probe = wave(2.35, 0).set_color(TEAL)
+        rl = T("Pitx1 RNA", 34, GOLD).move_to([4.6, 3.35, 0])
+        self.at("labeled probe")
+        self.play(Create(rna), FadeIn(rl), run_time=1.0)
+        probe.shift(DOWN * 0.9 + RIGHT * 1.5)
+        pl = T("probe", 34, TEAL).move_to([4.6, 0.7, 0])
+        self.play(Create(probe), FadeIn(pl), run_time=0.6)
+        self.at("pairs with")
+        self.play(probe.animate.shift(UP * 1.3 + LEFT * 1.5), pl.animate.move_to([4.6, 1.8, 0]), run_time=1.2)
+        self.at("gold mark")
+        self.play(Indicate(rna, color=WHITE), run_time=1.2)
+        tag = T("in situ hybridization, Paxton larva (corrected 2006 figures)", 24, GREY).move_to([-1.5, -3.55, 0])
         self.play(FadeIn(tag), run_time=0.6)
-        bot, H, W = -1.7, 4.0, 1.5
-
-        def seg(x, y0, h, col):
-            return Rectangle(width=W, height=h, stroke_width=0, fill_color=col, fill_opacity=0.85).move_to([x, bot + y0 + h / 2, 0])
-        px, jx = -3.6, 1.6
-        pm = seg(px, 0, 3.6, GREEN)
-        pp = seg(px, 3.6, 0.4, ORANGE)
-        jm = seg(jx, 0, 2.0, GREEN)
-        jp = seg(jx, 2.0, 2.0, ORANGE)
-        pname = T("pelvis", 28, PURPLE).move_to([px, -2.3, 0])
-        jname = T("jaw", 28, GOLD).move_to([jx, -2.3, 0])
-        self.play(FadeIn(pname), FadeIn(jname), run_time=0.4)
-        pml = T("marine 90%", 26, GREEN).move_to([px + W / 2 + 1.35, bot + 1.8, 0])
-        self.at("pelvic transcripts")
-        self.play(GrowFromEdge(pm, DOWN), FadeIn(pml), run_time=0.9)
-        ppl = T("Paxton 10%", 26, ORANGE).move_to([px + W / 2 + 1.35, bot + 3.8, 0])
-        self.at("Paxton allele")
-        self.play(GrowFromEdge(pp, DOWN), FadeIn(ppl), run_time=0.7)
-        jml = T("marine 50%", 26, GREEN).move_to([jx + W / 2 + 1.3, bot + 1.0, 0])
-        jpl = T("Paxton 50%", 26, ORANGE).move_to([jx + W / 2 + 1.3, bot + 3.0, 0])
-        self.at("jaw")
-        self.play(GrowFromEdge(jm, DOWN), GrowFromEdge(jp, DOWN), FadeIn(jml), FadeIn(jpl), run_time=0.9)
-        verdict = T("Shared factors: the Paxton allele itself is less active (cis)", 24, TEXT).move_to([0, -3.1, 0])
-        self.at("factors are shared")
-        self.play(FadeIn(verdict, shift=UP * 0.1), run_time=0.7)
-        self.at("pelvis but")
-        self.play(Circumscribe(VGroup(pm, pp), color=PURPLE, buff=0.15), run_time=1.0)
-
-        # real result
-        inv = VGroup(tag, pm, pp, jm, jp, pname, jname, pml, ppl, jml, jpl, verdict)
-        head = T("real hybrids: Chan and colleagues, 2010", 28, TEXT).move_to([0, 3.0, 0])
-        self.at("In 2010")
-        self.play(FadeOut(inv), run_time=0.6)
-        self.play(FadeIn(head, shift=DOWN * 0.1), run_time=0.6)
-
-        def tile(x, nm, col):
-            fr = Rectangle(width=5.4, height=4.4, stroke_color=GREY, stroke_width=2.5).move_to([x, -0.2, 0])
-            t = T(nm, 30, col).move_to([x, 1.5, 0])
-            c = chip("Paxton allele", ORANGE, 28).move_to([x, 0.3, 0])
-            return fr, t, c
-        fr1, t1, c1 = tile(-3.2, "pelvic tissue", PURPLE)
-        fr2, t2, c2 = tile(3.2, "head tissue", GOLD)
-        self.at("real version")
-        self.play(FadeIn(fr1), FadeIn(fr2), FadeIn(t1), FadeIn(t2), FadeIn(c1), FadeIn(c2), run_time=0.8)
-        dn = Arrow([-3.2, -0.45, 0], [-3.2, -1.45, 0], buff=0, color=TEXT, stroke_width=7, tip_length=0.3)
-        lo = T("lower", 30, TEXT).move_to([-3.2, -1.95, 0])
-        self.at("lower in pelvic")
-        self.play(GrowArrow(dn), FadeIn(lo), run_time=0.7)
-        nl = T("not lower", 30, GREY).move_to([3.2, -1.2, 0])
-        self.at("not in head")
-        self.play(FadeIn(nl), run_time=0.6)
+        self.at("gold sits")
+        st = Ellipse(width=1.5, height=1.2, stroke_width=0, fill_color=GOLD, fill_opacity=0.85).move_to(loc(f, (1.35, -0.2)))
+        mouth = T("mouth and\nlower jaw", 34, GOLD).move_to([4.6, -0.8, 0])
+        self.play(GrowFromCenter(st), FadeIn(mouth), run_time=1.6)
+        bob(st)
+        ds = DashedVMobject(Circle(radius=0.5, color=TEXT, stroke_width=5)).move_to(loc(f, PEL))
+        pl2 = T("where the pelvis forms", 32, TEXT).move_to([-1.7, -2.95, 0])
+        self.at("where the pelvis")
+        self.play(Create(ds), FadeIn(pl2), run_time=1.2)
+        self.at("none")
+        self.play(Indicate(ds, color=WHITE), run_time=1.0)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S05Reporter(SpokenScene):
-    """Pel, a reporter assay (marine drives, Paxton does not), then rescue in Bear Paw Lake fry."""
-
+class S10Meaning(SpokenScene):
     def construct(self):
-        # --- Pel upstream of the gene -----------------------------------------------------------
-        pel = chip("Pel", PURPLE, 32).move_to([-3.2, 0.6, 0])
-        gene = RoundedRectangle(corner_radius=0.14, width=4.0, height=0.8, stroke_color=BLUE, stroke_width=3,
-                                fill_color=BLUE, fill_opacity=0.22).move_to([2.0, 0.6, 0])
-        gname = T("Pitx1 gene", 28, BLUE).move_to(gene)
-        up = T("upstream", 26, GREY).move_to([-0.6, -0.3, 0])
-        a = arr(pel.get_right(), gene.get_left(), PURPLE)
-        self.play(FadeIn(gene), FadeIn(gname), FadeIn(pel), run_time=0.7)
-        self.at("upstream")
-        self.play(GrowArrow(a), FadeIn(up), run_time=0.6)
-
-        # --- reporter constructs ---------------------------------------------------------------
-        hm = T("marine Pel", 30, GREEN).move_to([-3.3, 3.1, 0])
-        hp = T("Paxton Pel", 30, ORANGE).move_to([3.3, 3.1, 0])
-
-        def construct_row(x, y=2.15):
-            c1 = chip("Pel", PURPLE, 24)
-            c2 = chip("promoter", GREY, 24)
-            c3 = chip("marker", GREY, 24)
-            row = VGroup(c1, c2, c3).arrange(RIGHT, buff=0.3).move_to([x, y, 0])
-            return row
-        rm, rp = construct_row(-3.3), construct_row(3.3)
-        self.at("reporter assay")
-        self.play(FadeOut(VGroup(gene, gname, a, up)), Transform(pel, rm[0]), run_time=0.8)
-        self.play(FadeIn(rm[1:], shift=LEFT * 0.2), FadeIn(hm), run_time=0.7)
-        self.at("visible marker")
-        self.play(Indicate(rm[2], color=TEXT, scale_factor=1.2), run_time=0.8)
-        self.at("embryos")
-        arm = arr([-3.3, 1.65, 0], [-3.3, 1.0, 0], GREY)
-        self.play(GrowArrow(arm), run_time=0.5)
-
-        mpos = (-3.3, 0.1)
-        mfish = fish_body(GREEN, mpos, 0.85)
-        glow = lamp(belly(mpos, 0.85), 0.26)
-        mlbl = T("pelvic expression", 26, PURPLE).move_to([-3.3, -1.5, 0])
-        self.at("Marine")
-        self.play(FadeIn(mfish), run_time=0.5)
-        self.play(FadeIn(glow, scale=0.4), FadeIn(mlbl), run_time=0.6)
-
-        self.at("Paxton version")
-        self.play(FadeIn(rp, shift=DOWN * 0.1), FadeIn(hp), run_time=0.7)
-        slash = Line(rp[0].get_corner(UL) + [0.05, -0.05, 0], rp[0].get_corner(DR) + [-0.05, 0.05, 0], color=RED, stroke_width=7)
-        slash2 = Line(rp[0].get_corner(DL) + [0.05, 0.05, 0], rp[0].get_corner(UR) + [-0.05, -0.05, 0], color=RED, stroke_width=7)
-        self.at("carried a deletion")
-        self.play(Create(slash), Create(slash2), rp[0][0].animate.set_stroke(RED), run_time=0.6)
-        arp = arr([3.3, 1.65, 0], [3.3, 1.05, 0], GREY)
-        minis = VGroup(*[fish_body(ORANGE, (1.35 + 1.3 * (i % 4), 0.6 - 0.95 * (i // 4)), 0.22) for i in range(8)])
-        plbl = T("pelvic expression in 0 of 8 fish", 26, RED).move_to([3.3, -1.5, 0])
-        self.at("gave none")
-        self.play(GrowArrow(arp), run_time=0.3)
-        self.play(LaggedStart(*[FadeIn(m, scale=0.5) for m in minis], lag_ratio=0.12), run_time=1.0)
-        self.play(FadeIn(plbl), run_time=0.5)
-        qlbl = T("a reporter asks: can this sequence drive expression?", 26, GREY).move_to([0, -2.7, 0])
-        self.at("A reporter shows")
-        self.play(FadeIn(qlbl, shift=UP * 0.1), run_time=0.7)
-
-        # --- rescue ------------------------------------------------------------------------------
-        self.at("Rescue comes closer")
-        left_over = VGroup(pel, rm[1:], hm, arm, mfish, glow, mlbl, rp, slash, slash2, hp, arp, minis, plbl, qlbl)
-        self.play(FadeOut(left_over), run_time=0.8)
-        head = T("Bear Paw Lake fry", 30, GREY).move_to([0, 3.15, 0])
-        ch = chip("marine Pel + Pitx1 minigene", PURPLE, 28).move_to([0, 2.2, 0])
-        upos, ipos = (-3.4, 0.2), (3.4, 0.2)
-        uf = fish_body(GREY, upos, 0.8)
-        usp = spines(GREY, upos, 0.8, (0.18, 0.18))
-        ifs = fish_body(GREY, ipos, 0.8)
-        isp = spines(GREY, ipos, 0.8, (0.6, 0.35))
-        ul = T("uninjected sibling", 26, GREY).move_to([-3.4, -1.7, 0])
-        il = T("injected:\nspines variably enhanced", 26, PURPLE).move_to([3.4, -1.85, 0])
-        self.at("Pit")
-        self.play(FadeIn(head), FadeIn(ch, shift=DOWN * 0.15), run_time=0.7)
-        self.play(FadeIn(uf), FadeIn(ifs), FadeIn(ul), run_time=0.6)
-        self.add(usp)
-        ai = arr([1.4, 1.85, 0], [3.0, 1.15, 0], PURPLE)
-        self.at("minigene")
-        self.play(GrowArrow(ai), run_time=0.5)
-        sp_small = spines(GREY, ipos, 0.8, (0.18, 0.18))
-        self.add(sp_small)
-        self.at("variably enhanced")
-        self.play(Transform(sp_small, isp), FadeIn(il), run_time=1.0)
+        start(self)
+        div = DashedLine([0, 3.9, 0], [0, -3.7, 0], color=GREY, stroke_width=2)
+        yd = 2.0
+        lo = Line([-6.5, yd, 0], [-0.4, yd, 0], color=DNA_C, stroke_width=10)
+        lb = Line([0.4, yd, 0], [6.5, yd, 0], color=DNA_C, stroke_width=10)
+        opj = tab("jaw switch", -2.1, yd)
+        opp = tab("pelvic switch", -5.15, yd)
+        bpj = tab("jaw switch", 4.9, yd)
+        bpp = tab("pelvic switch", 1.8, yd)
+        for tb in (opj, opp, bpj, bpp):
+            tb[0].set_fill(TEAL, 0.8)
+        fo = fish(ORANGE, (-3.4, -1.1), 1.0, "full")
+        fb = fish(BLUE, (3.4, -1.1), 1.0, "full")
+        self.play(FadeIn(div), Create(lo), Create(lb), FadeIn(opj), FadeIn(opp), FadeIn(bpj), FadeIn(bpp), FadeIn(fo), FadeIn(fb), run_time=0.7)
+        bob(fo)
+        bob(fb)
+        hy = T("hypothesis", 36, YELLOW).move_to([0, 3.45, 0])
+        self.at("suppose")
+        self.play(FadeIn(hy), run_time=0.6)
+        gjo, gjb = glow(loc(fo, (1.4, -0.2)), 0.25), glow(loc(fb, (1.4, -0.2)), 0.25)
+        wjo = wire((-2.1, yd - 0.1), loc(fo, (1.4, -0.2)))
+        wjb = wire((4.9, yd - 0.1), loc(fb, (1.4, -0.2)))
+        self.at("jaw switch")
+        self.play(Create(wjo), Create(wjb), run_time=0.8)
+        self.play(FadeIn(gjo, scale=0.3), FadeIn(gjb, scale=0.3), run_time=0.6)
+        bob(gjo)
+        bob(gjb)
+        gpb = glow(loc(fb, PEL), 0.25)
+        wpb = wire((1.8, yd - 0.1), loc(fb, PEL))
+        self.at("pelvic switch")
+        flat = tab("pelvic switch", -5.15, yd, up=False)
+        flat[0].stretch_to_fit_height(0.2).move_to([-5.15, yd + 0.2, 0])
+        flat[0].set_stroke(RED, 3)
+        crack = Line([-5.8, yd + 0.9, 0], [-4.5, yd + 0.2, 0], color=RED, stroke_width=6)
+        self.play(Create(crack), run_time=0.5)
+        self.play(Transform(opp[0], flat[0]), FadeOut(opp[1]), FadeOut(crack), Create(wpb), run_time=1.0)
+        self.play(FadeIn(gpb, scale=0.3), run_time=0.6)
+        bob(gpb)
+        self.at("that body part")
+        st = fo.pel
+        self.play(*[m.animate.scale(0.1, about_point=m.get_top()) for m in st], run_time=2.0)
+        self.at("other jobs")
+        self.play(Indicate(gjo, color=WHITE, scale_factor=1.6), Indicate(gjb, color=WHITE, scale_factor=1.6), run_time=1.5)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S06Ladder(SpokenScene):
-    """PelB deletion in mice (about 0.85 of control) and the five-rung ladder of methods."""
-
+class S10bCompare(SpokenScene):
     def construct(self):
-        title = T("mouse hind-limb Pitx1 RNA\nrelative units", 24, GREY).move_to([-2.8, 3.0, 0])
-        base = -2.0
-        bw = 1.6
-        cx, mx = -4.2, -1.4
-        axis = Line([-5.4, base, 0], [-0.2, base, 0], color=GREY, stroke_width=3)
-        ctrl = Rectangle(width=bw, height=3.6, stroke_width=0, fill_color=BLUE, fill_opacity=0.85).move_to([cx, base + 1.8, 0])
-        ref = DashedLine([-5.2, base + 3.6, 0], [-0.4, base + 3.6, 0], color=GREY, stroke_width=2.5)
-        cl = VGroup(T("control", 24, TEXT), M("1.00", 24, TEXT)).arrange(DOWN, buff=0.08).move_to([cx, -2.75, 0])
-        self.play(FadeIn(title), Create(axis), run_time=0.6)
-        self.play(GrowFromEdge(ctrl, DOWN), Create(ref), FadeIn(cl), run_time=0.9)
-        mut = Rectangle(width=bw, height=3.06, stroke_width=0, fill_color=BLUE, fill_opacity=0.85).move_to([mx, base + 1.53, 0])
-        ml = VGroup(T("PelB deleted", 24, RED), M("0.85", 24, TEXT)).arrange(DOWN, buff=0.08).move_to([mx, -2.75, 0])
-        self.at("left about")
-        self.play(GrowFromEdge(mut, DOWN), FadeIn(ml), run_time=0.9)
-        bones = T("several hind-limb\nbones shorter", 28, TEXT).move_to([3.5, 1.2, 0])
-        self.at("Several bones")
-        self.play(FadeIn(bones, shift=LEFT * 0.2), run_time=0.7)
-        tune = T("supplies part of the\nlimb's Pitx1; other\nenhancers the rest;\nnot an on-off switch", 28, BLUE).move_to([3.5, -1.0, 0])
-        self.at("supplies part")
-        self.play(FadeIn(tune, shift=LEFT * 0.2), run_time=0.8)
-
-        # ladder
-        chart = VGroup(title, axis, ctrl, ref, cl, mut, ml, bones, tune)
-        rows = [("Mapping", "which chromosome region"),
-                ("In situ hybridization", "where the transcript is"),
-                ("F1 hybrid test", "whether there is a cis difference"),
-                ("Reporter", "what a sequence can drive"),
-                ("Native deletion", "whether form depends on it")]
-        ys = [2.5, 1.25, 0.0, -1.25, -2.5]
-        chips, arrs, txts = [], [], []
-        for (nm, ans), y in zip(rows, ys):
-            c = chip(nm, TEXT, 28).move_to([-3.6, y, 0])
-            c.shift(RIGHT * 0)  # width differs per name; right-align below
-            chips.append(c)
-        right = max(c.get_right()[0] for c in chips)
-        for c, (nm, ans), y in zip(chips, rows, ys):
-            c.shift(RIGHT * (right - c.get_right()[0]))
-            ar = arr([right + 0.1, y, 0], [right + 0.8, y, 0], TEXT, w=4, tip=0.18)
-            tx = T(ans, 28, TEXT)
-            tx.move_to([right + 1.0 + tx.width / 2, y, 0])
-            arrs.append(ar); txts.append(tx)
-        for c in chips:
-            pass
-        # shift all rows so the whole ladder is centered in the frame
-        total = VGroup(*chips, *arrs, *txts)
-        dx = -total.get_center()[0]
-        for m in (*chips, *arrs, *txts):
-            m.shift(RIGHT * dx)
-
-        def rung(i):
-            return [FadeIn(chips[i], shift=RIGHT * 0.2), GrowArrow(arrs[i]), FadeIn(txts[i], shift=RIGHT * 0.2)]
-        self.at("Mapping")
-        self.play(FadeOut(chart), run_time=0.6)
-        self.play(*rung(0), run_time=0.6)
-        self.at("hybridization")
-        self.play(*rung(1), run_time=0.6)
-        self.at("hybrid test")
-        self.play(*rung(2), run_time=0.6)
-        self.at("A reporter")
-        self.play(*rung(3), run_time=0.6)
-        self.at("native deletion")
-        self.play(*rung(4), run_time=0.6)
-        self.at("Each method")
-        self.play(*[Indicate(c, color=TEXT, scale_factor=1.08) for c in chips], run_time=1.2)
+        start(self)
+        fb = fish(BLUE, (-3.4, 2.1), 1.2, "full")
+        fo = fish(ORANGE, (3.4, 2.1), 1.2, "stub")
+        self.play(FadeIn(fb), FadeIn(fo), run_time=1.0)
+        bob(fb)
+        bob(fo)
+        rows = [("same Pitx1 protein", -0.7), ("used in the jaw", -1.7), ("used in the pelvis", -2.7)]
+        txt = [T(r, 34, TEXT).move_to([0, y, 0]) for r, y in rows]
+        self.at("make the same")
+        self.play(FadeIn(txt[0]), run_time=0.6)
+        self.play(Create(tickm((-3.4, -0.7))), Create(tickm((3.4, -0.7))), run_time=0.8)
+        gb, go = glow(loc(fb, JAW), 0.22), glow(loc(fo, JAW), 0.22)
+        self.at("use it")
+        self.play(FadeIn(txt[1]), run_time=0.6)
+        self.play(Create(tickm((-3.4, -1.7))), Create(tickm((3.4, -1.7))), FadeIn(gb, scale=0.3), FadeIn(go, scale=0.3), run_time=0.9)
+        bob(gb)
+        bob(go)
+        gpb = glow(loc(fb, PEL), 0.22)
+        self.at("only the pelvic")
+        self.play(FadeIn(txt[2]), run_time=0.6)
+        box = Square(0.45, stroke_color=RED, stroke_width=4).move_to([3.4, -2.7, 0])
+        self.play(Create(tickm((-3.4, -2.7))), FadeIn(gpb, scale=0.3), Create(box), FadeOut(fo.pel), run_time=1.0)
+        bob(gpb)
+        self.at("jaw use")
+        self.play(Indicate(txt[1], color=GOLD), Indicate(gb, color=WHITE), Indicate(go, color=WHITE), run_time=1.4)
+        foot = T("tissues compared: jaw and pelvis", 26, GREY).move_to([0, -3.55, 0])
+        self.at("other tissues")
+        self.play(FadeIn(foot), run_time=0.8)
         self.finish()
 
 
-class S07End(EndCard):
-    LINE = "Each method answers its own question."
+class S11Scope(SpokenScene):
+    def construct(self):
+        start(self)
+        fb = fish(BLUE, (-3.4, 2.5), 1.0, "full")
+        fo = fish(ORANGE, (3.4, 2.5), 1.0, "stub")
+        gb, go, gpb = glow(loc(fb, JAW), 0.22), glow(loc(fo, JAW), 0.22), glow(loc(fb, PEL), 0.22)
+        self.add(fb, fo, gb, go, gpb)
+        for m in (fb, fo, gb, go, gpb):
+            bob(m)
+        tg = tab("pelvic switch", 0, 0.1, w=3.4)
+        self.at("best studied")
+        self.play(FadeIn(tg), run_time=0.8)
+        tag = T("best-studied route, not the only one", 32, TEXT).move_to([0, -3.5, 0])
+        self.at("not the only")
+        self.play(FadeIn(tag), run_time=0.8)
+        crack = Line([-0.6, 1.2, 0], [0.5, 0.45, 0], color=RED, stroke_width=7)
+        self.at("missing gold mark")
+        self.play(Create(crack), Indicate(tg, color=RED), run_time=1.4)
+        a = T("the Pitx1 copy's\nown DNA?", 34, TEXT, line_spacing=0.9).move_to([-3.7, -1.9, 0])
+        b = T("another gene that\nsupplies its regulators?", 34, TEXT, line_spacing=0.9).move_to([3.4, -1.9, 0])
+        ba = SurroundingRectangle(a, color=TEXT, buff=0.2, corner_radius=0.12)
+        bb = SurroundingRectangle(b, color=TEXT, buff=0.2, corner_radius=0.12)
+        ar1 = Arrow([-0.7, 0.0, 0], [-3.3, -0.95, 0], color=YELLOW, buff=0.05)
+        ar2 = Arrow([0.7, 0.0, 0], [3.2, -0.95, 0], color=YELLOW, buff=0.05)
+        self.at("own dna")
+        self.play(GrowArrow(ar1), FadeIn(a), Create(ba), run_time=1.2)
+        self.at("another gene")
+        self.play(GrowArrow(ar2), FadeIn(b), Create(bb), run_time=1.2)
+        pulse(ar1, 0.05)
+        pulse(ar2, 0.05)
+        self.finish()
+
+
+class S12End(EndCard):
+    LINE = "Evolution changed where Pitx1 is used, not what it makes."

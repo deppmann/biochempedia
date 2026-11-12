@@ -20,11 +20,11 @@
   </ul>
 
   <div class="rl-controls">
-    <label class="rl-slabel"><span>Conduction velocity, both axons <em data-out="v">50</em> m per s</span>
-      <input type="range" data-in="v" min="1" max="60" step="1" value="50" />
+    <label class="rl-slabel"><span>Conduction velocity, both axons <em data-out="v">60</em> m per s</span>
+      <input type="range" data-in="v" min="1" max="60" step="1" value="60" />
     </label>
-    <label class="rl-slabel"><span>Axon length, each <em data-out="len">1.0</em> m <small>(1.0 m is the lesson’s tall-adult path; shorter values are illustrative)</small></span>
-      <input type="range" data-in="len" min="0.1" max="1" step="0.1" value="1" />
+    <label class="rl-slabel"><span>Axon length, each <em data-out="len">0.5</em> m <small>(0.5 m is the lesson’s worked knee-jerk path; other values are illustrative)</small></span>
+      <input type="range" data-in="len" min="0.1" max="1" step="0.1" value="0.5" />
     </label>
     <label class="rl-slabel"><span>Inset: distance between stimulus points <em data-out="d">30</em> mm</span>
       <input type="range" data-in="d" min="10" max="50" step="5" value="30" />
@@ -34,7 +34,7 @@
   <dl class="rl-readout">
     <div><dt>Each axon: time = length / velocity</dt><dd data-r="axon"></dd></div>
     <div><dt>Total latency = sensory + synapse + motor</dt><dd data-r="total"></dd></div>
-    <div><dt>Compared with the same path at 50 m per s</dt><dd data-r="ratio"></dd></div>
+    <div><dt>Compared with the same path at 60 m per s</dt><dd data-r="ratio"></dd></div>
     <div><dt>Share of the total taken by the synapse</dt><dd data-r="share"></dd></div>
   </dl>
 
@@ -46,7 +46,7 @@
   </dl>
 
   <p class="rl-why" data-why role="status"></p>
-  <p class="rl-assume">In this sketch: one tall adult human path, the same velocity in both axons, one synapse of 1.0 ms, illustrative numbers. This is a model sum, not a measured knee-jerk latency; it ignores the time the sense organ, the nerve-muscle junction and the muscle take. Only the direct excitatory limb of the knee jerk is monosynaptic. The inset’s numbers are illustrative, not Helmholtz’s: his frog nerve at room temperature is not a human nerve at 37 degrees C.</p>
+  <p class="rl-assume">In this sketch: the lesson’s 0.5 m adult path, the same velocity in both axons, one synapse of 1.0 ms, illustrative numbers. This is a model sum, not a measured knee-jerk latency; it ignores the time the sense organ, the nerve-muscle junction and the muscle take. Only the direct excitatory limb of the knee jerk is monosynaptic. The inset’s numbers are illustrative, not Helmholtz’s: his frog nerve at room temperature is not a human nerve at 37 degrees C.</p>
   <p class="rl-foot">Rule to keep: time = distance / velocity for each axon, and the total is the sum of the axon times and the synaptic delay; a two-point measurement removes the delays common to both trials by subtraction.</p>
 </figure>
 
@@ -131,7 +131,7 @@
 
       const tAx = L / v;
       const total = 2 * tAx + SYN_S;
-      const base = 2 * (L / 50) + SYN_S; // same path at the lesson's 50 m per s
+      const base = 2 * (L / 60) + SYN_S; // same path at the lesson's 60 m per s
       const ratio = total / base;
       const share = SYN_S / total;
       const useSec = total >= 1;
@@ -140,7 +140,7 @@
       rTotal.textContent = `${fmtT(tAx, useSec)} + ${fmtT(SYN_S, useSec)} + ${fmtT(tAx, useSec)} = ${fmtT(total, useSec)}`;
       const rs = ratio >= 10 ? ratio.toFixed(1) : ratio.toFixed(2);
       rRatio.textContent = Math.abs(ratio - 1) < 0.0005
-        ? `${fmtT(total, useSec)} / ${fmtT(base, useSec)} = 1.00 (this is the 50 m per s case)`
+        ? `${fmtT(total, useSec)} / ${fmtT(base, useSec)} = 1.00 (this is the 60 m per s case)`
         : `${fmtT(total, useSec)} / ${fmtT(base, useSec)} = ${rs} ${ratio > 1 ? 'times longer' : 'times as long (shorter)'}`;
       const shareStr = (share * 100).toFixed(share < 0.01 ? 2 : share < 0.1 ? 1 : 0);
       rShare.textContent = `${fmtT(SYN_S, useSec)} / ${fmtT(total, useSec)} = ${shareStr}%`;
@@ -198,7 +198,7 @@
 
       // ---- status
       const parts: string[] = [];
-      const cmp = Math.abs(ratio - 1) < 0.0005 ? 'the same as the 50 m per s case' : ratio > 1 ? `${rs} times longer than the same path at 50 m per s` : `${rs} times as long as the same path at 50 m per s`;
+      const cmp = Math.abs(ratio - 1) < 0.0005 ? 'the same as the 60 m per s case' : ratio > 1 ? `${rs} times longer than the same path at 60 m per s` : `${rs} times as long as the same path at 60 m per s`;
       parts.push(`With both axons at ${v} m per s and ${L.toFixed(1)} m long, each takes ${fmtT(tAx, useSec)}, and the model sum is ${fmtT(total, useSec)}, ${cmp}.`);
       if (share >= 0.5) parts.push(`The 1.0 ms synaptic delay is now ${shareStr}% of the sum, so in this model the synapse takes a large share of the time.`);
       else if (share < 0.05) parts.push(`The 1.0 ms synaptic delay is ${shareStr}% of the sum, so the axons account for almost all of it.`);

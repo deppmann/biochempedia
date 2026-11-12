@@ -1,0 +1,572 @@
+{
+ "slug": "molecular-evolution",
+ "title": "Molecular Evolution",
+ "generated": {
+  "date": "2026-11-11",
+  "pipeline": "extract → Opus draft → Sonnet accuracy gate → Sonnet fixes",
+  "models": {
+   "draft": "claude-opus-5-5",
+   "gate": "claude-sonnet-5-5",
+   "fix": "claude-sonnet-5-5"
+  }
+ },
+ "lessonHash": "532824693f41",
+ "sectionHashes": {
+  "(opening)": "978e3d409b7a",
+  "Sequences as a record": "9beecbfd50fa",
+  "Why the clock ticks": "e0bad76c8548",
+  "Reading time: calibration": "8cd2586fdfd3",
+  "When the tick rate varies": "4ed274d409f8",
+  "Reading selection in coding sequences": "2b1ee62116ca",
+  "When the signal misleads": "f6f00190c640",
+  "Design problem": "a78c1a9b7110",
+  "Variation already in the ancestor": "5f20aab2245b"
+ },
+ "cards": [
+  {
+   "id": "molecular-evolution-c01",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In molecular evolution, what makes a change neutral?",
+   "back": "It has no effect on survival or reproduction.",
+   "quote": "On average, neutral changes (no effect on survival or reproduction) become substitutions at the rate they arise, whatever the population size."
+  },
+  {
+   "id": "molecular-evolution-c02",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why can one dated split turn a count of neutral differences between species into years?",
+   "back": "Neutral changes become substitutions, on average, at the rate they arise, so neutral differences pile up steadily with time. One dated split gives the rate; the rate converts other counts into time.",
+   "why": "A departure from the neutral count is a clue to selection, not proof.",
+   "quote": "So neutral differences between two species pile up steadily, and one dated split turns their count into years."
+  },
+  {
+   "id": "molecular-evolution-c03",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A {{c1::substitution}} is a mutation that has reached fixation: every member of the lineage carries it.",
+   "back": "",
+   "quote": "The first film counted substitutions, mutations that have reached fixation (every member of the lineage carries them)",
+   "section": "Sequences as a record"
+  },
+  {
+   "id": "molecular-evolution-c04",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "What separates orthologous gene copies from paralogous ones?",
+   "back": "Orthologs descend from one ancestral gene split by speciation. Paralogs are copies split by duplication.",
+   "quote": "both copies descend from one ancestral gene, split by speciation rather than by duplication",
+   "section": "Sequences as a record"
+  },
+  {
+   "id": "molecular-evolution-c05",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why does the proportion of differing sites, p, underestimate the number of substitutions since two sequences split?",
+   "back": "A site can change twice, or change back (A to G, then G to A), hiding the first change. The shortfall grows as sequences diverge.",
+   "quote": "So p underestimates the true number of substitutions, more so as sequences diverge.",
+   "section": "Sequences as a record"
+  },
+  {
+   "id": "molecular-evolution-c06",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Two aligned sequences differ at p = 0.15 of sites. Using the Jukes-Cantor correction D = -(3/4) x ln(1 - (4/3) x p), estimate substitutions per site.",
+   "back": "1 - (4/3)(0.15) = 0.80; ln 0.80 = -0.223; D = 0.75 x 0.223 = 0.167 substitutions per site, about 12% more than observed.",
+   "why": "The correction is small for small p (p = 0.012 gives D = 0.0121) and grows as p rises (p = 0.30 gives D = 0.383).",
+   "quote": "D = -(3/4) x ln(1 - (4/3) x p)",
+   "section": "Sequences as a record"
+  },
+  {
+   "id": "molecular-evolution-c07",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "What does the Jukes-Cantor correction assume about base changes?",
+   "back": "All four bases replace one another at one rate.",
+   "quote": "The simplest correction (Jukes and Cantor) assumes all four bases replace one another at one rate",
+   "section": "Sequences as a record"
+  },
+  {
+   "id": "molecular-evolution-c08",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A researcher dating a split accidentally compares a paralog in one species with the true gene in the other. Predict the effect on the estimated divergence date, and why.",
+   "back": "The date can come out too old if the duplication predates the species split. Paralogs split at an earlier duplication, not at speciation, so their distance includes extra time before the species split.",
+   "why": "Rests on the rule that clock comparisons need orthologs, copies split by speciation.",
+   "quote": "The same gene means orthologous: both copies descend from one ancestral gene, split by speciation rather than by duplication",
+   "section": "Sequences as a record"
+  },
+  {
+   "id": "molecular-evolution-c09",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In an ideal population of N diploid individuals, one new neutral copy fixes with probability {{c1::1/2N}}.",
+   "back": "Ideal means constant size and random mating.",
+   "quote": "The fixation chance of one new neutral copy is 1/2N only in an ideal population (constant size, random mating)",
+   "section": "Why the clock ticks"
+  },
+  {
+   "id": "molecular-evolution-c10",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In the simple neutral model, why is the neutral substitution rate K equal to the mutation rate mu, whatever the population size?",
+   "back": "A diploid population of N has 2N copies, so 2N mu new neutral mutations arise per generation; each fixes with chance 1/2N. K = 2N mu x 1/2N = mu.",
+   "why": "K = mu is an average; real substitutions arrive irregularly.",
+   "quote": "K = mu is an average; real substitutions arrive irregularly.",
+   "section": "Why the clock ticks"
+  },
+  {
+   "id": "molecular-evolution-c11",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "If two branches share a per-lineage rate r, the distance between their tips after time t is D = {{c1::2rt}}.",
+   "back": "Change accumulates on both lineages.",
+   "quote": "Between two tips, D = 2rt after a time t, if both branches share the rate r.",
+   "section": "Why the clock ticks"
+  },
+  {
+   "id": "molecular-evolution-c12",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A neutral site mutates at 1.0 x 10^-8 per generation in a species with 25-year generations. What is the yearly clock rate r, and what neutral distance D separates two such species 5 million years after they split?",
+   "back": "r = K / generation time = 1.0 x 10^-8 / 25 = 4.0 x 10^-10 per site per year. D = 2rt = 2 x 4.0 x 10^-10 x 5,000,000 = 0.004 substitutions per site.",
+   "quote": "Per year, the clock rate r is K divided by generation time, so at the same per-generation mutation rate, long generations mean fewer substitutions per year.",
+   "section": "Why the clock ticks"
+  },
+  {
+   "id": "molecular-evolution-c13",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "What argument led Motoo Kimura to the neutral theory in 1968?",
+   "back": "Protein comparisons implied too many substitutions for selection to pay for each one in selective deaths, so most must be neutral or nearly neutral, fixed by drift.",
+   "quote": "arguing that protein comparisons implied too many substitutions for selection to pay for each in selective deaths",
+   "section": "Why the clock ticks"
+  },
+  {
+   "id": "molecular-evolution-c14",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "What does the neutral theory claim about substitutions, and what does it not claim?",
+   "back": "It claims most substitutions are neutral or nearly neutral mutations fixed by drift, while strongly harmful mutations are removed. It does not say all mutations are neutral or that selection is unimportant for traits.",
+   "quote": "The theory does not say all mutations are neutral, or that selection is unimportant for traits.",
+   "section": "Why the clock ticks"
+  },
+  {
+   "id": "molecular-evolution-c15",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Besides a fossil, what can calibrate a molecular clock?",
+   "back": "Sequences sampled at sufficiently different known dates, such as virus samples or ancient DNA.",
+   "quote": "sequences sampled at sufficiently different known dates, such as virus samples or ancient DNA, can calibrate a tree.",
+   "section": "Reading time: calibration"
+  },
+  {
+   "id": "molecular-evolution-c16",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Two species that split 5.0 million years ago differ by a corrected 0.020 substitutions per site in a gene. Another pair differs by 0.030 in the same gene. Assuming one constant rate on all lineages, when did the second pair split?",
+   "back": "D = 2rt. r = 0.020 / (2 x 5,000,000) = 2.0 x 10^-9 per site per year. t = 0.030 / (2 x 2.0 x 10^-9) = 7.5 million years.",
+   "quote": "D = rt + rt = 2rt, with r the rate per lineage and t the time since the split.",
+   "section": "Reading time: calibration"
+  },
+  {
+   "id": "molecular-evolution-c17",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A student calibrates r correctly from D = 2rt but then dates the target pair with t = D / r. What goes wrong?",
+   "back": "The date comes out twice too old. In the 3.0-million-year worked example, 0.024 / 2.0 x 10^-9 gives 12 million years instead of 6.0.",
+   "why": "Both lineages accumulate change, so the target's distance must be divided by 2r.",
+   "quote": "Forgetting the factor 2 in step 3 gives 0.024 / 2.0 x 10^-9 = 12 million years.",
+   "section": "Reading time: calibration"
+  },
+  {
+   "id": "molecular-evolution-c18",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why does a fossil calibration set only a minimum age for a split?",
+   "back": "The lineage existed at least by the fossil's age but may have arisen earlier, so dates built on it may be too young; both the calibrating and target splits may be older.",
+   "quote": "Since a real fossil calibration is only a minimum, both splits may be older.",
+   "section": "Reading time: calibration"
+  },
+  {
+   "id": "molecular-evolution-c19",
+   "type": "calc",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "In the worked example, a 3.0-million-year fossil calibrates a pair at D = 0.012, dating a target pair at D = 0.024 to 6.0 million years. Suppose the calibrating split was truly 4.0 million years ago. Recompute the rate and the target date.",
+   "back": "r = 0.012 / (2 x 4,000,000) = 1.5 x 10^-9 per year; t = 0.024 / (2 x 1.5 x 10^-9) = 8.0 million years. An older calibration lowers the rate and pushes the target older.",
+   "why": "Rests on D = 2rt and the fossil as a minimum: with one constant rate, the target is always twice the calibration age here.",
+   "quote": "Calibrate. r = 0.012 / (2 x 3,000,000 years) = 2.0 x 10^-9 substitutions per site per year.",
+   "section": "Reading time: calibration"
+  },
+  {
+   "id": "molecular-evolution-c20",
+   "type": "calc",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "Virus sequences from one lineage were sampled 10 years apart. The later samples sit 0.002 substitutions per site farther from the common root than the earlier ones. Estimate the clock rate.",
+   "back": "Assuming a constant rate, only one lineage separates the samples in time, so no factor 2: rate x duration = change, so r = 0.002 / 10 years = 2 x 10^-4 substitutions per site per year.",
+   "why": "Rests on the clock rule: expected change on a branch is its rate times its duration, with dated samples as the calibration.",
+   "quote": "The molecular clock says the expected number of changes on a branch is its rate times its duration.",
+   "section": "Reading time: calibration"
+  },
+  {
+   "id": "molecular-evolution-c21",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "What does a relaxed molecular clock allow?",
+   "back": "Each branch has its own rate.",
+   "why": "Rates differ between branches; in one marsupial analysis the fastest branch was estimated at 2.7 times the slowest.",
+   "quote": "Relaxed clocks let each branch have its own rate.",
+   "section": "When the tick rate varies"
+  },
+  {
+   "id": "molecular-evolution-c22",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "Across 68 vertebrate species, how much did per-generation germline mutation rates vary, and about what is the mammal value?",
+   "back": "They differed about 40-fold; mammals sit around 10^-8 per site per generation.",
+   "quote": "found per-generation germline mutation rates differing 40-fold, around 10^-8 per site per generation in mammals.",
+   "section": "When the tick rate varies"
+  },
+  {
+   "id": "molecular-evolution-c23",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "What is the effective population size, Ne?",
+   "back": "The size of an ideal population that drifts as strongly as the real one. The smaller Ne, the stronger drift.",
+   "quote": "the size of an ideal population that drifts as strongly as the real one (the smaller Ne, the stronger drift)",
+   "section": "When the tick rate varies"
+  },
+  {
+   "id": "molecular-evolution-c24",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "An island lineage keeps Ne about 1,000; its mainland sister keeps Ne about 100,000. For mutations that each lower fitness by about 1 part in 10,000 per copy, which lineage fixes more of them, and why?",
+   "back": "The island lineage. With Ne of 1,000, chance swings dwarf so small a cost and such mutations fix at about 80% of the neutral rate (simple diploid model); at 100,000, selection wins and they almost never fix.",
+   "quote": "When Ne is 1,000: chance swings dwarf so small a cost, and it fixes at about 80% of the neutral rate",
+   "section": "When the tick rate varies"
+  },
+  {
+   "id": "molecular-evolution-c25",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "How does Ohta's nearly neutral theory break the steady clock?",
+   "back": "Many mutations are slightly deleterious, with costs of the order of 1/Ne. Their substitution rate depends on Ne, which differs between lineages, so the tick is not the same everywhere.",
+   "quote": "This is Tomoko Ohta's 1973 nearly neutral theory: many mutations are slightly deleterious, with costs of the order of 1/Ne, and their substitution rate depends on Ne.",
+   "section": "When the tick rate varies"
+  },
+  {
+   "id": "molecular-evolution-c26",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "Many amino-acid changes in a gene are slightly deleterious. One lineage has had a much smaller Ne than its sister for millions of years. Predict how omega (dN/dS) compares between them, and whether a higher omega shows positive selection.",
+   "back": "Omega is likely higher in the small-Ne lineage, because drift fixes more slightly harmful amino-acid changes while neutral synonymous changes are unaffected. That rise reflects weaker purifying selection, not adaptation.",
+   "why": "Combines the nearly neutral rule (substitution rate depends on Ne) with omega as a ratio of amino-acid to synonymous rates.",
+   "quote": "Some mutations are not quite neutral. For these, the effective population size, Ne, matters",
+   "section": "When the tick rate varies"
+  },
+  {
+   "id": "molecular-evolution-c27",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "What does omega (dN/dS) suggest when it is well below 1, near 1, and above 1?",
+   "back": "Below 1: purifying selection removed most amino-acid changes. Near 1: consistent with neutrality, but not proof. Above 1: amino-acid changes ran ahead, a clue to positive selection.",
+   "quote": "purifying selection can make amino-acid changes lag, and positive selection can make them run ahead.",
+   "section": "Reading selection in coding sequences"
+  },
+  {
+   "id": "molecular-evolution-c28",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Why are amino-acid and synonymous changes counted per site (dN, dS) rather than as raw counts?",
+   "back": "Most single-base changes in a codon alter the amino acid, so a gene has roughly three nonsynonymous sites per synonymous site. Raw counts would overstate amino-acid change about threefold.",
+   "quote": "so a gene offers roughly three nonsynonymous sites for every synonymous one, and raw counts would overstate amino-acid change about threefold.",
+   "section": "Reading selection in coding sequences"
+  },
+  {
+   "id": "molecular-evolution-c29",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "For a gene compared between two species, dN = 0.012 and dS = 0.010 substitutions per site. Compute omega and say what it suggests.",
+   "back": "Omega = 0.012 / 0.010 = 1.2. Amino-acid changes fixed faster than synonymous ones, a clue to positive selection that still needs checks on alignment, orthology, model and synonymous neutrality.",
+   "quote": "Where selection acts, substitutions depart from the neutral count",
+   "section": "Reading selection in coding sequences"
+  },
+  {
+   "id": "molecular-evolution-c30",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Why can a gene-wide omega miss a few codons under strong positive selection?",
+   "back": "It averages over all sites, so many constrained codons usually hold it below 1. Codon models can instead estimate omega for a branch or a class of sites.",
+   "quote": "A gene-wide omega averages over all sites, so 297 constrained codons usually hold it below 1 unless the three change extremely fast.",
+   "section": "Reading selection in coding sequences"
+  },
+  {
+   "id": "molecular-evolution-c31",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "What is a polymorphism, as opposed to a fixed difference between species?",
+   "back": "A polymorphism is a variant that still varies within a species; a fixed difference is carried by every member of one species and differs from the other.",
+   "quote": "A polymorphism is a variant that still varies within a species.",
+   "section": "Reading selection in coding sequences"
+  },
+  {
+   "id": "molecular-evolution-c32",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "McDonald and Kreitman counted Adh changes in three Drosophila species: replacements were 7 of 24 fixed differences but 2 of 44 polymorphisms (G-test P = 0.006). What does this show?",
+   "back": "Replacements are overrepresented among fixed differences (29% versus 5%), so amino-acid changes fixed more often than neutral drift predicts, a sign of adaptive fixation.",
+   "quote": "Replacements are 7 of 24 fixed differences (29%) but 2 of 44 polymorphisms (5%)",
+   "section": "Reading selection in coding sequences"
+  },
+  {
+   "id": "molecular-evolution-c33",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A McDonald-Kreitman table for one gene: fixed differences 4 replacement, 40 synonymous; polymorphisms 15 replacement, 50 synonymous. Compute both replacement : synonymous ratios and interpret.",
+   "back": "Fixed: 4/40 = 0.10. Polymorphic: 15/50 = 0.30. Replacements are scarce among fixed changes, so there is no excess of adaptive fixation; slightly harmful replacement variants linger as polymorphisms but rarely fix.",
+   "why": "That inflated variable row can also hide some adaptation.",
+   "quote": "Slightly harmful replacement variants linger as polymorphisms but rarely fix, inflating the variable row and hiding adaptation",
+   "section": "When the signal misleads"
+  },
+  {
+   "id": "molecular-evolution-c34",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Why is a McDonald-Kreitman table only partly independent of omega as evidence for selection?",
+   "back": "It compares polymorphism with divergence and needs no clock, a different signal from omega. But like omega it treats synonymous changes as neutral.",
+   "quote": "It needs no clock but treats synonymous changes as neutral.",
+   "section": "When the signal misleads"
+  },
+  {
+   "id": "molecular-evolution-c35",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "Why can omega near 1 within one population not establish that a gene evolves neutrally?",
+   "back": "The differences sampled are mostly recent polymorphisms not yet sorted by selection, so omega near 1 can arise under selection.",
+   "quote": "The differences sampled are mostly recent polymorphisms not yet sorted by selection, so omega near 1 can arise under selection and does not establish neutrality.",
+   "section": "When the signal misleads"
+  },
+  {
+   "id": "molecular-evolution-c36",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "Some synonymous substitutions in a bacterial group are not neutral. If an analysis treats all synonymous changes as neutral, how is omega biased?",
+   "back": "Omega is inflated. In Enterobacterales, corrected values averaged 80% of standard estimates.",
+   "why": "Omega uses synonymous changes as the neutral yardstick, so a non-neutral yardstick distorts the ratio.",
+   "quote": "treating all as neutral inflated omega, and corrected values averaged 80% of standard estimates.",
+   "section": "When the signal misleads"
+  },
+  {
+   "id": "molecular-evolution-c37",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "How can multinucleotide mutations make a branch-site test report positive selection that did not happen?",
+   "back": "The test assumes one base changes at a time, so one mutation hitting adjacent bases looks like rapid amino-acid change.",
+   "quote": "assume one base changes at a time, so one mutation hitting adjacent bases looks like rapid amino-acid change.",
+   "section": "When the signal misleads"
+  },
+  {
+   "id": "molecular-evolution-c38",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "A branch-site test flags positive selection in an immune gene on one primate lineage. Name four lines of checking before accepting it.",
+   "back": "Data: alignment and true orthologs. Model: simulate with no positive selection but realistic multinucleotide mutations and base composition. Second signal: a McDonald-Kreitman table with an outgroup. Function: express ancestral and derived proteins and measure the property.",
+   "why": "Even then, report a model inference supported by evidence, not an observation of adaptation.",
+   "quote": "Even then, report a model inference supported by evidence, not an observation of adaptation.",
+   "section": "Design problem"
+  },
+  {
+   "id": "molecular-evolution-c39",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "A branch-site test and a McDonald-Kreitman table both point to positive selection on one lineage, which also went through a change in population size. Why is the agreement weaker evidence than it looks?",
+   "back": "Both likely rest on synonymous changes being neutral, so a failure there could bias both. A population-size change can mimic the MK signal, and multinucleotide mutations can fool the branch-site test. A functional test is still needed.",
+   "why": "Combines the shared synonymous-neutrality assumption with each test's own failure mode.",
+   "quote": "An excess of fixed replacements adds partly independent support, under the same synonymous-neutrality assumption.",
+   "section": "Design problem"
+  },
+  {
+   "id": "molecular-evolution-c40",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "In a simple neutral model, gene copies from two species trace back to an ancestor about 2Ne generations before the species split. With Ne = 5,000 and 10-year generations, how much older is the gene split than the species split?",
+   "back": "2 x 5,000 x 10 = 100,000 years, or 0.1 million years. A raw gene divergence therefore runs old.",
+   "quote": "two species' gene copies trace back to an ancestral copy on average about 2Ne generations older than the species split",
+   "section": "Variation already in the ancestor"
+  },
+  {
+   "id": "molecular-evolution-c41",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "Ancestral variation makes gene splits older than species splits. Why can a fossil-calibrated date for a target species split then come out too young rather than too old?",
+   "back": "The calibrating gene split is older too, so the rate comes out too high and the target date too young: 6.0 million years in the worked example, where the species split was about 6.4.",
+   "why": "With an offset of 0.4 million years, the calibrating gene split is 3.4 million years and the target gene split 6.8.",
+   "quote": "the calibrating gene split is older too, so the rate comes out too high and the second date too young",
+   "section": "Variation already in the ancestor"
+  }
+ ]
+}

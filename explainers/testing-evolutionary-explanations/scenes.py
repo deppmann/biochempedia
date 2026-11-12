@@ -778,4 +778,4 @@ class S15Evidence(SpokenScene):
 
 
 class S16End(EndCard):
-    LINE = "Evolution needs selection, inheritance,\nand changed offspring."
+    LINE = "Selection, inheritance, changed offspring:\neach claim needs its own evidence."

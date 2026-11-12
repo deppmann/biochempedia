@@ -677,4 +677,4 @@ class S13Rule(Base):
 
 
 class S14End(EndCard):
-    LINE = "Relatedness lives at the nodes, not in the order of the tips."
+    LINE = "Relatedness lives in the most recent common ancestor."

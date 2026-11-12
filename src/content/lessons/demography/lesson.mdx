@@ -5,13 +5,14 @@ course: "ecology-evolution"
 courseChapter: "Ecology and Evolution · Unit 3: Environments and populations"
 order: 513
 summary: >-
-  How do you turn a list of who died and who gave birth into a statement about whether a
-  population can replace itself? This lesson builds a cohort life table column by column, from
-  counts to survivorship, death probabilities, the net reproductive rate R0 and the generation
-  time, then reads survivorship curves and age pyramids correctly. Afterwards you can compute R0
-  and T from a table, tell a Type II curve from equal numbers dying, and say what censoring,
-  pooled years and missing animals do to the numbers.
-hook: "If 40% of banded birds do not come back next year, did 40% of them die?"
+  Whether a population can replace itself depends on survival and births at each age: R0, the
+  sum of l_x m_x, is the number of daughters an average newborn female leaves. This lesson
+  builds a cohort life table to R0, the generation time T and the approximate yearly rate r,
+  reads survivorship curves and age pyramids, and asks how censoring, static sampling, missed
+  animals and emigrants can bias or blur the numbers. Afterwards you can compute R0 and T from a
+  table, tell a Type II curve from equal numbers dying, and say what each data problem does to
+  the estimates.
+hook: "Only 10 of 100 newborn females live to age 3. Can the cohort still more than replace itself?"
 
 estMinutes: 24
 objectives:
@@ -24,10 +25,32 @@ explainer:
   src: "/explainers/demography/explainer.mp4"
   captions: "/explainers/demography/explainer.vtt"
   poster: "/explainers/demography/poster.jpg"
-  title: "Count Survivors, Then Count Births"
-  durationSec: 165.8
-  narration: "an AI narrator voice (Gemini, Charon) reading narration written from this lesson's text"
+  title: "Survive, Then Give Birth"
+  durationSec: 175.3
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+  takeaways:
+    - "A cohort is a group of females born together; l_x is the fraction still alive at age x, and m_x is the average number of daughters per live female at that age."
+    - "R0, the sum of l_x times m_x over all ages, is the number of daughters an average newborn female leaves."
+    - "If R0 is above 1 the cohort more than replaces itself; below 1 it does not. R0 is counted per generation, not per year."
+    - "Survival to any age is the product of every earlier year's survival, so with later rates unchanged, a loss early in life lowers every later term of R0."
+    - "R0 predicts long-run growth only if the rates stay fixed and nobody arrives or leaves."
+
+films:
+  - id: "chapter-2"
+    src: "/explainers/demography/chapter-2.mp4"
+    captions: "/explainers/demography/chapter-2.vtt"
+    poster: "/explainers/demography/chapter-2-poster.jpg"
+    title: "A Straight Line on a Log Axis"
+    durationSec: 194.7
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+    takeaways:
+      - "A survivorship curve plots l_x against age, usually on a logarithmic axis, where equal drops mean equal fractions lost."
+      - "Type II means a constant probability of death each interval: the same fraction dies, so the number dying shrinks and the log curve is a straight line."
+      - "Type I curves stay high and then plunge, with deaths late in life; Type III curves drop steeply early, then flatten."
+      - "In laboratory Hydra, ten of twelve cohorts kept a yearly chance of natural death near 0.006, with no systematic fall in fertility (budding) with age."
+      - "That is a laboratory counterexample to a universal rise in mortality with age, not evidence that Hydra are immortal."
 
 scientists:
   - name: "Raymond Pearl"
@@ -66,7 +89,7 @@ scientists:
       his best-known examples used the ages at death of Dall sheep estimated from skulls collected
       in Mount McKinley National Park in Alaska by the naturalist Adolph Murie. A table built from
       remains of that kind is a static sample. It is only a fair cohort if the population was
-      roughly stationary and if skulls of every age were found equally often, and the fragile skulls
+      roughly stationary and if skulls of every age were found in proportion to the deaths at that age, and the fragile skulls
       of young sheep were not. Deevey's review made those assumptions explicit and treated the
       early-age figures as weak. What it made possible
       was the comparison of survivorship across wild species with a common method and a clear
@@ -126,8 +149,8 @@ techniques:
       log-rank tests compare survival between groups.
   - name: "Capture-mark-recapture (Cormack-Jolly-Seber models)"
     blurb: >-
-      Mark animals and resight or recapture them on repeated occasions. The pattern of gaps in
-      each animal's encounter history lets the model estimate detection probability and apparent
+      Mark animals and resight or recapture them on repeated occasions. Patterns of sightings and
+      gaps across many encounter histories let the model estimate detection probability and apparent
       survival separately; permanent emigration still has to be estimated with extra information, such as encounters
       outside the study area.
 
@@ -368,27 +391,19 @@ draft: false
 import LifeTableBuilder from '../../../components/LifeTableBuilder.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
 import EquationCard from '../../../components/EquationCard.astro';
+import LessonFilm from '../../../components/LessonFilm.astro';
 
-**Of 100 adult birds banded at a colony, 60 are seen there the next year. Does that mean 40 died?** Not necessarily. Some may be alive and unseen, and some may be breeding at another colony. Before you can say how fast a population grows, you need to know who survives and who reproduces at each age, and you need to know how good your counts are. This lesson builds that bookkeeping, the life table, and then asks where its numbers come from.
+The first film built R0 = 1.7 for a **cohort**, a group of females born together. Here you add the columns it skipped, turn R0 into a generation time and a yearly rate, and ask how far real counts can be trusted.
 
-## The idea: a life table is a cohort's bookkeeping
+> **The one idea.** Whether a population can replace itself depends on the **net reproductive rate, R0**: at each age, the chance a newborn female is alive (l_x) times the average number of daughters per live female at that age (m_x), added over her life. Above 1, each generation is larger than the last; below 1, smaller.
+>
+> *Scope:* a closed female population (no migration), with rates that stay fixed, and R0 counted per generation, not per year. Wherever this page changes one rate, the others are held the same. It is a prediction from assumptions, not an observation: real vital rates change with density, weather and year.
 
-A **cohort** is a group of individuals born together. Follow one from birth and record, at each exact age x, how many are still alive. That count is **n_x**. The survival columns of a **life table**, a summary of how survival and reproduction change with age, are arithmetic on those counts. The reproduction column needs a second record: the births to females at each age.
+## The worked cohort, column by column
 
-Think of a ledger for a club whose members never join late: you start with a membership, you strike out names as they leave, and you note what each remaining member contributes each year. For a closed, completely observed cohort, each survival column answers one question about the counts. Read the subscript x as "at age x" (so n_x is said "n sub x"):
+A **life table** summarizes how a cohort's survival and reproduction change with age. Read the subscript x as "at age x": **n_x** ("n sub x") is the number alive at exact age x, **l_x = n_x / n_0** ("ell sub x") is the film's survivorship, and **m_x** its daughters per live female.
 
-- **Survivorship, l_x** ("ell sub x"): what fraction of the original cohort is alive at age x? Divide the count by the starting count: **l_x = n_x / n_0**.
-- **d_x**: how many die between age x and age x + 1? Subtract the next count from this one: **d_x = n_x − n_(x+1)**.
-- **q_x**: what is the chance of dying in that interval *given that you reached its start*? Divide the deaths by the number alive at the start: **q_x = d_x / n_x**. Here q is a death probability, not an allele frequency as in population genetics.
-- **p_x**: what is the chance of surviving the interval? Whatever does not die survives: **p_x = 1 − q_x**.
-
-Because surviving to age 3 means surviving year 0, then year 1, then year 2, l_x is a product: l_3 = p_0 x p_1 x p_2. That is the product rule for successive stages, each conditional on the one before, from [probability and crosses](/lessons/probability-and-crosses/), applied to survival.
-
-Tables of this kind are usually built for females only, so the birth column, **m_x**, is the expected number of *daughters* born per female at age x. How births are divided among ages and offspring is the business of [life histories](/lessons/life-histories/); here you take m_x as measured.
-
-## From survival and births to R0 and generation time
-
-**Worked problem.** In this made-up data set, a closed female cohort is followed with complete records: no migration, no censoring. Each surviving female gives birth in a single pulse at each exact age x, counted before the next interval's deaths.
+**Worked problem.** In this made-up data set, a closed female cohort is followed with complete records: no migration, no censoring. Each surviving female gives birth in one pulse at exact age x, before that year's deaths, so her daughters are weighted by l_x.
 
 | x (years) | n_x | l_x | d_x | q_x | p_x | m_x | l_x m_x | x l_x m_x |
 |---:|---:|---:|---:|---:|---:|---:|---:|---:|
@@ -398,10 +413,23 @@ Tables of this kind are usually built for females only, so the birth column, **m
 | 3 | 10 | 0.1 | 10 | 1.00 | 0 | 1 | 0.1 | 0.3 |
 | 4 | 0 | 0 | none | undefined | undefined | 0 | 0 | 0 |
 
-1. *Survivorship.* Divide each n_x by 100: l_x = 1.0, 0.8, 0.4, 0.1, 0.
-2. *Deaths.* Subtract each count from the one before: d_x = 20, 40, 30, 10. They add to 100, so every death is accounted for.
-3. *Death and survival probabilities.* Divide each d_x by the number alive at the *start* of its interval, not by the original 100. q_0 = 20/100 = 0.20, q_1 = 40/80 = 0.50, q_2 = 30/40 = 0.75, q_3 = 10/10 = 1.00. Then p_x = 0.80, 0.50, 0.25, 0. Check: l_2 = 0.8 x 0.5 = 0.4.
-4. *Net reproductive rate.* The question is how many daughters an average newborn female leaves over her whole life. At each age, the daughters she can expect are the chance she is alive then times the daughters a live female has then, l_x × m_x. Multiply each l_x by m_x: 0, 0.8, 0.8, 0.1. Then add across ages.
+The film used n_x, l_x and m_x; each new survival column answers one question:
+
+- **d_x**: how many die between age x and age x + 1? **d_x = n_x − n_(x+1)**, here 20, 40, 30, 10. They add to 100: every death is counted.
+- **q_x**: what is the chance of dying in that interval *given that you reached its start*? (This q is a death probability, not the allele frequency q of population genetics.)
+
+**Predict.** Of the 40 females alive at age 2, 30 die before age 3. Is q_2 30 out of 40, or 30 out of 100?
+
+<details>
+<summary>Check your prediction</summary>
+
+30 out of 40, so q_2 = 0.75. Only the 40 alive at age 2 were at risk. So **q_x = d_x / n_x**, deaths divided by the number alive at the *start* of the interval (q_0 = 20/100 = 0.20, q_1 = 40/80 = 0.50, q_3 = 10/10 = 1.00). Dividing by the original 100 gives d_x/n_0, not q_x.
+
+</details>
+
+- **p_x**: what is the chance of surviving the interval? Whatever does not die survives: **p_x = 1 − q_x**, here 0.80, 0.50, 0.25, 0.
+
+Reaching age 3 means surviving year 0, then year 1, then year 2, so l_x is a product of the p_x before it: l_3 = p_0 × p_1 × p_2 (check: l_2 = 0.8 × 0.5 = 0.4). That is the product rule from [probability and crosses](/lessons/probability-and-crosses/), each stage conditional on the one before; it is why the film's hard winter reached every later age. How births are divided among ages and offspring belongs to [life histories](/lessons/life-histories/); here m_x is taken as measured. The film's sum, in symbols:
 
 <EquationCard
   purpose="How many daughters an average newborn female leaves over her whole life: does the cohort replace itself?"
@@ -411,20 +439,28 @@ Tables of this kind are usually built for females only, so the birth column, **m
     ["R0", "R zero (or R naught)", "the net reproductive rate: daughters per newborn female, per generation", "daughters per female"],
     ["sum of", "sum over all ages", "add the term for age 0, age 1, age 2 and so on", ""],
     ["l_x", "ell sub x", "survivorship: the fraction of the cohort still alive at age x", ""],
-    ["m_x", "m sub x", "daughters born per live female at age x", "daughters per female"],
+    ["m_x", "m sub x", "average number of daughters per live female at age x", "daughters per female"],
   ]}
   toolkit={["subscripts"]}
   check="If no female lives to an age with births, every l_x m_x is 0 and R0 = 0. R0 = 1 means each newborn female leaves exactly one daughter, so the cohort just replaces itself."
 >
   <Fragment slot="example">
     <p>From the table: 0 + 0.8 + 0.8 + 0.1 = 1.7 daughters per newborn female.</p>
-    <p>Check it by counting: 80 females have 1 daughter each, 40 have 2, and 10 have 1, which is 80 + 80 + 10 = 170 daughters from 100 founders, or 1.7.</p>
   </Fragment>
 </EquationCard>
 
-R0 is per **generation**, not per year.
+## Generation time and a yearly rate
 
-5. *Generation time.* The question is how old mothers are, on average, when their daughters are born. Weight each age by the daughters born at it: x l_x m_x = 0.8, 1.6, 0.3, which sum to 2.7. The unit "daughter-years" just means daughters counted with the mother's age attached.
+R0 is a multiplier per **generation**. The cohort **generation time, T**, is the mean age of mothers when their daughters are born.
+
+**Predict.** In the table, equal numbers of daughters (0.8 per newborn female) are born at ages 1 and 2, and a few (0.1) at age 3. Will T be exactly 1.5 years, above it or below it?
+
+<details>
+<summary>Check your prediction</summary>
+
+Above it, at 1.59 years (card below). Ages 1 and 2 alone would average 1.5; the few daughters born at age 3 pull the mean up.
+
+</details>
 
 <EquationCard
   purpose="The average age of mothers when their daughters are born: how long one generation takes."
@@ -442,14 +478,12 @@ R0 is per **generation**, not per year.
   check="It is a weighted average of ages. If every daughter were born at age 2, the top would be 2 times R0 and T would be exactly 2 years. T always lands between the youngest and oldest ages that give births."
 >
   <Fragment slot="example">
-    <p>Top: 0.8 + 1.6 + 0.3 = 2.7. Bottom: R0 = 1.7.</p>
-    <p>T = 2.7 / 1.7 = 1.59 years: a weighted average of ages 1, 2 and 3, pulled above 1.5 by the few daughters born at age 3.</p>
+    <p>Top: x l_x m_x = 0.8, 1.6 and 0.3, which sum to 2.7. Bottom: R0 = 1.7.</p>
+    <p>T = 2.7 / 1.7 = 1.59 years.</p>
   </Fragment>
 </EquationCard>
 
-T is the mean age of mothers when their daughters are born, in this cohort.
-
-6. *A rate per year.* R0 is a multiplier per generation, but growth per year needs the intrinsic rate of increase, r. Two steps get there. First, the natural log, ln, turns the multiplier 1.7 into a rate per generation. Second, dividing by T, the years in one generation, turns that into a rate per year.
+Growth per year needs the **intrinsic rate of increase, r**, the continuous growth rate per year when rates stay fixed. A common shortcut treats T as the length of every generation: ln(1.7) is the growth rate per generation, and dividing by T gives a rate per year. Births spread over several ages make this an approximation.
 
 <EquationCard
   purpose="Turn growth per generation (R0) into an approximate growth rate per year (r)."
@@ -467,65 +501,86 @@ T is the mean age of mothers when their daughters are born, in this cohort.
   <Fragment slot="example">
     <p>ln(1.7) = 0.530 (check: e^(0.53) is about 1.7).</p>
     <p>r = 0.530 / 1.59 = 0.334 per year.</p>
-    <p>The yearly multiplier is lambda = e^r = e^(0.334), about 1.40: roughly 40% more each year. Check a second way: 1.40 per year for 1.59 years is 1.40^(1.59), about 1.7, which is R0 again.</p>
+    <p>The yearly multiplier is lambda = e^r = e^(0.334), about 1.40: roughly 40% more each year.</p>
   </Fragment>
 </EquationCard>
 
-Both r and lambda here are approximations. The exact r in a model with fixed rates comes from a different calculation, and T is not in general exactly ln(R0)/r. [Population growth](/lessons/population-growth/) takes r and lambda from here.
-
-7. *Shape.* q_x rises with age (0.20, 0.50, 0.75, 1.00), so this cohort is not Type II. Mortality concentrated at older ages puts it nearer Type I.
+The shortcut is close, not exact: the exact r for this table is 0.347 per year (Going deeper), and T is not in general exactly ln(R0)/r. [Population growth](/lessons/population-growth/) takes r and lambda from here.
 
 <LifeTableBuilder />
 
-The model's verdict, if these rates stayed fixed, is that R0 above 1 means the population grows in the long run, R0 below 1 means it declines, and R0 = 1 means it just replaces itself. That is a prediction from assumptions, not an observation: real vital rates change with density, weather and year.
+Whatever survival the sliders set, R0 above 1 gives a positive r and R0 below 1 a negative one; T only changes how fast. In the worked cohort, q_x rose with age: 0.20, 0.50, 0.75, 1.00. What if it stayed the same at every age?
 
 ## Survivorship curves and age structure
 
-Plot l_x against age and you have a **survivorship curve**. Ecologists plot it on a logarithmic y-axis to compare curve shapes. On a log scale, equal vertical drops mean equal *proportional* losses, which is what q_x measures.
+<LessonFilm film={frontmatter.films[0]} />
 
-- **Type I**: high survival through early and middle life, then heavy losses at old ages. The curve stays flat, then plunges.
-- **Type II**: a roughly constant probability of death per interval. Each year multiplies the survivors by the same factor, 1 − q, so l_x = (1 − q)^x. A log turns each repeated multiplication into an equal step down, so log l_x falls in a straight line (see [log scales](/math-toolkit/#log-scales)).
-- **Type III**: very high mortality early, then better survival for the few that get through. The curve drops steeply, then flattens.
+Real species mix the film's three ideal shapes, often with Type III juvenile losses followed by Type I adult survival, and the worked cohort, with q_x rising, sits nearer Type I.
 
-The commonest error is to read Type II as "the same number die each year." It means the same *fraction*. Suppose 1,000 individuals face q = 0.5 every year: survivors go 1,000, 500, 250, 125, and deaths go 500, 250, 125. The number dying halves each year, while the log curve is a straight line. The three types are idealizations: real species mix them, often with Type III juvenile losses followed by Type I adult survival.
+In symbols, a constant q gives l_x = (1 − q)^x, and taking logs turns repeated multiplication into repeated addition: log l_x = x × log(1 − q), a straight line falling by the same step each year (see [log scales](/math-toolkit/#log-scales)).
 
-Low average life expectancy can mislead in the same way. Life expectancy at birth is a mean over everyone born, so heavy infant mortality drags it far down. In an invented population where 30% of newborns die within days of birth and the rest all live to exactly 50, life expectancy at birth is about 35 years (0.3 × about 0 years + 0.7 × 50 years), yet no adult dies at 35.
+A single average can hide where deaths fall, too. **Life expectancy at birth** is the mean length of life over all newborns, so heavy infant mortality drags it far down. In an invented population where 30% of newborns die within days of birth and the rest all live to exactly 50, life expectancy at birth is about 35 years (0.3 × about 0 years + 0.7 × 50 years), yet no adult dies at 35.
 
-An **age-structure diagram** (an age pyramid) is a different object. It shows the proportion of a population in each age class *now*. Its shape depends on survival, but also on how many were born in each past year. A pyramid with a broad base is not a Type III curve; it may be a growing population with good juvenile survival. Even a population with fixed rates that grows exponentially can keep an unchanging age distribution, and the share in each class then depends on both l_x and the growth rate.
+An **age-structure diagram** (an age pyramid) is not a survivorship curve: it shows the proportion of a population in each age class *now*, which depends on past births as well as survival. A pyramid with a broad base is not a Type III curve; it may be a growing population with good juvenile survival. Under the usual conditions (fixed rates, no migration, and births spread over ages so the age classes mix rather than cycle), a population converges toward a **stable age distribution**: the shares in each age class stop changing while the total grows or shrinks. Those shares depend on both survival and the growth rate. In a growing population each year's newborns outnumber the last year's, so the young are a larger share than survival alone would give.
 
-Age structure also carries **demographic momentum**. If fertility falls to replacement, a level at which each generation exactly replaces itself in the long run, a human population with many young people can keep growing for decades, because the number of women of reproductive age is still rising. The often quoted replacement figure of about 2.1 children per woman applies only where few children die before adulthood.
+**Predict.** A human population has many young people, and its fertility falls today to **replacement**, the level at which each generation exactly replaces itself in the long run. Does it stop growing today?
+
+<details>
+<summary>Check your prediction</summary>
+
+No. It can keep growing for decades, because the number of women of reproductive age is still rising as the large young cohorts grow up. This is **demographic momentum**. The often quoted replacement figure of about 2.1 children per woman applies only where few children die before adulthood.
+
+</details>
 
 ## Where the numbers come from, and what they miss
 
-**Cohort follow-up** gives the cleanest table but is slow: for a long-lived species, following one cohort until its last member dies can take longer than a research career. **Static tables** take a snapshot instead, ageing at one time either every individual alive, whose counts stand in for survivors at each age, or every carcass, whose ages at death stand in for deaths at each age. Either way the counts are read as one cohort. That works only if the population is stationary, with similar births and death rates for years, and only if every age is sampled fairly. Remains of young animals are fragile and easily missed, and ages read from remains carry error. **Mark-recapture** follows marked animals that cannot be counted directly.
+**Of 100 adult birds banded at a colony, 60 are seen there the next year. Did 40 die?** Not necessarily: some may be alive and missed, some alive elsewhere. R0 is only as good as the l_x and m_x behind it, and there are three ways to get them.
 
-<LessonFigure src="/figures/demography/cohort-vs-static-sampling.webp" width={1200} height={800} alt="AI-generated illustration: two halves compared. On the left, one group of four animals drawn at four successive moments, shrinking to one, with a time arrow. On the right, a single snapshot of animals of different sizes with a skeleton lying beside the largest, and a small inset showing those ages stacked as if they were one group." caption="A cohort follow-up watches one birth group over time. A static table takes a snapshot, ageing every individual alive or every carcass, and reads the counts as one cohort's survivors or deaths, which works only if the population is stationary and every age is sampled fairly." />
+**Cohort follow-up**, the method the worked table assumed, marks every individual born in one period and checks, at each age, who is alive and how many daughters each has. It gives l_x and m_x directly, but slowly: for a long-lived species, the last member of one cohort can outlive a research career.
 
-Each method has known weak points:
+**A static table** is the shortcut: one snapshot. Age the living animals and read the number at each age as a cohort's survivors, or age the carcasses and read the ages at death as a cohort's deaths. Either way, animals born in different years stand in for one cohort. The simplest case where that is fair is a **stationary** population: about the same number born each year, and the same death rates at each age, for many years (a population growing at a known rate can be corrected; see Going deeper). Every age must also be sampled fairly, in proportion to its numbers. Young remains are fragile and easily missed, so a carcass table can undercount early deaths, and ages read from remains carry error too.
 
-- **Censoring.** An animal still alive when the study ends, or lost to an accident in a study of natural deaths, is right-censored: it counts as at risk for the time it was seen, never as a death. This is fair only if being censored is unrelated to the risk of dying; animals lost because they were sick or weak bias survival upward. The 2016 primate tables, for example, removed half the censored animals from the number at risk in their interval.
-- **Few old individuals.** Small samples at old ages make gradual changes in mortality hard to detect, so the oldest ages are usually among the least certain parts of a table.
-- **Pooled years.** Tables pooled across years, as the primate tables were, give average rates and hide good and bad years.
-- **Missing is not dead.** An animal not seen may be alive and missed, or alive and gone. Mark-recapture models estimate detection and **apparent survival** separately, but apparent survival is true survival multiplied by site fidelity. Permanent emigration pulls it below true survival, a problem that [spatial populations](/lessons/spatial-populations/) takes further.
+**Mark-recapture**, for animals you cannot watch continuously, records on repeated visits which marked animals are seen again. An animal seen after a gap was alive and missed, so across many animals the sightings and gaps let a model estimate detection separately from survival. After an animal's last sighting, though, it usually cannot tell whether that animal died, left for good or was missed.
+
+<LessonFigure src="/figures/demography/cohort-vs-static-sampling.webp" width={1200} height={800} alt="AI-generated illustration: two halves compared. On the left, one group of four animals drawn at four successive moments, shrinking to one, with a time arrow. On the right, a single snapshot of animals of different sizes with a skeleton lying beside the largest, and a small inset showing those ages stacked as if they were one group." caption="A cohort follow-up watches one birth group over time. A static table takes a snapshot, ageing every individual alive or every carcass, and reads the counts as one cohort's survivors or deaths, which works most simply if the population is stationary and every age is sampled fairly." />
+
+Each method has weak points. Some bias the estimates; others make them less certain or hide variation:
+
+- **Censoring.** An animal still alive when the study ends, or lost to an accident in a study of natural deaths, is **right-censored** (figure below): at risk while seen, never a death. That is fair only if being censored is unrelated to the risk of dying; animals lost because they were sick or weak bias survival upward. The 2016 primate tables removed half the censored animals from the number at risk in their interval.
+- **Few old individuals.** Small samples at old ages hide gradual changes in mortality, so the oldest ages are usually among the least certain.
+- **Pooled years.** Tables pooled across years, like the primate tables, give average rates and hide good and bad years.
+- **Missing is not dead.** Even with detection modelled, a survivor that left looks like a death: **apparent survival** is true survival multiplied by **site fidelity**, the chance a surviving animal stays in the study area, so permanent emigration pulls it below true survival ([spatial populations](/lessons/spatial-populations/) takes this further).
 
 <LessonFigure src="/figures/demography/censoring-three-fates.webp" width={1200} height={800} alt="AI-generated illustration: a timeline of six equal blocks with a Study ends line, and three lanes, each a single animal. One gold bar ends in a cross (died), one reaches the study-end line and continues as a dashed arrow (still alive), one ends at an accident icon (lost). Only the first is marked as a death." caption="Censoring on one timeline: an animal that dies is a death. An animal still alive when the study ends, or lost to an accident in a study of natural deaths, counts as at risk for the time it was seen and is not counted as a death." />
 
-The Hydra study shows how much conventions matter: its annual death probability near 0.006 holds for laboratory cohorts with catastrophic deaths censored. It is evidence against a universal rule of rising adult mortality, not evidence that Hydra are immortal.
-
 ### Design problem
 
-Return to the colony from the start of the lesson. Of 100 adult birds banded there, 60 are seen at the colony the next year. A student concludes that adult mortality is 40% a year. Evaluate the conclusion and design a study that would estimate adult survival better.
+Return to the colony that opened this section: 60 of 100 banded adults were seen there the next year. A student concludes that adult mortality is 40% a year. Evaluate the conclusion and design a better study of adult survival.
 
 <details>
 <summary>One way to do it</summary>
 
-The 0.60 is an apparent return rate, not survival. It is lowered by three things besides death: birds alive at the colony but not seen, birds alive that moved elsewhere for good, and birds that lost their bands.
+The 0.60 is an apparent return rate, lowered by three things besides death: birds alive at the colony but not seen, birds alive that moved elsewhere for good, and birds that lost their bands.
 
-1. **Detection.** Search the colony on several occasions each season and for several years, and fit a Cormack-Jolly-Seber model to each bird's encounter history. A bird missed one year and seen the next was alive and undetected, and these gaps let the model estimate detection probability and apparent survival separately.
-2. **Emigration.** Apparent survival is still true survival times fidelity to the colony. Search neighbouring colonies, or fit a subset of birds with tracking devices, to estimate permanent emigration. In a study of Bonelli's eagles in Catalonia, survival estimates for non-breeding females differed more than those for males between models that estimated survival jointly with dispersal and models that did not (Badia-Boher and colleagues, 2023). The differences were a few hundredths, with wide uncertainty, and breeder survival did not change.
+1. **Detection.** Search the colony on several occasions each season and for several years, and fit a Cormack-Jolly-Seber model, the standard model for such encounter histories, to each bird's record, so that detection probability and apparent survival are estimated separately.
+2. **Emigration.** Search neighbouring colonies, or fit a subset of birds with tracking devices, to estimate permanent emigration, the fidelity term in apparent survival. In Bonelli's eagles in Catalonia, modelling dispersal jointly shifted survival estimates for non-breeding females more than for males, by a few hundredths with wide uncertainty; breeder survival did not change (Badia-Boher and colleagues, 2023).
 3. **Band loss.** Double-mark some birds with two bands, or a band and a second mark, to estimate how often bands are lost.
 4. **Unknown fates.** Record birds never seen again as unknown fates, keeping their later missed searches in their encounter histories, not as dead.
 
-If detection is 0.9 and fidelity 0.8, an apparent return of 0.60 would point to true survival near 0.6/(0.9 x 0.8), about 0.83, and annual mortality nearer 17% than 40%. Those two values are invented to show the logic; only the study can supply the real ones.
+If detection is 0.9 and fidelity 0.8, an apparent return of 0.60 would point to true survival near 0.6/(0.9 x 0.8), about 0.83, and annual mortality nearer 17% than 40%. Both values are invented to show the logic; only the study can supply the real ones.
 
 </details>
+
+## Going deeper
+
+### The exact yearly rate
+
+With fixed rates, the exact r solves the Euler-Lotka equation; with births in a pulse at each exact age, as in the worked table, it reads sum of λ^(−x) l_x m_x = 1, where λ = e^r is the yearly multiplier. For the worked table λ = 1.415 and r = 0.347 per year, against 1.40 and 0.334 from the shortcut, so the shortcut r is about 4% low here (and the yearly multiplier about 1% low). Scaling every m_x up or down moves λ across 1 exactly where R0 crosses 1, so the sign rule in the one idea holds exactly; only the size of r is approximate.
+
+### Census conventions
+
+Other treatments census just before or just after the yearly breeding pulse, which changes where survival enters the formulas. Matrix models (Leslie matrices) make that choice explicit, and the exact λ is the dominant eigenvalue of such a matrix built with a consistent convention.
+
+### Static tables when a population grows
+
+Stationarity is the simplest requirement. Strictly, a population at a stable age distribution, growing at a known rate r, can also be corrected for that growth: its older age classes were born when the population was smaller.

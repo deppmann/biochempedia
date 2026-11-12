@@ -4,8 +4,8 @@ slug: "thermoregulation"
 course: "organismal-biology"
 courseChapter: "Organismal Biology · Unit 2: Control and constancy"
 order: 709
-summary: "An animal's body temperature is set by a balance: heat made by its own metabolism and heat gained from outside, against heat lost to its surroundings. Animals steer that balance. They sense temperature in the skin and the body core, and a controller, in mammals centred in the hypothalamus, adjusts behaviour, skin blood flow, sweating or panting, shivering and brown-fat heat. This lesson follows heat by four routes, shows the control loop, separates where heat comes from (endotherm or ectotherm) from how constant temperature is, and then measures the cost: metabolic rate, the thermoneutral zone and the extra energy an endotherm spends in colder air. It ends with fever, torpor and hibernation as regulated changes in the temperature the controller defends."
-hook: "An animal's temperature is a balance of heat made, heat gained and heat lost, and a controller steers it. That is how a basking desert iguana can end up warmer than you are."
+summary: "At a steady body temperature, heat made plus heat gained equals heat lost, so in a simple model, with air, ground and sky lumped as one effective surrounding temperature, the body sits above its surroundings by (heat made + heat gained − heat evaporated) divided by conductance, and an animal steers its temperature by changing one of those terms. A controller, in mammals centred in the hypothalamus, senses skin and core temperature and works the dials: behaviour, skin blood flow, sweating or panting, shivering and brown-fat heat. This lesson follows heat by four routes, treats endotherm and ectotherm as a question of which heat source mainly warms the animal, keeps how constant a temperature is as a separate axis, derives the thermoneutral zone and the cost of cold from the balance, and ends with fever, torpor and hibernation as regulated changes in the temperature the controller defends."
+hook: "How can a lizard basking on a desert rock end up warmer than you are, without making much heat of its own?"
 
 estMinutes: 24
 objectives:
@@ -19,10 +19,31 @@ explainer:
   src: "/explainers/thermoregulation/explainer.mp4"
   captions: "/explainers/thermoregulation/explainer.vtt"
   poster: "/explainers/thermoregulation/poster.jpg"
-  title: "Heat In, Heat Out, and the Controller"
-  durationSec: 181.4
-  narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+  title: "Where the Balance Sits"
+  durationSec: 192.6
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+  takeaways:
+    - "Body temperature holds steady when heat made plus heat gained equals heat lost."
+    - "Radiation, conduction and convection form a dry leak that grows with conductance and with the gap between body and air."
+    - "An iguana warms mainly from sun and rock; a mouse warms mainly from its own metabolism."
+    - "Animals hold their temperature by changing heat made, heat gained, conductance or evaporation."
+    - "A controller in the brain chooses the temperature to defend, and skin sensors can warn it before the core cools."
+
+films:
+  - id: "chapter-2"
+    src: "/explainers/thermoregulation/chapter-2.mp4"
+    captions: "/explainers/thermoregulation/chapter-2.vtt"
+    poster: "/explainers/thermoregulation/chapter-2-poster.jpg"
+    title: "The Price of Cold"
+    durationSec: 177.2
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+    takeaways:
+      - "In the textbook thermoneutral zone, a resting endotherm stays at its basal rate and holds its temperature by changing conductance."
+      - "In the chamber model, with conductance at its minimum and body temperature steady, each degree below the lower critical temperature costs the same extra heat."
+      - "Thicker insulation moves the bend to colder air and makes the climb below it shallower."
+      - "In Scholander and Irving's comparison, arctic and tropical mammals differed mainly in insulation, not in basal rate."
 
 scientists:
   - name: "Matthew J. Kluger"
@@ -194,7 +215,7 @@ mcatQuestions:
       - "Core temperature is not regulated, since it moved when the probe ran"
     answer: 1
     rationale: "Only the preoptic area's temperature was changed, and the animal responded with coordinated cold-defence or heat-defence responses that moved core temperature the opposite way, so temperature at that site can drive the controller. Skin temperature was held constant, not removed, so the data say nothing against a role for skin sensors, which also feed the preoptic area. The responses cannot be local reactions to cooled or warmed blood, since skin and air were steady and core temperature moved opposite to the probe. Core temperature shifted because the controller was answering a false local signal, which is evidence of regulation, not its absence."
-  - stem: "Male laboratory mice acclimated to 21 degrees C were measured by indirect calorimetry at 21 and at 30 degrees C. Their energy expenditure at 30 degrees C was about half their expenditure at 21 degrees C. Which interpretation fits these data best?"
+  - stem: "In a made-up version of a published comparison, male laboratory mice kept at 21 degrees C and mice kept at 30 degrees C were each measured by indirect calorimetry at their own housing temperature. Energy expenditure of the mice kept at 30 degrees C was about half that of the mice kept at 21 degrees C. Which interpretation fits these data best?"
     choices:
       - "The mice at 21 degrees C had a higher basal metabolic rate"
       - "The mice at 30 degrees C entered torpor and cooled passively"
@@ -310,81 +331,104 @@ draft: false
 
 import ConductanceHeatBalance from '../../../components/ConductanceHeatBalance.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import LessonFilm from '../../../components/LessonFilm.astro';
 
-**An animal's body temperature is set by a balance: heat made by its own metabolism, plus heat gained from the sun, a rock, air or water, against heat lost to its surroundings.** Animals do not simply accept that balance. They sense temperature in the skin and deep in the body, and a controller, in mammals centred in the hypothalamus, adjusts heat production, heat loss and behaviour to hold the temperature it defends. That is how a desert iguana basking on a rock can end up warmer than you are: "cold-blooded" and "warm-blooded" describe where the heat comes from, not how warm the animal is. And because the controller can move the temperature it defends, fever, torpor and hibernation are regulated changes, not a broken thermostat.
+Here is the first film's tank rule in a form you can calculate with.
 
-## Heat in, heat out: the balance that sets body temperature
+> **The one idea.** At a steady body temperature, heat in equals heat out: **heat made (M) + heat gained (G) = conductance (C) × (body temperature − air temperature) + heat evaporated (E)**, where conductance is how readily heat leaks out per degree of body-to-air difference. So body temperature sits above the air by (M + G − E) ÷ C. An animal steers its temperature by changing one of those terms, and a controller in the brain decides which temperature to aim for.
+>
+> *Scope, for the whole lesson:* a simple model. Steady state means body temperature is not changing, so no heat is stored. Radiation, conduction and convection are lumped into one dry leak, C × (Tb − Ta): Tb is body temperature, and Ta, "the air" for short, is one effective temperature for the surroundings the animal exchanges dry heat with. Each heat load counts once: absorbed sunlight goes in G, and in this lesson so does a warm rock underfoot, so Ta stands for the rest of the surroundings. A chamber has one temperature only if its air and walls are held at the same temperature. Real conductance changes with posture, fur and blood flow; where later numbers hold C, Tb or E fixed, that is the model, not a measurement.
 
-**Metabolic rate** is the energy an animal uses per unit time, in watts (joules per second) or kilojoules per day. Nearly all of that energy ends up as heat. That metabolic heat is one input. The other is heat gained from outside: sunlight, a warm rock, warm air or water. Against both runs heat loss. When heat made plus heat gained equals heat lost, body temperature holds steady. When they do not match, it rises or falls.
+C is in watts per kelvin (a kelvin of difference equals a degree Celsius). **Metabolic rate** is the energy an animal uses per unit time, in watts (joules per second) or kilojoules per day; nearly all of it ends up as heat, so at rest it is M.
 
-Heat moves by four routes.
+## Routes and dials the first film left out
 
-- **Radiation**: emission and absorption of electromagnetic energy, as when a lizard absorbs sunlight.
-- **Conduction**: transfer between surfaces in direct contact, as from a sun-warmed rock into a lizard's belly.
-- **Convection**: transfer by moving air or water, as wind carries heat from skin warmer than the air.
-- **Evaporation**: water turning to vapour takes heat with it, as in sweating in humans and horses or panting in dogs and many birds.
+Of the four routes the first film named, radiation (electromagnetic energy), conduction (surfaces in contact), convection (moving air or water) and evaporation, it left out that each one's share depends on species, size, posture and weather; evaporation's water cost is in [osmoregulation](/lessons/osmoregulation/).
 
-The first three run either way, depending on which side is warmer. Evaporation only removes heat, and it costs water (see [osmoregulation](/lessons/osmoregulation/)). Each route's share depends on species, size, posture and weather.
+<LessonFigure src="/figures/thermoregulation/four-heat-routes-scene.webp" width={1200} height={794} alt="AI-generated illustration: a desert iguana lies on a rock with a sun's heat arrow on its back and a short arrow pointing up from the rock into its belly; beside it a panting dog has vapour rising from its mouth and two wide arrows of moving air passing along its back. A small inset shows a droplet on skin turning to vapour." caption="Radiation, conduction and convection can run either way. In this lesson's bookkeeping, sunlight on the lizard's back and heat from its warm rock are heat gained, G; the net dry exchange with the rest of the surroundings is the dry leak. In practice evaporation (panting) only removes heat." />
 
-<LessonFigure src="/figures/thermoregulation/four-heat-routes-scene.webp" width={1200} height={794} alt="AI-generated illustration: a desert iguana lies on a rock with a sun's heat arrow on its back and a short arrow pointing up from the rock into its belly; beside it a panting dog has vapour rising from its mouth and two wide arrows of moving air passing along its back. A small inset shows a droplet on skin turning to vapour." caption="Heat moves by radiation (a lizard absorbing sunlight), conduction (a warm rock heating a lizard's belly), convection (wind carrying heat from skin) and evaporation (panting). The first three can run either way; evaporation only removes heat." />
+Three dials the first film did not show:
 
-Animals adjust these routes with a few dials.
-
-- **Insulation.** Fur and feathers trap still air; many marine mammals rely on blubber.
-- **Skin blood flow.** Narrowing the small arteries to the skin (vasoconstriction) keeps warm blood in the core; widening them (vasodilation) delivers heat to the surface. (See [blood vessels, blood and lymph](/lessons/blood-and-vessels/).)
-- **Countercurrent exchange.** When an artery carrying warm blood out to a limb runs alongside the vein bringing cool blood back, heat passes across, so much of it returns to the core. The legs of many birds and the flippers of whales and seals work this way. The opah, a fish met later in this lesson, uses the same principle in its gills, but there the heat passes between the arteries carrying blood into and out of the gills.
-- **Evaporative cooling**, by sweating, panting or licking.
-- **Behaviour**: basking, seeking shade, huddling, burrowing.
+- **Skin blood flow.** Narrowing the small arteries to the skin (**vasoconstriction**) keeps warm blood in the core; widening them (**vasodilation**) delivers heat to the surface (see [blood vessels, blood and lymph](/lessons/blood-and-vessels/)). Both change C, as do posture, huddling, fur and feathers, which trap a layer of still air, and blubber in many marine mammals.
+- **Countercurrent exchange.** In a bird's leg, or a whale's or seal's flipper, warm blood going out passes its heat to cold blood coming back, so the heat returns to the core instead of leaking from the foot (figure).
+- **Moving.** Seeking shade or burrowing changes Ta and G at once.
 
 <LessonFigure src="/figures/thermoregulation/countercurrent-limb-exchange.webp" width={1200} height={529} alt="AI-generated illustration: a schematic limb with two tubes side by side. The artery carries warm blood from the body core toward the tip; the vein carries cooler blood back toward the core in the opposite direction. Short gold arrows cross from artery to vein showing heat passing across." caption="In countercurrent exchange, an artery carrying warm blood out to a limb runs alongside the vein bringing cool blood back, so heat passes across and much of it returns to the core." />
 
-Every one of these dials changes heat gained or heat lost. The next question is what turns them.
+## Endotherms, ectotherms and a second axis
 
-## Sensing and control: how animals steer the balance
+An **endotherm**, such as a mammal or bird, warms itself mainly with M, held in by a low C; an **ectotherm**, like most fish, amphibians, reptiles and invertebrates, takes its temperature mainly from Ta and G. Either can use both sources, and the mix shifts with activity and weather.
 
-Animals do not wait for heat to balance by chance. They measure temperature and respond. In mammals, temperature-sensing nerve cells sit in two kinds of place. Sensors in the skin report the temperature of the surroundings. Sensors deep in the body, in the brain, the spinal cord and the abdominal organs, report the temperature of the **core**, the part whose temperature is defended. Both feed a controller centred in the **preoptic area** of the [hypothalamus](/lessons/hypothalamus-autonomic/), which weighs the signals against the temperature it defends and drives the responses.
+Constancy is a separate axis. A **homeotherm** holds a nearly constant body temperature, and a **heterotherm** lets it vary widely. A deep-sea fish in steady cold is a nearly constant ectotherm; a hibernating ground squirrel, whose temperature can fall to near freezing, is a heterothermic endotherm.
 
-**Feedback** responses start when the core moves away from its defended range, as when exercise heats the body. **Feed-forward** responses start from the skin: cold air on the skin can trigger heat-saving responses before the core has cooled at all.
+**The desert iguana, Dipsosaurus dorsalis**, lives in the deserts of the southwestern United States and northwestern Mexico. It regulates its temperature by behaviour, shuttling between sun and shade or retreating into a burrow, and when active it can hold a body temperature near or above 37 degrees C, often near 40 degrees C. **The laboratory mouse, Mus musculus**, is a small endotherm that loses heat fast for its mass.
 
-In the cold, a mammal usually changes its behaviour first, seeking warmth or huddling. It narrows the arteries to its skin, keeping warm blood in the core, and it makes more heat. In the warm, it widens its skin blood vessels, turns heat production down, and loses heat by evaporation: humans sweat, dogs pant, and rodents spread saliva on their fur. Behaviour tends to come before the costlier physiological responses, and in the heat, widening of skin vessels starts before sweating.
+**Predict.** Night falls and the sun is gone. An iguana and a mouse sit in the same 30 degree C air. Using the balance, which stays well above the air, and why?
 
-Two responses make extra heat. **Shivering** is rapid, unsynchronized muscle contraction that releases heat. Many mammals also have **brown adipose tissue**, whose mitochondria carry the protein UCP1, which lets protons leak back across the inner membrane so food energy becomes heat instead of ATP (see [the proton-motive force](/lessons/proton-motive-force/)). Both are switched on by the same controller.
+<details>
+<summary>Check your prediction</summary>
 
-Ectotherms run the same kind of loop mainly through behaviour, as when a lizard shuttles between sun and shade. The rest of this lesson is this loop at work: what it costs in the cold, and what happens when the defended temperature itself moves.
+The mouse. With G gone, the iguana's only inflow is its small M, so (M + G − E) ÷ C shrinks to almost nothing. In invented numbers, with E = 0, C = 0.05 W per K and M = 0.02 W, sunshine worth G = 0.48 W holds it at 40 degrees C in 30 degree surroundings; with no sun it settles toward 30.4 degrees C. The mouse's large M, held in by fur, keeps it near 37 degrees C.
 
-## Where the heat comes from: endotherms and ectotherms
+</details>
 
-An **endotherm**, such as a mammal or bird, warms itself mainly with heat from its own metabolism, held in by insulation. An **ectotherm** takes its body temperature mainly from outside: sun, warm rock, water. Most fish, amphibians, reptiles and invertebrates are ectotherms. A **homeotherm** holds a nearly constant body temperature, and a **heterotherm** lets it vary widely. Where the heat comes from and how constant the temperature is are separate questions: a deep-sea fish in steady cold is a nearly constant ectotherm, and a hibernating ground squirrel a heterothermic endotherm.
-
-**The desert iguana, Dipsosaurus dorsalis**, is an ectotherm of the deserts of the southwestern United States and northwestern Mexico. It regulates its temperature by behaviour, shuttling between sun and shade or retreating into a burrow, and through the active day it can hold a body temperature near or above 37 degrees C. Ectotherm names the heat source, not a cold animal.
-
-**The laboratory mouse, Mus musculus**, is a small endotherm that makes its own heat and holds it in with fur. Being small, it loses heat fast relative to its mass, which matters for the cost of cold in the next section.
-
-**The opah, Lampris guttatus**, shows that not every fish is an ectotherm. Tunas and lamnid sharks keep some muscles warm, and the opah, a disc-shaped ocean fish, warms its whole body with heat from continuous movement of its pectoral fins and limits heat loss with countercurrent heat exchangers in its gills. In most fish, blood leaves the gills at water temperature.
+Not every fish is an ectotherm. Tunas and lamnid sharks keep some muscles warm, and **the opah, Lampris guttatus**, a disc-shaped ocean fish, warms its whole body (figure; Going deeper).
 
 <LessonFigure src="/figures/thermoregulation/lizard-mouse-opah-heat-sources.webp" width={1200} height={800} alt="AI-generated illustration: three animals side by side. A desert iguana lies on a rock with the sun's heat arriving from above and from the rock below. A laboratory mouse glows with heat made inside its body and held in by fur. A disc-shaped opah moves its large pectoral fin, with a small inset of two side-by-side tubes showing heat exchangers in its gills." caption="An iguana takes its heat from sun and rock, a mouse makes its own and holds it in with fur, and the opah, unusually for a fish, warms its body with heat from its beating pectoral fins and keeps it with countercurrent exchangers in its gills." />
 
 Some insects are partly endothermic too: bumblebees and many moths warm their flight muscles before take-off by a kind of shivering.
 
-## The cost of keeping warm: metabolic rate and the thermoneutral zone
+## Sensing and control: what the controller does
 
-In **indirect calorimetry**, or respirometry, an animal sits in a chamber with a known airflow, and you record the oxygen it takes up and the carbon dioxide it gives off. Each litre of oxygen consumed corresponds to roughly 20 kJ, depending on the fuel burned (see [integration of metabolism](/lessons/integration-of-metabolism/)).
+Behind the first film's controller: in mammals, temperature-sensing nerve cells in the skin report the surroundings, and those in the brain, spinal cord and abdominal organs report the **core**, the part whose temperature is defended. The controller, centred in the **preoptic area** of the [hypothalamus](/lessons/hypothalamus-autonomic/), weighs these signals against its **set point**, the temperature it aims for ([tissues, organs and homeostasis](/lessons/tissues-and-homeostasis/) introduced set points).
 
-A rate means little without its conditions.
+**Feedback** responses start when the core moves away from its defended range, as when exercise heats the body. **Feed-forward** responses start from the skin before the core has changed, like pulling your sleeves down the moment cold air touches your arms.
 
-- **Basal metabolic rate (BMR)** is measured in an endotherm that is awake, resting, **postabsorptive** (not digesting a meal) and within its **thermoneutral zone**, the range of air temperatures over which it spends no extra energy on heating or cooling.
-- **Standard metabolic rate (SMR)** is the equivalent for an ectotherm: resting, postabsorptive, and at a stated temperature, because its rate changes with temperature.
-- **Daily energy expenditure** is everything over 24 hours: activity, digestion, heating, growth.
+Behaviour tends to come before the costlier physiological responses. In the cold, a mammal seeks warmth or huddles, then narrows its skin arteries and makes more heat. In the warm, it widens its skin vessels, then turns heat production down and evaporates water: humans and horses sweat, dogs and many birds pant, and rodents spread saliva on their fur.
 
-The work of exercise adds to daily expenditure but is not part of BMR, which by definition is measured at rest.
+Two responses raise M. **Shivering** is involuntary, rhythmic contraction of opposing muscles at the same time, so little external work is done and the energy appears as heat. Many mammals also have **brown adipose tissue**, whose mitochondria carry the protein UCP1, which lets protons leak back across the inner membrane so food energy becomes heat instead of ATP (see [the proton-motive force](/lessons/proton-motive-force/)). The same controller switches on both. Ectotherms run the same kind of loop mainly through behaviour, changing G.
 
-Across mammals and birds, whole-body BMR rises more slowly than body mass, so a gram of mouse spends far more than a gram of elephant; see [size and scaling](/lessons/size-and-scaling/).
+Shivering and brown fat burn fuel. As the air cools, when does a mouse start paying, and how much? The second film measures it.
 
-Now plot an endotherm's resting metabolic rate against air temperature. In the textbook plot, the line is flat within the thermoneutral zone, at BMR (measurements in mice complicate this; see Going deeper). Below the **lower critical temperature** it climbs. Above the upper critical temperature it rises again, as panting and sweating take work. If body temperature and conductance stay roughly constant, the steepness of the cold limb (the size of its slope) equals the animal's **thermal conductance**, how readily heat leaks out per degree of difference. In 1950 Per Scholander, Laurence Irving and colleagues found that thick-furred arctic mammals stay on the flat part into much colder air than tropical ones, mainly because their insulation lowers conductance.
+<LessonFilm film={frontmatter.films[0]} />
 
-The climb below the lower critical temperature is the control loop at work. As the air cools, heat leaks out faster, and the controller raises heat production, by shivering and brown fat, to match it.
+## The cost of keeping warm: numbers on the curve
 
-A small endotherm such as the laboratory mouse loses heat fast relative to its mass, so below its thermoneutral zone its expenditure rises steeply as the air cools. Its thermoneutral point lies near 29 to 33 degrees C (see Going deeper), so animal rooms near 20 to 22 degrees C are cool for a mouse.
+The second film drew the curve; here are its numbers, the hot end and how real conductance drifts. One reminder of the rule: with no sun (G = 0) and evaporation neglected, though breath and skin always lose some water, heat made = C × (Tb − Ta).
+
+The second film's oxygen gauge is **indirect calorimetry**: each litre of oxygen corresponds to roughly 20 kJ, depending on the fuel (see [integration of metabolism](/lessons/integration-of-metabolism/)). The flat level is the **basal metabolic rate (BMR)**, measured in an endotherm that is awake, resting, **postabsorptive** (not digesting a meal) and within its **thermoneutral zone**, the range of air temperatures over which it spends no extra energy on heating or cooling. That flat zone is the textbook picture; mouse measurements complicate it (Going deeper).
+
+Take an invented mouse-like endotherm: body 37 degrees C, BMR 0.25 W, and a conductance it can set anywhere from 0.10 W per K (vessels open, fur flat) down to a minimum of 0.035 W per K. For each air temperature, ask: what conductance would leak exactly the basal heat, BMR ÷ (Tb − Ta)? Inside the animal's range, it stays basal; below its minimum, it must make more heat.
+
+| Air (degrees C) | Conductance that would shed exactly BMR (W per K) | Heat made (W) |
+|---|---|---|
+| 35 | 0.125, more than its widest 0.10 | 0.25 if evaporating cost nothing; evaporation must remove at least 0.05 W |
+| 33 | 0.063 | 0.25, basal |
+| 30 | 0.036, just inside its range | 0.25, basal |
+| 25 | 0.021, below its minimum | 0.42 |
+| 21 | 0.016, below its minimum | 0.56, about 2.2 × BMR |
+
+The bend falls where the needed conductance reaches the minimum: lower critical temperature = Tb − BMR ÷ Cmin = 37 − 0.25 ÷ 0.035, about 29.9 degrees C, close to the measured mouse thermoneutral point of 29 to 33 degrees C (see Going deeper), so animal rooms near 20 to 22 degrees C are cool for a mouse. At the warm end, even the widest C, 0.10 W per K, can shed BMR only across a gap of 2.5 K, so above about 34.5 degrees C dry loss alone falls short: evaporation must grow, or body temperature must rise. That is a threshold of the dry model, not the upper critical temperature, where active heat loss such as panting starts to raise metabolic rate; the model leaves out that cost.
+
+**Predict.** The second film showed that thicker fur moves the bend to colder air. By how much? Suppose, in round illustrative numbers, an arctic fox and a tropical mammal have the same basal rate and a body temperature near 37 degrees C, and the fox's curve bends near −40 degrees C while the tropical animal's bends near +27 degrees C. How many times lower must the fox's minimum conductance be?
+
+<details>
+<summary>Check your prediction</summary>
+
+The bend sits where the smallest C can just carry away the basal heat: BMR = Cmin × (Tb − lower critical temperature). The gaps are about 77 K and 10 K, so the fox's Cmin is roughly 7 to 8 times lower.
+
+</details>
+
+The second film's straight cold limb, steepness C, aimed at zero at Tb, is the model; exam problems use it unless told otherwise. Real animals keep lowering conductance a little as the air cools, by curling up, fluffing fur and narrowing skin vessels, and body temperature can drift, so measured cold limbs are often shallower and need not reach zero exactly at Tb. Steepness equals conductance only if both stay roughly constant.
+
+**Predict.** In a shaded chamber, the air and walls reach 40 degrees C, warmer than the mouse's 37. Which terms of the balance can still carry heat out?
+
+<details>
+<summary>Check your prediction</summary>
+
+Only evaporation. With the whole surroundings at 40 degrees C, the dry leak has turned negative: radiation, conduction and convection bring heat in, so E must remove the metabolic heat plus everything the surroundings add. (If only the air were hot, the animal could still lose heat to a cooler sky or ground.) Above the **upper critical temperature**, metabolic rate rises again, partly because panting takes work and probably because a warmer body runs its chemistry faster.
+
+</details>
 
 **Worked problem.** The numbers here are invented for practice. A small endotherm holds its body temperature at 37 degrees C with a constant conductance C = 0.020 W per K. Assume steady state (no heat stored), no external work, and air temperatures below its lower critical temperature, so heat production equals heat loss:
 
@@ -396,21 +440,28 @@ A small endotherm such as the laboratory mouse loses heat fast relative to its m
 4. Extra energy in a day: 0.20 J per s x 86,400 s = 17,280 J, or 17.28 kJ.
 5. Assume fat yields about 39 kJ per g. Then 17.28 kJ / 39 kJ per g = about 0.44 g of fat per day.
 
-The cost doubled only because these numbers double the gradient with C fixed; 10 degrees of cooling does not generally double metabolism. Fluff the fur so C falls to 0.010 W per K, and the cost at 17 degrees C drops back to 0.20 W.
+The cost doubled only because, with C fixed, these numbers double the gap; 10 degrees of cooling does not generally double metabolism. Fluff the fur so C falls to 0.010 W per K, and the cost at 17 degrees C drops back to 0.20 W.
 
 <ConductanceHeatBalance />
 
-## Fever, torpor and hibernation are regulated
+## Fever, torpor and hibernation: changing the target
 
-A **set point** is the value a control system defends, and in fever, torpor and hibernation the defended value shifts ([tissues, organs and homeostasis](/lessons/tissues-and-homeostasis/) introduced set points).
+**Predict.** At the start of a fever the target rises, say from 37 to 39 degrees C, but the body is still at 37. Does the patient feel hot or cold, and what does the body do?
 
-**Fever** is regulation of body temperature at a raised level. In mammals, signals from an infection lead the cells lining brain blood vessels to make prostaglandin, which acts on the brain's temperature-control region and raises the temperature it defends. [Innate immunity](/lessons/innate-immunity/) follows the immune side. The body then conserves heat and makes more, for example by shivering, until it reaches the new level.
+<details>
+<summary>Check your prediction</summary>
 
-Ectotherms have fever too, by behaviour: infected desert iguanas offered a choice of temperatures settled about 2 degrees C warmer. Does that help? In 1975 Matthew Kluger and colleagues injected desert iguanas with live bacteria and held each lizard at one fixed air temperature, so it could not choose. If fever were a harmless side effect, survival should not depend on temperature. Instead survival was greater at the higher temperatures than at the lowest. That shows a survival benefit of warmth in this lizard with this infection, though survival alone does not show what the warmth changed.
+Cold. Body temperature is now below the target, so the controller acts as if the body were chilled: it conserves heat and makes more, for example by shivering, until it reaches the new level.
+
+</details>
+
+**Fever** is regulation of body temperature at a raised level. In mammals, signals from an infection lead the cells lining brain blood vessels to make prostaglandin, which acts on the brain's temperature-control region and raises the temperature it defends. [Innate immunity](/lessons/innate-immunity/) follows the immune side.
+
+Ectotherms have fever too, by behaviour: infected desert iguanas offered a choice of temperatures settled about 2 degrees C warmer. Does that help? In 1975 Matthew Kluger and colleagues held infected iguanas each at one fixed temperature, so they could not choose, and survival was greater at the higher temperatures than at the lowest: a benefit of warmth in this lizard with this infection, though survival alone does not show what the warmth changed.
 
 **Torpor** is a controlled drop in metabolic rate and body temperature in a bird or mammal. **Daily torpor** conventionally lasts under 24 hours; fasted laboratory mice housed at 22 degrees C enter it, cooling for hours and then rewarming. **Hibernation** is prolonged, usually seasonal torpor. In small hibernators such as ground squirrels it is a series of torpor bouts, each lasting days to several weeks, broken by periodic arousals that are costly in energy, and body temperature can fall to near freezing. Black bears hibernate differently: body temperature stays at roughly 30 to 36 degrees C for months, with no periodic arousals.
 
-Torpor is controlled. In mice, Siniša Hrvatin and colleagues (2020) found that reactivating neurons in the hypothalamic preoptic area brought on key features of torpor in mice that were not food-restricted, and that inhibiting an identified group of them disrupted natural torpor. In black bears, metabolism falls to about a quarter of basal while body temperature stays in that 30 to 36 degree range, far more of a fall than that modest cooling explains (worked through in Going deeper).
+Siniša Hrvatin and colleagues (2020) found that reactivating neurons in the hypothalamic preoptic area brought on key features of torpor in mice that were not food-restricted, and that inhibiting an identified group of them disrupted natural torpor. In black bears, metabolism falls to about a quarter of basal at those temperatures, far more of a fall than that modest cooling explains, and it stays low after body temperature recovers (worked through in Going deeper). That points to active metabolic suppression.
 
 ### Design problem
 
@@ -419,7 +470,7 @@ Does the body wait for its core to cool? A mouse is moved from warm air into coo
 <details>
 <summary>One way to do it</summary>
 
-The timing points to the skin. The core had not changed, so a feedback signal from core sensors cannot have started the response. Skin sensors detect the cooler air and drive a feed-forward response through the preoptic area.
+The skin. The core had not changed, so core feedback cannot have started the response; skin sensors drove a feed-forward response through the preoptic area.
 
 To test it, change the temperature of one site while holding the others steady, and record skin blood flow and heat production. Cool the skin while keeping the core warm: if skin sensing drives the response, the skin vessels narrow and heat production rises anyway. Then warm or cool a small region of the preoptic area alone while the skin and air stay steady. Experiments of this kind have shown that local cooling or warming of the preoptic area brings on coordinated cold-defence or heat-defence responses, and that the skin, spinal cord, abdominal organs and brain all provide input that the controller sums.
 
@@ -431,27 +482,31 @@ One caution. Removing a single kind of sensor may not stop regulation. Mice with
 
 ### Measuring metabolic rate: conditions and scaling
 
-A standard metabolic rate must name its temperature. In threespine sticklebacks acclimated to 5, 12 or 20 degrees C for 7 to 21 weeks, SMR rose with acclimation temperature. Daily expenditure can be far above the resting rate: in single-housed male laboratory mice (Fischer, Cannon and Nedergaard, 2018), mean 24-hour expenditure was 3.1 times the thermoneutral resting rate in mice kept at 21 degrees C.
+**Standard metabolic rate (SMR)** is the ectotherm's equivalent of BMR: resting, postabsorptive, and at a stated temperature, because its rate changes with temperature. In threespine sticklebacks acclimated to 5, 12 or 20 degrees C for 7 to 21 weeks, SMR rose with acclimation temperature. **Daily energy expenditure** is everything over 24 hours: activity, digestion, heating, growth. The work of exercise adds to it but is not part of BMR, which by definition is measured at rest. Daily expenditure can be far above the resting rate: 3.1 times the thermoneutral resting rate, on average, in single-housed male mice kept at 21 degrees C (Fischer, Cannon and Nedergaard, 2018).
 
-The rise of BMR with body mass is often written as roughly the 3/4 power of mass (Kleiber's relation). That exponent is a fitted value, some analyses find nearer 2/3, and its cause is unsettled; see [size and scaling](/lessons/size-and-scaling/).
+Across mammals and birds, whole-body BMR rises more slowly than body mass, so a gram of mouse spends far more than a gram of elephant. The rise is often written as roughly the 3/4 power of mass (Kleiber's relation). That exponent is a fitted value, some analyses find nearer 2/3, and its cause is unsettled; see [size and scaling](/lessons/size-and-scaling/).
 
 ### The mouse's thermoneutral point
 
-The textbook plot has a flat zone where metabolism is basal and body temperature constant. Škop and colleagues (2020), recording metabolic rate and body temperature together in laboratory mice, found no range of air temperature where both stayed constant, and placed the mouse's thermoneutral point near 29 degrees C in the light phase and 33 degrees C in the dark. Either way, ordinary animal rooms are below it.
+Škop and colleagues (2020), recording metabolic rate and body temperature together in laboratory mice, found no range of air temperature where both stayed constant, as the textbook flat zone assumes, and placed the mouse's thermoneutral point near 29 degrees C in the light phase and 33 degrees C in the dark.
+
+### Where the balance stops: stored heat
+
+A lizard warming on a morning rock is storing heat, so the steady-state balance gives only where its warming curve levels off, not how fast it gets there.
 
 ### Who described the opah
 
-The opah's whole-body endothermy was reported in 2015 by Nicholas Wegner and colleagues, who showed that heat from its pectoral-fin muscles is kept by countercurrent exchangers in its gills, so blood leaving the gills is not cooled all the way to water temperature as in most fish.
+In 2015 Nicholas Wegner and colleagues showed that heat from its pectoral-fin muscles is kept by countercurrent exchangers in its gills, so blood leaving the gills is not cooled all the way to water temperature as in most fish. There the heat passes between the arteries carrying blood into and out of the gills.
 
 ### Fever: the evidence in detail
 
-The prostaglandin signal was traced in mice given bacterial lipopolysaccharide into a vein: prostaglandin made by the cells lining brain blood vessels supplied the fever signal.
+The vessel-lining source of the prostaglandin was traced in mice given bacterial lipopolysaccharide into a vein.
 
-In the 1975 lizard study, Matthew Kluger, D. H. Ringler and M. R. Anver held each infected iguana at one of five air temperatures, 34, 36, 38, 40 or 42 degrees C. The result applies to this lizard with this infection, not automatically to mammals or other infections. The paper's own test of bacterial growth in culture found it similar from 34 to 40 degrees C, which pointed to the host's defences rather than direct harm to the bacteria, but the host change was not identified.
+In the 1975 lizard study, Matthew Kluger, D. H. Ringler and M. R. Anver held each infected iguana at one of five air temperatures, 34, 36, 38, 40 or 42 degrees C. The result does not transfer automatically to mammals or other infections. The paper's own test of bacterial growth in culture found it similar from 34 to 40 degrees C, which pointed to the host's defences rather than direct harm to the bacteria, but the host change was not identified.
 
 ### Is hibernation just cooling? A worked estimate
 
-Is hibernation just cooling? Use illustrative numbers in the pattern of Tøien and colleagues (2011): a black bear's metabolic rate falls to 25% of basal while its body temperature falls from 37 to 33 degrees C. Assume a **Q10** (the factor by which a rate changes per 10 degree C change in temperature) of 2.5. How much of the fall could cooling explain, and what measurement would separate cooling from active suppression?
+Use illustrative numbers in the pattern of Tøien and colleagues (2011): a black bear's metabolic rate falls to 25% of basal while its body temperature falls from 37 to 33 degrees C. Assume a **Q10** (the factor by which a rate changes per 10 degree C change in temperature) of 2.5. How much of the fall could cooling explain, and what measurement would separate cooling from active suppression?
 
 <details>
 <summary>One way to do it</summary>
@@ -462,7 +517,7 @@ Passive cooling predicts:
 
 ln 2.5 = 0.916; times -0.4 gives -0.367; e ^ (-0.367) = 0.69. Cooling alone predicts 69% of basal. The bear is at 25%, so a further factor of 0.25 / 0.69 = 0.36 is left unexplained by temperature: most of the suppression is something other than cooling.
 
-To separate the two, record oxygen consumption and body temperature together, continuously, through hibernation and emergence. If metabolism simply followed temperature, it would recover when temperature does. In the real bears it stayed low for up to three weeks after body temperature had returned to normal and they had emerged, which separates the two in time.
+To separate the two, record oxygen consumption and body temperature together, continuously, through hibernation and emergence. If metabolism simply followed temperature, it would recover with it. In the real bears it stayed low for up to three weeks after body temperature had returned to normal and they had emerged, which separates the two in time.
 
 The Q10 of 2.5 is an assumption; there is no universal Q10. And a bear's answer does not transfer to a ground squirrel that cools near 0 degrees C, where the much larger temperature fall may account for more of the drop, though small hibernators also suppress metabolism actively.
 

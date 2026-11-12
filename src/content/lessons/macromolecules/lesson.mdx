@@ -5,10 +5,11 @@ course: "high-school-biology"
 courseChapter: "Biology · Unit 1: The chemistry of life"
 order: 902
 summary: >-
-  How can a turkey sandwich become part of you? You chain small building blocks into large
-  molecules in a simulation, learn the four classes of large molecule and their jobs, and read
-  real USDA food data. Afterwards you can name each class, its building blocks and its main job,
-  and judge the claim that fats and carbohydrates are bad for people.
+  Your body takes food's large molecules apart by adding water, one water per link, and builds
+  its own by removing water, one water per link counted from the free blocks. The blocks, the
+  links between them and the shape they take decide each molecule's job. You build chains in a simulation, learn the four classes of large molecule and
+  their building blocks, read USDA food data, and judge the claim that fats and carbohydrates are
+  bad for people.
 hook: "How can a turkey sandwich on whole-wheat bread end up as part of your own body?"
 estMinutes: 40
 supports: true
@@ -30,10 +31,32 @@ explainer:
   src: "/explainers/macromolecules/explainer.mp4"
   captions: "/explainers/macromolecules/explainer.vtt"
   poster: "/explainers/macromolecules/poster.jpg"
-  title: "Small Blocks Build Living Things"
-  durationSec: 159.0
-  narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+  title: "Take It Apart, Build It Again"
+  durationSec: 194.8
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+  takeaways:
+    - "Digestion breaks starch, protein and other large molecules in food into smaller pieces by adding water, one water for each link it breaks (hydrolysis)."
+    - "Counted from the free blocks to the finished chain, building removes one water for each link (dehydration synthesis)."
+    - "A chain has one fewer link than it has blocks, so a chain of 6 blocks has 5 links."
+    - "Joining takes energy. In cells, each kind of molecule is built by its own energy-using route, so the real steps usually release other products, not water."
+    - "A turkey protein does not become your protein; its amino acids are reused to build your own."
+
+films:
+  - id: "chapter-2"
+    src: "/explainers/macromolecules/chapter-2.mp4"
+    captions: "/explainers/macromolecules/chapter-2.vtt"
+    poster: "/explainers/macromolecules/chapter-2-poster.jpg"
+    title: "Shape Decides the Job"
+    durationSec: 180.4
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+    takeaways:
+      - "Starch and cellulose are both chains of glucose, but their links differ: starch coils and some of it branches, while cellulose chains lie straight, side by side."
+      - "Digestive enzymes are proteins whose folded pockets fit starch's links; they cut starch into smaller sugars, then glucose. Your own enzymes cannot break cellulose's links."
+      - "Cellulose chains pack into strong fibers that stiffen plant cell walls."
+      - "In water, phospholipids form a double layer, heads out and tails in: the basic structure of a cell membrane."
+      - "A common fat is one glycerol joined to three fatty acids by three links, so it is not a chain."
 
 scientists: []
 
@@ -61,7 +84,7 @@ simulations:
     ref: "MonomerPolymerBuilder"
     title: "Build a big molecule from small blocks"
     caption: >-
-      Join simple sugars, amino acids, nucleotides, or fatty acids and glycerol, and watch the links and the water released.
+      Join simple sugars, amino acids, nucleotides, or fatty acids and glycerol, and watch the links form and the water count.
     attribution: "Original interactive — Biochemistrypedia (Deppmann Lab)."
 
 practiceQuestions:
@@ -114,7 +137,7 @@ practiceQuestions:
       build proteins. That is direct evidence against the idea that protein comes only from meat.
       Bread protein is protein, not a sugar. People digest plant proteins into amino acids. Bread
       does not become meat; your cells use the amino acids to build their own proteins.
-  - stem: "A cell joins 5 glucose molecules into one straight chain by dehydration synthesis. How many water molecules are released?"
+  - stem: "Counted from the free blocks, 5 glucose molecules are joined into one straight chain by dehydration synthesis. How many waters' worth of atoms are removed?"
     choices:
       - "5, one for each sugar in the new chain"
       - "None, since joining sugars uses up water"
@@ -122,9 +145,9 @@ practiceQuestions:
       - "4, one for each link between two sugars"
     answer: 3
     rationale: >-
-      Five sugars in a row have four links between them, and each link made by dehydration
-      synthesis releases one water molecule, so 4 waters are released. Counting one water per sugar
-      counts one link too many. Using up water describes hydrolysis, which breaks links rather than
+      Five sugars in a row have four links between them, and counted from the free blocks each
+      link removes one water's worth of atoms, so the answer is 4. This counts atoms; a cell's real
+      steps usually release other products. Counting one water per sugar counts one link too many. Using up water describes hydrolysis, which breaks links rather than
       making them. Two waters per sugar has no basis in how the links form.
   - stem: "A phospholipid has a head that is attracted to water and two tails that are not. How does this shape fit its job?"
     choices:
@@ -183,8 +206,10 @@ explainLevels:
       are chains of amino acids; they build tissues and, as enzymes, run cell processes. Nucleic
       acids, DNA and RNA, are chains of nucleotides that store and pass on genetic information.
       Lipids mostly do not mix with water. Fats, built from fatty acids and glycerol, store energy for a long time
-      and insulate the body; phospholipids and cholesterol form cell membranes. Cells use energy to join small monomers into polymers by
-      releasing water, and break polymers apart by adding water. Each molecule’s shape decides the
+      and insulate the body; phospholipids and cholesterol form cell membranes. Cells use energy to join small monomers into polymers;
+      counted from the free monomers, each new link is one water short, and hydrolysis adds one
+      water for each link it breaks. The cell's real building steps usually release other
+      products instead of water. Each molecule’s shape decides the
       job it can do.
   - level: "bio2"
     label: "Biology II"
@@ -246,86 +271,115 @@ import Support from '../../../components/Support.astro';
 import CER from '../../../components/CER.astro';
 import ScaffoldFigure from '../../../components/ScaffoldFigure.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import LessonFilm from '../../../components/LessonFilm.astro';
 
-**Picture a turkey sandwich on whole-wheat bread. Within hours of eating it, your body takes its large molecules apart into small pieces and uses many of those pieces to build parts of you.** The bread came from wheat plants and the turkey from a bird, so the sandwich is made from the cells of plants and animals. Your body is made of cells too. So what are cells made of, and how can one living thing’s food become another living thing’s body?
+**Within hours of eating a turkey sandwich, made from wheat plants and a bird, your body has begun taking its large molecules apart. So how can one living thing’s food become another living thing’s body?** The first film gives the short answer: take apart, build again.
+
+> **The one idea.** Your body takes food’s large molecules apart by adding water, one water for each link it breaks, and builds its own by removing water, one water for each link counted from the free blocks. The blocks, the links between them and the shape they take decide the job.
+>
+> *Scope:* the water count compares free blocks with the finished molecule, like a balanced equation; in cells the real building steps usually release other products (see Going deeper). The link count fits a chain, straight or branched, with no rings or cross-links: n blocks, n − 1 links. A common fat is not a chain, but its 4 pieces still have 3 links.
 
 <IdeaCheck items={[
   { idea: 'Fats and carbohydrates are bad for you.', answer: 'disagree', explain: 'Your body uses both. Carbohydrate-rich foods supply quick energy, and many plant foods also supply fiber. Fats store energy for a long time and insulate the body. Phospholipids, another kind of lipid, build every cell membrane. A few fatty acids must come from food because the body cannot make them. Nutrition scientists judge whole foods and diets, not one class of molecule as good or bad.' },
-  { idea: 'Protein is only in meat, and it is only for building muscles.', answer: 'disagree', explain: 'USDA food data list protein in bread, peanut butter and milk as well as turkey, because plant and animal cells all build proteins. In your body, proteins do far more than build muscle. They form skin and hair, carry oxygen in blood, and speed up most of the chemical reactions in cells.' },
+  { idea: 'Protein is only in meat, and it is only for building muscles.', answer: 'disagree', explain: 'USDA food data list protein in bread, peanut butter and milk as well as turkey, because plant and animal cells all build proteins. Proteins also do far more than build muscle. They form skin and hair, carry oxygen in blood, and speed up most of the chemical reactions in cells.' },
   { idea: 'Each kind of big molecule is made of completely different elements.', answer: 'disagree', explain: 'Chemical analysis shows that carbohydrates, lipids, proteins and nucleic acids are all built mostly from the same three elements: carbon, hydrogen and oxygen. Proteins add nitrogen, and nucleic acids add nitrogen and phosphorus. The classes differ mainly in how those atoms are arranged.' },
 ]} />
 
 ## Explore: build big molecules from small blocks
 
-The simulation gives you four kinds of building block: a simple sugar, an amino acid, a nucleotide, and a set of fatty acids with glycerol. You pick one kind and snap the blocks together into a chain. The simulation names the large molecule you built, tells you its main job, and counts the water molecules released each time two blocks join.
+Pick one kind of building block (simple sugar, amino acid, nucleotide, or fatty acids with glycerol) and snap the blocks together; the simulation names the molecule, gives its job and counts the waters.
 
 <MonomerPolymerBuilder />
 
 **Try this.**
-1. Predict how many water molecules will be released when you link 4 sugars in a row. Build the chain and check.
-2. Now predict the count for 10 sugars. Can you write a rule that works for any number of blocks?
-3. Switch to amino acids. Predict whether the name of the molecule changes, and whether your water rule still works. Then test.
-4. Try fatty acids and glycerol. Predict whether you can keep adding blocks to make a very long chain, then try it.
+1. Use the first film’s rule to predict the waters for a chain of 10 sugars. Build it and check.
+2. Switch to amino acids. Predict whether the molecule’s name changes and whether the rule still works, then test.
+3. Try fatty acids and glycerol. Predict whether you can keep adding blocks to make a very long chain, then try it.
+
+<details>
+<summary>Check step 3</summary>
+
+You cannot. A common fat stops at one glycerol and three fatty acids, so it is not a chain. The simulation does not count a fat’s waters; the second film does: three links, three waters.
+
+</details>
 
 ## Explain: small blocks, big chains
 
 <WordBank terms={['monomer', 'polymer', 'macromolecule', 'dehydration synthesis', 'hydrolysis', 'carbohydrate', 'protein', 'amino acid', 'nucleic acid', 'nucleotide', 'lipid']} />
 
-Think of a necklace of beads. Each bead is small, but a string of hundreds of them is long. Cells build their largest molecules the same way.
+A **monomer** is a small molecule that can join to others like it. A **polymer** is a large molecule of many monomers linked in a chain; each link is a chemical bond between two blocks. A **macromolecule** is a very large molecule in a living thing, such as a polymer. Starch, proteins and nucleic acids are polymers; lipids are not, as step 3 showed.
 
-A **monomer** is a small molecule that can join to others like it. A **polymer** is a large molecule made of many monomers linked in a chain. A **macromolecule** is a very large molecule in a living thing, such as a polymer. The necklace analogy breaks in one place: real chains fold, coil and branch, and their shape matters for their job.
+The first film counted the waters; here are the atoms. In the figure below, one block has a hydrogen (H) on its end and the next an oxygen and a hydrogen (OH). When the link forms, those three atoms leave the chain: one water molecule, H2O. Joining this way is **dehydration synthesis**, "making something by removing water." It takes energy, which the cell supplies. Run backward, **hydrolysis** ("splitting with water") puts a water molecule back: the H goes to one block and the OH to the other, and the link breaks.
 
-When a cell links two monomers, it removes a hydrogen from one and an oxygen and hydrogen from the other. Those atoms leave as one water molecule. This joining reaction is **dehydration synthesis**, which means "making something by removing water." That is the overall result. Joining needs energy, so in cells enzymes first attach each building block to an energy-carrying molecule, and the actual steps can release other small molecules instead of water. Breaking the link runs the other way. **Hydrolysis** splits a polymer into smaller pieces by adding water.
+> C6H12O6 + C6H12O6 → C12H22O11 + H2O (dehydration synthesis: two glucose molecules form maltose, a double sugar, and water; the small numbers count atoms)
 
-> simple sugar + simple sugar → double sugar + water (dehydration synthesis)
+> maltose + water → glucose + glucose (hydrolysis)
 
-> C6H12O6 + C6H12O6 → C12H22O11 + H2O (two glucose molecules form maltose and water)
+<ScaffoldFigure src="/figures/macromolecules/join-and-split-polymer.webp" width={1200} height={800} keyItems={["monomers", "water molecule", "link", "water added"]} given={[0, 2]} alt="AI-generated illustration: two separate blocks on the left and two blocks joined by a short bar on the right, with an arrow each way between them; a small bent block leaves above the top arrow and another arrives below the bottom arrow. Four numbered circles mark parts to name." caption="In this simple model, joining two monomers releases water and splitting the link takes water in; a cell's real building steps can release other molecules." />
 
-> double sugar + water → simple sugar + simple sugar (hydrolysis)
+**Predict.** On the mass scale chemists use for molecules, glucose weighs about 180, so two weigh 360. Maltose weighs about 342. Where did the missing 18 go?
 
-<ScaffoldFigure src="/figures/macromolecules/join-and-split-polymer.webp" width={1200} height={800} keyItems={["monomers", "water molecule", "link", "water added"]} given={[0, 2]} alt="AI-generated illustration: two separate blocks on the left and two blocks joined by a short bar on the right, with an arrow each way between them; a small bent block leaves above the top arrow and another arrives below the bottom arrow. Four numbered circles mark parts to name." caption="Joining two monomers releases water, and splitting the link takes water in. The same four parts appear in both directions." />
+<details>
+<summary>Check your prediction</summary>
 
-Digestion is mostly hydrolysis. Your gut breaks the bread’s starch into sugars and the turkey’s proteins into amino acids. Your cells then use dehydration synthesis to build their own polymers from those pieces. A turkey protein does not become a human protein; its amino acids are reused in new chains.
+Into the one water molecule, which weighs about 18. The atoms are not lost; they leave as water.
+
+</details>
+
+Beyond the starch and protein in the first film, the sandwich’s fats are split, freeing fatty acids, and because the bread and turkey came from cells, their nucleic acids are split into the parts of nucleotides.
 
 <LessonFigure src="/figures/macromolecules/sandwich-to-body.webp" width={1200} height={676} alt="AI-generated illustration: a turkey sandwich on whole-wheat bread beside a starch chain and a protein chain; the chains are cut into single beads in the gut, and the cell then joins the amino-acid beads into a new chain." caption="Digestion splits the bread's starch and the turkey's proteins into pieces by adding water; your cells then join those pieces into their own polymers." />
 
-Most of these molecules share carbon, hydrogen and oxygen. Cells can take the carbon, hydrogen and oxygen from sugar and join them with nitrogen to make amino acids. Plants make their amino acids in a similar way, using nitrogen they take up from the soil as nitrate or ammonium; in legumes such as peas, bacteria in root nodules also supply nitrogen. Your cells can make some amino acids, but about nine must come from food.
+Your cells can make some amino acids from the carbon, hydrogen and oxygen of sugar, adding nitrogen moved from other amino acids. About nine, the essential amino acids, must come from food. Plants get their nitrogen another way (see Going deeper).
 
-<Support min={2}>**Key idea:** Cells use energy to build large polymers by joining small monomers, which removes water overall, and break them apart again by adding water.</Support>
+<Support min={2}>**Key idea:** Cells use energy to join monomers into polymers, and each link is one water short of the free blocks; hydrolysis adds one water to break each link.</Support>
 
 ## Explain: four classes, four kinds of job
-
-Scientists sort the large molecules of life into four classes. Each has its own building blocks and main jobs.
-
-A **carbohydrate** is a molecule made of simple sugars, such as glucose, starch or cellulose. A **protein** is a chain of amino acids folded into a shape. An **amino acid** is a small molecule containing nitrogen that is the building block of proteins. A **nucleic acid** is a chain of nucleotides, such as DNA or RNA. A **nucleotide** is a building block made of a sugar, a phosphate group and a base containing nitrogen. A **lipid** is a molecule that mostly does not mix with water, such as a fat, oil or phospholipid, which has one end that attracts water.
 
 | Class | Building blocks | Main jobs | Elements |
 |---|---|---|---|
 | Carbohydrates | simple sugars | quick energy; short-term energy storage (starch, glycogen); plant cell walls | C, H, O |
-| Proteins | amino acids | building tissues; running cell processes | C, H, O, N (often S) |
+| Proteins | amino acids | building tissues; running cell processes | C, H, O, N (most also S) |
 | Nucleic acids | nucleotides | storing and passing on genetic information | C, H, O, N, P |
 | Lipids | fats: fatty acids and glycerol; other lipids differ | fats: long-term energy storage and insulation; phospholipids and cholesterol: cell membranes | mostly C, H, O |
 
-Two cautions. Not every lipid is a fat: phospholipids and steroids such as cholesterol are lipids too. And fats are not true polymers. A common fat is one glycerol joined to three fatty acids, not a long chain of repeating blocks.
+- A **carbohydrate** is a molecule made of simple sugars, such as glucose, starch or cellulose.
+- A **protein** is a chain of amino acids folded into a shape. An **amino acid** is a small molecule containing nitrogen that is the building block of proteins; most proteins also contain some sulfur.
+- A **nucleic acid** is a chain of nucleotides, such as DNA or RNA. A **nucleotide** is a building block made of a sugar, a phosphate group and a base containing nitrogen.
+- A **lipid** is a molecule that mostly does not mix with water, such as a fat or oil. A **phospholipid** is a lipid with one end that does attract water.
+
+Not every lipid is a fat: phospholipids and steroids such as cholesterol are lipids too.
 
 <Support min={2}>**Key idea:** Carbohydrates, proteins, nucleic acids and lipids each have their own building blocks and their own main jobs.</Support>
 
+The table gives carbohydrates two jobs that pull opposite ways, quick energy and stiff plant walls, yet starch and cellulose are both chains of glucose. The second film shows how.
+
+<LessonFilm film={frontmatter.films[0]} />
+
 ## Explain: shape decides the job
 
-A key only opens a lock its shape fits. Molecules work in a similar way, although the analogy breaks because molecules bend and move. Here is one example from each class.
+Beyond the second film’s starch, cellulose, enzyme and membrane:
 
-- **Carbohydrate: cellulose.** Long chains of glucose lie side by side and hold together in strong fibers. Those fibers stiffen the walls of plant cells. Much of the fiber in whole-wheat bread comes from plant cell walls.
-- **Protein: an enzyme.** An enzyme is usually a protein that speeds up a reaction. Its folded shape forms a pocket where one kind of molecule fits. If heat or acid changes that shape, the molecule may no longer fit. You will test this in [Enzymes at Work](/lessons/enzymes-at-work/).
-- **Nucleic acid: DNA.** DNA has two strands whose bases pair in a fixed way. Each strand can therefore guide the copying of the other, so the information can be passed to new cells. [DNA: Structure and Copying](/lessons/dna-structure-and-copying/) shows how.
-- **Lipid: a phospholipid.** Each phospholipid has a head attracted to water and two tails that avoid it. In water they form a double layer, heads out and tails in. That layer is the basic structure of the cell membrane.
+- **Nucleic acid: DNA.** DNA has two strands whose bases pair in a fixed way, A with T and G with C, so each strand can guide the copying of the other, passing the information to new cells. [DNA: Structure and Copying](/lessons/dna-structure-and-copying/) shows how.
+- **Carbohydrate: cellulose.** Much of the fiber in whole-wheat bread is cellulose and other cell-wall material; bacteria in your gut can break down some of it.
+- **Protein: an enzyme.** An enzyme is usually a protein that speeds up a reaction. Its pocket works somewhat like a lock that opens only for a key of the right shape, although the analogy breaks because molecules bend and move.
 
-Together these molecules carry out life processes. Proteins and lipids build new cells for growth and repair. DNA passes information on in reproduction. A protein in red blood cells carries oxygen for gas exchange. Enzymes run metabolism (the chemical reactions in cells), and proteins in membranes detect signals so cells can respond.
+**Predict.** If heat or acid changes the shape of an enzyme’s pocket, what happens to the enzyme’s work?
+
+<details>
+<summary>Check your prediction</summary>
+
+The molecule may no longer fit, so the enzyme may stop speeding up its reaction. You will test this in [Enzymes at Work](/lessons/enzymes-at-work/).
+
+</details>
+
+Together these molecules run life processes: proteins and lipids build new cells for growth and repair, DNA passes information on in reproduction, a protein in red blood cells carries oxygen for gas exchange, enzymes run metabolism (the chemical reactions in cells), and membrane proteins detect signals so cells can respond.
 
 <Support min={2}>**Key idea:** Each large molecule’s shape, from cellulose fibers to the membrane’s double layer, determines the job it can do.</Support>
 
 ## Elaborate: what is in the sandwich and its neighbors
 
-These values come from a food database. Each row is grams of nutrient in 100 grams of a reference food, so you can compare foods fairly. Carbohydrate already includes the fiber.
+Each row gives grams of nutrient per 100 grams of a reference food, a fair basis for comparing. Carbohydrate already includes the fiber, the part your own enzymes cannot digest.
 
 | Food (100 g) | Carbohydrate (g) | Protein (g) | Fat (g) | Fiber (g) |
 |---|---|---|---|---|
@@ -336,7 +390,9 @@ These values come from a food database. Each row is grams of nutrient in 100 gra
 | Whole milk | 4.8 | 3.15 | 3.25 | 0 |
 | Olive oil | 0 | 0 | 100 | 0 |
 
-Source: USDA FoodData Central, SR Legacy reference foods (FDC IDs 172688, 171496, 174266, 171688, 171265, 171413), published April 2019. These are averaged reference values, not one sample from one store or lab. This table does not include nucleic acids. Food scientists estimate energy in kilocalories (kcal) with general factors of about 4 kcal per gram for carbohydrate and protein and about 9 kcal per gram for fat.
+Source: USDA FoodData Central, SR Legacy reference foods (FDC IDs 172688, 171496, 174266, 171688, 171265, 171413), published April 2019. These are averaged reference values, not one sample from one store or lab. This table does not include nucleic acids.
+
+Food scientists estimate energy in kilocalories (kcal) with factors of about 4 kcal per gram for carbohydrate and protein and about 9 kcal per gram for fat. These are rounded averages, and fiber gives less energy than other carbohydrate, so real values and food labels can be lower.
 
 1. Which two foods have the most protein per 100 grams? Is one of them a plant food?
 2. Bread lists 42.71 grams of carbohydrate, including 6 grams of fiber. How many grams are not fiber? Compare with the apple.
@@ -352,17 +408,27 @@ Source: USDA FoodData Central, SR Legacy reference foods (FDC IDs 172688, 171496
 
 ### Design problem
 
-Your teacher gives you three tests used in many school labs. Iodine solution turns blue-black with starch. Biuret solution turns violet with protein. A drop of fat leaves a see-through spot on brown paper that stays after the paper dries. Plan an investigation to find which of these molecules are in bread, turkey and apple.
+Many school labs use three tests. Iodine solution turns blue-black with starch. Biuret solution turns violet with protein. A drop of fat leaves a see-through spot on brown paper that stays after the paper dries. Plan an investigation to find which of these molecules are in bread, turkey and apple.
 
 <details>
 <summary>One way to do it</summary>
 
-The independent variable is the food. The dependent variable is the color change or spot. Keep the amount of food, the amount of test solution and the waiting time the same. Use water as a negative control, and a known starch, protein or oil sample as a positive control for each test. Run each test three times. Based on the table, you might expect starch in the bread and protein in the turkey and bread. The apple has very little protein or fat, and a ripe apple may show little starch. Treat these as predictions to test. Wear goggles, never taste lab samples, and handle iodine and biuret solution with care.
+The independent variable is the food. The dependent variable is the color change or spot. Keep the amount of food, the amount of test solution and the waiting time the same. For each test, use water as a negative control (it should not react) and a known sample as a positive control (it should): starch for iodine, a known protein for biuret, oil for the spot test. Run each test three times. Based on the table, you might expect starch in the bread and protein in the turkey and bread. The apple has very little protein or fat, and a ripe apple may show little starch. Treat these as predictions to test. Wear goggles, never taste lab samples, and handle iodine and biuret solution with care.
 
 </details>
 
 ## Evaluate: check your thinking
 
-The sandwich holds carbohydrates, proteins and fats, and, because its ingredients came from cells, nucleic acids too. Your digestive system splits those large molecules into small pieces, such as sugars, amino acids, fatty acids and the parts of nucleotides. Your cells then use those pieces, along with building blocks they make themselves, to build new large molecules with shapes that fit your own body’s jobs.
+Trace one bite: digestion splits its large molecules into small pieces, such as sugars, amino acids, fatty acids and the parts of nucleotides, and your cells build their own molecules from those pieces and from blocks they make themselves.
 
-**Science practices you used:** making and testing predictions with a model, naming where an analogy breaks, reading a data table on a fair 100-gram basis, calculating with energy factors, and planning a test with controls and repeated trials.
+**Science practices you used:** predicting and testing with a model, naming where an analogy breaks, reading data on a fair 100-gram basis, calculating with energy factors, and planning a test with controls and repeated trials.
+
+## Going deeper
+
+### The real steps in a cell
+
+Joining takes energy. In cells, each kind of molecule is built by its own energy-using route, so the real steps usually release other products, not water. The one-water-per-link count describes atoms, not the cell’s steps. Digestion is different: hydrolysis does add one water for each link it breaks.
+
+### Where plants get their nitrogen
+
+Plants also build amino acids from sugar-derived carbon, but they take their nitrogen from inorganic nitrate or ammonium in the soil. In legumes such as peas, bacteria in root nodules also supply nitrogen.

@@ -847,4 +847,4 @@ class S12Close(SpokenScene):
 
 
 class S13End(EndCard):
-    LINE = "Opposing enemies favor the middle; the curve's shape names the mode."
+    LINE = "The shape of the fitness curve names the mode of selection."
