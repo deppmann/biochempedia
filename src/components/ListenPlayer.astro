@@ -16,6 +16,16 @@
  *
  * It stops when the reader leaves the page and pauses when a video on the page starts. Without
  * JavaScript, or with no clips, nothing is shown.
+ *
+ * Stops at films (Chris, 2026-11-13). Each film carries data-listen-film (LessonFilm and the lesson
+ * page's opening explainer). When the reading reaches a film this visit has not played yet (a film
+ * above the first paragraph counts when Listen starts from the top; a film right under a heading counts when
+ * Listen starts from that heading's ▶), the narration pauses and a small card
+ * above the bar asks "Watch the film now, or keep listening". "Watch the film" plays it and, when
+ * it ends, reading picks up at the paragraph after it after a short beat, unless the listener
+ * has used Listen meanwhile. "Keep listening" (or Escape, or play) reads on. Doing nothing stays
+ * paused. A switch in the bar's settings card ("Stop at films", on by default, shown only on
+ * lessons with a film) turns this off; it is saved on this device (biochempedia:listen:film-stops).
  */
 import manifest from '../data/listen-manifest.json';
 
@@ -52,13 +62,38 @@ const clips: string[] = (manifest as Record<string, string[]>)[slug] ?? [];
       <option value="1.75">1.75×</option>
     </select>
   </label>
+  <button type="button" class="bp-lp-btn" data-lp="settings" aria-label="Listen settings" title="Listen settings" aria-expanded="false" aria-controls="bp-lp-panel" hidden>
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.4 13a7.5 7.5 0 0 0 0-2l2.1-1.6-2-3.4-2.5 1a7.4 7.4 0 0 0-1.7-1L15 3.3h-4l-.4 2.7a7.4 7.4 0 0 0-1.7 1l-2.5-1-2 3.4L6.6 11a7.5 7.5 0 0 0 0 2l-2.1 1.6 2 3.4 2.5-1a7.4 7.4 0 0 0 1.7 1l.3 2.7h4l.4-2.7a7.4 7.4 0 0 0 1.7-1l2.5 1 2-3.4zM12 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z" /></svg>
+  </button>
   <button type="button" class="bp-lp-btn" data-lp="close" aria-label="Close player" title="Close">
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.4 5 5 6.4 10.6 12 5 17.6 6.4 19l5.6-5.6 5.6 5.6 1.4-1.4-5.6-5.6L19 6.4 17.6 5 12 10.6z" /></svg>
   </button>
+
+  {/* Settings, above the bar: shown only on lessons that have a film (the one setting is about films). */}
+  <div class="bp-lp-pop bp-lp-panel" id="bp-lp-panel" data-lp="panel" hidden>
+    <label class="bp-lp-switch">
+      <input type="checkbox" role="switch" data-lp="filmstops" checked />
+      <span class="bp-lp-switch-ui" aria-hidden="true"></span>
+      <span>Stop at films</span>
+    </label>
+    <p class="bp-lp-hint">Pause when the reading reaches a film, and offer to play it. Saved on this device.</p>
+  </div>
+
+  {/* The stop at a film. */}
+  <div class="bp-lp-pop bp-lp-prompt" role="group" aria-labelledby="bp-lp-prompt-h" data-lp="prompt" hidden>
+    <p class="bp-lp-prompt-h" id="bp-lp-prompt-h">Watch the film now, or keep listening</p>
+    <p class="bp-lp-prompt-film" data-lp="prompt-film"></p>
+    <div class="bp-lp-prompt-btns">
+      <button type="button" class="bp-lp-choice bp-lp-choice-main" data-lp="watch">Watch the film</button>
+      <button type="button" class="bp-lp-choice" data-lp="keep">Keep listening</button>
+    </div>
+  </div>
+  <p class="bp-lp-sr" aria-live="polite" data-lp="live"></p>
 </div>
 
 <script>
   const RATE_KEY = 'biochempedia:listen:rate';
+  const STOPS_KEY = 'biochempedia:listen:film-stops';   // '0' = off; anything else (or nothing) = on
   const root = document.querySelector<HTMLElement>('[data-listen-root]');
   const player = document.querySelector<HTMLElement>('[data-listen-player]');
   const prose = document.querySelector<HTMLElement>('.prose-col[data-lesson-title]');
@@ -90,6 +125,35 @@ const clips: string[] = (manifest as Record<string, string[]>)[slug] ?? [];
     audio.preload = 'auto';
     const prefetch = new Audio();
     prefetch.preload = 'auto';
+
+    // ---- films --------------------------------------------------------------------------------
+    // Each film on the page (the opening explainer and every <LessonFilm>), with the element whose
+    // place in the document decides where the reading stops for it.
+    interface Film { video: HTMLVideoElement; anchor: HTMLElement; title: string; top: boolean }
+    const films: Film[] = Array.from(document.querySelectorAll<HTMLVideoElement>('video[data-listen-film]')).map((video) => {
+      const top = !!video.closest('#explainer');
+      return {
+        video, top,
+        anchor: (top ? video.closest<HTMLElement>('#explainer') : video.closest<HTMLElement>('figure')) || video,
+        title: video.dataset.listenFilm || '',
+      };
+    });
+    let stopsOn = true;
+    try { stopsOn = localStorage.getItem(STOPS_KEY) !== '0'; } catch { /* storage blocked: default on */ }
+    const handled = new Set<HTMLVideoElement>();       // films watched (or passed with "Keep listening") this visit
+    let stopAtFilm: { film: Film; next: number } | null = null;   // the prompt is showing
+    let watching: { film: Film; next: number } | null = null;     // "Watch the film" pressed; resume on its end
+    let resumeTimer = 0;
+    const follows = (a: Node, b: Node) => !!(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING);
+    const filmShown = (f: Film) => f.top || visible(f.anchor);
+    /** An unwatched film between the paragraph just read and paragraph `next` (or after the last one). */
+    const filmBefore = (next: number): Film | undefined => {
+      if (!stopsOn || next <= 0) return undefined;
+      const prevEl = list[next - 1], nextEl = list[next];
+      if (!prevEl) return undefined;
+      return films.find((f) => !f.top && !handled.has(f.video) && filmShown(f)
+        && follows(prevEl, f.anchor) && (!nextEl || follows(f.anchor, nextEl)));
+    };
 
     // ---- display ------------------------------------------------------------------------------
     const visible = (el: HTMLElement) => el.getClientRects().length > 0 && !el.closest('[hidden], details:not([open])');
@@ -131,10 +195,71 @@ const clips: string[] = (manifest as Record<string, string[]>)[slug] ?? [];
     const clipUrl = (h: string) => `/listen/${slug}/${h}.mp3`;
 
     // No clip for this paragraph (or it failed to load): skip it. The device voice is never used.
-    const skip = () => { playAt(idx + 1); };
+    const skip = () => { advance(idx + 1); };
+
+    // ---- stops at films ---------------------------------------------------------------------------
+    const promptEl = $('prompt'), promptFilm = $('prompt-film'), liveEl = $('live');
+    const watchBtn = $('watch') as HTMLButtonElement, keepBtn = $('keep') as HTMLButtonElement;
+    const fmtLen = (sec: number) => `${Math.floor(sec / 60)}:${String(Math.round(sec % 60)).padStart(2, '0')}`;
+    const announce = (msg: string) => { liveEl.textContent = ''; window.setTimeout(() => { liveEl.textContent = msg; }, 50); };
+    const hidePrompt = () => {
+      const hadFocus = promptEl.contains(document.activeElement);
+      promptEl.hidden = true;
+      if (hadFocus) toggleBtn.focus({ preventScroll: true });
+    };
+    /** Forget a pending stop or a film being watched (any other Listen action calls this). */
+    const clearFilmState = () => {
+      window.clearTimeout(resumeTimer);
+      resumeTimer = 0;
+      watching = null;
+      if (stopAtFilm) { stopAtFilm = null; hidePrompt(); }
+    };
+    const showStop = (film: Film, next: number) => {
+      silence();
+      setPlaying(false);
+      mark(null);
+      stopAtFilm = { film, next };
+      const d = film.video.duration || Number(film.video.dataset.listenFilmSec) || 0;
+      promptFilm.textContent = film.title ? `${film.title}${d ? ` · ${fmtLen(d)}` : ''}` : '';
+      setStatus('Paused at a film');
+      const hadFocus = player.contains(document.activeElement) || document.activeElement === document.body;
+      promptEl.hidden = false;
+      film.anchor.scrollIntoView({ block: 'center', behavior: reduced() ? 'auto' : 'smooth' });
+      announce(`Paused at a film${film.title ? `: ${film.title}` : ''}. Watch the film now, or keep listening.`);
+      if (hadFocus) watchBtn.focus({ preventScroll: true });
+    };
+    /** Read paragraph i next, unless a film comes first and Listen is set to stop there. */
+    const advance = (i: number) => {
+      const film = filmBefore(i);
+      if (film) showStop(film, i); else playAt(i);
+    };
+    const keepListening = () => {
+      if (!stopAtFilm) return;
+      const { film, next } = stopAtFilm;
+      handled.add(film.video);
+      stopAtFilm = null;
+      hidePrompt();
+      playAt(next);
+    };
+    const watchFilm = () => {
+      if (!stopAtFilm) return;
+      const s = stopAtFilm;
+      stopAtFilm = null;
+      hidePrompt();
+      watching = s;
+      handled.add(s.film.video);
+      setStatus('Watching the film. Listen picks up after it.');
+      // The opening film sits in a closed <details> until asked for.
+      const row = s.film.video.closest('details');
+      if (row && !row.open) row.open = true;
+      s.film.video.scrollIntoView({ block: 'center', behavior: reduced() ? 'auto' : 'smooth' });
+      s.film.video.focus({ preventScroll: true });
+      s.film.video.play().catch(() => { /* the film's own controls still work */ });
+    };
 
     const playAt = (i: number) => {
       silence();
+      clearFilmState();
       if (i < 0) i = 0;
       if (i >= list.length) { idx = -1; mark(null); setPlaying(false); setStatus('Finished. Press play to start again.'); return; }
       idx = i;
@@ -150,11 +275,12 @@ const clips: string[] = (manifest as Record<string, string[]>)[slug] ?? [];
         setStatus();
         audio.src = clipUrl(h);
         audio.playbackRate = rate;
-        audio.onended = () => { if (g === gen) playAt(i + 1); };
+        audio.onended = () => { if (g === gen) advance(i + 1); };
         // A missing or broken clip is skipped.
         audio.onerror = () => { if (g === gen) skip(); };
         audio.play().catch((err) => {
-          if (g !== gen) return;
+          // Paused (e.g. a film started) before the clip began: the aborted play() is not a broken clip.
+          if (g !== gen || !playing) return;
           if (err && err.name === 'NotAllowedError') { setPlaying(false); setStatus('Press play to listen.'); }
           else skip();
         });
@@ -168,30 +294,77 @@ const clips: string[] = (manifest as Record<string, string[]>)[slug] ?? [];
       setPlaying(false);
     };
     const resume = () => {
+      // Play while stopped at a film means "keep listening"; while the film runs, "go on now".
+      if (stopAtFilm) { keepListening(); return; }
+      if (watching) {
+        const { film, next } = watching;
+        film.video.pause();
+        playAt(next);
+        return;
+      }
       if (idx < 0) { start(0); return; }
       setPlaying(true);
       if (mode === 'clip' && audio.src) {
         audio.playbackRate = rate;
-        audio.play().catch(() => skip());
+        audio.play().catch(() => { if (playing) skip(); });
       } else skip();
     };
-    const start = (from: number | HTMLElement) => {
+    // stopAfter: 'top' when Listen starts from the top of the lesson (the opening film comes first);
+    // a section heading when it starts from that heading's ▶ (a film right under it comes first).
+    const start = (from: number | HTMLElement, stopAfter?: 'top' | HTMLElement) => {
       list = all.filter(visible);
       if (!list.length) return;
       const i = typeof from === 'number' ? from : Math.max(0, list.findIndex((b) => b === from || !!(from.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING)));
       open();
+      const first = list[i];
+      const opening = !stopsOn || !stopAfter ? undefined
+        : stopAfter === 'top' ? (i === 0 ? films.find((f) => !handled.has(f.video) && filmShown(f) && follows(f.anchor, first)) : undefined)
+        : films.find((f) => !f.top && !handled.has(f.video) && filmShown(f) && follows(stopAfter, f.anchor) && follows(f.anchor, first));
+      if (opening) { idx = i - 1; showStop(opening, i); return; }
       playAt(i);
     };
     const close = () => {
       const hadFocus = player.contains(document.activeElement);
       silence();
+      clearFilmState();
       setPlaying(false);
       idx = -1;
       mark(null);
+      closePanel();
       player.hidden = true;
       document.body.classList.remove('bp-listening');
       if (hadFocus) root.querySelector<HTMLElement>('[data-listen-start]')?.focus({ preventScroll: true });
     };
+
+    // ---- settings -------------------------------------------------------------------------------
+    const settingsBtn = $('settings'), panel = $('panel');
+    const stopsBox = $('filmstops') as HTMLInputElement;
+    stopsBox.checked = stopsOn;
+    const closePanel = () => {
+      if (panel.hidden) return;
+      const hadFocus = panel.contains(document.activeElement);
+      panel.hidden = true;
+      settingsBtn.setAttribute('aria-expanded', 'false');
+      if (stopAtFilm) promptEl.hidden = false;
+      if (hadFocus) settingsBtn.focus({ preventScroll: true });
+    };
+    if (films.length) {
+      settingsBtn.hidden = false;
+      settingsBtn.addEventListener('click', () => {
+        if (!panel.hidden) { closePanel(); return; }
+        if (stopAtFilm) promptEl.hidden = true;   // one card above the bar at a time; the stop itself stays
+        panel.hidden = false;
+        settingsBtn.setAttribute('aria-expanded', 'true');
+        stopsBox.focus({ preventScroll: true });
+      });
+      stopsBox.addEventListener('change', () => {
+        stopsOn = stopsBox.checked;
+        try { localStorage.setItem(STOPS_KEY, stopsOn ? '1' : '0'); } catch { /* storage blocked: this visit only */ }
+      });
+      document.addEventListener('click', (e) => {
+        if (!panel.hidden && !panel.contains(e.target as Node) && !settingsBtn.contains(e.target as Node)) closePanel();
+      });
+    }
 
     // ---- controls -----------------------------------------------------------------------------
     root.hidden = false;
@@ -199,14 +372,38 @@ const clips: string[] = (manifest as Record<string, string[]>)[slug] ?? [];
       // Start from the paragraph nearest the top of the screen when the reader has scrolled into the lesson.
       const firstOnScreen = all.find((b) => visible(b) && b.getBoundingClientRect().bottom > 80);
       const proseTop = prose.getBoundingClientRect().top;
-      start(proseTop < 0 && firstOnScreen ? firstOnScreen : 0);
-      toggleBtn.focus({ preventScroll: true });
+      start(proseTop < 0 && firstOnScreen ? firstOnScreen : 0, proseTop >= 0 || !firstOnScreen ? 'top' : undefined);
+      if (promptEl.hidden) toggleBtn.focus({ preventScroll: true });
     });
     toggleBtn.addEventListener('click', () => (playing ? pause() : resume()));
-    $('prev').addEventListener('click', () => { if (idx < 0) return start(0); playAt(Math.max(0, idx - 1)); });
-    $('next').addEventListener('click', () => { if (idx < 0) return start(0); playAt(idx + 1); });
+    // At a film stop, back replays the paragraph before the film and forward reads the one after it.
+    $('prev').addEventListener('click', () => { if (idx < 0) return start(0); playAt(stopAtFilm || watching ? idx : Math.max(0, idx - 1)); });
+    $('next').addEventListener('click', () => {
+      const pending = stopAtFilm || watching;
+      if (pending) return playAt(pending.next);
+      if (idx < 0) return start(0);
+      playAt(idx + 1);
+    });
     $('close').addEventListener('click', close);
-    player.addEventListener('keydown', (e) => { if (e.key === 'Escape') { e.preventDefault(); close(); } });
+    // Escape: closes the settings card, then means "keep listening" at a film stop, then closes the player.
+    player.addEventListener('keydown', (e) => {
+      if (e.key !== 'Escape') return;
+      e.preventDefault();
+      e.stopPropagation();
+      if (!panel.hidden) closePanel();
+      else if (stopAtFilm) keepListening();
+      else close();
+    });
+    // At a film stop, Escape from outside the player counts too, unless something else (a dialog) has focus.
+    document.addEventListener('keydown', (e) => {
+      if (e.key !== 'Escape' || !stopAtFilm || promptEl.hidden || e.defaultPrevented) return;
+      const a = document.activeElement;
+      if (a && a !== document.body && !player.contains(a)) return;
+      e.preventDefault();
+      keepListening();
+    });
+    watchBtn.addEventListener('click', watchFilm);
+    keepBtn.addEventListener('click', keepListening);
     speedSel.addEventListener('change', () => {
       rate = Number(speedSel.value) || 1;
       try { localStorage.setItem(RATE_KEY, String(rate)); } catch { /* storage blocked */ }
@@ -226,19 +423,50 @@ const clips: string[] = (manifest as Record<string, string[]>)[slug] ?? [];
       b.setAttribute('aria-label', 'Listen from here');
       b.title = 'Listen from here';
       b.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4v16l13-8z"/></svg>';
-      b.addEventListener('click', () => { start(first); toggleBtn.focus({ preventScroll: true }); });
+      b.addEventListener('click', () => { start(first, h2); if (promptEl.hidden) toggleBtn.focus({ preventScroll: true }); });
       h2.appendChild(b);
     });
 
     // Pause when a video (or any other media on the page) starts; stop when leaving the page.
-    document.addEventListener('play', (e) => { if (e.target !== audio && e.target instanceof HTMLMediaElement) pause(); }, true);
+    document.addEventListener('play', (e) => {
+      if (e.target === audio || !(e.target instanceof HTMLMediaElement)) return;
+      pause();
+      const f = films.find((x) => x.video === e.target);
+      if (!f) return;
+      handled.add(f.video);   // watched this visit: no stop for it later
+      // Started from its own controls while Listen waits at it: same as "Watch the film".
+      if (stopAtFilm && stopAtFilm.film === f) {
+        watching = stopAtFilm;
+        stopAtFilm = null;
+        hidePrompt();
+        setStatus('Watching the film. Listen picks up after it.');
+      }
+    }, true);
+    // The film chosen at a stop has ended: after a short beat, read on from the paragraph after it.
+    // Nothing resumes if the listener has done anything with Listen since (that clears `watching`).
+    document.addEventListener('ended', (e) => {
+      if (!watching || e.target !== watching.film.video) return;
+      const { next } = watching;
+      setStatus('Picking up the reading…');
+      window.clearTimeout(resumeTimer);
+      resumeTimer = window.setTimeout(() => {
+        resumeTimer = 0;
+        if (!watching || player.hidden || playing || document.visibilityState === 'hidden') return;
+        playAt(next);
+      }, 1500);
+    }, true);
     // Another read-aloud control on the page (EquationCard) also pauses the player.
     prose.addEventListener('click', (e) => { if ((e.target as Element).closest?.('.eqc-listen')) pause(); }, true);
-    window.addEventListener('pagehide', () => { silence(); setPlaying(false); });
+    window.addEventListener('pagehide', () => { silence(); clearFilmState(); setPlaying(false); });
 
     // For tests and debugging: window.__bpListen.state()
     (window as unknown as { __bpListen: unknown }).__bpListen = {
-      state: () => ({ idx, total: list.length, playing, mode, rate, src: audio.src, audioPaused: audio.paused }),
+      state: () => ({
+        idx, total: list.length, playing, mode, rate, src: audio.src, audioPaused: audio.paused,
+        stopsOn, films: films.length, stoppedAt: stopAtFilm ? stopAtFilm.film.title : null,
+        stopNext: stopAtFilm ? stopAtFilm.next : null, watching: watching ? watching.film.title : null,
+        reading: idx >= 0 ? (list[idx]?.textContent || '').slice(0, 60) : null,
+      }),
     };
   }
 </script>
@@ -271,6 +499,7 @@ const clips: string[] = (manifest as Record<string, string[]>)[slug] ?? [];
     background: transparent; color: var(--ddp-color-primary); border: 1px solid transparent; border-radius: 999px; cursor: pointer;
   }
   .bp-lp-btn:hover { border-color: var(--ddp-color-line); }
+  .bp-lp-btn[hidden] { display: none; }
   .bp-lp-btn svg { width: 20px; height: 20px; fill: currentColor; }
   .bp-lp-main { background: var(--ddp-color-primary); color: var(--ddp-color-surface); width: 44px; height: 44px; }
   .bp-lp-main:hover { border-color: transparent; opacity: 0.9; }
@@ -289,6 +518,43 @@ const clips: string[] = (manifest as Record<string, string[]>)[slug] ?? [];
   .bp-lp-btn:focus-visible, .bp-listen-btn:focus-visible, .bp-lp-speed select:focus-visible {
     outline: 2px solid var(--ddp-color-accent); outline-offset: 2px;
   }
+  /* Cards above the bar: the film stop and the settings. */
+  .bp-lp-pop {
+    position: absolute; left: 0; right: 0; bottom: calc(100% + 8px); box-sizing: border-box;
+    padding: var(--ddp-space-3); background: var(--ddp-color-surface); color: var(--ddp-color-ink);
+    border: 1px solid var(--ddp-color-line); border-radius: 12px; box-shadow: var(--ddp-shadow);
+  }
+  .bp-lp-pop[hidden] { display: none; }
+  .bp-lp-prompt { border-left: 3px solid var(--ddp-color-accent); }
+  .bp-lp-prompt-h { margin: 0; font: 600 var(--ddp-text-sm)/1.35 var(--ddp-font-sans); color: var(--ddp-color-primary); }
+  .bp-lp-prompt-film { margin: 2px 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); line-height: 1.35; }
+  .bp-lp-prompt-film:empty { display: none; }
+  .bp-lp-prompt-btns { display: flex; flex-wrap: wrap; gap: var(--ddp-space-2); margin-top: var(--ddp-space-2); }
+  .bp-lp-choice {
+    min-height: 40px; padding: 0.5em 1em; border-radius: 999px; cursor: pointer;
+    font: 600 var(--ddp-text-sm)/1 var(--ddp-font-sans);
+    color: var(--ddp-color-primary); background: var(--ddp-color-surface); border: 1px solid var(--ddp-color-line);
+  }
+  .bp-lp-choice:hover { border-color: var(--ddp-color-accent); }
+  .bp-lp-choice-main { background: var(--ddp-color-primary); color: var(--ddp-color-surface); border-color: var(--ddp-color-primary); }
+  .bp-lp-choice-main:hover { opacity: 0.9; }
+  .bp-lp-switch { display: flex; align-items: center; gap: 0.6em; cursor: pointer; font: 600 var(--ddp-text-sm)/1.3 var(--ddp-font-sans); color: var(--ddp-color-primary); }
+  .bp-lp-switch input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+  .bp-lp-switch-ui {
+    flex: none; position: relative; width: 38px; height: 22px; border-radius: 999px;
+    background: var(--ddp-color-line); transition: background-color 0.15s ease;
+  }
+  .bp-lp-switch-ui::after {
+    content: ''; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%;
+    background: var(--ddp-color-surface); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25); transition: transform 0.15s ease;
+  }
+  .bp-lp-switch input:checked + .bp-lp-switch-ui { background: var(--ddp-color-accent); }
+  .bp-lp-switch input:checked + .bp-lp-switch-ui::after { transform: translateX(16px); }
+  .bp-lp-switch input:focus-visible + .bp-lp-switch-ui { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .bp-lp-hint { margin: var(--ddp-space-1) 0 0; font-size: var(--ddp-text-xs); line-height: 1.4; color: var(--ddp-color-muted); }
+  .bp-lp-choice:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  @media (prefers-reduced-motion: reduce) { .bp-lp-switch-ui, .bp-lp-switch-ui::after { transition: none; } }
+
   @media (max-width: 420px) {
     .bp-listen-player { gap: 2px; padding: 6px; }
     .bp-lp-status { margin: 0 4px; }

@@ -5,6 +5,8 @@ import { MILESTONES, ROADMAP, ROADMAP_UNDER_REVIEW, KIND_LABEL, type UpdateKind 
 import PRS from '../../data/updates-prs.json';
 import NOTES from '../../data/updates-pr-notes.json';
 import { milestoneId } from '../../lib/updates-feed';
+import { getCollection } from 'astro:content';
+import REWRITTEN from '../../data/recently-rewritten.json';
 
 /* Everything counted here comes from the live catalog at build time, so the numbers can't go stale. */
 const { cards, lessonCount } = await courseCards();
@@ -15,6 +17,13 @@ const decks = Object.keys(import.meta.glob('../../data/flashcards/*.json')).leng
 const mcatSets = Object.keys(import.meta.glob('../../content/mcat-sets/*.json')).length;
 const prs = PRS as { n: number; d: string; t: string }[];
 const prByN = new Map(prs.map((p) => [p.n, p]));
+/* Rewritten lessons (the level-up pass): src/data/recently-rewritten.json, the list behind the homepage
+   "Recently rewritten" shelf (scripts/rewritten-shelf.mjs). Only lessons that are live now count. */
+const liveLessons = new Set((await getCollection('lessons', ({ data }) => !data.draft && bySlug.has(data.course))).map((l) => l.data.slug));
+const rewrittenDate = new Map<string, string>();
+for (const r of REWRITTEN as { slug: string; date: string }[]) {
+  if (liveLessons.has(r.slug) && (!rewrittenDate.has(r.slug) || r.date < rewrittenDate.get(r.slug)!)) rewrittenDate.set(r.slug, r.date);
+}
 const note = (n: number) => (NOTES as Record<string, string>)[String(n)] ?? prByN.get(n)?.t ?? '';
 
 for (const m of MILESTONES) {
@@ -51,14 +60,15 @@ const DAY = 86400000;
 const toT = (d: string) => Date.parse(d + 'T00:00:00Z');
 const monday = (t: number) => t - ((new Date(t).getUTCDay() + 6) % 7) * DAY;
 const first = monday(toT(MILESTONES.map((m) => m.date).sort()[0]));
-const lastDate = [prs.at(-1)?.d ?? '', ...MILESTONES.map((m) => m.date)].sort().at(-1)!;
+const lastDate = [prs.at(-1)?.d ?? '', ...MILESTONES.map((m) => m.date), ...rewrittenDate.values()].sort().at(-1)!;
 const last = monday(toT(lastDate));
-const weeks: { start: number; lessons: number; prs: number }[] = [];
+const weeks: { start: number; lessons: number; rewritten: number; prs: number }[] = [];
 for (let t = first; t <= last; t += 7 * DAY) {
   const end = t + 7 * DAY;
   const lessons = MILESTONES.filter((m) => m.course && toT(m.date) < end).reduce((n, m) => n + bySlug.get(m.course!)!.lessons, 0);
   const n = prs.filter((p) => toT(p.d) >= t && toT(p.d) < end).length;
-  weeks.push({ start: t, lessons, prs: n });
+  const rewritten = [...rewrittenDate.values()].filter((d) => toT(d) < end).length;
+  weeks.push({ start: t, lessons, rewritten, prs: n });
 }
 const iso = (t: number) => new Date(t).toISOString().slice(0, 10);
 const W = 640, PAD_L = 40, PAD_R = 12, PAD_T = 14, PAD_B = 26;
@@ -82,6 +92,13 @@ weeks.forEach((w, i) => {
   const x0 = PAD_L + i * step, x1 = x0 + step;
   linePath += `${i === 0 ? 'M' : 'L'}${x0.toFixed(1)},${L.y(w.lessons).toFixed(1)} L${x1.toFixed(1)},${L.y(w.lessons).toFixed(1)} `;
 });
+// Cumulative rewritten lessons, same step shape and same axis, so the climb toward the total shows.
+let rwPath = '';
+weeks.forEach((w, i) => {
+  const x0 = PAD_L + i * step, x1 = x0 + step;
+  rwPath += `${i === 0 ? 'M' : 'L'}${x0.toFixed(1)},${L.y(w.rewritten).toFixed(1)} L${x1.toFixed(1)},${L.y(w.rewritten).toFixed(1)} `;
+});
+const rewrittenNow = weeks.at(-1)!.rewritten;
 const areaPath = `${linePath} L${(PAD_L + plotW).toFixed(1)},${L.y(0).toFixed(1)} L${PAD_L},${L.y(0).toFixed(1)} Z`;
 // Month ticks on the x axis: the first week that starts in each month.
 const monthTicks: { x: number; label: string }[] = [];
@@ -114,15 +131,21 @@ const busiest = [...weeks].sort((a, b) => b.prs - a.prs)[0];
       The busiest week was {fmtDay(iso(busiest.start))}, with {busiest.prs} sets of changes.
     </p>
     <figure class="upd-chart" data-chart>
-      <figcaption>Lessons live</figcaption>
-      <svg viewBox={`0 0 ${W} ${L.H}`} role="img" aria-label={`Lessons live by week, rising from 0 to ${fmt(weeks.at(-1)!.lessons)}`}>
+      <figcaption>Lessons live, and lessons rewritten</figcaption>
+      <p class="upd-muted upd-chart-note">{fmt(rewrittenNow)} of {fmt(lessonCount)} lessons rewritten so far.</p>
+      <ul class="upd-legend" aria-hidden="true">
+        <li><svg width="28" height="8"><line class="line" x1="0" x2="28" y1="4" y2="4" /></svg>Lessons live</li>
+        <li><svg width="28" height="8"><line class="line2" x1="0" x2="28" y1="4" y2="4" /></svg>Lessons rewritten</li>
+      </ul>
+      <svg viewBox={`0 0 ${W} ${L.H}`} role="img" aria-label={`Lessons live by week, rising from 0 to ${fmt(weeks.at(-1)!.lessons)}; lessons rewritten by week, rising from 0 to ${fmt(rewrittenNow)}`}>
         {L.ticks.map((t) => <g class="grid"><line x1={PAD_L} x2={W - PAD_R} y1={L.y(t)} y2={L.y(t)} /><text x={PAD_L - 6} y={L.y(t) + 4} text-anchor="end">{fmt(t)}</text></g>)}
         <path class="area" d={areaPath} />
         <path class="line" d={linePath} />
+        <path class="line2" d={rwPath} />
         {monthTicks.map((m) => <text class="xlab" x={m.x + 2} y={L.H - 8}>{m.label}</text>)}
         {weeks.map((w, i) => (
           <rect class="hit" x={PAD_L + i * step} y={PAD_T} width={step} height={L.plotH}
-            data-tip={`Week of ${fmtDay(iso(w.start))}: ${fmt(w.lessons)} lessons live`} data-i={i} />
+            data-tip={`Week of ${fmtDay(iso(w.start))}: ${fmt(w.lessons)} lessons live, ${fmt(w.rewritten)} rewritten`} data-i={i} />
         ))}
         <line class="cross" x1="0" x2="0" y1={PAD_T} y2={PAD_T + L.plotH} />
       </svg>
@@ -148,8 +171,8 @@ const busiest = [...weeks].sort((a, b) => b.prs - a.prs)[0];
     <details class="upd-table">
       <summary>Show as a table</summary>
       <table>
-        <thead><tr><th>Week of</th><th>Lessons live</th><th>Sets of changes</th></tr></thead>
-        <tbody>{weeks.filter((w, i) => w.prs > 0 || i === 0 || w.lessons !== weeks[i - 1].lessons).map((w) => <tr><td>{fmtDay(iso(w.start))}</td><td>{fmt(w.lessons)}</td><td>{w.prs}</td></tr>)}</tbody>
+        <thead><tr><th>Week of</th><th>Lessons live</th><th>Lessons rewritten</th><th>Sets of changes</th></tr></thead>
+        <tbody>{weeks.filter((w, i) => w.prs > 0 || i === 0 || w.lessons !== weeks[i - 1].lessons || w.rewritten !== weeks[i - 1].rewritten).map((w) => <tr><td>{fmtDay(iso(w.start))}</td><td>{fmt(w.lessons)}</td><td>{fmt(w.rewritten)}</td><td>{w.prs}</td></tr>)}</tbody>
       </table>
       <p class="upd-muted">Weeks with no change are left out.</p>
     </details>
@@ -263,6 +286,11 @@ const busiest = [...weeks].sort((a, b) => b.prs - a.prs)[0];
   .upd-chart text { fill: var(--ddp-color-muted); font-size: 11px; font-variant-numeric: tabular-nums; }
   .upd-chart .area { fill: var(--ddp-color-primary); opacity: .12; }
   .upd-chart .line { fill: none; stroke: var(--ddp-color-primary); stroke-width: 2; stroke-linejoin: round; }
+  .upd-chart .line2 { fill: none; stroke: var(--ddp-color-accent); stroke-width: 2.5; stroke-dasharray: 6 3; stroke-linejoin: round; }
+  .upd-chart .upd-legend { list-style: none; padding: 0; margin: 0 0 .35rem; display: flex; flex-wrap: wrap; gap: .25rem 1.25rem; font-size: .85rem; color: var(--ddp-color-ink-soft); }
+  .upd-chart .upd-legend li { display: flex; align-items: center; gap: .4rem; white-space: nowrap; margin: 0; }
+  .upd-chart .upd-legend svg { width: 28px; height: 8px; flex: none; overflow: visible; }
+  .upd-chart .upd-chart-note { margin: 0 0 .25rem; font-size: .9rem; }
   .upd-chart .bar { fill: var(--ddp-color-primary); }
   .upd-chart .hit { fill: transparent; cursor: crosshair; }
   .upd-chart .hit.on { fill: var(--ddp-color-ink); opacity: .06; }
