@@ -1,134 +1,388 @@
 ---
-/* Every lesson film in one place, grouped by course. Each card opens the film's own page
-   (/watch/...). Posters load only as they scroll into view.
+/* The film library (2026-11-13; it replaces the course-by-course /films/ index of 2026-11-09).
 
-   "Filter films" (2026-11-10): a box that hides the cards whose film title and lesson name do not
-   contain what was typed. It is rendered hidden and shown by a one-line script right after it,
-   so with JavaScript off the page is the full list, as before. */
+   Every film on the site, from src/lib/film-catalog.ts, which derives the list at build time from the
+   lessons, the scientist profiles and the methods library. Each card opens the film's own page
+   (/watch/... for a lesson film, the method page, or the profile on its lesson page), so this page
+   loads posters only and no player.
+
+   Without JavaScript: the full list, grouped by level and course, with plain links.
+   With JavaScript: the controls appear (find, sort, level, course, kind, "Surprise me"). The view
+   lives in the query string (?sort=short&level=graduate&course=...&kind=method&q=...), so a view can
+   be shared and the back button steps back through changes. Results show 60 at a time with a
+   "Show more" button, so a long sorted list does not ask for 800 posters at once. */
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import { allFilms, filmClock } from '../../lib/films';
-import { COURSES, courseHref } from '../../data/courses';
+import Hex from '../../components/Hex.astro';
+import { filmCatalog, KIND_LABELS, KIND_ORDER, KIND_PLURALS, type CatalogFilm } from '../../lib/film-catalog';
+import { filmClock } from '../../lib/films';
+import { courseHref } from '../../data/courses';
+import { STAGES } from '../../data/stages';
 
-const films = await allFilms();
-const groups = COURSES.map((c) => ({ c, items: films.filter((f) => f.course === c.slug) })).filter((g) => g.items.length > 0);
+const films = await filmCatalog();
+
+/* Server-side grouping: level, then course, in catalog order; method films last as their own group. */
+type Group = { key: string; title: string; href: string; items: CatalogFilm[] };
+const levels: { key: string; title: string; courses: Group[] }[] = [];
+for (const f of films) {
+  const sKey = f.stage ?? 'methods';
+  let s = levels.find((x) => x.key === sKey);
+  if (!s) levels.push((s = { key: sKey, title: f.stageTitle, courses: [] }));
+  const cKey = f.course ?? 'methods';
+  let c = s.courses.find((x) => x.key === cKey);
+  if (!c) s.courses.push((c = { key: cKey, title: f.courseTitle, href: f.course ? courseHref(f.course) : '/methods/', items: [] }));
+  c.items.push(f);
+}
+
+const usedStages = STAGES.filter((s) => films.some((f) => f.stage === s.key));
+const usedCourses = levels.flatMap((s) => s.courses).filter((c) => c.key !== 'methods');
+const usedKinds = KIND_ORDER.filter((k) => films.some((f) => f.kind === k));
+const countOf = (k: string) => films.filter((f) => f.kind === k).length;
+const hours = Math.round(films.reduce((n, f) => n + f.durationSec, 0) / 3600);
+const fmt = (n: number) => n.toLocaleString('en-US');
+const plural = (n: number, w: string) => `${fmt(n)} ${w}${n === 1 ? '' : 's'}`;
+const kindLine = (f: CatalogFilm) => (f.part ? `Part ${f.part.n} of ${f.part.of}` : KIND_LABELS[f.kind]);
 ---
 
-<BaseLayout title="Films — Biochemistrypedia" description="Every short narrated film from the lessons, grouped by course. Free, with captions and a transcript, and each one links to the lesson it belongs to.">
+<BaseLayout title="Films — Biochemistrypedia" description="Every short narrated film on the site, from the lessons, the scientist profiles and the methods library. Sort by length, course or level, and each film links to the lesson it belongs to.">
+<div class="film-lib">
   <section class="wrap films-hero" data-pagefind-ignore>
     <p class="eyebrow"><a href="/courses/">All courses</a> · films</p>
-    <h1>Films</h1>
+    <div class="hero-row">
+      <h1>Films</h1>
+      <Hex pose="cheer" size={52} class="films-hex" />
+    </div>
     <p class="lede">
-      Short narrated films from the lessons, a few minutes each. Every film has captions and a transcript,
-      and links to the lesson it belongs to, which has the full text, the questions and the sources.
+      Short narrated films, a few minutes each: the first and second film of the lessons, the scientist
+      profiles and the methods library. Each one has captions and a transcript, and links to the lesson
+      with the full text, the questions and the sources.
     </p>
-    <p class="count">{films.length} films · the animations and narration are AI-generated, as each film’s page says · <a href="/methods/">Methods library</a> for the films on experimental methods</p>
+    <p class="count">
+      {plural(films.length, 'film')}, about {fmt(hours)} hours in all:
+      {usedKinds.map((k) => `${fmt(countOf(k))} ${countOf(k) === 1 ? KIND_LABELS[k].toLowerCase() : KIND_PLURALS[k]}`).join(', ')}.
+      The animations and narration are AI-generated, as each film’s page says.
+    </p>
   </section>
 
-  <div class="wrap film-filter" data-film-filter data-pagefind-ignore hidden>
-    <label for="film-q">Filter films</label>
-    <input id="film-q" type="search" placeholder="Type a word, such as enzyme" autocomplete="off" spellcheck="false" enterkeyhint="search" />
-    <p class="film-filter-status" data-film-status role="status"></p>
-  </div>
-  {/* Shown here, as the page is read, so the list below does not jump when the main script loads. */}
+  {/* The controls. Rendered hidden and shown by the inline script right after, so with JavaScript off
+      the page is the plain grouped list below. */}
+  <form class="wrap fl-controls" data-fl-controls data-pagefind-ignore hidden role="search" aria-label="Sort and filter the films">
+    <div class="fl-row">
+      <label class="fl-field fl-q">
+        <span>Find a film</span>
+        <input type="search" name="q" placeholder="A word in the title, such as kinase" autocomplete="off" spellcheck="false" enterkeyhint="search" />
+      </label>
+      <label class="fl-field">
+        <span>Sort</span>
+        <select name="sort">
+          <option value="course">Course order</option>
+          <option value="short">Shortest first</option>
+          <option value="long">Longest first</option>
+          <option value="new">Newest rewrites</option>
+          <option value="az">A to Z</option>
+        </select>
+      </label>
+      <label class="fl-field">
+        <span>Level</span>
+        <select name="level">
+          <option value="">All levels</option>
+          {usedStages.map((s) => <option value={s.key}>{s.title}</option>)}
+        </select>
+      </label>
+      <label class="fl-field">
+        <span>Course</span>
+        <select name="course">
+          <option value="">All courses</option>
+          {usedCourses.map((c) => <option value={c.key}>{c.title}</option>)}
+        </select>
+      </label>
+      <label class="fl-field">
+        <span>Kind</span>
+        <select name="kind">
+          <option value="">All kinds</option>
+          {usedKinds.map((k) => <option value={k}>{KIND_LABELS[k]}</option>)}
+        </select>
+      </label>
+    </div>
+    <div class="fl-row fl-row2">
+      <p class="fl-status" data-fl-status role="status" aria-live="polite">{plural(films.length, 'film')}</p>
+      <button type="button" class="fl-btn fl-surprise" data-fl-surprise><span aria-hidden="true">🎲</span> Surprise me</button>
+      <button type="button" class="fl-btn" data-fl-reset>Reset</button>
+    </div>
+  </form>
   <script is:inline>document.currentScript.previousElementSibling.hidden = false;</script>
 
-  <nav class="wrap course-nav" aria-label="Jump to a course" data-pagefind-ignore>
-    {groups.map((g) => <a href={`#${g.c.slug}`}>{g.c.title}</a>)}
+  <nav class="wrap jump" aria-label="Jump to a level" data-fl-jump data-pagefind-ignore>
+    {levels.map((s) => <a href={`#lvl-${s.key}`}>{s.title}</a>)}
   </nav>
 
-  <p class="wrap film-none" data-film-none hidden>
-    No films match. Try a shorter word, or <button type="button" data-film-clear>show all films</button>.
+  <div class="wrap fl-none" data-fl-none hidden>
+    <Hex pose="think" size={60} />
+    <p>No films match that. Try a shorter word or fewer filters, or <button type="button" data-fl-clear>show all films</button>.</p>
+  </div>
+
+  <div class="fl-groups" data-fl-groups data-pagefind-ignore>
+    {levels.map((s) => (
+      <section class="wrap lvl" id={`lvl-${s.key}`} aria-labelledby={`lvl-${s.key}-h`}>
+        <h2 id={`lvl-${s.key}-h`}>{s.key === 'methods' ? <a href="/methods/">{s.title}</a> : s.title} {s.key === 'methods' && <span class="n">{plural(s.courses[0].items.length, 'film')}</span>}</h2>
+        {s.courses.map((c) => (
+          <section class="course" id={c.key} aria-label={s.key === 'methods' ? 'Method films' : undefined} aria-labelledby={s.key === 'methods' ? undefined : `c-${c.key}-h`}>
+            {s.key !== 'methods' && (
+              <h3 id={`c-${c.key}-h`}><a href={c.href}>{c.title}</a> <span class="n">{plural(c.items.length, 'film')}</span></h3>
+            )}
+            <ul class="grid">
+              {c.items.map((f) => (
+                <li data-k={f.kind} data-c={f.course ?? ''} data-s={f.stage ?? ''} data-d={Math.round(f.durationSec)} data-r={f.rewritten}>
+                  <a href={f.href}>
+                    <img src={f.poster} alt="" width="320" height="180" loading="lazy" decoding="async" />
+                    <span class="t">{f.title}</span>
+                    <span class="m"><span class="len">{filmClock(f.durationSec)}</span> · {kindLine(f)}<span class="cc"> · {f.courseTitle}</span></span>
+                    {f.lessonTitle && <span class="l">{f.lessonTitle}</span>}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ))}
+      </section>
+    ))}
+  </div>
+
+  <section class="wrap fl-flat" data-fl-flat hidden aria-labelledby="fl-flat-h" data-pagefind-ignore>
+    <h2 id="fl-flat-h" class="visually-hidden">Films</h2>
+    <ul class="grid" data-fl-flat-list></ul>
+  </section>
+
+  <p class="wrap fl-more-row" data-fl-more-row hidden>
+    <button type="button" class="fl-btn" data-fl-more>Show more films</button>
   </p>
 
-  {groups.map((g) => (
-    <section class="wrap course" id={g.c.slug} aria-labelledby={`${g.c.slug}-h`} data-pagefind-ignore>
-      <h2 id={`${g.c.slug}-h`}><a href={courseHref(g.c.slug)}>{g.c.title}</a> <span class="n">{g.items.length} films</span></h2>
-      <ul class="grid">
-        {g.items.map((f) => (
-          <li>
-            <a href={f.href}>
-              <img src={f.poster} alt="" width="480" height="270" loading="lazy" decoding="async" />
-              <span class="t">{f.title}</span>
-              <span class="m">{filmClock(f.durationSec)} · <span class="l">{f.lessonTitle}</span></span>
-            </a>
-          </li>
-        ))}
-      </ul>
-    </section>
-  ))}
-
   <script>
-    // Filter the cards by the words typed: every word must appear in the film title or the lesson name.
-    const box = document.querySelector<HTMLElement>('[data-film-filter]');
-    const input = box?.querySelector<HTMLInputElement>('input');
-    if (box && input) {
-      const fold = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
-      const status = box.querySelector<HTMLElement>('[data-film-status]')!;
-      const none = document.querySelector<HTMLElement>('[data-film-none]')!;
-      const sections = [...document.querySelectorAll<HTMLElement>('section.course')].map((sec) => ({
-        sec,
-        link: document.querySelector<HTMLElement>(`.course-nav a[href="#${sec.id}"]`),
-        n: sec.querySelector<HTMLElement>('h2 .n'),
-        all: sec.querySelector<HTMLElement>('h2 .n')?.textContent ?? '',
-        cards: [...sec.querySelectorAll<HTMLElement>('.grid > li')].map((li) => ({
-          li,
-          text: fold(`${li.querySelector('.t')?.textContent ?? ''} ${li.querySelector('.l')?.textContent ?? ''}`),
-        })),
+    /* Sorting and filtering. Every card is already in the page (grouped by level and course); this
+       script only hides, reorders and pages them. The state is the query string. */
+    const form = document.querySelector<HTMLFormElement>('[data-fl-controls]');
+    const groups = document.querySelector<HTMLElement>('[data-fl-groups]');
+    const flat = document.querySelector<HTMLElement>('[data-fl-flat]');
+    const flatList = document.querySelector<HTMLElement>('[data-fl-flat-list]');
+    if (form && groups && flat && flatList) {
+      const PAGE = 60;
+      const SORTS = ['course', 'short', 'long', 'new', 'az'];
+      const FIELDS = ['q', 'sort', 'level', 'course', 'kind'] as const;
+      type State = Record<(typeof FIELDS)[number], string>;
+      const $ = <T extends Element>(sel: string) => document.querySelector<T>(sel)!;
+      const status = $<HTMLElement>('[data-fl-status]');
+      const none = $<HTMLElement>('[data-fl-none]');
+      const moreRow = $<HTMLElement>('[data-fl-more-row]');
+      const moreBtn = $<HTMLButtonElement>('[data-fl-more]');
+      const surprise = $<HTMLButtonElement>('[data-fl-surprise]');
+      const jump = $<HTMLElement>('[data-fl-jump]');
+      const fold = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+      const field = (n: string) => form.elements.namedItem(n) as HTMLInputElement | HTMLSelectElement;
+
+      const cards = [...groups.querySelectorAll<HTMLLIElement>('.grid > li')].map((li, i) => ({
+        li, i,
+        home: li.parentElement!,
+        k: li.dataset.k!, c: li.dataset.c!, s: li.dataset.s!,
+        d: Number(li.dataset.d), r: li.dataset.r ?? '',
+        title: li.querySelector('.t')!.textContent!.trim(),
+        text: fold(`${li.querySelector('.t')?.textContent ?? ''} ${li.querySelector('.l')?.textContent ?? ''}`),
+        href: li.querySelector('a')!.getAttribute('href')!,
       }));
-      const apply = () => {
-        const words = fold(input.value).split(/\s+/).filter(Boolean);
-        let shown = 0;
-        for (const { sec, link, n, all, cards } of sections) {
-          let here = 0;
-          for (const { li, text } of cards) {
-            const ok = words.every((w) => text.includes(w));
-            li.hidden = !ok;
-            if (ok) here++;
-          }
-          sec.hidden = here === 0;
-          if (link) link.hidden = here === 0;
-          if (n) n.textContent = words.length ? `${here} of ${all}` : all; // "3 of 96 films"
-          shown += here;
-        }
-        none.hidden = shown > 0;
-        status.textContent = words.length ? (shown === 1 ? '1 film matches' : `${shown} films match`) : '';
+      type Card = (typeof cards)[number];
+      const sections = [...groups.querySelectorAll<HTMLElement>('section.course')].map((sec) => {
+        // The film count beside the course name (for the methods group, beside the level name).
+        const n = sec.querySelector<HTMLElement>('h3 .n') ?? sec.parentElement!.querySelector<HTMLElement>('h2 .n');
+        return { sec, n, all: n?.textContent ?? '' };
+      });
+      const levelSections = [...groups.querySelectorAll<HTMLElement>('section.lvl')];
+      const collator = new Intl.Collator('en', { sensitivity: 'base', numeric: true });
+      const COMPARE: Record<string, (a: Card, b: Card) => number> = {
+        course: (a, b) => a.i - b.i,
+        short: (a, b) => a.d - b.d || a.i - b.i,
+        long: (a, b) => b.d - a.d || a.i - b.i,
+        // Newest rewrites first; films whose lesson has no rewrite date follow, in course order.
+        new: (a, b) => (b.r > a.r ? 1 : b.r < a.r ? -1 : 0) || a.i - b.i,
+        az: (a, b) => collator.compare(a.title, b.title) || a.i - b.i,
       };
-      input.addEventListener('input', apply);
-      none.querySelector('[data-film-clear]')?.addEventListener('click', () => { input.value = ''; apply(); input.focus(); });
-      if (input.value) apply(); // the browser kept the text across a reload or "back"
+
+      let limit = PAGE;
+      let current: Card[] = [];
+
+      const read = (): State => {
+        const p = new URLSearchParams(location.search);
+        const st = Object.fromEntries(FIELDS.map((f) => [f, (p.get(f) ?? '').trim()])) as State;
+        if (!SORTS.includes(st.sort)) st.sort = 'course';
+        // A value the selects do not offer (an old or mistyped link) is ignored.
+        for (const f of ['level', 'course', 'kind'] as const) {
+          const sel = field(f) as HTMLSelectElement;
+          if (![...sel.options].some((o) => o.value === st[f])) st[f] = '';
+        }
+        return st;
+      };
+      const fromForm = (): State => Object.fromEntries(FIELDS.map((f) => [f, field(f).value.trim()])) as State;
+      const toForm = (st: State) => { for (const f of FIELDS) field(f).value = st[f]; };
+      const urlFor = (st: State) => {
+        const p = new URLSearchParams();
+        for (const f of FIELDS) if (st[f] && !(f === 'sort' && st[f] === 'course')) p.set(f, st[f]);
+        const qs = p.toString();
+        return `${location.pathname}${qs ? `?${qs}` : ''}`;
+      };
+
+      const matches = (st: State) => {
+        const words = fold(st.q).split(/\s+/).filter(Boolean);
+        return cards.filter((c) =>
+          (!st.level || c.s === st.level) &&
+          (!st.course || c.c === st.course) &&
+          (!st.kind || c.k === st.kind) &&
+          words.every((w) => c.text.includes(w)));
+      };
+
+      const render = (st: State, keepLimit = false) => {
+        if (!keepLimit) limit = PAGE;
+        current = matches(st).sort(COMPARE[st.sort]);
+        const shown = new Set(current.slice(0, limit));
+        const grouped = st.sort === 'course';
+        if (grouped) {
+          for (const c of cards) c.home.appendChild(c.li); // back to its course, in the original order
+        } else {
+          for (const c of current) if (shown.has(c)) flatList.appendChild(c.li);
+          for (const c of cards) if (!shown.has(c) && c.li.parentElement !== c.home) c.home.appendChild(c.li);
+        }
+        for (const c of cards) c.li.hidden = !shown.has(c);
+        groups.hidden = !grouped;
+        flat.hidden = grouped;
+        jump.hidden = !grouped || current.length !== cards.length;
+        if (grouped) {
+          const filtered = current.length !== cards.length;
+          for (const { sec, n, all } of sections) {
+            const here = sec.querySelectorAll('li:not([hidden])').length;
+            sec.hidden = here === 0;
+            if (n) n.textContent = filtered ? `${current.filter((c) => c.home.closest('section.course') === sec).length} of ${all}` : all;
+          }
+          for (const lv of levelSections) lv.hidden = !lv.querySelector('section.course:not([hidden])');
+        }
+        const n = current.length;
+        const total = cards.length;
+        none.hidden = n > 0;
+        moreRow.hidden = shown.size >= n;
+        moreBtn.textContent = `Show more films (${(n - shown.size).toLocaleString('en-US')} more)`;
+        status.textContent = n === total ? `${total.toLocaleString('en-US')} films` : `${n.toLocaleString('en-US')} of ${total.toLocaleString('en-US')} films`;
+        surprise.disabled = n === 0;
+      };
+
+      const apply = (push: boolean) => {
+        const st = fromForm();
+        const url = urlFor(st);
+        if (url !== location.pathname + location.search) history[push ? 'pushState' : 'replaceState'](null, '', url);
+        render(st);
+      };
+
+      form.addEventListener('submit', (e) => e.preventDefault()); // Enter in the find box does not reload
+      // A select change makes a history entry (so Back undoes it); typing replaces the current one.
+      form.addEventListener('change', (e) => { if ((e.target as Element).tagName === 'SELECT') apply(true); });
+      field('q').addEventListener('input', () => apply(false));
+      window.addEventListener('popstate', () => { const st = read(); toForm(st); render(st); });
+
+      moreBtn.addEventListener('click', () => {
+        const next = current[limit];
+        limit += PAGE;
+        render(fromForm(), true);
+        next?.li.querySelector('a')?.focus();
+      });
+      const clear = () => { form.reset(); field('sort').value = 'course'; apply(true); };
+      $('[data-fl-reset]').addEventListener('click', clear);
+      $('[data-fl-clear]').addEventListener('click', () => { clear(); field('q').focus(); });
+      surprise.addEventListener('click', () => {
+        const pool = current.length ? current : cards;
+        location.href = pool[Math.floor(Math.random() * pool.length)].href;
+      });
+
+      const st = read();
+      toForm(st);
+      render(st);
     }
   </script>
 
-  <style>
-    .film-filter { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ddp-space-2) var(--ddp-space-3); margin-top: var(--ddp-space-6); }
-    .film-filter[hidden] { display: none; }
-    .film-filter label { font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink); }
-    .film-filter input { flex: 0 1 22rem; min-width: 0; min-height: 44px; padding: 0 1em; border: 1px solid var(--ddp-color-line); border-radius: 999px; background: var(--ddp-color-surface); color: var(--ddp-color-ink); font: inherit; font-size: 1rem; }
-    .film-filter input:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; border-color: var(--ddp-color-accent); }
-    .film-filter-status { margin: 0; min-width: 9em; font-size: var(--ddp-text-sm); color: var(--ddp-color-muted); }
-    .film-filter:not([hidden]) ~ .course-nav { margin-top: var(--ddp-space-3); }
-    .course-nav a[hidden] { display: none; }
-    .film-none { margin-top: var(--ddp-space-8); color: var(--ddp-color-ink-soft); }
-    .film-none button { padding: 0; border: 0; background: none; font: inherit; color: var(--ddp-color-accent); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
-    .films-hero { padding-top: var(--ddp-space-12); }
-    .eyebrow { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: 0.14em; text-transform: uppercase; color: var(--ddp-color-caution-ink); margin: 0; }
-    .eyebrow a { color: inherit; }
-    .lede { font-size: var(--ddp-text-lg); line-height: 1.6; color: var(--ddp-color-ink-soft); max-width: 62ch; margin: var(--ddp-space-3) 0 0; }
-    .count { font-size: var(--ddp-text-sm); color: var(--ddp-color-muted); margin: var(--ddp-space-3) 0 0; }
-    .count a { color: var(--ddp-color-accent); }
-    .course-nav { display: flex; flex-wrap: wrap; gap: var(--ddp-space-2); margin-top: var(--ddp-space-6); }
-    .course-nav a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 1em; border: 1px solid var(--ddp-color-line); border-radius: 999px; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink); text-decoration: none; background: var(--ddp-color-surface); }
-    .course-nav a:hover { border-color: var(--ddp-color-accent); color: var(--ddp-color-accent); }
-    .course { margin-top: var(--ddp-space-12); scroll-margin-top: 5rem; }
-    .course h2 { margin: 0 0 var(--ddp-space-4); font-size: var(--ddp-text-xl); }
-    .course h2 a { color: inherit; text-decoration: none; }
-    .course h2 a:hover { color: var(--ddp-color-accent); }
-    .n { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); margin-left: 0.5em; }
-    .grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: var(--ddp-space-5) var(--ddp-space-4); }
-    .grid a { display: grid; gap: 0.3rem; text-decoration: none; color: var(--ddp-color-ink); }
-    .grid img { width: 100%; height: auto; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 8px; background: #0f1117; }
-    .t { font-weight: 600; font-size: var(--ddp-text-sm); line-height: 1.35; }
-    .grid a:hover .t { color: var(--ddp-color-accent); }
-    .m { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); line-height: 1.4; }
+  <style is:global>
+    /* Global, but every rule is under .film-lib: scoped styles would stamp an attribute on each of
+       the ~900 cards and add about a fifth to the page. */
+    .film-lib .films-hero { padding-top: var(--ddp-space-12); }
+    .film-lib .hero-row { display: flex; align-items: center; gap: var(--ddp-space-3); }
+    .film-lib .hero-row h1 { margin: 0; font-size: var(--ddp-text-3xl); line-height: 1.1; }
+    .film-lib .hero-row .films-hex { flex: none; }
+    .film-lib .eyebrow { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: 0.14em; text-transform: uppercase; color: var(--ddp-color-caution-ink); margin: 0 0 var(--ddp-space-2); }
+    .film-lib .eyebrow a { color: inherit; }
+    .film-lib .lede { font-size: var(--ddp-text-lg); line-height: 1.6; color: var(--ddp-color-ink-soft); max-width: 62ch; margin: var(--ddp-space-3) 0 0; }
+    .film-lib .count { font-size: var(--ddp-text-sm); color: var(--ddp-color-muted); margin: var(--ddp-space-3) 0 0; max-width: 72ch; }
+
+    .film-lib .fl-controls { margin-top: var(--ddp-space-6); }
+    .film-lib .fl-controls[hidden] { display: none; }
+    .film-lib .fl-row { display: flex; flex-wrap: wrap; gap: var(--ddp-space-3); align-items: flex-end; }
+    .film-lib .fl-row2 { margin-top: var(--ddp-space-3); align-items: center; }
+    .film-lib .fl-field { display: grid; gap: 0.25rem; min-width: 0; flex: 1 1 9rem; }
+    .film-lib .fl-field.fl-q { flex: 2 1 16rem; }
+    .film-lib .fl-field > span { font-size: var(--ddp-text-xs); font-weight: 600; color: var(--ddp-color-ink); }
+    .film-lib .fl-field input, .film-lib .fl-field select {
+      width: 100%; min-width: 0; min-height: 44px; padding: 0 0.8em; border: 1px solid var(--ddp-color-line); border-radius: 10px;
+      background: var(--ddp-color-surface); color: var(--ddp-color-ink); font: inherit; font-size: 1rem;
+    }
+    .film-lib .fl-field input:focus-visible, .film-lib .fl-field select:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; border-color: var(--ddp-color-accent); }
+    .film-lib .fl-status { margin: 0 auto 0 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-muted); }
+    .film-lib .fl-btn {
+      display: inline-flex; align-items: center; gap: 0.4em; min-height: 44px; padding: 0 1.1em; border-radius: 999px;
+      border: 1px solid var(--ddp-color-line); background: var(--ddp-color-surface); color: var(--ddp-color-ink);
+      font: inherit; font-size: var(--ddp-text-sm); font-weight: 600; cursor: pointer;
+    }
+    .film-lib .fl-btn:hover { border-color: var(--ddp-color-accent); color: var(--ddp-color-accent); }
+    .film-lib .fl-btn:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+    .film-lib .fl-btn:disabled { opacity: 0.5; cursor: default; }
+    .film-lib .fl-surprise { background: var(--ddp-color-accent-soft); border-color: color-mix(in srgb, var(--ddp-color-accent) 45%, transparent); }
+
+    .film-lib .jump { display: flex; flex-wrap: wrap; gap: var(--ddp-space-2); margin-top: var(--ddp-space-6); }
+    .film-lib .jump[hidden] { display: none; }
+    .film-lib .jump a { display: inline-flex; align-items: center; min-height: 40px; padding: 0 1em; border: 1px solid var(--ddp-color-line); border-radius: 999px; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink); text-decoration: none; background: var(--ddp-color-surface); }
+    .film-lib .jump a:hover { border-color: var(--ddp-color-accent); color: var(--ddp-color-accent); }
+    .film-lib .jump a:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+
+    .film-lib .fl-none { display: flex; align-items: center; gap: var(--ddp-space-4); margin-top: var(--ddp-space-8); color: var(--ddp-color-ink-soft); }
+    .film-lib .fl-none[hidden] { display: none; }
+    .film-lib .fl-none p { margin: 0; }
+    .film-lib .fl-none button { padding: 0; border: 0; background: none; font: inherit; color: var(--ddp-color-accent); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+
+    .film-lib .fl-groups[hidden], .film-lib .fl-flat[hidden], .film-lib .lvl[hidden], .film-lib .course[hidden], .film-lib .fl-more-row[hidden] { display: none; }
+    .film-lib .lvl { margin-top: var(--ddp-space-12); scroll-margin-top: 5rem; }
+    .film-lib .lvl > h2 { margin: 0; font-size: var(--ddp-text-2xl); }
+    .film-lib .lvl > h2 a { color: inherit; text-decoration: none; }
+    .film-lib .course { margin-top: var(--ddp-space-6); scroll-margin-top: 5rem; }
+    .film-lib .course h3 { margin: 0 0 var(--ddp-space-3); font-size: var(--ddp-text-lg); }
+    .film-lib .course h3 a { color: inherit; text-decoration: none; }
+    .film-lib .course h3 a:hover, .film-lib .lvl > h2 a:hover { color: var(--ddp-color-accent); }
+    .film-lib .n { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); margin-left: 0.5em; }
+    .film-lib .fl-flat { margin-top: var(--ddp-space-8); }
+
+    .film-lib .grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr)); gap: var(--ddp-space-6) var(--ddp-space-4); }
+    .film-lib .grid li[hidden] { display: none; }
+    /* Phones: two compact cards per row rather than one tall one. */
+    @media (max-width: 560px) {
+      .film-lib .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--ddp-space-4) var(--ddp-space-3); }
+      .film-lib .l { display: none; }
+    }
+    .film-lib .grid a { display: grid; align-content: start; gap: 0.3rem; padding: 6px; margin: -6px; border-radius: 12px; text-decoration: none; color: var(--ddp-color-ink); }
+    .film-lib .grid a:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+    .film-lib .grid img { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 8px; background: #0f1117; transition: transform 0.18s ease, box-shadow 0.18s ease; }
+    .film-lib .grid a:hover img, .film-lib .grid a:focus-visible img { transform: translateY(-3px) rotate(-0.6deg); box-shadow: 0 6px 16px rgba(0, 0, 0, 0.18); }
+    .film-lib .t { font-weight: 600; font-size: var(--ddp-text-sm); line-height: 1.35; }
+    .film-lib .grid a:hover .t { color: var(--ddp-color-accent); }
+    .film-lib .m, .film-lib .l { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); line-height: 1.4; }
+    .film-lib .len { font-family: var(--ddp-font-mono); }
+    /* Inside a course group the heading names the course, so the card leaves it out. */
+    .film-lib .fl-groups .cc { display: none; }
+
+    .film-lib .fl-more-row { margin-top: var(--ddp-space-8); text-align: center; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .film-lib .grid img { transition: none; }
+      .film-lib .grid a:hover img, .film-lib .grid a:focus-visible img { transform: none; }
+    }
   </style>
+</div>
 </BaseLayout>

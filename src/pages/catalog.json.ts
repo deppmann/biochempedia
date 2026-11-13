@@ -10,6 +10,7 @@ export const GET: APIRoute = async () => {
     description: 'Free science lessons, films and simulations, starting with biology: ages 5 to graduate school.',
     llms: `${SITE}/llms.txt`,
     lessonMarkdown: `${SITE}/lessons/{slug}.md`,
+    films: `${SITE}/films.json`,
     // Lesson text, the site's own figures and its films. The licence page lists what is not covered.
     license: 'https://creativecommons.org/licenses/by-nc-sa/4.0/',
     licenseName: 'CC BY-NC-SA 4.0',

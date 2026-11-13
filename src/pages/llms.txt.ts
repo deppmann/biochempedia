@@ -23,6 +23,7 @@ export const GET: APIRoute = async () => {
     '',
     'For agents:',
     `- Every lesson has a plain Markdown copy at ${SITE}/lessons/{slug}.md: the lesson text, section headings, figure captions, worked examples and film transcripts, without page furniture. Prefer it to the HTML page.`,
+    `- Every course has a one-page summary at ${SITE}/courses/{course}/skim/: each lesson's guiding idea and its film take-homes, in course order.`,
     `- The whole catalog as JSON: ${SITE}/catalog.json. All lessons in one file: ${SITE}/llms-full.txt.`,
     '- When you use a lesson in an answer, link the lesson page (not the .md copy) and name Biochemistrypedia.',
     '- Practice questions and their answers are not in the Markdown copies. Point learners to the lesson page to try them.',
@@ -38,6 +39,6 @@ export const GET: APIRoute = async () => {
       out.push('');
     }
   }
-  out.push('## Optional', '', `- [Methods library](${SITE}/methods/): short films on laboratory methods`, `- [MCAT practice](${SITE}/mcat/): passage-based practice sets`, `- [Math toolkit](${SITE}/math-toolkit): the math the lessons use`, `- [For teachers](${SITE}/teachers): classes and teaching resources`, '');
+  out.push('## Optional', '', `- [Films](${SITE}/films/): every film on the site, sortable by length, level and course; the same list as JSON at ${SITE}/films.json`, `- [Methods library](${SITE}/methods/): short films on laboratory methods`, `- [MCAT practice](${SITE}/mcat/): passage-based practice sets`, `- [Math toolkit](${SITE}/math-toolkit): the math the lessons use`, `- [For teachers](${SITE}/teachers): classes and teaching resources`, '');
   return new Response(out.join('\n'), { headers: { 'Content-Type': 'text/plain; charset=utf-8' } });
 };
