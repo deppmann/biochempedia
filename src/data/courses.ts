@@ -553,3 +553,6 @@ export function unitsFor<T extends { data: { slug: string; order?: number } }>(c
 
 /** Where a course lives. */
 export const courseHref = (slug: string) => `/courses/${slug}/`;
+
+/** The course's one-page Skim version: each lesson's guiding idea and film take-homes, in order. */
+export const courseSkimHref = (slug: string) => `/courses/${slug}/skim/`;

@@ -1,420 +1,505 @@
-"""DNA: Structure and Copying: Base pairing lets DNA copy itself  (Biochemistrypedia explainer)
-
-COLOR MAP (one color per concept, whole video)
-  BLUE   = base A      ORANGE = base T      GREEN = base C      PURPLE = base G
-  GREY   = old sugar-phosphate backbone, outlines, de-emphasized labels
-  GOLD   = backbone of a NEW strand
-  TEXT   = hydrogen bonds (dashed rungs), plain labels, the long DNA line
-  TEAL   = a vocabulary term label, shown the moment it is spoken
-  PINK   = an enzyme
-  YELLOW = what is highlighted; a count or estimate
-  RED    = a wrong base
-DNA is drawn only as a ladder of labelled blocks (two parallel bars with blocks between them).
-No atoms, no rings, no helix model. The 6-letter piece is a model, not a real gene.
-"""
-import numpy as np
-from bp_style import *  # noqa: F401,F403
-
-ORANGE = "#F29E4C"
-PURPLE = "#B58CF0"
-PINK = "#E86FB0"
-BASECOL = {"A": BLUE, "T": ORANGE, "C": GREEN, "G": PURPLE}
-COMP = {"A": "T", "T": "A", "C": "G", "G": "C"}
-TOP = "ATGCCA"
-BOT = "".join(COMP[c] for c in TOP)      # TACGGT
+from bp_parts import *
 
 
-def P(x, y):
+# COLOR MAP: old strand/backbone GREY; new strand GOLD; A RED; T BLUE;
+# C GREEN; G PURPLE; labels TEXT. These colours never change meaning.
+PURPLE = "#B58AE8"
+BASE_COLOR = {"A": RED, "T": BLUE, "C": GREEN, "G": PURPLE}
+PAIR = {"A": "T", "T": "A", "C": "G", "G": "C"}
+SEQ = "GATTCA"
+PARTNER = "CTAAGT"
+
+
+class FilmSpokenScene(SpokenScene):
+    """A dense, gently breathing stage shared by every spoken scene."""
+
+    def setup(self):
+        super().setup()
+        self.stage = RoundedRectangle(corner_radius=0.28, width=12.8, height=6.8,
+                                      stroke_color="#405371", stroke_width=2,
+                                      fill_color="#263653", fill_opacity=1).set_z_index(-20)
+        self.stage.layout_ok = True  # deliberate full-scene backdrop behind all labels
+        self.add(self.stage)
+
+    def wait(self, duration=1, *args, **kwargs):
+        # Keep the actual diagram moving during narration gaps: a repeated, slow
+        # horizontal breath is visible but returns every object to its exact place.
+        if duration > 0.18 and self.mobjects:
+            cycles = max(1, int(np.ceil(duration / 1.2)))
+            dt = duration / cycles
+            for _ in range(cycles):
+                movers = [m for m in self.mobjects if m is not None]
+                self.play(*[m.animate.shift(RIGHT * 0.18) for m in movers],
+                          rate_func=there_and_back, run_time=dt)
+        else:
+            super().wait(duration, *args, **kwargs)
+
+
+def p(x, y):
     return np.array([x, y, 0.0])
 
 
-def term(text, size=26):
-    return chip(text, TEAL, size=size)
+def base_block(letter, width=1.0, height=0.58, font_size=32, dashed=False):
+    col = BASE_COLOR[letter]
+    box_cls = DashedVMobject if dashed else None
+    box = RoundedRectangle(corner_radius=0.1, width=width, height=height,
+                           stroke_color=col, stroke_width=3,
+                           fill_color=col, fill_opacity=0.32)
+    if box_cls:
+        box = DashedVMobject(box, num_dashes=18)
+    lab = T(letter, font_size, TEXT, weight=BOLD).move_to(box)
+    lab.layout_ok = True  # letter deliberately sits inside its coloured base block
+    return VGroup(box, lab)
 
 
-def block(letter, w, h, fs):
-    letter = letter if letter in BASECOL else ""
-    col = BASECOL.get(letter, TEXT)
-    r = RoundedRectangle(corner_radius=0.08, width=w, height=h, stroke_color=col, stroke_width=3,
-                         fill_color=col, fill_opacity=0.35 if letter else 0.0)
-    if letter:
-        return VGroup(r, T(letter, fs, TEXT, weight=BOLD).move_to(r))
-    return VGroup(r)
+def empty_slot(width=1.0, height=0.58):
+    return DashedVMobject(RoundedRectangle(corner_radius=0.1, width=width, height=height,
+                                           stroke_color=GREY, stroke_width=3), num_dashes=18)
 
 
-def seg(w, bt, col):
-    return RoundedRectangle(corner_radius=0.05, width=w, height=bt, stroke_color=col, stroke_width=2,
-                            fill_color=col, fill_opacity=0.6)
+def arrow_tip(point, direction, color=GREY, size=0.22):
+    tip = Triangle(color=color, fill_color=color, fill_opacity=1, stroke_width=0).scale(size)
+    if np.allclose(direction, DOWN):
+        tip.rotate(PI)
+    elif np.allclose(direction, LEFT):
+        tip.rotate(PI / 2)
+    elif np.allclose(direction, RIGHT):
+        tip.rotate(-PI / 2)
+    return tip.move_to(point)
 
 
-class Dims:
-    def __init__(self, sp, bw, bh, bt, rg, fs):
-        self.sp, self.bw, self.bh, self.bt, self.rg, self.fs = sp, bw, bh, bt, rg, fs
-
-    def xs(self, n=6, cx=0.0):
-        return [cx + (i - (n - 1) / 2) * self.sp for i in range(n)]
-
-
-BIG = Dims(1.45, 1.2, 0.8, 0.26, 0.9, 34)
-SMALL = Dims(1.3, 0.9, 0.64, 0.2, 0.5, 28)
-MINI = Dims(0.76, 0.64, 0.52, 0.15, 0.32, 24)
-
-
-def strand(seq, dm, cx, block_cy, bar_above, col=GREY):
-    """A strand: a row of backbone segments (one per nucleotide) with a base block under (or over) each.
-    bar_above=True: backbone above the blocks (a top strand). Returns (group, segs, blocks)."""
-    segs, blocks = [], []
-    off = dm.bh / 2 + 0.04 + dm.bt / 2
-    by = block_cy + (off if bar_above else -off)
-    for x, ch in zip(dm.xs(len(seq), cx), seq):
-        s = seg(dm.sp - 0.07, dm.bt, col).move_to(P(x, by))
-        b = block(ch, dm.bw, dm.bh, dm.fs).move_to(P(x, block_cy))
-        segs.append(s)
-        blocks.append(b)
-    return VGroup(*segs, *blocks), segs, blocks
-
-
-def rung(top_b, bot_b, w=3):
-    return DashedLine(top_b.get_bottom(), bot_b.get_top(), dash_length=0.09, color=TEXT, stroke_width=w)
-
-
-class Ladder:
-    def __init__(self, top_seq, bot_seq, dm, cx, cy, top_col=GREY, bot_col=GREY, live=False):
-        self.dm = dm
-        tcy = cy + dm.rg / 2 + dm.bh / 2
-        bcy = cy - dm.rg / 2 - dm.bh / 2
-        self.top, self.tsegs, self.tblocks = strand(top_seq, dm, cx, tcy, True, top_col)
-        self.bot, self.bsegs, self.bblocks = strand(bot_seq, dm, cx, bcy, False, bot_col)
-        if live:
-            self.rungs = VGroup(*[always_redraw(lambda a=a, b=b: rung(a, b)) for a, b in zip(self.tblocks, self.bblocks)])
+def vertical_strand(seq, x=-1.65, bases_right=True, color=GREY, y_top=2.45,
+                    spacing=0.86, block_w=1.05, arrow=True):
+    ys = [y_top - i * spacing for i in range(len(seq))]
+    base_x = x + (0.72 if bases_right else -0.72)
+    backbone = Line(p(x, ys[0] + 0.38), p(x, ys[-1] - 0.38), color=color, stroke_width=12)
+    ticks, blocks = VGroup(), VGroup()
+    for ch, y in zip(seq, ys):
+        tick = Line(p(x, y), p(base_x - (0.52 if bases_right else -0.52), y),
+                    color=color, stroke_width=7)
+        ticks.add(tick)
+        blocks.add(base_block(ch, width=block_w).move_to(p(base_x, y)))
+    parts = [backbone, ticks, blocks]
+    if arrow:
+        if bases_right:
+            parts.append(arrow_tip(p(x, ys[-1] - 0.58), DOWN, color))
         else:
-            self.rungs = VGroup(*[rung(a, b) for a, b in zip(self.tblocks, self.bblocks)])
-        self.all = VGroup(self.top, self.bot, self.rungs)
+            parts.append(arrow_tip(p(x, ys[0] + 0.58), UP, color))
+    g = VGroup(*parts)
+    g.backbone, g.ticks, g.blocks = backbone, ticks, blocks
+    g.arrow = parts[-1] if arrow else VGroup()
+    return g
 
 
-def banner(text, size=30, color=TEXT, y=-3.0):
-    return T(text, size, color).move_to(P(0, y))
+def vertical_ladder(seq=SEQ, partner=PARTNER, left_x=-1.65, right_x=1.65,
+                    left_color=GREY, right_color=GREY, y_top=2.45, spacing=0.86):
+    left = vertical_strand(seq, left_x, True, left_color, y_top, spacing)
+    right = vertical_strand(partner, right_x, False, right_color, y_top, spacing)
+    bonds = VGroup(*[
+        DashedLine(a.get_right(), b.get_left(), dash_length=0.1, color=TEXT, stroke_width=3)
+        for a, b in zip(left.blocks, right.blocks)
+    ])
+    g = VGroup(left, right, bonds)
+    g.left, g.right, g.bonds = left, right, bonds
+    return g
+
+
+def horizontal_ladder(seq="ATCGTA", center=p(0, 0.25), scale=1.0):
+    xs = np.linspace(-4.0, 4.0, len(seq))
+    top_y, bot_y = 1.15, -0.65
+    top = Line(p(xs[0] - 0.45, top_y), p(xs[-1] + 0.45, top_y), color=GREY, stroke_width=11)
+    bot = Line(p(xs[0] - 0.45, bot_y), p(xs[-1] + 0.45, bot_y), color=GREY, stroke_width=11)
+    tops, bots, bonds = VGroup(), VGroup(), VGroup()
+    for x, ch in zip(xs, seq):
+        a = base_block(ch, width=1.05, height=0.58, font_size=30).move_to(p(x, 0.68))
+        b = base_block(PAIR[ch], width=1.05, height=0.58, font_size=30).move_to(p(x, -0.18))
+        tops.add(a); bots.add(b)
+        bonds.add(DashedLine(a.get_bottom(), b.get_top(), dash_length=0.08, color=TEXT, stroke_width=3))
+    g = VGroup(top, bot, tops, bots, bonds).move_to(center).scale(scale)
+    g.top_line, g.bot_line, g.top_blocks, g.bot_blocks, g.bonds = top, bot, tops, bots, bonds
+    g.top_half = VGroup(top, tops)
+    g.bot_half = VGroup(bot, bots)
+    return g
+
+
+def predict_world(with_slots=True):
+    strand = vertical_strand(SEQ, x=-1.6, bases_right=True, y_top=2.45, spacing=0.86)
+    slots = VGroup(*[empty_slot().move_to(p(1.6, 2.45 - i * 0.86)) for i in range(6)])
+    pencil = VGroup(
+        Rectangle(width=0.25, height=1.0, color=GOLD, fill_color=GOLD, fill_opacity=0.75),
+        Triangle(color=TEXT, fill_color=TEXT, fill_opacity=1, stroke_width=0).scale(0.14).next_to(p(0, -0.5), DOWN, buff=0)
+    ).rotate(-0.35).move_to(p(3.25, -0.1))
+    return VGroup(strand, slots, pencil)
+
+
+def template_world():
+    left = vertical_strand(SEQ, x=-3.7, bases_right=True, y_top=2.45, spacing=0.7, block_w=0.82)
+    right = vertical_strand(PARTNER, x=3.7, bases_right=False, y_top=2.45, spacing=0.7, block_w=0.82)
+    return VGroup(left, right)
+
+
+def small_molecule(seq, partner, cx, old_on_left=True):
+    lx, rx = cx - 0.82, cx + 0.82
+    lc, rc = (GREY, GOLD) if old_on_left else (GOLD, GREY)
+    return vertical_ladder(seq, partner, lx, rx, lc, rc, y_top=1.8, spacing=0.62)
 
 
 class S00Title(TitleCard):
     LESSON = "DNA: Structure and Copying"
-    TITLE = "Base Pairing Lets DNA Copy Itself"
-
-
-# ---------------------------------------------------------------------------------------------
-class S01Question(SpokenScene):
-    """The puzzle: nearly 2 metres of DNA in a tiny nucleus, copied almost perfectly."""
+    TITLE = "One Strand Is Enough"
 
     def construct(self):
-        nuc = Circle(radius=1.15, stroke_color=GREY, stroke_width=4, fill_color=GREY, fill_opacity=0.08).move_to(P(0, 0.2))
-        nlab_a = T("nucleus", 26, GREY).move_to(P(0, -1.3))
-        bar = Line(P(-5.0, 2.55), P(5.0, 2.55), color=TEXT, stroke_width=8)
-        blab = T("nearly 2 metres of DNA (not to scale)", 28, TEXT).move_to(P(0, 3.15))
-        pts = []
-        ys = np.linspace(-0.8, 0.8, 9)
-        for k, yy in enumerate(ys):
-            half = np.sqrt(max(1.0 - (yy / 1.0) ** 2, 0.02)) * 0.92
-            xs_ = [-half, half] if k % 2 == 0 else [half, -half]
-            for xx in xs_:
-                pts.append(P(xx, 0.2 + yy))
-        tangle = VMobject(color=TEXT, stroke_width=5)
-        tangle.set_points_as_corners(pts)
-
-        self.at("with a nucleus")
-        self.play(FadeIn(nuc, scale=0.8), FadeIn(nlab_a), run_time=0.7)
-        self.at("holds nearly")
-        self.play(Create(bar), FadeIn(blab, shift=DOWN * 0.1), run_time=1.0)
-        self.at("packed into")
-        nlab_b = T("nucleus: about 0.005 to 0.010 mm across", 26, GREY).move_to(P(0, -1.3))
-        self.play(ReplacementTransform(bar, tangle), FadeOut(blab), run_time=1.2)
-        self.at("only about")
-        self.play(ReplacementTransform(nlab_a, nlab_b), run_time=0.6)
-        self.at("cell divides")
-        self.wait(0.3)
-        self.at("base pairs")
-        b1 = banner("roughly 6 billion base pairs copied", 32, YELLOW, -2.45)
-        self.play(FadeIn(b1, shift=UP * 0.15), run_time=0.6)
-        self.at("almost every one")
-        b2 = banner("almost every one right", 32, GREEN, -3.1)
-        self.play(FadeIn(b2, shift=UP * 0.15), run_time=0.6)
-        self.at("How can the structure")
-        q1 = banner("How can the structure of DNA", 34, YELLOW, -2.45)
-        q2 = banner("store information and copy itself almost perfectly?", 34, YELLOW, -3.1)
-        self.play(FadeOut(b1), FadeOut(b2), run_time=0.4)
-        self.play(FadeIn(q1, shift=UP * 0.15), FadeIn(q2, shift=UP * 0.15), run_time=0.7)
+        brand = T("BIOCHEMISTRYPEDIA", 20, TEAL, weight=BOLD).set_opacity(0.9)
+        brand.layout_ok = True
+        lesson = T(self.LESSON.upper(), 22, GREY)
+        title = T(self.TITLE, 52, font=TITLE_FONT)
+        rule = Line(LEFT * 1.2, RIGHT * 1.2, color=GOLD, stroke_width=4)
+        ladder = horizontal_ladder("ATCG", center=p(0, -2.1), scale=0.55).set_opacity(0.65)
+        heading = VGroup(brand, lesson, title, rule).arrange(DOWN, buff=0.27).shift(UP * 0.65)
+        self.play(FadeIn(brand), FadeIn(lesson), Write(title), GrowFromCenter(rule), run_time=1.0)
+        self.play(FadeIn(ladder), Rotate(ladder, 0.09), run_time=1.0)
+        self.play(Rotate(ladder, -0.18), rate_func=there_and_back, run_time=0.75)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S02Parts(SpokenScene):
-    """A nucleotide: sugar, phosphate and base. Four bases."""
-
+class S01Question(FilmSpokenScene):
     def construct(self):
-        dm = SMALL
-        neutral, segs, blocks = strand("......", dm, 0.0, 1.75, True)
-        # neutral blocks have no letter
-        neutral = VGroup(*segs, *blocks)
-        self.at("long chain")
-        self.play(LaggedStart(*[FadeIn(m, shift=RIGHT * 0.2) for m in neutral], lag_ratio=0.05), run_time=1.4)
-        self.at("small repeating units")
-        self.play(*[Indicate(s, color=GREY, scale_factor=1.1) for s in segs], run_time=0.8)
-        self.at("Each unit is a nucleotide")
-        unit = VGroup(segs[0], blocks[0])
-        rect = SurroundingRectangle(unit, color=YELLOW, buff=0.1, stroke_width=3)
-        nlab = term("nucleotide", 28).move_to(P(rect.get_center()[0], 3.2))
-        self.play(Create(rect), FadeIn(nlab, shift=DOWN * 0.1), run_time=0.7)
-        self.at("three parts")
-        lead = Arrow(rect.get_bottom(), P(rect.get_center()[0] + 1.8, 0.6), buff=0.08, color=GREY, stroke_width=4)
-        self.play(GrowArrow(lead), run_time=0.5)
-        sugar = chip("sugar: deoxyribose", GREY, 26)
-        phos = chip("phosphate group", GREY, 26)
-        base = chip("base", TEXT, 26)
-        row = VGroup(sugar, phos, base).arrange(RIGHT, buff=0.5).move_to(P(0.3, 0.0))
-        self.at("sugar called")
-        self.play(FadeIn(sugar, shift=UP * 0.2), run_time=0.6)
+        lad = horizontal_ladder()
+        hands = VGroup(T("✋", 62, TEXT), T("✋", 62, TEXT)).arrange(RIGHT, buff=3.6).move_to(p(0, 0.25))
+        self.at("Suppose I tore")
+        self.play(FadeIn(lad), run_time=1.0)
+        self.at("down the middle")
+        self.play(FadeIn(hands), hands.animate.shift(RIGHT * 0.05), run_time=0.75)
+        self.at("threw one half away")
+        bin_box = VGroup(Rectangle(width=2.0, height=1.4, color=GREY, fill_color=GREY, fill_opacity=0.12),
+                         T("BIN", 30, GREY)).move_to(p(0, -2.65))
+        bin_box[1].move_to(bin_box[0]); bin_box[1].layout_ok = True
+        self.play(FadeIn(bin_box), FadeOut(hands), lad.bot_half.animate.shift(DOWN * 3.6),
+                  FadeOut(lad.bonds), run_time=1.5)
+        self.remove(lad.bot_half)
+        self.at("Could you rebuild")
+        q = T("?", 92, GOLD, weight=BOLD).move_to(p(0, -0.9))
+        self.play(FadeIn(q, scale=0.5), run_time=0.8)
+        pulse(q, base=5, amp=2, speed=3)
+        self.at("letter for letter")
+        slots = VGroup(*[empty_slot().move_to(b.get_center() + DOWN * 0.86) for b in lad.top_blocks])
+        self.play(LaggedStart(*[Create(s) for s in slots], lag_ratio=0.12), FadeOut(bin_box), run_time=1.1)
+        self.at("By the end")
+        check = T("YOU CAN", 38, GREEN, weight=BOLD).move_to(p(0, -2.55))
+        self.play(FadeOut(q), FadeIn(check, shift=UP * 0.2), run_time=0.75)
+        self.finish()
+
+
+class S02Nucleotide(FilmSpokenScene):
+    def construct(self):
+        sugar = chip("sugar", GREY, 30).move_to(p(-2.25, 0.25))
+        phosphate = VGroup(Circle(radius=0.58, color=TEAL, fill_color=TEAL, fill_opacity=0.2),
+                           T("phosphate", 24, TEAL)).move_to(p(0, 1.55))
+        phosphate[1].layout_ok = True
+        base = chip("base", RED, 32).move_to(p(2.25, 0.25))
+        self.at("Start with one")
+        self.play(FadeIn(sugar, shift=LEFT * 0.4), run_time=0.7)
+        self.at("a nucleotide")
+        self.play(FadeIn(phosphate, shift=UP * 0.3), FadeIn(base, shift=RIGHT * 0.4), run_time=0.8)
+        links = VGroup(Line(sugar.get_right(), base.get_left(), color=TEXT, stroke_width=5),
+                       Line(phosphate.get_bottom(), sugar.get_top(), color=TEXT, stroke_width=5))
+        self.play(Create(links), run_time=0.6)
+        label = T("NUCLEOTIDE", 34, GOLD, weight=BOLD).move_to(p(0, 3.15))
+        self.play(FadeIn(label), run_time=0.5)
+        self.at("It has three parts")
+        self.play(LaggedStart(Indicate(sugar), Indicate(phosphate), Indicate(base), lag_ratio=0.2), run_time=1.0)
+        self.at("sugar called deoxyribose")
+        sugar2 = chip("sugar\n(deoxyribose)", GREY, 26).move_to(sugar)
+        links2 = VGroup(Line(sugar2.get_right(), base.get_left(), color=TEXT, stroke_width=5),
+                        Line(phosphate.get_bottom(), sugar2.get_top(), color=TEXT, stroke_width=5))
+        self.play(ReplacementTransform(sugar, sugar2), ReplacementTransform(links, links2), run_time=0.7)
         self.at("phosphate group")
-        self.play(FadeIn(phos, shift=UP * 0.2), run_time=0.6)
+        self.play(Indicate(phosphate, color=TEAL), run_time=0.55)
         self.at("and a base")
-        self.play(FadeIn(base, shift=UP * 0.2), run_time=0.6)
-        self.at("carries information")
-        info = T("carries information", 26, YELLOW).move_to(P(base.get_center()[0], -0.95))
-        self.play(Indicate(base, color=YELLOW), FadeIn(info, shift=UP * 0.1), run_time=0.8)
-        legend = []
-        for i, (ch, nm) in enumerate([("A", "adenine"), ("T", "thymine"), ("C", "cytosine"), ("G", "guanine")]):
-            legend.append(chip(f"{ch}  {nm}", BASECOL[ch], 24))
-        VGroup(*legend).arrange(RIGHT, buff=0.3).move_to(P(0, -2.5))
-        for nm, c in zip(["adenine", "thymine", "cytosine", "guanine"], legend):
-            self.at(nm)
-            self.play(FadeIn(c, shift=UP * 0.15), run_time=0.5)
+        self.play(Indicate(base, color=RED), run_time=0.55)
+        self.at("base carries")
+        info = T("information", 30, GOLD).next_to(base, DOWN, buff=0.35)
+        self.play(FadeIn(info, shift=UP * 0.15), run_time=0.65)
+        self.at("DNA uses four bases")
+        self.play(FadeOut(VGroup(sugar2, phosphate, base, links2, info, label)), run_time=0.55)
+        cards = VGroup()
+        for ch, name in zip("ATCG", ["adenine", "thymine", "cytosine", "guanine"]):
+            b = base_block(ch, 1.35, 0.9, 42)
+            n = T(name, 27, BASE_COLOR[ch]).next_to(b, DOWN, buff=0.25)
+            cards.add(VGroup(b, n))
+        cards.arrange(RIGHT, buff=0.75).move_to(p(0, 0.1))
+        for phrase, card in zip(["adenine", "thymine", "cytosine", "guanine"], cards):
+            self.at(phrase)
+            self.play(FadeIn(card, shift=UP * 0.3), run_time=0.45)
         self.at("We write them")
-        newb = []
-        anims = []
-        for b, ch, x in zip(blocks, TOP, dm.xs(6)):
-            nb = block(ch, dm.bw, dm.bh, dm.fs).move_to(b)
-            newb.append(nb)
-            anims.append(ReplacementTransform(b, nb))
-        self.play(*anims, FadeOut(rect), run_time=0.9)
+        self.play(LaggedStart(*[Indicate(c[0], color=BASE_COLOR[ch]) for c, ch in zip(cards, "ATCG")], lag_ratio=0.15), run_time=1.0)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S03Pairs(SpokenScene):
-    """Backbone, hydrogen bonds, base pairing."""
-
+class S03Strand(FilmSpokenScene):
     def construct(self):
-        dm = BIG
-        L = Ladder(TOP, BOT, dm, 0.0, 0.3)
-        self.at("A covalent bond")
-        cov = term("covalent bond", 28).move_to(P(-2.4, 2.95))
-        self.play(LaggedStart(*[FadeIn(m, shift=RIGHT * 0.2) for m in L.top], lag_ratio=0.04),
-                  FadeIn(cov, shift=DOWN * 0.1), run_time=1.4)
-        topbar_y = L.tsegs[0].get_center()[1]
-        jx = (dm.xs()[1] + dm.xs()[2]) / 2
-        self.at("strong bond")
-        strong = T("strong: atoms share electrons", 24, GREY).move_to(P(2.6, 2.95))
-        self.play(FadeIn(strong, shift=DOWN * 0.1), run_time=0.6)
-        self.at("joins each sugar")
-        mark = Rectangle(width=0.5, height=0.5, color=YELLOW, stroke_width=4).move_to(P(jx, topbar_y))
-        arrow = Arrow(cov.get_bottom(), mark.get_top(), buff=0.05, color=YELLOW, stroke_width=4)
-        self.play(Create(mark), GrowArrow(arrow), run_time=0.8)
-        self.at("face each other")
-        self.play(FadeOut(cov), FadeOut(strong), FadeOut(mark), FadeOut(arrow), run_time=0.4)
-        self.play(LaggedStart(*[FadeIn(m, shift=UP * 0.3) for m in L.bot], lag_ratio=0.04), run_time=1.2)
-        self.at("bases inside")
-        self.play(*[Indicate(b, color=YELLOW, scale_factor=1.1) for b in L.tblocks + L.bblocks], run_time=0.8)
-        self.at("A hydrogen bond")
-        hb = term("hydrogen bond", 28).move_to(P(-4.2, -2.5))
-        self.play(FadeIn(hb, shift=UP * 0.1), run_time=0.5)
-        self.at("weak attraction")
-        weak = T("weak", 24, GREY).move_to(P(-4.2, -3.05))
-        self.play(FadeIn(weak), run_time=0.4)
-        self.at("hold each pair")
-        self.play(LaggedStart(*[Create(r) for r in L.rungs], lag_ratio=0.12), run_time=1.0)
-        self.at("Base pairing is the rule")
-        bp = term("base pairing", 28).move_to(P(0.0, -2.5))
-        self.play(FadeIn(bp, shift=UP * 0.1), run_time=0.5)
-        self.at("always")
-        at = T("A with T", 30, YELLOW).move_to(P(-1.9, -3.1))
-        self.play(FadeIn(at, shift=UP * 0.1),
-                  *[Indicate(VGroup(L.tblocks[i], L.bblocks[i]), color=YELLOW, scale_factor=1.12) for i in (0, 1, 5)],
-                  run_time=0.9)
+        loose = VGroup(*[base_block(ch).move_to(p(-0.7, 2.4 - i * 1.25)) for i, ch in enumerate("ATCG")])
+        sugars = VGroup(*[chip("sugar", GREY, 24).move_to(p(-2.1, 2.4 - i * 1.25)) for i in range(4)])
+        phosphates = VGroup(*[Circle(radius=0.22, color=TEAL, fill_color=TEAL, fill_opacity=0.35).move_to(p(-2.1, 1.78 - i * 1.25)) for i in range(3)])
+        self.at("Nucleotides join")
+        self.play(LaggedStart(*[FadeIn(VGroup(s, b), shift=RIGHT * 0.2) for s, b in zip(sugars, loose)], lag_ratio=0.12), run_time=1.2)
+        self.at("called a strand")
+        self.play(LaggedStart(*[FadeIn(q) for q in phosphates], lag_ratio=0.15), run_time=0.8)
+        self.at("sugar of one")
+        links = VGroup(*[Line(sugars[i].get_bottom(), phosphates[i].get_top(), color=TEXT, stroke_width=5) for i in range(3)],
+                       *[Line(phosphates[i].get_bottom(), sugars[i + 1].get_top(), color=TEXT, stroke_width=5) for i in range(3)])
+        self.play(LaggedStart(*[Create(x) for x in links], lag_ratio=0.12), run_time=1.2)
+        self.at("That is a covalent bond")
+        cov = T("covalent bond", 30, TEAL).move_to(p(2.4, 1.55))
+        lead = Arrow(cov.get_left(), phosphates[0].get_right(), buff=0.12, color=TEAL)
+        self.play(FadeIn(cov), GrowArrow(lead), run_time=0.7)
+        self.at("a strong bond")
+        strong = T("strong", 32, GOLD, weight=BOLD).move_to(p(2.4, 0.75))
+        self.play(FadeIn(strong), Indicate(links, color=GOLD), run_time=0.8)
+        self.at("share electrons")
+        self.play(FadeOut(VGroup(cov, lead, strong)), run_time=0.45)
+        self.at("bases stick out")
+        strand = vertical_strand("ATCG", x=-1.9, bases_right=True, y_top=2.35, spacing=1.25)
+        count = T("strands  1", 30, TEXT).move_to(p(4.7, 3.1))
+        self.play(ReplacementTransform(VGroup(loose, sugars, phosphates, links), strand), FadeIn(count), run_time=1.2)
+        self.play(LaggedStart(*[Indicate(b, color=BASE_COLOR[ch]) for b, ch in zip(strand.blocks, "ATCG")], lag_ratio=0.12), run_time=0.9)
+        self.finish()
+
+
+class S04Pairing(FilmSpokenScene):
+    def construct(self):
+        left = vertical_strand(SEQ, -1.65, True)
+        right = vertical_strand(PARTNER, 5.0, False)
+        self.add(left)
+        self.at("second strand lines up")
+        self.play(FadeIn(right), right.animate.move_to(vertical_strand(PARTNER, 1.65, False).get_center()), run_time=1.3)
+        right.move_to(vertical_strand(PARTNER, 1.65, False).get_center())
+        self.at("bases facing bases")
+        self.play(LaggedStart(*[Indicate(VGroup(a, b), color=TEXT) for a, b in zip(left.blocks, right.blocks)], lag_ratio=0.08), run_time=1.0)
+        self.at("Weak attractions called")
+        bonds = VGroup(*[DashedLine(a.get_right(), b.get_left(), dash_length=0.1, color=TEXT, stroke_width=3)
+                         for a, b in zip(left.blocks, right.blocks)])
+        self.play(LaggedStart(*[Create(b) for b in bonds], lag_ratio=0.1), run_time=1.1)
+        self.at("hydrogen bonds")
+        hlabel = T("hydrogen bonds", 29, TEXT).move_to(p(4.6, -2.6))
+        leader = Arrow(hlabel.get_left(), bonds[-1].get_right(), buff=0.12, color=TEXT)
+        self.play(FadeIn(hlabel), GrowArrow(leader), run_time=0.7)
+        self.at("only two kinds")
+        count = T("strands  2", 30, TEXT).move_to(p(4.7, 3.1))
+        self.play(FadeOut(VGroup(hlabel, leader)), FadeIn(count), run_time=0.55)
+        self.at("A fits with T")
+        ats = [VGroup(left.blocks[i], right.blocks[i]) for i, ch in enumerate(SEQ) if ch in "AT"]
+        self.play(*[Indicate(x, color=GOLD) for x in ats], run_time=0.85)
+        self.at("C fits with G")
+        cgs = [VGroup(left.blocks[i], right.blocks[i]) for i, ch in enumerate(SEQ) if ch in "CG"]
+        self.play(*[Indicate(x, color=GOLD) for x in cgs], run_time=0.85)
+        self.finish()
+
+
+class S05Misfit(FilmSpokenScene):
+    def construct(self):
+        a = base_block("A", 2.0, 1.25, 52).move_to(p(-3.4, 0.7))
+        c = base_block("C", 2.0, 1.25, 52).move_to(p(3.8, 0.7))
+        self.at("Watch what happens")
+        self.play(FadeIn(a), FadeIn(c), c.animate.shift(LEFT * 2.25), run_time=1.2)
+        self.at("edges do not match")
+        gap = DoubleArrow(p(-0.45, 0.7), p(0.45, 0.7), color=RED, stroke_width=5)
+        self.play(Create(gap), Wiggle(c), run_time=0.8)
+        self.at("fit badly")
+        cross = T("×", 80, RED, weight=BOLD).move_to(p(0, -0.55))
+        self.play(FadeIn(cross, scale=0.5), c.animate.shift(RIGHT * 2.25), FadeOut(gap), run_time=0.8)
+        self.at("That is the base")
+        rule = caption("BASE-PAIRING RULE", 32, GOLD)
+        self.play(FadeIn(rule), run_time=0.6)
+        self.at("A always pairs")
+        t = base_block("T", 2.0, 1.25, 52).move_to(p(3.8, 0.7))
+        self.play(FadeOut(c), FadeOut(cross), FadeIn(t), t.animate.shift(LEFT * 2.8), run_time=1.0)
         self.at("C always pairs")
-        cg = T("C with G", 30, YELLOW).move_to(P(1.9, -3.1))
-        self.play(FadeIn(cg, shift=UP * 0.1),
-                  *[Indicate(VGroup(L.tblocks[i], L.bblocks[i]), color=YELLOW, scale_factor=1.12) for i in (2, 3, 4)],
-                  run_time=0.9)
-        self.at("twist into")
-        dh = term("double helix", 28).move_to(P(4.4, -2.5))
-        note = T("(drawn untwisted)", 22, GREY).move_to(P(4.4, -3.05))
-        self.play(FadeIn(dh, shift=UP * 0.1), FadeIn(note), run_time=0.7)
+        c2 = base_block("C", 1.55, 0.95, 44).move_to(p(-1.0, -1.65))
+        g2 = base_block("G", 1.55, 0.95, 44).move_to(p(3.2, -1.65))
+        self.play(FadeIn(c2), FadeIn(g2), g2.animate.shift(LEFT * 2.2), run_time=0.9)
+        summary = T("A with T     C with G", 34, GOLD, weight=BOLD).move_to(p(0, -3.05))
+        self.play(ReplacementTransform(rule, summary), run_time=0.55)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S04Unzip(SpokenScene):
-    """The enzyme unzips the ladder: rungs break, backbones stay whole."""
-
+class S06Helix(FilmSpokenScene):
     def construct(self):
-        dm = SMALL
-        L = Ladder(TOP, BOT, dm, 0.0, 0.0, live=True)
-        self.at("Because of base pairing")
-        self.play(FadeIn(L.top), FadeIn(L.bot), run_time=0.9)
-        self.add(L.rungs)
-        self.at("each strand holds")
-        self.play(*[Indicate(m, color=YELLOW, scale_factor=1.06) for m in L.top], run_time=0.9)
-        self.at("rebuild its partner")
-        self.play(*[Indicate(m, color=YELLOW, scale_factor=1.06) for m in L.bot], run_time=0.9)
-        self.at("An enzyme is")
-        enz = chip("enzyme", PINK, 28).move_to(P(-5.0, 0.0))
-        self.play(FadeIn(enz, shift=RIGHT * 0.3), run_time=0.6)
-        self.at("speeds up a reaction")
-        defn = T("enzyme: a molecule, usually a protein, that speeds up a reaction without being used up", 24, PINK).move_to(P(0, -1.95))
-        fit(defn, max_w=11.8)
-        self.play(FadeIn(defn, shift=UP * 0.1), run_time=0.7)
-        self.at("unzips it")
-        self.play(FadeOut(defn),
-                  L.top.animate.shift(UP * 1.58), L.bot.animate.shift(DOWN * 1.58), run_time=1.5)
-        self.at("hydrogen bonds between")
-        brk0 = T("hydrogen bonds break", 30, TEXT).move_to(P(0.0, 0.0))
-        bgr = Rectangle(width=brk0.width + 0.4, height=brk0.height + 0.3, stroke_width=0, fill_color=BG, fill_opacity=0.95).move_to(brk0)
-        brk = VGroup(bgr, brk0)
-        ghost = VGroup(*[rung(a, b) for a, b in zip(L.tblocks, L.bblocks)])
-        self.remove(L.rungs)
-        self.add(ghost)
-        self.play(FadeOut(ghost), FadeIn(brk, scale=1.1), run_time=0.6)
-        self.at("backbones stay whole")
-        t1 = T("backbone stays whole", 26, GREY).move_to(P(0, 3.2))
-        t2 = T("backbone stays whole", 26, GREY).move_to(P(0, -3.2))
-        self.play(FadeOut(brk), FadeIn(t1, shift=DOWN * 0.1), FadeIn(t2, shift=UP * 0.1), run_time=0.8)
+        ladder = vertical_ladder()
+        self.add(ladder)
+        self.at("Notice the two arrowheads")
+        self.play(Indicate(ladder.left.arrow, color=GOLD), Indicate(ladder.right.arrow, color=GOLD), run_time=1.0)
+        self.at("Each strand has")
+        dl = Arrow(p(-2.7, 1.1), p(-2.7, -1.1), color=GREY, stroke_width=6)
+        ur = Arrow(p(2.7, -1.1), p(2.7, 1.1), color=GREY, stroke_width=6)
+        self.play(GrowArrow(dl), GrowArrow(ur), run_time=0.8)
+        self.at("opposite ways")
+        self.play(Indicate(dl, color=GOLD), Indicate(ur, color=GOLD), run_time=0.75)
+        self.at("ladder twists")
+        ys = np.linspace(2.65, -2.65, 120)
+        phase = np.linspace(0, 2.4 * PI, 120)
+        x1, x2 = 1.65 * np.sin(phase), -1.65 * np.sin(phase)
+        side1 = VMobject(color=GREY, stroke_width=10).set_points_as_corners([p(x, y) for x, y in zip(x1, ys)])
+        side2 = VMobject(color=GREY, stroke_width=10).set_points_as_corners([p(x, y) for x, y in zip(x2, ys)])
+        rungs = VGroup(*[Line(p(x1[i], ys[i]), p(x2[i], ys[i]), color=BASE_COLOR[SEQ[(i // 20) % 6]], stroke_width=7)
+                         for i in range(5, 120, 11)])
+        helix = VGroup(side1, side2, rungs)
+        self.play(FadeOut(VGroup(dl, ur)), ReplacementTransform(ladder, helix), run_time=1.7)
+        tag = scope_tag("schematic")
+        self.add(tag)
+        self.at("backbones are the sides")
+        sides = T("backbones = sides", 30, GREY).move_to(p(-4.55, 2.9))
+        self.play(FadeIn(sides), Indicate(VGroup(side1, side2), color=GOLD), run_time=0.8)
+        self.at("base pairs are the rungs")
+        rlab = T("base pairs = rungs", 30, TEXT).move_to(p(4.4, -2.35))
+        self.play(FadeIn(rlab), Indicate(rungs, color=GOLD), run_time=0.8)
+        flat = vertical_ladder()
+        self.play(FadeOut(VGroup(sides, rlab, tag)), ReplacementTransform(helix, flat), run_time=1.0)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S05Copy(SpokenScene):
-    """Templates, free nucleotides pair, polymerase joins them: two molecules."""
-
+class S07Predict(FilmSpokenScene):
     def construct(self):
-        dm = SMALL
-        old_t, ots, otb = strand(TOP, dm, 0.0, 2.15, True)
-        old_b, obs, obb = strand(BOT, dm, 0.0, -2.15, False)
-        self.add(old_t, old_b)
-        self.at("old strand now")
-        tc1 = term("template", 26).move_to(P(5.05, 2.15))
-        tc2 = term("template", 26).move_to(P(5.05, -2.15))
-        self.play(FadeIn(tc1, shift=LEFT * 0.2), FadeIn(tc2, shift=LEFT * 0.2),
-                  *[Indicate(m, color=YELLOW, scale_factor=1.05) for m in (old_t, old_b)], run_time=0.9)
-        # free nucleotides: 12 loose blocks in the middle gap
-        need = [COMP[c] for c in TOP] + [COMP[c] for c in BOT]   # for top template then bottom template
-        order = [3, 8, 0, 10, 5, 1, 11, 6, 2, 9, 4, 7]           # fixed shuffle of which target each loose block serves
-        lw, lh = 0.7, 0.5
-        loose = []
-        for k in range(12):
-            tgt = order[k]
-            x = (k - 5.5) * 0.8
-            b = block(need[tgt], lw, lh, 22).move_to(P(x, 0.0))
-            b.tgt = tgt
-            loose.append(b)
-        self.at("Free nucleotides")
-        fl = T("free nucleotides float nearby", 26, GREY).move_to(P(0, -3.35))
-        self.play(LaggedStart(*[FadeIn(b, scale=0.6) for b in loose], lag_ratio=0.05), FadeIn(fl), run_time=1.0)
-        self.at("Each one pairs")
-        sc = dm.bw / lw
-        targets = []
-        for b in loose:
-            t = b.tgt
-            if t < 6:
-                pos = P(dm.xs()[t], 2.15 - dm.bh - dm.rg)       # under the top template
-            else:
-                pos = P(dm.xs()[t - 6], -2.15 + dm.bh + dm.rg)  # over the bottom template
-            targets.append(pos)
-        self.play(FadeOut(fl), FadeOut(tc1), FadeOut(tc2),
-                  *[b.animate.scale(sc).move_to(p) for b, p in zip(loose, targets)], run_time=2.4)
-        rungs = VGroup()
-        for b in loose:
-            t = b.tgt
-            tmpl = otb[t] if t < 6 else obb[t - 6]
-            r = DashedLine(tmpl.get_bottom() if t < 6 else tmpl.get_top(), b.get_top() if t < 6 else b.get_bottom(),
-                           dash_length=0.09, color=TEXT, stroke_width=3)
-            rungs.add(r)
-        self.play(Create(rungs), run_time=0.3)
-        self.at("O with")
-        rule = T("A with T,  C with G", 30, YELLOW).move_to(P(0, -3.35))
-        self.play(FadeIn(rule, shift=UP * 0.1), run_time=0.6)
-        self.at("-anapolymerase")
-        pol = chip("DNA polymerase", PINK, 22, pad=0.1).move_to(P(0, 0.0))
-        self.play(FadeIn(pol, scale=0.9), run_time=0.6)
-        self.at("joins the new nucleotides")
-        new_top, new_bot = [], []
-        for t in range(6):
-            new_top.append(seg(dm.sp - 0.07, dm.bt, GOLD).move_to(P(dm.xs()[t], 2.15 - dm.bh - dm.rg - dm.bh / 2 - 0.04 - dm.bt / 2)))
-            new_bot.append(seg(dm.sp - 0.07, dm.bt, GOLD).move_to(P(dm.xs()[t], -2.15 + dm.bh + dm.rg + dm.bh / 2 + 0.04 + dm.bt / 2)))
-        self.play(FadeOut(rule), LaggedStart(*[GrowFromEdge(s, LEFT) for s in new_top + new_bot], lag_ratio=0.04), run_time=1.4)
-        cb = T("covalent bonds", 26, TEAL).move_to(P(0, -3.35))
-        self.play(FadeIn(cb, shift=UP * 0.1), run_time=0.5)
-        self.at("result is")
-        m1 = T("molecule 1", 24, TEXT).move_to(P(5.05, 1.4))
-        m2 = T("molecule 2", 24, TEXT).move_to(P(5.05, -1.4))
-        self.play(FadeOut(pol), FadeOut(cb), FadeIn(m1), FadeIn(m2), run_time=0.7)
-        self.at("one old strand")
-        olds = [T("old", 26, GREY).move_to(P(-5.2, y)) for y in (2.6, -2.6)]
-        self.play(*[FadeIn(o, shift=RIGHT * 0.1) for o in olds], run_time=0.5)
-        self.at("one new strand")
-        news = [T("new", 26, GOLD).move_to(P(-5.2, y)) for y in (0.55, -0.55)]
-        self.play(*[FadeIn(o, shift=RIGHT * 0.1) for o in news], run_time=0.5)
+        world = predict_world()
+        strand, slots, pencil = world
+        self.at("Here is one strand")
+        self.play(FadeIn(strand, shift=LEFT * 0.3), run_time=0.9)
+        self.at("It reads")
+        self.play(LaggedStart(*[Indicate(b, color=BASE_COLOR[ch]) for b, ch in zip(strand.blocks, SEQ)], lag_ratio=0.12), run_time=1.25)
+        self.at("Before I fill")
+        self.play(LaggedStart(*[Create(s) for s in slots], lag_ratio=0.1), run_time=1.0)
+        self.at("write the")
+        self.play(FadeIn(pencil, shift=UP * 0.2), Rotate(pencil, 0.18), run_time=0.65)
+        q = question_card("What is the partner strand?", y=-3.2, size=30)
+        self.play(FadeIn(q), run_time=0.55)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S06Answer(SpokenScene):
-    """Same base order; one correct partner; proofreading; the textbook estimate."""
+class S08Pause(PredictPause):
+    QUESTION = "What is the partner strand?"
+    CARD = {"y": -3.2, "size": 30}
 
+    def backdrop(self):
+        stage = RoundedRectangle(corner_radius=0.28, width=12.8, height=6.8,
+                                 stroke_color="#405371", stroke_width=2,
+                                 fill_color="#263653", fill_opacity=1).set_z_index(-20)
+        stage.layout_ok = True  # deliberate full-scene backdrop behind all labels
+        return VGroup(stage, predict_world())
+
+
+class S09Reveal(FilmSpokenScene):
     def construct(self):
-        dm = MINI
-        orig = Ladder(TOP, BOT, dm, -3.7, 0.65)
-        c1 = Ladder(TOP, BOT, dm, 3.7, 1.85, GREY, GOLD)
-        c2 = Ladder(TOP, BOT, dm, 3.7, -0.6, GOLD, GREY)
-        ol = T("original", 24, GREY).move_to(P(-3.7, 1.95))
-        l1 = T("copy 1", 24, TEXT).move_to(P(2.0, 3.0))
-        l2 = T("copy 2", 24, TEXT).move_to(P(2.0, 0.5))
-        self.add(orig.all, ol)
-        self.at("Both new molecules")
-        a1 = Arrow(P(-1.0, 1.0), P(1.0, 1.8), buff=0.05, color=GREY, stroke_width=5, tip_length=0.2)
-        a2 = Arrow(P(-1.0, 0.5), P(1.0, -0.4), buff=0.05, color=GREY, stroke_width=5, tip_length=0.2)
-        self.play(GrowArrow(a1), GrowArrow(a2), FadeIn(c1.all, shift=LEFT * 0.3), FadeIn(c2.all, shift=LEFT * 0.3),
-                  FadeIn(l1), FadeIn(l2), run_time=1.4)
+        world = predict_world()
+        strand, slots, pencil = world
+        self.add(world, question_card("What is the partner strand?", y=-3.2, size=30))
+        filled = []
+        self.at("across from G")
+        c = base_block("C").move_to(slots[0]); filled.append(c)
+        self.play(FadeOut(slots[0]), FadeIn(c, shift=RIGHT * 0.35), run_time=0.75)
+        self.at("across from a")
+        t = base_block("T").move_to(slots[1]); filled.append(t)
+        self.play(FadeOut(slots[1]), FadeIn(t, shift=RIGHT * 0.35), run_time=0.75)
+        self.at("partner reads")
+        rest = []
+        for i, ch in enumerate(PARTNER[2:], 2):
+            b = base_block(ch).move_to(slots[i]); filled.append(b); rest.append(b)
+        self.play(LaggedStart(*[AnimationGroup(FadeOut(slots[i]), FadeIn(b, shift=RIGHT * 0.3))
+                                for i, b in enumerate(rest, 2)], lag_ratio=0.16), run_time=1.5)
+        self.at("Not one letter")
+        self.play(FadeOut(pencil), LaggedStart(*[Indicate(b, color=GOLD) for b in filled], lag_ratio=0.1), run_time=1.0)
+        self.at("One strand fixed")
+        pair = VGroup(strand, *filled)
+        bracket = Brace(pair, RIGHT, color=GOLD)
+        label = fit_text("one strand fixes its partner", 3.2, 30, GOLD, max_lines=2).next_to(bracket, RIGHT, buff=0.2)
+        self.play(FadeOut(self.mobjects[-1]), GrowFromCenter(bracket), FadeIn(label), run_time=0.9)
+        self.finish()
+
+
+class S10Unzip(FilmSpokenScene):
+    def construct(self):
+        start = vertical_ladder(SEQ, PARTNER, -0.82, 0.82, y_top=2.45, spacing=0.7)
+        self.at("here is how")
+        self.play(FadeIn(start), run_time=0.8)
+        self.at("Enzymes unzip")
+        wedge = VGroup(Triangle(color=TEAL, fill_color=TEAL, fill_opacity=0.3).scale(0.55),
+                       T("enzyme", 24, TEAL)).move_to(p(0, 2.8))
+        wedge[1].layout_ok = True
+        self.play(FadeIn(wedge), wedge.animate.move_to(p(0, -2.4)),
+                  start.left.animate.move_to(template_world()[0].get_center()),
+                  start.right.animate.move_to(template_world()[1].get_center()),
+                  FadeOut(start.bonds), run_time=2.1)
+        templates = template_world()
+        self.remove(start, wedge)
+        self.add(templates)
+        self.at("each old strand")
+        labs = VGroup(T("template", 30, GREY).move_to(p(-3.7, -2.3)),
+                      T("template", 30, GREY).move_to(p(3.7, -2.3)))
+        self.play(FadeIn(labs), run_time=0.65)
+        self.at("A template is")
+        definition = caption("template = a pattern", 31, GOLD)
+        self.play(FadeIn(definition), run_time=0.6)
+        self.at("sets the order")
+        self.play(LaggedStart(*[Indicate(b, color=GOLD) for s in templates for b in s.blocks], lag_ratio=0.05), run_time=1.2)
+        self.finish()
+
+
+class S11Two(FilmSpokenScene):
+    def construct(self):
+        templates = template_world()
+        left_old, right_old = templates
+        self.add(templates)
+        new_left = vertical_strand(PARTNER, -2.05, False, GOLD, 2.45, 0.7, 0.82)
+        new_right = vertical_strand(SEQ, 2.05, True, GOLD, 2.45, 0.7, 0.82)
+        self.at("New nucleotides line up")
+        self.play(LaggedStart(*[FadeIn(b, shift=RIGHT * 0.3) for b in new_left.blocks],
+                              *[FadeIn(b, shift=LEFT * 0.3) for b in new_right.blocks], lag_ratio=0.07), run_time=1.5)
+        self.at("each one matching")
+        self.play(LaggedStart(*[Indicate(VGroup(a, b), color=GOLD) for a, b in zip(left_old.blocks, new_left.blocks)],
+                              *[Indicate(VGroup(a, b), color=GOLD) for a, b in zip(right_old.blocks, new_right.blocks)], lag_ratio=0.05), run_time=1.2)
+        self.at("copying ends")
+        self.play(Create(new_left.backbone), Create(new_left.ticks), Create(new_right.backbone), Create(new_right.ticks),
+                  FadeIn(new_left.arrow), FadeIn(new_right.arrow), run_time=1.2)
+        bonds = VGroup(*[DashedLine(a.get_right(), b.get_left(), color=TEXT, dash_length=0.08) for a, b in zip(left_old.blocks, new_left.blocks)],
+                       *[DashedLine(a.get_left(), b.get_right(), color=TEXT, dash_length=0.08) for a, b in zip(right_old.blocks, new_right.blocks)])
+        self.play(Create(bonds), run_time=0.55)
+        self.at("two molecules")
+        count = T("molecules  2", 34, TEXT, weight=BOLD).move_to(p(0, 3.25))
+        self.play(FadeIn(count), run_time=0.55)
+        self.at("one old gray")
+        oldlabs = VGroup(T("old", 27, GREY).move_to(p(-5.2, 2.7)), T("old", 27, GREY).move_to(p(5.2, 2.7)))
+        self.play(FadeIn(oldlabs), run_time=0.55)
+        self.at("one new gold")
+        newlabs = VGroup(T("new", 27, GOLD).move_to(p(-1.9, -2.7)), T("new", 27, GOLD).move_to(p(1.9, -2.7)))
+        self.play(FadeIn(newlabs), run_time=0.55)
         self.at("same base order")
-        so = banner("same base order as the original", 30, YELLOW, -2.5)
-        hi = [Indicate(g.top, color=YELLOW, scale_factor=1.03) for g in (orig, c1)]
-        self.play(FadeIn(so, shift=UP * 0.1), *hi, Indicate(c2.bot, color=YELLOW, scale_factor=1.03), run_time=1.0)
-        self.at("order of the bases is")
-        s2 = banner("the order of the bases is the information", 30, YELLOW, -2.5)
-        self.play(ReplacementTransform(so, s2), run_time=0.6)
-        self.at("copying keeps it")
-        s3 = banner("copying keeps it", 30, GREEN, -3.15)
-        self.play(FadeIn(s3, shift=UP * 0.1), run_time=0.5)
-        self.at("only one correct partner")
-        col = 2
-        hl = SurroundingRectangle(VGroup(c1.tblocks[col], c1.bblocks[col]), color=YELLOW, buff=0.08, stroke_width=4)
-        s4 = banner("one correct partner at each spot", 30, YELLOW, -2.5)
-        self.play(FadeOut(s2), FadeOut(s3), FadeIn(s4, shift=UP * 0.1), Create(hl), run_time=0.8)
-        self.at("each spot")
-        self.play(FadeOut(s4), FadeOut(hl), run_time=0.4)
-        self.at("Proofreading")
-        wrong = block("A", dm.bw, dm.bh, dm.fs).move_to(c1.bblocks[3])
-        wrong[0].set_stroke(RED, 5)
-        wl = T("wrong base", 24, RED).move_to(P(5.0, 3.0))
-        pr = term("proofreading", 28).move_to(P(0, -2.5))
-        self.play(ReplacementTransform(c1.bblocks[3], wrong), FadeIn(wl), FadeIn(pr, shift=UP * 0.1), run_time=0.5)
-        self.at("most wrong")
-        right = block("G", dm.bw, dm.bh, dm.fs).move_to(wrong)
-        tag = T("most are caught", 24, GREEN).move_to(P(5.0, 3.0))
-        self.play(ReplacementTransform(wrong, right), ReplacementTransform(wl, tag), run_time=0.8)
-        self.at("textbook estimate")
-        e1 = banner("about 1 uncorrected mistake", 30, YELLOW, -2.5)
-        e2 = banner("for every billion bases copied (a textbook estimate)", 28, YELLOW, -3.15)
-        self.play(FadeOut(pr), FadeIn(e1, shift=UP * 0.1), FadeIn(e2, shift=UP * 0.1), run_time=0.8)
+        check = T("✓  same base order", 32, GREEN, weight=BOLD).move_to(p(0, -3.25))
+        self.play(FadeOut(VGroup(oldlabs, newlabs)), FadeIn(check),
+                  LaggedStart(*[Indicate(b, color=GREEN) for b in left_old.blocks + right_old.blocks], lag_ratio=0.06), run_time=1.2)
         self.finish()
 
 
-class S07End(EndCard):
-    LINE = "Each strand holds what is needed to rebuild its partner."
+class S12Rule(FilmSpokenScene):
+    def construct(self):
+        m1 = small_molecule(SEQ, PARTNER, -3.5, True).scale(0.58).move_to(p(-3.6, 2.25))
+        m2 = small_molecule(SEQ, PARTNER, 3.5, False).scale(0.58).move_to(p(3.6, 2.25))
+        self.at("pairing tells")
+        self.play(FadeIn(m1), FadeIn(m2), run_time=0.8)
+        pairs = VGroup(base_block("A", 1.3, 0.8, 38), base_block("T", 1.3, 0.8, 38),
+                       T("and", 30, TEXT), base_block("C", 1.3, 0.8, 38), base_block("G", 1.3, 0.8, 38))
+        pairs.arrange(RIGHT, buff=0.28).move_to(p(0, 0.25))
+        self.at("Because a pair")
+        self.play(LaggedStart(*[FadeIn(x, shift=UP * 0.2) for x in pairs], lag_ratio=0.1), run_time=1.1)
+        self.at("each strand fixes")
+        rule = T("EACH STRAND FIXES ITS PARTNER", 39, GOLD, weight=BOLD).move_to(p(0, -1.55))
+        self.play(FadeIn(rule, shift=UP * 0.2), run_time=0.85)
+        self.at("Pairing does not yet")
+        self.play(FadeOut(pairs), m1.animate.scale(0.82), m2.animate.scale(0.82), run_time=0.6)
+        accuracy = T("accuracy  ?", 34, GREY).move_to(p(0, -2.65))
+        self.play(FadeIn(accuracy), run_time=0.65)
+        self.at("almost every letter right")
+        self.play(Wiggle(accuracy), FadeOut(accuracy), run_time=0.8)
+        self.finish()
+
+
+class S13End(EndCard):
+    LINE = "Each strand fixes its partner, so either can restore the whole molecule."
