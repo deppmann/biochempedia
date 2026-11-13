@@ -5,17 +5,16 @@ course: "high-school-biology"
 courseChapter: "Biology · Unit 2: Cells"
 order: 909
 summary: >-
-  How do cells and organisms keep their insides steady when the outside keeps changing? You step
-  through feedback loops in a simulation, follow three real examples (your heart during exercise,
-  the pores of a leaf, and roots growing toward water), and read published heart-rate recovery data.
-  Afterwards you can name the parts of a negative feedback loop and plan a safe heart-rate
-  investigation with repeated trials.
+  When internal conditions drift, opposing responses move them toward their range. Follow that
+  rule through a body-temperature loop, then compare it with heart control, leaf pores, roots and
+  cell membranes. You will test a feedback simulation, read published heart-rate recovery data and
+  plan a safe investigation with repeated trials.
 hook: "Why does your heart speed up when you run up the stairs, and then slow down again over the next few minutes?"
 estMinutes: 40
 supports: true
 objectives:
-  - "You will define homeostasis as keeping internal conditions within a stable range, and explain the parts of a negative feedback loop: a change, a sensor, a control center and a response that opposes the change."
-  - "You will explain three examples, heart rate during exercise, stomata responding to moisture and temperature, and roots growing in response to water, and explain how the cell membrane helps a cell keep its inside steady."
+  - "You will define homeostasis as keeping internal conditions within a stable range, and explain the parts of a negative feedback loop: a change, a sensor, a control center, an effector and a response that opposes the change."
+  - "You will explain three examples, heart rate during exercise, stomata responding to moisture and temperature, and roots growing in response to water, explain how the cell membrane helps a cell keep its inside steady, and tell which cases are complete feedback loops."
   - "You will plan a safe investigation of heart rate before and after exercise with repeated trials and a mean, and interpret a heart-rate recovery graph."
 
 ladder:
@@ -31,10 +30,31 @@ explainer:
   src: "/explainers/homeostasis-in-action/explainer.mp4"
   captions: "/explainers/homeostasis-in-action/explainer.vtt"
   poster: "/explainers/homeostasis-in-action/poster.jpg"
-  title: "Steady Inside, Changing Outside"
-  durationSec: 133.1
-  narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+  title: "When the Body Pushes Back"
+  durationSec: 188.8
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+  takeaways:
+    - "When internal conditions drift, opposing responses move them toward their range."
+    - "Homeostasis keeps internal conditions within a range, not at one fixed value."
+    - "A negative feedback loop can be mapped as change, sensor, control center, effector and opposing response."
+    - "Sweat cools the skin as it evaporates; without evaporation, it removes less heat."
+
+films:
+  - id: "chapter-2"
+    src: "/explainers/homeostasis-in-action/chapter-2.mp4"
+    captions: "/explainers/homeostasis-in-action/chapter-2.vtt"
+    poster: "/explainers/homeostasis-in-action/chapter-2-poster.jpg"
+    title: "Four Ways to Hold Steady"
+    durationSec: 192.4
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+    takeaways:
+      - "Same goal, different routes: only some are complete feedback loops."
+      - "Exercise control combines advance commands from the brain with feedback from sensors."
+      - "Narrower stomata slow both water loss and carbon dioxide entry."
+      - "Hydrotropism supports water supply but is not usually called a complete feedback loop."
+      - "Selective membranes use passive and active transport to keep a cell's inside different from the outside."
 
 scientists: []
 
@@ -66,19 +86,19 @@ simulations:
     attribution: "Original interactive — Biochemistrypedia (Deppmann Lab)."
 
 practiceQuestions:
-  - stem: "Which statement best describes homeostasis?"
+  - stem: "Which statement best explains how negative feedback supports homeostasis?"
     choices:
-      - "Keeping every body measurement at one fixed number"
-      - "Stopping all changes inside the body while resting"
-      - "Keeping internal conditions within a stable range"
-      - "Changing the inside of the body to match the outside"
-    answer: 2
+      - "When internal conditions drift, opposing responses move them toward their range."
+      - "Responses hold every internal condition at one fixed number."
+      - "A response pushes an internal condition farther from its usual range."
+      - "Responses make internal conditions match the outside environment."
+    answer: 0
     rationale: >-
-      Homeostasis means holding internal conditions, such as body temperature, within a stable
-      range. The values move a little and are pulled back. Holding every measurement at one fixed
-      number is the common mix-up; your temperature and heart rate shift during the day. Matching the
-      outside is the opposite of homeostasis. Stopping all change while resting is wrong because
-      cells keep using materials and making wastes, so conditions keep drifting and being corrected.
+      Opposing responses moving a drifting condition toward its range describes negative feedback.
+      Holding every condition at one fixed number is the common mix-up; homeostasis keeps a range,
+      and temperature and heart rate shift during the day. Pushing a condition farther from its
+      range describes positive feedback, not negative feedback. Matching the outside environment is
+      the opposite of homeostasis.
   - stem: "In the negative feedback loop that cools your body on a hot day, what is the job of the sweat glands?"
     choices:
       - "They compare body temperature with the normal range"
@@ -243,7 +263,7 @@ draft: false
 ---
 
 import FeedbackLoopStepper from '../../../components/FeedbackLoopStepper.astro';
-
+import LessonFilm from '../../../components/LessonFilm.astro';
 import IdeaCheck from '../../../components/IdeaCheck.astro';
 import WordBank from '../../../components/WordBank.astro';
 import Support from '../../../components/Support.astro';
@@ -251,9 +271,13 @@ import CER from '../../../components/CER.astro';
 import ScaffoldFigure from '../../../components/ScaffoldFigure.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
 
-**Run up a flight of stairs and your heart pounds faster, then slows again over the next several minutes. On a hot, dry afternoon, tiny pores on the underside of many leaves narrow.**
+**Run up a flight of stairs and your heart pounds faster, then slows again over the next several minutes.**
 
-The world outside you keeps changing. The air warms and cools, and you sit still or sprint. Yet the blood inside you stays within fairly narrow limits, and a leaf works to keep from drying out. How do living things keep their insides steady?
+The first film followed one warming body back toward its range. The outside keeps changing, yet your blood stays within fairly narrow limits. On a hot, dry afternoon, tiny pores on the underside of many leaves narrow.
+
+**Homeostasis** is keeping internal conditions within a stable range while the outside changes. Body temperature is usually near 37 °C, but it shifts a little through the day.
+
+<Support min={2}>**Key idea:** When internal conditions drift, opposing responses move them toward their range. **Scope:** this rule describes regulated internal conditions. Not every response to the environment is a complete feedback loop.</Support>
 
 <IdeaCheck items={[
   { idea: 'Homeostasis means nothing inside your body ever changes.', answer: 'disagree', explain: 'When physiologists measure body temperature or blood sugar through a day, the numbers move. They stay inside a range, and when they drift too far, the body responds and pulls them back. Homeostasis is that holding within a range, not freezing every value at one number.' },
@@ -261,27 +285,28 @@ The world outside you keeps changing. The air warms and cools, and you sit still
   { idea: 'Plants cannot respond to their environment.', answer: 'disagree', explain: 'Measurements of leaves show their pores begin narrowing within minutes when the air is made drier. Experiments with young roots show them bending toward wetter areas. Plants have no brain, but their cells detect changes and respond to them.' },
 ]} />
 
-## Explore: push a feedback loop off balance
+## Test the model in a simulation
 
-In the simulation you pick a disturbance: a burst of exercise, a hot room, or dry air around a leaf. Then you step through the loop one part at a time, from the sensor to the control center to the response. A graph shows the variable pushed away from its usual range and then pulled back. A switch lets you break the sensor.
+Pick a disturbance (exercise, a hot room or dry air around a leaf) and step from sensor to control center to response while the graph tracks the variable. A switch breaks the sensor.
+
+**Predict.** If the sensor is broken in the hot-room case, what shape will the temperature graph take? Run it to test your answer.
 
 <FeedbackLoopStepper />
 
-**Try this.**
-1. Pick exercise. Before you step through, predict whether heart rate will snap straight back to rest or come down gradually. Then test it.
-2. Pick the hot room. Predict which response the control center will choose. Step through and check.
-3. Break the sensor, then repeat the hot room. Predict the shape of the graph before you run it.
-4. Pick dry air for the leaf. Predict what the guard cells do, and what that costs the leaf.
+<details>
+<summary>Check your prediction</summary>
 
-## Explain: the negative feedback loop
+The graph stays away from the usual range. With the sensor broken, the change is never detected, so the control center never signals the sweat glands.
+
+</details>
+
+Then pick dry air. Before you step through, predict what the guard cells do and what that costs the leaf.
+
+## Name the parts of negative feedback
 
 <WordBank terms={['homeostasis', 'negative feedback', 'sensor', 'control center', 'effector', 'positive feedback', 'selectively permeable', 'passive transport', 'active transport', 'stomata', 'guard cells', 'hydrotropism']} />
 
-**Homeostasis** is keeping internal conditions within a stable range while the outside changes. The word "range" matters. Your body temperature is usually near 37 °C, but it shifts a little through the day.
-
-Most homeostasis works by **negative feedback**, a loop in which the response opposes the change that started it. "Negative" does not mean bad. It means the response pushes the other way.
-
-Every negative feedback loop has the same parts:
+Most homeostasis works by **negative feedback**, a loop in which the response opposes the change that started it, as sweating did in the first film. Map it in five parts:
 
 - **A change.** Something pushes a variable away from its usual range.
 - **A sensor**, a cell or organ that detects the change.
@@ -289,44 +314,55 @@ Every negative feedback loop has the same parts:
 - **An effector**, a muscle, gland or cell that carries out the response.
 - **The response**, which pushes the variable back.
 
-Here is the loop for body temperature on a hot day:
-
-> body warms → temperature sensors in skin and brain → control center in the brain → sweat glands release sweat → sweat evaporates and the skin cools
-
-On a cold day the same control center sends different signals. Muscles shiver, which releases heat, and blood vessels in the skin narrow, so less heat is lost.
-
-A thermostat in a house is a fair model. It senses the room, compares it with a setting, and turns the heat on or off. The model breaks down in a few places: your body has many sensors and many effectors working at once, most of its responses are graded rather than simply on or off, and no one sets the dial.
+The map is a tool: real loops may combine parts within cells or spread them across organs. Use it to name the stations of the hot-day loop:
 
 <ScaffoldFigure src="/figures/homeostasis-in-action/body-temperature-loop.webp" width={1200} height={800} keyItems={["body warms", "temperature sensors in skin and brain", "control center in the brain", "sweat glands", "skin cools"]} given={[0, 4]} alt="AI-generated illustration: five picture tiles arranged in a clockwise loop around a ring: a person warming in the sun, a cut-away of skin with a sensor, a head with the brain marked, a cut-away of skin with a coiled sweat gland, and sweat drops evaporating from skin; a gold arrow returns from the last tile to the first. Five numbered circles mark the stations for the student to name." caption="In negative feedback the response pushes the change back the other way, so the loop closes on itself. Name the five numbered stations of the loop that cools you on a hot day." />
 
-A few loops run the other way. In **positive feedback**, the response makes the change bigger until some event ends it. Contractions during childbirth are the usual example.
+**Predict.** On a cold day, which effectors could push temperature the other way?
 
-<Support min={2}>**Key idea:** in negative feedback, a sensor detects a change, a control center compares it, and an effector makes a response that pushes the variable back into its range.</Support>
+<details>
+<summary>Check your prediction</summary>
 
-## Explain: three examples, and the membrane
+The same control center sends different signals. Muscles shiver, which releases heat, and skin blood vessels narrow, so less heat is lost.
 
-**Heart rate during exercise.** When you start to climb, nerve signals from your brain speed up your heart. Sensors in your working muscles and in your blood vessels add information, and the brain combines it with its own commands. A faster heart moves more blood past the muscles, bringing oxygen and carrying carbon dioxide away. During moderate exercise, faster breathing keeps the carbon dioxide level in your blood fairly steady, so carbon dioxide sensors are not the main reason your heart speeds up. Two sets of nerves reach the heart: one speeds it up and one slows it down. Exercise turns up the first and turns down the second. When you stop, the slowing nerve becomes active again, mostly in the first minutes, so heart rate falls fast at first and then more gradually. Exercise control is a little more than one feedback loop: the brain also raises heart rate as exercise begins, partly through commands sent before any large change in the blood, not only in response to such a change.
+</details>
 
-**Stomata in a leaf.** A leaf’s surface has tiny pores called **stomata** (one is a stoma). Each pore sits between two **guard cells**, which change shape to open or narrow it. Carbon dioxide enters through these pores and water vapor leaves through them. Experiments show that drier air can make guard cells close the pores, which slows water loss. The cost is that less carbon dioxide gets in. Temperature matters too, but not simply: in one 2020 study of Arabidopsis leaf tissue, warming opened the pores. In a whole plant on a hot afternoon, what the guard cells do depends on several signals together, including dry air and the water supply.
+A few loops run the other way. In **positive feedback**, the response makes the change bigger until an event ends it, as in the contractions of childbirth.
+
+Not every living system uses the same five parts. The second film compares four of them.
+
+<LessonFilm film={frontmatter.films[0]} />
+
+## What the four pictures leave out
+
+The second film compared the four routes, the leaf's tradeoff and which cases are complete loops. Here is what it skipped.
+
+**Heart rate during exercise.** The second film's advance commands and sensor feedback reach the heart through nerves. The extra blood brings oxygen to working muscles and carries carbon dioxide away. During moderate exercise, faster breathing keeps blood carbon dioxide fairly steady, so carbon dioxide sensors are not the main reason heart rate rises. Two sets of nerves reach the heart: one speeds it and one slows it. Exercise turns up the first and turns down the second. When you stop, the slowing nerve becomes active again, mostly in the first minutes. Exercise control is more than one feedback loop: the brain raises heart rate as exercise begins, partly through commands sent before any large change in the blood.
+
+**Stomata in a leaf.** **Stomata** (one is a stoma) are the leaf's pores, and each sits between two **guard cells** that change shape to open or narrow it. Experiments show that drier air can make guard cells close the pores, with the tradeoff the second film showed. Temperature matters too, but not simply: in one 2020 study of Arabidopsis leaf tissue, warming opened the pores.
+
+**Predict.** If warming tends to open pores in one preparation while dry air tends to narrow them, can temperature alone predict a whole plant's response?
+
+<details>
+<summary>Check your prediction</summary>
+
+No. In a whole plant on a hot afternoon, what the guard cells do depends on several signals together, including temperature, dry air and the water supply. “Hot means closed” is too simple.
+
+</details>
 
 <LessonFigure src="/figures/homeostasis-in-action/stomata-open-and-narrowed.webp" width={1200} height={800} alt="AI-generated illustration: a leaf turned to show its underside, with two zoomed views of one pore between two curved guard cells: open, with arrows for water vapor leaving and carbon dioxide entering, and narrowed, with thinner arrows." caption="Each stoma sits between two guard cells. When dry air makes them narrow the pore, the leaf loses water vapor more slowly, and less carbon dioxide gets in." />
 
-**Roots and water.** Roots grow toward wetter soil, a response called **hydrotropism**. It is slow compared with a heartbeat, and it changes the direction of growth rather than a number inside the plant. It still helps keep the plant’s water supply steady. Scientists usually describe this as a response to the environment, not a complete feedback loop with a control center.
+**Roots and water.** Why is **hydrotropism**, a root growing toward wetter soil, not counted as a complete loop? It is slow compared with a heartbeat, and it changes the direction of growth rather than holding a number inside the plant within a range. Scientists usually describe it as a response to the environment, not a complete feedback loop with a control center.
 
-<LessonFigure src="/figures/homeostasis-in-action/root-bends-toward-water.webp" width={1200} height={800} alt="AI-generated illustration: a cut-away of soil that is dry on the left and wet on the right, with a seedling whose root grows down and curves toward the wet side; faint dashed outlines show the root's earlier positions." caption="Hydrotropism: a root grows toward wetter soil. It changes the direction of growth, and biologists usually call it a response rather than a full feedback loop." />
+<LessonFigure src="/figures/homeostasis-in-action/root-bends-toward-water.webp" width={1200} height={800} alt="AI-generated illustration: a cut-away of soil that is dry on the left and wet on the right, with a seedling whose root grows down and curves toward the wet side; faint dashed outlines show the root's earlier positions." caption="Hydrotropism: a root grows toward wetter soil. It changes the direction of growth, and biologists usually call it a response rather than a complete feedback loop." />
 
-**The cell membrane.** Every cell has its own homeostasis, and the membrane does much of the work. It is **selectively permeable**: it lets some substances cross and holds others back. In **passive transport**, substances move from where they are more concentrated to where they are less, and the cell spends no energy. In **active transport**, the cell spends energy to move substances against that direction, from less to more. Together these keep the inside of a cell different from the outside. [Crossing the Membrane](/lessons/crossing-the-membrane/) covers them in detail.
+**The cell membrane.** Every cell has its own homeostasis, and the membrane does much of the work. **Selectively permeable** means it lets some substances cross and holds others back. In **passive transport**, substances move from where they are more concentrated to where they are less, and the cell spends no energy. In **active transport**, the cell spends energy to move substances from less to more. [Crossing the Membrane](/lessons/crossing-the-membrane/) covers them in detail.
 
-| Example | Change | Response | What stays steady |
-|---|---|---|---|
-| Exercise | Muscles work harder | Heart beats faster | Oxygen supply keeps up with what the muscles use (much of this is set ahead by the brain, not only by feedback) |
-| Hot room | Body warms | Sweating | Body temperature |
-| Dry air | Leaf loses water faster | Guard cells narrow stomata | Water in the leaf |
-| Dry soil | Water is uneven around a root | Root bends toward water | Water supply to the plant |
+<Support min={2}>**Key idea:** same goal, different routes. Hearts, guard cells, roots and cell membranes all respond to change, but only some are complete feedback loops.</Support>
 
-<Support min={2}>**Key idea:** hearts, guard cells, roots and cell membranes all respond to change in ways that keep conditions inside the organism within a range.</Support>
+## Read the evidence: how fast does heart rate come back?
 
-## Elaborate: how fast does heart rate come back?
+**Predict.** The first film showed the fall is steepest at first. How much of the gap between peak and resting heart rate will close in the first minute: a little, about a third, or nearly all of it?
 
 | Time | Mean heart rate (beats/min) | Lowest to highest in the group (beats/min) |
 |---|---|---|
@@ -338,9 +374,18 @@ A few loops run the other way. In **positive feedback**, the response makes the 
 | 4 minutes after | 106 | 79 to 125 |
 | 5 minutes after | 102 | 77 to 123 |
 
-These are means for 52 healthy adult volunteers on the first day of a treadmill study by Tulumen and colleagues at Hacettepe University in Ankara, Turkey, published in 2011. Exercise ended with an active cool-down, and heart rates came from ECG reports. The "peak" row is the highest heart rate during exercise, not a reading taken at the exact moment exercise stopped. For comparison, the American Heart Association gives 60 to 100 beats/min as a usual resting range for adults.
+These are means for 52 healthy adult volunteers on the first day of a treadmill study. Tulumen and colleagues at Hacettepe University in Ankara, Turkey, published it in 2011. Exercise ended with an active cool-down, and heart rates came from ECG reports. The "peak" row is the highest heart rate during exercise, not a reading taken at the exact moment exercise stopped. For comparison, the American Heart Association gives 60 to 100 beats/min as a usual resting range for adults.
 
-1. By how much did mean heart rate fall in the first minute? By how much between 4 and 5 minutes? What does that tell you about the shape of the recovery graph?
+<details>
+<summary>Check your prediction</summary>
+
+About a third. The gap between peak (179) and the resting mean (75) is 104 beats/min, and the mean closed 34 of them in the first minute.
+
+</details>
+
+Work through the table:
+
+1. Mean heart rate fell by 179 − 145 = 34 beats/min in the first minute. Calculate the fall between 4 and 5 minutes. What does that tell you about the graph?
 2. At 5 minutes, was the group back to its resting mean? By how many beats per minute did it differ?
 3. The same volunteers repeated the test on days 7 and 30. Their mean heart rates at 1 minute were 145, 144 and 145 beats/min on days 1, 7 and 30. What is the mean of these three values?
 
@@ -356,6 +401,8 @@ These are means for 52 healthy adult volunteers on the first day of a treadmill 
 
 Plan a safe class investigation: how does heart rate change after the same short activity, and how long does it take to come back toward rest? Name your variables, what you keep the same, how many trials you run, and how you keep it safe and fair.
 
+**Predict.** Would a full-minute count or a shorter count show the earliest change more clearly? What is the tradeoff?
+
 <details>
 <summary>One way to do it</summary>
 
@@ -365,12 +412,12 @@ Plan a safe class investigation: how does heart rate change after the same short
 - **Constants:** the same comfortable activity for the same time (for example, marching in place for one minute), the same recovery position (sitting), the same way of counting, the same room.
 - **Control:** a resting heart rate taken after sitting quietly, before each trial.
 - **Trials:** practise counting your pulse first. Run three trials on separate occasions, each with a fresh resting reading. At each time, mean = sum of the three values ÷ 3. Keep every value; mark a count you know was a mistake instead of deleting a result you did not expect.
-- **Graph and meaning:** plot time on the x-axis and mean heart rate on the y-axis, with a line for your resting value. A steep early drop that flattens out fits the published data. A count over a full minute is an average for that minute, so record when each count started. Shorter counts, such as 15 seconds multiplied by 4, let you take readings closer together but are only estimates of the rate.
+- **Graph and meaning:** plot time on the x-axis and mean heart rate on the y-axis, with a line for your resting value. A steep early drop that flattens out fits the published data. A full-minute count averages that minute, so record when each count started. Shorter counts, such as 15 seconds multiplied by 4, show changes closer together but are only estimates of the rate.
 
 </details>
 
 ## Evaluate: check your thinking
 
-When you run up the stairs, nerve signals speed your heart, and when you stop, the signals change and it slows over several minutes, back toward its resting range. On a dry afternoon, guard cells narrow a leaf’s stomata, so it loses water more slowly. Both are responses that hold conditions inside the organism within a range while the outside changes.
+When you run up the stairs, nerve signals speed your heart. When you stop, they change, and it slows over several minutes toward its resting range. On a dry afternoon, guard cells narrow a leaf’s stomata, so water leaves more slowly. Both responses push a condition back toward its range.
 
 **Science practices you used:** making predictions and testing them in a model, planning a safe and fair investigation with repeated trials, reading a data table and calculating a mean, and naming the limits of a model and of one study's data.
