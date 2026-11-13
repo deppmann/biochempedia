@@ -12,6 +12,7 @@ import { feedbackUrl } from '../lib/feedback';
 import { getCollection } from 'astro:content';
 import { courseOf } from '../data/courses';
 import rewritten from '../data/recently-rewritten.json';
+import { listedMethods } from '../data/methods';
 
 /* The homepage is a front door, not the catalog (rearranged 2026-11-08 for user flow: Chris, "people
    have to scroll a bit before they get to the lesson"). Top to bottom: the hero with search and
@@ -72,6 +73,9 @@ for (const g of GOALS) for (const id of g.ids) {
   if (!PATHS.some((p) => p.id === id)) throw new Error(`Homepage: goal "${g.label}" points at path "${id}", which is not in src/data/paths.ts.`);
 }
 
+/* ---- The methods library link in the hero: count only methods that have a film. ---- */
+const methodFilms = listedMethods().length;
+
 const TRY = [
   { title: 'Metabolism Arcade', line: 'Six games from the Biochemistry course: wire the cell, fix a broken enzyme, and drill for the MCAT.', href: '/play' },
   { title: 'MCAT practice', line: 'Passages with data, a diagnostic and topic practice.', href: '/mcat/' },
@@ -93,6 +97,10 @@ const TRY = [
       <div class="goldrule" aria-hidden="true"></div>
       <p class="lede">Free lessons, films and simulations in science, starting with biology. Ages 5 to graduate school. No account needed, no ads.</p>
       <div class="home-search"><SiteSearch label="Search every course" /></div>
+      {/* The methods library, one click from the top of the page (Chris, 2026-11-13). */}
+      <p class="hero-methods">
+        <a href="/methods/"><strong>The methods library</strong> <span>· a short film for each of {methodFilms} lab techniques, from PCR to patch clamp →</span></a>
+      </p>
       {/* Filled from this device's saved progress (src/lib/progress.ts); stays
           hidden for a first visit, without JavaScript, or when storage is blocked. */}
       <p class="resume" data-resume hidden>
@@ -312,6 +320,10 @@ const TRY = [
     .resume :global(a) { color: var(--ddp-color-accent); font-weight: 600; }
 
     .home-search { margin-top: var(--ddp-space-5); max-width: 36rem; }
+    .hero-methods { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-sm); }
+    .hero-methods a { color: var(--ddp-color-ink-soft); text-decoration: none; }
+    .hero-methods a strong { color: var(--ddp-color-accent); font-weight: 600; }
+    .hero-methods a:hover strong, .hero-methods a:focus-visible strong { text-decoration: underline; }
     .tally { margin-top: var(--ddp-space-3); }
 
     /* ---- Sections ---- */

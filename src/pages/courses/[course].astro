@@ -7,7 +7,7 @@ import DepthLadder from '../../components/DepthLadder.astro';
 import Drifters from '../../components/Drifters.astro';
 import Hex from '../../components/Hex.astro';
 import { hexPropFor } from '../../data/hex';
-import { COURSES, unitsFor } from '../../data/courses';
+import { COURSES, unitsFor, courseSkimHref } from '../../data/courses';
 
 /* One page per course, all in the same card layout. A course gets a page only
    once it has a lesson to show. `astro dev` counts drafts so an author can read
@@ -115,6 +115,7 @@ const tierLabel = { families: 'activities for ages 5–10', highschool: course.l
 
   <section class="wrap lessons" id="lessons">
     <p class="sec-label">{units.length} units · {lessons.length === 1 ? 'one lesson' : `${lessons.length} lessons`}</p>
+    <p class="course-skim"><a href={courseSkimHref(course.slug)}><span aria-hidden="true">≡</span> Skim the whole course</a><span class="course-skim-note">: the guiding idea of every {course.tier === 'families' ? 'activity' : 'lesson'} on one page, with film take-homes</span></p>
     <CourseUnits course={course} lessons={lessons} />
   </section>
 
@@ -178,7 +179,10 @@ const tierLabel = { families: 'activities for ages 5–10', highschool: course.l
     .scope summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; font-weight: 600; color: var(--ddp-color-accent); }
     .scope p { max-width: 62ch; color: var(--ddp-color-ink-soft); line-height: 1.6; margin: 0 0 var(--ddp-space-4); }
     .lessons { padding-bottom: var(--ddp-space-12); }
-    .sec-label { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: 0.12em; text-transform: uppercase; color: var(--ddp-color-muted); margin: var(--ddp-space-8) 0 var(--ddp-space-4); }
+    .sec-label { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: 0.12em; text-transform: uppercase; color: var(--ddp-color-muted); margin: var(--ddp-space-8) 0 var(--ddp-space-2); }
+    .course-skim { margin: 0 0 var(--ddp-space-4); font-size: var(--ddp-text-sm); line-height: 1.5; }
+    .course-skim a { font-weight: 600; color: var(--ddp-color-accent); text-underline-offset: 3px; }
+    .course-skim-note { color: var(--ddp-color-muted); }
     @media (prefers-reduced-motion: reduce) { .cta, .cta-play, .funbar-link { transition: none; } }
   </style>
 </BaseLayout>
