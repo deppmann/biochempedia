@@ -18,6 +18,35 @@ export interface Skim { sections: SkimSection[]; figureCount: number; words: num
 
 interface Heading { depth: number; slug: string; text: string }
 
+/** Word count of a string, as the read-time estimates count it. */
+export const wordsIn = (s: string) => s.trim() ? s.trim().split(/\s+/).length : 0;
+
+/** The guiding idea a Skim page leads with: the first sentence of the lesson's summary, plus its
+ *  hook question when it has one. Shared by the lesson Skim page and the course Skim page. */
+export function guidingIdeaOf(lesson: { summary: string; hook?: string }) {
+  return { idea: lesson.summary.split(/(?<=[.?!])\s+/)[0], hook: lesson.hook };
+}
+
+export interface SkimFilm { title: string; takeaways: string[]; position: number }
+
+/** The lesson's films that carry take-home bullets, in lesson order (the lesson film first, then
+ *  each further film). `position` is the film's place among all the lesson's films (1 = first),
+ *  counted before films without take-homes are dropped, so "second film" always means the same film. */
+export function filmTakeawaysOf(lesson: {
+  explainer?: { title: string; takeaways?: string[] };
+  films: { title: string; takeaways?: string[] }[];
+}): SkimFilm[] {
+  return [...(lesson.explainer ? [lesson.explainer] : []), ...lesson.films]
+    .map((f, i) => ({ title: f.title, takeaways: f.takeaways ?? [], position: i + 1 }))
+    .filter((f) => f.takeaways.length > 0);
+}
+
+/** Reader-facing name for a film's place in a lesson ("First film"); never "chapter". */
+export const filmLabel = (n: number) => {
+  const word = ['First', 'Second', 'Third', 'Fourth', 'Fifth', 'Sixth'][n - 1];
+  return word ? `${word} film` : `Film ${n}`;
+};
+
 const FIG_OPEN = /<(LessonFigure|ScaffoldFigure)\b/;
 
 /** Parse one figure tag's props. Lesson MDX writes them as name="..." strings, numbers as

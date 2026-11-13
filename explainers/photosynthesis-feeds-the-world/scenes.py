@@ -1,319 +1,579 @@
-"""Wood is built from air and water  (grade 7 Life Science explainer, photosynthesis-feeds-the-world)
+"""What Becomes a Tree? — animated explainer.
 
-COLOR MAP (one color per concept, whole video)
-  PURPLE = carbon dioxide
-  TEAL   = water
-  YELLOW = light (radiant energy, sunlight)
-  GOLD   = sugar (glucose)
-  BLUE   = oxygen
-  GREEN  = plants, producers, chloroplast, photosynthesis
-  ORANGE = wood (the tree's dry wood)
-  BROWN  = soil (and its minerals)
-  RED    = heat (temperature), "cannot" crosses
-  GREY   = outlines, structure, notes
+COLOR MAP
+  GOLD  = light energy
+  TEAL  = carbon dioxide
+  BLUE  = water
+  GREEN = sugar / newly fixed plant material
+  BROWN = wood
+
+The tree world is rebuilt by ``tree_world`` everywhere it returns, so its soil,
+trunk, canopy, roots, and gauge never drift between scenes.
 """
-import numpy as np
-from bp_style import *  # noqa: F401,F403
-
-PURPLE = "#B58CD9"
-ORANGE = "#F29E4C"
-BROWN = "#A47B52"
-
-GROUND_Y = -2.0
-TREE_X = 0.5
+from bp_parts import *
 
 
-def arr(a, b, color=GREY, w=5, tip=0.22):
-    return Arrow(a, b, buff=0.06, color=color, stroke_width=w, tip_length=tip,
-                 max_tip_length_to_length_ratio=0.45, max_stroke_width_to_length_ratio=14)
+BROWN = "#A9754F"
+SOIL = "#72523C"
+LEAF = "#6DAA57"
+OXYGEN = "#C9D6E5"
+TREE_X = 1.35
+SOIL_Y = -2.15
 
 
-def ground(label=True):
-    g = RoundedRectangle(corner_radius=0.1, width=12.4, height=0.7, stroke_color=BROWN, stroke_width=3,
-                         fill_color=BROWN, fill_opacity=0.3).move_to([0, GROUND_Y, 0])
-    if not label:
-        return g
-    lab = T("soil", 26, BROWN).move_to([-5.2, GROUND_Y, 0])
-    return VGroup(g, lab)
+def arrow(a, b, color=TEXT, width=5, tip=0.22):
+    return Arrow(a, b, buff=0.04, color=color, stroke_width=width,
+                 tip_length=tip, max_tip_length_to_length_ratio=0.35)
 
 
-def tree(x=TREE_X, wood_scale=1.0):
-    trunk = Rectangle(width=0.5 * wood_scale, height=2.2, stroke_color=ORANGE, stroke_width=3,
-                      fill_color=ORANGE, fill_opacity=0.55)
-    trunk.move_to([x, GROUND_Y + 0.35 + 1.1, 0])
-    canopy = Ellipse(width=3.8, height=2.2, stroke_color=GREEN, stroke_width=4, fill_color=GREEN, fill_opacity=0.25)
-    canopy.move_to([x, GROUND_Y + 0.35 + 2.2 + 0.7, 0])
-    lab = T("tulip poplar", 24, GREEN).move_to(canopy)
-    return VGroup(trunk, canopy, lab)
+def shuttle(mob, path, period=4.0, phase=0.0):
+    """Move a token back and forth along a visible route indefinitely."""
+    mob._shuttle_t = phase * period
+
+    def update(m, dt):
+        m._shuttle_t += dt
+        alpha = 0.5 - 0.5 * np.cos(TAU * m._shuttle_t / period)
+        m.move_to(path.point_from_proportion(alpha))
+
+    return mob.add_updater(update)
 
 
-def seed(x=-5.0):
-    s = Ellipse(width=0.34, height=0.22, stroke_color=ORANGE, stroke_width=3, fill_color=ORANGE, fill_opacity=0.8)
-    return s.move_to([x, GROUND_Y + 0.35 + 0.11, 0])
+def leaf_shape(width=2.6, height=1.25, color=LEAF):
+    """A leaf silhouette, not a molecular drawing."""
+    body = Ellipse(width=width, height=height, color=color, stroke_width=4,
+                   fill_color=color, fill_opacity=0.28).rotate(0.18)
+    vein = Line(body.get_left() + RIGHT * 0.15, body.get_right() + LEFT * 0.15,
+                color=color, stroke_width=3).rotate(0.18, about_point=body.get_center())
+    # Labels and blocks deliberately sit on this low-opacity picture of a leaf.
+    body.layout_ok = True
+    vein.layout_ok = True
+    pulse(body, base=4.0, amp=0.65, speed=1.1)
+    return VGroup(body, vein)
 
 
-class S00Title(TitleCard):
-    LESSON = "Photosynthesis feeds the world"
-    TITLE = "Wood Is Built Mostly From Air and Water"
+def tree_picture(full=True):
+    """The single carried tree, always at the same scale and coordinates."""
+    h = 4.45 if full else 3.45
+    trunk = RoundedRectangle(corner_radius=0.12, width=0.78, height=h,
+                             stroke_color=BROWN, stroke_width=4,
+                             fill_color=BROWN, fill_opacity=0.70)
+    trunk.move_to([TREE_X, SOIL_Y + h / 2, 0])
+    roots = VGroup(*[
+        Line([TREE_X, SOIL_Y + 0.1, 0], [TREE_X + dx, SOIL_Y - 0.48, 0],
+             color=BROWN, stroke_width=5)
+        for dx in (-1.25, -0.62, 0.62, 1.25)
+    ])
+    y = SOIL_Y + h - 0.15
+    canopy = VGroup(
+        Circle(1.15, color=LEAF, stroke_width=4, fill_color=LEAF, fill_opacity=0.27).move_to([TREE_X - 0.95, y, 0]),
+        Circle(1.30, color=LEAF, stroke_width=4, fill_color=LEAF, fill_opacity=0.29).move_to([TREE_X + 0.10, y + 0.40, 0]),
+        Circle(1.10, color=LEAF, stroke_width=4, fill_color=LEAF, fill_opacity=0.27).move_to([TREE_X + 1.18, y, 0]),
+    )
+    # The canopy is a low-opacity background world; foreground labels remain legible on it.
+    for crown in canopy:
+        crown.layout_ok = True
+    pulse(canopy, base=4.0, amp=0.55, speed=1.0)
+    return VGroup(roots, trunk, canopy)
 
 
-# ---------------------------------------------------------------------------------------------
-class S01Seed(SpokenScene):
+def soil_strip():
+    return RoundedRectangle(corner_radius=0.12, width=13.0, height=0.78,
+                            stroke_color=SOIL, stroke_width=3,
+                            fill_color=SOIL, fill_opacity=0.35).move_to([0, SOIL_Y - 0.15, 0])
+
+
+def soil_gauge(value=0.96):
+    """Wide schematic soil-mass gauge; value is deliberately only slightly changed."""
+    box = RoundedRectangle(corner_radius=0.16, width=4.1, height=1.0,
+                           stroke_color=SOIL, stroke_width=3).move_to([-4.25, -1.15, 0])
+    fill = Rectangle(width=3.55 * value, height=0.28, stroke_width=0,
+                     fill_color=SOIL, fill_opacity=0.9)
+    fill.align_to(box.get_left() + RIGHT * 0.28, LEFT).move_to([box.get_left()[0] + 0.28 + fill.width / 2, -1.32, 0])
+    lab = T("soil mass", 28, TEXT).move_to([-4.25, -0.90, 0])
+    return VGroup(box, fill, lab)
+
+
+def seed_picture():
+    seed = Ellipse(width=0.55, height=0.32, color=BROWN, stroke_width=4,
+                   fill_color=BROWN, fill_opacity=0.85).rotate(-0.25)
+    return seed.move_to([-4.4, SOIL_Y + 0.45, 0])
+
+
+def tree_world(full=True, gauge=True, seed=False):
+    """Shared world builder used by every whole-tree scene."""
+    g = VGroup(soil_strip(), tree_picture(full=full))
+    if gauge:
+        g.add(soil_gauge())
+    if seed:
+        g.add(seed_picture())
+    return g
+
+
+def path_dots():
+    """Slow, looping-looking path markers for prediction frames."""
+    co2 = Dot([-4.9, 1.15, 0], radius=0.13, color=TEAL)
+    water = Dot([-0.2, -2.0, 0], radius=0.13, color=BLUE)
+    light = Dot([5.35, 2.55, 0], radius=0.13, color=GOLD)
+    routes = (
+        Line([-5.0, 1.15, 0], [-0.65, 1.5, 0]),
+        Line([-0.3, -1.9, 0], [0.65, -0.35, 0]),
+        Line([5.2, 2.55, 0], [3.05, 1.9, 0]),
+    )
+    for i, (dot, route) in enumerate(zip((co2, water, light), routes)):
+        shuttle(dot, route, period=4.2 + i * 0.5, phase=i / 3)
+    return VGroup(co2, water, light)
+
+
+def breathe(mob, lo=0.35, hi=1.0, period=2.4, phase=0.0):
+    """Slow whole-object opacity swing so a long hold keeps visible motion."""
+    mob._br_t = phase * period
+
+    def update(m, dt):
+        m._br_t += dt
+        a = lo + (hi - lo) * (0.5 - 0.5 * np.cos(TAU * m._br_t / period))
+        m.set_stroke(opacity=a)
+        m.set_fill(opacity=a if m.get_fill_opacity() > 0 else 0)
+
+    return mob.add_updater(update)
+
+
+def prediction_backdrop():
+    world = tree_world(full=True, gauge=False)
+    co2_path = arrow([-5.2, 1.15, 0], [-0.1, 1.55, 0], TEAL, 6)
+    water_path = arrow([-0.4, -2.0, 0], [0.85, -0.15, 0], BLUE, 6)
+    light_path = arrow([5.5, 2.65, 0], [2.75, 1.8, 0], GOLD, 6)
+    marks = VGroup(*[T("?", 50, c, weight=BOLD).move_to(p) for c, p in (
+        (TEAL, [-0.35, 1.85, 0]), (BLUE, [0.35, -0.05, 0]), (GOLD, [3.0, 2.2, 0]))])
+    for i, p in enumerate((co2_path, water_path, light_path)):
+        breathe(p, 0.3, 1.0, 2.4, phase=i / 3)
+    for i, m in enumerate(marks):
+        breathe(m, 0.2, 1.0, 1.8, phase=i / 3)
+    dots = path_dots()
+    for i, d in enumerate(dots):
+        breathe(d, 0.15, 1.0, 1.5, phase=i / max(1, len(dots)))
+    wash = Rectangle(width=14.2, height=8.2, stroke_width=0, fill_color=GOLD, fill_opacity=0.0)
+    wash.layout_ok = True
+    wash._w_t = 0.0
+
+    def wash_update(m, dt):
+        m._w_t += dt
+        m.set_fill(GOLD, opacity=0.09 * (0.5 - 0.5 * np.cos(TAU * m._w_t / 2.8)))
+
+    wash.add_updater(wash_update)
+    return VGroup(VGroup(wash, world), co2_path, water_path, light_path, marks, dots)
+
+
+def prediction_question():
+    return question_card("Which paths carry matter — and which carries only energy?",
+                         y=2.95, size=28, max_w=5.4, left=-6.2)
+
+
+def sugar_block(text="SUGAR", size=30):
+    return chip(text, GREEN, size)
+
+
+class S00Hook(SpokenScene):
     def construct(self):
-        gr = ground()
-        self.play(FadeIn(gr), run_time=0.5)
-        sd = seed()
-        sd_lab = T("seed: under 0.1 g", 26, TEXT).move_to([-4.6, -0.7, 0])
-        sd_lab2 = T("(on average)", 24, GREY).next_to(sd_lab, DOWN, buff=0.12)
-        self.at("seed weighs")
-        self.play(FadeIn(sd, scale=2), FadeIn(sd_lab), FadeIn(sd_lab2), run_time=0.6)
-        tr = tree()
-        tr_lab = VGroup(T("about 10,000 kg", 30, ORANGE, weight=BOLD), T("of dry wood", 28, ORANGE)).arrange(DOWN, buff=0.1)
-        tr_lab.move_to([4.5, 1.1, 0])
-        self.at("grew so big")
-        self.play(GrowFromPoint(tr, [TREE_X, GROUND_Y + 0.35, 0]), run_time=1.6)
-        self.at("dry wood")
-        self.play(FadeIn(tr_lab), run_time=0.5)
-        note = VGroup(T("a model's estimate,", 24, GREY), T("not a weighing", 24, GREY)).arrange(DOWN, buff=0.08)
-        note.next_to(tr_lab, DOWN, buff=0.35)
-        self.at("estimate from a model")
-        self.play(FadeIn(note), run_time=0.5)
-        q = T("Where did all that wood come from?", 38, TEXT, font=TITLE_FONT).move_to([0, 3.15, 0])
-        c1 = chip("from the air?", PURPLE, 26).move_to([-4.2, 1.7, 0])
-        c2 = chip("from the soil?", BROWN, 26).move_to([-4.2, -0.4, 0])
-        a1 = arr(c1.get_right(), [TREE_X - 1.9, 1.5, 0], PURPLE)
-        a2 = arr(c2.get_right(), [TREE_X - 0.4, GROUND_Y + 1.4, 0], BROWN)
-        self.at("where did all")
-        self.play(FadeOut(VGroup(sd, sd_lab, sd_lab2)), FadeIn(q), run_time=0.6)
-        self.play(FadeIn(c1), FadeIn(c2), GrowArrow(a1), GrowArrow(a2), run_time=0.8)
+        soil = soil_strip()
+        seed = seed_picture()
+        gauge = soil_gauge(1.0)
+        ghost = tree_picture(full=True).set_opacity(0.13)
+        self.add(soil, ghost)
+        self.play(GrowFromCenter(seed), FadeIn(gauge), run_time=0.75)
+
+        self.at("What becomes the wood")
+        question = T("What becomes the wood?", 38, TEXT, font=TITLE_FONT).move_to([-3.8, 3.25, 0])
+        self.play(FadeIn(question, shift=DOWN * 0.12), run_time=0.65)
+
+        self.at("Watch one tiny seed")
+        sprout = tree_picture(full=False)
+        sprout.scale(0.16, about_point=[TREE_X, SOIL_Y, 0])
+        self.play(ReplacementTransform(seed.copy(), sprout), run_time=1.0)
+
+        self.at("tree gains layer after layer")
+        tree = tree_picture(full=True)
+        self.play(Transform(sprout, tree), FadeOut(ghost), run_time=2.2, rate_func=smooth)
+        ring1 = SurroundingRectangle(tree[1], color=BROWN, buff=0.12, stroke_width=4)
+        ring2 = SurroundingRectangle(tree[1], color=BROWN, buff=0.24, stroke_width=3).set_opacity(0.65)
+        self.play(Create(ring1), Create(ring2), run_time=1.0)
+        self.play(FadeOut(ring1), FadeOut(ring2), run_time=0.4)
+
+        self.at("soil gauge barely moves")
+        slightly_less = soil_gauge(0.96)
+        self.play(Transform(gauge, slightly_less), run_time=1.8)
+        tag = scope_tag("size change schematic")
+        self.play(FadeIn(tag), run_time=0.4)
+
+        self.at("Something outside the soil")
+        outside = VGroup(
+            Dot([-4.9, 1.8, 0], radius=0.16, color=TEAL),
+            Dot([-3.9, 2.45, 0], radius=0.16, color=GOLD),
+            Dot([-2.8, -0.15, 0], radius=0.16, color=BLUE),
+        )
+        self.play(LaggedStart(*[FadeIn(d, scale=1.6) for d in outside], lag_ratio=0.25), run_time=1.2)
+        self.play(outside.animate.shift(RIGHT * 0.45), run_time=1.5, rate_func=there_and_back)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S02Producer(SpokenScene):
+class S01Title(NarratedScene):
     def construct(self):
-        deer = chip("deer", GREY, 32).move_to([-4.0, 0.9, 0])
-        food = chip("food", GREY, 28).move_to([-4.0, -1.6, 0])
-        eat = arr(food.get_top(), deer.get_bottom(), GREY)
-        eat_l = T("eats", 26, GREY).next_to(eat, RIGHT, buff=0.2)
-        self.at("A deer")
-        self.play(FadeIn(deer, shift=DOWN * 0.2), run_time=0.5)
-        self.at("It has to eat")
-        self.play(FadeIn(food), GrowArrow(eat), FadeIn(eat_l), run_time=0.7)
-        plant = chip("plant", GREEN, 32).move_to([3.4, 0.9, 0])
-        food2 = chip("food", GREY, 28).move_to([3.4, -1.6, 0]).set_opacity(0.35)
-        eat2 = arr(food2.get_top(), plant.get_bottom(), GREY).set_opacity(0.35)
-        cross = VGroup(Line(UL, DR, color=RED, stroke_width=7), Line(UR, DL, color=RED, stroke_width=7)).scale(0.28).move_to(eat2)
-        self.at("A plant does not eat")
-        self.play(FadeIn(plant, shift=DOWN * 0.2), FadeIn(food2), FadeIn(eat2), run_time=0.5)
-        self.play(Create(cross), run_time=0.4)
-        bar = Rectangle(width=0.5, height=0.3, stroke_color=GREEN, stroke_width=3, fill_color=GREEN, fill_opacity=0.5)
-        bar.move_to([5.4, -0.3, 0])
-        up = T("grows", 26, GREEN).move_to([5.4, -0.8, 0])
-        self.at("yet it grows")
-        self.play(FadeIn(bar), FadeIn(up), run_time=0.3)
-        self.play(bar.animate.stretch_to_fit_height(2.4, about_edge=DOWN).set_opacity(1), run_time=1.2)
-        self.at("A producer is")
-        word = T("producer", 54, GREEN, font=TITLE_FONT).move_to([0, 2.3, 0])
-        defn = T("a living thing that makes its own food", 32, TEXT).next_to(word, DOWN, buff=0.3)
-        self.play(FadeOut(VGroup(deer, food, eat, eat_l, plant, food2, eat2, cross, bar, up)), run_time=0.5)
-        self.play(FadeIn(word, shift=UP * 0.1), FadeIn(defn), run_time=0.7)
-        p1 = chip("green plants", GREEN, 28).move_to([-4.2, -0.5, 0])
-        p2 = chip("algae", GREEN, 28).move_to([-0.5, -0.5, 0])
-        p3 = chip("phytoplankton", GREEN, 28).move_to([3.8, -0.5, 0])
-        self.at("Green plants")
-        self.play(FadeIn(p1, shift=UP * 0.2), run_time=0.4)
-        self.at("algae")
-        self.play(FadeIn(p2, shift=UP * 0.2), run_time=0.4)
-        self.at("and phytoplankton")
-        self.play(FadeIn(p3, shift=UP * 0.2), run_time=0.4)
-        tiny = T("tiny producers that drift in water", 26, GREY).next_to(p3, DOWN, buff=0.3).shift(LEFT * 0.6)
-        self.at("tiny producers")
-        self.play(FadeIn(tiny), run_time=0.5)
+        world = tree_world(full=True, gauge=True)
+        title = T("What Becomes a Tree?", 44, TEXT, font=TITLE_FONT).move_to([-3.65, 2.75, 0])
+        water = VGroup(*[Dot([-0.15 + i * 0.12, -1.8 + i * 0.55, 0], radius=0.09, color=BLUE) for i in range(4)])
+        self.add(world)
+        self.play(FadeIn(title), water.animate.shift(UP * 0.45),
+                  world[1][2].animate.rotate(0.015), run_time=1.25)
+        self.play(water.animate.shift(UP * 0.35), world[1][2].animate.rotate(-0.025), run_time=0.55)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S03Photo(SpokenScene):
+class S02Sort(SpokenScene):
     def construct(self):
-        mid = [0, 0.2, 0]
-        ax = arr([-1.6, 0.2, 0], [1.6, 0.2, 0], GREEN, w=9, tip=0.35)
-        pname = T("photosynthesis", 36, GREEN, weight=BOLD).move_to([0, 1.0, 0])
-        self.at("make food by")
-        self.play(GrowArrow(ax), FadeIn(pname), run_time=0.8)
-        sun = Circle(radius=0.32, stroke_color=YELLOW, stroke_width=3, fill_color=YELLOW, fill_opacity=0.9).move_to([-5.6, 1.7, 0])
-        sun_l = T("sunlight", 26, YELLOW).next_to(sun, DOWN, buff=0.15)
-        ray = arr([-5.1, 1.6, 0], [-2.0, 0.4, 0], YELLOW, w=6)
-        self.at("energy of sunlight")
-        self.play(FadeIn(sun), FadeIn(sun_l), GrowArrow(ray), run_time=0.8)
-        co2 = chip("carbon dioxide", PURPLE, 28).move_to([-4.3, 0.0, 0])
-        wat = chip("water", TEAL, 28).move_to([-4.3, -1.5, 0])
-        self.at("carbon dioxide and water")
-        self.play(FadeIn(co2, shift=RIGHT * 0.3), run_time=0.5)
-        self.play(FadeIn(wat, shift=RIGHT * 0.3), run_time=0.5)
-        sug = chip("sugar (glucose)", GOLD, 28).move_to([4.2, 0.9, 0])
-        oxy = chip("oxygen", BLUE, 28).move_to([4.2, -0.8, 0])
-        self.at("sugar and oxygen")
-        self.play(FadeIn(sug, shift=RIGHT * 0.3), run_time=0.5)
-        self.play(FadeIn(oxy, shift=RIGHT * 0.3), run_time=0.5)
-        rad = chip("radiant energy", YELLOW, 28).move_to([-3.6, 3.0, 0])
-        self.at("radiant energy")
-        self.play(ReplacementTransform(sun_l.copy(), rad), run_time=0.6)
-        trav_l = T("energy that travels as light", 26, YELLOW).move_to([1.6, 3.0, 0])
-        dot = Dot([-5.1, 1.6, 0], radius=0.12, color=YELLOW)
-        self.at("travels as light")
-        self.play(FadeIn(trav_l), FadeIn(dot), run_time=0.4)
-        self.play(dot.animate.move_to([-2.0, 0.4, 0]), run_time=0.9, rate_func=linear)
-        self.play(FadeOut(dot), run_time=0.1)
-        note = T("a small sugar molecule that stores energy", 26, GOLD).move_to([3.4, -2.2, 0])
-        self.at("a small sugar molecule")
-        self.play(Indicate(sug, color=GOLD, scale_factor=1.1), FadeIn(note), run_time=0.8)
+        tree = tree_picture(full=False).scale(0.78).move_to([0, -0.35, 0])
+        self.add(tree)
+        matter_tray = RoundedRectangle(corner_radius=0.2, width=4.3, height=2.05,
+                                       stroke_color=TEAL, stroke_width=4).move_to([-4.15, 0.45, 0])
+        matter_lab = T("MATTER", 34, TEXT, weight=BOLD).next_to(matter_tray, UP, buff=0.18)
+        energy_wire = CubicBezier([1.8, 1.45, 0], [3.0, 2.2, 0], [4.2, 0.4, 0], [5.2, 0.7, 0],
+                                  color=GOLD, stroke_width=5)
+        machine = VGroup(RoundedRectangle(corner_radius=0.15, width=2.1, height=1.5,
+                                          stroke_color=GREY, stroke_width=4),
+                         T("BUILDER", 28, TEXT)).move_to([5.1, -0.25, 0])
+        machine[1].move_to([5.1, 0.12, 0])
+        gear = Circle(radius=0.24, color=GOLD, stroke_width=5).move_to([5.1, -0.62, 0])
+        gear.add_updater(lambda m, dt: m.rotate(1.4 * dt))
+
+        self.at("Matter has mass")
+        self.play(FadeIn(matter_tray), FadeIn(matter_lab), run_time=0.7)
+        co2 = chip("carbon dioxide", TEAL, 28).move_to([-4.65, 0.65, 0])
+        water = chip("water", BLUE, 28).move_to([-3.25, 0.05, 0])
+        self.play(FadeIn(co2, shift=DOWN * 0.2), FadeIn(water, shift=DOWN * 0.2), run_time=0.8)
+
+        self.at("Energy can move")
+        self.play(Create(energy_wire), FadeIn(machine), FadeIn(gear), run_time=0.8)
+        pulse_dot = Dot(energy_wire.get_start(), radius=0.15, color=GOLD)
+        energy_lab = T("ENERGY", 32, GOLD, weight=BOLD).move_to([3.3, 2.35, 0])
+        self.play(FadeIn(energy_lab), MoveAlongPath(pulse_dot, energy_wire), run_time=1.6, rate_func=linear)
+        shuttle(pulse_dot, energy_wire, period=3.6)
+
+        self.at("does not become wood")
+        product = Rectangle(width=0.62, height=1.55, color=BROWN, stroke_width=4,
+                            fill_color=BROWN, fill_opacity=0.65).move_to([5.1, -2.0, 0])
+        self.play(Indicate(pulse_dot, color=GOLD, scale_factor=1.4),
+                  GrowFromEdge(product, DOWN), run_time=1.0)
+
+        self.at("Sunlight reaches the leaf")
+        leaf = leaf_shape(2.0, 0.9).move_to([2.65, 0.9, 0])
+        self.play(FadeIn(leaf), MoveAlongPath(pulse_dot, energy_wire.copy()), run_time=1.5, rate_func=linear)
+        breathe(leaf, 0.35, 1.0, 2.2)
+        breathe(energy_wire, 0.35, 1.0, 2.2, phase=0.5)
+        breathe(matter_tray, 0.4, 1.0, 2.6, phase=0.25)
+
+        self.at("electricity runs a factory")
+        self.play(product.animate.stretch(1.16, 1), run_time=2.1, rate_func=linear)
+        self.play(product.animate.set_fill(BROWN, opacity=0.82), run_time=0.6)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S04Where(SpokenScene):
+class S03Inputs(SpokenScene):
     def construct(self):
-        cell = RoundedRectangle(corner_radius=0.5, width=8.0, height=5.6, stroke_color=GREY, stroke_width=4,
-                                fill_color=GREY, fill_opacity=0.06)
-        cell_l = T("leaf cell", 28, GREY).move_to(cell.get_corner(UR) + LEFT * 1.2 + DOWN * 0.4)
-        chl = Ellipse(width=5.6, height=3.2, stroke_color=GREEN, stroke_width=5, fill_color=GREEN, fill_opacity=0.3)
-        chl.move_to(cell.get_center() + DOWN * 0.2)
-        chl_l = T("chloroplast", 36, GREEN, weight=BOLD).move_to(chl.get_center() + UP * 0.5)
-        self.at("chloroplast")
-        self.play(FadeIn(cell), FadeIn(cell_l), run_time=0.5)
-        self.play(GrowFromCenter(chl), FadeIn(chl_l), run_time=0.8)
-        pig = T("chlorophyll: green pigment", 28, GREEN).move_to(chl.get_center() + DOWN * 0.3)
-        glow = arr(cell.get_left() + RIGHT * 0.3 + UP * 1.9, chl.get_left() + RIGHT * 0.3 + UP * 0.8, YELLOW, w=6)
-        glow_l = T("radiant energy", 26, YELLOW).move_to(cell.get_center() + LEFT * 1.4 + UP * 2.3)
-        self.at("It holds chlorophyll")
-        self.play(FadeIn(pig), run_time=0.5)
-        self.at("captures radiant energy")
-        self.play(FadeIn(glow_l), GrowArrow(glow), run_time=0.7)
-        self.play(FadeOut(glow), FadeOut(glow_l), run_time=0.3)
-        # plant cross-section on the left
-        cell_g = VGroup(cell, cell_l, chl, chl_l, pig)
-        scell = RoundedRectangle(corner_radius=0.4, width=5.4, height=3.6, stroke_color=GREY, stroke_width=4,
-                                 fill_color=GREY, fill_opacity=0.06).move_to([3.5, 0.6, 0])
-        schl = Ellipse(width=3.6, height=2.0, stroke_color=GREEN, stroke_width=5, fill_color=GREEN, fill_opacity=0.3).move_to([3.5, 0.45, 0])
-        schl_l = T("chloroplast", 28, GREEN, weight=BOLD).move_to(schl)
-        small = VGroup(scell, schl, schl_l)
-        soil = Rectangle(width=5.2, height=1.5, stroke_color=BROWN, stroke_width=3, fill_color=BROWN, fill_opacity=0.3).move_to([-3.6, -2.6, 0])
-        soil_l = T("soil", 26, BROWN).move_to(soil.get_corner(DL) + RIGHT * 0.5 + UP * 0.3)
-        stem = Rectangle(width=0.45, height=2.8, stroke_color=GREEN, stroke_width=3, fill_color=GREEN, fill_opacity=0.35).move_to([-3.6, -0.5, 0])
-        leaf = RoundedRectangle(corner_radius=0.3, width=3.2, height=1.1, stroke_color=GREEN, stroke_width=4, fill_color=GREEN, fill_opacity=0.3).move_to([-3.6, 1.3, 0])
-        leaf_l = T("leaf", 26, GREEN).move_to(leaf)
-        root = VGroup(*[Line([-3.6, -1.9, 0], [-3.6 + dx, -3.1, 0], color=BROWN, stroke_width=4) for dx in (-1.2, -0.5, 0.5, 1.2)])
-        plant = VGroup(soil, soil_l, root, stem, leaf, leaf_l)
-        self.at("Roots take in water")
-        sm_lab = T("one leaf cell, zoomed in", 26, GREY).move_to([3.5, -1.6, 0])
-        self.play(FadeOut(cell_g), FadeIn(small), run_time=0.7)
-        self.play(FadeIn(plant), FadeIn(sm_lab), run_time=0.8)
-        wat = arr([-3.6, -2.5, 0], [-3.6, -0.4, 0], TEAL, w=8, tip=0.3)
-        wat_l = T("water", 26, TEAL).move_to([-2.3, -1.2, 0])
-        self.play(GrowArrow(wat), FadeIn(wat_l), run_time=0.8)
-        co2 = arr([-6.2, 2.9, 0], [-4.5, 1.7, 0], PURPLE, w=8, tip=0.3)
-        co2_l = T("carbon dioxide", 26, PURPLE).move_to([-4.6, 3.1, 0])
-        self.at("Leaves take in carbon dioxide")
-        self.play(GrowArrow(co2), FadeIn(co2_l), run_time=0.8)
-        # air bar
-        self.at("Carbon dioxide is only")
-        clear = VGroup(small, sm_lab, plant, wat, wat_l, co2, co2_l)
-        self.play(FadeOut(clear), run_time=0.5)
-        bar = Rectangle(width=10.0, height=0.9, stroke_color=GREY, stroke_width=3, fill_color=GREY, fill_opacity=0.2).move_to([0, 0.6, 0])
-        air_l = T("air", 34, TEXT).move_to([0, 1.6, 0])
-        tick = Line(bar.get_corner(DL) + RIGHT * 0.1, bar.get_corner(UL) + RIGHT * 0.1, color=PURPLE, stroke_width=6)
-        tick_l = T("carbon dioxide: about 0.04 percent of air", 30, PURPLE).move_to([0, -1.1, 0])
-        tl = arr([-3.4, -0.9, 0], tick.get_bottom() + DOWN * 0.1, PURPLE, w=4, tip=0.2)
-        ns = T("(not to scale)", 24, GREY).move_to([0, -1.9, 0])
-        self.play(FadeIn(bar), FadeIn(air_l), run_time=0.5)
-        self.at("tiny part of air")
-        self.play(Create(tick), FadeIn(tick_l), GrowArrow(tl), FadeIn(ns), run_time=0.8)
+        leaf = leaf_shape(8.2, 4.0).move_to([0.65, 0.55, 0])
+        leaf_lab = T("LEAF", 30, LEAF, weight=BOLD).move_to([-2.15, 2.65, 0])
+        self.add(leaf)
+        roots = VGroup(*[Line([-4.6, -2.75, 0], [-4.6 + dx, -1.25, 0], color=BROWN, stroke_width=5)
+                         for dx in (-0.8, -0.25, 0.3, 0.85)])
+        self.add(roots)
+
+        self.at("moves upward")
+        drops = VGroup(*[Dot([-4.8 + i * 0.25, -2.45, 0], radius=0.13, color=BLUE) for i in range(3)])
+        self.play(drops.animate.shift(UP * 2.0 + RIGHT * 2.0), FadeIn(leaf_lab), run_time=1.6)
+
+        self.at("Carbon dioxide enters")
+        opening = Ellipse(width=1.0, height=0.35, color=TEAL, stroke_width=4).move_to([3.2, 0.35, 0])
+        co2 = VGroup(*[chip("CO₂", TEAL, 26).move_to([6.0, y, 0]) for y in (1.2, 0.35, -0.5)])
+        self.play(Create(opening), co2.animate.shift(LEFT * 1.25), run_time=1.5)
+
+        self.at("Light arrives")
+        rays = VGroup(*[Arrow([x, 3.25, 0], [x - 0.25, 2.1, 0], buff=0, color=GOLD,
+                              stroke_width=6, tip_length=0.18) for x in (-0.2, 1.1, 2.4)])
+        self.play(LaggedStart(*[GrowArrow(r) for r in rays], lag_ratio=0.2), run_time=1.2)
+
+        self.at("build sugar")
+        water = chip("WATER", BLUE, 28).move_to([-1.6, 0.0, 0])
+        carbon = chip("CARBON DIOXIDE", TEAL, 28).move_to([1.5, 0.0, 0])
+        sugar = sugar_block().move_to([0.0, 0.0, 0])
+        self.play(FadeOut(drops), FadeOut(co2), FadeIn(water), FadeIn(carbon), run_time=0.65)
+        self.play(ReplacementTransform(VGroup(water, carbon), sugar),
+                  rays.animate.set_opacity(0.35), run_time=1.3)
+
+        self.at("Oxygen leaves")
+        oxygen = chip("OXYGEN", OXYGEN, 28).move_to([5.55, 2.05, 0])
+        self.play(FadeIn(oxygen, shift=LEFT * 2.2 + DOWN * 0.7), run_time=1.35)
+
+        self.at("word equation is a summary")
+        equation = fit_text("carbon dioxide + water  →  sugar + oxygen", max_w=11.6,
+                            size=34, color=TEXT, max_lines=1).move_to([0, -3.2, 0])
+        self.play(FadeIn(equation, shift=UP * 0.1), run_time=0.75)
+        self.play(sugar.animate.shift(UP * 0.12), run_time=1.3, rate_func=there_and_back)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S05Sugar(SpokenScene):
+class S04Predict(SpokenScene):
     def construct(self):
-        sug = chip("sugar (glucose)", GOLD, 30).move_to([-4.6, 0.6, 0])
-        self.at("Once a plant has sugar")
-        self.play(FadeIn(sug, scale=0.9), run_time=0.6)
-        use = chip("use it now", TEXT, 28).move_to([0.6, 2.2, 0])
-        sto = chip("store it as starch", TEXT, 28).move_to([0.6, 0.6, 0])
-        rea = chip("rearrange it", TEXT, 28).move_to([0.6, -1.0, 0])
-        a1 = arr(sug.get_right() + UP * 0.2, use.get_left(), GOLD, w=5)
-        a2 = arr(sug.get_right(), sto.get_left(), GOLD, w=5)
-        a3 = arr(sug.get_right() + DOWN * 0.2, rea.get_left(), GOLD, w=5)
-        self.at("It can use it now")
-        self.play(GrowArrow(a1), FadeIn(use), run_time=0.6)
-        self.at("store it as starch")
-        self.play(GrowArrow(a2), FadeIn(sto), run_time=0.6)
-        self.at("rearrange it")
-        self.play(GrowArrow(a3), FadeIn(rea), run_time=0.6)
-        wood = chip("wood of the trunk", ORANGE, 26).move_to([4.2, -0.3, 0])
-        lv = chip("parts of new leaves", GREEN, 26).move_to([4.2, -1.7, 0])
-        b1 = arr(rea.get_right(), wood.get_left(), GOLD, w=4)
-        b2 = arr(rea.get_right(), lv.get_left(), GOLD, w=4)
-        self.at("such as the wood")
-        self.play(GrowArrow(b1), FadeIn(wood), run_time=0.5)
-        self.play(GrowArrow(b2), FadeIn(lv), run_time=0.5)
-        li = chip("light", YELLOW, 34)
-        co = chip("carbon dioxide", PURPLE, 34)
-        te = chip("temperature", RED, 34)
-        cap = T("change how fast photosynthesis goes", 32, GREY).move_to([0, -3.0, 0])
-        self.at("Light, carbon dioxide")
-        row = VGroup(li, co, te)
-        self.play(FadeOut(VGroup(a1, a2, a3, use, sto, rea, b1, b2, wood, lv, sug)), run_time=0.5)
-        li.move_to([-4.6, 0.8, 0]); co.move_to([-0.3, 0.8, 0]); te.move_to([4.2, 0.8, 0])
-        self.play(FadeIn(li), run_time=0.4)
-        self.play(FadeIn(co), run_time=0.4)
-        self.play(FadeIn(te), run_time=0.4)
-        cap.move_to([0, -0.6, 0])
-        self.at("change how fast")
-        self.play(FadeIn(cap), run_time=0.5)
+        backdrop = prediction_backdrop()
+        self.add(backdrop)
+        self.at("Which paths carry matter")
+        q = prediction_question()
+        self.play(FadeIn(q.question, shift=DOWN * 0.1), run_time=0.7)
+        self.play(Indicate(backdrop[1], color=TEAL), Indicate(backdrop[2], color=BLUE), run_time=1.7)
+        self.at("Which path carries only energy")
+        self.play(Indicate(backdrop[3], color=GOLD), run_time=1.6)
+        self.at("Follow each color")
+        self.play(LaggedStart(*[Indicate(m, color=m.get_color(), scale_factor=1.35) for m in backdrop[4]], lag_ratio=0.25),
+                  run_time=1.8)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S06Answer(SpokenScene):
+class S05Pause(PredictPause):
+    QUESTION = "Which paths carry matter — and which carries only energy?"
+    SECONDS = 4.5
+    CARD = {"y": 2.95, "size": 28, "max_w": 5.4, "left": -6.2}
+
+    def backdrop(self):
+        return prediction_backdrop()
+
+
+class S06Reveal(SpokenScene):
     def construct(self):
-        gr = ground()
-        tr = tree()
-        q = T("Where did the tulip poplar's wood come from?", 36, TEXT, font=TITLE_FONT).move_to([0, 3.15, 0])
-        self.add(gr, tr)
-        self.play(FadeIn(q), run_time=0.5)
-        co2 = chip("carbon dioxide", PURPLE, 26).move_to([-4.6, 1.9, 0])
-        wat = chip("water", TEAL, 26).move_to([-3.0, GROUND_Y, 0])
-        a1 = arr(co2.get_right(), [TREE_X - 1.9, 1.6, 0], PURPLE, w=6)
-        a2 = arr(wat.get_right() + UP * 0.1, [TREE_X - 0.4, GROUND_Y + 1.0, 0], TEAL, w=6)
-        self.at("built it mostly")
-        self.play(FadeIn(co2), GrowArrow(a1), run_time=0.7)
-        air = T("from the air", 24, PURPLE).next_to(co2, UP, buff=0.12)
-        self.at("from the air")
-        self.play(FadeIn(air), run_time=0.4)
-        self.at("and from water")
-        self.play(FadeIn(wat), GrowArrow(a2), run_time=0.7)
-        rad = chip("radiant energy", YELLOW, 26).move_to([4.7, 2.0, 0])
-        a3 = arr(rad.get_left(), [TREE_X + 1.9, 1.7, 0], YELLOW, w=6)
-        self.at("Leaves used radiant energy")
-        self.play(FadeIn(rad), GrowArrow(a3), run_time=0.7)
-        sug = chip("sugar", GOLD, 26).move_to([TREE_X, GROUND_Y + 0.35 + 2.9, 0])
-        self.at("join them into sugar")
-        self.play(FadeOut(tr[2]), FadeIn(sug, scale=0.8), run_time=0.5)
-        wood_lab = T("wood", 30, ORANGE, weight=BOLD).move_to([2.9, -0.5, 0])
-        wood_a = arr(wood_lab.get_left() + LEFT * 0.0, [TREE_X + 0.55, -0.5, 0], ORANGE, w=5)
-        self.at("rebuilt the sugar into wood")
-        self.play(sug.animate.move_to([TREE_X, GROUND_Y + 1.5, 0]).scale(0.85), run_time=0.8)
-        self.play(tr[0].animate.stretch_to_fit_width(0.9).set_fill(ORANGE, 0.9), FadeIn(wood_lab), GrowArrow(wood_a), FadeOut(sug), FadeIn(tr[2]), run_time=0.8)
-        mins = T("water and a few minerals", 26, BROWN).move_to([2.6, -3.1, 0])
-        self.at("soil gave water")
-        self.play(FadeIn(mins), Indicate(gr[0], color=BROWN, scale_factor=1.03), run_time=0.8)
-        self.play(mins.animate.move_to([0, -3.1, 0]), run_time=0.3)
-        full = T("soil did not need to shrink by thousands of kg", 26, GREY).move_to([0, -3.1, 0])
-        self.at("did not need to shrink")
-        self.play(ReplacementTransform(mins, full), run_time=0.6)
+        world = tree_world(full=True, gauge=False)
+        self.add(world)
+        co2 = chip("CARBON DIOXIDE", TEAL, 28).move_to([-4.65, 1.15, 0])
+        water = chip("WATER", BLUE, 28).move_to([-3.65, -0.65, 0])
+        light = chip("LIGHT", GOLD, 28).move_to([5.25, 3.15, 0])
+
+        self.at("paths carry matter")
+        self.play(FadeIn(co2), FadeIn(water), run_time=0.55)
+        self.play(co2.animate.move_to([-0.25, 1.5, 0]),
+                  water.animate.move_to([0.25, 0.35, 0]), run_time=1.5)
+
+        self.at("light path carries energy")
+        wire = CubicBezier([4.75, 2.65, 0], [4.0, 2.9, 0], [3.0, 2.5, 0], [2.55, 1.7, 0],
+                           color=GOLD, stroke_width=5)
+        self.play(FadeIn(light), Create(wire), run_time=0.8)
+        gold_dot = Dot(wire.get_start(), radius=0.14, color=GOLD)
+        self.play(MoveAlongPath(gold_dot, wire), run_time=1.15, rate_func=linear)
+
+        self.at("powers sugar building")
+        sugar = sugar_block().move_to([0.1, 1.0, 0])
+        self.play(ReplacementTransform(VGroup(co2, water), sugar), run_time=1.15)
+        layer = RoundedRectangle(corner_radius=0.12, width=1.18, height=4.52, color=BROWN,
+                                 stroke_width=4, fill_color=BROWN, fill_opacity=0.48).move_to(world[1][1])
+        self.play(Transform(sugar, layer), run_time=1.35)
+        self.play(gold_dot.animate.move_to(wire.get_start()), run_time=0.65)
+
+        self.at("conditions limit its speed")
+        speed = dial(ValueTracker(0.62), center=[-4.55, 0.0, 0], radius=1.2,
+                     label="building speed", color=GREEN, fmt="{:.0f}%")
+        self.play(FadeIn(speed), run_time=0.7)
+
+        self.at("first half explains")
+        rule = fit_text("Light supplies energy; carbon dioxide and water supply matter.",
+                        max_w=5.6, size=30, color=TEXT, max_lines=2).move_to([-3.55, 2.75, 0])
+        self.play(FadeIn(rule, shift=DOWN * 0.1), run_time=0.8)
+
+        self.at("second half reminds us")
+        tab = chip("conditions limit speed", GREY, 24).move_to([-4.6, -1.35, 0])
+        self.play(ReplacementTransform(speed, tab), rule.animate.move_to([-3.45, 2.9, 0]), run_time=1.0)
+        self.play(gold_dot.animate.move_to(wire.get_end()), run_time=1.5, rate_func=there_and_back)
         self.finish()
 
 
-class S07End(EndCard):
-    LINE = "A tree builds wood mostly from carbon dioxide and water."
+class S07Chloroplast(SpokenScene):
+    def construct(self):
+        leaf = leaf_shape(9.6, 4.8).move_to([-0.8, 0.35, 0])
+        self.add(leaf)
+        cell = RoundedRectangle(corner_radius=0.35, width=7.6, height=3.6,
+                                stroke_color=TEXT, stroke_width=4, fill_color=GREY,
+                                fill_opacity=0.08).move_to([-0.8, 0.35, 0])
+        self.at("inside chloroplasts")
+        self.play(Create(cell), run_time=1.0)
+        chloros = VGroup(*[
+            chip("CHLOROPLAST", LEAF, 24).move_to([-2.5 + (i % 2) * 3.4, 1.5 - (i // 2) * 2.6, 0])
+            for i in range(4)
+        ])
+        self.play(LaggedStart(*[FadeIn(c, scale=0.8) for c in chloros], lag_ratio=0.16), run_time=1.3)
+
+        self.at("mostly in leaves")
+        self.play(chloros.animate.scale(1.02), run_time=1.2, rate_func=there_and_back)
+
+        self.at("Chlorophyll inside them")
+        patch = RoundedRectangle(corner_radius=0.1, width=1.35, height=0.38,
+                                 color=LEAF, stroke_width=4, fill_color=LEAF, fill_opacity=0.8)
+        patch.move_to([0.4, 0.55, 0])
+        patch_lab = T("chlorophyll", 26, TEXT).next_to(patch, DOWN, buff=0.14)
+        ray = arrow([4.8, 2.8, 0], patch.get_right(), GOLD, 7)
+        self.play(FadeIn(patch), FadeIn(patch_lab), GrowArrow(ray), run_time=1.25)
+        self.play(ShowPassingFlash(ray.copy().set_stroke(width=12), time_width=0.5), run_time=1.1)
+
+        self.at("Roots which sit in darkness")
+        root_cell = RoundedRectangle(corner_radius=0.3, width=4.4, height=2.5,
+                                     stroke_color=BROWN, stroke_width=4, fill_color=SOIL,
+                                     fill_opacity=0.14).move_to([3.9, -1.45, 0])
+        root_lab = T("root cell", 30, BROWN).move_to([3.9, -0.75, 0])
+        none = T("no chloroplasts", 28, TEXT).move_to([3.9, -1.65, 0])
+        self.play(FadeOut(ray), FadeIn(root_cell), FadeIn(root_lab), FadeIn(none), run_time=1.05)
+
+        self.at("bacteria do the work")
+        bacterium = VGroup(RoundedRectangle(corner_radius=0.45, width=2.6, height=1.15,
+                                            stroke_color=TEAL, stroke_width=4,
+                                            fill_color=TEAL, fill_opacity=0.18),
+                           T("bacterium", 26, TEXT)).move_to([4.0, 1.15, 0])
+        no_chl = T("no chloroplast", 26, TEAL).next_to(bacterium, DOWN, buff=0.18)
+        self.play(FadeOut(root_cell), FadeOut(root_lab), FadeOut(none), FadeIn(bacterium), FadeIn(no_chl), run_time=1.0)
+        self.play(bacterium.animate.shift(UP * 0.1), run_time=1.25, rate_func=there_and_back)
+        self.finish()
+
+
+class S08Routes(SpokenScene):
+    def construct(self):
+        world = tree_world(full=True, gauge=False)
+        self.add(world)
+        sugar = sugar_block().move_to([-1.45, 1.25, 0])
+        self.play(FadeIn(sugar, scale=0.75), run_time=0.65)
+
+        self.at("Some is used now")
+        cell = VGroup(Circle(radius=0.72, color=TEXT, stroke_width=4), T("CELL", 26, TEXT)).move_to([-4.7, 1.6, 0])
+        p1 = arrow(sugar.get_left(), cell.get_right(), GREEN, 5)
+        token1 = Circle(radius=0.18, color=GREEN, stroke_width=4,
+                        fill_color=GREEN, fill_opacity=0.85).move_to(sugar)
+        self.play(Create(p1), FadeIn(cell), MoveAlongPath(token1, p1), run_time=1.45)
+        self.play(cell.animate.set_fill(GOLD, opacity=0.28), run_time=0.8)
+
+        self.at("linked into starch")
+        store = VGroup(RoundedRectangle(corner_radius=0.16, width=2.4, height=1.7,
+                                        stroke_color=GREEN, stroke_width=4),
+                       T("STARCH", 28, GREEN)).move_to([-4.7, -1.05, 0])
+        p2 = arrow(sugar.get_left() + DOWN * 0.12, store.get_right(), GREEN, 5)
+        stacks = VGroup(*[Rectangle(width=0.42, height=0.24, color=GREEN, fill_color=GREEN,
+                                    fill_opacity=0.65).move_to([-5.15 + i * 0.47, -1.48, 0]) for i in range(3)])
+        self.play(Create(p2), FadeIn(store), LaggedStart(*[FadeIn(s, shift=UP * 0.2) for s in stacks], lag_ratio=0.2), run_time=1.4)
+
+        self.at("rebuilt into wood")
+        p3 = arrow(sugar.get_bottom(), [1.35, -0.2, 0], GREEN, 5)
+        ring = SurroundingRectangle(world[1][1], color=BROWN, buff=0.18, stroke_width=5)
+        new_leaf = leaf_shape(1.4, 0.65).move_to([3.0, 2.8, 0])
+        self.play(Create(p3), Create(ring), FadeIn(new_leaf, shift=DOWN * 0.2), run_time=1.3)
+
+        self.at("Each route starts")
+        self.play(Indicate(sugar, color=GREEN, scale_factor=1.25),
+                  token1.animate.move_to(sugar.get_left() + LEFT * 0.28), run_time=1.25)
+        self.play(sugar.animate.shift(UP * 0.12), run_time=1.2, rate_func=there_and_back)
+        self.finish()
+
+
+def rabbit_picture():
+    body = Ellipse(width=1.55, height=1.15, color=TEXT, stroke_width=4, fill_color=TEXT, fill_opacity=0.12)
+    head = Circle(radius=0.48, color=TEXT, stroke_width=4, fill_color=TEXT, fill_opacity=0.12).move_to([0.72, 0.42, 0])
+    ears = VGroup(Ellipse(width=0.25, height=0.85, color=TEXT, stroke_width=3).move_to([0.55, 1.02, 0]),
+                    Ellipse(width=0.25, height=0.85, color=TEXT, stroke_width=3).move_to([0.88, 1.04, 0]))
+    return VGroup(body, head, ears)
+
+
+def fox_picture():
+    body = Ellipse(width=1.8, height=1.05, color=BROWN, stroke_width=4, fill_color=BROWN, fill_opacity=0.16)
+    head = Polygon([0.55, 0.25, 0], [1.35, 0.75, 0], [1.15, -0.05, 0], color=BROWN,
+                   stroke_width=4, fill_color=BROWN, fill_opacity=0.16)
+    tail = ArcBetweenPoints([-0.7, 0.15, 0], [-1.4, 0.7, 0], angle=-1.4, color=BROWN, stroke_width=7)
+    return VGroup(body, head, tail)
+
+
+class S09Foodweb(SpokenScene):
+    def construct(self):
+        sun = Circle(radius=0.48, color=GOLD, stroke_width=5, fill_color=GOLD, fill_opacity=0.4).move_to([-5.6, 2.6, 0])
+        clover = VGroup(*[Circle(radius=0.34, color=LEAF, stroke_width=4, fill_color=LEAF,
+                                fill_opacity=0.3).move_to([-4.7 + 0.35 * np.cos(i * TAU / 3), -1.25 + 0.35 * np.sin(i * TAU / 3), 0]) for i in range(3)])
+        stem = Line([-4.7, -2.0, 0], [-4.7, -1.2, 0], color=LEAF, stroke_width=6)
+        rabbit = bob(rabbit_picture().move_to([-0.3, -1.1, 0]), amp=0.06, speed=1.4, seed=1)
+        fox = bob(fox_picture().move_to([4.25, -1.1, 0]), amp=0.06, speed=1.2, seed=2)
+        origin = arrow(sun.get_bottom(), clover.get_top(), GOLD, 5)
+        self.play(FadeIn(sun), Create(origin), FadeIn(clover), FadeIn(stem), run_time=1.0)
+
+        self.at("move through a food web")
+        route1 = arrow(clover.get_right(), rabbit.get_left(), GREEN, 5)
+        route2 = arrow(rabbit.get_right(), fox.get_left(), GREEN, 5)
+        self.play(FadeIn(rabbit), FadeIn(fox), Create(route1), Create(route2), run_time=1.1)
+
+        self.at("rabbit eats clover")
+        token = Circle(radius=0.2, color=GREEN, stroke_width=4, fill_color=GREEN, fill_opacity=0.8).move_to(clover)
+        self.play(MoveAlongPath(token, route1), rabbit.animate.scale(1.04), run_time=1.3)
+
+        self.at("fox eats the rabbit")
+        self.play(MoveAlongPath(token, route2), fox.animate.scale(1.04), run_time=1.3)
+
+        self.at("energy captured by a producer")
+        producer = T("PRODUCER", 30, LEAF, weight=BOLD).next_to(clover, DOWN, buff=0.25)
+        self.play(FadeIn(producer), ShowPassingFlash(origin.copy().set_stroke(width=11), time_width=0.5), run_time=1.2)
+
+        self.at("Almost every food web")
+        self.play(token.animate.move_to(clover), run_time=1.4)
+
+        self.at("chemical energy instead")
+        cave = VGroup(Arc(radius=0.8, start_angle=0, angle=PI, color=GREY, stroke_width=5),
+                       Line([-0.8, 0, 0], [0.8, 0, 0], color=GREY, stroke_width=5),
+                       T("chemical energy", 26, TEAL).move_to([0, -0.45, 0])).move_to([4.7, 2.2, 0])
+        self.play(FadeIn(cave), run_time=0.9)
+        self.play(token.animate.shift(UP * 0.1), run_time=1.1, rate_func=there_and_back)
+        self.finish()
+
+
+class S10Return(SpokenScene):
+    def construct(self):
+        soil = soil_strip()
+        seed = seed_picture()
+        gauge = soil_gauge(0.96)
+        tree = tree_picture(full=True)
+        self.play(FadeIn(soil), GrowFromCenter(seed), FadeIn(gauge), run_time=0.7)
+
+        self.at("Return to the tree")
+        self.play(ReplacementTransform(seed.copy(), tree), run_time=1.6)
+
+        self.at("soil did not need")
+        self.play(Indicate(gauge, color=SOIL, scale_factor=1.04), run_time=1.2)
+
+        self.at("Matter arrived mainly")
+        co2 = chip("CARBON DIOXIDE", TEAL, 28).move_to([-0.25, 1.5, 0])
+        water = chip("WATER", BLUE, 28).move_to([0.2, 0.35, 0])
+        self.play(FadeIn(co2, shift=LEFT * 4.6 + DOWN * 0.1), run_time=1.45)
+
+        self.at("water also supplying")
+        self.play(FadeIn(water, shift=LEFT * 4.1 + DOWN * 0.6), run_time=1.35)
+
+        self.at("Light supplied the energy")
+        wire = CubicBezier([5.3, 2.6, 0], [4.2, 3.0, 0], [3.1, 2.4, 0], [2.55, 1.7, 0],
+                           color=GOLD, stroke_width=6)
+        light_dot = Dot(wire.get_start(), radius=0.16, color=GOLD)
+        self.play(Create(wire), MoveAlongPath(light_dot, wire), run_time=1.5, rate_func=linear)
+        sugar = sugar_block().move_to([0.0, 1.0, 0])
+        self.play(ReplacementTransform(VGroup(co2, water), sugar), run_time=1.0)
+
+        self.at("Light supplies the energy")
+        energy_rule = T("LIGHT → ENERGY", 30, GOLD, weight=BOLD).move_to([-4.55, 2.8, 0])
+        self.play(FadeIn(energy_rule), light_dot.animate.move_to(wire.get_start()), run_time=1.2)
+
+        self.at("supply the matter")
+        matter_rule = T("CO₂ + WATER → MATTER", 30, TEXT, weight=BOLD).move_to([-3.9, 2.05, 0])
+        self.play(FadeIn(matter_rule), run_time=0.75)
+        layer = SurroundingRectangle(tree[1], color=BROWN, buff=0.2, stroke_width=5)
+        self.play(Transform(sugar, layer), run_time=1.25)
+
+        self.at("make living material")
+        new_leaf = leaf_shape(1.5, 0.65).move_to([3.05, 2.75, 0])
+        feed = arrow([2.65, 1.25, 0], [5.25, 0.45, 0], GREEN, 5)
+        other_life = T("other life", 30, GREEN).move_to([5.25, 0.0, 0])
+        self.play(FadeIn(new_leaf, shift=DOWN * 0.2), Create(feed), FadeIn(other_life), run_time=1.3)
+        self.play(light_dot.animate.move_to(wire.get_end()), run_time=1.5, rate_func=there_and_back)
+        self.finish()
+
+
+class S11End(EndCard):
+    LINE = "Light supplies the energy; carbon dioxide and water supply the matter."

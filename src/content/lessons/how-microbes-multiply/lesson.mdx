@@ -5,11 +5,11 @@ course: "high-school-biology"
 courseChapter: "Biology · Unit 3: Bacteria and viruses"
 order: 913
 summary: >-
-  How do bacteria and viruses make more of themselves, and why can a cold sore come back after it
-  heals? You run a doubling model and a virus life cycle, then read a real growth curve of E. coli.
-  Afterwards you can compare binary fission with the lytic and lysogenic cycles and calculate how a
-  population grows, and why the growth stops.
-hook: "How can one bacterium become millions of cells in an afternoon, and how can a cold sore heal and then come back in about the same spot?"
+  A bacterium copies itself; a virus is copied by a host cell, which builds new viruses right away in
+  the lytic cycle, or in the lysogenic cycle copies only the viral DNA each time it divides. You run a doubling model and
+  a virus life cycle, then read a real growth curve of E. coli. Afterwards you can compare binary
+  fission with the lytic and lysogenic cycles, calculate how a population grows and see where it stops.
+hook: "One bacterium can become millions of cells in an afternoon, yet a virus never divides at all. How, then, can a cold sore heal and come back in about the same spot?"
 estMinutes: 40
 supports: true
 objectives:
@@ -30,10 +30,30 @@ explainer:
   src: "/explainers/how-microbes-multiply/explainer.mp4"
   captions: "/explainers/how-microbes-multiply/explainer.vtt"
   poster: "/explainers/how-microbes-multiply/poster.jpg"
-  title: "Copies Made By Cells"
-  durationSec: 161.4
-  narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+  title: "Copy Yourself, or Be Copied"
+  durationSec: 184.9
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+  takeaways:
+    - "Most bacteria reproduce by binary fission: a cell copies its DNA, grows and splits into two."
+    - "Each doubling multiplies the count by 2: at the best-case pace, 21 doublings turn one cell into about two million, a calculated number."
+    - "In a closed flask, food runs low and wastes build up, so growth levels off."
+    - "A virus cannot split, grow or make anything on its own; a host cell builds every new virus."
+
+films:
+  - id: "chapter-2"
+    src: "/explainers/how-microbes-multiply/chapter-2.mp4"
+    captions: "/explainers/how-microbes-multiply/chapter-2.vtt"
+    poster: "/explainers/how-microbes-multiply/chapter-2-poster.jpg"
+    title: "Built Now, or Carried Along"
+    durationSec: 183.9
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+    takeaways:
+      - "Cells broken open early in an infection hold viral parts but no whole viruses: viruses are built from parts, not divided."
+      - "In the lytic cycle the host builds new phages right away, then bursts and dies."
+      - "In the lysogenic cycle of phage lambda, the viral DNA joins the host chromosome as a prophage and is copied each time the host divides; no new phages are built."
+      - "Something such as damage to the cell's DNA can switch a prophage into the lytic cycle; only then are new phages built."
 
 scientists: []
 
@@ -240,121 +260,114 @@ import Support from '../../../components/Support.astro';
 import CER from '../../../components/CER.astro';
 import ScaffoldFigure from '../../../components/ScaffoldFigure.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import LessonFilm from '../../../components/LessonFilm.astro';
 
-**Under the best laboratory conditions, one E. coli cell can split into two about every 20 minutes. A cold sore can heal, then come back later in about the same spot.** Both are stories about making copies. A bacterium copies itself. A virus cannot copy itself at all, yet the herpes virus that causes cold sores can stay in your body for years. How do bacteria and viruses multiply, and what stops them?
+**Under the best laboratory conditions, one E. coli cell can split into two about every 20 minutes. A cold sore can heal, then come back later in about the same spot.** The herpes virus behind cold sores cannot copy itself, yet it can stay in your body for years. How can something that never divides keep coming back, and what stops a bacterium from doubling forever?
+
+> **The one idea.** A bacterium copies itself; a virus is copied by a host cell. A bacterium grows and splits in two, so with food its numbers double every generation, until food runs low or wastes build up. A virus never divides: a **host cell**, the living cell a virus infects, does the copying. In the lytic cycle it builds new viruses right away. In the lysogenic cycle it copies only the viral DNA, along with its own, each time it divides; new viruses are built only if that DNA switches to the lytic cycle, which may never happen.
+>
+> *Scope:* bacteria and the viruses that infect them, with phage lambda as the model for the two paths. Some other phages have different cycles; a few release new phages without bursting the cell. Budding still makes a new cell; conjugation adds genes, not cells. Herpes is a comparison, not the same mechanism.
 
 <IdeaCheck items={[
-  { idea: 'Bacteria reproduce by having babies the way animals do.', answer: 'disagree', explain: 'There is no mother, father or egg. Under a microscope, a bacterium grows longer, copies its DNA and pinches into two cells. Textbooks call this binary fission. A few kinds of bacteria grow a bud instead, which researchers have filmed with time-lapse microscopes.' },
-  { idea: 'A virus divides like a cell.', answer: 'disagree', explain: 'A virus cannot make copies of itself without a host cell. Inside an infected cell, the cell’s own machinery builds viral parts, and new viruses are put together from those parts. Scientists see this by breaking open infected cells at different times: early on, there are parts but no whole viruses.' },
-  { idea: 'Bacteria can keep doubling forever.', answer: 'disagree', explain: 'In a closed flask, scientists measure the culture growing cloudier and then holding steady. Food runs out and wastes build up. The 20-minute doubling time is a best-case number for one kind of bacterium in a lab, not a rule that lasts.' },
+  { idea: 'Bacteria reproduce by having babies the way animals do.', answer: 'disagree', explain: 'There is no mother, father or egg: a bacterium copies its DNA and splits into two cells (binary fission). A few kinds of bacteria grow a bud instead, which researchers have filmed with time-lapse microscopes.' },
+  { idea: 'A virus divides like a cell.', answer: 'disagree', explain: 'A virus cannot make copies of itself without a host cell. The cell’s own machinery builds viral parts, and new viruses are put together from those parts. The second film shows the experiment behind this.' },
+  { idea: 'Bacteria can keep doubling forever.', answer: 'disagree', explain: 'In a closed flask, scientists measure the culture growing cloudier, then holding steady. The 20-minute doubling time is a best-case lab number for one kind of bacterium, not a rule that lasts.' },
 ]} />
 
 ## Explore: grow a population and follow a virus
 
-The simulation has two panels. In the first, you start a bacterial population, pick a doubling time and set how much food is in the dish, then watch the count over time. In the second, you step a phage, a virus that infects bacteria, through an infection and choose the lytic or the lysogenic path. In a real infection nobody chooses: in phage lambda the outcome depends on the state of the host cell and on how many phages infect it at once, and it is partly a matter of chance.
+In the simulation’s first panel, you pick a doubling time and how much food is in the dish. Its second panel, a phage infection, returns in the virus section.
 
 <DoublingAndViralCycles />
 
 **Try this.**
 1. Predict how many cells one cell becomes after 2 hours with a 20-minute doubling time. Then run it.
 2. Keep the doubling time the same and halve the food. Predict what changes about the curve, then test.
-3. In the virus panel, choose the lysogenic path and let the host divide three times. Predict how many cells carry the viral DNA.
-4. Switch a lysogenic cell to the lytic path. Predict what happens to that cell.
 
 ## Explain: how bacteria make more bacteria
 
 <WordBank terms={['asexual reproduction', 'binary fission', 'budding', 'conjugation', 'plasmid', 'bacteriophage', 'host cell', 'lytic cycle', 'lysogenic cycle', 'prophage', 'doubling time']} />
 
-**Asexual reproduction** is reproduction with one parent, where the offspring get copies of that parent’s DNA. Most bacteria reproduce this way.
-
-The most common method is **binary fission**, when one bacterial cell grows, copies its DNA and splits into two cells. Each new cell gets a complete copy of the chromosome. The result looks like mitosis, which you met in [the cell cycle lesson](/lessons/cell-cycle-and-mitosis/): one cell becomes two matching cells. The process is simpler, though, because a bacterium has no nucleus.
+**Asexual reproduction** is reproduction with one parent, where the offspring get copies of that parent’s DNA. Most bacteria reproduce this way, mostly by **binary fission**, the copy, grow and split of the first film. It looks like mitosis from [the cell cycle lesson](/lessons/cell-cycle-and-mitosis/), but it is simpler: a bacterium has no nucleus, and each new cell just gets a complete copy of the **chromosome**, the cell’s main DNA.
 
 <ScaffoldFigure src="/figures/how-microbes-multiply/binary-fission-steps.webp" width={1200} height={676} keyItems={["chromosome", "copy of the chromosome", "grows longer", "daughter cells"]} given={[0, 3]} alt="AI-generated illustration: four frames of a rod-shaped bacterium with no nucleus: one loop of DNA, then two loops, then a longer cell with one loop at each end, then two separate matching cells each with one loop. Four numbered circles mark parts and steps for the student to name." caption="Binary fission in four steps: a bacterium copies its DNA, grows and splits into two cells. The copy is coloured only so you can follow it; both new cells carry a complete chromosome." />
 
-Some bacteria use **budding**, when a small new cell grows out of the parent and then breaks off. In the ocean bacterium *Hyphomonas neptunium*, buds form at the tip of a thin stalk. When the bud breaks off, it swims away as a new cell.
+Some bacteria use **budding**: a small new cell grows out of the parent and then breaks off, as in the ocean bacterium below.
 
 <LessonFigure src="/figures/how-microbes-multiply/budding-hyphomonas.webp" width={1200} height={676} alt="AI-generated illustration: three frames of an oval bacterium with a thin stalk, a small bud growing at the stalk's tip, getting larger, then breaking off and swimming away while the parent stays." caption="Budding in the ocean bacterium Hyphomonas neptunium: a bud forms at the tip of a thin stalk, then breaks off and swims away as a new cell." />
 
-The daughter cells are usually genetically identical. "Usually" matters. Copying DNA sometimes makes mistakes, and sequencing studies of lab E. coli found mutations building up over many generations.
+The daughter cells are usually genetically identical. Copying DNA sometimes makes mistakes: sequencing studies of lab E. coli, which read the cells’ DNA, found mutations (changes in the DNA) building up over many generations.
 
-Bacteria have one more way to change their genes. **Conjugation** is when one bacterial cell passes DNA directly to another through contact. The DNA is often a **plasmid**, a small extra circle of DNA separate from the chromosome. Conjugation does not make a new cell. Afterward there are still two cells, but one has new genes. The Virginia SOL calls conjugation a form of sexual reproduction, because genes from two cells are combined. Many biologists call it gene transfer, because no new cell is made. The Virginia SOL describes conjugation as rare. How often it really happens depends on the kind of bacteria, the DNA they carry and their surroundings.
+Bacteria have one more way to change their genes. In **conjugation**, one bacterial cell passes DNA directly to another through contact. The DNA is often a **plasmid**, a small extra circle of DNA separate from the chromosome. Virginia’s science standards (the SOL) call it a form of sexual reproduction, because genes from two cells combine. Many biologists call it gene transfer, because no new cell is made.
 
 <LessonFigure src="/figures/how-microbes-multiply/conjugation-before-after.webp" width={1200} height={800} alt="AI-generated illustration: two rod-shaped bacteria touching, one passing a small ring of DNA called a plasmid to the other along a short bridge, and afterwards the same two cells apart, both holding the small ring." caption="In conjugation, one bacterium passes DNA, often a plasmid, to another through contact. No new cell is made: there are still two cells, but one has new genes." />
 
 <Support min={2}>**Key idea:** Bacteria multiply by splitting in two (or budding), and they can gain new genes by conjugation, which does not add a cell.</Support>
 
-## Explain: how viruses make more viruses
-
-A virus cannot split, grow or make anything on its own. It needs a **host cell**, the living cell a virus infects and uses to make new viruses. [The living-or-not lesson](/lessons/living-or-not/) explains why. A **bacteriophage**, or phage, is a virus that infects bacteria.
-
-The **lytic cycle** is the path where a virus takes over the host, the host builds new viruses, and the cell bursts open to release them. It runs like this:
-
-1. The phage attaches to the bacterium and injects its DNA.
-2. The phage’s genes take over the cell. The host’s machinery, helped by some proteins made from phage genes, copies the viral DNA and builds viral parts.
-3. New phages are assembled from those parts.
-4. The cell bursts and the new phages escape. The host cell dies.
-
-The **lysogenic cycle** is the path where the viral DNA stays inside the host and is copied along with the host’s DNA. The best-known example is phage lambda, which infects E. coli. Its DNA becomes part of the bacterial chromosome. Some other phages keep their DNA as a separate piece inside the cell instead. The stored viral DNA is called a **prophage**. Each time the bacterium divides by binary fission, both daughter cells get a copy. The cell stays alive, and the virus spreads quietly through a growing family of cells. Later, something such as damage to the cell’s DNA can switch the prophage into the lytic cycle.
-
-{/* DIAGRAM: lytic and lysogenic cycles side by side: 1 phage injects DNA, 2 lytic path: viral parts made and assembled, 3 cell bursts and releases phages, 4 lysogenic path: viral DNA joins the chromosome as a prophage, 5 host divides and both daughters carry the prophage, 6 switch arrow from prophage back to lytic */}
-
-| | Binary fission (bacteria) | Lytic cycle (virus) | Lysogenic cycle (virus) |
-|---|---|---|---|
-| Who does the copying | The bacterium itself | The host cell | The host cell, each time it divides |
-| What is made | Two new cells | Many new virus particles | Host cells that carry viral DNA |
-| Host cell afterward | No host needed for most bacteria | Usually dies | Alive, unless it later switches to lytic |
-
-Now the cold sore. Herpes simplex virus infects people, not bacteria, but it uses a similar hiding strategy. It can stay in sensory nerve cells, the cells that carry feeling from the skin. Studies of infected human and mouse tissue suggest its DNA stays as a separate circle in the nucleus rather than joining the chromosome the way lambda does. From time to time the virus can become active again and travel back to the skin. Sometimes a new sore appears, but the virus can also become active without causing a sore.
-
-<Support min={2}>**Key idea:** A virus never divides; a host cell builds new viruses in the lytic cycle. In the lysogenic cycle, viral DNA is copied with the host’s DNA and may later switch to the lytic cycle.</Support>
-
 ## Explain: doubling, and why it stops
 
-**Doubling time** is the time it takes a population to double in number. If the doubling time stays the same, you can predict the count:
+**Doubling time** is the time a population takes to double. If it stays the same, you can predict the count:
 
 > number of cells = starting number × 2 × 2 × 2 ... (one × 2 for each doubling)
 
-Here is a worked example. A model population starts with 100 cells and doubles every 20 minutes. How many cells after 2 hours?
+Worked example: a model population starts with 100 cells and doubles every 20 minutes. How many cells after 2 hours?
 
-- 2 hours is 120 minutes.
-- 120 minutes ÷ 20 minutes = 6 doublings.
+- 2 hours is 120 minutes, and 120 ÷ 20 = 6 doublings.
 - 100 → 200 → 400 → 800 → 1,600 → 3,200 → 6,400 cells.
 
-Starting from one E. coli cell with 21 doublings (7 hours), the model gives 2,097,152 cells. That is the "millions in an afternoon" from the opening. These are calculated numbers, not counts. The model assumes no cells die, no waiting before growth starts and endless food.
+The first film’s two million is the same sum: one cell after 21 doublings (7 hours) gives 2,097,152. These are calculated numbers, not counts. The model assumes no cells die, no waiting before growth starts and endless food.
 
-Real cultures follow a curve with stages. First there is a lag, where cells are active but the count barely rises. Then comes fast growth, close to steady doubling. Then food runs low and wastes build up, so growth levels off. If the culture is left long enough, the number of living cells can start to fall. Every population meets limits of some kind, though which limits matter depends on the organism and where it lives, as the carrying capacity lesson shows.
+The flat start of the film’s curve is a lag, where cells are active but the count barely rises. If the culture is left long enough, the number of living cells can start to fall. Every population meets limits; which ones matter depends on the organism and where it lives, as the carrying capacity lesson shows.
 
 <Support min={2}>**Key idea:** Constant doubling makes numbers grow very fast, but a real population levels off when food runs out and wastes build up.</Support>
 
 ## Elaborate: a real growth curve
 
-Scientists often track a liquid culture by its cloudiness, called optical density at 600 nanometers (OD600). More cells scatter more light, so the number goes up. It is not a count of cells.
+Scientists often follow a liquid culture by its cloudiness, called optical density at 600 nanometers (OD600): a machine shines light through the liquid, and more cells scatter more light. It is not a count of cells, and even liquid with no cells reads a little cloudy.
 
-| Time (hours) | OD600 cloudiness (no units) |
-|---|---|
-| 0.5 | 0.078 |
-| 2 | 0.079 |
-| 4 | 0.080 |
-| 6 | 0.084 |
-| 8 | 0.134 |
-| 10 | 0.198 |
-| 12 | 0.313 |
-| 14 | 0.322 |
-| 16 | 0.318 |
-| 18 | 0.315 |
+This E. coli culture was started by diluting cells 1,000-fold into fresh medium (liquid food) in one small well of a lab plate (sources in Going deeper). The first reading was 0.078. After that dilution the cells likely added very little to it, but the dataset has no cell-free well, so we cannot say exactly how much is background. The third column subtracts the first reading: it shows the change since 0.5 hours, a rough guide to growth, not a reading of the cells alone.
 
-These are raw readings from one well, curve 15, of E. coli strain BW25113 grown in a defined lab medium, from the dataset of Honoka Aida and Bei-Wen Ying (deposited on figshare in 2025). The readings were taken every 30 minutes; this table shows ten of them. The raw numbers include some cloudiness from the medium itself. The culture began from a 1,000-fold dilution, so a flat start can mean a lag or simply too few cells for the reading to show.
+| Time (hours) | OD600 reading (no units) | Rise since the first reading |
+|---|---|---|
+| 0.5 | 0.078 | 0.000 |
+| 2 | 0.079 | 0.001 |
+| 4 | 0.080 | 0.002 |
+| 6 | 0.084 | 0.006 |
+| 8 | 0.134 | 0.056 |
+| 10 | 0.198 | ___ |
+| 12 | 0.313 | ___ |
+| 14 | 0.322 | 0.244 |
+| 16 | 0.318 | 0.240 |
+| 18 | 0.315 | 0.237 |
 
-1. Between which times does the reading barely change? Between which times does it rise fastest?
-2. How much did the reading rise from 6 to 12 hours? How much did it change from 14 to 18 hours?
-3. The 20-minute doubling time is for E. coli in the best conditions. Does this curve show that? What would you need to know?
+**Step 1.** Fill in the two blanks. When does the rise barely change, and when does it stop?
+
+**Step 2.** Doubling means the number is multiplied by 2, so compare by dividing, not subtracting. From 8 to 10 hours, did the rise roughly double? From 10 to 12 hours?
+
+**Predict.** The best-case E. coli doubling time is 20 minutes. If these cells had kept that pace from 8 to 12 hours, how many doublings would that be, and what would the doubling arithmetic give for the rise at 12 hours?
+
+<details>
+<summary>Check your prediction</summary>
+
+Four hours at 20 minutes is 12 doublings. On paper, 0.056 × 2<sup>12</sup> = 0.056 × 4,096, about 230. No machine would read that: long before then, cloudiness stops rising in step with cell number. The arithmetic shows only that this culture did not keep up a 20-minute pace from 8 to 12 hours. The real rise went 0.056, 0.120, 0.235, roughly doubling every 2 hours.
+
+</details>
+
+**Predict.** For the first 6 hours the rise hardly moved. Does that prove the cells were not dividing?
+
+<details>
+<summary>Check your prediction</summary>
+
+No. Diluted 1,000-fold, the cells started far below what the machine can see. If they came from a culture about as cloudy as this one’s plateau, climbing back takes about 10 doublings (2<sup>10</sup> = 1,024), and the first several are too faint to read. A flat start can be a true lag or just too few cells to see.
+
+</details>
 
 <CER
   task="Make a claim that answers this question: can a bacterial population keep doubling forever? Use the growth table."
   claim="The data show that the population ___."
   evidence="From 6 to 12 hours the reading rose from ___ to ___, but from 14 to 18 hours it ___."
   reasoning="This happens because ___, so doubling stops when ___."
-  model="A bacterial population cannot keep doubling forever. In this E. coli culture the cloudiness barely moved for the first 6 hours, from 0.078 to 0.084. The culture started from a 1,000-fold dilution, so early growth may have been too small for the reading to show. The reading then rose steeply to 0.313 by 12 hours. From 14 to 18 hours it stayed near 0.32, so growth had levelled off. In a closed well, food running low or wastes building up could explain this, but this curve alone cannot tell us which. One limit: this is one well of one strain in one medium, and cloudiness is not a cell count."
+  model="A bacterial population cannot keep doubling forever. In this E. coli culture the reading barely moved for the first 6 hours, from 0.078 to 0.084, perhaps because the 1,000-fold diluted start was too faint to read. It then rose steeply to 0.313 by 12 hours. From 14 to 18 hours it stayed near 0.32, so growth had levelled off. In a closed well, food running low or wastes building up could explain this, but this curve alone cannot tell us which, or whether every cell stopped dividing. One limit: this is one well of one strain in one medium, and cloudiness is not a cell count."
 />
 
 ### Design problem
@@ -364,7 +377,7 @@ Baker’s yeast is a single-celled fungus, not a bacterium, but it also reproduc
 <details>
 <summary>One way to do it</summary>
 
-- **Independent variable:** sugar added to the same nutrient broth in every tube, for example 0, 1, 2 and 4 grams per 100 mL. The broth must also supply nitrogen and minerals, such as a yeast nutrient your teacher provides, because yeast in sugar water alone soon runs short of them and stops growing.
+- **Independent variable:** sugar added to the same nutrient broth in every tube, for example 0, 1, 2 and 4 grams per 100 mL. The broth must also supply nitrogen and minerals (for example a yeast nutrient from your teacher); in sugar water alone, yeast soon runs short of them and stops growing.
 - **Dependent variable:** cloudiness every hour, using a turbidity probe or a printed card behind the tube, until the readings stop rising. Mix each tube gently first, because yeast settles and gas bubbles add cloudiness. To check that cloudiness tracks cell number, count cells in a drop under a microscope a few times.
 - **Constants:** the same yeast packet and amount, the same water volume and temperature, the same tubes.
 - **Control:** the tube with no sugar.
@@ -375,8 +388,56 @@ If the high-sugar tubes level off higher, sugar was limiting how far the populat
 
 </details>
 
+## Explain: how viruses make more viruses
+
+The cells in that well used food to multiply until the reading stopped rising. A free phage, a virus that infects bacteria, takes in no food and does nothing on its own. Inside a bacterium, though, the host’s food, energy and machinery build new phages, and one infected cell can release many. The second film follows one phage into one cell.
+
+<LessonFilm film={frontmatter.films[0]} />
+
+What the second film left out: in a real infection, nobody picks the path. In phage lambda the outcome depends on the state of the host cell and on how many phages infect it at once. It is also partly a matter of chance. Why a virus needs a host at all is the subject of [the living-or-not lesson](/lessons/living-or-not/).
+
+In the **lytic cycle**, the build-now-then-burst path, the host’s own machinery does the copying. Some proteins made from phage genes help by steering the cell to copy phage DNA.
+
+In the **lysogenic cycle**, the carried-along path, the stored viral DNA is called the **prophage**. Lambda’s prophage joins the chromosome, but some other phages keep theirs as a separate piece inside the cell. Either way, both daughter cells get a copy at each division. A bacterium carrying a prophage is a **lysogen**.
+
+**Try this.** In the simulation’s second panel, take the lysogenic path and let the cells divide for three rounds. Then switch one cell to lytic and step it through. How many cells still carry the prophage?
+
+<details>
+<summary>Check your prediction</summary>
+
+Seven: three rounds of division make 1 × 2<sup>3</sup> = 8 carriers, and after the switched cell bursts, 8 − 1 = 7 remain.
+
+</details>
+
+**Predict.** A culture of lysogens grows in a closed well until its cloudiness levels off. What happens to the number of cells carrying the prophage?
+
+<details>
+<summary>Check your prediction</summary>
+
+Roughly, it levels off too. The prophage is copied only along with its host’s DNA, so while cells keep it and do not switch, it meets its host’s limits. New phages come only after a switch to lytic, for example after damage to a cell’s DNA.
+
+</details>
+
+{/* DIAGRAM: lytic and lysogenic cycles side by side: 1 phage injects DNA, 2 lytic path: viral parts made and assembled, 3 cell bursts and releases phages, 4 lysogenic path: viral DNA joins the chromosome as a prophage, 5 host divides and both daughters carry the prophage, 6 switch arrow from prophage back to lytic */}
+
+| | Binary fission (bacteria) | Lytic cycle (virus) | Lysogenic cycle (virus) |
+|---|---|---|---|
+| Who does the copying | The bacterium itself | The host cell | The host cell, each time it divides |
+| What is made | Two new cells | Many new virus particles | Host cells that carry viral DNA, no new viruses |
+| Host cell afterward | No host needed for most bacteria | Dies, for a phage (the cell bursts) | Alive, unless it later switches to lytic |
+
+Now the cold sore. Herpes simplex virus infects people, not bacteria, but it hides in a similar way. It can stay in sensory nerve cells, the cells that carry feeling from the skin. Studies of infected human and mouse tissue suggest its DNA stays as a separate circle in the nucleus. It does not join the chromosome the way lambda does. From time to time the virus can become active again and travel back to the skin. Sometimes a new sore appears, but sometimes it does not.
+
+<Support min={2}>**Key idea:** A virus never divides; a host cell builds new viruses in the lytic cycle. In the lysogenic cycle, viral DNA is copied with the host’s DNA and may later switch to the lytic cycle.</Support>
+
 ## Evaluate: check your thinking
 
-One E. coli cell can become millions in hours under the best conditions, but doubling cannot go on forever; a real culture levels off. A cold sore comes back because herpes virus can stay in nerve cells and become active again, a hiding strategy like, but not the same as, a lysogenic phage.
+A bacterium copies itself; a virus is copied by a host cell. In lambda’s two paths, the host builds new phages only on the lytic path; on the lysogenic path it copies just the prophage DNA. Doubling cannot go on forever: in the well above, the rise roughly doubled every 2 hours, then levelled off. A cold sore comes back because herpes can hide in nerve cells and become active again, like, but not the same as, a lysogenic phage.
 
 **Science practices you used:** predicting and testing with a model, calculating with doublings, reading a growth table, naming the limits of one data set and planning a fair test with a control and repeated trials.
+
+## Going deeper
+
+**Where the growth data come from.** The table shows raw readings from one well, curve 15, of E. coli strain BW25113 grown in a defined lab medium, from the dataset of Honoka Aida and Bei-Wen Ying (deposited on figshare in 2025). The readings were taken every 30 minutes; the table shows ten of them.
+
+**How common is conjugation?** The Virginia SOL describes conjugation as rare. How often it really happens depends on the kind of bacteria, the DNA they carry and their surroundings.
