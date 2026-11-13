@@ -1,0 +1,166 @@
+---
+/**
+ * /courses/<slug>/skim/ — the skim version of a whole course (2026-11-13).
+ *
+ * For the student reviewing a course before an exam: every live lesson in course order, each with
+ * its guiding idea (the same sentence its own Skim page leads with) and the take-home bullets of
+ * each of its films, with links back to the lesson and to the lesson's Skim page. Built at deploy
+ * time from frontmatter (src/lib/skim.ts), with no scripts, so it prints and works on phones and with
+ * JavaScript off. A lesson whose films have no take-homes yet shows its guiding idea only, and the
+ * top of the page says how many lessons have film take-homes so far. No data-pagefind-body, so site
+ * search keeps sending people to the lessons themselves.
+ */
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { COURSES, unitsFor, courseHref } from '../../../data/courses';
+import { guidingIdeaOf, filmTakeawaysOf, filmLabel, wordsIn } from '../../../lib/skim';
+
+export async function getStaticPaths() {
+  // Same rule as the course page: drafts only in `astro dev`, and a page only once a lesson is live.
+  const lessons = await getCollection('lessons', ({ data }) => import.meta.env.DEV || !data.draft);
+  return COURSES
+    .map((course) => ({ course, mine: lessons.filter((l) => l.data.course === course.slug) }))
+    .filter(({ mine }) => mine.length > 0)
+    .map(({ course, mine }) => ({ params: { course: course.slug }, props: { course, lessons: mine } }));
+}
+
+const { course, lessons } = Astro.props;
+const noun = course.tier === 'families' ? 'activity' : 'lesson';
+const nouns = course.tier === 'families' ? 'activities' : 'lessons';
+const units = unitsFor(course, lessons).map((u, ui) => ({
+  name: u.name,
+  id: `unit-${ui + 1}`,
+  entries: u.entries.map(({ l, n }) => ({
+    n,
+    slug: l.data.slug,
+    title: l.data.title,
+    idea: guidingIdeaOf(l.data).idea,
+    films: filmTakeawaysOf(l.data),
+  })),
+}));
+const all = units.flatMap((u) => u.entries);
+const withFilms = all.filter((e) => e.films.length > 0).length;
+const words = all.reduce((n, e) => n + wordsIn(e.title) + wordsIn(e.idea)
+  + e.films.reduce((w, f) => w + wordsIn(f.takeaways.join(' ')), 0), 0);
+const minutes = Math.max(1, Math.round(words / 200));
+const total = all.length;
+// Plain words at the top about how many lessons have film take-homes so far.
+const intro = withFilms === total
+  ? `Each ${noun} in order: its guiding idea, then the take-homes from its films. All ${total} have film take-homes.`
+  : withFilms === 0
+    ? `Each ${noun} in order with its guiding idea. None of the ${nouns} has film take-homes yet; they will appear here as the ${nouns} get their films.`
+    : `Each ${noun} in order: its guiding idea, then the take-homes from its films. So far ${withFilms} of the ${total} ${nouns} have film take-homes; the others show their guiding idea only.`;
+const showUnits = units.length > 1;
+---
+
+<BaseLayout title={`Skim: ${course.title} — Biochemistrypedia`} description={`${course.title} on one page: the guiding idea of each ${noun} and the take-homes of its films, in course order.`}>
+  <article class="cskim wrap">
+    <p class="eyebrow"><a href={courseHref(course.slug)}>{course.title}</a> · Skim version</p>
+    <h1>{course.title}</h1>
+    <p class="cskim-meta">About {minutes} min to read · {total} {total === 1 ? noun : nouns}</p>
+    <p class="cskim-intro">
+      {intro}
+    </p>
+    <p class="cskim-back"><a href={courseHref(course.slug)}>Back to the course page →</a></p>
+
+    <nav class="cskim-toc" aria-labelledby="toc-h">
+      <h2 id="toc-h">Contents</h2>
+      {showUnits ? (
+        <ol class="toc-units">
+          {units.map((u) => (
+            <li>
+              <a href={`#${u.id}`} class="toc-unit">{u.name}</a>
+              <ol class="toc-lessons">
+                {u.entries.map((e) => <li value={e.n}><a href={`#l-${e.slug}`}>{e.title}</a></li>)}
+              </ol>
+            </li>
+          ))}
+        </ol>
+      ) : (
+        <ol class="toc-lessons">
+          {all.map((e) => <li value={e.n}><a href={`#l-${e.slug}`}>{e.title}</a></li>)}
+        </ol>
+      )}
+    </nav>
+
+    {units.map((u) => (
+      <section class="cskim-unit" aria-labelledby={showUnits ? u.id : undefined}>
+        {showUnits && <h2 id={u.id}>{u.name}</h2>}
+        {u.entries.map((e) => (
+          <section class="cskim-lesson" id={`l-${e.slug}`} aria-labelledby={`h-${e.slug}`}>
+            <h3 id={`h-${e.slug}`}><span class="num">{e.n}.</span> <a href={`/lessons/${e.slug}/`}>{e.title}</a></h3>
+            <p class="idea"><span class="lab">Guiding idea.</span> {e.idea}</p>
+            {e.films.map((f) => (
+              <div class="film">
+                <p class="film-h"><span class="lab">{filmLabel(f.position)}</span> <span class="film-t">{f.title}</span></p>
+                <ul>{f.takeaways.map((t) => <li>{t}</li>)}</ul>
+              </div>
+            ))}
+            <p class="links">
+              <a href={`/lessons/${e.slug}/`}>Read the {noun}</a>
+              <span aria-hidden="true"> · </span>
+              <a href={`/lessons/${e.slug}/skim/`}>Skim this {noun}</a>
+              <span aria-hidden="true"> · </span>
+              <a href="#toc-h">Contents</a>
+            </p>
+          </section>
+        ))}
+      </section>
+    ))}
+
+    <p class="cskim-back"><a href={courseHref(course.slug)}>Back to the course page →</a></p>
+  </article>
+
+  <style>
+    .cskim { max-width: 46rem; padding: var(--ddp-space-12) var(--ddp-space-4) var(--ddp-space-16); overflow-wrap: break-word; }
+    .eyebrow { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ddp-color-accent); margin: 0 0 var(--ddp-space-2); }
+    .eyebrow a { color: inherit; text-underline-offset: 3px; }
+    h1 { font-size: var(--ddp-text-3xl); margin: 0 0 var(--ddp-space-2); }
+    .cskim-meta { margin: 0; font-size: var(--ddp-text-sm); color: var(--ddp-color-muted); }
+    .cskim-intro { margin: var(--ddp-space-3) 0 0; line-height: 1.55; color: var(--ddp-color-ink-soft); }
+    .cskim-back { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-sm); }
+    .cskim-back a { color: var(--ddp-color-accent); font-weight: 600; text-underline-offset: 3px; }
+
+    .cskim-toc { margin-top: var(--ddp-space-6); padding: var(--ddp-space-3) var(--ddp-space-4); border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+    .cskim-toc h2 { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ddp-color-muted); margin: 0 0 var(--ddp-space-2); }
+    .cskim-toc ol { margin: 0; line-height: 1.5; font-size: var(--ddp-text-sm); }
+    .toc-units { list-style: none; padding: 0; }
+    .toc-units > li + li { margin-top: var(--ddp-space-2); }
+    .toc-unit { font-weight: 600; color: var(--ddp-color-ink); }
+    .toc-lessons { list-style: decimal; padding-left: 2rem; }
+    .cskim-toc a { text-underline-offset: 3px; }
+
+    .cskim-unit > h2 { font-size: var(--ddp-text-xl); margin: var(--ddp-space-10, 2.5rem) 0 0; padding-bottom: var(--ddp-space-2); border-bottom: 2px solid var(--ddp-color-accent); }
+    .cskim-lesson { padding: var(--ddp-space-4) 0; border-bottom: 1px solid var(--ddp-color-line); }
+    .cskim-lesson h3 { font-size: var(--ddp-text-lg); margin: 0 0 var(--ddp-space-2); line-height: 1.3; }
+    .cskim-lesson h3 a { color: inherit; text-decoration-color: var(--ddp-color-line); text-underline-offset: 4px; }
+    .cskim-lesson h3 a:hover { color: var(--ddp-color-accent); }
+    .num { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-muted); }
+    .lab { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ddp-color-accent); }
+    .idea { margin: 0; line-height: 1.55; }
+    .film { margin-top: var(--ddp-space-3); }
+    .film-h { margin: 0 0 var(--ddp-space-1); }
+    .film-t { font-style: italic; color: var(--ddp-color-ink-soft); }
+    .film ul { margin: 0; padding-left: 1.2rem; list-style: disc; line-height: 1.5; }
+    .film li + li { margin-top: 0.2rem; }
+    .links { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-sm); }
+    .links a { color: var(--ddp-color-accent); text-underline-offset: 3px; }
+
+    @media print {
+      @page { margin: 14mm 14mm 16mm; }
+      /* Every size here is in rem, so a smaller root fits about two lessons to a printed page. */
+      :global(html) { font-size: 12px !important; }
+      :global(.site-header), :global(footer), :global(.skip-link) { display: none !important; }
+      :global(html), :global(body) { background: #fff !important; color: #000 !important; }
+      .cskim { max-width: none; padding: 0; color: #000; }
+      .cskim *, .cskim a { color: #000 !important; background: transparent !important; text-decoration: none !important; }
+      .cskim-back, .links { display: none; }
+      .cskim-toc { border: 1px solid #000; }
+      .cskim-toc > ol { columns: 2; column-gap: 2rem; }
+      .toc-units > li { break-inside: avoid; }
+      .cskim-unit > h2 { border-bottom-color: #000; break-after: avoid; }
+      .cskim-lesson { break-inside: avoid; border-bottom-color: #999; }
+      h1, h2, h3 { break-after: avoid; }
+    }
+  </style>
+</BaseLayout>
