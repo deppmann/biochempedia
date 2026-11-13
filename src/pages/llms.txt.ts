@@ -38,6 +38,6 @@ export const GET: APIRoute = async () => {
       out.push('');
     }
   }
-  out.push('## Optional', '', `- [Methods library](${SITE}/methods/): short films on laboratory methods`, `- [MCAT practice](${SITE}/mcat/): passage-based practice sets`, `- [Math toolkit](${SITE}/math-toolkit): the math the lessons use`, `- [For teachers](${SITE}/teachers): classes and teaching resources`, '');
+  out.push('## Optional', '', `- [Films](${SITE}/films/): every film on the site, sortable by length, level and course; the same list as JSON at ${SITE}/films.json`, `- [Methods library](${SITE}/methods/): short films on laboratory methods`, `- [MCAT practice](${SITE}/mcat/): passage-based practice sets`, `- [Math toolkit](${SITE}/math-toolkit): the math the lessons use`, `- [For teachers](${SITE}/teachers): classes and teaching resources`, '');
   return new Response(out.join('\n'), { headers: { 'Content-Type': 'text/plain; charset=utf-8' } });
 };
