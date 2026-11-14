@@ -5,12 +5,11 @@ course: "high-school-biology"
 courseChapter: "Biology · Unit 4: DNA and inheritance"
 order: 922
 summary: >-
-  How can a bacterium make a human hormone, and how should people decide which changes to living
-  things are worth making? You will cut, join and copy DNA in a gene-to-product builder, follow
-  insulin from a human gene to a medicine, and read USDA survey data on engineered crops.
-  Afterwards you can say what each tool of genetic engineering does and weigh a claim about it
-  using benefits, risks, ethics and reliable sources.
-hook: "For about sixty years, insulin for people with diabetes came mostly from the pancreases of cattle and pigs. How did bacteria and yeast end up making human insulin instead?"
+  Engineering changes a cell's DNA; test the effects, judge each use separately. You will cut, join and
+  copy DNA in a gene-to-product builder, follow insulin from a human gene to a tested product, and
+  read USDA survey data on engineered crops. Afterwards you can explain what each tool does and
+  weigh a claim using benefits, risks, ethics and reliable sources.
+hook: "Bacteria do not naturally carry a human insulin gene, so how can they make human insulin?"
 estMinutes: 40
 supports: true
 objectives:
@@ -30,10 +29,30 @@ explainer:
   src: "/explainers/genetic-engineering/explainer.mp4"
   captions: "/explainers/genetic-engineering/explainer.vtt"
   poster: "/explainers/genetic-engineering/poster.jpg"
-  title: "Cut, Join, Copy a Gene"
-  durationSec: 161.9
-  narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+  title: "How Bacteria Make Human Insulin"
+  durationSec: 210.1
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+  takeaways:
+    - "A restriction enzyme can cut a gene and plasmid to leave matching ends."
+    - "Ligase seals the gene into the plasmid, making recombinant DNA."
+    - "A bacterium can read intron-free DNA for a human protein when bacterial control DNA is present."
+    - "Engineering changes a cell's DNA; test the effects, judge each use separately."
+
+films:
+  - id: "chapter-2"
+    src: "/explainers/genetic-engineering/chapter-2.mp4"
+    captions: "/explainers/genetic-engineering/chapter-2.vtt"
+    poster: "/explainers/genetic-engineering/chapter-2-poster.jpg"
+    title: "How Do We Know It Worked?"
+    durationSec: 215.3
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+    takeaways:
+      - "Antibiotic selection supports plasmid uptake, not insulin production."
+      - "DNA tests and protein tests answer different questions."
+      - "Adoption data do not by themselves show safety or benefit."
+      - "Engineering changes a cell's DNA; test the effects, judge each use separately."
 
 scientists:
   - name: "Jennifer Doudna and Emmanuelle Charpentier"
@@ -148,8 +167,8 @@ practiceQuestions:
       - "Engineered products are so new that none has ever been tested"
     answer: 1
     rationale: >-
-      Health agencies such as the World Health Organization say engineered foods should be judged one at a time,
-      using data on each one. Calling it always harmful ignores products like insulin, approved in
+      Health agencies such as the World Health Organization say engineered foods should be judged
+      one at a time, using data on each one. Calling engineering always harmful ignores products like insulin, approved in
       1982 after testing, and nature itself moved bacterial DNA into sweet potatoes. Crops can affect
       other organisms, as when some insect pests evolve resistance to the Bt protein in Bt crops. Many products have been tested.
   - stem: "Use the USDA table in this lesson. By how many percentage points did the share of U.S. soybean acres planted with engineered varieties change from 2000 to 2010?"
@@ -205,7 +224,7 @@ explainLevels:
       The Genetics course (GEN.7) returns to recombinant DNA and CRISPR in more detail, and adds gene
       therapy, crop and livestock modification, conservation genetics, synthetic biology, ethics,
       and judging popular media for bias. Advanced Topics (BIOII.7 d) adds epigenetics and genetic
-      testing. This lesson stopped at the cut. In those courses you ask what happens next: a cell
+      testing. This lesson stopped soon after the cut. In those courses you ask what happens next: a cell
       repairs a CRISPR cut, sometimes making small errors that break a gene and sometimes copying a
       supplied template. Casgevy, for example, uses the cut to switch back on a form of hemoglobin
       that is normally made before birth. Newer editors, such as prime editors reported in 2019, can
@@ -260,10 +279,11 @@ import Support from '../../../components/Support.astro';
 import CER from '../../../components/CER.astro';
 import ScaffoldFigure from '../../../components/ScaffoldFigure.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import LessonFilm from '../../../components/LessonFilm.astro';
 
-**From the 1920s on, people with diabetes who needed insulin usually injected insulin taken from the pancreases of cattle and pigs. In 1982 the FDA approved human insulin made by bacteria.**
+After the first film, build the change yourself, test it, and ask what success shows.
 
-Bacteria do not have a human insulin gene. Today, human insulin products are made by bacteria or yeast that carry DNA for it. How do you get a human gene into a microbe, and how should people decide which changes to living things are worth making?
+<Support>**The one idea.** Engineering changes a cell's DNA; test the effects, judge each use separately. **Scope:** This rule covers the engineered cells and organisms in this lesson. Some tools, such as PCR and gels, change nothing in a cell; they test the change. A DNA change may alter what a cell makes or how it behaves, but the intended effect is not automatic.</Support>
 
 <IdeaCheck items={[
   { idea: 'Genetic engineering is always harmful or unnatural.', answer: 'disagree', explain: 'Scientists and health agencies judge each product on its own evidence. The World Health Organization asks for case-by-case safety checks. Moving genes between species also happens in nature: researchers found bacterial DNA that entered sweet potatoes naturally, with no lab involved. Whether people should make a given change is a separate question of values.' },
@@ -273,55 +293,81 @@ Bacteria do not have a human insulin gene. Today, human insulin products are mad
 
 ## Explore: build a bacterium that makes a product
 
-In the gene-to-product builder, you pick a restriction enzyme to cut open a plasmid and to cut out a gene. You join the pieces with ligase, put the plasmids into bacteria, and then select the bacteria that took one up. A gel panel lets you check the sizes of your DNA pieces against a ladder of known sizes.
-
 <GeneToProductBuilder />
 
-**Try this.**
-1. Cut the plasmid with one enzyme and the gene with a different enzyme. Predict whether ligase can join them in this sketch, then test. (Some real pairs of different enzymes do leave matching ends.)
-2. Cut both with the same enzyme. Predict what the gel will show for the joined plasmid compared with the empty one, then run it.
-3. Skip the selection step. Predict how many of the bacteria on your plate will carry the gene, then check.
-4. Load a short piece and a long piece on the gel. Predict which one travels farther, then run it.
+**Try this.** Test Predictions 1 and 3 below. Then compare joined and empty plasmids on the gel, predicting first whether a short or a long piece travels farther. Finally, skip selection and check how many bacteria carry the gene.
 
-## Explain: tools that cut, join, copy and sort DNA
+## Build one change, then test it
 
 <WordBank terms={['genetic engineering', 'restriction enzyme', 'DNA ligase', 'plasmid', 'recombinant DNA', 'polymerase chain reaction (PCR)', 'gel electrophoresis', 'CRISPR', 'synthetic biology', 'genetically modified organism']} />
 
-**Genetic engineering** is using laboratory tools to change an organism’s DNA. DNA is the same kind of molecule in every living thing, and nearly all living things use the same genetic code, so a cell can often read a gene that came from another species. For the cell to use it, the gene also needs nearby control DNA that this kind of cell recognizes. You can review how DNA is built in [that lesson](/lessons/dna-structure-and-copying/).
+**Genetic engineering** is using laboratory tools to change an organism’s DNA. DNA has the same basic structure in living things, and nearly all of them share one genetic code. So a bacterium can read intron-free DNA for a human protein when bacterial control DNA is present. Intron-free matters: most human genes contain introns, stretches that human cells cut out of the RNA message. Bacteria cannot cut them out, so they generally cannot read a natural human gene correctly. Labs instead use DNA made chemically or copied from the RNA message. Review how DNA is built in [that lesson](/lessons/dna-structure-and-copying/) and how cells read a gene in [the protein lesson](/lessons/protein-synthesis/).
 
-The tools work like an editing kit. A word-processing analogy helps: cut, paste and copy. The analogy breaks because DNA tools are molecules acting by chance in a tube, and each step works on only some of the DNA.
+A **restriction enzyme** is a protein from bacteria that cuts DNA wherever it finds one particular short sequence; many leave short single-stranded tails called sticky ends. A **plasmid** is a small, usually circular piece of bacterial DNA that copies separately from the main chromosome. **DNA ligase** is an enzyme that seals paired ends into one continuous strand, making **recombinant DNA**: DNA joined from more than one source.
 
-- A **restriction enzyme** is a protein from bacteria that cuts DNA wherever it finds one particular short sequence. Many leave short single-stranded tails, called sticky ends.
-- **DNA ligase** is an enzyme that joins two DNA ends into one continuous strand.
-- A **plasmid** is a small, usually circular piece of DNA in a bacterium that copies itself separately from the main chromosome. When it copies, any gene added to it is copied too.
-- **Recombinant DNA** is DNA joined together from more than one source, such as a plasmid carrying a human gene.
-- The **polymerase chain reaction (PCR)** makes many copies of one chosen stretch of DNA. Short DNA pieces called primers mark where copying starts. In an ideal reaction the amount doubles each cycle.
-- **Gel electrophoresis** sorts DNA pieces by size. DNA carries a negative electric charge, so a current pulls it toward the positive end of a gel. Shorter pieces slip through the gel faster and travel farther.
-- **CRISPR** is a gene-editing tool taken from a bacterial defense system. In the most common version, a guide RNA matches one DNA sequence, and a protein called Cas9 cuts both strands there.
+**Predict 1.** In the builder, you cut the plasmid and gene with enzymes that leave ends that do not match. Will adding ligase make the intended recombinant plasmid?
 
-<LessonFigure src="/figures/genetic-engineering/casgevy-edit-outside-body.webp" width={1200} height={676} alt="AI-generated illustration: four steps from left to right. A patient's blood stem cells are taken out into a bag, edited in a dish in a lab, the patient gets chemotherapy from a drip, and the edited cells are put back. An inset shows a protein block holding a short guide strand along a DNA ladder, with a cut across both sides of the ladder." caption="The first approved CRISPR treatment edits one kind of cell, a patient’s own blood stem cells, in a lab, and puts them back after chemotherapy. The guide RNA picks the spot; Cas9 cuts both strands there." />
+<details>
+<summary>Check your prediction</summary>
+
+Not in this sketch. The mismatched ends do not pair. Some real pairs of different enzymes do leave ends that can pair, but this first model keeps to matching ends.
+
+</details>
+
+The tools work like a word processor's cut, paste and copy, with one difference: they are molecules acting by chance in a tube, so each step works on only some molecules or cells. As the first film showed, the plasmid usually also carries an antibiotic-resistance gene, so growing the bacteria with that antibiotic, called **selection**, leaves mostly the ones that took up a plasmid.
+
+Now test the DNA. The **polymerase chain reaction (PCR)** uses short DNA pieces called primers, which mark where copying starts, and a DNA-copying enzyme to make many copies of one chosen DNA stretch. In the ideal model, the amount doubles each cycle.
+
+**Predict 2.** Start with one copy. How many copies would the ideal model give after ten cycles?
+
+<details>
+<summary>Check your prediction</summary>
+
+Copies = 1 × 2<sup>10</sup> = 1,024. Real reactions copy a bit less than perfectly.
+
+</details>
 
 > ideal PCR: copies after n cycles = starting copies × 2 × 2 × ... (n times)
 
-For example, 1 copy after 10 ideal cycles gives 1,024 copies. Real reactions copy a bit less than perfectly.
+**Gel electrophoresis** sorts DNA pieces by size. DNA has a negative electric charge, so current pulls it toward the positive end of a gel. Shorter pieces slip through the gel faster and travel farther. Comparing a band with a ladder of known sizes estimates the piece's size, but not its DNA sequence.
 
-<ScaffoldFigure src="/figures/genetic-engineering/gel-electrophoresis-parts.webp" width={1200} height={800} keyItems={["negative end", "wells", "ladder", "long piece", "short piece", "positive end"]} given={[1, 2]} alt="AI-generated illustration: a gel slab in a box seen from above, with a dark electrode at the top and a light electrode at the bottom, three wells along the top, a lane of four ladder bands, one band close to its well and one band near the far end. Six numbered circles point to the parts." caption="The parts of a gel: where DNA goes in, which way the current pulls it, and how far short and long pieces travel. Name the six numbered parts." />
+**Predict 3.** A ladder has bands at 500 and 1,000 base pairs. Where should a piece about 700 base pairs long stop?
 
-<Support min={2}>**Key idea:** Restriction enzymes cut, ligase joins, plasmids carry and copy, PCR copies one stretch, gels sort by size, and CRISPR cuts at one chosen sequence.</Support>
+<details>
+<summary>Check your prediction</summary>
 
-## Explain: from a human gene to insulin, crops and cures
+Between the 500 and 1,000 base-pair bands. That size fits the target, but sequencing would confirm that it is the intended DNA.
 
-Here is the textbook path to insulin made by bacteria. It is a simplified model, not a factory recipe.
+</details>
 
-1. Get DNA that codes for insulin. In an early experiment, reported in 1979, scientists made this DNA chemically, as two pieces, one for each of insulin’s two protein chains.
-2. Cut a plasmid open with a restriction enzyme that leaves sticky ends. Cutting the gene with the same enzyme gives it matching sticky ends. Many labs cut both pieces with a pair of enzymes, so the gene can go in only one way round.
-3. Mix them so the ends pair, and seal them with ligase. Now you have recombinant DNA.
-4. Put the plasmids into bacteria. Only some bacteria take one up. The plasmid usually also carries a gene for resistance to an antibiotic, so growing the bacteria with that antibiotic leaves mostly the ones that took up the plasmid.
-5. Grow the bacteria. As they divide, the plasmid is copied. If the gene is switched on, the bacteria make each insulin chain attached to a bacterial protein. The chains are cut free, purified and joined into insulin. Today most insulin is made instead as one precursor chain in bacteria or yeast, which is then trimmed into insulin.
+<ScaffoldFigure src="/figures/genetic-engineering/gel-electrophoresis-parts.webp" width={1200} height={800} keyItems={["negative end", "wells", "ladder", "long piece", "short piece", "positive end"]} given={[1, 2]} alt="AI-generated illustration: a gel slab in a box seen from above, with a dark electrode at the top and a light electrode at the bottom, three wells along the top, a lane of four ladder bands, one band close to its well and one band near the far end. Six numbered circles point to the parts." caption="Short DNA pieces travel farther through a gel than long pieces do. Name the six numbered parts." />
 
-Adding a gene does not guarantee the cell makes its protein, so scientists test for the product. You can follow how cells read a gene into a protein in [that lesson](/lessons/protein-synthesis/).
+## From a human gene to insulin
 
-An organism whose DNA was changed this way is a **genetically modified organism**. Examples come from three fields:
+The first film's chain, cut, join, carry, select and read, is a simplified textbook model, not a factory recipe. It skipped many details; two matter here. Many labs cut with a pair of enzymes, so the gene can enter in only one direction. And the 1979 experiment behind this model made insulin's two chains separately (see Going deeper).
+
+You now have tools that make a change and tools that test DNA. But which result shows which step worked?
+
+<LessonFilm film={frontmatter.films[0]} />
+
+## From one product to many uses
+
+The second film left out a newer way to aim the change itself. **CRISPR** comes from a bacterial defense system. In a common version, a guide RNA helps aim Cas9 at a matching DNA region, and Cas9 cuts both strands. A cell then repairs the cut. The final change must be tested, because unintended sites may also be changed.
+
+<Support min={2}>**Tool kit:** restriction enzymes cut, ligase joins, plasmids carry and copy, PCR copies one stretch, gels sort by size, and CRISPR cuts at one chosen sequence.</Support>
+
+<LessonFigure src="/figures/genetic-engineering/casgevy-edit-outside-body.webp" width={1200} height={676} alt="AI-generated illustration: four steps from left to right. A patient's blood stem cells are taken out into a bag, edited in a dish in a lab, the patient gets chemotherapy from a drip, and the edited cells are put back. An inset shows a protein block holding a short guide strand along a DNA ladder, with a cut across both sides of the ladder." caption="The first approved CRISPR treatment edits one kind of cell, a patient’s own blood stem cells, outside the body and returns them after chemotherapy." />
+
+**Predict 4.** Should Casgevy's edit change every cell and every trait in the patient?
+
+<details>
+<summary>Check your prediction</summary>
+
+No. Only one kind of cell is edited and returned after chemotherapy, and doctors follow results for months. Sperm, eggs and skin are not edited, and nothing changes overnight.
+
+</details>
+
+A bacterium or crop engineered to carry a DNA change is a **genetically modified organism**. Casgevy is different: it modifies a patient's cells outside the body, not a whole organism. Uses come from several fields:
 
 | Field | Example | What was changed |
 |---|---|---|
@@ -332,21 +378,19 @@ An organism whose DNA was changed this way is a **genetically modified organism*
 | Industry | Cheese-making enzyme chymosin | Microbes carry the gene for an enzyme once taken from calf stomachs |
 | Research | Edited cells grown in a lab | Scientists switch off one gene to learn its job |
 
-**Synthetic biology** goes a step further: it designs and builds new biological parts, devices and systems. In one example, researchers built a new chemical pathway in baker’s yeast so that it made a starting material for a malaria medicine.
+**Synthetic biology** goes a step further: it designs and builds new biological parts, devices and systems. For example, researchers built a new chemical pathway in baker’s yeast to make a malaria medicine's starting material.
 
-Each use raises questions that data alone cannot settle. People disagree, and that is part of the work.
+Each use raises questions that data alone cannot settle.
 
 - **Safety:** Could an edit land in the wrong place? Could a crop affect insects it was not meant for? Can relying on one weed-killer select for resistant weeds, as in that lesson?
 - **Equity:** Who can pay for a new treatment? Who can buy the seed?
 - **Limits:** Should anyone edit sperm, eggs or embryos, when future people cannot agree to the change?
 
-To judge a claim, ask who wrote it, what evidence it gives, whether it was checked by other scientists, and whether the writer gains from your belief.
-
-<Support min={2}>**Key idea:** Bacteria can make human insulin because they copy and read a human gene carried on a plasmid, and each use of engineering is judged by its own evidence and values.</Support>
+To the second film's source questions (who wrote it, what evidence, checked by other scientists?), add one more: does the writer gain from your belief? In short: change, test, judge.
 
 ## Elaborate: how common are engineered crops?
 
-USDA asks farmers each June what they planted. This table shows the share of planted acres grown with any genetically engineered variety.
+Each June, USDA asks farmers what they planted. This table shows the share of planted acres with any genetically engineered variety.
 
 | Year | Corn, engineered varieties (% of U.S. planted acres) | Soybeans, engineered varieties (% of U.S. planted acres) |
 |---|---|---|
@@ -361,9 +405,17 @@ USDA asks farmers each June what they planted. This table shows the share of pla
 
 Data are U.S. estimates from the USDA June Agricultural Survey, published by the USDA Economic Research Service (2000 to 2024 and 2025 tables). Virginia is not listed separately. NASS estimated that Virginia farmers planted about 630,000 acres of soybeans and 500,000 acres of corn in 2024.
 
+**Predict 5.** For corn, was the rise larger from 2000 to 2010 or from 2010 to 2025?
+
+<details>
+<summary>Check your prediction</summary>
+
+It was much larger in the first interval: 86 minus 25 is 61 percentage points, while 94 minus 86 is 8 percentage points.
+
+</details>
+
 1. Which crop reached 90 percent first, and in which year shown?
-2. How many percentage points did corn rise from 2000 to 2010? Compare that with 2010 to 2025.
-3. What does this table not tell you about whether engineered crops are safe or helpful?
+2. These are national estimates. What would you need before using them to describe Virginia farms?
 
 <CER
   task="Make a claim that answers the essential question, using this data: what do the data show about how people have used crop engineering, and what would you still need to decide whether its use is wise?"
@@ -381,17 +433,21 @@ You put an insulin plasmid into bacteria. Plan how to show that your bacteria to
 <summary>One way to do it</summary>
 
 - **Groups:** bacteria given the insulin plasmid; bacteria given the same plasmid with no insulin DNA (the control); bacteria given nothing.
-- **Selection:** grow all three on plates with the antibiotic. Bacteria given nothing should not grow, which shows the antibiotic works. Also spread some on a plate without the antibiotic, where they should grow, to show the cells were alive.
-- **Check the DNA:** grow colonies, extract the plasmid, cut it with the restriction enzyme and run a gel. The insulin plasmid should show an extra band of the expected size that the empty plasmid lacks.
-- **Check the product:** test each group for insulin with an antibody test. The empty-plasmid group should give no signal, so a signal in the insulin group points to the added DNA. Run a known insulin sample too, to show the test works.
-- **Constants:** same strain, same temperature, same growth time, same amount of DNA.
+- **Selection:** grow all three on antibiotic plates. Bacteria given nothing should not grow, showing the antibiotic works. On a plate without antibiotic they should grow, showing the cells were alive.
+- **Check the DNA:** extract the plasmid from grown colonies, cut on both sides of the insert and run a gel. The insulin plasmid should give a backbone band plus an insert-sized band that the empty plasmid lacks.
+- **Check the product:** test each group for insulin with an antibody test. The empty-plasmid group should give no signal, so a signal in the insulin group points to the added DNA. A known insulin sample shows the test works. A signal shows insulin is present; purity and activity need further tests.
+- **Constants:** same strain, temperature and growth time. Give the two plasmid groups equal molar amounts of plasmid (the same number of plasmid molecules), and give the no-DNA group the same volume of plasmid buffer without DNA.
 - **Repeats:** test at least three colonies from each group that grows, on three different days.
 - **Safety:** use a harmless lab strain, wear gloves and destroy all cultures afterwards.
 
 </details>
 
+## Going deeper
+
+From the 1920s on, people who needed insulin usually used insulin from cattle and pig pancreases. The FDA approved human insulin made by bacteria in 1982. In the 1979 experiment behind the simple model, scientists chemically made DNA for insulin's two chains. Bacteria made each chain attached to a bacterial protein; the chains were cut free, purified and joined. Today bacteria or yeast usually make one precursor chain that is trimmed into insulin.
+
 ## Evaluate: check your thinking
 
-Bacteria make human insulin because scientists joined insulin DNA into a plasmid with restriction enzymes and ligase. The bacteria copy that plasmid as they divide and read the gene to make the protein. Related tools now change crops, CRISPR now edits blood stem cells, and each use is judged by its evidence and by people’s values.
+Bacteria make human insulin because scientists joined insulin DNA into a plasmid with restriction enzymes and ligase. The bacteria copy that plasmid as they divide and read the gene to make the protein. Related tools now change crops, and CRISPR now edits blood stem cells.
 
 **Science practices you used:** predicting and testing with a model, reading a data table and calculating a change, planning controls, judging the reliability of a source, and weighing benefits, risks and ethics.
