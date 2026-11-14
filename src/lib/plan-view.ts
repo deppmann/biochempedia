@@ -189,11 +189,11 @@ export async function planApi<T = Record<string, unknown>>(path: string, body?: 
 }
 
 /** While a plan is being made (10 to 60 seconds): steps that advance on a timer, so the wait is visible. */
-export function progressSteps(host: HTMLElement, steps: string[]) {
+export function progressSteps(host: HTMLElement, steps: string[], note = 'Usually 10 to 30 seconds; a long plan can take about a minute.') {
   host.replaceChildren();
   const items = steps.map((s) => el('li', {}, s));
   const bar = el('div', { class: 'pl-bar', role: 'progressbar', 'aria-label': 'Making the plan', 'aria-valuemin': 0, 'aria-valuemax': 100 }, el('span', {}));
-  host.append(bar, el('ol', { class: 'pl-steps' }, ...items));
+  host.append(bar, el('ol', { class: 'pl-steps' }, ...items), el('p', { class: 'pl-hint' }, note));
   host.hidden = false;
   const t0 = Date.now();
   const tick = () => {
