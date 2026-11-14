@@ -5,29 +5,49 @@ course: "genetics"
 courseChapter: "Genetics and Molecular Biology · Unit 2: Mapping and gene function"
 order: 311
 summary: >-
-  Bacteria have no meiosis, yet they recombine genes, because DNA moves from one cell into
-  another by three routes: as free DNA, through cell contact, or packed inside a phage. This
-  lesson shows how to tell the routes apart and how each became a way to map genes, by the
-  minute with interrupted mating and to within a phage's load of DNA with cotransduction.
-  Afterwards you can order genes from times of entry and from cotransduction counts, and say
-  why bacteria and phage made genetics fast.
+  How donor DNA travels determines the map: ordered arrival maps gene order and time gaps map
+  distance (for Hfr transfer at a roughly steady rate); shared carriage maps proximity because
+  closer genes travel together more often (for generalized transduction).
+  DNA reaches bacteria as free DNA, through cell contact or inside a phage. This lesson shows
+  how filter and DNase tests tell those routes apart, how interrupted mating and cotransduction
+  turn them into maps, and why bacteria and phage made genetics fast.
 hook: "Two E. coli strains that each cannot make several nutrients are mixed. A few cells can now make them all. Where did the genes come from?"
 
 estMinutes: 24
 objectives:
   - "Describe transformation, conjugation from an F+ or Hfr donor, and transduction, with what each needs and how the filter (U-tube) and DNase tests tell them apart."
   - "Order genes and measure distances by interrupted mating from times of entry in minutes, and explain why the E. coli map runs from 0 to 100 minutes."
-  - "Use cotransduction frequencies to say which genes lie close together, and explain why a three-factor cross is needed to order them."
+  - "Use cotransduction frequencies to say which genes lie close together, and explain why frequencies against one selected marker cannot place genes left or right while three-factor classes settle the order."
   - "Explain why haploidy, huge populations, short generations, selectable markers and plaque counts made bacteria and phage fast genetic systems."
 
 explainer:
   src: "/explainers/bacterial-and-phage-genetics/explainer.mp4"
   captions: "/explainers/bacterial-and-phage-genetics/explainer.vtt"
   poster: "/explainers/bacterial-and-phage-genetics/poster.jpg"
-  title: "Three Routes to New Genes"
-  durationSec: 162.4
-  narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+  title: "From DNA Route to Gene Order"
+  durationSec: 214.7
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+  takeaways:
+    - "For Hfr transfer, ordered arrival maps gene order; if transfer is roughly steady, time gaps map distance."
+    - "Transformation uses free DNA, conjugation needs contact, and transduction uses a phage."
+    - "A filter tests for cell contact; DNase tests for exposed DNA."
+    - "A recovered recombinant reports entry, integration and expression."
+
+films:
+  - id: "chapter-2"
+    src: "/explainers/bacterial-and-phage-genetics/chapter-2.mp4"
+    captions: "/explainers/bacterial-and-phage-genetics/chapter-2.vtt"
+    poster: "/explainers/bacterial-and-phage-genetics/chapter-2-poster.jpg"
+    title: "When Genes Share a Phage"
+    durationSec: 226.3
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+    takeaways:
+      - "Shared carriage maps proximity; closer genes travel together more often."
+      - "Generalized transduction can carry any short region of the host chromosome."
+      - "Specialized transduction carries genes beside a phage's attachment site."
+      - "Frequencies against one selected marker rank proximity but cannot place genes left or right; three-factor classes settle the order."
 
 scientists:
   - name: "Joshua Lederberg"
@@ -202,7 +222,7 @@ practiceQuestions:
       which is specialized transduction. Random packaging of host DNA describes generalized
       transducers such as P1 and P22, not lambda. Lambda infects gal+ cells normally. The gal
       and bio genes lie on the chromosome, not on a plasmid.
-  - stem: "In an interrupted-mating experiment, markers a, b and c first appear in recombinants at these times: a 6 min, b 17 min, c 25 min. Assuming steady transfer, how far apart are b and c?"
+  - stem: "Ordered arrival maps gene order; time gaps map distance. In an interrupted-mating experiment, markers a, b and c first appear at 6, 17 and 25 min. Assuming steady transfer, how far apart are b and c?"
     choices:
       - "6 minutes, the entry time of the first marker"
       - "8 minutes, the gap between their entry times"
@@ -256,7 +276,7 @@ mcatQuestions:
       the origins differ and transfer runs in opposite directions. Lac to gal is 7 minutes in
       both strains, so they agree. Strain 2 starts next to gal, not azi, and runs the other way.
       Eighteen minutes is the time lac enters in strain 1, not the azi to lac gap, which is 9.
-  - stem: "P1 grown on a wild-type donor transduces a leu thr ara recipient. Of 600 leu+ transductants selected, 270 are also ara+ and 12 are also thr+. What are the cotransduction frequencies, and what do they show?"
+  - stem: "Shared carriage maps proximity; closer genes travel together more often. P1 grown on a wild-type donor transduces a leu thr ara recipient. Of 600 leu+ transductants, 270 are also ara+ and 12 are also thr+. What do the frequencies show?"
     choices:
       - "ara 2% and thr 45%; thr lies closer to leu than ara does"
       - "ara 45% and thr 2%; ara lies closer to leu than thr does"
@@ -370,90 +390,123 @@ draft: false
 
 import InterruptedMatingTimer from '../../../components/InterruptedMatingTimer.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import LessonFilm from '../../../components/LessonFilm.astro';
 
-**In 1946 two strains of *Escherichia coli* K-12, each unable to make several nutrients, were mixed and spread on a plate that supplied none of them. A few colonies grew. Neither strain alone gave any.**
+**In 1946, two *Escherichia coli* K-12 strains, each unable to make several nutrients, were mixed and then spread on a plate that supplied none of them. A few colonies grew. Neither strain alone gave any. Where did the working genes come from?**
 
-An auxotroph is a mutant that needs a nutrient added because it cannot make it; the wild type is a prototroph. In Lederberg and Tatum's cross, one strain needed threonine, leucine and thiamine, and the other needed biotin, phenylalanine and cystine. A colony on bare minimal medium could make all six nutrients, so it carried working genes from both parents. Joshua Lederberg and Edward Tatum, at Yale, read the result as recombination: one bacterium can inherit genes from another.
+An **auxotroph** is a mutant that needs a nutrient added because it cannot make it; the wild type is a **prototroph**. In Joshua Lederberg and Edward Tatum's cross at Yale, one strain needed threonine, leucine and thiamine. The other needed biotin, phenylalanine and cystine. A colony on bare minimal medium could make all six, so it carried working genes from both parents. They read this as recombination: one bacterium had inherited genes from another.
 
-Why strains that each lack several abilities? A single mutant can revert, mutating back to the working allele, and a revertant looks like a recombinant. Needing several reversions in one cell makes that very unlikely, and each parent plated alone gave no colonies.
+**Predict 1.** A revertant mutates back to a working allele and can imitate a recombinant. What two controls make reversion a weaker explanation here?
 
-How does DNA get from one bacterium into another, and how can the way it moves become a map of the chromosome?
+<details>
+<summary>Check your prediction</summary>
 
-## The idea: a piece of chromosome gets in by one of three routes
+Each parent lacked several abilities, so one lineage would need several reversions. Each parent plated alone also gave no colonies.
 
-Bacteria make no zygote. An *E. coli* cell is haploid, with one circular chromosome, and what enters it is a piece of a donor's chromosome. For a while the recipient carries two copies of that segment, its own and the donor's. Such a partial diploid is called a merozygote. A linear donor piece is inherited stably only if recombination swaps it into the recipient's chromosome, and on a circle that takes an even number of crossovers, at least two, one on each side. A piece that is not swapped in cannot replicate. After transduction it can still be expressed for a while, an abortive transductant, but it is not copied as the cells divide.
+</details>
 
-Think of a train taking on a borrowed carriage: it stays only if the train is uncoupled and rejoined on both sides of it.
+> **The one idea.** How donor DNA travels determines the map: ordered arrival maps gene order and time gaps map distance; shared carriage maps proximity because closer genes travel together more often.
+>
+> *Scope:* ordered arrival means an Hfr time-of-entry experiment; turning time gaps into distances assumes approximately steady transfer. Shared carriage means generalized cotransduction. A recovered colony also needs the incoming piece expressed and usually integrated.
 
-<LessonFigure src="/figures/bacterial-and-phage-genetics/even-crossovers-keep-the-piece.webp" width={1200} height={676} alt="AI-generated illustration: three panels. A bacterium holds a circular chromosome and a separate gold donor arc, called a merozygote; two crossover marks, one on each side of the matching segment, join them; the gold piece is then part of the ring. A small train icon shows a borrowed carriage coupled on both sides." caption="A recipient that receives a donor piece briefly carries two copies of that segment. A linear piece is kept only if two crossovers, one on each side, swap it into the circular chromosome, like a borrowed carriage that stays only when the train is coupled on both sides of it." />
+## Three routes, two tests
 
-Three routes deliver the piece.
+The first film sorted the three routes with two tests: a filter that stops cells, and **DNase** (deoxyribonuclease), an enzyme that destroys free DNA.
 
-- **Transformation:** the recipient takes up free DNA from its surroundings. Some species, such as *Streptococcus pneumoniae* and *Bacillus subtilis*, do this naturally when they are competent, a physiological state that allows uptake. Griffith's pneumococci and Avery, MacLeod and McCarty's purified DNA belong to [that lesson](/lessons/dna-the-genetic-material/).
-- **Conjugation:** a donor cell makes contact with a recipient and passes DNA to it directly.
-- **Transduction:** a bacteriophage, a virus that infects bacteria, carries a piece of one host's DNA inside its protein coat into the next cell it infects.
-
-Two tests tell the routes apart. In 1950 Bernard Davis placed two strains in the arms of a U-shaped tube, separated by a filter that stopped cells but let medium pass, and moved the medium back and forth between them. Lederberg and Tatum's strains then gave no recombinants, which argued against a filterable agent and pointed to contact between cells. The second test is deoxyribonuclease (DNase), an enzyme that destroys free DNA.
-
-<LessonFigure src="/figures/bacterial-and-phage-genetics/three-routes-filter-dnase.webp" width={1200} height={792} alt="AI-generated illustration: three side-by-side panels. In the first, a free gold DNA fragment drifts to a bacterium with a DNase blob beside it; in the second, two bacteria joined by a tube pass DNA while a filter wall between separated cells is crossed out; in the third, a phage carrying a gold DNA piece lands on a bacterium and crosses the filter." caption="Free DNA, a direct connection and a phage coat are the three routes. A filter that stops cells blocks only conjugation, and DNase stops only free DNA, which is how the routes are told apart." />
-
-| Route | Needs cell contact | Crosses a filter that stops cells | Stopped by DNase in the medium |
+| Route | What carries the DNA | Crosses a cell-blocking filter | Stopped by DNase while DNA is extracellular |
 |---|---|---|---|
-| Transformation | No | Yes | Yes |
-| Conjugation | Yes | No | No |
-| Transduction | No | Yes | No; the DNA is inside a phage coat |
+| Transformation | Free DNA, taken up by a competent recipient | Yes | Yes |
+| Conjugation | A donor in direct contact with the recipient | No | No |
+| Transduction | A bacteriophage (a virus that infects bacteria) holding bacterial DNA in its coat | Yes | No; the phage coat protects the DNA |
 
-## Conjugation: a chromosome that enters by the minute
+**Competence** is a physiological state that allows uptake of free DNA. *Streptococcus pneumoniae* and *Bacillus subtilis* can become naturally competent; Griffith's pneumococci and Avery, MacLeod and McCarty's purified DNA belong to [the DNA-as-genetic-material lesson](/lessons/dna-the-genetic-material/).
 
-In *E. coli* K-12 the classic conjugation system is F, the fertility factor. Other conjugative plasmids carry their own transfer genes. F is a plasmid, a small DNA circle that replicates separately from the chromosome and carries genes for a pilus and for DNA transfer. A cell carrying F is F+; one without it is F−. In an F+ by F− cross, one strand of F is passed from a fixed point, the origin of transfer, and each cell makes the partner strand. Recipients become F+, but chromosomal genes move only rarely, because F transfers itself.
+<LessonFigure src="/figures/bacterial-and-phage-genetics/three-routes-filter-dnase.webp" width={1200} height={792} alt="AI-generated illustration: three side-by-side panels. In the first, a free gold DNA fragment drifts to a bacterium with a DNase blob beside it; in the second, two bacteria joined by a tube pass DNA while a filter wall between separated cells is crossed out; in the third, a phage carrying a gold DNA piece lands on a bacterium and crosses the filter." caption="A filter tests for cell contact; DNase tests for exposed DNA. A phage coat protects transduced DNA from DNase." />
 
-Now and then F integrates into the chromosome. Such a cell is an Hfr, for high frequency of recombination, because transfer starting at the origin within F now pulls the chromosome after it in a fixed order. Hfr strains were described in the early 1950s by Luca Cavalli-Sforza and by William Hayes, who are usually credited with independently isolating such strains. Mating pairs usually break apart before transfer ends, so a recipient gets only part of the chromosome, and since the rest of F would enter last, it rarely becomes Hfr or F+.
+## Conjugation: a chromosome enters in order
 
-Élie Wollman and François Jacob, at the Institut Pasteur, turned that ordered entry into a map. They mixed Hfr donors with F− recipients, broke the pairs apart in a blender at intervals, and plated on medium where only recombinants grew and streptomycin killed the donors. Each donor gene appeared only in samples taken after a characteristic time. If transfer runs at a steady rate, the time of entry is a position. Later workers pooled many such times of entry, and a 1976 recalibration gave the whole chromosome a length of 100 minutes, which is why the *E. coli* map is still drawn from 0 to 100 minutes. Hfr strains with F at different sites, in either orientation, gave overlapping orders that closed into a circle.
+The first film followed the fertility factor, **F**, from an F+ donor into an F− recipient, then into the chromosome of an **Hfr** (high frequency of recombination) donor. F, the classic conjugation system of *E. coli* K-12, is a **plasmid**, a small DNA circle that replicates separately from the chromosome. It carries genes for a pilus and for DNA transfer; other conjugative plasmids carry their own transfer genes. In an F+ by F− cross, transfer starts from a fixed point on F, the origin of transfer.
 
-A colony counts more than entry: the donor piece must also be integrated, and recipients carrying a *recB* mutation yield fewer recombinants in Hfr crosses.
+Because the rest of F would enter last and mating pairs usually break first, the recipient in an Hfr cross rarely becomes Hfr or F+.
 
-**Worked problem (a): interrupted mating.** Hfr strain 1 transfers markers a, b, c and d into a streptomycin-resistant F− recipient. They first appear at a 8 min, b 14 min, c 20 min and d 31 min. Hfr strain 2 gives d 4 min, c 15 min, b 21 min and a 27 min. Assume transfer runs at the same steady speed in both strains, and that first appearance marks entry.
+Élie Wollman and François Jacob broke mating pairs apart in a blender at intervals, then plated the recipients on medium where only recombinants grew while streptomycin killed the donors.
 
-1. Strain 1 order, earliest first: a, b, c, d.
-2. Strain 1 gaps: b minus a is 14 − 8 = 6; c minus b is 20 − 14 = 6; d minus c is 31 − 20 = 11 minutes.
-3. Strain 2 order: d, c, b, a. Gaps: c minus d is 15 − 4 = 11; b minus c is 21 − 15 = 6; a minus b is 27 − 21 = 6 minutes.
-4. Compare. Both give the order a-b-c-d with a-b 6, b-c 6 and c-d 11 minutes. Strain 2 reads the same map backwards: its origin lies on the far side of d, about 4 minutes before d, and it transfers in the opposite orientation.
+### Worked problem: interrupted mating
 
-> **map: a --6-- b --6-- c --11-- d (distances in minutes)**
+Hfr strains 1 and 2 are each mated with a streptomycin-resistant F− recipient. Assume both transfer at the same steady speed, and that first appearance marks entry. Strain 1 gives a 8 min, b 14 min, c 20 min and d 31 min. Its order is a-b-c-d, with gaps of 6, 6 and 11 minutes.
 
-The absolute times differ because each strain starts at its own origin. The gaps agree, and the gaps are the map.
+**Predict 2.** Strain 2 gives d 4 min, c 15 min, b 21 min and a 27 min. Work out its gaps. Where does its transfer start, relative to d?
+
+<details>
+<summary>Check your prediction</summary>
+
+Its order is d-c-b-a, with gaps of 11, 6 and 6 minutes. Strain 2 reads the same map backwards: its origin lies on the far side of d, about 4 minutes before d, and it transfers in the opposite orientation.
+
+> **a --6-- b --6-- c --11-- d**
+
+Hfr strains with different origins and orientations produced overlapping orders that closed into a circle.
+
+</details>
+
+The *E. coli* map runs from 0 to 100 minutes, a scale that came from pooling many time-of-entry measurements, not from a chromosome that always crosses in exactly the same time.
+
+**Predict 3.** Two Hfr strains give the same marker order but transfer at consistently different speeds. Can their raw time gaps be overlaid as distances without recalibration?
+
+<details>
+<summary>Check your prediction</summary>
+
+No. Time becomes distance only under the steady-transfer assumption, and different rates stretch the two time maps by different amounts, even when the marker order agrees.
+
+</details>
+
+### Arrival is not yet inheritance
+
+Bacteria make no zygote. *E. coli* is haploid, with one circular chromosome, so a recipient holding its own segment plus the matching donor segment is only briefly a **merozygote**, or partial diploid.
+
+In the simple linear-fragment model, stable replacement in the circular chromosome needs an even number of crossovers, at least two, one on each side. After transduction, a piece that is not integrated may still be expressed briefly as an **abortive transductant**, but it is not copied as cells divide. Integration uses the recipient's recombination machinery: recipients with a *recB* mutation yield fewer recombinants in Hfr crosses.
+
+<LessonFigure src="/figures/bacterial-and-phage-genetics/even-crossovers-keep-the-piece.webp" width={1200} height={676} alt="AI-generated illustration: three panels. A bacterium holds a circular chromosome and a separate gold donor arc, called a merozygote; two crossover marks, one on each side of the matching segment, join them; the gold piece is then part of the ring. A small train icon shows a borrowed carriage coupled on both sides." caption="For a matching linear chromosome fragment, recombination on both sides replaces one recipient segment while preserving a circular chromosome, like a borrowed carriage that stays only when coupled on both sides." />
 
 <InterruptedMatingTimer />
 
-## Transduction: a phage that packs the wrong DNA
+A linear bacterial fragment delivered by a generalized transducer such as P1 faces the same two-flanking-crossover test. The second film turns to that carrier, whose short load maps close genes.
 
-Norton Zinder, a graduate student with Lederberg at Wisconsin, looked for mating in *Salmonella typhimurium*. Genes passed even across a filter that stopped cells, and the agent resisted DNase. In 1952 Zinder and Lederberg traced it to a temperate phage, later named P22. A temperate phage can either kill its host or settle in as a prophage, usually by inserting its genome into the host's DNA, a state called lysogeny.
+<LessonFilm film={frontmatter.films[0]} />
 
-**Generalized transduction.** As P22 fills new heads with DNA, it occasionally packs a fragment of host chromosome instead of its own genome. That particle injects the fragment into the next cell, where it can be recombined in. Any part of the host chromosome can be carried. P22 does this in *Salmonella* and P1 in *E. coli*.
+## Transduction: host DNA inside a phage
 
-<LessonFigure src="/figures/bacterial-and-phage-genetics/generalized-vs-specialized-transduction.webp" width={1200} height={800} alt="AI-generated illustration: two panels. On the left a bacterium's circular chromosome has a random arc packed into a gold phage head; on the right lambda sits at an attachment site between gal and bio blocks and a gold phage head carries the neighbouring gal piece." caption="A generalized transducer such as P22 or P1 occasionally packs a fragment of host chromosome, and any part can be carried. Lambda normally inserts at one site between gal and bio, so when it is cut out inaccurately it can carry only neighbouring genes." />
+Norton Zinder, working with Lederberg, found that genes passed between *Salmonella typhimurium* strains across a cell-blocking filter, and the agent resisted DNase. They traced it to a temperate phage later called P22. A **temperate phage** can kill its host or settle as a **prophage**, usually inserted into host DNA; that settled state is **lysogeny**.
 
-**Specialized transduction.** Phage lambda in *E. coli* K-12 normally inserts at one preferred attachment site, between the *gal* and *bio* genes. When the prophage is cut out inaccurately, it can take a neighbouring host gene with it. Lambda therefore transduces only genes next to that site, which M. L. Morse, Esther Lederberg and Joshua Lederberg reported for the galactose genes in 1956.
+Lambda is temperate too, but its transduction is **specialized** because it integrates at a specific attachment site, between the *gal* and *bio* genes of *E. coli* K-12, and can take adjacent host DNA when the prophage excises inaccurately. P22 and P1 are **generalized** transducers, which occasionally pack a random host-chromosome fragment in place of phage DNA.
 
-**Cotransduction as a fine map.** A P1 head holds about 100 kb of DNA, roughly 2 minutes of the 4.6-million-base-pair *E. coli* chromosome. Two genes ride in one particle only if they lie within that span, and the closer they are, the more often they do. Interrupted mating spans the whole chromosome; cotransduction resolves genes inside a 2-minute window. The cotransduction frequency is the fraction of transductants, selected for one donor marker, that also carry another.
+<LessonFigure src="/figures/bacterial-and-phage-genetics/generalized-vs-specialized-transduction.webp" width={1200} height={800} alt="AI-generated illustration: two panels. On the left a bacterium's circular chromosome has a random arc packed into a gold phage head; on the right lambda sits at an attachment site between gal and bio blocks and a gold phage head carries the neighbouring gal piece." caption="Generalized transduction can carry any short region of the host chromosome, whereas specialized transduction carries genes beside a phage's attachment site." />
 
-**Worked problem (b): cotransduction.** P1 grown on a wild-type donor transduces an *x y z* triple mutant. Assume the donor carries the wild-type allele at all three genes and only *x+* is selected. Of 500 *x+* transductants, 350 are also *y+* and 100 are also *z+*.
+### Cotransduction as a local map
 
-1. Cotransduction of *y* with *x*: 350/500 = 0.70, or 70%.
-2. Cotransduction of *z* with *x*: 100/500 = 0.20, or 20%.
-3. Both genes lie within one P1 fragment of *x*, and *y* lies closer to *x* than *z* does.
-4. These two-factor numbers do not give the order: *x-y-z* and *y-x-z* both fit. Ordering needs three-factor classes, as in the design problem.
+A **transductant** is a recipient that acquired a donor marker by transduction, and the **cotransduction frequency** is the fraction of those selected for one donor marker that also received another. A P1 head holds about 100 kb, roughly 2 minutes of the 4.6-million-base-pair *E. coli* chromosome, so only genes within that span can ride together.
+
+P1 grown on a wild-type donor infects an *x y z* triple mutant. Only *x+* is selected. Of 500 *x+* transductants, 350 are also *y+* and 100 are also *z+*.
+
+**Predict 4.** Calculate both cotransduction frequencies. Which marker is closer to *x*, and which gene orders do the numbers allow?
+
+<details>
+<summary>Check your prediction</summary>
+
+For *y* with *x*, 350/500 = 0.70, or 70%. For *z* with *x*, 100/500 = 0.20, or 20%. Both fit within one P1 fragment of *x*, and *y* lies closer to *x*. Two-factor data cannot say which side of *x* each marker occupies, so *x-y-z* and *y-x-z* both fit.
+
+</details>
 
 ## Why bacteria and phage made genetics fast
 
-A haploid cell has no second allele to mask the first, so a recessive mutant genotype shows quickly. There is still a lag, often a few generations, because a growing cell carries several copies of its replicating chromosome. A culture holds billions of cells, and *E. coli* can divide about every 20 minutes in rich medium. Above all, selection does the searching: minimal medium, or an antibiotic, lets only cells with every selected ability grow, among them the rare recombinant, so one cell in many millions is found without looking at the rest. Many resistance genes ride on plasmids and encode, for example, an enzyme that destroys the drug; plasmids became tools for moving genes in [that lesson](/lessons/recombinant-dna-and-pcr/).
+Both maps follow from how the DNA travelled: ordered arrival places genes around the whole chromosome, and shared carriage places them within one phage load.
 
-Phage are faster still. On a lawn of bacteria each infecting phage gives one clear spot, a plaque, so phage are counted as plaques, and plaque appearance is a phenotype. When two mutant phages infect one cell their genomes can recombine, and the progeny can be mapped as in a fly cross. Seymour Benzer used a selective host to pick out rare T4 recombinants among very large numbers of progeny, and mapped mutations within the *rII* region of [that lesson](/lessons/complementation-and-pathways/).
+A haploid cell has no second allele to mask a recessive mutant genotype, though a phenotype may still lag for a few generations because a growing cell can carry several copies of its replicating chromosome. Cultures hold billions of cells, and *E. coli* can divide about every 20 minutes in rich medium. Most important, **selection** does the searching: minimal medium or an antibiotic lets only cells with every selected ability grow, revealing one recombinant among many millions. Many resistance genes ride on plasmids and can encode an enzyme that destroys the drug; plasmids became tools in [recombinant DNA](/lessons/recombinant-dna-and-pcr/).
 
-### Design problem
+Each **plaque**, a clear spot on a bacterial lawn, begins from one infectious unit under the assay conditions, so phage are counted as plaques, and plaque appearance is a phenotype. Two mutant phages infecting one cell can recombine, and their progeny map like a fly cross. Seymour Benzer used a selective host to find rare T4 recombinants among very large numbers of progeny, and mapped mutations within the *rII* region in [the complementation lesson](/lessons/complementation-and-pathways/).
 
-Order *x*, *y* and *z* with a three-factor transduction. Design the experiment, then interpret these counts from the cross in worked problem (b), with *x+* selected and *y* and *z* scored.
+### Design problem: three-factor transduction
+
+Grow P1 on the wild-type donor, infect the *x y z* mutant, select *x+*, and score *y* and *z*:
 
 | Class | Count |
 |---|---|
@@ -462,19 +515,23 @@ Order *x*, *y* and *z* with a three-factor transduction. Design the experiment, 
 | *x+ y z+* | 5 |
 | *x+ y z* | 145 |
 
+**Predict 5.** Which order makes the rarest class, *x+ y z+*, require four crossovers rather than two?
+
 <details>
-<summary>One way to do it</summary>
+<summary>One way to reason it through</summary>
 
-**Design.** Grow P1 on the wild-type donor, infect the triple mutant, select *x+* only, then test each colony for *y+* and *z+*. Plate the recipient alone and the phage alone to rule out reversion and contamination.
+The donor fragment carries *x+ y+ z+*. For order *x-y-z*, keeping donor *x+* and *z+* but recipient *y* requires exchanges outside *x*, between *x* and *y*, between *y* and *z*, and outside *z*: four.
 
-**Interpretation.** The donor fragment carries *x+ y+ z+*, and an even number of crossovers must place it into the circular recipient chromosome. For each candidate order, count the crossovers needed for the rarest class, *x+ y z+* (5).
+For *y-x-z*, the same class needs one exchange between *y* and *x* and one beyond *z*. For *x-z-y*, it needs one beyond *x* and one between *z* and *y*. Those are two-exchange products, so they should not be the rarest. The order is *x-y-z*.
 
-- Order *x-y-z*: keeping donor *x+* and *z+* but recipient *y* needs crossovers outside *x*, between *x* and *y*, between *y* and *z*, and outside *z*. That is four.
-- Order *y-x-z*: the same class needs one crossover between *y* and *x* and one beyond *z*. That is two, and should not be the rarest.
-- Order *x-z-y*: the same class needs one crossover beyond *x* and one between *z* and *y*. Also two.
-
-Only *x-y-z* makes the rarest class the one that needs four crossovers, so the order is *x-y-z*.
-
-**Check.** *y+* is 95 + 255 = 350 of 500 (70%) and *z+* is 95 + 5 = 100 of 500 (20%), as in worked problem (b). The middle gene, *y*, cotransduces more often than the outer gene *z*, as the order predicts.
+Check the margins: *y+* is 95 + 255 = 350 of 500, or 70%; *z+* is 95 + 5 = 100 of 500, or 20%. The middle gene, *y*, cotransduces more often than the outer gene *z*, as the order predicts. Plate the recipient alone and phage alone to control reversion and contamination.
 
 </details>
+
+## Going deeper
+
+In 1950 Bernard Davis separated *E. coli* strains in a U-shaped tube by a filter that stopped cells while medium moved back and forth; no recombinants appeared, supporting contact-dependent conjugation. Luca Cavalli-Sforza and William Hayes are usually credited with independently isolating Hfr strains in the early 1950s. A 1976 recalibration set the full map at 100 minutes.
+
+Zinder and Lederberg reported P22 transduction in 1952. M. L. Morse, Esther Lederberg and Joshua Lederberg reported lambda's restricted transduction of galactose genes in 1956.
+
+Later markers are recovered less often as mating pairs break. Cotransduction frequency also depends on fragment length and on recombination around each marker, so its relation to distance is nonlinear. Base-pair coordinates are now the main frame, but P1 remains useful for moving one region into a clean background to test which mutation causes a phenotype.

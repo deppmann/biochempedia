@@ -5,17 +5,16 @@ course: "genetics"
 courseChapter: "Genetics and Molecular Biology · Unit 2: Mapping and gene function"
 order: 309
 summary: >-
-  A test cross that follows three linked genes at once gives eight classes of offspring, and
-  those eight counts tell you the order of the genes, the distance across each interval, and
-  whether one crossover makes another nearby less likely. This lesson works one such cross from
-  raw counts to a map, then asks why a centimorgan is not a fixed length of DNA. Afterwards you
-  can order three genes, calculate interval distances, coincidence and interference, and say
-  where crossovers in humans and mice tend to fall.
-hook: "Two crossovers on one chromatid between the same pair of genes cancel out. How do you count what you cannot see?"
+  A middle marker makes double crossovers visible; comparing observed and expected doubles
+  reveals crossover spacing. This lesson works a three-point test cross from eight offspring
+  classes to gene order, adjacent-interval distances, coincidence and interference, then asks
+  why a centimorgan is not a fixed length of DNA and where crossovers in humans and mice tend
+  to fall.
+hook: "If two crossovers restore the outer genes' parental arrangement, how can offspring counts reveal them?"
 
 estMinutes: 24
 objectives:
-  - "Order three linked genes from a test cross by matching the double-crossover classes to the parental classes and finding the gene that has switched."
+  - "Order three linked genes from a test cross by matching each double-crossover class to its closest parental and finding the one gene that differs."
   - "Calculate each interval's map distance with the double crossovers counted in both intervals, and explain why a two-point count across the outer genes comes out smaller."
   - "Calculate the expected number of double crossovers, the coefficient of coincidence and the interference, and state what positive and negative interference mean."
   - "Compare genetic distance with physical distance, using hotspots, PRDM9, sex differences and the absence of crossing over in Drosophila melanogaster males."
@@ -24,10 +23,32 @@ explainer:
   src: "/explainers/three-point-mapping/explainer.mp4"
   captions: "/explainers/three-point-mapping/explainer.vtt"
   poster: "/explainers/three-point-mapping/poster.jpg"
-  title: "A Middle Gene Reveals Double Crossovers"
-  durationSec: 138.1
-  narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+  title: "The Marker in the Middle"
+  durationSec: 214.9
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+  takeaways:
+    - "A middle marker makes double crossovers visible."
+    - "The largest pair is provisionally parental; the smallest pair provisionally represents double crossovers."
+    - "Match each double to its closest parental; the only different marker lies in the middle."
+    - "Count every double crossover in both adjacent intervals."
+    - "Rarity is a clue, not proof: check that the rare pair is reciprocal and every class survives and is scored."
+
+films:
+  - id: "chapter-2"
+    src: "/explainers/three-point-mapping/chapter-2.mp4"
+    captions: "/explainers/three-point-mapping/chapter-2.vtt"
+    poster: "/explainers/three-point-mapping/chapter-2-poster.jpg"
+    title: "Do Crossovers Act Independently?"
+    durationSec: 231.4
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+    takeaways:
+      - "Comparing observed and expected doubles reveals crossover spacing."
+      - "Under independence, expected doubles come from multiplying the adjacent interval frequencies."
+      - "Coincidence is observed divided by expected; interference is one minus coincidence."
+      - "Coincidence and interference describe one pair of intervals in one organism, not a species constant."
+      - "Genetic distance reflects crossover frequency, not a fixed length of DNA."
 
 scientists:
   - name: "Alfred H. Sturtevant"
@@ -149,15 +170,15 @@ practiceQuestions:
   - stem: "In a three-point test cross of linked genes, which offspring classes are usually the double crossovers?"
     choices:
       - "The two largest classes, which keep the parental combination"
-      - "The two smallest classes, in which only the middle gene switches"
+      - "The two smallest classes, which differ from a parental only at the middle gene"
       - "The two classes in which the gene written first has switched"
       - "The two classes that together make up about half the progeny"
     answer: 1
     rationale: >-
       A double crossover needs a crossover in both intervals at once, so it is the rarest event,
-      and it swaps only the gene between the two crossovers. The largest classes are the parentals, made mostly with no crossover. The gene written first is only first in the listing,
-      which need not be map order. Two classes making up about half the progeny are large classes, not the rare products of two crossovers; with unlinked genes, any two of the eight classes would make up about a quarter. Rarity is a guide, so check it against
-      the parentals and against viability before relying on it.
+      and compared with its matching parental, only the middle gene differs. The largest classes are the parentals, made mostly with no crossover. The gene written first is only first in the listing,
+      which need not be map order. Two classes making up about half the progeny are large classes, not the rare products of two crossovers; with unlinked genes, any two of the eight classes would make up about a quarter. Rarity is a clue, not proof: check that
+      the rare pair is reciprocal and that every class survives and is scored.
   - stem: "A test cross gives parental classes A B C and a b c. The two rarest classes are a B C and A b c. Which gene lies in the middle?"
     choices:
       - "A, the only gene that differs between doubles and parentals"
@@ -350,29 +371,21 @@ draft: false
 
 import ThreePointOrderFinder from '../../../components/ThreePointOrderFinder.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import LessonFilm from '../../../components/LessonFilm.astro';
 
-**Two crossovers on one chromatid between the same pair of genes cancel out. If you score only those two genes, an offspring that inherits that chromatid looks exactly like one with no crossover.**
+The first film showed why a two-gene count, as in [linkage and mapping](/lessons/linkage-and-mapping/), misses two crossovers on one chromatid, and how a middle marker exposes them. A **crossover** exchanges segments between two non-sister chromatids in meiosis (see [chromosomes and meiosis](/lessons/chromosomes-and-meiosis/)).
 
-In [linkage and mapping](/lessons/linkage-and-mapping/) you measured the distance between two genes by counting recombinant offspring. That count has a blind spot. A **crossover** is an exchange of segments between two non-sister chromatids in meiosis (see [chromosomes and meiosis](/lessons/chromosomes-and-meiosis/)). One crossover between two genes recombines them. A second crossover between the same two genes, on the same chromatid, puts them back together. The gamete has been rearranged twice and looks parental. This lesson shows how a third gene, placed between the other two, makes those hidden events visible, and what the counts then tell you about order, distance and the spacing of crossovers.
+A **locus** is a gene's place on a chromosome; its versions are **alleles**. A **test cross** mates the individual being studied with one homozygous recessive at every locus followed, so each offspring's phenotype reads one gamete from the other parent.
 
-## Why add a third gene: the middle marker catches the doubles
+> **The one idea.** A middle marker makes double crossovers visible; comparing observed and expected doubles reveals crossover spacing.
+>
+> *Scope:* a three-point test cross with scorable classes and short adjacent intervals. Unequal survival can upset the usual size ranking, and even three markers miss an even number of crossovers within one interval.
 
-A **locus** is the place a gene occupies on a chromosome, and the versions of a gene are its **alleles**. A **test cross** mates an individual of unknown genotype with one homozygous recessive at the loci being followed. The tester's gametes carry only recessive alleles, so every offspring's phenotype shows directly which alleles came in the gamete from the other parent. A test cross is a way of reading gametes.
+## Read the eight classes in a fixed order
 
-Follow three linked loci in one test cross and each gamete can carry one of eight allele combinations. Those combinations fall into four pairs:
+The first film sorted the eight classes into reciprocal pairs: **parentals** (no detected crossover), **single crossovers** in each interval, and **double crossovers** (one in each interval, usually smallest). Under independence, a double's probability is the product of the two interval probabilities ([probability and crosses](/lessons/probability-and-crosses/)), and the product of two small fractions is smaller still.
 
-- **Parentals**: no crossover detected between the three loci. Two classes, the largest.
-- **Single crossovers in the first interval**: two classes.
-- **Single crossovers in the second interval**: two classes.
-- **Double crossovers**: one crossover in each interval. Two classes, usually the smallest.
-
-The analogy is a sentence copied from two drafts, switching drafts at random. Check only the first and last words and you see a switch only when there was an odd number of them. Check a word in the middle as well and you catch the pair. The middle marker does that for chromosomes.
-
-Why are doubles the rarest? If crossovers in the two intervals happened independently, the chance of both would be the product of the two chances, by the product rule from [probability and crosses](/lessons/probability-and-crosses/). The product of two small fractions is a smaller fraction.
-
-## Reading the eight classes: find the middle gene first
-
-**Worked problem.** A female heterozygous for three recessive mutations, p, q and r, carries p q r on one chromosome and + + + on the other (+ is the normal allele). She is test-crossed to a p q r / p q r male. Assume that every class survives equally well, that phenotypes are scored without error, and that her phase (which alleles sit together on each chromosome) is known. Here are the 1,000 progeny, written with the genes in alphabetical order, not map order:
+**Worked problem.** A female heterozygous for recessive mutations p, q and r carries p q r on one chromosome and + + + (normal alleles) on the other. She is test-crossed to a p q r / p q r male. Assume every class survives equally well, phenotypes are scored without error, and her **phase**, the alleles together on each chromosome, is known. The 1,000 progeny are listed alphabetically, not in map order:
 
 - p q r: 350
 - + + +: 342
@@ -383,83 +396,116 @@ Why are doubles the rarest? If crossovers in the two intervals happened independ
 - + q r: 7
 - p + +: 5
 
-Check the total first: 350 + 342 + 53 + 55 + 96 + 92 + 7 + 5 = 1,000.
+Total: 350 + 342 + 53 + 55 + 96 + 92 + 7 + 5 = 1,000.
 
-**Step 1: the parentals.** The two largest classes are p q r and + + +. They match the mother's two chromosomes, as they should.
+**Step 1: find the parentals.** The two largest classes, p q r and + + +, match the female's two chromosomes.
 
-**Step 2: the doubles and the middle gene.** The two smallest classes are + q r and p + +. Match each with the parental it most resembles. + q r against p q r: only p differs. p + + against + + +: only p differs. A double crossover swaps only the gene that lies between the two crossovers, so p is the middle gene. The order is q, p, r.
+**Predict.** The provisional doubles are + q r and p + +. Match each to its closest parental. Which gene is in the middle?
 
-Notice what did not decide it. The middle of the written name is q, and q is an outer gene. The order on the page is a listing convention; the doubles tell you the order on the chromosome.
+<details>
+<summary>Check your prediction</summary>
+
++ q r differs from p q r only at p, and p + + differs from + + + only at p. So p is in the middle, giving q–p–r. The alphabetical middle, q, is an outer gene.
+
+</details>
 
 <ThreePointOrderFinder />
 
-**Step 3: rewrite in map order.** Put every class in the order q p r:
+**Step 2: rewrite every class in map order,** q to p to r, and note where each switches from one parental pattern to the other.
 
 - Parentals: q p r (350) and + + + (342)
 - Singles between q and p: q + + (53) and + p r (55)
 - Singles between p and r: q p + (96) and + + r (92)
 - Doubles: q + r (7) and + p + (5)
 
-In q + +, the chromosome starts as the q p r parental and switches to the + + + one between q and p. In q p +, the switch comes between p and r. Every class now has one clear reading.
+Rarity is a clue, not proof: a class can be small because its offspring survive poorly, as Sturtevant reported for one wing mutation in 1913. With short intervals and every class surviving and scored equally well, take the reciprocal pair with the smallest combined count as the doubles. The map-order sort then labels the singles but cannot confirm that choice: any reciprocal pair taken as the doubles sorts just as neatly. If survival or scoring may differ, seek independent evidence.
 
-A caution. Rarest usually means double, but a class can also be small because those offspring survive poorly. Sturtevant reported reduced viability for one of his wing mutations in 1913. Check the doubles against the parentals, as in Step 2, before you trust rarity alone.
+**Step 3: calculate adjacent distances.** Map distance is measured in **centimorgans** (cM), a frequency, not a length: for a short interval, 1 cM means about 1 gamete in 100 is recombinant. Count every double in both intervals:
 
-## Distances, coincidence and interference
-
-**Step 4: distances.** A double crossover is a crossover in each interval, so it counts in both:
-
-> distance (cM) = 100 x (single crossovers in the interval + double crossovers) / total
+> distance (cM) = 100 × (single crossovers in the interval + double crossovers) / total
 
 - q to p: (53 + 55 + 7 + 5) / 1,000 = 120 / 1,000 = 12.0 cM
 - p to r: (96 + 92 + 7 + 5) / 1,000 = 200 / 1,000 = 20.0 cM
-- q to r: 12.0 + 20.0 = 32.0 cM
+- q to r on the map: 12.0 + 20.0 = 32.0 cM
 
-Now score only q and r, as a two-point cross would. The doubles q + r and + p + carry the parental q-r combinations, so they drop out: (53 + 55 + 96 + 92) / 1,000 = 296 / 1,000 = 29.6%. The two-point estimate is short by 2.4 points, which is the 12 doubles counted twice (24 / 1,000). Do not leave the doubles out of the interval counts.
+**Predict.** If you now ignore p and score only q and r, what recombinant percentage will you obtain? Will it equal 32.0?
 
-Even 32.0 cM is a lower bound. Two crossovers inside the q-p interval, with no marker between them, still escape detection. That is why Sturtevant preferred to build maps from short adjacent intervals.
+<details>
+<summary>Check your prediction</summary>
 
-**Step 5: are doubles as common as chance predicts?** If the intervals behaved independently:
+The doubles q + r and + p + carry parental q–r combinations, so only the 296 single crossovers count: 296 / 1,000 = 29.6%. The shortfall of 2.4 points is the 12 doubles counted once in each interval: 24 / 1,000.
 
-> expected doubles = (interval 1 fraction) x (interval 2 fraction) x total = 0.12 x 0.20 x 1,000 = 24
+</details>
 
-Twelve were observed. The **coefficient of coincidence** is observed doubles over expected doubles, and **interference** is one minus that:
+Even 32.0 cM is a lower bound: two crossovers inside q–p or inside p–r, with no marker between them, still escape detection. That is why Sturtevant built maps from short adjacent intervals.
 
+Twelve doubles turned up. Is that as many as chance predicts?
+
+<LessonFilm film={frontmatter.films[0]} />
+
+## Compare observed doubles with chance
+
+The second film named the **coefficient of coincidence**, observed doubles over the number expected under independence, and **interference**, one minus coincidence.
+
+**Predict.** The interval fractions are 0.12 and 0.20. Among 1,000 offspring, how many doubles does independence predict, and is that above or below the 12 observed?
+
+<details>
+<summary>Check your prediction</summary>
+
+> expected doubles = 0.12 × 0.20 × 1,000 = 24
+>
 > coincidence = 12 / 24 = 0.50
-> interference = 1 - 0.50 = 0.50
+>
+> interference = 1 − 0.50 = 0.50
 
-An interference of 0.5 means half the expected doubles are missing. This is **positive interference**: a crossover in one interval makes a crossover in the neighbouring interval less likely. Sturtevant showed in 1913 that doubles were scarcer than chance predicts, and in 1915 he named the effect interference, crediting Hermann Muller with suggesting the name. Interference tends to be strongest for short neighbouring intervals; for intervals far apart, coincidence approaches 1. Interference of 1 means no doubles at all. Interference can also be negative, with more doubles than expected, and that has been reported in some fungal and phage crosses, so do not call a coincidence above 1 impossible.
+Half the expected doubles appeared. This is **positive interference**: a crossover in one interval is associated with fewer crossovers in the neighbouring interval.
 
-Interference is a property of a pair of intervals in a given organism, not a constant. In the plant Arabidopsis, one 2018 study measured an interference of 0.64 for one pair of intervals, which fell to 0.34 when the dosage of a meiotic protein called HEI10 was raised. And in a 2016 sequencing study of Drosophila female meioses, noncrossover gene conversions, which exchange a short patch without exchanging the flanking DNA, did not show interference at all.
+</details>
+
+Interference of 1 means no doubles at all; a coincidence above 1 is negative interference, an excess of doubles, not an impossible result. These values describe one pair of intervals in one organism, not a species constant: interference tends to be strongest across short neighbouring intervals, and for intervals far apart, coincidence approaches 1. This is how visible doubles become a measure of crossover spacing.
 
 ### Design problem
 
-In another three-point test cross of 500 progeny, the two intervals are 6 cM and 10 cM, and no double-crossover progeny appear. A classmate concludes that interference here is complete. Is that justified? What would you do to decide?
+**Predict.** Another three-point test cross has 500 progeny, intervals of 6 cM and 10 cM, and no double-crossover progeny. A classmate concludes that interference here is complete. Using the independent expectation as a Poisson mean, calculate P(0), then repeat for 5,000 progeny. Is the classmate justified?
 
 <details>
 <summary>One way to do it</summary>
 
-Start with the expectation if the intervals were independent: 0.06 x 0.10 x 500 = 3 doubles.
-
-Three is a small number, and small counts scatter. Treat the number of doubles as a Poisson count with mean 3, a good approximation for a rare event in many trials. The chance of seeing none is
+Independence predicts 0.06 × 0.10 × 500 = 3 doubles. A Poisson count with mean 3 is a good approximation for a rare event in many trials:
 
 > P(0) = e^-3 = about 0.05
 
-So even with no interference at all, about one cross in twenty this size would show zero doubles. (The exact binomial, (1 - 0.006)^500, gives 0.049.) Zero is suggestive but is not strong evidence of complete interference, and it cannot distinguish complete interference from, say, an interference of 0.5, which predicts 1.5 doubles.
+The exact binomial, (1 − 0.006)^500, gives 0.049. So even without interference, about one cross in twenty this size shows zero doubles. Zero is suggestive, not strong evidence, and cannot distinguish complete interference from interference of 0.5, which predicts 1.5 doubles.
 
-To decide, score more progeny. With 5,000 progeny you expect 30 doubles under independence, and the chance of zero becomes e^-30, about 10^-13. If you still see none, interference is close to complete over these intervals. If you see about 15, interference is about 0.5.
-
-Before blaming interference, check that the double-crossover classes survive and can be scored, since a missing class can be a viability problem. And remember why interference is plausible here: in organisms whose crossovers show interference, it is strongest over short adjacent intervals like these. Over widely separated intervals the coincidence would be near 1.
+Score more progeny. With 5,000, independence predicts 30 doubles and P(0) = e^-30, about 10^-13. If none appear, interference is close to complete over these intervals; about 15 would indicate interference near 0.5. Also check that double-crossover classes survive and can be scored. Interference is plausible here, since it is strongest over short adjacent intervals like these.
 
 </details>
 
-## Maps versus sequence: where crossovers really fall
+## Genetic distance is not DNA length
 
-A centimorgan is a frequency: 1 cM means that, for a short interval, about 1 gamete in 100 is recombinant. It is not a length. Sturtevant said in 1913 that map spacing need not reflect physical spacing, and molecular maps have shown how far apart the two can be.
+The second film's two rulers disagree on spacing, as Sturtevant warned they might in 1913. In humans the genome-wide average is close to 1 cM per million base pairs, only a rough average. In humans and mice, most crossovers fall in **hotspots**, short DNA stretches with much more recombination than the DNA around them.
 
-In humans the genome-wide average is close to 1 cM per million base pairs. That is a rough average. In mice and humans most crossovers fall in **hotspots**, short stretches of DNA where recombination is far more frequent than in the DNA around them. In 2010 three groups linked hotspot position to the gene *PRDM9*. Its protein binds particular DNA sequences through a row of zinc fingers and places a methyl mark on histone H3 nearby; breaks made by the enzyme Spo11 near such sites start recombination (see [DNA repair and recombination](/lessons/dna-repair-and-recombination/)). Change the zinc fingers and the hotspots move. This holds for humans and mice. It does not hold for all animals: dogs lack a working PRDM9, and birds appear to lack the gene, and their hotspots tend to lie near promoter-like features such as transcription start sites and CpG islands, as they do in budding yeast, which has far more recombination per kilobase than humans.
+In 2010, three groups linked hotspot position to *PRDM9*, whose protein binds particular DNA sequences through zinc fingers and marks nearby sites where recombination starts (see [DNA repair and recombination](/lessons/dna-repair-and-recombination/)).
 
-<LessonFigure src="/figures/three-point-mapping/prdm9-hotspot-moves.webp" width={1200} height={783} alt="AI-generated illustration: a PRDM9 protein with a row of zinc-finger lobes sits on a short gold hotspot stretch of DNA, marks a nearby histone, and Spo11 makes a break beside it; in a second panel, different zinc fingers sit on a different stretch of DNA and the gold hotspot has moved." caption="PRDM9 binds particular DNA sequences through a row of zinc fingers and places a methyl mark on histone H3 nearby; Spo11 breaks near such sites start recombination. Change the zinc fingers and the hotspots move, as in humans and mice." />
+**Predict.** In humans or mice, if the zinc-finger array of PRDM9 changes, should the same DNA sites remain hotspots?
 
-The map also depends on who makes the gametes. The human female map is longer than the male map, by about 1.6 to 1.7 times over the genome as a whole. Males of *Drosophila melanogaster* go further: they normally have no meiotic crossing over, although males of some other species, such as *D. ananassae*, do. That is why *D. melanogaster* mapping crosses put the triple heterozygote in the female, as in the fly question at the end of this lesson. Near centromeres, crossovers are suppressed in many organisms, including Drosophila and Arabidopsis. And in *D. melanogaster* females, crossover rates varied strongly along the chromosomes and between strains.
+<details>
+<summary>Check your prediction</summary>
 
-So a genetic map and a DNA sequence agree on order and disagree on spacing. Use the map to predict how often genes travel together. Use the sequence to say how much DNA lies between them.
+Not necessarily: the bound sequences change, so hotspots move. People carrying different zinc-finger variants differed in which hotspots they used across the genome.
+
+</details>
+
+<LessonFigure src="/figures/three-point-mapping/prdm9-hotspot-moves.webp" width={1200} height={783} alt="AI-generated illustration: a PRDM9 protein with a row of zinc-finger lobes sits on a short gold hotspot stretch of DNA, marks a nearby histone, and Spo11 makes a break beside it; in a second panel, different zinc fingers sit on a different stretch of DNA and the gold hotspot has moved." caption="In humans and mice, PRDM9's zinc fingers bind particular sequences and mark histone H3 nearby, and Spo11 breaks near such sites start recombination. Change the zinc fingers and the hotspots move." />
+
+Not every animal works this way. Dogs lack working PRDM9, birds appear to lack the gene, and their hotspots tend to lie near promoter-like features such as transcription start sites and CpG islands. Budding yeast shows a similar placement and far more recombination per kilobase than humans.
+
+Maps also differ by sex and region. Across the genome, the human female map is about 1.6 to 1.7 times the male map. *Drosophila melanogaster* males normally have no meiotic crossing over, although males of some species, including *D. ananassae*, do. That is why *D. melanogaster* mapping crosses use a triple-heterozygous female, as in the final fly question. Crossovers are suppressed near centromeres in many organisms, including Drosophila and Arabidopsis; in *D. melanogaster* females, rates also varied strongly along chromosomes and between strains.
+
+Maps and sequence agree on order, not always on spacing. Use a genetic map to predict how often genes travel together; use sequence to measure how much DNA separates them.
+
+## Going deeper: when the simple comparison changes
+
+Sturtevant showed in 1913 that doubles were scarcer than chance predicted. In 1915 he named the effect interference, crediting Hermann Muller with suggesting the name.
+
+Positive interference is common, but not universal. Negative interference has been reported in some fungal and phage crosses. In Arabidopsis, one 2018 study measured interference of 0.64 for one interval pair; raising the dosage of the meiotic protein HEI10 lowered it to 0.34. In a 2016 sequencing study of Drosophila female meioses, noncrossover gene conversions, which exchange a short patch without exchanging the flanking DNA, did not show interference.
