@@ -259,7 +259,7 @@ class S03Virus(SpokenScene):
         self.play(FadeIn(your), host.viruses.animate.shift(RIGHT*.35), run_time=.75)
         self.at("uses that cell's ribosomes")
         self.play(FadeIn(host.ribs), run_time=.7)
-        rib_l = label("your cell's ribosomes", 28, INK).move_to([-4.25, -1.7, 0])
+        rib_l = label("your cell's ribosomes", 28, INK).move_to([1.2, -1.5, 0])
         self.play(FadeIn(rib_l), Indicate(host.ribs, color=INK), run_time=.7)
         self.at("no bacterial part")
         marks = VGroup(*[drug_mark([-4.8 + i*.75, .6-i*.2, 0], .8) for i in range(4)])

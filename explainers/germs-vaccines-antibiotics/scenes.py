@@ -327,7 +327,7 @@ class S03Germ(SpokenScene):
         self.play(Indicate(lens, color=TEXT, scale_factor=1.04), run_time=0.8)
 
         chosen = microbe(0.55).move_to([-2.55, 0.45, 0])
-        tag = chip("pathogen: causes disease", RED, size=30).move_to([2.1, 0.45, 0])
+        tag = chip("pathogen:\ncauses disease", RED, size=30).move_to([4.5, 0.45, 0])
         arrow = Arrow(chosen.get_right(), tag.get_left(), buff=0.15, color=RED,
                       stroke_width=5, tip_length=0.22)
         self.at("causes disease is called")

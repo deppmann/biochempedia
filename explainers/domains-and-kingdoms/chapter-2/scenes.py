@@ -168,7 +168,7 @@ class S00Hook(PathScene):
                   gold.animate.set_stroke(width=30).shift(UP * 0.7), run_time=1.0)
         self.at("cells have nuclei")
         badge = nucleus_badge([2.4, -0.95, 0], 1.3)
-        label = T("nucleus", 30, GOLD).next_to(badge, RIGHT, buff=0.3)
+        label = T("nucleus", 30, GOLD).next_to(badge, RIGHT, buff=0.3).shift(DOWN * 0.24)
         self.play(GrowFromCenter(badge), FadeIn(label), run_time=0.8)
         self.at("does not reveal")
         unknown = T("kingdom  ?", 38, TEXT, weight=BOLD).move_to([4.35, 0.25, 0])
@@ -288,7 +288,7 @@ class S06Reveal(PathScene):
         bob(world[2], amp=0.04, speed=1.1, seed=2)
         self.at("Movement is unreliable")
         movement = world[3][0]
-        weak = T("unreliable", 28, GREY).move_to(movement)
+        weak = T("unreliable", 28, GREY).move_to(movement).shift(LEFT * 1.15)
         weak.layout_ok = True
         self.play(FadeOut(movement), FadeIn(weak), run_time=0.8)
         self.at("mushroom follows")
@@ -300,15 +300,18 @@ class S06Reveal(PathScene):
         self.play(FadeIn(evidence_l), run_time=0.7)
         self.at("plant follows")
         right_track = path_line([(3.6, -0.1), (3.6, -1.85), (4.25, -1.85)], GOLD, 14)
-        plants = chip("PLANTS", GOLD, 30).move_to([5.45, -1.85, 0])
+        plants = chip("PLANTS", GOLD, 30).move_to([5.35, -2.11, 0])
         self.play(FadeOut(world[3][2]), Create(right_track), FadeIn(plants), run_time=0.8)
         self.at("cellulose")
         evidence_r = VGroup(T("cellulose  •  tissues", 28, TEXT), T("photosynthesis", 28, TEXT))
         evidence_r.arrange(DOWN, buff=0.08).move_to([2.55, -2.7, 0])
         self.play(FadeIn(evidence_r), run_time=0.8)
         self.at("familiar trait fails")
-        self.play(FadeOut(weak), world[3][1].animate.set_stroke(color=TEXT, width=7),
-                  world[3][2].animate.set_stroke(color=TEXT, width=7), run_time=0.7)
+        world[3][2].set_z_index(3)
+        self.add(world[3][1], world[3][2])
+        self.play(FadeOut(weak), world[3][1][0].animate.set_stroke(color=TEXT, width=7),
+                  world[3][2][0].animate.set_stroke(color=TEXT, width=7).set_fill(BG, opacity=1),
+                  run_time=0.7)
         self.at("Wall material and feeding")
         settle = T("wall + feeding settle the split", 34, TEXT, weight=BOLD).move_to([0, 3.15, 0])
         self.play(FadeIn(settle), run_time=0.7)
@@ -477,7 +480,7 @@ class S11Names(PathScene):
         epithet = T("sapidus", 58, TEXT, font=TITLE_FONT, slant=ITALIC)
         name = VGroup(genus, epithet).arrange(RIGHT, buff=0.45).move_to([0, -0.5, 0])
         self.at("capitalized genus")
-        self.play(Write(genus), genus.animate.shift(UP * 0.2), run_time=0.8)
+        self.play(Write(genus), genus.animate.shift(UP * 0.07), run_time=0.8)
         gl = T("capitalized genus", 28, GOLD).next_to(genus, DOWN, buff=0.65)
         self.play(FadeIn(gl), run_time=0.4)
         self.at("lowercase")

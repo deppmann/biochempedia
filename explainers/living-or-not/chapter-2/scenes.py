@@ -185,9 +185,9 @@ class S03BacteriumParts(SpokenScene):
         cytolab.layout_ok = True  # deliberately labels the filled cell interior
         self.play(FadeIn(cyto), FadeIn(cytolab), run_time=0.65)
         self.at("Ribosomes build proteins")
-        ribs = VGroup(ribosome([-0.4, 1.2, 0]), ribosome([1.5, 0.25, 0]), ribosome([3.2, 1.25, 0]))
+        ribs = VGroup(ribosome([-0.1, 1.2, 0]), ribosome([1.5, 0.25, 0]), ribosome([3.2, 1.25, 0]))
         dna = gene_block("DNA instructions", [-2.1, 0.65, 0], 0.9)
-        feed = arrow(dna.get_right(), ribs[0].get_left(), ORANGE, 5)
+        feed = arrow(dna.get_right() + RIGHT * 0.12, ribs[0].get_left(), ORANGE, 5)
         riblab = T("ribosomes build proteins", 30, TEAL).move_to([1.7, 2.25, 0])
         self.play(FadeIn(dna), run_time=0.35)
         self.play(FadeIn(ribs), GrowArrow(feed), FadeIn(riblab), run_time=0.75)
@@ -239,7 +239,7 @@ class S04MoreParts(SpokenScene):
 
 class S05VirusParts(SpokenScene):
     def construct(self):
-        b = bacterium([-4.75, 0.6, 0], 3.2, 2.0, True)
+        b = bacterium([-4.75, 0.6, 0], 3.8, 2.5, True)
         bob(b.ribs, amp=0.04, speed=2.0)
         v = virus([2.1, 0.2, 0], 2.25)
         self.add(b)
@@ -283,7 +283,7 @@ class S06SharedGenes(SpokenScene):
         shared = T("shared: genes", 36, ORANGE, weight=BOLD).move_to([0, 3.25, 0])
         self.play(FadeIn(shared), run_time=0.4)
         self.at("not proof that both are cells")
-        cell_lab = T("cell", 34, GREEN, weight=BOLD).move_to([-3.7, -2.05, 0])
+        cell_lab = T("cell", 34, GREEN, weight=BOLD).move_to([-3.7, -1.95, 0])
         non_lab = T("not a cell", 34, RED, weight=BOLD).move_to([3.7, -2.05, 0])
         self.play(FadeIn(cell_lab), FadeIn(non_lab), run_time=0.55)
         self.at("with its own ribosomes")
@@ -354,7 +354,7 @@ class S09Predict(SpokenScene):
         self.play(FadeIn(world[0]), FadeIn(world[1]), run_time=0.55)
         self.at("dark spring")
         self.play(FadeIn(world.bacterium), run_time=0.55)
-        dark = T("dark spring · no light", 34, TEXT, weight=BOLD).move_to([0, 3.25, 0])
+        dark = T("dark spring · no light", 34, TEXT, weight=BOLD).move_to([0, 3.35, 0])
         self.play(FadeIn(dark), run_time=0.4)
         self.at("uses sulfur compounds")
         self.play(FadeIn(world.sulfur), GrowArrow(world[5]), run_time=0.6)
@@ -376,7 +376,7 @@ class S10Pause(PredictPause):
 
     def backdrop(self):
         world = spring_world(True)
-        world.add(T("dark spring · no light", 34, TEXT, weight=BOLD).move_to([0, 3.25, 0]))
+        world.add(T("dark spring · no light", 34, TEXT, weight=BOLD).move_to([0, 3.35, 0]))
         bob(world.sulfur, amp=0.045, speed=1.7)
         bob(world.co2, amp=0.045, speed=1.7, seed=3)
         return world

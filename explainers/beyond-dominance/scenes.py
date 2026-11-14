@@ -129,9 +129,9 @@ def cross_world(revealed=False, phenotypes=None, title=None, lens=None):
         world.add(ttl)
         world.title = ttl
     if lens:
-        outline = RoundedRectangle(corner_radius=0.28, width=5.55, height=5.45,
+        outline = RoundedRectangle(corner_radius=0.28, width=5.55, height=4.40,
                                    stroke_color=TEAL, stroke_width=5,
-                                   fill_color=TEAL, fill_opacity=0.035).move_to([cx, 0.20, 0])
+                                   fill_color=TEAL, fill_opacity=0.035).move_to([cx, 0.10, 0])
         lab = T(lens, 30, TEAL, weight=BOLD).move_to([cx, 3.56, 0])
         outline.set_z_index(-1)
         world.add(outline, lab)
@@ -222,7 +222,9 @@ class S01Hook(SpokenScene):
                   FadeOut(q), FadeIn(world.backplate), Create(world.cells), run_time=1.4)
         self.at("send their allele copies")
         lp = VGroup(allele_tile("R", R_RED), allele_tile("W", W_PALE)).arrange(DOWN, buff=0.24).move_to(left)
+        lp.shift(RIGHT * 1.20)
         rp = VGroup(allele_tile("R", R_RED), allele_tile("W", W_PALE)).arrange(DOWN, buff=0.24).move_to(right)
+        rp.shift(LEFT * 1.20)
         self.play(FadeIn(lp, scale=0.7), FadeIn(rp, scale=0.7), run_time=0.7)
         self.play(Transform(lp, world.left_tiles.copy()), Transform(rp, world.top_tiles.copy()), run_time=2.0)
         self.at("copies will stay fixed")
@@ -340,6 +342,8 @@ class S06Reveal(SpokenScene):
         self.at("pink phenotype never")
         parent = snapdragon(PINK, 1.35).move_to([-4.55, -1.7, 0])
         inside = allele_pair("RW", parent.get_center(), 0.48)
+        inside[0].shift(LEFT * 0.35)
+        inside[1].shift(RIGHT * 0.31)
         self.play(FadeIn(parent), run_time=0.7)
         self.play(FadeIn(inside), parent.animate.set_opacity(0.28), run_time=1.1)
         self.finish()
@@ -350,9 +354,9 @@ class S07Incomplete(SpokenScene):
         base = cross_world(True)
         self.add(base)
         self.at("lens over the grid")
-        outline = RoundedRectangle(corner_radius=0.28, width=5.55, height=5.45,
+        outline = RoundedRectangle(corner_radius=0.28, width=5.55, height=4.40,
                                    stroke_color=TEAL, stroke_width=5,
-                                   fill_color=TEAL, fill_opacity=0.035).move_to([0.45, 0.20, 0])
+                                   fill_color=TEAL, fill_opacity=0.035).move_to([0.45, 0.10, 0])
         outline.set_z_index(-1)
         pulse(outline, base=5.0, amp=1.5, speed=1.7)
         label = T("incomplete dominance", 30, TEAL, weight=BOLD).move_to([0.45, 3.56, 0])

@@ -57,7 +57,7 @@ def cell_world(copy_letters="", faint=False):
     nuc_label = T("nucleus", 28, TEXT).move_to([-2.55, 2.05, 0])
     dna_label = T("DNA", 28, BLUE).next_to(dna, UP, buff=0.16)
     rib = ribosome((3.9, -0.25, 0), 1.05)
-    rib_label = T("ribosome", 28, GOLD).next_to(rib, DOWN, buff=0.2)
+    rib_label = T("ribosome", 28, GOLD).next_to(rib, DOWN, buff=0.2).shift(UP * 0.16)
     path = DashedLine(dna.get_right() + RIGHT * 0.25, rib.get_left() + LEFT * 0.25,
                       dash_length=0.16, color=TEAL, stroke_width=3)
     copy = letter_row(copy_letters, GREEN, w=0.68, size=31).move_to([-2.55, -0.65, 0]) if copy_letters else VGroup()
@@ -136,14 +136,14 @@ def translation_world(ribo_index=0, chain_count=0, show_cytoplasm=False):
     center = VGroup(*strip[3 * ribo_index:3 * ribo_index + 3]).get_center()
     rib = ribosome((center[0], -0.72, 0), 0.92)
     chain = VGroup(*[
-        VGroup(Circle(radius=0.27, stroke_color=RED, stroke_width=4, fill_color=RED, fill_opacity=0.22),
+        VGroup(Circle(radius=0.4, stroke_color=RED, stroke_width=4, fill_color=RED, fill_opacity=0.22),
                T(name, 24, RED).move_to(ORIGIN))
         for name in ("Met", "Ala", "Lys", "Phe")[:chain_count]
     ])
     if len(chain):
         for acid in chain:
             acid.layout_ok = True  # abbreviation deliberately sits inside its amino-acid circle
-        chain.arrange(RIGHT, buff=0.28).move_to([0, 2.05, 0])
+        chain.arrange(RIGHT, buff=0.2).move_to([0, 2.05, 0])
         links = VGroup(*[Line(chain[i].get_right(), chain[i + 1].get_left(), color=RED, stroke_width=5)
                          for i in range(len(chain) - 1)])
     else:
@@ -454,7 +454,7 @@ class S09StartStop(SpokenScene):
         self.at("At UGA")
         stop_box = SurroundingRectangle(VGroup(*p["strip"][12:15]), color=RED, buff=0.12,
                                         corner_radius=0.1, stroke_width=5)
-        stop = T("STOP", 32, RED).move_to([p["strip"][13].get_x(), 0.35, 0])
+        stop = T("STOP", 32, RED).move_to([p["strip"][13].get_x(), 0.18, 0])
         self.play(FadeOut(start), FadeOut(start_box), Create(stop_box), FadeIn(stop), run_time=0.9)
         self.at("reading window opens")
         open_rib = ribosome((p["rib"].get_x(), -0.72, 0), 0.92, open_gap=0.42)

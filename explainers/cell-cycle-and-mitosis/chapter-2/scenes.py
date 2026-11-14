@@ -339,7 +339,7 @@ class S08Convert(SpokenScene):
         formula = M("time in a phase = fraction × 1,440 min", 30, TEXT).move_to([0, -1.0, 0])
         self.play(FadeIn(formula, shift=UP * 0.1), run_time=1.0)
         self.at("round total time")
-        assumed = chip("24 h = 1,440 min  (assumed)", GOLD, 30).move_to([0, 2.8, 0])
+        assumed = chip("24 h = 1,440 min  (assumed)", GOLD, 30).move_to([0, 2.5, 0])
         self.play(FadeIn(assumed), run_time=1.0)
         self.at("put that value")
         blanks = VGroup(*[RoundedRectangle(corner_radius=0.1, width=1.85, height=0.72, color=c, stroke_width=3)

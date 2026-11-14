@@ -102,7 +102,7 @@ def clock_face(center=(-4.9, 2.2, 0), radius=0.8, label="1 hour"):
 def liquid_field():
     """A full, gently layered liquid field for the lone-phage continuation."""
     waves = VGroup()
-    for y in np.linspace(-2.5, 2.15, 8):
+    for y in np.linspace(-2.5, 1.7, 8):
         line = VMobject(color=LIQUID, stroke_width=4, stroke_opacity=0.6)
         xs = np.linspace(-6.1, 6.1, 40)
         line.set_points_smoothly([[x, y + 0.07 * np.sin(1.2 * x + y), 0] for x in xs])
@@ -122,7 +122,7 @@ def food_field():
 def predict_backdrop():
     n = ValueTracker(1)
     ro = count_readout(n, at=(4.25, 2.55, 0), widest=1000000)
-    card = chip("20 min per doubling  •  7 hours", GOLD, size=28).move_to([-0.9, 1.7, 0])
+    card = chip("20 min per doubling  •  7 hours", GOLD, size=28).move_to([-1.5, 1.7, 0])
     one = bacterium([-4.65, 0.0, 0], 3.25, 1.75, 1)
     return VGroup(one, card, ro)
 
@@ -158,6 +158,7 @@ class S01Hook(SpokenScene):
         self.play(FadeIn(clk), Rotate(clk.hand, TAU, about_point=clk.center_point), run_time=1.15)
         self.at("which has made")
         q = question_card("Which makes more of itself — and how?", y=-3.2, max_w=10.7)
+        q.question.shift(DOWN * 0.10)
         self.play(FadeIn(q.question, shift=UP * 0.15), run_time=0.7)
         self.at("And how")
         self.play(Indicate(VGroup(cell, vir), color=GOLD, scale_factor=1.05), run_time=0.65)
@@ -421,6 +422,7 @@ class S12Virus(SpokenScene):
         vir = phage([0, -0.25, 0], 1.9)
         count = ValueTracker(1)
         ro = count_readout(count, label="phages", at=[4.65, 2.55, 0], widest=1)
+        ro[1].shift(UP * 0.64)
         foods = VGroup(*[Dot([x, y, 0], radius=0.1, color=GREEN) for x, y in
                          [(-4.7, 1.8), (-3.7, -1.4), (3.8, 1.4), (4.5, -1.1), (-2.8, 0.1)]])
         self.play(FadeIn(water), FadeIn(food_bg), FadeIn(vir, scale=0.85), FadeIn(ro), run_time=0.65)
@@ -448,6 +450,7 @@ class S13Nothing(SpokenScene):
         vir = phage([-3.7, 0.35, 0], 1.7)
         count = ValueTracker(1)
         ro = count_readout(count, label="phages", at=[4.55, 2.55, 0], widest=1)
+        ro[1].shift(UP * 0.64)
         clk = clock_face(center=[3.8, -0.55, 0], radius=1.2, label="time passes")
         clk[0].set_fill("#0f1117", opacity=1)
         self.add(water, food_bg, vir, ro, clk, scope_tag("schematic")); bob(vir, amp=0.08, speed=0.9)
@@ -501,12 +504,12 @@ class S15Host(SpokenScene):
     def construct(self):
         host = bacterium([0.8, -0.1, 0], 9.6, 4.4, 1)
         coat = phage([-5.25, 0.45, 0], 0.85).rotate(-PI / 2).set_opacity(0.3)
-        strand = VMobject(color=ORANGE, stroke_width=6).set_points_smoothly([[-2.8, 0.6, 0], [-1.8, 0.9, 0], [-0.7, 0.55, 0]])
-        bench = RoundedRectangle(corner_radius=0.18, width=2.4, height=1.35, color=GREY,
-                                 stroke_width=5, fill_color=GREY, fill_opacity=0.25).move_to([0.5, 1.25, 0])
-        gear = T("host machinery", 28, TEXT).move_to(bench)
+        strand = VMobject(color=ORANGE, stroke_width=6).set_points_smoothly([[-2.8, 0.3, 0], [-1.8, 0.55, 0], [-0.7, 0.2, 0]])
+        bench = RoundedRectangle(corner_radius=0.18, width=2.9, height=1.0, color=GREY,
+                                 stroke_width=5, fill_color=GREY, fill_opacity=0.25).move_to([-1.35, 1.2, 0])
+        gear = T("host machinery", 24, TEXT).move_to(bench).shift(UP * 0.2)
         out = VGroup(*[RegularPolygon(6, radius=0.23, color=ORANGE, stroke_width=3,
-                                      fill_color=ORANGE, fill_opacity=0.4) for _ in range(5)]).arrange(RIGHT, buff=0.3).move_to([3.2, 1.25, 0])
+                                      fill_color=ORANGE, fill_opacity=0.4) for _ in range(5)]).arrange(RIGHT, buff=0.2).move_to([3.3, 1.2, 0])
         self.add(host, coat, strand, scope_tag("schematic"))
         pulse(host.body, base=5.0, amp=0.8, speed=1.4)
         bob(coat, amp=0.05, speed=1.0)
@@ -514,10 +517,9 @@ class S15Host(SpokenScene):
         idle = T("doing nothing", 28, GREY).move_to([-5.1, -1.75, 0])
         self.play(FadeIn(idle), run_time=0.5)
         self.at("The cell is")
-        gear.layout_ok = True  # Deliberately printed on its own machinery block.
         self.play(FadeIn(bench), FadeIn(gear), run_time=0.6)
         self.at("reads the phage genes")
-        self.play(strand.animate.move_to(bench), run_time=0.8)
+        self.play(strand.animate.move_to(bench.get_center() + DOWN * 0.25), run_time=0.8)
         self.at("as if they were its own")
         self.play(Indicate(bench, color=ORANGE, scale_factor=1.04), run_time=0.65)
         self.at("builds phage parts")

@@ -345,7 +345,7 @@ class S07Reveal(FilmScene):
         path = ArcBetweenPoints(bad[1].get_center(), [2.9, 0.45, 0], angle=-1.0)
         self.play(MoveAlongPath(bad[1], path), run_time=1.7, rate_func=linear)
         self.at("insulin product block appears")
-        product = chip("insulin product", GREEN, 30).move_to([3.6, -1.05, 0])
+        product = chip("insulin product", GREEN, 30).move_to([3.2, -1.05, 0])
         dots = DashedLine([2.2, -0.2, 0], product.get_left(), color=GREEN, stroke_width=4)
         self.play(Create(dots), FadeIn(product, shift=RIGHT * 0.2), run_time=0.8)
         vial_obj = vial([5.15, 1.55, 0], "insulin", 0.72)
