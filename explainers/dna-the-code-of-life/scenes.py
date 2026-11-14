@@ -1,340 +1,572 @@
-"""DNA: the code of life  (Biochemistrypedia grade 7 Life Science explainer)
+"""Which Part of DNA Is the Code?
 
-COLOR MAP (one color per concept, whole video)
-  BLUE   = DNA / a gene (a section of DNA)
-  GREY   = the sugar-phosphate sides of the ladder, outlines
-  YELLOW = base A      TEAL = base T      GREEN = base C      PINK = base G
-  PURPLE = protein
-  ORANGE = trait (flower colour)
-  RED    = a change in the gene / the protein stops working
-  TEXT   = living things, labels, plain words
+COLOR MAP
+  BLUE   sugar-phosphate sides / DNA
+  YELLOW A/T base blocks
+  GREEN  C/G base blocks
+  TEAL   genes
+  RED    proteins
+  GOLD   traits
+  GREY   counts, frames, and supporting marks
 """
-import numpy as np
-from bp_style import *  # noqa: F401,F403
+from bp_parts import *
+
 
 PURPLE = "#B58CD9"
-ORANGE = "#F29E4C"
-PINK = "#E58FB0"
-LET = {"A": YELLOW, "T": TEAL, "C": GREEN, "G": PINK}
-
-XS = [-3.6, -1.2, 1.2, 3.6]
-SIDEY = 1.75
-TOPY, BOTY = 1.0, -1.0
+BASE_COLOR = {"A": YELLOW, "T": YELLOW, "C": GREEN, "G": GREEN}
+PAIR = {"A": "T", "T": "A", "C": "G", "G": "C"}
+SEQ_A = "ATCGTA"
+SEQ_B = "CGATGC"
 
 
-def arr(a, b, color=GREY, w=5, tip=0.22):
-    return Arrow(a, b, buff=0.08, color=color, stroke_width=w, tip_length=tip,
-                 max_tip_length_to_length_ratio=0.45, max_stroke_width_to_length_ratio=12)
+def arrow(a, b, color=GREY, width=5, tip=0.2):
+    return Arrow(a, b, buff=0.12, color=color, stroke_width=width, tip_length=tip)
 
 
-def blk(letter, x, y, w=1.5, h=1.25, size=46):
-    c = LET[letter]
-    r = RoundedRectangle(corner_radius=0.12, width=w, height=h, stroke_color=c, stroke_width=3,
-                         fill_color=c, fill_opacity=0.3)
-    t = T(letter, size, c, weight=BOLD).move_to(r)
-    return VGroup(r, t).move_to([x, y, 0])
+def base_block(letter, center=ORIGIN, width=0.82, height=0.48, size=30):
+    color = BASE_COLOR[letter]
+    box = RoundedRectangle(corner_radius=0.09, width=width, height=height,
+                           stroke_color=color, stroke_width=3,
+                           fill_color=color, fill_opacity=0.64)
+    label = T(letter, size, color, weight=BOLD).move_to(box)
+    return VGroup(box, label).move_to(center)
 
 
-def empty_blk(x, y, w=1.5, h=1.25):
-    r = RoundedRectangle(corner_radius=0.12, width=w, height=h, stroke_color=GREY, stroke_width=3,
-                         fill_opacity=0)
-    t = T("?", 46, TEXT, weight=BOLD).move_to(r)
-    return VGroup(r, t).move_to([x, y, 0])
-
-
-def join(x):
-    return Line([x, TOPY - 0.625, 0], [x, BOTY + 0.625, 0], color=GREY, stroke_width=6)
-
-
-def sides():
-    top = RoundedRectangle(corner_radius=0.1, width=10.6, height=0.28, stroke_color=GREY, stroke_width=3,
-                           fill_color=GREY, fill_opacity=0.5).move_to([0, SIDEY, 0])
-    bot = top.copy().move_to([0, -SIDEY, 0])
-    return top, bot
-
-
-def rung(x):
-    return Line([x, SIDEY - 0.12, 0], [x, -SIDEY + 0.12, 0], color=GREY, stroke_width=7)
-
-
-def strip(letters, y, w=1.15, h=1.15, gap=0.15, size=42):
-    bs = [blk(l, 0, 0, w, h, size) for l in letters]
-    g = VGroup(*bs).arrange(RIGHT, buff=gap).move_to([0, y, 0])
+def dna_ladder(sequence=SEQ_A, center=ORIGIN, width=3.4, height=5.0,
+               block_width=1.25, block_height=0.56, label=False,
+               rail_opacity=1.0):
+    """The shared flat DNA picture; every continuing scene calls this builder."""
+    cx, cy = center[0], center[1]
+    left_x, right_x = cx - width / 2, cx + width / 2
+    rail_l = Line([left_x, cy - height / 2, 0], [left_x, cy + height / 2, 0],
+                  color=BLUE, stroke_width=10).set_opacity(rail_opacity)
+    rail_r = rail_l.copy().shift(RIGHT * width)
+    rails = VGroup(rail_l, rail_r)
+    ys = np.linspace(cy + height * 0.39, cy - height * 0.39, len(sequence))
+    pairs = VGroup()
+    for y, letter in zip(ys, sequence):
+        mate = PAIR[letter]
+        left = base_block(letter, [cx - block_width / 2, y, 0], block_width, block_height)
+        right = base_block(mate, [cx + block_width / 2, y, 0], block_width, block_height)
+        join = Line(left.get_right(), right.get_left(), color=GREY, stroke_width=3)
+        pairs.add(VGroup(join, left, right))
+    g = VGroup(rails, pairs)
+    g.rails, g.pairs = rails, pairs
+    if label:
+        lab = T("DNA", 30, BLUE, weight=BOLD).next_to(g, UP, buff=0.14)
+        g.add(lab)
+        g.label = lab
     return g
 
 
-class S00Title(TitleCard):
+def twisted_ladder(sequence=SEQ_A, center=ORIGIN, width=3.6, height=5.0, label=False):
+    """A computed sine-wave ladder, used only to show the twist named in narration."""
+    cx, cy = center[0], center[1]
+    ys = np.linspace(cy - height / 2, cy + height / 2, 100)
+    phase = (ys - cy) / height * 2 * PI
+    spread = width * (0.34 + 0.07 * np.cos(phase))
+    left_pts = [np.array([cx - s, y, 0]) for s, y in zip(spread, ys)]
+    right_pts = [np.array([cx + s, y, 0]) for s, y in zip(spread, ys)]
+    l = VMobject(color=BLUE, stroke_width=10).set_points_as_corners(left_pts)
+    r = VMobject(color=BLUE, stroke_width=10).set_points_as_corners(right_pts)
+    rails = VGroup(l, r)
+    pairs = VGroup()
+    rung_ys = np.linspace(cy + height * 0.39, cy - height * 0.39, len(sequence))
+    for y, letter in zip(rung_ys, sequence):
+        ph = (y - cy) / height * 2 * PI
+        half = width * (0.34 + 0.07 * np.cos(ph))
+        bw = half - 0.18
+        left = base_block(letter, [cx - bw / 2, y, 0], bw, 0.52, 28)
+        right = base_block(PAIR[letter], [cx + bw / 2, y, 0], bw, 0.52, 28)
+        pairs.add(VGroup(Line(left.get_right(), right.get_left(), color=GREY, stroke_width=3), left, right))
+    g = VGroup(rails, pairs)
+    g.rails, g.pairs = rails, pairs
+    if label:
+        lab = T("DNA", 30, BLUE, weight=BOLD).next_to(g, UP, buff=0.14)
+        g.add(lab)
+        g.label = lab
+    return g
+
+
+def strawberry(height=3.6):
+    body = Polygon([-1.25, 0.85, 0], [1.25, 0.85, 0], [0.95, -0.45, 0],
+                   [0, -1.6, 0], [-0.95, -0.45, 0],
+                   color=RED, fill_color=RED, fill_opacity=0.82, stroke_width=4)
+    leaves = VGroup(*[Triangle(color=GREEN, fill_color=GREEN, fill_opacity=0.85, stroke_width=0)
+                      .scale(0.38).rotate(a).shift(UP * 0.95) for a in (-0.65, 0, 0.65)])
+    seeds = VGroup(*[Dot([x, y, 0], radius=0.045, color=YELLOW)
+                     for x, y in [(-.55,.35),(0,.5),(.55,.35),(-.75,-.2),(-.25,-.15),(.3,-.2),(.72,-.15),(0,-.75)]])
+    g = VGroup(body, leaves, seeds)
+    return g.set_height(height)
+
+
+def person(height=3.6):
+    head = Circle(radius=0.42, color=TEXT, fill_color=TEXT, fill_opacity=0.25).shift(UP * 1.35)
+    torso = RoundedRectangle(corner_radius=0.25, width=1.35, height=1.65,
+                             color=TEXT, fill_color=TEXT, fill_opacity=0.18).shift(UP * 0.15)
+    limbs = VGroup(Line([-.48,.45,0],[-1.0,-.45,0]), Line([.48,.45,0],[1.0,-.45,0]),
+                   Line([-.32,-.65,0],[-.55,-1.6,0]), Line([.32,-.65,0],[.55,-1.6,0])).set_stroke(TEXT, 8)
+    return VGroup(limbs, torso, head).set_height(height)
+
+
+def cell(kind, center, color=TEXT, radius=1.25):
+    outline = Circle(radius=radius, color=color, stroke_width=5,
+                     fill_color=color, fill_opacity=0.18).move_to(center)
+    nucleus = Circle(radius=radius * 0.28, color=BLUE, stroke_width=3,
+                     fill_color=BLUE, fill_opacity=0.16).move_to(np.array(center) + [.18,.12,0])
+    label = T(kind, 28, color).next_to(outline, DOWN, buff=0.16)
+    return VGroup(outline, nucleus, label)
+
+
+def organism_icons():
+    berry = strawberry(0.8)
+    mushroom = VGroup(ArcBetweenPoints([-0.5,0,0],[0.5,0,0], angle=-PI, color=GOLD, stroke_width=8),
+                      RoundedRectangle(corner_radius=.08, width=.24, height=.55,
+                                       color=TEXT, fill_color=TEXT, fill_opacity=.25).shift(DOWN*.25))
+    bacterium = RoundedRectangle(corner_radius=.35, width=1.0, height=.52,
+                                  color=GREEN, fill_color=GREEN, fill_opacity=.15)
+    human = person(0.9)
+    return VGroup(berry, mushroom, bacterium, human).arrange(DOWN, buff=0.35)
+
+
+def pair_bracket(target):
+    return Brace(target, RIGHT, color=TEXT).set_stroke(width=4)
+
+
+def glow_fill(mob, low=.18, high=.55, speed=1.5, seed=0):
+    """A visible, gentle base-block glow for held ladder frames."""
+    mob._glow_t = seed * .45
+
+    def update(m, dt):
+        m._glow_t += dt
+        alpha = low + (high - low) * (.5 + .5 * np.sin(speed * m._glow_t))
+        m.set_fill(opacity=alpha)
+    return mob.add_updater(update)
+
+
+def two_ladders_world(with_question=False):
+    left = dna_ladder(SEQ_A, [-2.3, 0.1, 0], width=2.25, height=4.9,
+                      block_width=.78, block_height=.50)
+    right = dna_ladder(SEQ_B, [2.3, 0.1, 0], width=2.25, height=4.9,
+                       block_width=.78, block_height=.50)
+    reader = Triangle(color=TEXT, fill_color=TEXT, fill_opacity=1, stroke_width=0).scale(.16).rotate(-PI/2)
+    reader.next_to(left.pairs[0], LEFT, buff=.15)
+    g = VGroup(left, right, reader)
+    g.left_ladder, g.right_ladder, g.reader = left, right, reader
+    if with_question:
+        q = fit_text("Which carries different instructions: shared sides or changing base order?",
+                     max_w=12.2, size=30, color=GOLD, max_lines=2).move_to([0, 3.35, 0])
+        g.add(q)
+        g.question = q
+    return g
+
+
+def sequence_strip(sequence=SEQ_A, center=(0, 0, 0), width=.86):
+    blocks = VGroup(*[base_block(x, width=width, height=.58, size=30) for x in sequence])
+    blocks.arrange(RIGHT, buff=.10).move_to(center)
+    return blocks
+
+
+def gene_strip(center=(-4.25, 0.4, 0), sequence=SEQ_A, scale=.82):
+    blocks = sequence_strip(sequence, center, .72).scale(scale)
+    brace = Brace(blocks, UP, color=TEAL)
+    label = T("gene", 28, TEAL, weight=BOLD).next_to(brace, UP, buff=.08)
+    return VGroup(blocks, brace, label)
+
+
+def protein_block(text="protein", center=ORIGIN):
+    p = chip(text, RED, size=30, fill_opacity=.42).move_to(center)
+    return p
+
+
+def flower(center=(4.6, 0, 0), petal_color=PURPLE, scale=1.0):
+    petals = VGroup(*[Ellipse(width=.72, height=1.2, color=petal_color,
+                              fill_color=petal_color, fill_opacity=.72, stroke_width=3)
+                      .rotate(k * TAU / 5).shift(UP * .62).rotate(k * TAU / 5, about_point=ORIGIN)
+                      for k in range(5)])
+    core = Circle(radius=.28, color=GOLD, fill_color=GOLD, fill_opacity=.9)
+    stem = Line([0,-.2,0],[0,-1.45,0], color=GREEN, stroke_width=7)
+    leaf = Ellipse(width=.65, height=.3, color=GREEN, fill_color=GREEN, fill_opacity=.6).rotate(.45).shift([.35,-.85,0])
+    return VGroup(stem, leaf, petals, core).scale(scale).move_to(center)
+
+
+def pea_path(mutated=False, y=0.15):
+    seq = "ATCGTA" if not mutated else "ATGGTA"
+    gene = gene_strip([-4.4, y, 0], seq, .75)
+    protein = protein_block("working protein" if not mutated else "protein stops", [0, y, 0])
+    bloom = flower([4.45, y, 0], PURPLE if not mutated else TEXT, .8)
+    a1 = arrow(gene.get_right(), protein.get_left(), GREY)
+    a2 = arrow(protein.get_right(), bloom.get_left(), GREY if not mutated else RED)
+    g = VGroup(gene, a1, protein, a2, bloom)
+    g.gene, g.protein, g.bloom, g.a1, g.a2 = gene, protein, bloom, a1, a2
+    return g
+
+
+class S00Hook(SpokenScene):
+    def construct(self):
+        berry, student = strawberry(3.6).move_to([-3.8, 0, 0]), person(3.6).move_to([3.8, 0, 0])
+        bob(berry, amp=.035, speed=1.4)
+        bob(student, amp=.025, speed=1.2, seed=2)
+        self.play(FadeIn(berry, shift=RIGHT*.2), FadeIn(student, shift=LEFT*.2), run_time=.9)
+        self.at("use the same kind")
+        dna_tags = VGroup(chip("DNA", BLUE, 30), chip("DNA", BLUE, 30))
+        dna_tags[0].next_to(berry, DOWN, buff=.25); dna_tags[1].next_to(student, DOWN, buff=.25)
+        self.play(FadeIn(dna_tags), run_time=.7)
+        self.at("What inside")
+        question = T("What carries the difference?", 38, GOLD, font=TITLE_FONT).move_to([0, 3.15, 0])
+        self.play(FadeIn(question, shift=DOWN*.1), run_time=.7)
+        self.at("Both lead into cells")
+        cells = VGroup(cell("strawberry cell", [-3.5, 0, 0], RED, 1.25),
+                       cell("person cell", [3.5, 0, 0], TEXT, 1.25))
+        self.play(FadeOut(dna_tags), ReplacementTransform(berry, cells[0]),
+                  ReplacementTransform(student, cells[1]), run_time=1.2)
+        self.at("toward the same twisting ladder")
+        dna = twisted_ladder(SEQ_A, [0, -.15, 0], width=2.8, height=4.7)
+        dna_lab = T("DNA (schematic)", 28, BLUE).next_to(dna, DOWN, buff=.12)
+        small_cells = VGroup(cell("strawberry cell", [-4.4,0,0], RED, .72),
+                             cell("person cell", [4.4,0,0], TEXT, .72))
+        self.play(ReplacementTransform(cells, small_cells), FadeIn(dna, scale=.8), FadeIn(dna_lab), run_time=1.1)
+        self.at("where differences sit")
+        glow = SurroundingRectangle(dna.pairs, color=GOLD, buff=.12, stroke_width=4)
+        self.play(Create(glow), run_time=.7)
+        pulse(glow, base=4, amp=1.2, speed=2)
+        self.finish()
+
+
+class S01Title(TitleCard):
     LESSON = "DNA: The Code of Life"
-    TITLE = "A Four-Letter Code Builds Proteins"
+    TITLE = "Which Part of DNA Is the Code?"
 
-
-# ---------------------------------------------------------------------------------------------
-class S01Question(SpokenScene):
     def construct(self):
-        names = ["strawberry", "mushroom", "bacterium", "person"]
-        things = VGroup(*[chip(n, TEXT, size=30) for n in names]).arrange(RIGHT, buff=0.45).move_to([0, 2.5, 0])
-        for i, nm in enumerate(["Strawberries", "mushrooms", "bacteria", "people"]):
-            self.at(nm)
-            self.play(FadeIn(things[i], scale=0.9), run_time=0.4)
-        tags = VGroup(*[chip("DNA", BLUE, size=28) for _ in names])
-        for t, th in zip(tags, things):
-            t.next_to(th, DOWN, buff=0.5)
-        links = VGroup(*[Line(th.get_bottom(), t.get_top(), color=BLUE, stroke_width=3) for th, t in zip(things, tags)])
-        self.at("all have")
-        self.play(LaggedStart(*[AnimationGroup(Create(l), FadeIn(t)) for l, t in zip(links, tags)], lag_ratio=0.2),
-                  run_time=1.2)
-        q1 = T("One kind of molecule.", 38, font=TITLE_FONT)
-        q2 = T("Such different living things.", 38, font=TITLE_FONT)
-        qa = VGroup(q1, q2).arrange(DOWN, buff=0.2).move_to([0, -0.5, 0])
-        self.at("How can one kind")
-        self.play(FadeIn(q1, shift=UP * 0.1), run_time=0.5)
-        self.play(FadeIn(q2, shift=UP * 0.1), run_time=0.5)
-        e1 = T("How can a tiny code inside my cells", 36, YELLOW)
-        e2 = T("decide what I look like?", 36, YELLOW)
-        eq = VGroup(e1, e2).arrange(DOWN, buff=0.2).move_to([0, -2.6, 0])
-        self.at("tiny code")
-        self.play(FadeIn(eq, shift=UP * 0.1), run_time=0.7)
+        dna = twisted_ladder(SEQ_A, [0, -.25, 0], width=2.8, height=4.8)
+        dna.set_opacity(.32)
+        title = fit_text(self.TITLE, max_w=9.5, size=48, color=TEXT,
+                         font=TITLE_FONT, max_lines=2).move_to([0, 2.9, 0])
+        self.add(dna)
+        self.play(FadeIn(title, shift=DOWN*.12), Rotate(dna, .12), run_time=.7)
+        mark = T("?", 64, GOLD, weight=BOLD).next_to(dna, RIGHT, buff=.5)
+        self.play(ReplacementTransform(title, mark), Rotate(dna, -.18), run_time=.8)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S02Ladder(SpokenScene):
+class S02SharedParts(SpokenScene):
     def construct(self):
-        dna = chip("DNA", BLUE, size=64).move_to([-3.8, 0, 0])
-        prot = chip("proteins", PURPLE, size=64).move_to([3.8, 0, 0])
-        a = arr(dna.get_right(), prot.get_left(), GREY, w=7)
-        lab = T("instructions", 30, TEXT).next_to(a, UP, buff=0.2)
-        self.at("is a molecule")
-        self.play(FadeIn(dna, scale=0.9), run_time=0.5)
-        self.at("carries the instructions")
-        self.play(GrowArrow(a), FadeIn(lab), run_time=0.6)
-        self.play(FadeIn(prot, shift=LEFT * 0.2), run_time=0.5)
-        top, bot = sides()
-        rungs = VGroup(*[rung(x) for x in XS])
-        self.at("twisted ladder")
-        self.play(FadeOut(VGroup(dna, prot, a, lab)), run_time=0.4)
-        self.play(GrowFromCenter(top), GrowFromCenter(bot), run_time=0.7)
-        self.play(LaggedStart(*[Create(r) for r in rungs], lag_ratio=0.2), run_time=0.9)
-        hel = chip("double helix", BLUE, size=36)
-        note = T("a ladder twisted around itself (drawn flat)", 24, GREY)
-        hg = VGroup(hel, note).arrange(RIGHT, buff=0.4).move_to([0, 3.15, 0])
-        self.at("double helix")
-        self.play(FadeIn(hg, shift=DOWN * 0.1), run_time=0.6)
-        l1 = T("sugar and phosphate", 28, TEXT).move_to([0, 2.3, 0])
-        l2 = T("sugar and phosphate", 28, TEXT).move_to([0, -2.3, 0])
-        self.at("sugar and phosphate")
-        self.play(FadeIn(l1), FadeIn(l2), top.animate.set_fill(GREY, 0.8), bot.animate.set_fill(GREY, 0.8),
-                  run_time=0.6)
-        same = T("The same in every living thing", 34, YELLOW, weight=BOLD).move_to([0, -3.1, 0])
-        self.at("the same in every")
-        self.play(FadeIn(same, shift=UP * 0.1), run_time=0.6)
+        twist = twisted_ladder(SEQ_A, [0, -.05, 0], width=3.9, height=5.4)
+        flat = dna_ladder(SEQ_A, [0, -.05, 0], width=3.9, height=5.4,
+                          block_width=1.42, block_height=.62)
+        self.add(twist, scope_tag("schematic"))
+        self.at("like a ladder")
+        self.play(ReplacementTransform(twist, flat), run_time=1.1)
+        self.at("Sugar and phosphate")
+        rails_label = T("sugar + phosphate", 30, BLUE, weight=BOLD).next_to(flat, LEFT, buff=.5)
+        self.play(FadeIn(rails_label), *[Indicate(r, color=BLUE, scale_factor=1.03) for r in flat.rails], run_time=1.0)
+        self.at("same kinds in every")
+        icons = organism_icons().move_to([4.7, 0, 0])
+        self.play(FadeIn(icons[0]), run_time=.35)
+        self.play(FadeIn(icons[1]), run_time=.35)
+        self.play(FadeIn(icons[2]), run_time=.35)
+        self.play(FadeIn(icons[3]), run_time=.35)
+        shared = T("shared sides", 32, BLUE).move_to([4.7, -2.65, 0])
+        self.play(FadeIn(shared), run_time=.5)
+        self.at("not the frame")
+        rail_glow = VGroup(*[r.copy().set_stroke(BLUE, 16, opacity=.45) for r in flat.rails])
+        self.add(rail_glow)
+        self.play(rail_glow.animate.set_opacity(.08), run_time=1.0)
+        self.play(ReplacementTransform(flat, twisted_ladder(SEQ_A, [0, -.05, 0], width=3.9, height=5.4)), run_time=.9)
+        bob(icons, amp=.05, speed=1.25)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
 class S03Pairs(SpokenScene):
     def construct(self):
-        top, bot = sides()
-        rungs = [rung(x) for x in XS]
-        self.add(top, bot, *rungs)
-        cap = T("The code is in the rungs", 36, TEXT).move_to([0, 3.0, 0])
-        TL, BL = "ACGT", "TGCA"
-        tb = [blk(TL[i], XS[i], TOPY) for i in range(4)]
-        bb = [blk(BL[i], XS[i], BOTY) for i in range(4)]
-        jn = [join(x) for x in XS]
-        eb = [empty_blk(XS[i], BOTY) for i in range(4)]
-        self.at("The code sits")
-        self.play(FadeIn(cap, shift=DOWN * 0.1), *[r.animate.set_color(TEXT) for r in rungs], run_time=0.5)
-        self.play(*[r.animate.set_color(GREY) for r in rungs], run_time=0.3)
-
-        def make_pair(i):
-            return [FadeOut(rungs[i]), FadeIn(tb[i], scale=0.9), FadeIn(bb[i], scale=0.9), FadeIn(jn[i])]
-
-        self.at("Each rung is")
-        self.play(*make_pair(0), run_time=0.7)
-        lb = T("base", 28, TEXT).move_to([XS[0], 2.45, 0])
-        lp = T("base pair", 28, TEXT).move_to([XS[0], -2.4, 0])
-        self.at("two bases joined")
-        self.play(FadeIn(lb), FadeIn(lp), run_time=0.5)
-        # legend
-        cl = T("the four bases:", 26, TEXT)
-        chips = [chip(l, LET[l], size=30) for l in "ATCG"]
-        leg = VGroup(cl, *chips).arrange(RIGHT, buff=0.35).move_to([0, -3.15, 0])
-        self.at("four bases have")
-        self.play(FadeIn(leg, shift=UP * 0.1), run_time=0.7)
-        self.at("always pairs with", nth=0)
-        self.play(Indicate(VGroup(tb[0], bb[0]), color=YELLOW, scale_factor=1.08), run_time=0.8)
-        self.at("always pairs with", nth=1)
-        self.play(*make_pair(1), run_time=0.5)
-        self.play(Indicate(VGroup(tb[1], bb[1]), color=GREEN, scale_factor=1.08), run_time=0.7)
-        self.at("So if one side")
-        # clear the old answer: bottom side goes blank, the other two rungs get tops only
-        self.play(FadeOut(lb), FadeOut(lp), FadeOut(cap),
-                  ReplacementTransform(bb[0], eb[0]), ReplacementTransform(bb[1], eb[1]),
-                  FadeOut(rungs[2]), FadeOut(rungs[3]),
-                  FadeIn(tb[2], scale=0.9), FadeIn(tb[3], scale=0.9), FadeIn(eb[2]), FadeIn(eb[3]),
-                  FadeIn(jn[2]), FadeIn(jn[3]), run_time=0.8)
-        cap2 = T("one side reads A C G T", 34, TEXT).move_to([0, 3.0, 0])
-        self.play(FadeIn(cap2), run_time=0.4)
-        self.at("the other side")
-        bb2 = [blk(BL[i], XS[i], BOTY) for i in range(4)]
-        cap3 = T("the other side reads T G C A", 34, TEXT).move_to([0, 3.0, 0])
-        self.play(ReplacementTransform(cap2, cap3), run_time=0.3)
-        for i in range(4):
-            self.play(ReplacementTransform(eb[i], bb2[i]), run_time=0.35)
+        ladder = dna_ladder(SEQ_A, [0, -.1, 0], width=5.1, height=5.4,
+                            block_width=1.92, block_height=.64)
+        self.add(ladder, scope_tag("schematic"))
+        self.at("rungs carry base pairs")
+        self.play(LaggedStart(*[Indicate(p, scale_factor=1.03) for p in ladder.pairs], lag_ratio=.12), run_time=1.1)
+        self.at("letter name")
+        letters = VGroup(*[chip(x, BASE_COLOR[x], 34) for x in "ATCG"]).arrange(DOWN, buff=.28).move_to([4.7,.2,0])
+        self.play(LaggedStart(*[FadeIn(x, shift=LEFT*.1) for x in letters], lag_ratio=.15), run_time=1.1)
+        self.at("A pairs with T")
+        at = ladder.pairs[0]
+        self.play(Indicate(at, color=YELLOW, scale_factor=1.08), run_time=.8)
+        at_lab = T("A — T", 34, YELLOW, weight=BOLD).move_to([-4.6, 1.5, 0])
+        self.play(FadeIn(at_lab), run_time=.45)
+        self.at("C pairs with G")
+        cg = ladder.pairs[2]
+        self.play(Indicate(cg, color=GREEN, scale_factor=1.08), run_time=.8)
+        cg_lab = T("C — G", 34, GREEN, weight=BOLD).move_to([-4.6, .5, 0])
+        self.play(FadeIn(cg_lab), run_time=.45)
+        self.at("either side tell us")
+        bracket = pair_bracket(ladder.pairs[3])
+        lab = T("base pair", 30, TEXT).next_to(bracket, RIGHT, buff=.28)
+        self.play(FadeOut(letters), GrowFromCenter(bracket), FadeIn(lab), run_time=.7)
+        lifted = VGroup(*[p[1] for p in ladder.pairs])
+        self.play(lifted.animate.shift(UP*.18), run_time=.55)
+        self.play(lifted.animate.shift(DOWN*.18), run_time=.55)
+        self.at("across each rung")
+        self.play(LaggedStart(*[Indicate(p[2], scale_factor=1.04) for p in ladder.pairs], lag_ratio=.12), run_time=1.0)
+        for i, p in enumerate(ladder.pairs):
+            glow_fill(p[1][0], seed=i)
+            glow_fill(p[2][0], seed=i + 1)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S04Sequence(SpokenScene):
+class S04Predict(SpokenScene):
     def construct(self):
-        s1 = strip("ATTGCAC", 1.2)
-        self.at("The order of")
-        self.play(LaggedStart(*[FadeIn(b, shift=DOWN * 0.15) for b in s1], lag_ratio=0.12), run_time=1.0)
-        oa = arr([-4.5, 2.35, 0], [4.5, 2.35, 0], TEXT, w=4)
-        ol = T("order along the DNA", 26, TEXT).next_to(oa, UP, buff=0.1)
-        self.play(GrowArrow(oa), FadeIn(ol), run_time=0.5)
-        sq = chip("sequence", BLUE, size=36).move_to([-3.2, -0.45, 0])
-        self.at("called the sequence")
-        self.play(FadeIn(sq, shift=UP * 0.1), run_time=0.5)
-        code = chip("the code", YELLOW, size=36).move_to([2.6, -0.45, 0])
-        eq = T("=", 40, TEXT).move_to([-0.3, -0.45, 0])
-        self.at("is the code")
-        self.play(FadeIn(eq), FadeIn(code, shift=UP * 0.1), run_time=0.5)
-        s2 = strip("CCAGTTA", -1.6)
-        t2 = T("same letters, new order: different instructions", 30, TEXT).move_to([0, -2.85, 0])
-        self.at("A different order")
-        self.play(FadeOut(VGroup(sq, eq, code)), run_time=0.3)
-        self.play(LaggedStart(*[FadeIn(b, shift=UP * 0.15) for b in s2], lag_ratio=0.12), run_time=0.9)
-        self.play(FadeIn(t2), run_time=0.4)
-        # words
-        self.at("Think of letters")
-        self.play(FadeOut(VGroup(s1, s2, oa, ol, t2)), run_time=0.5)
-        ws = [T(c, 110, TEXT, font=TITLE_FONT, weight=BOLD) for c in "EAT"]
-        wg = VGroup(*ws).arrange(RIGHT, buff=0.35).move_to([0, 0.7, 0])
-        self.play(FadeIn(wg, scale=0.9), run_time=0.5)
-        wcap = T("same letters, new order, new word", 34, TEXT).move_to([0, -1.5, 0])
-        self.at("The same letters")
-        pos = [w.get_center().copy() for w in ws]
-        self.play(ws[0].animate.move_to(pos[2]), ws[1].animate.move_to(pos[0]), ws[2].animate.move_to(pos[1]),
-                  FadeIn(wcap), run_time=1.0)
-        self.at("But a cell")
-        self.play(FadeOut(VGroup(wg, wcap)), run_time=0.4)
-        s3 = strip("ATTGCAC", 0.9)
-        note = T("A cell does not understand words.", 34, TEXT).move_to([0, 2.7, 0])
-        self.play(FadeIn(s3), FadeIn(note), run_time=0.6)
-        mol = chip("molecules", TEXT, size=30)
-        ptr = Triangle(color=TEXT, fill_opacity=1, stroke_width=0).scale(0.2)
-        mol.move_to([s3[0].get_center()[0], -1.0, 0])
-        ptr.next_to(s3[0], DOWN, buff=0.12)
-        self.at("Its molecules")
-        self.play(FadeIn(mol), FadeIn(ptr), run_time=0.4)
-        self.at("simply follow")
-        note2 = T("They follow the bases in order.", 34, YELLOW).move_to([0, -2.4, 0])
-        self.play(FadeIn(note2), run_time=0.4)
-        for b in s3:
-            x = b.get_center()[0]
-            self.play(mol.animate.move_to([x, -1.0, 0]), ptr.animate.move_to([x, -0.05, 0]),
-                      Indicate(b, color=TEXT, scale_factor=1.12), run_time=0.4)
+        world = two_ladders_world(False)
+        self.play(FadeIn(world.left_ladder.rails), FadeIn(world.right_ladder.rails), run_time=.7)
+        self.at("rung letters appear")
+        self.play(LaggedStart(*[FadeIn(p) for p in world.left_ladder.pairs], lag_ratio=.08),
+                  LaggedStart(*[FadeIn(p) for p in world.right_ladder.pairs], lag_ratio=.08), run_time=1.2)
+        self.at("Which part can carry")
+        q = fit_text("Which carries different instructions: shared sides or changing base order?",
+                     max_w=12.2, size=30, color=GOLD, max_lines=2).move_to([0, 3.35, 0])
+        self.play(FadeIn(q, shift=DOWN*.1), run_time=.6)
+        self.play(Indicate(VGroup(world.left_ladder.rails, world.right_ladder.rails), color=BLUE, scale_factor=1.02), run_time=.8)
+        self.play(LaggedStart(*[Indicate(p, scale_factor=1.04) for p in VGroup(*world.left_ladder.pairs, *world.right_ladder.pairs)], lag_ratio=.05), run_time=1.0)
+        self.at("Hold your answer")
+        self.play(FadeIn(world.reader, shift=RIGHT*.15), run_time=.5)
+        bob(world.reader, amp=.06, speed=1.6)
+        for i, p in enumerate(VGroup(*world.left_ladder.pairs, *world.right_ladder.pairs)):
+            glow_fill(p[1][0], seed=i)
+            glow_fill(p[2][0], seed=i + 1)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S05Chain(SpokenScene):
+class S05Pause(PredictPause):
+    QUESTION = "Which carries different instructions: shared sides or changing base order?"
+    SECONDS = 4.5
+    CARD = {"y": 3.35, "size": 30, "max_w": 12.2}
+    RING_AT = (6.0, -3.0, 0)
+
+    def backdrop(self):
+        world = two_ladders_world(False)
+        bob(world.reader, amp=.06, speed=1.6)
+        for i, p in enumerate(VGroup(*world.left_ladder.pairs, *world.right_ladder.pairs)):
+            glow_fill(p[1][0], seed=i)
+            glow_fill(p[2][0], seed=i + 1)
+        return world
+
+
+class S06Sequence(SpokenScene):
     def construct(self):
-        line = Line([-6, 2.2, 0], [6, 2.2, 0], color=BLUE, stroke_width=5)
-        top = T("DNA: very long and thin", 32, TEXT).move_to([0, 3.1, 0])
-        self.at("very long and thin", lead=1.0)
-        self.play(Create(line), FadeIn(top), run_time=0.9)
-        bar = RoundedRectangle(corner_radius=0.3, width=7.0, height=0.8, stroke_color=BLUE, stroke_width=4,
-                               fill_color=BLUE, fill_opacity=0.2).move_to([0, 2.2, 0])
-        top2 = T("chromosome: DNA wound up tightly with proteins", 32, TEXT).move_to([0, 3.1, 0])
-        self.at("A chromosome is")
-        self.play(FadeOut(line), FadeOut(top), run_time=0.35)
-        self.play(FadeIn(bar), run_time=0.55)
-        self.at("wound up tightly")
-        self.play(FadeIn(top2), run_time=0.5)
-        gene_hl = RoundedRectangle(corner_radius=0.15, width=1.5, height=0.8, stroke_color=BLUE, stroke_width=4,
-                                   fill_color=BLUE, fill_opacity=0.9).move_to([-0.6, 2.2, 0])
-        gl = T("gene", 30, BLUE, weight=BOLD).move_to([-0.6, 1.4, 0])
-        self.at("A gene is")
-        self.play(FadeIn(gene_hl), FadeIn(gl, shift=UP * 0.1), run_time=0.6)
-
-        def desc(lines, x):
-            return VGroup(*[T(s, 24, TEXT) for s in lines]).arrange(DOWN, buff=0.08).move_to([x, -1.7, 0])
-
-        cg = chip("gene", BLUE, size=38).move_to([-4.2, -0.1, 0])
-        cp = chip("protein", PURPLE, size=38).move_to([0, -0.1, 0])
-        ct = chip("trait", ORANGE, size=38).move_to([4.2, -0.1, 0])
-        dg = desc(["many carry the", "code for a particular", "protein"], -4.2)
-        dp = desc(["builds cells and", "does most of the", "work in cells"], 0)
-        dt = desc(["a feature of a", "living thing, like", "flower colour"], 4.2)
-        a1 = arr(cg.get_right(), cp.get_left(), GREY, w=6)
-        a2 = arr(cp.get_right(), ct.get_left(), GREY, w=6)
-        self.at("genes carry")
-        self.play(TransformFromCopy(gene_hl, cg), run_time=0.6)
-        self.play(FadeIn(dg), run_time=0.4)
-        self.at("A protein builds")
-        self.play(GrowArrow(a1), FadeIn(cp, shift=LEFT * 0.2), run_time=0.5)
-        self.play(FadeIn(dp), run_time=0.4)
-        self.at("Proteins affect traits")
-        self.play(GrowArrow(a2), FadeIn(ct, shift=LEFT * 0.2), run_time=0.5)
-        self.at("A trait is")
-        self.play(FadeIn(dt), run_time=0.5)
+        world = two_ladders_world(False)
+        world.left_ladder.rails.set_opacity(.25); world.right_ladder.rails.set_opacity(.25)
+        self.add(world.left_ladder, world.right_ladder)
+        for i, p in enumerate(VGroup(*world.left_ladder.pairs, *world.right_ladder.pairs)):
+            glow_fill(p[1][0], seed=i)
+            glow_fill(p[2][0], seed=i + 1)
+        self.at("changing order carries")
+        self.play(LaggedStart(*[Indicate(p, scale_factor=1.05) for p in VGroup(*world.left_ladder.pairs, *world.right_ladder.pairs)], lag_ratio=.05), run_time=1.2)
+        self.at("Sequence means")
+        strip = sequence_strip(SEQ_A, [0, -2.75, 0], .78)
+        strip_label = T("sequence = base order", 30, TEAL).move_to([0, 3.32, 0])
+        reader = world.reader
+        self.add(reader)
+        copies = VGroup()
+        for i, pair in enumerate(world.left_ladder.pairs):
+            target = strip[i]
+            self.play(reader.animate.next_to(pair, LEFT, buff=.14), TransformFromCopy(pair[1], target), run_time=.35)
+            copies.add(target)
+        self.play(FadeIn(strip_label), run_time=.45)
+        self.at("Traits are features")
+        trait = chip("trait = feature", GOLD, 32).move_to([4.65, -2.8, 0])
+        self.play(FadeIn(trait, shift=LEFT*.15), run_time=.6)
+        self.at("rule connecting both films")
+        self.play(FadeOut(VGroup(world, reader, copies, strip_label, trait)), run_time=.6)
+        rule = VGroup(T("DNA sequence helps shape traits.", 40, TEAL, weight=BOLD),
+                      T("DNA amount does not rank organism complexity.", 34, TEXT))
+        rule.arrange(DOWN, buff=.42).move_to([0,.2,0])
+        self.play(FadeIn(rule[0], shift=UP*.1), run_time=.8)
+        self.at("does not rank")
+        self.play(FadeIn(rule[1], shift=UP*.1), run_time=.8)
+        self.at("sequence half")
+        self.play(rule[1].animate.set_opacity(.25), Indicate(rule[0], color=TEAL, scale_factor=1.03), run_time=1.0)
+        underline = Line(rule[0].get_corner(DL)+DOWN*.12, rule[0].get_corner(DR)+DOWN*.12, color=TEAL, stroke_width=5)
+        self.play(Create(underline), run_time=.6)
+        pulse(underline, base=5, amp=2.0, speed=1.4)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S06Answer(SpokenScene):
+class S07Gene(SpokenScene):
     def construct(self):
-        pea = T("pea plants", 34, TEXT, weight=BOLD).move_to([0, 2.2, 0])
-        cg = chip("gene", BLUE, size=34)
-        cp = chip("working protein", PURPLE, size=34)
-        ct = chip("purple flowers", ORANGE, size=34)
-        row = VGroup(cg, cp, ct).arrange(RIGHT, buff=1.5).move_to([0, 0.6, 0])
-        a1 = arr(cg.get_right(), cp.get_left(), GREY, w=6)
-        a2 = arr(cp.get_right(), ct.get_left(), GREY, w=6)
-        self.at("In pea plants")
-        self.play(FadeIn(pea), run_time=0.4)
-        self.at("purple flowers")
-        self.play(FadeIn(ct, shift=LEFT * 0.2), run_time=0.5)
+        strip = sequence_strip(SEQ_A, [0, 1.65, 0], .78)
+        self.add(strip)
+        self.at("within a gene")
+        gene_brace = Brace(strip, UP, color=TEAL)
+        gene_label = T("gene = section of DNA", 30, TEAL).next_to(gene_brace, UP, buff=.1)
+        self.play(GrowFromCenter(gene_brace), FadeIn(gene_label), run_time=.7)
+        self.at("chromosome is packaged")
+        ribbon = RoundedRectangle(corner_radius=.35, width=10.5, height=1.05, color=BLUE,
+                                  fill_color=BLUE, fill_opacity=.16, stroke_width=7).move_to([0,.9,0])
+        chromosome = VGroup(Line([-2.2,-1.5,0],[2.2,1.5,0], color=BLUE, stroke_width=28),
+                            Line([-2.2,1.5,0],[2.2,-1.5,0], color=BLUE, stroke_width=28)).move_to([0,-.65,0])
+        self.play(ReplacementTransform(VGroup(strip, gene_brace, gene_label), ribbon), run_time=.9)
+        self.play(ReplacementTransform(ribbon, chromosome), run_time=.9)
+        self.add(scope_tag("schematic"))
+        self.at("carries many genes")
+        genes = VGroup(*[Line([-1.2,0,0],[1.2,0,0], color=TEAL, stroke_width=12).scale(.35).rotate(a).move_to(p)
+                         for p, a in [((-1.35,.65,0),-.6),((1.25,.65,0),.6),((-1.25,-.7,0),.6),((1.3,-.75,0),-.6)]])
+        self.play(LaggedStart(*[Create(g) for g in genes], lag_ratio=.18), run_time=1.1)
+        self.at("build proteins")
+        protein = protein_block("protein", [4.7,-1.6,0])
+        pa = arrow([2.2,-.6,0], protein.get_left(), RED)
+        self.play(GrowArrow(pa), FadeIn(protein), run_time=.7)
+        self.at("Other genes")
+        other = chip("other cell use", GREY, 28).move_to([-4.7,-1.6,0])
+        oa = arrow([-2.2,-.6,0], other.get_right(), GREY)
+        self.play(GrowArrow(oa), FadeIn(other), run_time=.7)
+        pulse(chromosome[0], base=28, amp=3, speed=1.2)
+        pulse(chromosome[1], base=28, amp=3, speed=1.2)
+        self.finish()
+
+
+class S08Pea(SpokenScene):
+    def construct(self):
+        tag = T("one pea example", 30, TEXT).move_to([0, 3.25, 0])
+        self.play(FadeIn(tag), run_time=.5)
+        path = pea_path(False, .3)
         self.at("working protein")
-        self.play(GrowArrow(a2), FadeIn(cp, shift=LEFT * 0.2), run_time=0.5)
-        self.at("one gene")
-        self.play(GrowArrow(a1), FadeIn(cg, shift=LEFT * 0.2), run_time=0.5)
-        tag = chip("a change can stop the protein", RED, size=28).next_to(cg, DOWN, buff=0.5)
-        tag.shift(RIGHT * max(0.0, -6.2 - tag.get_left()[0]))
-        tl = Line([cg.get_center()[0], cg.get_bottom()[1], 0], [cg.get_center()[0], tag.get_top()[1], 0], color=RED, stroke_width=4)
-        self.at("A change")
-        self.play(FadeIn(tag), Create(tl), run_time=0.5)
-        cp2 = chip("no working protein", RED, size=34).move_to(cp)
-        a1b = arr(cg.get_right(), cp2.get_left(), GREY, w=6)
-        a2b = arr(cp2.get_right(), ct.get_left(), GREY, w=6)
-        ct2 = chip("white flowers", TEXT, size=34).move_to(ct)
-        self.at("stop the protein")
-        self.play(ReplacementTransform(ct, ct2), ReplacementTransform(cp, cp2), FadeOut(a1), FadeOut(a2), FadeIn(a1b), FadeIn(a2b), run_time=0.6)
-        q = T("Why are they so different?", 44, TEXT, font=TITLE_FONT).move_to([0, 0, 0])
-        self.at("So how do")
-        self.play(FadeOut(VGroup(pea, a1b, a2b, cg, cp2, ct2, tag, tl)), run_time=0.4)
-        self.play(FadeIn(q), run_time=0.4)
-        ys = [2.6, 0.9, -0.8, -2.5]
-        c1 = chip("same sugar, phosphate, four bases", GREY, size=30).move_to([0, ys[0], 0])
-        c2 = chip("different order of the bases", BLUE, size=30).move_to([0, ys[1], 0])
-        c3 = chip("different proteins", PURPLE, size=30).move_to([0, ys[2], 0])
-        c4 = chip("such different living things", TEXT, size=30).move_to([0, ys[3], 0])
-        b1 = arr(c1.get_bottom(), c2.get_top(), GREY, w=5)
-        b2 = arr(c2.get_bottom(), c3.get_top(), GREY, w=5)
-        b3 = arr(c3.get_bottom(), c4.get_top(), GREY, w=5)
-        self.at("They all build")
-        self.play(FadeOut(q), FadeIn(c1, shift=DOWN * 0.1), run_time=0.5)
-        self.at("The order of the bases")
-        self.play(GrowArrow(b1), FadeIn(c2, shift=DOWN * 0.1), run_time=0.6)
-        self.at("so their genes")
-        self.play(GrowArrow(b2), FadeIn(c3, shift=DOWN * 0.1), run_time=0.6)
-        self.at("different proteins")
-        self.play(GrowArrow(b3), FadeIn(c4, shift=DOWN * 0.1), run_time=0.6)
+        self.play(FadeIn(path.gene), GrowArrow(path.a1), FadeIn(path.protein), run_time=.9)
+        self.at("purple flower colour")
+        self.play(GrowArrow(path.a2), FadeIn(path.bloom, scale=.7), run_time=.8)
+        path.bloom.scale(1.35)
+        self.add(scope_tag("schematic"))
+        self.at("change in its gene")
+        mutant = pea_path(True, .3)
+        changed = SurroundingRectangle(mutant.gene[0][2], color=RED, buff=.07, stroke_width=4)
+        self.play(Transform(path.gene, mutant.gene), FadeIn(changed), run_time=.8)
+        self.at("stop that protein working")
+        stop = Cross(path.a1, stroke_color=RED, stroke_width=8)
+        self.play(Create(stop), Transform(path.protein, mutant.protein), FadeOut(path.a2), run_time=.7)
+        self.at("flower can then be white")
+        mutant.bloom.scale(1.35)
+        self.play(Transform(path.bloom, mutant.bloom), run_time=.9)
+        self.at("connects gene sequence")
+        labels = VGroup(T("gene sequence",28,TEAL), T("protein",28,RED), T("trait",28,GOLD))
+        labels[0].next_to(path.gene, DOWN, buff=.45); labels[1].next_to(path.protein, DOWN, buff=.25); labels[2].next_to(path.bloom, DOWN, buff=.25)
+        self.play(LaggedStart(*[FadeIn(x) for x in labels], lag_ratio=.18), run_time=.9)
+        self.at("without making every trait simple")
+        caution = T("one example ≠ every trait", 30, GOLD).move_to([0,-2.65,0])
+        self.play(FadeIn(caution), run_time=.6)
+        bob(path.bloom, amp=.055, speed=1.25)
         self.finish()
 
 
-class S07End(EndCard):
-    LINE = "The order of the bases is the code."
+class S09Scope(SpokenScene):
+    def construct(self):
+        top_gene = chip("gene", TEAL, 28).move_to([-3.8, 1.72, 0])
+        top_protein = protein_block("protein", [0, 1.72, 0])
+        top_trait = chip("purple flower trait", GOLD, 28).move_to([3.9, 1.72, 0])
+        path = VGroup(top_gene, arrow(top_gene.get_right(), top_protein.get_left()), top_protein,
+                      arrow(top_protein.get_right(), top_trait.get_left()), top_trait)
+        self.add(path)
+        first = T("first model", 30, GOLD).move_to([0,3.15,0])
+        self.at("first model")
+        self.play(FadeIn(first), run_time=.5)
+        self.add(scope_tag("schematic"))
+        self.at("Many traits depend")
+        genes = VGroup(sequence_strip("ATCG", [-4.8,-.25,0], .56),
+                       sequence_strip("CGAT", [-4.8,-1.25,0], .56),
+                       sequence_strip("TACG", [-4.8,-2.25,0], .56))
+        genes_heading = T("several genes", 28, TEAL).move_to([-4.8,.45,0])
+        trait = Circle(radius=.72, color=GOLD, fill_color=GOLD, fill_opacity=.14).move_to([4.55,-1.15,0])
+        trait_lab = T("trait", 32, GOLD, weight=BOLD).move_to(trait)
+        arrows = VGroup(*[arrow(g.get_right(), trait.get_left(), GREY, 3, .15) for g in genes])
+        self.play(FadeIn(genes_heading), LaggedStart(*[FadeIn(g) for g in genes], lag_ratio=.15), run_time=.8)
+        self.play(LaggedStart(*[GrowArrow(a) for a in arrows], lag_ratio=.12), FadeIn(VGroup(trait,trait_lab)), run_time=.8)
+        self.at("Surroundings can matter")
+        sun = VGroup(Circle(radius=.3, color=YELLOW, fill_color=YELLOW, fill_opacity=.75),
+                     *[Line(ORIGIN, RIGHT*.22, color=YELLOW, stroke_width=4).shift(RIGHT*.42).rotate(k*PI/4, about_point=ORIGIN) for k in range(8)])
+        water = T("water", 28, BLUE)
+        env = VGroup(sun, water).arrange(DOWN, buff=.25).move_to([.5,-1.2,0])
+        ea = arrow(env.get_right(), trait.get_left(), GREY, 3, .15)
+        self.play(FadeIn(env), GrowArrow(ea), run_time=.7)
+        self.at("Some base changes")
+        changed = SurroundingRectangle(genes[1][2], color=RED, buff=.05, stroke_width=4)
+        changed.layout_ok = True  # deliberate highlight around the changed base
+        self.play(Create(changed), run_time=.5)
+        self.at("nothing you can see")
+        q = T("?", 56, TEXT, weight=BOLD).move_to(trait)
+        self.play(FadeOut(trait_lab), FadeIn(q), run_time=.5)
+        self.at("scientists test changes")
+        test = chip("test the change", TEXT, 28).move_to([2.15,-2.75,0])
+        self.play(FadeIn(test), changed.animate.set_color(TEXT), run_time=.7)
+        bob(VGroup(trait, q), amp=.05, speed=1.2)
+        self.finish()
+
+
+def chromosome_icon(center=ORIGIN, scale=.55):
+    return VGroup(Line([-1,-1.5,0],[1,1.5,0], color=BLUE, stroke_width=18),
+                  Line([-1,1.5,0],[1,-1.5,0], color=BLUE, stroke_width=18)).scale(scale).move_to(center)
+
+
+class S10GeneUse(SpokenScene):
+    def construct(self):
+        skin = cell("skin cell", [-3.8,.15,0], GOLD, 2.0)
+        muscle = cell("muscle cell", [3.8,.15,0], RED, 2.0)
+        chrom = chromosome_icon([0,.15,0], .72)
+        self.play(FadeIn(chrom), run_time=.5)
+        self.at("same DNA")
+        c1, c2 = chromosome_icon([-3.8,.35,0],.45), chromosome_icon([3.8,.35,0],.45)
+        self.play(FadeIn(skin[0]), FadeIn(muscle[0]), TransformFromCopy(chrom,c1), TransformFromCopy(chrom,c2), FadeOut(chrom), run_time=1.0)
+        self.play(FadeIn(VGroup(skin[1],skin[2],muscle[1],muscle[2])), run_time=.5)
+        self.add(scope_tag("schematic"))
+        self.at("uses different genes")
+        g1 = SurroundingRectangle(c1[0], color=TEAL, buff=.08, stroke_width=5)
+        g2 = SurroundingRectangle(c2[1], color=TEAL, buff=.08, stroke_width=5)
+        self.play(Create(g1), run_time=.55)
+        self.play(Create(g2), run_time=.55)
+        self.at("Different proteins follow")
+        p1 = protein_block("skin proteins",[-3.8,-2.55,0])
+        p2 = protein_block("muscle proteins",[3.8,-2.55,0])
+        a1 = arrow([-3.8,-1.4,0],p1.get_top(),RED); a2 = arrow([3.8,-1.4,0],p2.get_top(),RED)
+        self.play(FadeOut(skin[2]), FadeOut(muscle[2]), GrowArrow(a1),FadeIn(p1),GrowArrow(a2),FadeIn(p2),run_time=.9)
+        self.at("look and work differently")
+        self.play(Indicate(VGroup(skin[0],p1),color=GOLD,scale_factor=1.02),
+                  Indicate(VGroup(muscle[0],p2),color=RED,scale_factor=1.02),run_time=.9)
+        self.at("how each cell uses it")
+        use = T("same code • different gene use",32,TEAL,weight=BOLD).move_to([0,3.15,0])
+        self.play(FadeIn(use,shift=DOWN*.1),run_time=.7)
+        pulse(g1,base=5,amp=1.2,speed=2); pulse(g2,base=5,amp=1.2,speed=2)
+        self.finish()
+
+
+class S11Rule(SpokenScene):
+    def construct(self):
+        gene = chip("gene", TEAL, 30, fill_opacity=.38).move_to([-3.5,1.35,0])
+        protein = protein_block("protein",[-3.5,-.1,0])
+        trait = chip("trait", GOLD, 30, fill_opacity=.38).move_to([-3.5,-1.55,0])
+        a1 = arrow(gene.get_bottom(), protein.get_top())
+        a2 = arrow(protein.get_bottom(), trait.get_top())
+        path = VGroup(gene,a1,protein,a2,trait)
+        self.play(FadeIn(gene), run_time=.4)
+        self.at("protein, and trait")
+        self.play(GrowArrow(a1),FadeIn(protein),GrowArrow(a2),FadeIn(trait),run_time=1.0)
+        self.add(scope_tag("schematic"))
+        self.at("Shared parts can carry")
+        ladder = dna_ladder("ATCG",[3.75,-.15,0],width=2.6,height=4.4,block_width=.95,block_height=.58)
+        self.play(FadeIn(ladder),run_time=.7)
+        self.at("cells can use genes differently")
+        use = T("cells use genes differently",28,TEAL).move_to([-3.5,-2.65,0])
+        self.play(FadeIn(use),run_time=.6)
+        self.at("DNA sequence helps")
+        rule = T("DNA sequence helps shape traits.",38,TEAL,weight=BOLD).move_to([0,3.1,0])
+        self.play(FadeIn(rule,shift=DOWN*.1),run_time=.7)
+        self.at("Counting whole chromosome sets")
+        axes = VGroup(Line([1.7,-2.3,0],[6.0,-2.3,0],color=GREY,stroke_width=5),
+                      Line([1.7,-2.3,0],[1.7,1.55,0],color=GREY,stroke_width=5))
+        amount = T("DNA amount",30,GREY).next_to(axes[0],DOWN,buff=.18)
+        nodata = T("question — no data yet",28,GOLD).move_to([4.15,-.3,0])
+        self.play(ReplacementTransform(ladder, axes),FadeIn(amount),run_time=.7)
+        self.at("different question")
+        self.play(FadeIn(nodata),run_time=.6)
+        self.at("second film")
+        self.play(Indicate(VGroup(axes,nodata),color=GOLD,scale_factor=1.02),run_time=.7)
+        bob(VGroup(axes, amount, nodata), amp=.045, speed=1.15)
+        self.finish()
+
+
+class S12End(EndCard):
+    LINE = "DNA sequence helps shape traits."

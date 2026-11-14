@@ -1,411 +1,554 @@
-"""Microbes: partner or pathogen?  (Biochemistrypedia high school Biology explainer)
+"""Who Unlocks the Matter? — microbes in ecosystems.
 
-COLOR MAP (one colour per concept, whole film)
-  GREEN  = a helpful or quiet microbe (bacteria in nodules, decomposers, gut bacteria, E. coli in the gut)
-  RED    = harm (pathogen, a strain causing illness)
-  PURPLE = virus
-  BLUE   = nitrogen and nutrients (nitrogen gas, ammonium, usable nitrogen, nitrogen and phosphorus in water)
-  YELLOW = energy-rich food from the plant
-  ORANGE = enzymes
-  BROWN  = dead matter (fallen leaves, dead algae)
-  PINK   = the pink inside of an active nodule
-  WHITE  = the ocean alga and the "blocked" bar (neutral)
-  GREY   = structure, outlines, fiber, de-emphasised
+COLOR MAP (kept for the whole film)
+  PALE_BLUE = nitrogen gas paired dots
+  GREEN     = ammonium (inside the nodule only)
+  TEAL      = fixed nitrogen carried through the plant
+  GOLD      = plant sugar / mutual benefit
+  ORANGE    = phosphorus / enzyme action
+  PURPLE    = bacteria
+  TEXT      = fungal threads
+  RED       = harmful particles / illness
+  GREY      = locked matter and neutral structure
+
+All pictures are schematic labelled cartoons, never molecular structures.
 """
-import numpy as np
-from bp_style import *  # noqa: F401,F403
+from bp_parts import *  # noqa: F401,F403
 
+
+PALE_BLUE = "#9DD9F3"
 PURPLE = "#B58CD9"
-ORANGE = "#F29E4C"
+ORANGE_M = "#F29E4C"
 BROWN = "#A67C52"
-PINK = "#F28DB2"
+SOIL = "#70513C"
+DARK_GREY = "#667078"
 
 
-def bchip(text, color=BLUE, size=28, **kw):
-    c = chip(text, color, size=size, **kw)
-    back = RoundedRectangle(corner_radius=0.14, width=c[0].width, height=c[0].height, stroke_width=0,
-                            fill_color=BG, fill_opacity=1).move_to(c[0])
-    return VGroup(back, *c)
+class ActiveSpokenScene(SpokenScene):
+    """Shared ecosystem stage: a filled field and slow matter drift behind each spoken scene.
+
+    The field makes the diagram the dominant picture rather than thin marks on black.  The neutral
+    motes are visual texture, not an extra biological species or molecule.
+    """
+    def setup(self):
+        super().setup()
+        stage = RoundedRectangle(corner_radius=0.32, width=13.15, height=7.05,
+                                 stroke_color=DARK_GREY, stroke_width=2,
+                                 fill_color="#26343D", fill_opacity=1).set_z_index(-30)
+        stage.layout_ok = True  # intentional full-frame background field
+        rng = np.random.default_rng(sum(ord(c) for c in os.environ.get("KX_SCENE_ID", "scene")))
+        motes = VGroup()
+        for _ in range(96):
+            m = Dot(radius=0.07, color=GREY).set_opacity(0.52)
+            m.move_to([rng.uniform(-6.25, 6.25), rng.uniform(-3.25, 3.25), 0])
+            m.v = np.array([rng.uniform(-0.75, 0.75), rng.uniform(0.55, 1.0), 0])
+
+            def drift(mob, dt):
+                mob.shift(mob.v * dt)
+                if mob.get_y() > 3.35:
+                    mob.shift(DOWN * 6.65)
+                if mob.get_x() > 6.35:
+                    mob.shift(LEFT * 12.65)
+                elif mob.get_x() < -6.35:
+                    mob.shift(RIGHT * 12.65)
+            m.add_updater(drift)
+            m.layout_ok = True  # intentional background texture may drift behind labels
+            motes.add(m)
+        motes.set_z_index(-29)
+        self.add(stage, motes)
 
 
-def arr(a, b, color=GREY, w=5, tip=0.22):
-    return Arrow(a, b, buff=0.08, color=color, stroke_width=w, tip_length=tip,
-                 max_tip_length_to_length_ratio=0.45, max_stroke_width_to_length_ratio=12)
+def arrow(a, b, color=GREY, width=5, tip=0.22):
+    return Arrow(a, b, buff=0.08, color=color, stroke_width=width,
+                 tip_length=tip, max_tip_length_to_length_ratio=0.4)
 
 
-def dot(color=GREEN, r=0.14, at=ORIGIN):
-    return Circle(radius=r, stroke_color=color, stroke_width=2, fill_color=color, fill_opacity=0.85).move_to(at)
+def bacterium(at=ORIGIN, color=PURPLE, scale=1.0):
+    return RoundedRectangle(corner_radius=0.16 * scale, width=0.65 * scale,
+                            height=0.25 * scale, stroke_color=color, stroke_width=2,
+                            fill_color=color, fill_opacity=0.75).rotate(0.18).move_to(at)
 
 
-def scatter(n, cx, cy, w, h, seed=1, gap=0.42):
-    rng = np.random.default_rng(seed)
-    pts = []
-    tries = 0
-    while len(pts) < n and tries < 5000:
-        tries += 1
-        p = np.array([cx + (rng.random() - 0.5) * w, cy + (rng.random() - 0.5) * h, 0])
-        if all(np.linalg.norm(p - q) > gap for q in pts):
-            pts.append(p)
-    return pts
+def paired_nitrogen(at=ORIGIN, scale=1.0):
+    a = Dot(radius=0.11 * scale, color=PALE_BLUE).shift(LEFT * 0.13 * scale)
+    b = Dot(radius=0.11 * scale, color=PALE_BLUE).shift(RIGHT * 0.13 * scale)
+    return VGroup(a, b).move_to(at)
 
 
-def leaf_pile(cx, cy, scale=1.0, seed=3):
-    rng = np.random.default_rng(seed)
-    g = VGroup()
-    for i in range(9):
-        x = cx + (rng.random() - 0.5) * 2.0 * scale
-        y = cy + (rng.random() - 0.5) * 0.9 * scale
-        e = Ellipse(width=0.95 * scale, height=0.4 * scale, stroke_color=BROWN, stroke_width=2,
-                    fill_color=BROWN, fill_opacity=0.55).rotate(rng.random() * PI).move_to([x, y, 0])
-        g.add(e)
+def padlock(at=ORIGIN, scale=1.0, opened=False):
+    body = RoundedRectangle(corner_radius=0.09, width=0.58, height=0.48,
+                            stroke_color=GREY, fill_color=GREY, fill_opacity=0.35,
+                            stroke_width=3).move_to(DOWN * 0.16)
+    shackle = Arc(radius=0.22, start_angle=0, angle=PI, color=GREY,
+                  stroke_width=4).move_to(UP * 0.08)
+    if opened:
+        shackle.rotate(-0.7, about_point=shackle.get_right()).shift(RIGHT * 0.08)
+    return VGroup(body, shackle).scale(scale).move_to(at)
+
+
+def tracker(states=(False, False, False)):
+    """The carried locked→usable tracker, always at exactly the same coordinates."""
+    line = Line([-5.6, -3.15, 0], [5.6, -3.15, 0], color=GREY, stroke_width=5)
+    left = T("locked", 28, GREY).move_to([-5.55, -3.52, 0])
+    right = T("usable", 28, TEAL).move_to([5.45, -3.52, 0])
+    xs = [-3.6, 0, 3.6]
+    icons = VGroup(*[padlock([5.0 if ok else x, -3.15, 0], 0.58, ok)
+                     for x, ok in zip(xs, states)])
+    g = VGroup(line, left, right, icons)
+    g.icons = icons
     return g
 
 
+def soil_band():
+    soil = Rectangle(width=12.75, height=2.7, stroke_width=0,
+                     fill_color=SOIL, fill_opacity=0.42).move_to([0, -2.15, 0])
+    surface = Line([-6.5, -0.8, 0], [6.5, -0.8, 0], color=BROWN, stroke_width=4)
+    return VGroup(soil, surface)
+
+
+def soybean_world(with_people=True):
+    """Wide cut-away field used for the opening question."""
+    soil = soil_band()
+    stem = Line([-2.7, -0.8, 0], [-2.7, 2.15, 0], color=GREEN, stroke_width=12)
+    leaves = VGroup(
+        Ellipse(1.2, 0.52, color=GREEN, fill_color=GREEN, fill_opacity=0.55).rotate(0.35).move_to([-3.2, 1.5, 0]),
+        Ellipse(1.2, 0.52, color=GREEN, fill_color=GREEN, fill_opacity=0.55).rotate(-0.35).move_to([-2.2, 1.1, 0]),
+        Ellipse(1.0, 0.46, color=GREEN, fill_color=GREEN, fill_opacity=0.55).rotate(0.25).move_to([-3.1, 0.5, 0]))
+    roots = VGroup(Line([-2.7, -0.8, 0], [-3.4, -2.25, 0], color=GOLD, stroke_width=6),
+                   Line([-2.7, -0.8, 0], [-2.0, -2.3, 0], color=GOLD, stroke_width=6),
+                   Line([-2.7, -1.15, 0], [-1.35, -1.7, 0], color=GOLD, stroke_width=4))
+    plant = VGroup(stem, leaves, roots)
+    if not with_people:
+        return VGroup(soil, plant)
+    # A deer and teenager are simple, clearly distinct cartoons.
+    deer = VGroup(Ellipse(1.45, 0.75, color=BROWN, fill_color=BROWN, fill_opacity=0.38),
+                  Circle(0.38, color=BROWN, fill_color=BROWN, fill_opacity=0.38).move_to([0.85, 0.48, 0]),
+                  *[Line([x, -0.25, 0], [x, -0.78, 0], color=BROWN, stroke_width=5) for x in (-0.45, 0.35)])
+    deer.move_to([0.2, 0.0, 0])
+    head = Circle(0.34, color=TEXT).move_to([3.75, 1.45, 0])
+    body = Line([3.75, 1.1, 0], [3.75, 0.0, 0], color=TEXT, stroke_width=8)
+    limbs = VGroup(Line([3.75, 0.85, 0], [3.1, 0.35, 0], color=TEXT, stroke_width=5),
+                   Line([3.75, 0.85, 0], [4.35, 0.35, 0], color=TEXT, stroke_width=5),
+                   Line([3.75, 0.0, 0], [3.25, -0.75, 0], color=TEXT, stroke_width=5),
+                   Line([3.75, 0.0, 0], [4.25, -0.75, 0], color=TEXT, stroke_width=5))
+    person = VGroup(head, body, limbs)
+    labels = VGroup(T("soybean", 28, GREEN).move_to([-2.7, 2.65, 0]),
+                    T("deer", 28, BROWN).move_to([0.2, 1.0, 0]),
+                    T("you", 28, TEXT).move_to([3.75, 2.15, 0]))
+    return VGroup(soil, plant, deer, person, labels)
+
+
+def root_world():
+    """Root and nodules, shared without drift by predict and pause."""
+    root = VMobject(color=GOLD, stroke_width=13).set_points_smoothly(
+        [[-5.7, 2.15, 0], [-3.1, 1.75, 0], [-1.0, 0.75, 0], [0.5, -0.8, 0], [1.1, -2.25, 0]])
+    branches = VGroup(Line([-2.1, 1.35, 0], [-3.35, -0.25, 0], color=GOLD, stroke_width=7),
+                      Line([-0.35, 0.15, 0], [1.65, 0.55, 0], color=GOLD, stroke_width=7),
+                      Line([0.35, -0.7, 0], [-1.35, -1.8, 0], color=GOLD, stroke_width=7))
+    nodules = VGroup(*[Circle(0.42, color=PURPLE, fill_color=PURPLE, fill_opacity=0.28, stroke_width=4).move_to(p)
+                       for p in [(-3.1, 0.0, 0), (1.5, 0.5, 0), (-1.2, -1.75, 0)]])
+    glow = Circle(0.58, color=GOLD, stroke_width=3).move_to(nodules[1]).set_opacity(0.65)
+    pulse(glow, base=2.5, amp=1.5, speed=2.2)
+    return VGroup(root, branches, nodules, glow)
+
+
+def nodule_world():
+    """Close nodule used unchanged through fixation and mutualism."""
+    root = RoundedRectangle(corner_radius=0.18, width=2.0, height=6.2,
+                            color=GOLD, fill_color=GOLD, fill_opacity=0.16,
+                            stroke_width=7).move_to([-2.7, 0, 0])
+    nod = Circle(1.65, color=PURPLE, fill_color=SOIL, fill_opacity=0.55,
+                 stroke_width=5).move_to([-0.8, -0.2, 0])
+    rods = VGroup(*[bacterium(p, scale=0.78) for p in [(-1.35, 0.45, 0), (-0.55, 0.65, 0),
+                                                        (-0.05, 0.05, 0), (-1.25, -0.35, 0),
+                                                        (-0.45, -0.75, 0), (-1.3, -1.0, 0)]])
+    return VGroup(root, nod, rods)
+
+
+def dead_stem_world():
+    ground = soil_band()
+    stem = RoundedRectangle(corner_radius=0.16, width=8.8, height=0.72,
+                            color=BROWN, fill_color=BROWN, fill_opacity=0.46,
+                            stroke_width=4).rotate(-0.08).move_to([-0.6, -0.15, 0])
+    return VGroup(ground, stem)
+
+
+def gut_world():
+    outer = RoundedRectangle(corner_radius=0.75, width=8.8, height=4.8,
+                             color=GREY, stroke_width=8).move_to([0, 0.25, 0])
+    inner = RoundedRectangle(corner_radius=0.55, width=7.7, height=3.65,
+                             color=DARK_GREY, stroke_width=4).move_to([0, 0.25, 0])
+    return VGroup(outer, inner)
+
+
+def vine_world():
+    """Grapevine and cut-away water tube, shared by pathogen/host scenes."""
+    stem = Line([-3.0, -2.55, 0], [-3.0, 2.5, 0], color=GOLD, stroke_width=18)
+    tube = RoundedRectangle(corner_radius=0.2, width=1.0, height=5.2,
+                            color=PALE_BLUE, stroke_width=5).move_to([-3.0, 0, 0])
+    leaves = VGroup(*[Ellipse(1.55, 0.75, color=GREEN, fill_color=GREEN, fill_opacity=0.5)
+                       .rotate(a).move_to(p) for p, a in [((-4.15, 1.8, 0), 0.4), ((-1.85, 1.15, 0), -0.4),
+                                                        ((-4.1, 0.2, 0), 0.3), ((-1.8, -1.0, 0), -0.3)]])
+    return VGroup(stem, tube, leaves)
+
+
+def ecoli_panels():
+    tp = TwoPanel("most strains: quiet", "harmful strain", colors=(TEAL, RED), top=3.0, bottom=-2.45)
+    gut = RoundedRectangle(corner_radius=0.5, width=4.2, height=2.5, color=GREY, stroke_width=6)
+    rods_l = VGroup(*[bacterium(p, scale=0.8) for p in [(-0.8, 0.4, 0), (0, 0.15, 0), (0.7, -0.35, 0)]])
+    left = VGroup(gut, rods_l, T("E. coli", 28, PURPLE).move_to([0, -1.05, 0]))
+    tp.put(left, "left")
+    glass = VGroup(Line([-1.2, 1.0, 0], [-0.85, -1.15, 0], color=PALE_BLUE, stroke_width=5),
+                   Line([1.2, 1.0, 0], [0.85, -1.15, 0], color=PALE_BLUE, stroke_width=5),
+                   Line([-0.85, -1.15, 0], [0.85, -1.15, 0], color=PALE_BLUE, stroke_width=5))
+    rod = bacterium([0, 0.1, 0], scale=1.05)
+    extra = Square(0.32, color=RED, fill_color=RED, fill_opacity=0.7).next_to(rod, RIGHT, buff=0.02)
+    right = VGroup(glass, rod, extra, T("extra genes", 28, RED).move_to([0, -1.45, 0]))
+    tp.put(right, "right")
+    return tp, left, right
+
+
 class S00Title(TitleCard):
-    LESSON = "Microbes in Bodies and Ecosystems"
-    TITLE = "Microbes: Partner or Pathogen?"
+    LESSON = "Microbes in Ecosystems"
+    TITLE = "Who Unlocks the Matter?"
 
 
-# ---------------------------------------------------------------------------------------------
-class S01Bumps(SpokenScene):
+class S01Question(ActiveSpokenScene):
     def construct(self):
-        root = RoundedRectangle(corner_radius=0.12, width=11.0, height=0.34, stroke_color=GREY, stroke_width=3,
-                                fill_color=GREY, fill_opacity=0.4).move_to([0, 2.2, 0])
-        root_l = T("soybean root", 30, GREY).move_to([-4.2, 2.95, 0])
-        nod_pos = [-3.6, 0.0, 3.6]
-        nods = VGroup(*[Circle(radius=0.7, stroke_color=GREY, stroke_width=3, fill_color=BROWN, fill_opacity=0.45)
-                        .move_to([x, 1.4, 0]) for x in nod_pos])
-        self.at("Dig up a soybean plant")
-        self.play(FadeIn(root, shift=UP * 0.2), FadeIn(root_l), run_time=0.7)
-        self.at("small round bumps")
-        self.play(LaggedStart(*[GrowFromCenter(n) for n in nods], lag_ratio=0.25), run_time=0.9)
-        nlab = T("bumps", 28, TEXT).move_to([3.6, 0.45, 0])
-        self.play(FadeIn(nlab), run_time=0.4)
-
-        self.at("Cut one open")
-        mid = nods[1]
-        center = np.array([0.0, -0.7, 0.0])
-        up = Sector(radius=1.55, angle=PI, start_angle=0, arc_center=center, stroke_color=GREY, stroke_width=3,
-                    fill_color=BROWN, fill_opacity=0.45)
-        low = Sector(radius=1.55, angle=PI, start_angle=PI, arc_center=center, stroke_color=GREY, stroke_width=3,
-                     fill_color=BROWN, fill_opacity=0.45)
-        whole = Circle(radius=1.55, stroke_color=GREY, stroke_width=3, fill_color=BROWN, fill_opacity=0.45).move_to(center)
-        self.play(FadeOut(nods[0]), FadeOut(nods[2]), FadeOut(nlab),
-                  ReplacementTransform(mid, whole), run_time=0.8)
-        cut = Line([-1.9, -0.7, 0], [1.9, -0.7, 0], color=TEXT, stroke_width=4)
-        self.play(Create(cut), run_time=0.4)
-        self.remove(whole)
-        self.add(up, low)
-        self.play(up.animate.shift(UP * 0.12), low.animate.shift(DOWN * 0.12), FadeOut(cut), run_time=0.5)
-        self.at("pink inside")
-        pink_l = T("often pink inside\nwhen active", 28, PINK).move_to([4.7, -0.7, 0])
-        pa = arr([3.1, -0.7, 0], [1.9, -0.7, 0], PINK)
-        self.play(up.animate.set_fill(PINK, 0.6), low.animate.set_fill(PINK, 0.6), FadeIn(pink_l), GrowArrow(pa), run_time=0.7)
-        self.at("packed with bacteria")
-        pts = scatter(16, 0.0, -0.7, 2.3, 2.0, seed=4, gap=0.4)
-        pts = [p for p in pts if np.linalg.norm(p - center) < 1.25 and abs(p[1] - center[1]) > 0.2][:12]
-        dots = VGroup(*[dot(GREEN, 0.14, p + (UP * 0.12 if p[1] > center[1] else DOWN * 0.12)) for p in pts])
-        bl = T("bacteria", 30, GREEN).move_to([-4.3, -0.7, 0])
-        ba = arr([-3.2, -0.7, 0], [-1.7, -0.7, 0], GREEN)
-        self.play(LaggedStart(*[GrowFromCenter(d) for d in dots], lag_ratio=0.06), FadeIn(bl), GrowArrow(ba), run_time=1.0)
-
-        self.at("next to the word germs")
-        allg = VGroup(root, root_l, up, low, dots, bl, ba, pa, pink_l)
-        self.play(FadeOut(allg), run_time=0.6)
-        germ = bchip("germs", RED, 40).move_to([-3.3, -0.4, 0])
-        part = bchip("partners", GREEN, 40).move_to([3.3, -0.4, 0])
-        q = T("?", 64, TEXT, weight=BOLD).move_to([0, -0.4, 0])
-        self.play(FadeIn(germ, shift=RIGHT * 0.3), FadeIn(q), run_time=0.6)
-        self.play(FadeIn(part, shift=LEFT * 0.3), run_time=0.5)
-        self.at("always harmful")
-        qt = T("Are bacteria and viruses always harmful?", 38, TEXT, font=TITLE_FONT)
-        fit(qt, max_w=12.0)
-        qt.move_to([0, 2.0, 0])
-        self.play(Write(qt), run_time=1.4)
-        self.finish()
-
-
-# ---------------------------------------------------------------------------------------------
-class S02Fixation(SpokenScene):
-    def construct(self):
-        living = bchip("living things", GREY, 28).move_to([-4.2, 2.6, 0])
-        prot = bchip("proteins and DNA", BLUE, 28).move_to([3.4, 2.6, 0])
-        use = arr([-2.6, 2.6, 0], [1.6, 2.6, 0], GREY)
-        use_l = T("use nitrogen to build", 24, GREY).move_to([-0.5, 3.15, 0])
-        self.at("Living things use")
-        self.play(FadeIn(living, shift=RIGHT * 0.2), run_time=0.5)
-        self.at("build proteins")
-        self.play(GrowArrow(use), FadeIn(use_l), FadeIn(prot, shift=LEFT * 0.2), run_time=0.8)
-
-        gas = bchip("nitrogen gas", BLUE, 30).move_to([-4.6, -0.3, 0])
-        air = T("in the air", 24, GREY).next_to(gas, DOWN, buff=0.2)
+        world = soybean_world()
+        self.play(FadeIn(world), run_time=0.8)
+        gases = VGroup(*[paired_nitrogen(p) for p in [(-5.4, 2.7, 0), (-4.3, 1.9, 0), (-1.1, 2.65, 0),
+                                                              (1.6, 2.4, 0), (5.0, 2.7, 0)]])
+        for i, g in enumerate(gases):
+            bob(g, amp=0.08, speed=1.2, seed=i)
+        self.at("Every protein")
+        self.play(LaggedStart(*[FadeIn(g) for g in gases], lag_ratio=0.12), run_time=1.0)
+        needs = T("proteins + DNA need nitrogen", 30, PALE_BLUE).move_to([1.2, 3.25, 0])
+        self.at("needs nitrogen")
+        self.play(FadeIn(needs), run_time=0.5)
+        air = T("nitrogen gas", 30, PALE_BLUE).move_to([-4.65, 3.25, 0])
         self.at("mostly nitrogen gas")
-        self.play(FadeIn(gas, scale=0.9), FadeIn(air), run_time=0.6)
-
-        pa = bchip("plants and animals", GREY, 28).move_to([4.2, -0.3, 0])
-        line = DashedLine([-2.9, -0.3, 0], [2.0, -0.3, 0], color=GREY, stroke_width=4)
-        block = VGroup(Line([0, -0.6, 0], [0, 0.0, 0], color=TEXT, stroke_width=7))
-        block.move_to([-0.2, -0.3, 0])
-        self.at("cannot use it")
-        self.play(Create(line), FadeIn(pa), run_time=0.6)
-        self.play(FadeIn(block, scale=0.6), run_time=0.3)
-        no = T("cannot use it in that form", 24, GREY).move_to([-0.2, -1.0, 0])
-        self.play(FadeIn(no), run_time=0.3)
-
-        self.at("Nitrogen fixation")
-        bact = bchip("bacteria", GREEN, 30).move_to([0, -0.3, 0])
-        usable = bchip("usable nitrogen", BLUE, 30).move_to([4.2, -0.3, 0])
-        a1 = arr([-3.0, -0.3, 0], [-1.35, -0.3, 0], GREEN)
-        a2 = arr([1.35, -0.3, 0], [2.65, -0.3, 0], GREEN)
-        self.play(FadeOut(VGroup(line, block, no)), ReplacementTransform(pa, usable), FadeIn(bact, scale=0.9),
-                  GrowArrow(a1), GrowArrow(a2), run_time=1.0)
-        fix = T("nitrogen fixation", 40, TEXT, weight=BOLD).move_to([0, -2.4, 0])
-        self.play(Write(fix), run_time=0.8)
-        self.at("form living things can use")
-        up_a = arr([4.2, 0.2, 0], [3.9, 2.05, 0], BLUE)
-        self.play(GrowArrow(up_a), Indicate(usable, color=BLUE, scale_factor=1.08), run_time=0.9)
-        self.at("Only some bacteria")
-        only = T("only some bacteria and archaea can do this", 26, GREEN).move_to([0, -3.3, 0])
-        self.play(FadeIn(only, shift=UP * 0.1), Indicate(bact, color=GREEN, scale_factor=1.12), run_time=0.8)
+        self.play(FadeIn(air), gases.animate.shift(RIGHT * 0.22), run_time=0.8)
+        inhaled = VGroup(*[paired_nitrogen(p, 0.8) for p in [(-2.7, 2.15, 0), (0.6, 0.55, 0), (3.6, 1.35, 0)]])
+        self.at("why can't")
+        self.play(TransformFromCopy(gases[:3], inhaled), run_time=0.7)
+        self.play(inhaled.animate.shift(RIGHT * 0.75), run_time=0.7)
+        q = T("?", 84, GOLD, weight=BOLD).move_to([5.7, 2.6, 0])
+        self.at("single breath")
+        self.play(GrowFromCenter(q), run_time=0.6)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S03Nodule(SpokenScene):
+class S02Locked(ActiveSpokenScene):
     def construct(self):
-        c = np.array([-1.3, -0.3, 0.0])
-        root = RoundedRectangle(corner_radius=0.12, width=8.0, height=0.34, stroke_color=GREY, stroke_width=3,
-                                fill_color=GREY, fill_opacity=0.4).move_to([-1.4, 1.45, 0])
-        root_l = T("root", 28, GREY).move_to([-5.0, 2.2, 0])
-        nod = Circle(radius=1.6, stroke_color=GREY, stroke_width=3, fill_color=PINK, fill_opacity=0.35).move_to(c)
-        pts = [p for p in scatter(20, c[0], c[1], 2.4, 2.4, seed=7, gap=0.5) if np.linalg.norm(p - c) < 1.25][:10]
-        dots = VGroup(*[dot(GREEN, 0.15, p) for p in pts])
-        nod_l = T("nodule", 30, TEXT).move_to([c[0], -2.45, 0])
-        self.at("inside a nodule")
-        self.play(GrowFromCenter(nod), LaggedStart(*[GrowFromCenter(d) for d in dots], lag_ratio=0.08), run_time=1.0)
-        self.play(FadeIn(nod_l), run_time=0.3)
-        self.at("small swelling on a root")
-        self.play(FadeIn(root, shift=DOWN * 0.15), FadeIn(root_l), run_time=0.7)
+        gas = VGroup(*[paired_nitrogen(p, 1.15) for p in [(-4.8, 1.1, 0), (-4.0, 1.65, 0), (-3.5, 0.7, 0)]])
+        gas_lab = T("nitrogen gas", 30, PALE_BLUE).move_to([-4.15, 2.5, 0])
+        self.add(gas, gas_lab)
+        self.at("Nitrogen gas is locked")
+        lock1 = padlock([-4.15, -0.45, 0], 1.05)
+        self.play(GrowFromCenter(lock1), run_time=0.6)
+        no_build = T("plants and animals\ncannot build with it", 28, TEXT).move_to([-4.15, -1.65, 0])
+        self.at("cannot build")
+        self.play(FadeIn(no_build), run_time=0.5)
+        leaf = Ellipse(2.0, 0.8, color=BROWN, fill_color=BROWN, fill_opacity=0.55).rotate(0.35).move_to([0, 1.0, 0])
+        self.at("Two other stores")
+        self.play(FadeIn(leaf, shift=DOWN * 0.2), run_time=0.6)
+        leaf_lab = T("dead leaf", 30, BROWN).move_to([0, 2.0, 0])
+        lock2 = padlock([0, -0.35, 0], 1.0)
+        self.at("dead leaf")
+        self.play(FadeIn(leaf_lab), GrowFromCenter(lock2), run_time=0.6)
+        gut = RoundedRectangle(corner_radius=0.55, width=3.1, height=2.6, color=GREY, stroke_width=6).move_to([4.3, 0.65, 0])
+        fiber = VMobject(color=GOLD, stroke_width=7).set_points_smoothly([[3.4, 0.2, 0], [4.0, 1.3, 0], [4.7, 0.1, 0], [5.2, 1.2, 0]])
+        self.at("The other is fiber")
+        self.play(Create(gut), Create(fiber), run_time=0.8)
+        fiber_lab = T("fiber", 30, GOLD).move_to([4.3, 2.35, 0])
+        lock3 = padlock([4.3, -1.15, 0], 1.0)
+        self.play(FadeIn(fiber_lab), GrowFromCenter(lock3), run_time=0.6)
+        tr = tracker()
+        self.at("cannot digest")
+        self.play(FadeIn(tr), run_time=0.8)
+        self.finish()
 
-        gas = bchip("nitrogen gas", BLUE, 28).move_to([-5.45, -0.3, 0])
-        ain = arr([-4.2, -0.3, 0], [-2.95, -0.3, 0], BLUE)
+
+class S03Predict(ActiveSpokenScene):
+    def construct(self):
+        roots = root_world()
+        self.play(FadeIn(roots), run_time=0.7)
+        self.at("who could possibly")
+        q = question_card("Who can use nitrogen gas?", ["plants", "animals", "some microbes"],
+                          chips_at=[3.75, 0.5, 0], y=-3.12)
+        self.play(FadeIn(q.question), run_time=0.5)
+        self.at("Make your guess")
+        self.play(LaggedStart(*[FadeIn(c, shift=UP * 0.12) for c in q.chips], lag_ratio=0.18), run_time=0.9)
+        for c in q.chips:
+            pulse(c[0], base=2.5, amp=1.2, speed=2.0)
+        self.finish()
+
+
+class S04Pause(PredictPause):
+    QUESTION = "Who can use nitrogen gas?"
+    OPTIONS = ["plants", "animals", "some microbes"]
+    CHIPS_AT = [3.75, 0.5, 0]
+    CARD = {"y": -3.12}
+
+    def backdrop(self):
+        return root_world()
+
+
+class S05Reveal(ActiveSpokenScene):
+    def construct(self):
+        world = nodule_world()
+        self.add(world)
+        answer = chip("some microbes", PURPLE, 30).move_to([4.35, 2.75, 0])
+        self.at("Some bacteria can")
+        self.play(FadeIn(answer), Indicate(world[2], color=PURPLE), run_time=0.8)
+        nodlab = T("root nodule", 30, PURPLE).move_to([0.35, 2.55, 0])
+        self.at("small bumps")
+        self.play(FadeIn(nodlab), run_time=0.5)
+        gas = VGroup(*[paired_nitrogen(p) for p in [(3.7, 1.4, 0), (4.5, 0.9, 0), (3.8, 0.25, 0)]])
+        ain = arrow([3.25, 0.7, 0], [1.05, 0.15, 0], PALE_BLUE)
         self.at("turn nitrogen gas")
-        self.play(FadeIn(gas, shift=RIGHT * 0.2), GrowArrow(ain), run_time=0.7)
-        aout = arr([0.45, 0.5, 0], [4.7, 0.5, 0], BLUE)
-        amm = T("ammonium", 28, BLUE).move_to([2.55, 0.95, 0])
+        self.play(FadeIn(gas), GrowArrow(ain), run_time=0.7)
+        self.play(gas.animate.shift(LEFT * 2.25), run_time=0.8)
+        ammonium = VGroup(*[Dot(p, radius=0.13, color=GREEN) for p in [(0.2, 0.65, 0), (0.55, -0.15, 0), (0.0, -0.7, 0)]])
+        ammonium_lab = T("ammonium", 30, GREEN).move_to([2.2, -1.1, 0])
         self.at("into ammonium")
-        self.play(GrowArrow(aout), FadeIn(amm), run_time=0.7)
-        plant = bchip("plant", GREY, 28).move_to([5.55, 0.5, 0])
-        self.at("plant uses it")
-        self.play(FadeIn(plant, shift=LEFT * 0.2), run_time=0.5)
-
-        fin = arr([4.7, -0.9, 0], [0.45, -0.9, 0], YELLOW)
-        food = T("energy-rich food", 28, YELLOW).move_to([2.55, -1.4, 0])
-        photo = T("made by photosynthesis", 22, GREY).move_to([2.55, -1.85, 0])
-        self.at("sends the bacteria")
-        self.play(GrowArrow(fin), FadeIn(food), run_time=0.7)
-        self.at("from photosynthesis")
-        self.play(FadeIn(photo), run_time=0.4)
-        self.at("both species benefit")
-        self.play(Indicate(aout, color=BLUE), Indicate(fin, color=YELLOW), run_time=1.0)
-        self.at("mutualism")
-        mut = T("mutualism: both benefit", 38, TEXT, weight=BOLD).move_to([0.6, -3.15, 0])
-        self.play(Write(mut), run_time=0.9)
+        self.play(ReplacementTransform(gas, ammonium), FadeIn(ammonium_lab), run_time=0.8)
+        fixed = VGroup(*[Dot(radius=0.13, color=TEAL).move_to(p) for p in [(-2.7, -1.5, 0), (-2.7, -0.4, 0), (-2.7, 0.7, 0)]])
+        up = arrow([-2.7, -2.2, 0], [-2.7, 2.6, 0], TEAL)
+        fixed_lab = T("fixed nitrogen", 30, TEAL).move_to([-5.1, 1.65, 0])
+        self.at("plant can use")
+        self.play(TransformFromCopy(ammonium, fixed), GrowArrow(up), FadeIn(fixed_lab), run_time=0.8)
+        self.play(fixed.animate.shift(UP * 1.0), run_time=0.7)
+        fixlab = T("nitrogen fixation", 38, TEXT, weight=BOLD).move_to([2.6, -2.2, 0])
+        self.at("called nitrogen fixation")
+        self.play(FadeIn(fixlab), run_time=0.6)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S04Decay(SpokenScene):
+class S06Trade(ActiveSpokenScene):
     def construct(self):
-        pile = leaf_pile(-4.6, -0.9)
-        pile_l = T("fallen leaves", 28, BROWN).move_to([-4.6, -2.35, 0])
-        self.at("stream full of fallen leaves")
-        self.play(LaggedStart(*[FadeIn(e, shift=DOWN * 0.3) for e in pile], lag_ratio=0.1), FadeIn(pile_l), run_time=1.0)
+        world = nodule_world()
+        self.add(world)
+        up = arrow([-2.7, -2.25, 0], [-2.7, 2.6, 0], TEAL)
+        up_lab = T("fixed nitrogen", 28, TEAL).move_to([-5.05, 0.75, 0])
+        self.add(up, up_lab)
+        sun = Circle(0.45, color=GOLD, fill_color=GOLD, fill_opacity=0.45).move_to([-5.5, 2.6, 0])
+        rays = VGroup(*[Line(sun.get_center(), sun.get_center() + 0.8 * d, color=GOLD, stroke_width=3)
+                        for d in (UP, DOWN, LEFT, RIGHT, UR, UL, DR, DL)])
+        self.at("plant pays them back")
+        self.play(FadeIn(sun), Create(rays), run_time=0.7)
+        down = arrow([-1.9, 2.65, 0], [-1.9, -2.3, 0], GOLD)
+        sugars = VGroup(*[Dot(radius=0.13, color=GOLD).move_to([-1.9, y, 0]) for y in (1.7, 0.7, -0.3)])
+        sugar_lab = T("plant sugar", 30, GOLD).move_to([0.2, 2.55, 0])
+        self.at("Sugar made in the leaves")
+        self.play(GrowArrow(down), FadeIn(sugars), FadeIn(sugar_lab), run_time=0.8)
+        self.play(sugars.animate.shift(DOWN * 1.0), run_time=0.8)
+        self.at("Each partner gets")
+        badge = VGroup(arrow([0.8, 0.6, 0], [4.7, 0.6, 0], TEAL),
+                       arrow([4.7, -0.5, 0], [0.8, -0.5, 0], GOLD))
+        self.play(LaggedStart(*[GrowArrow(a) for a in badge], lag_ratio=0.3), run_time=0.9)
+        mutual = chip("mutualism: both benefit", GOLD, 30).move_to([3.0, -1.75, 0])
+        self.at("called mutualism")
+        self.play(FadeIn(mutual, shift=UP * 0.15), run_time=0.7)
+        self.finish()
 
-        dec = bchip("decomposer", GREEN, 30).move_to([-4.6, 2.9, 0])
-        dsub = T("dead plants, animals, wastes", 22, BROWN).move_to([-4.6, -2.85, 0])
-        d_a = arr([-4.6, 2.35, 0], [-4.6, 0.3, 0], GREEN)
-        self.at("A decomposer")
-        self.play(FadeIn(dec, shift=DOWN * 0.2), run_time=0.5)
-        self.at("breaks down dead plants")
-        self.play(GrowArrow(d_a), FadeIn(dsub), run_time=0.8)
 
-        bac = bchip("bacteria", GREEN, 24).move_to([-6.0, 1.45, 0])
-        fun = bchip("fungi", GREEN, 24).move_to([-3.3, 1.45, 0])
-        self.at("Bacteria and fungi")
-        self.play(FadeOut(d_a), FadeIn(bac, shift=UP * 0.2), FadeIn(fun, shift=UP * 0.2), run_time=0.7)
-
-        enz = bchip("enzymes", ORANGE, 28).move_to([-0.8, 1.7, 0])
-        large = VGroup(RoundedRectangle(corner_radius=0.1, width=3.0, height=1.0, stroke_color=BROWN, stroke_width=3,
-                                        fill_color=BROWN, fill_opacity=0.5),
-                       T("large molecules", 24, TEXT)).move_to([-0.8, -0.9, 0])
-        large[1].move_to(large[0])
-        e_a = arr([-0.8, 1.15, 0], [-0.8, -0.3, 0], ORANGE)
-        p_a = arr([-3.2, -0.9, 0], [-2.45, -0.9, 0], GREY)
+class S07Decomposers(ActiveSpokenScene):
+    def construct(self):
+        world = dead_stem_world()
+        upright = Line([-0.6, -0.8, 0], [-0.6, 2.8, 0], color=GREEN, stroke_width=12)
+        self.add(soil_band(), upright)
+        self.at("soybean dies")
+        self.play(upright.animate.rotate(-PI / 2, about_point=[-0.6, -0.8, 0]).set_color(BROWN), run_time=1.0)
+        self.remove(upright)
+        self.add(world[1])
+        rods = VGroup(*[bacterium(p) for p in [(-3.0, 0.55, 0), (-1.5, 0.25, 0), (0.4, 0.55, 0)]])
+        fungi = VGroup(*[VMobject(color=TEXT, stroke_width=4).set_points_smoothly(pts) for pts in [
+            [[1.2, -0.2, 0], [1.7, 0.7, 0], [2.3, 1.25, 0]],
+            [[1.7, 0.7, 0], [2.5, 0.45, 0], [3.2, 0.8, 0]],
+            [[2.3, 1.25, 0], [2.8, 1.85, 0], [3.5, 1.55, 0]]]])
+        self.at("Bacteria and fungi grow")
+        self.play(LaggedStart(*[FadeIn(r) for r in rods], lag_ratio=0.15),
+                  LaggedStart(*[Create(f) for f in fungi], lag_ratio=0.18), run_time=1.1)
+        enzyme = chip("enzymes", ORANGE_M, 28).move_to([-3.9, 2.4, 0])
+        scissors = VGroup(*[T("✂", 34, ORANGE_M).move_to(p) for p in [(-2.4, 1.25, 0), (-0.7, 1.0, 0), (1.0, 1.2, 0)]])
         self.at("release enzymes")
-        self.play(FadeIn(enz, shift=DOWN * 0.2), FadeIn(large), GrowArrow(p_a), GrowArrow(e_a), run_time=0.9)
-        small = VGroup(*[Square(0.45, stroke_color=BROWN, stroke_width=3, fill_color=BROWN, fill_opacity=0.5)
-                         .move_to([2.1 + 0.62 * k, -0.9, 0]) for k in range(3)])
-        small_l = T("smaller molecules", 24, TEXT).move_to([2.7, -1.6, 0])
-        s_a = arr([0.8, -0.9, 0], [1.6, -0.9, 0], ORANGE)
+        self.play(FadeIn(enzyme), LaggedStart(*[FadeIn(s) for s in scissors], lag_ratio=0.15), run_time=0.8)
+        big = VGroup(*[Square(0.62, color=BROWN, fill_color=BROWN, fill_opacity=0.65).move_to([x, -0.05, 0]) for x in (-1.1, -0.45, 0.2)])
+        small = VGroup(*[Square(0.27, color=ORANGE_M, fill_color=ORANGE_M, fill_opacity=0.7).move_to(p)
+                         for p in [(-1.0, -0.05, 0), (-0.55, -0.15, 0), (-0.15, 0.05, 0), (0.3, -0.1, 0)]])
+        self.at("large molecules")
+        self.play(FadeIn(big), run_time=0.5)
         self.at("into smaller ones")
-        self.play(GrowArrow(s_a), ReplacementTransform(large[0].copy(), small), FadeIn(small_l), run_time=0.9)
-
-        nut = bchip("nutrients", BLUE, 28).move_to([5.0, 0.5, 0])
-        sw = bchip("soil or water", GREY, 26).move_to([5.0, -2.6, 0])
-        n_a = arr([4.1, -0.9, 0], [4.6, -0.1, 0], BLUE)
-        n_b = arr([5.0, 0.0, 0], [5.0, -2.0, 0], BLUE)
-        self.at("The nutrients return")
-        self.play(FadeIn(nut), GrowArrow(n_a), run_time=0.5)
-        self.play(GrowArrow(n_b), FadeIn(sw), run_time=0.6)
-
-        self.at("Without decomposers")
-        keep = VGroup(pile, pile_l)
-        gone = VGroup(dec, dsub, bac, fun, enz, large, e_a, p_a, s_a, small, small_l, nut, sw, n_a, n_b)
-        self.play(FadeOut(gone), run_time=0.6)
-        self.play(keep.animate.scale(1.5).move_to([0, 0.1, 0]), run_time=0.7)
-        self.at("pile up")
-        piled = leaf_pile(0.0, 0.6, scale=1.8, seed=9)
-        self.play(LaggedStart(*[FadeIn(e, shift=DOWN * 0.3) for e in piled], lag_ratio=0.08), run_time=0.8)
-        self.at("stay locked inside")
-        lock = bchip("nutrients stay locked inside", BLUE, 30).move_to([0, -2.5, 0])
-        self.play(FadeIn(lock, shift=UP * 0.2), run_time=0.7)
+        self.play(ReplacementTransform(big, small), run_time=0.8)
+        self.at("Nutrients return")
+        self.play(small.animate.shift(DOWN * 1.55), run_time=0.8)
+        lab = T("decomposers", 38, PURPLE, weight=BOLD).move_to([3.9, 2.6, 0])
+        self.at("microbes are decomposers")
+        self.play(FadeIn(lab), run_time=0.5)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S05Gut(SpokenScene):
+class S08Gut(ActiveSpokenScene):
     def construct(self):
-        box = RoundedRectangle(corner_radius=0.5, width=8.0, height=3.6, stroke_color=GREY, stroke_width=4)\
-            .move_to([0.8, -0.3, 0])
-        box_l = T("your gut", 28, GREY).move_to([0.8, 1.85, 0])
-        pts = scatter(34, 0.8, -0.3, 7.0, 2.8, seed=11, gap=0.5)
-        dots = VGroup(*[dot(GREEN, 0.14, p) for p in pts])
-        self.at("Your gut holds")
-        self.play(Create(box), FadeIn(box_l), run_time=0.6)
-        self.at("trillions of bacteria")
-        self.play(LaggedStart(*[GrowFromCenter(d) for d in dots], lag_ratio=0.03), run_time=1.0)
-        micro = bchip("microbiome", GREEN, 32).move_to([0.8, 2.85, 0])
-        self.at("microbiome")
-        self.play(FadeOut(box_l), FadeIn(micro, shift=DOWN * 0.15), run_time=0.5)
-
-        fiber = bchip("fiber", GREY, 28).move_to([-5.7, -0.3, 0])
-        f_a = arr([-4.85, -0.3, 0], [-3.1, -0.3, 0], GREY)
-        self.at("break down fiber")
-        self.play(FadeIn(fiber, shift=RIGHT * 0.2), GrowArrow(f_a), run_time=0.7)
-        self.play(LaggedStart(*[Indicate(d, color=GREEN, scale_factor=1.6) for d in dots[::2]], lag_ratio=0.04), run_time=0.8)
-        self.at("fermentation")
-        ferm = T("fermentation", 34, TEXT, weight=BOLD).move_to([0.8, -2.8, 0])
-        self.play(Write(ferm), run_time=0.7)
+        gut = gut_world()
+        self.play(Create(gut), run_time=0.8)
+        gutlab = T("large intestine", 30, GREY).move_to([0, 3.05, 0])
+        self.at("inside you")
+        self.play(FadeIn(gutlab), run_time=0.4)
+        rods = VGroup(*[bacterium(p) for p in [(-2.8, 0.9, 0), (-1.7, -0.6, 0), (0.2, 1.0, 0), (1.6, -0.5, 0)]])
+        fiber = VMobject(color=GOLD, stroke_width=8).set_points_smoothly([[-2.4, 0, 0], [-1.1, 1.1, 0], [0, -0.2, 0], [1.2, 0.85, 0], [2.5, -0.1, 0]])
+        self.at("Bacteria in your large intestine")
+        self.play(LaggedStart(*[FadeIn(r) for r in rods], lag_ratio=0.14), Create(fiber), run_time=1.0)
+        self.at("by fermentation")
+        self.play(LaggedStart(*[Indicate(r, color=PURPLE) for r in rods], lag_ratio=0.15), run_time=0.8)
+        # Cross out a small O2 tag only; a cross through "no oxygen needed" read as its opposite.
+        o2 = chip("O₂", GREY, 28)
+        no_o = VGroup(o2, T("no oxygen needed", 28, GREY)).arrange(RIGHT, buff=0.3).move_to([3.7, -2.9, 0])
+        cross = Cross(o2, stroke_color=RED, stroke_width=5)
+        # Deliberate strike-through: the visual note explicitly calls for a crossed-out oxygen tag.
+        for part in cross.family_members_with_points():
+            part.layout_ok = True
         self.at("without oxygen")
-        ox = T("works without oxygen", 26, GREY).move_to([0.8, -3.3, 0])
-        self.play(FadeIn(ox), run_time=0.4)
-
-        # --- pathogen and host
-        self.at("A pathogen")
-        self.play(FadeOut(VGroup(box, dots, micro, fiber, f_a, ferm, ox)), run_time=0.6)
-        path = bchip("pathogen", RED, 34).move_to([-3.9, 0.4, 0])
-        host = bchip("host", GREY, 34).move_to([3.9, 0.4, 0])
-        cd = arr([-2.4, 0.4, 0], [2.7, 0.4, 0], RED)
-        cd_l = T("causes disease", 28, RED).move_to([0.15, 0.95, 0])
-        self.play(FadeIn(path, shift=RIGHT * 0.2), run_time=0.5)
-        self.at("causes disease")
-        self.play(GrowArrow(cd), FadeIn(cd_l), run_time=0.6)
-        self.at("its host")
-        self.play(FadeIn(host, shift=LEFT * 0.2), run_time=0.5)
-        self.at("lives in or on")
-        hl = T("the living thing it lives in or on", 26, GREY).move_to([3.0, -0.7, 0])
-        self.play(FadeIn(hl), run_time=0.5)
-
-        # --- E. coli
-        self.at("Most strains")
-        self.play(FadeOut(VGroup(path, host, cd, cd_l, hl)), run_time=0.6)
-        gb = RoundedRectangle(corner_radius=0.4, width=5.2, height=3.2, stroke_color=GREY, stroke_width=4).move_to([-3.4, 0.0, 0])
-        gb_l = T("large intestine", 26, GREY).move_to([-3.4, 1.85, 0])
-        ec = dot(GREEN, 0.2, [-3.4, -0.1, 0])
-        ec_l = T("E. coli", 28, GREEN).move_to([-3.4, -0.9, 0])
-        self.play(Create(gb), FadeIn(gb_l), GrowFromCenter(ec), FadeIn(ec_l), run_time=0.8)
-        self.at("quietly")
-        q = T("quiet", 28, GREEN).move_to([-3.4, 0.75, 0])
-        self.play(FadeIn(q), run_time=0.4)
-        self.at("Other strains")
-        strain = dot(RED, 0.2, [0.2, 0.0, 0])
-        s_l = T("other E. coli strains", 26, RED).move_to([1.0, 0.9, 0])
-        self.play(FadeIn(strain), FadeOut(q), run_time=0.3)
-        self.play(strain.animate.move_to([1.0, 0.0, 0]), FadeIn(s_l), run_time=0.5)
-        self.at("cause illness")
-        ill = T("illness", 32, RED, weight=BOLD).move_to([1.0, -0.8, 0])
-        self.play(FadeIn(ill, shift=UP * 0.1), Indicate(strain, color=RED, scale_factor=1.5), run_time=0.8)
-        self.at("food or water")
-        fb = RoundedRectangle(corner_radius=0.4, width=4.0, height=3.2, stroke_color=GREY, stroke_width=4).move_to([4.2, 0.0, 0])
-        fb_l = T("food or water", 26, GREY).move_to([4.2, 1.85, 0])
-        self.play(Create(fb), FadeIn(fb_l), strain.animate.move_to([4.2, 0.0, 0]), FadeOut(s_l),
-                  ill.animate.move_to([4.2, -0.9, 0]), run_time=0.9)
+        self.play(FadeIn(no_o), Create(cross), run_time=0.6)
+        acids = VGroup(*[Square(0.28, color=TEAL, fill_color=TEAL, fill_opacity=0.8).move_to(p)
+                         for p in [(-0.7, 0.2, 0), (0, 0.25, 0), (0.7, 0.15, 0)]])
+        acids_lab = T("small acids", 30, TEAL).move_to([0, -1.1, 0])
+        self.at("make small acids")
+        self.play(ReplacementTransform(fiber, acids), FadeIn(acids_lab), run_time=0.8)
+        wall_arrow = arrow([0.8, 0.1, 0], [3.7, 0.1, 0], TEAL)
+        self.at("absorb for energy")
+        self.play(GrowArrow(wall_arrow), acids.animate.shift(RIGHT * 2.6), run_time=0.8)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S06Rule(SpokenScene):
+class S09Handon(ActiveSpokenScene):
     def construct(self):
-        self.at("Viruses matter too")
-        vir = bchip("virus", PURPLE, 36).move_to([-3.5, 0.4, 0])
-        self.play(FadeIn(vir, scale=0.9), run_time=0.5)
-        self.at("bacteriophage")
-        phage = bchip("bacteriophage", PURPLE, 36).move_to([-3.5, 0.4, 0])
-        self.play(ReplacementTransform(vir, phage), run_time=0.6)
-        self.at("infects bacteria")
-        bdots = VGroup(*[dot(GREEN, 0.18, p) for p in scatter(5, 3.7, 0.4, 1.8, 1.4, seed=2, gap=0.55)])
-        bl = T("bacteria", 30, GREEN).move_to([3.7, -0.9, 0])
-        ia = arr([-1.5, 0.4, 0], [2.4, 0.4, 0], PURPLE)
-        dl = T("a virus that infects bacteria", 26, GREY).move_to([0, -1.9, 0])
-        self.play(GrowArrow(ia), LaggedStart(*[GrowFromCenter(d) for d in bdots], lag_ratio=0.1), FadeIn(bl), FadeIn(dl), run_time=0.9)
-
-        self.at("lab model ecosystem")
-        self.play(FadeOut(VGroup(phage, ia, bdots, bl, dl)), run_time=0.6)
-        water = RoundedRectangle(corner_radius=0.2, width=11.6, height=1.8, stroke_color=BLUE, stroke_width=3,
-                                 fill_color=BLUE, fill_opacity=0.08).move_to([0, -1.8, 0])
-        wl = T("water", 24, BLUE).move_to([-5.2, -1.15, 0])
-        self.play(Create(water), FadeIn(wl), run_time=0.6)
-        self.at("a virus infected")
-        v = bchip("virus", PURPLE, 26).move_to([-4.2, 1.2, 0])
-        self.play(FadeIn(v, shift=RIGHT * 0.2), run_time=0.5)
-        self.at("ocean alga")
-        alga = Circle(radius=0.85, stroke_color=TEXT, stroke_width=4, fill_color=TEXT, fill_opacity=0.25).move_to([0, 1.2, 0])
-        al = T("ocean alga", 28, TEXT).next_to(alga, UP, buff=0.2)
-        va = arr([-3.3, 1.2, 0], [-0.95, 1.2, 0], PURPLE)
-        self.play(GrowFromCenter(alga), FadeIn(al), GrowArrow(va), run_time=0.7)
-        self.at("Bacteria then")
-        dead = T("dead algae", 28, BROWN).move_to([0, 2.45, 0])
-        self.play(alga.animate.set_stroke(BROWN).set_fill(BROWN, 0.5), ReplacementTransform(al, dead), FadeOut(VGroup(v, va)), run_time=0.7)
-        bs = VGroup(*[dot(GREEN, 0.15, [x, y, 0]) for x, y in [(-1.2, 1.7), (1.2, 1.7), (-1.3, 0.7), (1.3, 0.7)]])
-        self.at("broke down")
-        self.play(LaggedStart(*[GrowFromCenter(b) for b in bs], lag_ratio=0.1), alga.animate.scale(0.5).set_fill(BROWN, 0.2), run_time=1.0)
-        n = bchip("nitrogen", BLUE, 28).move_to([-1.9, -1.85, 0])
-        p = bchip("phosphorus", BLUE, 28).move_to([1.9, -1.85, 0])
-        self.at("nitrogen and phosphorus")
-        self.play(FadeIn(n, shift=DOWN * 0.3), FadeIn(p, shift=DOWN * 0.3), run_time=0.8)
-        self.at("other living things")
-        ol = T("for other living things to use", 26, BLUE).move_to([0, -3.2, 0])
-        self.play(FadeIn(ol), run_time=0.5)
-
-        self.at("always harmful")
-        self.play(FadeOut(VGroup(water, wl, alga, dead, bs, n, p, ol)), run_time=0.6)
-        qt = T("Are bacteria and viruses always harmful?", 38, TEXT, font=TITLE_FONT)
-        fit(qt, max_w=12.0)
-        qt.move_to([0, 2.5, 0])
-        self.play(Write(qt), run_time=1.0)
-        self.at("Now")
-        no = T("No.", 80, TEXT, weight=BOLD, font=TITLE_FONT).move_to([0, 0.9, 0])
-        self.play(FadeIn(no, scale=0.8), run_time=0.4)
-        self.at("which microbe")
-        c1 = bchip("which microbe it is", GREEN, 34).move_to([-3.3, -1.0, 0])
-        self.play(FadeIn(c1, shift=UP * 0.2), run_time=0.5)
-        self.at("where it lives")
-        c2 = bchip("where it lives", BLUE, 34).move_to([3.3, -1.0, 0])
-        plus = T("and", 30, GREY).move_to([0, -1.0, 0])
-        self.play(FadeIn(plus), FadeIn(c2, shift=UP * 0.2), run_time=0.5)
+        tp = TwoPanel("nodule", "dead stem", colors=(TEAL, ORANGE_M), top=3.0, bottom=-0.2)
+        # A third wide panel below keeps the three cases readable without shrinking them.
+        lower = RoundedRectangle(corner_radius=0.18, width=12.8, height=2.1, color=GOLD, stroke_width=2.5).move_to([0, -1.55, 0])
+        lower_head = T("gut fiber", 30, GOLD).move_to([-5.35, -0.75, 0])
+        self.play(FadeIn(tp), FadeIn(lower), FadeIn(lower_head), run_time=0.7)
+        locks = VGroup(padlock([-3.2, 1.15, 0], 1.0, True), padlock([3.2, 1.15, 0], 1.0, True), padlock([-3.2, -1.55, 0], 1.0, True))
+        self.at("Three locked stores")
+        self.play(LaggedStart(*[FadeIn(l) for l in locks], lag_ratio=0.18), run_time=0.9)
+        microbes = VGroup(bacterium([-1.8, 1.15, 0]), bacterium([4.55, 1.15, 0]), bacterium([-1.8, -1.55, 0]))
+        self.at("three microbes")
+        self.play(LaggedStart(*[FadeIn(m) for m in microbes], lag_ratio=0.16), run_time=0.8)
+        outs = VGroup(arrow([-1.2, 1.15, 0], [0.5, 1.15, 0], TEAL),
+                      arrow([5.0, 1.15, 0], [6.1, 1.15, 0], ORANGE_M),
+                      arrow([-1.2, -1.55, 0], [1.2, -1.55, 0], TEAL))
+        self.at("handed on")
+        self.play(LaggedStart(*[GrowArrow(a) for a in outs], lag_ratio=0.2), run_time=1.0)
+        cap = caption("unlock, then hand it on", size=34, color=TEXT, y=-3.25)
+        self.at("life depends on microbes")
+        self.play(FadeIn(cap), run_time=0.6)
         self.finish()
 
 
-class S07End(EndCard):
-    LINE = "Helps or harms depends on which microbe, and where it lives."
+class S10Pathogen(ActiveSpokenScene):
+    def construct(self):
+        vine = vine_world()
+        self.play(FadeIn(vine), run_time=0.8)
+        title = T("grapevine", 30, GREEN).move_to([-3.0, 3.15, 0])
+        self.at("look at a grapevine")
+        self.play(FadeIn(title), run_time=0.4)
+        rods = VGroup(*[bacterium(p, scale=0.8) for p in [(-3.0, 1.2, 0), (-3.0, 0.55, 0), (-3.0, -0.1, 0), (-3.0, -0.75, 0)]])
+        xlab = T("Xylella", 30, PURPLE).move_to([0.0, 1.5, 0])
+        self.at("bacterium called Xylella")
+        self.play(LaggedStart(*[FadeIn(r) for r in rods], lag_ratio=0.13), FadeIn(xlab), run_time=1.0)
+        block = Rectangle(width=0.82, height=0.55, color=PURPLE, fill_color=PURPLE, fill_opacity=0.75).move_to([-3.0, -0.25, 0])
+        self.at("blocks them")
+        self.play(GrowFromCenter(block), vine[2].animate.set_color(BROWN), run_time=0.8)
+        one = arrow([-1.9, -1.85, 0], [3.8, -1.85, 0], DARK_GREY, width=7)
+        vine_lab = T("vine", 28, GREEN).move_to([-1.35, -2.35, 0])
+        bact_lab = T("bacterium", 28, PURPLE).move_to([3.3, -2.35, 0])
+        self.at("arrow runs one way")
+        self.play(GrowArrow(one), FadeIn(vine_lab), FadeIn(bact_lab), run_time=0.8)
+        path = chip("pathogen", RED, 34).move_to([3.6, 0.3, 0])
+        self.at("is a pathogen")
+        self.play(FadeIn(path), run_time=0.6)
+        self.finish()
+
+
+class S11Host(ActiveSpokenScene):
+    def construct(self):
+        vine = vine_world()
+        vine[2].set_color(BROWN)
+        rods = VGroup(*[bacterium(p, scale=0.8) for p in [(-3.0, 1.2, 0), (-3.0, 0.55, 0), (-3.0, -0.1, 0), (-3.0, -0.75, 0)]])
+        self.add(vine, rods)
+        outline = SurroundingRectangle(vine, color=GREEN, buff=0.22, stroke_width=4)
+        self.at("The host")
+        self.play(Create(outline), run_time=0.7)
+        host = chip("host", GREEN, 34).move_to([1.2, 2.55, 0])
+        self.play(FadeIn(host), run_time=0.4)
+        harm = arrow([-1.85, 0.15, 0], [4.1, 0.15, 0], DARK_GREY, width=7)
+        harm_lab = T("host → pathogen", 30, DARK_GREY).move_to([1.1, 0.75, 0])
+        self.at("grows inside its host")
+        self.play(GrowArrow(harm), FadeIn(harm_lab), run_time=0.8)
+        self.at("harms it")
+        self.play(Indicate(vine[2], color=RED), run_time=0.7)
+        returned = arrow([4.1, -1.25, 0], [-1.85, -1.25, 0], GREY, width=4)
+        self.at("gets nothing useful back")
+        self.play(Create(returned), run_time=0.5)
+        self.play(Create(Cross(returned, stroke_color=RED, stroke_width=6)), run_time=0.5)
+        self.finish()
+
+
+class S12Ecoli(ActiveSpokenScene):
+    def construct(self):
+        tp, left, right = ecoli_panels()
+        self.play(FadeIn(tp), run_time=0.7)
+        prompt = T("helper or harm?", 34, TEXT, weight=BOLD).move_to([0, 3.45, 0])
+        self.at("helper or a harm")
+        self.play(FadeIn(prompt), run_time=0.5)
+        self.at("Take E coli")
+        self.play(FadeIn(left), run_time=0.7)
+        quiet = T("large intestine", 28, GREY).move_to([-3.25, -1.9, 0])
+        self.at("live quietly")
+        self.play(FadeIn(quiet), run_time=0.5)
+        self.at("Other strains")
+        self.play(FadeIn(right), run_time=0.7)
+        self.at("extra genes")
+        self.play(Indicate(right[2], color=RED), run_time=0.7)
+        stomach = Circle(0.58, color=RED).move_to([4.9, -1.5, 0])
+        sick = T("sick", 28, RED).move_to([4.9, -2.25, 0])
+        into = arrow([3.0, -0.2, 0], [4.45, -1.15, 0], RED)
+        self.at("food or water")
+        self.play(GrowArrow(into), FadeIn(stomach), run_time=0.7)
+        self.at("get sick")
+        self.play(FadeIn(sick), run_time=0.4)
+        rule = caption("which strain, and where it lives", size=32, color=GOLD)
+        self.play(FadeIn(rule), run_time=0.5)
+        self.finish()
+
+
+class S13Rule(ActiveSpokenScene):
+    def construct(self):
+        left = RoundedRectangle(corner_radius=0.22, width=5.7, height=5.5, color=TEAL, stroke_width=3).move_to([-3.6, 0.25, 0])
+        right = RoundedRectangle(corner_radius=0.22, width=5.7, height=5.5, color=RED, stroke_width=3).move_to([3.6, 0.25, 0])
+        self.play(FadeIn(left), FadeIn(right), run_time=0.6)
+        locks = VGroup(*[padlock([-4.8 + 1.2 * i, 1.35, 0], 0.78, True) for i in range(3)])
+        self.at("Some microbes unlock")
+        self.play(LaggedStart(*[FadeIn(l) for l in locks], lag_ratio=0.15), run_time=0.8)
+        hand = arrow([-5.0, -0.1, 0], [-2.25, -0.1, 0], TEAL)
+        self.at("hand it on")
+        self.play(GrowArrow(hand), run_time=0.6)
+        life = fit_text("unlock + hand on\nlife depends on them", max_w=4.8, size=32, color=TEAL).move_to([-3.6, -1.25, 0])
+        self.at("Life depends on them")
+        self.play(FadeIn(life), run_time=0.5)
+        vine = vine_world().scale(0.52).move_to([3.0, 0.65, 0])
+        self.at("Pathogens cause disease")
+        self.play(FadeIn(vine), run_time=0.7)
+        harm = arrow([2.1, -1.0, 0], [5.2, -1.0, 0], DARK_GREY)
+        path = T("pathogen: harms its host", 30, RED).move_to([3.6, -1.7, 0])
+        self.play(GrowArrow(harm), FadeIn(path), run_time=0.7)
+        decide = caption("strain and place can decide", size=34, color=GOLD)
+        self.at("depend on its strain")
+        self.play(FadeIn(decide), run_time=0.6)
+        self.finish()
+
+
+class S14End(EndCard):
+    LINE = "Microbes that unlock matter feed life; pathogens cause disease in their hosts."

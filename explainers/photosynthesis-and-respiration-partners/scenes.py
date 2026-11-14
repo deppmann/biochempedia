@@ -1,440 +1,540 @@
-"""Partners in energy: photosynthesis and respiration  (grade 7 Life Science explainer)
+"""Two Jobs in One Green Cell.
 
-COLOR MAP (one color per concept, whole video)
-  BLUE   = oxygen (the gas, the bars, the tub's water level)
-  TEAL   = water
-  PURPLE = carbon dioxide
-  GOLD   = sugar (glucose) and the chemical energy in it
-  GREEN  = photosynthesis / chloroplast / plants
-  ORANGE = cellular respiration / mitochondria / energy the cell can use
-  YELLOW = light (radiant energy) and daylight
-  RED    = heat
-  GREY   = cell outline, sensor, structure, notes
+COLOR MAP: photosynthesis/chloroplast/sugar GREEN; respiration/mitochondrion RED;
+oxygen/water BLUE; light/usable energy/heat YELLOW; carbon dioxide/labels GREY.
+All materials are schematic labelled blocks or bubbles, never molecular structures.
 """
 import numpy as np
-from bp_style import *  # noqa: F401,F403
-
-PURPLE = "#B58CD9"
-ORANGE = "#F29E4C"
-
-CHL = np.array([-3.5, -0.1, 0.0])   # chloroplast centre
-MIT = np.array([3.5, -0.1, 0.0])    # mitochondrion centre
-CH_W, CH_H, MI_W, MI_H = 3.0, 1.9, 3.0, 1.7
-TOPY, BOTY = 1.8, -2.2              # lanes for the matter chips
+from bp_parts import *  # noqa: F401,F403
 
 
-def arr(a, b, color=GREY, w=5, tip=0.2):
-    return Arrow(a, b, buff=0.0, color=color, stroke_width=w, tip_length=tip,
-                 max_tip_length_to_length_ratio=0.5, max_stroke_width_to_length_ratio=14)
+CELL_C = np.array([0.0, -0.15, 0.0])
+CHL_C = np.array([-3.15, -0.05, 0.0])
+MIT_C = np.array([3.15, -0.05, 0.0])
 
 
-def ell_y(c, w, h, x, up=True):
-    """y on the ellipse outline at x (up=True: top edge)."""
-    t = (x - c[0]) / (w / 2)
-    t = max(-0.999, min(0.999, t))
-    d = (h / 2) * np.sqrt(1 - t * t)
-    return c[1] + d if up else c[1] - d
+def _drift(mob, velocity):
+    """Wrap a small cytoplasm particle inside the common cell outline."""
+    mob.velocity = np.array(velocity, dtype=float)
+
+    def update(dot, dt):
+        dot.shift(dot.velocity * dt)
+        if dot.get_x() > 5.65:
+            dot.shift(LEFT * 11.3)
+        if dot.get_y() > 2.45:
+            dot.shift(DOWN * 5.0)
+    return mob.add_updater(update)
 
 
-def cell_outline():
-    box = RoundedRectangle(corner_radius=0.5, width=12.0, height=6.0, stroke_color=GREY, stroke_width=4,
-                           fill_color=GREY, fill_opacity=0.05).move_to([0, -0.3, 0])
-    lab = T("green leaf cell", 24, GREY).move_to([3.9, 3.15, 0])
-    return VGroup(box, lab)
+def cell_shell(night=False, particles=True):
+    """The carried green leaf cell, always rebuilt at the same scale and position."""
+    fill = "#121827" if night else GREEN
+    shell = RoundedRectangle(
+        corner_radius=0.72, width=12.2, height=6.15,
+        stroke_color=GREEN, stroke_width=6,
+        fill_color=fill, fill_opacity=0.08 if not night else 0.34,
+    ).move_to(CELL_C)
+    inner = RoundedRectangle(
+        corner_radius=0.58, width=11.75, height=5.72,
+        stroke_color=GREEN, stroke_width=2,
+    ).set_opacity(0.42).move_to(CELL_C)
+    # These two outlines deliberately sit behind everything inside the cell.
+    shell.layout_ok = True
+    inner.layout_ok = True
+    group = VGroup(shell, inner)
+    if particles:
+        # Twenty-four visible particles make the cytoplasm itself a living, continuously
+        # changing subject during narration holds (not a token pulse).
+        pts = [(-5.2 + (i % 8) * 1.45, -1.85 + (i // 8) * 1.78 + 0.18*(i % 2))
+               for i in range(24)]
+        motes = VGroup()
+        for i, (x, y) in enumerate(pts):
+            d = Dot([x, y, 0], radius=0.07 + 0.008 * (i % 3), color=TEXT).set_opacity(0.34)
+            motes.add(_drift(d, (0.48 + 0.06 * (i % 4), 0.025 + 0.008 * (i % 2), 0)))
+        group.add(motes)
+        group.motes = motes
+    return group
 
 
-def chloroplast():
-    shape = Ellipse(width=CH_W, height=CH_H, stroke_color=GREEN, stroke_width=4, fill_color=GREEN,
-                    fill_opacity=0.22).move_to(CHL)
-    name = T("chloroplast", 26, GREEN).move_to(CHL + UP * 0.12)
-    sub = T("photosynthesis", 22, GREEN).move_to(CHL + DOWN * 0.38)
-    return shape, name, sub
+def chloroplast(center=CHL_C, labelled=False, dim=False):
+    body = Ellipse(width=3.35, height=2.1, color=GREEN, stroke_width=6,
+                   fill_color=GREEN, fill_opacity=0.2).move_to(center)
+    bands = VGroup(*[
+        Line(center + [-1.0, y, 0], center + [1.0, y, 0], color=GREEN, stroke_width=4)
+        for y in (-0.45, 0, 0.45)
+    ]).set_opacity(0.75)
+    body.layout_ok = True
+    bands.layout_ok = True
+    g = VGroup(body, bands)
+    if labelled:
+        lab = T("chloroplast", 30, GREEN, weight=BOLD).next_to(body, DOWN, buff=0.18)
+        g.add(lab)
+        g.label = lab
+    if dim:
+        g.set_opacity(0.38)
+    return g
 
 
-def mitochondrion():
-    shape = Ellipse(width=MI_W, height=MI_H, stroke_color=ORANGE, stroke_width=4, fill_color=ORANGE,
-                    fill_opacity=0.22).move_to(MIT)
-    name = T("mitochondria", 26, ORANGE).move_to(MIT + UP * 0.12)
-    sub = T("respiration", 22, ORANGE).move_to(MIT + DOWN * 0.38)
-    return shape, name, sub
+def mitochondrion(center=MIT_C, labelled=False, dim=False):
+    body = Ellipse(width=3.25, height=2.0, color=RED, stroke_width=6,
+                   fill_color=RED, fill_opacity=0.2).move_to(center)
+    wave = VMobject(color=RED, stroke_width=4)
+    xs = np.linspace(center[0] - 1.15, center[0] + 1.15, 45)
+    wave.set_points_as_corners([np.array([x, center[1] + 0.38 * np.sin((x-center[0]) * 5.2), 0]) for x in xs])
+    body.layout_ok = True
+    wave.layout_ok = True
+    g = VGroup(body, wave)
+    if labelled:
+        lab = T("mitochondrion", 30, RED, weight=BOLD).next_to(body, DOWN, buff=0.18)
+        g.add(lab)
+        g.label = lab
+    if dim:
+        g.set_opacity(0.38)
+    return g
 
 
-def c_sugar(x=-3.2, y=TOPY):
-    return chip("sugar (glucose)", GOLD, size=22).move_to([x, y, 0])
+def cell_world(night=False, labels=False, dim=False):
+    """The common cell picture used by every intracellular scene."""
+    cell = cell_shell(night=night)
+    chl = chloroplast(labelled=labels, dim=dim)
+    mit = mitochondrion(labelled=labels, dim=dim)
+    pulse(mit[0], base=6, amp=1.2, speed=2.1)
+    # The organelles are the scene subject, so their sustained living-cell motion
+    # continues while each sentence lands instead of relying on a token pulse.
+    bob(chl, amp=0.14, speed=2.5, seed=0)
+    bob(mit, amp=0.14, speed=2.5, seed=2)
+    g = VGroup(cell, chl, mit)
+    g.cell, g.chl, g.mit = cell, chl, mit
+    return g
 
 
-def c_oxy(x=-0.7, y=TOPY):
-    return chip("oxygen", BLUE, size=22).move_to([x, y, 0])
+def sun(at=(-5.25, 2.55, 0), scale=1.0):
+    core = Circle(radius=0.38 * scale, color=YELLOW, stroke_width=5,
+                  fill_color=YELLOW, fill_opacity=0.35).move_to(at)
+    rays = VGroup(*[
+        Line(ORIGIN + RIGHT * 0.52 * scale, ORIGIN + RIGHT * 0.78 * scale,
+             color=YELLOW, stroke_width=4).rotate(a).shift(at)
+        for a in np.linspace(0, TAU, 8, endpoint=False)
+    ])
+    g = VGroup(core, rays)
+    g.layout_ok = True  # a background symbol; labels may intentionally sit across its rays
+    return g
 
 
-def c_co2(x=-4.5, y=BOTY):
-    return chip("carbon dioxide", PURPLE, size=22).move_to([x, y, 0])
+def material(text, color, at, size=26):
+    g = chip(text, color=color, size=size, pad=0.18).move_to(at)
+    # A dark backing keeps the route beneath a travelling badge from crossing its letters.
+    g[0].set_fill(BG, opacity=0.92)
+    return g
 
 
-def c_h2o(x=-2.5, y=BOTY):
-    return chip("water", TEAL, size=22).move_to([x, y, 0])
+def oxygen_bubbles(at, count=3):
+    x, y, _ = at
+    g = VGroup(*[
+        Circle(radius=0.13 + 0.025 * (i % 2), color=BLUE, stroke_width=4,
+               fill_color=BLUE, fill_opacity=0.18).move_to([x + 0.28*i, y + 0.15*(i % 2), 0])
+        for i in range(count)
+    ])
+    # Bubbles deliberately travel beside labelled material badges on the same route.
+    g.layout_ok = True
+    return g
 
 
-# chips sit by their right/left edges so the pair never touches
-def photo_inputs():
-    co2 = c_co2(); h2o = c_h2o()
-    co2.move_to([-3.1 - co2.width / 2, BOTY, 0])
-    h2o.move_to([-2.85 + h2o.width / 2, BOTY, 0])
-    return co2, h2o
+def path_arrow(start, end, color, bend=0.0, width=6):
+    # Arrow is deliberately used instead of a hand-added tip: it stays compatible
+    # with the pinned Manim version and remains a valid MoveAlongPath path.
+    return Arrow(start, end, buff=0.0, color=color, stroke_width=width,
+                 tip_length=0.22, max_tip_length_to_length_ratio=0.18)
 
 
-def photo_in_arrows(co2, h2o):
-    x1 = co2.get_center()[0] + 0.5
-    x2 = h2o.get_center()[0]
-    a1 = arr([x1, co2.get_top()[1] + 0.03, 0], [x1, ell_y(CHL, CH_W, CH_H, x1, False) - 0.03, 0], PURPLE)
-    a2 = arr([x2, h2o.get_top()[1] + 0.03, 0], [x2, ell_y(CHL, CH_W, CH_H, x2, False) - 0.03, 0], TEAL)
-    return a1, a2
+def loop_paths():
+    top = path_arrow(CHL_C + [1.25, 0.55, 0], MIT_C + [-1.25, 0.55, 0], GREEN, 0.45)
+    bottom = path_arrow(MIT_C + [-1.25, -0.55, 0], CHL_C + [1.25, -0.55, 0], BLUE, -0.45)
+    return VGroup(top, bottom)
 
 
-def photo_out_arrows(sug, oxy):
-    x1 = sug.get_center()[0]
-    x2 = oxy.get_center()[0] - 0.25
-    a1 = arr([x1, ell_y(CHL, CH_W, CH_H, x1) + 0.03, 0], [x1, sug.get_bottom()[1] - 0.03, 0], GOLD)
-    a2 = arr([-2.45, ell_y(CHL, CH_W, CH_H, -2.45) + 0.03, 0], [x2, oxy.get_bottom()[1] - 0.03, 0], BLUE)
-    return a1, a2
+def working_cell_icon():
+    body = RoundedRectangle(corner_radius=0.18, width=1.45, height=0.85,
+                            color=YELLOW, fill_color=YELLOW, fill_opacity=0.12)
+    gear = VGroup(Circle(radius=0.17, color=YELLOW, stroke_width=4),
+                  *[Line(RIGHT*0.21, RIGHT*0.31, color=YELLOW, stroke_width=4).rotate(a)
+                    for a in np.linspace(0, TAU, 8, endpoint=False)])
+    return VGroup(body, gear).move_to([5.1, 2.05, 0])
 
 
-def mit_top_chips():
-    sug = c_sugar(2.5); oxy = c_oxy(4.9)
-    return sug, oxy
+def question_world():
+    world = cell_world()
+    arrows = loop_paths()
+    arrows.set_opacity(0.72)
+    g = VGroup(world, arrows, sun())
+    g.scale(0.84).shift(UP * 0.35)
+    return g
 
 
-def mit_in_arrows(sug, oxy):
-    x1 = sug.get_center()[0] + 0.4
-    x2 = oxy.get_center()[0] - 0.3
-    a1 = arr([x1, sug.get_bottom()[1] - 0.03, 0], [x1, ell_y(MIT, MI_W, MI_H, x1) + 0.03, 0], GOLD)
-    a2 = arr([x2, oxy.get_bottom()[1] - 0.03, 0], [x2, ell_y(MIT, MI_W, MI_H, x2) + 0.03, 0], BLUE)
-    return a1, a2
+def creek_world(night=False):
+    """Simple creek bank in the same flat diagram language as the cell."""
+    sky = Rectangle(width=13.0, height=2.6, stroke_width=0,
+                    fill_color="#11182A" if night else BLUE, fill_opacity=0.13).move_to([0, 2.1, 0])
+    water = Rectangle(width=13.0, height=3.2, stroke_width=0,
+                      fill_color=BLUE, fill_opacity=0.18).move_to([0, -1.2, 0])
+    xs = np.linspace(-6.4, 6.4, 100)
+    surface = VMobject(color=BLUE, stroke_width=5)
+    surface.phase = 0.0
+
+    def ripple(line, dt):
+        line.phase += 2.2 * dt
+        line.set_points_as_corners([
+            np.array([x, 0.4 + 0.09*np.sin(2.2*x + line.phase), 0]) for x in xs
+        ])
+    ripple(surface, 0)
+    surface.add_updater(ripple)
+    bank = Polygon([-6.4, 0.4, 0], [-3.9, 0.4, 0], [-2.6, -0.3, 0], [-6.4, -0.3, 0],
+                   color=GREEN, fill_color=GREEN, fill_opacity=0.18, stroke_width=0)
+    return VGroup(sky, water, surface, bank)
 
 
-def mit_bottom_chips():
-    co2 = c_co2(); h2o = c_h2o()
-    co2.move_to([1.0 + co2.width / 2, BOTY, 0])
-    h2o.move_to([3.95 + h2o.width / 2, BOTY, 0])
-    return co2, h2o
+class S00Hook(SpokenScene, TitleCard):
+    LESSON = "Photosynthesis and respiration partners"
+    TITLE = "Two Jobs in One Green Cell"
 
-
-def mit_out_arrows(co2, h2o):
-    x1 = co2.get_center()[0] + 0.5
-    x2 = h2o.get_center()[0]
-    a1 = arr([x1, ell_y(MIT, MI_W, MI_H, x1, False) - 0.03, 0], [x1, co2.get_top()[1] + 0.03, 0], PURPLE)
-    a2 = arr([x2, ell_y(MIT, MI_W, MI_H, x2, False) - 0.03, 0], [x2, h2o.get_top()[1] + 0.03, 0], TEAL)
-    return a1, a2
-
-
-def light_arrow():
-    return arr([-5.9, 2.85, 0], [-4.5, 0.62, 0], YELLOW, w=7, tip=0.25)
-
-
-def tag(text, color, near, below=False):
-    t = T(text, 22, color, weight=BOLD)
-    t.next_to(near, DOWN if below else UP, buff=0.1)
-    return t
-
-
-def energy_label():
-    return T("energy the\ncell can use", 24, ORANGE, line_spacing=0.8).move_to([0, -0.1, 0])
-
-
-def heat_group():
-    a = arr([5.05, -0.1, 0], [6.15, -0.1, 0], RED, w=6)
-    l = T("heat", 24, RED).move_to([5.6, 0.45, 0])
-    return a, l
-
-
-# =============================================================================================
-class S00Title(TitleCard):
-    LESSON = "Photosynthesis and respiration"
-    TITLE = "Two processes that need each other"
-
-
-# =============================================================================================
-class S01Creek(SpokenScene):
     def construct(self):
-        # creek: water, surface, ground, sensor
-        water = Rectangle(width=5.4, height=2.0, stroke_width=0, fill_color=TEAL, fill_opacity=0.28).move_to([-3.5, -0.85, 0])
-        surf = FunctionGraph(lambda x: 0.07 * np.sin(3.2 * x), x_range=[-6.2, -0.8], color=TEAL, stroke_width=4).shift(UP * 0.15)
-        ground = Line([-6.2, -1.85, 0], [-0.8, -1.85, 0], color=GREY, stroke_width=5)
-        wlab = T("creek water", 24, TEAL).move_to([-5.0, -1.4, 0])
-        creek = VGroup(water, surf, ground, wlab)
-        stake = Line([-3.0, 1.4, 0], [-3.0, -0.95, 0], color=TEXT, stroke_width=6)
-        body = RoundedRectangle(corner_radius=0.1, width=0.5, height=0.8, stroke_color=TEXT, stroke_width=4,
-                                fill_color=TEXT, fill_opacity=0.25).move_to([-3.0, -1.0, 0])
-        slab = T("sensor", 28, TEXT).move_to([-3.0, 1.8, 0])
-        sensor = VGroup(stake, body)
-        self.play(FadeIn(creek), run_time=0.8)
-        self.at("sensor sits")
-        self.play(Create(stake), FadeIn(body), FadeIn(slab, shift=DOWN * 0.1), run_time=0.8)
-        self.at("checks the oxygen")
-        every = T("every 15 minutes", 26, TEXT).move_to([-3.5, -2.35, 0])
-        self.play(FadeIn(every), run_time=0.4)
-        for _ in range(2):
-            ring = Circle(radius=0.3, stroke_color=BLUE, stroke_width=4).move_to(body)
-            self.play(ring.animate.scale(3.2).set_stroke(opacity=0), run_time=0.9)
-            self.remove(ring)
-        # bars
-        base = Line([1.0, -1.85, 0], [6.0, -1.85, 0], color=GREY, stroke_width=5)
-        ttl = T("oxygen in the water", 26, BLUE).move_to([3.6, 2.4, 0])
-        note = T("sketch, not to scale", 22, GREY).move_to([3.6, -3.05, 0])
-        self.at("far more oxygen")
-        b1 = Rectangle(width=1.3, height=3.4, stroke_color=BLUE, stroke_width=3, fill_color=BLUE, fill_opacity=0.45)
-        b1.move_to([2.4, -1.85 + 1.7, 0])
-        l1 = T("6 p.m.", 26, TEXT).move_to([2.4, -2.3, 0])
-        self.play(FadeIn(base), FadeIn(ttl), FadeIn(note), run_time=0.4)
-        self.play(GrowFromEdge(b1, DOWN), FadeIn(l1), run_time=0.9)
-        self.at("early morning")
-        b2 = Rectangle(width=1.3, height=1.2, stroke_color=BLUE, stroke_width=3, fill_color=BLUE, fill_opacity=0.45)
-        b2.move_to([4.7, -1.85 + 0.6, 0])
-        l2 = T("early morning", 26, TEXT).move_to([4.7, -2.3, 0])
-        self.play(GrowFromEdge(b2, DOWN), FadeIn(l2), run_time=0.7)
-        self.at("go up and down")
-        q = T("?", 80, TEXT, weight=BOLD).move_to([3.55, 0.55, 0])
-        self.play(FadeIn(q, scale=0.6), Indicate(b1, color=BLUE, scale_factor=1.06), run_time=0.6)
-        self.play(Indicate(b2, color=BLUE, scale_factor=1.12), run_time=0.6)
-        # the plant question
-        self.at("plants make their own food")
-        c1 = chip("plants make their own food", GREEN, size=24).move_to([-3.4, 0.9, 0])
-        self.play(FadeOut(creek), FadeOut(sensor), FadeOut(slab), FadeOut(every), FadeIn(c1, shift=UP * 0.1), run_time=0.8)
-        self.at("use oxygen too")
-        c2 = chip("why do they use oxygen too?", BLUE, size=24).move_to([-3.4, -0.6, 0])
-        self.play(FadeIn(c2, shift=UP * 0.1), run_time=0.6)
-        self.play(Indicate(c2, color=BLUE, scale_factor=1.06), run_time=0.8)
+        cell = cell_shell()
+        self.play(Create(cell[0]), FadeIn(cell[1:]), run_time=1.2)
+        chl = chloroplast(dim=True)
+        mit = mitochondrion(dim=True)
+        self.at("one green leaf cell")
+        self.play(FadeIn(chl, scale=0.8), FadeIn(mit, scale=0.8), run_time=1.1)
+        q = T("?", 92, YELLOW, weight=BOLD).move_to([0, 1.35, 0])
+        self.at("build sugar")
+        self.play(GrowFromCenter(q), run_time=0.7)
+        partial = loop_paths().set_opacity(0.45)
+        partial[0].pointwise_become_partial(partial[0], 0, 0.62)
+        partial[1].pointwise_become_partial(partial[1], 0, 0.58)
+        self.at("parts begin working")
+        self.play(Create(partial), chl.animate.set_opacity(1), mit.animate.set_opacity(1), run_time=1.8)
+        self.at("materials connect")
+        self.play(Indicate(VGroup(chl, mit, partial), color=YELLOW, scale_factor=1.02), run_time=1.2)
         self.finish()
 
 
-# =============================================================================================
-class S02Photo(SpokenScene):
+class S01Title(NarratedScene):
     def construct(self):
-        cell = cell_outline()
-        sh, nm, sub = chloroplast()
-        self.play(Create(cell[0]), FadeIn(cell[1]), run_time=0.9)
-        self.at("chloroplast, a green part")
-        self.play(GrowFromCenter(sh), FadeIn(nm), run_time=0.8)
+        world = cell_world(dim=True)
+        title = T("Two Jobs in One Green Cell", 50, TEXT, font=TITLE_FONT)
+        title.layout_ok = True  # deliberate title overlay on the dim living-cell background
+        rule = Line(LEFT*1.4, RIGHT*1.4, color=GOLD, stroke_width=4).next_to(title, DOWN, buff=0.24)
+        backing = SurroundingRectangle(VGroup(title, rule), buff=0.28, corner_radius=0.16,
+                                       color=GOLD, stroke_width=2, fill_color=BG, fill_opacity=0.9)
+        backing.layout_ok = True
+        self.add(world)
+        self.play(FadeIn(backing), Write(title), GrowFromCenter(rule), run_time=0.85)
+        self.wait(0.55)
+        self.play(VGroup(backing, title, rule).animate.scale(0.48).move_to([-4.65, 3.3, 0]), run_time=0.6)
+        self.finish()
+
+
+class S02Photosynthesis(SpokenScene):
+    def construct(self):
+        cell = cell_shell()
+        chl = chloroplast()
+        self.add(cell)
+        light = path_arrow([-5.9, 2.8, 0], [-4.25, 0.9, 0], YELLOW, 0.15, 8)
+        self.play(GrowArrow(light), run_time=0.9)
+        self.at("green chloroplast")
+        self.play(GrowFromCenter(chl), run_time=1.1)
+        label = T("chloroplast", 30, GREEN, weight=BOLD).next_to(chl, DOWN, buff=0.18)
         self.at("takes in light")
-        la = light_arrow()
-        lab = T("light", 24, YELLOW).move_to([-5.0, 3.25, 0])
-        self.play(GrowArrow(la), FadeIn(lab), run_time=0.7)
-        self.at("photosynthesis happens")
-        self.play(FadeIn(sub, shift=UP * 0.05), run_time=0.5)
-        self.at("radiant energy")
-        lab2 = T("radiant energy", 24, YELLOW).move_to([-4.8, 3.25, 0])
-        self.play(ReplacementTransform(lab, lab2), run_time=0.5)
-        self.at("It makes sugar")
-        co2, h2o = photo_inputs()
-        sug = c_sugar(); oxy = c_oxy()
-        ai1, ai2 = photo_in_arrows(co2, h2o)
-        ao1, ao2 = photo_out_arrows(sug, oxy)
-        self.play(Indicate(VGroup(sh, nm, sub), color=GREEN, scale_factor=1.04), run_time=0.8)
-        self.at("go in")
-        self.play(FadeIn(co2, shift=UP * 0.2), FadeIn(h2o, shift=UP * 0.2), GrowArrow(ai1), GrowArrow(ai2), run_time=0.9)
-        self.at("come out")
-        self.play(GrowArrow(ao1), GrowArrow(ao2), FadeIn(sug, shift=UP * 0.2), FadeIn(oxy, shift=UP * 0.2), run_time=0.9)
+        self.play(FadeIn(label), Indicate(light, color=YELLOW), run_time=0.9)
+        co2 = material("carbon dioxide", GREY, [-5.05, -1.8, 0])
+        water = material("water", BLUE, [-2.55, -2.05, 0])
+        self.at("Carbon dioxide and water")
+        self.play(FadeOut(label), FadeIn(co2), FadeIn(water), run_time=0.6)
+        self.play(co2.animate.move_to(CHL_C + [-0.65, -0.45, 0]),
+                  water.animate.move_to(CHL_C + [0.65, 0.45, 0]), run_time=1.2)
+        sugar = material("sugar", GREEN, CHL_C + [0.15, 0.15, 0])
+        bubbles = oxygen_bubbles(CHL_C + [0.5, 0.05, 0])
+        self.at("Sugar, called glucose")
+        self.play(ReplacementTransform(VGroup(co2, water), VGroup(sugar, bubbles)), run_time=1.2)
+        self.at("oxygen move out")
+        self.play(sugar.animate.move_to([-0.75, 1.55, 0]),
+                  bubbles.animate.move_to([-0.4, 0.65, 0]), run_time=1.4)
         self.finish()
 
 
-# =============================================================================================
-class S03Resp(SpokenScene):
+class S03Respiration(SpokenScene):
     def construct(self):
-        cell = cell_outline()
-        sh, nm, sub = chloroplast()
-        la = light_arrow()
-        lab = T("radiant energy", 24, YELLOW).move_to([-4.8, 3.25, 0])
-        co2, h2o = photo_inputs(); sug = c_sugar(); oxy = c_oxy()
-        ai1, ai2 = photo_in_arrows(co2, h2o); ao1, ao2 = photo_out_arrows(sug, oxy)
-        self.add(cell, sh, nm, sub, la, lab, co2, h2o, ai1, ai2, sug, oxy, ao1, ao2)
-        # inputs have been taken in
-        self.play(FadeOut(co2), FadeOut(h2o), FadeOut(ai1), FadeOut(ai2), run_time=0.5)
-        msh, mnm, msub = mitochondrion()
-        self.at("same cell also has")
-        self.play(GrowFromCenter(msh), FadeIn(mnm), run_time=0.8)
-        self.at("found in almost all")
-        note = T("almost all plant and animal cells", 22, GREY).move_to([3.5, -1.35, 0])
-        self.play(FadeIn(note), run_time=0.5)
-        self.at("cellular respiration happens")
-        self.play(FadeOut(note), FadeIn(msub, shift=UP * 0.05), run_time=0.6)
-        self.at("joins sugar with oxygen")
-        s2, o2 = mit_top_chips()
-        ia1, ia2 = mit_in_arrows(s2, o2)
-        self.play(FadeOut(ao1), FadeOut(ao2), sug.animate.move_to(s2), oxy.animate.move_to(o2), run_time=1.0)
-        self.play(GrowArrow(ia1), GrowArrow(ia2), run_time=0.5)
-        self.at("releases energy")
-        en = energy_label()
-        ea = arr([2.0, -0.1, 0], [1.3, -0.1, 0], ORANGE, w=6)
-        self.play(FadeOut(sug), FadeOut(oxy), FadeOut(ia1), FadeOut(ia2),
-                  Indicate(VGroup(msh, mnm, msub), color=ORANGE, scale_factor=1.04), run_time=0.8)
-        self.play(GrowArrow(ea), FadeIn(en), run_time=0.6)
-        self.at("Carbon dioxide and water come out")
-        bc, bw = mit_bottom_chips()
-        ba1, ba2 = mit_out_arrows(bc, bw)
-        self.play(GrowArrow(ba1), GrowArrow(ba2), FadeIn(bc, shift=DOWN * 0.2), FadeIn(bw, shift=DOWN * 0.2), run_time=0.9)
-        self.at("some energy leaves as heat")
-        ha, hl = heat_group()
-        self.play(GrowArrow(ha), FadeIn(hl), run_time=0.7)
+        world = cell_world()
+        sugar = material("sugar", GREEN, [-1.0, 1.55, 0])
+        oxy = oxygen_bubbles([-0.75, 0.65, 0])
+        self.add(world, sugar, oxy)
+        self.play(sugar.animate.move_to([1.15, 1.1, 0]), run_time=1.1)
+        label = T("mitochondrion", 30, RED, weight=BOLD).next_to(world.mit, DOWN, buff=0.18)
+        self.at("red mitochondrion")
+        self.play(FadeIn(label), Indicate(world.mit, color=RED), run_time=0.8)
+        self.at("cellular respiration")
+        self.play(world.mit.animate.scale(1.06), run_time=0.55, rate_func=there_and_back)
+        pieces = VGroup(*[RoundedRectangle(corner_radius=0.08, width=0.45, height=0.32,
+                                          color=GREEN, fill_color=GREEN, fill_opacity=0.25)
+                          for _ in range(3)]).arrange(RIGHT, buff=0.1).move_to([1.4, 0.7, 0])
+        self.at("breaks down the sugar")
+        self.play(ReplacementTransform(sugar, pieces), run_time=0.8)
+        self.play(pieces.animate.move_to(MIT_C + [-0.3, 0.2, 0]).scale(0.65),
+                  oxy.animate.move_to(MIT_C + [0.45, 0.2, 0]).scale(0.75), run_time=1.0)
+        energy = path_arrow([4.15, 0.55, 0], [5.0, 1.7, 0], YELLOW, 0.1, 7)
+        worker = working_cell_icon()
+        self.at("usable energy comes out")
+        self.play(GrowArrow(energy), FadeIn(worker), run_time=0.9)
+        co2 = material("carbon dioxide", GREY, [4.25, -1.35, 0], 24)
+        water = material("water", BLUE, [2.2, -1.75, 0], 24)
+        self.at("Carbon dioxide and water")
+        self.play(FadeOut(label), FadeIn(co2, shift=DOWN*0.25), FadeIn(water, shift=DOWN*0.25), run_time=0.8)
+        self.play(co2.animate.shift(LEFT*1.0), water.animate.shift(LEFT*1.0), run_time=1.0)
         self.finish()
 
 
-# =============================================================================================
-class S04Loop(SpokenScene):
+class S04ReactantsProducts(SpokenScene):
     def construct(self):
-        cell = cell_outline()
-        sh, nm, sub = chloroplast(); msh, mnm, msub = mitochondrion()
-        la = light_arrow(); lab = T("radiant energy", 24, YELLOW).move_to([-4.8, 3.25, 0])
-        bc, bw = mit_bottom_chips(); ba1, ba2 = mit_out_arrows(bc, bw)
-        en = energy_label(); ea = arr([2.0, -0.1, 0], [1.3, -0.1, 0], ORANGE, w=6)
-        ha, hl = heat_group()
-        self.add(cell, sh, nm, sub, msh, mnm, msub, la, lab, bc, bw, ba1, ba2, en, ea, ha, hl)
-        self.play(FadeOut(en), FadeOut(ea), FadeOut(ha), FadeOut(hl), run_time=0.4)
-        # definitions
-        self.at("A reactant is")
-        d1 = T("reactant: goes in", 26, TEXT, weight=BOLD).move_to([0, 0.5, 0])
-        self.play(FadeIn(d1), run_time=0.5)
-        self.at("A product is")
-        d2 = T("product: comes out", 26, TEXT, weight=BOLD).move_to([0, -0.3, 0])
-        self.play(FadeIn(d2), run_time=0.5)
-        self.at("products of photosynthesis")
-        sug = c_sugar(); oxy = c_oxy()
-        ao1, ao2 = photo_out_arrows(sug, oxy)
-        t1 = tag("product", GREEN, sug); t2 = tag("product", GREEN, oxy)
-        self.play(FadeOut(d1), FadeOut(d2), GrowArrow(ao1), GrowArrow(ao2), FadeIn(sug), FadeIn(oxy),
-                  FadeIn(t1), FadeIn(t2), run_time=0.8)
-        self.at("reactants of respiration")
-        s2, o2 = mit_top_chips()
-        ia1, ia2 = mit_in_arrows(s2, o2)
-        r1 = tag("reactant", ORANGE, s2); r2 = tag("reactant", ORANGE, o2)
-        self.play(FadeOut(ao1), FadeOut(ao2), sug.animate.move_to(s2), oxy.animate.move_to(o2),
-                  ReplacementTransform(t1, r1), ReplacementTransform(t2, r2), run_time=1.2)
-        self.play(GrowArrow(ia1), GrowArrow(ia2), run_time=0.4)
-        self.at("products of respiration")
-        p1 = tag("product", ORANGE, bc, below=True); p2 = tag("product", ORANGE, bw, below=True)
-        self.play(FadeIn(p1), FadeIn(p2), Indicate(bc, color=PURPLE, scale_factor=1.06),
-                  Indicate(bw, color=TEAL, scale_factor=1.1), run_time=0.8)
-        self.at("reactants of photosynthesis")
-        co2, h2o = photo_inputs()
-        ai1, ai2 = photo_in_arrows(co2, h2o)
-        q1 = tag("reactant", GREEN, co2, below=True); q2 = tag("reactant", GREEN, h2o, below=True)
-        self.play(FadeOut(ba1), FadeOut(ba2), FadeOut(ia1), FadeOut(ia2), FadeOut(sug), FadeOut(oxy),
-                  FadeOut(r1), FadeOut(r2),
-                  bc.animate.move_to(co2), bw.animate.move_to(h2o),
-                  ReplacementTransform(p1, q1), ReplacementTransform(p2, q2), run_time=1.3)
-        self.play(GrowArrow(ai1), GrowArrow(ai2), run_time=0.4)
-        self.at("interdependent")
-        word = T("interdependent", 30, TEXT, weight=BOLD).move_to([0, -0.05, 0])
-        top = arr([-2.2, 0.85, 0], [2.2, 0.85, 0], GREEN, w=6)
-        bot = arr([2.2, -0.95, 0], [-2.2, -0.95, 0], ORANGE, w=6)
-        self.play(FadeIn(word), GrowArrow(top), GrowArrow(bot), run_time=0.8)
-        self.at("The same matter is used again")
-        again = T("the same matter is used again", 24, TEXT).move_to([0, -1.55, 0])
-        self.play(FadeIn(again), Indicate(top, color=GREEN, scale_factor=1.05), run_time=0.6)
-        self.play(Indicate(bot, color=ORANGE, scale_factor=1.05), run_time=0.6)
+        world = cell_world()
+        top, bottom = loop_paths()
+        self.add(world)
+        incoming = material("sugar + oxygen", GREEN, [-0.9, 1.25, 0], 24)
+        rt = chip("reactant", GREY, 24).next_to(incoming, UP, buff=0.1)
+        self.play(FadeIn(incoming), run_time=0.5)
+        self.at("A reactant")
+        self.play(FadeIn(rt), Create(top), run_time=0.7)
+        self.play(VGroup(incoming, rt).animate.move_to([1.55, 1.15, 0]), run_time=1.1)
+        outgoing = material("carbon dioxide + water", BLUE, [2.0, -1.25, 0], 22)
+        pt = chip("product", GREEN, 24).next_to(outgoing, DOWN, buff=0.1)
+        self.at("A product")
+        self.play(ReplacementTransform(VGroup(incoming, rt), VGroup(outgoing, pt)), Create(bottom), run_time=1.0)
+        self.at("product badge move")
+        self.play(VGroup(outgoing, pt).animate.move_to([-0.1, -1.45, 0]), run_time=1.2)
+        new_rt = chip("reactant", GREY, 24).move_to(pt)
+        self.at("becomes a reactant")
+        self.play(swap(pt, new_rt), run_time=0.8)
+        self.play(VGroup(outgoing, new_rt).animate.move_to([-1.7, -1.27, 0]), run_time=1.0)
+        moving = Dot(top.get_start(), radius=0.13, color=GREEN)
+        self.at("supply reactants")
+        self.add(moving)
+        self.play(MoveAlongPath(moving, top), run_time=1.6, rate_func=linear)
         self.finish()
 
 
-# =============================================================================================
-class S05Energy(SpokenScene):
+class S05PredictDark(SpokenScene):
     def construct(self):
-        cell = cell_outline()
-        sh, nm, sub = chloroplast(); msh, mnm, msub = mitochondrion()
-        la = light_arrow(); lab = T("radiant energy", 24, YELLOW).move_to([-4.8, 3.25, 0])
-        self.add(cell, sh, nm, sub, msh, mnm, msub, la, lab)
-        self.at("Energy moves differently")
-        ban = arr([-2.5, -2.55, 0], [2.5, -2.55, 0], TEXT, w=8, tip=0.3)
-        bl = T("energy flows one way", 26, TEXT).move_to([0, -2.05, 0])
-        self.play(GrowArrow(ban), FadeIn(bl), run_time=0.8)
-        self.at("flows one way")
-        self.play(Indicate(ban, color=TEXT, scale_factor=1.08), run_time=0.7)
-        self.at("Light from the sun")
-        self.play(Indicate(lab, color=YELLOW, scale_factor=1.1), Indicate(la, color=YELLOW, scale_factor=1.06), run_time=0.7)
-        self.at("chemical energy in sugar")
-        ch = chip("chemical energy in sugar", GOLD, size=24).move_to([0, 1.8, 0])
-        a1 = arr([-2.75, 0.62, 0], [-2.0, 1.5, 0], GOLD)
-        a2 = arr([2.0, 1.5, 0], [2.95, 0.65, 0], GOLD)
-        self.play(GrowArrow(a1), FadeIn(ch), run_time=0.7)
-        self.play(GrowArrow(a2), run_time=0.4)
-        self.at("Respiration releases")
-        en = energy_label(); ea = arr([2.0, -0.1, 0], [1.3, -0.1, 0], ORANGE, w=6)
-        self.play(Indicate(VGroup(msh, mnm, msub), color=ORANGE, scale_factor=1.04), run_time=0.7)
-        self.play(GrowArrow(ea), FadeIn(en), run_time=0.6)
+        world = question_world()
+        self.add(world)
+        arc = ArcBetweenPoints([-5.25, 2.55, 0], [5.25, 2.55, 0], angle=-PI/2, color=YELLOW, stroke_width=3)
+        self.at("sun moves toward the horizon")
+        self.play(MoveAlongPath(world[2], arc), run_time=2.2, rate_func=linear)
+        dots = VGroup(Dot(world[1][0].get_start(), radius=0.12, color=GREEN),
+                      Dot(world[1][1].get_start(), radius=0.12, color=BLUE))
+        self.add(dots)
+        self.at("still needs usable energy")
+        self.play(MoveAlongPath(dots[0], world[1][0]), MoveAlongPath(dots[1], world[1][1]), run_time=1.6)
+        q = question_card("Which arrows stop in darkness?", y=-3.15, size=30)
+        self.at("Which moving arrows")
+        self.play(FadeIn(q), run_time=0.7)
+        self.at("every material in mind")
+        self.play(Indicate(world[0], color=YELLOW, scale_factor=1.01), run_time=1.2)
+        self.finish()
+
+
+class S06Pause(PredictPause):
+    QUESTION = "Which arrows stop in darkness?"
+    SECONDS = 4.5
+    CARD = {"y": -3.15, "size": 30}
+
+    def backdrop(self):
+        return question_world()
+
+
+class S07DarkReveal(SpokenScene):
+    def construct(self):
+        world = cell_world(night=True)
+        light = path_arrow([-5.9, 2.8, 0], [-4.25, 0.9, 0], YELLOW, 0.15, 8)
+        self.add(world, light)
+        self.play(FadeOut(light), run_time=0.8)
+        self.at("chloroplast stops")
+        self.play(world.chl.animate.set_opacity(0.28), run_time=0.8)
+        stored = material("stored sugar", GREEN, [0.3, 1.45, 0], 24)
+        oxy = oxygen_bubbles([0.2, 0.65, 0])
+        self.at("using stored sugar")
+        self.play(FadeIn(stored), FadeIn(oxy), run_time=0.6)
+        pieces = VGroup(*[Square(0.32, color=GREEN, fill_color=GREEN, fill_opacity=0.25) for _ in range(3)]).arrange(RIGHT, buff=0.1).move_to([1.5, 0.9, 0])
+        self.play(ReplacementTransform(stored, pieces), run_time=0.65)
+        self.play(pieces.animate.move_to(MIT_C + [-0.3, 0.2, 0]).scale(0.7),
+                  oxy.animate.move_to(MIT_C + [0.4, 0.2, 0]).scale(0.75), run_time=1.0)
+        energy = path_arrow([4.1, 0.55, 0], [5.35, 1.45, 0], YELLOW, 0.1, 7)
+        self.at("releasing usable energy")
+        self.play(GrowArrow(energy), run_time=0.8)
+        co2 = material("carbon dioxide", GREY, [4.45, -1.3, 0], 22)
+        water = material("water", BLUE, [2.4, -1.6, 0], 24)
+        self.at("carbon dioxide, and water")
+        self.play(FadeIn(co2), FadeIn(water), run_time=0.6)
+        self.play(co2.animate.move_to([5.0, -1.6, 0]), water.animate.move_to([5.15, -2.25, 0]), run_time=1.2)
+        rule = caption("The plant cell is still respiring.", color=RED)
+        self.at("still respiring")
+        self.play(FadeIn(rule), run_time=0.7)
+        self.finish()
+
+
+class S08LightReturns(SpokenScene):
+    def construct(self):
+        world = cell_world(night=True)
+        self.add(world)
+        s = sun()
+        light = path_arrow([-5.9, 2.8, 0], [-4.25, 0.9, 0], YELLOW, 0.15, 8)
+        self.play(FadeIn(s), GrowArrow(light), world.cell[0].animate.set_fill(GREEN, 0.08), run_time=1.0)
+        self.at("photosynthesis starts")
+        self.play(world.chl.animate.set_opacity(1), run_time=0.8)
+        paths = loop_paths()
+        dots = VGroup(Dot(paths[0].get_start(), radius=0.13, color=GREEN),
+                      Dot(paths[1].get_start(), radius=0.13, color=BLUE))
+        self.add(paths, dots)
+        self.at("Respiration continues")
+        self.play(MoveAlongPath(dots[0], paths[0]), MoveAlongPath(dots[1], paths[1]), run_time=1.6, rate_func=linear)
+        self.at("same time")
+        self.play(world.chl.animate.scale(1.04), world.mit.animate.scale(1.04), run_time=0.55, rate_func=there_and_back)
+        clab = T("photosynthesis", 28, GREEN, weight=BOLD).next_to(world.chl, DOWN, buff=0.18)
+        mlab = T("respiration", 28, RED, weight=BOLD).next_to(world.mit, DOWN, buff=0.18)
+        self.at("does not switch")
+        self.play(FadeIn(clab), FadeIn(mlab), run_time=0.8)
+        dots.move_to(ORIGIN)
+        dots[0].move_to(paths[0].get_start()); dots[1].move_to(paths[1].get_start())
+        self.at("while light is available")
+        self.play(MoveAlongPath(dots[0], paths[0]), MoveAlongPath(dots[1], paths[1]), run_time=1.7, rate_func=linear)
+        add = T("adds oxygen in light", 28, GREEN).move_to([-2.65, 2.35, 0])
+        use = T("uses oxygen day and night", 28, RED).move_to([2.8, 2.35, 0])
+        self.at("Photosynthesis adds oxygen")
+        self.play(FadeOut(clab), FadeOut(mlab), FadeIn(add), run_time=0.7)
+        self.at("Respiration uses oxygen")
+        self.play(FadeIn(use), run_time=0.7)
+        self.play(Indicate(VGroup(add, use), color=YELLOW, scale_factor=1.02), run_time=1.0)
+        self.finish()
+
+
+class S09Matter(SpokenScene):
+    def construct(self):
+        world = cell_world()
+        paths = loop_paths()
+        self.add(world, paths)
+        co2_path = paths[1].copy().shift(UP * 0.34)
+        co2 = material("carbon dioxide", GREY, co2_path.get_start(), 22)
+        bpath1 = paths[1].copy().shift(DOWN * 0.62)
+        water = oxygen_bubbles(bpath1.get_start(), 2)
+        self.at("material badges")
+        self.play(MoveAlongPath(co2, co2_path), MoveAlongPath(water, bpath1), run_time=1.7, rate_func=linear)
+        sugar_path = paths[0].copy().shift(UP * 0.34)
+        sugar = material("sugar", GREEN, sugar_path.get_start(), 24)
+        bpath0 = paths[0].copy().shift(DOWN * 0.62)
+        oxy = oxygen_bubbles(bpath0.get_start(), 2)
+        self.at("build sugar and oxygen")
+        self.play(ReplacementTransform(VGroup(co2, water), VGroup(sugar, oxy)), run_time=0.9)
+        self.at("feed respiration")
+        self.play(MoveAlongPath(sugar, sugar_path), MoveAlongPath(oxy, bpath0), run_time=1.7, rate_func=linear)
+        opening = Line([5.7, -2.7, 0], [6.35, -3.25, 0], color=GREY, stroke_width=5)
+        self.at("used again")
+        self.play(Create(opening), Indicate(paths, color=GREEN, scale_factor=1.01), run_time=1.0)
+        energy = path_arrow([-5.7, 2.65, 0], [5.65, 2.65, 0], YELLOW, 0, 7).set_opacity(0.2)
+        self.add(energy)
+        self.at("different path")
+        self.play(energy.animate.set_opacity(1), run_time=1.1)
+        self.finish()
+
+
+class S10Energy(SpokenScene):
+    def construct(self):
+        world = cell_world(dim=True)
+        matter_paths = loop_paths().set_opacity(0.28)
+        self.add(world, matter_paths)
+        ribbon1 = path_arrow([-5.8, 2.55, 0], CHL_C + [-0.5, 0.65, 0], YELLOW, -0.1, 10)
+        self.play(GrowArrow(ribbon1), run_time=1.0)
+        sugar = material("sugar: chemical energy", GREEN, [-0.45, 1.3, 0], 24)
+        self.at("Chemical energy travels")
+        self.play(TransformFromCopy(ribbon1, sugar), run_time=0.9)
+        self.play(sugar.animate.move_to([1.65, 0.9, 0]), run_time=1.1)
+        ribbon2 = path_arrow([2.0, 0.8, 0], [5.15, 1.65, 0], YELLOW, 0.15, 9)
+        useful = T("usable energy", 28, YELLOW, weight=BOLD).next_to(ribbon2, DOWN, buff=0.15)
+        self.at("energy the cell can use")
+        self.play(ReplacementTransform(sugar, ribbon2), FadeIn(useful), run_time=1.0)
+        heat = VGroup(*[
+            Arc(radius=0.34 + i*0.18, start_angle=-PI/3, angle=2*PI/3,
+                color=YELLOW, stroke_width=max(2, 6-i)).move_to([5.45+i*0.18, -0.55+i*0.32, 0])
+            for i in range(3)
+        ])
         self.at("leaves as heat")
-        ha, hl = heat_group()
-        self.play(GrowArrow(ha), FadeIn(hl), run_time=0.6)
-        self.at("changes form")
-        self.play(Indicate(lab, color=YELLOW, scale_factor=1.1), run_time=0.5)
-        self.play(Indicate(ch, color=GOLD, scale_factor=1.08), run_time=0.5)
-        self.play(Indicate(en, color=ORANGE, scale_factor=1.1), run_time=0.5)
+        self.play(Create(heat), run_time=1.1)
+        loop_label = T("matter loops", 28, GREEN).move_to([-2.9, -2.45, 0])
+        flow_label = T("energy flows one way", 28, YELLOW).move_to([2.4, -2.45, 0])
+        self.at("matter arrows loop")
+        self.play(FadeIn(loop_label), run_time=0.5)
+        self.at("energy flows one way")
+        self.play(FadeIn(flow_label), Indicate(VGroup(ribbon1, ribbon2), color=YELLOW), run_time=0.9)
         self.finish()
 
 
-# =============================================================================================
-class S06Answer(SpokenScene):
+class S11OutsideLeaf(SpokenScene):
     def construct(self):
-        tank_c = np.array([-3.2, -0.6, 0])
-        left, right, bot_y, top_y = -5.3, -1.1, -2.6, 1.4
-        walls = VGroup(Line([left, top_y, 0], [left, bot_y, 0], color=GREY, stroke_width=7),
-                       Line([left, bot_y, 0], [right, bot_y, 0], color=GREY, stroke_width=7),
-                       Line([right, bot_y, 0], [right, top_y, 0], color=GREY, stroke_width=7))
-        lv = ValueTracker(1.6)
-        water = always_redraw(lambda: Rectangle(width=right - left - 0.1, height=max(0.05, lv.get_value()), stroke_width=0,
-                                                fill_color=BLUE, fill_opacity=0.38)
-                              .move_to([tank_c[0], bot_y + 0.05 + max(0.05, lv.get_value()) / 2, 0]))
-        tlab = T("oxygen in the creek water (a model)", 22, BLUE).move_to([tank_c[0], -3.1, 0])
-        self.at("creek as a tub")
-        self.play(Create(walls), FadeIn(water), FadeIn(tlab), run_time=1.0)
-        self.at("The tap is running")
-        tap = arr([-3.2, 2.45, 0], [-3.2, 1.3, 0], GREY, w=5)
-        tapl = T("tap", 26, GREY).move_to([-3.2, 2.85, 0])
-        self.play(GrowArrow(tap), FadeIn(tapl), run_time=0.5)
-        drain = arr([-1.1, -2.2, 0], [0.55, -2.2, 0], GREY, w=5)
-        drl = T("drain", 26, GREY).move_to([1.5, -2.2, 0])
-        self.at("drain is open")
-        self.play(GrowArrow(drain), FadeIn(drl), run_time=0.5)
-        self.at("Sunlight turns the tap on")
-        sun = Circle(radius=0.42, stroke_color=YELLOW, stroke_width=4, fill_color=YELLOW, fill_opacity=0.6).move_to([3.0, 2.3, 0])
-        sunl = T("daylight", 26, YELLOW).next_to(sun, RIGHT, buff=0.3)
-        tap_on = arr([-3.2, 2.45, 0], [-3.2, 1.3, 0], GREEN, w=12, tip=0.3)
-        self.play(FadeIn(sun), FadeIn(sunl), Transform(tap, tap_on), run_time=0.7)
-        self.at("The tap is photosynthesis")
-        tapl2 = T("photosynthesis adds oxygen", 26, GREEN).move_to([-3.2, 2.85, 0])
-        self.play(ReplacementTransform(tapl, tapl2), run_time=0.5)
-        self.at("The drain never closes")
-        dr_on = arr([-1.1, -2.2, 0], [0.55, -2.2, 0], ORANGE, w=7)
-        self.play(Transform(drain, dr_on), run_time=0.5)
-        self.at("The drain is respiration")
-        drl2 = T("respiration", 26, ORANGE).move_to([1.95, -2.2, 0])
-        hedge = T("by nearly every living thing", 22, GREY).move_to([2.6, -2.75, 0])
-        self.play(ReplacementTransform(drl, drl2), run_time=0.5)
-        self.at("nearly every living thing")
-        self.play(FadeIn(hedge), run_time=0.4)
-        self.at("By day")
-        self.play(lv.animate.set_value(3.0), run_time=2.0, rate_func=smooth)
-        self.at("so oxygen climbs")
-        up = arr([0.2, -0.7, 0], [0.2, 0.5, 0], BLUE, w=8, tip=0.3)
-        upl = T("oxygen climbs", 26, BLUE).move_to([2.2, -0.1, 0])
-        self.play(GrowArrow(up), FadeIn(upl), run_time=0.5)
-        self.at("After dark")
-        dark = Circle(radius=0.42, stroke_color=GREY, stroke_width=4, fill_color=GREY, fill_opacity=0.5).move_to([3.0, 2.3, 0])
-        darkl = T("dark", 26, GREY).next_to(dark, RIGHT, buff=0.3)
-        self.play(FadeOut(up), FadeOut(upl), ReplacementTransform(sun, dark), ReplacementTransform(sunl, darkl),
-                  tap.animate.set_opacity(0.15), tapl2.animate.set_opacity(0.3), run_time=0.8)
-        self.at("only the drain is open")
-        self.play(lv.animate.set_value(0.8), run_time=1.3, rate_func=smooth)
-        self.at("tends to fall")
-        dn = arr([0.2, 0.5, 0], [0.2, -0.7, 0], BLUE, w=8, tip=0.3)
-        dnl = T("oxygen tends to fall", 26, BLUE).move_to([2.0, -0.1, 0])
-        self.play(GrowArrow(dn), FadeIn(dnl), run_time=0.5)
-        self.at("Plants make new sugar only in light")
-        c1 = chip("new sugar: only in light", GREEN, size=26).move_to([3.5, 1.2, 0])
-        self.play(FadeOut(dn), FadeOut(dnl), FadeOut(dark), FadeOut(darkl), FadeIn(c1, shift=UP * 0.1), run_time=0.7)
-        self.at("respire day and night")
-        c2 = chip("respiration: day and night", ORANGE, size=26).move_to([3.5, -0.2, 0])
-        self.play(FadeIn(c2, shift=UP * 0.1), run_time=0.7)
+        cell = cell_world()
+        self.add(cell)
+        leaf = Ellipse(width=3.2, height=5.4, color=GREEN, stroke_width=7,
+                       fill_color=GREEN, fill_opacity=0.2).rotate(-0.35)
+        vein = Line([-0.8, -2.15, 0], [0.8, 2.15, 0], color=GREEN, stroke_width=5)
+        leaf_g = VGroup(leaf, vein)
+        self.play(ReplacementTransform(cell, leaf_g), run_time=1.1)
+        bob(leaf_g, amp=0.08, speed=1.2)
+        creek = creek_world()
+        self.at("pond or creek")
+        self.play(ReplacementTransform(leaf_g, creek), run_time=1.2)
+        grass = VGroup(*[Line([-5+i*0.25, 0.4, 0], [-5+i*0.25+0.1, 1.15+(i%2)*0.25, 0], color=GREEN, stroke_width=5) for i in range(5)])
+        algae = VGroup(*[Circle(radius=0.12, color=GREEN, fill_color=GREEN, fill_opacity=0.25).move_to([-1.5+i*0.3, -0.55+(i%2)*0.2, 0]) for i in range(5)])
+        self.at("Photosynthetic organisms")
+        self.play(Create(grass), FadeIn(algae), run_time=0.8)
+        bubbles = oxygen_bubbles([-1.5, -0.1, 0], 4)
+        self.play(bubbles.animate.shift(UP*1.2), run_time=1.1)
+        animal = VGroup(Ellipse(width=1.1, height=0.55, color=RED, fill_color=RED, fill_opacity=0.18),
+                        Triangle(color=RED, fill_color=RED, fill_opacity=0.18).scale(0.28).rotate(-PI/2).shift(LEFT*0.65)).move_to([2.0, -0.75, 0])
+        fungus = VGroup(Arc(radius=0.42, start_angle=0, angle=PI, color=RED, stroke_width=5),
+                        Line([0,0,0],[0,-0.5,0],color=RED,stroke_width=5)).move_to([4.5, 0.15, 0])
+        microbes = VGroup(*[Dot([3.5+i*0.35, -1.8+(i%2)*0.25, 0], radius=0.11, color=RED) for i in range(4)])
+        self.at("Plants, animals, fungi")
+        self.play(FadeIn(animal), FadeIn(fungus), FadeIn(microbes), run_time=0.9)
+        use_arrows = VGroup(*[Arrow(b.get_center(), target, buff=0.08, color=RED, stroke_width=4, tip_length=0.15)
+                              for b, target in zip(bubbles[:3], [animal.get_center(), fungus.get_center(), microbes.get_center()])])
+        self.at("use oxygen through respiration")
+        self.play(Create(use_arrows), run_time=1.0)
+        day = sun([-4.8, 2.55, 0], 0.8)
+        night = T("night", 30, BLUE, weight=BOLD).move_to([4.8, 2.55, 0])
+        bar = Arrow([-4.0, 2.55, 0], [3.9, 2.55, 0], buff=0, color=GREY, stroke_width=4, tip_length=0.2)
+        self.at("continues in darkness")
+        self.play(FadeIn(day), GrowArrow(bar), FadeIn(night), Indicate(use_arrows, color=RED), run_time=1.2)
         self.finish()
 
 
-# =============================================================================================
-class S07End(EndCard):
-    LINE = "Plants make sugar only in light, but respire day and night."
+class S12Rule(SpokenScene):
+    def construct(self):
+        creek = creek_world()
+        self.add(creek)
+        sun_obj = sun([-4.8, 2.55, 0], 0.75)
+        day_bar = Line([-4.0, 2.55, 0], [0, 2.55, 0], color=YELLOW, stroke_width=12)
+        night_bar = Line([0, 2.55, 0], [4.7, 2.55, 0], color=BLUE, stroke_width=12)
+        self.play(FadeIn(sun_obj), Create(day_bar), Create(night_bar), run_time=0.8)
+        add = Arrow([-4.4, 0.7, 0], [-0.3, 0.7, 0], color=GREEN, stroke_width=10, tip_length=0.28)
+        add_lab = T("oxygen added in light", 30, GREEN).next_to(add, UP, buff=0.2)
+        self.at("oxygen can be added")
+        self.play(GrowArrow(add), FadeIn(add_lab), run_time=0.8)
+        use = Arrow([-4.4, -1.2, 0], [4.4, -1.2, 0], color=RED, stroke_width=10, tip_length=0.28)
+        use_lab = T("respiration uses oxygen day and night", 30, RED).next_to(use, DOWN, buff=0.2)
+        self.at("day and night")
+        self.play(GrowArrow(use), FadeIn(use_lab), run_time=1.0)
+        line = T("Photosynthesis adds oxygen in light; respiration uses oxygen day and night.", 34, TEXT, font=TITLE_FONT)
+        fit(line, max_w=12.0)
+        self.at("Carry that pattern")
+        self.play(FadeOut(VGroup(creek, sun_obj, day_bar, night_bar, add, add_lab, use, use_lab)),
+                  FadeIn(line), run_time=1.2)
+        self.finish()
+
+
+class S13End(EndCard):
+    LINE = "Photosynthesis adds oxygen in light; respiration uses oxygen day and night."

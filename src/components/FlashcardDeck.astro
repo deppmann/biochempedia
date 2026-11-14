@@ -157,7 +157,7 @@ const json = JSON.stringify({
 </style>
 
 <script>
-  import { LEVELS, next, rate, resetDeck, loadStore, stateOf, wait, clozeParts, ankiText, type Card, type Deck, type Goal, type Rating } from '../lib/flashcards';
+  import { LEVELS, PREFS_KEY, next, rate, resetDeck, loadStore, stateOf, wait, clozeParts, ankiText, type Card, type Deck, type Goal, type Rating } from '../lib/flashcards';
   import { markAgain } from '../lib/classroom';
 
   const panel = document.querySelector<HTMLElement>('[data-fc]');
@@ -208,11 +208,13 @@ const json = JSON.stringify({
     // until the deck is regenerated, rather than shown against text it no longer matches.
     const live = deck.cards.filter((c) => !prose || rangeFor(c.quote));
     const held = deck.cards.length - live.length;
+    // The cards the panel can show, for the "cards ready" prompt after a film (CardsPrompt.astro).
+    root.dataset.live = live.map((c) => c.id).join(' ');
 
     // ---- Filters and session queue ---------------------------------------------
     const goal = () => (root.querySelector<HTMLInputElement>('[data-fc-goal]:checked')?.value ?? 'lesson') as Goal;
     const levels = () => new Set([...root.querySelectorAll<HTMLInputElement>('[data-fc-level]:checked')].map((i) => Number(i.value)));
-    const PREF = 'biochempedia:cards:prefs';
+    const PREF = PREFS_KEY;
     try {
       const p = JSON.parse(localStorage.getItem(PREF) ?? '{}');
       if (p.goal) root.querySelectorAll<HTMLInputElement>('[data-fc-goal]').forEach((i) => { i.checked = i.value === p.goal; });

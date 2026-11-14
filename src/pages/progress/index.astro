@@ -13,6 +13,12 @@ const courses = COURSES
 const titles = Object.fromEntries(lessons.map((l) => [l.data.slug, l.data.title]));
 const pathNames = Object.fromEntries(PATHS.map((p) => [p.id, p.label]));
 import Hex from '../../components/Hex.astro';
+import Badge from '../../components/Badge.astro';
+import { filmCatalog, filmTotal } from '../../lib/film-catalog';
+const catalog = await filmCatalog();
+const filmCount = await filmTotal();
+// Courses that have films, each with a possible "Watched every film" badge (src/lib/badges.ts).
+const filmCourses = courses.filter(({ c }) => catalog.some((f) => f.course === c.slug)).map(({ c }) => c);
 ---
 
 <BaseLayout
@@ -52,6 +58,13 @@ import Hex from '../../components/Hex.astro';
         <p class="big" data-last>Nothing yet</p>
         <p class="small"><span data-done-total>0</span> lessons done · <span data-answered>0</span> questions answered</p>
       </div>
+      {/* Films watched to about 90 percent, from src/lib/film-progress.ts (this device only). */}
+      <div class="card">
+        <p class="k">Films</p>
+        <p class="big"><span data-films-n>0</span> watched</p>
+        <p class="small" data-films-keep>Of {filmCount.toLocaleString('en-US')} in the film library.</p>
+        <p><a href="/films/" data-films-link>Open the film library →</a></p>
+      </div>
     </section>
 
     <h2>Courses</h2>
@@ -61,9 +74,18 @@ import Hex from '../../components/Hex.astro';
           <a href={courseHref(c.slug)} class="c-title">{c.title}</a>
           <span class="c-bar"><span class="c-fill" data-fill></span></span>
           <span class="c-count" data-count>0 of {mine.length}</span>
+          <a class="c-map" href={`${courseHref(c.slug)}#course-map`} aria-label={`Map of ${c.title}`}>Map</a>
         </li>
       ))}
     </ul>
+
+    {/* Badges earned on this device (2026-11-14). One kind so far: every film of a course watched.
+        Each is earned on the course page or its play-in-order page; nothing is shared or sent. */}
+    <h2>Badges</h2>
+    <p class="small" data-badges-none>None yet. When you have watched every film in a course, its badge appears here and on the course's map.</p>
+    <div class="badges">
+      {filmCourses.map((c) => <Badge type="films-all" subject={c.slug} subjectTitle={c.title} named />)}
+    </div>
 
     <h2>Your data</h2>
     <p class="small">
@@ -80,6 +102,8 @@ import Hex from '../../components/Hex.astro';
 
   <script>
     import { load, dueNow, queued, exportText, importText, clearAll, onChange, STORAGE_KEY } from '../../lib/progress';
+    import { loadFilms, keepWatching, onFilmsChange, clearFilms, resumeHref } from '../../lib/film-progress';
+    import { showBadges } from '../../lib/badges';
 
     const root = document.querySelector<HTMLElement>('.prog')!;
     const titles: Record<string, string> = JSON.parse(root.getAttribute('data-titles')!);
@@ -138,6 +162,21 @@ import Hex from '../../components/Hex.astro';
       });
     });
 
+    onFilmsChange(() => {
+      const r = loadFilms();
+      $('[data-films-n]')!.textContent = String(Object.keys(r.w).length);
+      const film = keepWatching(r);
+      const keep = $('[data-films-keep]');
+      const link = $<HTMLAnchorElement>('[data-films-link]');
+      const none = $('[data-badges-none]');
+      if (none) none.hidden = showBadges(root, r) > 0;
+      if (keep && link && film) {
+        keep.textContent = `Keep watching: ${film.title}`;
+        link.href = resumeHref(film);
+        link.textContent = 'Carry on →';
+      }
+    });
+
     $('[data-export]')?.addEventListener('click', () => {
       const blob = new Blob([exportText()], { type: 'application/json' });
       const a = document.createElement('a');
@@ -157,6 +196,7 @@ import Hex from '../../components/Hex.astro';
     $('[data-clear]')?.addEventListener('click', () => {
       if (!window.confirm('Clear all progress saved in this browser? This cannot be undone unless you exported a copy.')) return;
       clearAll();
+      clearFilms();
       if (msg) msg.textContent = 'Cleared.';
     });
   </script>
@@ -178,12 +218,15 @@ import Hex from '../../components/Hex.astro';
     .small { font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); }
     .btn { align-self: flex-start; display: inline-flex; align-items: center; min-height: 44px; margin-top: var(--ddp-space-2); padding: 0.4em 1.1em; border-radius: 999px; background: var(--ddp-color-primary); color: var(--ddp-color-surface) !important; text-decoration: none; }
     .courses { list-style: none; padding: 0; margin: 0; max-width: 760px; }
-    .course { display: grid; grid-template-columns: minmax(0, 14rem) 1fr auto; align-items: center; gap: var(--ddp-space-4); padding: var(--ddp-space-3) 0; border-top: 1px solid var(--ddp-color-line); }
+    .course { display: grid; grid-template-columns: minmax(0, 14rem) 1fr auto auto; align-items: center; gap: var(--ddp-space-4); padding: var(--ddp-space-3) 0; border-top: 1px solid var(--ddp-color-line); }
     .c-title { color: var(--ddp-color-ink); font-weight: 600; text-decoration: none; }
     .c-title:hover { text-decoration: underline; }
     .course:not(.is-started) .c-title { color: var(--ddp-color-ink-soft); font-weight: 400; }
     .c-bar { height: 8px; border-radius: 4px; background: var(--ddp-color-line); overflow: hidden; }
     .c-fill { display: block; height: 100%; width: 0; background: var(--ddp-color-verified); }
+    .c-map { font-size: var(--ddp-text-sm); color: var(--ddp-color-accent); font-weight: 600; display: inline-flex; align-items: center; min-height: 32px; }
+    .badges { display: flex; flex-wrap: wrap; gap: var(--ddp-space-3); }
+    [data-badges-none][hidden] { display: none; }
     .c-count { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); white-space: nowrap; }
     .data-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ddp-space-3); }
     .btn-ghost { display: inline-flex; align-items: center; min-height: 44px; padding: 0.4em 1.1em; font: inherit; font-size: var(--ddp-text-sm); cursor: pointer; border-radius: 999px; border: 1.5px solid var(--ddp-color-line); background: var(--ddp-color-surface); color: var(--ddp-color-ink); }
@@ -191,7 +234,7 @@ import Hex from '../../components/Hex.astro';
     .btn-ghost.danger:hover { border-color: #c0392b; color: #c0392b; }
     .file input { position: absolute; width: 1px; height: 1px; opacity: 0; }
     .file:focus-within { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
-    @media (max-width: 560px) { .course { grid-template-columns: 1fr auto; } .c-bar { grid-column: 1 / -1; grid-row: 2; } }
+    @media (max-width: 560px) { .course { grid-template-columns: 1fr auto auto; } .c-bar { grid-column: 1 / -1; grid-row: 2; } }
       .card:has(.prog-hex) { position: relative; }
     .prog-hex { position: absolute; right: var(--ddp-space-3); top: var(--ddp-space-3); line-height: 0; }
     .prog-hex[hidden] { display: none; }

@@ -12,7 +12,7 @@ import { feedbackUrl } from '../lib/feedback';
 import { getCollection } from 'astro:content';
 import { courseOf } from '../data/courses';
 import rewritten from '../data/recently-rewritten.json';
-import { listedMethods } from '../data/methods';
+import { filmTotal } from '../lib/film-catalog';
 
 /* The homepage is a front door, not the catalog (rearranged 2026-11-08 for user flow: Chris, "people
    have to scroll a bit before they get to the lesson"). Top to bottom: the hero with search and
@@ -26,9 +26,12 @@ const courseCount = cards.length;
    collection (the same sums the /courses/ cards show), so it moves with every deploy. */
 const sum = (k: 'films' | 'sims' | 'questions') => cards.reduce((n, c) => n + c[k], 0);
 const fmt = (n: number) => n.toLocaleString('en-US');
+/* Every film count on this page is the film library's (Chris, 2026-11-14: "Make the tally agree with
+   the film page"): lesson films, scientist profiles and method films, from src/lib/film-catalog.ts. */
+const libraryFilms = await filmTotal();
 const COUNTS = [
   plural(lessonCount, 'lesson', 'lessons'),
-  plural(sum('films'), 'film', 'films'),
+  plural(libraryFilms, 'film', 'films'),
   plural(sum('sims'), 'simulation', 'simulations'),
   plural(sum('questions'), 'practice question', 'practice questions'),
 ].map((t) => t.replace(/^\d+/, (d) => fmt(Number(d))));
@@ -73,8 +76,6 @@ for (const g of GOALS) for (const id of g.ids) {
   if (!PATHS.some((p) => p.id === id)) throw new Error(`Homepage: goal "${g.label}" points at path "${id}", which is not in src/data/paths.ts.`);
 }
 
-/* ---- The methods library link in the hero: count only methods that have a film. ---- */
-const methodFilms = listedMethods().length;
 
 const TRY = [
   { title: 'Metabolism Arcade', line: 'Six games from the Biochemistry course: wire the cell, fix a broken enzyme, and drill for the MCAT.', href: '/play' },
@@ -97,9 +98,10 @@ const TRY = [
       <div class="goldrule" aria-hidden="true"></div>
       <p class="lede">Free lessons, films and simulations in science, starting with biology. Ages 5 to graduate school. No account needed, no ads.</p>
       <div class="home-search"><SiteSearch label="Search every course" /></div>
-      {/* The methods library, one click from the top of the page (Chris, 2026-11-13). */}
+      {/* The film library, one click from the top of the page (Chris, 2026-11-14; until then this line
+          linked the methods library, which /films/ now links as one of its kinds). */}
       <p class="hero-methods">
-        <a href="/methods/"><strong>The methods library</strong> <span>· a short film for each of {methodFilms} lab techniques, from PCR to patch clamp →</span></a>
+        <a href="/films/"><strong>The film library</strong> <span>· {fmt(libraryFilms)} short films, from first questions to current research →</span></a>
       </p>
       {/* Filled from this device's saved progress (src/lib/progress.ts); stays
           hidden for a first visit, without JavaScript, or when storage is blocked. */}
@@ -214,7 +216,8 @@ const TRY = [
   </section>
 
   <script>
-    import { load, dueNow, onChange } from '../lib/progress';
+    import { load, dueNow, onChange, lastLessonAt } from '../lib/progress';
+    import { loadFilms, keepWatching, isWatched, onFilmsChange, resumeHref } from '../lib/film-progress';
     import { PATHS } from '../data/paths';
 
     /* The old homepage had #tier-* anchors. The catalog moved to /courses/, so send
@@ -230,28 +233,57 @@ const TRY = [
     const oldTier = OLD_TIERS[location.hash.slice(1)];
     if (oldTier) location.replace(`/courses/#${oldTier}`);
 
+    /* "Welcome back": the last lesson, an unfinished film or play-in-order queue (2026-11-14), questions
+       due and the chosen path, all from this device. The lesson and the film come in the order they
+       were last opened, newest first. Hidden on a first visit, without JavaScript, or with storage blocked. */
     const box = document.querySelector<HTMLElement>('[data-resume]');
     const text = document.querySelector<HTMLElement>('[data-resume-text]');
-    onChange(() => {
+    const minsLeft = (t: number, d?: number) => (d && d > t ? `about ${Math.max(1, Math.round((d - t) / 60))} min left` : '');
+    type Item = { at: number; label: string; href: string; meta?: string };
+    /* The newest unfinished film: a film stopped part-way, or a course's play-in-order queue. */
+    function filmItem(): Item | null {
+      const r = loadFilms();
+      const part = keepWatching(r);
+      const q = Object.entries(r.q)
+        .filter(([, x]) => x.title && !(isWatched(r, x.f) && x.t < 5))
+        .sort((a, b) => b[1].at - a[1].at)[0];
+      if (q && (!part || q[1].at >= part.at)) {
+        const [course, x] = q;
+        return {
+          at: x.at, label: `Keep watching: ${x.title}`, href: `/films/play/${encodeURIComponent(course)}/`,
+          meta: [x.courseTitle ? `${x.courseTitle}, films in order` : 'films in order', minsLeft(x.t, x.d)].filter(Boolean).join(' · '),
+        };
+      }
+      if (!part) return null;
+      return { at: part.at, label: `Keep watching: ${part.title}`, href: resumeHref(part), meta: [part.course, minsLeft(part.t, part.d)].filter(Boolean).join(' · ') };
+    }
+    function draw() {
       if (!box || !text) return;
       const p = load();
       const due = dueNow(p).length;
       const path = PATHS.find((x) => x.id === p.path);
+      const film = filmItem();
       text.textContent = '';
-      if (!p.last && !path && !due) { box.hidden = true; return; }
+      if (!p.last && !path && !due && !film) { box.hidden = true; return; }
       box.hidden = false;
       let links = 0;
-      const add = (label: string, href: string) => {
+      const add = (it: Omit<Item, 'at'>) => {
         const a = document.createElement('a');
-        a.href = href; a.textContent = label;
+        a.href = it.href; a.textContent = it.label;
         if (links++) text.append(' · ');
         text.append(a);
+        if (it.meta) text.append(Object.assign(document.createElement('span'), { className: 'resume-meta', textContent: ` (${it.meta})` }));
       };
       text.append('Welcome back. ');
-      if (p.last) add('Continue your last lesson', `/lessons/${p.last}/`);
-      if (due) add(`${due} ${due === 1 ? 'question' : 'questions'} to review`, '/review/');
-      if (path) add(`Your path: ${path.label}`, `/paths/${path.id}/`);
-    });
+      const recent: Item[] = [];
+      if (p.last) recent.push({ at: lastLessonAt(p), label: 'Continue your last lesson', href: `/lessons/${p.last}/` });
+      if (film) recent.push(film);
+      recent.sort((a, b) => b.at - a.at).forEach(add);
+      if (due) add({ label: `${due} ${due === 1 ? 'question' : 'questions'} to review`, href: '/review/' });
+      if (path) add({ label: `Your path: ${path.label}`, href: `/paths/${path.id}/` });
+    }
+    onChange(draw);
+    onFilmsChange(draw);
   </script>
 
   <style>
@@ -318,6 +350,7 @@ const TRY = [
     .resume { margin: var(--ddp-space-4) 0 0; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); display: flex; flex-wrap: wrap; gap: var(--ddp-space-3); align-items: baseline; }
     .resume[hidden] { display: none; }
     .resume :global(a) { color: var(--ddp-color-accent); font-weight: 600; }
+    .resume :global(.resume-meta) { color: var(--ddp-color-muted); }
 
     .home-search { margin-top: var(--ddp-space-5); max-width: 36rem; }
     .hero-methods { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-sm); }

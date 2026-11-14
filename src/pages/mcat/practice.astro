@@ -41,7 +41,7 @@ for (const st of SETS) {
       <label>Topic <select data-topic>{topics.map((t) => <option value={t}>{t} · {names[t]}</option>)}</select></label>
       <button type="button" class="tc-btn" data-start>Start ten questions</button>
     </p>
-    <p class="mpr-beyond">
+    <p class="mpr-beyond" id="mpr-beyond-id">
       <label><input type="checkbox" data-beyond-toggle /> <span><strong>{BEYOND_LABEL}</strong> (off by default)</span></label>
       <span class="tc-muted">
         Adds {beyondCount} questions from the graduate courses {beyondNames}. They go past what the MCAT asks, so they are
@@ -104,7 +104,14 @@ for (const st of SETS) {
       const files = await Promise.all(slugs.map((s) => fetch(`/quiz/${s}.json`).then((r) => r.json()).catch(() => null)));
       const pool = files.flatMap((f) => (f ? f.items.filter((i: Item) => i.mcat).map((i: Item) => ({ ...i, slug: f.slug, title: f.title })) : []));
       const picked = shuffle(pool).slice(0, 10);
-      status.textContent = `${picked.length} questions. Answer each, then read why.`;
+      status.textContent = ``
+
+      //Remove "Beyond exam" toggler if not selected when answering questions
+      const beyondGroup = document.getElementById("mpr-beyond-id");
+      if (beyondGroup && !toggle.checked) {
+        beyondGroup.remove();
+      }
+
       let right = 0, done = 0;
       picked.forEach((q, n) => {
         const box = el('div', 'mq');
@@ -178,8 +185,8 @@ for (const st of SETS) {
     .mpr .mq-choice { width: 100%; display: flex; gap: var(--ddp-space-3); text-align: left; padding: var(--ddp-space-3) var(--ddp-space-4); border: 1px solid var(--ddp-color-line); border-radius: var(--ddp-radius-sm, 8px); background: var(--ddp-color-surface); color: var(--ddp-color-ink); font: inherit; font-size: var(--ddp-text-sm); cursor: pointer; }
     .mpr .mq-choice:hover:not(:disabled) { border-color: var(--ddp-color-accent); }
     .mpr .mq-letter { font-family: var(--ddp-font-mono); font-weight: 700; color: var(--ddp-color-muted); }
-    .mpr .mq-choice.is-correct { border-color: var(--ddp-color-verified); background: var(--ddp-color-verified-soft); }
-    .mpr .mq-choice.is-wrong { border-color: #c0392b; background: #fcebe9; }
+    .mpr .mq-choice.is-correct { border-color: var(--ddp-color-verified); background: var(--ddp-color-verified-soft); color: #6b6b6b; }
+    .mpr .mq-choice.is-wrong { border-color: #c0392b; background: #fcebe9; color: #6b6b6b; }
     .mpr .mq-feedback { margin-top: var(--ddp-space-3); padding-top: var(--ddp-space-3); border-top: 1px dashed var(--ddp-color-line); font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); }
     .mpr .mq-verdict { font-weight: 700; }
     .mpr .mq-verdict.is-correct { color: var(--ddp-color-verified-ink); }

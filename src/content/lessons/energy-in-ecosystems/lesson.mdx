@@ -5,17 +5,16 @@ course: "high-school-biology"
 courseChapter: "Biology · Unit 7: Ecosystems"
 order: 930
 summary: >-
-  Where does an osprey’s energy come from, and why is there so much less of it at each step of a
-  food chain? You build a pyramid in a simulation, follow energy from sunlight through Chesapeake
-  Bay plankton, menhaden and ospreys, and read real data from a lake budget and from osprey nests.
-  Afterwards you can draw a food web with arrows pointing the right way and calculate how much
-  energy reaches a top predator.
+  At each step, only part becomes tissue the next level can eat. Follow energy through Chesapeake
+  Bay plankton, menhaden and ospreys, build a pyramid in a simulation, and compare energy flow with
+  matter cycling. Then read a lake energy budget and osprey-nest data, draw food-web arrows in the
+  right direction, and calculate how much energy reaches a top predator.
 hook: "An osprey on the Chesapeake Bay eats fish, and the fish eat plankton, so how much of the sunlight the plankton caught ever reaches the osprey?"
 estMinutes: 40
 supports: true
 objectives:
   - "You will describe an ecosystem as all the interacting species and the nonliving environment in an area, and model how energy moves with food chains, food webs, energy pyramids and biomass pyramids."
-  - "You will explain why only a fraction of the energy, often around 10 percent, passes from one trophic level to the next, and why energy flows one way (from the sun, leaving as heat) while matter cycles."
+  - "You will explain why, at each step, only part of the energy becomes tissue the next level can eat (often around 10 percent, a rough model, not a fixed rule), and why energy flows one way (from the sun, leaving as heat) while matter cycles."
   - "You will build a Chesapeake Bay food web and use an energy pyramid to calculate how much energy reaches a top predator."
 
 ladder:
@@ -31,10 +30,30 @@ explainer:
   src: "/explainers/energy-in-ecosystems/explainer.mp4"
   captions: "/explainers/energy-in-ecosystems/explainer.vtt"
   poster: "/explainers/energy-in-ecosystems/poster.jpg"
-  title: "Sunlight In, Heat Out"
-  durationSec: 156.9
-  narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+  title: "Why Energy Pyramids Narrow"
+  durationSec: 217.3
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+  takeaways:
+    - "At each step, only part becomes tissue the next level can eat."
+    - "Food-web arrows point from food to eater, following the energy."
+    - "Heat, uneaten matter and undigested matter leave less energy in new tissue."
+    - "About 10 percent is a rough model, not a fixed rule."
+
+films:
+  - id: "chapter-2"
+    src: "/explainers/energy-in-ecosystems/chapter-2.mp4"
+    captions: "/explainers/energy-in-ecosystems/chapter-2.vtt"
+    poster: "/explainers/energy-in-ecosystems/chapter-2-poster.jpg"
+    title: "Energy Flows, Matter Returns"
+    durationSec: 221.3
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+    takeaways:
+      - "Energy flows through ecosystems, while matter cycles and can be reused."
+      - "Light energy becomes food energy, motion and heat."
+      - "Decomposers return carbon to air and water, not usable energy to producers."
+      - "Energy comparisons require matching measurements over the same area and time."
 
 scientists:
   - name: "Raymond Lindeman"
@@ -115,7 +134,7 @@ practiceQuestions:
     answer: 0
     rationale: >-
       Organisms release much of the energy in their food as heat during their life processes, and
-      some food is never eaten or digested, so only a fraction reaches the next level. Energy is not
+      some food is never eaten or digested, so at each step only part becomes tissue the next level can eat. Energy is not
       destroyed; it changes form. Matter cycles, but energy does not return to producers. Large
       predators still need plenty of energy; the narrowing comes from losses, not lower needs.
   - stem: "Suppose zooplankton in a model bay store 20,000 kJ per square meter per year. With 10 percent transfer, how much reaches menhaden that eat only zooplankton?"
@@ -259,10 +278,15 @@ import Support from '../../../components/Support.astro';
 import CER from '../../../components/CER.astro';
 import ScaffoldFigure from '../../../components/ScaffoldFigure.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import LessonFilm from '../../../components/LessonFilm.astro';
 
-**Along the Chesapeake Bay, ospreys raise chicks in nests and carry fish home to their chicks. One important fish they bring is the Atlantic menhaden, a small oily fish that filters plankton out of the water.**
+The first film showed the energy band narrowing at every feeding step. How much of the plankton's energy ever reaches the osprey chick, and where does the rest go? The simulation turns that rule into numbers you can test.
 
-Phytoplankton, the plankton that photosynthesize, caught the energy first, from sunlight. Then a menhaden ate the plankton, and an osprey ate the menhaden. How much of the plankton’s energy ever reaches the osprey chick, and where does the rest go?
+<Support>
+**The one idea:** At each step, only part becomes tissue the next level can eat.
+
+**Where it applies:** two neighboring feeding levels, compared with the same kind of measurement (here, new tissue) over the same area and time. The share varies, and uneaten matter can still feed decomposers.
+</Support>
 
 <IdeaCheck items={[
   { idea: 'Energy and matter cycle through an ecosystem in the same way.', answer: 'disagree', explain: 'Carbon atoms are used again and again: decomposers return them to the water and air, and plankton take them up. Energy enters as sunlight and leaves as heat. Ecologists who measure whole ecosystems find energy passing through once, while the same atoms come back around.' },
@@ -272,24 +296,25 @@ Phytoplankton, the plankton that photosynthesize, caught the energy first, from 
 
 ## Explore: build an energy pyramid
 
-The simulation starts with sunlight falling on a patch of bay water. Producers capture some of it, and you choose how many feeding levels sit above them and what share of energy passes from one level to the next, from 5 to 20 percent. The pyramid shows the energy at each level and the heat given off, and a switch shows carbon moving back through decomposers.
+In the simulation, producers capture sunlight falling on a patch of Bay water. You choose how many feeding levels sit above them and what share passes up each step, from 5 to 20 percent. The pyramid shows the energy and heat at each level, and a switch shows carbon returning through decomposers.
 
 <EnergyPyramidBuilder />
 
 **Try this.**
 1. Set the transfer to 10 percent and add a fourth level. Predict how much of the producers’ energy reaches the top, then test it.
-2. Change the transfer to 5 percent, then 20 percent. Predict which setting can support more levels.
-3. Add up the heat lost at every level. Predict whether the heat plus the energy at the top level equals what the producers captured.
+2. Change the transfer to 5 percent, then 20 percent. Predict which setting can support more levels, then compare the fourth level at each.
+3. Record the heat-or-uneaten values and the top-level value. Add them and test whether they equal what the producers captured.
 4. Turn on the carbon switch. Predict whether carbon and energy follow the same path, then watch.
 
 ## Explain: who eats whom in the Bay
 
 <WordBank terms={['ecosystem', 'producer', 'consumer', 'decomposer', 'trophic level', 'food chain', 'food web', 'energy pyramid', 'biomass', 'biomass pyramid']} />
 
-An **ecosystem** is all the living things in an area together with the nonliving environment they interact with, such as water, light and temperature. The Chesapeake Bay is one ecosystem, and a single marsh inside it can be studied as another.
+An **ecosystem** is all the living things in an area and the nonliving environment they interact with, such as water, light and temperature. The Chesapeake Bay is one ecosystem. A single marsh inside it can be studied as another.
 
 Living things in it get energy in three main ways. A few, such as some plankton, use more than one.
-- A **producer** captures energy from sunlight and stores it in food. In the open water of the Bay, the main producers are phytoplankton, tiny algae and photosynthetic bacteria (cyanobacteria) that drift in the water. Underwater grasses are producers too. A few producers in other places use energy from chemicals instead.
+
+- A **producer** captures energy from sunlight and stores it in food. In the open water of the Bay, the main producers are phytoplankton, tiny algae and photosynthetic bacteria (cyanobacteria) that drift in the water. Underwater grasses are producers too.
 - A **consumer** gets energy by eating other living things. A primary consumer eats producers. A secondary consumer eats primary consumers, and a tertiary consumer eats secondary consumers.
 - A **decomposer**, such as many bacteria and fungi, gets energy from dead matter and wastes.
 
@@ -299,7 +324,18 @@ A **food chain** follows one feeding path. A **food web** links many food chains
 
 > sunlight → phytoplankton → zooplankton → Atlantic menhaden → osprey
 
-Menhaden filter both phytoplankton and zooplankton, small animals and single-celled consumers that drift in the water. Striped bass eat menhaden too. Because menhaden eat at two levels, the osprey is a secondary consumer on one path and a tertiary consumer on another. A web shows this; a single chain hides it. You will add bacteria and their recycling in [Matter Cycles](/lessons/matter-cycles/).
+**Zooplankton** are small animals and single-celled consumers that drift in the water. Atlantic menhaden are small oily fish that filter both phytoplankton and zooplankton. Ospreys carry menhaden to their chicks, and striped bass eat menhaden too.
+
+**Predict.** Menhaden eat phytoplankton directly on one path. What consumer level is an osprey that eats that menhaden?
+
+<details>
+<summary>Check your prediction</summary>
+
+The menhaden is a primary consumer, so the osprey is secondary. With zooplankton in the path, the osprey is tertiary. A web shows this; a single chain hides it.
+
+</details>
+
+You will add bacteria and their recycling in [Matter Cycles](/lessons/matter-cycles/).
 
 <ScaffoldFigure src="/figures/energy-in-ecosystems/bay-food-web.webp" width={1200} height={800} keyItems={["phytoplankton", "zooplankton", "Atlantic menhaden", "osprey", "striped bass", "decomposers"]} given={[3, 4]} alt="AI-generated illustration: a side view of Bay water. Sunlight shines on phytoplankton shown in a magnifier, arrows run to zooplankton and to small menhaden, and from menhaden to an osprey above the water and a striped bass below. Dashed arrows from every organism lead to bacteria on dead matter at the bottom. Six numbered circles mark the organisms." caption="A Chesapeake Bay food web: arrows run from food to eater, and dead matter from every level goes to decomposers. Name the six numbered parts." />
 
@@ -307,35 +343,52 @@ Menhaden filter both phytoplankton and zooplankton, small animals and single-cel
 
 ## Explain: why each level gets less
 
-Phytoplankton store light energy in sugars by photosynthesis, which you met in [Photosynthesis](/lessons/photosynthesis-energy-capture/). When a zooplankton eats a phytoplankton cell, most of that energy does not become new zooplankton.
-- Some is released as heat during **cellular respiration**, the process that releases energy from food, explained in [Respiration and ATP](/lessons/respiration-and-atp/).
-- Some is in parts that are not eaten or not digested. Much of that material ends up with decomposers.
-- Only the rest becomes new body tissue that the next level can eat.
+Here is where the first film's three branches come from. Phytoplankton store light energy in sugars by [photosynthesis](/lessons/photosynthesis-energy-capture/). When a zooplankton eats them, the heat comes from **cellular respiration**, the process that releases energy from food ([Respiration and ATP](/lessons/respiration-and-atp/)). The parts that are not eaten, or eaten but not digested, mostly end up with decomposers.
 
 <LessonFigure src="/figures/energy-in-ecosystems/where-the-energy-goes.webp" width={1200} height={800} alt="AI-generated illustration: a magnified zooplankton eating phytoplankton. A wide gold band of food energy enters it and splits three ways: wavy heat arrows rising into the water, a waste pellet and uneaten scraps sinking to bacteria, and a narrow branch that becomes new body tissue." caption="Where the energy in food goes at one step, not to scale: much is released as heat, some is left uneaten or undigested for decomposers, and only the rest becomes new tissue." />
 
-As a rule of thumb, about 10 percent of the energy at one level ends up in the next. Real measurements are often higher or lower. A 2026 synthesis of 2,052 estimates from 122 studies found an average energy transfer of about 6 percent, lower on land than in the sea. The simulation lets you try 5 to 20 percent.
+**Energy transfer efficiency** is the percentage of the energy at one trophic level that reaches the next. Both levels must use the same kind of measurement.
 
-Here is a worked example with made-up starting numbers. Suppose phytoplankton in a model patch of bay add 100,000 kJ per square meter per year, and 10 percent passes at each step.
+A common rule of thumb uses about 10 percent, but real measurements are often higher or lower. Use it first as a model. Suppose phytoplankton in a model patch of Bay add 100,000 kJ per square meter per year as new tissue.
 
-| Level | Calculation | Energy (kJ per square meter per year) |
+**Predict.** If 10 percent becomes new tissue at each next level, how much reaches the osprey level after three steps?
+
+<details>
+<summary>Check your prediction</summary>
+
+| Level | Calculation | New tissue energy (kJ per square meter per year) |
 |---|---|---|
 | Phytoplankton | given | 100,000 |
 | Zooplankton | 100,000 × 0.10 | 10,000 |
 | Menhaden | 10,000 × 0.10 | 1,000 |
 | Osprey | 1,000 × 0.10 | 100 |
 
-Only one thousandth of the producers’ energy reaches the osprey level. Loss at each step is one likely reason food chains rarely have more than about five levels. Studies of lakes suggest that the size of the ecosystem matters too.
+</details>
 
-An **energy pyramid** stacks the energy at each level, producers at the bottom. It always narrows going up. A **biomass pyramid** stacks **biomass**, the mass of living things at each level, such as grams per square meter. Biomass pyramids usually narrow too, but not always. In the English Channel, phytoplankton divide so fast and are eaten so quickly that, at any moment, the zooplankton can outweigh them. That pyramid is upside down, while the energy pyramid stays upright.
+In this model, one-thousandth of the producers' energy becomes tissue at the osprey level.
 
-<Support min={2}>**Key idea:** at each step much energy is released as heat or left in uneaten and undigested matter, so only a fraction, often around 10 percent, reaches the next level.</Support>
+An **energy pyramid** stacks comparable energy measurements at each level, with producers at the bottom. It always narrows going up. A **biomass pyramid** stacks **biomass**, the mass of living things at each level, such as grams per square meter.
+
+**Predict.** Could a biomass pyramid be upside down while its energy pyramid stays upright?
+
+<details>
+<summary>Check your prediction</summary>
+
+Yes. Biomass pyramids usually narrow. But biomass is measured at one moment, while energy flow is measured over time. In the English Channel, phytoplankton divide and are eaten so quickly that zooplankton can outweigh them. Its energy pyramid stays upright.
+
+</details>
+
+A 2026 synthesis combined 2,052 estimates from 122 studies. It found an average energy transfer of about 6 percent, lower on land than in the sea. Because real values spread this widely, the simulation lets you try 5 to 20 percent. About 10 percent is a rough model, not a fixed rule. The shrinking supply is one likely reason food chains rarely have more than about five levels. Studies of lakes suggest that ecosystem size matters too.
+
+<Support min={2}>**Key idea:** at each step much energy is released as heat or left in uneaten and undigested matter, so only part, often around 10 percent, becomes tissue the next level can eat.</Support>
+
+The pyramid follows only the tissue branch. What happens to the heat and the leftover matter? The second film follows both.
+
+<LessonFilm film={frontmatter.films[0]} />
 
 ## Explain: energy flows, matter cycles
 
-Energy is never made or destroyed; it changes form. Light becomes chemical energy in food, and food energy becomes motion and heat. Heat spreads into the water and air, and no living thing can capture it to build food again. So energy flows one way: in as sunlight, out as heat. Nearly every ecosystem needs a steady supply of new energy, which in the Bay is sunlight; a few, such as deep-sea vent communities, run on chemical energy instead.
-
-Matter behaves differently. Decomposers release much of the carbon in a dead menhaden as carbon dioxide, and phytoplankton can take that carbon up again.
+The second film followed energy out of the Bay as heat and carbon back into phytoplankton, and noted that a few ecosystems, such as deep-sea vent communities, run on chemical energy instead of sunlight. The table sums up the contrast.
 
 | | Energy | Matter (such as carbon) |
 |---|---|---|
@@ -343,11 +396,20 @@ Matter behaves differently. Decomposers release much of the carbon in a dead men
 | What happens at each level | much is released as heat | atoms are passed on or released, not destroyed; some are buried or carried away |
 | Path | one way | mostly a cycle, used again |
 
-<Support min={2}>**Key idea:** energy flows through an ecosystem once and leaves as heat, while matter cycles.</Support>
+<Support min={2}>**Key idea:** energy flows through ecosystems and leaves as heat, while matter cycles and can be reused.</Support>
 
 ## Elaborate: real energy budgets and osprey diets
 
-Lindeman estimated how much energy each feeding level in a small Minnesota lake took in during a year. His totals include the energy each level later released as heat in respiration, so they are larger than the new tissue each level built.
+Lindeman estimated how much energy each feeding level in a small Minnesota lake took in during a year. All three totals measure energy taken in, not new tissue. They include energy each level later released as heat in respiration, so they are larger than the new tissue each level built.
+
+**Predict.** Using the table, what percentage passed from producers to primary consumers, and from primary to secondary consumers?
+
+<details>
+<summary>Check your prediction</summary>
+
+Divide each level by the one below it. Producers to primary consumers is 14.8 ÷ 111.3 × 100, about 13.3 percent. Primary to secondary consumers is 3.1 ÷ 14.8 × 100, about 20.9 percent.
+
+</details>
 
 | Cedar Bog Lake level | Energy taken in (gram-calories per square centimeter per year) |
 |---|---|
@@ -355,7 +417,7 @@ Lindeman estimated how much energy each feeding level in a small Minnesota lake 
 | Primary consumers | 14.8 |
 | Secondary consumers | 3.1 |
 
-Source: Lindeman, Ecology, 1942, corrected values in Tables II and IV, from about four years of study at Cedar Bog Lake. A gram-calorie is a unit of energy, about 4.2 joules. Lindeman printed 22.3 percent for the second step, which differs from what these values give (3.1 divided by 14.8 is about 20.9 percent); rounding does not explain the gap, and the table does not say why.
+Source: Lindeman, *Ecology*, 1942, corrected values in Tables II and IV, from about four years of study at Cedar Bog Lake. A gram-calorie is a unit of energy, about 4.2 joules. Lindeman printed 22.3 percent for the second step. That differs from the 20.9 percent these values give; rounding does not explain the gap, and the table does not say why.
 
 Ospreys show that the menhaden link varies from place to place and year to year.
 
@@ -371,16 +433,25 @@ Ospreys show that the menhaden link varies from place to place and year to year.
 
 Sources: the first four rows are from nest videos of 25 osprey pairs (Glass and Watts, Journal of Raptor Research, 2009). The last three are mean percentages of the diet, from fish recorded at nests, by Watts and colleagues, Frontiers in Marine Science, 2024.
 
-1. Calculate the percent of energy passed from producers to primary consumers, and from primary to secondary consumers, at Cedar Bog Lake.
-2. Compare the menhaden share by fish count and by energy at the lower-estuary nests. Why might they differ?
-3. How did the Mobjack Bay mean change from 1985 to 2021?
+**Predict.** At the lower-estuary nests, menhaden were 24.2 percent of fish counted but 44.7 percent of prey energy. Why might the shares differ?
+
+<details>
+<summary>Check your prediction</summary>
+
+Fish differ in size and energy content. A smaller share by count can supply more energy. The table cannot show which difference caused the pattern.
+
+</details>
+
+1. Compare the menhaden share by fish count and by energy at the upper-estuary nests too.
+2. How did the Mobjack Bay mean change from 1985 to 2021?
+3. Which comparisons describe a place, a year, or both? Why does that limit a broad conclusion?
 
 <CER
   task="Make a claim that answers the essential question, using the Cedar Bog Lake data."
   claim="At each step of the food chain, ___ of the energy reached the next level."
   evidence="Producers took in ___ gram-calories per square centimeter per year, and primary consumers took in ___, which is about ___ percent."
   reasoning="The rest was ___, because organisms release energy as ___ and some food goes to ___."
-  model="At Cedar Bog Lake, only a small fraction of the energy reached each next level. Producers took in 111.3 gram-calories per square centimeter per year and primary consumers took in 14.8, about 13 percent. Secondary consumers took in 3.1, about 21 percent of the level below. Energy was not destroyed. Some of the rest was released as heat during respiration and some went to decomposers; in Lindeman’s full Table II, producers released 23.4 of their 111.3 as heat, and most of the remainder was plant and algal matter that was not eaten. Both percentages are higher than the 10 percent rule of thumb. Lindeman counted all the energy each level took in, including what it later released as heat, so his percentages are not measured the same way as the new-tissue share in the rule. Even so, the share varies from place to place, so the rule is only a rough guide. One limit: this is a single small lake studied over about four years before 1942, and the values are reconstructed estimates."
+  model="At Cedar Bog Lake, only a small fraction of the energy reached each next level. Producers took in 111.3 gram-calories per square centimeter per year and primary consumers took in 14.8, about 13 percent. Secondary consumers took in 3.1, about 21 percent of the level below. Some of the rest was released as heat during respiration and some went to decomposers; in Lindeman’s full Table II, producers released 23.4 of their 111.3 as heat, and most of the remainder was plant and algal matter that was not eaten. Both percentages are higher than the 10 percent rule of thumb. Lindeman counted all the energy each level took in, including what it later released as heat, so his percentages are not measured the same way as the new-tissue share in the rule. Even so, the share varies from place to place, so the rule is only a rough guide. One limit: this is a single small lake studied over about four years before 1942, and the values are reconstructed estimates."
 />
 
 ### Design problem
@@ -394,7 +465,7 @@ Plan a study to test whether osprey chicks fed extra fish are more likely to sur
 - Independent variable: extra menhaden placed at the nest, or none.
 - Dependent variable: whether each nest raises at least one chick to flying age, and how many.
 - Control: nests that get no extra fish but are visited the same way.
-- Constants: the same area, the same season, and nests that started with eggs at about the same time.
+- Constants: the same area and season, and nests that started with eggs at about the same time.
 - Allocation: assign nests to groups at random. If some nests can only be control, as when boats cannot reach them, say so, because it could bias the result.
 - Sample size: at least 15 nests per group, and repeat in more than one year.
 - Ethics and safety: work under wildlife permits, keep visits short, and stay out of the nest during heat or storms.
@@ -404,6 +475,6 @@ Plan a study to test whether osprey chicks fed extra fish are more likely to sur
 
 ## Evaluate: check your thinking
 
-The osprey chick’s energy began as sunlight caught by phytoplankton. At every step, from plankton to menhaden to osprey, much of the energy was released as heat or left in uneaten and undigested matter, so only a small share, often around 10 percent, passed upward. Much of the carbon in those fish can cycle back to the plankton, but the energy will not.
+Only part moves up. The osprey chick's energy began as sunlight caught by phytoplankton. At each feeding step, the rest spread as heat or stayed in matter for decomposers. Much of the carbon can cycle back to plankton, but the energy cannot.
 
 **Science practices you used:** making predictions and testing them with a model, calculating percentages from a real data table, comparing samples from different places and years, planning a fair test with a control and random groups, and naming the limits of one study’s data.

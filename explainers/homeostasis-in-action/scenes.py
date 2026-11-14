@@ -296,7 +296,7 @@ class S03Disturbance(FilmSpoken):
                            ([-4.4, 0.6, 0], [-3.55, 2.25, 0], [-2.75, 0.55, 0])])
         self.play(LaggedStart(*[FadeIn(d, scale=1.8) for d in sensors], lag_ratio=0.25), run_time=0.9)
         self.at("send blue signals")
-        control = chip("control center", YELLOW, size=25, pad=0.15).move_to([-3.55, 2.95, 0])
+        control = chip("control center", YELLOW, size=24, pad=0.11).move_to([-3.55, 3.06, 0])
         blue_paths = VGroup(*[arrow(d.get_center(), control.get_bottom(), BLUE, 4, 0.14) for d in sensors])
         self.play(LaggedStart(*[Create(p) for p in blue_paths], lag_ratio=0.2),
                   FadeIn(control), run_time=1.2)

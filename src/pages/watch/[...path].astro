@@ -4,6 +4,7 @@
    The player, captions and transcript are the same component the lesson uses (LessonFilm). */
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import LessonFilm from '../../components/LessonFilm.astro';
+import CardsPrompt from '../../components/CardsPrompt.astro';
 import { allFilms, filmClock, filmIsoDuration, type FilmEntry } from '../../lib/films';
 import { courseOf, courseHref } from '../../data/courses';
 import { metaDescription } from '../../lib/meta';
@@ -23,6 +24,9 @@ const abs = (p: string) => `${site}${p}`;
 const lessonHref = `/lessons/${film.lesson}/`;
 const others = (await allFilms()).filter((f) => f.lesson === film.lesson && f.href !== film.href);
 const description = metaDescription(film.hook);
+// Does the lesson have a flashcard deck? Then the end of the film offers its cards (CardsPrompt).
+const DECK_FILES = Object.keys(import.meta.glob('../../data/flashcards/*.json'));
+const hasDeck = DECK_FILES.some((f) => f.endsWith(`/${film.lesson}.json`));
 
 const videoLd = {
   '@context': 'https://schema.org',
@@ -54,11 +58,12 @@ const videoLd = {
     ['name', 'twitter:image:alt', `Poster for the film “${film.title}”`],
   ]}
 >
-  <article class="wrap watch" data-pagefind-ignore>
+  <article class="wrap watch" data-pagefind-ignore data-course-title={course.title} data-cards-lesson={hasDeck ? film.lesson : undefined}>
     <p class="eyebrow"><a href="/films/">Films</a> · <a href={courseHref(course.slug)}>{course.title}</a></p>
     <h1>{film.title}</h1>
 
     <LessonFilm film={{ ...film, id: film.id ?? 'explainer' }} />
+    {hasDeck && <CardsPrompt />}
 
     <p class="hook">{film.hook}</p>
     <p class="go"><a class="go-btn" href={lessonHref}>Continue in the lesson: {film.lessonTitle} →</a></p>

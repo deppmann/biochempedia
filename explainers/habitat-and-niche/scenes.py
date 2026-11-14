@@ -1,299 +1,459 @@
-"""Habitat and niche: different niches let many kinds share one place  (Biochemistrypedia explainer, grade 7 Life Science)
+"""One forest, different ways to live.
 
-Timed to the SPOKEN words: every self.at("...") cue waits for that phrase in audio/words.json.
+COLOR MAP
+  GOLD    habitat / the shared spruce forest
+  YELLOW  insects and food resources
+  TEAL    Cape May warbler
+  ORANGE  Blackburnian warbler
+  GREEN   black-throated green warbler
+  PURPLE  bay-breasted warbler
+  RED     myrtle warbler; red also marks competition/overlap
 
-COLOR MAP (one color per concept, whole video)
-  BLUE   = the organisms (warblers, squirrel, earthworm, "species")
-  GREEN  = habitat (the place: spruce forest, oak forest)
-  PURPLE = niche (the role: its circles, ovals and the list of what it includes)
-  YELLOW = resources and food (insects, acorns, leaves, water, shelter, space)
-  RED    = competition
-  TEAL   = biodiversity
-  GREY   = outlines, notes
-All shapes are schematic and not to scale. No measured numbers appear: the only numbers are the five kinds
-of warblers (lesson text) and the oak/spruce forests named in the lesson.
+All bird movement and feeding zones are explicitly marked schematic.  The spruce,
+birds, paths, and landmarks are rebuilt by ``spruce_world`` at the same scale and
+position in every continuing scene.
 """
 import numpy as np
-from bp_style import *  # noqa: F401,F403
-
-ORG = BLUE
-HAB = GREEN
-NICHE = "#B58CD9"
-RES = YELLOW
-COMP = RED
-BIO = TEAL
+from bp_parts import *  # noqa: F401,F403
 
 
-def arr(a, b, color=GREY, w=5, tip=0.22):
-    return Arrow(a, b, buff=0.08, color=color, stroke_width=w, tip_length=tip,
-                 max_tip_length_to_length_ratio=0.45, max_stroke_width_to_length_ratio=12)
+ORANGE = "#FF9D4D"
+PURPLE = "#B58CD9"
+BIRD_COLORS = [TEAL, ORANGE, GREEN, PURPLE, RED]
+TREE_X = -0.65
 
 
-def dot(color, r=0.17, op=0.7):
-    return Circle(radius=r, stroke_color=color, stroke_width=2.5, fill_color=color, fill_opacity=op)
+def drifting(mob, amp=0.035, speed=1.2, phase=0.0):
+    """Relative idle drift which remains compatible with later animations."""
+    mob._drift_t = 0.0
+    mob._drift_last = np.sin(phase) * amp
+
+    def update(m, dt):
+        m._drift_t += dt
+        now = np.sin(speed * m._drift_t + phase) * amp
+        m.shift(UP * (now - m._drift_last))
+        m._drift_last = now
+    mob.add_updater(update)
+    return mob
 
 
-def spruce(cx, base_y=-2.9):
-    """a spruce as three stacked triangles and a trunk: a labelled schematic, not a drawing of a real tree."""
-    tiers = [(2.9, 1.1, 2.2), (1.6, -0.4, 3.2), (0.2, -2.1, 4.2)]
-    parts = []
-    for apex, base, w in tiers:
-        parts.append(Polygon([cx, apex, 0], [cx - w / 2, base, 0], [cx + w / 2, base, 0],
-                             stroke_color=HAB, stroke_width=3, fill_color=HAB, fill_opacity=0.12))
-    trunk = Rectangle(width=0.4, height=0.8, stroke_color=GREY, stroke_width=3, fill_color=GREY, fill_opacity=0.3)
-    trunk.move_to([cx, -2.5, 0])
-    return VGroup(trunk, *parts)
+def swaying(mob, amp=0.012, speed=0.75):
+    """Slow canopy motion, applied as relative rotations so transforms still work."""
+    mob._sway_t = 0.0
+    mob._sway_last = 0.0
+
+    def update(m, dt):
+        m._sway_t += dt
+        now = amp * np.sin(speed * m._sway_t)
+        m.rotate(now - m._sway_last, about_point=m.get_center())
+        m._sway_last = now
+    mob.add_updater(update)
+    return mob
 
 
-def habitat_box(cx, cy, w, h):
-    return RoundedRectangle(corner_radius=0.25, width=w, height=h, stroke_color=HAB, stroke_width=3.5,
-                            fill_color=HAB, fill_opacity=0.07).move_to([cx, cy, 0])
+def bird(color, scale=1.0):
+    """A simple side-on bird silhouette; a labelled cartoon, not a species portrait."""
+    body = Ellipse(width=0.58, height=0.34, stroke_color=color, stroke_width=2.5,
+                   fill_color=color, fill_opacity=0.88)
+    head = Circle(radius=0.14, stroke_width=0, fill_color=color, fill_opacity=1).move_to([0.26, 0.11, 0])
+    wing = Ellipse(width=0.28, height=0.17, stroke_color=BG, stroke_width=1.5,
+                   fill_color=BG, fill_opacity=0.35).move_to([-0.05, 0.02, 0]).rotate(-0.25)
+    bill = Triangle(stroke_width=0, fill_color=YELLOW, fill_opacity=1).scale(0.07).rotate(-PI / 2)
+    bill.move_to([0.43, 0.11, 0])
+    tail = Triangle(stroke_width=0, fill_color=color, fill_opacity=0.9).scale(0.12).rotate(PI / 2)
+    tail.move_to([-0.36, -0.03, 0])
+    eye = Dot([0.29, 0.15, 0], radius=0.022, color=BG)
+    return VGroup(tail, body, wing, head, bill, eye).scale(scale)
 
 
-class S00Title(TitleCard):
-    LESSON = "Habitat and niche"
-    TITLE = "Different Niches Let Many Kinds Share"
+def search_path(kind, color=None, opacity=0.62):
+    """Fixed preferred-zone paths for the five colors."""
+    color = color or BIRD_COLORS[kind]
+    pts = [
+        [[-0.7, 2.35, 0], [1.25, 1.75, 0], [1.85, 1.10, 0]],
+        [[-0.8, 1.45, 0], [-2.65, 0.95, 0], [-3.35, 0.15, 0]],
+        [[-0.6, 0.55, 0], [1.55, 0.05, 0], [2.65, -0.65, 0]],
+        [[-0.65, -0.25, 0], [-2.35, -0.85, 0], [-3.15, -1.55, 0]],
+        [[-0.55, -1.10, 0], [1.25, -1.55, 0], [2.15, -2.20, 0]],
+    ][kind]
+    pts = [np.array(p) + RIGHT * TREE_X for p in pts]
+    return VMobject(stroke_color=color, stroke_width=7, stroke_opacity=opacity).set_points_smoothly(pts)
 
 
-# ---------------------------------------------------------------------------------------------
-class S01Warblers(SpokenScene):
+def all_tree_path(kind, color=None):
+    color = color or BIRD_COLORS[kind]
+    phase = kind * 0.23
+    pts = [
+        np.array([TREE_X - 2.9, -1.9 + phase, 0]),
+        np.array([TREE_X + 2.6, -1.0 + phase, 0]),
+        np.array([TREE_X - 2.4, 0.2 + phase, 0]),
+        np.array([TREE_X + 2.0, 1.0 + phase, 0]),
+        np.array([TREE_X - 0.1, 2.45, 0]),
+    ]
+    return VMobject(stroke_color=color, stroke_width=5, stroke_opacity=0.52).set_points_smoothly(pts)
+
+
+def spruce_world(paths="zones", insects=10, drift=True, birds=True):
+    """The carried world: same tree, branch landmarks, bird colors, and coordinates."""
+    trunk = Polygon([TREE_X - 0.22, -2.75, 0], [TREE_X + 0.22, -2.75, 0],
+                    [TREE_X + 0.10, 2.65, 0], [TREE_X - 0.10, 2.65, 0],
+                    stroke_color=GOLD, stroke_width=4, fill_color=GOLD, fill_opacity=0.18)
+    branches = VGroup()
+    levels = [(2.15, 1.15), (1.55, 1.75), (0.85, 2.35), (0.10, 2.85), (-0.70, 3.25), (-1.55, 3.55)]
+    for y, half in levels:
+        branches.add(Line([TREE_X, y + 0.22, 0], [TREE_X - half, y - 0.42, 0], color=GOLD, stroke_width=7))
+        branches.add(Line([TREE_X, y + 0.22, 0], [TREE_X + half, y - 0.42, 0], color=GOLD, stroke_width=7))
+        for side in (-1, 1):
+            x0 = TREE_X + side * half * 0.48
+            branches.add(Line([x0, y - 0.02, 0], [x0 + side * 0.34, y + 0.28, 0],
+                              color=GOLD, stroke_width=3.5).set_opacity(0.82))
+    outline = Polygon([TREE_X, 2.95, 0], [TREE_X - 1.15, 1.55, 0], [TREE_X - 2.15, 0.15, 0],
+                      [TREE_X - 3.75, -2.25, 0], [TREE_X + 3.75, -2.25, 0],
+                      [TREE_X + 2.15, 0.15, 0], [TREE_X + 1.15, 1.55, 0],
+                      stroke_color=GOLD, stroke_width=5, fill_color=GOLD, fill_opacity=0.18)
+    if drift:
+        swaying(branches)
+    path_group = VGroup()
+    if paths == "zones":
+        path_group = VGroup(*[search_path(i) for i in range(5)])
+    elif paths == "all":
+        path_group = VGroup(*[all_tree_path(i) for i in range(5)])
+
+    insect_spots = [(-2.45, -1.35), (1.85, -1.45), (-1.85, -0.45), (2.15, -0.30),
+                    (-1.20, 0.55), (1.25, 0.70), (-0.65, 1.55), (0.60, 1.45),
+                    (-0.10, 2.25), (2.75, -1.70), (-3.05, -1.75), (0.15, -0.55)]
+    bugs = VGroup(*[Dot([TREE_X + x, y, 0], radius=0.085, color=YELLOW) for x, y in insect_spots[:insects]])
+    if drift and len(bugs):
+        drifting(bugs, amp=0.10, speed=0.82, phase=0.6)
+    bird_group = VGroup()
+    if birds:
+        for i in range(5):
+            p = (search_path(i) if paths != "all" else all_tree_path(i)).point_from_proportion(0.15 + i * 0.12)
+            b = bird(BIRD_COLORS[i], 0.78).move_to(p)
+            if drift:
+                drifting(b, amp=0.13, speed=0.82 + 0.06 * i, phase=i)
+            bird_group.add(b)
+    world = VGroup(outline, trunk, branches, path_group, bugs, bird_group)
+    world.outline, world.trunk, world.branches = outline, trunk, branches
+    world.paths, world.bugs, world.birds = path_group, bugs, bird_group
+    return world
+
+
+def model_tag():
+    t = scope_tag("MODEL — SCHEMATIC", size=24)
+    t.layout_ok = True
+    return t
+
+
+def energy_bar(color, x, value=0.18):
+    frame = RoundedRectangle(corner_radius=0.08, width=0.34, height=1.05, stroke_color=color, stroke_width=2)
+    fill = Rectangle(width=0.25, height=max(0.08, value), stroke_width=0, fill_color=color, fill_opacity=0.85)
+    fill.align_to(frame, DOWN).shift(UP * 0.06)
+    return VGroup(frame, fill).move_to([x, -2.3, 0])
+
+
+def predict_backdrop():
+    world = spruce_world(paths="all", insects=3)
+    bars = VGroup(energy_bar(GREEN, 4.65, 0.08), energy_bar(RED, 5.35, 0.08))
+    return VGroup(world, bars, model_tag())
+
+
+class S01Hook(SpokenScene):
     def construct(self):
-        cx = -3.7
-        tree = spruce(cx)
-        offs = [(0, 1.9), (-0.5, 0.6), (0.6, 0.2), (-0.85, -1.3), (0.85, -1.3)]
-        birds = VGroup(*[dot(ORG, 0.17, 0.85).move_to([cx + dx, dy, 0]) for dx, dy in offs])
-        ins_off = [(0.35, 1.25), (-0.3, 1.4), (0.2, 0.3), (-0.2, -0.3), (0.9, -0.7), (-1.1, -0.5), (0.15, -1.6),
-                   (-0.1, -0.8), (1.3, -1.7), (-1.4, -1.7), (0.5, 0.9), (-0.9, 0.2)]
-        bugs = VGroup(*[dot(RES, 0.075, 0.95).move_to([cx + dx, dy, 0]) for dx, dy in ins_off])
-        t1 = VGroup(T("5 kinds of warblers", 40, ORG, weight=BOLD), T("small birds", 28, GREY)).arrange(DOWN, buff=0.1, aligned_edge=LEFT)
-        t2 = VGroup(T("spruce forests", 40, HAB, weight=BOLD), T("Maine and Vermont, in summer", 28, GREY)).arrange(DOWN, buff=0.1, aligned_edge=LEFT)
-        t3 = VGroup(T("they eat mostly insects", 40, RES, weight=BOLD), T("picked from the trees", 28, GREY)).arrange(DOWN, buff=0.1, aligned_edge=LEFT)
-        right = VGroup(t1, t2, t3).arrange(DOWN, buff=0.6, aligned_edge=LEFT).move_to([3.3, 0.1, 0])
-        note = T("a sketch, not to scale", 22, GREY).move_to([cx, -3.35, 0])
-        self.at("Five kinds")
-        self.play(FadeIn(tree, scale=0.95), FadeIn(note), run_time=0.9)
-        self.play(FadeIn(birds, lag_ratio=0.25, scale=0.5), FadeIn(t1, shift=LEFT * 0.2), run_time=1.5)
-        self.at("spruce forests")
-        self.play(FadeIn(t2, shift=LEFT * 0.2), Indicate(tree, color=HAB, scale_factor=1.03), run_time=0.9)
-        self.at("mostly insects")
-        self.play(FadeIn(bugs, lag_ratio=0.1, scale=0.5), FadeIn(t3, shift=LEFT * 0.2), run_time=1.2)
-        q = T("How can so many kinds\nof animals share one place\nwithout running out of food?", 40, TEXT,
-              font=TITLE_FONT, line_spacing=0.85)
-        fit(q, max_w=6.6, max_h=3.6)
-        q.move_to([3.3, 0.1, 0])
-        self.at("How can so many")
-        self.play(FadeOut(right), run_time=0.6)
-        self.play(Write(q), run_time=2.2)
-        self.play(Indicate(birds, color=ORG, scale_factor=1.1), run_time=0.8)
+        tree = spruce_world(paths=None, insects=12)
+        self.play(FadeIn(VGroup(tree.outline, tree.trunk, tree.branches), scale=0.97), run_time=0.8)
+        self.play(FadeIn(tree.bugs, lag_ratio=0.06), FadeIn(tree.birds, lag_ratio=0.12), run_time=1.1)
+        five = T("FIVE KINDS", 34, TEXT, weight=BOLD).move_to([4.75, 2.55, 0])
+        five.layout_ok = True
+        self.play(FadeIn(five, shift=LEFT * 0.2), run_time=0.6)
+        self.at("How can they share")
+        q = fit_text("How can they share one place\nwithout running out of food?", 5.0, 36, TEXT,
+                     font=TITLE_FONT).move_to([4.25, 0.75, 0])
+        self.play(Write(q), run_time=1.4)
+        self.at("Watch the same tree")
+        self.play(LaggedStart(*[b.animate.shift(RIGHT * (0.25 if i % 2 else -0.2))
+                                for i, b in enumerate(tree.birds)], lag_ratio=0.12), run_time=1.4)
+        self.at("Gold outlines")
+        self.play(Indicate(tree.outline, color=GOLD, scale_factor=1.015), run_time=1.0)
+        self.add(model_tag())
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S02Words(SpokenScene):
+class S02Title(NarratedScene):
     def construct(self):
-        box = habitat_box(0, 0.2, 7.2, 3.9)
-        hlab = T("habitat: the place where it lives", 36, HAB, weight=BOLD).move_to([0, 2.85, 0])
-        forest = chip("spruce forest", HAB, size=32).move_to([-1.3, 1.1, 0])
-        self.at("A habitat is")
-        self.play(FadeIn(box), Write(hlab), run_time=1.3)
-        self.at("A spruce forest is")
-        self.play(FadeIn(forest, scale=0.9), run_time=0.7)
-        # niche
-        oval = Ellipse(width=3.8, height=1.6, stroke_color=NICHE, stroke_width=4, fill_color=NICHE, fill_opacity=0.14).move_to([0.9, -0.55, 0])
-        org = dot(ORG, 0.2, 0.85).move_to([-0.2, -0.55, 0])
-        nlab = T("niche: its role in the habitat", 36, NICHE, weight=BOLD).move_to([0, -2.45, 0])
-        self.at("A niche is")
-        self.play(FadeIn(org, scale=0.5), Create(oval), Write(nlab), run_time=1.5)
-        addr = chip("address", HAB, size=32).move_to([-5.2, 0.9, 0])
-        job = chip("job", NICHE, size=32).move_to([5.2, -0.55, 0])
-        a1 = arr(addr.get_right(), [-3.65, 0.9, 0], HAB, w=5)
-        a2 = arr(job.get_left(), [2.85, -0.55, 0], NICHE, w=5)
-        self.at("as an address")
-        self.play(FadeIn(addr, shift=RIGHT * 0.2), GrowArrow(a1), Indicate(box, color=HAB, scale_factor=1.02), run_time=1.0)
-        self.at("as a job")
-        self.play(FadeIn(job, shift=LEFT * 0.2), GrowArrow(a2), Indicate(oval, color=NICHE, scale_factor=1.05), run_time=1.0)
+        tree = spruce_world(paths=None, insects=8)
+        title = fit_text("One Forest, Different Ways to Live", 8.2, 48, TEXT, font=TITLE_FONT).move_to([1.9, 0.45, 0])
+        rule = Line([-2.0, -0.15, 0], [5.8, -0.15, 0], color=GOLD, stroke_width=5)
+        self.add(tree)
+        veil = RoundedRectangle(corner_radius=0.2, width=9.0, height=1.65, stroke_width=0,
+                                fill_color=BG, fill_opacity=0.93).move_to([1.9, 0.38, 0])
+        self.play(FadeIn(veil), FadeIn(title, shift=UP * 0.12), GrowFromCenter(rule), run_time=0.65)
+        self.wait(0.75)
+        self.play(FadeOut(VGroup(title, veil)), Transform(rule, tree.outline.copy()), run_time=0.45)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S03Oak(SpokenScene):
+class S03PlaceAndWay(SpokenScene):
     def construct(self):
-        head = T("a niche is more than one job", 40, NICHE, font=TITLE_FONT).move_to([0, 3.0, 0])
-        items = [chip("what it eats", NICHE, size=32), chip("where and when it feeds", NICHE, size=32),
-                 chip("the space it uses", NICHE, size=32), chip("what eats it", NICHE, size=32)]
-        stack = VGroup(*items).arrange(DOWN, buff=0.38).move_to([0, -0.3, 0])
-        self.at("more than one job")
-        self.play(Write(head), run_time=1.2)
-        self.at("what the organism eats")
-        self.play(FadeIn(items[0], shift=UP * 0.15), run_time=0.6)
-        self.at("where and when it feeds")
-        self.play(FadeIn(items[1], shift=UP * 0.15), run_time=0.6)
-        self.at("the space it uses")
-        self.play(FadeIn(items[2], shift=UP * 0.15), run_time=0.6)
+        world = spruce_world(paths=None, insects=9)
+        self.add(world)
+        self.at("spruce forest")
+        self.play(Indicate(world.outline, color=GOLD, scale_factor=1.02), run_time=0.8)
+        habitat = T("HABITAT: PLACE", 34, GOLD, weight=BOLD).move_to([4.75, 2.65, 0])
+        self.play(FadeIn(habitat, shift=LEFT * 0.2), run_time=0.7)
+        self.at("A niche is different")
+        paths = VGroup(*[search_path(i) for i in range(5)])
+        self.play(LaggedStart(*[Create(p) for p in paths], lag_ratio=0.12), run_time=1.5)
+        self.at("organism's role")
+        niche = T("NICHE: WAY OF LIVING", 30, TEAL, weight=BOLD).move_to([4.15, 2.65, 0])
+        self.play(swap(habitat, niche), run_time=0.7)
+        self.at("Food is part")
+        food = chip("food", YELLOW, size=28).move_to([4.75, 1.30, 0])
+        self.play(FadeIn(food, scale=0.9), run_time=0.5)
+        self.at("where and when")
+        when = chip("place + time", TEAL, size=28).move_to([4.75, 0.45, 0])
+        self.play(FadeIn(when, scale=0.9), run_time=0.5)
+        self.at("space it uses")
+        space = chip("space", GREEN, size=28).move_to([4.75, -0.40, 0])
+        self.play(FadeIn(space, scale=0.9), run_time=0.5)
         self.at("what eats it")
-        self.play(FadeIn(items[3], shift=UP * 0.15), run_time=0.6)
-        # oak forest
-        box = habitat_box(0, -0.2, 12.0, 5.5)
-        hlab = T("habitat: Virginia oak forest", 34, HAB, weight=BOLD).move_to([0, 1.95, 0])
-        sq = chip("gray squirrel", ORG, size=32).move_to([-4.0, 0.6, 0])
-        ew = chip("earthworm", ORG, size=32).move_to([-4.0, -1.0, 0])
-        f1 = chip("acorns and nuts", RES, size=32).move_to([1.2, 0.6, 0])
-        f2 = chip("dead leaves and soil", RES, size=32).move_to([1.2, -1.0, 0])
-        e1 = arr(sq.get_right(), f1.get_left(), GREY, w=5)
-        e2 = arr(ew.get_right(), f2.get_left(), GREY, w=5)
-        lab1 = T("eats", 26, GREY).next_to(e1, UP, buff=0.05)
-        lab2 = T("eats", 26, GREY).next_to(e2, UP, buff=0.05)
-        self.at("Take a Virginia oak forest")
-        self.play(FadeOut(head), FadeOut(stack), run_time=0.5)
-        self.play(FadeIn(box), Write(hlab), run_time=1.0)
-        self.at("A gray squirrel")
-        self.play(FadeIn(sq, scale=0.9), FadeIn(ew, scale=0.9), run_time=0.8)
-        self.at("The squirrel eats")
-        self.play(GrowArrow(e1), FadeIn(lab1), FadeIn(f1, shift=LEFT * 0.2), run_time=0.9)
-        self.at("The earthworm eats")
-        self.play(GrowArrow(e2), FadeIn(lab2), FadeIn(f2, shift=LEFT * 0.2), run_time=0.9)
-        r1 = RoundedRectangle(corner_radius=0.2, width=11.2, height=1.3, stroke_color=NICHE, stroke_width=4).move_to([0, 0.6, 0])
-        r2 = RoundedRectangle(corner_radius=0.2, width=11.2, height=1.3, stroke_color=NICHE, stroke_width=4).move_to([0, -1.0, 0])
-        nl = T("different niches", 34, NICHE, weight=BOLD).move_to([0, -2.4, 0])
-        self.at("They share a habitat")
-        self.play(Indicate(box, color=HAB, scale_factor=1.015), run_time=0.9)
-        self.at("their niches")
-        self.play(Create(r1), Create(r2), FadeIn(nl, shift=UP * 0.1), run_time=1.2)
+        predators = chip("predators", RED, size=28).move_to([4.75, -1.25, 0])
+        self.play(FadeIn(predators, scale=0.9), run_time=0.5)
+        self.at("ecosystem role")
+        role = chip("ecosystem role", PURPLE, size=26).move_to([4.55, -2.10, 0])
+        self.play(FadeIn(role, scale=0.9), run_time=0.6)
+        self.add(model_tag())
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S04Resource(SpokenScene):
+class S04Resources(SpokenScene):
     def construct(self):
-        names = ["food", "water", "shelter", "space"]
-        chips = VGroup(*[chip(n, RES, size=30) for n in names]).arrange(RIGHT, buff=0.35).move_to([0, 2.55, 0])
-        head = T("resources", 38, RES, font=TITLE_FONT, weight=BOLD).move_to([0, 3.15, 0])
-        cy = -0.55
-        box = habitat_box(0, cy, 11.4, 4.4)
-        an = dot(ORG, 0.22, 0.9).move_to([-2.0, cy, 0])
-        pts = [(-2.0 + 0.7, cy + 0.5), (-2.0 - 0.8, cy + 0.2), (-2.0 + 0.2, cy - 0.8), (-2.0 - 0.3, cy + 0.9),
-               (-2.0 + 0.9, cy - 0.3), (-2.0 - 0.7, cy - 0.7), (3.4, cy + 0.4), (1.4, cy - 1.4),
-               (4.2, cy - 1.5), (2.6, cy + 1.3), (0.9, cy + 1.2), (4.5, cy + 1.2)]
-        dots = VGroup(*[dot(RES, 0.1, 0.95).move_to([x, y, 0]) for x, y in pts])
-        keep = [0, 6]
-        circ = Circle(radius=1.35, stroke_color=NICHE, stroke_width=4, fill_color=NICHE, fill_opacity=0.12).move_to(an)
-        clab = T("where it feeds", 28, NICHE).move_to([-2.0, cy - 1.85, 0])
-        sk4 = T("a sketch, not to scale", 24, TEXT).move_to([3.5, cy - 1.75, 0])
-        anl = T("an animal", 24, TEXT).next_to(an, UP, buff=0.12)
-        defl = T("something a living thing needs and takes", 28, TEXT).move_to([0, 2.55, 0])
-        self.at("A resource is")
-        self.play(Write(head), FadeIn(defl, shift=UP * 0.1), run_time=0.9)
-        self.at("takes from its habitat")
-        self.play(FadeIn(box), FadeIn(an, scale=0.5), FadeIn(anl), run_time=0.9)
+        world = spruce_world(paths="zones", insects=10)
+        self.add(world, model_tag())
+        self.at("needs and takes")
+        resource = T("RESOURCE", 34, YELLOW, weight=BOLD).move_to([4.85, 2.55, 0])
+        self.play(FadeIn(resource, shift=LEFT * 0.2), Indicate(world.bugs, color=YELLOW), run_time=0.9)
         self.at("Food, water")
-        self.play(FadeOut(defl), FadeIn(chips, lag_ratio=0.35, shift=DOWN * 0.15), run_time=1.6)
-        self.at("Part of an")
-        self.play(FadeIn(dots, lag_ratio=0.05), FadeOut(anl), run_time=0.8)
-        self.play(Create(circ), FadeIn(clab), FadeIn(sk4), run_time=1.0)
-        gone = VGroup(*[d for i, d in enumerate(dots) if i not in keep])
-        less = T("less food", 32, RES, weight=BOLD).move_to([3.6, cy - 0.45, 0])
-        self.at("runs short")
-        self.play(FadeOut(gone), FadeOut(clab), FadeIn(less, shift=UP * 0.1), run_time=1.0)
-        wide = Circle(radius=2.05, stroke_color=NICHE, stroke_width=4, fill_color=NICHE, fill_opacity=0.12).move_to([-0.35, cy, 0])
-        clab2 = T("searches more places", 28, NICHE).move_to([3.55, cy - 1.3, 0])
-        self.at("search more places")
-        self.play(Transform(circ, wide), FadeIn(clab2), an.animate.move_to([-0.35, cy, 0]), run_time=1.4)
-        shift = T("so the niche can shift", 34, NICHE, weight=BOLD).move_to([0, -3.25, 0])
-        self.at("So a niche can shift")
-        self.play(FadeOut(chips), FadeOut(head), run_time=0.4)
-        self.play(FadeIn(shift, shift=DOWN * 0.1), Indicate(circ, color=NICHE, scale_factor=1.05), run_time=1.0)
+        icons = VGroup(chip("food", YELLOW, 27), chip("water", BLUE, 27),
+                       chip("shelter", GOLD, 27), chip("space", GREEN, 27)).arrange(DOWN, buff=0.18)
+        icons.move_to([4.85, 0.55, 0])
+        self.play(LaggedStart(*[FadeIn(x, shift=LEFT * 0.15) for x in icons], lag_ratio=0.22), run_time=1.5)
+        self.at("Each warbler searches")
+        self.play(FadeOut(icons), LaggedStart(*[Indicate(p, color=BIRD_COLORS[i], scale_factor=1.01)
+                                                for i, p in enumerate(world.paths)], lag_ratio=0.12), run_time=1.5)
+        food_label = T("FOOD RESOURCE", 30, YELLOW, weight=BOLD).move_to([4.75, 1.25, 0])
+        self.play(swap(resource, food_label), run_time=0.6)
+        self.at("Finding insects")
+        targets = list(world.bugs)[:5]
+        for b in world.birds:
+            b.clear_updaters()
+        self.play(*[b.animate.move_to(t.get_center() + UP * 0.16) for b, t in zip(world.birds, targets)],
+                  FadeOut(VGroup(*targets)), run_time=1.4)
+        for i, b in enumerate(world.birds):
+            drifting(b, amp=0.11, speed=0.85 + 0.05 * i, phase=i)
+        self.at("food helps")
+        bars = VGroup(*[energy_bar(BIRD_COLORS[i], 3.55 + i * 0.62, 0.16) for i in range(5)])
+        full = VGroup(*[energy_bar(BIRD_COLORS[i], 3.55 + i * 0.62, 0.82) for i in range(5)])
+        self.play(FadeIn(bars), run_time=0.5)
+        self.play(Transform(bars, full), run_time=1.0)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
 class S05Overlap(SpokenScene):
     def construct(self):
-        one = chip("a species: one kind of living thing", ORG, size=34).move_to([0, 0.4, 0])
-        self.at("A species is")
-        self.play(FadeIn(one, scale=0.9), run_time=0.9)
-        a = chip("species A", ORG, size=34).move_to([-3.6, 1.5, 0])
-        b = chip("species B", ORG, size=34).move_to([3.6, 1.5, 0])
-        res = chip("the same limited resource", RES, size=34).move_to([0, -0.6, 0])
-        ar1 = arr(a.get_bottom(), res.get_left() + UP * 0.1, GREY, w=5)
-        ar2 = arr(b.get_bottom(), res.get_right() + UP * 0.1, GREY, w=5)
-        self.at("two species need")
-        self.play(FadeOut(one), FadeIn(a, shift=RIGHT * 0.2), FadeIn(b, shift=LEFT * 0.2), run_time=0.8)
-        self.play(FadeIn(res, scale=0.9), GrowArrow(ar1), GrowArrow(ar2), run_time=0.9)
-        comp = T("they compete", 44, COMP, weight=BOLD).move_to([0, -1.9, 0])
+        world = spruce_world(paths="zones", insects=7)
+        self.add(world, model_tag())
+        self.at("short supply")
+        gone = VGroup(*list(world.bugs)[3:])
+        self.play(FadeOut(gone, lag_ratio=0.12), run_time=1.2)
         self.at("they compete")
-        self.play(FadeIn(comp, scale=0.9), Indicate(res, color=COMP, scale_factor=1.06), run_time=0.9)
-        defn = T("competition: a struggle for resources\nthat are in short supply", 34, COMP, line_spacing=0.85).move_to([0, -2.3, 0])
-        self.at("Competition is a struggle")
-        self.play(FadeOut(comp), FadeIn(defn, shift=UP * 0.1), run_time=0.8)
-        # niche circles
-        self.at("niches that overlap a lot")
-        self.play(FadeOut(res), FadeOut(ar1), FadeOut(ar2), FadeOut(defn), FadeOut(a), FadeOut(b), run_time=0.4)
-        ca = Circle(radius=1.9, stroke_color=NICHE, stroke_width=4, fill_color=NICHE, fill_opacity=0.14).move_to([-1.0, 0.5, 0])
-        cb = Circle(radius=1.9, stroke_color=NICHE, stroke_width=4, fill_color=NICHE, fill_opacity=0.14).move_to([1.0, 0.5, 0])
-        la = chip("species A", ORG, size=30).move_to([-3.4, 3.0, 0])
-        lb = chip("species B", ORG, size=30).move_to([3.4, 3.0, 0])
-        nl = T("their niches", 30, NICHE).move_to([0, 3.0, 0])
-        track = RoundedRectangle(corner_radius=0.15, width=7.0, height=0.4, stroke_color=GREY, stroke_width=2.5).move_to([-0.8, -2.2, 0])
-        clab = T("competition", 30, COMP, weight=BOLD).next_to(track, RIGHT, buff=0.35)
-        skt = T("a sketch, not measured", 26, TEXT).move_to([0, -3.1, 0])
-        self.play(Create(ca), Create(cb), FadeIn(la), FadeIn(lb), FadeIn(nl), FadeIn(track), FadeIn(clab), FadeIn(skt), run_time=0.9)
-        food = VGroup(*[dot(RES, 0.1, 0.95).move_to([x, y, 0]) for x, y in ((0, 1.0), (0, 0.5), (0, 0.0), (-0.2, 0.75), (0.2, 0.25))])
-        fill = Rectangle(width=0.01, height=0.4, stroke_width=0, fill_color=COMP, fill_opacity=0.85).move_to(track.get_left() + RIGHT * 0.005)
-        fill.align_to(track, LEFT)
-        big = Rectangle(width=5.6, height=0.4, stroke_width=0, fill_color=COMP, fill_opacity=0.85).align_to(track, LEFT).move_to(track.get_left() + RIGHT * 2.8)
-        self.at("they compete a lot")
-        self.play(FadeIn(food, scale=0.5), Transform(fill, big), run_time=1.2)
-        most = T("one possible result", 28, TEXT).move_to([4.95, -0.6, 0])
-        self.at("One may get most")
-        self.play(*[d.animate.move_to([x, y, 0]) for d, (x, y) in zip(list(food)[:4], ((-1.7, 1.0), (-1.4, 0.5), (-1.8, 0.0), (-1.2, 0.8)))],
-                  cb.animate.set_stroke(opacity=0.35).set_fill(opacity=0.04), FadeIn(most), run_time=1.2)
-        small = Rectangle(width=1.4, height=0.4, stroke_width=0, fill_color=COMP, fill_opacity=0.85).align_to(track, LEFT).move_to(track.get_left() + RIGHT * 0.7)
-        self.at("If their niches")
-        self.play(FadeOut(food), FadeOut(most), run_time=0.4)
-        self.play(ca.animate.move_to([-2.9, 0.5, 0]), cb.animate.move_to([2.9, 0.5, 0]).set_stroke(opacity=1).set_fill(opacity=0.14), Transform(fill, small), run_time=1.5)
-        self.at("compete less")
-        self.play(Indicate(clab, color=COMP, scale_factor=1.1), run_time=0.8)
+        comp = T("COMPETITION", 36, RED, weight=BOLD).move_to([4.75, 2.55, 0])
+        self.play(FadeIn(comp, shift=LEFT * 0.2), run_time=0.7)
+        cross_a = search_path(0).point_from_proportion(0.70)
+        shared = Dot(cross_a, radius=0.10, color=YELLOW)
+        a, b = world.birds[0], world.birds[2]
+        a.clear_updaters(); b.clear_updaters()
+        self.at("same branches")
+        self.play(a.animate.move_to(shared.get_center() + LEFT * 0.35),
+                  b.animate.move_to(shared.get_center() + RIGHT * 0.35), FadeIn(shared), run_time=1.4)
+        self.at("same insect")
+        self.play(a.animate.move_to(shared.get_center()), b.animate.shift(RIGHT * 0.2), FadeOut(shared), run_time=0.8)
+        drifting(a, amp=0.11, speed=0.86, phase=0.2)
+        drifting(b, amp=0.11, speed=0.91, phase=1.1)
+        overlap = Ellipse(width=2.25, height=1.35, stroke_color=RED, stroke_width=5,
+                          fill_color=RED, fill_opacity=0.16).move_to(cross_a)
+        self.at("niches overlap")
+        self.play(Create(overlap), run_time=0.9)
+        pulse(overlap, base=5, amp=1.5, speed=2.2)
+        label = T("OVERLAP", 30, RED, weight=BOLD).move_to([4.75, 1.55, 0])
+        self.play(FadeIn(label), run_time=0.5)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S06Answer(SpokenScene):
+class S05Species(SpokenScene):
     def construct(self):
-        q = T("How can so many kinds of animals share one place?", 36, TEXT, font=TITLE_FONT)
-        fit(q, max_w=12.2, max_h=1.0)
-        q.move_to([0, 3.1, 0])
-        box = habitat_box(0, 0.0, 11.4, 4.5)
-        hl = T("one habitat", 30, HAB, weight=BOLD).move_to([-4.3, 1.75, 0])
-        pos = [(-3.5, 0.55), (0.0, 0.55), (3.5, 0.55), (-1.75, -1.0), (1.75, -1.0)]
-        ovals = VGroup(*[Ellipse(width=3.9, height=1.6, stroke_color=NICHE, stroke_width=4, fill_color=NICHE, fill_opacity=0.12).move_to([x, y, 0]) for x, y in pos])
-        birds = VGroup(*[dot(ORG, 0.17, 0.85).move_to([x, y, 0]) for x, y in pos])
-        self.at("So how can so many")
-        self.play(Write(q), run_time=1.8)
-        self.play(FadeIn(box), FadeIn(hl), run_time=0.8)
-        cap = T("different niches", 34, NICHE, weight=BOLD).move_to([0, -2.85, 0])
-        self.at("Different niches help")
-        self.play(LaggedStart(*[Create(o) for o in ovals], lag_ratio=0.2), FadeIn(birds, lag_ratio=0.2, scale=0.5), FadeIn(cap), run_time=2.0)
-        less = T("less competition", 34, COMP, weight=BOLD).move_to([0, -2.85, 0])
-        self.at("compete less")
-        self.play(FadeOut(cap), FadeIn(less, shift=UP * 0.1), run_time=0.7)
-        more = T("more kinds of living things in one place", 32, BLUE, weight=BOLD).move_to([0, -2.85, 0])
-        self.at("more kinds of living things")
-        self.play(FadeOut(less), FadeIn(more, shift=UP * 0.1), Indicate(birds, color=ORG, scale_factor=1.12), run_time=1.0)
-        bio = chip("biodiversity: the variety of living things in a place", BIO, size=28).move_to([0, -2.85, 0])
-        self.at("The variety of living things")
-        self.play(FadeOut(more), FadeIn(bio, scale=0.95), run_time=0.8)
-        spots = [(-1.85, 0.5), (1.85, 0.5), (-0.9, -0.2), (0.9, -0.2)]
-        # lens centres between neighbouring ovals (they overlap a little)
-        lens = [(-1.75, 0.55), (1.75, 0.55), (-0.9, -0.2), (0.9, -0.2)]
-        marks = VGroup(*[dot(COMP, 0.1, 0.9).move_to([x, y, 0]) for x, y in lens])
-        some = T("some competition stays", 32, COMP, weight=BOLD).move_to([0, -2.85, 0])
-        self.at("Using a place differently")
-        self.play(FadeOut(bio), FadeIn(marks, scale=0.4), FadeIn(some), run_time=0.9)
-        helps = T("but it helps", 34, NICHE, weight=BOLD).move_to([0, -2.85, 0])
-        self.at("But it helps")
-        self.play(FadeOut(some), FadeIn(helps, shift=UP * 0.1), run_time=0.6)
+        world = spruce_world(paths="zones", insects=4)
+        overlap = Ellipse(width=2.25, height=1.35, stroke_color=RED, stroke_width=5,
+                          fill_color=RED, fill_opacity=0.14).move_to(search_path(0).point_from_proportion(0.70))
+        pulse(overlap, base=5, amp=1.4, speed=2.1)
+        self.add(world, overlap, model_tag())
+        self.at("one kind")
+        species = T("SPECIES = ONE KIND", 31, TEXT, weight=BOLD).move_to([4.25, 2.55, 0])
+        self.play(FadeIn(species, shift=LEFT * 0.2), run_time=0.7)
+        self.at("different species")
+        lineup = VGroup(*[bird(c, 0.82) for c in BIRD_COLORS]).arrange(RIGHT, buff=0.28).move_to([4.55, 1.45, 0])
+        self.play(ReplacementTransform(world.birds.copy(), lineup), run_time=1.2)
+        self.at("look similar")
+        self.play(LaggedStart(*[Indicate(x, color=BIRD_COLORS[i], scale_factor=1.08)
+                                for i, x in enumerate(lineup)], lag_ratio=0.12), run_time=1.2)
+        self.at("enough food")
+        bars = VGroup(energy_bar(TEAL, 4.15, 0.12), energy_bar(GREEN, 5.05, 0.12))
+        self.play(FadeOut(lineup), FadeIn(bars), run_time=0.5)
+        outcome = VGroup(energy_bar(TEAL, 4.15, 0.86), energy_bar(GREEN, 5.05, 0.22))
+        self.play(Transform(bars, outcome), run_time=1.2)
+        labels = VGroup(T("enough", 26, TEAL), T("short", 26, RED)).arrange(RIGHT, buff=0.75).move_to([4.6, -1.45, 0])
+        self.play(FadeIn(labels), run_time=0.5)
+        self.at("resource is scarce")
+        self.play(Indicate(overlap, color=RED, scale_factor=1.05), run_time=0.9)
         self.finish()
 
 
-class S07End(EndCard):
-    LINE = "Different niches let more kinds share one place."
+class S06Predict(SpokenScene):
+    def construct(self):
+        world = spruce_world(paths="zones", insects=8)
+        self.add(world, model_tag())
+        self.at("Now predict")
+        wide = VGroup(*[all_tree_path(i) for i in range(5)])
+        self.play(Transform(world.paths, wide), run_time=1.2)
+        self.at("Insects become scarce")
+        self.play(FadeOut(VGroup(*list(world.bugs)[3:]), lag_ratio=0.10), run_time=1.1)
+        self.at("every kind searches")
+        for b in world.birds:
+            b.clear_updaters()
+        self.play(*[b.animate.move_to(all_tree_path(i).point_from_proportion(0.62))
+                    for i, b in enumerate(world.birds)], run_time=1.3)
+        for i, b in enumerate(world.birds):
+            drifting(b, amp=0.13, speed=0.82 + 0.06 * i, phase=i)
+        q = question_card("Will more birds get enough food, or will more fall short?", size=29,
+                          y=-3.18, max_w=8.8, left=-6.25)
+        self.at("Will more birds")
+        self.play(FadeIn(q.question, shift=UP * 0.1), run_time=0.8)
+        bars = VGroup(energy_bar(GREEN, 4.65, 0.08), energy_bar(RED, 5.35, 0.08))
+        self.play(FadeIn(bars), run_time=0.5)
+        self.at("insect dots fade")
+        self.play(*[bug.animate.set_opacity(0.28) for bug in list(world.bugs)[:3]], run_time=1.0)
+        self.finish()
+
+
+class S07Pause(PredictPause):
+    QUESTION = "Will more birds get enough food, or will more fall short?"
+    SECONDS = 4.5
+    CARD = {"size": 29, "y": -3.18, "max_w": 10.7, "left": -6.25}
+    RING_AT = (6.05, -3.12, 0)
+
+    def backdrop(self):
+        return predict_backdrop()
+
+
+class S08Reveal(SpokenScene):
+    def construct(self):
+        world = spruce_world(paths="all", insects=3)
+        self.add(world, model_tag())
+        low = VGroup(*[energy_bar(c, 3.65 + i * 0.60, 0.16) for i, c in enumerate(BIRD_COLORS)])
+        self.add(low)
+        self.at("more kinds are likely")
+        result = T("MODEL RESULT", 28, RED, weight=BOLD).move_to([4.85, 2.55, 0])
+        self.play(FadeIn(result), run_time=0.5)
+        fallen = VGroup(*[energy_bar(c, 3.65 + i * 0.60, 0.22 if i else 0.78) for i, c in enumerate(BIRD_COLORS)])
+        self.play(Transform(low, fallen), run_time=1.4)
+        self.at("each color favor")
+        zoned = VGroup(*[search_path(i) for i in range(5)])
+        self.play(Transform(world.paths, zoned), run_time=1.6)
+        for b in world.birds:
+            b.clear_updaters()
+        self.play(*[b.animate.move_to(search_path(i).point_from_proportion(0.52))
+                    for i, b in enumerate(world.birds)], run_time=1.2)
+        for i, b in enumerate(world.birds):
+            drifting(b, amp=0.13, speed=0.82 + 0.06 * i, phase=i)
+        self.at("fewer paths cross")
+        overlap = Ellipse(width=1.15, height=0.72, stroke_color=RED, stroke_width=4,
+                          fill_color=RED, fill_opacity=0.12).move_to([TREE_X + 0.15, 0.35, 0])
+        pulse(overlap, base=4, amp=1.0, speed=2.0)
+        self.play(FadeIn(overlap), run_time=0.6)
+        self.at("insects are limited")
+        refill = VGroup(*[Dot(p, radius=0.085, color=YELLOW) for p in
+                          ([TREE_X - 2.2, -1.25, 0], [TREE_X + 1.8, -1.25, 0],
+                           [TREE_X - 1.0, 0.65, 0], [TREE_X + 0.7, 1.45, 0], [TREE_X, 2.15, 0])])
+        self.play(LaggedStart(*[FadeIn(x, scale=0.4) for x in refill], lag_ratio=0.16), run_time=1.4)
+        self.at("help more kinds")
+        better = VGroup(*[energy_bar(c, 3.65 + i * 0.60, 0.62 + 0.05 * (i % 2)) for i, c in enumerate(BIRD_COLORS)])
+        self.play(Transform(low, better), run_time=1.4)
+        rule = caption("Different niches can reduce competition.", size=30, color=TEAL)
+        self.play(FadeIn(rule), run_time=0.7)
+        self.finish()
+
+
+class S09Refine(SpokenScene):
+    def construct(self):
+        world = spruce_world(paths="zones", insects=6)
+        world.scale(0.82).move_to([-1.55, 0.15, 0])
+        frame = RoundedRectangle(corner_radius=0.18, width=7.0, height=5.2, stroke_color=GREY,
+                                 stroke_width=3).move_to([-1.55, 0.15, 0])
+        tag = T("MODEL", 28, GREY, weight=BOLD).move_to([-3.95, 2.25, 0])
+        overlap = Ellipse(width=0.9, height=0.55, stroke_color=RED, stroke_width=4,
+                          fill_color=RED, fill_opacity=0.13).move_to([-1.25, 0.4, 0])
+        pulse(overlap, base=4, amp=1.0, speed=2.0)
+        self.add(world, frame, tag, overlap)
+        self.at("simplifies nature")
+        self.play(Indicate(frame, color=GREY, scale_factor=1.01), run_time=0.8)
+        self.at("Real niches")
+        real = RoundedRectangle(corner_radius=0.22, width=12.5, height=6.35, stroke_color=TEAL,
+                                stroke_width=4).move_to([0, 0.05, 0])
+        real_lab = T("REAL NICHE", 32, TEAL, weight=BOLD).move_to([4.2, 2.79, 0])
+        self.play(Transform(frame, real), swap(tag, real_lab), run_time=1.2)
+        self.at("much more than feeding")
+        factors = VGroup(chip("food", YELLOW, 26), chip("time", TEAL, 26), chip("space", GREEN, 26),
+                         chip("predators", RED, 26), chip("weather", BLUE, 26)).arrange(DOWN, buff=0.15)
+        factors.move_to([4.75, 0.45, 0])
+        self.play(LaggedStart(*[FadeIn(x, shift=LEFT * 0.12) for x in factors], lag_ratio=0.14), run_time=1.4)
+        self.at("weather changes")
+        wind = Arrow([3.0, 2.0, 0], [0.8, 1.55, 0], buff=0, color=BLUE, stroke_width=5, tip_length=0.22)
+        self.play(GrowArrow(wind), world.birds[0].animate.shift(DOWN * 0.75), run_time=1.2)
+        self.at("does not remove")
+        self.play(Indicate(overlap, color=RED, scale_factor=1.08), run_time=0.8)
+        self.at("chances of meeting")
+        chance = T("chance of meeting", 30, RED, weight=BOLD).move_to([4.65, -2.15, 0])
+        self.play(FadeOut(factors), FadeIn(chance, shift=UP * 0.12), run_time=0.7)
+        self.finish()
+
+
+class S10Close(SpokenScene):
+    def construct(self):
+        world = spruce_world(paths="zones", insects=7)
+        self.add(world, model_tag())
+        self.at("opening puzzle")
+        puzzle = fit_text("How can they share one forest?", 5.2, 34, TEXT, font=TITLE_FONT).move_to([4.35, 2.35, 0])
+        self.play(FadeIn(puzzle, shift=LEFT * 0.15), run_time=0.7)
+        self.at("Shared habitat")
+        rule = fit_text("SHARED HABITAT\n≠\nIDENTICAL NICHE", 4.0, 37, TEAL, font=TITLE_FONT).move_to([4.8, 0.55, 0])
+        self.play(swap(puzzle, rule), Indicate(world.outline, color=GOLD, scale_factor=1.015), run_time=1.1)
+        self.at("next step is evidence")
+        grid = VGroup(*[DashedLine([TREE_X - 3.2, y, 0], [TREE_X + 3.2, y, 0], color=TEXT,
+                                  stroke_width=2, dash_length=0.12).set_opacity(0.34)
+                        for y in (-1.1, 0.2, 1.4)])
+        watch = Circle(radius=0.48, color=TEXT, stroke_width=4).move_to([4.5, -1.65, 0])
+        hand = Line(watch.get_center(), watch.get_center() + UP * 0.27 + RIGHT * 0.10, color=YELLOW, stroke_width=4)
+        button = Line([4.35, -1.12, 0], [4.65, -1.12, 0], color=TEXT, stroke_width=4)
+        self.play(FadeIn(grid), Create(watch), GrowFromCenter(button), Create(hand), run_time=1.2)
+        self.at("Watch where real warblers")
+        obs = T("TEST WITH OBSERVATIONS", 27, TEAL, weight=BOLD).move_to([4.05, 2.45, 0])
+        self.play(swap(rule, obs), LaggedStart(*[Indicate(b, color=BIRD_COLORS[i], scale_factor=1.08)
+                                                for i, b in enumerate(world.birds)], lag_ratio=0.12), run_time=1.4)
+        self.at("observations can support")
+        self.play(Indicate(grid, color=TEAL, scale_factor=1.01), run_time=0.9)
+        self.play(FadeOut(VGroup(obs, grid, watch, hand, button)), run_time=0.5)
+        self.finish()
+
+
+class S11End(EndCard):
+    LINE = "Different niches can reduce competition, helping species share a habitat."

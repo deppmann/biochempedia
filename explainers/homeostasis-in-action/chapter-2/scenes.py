@@ -89,15 +89,14 @@ def make_leaf_world(at=ORIGIN, scale=1.0, narrow=False, arrows=True, particles=T
     gl, gr = guard_cell(-1, gap), guard_cell(1, gap)
     dry = VGroup(*[Arc(radius=0.32 + 0.08 * i, start_angle=0, angle=PI, color=RED,
                        stroke_width=4).move_to([-2.8 + i * 1.4, 2.05, 0]) for i in range(5)])
-    dry_l = T("dry air", 28, RED).move_to([-4.45, 2.05, 0])
-    dry_l.layout_ok = True  # deliberate label on the leaf-surface backdrop
+    dry_l = T("dry air", 28, RED).move_to([-4.9, 2.05, 0])
     water = VGroup(*[Dot([(-0.4 + 0.4 * (i % 3)), -1.9 + 0.38 * i, 0], radius=0.09, color=WHITE)
                      for i in range(7)])
     co2 = VGroup(*[Dot([(0.45 - 0.45 * (i % 3)), 2.0 - 0.33 * i, 0], radius=0.09, color=GREY)
                    for i in range(7)])
     water_a = arrow([-0.55, -1.7, 0], [-0.55, 1.8, 0], WHITE, width=7, tip=0.25)
     co2_a = arrow([0.55, 1.8, 0], [0.55, -1.7, 0], GREY, width=7, tip=0.25)
-    badge = protected_badge("water in leaf", [3.05, -1.9, 0])
+    badge = protected_badge("water in leaf", [2.70, -1.98, 0])
     g.add(surface, dry, dry_l, gl, gr)
     if particles:
         g.add(water, co2)
@@ -145,9 +144,9 @@ def make_membrane_world(at=ORIGIN, scale=1.0):
                                 stroke_width=5, fill_color=TEAL, fill_opacity=0.16)
     gate = RoundedRectangle(corner_radius=0.12, width=1.25, height=1.3, color=WHITE,
                             fill_color=BG, fill_opacity=1).move_to([-2.4, 0, 0])
-    pump = RoundedRectangle(corner_radius=0.18, width=1.55, height=1.55, color=TEAL,
-                            fill_color=TEAL, fill_opacity=0.2).move_to([2.35, 0, 0])
-    pump_l = T("pump", 26, TEAL).move_to(pump)
+    pump = RoundedRectangle(corner_radius=0.18, width=1.9, height=1.55, color=TEAL,
+                            fill_color=TEAL, fill_opacity=0.2).move_to([2.52, 0, 0])
+    pump_l = T("pump", 26, TEAL).move_to(pump).shift(RIGHT * 0.28)
     white = VGroup(*[Dot([-3.25 + 0.5 * (i % 4), 2.0 - 0.42 * (i // 4), 0], radius=0.11, color=WHITE)
                      for i in range(12)])
     few = VGroup(*[Dot([-2.85 + 0.55 * i, -1.7, 0], radius=0.11, color=WHITE) for i in range(3)])
@@ -155,7 +154,7 @@ def make_membrane_world(at=ORIGIN, scale=1.0):
     crowd = VGroup(*[Dot([1.2 + 0.48 * (i % 6), -1.5 - 0.35 * (i // 6), 0], radius=0.11, color=BLUE)
                       for i in range(12)])
     passive = arrow([-2.4, 1.5, 0], [-2.4, -1.3, 0], WHITE, width=6)
-    active = arrow([2.35, 1.35, 0], [2.35, -1.3, 0], BLUE, width=6)
+    active = arrow([1.85, 1.35, 0], [1.85, -1.3, 0], BLUE, width=6)
     energy = chip("energy", GREY, 24, pad=0.15).move_to([4.25, 0.8, 0])
     badge = protected_badge("inside stays different", [4.0, -2.25, 0])
     g.add(outside_bg, inside_bg, outside, inside, membrane, gate, pump, pump_l, white, few, blue, crowd,
@@ -383,7 +382,7 @@ class S07Root(SpokenScene):
         self.at("It supports water")
         self.play(Indicate(curved.badge, color=GOLD), run_time=1.0)
         self.at("but biologists")
-        ghosts = VGroup(chip("sensor?", BLUE, 27), chip("control centre?", YELLOW, 27)).arrange(RIGHT, buff=0.45).move_to([0, 2.75, 0])
+        ghosts = VGroup(chip("sensor?", BLUE, 27), chip("control centre?", YELLOW, 27)).arrange(RIGHT, buff=0.45).move_to([0, 3.1, 0])
         self.play(FadeIn(ghosts), run_time=0.7)
         response = scope_tag("response — not a complete loop", size=24, color=TEAL)
         self.at("not a complete")
@@ -403,7 +402,7 @@ class S08Membrane(SpokenScene):
         passive_l = T("passive", 30, WHITE).move_to([-4.1, -0.95, 0])
         self.play(GrowArrow(w.passive), w.white.animate.shift(DOWN * 0.7), FadeIn(w.few), FadeIn(passive_l), run_time=2.2)
         self.at("Active transport")
-        active_l = T("active", 30, TEAL).move_to([2.35, -1.05, 0])
+        active_l = T("active", 30, TEAL).move_to([2.65, -1.05, 0])
         self.play(FadeIn(w.energy), GrowArrow(w.active), FadeIn(active_l), run_time=1.2)
         self.play(w.blue.animate.shift(DOWN * 1.0), FadeIn(w.crowd), run_time=1.5)
         self.at("Together")

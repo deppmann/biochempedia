@@ -1,465 +1,575 @@
-"""How microbes multiply: copies are made by cells  (Biochemistrypedia explainer, high school Biology)
+"""How microbes multiply: a bacterium copies itself; a virus is copied by a host cell.
 
-Timed to the SPOKEN words: every self.at("...") cue waits for that phrase in audio/words.json.
-
-COLOR MAP (one color per concept, whole video)
-  BLUE   = a bacterium / a host cell (the outline of the cell)
-  TEAL   = the cell's own DNA (chromosome), drawn as a bar
-  PURPLE = a virus: phage, viral DNA, viral parts, the herpes virus
-  ORANGE = a plasmid (small extra DNA)
-  GREEN  = calculated model numbers and the model line ("not a count")
-  YELLOW = the time / the count to read (20 minutes, the question)
-  RED    = what stops or ends: wastes, food runs low, the cell bursts and dies
-  PINK   = the cold sore on the skin
-  GREY   = outlines, axes, the skin and nerve-cell blocks, de-emphasised text
+COLOR MAP
+  GREEN  bacterial cell and food
+  BLUE   bacterial chromosome
+  ORANGE phage DNA and phage heads/parts
+  BROWN  waste
+  GOLD   time, questions, and emphasis
+  GREY   phage tails, outlines, and secondary marks
 """
 import numpy as np
-from bp_style import *  # noqa: F401,F403
+from bp_parts import *  # noqa: F401,F403
 
-PURPLE = "#B58CD9"
 ORANGE = "#F29E4C"
-PINK = "#E88FA8"
+BROWN = "#9A6745"
+LIQUID = "#E8D58A"
 
 
-# ---------------------------------------------------------------------------------------------
-# helpers
-# ---------------------------------------------------------------------------------------------
-def cellbox(w, h, color=BLUE, fill=0.14):
-    return RoundedRectangle(corner_radius=min(w, h) * 0.42, width=w, height=h, stroke_color=color,
-                            stroke_width=4, fill_color=color, fill_opacity=fill)
-
-
-def dnabar(w, color=TEAL, h=0.26):
-    return RoundedRectangle(corner_radius=0.08, width=w, height=h, stroke_color=color, stroke_width=2,
-                            fill_color=color, fill_opacity=0.9)
-
-
-def lab(text, size=26, color=GREY, **kw):
-    return T(text, size, color, **kw)
-
-
-def phage(s=1.0):
-    head = Square(side_length=0.8 * s, stroke_color=PURPLE, stroke_width=4, fill_color=PURPLE, fill_opacity=0.35)
-    tail = Line(head.get_bottom(), head.get_bottom() + DOWN * 0.7 * s, color=PURPLE, stroke_width=5)
-    foot = Line(tail.get_end() + LEFT * 0.3 * s, tail.get_end() + RIGHT * 0.3 * s, color=PURPLE, stroke_width=5)
-    g = VGroup(head, tail, foot)
+# Every continuing picture is rebuilt through these builders, at the same scale and position.
+def bacterium(center=ORIGIN, width=4.6, height=2.35, loops=1, color=GREEN):
+    """Large schematic rod with one or two simple chromosome loops."""
+    body = RoundedRectangle(corner_radius=height * 0.48, width=width, height=height,
+                            stroke_color=color, stroke_width=5, fill_color=color,
+                            fill_opacity=0.22).move_to(center)
+    dna = VGroup()
+    xs = [0] if loops == 1 else [-width * 0.22, width * 0.22]
+    for x in xs:
+        loop = Ellipse(width=min(1.45, width * 0.31), height=height * 0.48,
+                       color=BLUE, stroke_width=6).move_to(body.get_center() + RIGHT * x)
+        dna.add(loop)
+    g = VGroup(body, dna)
+    g.body, g.dna = body, dna
     return g
 
 
-def arr(a, b, color=GREY, w=5, tip=0.22):
-    return Arrow(a, b, buff=0.08, color=color, stroke_width=w, tip_length=tip,
-                 max_tip_length_to_length_ratio=0.45, max_stroke_width_to_length_ratio=12)
+def phage(center=ORIGIN, scale=1.0):
+    """Cartoon phage: orange hexagon head, grey tail and legs."""
+    head = RegularPolygon(6, radius=0.62 * scale, color=ORANGE, stroke_width=5,
+                          fill_color=ORANGE, fill_opacity=0.35)
+    tail = Line(head.get_bottom(), head.get_bottom() + DOWN * 0.75 * scale,
+                color=GREY, stroke_width=6)
+    foot = tail.get_end()
+    legs = VGroup(
+        Line(foot, foot + DL * 0.42 * scale, color=GREY, stroke_width=4),
+        Line(foot, foot + DR * 0.42 * scale, color=GREY, stroke_width=4),
+        Line(foot + UP * 0.15 * scale, foot + LEFT * 0.48 * scale, color=GREY, stroke_width=4),
+        Line(foot + UP * 0.15 * scale, foot + RIGHT * 0.48 * scale, color=GREY, stroke_width=4),
+    )
+    g = VGroup(head, tail, legs).move_to(center)
+    g.head, g.tail, g.legs = head, tail, legs
+    return g
 
 
-def cross(center, size=0.3, color=RED):
-    c = np.array(center, float)
-    return VGroup(Line(c + [-size, size, 0], c + [size, -size, 0], color=color, stroke_width=7),
-                  Line(c + [-size, -size, 0], c + [size, size, 0], color=color, stroke_width=7))
+def flask(cloudy=False):
+    """The film's one warm-flask world, with liquid and drifting schematic contents."""
+    neck = VGroup(Line([-1.15, 3.0, 0], [-1.15, 1.8, 0]),
+                  Line([1.15, 3.0, 0], [1.15, 1.8, 0]),
+                  Line([-1.35, 3.0, 0], [1.35, 3.0, 0]))
+    vessel = VMobject(stroke_color=TEXT, stroke_width=5, fill_opacity=0)
+    vessel.set_points_smoothly([[-1.15, 1.8, 0], [-2.0, 0.6, 0], [-3.45, -2.5, 0],
+                                [0, -3.05, 0], [3.45, -2.5, 0], [2.0, 0.6, 0], [1.15, 1.8, 0]])
+    liquid = Ellipse(width=6.1, height=4.0, stroke_width=0, fill_color=LIQUID,
+                     fill_opacity=0.18 if not cloudy else 0.32).move_to([0, -0.75, 0])
+    liquid.set_z_index(-2)
+    g = VGroup(liquid, vessel, neck)
+    g.liquid = liquid
+    return g
 
 
-def banner(text, color=GREY, size=34):
-    return T(text, size, color, font=TITLE_FONT).to_edge(UP, buff=0.45)
+def mini_cell(center, scale=1.0):
+    return bacterium(center, 1.25 * scale, 0.66 * scale, 1)
+
+
+def population(n, y=0.0):
+    """A deterministic grid of n rods; counts on screen always match the narration."""
+    cols = {2: 2, 4: 2, 8: 4, 16: 4}.get(n, min(8, max(2, int(np.ceil(np.sqrt(n * 1.7))))))
+    rows = int(np.ceil(n / cols))
+    scale = {2: 2.4, 4: 2.0, 8: 1.55, 16: 1.15}.get(n, 0.8)
+    cells = VGroup(*[mini_cell(ORIGIN, scale) for _ in range(n)])
+    cells.arrange_in_grid(rows, cols, buff=(0.32, 0.3)).move_to([0, y, 0])
+    return cells
+
+
+def count_readout(value, label="cells", at=(4.35, 2.55, 0), widest=2097152):
+    return Readout([(label, lambda: value.get_value(), "{:,.0f}", TEXT)],
+                   at=at, widest=[widest], title="counter", size=28)
+
+
+def clock_face(center=(-4.9, 2.2, 0), radius=0.8, label="1 hour"):
+    c = np.array(center, dtype=float)
+    ring = Circle(radius=radius, color=GOLD, stroke_width=5).move_to(c)
+    ticks = VGroup(*[Line(c + radius * 0.78 * np.array([np.cos(a), np.sin(a), 0]),
+                              c + radius * 0.95 * np.array([np.cos(a), np.sin(a), 0]),
+                              color=GOLD, stroke_width=3) for a in np.linspace(0, TAU, 12, endpoint=False)])
+    hand = Line(c, c + UP * radius * 0.68, color=TEXT, stroke_width=5)
+    lab = T(label, 28, GOLD).next_to(ring, DOWN, buff=0.18)
+    g = VGroup(ring, ticks, hand, lab)
+    g.hand, g.center_point = hand, c
+    return g
+
+
+def liquid_field():
+    """A full, gently layered liquid field for the lone-phage continuation."""
+    waves = VGroup()
+    for y in np.linspace(-2.5, 1.7, 8):
+        line = VMobject(color=LIQUID, stroke_width=4, stroke_opacity=0.6)
+        xs = np.linspace(-6.1, 6.1, 40)
+        line.set_points_smoothly([[x, y + 0.07 * np.sin(1.2 * x + y), 0] for x in xs])
+        line.layout_ok = True  # Background water may pass behind foreground labels.
+        waves.add(line)
+    return waves
+
+
+def food_field():
+    pts = [(-5.6 + 1.1 * (i % 11), -2.45 + 1.15 * (i // 11), 0) for i in range(33)]
+    dots = VGroup(*[Dot(p, radius=0.17, color=GREEN).set_opacity(0.7) for p in pts])
+    for d in dots:
+        d.layout_ok = True  # Background food particles deliberately drift behind labels.
+    return dots
+
+
+def predict_backdrop():
+    n = ValueTracker(1)
+    ro = count_readout(n, at=(4.25, 2.55, 0), widest=1000000)
+    card = chip("20 min per doubling  •  7 hours", GOLD, size=28).move_to([-1.5, 1.7, 0])
+    one = bacterium([-4.65, 0.0, 0], 3.25, 1.75, 1)
+    return VGroup(one, card, ro)
+
+
+def contrast_world():
+    tp = TwoPanel("BACTERIUM", "VIRUS", colors=(GREEN, ORANGE), top=3.15, bottom=-2.45)
+    left = bacterium([-3.25, 0.2, 0], width=4.4, height=2.0, loops=2)
+    host = bacterium([3.25, 0.2, 0], width=4.7, height=2.55, loops=1)
+    parts = VGroup(*[RegularPolygon(6, radius=0.22, color=ORANGE, stroke_width=3,
+                                    fill_color=ORANGE, fill_opacity=0.4)
+                     for _ in range(6)]).arrange_in_grid(2, 3, buff=0.25).move_to([3.25, 0.5, 0])
+    return tp, left, host, parts
 
 
 class S00Title(TitleCard):
     LESSON = "How microbes multiply"
-    TITLE = "Copies made by cells"
+    TITLE = "Copy Yourself, or Be Copied"
 
 
-# ---------------------------------------------------------------------------------------------
-class S01Two(SpokenScene):
-    """a bacterium splits on a 20-minute clock; a cold sore heals and comes back; the two questions."""
-
+class S01Hook(SpokenScene):
     def construct(self):
-        LX, RX, Y = -3.4, 3.5, 0.7
-        hdrL = T("a bacterium", 32, BLUE, weight=BOLD).move_to([LX, 3.05, 0])
-        hdrR = T("a cold sore", 32, PINK, weight=BOLD).move_to([RX, 3.05, 0])
-        # --- left: one cell splits ---
-        c0 = cellbox(3.6, 2.2).move_to([LX, Y, 0])
-        b0 = dnabar(2.0).move_to(c0)
-        one = VGroup(c0, b0)
-        one_lbl = lab("one E. coli cell", 28, BLUE).move_to([LX, Y - 1.6, 0])
-        self.at("best laboratory")
-        best = lab("best laboratory conditions", 24, GREY).move_to([LX, Y + 1.75, 0])
-        self.play(FadeIn(hdrL), FadeIn(best), run_time=0.6)
-        self.at("cole")
-        self.play(FadeIn(one, scale=0.9), FadeIn(one_lbl), run_time=0.6)
-        c1 = cellbox(2.7, 2.2).move_to([LX - 1.5, Y, 0]); b1 = dnabar(1.5).move_to(c1)
-        c2 = cellbox(2.7, 2.2).move_to([LX + 1.5, Y, 0]); b2 = dnabar(1.5).move_to(c2)
-        two_lbl = lab("two cells", 28, BLUE).move_to([LX, Y - 1.6, 0])
-        self.at("split into two")
-        self.play(ReplacementTransform(one, VGroup(c1, b1, c2, b2)), ReplacementTransform(one_lbl, two_lbl), run_time=0.9)
-        clock = chip("about every 20 minutes", YELLOW, size=26).move_to([LX, Y - 2.5, 0])
-        self.at("20 minutes")
-        self.play(FadeIn(clock, shift=UP * 0.15), run_time=0.6)
-        # --- right: skin block, sore appears, heals, returns ---
-        skin = Rectangle(width=5.2, height=2.2, stroke_color=GREY, stroke_width=3, fill_color=GREY,
-                         fill_opacity=0.25).move_to([RX, Y, 0])
-        skin_lbl = lab("skin", 28, GREY).move_to([RX, Y - 1.6, 0])
-        sore = Ellipse(width=1.6, height=0.9, stroke_color=PINK, stroke_width=3, fill_color=PINK,
-                       fill_opacity=0.85).move_to([RX + 0.8, Y + 0.2, 0])
-        self.at("A cold sore")
-        state = lab("sore", 26, PINK).move_to([RX, Y - 2.5, 0])
-        self.play(FadeIn(hdrR), FadeIn(skin), FadeIn(skin_lbl), FadeIn(sore, scale=0.6), FadeIn(state), run_time=0.7)
-        healed = lab("healed", 26, GREY).move_to([RX, Y - 2.5, 0])
-        self.at("can heal")
-        self.play(sore.animate.set_opacity(0.0).set_stroke(opacity=0.0), ReplacementTransform(state, healed), run_time=0.8)
-        back = lab("comes back", 26, PINK).move_to([RX, Y - 2.5, 0])
-        self.at("come back later")
-        self.play(sore.animate.set_opacity(0.85).set_stroke(opacity=1.0), ReplacementTransform(healed, back), run_time=0.8)
-        spot = chip("same spot", YELLOW, size=24).move_to([RX + 0.8, Y + 1.85, 0])
-        pt = arr(spot.get_bottom(), sore.get_top() + UP * 0.05, YELLOW, w=4)
-        self.at("same spot")
-        self.play(FadeIn(spot), GrowArrow(pt), run_time=0.5)
-        # --- the questions ---
-        self.at("How do bacteria")
-        self.play(FadeOut(VGroup(best, clock, spot, pt, back, skin_lbl, two_lbl)), run_time=0.5)
-        q1 = T("How do bacteria and viruses make more of themselves?", 32, YELLOW)
-        fit(q1, max_w=12.2)
-        q1.move_to([0, -2.3, 0])
-        self.play(FadeIn(q1, shift=UP * 0.15), run_time=0.8)
-        q2 = T("Why do some infections come back years later?", 32, PINK)
-        fit(q2, max_w=12.2)
-        q2.move_to([0, -3.1, 0])
-        self.at("years later")
-        self.play(FadeIn(q2, shift=UP * 0.15), run_time=0.8)
+        world = flask()
+        cell = mini_cell([-1.35, -0.65, 0], 1.45)
+        vir = phage([1.45, -0.25, 0], 1.0)
+        self.play(FadeIn(world), run_time=0.55)
+        self.play(FadeIn(cell, shift=DOWN * 0.35), FadeIn(vir, shift=DOWN * 0.35), run_time=0.75)
+        bob(cell, amp=0.08, speed=1.25); bob(vir, amp=0.11, speed=1.05, seed=2)
+        self.at("warm flask")
+        warm = T("warm • food-rich", 30, LIQUID).move_to([0, -2.35, 0])
+        self.play(FadeIn(warm), run_time=0.45)
+        self.at("An hour later")
+        clk = clock_face()
+        self.play(FadeIn(clk), Rotate(clk.hand, TAU, about_point=clk.center_point), run_time=1.15)
+        self.at("which has made")
+        q = question_card("Which makes more of itself — and how?", y=-3.2, max_w=10.7)
+        q.question.shift(DOWN * 0.10)
+        self.play(FadeIn(q.question, shift=UP * 0.15), run_time=0.7)
+        self.at("And how")
+        self.play(Indicate(VGroup(cell, vir), color=GOLD, scale_factor=1.05), run_time=0.65)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S02Split(SpokenScene):
-    """binary fission in steps, then conjugation: a plasmid moves, still two cells."""
-
+class S02Cell(SpokenScene):
     def construct(self):
-        title = banner("binary fission", BLUE)
+        cell = bacterium([0, 0.15, 0], 8.2, 4.15, 1)
+        self.play(FadeIn(cell.body), run_time=0.55)
+        self.at("single cell")
+        self.play(FadeIn(cell.dna, scale=0.8), run_time=0.55)
+        self.at("DNA in one loop")
+        self.play(Rotate(cell.dna, angle=0.35), run_time=0.9)
+        cell.dna.add_updater(lambda m, dt: m.rotate(0.10 * dt))
+        label = place_label(T("chromosome\n(the cell's main DNA)", 28, BLUE,
+                              line_spacing=0.8), cell.dna, avoid=[cell.body], dirs=(UP,))
+        label.move_to([0, 2.75, 0])
+        self.play(FadeIn(label), run_time=0.55)
+        self.at("There is no nucleus")
+        ghost = DashedVMobject(Circle(radius=1.22, color=GREY, stroke_width=4).move_to(cell.dna), num_dashes=22)
+        x = VGroup(Line([-0.7, -0.7, 0], [0.7, 0.7, 0], color=RED, stroke_width=8),
+                   Line([-0.7, 0.7, 0], [0.7, -0.7, 0], color=RED, stroke_width=8)).move_to(cell.dna)
+        no = T("no nucleus", 30, RED).move_to([0, -2.6, 0])
+        self.play(Create(ghost), run_time=0.45)
+        self.play(Create(x), FadeIn(no), run_time=0.55)
+        self.add(scope_tag("schematic"))
+        self.finish()
+
+
+class S03Fission(SpokenScene):
+    def construct(self):
+        count = ValueTracker(1)
+        ro = count_readout(count)
+        cell = bacterium([0, -0.15, 0], 5.3, 2.75, 1)
+        self.add(cell, ro, scope_tag("schematic"))
+        step = T("1  COPY", 32, BLUE, weight=BOLD).move_to([0, 2.85, 0])
+        self.at("cell copies")
+        two_loops = bacterium([0, -0.15, 0], 5.3, 2.75, 2)
+        self.play(FadeIn(step), Transform(cell.dna, two_loops.dna), run_time=1.0)
+        self.at("then it grows")
+        grow_lab = T("2  GROW", 32, GREEN, weight=BOLD).move_to(step)
+        long = bacterium([0, -0.15, 0], 9.0, 2.75, 2)
+        self.play(swap(step, grow_lab), Transform(cell, long), run_time=1.15)
+        self.at("one copy at each end")
+        self.play(cell.dna[0].animate.shift(LEFT * 0.6), cell.dna[1].animate.shift(RIGHT * 0.6), run_time=0.7)
+        self.at("pinches in the middle")
+        split_lab = T("3  SPLIT", 32, GOLD, weight=BOLD).move_to(step)
+        daughters = VGroup(bacterium([-2.4, -0.15, 0], 4.3, 2.75, 1),
+                           bacterium([2.4, -0.15, 0], 4.3, 2.75, 1))
+        waist = VGroup(ArcBetweenPoints([0, 1.15, 0], [0, -0.15, 0], angle=-0.7, color=GREEN, stroke_width=6),
+                       ArcBetweenPoints([0, -0.15, 0], [0, -1.45, 0], angle=-0.7, color=GREEN, stroke_width=6))
+        self.play(swap(grow_lab, split_lab), Create(waist), run_time=0.55)
+        self.at("splits in two")
+        self.play(FadeOut(waist), ReplacementTransform(cell, daughters), count.animate.set_value(2), run_time=0.95)
+        self.finish()
+
+
+class S04Name(SpokenScene):
+    def construct(self):
+        daughters = VGroup(bacterium([-2.4, -0.2, 0], 4.3, 2.65, 1),
+                           bacterium([2.4, -0.2, 0], 4.3, 2.65, 1))
+        self.add(daughters, scope_tag("schematic"))
+        bob(daughters[0], amp=0.055, speed=1.0)
+        bob(daughters[1], amp=0.055, speed=1.0, seed=3)
         self.at("binary fission")
-        self.play(FadeIn(title, shift=DOWN * 0.1), run_time=0.5)
-        Y = -0.2
-        big0 = cellbox(5.0, 3.0).move_to([0, Y, 0])
-        bar0 = dnabar(2.8).move_to(big0)
-        dna_lbl = lab("DNA", 26, TEAL).next_to(bar0, DOWN, buff=0.25)
-        self.play(FadeIn(big0), FadeIn(bar0), FadeIn(dna_lbl), run_time=0.7)
-        # grows
-        big1 = cellbox(8.6, 3.0).move_to([0, Y, 0])
-        self.at("One cell grows")
-        self.play(Transform(big0, big1), bar0.animate.become(dnabar(3.0).move_to([0, Y, 0])),
-                  dna_lbl.animate.move_to([0, Y - 0.55, 0]), run_time=1.0)
-        # copies
-        bL = dnabar(2.8).move_to([-2.2, Y + 0.05, 0]); bR = dnabar(2.8).move_to([2.2, Y + 0.05, 0])
-        copy_lbl = lab("DNA copied", 26, TEAL).move_to([0, Y - 2.1, 0])
-        self.at("copies its")
-        self.play(ReplacementTransform(bar0, VGroup(bL, bR)), FadeOut(dna_lbl), FadeIn(copy_lbl), run_time=0.8)
-        # splits
-        c1 = cellbox(4.1, 3.0).move_to([-2.25, Y, 0]); c2 = cellbox(4.1, 3.0).move_to([2.25, Y, 0])
-        n2 = lab("two cells", 28, BLUE).move_to([0, Y - 2.1, 0])
-        self.at("splits into two")
-        self.play(ReplacementTransform(big0, VGroup(c1, c2)), ReplacementTransform(copy_lbl, n2), run_time=0.9)
-        # complete copy
+        banner = T("BINARY FISSION", 40, GREEN, weight=BOLD).move_to([0, 2.9, 0])
+        self.play(FadeIn(banner, shift=DOWN * 0.15), run_time=0.6)
         self.at("complete copy")
-        self.play(Indicate(bL, color=TEAL, scale_factor=1.1), Indicate(bR, color=TEAL, scale_factor=1.1), run_time=0.8)
-        comp = lab("each gets a complete copy", 28, TEAL).move_to([0, Y + 2.1, 0])
-        self.play(FadeIn(comp), run_time=0.4)
-        same = lab("usually identical", 28, YELLOW).move_to([0, Y - 2.8, 0])
-        self.at("usually identical")
-        self.play(FadeIn(same, shift=UP * 0.1), run_time=0.5)
-        # conjugation
-        self.at("Conjugation is different")
-        t2 = banner("conjugation", ORANGE)
-        self.play(FadeOut(VGroup(comp, same, n2)), ReplacementTransform(title, t2), run_time=0.6)
-        self.play(VGroup(c1, bL).animate.shift(LEFT * 0.0), run_time=0.01)
-        pl = dnabar(1.0, ORANGE, 0.28).move_to([-2.25, Y - 0.85, 0])
-        pl_lbl = lab("plasmid", 28, ORANGE).move_to([-2.25, Y - 2.1, 0])
-        self.at("passes a plasmid")
-        self.play(FadeIn(pl, scale=0.7), FadeIn(pl_lbl), run_time=0.5)
-        self.at("small extra")
-        self.play(pl_lbl.animate.become(lab("plasmid: small extra DNA", 26, ORANGE).move_to([-2.25, Y - 2.1, 0])), run_time=0.4)
-        self.at("to another")
-        self.play(pl.animate.move_to([2.25, Y - 0.85, 0]), pl_lbl.animate.move_to([0, Y - 2.1, 0]), run_time=1.1)
-        self.at("still two cells")
-        two = lab("still two cells", 30, BLUE).move_to([0, Y + 2.1, 0])
-        self.play(FadeIn(two), run_time=0.4)
-        self.at("new genes")
-        ng = lab("new genes", 28, ORANGE).move_to([2.25, Y + 1.05, 0])
-        self.play(c2.animate.set_stroke(ORANGE), FadeIn(ng), run_time=0.7)
+        self.play(Indicate(daughters[0].dna, color=BLUE), Indicate(daughters[1].dna, color=BLUE), run_time=0.8)
+        self.at("two cells match")
+        equal = T("=", 52, TEXT, font=MONO).move_to([0, -0.2, 0])
+        self.play(FadeIn(equal), run_time=0.45)
+        self.at("rare copying mistakes")
+        dot = Dot(daughters[1].dna[0].get_top() + DOWN * 0.12, radius=0.1, color=RED)
+        rare = T("rare copying mistake", 28, RED).move_to([2.4, -2.25, 0])
+        self.play(Flash(dot, color=RED, flash_radius=0.35), FadeIn(dot), FadeIn(rare), run_time=0.75)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S03Double(SpokenScene):
-    """model population doubling every 20 minutes: bars computed from 100 x 2^n; then one cell, 21 doublings."""
-
+class S05Counter(SpokenScene):
     def construct(self):
-        title = banner("doubling time: a model", GREEN)
-        self.at("Doubling time")
-        dc = cellbox(2.4, 1.5).move_to([-3.2, 0.3, 0])
-        d1 = cellbox(2.0, 1.5).move_to([2.4, 0.3, 0]); d2 = cellbox(2.0, 1.5).move_to([4.5, 0.3, 0])
-        dar = arr([-1.6, 0.3, 0], [1.1, 0.3, 0], GREY)
-        dlab = chip("doubles: ×2", YELLOW, size=30).move_to([-0.3, 1.3, 0])
-        self.play(FadeIn(title, shift=DOWN * 0.1), FadeIn(dc), run_time=0.5)
-        self.at("to double")
-        self.play(GrowArrow(dar), FadeIn(dlab), ReplacementTransform(dc.copy(), VGroup(d1, d2)), run_time=0.8)
-        vals = [100 * 2 ** n for n in range(7)]
-        base_y, top_h = -2.1, 3.7
-        xs = [-5.4 + 1.8 * i for i in range(7)]
-        axis = Line([-6.2, base_y, 0], [6.2, base_y, 0], color=GREY, stroke_width=3)
-        bars, nums, ticks = [], [], []
-        for i, (v, x) in enumerate(zip(vals, xs)):
-            h = max(0.08, top_h * v / vals[-1])
-            b = Rectangle(width=1.1, height=h, stroke_color=GREEN, stroke_width=3, fill_color=GREEN, fill_opacity=0.45)
-            b.move_to([x, base_y + h / 2, 0])
-            n = M(f"{v:,}", 24, TEXT).next_to(b, UP, buff=0.12)
-            tk = M(f"{20 * i}", 22, GREY).move_to([x, base_y - 0.35, 0])
-            bars.append(b); nums.append(n); ticks.append(tk)
-        unit = lab("minutes", 24, GREY).move_to([0, base_y - 0.85, 0])
-        self.at("model population")
-        self.play(FadeOut(VGroup(dc, d1, d2, dar, dlab)), run_time=0.3)
-        self.play(Create(axis), FadeIn(bars[0]), FadeIn(nums[0]), FadeIn(ticks[0]), FadeIn(unit), run_time=0.8)
-        self.at("doubles every")
-        self.play(*[FadeIn(t) for t in ticks[1:]], run_time=0.6)
-        self.at("Two hours is")
-        six = chip("6 doublings in 2 hours", YELLOW, size=26).move_to([-3.4, 2.35, 0])
-        self.play(FadeIn(six), run_time=0.4)
-        for i in range(1, 7):
-            self.play(GrowFromEdge(bars[i], DOWN), FadeIn(nums[i], shift=UP * 0.1), run_time=0.3)
-        self.at("100 cells become")
-        self.play(Indicate(nums[-1], color=YELLOW, scale_factor=1.25), run_time=0.8)
-        # one E. coli cell
-        self.at("From")
-        grp = VGroup(axis, *bars, *nums, *ticks, unit, six)
-        self.play(FadeOut(grp), run_time=0.5)
-        start = chip("1 cell", BLUE, size=36).move_to([-5.2, 0.4, 0])
-        mid = VGroup(chip("21 doublings", YELLOW, size=30), chip("7 hours", YELLOW, size=30)).arrange(DOWN, buff=0.3).move_to([-0.7, 0.4, 0])
-        end = chip("2,097,152 cells", GREEN, size=36).move_to([3.9, 0.4, 0])
-        a1 = arr([-4.4, 0.4, 0], [-2.9, 0.4, 0], GREY)
-        a2 = arr([1.5, 0.4, 0], [2.0, 0.4, 0], GREY)
-        self.play(FadeIn(start), run_time=0.4)
-        self.at("21 doublings")
-        self.play(GrowArrow(a1), FadeIn(mid[0], shift=RIGHT * 0.2), run_time=0.5)
-        self.at("hours give")
-        self.play(FadeIn(mid[1], shift=RIGHT * 0.2), run_time=0.4)
-        self.at("more than")
-        self.play(GrowArrow(a2), FadeIn(end, shift=RIGHT * 0.2), run_time=0.6)
-        self.at("calculated numbers")
-        note = lab("calculated by the model, not counted", 32, GREEN).move_to([0, -1.6, 0])
-        self.play(FadeIn(note, shift=UP * 0.1), run_time=0.6)
+        n = ValueTracker(2)
+        ro = count_readout(n)
+        cells = population(2, -0.15)
+        self.add(cells, ro, scope_tag("schematic"))
+        bob(cells, amp=0.07, speed=1.15)
+        self.at("same thing")
+        self.play(LaggedStart(*[Indicate(c.body, color=GREEN, scale_factor=1.08) for c in cells], lag_ratio=0.15), run_time=0.7)
+        self.at("1 becomes 2")
+        label = T("one doubling per round", 28, GOLD).move_to([-3.2, 3.15, 0])
+        self.play(FadeIn(label), run_time=0.45)
+        self.play(cells.animate.shift(UP * 0.35), run_time=1.15, rate_func=there_and_back)
+        self.at("2 become 4")
+        next_cells = population(4, -0.2)
+        self.play(ReplacementTransform(cells, next_cells), n.animate.set_value(4), run_time=0.7)
+        cells = next_cells
+        self.at("then 8")
+        next_cells = population(8, -0.2)
+        self.play(ReplacementTransform(cells, next_cells), n.animate.set_value(8), run_time=0.65)
+        cells = next_cells
+        self.at("then 16")
+        next_cells = population(16, -0.25)
+        self.play(ReplacementTransform(cells, next_cells), n.animate.set_value(16), run_time=0.8)
+        self.at("Every round doubles")
+        self.play(Indicate(ro, color=GOLD, scale_factor=1.04), run_time=0.6)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S04Levels(SpokenScene):
-    """sketch: endless-doubling model line vs a real-culture curve with lag, fast growth, levelling off."""
+class S06Time(SpokenScene):
+    def construct(self):
+        n = ValueTracker(1)
+        ro = count_readout(n)
+        clock = clock_face(center=(-4.7, 0.55, 0), radius=1.45, label="doubling time")
+        one = bacterium([1.5, 0.2, 0], 4.5, 2.3, 1)
+        self.add(one, ro, scope_tag("schematic"))
+        self.at("one round")
+        self.play(FadeIn(clock), run_time=0.55)
+        self.at("doubling time")
+        self.play(Rotate(clock.hand, angle=TAU / 3, about_point=clock.center_point), run_time=0.8)
+        self.at("best lab conditions")
+        card = chip("E. coli • best lab conditions", GREEN, size=28).move_to([0, -2.55, 0])
+        self.play(FadeIn(card), run_time=0.55)
+        self.at("double about every 20 minutes")
+        daughters = VGroup(bacterium([0.25, 0.2, 0], 3.55, 2.3, 1),
+                           bacterium([3.95, 0.2, 0], 3.55, 2.3, 1))
+        twenty = T("about 20 min", 34, GOLD, weight=BOLD).move_to([-4.7, -1.65, 0])
+        self.play(ReplacementTransform(one, daughters), n.animate.set_value(2), FadeIn(twenty), run_time=1.0)
+        self.finish()
+
+
+class S07Predict(SpokenScene):
+    def construct(self):
+        backdrop = predict_backdrop()
+        self.play(FadeIn(backdrop), run_time=0.65)
+        self.at("seven hours")
+        self.play(Indicate(backdrop[1], color=GOLD, scale_factor=1.05), run_time=0.55)
+        self.at("no cells dying")
+        no_death = T("no cells dying", 28, GREEN).move_to([-4.65, -1.45, 0])
+        self.play(FadeIn(no_death), run_time=0.45)
+        self.at("Will one cell")
+        q = question_card("After 7 hours, which is closer?", ["about 1,000?", "about 1,000,000?"], y=-3.18)
+        self.play(FadeIn(q.chips), run_time=0.55)
+        self.play(FadeIn(q.question), run_time=0.55)
+        bob(q.chips[0], amp=0.07, speed=1.2)
+        bob(q.chips[1], amp=0.07, speed=1.2, seed=3)
+        self.finish()
+
+
+class S08Pause(PredictPause):
+    QUESTION = "After 7 hours, which is closer?"
+    OPTIONS = ["about 1,000?", "about 1,000,000?"]
+    CARD = {"y": -3.18}
+
+    def backdrop(self):
+        return predict_backdrop()
 
     def construct(self):
-        title = banner("a sketch, not data", GREY)
-        ax_o = np.array([-5.6, -2.5, 0])
-        W, H = 11.0, 5.0
-        xax = Line(ax_o, ax_o + [W, 0, 0], color=GREY, stroke_width=3)
-        yax = Line(ax_o, ax_o + [0, H, 0], color=GREY, stroke_width=3)
-        xl = lab("time", 26, GREY).move_to(ax_o + [W - 0.5, -0.4, 0])
-        yl = lab("number of cells", 26, GREY).move_to(ax_o + [1.5, H + 0.15, 0])
-        unit = lab("relative units, in this sketch", 24, GREY).move_to(ax_o + [W / 2 - 1.5, -0.4, 0])
+        self.add(self.backdrop())
+        q = question_card(self.QUESTION, self.OPTIONS, y=-3.18)
+        self.add(q)
+        for c in q.chips:
+            pulse(c[0], base=2.5, amp=1.2, speed=2.1)
+        bob(q.chips[0], amp=0.07, speed=1.2)
+        bob(q.chips[1], amp=0.07, speed=1.2, seed=3)
+        ring, run = countdown(self.SECONDS, center=self.RING_AT)
+        self.add(ring)
+        self.play(run)
+        self.finish()
 
-        def P(t, y):
-            return ax_o + [W * t, H * y, 0]
-        N0, r = 0.012, 0.0
 
-        K = 0.80
-        n0 = 0.012
-        rr = 7.0
-        def model(t):
-            return n0 * np.exp(rr * t)
-        def real(t):
-            return K / (1 + (K / n0 - 1) * np.exp(-rr * t))
-        tm = np.log(0.97 / n0) / rr
-        mline = ParametricFunction(lambda t: P(t, model(t)), t_range=[0, tm], color=GREEN, stroke_width=5)
-        mline = DashedVMobject(mline, num_dashes=40)
-        rline = ParametricFunction(lambda t: P(t, real(t)), t_range=[0, 1.0], color=BLUE, stroke_width=6)
-        self.add(title, xax, yax, xl, yl, unit)
-        self.at("The model assumes")
-        mlab = lab("model: endless food", 26, GREEN).move_to(P(0.34, 0.8))
-        self.play(Create(mline), FadeIn(mlab), run_time=2.0)
-        self.at("Real cultures differ")
-        rlab = lab("real culture", 26, BLUE).move_to(P(0.9, 0.5) + [0, 0.0, 0])
-        self.play(Create(rline), run_time=0.9)
-        self.play(FadeOut(mline), FadeOut(mlab), run_time=0.01)
-        # stage zones
-        t_lag, t_fast_end = 0.42, 0.72
-        d1 = DashedLine(P(t_lag, 0), P(t_lag, 0.9), color=GREY, stroke_width=2)
-        d2 = DashedLine(P(t_fast_end, 0), P(t_fast_end, 0.9), color=GREY, stroke_width=2)
-        self.at("First comes a lag")
-        lag = chip("lag", YELLOW, size=28).move_to(P(0.2, 0.3))
-        self.play(FadeIn(lag), FadeIn(d1), run_time=0.5)
-        self.at("barely rises")
-        self.play(Indicate(lag, color=YELLOW), run_time=0.6)
-        self.at("fast growth")
-        fast = chip("fast growth", YELLOW, size=28).move_to(P(0.60, 0.10))
-        self.play(FadeIn(fast), FadeIn(d2), run_time=0.5)
-        self.at("food runs low")
-        low = chip("food runs low", RED, size=28).move_to(P(0.86, 0.96))
-        self.play(FadeIn(low, shift=DOWN * 0.1), run_time=0.5)
+class S09Reveal(SpokenScene):
+    def construct(self):
+        doublings = ValueTracker(0)
+        cells_n = ValueTracker(1)
+        ro = Readout([("doublings", lambda: doublings.get_value(), "{:2.0f}", GOLD),
+                      ("cells", lambda: cells_n.get_value(), "{:9,.0f}", TEXT)],
+                     at=[3.95, 1.3, 0], widest=[21, 2097152], title="calculated", size=28)
+        clock = clock_face(center=(-3.9, 1.35, 0), radius=1.45, label="7 hours")
+        clock[-1].next_to(clock[0], UP, buff=0.18)
+        choice = chip("about 1,000,000?", GOLD, size=30).move_to([3.95, -1.4, 0])
+        haze = VGroup(*[Dot(radius=0.09, color=GREEN) for _ in range(120)]).arrange_in_grid(10, 12, buff=0.08).move_to([-3.9, -1.85, 0])
+        self.add(clock, ro, choice, scope_tag("in this model"))
+        self.at("More than a million")
+        self.play(choice.animate.set_fill(GOLD, opacity=0.45), Indicate(choice, color=GOLD),
+                  LaggedStart(*[FadeIn(d) for d in haze], lag_ratio=0.003), run_time=0.9)
+        self.at("counter reaches")
+        self.play(Rotate(clock.hand, angle=7 * TAU, about_point=clock.center_point),
+                  doublings.animate.set_value(21), cells_n.animate.set_value(2097152),
+                  haze.animate.scale(1.2), run_time=2.6, rate_func=linear)
+        self.at("about 2 million")
+        self.play(Indicate(ro.rows, color=GOLD, scale_factor=1.03), run_time=0.55)
+        self.at("calculated number")
+        stamp = T("CALCULATED • NOT COUNTED", 27, GREEN, weight=BOLD).move_to([3.5, -2.5, 0])
+        self.play(FadeIn(stamp, shift=UP * 0.15), run_time=0.55)
+        self.finish()
+
+
+class S10Flask(SpokenScene):
+    def construct(self):
+        world = flask(cloudy=True).shift(LEFT * 1.4)
+        haze = VGroup(*[Dot(radius=0.07, color=GREEN) for _ in range(55)]).arrange_in_grid(7, 8, buff=0.14).move_to([-1.4, -0.75, 0])
+        food = ValueTracker(1.0); waste = ValueTracker(0.08); count = ValueTracker(50)
+        food_dial = dial(food, [4.75, 1.25, 0], 1.15, "food", GREEN)
+        waste_dial = dial(waste, [4.75, -1.65, 0], 1.15, "waste", BROWN)
+        ro = count_readout(count, at=[4.0, 2.75, 0], widest=1000000)
+        self.play(FadeIn(world), FadeIn(haze), run_time=0.65)
+        bob(haze, amp=0.035, speed=0.7)
+        self.at("real flask is closed")
+        self.play(FadeIn(food_dial), FadeIn(waste_dial), FadeIn(ro), run_time=0.65)
+        self.at("cells multiply")
+        self.play(count.animate.set_value(8000), run_time=1.0, rate_func=linear)
+        self.at("use up the food")
+        self.play(food.animate.set_value(0.18), count.animate.set_value(10500), run_time=1.25, rate_func=linear)
         self.at("wastes build up")
-        waste = chip("wastes build up", RED, size=28).move_to(P(0.86, 0.48))
-        self.play(FadeIn(waste, shift=DOWN * 0.1), run_time=0.5)
-        self.at("levels off")
-        lv = lab("growth levels off", 30, BLUE, weight=BOLD).move_to(P(0.86, 0.30))
-        self.play(FadeIn(lv, shift=UP * 0.1), run_time=0.5)
+        self.play(waste.animate.set_value(0.9), count.animate.set_value(11200), run_time=1.35, rate_func=linear)
+        self.add(scope_tag("schematic"))
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S05Lytic(SpokenScene):
-    """a virus cannot copy itself; the lytic cycle in four steps inside a host cell."""
+def level_plot():
+    P = Plot(box=(-5.8, 5.2, -2.25, 2.35), xr=(0, 10), yr=(0, 1.05),
+             xticks=[0, 5, 10], yticks=[(0, "low"), (1, "high")],
+             xlabel="time", ylabel="cell count", size=24, label_size=28)
+    return P
 
+
+def logistic(t):
+    return 1.0 / (1.0 + 24.0 * np.exp(-1.0 * t))
+
+
+class S11Level(SpokenScene):
     def construct(self):
-        ph = phage(1.6).move_to([-4.6, 0.6, 0])
-        ph_lbl = lab("virus", 32, PURPLE, weight=BOLD).next_to(ph, UP, buff=0.3)
-        self.play(FadeIn(ph, scale=0.9), FadeIn(ph_lbl), run_time=0.7)
-        # cannot split, grow, make
-        items = []
-        for i, w in enumerate(["split", "grow", "make anything"]):
-            c = chip(w, GREY, size=30).move_to([0.6, 2.2 - 1.3 * i, 0])
-            x = cross(c.get_right() + [0.6, 0, 0], 0.25)
-            items.append((c, x))
-        self.at("cannot split")
-        self.play(FadeIn(items[0][0]), run_time=0.3)
-        self.play(Create(items[0][1]), run_time=0.3)
-        self.at("grow")
-        self.play(FadeIn(items[1][0]), run_time=0.3)
-        self.play(Create(items[1][1]), run_time=0.3)
-        self.at("make anything")
-        self.play(FadeIn(items[2][0]), run_time=0.3)
-        self.play(Create(items[2][1]), run_time=0.3)
-        t_own = lab("on its own", 30, GREY).move_to([0.6, -1.5, 0])
-        self.at("on its own")
-        self.play(FadeIn(t_own), run_time=0.3)
-        # host cell
-        self.at("host cell")
-        gone = VGroup(*[m for c, x in items for m in (c, x)], t_own)
-        self.play(FadeOut(gone), ph.animate.move_to([-5.4, 0.2, 0]), ph_lbl.animate.move_to([-5.4, 1.9, 0]), run_time=0.6)
-        host = cellbox(6.8, 4.0, BLUE).move_to([1.5, 0.45, 0])
-        hdna = dnabar(2.4).move_to([1.5, -0.95, 0])
-        hlab = lab("host cell", 32, BLUE, weight=BOLD).move_to([1.5, 2.85, 0])
-        hdl = lab("host DNA", 24, TEAL).next_to(hdna, UP, buff=0.12)
-        self.play(FadeIn(host), FadeIn(hdna), FadeIn(hdl), FadeIn(hlab), run_time=0.8)
-        # phage named
-        self.at("bacteriophage")
-        name = lab("bacteriophage\n(phage)", 26, PURPLE, line_spacing=0.8).move_to([-5.4, 2.0, 0])
-        self.play(ReplacementTransform(ph_lbl, name), run_time=0.5)
-        # lytic cycle
-        step_y = -3.3
-        def step(n, text):
-            return chip(f"{n}  {text}", PURPLE, size=24)
-        s1 = step(1, "inject DNA"); s2 = step(2, "copy + build"); s3 = step(3, "assemble"); s4 = step(4, "burst")
-        row = VGroup(s1, s2, s3, s4).arrange(RIGHT, buff=0.3).move_to([1.4, step_y, 0])
-        self.at("lytic cycle")
-        ttl = lab("lytic cycle", 30, PURPLE, weight=BOLD).move_to([-4.9, step_y, 0])
-        self.play(FadeIn(ttl), run_time=0.4)
-        # move phage to cell edge, inject
-        self.at("injects")
-        self.play(ph.animate.rotate(PI / 2).move_to([-2.0, 0.7, 0]), name.animate.move_to([-4.6, 1.6, 0]), run_time=0.7)
-        vdna = dnabar(1.0, PURPLE, 0.24).move_to([-1.0, 0.7, 0])
-        self.play(FadeIn(s1), FadeIn(vdna), run_time=0.4)
-        self.play(vdna.animate.move_to([1.2, 0.9, 0]), run_time=0.8)
-        # copy and build parts
-        self.at("copies it")
-        copies = VGroup(*[dnabar(1.0, PURPLE, 0.24) for _ in range(3)]).arrange(RIGHT, buff=0.3).move_to([1.5, 1.8, 0])
-        self.play(FadeIn(s2), ReplacementTransform(vdna, copies), run_time=0.7)
-        self.at("builds viral parts")
-        parts = VGroup(*[Square(side_length=0.35, stroke_color=PURPLE, stroke_width=3, fill_color=PURPLE, fill_opacity=0.5)
-                         for _ in range(6)]).arrange_in_grid(2, 3, buff=0.18).move_to([1.5, 0.6, 0])
-        self.play(LaggedStart(*[FadeIn(p, scale=0.5) for p in parts], lag_ratio=0.12), run_time=0.9)
-        pl = lab("viral parts", 24, PURPLE).move_to([3.6, 0.6, 0])
-        self.play(FadeIn(pl), run_time=0.3)
-        # assemble
-        self.at("assembled")
-        new = VGroup(*[phage(0.6) for _ in range(4)]).arrange(RIGHT, buff=0.55).move_to([1.5, 0.9, 0])
-        self.play(FadeIn(s3), FadeOut(pl), ReplacementTransform(VGroup(parts, copies), new), run_time=0.9)
-        # burst
-        self.at("cell bursts")
-        self.play(FadeIn(s4), host.animate.set_stroke(RED).set_fill(RED, 0.08), run_time=0.5)
-        pos = [[4.6, 2.5, 0], [5.8, 0.4, 0], [4.8, -1.6, 0], [-0.2, -2.15, 0]]
-        self.at("new phages escape")
-        self.play(*[p.animate.move_to(q) for p, q in zip(new, pos)], FadeOut(hdna), FadeOut(hdl), run_time=1.0)
-        dies = lab("host cell dies", 32, RED, weight=BOLD).move_to([1.5, 2.85, 0])
-        self.at("host cell dies")
-        self.play(FadeOut(hlab), host.animate.set_stroke(RED, opacity=0.5), FadeIn(dies), run_time=0.6)
+        P = level_plot(); t = ValueTracker(0)
+        live = P.live_curve(logistic, t, color=GREEN, width=7)
+        dot = P.dot(lambda: t.get_value(), lambda: logistic(t.get_value()), color=GOLD, radius=0.11)
+        area = always_redraw(lambda: Polygon(P.pt(0, 0),
+                                             *[P.pt(x, logistic(x)) for x in np.linspace(0, max(0.02, t.get_value()), 50)],
+                                             P.pt(max(0.02, t.get_value()), 0), stroke_width=0,
+                                             fill_color=GREEN, fill_opacity=0.2))
+        self.play(Create(P), run_time=0.65)
+        self.add(area, live, dot, scope_tag("schematic"))
+        self.at("climb slows")
+        self.play(t.animate.set_value(7.0), run_time=2.0, rate_func=linear)
+        self.at("count levels off")
+        self.play(t.animate.set_value(10.0), run_time=1.15, rate_func=linear)
+        labels = VGroup(chip("food low", GREEN, size=28), chip("wastes high", BROWN, size=28)).arrange(DOWN, buff=0.25).move_to([3.65, 0.75, 0])
+        self.play(FadeIn(labels), run_time=0.55)
+        self.at("Doubling makes numbers huge")
+        self.play(Indicate(live, color=GOLD, scale_factor=1.0), run_time=0.65)
+        self.at("only while food lasts")
+        rule = caption("Doubling continues only while conditions allow it.", color=GOLD, y=-3.42)
+        self.play(FadeIn(rule), run_time=0.6)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S06Hidden(SpokenScene):
-    """lysogenic: viral DNA joins the chromosome, copied at each division, can switch; herpes; the rule."""
-
+class S12Virus(SpokenScene):
     def construct(self):
-        title = banner("lysogenic cycle", PURPLE)
-        host = cellbox(7.0, 3.6, BLUE).move_to([0, 0.1, 0])
-        hdna = dnabar(3.8, TEAL, 0.32).move_to([-0.4, 0.1, 0])
-        vdna = dnabar(1.1, PURPLE, 0.32).move_to([-4.6, 2.0, 0])
-        vlab = lab("viral DNA", 26, PURPLE).next_to(vdna, UP, buff=0.2)
-        self.at("In the lysogenic")
-        self.play(FadeIn(title), FadeIn(host), FadeIn(hdna), FadeIn(vdna), FadeIn(vlab), run_time=0.8)
-        # joins
-        self.at("joins the")
-        join_to = hdna.get_right() + RIGHT * 0.55
-        self.play(vdna.animate.move_to(join_to), FadeOut(vlab), run_time=0.9)
-        # prophage
-        self.at("called a prophage")
-        pro = lab("prophage", 32, PURPLE, weight=BOLD).next_to(vdna, DOWN, buff=0.45)
-        pr_arr = arr(pro.get_top(), vdna.get_bottom(), PURPLE, w=4)
-        host_lab = lab("host chromosome", 26, TEAL).next_to(hdna, UP, buff=0.3).shift(LEFT * 0.4)
-        self.play(FadeIn(pro), GrowArrow(pr_arr), FadeIn(host_lab), run_time=0.6)
-        # divides
-        self.at("the bacterium divides")
-        self.play(FadeOut(VGroup(pro, pr_arr, host_lab)), run_time=0.3)
-        c1 = cellbox(5.0, 3.2, BLUE).move_to([-3.0, 0.1, 0]); c2 = cellbox(5.0, 3.2, BLUE).move_to([3.0, 0.1, 0])
-
-        def chrom(cx):
-            h = dnabar(2.6, TEAL, 0.32).move_to([cx - 0.55, 0.1, 0])
-            v = dnabar(0.9, PURPLE, 0.32).next_to(h, RIGHT, buff=0)
-            return VGroup(h, v)
-        k1, k2 = chrom(-3.0), chrom(3.0)
-        self.play(ReplacementTransform(VGroup(host, hdna, vdna), VGroup(c1, c2, k1, k2)), run_time=0.9)
-        self.at("both daughter cells")
-        both = lab("both cells carry a copy", 30, PURPLE).move_to([0, -2.2, 0])
-        self.play(FadeIn(both), Indicate(k1[1], color=PURPLE), Indicate(k2[1], color=PURPLE), run_time=0.8)
-        # damage -> switch
-        self.at("damage to the")
-        dmg = chip("DNA damage", RED, size=28).move_to([-3.0, 2.55, 0])
-        da = arr(dmg.get_bottom(), c1.get_top() + DOWN * 0.1, RED, w=4)
-        self.play(FadeOut(both), FadeIn(dmg), GrowArrow(da), run_time=0.5)
-        self.at("switch the prophage")
-        lyt = chip("lytic cycle", PURPLE, size=30).move_to([-3.0, -2.5, 0])
-        sa = arr(k1[1].get_bottom(), lyt.get_top(), PURPLE, w=5)
-        self.play(GrowArrow(sa), FadeIn(lyt), Indicate(k1[1], color=PURPLE, scale_factor=1.2), run_time=0.7)
-        # herpes
-        self.at("The herpes virus")
-        self.play(FadeOut(VGroup(c1, c2, k1, k2, dmg, da, sa, lyt, title)), run_time=0.6)
-        nerve = Rectangle(width=4.8, height=2.2, stroke_color=GREY, stroke_width=3, fill_color=GREY, fill_opacity=0.25).move_to([-3.5, 0.4, 0])
-        nerve_lbl = lab("sensory nerve cells", 28, GREY).move_to([-3.5, -1.0, 0])
-        hv = Circle(radius=0.34, stroke_color=PURPLE, stroke_width=3, fill_color=PURPLE, fill_opacity=0.9).move_to([-3.5, 0.4, 0])
-        hv_lbl = lab("herpes virus", 28, PURPLE).move_to([-3.5, 2.1, 0])
-        self.play(FadeIn(nerve), FadeIn(hv, scale=0.6), FadeIn(hv_lbl), run_time=0.6)
-        self.at("sensory nerve cells")
-        self.play(FadeIn(nerve_lbl), run_time=0.4)
-        skin = Rectangle(width=4.4, height=1.6, stroke_color=GREY, stroke_width=3, fill_color=GREY, fill_opacity=0.25).move_to([3.7, 0.4, 0])
-        skin_lbl = lab("skin", 28, GREY).move_to([3.7, -0.7, 0])
-        sore = Ellipse(width=1.4, height=0.7, stroke_color=PINK, stroke_width=3, fill_color=PINK, fill_opacity=0.85).move_to([4.4, 0.6, 0])
-        self.at("active again")
-        self.play(FadeIn(skin), FadeIn(skin_lbl), hv.animate.move_to([2.8, 0.6, 0]), hv_lbl.animate.move_to([3.7, 2.1, 0]), run_time=0.8)
-        self.play(FadeIn(sore, scale=0.5), run_time=0.3)
-        # rule
-        self.at("A virus never divides")
-        self.play(FadeOut(VGroup(nerve, nerve_lbl, hv, hv_lbl, skin, skin_lbl, sore)), run_time=0.5)
-        r1 = T("A virus never divides.", 50, PURPLE, font=TITLE_FONT).move_to([0, 1.2, 0])
-        self.play(FadeIn(r1, shift=UP * 0.15), run_time=0.6)
-        self.at("A host cell builds it")
-        r2 = T("A host cell builds it.", 50, BLUE, font=TITLE_FONT).move_to([0, -0.1, 0])
-        self.play(FadeIn(r2, shift=UP * 0.15), run_time=0.6)
-        self.at("right away or later")
-        ch = VGroup(chip("right away: lytic", PURPLE, 32), chip("or later: lysogenic", PURPLE, 32)).arrange(RIGHT, buff=0.5).move_to([0, -1.7, 0])
-        self.play(FadeIn(ch, shift=UP * 0.1), run_time=0.6)
+        water = liquid_field()
+        food_bg = food_field()
+        vir = phage([0, -0.25, 0], 1.9)
+        count = ValueTracker(1)
+        ro = count_readout(count, label="phages", at=[4.65, 2.55, 0], widest=1)
+        ro[1].shift(UP * 0.64)
+        foods = VGroup(*[Dot([x, y, 0], radius=0.1, color=GREEN) for x, y in
+                         [(-4.7, 1.8), (-3.7, -1.4), (3.8, 1.4), (4.5, -1.1), (-2.8, 0.1)]])
+        self.play(FadeIn(water), FadeIn(food_bg), FadeIn(vir, scale=0.85), FadeIn(ro), run_time=0.65)
+        bob(vir, amp=0.09, speed=1.0)
+        self.at("This one is a phage")
+        name = T("phage (bacteriophage)", 32, ORANGE).move_to([0, 2.65, 0])
+        self.play(FadeIn(name), run_time=0.55)
+        self.at("infects bacteria")
+        host_icon = mini_cell([-4.8, -2.3, 0], 0.9)
+        self.play(FadeIn(host_icon), run_time=0.45)
+        self.at("Left alone")
+        self.play(FadeIn(foods), run_time=0.55)
+        for d in foods: bob(d, amp=0.08, speed=0.8, seed=int(abs(d.get_x()) * 3))
+        self.at("what does it do")
+        q = T("What does it do alone?", 32, GOLD).move_to([0, -3.3, 0])
+        self.play(FadeIn(q), run_time=0.55)
+        self.add(scope_tag("schematic"))
         self.finish()
 
 
-class S07End(EndCard):
-    LINE = "A virus never divides. A host cell builds it."
+class S13Nothing(SpokenScene):
+    def construct(self):
+        water = liquid_field()
+        food_bg = food_field()
+        vir = phage([-3.7, 0.35, 0], 1.7)
+        count = ValueTracker(1)
+        ro = count_readout(count, label="phages", at=[4.55, 2.55, 0], widest=1)
+        ro[1].shift(UP * 0.64)
+        clk = clock_face(center=[3.8, -0.55, 0], radius=1.2, label="time passes")
+        clk[0].set_fill("#0f1117", opacity=1)
+        self.add(water, food_bg, vir, ro, clk, scope_tag("schematic")); bob(vir, amp=0.08, speed=0.9)
+        self.at("Nothing")
+        nothing = T("NOTHING", 44, TEXT, weight=BOLD).move_to([0, 2.75, 0])
+        self.play(FadeIn(nothing), run_time=0.5)
+        marks = VGroup()
+        for text, y in [("grow", 1.0), ("split", 0.0), ("make anything", -1.0)]:
+            lab = T(text, 30, GREY).move_to([0.2, y, 0])
+            lab = VGroup(Rectangle(width=lab.width + 0.3, height=lab.height + 0.3, stroke_width=0, fill_color="#0f1117", fill_opacity=1).move_to(lab), lab)
+            x = VGroup(Line([-0.32, 0.32, 0], [0.32, -0.32, 0], color=RED, stroke_width=7),
+                       Line([-0.32, -0.32, 0], [0.32, 0.32, 0], color=RED, stroke_width=7)).next_to(lab, RIGHT, buff=0.3)
+            marks.add(VGroup(lab, x))
+        self.at("does not grow")
+        self.play(FadeIn(marks[0][0]), Create(marks[0][1]), Rotate(clk.hand, TAU, about_point=clk.center_point), run_time=0.75)
+        self.at("does not split")
+        self.play(FadeIn(marks[1][0]), Create(marks[1][1]), Rotate(clk.hand, TAU, about_point=clk.center_point), run_time=0.75)
+        self.at("cannot make anything")
+        self.play(FadeIn(marks[2][0]), Create(marks[2][1]), Rotate(clk.hand, TAU, about_point=clk.center_point), run_time=0.8)
+        self.at("counter stays at one")
+        self.play(Indicate(ro, color=GOLD, scale_factor=1.04), run_time=0.65)
+        self.finish()
+
+
+class S14Land(SpokenScene):
+    def construct(self):
+        host = bacterium([1.0, -0.15, 0], 8.4, 4.2, 1)
+        vir = phage([-4.7, 0.35, 0], 1.05).rotate(-PI / 2)
+        self.add(host, vir, scope_tag("schematic"))
+        pulse(host.body, base=5.0, amp=0.8, speed=1.5)
+        self.at("lands on a bacterium")
+        self.play(vir.animate.move_to([-3.15, 0.35, 0]), run_time=0.8)
+        self.at("injects its DNA")
+        dna = VMobject(color=ORANGE, stroke_width=6).set_points_smoothly([
+            vir.head.get_center(), [-2.2, 0.3, 0], [-0.8, 0.0, 0], [0.2, 0.45, 0]])
+        self.play(Create(dna), run_time=0.85)
+        self.at("phage parts start")
+        heads = VGroup(*[RegularPolygon(6, radius=0.28, color=ORANGE, stroke_width=4,
+                                        fill_color=ORANGE, fill_opacity=0.4) for _ in range(4)])
+        tails = VGroup(*[Line(ORIGIN, DOWN * 0.55, color=GREY, stroke_width=5) for _ in range(4)])
+        heads.arrange(RIGHT, buff=0.45).move_to([1.55, 0.8, 0])
+        tails.arrange(RIGHT, buff=0.45).move_to([1.55, -0.65, 0])
+        self.play(LaggedStart(*[FadeIn(p, scale=0.5) for p in VGroup(*heads, *tails)], lag_ratio=0.08), run_time=1.0)
+        self.at("inside the cell")
+        lab = T("phage parts", 30, ORANGE).move_to([1.55, -1.75, 0])
+        self.play(FadeIn(lab), run_time=0.45)
+        self.finish()
+
+
+class S15Host(SpokenScene):
+    def construct(self):
+        host = bacterium([0.8, -0.1, 0], 9.6, 4.4, 1)
+        coat = phage([-5.25, 0.45, 0], 0.85).rotate(-PI / 2).set_opacity(0.3)
+        strand = VMobject(color=ORANGE, stroke_width=6).set_points_smoothly([[-2.8, 0.3, 0], [-1.8, 0.55, 0], [-0.7, 0.2, 0]])
+        bench = RoundedRectangle(corner_radius=0.18, width=2.9, height=1.0, color=GREY,
+                                 stroke_width=5, fill_color=GREY, fill_opacity=0.25).move_to([-1.35, 1.2, 0])
+        gear = T("host machinery", 24, TEXT).move_to(bench).shift(UP * 0.2)
+        out = VGroup(*[RegularPolygon(6, radius=0.23, color=ORANGE, stroke_width=3,
+                                      fill_color=ORANGE, fill_opacity=0.4) for _ in range(5)]).arrange(RIGHT, buff=0.2).move_to([3.3, 1.2, 0])
+        self.add(host, coat, strand, scope_tag("schematic"))
+        pulse(host.body, base=5.0, amp=0.8, speed=1.4)
+        bob(coat, amp=0.05, speed=1.0)
+        self.at("phage is not making")
+        idle = T("doing nothing", 28, GREY).move_to([-5.1, -1.75, 0])
+        self.play(FadeIn(idle), run_time=0.5)
+        self.at("The cell is")
+        self.play(FadeIn(bench), FadeIn(gear), run_time=0.6)
+        self.at("reads the phage genes")
+        self.play(strand.animate.move_to(bench.get_center() + DOWN * 0.25), run_time=0.8)
+        self.at("as if they were its own")
+        self.play(Indicate(bench, color=ORANGE, scale_factor=1.04), run_time=0.65)
+        self.at("builds phage parts")
+        self.play(LaggedStart(*[FadeIn(p, shift=RIGHT * 0.2) for p in out], lag_ratio=0.12), run_time=0.9)
+        builds = T("the host cell builds", 32, GREEN, weight=BOLD).move_to([0.5, -2.5, 0])
+        self.play(FadeIn(builds), run_time=0.45)
+        self.finish()
+
+
+class S16Contrast(SpokenScene):
+    def construct(self):
+        tp, left, host, parts = contrast_world()
+        self.play(FadeIn(tp), run_time=0.55)
+        self.at("opposite ways")
+        middle = T("TWO WAYS TO MULTIPLY", 28, GOLD, weight=BOLD).move_to([0, -2.85, 0])
+        self.play(FadeIn(middle), FadeIn(left), FadeIn(host), run_time=0.55)
+        self.at("bacterium grows")
+        self.play(Indicate(left.body, color=GREEN, scale_factor=1.03), run_time=0.55)
+        daughters = VGroup(bacterium([-4.4, 0.2, 0], 2.15, 1.75, 1), bacterium([-2.1, 0.2, 0], 2.15, 1.75, 1))
+        self.at("splits on its own")
+        self.play(ReplacementTransform(left, daughters), run_time=0.8)
+        self.at("virus never divides")
+        lone = phage([3.25, 1.65, 0], 0.55)
+        self.play(FadeIn(lone), Indicate(lone, color=ORANGE, scale_factor=1.0), run_time=0.65)
+        self.play(lone.animate.shift(UP * 0.22), run_time=1.15, rate_func=there_and_back)
+        self.at("host cell builds")
+        self.play(LaggedStart(*[FadeIn(p) for p in parts], lag_ratio=0.1), run_time=0.85)
+        self.at("every new virus")
+        made = VGroup(*[phage(ORIGIN, 0.4) for _ in range(4)]).arrange(RIGHT, buff=0.4).move_to([3.25, -1.45, 0])
+        self.play(ReplacementTransform(parts, made), run_time=0.75)
+        self.finish()
+
+
+class S17Takehome(SpokenScene):
+    def construct(self):
+        tp, left, host, parts = contrast_world()
+        self.add(tp, left, host, parts)
+        self.at("one rule to keep")
+        heading = T("ONE RULE", 32, GOLD, weight=BOLD).move_to([0, -2.85, 0])
+        self.play(FadeIn(heading), run_time=0.55)
+        self.at("bacterium copies itself")
+        left_rule = fit_text("copies itself", max_w=5.2, size=38, color=GREEN, weight=BOLD).move_to([-3.25, -1.72, 0])
+        self.play(FadeIn(left_rule, shift=UP * 0.12), left.animate.shift(UP * 0.25), run_time=0.8)
+        self.at("virus is copied")
+        right_rule = fit_text("is copied by a host cell", max_w=5.3, size=34, color=ORANGE, weight=BOLD).move_to([3.25, -1.72, 0])
+        self.play(FadeIn(right_rule, shift=UP * 0.12), host.animate.shift(UP * 0.2), run_time=0.8)
+        self.at("never by itself")
+        self.play(Indicate(right_rule, color=GOLD, scale_factor=1.04), run_time=0.7)
+        self.finish()
+
+
+class S18End(EndCard):
+    LINE = "A bacterium copies itself; a virus is copied by a host cell."

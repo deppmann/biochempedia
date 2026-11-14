@@ -1,420 +1,496 @@
-"""Matter cycles: atoms move, and no cycle runs alone  (Biochemistrypedia high school Biology explainer)
-
-COLOR MAP (one color per concept, whole video)
-  YELLOW = carbon (the C token, carbon dioxide, sugar)
-  GREEN  = nitrogen (the N token, nitrogen gas, ammonia, nitrate)
-  BLUE   = water (vapor, rain, river, Bay, ocean)
-  ORANGE = living things (crab, plant, animal, dead organisms)
-  PURPLE = microbes (bacteria, fungi, decomposers)
-  RED    = what people do (burning) and a blocked path
-  GOLD   = light energy
-  GREY   = air, ground, outlines, labels
-"""
-import numpy as np
-from bp_style import *  # noqa: F401,F403
-
-PURPLE = "#B58CD9"
-ORANGE = "#F29E4C"
+from bp_parts import *
 
 
-# ---------------------------------------------------------------------------------------------
-# helpers
-# ---------------------------------------------------------------------------------------------
-def bchip(text, color=BLUE, size=26, **kw):
-    """chip with an opaque backing so lines behind it do not show through."""
-    c = chip(text, color, size=size, **kw)
-    back = RoundedRectangle(corner_radius=0.14, width=c[0].width, height=c[0].height, stroke_width=0,
-                            fill_color=BG, fill_opacity=1).move_to(c[0])
-    return VGroup(back, *c)
+# COLOR MAP (shared across this film):
+# water = BLUE, carbon = ORANGE, nitrogen = GREEN, sunlight = GOLD,
+# human-added flow = RED outline only (not used in this chapter).
+WATER = BLUE
+CARBON = ORANGE
+NITROGEN = GREEN
+SUN = GOLD
 
 
-def recolor_chip(c, color):
-    return [c[1].animate.set_stroke(color).set_fill(color, 0.16), c[2].animate.set_color(color)]
+def token(color, radius=0.13):
+    return Dot(radius=radius, color=color, stroke_color=TEXT, stroke_width=1.5)
 
 
-def btext(text, size=24, color=GREY):
-    t = T(text, size, color)
-    back = Rectangle(width=t.width + 0.2, height=t.height + 0.14, stroke_width=0, fill_color=BG,
-                     fill_opacity=1).move_to(t)
-    return VGroup(back, t)
+def crab_shape(scale=1.0):
+    """A simple labelled animal silhouette, not an anatomical claim."""
+    body = Ellipse(width=1.35, height=0.72, color=TEXT, fill_color="#315E73", fill_opacity=0.95,
+                   stroke_width=3)
+    eye_l = Dot(body.get_top() + LEFT * 0.28, radius=0.055, color=TEXT)
+    eye_r = Dot(body.get_top() + RIGHT * 0.28, radius=0.055, color=TEXT)
+    legs = VGroup(*[
+        Line(body.get_center() + [x, -0.18, 0], body.get_center() + [x * 1.55, -0.52, 0],
+             color=TEXT, stroke_width=3)
+        for x in (-0.48, -0.25, 0.25, 0.48)
+    ])
+    claws = VGroup(
+        Arc(radius=0.28, start_angle=-0.3, angle=1.9, color=TEXT).move_to(LEFT * 0.82 + UP * 0.2),
+        Arc(radius=0.28, start_angle=PI + 0.3, angle=-1.9, color=TEXT).move_to(RIGHT * 0.82 + UP * 0.2),
+    )
+    label = T("CRAB", 28, TEXT, weight=BOLD).move_to(body).shift(DOWN * 0.95)
+    for shape in (body, legs, claws, eye_l, eye_r):
+        shape.layout_ok = True  # the CRAB label deliberately sits on its own silhouette
+    return VGroup(legs, claws, body, eye_l, eye_r, label).scale(scale)
 
 
-def arr(a, b, color=GREY, w=5, tip=0.22):
-    return Arrow(a, b, buff=0.06, color=color, stroke_width=w, tip_length=tip,
-                 max_tip_length_to_length_ratio=0.45, max_stroke_width_to_length_ratio=12)
+def plant_shape(scale=1.0):
+    stem = Line(DOWN * 0.6, UP * 0.55, color=GREEN, stroke_width=8)
+    leaves = VGroup(
+        Ellipse(width=0.55, height=0.26, color=GREEN, fill_color=GREEN, fill_opacity=0.65).rotate(0.45).move_to(LEFT * 0.25),
+        Ellipse(width=0.55, height=0.26, color=GREEN, fill_color=GREEN, fill_opacity=0.65).rotate(-0.45).move_to(RIGHT * 0.25 + UP * 0.28),
+    )
+    return VGroup(stem, leaves).scale(scale)
 
 
-def token(letter, color, r=0.27):
-    sq = RoundedRectangle(corner_radius=0.09, width=2 * r, height=2 * r, stroke_color=color, stroke_width=3,
-                          fill_color=color, fill_opacity=1)
-    return VGroup(sq, T(letter, 24, BG, weight=BOLD).move_to(sq))
+def microbe_shape(label="MICROBES", color=GREEN, scale=1.0):
+    lab = T(label, 30, color, weight=BOLD)
+    body = RoundedRectangle(width=lab.width + 0.7, height=lab.height + 0.55, corner_radius=0.34, color=color,
+                            fill_color=color, fill_opacity=0.18, stroke_width=3).move_to(lab)
+    body.layout_ok = True  # deliberate: the label names its own cartoon body
+    return VGroup(body, lab).scale(scale)
 
 
-def up(n):
-    return np.array([n[0], n[1], 0.0])
+def leaf_shape(color=GREEN):
+    leaf = Ellipse(width=0.75, height=0.38, color=color, fill_color=color, fill_opacity=0.45,
+                   stroke_width=3).rotate(-0.35)
+    vein = Line(leaf.get_left() + RIGHT * 0.08, leaf.get_right() + LEFT * 0.08, color=color, stroke_width=2).rotate(-0.35)
+    return VGroup(leaf, vein)
 
 
-def P(x, y):
-    return np.array([x, y, 0.0])
+def watershed(dim=1.0, labels=False, schematic=True):
+    """The carried world. Every full-landscape scene calls this exact builder."""
+    sky = Rectangle(width=13.2, height=2.35, stroke_width=0, fill_color="#132B3A",
+                    fill_opacity=0.78 * dim).move_to([0, 2.35, 0])
+    ground = Polygon([-6.6, 1.25, 0], [-5.1, 1.48, 0], [-3.4, 0.75, 0], [-1.8, -0.05, 0],
+                     [0.0, -0.55, 0], [1.25, -1.0, 0], [6.6, -1.0, 0], [6.6, -3.15, 0],
+                     [-6.6, -3.15, 0], color="#8A6B44", fill_color="#4E402D", fill_opacity=0.88 * dim,
+                     stroke_width=0)
+    field = Polygon([-6.6, 1.25, 0], [-5.1, 1.48, 0], [-3.4, 0.75, 0], [-2.0, 0.0, 0],
+                    [-4.0, -0.55, 0], [-6.6, -0.2, 0], color=GREEN, fill_color="#355C38",
+                    fill_opacity=0.88 * dim, stroke_width=3)
+    bay = Polygon([0.3, -0.62, 0], [1.25, -1.0, 0], [6.6, -1.0, 0], [6.6, -3.15, 0],
+                  [-0.2, -3.15, 0], color=WATER, fill_color="#174D68", fill_opacity=0.92 * dim,
+                  stroke_width=3)
+    river = VMobject(color=WATER, stroke_width=20, stroke_opacity=0.9 * dim)
+    river.set_points_smoothly([[-4.0, 0.42, 0], [-3.0, 0.10, 0], [-2.2, -0.38, 0],
+                               [-1.3, -0.42, 0], [-0.25, -0.8, 0], [0.65, -1.25, 0]])
+    cloud = VGroup(*[Circle(r, color=TEXT, fill_color="#B8CBD2", fill_opacity=0.9 * dim, stroke_width=0)
+                     .move_to(p) for r, p in [(0.42, [-4.8, 2.55, 0]), (0.58, [-4.25, 2.72, 0]),
+                                             (0.45, [-3.67, 2.52, 0]), (0.36, [-4.15, 2.35, 0])]])
+    farm = VGroup(
+        Polygon([-5.75, 0.45, 0], [-5.15, 0.95, 0], [-4.55, 0.45, 0], color=RED,
+                fill_color="#7B3B32", fill_opacity=0.85 * dim),
+        Rectangle(width=0.88, height=0.72, color=TEXT, fill_color="#6D5142", fill_opacity=0.9 * dim,
+                  stroke_width=2).move_to([-5.15, 0.12, 0]),
+        T("FARM", 24, TEXT).move_to([-5.15, 0.1, 0]),
+    )
+    plant = plant_shape(0.72).move_to([-3.45, 0.14, 0])
+    algae = VGroup(*[Arc(radius=0.26, start_angle=-PI / 2, angle=PI, color=GREEN, stroke_width=6)
+                     .shift([2.0 + i * 0.34, -2.55 + 0.08 * (i % 2), 0]) for i in range(3)])
+    crab = crab_shape(0.78).move_to([4.65, -2.18, 0])
+    world = VGroup(sky, ground, field, bay, river, cloud, farm, plant, algae, crab).set_opacity(dim)
+    for background in (sky, ground, field, bay):
+        background.layout_ok = True  # reservoir labels intentionally sit on these regions
+    world.sky, world.ground, world.field, world.bay, world.river = sky, ground, field, bay, river
+    world.cloud, world.farm, world.plant, world.algae, world.crab = cloud, farm, plant, algae, crab
+    if labels:
+        labs = VGroup(T("AIR", 30, TEXT, weight=BOLD).move_to([0.0, 2.65, 0]),
+                      T("SOIL", 30, TEXT, weight=BOLD).move_to([-1.9, -2.45, 0]),
+                      T("RIVER AND BAY", 30, WATER, weight=BOLD).move_to([2.6, -1.38, 0]),
+                      T("LIVING THINGS", 30, GREEN, weight=BOLD).move_to([4.15, 0.1, 0]))
+        world.add(labs)
+        world.labels = labs
+    if schematic:
+        world.add(scope_tag("schematic"))
+    return world
 
 
-def riding(tok, a, b, rt=1.0):
-    """slide a token from a to b."""
-    return tok.animate.move_to(b)
+def moving_water(world):
+    pulse(world.river, base=18, amp=3, speed=1.6)
+    bob(world.cloud, amp=0.07, speed=1.1)
+    bob(world.crab, amp=0.035, speed=1.4, seed=2)
+    return world
 
 
-class S00Title(TitleCard):
-    LESSON = "Matter cycles"
-    TITLE = "Atoms Move, and No Cycle Runs Alone"
+def predict_backdrop():
+    water = Rectangle(width=13.0, height=4.2, stroke_color=WATER, stroke_width=3,
+                      fill_color="#174D68", fill_opacity=0.75).move_to([0, -0.75, 0])
+    surface = Line([-6.5, 1.35, 0], [6.5, 1.35, 0], color=WATER, stroke_width=7)
+    crab = crab_shape(1.55).move_to([0, -0.75, 0])
+    c = token(CARBON, 0.22).move_to(crab.get_center() + LEFT * 0.38 + DOWN * 0.1)
+    water.layout_ok = True
+    pulse(surface, base=7, amp=2, speed=1.5)
+    return VGroup(water, surface, crab, c, T("schematic", 24, GREY).move_to([-5.65, -3.3, 0]))
 
 
-# ---------------------------------------------------------------------------------------------
-class S01Crab(SpokenScene):
-    """a crab block, question-mark sources, tokens ride in, then the two questions."""
-
+class S00Hook(SpokenScene):
     def construct(self):
-        crab = bchip("blue crab", ORANGE, 58, pad=0.45).move_to(P(0, 0.9))
-        bay = T("Chesapeake Bay", 32, GREY).next_to(crab, DOWN, buff=0.25)
-        self.at("blue crab")
-        self.play(FadeIn(crab, scale=0.9), run_time=0.7)
-        self.at("Chesapeake Bay")
-        self.play(FadeIn(bay), run_time=0.4)
-
-        spots = [P(-4.9, 2.2), P(-4.9, -0.7), P(4.9, 2.2), P(4.9, -0.7)]
-        boxes, arrows = [], []
-        for s in spots:
-            b = RoundedRectangle(corner_radius=0.14, width=1.9, height=1.6, stroke_color=GREY, stroke_width=3,
-                                 fill_color=GREY, fill_opacity=0.12).move_to(s)
-            q = T("?", 64, GREY, weight=BOLD).move_to(b)
-            side = RIGHT if s[0] < 0 else LEFT
-            tgt = crab.get_center() + P(-side[0] * 0 + (-1) * side[0] * 0, 0)
-            end = P(crab.get_edge_center(-side)[0], 0.9 + (0.45 if s[1] > 0 else -0.35))
-            a = arr(P(b.get_edge_center(side)[0], s[1], ), end, GREY, 6)
-            boxes.append(VGroup(b, q))
-            arrows.append(a)
-        self.at("somewhere else before")
-        self.play(*[FadeIn(b, scale=0.9) for b in boxes], run_time=0.7)
-        self.at("one particular crab")
-        self.play(crab.animate.scale(1.06), rate_func=there_and_back, run_time=0.8)
-        self.at("trace the routes")
-        self.play(*[GrowArrow(a) for a in arrows], run_time=0.6)
-        toks = []
-        for i, s in enumerate(spots):
-            t = token("C" if i % 2 == 0 else "N", YELLOW if i % 2 == 0 else GREEN).move_to(
-                arrows[i].get_start() + (RIGHT if s[0] < 0 else LEFT) * 0.2)
-            toks.append(t)
-        self.play(*[FadeIn(t) for t in toks], run_time=0.3)
-        self.play(*[t.animate.move_to(a.get_end()) for t, a in zip(toks, arrows)], run_time=1.6)
-        self.play(*[FadeOut(t) for t in toks], run_time=0.4)
-        q1 = T("How does matter keep moving through ecosystems?", 34, TEXT).move_to(P(0, -2.45))
-        self.at("How does matter keep moving")
-        self.play(FadeIn(q1, shift=UP * 0.1), run_time=0.5)
-        q2 = T("What happens when people change a cycle?", 34, RED).move_to(P(0, -3.2))
-        self.at("when people change a cycle")
-        self.play(FadeIn(q2, shift=UP * 0.1), run_time=0.5)
+        w = moving_water(watershed(schematic=False))
+        w.add(T("schematic", 24, GREY).move_to([5.75, 3.35, 0]))
+        self.play(FadeIn(w, shift=UP * 0.1), run_time=1.0)
+        rain = VGroup(*[Dot([-4.9 + 0.38 * i, 2.05 - 0.12 * (i % 2), 0], radius=0.09, color=WATER)
+                        for i in range(7)])
+        self.play(rain.animate.shift(DOWN * 2.0 + RIGHT * 0.35), run_time=2.0, rate_func=linear)
+        self.at("help build a crab")
+        q = T("?", 82, GOLD, weight=BOLD).next_to(w.crab, UP, buff=0.2)
+        q.layout_ok = True  # question intentionally floats inside the Bay region
+        self.play(FadeIn(q, scale=1.3), w.crab.animate.scale(1.12), run_time=0.8)
+        self.at("Keep your eyes")
+        outline = SurroundingRectangle(VGroup(w.field, w.river, w.bay), color=TEAL, buff=0.14,
+                                       corner_radius=0.25, stroke_width=4)
+        self.play(Create(outline), FadeOut(q), run_time=1.0)
+        self.at("land river and bay")
+        self.play(Indicate(w.field, color=GREEN), Indicate(w.river, color=WATER),
+                  Indicate(w.bay, color=WATER), run_time=1.2)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-def carbon_base():
-    return bchip("carbon dioxide in air", GREY, 38).move_to(P(0, 2.7))
-
-
-class S02Carbon(SpokenScene):
-    """carbon in sugar, fat, protein -> photosynthesis pulls it into a plant -> respiration returns it."""
-
+class S01Title(NarratedScene):
     def construct(self):
-        hd = T("carbon", 56, YELLOW, weight=BOLD).move_to(P(0, 2.4))
-        chips = VGroup(*[VGroup(bchip(n, YELLOW, 38), token("C", YELLOW, 0.33)).arrange(RIGHT, buff=0.2)
-                         for n in ["sugar", "fat", "protein"]]).arrange(RIGHT, buff=0.55).move_to(P(0, 0.2))
-        self.at("Carbon is in every sugar")
-        self.play(FadeIn(hd), run_time=0.4)
-        self.play(LaggedStart(*[FadeIn(c, shift=UP * 0.15) for c in chips], lag_ratio=0.35), run_time=1.6)
-        body = T("in your body", 34, GREY).next_to(chips, DOWN, buff=0.5)
-        self.at("your body")
-        self.play(FadeIn(body), run_time=0.4)
-
-        air = carbon_base()
-        plant = bchip("plant or alga", ORANGE, 34).move_to(P(-4.5, -1.5))
-        self.at("Photosynthesis")
-        self.play(FadeOut(chips), FadeOut(body), FadeOut(hd), FadeIn(air), FadeIn(plant), run_time=0.8)
-        down = arr(P(-2.4, 2.1), P(-4.8, -0.95), YELLOW, 7)
-        lab = T("photosynthesis", 30, TEXT).move_to(P(-4.85, 1.2))
-        ct = token("C", YELLOW, 0.33).move_to(P(-2.4, 2.1))
-        self.play(GrowArrow(down), FadeIn(lab), FadeIn(ct), run_time=0.7)
-        light = T("light energy", 28, GOLD).next_to(lab, DOWN, buff=0.15)
-        self.at("light energy")
-        self.play(FadeIn(light), run_time=0.4)
-        sugar = bchip("sugar", YELLOW, 34).move_to(P(-4.5, -3.0))
-        self.at("build sugar")
-        self.play(ct.animate.move_to(P(-4.8, -0.95)), run_time=0.8)
-        self.play(FadeOut(ct), FadeIn(sugar, shift=UP * 0.1), run_time=0.5)
-        self.at("carbon dioxide and water")
-        self.play(air.animate.scale(1.08), rate_func=there_and_back, run_time=0.8)
-
-        upa = arr(P(-4.0, -0.95), P(-1.6, 2.1), YELLOW, 7)
-        rlab = T("respiration", 30, TEXT).move_to(P(-1.2, 0.3))
-        c2 = token("C", YELLOW, 0.33).move_to(sugar.get_center() + UP * 0.0)
-        self.at("Respiration")
-        self.play(GrowArrow(upa), FadeIn(rlab), run_time=0.7)
-        self.at("break down sugar")
-        self.play(sugar.animate.scale(1.12), rate_func=there_and_back, run_time=0.6)
-        self.play(FadeIn(c2.move_to(sugar.get_right() + RIGHT * 0.4)), run_time=0.2)
-        self.play(c2.animate.move_to(P(-3.85, -0.6)), FadeOut(sugar), run_time=0.6)
-        self.at("release carbon dioxide")
-        self.play(c2.animate.move_to(P(-1.6, 2.1)), run_time=0.9)
-        self.play(FadeOut(c2), run_time=0.2)
-
-        animal = bchip("animal", ORANGE, 34).move_to(P(0.7, -1.5))
-        micro = bchip("microbes", PURPLE, 34).move_to(P(4.7, -1.5))
-        a2 = arr(P(0.7, -0.95), P(0.7, 2.05), YELLOW, 7)
-        a3 = arr(P(4.4, -0.95), P(1.9, 2.1), YELLOW, 7)
-        self.at("Plants, animals and microbes")
-        self.play(FadeIn(animal, shift=UP * 0.1), FadeIn(micro, shift=UP * 0.1), run_time=0.7)
-        self.at("all do it")
-        t1 = token("C", YELLOW, 0.33).move_to(P(0.7, -0.95))
-        t2 = token("C", YELLOW, 0.33).move_to(P(4.4, -0.95))
-        self.play(GrowArrow(a2), GrowArrow(a3), FadeIn(t1), FadeIn(t2), run_time=0.6)
-        self.play(t1.animate.move_to(P(0.7, 2.05)), t2.animate.move_to(P(1.9, 2.1)), run_time=1.0)
-        self.play(FadeOut(t1), FadeOut(t2), run_time=0.2)
+        w = moving_water(watershed(dim=0.30, schematic=False))
+        title = fit_text("One Crab, Three Connected Cycles", max_w=11.5, size=52,
+                         font=TITLE_FONT, weight=BOLD)
+        title.layout_ok = True  # deliberate overlay on the dimmed carried watershed
+        lesson = T("MATTER CYCLES", 24, TEAL, weight=BOLD).next_to(title, UP, buff=0.28)
+        rule = Line(LEFT * 1.4, RIGHT * 1.4, color=GOLD, stroke_width=4).next_to(title, DOWN, buff=0.28)
+        self.add(w)
+        self.play(FadeIn(lesson), Write(title), GrowFromCenter(rule), run_time=1.1)
+        self.wait(0.45)
+        self.play(FadeOut(VGroup(lesson, title, rule)), run_time=0.35)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S03More(SpokenScene):
-    """combustion, decomposition, ocean absorption, all against the same air box."""
+class S02Map(SpokenScene):
+    def construct(self):
+        w = moving_water(watershed(labels=True))
+        self.add(w)
+        blue = VGroup(*[token(WATER).move_to(p) for p in [[-2.5, -0.25, 0], [0.6, -2.0, 0], [3.2, -2.55, 0]]])
+        orange = VGroup(*[token(CARBON).move_to(p) for p in [[-1.0, 2.1, 0], [2.7, -1.95, 0]]])
+        green = VGroup(*[token(NITROGEN).move_to(p) for p in [[-3.7, -0.3, 0], [2.15, -2.45, 0]]])
+        self.play(FadeIn(blue, scale=1.5), run_time=0.7)
+        self.at("orange will track")
+        self.play(FadeIn(orange, scale=1.5), run_time=0.7)
+        self.at("green will track")
+        self.play(FadeIn(green, scale=1.5), run_time=0.7)
+        self.at("Each colored token")
+        self.play(blue.animate.shift(RIGHT * 0.5), orange.animate.shift(UP * 0.25),
+                  green.animate.shift(LEFT * 0.35), run_time=2.0, rate_func=there_and_back)
+        self.at("A reservoir is")
+        self.play(LaggedStart(*[Indicate(x, color=GOLD) for x in w.labels], lag_ratio=0.28), run_time=3.6)
+        self.at("such as air")
+        self.play(LaggedStart(*[Indicate(x) for x in w.labels], lag_ratio=0.25), run_time=2.2)
+        self.finish()
+
+
+class S03CarbonIn(SpokenScene):
+    def construct(self):
+        w = moving_water(watershed())
+        self.add(w)
+        co2 = VGroup(*[token(CARBON, 0.15).move_to(p) for p in [[-1.1, 2.35, 0], [0.1, 2.1, 0],
+                                                                 [2.8, -1.65, 0], [3.4, -2.6, 0]]])
+        self.play(FadeIn(co2), co2.animate.shift(RIGHT * 0.35), run_time=1.6)
+        self.at("Algae and plants")
+        rays = VGroup(*[Arrow([x, 3.2, 0], [x, y, 0], color=SUN, stroke_width=5, buff=0.1,
+                              max_tip_length_to_length_ratio=0.15) for x, y in [(-3.45, 0.75), (2.3, -2.2)]])
+        self.play(Create(rays[0]), Create(rays[1]), run_time=1.0)
+        self.at("photosynthesis")
+        sugar1 = chip("SUGAR", CARBON, size=30).scale(0.78).move_to(w.plant.get_center() + UP * 0.15)
+        sugar2 = chip("SUGAR", CARBON, size=30).scale(0.78).move_to([2.3, -2.35, 0])
+        self.play(Transform(co2[0], sugar1), Transform(co2[2], sugar2), FadeOut(rays), run_time=1.5)
+        self.at("Food moves")
+        animal_body = Circle(0.34, color=TEXT, fill_color=TEXT, fill_opacity=0.16).move_to([3.25, -1.82, 0])
+        animal_body.layout_ok = True
+        animal_lab = T("ANIMAL", 24, TEXT).next_to(animal_body, UP, buff=0.12)
+        animal = VGroup(animal_body, animal_lab)
+        path1 = CurvedArrow([2.55, -2.2, 0], [3.55, -1.95, 0], angle=0.25, color=CARBON, stroke_width=7)
+        path2 = CurvedArrow([3.55, -1.95, 0], [4.35, -2.15, 0], angle=-0.2, color=CARBON, stroke_width=7)
+        food_block = Square(0.32, color=CARBON, fill_color=CARBON, fill_opacity=0.8).move_to(sugar2)
+        self.play(FadeIn(animal), Create(path1), ReplacementTransform(sugar2, food_block), run_time=1.5)
+        self.play(food_block.animate.move_to(animal_body.get_center()), run_time=.35)
+        self.at("until some reaches")
+        food_block.layout_ok = True  # deliberate carbon block inside the labelled animal/crab
+        self.play(Create(path2), food_block.animate.move_to(w.crab.get_center() + LEFT * .55 + DOWN * .12), run_time=1.3)
+        self.finish()
+
+
+class S04CarbonOut(SpokenScene):
+    def construct(self):
+        w = moving_water(watershed())
+        self.add(w)
+        sugar = Square(0.32, color=CARBON, fill_color=CARBON, fill_opacity=0.8).move_to(
+            w.crab.get_center() + LEFT * .55 + DOWN * .12)
+        sugar.layout_ok = True  # deliberate carbon block inside the labelled crab
+        self.add(sugar)
+        self.at("releasing carbon dioxide")
+        outs = VGroup(*[token(CARBON, 0.14).move_to(w.crab.get_center()) for _ in range(3)])
+        targets = [[3.6, -1.55, 0], [4.7, -1.25, 0], [5.65, -1.8, 0]]
+        self.play(FadeOut(sugar), *[outs[i].animate.move_to(targets[i]) for i in range(3)], run_time=1.8)
+        self.at("Plants and microbes")
+        microbes = microbe_shape("MICROBES", CARBON, 0.82).move_to([-1.55, -2.45, 0])
+        extra = VGroup(token(CARBON).move_to(w.plant.get_center()),
+                       token(CARBON).move_to(microbes.get_center() + RIGHT * 1.4))
+        self.play(FadeIn(microbes), FadeIn(extra), run_time=0.8)
+        bob(microbes, amp=.035, speed=1.3)
+        self.play(extra[0].animate.shift(UP * 1.0), extra[1].animate.shift(RIGHT * 1.0), run_time=1.4)
+        self.at("When organisms die")
+        leaf = leaf_shape().move_to([-3.2, 0.05, 0])
+        self.play(FadeIn(leaf), leaf.animate.move_to([-2.4, -1.45, 0]).rotate(-0.7), run_time=1.3)
+        self.at("decomposers break down")
+        decomp = microbe_shape("DECOMPOSERS", CARBON, 0.9).move_to([-3.0, -2.35, 0])
+        self.play(Transform(microbes, decomp), FadeOut(leaf), run_time=1.1)
+        self.at("returns much of")
+        returned = VGroup(*[token(CARBON).move_to(decomp.get_center()) for _ in range(3)])
+        self.play(returned[0].animate.move_to([-1.5, 1.3, 0]),
+                  returned[1].animate.move_to([-0.1, -1.2, 0]),
+                  returned[2].animate.move_to([1.0, -1.65, 0]), run_time=2.3)
+        self.finish()
+
+
+class S05Water(SpokenScene):
+    def construct(self):
+        w = moving_water(watershed())
+        self.add(w)
+        drops = VGroup(*[token(WATER, 0.11).move_to([2.2 + i * 0.42, -1.35 - 0.18 * (i % 2), 0]) for i in range(6)])
+        self.play(drops.animate.shift(UP * 3.7), run_time=2.2)
+        self.at("clouds")
+        self.play(drops.animate.move_to(w.cloud.get_center()), Indicate(w.cloud), run_time=0.8)
+        self.at("precipitation")
+        self.play(drops.animate.arrange(RIGHT, buff=0.18).move_to([-3.4, 1.9, 0]), run_time=0.5)
+        self.play(drops.animate.shift(DOWN * 2.1), run_time=1.4)
+        self.at("flow across land")
+        self.play(drops.animate.move_to([-2.4, -0.15, 0]), run_time=1.2)
+        self.at("carries other matter")
+        ns = VGroup(*[token(NITROGEN, 0.12).move_to([-3.3 + i * 0.35, -0.42, 0]) for i in range(4)])
+        self.play(FadeIn(ns, scale=1.4), run_time=0.7)
+        self.at("pick up green nitrogen")
+        carrier = SurroundingRectangle(VGroup(drops, ns), color=WATER, buff=0.12, corner_radius=0.2)
+        self.play(Create(carrier), run_time=0.6)
+        self.at("move it into")
+        self.play(VGroup(drops, ns, carrier).animate.move_to([-0.25, -0.75, 0]), run_time=1.5)
+        self.finish()
+
+
+class S06Nitrogen(SpokenScene):
+    def construct(self):
+        w = watershed(schematic=False)
+        self.add(w)
+        gas = chip("NITROGEN GAS", NITROGEN, size=26).move_to([-2.2, 2.45, 0])
+        stop = Line([-2.9, 1.0, 0], [-1.5, 1.0, 0], color=RED, stroke_width=7)
+        self.play(FadeIn(gas), gas.animate.move_to([-2.2, 1.4, 0]), Create(stop), run_time=1.7)
+        self.at("Certain microbes")
+        soil = RoundedRectangle(width=8.0, height=4.7, corner_radius=0.2, color="#8A6B44",
+                                fill_color="#4E402D", fill_opacity=0.95).move_to([-1.0, -0.25, 0])
+        soil.layout_ok = True
+        root = plant_shape(1.45).move_to([-3.0, 1.0, 0])
+        microbes = VGroup(microbe_shape("ROOT MICROBES", NITROGEN, 1.0).move_to([-3.4, -1.1, 0]),
+                          microbe_shape("SOIL MICROBES", NITROGEN, 1.0).move_to([1.0, -1.1, 0]))
+        self.play(FadeOut(w), FadeOut(stop), FadeIn(soil), FadeIn(root), FadeIn(microbes),
+                  gas.animate.move_to([-1.8, -0.15, 0]), run_time=1.3)
+        bob(root, amp=.10, speed=1.0)
+        bob(microbes, amp=.12, speed=1.15)
+        self.at("convert it into ammonia")
+        ammonia = chip("AMMONIA", NITROGEN, size=28).move_to(gas)
+        self.play(Transform(gas, ammonia), run_time=1.0)
+        self.at("make nitrate")
+        nitrate = chip("NITRATE", NITROGEN, size=28).move_to([0.6, -0.15, 0])
+        self.play(gas.animate.move_to([0.0, -0.15, 0]), Transform(gas, nitrate), run_time=1.2)
+        self.at("Plants and algae take up")
+        self.play(gas.animate.move_to(root.get_center() + RIGHT * 1.7), Indicate(root, color=NITROGEN), run_time=1.4)
+        self.at("Food can then")
+        mini = watershed(schematic=True)
+        green_food = token(NITROGEN, 0.17).move_to(mini.plant.get_center())
+        green_food.layout_ok = True  # deliberate nitrogen token inside the labelled crab at the end
+        arrow = CurvedArrow(mini.plant.get_center() + RIGHT * 0.3, mini.crab.get_center() + LEFT * 0.4,
+                            angle=-0.28, color=NITROGEN, stroke_width=7)
+        self.play(FadeOut(VGroup(soil, root, microbes, gas)), FadeIn(mini), FadeIn(green_food), run_time=1.0)
+        self.play(Create(arrow), green_food.animate.move_to(mini.crab.get_center() + LEFT * .55 + DOWN * .12), run_time=1.7)
+        self.finish()
+
+
+class S06Return(SpokenScene):
+    def construct(self):
+        mud = RoundedRectangle(width=12.0, height=5.5, corner_radius=0.3, color="#8A6B44",
+                               fill_color="#40382F", fill_opacity=0.95).move_to([0, -0.15, 0])
+        mud.layout_ok = True
+        decomp = microbe_shape("DECOMPOSERS", NITROGEN, 1.15).move_to([-3.7, -0.4, 0])
+        waste = chip("WASTE", NITROGEN, size=26).move_to([-5.3, 1.45, 0])
+        dead = leaf_shape(NITROGEN).scale(1.2).move_to([-2.9, 1.55, 0])
+        self.add(mud, scope_tag("schematic"))
+        self.play(FadeIn(waste), FadeIn(dead), FadeIn(decomp), run_time=1.2)
+        self.play(waste.animate.move_to(decomp.get_center() + UP * .8),
+                  dead.animate.move_to(decomp.get_center() + RIGHT * 2.7), run_time=1.5)
+        bob(decomp, amp=.035, speed=1.2)
+        self.at("return their nitrogen")
+        ammonium = chip("AMMONIUM", NITROGEN, size=28).move_to([-3.7, -1.65, 0])
+        self.play(FadeOut(waste), FadeOut(dead), FadeIn(ammonium), run_time=1.1)
+        self.at("In wet soil")
+        wet = RoundedRectangle(width=4.6, height=3.4, corner_radius=0.25, color=WATER,
+                               fill_color="#174D68", fill_opacity=0.45).move_to([3.6, -0.45, 0])
+        low = T("LOW OXYGEN", 30, WATER, weight=BOLD).move_to([3.6, 0.95, 0])
+        bact = microbe_shape("BACTERIA", NITROGEN, 0.95).move_to([3.9, -1.0, 0])
+        nitrate = chip("NITRATE", NITROGEN, size=28).move_to([-0.1, -0.15, 0])
+        self.play(FadeIn(wet), FadeIn(low), FadeIn(bact), FadeIn(nitrate), run_time=1.3)
+        bob(bact, amp=.035, speed=1.35)
+        self.at("change nitrate back")
+        self.play(nitrate.animate.move_to([3.1, 0.05, 0]), run_time=0.8)
+        gas = chip("NITROGEN GAS", NITROGEN, size=28).move_to(nitrate)
+        self.play(ReplacementTransform(nitrate, gas), run_time=1.0)
+        self.at("returns to the air")
+        self.play(gas.animate.move_to([3.1, 2.5, 0]), run_time=1.8)
+        self.finish()
+
+
+class S07Predict(SpokenScene):
+    QUESTION = "After respiration, where does the crab's carbon go next?"
+    OPTIONS = ["AIR", "WATER", "SOIL"]
 
     def construct(self):
-        air = carbon_base()
-        self.add(air)
-        burn = bchip("burning", RED, 34).move_to(P(-4.8, -1.5))
-        a1 = arr(P(-4.8, -0.95), P(-2.4, 2.1), RED, 10)
-        l1 = T("combustion", 30, TEXT).move_to(P(-5.0, 0.9))
-        self.at("Combustion")
-        self.play(FadeIn(burn, shift=UP * 0.1), run_time=0.5)
-        self.at("releases carbon dioxide quickly")
-        t = token("C", YELLOW, 0.33).move_to(P(-4.8, -0.95))
-        self.play(GrowArrow(a1), FadeIn(l1), FadeIn(t), run_time=0.5)
-        self.play(t.animate.move_to(P(-2.4, 2.1)), run_time=0.6)
-        self.play(FadeOut(t), run_time=0.2)
+        b = predict_backdrop()
+        self.add(b)
+        carbon = b[3]
+        carbon.layout_ok = True  # deliberate carbon token inside the labelled crab
+        self.play(carbon.animate.scale(1.6), run_time=0.8)
+        self.at("When the crab respires")
+        q = question_card(self.QUESTION, self.OPTIONS, y=3.2, chips_at=[4.75, 0.0, 0],
+                          left=-6.2, max_w=7.6, size=30)
+        self.play(FadeIn(q.question), run_time=0.7)
+        self.play(FadeIn(q.chips), run_time=1.1)
+        self.at("Hold your answer")
+        pulse(carbon, base=2, amp=5, speed=2.2)
+        self.wait(1.3)
+        self.finish()
 
-        dead = bchip("dead organisms", ORANGE, 34).move_to(P(-0.1, -1.5))
-        fb = bchip("fungi and bacteria", PURPLE, 30).move_to(P(-0.1, -2.9))
-        a2 = arr(P(-0.1, -0.95), P(-0.1, 2.05), YELLOW, 7)
-        l2 = T("decomposition", 30, TEXT).move_to(P(1.45, 0.6))
-        self.at("Decomposition")
-        self.play(FadeIn(dead, shift=UP * 0.1), run_time=0.5)
-        self.at("by fungi and bacteria")
-        self.play(FadeIn(fb, shift=UP * 0.1), run_time=0.5)
-        self.at("Their respiration")
-        t2 = token("C", YELLOW, 0.33).move_to(P(-0.1, -0.95))
-        self.play(GrowArrow(a2), FadeIn(l2), FadeIn(t2), run_time=0.5)
-        self.play(t2.animate.move_to(P(-0.1, 2.05)), run_time=0.8)
-        self.play(FadeOut(t2), run_time=0.2)
 
-        ocean = bchip("ocean", BLUE, 34).move_to(P(5.0, -1.5))
-        l3 = T("ocean absorption", 28, TEXT).move_to(P(4.5, -2.6))
+class S08Pause(PredictPause):
+    QUESTION = S07Predict.QUESTION
+    OPTIONS = S07Predict.OPTIONS
+    CHIPS_AT = [4.75, 0.0, 0]
+    CARD = {"y": 3.2, "left": -6.2, "max_w": 7.6, "size": 30}
+    RING_AT = (6.05, -3.05, 0)
+    SECONDS = 4.5
+
+    def backdrop(self):
+        b = predict_backdrop()
+        b[3].layout_ok = True  # deliberate carbon token inside the labelled crab
+        pulse(b[3], base=2, amp=5, speed=2.2)
+        return b
+
+
+class S09Reveal(SpokenScene):
+    def construct(self):
+        b = predict_backdrop()
+        b[3].layout_ok = True  # deliberate carbon token inside the labelled crab
+        b[4].move_to([5.75, -3.3, 0])  # keep the scope tag clear of the bottom caption
+        self.add(b)
+        water_lab = chip("WATER", WATER, size=34).move_to([4.5, 0.0, 0])
+        self.play(FadeIn(water_lab), Indicate(b[0], color=WATER), run_time=1.1)
+        self.at("carbon dioxide")
+        co2 = chip("CARBON DIOXIDE", CARBON, size=28).move_to([3.0, -1.0, 0])
+        self.play(Transform(b[3], co2), run_time=1.2)
+        self.at("may later enter algae")
+        algae = plant_shape(0.65).move_to([-4.5, -1.3, 0])
+        air = T("AIR", 30, TEXT, weight=BOLD).move_to([0.0, 2.45, 0])
+        downstream = T("DOWNSTREAM", 28, WATER, weight=BOLD).move_to([4.7, -2.25, 0])
+        self.play(FadeIn(algae), FadeIn(air), FadeIn(downstream), FadeOut(water_lab), run_time=0.8)
+        arrows = VGroup(DashedLine(co2.get_left(), algae.get_right() + RIGHT * .12, color=CARBON, stroke_width=4),
+                        DashedLine(co2.get_top(), air.get_bottom() + DOWN * .12, color=CARBON, stroke_width=4),
+                        DashedLine(co2.get_right(), downstream.get_left() + LEFT * .12, color=CARBON, stroke_width=4))
+        poss = VGroup(T("possible", 24, CARBON).move_to([-2.9, -1.75, 0]),
+                      T("possible", 24, CARBON).move_to([-1.0, 1.65, 0]),
+                      T("possible", 24, CARBON).move_to([5.2, -1.65, 0]))
+        self.play(LaggedStart(*[Create(a) for a in arrows], lag_ratio=0.25), run_time=1.8)
+        self.play(FadeIn(poss), run_time=0.7)
+        self.at("A cycle is")
+        rule = caption("A network of possible routes — not one repeated track.", color=GOLD)
+        self.play(FadeIn(rule), run_time=1.0)
+        self.finish()
+
+
+class S10Connections(SpokenScene):
+    def construct(self):
+        w = moving_water(watershed())
+        self.add(w)
+        runoff = VGroup(*[token(WATER).move_to([-4.0 + i * .25, 0.25 - i * .08, 0]) for i in range(4)])
+        passengers = VGroup(*[token(NITROGEN).move_to([-3.9 + i * .4, 0.05, 0]) for i in range(3)])
+        self.at("Blue water carries")
+        self.play(VGroup(runoff, passengers).animate.move_to([-1.0, -0.55, 0]), run_time=1.8)
+        self.at("Algae can hold")
+        c = chip("C", CARBON, size=34).scale(.72).move_to([1.75, -1.85, 0])
+        n = chip("N", NITROGEN, size=34).scale(.72).move_to([2.55, -1.85, 0])
+        c.layout_ok = n.layout_ok = True  # deliberate element labels inside algae and crab silhouettes
+        self.play(FadeIn(c), FadeIn(n), Indicate(w.algae, color=GREEN), run_time=1.1)
+        self.at("Animals receive both")
+        arrow = CurvedArrow([2.7, -2.15, 0], [4.25, -2.15, 0], angle=0.18, color=TEXT, stroke_width=7)
+        self.play(Create(arrow), c.animate.move_to(w.crab.get_center() + LEFT * .38 + DOWN * .15),
+                  n.animate.move_to(w.crab.get_center() + RIGHT * .38 + DOWN * .15), run_time=1.6)
+        self.at("while decomposers")
+        dead = leaf_shape().move_to([3.2, -0.6, 0])
+        decomp = microbe_shape("DECOMPOSERS", GREEN, 0.86).move_to([-0.8, -2.35, 0])
+        self.play(FadeIn(dead), FadeIn(decomp), dead.animate.move_to(decomp.get_center() + UP * .75), run_time=1.2)
+        self.at("send both onward")
+        self.play(c.animate.move_to([-1.5, -1.65, 0]), n.animate.move_to([-0.25, -1.65, 0]),
+                  FadeOut(dead), run_time=1.6)
+        self.finish()
+
+
+class S10Surface(SpokenScene):
+    def construct(self):
+        air = Rectangle(width=13.0, height=3.2, stroke_width=0, fill_color="#132B3A",
+                        fill_opacity=0.9).move_to([0, 2.0, 0])
+        water = Rectangle(width=13.0, height=3.6, stroke_width=0, fill_color="#174D68",
+                          fill_opacity=0.9).move_to([0, -1.55, 0])
+        surface = Line([-6.5, 0.25, 0], [6.5, 0.25, 0], color=WATER, stroke_width=8)
+        pulse(surface, base=8, amp=2, speed=1.25)
+        down = Arrow([-1.4, 2.0, 0], [-1.4, -1.6, 0], color=CARBON, stroke_width=8)
+        up = Arrow([1.4, -1.6, 0], [1.4, 2.0, 0], color=CARBON, stroke_width=8)
+        co2a = chip("CARBON DIOXIDE", CARBON, size=28).move_to([-3.6, 1.7, 0])
+        co2w = chip("CARBON DIOXIDE", CARBON, size=28).move_to([3.6, -1.55, 0])
+        self.add(air, water, surface, scope_tag("schematic"), co2a)
+        self.play(Create(down), co2a.animate.move_to([-3.6, -1.35, 0]), run_time=2.0)
+        self.at("comes back out")
+        self.play(FadeIn(co2w), Create(up), co2w.animate.move_to([3.6, 1.55, 0]), run_time=2.0)
         self.at("Ocean absorption")
-        self.play(FadeIn(ocean, shift=UP * 0.1), FadeIn(l3), run_time=0.5)
-        self.at("dissolving into seawater")
-        t3 = token("C", YELLOW, 0.33).move_to(P(2.2, 2.1))
-        a3 = arr(P(2.2, 2.1), P(4.3, -0.95), YELLOW, 7)
-        self.play(GrowArrow(a3), FadeIn(t3), run_time=0.5)
-        self.play(t3.animate.move_to(P(4.3, -0.95)), run_time=0.8)
-        self.play(FadeOut(t3), run_time=0.2)
-        a4 = arr(P(5.7, -0.95), P(3.3, 2.1), YELLOW, 3)
-        t4 = token("C", YELLOW, 0.33).move_to(P(5.7, -0.95))
-        self.at("also comes back out")
-        self.play(GrowArrow(a4), FadeIn(t4), run_time=0.4)
-        self.play(t4.animate.move_to(P(3.3, 2.1)), run_time=0.8)
-        self.play(FadeOut(t4), run_time=0.2)
+        name = T("OCEAN ABSORPTION", 30, CARBON, weight=BOLD).move_to([-3.8, 1.05, 0])
+        self.play(FadeIn(name), Indicate(down, color=GOLD), run_time=1.2)
+        self.at("two way exchange")
+        label = caption("Direction can change", color=GOLD)
+        pulse(down, base=8, amp=3, speed=1.7)
+        pulse(up, base=8, amp=3, speed=1.7)
+        self.play(FadeIn(label), run_time=0.8)
+        self.wait(1.4)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S04Water(SpokenScene):
-    """evaporation, condensation, precipitation, then runoff carries nitrogen, sediment, germs to the Bay."""
-
+class S11Rule(SpokenScene):
     def construct(self):
-        bay = bchip("liquid water", BLUE, 34).move_to(P(-4.5, -2.5))
-        cloud = bchip("water vapor", BLUE, 34).move_to(P(-4.5, 2.6))
-        farm = bchip("farm in Pennsylvania", ORANGE, 30).move_to(P(4.0, 1.0))
-        ev = arr(P(-4.5, -1.95), P(-4.5, 2.0), BLUE, 7)
-        evl = T("evaporation", 30, TEXT).move_to(P(-2.75, 0.2))
-        self.at("Water cycles too")
-        self.play(FadeIn(bay, shift=UP * 0.1), run_time=0.5)
-        self.at("Evaporation")
-        self.play(GrowArrow(ev), FadeIn(evl), FadeIn(cloud, shift=UP * 0.2), run_time=0.9)
-        drops = bchip("cloud droplets", BLUE, 34).move_to(P(0.5, 2.6))
-        cond = arr(P(-2.5, 2.6), P(-1.45, 2.6), BLUE, 7)
-        condl = T("condensation", 30, TEXT).move_to(P(-2.0, 1.85))
-        self.at("Condensation")
-        self.play(GrowArrow(cond), FadeIn(condl), FadeIn(drops, shift=RIGHT * 0.2), run_time=0.9)
-        pr = arr(P(1.5, 2.1), P(3.0, 1.55), BLUE, 7)
-        prl = T("precipitation:\nrain or snow", 28, TEXT, line_spacing=0.8).move_to(P(4.6, 2.55))
-        self.at("Precipitation")
-        self.play(FadeIn(farm, shift=DOWN * 0.1), GrowArrow(pr), FadeIn(prl), run_time=0.9)
-
-        riv_y = -2.5
-        river_v = Line(P(4.0, 0.5), P(4.0, riv_y), color=BLUE, stroke_width=14).set_stroke(opacity=0.5)
-        river_h = Line(P(4.0, riv_y), P(-2.2, riv_y), color=BLUE, stroke_width=14).set_stroke(opacity=0.5)
-        rl = T("Susquehanna River", 30, TEXT).move_to(P(1.0, 0.1))
-        toks = [bchip("nitrogen", GREEN, 28), bchip("sediment", GREY, 28), bchip("germs", PURPLE, 28)]
-        xs = [-1.2, 2.0, 5.2]
-        self.at("Moving water carries")
-        self.play(Create(river_v), run_time=0.5)
-        self.at("nutrients such as nitrogen")
-        toks[0].move_to(P(xs[0], -0.7))
-        self.play(FadeIn(toks[0]), run_time=0.3)
-        self.at("sediment")
-        toks[1].move_to(P(xs[1], -0.7))
-        self.play(FadeIn(toks[1]), run_time=0.3)
-        self.at("and germs")
-        toks[2].move_to(P(xs[2], -0.7))
-        self.play(FadeIn(toks[2]), run_time=0.3)
-        self.at("rainstorm in Pennsylvania")
-        self.play(Create(river_h), FadeIn(rl), run_time=0.5)
-        self.at("Susquehanna River")
-        # Keep a readable row above the river, clear of its label and line.
-        ends = [P(x, riv_y + 0.9) for x in xs]
-        self.play(*[t.animate.move_to(end) for t, end in zip(toks, ends)], run_time=1.4)
-        bay2 = bchip("Chesapeake Bay", BLUE, 34).move_to(bay)
-        self.at("flows into the Bay")
-        bay_spots = [P(-4.8, -1.4), P(-1.0, -1.4), P(-2.6, -3.35)]
-        self.play(Transform(bay, bay2), FadeOut(ev), FadeOut(evl),
-                  *[t.animate.move_to(spot) for t, spot in zip(toks, bay_spots)], run_time=0.6)
+        w = moving_water(watershed())
+        self.add(w)
+        loop = Ellipse(width=11.7, height=5.8, color=GOLD, stroke_width=7)
+        self.play(Create(loop), run_time=1.5)
+        self.at("processes connect")
+        arrows = VGroup(
+            CurvedArrow([-5.2, 1.0, 0], [0.3, -1.2, 0], angle=-0.35, color=WATER, stroke_width=6),
+            CurvedArrow([-2.5, -1.8, 0], [4.3, -2.0, 0], angle=0.28, color=NITROGEN, stroke_width=6),
+            CurvedArrow([4.5, -1.4, 0], [-1.2, 2.15, 0], angle=0.35, color=CARBON, stroke_width=6),
+        )
+        self.play(FadeOut(loop), LaggedStart(*[Create(a) for a in arrows], lag_ratio=.2), run_time=2.0)
+        moving = VGroup(token(WATER).move_to([-4.8, 0.7, 0]), token(NITROGEN).move_to([-2.0, -1.65, 0]),
+                        token(CARBON).move_to([4.4, -1.4, 0]))
+        self.add(moving)
+        self.play(moving[0].animate.move_to([-0.3, -1.0, 0]), moving[1].animate.move_to([3.8, -1.9, 0]),
+                  moving[2].animate.move_to([-0.6, 1.85, 0]), run_time=2.0)
+        self.at("The crab is not")
+        self.play(*[FadeOut(a) for a in arrows], Indicate(w.crab, color=GOLD, scale_factor=1.35), run_time=1.2)
+        self.at("temporary reservoir")
+        ring = SurroundingRectangle(w.crab, color=GOLD, buff=0.18, corner_radius=0.25, stroke_width=5)
+        lab = T("TEMPORARY RESERVOIR", 28, GOLD, weight=BOLD).move_to([3.65, -0.72, 0])
+        self.play(Create(ring), FadeIn(lab), run_time=1.0)
+        self.at("moving watershed")
+        self.play(FadeOut(VGroup(ring, lab)), w.animate.set_opacity(.92), run_time=1.0)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S05Nitrogen(SpokenScene):
-    """the nitrogen cycle: gas, ammonia, nitrate, living things, ammonium."""
-
-    def construct(self):
-        living = bchip("plants and other living things", ORANGE, 32).move_to(P(0, -2.6))
-        gas = bchip("nitrogen gas", GREEN, 38).move_to(P(-3.8, 2.5))
-        pct = T("about 78 percent of air", 28, GREY).next_to(gas, DOWN, buff=0.2)
-        bond = bchip("very strong bond", RED, 28).next_to(pct, DOWN, buff=0.25)
-        self.at("Your body uses nitrogen")
-        self.play(FadeIn(living, shift=UP * 0.1), run_time=0.6)
-        self.at("Air is about")
-        self.play(FadeIn(gas, shift=DOWN * 0.1), FadeIn(pct), run_time=0.7)
-        self.at("held by a very strong bond")
-        self.play(FadeIn(bond, shift=UP * 0.1), run_time=0.5)
-        block = arr(P(-3.6, 0.15), P(-1.6, -2.0), RED, 7)
-        x = T("X", 64, RED, weight=BOLD).move_to(P(-2.6, -0.9))
-        bl = T("most organisms cannot use it", 28, RED).move_to(P(1.1, -0.8))
-        self.at("Most organisms cannot break it")
-        self.play(GrowArrow(block), FadeIn(x), FadeIn(bl), run_time=0.7)
-
-        ammonia = bchip("ammonia", GREEN, 38).move_to(P(3.8, 2.5))
-        fix = arr(P(-1.6, 2.5), P(2.3, 2.5), GREEN, 7)
-        fl = T("nitrogen fixation", 30, TEXT).move_to(P(0.3, 3.15))
-        bact = bchip("bacteria", PURPLE, 28).move_to(P(0.3, 1.85))
-        self.at("Nitrogen fixation")
-        self.play(FadeOut(block), FadeOut(x), FadeOut(bl), FadeOut(bond), GrowArrow(fix), FadeIn(fl),
-                  FadeIn(ammonia), run_time=0.8)
-        self.at("certain microbes")
-        self.play(FadeIn(bact, shift=DOWN * 0.1), run_time=0.5)
-
-        nitrate = bchip("nitrite, nitrate", GREEN, 36).move_to(P(3.8, 0.1))
-        nit = arr(P(3.0, 1.95), P(3.0, 0.65), GREEN, 7)
-        nl = T("nitrification", 30, TEXT).move_to(P(5.0, 1.3))
-        self.at("Nitrification")
-        self.play(GrowArrow(nit), FadeIn(nl), FadeIn(nitrate, shift=UP * 0.1), run_time=0.8)
-
-        as1 = arr(P(3.0, -0.4), P(1.6, -2.0), GREEN, 7)
-        al = T("assimilation", 30, TEXT).move_to(P(4.9, -1.3))
-        self.at("Assimilation")
-        self.play(GrowArrow(as1), FadeIn(al), run_time=0.7)
-        ammonium = bchip("ammonium", GREEN, 36).move_to(P(-3.8, 0.1))
-        as2 = arr(P(-2.4, -0.45), P(-1.4, -2.0), GREEN, 7)
-        self.at("or ammonium")
-        self.play(FadeOut(pct), FadeIn(ammonium, shift=UP * 0.1), GrowArrow(as2), run_time=0.7)
-
-        am = arr(P(-5.2, -2.3), P(-5.2, -0.5), ORANGE, 7)
-        aml = T("ammonification", 26, TEXT).move_to(P(-3.55, -1.25))
-        self.at("Aminification")
-        self.play(GrowArrow(am), FadeIn(aml), run_time=0.7)
-        dec = bchip("decomposers", PURPLE, 28).move_to(P(-4.8, -2.85))
-        self.at("decomposers turning wastes")
-        self.play(FadeIn(dec, shift=UP * 0.1), run_time=0.5)
-
-        dn = arr(P(2.0, 0.35), P(-1.6, 1.85), GREEN, 7)
-        dl = T("denitrification", 30, TEXT).move_to(P(-0.2, 0.35))
-        dbac = bchip("bacteria", PURPLE, 28).move_to(P(-0.2, -0.45))
-        self.at("Denitrification")
-        self.play(GrowArrow(dn), FadeIn(dl), run_time=0.7)
-        self.at("bacteria turning nitrate")
-        self.play(FadeIn(dbac, shift=UP * 0.1), run_time=0.5)
-        self.finish()
-
-
-# ---------------------------------------------------------------------------------------------
-class S06Answer(SpokenScene):
-    """a ring with a token circling; burning adds old carbon; water carries nitrogen; the cycles link."""
-
-    def construct(self):
-        names = [("air", GREY, P(-4.0, 1.9)), ("water", BLUE, P(4.0, 1.9)),
-                 ("soil", GREY, P(4.0, -1.9)), ("living things", ORANGE, P(-4.0, -1.9))]
-        chips = [bchip(n, c, 44).move_to(p) for n, c, p in names]
-        ring = [Line(P(-3.0, 1.9), P(2.9, 1.9), color=GREY, stroke_width=5),
-                Line(P(4.0, 1.4), P(4.0, -1.4), color=GREY, stroke_width=5),
-                Line(P(3.4, -1.9), P(-1.8, -1.9), color=GREY, stroke_width=5),
-                Line(P(-4.0, -1.4), P(-4.0, 1.4), color=GREY, stroke_width=5)]
-        self.at("how does matter keep moving")
-        self.play(*[FadeIn(c, scale=0.9) for c in chips], run_time=0.8)
-        self.at("Atoms are not used up")
-        ctok = token("C", YELLOW, 0.33).move_to(P(-3.0, 1.9))
-        self.play(FadeIn(ctok), *[Create(a) for a in ring], run_time=0.7)
-        self.at("move between air")
-        loop = VMobject().set_points_as_corners([P(-3.0, 1.9), P(2.9, 1.9), P(4.0, 1.4), P(4.0, -1.4), P(3.4, -1.9),
-                                                 P(-1.8, -1.9), P(-4.0, -1.4), P(-4.0, 1.4), P(-3.0, 1.9)])
-        self.play(MoveAlongPath(ctok, loop), run_time=3.6, rate_func=linear)
-        form = T("atoms change form", 36, TEXT).move_to(P(0, 0.0))
-        self.at("they change form")
-        self.play(FadeIn(form), run_time=0.4)
-
-        everything = VGroup(*chips, *ring, ctok, form)
-        air2 = bchip("air", GREY, 44).move_to(P(0, 2.0))
-        fossil = bchip("coal, oil, natural gas", GREY, 38).move_to(P(0, -0.9))
-        up_a = arr(P(0, -0.3), P(0, 1.4), RED, 10)
-        blab = T("burning", 36, RED).move_to(P(1.4, 0.55))
-        old = T("locked underground\nfor millions of years", 30, GREY, line_spacing=0.8).move_to(P(0, -2.5))
-        t = token("C", YELLOW, 0.33).move_to(P(0, -0.3))
-        self.at("People can change a cycle")
-        self.play(FadeOut(everything), run_time=0.5)
-        self.at("Burning coal")
-        self.play(FadeIn(air2), FadeIn(fossil), FadeIn(blab), run_time=0.6)
-        self.at("adds carbon")
-        self.play(GrowArrow(up_a), FadeIn(t), run_time=0.4)
-        self.play(t.animate.move_to(P(0, 1.4)), run_time=0.9)
-        self.play(FadeOut(t), run_time=0.2)
-        self.at("locked underground")
-        self.play(FadeIn(old), run_time=0.5)
-        burn, add = VGroup(air2, fossil, up_a, blab, old), up_a
-
-        fields = bchip("farm fields", ORANGE, 38).move_to(P(-4.4, 0.0))
-        bay = bchip("the Bay", BLUE, 38).move_to(P(4.8, 0.0))
-        w = arr(P(-2.5, 0.0), P(3.3, 0.0), BLUE, 10)
-        nt = token("N", GREEN, 0.33).move_to(P(-2.5, 0.0))
-        self.at("Water carries nitrogen")
-        self.play(FadeOut(burn), run_time=0.5)
-        self.play(FadeIn(fields), FadeIn(bay), GrowArrow(w), FadeIn(nt), run_time=0.7)
-        self.at("toward the Bay")
-        self.play(nt.animate.move_to(P(3.3, 0.0)), run_time=1.2)
-
-        self.at("No cycle runs alone")
-        carbon = bchip("carbon cycle", YELLOW, 38).move_to(P(-4.2, 1.9))
-        water = bchip("water cycle", BLUE, 38).move_to(P(4.2, 1.9))
-        nit = bchip("nitrogen cycle", GREEN, 38).move_to(P(0, -1.9))
-        l2 = Line(water.get_bottom(), nit.get_right() + UP * 0.0, color=GREY, stroke_width=6)
-        l3 = Line(nit.get_left(), carbon.get_bottom(), color=GREY, stroke_width=6)
-        self.play(FadeOut(fields), FadeOut(bay), FadeOut(w), FadeOut(nt), run_time=0.4)
-        self.play(FadeIn(carbon), FadeIn(water), FadeIn(nit), run_time=0.6)
-        self.play(Create(l2), Create(l3), run_time=0.8)
-        self.finish()
-
-
-class S07End(EndCard):
-    LINE = "Atoms are not used up. No cycle runs alone."
+class S12End(EndCard):
+    LINE = "In ecosystems, atoms move between reservoirs, and processes connect their cycles."
