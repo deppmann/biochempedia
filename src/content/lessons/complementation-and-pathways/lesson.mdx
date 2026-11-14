@@ -5,12 +5,12 @@ course: "genetics"
 courseChapter: "Genetics and Molecular Biology · Unit 2: Mapping and gene function"
 order: 310
 summary: >-
-  When many mutants share one phenotype, how many genes have been hit, and in what order do those
-  genes act? This lesson builds the complementation test from the logic of recessive alleles,
-  follows Beadle and Tatum's Neurospora screen and Srb and Horowitz's arginine mutants, and ends
-  with Benzer's separation of function from fine structure in phage T4. Afterwards you can sort
-  mutants into complementation groups, order the steps of a pathway from rescue data, and tell a
-  complementation result from a recombination result.
+  Rescue tells you whether two mutations share a function, and brackets a pathway block between
+  supplied compounds. This lesson builds
+  the complementation test from recessive alleles, follows Beadle and Tatum's Neurospora screen
+  and Srb and Horowitz's arginine mutants, and ends with Benzer's separation of function from fine
+  structure in phage T4. Afterwards you can sort mutants into complementation groups, order a
+  pathway from rescue data, and distinguish complementation from recombination.
 hook: "Two pure-breeding white-eyed flies can have red-eyed offspring. What does that tell you about their genes?"
 
 estMinutes: 24
@@ -24,10 +24,30 @@ explainer:
   src: "/explainers/complementation-and-pathways/explainer.mp4"
   captions: "/explainers/complementation-and-pathways/explainer.vtt"
   poster: "/explainers/complementation-and-pathways/poster.jpg"
-  title: "One Phenotype Can Hide Many Genes"
-  durationSec: 153.5
-  narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+  title: "When Two Mutants Rescue Each Other"
+  durationSec: 207.5
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+  takeaways:
+    - "For recessive mutants, rescue in trans usually means different genes."
+    - "Check each mutation against wild type before interpreting a complementation test."
+    - "Mutations that fail to complement form a group that usually marks one gene."
+    - "Dominant mutations make the test uninformative, and known recessive exceptions can mislead it."
+
+films:
+  - id: "chapter-2"
+    src: "/explainers/complementation-and-pathways/chapter-2.mp4"
+    captions: "/explainers/complementation-and-pathways/chapter-2.vtt"
+    poster: "/explainers/complementation-and-pathways/chapter-2-poster.jpg"
+    title: "Reading a Pathway Backward"
+    durationSec: 206.2
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+    takeaways:
+      - "A usable supplement rescues only by entering after the blocked step."
+      - "More rescuing intermediates place a block earlier in a simple linear pathway."
+      - "A rescue class can contain several genes that act between the same supplied compounds."
+      - "Growth rescue requires the supplied compound to enter the cell and join the pathway."
 
 scientists:
   - name: "George Beadle"
@@ -383,30 +403,30 @@ draft: false
 
 import ComplementationGrid from '../../../components/ComplementationGrid.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import LessonFilm from '../../../components/LessonFilm.astro';
 
-**Cross two pure-breeding fruit fly lines that both look white-eyed, and the offspring can have ordinary red eyes if the whiteness has a different cause in each.**
+**The first film built the test: check that each mutation is recessive, combine two in trans in one cell, read rescue. Here: the notation, sorting many mutants, and the limits.**
 
-If whiteness were one thing, that could not happen. It happens because a red fly eye needs the work of many genes. Enzymes make two families of pigment, one red and one brown. Transporters carry the pigments or their building blocks into pigment granules, and the granules themselves have to form. A strain can look white because the transporter that both pigments need is missing, or because both pigment pathways are blocked. Two white-eyed strains may have lost different genes. This lesson asks two questions that follow. When many mutants share one phenotype, how many genes have been hit? And when the genes act in a chain, in what order?
+> **The one idea.** Rescue tells you whether two mutations share a function, and brackets a pathway block between supplied compounds.
+>
+> *Scope:* complementation uses recessive loss-of-function mutations; pathway rescue assumes one linear route whose supplied compounds enter the cell and can be used. Rescue narrows where a defect lies; it does not name the broken reaction or map a chromosome position.
 
-## The idea: one phenotype can hide many genes
-
-Think of an assembly line with five stations. A broken station anywhere stops the product, so every breakdown looks the same from the end of the line. If one line has a broken station 2 and another a broken station 4, borrowing working stations from each gives a working line. If both broke station 2, borrowing helps nothing.
-
-A few terms first. A **locus** is a gene's place on a chromosome; an **allele** is one version of a gene. A **recessive** allele shows its effect only when no working allele is present, so a diploid shows a recessive mutant phenotype only when both copies are defective: **homozygous** (the same mutant allele twice) or a **compound heterozygote** (two different mutant alleles of the gene). A mutation that inactivates a gene is usually recessive, because one working copy makes enough product.
-
-Mapping, from [linkage and mapping](/lessons/linkage-and-mapping/) and [three-point mapping](/lessons/three-point-mapping/), tells you where mutations sit. It does not tell you whether two nearby mutations damage the same function. For that you need a test of function.
+A recessive allele (an **allele** is one version of a gene) shows its effect only when no working allele is present, so a diploid is mutant only when both copies are defective: **homozygous** for one mutant allele, or a **compound heterozygote** carrying two different mutant alleles of one gene. An inactivating mutation is usually recessive because one working copy makes enough product. A gene's place on a chromosome is its **locus**; [linkage and mapping](/lessons/linkage-and-mapping/) and [three-point mapping](/lessons/three-point-mapping/) locate loci.
 
 ## The complementation test: put two mutations in one cell
 
-Combine the two mutations in one diploid, one on each homologous chromosome. This arrangement is called **trans**. Then look at the phenotype.
+In symbols, with recessive mutations in genes a and b, the trans diploid is a/+ ; b/+ (for linked genes, a + / + b). It is wild type: the mutations **complement**. Two alleles of one gene give a1/a2, with no working copy, so the diploid stays mutant. The white sweet peas in [extending Mendel](/lessons/extending-mendel/) that produced purple hybrids show the same rescue. Mutations that fail to complement form a **complementation group**, which usually marks one gene.
 
-If the mutations are in different genes, a and b, the diploid is a/+ ; b/+. Each chromosome set supplies the working allele the other lacks, and the phenotype is wild type. The mutations **complement**. If they are alleles of one gene, the diploid is a1/a2, with no working copy of that gene, and it stays mutant. The two white sweet peas in [extending Mendel](/lessons/extending-mendel/) that gave purple hybrids are complementation in action.
+**Predict.** Mutant 1 fails to complement mutant 3, and mutant 3 fails with mutant 5. If mutant 1 complements mutant 5, can the three results form one clean complementation group under the simple model?
 
-Mutations that fail to complement one another form a **complementation group**, which in the simple model is one gene.
+<details>
+<summary>Check your prediction</summary>
 
-The test has conditions. Both mutations must be recessive, which you check first by crossing each to wild type. A dominant allele gives a mutant phenotype opposite any partner, so the trans result says nothing; a dominant-negative allele, whose product spoils the wild-type product, will look like "same gene" falsely. There are also exceptions with recessive alleles. In proteins built of several identical subunits, two differently damaged subunits can sometimes rebuild a working enzyme, called **intragenic complementation**. In human argininosuccinate lyase each active site holds residues from three subunits, which explains how this can happen. And mutations in different genes sometimes fail to complement.
+No. In a simple complementation group, every inside pair should fail. Recheck the crosses and recessiveness before invoking an exception.
 
-**Worked problem: how many genes?** Six recessive white-eyed mutants of an idealized fly (1 to 6) are crossed in all fifteen pairs, and the F1 is scored (+ is wild-type F1, − is white). Assume each mutation is recessive, autosomal and fully penetrant.
+</details>
+
+**Worked problem: how many genes?** Six white-eyed mutants of an idealized fly (1 to 6) are crossed in all fifteen pairs, and the F1 is scored (+ is wild-type F1, − is white). Assume each mutation is recessive, autosomal and fully penetrant.
 
 1x2 +, 1x3 −, 1x4 +, 1x5 −, 1x6 +, 2x3 +, 2x4 +, 2x5 +, 2x6 −, 3x4 +, 3x5 −, 3x6 +, 4x5 +, 4x6 +, 5x6 +.
 
@@ -415,32 +435,41 @@ The test has conditions. Both mutations must be recessive, which you check first
 3. Mutant 2 fails only with 6: group \{2, 6\}. Check that neither 2 nor 6 fails with 1, 3 or 5. Neither does.
 4. Mutant 4 complements all five others: group \{4\}.
 
-Three complementation groups, so at least three genes. "At least", because other genes needed for red pigment may simply not have been hit in these six mutants.
+Three complementation groups, so at least three genes. "At least", because other genes needed for red pigment may not have been hit in these six mutants.
 
 <ComplementationGrid />
 
+Now the limits the film only named. A dominant allele stays mutant opposite any partner, so its trans result is uninformative, and a dominant-negative product that spoils the wild-type product can falsely look like “same gene.” Recessive exceptions mislead rather than say nothing. In a protein built from several identical subunits, differently damaged subunits can sometimes rebuild a working enzyme: **intragenic complementation**. In human argininosuccinate lyase each active site holds residues from three subunits, which explains how. Conversely, mutations in different genes sometimes fail to complement.
+
 ## Beadle and Tatum: one mutant, one blocked step
 
-The idea that a gene acts by controlling a chemical step is older than the experiments that proved it. In 1902, in the Lancet, the physician Archibald Garrod described alkaptonuria, in which urine darkens on standing because it holds homogentisic acid. He noted that it often appeared in children of parents who were cousins, the pattern expected for a recessive Mendelian trait, and he described it as an alternative course of metabolism. The recessive Mendelian reading of the cousin data came from William Bateson. The missing enzyme, homogentisate dioxygenase, was identified later.
+George Beadle and Edward Tatum turned the question around at Stanford: start with known chemistry, then find mutants that have lost part of it. The bread mold *Neurospora* grows on a simple minimal medium and makes its amino acids and most vitamins itself. Its growing phase is haploid, with one chromosome copy, so a recessive mutation shows at once.
 
-George Beadle and Edward Tatum, at Stanford, turned the question around. Rather than start with a trait and hunt its chemistry, they started with known chemistry. The bread mold *Neurospora* grows on a simple minimal medium and makes its amino acids and most vitamins itself. In its growing phase it is haploid, one copy of each chromosome, so a recessive mutation shows at once. The design had four steps.
-
-1. Irradiate the mold with X-rays. Beadle and Tatum irradiated its fruiting bodies before meiosis, so each spore they then took was haploid.
+1. Irradiate the mold with X-rays. Beadle and Tatum irradiated fruiting bodies before meiosis, so each spore taken was haploid.
 2. Grow single-spore cultures on a complete medium, rich in amino acids and vitamins, so that a mutant unable to make one of them stays alive.
 3. Test each culture on minimal medium. Keep the ones that grow on complete medium but not on minimal.
 4. Add supplements one at a time to minimal medium. The single compound that restores growth names the synthesis that was lost. Then cross the mutant to wild type and check that the defect segregates as one gene.
 
-<LessonFigure src="/figures/complementation-and-pathways/beadle-tatum-neurospora-screen.webp" width={1200} height={551} alt="AI-generated illustration: a three-panel strip of the Beadle and Tatum screen. Irradiated bread mold gives single-spore cultures on complete medium; one culture fails to grow on minimal medium; and when supplements are added one at a time to minimal medium, only one restores growth." caption="Beadle and Tatum irradiated Neurospora, kept single-spore cultures alive on complete medium, and tested them on minimal medium. For a mutant that grew only on complete medium, they added supplements one at a time; the single compound that restored growth named the synthesis that was lost." />
+**Predict.** A supplement restores one culture's growth. Why must the researchers still cross that culture to wild type before calling the defect a single-gene mutation?
+
+<details>
+<summary>Check your prediction</summary>
+
+Growth rescue identifies a missing synthesis, not its genetic basis. Segregation tests whether the inherited difference behaves as one gene.
+
+</details>
+
+<LessonFigure src="/figures/complementation-and-pathways/beadle-tatum-neurospora-screen.webp" width={1200} height={551} alt="AI-generated illustration: a three-panel strip of the Beadle and Tatum screen. Irradiated bread mold gives single-spore cultures on complete medium; one culture fails to grow on minimal medium; and when supplements are added one at a time to minimal medium, only one restores growth." caption="Beadle and Tatum kept irradiated Neurospora alive on complete medium and tested each culture on minimal medium; for a mutant, the single supplement that restored growth named the lost synthesis." />
 
 Their 1941 paper reported three mutants among about 2,000 strains, needing pyridoxine (vitamin B6), the thiazole half of thiamine or para-aminobenzoic acid. The pyridoxine and thiamine mutants were *Neurospora sitophila*, and the para-aminobenzoic acid mutant *N. crassa*. Crosses of the pyridoxine mutant fit a single-gene difference, on what the authors called limited data. Beadle and Tatum shared the 1958 Nobel Prize with Joshua Lederberg.
 
-The summary "one gene, one enzyme" came later; it is not the wording of the 1941 paper. Today you would say that a gene encodes a polypeptide or a functional RNA. Some genes encode only RNA, alternative splicing gives one gene several proteins, and an enzyme of several different subunits needs several genes.
+A single supplement names one missing synthesis. The second film asks what the pattern of rescues across many mutants reveals: the order of the steps.
+
+<LessonFilm film={frontmatter.films[0]} />
 
 ## Ordering a pathway from rescue data
 
-In what order do the steps run? Adrian Srb and Norman Horowitz answered it for arginine in 1944. The compounds involved are the ones you met in the urea cycle in [amino acid catabolism](/lessons/protein-turnover-amino-acid-catabolism/): ornithine gains a carbamoyl group to become citrulline, and citrulline is converted to arginine in two further reactions, through argininosuccinate. Argininosuccinate lyase carries out the last of them.
-
-The rule is simple. A supplement rescues a mutant only if it enters the pathway after the block, because the mutant can still carry out every later step (see [enzyme action](/lessons/enzyme-action-basics/) for why one missing enzyme stops a pathway).
+The film read a schematic chain backward. Adrian Srb and Norman Horowitz read the real arginine pathway in 1944. Its compounds also appear in the urea cycle in [amino acid catabolism](/lessons/protein-turnover-amino-acid-catabolism/): ornithine gains a carbamoyl group to become citrulline, then two further reactions pass through argininosuccinate to arginine. Argininosuccinate lyase carries out the last reaction. As the one idea says, rescue brackets the block between supplied compounds, because the enzymes after it still work (see [enzyme action](/lessons/enzyme-action-basics/)).
 
 **Worked problem: put the steps in order.** Three classes of arginine-requiring *Neurospora* mutants are tested on minimal medium plus one supplement. Assume each mutant blocks one step and that uptake of every supplement is normal.
 
@@ -452,11 +481,11 @@ The rule is simple. A supplement rescues a mutant only if it enters the pathway 
 2. Citrulline rescues A and B but not C, so C's block lies after citrulline. Ornithine rescues only A, so ornithine comes earlier than citrulline.
 3. The order is precursor → ornithine → citrulline → arginine.
 4. A is blocked before ornithine, B between ornithine and citrulline, and C between citrulline and arginine.
-5. A block often makes the compound just before it build up. Class C's block lies somewhere between citrulline and arginine, a stretch that really holds two reactions, so it may build up citrulline or argininosuccinate. The rescue data alone cannot say which, and feedback also changes how much builds up, so accumulation has to be measured.
+5. A block often makes the compound just before it build up. Class C's stretch, citrulline to arginine, holds two reactions, so C may build up citrulline or argininosuccinate. Rescue data alone cannot say which, and feedback changes how much builds up, so accumulation has to be measured.
 
-<LessonFigure src="/figures/complementation-and-pathways/arginine-pathway-blocks.webp" width={1200} height={461} alt="AI-generated illustration: a chain of four blocks, a precursor, ornithine, citrulline and arginine, with a gold bar across each of the three arrows. Three brackets below show which blocks can rescue each blocked class: everything after the bar." caption="A supplement rescues a mutant only if it enters the pathway after the block. Class A is blocked before ornithine, B between ornithine and citrulline, and C between citrulline and arginine, giving the order precursor, ornithine, citrulline, arginine." />
+<LessonFigure src="/figures/complementation-and-pathways/arginine-pathway-blocks.webp" width={1200} height={461} alt="AI-generated illustration: a chain of four blocks, a precursor, ornithine, citrulline and arginine, with a gold bar across each of the three arrows. Three brackets below show which blocks can rescue each blocked class: everything after the bar." caption="A supplement rescues a mutant only if it enters the pathway after the block, so the three rescue classes give the order precursor, ornithine, citrulline, arginine." />
 
-The real data were less tidy. Srb and Horowitz had fifteen arginine-requiring strains. Heterokaryon tests and crosses showed at least seven were genetically different, yet the seven they described fell into these same three classes, so one rescue class need not be one gene. Under their one-gene, one-step model they inferred at least seven steps from sugar and ammonia to arginine. In double mutants, the block nearer arginine set the requirement, just as an assembly line broken at two stations needs parts that enter after the later one.
+The real data were less tidy. Srb and Horowitz had fifteen arginine-requiring strains. Heterokaryon tests and crosses showed at least seven were genetically different, yet those seven fell into the same three classes: one rescue class need not be one gene. Under their one-gene, one-step model they inferred at least seven steps from sugar and ammonia to arginine. In double mutants, the block nearer arginine set the requirement, because a supplement must enter after every remaining block.
 
 ## Benzer: function versus fine structure
 
@@ -464,12 +493,39 @@ A complementation test asks whether two mutations damage the same function. A re
 
 His system was the rII region of the phage T4. rII mutants form large plaques on *E. coli* strain B but cannot grow on K12S(λ), a K-12 strain that carries the phage lambda. That host difference gives two tests.
 
+**Predict.** Two rII mutants fail to complement, yet crossing them produces wild-type recombinants. Do those results contradict each other?
+
+<details>
+<summary>Check your prediction</summary>
+
+No. Failure places the mutations in one functional unit; wild-type recombinants show separable sites inside it. Function and position differ.
+
+</details>
+
 - **Function.** Coinfect K12S(λ) with two rII mutants. If they lie in different functional units, each phage supplies what the other lacks and the cells release progeny. Benzer's 1955 paper found that this test split the rII region into two independent segments. By 1959 he called such a unit, defined by the cis-trans test, a **cistron**.
-- **Recombination.** Coinfect B, where all types grow, then plate the progeny on B to count everything and on K12S(λ) to count only wild-type recombinants. Recombination between the two sites gives two recombinant classes, wild type and double mutant, and in the progeny of many cells the two occur in equal numbers. The double mutant cannot be seen on K12S(λ), so you double the wild-type fraction.
+- **Recombination.** Coinfect B, where all types grow, then plate the progeny on B to count everything and on K12S(λ) to count only wild-type recombinants. Recombination gives two reciprocal classes, wild type and double mutant, which in the progeny of many cells occur in equal numbers; only wild type grows on K12S(λ).
+
+**Predict.** The selective host counts wild-type recombinants but not reciprocal double mutants. If both recombinant classes are recovered equally, should recombination frequency equal, halve or double the wild-type fraction?
+
+<details>
+<summary>Check your prediction</summary>
+
+Double it. The selective plate sees one of the two reciprocal classes, so an equally recovered, unseen double-mutant class contributes the same fraction again.
+
+</details>
 
 > **recombination frequency = 2 × (wild-type recombinants per mL) / (total progeny per mL)**
 
-Because only recombinants grow on the selective host, Benzer could count very rare ones and map many sites inside one cistron. Two mutations can fail to complement, because they are in one gene, and still recombine, because they sit at different points within it. A zero count has limits, though: finding no recombinants in a finite sample sets only an upper limit on the distance, and Benzer noted that fine-scale frequencies were not always additive.
+Because only recombinants grow on the selective host, Benzer could count very rare ones and map many sites inside one cistron, though he noted that fine-scale frequencies were not always additive.
+
+**Predict.** If a finite cross yields no recombinant plaques, has it proved that the two mutations occupy the identical site?
+
+<details>
+<summary>Check your prediction</summary>
+
+No. The sites may be so close that this finite sample missed the rare recombinants. Zero recombinants set only an upper limit on their separation; they do not prove zero distance.
+
+</details>
 
 ### Design problem
 
@@ -478,7 +534,7 @@ Two T4 rII mutants, rX and rY, each fail to grow on *E. coli* K12S(λ). Coinfect
 <details>
 <summary>One way to do it</summary>
 
-**Function.** rX and rY fail to complement in trans, so they lie in the same cistron. The cis control matters: the double mutant with wild type grows, so the double mutant does not interfere with the wild-type phage, and the trans failure reflects shared function, not dominance.
+**Function.** rX and rY fail to complement in trans, so they lie in the same cistron. The cis control matters: the double mutant with wild type grows, so it does not interfere with wild type, and the trans failure reflects shared function, not dominance.
 
 **Recombination.** Plaques on K12S(λ) appear only from the cross, not from either parent, so they are wild-type recombinants. The two sites can be separated.
 
@@ -487,6 +543,20 @@ Two T4 rII mutants, rX and rY, each fail to grow on *E. coli* K12S(λ). Coinfect
 3. Wild-type fraction: 4 × 10^5 / 2 × 10^9 = 2 × 10^-4.
 4. Double for the unseen double-mutant class: recombination frequency = 4 × 10^-4, or 0.04 percent.
 
-Assumptions: reversion of either mutant to wild type and leaky growth of the mutants on K12S(λ) are negligible, and the two reciprocal recombinant classes are equally recovered. The two mutations are in one gene and at two different sites, close together.
+Assumptions: reversion of either mutant to wild type and leaky growth of the mutants on K12S(λ) are negligible, and the two reciprocal recombinant classes are equally recovered. Conclusion: one gene, two close but separable sites.
 
 </details>
+
+## Going deeper
+
+### Why white eyes can have different causes
+
+A red fly eye needs many genes. Enzymes make two pigment families, one red and one brown. Transporters move pigments or their building blocks into pigment granules, and the granules must form. A strain can look white because a transporter both pigments need is missing, or because both pigment pathways are blocked. Two white-eyed strains may therefore have lost different genes.
+
+### Before the Neurospora screen
+
+The proposal that genes control chemical steps predates the experiments that established it. In 1902, in the *Lancet*, the physician Archibald Garrod described alkaptonuria, in which urine darkens on standing because it contains homogentisic acid. He noted that it often appeared in children of parents who were cousins, the pattern expected for a recessive Mendelian trait, and called it an alternative course of metabolism. William Bateson supplied the recessive Mendelian reading of the cousin data. The missing enzyme, homogentisate dioxygenase, was identified later.
+
+### From one gene, one enzyme to gene products
+
+The summary “one gene, one enzyme” came later; it is not the wording of Beadle and Tatum's 1941 paper. Today you would say that a gene encodes a polypeptide or a functional RNA. Some genes encode only RNA, alternative splicing gives one gene several proteins, and an enzyme with several different subunits needs several genes.
