@@ -73,7 +73,7 @@ def chromosome(y, a="working", b="working", allele_a=None, allele_b=None):
 
 
 def diploid_world(states=(("broken", "working"), ("working", "broken")),
-                  eye_kind="white", eye_y=-2.65, show_scope=True):
+                  eye_kind="white", eye_y=-2.82, show_scope=True):
     """The carried trans-test world used from s04 through s07."""
     cell = RoundedRectangle(corner_radius=0.42, width=12.2, height=4.65,
                             stroke_color=GREY, stroke_width=3, fill_color=GREY,
