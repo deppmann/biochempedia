@@ -5,11 +5,12 @@ course: "life-science"
 courseChapter: "Life Science · Unit 7: Heredity"
 order: 1029
 summary: >-
-  Can we predict what traits a young plant or animal will have? You cross pea plants in a
-  simulation, build Punnett squares, and test them against Gregor Mendel’s real pea counts.
-  Afterwards you can predict the chance of each genotype and phenotype for one trait, and explain
-  why real counts come close to the prediction but rarely match it exactly.
-hook: "How can two purple-flowered pea plants have offspring with white flowers, and can we predict how many?"
+  For one-gene crosses, Punnett squares predict chances, not exact offspring counts. You follow a
+  hidden allele from purple-flowered parents into their offspring, build and test Punnett squares,
+  and compare their predictions with Gregor Mendel’s real pea counts. Afterwards you can predict
+  each genotype and phenotype for one trait and explain why real counts usually come close to the
+  predicted ratio without matching it exactly.
+hook: "How can two purple-flowered pea plants have a white-flowered offspring?"
 estMinutes: 40
 supports: true
 objectives:
@@ -29,10 +30,30 @@ explainer:
   src: "/explainers/predicting-traits/explainer.mp4"
   captions: "/explainers/predicting-traits/explainer.vtt"
   poster: "/explainers/predicting-traits/poster.jpg"
-  title: "A Punnett Square Predicts the Chances"
-  durationSec: 159.6
-  narration: "an AI narrator voice (Gemini, Charon) reading narration written from this lesson's text"
+  title: "Where Can White Flowers Hide?"
+  durationSec: 200.6
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+  takeaways:
+    - "For one-gene crosses, Punnett squares predict chances, not exact offspring counts."
+    - "A recessive allele can be hidden in a parent and still pass to offspring."
+    - "Genotype is an allele pair; phenotype is the trait that shows."
+    - "A Punnett square joins the possible sex cells from both parents."
+
+films:
+  - id: "chapter-2"
+    src: "/explainers/predicting-traits/chapter-2.mp4"
+    captions: "/explainers/predicting-traits/chapter-2.vtt"
+    poster: "/explainers/predicting-traits/chapter-2-poster.jpg"
+    title: "Why Real Counts Wander"
+    durationSec: 188.2
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+    takeaways:
+      - "Larger groups usually come closer to a Punnett square’s predicted ratio."
+      - "Each offspring is a new chance, not a step in a fixed schedule."
+      - "Small groups can land far from the predicted ratio."
+      - "Mendel’s full pea counts came close to the predicted ratio."
 
 scientists:
   - name: "Gregor Mendel"
@@ -236,7 +257,7 @@ draft: false
 ---
 
 import PeaBreeder from '../../../components/PeaBreeder.astro';
-
+import LessonFilm from '../../../components/LessonFilm.astro';
 import IdeaCheck from '../../../components/IdeaCheck.astro';
 import WordBank from '../../../components/WordBank.astro';
 import SentenceFrames from '../../../components/SentenceFrames.astro';
@@ -245,39 +266,24 @@ import CER from '../../../components/CER.astro';
 import ScaffoldFigure from '../../../components/ScaffoldFigure.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
 
-**Suppose a gardener crosses two pea plants that both have purple flowers, and both are Pp. The seeds are predicted to grow into mostly purple plants, with about one in four blooming white.**
-
-Neither parent had white flowers. So where was the white hiding? And could the gardener have predicted "one in four" before planting a single seed?
+The first film showed how two purple-flowered Pp pea plants can have a white-flowered offspring. Could a gardener predict, before planting a single seed, what share will bloom white?
 
 <IdeaCheck items={[
   { idea: 'Offspring are a blend of their parents, so two purple parents can only have purple offspring.', answer: 'disagree', explain: 'Mendel crossed pea plants and counted thousands of offspring. For the seven traits he tracked, he found no in-between forms. A trait that vanished in one generation came back unchanged in the next. A blend could not come apart again like that, so traits must pass on as separate units.' },
   { idea: 'If a Punnett square says 1 in 4, then exactly one out of every four offspring will have the trait.', answer: 'disagree', explain: 'Mendel recorded one pea plant with 43 round seeds and only 2 wrinkled ones, far from 1 in 4. When he added up thousands of seeds from many plants, the count came much closer to the prediction.' },
-  { idea: 'A recessive allele is weak or damaged, and it disappears when it is hidden.', answer: 'disagree', explain: 'In Mendel’s crosses, hidden traits came back unchanged in later generations, so the allele was still there. The word recessive only tells you whether a trait shows when a dominant allele is also present. It does not mean the allele is gone.' },
+  { idea: 'A recessive allele is weak or damaged, and it disappears when it is hidden.', answer: 'disagree', explain: 'In Mendel’s crosses, hidden traits came back unchanged in later generations, so the allele was still there. The word recessive only tells you whether a trait shows when a dominant allele is also present.' },
 ]} />
-
-## Explore: breed purple and white pea plants
-
-In the simulation you choose the genotype of two parent pea plants: PP, Pp or pp. You see the filled Punnett square with its predictions, then grow 4, 40 or 1,000 offspring, each made by a random draw of one sex cell from each parent. A bar graph puts your real counts next to the predicted ones.
-
-<PeaBreeder />
-
-**Try this.**
-1. Cross two Pp plants. Predict how many of 4 offspring will be white. Grow them, then repeat three times.
-2. Now grow 40, then 1,000. Predict first: will the share of white plants move closer to one in four, or stay just as scattered?
-3. Cross a PP plant with a Pp plant. Both have purple flowers. Predict whether any offspring will be white, then test it.
 
 ## Explain: alleles can hide but do not disappear
 
 <WordBank terms={['allele', 'dominant', 'recessive', 'genotype', 'phenotype', 'Punnett square', 'probability', 'ratio']} />
 
-A pea flower shows one color, but each body cell of the plant carries two copies of the flower-color gene. An **allele** is one version of a gene. A pea plant gets one allele of each gene from each parent.
-
-Pea plants have a purple allele and a white allele for flower color. Scientists write them as letters: P for purple and p for white.
+A pea plant gets one copy of each gene from each parent, so each body cell carries two copies of the flower-color gene. An **allele** is one version of a gene. In this one-gene model, the flower-color gene has a purple allele, P, and a white allele, p.
 
 - A **dominant** allele shows its trait even when there is only one copy. It gets a capital letter.
 - A **recessive** allele shows its trait only when both copies are recessive. It gets a small letter.
 
-When a dominant allele is there, it masks the recessive one. Masked means hidden from view, not destroyed. The p allele is still there, and it can still be passed on.
+A dominant allele **masks** a recessive one: it hides it from view without destroying it.
 
 Your **genotype** is the pair of alleles you carry, such as Pp. Your **phenotype** is the trait that shows, such as purple flowers.
 
@@ -287,47 +293,86 @@ Your **genotype** is the pair of alleles you carry, such as Pp. Your **phenotype
 | Pp | two different alleles (heterozygous) | purple |
 | pp | two same alleles (homozygous) | white |
 
-A purple plant could be PP or Pp, so its looks do not tell you its genotype.
-
 Sex cells carry only one allele of each pair, as you saw in [that lesson](/lessons/reproduction-and-meiosis/). A PP plant can only pass on P. A pp plant can only pass on p. A Pp plant passes on P or p, with a 50 percent chance for each.
 
 <Support min={2}>**Key idea:** A dominant allele can hide a recessive allele, but the recessive allele is still carried and can be passed to offspring.</Support>
 
+**Predict.** A PP plant is crossed with a pp plant. Which allele can each parent pass, and what color will the offspring be?
+
+<details>
+<summary>Check your prediction</summary>
+
+The parents pass P and p, so every offspring is Pp and purple but carries p.
+
+</details>
+
 ## Explain: a Punnett square shows the chances
 
-A **Punnett square** is a grid that shows every way the sex cells of two parents can join. It is a model that predicts offspring.
-
-Here is how to build one for two Pp parents.
-
-1. Write one parent’s sex cells, P and p, across the top.
-2. Write the other parent’s sex cells, P and p, down the side.
-3. In each box, put the letter from the top with the letter from the side.
+A **Punnett square**, the grid the first film built, shows how the sex cells of two parents can join. Here it is for two Pp parents.
 
 | | P | p |
 |---|---|---|
 | **P** | PP | Pp |
 | **p** | Pp | pp |
 
-<ScaffoldFigure src="/figures/predicting-traits/punnett-square-pp-cross.webp" width={1200} height={1200} keyItems={["one parent's sex cells (P and p)", "the other parent's sex cells (P and p)", "PP", "Pp", "pp"]} given={[0, 1]} alt="AI-generated illustration: a two-by-two grid. Above it and to its left are small round sex cells, each holding one purple or one white bead. Each box holds two beads and a pea flower: three boxes have at least one purple bead and a purple flower, and one box has two white beads and a white flower. Five numbered pointers mark the top sex cells, the side sex cells and three of the boxes." caption="A Punnett square for two Pp pea plants, with each allele drawn as a bead. Name each numbered part." />
+<ScaffoldFigure src="/figures/predicting-traits/punnett-square-pp-cross.webp" width={1200} height={1200} keyItems={["one parent's sex cells (P and p)", "the other parent's sex cells (P and p)", "PP", "Pp", "pp"]} given={[0, 1]} alt="AI-generated illustration: a two-by-two grid. Above it and to its left are small round sex cells, each holding one purple or one white bead. Each box holds two beads and a pea flower: three boxes have at least one purple bead and a purple flower, and one box has two white beads and a white flower. Five numbered pointers mark the top sex cells, the side sex cells and three of the boxes." caption="Each box of a Punnett square joins one allele from each parent, drawn here as beads for two Pp pea plants. Name each numbered part." />
 
-**Probability** is the chance that something will happen. Each box has the same chance, 1 in 4, because 1/2 × 1/2 = 1/4. A **ratio** compares two numbers, such as 3 purple to 1 white. You can write each prediction three ways.
+**Probability** is the chance that something will happen. Every box needs one particular allele from each Pp parent. Each allele has a 1 in 2 chance. So every box has the same chance: 1/2 × 1/2 = 1/4.
+
+One box is PP, two are Pp and one is pp, so the genotype chances are 1/4 PP, 2/4 Pp and 1/4 pp. PP and Pp are purple, while pp is white. A **ratio** compares two numbers, such as 3 purple to 1 white.
 
 | What you predict | As fractions | As percents | As a ratio |
 |---|---|---|---|
 | Genotypes | 1/4 PP, 2/4 Pp, 1/4 pp | 25, 50, 25 | 1 PP : 2 Pp : 1 pp |
 | Phenotypes | 3/4 purple, 1/4 white | 75, 25 | 3 purple : 1 white |
 
-Now the hidden white makes sense. Each parent is Pp. If both pass on p, the offspring is pp and blooms white. That has a 1 in 4 chance. This prediction needs both parents to be Pp. If one parent is PP, every offspring gets at least one P.
+This 3 : 1 prediction needs two Pp parents.
 
-A Punnett square gives the chance for each offspring, not an exact count. Four seeds from two Pp parents might all bloom purple. The chance of that is about 32 percent. Mendel’s rules, and squares like this one, explain how many inherited traits are passed on. Later courses add other patterns.
+<Support>**The one idea:** For one-gene crosses, Punnett squares predict chances, not exact offspring counts. Real counts usually land near the predicted ratio but rarely match it exactly.</Support>
+
+Here a one-gene cross means one gene, two alleles (one dominant) and known parent genotypes.
+
+**Predict.** Cross a Pp plant with a pp plant. What share of the boxes are pp and white?
+
+<details>
+<summary>Check your prediction</summary>
+
+The pp parent passes p. The Pp parent passes P or p. Half the boxes are Pp and half are pp.
+
+</details>
+
+Four seeds from two Pp parents might all bloom purple; the chance is about 32 percent. Mendel’s rules explain how many inherited traits are passed on; later courses add other patterns.
 
 <SentenceFrames frames={['Two purple parents can have a white offspring when ___.', 'The chance of a white offspring from two Pp parents is ___, or ___ percent.']} />
 
-<Support min={2}>**Key idea:** A Punnett square gives the chance of each genotype and phenotype for every offspring, so real counts land near its ratio but rarely match it exactly.</Support>
+## Explore: breed purple and white pea plants
+
+Choose PP, Pp or pp for each parent. The simulation fills the square and grows 4, 40 or 1,000 offspring. Each one is made by a random draw of one sex cell from each parent. A bar graph puts your real counts next to the predicted ones.
+
+<PeaBreeder />
+
+**Try this.**
+
+1. Cross two Pp plants. Predict how many of 4 offspring will be white. Grow them, then repeat three times.
+2. Grow 40, then 1,000. Predict first: will the share of white plants move closer to one in four, or stay just as scattered?
+3. Cross a PP plant with a Pp plant. Make the prediction below, then test it.
+
+**Predict.** In the PP × Pp cross, can any offspring be white?
+
+<details>
+<summary>Check your prediction</summary>
+
+No. The PP parent always passes P, so every offspring gets at least one P and is purple. Some carry a hidden p. Two purple parents give white offspring only when both are Pp.
+
+</details>
+
+Your groups of 4 probably wandered from one in four. The second film shows why chance and count differ.
+
+<LessonFilm film={frontmatter.films[0]} />
 
 ## Elaborate: Mendel’s pea counts
 
-Mendel crossed pea plants that differed in one trait. Their first offspring all showed the dominant trait. He let those hybrid plants fertilize themselves and counted the next generation.
+Now check Mendel’s counts yourself. He crossed plants differing in one trait. Their first offspring all showed the dominant trait. He let those hybrids fertilize themselves and counted the next generation.
 
 | Trait (dominant vs recessive) | What was counted | Dominant (number) | Recessive (number) | Ratio (dominant ÷ recessive) |
 |---|---|---|---|---|
@@ -341,12 +386,21 @@ Mendel crossed pea plants that differed in one trait. Their first offspring all 
 
 Source: Gregor Mendel’s pea paper, read at two meetings in Brno in 1865 and printed in 1866 (English translation by Abbott and Fairbanks, 2016). The plants grew in his garden beds and in some pots. The paper does not give a year for each row. For flower color, Mendel sorted plants by seed-coat color, which goes with flower color. The ratios were calculated here.
 
+**Predict.** If a group has 3 dominant offspring for every 1 recessive offspring, is the recessive share 1/3 or 1/4 of the total?
+
+<details>
+<summary>Check your prediction</summary>
+
+It is 1/4. The total has four parts: three dominant plus one recessive. A fraction compares one group with that total.
+
+</details>
+
 1. Find the two missing ratios. Divide the dominant count by the recessive count and round to two decimal places.
 2. Which row is farthest from 3 : 1? Which row has the fewest offspring counted? What do you notice?
 3. What percent of the flower-color plants were white? Divide 224 by the total, 929, and compare with 25 percent.
 
 <CER
-  task="Make a claim that answers the question: can a Punnett square predict the traits of pea offspring? Use Mendel’s counts."
+  task="Can a Punnett square predict the traits of pea offspring? Make a claim using Mendel’s counts."
   claim="Mendel’s counts show that a Punnett square ___."
   evidence="For the seven traits, the ratios ranged from ___ to ___. For flower color, ___ of 929 plants were white, about ___ percent."
   reasoning="The counts are close to 3 : 1 because ___. They are not exactly 3 : 1 because ___."
@@ -355,7 +409,16 @@ Source: Gregor Mendel’s pea paper, read at two meetings in Brno in 1865 and pr
 
 ### Design problem
 
-Plan a model with beads that tests this question: does the number of offspring change how close a cross comes to 3 : 1?
+Plan a bead model to test whether the number of offspring changes how close a cross comes to 3 : 1.
+
+**Predict.** What would go wrong if you kept each drawn bead out of its bag?
+
+<details>
+<summary>Check your prediction</summary>
+
+The chances would change after each draw. Parents do not run out of an allele after passing it on, so replace both beads.
+
+</details>
 
 <details>
 <summary>One way to do it</summary>
@@ -370,7 +433,7 @@ Make two paper bags, one for each Pp parent. Put 20 purple beads (P) and 20 whit
 - **Repeated trials:** make each group size 5 times and find the mean percent of white.
 - **Safety:** pick up dropped beads so no one slips, and keep beads away from your mouth.
 
-If the 100-offspring groups land closer to 25 percent than the 4-offspring groups, sample size matters. The bead model is not a real plant: it has one gene and no weather, soil or lost seeds.
+If the 100-offspring groups usually land closer to 25 percent than the 4-offspring groups, sample size matters. The bead model is not a real plant: it has one gene and no weather, soil or lost seeds.
 
 <LessonFigure src="/figures/predicting-traits/bead-bag-cross-model.webp" width={1200} height={800} alt="AI-generated illustration: two paper bags of mixed purple and white beads on a table, a hand reaching into each. One purple and one white bead, just drawn, sit in front as one offspring, with arrows showing them going back into the bags. An inset shows the control: a bag of only purple beads beside a mixed bag." caption="The bead model of a Pp by Pp cross. Each blind draw of one bead from each bag makes one offspring, and the beads go back before the next draw." />
 
@@ -378,6 +441,6 @@ If the 100-offspring groups land closer to 25 percent than the 4-offspring group
 
 ## Evaluate: check your thinking
 
-The white was hiding in the parents’ genotypes. Both purple parents were Pp, so each carried a masked p allele. Each offspring had a 1 in 4 chance of getting p from both parents, and those pp plants bloomed white. A Punnett square predicts that chance, but not the exact count in a small group.
+Back to the gardener: both purple parents were Pp, so each offspring had a 1 in 4 chance of getting p from both and blooming white. Remember: for one-gene crosses, Punnett squares predict chances, not exact offspring counts.
 
-**Science practices you used:** making predictions and testing them, using a Punnett square as a model and naming its limits, calculating ratios and percents from real counts, and making a claim with evidence and reasoning.
+**Science practices you used:** making and testing predictions, using a Punnett square as a model and naming its limits, calculating ratios and percents from real counts, and making a claim with evidence and reasoning.
