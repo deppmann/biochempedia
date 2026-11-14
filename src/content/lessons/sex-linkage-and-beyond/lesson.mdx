@@ -5,13 +5,13 @@ course: "genetics"
 courseChapter: "Genetics and Molecular Biology · Unit 1: Inheritance"
 order: 306
 summary: >-
-  Why does a cross give different results depending on which parent carried the mutant allele?
-  This lesson follows Morgan's white-eyed fruit flies to the idea that a gene can ride on the X
-  chromosome, then asks how mammals and flies decide sex, how each balances the dose of its X
-  genes, and why organelle genes and imprinted genes break Mendel's rule that the parent of origin
-  does not matter. Afterwards you can predict X-linked crosses in both directions and tell sex
-  linkage, maternal inheritance and imprinting apart.
-hook: "Cross a white-eyed fly one way and the sons and daughters match. Cross it the other way and they do not. Why?"
+  Inheritance patterns depend on allele identity, chromosome location, and parental origin. Why
+  does swapping which parent carries a white-eye allele change a fly cross? This lesson uses
+  Morgan's reciprocal crosses and Bridges' exceptional flies to place white on the X, then asks
+  how mammals and flies decide sex and balance X-linked output. Finally, it separates maternal
+  organelle inheritance from genomic imprinting, where both parents transmit a nuclear gene but
+  only one parental allele is expressed.
+hook: "Why can swapping which parent has white eyes change every son?"
 
 estMinutes: 24
 objectives:
@@ -24,10 +24,31 @@ explainer:
   src: "/explainers/sex-linkage-and-beyond/explainer.mp4"
   captions: "/explainers/sex-linkage-and-beyond/explainer.vtt"
   poster: "/explainers/sex-linkage-and-beyond/poster.jpg"
-  title: "Sons Take Their Mother's X"
-  durationSec: 165.7
-  narration: "an AI narrator voice (Gemini, Charon) reading narration written from this lesson's text"
+  title: "Why Reciprocal Crosses Split"
+  durationSec: 1
+  narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
   aiGenerated: true
+  takeaways:
+    - "The route of an X-linked allele depends on its carrier parent."
+    - "A male fly has one X, so he is hemizygous for white; his Y carries no white gene."
+    - "Sons receive their only X from their mother, while daughters receive their father's X."
+    - "Reciprocal crosses can separate X-linked inheritance from ordinary autosomal inheritance."
+    - "Criss-cross inheritance: father to daughter, mother to son."
+
+films:
+  - id: "chapter-2"
+    src: "/explainers/sex-linkage-and-beyond/chapter-2.mp4"
+    captions: "/explainers/sex-linkage-and-beyond/chapter-2.vtt"
+    poster: "/explainers/sex-linkage-and-beyond/chapter-2-poster.jpg"
+    title: "Two Ways Parent of Origin Matters"
+    durationSec: 1
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+    takeaways:
+      - "Parent of origin can decide which DNA arrives or which allele acts."
+      - "Organelle genomes are generally inherited from the mother, though some species show paternal or biparental transmission."
+      - "A son can carry a maternal organelle variant, but usually only daughters pass it on."
+      - "An imprinted gene is nuclear: both parents transmit a copy, but only one parental copy is expressed."
 
 scientists:
   - name: "Thomas Hunt Morgan"
@@ -289,7 +310,7 @@ explainLevels:
       differently in different animals: in mouse a Sry transgene is sufficient to start testis
       development in XX embryos, whereas in Drosophila the dose of X-linked signal elements
       activates Sex-lethal in females and the Y does not determine sex. Dosage compensation also
-      differs: female mammals inactivate one X in cis through Xist RNA, randomly in the embryo
+      differs: female placental mammals inactivate one X in cis through Xist RNA, randomly in the embryo
       proper of mouse but paternally in mouse extraembryonic tissues, while the MSL complex
       raises transcription of the male fly X toward the level of two female X chromosomes. Organellar genomes are generally
       maternally inherited, and imprinted nuclear genes such as mouse Igf2 and H19 are expressed
@@ -354,92 +375,148 @@ draft: false
 
 import XLinkedReciprocalCross from '../../../components/XLinkedReciprocalCross.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import LessonFilm from '../../../components/LessonFilm.astro';
 
-**In 1910 a white-eyed male fruit fly appeared in a laboratory where every other fly had red eyes, and its crosses gave different answers depending on which parent was white.**
+**In 1910 a white-eyed male fruit fly appeared in Thomas Hunt Morgan's laboratory, and swapping which parent was white changed the offspring.**
 
-Mendel's peas gave the same result whichever plant was the mother. The white-eyed fly did not. This lesson asks why, then follows the answer, a gene riding on the X chromosome, to how sex is decided, how animals balance their X genes, and which other genes care about the parent of origin.
+Mendel's peas gave the same result whichever plant was the mother.
 
-## One white-eyed male: a gene that follows the X
+> **The one idea.** Inheritance patterns depend on allele identity, chromosome location, and parental origin.
+>
+> *Scope:* the inheritance patterns in this lesson. Most alleles do not show a parent-of-origin effect, and the rule does not replace Mendelian segregation.
 
-Thomas Hunt Morgan's laboratory at Columbia University bred *Drosophila melanogaster*. The white-eyed male turned up in 1910. Morgan crossed it to red-eyed females and got red-eyed offspring of both sexes, so white is **recessive**: an allele that shows only when no dominant allele is present. He published the work that year in *Science* as "Sex limited inheritance in Drosophila". The term **sex-linked** means carried on a sex chromosome.
+## One white-eyed male: follow the X
 
-You already know, from [chromosomes and meiosis](/lessons/chromosomes-and-meiosis/), that a female fly is XX and a male XY. The white gene sits on the X, and the Y carries no copy. So a male is **hemizygous** for white: he has one copy, not two, and whatever allele his X carries is what you see. A male also gets his only X from his mother. Write X+ for the red allele and Xw for white.
+In Morgan's laboratory at Columbia University, which bred *Drosophila melanogaster*, the white-eyed male crossed to red-eyed females gave red-eyed offspring of both sexes, so white is **recessive**: it shows only when no dominant allele is present. He published the work that year in *Science* as "Sex limited inheritance in Drosophila." **Sex-linked** means carried on a sex chromosome.
 
-**Worked problem.** Assume ordinary segregation, equal survival of all genotypes, half the offspring of each sex, and complete penetrance (every fly with the genotype shows the phenotype).
+A female fly is XX and a male XY ([chromosomes and meiosis](/lessons/chromosomes-and-meiosis/)). The white gene sits on the X; the Y carries no copy. A male is therefore **hemizygous** for white: one allele rather than a pair, so whatever his X carries is what you see. Write X+ for red and Xw for white.
 
-**Cross A. Red female X+X+ by white male XwY.**
+The first film traced both F1 crosses. The table assumes ordinary segregation, equal survival, half the offspring of each sex and complete penetrance.
 
-1. The mother makes only X+ eggs. The father makes Xw and Y sperm, half each.
-2. F1: daughters X+Xw, red. Sons X+Y, red. All red.
-3. Intercross the F1: X+Xw female by X+Y male. Her eggs are X+ or Xw, half each. His sperm are X+ or Y, half each.
-4. F2 daughters all get X+ from the father: half X+X+, half X+Xw, all red.
-5. F2 sons get their X from the mother: half X+Y (red), half XwY (white).
-6. Overall: 3 red to 1 white. Every white fly is a male.
+| Cross | Daughters | Sons |
+| --- | --- | --- |
+| Red X+X+ female × white XwY male | X+Xw, red | X+Y, red |
+| White XwXw female × red X+Y male | X+Xw, red | XwY, white |
 
-**Cross B, the reciprocal. White female XwXw by red male X+Y.**
+The second row is the **reciprocal cross**, the same phenotypes with the sexes swapped. It shows **criss-cross inheritance**: father to daughter, mother to son.
 
-1. The mother makes only Xw eggs. The father makes X+ and Y sperm.
-2. F1: daughters X+Xw, red. Sons XwY, white. The father's phenotype goes to his daughters and the mother's to her sons. This is **criss-cross inheritance**.
-3. Intercross the F1: X+Xw female by XwY male. Her eggs are X+ or Xw; his sperm are Xw or Y.
-4. The four combinations each have probability 1/2 x 1/2 = 1/4:
+The film stopped at the F1. Intercross the first row's F1, X+Xw by X+Y. Daughters get X+ from their father, so they are half X+X+ and half X+Xw, all red. Sons get X+ or Xw from their mother, so half are white. The F2 expectation is three red to one white, every white fly male.
+
+**Predict.** Now intercross the reciprocal F1, X+Xw by XwY. What four genotype-and-sex classes should appear, and in what proportions?
+
+<details>
+<summary>Check your prediction</summary>
+
+The mother makes X+ and Xw eggs; the father makes Xw and Y sperm. Each pairing has probability one half times one half, one quarter:
 
 > **X+Xw red female : XwXw white female : X+Y red male : XwY white male = 1 : 1 : 1 : 1**
 
-5. Among 400 F2 flies, expect 100 in each class. Check: 4 x 100 = 400; 200 of each sex; 200 white.
+Among 400 F2 flies, expect 100 in each class: 200 of each sex and 200 white. Real broods vary around an expectation. In Morgan's own F2 from the first cross, white-eyed males made up less than one quarter of all flies.
 
-**Conclusion.** An ordinary autosomal gene (one that is not imprinted, see below) would give the same F1 in both crosses, since each parent passes one copy to every child. These reciprocal crosses differ, and the differences follow the X: sons always take the mother's allele. So the gene is on the X. Segregation still works as Mendel said. Real broods are noisier than these expectations. In Morgan's own F2 from Cross A the white-eyed males made up less than a quarter of the flies.
+</details>
+
+With the same parental genotypes, an ordinary non-imprinted autosomal allele gives the same F1 both ways.
 
 <XLinkedReciprocalCross />
 
-The same logic covers human X-linked conditions: glucose-6-phosphate dehydrogenase deficiency ([pentose phosphate pathway](/lessons/pentose-phosphate-pathway/)) and the HPRT deficiency of Lesch-Nyhan syndrome ([nucleotide metabolism](/lessons/nucleotide-metabolism/)) are both seen far more often in males. [Pedigrees](/lessons/pedigrees/) shows the pattern in a family tree.
+### The exceptions that tested the model
+
+Calvin Bridges crossed white XwXw females to red X+Y males. Roughly 1 in 1,600 offspring were exceptional white daughters or red sons.
+
+**Predict.** Keep white on the X. What meiotic error could make both exceptions, and what chromosome sets should they carry?
+
+<details>
+<summary>Check your prediction</summary>
+
+If the mother's X chromosomes occasionally fail to separate, a **nondisjunction** covered in [chromosome changes](/lessons/chromosome-changes/), some eggs carry XwXw and others no X.
+
+- XwXw egg plus Y sperm gives an XwXwY white daughter, with both X chromosomes from her mother.
+- An egg with no X plus X+ sperm gives an X+O red son. His only X came from his father, and without a Y he should be sterile.
+- XwXw plus X+, and an empty egg plus Y, would be expected to die or be rare.
+
+The model predicts that exceptional white daughters carry a Y and exceptional red sons lack one. It also predicts that an XXY female, whose two X chromosomes and Y must sort at meiosis, produces XX and Y eggs much more often than 1 in 1,600. Bridges found both and published the work in 1916. Matching an unusual phenotype to an unusual chromosome set tied white to the X. It also showed that an XO fly is male and an XXY fly female, so the Y does not decide sex in flies.
+
+</details>
+
+Human X-linked conditions follow the same logic. Glucose-6-phosphate dehydrogenase deficiency ([pentose phosphate pathway](/lessons/pentose-phosphate-pathway/)) and HPRT deficiency in Lesch-Nyhan syndrome ([nucleotide metabolism](/lessons/nucleotide-metabolism/)) are both much more common in males. [Pedigrees](/lessons/pedigrees/) follows the pattern through families.
 
 ## How sex is decided: mammal versus fly
 
-Mice and flies are both XX female and XY male, by different mechanisms.
-
-In most mammals, including mice and humans, the Y decides. A gene on the Y, called **SRY** in humans and *Sry* in mice, starts testis development. Sinclair and colleagues reported SRY in 1990. In 1991 Koopman and colleagues added a 14-kilobase DNA fragment containing *Sry* to chromosomally female mouse embryos, and it was sufficient to make them develop testes. The consequence shows in people with unusual sex chromosomes: XO individuals (Turner syndrome) develop as females and XXY individuals (Klinefelter syndrome) as males, because one Y carrying SRY is the switch.
-
-In *Drosophila*, the Y does not decide. In a diploid fly, two X chromosomes ordinarily specify female development and one specifies male. The classic description is a ratio of X chromosomes to sets of autosomes. Erickson and Quintero argued in 2007 that the embryo reads the combined dose of a few X-linked signal genes rather than measuring a ratio. Either way, a high X dose switches on a gene called **Sex-lethal** in females. Once on, Sex-lethal keeps itself on by controlling the splicing of its own RNA, and it steers the splicing of the genes below it. In flies, XO is male and XXY is female, the mirror of the human rule. The fly Y is needed for male fertility, not for maleness.
-
-<LessonFigure src="/figures/sex-linkage-and-beyond/sex-decision-mirror.webp" width={1200} height={779} alt="AI-generated illustration: two columns of two cells each: in mammals an XO cell is female and an XXY cell, whose Y carries SRY, is male; in Drosophila the same XO cell is male and the XXY cell, with Sex-lethal switched on, is female." caption="The same chromosome sets give opposite sexes. In mice and humans one Y carrying SRY is the switch, so XO is female and XXY male; in flies the X dose decides, so XO is male and XXY female, and the Y is needed for fertility, not for maleness." />
-
-## Balancing the X: three solutions in three animals
-
-With two X chromosomes in females and one in males, females would make about twice as much of each X-linked product. **Dosage compensation** is any mechanism that evens this out.
-
-<LessonFigure src="/figures/sex-linkage-and-beyond/dosage-compensation-three-ways.webp" width={1200} height={631} alt="AI-generated illustration: three nuclei side by side showing a female mammal nucleus with one condensed X coated by Xist RNA, a male fly nucleus whose single X is coated by the MSL complex and roX RNAs, and a worm nucleus whose two X chromosomes are both turned down." caption="Three animals, three solutions to the same problem. Mammals switch one X off in females, flies raise transcription from the single male X roughly twofold, and C. elegans hermaphrodites reduce each of their two X chromosomes by about half." />
-
-**Mammals switch one X off in females.** Mary Lyon proposed in 1961 that in each cell of a female mouse one X is inactivated early in development, maternal or paternal, and that all descendants of that cell keep the choice. A female heterozygous for an X-linked gene is therefore a **mosaic**, a patchwork of cells expressing one allele or the other. The tortoiseshell cat is the visible case: the X-linked Orange gene has an orange allele and a non-orange allele, usually black, so a heterozygous female has patches of each. A calico cat is a tortoiseshell that also carries an autosomal white-spotting allele, which adds white patches that X inactivation does not explain. Tortoiseshell and calico males are rare and are usually XXY. The inactive X is the condensed **Barr body** seen in female nuclei. In placental mammals it is coated by **Xist**, an RNA that appears not to code for protein. Mouse experiments that deleted the gene showed that Xist is required for inactivation. Silencing acts in cis, on the chromosome that makes the Xist RNA. Mosaicism also matters in disease: in Rett syndrome, which affects mostly girls and involves the X-linked gene *MECP2* ([synapse disorders](/lessons/synapse-disorders/)), a girl's cells differ in which *MECP2* allele they express.
-
-Two corrections. The choice is not always random: in mouse it is random in the embryo proper, but the paternal X is the one inactivated in the extraembryonic tissues, and in marsupials the paternal X is inactivated. And the inactive X is not completely silent. A 2017 survey of human tissues found incomplete inactivation at no fewer than 23 percent of the X-linked genes it could assess. The mechanism of silencing is part of [eukaryotic regulation](/lessons/eukaryotic-regulation/).
-
-**Flies turn the male X up.** In male *Drosophila*, no X is switched off. A protein complex called MSL, for male-specific lethal, coats the single X with the help of two noncoding RNAs, roX1 and roX2, and raises transcription of active X-linked genes, so the single male X makes about as much as two female X chromosomes. Knockdown experiments measure an MSL-dependent effect smaller than twofold, so other mechanisms may also contribute. Its enzyme MOF acetylates histone H4 at lysine 16, a mark linked to more open chromatin. Females avoid this because Sex-lethal blocks translation of the mRNA for MSL2, the subunit that starts assembly. Force MSL2 into females and the complex gathers on their X chromosomes and female viability drops.
-
-**Worms turn both X chromosomes down.** In the nematode *C. elegans*, XX hermaphrodites reduce expression from each of their two X chromosomes by about half, matching the single X of XO males.
-
-## Genes that remember their parent: organelles and imprinting
-
-**Organelle genes travel with the egg.** Mitochondria and chloroplasts carry their own small genomes outside the nucleus. An egg has abundant cytoplasm and the male gamete brings little, and in many species paternal organelles or their DNA are also actively excluded, depleted or destroyed. So these genomes are generally inherited from the mother. In human families, Giles and colleagues showed in 1980 that children carried their mother's pattern of mitochondrial DNA variants rather than their father's: both sons and daughters inherit it, but only daughters pass it on. Human sperm mitochondria do enter the egg, but a 2023 study found that the mitochondria of mature human sperm lack intact mitochondrial DNA. "Generally maternal" is the right phrase: Baur's *Pelargonium* showed plastid inheritance from both parents, and paternal and biparental transmission are documented in other species.
-
-**Imprinted genes are nuclear but remember their parent.** In 1984 two groups, McGrath and Solter, and Surani, Barton and Norris, built mouse embryos with two maternal or two paternal genomes. Neither kind completed development, though control embryos handled the same way did. The two parental genomes are not equivalent. The explanation is **genomic imprinting**: a subset of genes is expressed from only one parental allele, set by marks, chiefly DNA methylation at imprinting control regions, laid down during egg or sperm formation. The marks are erased in the primordial germ cells of each new generation and rewritten according to the sex of the animal, which is why the mark depends on the parent and not on the grandparent. In mouse, *Igf2*, a growth factor gene, is expressed from the paternal allele in most tissues, and *H19*, a nearby gene, from the maternal allele. A mouse that inherits a disrupted *Igf2* from its father is small; one that inherits the same allele from its mother is normal.
-
-<LessonFigure src="/figures/sex-linkage-and-beyond/imprinting-embryo-experiment.webp" width={1200} height={790} alt="AI-generated illustration: three mouse embryo outlines, one with a maternal and a paternal genome that develops fully, one with two maternal genomes and one with two paternal genomes, both marked as not completing development." caption="In 1984, embryos built with two maternal or two paternal genomes did not complete development, though control embryos handled the same way did. The two parental genomes are not equivalent." />
-
-In humans, the region 15q11-q13 holds imprinted genes. Loss of the paternal contribution of this region causes Prader-Willi syndrome; loss of the maternal contribution causes Angelman syndrome. Keep imprinting and organelle inheritance apart: an imprinted gene is a nuclear gene passed on by both parents, with only one copy used.
-
-### Design problem
-
-When Calvin Bridges, one of Morgan's students, crossed white-eyed females (XwXw) to red-eyed males (X+Y), roughly 1 in 1,600 offspring were exceptions: white-eyed daughters or red-eyed sons, which Cross B says should not exist. Propose an explanation that keeps the white gene on the X, and design a test of it.
+**Predict.** Bridges' exceptions were XO males and XXY females. XO and XXY people also occur. If the Y were the sex switch in humans, how should each develop?
 
 <details>
-<summary>One way to do it</summary>
+<summary>Check your prediction</summary>
 
-Suppose the two X chromosomes in the mother occasionally fail to separate at meiosis, called **nondisjunction** (covered in [chromosome changes](/lessons/chromosome-changes/)). Then some eggs carry two X chromosomes, XwXw, and some carry none.
+In most mammals, including mice and humans, one Y carrying **SRY** in humans or *Sry* in mice starts testis development. Thus XO individuals with Turner syndrome develop as females, while XXY individuals with Klinefelter syndrome develop as males. Sinclair and colleagues reported SRY in 1990. In 1991 Koopman and colleagues added a 14-kilobase fragment containing *Sry* to chromosomally female mouse embryos; it was sufficient to make them develop testes.
 
-- An XwXw egg fertilized by a Y sperm gives XwXwY. If two X chromosomes make a fly female, she is a white-eyed daughter, with both X chromosomes from her mother.
-- An egg with no X fertilized by an X+ sperm gives X+O. If one X makes a fly male, he is a red-eyed son, with his only X from his father. With no Y he should be sterile.
-- The other two products, XwXw with X+ and an empty egg with Y, would be expected to die or be rare.
-
-Two predictions test this. First, look at the chromosomes: exceptional white daughters should carry a Y, and exceptional red sons should lack one. Second, breed the exceptional females. In an XXY female two X chromosomes and a Y must sort at meiosis, so XX and Y eggs should be far commoner than 1 in 1,600. Bridges found both, in work he published in 1916. Matching an unusual phenotype to an unusual chromosome set tied the white gene to the X. It also showed that in *Drosophila* an XO fly is male and an XXY fly female, so the Y does not decide sex in flies.
+In flies, as Bridges found, the Y is needed for male fertility, not maleness; in a diploid fly, two X chromosomes ordinarily specify female development and one specifies male.
 
 </details>
+
+The classic fly description uses the ratio of X chromosomes to sets of autosomes. Erickson and Quintero argued in 2007 that the embryo instead reads the combined dose of several X-linked signal genes. Either way, high X dose switches on **Sex-lethal** in females, which maintains its own activity through RNA splicing and steers splicing of genes below it.
+
+<LessonFigure src="/figures/sex-linkage-and-beyond/sex-decision-mirror.webp" width={1200} height={779} alt="AI-generated illustration: two columns of two cells each: in mammals an XO cell is female and an XXY cell, whose Y carries SRY, is male; in Drosophila the same XO cell is male and the XXY cell, with Sex-lethal switched on, is female." caption="XO and XXY chromosome sets reveal opposite sex-determination rules: the Y carrying SRY is decisive in most mammals, while X dose is decisive in flies." />
+
+## Balancing X-linked output
+
+In a simplified model with every X-linked copy fully active, an XX animal begins with twice the dose of an XY or XO animal. **Dosage compensation** reduces that difference.
+
+**Predict.** Which strategies could bring two active X copies and one active X copy toward the same output?
+
+<details>
+<summary>Check your prediction</summary>
+
+Turn one of two X chromosomes down, turn the single X up, or reduce output from both. Different animals use all three.
+
+</details>
+
+<LessonFigure src="/figures/sex-linkage-and-beyond/dosage-compensation-three-ways.webp" width={1200} height={631} alt="AI-generated illustration: three nuclei side by side showing a female mammal nucleus with one condensed X coated by Xist RNA, a male fly nucleus whose single X is coated by the MSL complex and roX RNAs, and a worm nucleus whose two X chromosomes are both turned down." caption="Mammals mainly inactivate one female X, flies raise output from the single male X, and C. elegans hermaphrodites reduce output from both X chromosomes." />
+
+**Mammals mainly inactivate one female X.** Mary Lyon proposed in 1961 that each cell of a female mouse inactivates either its maternal or paternal X early in development, and its descendants keep that choice. A heterozygous female is therefore a **mosaic**, a patchwork of cell lineages expressing different X-linked alleles. The tortoiseshell cat makes this visible: its X-linked Orange alleles produce orange and usually black patches. A calico is a tortoiseshell with an autosomal white-spotting allele, which adds patches that X inactivation does not explain. Tortoiseshell and calico males are rare and usually XXY.
+
+In placental mammals the inactive X forms the condensed **Barr body** and is coated by **Xist**, an RNA that appears not to encode protein. Mouse deletions showed that Xist is required for inactivation. It acts in cis, silencing the chromosome that makes it. Mosaicism also matters in Rett syndrome, which mainly affects girls and involves X-linked *MECP2* ([synapse disorders](/lessons/synapse-disorders/)): a girl's cells can differ in which *MECP2* allele they express.
+
+**Flies turn the male X up.** The MSL, or male-specific lethal, complex coats the single male X with help from the noncoding RNAs roX1 and roX2. It raises transcription of active X-linked genes toward the output of two female X chromosomes. In females, Sex-lethal blocks translation of the mRNA for MSL2, the subunit that starts complex assembly.
+
+So far, a parent mattered only through the sex chromosome it sends, and in Lyon's model either parent's X can be the one silenced. The second film asks whether parent of origin matters beyond the sex chromosomes.
+
+<LessonFilm film={frontmatter.films[0]} />
+
+## Genes that remember their parent
+
+In short, parent of origin can decide which DNA arrives or which allele acts.
+
+### Organelle genes: which DNA arrives
+
+The second film showed why organelle genomes are **generally inherited from the mother**: the egg supplies most of the cytoplasm, and many species also exclude, deplete or destroy paternal organelles or their DNA. In humans, Giles and colleagues showed in 1980 that children carried their mother's pattern of mitochondrial DNA variants rather than their father's; sons and daughters inherited the pattern, but only daughters passed it on. Human sperm mitochondria do enter the egg, but a 2023 study found that mature human sperm mitochondria lack intact mitochondrial DNA. Baur's *Pelargonium* showed plastid inheritance from both parents, and paternal or biparental organelle transmission occurs in other species.
+
+### Genomic imprinting: which allele acts
+
+In 1984 McGrath and Solter, and independently Surani, Barton and Norris, built mouse embryos with two maternal or two paternal genomes. Controls underwent the same manipulation but kept one genome of each parental kind.
+
+**Predict.** If maternal and paternal nuclear genomes were functionally interchangeable, how should all three groups develop? What result would show that parental origin matters?
+
+<details>
+<summary>Check your prediction</summary>
+
+If the genomes were interchangeable, every diploid embryo should complete development. Instead, neither uniparental group did, while the one-of-each controls did. The parental genomes are not functionally equivalent.
+
+</details>
+
+**Genomic imprinting** explains the difference: a subset of nuclear genes is expressed from only one parental allele. The second film's parental mark is chiefly DNA methylation at imprinting control regions, laid down during egg or sperm formation, erased in each generation's primordial germ cells and rewritten according to the animal's sex. The mark therefore follows the parent, not the grandparent.
+
+In mouse, the growth-factor gene *Igf2* is expressed from the paternal allele in most tissues; nearby *H19* is expressed from the maternal allele. A disrupted paternal *Igf2* makes a mouse small, while the same allele inherited from the mother leaves size normal.
+
+<LessonFigure src="/figures/sex-linkage-and-beyond/imprinting-embryo-experiment.webp" width={1200} height={790} alt="AI-generated illustration: three mouse embryo outlines, one with a maternal and a paternal genome that develops fully, one with two maternal genomes and one with two paternal genomes, both marked as not completing development." caption="Only the operated control embryos with one maternal and one paternal genome completed normal development, showing that the parental genomes are not functionally equivalent." />
+
+In humans, imprinted genes lie in region 15q11-q13. Loss of the paternal contribution causes Prader-Willi syndrome; loss of the maternal contribution causes Angelman syndrome.
+
+## Going deeper
+
+### Refining X inactivation
+
+X inactivation is not random everywhere. It is random in the mouse embryo proper, but the paternal X is inactivated in mouse extraembryonic tissues and in marsupials. Nor is the inactive X completely silent: a 2017 human-tissue survey found incomplete inactivation in no fewer than 23 percent of the X-linked genes it assessed. [Eukaryotic regulation](/lessons/eukaryotic-regulation/) develops the silencing mechanism.
+
+### How fly and worm compensation differ
+
+The fly MSL complex includes the enzyme MOF, which acetylates histone H4 at lysine 16, a mark associated with open chromatin. MSL knockdown measured an effect smaller than twofold, so other mechanisms may contribute. Forcing MSL2 into females gathers the complex on their X chromosomes and lowers female viability. In the nematode *C. elegans*, XX hermaphrodites instead reduce expression from each X by about half, matching the single X of XO males.
