@@ -62,7 +62,7 @@ export function removeCard(slug: string, id: string) {
 }
 
 // ---- the API ----------------------------------------------------------------------
-export interface HelpStatus { on: boolean; signedIn: boolean; left?: { explain: number; feedback: number; cards: number } }
+export interface HelpStatus { on: boolean; signedIn: boolean; features?: string[]; left?: { explain: number; feedback: number; cards: number } }
 
 /** Whether to offer the helpers on this page at all: signed in, not in a teacher's class on this device, and the Worker says on. */
 export async function helpStatus(slug: string): Promise<HelpStatus | null> {

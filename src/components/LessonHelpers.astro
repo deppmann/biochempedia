@@ -106,6 +106,8 @@ const { slug, hasDeck, levels } = Astro.props;
     const say = (t: string) => { live.textContent = ''; setTimeout(() => { live.textContent = t; }, 50); };
     let left = { ...(status.left ?? { explain: 0, feedback: 0, cards: 0 }) } as NonNullable<HelpStatus['left']>;
     const levels: { level: string; label: string }[] = JSON.parse(root.dataset.levels || '[]');
+    // Each helper can be switched on by itself (HELPER_FEATURES on the Worker).
+    const offered = new Set(status.features ?? ['explain', 'feedback', 'cards']);
 
     // ---- small DOM helpers -------------------------------------------------------------
     const el = <K extends keyof HTMLElementTagNameMap>(tag: K, cls?: string, text?: string) => {
@@ -146,7 +148,7 @@ const { slug, hasDeck, levels } = Astro.props;
     const normQ = (t: string) => t.replace(/[“”]/g, '"').replace(/[‘’]/g, "'").replace(/\s+/g, ' ').trim().toLowerCase();
     function blockWith(sentence: string): HTMLElement | null {
       const q = normQ(sentence).slice(0, 80);
-      const blocks = prose.querySelectorAll<HTMLElement>('p, li, blockquote, td, figcaption, dd');
+      const blocks = prose.querySelectorAll<HTMLElement>('h2, h3, p, li, blockquote, td, figcaption, dd');
       for (const b of blocks) if (normQ(b.textContent || '').includes(q)) return b;
       return null;
     }
@@ -171,7 +173,7 @@ const { slug, hasDeck, levels } = Astro.props;
     });
     let openExplain: HTMLElement | null = null;
 
-    if (bar && left.explain >= 0) {
+    if (bar && offered.has('explain')) {
       const b = button('Explain another way', 'hp-bar-btn');
       b.dataset.helpExplain = '';
       b.title = 'An AI model rewrites the selected passage from this lesson\'s text';
@@ -266,7 +268,7 @@ const { slug, hasDeck, levels } = Astro.props;
     // =====================================================================================
     // 2. Feedback on a claim-evidence-reasoning answer
     // =====================================================================================
-    prose.querySelectorAll<HTMLElement>('[data-cer]').forEach((cer) => {
+    if (offered.has('feedback')) prose.querySelectorAll<HTMLElement>('[data-cer]').forEach((cer) => {
       if (!cer.querySelector('.cer-model')) return;   // nothing to compare with
       const row = el('div', 'hp-row');
       const b = button('Get feedback on my answer');
@@ -289,9 +291,26 @@ const { slug, hasDeck, levels } = Astro.props;
         const close = () => { box.remove(); b.focus(); };
         const { box, body } = noteBox('Feedback · written by an AI model, checked against this lesson\'s model answer', close);
         const list = (items: string[]) => { const ul = el('ul'); for (const t of items) ul.append(el('li', '', t)); return ul; };
+        // Fixed wording only: which part needs work and what kind of thing it lacks. Nothing here can carry the answer.
+        const PART: Record<string, string> = { claim: 'Your claim', evidence: 'Your evidence', reasoning: 'Your reasoning' };
+        const ISSUE: Record<string, string> = {
+          missing: 'is missing.',
+          'needs data': 'needs numbers or observations from the lesson.',
+          'not linked': 'does not yet connect back to your claim.',
+          'check again': 'has something to check again against the lesson.',
+          'no limit': 'does not yet say what the data cannot show.',
+        };
         if (r.data.has?.length) body.append(el('p', 'hp-h', 'What your answer already has'), list(r.data.has));
-        if (r.data.missing?.length) body.append(el('p', 'hp-h', r.data.onTopic ? 'What to look at again' : 'What the task asks for'), list(r.data.missing));
-        if (r.data.next) body.append(el('p', 'hp-h', 'A question to take you further'), el('p', '', r.data.next));
+        const weak = (r.data.weak || []).filter((w: any) => PART[w.part] && ISSUE[w.issue]).map((w: any) => `${PART[w.part]} ${ISSUE[w.issue]}`);
+        if (weak.length) body.append(el('p', 'hp-h', r.data.onTopic ? 'What to work on' : 'Start here'), list(weak));
+        if (r.data.lookAt) {
+          const p = el('p');
+          p.append(el('strong', '', 'Look at this part of the lesson: '));
+          const target = blockWith(r.data.lookAt);
+          if (target) { const a = button(`“${r.data.lookAt}”`, 'hp-link'); a.addEventListener('click', () => goTo(target)); p.append(a); }
+          else p.append(`“${r.data.lookAt}”`);
+          body.append(p);
+        }
         body.append(el('p', 'hp-muted hp-limit', `Your answer was sent once to an AI model (Anthropic's Claude) and not stored. It is not a grade. ${left.feedback > 0 ? `${left.feedback} feedback requests left today.` : 'No feedback requests left today.'}`));
         out.replaceChildren(box);
         box.focus({ preventScroll: true });
@@ -303,7 +322,7 @@ const { slug, hasDeck, levels } = Astro.props;
     // 3. Notebook to flashcards
     // =====================================================================================
     const panel = document.querySelector<HTMLElement>('[data-hl-panel]');
-    if (panel && root.dataset.hasDeck) {
+    if (panel && root.dataset.hasDeck && offered.has('cards')) {
       const row = el('div', 'hp-row');
       const b = button('Make flashcards from my highlights');
       b.dataset.helpCards = '';
