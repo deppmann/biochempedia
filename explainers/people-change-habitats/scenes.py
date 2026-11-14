@@ -1,365 +1,622 @@
-"""People change habitats: a new fish in the river  (Biochemistrypedia grade 7 Life Science explainer)
+"""One Change, Many Ripples — people change habitats.
 
-COLOR MAP (one color per concept, whole video)
-  BLUE   = blue catfish (the invasive fish)
-  PURPLE = white catfish (the native fish)
-  ORANGE = prey / food supply (small fish, blue crabs)
-  YELLOW = people and what people do
-  GREEN  = habitat, and populations going up
-  RED    = harm: destruction, pollution, populations going down
-  TEAL   = the river (water)
-  GREY   = outlines, labels, de-emphasized
+COLOR MAP (fixed for the whole film)
+  BLUE  introduced blue catfish
+  GOLD  native white catfish
+  TEAL  crabs, small fish, and shared prey
+  GREEN healthy shoreline habitat
+  RED   human pressures
+  TEXT  other labels and evidence
 """
-import numpy as np
-from bp_style import *  # noqa: F401,F403
-
-PURPLE = "#B58CD9"
-ORANGE = "#F29E4C"
+from bp_parts import *
 
 
-def fish(color, scale=1.0, flip=False):
-    body = Ellipse(width=1.5, height=0.8, stroke_color=color, stroke_width=3, fill_color=color, fill_opacity=0.35)
-    tail = Polygon([-0.65, 0, 0], [-1.15, 0.38, 0], [-1.15, -0.38, 0], stroke_color=color, stroke_width=3,
-                   fill_color=color, fill_opacity=0.35)
-    eye = Dot([0.4, 0.1, 0], radius=0.05, color=TEXT)
-    g = VGroup(tail, body, eye).scale(scale)
-    if flip:
+# ---------------------------------------------------------------------------
+# Reusable drawings.  Every carried picture is rebuilt through these builders.
+
+def fish(color, scale=1.0, facing=RIGHT):
+    """A labelled-animal cartoon, deliberately not an anatomical drawing."""
+    body = Ellipse(width=1.55, height=0.72, color=color, stroke_width=4,
+                   fill_color=color, fill_opacity=0.30)
+    tail = Polygon([-0.68, 0, 0], [-1.18, 0.42, 0], [-1.18, -0.42, 0],
+                   color=color, stroke_width=4, fill_color=color, fill_opacity=0.24)
+    eye = Dot([0.44, 0.12, 0], radius=0.055, color=TEXT)
+    whiskers = VGroup(
+        ArcBetweenPoints([0.67, -0.05, 0], [1.02, -0.24, 0], angle=-0.35,
+                         color=color, stroke_width=2.5),
+        ArcBetweenPoints([0.65, -0.10, 0], [0.96, -0.38, 0], angle=-0.35,
+                         color=color, stroke_width=2.5),
+    )
+    g = VGroup(tail, body, eye, whiskers).scale(scale)
+    if np.dot(np.array(facing)[:2], np.array(RIGHT)[:2]) < 0:
         g.flip(UP)
     return g
 
 
 def crab(scale=1.0):
-    b = RoundedRectangle(corner_radius=0.15, width=0.9, height=0.55, stroke_color=ORANGE, stroke_width=3,
-                         fill_color=ORANGE, fill_opacity=0.35)
-    l = Circle(radius=0.17, stroke_color=ORANGE, stroke_width=3, fill_color=ORANGE, fill_opacity=0.35).move_to([-0.55, 0.38, 0])
-    r = Circle(radius=0.17, stroke_color=ORANGE, stroke_width=3, fill_color=ORANGE, fill_opacity=0.35).move_to([0.55, 0.38, 0])
-    return VGroup(l, r, b).scale(scale)
+    body = RoundedRectangle(corner_radius=0.18, width=0.78, height=0.48,
+                            color=TEAL, stroke_width=3, fill_color=TEAL, fill_opacity=0.28)
+    claws = VGroup(
+        Arc(radius=0.22, start_angle=0.2, angle=1.7, color=TEAL, stroke_width=3).shift(LEFT * 0.52 + UP * 0.22),
+        Arc(radius=0.22, start_angle=1.2, angle=1.7, color=TEAL, stroke_width=3).shift(RIGHT * 0.52 + UP * 0.22),
+    )
+    legs = VGroup(*[
+        Line([sx * 0.30, yy, 0], [sx * 0.62, yy - 0.16, 0], color=TEAL, stroke_width=2.5)
+        for sx in (-1, 1) for yy in (-0.14, 0.06)
+    ])
+    return VGroup(legs, claws, body).scale(scale)
 
 
-def small_fish(scale=0.5):
-    return fish(ORANGE, scale)
+def prey_fish(scale=1.0):
+    return fish(TEAL, 0.38 * scale)
 
 
-def arr(a, b, color=GREY, w=5, tip=0.22):
-    return Arrow(a, b, buff=0.08, color=color, stroke_width=w, tip_length=tip,
-                 max_tip_length_to_length_ratio=0.45, max_stroke_width_to_length_ratio=12)
+def person(scale=1.0):
+    head = Circle(radius=0.16, color=TEXT, stroke_width=4).shift(UP * 0.73)
+    body = Line([0, 0.55, 0], [0, -0.25, 0], color=TEXT, stroke_width=5)
+    limbs = VGroup(
+        Line([0, 0.28, 0], [-0.38, -0.05, 0], color=TEXT, stroke_width=4),
+        Line([0, 0.28, 0], [0.42, -0.02, 0], color=TEXT, stroke_width=4),
+        Line([0, -0.25, 0], [-0.32, -0.78, 0], color=TEXT, stroke_width=4),
+        Line([0, -0.25, 0], [0.32, -0.78, 0], color=TEXT, stroke_width=4),
+    )
+    return VGroup(head, body, limbs).scale(scale)
 
 
-def box(w, h, color=GREY, fill=0.08, r=0.2, sw=3):
-    return RoundedRectangle(corner_radius=r, width=w, height=h, stroke_color=color, stroke_width=sw,
-                            fill_color=color, fill_opacity=fill)
+def home(scale=1.0, color=RED):
+    walls = Rectangle(width=1.0, height=0.72, color=color, stroke_width=4,
+                      fill_color=color, fill_opacity=0.18).shift(DOWN * 0.18)
+    roof = Polygon([-0.62, 0.18, 0], [0, 0.72, 0], [0.62, 0.18, 0],
+                   color=color, stroke_width=4, fill_color=color, fill_opacity=0.18)
+    window = Square(0.22, color=YELLOW, fill_color=YELLOW, fill_opacity=0.75).shift(DOWN * 0.15)
+    return VGroup(walls, roof, window).scale(scale)
 
 
-def river(x0=-6.0, x1=6.2, y=0.3, h=2.6):
-    return box(x1 - x0, h, TEAL, 0.14).move_to([(x0 + x1) / 2, y, 0])
+def population_bar(color, height=2.1, label="population", x=5.35, base_y=-1.75):
+    frame = RoundedRectangle(corner_radius=0.12, width=1.05, height=3.0, color=GREY,
+                             stroke_width=2.5).move_to([x, base_y + 1.5, 0])
+    fill = Rectangle(width=0.78, height=height, color=color, stroke_width=0,
+                     fill_color=color, fill_opacity=0.72)
+    fill.move_to([x, base_y + height / 2, 0])
+    lab = fit_text(label, max_w=1.9, size=26, color=color, max_lines=2).next_to(frame, UP, buff=0.14)
+    tag = T("schematic", 24, GREY).next_to(frame, DOWN, buff=0.12)
+    tag.layout_ok = True  # deliberate small scope label required by the script
+    g = VGroup(frame, fill, lab, tag)
+    g.fill = fill
+    g.frame = frame
+    return g
 
 
-def clear(scene, *keep, t=0.5):
-    mobs = [m for m in scene.mobjects if m not in keep]
-    if mobs:
-        scene.play(*[FadeOut(m) for m in mobs], run_time=t)
+def compact_population_bar(color, height=1.25, label="population", center=(5.4, 1.0, 0),
+                           frame_h=2.15, show_tag=True):
+    """A genuinely compact bar; its text is never geometrically scaled."""
+    x, y, _ = center
+    frame = RoundedRectangle(corner_radius=0.10, width=0.92, height=frame_h, color=GREY,
+                             stroke_width=2.5).move_to([x, y, 0])
+    base = y - frame_h / 2 + 0.12
+    fill = Rectangle(width=0.66, height=height, color=color, stroke_width=0,
+                     fill_color=color, fill_opacity=0.72).move_to([x, base + height / 2, 0])
+    lab = fit_text(label, max_w=1.65, size=27, color=color, min_size=22,
+                   max_lines=2).next_to(frame, UP, buff=0.2)
+    tag = T("schematic", 22, GREY).next_to(frame, DOWN, buff=0.08)
+    tag.layout_ok = True
+    g = VGroup(frame, fill, lab, tag) if show_tag else VGroup(frame, fill, lab)
+    g.frame, g.fill = frame, fill
+    return g
 
 
-def word(text, color=TEXT, size=40):
-    return T(text, size, color, weight=BOLD)
+def shared_tag(bars, y_pad=0.08):
+    """One 'schematic' tag centred under a row of bars (their own tags would touch)."""
+    left = min(b.frame.get_left()[0] for b in bars)
+    right = max(b.frame.get_right()[0] for b in bars)
+    bottom = min(b.frame.get_bottom()[1] for b in bars)
+    tag = T("schematic", 22, GREY).move_to([(left + right) / 2, bottom - y_pad - 0.17, 0])
+    tag.layout_ok = True
+    return tag
 
 
-class S00Title(TitleCard):
-    LESSON = "People change habitats"
-    TITLE = "A new fish changes the river"
+def _flow_updater(mob, dt):
+    mob._flow_t = getattr(mob, "_flow_t", 0.0) + dt
+    mob.set_x(-5.2 + (mob._flow_t * mob._flow_speed) % 10.4)
 
 
-# ---------------------------------------------------------------------------------------------
-class S01Stocked(SpokenScene):
+def river_world(with_blue=False, with_native=True, with_people=False, wide=True):
+    """The carried river cross-section, always at the same coordinates and scale."""
+    water = Rectangle(width=13.2, height=4.65, stroke_width=0, fill_color="#18384A",
+                      fill_opacity=1).move_to([0, -0.55, 0])
+    bed = Polygon([-6.6, -2.88, 0], [6.6, -2.88, 0], [6.6, -2.18, 0],
+                  [3.6, -2.35, 0], [0.4, -2.08, 0], [-3.2, -2.32, 0], [-6.6, -2.08, 0],
+                  color=GOLD, stroke_width=3, fill_color="#5A4930", fill_opacity=0.9)
+    bank = Polygon([-6.6, 3.0, 0], [-3.85, 3.0, 0], [-3.25, 1.75, 0], [-6.6, 1.75, 0],
+                   color=GREEN, stroke_width=3, fill_color="#26472E", fill_opacity=1)
+    grasses = VGroup(*[
+        Line([x, 1.78, 0], [x + 0.12 * (-1) ** i, 2.72 - 0.10 * (i % 3), 0],
+             color=GREEN, stroke_width=6)
+        for i, x in enumerate(np.linspace(-6.2, -3.7, 10))
+    ])
+    roots = VGroup(*[
+        Line([x, 1.78, 0], [x + 0.16 * (-1) ** i, 0.20 - 0.12 * (i % 3), 0],
+             color=GREEN, stroke_width=4)
+        for i, x in enumerate(np.linspace(-6.0, -3.8, 8))
+    ])
+    currents = VGroup(*[
+        Line([-5.2, y, 0], [-4.25, y, 0], color=TEAL, stroke_width=3).set_opacity(0.55)
+        for y in (-1.55, -0.72, 0.10, 0.88)
+    ])
+    for i, line in enumerate(currents):
+        line._flow_speed = 0.32 + 0.05 * i
+        line.add_updater(_flow_updater)
+    world = VGroup(water, bed, bank, grasses, roots, currents)
+    world.water, world.bed, world.bank = water, bed, bank
+    world.grasses, world.roots, world.currents = grasses, roots, currents
+    if with_native:
+        natives = VGroup(
+            fish(GOLD, 0.72).move_to([-1.8, 0.45, 0]),
+            fish(GOLD, 0.68).move_to([0.15, -0.58, 0]),
+            fish(GOLD, 0.62).move_to([1.85, 0.48, 0]),
+        )
+        for i, f in enumerate(natives):
+            bob(f, amp=0.055, speed=1.2, seed=i)
+        world.add(natives)
+        world.natives = natives
+    prey = VGroup(
+        prey_fish(0.9).move_to([-3.8, -0.45, 0]),
+        prey_fish(0.82).move_to([-2.9, -1.25, 0]),
+        crab(0.64).move_to([-4.75, -1.72, 0]),
+    )
+    for i, p in enumerate(prey):
+        bob(p, amp=0.045, speed=1.45, seed=i + 4)
+    world.add(prey)
+    world.prey = prey
+    if with_blue:
+        blues = VGroup(
+            fish(BLUE, 0.78).move_to([2.9, -0.45, 0]),
+            fish(BLUE, 0.70).move_to([3.95, 0.58, 0]),
+        )
+        for i, f in enumerate(blues):
+            bob(f, amp=0.055, speed=1.25, seed=i + 7)
+        world.add(blues)
+        world.blues = blues
+    if with_people:
+        people = VGroup(person(0.78).move_to([-5.5, 3.05, 0]), home(0.82, TEXT).move_to([-4.05, 2.75, 0]))
+        world.add(people)
+        world.people = people
+    return world
+
+
+def release_arrow():
+    return CurvedArrow([-5.28, 2.95, 0], [-2.95, 0.92, 0], angle=-0.45,
+                       color=BLUE, stroke_width=7, tip_length=0.24)
+
+
+def prey_world(question=False, half_bar=False, sparse=False):
+    """The carried close-up used without drift in s05–s08."""
+    water = Rectangle(width=13.2, height=6.35, stroke_width=0, fill_color="#18384A",
+                      fill_opacity=1).move_to([0, -0.15, 0])
+    currents = VGroup(*[
+        Line([-5.2, y, 0], [-4.15, y, 0], color=TEAL, stroke_width=3).set_opacity(0.42)
+        for y in (-2.1, -1.2, 1.1, 2.0)
+    ])
+    for i, line in enumerate(currents):
+        line._flow_speed = 0.30 + i * 0.045
+        line.add_updater(_flow_updater)
+    pool = RoundedRectangle(corner_radius=0.28, width=4.3, height=3.35, color=TEAL,
+                            stroke_width=5, fill_color=TEAL, fill_opacity=0.09).move_to([0, -0.2, 0])
+    spots = [(-1.2, 0.65), (0.0, 0.72), (1.18, 0.55), (-1.15, -0.48), (0.1, -0.55), (1.18, -0.60)]
+    items = VGroup()
+    count = 3 if sparse else 6
+    for i, (x, y) in enumerate(spots[:count]):
+        p = (crab(0.52) if i in (1, 4) else prey_fish(0.82)).move_to([x, y - 0.2, 0])
+        bob(p, amp=0.06, speed=1.35, seed=i)
+        items.add(p)
+    blue = fish(BLUE, 1.08).move_to([-3.9, -0.6, 0])
+    gold = fish(GOLD, 1.08, LEFT).move_to([4.7, -0.6, 0])
+    bob(blue, amp=0.055, speed=1.1, seed=2)
+    bob(gold, amp=0.055, speed=1.1, seed=5)
+    blue_lab = T("blue catfish", 28, BLUE).next_to(blue, DOWN, buff=0.17)
+    gold_lab = T("white catfish", 28, GOLD).next_to(gold, DOWN, buff=0.17)
+    pool_lab = T("shared prey", 30, TEAL, weight=BOLD).move_to([0, 2.38, 0])
+    bar = compact_population_bar(BLUE, 1.35 if half_bar else 0.68, "blue\npopulation",
+                                 center=(-5.68, 1.62, 0), frame_h=2.05)
+    world = VGroup(water, currents, pool, items, blue, gold, blue_lab, gold_lab, pool_lab, bar)
+    world.pool, world.items, world.blue, world.gold, world.bar = pool, items, blue, gold, bar
+    world.currents = currents
+    if question:
+        q = fit_text("If blue catfish grow, what remains for white catfish?", max_w=10.2,
+                     size=34, color=TEXT, max_lines=2).move_to([0.35, 3.20, 0])
+        world.add(q)
+        world.question = q
+    return world
+
+
+def arrow_between(a, b, color):
+    return CurvedArrow(a, b, angle=0.22, color=color, stroke_width=6, tip_length=0.22)
+
+
+def response_bars(question=False):
+    labels = [("blue catfish", BLUE, 2.65), ("shared prey", TEAL, 1.65),
+              ("crabs", TEAL, 1.25), ("small fish", TEAL, 1.85), ("white catfish", GOLD, 1.40)]
+    bars = VGroup()
+    for i, (lab, col, h) in enumerate(labels):
+        x = -4.7 + i * 2.35
+        frame = RoundedRectangle(corner_radius=0.10, width=1.28, height=3.15, color=GREY,
+                                 stroke_width=2.5).move_to([x, -0.75, 0])
+        fill = Rectangle(width=0.96, height=h, color=col, stroke_width=0,
+                         fill_color=col, fill_opacity=0.72).move_to([x, -2.32 + h / 2, 0])
+        text = fit_text(lab, max_w=2.0, size=28, color=col, max_lines=2).next_to(frame, UP, buff=0.13)
+        tag = T("schematic", 24, GREY).next_to(frame, DOWN, buff=0.10)
+        tag.layout_ok = True
+        g = VGroup(frame, fill, text, tag)
+        g.fill = fill
+        bars.add(g)
+    if question:
+        q = T("may change", 34, TEXT, weight=BOLD).move_to([0, 3.22, 0])
+        bars.question = q
+        return bars
+    return bars
+
+
+# ---------------------------------------------------------------------------
+# Scenes
+
+class S00Hook(SpokenScene):
     def construct(self):
-        riv = river(-1.5, 6.3, 0.9, 3.4)
-        riv_lbl = T("Virginia's Bay rivers", 28, TEAL).next_to(riv, UP, buff=0.15)
-        src = box(3.0, 3.4, GREY, 0.08).move_to([-5.2, 0.9, 0])
-        src_lbl = T("Mississippi River basin", 24, GREY).next_to(src, UP, buff=0.15)
-        bf = fish(BLUE, 0.95).move_to(src.get_center() + LEFT * 0.1)
-        bf_lbl = T("blue catfish", 26, BLUE).next_to(src, DOWN, buff=0.2)
-        ppl = chip("people", YELLOW, 28).move_to([-2.6, 1.75, 0])
-        self.play(FadeIn(riv), FadeIn(riv_lbl), FadeIn(src), FadeIn(src_lbl), FadeIn(bf), FadeIn(bf_lbl), run_time=0.8)
-        self.at("people put blue catfish")
-        a = arr([-3.55, 0.9, 0], [-1.65, 0.9, 0], YELLOW)
-        self.play(FadeIn(ppl, shift=UP * 0.2), GrowArrow(a), run_time=0.6)
-        moved = fish(BLUE, 1.0).move_to(bf)
-        self.play(moved.animate.move_to([0.3, 0.9, 0]), run_time=1.6)
-        when = T("1970s and 1980s", 28, YELLOW).next_to(riv, DOWN, buff=0.25).align_to(riv, RIGHT)
-        self.play(FadeIn(when), run_time=0.4)
-        self.at("Mississippi River basin")
-        self.play(Indicate(VGroup(src, src_lbl), color=GREY, scale_factor=1.05), run_time=0.8)
-        self.at("Today they are common")
-        pos = [[1.9, 1.9], [3.4, 0.9], [5.0, 1.9], [5.0, 0.0], [2.2, 0.0], [0.3, -0.1]]
-        new = [fish(BLUE, 0.9).move_to([x, y, 0]) for x, y in pos]
-        self.play(FadeOut(a), FadeOut(ppl), FadeOut(when), LaggedStart(*[FadeIn(n, scale=0.6) for n in new], lag_ratio=0.15), run_time=1.6)
-        self.at("what happens to a river")
-        clear(self, riv, riv_lbl, moved, *new, t=0.5)
-        q = T("What happens to a river\nwhen people bring in\na big new fish?", 40, TEXT, weight=BOLD, line_spacing=0.9)
-        q.to_edge(DOWN, buff=0.35)
-        riv_up = VGroup(riv, riv_lbl, moved, *new)
-        self.play(riv_up.animate.scale(0.9).move_to([0, 1.3, 0]), run_time=0.5)
-        q.next_to(riv_up, DOWN, buff=0.4)
-        self.play(FadeIn(q, shift=UP * 0.15), run_time=0.7)
+        world = river_world(with_blue=False, with_native=True, with_people=True)
+        self.play(FadeIn(world), run_time=1.0)
+        q = fit_text("How can one choice make one population rise while another falls?",
+                     max_w=9.6, size=36, color=TEXT, max_lines=2).move_to([1.5, 3.23, 0])
+        self.at("one human choice")
+        self.play(FadeIn(q, shift=DOWN * 0.12), run_time=0.7)
+        arrow = release_arrow()
+        incoming = fish(BLUE, 0.70).move_to([-3.0, 0.92, 0])
+        self.at("one river population rise")
+        self.play(Create(arrow), FadeIn(incoming, scale=0.7), run_time=1.0)
+        up = compact_population_bar(BLUE, 0.55, "blue", center=(4.45, 1.15, 0), show_tag=False)
+        down = compact_population_bar(GOLD, 1.55, "white", center=(6.0, 1.15, 0), show_tag=False)
+        self.play(FadeIn(up), FadeIn(down), FadeIn(shared_tag([up, down])), run_time=0.65)
+        self.at("while another falls")
+        self.play(up.fill.animate.stretch_to_fit_height(1.55).align_to(up.frame, DOWN),
+                  down.fill.animate.stretch_to_fit_height(0.62).align_to(down.frame, DOWN), run_time=1.5)
+        self.at("Watch one Virginia river")
+        ring = SurroundingRectangle(world.water, color=TEXT, buff=0.04, stroke_width=4)
+        self.play(Create(ring), run_time=0.4)
+        self.play(FadeOut(ring), run_time=0.4)
+        self.at("what each population can use")
+        self.play(Indicate(world.prey, color=TEAL, scale_factor=1.14), run_time=0.9)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S02Habitat(SpokenScene):
+class S01Title(TitleCard):
+    LESSON = "People Change Habitats"
+    TITLE = "One Change, Many Ripples"
+
+
+class S02World(SpokenScene):
     def construct(self):
-        # A: people are part of ecosystems, depend on food, water, energy
-        eco = box(11.0, 5.2, GREEN, 0.06).move_to([0, -0.2, 0])
-        eco_lbl = T("ecosystem", 30, GREEN, weight=BOLD).next_to(eco, UP, buff=0.1).align_to(eco, LEFT)
-        ppl = chip("people", YELLOW, 40).move_to([3.4, -0.2, 0])
-        self.at("People are part of ecosystems")
-        self.play(FadeIn(eco), FadeIn(eco_lbl), run_time=0.6)
-        self.play(FadeIn(ppl, scale=0.8), run_time=0.5)
-        self.at("food water")
-        needs = [chip(n, GREEN, 38).move_to([-3.6, y, 0]) for n, y in [("food", 1.5), ("water", -0.2), ("energy", -1.9)]]
-        arrs = [arr(n.get_right() + RIGHT * 0.05, ppl.get_left() + LEFT * 0.05, GREEN) for n in needs]
-        for n, a in zip(needs, arrs):
-            self.play(FadeIn(n), GrowArrow(a), run_time=0.5)
-            self.wait(0.15)
-        self.at("A habitat is the place")
-        clear(self, t=0.5)
-        # B: habitat
-        hab = box(7.4, 3.6, GREEN, 0.12).move_to([0, 0.5, 0])
-        h_lbl = word("habitat", GREEN).to_edge(UP, buff=0.5)
-        hf = fish(PURPLE, 1.3).move_to([-0.3, 0.5, 0])
-        self.play(FadeIn(h_lbl), FadeIn(hab), run_time=0.5)
-        self.play(FadeIn(hf, scale=0.7), run_time=0.4)
+        world = river_world(with_native=False)
+        self.play(FadeIn(VGroup(world.water, world.bed, world.bank, world.grasses, world.currents)), run_time=1.0)
+        self.at("Green marsh plants")
+        self.play(LaggedStart(*[Create(r) for r in world.roots], lag_ratio=0.08), run_time=1.3)
+        self.at("Teal crabs and small fish")
+        self.play(LaggedStart(*[FadeIn(p, shift=RIGHT * 0.12) for p in world.prey], lag_ratio=0.18), run_time=1.1)
+        natives = VGroup(
+            fish(GOLD, 0.82).move_to([-0.8, 0.45, 0]),
+            fish(GOLD, 0.76).move_to([1.0, -0.55, 0]),
+            fish(GOLD, 0.72).move_to([2.75, 0.45, 0]),
+        )
+        for i, f in enumerate(natives):
+            bob(f, amp=0.055, speed=1.2, seed=i)
+        self.at("Gold white catfish")
+        self.play(LaggedStart(*[FadeIn(f, shift=LEFT * 0.2) for f in natives], lag_ratio=0.18), run_time=1.2)
+        bracket = Brace(natives, UP, color=GOLD)
+        label = T("one population: white catfish", 30, GOLD).next_to(bracket, UP, buff=0.14)
+        self.at("All the white catfish")
+        self.play(GrowFromCenter(bracket), FadeIn(label), run_time=0.9)
+        self.at("shoreline shelters animals")
+        self.play(Indicate(VGroup(world.roots, world.prey), color=GREEN, scale_factor=1.03), run_time=1.1)
+        self.at("moving water carries food")
+        self.play(world.prey.animate.shift(RIGHT * 0.75), run_time=1.4, rate_func=linear)
+        self.finish()
+
+
+class S03People(SpokenScene):
+    def construct(self):
+        world = river_world(with_native=True, with_people=False)
+        self.add(world)
+        p1 = person(0.82).move_to([-5.55, 3.00, 0])
+        p2 = person(0.76).move_to([-4.45, 2.98, 0])
+        house = home(0.82, TEXT).move_to([-3.45, 2.72, 0])
+        self.at("People belong inside")
+        self.play(FadeIn(p1), FadeIn(p2), FadeIn(house), run_time=1.0)
+        basket = RoundedRectangle(corner_radius=0.12, width=0.72, height=0.42, color=GOLD,
+                                  fill_color=GOLD, fill_opacity=0.18).move_to([-4.02, 2.67, 0])
+        arrows = VGroup(
+            Arrow([-5.45, 2.30, 0], [-4.8, 1.15, 0], color=TEAL, stroke_width=3, buff=0.08),
+            Arrow([-4.05, 2.32, 0], [-2.65, 0.65, 0], color=GOLD, stroke_width=3, buff=0.08),
+            Arrow([-3.35, 2.20, 0], [-2.05, 1.25, 0], color=TEXT, stroke_width=3, buff=0.08),
+        )
+        labels = VGroup(T("water", 28, TEAL), T("food", 28, GOLD), T("energy", 28, TEXT))
+        for lab, pos in zip(labels, [(0.15, 2.72, 0), (1.65, 2.72, 0), (3.05, 2.72, 0)]):
+            lab.move_to(pos)
+        self.at("food water energy")
+        self.play(FadeIn(basket), LaggedStart(*[GrowArrow(a) for a in arrows], lag_ratio=0.15),
+                  LaggedStart(*[FadeIn(l) for l in labels], lag_ratio=0.15), run_time=1.5)
+        choices = VGroup(T("habitat", 28, GREEN), T("resources", 28, TEAL), T("species", 28, BLUE))
+        choices.arrange(RIGHT, buff=0.38).move_to([1.6, 2.72, 0])
+        self.at("Their choices can change")
+        self.play(FadeOut(arrows), FadeOut(labels),
+                  LaggedStart(*[FadeIn(c, shift=DOWN * 0.12) for c in choices], lag_ratio=0.18), run_time=1.2)
+        outline = RoundedRectangle(corner_radius=0.30, width=6.7, height=4.25, color=GREEN,
+                                   stroke_width=6).move_to([-2.0, -0.25, 0])
+        self.at("A habitat is where")
+        self.play(FadeOut(choices), Create(outline), run_time=1.1)
+        hab = T("habitat = needs met here", 38, GREEN, weight=BOLD).move_to([2.25, -2.58, 0])
         self.at("food water and shelter")
-        tags = [chip(n, GREEN, 30) for n in ["food", "water", "shelter"]]
-        VGroup(*tags).arrange(RIGHT, buff=0.5).move_to([0, -2.1, 0])
-        self.play(LaggedStart(*[FadeIn(t, shift=UP * 0.15) for t in tags], lag_ratio=0.4), run_time=1.2)
-        self.at("A population is all")
-        clear(self, t=0.5)
-        # C: population
-        pop = box(8.4, 3.8, GREY, 0.05).move_to([0, -0.4, 0])
-        p_lbl = word("population", PURPLE).to_edge(UP, buff=0.5)
-        fishes = [fish(PURPLE, 0.8).move_to([x, y, 0]) for x, y in
-                  [(-2.6, 0.5), (0.2, 0.9), (2.5, 0.4), (-1.4, -1.3), (1.6, -1.2)]]
-        self.play(FadeIn(p_lbl), FadeIn(pop), run_time=0.5)
-        self.at("members of one species")
-        self.play(LaggedStart(*[FadeIn(f, scale=0.6) for f in fishes], lag_ratio=0.2), run_time=1.2)
-        sp = T("one species", 28, PURPLE).next_to(pop, DOWN, buff=0.2).shift(LEFT * 2.5)
-        ar = T("one area", 28, GREY).next_to(pop, DOWN, buff=0.2).shift(RIGHT * 0.2)
-        self.play(FadeIn(sp), run_time=0.4)
-        self.at("one area")
-        self.play(FadeIn(ar), run_time=0.4)
-        self.at("Land use is how")
-        clear(self, t=0.5)
-        # D: land use
-        l_lbl = word("land use", YELLOW).to_edge(UP, buff=0.5)
-        land = box(3.2, 2.4, GREY, 0.08)
-        uses = VGroup(*[chip(n, YELLOW, 44) for n in ["farms", "homes", "roads"]]).arrange(RIGHT, buff=0.8).move_to([0, -0.7, 0])
-        ppl2 = chip("people use land", YELLOW, 40).move_to([0, 1.5, 0])
-        self.play(FadeIn(l_lbl), FadeIn(ppl2), run_time=0.5)
-        self.at("farms homes")
-        self.play(LaggedStart(*[GrowFromCenter(u) for u in uses], lag_ratio=0.3), run_time=1.2)
+        self.play(FadeIn(hab, shift=UP * 0.12), run_time=1.1)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S03Destroy(SpokenScene):
+class S04Release(SpokenScene):
     def construct(self):
-        # A: taking resources
-        lbl = word("taking resources", YELLOW).to_edge(UP, buff=0.5)
-        hab = box(4.6, 3.2, GREEN, 0.12).move_to([2.6, -0.6, 0])
-        hab_t = T("habitat", 28, GREEN).next_to(hab, UP, buff=0.12)
-        res = [chip(n, YELLOW, 32) for n in ["wood", "gravel"]]
-        VGroup(*res).arrange(DOWN, buff=0.5).move_to([-3.6, -0.6, 0])
-        self.at("Taking resources")
-        self.play(FadeIn(lbl), FadeIn(hab), FadeIn(hab_t), run_time=0.6)
-        self.at("wood or gravel")
-        self.play(*[FadeIn(r, shift=RIGHT * 0.2) for r in res], run_time=0.6)
-        ar = arr([-2.1, -0.6, 0], [0.1, -0.6, 0], YELLOW)
-        chg = T("changes it", 28, YELLOW).next_to(ar, UP, buff=0.1)
-        self.at("changes habitats too")
-        self.play(GrowArrow(ar), FadeIn(chg), hab.animate.set_stroke(YELLOW), run_time=0.7)
-        self.wait(0.3)
-        self.at("Habitat destruction")
-        clear(self, t=0.5)
-        # B: habitat destruction
-        lbl = word("habitat destruction", RED).to_edge(UP, buff=0.5)
-        marsh = box(5.2, 3.4, GREEN, 0.18).move_to([-3.4, 0.2, 0])
-        marsh_t = T("marsh", 30, GREEN).move_to(marsh)
-        an = [small_fish(0.55).move_to(marsh.get_center() + d) for d in [UP * 1.0 + LEFT * 1.4, DOWN * 1.0 + LEFT * 0.4, UP * 1.0 + RIGHT * 1.2]]
-        self.play(FadeIn(lbl), FadeIn(marsh), FadeIn(marsh_t), *[FadeIn(a) for a in an], run_time=0.7)
-        self.at("Filling in a marsh")
-        homes = box(5.2, 3.4, RED, 0.18).move_to(marsh)
-        homes_t = T("homes built", 30, RED).move_to(homes)
-        self.play(FadeOut(marsh_t), FadeOut(*an) if False else AnimationGroup(*[FadeOut(a) for a in an]),
-                  ReplacementTransform(marsh, homes), FadeIn(homes_t), run_time=1.2)
-        self.at("Animals there must move or die")
-        # population bars (relative, in this sketch)
-        base = [1.5, -2.6, 0]
-        b1 = Rectangle(width=1.2, height=3.0, stroke_color=ORANGE, stroke_width=3, fill_color=ORANGE, fill_opacity=0.4).move_to([2.4, -1.6, 0])
-        b1.align_to([0, -1.4, 0], DOWN)
-        b2 = Rectangle(width=1.2, height=3.0, stroke_color=ORANGE, stroke_width=3, fill_color=ORANGE, fill_opacity=0.4).move_to([4.6, -1.6, 0])
-        b2.align_to([0, -1.4, 0], DOWN)
-        l1 = T("before", 24, GREY).next_to(b1, DOWN, buff=0.12)
-        l2 = T("after", 24, GREY).next_to(b2, DOWN, buff=0.12)
-        t1 = T("animals living there", 28, ORANGE).move_to([3.5, 2.4, 0])
-        t1.shift(UP * 0.0)
-        self.play(FadeIn(b1), FadeIn(b2), FadeIn(l1), FadeIn(l2), FadeIn(t1), run_time=0.6)
-        self.at("populations often drop")
-        self.play(b2.animate.stretch_to_fit_height(1.0).align_to([0, -1.4, 0], DOWN).set_color(RED), run_time=1.0)
-        note = T("in this sketch", 22, GREY).next_to(t1, DOWN, buff=0.12)
-        self.play(FadeIn(note), run_time=0.3)
-        self.at("Pollution")
-        clear(self, t=0.5)
-        # C: pollution
-        lbl = word("pollution", RED).to_edge(UP, buff=0.5)
-        riv = river(-2.8, 6.3, 0.0, 3.0)
-        riv_t = T("river", 30, TEAL).next_to(riv, UP, buff=0.12).align_to(riv, LEFT)
-        fert = chip("extra fertilizer", RED, 30).move_to([-5.0, 0.0, 0])
-        self.play(FadeIn(lbl), FadeIn(riv), FadeIn(riv_t), run_time=0.5)
-        self.at("harmful material")
-        self.play(FadeIn(fert, shift=RIGHT * 0.2), run_time=0.5)
-        self.at("Extra fertilizer in a river")
-        self.play(fert.animate.move_to([-0.8, 0.0, 0]), run_time=1.0)
-        alg = chip("fast algae growth", GREEN, 30).move_to([4.2, 0.0, 0])
-        a = arr([2.9, 0.0, 0], [2.95, 0.0, 0], RED) if False else arr([0.75, 0.0, 0], [2.55, 0.0, 0], RED)
-        self.at("fast algae growth")
-        can = T("can feed", 24, GREY).next_to(a, UP, buff=0.12)
-        self.play(FadeIn(alg, scale=0.8), GrowArrow(a), FadeIn(can), run_time=0.6)
-        self.finish()
-
-
-# ---------------------------------------------------------------------------------------------
-class S04Invasive(SpokenScene):
-    def construct(self):
-        # native
-        riv = river(-6.0, 6.3, 0.8, 3.0)
-        riv_t = T("Virginia's Bay rivers", 26, TEAL).next_to(riv, UP, buff=0.12).align_to(riv, LEFT)
-        wf = fish(PURPLE, 1.3).move_to([-3.4, 0.9, 0])
-        wl = T("white catfish", 28, PURPLE).next_to(wf, DOWN, buff=0.1)
-        nat = word("native species", PURPLE, 36).to_edge(UP, buff=0.35).shift(LEFT * 0.0)
-        self.at("A native species lives")
-        self.play(FadeIn(riv), FadeIn(riv_t), FadeIn(nat), run_time=0.5)
-        self.play(FadeIn(wf, scale=0.7), FadeIn(wl), run_time=0.5)
-        nat2 = T("lives here naturally", 30, PURPLE).move_to([0.6, 0.9, 0])
-        self.play(FadeIn(nat2), run_time=0.5)
-        self.at("native to Virginia's Bay rivers")
-        self.play(Indicate(VGroup(wf, wl), color=PURPLE), run_time=0.8)
-        self.at("An invasive species is brought")
-        inv = word("invasive species", BLUE, 36).move_to(nat)
-        self.play(FadeOut(nat), FadeOut(nat2), FadeIn(inv), run_time=0.5)
-        bf = fish(BLUE, 1.3).move_to([-5.2, -1.6, 0])
-        self.play(FadeIn(bf), run_time=0.3)
-        self.play(bf.animate.move_to([3.4, 0.9, 0]), run_time=1.2)
-        bl = T("blue catfish", 28, BLUE).next_to(bf, DOWN, buff=0.1)
-        self.play(FadeIn(bl), run_time=0.3)
-        # three-part test
-        parts = [("brought to a new place", "new place"), ("spreads", "spreads"), ("harms native species or people", "harms")]
-        rows = []
-        for i, (txt, _) in enumerate(parts):
-            c = chip(txt, GREY, 28)
-            rows.append(c)
-        VGroup(*rows).arrange(RIGHT, buff=0.35).move_to([0, -2.1, 0])
-        fit(VGroup(*rows), max_w=12.4)
+        world = river_world(with_native=True, with_people=True)
+        self.add(world)
+        bucket = Arc(radius=0.46, start_angle=PI, angle=PI, color=TEXT, stroke_width=5).rotate(-0.55).move_to([-5.28, 2.48, 0])
+        arrow = release_arrow()
+        one = fish(BLUE, 0.76).move_to([-2.95, 0.92, 0])
+        self.at("release blue catfish")
+        self.play(FadeIn(bucket), Create(arrow), FadeIn(one, scale=0.6), run_time=1.2)
+        outside = T("from outside these rivers", 28, TEXT).move_to([0.2, 2.70, 0])
+        self.at("outside Virginia's Bay rivers")
+        self.play(FadeIn(outside, shift=DOWN * 0.12), one.animate.move_to([0.1, 0.25, 0]), run_time=1.2)
+        copies = VGroup(one, fish(BLUE, 0.66).move_to([2.0, -0.70, 0]), fish(BLUE, 0.66).move_to([3.1, 0.55, 0]))
+        bar = compact_population_bar(BLUE, 0.62, "blue catfish", center=(5.55, 0.42, 0), frame_h=2.25)
+        self.at("Here they spread")
+        self.play(FadeIn(copies[1]), FadeIn(copies[2]), FadeIn(bar), run_time=0.9)
+        self.play(bar.fill.animate.stretch_to_fit_height(2.25).align_to(bar.frame, DOWN), run_time=1.2)
+        steps = VGroup(chip("brought here", BLUE, 28), chip("spreads", BLUE, 28), chip("causes harm", RED, 28))
+        steps.arrange(RIGHT, buff=0.28).move_to([0.5, -3.28, 0])
+        self.at("cause harm")
+        self.play(FadeOut(outside), LaggedStart(*[FadeIn(s, shift=UP * 0.1) for s in steps], lag_ratio=0.22), run_time=1.3)
+        invasive = T("INVASIVE", 44, BLUE, weight=BOLD).move_to([1.0, 2.75, 0])
+        self.at("so they are invasive")
+        self.play(FadeIn(invasive, scale=0.8), run_time=0.8)
         self.at("Being new is not enough")
-        self.play(*[FadeIn(r) for r in rows], run_time=0.6)
-        self.play(rows[0][0].animate.set_stroke(YELLOW).set_fill(YELLOW, 0.2), rows[0][1].animate.set_color(YELLOW), run_time=0.4)
-        no = T("not enough", 28, RED, weight=BOLD).next_to(rows[0], DOWN, buff=0.15)
-        self.play(FadeIn(no), run_time=0.4)
-        self.at("It must spread and cause harm")
-        self.play(FadeOut(no),
-                  *[x for r in rows[1:] for x in (r[0].animate.set_stroke(RED).set_fill(RED, 0.2), r[1].animate.set_color(RED))],
-                  run_time=0.8)
+        self.play(Indicate(VGroup(steps[1], steps[2]), color=RED, scale_factor=1.06), run_time=1.0)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S05Compete(SpokenScene):
+class S05Share(SpokenScene):
     def construct(self):
-        head = word("competition", ORANGE).to_edge(UP, buff=0.4)
-        bf = fish(BLUE, 1.2).move_to([-4.6, 0.2, 0])
-        wf = fish(PURPLE, 1.2).move_to([4.6, 0.2, 0], ).flip(RIGHT) if False else fish(PURPLE, 1.2, flip=False).move_to([4.6, 0.2, 0])
-        bl = T("blue catfish", 26, BLUE).next_to(bf, DOWN, buff=0.15)
-        wl = T("white catfish", 26, PURPLE).next_to(wf, DOWN, buff=0.15)
-        # food supply tray
-        tray = box(3.6, 3.0, ORANGE, 0.08).move_to([0, 0.2, 0])
-        tray_t = T("food supply", 26, ORANGE).next_to(tray, UP, buff=0.12)
-        dots = VGroup(*[small_fish(0.38) for _ in range(6)])
-        dots.arrange_in_grid(rows=3, cols=2, buff=0.3).move_to(tray)
-        self.at("Competition is when")
-        self.play(FadeIn(head), run_time=0.4)
-        self.play(FadeIn(tray), FadeIn(tray_t), FadeIn(dots), run_time=0.6)
-        self.play(FadeIn(bf), FadeIn(bl), FadeIn(wf), FadeIn(wl), run_time=0.6)
-        self.at("same resource")
-        a1 = arr([-3.4, 0.2, 0], [-1.95, 0.2, 0], BLUE)
-        a2 = arr([3.4, 0.2, 0], [1.95, 0.2, 0], PURPLE)
-        self.play(GrowArrow(a1), GrowArrow(a2), run_time=0.6)
-        self.at("It does not need a fight")
-        fight = chip("fight", RED, 30).move_to([0, -2.6, 0])
-        cross = Cross(fight, stroke_color=RED, stroke_width=6)
-        nof = T("no fight needed", 28, GREY).move_to([0, -2.6, 0])
-        self.play(FadeIn(fight), run_time=0.4)
-        self.play(Create(cross), run_time=0.4)
-        self.wait(0.6)
-        self.play(FadeOut(fight), FadeOut(cross), run_time=0.4)
-        self.at("Blue catfish eat fish")
-        e1 = T("fish, sometimes blue crabs", 26, BLUE).move_to([-4.2, -1.5, 0])
-        self.play(Indicate(a1, color=BLUE), FadeIn(e1), run_time=0.8)
-        self.at("similar prey")
-        e2 = T("similar prey", 26, PURPLE).move_to([4.6, -1.5, 0])
-        self.play(Indicate(a2, color=PURPLE), FadeIn(e2), run_time=0.8)
-        self.at("may compete for food")
-        hedge = T("in this sketch: if blue catfish eat many", 24, ORANGE).move_to([0, -2.05, 0])
-        self.play(FadeIn(hedge), run_time=0.4)
-        self.wait(0.2)
-        self.at("less is left")
-        self.play(*[FadeOut(d, scale=0.5) for d in list(dots)[:4]], run_time=1.2)
-        left = T("less is left", 28, ORANGE, weight=BOLD).move_to([0, -2.6, 0])
-        self.play(FadeIn(left), run_time=0.4)
+        world = prey_world()
+        self.play(FadeIn(world), run_time=1.0)
+        a_blue = arrow_between(world.blue.get_right(), world.pool.get_left(), BLUE)
+        self.at("including fish and sometimes")
+        self.play(Create(a_blue), Indicate(world.items, color=TEAL, scale_factor=1.08), run_time=1.1)
+        a_gold = arrow_between(world.gold.get_left(), world.pool.get_right(), GOLD)
+        self.at("white catfish eat similar prey")
+        self.play(Create(a_gold), run_time=1.0)
+        limited = T("same limited resource", 34, TEAL, weight=BOLD).move_to([0, 2.92, 0])
+        self.at("same limited resource")
+        self.play(FadeIn(limited, shift=DOWN * 0.10), Indicate(world.pool, color=TEAL, scale_factor=1.02), run_time=1.0)
+        compete = T("may compete", 40, TEXT, weight=BOLD).move_to([0, -2.75, 0])
+        self.at("they may compete")
+        self.play(FadeIn(compete), run_time=0.7)
+        nofight = chip("no fight needed", TEXT, 28).move_to([3.8, -2.75, 0])
+        self.at("without a fight")
+        self.play(FadeIn(nofight), run_time=0.7)
+        self.at("eat food another fish needed")
+        self.play(FadeOut(world.items[0], scale=0.5), FadeOut(world.items[1], scale=0.5),
+                  FadeOut(world.items[2], scale=0.5), run_time=1.5)
+        self.add(scope_tag("schematic"))
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S06Answer(SpokenScene):
+class S06Predict(SpokenScene):
     def construct(self):
-        head = word("food web", TEXT).to_edge(UP, buff=0.4)
-        bf = fish(BLUE, 1.2).move_to([-4.8, 0.4, 0])
-        bl = T("blue catfish", 26, BLUE).next_to(bf, DOWN, buff=0.1)
-        crabs = VGroup(*[crab(1.0) for _ in range(3)]).arrange(DOWN, buff=0.3).move_to([-0.4, 0.4, 0])
-        cl = T("blue crabs", 26, ORANGE).next_to(crabs, DOWN, buff=0.12)
-        ce = chip("other crab eaters,\nincluding people", YELLOW, 28).move_to([4.3, 0.4, 0])
-        a1 = arr(crabs.get_left() + LEFT * 0.1, bf.get_right() + RIGHT * 0.1, GREY)
-        a2 = arr(crabs.get_right() + RIGHT * 0.1, ce.get_left() + LEFT * 0.05, GREY)
-        eb = T("eaten by", 24, GREY)
-        self.at("A food web links")
-        self.play(FadeIn(head), run_time=0.4)
-        self.play(FadeIn(bf), FadeIn(bl), FadeIn(crabs), FadeIn(cl), FadeIn(ce), run_time=0.7)
-        self.play(GrowArrow(a1), GrowArrow(a2), run_time=0.6)
-        e1 = eb.copy().next_to(a1, UP, buff=0.05)
-        e2 = eb.copy().next_to(a2, UP, buff=0.05)
-        self.play(FadeIn(e1), FadeIn(e2), run_time=0.3)
-        self.at("a change in one population")
-        self.play(Indicate(bf, color=BLUE), run_time=0.8)
-        self.at("blue catfish eat many blue crabs")
-        self.play(Indicate(a1, color=BLUE), run_time=0.6)
-        self.at("fewer may be left")
-        self.play(FadeOut(crabs[1], scale=0.5), FadeOut(crabs[2], scale=0.5), run_time=0.8)
-        lessm = T("fewer crabs may be left", 26, ORANGE).next_to(cl, DOWN, buff=0.2)
-        self.play(FadeIn(lessm), Indicate(ce, color=YELLOW), run_time=0.6)
-        self.at("what happens when people")
-        clear(self, t=0.5)
-        q = T("What happens to a river when\npeople bring in a big new fish?", 44, TEXT, weight=BOLD, line_spacing=0.9).to_edge(UP, buff=0.7)
-        self.play(FadeIn(q), run_time=0.6)
-        up = VGroup(Triangle(color=GREEN, fill_opacity=0.5).scale(0.4), T("some populations go up", 44, GREEN)).arrange(RIGHT, buff=0.3)
-        dn = VGroup(Triangle(color=RED, fill_opacity=0.5).scale(0.4).rotate(PI), T("others go down", 44, RED)).arrange(RIGHT, buff=0.3)
-        VGroup(up, dn).arrange(DOWN, buff=0.7, aligned_edge=LEFT).move_to([0, -0.5, 0])
-        self.at("Some populations go up")
-        self.play(FadeIn(up, shift=UP * 0.15), run_time=0.6)
-        self.at("others go down")
-        self.play(FadeIn(dn, shift=UP * 0.15), run_time=0.6)
-        self.at("spreads through the food web")
-        sp = T("the change spreads through the food web", 38, TEXT, weight=BOLD).move_to([0, -2.7, 0])
-        self.play(FadeIn(sp, shift=UP * 0.15), run_time=0.6)
+        world = prey_world(question=False, half_bar=False)
+        self.add(world)
+        self.at("Both catfish now use")
+        a1 = arrow_between(world.blue.get_right(), world.pool.get_left(), BLUE)
+        a2 = arrow_between(world.gold.get_left(), world.pool.get_right(), GOLD)
+        self.play(Create(a1), Create(a2), run_time=1.0)
+        self.at("blue population grows")
+        self.play(world.bar.fill.animate.stretch_to_fit_height(1.55).align_to(world.bar.frame, DOWN), run_time=1.4)
+        self.at("what do you predict")
+        q = fit_text("If blue catfish grow, what remains for white catfish?", max_w=10.2,
+                     size=34, color=TEXT, max_lines=2).move_to([0.35, 3.20, 0])
+        self.play(FadeIn(q, shift=DOWN * 0.12), FadeOut(a1), FadeOut(a2), run_time=0.8)
         self.finish()
 
 
-class S07End(EndCard):
-    LINE = "A change in one population spreads through the food web."
+class S07Pause(PredictPause):
+    QUESTION = "If blue catfish grow, what remains for white catfish?"
+    SECONDS = 4.5
+    CARD = {"y": 3.20, "size": 34, "color": TEXT, "max_w": 10.2}
+    RING_AT = (6.0, 3.05, 0)
+
+    def backdrop(self):
+        return prey_world(question=False, half_bar=True)
+
+
+class S08Reveal(SpokenScene):
+    def construct(self):
+        world = prey_world(question=False, half_bar=True)
+        self.add(world)
+        more = VGroup(fish(BLUE, 0.72).move_to([-3.7, 1.35, 0]), fish(BLUE, 0.66).move_to([-5.2, -2.05, 0]))
+        self.at("More blue catfish feed")
+        self.play(FadeIn(more), world.bar.fill.animate.stretch_to_fit_height(2.3).align_to(world.bar.frame, DOWN), run_time=1.2)
+        arrows = VGroup(arrow_between(world.blue.get_right(), world.pool.get_left(), BLUE),
+                        arrow_between(more[0].get_right(), world.pool.get_left() + UP * 0.55, BLUE))
+        self.play(*[Create(a) for a in arrows], run_time=0.9)
+        may = T("may", 38, TEAL, weight=BOLD).move_to([2.55, 2.55, 0])
+        down = Arrow([1.7, 1.85, 0], [1.7, 0.85, 0], color=TEAL, stroke_width=6)
+        self.at("prey pool may shrink")
+        self.play(FadeOut(world.items[0]), FadeOut(world.items[1]), FadeOut(world.items[2]),
+                  world.pool.animate.scale(0.82), FadeIn(may), GrowArrow(down), run_time=1.4)
+        fewer = T("fewer prey", 32, GOLD).move_to([4.45, 1.52, 0])
+        self.at("Less food may remain")
+        self.play(FadeIn(fewer), Indicate(world.gold, color=GOLD, scale_factor=1.05), run_time=1.0)
+        possible = T("possible pathway", 34, TEXT, weight=BOLD).move_to([0, -2.78, 0])
+        bracket = Brace(VGroup(world.blue, world.pool, world.gold), DOWN, color=TEXT)
+        bracket.set_stroke(opacity=0.75)
+        self.at("possible competition pathway")
+        self.play(GrowFromCenter(bracket), FadeIn(possible), run_time=1.0)
+        self.at("not proof")
+        self.play(possible.animate.set_color(GREY), run_time=0.7)
+        other = VGroup(T("?", 52, RED), T("?", 52, RED)).arrange(DOWN, buff=0.42).move_to([6.1, 1.45, 0]).set_opacity(0.62)
+        other_arrows = VGroup(
+            DashedLine([5.65, 2.55, 0], [3.65, 2.72, 0], color=RED, stroke_width=3),
+            DashedLine([5.65, -1.85, 0], [3.65, -2.12, 0], color=RED, stroke_width=3),
+        )
+        self.at("Other habitat changes")
+        self.play(FadeIn(other), Create(other_arrows), run_time=1.1)
+        self.finish()
+
+
+class S09Shore(SpokenScene):
+    def construct(self):
+        world = river_world(with_blue=True, with_native=True)
+        self.add(world)
+        block = Rectangle(width=1.55, height=1.25, color=RED, stroke_width=4,
+                          fill_color=RED, fill_opacity=0.35).move_to([-5.25, 2.38, 0])
+        houses = VGroup(home(0.52).move_to([-5.65, 2.48, 0]), home(0.52).move_to([-4.75, 2.48, 0]))
+        self.at("fill part of the green marsh")
+        self.play(FadeIn(block, shift=RIGHT * 0.6), FadeIn(houses),
+                  VGroup(*world.grasses[:5]).animate.set_opacity(0.12), run_time=1.4)
+        self.at("Habitat disappears")
+        self.play(world.prey.animate.shift(RIGHT * 1.6 + DOWN * 0.15), run_time=1.3)
+        runoff = CurvedArrow([-2.9, 2.55, 0], [-1.1, 0.65, 0], angle=-0.3,
+                             color=RED, stroke_width=12, tip_length=0.30)
+        field = Rectangle(width=2.0, height=0.55, color=RED, fill_color=RED,
+                          fill_opacity=0.18).move_to([-2.5, 2.70, 0])
+        self.at("Runoff enters the water")
+        self.play(FadeIn(field), Create(runoff), run_time=1.2)
+        fert = T("extra fertilizer", 30, RED).move_to([0.25, 2.65, 0])
+        self.at("extra fertilizer")
+        self.play(FadeIn(fert), run_time=0.7)
+        oxygen = ValueTracker(0.82)
+        gauge = dial(oxygen, center=[4.65, 1.35, 0], radius=1.15, label="oxygen",
+                     color=TEAL, fmt="{:.0f}%", scale=100, size=32)
+        tag = T("schematic", 24, GREY).move_to([4.65, -0.15, 0])
+        tag.layout_ok = True
+        self.at("can later lower oxygen")
+        self.play(FadeOut(world.blues), FadeIn(gauge), FadeIn(tag), run_time=0.8)
+        self.play(oxygen.animate.set_value(0.56), run_time=1.6, rate_func=linear)
+        self.at("affect several local populations")
+        self.play(Indicate(VGroup(world.natives, world.prey), color=RED, scale_factor=1.03), run_time=1.0)
+        self.finish()
+
+
+class S10Ripples(SpokenScene):
+    def construct(self):
+        barset = response_bars(question=True)
+        heading = barset.question
+        self.play(FadeIn(heading), FadeIn(barset), run_time=1.2)
+        for i, bar in enumerate(barset):
+            pulse(bar[0], base=2.5, amp=0.75, speed=1.25 + 0.09 * i)
+        signal = Circle(radius=0.24, color=TEXT, stroke_width=5).set_opacity(0.75).move_to([-5.1, 2.48, 0])
+        signal._travel_t = 0.0
+
+        def travel(mob, dt):
+            mob._travel_t += dt
+            mob.move_to([-5.1 + (1.25 * mob._travel_t) % 10.2,
+                         2.48 + 0.08 * np.sin(2.0 * mob._travel_t), 0])
+
+        signal.add_updater(travel)
+        self.add(signal)
+        self.at("whole river not one arrow")
+        self.play(LaggedStart(*[Indicate(b[0], color=TEXT, scale_factor=1.02) for b in barset], lag_ratio=0.10), run_time=1.2)
+        self.at("Blue catfish rise")
+        self.play(barset[0][1].animate.stretch_to_fit_height(2.95).align_to(barset[0][0], DOWN), run_time=1.0)
+        self.at("Shared prey and shoreline habitat change")
+        self.play(barset[1][1].animate.stretch_to_fit_height(1.25).align_to(barset[1][0], DOWN), run_time=0.9)
+        self.at("may respond differently")
+        self.play(barset[2][1].animate.stretch_to_fit_height(0.95).align_to(barset[2][0], DOWN),
+                  barset[3][1].animate.stretch_to_fit_height(1.55).align_to(barset[3][0], DOWN),
+                  barset[4][1].animate.stretch_to_fit_height(1.05).align_to(barset[4][0], DOWN), run_time=1.3)
+        ripples = VGroup(*[
+            Arc(radius=r, start_angle=-0.35, angle=0.7, color=TEXT, stroke_width=4).move_to([0, -0.7, 0])
+            for r in (1.2, 2.4, 3.6, 4.8)
+        ])
+        self.at("food web effects spread")
+        self.play(LaggedStart(*[Create(r) for r in ripples], lag_ratio=0.18), run_time=1.5)
+        basket = RoundedRectangle(corner_radius=0.15, width=1.4, height=0.75, color=GOLD,
+                                  fill_color=GOLD, fill_opacity=0.18).move_to([5.65, 2.42, 0])
+        hand = person(0.62).move_to([4.65, 2.48, 0])
+        self.at("species people catch and eat")
+        self.play(FadeIn(hand), FadeIn(basket), Indicate(barset[4], color=GOLD, scale_factor=1.04), run_time=1.1)
+        self.finish()
+
+
+class S11Help(SpokenScene):
+    def construct(self):
+        world = river_world(with_blue=True, with_native=True)
+        self.add(world)
+        new_grass = VGroup(*[
+            Line([x, 1.78, 0], [x + 0.08 * (-1) ** i, 2.65, 0], color=GREEN, stroke_width=6)
+            for i, x in enumerate(np.linspace(-3.55, -2.4, 6))
+        ])
+        self.at("restore habitat")
+        self.play(LaggedStart(*[GrowFromEdge(g, DOWN) for g in new_grass], lag_ratio=0.12), run_time=1.3)
+        boat = Arc(radius=0.75, start_angle=PI, angle=PI, color=TEXT, stroke_width=6).move_to([2.6, 1.48, 0])
+        lifted = world.blues[1].copy()
+        self.at("remove some invasive fish")
+        self.play(FadeIn(boat), lifted.animate.move_to([2.6, 1.60, 0]), FadeOut(world.blues[1]), run_time=1.4)
+        mini_frames = VGroup(*[
+            RoundedRectangle(corner_radius=0.08, width=0.62, height=1.75, color=GREY, stroke_width=2)
+            for _ in range(3)
+        ]).arrange(RIGHT, buff=0.20).move_to([4.85, 0.25, 0])
+        mini_fills = VGroup(*[
+            Rectangle(width=0.44, height=h, color=c, stroke_width=0, fill_color=c, fill_opacity=0.72)
+            for h, c in ((1.30, BLUE), (0.82, TEAL), (1.02, GOLD))
+        ])
+        for fill, frame in zip(mini_fills, mini_frames):
+            fill.move_to([frame.get_x(), frame.get_bottom()[1] + fill.height / 2 + 0.08, 0])
+        mini_label = T("population responses", 28, TEXT).next_to(mini_frames, UP, buff=0.14)
+        mini = VGroup(mini_frames, mini_fills, mini_label)
+        self.at("How far each population recovers")
+        self.play(FadeOut(boat), FadeOut(lifted), FadeIn(mini), run_time=0.8)
+        question = T("?", 130, TEXT, weight=BOLD).move_to(mini)
+        question.layout_ok = True  # deliberate uncertainty stamp covering unsettled bars
+        self.at("a question to test")
+        self.play(FadeIn(question, scale=0.7), mini.animate.set_opacity(0.25), run_time=0.9)
+        loop = CurvedArrow([-0.4, -2.0, 0], [2.0, -2.0, 0], angle=PI * 1.1,
+                           color=TEXT, stroke_width=5, tip_length=0.25)
+        label = T("test one change", 32, TEXT).move_to([4.15, -3.32, 0])
+        self.at("change one thing at a time")
+        self.play(Create(loop), FadeIn(label), run_time=1.2)
+        self.finish()
+
+
+class S12Rule(SpokenScene):
+    def construct(self):
+        world = river_world(with_blue=True, with_native=True, with_people=True)
+        self.play(FadeIn(world), run_time=0.9)
+        rule = fit_text("When people change an ecosystem, populations may rise or fall.",
+                        max_w=10.2, size=38, color=TEXT, max_lines=2).move_to([1.55, 3.20, 0])
+        self.at("rule to carry forward")
+        self.play(FadeIn(rule, shift=DOWN * 0.12), run_time=0.9)
+        bars = VGroup(
+            compact_population_bar(BLUE, 1.65, "blue", center=(3.3, -0.55, 0), show_tag=False),
+            compact_population_bar(GOLD, 0.78, "white", center=(4.85, -0.55, 0), show_tag=False),
+            compact_population_bar(TEAL, 1.12, "prey", center=(6.4, -0.55, 0), show_tag=False),
+        )
+        self.at("populations may rise or fall")
+        self.play(FadeOut(world.natives), FadeOut(world.blues),
+                  LaggedStart(*[FadeIn(b, shift=UP * 0.10) for b in bars], lag_ratio=0.14),
+                  FadeIn(shared_tag(list(bars))), run_time=1.2)
+        lens = Circle(radius=0.72, color=TEXT, stroke_width=7).move_to([-1.1, -1.15, 0])
+        handle = Line([-0.58, -1.66, 0], [0.15, -2.38, 0], color=TEXT, stroke_width=9)
+        evidence = T("real river evidence", 34, TEXT, weight=BOLD).move_to([-2.1, -2.65, 0])
+        self.at("evidence must show")
+        self.play(Create(lens), Create(handle), FadeIn(evidence), run_time=1.1)
+        legend = VGroup(T("blue catfish", 24, BLUE), T("white catfish", 24, GOLD), T("shared prey", 24, TEAL))
+        legend.arrange(DOWN, aligned_edge=LEFT, buff=0.10).move_to([-4.9, 0.30, 0])
+        self.play(FadeOut(world.currents), FadeOut(world.roots), run_time=0.25)
+        self.at("real river")
+        self.play(FadeIn(legend), Indicate(evidence, color=TEXT, scale_factor=1.04), run_time=0.9)
+        self.finish()
+
+
+class S13End(EndCard):
+    LINE = "When people change an ecosystem, populations may rise or fall."
