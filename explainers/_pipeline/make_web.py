@@ -30,6 +30,22 @@ def ff(args):
         sys.exit("ffmpeg: " + r.stderr[:400])
 
 
+STAMP = Path(__file__).resolve().parent / "kit" / "hex_stamp.png"
+
+
+def height(p):
+    return int(subprocess.run(["ffprobe", "-v", "error", "-select_streams", "v:0", "-show_entries", "stream=height",
+                               "-of", "csv=p=0", str(p)], capture_output=True, text=True).stdout.strip() or 1080)
+
+
+def stamp_filter(h, end_t, frac=0.07, margin=0.028, alpha=0.6):
+    """The brand mark: a small Hex in the top right corner (the corner films use least), faded, on every
+    frame until the end card starts (Hex is already on the end card)."""
+    sh, m = max(2, round(h * frac / 2) * 2), round(h * margin)
+    return (f"[1:v]scale=-2:{sh},format=rgba,colorchannelmixer=aa={alpha}[hx];"
+            f"[0:v]fps=30[b];[b][hx]overlay=W-w-{m}:{m}:enable='lt(t,{end_t:.2f})',format=yuv420p[v]")
+
+
 def words_for(wav):
     h = hashlib.sha256(Path(wav).read_bytes()).hexdigest()[:16]
     cache = SHARED / "stt" / f"wav-{h}.json"
@@ -99,10 +115,28 @@ def cues_from(words, offset, max_chars=84):
     return cues
 
 
+def keep_narrated(cues, scene):
+    """Drop cues the narration does not contain. Speech recognition invents text ("please visit www .x .org",
+    "thanks for watching") over silent stretches; a cue stays only if at least 60% of its words are found in
+    the scene's narration or tts (allowing small spelling differences). No narration, no cues."""
+    known = {key(t) for f in ("narration", "tts") for t in (scene.get(f) or "").split()} - {""}
+    kept = []
+    for c in cues:
+        ws = [key(t) for t in c[2].split()]
+        ws = [w for w in ws if w]
+        hit = sum(1 for w in ws if w in known or difflib.get_close_matches(w, known, 1, 0.8))
+        if ws and hit / len(ws) >= 0.6:
+            kept.append(c)
+        else:
+            print(f"  dropped invented cue in {scene['id']} at {c[0]:.1f}s: {c[2]!r}")
+    return kept
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--dir", required=True)
     ap.add_argument("--master", default="hq")
+    ap.add_argument("--no-stamp", action="store_true", help="leave the Hex mark off the web film")
     a = ap.parse_args()
     d = Path(a.dir)
     script = json.loads((d / "script.json").read_text())
@@ -115,13 +149,19 @@ def main():
         if s.get("narration"):
             if poster_t is None:
                 poster_t = t0 + L * 0.55
-            cues += cues_from(respell(words_for(d / "audio" / f"{s['id']}.wav"), s["narration"]), t0)
+            cues += keep_narrated(cues_from(respell(words_for(d / "audio" / f"{s['id']}.wav"), s["narration"]), t0), s)
+        end_t = t0          # start of the last scene (the Hex end card), where the mark stops
         t0 += L
     for i in range(len(cues) - 1):   # let each cue linger until the next starts, at most 0.8 s extra
         cues[i][1] = min(max(cues[i][1], cues[i][0] + 1.0), cues[i + 1][0], cues[i][1] + 0.8)
     web = d / "web"; web.mkdir(exist_ok=True)
-    ff(["-i", str(master), "-vf", "fps=30,format=yuv420p", "-c:v", "libx264", "-preset", "slow", "-crf", "27",
-        "-tune", "animation", "-c:a", "aac", "-b:a", "96k", "-ac", "1", "-movflags", "+faststart", str(web / "explainer.mp4")])
+    enc = ["-c:v", "libx264", "-preset", "slow", "-crf", "27", "-tune", "animation", "-c:a", "aac", "-b:a", "96k",
+           "-ac", "1", "-movflags", "+faststart", str(web / "explainer.mp4")]
+    if a.no_stamp or not STAMP.exists():
+        ff(["-i", str(master), "-vf", "fps=30,format=yuv420p"] + enc)
+    else:
+        ff(["-i", str(master), "-i", str(STAMP), "-filter_complex", stamp_filter(height(master), end_t),
+            "-map", "[v]", "-map", "0:a?"] + enc)
     ff(["-ss", f"{poster_t or 4:.2f}", "-i", str(master), "-frames:v", "1", "-vf", "scale=1280:-2", "-q:v", "3",
         str(web / "poster.jpg")])
     (web / "explainer.vtt").write_text("WEBVTT\n\n" + "\n".join(
