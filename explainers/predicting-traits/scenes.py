@@ -1,310 +1,551 @@
-"""A Punnett square predicts the chances  (grade 7 Life Science explainer, predicting-traits)
+"""Where Can White Flowers Hide? — one carried pea-cross world.
 
-COLOR MAP (one color per concept, whole film)
-  PURPLE = the P allele, purple flowers, purple offspring
-  WHITE  = the p allele, white flowers, white offspring
-  YELLOW = vocabulary words (allele, genotype, phenotype, ratio, probability, Punnett square)
-  BLUE   = the Punnett grid, sex cells, gene copies
-  GREEN  = chances and predictions (1 in 4, 50 percent, 3 : 1 line)
-  GOLD   = Mendel's counted seeds
-  RED    = question marks
-  GREY   = structure and neutral labels
-  TEXT   = plain labels
+COLOR MAP (one color per concept, throughout)
+  PURPLE = P allele and purple phenotype
+  CREAM  = p allele and white phenotype
+  TEAL   = sex-cell paths and Punnett grid
+  GOLD   = questions and predictions
+  GREY   = neutral structure
 """
-from bp_style import *  # noqa: F401,F403
+from bp_parts import *
+
 
 PURPLE = "#B07CFF"
-WHITE = "#FFFFFF"
+CREAM = "#FFF1D0"
 
 
-def geno(s, size=44):
-    """Allele letters coloured: P purple, p white."""
-    return T(s, size, WHITE, weight=BOLD, t2c={"P": PURPLE})
-
-
-def flower(kind, x, y, r=0.38):
-    col = PURPLE if kind == "purple" else WHITE
-    return Circle(radius=r, stroke_color=col, stroke_width=4, fill_color=col, fill_opacity=0.9).move_to([x, y, 0])
-
-
-def plant(kind, x, y, label=None, size=24):
-    """A schematic plant: a stem and a flower disc (not to scale)."""
-    stem = Line([x, y - 0.65, 0], [x, y + 0.1, 0], color=GREEN if False else GREY, stroke_width=6)
-    fl = flower(kind, x, y + 0.45)
-    parts = [stem, fl]
-    if label:
-        parts.append(T(label, size, GREY).move_to([x, y - 0.95, 0]))
-    return VGroup(*parts)
-
-
-def arrow(a, b, color=GREY, w=5):
-    return Arrow(a, b, buff=0.08, color=color, stroke_width=w, tip_length=0.22)
-
-
-def word(text, size=32):
-    return T(text, size, YELLOW, weight=BOLD)
-
-
-def grid_at(cx, cy, s=1.7):
-    """2x2 Punnett grid: returns (outline group, cell centres in order TL, TR, BL, BR, col x's, row y's)."""
-    cols = [cx - s / 2, cx + s / 2]
-    rows = [cy + s / 2, cy - s / 2]
-    lines = VGroup(
-        Rectangle(width=2 * s, height=2 * s, stroke_color=BLUE, stroke_width=5).move_to([cx, cy, 0]),
-        Line([cx, cy + s, 0], [cx, cy - s, 0], color=BLUE, stroke_width=5),
-        Line([cx - s, cy, 0], [cx + s, cy, 0], color=BLUE, stroke_width=5),
+def allele_tile(letter, center=ORIGIN, scale=1.0):
+    """Large, readable allele block; the letter is part of the block, not a molecule."""
+    color = PURPLE if letter == "P" else CREAM
+    box = RoundedRectangle(
+        corner_radius=0.16 * scale,
+        width=1.0 * scale,
+        height=1.15 * scale,
+        stroke_color=color,
+        stroke_width=4,
+        fill_color=color,
+        fill_opacity=0.22,
     )
-    cells = [[cols[0], rows[0]], [cols[1], rows[0]], [cols[0], rows[1]], [cols[1], rows[1]]]
-    return lines, cells, cols, rows
+    label = T(letter, 46 * scale, color, weight=BOLD).move_to(box)
+    return VGroup(box, label).move_to(center)
 
 
-class S00Title(TitleCard):
-    LESSON = "Predicting traits with Punnett squares"
-    TITLE = "A Punnett square predicts the chances"
+def flower(kind="purple", center=ORIGIN, scale=1.0):
+    """A simple five-petal flower, deliberately botanical rather than molecular."""
+    color = PURPLE if kind == "purple" else CREAM
+    petals = VGroup()
+    for angle in np.linspace(0, TAU, 5, endpoint=False):
+        p = Ellipse(
+            width=0.54 * scale,
+            height=0.82 * scale,
+            stroke_color=color,
+            stroke_width=3,
+            fill_color=color,
+            fill_opacity=0.78,
+        )
+        p.rotate(angle).move_to(np.array(center) + 0.31 * scale * np.array([np.cos(angle), np.sin(angle), 0]))
+        petals.add(p)
+    middle = Dot(center, radius=0.12 * scale, color=GOLD)
+    return VGroup(petals, middle)
 
 
-# ----------------------------------------------------------------------------------------------
-class S01Question(SpokenScene):
+def pea_plant(kind="purple", center=ORIGIN, height=3.3, label=None):
+    """The carried plant picture used in every scene that shows a parent or offspring."""
+    c = np.array(center, dtype=float)
+    s = height / 3.3
+    stem = Line(c + DOWN * 1.15 * s, c + UP * 0.82 * s, color=GREEN, stroke_width=7)
+    branch_l = Line(c + DOWN * 0.25 * s, c + LEFT * 0.62 * s + UP * 0.15 * s, color=GREEN, stroke_width=5)
+    branch_r = Line(c + UP * 0.05 * s, c + RIGHT * 0.62 * s + UP * 0.42 * s, color=GREEN, stroke_width=5)
+    leaf_l = Ellipse(width=0.78 * s, height=0.38 * s, color=GREEN, stroke_width=3,
+                     fill_color=GREEN, fill_opacity=0.32).rotate(0.45).move_to(branch_l.get_end())
+    leaf_r = Ellipse(width=0.78 * s, height=0.38 * s, color=GREEN, stroke_width=3,
+                     fill_color=GREEN, fill_opacity=0.32).rotate(-0.45).move_to(branch_r.get_end())
+    bloom = flower(kind, c + UP * 1.22 * s, 0.92 * s)
+    soil = Arc(radius=0.72 * s, start_angle=0, angle=PI, color=GREY, stroke_width=4).move_to(c + DOWN * 1.15 * s)
+    g = VGroup(soil, stem, branch_l, branch_r, leaf_l, leaf_r, bloom)
+    g.bloom = bloom
+    if label:
+        g.add(T(label, 28, PURPLE if kind == "purple" else CREAM).next_to(soil, DOWN, buff=0.16))
+    return g
+
+
+def hook_world(with_child=True):
+    """Exact hook/title layout so the three plants never drift between scenes."""
+    left = pea_plant("purple", [-4.1, 0.15, 0], 4.6)
+    right = pea_plant("purple", [4.1, 0.15, 0], 4.6)
+    child = pea_plant("white", [0, -1.05, 0], 2.8)
+    world = VGroup(left, right)
+    if with_child:
+        world.add(child)
+    world.left_parent, world.right_parent, world.child = left, right, child
+    return world
+
+
+def sex_cell(letter, center=ORIGIN, radius=0.62):
+    color = PURPLE if letter == "P" else CREAM
+    cell = Circle(radius=radius, stroke_color=TEAL, stroke_width=4, fill_color=TEAL, fill_opacity=0.10)
+    tile = allele_tile(letter, scale=0.54).move_to(cell)
+    return VGroup(cell, tile).move_to(center)
+
+
+GRID_C = np.array([0.35, -0.30, 0.0])
+GRID_CELL = 2.05
+
+
+def punnett_grid(scale=1.0, center=GRID_C):
+    """The fixed two-by-two grid used from s05 through s10."""
+    c = np.array(center, dtype=float)
+    s = GRID_CELL * scale
+    field = Rectangle(width=2 * s, height=2 * s, stroke_width=0, fill_color=TEAL, fill_opacity=0.24).move_to(c)
+    outline = Rectangle(width=2 * s, height=2 * s, stroke_color=TEAL, stroke_width=5).move_to(c)
+    v = Line(c + UP * s, c + DOWN * s, color=TEAL, stroke_width=5)
+    h = Line(c + LEFT * s, c + RIGHT * s, color=TEAL, stroke_width=5)
+    g = VGroup(field, outline, v, h)
+    g.centers = [c + LEFT * s / 2 + UP * s / 2, c + RIGHT * s / 2 + UP * s / 2,
+                 c + LEFT * s / 2 + DOWN * s / 2, c + RIGHT * s / 2 + DOWN * s / 2]
+    g.top = [c + LEFT * s / 2 + UP * (s + 0.52 * scale), c + RIGHT * s / 2 + UP * (s + 0.52 * scale)]
+    g.side = [c + LEFT * (s + 0.52 * scale) + UP * s / 2, c + LEFT * (s + 0.52 * scale) + DOWN * s / 2]
+    return g
+
+
+def genotype_label(pair, center, size=42):
+    """Allele pair with character-level concept colors."""
+    t = T(pair, size, CREAM, weight=BOLD, t2c={"P": PURPLE, "p": CREAM})
+    return t.move_to(center)
+
+
+def filled_cross(include_flowers=False, subdued=False):
+    """Complete Pp × Pp square, rebuilt at the same coordinates in later scenes."""
+    grid = punnett_grid()
+    top = VGroup(sex_cell("P", grid.top[0], 0.44), sex_cell("p", grid.top[1], 0.44))
+    side = VGroup(sex_cell("P", grid.side[0], 0.44), sex_cell("p", grid.side[1], 0.44))
+    pairs = VGroup(*[genotype_label(x, c) for x, c in zip(("PP", "Pp", "Pp", "pp"), grid.centers)])
+    flowers = VGroup()
+    if include_flowers:
+        for i, c in enumerate(grid.centers):
+            f = flower("white" if i == 3 else "purple", c + DOWN * 0.52, 0.40)
+            pairs[i].shift(UP * 0.42)
+            flowers.add(f)
+    result = VGroup(grid, top, side, pairs, flowers)
+    result.grid, result.top_tokens, result.side_tokens = grid, top, side
+    result.pairs, result.flowers = pairs, flowers
+    if subdued:
+        result.set_opacity(0.32)
+    return result
+
+
+def predict_backdrop(empty_last=True):
+    grid = punnett_grid()
+    top = VGroup(sex_cell("P", grid.top[0], 0.44), sex_cell("p", grid.top[1], 0.44))
+    side = VGroup(sex_cell("P", grid.side[0], 0.44), sex_cell("p", grid.side[1], 0.44))
+    pairs = VGroup(*[genotype_label(x, c + UP * 0.34) for x, c in zip(("PP", "Pp", "Pp"), grid.centers[:3])])
+    blooms = VGroup(*[flower("purple", c + DOWN * 0.48, 0.40) for c in grid.centers[:3]])
+    target = grid.centers[3]
+    waiting_top = sex_cell("p", target + UP * 0.78, 0.30)
+    waiting_side = sex_cell("p", target + LEFT * 0.78, 0.30)
+    path_top = DashedLine(waiting_top.get_bottom(), target + UP * 0.24, color=TEAL, stroke_width=5, dash_length=0.15)
+    path_side = DashedLine(waiting_side.get_right(), target + LEFT * 0.24, color=TEAL, stroke_width=5, dash_length=0.15)
+    g = VGroup(grid, top, side, pairs, blooms, path_top, path_side, waiting_top, waiting_side)
+    g.grid, g.target, g.waiting_top, g.waiting_side = grid, target, waiting_top, waiting_side
+    g.paths = VGroup(path_top, path_side)
+    return g
+
+
+class S00Hook(SpokenScene):
     def construct(self):
-        p1 = plant("purple", -3, 1.9, "purple flowers", 24)
-        p2 = plant("purple", 3, 1.9, "purple flowers", 24)
-        self.at("pea plants")
-        self.play(FadeIn(p1, shift=UP * 0.2), FadeIn(p2, shift=UP * 0.2), run_time=1.0)
-        g1 = geno("Pp", 34).move_to([-3, 0.4, 0])
-        g2 = geno("Pp", 34).move_to([3, 0.4, 0])
-        x = T("x", 34, GREY).move_to([0, 1.9, 0])
-        self.at("one purple allele")
-        self.play(FadeIn(g1, shift=UP * 0.1), FadeIn(g2, shift=UP * 0.1), FadeIn(x), run_time=0.9)
-        a1 = arrow([-1.6, 1.0, 0], [-0.6, 0.15, 0])
-        a2 = arrow([1.6, 1.0, 0], [0.6, 0.15, 0])
-        kids = VGroup(*[plant("purple" if i < 3 else "white", xx, -1.0, None) for i, xx in enumerate([-3.6, -1.2, 1.2, 3.6])])
-        klab = T("offspring: predicted chances, not a drawn sample", 24, GREY).move_to([0, -2.2, 0])
-        self.at("offspring")
-        self.play(GrowArrow(a1), GrowArrow(a2), FadeIn(kids, lag_ratio=0.25), FadeIn(klab), run_time=1.6)
-        pred = T("chances: about 3 purple : 1 white", 30, GREEN, weight=BOLD).move_to([0, -2.75, 0])
-        self.at("bloom purple")
-        self.play(FadeIn(pred, shift=UP * 0.1), run_time=0.8)
-        ring = Circle(radius=0.62, stroke_color=YELLOW, stroke_width=5).move_to([3.6, -0.55, 0])
-        self.at("bloom white")
-        self.play(FadeIn(ring), run_time=0.5)
-        q = T("?", 34, RED, weight=BOLD).move_to([3.6, -0.55, 0])
-        w = T("Where was the white hiding?", 38, YELLOW).move_to([0, -3.3, 0])
-        self.at("hiding")
-        self.play(FadeIn(q, scale=1.3), FadeIn(w, shift=UP * 0.1), run_time=0.8)
-        w2 = T("Could we predict it first?", 38, YELLOW).move_to([0, -3.3, 0])
-        self.at("single seed")
-        self.play(FadeOut(w, shift=UP * 0.1), FadeIn(w2, shift=UP * 0.1), run_time=0.6)
+        world = hook_world(with_child=False)
+        bob(world.left_parent, amp=0.12, speed=1.5)
+        bob(world.right_parent, amp=0.12, speed=1.35, seed=3)
+        self.play(FadeIn(world.left_parent, shift=UP * 0.2), FadeIn(world.right_parent, shift=UP * 0.2), run_time=0.7)
+
+        self.at("white flowered offspring")
+        q = T("?", 150, CREAM, weight=BOLD).set_opacity(0.20).move_to([0, 0.35, 0])
+        q.layout_ok = True  # deliberately behind the offspring; noted in film_author.json
+        child = world.child
+        bob(child, amp=0.12, speed=1.7, seed=5)
+        self.play(GrowFromCenter(q), FadeIn(child, shift=UP * 0.8), run_time=1.2)
+
+        self.at("Picture two purple")
+        self.play(Indicate(VGroup(world.left_parent.bloom, world.right_parent.bloom), color=PURPLE,
+                           scale_factor=1.05), run_time=1.0)
+
+        self.at("one offspring")
+        self.play(Indicate(child.bloom, color=CREAM, scale_factor=1.12), run_time=0.9)
+
+        self.at("visible color")
+        puzzled = VGroup(*[T("?", 46, GOLD).next_to(p.bloom, UP, buff=0.18)
+                           for p in (world.left_parent, world.right_parent)])
+        self.play(FadeIn(puzzled, shift=DOWN * 0.15), run_time=0.8)
+
+        self.at("answer is hidden")
+        self.play(FadeOut(puzzled), q.animate.set_opacity(0.38),
+                  Indicate(VGroup(world.left_parent, world.right_parent), color=CREAM, scale_factor=1.02), run_time=1.2)
         self.finish()
 
 
-# ----------------------------------------------------------------------------------------------
+class S01Title(TitleCard):
+    LESSON = "Predicting Traits with Punnett Squares"
+    TITLE = "Where Can White Flowers Hide?"
+
+    def construct(self):
+        world = hook_world()
+        world.scale(0.72).shift(DOWN * 0.62)
+        world.set_opacity(0.30)
+        bob(world.left_parent, amp=0.025, speed=1.4)
+        bob(world.right_parent, amp=0.025, speed=1.3, seed=2)
+        title = fit_text(self.TITLE, max_w=11.5, size=52, color=TEXT, font=TITLE_FONT, min_size=38)
+        title.move_to([0, 1.95, 0])
+        lesson = fit_text(self.LESSON.upper(), max_w=11.3, size=22, color=TEAL, min_size=22)
+        lesson.next_to(title, UP, buff=0.28)
+        rule = Line(LEFT * 1.5, RIGHT * 1.5, color=GOLD, stroke_width=4).next_to(title, DOWN, buff=0.28)
+        self.add(world)
+        self.play(FadeIn(lesson), Write(title), GrowFromCenter(rule), run_time=0.8)
+        self.wait(0.7)
+        self.play(FadeOut(VGroup(world, lesson, title, rule)), run_time=0.5)
+        self.finish()
+
+
 class S02Alleles(SpokenScene):
     def construct(self):
-        cx, cy = -3.6, 0.5
-        cell = Ellipse(width=4.8, height=3.2, stroke_color=GREY, stroke_width=4, fill_color=GREY, fill_opacity=0.08).move_to([cx, cy, 0])
-        cl = T("body cell of a pea plant", 26, GREY).move_to([cx, cy + 2.05, 0])
-        self.at("body cell")
-        self.play(FadeIn(cell, scale=0.9), FadeIn(cl), run_time=0.9)
-        g1 = RoundedRectangle(corner_radius=0.15, width=0.7, height=1.5, stroke_color=BLUE, stroke_width=3, fill_color=BLUE, fill_opacity=0.3).move_to([cx - 0.9, cy, 0])
-        g2 = g1.copy().move_to([cx + 0.9, cy, 0])
-        gl = T("two copies of the flower-color gene", 24, BLUE).move_to([cx, cy - 2.05, 0])
-        self.at("two copies")
-        self.play(FadeIn(g1, scale=0.8), FadeIn(g2, scale=0.8), FadeIn(gl), run_time=1.0)
-        al = word("allele = one version of a gene", 26).move_to([cx, cy - 2.7, 0])
-        self.at("one version")
-        self.play(FadeIn(al, shift=UP * 0.1), run_time=0.7)
-        bp = RoundedRectangle(corner_radius=0.15, width=0.7, height=1.5, stroke_color=PURPLE, stroke_width=3, fill_color=PURPLE, fill_opacity=0.85).move_to(g1)
-        bw = RoundedRectangle(corner_radius=0.15, width=0.7, height=1.5, stroke_color=WHITE, stroke_width=3, fill_color=WHITE, fill_opacity=0.9).move_to(g2)
-        lp = T("P", 40, BG, weight=BOLD).move_to(bp)
-        lw = T("p", 40, BG, weight=BOLD).move_to(bw)
-        self.at("purple allele")
-        self.play(Transform(g1, bp), run_time=0.7)
-        self.at("white allele")
-        self.play(Transform(g2, bw), run_time=0.7)
-        self.at("capital")
-        self.play(FadeIn(lp, scale=0.7), run_time=0.6)
-        self.at("small")
-        self.play(FadeIn(lw, scale=0.7), run_time=0.6)
-        dom = VGroup(T("dominant", 30, YELLOW, weight=BOLD), T("shows with only one copy", 26)).arrange(DOWN, buff=0.1).move_to([3.5, 1.7, 0])
-        self.at("dominant allele")
-        self.play(FadeIn(dom, shift=LEFT * 0.2), run_time=0.8)
-        rec = VGroup(T("recessive", 30, YELLOW, weight=BOLD), T("shows only with both copies", 26)).arrange(DOWN, buff=0.1).move_to([3.5, 0.1, 0])
-        self.at("recessive allele")
-        self.play(FadeIn(rec, shift=LEFT * 0.2), run_time=0.8)
-        hid = T("p is hidden, not destroyed", 30, YELLOW).move_to([3.5, -1.7, 0])
-        self.at("hidden")
-        self.play(FadeIn(hid, shift=UP * 0.1), Indicate(VGroup(g2, lw), color=YELLOW, scale_factor=1.2), run_time=1.1)
+        parent = pea_plant("purple", [-3.55, -0.15, 0], 5.35)
+        bob(parent, amp=0.11, speed=1.4)
+        self.play(FadeIn(parent, scale=0.92), run_time=0.8)
+
+        self.at("versions called alleles")
+        allele_word = T("alleles", 36, TEAL, weight=BOLD).move_to([3.25, 2.65, 0])
+        self.play(FadeIn(allele_word, shift=DOWN * 0.15), run_time=0.7)
+
+        self.at("purple allele and")
+        p = allele_tile("P", [2.30, 0.55, 0], 1.5)
+        little_p = allele_tile("p", [4.25, -0.35, 0], 1.5)
+        self.play(FadeIn(little_p, shift=LEFT * 0.25), FadeIn(p, shift=LEFT * 0.25), run_time=1.0)
+
+        self.at("purple version is dominant")
+        dominant = T("dominant", 30, PURPLE, weight=BOLD).next_to(p, UP, buff=0.18)
+        self.play(FadeIn(dominant), Indicate(parent.bloom, color=PURPLE, scale_factor=1.08), run_time=0.9)
+
+        self.at("white version is recessive")
+        recessive = T("recessive", 30, CREAM, weight=BOLD).next_to(little_p, DOWN, buff=0.18)
+        self.play(FadeIn(recessive), Indicate(little_p, color=CREAM, scale_factor=1.08), run_time=0.9)
+
+        self.at("hidden from view")
+        p.set_z_index(2)
+        self.play(p.animate.shift(RIGHT * 0.25), little_p.animate.shift(LEFT * 0.10), run_time=0.7)
+        still_here = T("still carried", 30, CREAM).move_to([4.15, -2.35, 0])
+        self.play(FadeIn(still_here), little_p.animate.set_opacity(1.0), run_time=0.7)
+
+        self.at("not damaged")
+        self.play(Indicate(little_p, color=CREAM, scale_factor=1.12), run_time=0.9)
         self.finish()
 
 
-# ----------------------------------------------------------------------------------------------
 class S03Genotype(SpokenScene):
     def construct(self):
-        ys = [2.0, 1.0, 0.0]
-        gh = word("genotype", 32).move_to([-3.6, 3.0, 0])
-        rows = []
-        self.at("pair of alleles")
-        self.play(FadeIn(gh, shift=DOWN * 0.1), run_time=0.6)
-        gl = []
-        for s, y in zip(["PP", "Pp", "pp"], ys):
-            g = geno(s, 44).move_to([-3.6, y, 0])
-            gl.append(g)
-        self.play(FadeIn(VGroup(*gl), lag_ratio=0.3), run_time=0.9)
-        ph = word("phenotype", 32).move_to([1.4, 3.0, 0])
-        self.at("trait that shows")
-        self.play(FadeIn(ph, shift=DOWN * 0.1), run_time=0.6)
-        fl, wl = [], []
-        for k, y in zip(["purple", "purple", "white"], ys):
-            f = flower(k, 0.3, y)
-            t = T(k, 30, PURPLE if k == "purple" else WHITE).next_to(f, RIGHT, buff=0.3)
-            fl.append(f)
-            wl.append(t)
-        self.play(FadeIn(VGroup(*fl, *wl), lag_ratio=0.2), run_time=1.0)
-        self.at("two purple alleles")
-        self.play(Indicate(VGroup(gl[0], fl[0]), color=PURPLE, scale_factor=1.1), run_time=0.8)
+        p = allele_tile("P", [-3.95, 0.45, 0], 1.45)
+        little_p = allele_tile("p", [-2.35, 0.45, 0], 1.45)
+        self.play(FadeIn(p, shift=RIGHT * 0.2), FadeIn(little_p, shift=LEFT * 0.2), run_time=0.7)
+
+        self.at("is its genotype")
+        geno = T("genotype: Pp", 36, TEAL, weight=BOLD, t2c={"P": PURPLE, "p": CREAM})
+        geno.move_to([-3.15, 2.35, 0])
+        bracket = Brace(VGroup(p, little_p), DOWN, color=TEAL)
+        self.play(GrowFromCenter(bracket), FadeIn(geno, shift=DOWN * 0.15), run_time=0.8)
+
+        self.at("is its phenotype")
+        plant = pea_plant("purple", [2.65, 0.25, 0], 4.5)
+        bob(plant, amp=0.11, speed=1.5)
+        phenotype = T("phenotype: purple", 34, PURPLE, weight=BOLD).move_to([2.65, 3.34, 0])
+        self.play(FadeIn(plant, scale=0.88), FadeIn(phenotype, shift=DOWN * 0.15), run_time=1.0)
+
         self.at("one of each")
-        self.play(Indicate(VGroup(gl[1], fl[1]), color=PURPLE, scale_factor=1.1), run_time=0.8)
-        self.at("white alleles")
-        self.play(Indicate(VGroup(gl[2], fl[2]), color=WHITE, scale_factor=1.12), run_time=0.9)
-        sc = word("sex cells", 30).move_to([1.8, -0.95, 0])
-        self.at("sex cell")
-        self.play(FadeIn(sc, shift=UP * 0.1), run_time=0.6)
-        src = VGroup(geno("Pp", 44), T("plant", 26, GREY)).arrange(RIGHT, buff=0.25).move_to([-3.6, -2.3, 0])
-        c1 = chip("P", PURPLE, 36).move_to([1.8, -1.85, 0])
-        c2 = chip("p", WHITE, 36).move_to([1.8, -2.8, 0])
-        self.play(FadeIn(src), run_time=0.5)
-        self.at("passes on")
-        self.play(GrowArrow(arrow([-2.2, -2.2, 0], [1.1, -1.85, 0], BLUE)), GrowArrow(arrow([-2.2, -2.4, 0], [1.1, -2.8, 0], BLUE)),
-                  FadeIn(c1), FadeIn(c2), run_time=1.0)
-        p1 = T("50 percent", 30, GREEN, weight=BOLD).move_to([4.4, -1.85, 0])
-        p2 = T("50 percent", 30, GREEN, weight=BOLD).move_to([4.4, -2.8, 0])
-        self.at("chance each")
-        self.play(FadeIn(p1, shift=LEFT * 0.1), FadeIn(p2, shift=LEFT * 0.1), run_time=0.8)
+        self.play(Indicate(VGroup(p, little_p), color=TEAL, scale_factor=1.06), run_time=0.8)
+
+        self.at("phenotype is purple")
+        self.play(Indicate(plant.bloom, color=PURPLE, scale_factor=1.10), run_time=0.8)
+
+        self.at("appearance alone")
+        unknown = RoundedRectangle(corner_radius=0.16, width=2.2, height=1.0, color=GREY, stroke_width=3,
+                                   fill_color=BG, fill_opacity=0.92).move_to([2.65, -2.15, 0])
+        mark = T("PP or Pp?", 32, GOLD, weight=BOLD, t2c={"P": PURPLE, "p": CREAM}).move_to(unknown)
+        self.play(FadeIn(unknown), FadeIn(mark), run_time=0.8)
+
+        self.at("Carried information")
+        link = Arrow([-1.3, 0.35, 0], [0.25, 0.35, 0], color=TEAL, stroke_width=5, buff=0.12)
+        rule = caption("What is carried can differ from what shows.", color=GOLD)
+        self.play(GrowArrow(link), FadeIn(rule, shift=UP * 0.12), run_time=1.0)
         self.finish()
 
 
-# ----------------------------------------------------------------------------------------------
-class S04Square(SpokenScene):
+class S04SexCells(SpokenScene):
     def construct(self):
-        cx, cy, s = 0.0, -0.6, 1.9
-        lines, cells, cols, rows = grid_at(cx, cy, s)
-        title = word("Punnett square", 40).move_to([0, 3.05, 0])
-        self.at("Punnett square")
-        self.play(FadeIn(title, shift=DOWN * 0.1), Create(lines), run_time=1.4)
-        self.at("can join")
-        self.play(Indicate(lines, color=BLUE, scale_factor=1.03), run_time=1.0)
-        top = [geno("P", 44).move_to([cols[0], cy + s + 0.55, 0]), geno("p", 44).move_to([cols[1], cy + s + 0.55, 0])]
-        tl = T("one parent's sex cells", 26, BLUE).move_to([0, cy + s + 1.25, 0])
-        self.at("across the top")
-        self.play(FadeIn(top[0]), FadeIn(top[1]), FadeIn(tl), run_time=0.9)
-        side = [geno("P", 44).move_to([cx - s - 0.55, rows[0], 0]), geno("p", 44).move_to([cx - s - 0.55, rows[1], 0])]
-        sl = T("the other parent's\nsex cells", 26, BLUE, line_spacing=0.85).move_to([-5.0, cy, 0])
-        self.at("down the side")
-        self.play(FadeIn(side[0]), FadeIn(side[1]), FadeIn(sl), run_time=0.9)
-        texts = []
-        for (a, b), c in zip([("P", "P"), ("P", "p"), ("P", "p"), ("p", "p")], cells):
-            texts.append(geno(a + b, 44).move_to([c[0], c[1], 0]))
-        self.at("fill each box")
-        self.play(FadeIn(VGroup(*texts), lag_ratio=0.4), run_time=2.0)
-        bx = VGroup(T("each box:", 30, TEXT), T("1 in 4 chance", 36, GREEN, weight=BOLD)).arrange(DOWN, buff=0.15).move_to([4.7, cy, 0])
-        self.at("chance")
-        self.play(FadeIn(bx, shift=LEFT * 0.2), run_time=0.8)
-        for i, c in enumerate(cells):
-            self.play(Indicate(texts[i], color=GREEN, scale_factor=1.2), run_time=0.4)
+        left = pea_plant("purple", [-4.4, 1.25, 0], 2.75)
+        right = pea_plant("purple", [4.4, 1.25, 0], 2.75)
+        left_pair = VGroup(allele_tile("P", [-4.75, -0.25, 0], 0.72), allele_tile("p", [-4.05, -0.25, 0], 0.72))
+        right_pair = VGroup(allele_tile("P", [4.05, -0.25, 0], 0.72), allele_tile("p", [4.75, -0.25, 0], 0.72))
+        bob(left, amp=0.09, speed=1.4)
+        bob(right, amp=0.09, speed=1.3, seed=2)
+        self.add(left, right, left_pair, right_pair)
+
+        self.at("pair separates")
+        left_cells = VGroup(sex_cell("P", [-3.4, -1.35, 0], 0.55), sex_cell("p", [-3.4, -2.7, 0], 0.55))
+        self.play(TransformFromCopy(left_pair[0], left_cells[0]), TransformFromCopy(left_pair[1], left_cells[1]), run_time=1.0)
+
+        self.at("Each sex cell")
+        one_each = T("one allele per sex cell", 30, TEAL, weight=BOLD).move_to([-3.95, -3.56, 0])
+        self.play(FadeIn(one_each, shift=UP * 0.12), run_time=0.7)
+
+        self.at("purple block enter")
+        paths_left = VGroup(
+            Arrow([-3.4, -1.35, 0], [-0.75, -1.45, 0], color=TEAL, stroke_width=5, buff=0.67),
+            Arrow([-3.4, -2.7, 0], [-0.75, -2.85, 0], color=TEAL, stroke_width=5, buff=0.67),
+        )
+        self.play(GrowArrow(paths_left[0]), left_cells[0].animate.move_to([-0.75, -1.45, 0]), run_time=1.0)
+
+        self.at("white block enter")
+        self.play(GrowArrow(paths_left[1]), left_cells[1].animate.move_to([-0.75, -2.85, 0]), run_time=1.0)
+
+        self.at("other parent does")
+        right_cells = VGroup(sex_cell("P", [3.85, -1.45, 0], 0.55), sex_cell("p", [3.85, -2.85, 0], 0.55))
+        paths_right = VGroup(
+            Arrow([3.2, -1.45, 0], [0.05, -1.45, 0], color=TEAL, stroke_width=5, buff=0.12),
+            Arrow([3.2, -2.85, 0], [0.05, -2.85, 0], color=TEAL, stroke_width=5, buff=0.12),
+        )
+        self.play(TransformFromCopy(right_pair[0], right_cells[0]), TransformFromCopy(right_pair[1], right_cells[1]),
+                  GrowArrow(paths_right[0]), GrowArrow(paths_right[1]), run_time=1.2)
+        bob(right_cells[0], amp=0.09, speed=1.8)
+        bob(right_cells[1], amp=0.09, speed=1.6, seed=4)
+
+        self.at("hidden version onward")
+        self.play(Indicate(VGroup(left_cells[1], right_cells[1]), color=CREAM, scale_factor=1.10), run_time=1.0)
         self.finish()
 
 
-# ----------------------------------------------------------------------------------------------
-class S05Read(SpokenScene):
+class S05Square(SpokenScene):
     def construct(self):
-        cx, cy, s = -3.3, -0.5, 1.9
-        lines, cells, cols, rows = grid_at(cx, cy, s)
-        top = VGroup(geno("P", 44).move_to([cols[0], cy + s + 0.55, 0]), geno("p", 44).move_to([cols[1], cy + s + 0.55, 0]))
-        side = VGroup(geno("P", 44).move_to([cx - s - 0.55, rows[0], 0]), geno("p", 44).move_to([cx - s - 0.55, rows[1], 0]))
-        texts = [geno(a + b, 44).move_to([c[0], c[1], 0]) for (a, b), c in zip([("P", "P"), ("P", "p"), ("P", "p"), ("p", "p")], cells)]
-        title = word("Punnett square", 34).move_to([cx, 3.05, 0])
-        self.add(lines, top, side, *texts, title)
-        shades = []
-        for i, c in enumerate(cells):
-            col = WHITE if i == 3 else PURPLE
-            shades.append(Square(side_length=s - 0.1, stroke_width=0, fill_color=col, fill_opacity=0.28 if i < 3 else 0.35).move_to([c[0], c[1], 0]))
-        self.at("boxes")
-        self.at("two purple alleles")
-        self.play(FadeIn(shades[0]), run_time=0.6)
-        self.at("one of each")
-        self.play(FadeIn(shades[1]), FadeIn(shades[2]), run_time=0.7)
-        self.at("two white alleles")
-        self.play(FadeIn(shades[3]), run_time=0.6)
-        # counts as labels
-        ratio_w = word("ratio", 32).move_to([3.6, 2.7, 0])
-        ratio_d = T("compares two numbers", 26).next_to(ratio_w, RIGHT, buff=0.2)
-        rg = VGroup(ratio_w, ratio_d).move_to([3.6, 2.7, 0])
-        self.at("ratio compares")
-        self.play(FadeIn(rg, shift=LEFT * 0.2), run_time=0.8)
-        r31 = VGroup(T("3 purple", 40, PURPLE, weight=BOLD), T(":", 40), T("1 white", 40, WHITE, weight=BOLD)).arrange(RIGHT, buff=0.25).move_to([3.6, 1.5, 0])
-        self.at("purple to")
-        self.play(FadeIn(r31, shift=UP * 0.1), run_time=0.9)
-        pw = word("probability", 32)
-        pd = T("the chance something\nwill happen", 26, line_spacing=0.85)
-        pg = VGroup(pw, pd).arrange(DOWN, buff=0.12).move_to([3.6, 0.0, 0])
-        self.at("probability is")
-        self.play(FadeIn(pg, shift=LEFT * 0.2), run_time=0.8)
-        ring_t = Rectangle(width=0.7, height=0.8, stroke_color=YELLOW, stroke_width=4).move_to(top[1])
-        ring_s = Rectangle(width=0.7, height=0.8, stroke_color=YELLOW, stroke_width=4).move_to(side[1])
-        ring_c = Square(side_length=s - 0.05, stroke_color=YELLOW, stroke_width=6).move_to([cells[3][0], cells[3][1], 0])
-        self.at("white needs")
-        self.play(Create(ring_t), Create(ring_s), run_time=0.8)
-        self.at("pass on")
-        self.play(Create(ring_c), run_time=0.7)
-        ans = T("1 in 4 = 25 percent", 40, GREEN, weight=BOLD).move_to([3.6, -1.7, 0])
-        self.at("that chance")
-        self.play(FadeIn(ans, shift=UP * 0.1), run_time=0.8)
+        grid = punnett_grid()
+        title = T("Punnett square", 38, TEAL, weight=BOLD).move_to([0.35, 3.28, 0])
+        self.play(Create(grid), FadeIn(title, shift=DOWN * 0.12), run_time=1.2)
+        pulse(grid, base=5, amp=0.8, speed=2.2)
+
+        self.at("settle across the top")
+        top = VGroup(sex_cell("P", grid.top[0], 0.44), sex_cell("p", grid.top[1], 0.44))
+        top_lab = T("parent 1", 28, GREY).move_to([3.85, 2.78, 0])
+        self.play(FadeIn(top, shift=DOWN * 0.35), FadeIn(top_lab), run_time=0.9)
+        bob(top[0], amp=0.10, speed=1.5)
+        bob(top[1], amp=0.10, speed=1.35, seed=2)
+
+        self.at("settle down the side")
+        side = VGroup(sex_cell("P", grid.side[0], 0.44), sex_cell("p", grid.side[1], 0.44))
+        side_lab = T("parent 2", 28, GREY).move_to([-3.25, -0.30, 0]).rotate(PI / 2)
+        self.play(FadeIn(side, shift=RIGHT * 0.35), FadeIn(side_lab), run_time=0.9)
+        bob(side[0], amp=0.10, speed=1.4, seed=3)
+        bob(side[1], amp=0.10, speed=1.3, seed=5)
+
+        self.at("Follow a teal path")
+        target = grid.centers[0]
+        path_top = Arrow(top[0].get_bottom(), target + UP * 0.34, color=TEAL, stroke_width=6, buff=0.12)
+        path_side = Arrow(side[0].get_right(), target + LEFT * 0.34, color=TEAL, stroke_width=6, buff=0.12)
+        self.play(GrowArrow(path_top), GrowArrow(path_side), run_time=1.1)
+
+        self.at("two arriving alleles")
+        a = allele_tile("P", target + LEFT * 0.30, 0.52)
+        b = allele_tile("P", target + RIGHT * 0.30, 0.52)
+        self.play(TransformFromCopy(top[0][1], a), TransformFromCopy(side[0][1], b), run_time=0.9)
+
+        self.at("one possible genotype")
+        pair = genotype_label("PP", target, 46)
+        self.play(FadeOut(VGroup(a, b)), FadeIn(pair, scale=0.82), run_time=0.7)
+
+        self.at("contributions stay separate")
+        parent_marks = VGroup(T("top", 28, TEAL).next_to(top, RIGHT, buff=0.22),
+                              T("side", 28, TEAL).next_to(side, DOWN, buff=0.22))
+        self.play(FadeIn(parent_marks), Indicate(VGroup(path_top, path_side), color=TEAL, scale_factor=1.02), run_time=1.0)
         self.finish()
 
 
-# ----------------------------------------------------------------------------------------------
-class S06Counts(SpokenScene):
+class S06Predict(SpokenScene):
+    QUESTION = "What genotype and flower color appear in the last box?"
+
     def construct(self):
-        self.at("the square")
-        note = T("A Punnett square gives chances,\nnot exact counts", 38, GREEN, weight=BOLD, line_spacing=0.9).move_to([0, 1.6, 0])
-        self.play(FadeIn(note, shift=UP * 0.1), run_time=1.0)
-        kids = VGroup(*[plant("purple", x, -0.9) for x in [-4.5, -1.5, 1.5, 4.5]])
-        lab = T("4 offspring from two Pp parents", 28, GREY).move_to([0, -2.4, 0])
-        self.at("four seeds")
-        self.play(FadeOut(note), FadeIn(kids, lag_ratio=0.25), FadeIn(lab), run_time=1.3)
-        ch = T("all purple: about 32 percent chance", 38, GREEN, weight=BOLD).move_to([0, 1.5, 0])
-        self.at("chance of that")
-        self.play(FadeIn(ch, shift=DOWN * 0.1), run_time=0.8)
-        self.at("counted thousands")
-        self.play(FadeOut(VGroup(kids, lab, ch)), run_time=0.4)
-        # Mendel's seed-shape counts (lesson table): round 5,474, wrinkled 1,850
-        base = -2.0
-        H = 4.0
-        h1, h2 = H, H * 1850 / 5474
-        b1 = Rectangle(width=1.6, height=h1, stroke_color=GOLD, stroke_width=3, fill_color=GOLD, fill_opacity=0.5).move_to([-4.6, base + h1 / 2, 0])
-        b2 = Rectangle(width=1.6, height=h2, stroke_color=GOLD, stroke_width=3, fill_color=GOLD, fill_opacity=0.5).move_to([-2.2, base + h2 / 2, 0])
-        axis = Line([-6.0, base, 0], [-0.8, base, 0], color=GREY, stroke_width=3)
-        n1 = M("5,474", 28, GOLD).next_to(b1, UP, buff=0.12)
-        n2 = M("1,850", 28, GOLD).next_to(b2, UP, buff=0.12)
-        l1 = T("round seeds", 24).next_to(axis, DOWN, buff=0.15).set_x(-4.6)
-        l2 = T("wrinkled seeds", 24).next_to(axis, DOWN, buff=0.15).set_x(-2.2)
-        ttl = T("Mendel's pea seeds, seed shape", 28, GOLD, weight=BOLD).move_to([-3.4, 3.3, 0])
-        sub = T("from self-fertilized hybrid plants", 22, GOLD).move_to([-3.4, 2.85, 0])
-        self.play(FadeIn(ttl), FadeIn(sub), Create(axis), run_time=0.4)
-        self.play(GrowFromEdge(b1, DOWN), GrowFromEdge(b2, DOWN), FadeIn(l1), FadeIn(l2), run_time=0.9)
-        self.play(FadeIn(n1), FadeIn(n2), run_time=0.3)
-        got = VGroup(T("counted:", 28, GOLD), M("about 2.96 : 1", 34, GOLD, weight=BOLD)).arrange(DOWN, buff=0.1).move_to([3.4, 1.7, 0])
-        self.at("seed shape counts")
-        self.play(FadeIn(got, shift=LEFT * 0.2), run_time=0.8)
-        pl = DashedLine([-3.2, base + H / 3, 0], [-1.2, base + H / 3, 0], color=GREEN, stroke_width=5, dash_length=0.15)
-        pred = VGroup(T("predicted:", 28, GREEN), M("3 : 1", 34, GREEN, weight=BOLD)).arrange(DOWN, buff=0.1).move_to([3.4, 0.2, 0])
-        self.at("close to")
-        self.play(Create(pl), FadeIn(pred, shift=LEFT * 0.2), run_time=1.0)
-        fin = T("Predict the chances.\nCounts land near them.", 34, YELLOW, line_spacing=0.9).move_to([3.4, -1.9, 0])
-        self.at("so we can predict")
-        self.play(FadeIn(fin, shift=UP * 0.1), run_time=0.9)
+        world = predict_backdrop()
+        for i, f in enumerate(world[4]):
+            bob(f, amp=0.09, speed=1.35 + 0.1 * i, seed=i)
+        self.add(world.grid, world[1], world[2])
+
+        self.at("Three boxes now")
+        self.play(FadeIn(VGroup(world[3], world[4]), lag_ratio=0.18), run_time=1.0)
+
+        self.at("last box receives")
+        self.play(FadeIn(VGroup(world.paths, world.waiting_top, world.waiting_side)), run_time=0.9)
+        pulse(world.paths, base=5, amp=2, speed=3)
+
+        self.at("What genotype")
+        q = question_card(self.QUESTION, y=-3.22, size=30, max_w=10.4)
+        self.play(FadeIn(q.question, shift=UP * 0.12), run_time=0.8)
+
+        self.at("Keep your answer")
+        self.play(world.waiting_top.animate.shift(DOWN * 0.12), world.waiting_side.animate.shift(RIGHT * 0.12), run_time=1.0)
         self.finish()
 
 
-class S07End(EndCard):
-    LINE = "Punnett squares predict chances; real counts land near them."
+class S07Pause(NarratedScene):
+    def construct(self):
+        world = predict_backdrop()
+        q = question_card(S06Predict.QUESTION, y=-3.22, size=30, max_w=10.4)
+        world.waiting_top.shift(DOWN * 0.12)
+        world.waiting_side.shift(RIGHT * 0.12)
+        for path in world.paths:
+            path.layout_ok = True  # tokens deliberately travel along these paths
+        self.add(world, q)
+        self.play(world.waiting_top.animate.shift(DOWN * 0.28),
+                  world.waiting_side.animate.shift(RIGHT * 0.28), run_time=4.45, rate_func=linear)
+        self.finish()
+
+
+class S08Reveal(SpokenScene):
+    def construct(self):
+        world = predict_backdrop()
+        world.waiting_top.shift(DOWN * 0.40)
+        world.waiting_side.shift(RIGHT * 0.40)
+        for path in world.paths:
+            path.layout_ok = True  # dashed paths intentionally end at the moving p tokens
+        self.add(world)
+
+        self.at("Both white alleles meet")
+        target = world.target
+        self.play(world.waiting_top.animate.move_to(target + LEFT * 0.30),
+                  world.waiting_side.animate.move_to(target + RIGHT * 0.30), run_time=1.1)
+
+        self.at("genotype has two")
+        pp = genotype_label("pp", target + UP * 0.40, 46)
+        target_glow = Square(side_length=1.92, stroke_color=CREAM, stroke_width=4,
+                             fill_color=CREAM, fill_opacity=0.12).move_to(target)
+        self.play(FadeOut(VGroup(world.waiting_top, world.waiting_side)), FadeIn(target_glow),
+                  FadeIn(pp, scale=0.85), run_time=1.0)
+
+        self.at("white phenotype appears")
+        white = flower("white", target + DOWN * 0.48, 0.48)
+        bob(white, amp=0.10, speed=1.8)
+        self.play(GrowFromCenter(white), run_time=1.0)
+
+        parents = VGroup(pea_plant("purple", [-5.25, 2.3, 0], 1.55), pea_plant("purple", [5.25, 2.3, 0], 1.55))
+        parents[0].shift(LEFT * 1.6).set_opacity(0)
+        parents[1].shift(RIGHT * 1.6).set_opacity(0)
+        self.add(parents)
+        self.play(parents[0].animate.shift(RIGHT * 1.6).set_opacity(1),
+                  parents[1].animate.shift(LEFT * 1.6).set_opacity(1), run_time=1.45)
+
+        self.at("never showed")
+        self.play(Indicate(parents, color=PURPLE, scale_factor=1.06), run_time=1.0)
+        bob(parents[0], amp=0.11, speed=1.45)
+        bob(parents[1], amp=0.11, speed=1.30, seed=4)
+
+        self.at("parent's flowers")
+        left_p = allele_tile("p", [-5.25, 0.95, 0], 0.56)
+        right_p = allele_tile("p", [5.25, 0.95, 0], 0.56)
+        self.play(FadeIn(left_p, shift=DOWN * 0.15), FadeIn(right_p, shift=DOWN * 0.15), run_time=0.7)
+
+        self.at("It was carried")
+        trail = VGroup(
+            DashedLine(left_p.get_right(), world[2][1].get_left(), color=CREAM, stroke_width=7, dash_length=0.13),
+            DashedLine(right_p.get_bottom(), world[1][1].get_top(), color=CREAM, stroke_width=7, dash_length=0.13),
+        )
+        self.play(Create(trail), run_time=0.65)
+        pulse(trail, base=7, amp=1.5, speed=2.5)
+        carriers = VGroup(Dot(left_p.get_right(), radius=0.15, color=CREAM),
+                          Dot(right_p.get_bottom(), radius=0.15, color=CREAM))
+        carrier_paths = VGroup(Line(left_p.get_right(), world[2][1].get_left()),
+                               Line(right_p.get_bottom(), world[1][1].get_top()))
+        self.add(carriers)
+        self.play(MoveAlongPath(carriers[0], carrier_paths[0]), MoveAlongPath(carriers[1], carrier_paths[1]),
+                  run_time=1.6, rate_func=linear)
+
+        self.at("joined in this offspring")
+        self.play(Indicate(VGroup(pp, white), color=CREAM, scale_factor=1.10), run_time=1.0)
+        self.finish()
+
+
+class S09Read(SpokenScene):
+    def construct(self):
+        cross = filled_cross(include_flowers=True)
+        self.add(cross)
+        for f in cross.flowers:
+            bob(f, amp=0.10, speed=1.5 + 0.08 * len(f.submobjects), seed=len(f.submobjects))
+
+        self.at("allele pairs predict")
+        scan = Square(side_length=1.72, color=GOLD, stroke_width=5, fill_color=GOLD, fill_opacity=0.08)
+        scan.move_to(cross.grid.centers[0])
+        self.play(FadeIn(scan), run_time=0.25)
+        self.play(Succession(*[scan.animate.move_to(c) for c in cross.grid.centers[1:]]), run_time=1.7)
+
+        self.at("flowers translate")
+        self.play(Succession(*[scan.animate.move_to(c) for c in cross.grid.centers]), run_time=1.8)
+
+        self.at("Most boxes show purple")
+        purple_brace = Brace(cross.grid, LEFT, color=GOLD)
+        purple_lab = T("3/4 purple", 30, PURPLE, weight=BOLD).next_to(purple_brace, LEFT, buff=0.16)
+        self.play(GrowFromCenter(purple_brace), FadeIn(purple_lab), run_time=0.8)
+
+        self.at("one shows white")
+        white_box = SurroundingRectangle(cross.flowers[3], color=GOLD, buff=0.18, stroke_width=4)
+        white_lab = T("1/4 white", 30, CREAM, weight=BOLD).move_to([4.85, -1.45, 0])
+        self.play(Create(white_box), FadeIn(white_lab), run_time=0.8)
+
+        self.at("possible outcome")
+        chance = caption("chance for each offspring", color=GOLD)
+        self.play(FadeOut(scan), FadeIn(chance, shift=UP * 0.12), run_time=0.8)
+
+        self.at("does not schedule")
+        calendar = RoundedRectangle(corner_radius=0.14, width=1.35, height=1.25, color=GREY, stroke_width=4).move_to([5.05, 1.15, 0])
+        rings = VGroup(*[Line([x, 1.92, 0], [x, 1.62, 0], color=GREY, stroke_width=5) for x in (4.7, 5.4)])
+        slash = Line([4.45, 0.52, 0], [5.65, 1.78, 0], color=RED, stroke_width=7)
+        no_schedule = T("not a schedule", 28, RED, weight=BOLD).move_to([5.05, 0.18, 0])
+        self.play(Create(calendar), Create(rings), Create(slash), FadeIn(no_schedule), run_time=1.0)
+        self.finish()
+
+
+class S10Scope(SpokenScene):
+    def construct(self):
+        cross = filled_cross(include_flowers=True)
+        cross.scale(0.72).move_to([-1.45, 0.35, 0])
+        for token in (*cross.top_tokens, *cross.side_tokens):
+            token[1][1].scale(1.30)
+        bob(cross, amp=0.08, speed=1.25)
+        boundary = RoundedRectangle(corner_radius=0.20, width=6.4, height=5.55, color=TEAL, stroke_width=4,
+                                    fill_color=TEAL, fill_opacity=0.22).move_to([-1.45, 0.35, 0])
+        boundary_label = T("one-gene model", 32, TEAL, weight=BOLD).move_to([-1.45, 3.38, 0])
+        self.play(FadeIn(cross), Create(boundary), FadeIn(boundary_label), run_time=1.0)
+
+        self.at("one gene")
+        one_gene = chip("one gene", TEAL, 28).move_to([4.35, 2.15, 0])
+        self.play(FadeIn(one_gene, shift=LEFT * 0.2), run_time=0.7)
+
+        self.at("two alleles")
+        alleles = chip("two alleles, one dominant", PURPLE, 26).move_to([4.35, 0.95, 0])
+        self.play(FadeIn(alleles, shift=LEFT * 0.2), run_time=0.7)
+
+        self.at("known parent genotypes")
+        known = chip("known parent genotypes", GREY, 26).move_to([4.35, -0.25, 0])
+        self.play(FadeIn(known, shift=LEFT * 0.2), run_time=0.7)
+
+        self.at("links what parents")
+        bridge = Arrow([2.0, -1.0, 0], [3.2, -1.25, 0], color=GOLD, stroke_width=5, buff=0.10)
+        chance = T("chance for each offspring", 28, GOLD).move_to([4.35, -1.55, 0])
+        self.play(GrowArrow(bridge), FadeIn(chance), run_time=0.9)
+
+        self.at("Real groups can")
+        kids = VGroup(*[flower(k, [x, -2.72 + 0.12 * ((i % 2) * 2 - 1), 0], 0.36)
+                        for i, (x, k) in enumerate(zip(np.linspace(-3.9, 3.7, 7),
+                                                     ("purple", "purple", "white", "purple", "purple", "purple", "white")))])
+        self.play(FadeIn(kids, lag_ratio=0.12), run_time=1.0)
+        for i, f in enumerate(kids):
+            bob(f, amp=0.04, speed=1.25 + 0.08 * i, seed=i)
+
+        self.at("Punnett squares predict chances")
+        rule = caption("Predict chances — not exact counts.", color=GOLD, y=-3.42)
+        self.play(FadeOut(VGroup(one_gene, alleles, known, bridge, chance)), FadeIn(rule, shift=UP * 0.12), run_time=0.9)
+        self.finish()
+
+
+class S11End(EndCard):
+    LINE = "For one-gene crosses, Punnett squares predict chances, not exact offspring counts."
