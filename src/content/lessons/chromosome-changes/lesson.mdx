@@ -4,24 +4,49 @@ slug: "chromosome-changes"
 course: "genetics"
 courseChapter: "Genetics and Molecular Biology · Unit 1: Inheritance"
 order: 307
-summary: "A cell with an extra or missing chromosome has the wrong dose of the genes on it, and that usually matters: most aneuploid human embryos do not survive pregnancy, and a few, such as trisomy 21, are seen at birth. This lesson follows a missed separation through meiosis I and meiosis II, shows why extra X chromosomes are better tolerated than an extra 21, and uses DNA markers to infer which parent and which division erred. It then turns to polyploidy, deletions, duplications, inversions and translocations. Afterwards you can predict the gametes of a nondisjunction or a translocation carrier and say which test would detect each change."
-hook: "In 1959 a laboratory in Paris counted 47 chromosomes, not 46, in cells from children with Down syndrome. Why does one extra chromosome change development, and how does a cell come to carry it?"
+summary: >-
+  Chromosome changes matter through DNA dose, gene context, and meiotic balance. Follow a missed
+  separation through meiosis I and meiosis II, use centromere-linked DNA markers to infer its
+  origin, and explain why some aneuploidies are better tolerated than others. Then use the same
+  rule for polyploidy, deletions, duplications, inversions and translocations, and choose which
+  chromosome test can reveal each change.
+hook: "How can one missed separation give a cell an extra chromosome, and why can a balanced rearrangement still matter?"
 
 estMinutes: 24
 objectives:
   - "Explain why extra or missing chromosomes change gene dosage and usually cause pregnancy loss or a syndrome, using trisomy 21, 45,X and 47,XXY, and why extra or missing sex chromosomes are better tolerated than autosomal ones."
   - "Predict the gametes produced by nondisjunction at meiosis I and at meiosis II, and use centromere-linked DNA markers to infer which parent and which division erred."
-  - "Distinguish autopolyploidy from allopolyploidy, and deletions, duplications, inversions and translocations by their behaviour in meiosis."
+  - "Distinguish autopolyploidy from allopolyploidy, and deletions, duplications, inversions and translocations by their effect on dose and their behaviour in meiosis."
   - "Choose among karyotype, FISH, chromosomal microarray and sequencing to detect a given chromosome change, and say what each one misses."
 
 explainer:
   src: "/explainers/chromosome-changes/explainer.mp4"
   captions: "/explainers/chromosome-changes/explainer.vtt"
   poster: "/explainers/chromosome-changes/poster.jpg"
-  title: "One Missed Separation, One Extra Chromosome"
-  durationSec: 147.1
-  narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+  title: "When Chromosomes Miss Their Turn"
+  durationSec: 214.9
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+  takeaways:
+    - "Chromosome-number changes matter through DNA dose."
+    - "Meiosis I separates homologues; meiosis II separates sister chromatids."
+    - "A meiosis I error makes two disomic and two nullisomic gametes in the classical model."
+    - "A meiosis II error makes one disomic, one nullisomic and two normal gametes in the classical model."
+
+films:
+  - id: "chapter-2"
+    src: "/explainers/chromosome-changes/chapter-2.mp4"
+    captions: "/explainers/chromosome-changes/chapter-2.vtt"
+    poster: "/explainers/chromosome-changes/chapter-2-poster.jpg"
+    title: "Break, Rejoin, Segregate"
+    durationSec: 223.3
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+    takeaways:
+      - "Rearrangements matter through DNA dose, gene context, and meiotic balance."
+      - "Deletions and duplications directly lower or raise DNA dose."
+      - "A balanced translocation can still make unbalanced gametes, by adjacent segregation."
+      - "A balanced exchange can still disrupt or join genes at its breakpoints."
 
 scientists:
   - name: "Jérôme Lejeune"
@@ -195,7 +220,7 @@ practiceQuestions:
       - "Genes on the X are expressed only in the germ line"
     answer: 0
     rationale: >-
-      In mammalian cells every X beyond one is inactivated, so most extra X genes add little dose;
+      In typical mammalian body cells each X beyond one is largely inactivated, so most extra X genes add little dose;
       the genes that escape inactivation are thought to explain the features that remain. The X
       is much larger than chromosome 21 and carries many more genes, so a smaller gene count
       cannot be the reason. Extra X chromosomes are not routinely lost after birth; a 47,XXY
@@ -301,8 +326,8 @@ explainLevels:
       sister chromatids that fail at meiosis II give one disomic, one nullisomic and two normal
       products, and centromere-linked markers usually distinguish the two. The autosomal trisomies regularly seen at
       birth are 21, 18 and 13; free trisomy 21 is mostly maternal and rises with maternal age.
-      Sex-chromosome aneuploidies (45,X; 47,XXY) are better tolerated than autosomal ones because only one X is active in body cells and the
-      Y's small gene content, though most 45,X conceptions are lost. Polyploids carry whole extra sets, from one species (auto) or from a
+      Sex-chromosome aneuploidies (45,X; 47,XXY) are better tolerated than autosomal ones because body cells keep only one X largely active and the
+      Y carries few genes, though most 45,X conceptions are lost. Polyploids carry whole extra sets, from one species (auto) or from a
       hybrid (allo). Structural changes are deletions, duplications, inversions and
       translocations; in meiosis, crossing over in a paracentric inversion gives dicentric and
       acentric products, in a pericentric one duplication-deletion products, and adjacent
@@ -372,84 +397,128 @@ draft: false
 
 import NondisjunctionGametes from '../../../components/NondisjunctionGametes.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import LessonFilm from '../../../components/LessonFilm.astro';
 
-**In 1959 Jérôme Lejeune, Marthe Gautier and Raymond Turpin in Paris counted 47 chromosomes, not the usual 46, in cultured cells from nine children with Down syndrome.**
+**In 1959 Jérôme Lejeune, Marthe Gautier and Raymond Turpin counted 47 chromosomes, not the usual 46, in cultured cells from nine children with Down syndrome.**
 
-That one extra chromosome, later numbered 21, explained a condition that had been described for nearly a century. It shows the main point of this lesson: a cell with an extra or missing chromosome has the wrong dose of the genes on it, and that usually matters. Most aneuploid human embryos do not survive pregnancy, and trisomy 21 is the commonest of the few autosomal trisomies seen at birth. In the same year, other laboratories tied an extra X to Klinefelter syndrome and a missing one to Turner syndrome. This lesson asks how a cell ends up with the wrong number of chromosomes, why some wrong numbers are tolerated and others are not, and what happens when a chromosome breaks and rejoins in the wrong way.
+The extra chromosome, later numbered 21, connected chromosome content to a condition described for nearly a century. But count is only the clue: a cell can have 46 chromosomes and extra chromosome 21 material, and a rearrangement can change a gene without changing total DNA.
 
-## The idea: a missed separation leaves one cell with two copies and another with none
+> **The one idea. Chromosome changes matter through DNA dose, gene context, and meiotic balance.**
+>
+> *Scope:* this rule covers the whole-chromosome and segment changes in this lesson. Dose asks what DNA was gained or lost; context asks what a breakpoint disrupted or joined; balance asks what chromosome combinations meiosis can pass on. It does not predict phenotype from chromosome size alone.
 
-A few words first. **Aneuploidy** is the gain or loss of one or more individual chromosomes, short of a whole set. **Trisomy** means three copies of one chromosome instead of two; **monosomy** means one. **Nondisjunction** is a failure of chromosomes to part when a cell divides.
+## From one missed separation to four gametes
 
-You met the two meiotic divisions in [the lesson on chromosomes and meiosis](/lessons/chromosomes-and-meiosis/). At meiosis I the two homologues of each pair separate. At meiosis II the two sister chromatids of each chromosome separate. Think of two pairs of gloves, the two gloves in each pair identical: meiosis I hands one pair to each of two people, and meiosis II splits each pair between two more. Fail at the first step and one person gets both pairs. Fail at the second and one person gets both gloves of a single pair.
+The first film followed one replicated pair through **nondisjunction**, a failure of chromosomes to part, at each [meiotic division](/lessons/chromosomes-and-meiosis/): a meiosis I error leaves two **disomic** products (two copies, n + 1) and two **nullisomic** ones (none, n − 1); a meiosis II error leaves one of each plus two normal products. With a normal egg these give **trisomic** (three copies) and **monosomic** (one copy) zygotes, both forms of **aneuploidy**: the gain or loss of individual chromosomes, short of a whole set.
 
-### Worked problem, part 1: which gametes?
-
-Follow chromosome 21 in one human spermatocyte. Call the father's two homologues 21a and 21b. Assume only one error, otherwise normal divisions, and that all four products are recovered.
-
-1. **Error at meiosis I.** 21a and 21b go to the same secondary spermatocyte. Meiosis II then runs normally. That cell gives two sperm, each with one chromatid of 21a and one of 21b: **two disomic sperm (n + 1)**. The other secondary spermatocyte had no chromosome 21: **two nullisomic sperm (n − 1)**.
-2. **Error at meiosis II.** Meiosis I is normal. In one secondary spermatocyte, say the one with 21a, the sisters fail to part: **one sperm with two copies of 21a, one with none**. The other secondary spermatocyte divides normally: **two normal sperm**.
-3. **Fertilize a normal egg** (one chromosome 21). A disomic sperm gives a trisomic zygote, a nullisomic sperm a monosomic one, a normal sperm a normal one.
+Now scale up, keeping the film's classical model: one error, otherwise normal divisions, all four products recovered.
 
 <NondisjunctionGametes />
 
-> **disomic gametes per meiosis = 2 after a meiosis I error, 1 after a meiosis II error**
+**Predict.** Follow chromosome 21 in an invented set of 100 meiocytes (cells entering meiosis): 70 divide normally, 10 err at meiosis I and 20 err at meiosis II. How many of the 400 products are disomic?
 
-Now scale up. Take 100 meiocytes: 70 normal, 10 with a meiosis I error, 20 with a meiosis II error. Disomic products are 10 × 2 + 20 × 1 = 40. Nullisomic products are also 40. Normal products are 70 × 4 + 20 × 2 = 320. Check: 320 + 40 + 40 = 400 = 100 × 4. With normal partners, that gives 80 percent euploid, 10 percent trisomic and 10 percent monosomic zygotes. These numbers come from an invented exercise, not from measured human rates.
+<details>
+<summary>Check your count</summary>
 
-### Worked problem, part 2: which parent, which division?
+Meiosis I errors give 10 × 2 = 20 disomic products and meiosis II errors 20 × 1 = 20 more: 40 disomic, 40 nullisomic and 320 normal in all. With normal partners, that would give 10 percent trisomic, 10 percent monosomic and 80 percent euploid (normal-number) zygotes. These are invented teaching numbers, not measured human rates.
 
-The two errors leave different fingerprints near the centromere, because at an informative marker the homologues differ there and sisters usually do not. Take a DNA marker tightly linked to the chromosome 21 centromere. The father carries alleles 1 and 2; the mother carries 3 and 4.
+</details>
 
-- **Child A types 1, 3, 4.** One paternal allele, two different maternal alleles. The extra chromosome is maternal, and since it carries both of her homologues, the error was at **maternal meiosis I**.
-- **Child B types 1, 3, 3.** Two copies of one maternal allele: sisters stayed together, consistent with **maternal meiosis II**.
+## Which parent, which division?
 
-The caveat is crossing over. A crossover between the marker and the centromere can make sisters differ at the marker, so a meiosis II error would look like a meiosis I error, and the reverse. Markers as close to the centromere as possible reduce that risk. This exercise models the classical two-step errors; human eggs also make others (see Going deeper).
+An **informative DNA marker** has distinguishable parental alleles. Put one tightly linked to the chromosome 21 centromere: the father carries alleles 1 and 2, the mother 3 and 4. Near the centromere, homologues can carry different alleles, while sister copies usually match.
 
-## Too many or too few: trisomy and monosomy in people
+**Predict.** Child A has marker alleles 1, 3 and 4. Which parent supplied the extra chromosome, and which classical division failed?
 
-Most aneuploid human embryos do not survive pregnancy. Of the autosomal trisomies, only 21, 18 and 13 are seen regularly at birth, and trisomy 21 is by far the commonest of these. Down syndrome occurs in about 1 in 700 births in widely cited estimates for the United States, a figure that varies by population and strongly by maternal age. Most cases are free trisomy 21, a separate extra chromosome. Studies that typed DNA markers in families found that most free trisomy 21 is maternal in origin, and that most maternal errors arise at meiosis I. The risk rises with the mother's age.
+<details>
+<summary>Check the fingerprint</summary>
 
-The sex chromosomes are different. **Turner syndrome** occurs in females; about half have monosomy X, a 45,X karyotype, and the rest have mosaicism (a mix of cell lines) or a partly lost or rearranged X. Most 45,X conceptions are thought to be lost in pregnancy, and many survivors are mosaic. **Klinefelter syndrome** is most often 47,XXY, a male with an extra X. Do not confuse it with 47,XYY.
+The two different maternal alleles, 3 and 4, came from both maternal homologues, so the extra chromosome is maternal and the pattern points to maternal meiosis I. By contrast, a child with 1, 3 and 3 has two copies of one maternal allele, consistent with maternal meiosis II.
 
-Why are these tolerated when an extra 21 is so consequential? As [the lesson on sex linkage](/lessons/sex-linkage-and-beyond/) explained, mammalian cells silence every X beyond one, so extra X chromosomes add little active dose. The Y carries few genes. The features that remain are thought to come largely from genes that escape X inactivation, which are present in one active copy in 45,X and in extra active copies in 47,XXY.
+</details>
+
+One condition: a crossover between marker and centromere can make sisters differ at the marker, so a meiosis II error can resemble meiosis I, and the reverse. Markers as close to the centromere as possible reduce that risk. Human eggs also make error patterns beyond the classical two-step model (Going deeper).
+
+## Apply dose: aneuploidy in people
+
+As the first film ended, most aneuploid human embryos are lost. Of the autosomal trisomies only 21, 18 and 13 are seen regularly at birth, and trisomy 21 is by far the commonest. Down syndrome occurs in about 1 in 700 births in widely cited United States estimates; the figure varies by population and rises strongly with maternal age. Most cases are free trisomy 21 (a separate extra chromosome); family marker studies found that most free trisomy 21 is maternal in origin and that most maternal errors arise at meiosis I.
+
+Also in 1959, other laboratories tied an extra X to Klinefelter syndrome and a missing X to Turner syndrome. **Turner syndrome** occurs in females; about half have monosomy X, a 45,X karyotype, while the rest have mosaicism (a mix of cell lines), a partly lost X or a rearranged X. Most 45,X conceptions are thought to be lost during pregnancy, and many survivors are mosaic. **Klinefelter syndrome** is most often 47,XXY, a male with an extra X, not 47,XYY.
+
+**Predict.** The X chromosome is larger and carries more genes than chromosome 21. Why is an extra X usually better tolerated than an extra 21?
+
+<details>
+<summary>Check the dose</summary>
+
+As [sex linkage and beyond](/lessons/sex-linkage-and-beyond/) explains, typical mammalian body cells largely inactivate each X beyond one, so an extra X adds much less active dose than its size suggests. Extra or missing active copies of the genes that escape X inactivation are thought to explain many remaining features of 47,XXY and 45,X. The Y also carries few genes. Better tolerated does not mean harmless, as the 45,X losses show.
+
+</details>
 
 ## Whole extra sets: polyploidy
 
-A **polyploid** has complete extra sets of chromosomes. An **autopolyploid** has extra sets from one species, often from a gamete that never reduced its chromosome number. An **allopolyploid** combines sets from two or more species, usually through a hybrid whose chromosome sets then doubled. Bread wheat is a hexaploid allopolyploid: six sets, 42 chromosomes, two sets from each of three ancestral grasses. Each set has its own partner, and genes such as *Ph1* keep chromosomes from pairing with their close relatives in the other ancestral sets, so meiosis still forms ordinary pairs.
+A **polyploid** has complete extra chromosome sets. An **autopolyploid** has extra sets from one species, often after a gamete fails to reduce its chromosome number. An **allopolyploid** combines sets from two or more species, usually after hybridization and chromosome-set doubling.
 
-Odd numbers of sets cause trouble. Most of the seedless bananas grown on a large scale are triploid, and three sets cannot be split evenly at meiosis, so nearly every gamete is unbalanced and seeds rarely form.
+Bread wheat is a hexaploid allopolyploid: six sets and 42 chromosomes, two from each of three ancestral grasses, so each ancestral set has a partner. Genes such as *Ph1* limit pairing with close relatives from the other ancestral sets, so meiosis forms ordinary pairs.
 
-Polyploidy is common in flowering plants and rare in animals. Plants often self-fertilize or spread without sex, so a new polyploid does not need a matching partner, and plants appear to tolerate shifts in dose more readily. Exceptions exist among fish and frogs. In humans, triploidy (69 chromosomes) is almost always lost in pregnancy.
+**Predict.** Why do triploid seedless bananas rarely form seeds, while wheat with six sets can make balanced gametes?
 
-## Broken and rejoined: deletions, duplications, inversions, translocations
+<details>
+<summary>Check the pairing</summary>
 
-- A **deletion** removes a segment. Loss of part of the short arm of chromosome 5 causes cri du chat syndrome; a small deletion at 7q11.23 that includes the elastin gene underlies Williams syndrome.
-- A **duplication** adds a copy of a segment. In 1991 Lupski and colleagues associated a duplication on 17p with Charcot-Marie-Tooth disease type 1A.
-- An **inversion** reverses a segment. A **pericentric** inversion includes the centromere; a **paracentric** one does not. In a heterozygote the chromosomes pair by forming a loop. A single crossover inside a paracentric loop gives one dicentric chromatid (two centromeres), which breaks at anaphase, and one acentric fragment (no centromere), which is lost. A crossover inside a pericentric loop gives chromatids that each carry a duplication and a deletion. Either way, recombinant gametes are unbalanced, so few recombinants appear among the offspring.
-- A **reciprocal translocation** swaps segments between two chromosomes. A carrier's four chromosomes pair as a cross-shaped group of four. Alternate segregation gives normal or balanced gametes; adjacent segregation gives unbalanced ones.
-- A **Robertsonian translocation** fuses the long arms of two acrocentric chromosomes (in humans 13, 14, 15, 21 and 22), losing most of their short arms. The lost parts carry repeated ribosomal RNA genes and other repetitive DNA, and the other acrocentrics keep many copies of those rRNA genes, so a carrier with 45 chromosomes is usually unaffected. If the fused chromosome includes 21 and a carrier passes it on together with a free 21, the child has translocation Down syndrome with 46 chromosomes.
+Three matching sets cannot split evenly at meiosis, so nearly every triploid gamete is unbalanced. Wheat's sets each have a partner, so they form balanced pairs. Most bananas grown on a large scale are triploid.
 
-<LessonFigure src="/figures/chromosome-changes/robertsonian-fusion-to-down.webp" width={1200} height={711} alt="AI-generated illustration: a slate chromosome 14 and a gold chromosome 21 fuse at their long arms while their tiny short arms are lost. One inset shows a carrier's three relevant rods; another shows a gamete with the fused rod plus a free 21 meeting a normal egg, giving a child with three doses of gold 21 material." caption="A Robertsonian translocation fuses the long arms of two acrocentric chromosomes and loses most of their short arms, so a carrier with 45 chromosomes is usually unaffected. If the carrier passes on the fused chromosome plus a free 21, the child has translocation Down syndrome with 46 chromosomes." />
+</details>
 
-The **Philadelphia chromosome** is the small chromosome 22 left by a reciprocal 9;22 translocation in blood cells, acquired rather than inherited. The reciprocal swap exchanges end segments between 9 and 22 and joins two genes, *BCR* and *ABL*; the fusion protein is a tyrosine kinase that stays switched on (see [the lesson on oncogenes](/lessons/oncogenes/)).
+Polyploidy is common in flowering plants and rare in animals. Plants often self-fertilize or spread without sex, so a new polyploid need not find a matching partner, and they appear to tolerate dose shifts more readily. Some fish and frogs are animal exceptions. Human triploidy, with 69 chromosomes, is almost always lost during pregnancy.
 
-<LessonFigure src="/figures/chromosome-changes/philadelphia-swap-and-fusion.webp" width={1200} height={749} alt="AI-generated illustration: a normal chromosome 9 and a smaller chromosome 22 on the left; on the right they have swapped end segments, leaving a small chromosome 22 and a chromosome 9 with extra gold material. An inset shows blocks named BCR and ABL joining into one block beside a switch in the on position." caption="Nowell and Hungerford saw a small chromosome in 1960. Rowley's banding in 1973 suggested that its missing piece had moved to chromosome 9: a reciprocal translocation, acquired in blood cells. It joins two genes, BCR and ABL, and the fusion is a tyrosine kinase that stays switched on." />
+So pairing, not dose alone, decides whether gametes come out balanced. The second film shows a chromosome that breaks, rejoins, loses no DNA and still pairs awkwardly at meiosis.
 
-## Seeing it: from karyotype to microarray
+<LessonFilm film={frontmatter.films[0]} />
 
-A **karyotype** is a picture of a cell's chromosomes. Banded with trypsin and Giemsa, it shows number and large changes, about 5 to 10 million base pairs in routine work, and it is the standard routine genome-wide test that sees balanced rearrangements directly, though some genome sequencing and optical genome mapping methods can now find them too. **FISH** uses a fluorescent probe for one region, about 100 thousand base pairs, and works in nuclei that are not dividing, though it reports only on the probe's target. A **chromosomal microarray** measures the dose of segments across the genome, down to tens of thousands of base pairs where probes are dense, depending on the array and the region, but it is blind to balanced changes, and a dose-only array can miss triploidy. In one large prenatal study, microarray found an extra clinically relevant deletion or duplication in 6.0 percent of karyotypically normal samples from pregnancies with a structural anomaly. **Sequencing** can place breakpoints to the base, and it has shown that many rearrangements that look balanced under the microscope break genes or hide small losses.
+## Broken and rejoined
+
+The second film built these changes from blocks; here are the patients, inversion crossover products and fusions it left out.
+
+In people, deletions and duplications show the dose part of the rule. Loss of part of chromosome 5's short arm causes cri du chat syndrome. A small deletion at 7q11.23 that includes the elastin gene underlies Williams syndrome. In 1991 Lupski and colleagues associated a 17p duplication with Charcot-Marie-Tooth disease type 1A.
+
+A **pericentric** inversion includes the centromere; a **paracentric** inversion does not. One crossover inside a paracentric loop produces one dicentric chromatid (two centromeres), which breaks at anaphase, and one acentric fragment (no centromere), which is lost. One crossover inside a pericentric loop gives two chromatids, each carrying a duplication and a deletion. Either way the recombinant gametes are unbalanced, so few recombinants appear among offspring.
+
+A **Robertsonian translocation** is a fusion, not a swap of ends: it joins the long arms of two acrocentric chromosomes, whose centromere sits near one end, and loses most of their tiny short arms. In humans the acrocentrics are 13, 14, 15, 21 and 22. Those short arms carry repeated ribosomal RNA genes and other repetitive DNA; the remaining acrocentrics retain many rRNA-gene copies. So a carrier can have 45 chromosomes and usually be unaffected. If a fusion carrying chromosome 21 material travels with a free 21, the child can have translocation Down syndrome with 46 chromosomes.
+
+<LessonFigure src="/figures/chromosome-changes/robertsonian-fusion-to-down.webp" width={1200} height={711} alt="AI-generated illustration: a slate chromosome 14 and a gold chromosome 21 fuse at their long arms while their tiny short arms are lost. One inset shows a carrier's three relevant rods; another shows a gamete with the fused rod plus a free 21 meeting a normal egg, giving a child with three doses of gold 21 material." caption="A Robertsonian carrier can have 45 chromosomes and balanced long-arm dose, yet passing a 14;21 fusion with a free 21 gives three doses of chromosome 21 material in a 46-chromosome child." />
+
+The **Philadelphia chromosome** is a real case of the second film's reciprocal translocation, a swap of segments between nonhomologous chromosomes. It is the small chromosome 22 left by an acquired 9;22 exchange in blood cells. Nowell and Hungerford saw it in 1960, Rowley's banding in 1973 suggested it was half of a swap, and in the 1980s other laboratories found the joined genes, *BCR* and *ABL*; the fusion protein is a tyrosine kinase that stays switched on (see [oncogenes](/lessons/oncogenes/)). Here the critical change is gene context, not simply total dose.
+
+<LessonFigure src="/figures/chromosome-changes/philadelphia-swap-and-fusion.webp" width={1200} height={749} alt="AI-generated illustration: a normal chromosome 9 and a smaller chromosome 22 on the left; on the right they have swapped end segments, leaving a small chromosome 22 and a chromosome 9 with extra gold material. An inset shows blocks named BCR and ABL joining into one block beside a switch in the on position." caption="The acquired 9;22 exchange places BCR beside ABL, making a fusion whose tyrosine kinase stays switched on even without a net chromosome-dose change." />
+
+## Choose a test by the question
+
+First ask: **dose, context or balance?** Then choose the measurement.
+
+- A **G-banded karyotype** counts chromosomes and compares their band patterns. It is the routine genome-wide test that directly shows balanced rearrangements, but sees only changes of roughly 5 to 10 million base pairs or larger, balanced or not. Some genome sequencing and optical genome mapping methods can also find balanced changes.
+- **FISH** uses a fluorescent DNA probe for one chosen region, often about 100 thousand base pairs. It works in nondividing nuclei, but says nothing about regions outside its target.
+- A **chromosomal microarray** measures segment dose across the genome. Where probes are dense, it can find gains and losses down to tens of thousands of base pairs, depending on array and region. It is blind to balanced changes, and a dose-only array can miss triploidy. In one large prenatal study, microarray found an additional clinically relevant deletion or duplication in 6.0 percent of karyotypically normal samples from pregnancies with a structural anomaly.
+- Breakpoint-focused or genome **sequencing** can sometimes resolve junctions at or near base-pair scale, depending on method and repetitive sequence. It has shown that rearrangements that look balanced under the microscope can break genes or hide small losses (Going deeper).
+
+**Predict.** A child's banded karyotype looks normal, yet a dose-only microarray finds a small loss on one chromosome. Why could the karyotype miss it, and what kind of change could the array itself still miss?
+
+<details>
+<summary>Check the tests</summary>
+
+The loss is below the karyotype's routine resolution; the array reads dose far more finely where probes are dense. It would still miss a balanced rearrangement, because no dose changes, and can miss triploidy.
+
+</details>
 
 ### Design problem
 
-A man with typical features has 45 chromosomes, including a Robertsonian translocation that joins 14 and 21. His child has Down syndrome. Explain why he is unaffected, list the gametes he can make, and say which zygotes you expect to survive with a normal egg. How would you confirm the explanation?
+A man with typical features has 45 chromosomes, including a Robertsonian 14;21 translocation, and a child with Down syndrome. Explain why he is unaffected, list his gametes, identify the zygotes expected to survive with a normal egg, and choose tests to confirm the explanation.
 
 <details>
 <summary>One way to do it</summary>
 
-He is unaffected because he has two doses of the long arms of 14 and 21, one free and one fused; the lost short arms hold repeated ribosomal RNA genes present on other chromosomes.
+He has two doses of the long arms of 14 and 21, one free and one fused; the lost short arms' rRNA genes have copies on other chromosomes.
 
-At meiosis, the free 14, the free 21 and the fused t(14;21) pair as a group of three. In the usual 2:1 split each gamete gets one or two of them, giving six types (a rare 3:0 split, with all three in one gamete and none in another, is left out):
+The free 14, free 21 and fused t(14;21) pair as a group of three. In the usual 2:1 split, six gamete types result; a rare 3:0 split is omitted:
 
 1. 14 + 21: normal.
 2. t(14;21): balanced carrier.
@@ -458,9 +527,9 @@ At meiosis, the free 14, the free 21 and the fused t(14;21) pair as a group of t
 5. t(14;21) + 14: trisomy 14.
 6. 21 alone: monosomy 14.
 
-Types 4, 5 and 6 are expected to be lost early in pregnancy. If all six were equally frequent and only types 1, 2 and 3 survived, one in three liveborn children would have Down syndrome. Observed risks are well below that, and published series find them lower when the carrier is the father than when it is the mother.
+Types 4, 5 and 6 are expected to be lost early in pregnancy. If all six gametes were equally frequent and only types 1, 2 and 3 survived, one in three liveborn children would have Down syndrome. Observed risks are well below that conditional value, and published series find lower risks when the father is the carrier than when the mother is.
 
-To confirm, karyotype the child, expecting 46 chromosomes including the t(14;21) and two free 21s, and karyotype both parents. FISH with a chromosome 21 probe can confirm the extra dose. This explains a mechanism; it is not reproductive advice.
+Karyotype the child and both parents; the expected child has 46 chromosomes, including t(14;21) and two free 21s. FISH with a chromosome 21 probe can confirm the extra dose. This is a mechanism exercise, not reproductive advice.
 
 </details>
 
@@ -468,12 +537,12 @@ To confirm, karyotype the child, expecting 46 chromosomes including the t(14;21)
 
 ### Human egg errors and age
 
-Human eggs add errors the two-step cartoon leaves out. Sister chromatids can separate early, at meiosis I, and in reverse segregation both pairs of sisters split at meiosis I. In donated human eggs, Gruhn and colleagues found that aneuploidy follows a U-shaped curve with donor age, higher in the youngest and the oldest donors. This describes aneuploid eggs from donors, not the risk of a live-born child with trisomy 21, which the main text says rises with the mother's age.
+In human eggs, sister chromatids can separate early at meiosis I. In **reverse segregation**, both pairs of sisters split at meiosis I. In donated human eggs, Gruhn and colleagues found a U-shaped relation between donor age and aneuploidy, with higher values among the youngest and oldest donors. That finding concerns aneuploid eggs from donors, not live-born trisomy 21 risk, which rises with maternal age.
 
-### How the Philadelphia chromosome was worked out
+### When balanced does not mean harmless
 
-Nowell and Hungerford saw the small chromosome in 1960. Rowley found in 1973 that extra material on chromosome 9 matched what the 22 had lost, suggesting the missing piece had moved there. In the 1980s, other laboratories found that the swap joins two genes, *BCR* and *ABL*, and the fusion protein is a tyrosine kinase that stays switched on.
+Balance depends on resolution. Redin and colleagues sequenced apparently balanced abnormalities from 273 people with congenital anomalies. They revised 93 percent of the karyotypes, found complexity hidden from karyotyping in 21 percent of abnormalities, and judged gene disruption likely to contribute in at least a third. This selected cohort cannot say how often a healthy carrier's rearrangement hides a small loss or disrupts a gene.
 
 ### Sex determination and extra chromosome sets
 
-Some animals, such as the fruit fly, set sex by counting X chromosomes in a short window of early development, and an extra set of chromosomes can upset that count.
+Some animals, including fruit flies, set sex by counting X chromosomes during a short window of early development. An extra chromosome set can upset that count.
