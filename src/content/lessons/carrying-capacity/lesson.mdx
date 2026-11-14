@@ -5,7 +5,7 @@ course: "high-school-biology"
 courseChapter: "Biology · Unit 7: Ecosystems"
 order: 929
 summary: >-
-  A population cannot keep growing forever, because food, space, shelter, predators, disease and weather limit how many an environment can support, and the largest number it can support over time is its carrying capacity. How many blue crabs can the Chesapeake Bay hold, and why does the number change so much from one winter to the next? You grow a model population with and without limits, then read real winter survey estimates for Bay crabs. Afterwards you can name the factors that limit a population, read the parts of a growth curve, and explain why carrying capacity is not a fixed number.
+  Limits slow population growth near carrying capacity, and lasting changes in resources or conditions can move carrying capacity. How many blue crabs can the Chesapeake Bay hold, and why does the number change so much from one winter to the next? You grow a model population with and without limits, separate a short disturbance from a lasting environmental change, then read real winter survey estimates for Bay crabs. Afterwards you can name limiting factors, read growth curves and explain why a population count is not a measurement of carrying capacity.
 hook: "Why can the number of blue crabs in the Chesapeake Bay change by more than 100 million from one winter to the next?"
 estMinutes: 40
 supports: true
@@ -27,10 +27,30 @@ explainer:
   src: "/explainers/carrying-capacity/explainer.mp4"
   captions: "/explainers/carrying-capacity/explainer.vtt"
   poster: "/explainers/carrying-capacity/poster.jpg"
-  title: "What Limits a Population?"
-  durationSec: 150.3
-  narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+  title: "Why Growth Bends"
+  durationSec: 217.4
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+  takeaways:
+    - "Limits slow population growth near carrying capacity."
+    - "A population is one species living in the same area at the same time."
+    - "Exponential growth increases a population by the same fraction each step while resources are plentiful."
+    - "Carrying capacity is the largest population an environment can support over time with its resources and challenges."
+
+films:
+  - id: "chapter-2"
+    src: "/explainers/carrying-capacity/chapter-2.mp4"
+    captions: "/explainers/carrying-capacity/chapter-2.vtt"
+    poster: "/explainers/carrying-capacity/chapter-2-poster.jpg"
+    title: "Did the Limit Move?"
+    durationSec: 204.6
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+    takeaways:
+      - "Lasting changes in resources or conditions can move carrying capacity."
+      - "A brief freeze that leaves food, space and shelter unchanged lowers population size, not carrying capacity."
+      - "A population count alone cannot reveal carrying capacity or identify a cause."
+      - "The winter survey estimates crab abundance; it does not measure carrying capacity."
 
 scientists: []
 
@@ -184,7 +204,7 @@ explainLevels:
       factors (temperature, moisture, air, salinity, pH) limit how fast it can grow. With plenty of
       resources a small population can grow exponentially, giving a J-shaped curve. As resources
       run short, growth slows and the curve bends into an S shape that levels off near the
-      carrying capacity. The population then rises and falls around that level. Carrying capacity
+      carrying capacity. Real populations then often rise and fall around that level. Carrying capacity
       itself changes when conditions change, so a population can decline, recover or, in the
       worst case, die out in an area.
   - level: "bio2"
@@ -239,32 +259,41 @@ import Support from '../../../components/Support.astro';
 import CER from '../../../components/CER.astro';
 import ScaffoldFigure from '../../../components/ScaffoldFigure.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import LessonFilm from '../../../components/LessonFilm.astro';
 
-**Every winter, crews from Virginia and Maryland drag metal dredges along the bottom of the Chesapeake Bay at about 1,500 sites, sampling blue crabs buried in the mud. From one winter to the next, the estimated number of crabs in the Bay can change by more than 100 million.** The Bay is the same size every year, but its resources are not unlimited. Food, hiding places, predators, disease, temperature and salinity all limit how many crabs survive, so no population can keep growing forever. The largest number of crabs the Bay can support over time is its carrying capacity, and it can move when conditions change. A count of how many crabs there are does not, by itself, show why the number changed or whether the carrying capacity moved. In this lesson you use a model and the real crab survey to test those ideas.
+**Every winter, crews from Virginia and Maryland drag metal dredges along the Chesapeake Bay bottom at about 1,500 sites. From one winter to the next, their estimate of the crab population can change by more than 100 million.** The Bay's resources are limited. Did the number of crabs the Bay can support change, did the population move relative to that same level, or both? A count alone cannot answer, so this lesson uses a growth model and the winter survey to separate those possibilities.
 
 <IdeaCheck items={[
   { idea: 'A population keeps growing until it runs out of food, and then everyone dies.', answer: 'disagree', explain: 'In many populations that scientists follow, growth slows down long before the food is gone. Crowding brings more competition, more disease and more predators, and food is only one of many limits. Graphs of counts made over many years often level off and wobble instead of crashing to zero.' },
-  { idea: 'Carrying capacity is a fixed number that never changes.', answer: 'disagree', explain: 'The largest population an area can support depends on its food, shelter and enemies, and those can change over the years. Losing food or hiding places can lower it. A hard freeze is different: it kills animals and pushes a population below that level for a while. Ecologists see this when the level that a population settles around moves up or down.' },
+  { idea: 'Carrying capacity is a fixed number that never changes.', answer: 'disagree', explain: 'The largest population an area can support depends on its food, shelter and enemies, and those can change over the years. Losing food or hiding places can lower it. A hard freeze that leaves food and shelter unchanged is different: it kills animals and pushes a population below that level for a while. Ecologists see this when the level that a population settles around moves up or down.' },
   { idea: 'Human activities do not affect wildlife populations.', answer: 'disagree', explain: 'People catch fish and crabs, build on shorelines, and change the water that runs into rivers and bays. Each of these can change how many animals are born or survive. In the Chesapeake Bay, crabbing removes crabs every year.' },
 ]} />
 
 ## Explore: grow a population, then add limits
 
-The simulation lets you grow a model population. You set the starting number, the growth rate and the carrying capacity, all in made-up units. You can switch between unlimited growth and limited growth, and you can add a disturbance, such as a cold winter or more predators, and watch what happens next.
+The simulation uses made-up units and changes one part of the model at a time. Set the starting number, growth rate and carrying capacity, then compare unlimited and limited growth or add a cold winter or more predators.
 
 <CarryingCapacityGrowth />
 
 **Try this.**
-1. Choose unlimited growth. Predict the shape of the graph after 20 time steps, then run it.
-2. Switch to limited growth with the same starting number and birth rate. Predict where the line will end up, then test it.
-3. Raise the birth rate. Predict whether the population will end up higher or only get there sooner.
-4. Once the line is level, add a cold winter. Predict what happens right after the disturbance and later on, then watch.
+1. Choose unlimited growth. Sketch the shape you expect after 20 time steps, then run it.
+2. Switch to limited growth with the same starting number and growth rate. Mark where you expect the line to settle, then test it.
+3. Once the line is level, add a cold winter. Mark what you expect immediately and several steps later, then run it.
+
+**Predict.** Keep carrying capacity unchanged but raise the growth rate. Will the population settle higher, or reach about the same level sooner?
+
+<details>
+<summary>Check your prediction</summary>
+
+It reaches about the same level sooner. In this simple model, the growth rate changes the trip, while carrying capacity sets the level approached.
+
+</details>
 
 ## Explain: who lives together and what holds them back
 
 <WordBank terms={['population', 'community', 'ecosystem', 'biotic factor', 'abiotic factor', 'competition', 'cooperation', 'limiting factor', 'exponential growth', 'carrying capacity', 'extinction', 'dynamic equilibrium']} />
 
-Think about one creek that flows into the Bay. It holds blue crabs, fish, clams, marsh grass and microbes, along with mud, water and sunlight.
+Think about one creek flowing into the Bay, with blue crabs, fish, clams, marsh grass and microbes, plus mud, water and sunlight.
 
 A **population** is all the members of one species that live in the same area at the same time. In species that reproduce sexually, they can breed with each other. The blue crabs in the Bay this winter are a population. Its members compete for food, water, shelter and mates.
 
@@ -272,14 +301,14 @@ A **community** is all the populations of different species that live in an area
 
 An **ecosystem** is a community together with its nonliving surroundings, such as water, mud, air and sunlight.
 
-Two kinds of factors shape a population:
+Two kinds of factors affect that population:
 
 - A **biotic factor** is a living part of the environment, such as predators, food, competitors and disease.
 - An **abiotic factor** is a nonliving part of the environment, such as temperature, moisture, air, salinity (salt level) and pH.
 
-Living things in a community interact in many ways, such as predation (one eats another). Two important ones are these. **Competition** happens when individuals need the same limited resource, such as food or a hiding place. **Cooperation** happens when individuals work together and both gain, as when wolves hunt in a pack.
+Living things interact in many ways, including predation, when one eats another. **Competition** happens when individuals need the same limited resource, such as food or a hiding place. **Cooperation** happens when individuals work together and both gain, as when wolves hunt in a pack.
 
-A **limiting factor** is anything that keeps a population from growing larger. Here are examples for the blue crab.
+A **limiting factor** is anything that keeps a population from growing larger. Examples for blue crabs:
 
 | Factor | Kind | How it can limit blue crabs |
 |---|---|---|
@@ -292,49 +321,76 @@ A **limiting factor** is anything that keeps a population from growing larger. H
 
 Other species meet other limits. Land plants and animals depend on moisture, land animals take oxygen from the air, and the pH of soil helps decide which plants grow where.
 
-<ScaffoldFigure src="/figures/carrying-capacity/creek-limiting-factors.webp" width={1200} height={800} keyItems={["hiding places", "predators", "competitors", "food", "cold water"]} given={[1, 3]} alt="AI-generated illustration: a cut-away of a shallow winter creek. A small young blue crab hides in marsh grass at the left, a large adult crab reaches toward it, two medium crabs face the same clam, clams sit in the mud, and thin ice covers the water at the right. Five numbered circles mark these parts." caption="Limiting factors in one Bay creek, living and nonliving, drawn in one scene. They act in different seasons: big crabs eat young crabs mostly in warm months, while cold water matters in winter. Name the five numbered parts that can hold a blue crab population back." />
+<ScaffoldFigure src="/figures/carrying-capacity/creek-limiting-factors.webp" width={1200} height={800} keyItems={["hiding places", "predators", "competitors", "food", "cold water"]} given={[1, 3]} alt="AI-generated illustration: a cut-away of a shallow winter creek. A small young blue crab hides in marsh grass at the left, a large adult crab reaches toward it, two medium crabs face the same clam, clams sit in the mud, and thin ice covers the water at the right. Five numbered circles mark these parts." caption="Living and nonliving limiting factors act on crabs in one creek, in different seasons: big crabs eat young crabs mostly in warm months, while cold water matters in winter. Name the five numbered parts." />
 
-<Support min={2}>**Key idea:** A population is one species in one place at one time, and living and nonliving factors limit how large it can grow.</Support>
+<Support>**The one idea:** Limits slow population growth near carrying capacity, and lasting changes in resources or conditions can move carrying capacity. **Scope:** This is the lesson's simplest model of one population in an environment over time. Carrying capacity is not a hard ceiling, and a count alone does not reveal it. Crabbing or a brief freeze lowers population size without, by itself, showing that carrying capacity moved.</Support>
 
 ## Explain: J-shaped and S-shaped growth
 
-Suppose 10 bacteria land in a dish of fresh food, and each one splits in two every 30 minutes. After one step there are 20, then 40, 80, 160 and 320. The number added gets bigger every step. This is **exponential growth**, growth in which a population increases by the same fraction in each time period. On a graph it makes a J shape.
+The first film bent a J-shaped curve into an S. Here are the numbers and names behind it.
 
-Exponential growth happens when a population is small and resources are plentiful. No real population can keep it up for long. Food runs short, waste builds up, and crowding makes competition, predation and disease worse.
+Suppose 10 bacteria land in a dish of fresh food, and each one splits in two every 30 minutes. After one step there are 20, then 40, 80, 160 and 320. The population increases by the same fraction each step, but the number added gets larger. This is **exponential growth**, and its graph makes a J shape. It can happen while a population is small and resources are plentiful, but it cannot last: food runs short and waste builds up.
 
-When limits set in, the simplest model bends the curve into an S shape. Biology courses name five parts of a population growth curve. The first three make up the S shape. The last two are what can happen afterwards if conditions get worse:
+Biology courses name five parts of a population growth curve. The first three make up the simplest S-shaped model, which levels off near the **carrying capacity**, the largest population the environment can support over time with its resources and challenges:
 
-1. **Initial growth.** A small population adds only a few individuals at first, because there are few individuals to have young.
-2. **Exponential growth.** Numbers rise faster and faster while resources last.
-3. **Steady state.** Growth slows and the line levels off near the carrying capacity.
-4. **Decline.** If conditions get worse, deaths outnumber births and the population shrinks.
+1. **Initial growth.** A small population adds only a few individuals because few are present to have young.
+2. **Exponential growth.** Numbers rise faster while resources are plentiful.
+3. **Steady state.** Growth slows. The model line approaches carrying capacity, while real populations usually move up and down around it. Births and deaths are about equal if few individuals move in or out. This balance, kept by ongoing change, is a **dynamic equilibrium**.
+
+The last two are possible outcomes if conditions get worse, not required stages:
+
+4. **Decline.** Deaths outnumber births and the population shrinks.
 5. **Extinction.** If the decline continues, the population falls to zero.
 
-**Carrying capacity** is the largest population that an environment can support over time, with its resources and its challenges. At the steady state, births and deaths are about equal, if few individuals move in or out. The numbers still go up and down a little around that level. This balance, kept by constant change, is called **dynamic equilibrium**.
+Many real populations stay near a steady state for a long time, and some briefly overshoot carrying capacity before falling back. When a population in one place reaches zero, it has undergone **local extinction**, which is different from extinction of a whole species.
 
-These five parts are a model, and real populations do not have to pass through all of them in order. Many populations stay near a steady state for a long time. Also, **extinction** of a population in one place is different from extinction of a whole species. Blue crabs could vanish from one creek and still live in the rest of the Bay.
+**Predict.** Blue crabs vanish from one creek but remain elsewhere in the Bay. Is the species extinct?
 
-{/* DIAGRAM: a J-shaped curve and an S-shaped curve on the same axes of population size against time, with a dashed line for carrying capacity; number 1 initial growth, 2 exponential growth, 3 steady state with small wobbles, 4 decline, 5 extinction at zero */}
+<details>
+<summary>Check your prediction</summary>
 
-<Support min={2}>**Key idea:** With plenty of resources a population grows in a J shape, and as limits set in it bends into an S shape that levels off near the carrying capacity.</Support>
+No. The creek population has undergone local extinction, but the species still lives in other populations.
 
-## Explain: carrying capacity moves
+</details>
 
-Carrying capacity is not one number stamped on a species. It changes when the food, space and shelter an area offers change and stay changed. More food or more hiding places can raise it. The loss of marsh grass or other cover can lower it. A single hard freeze is different. It kills crabs and pushes the population below carrying capacity, but it does not change how many crabs the Bay's resources could support, so the population can grow back.
+{/* DIAGRAM: a J-shaped curve and an S-shaped curve on the same axes of population size against time, with a dashed line for carrying capacity; number 1 initial growth, 2 exponential growth, 3 steady state where the model line approaches the dashed line, with a separate faint line showing a real population wobbling around it, 4 decline, 5 extinction at zero */}
 
-Hiding places matter for young crabs. A 37-year field study in the Bay found that adult crabs did nearly all the killing of young crabs. A tank study found that young crabs survived better with more stand-in marsh grass stems, though the authors said the result still needs testing with real plants. Details of both studies are in Going deeper.
+<Support min={2}>**Model check:** A J-shaped curve represents exponential growth. In the simplest limited-growth model, the curve bends into an S shape and approaches carrying capacity; real populations often move around that level. Decline and extinction are possible later outcomes, not required stages of every curve.</Support>
 
-Some limits get stronger as a population gets more crowded. These are called **density-dependent** factors, such as competition, disease and predators. Other limits hit a population whatever its size, such as a storm or a hard freeze. These are **density-independent** factors.
+## Explain: which limits change with crowding
+
+Some limits get stronger as a population becomes crowded. These are **density-dependent** factors, such as competition, disease and predators. Other limits hit a population whatever its size. These are **density-independent** factors.
+
+**Predict.** A hard freeze kills the same share of crabs in a crowded creek and in a sparse one. Is the freeze density-dependent or density-independent?
+
+<details>
+<summary>Check your prediction</summary>
+
+Density-independent. Its effect does not grow with crowding, and a storm is the same. Disease is different: it takes a bigger share of a crowded population.
+
+</details>
 
 <LessonFigure src="/figures/carrying-capacity/crowd-vs-freeze.webp" width={1200} height={800} alt="AI-generated illustration: two pairs of tiles of creek bottom seen from above. On the left, disease spreads among many crabs in a crowded tile but only one crab is sick in a sparse tile. On the right, the same sparse and crowded tiles both lie under thin ice, and crabs are lost in each." caption="A sketch, not data: disease hits a crowded population harder, while a hard freeze hits a sparse and a crowded population alike." />
 
-People change carrying capacity and population size too. Crabbing removes crabs from the Bay each year, and building on shorelines can remove marsh. You will look at these pressures in [The Chesapeake Under Pressure](/lessons/chesapeake-under-pressure/).
+## Explain: carrying capacity can move
 
-The tension in every population is the same. Living things can produce more young than their environment can support, and the environment's limits push back.
+A freeze lowers a crab count whatever the crowding. Does it also lower how many crabs the Bay can support? That depends on what changes and for how long.
 
-<Support min={2}>**Key idea:** Carrying capacity rises and falls with conditions, including changes people make, so a population's steady level can move.</Support>
+Hiding places matter for young crabs. In the Bay, adult crabs do nearly all the killing of young crabs, and in one tank test young crabs survived better among more stand-in grass stems (see Going deeper for both studies and their limits).
+
+People can change carrying capacity and population size too. Crabbing removes crabs from the Bay each year, and shoreline building can remove marsh. [The Chesapeake Under Pressure](/lessons/chesapeake-under-pressure/) examines these pressures.
+
+In every population, living things can produce more young than their environment can support, and the environment's limits push back.
+
+So a hard freeze and a lost marsh can both leave fewer crabs. Can the count alone tell them apart? The second film takes that up.
+
+<LessonFilm film={frontmatter.films[0]} />
 
 ## Elaborate: read the crab survey
+
+The second film showed that a brief freeze that leaves food, space and shelter unchanged lowers population size, not carrying capacity. The survey gives only counts, so read it for which group changed, not why.
+
+<Support min={2}>**Evidence check:** Lasting changes in resources or conditions can move carrying capacity. A short change in abundance does not prove that carrying capacity moved.</Support>
 
 | Survey winter | Total crabs (millions) | Adult females (millions) | Juveniles (millions) |
 |---|---|---|---|
@@ -347,25 +403,43 @@ The tension in every population is the same. Living things can produce more youn
 | 2024–2025 | 238 | 108 | 103 |
 | 2025–2026 | 349 | 81 | 228 |
 
-These are Bay-wide estimates from the Winter Dredge Survey, run each winter by the Maryland Department of Natural Resources and the Virginia Institute of Marine Science, as published by Maryland DNR (series opened October 2026; the 2026 values also appear in the VIMS release of May 2026). They come from about 1,500 sites, not one station. Each is an estimate, corrected for crabs the dredge missed. The total also includes adult males, which are not shown, so it is larger than the other two columns added together.
+**Predict.** For 2025–2026, do the adult females and juveniles add up to the total? What group is missing from the two smaller columns?
 
-<LessonFigure src="/figures/carrying-capacity/winter-dredge-survey.webp" width={1200} height={800} alt="AI-generated illustration: a work boat in winter tows a metal dredge along the muddy Bay floor, where blue crabs lie buried with only their shells showing. An inset shows crabs sorted into a tray of small juveniles and trays of adults on deck." caption="The winter dredge survey: a towed dredge samples crabs buried in the mud, and each catch is sorted into juveniles and adults before it becomes an estimate." />
+<details>
+<summary>Check your prediction</summary>
+
+No. Adult males are included in the total but do not have their own column here.
+
+</details>
+
+These are Bay-wide estimates from the Winter Dredge Survey. The Maryland Department of Natural Resources and the Virginia Institute of Marine Science run it each winter. The values are as published by Maryland DNR (series opened October 2026; the 2026 values also appear in the VIMS release of May 2026). They come from about 1,500 sites, not one station, and each is corrected for crabs the dredge missed.
+
+<LessonFigure src="/figures/carrying-capacity/winter-dredge-survey.webp" width={1200} height={800} alt="AI-generated illustration: a work boat in winter tows a metal dredge along the muddy Bay floor, where blue crabs lie buried with only their shells showing. An inset shows crabs sorted into a tray of small juveniles and trays of adults on deck." caption="The winter dredge survey turns samples of buried crabs into Bay-wide abundance estimates, not exact counts or measurements of carrying capacity." />
 
 1. In which winter was the total lowest? In which was it highest?
 2. From 2024–2025 to 2025–2026, did the total and the adult females change in the same direction? By how much did each change?
 3. Find the mean total for the eight winters. Could that mean be the Bay's carrying capacity? Explain why or why not.
 
 <CER
-  task="Make a claim that answers the question: why does the number of blue crabs in the Bay change from year to year? Use the survey table."
-  claim="The total number of crabs changes from year to year mostly because ___."
+  task="Use the survey table to explain which group contributed most to one change in the total, then state what the table cannot tell you about the cause."
+  claim="From ___ to ___, the total changed mostly because ___."
   evidence="From ___ to ___, juveniles changed from ___ to ___ million, while adult females changed from ___ to ___ million."
-  reasoning="This supports my claim because ___ is a factor that can limit how many young crabs survive, and the table cannot tell us ___."
+  reasoning="This supports my claim about the numerical change because ___. The table cannot tell us which limiting factor caused it because ___."
   model="In some years the total changes mostly because the number of juveniles changes a lot. From 2024–2025 to 2025–2026, juveniles rose from 103 to 228 million while adult females fell from 108 to 81 million, yet the total rose from 238 to 349 million. So young crabs drove that change. In other years adults mattered more: from 2020–2021 to 2021–2022, adult females fell from 158 to 97 million while juveniles rose a little, and the total fell. Limiting factors such as cold winters, salinity, predators and the amount of marsh cover can change how many young crabs survive. The table has limits: it shows estimates, not exact counts, it covers only eight winters, and it does not measure any cause directly. We would need temperature, habitat and predator data to test which factor mattered."
 />
 
 ### Design problem
 
 You want to test whether salt in the water is a limiting factor for duckweed, a tiny floating plant that multiplies by budding. Plan a fair test that shows how salt affects the population's growth and the level it reaches.
+
+**Predict.** Why should the plan use several cups at each salt level and place the cups in random order under the lights?
+
+<details>
+<summary>Check your prediction</summary>
+
+Repeated cups show whether a pattern is consistent instead of a chance result in one cup. Random order keeps one position under the lights from always going with one salt level.
+
+</details>
 
 <details>
 <summary>One way to do it</summary>
@@ -383,7 +457,7 @@ You want to test whether salt in the water is a limiting factor for duckweed, a 
 
 ## Evaluate: check your thinking
 
-The Bay does not hold the same number of crabs every year. The survey estimates how many crabs there are; it does not measure carrying capacity, so it cannot show whether the Bay's carrying capacity changed. Cold, salinity, predators, food, hiding places and crabbing all change how many crabs are born and survive, and crabbing removes adult crabs every year. In some winters, such as 2025–2026, most of the change came from young crabs; in others, adult females changed more.
+The survey estimates abundance; it does not measure carrying capacity, so it cannot show whether carrying capacity changed. Cold, salinity, predators, food, hiding places and crabbing, which removes adult crabs every year, all change how many crabs are born and survive. In some winters, such as 2025–2026, most of the change came from young crabs; in others, adult females changed more.
 
 **Science practices you used:** asking a question about a real pattern, using a model and naming its limits, reading a data table and finding a mean, planning a fair test with a control and repeated trials, and making a claim backed by evidence and reasoning.
 
@@ -391,7 +465,7 @@ The Bay does not hold the same number of crabs every year. The survey estimates 
 
 ### Hiding places for young crabs
 
-In a 2023 tank study, young blue crabs survived better when the tank held more wooden rods standing in for marsh grass stems, with adult crabs present as predators. The study was mainly a test of a method, and the authors said the result still needs testing with real plants. The same 37-year field study in the Bay also found that shallow water near shore gave young crabs partial shelter.
+In a 2023 tank study, young blue crabs survived better when the tank held more wooden rods standing in for marsh grass stems, with adult crabs present as predators. The study was mainly a test of a method, and the authors said the result still needs testing with real plants. A 37-year field study in the Bay found that adult crabs did nearly all the killing of young crabs, and that shallow water near shore gave young crabs partial shelter.
 
 ### Winter survival of crabs in the cold and fresh
 

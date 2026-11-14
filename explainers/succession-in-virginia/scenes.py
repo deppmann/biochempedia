@@ -1,419 +1,549 @@
-"""Each stage changes the place  (Biochemistrypedia explainer, high school Biology: succession in Virginia)
+"""How a Field Changes Its Future — succession in a Virginia Piedmont field.
 
-Timed to the SPOKEN words: every self.at("...") cue waits for that phrase in audio/words.json.
+COLOR MAP (one colour per concept, throughout)
+  GOLD/YELLOW  open light
+  SOIL         soil
+  EARLY        early plants
+  TEAL         pines
+  ORANGE       hardwoods
+  RED          disturbance / mower
+  BLUE         evidence and explanatory links
 
-COLOR MAP (one color per concept, whole video)
-  LIME   = weeds and grasses (horseweed, asters, broomsedge): the early plants
-  GREEN  = pines
-  ORANGE = oaks and hickories (hardwoods): the late plants
-  YELLOW = sunlight (the sun and light arrows)
-  SOIL   = soil (brown bar)
-  BLUE   = a term being defined (community, succession, abiotic factors, climax community)
-  RED    = disturbance (fire, flood, plowing, a reset)
-  PURPLE = people mowing (first scene only)
-  GREY   = bare rock, axes, outlines, neutral labels
-Plants are simple schematic shapes (tufts, triangles, circles on sticks), not drawings of species.
-Dots in the community boxes are an illustration, not counts. The only times on screen are the
-lesson's own words for the published Piedmont old-field path: first years, about year 3, a few
-decades, a century or more. No Glacier Bay figure and no data-table number is shown.
+The landscape is schematic.  Every continuing scene calls ``field_world`` so the
+ground, canopy, and landmark x positions are rebuilt at exactly the same scale.
 """
-import numpy as np
-from bp_style import *  # noqa: F401,F403
+from bp_parts import *  # noqa: F401,F403
 
-LIME = "#B5D86A"
-SOIL = "#A67C52"
+
+SOIL = "#9A6B45"
+EARLY = "#78C66B"
 ORANGE = "#F29E4C"
-PURPLE = "#B58CD9"
-PINE = GREEN
-HARD = ORANGE
-
-GY = -1.3          # ground top (strip scenes)
-XS = [-4.6, -1.55, 1.55, 4.6]
-WOBBLE = [0.9, 1.0, 0.8, 1.0, 0.85, 0.95, 0.9, 1.0]
+PINE = TEAL
+LIGHT = GOLD
+GROUND_Y = -1.35
 
 
-# ------------------------------------------------------------------------------------ helpers
-def tufts(cx, base, n, h, color=LIME, gap=0.28, w=4):
-    g = VGroup()
-    for i in range(n):
-        x = cx + (i - (n - 1) / 2) * gap
-        tilt = 0.06 * (1 if i % 2 else -1)
-        g.add(Line([x, base, 0], [x + tilt, base + h * WOBBLE[i % 8], 0], color=color, stroke_width=w))
-    return g
+def _sway(line, phase=0.0, amp=0.075, speed=1.35):
+    """Give a stem genuine, gentle wind motion about its fixed base."""
+    line._wind_t = phase
+    p0, p1 = line.get_start().copy(), line.get_end().copy()
+    length = p1[1] - p0[1]
+
+    def move(mob, dt):
+        mob._wind_t += dt
+        dx = amp * np.sin(speed * mob._wind_t)
+        mob.put_start_and_end_on(p0, p1 + RIGHT * dx * max(length, 0.3))
+    line.add_updater(move)
+    return line
 
 
-def pine(cx, base, h, w, tr=0.25, color=PINE):
-    trunk = Line([cx, base, 0], [cx, base + h * tr + 0.05, 0], color=color, stroke_width=5)
-    can = Polygon([cx - w / 2, base + h * tr, 0], [cx + w / 2, base + h * tr, 0], [cx, base + h, 0],
-                  stroke_color=color, stroke_width=3.5, fill_color=color, fill_opacity=0.28)
-    return VGroup(trunk, can)
+def soil_strip(y=GROUND_Y, height=1.15, x0=-6.3, x1=6.3):
+    return Rectangle(
+        width=x1 - x0, height=height, stroke_color=SOIL, stroke_width=3,
+        fill_color=SOIL, fill_opacity=0.42,
+    ).move_to([(x0 + x1) / 2, y - height / 2, 0])
 
 
-def oak(cx, base, h, r, color=HARD):
-    trunk = Line([cx, base, 0], [cx, base + h, 0], color=color, stroke_width=5)
-    crown = Circle(radius=r, stroke_color=color, stroke_width=3.5, fill_color=color, fill_opacity=0.28)
-    crown.move_to([cx, base + h + r * 0.55, 0])
+def grass_patch(cx, width=2.0, height=0.8, count=8, color=EARLY, phase=0.0):
+    stems = VGroup()
+    for i in range(count):
+        x = cx - width / 2 + width * i / max(count - 1, 1)
+        h = height * (0.72 + 0.25 * ((i * 5) % 7) / 6)
+        stem = Line([x, GROUND_Y, 0], [x + (0.045 if i % 2 else -0.045), GROUND_Y + h, 0],
+                    color=color, stroke_width=5)
+        stems.add(_sway(stem, phase + i * 0.55, amp=0.055))
+    return stems
+
+
+def pine_tree(x, height=3.25, width=1.45, color=PINE):
+    trunk = Line([x, GROUND_Y, 0], [x, GROUND_Y + height * 0.7, 0], color=SOIL, stroke_width=7)
+    crowns = VGroup()
+    for frac, scale in ((0.42, 1.0), (0.62, 0.78), (0.79, 0.56)):
+        y = GROUND_Y + height * frac
+        crowns.add(Polygon([x - width * scale / 2, y, 0], [x + width * scale / 2, y, 0],
+                           [x, y + height * 0.34, 0], stroke_color=color, stroke_width=3,
+                           fill_color=color, fill_opacity=0.48))
+    return VGroup(trunk, crowns)
+
+
+def hardwood_tree(x, height=2.7, radius=0.72, color=ORANGE):
+    trunk = Line([x, GROUND_Y, 0], [x, GROUND_Y + height * 0.72, 0], color=SOIL, stroke_width=8)
+    crown = VGroup(*[
+        Circle(radius=radius * s, stroke_color=color, stroke_width=3,
+               fill_color=color, fill_opacity=0.48).move_to([x + dx, GROUND_Y + height + dy, 0])
+        for dx, dy, s in ((-0.42, -0.08, 0.72), (0.0, 0.14, 0.9), (0.45, -0.08, 0.72))
+    ])
     return VGroup(trunk, crown)
 
 
-def ground(y, x0=-6.3, x1=6.3, h=0.3, color=SOIL):
-    return Rectangle(width=x1 - x0, height=h, stroke_color=color, stroke_width=2.5, fill_color=color,
-                     fill_opacity=0.5).move_to([(x0 + x1) / 2, y - h / 2, 0])
+def seed_dots():
+    buried = VGroup(*[Dot([x, GROUND_Y - 0.35 - 0.12 * (i % 2), 0], radius=0.09, color=EARLY)
+                      for i, x in enumerate((-4.8, -3.6, -2.4, -0.8, 0.5, 2.2, 3.7))])
+    return buried
 
 
-def lab2(a, b, ca=TEXT, cb=GREY, sa=24, sb=22, w=2.95):
-    ta, tb = T(a, sa, ca), T(b, sb, cb)
-    g = VGroup(ta, tb).arrange(DOWN, buff=0.1)
-    return fit(g, max_w=w)
+def sun_beams(opacity=0.22, gap=None):
+    xs = (-4.7, -2.4, 0.0, 2.4, 4.7) if gap is None else gap
+    beams = VGroup()
+    for x in xs:
+        beam = Polygon([x - 0.42, 3.55, 0], [x + 0.42, 3.55, 0],
+                       [x + 0.18, GROUND_Y + 0.04, 0], [x - 0.18, GROUND_Y + 0.04, 0],
+                       stroke_width=0, fill_color=LIGHT, fill_opacity=opacity)
+        beams.add(beam)
+    beams._shimmer_t = 0.0
+
+    def shimmer(mob, dt):
+        mob._shimmer_t += dt
+        value = max(0.03, opacity + 0.07 * np.sin(1.15 * mob._shimmer_t))
+        for beam in mob:
+            beam.set_fill(opacity=value)
+    beams.add_updater(shimmer)
+    return beams
 
 
-def col_plants(i, lime_h=(0.5, 1.2)):
-    x, b = XS[i], GY
-    if i == 0:
-        return tufts(x, b, 6, 0.8)
-    if i == 1:
-        return tufts(x, b, 8, 2.0, w=3.5)
-    if i == 2:
-        return VGroup(pine(x - 0.8, b, 3.0, 1.45), pine(x + 0.8, b, 2.7, 1.3))
-    return VGroup(oak(x - 0.8, b, 1.3, 0.8), oak(x + 0.8, b, 1.1, 0.75))
+def field_world(stage="open", beams=True, roots=False):
+    """The one carried landscape, always on the same coordinates."""
+    world = VGroup()
+    if beams:
+        world.add(sun_beams(0.20 if stage == "open" else 0.08))
+    ground = soil_strip()
+    world.add(ground)
+    if roots:
+        roots_m = VGroup(*[
+            Line([x, GROUND_Y, 0], [x + 0.18 * (-1 if i % 2 else 1), GROUND_Y - 0.65, 0],
+                 color=SOIL, stroke_width=4)
+            for i, x in enumerate((-4.2, -2.8, -1.0, 0.9, 2.7, 4.3))
+        ])
+        world.add(roots_m, seed_dots())
+    if stage == "open":
+        world.add(grass_patch(-4.4, 2.5, 0.65, 9, phase=0.2),
+                  grass_patch(-1.4, 2.7, 0.72, 10, phase=1.0),
+                  grass_patch(1.8, 2.7, 0.67, 10, phase=2.0),
+                  grass_patch(4.6, 2.1, 0.6, 8, phase=2.8))
+    elif stage == "young":
+        world.add(grass_patch(-4.7, 2.2, 1.0, 8), grass_patch(-1.6, 2.2, 1.45, 8, phase=1),
+                  grass_patch(1.4, 2.1, 1.2, 8, phase=2),
+                  pine_tree(3.3, 1.65, 0.72), pine_tree(4.6, 2.0, 0.86))
+    elif stage == "canopy":
+        for x, h in ((-4.7, 3.9), (-3.0, 4.25), (-1.15, 4.0), (0.8, 4.2), (2.75, 4.05), (4.65, 4.2)):
+            world.add(pine_tree(x, h, 2.0))
+    elif stage == "mixed":
+        world.add(pine_tree(-4.8, 3.9, 1.7), pine_tree(-2.7, 4.0, 1.8),
+                  hardwood_tree(-0.35, 3.45, 0.82), hardwood_tree(2.0, 3.75, 0.9),
+                  hardwood_tree(4.55, 3.55, 0.86))
+    return world
 
 
-COLLAB = [("weeds", "first years"), ("broomsedge", "about year 3"), ("young pines", "a few decades"),
-          ("oaks and hickories", "a century or more")]
-COLCOL = [LIME, LIME, PINE, HARD]
+def mower():
+    body = RoundedRectangle(corner_radius=0.12, width=1.55, height=0.58, stroke_color=RED,
+                            fill_color=RED, fill_opacity=0.65, stroke_width=3)
+    body.move_to([-4.4, -0.82, 0])
+    wheels = VGroup(Circle(0.18, color=TEXT, fill_opacity=0.7).move_to([-4.85, -1.18, 0]),
+                    Circle(0.18, color=TEXT, fill_opacity=0.7).move_to([-3.95, -1.18, 0]))
+    handle = Line([-3.75, -0.65, 0], [-3.1, 0.2, 0], color=RED, stroke_width=6)
+    return VGroup(body, wheels, handle)
 
 
-def col_label(i):
-    g = lab2(*COLLAB[i], ca=COLCOL[i])
-    return g.move_to([XS[i], -2.2, 0])
-
-
-def sun(x=-5.9, y=2.8, r=0.3):
-    c = Circle(radius=r, stroke_color=YELLOW, stroke_width=4, fill_color=YELLOW, fill_opacity=0.9).move_to([x, y, 0])
-    rays = VGroup(*[Line(c.get_center() + r * 1.35 * np.array([np.cos(a), np.sin(a), 0]),
-                         c.get_center() + r * 1.9 * np.array([np.cos(a), np.sin(a), 0]), color=YELLOW, stroke_width=4)
-                    for a in np.linspace(0, 2 * np.pi, 8, endpoint=False)])
-    return VGroup(c, rays)
-
-
-def larrow(x, y0, y1, w=4, op=1.0):
-    a = Arrow([x, y0, 0], [x, y1, 0], color=YELLOW, stroke_width=w, buff=0, tip_length=0.2,
-              max_tip_length_to_length_ratio=0.5)
-    a.set_opacity(op)
-    return a
-
-
-def arr(a, b, color=GREY, w=5):
-    return Arrow(a, b, buff=0.05, color=color, stroke_width=w, tip_length=0.22, max_tip_length_to_length_ratio=0.4)
-
-
-def time_arrow(y=-3.15):
-    a = arr([-6.1, y, 0], [6.1, y, 0], GREY, 4)
-    t = T("years after mowing stops", 22, GREY).move_to([0, y - 0.35, 0])
-    return VGroup(a, t)
-
-
-def dots_box(cx, cy, mix, w=3.5, h=2.9, seed=0):
-    """mix = (n_lime, n_green, n_orange). Dots are an illustration, not counts."""
-    box = RoundedRectangle(corner_radius=0.15, width=w, height=h, stroke_color=GREY, stroke_width=3)
-    box.move_to([cx, cy, 0])
-    rng = np.random.RandomState(seed)
-    cols = [LIME] * mix[0] + [PINE] * mix[1] + [HARD] * mix[2]
-    n = len(cols)
-    cells = [(i, j) for i in range(4) for j in range(3)]
-    rng.shuffle(cells)
-    rng.shuffle(cols)
-    dots = VGroup()
-    for (i, j), c in zip(cells[:n], cols):
-        p = [cx - w / 2 + 0.4 + i * (w - 0.8) / 3 + rng.uniform(-0.07, 0.07),
-             cy - h / 2 + 0.4 + j * (h - 0.8) / 2 + rng.uniform(-0.07, 0.07), 0]
-        dots.add(Circle(radius=0.18, stroke_color=c, stroke_width=2, fill_color=c, fill_opacity=0.85).move_to(p))
-    out = VGroup(box, dots)
-    out.cols = cols[:n]
+def seedling_pair(with_question=False):
+    canopy = VGroup(
+        Rectangle(width=12.6, height=0.48, stroke_color=PINE, fill_color=PINE,
+                  fill_opacity=0.32, stroke_width=3).move_to([0, 2.65, 0]),
+        *[Circle(0.7, stroke_color=PINE, fill_color=PINE, fill_opacity=0.38, stroke_width=3)
+          .move_to([x, 2.55 + 0.12 * (i % 2), 0]) for i, x in enumerate(np.linspace(-5.8, 5.8, 9))]
+    )
+    ground = soil_strip(y=-1.45, height=0.65)
+    pine = pine_tree(-2.5, 2.1, 1.0)
+    pine.shift(DOWN * 0.1)
+    hard = hardwood_tree(2.5, 1.65, 0.46)
+    labels = VGroup(T("pine", 30, PINE).move_to([-2.5, -2.42, 0]),
+                    T("hardwood", 30, ORANGE).move_to([2.5, -2.42, 0]))
+    out = VGroup(sun_beams(0.08, (-4.8, 0, 4.8)), canopy, ground, pine, hard, labels)
+    if with_question:
+        out.add(T("?", 78, LIGHT, weight=BOLD).move_to([0, 0.0, 0]))
     return out
 
 
-def strip(upto=4, labels=True, sunlight=False):
-    g = VGroup(ground(GY))
-    for i in range(upto):
-        g.add(col_plants(i))
-        if labels:
-            g.add(col_label(i))
-    return g
+def causal_ribbon(y=2.65):
+    labels = [chip("organisms grow", EARLY, 28), chip("conditions change", LIGHT, 28),
+              chip("suited species increase", ORANGE, 28)]
+    for lab, x in zip(labels, (-4.45, 0, 4.45)):
+        lab.move_to([x, y, 0])
+    arrows = VGroup(Arrow(labels[0].get_right(), labels[1].get_left(), buff=0.18, color=BLUE, stroke_width=5),
+                    Arrow(labels[1].get_right(), labels[2].get_left(), buff=0.18, color=BLUE, stroke_width=5))
+    backing = RoundedRectangle(corner_radius=0.16, width=12.35, height=0.7, stroke_width=0,
+                               fill_color=BG, fill_opacity=0.94).move_to([0, y, 0]).set_z_index(1)
+    for item in (*labels, arrows):
+        item.set_z_index(2)
+    return VGroup(*labels, arrows, backing)
 
 
-class S00Title(TitleCard):
-    LESSON = "Succession in Virginia"
-    TITLE = "Each stage changes the place"
-
-
-# ------------------------------------------------------------------------------------ 1
-class S01Stop(SpokenScene):
-    """A mowed field, then a timeline from a few years to a century or more, with the question."""
-
+class S00Hook(SpokenScene):
     def construct(self):
-        g = ground(GY)
-        mown = tufts(-4.6, GY, 7, 0.25, color=LIME, gap=0.3, w=3)
-        mown_l = lab2("mowed field", "kept short by people", ca=PURPLE, w=3.2).move_to([-4.6, -2.2, 0])
-        self.add(g)
-        self.at("stop mowing")
-        self.play(FadeIn(mown, lag_ratio=0.1), FadeIn(mown_l), run_time=0.8)
-        tl = time_arrow()
-        self.play(Create(tl[0]), FadeIn(tl[1]), run_time=0.7)
-        self.at("nobody plants anything")
-        stop = chip("mowing stops", PURPLE, size=26).move_to([-4.6, 0.2, 0])
-        self.play(FadeIn(stop, shift=DOWN * 0.1), run_time=0.5)
-        self.at("seeds blow in")
-        seeds = VGroup(*[Circle(radius=0.07, stroke_width=0, fill_color=LIME, fill_opacity=1).move_to([x, 1.0 + 0.3 * (k % 2), 0])
-                         for k, x in enumerate([-1.9, -1.4, -0.9, -0.4, 0.1, 0.6])])
-        sl = T("seeds", 24, LIME).move_to([-0.9, 1.9, 0])
-        self.play(FadeIn(seeds), FadeIn(sl), run_time=0.4)
-        self.play(*[s.animate.move_to([s.get_x(), GY - 0.12 * (k % 3) - 0.04, 0]) for k, s in enumerate(seeds)],
-                  run_time=0.9)
-        self.at("within a few years")
-        few = VGroup(tufts(XS[1], GY, 8, 2.0, w=3.5), pine(XS[1] + 1.32, GY, 1.3, 0.75))
-        few_l = lab2("a few years", "broomsedge, blackberry, small pines", ca=LIME, w=4.4).move_to([XS[1], -2.2, 0])
-        self.play(FadeOut(mown), FadeOut(mown_l), FadeOut(stop), FadeOut(sl), FadeOut(seeds), FadeIn(few, shift=UP * 0.2),
-                  FadeIn(few_l), run_time=0.9)
-        self.at("after a century or more")
-        qb = RoundedRectangle(corner_radius=0.15, width=3.0, height=3.2, stroke_color=GREY, stroke_width=3, stroke_opacity=0.8)
-        qb.move_to([XS[3], GY + 1.6, 0])
-        q = T("?", 80, YELLOW, weight=BOLD).move_to(qb)
-        far = T("a century or more", 24, GREY).move_to([XS[3], -2.2, 0])
-        self.play(Create(qb), FadeIn(q), FadeIn(far), run_time=0.7)
-        self.at("oaks and hickories")
-        oaks = col_plants(3)
-        self.play(FadeOut(q), FadeOut(qb), FadeIn(oaks, shift=UP * 0.2), run_time=0.9)
-        far2 = T("oaks and hickories", 24, HARD).move_to([XS[3], -2.2, 0])
-        self.play(Transform(far, far2), run_time=0.4)
-        self.at("what happens to a field")
-        ques = T("What happens to a field after people or fire leave it alone?", 32, font=TITLE_FONT)
-        fit(ques, max_w=12.2)
-        ques.move_to([0, 3.0, 0])
-        self.play(Write(ques), run_time=1.6)
+        world = field_world("open", roots=True)
+        self.play(FadeIn(world), run_time=1.2)
+        self.at("why does a sunny field")
+        sweep = sun_beams(0.28)
+        self.play(FadeIn(sweep), sweep.animate.shift(RIGHT * 0.18), run_time=2.5)
+        self.at("Watch one Virginia")
+        tag = scope_tag("schematic")
+        self.play(FadeIn(tag), run_time=0.5)
+        self.at("The mower leaves")
+        mow = mower()
+        self.play(FadeIn(mow), mow.animate.shift(LEFT * 3.2), run_time=1.7)
+        self.remove(mow)
+        self.at("Seeds already in soil")
+        buried = seed_dots()
+        rising = VGroup(*[d.copy() for d in buried[:4]])
+        self.play(FadeIn(buried), FadeIn(rising), rising.animate.shift(UP * 0.72), run_time=1.4)
+        self.at("while others arrive")
+        incoming = VGroup(*[Dot([6.5 + i * 0.22, 0.7 + 0.25 * (i % 2), 0], radius=0.09, color=EARLY)
+                            for i in range(5)])
+        bird = VGroup(ArcBetweenPoints([5.5, 2.2, 0], [5.9, 2.2, 0], angle=-1.0, color=TEXT),
+                      ArcBetweenPoints([5.9, 2.2, 0], [6.3, 2.2, 0], angle=-1.0, color=TEXT))
+        self.play(FadeIn(bird), FadeIn(incoming), incoming.animate.shift(LEFT * 4.0 + DOWN * 1.0),
+                  bird.animate.shift(LEFT * 2.0), run_time=2.1)
         self.finish()
 
 
-# ------------------------------------------------------------------------------------ 2
+class S01Title(NarratedScene):
+    def construct(self):
+        world = field_world("open", roots=True)
+        title = fit_text("How a Field Changes Its Future", max_w=11.5, size=52,
+                         color=TEXT, font=TITLE_FONT).move_to([0, 1.15, 0])
+        rule = Line([-2.2, 0.55, 0], [2.2, 0.55, 0], color=GOLD, stroke_width=5)
+        self.add(world, scope_tag("schematic"))
+        self.play(Write(title), GrowFromCenter(rule), run_time=0.9)
+        self.wait(0.45)
+        self.play(FadeOut(title), FadeOut(rule), run_time=0.55)
+        self.finish()
+
+
 class S02Name(SpokenScene):
-    """Community boxes along a time arrow: the mix of plants moves from early to late."""
-
     def construct(self):
-        title = T("ecological succession", 44, BLUE, font=TITLE_FONT).move_to([0, 2.9, 0])
-        self.at("this change has a name")
-        self.play(Write(title), run_time=1.2)
-        b1 = dots_box(-4.45, 0.2, (9, 3, 0), seed=3)
-        b2 = dots_box(0.0, 0.2, (5, 5, 2), seed=5)
-        b3 = dots_box(4.45, 0.2, (2, 3, 7), seed=8)
-        self.at("a community is")
-        self.play(Create(b1[0]), FadeIn(b1[1], lag_ratio=0.08), run_time=1.0)
-        cl = T("community", 28, BLUE).next_to(b1, UP, buff=0.2)
-        cl2 = T("all the species in one area", 24, GREY).next_to(b1, DOWN, buff=0.25)
-        self.play(FadeIn(cl), FadeIn(cl2), run_time=0.5)
-        self.at("succession is the change")
-        a1 = arr([-2.6, 0.2, 0], [-1.95, 0.2, 0], GREY, 5)
-        a2 = arr([1.95, 0.2, 0], [2.6, 0.2, 0], GREY, 5)
-        tl = T("years to centuries", 24, GREY).move_to([0, -1.9, 0])
-        self.play(GrowArrow(a1), Create(b2[0]), FadeIn(b2[1], lag_ratio=0.08), run_time=1.0)
-        self.play(GrowArrow(a2), Create(b3[0]), FadeIn(b3[1], lag_ratio=0.08), FadeIn(tl), run_time=1.0)
+        world = field_world("open")
+        self.add(world, scope_tag("schematic"))
+        self.at("Many populations")
+        highlights = VGroup(*[SurroundingRectangle(world[i], color=BLUE, buff=0.08, stroke_width=2)
+                              for i in range(2, min(len(world), 6))])
+        self.play(LaggedStart(*[Create(h) for h in highlights], lag_ratio=0.12), run_time=1.6)
+        self.at("forming a community")
+        community = T("community", 34, BLUE, weight=BOLD).move_to([0, 2.65, 0])
+        brace = Brace(world[2:], UP, color=BLUE)
+        self.play(ReplacementTransform(highlights, brace), FadeIn(community), run_time=1.2)
+        self.at("Ecological succession")
+        self.play(FadeOut(brace), FadeOut(community), run_time=0.7)
+        arrow = Arrow([-5.8, 2.65, 0], [5.8, 2.65, 0], color=BLUE, stroke_width=7, buff=0)
+        self.play(GrowArrow(arrow), run_time=2.3)
+        self.at("over years to centuries")
+        older = field_world("young", beams=False)
+        world.clear_updaters(recursive=True)
+        self.play(Transform(world, older), run_time=2.4)
         self.at("general pattern")
-        gen = T("often follows a general pattern", 30, TEXT).move_to([0, -2.75, 0])
-        self.play(FadeIn(gen), run_time=0.5)
-        self.at("come early")
-        e = T("early", 26, LIME).next_to(b1, DOWN, buff=0.25)
-        self.play(FadeOut(cl2), FadeIn(e), *[Indicate(d, color=LIME, scale_factor=1.35) for d, c in zip(b1[1], b1.cols) if c == LIME][:4],
-                  run_time=0.9)
-        self.at("others late")
-        l = T("late", 26, HARD).next_to(b3, DOWN, buff=0.25)
-        self.play(FadeIn(l), *[Indicate(d, color=HARD, scale_factor=1.35) for d, c in zip(b3[1], b3.cols) if c == HARD][:4],
-                  run_time=0.9)
-        note = T("dots: an illustration, not counts", 22, GREY).move_to([0, -3.4, 0])
-        self.play(FadeIn(note), run_time=0.4)
+        general = T("general pattern", 30, BLUE).next_to(arrow, UP, buff=0.12)
+        varies = T("timing varies", 30, LIGHT).next_to(arrow, DOWN, buff=0.12)
+        self.play(FadeIn(general), run_time=0.6)
+        self.at("but not a fixed")
+        self.play(FadeIn(varies), arrow.animate.set_stroke(opacity=0.65), run_time=1.0)
         self.finish()
 
 
-# ------------------------------------------------------------------------------------ 3
-class S03Start(SpokenScene):
-    """Disturbance hits a community; soil stays (secondary) or bare rock (primary)."""
-
+class S03Open(SpokenScene):
     def construct(self):
-        box = dots_box(0.0, 2.35, (4, 4, 4), w=3.4, h=1.5, seed=11)
-        cl = T("community", 24, BLUE).next_to(box, LEFT, buff=0.3)
-        self.play(Create(box[0]), FadeIn(box[1]), FadeIn(cl), run_time=0.8)
-        self.at("starts after a disturbance")
-        dch = chip("disturbance", RED, size=28).move_to([4.9, 2.35, 0])
-        da = arr(dch.get_left() + LEFT * 0.0, box.get_right() + RIGHT * 0.05, RED, 6)
-        self.play(FadeIn(dch), GrowArrow(da), run_time=0.7)
-        keep = VGroup(*list(box[1])[:3])
-        gone = VGroup(*list(box[1])[3:])
-        self.play(FadeOut(gone), box[0].animate.set_stroke(RED), run_time=0.7)
-        self.at("a disturbance is an event")
-        ex = T("fire, flood, plowing", 26, RED).move_to([4.9, 1.45, 0])
-        self.play(FadeIn(ex), run_time=0.5)
-        self.at("if the soil stays")
-        s_g = ground(-0.2, -6.2, -0.5, 0.45)
-        s_seed = VGroup(*[Circle(radius=0.07, stroke_width=0, fill_color=LIME, fill_opacity=1).move_to([x, -0.35, 0])
-                          for x in [-5.4, -4.5, -3.6, -2.7, -1.8]])
-        s_t = T("soil stays", 26, SOIL).move_to([-3.35, 0.35, 0])
-        s_a = arr([-1.3, 1.9, 0], [-3.0, 0.75, 0], GREY, 4)
-        s_n = chip("secondary succession", BLUE, size=26).move_to([-3.35, -1.1, 0])
-        self.play(FadeOut(da), FadeOut(dch), FadeOut(ex), GrowArrow(s_a), FadeIn(s_g), FadeIn(s_t), FadeIn(s_seed), run_time=0.9)
-        self.play(FadeIn(s_n), run_time=0.5)
-        self.at("on bare rock")
-        r_g = ground(-0.2, 0.5, 6.2, 0.45, GREY)
-        r_t = T("bare rock, no soil", 26, GREY).move_to([3.35, 0.35, 0])
-        r_a = arr([1.3, 1.9, 0], [3.0, 0.75, 0], GREY, 4)
-        self.play(GrowArrow(r_a), FadeIn(r_g), FadeIn(r_t), run_time=0.9)
-        self.at("that is primary succession")
-        r_n = chip("primary succession", BLUE, size=26).move_to([3.35, -1.1, 0])
-        self.play(FadeIn(r_n), run_time=0.5)
-        self.at("lichens and mosses")
-        blobs = VGroup(*[Ellipse(width=0.42, height=0.2, stroke_color=LIME, stroke_width=2, fill_color=LIME, fill_opacity=0.5)
-                         .move_to([x, -0.1 + 0.0, 0]) for x in [2.2, 3.0, 3.8, 4.5]])
-        bl = T("lichens and mosses first", 24, LIME).move_to([3.35, -1.75, 0])
-        self.play(FadeIn(blobs, lag_ratio=0.2), FadeIn(bl), run_time=0.9)
-        self.at("usually reaches forest")
-        fb = Rectangle(width=2.4, height=0.28, stroke_width=0, fill_color=GREEN, fill_opacity=0.7).move_to([-4.15, -2.8, 0])
-        rb = Rectangle(width=5.2, height=0.28, stroke_width=0, fill_color=GREY, fill_opacity=0.7).move_to([3.6, -2.8, 0])
-        ft = T("usually faster", 24, GREEN).next_to(fb, DOWN, buff=0.18)
-        rt = T("usually slower", 24, GREY).next_to(rb, DOWN, buff=0.18).align_to(rb, LEFT)
-        self.play(GrowFromEdge(fb, LEFT), GrowFromEdge(rb, LEFT), FadeIn(ft), FadeIn(rt), run_time=1.3)
+        world = field_world("open")
+        self.add(world, scope_tag("schematic"))
+        self.at("Weeds and grasses")
+        self.play(world[2:].animate.stretch(1.45, 1, about_edge=DOWN), run_time=2.2)
+        self.at("Broomsedge and blackberry")
+        tall = VGroup(grass_patch(-1.7, 2.4, 1.9, 9, phase=1.2),
+                      grass_patch(1.2, 2.1, 1.65, 8, color=EARLY, phase=2.4))
+        labels = VGroup(T("broomsedge", 28, EARLY).move_to([-1.8, 1.15, 0]),
+                        T("blackberry", 28, EARLY).move_to([1.2, 0.95, 0]))
+        self.play(LaggedStart(FadeIn(tall), FadeIn(labels), lag_ratio=0.25), run_time=2.2)
+        self.at("Pine seedlings appear")
+        seed_trees = VGroup(pine_tree(5.0, 4.1, 1.75), pine_tree(6.1, 4.45, 1.85))
+        saplings = VGroup(pine_tree(3.1, 1.55, 0.66), pine_tree(4.0, 1.9, 0.78))
+        self.play(FadeIn(seed_trees), FadeIn(saplings, shift=LEFT * 0.3), run_time=2.4)
+        self.at("Their crowns climb")
+        target = VGroup(pine_tree(3.1, 2.6, 1.02), pine_tree(4.0, 3.0, 1.12))
+        self.play(Transform(saplings, target), sun_beams(0.24).animate.set_opacity(0.38), run_time=2.4)
+        self.at("sunny field begins")
+        future = Arrow([2.7, 2.5, 0], [0.2, 2.5, 0], color=LIGHT, stroke_width=6)
+        self.play(GrowArrow(future), FadeOut(labels), run_time=1.5)
         self.finish()
 
 
-# ------------------------------------------------------------------------------------ 4
-class S04Path(SpokenScene):
-    """The published Piedmont old-field path in full sun: weeds, broomsedge, young pines."""
-
+class S04Canopy(SpokenScene):
     def construct(self):
-        g = ground(GY)
-        tl = time_arrow()
-        sn = sun()
-        sl = T("full sun", 24, YELLOW).next_to(sn, DOWN, buff=0.15)
-        self.at("here is the usual path")
-        self.play(FadeIn(g), Create(tl[0]), FadeIn(tl[1]), FadeIn(sn), FadeIn(sl), run_time=1.0)
-        self.at("in the first years")
-        p0 = col_plants(0)
-        l0 = col_label(0)
-        a0 = larrow(XS[0], 2.9, -0.3)
-        self.play(FadeIn(p0, shift=UP * 0.15), FadeIn(l0), GrowArrow(a0), run_time=0.8)
-        self.at("weeds such as")
-        self.play(Indicate(p0, color=LIME, scale_factor=1.2), run_time=0.8)
-        self.at("by about the third year")
-        p1 = col_plants(1)
-        l1 = col_label(1)
-        a1 = larrow(XS[1], 2.9, 0.9)
-        self.play(FadeIn(p1, shift=UP * 0.2), FadeIn(l1), GrowArrow(a1), run_time=0.9)
-        self.at("a tall grass")
-        self.play(Indicate(p1, color=LIME, scale_factor=1.12), run_time=0.8)
-        self.at("pines grow fast")
-        p2 = col_plants(2)
-        l2 = col_label(2)
-        a2 = larrow(XS[2], 2.9, 1.9)
-        self.play(FadeIn(p2, shift=UP * 0.3), FadeIn(l2), GrowArrow(a2), run_time=1.0)
-        self.at("young pine forest")
-        self.play(Indicate(p2, color=PINE, scale_factor=1.1), run_time=0.9)
-        self.finish()
-
-
-# ------------------------------------------------------------------------------------ 5
-class S05Shade(SpokenScene):
-    """Zoom on the pine stand: the canopy shades the ground, hardwoods cope, pines die, hardwoods fill in."""
-
-    def construct(self):
-        # carry over the last state of scene 4 in the same place
-        g = ground(GY)
-        tl = time_arrow()
-        old = VGroup(g, tl, sun(), larrow(XS[0], 2.9, -0.3), larrow(XS[1], 2.9, 0.9), larrow(XS[2], 2.9, 1.9))
-        old.add(*[col_plants(i) for i in range(3)], *[col_label(i) for i in range(3)])
-        self.add(old)
-        self.at("each stage changes")
-        B = -2.0
-        ground2 = ground(B)
-        pines = VGroup(*[pine(x, B, 3.6, 2.5, tr=0.5) for x in [-3.9, -1.3, 1.3, 3.9]])
-        sn = sun(-5.9, 2.3)
-        sl = T("sunlight", 24, YELLOW).next_to(sn, DOWN, buff=0.15)
-        self.play(FadeOut(old), run_time=0.5)
-        self.play(FadeIn(ground2), FadeIn(pines, lag_ratio=0.1), FadeIn(sn), FadeIn(sl), run_time=1.0)
-        self.at("abiotic factors")
-        ab = chip("abiotic factors: light and soil", BLUE, size=28).move_to([0, 3.1, 0])
-        self.play(FadeIn(ab, shift=DOWN * 0.1), run_time=0.6)
-        self.at("a closed pine canopy")
-        arrows = VGroup(*[larrow(x, 2.65, 1.75, 5) for x in [-3.9, -1.3, 1.3, 3.9]])
-        shade = Rectangle(width=11.6, height=1.55, stroke_width=0, fill_color=GREY, fill_opacity=0.18).move_to([0, B + 0.78, 0])
-        dim = VGroup(*[larrow(x, -0.35, -1.0, 3, 0.35) for x in [-2.6, 0, 2.6]])
-        self.play(LaggedStart(*[GrowArrow(a) for a in arrows], lag_ratio=0.15), run_time=1.0)
-        self.play(FadeIn(shade), FadeIn(dim), run_time=0.7)
-        shl = T("shade", 26, GREY).move_to([-5.3, -1.3, 0])
-        self.play(FadeIn(shl), run_time=0.3)
-        self.at("pine seedlings grow poorly")
-        seed = pine(-2.6, B, 0.45, 0.32, tr=0.3)
-        sl1 = lab2("pine seedling", "grows poorly in shade", ca=PINE, cb=PINE, w=3.4).move_to([-2.6, -2.85, 0])
-        self.play(FadeIn(seed, shift=UP * 0.1), FadeIn(sl1), run_time=0.7)
-        self.play(seed.animate.scale(0.8, about_point=seed.get_bottom()), run_time=0.8)
+        young = field_world("young")
+        young.layout_ok = True  # carried landscape is the deliberate backdrop for gauge/labels
+        self.add(young, scope_tag("schematic"))
+        self.at("pines grow taller")
+        canopy = field_world("canopy")
+        young.clear_updaters(recursive=True)
+        self.play(Transform(young, canopy), run_time=2.5)
+        self.at("canopy now blocks")
+        shade = Rectangle(width=12.5, height=2.2, stroke_width=0, fill_color=BG,
+                          fill_opacity=0.50).move_to([0, -0.15, 0])
+        self.play(FadeIn(shade), run_time=2.0)
+        self.at("light meter falls")
+        light = ValueTracker(0.82)
+        gauge = dial(light, center=[4.8, -0.1, 0], radius=1.05, label="ground light", color=LIGHT)
+        gauge.layout_ok = True  # dial needle/readout and label are one standard component
+        self.add(gauge)
+        self.play(light.animate.set_value(0.18), run_time=2.2)
+        self.at("New pine seedlings")
+        small_pine = pine_tree(-1.7, 1.25, 0.55)
+        self.play(FadeIn(small_pine), small_pine.animate.scale(0.82, about_edge=DOWN), run_time=1.6)
         self.at("young hardwoods")
-        sap = oak(2.6, B, 0.4, 0.22)
-        sl2 = lab2("young hardwood sapling", "copes better, grows slowly", ca=HARD, cb=HARD, w=3.8).move_to([2.6, -2.85, 0])
-        self.play(FadeIn(sap, shift=UP * 0.1), FadeIn(sl2), run_time=0.7)
-        self.at("as the old pines die")
-        dead = [p.animate.set_opacity(0.15) for p in pines]
-        self.play(*dead, FadeOut(arrows), FadeOut(dim), FadeOut(shade), FadeOut(shl), run_time=1.0)
-        big = oak(2.6, B, 1.8, 0.9)
-        o2 = oak(-1.3, B, 1.6, 0.85)
-        o4 = oak(-4.0, B, 1.5, 0.8)
-        fl = T("hardwoods fill the gaps", 30, HARD).move_to([0, -2.85, 0])
-        self.play(FadeOut(sl2), FadeOut(sl1), FadeOut(pines), run_time=0.6)
-        self.play(Transform(sap, big), GrowFromEdge(o2, DOWN), GrowFromEdge(o4, DOWN), FadeIn(fl), run_time=1.6)
+        hardwoods = VGroup(hardwood_tree(0.3, 1.3, 0.38), hardwood_tree(2.0, 1.45, 0.4))
+        label = T("can survive shade", 28, ORANGE).move_to([0.8, -3.12, 0])
+        self.play(FadeIn(hardwoods), FadeIn(label), run_time=2.0)
         self.finish()
 
 
-# ------------------------------------------------------------------------------------ 6
-class S06Answer(SpokenScene):
-    """Whole path again: each stage changes light and soil; climax community; a reset patch; the rule."""
+class S05Predict(SpokenScene):
+    QUESTION = "Which is more likely to persist in the shade?"
 
     def construct(self):
-        s = strip(4)
-        tl = time_arrow()
-        self.add(s, tl)
-        q = T("Why do plants arrive in this order?", 32, font=TITLE_FONT).move_to([0, 3.35, 0])
-        self.at("so why do plants arrive")
-        self.play(Write(q), run_time=1.3)
-        self.at("each stage changes light")
-        ars = VGroup(*[arr([XS[i] + 0.7, 2.3, 0], [XS[i + 1] - 0.7, 2.3, 0], BLUE, 6) for i in range(3)])
-        cl = T("light and soil change", 26, BLUE).move_to([0, 2.75, 0])
-        self.play(LaggedStart(*[GrowArrow(a) for a in ars], lag_ratio=0.4), FadeIn(cl), run_time=1.4)
-        self.at("cope best")
-        self.play(*[a.animate.set_color(GREEN) for a in ars], cl.animate.set_color(GREEN), run_time=0.7)
-        fav = T("and the plants that cope best take over", 26, GREEN).move_to([0, 2.75, 0])
-        self.play(Transform(cl, fav), run_time=0.5)
-        self.at("in most of virginia")
-        box = RoundedRectangle(corner_radius=0.15, width=3.0, height=3.1, stroke_color=BLUE, stroke_width=3.5).move_to([XS[3], GY + 1.55, 0])
-        self.play(FadeOut(ars), FadeOut(cl), Create(box), run_time=0.7)
-        self.at("climax community")
-        cc = T("climax community", 28, BLUE).move_to([XS[3], 2.15, 0])
-        self.play(FadeIn(cc, shift=DOWN * 0.1), run_time=0.6)
-        self.at("fire storms and people")
-        oaks = s[-2]
-        patch = VGroup(oaks[0])
-        newt = tufts(XS[3] - 0.8, GY, 5, 0.8)
-        rd = arr([XS[3] - 0.8, 1.95, 0], [XS[3] - 0.8, 1.0, 0], RED, 6)
-        rl = T("disturbance", 26, RED).move_to([XS[3], 2.15, 0])
-        self.play(FadeOut(cc), FadeIn(rl), GrowArrow(rd), run_time=0.7)
-        self.play(FadeOut(oaks[0]), FadeOut(rd), FadeIn(newt, shift=UP * 0.1), run_time=0.8)
-        self.at("path and timing vary")
-        pt = T("the path and timing vary", 30, TEXT).move_to([-2.5, 2.6, 0])
-        self.play(FadeIn(pt), run_time=0.6)
-        self.at("changes the place")
-        everything = Group(*self.mobjects)
-        self.play(FadeOut(everything), run_time=0.8)
-        rule = T("Each stage changes the place,", 42, font=TITLE_FONT)
-        rule2 = T("and the plants that cope best take over.", 42, GREEN, font=TITLE_FONT)
-        rr = VGroup(rule, rule2).arrange(DOWN, buff=0.35).move_to([0, 0.2, 0])
-        fit(rr, max_w=12)
-        self.play(FadeIn(rule, shift=UP * 0.15), run_time=0.8)
-        self.play(FadeIn(rule2, shift=UP * 0.15), run_time=0.8)
+        pair = seedling_pair(with_question=False)
+        light = ValueTracker(0.18)
+        gauge = dial(light, center=[5.25, 0.0, 0], radius=0.82, label="low light", color=LIGHT, size=30)
+        self.add(pair, gauge, scope_tag("schematic"))
+        self.at("Two seedlings")
+        self.play(pair[3].animate.shift(UP * 0.1), pair[4].animate.shift(UP * 0.1), run_time=1.8)
+        self.at("One is pine")
+        self.play(Indicate(pair[3], color=PINE), run_time=0.9)
+        self.at("one is hardwood")
+        self.play(Indicate(pair[4], color=ORANGE), run_time=0.9)
+        self.at("which is more likely")
+        mark = T("?", 78, LIGHT, weight=BOLD).move_to([0, 0.0, 0])
+        self.play(FadeIn(mark, scale=0.7), run_time=1.1)
+        self.at("Make your prediction")
+        q = question_card(self.QUESTION, y=-3.25, size=28, max_w=10.4)
+        self.play(FadeIn(q), run_time=0.8)
         self.finish()
 
 
-class S07End(EndCard):
-    LINE = "Each stage changes the place, and the plants that cope best take over."
+class S06Pause(PredictPause):
+    QUESTION = "Which is more likely to persist in the shade?"
+    SECONDS = 4.5
+    CARD = {"y": -3.25, "size": 28, "max_w": 10.4}
+
+    def backdrop(self):
+        pair = seedling_pair(with_question=True)
+        light = ValueTracker(0.18)
+        gauge = dial(light, center=[5.25, 0.0, 0], radius=0.82, label="low light", color=LIGHT, size=30)
+        return VGroup(pair, gauge)
+
+
+class S07Reveal(SpokenScene):
+    def construct(self):
+        pair = seedling_pair(with_question=True)
+        self.add(pair, scope_tag("schematic"))
+        self.at("pine seedling lags")
+        self.play(FadeOut(pair[-1]), pair[3].animate.scale(0.72, about_edge=DOWN),
+                  pair[4].animate.shift(UP * 0.12), run_time=2.0)
+        self.at("old pine dies")
+        forest = field_world("canopy")
+        forest.layout_ok = True  # landscape stays behind the causal overlay
+        self.play(ReplacementTransform(pair, forest), run_time=1.7)
+        dead = VGroup(Line([-1.15, GROUND_Y, 0], [-1.15, 2.25, 0], color=GREY, stroke_width=10),
+                      Line([-1.15, 1.0, 0], [-1.75, 1.55, 0], color=GREY, stroke_width=6))
+        dead.layout_ok = True  # later becomes part of the dimmed causal backdrop
+        self.play(FadeOut(forest[4]), FadeIn(dead), run_time=1.6)
+        self.at("opens a bright gap")
+        gap = sun_beams(0.38, (-1.15,))
+        gap.layout_ok = True
+        self.play(FadeIn(gap), run_time=1.4)
+        self.at("hardwood grows faster")
+        hard = hardwood_tree(-1.15, 1.4, 0.42)
+        hard.layout_ok = True
+        grown = hardwood_tree(-1.15, 3.25, 0.85)
+        self.play(FadeIn(hard), Transform(hard, grown), run_time=2.6)
+        self.at("No plant planned")
+        no_goal = T("no plan • no goal", 30, GREY).move_to([2.4, -3.12, 0])
+        self.play(FadeIn(no_goal), run_time=1.2)
+        self.at("Growth altered conditions")
+        steps = VGroup(chip("growth", EARLY, 26), chip("light changes", LIGHT, 26),
+                       chip("different survival", ORANGE, 26)).arrange(RIGHT, buff=0.6).move_to([0, 3.28, 0])
+        steps.layout_ok = True  # labels intentionally sit on chips over an opaque reading band
+        links = VGroup(Arrow(steps[0].get_right(), steps[1].get_left(), buff=0.12, color=BLUE),
+                       Arrow(steps[1].get_right(), steps[2].get_left(), buff=0.12, color=BLUE))
+        backing = RoundedRectangle(corner_radius=0.16, width=11.4, height=0.7, stroke_width=0,
+                                   fill_color=BG, fill_opacity=0.94).move_to([0, 3.28, 0]).set_z_index(1)
+        for item in (steps, links):
+            item.set_z_index(2)
+        self.play(FadeOut(no_goal),
+                  FadeIn(backing), LaggedStart(FadeIn(steps), Create(links), lag_ratio=0.25), run_time=2.3)
+        self.finish()
+
+
+class S08Rule(SpokenScene):
+    def construct(self):
+        world = field_world("mixed")
+        world.layout_ok = True  # the carried field is a dimmed explanatory backdrop
+        ribbon = causal_ribbon(3.28)
+        self.add(world, scope_tag("schematic"))
+        self.at("Organisms change conditions")
+        self.play(LaggedStart(FadeIn(ribbon[0]), GrowArrow(ribbon[3][0]), FadeIn(ribbon[1]),
+                              GrowArrow(ribbon[3][1]), FadeIn(ribbon[2]), lag_ratio=0.18), run_time=3.8)
+        self.at("pine growth changed light")
+        light = sun_beams(0.26, (-3.7, -1.8))
+        self.play(FadeIn(light), Indicate(ribbon[1], color=LIGHT), run_time=1.7)
+        self.at("plants also change soil")
+        rich_soil = soil_strip(height=1.45)
+        self.play(Transform(world[1], rich_soil), run_time=1.8)
+        soil_lab = T("soil", 28, SOIL).move_to([4.9, -2.45, 0])
+        self.play(FadeIn(soil_lab), run_time=0.6)
+        self.at("pattern comes from survival")
+        self.play(world[3].animate.set_opacity(0.45), world[4].animate.scale(1.08, about_edge=DOWN),
+                  run_time=2.0)
+        self.at("not from a goal")
+        rule = caption("survival + growth, not a finish line", 30, TEXT, y=-3.18)
+        self.play(FadeOut(soil_lab), FadeIn(rule), run_time=1.2)
+        self.finish()
+
+
+def surface_panels():
+    panels = TwoPanel("abandoned field", "bare rock", colors=(SOIL, GREY), top=3.0, bottom=-2.45)
+    left_ground = Rectangle(width=5.2, height=1.35, stroke_color=SOIL, fill_color=SOIL,
+                            fill_opacity=0.45, stroke_width=3).move_to([-3.25, -0.9, 0])
+    left = VGroup(left_ground, grass_patch(-3.25, 3.8, 1.3, 10),
+                  VGroup(*[Dot([x, -1.25, 0], radius=0.08, color=EARLY) for x in (-4.5, -3.6, -2.7, -1.9)]),
+                  VGroup(*[Line([x, -0.25, 0], [x + 0.18, -1.55, 0], color=SOIL, stroke_width=4)
+                           for x in (-4.2, -3.0, -2.0)]))
+    rock = Polygon([-5.2, -1.5, 0], [5.2, -1.5, 0], [5.0, -0.15, 0], [3.0, 0.08, 0],
+                   [0.5, -0.02, 0], [-2.8, 0.15, 0], [-5.1, -0.2, 0],
+                   stroke_color=GREY, fill_color=GREY, fill_opacity=0.35, stroke_width=3)
+    rock.scale(0.48).move_to([3.25, -0.75, 0])
+    return panels, left, rock
+
+
+class S09Soil(SpokenScene):
+    def construct(self):
+        field = field_world("open", roots=True)
+        self.add(field, scope_tag("schematic"))
+        self.at("compare two starting surfaces")
+        panels, left, rock = surface_panels()
+        self.play(FadeOut(field), FadeIn(panels), run_time=1.8)
+        self.at("abandoned field still has soil")
+        self.play(FadeIn(left), run_time=1.7)
+        self.at("nutrients")
+        items = T("soil • nutrients • seeds • roots", 28, SOIL).move_to([-3.25, -2.1, 0])
+        self.play(FadeIn(items), run_time=1.2)
+        self.at("secondary succession")
+        sec = T("secondary succession", 30, SOIL, weight=BOLD).move_to([-3.25, 2.0, 0])
+        self.play(swap(panels.left_head, sec), run_time=0.9)
+        self.at("Bear Rock has no soil")
+        self.play(FadeIn(rock), run_time=1.7)
+        no_soil = T("no soil", 30, GREY).move_to([3.25, -2.0, 0])
+        self.play(FadeIn(no_soil), run_time=0.8)
+        self.at("Primary succession")
+        prim = T("primary succession", 30, GREY, weight=BOLD).move_to([3.25, 2.0, 0])
+        self.play(swap(panels.right_head, prim), run_time=1.0)
+        self.at("pioneer species")
+        pioneers = VGroup(*[Circle(0.12, color=EARLY, fill_color=EARLY, fill_opacity=0.7)
+                            .move_to([x, -0.55 + 0.12 * (i % 2), 0]) for i, x in enumerate((2.0, 2.5, 3.1, 3.8, 4.4))])
+        self.play(LaggedStart(*[FadeIn(p) for p in pioneers], lag_ratio=0.15), run_time=1.5)
+        self.finish()
+
+
+class S10Rock(SpokenScene):
+    def construct(self):
+        panels, left, rock = surface_panels()
+        self.add(panels, left, rock, scope_tag("schematic"))
+        self.at("pioneers are usually")
+        patches = VGroup(*[Circle(0.16 + 0.03 * (i % 2), color=EARLY, fill_color=EARLY,
+                                  fill_opacity=0.65).move_to([x, -0.45, 0])
+                           for i, x in enumerate((1.7, 2.2, 2.8, 3.5, 4.1, 4.7))])
+        self.play(LaggedStart(*[GrowFromCenter(p) for p in patches], lag_ratio=0.12), run_time=2.0)
+        names = T("lichens + mosses", 28, EARLY).move_to([3.25, 1.45, 0])
+        self.play(FadeIn(names), run_time=0.8)
+        self.at("Glacial gravel")
+        gravel = VGroup(*[Dot([1.7 + 0.35 * i, 0.55 + 0.12 * (i % 2), 0], radius=0.10, color=GREY)
+                          for i in range(5)])
+        hardy = grass_patch(2.4, 1.4, 0.55, 5, phase=1.5)
+        hardy.shift(UP * 1.85)
+        self.play(FadeIn(gravel), FadeIn(hardy), run_time=1.8)
+        self.at("Soil develops slowly")
+        thin_soil = Rectangle(width=4.8, height=0.12, stroke_color=SOIL, fill_color=SOIL,
+                              fill_opacity=0.65, stroke_width=2).move_to([3.25, -0.2, 0])
+        thick_soil = thin_soil.copy().stretch(3.5, 1, about_edge=UP)
+        self.play(FadeIn(thin_soil), Transform(thin_soil, thick_soil), run_time=2.8)
+        self.at("rooted plants can establish")
+        rooted = grass_patch(3.4, 3.4, 1.0, 8, phase=2.5)
+        rooted.shift(UP * 1.15)
+        self.play(FadeIn(rooted), run_time=1.5)
+        self.at("Starting with soil")
+        fast = Line([-5.2, -2.1, 0], [-1.3, -2.1, 0], color=SOIL, stroke_width=12)
+        slow = Line([1.3, -2.1, 0], [3.6, -2.1, 0], color=GREY, stroke_width=12)
+        labs = VGroup(T("usually faster", 26, SOIL).next_to(fast, UP, buff=0.12),
+                      T("usually slower", 26, GREY).next_to(slow, UP, buff=0.12))
+        self.play(Create(fast), Create(slow), FadeIn(labs), run_time=2.4)
+        self.finish()
+
+
+class S11Tendency(SpokenScene):
+    def construct(self):
+        world = field_world("young")
+        world.layout_ok = True  # field remains visible behind model/path labels
+        self.add(world, scope_tag("schematic"))
+        self.at("pines may give way")
+        mixed = field_world("mixed")
+        world.clear_updaters(recursive=True)
+        self.play(Transform(world, mixed), run_time=3.0)
+        self.at("older model names")
+        panel = RoundedRectangle(corner_radius=0.16, width=7.4, height=1.1, stroke_color=ORANGE,
+                                 stroke_width=2, fill_color=BG, fill_opacity=0.94).move_to([0, 3.2, 0])
+        panel.layout_ok = True  # two labels intentionally sit on this reading panel
+        late = fit_text("model late stage in most of Virginia", max_w=6.9, size=28,
+                        color=ORANGE).move_to([0, 3.45, 0])
+        self.play(FadeIn(panel), FadeIn(late), run_time=1.6)
+        self.at("ochickery forest")
+        oak = T("oak–hickory forest", 30, ORANGE, weight=BOLD).move_to([0, 2.93, 0])
+        self.play(FadeIn(oak), run_time=1.1)
+        self.at("nearby seeds")
+        route = Arrow([-5.7, -2.75, 0], [5.6, -2.75, 0], color=BLUE, stroke_width=5, buff=0)
+        self.play(GrowArrow(route), run_time=1.3)
+        factors = VGroup(*[chip(t, c, 25) for t, c in (("seeds", EARLY), ("soil", SOIL),
+                                                        ("climate", LIGHT), ("disturbance", RED))])
+        factors.arrange(RIGHT, buff=0.3).move_to([0, -2.95, 0])
+        branches = VGroup(*[Arrow([x, -2.65, 0], [x + dx, -1.95, 0], color=c, stroke_width=3, buff=0.08)
+                            for (x, dx, c) in ((-3.9, -0.5, EARLY), (-1.4, -0.25, SOIL),
+                                               (1.1, 0.25, LIGHT), (3.7, 0.55, RED))])
+        self.play(FadeOut(route), LaggedStart(*[FadeIn(f) for f in factors], lag_ratio=0.12),
+                  LaggedStart(*[GrowArrow(a) for a in branches], lag_ratio=0.12), run_time=2.8)
+        self.finish()
+
+
+class S12Close(SpokenScene):
+    def construct(self):
+        world = field_world("mixed")
+        world.layout_ok = True  # dimmed field deliberately sits behind the summary controls
+        ribbon = causal_ribbon(3.28)
+        self.add(world, ribbon, scope_tag("schematic"))
+        self.at("Follow the changing conditions")
+        light = ValueTracker(0.25)
+        soil = ValueTracker(0.45)
+        meters = VGroup(dial(light, [-6.2, 0.2, 0], radius=0.6, label="light", color=LIGHT, size=24),
+                        dial(soil, [6.2, 0.2, 0], radius=0.6, label="soil", color=SOIL, size=24))
+        meters.layout_ok = True  # needles, live numbers, and labels form two standard dials
+        self.play(FadeIn(meters), light.animate.set_value(0.75), soil.animate.set_value(0.8), run_time=2.8)
+        self.at("not only the plant names")
+        self.play(world.animate.set_opacity(0.45), run_time=1.1)
+        self.at("explains why one stage")
+        self.play(Indicate(ribbon[1], color=LIGHT), Indicate(ribbon[2], color=ORANGE), run_time=2.2)
+        self.at("common path")
+        paths = VGroup(*[CubicBezier([-5.5, -2.4 + 0.2 * i, 0], [-2.0, -1.7 + 0.1 * i, 0],
+                                    [1.5, -2.8 + 0.35 * i, 0], [5.4, -2.15 + 0.22 * i, 0],
+                                    color=BLUE, stroke_width=3, stroke_opacity=0.32)
+                         for i in range(4)])
+        self.play(LaggedStart(*[Create(p) for p in paths], lag_ratio=0.18), run_time=2.2)
+        self.at("promise about every field")
+        promise = caption("a common path is not a promise", 30, TEXT, y=-3.2)
+        self.play(FadeIn(promise), run_time=1.2)
+        self.finish()
+
+
+class S13End(EndCard):
+    LINE = "Organisms change conditions, so suited species can become more common."
