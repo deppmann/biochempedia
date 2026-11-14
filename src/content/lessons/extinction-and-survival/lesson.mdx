@@ -5,10 +5,9 @@ course: "life-science"
 courseChapter: "Life Science · Unit 8: Change over time"
 order: 1034
 summary: >-
-  Why do some species survive big changes while others disappear? You send a blight, habitat loss
-  or a warmer climate through a model forest, then read real data on the American chestnut in
-  Virginia. Afterwards you can explain how environmental change and genetic variation help decide who
-  survives, and make a claim about what could help the chestnut.
+  When environments change, populations survive only if some members survive and reproduce. Test
+  this rule in a model forest, then use real American chestnut data from Virginia to explain why
+  the tree nearly disappeared and what could help it recover.
 hook: "American chestnut trees were once common in Virginia’s Blue Ridge. Why did a fungus nearly wipe them out, while their roots still send up sprouts today?"
 estMinutes: 40
 supports: true
@@ -27,12 +26,33 @@ ladder:
 
 explainer:
   src: "/explainers/extinction-and-survival/explainer.mp4"
+  durationSec: 207.8
   captions: "/explainers/extinction-and-survival/explainer.vtt"
   poster: "/explainers/extinction-and-survival/poster.jpg"
-  title: "Who Survives Depends on Existing Variation"
-  durationSec: 140.8
-  narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+  title: "Who Makes It Through the Change?"
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+  takeaways:
+    - "When environments change, populations survive only if some members survive and reproduce."
+    - "After a change, some members die and some live; living members may reproduce, and some migrate."
+    - "Genetic variation helps only when some inherited differences fit the change."
+    - "Variation can improve the chance of survivors, but it cannot guarantee survival."
+
+films:
+  - id: "chapter-2"
+    src: "/explainers/extinction-and-survival/chapter-2.mp4"
+    durationSec: 220.9
+    captions: "/explainers/extinction-and-survival/chapter-2.vtt"
+    poster: "/explainers/extinction-and-survival/chapter-2-poster.jpg"
+    title: "From Sprouts to Seed-Making Trees"
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+    takeaways:
+      - "Survival requires survivors to reproduce, not merely remain alive."
+      - "Living chestnut roots can send up sprouts even when canopy trees are gone."
+      - "Repeated blight can kill sprouts before they make seeds."
+      - "Breeders cross American and Chinese chestnuts, test the young trees with blight, then cross the most resistant ones back to American chestnuts."
+      - "When environments change, populations survive only if some members survive and reproduce."
 
 scientists: []
 
@@ -155,7 +175,7 @@ practiceQuestions:
       - "Forest A is more likely to keep some survivors"
       - "Forest B is safer, since its trees are all alike"
     answer: 2
-    rationale: "A population with more variation is more likely to have some members that already resist a new disease, and those members survive and pass on their traits. Trees cannot grow resistance because they need it. Variation matters most when the helpful trait is already there, so the idea that variation never matters is wrong. A forest of alike trees with little resistance is at greater risk, not safer. Variation does not promise survival, so forest A may still lose many trees."
+    rationale: "A population with more variation is more likely to have some members that already resist a new disease, and those members may survive and pass on their traits. Trees cannot grow resistance because they need it. Variation matters most when the helpful trait is already there, so the idea that variation never matters is wrong. A forest of alike trees with little resistance is at greater risk, not safer. Variation does not promise survival, so forest A may still lose many trees."
 
 mcatQuestions: []
 
@@ -235,75 +255,90 @@ import Support from '../../../components/Support.astro';
 import CER from '../../../components/CER.astro';
 import ScaffoldFigure from '../../../components/ScaffoldFigure.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import LessonFilm from '../../../components/LessonFilm.astro';
 
-**A hundred years ago, American chestnut trees were common in parts of Virginia’s Blue Ridge Mountains, and people ate their nuts. Then a fungus arrived from Asia, and by about 1950 it had killed billions of these trees.**
+Now use the first film’s rule on American chestnuts, once common in Virginia’s Blue Ridge. People ate their nuts. Then a fungus arrived from Asia and, by about 1950, killed billions. Old roots still send up sprouts. Why did this tree nearly disappear when others did not? What could help it return?
 
-Small chestnut sprouts still grow from old roots in Virginia’s forests, then get sick and die back. Why did this species nearly disappear when other trees in the same forests did not? The short answer is that a change in the environment, here a new disease, can push a population toward extinction when too few of its members can survive it and reproduce. When a change comes fast, whether any can depends mostly on inherited differences that were already in the population. And what could help the chestnut come back?
+<Support>
+**The one idea:** When environments change, populations survive only if some members survive and reproduce.
+
+*Scope:* This rule is about populations facing environmental change. Variation can improve the chance of survivors, but it cannot guarantee survival.
+</Support>
 
 <IdeaCheck items={[
-  { idea: 'When the environment changes, plants and animals try to adapt so they will not go extinct.', answer: 'disagree', explain: 'A chestnut tree cannot grow resistance because it needs it. Its traits come from its parents. When scientists test young chestnut trees in forests, some groups resist the blight much better than others. When a change comes fast, survival depends mostly on inherited differences that are already in the population.' },
+  { idea: 'When the environment changes, plants and animals try to adapt so they will not go extinct.', answer: 'disagree', explain: 'A chestnut tree cannot grow resistance because it needs it. Its inherited traits come from its parents. When scientists test young chestnut trees in forests, some groups resist the blight much better than others. When a change comes fast, survival depends mostly on inherited differences already in the population.' },
   { idea: 'Extinction only happened long ago, like the dinosaurs.', answer: 'disagree', explain: 'Species still go extinct. In 2023 the U.S. Fish and Wildlife Service took 21 species off its list of endangered and threatened wildlife because they were judged extinct. Most had not been seen for decades, so 2023 is when the decision was made, not when they died out. Habitat loss, pollution, climate change and invasive species put many living species at risk today.' },
   { idea: 'If a few chestnut trees are still alive, the species is safe.', answer: 'disagree', explain: 'Forest surveys estimate that millions of small chestnut stems are still alive. But most are sprouts from old roots. Blight keeps killing them back, and few make seeds in the wild. A species is safe only if enough members survive and reproduce.' },
 ]} />
 
 ## Explore: send a change through a forest
 
-In this model, a forest has 50 trees. Each tree has a hidden level of resistance to harm. You choose how much variation the forest has, which change arrives (a blight, habitat loss or a warmer climate), and how many years to run. Trees that survive make seedlings with their own resistance, and a line graph shows how many trees are left.
+In this model, a forest has 50 trees. Each tree has a hidden level of resistance to harm. Choose how much variation the forest has, which change arrives (a blight, habitat loss or a warmer climate), and how many years to run. Surviving trees make seedlings with their own resistance. A line graph shows how many trees remain.
 
 <ChestnutForest />
 
 **Try this.**
-1. Set low variation and send in the blight. Predict whether the forest will recover or fall to zero. Then run it.
-2. Keep the blight, but switch to high variation. Predict how the line will change, then test it.
-3. Keep the blight and high variation. Predict whether three runs with the same settings give the same result. Then check.
+1. The first film’s narrow forest lost every tree in one schematic run. Set low variation, send in the blight, and see whether your run matches.
+2. Keep the blight, but switch to high variation. Compare your line with the film’s varied forest.
+3. Keep the blight and high variation. Run the same settings three times.
 4. Send in habitat loss with high variation. Predict whether more variation saves the forest, then explain what you see.
+
+**Predict.** Will three runs with the same settings give exactly the same line? Why?
+
+<details>
+<summary>Check your prediction</summary>
+
+They may differ because the model includes chance. Repeated runs show possible outcomes, not one certain future.
+
+</details>
 
 ## Explain: survive, move or die
 
 <WordBank terms={['migrate', 'extinct', 'extinction', 'habitat loss', 'pollution', 'climate change', 'invasive species', 'genetic variation', 'resistance']} />
 
-Every environment changes. When a change comes, the members of a population do not all share the same fate.
+As the first film showed, after a change some members die, some live and may reproduce, and some **migrate** (move to a new place).
 
-- Some survive and reproduce. Their offspring inherit their traits.
-- Some **migrate**, which means they move to a new place. A bird can fly away; a rooted tree cannot, though its seeds can carry its kind to new places over many years.
-- Some die.
+<LessonFigure src="/figures/extinction-and-survival/survive-migrate-or-die.webp" width={1200} height={676} alt="AI-generated illustration: a forest edge after a change. On the left a healthy tree stands with seedlings at its base. In the centre a small bird flies away while a rooted tree stays put. On the right stands a dead, leafless tree." caption="When the environment changes, some members of a population die and some live; living members may reproduce, and some migrate. A bird can fly away; a rooted tree cannot, though its seeds can spread over many years." />
 
-<LessonFigure src="/figures/extinction-and-survival/survive-migrate-or-die.webp" width={1200} height={676} alt="AI-generated illustration: a forest edge after a change. On the left a healthy tree stands with seedlings at its base. In the centre a small bird flies away while a rooted tree stays put. On the right stands a dead, leafless tree." caption="When the environment changes, some members of a population survive and reproduce, some migrate, and some die. A bird can fly away; a rooted tree cannot, though its seeds can spread over many years." />
+A species is **extinct** when no living members are left anywhere. **Extinction** is the dying out of a whole species.
 
-A species is **extinct** when no living members are left anywhere. **Extinction** is the dying out of a whole species. Vanishing from one forest is not extinction.
-
-If no member of a species has traits that let it survive a change, the species may become extinct. Natural selection explains why: individuals with helpful traits leave more offspring, as you saw in [that lesson](/lessons/natural-selection-in-action/). Fossils show that many species went extinct long before people lived, which [that lesson](/lessons/evidence-for-change/) explores.
+If no member has traits that let it survive a change, the species may become extinct. Natural selection explains why helpful inherited traits can become more common, as you saw in [that lesson](/lessons/natural-selection-in-action/). Fossils show that many species went extinct long before people lived, which [that lesson](/lessons/evidence-for-change/) explores.
 
 The American chestnut is not extinct. Millions of sprouts still grow from old roots. But the big nut-making trees are gone from most of the canopy, the top layer of leaves in a forest.
 
-<Support min={2}>**Key idea:** When an environment changes, some organisms survive and reproduce, some move, and some die; if none can survive, the species may become extinct.</Support>
-
 ## Explain: four changes that challenge populations
 
-Many kinds of change put species at risk today. Hunting, fishing or harvesting too much is one. This lesson looks at four others.
+Hunting, fishing or harvesting too much puts species at risk. This lesson looks at four other changes.
 
 - **Habitat loss** is the destruction of the place where an organism lives. Clearing a forest for houses removes homes for animals that nest in old trees.
 - **Pollution** is harmful material added to air, water or soil. Too much fertilizer washing into a bay can feed algae, and low oxygen for fish can follow.
 - **Climate change** is a long shift in the usual weather of a region, such as warmer average temperatures. Fish that need cold streams may lose places to live as water warms.
 - An **invasive species** is a living thing brought to a new place, where it spreads and causes harm. Blue catfish in Virginia’s rivers are one, as [that lesson](/lessons/people-change-habitats/) shows. The chestnut blight fungus is another.
 
-The blight fungus reached North America on chestnut trees brought from Asia. It grows into the bark of an American chestnut and makes a sore called a canker. The canker can kill the whole trunk above the ground. The roots, safe in the soil, often live and send up new sprouts. Then the sprouts get infected and die back, a cycle that can go on for decades.
+**Predict.** A forest loses old nesting trees, but no harmful material is added. Which kind of change is this?
+
+<details>
+<summary>Check your prediction</summary>
+
+It is habitat loss: the organisms lost part of the place they need.
+
+</details>
+
+The blight fungus reached North America on chestnut trees brought from Asia. It grows into the bark of an American chestnut and makes a sore called a canker. The canker can kill the whole trunk above the ground. The roots, safe in the soil, often live and send up new sprouts. Those sprouts get infected and die back too, a cycle that can go on for decades.
 
 <ScaffoldFigure src="/figures/extinction-and-survival/chestnut-blight-cycle.webp" width={1200} height={800} keyItems={["blight fungus", "dead trunk", "canker", "sprout", "roots"]} given={[3, 4]} alt="AI-generated illustration: a chestnut trunk with a cracked band of diseased bark partway up. Above the band the trunk and branches are bare and dead; below ground, living roots spread in the soil, and a young leafy sprout rises from the base. A zoomed circle shows fine fungus threads growing into a crack in the bark. Five numbered circles mark parts for the student to name." caption="A canker can kill the chestnut trunk above it, but the roots often live on and send up sprouts that get infected in turn. Name the five numbered parts." />
 
-<Support min={2}>**Key idea:** Habitat loss, pollution, climate change and invasive species can all challenge the survival of a population.</Support>
+<Support min={2}>**Four challenges:** Habitat loss, pollution, climate change and invasive species can all challenge a population.</Support>
 
 ## Explain: why variation matters
 
-**Genetic variation** is the inherited differences among members of a population. **Resistance** is the ability to hold off a disease or other threat better than others can. When a new disease arrives, a population with more variation is more likely to have some members that resist it. Those members survive and pass their traits to their offspring.
+**Genetic variation** means inherited differences among members of a population. One inherited difference can be **resistance**, the ability to hold off a disease or another threat better than other members can.
 
-Variation does not promise survival. When a change comes fast, the helpful trait usually has to be there already. New helpful differences can appear or arrive from other populations, but often too slowly to save a species from a fast change. American chestnuts had very little resistance to this fungus, so almost all of the big trees died. Surviving chestnuts still carry plenty of genetic variation, but American chestnuts as a group resist the blight far less than Chinese chestnuts do.
+When a new disease arrives, a population with more variation in resistance is more likely to have some members that resist it. Variation in other traits cannot stand in for resistance. When a change comes fast, the helpful trait usually has to be there already. New helpful differences can appear or arrive from other populations, but often too slowly to save a species from a fast change.
 
-A few survivors do not make a species safe; they must also reproduce.
+American chestnuts had very little resistance to this fungus, so almost all of the big trees died. Surviving chestnuts still carry plenty of genetic variation, including some differences in blight resistance between families. Yet as a group, they resist the blight far less than Chinese chestnuts do. A few survivors do not make a species safe; they must also reproduce.
 
-At research farms in Meadowview, in southwest Virginia, scientists with The American Chestnut Foundation breed chestnuts. They cross American chestnuts with Chinese chestnuts. They test the young trees with blight, then cross the most resistant ones back to American chestnuts, again over several generations. The new trees are mostly American but carry some resistance from the Chinese parent. This is artificial selection: people, not the environment, choose which trees breed. Some scientists have also tried adding one gene from wheat that helps American chestnut trees survive the blight.
-
-<Support min={2}>**Key idea:** A population with more genetic variation is more likely to have survivors that pass on a helpful trait, but when a change comes fast, usually only if that trait is already present.</Support>
+<Support min={2}>**Reminder:** A population with more genetic variation is more likely to have survivors that pass on a helpful trait, but when a change comes fast, usually only if that trait is already present.</Support>
 
 ## Elaborate: read the chestnut data
 
@@ -316,7 +351,35 @@ At research farms in Meadowview, in southwest Virginia, scientists with The Amer
 | 2021 | Chestnut sprouts found in 40 person-hours of searching | 42 | sprouts |
 | 2002 to 2012 | Live chestnut stems, eastern U.S. forests (estimate) | 431 | million stems |
 
-Canopy and sprout values: Karban and Karban, PLOS ONE (2024), for White Oak Canyon in Shenandoah National Park, Virginia. The first survey’s exact year is unknown, and the sprout searches used different methods: in 1977 researchers checked 400 sampling points and the 176 is the number of points with a sprout nearby, while in 2021 they counted the sprouts they found. Stem estimate: Dalgleish and colleagues, Forests (2016), using USDA Forest Service plots measured from 2002 to 2012.
+Canopy and sprout values: Richard Karban and Claire C. Karban, PLOS ONE (2024), for White Oak Canyon in Shenandoah National Park, Virginia. The first survey’s exact year is unknown. The later canopy surveys returned to the same 10 sites, but they did not count the same marked trees. The sprout searches used the same sites but different methods. In 1977 researchers checked 400 sampling points, and 176 of them had a sprout nearby. In 2021 they counted the sprouts they found. Stem estimate: Dalgleish and colleagues, Forests (2016), using USDA Forest Service plots measured from 2002 to 2012.
+
+**Predict.** How many percentage points did the chestnut share of the canopy change from before 1930 to 1977?
+
+<details>
+<summary>Check your prediction</summary>
+
+It fell 15.2 percentage points. The sample shows local canopy loss, not extinction everywhere.
+
+</details>
+
+**Predict.** One person-hour is one person searching for one hour. Divide each count by its person-hours. Which year had fewer sprout finds per person-hour? Why is this only a rough comparison?
+
+<details>
+<summary>Check your prediction</summary>
+
+1977: 176 ÷ 20 = 8.8 points with a sprout per person-hour. 2021: 42 ÷ 40 = 1.05 sprouts per person-hour. Finds per hour were lower in 2021. The comparison is rough because 1977 counted points, not sprouts.
+
+</details>
+
+Chestnuts were gone from the later canopy samples, yet sprouts and millions of small stems remained. What could turn survival below the canopy into seed-making trees above it?
+
+<LessonFilm film={frontmatter.films[0]} />
+
+## Test whether breeding helped
+
+The second film showed breeders crossing American and Chinese chestnuts, testing the young trees and crossing the most resistant back to American chestnuts. In the real program, scientists with The American Chestnut Foundation repeat these steps over several generations. They work at research farms in Meadowview, in southwest Virginia. So the new trees are mostly American but carry some resistance from the Chinese parent. This is **artificial selection**: people, not the environment, choose which trees breed. Some scientists have also tried adding one gene from wheat. It helped American chestnut trees resist blight in tests, but this work is still being checked.
+
+Did breeding help? Look at two test forests.
 
 | Tree group | Mean rating, North Carolina site (1 to 4 scale) | Mean rating, Virginia site (1 to 4 scale) |
 |---|---|---|
@@ -324,11 +387,16 @@ Canopy and sprout values: Karban and Karban, PLOS ONE (2024), for White Oak Cany
 | Chinese chestnut | 3.9 | 3.9 |
 | Hybrid, family D2 | 3.7 | 3.4 |
 
-These ratings come from Clark and colleagues, Forest Ecology and Management (2019). Young trees were planted in forests in 2009 and rated from 2013 to 2016. A score of 1 means the tree was assumed dead from blight, and 4 means no visible disease. The hybrid seedlings, bred from American and Chinese chestnuts, came from the Meadowview farms. Each row is one family of seedlings, not a whole species, and D2 was one of the best hybrid families. Some of the Virginia trees were also hurt by an accidental weed-killer spray.
+These ratings come from Clark and colleagues, Forest Ecology and Management (2019). Young trees were planted in forests in 2009 and rated from 2013 to 2016. A score of 1 means the tree was assumed dead from blight, and 4 means no visible disease. The hybrid seedlings came from the Meadowview farms. Each row is one family of seedlings, not a whole species, and D2 was one of the best hybrid families.
 
-1. How did the chestnut share of the canopy change from before 1930 to 1977?
-2. One person-hour is one person searching for one hour. Divide each count by its person-hours. Which year had fewer sprout finds per hour of searching? Why is this only a rough comparison?
-3. At the Virginia site, how much higher was the hybrid family’s rating than American family GMNEW’s?
+**Predict.** At the Virginia site, the hybrid family rated 3.4 and American family GMNEW rated 2.9. Does that difference prove hybrids always resist blight better?
+
+<details>
+<summary>Check your prediction</summary>
+
+No. The difference is 0.5, but it was not clear at that site. One family cannot represent all chestnuts.
+
+</details>
 
 <CER
   task="Make a claim that answers the question: why did the American chestnut nearly disappear, and what could help it survive? Use these data."
@@ -346,7 +414,7 @@ Plan a test of whether plants with more variation have more survivors after a ha
 <summary>One way to do it</summary>
 
 - **Question:** After a dry spell, do more seedlings survive in a pot with three radish varieties than in pots that each hold just one of those varieties?
-- **Independent variable:** the number of varieties in a pot (one or three). Make a single-variety pot for each of the three varieties, so one hardy variety cannot explain the result alone.
+- **Independent variable:** the number of varieties in a pot (one or three). Also grow each variety alone, so one hardy variety cannot explain the result.
 - **Dependent variable:** the number of seedlings still alive after 14 days.
 - **Constants:** 30 seeds per pot, the same soil, pot size, light, and 50 mL of water each time.
 - **Control:** a pot of each kind watered every two days, with no dry spell.
@@ -355,15 +423,15 @@ Plan a test of whether plants with more variation have more survivors after a ha
 - **Also measure:** seedling height in centimetres.
 - **Safety:** wash your hands after handling soil, and never taste seeds, since some are coated with chemicals.
 
-More survivors in the mixed pots than in the single-variety pots on average would support the claim. Different varieties of one plant are only a model of variation.
+More survivors in the mixed pots, on average, would support the claim. Different varieties of one plant are only a model of variation.
 
 </details>
 
 ## Evaluate: check your thinking
 
-The American chestnut nearly disappeared because an invasive fungus arrived, and American trees had little resistance to it. Its roots still sprout, so the species is not extinct, but few trees make seeds. Breeding with Chinese chestnuts can add some of the resistance that the population lacked. So far, the best hybrids still resist less well than Chinese chestnuts at some sites, so the work goes on.
+The American chestnut nearly disappeared because an invasive fungus met trees with little resistance. Its roots still sprout, but few make seeds. Breeding with Chinese chestnuts can add some of the missing resistance. But the best hybrids still resist less well than Chinese chestnuts at some sites.
 
-**Science practices you used:** making predictions and testing them with a model, reading data tables and calculating a rate, making a claim with evidence and reasoning, and naming the limits of a model and of data from one place.
+**Science practices you used:** testing predictions with a model, reading data tables, calculating a rate, making a claim with evidence and reasoning, and naming the limits of a model and of data from one place.
 
 ## Going deeper
 
@@ -373,4 +441,4 @@ In a very small population, a trait can disappear by chance if the few members t
 
 ### More about the chestnut ratings
 
-Family D2 was one of the best hybrid families. A second American family at the Virginia site rated 2.4. About 40 percent of the Virginia trees were also hurt by an accidental weed-killer spray in year 5.
+A second American family at the Virginia site rated 2.4. About 40 percent of the Virginia trees were also hurt by an accidental weed-killer spray in year 5.

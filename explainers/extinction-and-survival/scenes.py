@@ -1,364 +1,385 @@
-"""Extinction and survival: who survives depends on variation that is already there  (Biochemistrypedia explainer)
+"""Extinction and survival — one carried forest, changed across the film.
 
-COLOR MAP (one color per concept, whole video)
-  GREEN  = living / survives / sprouts / reproduces
-  YELLOW = migrate (moves to a new place)
-  RED    = die, the blight fungus, the new disease, the invasive species
-  BLUE   = resistance (the bars in the sketches; heights are only a sketch, not data)
-  ORANGE = pollution (harmful material added)
-  TEAL   = climate change (the usual-weather range)
-  GREY   = outlines, dead trunks, "extinct", places with no living members
+COLOR MAP: living chestnuts GREEN; inherited resistance BLUE; blight/cankers RED;
+seeds and offspring YELLOW; dead or non-reproducing tissue GREY.
 """
-import numpy as np
-from bp_style import *  # noqa: F401,F403
+from bp_parts import *
+import bp_style as _style
 
-ORANGE = "#F29E4C"
-
-
-def dashed(mob, n=36):
-    return DashedVMobject(mob, num_dashes=n)
+# The accuracy-gated end-card sentence is long. A condensed member of the house
+# font family keeps the exact wording above the 22 pt floor on one line.
+_style.TITLE_FONT = "Avenir Next Condensed"
 
 
-def tree(x, y, s=1.0, c=GREEN):
-    """schematic tree: trunk block + round canopy. y is the ground line."""
-    trunk = Rectangle(width=0.26 * s, height=0.9 * s, stroke_width=0, fill_color=c, fill_opacity=0.55)
-    trunk.move_to([x, y + 0.45 * s, 0])
-    canopy = Circle(radius=0.62 * s, stroke_color=c, stroke_width=3, fill_color=c, fill_opacity=0.35)
-    canopy.move_to([x, y + 0.9 * s + 0.5 * s, 0])
-    g = VGroup(trunk, canopy)
-    g.trunk, g.canopy = trunk, canopy
+GROUND_Y = -2.15
+TREE_XS = (-5.25, -3.75, -2.25, -0.75, 0.75, 2.25, 3.75, 5.25)
+RESISTANCE = (0.38, 1.05, 0.62, 1.52, 0.48, 1.25, 0.78, 1.68)
+TAKE_HOME = "When environments change, populations survive only if some members survive and reproduce."
+
+
+def tree(x, scale=1.0, resistance=0.7, alive=True, sway=True):
+    """The carried chestnut picture. All forest scenes call this builder."""
+    col = GREEN if alive else GREY
+    trunk = RoundedRectangle(corner_radius=0.10, width=0.48 * scale, height=2.45 * scale,
+                             stroke_color=col, stroke_width=4, fill_color=col, fill_opacity=0.35)
+    trunk.move_to([x, GROUND_Y + 1.22 * scale, 0])
+    crown = VGroup(
+        Circle(radius=0.66 * scale, color=col, fill_color=col, fill_opacity=0.30, stroke_width=4),
+        Circle(radius=0.54 * scale, color=col, fill_color=col, fill_opacity=0.28, stroke_width=4).shift(LEFT * 0.48 * scale + DOWN * 0.12),
+        Circle(radius=0.54 * scale, color=col, fill_color=col, fill_opacity=0.28, stroke_width=4).shift(RIGHT * 0.48 * scale + DOWN * 0.12),
+    ).move_to([x, GROUND_Y + 2.72 * scale, 0])
+    bar = RoundedRectangle(corner_radius=0.04, width=0.22 * scale, height=resistance * scale,
+                           stroke_color=BLUE, stroke_width=2, fill_color=BLUE, fill_opacity=0.85)
+    bar.move_to([x, GROUND_Y + 0.18 * scale + resistance * scale / 2, 0])
+    roots = VGroup(*[
+        Line([x, GROUND_Y, 0], [x + dx * scale, GROUND_Y - 0.40 * scale, 0], color=col, stroke_width=4)
+        for dx in (-0.45, 0.45)
+    ])
+    g = VGroup(roots, trunk, crown, bar)
+    g.trunk, g.crown, g.bar, g.roots = trunk, crown, bar, roots
+    if sway:
+        crown._wind_t = x * 0.17
+        base = crown.get_center().copy()
+        def breeze(mob, dt, base=base):
+            mob._wind_t += dt
+            mob.move_to(base + RIGHT * 0.075 * np.sin(1.35 * mob._wind_t))
+        crown.add_updater(breeze)
     return g
 
 
-def kill(t):
-    """animations: canopy gone, trunk grey."""
-    return [t.canopy.animate.set_opacity(0), t.trunk.animate.set_fill(GREY, 0.7)]
+def forest(indices=range(8), resistances=RESISTANCE, alive=None, scale=1.0, ground=True):
+    alive = set(indices if alive is None else alive)
+    trees = VGroup(*[tree(TREE_XS[i], scale, resistances[i], i in alive) for i in indices])
+    g = VGroup()
+    if ground:
+        g.add(Line([-6.35, GROUND_Y, 0], [6.35, GROUND_Y, 0], color=GREY, stroke_width=4))
+    g.add(trees)
+    g.trees = trees
+    return g
 
 
-def dot(x, y, r=0.22, c=TEXT):
-    return Circle(radius=r, stroke_color=c, stroke_width=3, fill_color=c, fill_opacity=0.35).move_to([x, y, 0])
+def seed(x, y=-1.25, scale=1.0):
+    return Ellipse(width=0.22 * scale, height=0.38 * scale, color=YELLOW,
+                   fill_color=YELLOW, fill_opacity=0.9, stroke_width=2).move_to([x, y, 0]).rotate(-0.3)
 
 
-def bar(x, base, h, w=0.5):
-    return Rectangle(width=w, height=h, stroke_color=BLUE, stroke_width=2.5, fill_color=BLUE,
-                     fill_opacity=0.55).move_to([x, base + h / 2, 0])
+def seedling(x, resistance=0.55, scale=1.0):
+    stem = Line([x, GROUND_Y, 0], [x, GROUND_Y + 0.72 * scale, 0], color=YELLOW, stroke_width=5)
+    leaves = VGroup(
+        Ellipse(width=0.38 * scale, height=0.19 * scale, color=YELLOW, fill_color=YELLOW, fill_opacity=0.65).rotate(0.35),
+        Ellipse(width=0.38 * scale, height=0.19 * scale, color=YELLOW, fill_color=YELLOW, fill_opacity=0.65).rotate(-0.35),
+    ).arrange(RIGHT, buff=-0.05).move_to([x, GROUND_Y + 0.66 * scale, 0])
+    bar = Rectangle(width=0.12 * scale, height=resistance * 0.38 * scale, color=BLUE,
+                    fill_color=BLUE, fill_opacity=0.8).move_to([x, GROUND_Y + 0.16 * scale, 0])
+    return VGroup(stem, leaves, bar)
 
 
-def cross(x, y, s=0.2, c=RED):
-    return VGroup(Line([x - s, y - s, 0], [x + s, y + s, 0], color=c, stroke_width=5),
-                  Line([x - s, y + s, 0], [x + s, y - s, 0], color=c, stroke_width=5))
+def blight_specks(x0=-6.4, count=12, y0=-0.2):
+    return VGroup(*[
+        Dot([x0 - 0.18 * (i % 3), y0 + 0.33 * (i % 6), 0], radius=0.07 + 0.01 * (i % 2), color=RED)
+        for i in range(count)
+    ])
 
 
-def sweep(x0, y0, y1, color=RED):
-    return Rectangle(width=0.7, height=y1 - y0, stroke_width=0, fill_color=color,
-                     fill_opacity=0.35).move_to([x0, (y0 + y1) / 2, 0])
+def canker(t):
+    return RoundedRectangle(corner_radius=0.05, width=t.trunk.width + 0.10, height=0.34,
+                            color=RED, fill_color=RED, fill_opacity=0.7, stroke_width=3).move_to(t.trunk.get_center())
 
 
-class S00Title(TitleCard):
+def bird(at=(-6.2, 1.7, 0), color=TEXT):
+    a = Arc(radius=0.28, start_angle=0.05, angle=2.7, color=color, stroke_width=5)
+    b = Arc(radius=0.28, start_angle=0.40, angle=2.7, color=color, stroke_width=5).flip(RIGHT)
+    return VGroup(a, b).arrange(RIGHT, buff=-0.12).move_to(at)
+
+
+def panel_forest(center_x, varied=True):
+    xs = [center_x - 2.25 + 0.9 * i for i in range(6)]
+    hs = (0.36, 0.36, 0.36, 0.36, 0.36, 0.36) if not varied else (0.30, 0.62, 0.90, 0.42, 1.18, 0.76)
+    trees = VGroup(*[tree(x, 0.50, h, sway=True) for x, h in zip(xs, hs)])
+    front = Rectangle(width=5.15, height=0.20, stroke_color=RED, fill_color=RED,
+                      fill_opacity=0.55, stroke_width=2).move_to([center_x, -2.42, 0])
+    pulse(front, base=2.5, amp=1.2, speed=2.4)
+    return VGroup(trees, front)
+
+
+def predict_world():
+    panels = TwoPanel("narrow variation", "wide variation", colors=(BLUE, BLUE), top=2.75, bottom=-2.55, size=28)
+    left = panel_forest(-3.3, varied=False)
+    right = panel_forest(3.3, varied=True)
+    return VGroup(panels, left, right)
+
+
+class S00Hook(SpokenScene):
+    def construct(self):
+        world = forest()
+        specks = blight_specks()
+        self.add(world, specks)
+        self.at("red blight moves")
+        self.play(specks.animate.shift(RIGHT * 11.8), run_time=3.1, rate_func=linear)
+        qmark = T("?", 78, TEXT, font=TITLE_FONT).move_to([0, 2.95, 0])
+        self.at("What decides whether")
+        self.play(GrowFromCenter(qmark), run_time=0.8)
+        self.play(qmark.animate.scale(1.10), rate_func=there_and_back, run_time=1.2)
+        self.at("Watch the trees")
+        self.play(LaggedStart(*[Indicate(t.bar, color=BLUE, scale_factor=1.15) for t in world.trees], lag_ratio=0.08), run_time=1.7)
+        seeds = VGroup(*[seed(x, -1.72) for x in (-4.55, -1.55, 1.45, 4.45)])
+        self.at("yellow seeds")
+        self.play(LaggedStart(*[FadeIn(s, shift=UP * 0.15) for s in seeds], lag_ratio=0.15), run_time=1.2)
+        self.finish()
+
+
+class S01Title(TitleCard):
     LESSON = "Extinction and Survival"
-    TITLE = "Who Survives Depends on Existing Variation"
+    TITLE = "Who Makes It Through the Change?"
 
 
-# ---------------------------------------------------------------------------------------------
-class S01Question(SpokenScene):
-    """a row of chestnuts; the fungus arrives; trunks grey; sprouts rise; the question."""
-
-    def construct(self):
-        head = T("American chestnut, Virginia's Blue Ridge", 32, font=TITLE_FONT).to_edge(UP, buff=0.45)
-        xs = [-5.4 + 1.8 * i for i in range(7)]
-        base = -0.9
-        trees = [tree(x, base, 1.4) for x in xs]
-        ground = Line([-6.3, base, 0], [6.3, base, 0], color=GREY, stroke_width=3)
-        self.at("American chestnut trees were common")
-        self.play(FadeIn(head), Create(ground), LaggedStart(*[GrowFromPoint(t, [t.get_center()[0], base, 0]) for t in trees],
-                                                             lag_ratio=0.12), run_time=2.0)
-        self.at("a fungus arrived")
-        fungus = chip("fungus from Asia", RED, 28).move_to([-4.6, 2.5, 0])
-        self.play(FadeIn(fungus, shift=RIGHT * 0.3), run_time=0.6)
-        self.play(fungus.animate.move_to([4.6, 2.5, 0]), run_time=1.6)
-        self.at("killed billions")
-        killed = chip("about 1950: billions killed", RED, 28).move_to([0, 2.5, 0])
-        self.play(FadeOut(fungus), FadeIn(killed), LaggedStart(*[AnimationGroup(*kill(t)) for t in trees], lag_ratio=0.1),
-                  run_time=1.6)
-        self.at("small sprouts still grow")
-        sprouts = VGroup(*[VGroup(Line([x, base, 0], [x, base + 0.5, 0], color=GREEN, stroke_width=6),
-                                  Circle(radius=0.13, stroke_width=0, fill_color=GREEN, fill_opacity=1).move_to([x, base + 0.62, 0]))
-                           for x in xs])
-        lbl = T("sprouts from old roots", 28, GREEN).move_to([0, -1.5, 0])
-        self.play(LaggedStart(*[GrowFromPoint(s, [s.get_center()[0], base, 0]) for s in sprouts], lag_ratio=0.1),
-                  FadeIn(lbl), run_time=1.4)
-        self.at("Why do some species survive")
-        q = VGroup(T("Why do some species survive big changes,", 34), T("while others disappear?", 34)).arrange(DOWN, buff=0.15)
-        q.move_to([0, -2.6, 0])
-        self.play(FadeIn(q, shift=UP * 0.15), run_time=0.9)
-        self.finish()
-
-
-# ---------------------------------------------------------------------------------------------
 class S02Fates(SpokenScene):
-    """six members split into survive / migrate / die; then 'gone from one forest' vs 'extinct'."""
-
     def construct(self):
-        box = RoundedRectangle(corner_radius=0.2, width=2.6, height=3.4, stroke_color=GREY, stroke_width=3).move_to([-4.6, 0, 0])
-        pop_lbl = T("a population", 26, GREY).next_to(box, DOWN, buff=0.2)
-        ys = [1.0, 0.0, -1.0]
-        dots = [dot(-5.1 + 1.0 * c, y) for c in range(2) for y in ys]   # 6 dots, index = c*3 + r
-        env = chip("environment changes", GREY, 26).move_to([-4.6, 2.55, 0])
-        self.at("When an environment changes")
-        self.play(Create(box), FadeIn(pop_lbl), LaggedStart(*[FadeIn(d, scale=0.6) for d in dots], lag_ratio=0.1),
-                  FadeIn(env), run_time=1.4)
-        self.at("do not share one fate")
-        self.play(Indicate(VGroup(*dots), color=TEXT, scale_factor=1.05), run_time=0.8)
-
-        lane_y = [1.9, 0.0, -1.9]
-        c1 = chip("survive and reproduce", GREEN, 26).move_to([-0.4, lane_y[0] + 0.6, 0])
-        c2 = chip("migrate", YELLOW, 26).move_to([-1.6, lane_y[1] + 0.6, 0])
-        c3 = chip("die", RED, 26).move_to([-2.0, lane_y[2] + 0.6, 0])
-        surv = [dots[0], dots[3]]
-        mig = [dots[1], dots[4]]
-        die = [dots[2], dots[5]]
-        self.at("Some survive and reproduce")
-        self.play(FadeIn(c1), *[d.animate.set_color(GREEN).set_fill(GREEN, 0.5) for d in surv], run_time=0.5)
-        self.play(surv[0].animate.move_to([2.0, lane_y[0] - 0.3, 0]), surv[1].animate.move_to([2.8, lane_y[0] - 0.3, 0]),
-                  run_time=0.9)
-        kids = VGroup(dot(3.7, lane_y[0] - 0.3, 0.14, GREEN), dot(4.2, lane_y[0] - 0.3, 0.14, GREEN))
-        self.play(FadeIn(kids, scale=0.5), run_time=0.5)
+        world = forest()
+        self.add(world)
+        self.at("some members")
+        self.play(world.trees[1].trunk.animate.set_fill(GREY, 0.55).set_stroke(GREY),
+                  world.trees[1].crown.animate.set_opacity(0.12), run_time=1.4)
+        self.at("Living members may reproduce")
+        seeds = VGroup(seed(1.9), seed(2.55))
+        kids = VGroup(seedling(1.9), seedling(2.55, 0.7))
+        self.play(LaggedStart(*[FadeIn(s) for s in seeds], lag_ratio=0.2), run_time=0.8)
+        self.play(LaggedStart(*[Transform(s, k) for s, k in zip(seeds, kids)], lag_ratio=0.2), run_time=1.2)
         self.at("Some migrate")
-        newplace = dashed(Rectangle(width=2.6, height=1.3, stroke_color=YELLOW, stroke_width=3)).move_to([4.6, lane_y[1] - 0.3, 0])
-        np_lbl = T("a new place", 24, YELLOW).next_to(newplace, DOWN, buff=0.12)
-        self.play(FadeIn(c2), *[d.animate.set_color(YELLOW).set_fill(YELLOW, 0.5) for d in mig], Create(newplace), FadeIn(np_lbl),
-                  run_time=0.7)
-        self.at("move to a new place")
-        self.play(mig[0].animate.move_to([4.0, lane_y[1] - 0.3, 0]), mig[1].animate.move_to([5.1, lane_y[1] - 0.3, 0]),
-                  run_time=1.6)
-        self.at("Some die")
-        self.play(FadeIn(c3), *[d.animate.set_color(RED).set_fill(RED, 0.5).move_to([2.0 + 0.8 * i, lane_y[2] - 0.3, 0])
-                                for i, d in enumerate(die)], run_time=0.6)
-        xs_ = VGroup(*[cross(2.0 + 0.8 * i, lane_y[2] - 0.3, 0.2) for i in range(2)])
-        self.play(Create(xs_), run_time=0.4)
+        b = bird()
+        self.add(b)
+        distant = VGroup(*[tree(4.8 + 0.7 * i, 0.35, 0.5 + 0.2 * i) for i in range(2)])
+        self.play(b.animate.move_to([4.9, 2.3, 0]), FadeIn(distant), run_time=2.0)
         self.at("A species is extinct")
-        self.play(*[FadeOut(m) for m in self.mobjects], run_time=0.6)
-
-        def grid(cx, filled):
-            cells, items = VGroup(), VGroup()
-            for i, (dx, dy) in enumerate([(-1.1, 0.8), (1.1, 0.8), (-1.1, -0.8), (1.1, -0.8)]):
-                r = Rectangle(width=1.9, height=1.3, stroke_color=GREY, stroke_width=3).move_to([cx + dx, 0.55 + dy, 0])
-                cells.add(r)
-                if i in filled:
-                    items.add(dot(cx + dx, 0.55 + dy, 0.28, GREEN))
-            return cells, items
-
-        cellsR, itemsR = grid(3.3, [])
-        titleR = T("extinct", 34, GREY, weight=BOLD).move_to([3.3, 2.5, 0])
-        capR = VGroup(T("no living members", 26), T("left anywhere", 26)).arrange(DOWN, buff=0.1).move_to([3.3, -1.75, 0])
-        self.play(FadeIn(titleR), Create(cellsR), FadeIn(capR), run_time=1.0)
-        self.at("Vanishing from one forest")
-        cellsL, itemsL = grid(-3.3, [1, 2, 3])
-        titleL = T("not extinct", 34, GREEN, weight=BOLD).move_to([-3.3, 2.5, 0])
-        capL = VGroup(T("gone from one forest", 26), T("(top left box)", 26)).arrange(DOWN, buff=0.1).move_to([-3.3, -1.75, 0])
-        self.play(FadeIn(titleL), Create(cellsL), FadeIn(itemsL), FadeIn(capL), run_time=1.2)
+        local = forest(indices=range(4), alive=[], scale=0.72)
+        remote = forest(indices=range(4, 8), alive=range(4, 8), scale=0.72)
+        local.shift(LEFT * 0.5); remote.shift(RIGHT * 0.5)
+        self.play(FadeOut(VGroup(world, seeds, b, distant)), FadeIn(local), FadeIn(remote), run_time=1.3)
+        anywhere = T("living elsewhere", 30, GREEN).move_to([3.55, 2.35, 0])
+        self.at("no living members remain anywhere")
+        self.play(FadeIn(anywhere), Indicate(remote, color=GREEN), run_time=1.3)
+        rule = caption("local loss is not extinction", 34, TEXT)
+        self.at("Losing a species")
+        self.play(FadeIn(rule, shift=UP * 0.15), run_time=0.8)
+        self.play(Indicate(rule, color=YELLOW), run_time=1.0)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S03Four(SpokenScene):
-    """four panels: habitat loss, pollution, climate change, invasive species."""
-
+class S03Variation(SpokenScene):
     def construct(self):
-        pw, ph = 6.0, 3.15
-        cx = [-3.15, 3.15]
-        cy = [1.75, -1.75]
+        idx = (1, 2, 4, 6)
+        close = forest(indices=idx, scale=1.0)
+        self.play(FadeIn(close), run_time=1.0)
+        self.at("blue bar represents")
+        lab = T("inherited resistance", 32, BLUE).move_to([0, 3.15, 0])
+        self.play(LaggedStart(*[GrowFromEdge(t.bar, DOWN) for t in close.trees], lag_ratio=0.12), FadeIn(lab), run_time=1.5)
+        self.at("Different bar heights")
+        self.play(LaggedStart(*[Indicate(t.bar, color=BLUE, scale_factor=1.12) for t in close.trees], lag_ratio=0.15), run_time=1.6)
+        wave = Rectangle(width=0.65, height=5.4, fill_color=RED, fill_opacity=0.22, stroke_width=0).move_to([-6.2, 0.2, 0])
+        self.at("cannot raise its bar")
+        short = close.trees[0].bar
+        self.play(FadeIn(wave), wave.animate.shift(RIGHT * 4.3), short.animate.stretch(2.3, 1, about_edge=DOWN), run_time=1.0)
+        self.play(short.animate.stretch(1 / 2.3, 1, about_edge=DOWN), run_time=0.7, rate_func=there_and_back_with_pause)
+        thought = VGroup(T("need does not", 27), T("change traits", 27)).arrange(DOWN, buff=0.06).move_to([-3.4, 2.4, 0])
+        xout = Cross(thought, stroke_color=RED, stroke_width=5)
+        xout.layout_ok = True  # deliberate cross-out: the narration rejects this idea
+        self.play(FadeIn(thought), Create(xout), run_time=0.8)
+        self.at("inherited from its parents")
+        self.play(FadeOut(thought), FadeOut(xout), FadeOut(wave), run_time=0.5)
+        parents = VGroup(*[tree(-4.25 + 1.1 * i, 0.50, 0.45 + 0.18 * i, alive=True, sway=False).set_opacity(0.30) for i in range(2)])
+        lines = VGroup(*[Line(p.get_bottom(), close.trees[0].get_top(), color=GREY, stroke_width=2) for p in parents])
+        self.play(FadeIn(parents), Create(lines), run_time=1.3)
+        self.finish()
 
-        def panel(ix, iy, title, color):
-            r = RoundedRectangle(corner_radius=0.15, width=pw, height=ph, stroke_color=GREY, stroke_width=2.5).move_to([cx[ix], cy[iy], 0])
-            t = T(title, 28, color, weight=BOLD).move_to([cx[ix], cy[iy] + ph / 2 - 0.4, 0])
-            return r, t
 
-        r1, t1 = panel(0, 0, "habitat loss", GREEN)
-        hab_out = Rectangle(width=4.8, height=1.5, stroke_color=GREY, stroke_width=3).move_to([cx[0], cy[0] - 0.15, 0])
-        hab = Rectangle(width=4.8, height=1.5, stroke_width=0, fill_color=GREEN, fill_opacity=0.4).move_to(hab_out)
-        r2, t2 = panel(1, 0, "pollution", ORANGE)
-        water = Rectangle(width=4.8, height=1.5, stroke_color=GREY, stroke_width=3).move_to([cx[1], cy[0] - 0.15, 0])
-        wlabel = T("water", 24, GREY).move_to(water.get_bottom() + UP * 0.28)
-        r3, t3 = panel(0, 1, "climate change", TEAL)
-        axis = Line([cx[0] - 2.5, cy[1] - 0.7, 0], [cx[0] + 2.5, cy[1] - 0.7, 0], color=GREY, stroke_width=3)
-        usual = Rectangle(width=1.8, height=0.6, stroke_color=TEAL, stroke_width=3, fill_color=TEAL, fill_opacity=0.4).move_to([cx[0] - 1.3, cy[1] - 0.2, 0])
-        ulabel = T("usual weather", 24, TEAL).move_to([cx[0] - 1.3, cy[1] + 0.35, 0])
-        r4, t4 = panel(1, 1, "invasive species", RED)
-        region = Rectangle(width=4.8, height=1.3, stroke_color=GREY, stroke_width=3).move_to([cx[1], cy[1] - 0.05, 0])
-        natives = VGroup(*[dot(cx[1] + dx, cy[1] - 0.05 + dy, 0.17, GREEN) for dx, dy in [(-1.5, 0.3), (-0.6, -0.3), (0.6, 0.3), (1.6, -0.25)]])
+class S04Sorting(SpokenScene):
+    def construct(self):
+        idx = (1, 2, 4, 6)
+        world = forest(indices=idx)
+        self.add(world, scope_tag("schematic"))
+        bands = VGroup(*[canker(t) for t in world.trees])
+        self.at("Red cankers spread")
+        self.play(LaggedStart(*[GrowFromCenter(c) for c in bands], lag_ratio=0.12), run_time=1.5)
+        self.at("shorter blue bars")
+        self.play(world.trees[0].crown.animate.set_opacity(0.08), world.trees[0].trunk.animate.set_color(GREY),
+                  world.trees[1].crown.animate.set_opacity(0.08), world.trees[1].trunk.animate.set_color(GREY), run_time=1.4)
+        self.at("taller bar does not promise")
+        tall = world.trees[3]
+        self.play(tall.animate.set_opacity(0.25), run_time=0.6)
+        self.play(tall.animate.set_opacity(1.0), run_time=0.7)
+        chance = T("changes the chance", 32, TEXT).move_to([0, 3.15, 0])
+        self.at("changes the chance")
+        self.play(FadeIn(chance), Indicate(VGroup(world.trees[2], tall), color=GREEN), run_time=1.0)
+        self.at("yellow seeds")
+        seeds = VGroup(seed(world.trees[2].get_x()), seed(tall.get_x()))
+        self.play(FadeIn(seeds), seeds.animate.shift(DOWN * 0.55), run_time=1.1)
+        kids = VGroup(seedling(world.trees[2].get_x() - 0.7, 0.45), seedling(tall.get_x() + 0.65, 0.72))
+        self.at("next generation")
+        self.play(LaggedStart(*[GrowFromPoint(k, [k.get_x(), GROUND_Y, 0]) for k in kids], lag_ratio=0.25), run_time=1.3)
+        self.finish()
 
-        self.at("Four changes")
-        self.play(Create(r1), Create(r2), Create(r3), Create(r4), run_time=0.8)
+
+class S05Predict(SpokenScene):
+    QUESTION = "Which forest is more likely to leave seed-making survivors?"
+    def construct(self):
+        world = predict_world()
+        self.play(FadeIn(world[0]), run_time=0.8)
+        self.at("Every tree in the narrow")
+        self.play(FadeIn(world[1]), run_time=1.3)
+        self.at("varied forest includes")
+        self.play(FadeIn(world[2]), run_time=1.3)
+        self.play(LaggedStart(*[Indicate(t.bar, color=BLUE) for t in world[2][0]], lag_ratio=0.1), run_time=1.3)
+        q = question_card(self.QUESTION, y=3.35, size=29, max_w=11.5)
+        self.at("Which forest is more likely")
+        self.play(FadeIn(q, shift=DOWN * 0.12), run_time=0.8)
+        self.finish()
+
+
+class S06Pause(PredictPause):
+    QUESTION = S05Predict.QUESTION
+    SECONDS = 4.5
+    CARD = {"y": 3.35, "size": 29, "max_w": 11.5}
+    RING_AT = (6.0, 3.25, 0)
+    def backdrop(self):
+        return predict_world()
+
+
+class S07Reveal(SpokenScene):
+    def construct(self):
+        world = predict_world()
+        self.add(world, scope_tag("schematic"))
+        left, right = world[1][0], world[2][0]
+        fronts = VGroup(world[1][1], world[2][1])
+        self.at("better chance")
+        self.play(fronts.animate.shift(UP * 4.3), run_time=1.7)
+        self.play(*[t.animate.set_opacity(0.18) for t in left],
+                  *[right[i].animate.set_opacity(0.18) for i in (0, 1, 3, 5)], run_time=1.2)
+        seeds = VGroup(seed(right[2].get_x(), -1.45, 0.75), seed(right[4].get_x(), -1.45, 0.75))
+        self.play(FadeIn(seeds), run_time=0.7)
+        self.at("could still lose every tree")
+        ghost = right.copy().set_opacity(0.16)
+        self.play(Transform(right, ghost), run_time=0.9)
+        self.play(Transform(right, panel_forest(3.3, varied=True)[0]), run_time=0.7)
+        self.at("Variation in leaf shape")
+        shapes = VGroup(*[RegularPolygon(n=3 + i % 4, radius=0.24, color=BLUE, fill_color=BLUE, fill_opacity=0.5).move_to(t.crown) for i, t in enumerate(right)])
+        self.play(FadeOut(VGroup(*[t.bar for t in right])), FadeIn(shapes), run_time=0.8)
+        red_marks = VGroup(*[Dot(s.get_center(), radius=0.10, color=RED) for s in shapes])
+        self.play(FadeIn(red_marks), run_time=0.7)
+        self.at("difference must help")
+        self.play(FadeOut(VGroup(shapes, red_marks)), FadeIn(VGroup(*[t.bar for t in right])), run_time=0.8)
+        self.at("appear later or arrive")
+        clock = Circle(radius=0.48, color=TEXT, stroke_width=4).move_to([0, 2.1, 0])
+        hand = Line(clock.get_center(), clock.get_center() + UP * 0.38, color=YELLOW, stroke_width=4)
+        late = Rectangle(width=0.18, height=0.9, color=BLUE, fill_color=BLUE, fill_opacity=0.35).move_to([6.7, 0.5, 0])
+        self.play(Create(clock), GrowFromCenter(hand), FadeIn(late), run_time=0.6)
+        self.play(Rotate(hand, TAU * 2.5, about_point=clock.get_center()), late.animate.shift(LEFT * 0.5), run_time=2.2, rate_func=linear)
+        self.finish()
+
+
+class S08Reproduction(SpokenScene):
+    def construct(self):
+        parents = VGroup(tree(-2.0, 1.15, 1.1), tree(2.0, 1.15, 1.45))
+        ground = Line([-6.2, GROUND_Y, 0], [6.2, GROUND_Y, 0], color=GREY, stroke_width=4)
+        self.play(Create(ground), FadeIn(parents), run_time=1.2)
+        stop = Arrow([-5.4, -2.75, 0], [-0.5, -2.75, 0], color=GREY, stroke_width=5)
+        self.at("never make seeds")
+        self.play(GrowArrow(stop), run_time=1.2)
+        blocked = T("no next generation", 30, GREY).move_to([2.6, -2.75, 0])
+        self.play(FadeIn(blocked), run_time=0.8)
+        self.at("yellow seeds fall")
+        pollen = VGroup(*[Dot([-1.2 + 0.4 * i, 0.5 + 0.15 * np.sin(i), 0], radius=0.06, color=YELLOW) for i in range(7)])
+        seeds = VGroup(seed(-1.1), seed(0), seed(1.1))
+        self.play(FadeOut(blocked), FadeIn(pollen), pollen.animate.shift(RIGHT * 2.0), FadeIn(seeds), run_time=1.3)
+        kids = VGroup(seedling(-1.1), seedling(0, 0.7), seedling(1.1, 0.8))
+        self.play(LaggedStart(*[Transform(s, k) for s, k in zip(seeds, kids)], lag_ratio=0.15), run_time=1.3)
+        arrow = Arrow([-5.4, -2.75, 0], [5.3, -2.75, 0], color=YELLOW, stroke_width=6)
+        self.play(Transform(stop, arrow), run_time=0.6)
+        self.at("Here is the rule")
+        part1 = T("When environments change,", 33, TEXT).move_to([0, 3.28, 0])
+        part2 = T("populations survive only if some members survive and reproduce.", 29, TEXT).move_to([0, 2.75, 0])
+        self.play(FadeIn(part1), run_time=0.7)
+        self.at("populations survive only")
+        self.play(FadeIn(part2), run_time=1.0)
+        self.finish()
+
+
+class S09Challenges(SpokenScene):
+    def construct(self):
+        world = forest(indices=(1, 3, 5, 7), scale=0.9)
+        kids = VGroup(seedling(-1.0), seedling(0.2), seedling(1.4))
+        gen = Arrow([-5.8, -2.8, 0], [5.5, -2.8, 0], color=YELLOW, stroke_width=5)
+        self.add(world, kids, gen)
+        self.at("bird can leave")
+        b = bird()
+        self.play(FadeIn(b), b.animate.move_to([6.0, 2.1, 0]), run_time=1.7)
+        self.at("rooted chestnut cannot")
+        self.play(LaggedStart(*[Indicate(t.roots, color=GREEN) for t in world.trees], lag_ratio=0.15), run_time=1.3)
+        self.at("seeds may spread")
+        seeds = VGroup(seed(-0.4), seed(0.1), seed(0.6))
+        self.play(FadeIn(seeds), seeds.animate.shift(RIGHT * 1.0 + DOWN * 0.5), run_time=1.3)
+        cloud = RoundedRectangle(corner_radius=0.25, width=3.0, height=0.82, color=RED,
+                                 fill_color=RED, fill_opacity=0.16).move_to([0, 2.65, 0])
+        label = T("habitat loss", 30, RED).move_to(cloud)
         self.at("Habitat loss")
-        self.play(FadeIn(t1), Create(hab_out), FadeIn(hab), run_time=0.7)
-        self.at("destruction of the place")
-        self.play(hab.animate.stretch_to_fit_width(1.6).align_to(hab_out, LEFT), run_time=1.6)
-        self.at("Pollution")
-        self.play(FadeIn(t2), Create(water), FadeIn(wlabel), run_time=0.7)
-        self.at("harmful material added")
-        drops = VGroup(*[Circle(radius=0.11, stroke_width=0, fill_color=ORANGE, fill_opacity=1).move_to([cx[1] - 1.8 + 0.9 * i, cy[0] + 0.85, 0]) for i in range(5)])
-        self.play(FadeIn(drops), run_time=0.3)
-        self.play(*[d.animate.shift(DOWN * (0.75 + 0.15 * (i % 3))) for i, d in enumerate(drops)], run_time=1.4)
-        self.at("Climate change")
-        self.play(FadeIn(t3), Create(axis), FadeIn(usual), FadeIn(ulabel), run_time=0.7)
-        self.at("long shift")
-        self.play(usual.animate.shift(RIGHT * 2.2), ulabel.animate.shift(RIGHT * 2.2), run_time=1.6)
-        self.at("An invasive species")
-        self.play(FadeIn(t4), Create(region), FadeIn(natives), run_time=0.7)
-        self.at("brought to a new place")
-        inv = dot(cx[1] - 2.8, cy[1] - 0.05, 0.17, RED)
-        self.play(FadeIn(inv), run_time=0.3)
-        self.play(inv.animate.move_to([cx[1] - 1.1, cy[1] + 0.05, 0]), run_time=1.0)
-        self.at("spreads and causes harm")
-        more = [dot(cx[1] - 1.1 + dx, cy[1] + dy, 0.17, RED) for dx, dy in [(0.8, -0.35), (1.6, 0.25), (2.4, -0.3)]]
-        self.play(LaggedStart(*[FadeIn(m, scale=0.5) for m in more], lag_ratio=0.2),
-                  *[n.animate.set_opacity(0.25) for n in natives], run_time=1.4)
-        self.at("The chestnut blight fungus")
-        tag = chip("chestnut blight fungus", RED, 24).move_to([cx[1], cy[1] - 1.15, 0])
-        self.play(FadeIn(tag, shift=UP * 0.1), run_time=0.7)
+        self.play(FadeIn(cloud), FadeIn(label), run_time=0.7)
+        for phrase, text in (("pollution", "pollution"), ("climate change", "climate change"), ("invasive species", "invasive species")):
+            self.at(phrase)
+            new = T(text, 30, RED).move_to(cloud)
+            self.play(swap(label, new, 0.55))
+            label = new
+        self.at("same test remains")
+        q = caption("Can any members survive and reproduce?", 34, TEXT)
+        self.play(FadeOut(VGroup(cloud, label)), FadeIn(q), run_time=0.9)
+        self.play(Indicate(VGroup(world, kids), color=YELLOW), run_time=1.0)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S04Variation(SpokenScene):
-    """eight members with different resistance bars; a disease; tall bars survive and pass the trait on."""
-
+class S10Return(SpokenScene):
     def construct(self):
-        base = -1.8
-        xs = [-4.9 + 1.4 * i for i in range(8)]
-        hs = [0.3, 1.7, 0.5, 0.9, 0.3, 2.0, 0.6, 0.4]
-        members = [dot(x, 1.6, 0.3) for x in xs]
-        bars = [bar(x, base, h) for x, h in zip(xs, hs)]
-        floor = Line([-5.8, base, 0], [5.8, base, 0], color=GREY, stroke_width=3)
-        top = T("genetic variation: inherited differences", 32).move_to([0, 3.0, 0])
-        self.at("Genetic variation")
-        self.play(FadeIn(top), LaggedStart(*[FadeIn(m, scale=0.6) for m in members], lag_ratio=0.08), Create(floor), run_time=1.2)
-        self.play(LaggedStart(*[GrowFromEdge(b, DOWN) for b in bars], lag_ratio=0.1), run_time=1.4)
-        self.at("Resistance")
-        rl = T("resistance: a taller bar holds off the disease better (a sketch)", 24, BLUE).move_to([0, -2.4, 0])
-        self.play(FadeIn(rl), run_time=0.6)
-        self.at("a new disease arrives")
-        dis = chip("new disease", RED, 28).move_to([-5.2, 2.35, 0])
-        band = sweep(-6.0, base - 0.1, 2.1)
-        self.play(FadeIn(dis), FadeIn(band), run_time=0.5)
-        self.play(dis.animate.move_to([5.2, 2.35, 0]), band.animate.move_to([6.0, (base + 2.1) / 2 - 0.05, 0]), run_time=1.6)
-        self.play(FadeOut(band), run_time=0.2)
-        self.at("more variation")
-        res = [1, 5]
-        self.play(*[Indicate(VGroup(members[i], bars[i]), color=GREEN, scale_factor=1.12) for i in res], run_time=1.0)
-        self.at("Those members survive")
-        gone = [i for i in range(8) if i not in res]
-        self.play(*[FadeOut(VGroup(members[i], bars[i])) for i in gone],
-                  *[members[i].animate.set_color(GREEN).set_fill(GREEN, 0.5) for i in res], FadeOut(dis), run_time=1.1)
-        self.at("pass their traits")
-        kids = VGroup()
-        kh = {1: (1.55, 1.85), 5: (2.15, 1.85)}   # similar to the parent (1.7, 2.0), not identical
-        for i in res:
-            for dx, h in zip((-0.65, 0.65), kh[i]):
-                kids.add(VGroup(dot(xs[i] + dx, 1.6, 0.17, GREEN), bar(xs[i] + dx, base, h, w=0.3)))
-        kl = T("offspring", 26, GREEN).move_to([0, 0.35, 0])
-        self.play(LaggedStart(*[FadeIn(k, scale=0.5) for k in kids], lag_ratio=0.15), FadeIn(kl), run_time=1.5)
+        world = forest()
+        self.play(FadeIn(world), run_time=1.0)
+        specks = blight_specks()
+        self.at("Red blight arrives")
+        self.add(specks)
+        self.play(specks.animate.shift(RIGHT * 11.8), run_time=1.5, rate_func=linear)
+        self.at("Blue resistance differs")
+        self.play(LaggedStart(*[Indicate(t.bar, color=BLUE) for t in world.trees], lag_ratio=0.07), run_time=1.3)
+        self.at("Some trees remain")
+        lost = (0, 1, 3, 4, 6)
+        self.play(*[world.trees[i].animate.set_opacity(0.15) for i in lost], run_time=1.2)
+        self.at("yellow seeds start")
+        seeds = VGroup(*[seed(x) for x in (-2.4, 0.3, 2.9)])
+        kids = VGroup(*[seedling(x, 0.5 + 0.15 * i) for i, x in enumerate((-2.4, 0.3, 2.9))])
+        self.play(FadeIn(seeds), seeds.animate.shift(DOWN * 0.5), run_time=0.8)
+        self.play(LaggedStart(*[Transform(s, k) for s, k in zip(seeds, kids)], lag_ratio=0.15), run_time=1.2)
+        self.at("population continues only")
+        arrow = CurvedArrow([-5.5, 2.7, 0], [5.4, -1.1, 0], angle=-0.35, color=YELLOW, stroke_width=7)
+        self.play(Create(arrow), run_time=1.4)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S05Present(SpokenScene):
-    """chestnuts with only short bars meet the fungus; then roots, sprouts, infection."""
-
+class S11Handoff(SpokenScene):
     def construct(self):
-        base = -1.6
-        xs = [-4.9 + 1.4 * i for i in range(8)]
-        trees = [tree(x, 0.2, 0.85) for x in xs]
-        ground = Line([-6.3, 0.2, 0], [6.3, 0.2, 0], color=GREY, stroke_width=3)
-        hs = [0.3, 0.45, 0.35, 0.4, 0.3, 0.45, 0.35, 0.95]
-        bars = [bar(x, base, h) for x, h in zip(xs, hs)]
-        floor = Line([-5.8, base, 0], [5.8, base, 0], color=GREY, stroke_width=3)
-        head = T("American chestnut population", 32).move_to([0, 3.2, 0])
-        self.at("Variation does not promise")
-        self.play(FadeIn(head), Create(ground), LaggedStart(*[FadeIn(t, scale=0.7) for t in trees], lag_ratio=0.08), run_time=1.2)
-        self.at("helpful trait usually has to be there")
-        ht = T("fast change: helpful trait usually has to be there already", 26, BLUE).move_to([0, 2.6, 0])
-        self.play(FadeIn(ht, shift=UP * 0.1), run_time=0.8)
-        self.at("very little resistance")
-        rl = T("resistance (a sketch)", 26, BLUE).move_to([0, -2.15, 0])
-        self.play(Create(floor), LaggedStart(*[GrowFromEdge(b, DOWN) for b in bars], lag_ratio=0.08), FadeIn(rl), run_time=1.3)
-        self.at("this fungus")
-        dis = chip("blight fungus", RED, 28).move_to([-5.2, -2.9, 0])
-        band = sweep(-6.0, base - 0.1, 2.0)
-        self.play(FadeIn(dis), FadeIn(band), run_time=0.4)
-        self.play(dis.animate.move_to([5.2, -2.9, 0]), band.animate.move_to([6.0, (base + 2.0) / 2 - 0.05, 0]), run_time=1.1)
-        self.at("almost all the big trees died")
-        self.play(FadeOut(band), *[a for t in trees[:7] for a in kill(t)], run_time=1.0)
-        self.at("The fungus can kill")
-        self.play(*[FadeOut(m) for m in self.mobjects], run_time=0.4)
-        gy = -0.4
-        gnd = Line([-6.0, gy, 0], [6.0, gy, 0], color=GREY, stroke_width=3)
-        soil = T("soil", 26, GREY).move_to([-5.3, gy - 0.4, 0])
-        t = tree(-1.5, gy, 1.6)
-        roots = VGroup(*[Line([-1.5, gy, 0], [-1.5 + dx, gy - 1.4, 0], color=GREEN, stroke_width=6) for dx in (-1.2, -0.4, 0.4, 1.2)])
-        gen = T("a typical tree", 26, GREY).move_to([-4.6, 1.8, 0])
-        self.play(Create(gnd), FadeIn(soil), FadeIn(t), Create(roots), FadeIn(gen), run_time=0.9)
-        fung = chip("fungus", RED, 26).move_to([-4.6, 1.2, 0])
-        arrow_f = Arrow(fung.get_right(), [-1.8, 1.2, 0], buff=0.1, color=RED, stroke_width=5)
-        self.play(FadeIn(fung), GrowArrow(arrow_f), run_time=0.4)
-        self.play(*kill(t), run_time=0.8)
-        self.at("The roots, safe in the soil")
-        rl2 = T("roots, safe in the soil, often live", 26, GREEN).move_to([-1.5, gy - 1.95, 0])
-        self.play(FadeIn(rl2), Indicate(roots, color=GREEN), run_time=0.8)
-        self.at("send up new sprouts")
-        spr = Line([0.8, gy - 0.5, 0], [0.8, gy + 1.5, 0], color=GREEN, stroke_width=8)
-        leaf = Circle(radius=0.22, stroke_width=0, fill_color=GREEN, fill_opacity=1).move_to([0.8, gy + 1.65, 0])
-        sp_lbl = T("new sprout", 26, GREEN).move_to([3.0, gy + 1.4, 0])
-        self.play(Create(Line([-1.5, gy - 0.5, 0], [0.8, gy - 0.5, 0], color=GREEN, stroke_width=6)), run_time=0.4)
-        self.play(GrowFromPoint(VGroup(spr, leaf), [0.8, gy - 0.5, 0]), FadeIn(sp_lbl), run_time=0.9)
-        self.at("sprouts get infected")
-        inf = Circle(radius=0.2, stroke_width=0, fill_color=RED, fill_opacity=0.9).move_to([0.8, gy + 0.75, 0])
-        self.play(FadeIn(inf, scale=0.4), FadeOut(fung), FadeOut(arrow_f), run_time=0.6)
-        self.at("die back")
-        self.play(FadeOut(leaf), FadeOut(sp_lbl), FadeOut(inf), spr.animate.set_color(GREY), run_time=0.6)
-        self.play(spr.animate.put_start_and_end_on([0.8, gy - 0.5, 0], [0.8, gy + 0.3, 0]), run_time=0.8)
+        world = forest(indices=(1, 3, 5, 7), scale=0.82)
+        model = T("model", 32, BLUE).move_to([0, 3.15, 0])
+        self.play(FadeIn(world), FadeIn(model), run_time=1.0)
+        self.at("requirement not a guarantee")
+        req = caption("requirement, not guarantee", 34, TEXT)
+        self.play(FadeIn(req), run_time=0.8)
+        self.at("model forest is not")
+        for t in world.trees:
+            t.crown.clear_updaters()  # breeze updater would pull crowns off trunks during the slide
+        self.play(FadeOut(req), world.animate.scale(0.5).move_to([-3.5, 0.3, 0]), model.animate.move_to([-3.5, 1.9, 0]), run_time=1.1)
+        table = RoundedRectangle(corner_radius=0.16, width=5.4, height=4.5, color=GREY, stroke_width=3).move_to([3.4, 0.15, 0])
+        real = T("real data", 34, YELLOW).next_to(table, UP, buff=0.2)
+        self.play(Create(table), FadeIn(real), run_time=1.0)
+        self.at("test the rule")
+        self.play(Indicate(world, color=BLUE), run_time=0.8)
+        self.at("real American Chestnut data")
+        down = Arrow([3.4, -2.25, 0], [3.4, -3.35, 0], color=TEXT, stroke_width=6)
+        self.play(Indicate(table, color=YELLOW), GrowArrow(down), run_time=1.1)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S06Answer(SpokenScene):
-    """a few survivors are not enough; the question answered in plain words."""
-
-    def construct(self):
-        sbox = RoundedRectangle(corner_radius=0.2, width=4.8, height=2.4, stroke_color=GREY, stroke_width=3).move_to([0, 0.4, 0])
-        survivors = VGroup(*[dot(-1.3 + 1.3 * i, 0.4, 0.35, GREEN) for i in range(3)])
-        sl = T("a few survivors", 34, GREEN).move_to([0, 2.1, 0])
-        warn = T("not safe by themselves", 34, GREY).move_to([0, -1.3, 0])
-        self.at("A few survivors")
-        self.play(Create(sbox), FadeIn(survivors), FadeIn(sl), run_time=1.0)
-        self.play(FadeIn(warn), run_time=0.6)
-        self.at("So why do some species")
-        self.play(FadeOut(sbox), FadeOut(survivors), FadeOut(sl), FadeOut(warn), run_time=0.5)
-        q = VGroup(T("Why do some species survive big changes,", 32), T("while others disappear?", 32)).arrange(DOWN, buff=0.12).move_to([0, 2.8, 0])
-        self.play(FadeIn(q), run_time=0.7)
-        trait = chip("members already carry a helpful trait", BLUE, 24).move_to([-3.1, 1.0, 0])
-        repro = chip("those members reproduce", GREEN, 24).move_to([-3.1, 0.0, 0])
-        out1 = chip("more likely to survive", GREEN, 24).move_to([4.0, 0.5, 0])
-        trait.align_to([-6.2, 0, 0], LEFT); repro.align_to([-6.2, 0, 0], LEFT)
-        a1 = Arrow([0.4, 0.5, 0], [out1.get_left()[0] - 0.1, 0.5, 0], buff=0.05, color=GREEN, stroke_width=5)
-        self.at("more likely to survive when")
-        self.play(FadeIn(out1, shift=LEFT * 0.2), run_time=0.6)
-        self.at("already carry a helpful trait")
-        self.play(FadeIn(trait, shift=RIGHT * 0.2), run_time=0.6)
-        self.at("those members reproduce")
-        self.play(FadeIn(repro, shift=RIGHT * 0.2), run_time=0.6)
-        self.play(GrowArrow(a1), run_time=0.5)
-        self.at("If no member can survive")
-        none = chip("no member can survive the change", RED, 24).move_to([-3.1, -1.9, 0])
-        none.align_to([-6.2, 0, 0], LEFT)
-        self.play(FadeIn(none, shift=RIGHT * 0.2), run_time=0.6)
-        self.at("may become extinct")
-        out2 = chip("species may become extinct", GREY, 24).move_to([4.0, -1.9, 0])
-        a2 = Arrow([0.4, -1.9, 0], [out2.get_left()[0] - 0.1, -1.9, 0], buff=0.05, color=GREY, stroke_width=5)
-        self.play(GrowArrow(a2), FadeIn(out2), run_time=0.7)
-        self.finish()
-
-
-class S07End(EndCard):
-    LINE = "In fast change, a helpful trait usually has to be there already."
+class S12End(EndCard):
+    LINE = TAKE_HOME
