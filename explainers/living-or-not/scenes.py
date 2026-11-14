@@ -317,7 +317,7 @@ class S08Host(SpokenScene):
                          for a, p in zip((0, 2, 4), [(1.4, 1.25, 0), (2.2, 0.3, 0), (1.25, -0.75, 0)])])
         self.play(LaggedStart(*[Create(p) for p in parts], lag_ratio=0.2), run_time=1.0)
         self.at("Host enzymes or viral enzymes")
-        enzyme = chip("host or viral enzyme", TEXT, 28).move_to([-3.0, -1.65, 0])
+        enzyme = chip("host or viral enzyme", TEXT, 28).move_to([-2.25, -1.76, 0])
         core2 = core.copy().shift(RIGHT * 2.6)
         self.play(FadeIn(enzyme), core.animate.move_to([-2.6, -0.35, 0]), FadeIn(core2), run_time=1.0)
         self.at("parts assemble around")

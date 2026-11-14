@@ -319,11 +319,11 @@ class S02SameJob(SpokenScene):
                   world[5].animate.shift(RIGHT * 0.12), run_time=1.0)
         self.at("Scientists therefore")
         beam = AnnularSector(inner_radius=0.15, outer_radius=5.4, angle=0.22, start_angle=-0.11,
-                             color=TEAL, fill_opacity=0.16, stroke_opacity=0).rotate(PI).move_to([5.6, 0.1, 0])
+                             color=TEAL, fill_opacity=0.16, stroke_opacity=0).rotate(PI).move_to([3.47, 0.1, 0])
         self.play(FadeOut(lab), FadeIn(beam), run_time=1.1)
-        self.play(Rotate(beam, angle=0.42, about_point=[5.6, 0.1, 0]), run_time=1.2)
+        self.play(Rotate(beam, angle=0.42, about_point=[3.47, 0.1, 0]), run_time=1.2)
         self.at("Which similarities")
-        ask = T("inherited together?", 38, TEAL, weight=BOLD).move_to([-0.55, -2.55, 0])
+        ask = T("inherited together?", 38, TEAL, weight=BOLD).move_to([-0.55, -3.3, 0])
         self.play(FadeOut(beam), FadeOut(card), FadeIn(ask, shift=UP * 0.15), run_time=1.1)
         self.finish()
 
@@ -474,7 +474,7 @@ class S08Rule(SpokenScene):
         self.add(flow)
         self.at("so scientists compare")
         sources = [("body", [-5.3, 1.2, 0]), ("development", [-5.0, 0.35, 0]),
-                   ("fossils", [-4.7, -0.5, 0]), ("DNA", [-4.3, -1.35, 0])]
+                   ("fossils", [-4.7, -0.5, 0]), ("DNA", [-4.64, -1.35, 0])]
         icons = VGroup(*[chip(name, TEAL, 25).move_to(pos) for name, pos in sources])
         self.play(LaggedStart(*[FadeIn(i, shift=RIGHT * 0.2) for i in icons], lag_ratio=0.14), run_time=1.3)
         self.at("Body structures")

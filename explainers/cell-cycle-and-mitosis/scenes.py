@@ -200,7 +200,7 @@ class S02Interphase(SpokenScene):
         labels = VGroup(
             T("G1", 30, TEAL).move_to([2.7, 1.65, 0]),
             T("S", 30, BLUE).move_to([2.65, -2.0, 0]),
-            T("G2", 30, GOLD).move_to([-1.2, -3.0, 0]),
+            T("G2", 30, GOLD).move_to([-1.35, -3.2, 0]),
             T("M", 30, GREY).move_to([-2.8, 1.5, 0]),
         )
         theta = ValueTracker(PI / 2)
@@ -230,7 +230,7 @@ class S03Copy(SpokenScene):
         readout = Readout(
             [("chromosome units", lambda: 4, "{:.0f}", TEXT),
              ("DNA copies", lambda: dna.get_value(), "{:.0f}", BLUE)],
-            at=[4.0, 2.2, 0], widest=[4, 8], size=26,
+            at=[4.2, 3.1, 0], widest=[4, 8], size=24,
         )
         self.at("During S phase")
         self.play(FadeIn(nuc), FadeIn(singles), run_time=0.8)

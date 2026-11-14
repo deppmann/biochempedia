@@ -100,9 +100,9 @@ def tracker(states=(False, False, False)):
 
 
 def soil_band():
-    soil = Rectangle(width=13.4, height=2.7, stroke_width=0,
+    soil = Rectangle(width=12.75, height=2.7, stroke_width=0,
                      fill_color=SOIL, fill_opacity=0.42).move_to([0, -2.15, 0])
-    surface = Line([-6.7, -0.8, 0], [6.7, -0.8, 0], color=BROWN, stroke_width=4)
+    surface = Line([-6.5, -0.8, 0], [6.5, -0.8, 0], color=BROWN, stroke_width=4)
     return VGroup(soil, surface)
 
 
@@ -316,7 +316,7 @@ class S05Reveal(ActiveSpokenScene):
         self.play(ReplacementTransform(gas, ammonium), FadeIn(ammonium_lab), run_time=0.8)
         fixed = VGroup(*[Dot(radius=0.13, color=TEAL).move_to(p) for p in [(-2.7, -1.5, 0), (-2.7, -0.4, 0), (-2.7, 0.7, 0)]])
         up = arrow([-2.7, -2.2, 0], [-2.7, 2.6, 0], TEAL)
-        fixed_lab = T("fixed nitrogen", 30, TEAL).move_to([-4.6, 1.65, 0])
+        fixed_lab = T("fixed nitrogen", 30, TEAL).move_to([-5.1, 1.65, 0])
         self.at("plant can use")
         self.play(TransformFromCopy(ammonium, fixed), GrowArrow(up), FadeIn(fixed_lab), run_time=0.8)
         self.play(fixed.animate.shift(UP * 1.0), run_time=0.7)

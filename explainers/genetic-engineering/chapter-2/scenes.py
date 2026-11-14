@@ -224,7 +224,7 @@ class S06Dna(SpokenScene):
         tool = chip("DNA test", YELLOW, 36).move_to([-4.75, 1.8, 0])
         self.play(FadeIn(tool, shift=LEFT * 0.2), run_time=0.6)
         self.at("polymerase chain reaction")
-        gate = RoundedRectangle(corner_radius=0.22, width=3.2, height=2.5, stroke_color=YELLOW,
+        gate = RoundedRectangle(corner_radius=0.22, width=3.8, height=2.5, stroke_color=YELLOW,
                                 stroke_width=5, fill_color=YELLOW, fill_opacity=0.08).move_to([-3.5, 0.15, 0])
         gate_lab = T("ideal PCR model", 28, YELLOW).move_to([-3.5, 1.75, 0])
         note = T("real copying is less than perfect", 24, GREY).move_to([-3.5, -1.55, 0])

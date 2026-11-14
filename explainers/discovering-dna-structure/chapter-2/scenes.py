@@ -296,15 +296,19 @@ class S03StopBlocks(FilmScene):
         self.play(LaggedStart(*[Indicate(s, color=BLUE, scale_factor=1.03) for s in built], lag_ratio=0.04), run_time=1.5)
         inset = RoundedRectangle(corner_radius=0.16, width=5.0, height=1.35, stroke_color=PURPLE,
                                  stroke_width=3, fill_color=BG, fill_opacity=0.95).move_to([0, -2.65, 0])
-        ilab = T("later versions: one reaction", 25, PURPLE).move_to([0, -2.25, 0])
+        ilab = T("later versions: one reaction", 25, PURPLE).move_to([0, -1.53, 0])
         colors = [BLUE, GREEN, YELLOW, PURPLE]
         stops = VGroup(*[base_block(ch, w=0.48, h=0.42, size=22, color=c)
                          for ch, c in zip("ATGC", colors)]).arrange(RIGHT, buff=0.18).move_to([0, -2.85, 0])
         for b in stops:
             b[1].layout_ok = True
         self.at("Later versions")
-        self.play(FadeOut(VGroup(mixlab, ordinary, stop)), FadeIn(inset), FadeIn(ilab),
-                  LaggedStart(*[FadeIn(b, scale=0.8) for b in stops], lag_ratio=0.15), run_time=1.4)
+        self.play(Succession(
+            FadeOut(VGroup(mixlab, ordinary, stop, trays), run_time=0.4),
+            AnimationGroup(FadeIn(inset), FadeIn(ilab),
+                           LaggedStart(*[FadeIn(b, scale=0.8) for b in stops], lag_ratio=0.15),
+                           run_time=1.0),
+        ), run_time=1.4)
         self.add(scope_tag("schematic"))
         self.finish()
 
@@ -512,6 +516,7 @@ class S11CostCurve(FilmScene):
 class S12Limits(FilmScene):
     def construct(self):
         p, curve, pts, area = cost_plot(box=(-5.85, 5.75, -1.9, 2.25))
+        p.xlabel.shift(UP * 0.1)
         left_zone = Rectangle(width=4.1, height=4.15, stroke_width=0, fill_color=PURPLE,
                               fill_opacity=0.16).move_to([-3.8, 0.18, 0])
         right_zone = Rectangle(width=7.5, height=4.15, stroke_width=0, fill_color=BLUE,

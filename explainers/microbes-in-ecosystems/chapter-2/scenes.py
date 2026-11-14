@@ -334,7 +334,7 @@ class S08Serengeti(SpokenScene):
         rp = VGroup(virus([0,1.85,0],.3), label("rinderpest",30,RED).move_to([0,1.35,0]))
         self.at("Rinderpest is")
         self.play(FadeIn(rp), run_time=.7)
-        cattle = label("cattle",28,INK).move_to([-3.4,-2.35,0])
+        cattle = label("cattle",28,INK).move_to([-3.4,-2.24,0])
         wild = label("wildebeest",28,INK).move_to([3.1,-3.25,0])
         self.at("cattle and")
         self.play(FadeIn(cattle), run_time=.4)
