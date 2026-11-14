@@ -39,6 +39,8 @@ jobs:
       - run: node scripts/test-search.mjs
       # Curiosity router, offline (node:sqlite needs no flag from Node 22.13).
       - run: node scripts/test-curious.mjs
+      - name: Study helpers (no network, mock API)
+        run: node scripts/test-helper.mjs
       # Learner sync: the merge rules, then two devices through the worker against the real migrations.
       - run: node scripts/test-learner-merge.mjs
       - run: node scripts/test-learner-sync.mjs
