@@ -5,10 +5,10 @@ course: "life-science"
 courseChapter: "Life Science · Unit 4: Matter and energy in ecosystems"
 order: 1012
 summary: >-
-  Why can the Chesapeake Bay hold large schools of small fish but only a limited number of the
-  ospreys that eat them? You sort the living and nonliving parts of an ecosystem, build an energy
-  pyramid in a simulation, and read real energy numbers from a Florida spring. Afterwards you can
-  draw a food web with the arrows the right way and explain why each level has less energy.
+  At each feeding step, less energy is available to the next level. You use that idea to explain
+  why the Chesapeake Bay can hold large schools of small fish but fewer ospreys, sort the living
+  and nonliving parts of an ecosystem, build an energy pyramid, and read real energy numbers from
+  a Florida spring.
 hook: "If ospreys eat menhaden and menhaden eat plankton, how much of the sun’s energy ever reaches an osprey?"
 estMinutes: 40
 supports: true
@@ -29,10 +29,30 @@ explainer:
   src: "/explainers/food-webs-and-energy/explainer.mp4"
   captions: "/explainers/food-webs-and-energy/explainer.vtt"
   poster: "/explainers/food-webs-and-energy/poster.jpg"
-  title: "Less Energy at Every Step"
-  durationSec: 157.8
-  narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+  title: "Follow the Energy Arrows"
+  durationSec: 204.2
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+  takeaways:
+    - "Food-web arrows point from food to eater, the direction energy moves."
+    - "A consumer's order depends on the path: an osprey can be second-order or third-order."
+    - "Producers bring energy into the living web, and decomposers receive dead matter from every level."
+    - "At each feeding step, less energy is available to the next level."
+
+films:
+  - id: "chapter-2"
+    src: "/explainers/food-webs-and-energy/chapter-2.mp4"
+    captions: "/explainers/food-webs-and-energy/chapter-2.vtt"
+    poster: "/explainers/food-webs-and-energy/chapter-2-poster.jpg"
+    title: "Test the Pyramid with Real Data"
+    durationSec: 212.1
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+    takeaways:
+      - "Every step passes on less energy, but how much less varies."
+      - "At Silver Springs the three steps passed on different percentages; one-tenth is a rough classroom rule."
+      - "Energy not passed on leaves as heat or goes to decomposers, a side branch fed by every level."
+      - "An energy pyramid measures energy flow, not a count of animals."
 
 scientists: []
 
@@ -90,7 +110,8 @@ practiceQuestions:
       - "It is recycled back to the producers"
     answer: 0
     rationale: >-
-      Living things give off much of the energy in their food as thermal energy (heat) during their
+      At each feeding step, less energy is available to the next level. Living things give off much
+      of the energy in their food as thermal energy (heat) during their
       life processes. The idea that energy is recycled to producers is a common error; matter
       cycles, but energy does not. Energy is not destroyed; it changes form. If it were all stored in
       the body, much more of it would pass up to the next level.
@@ -194,7 +215,7 @@ explainLevels:
       splits a consumer’s food into what is not eaten, what is egested, what is respired as heat and
       what becomes new growth. It tracks the large share that passes through dead matter and
       decomposers. It compares transfer efficiencies across many studies. A 2026 synthesis of
-      1,563 energy estimates found an average near 6 percent, higher in the sea than on land, with
+      1,563 energy estimates from 122 studies found an average near 6 percent, higher in the sea than on land, with
       a wide spread.
 
 anecdotes:
@@ -231,92 +252,108 @@ import Support from '../../../components/Support.astro';
 import CER from '../../../components/CER.astro';
 import ScaffoldFigure from '../../../components/ScaffoldFigure.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import LessonFilm from '../../../components/LessonFilm.astro';
 
-**Every spring and summer, ospreys nest on channel markers and dead trees along the Chesapeake Bay. They plunge feet-first into the water to catch fish, and in parts of the Bay one fish they often bring home is the Atlantic menhaden.**
+The first film showed the energy packet shrinking at each step. Now put numbers on it.
 
-Menhaden are small, oily fish. They swim in large schools and filter plankton, living things, most of them tiny, that drift in the water. So what limits how many ospreys the Bay’s fish can feed? First, decide what you think now.
+Every spring and summer, ospreys nest on channel markers and dead trees along the Chesapeake Bay. They plunge feet-first to catch fish, including Atlantic menhaden in parts of the Bay. Menhaden are small, oily fish that swim in large schools and filter plankton, mostly tiny living things that drift in the water.
+
+So what limits how many ospreys the Bay's fish can feed? First, decide what you think now.
 
 <IdeaCheck items={[
   { idea: 'Energy gets recycled in an ecosystem, just like water and carbon.', answer: 'disagree', explain: 'Matter such as carbon and water is used again and again. Energy is not. It comes in as sunlight, passes from producers to consumers, and leaves as heat at every step. Most ecosystems need a steady supply of new sunlight.' },
-  { idea: 'A food chain stands on its own. If one chain changes, the others are not affected.', answer: 'disagree', explain: 'A food chain is a simple model of one path. In a real ecosystem, many chains join into a food web. Menhaden are eaten by ospreys and by larger fish, and they eat plankton, so a change in menhaden can reach many other living things.' },
+  { idea: 'A food chain stands on its own. If one chain changes, the others are not affected.', answer: 'disagree', explain: 'A food chain is a simple model of one path. In a real ecosystem, many chains join into a food web. Menhaden eat plankton and are eaten by ospreys and larger fish, so a change in menhaden can reach many living things.' },
   { idea: 'Predators like ospreys are the most important living things in a food web.', answer: 'disagree', explain: 'Predators matter, but they depend on others. Producers such as plants and phytoplankton capture the energy that every other level uses. Decomposers such as bacteria and fungi break down dead matter and return nutrients. Each role is needed.' },
 ]} />
 
 ## Explore: build an energy pyramid
 
-In this simulation you build an energy pyramid for a Bay food chain. You set the sunlight the producers capture. You also set the percent of energy passed up at each step (5 to 20) and the number of levels (3 or 4). Bars show the energy at each level. Red arrows show heat leaving. A counter shows how many ospreys the top bar could feed, using a made-up amount of energy for each osprey.
+In this simulation, you set the producers' energy, the percent passed at each step (5 to 20), and the number of levels (3 or 4). The osprey counter uses a made-up energy need, so it is a model, not a Bay animal count.
+
+**Predict.** Set the percent to 10 and use 4 levels. What fraction of the producers' energy should reach the top after three feeding steps?
+
+<details>
+<summary>Check your prediction</summary>
+
+One-tenth passes three times, so the top receives one-thousandth of the starting energy: 10 of 10,000 made-up units.
+
+</details>
 
 <EnergyPyramidSteps />
 
-**Try this.**
-1. Set the percent to 10 and use 4 levels. Predict what share of the producers’ energy reaches the top bar. Then run it.
-2. Predict how the osprey counter will change if you lower the percent to 5. Then test it.
-3. Double the sunlight. Predict whether the osprey counter doubles too. Then check.
+> **The one idea.** At each feeding step, less energy is available to the next level.
+>
+> *Scope:* the rule gives the direction of change (less), and it holds at every feeding step. It does not give one exact percentage, and it does not predict how many animals live there.
+
+Lower the percent to 5 and watch the top bar shrink much more, then return to 10.
+
+**Predict.** If you double the producers' energy but keep the percent and levels fixed, what happens to the top bar?
+
+<details>
+<summary>Check your prediction</summary>
+
+It doubles. Every level gets the same fraction of twice as much. At 10 percent the osprey counter also doubles, from 10 to 20. At other settings it can be off by one, because it rounds down to whole ospreys.
+
+</details>
 
 ## Explain: living and nonliving parts of an ecosystem
 
 <WordBank terms={['ecosystem', 'biotic factor', 'abiotic factor', 'producer', 'first-order consumer', 'second-order consumer', 'third-order consumer', 'decomposer', 'food web', 'energy pyramid']} />
 
-An **ecosystem** is all the living things in an area plus their nonliving surroundings. The Chesapeake Bay, a pond and a forest are all ecosystems.
+The first film called the Bay an **ecosystem**: all the living things in an area and their nonliving surroundings. A pond and a forest are ecosystems too.
 
-A **biotic factor** is any living or once-living part of an ecosystem. That includes organisms, their parts and their wastes:
-- A menhaden or an osprey.
-- A fallen leaf or a fish scale.
-- Osprey droppings.
-- Parasites and the germs that cause disease.
+A **biotic factor** is a living or once-living part: organisms, their parts, and their wastes. That includes a fallen leaf, a fish scale, osprey droppings, parasites, and disease-causing germs.
 
-An **abiotic factor** is a nonliving part of an ecosystem. Abiotic factors decide which kinds of organisms can live in a place, and how many. Examples:
-- Temperature.
-- How much rain falls in a year.
-- The pH of a lake or pond (how acidic or basic the water is).
-- Minerals in the soil.
-- How much light reaches different depths of the ocean.
+An **abiotic factor** is a nonliving part. Abiotic factors help decide what can live in a place and how many can live there. Besides light and temperature, they include yearly rainfall, soil minerals, and pH, which tells how acidic or basic water is. Light fades as water gets deeper, so deep down there is too little light for the plankton that make food from sunlight.
 
-Light fades as you go deeper in water, so deep down there is too little light for the plankton that make food from sunlight. A change in temperature or rainfall can also change what lives in a place.
+<LessonFigure src="/figures/food-webs-and-energy/bay-biotic-and-abiotic.webp" width={1200} height={800} alt="AI-generated illustration: a Bay scene with an osprey on a nest atop a channel marker, droppings on the post, a thermometer, rain falling and a leaf floating. Below the surface the water gets darker in steps, with many tiny green dots of food-making plankton near the top and almost none deep down. Callouts sort the parts into biotic and abiotic." caption="Living and once-living things are biotic factors; rain, temperature, and light are abiotic factors that shape where organisms can live." />
 
-<LessonFigure src="/figures/food-webs-and-energy/bay-biotic-and-abiotic.webp" width={1200} height={800} alt="AI-generated illustration: a Bay scene with an osprey on a nest atop a channel marker, droppings on the post, a thermometer, rain falling and a leaf floating. Below the surface the water gets darker in steps, with many tiny green dots of food-making plankton near the top and almost none deep down. Callouts sort the parts into biotic and abiotic." caption="Living and once-living things, even droppings and a fallen leaf, are biotic factors. Rain, temperature and light are abiotic, and light fades as the water gets deeper." />
-
-<Support min={2}>**Key idea:** Living and once-living things are biotic factors. Nonliving things like light are abiotic factors. Both decide what lives in a place.</Support>
+<Support min={2}>**Key idea:** Living and once-living things are biotic factors. Nonliving things like light are abiotic factors. Both help determine what lives in a place.</Support>
 
 ## Explain: food chains and food webs
 
-Nearly every food web you will meet starts with a **producer**, an organism that makes its own food. Most producers capture energy from sunlight and store it in food. In the open water of the Bay, the main producers are phytoplankton, tiny drifting algae. You saw how they capture energy in [Photosynthesis Feeds the World](/lessons/photosynthesis-feeds-the-world/).
+Nearly every food web starts with a **producer**, an organism that makes its own food. Most producers capture sunlight energy and store it in food. In the open Bay, the main producers are phytoplankton, tiny drifting algae; [Photosynthesis Feeds the World](/lessons/photosynthesis-feeds-the-world/) shows how they capture that energy.
 
-Consumers get energy by eating other organisms:
+A **food chain** is a straight-line model of one energy path. As the first film showed, its arrows point from food to eater, the way the energy moves:
+
+> sunlight → phytoplankton → zooplankton → menhaden → osprey
+
+Consumers are named by their place on one path:
 - A **first-order consumer** eats producers. Many zooplankton, tiny drifting animals, eat phytoplankton.
 - A **second-order consumer** eats first-order consumers.
 - A **third-order consumer** eats second-order consumers.
 
-A **decomposer**, such as many bacteria and fungi, breaks down dead matter and wastes from every level. You will study them in [Producers, Consumers and Decomposers](/lessons/producers-consumers-decomposers/).
+The first film's **decomposers**, such as many bacteria and fungi, break down dead matter and wastes from every level. [Producers, Consumers and Decomposers](/lessons/producers-consumers-decomposers/) follows that role farther.
 
-A **food chain** is a straight-line model of one path that energy takes. The arrows point from the food to the eater. They show which way the energy moves:
+A **food web** links many chains, like the two links the first film added. So a disease that killed many menhaden could change ospreys, larger fish, and plankton.
 
-> sunlight → phytoplankton → zooplankton → menhaden → osprey
+**Predict.** Now try the larger fish. What order consumer is it on the path phytoplankton → zooplankton → menhaden → larger fish? On phytoplankton → menhaden → larger fish?
 
-In this chain, the osprey is a third-order consumer. But menhaden also eat phytoplankton directly. In the chain phytoplankton → menhaden → osprey, the osprey is a second-order consumer.
+<details>
+<summary>Check your prediction</summary>
 
-A **food web** shows many food chains linked together. Larger fish eat menhaden too. If a disease killed many menhaden, the ospreys, the larger fish and the plankton could all change. A web shows those links.
+The larger fish is third-order on the longer path and second-order on the shorter path. Its order depends on the path through the web, not only on its species.
 
-<ScaffoldFigure src="/figures/food-webs-and-energy/bay-food-web.webp" width={1200} height={800} keyItems={["phytoplankton", "zooplankton", "menhaden", "osprey", "larger fish", "decomposers"]} given={[0, 3]} alt="AI-generated illustration: a side view of Bay water with sunlight entering at the top left. Arrows lead from tiny green drifting algae to tiny drifting animals, from both to a school of small fish, and from the small fish to a diving osprey and to a larger fish. Dashed arrows lead from every living thing down to tiny decomposers on the bottom. Six numbered circles mark living things for the student to name." caption="In a food web, every arrow points from the food to the eater, and decomposers take in dead matter from every level. Name the six numbered parts." />
+</details>
+
+<ScaffoldFigure src="/figures/food-webs-and-energy/bay-food-web.webp" width={1200} height={800} keyItems={["phytoplankton", "zooplankton", "menhaden", "osprey", "larger fish", "decomposers"]} given={[0, 3]} alt="AI-generated illustration: a side view of Bay water with sunlight entering at the top left. Arrows lead from tiny green drifting algae to tiny drifting animals, from both to a school of small fish, and from the small fish to a diving osprey and to a larger fish. Dashed arrows lead from every living thing down to tiny decomposers on the bottom. Six numbered circles mark living things for the student to name." caption="Food-web arrows point from food to eater, and decomposers receive dead matter from every level. Name the six numbered parts." />
 
 <Support min={2}>**Key idea:** Food web arrows point from food to eater, and an animal can be a second-order or third-order consumer depending on the path.</Support>
 
 ## Explain: why each level has less energy
 
-Stack the energy of each level as a block, with producers on the bottom. Each block is smaller than the one below. This stack is an **energy pyramid**, a model of how much energy is available at each level.
-
-Why does each level have less? Most of the energy in the plankton a menhaden eats does not become new menhaden.
-- Much of it is given off as thermal energy (heat) during the fish’s life processes. These include swimming and breaking down sugar in respiration. You met respiration in [Releasing Energy from Food](/lessons/releasing-energy-from-food/).
+An **energy pyramid** stacks the energy available at each feeding level, with producers on the bottom. The first film showed energy splitting off at each step. Follow one menhaden to see where it goes: most energy in the plankton it eats does not become new menhaden.
+- Much of it is given off as thermal energy (heat) during life processes such as swimming and breaking down sugar in respiration. You met respiration in [Releasing Energy from Food](/lessons/releasing-energy-from-food/).
 - Some of the food passes through the fish without being digested. Decomposers can use that energy.
 - Only the rest is built into the fish’s body, where an osprey can get it.
 
-Even then, ospreys do not catch every menhaden. Many die without being eaten, and their energy goes to decomposers instead.
+Ospreys do not catch every menhaden, and many die uneaten, so their stored energy goes to decomposers instead.
 
-No energy change is perfect. Energy is not used up. It changes form, and much becomes heat that spreads into the water and air. No living thing can use that heat to make food.
+No energy change is perfect. Energy is not used up; it changes form, and much becomes heat that spreads into water and air. Producers cannot turn that spread-out heat back into food.
 
-<LessonFigure src="/figures/food-webs-and-energy/where-a-menhadens-energy-goes.webp" width={1200} height={800} alt="AI-generated illustration: a menhaden takes in energy from plankton. A wide wavy arrow shows much of that energy leaving the fish as heat into the water and air, a thin dashed arrow carries undigested food down to decomposers, and a narrow arrow carries the energy built into the fish's body to an osprey." caption="Most of the energy a menhaden takes in does not become new menhaden. Much leaves as heat, some passes through to decomposers, and only the rest can reach an osprey." />
+<LessonFigure src="/figures/food-webs-and-energy/where-a-menhadens-energy-goes.webp" width={1200} height={800} alt="AI-generated illustration: a menhaden takes in energy from plankton. A wide wavy arrow shows much of that energy leaving the fish as heat into the water and air, a thin dashed arrow carries undigested food down to decomposers, and a narrow arrow carries the energy built into the fish's body to an osprey." caption="Most energy a menhaden takes in does not become new menhaden. Only energy stored in its body can continue to an osprey; the rest leaves as heat or goes to decomposers." />
 
-As a rough rule, about one-tenth of the energy in one level is available to the next. Real measurements vary from place to place, and many are lower. A 2026 study that pooled about 2,000 measurements found an average near 6 percent: close to one-tenth in the sea, but much lower on land. Here is a model with made-up numbers and exactly one-tenth per step:
+The simulation used a rough rule: about one-tenth of one level's energy is available to the next. Here is the made-up model you tested:
 
 | Level | Energy (units per square meter per year) |
 |---|---|
@@ -325,16 +362,21 @@ As a rough rule, about one-tenth of the energy in one level is available to the 
 | Second-order consumers | 100 |
 | Third-order consumers | 10 |
 
-Only 10 of the 10,000 units reach the top. That helps explain why a place can feed fewer top predators than small fish. But an energy pyramid is not a head count. One large tree can feed many insects. Energy limits top predators but does not give an exact number.
+That one-thousandth at the top helps explain why a place can feed fewer top predators than small fish. But energy is not a head count: one large tree can feed many insects, so energy limits top predators without giving an exact number.
 
-
-In most ecosystems, energy flows one way: in as sunlight, out as heat. Matter is different. Decomposers return carbon and nutrients that producers use again, as you will see in [The Carbon and Water Cycles](/lessons/carbon-and-water-cycles/).
+In most ecosystems, energy flows one way, in as sunlight and out as heat. Matter is different: decomposers return carbon and nutrients that producers use again, as [The Carbon and Water Cycles](/lessons/carbon-and-water-cycles/) shows.
 
 <Support min={2}>**Key idea:** At each step much of the energy is given off as heat, so only roughly one-tenth is available to the next level.</Support>
 
+One-tenth is a rough classroom rule, not a law. Real measurements vary from place to place, and many are lower. A 2026 study pooled about 1,600 energy measurements and found an average near 6 percent: close to one-tenth in the sea but much lower on land. Those numbers compare places. Inside one ecosystem, does every step pass on the same fraction? The second film tests one spring.
+
+<LessonFilm film={frontmatter.films[0]} />
+
 ## Elaborate: real energy numbers from a Florida spring
 
-In the 1950s, the ecologist Howard T. Odum studied the clear water at Silver Springs, Florida. He estimated the energy flowing into each level for each square meter of the spring in a year. His unit was the kilocalorie. One kilocalorie is one Calorie on a food label, about 4,184 joules.
+Check the second film's uneven Silver Springs steps yourself, and read what each row measured.
+
+In the 1950s, the ecologist Howard T. Odum studied the clear water at Silver Springs, Florida. His unit was the kilocalorie. One kilocalorie is one Calorie on a food label, about 4,184 joules.
 
 | Level at Silver Springs | Energy (kilocalories per square meter per year) | Percent of the level below |
 |---|---|---|
@@ -344,7 +386,7 @@ In the 1950s, the ecologist Howard T. Odum studied the clear water at Silver Spr
 | Third-order consumers (top meat eaters) | 21 | 5.5 |
 | Decomposers (bacteria and others) | 5,060 | a side branch fed by all levels |
 
-Source: Howard T. Odum, Ecological Monographs, 1957, Figure 7, yearly estimates for the upper Silver Springs run in Florida. Producers: all the energy captured from sunlight. The plants and algae gave off 11,977 of it as heat in their own respiration, so only 8,833 was built into new plant material. Consumers: energy taken in, which Odum estimated from each level’s respiration plus growth. Odum said these flows were estimated very roughly, to show their size only. We calculated the percents, so small differences between them mean little.
+Source: Howard T. Odum, *Ecological Monographs*, 1957, Figure 7, yearly estimates for the upper Silver Springs run in Florida. The producer row is all energy captured from sunlight. Plants and algae gave off 11,977 as heat in their own respiration, so only 8,833 became new plant material. Consumer rows are energy taken in, which Odum estimated from each level's respiration plus growth. He said the flows were very rough estimates, only to show their size. We calculated the percentages from his numbers, so small differences mean little.
 
 1. Describe the trend in energy from producers to third-order consumers.
 2. Which step was closest to 10 percent? Which was farthest from 10 percent, counting in percentage points?
@@ -361,6 +403,15 @@ Source: Howard T. Odum, Ecological Monographs, 1957, Figure 7, yearly estimates 
 ### Design problem
 
 Mealworms are beetle larvae that eat oat bran. Plan an investigation to compare how much food mealworms eat with how much mass they gain.
+
+**Predict.** Why does the plan need containers of bran with no mealworms?
+
+<details>
+<summary>Check your prediction</summary>
+
+Bran can lose mass by drying. Containers without mealworms measure that loss, so drying is not counted as food eaten.
+
+</details>
 
 <details>
 <summary>One way to do it</summary>
@@ -379,6 +430,6 @@ If the mealworms gain much less mass than the bran they ate, most of the food di
 
 ## Evaluate: check your thinking
 
-The energy in an osprey began as sunlight captured by phytoplankton. At each step, from plankton to menhaden to osprey, much of the energy was given off as heat, so only roughly one-tenth passed on. Less energy at the top means a place can feed fewer ospreys than the small fish they eat.
+The energy in an osprey began as sunlight captured by phytoplankton. Every step passes on less energy, but how much less varies. Repeated steps leave much less near the top, which helps explain why the Bay can feed fewer ospreys than small fish.
 
 **Science practices you used:** testing predictions with a model, finding percents in a real data table, making a claim from evidence, and planning a fair test.

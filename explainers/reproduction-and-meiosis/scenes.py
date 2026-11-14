@@ -1,327 +1,456 @@
-"""Reproduction and meiosis: meiosis makes each mix different  (grade 7 Life Science explainer)
+"""Copies, Halves, and Pairs.
 
-COLOR MAP (one color per concept, whole film)
-  BLUE   = chromosomes (a bar = one chromosome; two joined bars = one copied chromosome)
-  GREEN  = the strawberry plant and asexual copying (same as the parent)
-  GOLD   = sex cells (egg, sperm) and the fertilized egg outline
-  YELLOW = vocabulary words and allele letters
-  RED    = the question marks and "different" signal
-  GREY   = cell and body outlines, neutral structure, soil
-  TEXT   = numbers and plain labels
+COLOR MAP
+  BLUE   first member of every chromosome pair
+  GOLD   second member of every chromosome pair
+  GREEN  sex cells and the strawberry runner
+  WHITE  fertilized cell and restored pairs
+  RED    the doubling problem / the incorrect cutting idea
+  GREY   soil, cell outlines, and neutral structure
 """
-import numpy as np
-from bp_style import *  # noqa: F401,F403
-
-BW = 0.2
-TALL = 1.1
-SHORT = 0.75
+from bp_parts import *  # noqa: F401,F403
 
 
-def chrom(h, copied=False, bw=BW, color=BLUE):
-    if not copied:
-        return VGroup(RoundedRectangle(corner_radius=bw / 2, width=bw, height=h, stroke_width=0, fill_color=color, fill_opacity=1))
-    a = RoundedRectangle(corner_radius=bw / 2, width=bw, height=h, stroke_width=0, fill_color=color, fill_opacity=1)
-    b = a.copy()
-    a.shift(LEFT * (bw / 2 + 0.01))
-    b.shift(RIGHT * (bw / 2 + 0.01))
-    j = Rectangle(width=2 * bw + 0.02, height=0.07, stroke_width=0, fill_color=TEXT, fill_opacity=1)
-    return VGroup(a, b, j)
+LONG, SHORT, BAR_W = 2.05, 1.35, 0.32
+QUESTION = "Keep every pair together, or carry only half?"
+OPTIONS = ["pairs stay together", "one from each pair"]
 
 
-def cell(w, h, x=0, y=0, color=GREY):
-    return Ellipse(width=w, height=h, stroke_color=color, stroke_width=4, fill_color=color, fill_opacity=0.08).move_to([x, y, 0])
+def cell_outline(center=ORIGIN, width=5.2, height=4.5, color=GREY, fill=0.20):
+    return Ellipse(width=width, height=height, color=color, stroke_width=5,
+                   fill_color=color, fill_opacity=fill).move_to(center)
 
 
-def put(h, x, y, copied=False, letter=None, bw=BW):
-    """a chromosome at (x, y); returns (bar, letter-or-None)."""
-    bar = chrom(h, copied, bw).move_to([x, y, 0])
-    lab = T(letter, 28, YELLOW, weight=BOLD).next_to(bar, UP, buff=0.1) if letter else None
-    return bar, lab
+def chromosome(height, color, center=ORIGIN, width=BAR_W):
+    return RoundedRectangle(corner_radius=width / 2, width=width, height=height,
+                            stroke_width=0, fill_color=color, fill_opacity=1).move_to(center)
 
 
-def word(text, size=30):
-    return T(text, size, YELLOW, weight=BOLD)
+def pair_bars(center=ORIGIN, scale=1.0, gap=0.62):
+    """One long and one short chromosome pair, always at the same relative positions."""
+    x, y, _ = center
+    bars = VGroup(
+        chromosome(LONG * scale, BLUE, [x - 1.15 * gap, y + 0.22, 0], BAR_W * scale),
+        chromosome(LONG * scale, GOLD, [x - 0.15 * gap, y + 0.22, 0], BAR_W * scale),
+        chromosome(SHORT * scale, BLUE, [x + 0.75 * gap, y - 0.13, 0], BAR_W * scale),
+        chromosome(SHORT * scale, GOLD, [x + 1.75 * gap, y - 0.13, 0], BAR_W * scale),
+    )
+    return bars
 
 
-def block(label, w, h, x, y, color, size=26):
-    r = RoundedRectangle(corner_radius=0.2, width=w, height=h, stroke_color=color, stroke_width=4, fill_color=color, fill_opacity=0.18).move_to([x, y, 0])
-    t = T(label, size, TEXT, line_spacing=0.8).move_to(r)
-    return VGroup(r, t)
+def body_cell(center=ORIGIN, width=6.0, height=5.0, scale=1.0):
+    outline = cell_outline(center, width, height)
+    bars = pair_bars(center, scale=scale, gap=0.8 * scale)
+    return VGroup(outline, bars)
 
 
-def arrow(a, b, color=GREY, w=5):
-    return Arrow(a, b, buff=0.08, color=color, stroke_width=w, tip_length=0.22)
-
-
-class S00Title(TitleCard):
-    LESSON = "Reproduction and meiosis"
-    TITLE = "Meiosis makes each mix different"
-
-
-# ----------------------------------------------------------------------------------------------
-class S01Question(SpokenScene):
-    def construct(self):
-        sy = -2.05
-        soil = Line([-6.3, sy, 0], [6.3, sy, 0], color=GREY, stroke_width=4)
-        soil_l = T("soil", 24, GREY).move_to([-5.6, sy - 0.4, 0])
-        par = block("parent\nplant", 2.4, 2.6, -4.2, -0.5, GREEN, 28)
-        self.at("strawberry plant")
-        self.play(Create(soil), FadeIn(soil_l), FadeIn(par, scale=0.9), run_time=1.0)
-        stem = Line([-3.0, -1.7, 0], [3.0, -1.7, 0], color=GREEN, stroke_width=7)
-        stem_l = T("thin stem", 26, GREEN).move_to([0, -1.25, 0])
-        self.at("thin stem")
-        self.play(Create(stem), FadeIn(stem_l), run_time=1.3)
-        newp = block("new\nplant", 2.4, 2.6, 4.2, -0.5, GREEN, 28)
-        roots = VGroup(*[Line([4.2 + dx, -1.85, 0], [4.2 + dx * 1.5, -2.85, 0], color=GREEN, stroke_width=4) for dx in (-0.5, 0, 0.5)])
-        roots_l = T("roots", 24, GREEN).move_to([5.7, -2.6, 0])
-        self.at("grow roots")
-        self.play(FadeIn(roots, lag_ratio=0.3), FadeIn(roots_l), run_time=0.9)
-        self.play(FadeIn(newp, scale=0.8), run_time=0.7)
-        same = T("same genetic information", 36, GREEN, weight=BOLD).move_to([0, 2.5, 0])
-        self.at("same genetic information")
-        self.play(FadeIn(same, shift=DOWN * 0.15), run_time=0.7)
-        self.play(Indicate(VGroup(par, newp), color=GREEN, scale_factor=1.05), run_time=0.9)
-        self.at("brothers and sisters")
-        self.play(FadeOut(VGroup(soil, soil_l, par, stem, stem_l, newp, roots, roots_l, same)), run_time=0.7)
-        mom = block("mother", 2.4, 1.1, -2.4, 2.45, GREY, 30)
-        dad = block("father", 2.4, 1.1, 2.4, 2.45, GREY, 30)
-        sis = block("sister", 2.6, 1.3, -4.3, 0.2, GREY, 30)
-        bro = block("brother", 2.6, 1.3, 4.3, 0.2, GREY, 30)
-        a1 = arrow([-2.8, 1.9, 0], [-4.0, 0.9, 0])
-        a2 = arrow([-1.9, 1.9, 0], [3.6, 0.9, 0])
-        a3 = arrow([1.9, 1.9, 0], [-3.6, 0.9, 0])
-        a4 = arrow([2.8, 1.9, 0], [4.0, 0.9, 0])
-        self.play(FadeIn(mom), FadeIn(dad), run_time=0.5)
-        self.play(GrowArrow(a3), GrowArrow(a4), GrowArrow(a1), GrowArrow(a2), FadeIn(sis), FadeIn(bro), run_time=0.9)
-        self.at("look different")
-        ne = T("not exact copies", 34, RED, weight=BOLD).move_to([0, 0.2, 0])
-        self.play(FadeIn(ne, scale=0.8), run_time=0.7)
-        q = T("Why don't you look exactly like\nyour parents or your brothers and sisters?", 36, YELLOW, line_spacing=0.9).move_to([0, -2.4, 0])
-        self.at("why don't you look")
-        self.play(FadeIn(q, shift=UP * 0.15), run_time=1.0)
-        self.finish()
-
-
-# ----------------------------------------------------------------------------------------------
-class S02TwoWays(SpokenScene):
-    def construct(self):
-        div = Line([0, 3.2, 0], [0, -3.4, 0], color=GREY, stroke_width=2)
-        h1 = word("asexual reproduction", 32).move_to([-3.3, 3.0, 0])
-        self.at("a runner is")
-        self.play(Create(div), FadeIn(h1), run_time=0.8)
-        p = block("1 parent", 2.6, 1.3, -3.3, 1.2, GREEN, 30)
-        self.at("one parent")
-        self.play(FadeIn(p, scale=0.9), run_time=0.6)
-        o = block("offspring", 2.6, 1.3, -3.3, -1.4, GREEN, 30)
-        a = arrow([-3.3, 0.5, 0], [-3.3, -0.7, 0], GREEN)
-        self.at("the offspring")
-        self.play(GrowArrow(a), FadeIn(o), run_time=0.8)
-        same = T("genetically the same", 30, GREEN).move_to([-3.3, -2.5, 0])
-        self.at("genetically the same")
-        self.play(FadeIn(same), Indicate(VGroup(p, o), color=GREEN, scale_factor=1.05), run_time=0.9)
-        h2 = word("sexual reproduction", 32).move_to([3.3, 3.0, 0])
-        self.at("sexual reproduction is")
-        self.play(FadeIn(h2, shift=DOWN * 0.1), run_time=0.7)
-        s1 = cell(2.2, 1.7, 1.9, 1.2, GOLD)
-        s2 = cell(2.2, 1.7, 4.7, 1.2, GOLD)
-        l1 = T("sex cell", 28, GOLD).move_to(s1)
-        l2 = T("sex cell", 28, GOLD).move_to(s2)
-        self.at("two sex cells")
-        self.play(FadeIn(VGroup(s1, l1), scale=0.8), FadeIn(VGroup(s2, l2), scale=0.8), run_time=0.8)
-        off = cell(2.8, 1.7, 3.3, -1.4, GOLD)
-        offl = T("offspring", 28, TEXT).move_to(off)
-        a1 = arrow([2.1, 0.3, 0], [2.9, -0.55, 0], GOLD)
-        a2 = arrow([4.5, 0.3, 0], [3.7, -0.55, 0], GOLD)
-        self.at("join")
-        self.play(GrowArrow(a1), GrowArrow(a2), run_time=0.5)
-        self.play(FadeIn(VGroup(off, offl), scale=0.8), run_time=0.7)
-        self.at("one from each")
-        self.play(Indicate(VGroup(s1, l1), color=GOLD, scale_factor=1.1), Indicate(VGroup(s2, l2), color=GOLD, scale_factor=1.1), run_time=1.0)
-        nc = T("resemble parents,\nnot copies", 28, RED, line_spacing=0.85).move_to([3.3, -2.8, 0])
-        self.at("not copies")
-        self.play(FadeIn(nc), run_time=0.7)
-        self.finish()
-
-
-# ----------------------------------------------------------------------------------------------
-class S03Pairs(SpokenScene):
-    def construct(self):
-        cx, cy = -2.3, -0.2
-        cl = cell(8.0, 5.4, cx, cy)
-        title = T("model body cell", 30, GREY).move_to([cx, 3.0, 0])
-        self.at("in a body cell")
-        self.play(FadeIn(cl), FadeIn(title), run_time=0.8)
-        xs = [cx - 1.7, cx - 0.3, cx + 1.3, cx + 2.3]
-        hs = [TALL * 1.7, TALL * 1.7, SHORT * 1.7, SHORT * 1.7]
-        by = cy + 0.35
-        bars = [chrom(h, bw=0.34).move_to([x, by, 0]) for x, h in zip(xs, hs)]
-        self.at("chromosomes come in pairs")
-        self.play(LaggedStart(*[FadeIn(b, scale=0.6) for b in bars], lag_ratio=0.2), run_time=1.2)
-        br = Brace(VGroup(bars[0], bars[1]), direction=DOWN, color=YELLOW, buff=0.15)
-        brl = word("chromosome pair", 26).next_to(br, DOWN, buff=0.12)
-        self.at("a chromosome pair")
-        self.play(GrowFromCenter(br), FadeIn(brl), run_time=0.8)
-        top = by + TALL * 1.7 / 2
-        mt = T("from\nmother", 24, GREY, line_spacing=0.8).move_to([xs[0], top + 0.6, 0])
-        ft = T("from\nfather", 24, GREY, line_spacing=0.8).move_to([xs[1], top + 0.6, 0])
-        am = arrow([xs[0], top + 0.3, 0], [xs[0], top + 0.05, 0], GREY, 3)
-        af = arrow([xs[1], top + 0.3, 0], [xs[1], top + 0.05, 0], GREY, 3)
-        self.at("from your mother")
-        self.play(FadeIn(mt), GrowArrow(am), run_time=0.6)
-        self.at("your father")
-        self.play(FadeIn(ft), GrowArrow(af), run_time=0.6)
-        self.at("typical human body cell")
-        hum = VGroup(T("human body cell", 28, GREY), M("46", 64, TEXT, weight=BOLD), T("chromosomes", 28, TEXT), T("in 23 pairs", 28, TEXT)).arrange(DOWN, buff=0.12).move_to([4.7, 1.8, 0])
-        self.play(FadeIn(hum, shift=LEFT * 0.2), run_time=0.9)
-        self.at("each chromosome is copied")
-        copies = [chrom(h, copied=True, bw=0.34).move_to([x, by, 0]) for x, h in zip(xs, hs)]
-        mod = VGroup(T("model cell", 28, GREY), M("4", 64, TEXT, weight=BOLD), T("chromosomes", 28, TEXT)).arrange(DOWN, buff=0.12).move_to([4.7, -0.7, 0])
-        self.play(*[ReplacementTransform(b, c) for b, c in zip(bars, copies)], FadeOut(VGroup(br, brl, mt, ft, am, af)), FadeIn(mod), run_time=1.8)
-        self.at("still one chromosome")
-        one = T("1 chromosome:\n2 joined copies", 26, YELLOW, line_spacing=0.85).move_to([4.7, -2.9, 0])
-        self.play(Indicate(copies[0], color=YELLOW, scale_factor=1.15), FadeIn(one), run_time=1.2)
-        self.finish()
-
-
-# ----------------------------------------------------------------------------------------------
-class S04Half(SpokenScene):
-    def construct(self):
-        px, sx, y = -3.3, 3.7, 0.5
-        pc = cell(5.6, 4.2, px, y)
-        bars = []
-        for x, h in zip([px - 1.5, px - 0.6, px + 0.7, px + 1.5], [TALL, TALL, SHORT, SHORT]):
-            bars.append(chrom(h * 1.7, copied=True, bw=0.26).move_to([x, y, 0]))
-        pl = T("parent cell", 28, GREY).move_to([px, y + 2.45, 0])
-        c4 = VGroup(M("4", 48, TEXT, weight=BOLD), T("chromosomes", 28, TEXT)).arrange(RIGHT, buff=0.2).move_to([px, y - 2.65, 0])
-        self.at("meiosis is the cell")
-        self.play(FadeIn(pc), *[FadeIn(b) for b in bars], FadeIn(pl), FadeIn(c4), run_time=0.9)
-        m = word("meiosis", 36).move_to([0.75, y + 0.65, 0])
-        ar = arrow([-0.2, y, 0], [1.7, y, 0], YELLOW)
-        sc = cell(3.4, 3.1, sx, y, GOLD)
-        scl = T("sex cell", 28, GOLD).move_to([sx, y + 2.0, 0])
-        self.play(FadeIn(m, shift=DOWN * 0.1), GrowArrow(ar), run_time=0.8)
-        self.at("makes sex cells")
-        self.play(FadeIn(sc), FadeIn(scl), run_time=0.7)
-        self.at("one chromosome from each pair")
-        s1 = chrom(TALL * 1.7, copied=True, bw=0.26).move_to([sx - 0.6, y, 0])
-        s2 = chrom(SHORT * 1.7, copied=True, bw=0.26).move_to([sx + 0.6, y, 0])
-        self.play(FadeIn(s1, scale=0.8), FadeIn(s2, scale=0.8), Indicate(bars[0], color=YELLOW, scale_factor=1.2),
-                  Indicate(bars[3], color=YELLOW, scale_factor=1.2), run_time=1.2)
-        self.at("half of the parent's")
-        c2 = VGroup(M("2", 48, TEXT, weight=BOLD), T("chromosomes: half", 28, TEXT)).arrange(RIGHT, buff=0.2).move_to([sx, y - 2.65, 0])
-        self.play(FadeIn(c2, shift=UP * 0.1), Indicate(c2, color=YELLOW, scale_factor=1.08), run_time=1.0)
-        self.at("a human egg or sperm")
-        hum = VGroup(T("human egg or sperm, normally:", 30, TEXT), M("23", 48, GOLD, weight=BOLD), T("chromosomes", 28, TEXT)).arrange(RIGHT, buff=0.25).move_to([0, -3.45, 0])
-        self.play(FadeIn(hum, shift=UP * 0.1), run_time=0.9)
-        self.finish()
-
-
-# ----------------------------------------------------------------------------------------------
-class S05Sorting(SpokenScene):
-    def construct(self):
-        px = -3.6
-        pc = cell(5.4, 4.0, px, 0.9)
-        pl = T("parent cell", 28, GREY).move_to([px, 3.1, 0])
-        xs = [px - 1.5, px - 0.8, px + 0.8, px + 1.5]
-        hs = [TALL * 1.5, TALL * 1.5, SHORT * 1.5, SHORT * 1.5]
-        pbars = [chrom(h, copied=True, bw=0.2).move_to([x, 0.8, 0]) for x, h in zip(xs, hs)]
-        self.at("each pair splits up")
-        self.play(FadeIn(pc), FadeIn(pl), *[FadeIn(b) for b in pbars], run_time=0.8)
-        self.play(*[Indicate(pbars[i], color=YELLOW, scale_factor=1.15) for i in (0, 1)], run_time=0.8)
-        self.play(*[Indicate(pbars[i], color=YELLOW, scale_factor=1.15) for i in (2, 3)], run_time=0.8)
-        sA = cell(3.2, 3.0, 2.2, 1.65, GOLD)
-        sB = cell(3.2, 3.0, 2.2, -1.65, GOLD)
-        self.at("a mix chosen by chance")
-        a1 = arrow([-0.8, 1.2, 0], [0.5, 1.7, 0], GOLD)
-        a2 = arrow([-0.8, 0.4, 0], [0.5, -1.3, 0], GOLD)
-        self.play(GrowArrow(a1), GrowArrow(a2), FadeIn(sA), FadeIn(sB), run_time=0.9)
-        a_t = chrom(TALL * 1.5, copied=True, bw=0.2).move_to([1.75, 1.55, 0])
-        a_s = chrom(SHORT * 1.5, copied=True, bw=0.2).move_to([2.65, 1.55, 0])
-        b_t = chrom(TALL * 1.5, copied=True, bw=0.2).move_to([1.75, -1.75, 0])
-        b_s = chrom(SHORT * 1.5, copied=True, bw=0.2).move_to([2.65, -1.75, 0])
-        self.play(*[FadeIn(m, scale=0.7) for m in (a_t, a_s, b_t, b_s)], run_time=0.7)
-        defn = T("allele = one version\nof a gene", 30, YELLOW, line_spacing=0.85).move_to([px, -2.1, 0])
-        self.at("an allele is one version")
-        self.play(FadeIn(defn), run_time=0.7)
-        self.at("big b and little b")
-        LB = T("B", 30, YELLOW, weight=BOLD).next_to(pbars[0], UP, buff=0.1)
-        Lb = T("b", 30, YELLOW, weight=BOLD).next_to(pbars[1], UP, buff=0.1)
-        sLB = T("B", 30, YELLOW, weight=BOLD).next_to(a_t, UP, buff=0.1)
-        sLb = T("b", 30, YELLOW, weight=BOLD).next_to(b_t, UP, buff=0.1)
-        self.play(FadeIn(LB, scale=1.4), FadeIn(Lb, scale=1.4), run_time=0.7)
-        self.at("chance of carrying")
-        p1 = VGroup(M("50%", 44, TEXT, weight=BOLD), T("chance of B", 26, TEXT)).arrange(DOWN, buff=0.08).move_to([5.5, 1.65, 0])
-        self.play(FadeIn(sLB, scale=1.4), FadeIn(p1, shift=LEFT * 0.2), run_time=0.9)
-        self.at("same chance")
-        p2 = VGroup(M("50%", 44, TEXT, weight=BOLD), T("chance of b", 26, TEXT)).arrange(DOWN, buff=0.08).move_to([5.5, -1.65, 0])
-        self.play(FadeIn(sLb, scale=1.4), FadeIn(p2, shift=LEFT * 0.2), run_time=0.9)
-        self.finish()
-
-
-# ----------------------------------------------------------------------------------------------
-def mini(x, y, letters, w=3.2, h=2.9, color=GREY):
-    """a cell with two pairs; letters are the two labels over the tall pair."""
-    c = cell(w, h, x, y, color)
-    g = VGroup(c)
-    for dx, hh, lt in [(-0.95, TALL * 1.2, letters[0]), (-0.4, TALL * 1.2, letters[1]), (0.4, SHORT * 1.2, None), (0.95, SHORT * 1.2, None)]:
-        b, l = put(hh, x + dx, y - 0.2, False, lt)
-        g.add(b)
-        if l is not None:
-            g.add(l)
+def half_cell(center, colors=(BLUE, GOLD), label=None, width=3.35, height=3.25):
+    x, y, _ = center
+    outline = cell_outline(center, width, height, GREEN, 0.20)
+    bars = VGroup(
+        chromosome(LONG * 0.78, colors[0], [x - 0.45, y + 0.08, 0], BAR_W * 0.82),
+        chromosome(SHORT * 0.78, colors[1], [x + 0.45, y - 0.08, 0], BAR_W * 0.82),
+    )
+    g = VGroup(outline, bars)
+    if label:
+        lab = T(label, 28, GREEN).next_to(outline, UP, buff=0.18)
+        g.add(lab)
     return g
 
 
-class S06Answer(SpokenScene):
+def fertilized_cell(center=ORIGIN, width=5.0, height=4.2):
+    return VGroup(cell_outline(center, width, height, TEXT, 0.20), pair_bars(center, scale=0.88, gap=0.72))
+
+
+def plant(x, y=-0.55, scale=1.0, changed=False):
+    """The carried strawberry plant: leaves, crown, roots, and optional rare spot."""
+    stem = Line([x, y - 0.5 * scale, 0], [x, y + 0.55 * scale, 0], color=GREEN,
+                stroke_width=10 * scale)
+    leaves = VGroup()
+    for dx, dy, ang in [(-0.62, 0.40, -0.45), (0.62, 0.40, 0.45),
+                        (-0.48, 0.85, -0.25), (0.48, 0.85, 0.25), (0, 1.05, 0)]:
+        leaf = Ellipse(width=0.95 * scale, height=0.45 * scale, color=GREEN,
+                       fill_color=GREEN, fill_opacity=0.85, stroke_width=2)
+        leaf.rotate(ang).move_to([x + dx * scale, y + dy * scale, 0])
+        leaves.add(leaf)
+    crown = Dot([x, y - 0.42 * scale, 0], radius=0.18 * scale, color=GREEN)
+    roots = VGroup(*[
+        Line([x, y - 0.48 * scale, 0], [x + dx * scale, y - 1.08 * scale, 0],
+             color=GOLD, stroke_width=4) for dx in (-0.58, 0, 0.58)
+    ])
+    g = VGroup(stem, leaves, crown, roots)
+    g.leaves = leaves
+    if changed:
+        g.add(Dot(leaves[3].get_center(), radius=0.09 * scale, color=RED))
+    return g
+
+
+def garden(show_runner=True, rooted=True, question=False, changed=False):
+    """The one garden world, rebuilt identically in s00, s01, s08, and s09."""
+    ground = Rectangle(width=12.8, height=2.15, stroke_width=0, fill_color=GOLD,
+                       fill_opacity=0.18).move_to([0, -2.77, 0])
+    soil = Line([-6.4, -1.72, 0], [6.4, -1.72, 0], color=GOLD, stroke_width=7)
+    parent = plant(-4.25, scale=1.2)
+    child = plant(1.2, scale=1.2, changed=changed)
+    child.set_opacity(1 if rooted else 0)
+    runner = CubicBezier([-4.0, -1.15, 0], [-2.4, -0.72, 0], [-0.2, -1.52, 0], [1.0, -1.12, 0])
+    runner.set_stroke(GREEN, width=10)
+    if not show_runner:
+        runner.set_opacity(0)
+    sky = VGroup(*[Dot([x, 2.6 + 0.18 * np.sin(x), 0], radius=0.055, color=GREY).set_opacity(0.4)
+                   for x in np.linspace(-6, 6, 18)])
+    g = VGroup(ground, sky, soil, parent, runner, child)
+    g.parent, g.runner, g.child = parent, runner, child
+    if question:
+        q = fit_text("Copy or different?", max_w=5.0, size=44, color=TEXT).move_to([3.7, 2.25, 0])
+        g.add(q)
+        g.question = q
+    return g
+
+
+def sway(mob, amp=0.055, speed=1.4, phase=0.0):
+    """Gentle continuous motion around a fixed base; no cumulative drift."""
+    base = mob.get_center().copy()
+    mob._sway_t = phase
+
+    def update(m, dt):
+        m._sway_t += dt
+        m.move_to(base + UP * amp * np.sin(speed * m._sway_t))
+    mob.add_updater(update)
+    return mob
+
+
+def breathe_fill(mob, base=0.20, amp=0.10, speed=5.0, color=GREY):
+    """Animate a large cell interior enough to remain alive during a long explanation."""
+    mob._breath_t = 0.0
+
+    def update(m, dt):
+        m._breath_t += dt
+        m.set_fill(color, opacity=base + amp * np.sin(speed * m._breath_t))
+    mob.add_updater(update)
+    return mob
+
+
+def moving_garden(g):
+    sway(g.parent.leaves, 0.16, 1.3)
+    sway(g.child.leaves, 0.16, 1.5, 1.2)
+    return g
+
+
+def choice_backdrop():
+    c = body_cell([0, 0.35, 0], width=5.3, height=4.25, scale=0.82)
+    top = VGroup(*[b.copy() for b in c[1]]).scale(0.62).move_to([-3.75, 1.5, 0])
+    together = Arrow([-3.75, 0.78, 0], [-3.75, -0.25, 0], color=GREY, stroke_width=5)
+    split = VGroup(c[1][0].copy(), c[1][3].copy()).scale(0.62).move_to([3.75, 1.5, 0])
+    apart = VGroup(Arrow([3.55, 0.78, 0], [3.0, -0.25, 0], color=GREY, stroke_width=5),
+                   Arrow([3.95, 0.78, 0], [4.5, -0.25, 0], color=GREY, stroke_width=5))
+    return VGroup(c, top, together, split, apart)
+
+
+class S00Question(SpokenScene):
     def construct(self):
-        self.at("fertilization joins")
-        egg = cell(2.8, 2.3, -4.3, 2.0, GOLD)
-        spm = cell(2.8, 2.3, 4.3, 2.0, GOLD)
-        el = T("egg", 28, GOLD).move_to([-4.3, 3.45, 0])
-        sl = T("sperm", 28, GOLD).move_to([4.3, 3.45, 0])
-        e1 = chrom(TALL, bw=0.22).move_to([-4.65, 1.95, 0])
-        e2 = chrom(SHORT, bw=0.22).move_to([-3.95, 1.95, 0])
-        s1 = chrom(TALL, bw=0.22).move_to([3.95, 1.95, 0])
-        s2 = chrom(SHORT, bw=0.22).move_to([4.65, 1.95, 0])
-        self.play(FadeIn(VGroup(egg, el, e1, e2)), FadeIn(VGroup(spm, sl, s1, s2)), run_time=0.9)
-        fe = cell(4.6, 3.2, 0, -1.2, GOLD)
-        fl = T("fertilized egg", 28, GOLD).move_to([0, -3.2, 0])
-        f1 = chrom(TALL * 1.3, bw=0.24).move_to([-1.3, -1.2, 0])
-        f2 = chrom(TALL * 1.3, bw=0.24).move_to([-0.7, -1.2, 0])
-        f3 = chrom(SHORT * 1.3, bw=0.24).move_to([0.7, -1.2, 0])
-        f4 = chrom(SHORT * 1.3, bw=0.24).move_to([1.3, -1.2, 0])
-        a1 = arrow([-4.0, 0.7, 0], [-1.9, -0.5, 0], GOLD)
-        a2 = arrow([4.0, 0.7, 0], [1.9, -0.5, 0], GOLD)
-        self.play(GrowArrow(a1), GrowArrow(a2), run_time=0.5)
-        self.play(FadeIn(fe), FadeIn(fl), TransformFromCopy(e1, f1), TransformFromCopy(s1, f2),
-                  TransformFromCopy(e2, f3), TransformFromCopy(s2, f4), run_time=1.6)
-        self.at("in humans")
-        eq = M("23 + 23 = 46", 40, TEXT, weight=BOLD).move_to([0, 2.3, 0])
-        hl = T("human chromosomes", 26, GREY).next_to(eq, DOWN, buff=0.15)
-        self.play(FadeIn(VGroup(eq, hl), scale=0.9), run_time=0.9)
-        self.at("full pairs again")
-        self.play(Indicate(VGroup(f1, f2), color=YELLOW, scale_factor=1.2), run_time=0.9)
-        self.play(Indicate(VGroup(f3, f4), color=YELLOW, scale_factor=1.2), run_time=0.8)
-        self.at("each child grows")
-        self.play(FadeOut(VGroup(egg, spm, el, sl, e1, e2, s1, s2, fe, fl, f1, f2, f3, f4, a1, a2, eq, hl)), run_time=0.7)
-        lab1 = T("two parents:\neach child", 28, GOLD, line_spacing=0.85).move_to([-4.9, 1.3, 0])
-        k1 = mini(-1.5, 1.3, ("B", "B"), color=GOLD)
-        k2 = mini(2.1, 1.3, ("B", "b"), color=GOLD)
-        ex = T("for example (an illustration)", 26, GREY).move_to([0, 3.35, 0])
-        self.play(FadeIn(ex), run_time=0.5)
-        self.play(FadeIn(lab1), FadeIn(k1, scale=0.85), FadeIn(k2, scale=0.85), run_time=1.4)
-        self.at("brothers and sisters usually differ")
-        dif = T("usually\ndiffer", 32, RED, weight=BOLD, line_spacing=0.85).move_to([5.2, 1.3, 0])
-        self.play(FadeIn(dif, scale=0.8), run_time=0.7)
-        lab2 = T("runner:\nparent and\nnew plant", 28, GREEN, line_spacing=0.85).move_to([-4.9, -2.0, 0])
-        self.at("a runner has one parent")
-        r1 = mini(-1.5, -2.0, ("B", "b"), color=GREEN)
-        r2 = mini(2.1, -2.0, ("B", "b"), color=GREEN)
-        self.play(FadeIn(lab2), FadeIn(r1, scale=0.85), FadeIn(r2, scale=0.85), run_time=1.0)
-        self.at("genetically the same")
-        same = T("same", 32, GREEN, weight=BOLD).move_to([5.2, -2.0, 0])
-        self.play(FadeIn(same), run_time=0.6)
+        g = garden(show_runner=False, rooted=False, question=True)
+        g.child.set_opacity(0)
+        moving_garden(g)
+        self.play(FadeIn(g.parent), FadeIn(g[0]), Create(g[2]), FadeIn(g.question), run_time=1.25)
+        self.at("Watch one garden")
+        self.play(FadeIn(g[1]), run_time=0.8)
+        self.at("A runner stretches")
+        g.runner.set_opacity(1)
+        self.play(Create(g.runner), run_time=2.0, rate_func=linear)
+        self.at("roots nearby")
+        g.child.set_opacity(1)
+        self.play(FadeIn(g.child[3]), FadeIn(g.child[:3]), run_time=1.25)
+        self.at("one parent")
+        one = T("one parent", 32, GREEN).move_to([-1.55, -2.55, 0])
+        ar = Arrow([-3.45, -1.95, 0], [0.35, -1.95, 0], color=GREEN, stroke_width=5)
+        self.play(GrowArrow(ar), FadeIn(one), run_time=1.0)
+        self.at("asexual reproduction")
+        name = T("asexual reproduction", 34, GREEN, weight=BOLD).move_to([0, 3.1, 0])
+        self.play(swap(g.question, name), run_time=1.0)
+        self.at("same genetic information")
+        same = caption("The new plant usually carries the same genetic information.", color=GREEN)
+        self.play(FadeIn(same), Indicate(VGroup(g.parent, g.child), color=GREEN), run_time=1.3)
         self.finish()
 
 
-class S07End(EndCard):
-    LINE = "Each sex cell is a different mix, so offspring vary."
+class S01Title(TitleCard):
+    LESSON = "Reproduction and meiosis"
+    TITLE = "Copies, Halves, and Pairs"
+
+    def construct(self):
+        g = garden(show_runner=True, rooted=True)
+        moving_garden(g)
+        # Deliberate moving picture behind the translucent title overlay.
+        g.layout_ok = True
+        veil = Rectangle(width=14.2, height=8, fill_color=BG, fill_opacity=0.66, stroke_width=0)
+        title = T(self.TITLE, 52, TEXT, font=TITLE_FONT)
+        lesson = T(self.LESSON.upper(), 24, TEAL)
+        rule = Line(LEFT * 1.4, RIGHT * 1.4, color=GOLD, stroke_width=4)
+        card = VGroup(lesson, title, rule).arrange(DOWN, buff=0.28)
+        self.add(g)
+        self.play(FadeIn(veil), FadeIn(card, shift=UP * 0.15), run_time=0.65)
+        self.play(FadeOut(VGroup(veil, card)), run_time=0.65)
+        self.finish()
+
+
+class S02TwoPaths(SpokenScene):
+    def construct(self):
+        left = body_cell([-3.7, 0.15, 0], width=4.8, height=4.5, scale=0.72)
+        right = body_cell([3.7, 0.15, 0], width=4.8, height=4.5, scale=0.72)
+        pulse(left[0], base=5.0, amp=0.7, speed=1.3)
+        pulse(right[0], base=5.0, amp=0.7, speed=1.5)
+        self.play(FadeIn(left), FadeIn(right), run_time=1.2)
+        self.at("Two sex cells join")
+        target = Dot([0, 0.15, 0], radius=0.17, color=TEXT)
+        self.play(left.animate.shift(RIGHT * 1.0), right.animate.shift(LEFT * 1.0), FadeIn(target), run_time=1.5)
+        sway(left[1], 0.13, 1.25)
+        sway(right[1], 0.13, 1.45, 0.9)
+        self.at("one from each")
+        p1 = T("parent 1", 28, BLUE).move_to([-3.7, 3.15, 0])
+        p2 = T("parent 2", 28, GOLD).move_to([3.7, 3.15, 0])
+        self.play(FadeIn(p1), FadeIn(p2), run_time=0.8)
+        self.at("sperm and egg")
+        self.play(swap(p1, T("sperm", 30, GREEN).move_to(p1)),
+                  swap(p2, T("egg", 30, GREEN).move_to(p2)), run_time=0.9)
+        self.at("a problem must be solved")
+        stop = T("?", 72, RED, weight=BOLD).move_to([0, 2.65, 0])
+        self.play(FadeIn(stop, scale=0.5), run_time=0.8)
+        self.at("chromosomes in pairs")
+        self.play(Indicate(left[1], color=TEXT), Indicate(right[1], color=TEXT), run_time=1.3)
+        self.at("would double")
+        doubled = VGroup(M("4 + 4", 42, RED), T("would double", 32, RED)).arrange(DOWN, buff=0.14).move_to([0, -2.75, 0])
+        self.play(FadeIn(doubled), Indicate(VGroup(left[1], right[1]), color=RED), run_time=1.3)
+        self.finish()
+
+
+class S03Pairs(SpokenScene):
+    def construct(self):
+        c = body_cell([-1.2, 0.1, 0], width=8.1, height=5.8, scale=1.05)
+        bars = c[1]
+        breathe_fill(c[0])
+        self.play(FadeIn(c[0]), LaggedStart(*[FadeIn(b, scale=0.5) for b in bars], lag_ratio=0.15), run_time=1.4)
+        # The entrance animation adds the bars individually, so each visible bar owns its motion.
+        for i, bar in enumerate(bars):
+            sway(bar, 0.11, 1.25, i * 0.18)
+        self.at("Each color marks")
+        blue = T("blue member", 29, BLUE).move_to([-4.9, 2.65, 0])
+        gold = T("gold member", 29, GOLD).move_to([2.55, 2.65, 0])
+        self.play(FadeIn(blue), FadeIn(gold), Indicate(VGroup(bars[0], bars[2]), color=BLUE),
+                  Indicate(VGroup(bars[1], bars[3]), color=GOLD), run_time=1.2)
+        self.at("same kinds of genes")
+        ticks = VGroup()
+        for i, b in enumerate(bars):
+            for frac in ((0.22, 0.68) if i < 2 else (0.32, 0.7)):
+                y = b.get_bottom()[1] + frac * b.height
+                ticks.add(Line([b.get_x() - 0.23, y, 0], [b.get_x() + 0.23, y, 0], color=TEXT, stroke_width=5))
+        self.play(LaggedStart(*[Create(t) for t in ticks], lag_ratio=0.08), run_time=1.5)
+        self.at("came from the mother")
+        mother = T("from mother", 28, BLUE).move_to([-4.85, -2.45, 0])
+        father = T("from father", 28, GOLD).move_to([2.55, -2.45, 0])
+        self.play(FadeIn(mother), Indicate(VGroup(bars[0], bars[2]), color=BLUE), run_time=0.9)
+        self.at("one from the father")
+        self.play(FadeIn(father), Indicate(VGroup(bars[1], bars[3]), color=GOLD), run_time=0.9)
+        self.at("body cell keeps")
+        panel = VGroup(T("human example", 26, GREY), M("46", 52, TEXT), T("23 pairs", 30, TEXT)).arrange(DOWN, buff=0.12).move_to([5.15, 0, 0])
+        self.play(FadeIn(panel), run_time=1.0)
+        self.finish()
+
+
+class S04Predict(SpokenScene):
+    def construct(self):
+        back = choice_backdrop()
+        back[1:].set_opacity(0)
+        sway(back[0][1], 0.13, 1.3)
+        self.add(back[0])
+        self.at("Watch the bars")
+        back[1:].set_opacity(1)
+        self.play(FadeIn(back[1:]), run_time=1.2)
+        self.at("Should every pair")
+        stay = T("stay together", 28, BLUE).move_to([-3.75, -0.75, 0])
+        half = T("carry half", 28, GOLD).move_to([3.75, -0.75, 0])
+        self.play(FadeIn(stay), FadeIn(half), run_time=1.0)
+        self.at("Make your prediction")
+        q = question_card(QUESTION, OPTIONS, chips_at=[0, -1.65, 0], y=-3.15)
+        self.play(FadeIn(q), run_time=0.8)
+        self.finish()
+
+
+class S05Pause(PredictPause):
+    QUESTION = QUESTION
+    OPTIONS = OPTIONS
+    CHIPS_AT = [0, -1.65, 0]
+    CARD = {"y": -3.15}
+    SECONDS = 4.5
+
+    def backdrop(self):
+        back = choice_backdrop()
+        pulse(back[2], base=4.5, amp=1.2, speed=2.0)
+        pulse(back[4][0], base=4.5, amp=1.2, speed=1.8)
+        return back
+
+
+class S06Meiosis(SpokenScene):
+    def construct(self):
+        parent = body_cell([0, 0.55, 0], width=6.0, height=4.8, scale=0.9)
+        self.add(parent)
+        self.play(Indicate(parent[1], color=TEXT), run_time=1.0)
+        self.at("members of each pair separate")
+        left = half_cell([-4.05, 0.25, 0], (BLUE, GOLD), "sex cell")
+        right = half_cell([4.05, 0.25, 0], (GOLD, BLUE), "sex cell")
+        targets = [left[1][0], right[1][0], right[1][1], left[1][1]]
+        self.play(FadeOut(parent[0]), FadeIn(left[0]), FadeIn(right[0]),
+                  *[ReplacementTransform(b, t) for b, t in zip(parent[1], targets)], run_time=2.1)
+        self.play(FadeIn(left[2]), FadeIn(right[2]), run_time=0.6)
+        sway(left[1], 0.13, 1.25)
+        sway(right[1], 0.13, 1.45, 0.8)
+        self.at("one chromosome from every pair")
+        self.play(Indicate(left[1], color=TEXT), Indicate(right[1], color=TEXT), run_time=1.3)
+        self.at("number is half")
+        n = ValueTracker(46)
+        count = counter("human example: {:.0f}", n, at=[0, 2.95, 0], size=34, color=TEXT)
+        self.add(count)
+        self.play(n.animate.set_value(23), run_time=1.7)
+        self.at("Here is the rule")
+        rule = caption("Meiosis halves chromosome number; fertilization restores pairs.", size=30, color=TEXT)
+        self.play(FadeIn(rule), run_time=0.9)
+        self.at("makes mixes")
+        self.play(Indicate(VGroup(left[1], right[1]), color=GREEN), run_time=1.0)
+        self.at("Fertilization restores")
+        self.play(Indicate(VGroup(left, right), color=TEXT), run_time=1.0)
+        self.finish()
+
+
+class S07Fertilization(SpokenScene):
+    def construct(self):
+        sperm = half_cell([-4.35, 0.35, 0], (BLUE, GOLD), "sperm")
+        egg = half_cell([4.35, 0.35, 0], (GOLD, BLUE), "egg")
+        pulse(sperm[0], base=5.0, amp=0.7, speed=1.3)
+        pulse(egg[0], base=5.0, amp=0.7, speed=1.5)
+        self.play(FadeIn(sperm), FadeIn(egg), run_time=1.0)
+        self.play(sperm.animate.shift(RIGHT * 0.55), egg.animate.shift(LEFT * 0.55), run_time=0.8)
+        self.at("Fertilization joins")
+        zygote = fertilized_cell([0, 0.25, 0])
+        self.play(FadeOut(VGroup(sperm[0], sperm[2], egg[0], egg[2])), FadeIn(zygote[0]),
+                  ReplacementTransform(sperm[1][0], zygote[1][0]),
+                  ReplacementTransform(egg[1][0], zygote[1][1]),
+                  ReplacementTransform(egg[1][1], zygote[1][2]),
+                  ReplacementTransform(sperm[1][1], zygote[1][3]), run_time=2.2)
+        sway(zygote[1], 0.13, 1.3)
+        self.at("full pairs again")
+        braces = VGroup(Brace(VGroup(zygote[1][0], zygote[1][1]), DOWN, color=TEXT),
+                        Brace(VGroup(zygote[1][2], zygote[1][3]), DOWN, color=TEXT))
+        self.play(GrowFromCenter(braces[0]), GrowFromCenter(braces[1]), run_time=1.1)
+        self.at("one chromosome from each parent")
+        self.play(Indicate(VGroup(zygote[1][0], zygote[1][2]), color=BLUE),
+                  Indicate(VGroup(zygote[1][1], zygote[1][3]), color=GOLD), run_time=1.3)
+        self.at("chromosome number returns")
+        eq = M("23 + 23 = 46", 46, TEXT, weight=BOLD).move_to([0, 3.1, 0])
+        self.play(FadeIn(eq), run_time=1.0)
+        self.at("instead of growing")
+        stable = caption("The body-cell number is restored each generation.", color=TEXT)
+        self.play(FadeIn(stable), Indicate(eq, color=GREEN), run_time=1.2)
+        self.finish()
+
+
+class S07bWholeChromosomes(SpokenScene):
+    def construct(self):
+        bars = VGroup(chromosome(3.55, BLUE, [-0.55, 0.25, 0], 0.5),
+                      chromosome(3.55, GOLD, [0.55, 0.25, 0], 0.5))
+        sway(bars, 0.13, 1.25)
+        count = VGroup(M("2", 50, TEXT), T("whole chromosomes", 32, TEXT)).arrange(RIGHT, buff=0.25).move_to([0, 3.2, 0])
+        self.play(FadeIn(bars), FadeIn(count), run_time=1.0)
+        self.at("does not mean cutting")
+        scissors = T("✂", 64, RED).move_to([3.4, 0.45, 0])
+        not_cut = T("not cut", 32, RED, weight=BOLD).move_to([3.4, -0.65, 0])
+        self.play(FadeIn(scissors), FadeIn(not_cut), run_time=0.8)
+        self.play(scissors.animate.shift(RIGHT * 2.2).set_opacity(0), run_time=0.9)
+        self.at("one whole chromosome")
+        left = cell_outline([-3.55, 0.1, 0], 3.0, 4.05, GREEN, 0.20)
+        right = cell_outline([3.55, 0.1, 0], 3.0, 4.05, GREEN, 0.20)
+        self.play(FadeIn(left), FadeIn(right), bars[0].animate.move_to(left), bars[1].animate.move_to(right),
+                  FadeOut(not_cut), run_time=1.8)
+        self.at("When the cells join")
+        white = cell_outline([0, 0.1, 0], 5.1, 4.65, TEXT, 0.20)
+        self.play(FadeOut(VGroup(left, right)), FadeIn(white), bars[0].animate.move_to([-0.45, 0.1, 0]),
+                  bars[1].animate.move_to([0.45, 0.1, 0]), run_time=1.8)
+        self.at("form pairs again")
+        brace = Brace(bars, DOWN, color=TEXT)
+        self.play(GrowFromCenter(brace), run_time=0.8)
+        self.at("repeat across generations")
+        ring = Arc(radius=2.85, start_angle=0.2, angle=TAU * 0.88, color=GREEN, stroke_width=6)
+        tip = ArrowTriangleFilledTip(color=GREEN).scale(0.18).move_to(ring.get_end()).rotate(-0.7)
+        self.play(Create(ring), FadeIn(tip), run_time=2.0)
+        self.finish()
+
+
+class S08Refine(SpokenScene):
+    def construct(self):
+        animal = fertilized_cell([0, 0.1, 0], 4.7, 4.0)
+        pulse(animal[0], base=5.0, amp=0.7, speed=1.2)
+        self.play(FadeIn(animal), run_time=1.0)
+        self.at("Plants take an extra step")
+        self.play(animal.animate.scale(0.58).move_to([-4.6, 0.45, 0]), run_time=1.1)
+        flower = plant(-4.6, -0.25, 0.72)
+        spores = VGroup(*[Dot([x, 1.2 + 0.2 * np.sin(x * 3), 0], radius=0.12, color=GOLD)
+                          for x in (-1.4, -0.7, 0, 0.7, 1.4)])
+        self.play(ReplacementTransform(animal, flower), run_time=1.0)
+        self.at("Meiosis first makes spores")
+        self.play(LaggedStart(*[FadeIn(s, shift=UP * 0.2) for s in spores], lag_ratio=0.12), run_time=1.2)
+        self.at("sex cells form later")
+        sex = VGroup(half_cell([-1.15, -0.45, 0], (BLUE, GOLD), width=2.2, height=2.15),
+                     half_cell([1.15, -0.45, 0], (GOLD, BLUE), width=2.2, height=2.15))
+        sex.scale(0.65)
+        self.play(ReplacementTransform(spores, sex), run_time=1.3)
+        self.at("still carry half")
+        half = T("half", 34, GREEN).move_to([0, -2.15, 0])
+        self.play(FadeIn(half), Indicate(sex, color=GREEN), run_time=1.0)
+        self.at("simple model also has an exception")
+        self.play(FadeOut(VGroup(flower, sex, half)), run_time=0.8)
+        g = garden(show_runner=True, rooted=True, changed=True)
+        moving_garden(g)
+        self.play(FadeIn(g), run_time=1.1)
+        self.at("Rare DNA changes")
+        rare = T("rare DNA change", 29, RED).move_to([3.9, 2.05, 0])
+        arrow = Arrow([3.2, 1.72, 0], [1.7, 0.75, 0], color=RED, stroke_width=4)
+        self.play(FadeIn(rare), GrowArrow(arrow), run_time=1.0)
+        self.finish()
+
+
+class S09Answer(SpokenScene):
+    def construct(self):
+        g = garden(show_runner=True, rooted=True)
+        g.scale(0.78).shift(LEFT * 1.45 + UP * 0.15)
+        moving_garden(g)
+        self.play(FadeIn(g), run_time=1.0)
+        self.at("runner grows from one parent")
+        self.play(Indicate(VGroup(g.parent, g.runner, g.child), color=GREEN), run_time=1.3)
+        self.at("parent's genetic information")
+        same = T("usually a copy", 32, GREEN).move_to([-2.4, -2.55, 0])
+        self.play(FadeIn(same), run_time=0.9)
+        self.at("Sexual offspring begin")
+        left = half_cell([3.35, 0.7, 0], (BLUE, GOLD), width=2.4, height=2.3)
+        right = half_cell([5.45, 0.7, 0], (GOLD, BLUE), width=2.4, height=2.3)
+        left.scale(0.78); right.scale(0.78)
+        self.play(FadeIn(left), FadeIn(right), run_time=0.9)
+        self.at("half sets join")
+        joined = fertilized_cell([4.4, 0.45, 0], 3.5, 3.0)
+        joined.scale(0.8)
+        self.play(ReplacementTransform(VGroup(left, right), joined), run_time=1.4)
+        self.at("prevents chromosome number")
+        halves = T("meiosis: half", 29, GREEN).move_to([4.4, 2.5, 0])
+        self.play(FadeIn(halves), run_time=0.8)
+        self.at("Fertilization restores")
+        restored = T("fertilization: pairs", 29, TEXT).move_to([4.4, -1.75, 0])
+        self.play(FadeIn(restored), Indicate(joined[1], color=TEXT), run_time=1.0)
+        self.at("next question")
+        variants = VGroup(pair_bars([3.5, -2.7, 0], 0.35, 0.42), pair_bars([5.2, -2.7, 0], 0.35, 0.42)).set_opacity(0.35)
+        q = T("Why aren't half sets all alike?", 30, GOLD).move_to([3.95, 3.2, 0])
+        self.play(FadeOut(VGroup(halves, restored)), FadeIn(variants), FadeIn(q), run_time=1.1)
+        sway(variants[0], 0.04, 1.2)
+        sway(variants[1], 0.04, 1.45, 1.0)
+        self.finish()
+
+
+class S10End(EndCard):
+    LINE = "Sexual reproduction: meiosis halves chromosome number\nand makes mixes; fertilization restores pairs."

@@ -1,330 +1,595 @@
-"""Food webs and energy: less energy at every step  (Biochemistrypedia explainer, grade 7 Life Science)
+"""Follow the Energy Arrows — Chesapeake Bay food-web explainer.
 
-Timed to the SPOKEN words: every self.at("...") cue waits for that phrase in audio/words.json.
-
-COLOR MAP (one color per concept, whole video)
-  YELLOW = sunlight / energy and the "about one tenth passes up" arrows
-  GREEN  = producers (phytoplankton)
-  TEAL   = first-order consumers (zooplankton)
-  INDIGO = second-order consumers (menhaden)
- consumers (osprey)
-  RED    = heat (thermal energy) leaving
-  GREY   = water, outlines, uneaten food, notes
+COLOR MAP (organisms keep their own colour; colour never encodes consumer order)
+  GOLD   sunlight and stored energy
+  GREEN  phytoplankton
+  BLUE   zooplankton and water
+  ORANGE menhaden
+  PURPLE osprey
+  TEAL   larger fish
+  GREY   decomposers, matter, and neutral structure
+  RED    heat
 """
-import numpy as np
-from bp_style import *  # noqa: F401,F403
-
-C2 = "#6C8CF0"
-C3 = "#E070B8"
-TEAL_C = "#3FB8C0"
-LEVEL = {"prod": GREEN, "c1": TEAL_C, "c2": C2, "c3": C3}
+from bp_parts import *  # noqa: F401,F403
 
 
-def arr(a, b, color=GREY, w=5, tip=0.22):
-    return Arrow(a, b, buff=0.08, color=color, stroke_width=w, tip_length=tip,
-                 max_tip_length_to_length_ratio=0.45, max_stroke_width_to_length_ratio=12)
+ENERGY = GOLD
+PHY = GREEN
+ZOO = BLUE
+MEN = ORANGE
+OSP = PURPLE
+BIG = TEAL
+DEC = GREY
+HEAT = RED
 
 
-def fish(x, y, color=C2, s=1.0):
-    body = Ellipse(width=0.95 * s, height=0.45 * s, stroke_color=color, stroke_width=3, fill_color=color, fill_opacity=0.35)
-    tail = Polygon([0.4 * s, 0, 0], [0.75 * s, 0.25 * s, 0], [0.75 * s, -0.25 * s, 0], stroke_color=color,
-                   stroke_width=3, fill_color=color, fill_opacity=0.35)
-    return VGroup(body, tail).move_to([x, y, 0])
+def fish_icon(color=MEN, scale=1.0, direction=1):
+    """A labelled-cartoon-free fish silhouette, not an anatomical drawing."""
+    body = Ellipse(width=1.35, height=0.62, color=color, stroke_width=4,
+                   fill_color=color, fill_opacity=0.32)
+    tail = Polygon([-.58, 0, 0], [-1.08, .43, 0], [-1.08, -.43, 0],
+                   color=color, stroke_width=4, fill_color=color, fill_opacity=0.25)
+    eye = Dot([.38, .11, 0], radius=.045, color=TEXT)
+    g = VGroup(tail, body, eye)
+    if direction < 0:
+        g.flip(UP)
+    return g.scale(scale)
 
 
-def dots(cx, cy, n, r, color, seed):
-    rng = np.random.default_rng(seed)
-    out = []
-    while len(out) < n:
-        p = rng.uniform(-r, r, 2)
-        if np.hypot(*p) <= r and all(np.hypot(p[0] - q[0], p[1] - q[1]) > 0.42 for q in out):
-            out.append(p)
-    return VGroup(*[Circle(radius=0.16, stroke_color=color, stroke_width=2.5, fill_color=color, fill_opacity=0.55)
-                    .move_to([cx + p[0], cy + p[1], 0]) for p in out])
+def osprey_icon(scale=1.0):
+    wings = Polygon([-1.05, 0, 0], [-.35, .48, 0], [0, .12, 0],
+                    [.35, .48, 0], [1.05, 0, 0], [0, -.30, 0],
+                    color=OSP, stroke_width=4, fill_color=OSP, fill_opacity=.28)
+    body = Ellipse(width=.52, height=.82, color=OSP, stroke_width=4,
+                   fill_color=OSP, fill_opacity=.35).rotate(-.10)
+    beak = Polygon([.15, .38, 0], [.55, .25, 0], [.20, .12, 0],
+                   color=ENERGY, fill_color=ENERGY, fill_opacity=.75)
+    return VGroup(wings, body, beak).scale(scale)
 
 
-def tier(x, y, w, color, h=1.05):
-    return RoundedRectangle(corner_radius=0.08, width=w, height=h, stroke_color=color, stroke_width=3,
-                            fill_color=color, fill_opacity=0.35).move_to([x, y, 0])
+def phytoplankton_icon(scale=1.0):
+    pts = [(-.45, .18), (-.12, .42), (.28, .34), (.47, .02), (.12, -.35), (-.32, -.27)]
+    return VGroup(*[Circle(radius=.18, color=PHY, stroke_width=3,
+                          fill_color=PHY, fill_opacity=.38).move_to([x, y, 0])
+                    for x, y in pts]).scale(scale)
 
 
-TIER_Y = [-1.95, -0.78, 0.39, 1.56]
-TIER_W = [6.0, 4.2, 2.6, 1.2]
-TIER_C = [GREEN, TEAL_C, C2, C3]
-NUMS = ["10,000", "1,000", "100", "10"]
+def zooplankton_icon(scale=1.0):
+    bodies = VGroup(*[Ellipse(width=.48, height=.25, color=ZOO, stroke_width=3,
+                             fill_color=ZOO, fill_opacity=.35).move_to(p)
+                      for p in ((-.35, .24, 0), (.20, .10, 0), (-.05, -.28, 0))])
+    feelers = VGroup(Line([-.56, .30, 0], [-.82, .48, 0], color=ZOO, stroke_width=2),
+                     Line([.42, .16, 0], [.72, .35, 0], color=ZOO, stroke_width=2))
+    return VGroup(bodies, feelers).scale(scale)
 
 
-class S00Title(TitleCard):
+def packet(radius=.16):
+    return Dot(radius=radius, color=ENERGY).set_stroke(ENERGY, 4)
+
+
+def water_field():
+    water = Rectangle(width=13.2, height=5.8, color=ZOO, stroke_width=2,
+                      fill_color=ZOO, fill_opacity=.14).move_to([0, -.35, 0])
+    waves = VGroup()
+    for j, y in enumerate((2.28, 1.82)):
+        points = []
+        for x in np.linspace(-6.4, 6.4, 90):
+            points.append([x, y + .07 * np.sin(2.2 * x + j), 0])
+        w = VMobject(color=ZOO, stroke_width=3, stroke_opacity=.55)
+        w.set_points_as_corners(points)
+        waves.add(w)
+    pulse(waves, base=2.0, amp=.8, speed=1.4)
+    bob(waves[0], amp=.13, speed=1.05, seed=0)
+    bob(waves[1], amp=.10, speed=1.27, seed=1)
+    current = VGroup()
+    for i in range(18):
+        d = Dot([-6.1 + (i % 9) * 1.45, -2.35 + (i // 9) * 3.55 + .12 * (i % 3), 0],
+                radius=.070, color=ZOO).set_opacity(.48)
+        d.v = .22 + .025 * (i % 4)
+
+        def drift(mob, dt):
+            mob.shift(RIGHT * mob.v * dt)
+            if mob.get_x() > 6.35:
+                mob.shift(LEFT * 12.7)
+        d.add_updater(drift)
+        current.add(d)
+    floor = Line([-6.5, -3.02, 0], [6.5, -3.02, 0], color=DEC, stroke_width=4)
+    return VGroup(water, waves, current, floor)
+
+
+def bay_world(labels=False, include_big=False):
+    """The one carried Chesapeake world, rebuilt at identical coordinates."""
+    water = water_field()
+    sun = Circle(radius=.42, color=ENERGY, stroke_width=4, fill_color=ENERGY,
+                 fill_opacity=.45).move_to([-5.65, 3.02, 0])
+    rays = VGroup(*[Line(sun.get_center() + .55 * v, sun.get_center() + 1.0 * v,
+                         color=ENERGY, stroke_width=4)
+                    for v in (DOWN, DR, RIGHT)])
+    phy = phytoplankton_icon(1.05).move_to([-4.15, 1.35, 0])
+    zoo = zooplankton_icon(1.15).move_to([-2.15, .15, 0])
+    men = VGroup(*[fish_icon(MEN, .72).move_to([-.15 + .80 * (i % 2),
+                                                .55 - .62 * (i // 2), 0])
+                   for i in range(4)])
+    osp = osprey_icon(.86).move_to([4.65, 2.25, 0])
+    dec = VGroup(*[Dot([x, -2.62 + .10 * np.sin(3 * x), 0], radius=.09, color=DEC)
+                   for x in np.linspace(-3.5, 3.3, 18)])
+    big = fish_icon(BIG, 1.05, -1).move_to([4.05, -.75, 0])
+    g = VGroup(water, sun, rays, phy, zoo, men, osp, dec)
+    if include_big:
+        g.add(big)
+    g.water, g.sun, g.rays = water, sun, rays
+    g.phy, g.zoo, g.men, g.osp, g.dec, g.big = phy, zoo, men, osp, dec, big
+    if labels:
+        labs = VGroup(T("phytoplankton", 28, PHY).next_to(phy, UP, buff=.14),
+                      T("zooplankton", 28, ZOO).next_to(zoo, DOWN, buff=.12),
+                      T("menhaden", 28, MEN).next_to(men, DOWN, buff=.12),
+                      T("osprey", 28, OSP).next_to(osp, UP, buff=.12))
+        if include_big:
+            labs.add(T("larger fish", 28, BIG).next_to(big, DOWN, buff=.12))
+        g.add(labs)
+        g.labels = labs
+    return g
+
+
+CHAIN_X = (-4.8, -1.6, 1.6, 4.8)
+CHAIN_Y = .40
+
+
+def double_dashed(a, b):
+    line = DashedLine(a, b, color=DEC, stroke_width=5, dash_length=.15)
+    u = (np.array(b) - np.array(a)) / np.linalg.norm(np.array(b) - np.array(a))
+    left = Triangle(color=DEC, fill_color=DEC, fill_opacity=1).scale(.14).rotate(-PI / 2)
+    right = Triangle(color=DEC, fill_color=DEC, fill_opacity=1).scale(.14).rotate(PI / 2)
+    left.move_to(np.array(a) + .18 * u)
+    right.move_to(np.array(b) - .18 * u)
+    return VGroup(line, left, right)
+
+
+def chain_world(doubles=False, arrows=False, names=False, moving=True):
+    """The carried chain used without positional drift in s04–s07."""
+    bg = water_field()
+    icons = [phytoplankton_icon(1.22), zooplankton_icon(1.35),
+             fish_icon(MEN, 1.15), osprey_icon(.92)]
+    for icon, x in zip(icons, CHAIN_X):
+        icon.move_to([x, CHAIN_Y, 0])
+    if moving:
+        for i, icon in enumerate(icons):
+            bob(icon, amp=.035 + .008 * i, speed=1.2 + .15 * i, seed=i)
+    g = VGroup(bg, *icons)
+    g.bg, g.phy, g.zoo, g.men, g.osp = bg, *icons
+    links = VGroup()
+    for i in range(3):
+        a = [CHAIN_X[i] + 1.0, CHAIN_Y, 0]
+        b = [CHAIN_X[i + 1] - 1.0, CHAIN_Y, 0]
+        if doubles:
+            links.add(double_dashed(a, b))
+        elif arrows:
+            links.add(Arrow(a, b, buff=0, color=ENERGY, stroke_width=8, tip_length=.24))
+    if len(links):
+        g.add(links)
+    g.links = links
+    if names:
+        labels = VGroup(*[T(n, 28, c).move_to([x, -1.03, 0])
+                          for n, c, x in zip(("phytoplankton", "zooplankton", "menhaden", "osprey"),
+                                             (PHY, ZOO, MEN, OSP), CHAIN_X)])
+        g.add(labels)
+        g.labels = labels
+    return g
+
+
+def web_arrows(world, color=ENERGY, width=6):
+    """Food-to-eater links in the fixed Bay geometry."""
+    p, z, m, o, b = (world.phy.get_center(), world.zoo.get_center(), world.men.get_center(),
+                      world.osp.get_center(), world.big.get_center())
+    return VGroup(
+        CurvedArrow(p + RIGHT * .55, z + LEFT * .45, angle=-.18, color=color, stroke_width=width),
+        CurvedArrow(z + RIGHT * .48, m + LEFT * .55, angle=.14, color=color, stroke_width=width),
+        CurvedArrow(m + UR * .38, o + DL * .62, angle=-.18, color=color, stroke_width=width),
+        CurvedArrow(p + DR * .35, m + UL * .48, angle=.22, color=color, stroke_width=width),
+        CurvedArrow(m + RIGHT * .55, b + LEFT * .72, angle=-.18, color=color, stroke_width=width),
+    )
+
+
+def web_world(with_arrows=True):
+    w = bay_world(include_big=True)
+    arrs = web_arrows(w) if with_arrows else VGroup()
+    w.add(arrs)
+    w.arrows = arrs
+    return w
+
+
+class S00Hook(SpokenScene, TitleCard):
     LESSON = "Food webs and energy"
-    TITLE = "Less energy at every step"
+    TITLE = "Follow the Energy Arrows"
 
-
-# ---------------------------------------------------------------------------------------------
-class S01Osprey(SpokenScene):
     def construct(self):
-        water = Rectangle(width=12.6, height=3.2, stroke_color=GREY, stroke_width=2, fill_color=GREY,
-                          fill_opacity=0.14).move_to([0, -1.8, 0])
-        bay = T("Chesapeake Bay", 26, GREY).move_to([-4.4, -0.55, 0])
-        osprey = chip("osprey", C3, size=36).move_to([2.6, 2.2, 0])
-        self.at("nest along")
-        self.play(FadeIn(water), FadeIn(bay), FadeIn(osprey, shift=DOWN * 0.2), run_time=0.8)
-        self.at("plunge")
-        self.play(osprey.animate.move_to([2.6, -0.75, 0]), run_time=1.2, rate_func=rush_into)
-        school = VGroup(*[fish(1.9 + 1.4 * (i % 3) + 0.4 * (i // 3), -1.75 - 0.7 * (i // 3), C2, 1.35) for i in range(5)])
-        flab = T("menhaden", 30, C2).move_to([3.4, -3.0, 0])
-        caught = fish(2.6, -1.2, C2, 1.0)
-        self.at("catch fish")
-        self.play(FadeIn(caught), run_time=0.3)
-        self.play(osprey.animate.move_to([2.6, 1.8, 0]), caught.animate.move_to([2.6, 1.05, 0]), run_time=1.2)
-        self.at("Atlantic")
-        self.play(FadeIn(school, shift=LEFT * 0.3), FadeIn(flab), run_time=0.9)
-        pl = dots(-3.0, -1.95, 11, 0.85, GREEN, 4)
-        plab = T("plankton", 30, GREEN).move_to([-3.0, -3.0, 0])
-        self.at("living things")
-        self.play(FadeIn(pl, lag_ratio=0.1), FadeIn(plab), run_time=1.0)
-        self.at("So here is the question")
-        self.play(*[FadeOut(m) for m in (water, bay, osprey, caught, school, flab, pl, plab)], run_time=0.6)
-        row = []
-        for name, col, x in (("plankton", GREEN, -4.2), ("menhaden", C2, 0.0), ("osprey", C3, 4.2)):
-            row.append(chip(name, col, size=40).move_to([x, 0.6, 0]))
-        a1 = arr(row[0].get_right(), row[1].get_left(), GREY)
-        a2 = arr(row[1].get_right(), row[2].get_left(), GREY)
-        self.play(*[FadeIn(c, scale=0.9) for c in row], GrowArrow(a1), GrowArrow(a2), run_time=0.7)
-        q = T("Why does each step up have less energy to live on?", 38, font=TITLE_FONT)
-        fit(q, max_w=11.8)
-        q.move_to([0, 2.5, 0])
-        self.at("Why does each step")
-        self.play(Write(q), run_time=1.6)
-        self.at("less energy")
-        boxes = []
-        for c in row:
-            b = RoundedRectangle(corner_radius=0.12, width=3.0, height=1.5, stroke_color=YELLOW, stroke_width=3,
-                                 fill_color=YELLOW, fill_opacity=0.1).move_to([c.get_center()[0], -1.3, 0])
-            boxes.append(VGroup(b, T("energy?", 36, YELLOW).move_to(b)))
-        self.play(*[FadeIn(b, shift=UP * 0.15) for b in boxes], lag_ratio=0.2, run_time=0.8)
+        world = bay_world()
+        caught = fish_icon(MEN, .78).move_to([4.65, 1.38, 0])
+        world.osp.move_to([4.65, 2.55, 0])
+        self.at("An osprey lifts")
+        self.play(FadeIn(world, lag_ratio=.03), run_time=.9)
+        self.play(FadeIn(caught), caught.animate.shift(UP * .42),
+                  world.osp.animate.shift(UP * .18), run_time=1.2)
+        glow = packet(.18).move_to(caught.get_center())
+        question = fit_text("Where did this energy begin?", max_w=7.7, size=40,
+                            color=ENERGY, font=TITLE_FONT).move_to([-.35, 2.78, 0])
+        self.at("Where did the energy")
+        self.play(FadeIn(glow, scale=.4), Write(question), run_time=1.1)
+        self.play(Indicate(glow, color=ENERGY, scale_factor=1.7), run_time=.8)
+        trail_path = CurvedArrow(caught.get_center() + LEFT * .25,
+                                 world.phy.get_center() + RIGHT * .25,
+                                 angle=.35, color=ENERGY, stroke_width=5)
+        trail = DashedVMobject(trail_path, num_dashes=18)
+        self.at("Follow one glowing")
+        self.play(Create(trail), run_time=2.2, rate_func=linear)
+        self.play(MoveAlongPath(glow, trail_path), run_time=1.8, rate_func=linear)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S02Producer(SpokenScene):
+class S01Title(TitleCard):
+    LESSON = "Food webs and energy"
+    TITLE = "Follow the Energy Arrows"
+
     def construct(self):
-        phy = dots(-0.6, 0.7, 13, 1.2, GREEN, 7)
-        tag_p = chip("producer", GREEN, size=30).move_to([-0.6, -2.4, 0])
-        self.at("starts with a")
-        self.play(FadeIn(phy, lag_ratio=0.08), FadeIn(tag_p, shift=UP * 0.15), run_time=1.0)
-        sun = Circle(radius=0.6, stroke_color=YELLOW, stroke_width=4, fill_color=YELLOW, fill_opacity=0.7).move_to([-5.2, 1.4, 0])
-        sun_l = T("sunlight", 28, YELLOW).next_to(sun, DOWN, buff=0.25)
-        a_sun = arr([-4.4, 1.2, 0], [-2.1, 0.85, 0], YELLOW, w=7)
-        en = T("energy", 28, YELLOW).move_to([-3.25, 1.75, 0])
-        self.at("from sunlight")
-        self.play(FadeIn(sun, scale=0.7), FadeIn(sun_l), run_time=0.5)
-        self.play(GrowArrow(a_sun), FadeIn(en), run_time=0.6)
-        self.at("store it")
-        self.play(Indicate(phy, color=YELLOW, scale_factor=1.12), run_time=1.0)
-        lab_p = T("phytoplankton", 28, GREEN).move_to([-0.6, -1.3, 0])
-        self.at("main producers")
-        self.play(FadeIn(lab_p, shift=UP * 0.1), run_time=0.5)
-        zoo = VGroup(*[Ellipse(width=0.8, height=0.45, stroke_color=TEAL_C, stroke_width=3, fill_color=TEAL_C,
-                               fill_opacity=0.45).move_to([4.2 + dx, 0.7 + dy, 0])
-                       for dx, dy in ((-0.7, 0.4), (0.5, 0.7), (0.0, -0.1), (-0.5, -0.65), (0.8, -0.4))])
-        lab_z = T("zooplankton", 28, TEAL_C).move_to([4.2, -1.3, 0])
-        a_pz = arr([1.0, 0.7, 0], [2.7, 0.7, 0], GREEN, w=7)
-        self.at("tiny drifting animals")
-        self.play(FadeIn(zoo, lag_ratio=0.15), FadeIn(lab_z), GrowArrow(a_pz), run_time=1.0)
-        tag_z = chip("first-order consumer", TEAL_C, size=28).move_to([4.2, -2.4, 0])
-        self.at("They are")
-        self.play(FadeIn(tag_z, shift=UP * 0.15), run_time=0.6)
+        world = bay_world()
+        bob(world.men, amp=.04, speed=1.3)
+        band = Rectangle(width=13.4, height=1.65, fill_color=BG, fill_opacity=.82,
+                         stroke_width=0)
+        title = T(self.TITLE, 54, font=TITLE_FONT)
+        self.add(world)
+        self.play(FadeIn(band), Write(title), run_time=.7)
+        self.wait(.7)
+        self.play(FadeOut(band), FadeOut(title), run_time=.6)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-NODES = [("sunlight", YELLOW), ("phytoplankton", GREEN), ("zooplankton", TEAL_C), ("menhaden", C2), ("osprey", C3)]
-
-
-def icon(i, cx, cy):
-    col = NODES[i][1]
-    if i == 0:
-        return Circle(radius=0.38, stroke_color=col, stroke_width=3, fill_color=col, fill_opacity=0.7).move_to([cx, cy, 0])
-    if i == 1:
-        return VGroup(*[Circle(radius=0.13, stroke_color=col, stroke_width=2.5, fill_color=col, fill_opacity=0.55)
-                        .move_to([cx + dx, cy + dy, 0]) for dx, dy in ((-0.3, 0.25), (0.1, 0.35), (0.35, 0.05), (-0.2, -0.2), (0.15, -0.3))])
-    if i == 2:
-        return VGroup(*[Ellipse(width=0.6, height=0.32, stroke_color=col, stroke_width=3, fill_color=col, fill_opacity=0.45)
-                        .move_to([cx + dx, cy + dy, 0]) for dx, dy in ((-0.2, 0.3), (0.2, 0.0), (-0.15, -0.3))])
-    if i == 3:
-        return fish(cx - 0.1, cy, col, 0.95)
-    body = Ellipse(width=0.5, height=0.3, stroke_color=col, stroke_width=3, fill_color=col, fill_opacity=0.4)
-    wings = Polygon([-0.55, 0.05, 0], [-0.3, 0.38, 0], [0, 0.1, 0], [0.3, 0.38, 0], [0.55, 0.05, 0], [0, -0.2, 0],
-                    stroke_color=col, stroke_width=3, fill_color=col, fill_opacity=0.4)
-    return VGroup(wings, body).move_to([cx, cy, 0])
-
-
-class S03Chain(SpokenScene):
+class S02World(SpokenScene):
     def construct(self):
-        xs = [-5.4, -2.7, 0.0, 2.7, 5.4]
-        cy = 1.0
-
-        def chips_top(i):
-            return np.array([xs[i], cy + 0.85, 0])
-
-        cards = [RoundedRectangle(corner_radius=0.14, width=1.5, height=1.5, stroke_color=NODES[i][1], stroke_width=3,
-                                  fill_color=NODES[i][1], fill_opacity=0.12).move_to([xs[i], cy, 0]) for i in range(5)]
-        icons = [icon(i, xs[i], cy) for i in range(5)]
-        names = [T(NODES[i][0], 24, NODES[i][1]).move_to([xs[i], cy - 1.1, 0]) for i in range(5)]
-        arrows = [arr([xs[i] + 0.8, cy, 0], [xs[i + 1] - 0.8, cy, 0], GREY, w=6, tip=0.2) for i in range(4)]
-        title = T("food chain", 34, font=TITLE_FONT).move_to([-4.6, 3.1, 0])
-        self.at("food chain")
-        self.play(FadeIn(title), run_time=0.4)
-        self.at("line model")
-        self.play(*[FadeIn(VGroup(cards[i], icons[i], names[i]), scale=0.9) for i in range(5)], run_time=0.8)
-        self.play(*[GrowArrow(a) for a in arrows], lag_ratio=0.2, run_time=1.0)
-
-        def tag(i, text, color):
-            return T(text, 26, color).move_to([xs[i], -1.1, 0])
-
-        tags = {1: tag(1, "producer", GREEN), 2: tag(2, "first-order\nconsumer", TEAL_C),
-                3: tag(3, "second-order\nconsumer\n(in this chain)", C2), 4: tag(4, "third-order\nconsumer\n(in this chain)", C3)}
-        note = T("arrow: from the food to the eater", 30, YELLOW).move_to([0, -2.7, 0])
-        self.at("arrows point")
-        self.play(FadeIn(tags[1]), FadeIn(tags[2]), FadeIn(note), *[Indicate(a, color=YELLOW, scale_factor=1.2) for a in arrows],
+        world = bay_world()
+        self.add(world)
+        border = RoundedRectangle(corner_radius=.18, width=12.7, height=6.55,
+                                  color=TEXT, stroke_width=4)
+        eco = T("ecosystem", 38, TEXT).move_to([-4.9, 3.42, 0])
+        eco.add_background_rectangle(BG, opacity=.9, buff=.12)
+        eco.layout_ok = True  # intended label tab on the ecosystem bracket
+        self.at("The bay is an ecosystem")
+        self.play(Create(border), FadeIn(eco), run_time=1.1)
+        self.play(Indicate(VGroup(world.phy, world.zoo, world.men, world.water),
+                           color=TEXT, scale_factor=1.02), run_time=1.0)
+        thermo = VGroup(Line([4.95, -.9, 0], [4.95, .65, 0], color=HEAT, stroke_width=10),
+                        Circle(radius=.24, color=HEAT, fill_color=HEAT, fill_opacity=.75)
+                        .move_to([4.95, -1.05, 0]))
+        abiotic = chip("abiotic", ENERGY, size=32).move_to([3.85, 1.48, 0])
+        abiotic.layout_ok = True
+        self.at("Light water and temperature")
+        self.play(FadeIn(thermo, shift=UP * .2), Indicate(world.sun, color=ENERGY),
+                  Indicate(world.water, color=ZOO), run_time=1.1)
+        self.play(FadeIn(abiotic), run_time=.6)
+        feather = Arc(radius=.34, start_angle=-1.1, angle=2.2, color=OSP,
+                      stroke_width=5).move_to([3.55, -.55, 0])
+        waste = Dot([2.75, -1.1, 0], radius=.13, color=DEC)
+        biotic = chip("biotic", PHY, size=32).move_to([3.55, -.05, 0])
+        biotic.layout_ok = True
+        self.at("Organisms their parts")
+        self.play(FadeOut(thermo), FadeOut(abiotic), FadeIn(feather), FadeIn(waste),
+                  Indicate(VGroup(world.phy, world.zoo, world.men, world.osp), color=PHY),
                   run_time=1.2)
-        self.at("menhaden eat")
-        self.play(Indicate(arrows[2], color=YELLOW, scale_factor=1.4), run_time=0.8)
-        self.at("here they")
-        self.play(FadeIn(tags[3], shift=UP * 0.1), run_time=0.6)
-        self.at("phytoplankton directly")
-        alt = CurvedArrow(chips_top(1), chips_top(3), angle=-TAU / 5, color=YELLOW, stroke_width=5)
-        self.play(Create(alt), run_time=0.8)
-        self.at("Ospreys eat")
-        self.play(Indicate(arrows[3], color=YELLOW, scale_factor=1.4), run_time=0.8)
-        self.at("consumer eats")
-        self.play(FadeIn(tags[4], shift=UP * 0.1), run_time=0.6)
-        self.at("osprey is")
-        self.play(Indicate(VGroup(cards[4], icons[4]), color=C3, scale_factor=1.2), run_time=1.0)
+        self.play(FadeIn(biotic), run_time=.6)
+        self.at("A change in either kind")
+        self.play(Indicate(border, color=ENERGY, scale_factor=.98),
+                  world.men.animate.shift(RIGHT * .30), run_time=1.3)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S04Heat(SpokenScene):
+class S03Source(SpokenScene):
     def construct(self):
-        x0, w0 = -4.3, 1.5
-        bar = Rectangle(width=w0, height=3.9, stroke_color=YELLOW, stroke_width=3, fill_color=YELLOW,
-                        fill_opacity=0.35).move_to([x0, 0.15, 0])
-        head = T("energy in the plankton\na menhaden eats", 26, YELLOW).move_to([x0, 2.85, 0])
+        world = bay_world()
+        self.add(world)
+        trail = DashedVMobject(CurvedArrow(world.men.get_center(), world.sun.get_center(),
+                                          angle=-.35, color=ENERGY, stroke_width=5), num_dashes=18)
+        self.at("The trail ends")
+        self.play(Create(trail), run_time=1.5)
+        self.play(FadeOut(trail), world.phy.animate.scale(2.1).move_to([0, .35, 0]),
+                  FadeOut(VGroup(world.zoo, world.men, world.osp)), run_time=1.2)
+        producer = T("producer", 34, PHY).move_to([0, -1.28, 0])
+        self.at("They are producers")
+        self.play(FadeIn(producer, shift=UP * .15), run_time=.7)
+        ray = Arrow([-4.85, 2.65, 0], [-.85, .80, 0], buff=0, color=ENERGY,
+                    stroke_width=9, tip_length=.25)
+        store = chip("stored food", ENERGY, size=30).move_to([.20, .36, 0])
+        store.layout_ok = True
+        self.at("That stored energy")
+        self.play(GrowArrow(ray), run_time=.9)
+        self.play(FadeIn(store, scale=.6), run_time=.7)
+        self.play(Indicate(store, color=ENERGY, scale_factor=1.12), run_time=.8)
+        nearby = VGroup(*[phytoplankton_icon(.56).move_to(p)
+                          for p in ((-3.0, 1.25, 0), (2.7, 1.20, 0), (3.2, -.55, 0))])
+        for i, p in enumerate(nearby):
+            bob(p, amp=.05, speed=1.25, seed=i)
+        self.at("Most ecosystems need")
+        self.play(FadeIn(nearby, lag_ratio=.18), run_time=.9)
+        self.play(Indicate(ray, color=ENERGY, scale_factor=1.03), run_time=.8)
+        self.finish()
+
+
+class S04Path(SpokenScene):
+    def construct(self):
+        world = chain_world(names=True, moving=False)
+        self.add(world.bg)
+        self.at("A zooplankton eats")
+        self.play(FadeIn(world.phy), FadeIn(world.zoo), FadeIn(world.labels[:2]), run_time=.8)
+        p = packet().move_to(world.phy)
+        self.add(p)
+        self.play(world.zoo.animate.shift(LEFT * .32), p.animate.move_to(world.zoo), run_time=.9)
+        self.play(world.zoo.animate.shift(RIGHT * .32), run_time=.35)
         self.at("A menhaden eats")
-        self.play(FadeIn(bar, scale=0.9), FadeIn(head), run_time=0.8)
-        # segments, top to bottom: heat 2.0, uneaten 1.1, body 0.8 (not to scale)
-        segs = [(2.1, 0.1, RED), (0.1, -1.0, GREY), (-1.0, -1.8, C2)]
-        parts = [Rectangle(width=w0, height=a - b, stroke_color=c, stroke_width=3, fill_color=c, fill_opacity=0.4)
-                 .move_to([x0, (a + b) / 2, 0]) for a, b, c in segs]
-        self.at("Most of that")
-        ns = T("not to scale", 22, GREY).move_to([1.2, -3.0, 0])
-        self.play(FadeOut(bar), *[FadeIn(p) for p in parts], FadeIn(ns), run_time=0.5)
-        lab_body = T("built into the fish's body", 24, C2)
-        wide = 4.4
-        cx = 1.2
-        tx = [cx - 0, cx, cx]
-        blocks = []
-        for p, (a, b, c) in zip(parts, segs):
-            blocks.append(p)
-        heat_l = T("heat (thermal energy)", 26, TEXT)
-        unea_l = T("passes through\nundigested", 22, TEXT)
-        body_l = T("built into the body", 24, TEXT)
-        self.at("Much of it")
-        self.play(parts[0].animate.stretch_to_fit_width(wide).move_to([cx, 1.1, 0]), run_time=0.8)
-        heat_l.move_to(parts[0])
-        harr = VGroup(*[arr([cx - 1.4 + 1.4 * i, 2.15, 0], [cx - 1.4 + 1.4 * i, 3.05, 0], RED, w=6) for i in range(3)])
-        self.play(FadeIn(heat_l), LaggedStart(*[GrowArrow(a) for a in harr], lag_ratio=0.25), run_time=1.0)
-        self.at("passes through")
-        self.play(parts[1].animate.stretch_to_fit_width(wide).move_to([cx, -0.45, 0]), run_time=0.7)
-        unea_l.move_to(parts[1])
-        self.play(FadeIn(unea_l), run_time=0.4)
-        self.at("Only the rest")
-        self.play(parts[2].animate.stretch_to_fit_width(wide).move_to([cx, -1.4, 0]), run_time=0.7)
-        body_l.move_to(parts[2])
-        self.play(FadeIn(body_l), run_time=0.4)
-        osp = chip("osprey", C3, size=26).move_to([5.3, -1.4, 0])
-        a_o = arr([cx + wide / 2, -1.4, 0], osp.get_left(), C2, w=6)
-        self.at("where an osprey")
-        self.play(GrowArrow(a_o), FadeIn(osp), run_time=0.8)
+        self.play(FadeIn(world.men), FadeIn(world.labels[2]), run_time=.45)
+        self.play(world.men.animate.shift(LEFT * .35), p.animate.move_to(world.men), run_time=.9)
+        self.play(world.men.animate.shift(RIGHT * .35), run_time=.35)
+        self.at("An osprey catches")
+        self.play(FadeIn(world.osp), FadeIn(world.labels[3]), run_time=.45)
+        self.play(world.osp.animate.shift(LEFT * .35), p.animate.move_to(world.osp), run_time=.9)
+        self.play(world.osp.animate.shift(RIGHT * .35), run_time=.35)
+        self.at("Each eater receives")
+        self.play(Indicate(VGroup(world.zoo, world.men, world.osp), color=ENERGY,
+                           scale_factor=1.08), run_time=1.1)
+        self.at("The packet changes location")
+        path = VMobject().set_points_as_corners([[x, CHAIN_Y, 0] for x in CHAIN_X])
+        self.play(MoveAlongPath(p, path), run_time=2.0, rate_func=linear)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-def pyramid(cx, with_names=False):
-    tiers = [tier(cx, TIER_Y[i], TIER_W[i], TIER_C[i]) for i in range(4)]
-    nums = [M(NUMS[i], 30, TEXT).move_to(tiers[i]) for i in range(4)]
-    return tiers, nums
-
-
-class S05Pyramid(SpokenScene):
+class S05Predict(SpokenScene):
     def construct(self):
-        cx = 0.0
-        names = ["Producers", "first-order\nconsumers", "second-order\nconsumers", "third-order\nconsumers"]
-        tiers = [tier(cx, TIER_Y[i], TIER_W[i], TIER_C[i]) for i in range(4)]
-        outlines = [t.copy().set_fill(opacity=0).set_stroke(GREY, opacity=0.6) for t in tiers]
-        labs = [T(names[i], 24, TIER_C[i]).move_to([-3.3 - 1.0, TIER_Y[i], 0]) for i in range(4)]
-        for l, i in zip(labs, range(4)):
-            l.align_to([-3.35, 0, 0], RIGHT)
-        self.at("Stack the energy")
-        self.play(*[FadeIn(o) for o in outlines], *[FadeIn(l) for l in labs], lag_ratio=0.1, run_time=1.2)
-        title = chip("energy pyramid", YELLOW, size=30).move_to([0, 2.95, 0])
-        self.at("This stack")
-        self.play(FadeIn(title, shift=DOWN * 0.15), run_time=0.6)
-        marks = []
-        for i in range(3):
-            ym = (TIER_Y[i] + TIER_Y[i + 1]) / 2
-            a = arr([3.55, TIER_Y[i] - 0.1, 0], [3.55, TIER_Y[i + 1] + 0.1, 0], YELLOW, w=7)
-            t = T("about 1/10", 26, YELLOW).move_to([5.2, ym, 0])
-            marks.append(VGroup(a, t))
-        self.at("rough rule")
-        self.play(LaggedStart(*[FadeIn(m, shift=UP * 0.15) for m in marks], lag_ratio=0.35), run_time=1.5)
-        note = T("made-up numbers: units per square meter per year", 24, GREY).move_to([0, -3.2, 0])
-        self.at("Here is a model")
-        self.play(FadeIn(note), run_time=0.6)
-        shown = [None] * 4
-        for i, cue in enumerate(["Producers have", "consumers have", "consumers have", "consumers have"]):
-            nth = max(0, i - 1)
-            self.at(cue, nth=nth)
-            n = M(NUMS[i], 30, TEXT).move_to(tiers[i])
-            self.play(ReplacementTransform(outlines[i], tiers[i]), FadeIn(n), run_time=0.6)
+        world = chain_world(doubles=True, moving=True)
+        self.add(world.bg, world.phy, world.zoo, world.men, world.osp)
+        p = packet(.18).move_to(world.phy)
+        pulse(p, base=4, amp=2, speed=3)
+        self.add(p)
+        self.at("The arrows are missing")
+        self.play(LaggedStart(*[Create(a) for a in world.links], lag_ratio=.18), run_time=1.2)
+        q = question_card("Which way does energy move?", ["toward the food", "toward the eater"],
+                          y=-2.65, size=34, chip_size=28)
+        q.question.layout_ok = True  # intended text over the water/background floor band
+        self.at("If each arrow shows")
+        self.play(FadeIn(q.chips), run_time=.7)
+        self.play(FadeIn(q.question), run_time=.7)
+        self.at("Choose before anything moves")
+        self.play(Indicate(q.chips, color=ENERGY, scale_factor=1.03), run_time=.8)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S06Answer(SpokenScene):
+class S06Pause(PredictPause):
+    QUESTION = "Which way does energy move?"
+    OPTIONS = ["toward the food", "toward the eater"]
+    CARD = {"y": -2.65, "size": 34, "chip_size": 28}
+    SECONDS = 4.5
+
+    def backdrop(self):
+        world = chain_world(doubles=True, moving=True)
+        p = packet(.18).move_to(world.phy)
+        pulse(p, base=4, amp=2, speed=3)
+        return VGroup(world, p)
+
     def construct(self):
-        cx = -1.6
-        tiers = [tier(cx, TIER_Y[i], TIER_W[i], TIER_C[i]) for i in range(4)]
-        nums = [M(NUMS[i], 30, TEXT).move_to(tiers[i]) for i in range(4)]
-        note = T("made-up numbers: units per square meter per year", 24, GREY).move_to([cx, -3.2, 0])
-        self.add(*tiers, *nums, note)
-        self.at("So here is the answer")
-        self.play(Indicate(VGroup(*tiers), color=YELLOW, scale_factor=1.03), run_time=0.8)
-        heat = []
-        for i in range(4):
-            xr = cx + TIER_W[i] / 2
-            a = arr([xr + 0.1, TIER_Y[i], 0], [xr + 1.6, TIER_Y[i], 0], RED, w=6)
-            t = T("heat", 26, RED).next_to(a, RIGHT, buff=0.15)
-            heat.append(VGroup(a, t))
-        self.at("At each step")
-        self.play(LaggedStart(*[FadeIn(h, shift=RIGHT * 0.2) for h in heat], lag_ratio=0.3), run_time=1.6)
-        self.at("changes form")
-        self.play(Indicate(VGroup(*heat), color=RED, scale_factor=1.08), run_time=0.9)
-        tenth = VGroup(T("roughly 1/10", 28, YELLOW), T("passes up", 28, YELLOW)).arrange(DOWN, buff=0.1).move_to([5.1, 2.2, 0])
-        up = arr([5.1, -0.5, 0], [5.1, 1.5, 0], YELLOW, w=8)
-        self.at("Only roughly")
-        self.play(FadeIn(tenth), GrowArrow(up), run_time=0.8)
-        sun = VGroup(arr([-6.2, -1.95, 0], [cx - TIER_W[0] / 2 - 0.1, -1.95, 0], YELLOW, w=7), T("sunlight", 24, YELLOW).move_to([-5.5, -1.45, 0]))
-        self.at("in as sunlight")
-        self.play(FadeIn(sun, shift=RIGHT * 0.2), run_time=0.7)
-        self.at("out as heat")
-        self.play(Indicate(VGroup(*heat), color=RED, scale_factor=1.08), run_time=0.9)
-        hc = T("An energy pyramid\nis not a head count.", 26, TEXT).move_to([4.9, -3.0, 0])
-        self.at("pyramid is not")
-        self.play(FadeIn(hc, shift=UP * 0.1), run_time=0.6)
+        self.add(self.backdrop())
+        q = question_card(self.QUESTION, self.OPTIONS, y=-2.65, size=34, chip_size=28)
+        q.question.layout_ok = True  # same designed bottom-band overlay as s05
+        self.add(q)
+        ring, run = countdown(self.SECONDS, center=self.RING_AT)
+        self.add(ring)
+        self.play(run)
         self.finish()
 
 
-class S07End(EndCard):
-    LINE = "At each step, much of the energy is given off as heat."
+class S07Reveal(SpokenScene):
+    def construct(self):
+        world = chain_world(arrows=True, moving=False)
+        self.add(world.bg, world.phy, world.zoo, world.men, world.osp)
+        self.at("Arrows point from food")
+        self.play(LaggedStart(*[GrowArrow(a) for a in world.links], lag_ratio=.16), run_time=1.2)
+        p = packet(.18).move_to(world.phy)
+        self.add(p)
+        route = VMobject().set_points_as_corners([[x, CHAIN_Y, 0] for x in CHAIN_X])
+        self.play(MoveAlongPath(p, route), run_time=2.2, rate_func=linear)
+        label = chip("one food chain", ENERGY, size=34).move_to([0, -1.55, 0])
+        label.layout_ok = True
+        self.at("This straight route")
+        self.play(FadeIn(label, shift=UP * .15), run_time=.7)
+        outline = RoundedRectangle(corner_radius=.20, width=12.4, height=2.55,
+                                   color=ENERGY, stroke_width=5).move_to([0, .35, 0])
+        self.at("It is one path")
+        self.play(FadeIn(Rectangle(width=13.3, height=5.8, color=BG, fill_color=BG,
+                                   fill_opacity=.25, stroke_width=0).move_to([0, -.35, 0])),
+                  Create(outline), run_time=.9)
+        self.play(ShowPassingFlash(outline.copy().set_stroke(width=12), time_width=.45),
+                  run_time=2.0)
+        self.at("Read every arrow")
+        reread = packet(.15).move_to(world.phy)
+        self.add(reread)
+        self.play(MoveAlongPath(reread, route), run_time=3.0, rate_func=linear)
+        self.finish()
+
+
+class S08Web(SpokenScene):
+    def construct(self):
+        world = web_world(with_arrows=False)
+        world.remove(world.big)
+        self.add(world)
+        base = web_arrows(world)[:3]
+        self.add(base)
+        chain_label = chip("food chain", ENERGY, size=32).move_to([0, -2.35, 0])
+        chain_label.layout_ok = True
+        self.add(chain_label)
+        self.at("Menhaden can also eat")
+        direct = web_arrows(world)[3]
+        self.play(Create(direct), run_time=1.1)
+        p1 = packet(.14).move_to(world.phy)
+        self.add(p1)
+        self.play(MoveAlongPath(p1, direct.copy()), run_time=1.1, rate_func=linear)
+        self.at("Larger fish can eat")
+        to_big = web_arrows(world)[4]
+        self.play(FadeIn(world.big), Create(to_big), run_time=1.0)
+        p2 = packet(.14).move_to(world.men)
+        self.add(p2)
+        self.play(MoveAlongPath(p2, to_big.copy()), run_time=1.0, rate_func=linear)
+        self.at("New arrows join")
+        self.play(Indicate(VGroup(base, direct, to_big), color=ENERGY, scale_factor=1.02), run_time=.9)
+        web_label = chip("food web", ENERGY, size=36).move_to(chain_label)
+        web_label.layout_ok = True
+        self.at("Linked food chains")
+        self.play(swap(chain_label, web_label), run_time=.8)
+        self.at("That web reveals")
+        self.play(world.zoo.animate.shift(DOWN * .20),
+                  world.men.animate.shift(RIGHT * .22), run_time=1.0)
+        self.play(world.zoo.animate.shift(UP * .20), world.men.animate.shift(LEFT * .22),
+                  run_time=.7)
+        self.finish()
+
+
+class S09Orders(SpokenScene):
+    def construct(self):
+        world = web_world()
+        self.add(world)
+        long_route = VGroup(*[world.arrows[i].copy().set_color(ENERGY).set_stroke(width=10)
+                              for i in (0, 1, 2)])
+        blocks3 = VGroup(*[chip(str(i), ENERGY, size=38) for i in (1, 2, 3)])
+        blocks3.arrange(RIGHT, buff=.28).move_to([0, -1.9, 0])
+        for b in blocks3:
+            b.layout_ok = True
+        self.at("On the longer path")
+        self.play(Create(long_route), LaggedStart(*[FadeIn(b, shift=UP * .15) for b in blocks3],
+                                                  lag_ratio=.20), run_time=1.3)
+        self.play(Indicate(world.osp, color=OSP, scale_factor=1.18), run_time=.7)
+        short_route = VGroup(world.arrows[3].copy().set_stroke(width=10),
+                             world.arrows[2].copy().set_stroke(width=10))
+        blocks2 = VGroup(*[chip(str(i), ENERGY, size=38) for i in (1, 2)])
+        blocks2.arrange(RIGHT, buff=.28).move_to([0, -1.9, 0])
+        for b in blocks2:
+            b.layout_ok = True
+        self.at("On a shorter path")
+        self.play(FadeOut(long_route), FadeOut(blocks3), Create(short_route),
+                  FadeIn(blocks2), run_time=1.1)
+        self.at("The animal stays")
+        self.play(Indicate(world.osp, color=OSP, scale_factor=1.18), run_time=.9)
+        self.at("Its order depends")
+        self.play(Indicate(short_route, color=ENERGY, scale_factor=1.03), run_time=.9)
+        rule = caption("Consumer order is a position on one route.", color=TEXT, y=-1.9)
+        rule.layout_ok = True  # intended caption over the carried Bay background
+        self.at("Consumer order describes")
+        self.play(FadeOut(blocks2), FadeIn(rule), run_time=.8)
+        self.finish()
+
+
+class S10Decomposers(SpokenScene):
+    def construct(self):
+        world = bay_world()
+        self.add(world)
+        starts = [world.phy.get_center(), world.zoo.get_center(),
+                  world.men.get_center(), world.osp.get_center()]
+        colors = [PHY, ZOO, MEN, OSP]
+        pieces = VGroup(*[Square(.18, color=c, fill_color=c, fill_opacity=.65).move_to(s)
+                          for s, c in zip(starts, colors)])
+        self.at("Dead matter and wastes")
+        self.play(FadeIn(pieces), run_time=.5)
+        targets = [[-2.5 + i * 1.45, -2.55, 0] for i in range(4)]
+        self.play(*[p.animate.move_to(t) for p, t in zip(pieces, targets)], run_time=1.4,
+                  rate_func=linear)
+        routes = VGroup(*[DashedLine(s, t, color=DEC, stroke_width=4, dash_length=.16)
+                          for s, t in zip(starts, targets)])
+        dec_label = T("decomposers", 32, DEC).move_to([-4.95, -2.2, 0])
+        self.at("Dashed roots lead")
+        self.play(LaggedStart(*[Create(r) for r in routes], lag_ratio=.15),
+                  FadeIn(dec_label), run_time=1.2)
+        specks = VGroup(*[packet(.08).move_to(s) for s in starts])
+        self.add(specks)
+        self.play(*[s.animate.move_to(t) for s, t in zip(specks, targets)], run_time=3.2,
+                  rate_func=linear)
+        loop = CurvedArrow([-2.75, -2.72, 0], [-.65, -2.72, 0], angle=-PI / 2,
+                           color=DEC, stroke_width=5)
+        self.at("Their work returns matter")
+        self.play(Create(loop), run_time=1.0)
+        onward = Arrow([2.1, -2.60, 0], [5.6, -2.60, 0], color=ENERGY,
+                       stroke_width=7, tip_length=.24)
+        self.play(GrowArrow(onward),
+                  *[s.animate.move_to([4.6 + .20 * i, -2.60, 0]) for i, s in enumerate(specks)],
+                  run_time=1.2)
+        self.at("The decomposer branch")
+        self.play(LaggedStart(*[Indicate(r, color=DEC, scale_factor=1.02)
+                                for r in routes], lag_ratio=.16), run_time=1.3)
+        self.finish()
+
+
+class S11Narrowing(SpokenScene):
+    def construct(self):
+        world = web_world()
+        self.add(world)
+        starts = [world.phy.get_center() + UP * .25 + RIGHT * .12 * i for i in range(4)]
+        packets = VGroup(*[packet(.22).move_to(s) for s in starts])
+        self.at("Now watch each feeding")
+        self.play(FadeIn(packets, lag_ratio=.15), run_time=.7)
+        self.play(Indicate(world.phy, color=ENERGY, scale_factor=1.12), run_time=.7)
+        continuing = packets[0]
+        side = VGroup(packets[1], packets[2], packets[3])
+        self.at("Much energy follows")
+        self.play(side.animate.move_to(world.dec.get_center()).scale(.65),
+                  continuing.animate.move_to(world.zoo).scale(.78), run_time=1.3)
+        heat1 = VGroup(*[Arc(radius=.22 + .10 * i, start_angle=.2, angle=1.4,
+                            color=HEAT, stroke_width=4).move_to(world.zoo.get_center() + RIGHT * .75)
+                         for i in range(3)])
+        self.play(FadeIn(heat1, lag_ratio=.15),
+                  continuing.animate.move_to(world.men).scale(.72), run_time=1.2)
+        self.at("Energy has not disappeared")
+        down = DashedLine(world.men.get_center(), world.dec.get_center(), color=DEC,
+                          stroke_width=4, dash_length=.15)
+        heat2 = heat1.copy().move_to(world.men.get_center() + RIGHT * .9)
+        self.play(Create(down), FadeIn(heat2), run_time=.8)
+        self.play(continuing.animate.move_to(world.osp).scale(.65), run_time=1.1)
+        rule = caption("less available at each step", size=36, color=ENERGY, y=-1.85)
+        rule.shift(LEFT * 3.2)
+        rule.layout_ok = True  # intended caption over the carried Bay background
+        self.at("At each feeding step")
+        self.play(FadeIn(rule), run_time=.7)
+        self.play(Indicate(VGroup(world.phy, world.zoo, world.men, world.osp),
+                           color=ENERGY, scale_factor=1.03), run_time=1.2)
+        self.finish()
+
+
+class S12Return(SpokenScene):
+    def construct(self):
+        world = web_world()
+        self.add(world)
+        ray = Arrow(world.sun.get_center() + DR * .35, world.phy.get_center() + UL * .35,
+                    color=ENERGY, stroke_width=7, tip_length=.22)
+        p = packet(.20).move_to(world.sun)
+        self.add(p)
+        self.at("The Osprey's energy")
+        self.play(GrowArrow(ray), p.animate.move_to(world.phy), run_time=1.0)
+        route = VMobject().set_points_as_corners([world.phy.get_center(), world.zoo.get_center(),
+                                                  world.men.get_center(), world.osp.get_center()])
+        self.play(MoveAlongPath(p, route), run_time=2.0, rate_func=linear)
+        self.play(p.animate.scale(.34), run_time=.35)
+        self.at("A food web shows")
+        branch_packets = VGroup(packet(.12).move_to(world.phy), packet(.12).move_to(world.men))
+        self.add(branch_packets)
+        self.play(MoveAlongPath(branch_packets[0], world.arrows[3].copy()),
+                  MoveAlongPath(branch_packets[1], world.arrows[4].copy()), run_time=1.4,
+                  rate_func=linear)
+        heat = VGroup(*[Arc(radius=.18 + .09 * i, start_angle=.1, angle=1.5,
+                           color=HEAT, stroke_width=4).move_to([2.9, 1.25, 0]) for i in range(3)])
+        downward = DashedLine(world.men.get_center(), world.dec.get_center(), color=DEC,
+                              stroke_width=4, dash_length=.15)
+        self.at("The shrinking packet")
+        self.play(FadeIn(heat, lag_ratio=.12), Create(downward),
+                  Indicate(p, color=ENERGY, scale_factor=1.6), run_time=1.1)
+        school = VGroup(*[fish_icon(MEN, .45).move_to([-.55 + .55 * (i % 4),
+                                                       -.15 - .42 * (i // 4), 0])
+                          for i in range(8)])
+        self.at("The web maps routes")
+        self.play(Transform(world.men, school), FadeOut(branch_packets), run_time=1.1)
+        self.play(Indicate(world.arrows, color=ENERGY, scale_factor=1.02), run_time=.9)
+        self.finish()
+
+
+class S13End(EndCard):
+    LINE = "At each feeding step, less energy is available to the next level."

@@ -1,391 +1,442 @@
-"""Classification changes: when new evidence moves the groups  (Biochemistrypedia explainer)
+"""Classification changes: The Molecule Behind the Tree.
 
-Timed to the SPOKEN words: every self.at("...") cue waits for that phrase in audio/words.json.
+COLOR MAP
+  BAC = typical Bacteria (blue)
+  TEAL = methane makers / Archaea
+  GOLD = Eukarya
+  TEXT = evidence and supported claims
+  GREY = unresolved or de-emphasised structure
 
-COLOR MAP (one color per concept, whole video)
-  YELLOW = ribosomal RNA, the molecule compared; new evidence
-  BAC    = Bacteria (typical bacteria)
-  TEAL   = Archaea (methane-making microbes)
-  GREEN  = Eukarya, and "closer relatives" / a match
-  ORANGE = fungi
-  GOLD   = years (1977, 1990, 1993)
-  RED    = a claim that needs fixing; what the microscope cannot show
-  TEXT   = groups, claims (nested boxes, the classification claim)
-  GREY   = outlines, de-emphasised
+All carried cells and trees are rebuilt by the builders below so their scale and
+landmarks stay fixed from scene to scene.  RNA is represented only as labelled
+rectangular records; no molecular structure is drawn.
 """
-import numpy as np
-from bp_style import *  # noqa: F401,F403
+from bp_parts import *  # noqa: F401,F403
 
-ORANGE = "#F29E4C"
-BAC = "#7D8CFF"   # Bacteria (periwinkle, distinct from teal)
-
-
-def bchip(text, color=BAC, size=26, **kw):
-    c = chip(text, color, size=size, **kw)
-    back = RoundedRectangle(corner_radius=0.14, width=c[0].width, height=c[0].height, stroke_width=0,
-                            fill_color=BG, fill_opacity=1).move_to(c[0])
-    return VGroup(back, *c)
+BAC = "#6F86FF"
+EUK = GOLD
 
 
-def arr(a, b, color=GREY, w=5, tip=0.22):
-    return Arrow(a, b, buff=0.08, color=color, stroke_width=w, tip_length=tip,
-                 max_tip_length_to_length_ratio=0.45, max_stroke_width_to_length_ratio=12)
+class LivingScene(SpokenScene):
+    """Spoken scene on the film's one gently scanned diagram board."""
+
+    def setup(self):
+        super().setup()
+        board = RoundedRectangle(
+            corner_radius=0.30, width=12.55, height=6.55,
+            stroke_color=GREY, stroke_width=2,
+            fill_color=GREY, fill_opacity=0.18,
+        ).set_z_index(-50)
+        scan = Rectangle(width=0.82, height=6.10, stroke_width=0,
+                         fill_color=TEAL, fill_opacity=0.30).set_z_index(-49)
+        scan._x = -5.85
+        scan.move_to([scan._x, 0, 0])
+
+        def sweep(mob, dt):
+            mob._x += 1.60 * dt
+            if mob._x > 5.85:
+                mob._x = -5.85
+            mob.move_to([mob._x, 0, 0])
+
+        scan.add_updater(sweep)
+        board.layout_ok = True  # background diagram board intentionally sits behind all labels
+        scan.layout_ok = True   # faint focus sweep intentionally passes behind the diagram
+        self.add(board, scan)
 
 
-def microbe(color=GREY, w=1.5, h=0.8):
-    return RoundedRectangle(corner_radius=h / 2, width=w, height=h, stroke_color=color, stroke_width=4,
-                            fill_color=color, fill_opacity=0.18)
-
-
-def year(text, size=36):
-    return M(text, size, GOLD)
-
-
-class S00Title(TitleCard):
-    LESSON = "Classification changes"
-    TITLE = "When New Evidence Moves the Groups"
-
-
-# ---------------------------------------------------------------------------------------------
-class S01Look(SpokenScene):
-    def construct(self):
-        lens = Circle(radius=2.2, stroke_color=GREY, stroke_width=5, fill_color=GREY, fill_opacity=0.06).move_to([0, 0.5, 0])
-        lens_lbl = T("under a microscope", 28, GREY).next_to(lens, UP, buff=0.15)
-        a = microbe().move_to([-0.95, 0.5, 0])
-        b = microbe().move_to([0.95, 0.5, 0])
-        la = T("typical bacterium", 26, GREY).move_to([-3.9, 0.9, 0])
-        lb = T("methane-making microbe", 26, GREY).move_to([4.2, 0.9, 0])
-        la.set_x(-4.8); lb.set_x(5.0)
-        la = T("typical\nbacterium", 26, GREY, line_spacing=0.8).next_to(lens, LEFT, buff=0.35)
-        lb = T("methane-making\nmicrobe", 26, GREY, line_spacing=0.8).next_to(lens, RIGHT, buff=0.35)
-        alike = T("look just alike", 34, TEXT, weight=BOLD).move_to([0, -2.3, 0])
-        self.at("Some microbes that make methane")
-        self.play(Create(lens), FadeIn(lens_lbl), run_time=0.7)
-        self.play(FadeIn(a, scale=0.9), FadeIn(b, scale=0.9), FadeIn(la), FadeIn(lb), run_time=0.8)
-        self.at("look just like bacteria")
-        self.play(FadeIn(alike, shift=UP * 0.15), run_time=0.5)
-
-        yr = year("1977").move_to([-5.6, 3.1, 0])
-        self.at("In 1977")
-        self.play(FadeIn(yr, shift=DOWN * 0.15), run_time=0.5)
-        # one molecule inside each microbe
-        da = Dot(radius=0.13, color=YELLOW).move_to(a.get_center())
-        db = Dot(radius=0.13, color=YELLOW).move_to(b.get_center())
-        mol = T("one molecule inside", 30, YELLOW).move_to([0, -2.3, 0])
-        self.at("compared one molecule")
-        self.play(FadeOut(alike), FadeIn(da, scale=2), FadeIn(db, scale=2), FadeIn(mol), run_time=0.7)
-
-        # split into separate branches
-        root = Dot(radius=0.07, color=GREY).move_to([0, -0.6, 0])
-        ta, tb = np.array([-2.6, 1.3, 0]), np.array([2.6, 1.3, 0])
-        lna = Line(root.get_center(), ta, color=BAC, stroke_width=6)
-        lnb = Line(root.get_center(), tb, color=TEAL, stroke_width=6)
-        a2 = microbe(BAC).move_to(ta + UP * 0.55)
-        b2 = microbe(TEAL).move_to(tb + UP * 0.55)
-        la2 = T("typical bacterium", 26, BAC).next_to(a2, UP, buff=0.12)
-        lb2 = T("methane-making microbe", 26, TEAL).next_to(b2, UP, buff=0.12)
-        sep = T("a separate line of descent", 32, TEAL, weight=BOLD).move_to([0, -1.3, 0])
-        self.at("separate line of descent")
-        self.play(FadeOut(lens), FadeOut(lens_lbl), FadeOut(la), FadeOut(lb), FadeOut(mol), FadeOut(da), FadeOut(db),
-                  FadeOut(yr), ReplacementTransform(a, a2), ReplacementTransform(b, b2),
-                  FadeIn(root), Create(lna), Create(lnb), FadeIn(la2), FadeIn(lb2), run_time=1.2)
-        self.play(FadeIn(sep, shift=UP * 0.1), run_time=0.5)
-
-        q1 = T("How has DNA changed the way we classify life?", 32, TEXT, weight=BOLD)
-        q2 = T("Why is it fine for science to change its mind?", 32, YELLOW, weight=BOLD)
-        qs = VGroup(q1, q2).arrange(DOWN, buff=0.3).move_to([0, -2.7, 0])
-        self.at("How has DNA")
-        self.play(FadeIn(q1, shift=UP * 0.15), run_time=0.6)
-        self.at("why is it fine")
-        self.play(FadeIn(q2, shift=UP * 0.15), run_time=0.6)
-        self.finish()
-
-
-# ---------------------------------------------------------------------------------------------
-class S02Groups(SpokenScene):
-    def construct(self):
-        head = bchip("classification: sorting living things into groups", TEXT, 28).to_edge(UP, buff=0.5)
-        outer = RoundedRectangle(corner_radius=0.2, width=7.0, height=4.6, stroke_color=TEXT, stroke_width=4,
-                                 fill_color=TEXT, fill_opacity=0.05).move_to([0, -0.4, 0])
-        mid = RoundedRectangle(corner_radius=0.2, width=4.8, height=2.6, stroke_color=TEXT, stroke_width=4,
-                               fill_color=TEXT, fill_opacity=0.08).move_to([0, -0.9, 0])
-        inner = RoundedRectangle(corner_radius=0.15, width=2.4, height=1.0, stroke_color=GREY, stroke_width=3,
-                                 fill_color=GREY, fill_opacity=0.12).move_to([0, -1.5, 0])
-        dom_l = T("domain: the largest group", 28, TEXT, weight=BOLD).move_to(outer.get_top() + DOWN * 0.45)
-        king_l = T("kingdom: a large group", 28, TEXT, weight=BOLD).move_to(mid.get_top() + DOWN * 0.4)
-        in_l = T("smaller group", 24, GREY).move_to(inner)
-        nest = T("nested, like folders inside folders", 28, GREY).move_to([0, -3.35, 0])
-        self.at("Classification is the sorting")
-        self.play(FadeIn(head, shift=DOWN * 0.15), run_time=0.7)
-        self.at("The groups are nested")
-        self.play(FadeIn(inner), FadeIn(mid), FadeIn(outer), FadeIn(in_l), FadeIn(nest), run_time=0.8)
-        self.at("A kingdom is a large group")
-        self.play(FadeIn(king_l), run_time=0.5)
-        self.at("A domain is the largest")
-        self.play(FadeIn(dom_l), run_time=0.5)
-        self.at("above kingdom")
-        self.play(Indicate(dom_l, color=TEXT, scale_factor=1.08), run_time=0.8)
-
-        boxes = VGroup(outer, mid, inner, dom_l, king_l, in_l)
-        self.at("A microscope shows")
-        self.play(FadeOut(nest), FadeOut(head), run_time=0.4)
-        self.play(boxes.animate.scale(0.8).move_to([-3.5, 0.0, 0]), run_time=0.9)
-        lens = Circle(radius=1.9, stroke_color=GREY, stroke_width=5, fill_color=GREY, fill_opacity=0.06).move_to([3.4, 1.3, 0])
-        lens_l = T("microscope", 26, GREY).next_to(lens, UP, buff=0.12)
-        shape = T("shape  ✓", 34, GREEN, weight=BOLD).move_to([3.4, 1.6, 0])
-        size = T("size  ✓", 34, GREEN, weight=BOLD).move_to([3.4, 0.9, 0])
-        anc = T("ancestry: little", 38, RED, weight=BOLD).move_to([3.4, -2.0, 0])
-        self.play(Create(lens), FadeIn(lens_l), run_time=0.6)
-        self.play(FadeIn(shape, shift=RIGHT * 0.2), FadeIn(size, shift=RIGHT * 0.2), run_time=0.6)
-        self.at("says little")
-        self.play(FadeIn(anc, shift=UP * 0.15), run_time=0.6)
-        self.finish()
-
-
-# ---------------------------------------------------------------------------------------------
-def block_row(n, y, x0, w=0.62, color=YELLOW, diff=(), diff_color=TEXT):
-    row = VGroup()
-    for i in range(n):
-        c = diff_color if i in diff else color
-        op = 0.95 if i in diff else 0.5
-        r = Rectangle(width=w, height=0.5, stroke_color=c, stroke_width=3, fill_color=c, fill_opacity=op)
-        r.move_to([x0 + i * (w + 0.05), y, 0])
-        row.add(r)
-    return row
-
-
-class S03Molecule(SpokenScene):
-    def construct(self):
-        specs = [("Bacteria", BAC, -4.3), ("Archaea", TEAL, 0.0), ("Eukarya", GREEN, 4.3)]
-        cells, ribs, rlabs, nlabs = [], [], [], []
-        for name, col, x in specs:
-            cell = Circle(radius=1.15, stroke_color=col, stroke_width=4, fill_color=col, fill_opacity=0.1).move_to([x, 1.5, 0])
-            ribos = VGroup(*[Dot(radius=0.1, color=GREY).move_to([x + dx, 1.5 + dy, 0])
-                             for dx, dy in [(-0.45, 0.35), (0.4, 0.45), (0.05, -0.1), (-0.35, -0.5), (0.5, -0.45)]])
-            nl = T(name, 26, col).next_to(cell, UP, buff=0.12)
-            cells.append(cell); ribs.append(ribos); nlabs.append(nl)
-        self.at("Every cell builds proteins")
-        self.play(*[FadeIn(c) for c in cells], *[FadeIn(n) for n in nlabs], *[FadeIn(r) for r in ribs], run_time=0.9)
-        rib_l = T("ribosomes", 26, GREY).move_to([0, -0.35, 0])
-        self.play(FadeIn(rib_l), run_time=0.4)
-        self.at("Ribosomal RNA is")
-        rr = T("ribosomal RNA", 30, YELLOW, weight=BOLD).move_to([0, -0.35, 0])
-        self.play(*[r.animate.set_color(YELLOW) for r in ribs], ReplacementTransform(rib_l, rr), run_time=0.7)
-        self.at("Because every cell has it")
-        self.play(*[Indicate(r, color=YELLOW, scale_factor=1.25) for r in ribs], run_time=0.9)
-        cmp_l = T("compared across all cellular life", 28, TEXT)
-        arrs = VGroup(Line([-3.0, -0.35, 0], [-1.9, -0.35, 0], color=GREY, stroke_width=4),
-                      Line([1.9, -0.35, 0], [3.0, -0.35, 0], color=GREY, stroke_width=4))
-        self.play(FadeOut(rr), run_time=0.3)
-        cmp_l.move_to([0, -0.35, 0])
-        self.play(FadeIn(cmp_l), run_time=0.5)
-
-        self.at("Its sequence changes slowly")
-        top = block_row(14, -1.5, -4.2)
-        bot = block_row(14, -2.15, -4.2, diff=(3, 8, 11))
-        t_l = T("A", 24, GREY).move_to([-5.1, -1.5, 0])
-        b_l = T("B", 24, GREY).move_to([-5.1, -2.15, 0])
-        self.play(FadeOut(cmp_l), FadeIn(top), FadeIn(bot), FadeIn(t_l), FadeIn(b_l), run_time=0.8)
-        shared = T("mostly shared", 26, YELLOW).move_to([0, -0.85, 0])
-        self.play(FadeIn(shared), run_time=0.4)
-        self.at("Shared does not mean identical")
-        self.play(*[Indicate(bot[i], color=TEXT, scale_factor=1.25) for i in (3, 8, 11)], run_time=0.8)
-        ev = T("the small differences are the evidence", 32, TEXT, weight=BOLD).move_to([0, -3.1, 0])
-        self.at("The small differences")
-        self.play(FadeIn(ev, shift=UP * 0.12), run_time=0.6)
-        self.finish()
-
-
-# ---------------------------------------------------------------------------------------------
-def piece_list(widths, x, y0, color, gap=0.55):
-    g = VGroup()
-    for i, w in enumerate(widths):
-        g.add(Rectangle(width=w, height=0.38, stroke_color=color, stroke_width=3, fill_color=color,
-                        fill_opacity=0.3).move_to([x, y0 - i * gap, 0]))
+def cell_icon(color, label=None, nucleus=False, at=ORIGIN, scale=1.0):
+    """The film's large schematic cell; intentionally not a molecular drawing."""
+    body = RoundedRectangle(
+        corner_radius=0.52, width=2.25, height=1.35,
+        stroke_color=color, stroke_width=5,
+        fill_color=color, fill_opacity=0.15,
+    )
+    inner = VGroup(
+        Dot([-0.50, 0.18, 0], radius=0.10, color=TEXT),
+        Dot([0.10, -0.25, 0], radius=0.10, color=TEXT),
+        Dot([0.54, 0.28, 0], radius=0.10, color=TEXT),
+    )
+    if nucleus:
+        inner.add(Circle(radius=0.30, color=EUK, stroke_width=4).move_to([-0.22, 0.08, 0]))
+    g = VGroup(body, inner)
+    if label:
+        g.add(T(label, 32, color, weight=BOLD).next_to(body, DOWN, buff=0.16))
+    g.scale(scale).move_to(at)
     return g
 
 
-class S04Score(SpokenScene):
+def tree_world(labels=False, model_tag=False, at=ORIGIN, scale=1.0):
+    """The carried three-tip tree. Every branch landmark is defined here."""
+    root = np.array([0.0, -2.15, 0.0])
+    joint = np.array([0.0, -0.72, 0.0])
+    tips = [np.array([-3.55, 1.72, 0]), np.array([0.0, 2.22, 0]), np.array([3.55, 1.72, 0])]
+    lines = VGroup(
+        Line(root, joint, color=GREY, stroke_width=9),
+        Line(joint, tips[0], color=BAC, stroke_width=9),
+        Line(joint, tips[1], color=TEAL, stroke_width=9),
+        Line(joint, tips[2], color=EUK, stroke_width=9),
+    )
+    nodes = VGroup(Dot(root, radius=0.13, color=TEXT), Dot(joint, radius=0.16, color=TEXT))
+    icons = VGroup(
+        cell_icon(BAC, at=tips[0] + UP * 0.42, scale=0.53),
+        cell_icon(TEAL, at=tips[1] + UP * 0.42, scale=0.53),
+        cell_icon(EUK, nucleus=True, at=tips[2] + UP * 0.42, scale=0.53),
+    )
+    g = VGroup(lines, nodes, icons)
+    if labels:
+        labs = VGroup(
+            T("Bacteria", 30, BAC, weight=BOLD).next_to(icons[0], UP, buff=0.06),
+            T("Archaea", 30, TEAL, weight=BOLD).next_to(icons[1], UP, buff=0.06),
+            T("Eukarya", 30, EUK, weight=BOLD).next_to(icons[2], UP, buff=0.06),
+        )
+        g.add(labs)
+    if model_tag:
+        g.add(T("best-supported model", 34, TEXT).move_to([0, -2.62, 0]))
+    g.scale(scale).move_to(at)
+    return g
+
+
+def unresolved_tree(at=(3.75, 0.35, 0), scale=0.72):
+    root = np.array([0, -2.0, 0])
+    joint = np.array([0, -0.45, 0])
+    tips = [np.array([-1.55, 1.55, 0]), np.array([1.55, 1.55, 0])]
+    g = VGroup(
+        Line(root, joint, color=GREY, stroke_width=8),
+        Line(joint, tips[0], color=GREY, stroke_width=8),
+        Line(joint, tips[1], color=GREY, stroke_width=8),
+        Dot(joint, radius=0.15, color=TEXT),
+    )
+    return g.scale(scale).move_to(at)
+
+
+def rna_strip(color=TEXT, at=ORIGIN, width=2.8):
+    box = RoundedRectangle(corner_radius=0.12, width=width, height=0.52,
+                           stroke_color=color, stroke_width=3,
+                           fill_color=color, fill_opacity=0.18).move_to(at)
+    return VGroup(box, T("ribosomal RNA", 24, color).move_to(box))
+
+
+def tile_row(pattern, color=TEXT, at=ORIGIN, scale=1.0):
+    tiles = VGroup()
+    for i, value in enumerate(pattern):
+        col = color if value else GREY
+        r = RoundedRectangle(corner_radius=0.08, width=0.66, height=0.56,
+                             stroke_color=col, stroke_width=3,
+                             fill_color=col, fill_opacity=0.22)
+        t = M(chr(65 + i), 24, col)
+        tiles.add(VGroup(r, t.move_to(r)))
+    tiles.arrange(RIGHT, buff=0.12).scale(scale).move_to(at)
+    return tiles
+
+
+def pair_diagram(matches, color_a=TEAL, color_b=TEAL, at=ORIGIN, width=4.4):
+    """Two six-tile catalogues; matches are explicit data in this schematic."""
+    top = tile_row([1] * 6, color_a, at=UP * 0.58)
+    bottom = tile_row([1] * 6, color_b, at=DOWN * 0.58)
+    links = VGroup()
+    for i in range(matches):
+        links.add(Line(top[i].get_bottom(), bottom[i].get_top(), color=TEXT, stroke_width=4))
+    g = VGroup(links, top, bottom)
+    fit(g, max_w=width)
+    g.move_to(at)
+    return g
+
+
+def predict_backdrop():
+    many = pair_diagram(5, TEXT, TEXT, at=[-3.35, 0.60, 0], width=4.7)
+    few = pair_diagram(2, TEXT, TEXT, at=[3.35, 0.60, 0], width=4.7)
+    q1 = T("?", 48, GOLD, weight=BOLD).next_to(many, UP, buff=0.18)
+    q2 = T("?", 48, GOLD, weight=BOLD).next_to(few, UP, buff=0.18)
+    bob(many, amp=0.07, speed=1.4)
+    bob(few, amp=0.07, speed=1.2, seed=2)
+    return VGroup(many, few, q1, q2)
+
+
+class S00Hook(LivingScene):
     def construct(self):
-        yr = year("1977").to_edge(UP, buff=0.4).set_x(-5.2)
-        who = T("Woese and Fox", 30, TEXT).next_to(yr, RIGHT, buff=0.3)
-        bar = Rectangle(width=7.0, height=0.5, stroke_color=YELLOW, stroke_width=3, fill_color=YELLOW,
-                        fill_opacity=0.3).move_to([0, 2.55, 0])
-        bar_l = T("ribosomal RNA", 28, YELLOW).next_to(bar, DOWN, buff=0.15)
-        self.play(FadeIn(yr), FadeIn(who), FadeIn(bar), FadeIn(bar_l), run_time=0.7)
-
-        wa = [1.3, 0.8, 1.7, 1.0, 1.5]
-        wbm = [1.3, 0.8, 1.7, 1.0, 1.5]
-        wbb = [0.7, 1.4, 1.7, 1.3, 0.9]  # only the middle piece matches
-        # cut into pieces: bar becomes a row of pieces
-        self.at("cut ribosomal RNA")
-        tot = 7.0
-        row = VGroup()
-        xs = 0.0
-        ws = [w / sum(wa) * (tot - 0.4 * 4) for w in wa]
-        pos = -tot / 2
-        for w in ws:
-            row.add(Rectangle(width=w, height=0.5, stroke_color=YELLOW, stroke_width=3, fill_color=YELLOW,
-                              fill_opacity=0.3).move_to([pos + w / 2, 2.55, 0]))
-            pos += w + 0.4
-        self.play(ReplacementTransform(bar, row), run_time=0.9)
-
-        LA, LB = -3.6, 3.6
-        la = piece_list(wa, LA, 1.1, TEAL)
-        lb = piece_list(wbm, LB, 1.1, TEAL)
-        ta = T("organism A", 26, GREY).move_to([LA, 1.85, 0])
-        tb = T("organism B", 26, GREY).move_to([LB, 1.85, 0])
-        self.at("listed them")
-        self.play(FadeOut(row), FadeOut(bar_l), FadeIn(la), FadeIn(lb), FadeIn(ta), FadeIn(tb), run_time=0.9)
-        for g in (la, lb):
-            g.set_color(GREY)
-            for r in g:
-                r.set_fill(GREY, 0.3)
-
-        gauge = Line([-2.0, -2.6, 0], [3.4, -2.6, 0], color=GREY, stroke_width=6)
-        g0 = T("0  no overlap", 26, GREY).next_to(gauge.get_left(), DOWN, buff=0.3).shift(RIGHT * 0.9)
-        g1 = T("1  the same", 26, GREY).next_to(gauge.get_right(), DOWN, buff=0.3).shift(LEFT * 0.6)
-        sc_l = T("score", 30, TEXT, weight=BOLD).next_to(gauge, LEFT, buff=0.5)
-        marker = Triangle(color=GREY, fill_opacity=1, stroke_width=0).scale(0.2).rotate(PI)
-        marker.move_to([-2.0, -2.25, 0])
-        self.at("scored how much")
-        links = VGroup(*[Line(la[i].get_right(), lb[i].get_left(), color=GREEN, stroke_width=4) for i in range(5)])
-        self.play(FadeIn(links), run_time=0.7)
-        self.play(FadeOut(links), run_time=0.4)
-        self.at("The score runs from zero")
-        self.play(Create(gauge), FadeIn(g0), FadeIn(g1), FadeIn(sc_l), FadeIn(marker), run_time=0.9)
-
-        # methane maker vs methane maker
-        ta2 = T("methane maker", 26, TEAL).move_to([LA, 1.85, 0])
-        tb2 = T("methane maker", 26, TEAL).move_to([LB, 1.85, 0])
-        links = VGroup(*[Line(la[i].get_right(), lb[i].get_left(), color=GREEN, stroke_width=4) for i in range(5)])
-        self.at("scored high")
-        self.play(ReplacementTransform(ta, ta2), ReplacementTransform(tb, tb2),
-                  *[r.animate.set_color(TEAL).set_fill(TEAL, 0.3) for g in (la, lb) for r in g], run_time=0.6)
-        self.play(FadeIn(links), marker.animate.move_to([0.7, -2.25, 0]).set_color(GREEN), run_time=0.9)
-        high = T("high", 30, GREEN, weight=BOLD).next_to(marker, UP, buff=0.12)
-        self.play(FadeIn(high), run_time=0.3)
-
-        # vs typical bacterium
-        tb3 = T("typical bacterium", 26, BAC).move_to([LB, 1.85, 0])
-        newb = piece_list(wbb, LB, 1.1, BAC)
-        keep = Line(la[2].get_right(), newb[2].get_left(), color=GREEN, stroke_width=4)
-        self.at("low with typical bacteria")
-        self.play(FadeOut(links), FadeOut(high), ReplacementTransform(tb2, tb3), ReplacementTransform(lb, newb),
-                  marker.animate.move_to([-1.46, -2.25, 0]).set_color(RED), run_time=0.7)
-        self.play(FadeIn(keep), run_time=0.3)
-        low = T("low", 30, RED, weight=BOLD).next_to(marker, UP, buff=0.12)
-        self.play(FadeIn(low), run_time=0.2)
-
-        # Clear the score as the comparison ends; show the result for the final sentence.
-        old = VGroup(la, newb, ta2, tb3, keep, gauge, g0, g1, sc_l, marker, low)
-        self.play(FadeOut(old), run_time=0.4)
-        root = Dot(radius=0.07, color=GREY).move_to([0, -2.2, 0])
-        tips = [(-4.2, BAC, "typical bacteria"), (0.0, TEAL, "methane makers"), (4.2, GREEN, "yeast, duckweed")]
-        lines = VGroup(); labs = VGroup()
-        for x, col, name in tips:
-            lines.add(Line(root.get_center(), [x, 0.9, 0], color=col, stroke_width=7))
-            labs.add(T(name, 28, col).move_to([x, 1.4, 0]))
-        three = T("three major lines of descent", 36, TEXT, weight=BOLD).move_to([0, -3.0, 0])
-        self.play(FadeIn(root), *[Create(l) for l in lines],
-                  *[FadeIn(l) for l in labs], FadeIn(three), run_time=1.0)
-        self.at("three major lines of descent")
-        self.wait(2)
+        ring = Circle(radius=2.55, color=GREY, stroke_width=7, fill_color=GREY, fill_opacity=0.04)
+        a = cell_icon(TEAL, at=[-1.18, 0.15, 0], scale=0.92)
+        b = cell_icon(BAC, at=[1.18, 0.15, 0], scale=0.92)
+        bob(a, amp=0.10, speed=1.5)
+        bob(b, amp=0.10, speed=1.7, seed=2)
+        self.at("These methane making microbes")
+        self.play(Create(ring), FadeIn(a, scale=0.8), run_time=1.1)
+        self.at("look like typical bacteria")
+        self.play(FadeIn(b, scale=0.8), Rotate(a, angle=0.10), Rotate(b, angle=-0.10), run_time=1.2)
+        q = fit_text("Why a different branch?", max_w=6.2, size=40, color=GOLD, weight=BOLD).move_to([0, -3.0, 0])
+        self.at("Why would a molecule")
+        self.play(FadeIn(q, shift=UP * 0.2), ring.animate.set_stroke(color=TEXT), run_time=1.0)
+        tiny = T("tiny cells • no nuclei", 30, TEXT).move_to([0, 3.05, 0])
+        self.at("Under the microscope")
+        self.play(FadeIn(tiny), Rotate(a, angle=-0.18), Rotate(b, angle=0.18), run_time=1.3)
+        tree = unresolved_tree(at=[0, 0.15, 0], scale=1.15)
+        self.at("Shape gives us evidence")
+        self.play(FadeOut(q), FadeOut(tiny), ReplacementTransform(ring, tree),
+                  a.animate.scale(0.65).move_to([-2.35, 1.95, 0]),
+                  b.animate.scale(0.65).move_to([2.35, 1.95, 0]), run_time=1.7)
+        tag = scope_tag("schematic")
+        hidden = caption("Shape may hide ancestry.", color=TEXT)
+        self.at("but it may hide")
+        self.play(FadeIn(hidden), FadeIn(tag), Indicate(tree[3], color=GOLD), run_time=1.2)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S05Domains(SpokenScene):
+class S01Title(TitleCard):
+    LESSON = "Classification changes"
+    TITLE = "The Molecule Behind the Tree"
+
+
+class S02Shared(LivingScene):
     def construct(self):
-        def dbox(name, col, x):
-            bx = RoundedRectangle(corner_radius=0.2, width=3.7, height=2.0, stroke_color=col, stroke_width=4,
-                                  fill_color=col, fill_opacity=0.12).move_to([x, 0.8, 0])
-            return VGroup(bx, T(name, 40, col, weight=BOLD).move_to(bx))
-        yr = year("1990").to_edge(UP, buff=0.45)
-        rank = T("the rank of domain, above kingdom", 30, TEXT).next_to(yr, DOWN, buff=0.2)
-        self.at("In 1990")
-        self.play(FadeIn(yr, shift=DOWN * 0.15), FadeIn(rank), run_time=0.7)
-        dB, dA, dE = dbox("Bacteria", BAC, -4.2), dbox("Archaea", TEAL, 0.0), dbox("Eukarya", GREEN, 4.2)
-        self.at("The three domains are")
-        self.at("Bacteria")
-        self.play(FadeIn(dB, scale=0.9), run_time=0.5)
-        self.at("Archaea and")
-        self.play(FadeIn(dA, scale=0.9), run_time=0.5)
-        self.at("Eukarya")
-        self.play(FadeIn(dE, scale=0.9), run_time=0.5)
-
-        self.at("differ from bacteria")
-        diff = T("differ from bacteria in\ntheir RNA and membranes", 26, TEAL, line_spacing=0.85).move_to([0, -1.1, 0])
-        self.play(FadeIn(diff), run_time=0.6)
-        self.at("whose cells have a nucleus")
-        cell = Circle(radius=0.8, stroke_color=GREEN, stroke_width=4, fill_color=GREEN, fill_opacity=0.08).move_to([4.2, -1.4, 0])
-        nuc = Circle(radius=0.28, stroke_color=GREEN, stroke_width=3, fill_color=GREEN, fill_opacity=0.35).move_to(cell)
-        nuc_l = T("nucleus", 26, GREEN).next_to(cell, DOWN, buff=0.15)
-        self.play(FadeIn(cell), FadeIn(nuc), FadeIn(nuc_l), run_time=0.6)
-
-        # zoom to Eukarya
-        self.at("Fungi grow in place")
-        self.play(FadeOut(VGroup(dB, dA, diff, yr, rank, cell, nuc, nuc_l)),
-                  dE.animate.scale(0.8).move_to([0, 2.4, 0]), run_time=0.8)
-        pl = bchip("plants", GREEN, 30).move_to([-3.7, 0.3, 0])
-        fu = bchip("fungi", ORANGE, 30).move_to([-1.55, 0.3, 0])
-        an = bchip("animals", GREEN, 30).move_to([3.9, 0.3, 0])
-        self.play(FadeIn(pl), FadeIn(an), FadeIn(fu), run_time=0.6)
-        look = T("Fungi grow in place and have cell walls,\nso they look plant-like.", 26, GREY, line_spacing=0.85)
-        br = Rectangle(width=4.5, height=0.95, stroke_color=GREY, stroke_width=3).move_to([-2.62, 0.3, 0])
-        br.set_stroke(opacity=0.9)
-        look.move_to([-2.62, -0.75, 0])
-        self.play(Create(br), FadeIn(look), run_time=0.7)
-
-        self.at("But in 1993")
-        ev = bchip("1993: a study of protein sequences", YELLOW, 28).move_to([0, -2.2, 0])
-        self.play(FadeIn(ev, shift=UP * 0.15), FadeOut(look), run_time=0.6)
-        self.at("strongly supported fungi")
-        new_fu = bchip("fungi", ORANGE, 30).move_to([2.0, 0.3, 0])
-        self.play(fu.animate.move_to([1.65, 0.3, 0]), FadeOut(br), run_time=0.9)
-        br2 = Rectangle(width=4.2, height=0.95, stroke_color=GREEN, stroke_width=4).move_to([2.78, 0.3, 0])
-        cl = T("closer relatives", 30, GREEN, weight=BOLD).move_to([2.78, -0.65, 0])
-        self.at("closer to animals")
-        self.play(Create(br2), FadeIn(cl), run_time=0.7)
+        cells = VGroup(
+            cell_icon(BAC, "Bacteria", at=[-4.25, 1.45, 0], scale=0.78),
+            cell_icon(TEAL, "Archaea", at=[0, 1.45, 0], scale=0.78),
+            cell_icon(EUK, "Eukarya", nucleus=True, at=[4.25, 1.45, 0], scale=0.78),
+        )
+        for i, c in enumerate(cells):
+            bob(c, amp=0.06, speed=1.2 + i * 0.2, seed=i)
+        self.at("To compare very different cells")
+        self.play(LaggedStart(*[FadeIn(c, scale=0.85) for c in cells], lag_ratio=0.22), run_time=1.7)
+        need = caption("Find the same record in every cell.", color=TEXT)
+        self.at("scientists need the same kind")
+        self.play(FadeIn(need), run_time=0.9)
+        ribs = VGroup(*[chip("ribosome", GREY, 28).move_to([x, -0.25, 0]) for x in (-4.25, 0, 4.25)])
+        self.at("Every cell builds proteins")
+        self.play(FadeOut(need), LaggedStart(*[FadeIn(r, shift=UP * 0.2) for r in ribs], lag_ratio=0.18), run_time=1.5)
+        strips = VGroup(*[rna_strip(TEXT, [x, -1.38, 0]) for x in (-4.25, 0, 4.25)])
+        self.at("Ribosomal RNA forms")
+        self.play(LaggedStart(*[TransformFromCopy(ribs[i], strips[i]) for i in range(3)], lag_ratio=0.18), run_time=1.7)
+        conserved = VGroup(*[Rectangle(width=0.34, height=0.52, color=TEXT, fill_opacity=0.65).move_to(s[0].get_center() + LEFT * 0.65) for s in strips])
+        self.at("Conserved parts let researchers")
+        self.play(FadeIn(conserved), *[Indicate(c, color=TEXT) for c in conserved], run_time=1.5)
+        differing = VGroup(*[Rectangle(width=0.34, height=0.52, color=col, fill_opacity=0.7).move_to(strips[i][0].get_center() + RIGHT * 0.62) for i, col in enumerate((BAC, TEAL, EUK))])
+        ev = caption("Shared parts align; differences test ancestry.", color=TEXT)
+        self.at("while differing parts")
+        self.play(FadeIn(differing), FadeIn(ev), *[Indicate(d, color=d.get_color()) for d in differing], run_time=1.5)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S06Answer(SpokenScene):
+class S03Catalogues(LivingScene):
     def construct(self):
-        q = T("Why is it fine for science to change its mind?", 36, YELLOW, weight=BOLD).to_edge(UP, buff=0.5)
-        self.at("So why is it fine")
-        self.play(FadeIn(q, shift=DOWN * 0.15), run_time=0.7)
-        claim = bchip("a classification is a claim about ancestry", TEXT, 32).move_to([0, 1.5, 0])
-        self.at("A classification is a claim")
-        self.play(FadeIn(claim, scale=0.92), run_time=0.7)
-        test = bchip("test it with evidence", YELLOW, 30).move_to([-4.0, -0.7, 0])
-        a1 = arr(claim.get_bottom() + LEFT * 1.5, test.get_top(), GREY)
-        self.at("can be tested")
-        self.play(GrowArrow(a1), FadeIn(test, shift=DOWN * 0.1), run_time=0.8)
-        fix = bchip("needs fixing", RED, 30).move_to([3.6, -0.7, 0])
-        a2 = arr(test.get_right(), fix.get_left(), GREY)
-        self.at("some tests show")
-        self.play(GrowArrow(a2), FadeIn(fix), run_time=0.8)
-        self.at("needs fixing")
-        self.play(Indicate(VGroup(*fix[1:]), color=RED, scale_factor=1.1), run_time=0.7)
-
-        old = T("reasonable for the evidence of their time", 26, GREY).next_to(claim, DOWN, buff=0.2).set_x(2.0)
-        self.at("The older groups were reasonable")
-        self.play(FadeIn(old), run_time=0.6)
-
-        new_ev = bchip("new DNA and RNA evidence", YELLOW, 30).move_to([-3.2, -2.25, 0])
-        new_claim = bchip("revised groups", GREEN, 30).move_to([3.6, -2.25, 0])
-        a3 = arr(new_ev.get_right(), new_claim.get_left(), GREEN)
-        self.at("New DNA and RNA")
-        self.play(FadeIn(new_ev, shift=UP * 0.1), run_time=0.6)
-        self.at("change the")
-        self.play(GrowArrow(a3), FadeIn(new_claim, scale=0.9), run_time=0.7)
-        self.at("Classification changes when")
-        rule = T("evidence changes, so the groups change", 34, TEXT, weight=BOLD).move_to([0, -3.3, 0])
-        self.play(FadeIn(rule, shift=UP * 0.1), run_time=0.6)
+        strips = VGroup(rna_strip(TEXT, [-3.6, 2.55, 0]), rna_strip(TEXT, [-3.6, 1.55, 0]))
+        tree = unresolved_tree(at=[4.2, 0.45, 0], scale=0.82)
+        pulse(tree[3], base=2.5, amp=2.0, speed=2.0)
+        self.at("Wose and Fox compared")
+        self.play(FadeIn(strips), FadeIn(tree), run_time=1.4)
+        top = tile_row([1] * 6, TEAL, at=[-3.6, 2.20, 0])
+        bottom = tile_row([1] * 6, TEAL, at=[-3.6, 0.95, 0])
+        self.at("Picture each catalog")
+        self.play(ReplacementTransform(strips[0], top), ReplacementTransform(strips[1], bottom), run_time=1.8)
+        tag = scope_tag("schematic")
+        self.at("not a complete molecule")
+        self.play(FadeIn(tag), run_time=0.8)
+        links = VGroup(*[Line(top[i].get_bottom(), bottom[i].get_top(), color=TEXT, stroke_width=4) for i in range(5)])
+        for link in links:
+            link.layout_ok = True  # connector is intentionally anchored to its labelled tile
+        self.at("Matching tiles pull")
+        self.play(LaggedStart(*[Create(x) for x in links], lag_ratio=0.10),
+                  bottom.animate.set_fill(opacity=0.38), run_time=1.8)
+        few_bottom = tile_row([1, 0, 0, 1, 0, 0], BAC, at=[-3.6, -1.05, 0])
+        few_links = VGroup(*[Line(top[i].get_bottom(), few_bottom[i].get_top(), color=TEXT, stroke_width=4) for i in (0, 3)])
+        for link in few_links:
+            link.layout_ok = True  # connector is intentionally anchored to its labelled tile
+        self.at("Fewer matches leave")
+        self.play(FadeIn(few_bottom), LaggedStart(*[Create(x) for x in few_links], lag_ratio=0.2), run_time=1.6)
+        self.at("The pattern across pairs")
+        self.play(links.animate.set_stroke(width=7), few_links.animate.set_stroke(width=7),
+                  Indicate(tree[3], color=GOLD), run_time=1.5)
         self.finish()
 
 
-class S07End(EndCard):
-    LINE = "Classification changes when the evidence changes."
+class S04Predict(LivingScene):
+    def construct(self):
+        many = pair_diagram(5, TEXT, TEXT, at=[-3.35, 0.60, 0], width=4.7)
+        few = pair_diagram(2, TEXT, TEXT, at=[3.35, 0.60, 0], width=4.7)
+        bob(many, amp=0.07, speed=1.4)
+        bob(few, amp=0.07, speed=1.2, seed=2)
+        self.at("Here are hidden pairs")
+        self.play(FadeIn(many, shift=DOWN * 0.2), FadeIn(few, shift=DOWN * 0.2), run_time=1.3)
+        q1 = T("?", 48, GOLD, weight=BOLD).next_to(many, UP, buff=0.18)
+        q2 = T("?", 48, GOLD, weight=BOLD).next_to(few, UP, buff=0.18)
+        self.at("A pair shares many")
+        self.play(FadeIn(q1), many.animate.scale(1.05), run_time=1.2)
+        self.at("while another shares few")
+        self.play(FadeIn(q2), few.animate.scale(1.05), run_time=1.2)
+        q = question_card("Which pair should sit closer on the ancestry tree?", y=-3.08, size=30)
+        self.at("Which pair should sit closer")
+        self.play(FadeIn(q.question, shift=UP * 0.15), q1.animate.shift(RIGHT * 0.18), q2.animate.shift(LEFT * 0.18), run_time=1.4)
+        self.at("Hold your answer")
+        self.play(Indicate(q.question, color=GOLD), run_time=1.0)
+        self.add(scope_tag("schematic"))
+        self.finish()
+
+
+class S05Pause(PredictPause):
+    QUESTION = "Which pair should sit closer on the ancestry tree?"
+    SECONDS = 4.5
+    CARD = {"y": -3.08, "size": 30}
+
+    def backdrop(self):
+        return predict_backdrop()
+
+
+class S06Reveal(LivingScene):
+    def construct(self):
+        tree = unresolved_tree(at=[4.45, 0.25, 0], scale=0.78)
+        many = pair_diagram(5, TEAL, TEAL, at=[-3.25, 1.90, 0], width=4.45)
+        moderate = pair_diagram(4, BAC, BAC, at=[-3.25, 0.05, 0], width=4.45)
+        few = pair_diagram(2, TEAL, BAC, at=[-3.25, -1.80, 0], width=4.45)
+        self.at("The pair with many shared pieces")
+        self.play(FadeIn(many), FadeIn(tree), run_time=1.4)
+        close = T("closer", 30, TEAL, weight=BOLD).next_to(many, RIGHT, buff=0.22)
+        self.at("belongs closer")
+        self.play(FadeIn(close), Indicate(tree[3], color=TEAL), run_time=1.1)
+        self.at("The methane makers matched")
+        self.play(FadeOut(close), FadeIn(moderate), many.animate.shift(RIGHT * 0.18), run_time=1.5)
+        self.at("Typical bacteria also matched")
+        self.play(FadeIn(few), moderate.animate.shift(RIGHT * 0.10), run_time=1.5)
+        braces = VGroup(
+            T("many", 26, TEAL).move_to([-0.55, 1.90, 0]),
+            T("moderate", 26, BAC).move_to([-0.35, 0.05, 0]),
+            T("few", 26, TEXT).move_to([-0.55, -1.80, 0]),
+        )
+        self.at("That repeated pattern")
+        self.play(LaggedStart(*[FadeIn(x) for x in braces], lag_ratio=0.18),
+                  Rotate(tree[3], angle=0.35), run_time=1.7)
+        old = caption("one combined prokaryote branch?", color=GOLD)
+        self.at("challenged a combined")
+        self.play(FadeIn(old), Indicate(tree[3], color=GOLD), run_time=1.3)
+        self.add(scope_tag("schematic"))
+        self.finish()
+
+
+class S06Claim(LivingScene):
+    def construct(self):
+        tree = tree_world(labels=False, at=[0, 0.30, 0], scale=0.95)
+        joint = tree[1][1]
+        bob(tree[2], amp=0.05, speed=1.2)
+        self.at("A classification is a testable map")
+        self.play(Create(tree[0]), FadeIn(tree[1]), FadeIn(tree[2]), run_time=1.8)
+        tag = chip("ancestry claim", TEXT, 28).move_to([4.75, -1.55, 0])
+        leader = Line(tag.get_left(), joint.get_center() + RIGHT * 0.18, color=TEXT, stroke_width=3)
+        self.at("A branch claims")
+        self.play(FadeIn(tag, shift=UP * 0.15), Create(leader), Indicate(joint, color=GOLD), run_time=1.2)
+        evidence = VGroup(
+            Arrow([-5.2, 0.8, 0], [-0.5, -0.55, 0], color=TEXT, stroke_width=5, tip_length=0.2),
+            Arrow([5.2, 0.8, 0], [0.5, -0.55, 0], color=TEXT, stroke_width=5, tip_length=0.2),
+            Arrow([0, 3.2, 0], [0, -0.25, 0], color=TEXT, stroke_width=5, tip_length=0.2),
+        )
+        self.at("When several comparisons")
+        self.play(FadeOut(tag), FadeOut(leader), LaggedStart(*[GrowArrow(a) for a in evidence], lag_ratio=0.2), run_time=1.8)
+        self.at("scientists redraw only")
+        self.play(Rotate(tree[0][1], angle=-0.12, about_point=joint.get_center()),
+                  Rotate(tree[0][2], angle=0.12, about_point=joint.get_center()), run_time=1.5)
+        unchanged = caption("Same organisms. Better-supported map.", color=TEXT)
+        self.at("The organisms themselves")
+        self.play(FadeOut(evidence), FadeIn(unchanged), *[Indicate(x, color=x[0].get_color()) for x in tree[2]], run_time=1.4)
+        self.finish()
+
+
+class S07Domains(LivingScene):
+    def construct(self):
+        tree = tree_world(labels=False, at=[0, 0.05, 0], scale=0.92)
+        self.at("The researchers interpreted this pattern")
+        self.play(Create(tree[0]), FadeIn(tree[1]), FadeIn(tree[2]), run_time=1.8)
+        labs = VGroup(
+            T("Bacteria", 32, BAC, weight=BOLD).move_to([-3.25, 2.5, 0]),
+            T("Archaea", 32, TEAL, weight=BOLD).move_to([0, 2.88, 0]),
+            T("Eukarya", 32, EUK, weight=BOLD).move_to([3.25, 2.5, 0]),
+        )
+        self.at("Later the rank called domain")
+        self.play(LaggedStart(*[FadeIn(l, shift=UP * 0.12) for l in labs], lag_ratio=0.22), run_time=1.7)
+        dates = VGroup(M("1977", 30, TEXT), Arrow(LEFT, RIGHT, color=GREY), M("1990", 30, TEXT)).arrange(RIGHT, buff=0.25).move_to([0, -2.82, 0])
+        self.at("The methane makers joined")
+        self.play(FadeIn(dates), Indicate(labs[1], color=TEAL), run_time=1.3)
+        self.at("Their cells did not change")
+        self.play(*[Indicate(x, color=x[0].get_color()) for x in tree[2]], run_time=1.3)
+        cap = caption("Evidence changed the best-supported tree.", color=TEXT)
+        self.at("The evidence changed")
+        self.play(FadeOut(dates), run_time=0.5)
+        self.play(FadeIn(cap), tree[1][1].animate.set_color(GOLD), run_time=0.9)
+        self.finish()
+
+
+class S07Evidence(LivingScene):
+    def construct(self):
+        tree = tree_world(labels=False, at=[0, 0.60, 0], scale=0.65)
+        self.add(tree)
+        cards = VGroup(
+            chip("structure", TEXT, 28).move_to([-4.75, 2.25, 0]),
+            chip("development", TEXT, 28).move_to([-4.75, 0.75, 0]),
+            chip("RNA", TEXT, 28).move_to([4.75, 2.25, 0]),
+            chip("DNA", TEXT, 28).move_to([4.75, 0.75, 0]),
+        )
+        self.at("Molecular evidence does not automatically")
+        self.play(FadeIn(cards[2]), FadeIn(cards[3]), tree.animate.set_opacity(0.72), run_time=1.4)
+        self.at("It adds a comparison")
+        self.play(FadeIn(cards[0]), cards[2].animate.shift(LEFT * 0.35), run_time=1.2)
+        self.at("Strong classifications weigh")
+        self.play(FadeIn(cards[1]), cards[3].animate.shift(LEFT * 0.35), run_time=1.4)
+        agree = VGroup(cards[0].copy(), cards[2].copy(), cards[3].copy()).arrange(DOWN, buff=0.15).scale(0.78).move_to([-4.6, -1.55, 0])
+        self.at("Agreement strengthens")
+        self.play(TransformFromCopy(VGroup(cards[0], cards[2], cards[3]), agree),
+                  tree[1][1].animate.set_color(TEXT), run_time=1.5)
+        conflict = T("?", 58, GOLD, weight=BOLD).move_to([4.65, -1.55, 0])
+        self.at("Conflict shows")
+        self.play(ReplacementTransform(cards[1].copy(), conflict),
+                  conflict.animate.shift(LEFT * 0.35), run_time=1.4)
+        self.finish()
+
+
+class S08Limits(LivingScene):
+    def construct(self):
+        tree = tree_world(labels=True, model_tag=True, at=[0, 0.25, 0], scale=0.78)
+        tree[-1].move_to([4.2, -1.85, 0])
+        self.add(tree)
+        percent = M("% DNA", 44, GREY).move_to([-4.5, 1.2, 0])
+        clock = VGroup(Circle(radius=0.48, color=GREY, stroke_width=4),
+                       Line(ORIGIN, UP * 0.29, color=GREY, stroke_width=4),
+                       Line(ORIGIN, RIGHT * 0.25, color=GREY, stroke_width=4)).move_to([4.7, 2.45, 0])
+        self.at("The overlap scores are not")
+        self.play(FadeIn(percent, shift=RIGHT * 0.2), run_time=1.1)
+        self.at("They do not tell when")
+        self.play(FadeIn(clock, shift=LEFT * 0.2), percent.animate.shift(LEFT * 0.2).set_opacity(0.35), run_time=1.2)
+        summary = caption("Scores summarize shared RNA catalogue pieces.", color=TEXT)
+        self.at("They summarize shared pieces")
+        self.play(FadeOut(percent), FadeOut(clock), FadeIn(summary), run_time=1.3)
+        cards = VGroup(chip("more organisms", TEXT, 26), chip("other genes", TEXT, 26), chip("membranes", TEXT, 26)).arrange(RIGHT, buff=0.35).move_to([0, -2.72, 0])
+        self.at("A tree remains a claim")
+        self.play(FadeOut(summary), tree[1][1].animate.set_color(GOLD), run_time=1.2)
+        self.at("tested against more organisms")
+        self.play(LaggedStart(*[FadeIn(c, shift=UP * 0.15) for c in cards], lag_ratio=0.22), run_time=1.7)
+        self.at("any evidence that can challenge")
+        self.play(cards.animate.shift(UP * 0.18), Indicate(tree[1][1], color=TEXT), run_time=1.4)
+        self.finish()
+
+
+class S09Close(LivingScene):
+    def construct(self):
+        tree = tree_world(labels=True, model_tag=False, at=[0, 0.25, 0], scale=0.82)
+        self.at("That is why changing a group")
+        self.play(FadeIn(tree), run_time=1.5)
+        cabinet = VGroup(
+            RoundedRectangle(corner_radius=0.18, width=4.0, height=4.7, color=GREY, stroke_width=5, fill_color=GREY, fill_opacity=0.10),
+            *[Line([-1.8, y, 0], [1.8, y, 0], color=GREY, stroke_width=4) for y in (-0.78, 0.78)],
+            *[T("fixed", 28, GREY).move_to([0, y, 0]) for y in (-1.55, 0, 1.55)],
+        ).move_to([0, 0.25, 0])
+        self.at("Classification is a model")
+        self.play(ReplacementTransform(tree, cabinet), run_time=1.5)
+        self.at("not a permanent filing cabinet")
+        new_tree = tree_world(labels=True, model_tag=True, at=[0, 0.25, 0], scale=0.82)
+        self.play(ReplacementTransform(cabinet, new_tree), run_time=1.6)
+        evidence = Arrow([-5.4, 0.3, 0], [-0.45, -0.35, 0], color=TEXT, stroke_width=7, tip_length=0.25)
+        self.at("When stronger evidence")
+        self.play(GrowArrow(evidence), new_tree[1][1].animate.set_color(GOLD), run_time=1.5)
+        limits = chip("limits visible", TEXT, 26).move_to([4.85, -2.75, 0])
+        self.at("while keeping its limits visible")
+        self.play(FadeIn(limits), FadeOut(evidence), Indicate(new_tree[1][1], color=TEXT), run_time=1.4)
+        self.finish()
+
+
+class S10End(EndCard):
+    LINE = "Classification changes when new evidence changes\nthe best-supported picture of ancestry."
