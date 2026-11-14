@@ -63,6 +63,7 @@ const MODES = [
 
     <!-- Assign -->
     <section data-pane="assign" hidden>
+      <p class="tc-note good tc-noprint" data-syllabus hidden>Have a syllabus? <a data-syllabus-link href="/teach/syllabus/">Match my syllabus</a>: paste or upload it, and get the lessons, films and simulations on this site for each class meeting, as a list your students can open.</p>
       <p class="tc-muted">Tick the lessons you want students to do. A due date is optional; it's how the brief knows who is behind. Lessons with a flashcard deck can also include flashcards: the brief then lists the three cards your class most often marked "again."</p>
       <label class="tc-row" style="font-weight:600">Show lessons from
         <select data-course-pick></select>
@@ -139,6 +140,17 @@ const MODES = [
       <button class="tc-btn danger" type="button" data-delete>Delete class</button>
     </section>
   </article>
+
+  <script>
+    // "Match my syllabus" (worker/planner.js): offered once the planner is set up and on.
+    import { plannerStatus } from '../../../lib/plan-view';
+    const syl = document.querySelector<HTMLElement>('[data-syllabus]');
+    const sylLink = document.querySelector<HTMLAnchorElement>('[data-syllabus-link]');
+    if (syl && sylLink) {
+      sylLink.href = `/teach/syllabus/?class=${encodeURIComponent(new URLSearchParams(location.search).get('id') || '')}`;
+      plannerStatus().then((st) => { syl.hidden = !st.saved; });
+    }
+  </script>
 
   <script>
     import { api, localToday } from '../../../lib/classroom';
