@@ -5,11 +5,10 @@ course: "high-school-biology"
 courseChapter: "Biology · Unit 4: DNA and inheritance"
 order: 918
 summary: >-
-  How does a string of letters in DNA become a protein, and how can one changed letter change a
-  trait? You copy a short gene into messenger RNA, translate it with a codon chart, and then
-  mutate it to see what happens to the protein. Afterwards you can explain transcription and
-  translation, translate a DNA segment, and use real sickle cell data to show that a mutation's
-  effect depends on the protein and the environment.
+  In protein-coding genes, DNA order sets mRNA codons and amino acid order. You follow that order
+  through transcription and translation, use a codon chart to translate a DNA segment, and test
+  how substitutions, insertions and deletions affect a protein chain. Real sickle cell data then
+  show that a mutation's effect depends on the protein and the environment.
 hook: "How can changing one letter out of hundreds in a gene make red blood cells bend into stiff sickle shapes?"
 estMinutes: 45
 supports: true
@@ -31,10 +30,30 @@ explainer:
   src: "/explainers/protein-synthesis/explainer.mp4"
   captions: "/explainers/protein-synthesis/explainer.vtt"
   poster: "/explainers/protein-synthesis/poster.jpg"
-  title: "How One Letter Changes a Protein"
-  durationSec: 188.2
-  narration: "an AI narrator voice (Gemini, Charon) reading narration written from this lesson's text"
+  title: "From Gene Copy to Protein Chain"
+  durationSec: 177.8
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+  takeaways:
+    - "In protein-coding genes, DNA order sets mRNA codons and amino acid order."
+    - "In plant and animal cells, transcription makes an mRNA copy while the chromosomes stay in the nucleus."
+    - "A ribosome reads each mRNA codon, and transfer RNA brings the matching amino acid."
+    - "At a stop codon, no amino acid is added and the chain is released."
+
+films:
+  - id: "chapter-2"
+    src: "/explainers/protein-synthesis/chapter-2.mp4"
+    captions: "/explainers/protein-synthesis/chapter-2.vtt"
+    poster: "/explainers/protein-synthesis/chapter-2-poster.jpg"
+    title: "When the Reading Changes"
+    durationSec: 180.0
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+    takeaways:
+      - "In coding DNA, swaps change one codon; frameshifts change later codons."
+      - "A substitution can leave the chain unchanged, change an amino acid or create a stop."
+      - "In the sickle allele, valine replaces glutamic acid, and low-oxygen hemoglobin can form stiff rods."
+      - "A changed letter does not guarantee a changed trait."
 
 scientists: []
 
@@ -61,7 +80,7 @@ simulations:
     ref: "TranscribeTranslate"
     title: "Transcribe, translate, mutate"
     caption: >-
-      Copy a short DNA template into mRNA, translate it with the lesson’s codon chart, then swap, add or remove one letter to see whether the chain is silent, changed, frameshifted or stopped early.
+      Copy a short DNA template into mRNA, translate it with the lesson’s codon chart, then swap, add or remove one letter to see whether the mutation leaves the chain unchanged, changes it, shifts the reading frame or stops it early.
     attribution: "Original interactive — Biochemistrypedia (Deppmann Lab)."
 
 practiceQuestions:
@@ -109,7 +128,8 @@ practiceQuestions:
       - "Met – Lys – Gly, then the chain ends"
     answer: 1
     rationale: >-
-      Pairing with the template gives mRNA AUG UUU GGC UAA. AUG is methionine and the start,
+      In protein-coding genes, DNA order sets mRNA codons and amino acid order. Pairing with the
+      template gives mRNA AUG UUU GGC UAA. AUG is methionine and the start,
       UUU is phenylalanine, GGC is glycine, and UAA is a stop codon that adds no amino acid.
       Tyr, Lys, Pro, Ile comes from reading the DNA letters as if they were codons. Lys in the
       second spot comes from reading the DNA triplet AAA instead of its mRNA partner UUU. Ile at
@@ -244,8 +264,11 @@ import Support from '../../../components/Support.astro';
 import CER from '../../../components/CER.astro';
 import ScaffoldFigure from '../../../components/ScaffoldFigure.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import LessonFilm from '../../../components/LessonFilm.astro';
 
-**In one gene for hemoglobin, the protein that carries oxygen in red blood cells, a single DNA letter can be different: GTG where most people have GAG on the coding strand. That one change can let red blood cells bend into stiff, curved sickle shapes.** A red blood cell is usually a soft, round disc that squeezes through tiny blood vessels. How can one letter, out of hundreds in the gene, change the shape of a whole cell?
+**A red blood cell is usually a soft, round disc that squeezes through tiny blood vessels. In one gene for hemoglobin, the protein that carries oxygen in red blood cells, a single DNA letter can differ: GTG where most people have GAG. That change can bend red blood cells into stiff sickle shapes.** How can one letter out of hundreds reach the shape of a whole cell?
+
+<Support>**The one idea:** In protein-coding genes, DNA order sets mRNA codons and amino acid order. **Scope:** several codons can name the same amino acid, not every gene codes for a protein, and a protein's effect can depend on the cell and environment.</Support>
 
 <IdeaCheck items={[
   { idea: 'Mutations are always harmful.', answer: 'disagree', explain: 'Many mutations change nothing about how a protein works. Some even help in one setting. Studies of children in malaria regions found that carrying one copy of the sickle cell allele lowered their chance of serious malaria.' },
@@ -253,23 +276,11 @@ import LessonFigure from '../../../components/LessonFigure.astro';
   { idea: 'To make a protein, the DNA leaves the nucleus and goes to the ribosome.', answer: 'disagree', explain: 'In cells with a nucleus, the DNA stays inside. Cells copy one gene into a short messenger molecule, and that copy travels out to the ribosomes. Classic experiments on amoebas that labelled new RNA found it made in the nucleus and later in the cytoplasm.' },
 ]} />
 
-## Explore: transcribe, translate and mutate a gene
-
-The simulation shows a short DNA template strand as lettered blocks. You build the messenger RNA that pairs with it, then use a codon chart to turn every three letters into an amino acid. A mutate button swaps, adds or removes one letter and rebuilds the chain.
-
-<TranscribeTranslate />
-
-**Try this.**
-1. Predict the mRNA letters for the first three DNA blocks, then build the mRNA and check.
-2. Find the codon where the chain starts and the codon where it stops. Predict what the stop codon adds to the chain, then translate and see.
-3. Predict whether swapping one letter will change zero, one or many amino acids. Try three different spots.
-4. Predict what adding one letter near the start does to the chain. Compare it with removing one.
-
-## Explain: copying a gene into messenger RNA
+## Copy a gene into messenger RNA
 
 <WordBank terms={['protein synthesis', 'transcription', 'RNA', 'messenger RNA', 'translation', 'codon', 'ribosome', 'transfer RNA', 'amino acid', 'mutation', 'substitution', 'frameshift']} />
 
-**Protein synthesis** is the making of a protein from the instructions in a gene, and it happens in two stages. In plant and animal cells the chromosomes stay in the nucleus, but proteins are built outside it. So the cell first makes a portable copy.
+The first film showed the two stages of **protein synthesis**, making a protein from a gene: **transcription** copies one gene into **messenger RNA (mRNA)**, and **translation** reads the mRNA to build a chain of amino acids.
 
 **RNA** is a nucleic acid, a chain of nucleotides like DNA, with three differences:
 
@@ -279,27 +290,28 @@ The simulation shows a short DNA template strand as lettered blocks. You build t
 | Sugar | deoxyribose | ribose |
 | Bases | A, T, C, G | A, U, C, G (uracil, U, in place of T) |
 
-**Transcription** is the first stage: an enzyme copies the base order of one gene into a strand of RNA. The enzyme unwinds a short piece of DNA and reads one strand, the template strand, pairing a new RNA base with each DNA base: DNA A with RNA U, T with A, C with G, G with C. The copy is **messenger RNA (mRNA)**, the RNA that carries a gene's instructions to the protein-building machinery.
+In transcription, an enzyme reads one DNA strand, the **template strand**, pairing DNA A with RNA U, T with A, C with G, and G with C. The other DNA strand, the **coding strand**, matches the mRNA letter for letter, with T where the mRNA has U.
+
+**Predict.** A template DNA triplet reads CTT. Which mRNA triplet will pair with it?
+
+<details>
+<summary>Check your prediction</summary>
+
+C pairs with G, and each T pairs with A, so the mRNA triplet is GAA. Pair with the labelled template; do not copy its letters straight across.
+
+</details>
 
 Like DNA, RNA has direction: its two ends differ (biologists call them 5′ and 3′), and it is built and read one way only.
 
-In cells with a nucleus, the mRNA leaves through pores in the nuclear membrane. Bacteria have no nucleus, so both stages happen in their cytoplasm.
+Bacteria have no nucleus, so both stages happen in their cytoplasm.
 
-<ScaffoldFigure src="/figures/protein-synthesis/gene-to-protein-in-a-cell.webp" width={1200} height={800} keyItems={["DNA", "gene", "mRNA", "pores in the nuclear membrane", "ribosome", "chain of amino acids"]} given={[0, 4]} alt="AI-generated illustration: a wide cell with a round nucleus holding several blue DNA double helices; one stretch of helix is gold, and an enzyme there copies it into a thin green single strand that runs across the nucleus and leaves through a pore in the nuclear membrane. In the cytoplasm, which also holds three mitochondria, a two-lobed ribosome sits on that strand with a chain of colored beads rising from it toward the cell edge. Six numbered circles mark DNA, the gold gene, the strand, the pore, the ribosome and the end of the bead chain." caption="Protein synthesis in a cell with a nucleus: the gene is copied in the nucleus, the copy leaves through a pore, and a ribosome builds the chain outside. Name the six numbered parts." />
+<ScaffoldFigure src="/figures/protein-synthesis/gene-to-protein-in-a-cell.webp" width={1200} height={800} keyItems={["DNA", "gene", "mRNA", "pores in the nuclear membrane", "ribosome", "chain of amino acids"]} given={[0, 4]} alt="AI-generated illustration: a wide cell with a round nucleus holding several blue DNA double helices; one stretch of helix is gold, and an enzyme there copies it into a thin green single strand that runs across the nucleus and leaves through a pore in the nuclear membrane. In the cytoplasm, which also holds three mitochondria, a two-lobed ribosome sits on that strand with a chain of colored beads rising from it toward the cell edge. Six numbered circles mark DNA, the gold gene, the strand, the pore, the ribosome and the end of the bead chain." caption="A gene stays in the nucleus while its mRNA copy leaves through a pore and carries the letter order to a ribosome. Name the six numbered parts." />
 
-<Support min={2}>**Key idea:** In transcription, one gene's DNA letters are copied into a single strand of messenger RNA, which carries the message out of the nucleus.</Support>
+<Support min={2}>**Key idea:** In transcription, one gene's DNA letters are copied into a single strand of messenger RNA. In cells with a nucleus, that copy carries the message out.</Support>
 
-## Explain: reading the message three letters at a time
+## Read the message into an amino acid chain
 
-**Translation** is the second stage: the cell reads the mRNA and builds a chain of amino acids. An **amino acid** is one of the small building blocks of proteins; living things use about twenty common kinds. A **ribosome** is the structure that reads mRNA and joins amino acids together.
-
-The ribosome reads the mRNA in groups of three bases. Each group of three is a **codon**, and each codon stands for one amino acid or for "stop." With four bases there are 4 × 4 × 4 = 64 possible codons. In the standard code, 61 of them stand for amino acids and three, UAA, UAG and UGA, are stop codons. The codon AUG stands for methionine and is the usual start codon, where reading begins.
-
-**Transfer RNA (tRNA)** is a small RNA that carries one amino acid and has a stretch of three bases, its anticodon, that pairs with a matching codon. As each tRNA pairs with its codon, the ribosome links its amino acid to the chain. At a stop codon no amino acid is added, and the chain is released. It folds into a shape that lets the protein do its job.
-
-<LessonFigure src="/figures/protein-synthesis/ribosome-reads-codons.webp" width={1200} height={800} alt="AI-generated illustration: a two-lobed ribosome sitting on an mRNA strand divided into groups of three blocks. Inside, a key-shaped tRNA fits three blocks against one codon and carries a bead that is joining a growing bead chain; another tRNA arrives. An inset shows the ribosome at a stop codon with no tRNA and the chain released." caption="Translation up close: the ribosome reads one codon at a time, each tRNA's anticodon pairs with a codon, and its amino acid joins the chain until a stop codon releases it." />
-
-Here is part of the codon chart.
+Each **codon**, a group of three mRNA bases, means one **amino acid** or “stop.” Amino acids are the small building blocks of proteins; living things use about twenty common kinds. Here is part of the codon chart.
 
 | mRNA codon | Meaning |
 |---|---|
@@ -311,40 +323,81 @@ Here is part of the codon chart.
 | AAA | lysine (Lys) |
 | UAA, UAG, UGA | stop |
 
-Work one example. A DNA template strand, written from its 3′ end on the left to its 5′ end on the right, reads TAC CTC CTT AAA ACT.
+**Predict.** A ribosome already reading an mRNA reaches UUU GGC, lined up as two codons. Which two amino acids will it add next?
+
+<details>
+<summary>Check your prediction</summary>
+
+The chart gives phenylalanine for UUU and glycine for GGC, in that order.
+
+</details>
+
+Now a complete example. A DNA template strand, written from its 3′ end on the left to its 5′ end on the right, reads TAC CTC CTT AAA ACT.
+
 1. Pair each base: the mRNA is AUG GAG GAA UUU UGA.
 2. Translate: Met, Glu, Glu, Phe, then UGA means stop.
 3. The chain is Met–Glu–Glu–Phe. The stop codon adds nothing.
 
+AUG, the usual start codon, stands for methionine. With four bases, there are 4 × 4 × 4 = 64 possible codons. In the standard code, 61 stand for amino acids, and three (UAA, UAG and UGA) are stops.
+
+In the first film, each **transfer RNA (tRNA)** paired with a codon through its three-base **anticodon**. After the stop, the released chain can fold into a working protein.
+
+<LessonFigure src="/figures/protein-synthesis/ribosome-reads-codons.webp" width={1200} height={800} alt="AI-generated illustration: a two-lobed ribosome sitting on an mRNA strand divided into groups of three blocks. Inside, a key-shaped tRNA fits three blocks against one codon and carries a bead that is joining a growing bead chain; another tRNA arrives. An inset shows the ribosome at a stop codon with no tRNA and the chain released." caption="A ribosome reads one mRNA codon at a time, and matching tRNAs extend the amino acid chain until a stop releases it." />
+
+## Explore: transcribe, translate and mutate a gene
+
+The simulation shows a short DNA template as lettered blocks. Build its mRNA, translate it with the codon chart, then make a **mutation**, a change in DNA base order: swap, add or remove a letter. In cells, mutations come from rare copying errors or damage.
+
+<TranscribeTranslate />
+
+**Try this.**
+
+1. Build the first mRNA codon and explain each pairing.
+2. Find the start and stop, and check that the stop adds nothing to the chain.
+3. Predict whether swapping one letter will change zero, one or many amino acids. Swap three different letters and record what happens, including any early stop.
+4. Add a letter near the start, then remove one. Compare how later codons are grouped.
+
 Specialized cells carry the same genes but use different ones: young red blood cells fill with hemoglobin, while some pancreas cells make insulin.
 
-The **genetic code**, the set of codon meanings, is almost the same in every living thing, with a few exceptions, such as in some bacteria and in mitochondria. So a bacterium can read a suitably prepared gene for a human protein. In work published in 1979, a team put man-made genes for the two chains of human insulin into E. coli; the bacteria made the chains, and once joined outside the cells, tests recognized them as insulin.
+**Predict.** Could a bacterium read a suitably prepared gene for a human protein? What fact about codons supports your answer?
 
-<Support min={2}>**Key idea:** A ribosome reads mRNA one codon at a time, tRNA brings each matching amino acid, and a stop codon ends the chain.</Support>
+<details>
+<summary>Check your prediction</summary>
 
-## Explain: when one letter changes
+Yes. The **genetic code**, the set of codon meanings, is almost the same in every living thing, with a few exceptions, including in some bacteria and mitochondria. In work published in 1979, a team put man-made genes for the two human insulin chains into *E. coli*. The bacteria made the chains. Once joined outside the cells, tests recognized them as insulin.
 
-A **mutation** is a change in the base order of DNA, from a rare copying error or from damage. Three kinds:
+</details>
 
-- A **substitution** swaps one base for another.
-- An **insertion** adds one or more bases.
-- A **deletion** removes one or more bases.
+<Support min={2}>**Translation check:** A ribosome reads mRNA one codon at a time, tRNA brings each matching amino acid, and a stop codon ends the chain.</Support>
 
-A substitution can be a **silent mutation**, one that leaves the amino acid the same because more than one codon stands for it (GAG and GAA both mean Glu). It can change one amino acid. Or it can turn a codon into a stop, cutting the chain short.
+The second film follows a changed letter further, from one codon to a whole red blood cell.
 
-An insertion or deletion of one base inside the part of a gene that codes for the protein causes a **frameshift**, a shift in how the bases are grouped into codons. Take THE CAT ATE THE RAT, delete the first T, and read in threes: HEC ATA TET HER AT. The analogy breaks because mRNA has no spaces; the ribosome groups letters from where it started.
+<LessonFilm film={frontmatter.films[0]} />
 
-Now the opening puzzle. In the usual numbering of beta-globin, a hemoglobin chain, the sixth amino acid is glutamic acid, coded by GAG. (Some databases count the starting methionine and call it the seventh.) The coding strand is the DNA strand that matches the mRNA letter for letter, with T where the mRNA has U. In the sickle allele this strand reads GTG, so the mRNA codon is GUG and valine replaces glutamic acid. Glutamic acid carries an electric charge and mixes well with water. Valine has no charge and avoids water. When hemoglobin is low on oxygen, this valine can fit into a water-avoiding patch on another hemoglobin, so the molecules stick together into stiff rods, and the rods bend the cell into a sickle.
+## When one letter reaches a whole cell
 
-<LessonFigure src="/figures/protein-synthesis/sickle-one-letter.webp" width={1200} height={676} alt="AI-generated illustration: two rows of four frames. In the top row a DNA codon, its mRNA codon, a six-bead chain and a round red blood cell with separate hemoglobin blobs. In the bottom row the middle letter of each codon is changed, the sixth bead is different, the hemoglobin has joined into stiff rods, and the cell is bent into a sickle." caption="One letter, followed all the way up: GAG to GTG puts valine in place of glutamic acid, and that hemoglobin can stick into stiff rods, mostly when it is low on oxygen, bending the cell into a sickle." />
+The second film skipped two things: why valine makes hemoglobin stick, and why one sickle copy usually causes no symptoms.
 
-A person has two copies of this gene. With one sickle allele and one usual allele, a person has sickle cell trait and usually has no symptoms. Sickle cell disease happens when a person has a disease-causing change on both copies, and at least one of them is the sickle change.
+Glutamic acid carries an electric charge and mixes well with water. Valine has no charge and avoids water. When hemoglobin is low on oxygen, the valine can fit into a water-avoiding patch on another hemoglobin, so the molecules can join into the stiff rods the second film showed.
 
-<Support min={2}>**Key idea:** A mutation can change one amino acid, shift every codon after it, stop the chain early, or change nothing, and one changed amino acid can change a protein's shape and job.</Support>
+<LessonFigure src="/figures/protein-synthesis/sickle-one-letter.webp" width={1200} height={676} alt="AI-generated illustration: two rows of four frames. In the top row a DNA codon, its mRNA codon, a six-bead chain and a round red blood cell with separate hemoglobin blobs. In the bottom row the middle letter of each codon is changed, the sixth bead is different, the hemoglobin has joined into stiff rods, and the cell is bent into a sickle." caption="Changing coding DNA from GAG to GTG replaces glutamic acid with valine, and that hemoglobin can form stiff rods, mostly when low on oxygen, bending a red blood cell." />
 
-## Elaborate: is a mutation good or bad?
+A person has two copies of this gene.
 
-If the sickle allele can cause disease, why is it common in some places? Look at two kinds of real data.
+**Predict.** One person has one sickle allele and one usual allele. Another has a disease-causing change on both copies, including the sickle change. Who usually has sickle cell disease symptoms?
+
+<details>
+<summary>Check your prediction</summary>
+
+The second person. One sickle allele with one usual allele is sickle cell trait, which usually causes no symptoms. Sickle cell disease needs a disease-causing change on both copies, at least one of them the sickle change.
+
+</details>
+
+<Support min={2}>**Mutation check:** In coding DNA, swaps change one codon; frameshifts change later codons. A frameshift comes from adding or removing one base inside the coding part, and it often leads to an early stop. A substitution can leave the chain unchanged, change an amino acid or create a stop. One changed amino acid can change a protein's shape and job.</Support>
+
+## Use evidence: when is a mutation harmful?
+
+If the sickle allele can cause disease, why is it common in some places? Compare newborn screening with malaria outcomes.
 
 | Measure | Group or place | Year | Value | Units |
 |---|---|---|---|---|
@@ -358,9 +411,16 @@ If the sickle allele can cause disease, why is it common in some places? Look at
 
 Sources: rows 1 to 5, a CDC report (Ojodu and colleagues, MMWR, 2014) on newborns screened in 2010 in 44 states; screens were not confirmed diagnoses. Rows 6 and 7, Williams and colleagues (Journal of Infectious Diseases, 2005). Race groups are record labels; the allele follows family ancestry.
 
-1. How many times higher is the Mississippi rate than the Montana rate?
-2. In the Kenyan children, which outcome did the trait protect against more strongly?
-3. Can the newborn rows alone tell you why the trait is more common in some groups?
+**Predict.** Is the Mississippi screening rate nearer ten times or fifty times the Montana rate? Which malaria outcome shows stronger protection?
+
+<details>
+<summary>Check your prediction</summary>
+
+Divide 34.1 by 0.8: the Mississippi rate is about 43 times the Montana rate, nearer fifty times. Protection was stronger against hospital admission (75 percent) than against mild malaria (50 percent).
+
+</details>
+
+Can the newborn rows alone tell you why the trait is more common in some groups? No. They show a pattern, not its cause.
 
 <CER
   task="Make a claim that answers the essential question: how can changing one letter change a trait, and is that change always harmful? Use this data."
@@ -379,17 +439,27 @@ Use the simulation as a model to test this question: which kind of mutation most
 
 - Hypothesis: If ribosomes read in threes, then one-base insertions and deletions will change the chain more often than substitutions.
 - Independent variable: the kind of mutation (substitution, insertion or deletion of one base).
-- Dependent variable: whether the chain changed, and how many amino acids changed.
-- Constants: the same starting DNA, one mutation per trial, the same codon chart.
+- Dependent variable: whether the chain differs from the control chain, and how many amino acids changed, compared position by position from the start.
+- Constants: the same starting DNA, one mutation per trial, the same codon chart, and only spots inside the coding part, from the start codon up to the stop.
 - Control: translate the starting DNA with no mutation, so you know the normal chain.
-- Trials: 20 of each kind at randomly chosen spots; report the percent that changed the chain.
+- Trials: 20 of each kind at randomly chosen spots, with the new base also chosen at random; report the percent that changed the chain.
 
 If insertions and deletions change the chain in almost every trial while some substitutions change nothing, the hypothesis is supported. The limit: a model of one short gene shows the chain, not whether a real folded protein still works.
 
 </details>
 
+## Going deeper
+
+### Counting amino acids in beta-globin
+
+Beta-globin is the hemoglobin chain this gene codes for. In its usual numbering, glutamic acid is the sixth amino acid. Some databases count the starting methionine and call it the seventh.
+
+### Silent does not always mean identical
+
+The second film's silent swap, GAG to GAA, kept the chain the same. The story “Silent, but not always identical” adds a refinement: two messages that make the same amino acid chain can still differ in how long they last, which can change how much protein a cell makes.
+
 ## Evaluate: check your thinking
 
-A red blood cell changes shape because DNA letters are read in order: the gene is copied into mRNA, and ribosomes read it three letters at a time. Change GAG to GTG and one codon means valine, not glutamic acid. That one amino acid lets hemoglobin form rods that bend the cell, while many other changes would do nothing.
+The one rule, DNA order sets mRNA codons and amino acid order, connects the scales. One coding letter, GAG to GTG, puts valine in place of glutamic acid, and in low oxygen that hemoglobin can form rods that bend the cell. Other DNA changes can leave the chain unchanged.
 
-**Science practices you used:** predicting and testing with a model, translating a code with a chart, reading a data table and comparing rates, making a claim from evidence with reasoning, and planning a fair test with a control and repeated trials.
+**Science practices you used:** testing predictions with a model, translating a code with a chart, comparing rates in a data table, making a claim from evidence, and planning a fair test with a control and repeated trials.
