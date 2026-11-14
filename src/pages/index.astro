@@ -12,7 +12,7 @@ import { feedbackUrl } from '../lib/feedback';
 import { getCollection } from 'astro:content';
 import { courseOf } from '../data/courses';
 import rewritten from '../data/recently-rewritten.json';
-import { listedMethods } from '../data/methods';
+import { filmCatalog } from '../lib/film-catalog';
 
 /* The homepage is a front door, not the catalog (rearranged 2026-11-08 for user flow: Chris, "people
    have to scroll a bit before they get to the lesson"). Top to bottom: the hero with search and
@@ -74,7 +74,7 @@ for (const g of GOALS) for (const id of g.ids) {
 }
 
 /* ---- The methods library link in the hero: count only methods that have a film. ---- */
-const methodFilms = listedMethods().length;
+const libraryFilms = (await filmCatalog()).length;
 
 const TRY = [
   { title: 'Metabolism Arcade', line: 'Six games from the Biochemistry course: wire the cell, fix a broken enzyme, and drill for the MCAT.', href: '/play' },
@@ -97,9 +97,10 @@ const TRY = [
       <div class="goldrule" aria-hidden="true"></div>
       <p class="lede">Free lessons, films and simulations in science, starting with biology. Ages 5 to graduate school. No account needed, no ads.</p>
       <div class="home-search"><SiteSearch label="Search every course" /></div>
-      {/* The methods library, one click from the top of the page (Chris, 2026-11-13). */}
+      {/* The film library, one click from the top of the page (Chris, 2026-11-14; until then this line
+          linked the methods library, which /films/ now links as one of its kinds). */}
       <p class="hero-methods">
-        <a href="/methods/"><strong>The methods library</strong> <span>· a short film for each of {methodFilms} lab techniques, from PCR to patch clamp →</span></a>
+        <a href="/films/"><strong>The film library</strong> <span>· {fmt(libraryFilms)} short films, from first questions to current research →</span></a>
       </p>
       {/* Filled from this device's saved progress (src/lib/progress.ts); stays
           hidden for a first visit, without JavaScript, or when storage is blocked. */}

@@ -10,8 +10,11 @@
 import FilmTranscript from './FilmTranscript.astro';
 interface Props {
   film: { src: string; captions: string; poster: string; title: string; durationSec: number; id?: string; predatesCorrection?: string; takeaways?: string[] };
+  /** Leave out the transcript fold (the play-in-order page swaps films in this player and links
+   *  each film's own page for its transcript). */
+  transcript?: boolean;
 }
-const { film } = Astro.props;
+const { film, transcript = true } = Astro.props;
 const len = `${Math.floor(film.durationSec / 60)}:${String(Math.round(film.durationSec % 60)).padStart(2, '0')}`;
 ---
 
@@ -27,7 +30,7 @@ const len = `${Math.floor(film.durationSec / 60)}:${String(Math.round(film.durat
   )}
 </figure>
 {/* The captions as readable text, closed until asked for (and searchable). */}
-<FilmTranscript captions={film.captions} title={film.title} id={film.id ?? film.src.split('/').slice(-2, -1)[0] + '-' + film.src.split('/').pop()!.replace(/\.mp4$/, '')} />
+{transcript && <FilmTranscript captions={film.captions} title={film.title} id={film.id ?? film.src.split('/').slice(-2, -1)[0] + '-' + film.src.split('/').pop()!.replace(/\.mp4$/, '')} />}
 {film.takeaways && film.takeaways.length > 0 && (
   <div class="lf-takeaways" aria-label="Key points from the film">
     <p class="lf-takeaways-h">From the film</p>

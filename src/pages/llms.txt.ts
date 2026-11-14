@@ -1,5 +1,6 @@
 /* /llms.txt: the site described for language models (llmstxt.org format): what it is, how to use
    and cite it, and every course with its lessons, each linked to a plain Markdown copy. */
+import { STAGES } from '../data/stages';
 import type { APIRoute } from 'astro';
 import { agentCatalog, SITE } from '../lib/agent-catalog';
 
@@ -39,6 +40,6 @@ export const GET: APIRoute = async () => {
       out.push('');
     }
   }
-  out.push('## Optional', '', `- [Films](${SITE}/films/): every film on the site, sortable by length, level and course; the same list as JSON at ${SITE}/films.json`, `- [Methods library](${SITE}/methods/): short films on laboratory methods`, `- [MCAT practice](${SITE}/mcat/): passage-based practice sets`, `- [Math toolkit](${SITE}/math-toolkit): the math the lessons use`, `- [For teachers](${SITE}/teachers): classes and teaching resources`, '');
+  out.push('## Optional', '', `- [Films](${SITE}/films/): every film on the site, sortable by length, level and course; one page per level at ${SITE}/films/{level}/ (levels: ${STAGES.map((st) => st.key).join(', ')}); a course's films in order at ${SITE}/films/play/{course}/; the same list as JSON at ${SITE}/films.json`, `- [Methods library](${SITE}/methods/): short films on laboratory methods`, `- [MCAT practice](${SITE}/mcat/): passage-based practice sets`, `- [Math toolkit](${SITE}/math-toolkit): the math the lessons use`, `- [For teachers](${SITE}/teachers): classes and teaching resources`, '');
   return new Response(out.join('\n'), { headers: { 'Content-Type': 'text/plain; charset=utf-8' } });
 };
