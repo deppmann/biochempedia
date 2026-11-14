@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { courseCards } from '../../lib/catalog';
+import { filmTotal } from '../../lib/film-catalog';
 import { MILESTONES, ROADMAP, ROADMAP_UNDER_REVIEW, KIND_LABEL, type UpdateKind } from '../../data/updates';
 import PRS from '../../data/updates-prs.json';
 import NOTES from '../../data/updates-pr-notes.json';
@@ -11,7 +12,7 @@ import REWRITTEN from '../../data/recently-rewritten.json';
 /* Everything counted here comes from the live catalog at build time, so the numbers can't go stale. */
 const { cards, lessonCount } = await courseCards();
 const bySlug = new Map(cards.map((k) => [k.c.slug, k]));
-const films = cards.reduce((n, k) => n + k.films, 0);
+const films = await filmTotal(); // the film library's count, as on the homepage and /films/
 const sims = cards.reduce((n, k) => n + k.sims, 0);
 const decks = Object.keys(import.meta.glob('../../data/flashcards/*.json')).length;
 const mcatSets = Object.keys(import.meta.glob('../../content/mcat-sets/*.json')).length;

@@ -107,6 +107,12 @@ export function filmCatalog(): Promise<CatalogFilm[]> {
   return cache;
 }
 
+/** How many films the site has: the one number every page that states a total uses (the homepage
+ *  hero and tally, /films/, /progress/, /updates/), so they cannot drift apart (2026-11-14). */
+export async function filmTotal(): Promise<number> {
+  return (await filmCatalog()).length;
+}
+
 async function build(): Promise<CatalogFilm[]> {
   const lessons = await getCollection('lessons', ({ data }) => !data.draft);
   const methods = listedMethods();

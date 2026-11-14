@@ -360,12 +360,14 @@ const websiteLd = {
     </style>
     <script>
       import { load, dueNow, onChange } from '../lib/progress';
-      import { trackFilms } from '../lib/film-progress';
+      import { trackFilms, resumeFromLink } from '../lib/film-progress';
       // A small dot on the header's progress link when review questions are due.
       const dot = document.querySelector<HTMLElement>('[data-nav-due]');
       if (dot) onChange(() => { dot.hidden = dueNow(load()).length === 0; });
       // Films watched, on this device only, for the film library's "Watched" marks and "Keep watching".
       trackFilms();
+      // "Pick up where you left off" links open a film paused at the second the viewer stopped.
+      resumeFromLink();
     </script>
   </body>
 </html>

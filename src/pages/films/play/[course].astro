@@ -16,6 +16,7 @@
    poster. Media paths are the site-relative paths from the lesson frontmatter, as everywhere else. */
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 import LessonFilm from '../../../components/LessonFilm.astro';
+import CardsPrompt from '../../../components/CardsPrompt.astro';
 import { filmCatalog, filmKey, filmLevelHref, kindBadge, type CatalogFilm } from '../../../lib/film-catalog';
 import { filmClock } from '../../../lib/films';
 import { courseHref } from '../../../data/courses';
@@ -33,10 +34,13 @@ const course = { slug: first.course!, title: first.courseTitle, stage: first.sta
 const fmt = (n: number) => n.toLocaleString('en-US');
 const mins = Math.round(films.reduce((n, f) => n + f.durationSec, 0) / 60);
 const hm = (m: number) => (m < 90 ? `${m} min` : `${Math.floor(m / 60)} h ${m % 60} min`);
+// Lessons with a flashcard deck: the end of their films offers the cards (CardsPrompt.astro).
+const DECK_FILES = Object.keys(import.meta.glob('../../../data/flashcards/*.json'));
+const deckFor = (f: CatalogFilm) => (f.lesson && DECK_FILES.some((p) => p.endsWith(`/${f.lesson}.json`)) ? f.lesson : '');
 const lessonPage = (f: CatalogFilm) => (f.lesson ? `/lessons/${f.lesson}/` : f.href);
 const queue = films.map((f) => ({
   f: filmKey(f.src), t: f.title, h: f.href, l: lessonPage(f), lt: f.lessonTitle ?? '', s: f.src, c: f.captions, o: f.poster,
-  d: Math.round(f.durationSec), b: kindBadge(f), k: f.kind, th: f.takeaways ?? [],
+  d: Math.round(f.durationSec), b: kindBadge(f), k: f.kind, th: f.takeaways ?? [], cd: deckFor(f),
 }));
 ---
 
@@ -44,7 +48,7 @@ const queue = films.map((f) => ({
   title={`${course.title}: every film in order — Biochemistrypedia`}
   description={`The ${fmt(films.length)} films of ${course.title} on Biochemistrypedia, played back to back in course order, with each film's take-homes and a link to its lesson.`}
 >
-<div class="film-lib pl" data-course={course.slug} data-course-title={course.title}>
+<div class="film-lib pl" data-course={course.slug} data-course-title={course.title} data-cards-lesson={queue[0].cd || undefined} data-cards-title={queue[0].lt || undefined}>
   <header class="wrap fl-head pl-head" data-pagefind-ignore>
     <p class="eyebrow"><a href="/films/">Film library</a> · <a href={filmLevelHref(course.stage)}>{course.stageTitle}</a></p>
     <h1 class="lvl-title">{course.title}, every film in order</h1>
@@ -57,7 +61,7 @@ const queue = films.map((f) => ({
 
   <div class="wrap pl-main" data-pagefind-ignore>
     <div class="pl-stage">
-      <div class="pl-player" data-pl-player>
+      <div class="pl-player" data-pl-player data-cards-anchor>
         <LessonFilm film={{ src: first.src, captions: first.captions, poster: first.poster, title: first.title, durationSec: first.durationSec, id: 'play' }} transcript={false} />
         <div class="pl-next" data-pl-next role="status" hidden>
           <p class="pl-next-k">Up next <span data-pl-count></span></p>
@@ -112,13 +116,15 @@ const queue = films.map((f) => ({
     </aside>
   </div>
 
+  <CardsPrompt />
   <script type="application/json" data-pl-data set:html={JSON.stringify(queue).replace(/</g, '\\u003c')} />
 
   <script>
     import { liveMarks } from '../../../lib/film-cards';
-    import { loadFilms, saveQueue } from '../../../lib/film-progress';
+    import { loadFilms, saveQueue, onFilmsChange } from '../../../lib/film-progress';
+    import { checkFilmsBadge } from '../../../lib/badges';
 
-    type Q = { f: string; t: string; h: string; l: string; lt: string; s: string; c: string; o: string; d: number; b: string; k: string; th: string[] };
+    type Q = { f: string; t: string; h: string; l: string; lt: string; s: string; c: string; o: string; d: number; b: string; k: string; th: string[]; cd: string };
     const root = document.querySelector<HTMLElement>('.pl')!;
     const all: Q[] = JSON.parse(root.querySelector('[data-pl-data]')!.textContent!);
     const course = root.dataset.course!;
@@ -194,6 +200,8 @@ const queue = films.map((f) => ({
       ul.replaceChildren(...q.th.map((t) => Object.assign(document.createElement('li'), { textContent: t })));
       th.hidden = q.th.length === 0;
       $('[data-pl-pos]').textContent = `Film ${n + 1} of ${order.length}`;
+      // Which lesson's flashcards the end of this film offers (CardsPrompt.astro).
+      if (q.cd) { root.dataset.cardsLesson = q.cd; root.dataset.cardsTitle = q.lt || q.t; } else { delete root.dataset.cardsLesson; delete root.dataset.cardsTitle; }
       $<HTMLButtonElement>('[data-pl-prev]').disabled = n === 0;
       $<HTMLButtonElement>('[data-pl-nextbtn]').disabled = n === order.length - 1;
       for (const li of items) li.removeAttribute('aria-current');
@@ -212,7 +220,7 @@ const queue = films.map((f) => ({
     const remember = (t: number) => {
       if (!started) return;
       const q = all[order[cur]];
-      saveQueue(course, { f: q.f, t, title: q.t, poster: q.o, courseTitle });
+      saveQueue(course, { f: q.f, t, title: q.t, poster: q.o, courseTitle, d: q.d });
     };
 
     const select = (n: number, play: boolean, seek = 0) => {
@@ -255,7 +263,7 @@ const queue = films.map((f) => ({
       }
       const next = all[order[cur + 1]];
       // Save the next film as the place to come back to.
-      saveQueue(course, { f: next.f, t: 0, title: next.t, poster: next.o, courseTitle });
+      saveQueue(course, { f: next.f, t: 0, title: next.t, poster: next.o, courseTitle, d: next.d });
       $('[data-pl-next-t]').textContent = next.t;
       let left = 5;
       const count = $('[data-pl-count]');
@@ -267,6 +275,8 @@ const queue = films.map((f) => ({
         if (left <= 0) select(cur + 1, true);
       }, 1000);
     });
+    // "Review the cards" under the player (CardsPrompt.astro) stops the countdown.
+    root.addEventListener('bp-cards-open', () => cancelNext());
     $('[data-pl-now]').addEventListener('click', () => select(cur + 1, true));
     $('[data-pl-cancel]').addEventListener('click', () => { cancelNext(); $<HTMLButtonElement>('[data-pl-nextbtn]').focus(); });
     $('[data-pl-prev]').addEventListener('click', () => select(cur - 1, true));
@@ -281,6 +291,8 @@ const queue = films.map((f) => ({
 
     $<HTMLElement>('[data-pl-ctrl]').hidden = false;
     liveMarks(root);
+    // The course's "Watched every film" badge (src/lib/badges.ts), earned when the last film is watched.
+    onFilmsChange(() => { checkFilmsBadge(course, courseTitle, all.map((q) => q.f)); });
 
     /* Open where the viewer stopped last time, paused. */
     const saved = loadFilms().q[course];
