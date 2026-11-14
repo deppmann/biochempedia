@@ -5,7 +5,8 @@
  */
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Hex from '../../components/Hex.astro';
-import { HEX_POSES, HEX_PROPS } from '../../data/hex';
+import { HEX_POSES, HEX_PROPS, COURSE_HEX } from '../../data/hex';
+import { COURSES } from '../../data/courses';
 
 const POSE_NOTE: Record<string, string> = {
   stand: 'The default. Holds a subject’s prop on course pages.',
@@ -15,6 +16,10 @@ const POSE_NOTE: Record<string, string> = {
   cheer: 'You finished something: a quiz, a review session.',
   sleep: 'Nothing here yet: an empty progress page.',
 };
+/* One Hex per course (2026-11-14), named as the site names each course. */
+const NAMES: Record<string, string> = { ...Object.fromEntries(COURSES.map((c) => [c.slug, c.slug === 'high-school-biology' ? 'Biology (high school)' : c.slug === 'life-science' ? 'Life Science (grade 7)' : c.title])), mcat: 'MCAT practice', methods: 'Methods library' };
+const HREF: Record<string, string> = { mcat: '/mcat/', methods: '/methods/' };
+const COURSE_LOOKS = Object.entries(COURSE_HEX).map(([slug, h]) => ({ slug, ...h, name: NAMES[slug] ?? slug, href: HREF[slug] ?? `/courses/${slug}/` }));
 const SHAPES = [
   ['Chemistry', 'a benzene ring, six carbons in a loop. The three gold lines inside Hex are its double bonds.'],
   ['Biology', 'a cell of honeycomb, and the facets of an insect’s eye.'],
@@ -64,10 +69,25 @@ const SHAPES = [
       ))}
     </ul>
 
+    <h2>One Hex per course</h2>
+    <p>
+      Every course has its own Hex, beside the course title and on the course’s skim page, so you can tell
+      the courses apart at a glance. Each holds something from its subject, drawn as a simple icon.
+    </p>
+    <ul class="hx-grid hx-courses">
+      {COURSE_LOOKS.map((h) => (
+        <li>
+          <Hex pose={h.pose} prop={h.prop} size={80} label={h.label} />
+          <strong><a href={h.href}>{h.name}</a></strong>
+          <span>{h.label.replace(/^Hex /, '')}</span>
+        </li>
+      ))}
+    </ul>
+
     <h2>The rules</h2>
     <ul>
       <li>Hex appears where something happens, never as wallpaper, and never in the reading column of a lesson.</li>
-      <li>One Hex in view at a time (this page is the exception).</li>
+      <li>One Hex in view at a time (this page is the exception). A course’s own Hex goes beside its title, not on every card or row that names the course.</li>
       <li>Navy line, gold accents, nothing else. No shading, no other colours.</li>
       <li>Hex does not speak in speech bubbles. A short line of text beside it is enough.</li>
       <li>Movement is small and stops: a blink, a wave, a hop. None of it plays for readers who have asked their device for reduced motion.</li>
@@ -87,6 +107,9 @@ const SHAPES = [
     .hx-grid { list-style: none; margin: var(--ddp-space-4) 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: var(--ddp-space-3); }
     .hx-grid li { display: flex; flex-direction: column; align-items: center; gap: 0.2rem; margin: 0; padding: var(--ddp-space-4) var(--ddp-space-3); text-align: center; background: var(--ddp-color-surface); border: 1px solid var(--ddp-color-line); border-radius: var(--ddp-radius); }
     .hx-grid strong { margin-top: var(--ddp-space-2); font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ddp-color-primary); }
+    .hx-grid strong a { color: inherit; }
+    .hx-courses li { justify-content: flex-end; }
+    .hx-grid :global(svg) { max-width: 100%; height: auto; }
     .hx-grid span { font-size: var(--ddp-text-sm); line-height: 1.4; color: var(--ddp-color-ink-soft); }
   </style>
 </BaseLayout>

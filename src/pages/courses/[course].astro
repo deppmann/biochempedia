@@ -7,7 +7,7 @@ import SiteSearch from '../../components/SiteSearch.astro';
 import DepthLadder from '../../components/DepthLadder.astro';
 import Drifters from '../../components/Drifters.astro';
 import Hex from '../../components/Hex.astro';
-import { hexPropFor } from '../../data/hex';
+import { hexFor } from '../../data/hex';
 import { COURSES, unitsFor, courseSkimHref } from '../../data/courses';
 
 /* One page per course, all in the same card layout. A course gets a page only
@@ -26,6 +26,7 @@ const { course, lessons } = Astro.props;
 const units = unitsFor(course, lessons);
 const drafts = lessons.filter((l) => l.data.draft).length;
 const first = units[0]?.entries[0]?.l;
+const hex = hexFor(course.slug);
 const tierLabel = { families: 'activities for ages 5–10', highschool: course.ladderStep === 1 ? 'middle school course' : 'high school course', foundation: 'foundation course', core: 'core course', elective: 'elective', advanced: 'advanced elective' }[course.tier];
 ---
 
@@ -33,7 +34,7 @@ const tierLabel = { families: 'activities for ages 5–10', highschool: course.l
   <Drifters />
   <section class="wrap course-hero">
     <p class="eyebrow"><a href="/courses/">All courses</a> · {tierLabel}{course.tier === 'highschool' && <DepthLadder step={course.ladderStep ?? 2} size="sm" class="eyebrow-ladder" />}</p>
-    <h1>{course.title}<Hex pose="stand" prop={hexPropFor(course.slug)} size={64} alive class="hex-inline" /></h1>
+    <h1>{course.title}<Hex pose={hex.pose} prop={hex.prop} size={64} alive title={hex.label} class="hex-inline" /></h1>
     <p class="lede">{course.blurb}</p>
     {drafts > 0 && (
       <p class="draft-banner" role="note">
