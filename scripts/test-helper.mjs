@@ -393,6 +393,21 @@ await test('grounding check: same cached system prefix, rules as a system messag
   checkReply = null;
 });
 
+await test('check model: HELPER_CHECK_MODEL runs only the check, and the check is costed at the price of that model', async () => {
+  const db = makeDb(); signIn(db); calls.length = 0; checks.length = 0; reply = ok(GOOD_EXPLAIN, WARM); checkReply = okCheck([]);
+  const env = baseEnv(db, { HELPER_CHECK_MODEL: 'claude-opus-5-5' });
+  assert.equal((await j(await H.handleHelp(post('explain', { slug: 'cell-cycle', passage: PASSAGE }), env))).ok, true);
+  assert.equal(calls[0].body.model, 'claude-sonnet-5-5');
+  assert.equal(checks[0].body.model, 'claude-opus-5-5');
+  // reply at Sonnet prices (2 / 0.10 / 10) + check at Opus prices (4 / 0.20 / 20), per million tokens
+  assert.equal(budget(db, 'd').spent_micro, Math.ceil(150 * 2 + 9000 * 0.1 + 300 * 10) + Math.ceil(400 * 4 + 9000 * 0.2 + 60 * 20));
+  // a value that is not a model id falls back to the default
+  checks.length = 0;
+  await H.handleHelp(post('explain', { slug: 'cell-cycle', passage: PASSAGE }), baseEnv(db, { HELPER_CHECK_MODEL: 'gpt-x; drop table' }));
+  assert.equal(checks[0].body.model, 'claude-sonnet-5-5');
+  checkReply = null;
+});
+
 await test('grounding check on cards drops only the flagged cards; on feedback it reads the strengths', async () => {
   const db = makeDb(); signIn(db); checks.length = 0;
   reply = ok({ cards: [
