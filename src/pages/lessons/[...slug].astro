@@ -21,6 +21,7 @@ import ListenPlayer from '../../components/ListenPlayer.astro';
 import LessonShare from '../../components/LessonShare.astro';
 import DepthLadder from '../../components/DepthLadder.astro';
 import FilmTranscript from '../../components/FilmTranscript.astro';
+import LessonPlayAll from '../../components/LessonPlayAll.astro';
 import FlashcardDeck from '../../components/FlashcardDeck.astro';
 import CardsPrompt from '../../components/CardsPrompt.astro';
 import HighlightLayer from '../../components/HighlightLayer.astro';
@@ -274,6 +275,7 @@ const lessonLd = {
         {/* The film's words as text, closed until asked for. Its own search region: see the note at the prose column. */}
         <div data-pagefind-body><FilmTranscript captions={ex.captions} title={ex.title} id="explainer" /></div>
         </details>
+        {lesson.films.length > 0 && <LessonPlayAll />}
         {/* Take-homes stay visible with the player closed: the lesson text leans on them instead of re-telling the film. */}
         {ex.takeaways && ex.takeaways.length > 0 && (
           <div class="film-takeaways" aria-label="Key points from the film">
