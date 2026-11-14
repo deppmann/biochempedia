@@ -5,12 +5,12 @@ course: "high-school-biology"
 courseChapter: "Biology · Unit 6: Evolution"
 order: 927
 summary: >-
-  Why do some individuals survive and reproduce while others do not, and what does that do to a
-  population? You will run a model population under a pressure you control, then read real data on
-  tuskless elephants in Mozambique and on how many young blue crabs and elephants produce. Afterwards
-  you can explain where variation comes from, why only some offspring survive, and what before-and-after
-  data can and cannot show.
-hook: "After years of ivory poaching in Mozambique, about half of the female elephants that survived had no tusks. How could a whole population change like that?"
+  When inherited variations affect reproductive success, populations change across generations.
+  Run a model population under a pressure you control, then read real data on tuskless elephants
+  in Mozambique and on how many young blue crabs and elephants produce. Afterwards you can explain
+  where variation comes from, why only some offspring survive, and what before-and-after data can
+  and cannot show.
+hook: "How can a population change when no elephant changes the tusk trait she was born with?"
 estMinutes: 40
 supports: true
 objectives:
@@ -31,10 +31,30 @@ explainer:
   src: "/explainers/variation-and-survival/explainer.mp4"
   captions: "/explainers/variation-and-survival/explainer.vtt"
   poster: "/explainers/variation-and-survival/poster.jpg"
-  title: "Who Survives Changes the Population"
-  durationSec: 164.5
-  narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+  title: "How Populations Change"
+  durationSec: 228.6
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+  takeaways:
+    - "When inherited variations affect reproductive success, populations change across generations."
+    - "Mutation makes new alleles, gene flow moves alleles, and sexual reproduction reshuffles alleles."
+    - "An individual keeps its inherited variant while the population's mix can change."
+    - "Natural selection needs inherited variation and unequal reproductive success under the current conditions."
+
+films:
+  - id: "chapter-2"
+    src: "/explainers/variation-and-survival/chapter-2.mp4"
+    captions: "/explainers/variation-and-survival/chapter-2.vtt"
+    poster: "/explainers/variation-and-survival/chapter-2-poster.jpg"
+    title: "Reading Selection in a Population"
+    durationSec: 220.1
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+    takeaways:
+      - "When inherited variations affect reproductive success, populations change across generations."
+      - "Populations usually produce more young than their environments can support."
+      - "A trait-frequency shift describes groups, not an individual changing during life."
+      - "Comparisons against chance strengthen a claim that selection shaped a population."
 
 scientists: []
 
@@ -150,7 +170,7 @@ practiceQuestions:
       most daughters still had tusks. The data compare groups, not single elephants, so they do not
       show any female losing tusks. Saying none existed before the war ignores the 18.5 percent. A
       change in percentages is not every female changing together.
-  - stem: "In this made-up model, moth color is inherited, and 10 dark moths and 90 light moths live on dark tree bark. Birds catch more light moths each generation. After 10 generations there are 60 dark moths and 40 light moths. Which statement fits the model?"
+  - stem: "The lesson's rule is: When inherited variations affect reproductive success, populations change across generations. In this made-up model, moth color is inherited, and 10 dark moths and 90 light moths live on dark tree bark. Birds catch more light moths each generation. After 10 generations there are 60 dark moths and 40 light moths. Which statement fits the rule?"
     choices:
       - "Every moth in the population changed color together"
       - "Dark moths survived and reproduced more, so their share grew"
@@ -247,8 +267,13 @@ import Support from '../../../components/Support.astro';
 import CER from '../../../components/CER.astro';
 import ScaffoldFigure from '../../../components/ScaffoldFigure.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import LessonFilm from '../../../components/LessonFilm.astro';
 
-**In Mozambique’s Gorongosa National Park, soldiers on both sides of a civil war that lasted from 1977 to 1992 killed elephants for ivory. Before the war, about 1 in 5 of the females researchers sampled had no tusks; among the females that survived the war, about half had none.** The rise did not come from elephants losing their tusks. So how did the population change? The answer depends on two facts: individuals differ, and not all of them survive.
+**In Mozambique's Gorongosa National Park, soldiers on both sides of a civil war that lasted from 1977 to 1992 killed elephants for ivory. Before the war, about 1 in 5 of the females researchers sampled had no tusks; among the females that survived the war, about half had none.** No elephant had to lose her tusks for those group percentages to change.
+
+> **The one idea.** When inherited variations affect reproductive success, populations change across generations.
+>
+> *Scope:* This rule describes natural selection. It works only when variants are inherited and the current conditions make the individuals that carry them leave different numbers of offspring. Mutation, gene flow and genetic drift (chance) can also change populations. Under some conditions, selection keeps a mix steady instead of changing it.
 
 <IdeaCheck items={[
   { idea: 'Each elephant evolved during the war and stopped growing tusks.', answer: 'disagree', explain: 'Whether an elephant grows tusks depends on the genes she was born with. What changed was the population: researchers compared photos of females from before the war with females seen afterwards. Tuskless females were already present before the war and survived poaching more often, so their share of the population rose.' },
@@ -258,49 +283,61 @@ import LessonFigure from '../../../components/LessonFigure.astro';
 
 ## Explore: put a population under pressure
 
-In this model you watch a population of animals with an inherited trait, such as having tusks or not, over many generations. You set how strong a pressure is, such as how often hunters take tusked animals, and whether new variations can arise by mutation. A graph tracks what share of the population has each trait.
+In this model, a population of animals carries an inherited trait, such as having tusks or not. You set how strong a pressure is, such as how often hunters take tusked animals, and whether new variations can arise by mutation. A graph tracks each trait's share over many generations.
 
 <PressureOnAPopulation />
 
-**Try this.**
-1. Set the pressure to zero. Predict whether the share of tuskless animals will rise, fall or wobble. Run it several times.
+**Predict, then test.** The first film showed that with no pressure the shares change only by chance, with no consistent direction, and that a missing variant cannot be selected. In a population of limited size, chance alone can eventually remove one variant entirely. Measure what the film did not.
+1. Set the pressure to zero and run it several times. How far does the share drift in 40 generations? Does one kind ever disappear?
 2. Turn the pressure up to strong. Predict how many generations it takes for the share to change a lot. Then try a weak pressure and compare.
-3. Start with no tuskless animals and new variation switched off. Predict what strong pressure does. Then switch new variation on.
-4. Follow one animal through its life. Predict whether its trait changes before it dies.
+3. Start with no tuskless animals, strong pressure and new variation switched on. Predict how long tusklessness takes to spread once it first appears.
 
 ## Explain: where variation comes from
 
 <WordBank terms={['variation', 'allele', 'gene pool', 'mutation', 'gene flow', 'sexual reproduction', 'natural selection', 'selective pressure', 'reproductive strategy']} />
 
-Look around a classroom. People differ in height, hair, voice and much more. Some of those differences are inherited, and some come from the environment, such as food or exercise. Only inherited differences pass to the next generation.
+The first film drew the gene pool; here are the words for its parts.
 
 **Variation** is the differences among individuals in a population. An **allele** is one version of a gene. The **gene pool** is all the alleles of all the individuals in a population. Three processes add to or reshape it.
 
-- **Mutation** is a change in an organism’s DNA. It is the original source of new alleles. Many mutations have no effect, some harm, and a few help, depending on the environment. In most animals, only mutations in the cells that make eggs or sperm pass to offspring.
+- **Mutation** is a change in an organism’s DNA. It is the original source of new alleles. Many mutations have no effect, some harm, and a few help, depending on the environment.
 - **Gene flow** is the movement of alleles from one population to another, when individuals move and breed or when pollen blows to another field. It can bring in an allele the population did not have.
 - **Sexual reproduction** joins an egg and a sperm from two parents. You saw in [Meiosis and Variation](/lessons/meiosis-and-variation/) that meiosis shuffles chromosome pairs and swaps pieces between them. This makes new combinations of alleles that already exist, so each offspring is a new mix.
 
-Over many generations, new mutations and gene flow change what is in the gene pool. Natural selection and chance (genetic drift) also change how common each allele is; you meet selection next.
+Over generations, mutation and gene flow change what is in the gene pool. Natural selection and chance (genetic drift) also change how common each allele is.
 
-<ScaffoldFigure src="/figures/variation-and-survival/gene-pool-bead-jar.webp" width={1200} height={800} keyItems={["gene pool", "mutation", "gene flow", "meiosis and fertilization", "one generation later"]} given={[0, 1]} alt="AI-generated illustration: a jar of coloured beads stands for a gene pool. One new gold bead drops in, a smaller tipped jar pours beads of a new colour in, beads are regrouped into pairs, and a jar at the right shows a slightly changed mix. Five numbered circles point to these parts." caption="A gene pool as a bead jar: three processes add to or reshape it. Name the five numbered parts. Remember the picture's limit: real alleles leave mainly when animals die, fail to reproduce or move away." />
+**Predict.** A mutation happens in a skin cell on an elephant's trunk. Could her calf inherit it?
 
-A bead jar is a helpful picture of a gene pool. The picture has a limit, because real alleles are carried inside living animals, so they leave the jar mainly when those animals die, fail to reproduce, or move to another population.
+<details>
+<summary>Check your prediction</summary>
 
-<Support min={2}>**Key idea:** Mutation makes new alleles, gene flow moves alleles between populations, and sexual reproduction shuffles alleles into new combinations, so populations are usually varied.</Support>
+No. In most animals, only mutations in the cells that make eggs or sperm pass to offspring.
 
-## Explain: more young than can survive
+</details>
 
-Populations tend to make more young than the environment can support. A female blue crab in the Chesapeake Bay may carry an egg mass of about 750,000 to 8 million eggs, according to the Virginia Institute of Marine Science. Only a small fraction of those eggs become adult crabs. Most die young.
+<ScaffoldFigure src="/figures/variation-and-survival/gene-pool-bead-jar.webp" width={1200} height={800} keyItems={["gene pool", "mutation", "gene flow", "meiosis and fertilization", "one generation later"]} given={[0, 1]} alt="AI-generated illustration: a jar of coloured beads stands for a gene pool. One new gold bead drops in, a smaller tipped jar pours beads of a new colour in, beads are regrouped into pairs, and a jar at the right shows a slightly changed mix. Five numbered circles point to these parts." caption="Mutation adds new alleles, gene flow moves alleles, and sexual reproduction reshuffles them. Name the five numbered parts. Remember the picture's limit: real alleles leave mainly when animals die, fail to reproduce or move away." />
 
-**Natural selection** is the process by which individuals with certain inherited variations survive and reproduce more than others, so those variations become more common in later generations. Strength alone does not decide it. What counts is how many offspring an individual leaves.
+<Support min={2}>**Key idea:** Mutation makes new alleles, gene flow moves alleles between populations, and sexual reproduction reshuffles alleles into new combinations, so populations are usually varied.</Support>
 
-A **selective pressure** is anything in the environment that makes some variants more likely to survive or reproduce than others: predators, disease, drought or human hunting. In Gorongosa, poachers wanted ivory, so tusked elephants were killed more often. Tuskless females already existed, and they survived more often. In this park tusklessness is seen only in females; no tuskless male has been recorded there. To test whether chance alone could explain the rise, the researchers simulated the park's population crash with tusked and tuskless females surviving equally often. The real rise was far larger than chance would produce, and tuskless females were estimated to have survived about five times as well. They concluded that poaching most likely caused strong selection for tusklessness.
+Variation is the raw material; the second film shows what a pressure does with it in Gorongosa.
+
+<LessonFilm film={frontmatter.films[0]} />
+
+## Explain: what the film left out
+
+The second film showed the Gorongosa bars and the chance test in outline; here are the terms and details behind them.
+
+**Natural selection** is the process by which individuals with certain inherited variations survive and reproduce more than others, so those variations become more common in later generations.
+
+A **selective pressure** is anything in the environment that makes some variants more likely to survive or reproduce than others: predators, disease, drought or human hunting. In Gorongosa it was ivory poaching. In this park tusklessness is seen only in females; no tuskless male has been recorded there.
+
+Beyond the chance test, the researchers estimated that tuskless females survived about five times as well as tusked females. They concluded that poaching most likely caused strong selection for tusklessness.
 
 <LessonFigure src="/figures/variation-and-survival/tusked-and-tuskless-females.webp" width={1200} height={800} alt="AI-generated illustration: two female African elephants side by side on a savanna, one with a pair of tusks and one with no tusks at all." caption="Tuskless females were already part of the Gorongosa population before the war. Poachers killed tusked elephants more often, so tuskless females survived more often." />
 
-Pressure can be strong or weak. A strong pressure, like heavy poaching, can change a trait’s frequency within a few decades. A weak pressure changes it slowly over many generations. Biologists argue about how often evolution happens in quick bursts and how often it creeps along; you will meet those two ideas in [Natural Selection and New Species](/lessons/natural-selection-and-speciation/).
+A female blue crab in the Chesapeake Bay may carry about 750,000 to 8 million eggs, according to the Virginia Institute of Marine Science. Only a small fraction become adults.
 
-A **reproductive strategy** is a species’ pattern of how many young it makes and how much it invests in each. The table compares two endpoints.
+A **reproductive strategy** is a species’ pattern of how many young it makes and how much it invests in each. Neither end of the range is always better; each can leave surviving offspring under some conditions.
 
 | | Blue crab | African savanna elephant |
 |---|---|---|
@@ -308,11 +345,9 @@ A **reproductive strategy** is a species’ pattern of how many young it makes a
 | Care | Mother carries the eggs until they hatch | Mother nurses the calf, and births are years apart |
 | Survival of each young | Very low | Higher |
 
-Many species fall between these endpoints, so treat them as the ends of a range rather than two boxes.
-
 <LessonFigure src="/figures/variation-and-survival/crab-and-elephant-strategies.webp" width={1200} height={800} alt="AI-generated illustration: a female blue crab carrying a large orange egg mass on the bay floor, and an elephant mother with one small calf on grassland, joined by a double-headed arrow. An inset shows the egg mass as many tiny eggs." caption="Two ends of a range of reproductive strategies: a blue crab carries hundreds of thousands to millions of eggs, while an elephant usually raises one calf with years of care." />
 
-<Support min={2}>**Key idea:** Populations make more young than can survive, and individuals whose inherited variations suit the environment leave more offspring, so those variations become more common.</Support>
+<Support min={2}>**Key idea:** Populations usually produce more young than can survive, and individuals whose inherited variations suit the conditions leave more offspring, so those variations become more common.</Support>
 
 ## Elaborate: read the elephant and crab data
 
@@ -328,11 +363,19 @@ Many species fall between these endpoints, so treat them as the ends of a range 
 | Blue crab egg mass, low end of reported range | 750,000 | eggs | Chesapeake Bay |
 | Blue crab egg mass, high end of reported range | 8,000,000 | eggs | Chesapeake Bay |
 
-Sources: tusk percentages and park counts from Campbell-Staton and colleagues, Science (2021), Figure 1 (the paper’s text gives 52 prewar females, its figure 54). Amboseli births from Moss, Journal of Zoology (2001), a study begun in 1972. Gorongosa calf intervals from Poole and Granli, Pachyderm (2022), field trips 2011 to 2019. Egg mass range from the Virginia Institute of Marine Science, a summary range, not one dated sample.
+Sources: tusk percentages and park counts from Campbell-Staton and colleagues, Science (2021), Figure 1. Amboseli births from Moss, Journal of Zoology (2001), a study begun in 1972. Gorongosa calf intervals from Poole and Granli, Pachyderm (2022), field trips 2011 to 2019. Egg mass range from the Virginia Institute of Marine Science, a summary range, not one dated sample.
 
-1. By how many percentage points did the share of tuskless females rise from before the war to the survivors?
-2. Why might the daughters’ share (33 percent) be lower than their mothers’ generation (50.9 percent)?
-3. Compare the two elephant interval values. Why might they differ?
+**Predict.** Is the rise from 18.5 percent to 50.9 percent a change of 32.4 percentage points, or 32.4 percent?
+
+<details>
+<summary>Check your prediction</summary>
+
+It is 32.4 percentage points: 50.9 − 18.5 = 32.4. As a percent change it is 32.4 ÷ 18.5, a rise of about 175 percent.
+
+</details>
+
+1. Why might the daughters’ share (33 percent) be lower than their mothers’ generation (50.9 percent)?
+2. Compare the two elephant interval values. Why might they differ?
 
 <CER
   task="Make a claim about why tuskless females became more common in Gorongosa, using these data."
@@ -361,8 +404,18 @@ A larger rise in heavy-poaching parks than in low-poaching parks would support s
 
 </details>
 
+## Going deeper
+
+### How quickly can a population change?
+
+Pressure can be strong or weak. A strong pressure, like heavy poaching, can change a trait’s frequency within a few decades when inherited variation is present. A weak pressure changes it slowly over many generations. Biologists argue about how often evolution happens in quick bursts and how often it creeps along; you will meet those two ideas in [Natural Selection and New Species](/lessons/natural-selection-and-speciation/).
+
+### Why do two sample sizes appear?
+
+Campbell-Staton and colleagues give 52 prewar females in the paper's text, but Figure 1 labels 54. The table follows the figure.
+
 ## Evaluate: check your thinking
 
-The rise did not come from Gorongosa elephants losing their tusks. Tuskless females were already part of the population, and poaching killed tusked elephants more often, so tuskless survivors left more of the next generation. The population changed because some individuals survived and reproduced while others did not.
+The Gorongosa case fits the rule: inherited tusklessness was already present, and poaching changed which females survived to leave the next generation.
 
 **Science practices you used:** making predictions and testing them with a model, reading a table of percentages and sample sizes, calculating a change in percentage points, planning an ethical observational study, and naming the limits of small samples and of a model.
