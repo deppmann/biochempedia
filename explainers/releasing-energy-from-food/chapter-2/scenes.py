@@ -504,8 +504,8 @@ class S10Rule(SpokenScene):
 
 class S11Evidence(SpokenScene):
     def construct(self):
-        frame = RoundedRectangle(corner_radius=0.22, width=11.3, height=5.55,
-                                 stroke_color=OXYGEN, stroke_width=4).move_to([0, 0.25, 0])
+        frame = RoundedRectangle(corner_radius=0.22, width=11.3, height=5.87,
+                                 stroke_color=OXYGEN, stroke_width=4).move_to([0, 0.09, 0])
         title = T("evidence", 40, OXYGEN, weight=BOLD).move_to([0, 3.5, 0])
         self.play(FadeIn(frame), FadeIn(title), run_time=0.8)
         self.at("real pea ranges")
@@ -521,7 +521,7 @@ class S11Evidence(SpokenScene):
         self.play(Create(table), run_time=1.0)
         self.at("units or source")
         badges = VGroup(chip("units", GOLD, 28), chip("source notes", PURPLE, 28)).arrange(RIGHT, buff=0.45)
-        badges.move_to([2.3, -2.02, 0])
+        badges.move_to([2.3, -2.20, 0])
         self.play(FadeIn(badges, lag_ratio=0.25), run_time=0.9)
         focus = SurroundingRectangle(axes, color=GOLD, buff=0.18, corner_radius=0.12, stroke_width=4)
         focus2 = SurroundingRectangle(table, color=GOLD, buff=0.32, corner_radius=0.12, stroke_width=4)

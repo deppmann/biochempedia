@@ -270,6 +270,7 @@ class S04Timing(SpokenScene):
         b = bird(CAPE, [-3.8, 1.65, 0], .95)
         secs = ValueTracker(0)
         ro = Readout([("visible", lambda: secs.get_value(), "{:4.1f} s", CAPE)], at=[4.5, 1.5, 0], widest=[99.9], title="stopwatch")
+        ro[1].shift(UP * .70)
         watch = stopwatch([4.5, -.55, 0], .8)
         self.add(tree)
         self.at("could see a bird")

@@ -105,7 +105,7 @@ def bay_world(include_labels=True):
     world.sun, world.phy, world.zoo, world.men, world.dec = sun, phy, zoo, men, dec
     if include_labels:
         labels = VGroup(
-            T("phytoplankton", 28, CARBON).move_to([-4.15, -1.42, 0]),
+            T("phytoplankton", 28, CARBON).move_to([-4.15, -1.51, 0]),
             T("zooplankton", 28, CONSUMER).move_to([-1.35, 0.72, 0]),
             T("menhaden", 28, CONSUMER).move_to([2.15, 0.58, 0]),
             T("decomposers", 28, DECOMP).move_to([1.95, -3.35, 0]),
@@ -206,10 +206,10 @@ class S00Hook(SpokenScene):
         self.at("Return to the same bay")
         self.play(Indicate(w.men, color=CONSUMER, scale_factor=1.10), run_time=1.0)
         self.at("Gold energy")
-        e = token("E", ENERGY, [-3.85, -0.40, 0])
+        e = token("E", ENERGY, [-3.74, -0.40, 0])
         c = token("C", CARBON, [-4.45, -0.40, 0])
         self.play(FadeOut(q), FadeIn(e), FadeIn(c), run_time=0.7)
-        self.play(e.animate.move_to([1.85, -0.05, 0]), c.animate.move_to([1.35, -0.05, 0]), run_time=1.3)
+        self.play(e.animate.move_to([1.96, -0.05, 0]), c.animate.move_to([1.35, -0.05, 0]), run_time=1.3)
         self.at("then separate")
         q1 = T("?", 72, ENERGY, weight=BOLD).move_to([4.7, 0.8, 0])
         q2 = T("?", 72, CARBON, weight=BOLD).move_to([4.7, -1.0, 0])
@@ -485,8 +485,8 @@ class S09Budgets(SpokenScene):
         self.at("matching measurements")
         self.play(Indicate(VGroup(bars[0], bars[1]), color=ENERGY, scale_factor=1.03), run_time=1.1)
         self.at("Intake")
-        intake = VGroup(chip("intake", ENERGY, 30).move_to([-3.25, -0.15, 0]),
-                        chip("intake", ENERGY, 30).move_to([3.25, -0.15, 0]))
+        intake = VGroup(chip("intake", ENERGY, 30).move_to([-3.25, -0.26, 0]),
+                        chip("intake", ENERGY, 30).move_to([3.25, -0.26, 0]))
         self.play(FadeIn(intake), run_time=0.8)
         self.at("new tissue")
         tissue = VGroup(chip("new tissue / year", CARBON, 28).move_to([-3.25, -0.45, 0]),
@@ -518,6 +518,7 @@ class S10Variation(SpokenScene):
         self.at("Temperature")
         factors = VGroup(*[chip(x, TEAL, 27) for x in ("temperature", "eaten", "digestion", "respiration")])
         factors.arrange(RIGHT, buff=0.25).move_to([0, 1.35, 0])
+        factors[3].shift(UP * 0.30)
         self.play(FadeIn(factors[0], shift=UP * 0.1), run_time=0.45)
         self.at("what gets eaten")
         self.play(FadeIn(factors[1], shift=UP * 0.1), run_time=0.45)
@@ -554,7 +555,7 @@ class S11Return(SpokenScene):
         self.at("Return to the osprey's fish")
         self.play(FadeIn(men), men.animate.shift(RIGHT * 0.35), run_time=1.2)
         self.at("Its carbon may")
-        c = token("C", CARBON, [-0.35, 0.1, 0])
+        c = token("C", CARBON, [-0.06, 0.1, 0])
         self.play(FadeIn(c), run_time=0.6)
         dec = chip("decomposers", DECOMP, 28).move_to([-4.7, -1.65, 0])
         co2 = chip("carbon dioxide", CARBON, 28).move_to([-4.7, -0.2, 0])
@@ -569,7 +570,7 @@ class S11Return(SpokenScene):
         self.at("phytoplankton again")
         self.play(FadeIn(phy), Create(cpath[2]), Create(cpath[3]), run_time=1.0)
         self.at("Its energy can")
-        e = token("E", ENERGY, [0.35, 0.1, 0])
+        e = token("E", ENERGY, [0.82, 0.1, 0])
         move = chip("movement", TEXT, 28).move_to([3.15, 1.55, 0])
         growth = chip("growth", CARBON, 28).move_to([3.15, 0.25, 0])
         self.play(FadeIn(e), FadeIn(move), FadeIn(growth),

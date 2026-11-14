@@ -294,12 +294,10 @@ class S05MapTools(SpokenScene):
         budget = budget_bar()
         self.add(world, budget)
         bob(budget, amp=0.12, speed=1.6)
-        tools = VGroup(chip("buffer", GREEN, 24).move_to([-5.15, 1.55, 0]),
-                       chip("cover crop", GREEN, 24).move_to([-3.3, 0.8, 0]),
+        tools = VGroup(chip("buffer", GREEN, 24).move_to([-5.15, -0.85, 0]),
+                       chip("cover crop", GREEN, 24).move_to([-3.5, -1.7, 0]),
                        chip("plant", GREY, 24).move_to([-0.55, 2.05, 0]),
-                       chip("reef", HAB, 24).move_to([1.8, -2.05, 0]))
-        # This chip is deliberately pinned to the field polygon: it names the map location.
-        tools[1][1].layout_ok = True
+                       chip("reef", HAB, 24).move_to([1.8, -2.45, 0]))
         self.at("Place each tool")
         self.play(LaggedStart(*[FadeIn(t, shift=UP * 0.1) for t in tools], lag_ratio=0.12), run_time=1.2)
         pressure = arrow([-5.7, 2.25, 0], [0.2, 1.0, 0], NUT, width=10)
@@ -461,6 +459,7 @@ class S10Evidence(SpokenScene):
                         for i, (s, c) in enumerate([("pressure", NUT), ("condition", OXY),
                                                    ("habitat", HAB), ("several years", TEXT),
                                                    ("fair comparison", TEXT)])])
+        rows[4].shift(UP * 0.12)
         self.at("Measure the pressure")
         self.play(FadeIn(gauges[0]), FadeIn(rows[0]), run_time=0.7)
         self.at("the condition")
@@ -524,7 +523,7 @@ class S11Test(SpokenScene):
         small = arrow([-5.5, 2.15, 0], [-3.0, 1.7, 0], NUT, width=7)
         oxygen = ValueTracker(0.42)
         gauge = dial(oxygen, [1.6, 2.35, 0], radius=0.78, label="", color=OXY, size=28)
-        gauge_lab = T("oxygen", 28, OXY).move_to([1.6, 3.25, 0])
+        gauge_lab = T("oxygen", 28, OXY).move_to([1.6, 3.37, 0])
         bed = grass_bed((4.8, -1.95, 0), n=9)
         goals = T("possible goals", 28, GREY).move_to([4.7, 2.65, 0])
         self.at("where to act")

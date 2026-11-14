@@ -183,7 +183,7 @@ class S01Stored(SpokenScene):
         self.play(FadeIn(mini), TransformFromCopy(mini[2][7], cell), run_time=1.0)
         self.add(scope_tag())
         self.at("food molecules store energy")
-        store = chip("food molecules", CELL, 28).move_to([0.3, 2.0, 0])
+        store = chip("food molecules", CELL, 28).move_to([0.3, 2.11, 0])
         self.play(FadeIn(store), run_time=0.6)
         self.at("fuel we will follow")
         blocks = VGroup(*[glucose_block().move_to([-0.1 + i * 1.75, 1.1, 0]) for i in range(3)])

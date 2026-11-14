@@ -345,9 +345,12 @@ class S07Changers(SpokenScene):
         little = T("lightning: a little", 28, YELLOW, weight=BOLD).move_to([-3.8, -3.15, 0])
         self.play(FadeIn(little), run_time=.4)
         self.at("Factories that make fertilizer")
-        factory = VGroup(Rectangle(width=2.5, height=1.55, stroke_color=TEXT, fill_color=TEXT, fill_opacity=.12),
-                         Rectangle(width=.42, height=1.25, stroke_color=TEXT, fill_color=TEXT, fill_opacity=.12).move_to([.7, 1.15, 0]),
-                         T("factory", 30, TEXT, weight=BOLD)).move_to([3.8, .45, 0])
+        factory_body = Rectangle(width=2.5, height=1.55, stroke_color=TEXT,
+                                 fill_color=TEXT, fill_opacity=.12).move_to([3.8, .15, 0])
+        factory_stack = Rectangle(width=.42, height=1.25, stroke_color=TEXT,
+                                  fill_color=TEXT, fill_opacity=.12).move_to([4.5, 1.55, 0])
+        factory = VGroup(factory_body, factory_stack,
+                         T("factory", 30, TEXT, weight=BOLD).move_to(factory_body))
         self.play(FadeIn(factory, shift=UP*.2), incoming[2:].animate.move_to([3.0, 1.0, 0]), run_time=.65)
         self.at("open it wide")
         bag = chip("fertilizer", USABLE, 32).move_to([3.8, -1.15, 0])

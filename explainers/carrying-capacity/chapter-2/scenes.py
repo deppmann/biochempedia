@@ -379,7 +379,7 @@ class S10People(SpokenScene):
         self.at("Lasting habitat loss")
         self.play(ReplacementTransform(world, lost), gauge.cap_t.animate.set_value(0.48), run_time=1.6)
         self.at("People can affect both trackers")
-        basket = chip("harvest", TEXT, 30).move_to([1.4, 2.4, 0])
+        basket = chip("harvest", TEXT, 30).move_to([1.4, 2.1, 0])
         self.play(FadeIn(basket), run_time=0.8)
         self.at("Harvest removes individuals")
         self.play(lost.crabs[-1].animate.move_to(basket).set_opacity(0),

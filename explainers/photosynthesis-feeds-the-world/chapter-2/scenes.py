@@ -398,16 +398,17 @@ class S08Rule(SpokenScene):
         panels = TwoPanel("ENERGY + MATTER", "RATE", colors=(GOLD, GREEN), top=2.55, bottom=-2.35)
         self.play(FadeIn(panels), run_time=0.9)
         left = VGroup(chip("LIGHT", GOLD, 24), chip("CARBON DIOXIDE", TEAL, 24), chip("WATER", BLUE, 24))
-        left.arrange(DOWN, buff=0.18).move_to([-4.75, -0.05, 0])
+        left.arrange(DOWN, buff=0.18).move_to([-4.3, -0.05, 0])
         sugar = chip("SUGAR", GREEN, 28).move_to([-1.25, -0.05, 0])
-        matter_arrow = Arrow([-3.35, -0.05, 0], [-2.05, -0.05, 0], color=GREEN, buff=0, stroke_width=5)
+        matter_arrow = Arrow(left[1].get_right() + RIGHT * 0.1, [-2.05, -0.05, 0],
+                             color=GREEN, buff=0, stroke_width=5)
         flow = VGroup(left, matter_arrow, sugar)
         light, co2, temp = ValueTracker(0.12), ValueTracker(0.12), ValueTracker(0.12)
         dials = VGroup(dial(light, [1.55, 0.65, 0], radius=0.62, label="LIGHT", color=GOLD, size=24),
                        dial(co2, [3.45, 0.65, 0], radius=0.62, label="CO₂", color=TEAL, size=24),
                        dial(temp, [5.35, 0.65, 0], radius=0.62, label="TEMP", color=RED, size=24))
         rate_tracker = ValueTracker(0.12)
-        rate = sugar_meter(rate_tracker, center=(3.45, -1.55, 0), height=1.65, label=False)
+        rate = sugar_meter(rate_tracker, center=(3.45, -1.45, 0), height=1.45, label=False)
         rate_label = T("RATE", 28, GREEN).next_to(rate, RIGHT, buff=0.25)
         right = VGroup(dials, rate, rate_label)
         self.at("The first asks")

@@ -230,7 +230,7 @@ class S03Producer(LivingScene):
         ray = arrow(sun.get_center()+RIGHT*.4, [-5.05, 2.25, 0], YELLOW, 7)
         self.at("captures energy")
         self.play(FadeIn(sun, scale=.5), GrowArrow(ray), run_time=.85)
-        sugar = chip("sugar", GOLD, size=28).move_to([-3.35, .2, 0])
+        sugar = chip("sugar", GOLD, size=28).move_to([-3.35, -.06, 0])
         self.at("stores it")
         self.play(FadeIn(sugar, shift=DOWN*.2), run_time=.55)
         co2 = T("carbon dioxide", 28, GOLD).move_to([2.0, 1.65, 0])
@@ -282,6 +282,7 @@ class S05Carry(LivingScene):
     def construct(self):
         w = forest_world(2)
         deer = animal("deer", [1.0, .8, 0], .72)
+        deer[-1].shift(DOWN * .1)
         fox = animal("fox", [4.3, .8, 0], .72)
         self.add(w, deer, fox)
         path1 = CurvedArrow([-3.7, .45, 0], [.25, .7, 0], angle=-.25, color=GOLD, stroke_width=5)
