@@ -120,19 +120,20 @@ def island_world(show_plane=False):
 
 
 def ratio_box(value="—", color=TEXT):
-    lab = T("moose per wolf", 24, GREY)
-    val = M(str(value), 38, color)
-    box = RoundedRectangle(width=3.25, height=1.02, corner_radius=0.14,
-                           stroke_color=color, stroke_width=2.5, fill_color=BG, fill_opacity=0.96)
-    VGroup(lab, val).arrange(DOWN, buff=0.04).move_to(box)
-    return VGroup(box, lab, val).move_to([4.9, 3.15, 0])
+    lab = T("moose per wolf", 24, GREY).move_to([4.9, 3.48, 0])
+    val = M(str(value), 38, color).move_to([4.9, 2.82, 0])
+    box = RoundedRectangle(width=3.25, height=0.54, corner_radius=0.14,
+                           stroke_color=color, stroke_width=2.5, fill_color=BG,
+                           fill_opacity=0.96).move_to(lab)
+    return VGroup(box, lab, val)
 
 
 def ratio_readout(tracker, color_fn=lambda: TEXT):
-    box = RoundedRectangle(width=3.25, height=1.02, corner_radius=0.14,
-                           stroke_color=GREY, stroke_width=2.5, fill_color=BG, fill_opacity=0.96).move_to([4.9, 3.15, 0])
-    lab = T("moose per wolf", 24, GREY).move_to([4.9, 3.39, 0])
-    val = always_redraw(lambda: M(f"{tracker.get_value():.0f}", 38, color_fn()).move_to([4.9, 2.98, 0]))
+    box = RoundedRectangle(width=3.25, height=0.54, corner_radius=0.14,
+                           stroke_color=GREY, stroke_width=2.5, fill_color=BG,
+                           fill_opacity=0.96).move_to([4.9, 3.48, 0])
+    lab = T("moose per wolf", 24, GREY).move_to(box)
+    val = always_redraw(lambda: M(f"{tracker.get_value():.0f}", 38, color_fn()).move_to([4.9, 2.82, 0]))
     return VGroup(box, lab, val)
 
 
@@ -239,8 +240,8 @@ def family_world():
 
 
 def family_panel():
-    panel = RoundedRectangle(width=12.2, height=5.7, corner_radius=0.22, stroke_color=WOLF,
-                             stroke_width=2, fill_color=WOLF, fill_opacity=0.18).move_to([0,-0.15,0])
+    panel = RoundedRectangle(width=12.2, height=5.3, corner_radius=0.22, stroke_color=WOLF,
+                             stroke_width=2, fill_color=WOLF, fill_opacity=0.18).move_to([0,-0.35,0])
     return layout_allowed(breathe_fill(panel, base=0.18, amp=0.035, speed=0.9))
 
 
@@ -287,14 +288,15 @@ class S02Counting(SpokenScene):
         self.play(plane.animate.move_to([4.4, 2.35, 0]), run_time=1.7, rate_func=linear)
         self.at("Wolves are counted")
         tracks = VGroup(*[VGroup(Dot(radius=0.06,color=WOLF),Dot(radius=0.06,color=WOLF).shift(RIGHT*0.15)).move_to([-3+i*0.5,-1.4+0.12*(i%2),0]) for i in range(7)])
-        tally = VGroup(T("wolves", 28, WOLF), M("|||| |||", 38, TEXT)).arrange(DOWN,buff=0.12)
-        tally_box = SurroundingRectangle(tally, color=WOLF, buff=0.28, corner_radius=0.12)
-        tally_group = VGroup(BackgroundRectangle(tally_box,color="#0b0d14",fill_opacity=0.95,buff=0.05),tally_box,tally).move_to([3.9,-1.45,0])
+        tally = VGroup(T("wolves", 28, WOLF), M("|||| |||", 38, TEXT)).arrange(DOWN,buff=0.34)
+        tally[0].shift(UP * 0.08)
+        tally_box = SurroundingRectangle(tally[1], color=WOLF, buff=0.28, corner_radius=0.12)
+        tally_group = VGroup(BackgroundRectangle(tally_box,color="#0b0d14",fill_opacity=0.95,buff=0.05),tally_box,tally).move_to([4.45,-1.8,0])
         self.play(FadeIn(tracks, lag_ratio=0.08), FadeIn(tally_group), plane.animate.move_to([-4.4,2.35,0]), run_time=1.7)
         self.at("close to every wolf")
         ring = SurroundingRectangle(wolf, color=GOLD, buff=0.22, corner_radius=0.15)
         note = T("counted from the air", 28, TEXT).next_to(tally_group, UP, buff=0.22)
-        note = VGroup(BackgroundRectangle(note,color="#0b0d14",fill_opacity=0.95,buff=0.08),note)
+        note = VGroup(BackgroundRectangle(note,color="#0b0d14",fill_opacity=0.95,buff=0.08),note).shift(LEFT*0.6)
         self.play(Create(ring), FadeIn(note), run_time=1.0)
         self.finish()
 
@@ -312,9 +314,8 @@ class S03Estimate(SpokenScene):
         samples = VGroup(grid[2],grid[9],grid[16]).copy().set_fill(GOLD,opacity=0.25).set_stroke(GOLD,width=5)
         self.play(FadeIn(samples), Indicate(VGroup(herd[2],herd[9],herd[16]),color=MOOSE), run_time=1.2)
         self.at("estimate the whole island")
-        result = chip("moose: estimated for the whole island", MOOSE, size=30).move_to([1.6,2.25,0])
-        layout_allowed(result)
-        arrw = arrow(samples.get_right(),result.get_bottom(),MOOSE)
+        result = chip("moose: estimated for the whole island", MOOSE, size=30).move_to([-0.8,2.95,0])
+        arrw = arrow(samples.get_right(),result.get_bottom()+RIGHT*2.5,MOOSE)
         self.play(GrowArrow(arrw), FadeIn(result), run_time=1.4)
         self.at("moose numbers are estimates")
         self.play(Indicate(result,color=MOOSE,scale_factor=1.04), run_time=1.0)
@@ -422,7 +423,7 @@ class S08Predict(SpokenScene):
         self.at("Only about 21")
         self.play(Indicate(back[-1],color=ORANGE,scale_factor=1.05),run_time=1.2)
         self.at("What happens to")
-        q = question_card(PREDICT_Q,y=-3.2,size=28,max_w=10.7,left=-6.1)
+        q = question_card(PREDICT_Q,y=-3.45,size=28,max_w=12.6,left=-6.3)
         self.play(FadeIn(q),run_time=1.3)
         self.at("Pause and predict")
         self.play(back[-1][0].animate.set_stroke(ORANGE,width=5),run_time=1.0)
@@ -432,7 +433,7 @@ class S08Predict(SpokenScene):
 class S09Pause(PredictPause):
     QUESTION = PREDICT_Q
     OPTIONS = ()
-    CARD = {"y": -3.2, "size": 28, "max_w": 10.7, "left": -6.1}
+    CARD = {"y": -3.45, "size": 28, "max_w": 12.6, "left": -6.3}
     SECONDS = 5.0
 
     def backdrop(self):
@@ -509,7 +510,7 @@ class S13Inbreeding(SpokenScene):
         wolves,tree = family_world()
         panel = family_panel()
         ratio = ratio_box("650",TEXT)
-        pile = VGroup(*[moose_icon(0.25).move_to([-5.5+(i%5)*0.55,2.0+(i//5)*0.48,0]) for i in range(10)])
+        pile = VGroup(*[moose_icon(0.25).move_to([-5.5+(i%5)*0.55,1.55+(i//5)*0.48,0]) for i in range(10)])
         self.play(FadeIn(panel),FadeIn(pile,lag_ratio=0.04),FadeIn(ratio),run_time=1.0)
         self.at("expect more wolves")
         ghost = VGroup(*[wolf_icon(0.35).move_to([-2+i*0.75,0.4,0]) for i in range(6)]).set_opacity(0.22)
@@ -530,7 +531,7 @@ class S14Traits(SpokenScene):
         wolves,tree = family_world()
         panel = family_panel()
         ratio = ratio_box("650",TEXT)
-        pile = VGroup(*[moose_icon(0.25).move_to([-5.5+(i%5)*0.55,2.0+(i//5)*0.48,0]) for i in range(10)])
+        pile = VGroup(*[moose_icon(0.25).move_to([-5.5+(i%5)*0.55,1.55+(i//5)*0.48,0]) for i in range(10)])
         self.add(panel,wolves,tree,ratio,pile,scope_tag("schematic"))
         self.at("harmful inherited traits")
         warnings = VGroup(*[T("!",42,RED,weight=BOLD).move_to(w.get_top()+UP*0.2) for w in wolves])
@@ -539,10 +540,10 @@ class S14Traits(SpokenScene):
         self.at("health problems")
         self.play(wolves.animate.set_opacity(0.5).shift(DOWN*0.15),run_time=1.0)
         self.at("shortage of moose")
-        foodlab = T("plenty of food",30,MOOSE,weight=BOLD).next_to(pile,DOWN,buff=0.2)
+        foodlab = T("plenty of food",30,MOOSE,weight=BOLD).next_to(pile,RIGHT,buff=0.3)
         self.play(FadeIn(foodlab),Indicate(pile,color=MOOSE,scale_factor=1.03),run_time=1.0)
         self.at("not what held")
-        cap = caption("Food was not the limit here.",size=36,color=GOLD)
+        cap = caption("Food was not the limit here.",size=36,color=GOLD,y=-3.5)
         self.play(FadeIn(cap),run_time=1.1)
         self.finish()
 
@@ -559,8 +560,7 @@ class S15People(SpokenScene):
         newcomers = VGroup(*[wolf_icon(0.42).move_to([-2.3+i*0.85,-1.45+0.18*(i%2),0]) for i in range(5)])
         self.play(FadeOut(crates),FadeIn(newcomers,lag_ratio=0.12,shift=RIGHT*0.2),run_time=1.3)
         self.at("19 new wolves")
-        lab = chip("2018 and 2019: 19 new wolves brought in",WOLF,size=30).move_to([0,3.3,0])
-        layout_allowed(lab)
+        lab = chip("2018 and 2019: 19 new wolves brought in",WOLF,size=30).move_to([2.3,3.3,0])
         g,data,extra = graph_world(through=2019)
         self.play(FadeOut(VGroup(world,newcomers,ratio)),FadeIn(g),FadeIn(data),FadeIn(lab),run_time=0.9)
         self.finish()

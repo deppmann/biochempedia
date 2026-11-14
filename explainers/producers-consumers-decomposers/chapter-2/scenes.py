@@ -146,6 +146,7 @@ def higher_plot(points_through=6, line=False, small=False):
         P = Plot(box=(-5.55, 5.65, -2.35, 2.35), xr=(0, 24), yr=(0, 105),
                  xticks=[0, 1, 8, 12, 20, 24], yticks=[(0, "0"), (50, "50"), (100, "100")],
                  xlabel="months", ylabel="mass left (%)", size=22, label_size=28)
+    P.tick_labels[-1].shift(LEFT * 0.08)
     back = RoundedRectangle(corner_radius=.12, width=P.x1-P.x0-.7, height=P.y1-P.y0-.7,
                             stroke_width=0, fill_color=DATA, fill_opacity=.30)
     back.move_to([(P.x0+P.x1)/2, (P.y0+P.y1)/2, 0])

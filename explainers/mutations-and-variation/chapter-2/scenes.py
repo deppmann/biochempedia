@@ -15,13 +15,13 @@ PURPLE = "#B07CFF"
 
 def mutation_card(at=(0, 2.35, 0), locked=False, scale=1.0):
     """The carried GOLD-corner allele card, always rebuilt at the same size."""
-    box = RoundedRectangle(corner_radius=0.18, width=3.05, height=1.12,
+    box = RoundedRectangle(corner_radius=0.18, width=3.05, height=1.40 if locked else 1.12,
                            stroke_color=BLUE, stroke_width=4,
                            fill_color=BLUE, fill_opacity=0.12)
     corner = Polygon(box.get_corner(UR), box.get_corner(UR) + LEFT * 0.65,
                      box.get_corner(UR) + DOWN * 0.65,
                      stroke_width=0, fill_color=GOLD, fill_opacity=1)
-    label = T("DNA allele", 28, BLUE, weight=BOLD).move_to(box)
+    label = T("DNA allele", 28, BLUE, weight=BOLD).move_to(box).shift(UP * (0.32 if locked else 0.0))
     # The label deliberately sits on its own card; the checker otherwise treats
     # the border and gold folded corner as objects drawn across the text.
     box.layout_ok = True
@@ -33,7 +33,7 @@ def mutation_card(at=(0, 2.35, 0), locked=False, scale=1.0):
         body = RoundedRectangle(corner_radius=0.05, width=0.46, height=0.36,
                                 stroke_color=GOLD, stroke_width=3,
                                 fill_color=BG, fill_opacity=1).next_to(shackle, DOWN, buff=-0.08)
-        lock = VGroup(shackle, body).move_to([0, -0.53, 0])
+        lock = VGroup(shackle, body).move_to([0, -0.28, 0])
         g.add(lock)
     return g.scale(scale).move_to(at)
 
@@ -92,7 +92,7 @@ def world_panels():
 
 def comparison_backdrop(question=False, waiting=False):
     panels, lf, rf = world_panels()
-    card = mutation_card(at=(0, 3.25, 0), locked=True, scale=0.8)
+    card = mutation_card(at=(0, 3.15, 0), locked=True, scale=0.8)
     bug = beetle(at=(-3.3, -0.2, 0), opacity=0.42, scale=0.78)
     objects = VGroup(panels, lf, rf, card, bug)
     objects.left_fill, objects.right_fill = lf, rf
@@ -206,7 +206,7 @@ class S03Background(SpokenScene):
 class S04Effect(SpokenScene):
     def construct(self):
         panels, lf, rf = world_panels()
-        card = mutation_card(at=(0, 3.25, 0), locked=True, scale=0.8)
+        card = mutation_card(at=(0, 3.15, 0), locked=True, scale=0.8)
         self.add(panels, lf, rf, card)
         pulse(card[1], base=2.5, amp=1.2, speed=2.1)
         dna = T("DNA fixed", 34, BLUE, weight=BOLD).next_to(card, LEFT, buff=0.55)
@@ -344,7 +344,7 @@ def growth_curve(panel_center, colour, rise=1.0, offset=0.0):
 
 class S09Bacteria(SpokenScene):
     def construct(self):
-        card = mutation_card(at=(0, 3.25, 0), locked=True, scale=0.8)
+        card = mutation_card(at=(0, 3.15, 0), locked=True, scale=0.8)
         panels = TwoPanel("antibiotic present", "different food",
                           colors=(TEXT, GREEN), top=2.45, bottom=-2.35)
         washes = VGroup(panel_wash([-3.3, -0.1, 0], TEXT, height=3.7, opacity=0.09),

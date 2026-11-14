@@ -399,7 +399,7 @@ class S10Handoff(SpokenScene):
         missing = T("starter organisms missing", 34, RED).move_to([0, 0.1, 0])
         self.at("organisms needed to restart")
         self.play(FadeIn(missing), run_time=0.8)
-        restoration = chip("RESTORATION", TEAL, 34).move_to([0, 2.7, 0])
+        restoration = chip("RESTORATION", TEAL, 34).move_to([0, 2.95, 0])
         self.at("restoration enters")
         self.play(FadeIn(restoration, shift=DOWN * 0.2), FadeOut(missing), run_time=0.9)
         eagle = eagle_icon(1.0).move_to([-5.5, 1.4, 0])

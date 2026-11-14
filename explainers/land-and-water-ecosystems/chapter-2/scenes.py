@@ -428,7 +428,7 @@ class S11Rule(SpokenScene):
         world = james_world(labels=False)
         oy = oyster([1.25, -0.45, 0], 1.25)
         self.add(world, oy)
-        salt = chip("salt", GOLD, size=28).move_to([-4.65, 2.25, 0])
+        salt = chip("salt", GOLD, size=28).move_to([-4.47, 2.25, 0])
         self.at("Salinity is powerful evidence")
         salt_arrow = Arrow(salt.get_bottom(), oy.get_corner(UL), color=GOLD)
         self.play(FadeIn(salt), GrowArrow(salt_arrow), run_time=0.9)
