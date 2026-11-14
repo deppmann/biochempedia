@@ -19,6 +19,8 @@
  */
 import { getCollection } from 'astro:content';
 import BaseLayout from '../../../layouts/BaseLayout.astro';
+import Hex from '../../../components/Hex.astro';
+import { hexFor } from '../../../data/hex';
 import { COURSES, unitsFor, courseHref, courseSkimHref } from '../../../data/courses';
 import { guidingIdeaOf, filmTakeawaysOf, filmLabel, wordsIn } from '../../../lib/skim';
 
@@ -57,6 +59,7 @@ const intro = withFilms === total
   : withFilms === 0
     ? `Each ${noun} in order with its guiding idea. None of the ${nouns} has film take-homes yet; they will appear here as the ${nouns} get their films.`
     : `Each ${noun} in order: its guiding idea, then the take-homes from its films. So far ${withFilms} of the ${total} ${nouns} have film take-homes; the others show their guiding idea only.`;
+const hex = hexFor(course.slug);
 const showUnits = units.length > 1;
 const skimHref = courseSkimHref(course.slug);
 ---
@@ -64,7 +67,7 @@ const skimHref = courseSkimHref(course.slug);
 <BaseLayout title={`Skim: ${course.title} — Biochemistrypedia`} description={`${course.title} on one page: the guiding idea of each ${noun} and the take-homes of its films, in course order.`}>
   <article class="cskim wrap">
     <p class="eyebrow"><a href={courseHref(course.slug)}>{course.title}</a> · Skim version</p>
-    <h1>{course.title}</h1>
+    <h1>{course.title}<Hex pose={hex.pose} prop={hex.prop} size={48} title={hex.label} class="hex-inline cskim-hex" /></h1>
     <p class="cskim-meta">About {minutes} min to read · {total} {total === 1 ? noun : nouns}</p>
     <p class="cskim-intro">
       {intro}
@@ -179,7 +182,7 @@ const skimHref = courseSkimHref(course.slug);
       :global(html), :global(body) { background: #fff !important; color: #000 !important; }
       .cskim { max-width: none; padding: 0; color: #000; }
       .cskim *, .cskim a { color: #000 !important; background: transparent !important; text-decoration: none !important; }
-      .cskim-back, .links, .unit-print, .unit-note { display: none !important; }
+      .cskim-back, .links, .unit-print, .unit-note, .cskim :global(.cskim-hex) { display: none !important; }
       /* One unit targeted: print the course title, then that unit only. Inside :has() so a browser
          without it drops these rules and prints the whole course. */
       .cskim:has(.cskim-unit:target) :is(.eyebrow, .cskim-meta, .cskim-intro, .cskim-toc, .cskim-unit:not(:target)) { display: none; }
