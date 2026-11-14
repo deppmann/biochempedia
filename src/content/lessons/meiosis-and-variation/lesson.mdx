@@ -5,11 +5,9 @@ course: "high-school-biology"
 courseChapter: "Biology · Unit 4: DNA and inheritance"
 order: 919
 summary: >-
-  Why don't brothers and sisters look exactly alike, even with the same two parents? You will run a
-  model cell through the two divisions of meiosis, shuffle its chromosome pairs and switch crossing
-  over on and off, then use real chromosome numbers and crossover counts. Afterwards you can explain
-  how meiosis makes sex cells with half the chromosomes, count the combinations it can make, and
-  compare it with mitosis.
+  Meiosis separates pairs, then copies, while crossing over and assortment remix alleles. Follow
+  one model cell through both divisions, test how chromosome pairs can line up, calculate the
+  combinations, and use crossover measurements to explain why siblings inherit different mixes.
 hook: "If two parents give every child half of their chromosomes, why do their children come out different from each other?"
 estMinutes: 40
 supports: true
@@ -31,10 +29,30 @@ explainer:
   src: "/explainers/meiosis-and-variation/explainer.mp4"
   captions: "/explainers/meiosis-and-variation/explainer.vtt"
   poster: "/explainers/meiosis-and-variation/poster.jpg"
-  title: "Meiosis Halves and Shuffles Chromosomes"
-  durationSec: 138.5
-  narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+  title: "Pairs First, Copies Second"
+  durationSec: 186.6
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+  takeaways:
+    - "Meiosis separates pairs, then copies: homologous pairs in the first division, sister chromatids in the second."
+    - "Copying DNA makes sister chromatids but does not double the chromosome count."
+    - "In the simple animal model, one diploid cell usually makes four haploid cells."
+    - "Halving keeps the chromosome number from doubling each generation."
+
+films:
+  - id: "chapter-2"
+    src: "/explainers/meiosis-and-variation/chapter-2.mp4"
+    captions: "/explainers/meiosis-and-variation/chapter-2.vtt"
+    poster: "/explainers/meiosis-and-variation/chapter-2-poster.jpg"
+    title: "How Meiosis Remixes Alleles"
+    durationSec: 199.2
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+    takeaways:
+      - "Meiosis separates pairs, then copies, while crossing over and assortment remix alleles."
+      - "Crossing over exchanges matching pieces between non-sister chromatids of paired homologs."
+      - "Independent assortment gives two choices per pair, or 2 to the power n combinations."
+      - "Genes close together on one chromosome tend to travel together."
 
 scientists: []
 
@@ -86,8 +104,9 @@ practiceQuestions:
       - "Both divisions are the same, like mitosis done twice"
     answer: 0
     rationale: >-
-      In the first division the two chromosomes of each pair separate; in the second, the two copies
-      (sister chromatids) of each chromosome separate. Putting the copies first reverses the order.
+      Meiosis separates pairs, then copies, while crossing over and assortment remix alleles. In the
+      first division the two chromosomes of each pair separate; in the second, the two copies
+      (sister chromatids) separate. Putting the copies first reverses the order.
       Calling it mitosis done twice misses that the first division separates pairs, which mitosis
       never does. The DNA is copied only once, before the first division, not again between them.
   - stem: "During meiosis, where does crossing over happen?"
@@ -246,8 +265,13 @@ import Support from '../../../components/Support.astro';
 import CER from '../../../components/CER.astro';
 import ScaffoldFigure from '../../../components/ScaffoldFigure.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import LessonFilm from '../../../components/LessonFilm.astro';
 
-**Two parents could, in theory, give a child more than 70 trillion different combinations of their chromosomes, from shuffling alone. Even with the same mother and father, brothers and sisters almost never get the same mix, unless they are identical twins.** Every child gets half of their chromosomes from each parent. So where does all that difference come from? The answer is in how eggs and sperm are made.
+The first film tracked the chromosomes. Now ask: how can siblings each get half from each parent, but not the same half?
+
+> **The one idea.** Meiosis separates pairs, then copies, while crossing over and assortment remix alleles.
+>
+> *Scope:* in animals the products become gametes; in plants they become spores that later make gametes. In human egg formation only one product becomes the egg; the small cells beside it, called **polar bodies**, do not. Mutation, not meiosis, creates new alleles.
 
 <IdeaCheck items={[
   { idea: 'Meiosis is just mitosis done twice.', answer: 'disagree', explain: 'In meiosis the DNA is copied once, then the cell divides twice. The first division does something mitosis never does: it pulls apart the two chromosomes of each pair. Biologists see this in stained cells under the microscope, and DNA studies of single sperm and eggs confirm which chromosomes ended up where.' },
@@ -257,7 +281,7 @@ import LessonFigure from '../../../components/LessonFigure.astro';
 
 ## Explore: shuffle chromosomes in a model cell
 
-In the meiosis shuffler you run a model cell with two or three chromosome pairs. One chromosome of each pair is colored for the mother and one for the father. You choose how each pair lines up, switch crossing over on or off, run both divisions, and count the different sex cells. A side panel runs mitosis for comparison.
+The meiosis shuffler runs a model cell with two or three chromosome pairs. One chromosome of each pair is colored for the mother and one for the father. A side panel runs mitosis for comparison.
 
 <MeiosisShuffler />
 
@@ -271,40 +295,64 @@ In the meiosis shuffler you run a model cell with two or three chromosome pairs.
 
 <WordBank terms={['meiosis', 'gamete', 'homologous chromosomes', 'diploid', 'haploid', 'sister chromatids', 'allele', 'crossing over', 'independent assortment', 'fertilization', 'genetic diversity']} />
 
-A typical cell in your body has 46 chromosomes, in 23 pairs. You got one chromosome of each pair from your mother and one from your father. The two chromosomes of a pair are **homologous chromosomes**: they carry the same genes in the same order. They do not have to carry the same versions. (In males, the X and Y chromosomes are the exception: they match only in small regions at their ends, yet still pair up in meiosis.) An **allele** is one version of a gene, such as the allele for purple or for white flowers in a pea plant.
+A typical cell in your body has 46 chromosomes, in 23 pairs. You got one chromosome of each pair from your mother and one from your father. The two chromosomes of a pair are **homologous chromosomes**: they carry the same genes in the same order but may carry different versions. An **allele** is one version of a gene, such as an allele for purple or white flowers in a pea plant.
 
 A cell with two sets of chromosomes, one set from each parent, is **diploid**. A cell with one set is **haploid**. A **gamete** is a sex cell, an egg or a sperm, and in humans it is haploid, with 23 chromosomes.
 
-**Meiosis** is the kind of cell division that makes haploid cells from a diploid cell. In animals those cells become gametes. (In plants, meiosis makes spores, which grow and later make gametes.) Before meiosis starts, the cell copies its DNA once. Each chromosome is then two **sister chromatids**, identical copies joined together. Then come two divisions:
+**Meiosis** makes haploid cells from a diploid cell. Before it starts, the cell copies its DNA once. Each chromosome is then two **sister chromatids**, identical copies joined together (until crossing over, below, exchanges pieces with the paired chromosome).
 
-1. **Meiosis I.** The homologous chromosomes line up in pairs. Then the two chromosomes of each pair are pulled apart into two cells. Each cell now has one chromosome of each pair, still in two copies.
-2. **Meiosis II.** The sister chromatids of each chromosome separate. There is no DNA copying in between.
+**Predict.** A model cell starts with six chromosomes in three pairs. Just after DNA copying, how many chromosomes and how many chromatids are present?
 
-The result is usually four cells, each with one chromosome from every pair. In a woman, the divisions are uneven. They make one large egg, and the other products are small cells called polar bodies. The human egg also pauses partway through meiosis II. It finishes that division only after a sperm enters it at fertilization.
+<details>
+<summary>Check your prediction</summary>
 
-<ScaffoldFigure src="/figures/meiosis-and-variation/two-divisions-make-half.webp" width={1200} height={480} keyItems={["sister chromatids", "homologous chromosomes", "Meiosis I", "Meiosis II", "haploid"]} given={[2, 3]} alt="AI-generated illustration: five frames left to right. One cell holds two pairs of straight chromosomes, one green and one orange of each size. Each chromosome is copied into an X shape, and the copies line up side by side as pairs. A first arrow leads to two cells that each hold one large and one small X-shaped chromosome. A second arrow leads to four cells that each hold one large and one small straight chromosome. Five numbered circles mark an X-shaped chromosome, a bracketed pair, the first arrow, the second arrow, and one of the four final cells." caption="Meiosis copies the DNA once and divides twice, first separating the pairs and then the copies. Name the five numbered parts." />
+There are still six chromosomes because joined sister chromatids count as one chromosome. There are 12 chromatids.
 
-**Fertilization** is when an egg and a sperm join. Their two sets of 23 make a diploid cell with 46 again. Because a sex cell gets only one chromosome from each pair, if a parent has two different alleles of a gene, each sex cell has a 50 percent chance of getting either one.
+</details>
+
+This table tracks what stays joined, to prevent the common counting mistake.
+
+| Moment | What separates | What each cell holds afterward |
+| --- | --- | --- |
+| Meiosis I | The two homologous chromosomes of each pair | One chromosome from each pair, still made of joined sister chromatids |
+| Meiosis II | The sister chromatids | One chromosome from each pair; no DNA copying occurred between divisions |
+
+The simple model usually ends with four such cells.
+
+<ScaffoldFigure src="/figures/meiosis-and-variation/two-divisions-make-half.webp" width={1200} height={480} keyItems={["sister chromatids", "homologous chromosomes", "Meiosis I", "Meiosis II", "haploid"]} given={[2, 3]} alt="AI-generated illustration: five frames left to right. One cell holds two pairs of straight chromosomes, one green and one orange of each size. Each chromosome is copied into an X shape, and the copies line up side by side as pairs. A first arrow leads to two cells that each hold one large and one small X-shaped chromosome. A second arrow leads to four cells that each hold one large and one small straight chromosome. Five numbered circles mark an X-shaped chromosome, a bracketed pair, the first arrow, the second arrow, and one of the four final cells." caption="Meiosis copies DNA once and divides twice, separating homologous pairs before sister chromatids. Name the five numbered parts." />
+
+Beyond the first film's notes on eggs and plant spores, two refinements: in males, the X and Y match only near their ends, yet still pair; and the human egg pauses during meiosis II and finishes only after a sperm enters.
+
+**Fertilization** is when an egg and a sperm join. Their two sets of 23 make a diploid cell with 46 again. A sex cell gets only one chromosome from each pair. So if a parent has two different alleles of a gene, each sex cell has a 50 percent chance of getting either one.
 
 <LessonFigure src="/figures/meiosis-and-variation/halving-and-fertilization.webp" width={1200} height={800} alt="AI-generated illustration: a loop in which a diploid cell from the mother and a diploid cell from the father each go through meiosis to make an egg and a sperm, which join at fertilization into one fertilized egg. An inset shows one large egg beside three small polar bodies." caption="Halving and restoring: meiosis turns 46 chromosomes into 23 in each sex cell, and fertilization brings the number back to 46. In a woman the divisions are uneven and make one large egg." />
 
 <Support min={2}>**Key idea:** Meiosis copies the DNA once and divides twice, first separating the pairs and then the copies, so each sex cell gets one chromosome from each pair.</Support>
 
-## Explain: two ways meiosis mixes alleles
+That 50 percent chance holds separately for every pair. So why do two sex cells from the same parent rarely match? The second film shows two ways meiosis remixes alleles.
 
-Meiosis I mixes alleles in two ways.
+<LessonFilm film={frontmatter.films[0]} />
 
-**Crossing over** is the swapping of matching pieces between the two chromosomes of a pair while they lie side by side in meiosis I. After a swap, one chromosome can carry some alleles from the grandmother and some from the grandfather. Studies that read the DNA of single human sperm count an average of about 22 to 28 crossovers per sperm, depending on the man.
+## Explain: count the mixes
 
-**Independent assortment** means each chromosome pair lines up and separates on its own, without regard to the other pairs. A deck of cards gives a picture: shuffle well, and each hand you deal is a new mix. The picture breaks because a normal sex cell always gets exactly one card from each pair, never two from one pair.
+The second film showed both. In **crossing over**, non-sister chromatids of paired homologous chromosomes exchange matching pieces during meiosis I. In **independent assortment**, each pair lines up and separates on its own, whatever the other pairs do. It did not show how often crossing over happens. Studies reading single human sperm found donor averages of about 22 to 28 crossovers per sperm, counted on the 22 non-sex chromosomes.
 
-Count the choices. Each pair can send either of its two chromosomes, so every pair doubles the number of combinations.
+Its tree gave 8 combinations for three pairs, because each pair doubles the count.
+
+**Predict.** With five pairs, how many combinations are possible?
+
+<details>
+<summary>Check your prediction</summary>
+
+Thirty-two. Five doublings give 2 × 2 × 2 × 2 × 2 = 2⁵ = 32.
+
+</details>
 
 > number of chromosome combinations in a sex cell = 2ⁿ, where n is the number of chromosome pairs
 
-For humans, n = 23, so one parent can make 2²³ = 8,388,608, or about 8.4 million, chromosome combinations. Two parents together give 8,388,608 × 8,388,608, which is more than 70 trillion. These are possibilities across many meioses, not children anyone could have, and they ignore crossing over, which adds far more.
+For humans, n = 23, so one parent can make 2²³ = 8,388,608, or about 8.4 million, whole-chromosome combinations. Two parents together give 8,388,608 × 8,388,608, more than 70 trillion pairings from shuffling alone. These are possibilities across many meioses, not children anyone could have, and they ignore crossing over, which adds far more. So siblings almost never get the same mix unless they are identical twins.
 
-One limit: genes that sit close together on the same chromosome tend to travel together. Independent assortment applies to genes on different chromosomes.
+The second film's limit still holds: 2ⁿ counts whole chromosomes. Genes close together on one chromosome tend to travel together, so independent assortment applies to genes on different chromosomes.
 
 <Support min={2}>**Key idea:** Crossing over swaps pieces between paired chromosomes, and independent assortment shuffles the pairs, so nearly every sex cell carries a new mix of alleles.</Support>
 
@@ -321,15 +369,24 @@ You met **mitosis**, the division that makes two cells with the same chromosomes
 | Chromosome sets | Diploid stays diploid | Diploid becomes haploid |
 | Genetic sameness | Cells match the parent cell | Each cell is a new mix |
 
-The "match" in mitosis is a close match. Rare copying mistakes, called mutations, can change a cell's DNA. Mutations are the source of new alleles, and recombination by crossing over and shuffling mixes them into new combinations.
+The "match" in mitosis is close, not perfect: rare copying mistakes, called mutations, can change a cell's DNA. Mutations make new alleles; crossing over and shuffling mix them into new combinations.
 
-Asexual reproduction, with one parent and mitosis-like division, makes offspring that are genetically the same as the parent. Sexual reproduction makes offspring that differ. **Genetic diversity** is the variety of alleles and allele combinations in a population. When the environment changes, some combinations may do better than others, so a varied population is more likely to have some members that survive and reproduce. Diversity raises the chances; it does not guarantee survival.
+Asexual reproduction, with one parent and mitosis-like division, makes offspring that are genetically the same as the parent. Sexual reproduction makes offspring that differ. **Genetic diversity** is the variety of alleles and allele combinations in a population. As the second film showed, when conditions change it raises the chance that some members survive and reproduce, but it does not guarantee survival. Selection acts on individuals; diversity describes the population.
+
+**Predict.** Would sexual reproduction help a population whose environment stays comfortable and never changes?
+
+<details>
+<summary>Check your prediction</summary>
+
+Not necessarily. In a 2012 experiment, sexual yeast populations adapted more than asexual ones at a stressful 37 °C with added salt, but at a comfortable 30 °C sex gave no overall advantage.
+
+</details>
 
 <Support min={2}>**Key idea:** Mitosis makes two matching cells for growth and repair; meiosis makes four varied haploid cells, and that variety helps a population face a changing environment.</Support>
 
 ## Elaborate: count the combinations
 
-The first four rows are calculations of 2ⁿ from known chromosome numbers. The last four are real measurements of crossovers in human sex cells.
+The first four rows are calculated with 2ⁿ from known chromosome numbers. The last four are measured crossovers in human sex cells.
 
 | What is counted | n (pairs) | Value | Units |
 |---|---|---|---|
@@ -367,16 +424,16 @@ Does sexual reproduction help a population adapt to a harsh environment? Plan a 
 - **Independent variable:** whether the population can reproduce sexually. Use a strain that can and a closely matched strain that cannot.
 - **Dependent variable:** fitness after many generations, measured by growing each evolved population mixed with its ancestor and seeing which one increases.
 - **Constants:** the same growth medium, number of generations, number and timing of starvation rounds that trigger meiosis and spore formation, and transfer schedule.
-- **Controls:** run both kinds of population in a comfortable environment too. If sex helps only in the harsh one, the benefit depends on the environment. Also keep frozen ancestors to compare against.
+- **Controls:** run both kinds of population in a comfortable environment too, so you can tell whether the benefit depends on the environment. Also keep frozen ancestors to compare against.
 - **Sample size and trials:** several separate populations of each kind in each environment, since one population can change by chance.
 - **Safety:** use lab yeast strains, wear goggles, handle heat and sterilizing equipment with your teacher, and follow the lab's rules for disposing of cultures.
 
-A larger gain for the sexual populations in the harsh environment only would support the idea that sex helps a population adapt most when conditions are harsh. Both environments stay the same throughout, so this design does not test a changing environment. In the real experiment, the authors thought sex helped by combining new helpful mutations and separating them from harmful ones.
+A larger gain for the sexual populations only in the harsh environment would support the idea that sex helps most when conditions are harsh. Both environments stay the same throughout, so this design does not test a changing environment. In the real experiment, the authors thought sex helped by combining new helpful mutations and separating them from harmful ones.
 
 </details>
 
 ## Evaluate: check your thinking
 
-Brothers and sisters differ because each grows from a different egg and a different sperm. Meiosis makes every sex cell a new mix: crossing over swaps pieces of paired chromosomes, and independent assortment shuffles 23 pairs into millions of combinations. Identical twins come from one fertilized egg, which is why they match so closely.
+Brothers and sisters differ because each grows from a different egg and a different sperm. Meiosis separates pairs, then copies, while crossing over and assortment remix alleles, so every sex cell is a new mix; shuffling the 23 pairs alone gives millions of combinations. Identical twins come from one fertilized egg, which is why they match so closely.
 
 **Science practices you used:** making predictions and testing them with a model, calculating combinations with a formula, reading a table of measured averages and ranges, planning a fair test with controls and repeated trials, and naming the limits of a model and of small samples.

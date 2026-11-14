@@ -1,306 +1,555 @@
-"""Living together: symbiosis  (Biochemistrypedia explainer, grade 7 Life Science)
+"""One Patch, Two Relationships.
 
-COLOR MAP (one color per concept, whole video)
-  BLUE   = fungus
-  GREEN  = alga
-  YELLOW = sugar
-  TEAL   = "benefits"
-  GREY   = bark / tree, "unaffected", structure, notes
-  RED    = "harmed", blood lost
-  PURPLE = tick (the parasite)
-  TAN    = deer (the host)
-  ORANGE = predator
-  TEXT   = generic partners, kinds of symbiosis
-No numbers on screen. All shapes are labelled schematic blocks, not to scale.
+COLOR MAP: fungus BLUE; alga/cyanobacterium GREEN; tree/plant GOLD;
+sugar YELLOW; water pale BLUE; minerals TEAL; harm RED; unaffected GREY.
+Help is always a white plus badge.  All biology is a labelled cartoon.
 """
-from bp_style import *  # noqa: F401,F403
-
-PURPLE = "#B58AE0"
-TAN = "#C9A27A"
-ORANGE = "#E8935A"
-LICHEN = "#9DB59A"
-FUNGUS, ALGA, SUGAR, GAIN, HARM = BLUE, GREEN, YELLOW, TEAL, RED
+from bp_parts import *  # noqa: F401,F403
 
 
-def arr(a, b, color=GREY, w=5, tip=0.22):
-    return Arrow(a, b, buff=0.08, color=color, stroke_width=w, tip_length=tip,
-                 max_tip_length_to_length_ratio=0.45, max_stroke_width_to_length_ratio=12)
+LICHEN = "#A8B8A0"
+WATER = "#9ADCF2"
+BROWN = "#76513B"
+SKIN = "#C89569"
 
 
-class S00Title(TitleCard):
+def alive(mob, amp=.012, speed=2.6, phase=0.0):
+    """A gentle whole-subject breath; large enough to register as continued life."""
+    mob._alive_t = phase
+    mob._alive_s = 1.0
+    center = mob.get_center().copy()
+
+    def update(m, dt):
+        m._alive_t += dt
+        target = 1.0 + amp * np.sin(speed * m._alive_t)
+        m.scale(target / m._alive_s, about_point=center)
+        m._alive_s = target
+    return mob.add_updater(update)
+
+
+def help_badge(label=None, at=ORIGIN, scale=1.0):
+    c = Circle(radius=0.34 * scale, color=TEXT, stroke_width=4,
+               fill_color=TEXT, fill_opacity=0.12).move_to(at)
+    p = T("+", 34 * scale, TEXT, weight=BOLD).move_to(c)
+    g = VGroup(c, p)
+    if label:
+        g.add(T(label, 28, TEXT).next_to(c, RIGHT, buff=0.18))
+    g.layout_ok = True
+    return g
+
+
+def neutral_badge(label=None, at=ORIGIN, scale=1.0):
+    c = Circle(radius=0.34 * scale, color=GREY, stroke_width=4,
+               fill_color=GREY, fill_opacity=0.10).move_to(at)
+    m = Line(c.get_left() + RIGHT * 0.13, c.get_right() + LEFT * 0.13,
+             color=GREY, stroke_width=6)
+    g = VGroup(c, m)
+    if label:
+        g.add(T(label, 28, GREY).next_to(c, RIGHT, buff=0.18))
+    g.layout_ok = True
+    return g
+
+
+def harm_badge(label=None, at=ORIGIN, scale=1.0):
+    c = Circle(radius=0.34 * scale, color=RED, stroke_width=4,
+               fill_color=RED, fill_opacity=0.12).move_to(at)
+    m = T("−", 34 * scale, RED, weight=BOLD).move_to(c)
+    g = VGroup(c, m)
+    if label:
+        g.add(T(label, 28, RED).next_to(c, RIGHT, buff=0.18))
+    g.layout_ok = True
+    return g
+
+
+def tree_world(patch_center=(-1.5, 0.15, 0), patch_scale=1.0, width=7.0):
+    """The carried bark-and-patch picture, always at the same coordinates."""
+    trunk = RoundedRectangle(corner_radius=0.32, width=width, height=7.0,
+                             stroke_color=GOLD, stroke_width=4,
+                             fill_color=GOLD, fill_opacity=0.12).move_to([-1.5, 0, 0])
+    grain = VGroup(*[
+        ArcBetweenPoints([-4.55 + 0.18 * (i % 2), y, 0],
+                         [1.55 - 0.18 * ((i + 1) % 2), y + 0.22, 0],
+                         angle=0.08 * (-1) ** i, color=GOLD, stroke_width=2,
+                         stroke_opacity=0.25)
+        for i, y in enumerate(np.linspace(-2.8, 2.7, 7))
+    ])
+    pc = np.array(patch_center, dtype=float)
+    lobes = VGroup(
+        Ellipse(width=3.55, height=2.6),
+        Ellipse(width=2.4, height=2.0).shift(LEFT * 1.15 + UP * 0.22),
+        Ellipse(width=2.25, height=1.75).shift(RIGHT * 1.2 + DOWN * 0.28),
+    ).set_stroke(LICHEN, width=4).set_fill(LICHEN, opacity=0.48)
+    lobes.scale(patch_scale).move_to(pc)
+    trunk.layout_ok = grain.layout_ok = lobes.layout_ok = True
+    return VGroup(trunk, grain, lobes)
+
+
+def lichen_cutaway(center=(-1.4, 0.15, 0), scale=1.0, labels=True):
+    """The one shared lichen cutaway, rebuilt unchanged in continuing scenes."""
+    c = np.array(center, dtype=float)
+    shell = RoundedRectangle(corner_radius=0.45, width=8.0, height=5.1,
+                             stroke_color=LICHEN, stroke_width=4,
+                             fill_color=LICHEN, fill_opacity=0.14).scale(scale).move_to(c)
+    threads = VGroup()
+    for i in range(7):
+        x = c[0] + scale * (-3.15 + i * 1.05)
+        threads.add(CubicBezier([x - .35 * scale, c[1] - 1.8 * scale, 0],
+                                [x + .35 * scale, c[1] - .55 * scale, 0],
+                                [x - .42 * scale, c[1] + .65 * scale, 0],
+                                [x + .28 * scale, c[1] + 1.8 * scale, 0],
+                                color=BLUE, stroke_width=8 * scale))
+    cells = VGroup(*[
+        Circle(radius=.28 * scale, color=GREEN, stroke_width=4,
+               fill_color=GREEN, fill_opacity=.35).move_to(
+                   c + scale * np.array([x, y, 0]))
+        for x, y in [(-2.55, .75), (-1.45, -.55), (-.35, .78),
+                     (.75, -.48), (1.85, .62), (2.65, -.72)]
+    ])
+    g = VGroup(shell, threads, cells)
+    if labels:
+        fl = T("fungus", 30, BLUE, weight=BOLD).move_to(c + scale * np.array([-2.75, 2.05, 0]))
+        al = T("alga or cyanobacterium", 28, GREEN, weight=BOLD).move_to(c + scale * np.array([1.25, -2.05, 0]))
+        fl.layout_ok = al.layout_ok = True
+        g.add(fl, al)
+    g.shell, g.threads, g.cells = shell, threads, cells
+    shell.layout_ok = threads.layout_ok = cells.layout_ok = True
+    return g
+
+
+def outcome_meter(selected=None):
+    title = T("tree outcome", 30, GOLD, weight=BOLD).move_to([4.2, 2.45, 0])
+    line = Line([4.2, 1.35, 0], [4.2, -1.35, 0], color=GREY, stroke_width=6)
+    ys = [1.35, 0, -1.35]
+    labs = VGroup(T("helped", 28, TEXT), T("unaffected", 28, GREY), T("harmed", 28, RED))
+    for lab, y in zip(labs, ys):
+        lab.move_to([5.65, y, 0])
+    dots = VGroup(*[Dot([4.2, y, 0], radius=.12, color=c) for y, c in zip(ys, [TEXT, GREY, RED])])
+    needle = VGroup()
+    if selected is not None:
+        y = ys[selected]
+        needle = VGroup(Arrow([3.35, y, 0], [4.03, y, 0], buff=0, color=[TEXT, GREY, RED][selected],
+                              stroke_width=6, tip_length=.22))
+    tag = scope_tag("schematic")
+    return VGroup(title, line, dots, labs, needle, tag)
+
+
+def ripple(center=(-2.7, .15, 0), w=2.6, h=1.9, period=1.8):
+    """A slow lichen ripple: a ring that grows and fades again and again (visible, steady motion)."""
+    r = Ellipse(width=w, height=h, color=LICHEN, stroke_width=5).move_to(center)
+    r.layout_ok = True
+    r._t = 0.0
+
+    def up(m, dt):
+        m._t += dt
+        a = (m._t % period) / period
+        m.become(Ellipse(width=w * (1 + .75 * a), height=h * (1 + .75 * a), color=LICHEN,
+                         stroke_width=5, stroke_opacity=.7 * (1 - a)).move_to(center))
+        m.layout_ok = True
+    return r.add_updater(up)
+
+
+def prediction_world(selected=None, question=True):
+    world = tree_world(patch_center=(-2.7, .15, 0), patch_scale=.70, width=5.4)
+    plus = help_badge("lichen helped", at=[-2.7, -2.25, 0], scale=.85)
+    meter = outcome_meter(selected)
+    g = VGroup(world, plus, meter)
+    if question:
+        g.add(question_card("What does the tree gain or lose?", y=-2.3, size=30, max_w=4.3, left=2.45))
+    return g
+
+
+def outcome_row(name, left_badge, right_badge, y, color=TEXT):
+    card = RoundedRectangle(corner_radius=.14, width=6.55, height=1.0,
+                            stroke_color=GREY, stroke_width=1.5,
+                            fill_color=GREY, fill_opacity=.22).move_to([2.45, y, 0])
+    card.layout_ok = True
+    label = T(name, 30, color, weight=BOLD).move_to([4.15, y, 0])
+    left_badge.move_to([-.2, y, 0])
+    right_badge.move_to([1.05, y, 0])
+    arrow = Arrow([1.55, y, 0], [2.45, y, 0], buff=0, color=GREY,
+                  stroke_width=4, tip_length=.18)
+    return VGroup(card, left_badge, right_badge, arrow, label)
+
+
+def outcome_board(include_other=False):
+    title = T("outcomes → relationship", 34, TEXT, weight=BOLD).move_to([2.05, 2.55, 0])
+    rows = VGroup(
+        outcome_row("mutualism", help_badge(scale=.72), help_badge(scale=.72), 1.35),
+        outcome_row("commensalism", help_badge(scale=.72), neutral_badge(scale=.72), 0.0),
+        outcome_row("parasitism", help_badge(scale=.72), harm_badge(scale=.72), -1.35, RED),
+    )
+    g = VGroup(title, rows)
+    if include_other:
+        rule = Line([-.6, -2.15, 0], [5.8, -2.15, 0], color=GREY, stroke_width=2)
+        other = T("other pairs: not these taught kinds", 26, GREY).move_to([2.6, -2.65, 0])
+        g.add(rule, other)
+    return g
+
+
+def tick_deer(center=(0, 0, 0), scale=1.0, labels=True):
+    c = np.array(center, dtype=float)
+    skin = RoundedRectangle(corner_radius=.5, width=10.3, height=3.25,
+                            stroke_color=SKIN, stroke_width=4,
+                            fill_color=SKIN, fill_opacity=.25).scale(scale).move_to(c + DOWN * .6 * scale)
+    tick_body = Ellipse(width=1.25, height=.9, color=BROWN, stroke_width=5,
+                        fill_color=BROWN, fill_opacity=.75).scale(scale).move_to(c + UP * 1.25 * scale)
+    legs = VGroup()
+    for dx in (-.42, -.15, .15, .42):
+        x = c[0] + dx * scale
+        legs.add(Line([x, c[1] + .95 * scale, 0], [x - .28 * np.sign(dx) * scale, c[1] + .42 * scale, 0],
+                      color=BROWN, stroke_width=4))
+    drops = VGroup(*[Dot(c + np.array([x, .22 + .24 * i, 0]) * scale,
+                             radius=.12 * scale, color=RED)
+                     for i, x in enumerate((-.35, 0, .35))])
+    g = VGroup(skin, tick_body, legs, drops)
+    if labels:
+        tl = T("blacklegged tick", 30, "#D9A877", weight=BOLD).move_to(c + np.array([2.6, 1.95, 0]) * scale)
+        dl = T("deer skin", 30, SKIN, weight=BOLD).move_to(c + np.array([-3.6, -1.55, 0]) * scale)
+        g.add(tl, dl)
+    skin.layout_ok = tick_body.layout_ok = legs.layout_ok = drops.layout_ok = True
+    return g
+
+
+def long_arrow(center, color=TEXT, label="survive • reproduce"):
+    ring = Arc(radius=1.05, start_angle=.2, angle=TAU * .88, arc_center=center,
+               color=color, stroke_width=6)
+    tip = Triangle(color=color, fill_color=color, fill_opacity=1).scale(.12).rotate(-.3).move_to(ring.get_end())
+    lab = T(label, 28, color).next_to(ring, DOWN, buff=.18)
+    return VGroup(ring, tip, lab)
+
+
+class S01Hook(SpokenScene):
+    def construct(self):
+        world = tree_world(patch_center=(-1.5, .1, 0), patch_scale=.18)
+        patch = world[-1]
+        pulse(patch, base=4, amp=1.4, speed=2.0)
+        self.play(FadeIn(world[0]), FadeIn(world[1]), run_time=.8)
+        self.at("single gray green patch")
+        self.play(FadeIn(patch), patch.animate.scale(5.2), run_time=3.1, rate_func=smooth)
+        q = T("?", 92, TEXT, weight=BOLD).move_to([3.6, .5, 0])
+        self.at("different kinds of symbiosis")
+        self.play(GrowFromCenter(q), run_time=.7)
+        self.at("look closely inside")
+        self.play(world.animate.scale(1.22).shift(RIGHT * 1.0), q.animate.scale(1.18), run_time=1.5)
+        self.finish()
+
+
+class S02Title(TitleCard):
     LESSON = "Living together: symbiosis"
-    TITLE = "Living Together: Help, Harm, or Neither"
+    TITLE = "One Patch, Two Relationships"
 
-
-# ---------------------------------------------------------------------------------------------
-class S01Trunk(SpokenScene):
     def construct(self):
-        trunk = Rectangle(width=3.0, height=6.2, stroke_color=GREY, stroke_width=3, fill_color=GREY,
-                          fill_opacity=0.18).move_to([-4.3, -0.1, 0])
-        tl = T("tree trunk", 26, GREY).next_to(trunk, DOWN, buff=-0.45)
-        tl.move_to([-4.3, -2.6, 0])
-        patches = VGroup(*[Ellipse(width=w, height=h, stroke_color=LICHEN, stroke_width=3, fill_color=LICHEN,
-                                   fill_opacity=0.55).move_to([x, y, 0])
-                           for (w, h, x, y) in ((1.1, 0.8, -4.7, 1.8), (0.9, 0.7, -3.8, 0.4), (1.2, 0.8, -4.6, -1.0))])
-        self.at("Look at")
-        self.play(FadeIn(trunk), FadeIn(tl), run_time=1.0)
-        self.at("crusty patches")
-        self.play(FadeIn(patches, lag_ratio=0.3, scale=0.6), run_time=1.2)
-        lab = chip("lichens", LICHEN, size=32).move_to([-4.3, 3.2, 0])
-        self.at("are lichens")
-        self.play(FadeIn(lab, shift=DOWN * 0.1), run_time=0.6)
-        big = Ellipse(width=4.2, height=3.0, stroke_color=LICHEN, stroke_width=4, fill_color=LICHEN,
-                      fill_opacity=0.45).move_to([2.6, 0.4, 0])
-        one = T("one living thing?", 36, TEXT).move_to([2.6, -1.8, 0])
-        self.at("Each lichen looks")
-        self.play(TransformFromCopy(patches[1], big), run_time=1.2)
-        self.play(FadeIn(one, shift=UP * 0.1), run_time=0.5)
-        split = DashedLine([2.6, 1.9, 0], [2.6, -1.1, 0], color=TEXT, stroke_width=4)
-        q1 = T("?", 72, TEXT, weight=BOLD).move_to([1.6, 0.4, 0])
-        q2 = T("?", 72, TEXT, weight=BOLD).move_to([3.6, 0.4, 0])
-        two = T("very different living things, one body", 30, TEXT).move_to([2.6, -2.5, 0])
-        self.at("But it is a partnership")
-        self.play(FadeOut(one), Create(split), FadeIn(q1, scale=0.6), FadeIn(q2, scale=0.6), run_time=1.0)
-        self.play(FadeIn(two, shift=UP * 0.1), run_time=0.6)
-        q = T("Do living things that live close together\nhelp each other, or hurt each other?", 38, TEXT,
-              font=TITLE_FONT, line_spacing=0.8)
-        fit(q, max_w=11.6, max_h=1.8)
-        q.move_to([0, 0, 0])
-        self.at("Do living things")
-        self.play(*[FadeOut(m) for m in (trunk, tl, patches, lab, big, split, q1, q2, two)], run_time=0.7)
-        self.play(Write(q), run_time=2.2)
+        world = tree_world(patch_scale=1.0)
+        world.set_opacity(.35)
+        pulse(world[-1], base=4, amp=1.2, speed=2)
+        title = fit_text(self.TITLE, max_w=10.8, size=54, font=TITLE_FONT, weight=BOLD)
+        lesson = T(self.LESSON.upper(), 24, GOLD).next_to(title, UP, buff=.35)
+        rule = Line(LEFT * 1.4, RIGHT * 1.4, color=GOLD, stroke_width=4).next_to(title, DOWN, buff=.35)
+        self.add(world)
+        self.play(FadeIn(lesson), Write(title), GrowFromCenter(rule), run_time=1.35)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S02Symbiosis(SpokenScene):
+class S03Inside(SpokenScene):
     def construct(self):
-        title = T("symbiosis", 56, TEXT, font=TITLE_FONT).move_to([0, 3.0, 0])
-        a = Circle(radius=0.7, stroke_color=TEXT, stroke_width=4, fill_color=TEXT, fill_opacity=0.12)
-        b = Square(side_length=1.3, stroke_color=TEXT, stroke_width=4, fill_color=TEXT, fill_opacity=0.12)
-        a.move_to([-5.0, 0.7, 0])
-        b.move_to([5.0, 0.7, 0])
-        la = T("species 1", 26, GREY).move_to([-0.95, 1.8, 0])
-        lb = T("species 2", 26, GREY).move_to([0.95, 1.8, 0])
-        self.at("Symbiosis is")
-        self.play(FadeIn(title, shift=DOWN * 0.1), FadeIn(a), FadeIn(b), run_time=0.9)
-        self.at("close relationship")
-        self.play(a.animate.move_to([-0.95, 0.7, 0]), b.animate.move_to([0.95, 0.7, 0]),
-                  run_time=0.8)
-        self.at("different species")
-        self.play(FadeIn(la), FadeIn(lb), run_time=0.5)
-        link = Line(a.get_right(), b.get_left(), color=TEXT, stroke_width=6)
-        self.add(link)
-        time = Arrow([-5.5, -1.0, 0], [5.5, -1.0, 0], color=GREY, stroke_width=4, buff=0)
-        tt = T("often a long time", 30, GREY).move_to([0, -1.6, 0])
-        self.at("stay in close")
-        grp = VGroup(a, b, la, lb, link)
-        self.play(GrowArrow(time), FadeIn(tt), run_time=0.5)
-        self.play(grp.animate.shift(LEFT * 3.2), run_time=0.5)
-        self.play(grp.animate.shift(RIGHT * 6.4), run_time=0.9)
-        self.at("A bird that eats")
-        self.play(*[FadeOut(m) for m in (grp, time, tt)], run_time=0.4)
-        bird = chip("bird", ORANGE, size=34).move_to([-2.0, 0.6, 0])
-        seed = chip("one seed", GREEN, size=28).move_to([0.3, 0.6, 0])
-        plant = chip("plant", GREEN, size=34).move_to([3.6, 0.6, 0])
-        self.play(FadeIn(bird), FadeIn(seed), FadeIn(plant), run_time=0.4)
-        self.play(seed.animate.move_to([0.4, -0.5, 0]), bird.animate.move_to([-1.5, -0.4, 0]), run_time=0.5)
-        self.at("flies off")
-        self.play(bird.animate.move_to([-5.4, 3.0, 0]), FadeOut(seed), run_time=0.7)
-        cross = VGroup(Line([-0.5, -0.5, 0], [0.5, 0.5, 0]), Line([-0.5, 0.5, 0], [0.5, -0.5, 0])).set_color(GREY)
-        cross.set_stroke(width=8).move_to([1.6, 0.6, 0])
-        no = T("not a symbiosis", 40, TEXT).move_to([0, -2.2, 0])
-        self.at("not in a symbiosis")
-        self.play(Create(cross), FadeIn(no, shift=UP * 0.1), run_time=0.9)
-        self.finish()
-
-
-# ---------------------------------------------------------------------------------------------
-class S03Lichen(SpokenScene):
-    def construct(self):
-        cx = -1.6
-        bark = Rectangle(width=8.4, height=0.9, stroke_color=GREY, stroke_width=3, fill_color=GREY,
-                         fill_opacity=0.25).move_to([cx, -2.5, 0])
-        bl = T("tree bark", 28, GREY).move_to(bark)
-        fungus = Rectangle(width=8.4, height=1.2, stroke_color=FUNGUS, stroke_width=3, fill_color=FUNGUS,
-                           fill_opacity=0.25).move_to([cx, 1.2, 0])
-        fl = T("fungus", 30, FUNGUS, weight=BOLD).move_to([5.0, 1.2, 0])
-        cells = VGroup(*[Circle(radius=0.34, stroke_color=ALGA, stroke_width=3, fill_color=ALGA, fill_opacity=0.35)
-                         .move_to([cx - 3.6 + i * 1.03, -0.5, 0]) for i in range(8)])
-        al = T("alga", 30, ALGA, weight=BOLD).move_to([5.0, -0.5, 0])
-        note = T("not to scale", 22, GREY).move_to([cx, -3.35, 0])
-        self.at("A lichen is")
-        self.play(FadeIn(bark), FadeIn(bl), FadeIn(note), run_time=0.4)
-        self.at("a fungus")
-        self.play(FadeIn(fungus, shift=DOWN * 0.2), FadeIn(fl), run_time=0.4)
+        patch = tree_world(patch_scale=.82)[-1]
+        pulse(patch, base=4, amp=1, speed=2)
+        self.add(patch)
+        self.at("This patch is a lichen")
+        cut = lichen_cutaway(labels=False)
+        self.play(ReplacementTransform(patch, cut.shell), run_time=1.0)
+        self.at("main partners are a fungus")
+        self.play(LaggedStart(*[Create(t) for t in cut.threads], lag_ratio=.08), run_time=1.5)
+        fl = T("fungus", 30, BLUE, weight=BOLD).move_to([-4.3, 2.5, 0])
+        self.play(FadeIn(fl), run_time=.4)
         self.at("and an alga")
-        self.play(FadeIn(cells, lag_ratio=0.05), FadeIn(al), run_time=0.5)
-        br = Brace(VGroup(fungus, cells), direction=RIGHT, color=TEXT).shift(RIGHT * 0.1)
-        brl = T("one body", 30, TEXT).next_to(br, RIGHT, buff=0.2)
-        self.at("as one body")
-        self.play(FadeOut(fl), FadeOut(al), run_time=0.1)
-        fl2 = T("fungus", 28, FUNGUS, weight=BOLD).move_to([cx - 3.0, 1.2, 0])
-        al2 = T("alga", 28, ALGA, weight=BOLD).move_to([cx - 3.0, -1.35, 0])
-        self.play(FadeIn(fl2), FadeIn(al2), GrowFromCenter(br), FadeIn(brl), run_time=0.5)
-        tiny = T("tiny, green", 28, ALGA).move_to([cx + 3.0, -1.35, 0])
-        self.at("An alga is")
-        self.play(Indicate(cells, color=ALGA), FadeIn(tiny, shift=UP * 0.1), run_time=0.6)
-        self.at("The fungus forms")
-        self.play(Indicate(fungus, color=FUNGUS, scale_factor=1.04), run_time=0.9)
-        sh = VGroup(*[arr([cx - 2.4 + i * 2.4, 0.55, 0], [cx - 2.4 + i * 2.4, 0.0, 0], FUNGUS, w=4, tip=0.16) for i in range(3)])
-        shl = T("shelters, helps keep moist", 26, FUNGUS).move_to([cx + 0.0, 2.35, 0])
-        self.at("It shelters")
-        self.play(FadeIn(sh, lag_ratio=0.2), FadeIn(shl, shift=DOWN * 0.1), run_time=1.0)
-        self.at("The alga makes")
-        self.play(FadeOut(tiny), FadeOut(shl), FadeOut(sh), run_time=0.4)
-        sug = VGroup(*[chip("sugar", SUGAR, size=22, pad=0.1).move_to(cells[i].get_center() + UP * 0.68) for i in (3, 5, 7)])
-        self.play(FadeIn(sug, scale=0.6), run_time=0.6)
-        self.play(*[s.animate.move_to([s.get_center()[0], 1.2, 0]) for s in sug], run_time=1.4)
+        self.play(LaggedStart(*[FadeIn(c, scale=.6) for c in cut.cells], lag_ratio=.12), run_time=1.5)
+        al = T("alga or cyanobacterium", 28, GREEN, weight=BOLD).move_to([2.25, -2.45, 0])
+        self.play(FadeIn(al), run_time=.45)
+        self.at("remain different species")
+        sp1 = chip("species 1", BLUE, 26).move_to([-4.7, -2.45, 0])
+        sp2 = chip("species 2", GREEN, 26).move_to([-2.55, -2.45, 0])
+        self.play(FadeIn(sp1), FadeIn(sp2), run_time=.7)
+        self.at("sharing a common body")
+        brace = Brace(cut.shell, RIGHT, color=TEXT)
+        body = T("one lichen body", 30, TEXT).next_to(brace, RIGHT, buff=.2)
+        self.play(GrowFromCenter(brace), FadeIn(body), run_time=.8)
+        self.at("close relationship is symbiosis")
+        cap = caption("different species + long close relationship = symbiosis", color=TEXT)
+        self.play(FadeOut(sp1), FadeOut(sp2), FadeOut(al), FadeOut(fl), FadeIn(cap), run_time=.8)
+        self.finish()
+
+
+class S04Exchange(SpokenScene):
+    def construct(self):
+        cut = lichen_cutaway(center=(-1.2, .2, 0), scale=.88)
+        alive(cut, amp=.012, speed=2.8)
+        pulse(cut.shell, base=4, amp=1.0, speed=1.8)
+        self.add(cut)
+        self.at("Watch what moves")
+        sun = VGroup(Circle(radius=.38, color=GOLD, fill_color=GOLD, fill_opacity=.35),
+                     *[Line(.55 * np.array([np.cos(a), np.sin(a), 0]), .82 * np.array([np.cos(a), np.sin(a), 0]),
+                            color=GOLD, stroke_width=4) for a in np.linspace(0, TAU, 8, endpoint=False)]).move_to([4.9, 2.35, 0])
+        self.play(FadeIn(sun, scale=.7), run_time=.5)
+        self.at("partner makes sugar")
+        sugars = VGroup(*[Dot(c.get_center(), radius=.11, color=YELLOW) for c in cut.cells[::2]])
+        self.play(Indicate(cut.cells, color=GREEN), FadeIn(sugars), run_time=.9)
         self.at("feeds both partners")
-        keep = VGroup(*[chip("sugar", SUGAR, size=22, pad=0.1).move_to(cells[i].get_center() + DOWN * 0.8) for i in (2, 4, 6)])
-        self.play(FadeIn(keep, scale=0.6), Indicate(fungus, color=SUGAR, scale_factor=1.04), Indicate(cells, color=SUGAR), run_time=1.0)
+        targets = [cut.threads[1].get_center(), cut.cells[1].get_center(), cut.threads[5].get_center()]
+        self.play(*[s.animate.move_to(t) for s, t in zip(sugars, targets)], run_time=1.4)
+        self.at("threads shelter those cells")
+        self.play(Indicate(cut.threads, color=BLUE, scale_factor=1.02), run_time=1.1)
+        self.at("Rainwater spreads")
+        drops = VGroup(*[Dot([x, 3.0, 0], radius=.13, color=WATER) for x in (-3.4, -1.2, 1.0)])
+        self.play(FadeIn(drops), run_time=.3)
+        self.play(*[d.animate.move_to(cut.cells[i * 2 + 1].get_center() + UP * .4) for i, d in enumerate(drops)], run_time=1.6)
+        self.at("Each partner gains")
+        p1 = help_badge("fungus", [-3.7, -2.55, 0], .8)
+        p2 = help_badge("photosynthetic partner", [.1, -2.55, 0], .8)
+        strip = caption("both helped", color=TEXT)
+        self.play(FadeIn(p1), FadeIn(p2), FadeIn(strip), run_time=.8)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-def column(cx, name, ca, ta, ca_col, cb, tb, cb_col, ex):
-    card = RoundedRectangle(corner_radius=0.2, width=3.9, height=5.6, stroke_color=GREY, stroke_width=2.5,
-                            fill_color=GREY, fill_opacity=0.06).move_to([cx, -0.4, 0])
-    head = T(name, 34, TEXT, font=TITLE_FONT).move_to([cx, 1.85, 0])
-    pa = chip(ca, ca_col, size=28).move_to([cx, 0.7, 0])
-    pb = chip(cb, cb_col, size=28).move_to([cx, -0.95, 0])
-    colr = {"benefits": GAIN, "unaffected": GREY, "harmed": HARM}
-    tga = T(ta, 30, colr[ta], weight=BOLD).move_to([cx, 0.0, 0])
-    tgb = T(tb, 30, colr[tb], weight=BOLD).move_to([cx, -1.65, 0])
-    exl = T(ex, 24, GREY).move_to([cx, -2.6, 0])
-    fit(exl, max_w=3.6)
-    return card, head, pa, tga, pb, tgb, exl
-
-
-class S04Three(SpokenScene):
+class S04Boundary(SpokenScene):
     def construct(self):
-        top = T("what does each partner gain or lose?", 32, GREY).move_to([0, 3.1, 0])
-        c1 = column(-4.3, "mutualism", "fungus", "benefits", FUNGUS, "alga", "benefits", ALGA, "fungus and alga in a lichen")
-        c2 = column(0.0, "commensalism", "lichen", "benefits", LICHEN, "tree", "unaffected", GREY, "lichen on tree bark")
-        c3 = column(4.3, "parasitism", "one partner", "benefits", TEXT, "the other", "harmed", TEXT, "")
-        self.at("Scientists sort")
-        self.play(FadeIn(top, shift=DOWN * 0.1), run_time=0.8)
-        self.at("In mutualism")
-        self.play(FadeIn(c1[0]), FadeIn(c1[1]), FadeIn(c1[2]), FadeIn(c1[4]), run_time=0.9)
-        self.at("all the partners benefit")
-        self.play(FadeIn(c1[3], scale=0.8), FadeIn(c1[5], scale=0.8), FadeIn(c1[6]), run_time=0.9)
-        self.at("In commensalism")
-        self.play(FadeIn(c2[0]), FadeIn(c2[1]), FadeIn(c2[2]), FadeIn(c2[4]), run_time=0.9)
-        self.at("one partner benefits")
-        self.play(FadeIn(c2[3], scale=0.8), run_time=0.6)
-        self.at("are unaffected")
-        self.play(FadeIn(c2[5], scale=0.8), run_time=0.6)
-        self.at("A lichen on tree bark")
-        self.play(FadeIn(c2[6]), Indicate(c2[2], color=LICHEN), run_time=0.9)
-        self.at("In parasitism")
-        self.play(FadeIn(c3[0]), FadeIn(c3[1]), FadeIn(c3[2]), FadeIn(c3[4]), run_time=0.9)
-        self.at("one partner benefits and the others are harmed")
-        self.play(FadeIn(c3[3], scale=0.8), run_time=0.6)
-        self.at("harmed")
-        self.play(FadeIn(c3[5], scale=0.8), run_time=0.6)
+        panels = TwoPanel("long close contact", "brief meeting", colors=(LICHEN, GOLD))
+        alive(panels, amp=.006, speed=2.8)
+        cut = lichen_cutaway(scale=.55, labels=False)
+        panels.put(cut, "left")
+        pulse(cut.shell, base=4, amp=1, speed=2)
+        self.play(FadeIn(panels), FadeIn(cut), run_time=.8)
+        self.at("Close contact matters")
+        loop = Arrow([-5.2, -1.8, 0], [-1.4, -1.8, 0], color=LICHEN, stroke_width=5, tip_length=.22)
+        self.play(GrowArrow(loop), run_time=.7)
+        self.at("bird may eat a seed")
+        bird = VGroup(ArcBetweenPoints([2.1, .6, 0], [2.8, .6, 0], angle=-1.2, color=GOLD, stroke_width=6),
+                      ArcBetweenPoints([2.8, .6, 0], [3.5, .6, 0], angle=1.2, color=GOLD, stroke_width=6))
+        seed = Dot([4.6, -.1, 0], radius=.16, color=GOLD)
+        self.play(Create(bird), FadeIn(seed), run_time=.7)
+        self.at("fly away")
+        path = DashedLine([3.0, .6, 0], [5.8, 1.7, 0], color=GREY, stroke_width=3)
+        self.play(Create(path), bird.animate.move_to([5.6, 1.7, 0]), FadeOut(seed), run_time=1.2)
+        self.at("not symbiosis")
+        cross = T("×", 72, GREY, weight=BOLD).move_to([3.6, -.8, 0])
+        self.play(GrowFromCenter(cross), run_time=.6)
+        self.at("remain together")
+        self.play(Indicate(cut, color=LICHEN, scale_factor=1.02), loop.animate.set_color(TEXT), run_time=1.1)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S05Tick(SpokenScene):
+class S05Mutualism(SpokenScene):
     def construct(self):
-        deer = RoundedRectangle(corner_radius=0.3, width=5.4, height=2.6, stroke_color=TAN, stroke_width=4,
-                                fill_color=TAN, fill_opacity=0.2).move_to([-3.0, -0.6, 0])
-        dl = T("deer", 40, TAN, weight=BOLD).move_to(deer)
-        tick = chip("tick", PURPLE, size=28).move_to([-3.0, 1.9, 0])
-        self.at("A black")
-        self.play(FadeIn(deer), FadeIn(dl), FadeIn(tick, shift=DOWN * 0.3), run_time=0.5)
-        drops = VGroup(*[Circle(radius=0.12, stroke_color=HARM, stroke_width=2, fill_color=HARM, fill_opacity=0.8)
-                         .move_to([-3.0 + dx, 0.95, 0]) for dx in (-0.4, 0.0, 0.4)])
-        bl = T("blood", 28, HARM).move_to([-1.2, 1.1, 0])
-        self.at("drink blood")
-        self.play(FadeIn(drops, lag_ratio=0.2), FadeIn(bl), run_time=0.4)
-        self.play(*[d.animate.shift(UP * 0.35) for d in drops], run_time=0.5)
-        days = T("several days", 34, TEXT).move_to([-3.0, -2.8, 0])
-        self.at("several days")
-        self.play(FadeIn(days, shift=UP * 0.1), run_time=0.6)
-        pt = T("parasite", 34, PURPLE, weight=BOLD).move_to([-0.9, 1.9, 0])
-        self.at("The tick is")
-        self.play(FadeIn(pt, shift=DOWN * 0.1), Indicate(tick, color=PURPLE), run_time=0.6)
-        ht = T("host", 34, TAN, weight=BOLD).move_to([-5.0, 1.1, 0])
-        hd = T("the living thing a parasite\nlives on or in", 26, GREY, line_spacing=0.8).move_to([3.6, 0.3, 0])
-        self.at("The deer is its host")
-        self.play(FadeIn(ht, shift=RIGHT * 0.1), Indicate(deer, color=TAN, scale_factor=1.03), run_time=0.8)
-        self.at("the living thing")
-        self.play(FadeIn(hd, shift=LEFT * 0.1), run_time=0.7)
-        self.at("A parasite usually")
-        self.play(*[FadeOut(m) for m in (deer, dl, tick, drops, bl, days, pt, ht, hd)], run_time=0.6)
-        r1 = T("parasite", 32, PURPLE, weight=BOLD).move_to([-4.9, 1.3, 0])
-        b1 = Rectangle(width=7.0, height=0.5, stroke_color=PURPLE, stroke_width=3, fill_color=PURPLE,
-                       fill_opacity=0.5).move_to([-1.1 + 0.0, 1.3, 0])
-        b1.align_to([-3.6, 0, 0], LEFT)
-        t1 = T("feeds over days or longer,\nusually without killing its host", 26, PURPLE).move_to([0.3, 0.55, 0])
-        r2 = T("predator", 32, ORANGE, weight=BOLD).move_to([-4.9, -1.2, 0])
-        b2 = Rectangle(width=1.2, height=0.5, stroke_color=ORANGE, stroke_width=3, fill_color=ORANGE,
-                       fill_opacity=0.5)
-        b2.align_to([-3.6, 0, 0], LEFT).set_y(-1.2)
-        t2 = T("kills and eats its prey quickly", 26, ORANGE).move_to([0.3, -1.95, 0])
-        t2.align_to(b2, LEFT)
-        ax = Arrow([-3.6, -2.7, 0], [3.7, -2.7, 0], color=GREY, stroke_width=3, buff=0)
-        axl = T("time (a sketch, not to scale)", 24, GREY).move_to([0.0, -3.15, 0])
-        self.play(FadeIn(r1), FadeIn(r2), GrowArrow(ax), FadeIn(axl), run_time=0.7)
-        self.play(GrowFromEdge(b1, LEFT), run_time=1.4)
-        self.play(FadeIn(t1, shift=UP * 0.1), run_time=0.6)
-        self.at("A predator kills")
-        self.play(GrowFromEdge(b2, LEFT), FadeIn(t2, shift=UP * 0.1), run_time=0.8)
+        cut = lichen_cutaway(scale=.75, labels=False)
+        alive(cut, amp=.012, speed=2.8)
+        self.add(cut)
+        self.at("all partners benefit")
+        a = help_badge("fungus", [-3.4, -2.4, 0], .8)
+        b = help_badge("alga", [-.3, -2.4, 0], .8)
+        self.play(FadeIn(a), FadeIn(b), run_time=.7)
+        self.at("relationship is mutualism")
+        cap = caption("mutualism inside the lichen", color=TEXT)
+        self.play(FadeIn(cap), run_time=.7)
+        self.at("zoom back out")
+        target = prediction_world(question=False)
+        alive(target[0][-1], amp=.018, speed=2.8)
+        self.play(FadeOut(a), FadeOut(b), FadeOut(cap), ReplacementTransform(cut, target[0]), run_time=1.4)
+        self.add(target[1], target[2])
+        self.at("lichen gains a place")
+        self.play(FadeIn(target[1]), run_time=.7)
+        self.at("tree gain or lose")
+        self.play(FadeIn(target[2]), run_time=.8)
+        q = question_card("What does the tree gain or lose?", y=-2.3, size=30, max_w=4.3, left=2.45)
+        self.play(FadeIn(q), run_time=.6)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-def row(y, name, ta, tb):
-    colr = {"benefits": GAIN, "unaffected": GREY, "harmed": HARM}
-    n = chip(name, TEXT, size=32).move_to([-4.0, y, 0])
-    a = chip(ta, colr[ta], size=28).move_to([0.6, y, 0])
-    b = chip(tb, colr[tb], size=28).move_to([3.7, y, 0])
-    n.align_to([-5.9, 0, 0], LEFT)
-    return n, a, b
+class S06Pause(PredictPause):
+    QUESTION = "What does the tree gain or lose?"
+    SECONDS = 4.5
+    CARD = {"y": -2.3, "size": 30, "max_w": 4.3, "left": 2.45}
+    RING_AT = (3.6, -3.3, 0)
+
+    def backdrop(self):
+        return VGroup(prediction_world(question=False), ripple())
 
 
-class S06Answer(SpokenScene):
+class S07Commensalism(SpokenScene):
     def construct(self):
-        q = T("Do close partners help each other?", 38, TEXT, font=TITLE_FONT).move_to([0, 3.0, 0])
-        self.at("So")
-        self.play(FadeIn(q, shift=DOWN * 0.1), run_time=0.8)
-        r1, r2, r3 = row(1.5, "mutualism", "benefits", "benefits"), row(0.2, "commensalism", "benefits", "unaffected"), \
-            row(-1.1, "parasitism", "benefits", "harmed")
-        self.at("Sometimes both partners benefit")
-        self.play(*[FadeIn(m, shift=RIGHT * 0.1) for m in r1], run_time=0.9)
-        self.at("Sometimes one benefits")
-        self.play(*[FadeIn(m, shift=RIGHT * 0.1) for m in r2], run_time=0.9)
-        self.at("Sometimes one is harmed")
-        self.play(*[FadeIn(m, shift=RIGHT * 0.1) for m in r3], run_time=0.9)
-        allrows = VGroup(q, *r1, *r2, *r3)
-        self.at("Partners do not choose")
-        self.play(FadeOut(allrows), run_time=0.6)
-        kind = chip("choose to be kind", GREY, size=44).move_to([0, 0.5, 0])
-        self.play(FadeIn(kind, scale=0.9), run_time=0.5)
-        cross = VGroup(Line([-3.0, -0.5, 0], [3.0, 1.5, 0]), Line([-3.0, 1.5, 0], [3.0, -0.5, 0])).set_color(HARM)
-        cross.set_stroke(width=7)
-        self.play(Create(cross), run_time=0.7)
-        self.at("carries on because")
-        self.play(FadeOut(kind), FadeOut(cross), run_time=0.5)
-        c1 = chip("living this way", TEXT, size=28)
-        c2 = chip("let the partners (or at least\nthe parasite) survive and reproduce", GAIN, size=28)
-        c3 = chip("the symbiosis carries on", TEXT, size=28)
-        ch = VGroup(c1, c2, c3).arrange(DOWN, buff=0.9).move_to([0, 0.2, 0])
-        a1 = arr(c1.get_bottom(), c2.get_top(), GREY, w=5)
-        a2 = arr(c2.get_bottom(), c3.get_top(), GREY, w=5)
-        self.play(FadeIn(c1, scale=0.9), run_time=0.6)
-        self.at("survive and reproduce")
-        self.play(GrowArrow(a1), FadeIn(c2, scale=0.9), run_time=0.8)
-        self.play(GrowArrow(a2), FadeIn(c3, scale=0.9), run_time=0.8)
+        world = prediction_world(selected=None, question=False)
+        alive(world[0][-1], amp=.018, speed=2.8)
+        self.add(world)
+        self.add(ripple())
+        self.at("tree seems unaffected")
+        chosen = prediction_world(selected=1, question=False)
+        alive(chosen[0][-1], amp=.018, speed=2.8)
+        self.play(ReplacementTransform(world, chosen), run_time=1.0)
+        seems = T("seems unaffected", 34, GREY, weight=BOLD).move_to([4.45, -2.15, 0])
+        self.play(FadeIn(seems), run_time=.45)
+        self.at("almost never harm")
+        self.play(Indicate(seems, color=TEXT, scale_factor=1.06), run_time=1.1)
+        self.at("partner benefits")
+        bracket = Brace(VGroup(chosen[1], chosen[2]), DOWN, color=TEXT)
+        self.play(GrowFromCenter(bracket), run_time=.7)
+        self.at("relationship is commensalism")
+        name = fit_text("commensalism: lichen helped, tree unaffected", max_w=4.7, size=28, color=TEXT, max_lines=3).move_to([4.5, -2.45, 0])
+        self.play(FadeOut(seems), FadeIn(name), run_time=.9)
         self.finish()
 
 
-class S07End(EndCard):
-    LINE = "Living close together can help both, help one, or harm one."
+class S08Rule(SpokenScene):
+    def construct(self):
+        patch = tree_world(patch_center=(-1.5, .1, 0), patch_scale=.48, width=3.3)
+        patch.scale(.7).move_to([-5.0, -.4, 0])
+        pulse(patch[-1], base=4, amp=1, speed=2)
+        self.add(patch)
+        self.at("Sort symbiosis")
+        rule = fit_text("Sort by what each partner gains or loses", max_w=11.5, size=38,
+                        color=TEXT, weight=BOLD).move_to([.5, 3.18, 0])
+        self.play(Write(rule), run_time=1.1)
+        board = outcome_board()
+        board.scale(.9).move_to([2.25, -.25, 0])
+        alive(board[0], amp=.01, speed=2.8)
+        for i, row in enumerate(board[1]):
+            alive(row, amp=.009, speed=2.8, phase=i * .8)
+        self.at("rule separates the relationships")
+        self.play(FadeIn(board[0]), FadeIn(board[1][0]), run_time=.8)
+        self.play(FadeIn(board[1][1]), run_time=.7)
+        self.at("harmful partnerships")
+        self.play(FadeIn(board[1][2]), run_time=.8)
+        self.at("live together closely")
+        self.play(Indicate(patch[-1], color=LICHEN, scale_factor=1.04), run_time=1.0)
+        self.finish()
+
+
+class S09Parasitism(SpokenScene):
+    def construct(self):
+        pair = tick_deer()
+        alive(pair[0], amp=.012, speed=2.8)
+        alive(pair[1], amp=.018, speed=3.1, phase=.7)
+        bob(pair[1], amp=.035, speed=2.4)
+        self.at("black legged tick")
+        self.play(FadeIn(pair[0]), FadeIn(pair[1]), FadeIn(pair[2]), run_time=.9)
+        self.at("drink blood for days")
+        self.play(FadeIn(pair[3]), pair[3].animate.shift(UP * .55), run_time=1.4)
+        self.play(FadeIn(pair[4]), FadeIn(pair[5]), run_time=.5)
+        self.at("tick gains food")
+        plus = help_badge("tick", [-4.4, 2.5, 0], .8)
+        self.play(FadeIn(plus), run_time=.6)
+        self.at("deer loses blood")
+        harm = harm_badge("deer", [2.3, -2.6, 0], .8)
+        self.play(FadeIn(harm), run_time=.7)
+        self.at("helped harmed pattern")
+        link = Arrow([-3.9, 1.9, 0], [1.5, -2.6, 0], color=GREY, stroke_width=4, tip_length=.2)
+        self.play(GrowArrow(link), run_time=.7)
+        self.at("is parasitism")
+        cap = caption("parasitism", size=38, color=RED)
+        self.play(FadeIn(cap), run_time=.7)
+        self.finish()
+
+
+class S09Compare(SpokenScene):
+    def construct(self):
+        panels = TwoPanel("long close feeding", "brief attack", colors=(RED, GOLD))
+        alive(panels, amp=.006, speed=2.8)
+        tick = tick_deer(scale=.48, labels=False)
+        panels.put(tick, "left")
+        hawk = VGroup(T("hawk", 30, GOLD, weight=BOLD), Arrow(LEFT, RIGHT, color=GOLD, stroke_width=6)).arrange(DOWN, buff=.3)
+        mouse = T("mouse", 30, GREY, weight=BOLD).next_to(hawk, RIGHT, buff=.5)
+        predator = VGroup(hawk, mouse)
+        panels.put(predator, "right")
+        self.play(FadeIn(panels), FadeIn(tick), run_time=.8)
+        self.at("not the same as a predator")
+        self.play(FadeIn(predator), run_time=.7)
+        self.at("brief attack")
+        short = Line([1.3, -1.7, 0], [3.0, -1.7, 0], color=GOLD, stroke_width=8)
+        self.play(GrowFromEdge(short, LEFT), hawk.animate.shift(RIGHT * 1.0), run_time=1.0)
+        self.at("feeds for days or longer")
+        long = Line([-5.8, -1.7, 0], [-.7, -1.7, 0], color=RED, stroke_width=8)
+        self.play(GrowFromEdge(long, LEFT), run_time=1.5)
+        self.at("without killing its host")
+        names = VGroup(T("parasite", 36, RED, weight=BOLD).move_to([-3.25, -2.05, 0]),
+                       T("predator", 36, GOLD, weight=BOLD).move_to([3.25, -2.05, 0]))
+        self.play(FadeIn(names), run_time=.7)
+        self.finish()
+
+
+class S10Purpose(SpokenScene):
+    def construct(self):
+        panels = TwoPanel("lichen partners", "tick and deer", colors=(LICHEN, RED))
+        alive(panels, amp=.006, speed=2.8)
+        cut = lichen_cutaway(scale=.45, labels=False)
+        pair = tick_deer(scale=.46, labels=False)
+        panels.put(cut, "left"); panels.put(pair, "right")
+        self.add(panels, cut, pair)
+        self.at("chooses kindness or harm")
+        thought = chip("kind?", GREY, 32).move_to([-3.2, 1.7, 0])
+        self.play(FadeIn(thought), run_time=.5)
+        self.play(FadeOut(thought, shift=UP * .2), run_time=.5)
+        self.at("support survival and reproduction")
+        lloop = long_arrow([-3.25, -.2, 0], LICHEN)
+        rloop = long_arrow([3.25, -.2, 0], RED)
+        self.play(Create(lloop[0]), FadeIn(lloop[1:]), Create(rloop[0]), FadeIn(rloop[1:]), run_time=1.8)
+        self.at("Mutualism can support both")
+        lp = VGroup(help_badge(scale=.7), help_badge(scale=.7)).arrange(RIGHT, buff=.25).move_to([-3.25, 2.0, 0])
+        self.play(FadeIn(lp), run_time=.7)
+        self.at("support the parasite")
+        rp = help_badge("tick", [2.5, 2.0, 0], .7)
+        self.play(FadeIn(rp), run_time=.6)
+        self.at("harming its host")
+        rh = harm_badge("deer", [4.35, 2.0, 0], .7)
+        self.play(FadeIn(rh), run_time=.7)
+        self.finish()
+
+
+class S10Patterns(SpokenScene):
+    def construct(self):
+        board = outcome_board(include_other=True)
+        for part in (board[1], board[2], board[3]):
+            part.shift(DOWN * .3)
+        alive(board[0], amp=.01, speed=2.8)
+        for i, row in enumerate(board[1]):
+            alive(row, amp=.01, speed=2.8, phase=i * .8)
+        self.at("names describe outcomes")
+        self.play(FadeIn(board[0]), run_time=.7)
+        sub = T("not personalities", 30, GREY).next_to(board[0], DOWN, buff=.22)
+        self.at("not personalities")
+        self.play(FadeIn(sub), run_time=.5)
+        self.at("Mutualism is")
+        self.play(FadeIn(board[1][0]), run_time=.9)
+        self.at("Commensalism is")
+        self.play(FadeIn(board[1][1]), run_time=.9)
+        self.at("Parasitism is")
+        self.play(FadeIn(board[1][2]), run_time=.9)
+        self.at("Other outcome pairs")
+        self.play(Create(board[2]), FadeIn(board[3]), run_time=.9)
+        self.finish()
+
+
+class S11Close(SpokenScene):
+    def construct(self):
+        patch = tree_world(patch_center=(-4.7, .45, 0), patch_scale=.42, width=3.2)
+        inside = lichen_cutaway(center=(-4.7, .45, 0), scale=.28, labels=False)
+        pair = tick_deer(center=[-4.7, -2.25, 0], scale=.27, labels=False)
+        self.add(patch[0], patch[1], inside, pair)
+        pulse(inside.shell, base=4, amp=1, speed=2)
+        stops = VGroup(chip("name partners", TEXT, 28), chip("trace outcomes", TEXT, 28),
+                       chip("choose kind", TEXT, 28)).arrange(DOWN, buff=.75).move_to([2.25, .2, 0])
+        arrows = VGroup(Arrow(stops[0].get_bottom(), stops[1].get_top(), color=TEXT, buff=.08, tip_length=.18),
+                        Arrow(stops[1].get_bottom(), stops[2].get_top(), color=TEXT, buff=.08, tip_length=.18))
+        self.at("begin with partners")
+        self.play(FadeIn(stops[0]), run_time=.7)
+        self.at("what each receives")
+        self.play(GrowArrow(arrows[0]), FadeIn(stops[1]), run_time=1.0)
+        self.at("whether either is harmed")
+        self.play(Indicate(pair, color=RED, scale_factor=1.04), run_time=1.0)
+        self.at("name follows")
+        self.play(GrowArrow(arrows[1]), FadeIn(stops[2]), run_time=.9)
+        self.at("outcomes you can support")
+        q = T("?", 78, GOLD, weight=BOLD).move_to(stops[2])
+        self.play(ReplacementTransform(stops[2], q), run_time=.8)
+        self.finish()
+
+
+class S12End(EndCard):
+    LINE = "Sort symbiosis by what each partner gains or loses."
