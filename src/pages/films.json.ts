@@ -3,6 +3,7 @@
 import type { APIRoute } from 'astro';
 import { filmCatalog, KIND_LABELS } from '../lib/film-catalog';
 import { SITE } from '../lib/agent-catalog';
+import { STAGES } from '../data/stages';
 
 export const GET: APIRoute = async () => {
   const abs = (p?: string) => (p ? SITE + p : undefined);
@@ -33,6 +34,9 @@ export const GET: APIRoute = async () => {
     license: 'https://creativecommons.org/licenses/by-nc-sa/4.0/',
     note: 'Animations and narration are AI-generated. Scientist profile films read text from The Molecule Hunters, which is not covered by the CC licence.',
     generated: new Date().toISOString().slice(0, 10),
+    // One page per level, and a course's films played back to back (2026-11-14).
+    levelPages: Object.fromEntries(STAGES.filter((st) => films.some((f) => f.level === st.key)).map((st) => [st.key, `${SITE}/films/${st.key}/`])),
+    playInOrder: `${SITE}/films/play/{course}/`,
     count: films.length,
     films,
   };

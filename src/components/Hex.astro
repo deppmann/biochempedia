@@ -12,7 +12,8 @@
 import type { HexPose, HexProp } from '../data/hex';
 interface Props {
   pose?: HexPose;
-  /** What Hex holds: leaf (biology), flask (chemistry), pendulum (physics), compass (math). */
+  /** What Hex holds: leaf (biology), flask (chemistry), pendulum (physics), compass (math), or
+   *  camera (the film library; its reels turn once when the svg gets the class is-rolling). */
   prop?: HexProp;
   /** Rendered height in px. */
   size?: number;
@@ -120,6 +121,18 @@ const armUp = prop === 'pendulum';
       <circle class="hex-gold" cx="75.3" cy="35" r="3.4" />
     </g>
   )}
+  {prop === 'camera' && (
+    <g>
+      {/* Two film reels on a box camera, lens to the right. The reels' gold spokes turn under .is-rolling. */}
+      <circle class="hex-ink hex-thin" cx="63.5" cy="20.5" r="4.6" />
+      <circle class="hex-ink hex-thin" cx="72.5" cy="20.5" r="4.6" />
+      <path class="hex-goldline hex-reel" d="M63.5 17.4 V23.6 M60.8 19 L66.2 22 M60.8 22 L66.2 19" />
+      <path class="hex-goldline hex-reel" d="M72.5 17.4 V23.6 M69.8 19 L75.2 22 M69.8 22 L75.2 19" />
+      <rect class="hex-ink hex-body" x="59.5" y="26" width="16" height="11" rx="1.6" />
+      <path class="hex-ink" d="M75.5 29 L80.5 26.5 V36.5 L75.5 34" />
+      <circle class="hex-gold" cx="63.5" cy="29.5" r="1.3" />
+    </g>
+  )}
   {prop === 'compass' && (
     <g>
       <path class="hex-ink" d="M68 15 L61.5 38 M68 15 L74.5 38" />
@@ -144,6 +157,10 @@ const armUp = prop === 'pendulum';
 
   /* ---- Alive: a blink for every pose, and one small movement that suits the pose ---- */
   .hex-eyes, .hex-arm-r, .hex-arm-l, .hex-all, .hex-zz, .hex-dots { transform-box: view-box; }
+  /* The camera's reels: three quick turns when the page asks for them (never on a loop). */
+  .hex-reel { transform-box: fill-box; transform-origin: center; }
+  .is-rolling .hex-reel { animation: hexReel 0.45s linear 3; }
+  @keyframes hexReel { to { transform: rotate(360deg); } }
   .is-alive .hex-eyes { transform-origin: 32px 28px; animation: hexBlink 5.5s ease-in-out 1.2s infinite; }
   .is-alive.hex-sleep .hex-eyes, .is-alive.hex-cheer .hex-eyes { animation: none; }
   .is-alive.hex-wave .hex-arm-r { transform-origin: 49.3px 27px; animation: hexWave 0.5s ease-in-out 6 alternate; }
@@ -157,6 +174,6 @@ const armUp = prop === 'pendulum';
   @keyframes hexZz { 0%, 100% { opacity: 0.25; transform: translateY(1.5px); } 50% { opacity: 1; transform: translateY(-1.5px); } }
   @keyframes hexBreathe { from { transform: scale(1, 1); } to { transform: scale(1.02, 0.98); } }
   @media (prefers-reduced-motion: reduce) {
-    .is-alive .hex-eyes, .is-alive .hex-arm-r, .is-alive .hex-all, .is-alive .hex-zz, .is-alive .hex-dots { animation: none !important; }
+    .is-alive .hex-eyes, .is-alive .hex-arm-r, .is-alive .hex-all, .is-alive .hex-zz, .is-alive .hex-dots, .is-rolling .hex-reel { animation: none !important; }
   }
 </style>

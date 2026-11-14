@@ -13,6 +13,8 @@ const courses = COURSES
 const titles = Object.fromEntries(lessons.map((l) => [l.data.slug, l.data.title]));
 const pathNames = Object.fromEntries(PATHS.map((p) => [p.id, p.label]));
 import Hex from '../../components/Hex.astro';
+import { filmCatalog } from '../../lib/film-catalog';
+const filmCount = (await filmCatalog()).length;
 ---
 
 <BaseLayout
@@ -52,6 +54,13 @@ import Hex from '../../components/Hex.astro';
         <p class="big" data-last>Nothing yet</p>
         <p class="small"><span data-done-total>0</span> lessons done · <span data-answered>0</span> questions answered</p>
       </div>
+      {/* Films watched to about 90 percent, from src/lib/film-progress.ts (this device only). */}
+      <div class="card">
+        <p class="k">Films</p>
+        <p class="big"><span data-films-n>0</span> watched</p>
+        <p class="small" data-films-keep>Of {filmCount.toLocaleString('en-US')} in the film library.</p>
+        <p><a href="/films/" data-films-link>Open the film library →</a></p>
+      </div>
     </section>
 
     <h2>Courses</h2>
@@ -80,6 +89,7 @@ import Hex from '../../components/Hex.astro';
 
   <script>
     import { load, dueNow, queued, exportText, importText, clearAll, onChange, STORAGE_KEY } from '../../lib/progress';
+    import { loadFilms, keepWatching, onFilmsChange, clearFilms } from '../../lib/film-progress';
 
     const root = document.querySelector<HTMLElement>('.prog')!;
     const titles: Record<string, string> = JSON.parse(root.getAttribute('data-titles')!);
@@ -138,6 +148,19 @@ import Hex from '../../components/Hex.astro';
       });
     });
 
+    onFilmsChange(() => {
+      const r = loadFilms();
+      $('[data-films-n]')!.textContent = String(Object.keys(r.w).length);
+      const film = keepWatching(r);
+      const keep = $('[data-films-keep]');
+      const link = $<HTMLAnchorElement>('[data-films-link]');
+      if (keep && link && film) {
+        keep.textContent = `Keep watching: ${film.title}`;
+        link.href = film.href;
+        link.textContent = 'Carry on →';
+      }
+    });
+
     $('[data-export]')?.addEventListener('click', () => {
       const blob = new Blob([exportText()], { type: 'application/json' });
       const a = document.createElement('a');
@@ -157,6 +180,7 @@ import Hex from '../../components/Hex.astro';
     $('[data-clear]')?.addEventListener('click', () => {
       if (!window.confirm('Clear all progress saved in this browser? This cannot be undone unless you exported a copy.')) return;
       clearAll();
+      clearFilms();
       if (msg) msg.textContent = 'Cleared.';
     });
   </script>

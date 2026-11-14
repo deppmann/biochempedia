@@ -1,0 +1,28 @@
+---
+/**
+ * One film card for the film library (/films/, /films/<level>/). No scoped style on purpose: a
+ * level page carries hundreds of these, and a scoped style would stamp an attribute on every
+ * element. The styles are in src/styles/film-lib.css, under .film-lib.
+ *
+ * The same markup is built in the browser by src/lib/film-cards.ts (cardHTML) for the cards the
+ * /films/ page loads on demand; change both together.
+ */
+import { filmKey, kindBadge, type CatalogFilm } from '../lib/film-catalog';
+import { filmClock } from '../lib/films';
+interface Props { film: CatalogFilm }
+const { film: f } = Astro.props;
+const th = f.takeaways?.[0];
+---
+<li class="fc" data-f={filmKey(f.src)}>
+  <a href={f.href}>
+    <span class="fc-pic">
+      <img src={f.poster} alt="" width="320" height="180" loading="lazy" decoding="async" />
+      <span class={`fc-kind k-${f.kind}`}>{kindBadge(f)}</span>
+      <span class="fc-len"><span class="visually-hidden">Length </span>{filmClock(f.durationSec)}</span>
+    </span>
+    <span class="t">{f.title}</span>
+    <span class="m"><span class="fc-c">{f.courseTitle}</span>{f.stage && <span class="fc-s"> · {f.stageTitle}</span>}</span>
+    {f.lessonTitle && <span class="l">{f.lessonTitle}</span>}
+  </a>
+  {th && <details class="fc-th"><summary>Take-home</summary><p>{th}</p></details>}
+</li>
