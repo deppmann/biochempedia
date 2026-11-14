@@ -342,7 +342,7 @@ class S07Climax(SpokenScene):
         self.play(Create(arrow), run_time=1.1)
         self.at("not a claim")
         tree = world.plants[3][0]
-        self.play(Rotate(tree, angle=-PI / 2.3, about_point=tree.get_bottom()), run_time=1.2)
+        self.play(Rotate(tree, angle=-PI / 3.8, about_point=tree.get_bottom()), run_time=1.2)
         gapfill = tufts(4.15, GROUND_Y, 4, 0.45, HARD)
         loop = CurvedArrow([3.3, -0.2, 0], [5.3, -0.2, 0], angle=-1.2, color=YELLOW, stroke_width=4)
         notfinish = T("not a finish line", 28, YELLOW).move_to([4.2, -3.0, 0])
@@ -396,12 +396,12 @@ class S09Evidence(SpokenScene):
         self.play(LaggedStart(*[FadeIn(c) for c in cards], lag_ratio=0.12), run_time=1.0)
         big = summary_card((0, -0.2, 0), 8.2, 5.0)
         pulse(big[0], base=4.0, amp=1.2, speed=1.6)
-        self.play(TransformFromCopy(cards[-1], big), FadeOut(q), run_time=1.3)
+        self.play(TransformFromCopy(cards[-1], big), FadeOut(q), FadeOut(cards), run_time=1.3)
         self.at("usual Piedmont")
         self.play(LaggedStart(*[Indicate(m, scale_factor=1.05) for m in big[2][::2]], lag_ratio=0.25), run_time=1.5)
         self.at("pattern not")
         pat = T("pattern — not one field’s dated history", 30, YELLOW).move_to([0, -3.05, 0])
-        self.play(FadeIn(pat), cards.animate.set_opacity(0.12), run_time=0.9)
+        self.play(FadeIn(pat), run_time=0.9)
         self.finish()
 
 

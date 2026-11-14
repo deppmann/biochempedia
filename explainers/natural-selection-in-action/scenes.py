@@ -24,7 +24,7 @@ BARK_DARK = "#332D2A"
 LEAF = "#687A58"
 
 MIX = ["pale", "dark", "pale", "dark", "pale", "dark", "pale", "dark"]
-MOTH_POS = [(-4.8, 1.1), (-3.25, 0.35), (-1.65, 1.05), (0.0, 0.2),
+MOTH_POS = [(-4.8, 1.1), (-3.25, 0.35), (-1.65, 1.05), (0.0, -0.4),
             (1.55, 1.0), (3.1, 0.25), (4.65, 1.0), (5.25, -0.75)]
 
 
@@ -199,7 +199,7 @@ class S04Environment(SpokenScene):
         self.at("environment includes")
         env = T("environment", 38, TEAL, weight=BOLD).move_to([0, 3.35, 0])
         labels = VGroup(*[chip(x, GREY, 28) for x in ("bark", "air", "food", "predators")]).arrange(RIGHT, buff=.22)
-        labels.move_to([0, 2.55, 0])
+        labels.move_to([0, -3.45, 0])
         for c in labels:
             c[1].layout_ok = True  # labels intentionally sit inside their own chips
         self.play(FadeIn(env), run_time=.35)
