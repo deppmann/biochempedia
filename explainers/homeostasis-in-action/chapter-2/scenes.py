@@ -220,6 +220,68 @@ def add_soft_motion(*mobs):
         bob(mob, amp=0.10 + 0.02 * (i % 3), speed=1.8 + 0.2 * i, seed=i)
 
 
+def add_equal_leaf_flows(w, speed=0.34):
+    """Loop both particle streams through the narrow pore at the same visible speed."""
+    low = w.surface.get_bottom()[1] + 0.42
+    high = w.surface.get_top()[1] - 0.42
+    span = high - low
+    centre_x = w.surface.get_center()[0]
+
+    for particles, direction, lane_x in ((w.water, 1, centre_x - 0.12),
+                                         (w.co2, -1, centre_x + 0.12)):
+        particles.clear_updaters()  # drop any group bob: it re-centres the stream and jerks it at each wrap
+        for i, dot in enumerate(particles):
+            dot.move_to([lane_x, low + span * (i + 0.5) / len(particles), 0])
+
+            def travel(mob, dt, direction=direction, low=low, high=high, span=span):
+                mob.shift(UP * direction * speed * dt)
+                if direction > 0 and mob.get_y() > high:
+                    mob.shift(DOWN * span)
+                elif direction < 0 and mob.get_y() < low:
+                    mob.shift(UP * span)
+
+            dot.add_updater(travel)
+
+
+def add_flow_arrow_motion(w, amp=0.34, speed=1.0):
+    """Move both long arrows along their flow directions without implying unequal rates."""
+    for flow_arrow, direction in ((w.water_arrow, 1), (w.co2_arrow, -1)):
+        flow_arrow._flow_t = 0.0
+        base = flow_arrow.get_center().copy()
+
+        def travel(mob, dt, direction=direction, base=base):
+            mob._flow_t += dt
+            mob.move_to(base + UP * direction * amp * np.sin(speed * mob._flow_t))
+
+        flow_arrow.add_updater(travel)
+
+
+def add_leaf_sway(w, amp=0.30, speed=1.7):
+    """Sway the close leaf view while its two equal particle streams continue crossing."""
+    w._sway_t = 0.0
+    base = w.get_center().copy()
+
+    def sway(mob, dt):
+        mob._sway_t += dt
+        mob.move_to(base + RIGHT * amp * np.sin(speed * mob._sway_t))
+
+    w.add_updater(sway)
+
+
+def rock_balance_bar(bar, centre):
+    """Keep the tradeoff visibly unresolved instead of settling on either side."""
+    bar._rock_t = 0.0
+    bar._rock_angle = 0.12
+
+    def rock(mob, dt):
+        mob._rock_t += dt
+        angle = 0.15 * np.sin(1.35 * mob._rock_t + 0.9)
+        mob.rotate(angle - mob._rock_angle, about_point=centre)
+        mob._rock_angle = angle
+
+    bar.add_updater(rock)
+
+
 class S00LinkAndQuestion(TitleCard, SpokenScene):
     LESSON = "Homeostasis in Action"
     TITLE = "Four Ways to Hold Steady"
@@ -312,8 +374,10 @@ class S04Predict(SpokenScene):
     def construct(self):
         w = make_leaf_world(UP * 0.2, 0.88, narrow=True)
         # Equal arrow widths are intentional for the unanswered prediction.
+        add_equal_leaf_flows(w)
+        add_flow_arrow_motion(w)
+        add_leaf_sway(w)
         self.add(w, scope_tag("schematic"))
-        add_soft_motion(w.water, w.co2)
         self.at("Predict what happens")
         q = question_card("Narrow pore: one flow or both?", y=-3.15, size=32)
         self.play(FadeIn(q), run_time=0.8)
@@ -348,6 +412,8 @@ class S06LeafReveal(SpokenScene):
         thin_c = w.co2_arrow.copy().set_stroke(width=3)
         trade = T("tradeoff", 40, GOLD).move_to([0, 3.25, 0])
         self.play(Transform(w.water_arrow, thin_w), Transform(w.co2_arrow, thin_c), swap(q, trade), run_time=1.3)
+        add_equal_leaf_flows(w, speed=0.17)
+        add_flow_arrow_motion(w, amp=0.28, speed=0.55)
         self.at("Fewer water")
         self.play(LaggedStart(*[w.water[i].animate.shift(UP * 0.65) for i in range(0, len(w.water), 3)], lag_ratio=0.25),
                   run_time=1.6)
@@ -359,9 +425,13 @@ class S06LeafReveal(SpokenScene):
         right = chip("less carbon dioxide", GREY, 27).move_to([3.0, -2.55, 0])
         self.play(FadeIn(right), run_time=0.5)
         self.at("One response")
-        bar = Line([-2.4, -1.8, 0], [2.4, -1.8, 0], color=GOLD, stroke_width=7)
-        pivot = Triangle(color=GOLD, fill_color=GOLD, fill_opacity=1).scale(0.2).move_to([0, -2.1, 0])
-        self.play(Create(bar), FadeIn(pivot), Rotate(bar, 0.12, about_point=[0, -1.8, 0]), run_time=1.5)
+        # Below the leaf panel, between the two chips. Create and Rotate are separate plays: in one play
+        # Rotate started from Create's zero-length bar and the bar never showed.
+        bar = Line([-0.95, -2.45, 0], [0.95, -2.45, 0], color=GOLD, stroke_width=7)
+        pivot = Triangle(color=GOLD, fill_color=GOLD, fill_opacity=1).scale(0.2).move_to([0, -2.72, 0])
+        self.play(Create(bar), FadeIn(pivot), run_time=0.8)
+        self.play(Rotate(bar, 0.12, about_point=[0, -2.45, 0]), run_time=0.7)
+        rock_balance_bar(bar, np.array([0, -2.45, 0]))
         self.finish()
 
 

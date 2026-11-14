@@ -1,4 +1,4 @@
-"""Pairs First, Copies Second.
+"""Homologs First, Sister Chromatids Second.
 
 COLOR MAP
   GREEN  chromosome inherited from one parent
@@ -174,7 +174,7 @@ class S01Hook(SpokenScene):
         self.at("Orange chromosomes")
         self.play(FadeIn(key[1], shift=LEFT * 0.15), Indicate(VGroup(world.chroms[1], world.chroms[3]), color=PARENT_B), run_time=0.8)
         self.at("Every pair")
-        title = T("Pairs First, Copies Second", 28, TEXT, font=TITLE_FONT).move_to(pt(0, 3.28))
+        title = T("Homologs First, Sister Chromatids Second", 28, TEXT, font=TITLE_FONT).move_to(pt(0, 3.28))
         self.play(swap(q, title), Indicate(VGroup(long_b, short_b), color=ACTION), run_time=0.9)
         self.finish()
 
@@ -208,6 +208,11 @@ class S02Homologs(SpokenScene):
         a = T("a", 30, BG, weight=BOLD).move_to(bands[1][1])
         A.layout_ok = a.layout_ok = True
         self.play(FadeIn(A), FadeIn(a), run_time=0.6)
+        # The zoomed pair keeps drifting gently (script visual note); each piece on screen gets the same
+        # bob so rods, bands and allele letters move as one (a new VGroup would not be in the scene).
+        drift = [world.chroms[0], world.chroms[1], *bands, A, a]
+        for m in drift:
+            bob(m, amp=0.09, speed=1.3)
         self.at("An allele")
         allele = T("allele = a version of a gene", 30, TEXT).move_to(pt(0, -3.32))
         self.play(FadeIn(allele, shift=UP * 0.12), run_time=0.6)
@@ -217,6 +222,8 @@ class S02Homologs(SpokenScene):
         pulled = starting_cell(brackets=False)
         dip = T("DIPLOID · both members of every pair", 30, ACTION).move_to(pt(0, 3.15))
         scan.clear_updaters()
+        for m in drift:
+            m.clear_updaters()
         self.play(FadeOut(VGroup(bands, A, a, allele, scan)), ReplacementTransform(VGroup(world.boundary, long_pair), pulled), swap(hom, dip), run_time=1.15)
         pulse(pulled.boundary, base=4.0, amp=0.7, speed=1.4)
         self.finish()
@@ -412,8 +419,8 @@ class S09Rule(SpokenScene):
     def construct(self):
         carried = four_cells()
         self.add(carried)
-        self.at("Meiosis separates pairs")
-        heading = T("PAIRS FIRST, COPIES SECOND", 38, ACTION, weight=BOLD).move_to(pt(0, 3.25))
+        self.at("Meiosis separates homologous pairs")
+        heading = T("HOMOLOGS FIRST, SISTER CHROMATIDS SECOND", 34, ACTION, weight=BOLD).move_to(pt(0, 3.25))
         self.play(FadeOut(carried), FadeIn(heading, shift=DOWN * 0.12), run_time=0.7)
         paired = pathway_stage("PAIRED HOMOLOGS", copied=True, separated=False, center=pt(-3.5, 1.1))
         split_pairs = pathway_stage("SEPARATED PAIRS", copied=True, separated=True, center=pt(3.5, 1.1))
@@ -429,8 +436,23 @@ class S09Rule(SpokenScene):
         copies = pathway_stage("SEPARATED COPIES", copied=False, separated=True, center=pt(3.5, -2.05))
         arrow2 = Arrow(pt(-0.55, -2.05), pt(0.55, -2.05), color=ACTION, stroke_width=6)
         self.play(FadeIn(sisters), GrowArrow(arrow2), ReplacementTransform(sisters.copy(), copies), run_time=1.2)
-        self.at("sister chromatids")
+        self.at("sister chromatids of each")
         self.play(Indicate(copies[2], color=ACTION), run_time=0.7)
+        # Order beat: the first-division row lights, then the second-division row, in turn,
+        # for the rest of the rule (homologous pairs first, then sister chromatids).
+        rows = [(paired[0], split_pairs[0]), (sisters[0], copies[0])]
+        t0 = self.elapsed()
+
+        def order_glow(i):
+            def u(fr, dt):
+                ph = ((self.elapsed() - t0) % 3.2) / 3.2
+                w = max(0.0, float(np.sin(np.pi * (2 * ph - i))))
+                fr.set_fill(CELL, opacity=0.12 + 0.33 * w)
+                fr.set_stroke(width=3 + 4 * w)
+            return u
+        for i, frames in enumerate(rows):
+            for fr in frames:
+                fr.add_updater(order_glow(i))
         self.at("not mitosis repeated")
         mit = T("MITOSIS: homologs never pair", 28, GREY).move_to(pt(0, -3.45))
         strike = Line(mit.get_left() + LEFT * 0.1, mit.get_right() + RIGHT * 0.1, color=RED, stroke_width=5)
@@ -488,4 +510,4 @@ class S10Close(SpokenScene):
 
 
 class S11End(EndCard):
-    LINE = "Meiosis separates pairs, then copies."
+    LINE = "Meiosis separates homologous pairs first, then sister chromatids."
