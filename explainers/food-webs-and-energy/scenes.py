@@ -212,7 +212,7 @@ class S00Hook(SpokenScene, TitleCard):
                   world.osp.animate.shift(UP * .18), run_time=1.2)
         glow = packet(.18).move_to(caught.get_center())
         question = fit_text("Where did this energy begin?", max_w=7.7, size=40,
-                            color=ENERGY, font=TITLE_FONT).move_to([-.35, 2.78, 0])
+                            color=ENERGY, font=TITLE_FONT).move_to([-.35, 2.92, 0])
         self.at("Where did the energy")
         self.play(FadeIn(glow, scale=.4), Write(question), run_time=1.1)
         self.play(Indicate(glow, color=ENERGY, scale_factor=1.7), run_time=.8)
@@ -363,6 +363,7 @@ class S06Pause(PredictPause):
     QUESTION = "Which way does energy move?"
     OPTIONS = ["toward the food", "toward the eater"]
     CARD = {"y": -2.65, "size": 34, "chip_size": 28}
+    RING_AT = (6.0, -2.7, 0)
     SECONDS = 4.5
 
     def backdrop(self):

@@ -134,6 +134,8 @@ def creek_world(hour=6.0, oxygen=0.40, light=1.0, photo_rate=0.0,
     gauge = dial(level, center=[5.25, 0.25, 0], radius=1.08,
                  label="dissolved oxygen", color=BLUE, fmt="{:.0f}%", scale=100, size=32)
     gauge_label = gauge[-1] if show_gauge else VGroup()
+    if show_gauge:
+        gauge_label.shift(LEFT * 0.35)  # keeps the label inside the water panel border
     if hasattr(gauge_label, "layout_ok"):
         gauge_label.layout_ok = True
 
@@ -344,11 +346,11 @@ class S04DayRise(SpokenScene):
         self.add(world.group)
         self.at("watch the arrows")
         self.play(Indicate(world.photo, color=GREEN), Indicate(world.resp, color=RED), run_time=0.8)
-        rate_label = T("rate = how fast", 30, TEXT).move_to([0.2, 1.42, 0])
+        rate_label = T("rate = how fast", 26, TEXT).move_to([0.4, 1.42, 0])
         self.at("a rate tells")
         self.play(FadeIn(rate_label, shift=DOWN * 0.12), run_time=0.6)
         wide = _rate_arrow([1.45, 0.78, 0], [3.55, 0.78, 0], GREEN, 17)
-        wide_label = T("addition", 28, GREEN).next_to(wide, UP, buff=0.10)
+        wide_label = T("addition", 28, GREEN).next_to(wide, UP, buff=0.10).shift(RIGHT * 0.30)
         self.at("photosynthesis arrow grows wider")
         self.play(ReplacementTransform(world.photo, wide),
                   ReplacementTransform(world.rates[2], wide_label), FadeOut(rate_label), run_time=0.9)

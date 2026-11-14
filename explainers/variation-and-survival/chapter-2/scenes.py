@@ -292,8 +292,8 @@ class S06Pressure(FilmScene):
         self.at("killed more often")
         stop = Line([-.15,-.38,0],[.75,.38,0],color=PRESSURE,stroke_width=9)
         self.play(Create(stop), FadeOut(gold, scale=.6), run_time=.9)
-        supported = chip("supported explanation", SUPPORT, 30).move_to([-3.4,-2.85,0])
-        wrong = chip("elephants chose or transformed", GREY, 27).move_to([3.2,-2.85,0])
+        supported = chip("supported explanation", SUPPORT, 30).move_to([-3.7,-3.0,0])
+        wrong = chip("elephants chose or transformed", GREY, 27).move_to([3.2,-3.0,0])
         strike = Line(wrong.get_left()+LEFT*.08, wrong.get_right()+RIGHT*.08, color=PRESSURE, stroke_width=7)
         strike.layout_ok = True
         self.at("data support")

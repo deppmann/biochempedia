@@ -447,8 +447,8 @@ class S11Gaps(SpokenScene):
         gone = book[2][0].copy()
         self.play(gone.animate.set_opacity(0.08).scale(0.7), run_time=1.6)
         self.at("never get buried quickly")
-        gap1 = Rectangle(width=8.4, height=0.52, stroke_width=0, fill_color=BG,
-                         fill_opacity=1).move_to([0, -0.72, 0])
+        gap1 = Rectangle(width=7.0, height=0.52, stroke_width=0, fill_color=BG,
+                         fill_opacity=1).move_to([-0.15, -0.72, 0])
         self.play(FadeIn(gap1), run_time=1.3)
         self.at("Water and sediment")
         panels = TwoPanel("forest", "seafloor", colors=(GREEN, BLUE), top=2.8, bottom=-2.35)
@@ -463,8 +463,8 @@ class S11Gaps(SpokenScene):
                   FadeIn(_layer_pattern(4.8, -0.62, 1, 3.25, 0.65), shift=DOWN * 0.3), run_time=1.8)
         self.at("book with many missing pages")
         book2 = record_book()
-        gaps = VGroup(*[Rectangle(width=8.5, height=0.38, stroke_width=0, fill_color=BG,
-                                  fill_opacity=1).move_to([0, y, 0]) for y in (-1.15, 0.25, 1.2)])
+        gaps = VGroup(*[Rectangle(width=7.0, height=0.38, stroke_width=0, fill_color=BG,
+                                  fill_opacity=1).move_to([-0.15, y, 0]) for y in (-1.15, 0.25, 1.2)])
         self.play(FadeOut(VGroup(panels, forest, sea)), FadeIn(book2),
                   LaggedStart(*[FadeIn(g) for g in gaps], lag_ratio=0.2), run_time=2.1)
         self.finish()

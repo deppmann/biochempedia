@@ -228,7 +228,7 @@ class S04CarbonOut(SpokenScene):
         targets = [[3.6, -1.55, 0], [4.7, -1.25, 0], [5.65, -1.8, 0]]
         self.play(FadeOut(sugar), *[outs[i].animate.move_to(targets[i]) for i in range(3)], run_time=1.8)
         self.at("Plants and microbes")
-        microbes = microbe_shape("MICROBES", CARBON, 0.82).move_to([-1.1, -2.45, 0])
+        microbes = microbe_shape("MICROBES", CARBON, 0.82).move_to([-1.55, -2.45, 0])
         extra = VGroup(token(CARBON).move_to(w.plant.get_center()),
                        token(CARBON).move_to(microbes.get_center() + RIGHT * 1.4))
         self.play(FadeIn(microbes), FadeIn(extra), run_time=0.8)
@@ -236,9 +236,9 @@ class S04CarbonOut(SpokenScene):
         self.play(extra[0].animate.shift(UP * 1.0), extra[1].animate.shift(RIGHT * 1.0), run_time=1.4)
         self.at("When organisms die")
         leaf = leaf_shape().move_to([-3.2, 0.05, 0])
-        self.play(FadeIn(leaf), leaf.animate.move_to([-2.2, -2.15, 0]).rotate(-0.7), run_time=1.3)
+        self.play(FadeIn(leaf), leaf.animate.move_to([-2.4, -1.45, 0]).rotate(-0.7), run_time=1.3)
         self.at("decomposers break down")
-        decomp = microbe_shape("DECOMPOSERS", CARBON, 0.9).move_to([-1.5, -2.35, 0])
+        decomp = microbe_shape("DECOMPOSERS", CARBON, 0.9).move_to([-3.0, -2.35, 0])
         self.play(Transform(microbes, decomp), FadeOut(leaf), run_time=1.1)
         self.at("returns much of")
         returned = VGroup(*[token(CARBON).move_to(decomp.get_center()) for _ in range(3)])
@@ -257,7 +257,7 @@ class S05Water(SpokenScene):
         self.at("clouds")
         self.play(drops.animate.move_to(w.cloud.get_center()), Indicate(w.cloud), run_time=0.8)
         self.at("precipitation")
-        self.play(drops.animate.arrange(RIGHT, buff=0.18).move_to([-4.2, 1.9, 0]), run_time=0.5)
+        self.play(drops.animate.arrange(RIGHT, buff=0.18).move_to([-3.4, 1.9, 0]), run_time=0.5)
         self.play(drops.animate.shift(DOWN * 2.1), run_time=1.4)
         self.at("flow across land")
         self.play(drops.animate.move_to([-2.4, -0.15, 0]), run_time=1.2)
@@ -276,9 +276,9 @@ class S06Nitrogen(SpokenScene):
     def construct(self):
         w = watershed(schematic=False)
         self.add(w)
-        gas = chip("NITROGEN GAS", NITROGEN, size=26).move_to([-3.3, 2.15, 0])
-        stop = Line([-3.8, 0.75, 0], [-2.9, 0.75, 0], color=RED, stroke_width=7)
-        self.play(FadeIn(gas), gas.animate.move_to([-3.3, 1.05, 0]), Create(stop), run_time=1.7)
+        gas = chip("NITROGEN GAS", NITROGEN, size=26).move_to([-2.2, 2.45, 0])
+        stop = Line([-2.9, 1.0, 0], [-1.5, 1.0, 0], color=RED, stroke_width=7)
+        self.play(FadeIn(gas), gas.animate.move_to([-2.2, 1.4, 0]), Create(stop), run_time=1.7)
         self.at("Certain microbes")
         soil = RoundedRectangle(width=8.0, height=4.7, corner_radius=0.2, color="#8A6B44",
                                 fill_color="#4E402D", fill_opacity=0.95).move_to([-1.0, -0.25, 0])
@@ -287,7 +287,7 @@ class S06Nitrogen(SpokenScene):
         microbes = VGroup(microbe_shape("ROOT MICROBES", NITROGEN, 1.0).move_to([-3.4, -1.1, 0]),
                           microbe_shape("SOIL MICROBES", NITROGEN, 1.0).move_to([1.0, -1.1, 0]))
         self.play(FadeOut(w), FadeOut(stop), FadeIn(soil), FadeIn(root), FadeIn(microbes),
-                  gas.animate.move_to([-2.8, -0.15, 0]), run_time=1.3)
+                  gas.animate.move_to([-1.8, -0.15, 0]), run_time=1.3)
         bob(root, amp=.10, speed=1.0)
         bob(microbes, amp=.12, speed=1.15)
         self.at("convert it into ammonia")
@@ -297,7 +297,7 @@ class S06Nitrogen(SpokenScene):
         nitrate = chip("NITRATE", NITROGEN, size=28).move_to([0.6, -0.15, 0])
         self.play(gas.animate.move_to([0.0, -0.15, 0]), Transform(gas, nitrate), run_time=1.2)
         self.at("Plants and algae take up")
-        self.play(gas.animate.move_to(root.get_center() + RIGHT * 1.05), Indicate(root, color=NITROGEN), run_time=1.4)
+        self.play(gas.animate.move_to(root.get_center() + RIGHT * 1.7), Indicate(root, color=NITROGEN), run_time=1.4)
         self.at("Food can then")
         mini = watershed(schematic=True)
         green_food = token(NITROGEN, 0.17).move_to(mini.plant.get_center())

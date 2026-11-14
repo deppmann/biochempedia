@@ -347,7 +347,7 @@ class S10Rule(FilmScene):
         tp.shift(LEFT * 2.0)
         leftpic = VGroup(elephant(TEAL, False, 0.75), elephant(GOLD, True, 0.75)).arrange(DOWN, buff=0.55)
         rightpic = VGroup(*[Dot(radius=0.22, color=c) for c in (TEAL, TEAL, TEAL, GOLD, TEAL, GOLD)]).arrange_in_grid(2, 3, buff=0.35)
-        tp.put(leftpic, "left"); tp.put(rightpic, "right")
+        tp.put(leftpic, "left"); leftpic.shift(LEFT * 2.0); tp.put(rightpic, "right"); rightpic.shift(LEFT * 2.0)
         rdots = VGroup(*[Dot(radius=0.19, color=TEAL if i < 7 else GOLD) for i in range(10)])
         rdots.arrange_in_grid(2, 5, buff=0.24)
         result = VGroup(T("changed generation", 28, GREY), rdots).arrange(DOWN, buff=0.38).move_to([4.75, 0.2, 0])

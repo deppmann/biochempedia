@@ -229,11 +229,9 @@ class S02Watershed(BaySpoken):
         world = bay_world()
         outline = DashedVMobject(Polygon([-6.05, -0.85, 0], [-6.05, 2.55, 0],
                                          [-4.55, 2.95, 0], [-2.55, 2.25, 0],
-                                         [-1.92, 0.82, 0], [-2.5, -1.0, 0],
+                                         [-1.92, 0.82, 0], [-2.5, -1.65, 0], [-6.05, -1.65, 0],
                                          color=NUTRIENT, stroke_width=5), num_dashes=30)
-        outline.layout_ok = True
-        watershed = T("watershed", 34, NUTRIENT, weight=BOLD).move_to([-4.3, 2.35, 0])
-        watershed.layout_ok = True
+        watershed = T("watershed", 34, NUTRIENT, weight=BOLD).move_to([-4.3, 1.9, 0])
         self.play(FadeIn(world), Create(outline), run_time=0.8)
         self.at("watershed is all")
         self.play(FadeIn(watershed), run_time=0.45)
@@ -246,7 +244,7 @@ class S02Watershed(BaySpoken):
         sources = VGroup(*[
             chip(name, NUTRIENT, 24).move_to(pos)
             for name, pos in (("fields", [-5.3, 0.55, 0]), ("lawns", [-4.1, -0.25, 0]),
-                              ("wastewater", [-4.4, -1.08, 0]), ("air", [-2.9, 2.62, 0]))
+                              ("wastewater", [-4.4, -1.08, 0]), ("air", [-1.75, 2.85, 0]))
         ])
         markers = dots(12, NUTRIENT, (-5.5, -2.8, 0.35, 1.75), 22, 0.10)
         self.at("Orange nutrient markers")

@@ -126,9 +126,9 @@ def eukarya_world(grouping="plant", icons=True):
     return g
 
 
-def branch_question_backdrop(card_x=-4.6):
+def branch_question_backdrop(card_x=-4.6, card_y=1.55):
     tree = eukarya_world("animal", icons=False).scale(0.72).shift(LEFT * 1.45 + UP * 0.15)
-    card = evidence_card("supports this joint", 2.7).move_to([card_x, 1.55, 0])
+    card = evidence_card("supports this joint", 2.7).move_to([card_x, card_y, 0])
     arrow = Arrow(card.get_right(), tree.joint.get_center() + LEFT * 0.25, buff=0.15, color=TEXT,
                   stroke_width=5, tip_length=0.22)
     return VGroup(tree, card, arrow)
@@ -163,7 +163,7 @@ class S00Link(SpokenScene):
         lead = Line(claim.get_left(), tree.euk_joint.get_center(), color=TEXT, stroke_width=3)
         self.play(FadeIn(claim, shift=LEFT * 0.2), Create(lead), run_time=0.8)
         self.at("each new comparison")
-        ev = evidence_card("new comparison", 2.75).move_to([4.65, 0.2, 0])
+        ev = evidence_card("new comparison", 2.75).move_to([4.65, -0.1, 0])
         self.play(FadeIn(ev, shift=LEFT * 0.3), ev.animate.shift(LEFT * 0.25), run_time=1.1)
         self.finish()
 
@@ -184,7 +184,7 @@ class S02Appearance(SpokenScene):
         self.at("mushroom icon begins")
         self.play(FadeIn(world.arts[2]), FadeIn(world.labels[2]), run_time=0.6)
         self.at("placement is a hypothesis")
-        hyp = evidence_card("hypothesis", 2.25).move_to([-2.15, -0.85, 0])
+        hyp = evidence_card("hypothesis", 2.25).move_to([-2.15, -1.65, 0])
         appearance = evidence_card("appearance", 2.25).move_to([-2.15, 2.75, 0])
         self.play(FadeIn(appearance, shift=DOWN * 0.15), FadeIn(hyp), run_time=0.8)
         self.at("branch must survive")
@@ -237,6 +237,8 @@ class S04Repeat(SpokenScene):
         self.at("A result can be a clue")
         cards = VGroup(evidence_card("comparison A", 2.35), evidence_card("comparison B", 2.35),
                        evidence_card("comparison C", 2.35)).arrange(DOWN, buff=0.26).move_to([-4.65, 0.45, 0])
+        cards[0].shift(UP * 0.4)
+        cards[1].shift(LEFT * 0.45)
         self.play(FadeIn(cards[0], shift=RIGHT * 0.25), run_time=0.7)
         self.at("different comparisons")
         self.play(FadeIn(cards[1], shift=RIGHT * 0.25), cards[0].animate.shift(RIGHT * 0.35),
@@ -263,9 +265,13 @@ class S05Predict(SpokenScene):
     def construct(self):
         back = branch_question_backdrop(-5.2)
         self.add(back[0], scope_tag("schematic"))
-        card, arrow = back[1], back[2]
+        card = back[1]
+        target = back[0].joint.get_center() + LEFT * 0.25
+        arrow = always_redraw(lambda: Arrow(card.get_right(), target, buff=0.15, color=TEXT,
+                                            stroke_width=5, tip_length=0.22))
         self.at("new evidence card")
-        self.play(FadeIn(card), GrowArrow(arrow), card.animate.shift(RIGHT * 0.7), run_time=3.4, rate_func=linear)
+        self.play(FadeIn(card), FadeIn(arrow), card.animate.shift(RIGHT * 0.7 + UP * 0.6),
+                  run_time=3.4, rate_func=linear)
         self.at("Should scientists")
         q = question_card("What should scientists do?", ["move", "keep", "erase all"], chips_at=[4.75, 0.55, 0])
         self.play(FadeIn(q.question), run_time=0.5)
@@ -288,17 +294,18 @@ class S06Pause(PredictPause):
 
     def backdrop(self):
         tag = T("schematic", 24, GREY).move_to([5.75, 3.35, 0])
-        return VGroup(branch_question_backdrop(-3.85), tag)
+        return VGroup(branch_question_backdrop(-3.85, 2.15), tag)
 
 
 class S07Reveal(SpokenScene):
     def construct(self):
         tree = eukarya_world("animal", icons=False)
-        card = evidence_card("supports this joint", 2.7).move_to([-3.85, 1.55, 0])
+        card = evidence_card("supports this joint", 2.7).move_to([-3.85, 2.15, 0])
         self.add(tree, card, scope_tag("schematic"))
         self.at("Keep it")
         keep = chip("KEEP", GOLD, 38).move_to([4.65, 2.4, 0])
-        self.play(FadeIn(keep, scale=0.85), card.animate.move_to(tree.joint.get_center() + LEFT * 1.6), run_time=1.0)
+        self.play(FadeIn(keep, scale=0.85),
+                  card.animate.move_to(tree.joint.get_center() + LEFT * 2.55 + UP * 0.6), run_time=1.0)
         self.at("does not require movement")
         self.play(Indicate(tree.joint, color=TEXT, scale_factor=1.45), run_time=0.9)
         self.at("strengthen the present")
@@ -434,7 +441,7 @@ class S10Close(SpokenScene):
         limits = evidence_card("limits?", 2.2).move_to([4.7, -2.7, 0])
         self.play(FadeIn(limits, shift=UP * 0.15), run_time=0.7)
         self.at("Those questions turn")
-        self.play(old.animate.move_to([-2.1, 0.25, 0]), new.animate.move_to([2.0, 0.6, 0]),
+        self.play(old.animate.move_to([-3.5, -1.0, 0]), new.animate.move_to([2.0, 2.2, 0]),
                   limits.animate.move_to([3.75, -0.95, 0]), run_time=1.4)
         self.at("scientific explanation")
         rule = caption("Explain the changed relationship, evidence, and limits.", color=TEXT)

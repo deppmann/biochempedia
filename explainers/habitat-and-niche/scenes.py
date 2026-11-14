@@ -409,7 +409,7 @@ class S09Refine(SpokenScene):
         self.at("Real niches")
         real = RoundedRectangle(corner_radius=0.22, width=12.5, height=6.35, stroke_color=TEAL,
                                 stroke_width=4).move_to([0, 0.05, 0])
-        real_lab = T("REAL NICHE", 32, TEAL, weight=BOLD).move_to([4.2, 2.7, 0])
+        real_lab = T("REAL NICHE", 32, TEAL, weight=BOLD).move_to([4.2, 2.79, 0])
         self.play(Transform(frame, real), swap(tag, real_lab), run_time=1.2)
         self.at("much more than feeding")
         factors = VGroup(chip("food", YELLOW, 26), chip("time", TEAL, 26), chip("space", GREEN, 26),

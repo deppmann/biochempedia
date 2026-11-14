@@ -245,7 +245,7 @@ class S02Sort(SpokenScene):
 
         self.at("Matter has mass")
         self.play(FadeIn(matter_tray), FadeIn(matter_lab), run_time=0.7)
-        co2 = chip("carbon dioxide", TEAL, 28).move_to([-4.65, 0.65, 0])
+        co2 = chip("carbon dioxide", TEAL, 28).move_to([-4.65, 0.85, 0])
         water = chip("water", BLUE, 28).move_to([-3.25, 0.05, 0])
         self.play(FadeIn(co2, shift=DOWN * 0.2), FadeIn(water, shift=DOWN * 0.2), run_time=0.8)
 
@@ -300,7 +300,7 @@ class S03Inputs(SpokenScene):
 
         self.at("build sugar")
         water = chip("WATER", BLUE, 28).move_to([-1.6, 0.0, 0])
-        carbon = chip("CARBON DIOXIDE", TEAL, 28).move_to([1.5, 0.0, 0])
+        carbon = chip("CARBON DIOXIDE", TEAL, 28).move_to([1.5, -0.3, 0])
         sugar = sugar_block().move_to([0.0, 0.0, 0])
         self.play(FadeOut(drops), FadeOut(co2), FadeIn(water), FadeIn(carbon), run_time=0.65)
         self.play(ReplacementTransform(VGroup(water, carbon), sugar),
@@ -353,8 +353,8 @@ class S06Reveal(SpokenScene):
 
         self.at("paths carry matter")
         self.play(FadeIn(co2), FadeIn(water), run_time=0.55)
-        self.play(co2.animate.move_to([-0.25, 1.5, 0]),
-                  water.animate.move_to([0.25, 0.35, 0]), run_time=1.5)
+        self.play(co2.animate.move_to([-2.9, 1.5, 0]),
+                  water.animate.move_to([-0.1, 0.35, 0]), run_time=1.5)
 
         self.at("light path carries energy")
         wire = CubicBezier([4.75, 2.65, 0], [4.0, 2.9, 0], [3.0, 2.5, 0], [2.55, 1.7, 0],
@@ -398,8 +398,8 @@ class S07Chloroplast(SpokenScene):
         self.at("inside chloroplasts")
         self.play(Create(cell), run_time=1.0)
         chloros = VGroup(*[
-            chip("CHLOROPLAST", LEAF, 24).move_to([-2.5 + (i % 2) * 3.4, 1.5 - (i // 2) * 2.6, 0])
-            for i in range(4)
+            chip("CHLOROPLAST", LEAF, 24).move_to(pos)
+            for pos in ([-2.5, 1.5, 0], [0.9, 1.5, 0], [-2.7, -1.1, 0], [0.2, -1.1, 0])
         ])
         self.play(LaggedStart(*[FadeIn(c, scale=0.8) for c in chloros], lag_ratio=0.16), run_time=1.3)
 
@@ -427,7 +427,7 @@ class S07Chloroplast(SpokenScene):
         bacterium = VGroup(RoundedRectangle(corner_radius=0.45, width=2.6, height=1.15,
                                             stroke_color=TEAL, stroke_width=4,
                                             fill_color=TEAL, fill_opacity=0.18),
-                           T("bacterium", 26, TEXT)).move_to([4.0, 1.15, 0])
+                           T("bacterium", 26, TEXT)).move_to([5.4, 1.15, 0])
         no_chl = T("no chloroplast", 26, TEAL).next_to(bacterium, DOWN, buff=0.18)
         self.play(FadeOut(root_cell), FadeOut(root_lab), FadeOut(none), FadeIn(bacterium), FadeIn(no_chl), run_time=1.0)
         self.play(bacterium.animate.shift(UP * 0.1), run_time=1.25, rate_func=there_and_back)
@@ -541,12 +541,12 @@ class S10Return(SpokenScene):
         self.play(Indicate(gauge, color=SOIL, scale_factor=1.04), run_time=1.2)
 
         self.at("Matter arrived mainly")
-        co2 = chip("CARBON DIOXIDE", TEAL, 28).move_to([-0.25, 1.5, 0])
-        water = chip("WATER", BLUE, 28).move_to([0.2, 0.35, 0])
-        self.play(FadeIn(co2, shift=LEFT * 4.6 + DOWN * 0.1), run_time=1.45)
+        co2 = chip("CARBON DIOXIDE", TEAL, 28).move_to([-2.9, 1.5, 0])
+        water = chip("WATER", BLUE, 28).move_to([-0.1, 0.35, 0])
+        self.play(FadeIn(co2, shift=RIGHT * 2.0 + DOWN * 0.1), run_time=1.45)
 
         self.at("water also supplying")
-        self.play(FadeIn(water, shift=LEFT * 4.1 + DOWN * 0.6), run_time=1.35)
+        self.play(FadeIn(water, shift=RIGHT * 4.1 + DOWN * 0.6), run_time=1.35)
 
         self.at("Light supplied the energy")
         wire = CubicBezier([5.3, 2.6, 0], [4.2, 3.0, 0], [3.1, 2.4, 0], [2.55, 1.7, 0],
