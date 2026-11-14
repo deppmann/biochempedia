@@ -135,6 +135,38 @@ def build_world(value=2.05, range_label=False, marker_bob=False, stairs=True):
     return g
 
 
+def add_visible_heartbeat(heart):
+    """Scale the heart through a fast, clearly readable beat."""
+    heart._beat_t = 0.0
+    heart._beat_scale = 1.0
+
+    def beat(mob, dt):
+        mob._beat_t += dt
+        scale = 1.0 + 0.22 * (0.5 - 0.5 * np.cos(7.0 * mob._beat_t))  # starts at rest size, no jump
+        mob.scale(scale / mob._beat_scale, about_point=mob.get_center())
+        mob._beat_scale = scale
+
+    heart.add_updater(beat)
+
+
+def add_panting(person, amp=0.09, speed=4.2):
+    """After the climb the body is still worked up: head, arms and heart rise and fall with each
+    quick breath; the torso's top follows and the feet stay on the stairs."""
+    head, torso, arms, heart = person[0], person[1], person[2], person.heart
+    base = {id(m): m.get_center().copy() for m in (head, arms, heart)}
+    top, bottom = torso.get_start().copy(), torso.get_end().copy()
+    person._pant_t = 0.0
+
+    def pant(mob, dt):
+        mob._pant_t += dt
+        dy = UP * amp * (0.5 - 0.5 * np.cos(speed * mob._pant_t))   # starts at rest, no jump
+        for m in (head, arms, heart):
+            m.move_to(base[id(m)] + dy)
+        torso.put_start_and_end_on(top + dy, bottom)
+
+    person.add_updater(pant)
+
+
 def build_skin_inset(center=(-0.1, -0.55, 0), scale=1.0, wet=True):
     """Cartoon skin cross-section and sweat gland; no molecular detail."""
     c = np.array(center, dtype=float)
@@ -215,8 +247,12 @@ class S00Hook(FilmSpoken):
                   FadeIn(world.gauge.band), FadeIn(world.gauge.band_edge), run_time=1.0)
         self.at("heartbeat stays fast")
         self.play(Indicate(world.person.heart, color=RED, scale_factor=1.25), run_time=0.8)
+        add_visible_heartbeat(world.person.heart)
+        add_panting(world.person)
         self.at("A marker sits above")
         self.play(FadeIn(world.gauge.marker, shift=UP * 0.15), run_time=0.7)
+        world.gauge.marker.clear_updaters()
+        bob(world.gauge.marker, amp=0.26, speed=1.7)
         self.at("Something must move it back")
         ret = CurvedArrow([4.8, 1.6, 0], [4.75, 0.25, 0], angle=-0.8,
                           color=TEAL, stroke_width=6, tip_length=0.25)
