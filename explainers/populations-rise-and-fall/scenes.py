@@ -129,7 +129,7 @@ def survey_bars(show_double=True):
                    fill_color=BLUE, fill_opacity=0.58).move_to([2.35, base + h2 / 2, 0])
     shimmer_fill(b1, BLUE, 0.35, amp=0.055, speed=1.5)
     shimmer_fill(b2, BLUE, 0.58, amp=0.055, speed=1.7, phase=0.8)
-    n1 = M("367 million", 34, TEXT).next_to(b1, UP, buff=0.14)
+    n1 = M("367 million", 34, TEXT).next_to(b1, UP, buff=0.14).shift(LEFT * 0.38)
     n2 = M("852 million", 34, TEXT).next_to(b2, UP, buff=0.14)
     w1 = T("winter 1991–1992", 26, GREY).next_to(b1, DOWN, buff=0.14)
     w2 = T("winter 1992–1993", 26, GREY).next_to(b2, DOWN, buff=0.14)
@@ -140,7 +140,7 @@ def survey_bars(show_double=True):
         y = base + 2 * h1
         double = DashedLine([-4.25, y, 0], [4.25, y, 0], color=YELLOW,
                             stroke_width=4, dash_length=0.16)
-        dl = M("twice 367\n= 734 million", 22, YELLOW, line_spacing=0.8).move_to([-0.2, y + 0.05, 0])
+        dl = M("twice 367\n= 734 million", 22, YELLOW, line_spacing=0.8).move_to([-0.6, y + 0.5, 0])
         g.add(double, dl)
         g.double, g.double_label = double, dl
     return g
@@ -236,7 +236,7 @@ class S02Estimates(SpokenScene):
         y = -2.25 + 2 * (4.65 * 367 / 852)
         double = DashedLine([-4.25, y, 0], [4.25, y, 0], color=YELLOW,
                             stroke_width=4, dash_length=0.16)
-        dl = M("twice 367\n= 734 million", 22, YELLOW, line_spacing=0.8).move_to([-0.2, y + 0.05, 0])
+        dl = M("twice 367\n= 734 million", 22, YELLOW, line_spacing=0.8).move_to([-0.6, y + 0.5, 0])
         self.at("The survey pattern")
         self.play(Create(double), FadeIn(dl), run_time=1.2)
         unknown = T("cause: ?", 32, YELLOW, weight=BOLD).move_to([-4.9, 2.55, 0])

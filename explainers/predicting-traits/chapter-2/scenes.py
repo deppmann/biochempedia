@@ -71,7 +71,7 @@ def flower_dot(kind, radius=0.22):
                   fill_color=color, fill_opacity=0.88)
 
 
-def grid_at(cx=-3.75, cy=0.35, s=1.25, labels=True):
+def grid_at(cx=-3.75, cy=0.35, s=1.25, labels=True, inside_size=34):
     """Chapter 1's Punnett square geometry, rebuilt at one fixed chapter-2 position."""
     cols = [cx - s / 2, cx + s / 2]
     rows = [cy + s / 2, cy - s / 2]
@@ -88,11 +88,12 @@ def grid_at(cx=-3.75, cy=0.35, s=1.25, labels=True):
                  geno("p").move_to([cols[1], cy + s + 0.42, 0]))
     side = VGroup(geno("P").move_to([cx - s - 0.42, rows[0], 0]),
                   geno("p").move_to([cx - s - 0.42, rows[1], 0]))
-    inside = VGroup(*[geno(g, 34).move_to(c) for g, c in zip(("PP", "Pp", "Pp", "pp"), cells)])
+    inside = VGroup(*[geno(g, inside_size).move_to(c)
+                      for g, c in zip(("PP", "Pp", "Pp", "pp"), cells)])
     return VGroup(lines, top, side, inside), cells
 
 
-def orbit_selector(cells, side=1.05, speed=1.3):
+def orbit_selector(cells, side=0.6, speed=1.3):
     """A teal selector that loops over all four still-available boxes."""
     sel = RoundedRectangle(corner_radius=0.12, width=side, height=side,
                            stroke_color=TEAL, stroke_width=7,
@@ -146,7 +147,7 @@ def slot_row(n=8, filled=0, y=-1.65, x0=0.35, gap=0.72, pulse_empty=False):
 
 def chance_world(empty=True):
     """The opening picture, rebuilt at exactly the same scale and place."""
-    grid, cells = grid_at()
+    grid, cells = grid_at(inside_size=28)
     row = slot_row(8, 0 if empty else 8, pulse_empty=empty)
     target = VGroup(T("prediction", 28, GOLD, weight=BOLD),
                     M("3 purple : 1 white", 30, GOLD)).arrange(DOWN, buff=0.1)
@@ -156,9 +157,9 @@ def chance_world(empty=True):
 
 def small_run_world(include_next=True, orbit=True):
     """The carried short-run picture for s04, s05 and s06."""
-    grid, cells = grid_at(cx=-4.25, cy=0.55, s=1.15)
-    selector = orbit_selector(cells, side=1.22, speed=1.25) if orbit else RoundedRectangle(
-        corner_radius=0.12, width=0.95, height=0.95, stroke_color=TEAL, stroke_width=6).move_to(cells[0])
+    grid, cells = grid_at(cx=-4.25, cy=0.55, s=1.15, inside_size=28)
+    selector = orbit_selector(cells, side=0.55, speed=1.25) if orbit else RoundedRectangle(
+        corner_radius=0.12, width=0.55, height=0.55, stroke_color=TEAL, stroke_width=6).move_to(cells[0])
     row = slot_row(9 if include_next else 8, 8, y=-1.8, x0=-0.65, gap=0.7)
     if include_next:
         row[-1].set_stroke(GOLD, width=5)
@@ -188,6 +189,14 @@ def choice_arrows():
                   Arrow([1.35, 0.15, 0], [4.05, 0.15, 0],
                         color=TEAL, stroke_width=4, tip_length=0.2))
     return force, same
+
+
+def predict_question():
+    """The carried prediction card, with its right chip clear of the outcome row."""
+    q = question_card("What controls the next flower?",
+                      ["earlier results", "same chance map"], y=-3.2, size=30)
+    q.chips[1].shift(DOWN * 0.14)
+    return q
 
 
 def running_plot():
@@ -246,7 +255,9 @@ class S00Link(FilmScene):
         self.at("each new plan")
         self.play(FadeIn(selector), run_time=0.5)
         self.at("real group records")
-        self.play(Indicate(row, color=TEAL, scale_factor=1.03), run_time=1.0)
+        held_pulse = lambda t: 1.0 if 0.38 <= t <= 0.48 else 0.0
+        self.play(Indicate(VGroup(self.mobjects[0], row, target), color=TEAL, scale_factor=1.0,
+                           rate_func=held_pulse), run_time=5.0)
         self.finish()
 
 
@@ -303,9 +314,9 @@ class S02Chance(FilmScene):
 
 class S03SmallRun(FilmScene):
     def construct(self):
-        grid, cells = grid_at(cx=-4.5, cy=0.65, s=1.05)
-        selector = RoundedRectangle(corner_radius=0.1, width=0.86, height=0.86,
-                                    stroke_color=TEAL, stroke_width=7,
+        grid, cells = grid_at(cx=-4.5, cy=0.65, s=1.05, inside_size=28)
+        selector = RoundedRectangle(corner_radius=0.1, width=0.5, height=0.5,
+                                    stroke_color=TEAL, stroke_width=4,
                                     fill_color=TEAL, fill_opacity=0.24).move_to(cells[0])
         selector.layout_ok = True  # deliberately encloses the selected genotype
         title = T("computed example", 30, TEAL, weight=BOLD).move_to([-4.5, 3.55, 0])
@@ -333,7 +344,7 @@ class S03SmallRun(FilmScene):
             white_n += int(outcome)
             purple_n += int(not outcome)
         selector._orbit_t = 0.0
-        selector.add_updater(orbit_selector(cells, side=0.86, speed=1.35).updaters[0])
+        selector.add_updater(orbit_selector(cells, side=0.5, speed=1.35).updaters[0])
         self.at("uneven group")
         self.play(FadeIn(bar_labels), Create(target), run_time=0.7)
         pb = Rectangle(width=0.75, height=2.6 * purple_n / 8, stroke_color=PURPLE,
@@ -363,8 +374,7 @@ class S04Predict(FilmScene):
         self.play(FadeIn(force[0]), GrowArrow(force[1]), run_time=0.9)
         self.at("same chance map")
         self.play(FadeIn(same[0]), GrowArrow(same[1]), run_time=0.9)
-        q = question_card("What controls the next flower?",
-                          ["earlier results", "same chance map"], y=-3.2, size=30)
+        q = predict_question()
         self.at("make your prediction")
         self.play(FadeIn(q, shift=UP * 0.1), run_time=0.8)
         self.finish()
@@ -375,8 +385,7 @@ class S05Pause(Scene):
         grid, cells, selector, row = small_run_world()
         row[-1].scale(1.55)
         force, same = choice_arrows()
-        q = question_card("What controls the next flower?",
-                          ["earlier results", "same chance map"], y=-3.2, size=30)
+        q = predict_question()
         self.add(stage_panel(), grid, selector, row, force, same, q)
         self.wait(4.5)
 

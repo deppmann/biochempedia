@@ -381,7 +381,7 @@ class S08Quiet(SpokenScene):
         heading = T("quiet competition", 40, font=TITLE_FONT).move_to([0, 3.3, 0])
         self.play(FadeIn(world), FadeIn(heading), run_time=0.9)
         self.at("do not chase")
-        calm = chip("no chasing · no attack", TEXT, size=28).move_to([0, -3.02, 0])
+        calm = chip("no chasing · no attack", TEXT, size=28).move_to([0, -3.36, 0])
         self.play(FadeIn(calm), world.teal.animate.shift(UP * 0.1), world.coral.animate.shift(DOWN * 0.1), run_time=0.9)
         self.at("same limited food")
         target = world.food[3]
@@ -410,7 +410,8 @@ class S09Limits(SpokenScene):
         tag = scope_tag("simulation")
         self.play(FadeIn(world), FadeIn(tag), run_time=0.9)
         self.at("food is steady")
-        food_read = Readout([("food", lambda: 1.0, "{:4.1f} steady", GOLD)], at=[-4.3, 2.15, 0], widest=[1.0], size=26, title="model control")
+        food_read = Readout([("food", lambda: 1.0, "{:4.1f} steady", GOLD)], at=[-4.3, 2.6, 0], widest=[1.0], size=26, title="model control")
+        food_read[1].shift(UP * 0.65)
         self.play(FadeIn(food_read), world.food.animate.shift(DOWN * 0.18), run_time=0.9)
         self.at("no predators")
         pred = chip("predators", CORAL, size=28).move_to([4.75, 2.15, 0])

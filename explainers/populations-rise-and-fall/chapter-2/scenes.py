@@ -415,9 +415,9 @@ class S07Reveal(SpokenScene):
 class S08Harvest(SpokenScene):
     def construct(self):
         world = population_window(labels=False)
-        pot = pot_icon().scale(.95).move_to([4.55, 2.35, 0])
-        harvest_arrow = arrow([2.0, 2.25, 0], [3.85, 2.25, 0], PEOPLE, width=10)
-        hlabel = T("harvest", 30, PEOPLE).next_to(harvest_arrow, UP, buff=.1)
+        pot = pot_icon().scale(.95).move_to([4.55, 1.45, 0])
+        harvest_arrow = arrow([2.0, 1.95, 0], [3.85, 1.95, 0], PEOPLE, width=10)
+        hlabel = T("harvest", 30, PEOPLE).next_to(harvest_arrow, UP, buff=.1).shift(LEFT * .55)
         self.add(world)
         pulse(VGroup(world.births, world.arrivals, world.deaths, world.departures), base=7, amp=1.0, speed=1.0)
         self.at("human caused loss")
@@ -430,7 +430,7 @@ class S08Harvest(SpokenScene):
         eggs.move_to(mother.get_center()+DOWN*.12)
         self.at("Female crabs carry eggs")
         self.play(FadeIn(mother), FadeIn(eggs, lag_ratio=.08), run_time=1.4)
-        limit = chip("harvest limit", PEOPLE, size=30).move_to([4.45, 3.15, 0])
+        limit = chip("harvest limit", PEOPLE, size=30).move_to([4.45, 3.07, 0])
         self.at("Leaving more adults")
         self.play(FadeIn(limit), harvest_arrow.animate.set_stroke(width=6), FadeIn(world.dots[3].set_opacity(1)), run_time=1.7)
         young = VGroup(*[crab_dot([-.65+.32*i, -.18-.12*(i%2), 0], radius=.09) for i in range(5)])
@@ -451,7 +451,7 @@ class S09Sustainable(SpokenScene):
                         meter("replacement", CRAB, .45, [3.7, 2.25, 0]))
         gauges_goal = VGroup(meter("harvest", PEOPLE, .45, [-3.7, 2.25, 0]),
                              meter("replacement", CRAB, .55, [3.7, 2.25, 0]))
-        goal = T("goal: harvest no greater than replacement over time", 30, TEXT).move_to([0, 3.45, 0])
+        goal = T("goal: harvest no greater than replacement over time", 28, TEXT).move_to([0, 3.56, 0])
         self.add(world)
         self.at("Sustainable harvest")
         self.play(FadeIn(gauges), FadeIn(goal), run_time=1.4)
@@ -463,7 +463,7 @@ class S09Sustainable(SpokenScene):
         self.at("more adults")
         self.play(FadeIn(world.dots[1:4]), Indicate(world.births, color=CRAB, scale_factor=1.04), run_time=1.2)
         risks = VGroup(chip("harsh winter", NONLIVING, size=27), chip("poor refuge", GRASS, size=27),
-                       chip("few new young", CRAB, size=27)).arrange(RIGHT, buff=.25).move_to([0, -2.52, 0])
+                       chip("few new young", CRAB, size=27)).arrange(RIGHT, buff=.25).move_to([0, -2.75, 0])
         self.at("harsh winter")
         self.play(FadeIn(risks[0]), run_time=.7)
         self.at("poor refuge")
@@ -472,7 +472,7 @@ class S09Sustainable(SpokenScene):
         self.play(FadeIn(risks[2]), run_time=.7)
         self.at("recovery is not certain")
         uncertain = caption("recovery not certain", color=GOLD)
-        self.play(FadeOut(risks), FadeIn(uncertain), run_time=1.2)
+        self.play(AnimationGroup(FadeOut(risks, run_time=.6), FadeIn(uncertain, run_time=.6), lag_ratio=1))
         year = ValueTracker(1)
         read = counter("year {:.0f}: measure again", year, at=[0, -2.55, 0], size=30, color=TEXT)
         self.at("measuring every year")

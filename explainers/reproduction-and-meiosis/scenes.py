@@ -271,7 +271,7 @@ class S04Predict(SpokenScene):
         half = T("carry half", 28, GOLD).move_to([3.75, -0.75, 0])
         self.play(FadeIn(stay), FadeIn(half), run_time=1.0)
         self.at("Make your prediction")
-        q = question_card(QUESTION, OPTIONS, chips_at=[0, -1.65, 0], y=-3.15)
+        q = question_card(QUESTION, OPTIONS, y=-3.15)
         self.play(FadeIn(q), run_time=0.8)
         self.finish()
 
@@ -279,7 +279,7 @@ class S04Predict(SpokenScene):
 class S05Pause(PredictPause):
     QUESTION = QUESTION
     OPTIONS = OPTIONS
-    CHIPS_AT = [0, -1.65, 0]
+    CHIPS_AT = None
     CARD = {"y": -3.15}
     SECONDS = 4.5
 

@@ -189,7 +189,7 @@ class S03Ground(SpokenScene):
         self.at("Rain falls")
         self.play(FadeIn(yard.cloud), LaggedStart(*[FadeIn(d, shift=DOWN * 0.8) for d in yard.rain], lag_ratio=0.1),
                   run_time=1.4)
-        precip = T("precipitation", 30, LIGHT_BLUE, weight=BOLD).move_to([-4.5, 1.42, 0])
+        precip = T("precipitation", 30, LIGHT_BLUE, weight=BOLD).move_to([-4.93, 0.3, 0])
         self.at("That is precipitation")
         self.play(FadeIn(precip), run_time=0.6)
         self.at("soaks into")
@@ -405,6 +405,7 @@ class S09Predict(SpokenScene):
         self.at("What happens")
         q = question_card("Green arrow: thicker, thinner or the same?",
                           ["thicker", "thinner", "the same"], y=-3.55, size=29, chips_at=[4.0, -2.15, 0], left=-6.3, max_w=9.0)
+        q.chips[0].shift(RIGHT * 0.98)
         self.play(FadeIn(q.chips), FadeIn(q.question), run_time=0.9)
         self.at("Pause and predict")
         self.play(Indicate(tub, color=GOLD, scale_factor=1.08), run_time=0.8)
@@ -423,7 +424,9 @@ class S10Pause(PredictPause):
     def construct(self):
         bd = self.backdrop()
         self.add(bd)
-        self.add(question_card(self.QUESTION, self.OPTIONS, **self.CARD))
+        q = question_card(self.QUESTION, self.OPTIONS, **self.CARD)
+        q.chips[0].shift(RIGHT * 0.98)
+        self.add(q)
         progress = ValueTracker(1.0)
         center = np.array(self.RING_AT, dtype=float)
         rim = Circle(radius=0.68, color=GREY, stroke_width=5).move_to(center)
@@ -519,14 +522,14 @@ class S13Energy(SpokenScene):
         self.play(FadeIn(oak), Create(carbon_loop), Create(water_loop),
                   FadeIn(carbon_markers), FadeIn(water_markers), run_time=1.3)
         self.at("does not cycle")
-        cl = T("carbon", 30, GREEN, weight=BOLD).move_to([-4.2, 0.8, 0])
+        cl = T("carbon", 30, GREEN, weight=BOLD).move_to([-4.34, 0.8, 0])
         wl = T("water", 30, LIGHT_BLUE, weight=BOLD).move_to([4.2, 0.8, 0])
         self.at("Carbon and water")
         self.play(FadeIn(cl), FadeIn(wl), Rotate(carbon_markers, TAU), Rotate(water_markers, -TAU),
                   run_time=4.0, rate_func=linear)
         self.at("Energy does not")
         sun = arr([-6.2, 2.8, 0], [-2.3, 1.35, 0], GOLD, 10, 0.32)
-        sl = T("sunlight", 30, GOLD, weight=BOLD).move_to([-4.75, 2.7, 0])
+        sl = T("sunlight", 30, GOLD, weight=BOLD).move_to([-4.46, 2.9, 0])
         self.play(GrowArrow(sun), FadeIn(sl), run_time=1.1)
         self.at("leaves as heat")
         heat = arr([0.15, 1.2, 0], [5.9, 2.7, 0], ORANGE, 10, 0.32)

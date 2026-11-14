@@ -162,9 +162,9 @@ def riverbank(with_fossils=True, with_gaps=True, label=True):
     bank.water = water
     bank.shells = VGroup()
     if with_fossils:
-        fossils = VGroup(shell([-3.7, -2.35, 0], 0.62),
-                         shell([1.3, -0.82, 0], 0.56, changed=0.35),
-                         shell([-0.5, 0.60, 0], 0.50, changed=0.65))
+        fossils = VGroup(shell([-3.7, -2.82, 0], 0.62),
+                         shell([1.3, -1.25, 0], 0.56, changed=0.35),
+                         shell([-0.5, 0.20, 0], 0.50, changed=0.65))
         bank.add(fossils)
         bank.shells = fossils
     bank.gaps = VGroup()
@@ -254,8 +254,8 @@ class S00Hook(TitleCard, SpokenScene):
             Rectangle(width=11.55, height=0.16, stroke_width=0, fill_color=BG, fill_opacity=1).move_to([0, 0.12, 0]))
         self.play(FadeIn(gaps), run_time=0.6)
         self.at("A fossil scallop")
-        fossil = shell([-3.7, -2.35, 0], 0.72)
-        self.play(GrowFromPoint(fossil, [-3.7, -2.35, 0]), run_time=0.8)
+        fossil = shell([-3.7, -2.82, 0], 0.62)
+        self.play(GrowFromPoint(fossil, [-3.7, -2.82, 0]), run_time=0.8)
         self.at("Above it")
         self.play(Indicate(bank.water, color=TEXT, scale_factor=1.01), run_time=0.6)
         sea = T("once a shallow sea", 30, WATER).move_to([2.9, 1.84, 0])
@@ -311,13 +311,13 @@ class S02FossilForms(SpokenScene):
 class S03Record(SpokenScene):
     def construct(self):
         bank = riverbank(with_fossils=False, with_gaps=False)
-        buried = shell([-3.7, -2.35, 0], 0.62)
+        buried = shell([-3.7, -2.82, 0], 0.62)
         self.add(bank, buried)
         heading = T("fossil record", 36, GOLD, weight=BOLD).move_to([0, 3.45, 0])
         self.at("make the fossil record")
         self.play(FadeIn(heading), run_time=0.5)
-        more = VGroup(shell([1.3, -0.82, 0], 0.56, changed=0.35),
-                      shell([-0.5, 0.60, 0], 0.50, changed=0.65),
+        more = VGroup(shell([1.3, -1.25, 0], 0.56, changed=0.35),
+                      shell([-0.5, 0.20, 0], 0.50, changed=0.65),
                       trilobite().scale(0.38).move_to([3.7, 1.15, 0]))
         self.play(LaggedStart(*[GrowFromCenter(x) for x in more], lag_ratio=0.25), run_time=1.2)
         gaps = VGroup(
@@ -361,7 +361,7 @@ class S04Patterns(SpokenScene):
         self.at("only in older rock")
         self.play(FadeIn(inset), FadeIn(inset_title), GrowFromCenter(tri), run_time=0.7)
         self.at("changed forms")
-        forms = VGroup(*[shell([-2.5 + i * 1.8, -1.95 + i * 0.65, 0], 0.42,
+        forms = VGroup(*[shell([-2.5 + i * 1.8, -1.85 + i * 0.65, 0], 0.42,
                                     changed=i * 0.25) for i in range(3)])
         self.play(LaggedStart(*[FadeIn(s, shift=UP * 0.1) for s in forms], lag_ratio=0.25), run_time=0.9)
         sea_overlay = Rectangle(width=11.7, height=4.15, stroke_width=0,

@@ -424,8 +424,8 @@ class S11Limits(SpokenScene):
         def tag(text, y, color=GREY):
             return chip(text, color, 22).move_to([5.0, y, 0])
         row_y = np.linspace(2.55, -1.93, 8)
-        lab = tag("lab study", row_y[0])
-        sample = tag("one strain/sample", row_y[1])
+        lab = tag("lab study", row_y[0] + 0.29)
+        sample = tag("one strain/sample", row_y[1] + 0.11)
         estimated = tag("estimated", row_y[2], GOLD)
         human = tag("22 chr. + X; rounded", row_y[6] + 0.05, TEAL).shift(LEFT * 0.25)
         onion = tag("earlier estimate", row_y[7] - 0.12, GOLD)
