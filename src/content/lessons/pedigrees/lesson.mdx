@@ -5,13 +5,11 @@ course: "genetics"
 courseChapter: "Genetics and Molecular Biology · Unit 1: Inheritance"
 order: 305
 summary: >-
-  You cannot set up a cross in people, so human geneticists read the families that already
-  exist, drawn as pedigrees. This lesson teaches the symbols, the signatures of the five simple
-  modes of inheritance and the one observation that rules each out, then the two calculations
-  that matter most: the 2/3 carrier risk of an unaffected sibling and a Bayesian update from
-  unaffected sons. Afterwards you can compute a recurrence probability under stated assumptions
-  and say why reduced penetrance, new mutations, mosaicism, heteroplasmy and small families make
-  a pedigree less certain than it looks.
+  Fitting predictions support a model; one contradiction can rule it out. Under the
+  simple models used here, you will read the symbols, test five modes of inheritance and name the
+  observation that excludes each one. Then you will calculate the 2/3 carrier risk of an
+  unaffected sibling, update a carrier probability from unaffected sons, and explain why
+  penetrance, new mutations, mosaicism, heteroplasmy and small families limit certainty.
 hook: "Your brother has cystic fibrosis and you do not. Is your chance of being a carrier 1/2 or 2/3?"
 
 estMinutes: 24
@@ -25,10 +23,30 @@ explainer:
   src: "/explainers/pedigrees/explainer.mp4"
   captions: "/explainers/pedigrees/explainer.vtt"
   poster: "/explainers/pedigrees/poster.jpg"
-  title: "A Fact Changes What You Know"
-  durationSec: 138.8
-  narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+  title: "The Pedigree as a Model Test"
+  durationSec: 215.9
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+  takeaways:
+    - "Fitting predictions support a model; one contradiction can rule it out."
+    - "A pedigree records phenotypes and relationships; its key defines the symbols."
+    - "Each simple inheritance model predicts who can transmit an allele to whom."
+    - "The exclusion tests assume full penetrance, no new mutation and correct relationships."
+
+films:
+  - id: "chapter-2"
+    src: "/explainers/pedigrees/chapter-2.mp4"
+    captions: "/explainers/pedigrees/chapter-2.vtt"
+    poster: "/explainers/pedigrees/chapter-2-poster.jpg"
+    title: "Evidence Reweights the Possibilities"
+    durationSec: 226.6
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+    takeaways:
+      - "Evidence changes genotype probabilities, not genotypes."
+      - "Conditioning removes incompatible outcomes and renormalizes the outcomes that remain."
+      - "Bayes' rule weights each hypothesis by how well it predicts the evidence."
+      - "Risk calculations are only as sound as their stated inheritance assumptions."
 
 scientists:
   - name: "Archibald Garrod"
@@ -373,102 +391,141 @@ draft: false
 
 import PedigreeRiskCalculator from '../../../components/PedigreeRiskCalculator.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import LessonFilm from '../../../components/LessonFilm.astro';
 
-**A woman's brother has cystic fibrosis. Her parents do not, and neither does she. What is the chance that she carries a cystic fibrosis allele? The tempting answer is 1/2. Under the standard model the answer is 2/3.**
+Human geneticists cannot set up crosses, so they work backwards from existing families. A **pedigree** is a family tree drawn to a shared code.
 
-You cannot cross people, so human genetics works backwards from the families that already exist. The data set is a **pedigree**, a family tree drawn to a code. This lesson teaches you to read the code, to test the five simple modes of inheritance against a chart, and to calculate the probabilities a pedigree supports, including that 2/3. Then it shows why real pedigrees are less certain than they look.
+> **The one idea.** Fitting predictions support a model; one contradiction can rule it out.
+>
+> *Scope:* the five simple, single-gene models used here, assuming full **penetrance** (everyone with the genotype shows the trait), no new mutation and correct family relationships. A model that fits is supported, not proved.
 
-## Reading the chart: a family tree drawn to a code
+## Read the evidence first
 
-A pedigree uses a small set of symbols. In the 2022 revision of the standard from the National Society of Genetic Counselors, a square is a man or boy, a circle is a woman or girl, and a diamond is a nonbinary person or someone whose sex or gender is not specified. The revision ties the shape to gender and records sex assigned at birth separately. A filled symbol means affected, for the condition named in the chart's key. A diagonal slash through a symbol marks someone who has died.
+The first film used three symbols; the full code has more. In the 2022 revision of the National Society of Genetic Counselors standard, a square is a man or boy, a circle is a woman or girl, and a diamond is a nonbinary person or someone whose sex or gender is not specified. The revision ties shape to gender and records sex assigned at birth separately. A filled symbol means affected by the condition named in the key; a diagonal slash marks someone who has died.
 
-Lines carry the relationships. A horizontal line joins two partners. A vertical line drops from it to a horizontal sibship line, from which each child hangs. A double partner line marks **consanguinity**: the partners are related by descent, as first cousins are. Generations are numbered in roman numerals (I, II, III) and people within a generation from left to right, so II-3 is a single person. An arrow marks the **proband**, the person through whom the family came to attention.
+A horizontal line joins partners. A vertical line drops to a horizontal sibship line, from which each child hangs. A double partner line marks **consanguinity**: the partners are related by descent, as first cousins are. Roman numerals label generations, and people are numbered left to right, so II-3 identifies one person. An arrow marks the **proband**, through whom the family came to attention.
 
-A **carrier** is a person heterozygous for a recessive allele, who carries it, usually without showing the trait. Many textbook charts put a dot in the centre of a circle for a woman known to carry an X-linked recessive allele. The 2022 revision changes how carrier status is shown, so always read the key.
+A **carrier** is heterozygous for a recessive allele and usually does not show the trait. Many textbook charts put a central dot in the circle of a woman known to carry an X-linked recessive allele. The 2022 revision shows carrier status differently; check the key.
 
-## Five patterns, and the one observation that rules each out
+**Predict.** Two partners are joined by a double line. Can you conclude that both carry the allele being studied?
 
-Reading a pedigree resembles checking alibis. You rarely prove that a mode is right, but one observation can show that a mode is wrong. Each rule below assumes full **penetrance** (everyone with the genotype shows the trait), no new mutation and correct family relationships.
+<details>
+<summary>Check your prediction</summary>
 
-1. **Autosomal dominant.** One copy of the allele, in a heterozygote, is enough. The trait usually appears in every generation, in both sexes, and can pass from father to son. A heterozygous parent with an unaffected partner passes the allele to each child with probability 1/2. *Ruled out by:* an affected child of two unaffected parents.
-2. **Autosomal recessive.** Affected people have two pathogenic alleles at the locus, the same one twice or two different ones. They are usually the children of two unaffected carriers, so the trait appears among brothers and sisters of either sex, with few affected relatives elsewhere. Partners related by descent are more often seen, because they are more likely to carry the same rare allele. *Ruled out by:* two affected parents with an unaffected child, if the same gene causes the trait in both parents. Recessive deafness, for example, can come from many different genes, so two deaf parents can have a hearing child.
-3. **X-linked recessive.** A male has one X, so one copy of the allele affects him. Affected men are much more common than affected women, and the allele passes from an affected man through his carrier daughters to half of their sons. Heterozygous women can show some signs, partly through X-inactivation. *Ruled out by:* father-to-son transmission, since a father gives his son a Y. An affected father and an affected son count only if the son's mother does not carry the allele.
-4. **X-linked dominant.** An affected father passes it to all his daughters and none of his sons; an affected heterozygous mother passes it to half her children of either sex. *Ruled out by:* an affected father with an unaffected daughter, or with a son who inherited it from him.
-5. **Mitochondrial.** Human mitochondrial DNA normally comes from the mother, so an affected mother can have affected children of both sexes and an affected father passes the trait to none. Mitochondrial DNA encodes only a handful of respiratory-chain subunits (see [oxidative phosphorylation](/lessons/oxidative-phosphorylation/)); most mitochondrial proteins are encoded in the nucleus, so many mitochondrial diseases follow Mendelian patterns instead. *Ruled out by:* transmission from an affected father.
+No. The line records shared ancestry, not genotype. Consanguinity raises the chance that both carry the same rare allele but does not establish carrier status or prove recessive inheritance.
 
-<LessonFigure src="/figures/pedigrees/exclusion-tests.webp" width={1200} height={578} alt="AI-generated illustration: three boxed pedigree panels labeled Autosomal dominant, Autosomal recessive, and X-linked recessive. Left: two unaffected parents with an affected daughter, captioned affected child, unaffected parents. Middle: two affected parents with an unaffected son, captioned unaffected child, affected parents. Right: an affected father and unaffected mother with an affected son, the line from father to son labeled Father to son." caption="One observation can rule out a mode of inheritance. An affected child of two unaffected parents rules out autosomal dominant; two affected parents with an unaffected child rules out autosomal recessive when the same gene causes it in both parents; father-to-son transmission, with a mother who does not carry the allele, rules out X-linked recessive." />
+</details>
 
-Two traps follow. Consanguinity raises the chance of a recessive disorder but does not prove that a trait is recessive. And "skips a generation" is no proof of recessive inheritance, because a dominant allele with reduced penetrance does the same. Rett syndrome and fragile X syndrome, which you meet in [synapse disorders](/lessons/synapse-disorders/), are X-linked examples whose pedigrees are complicated by new mutations and repeat expansion.
+## Test five inheritance models
+
+| Model | Prediction under the simple model | A contradiction |
+| --- | --- | --- |
+| **Autosomal dominant** | One copy in a heterozygote is enough. The trait usually appears in successive generations and both sexes; father-to-son transmission is possible. An affected heterozygote and unaffected partner give each child a 1/2 allele risk. | An affected child has two unaffected parents. |
+| **Autosomal recessive** | Affected people have two pathogenic alleles at one locus, identical or different. Unaffected carrier parents can have affected children of either sex, so cases often cluster among siblings, with few affected relatives elsewhere. Shared ancestry is more common because relatives are likelier to carry the same rare allele. | Two affected parents have an unaffected child, if the same gene causes both parents' trait. |
+| **X-linked recessive** | A male has one X, so one copy can affect him. Affected men are much more common than affected women. An affected man passes the allele through carrier daughters to half their sons. Heterozygous women can show signs, partly through X-inactivation. | Demonstrated father-to-son transmission. An affected father-son pair establishes this only if the mother carries no copy. |
+| **X-linked dominant** | An affected father passes the allele to every daughter and no son. An affected heterozygous mother passes it to half her children of either sex. | An affected father has an unaffected daughter or transmits the allele to a son. |
+| **Mitochondrial** | Human mitochondrial DNA normally comes from the mother. An affected mother can have affected children of both sexes; an affected father transmits the trait to none. | Transmission from an affected father. |
+
+Recessive deafness shows why that row's qualification matters: different genes can cause deafness, so two deaf parents can have a hearing child. Mitochondrial DNA encodes only a handful of respiratory-chain subunits (see [oxidative phosphorylation](/lessons/oxidative-phosphorylation/)); most mitochondrial proteins are nuclear-encoded, so many mitochondrial diseases instead follow Mendelian patterns.
+
+<LessonFigure src="/figures/pedigrees/exclusion-tests.webp" width={1200} height={578} alt="AI-generated illustration: three boxed pedigree panels labeled Autosomal dominant, Autosomal recessive, and X-linked recessive. Left: two unaffected parents with an affected daughter, captioned affected child, unaffected parents. Middle: two affected parents with an unaffected son, captioned unaffected child, affected parents. Right: an affected father and unaffected mother with an affected son, the line from father to son labeled Father to son." caption="A contradiction rules out a simple model under its assumptions: an affected child of two unaffected parents rules out autosomal dominant; an unaffected child of two affected parents rules out autosomal recessive when the same gene causes both parents' trait; father-to-son transmission, with a mother who carries no copy, rules out X-linked recessive." />
+
+**Predict.** An affected father has an unaffected daughter. Under the scope above, which of the five models does that one observation rule out?
+
+<details>
+<summary>Check your prediction</summary>
+
+Only X-linked dominant, because every daughter receives her father's X. The other four models all allow an unaffected daughter.
+
+</details>
+
+Do not use “skips a generation” as proof of recessive inheritance; reduced penetrance can make a dominant allele appear to skip. Rett syndrome and fragile X syndrome, introduced in [synapse disorders](/lessons/synapse-disorders/), are X-linked examples complicated by new mutations and repeat expansion.
+
+Once a model survives those tests, the next question is how strongly each possible genotype is supported.
+
+<LessonFilm film={frontmatter.films[0]} />
 
 ## Conditional probability: the 2/3 rule
 
-**Worked problem, part 1.** A woman's brother has cystic fibrosis, an autosomal recessive disorder caused by two pathogenic alleles of the *CFTR* gene. Her parents are unaffected, and so is she. Her partner has no family history. What is the probability that their first child is affected?
+The second film reweighted schematic tiles; now put exact numbers on them. A woman's brother has cystic fibrosis, an autosomal recessive disorder caused by two pathogenic *CFTR* alleles. Her parents and she are unaffected. Her partner has no family history. What is the probability that their first child is affected?
 
-Assume full penetrance, no new mutations, correct relationships, and a carrier frequency of 1/25 in the partner's population. That figure is often quoted for people of northern European ancestry and is lower in many other populations; it is an assumption of the exercise, not a universal number.
+Within the scope above, assume a partner carrier frequency of 1/25, a figure often quoted for northern European ancestry and lower in many populations; it is an exercise assumption, not a universal number.
 
-1. *Her parents.* Two unaffected parents have an affected child, so both are carriers, Aa.
-2. *Her genotype before her phenotype is known.* From Aa x Aa, four equally likely outcomes: AA, Aa (A from the mother), aA (A from the father) and aa, each 1/4.
-3. *Condition on what you know.* She is unaffected, so aa is impossible. Three equal outcomes remain, two of them carriers:
+Her affected brother shows that both parents are carriers, Aa. Before her phenotype is used, Aa x Aa gives four equally likely outcomes: AA, Aa (A from the mother), aA (A from the father) and aa, each 1/4.
+
+**Predict.** She is unaffected. Which outcome disappears, and what fraction of the remaining outcomes are carriers?
+
+<details>
+<summary>Check your prediction</summary>
+
+The affected aa outcome disappears. Of the three equal outcomes left, Aa and aA are carriers:
 
 > P(carrier | unaffected) = (1/2) / (1/4 + 1/2) = (1/2) / (3/4) = 2/3
 
-4. *Her partner.* P(carrier) = 1/25.
-5. *The child.* The child is affected only if both parents are carriers and both pass a, which has probability 1/4 for two carriers:
+</details>
+
+If both partners are carriers (her partner with probability 1/25), both pass the recessive allele with probability 1/4. Therefore
 
 > P(affected child) = 2/3 x 1/25 x 1/4 = 2/300 = 1/150
 
-Check it another way: 1/150 is about 0.0067, and 0.667 x 0.04 x 0.25 = 0.0067.
-
-The answer 1/2 is the carrier probability before you learn that she is unaffected. Knowing her phenotype removes one of four outcomes, and the denominator shrinks from 4 to 3. These numbers are exercises in the logic, not risk figures for a real family.
+As a decimal check, 1/150 is about 0.0067, and 0.667 x 0.04 x 0.25 = 0.0067. The tempting 1/2 was her carrier probability before her unaffected phenotype removed one outcome. These are logic exercises, not risk figures for a real family.
 
 <PedigreeRiskCalculator />
 
-## Updating with evidence: Bayes and the unaffected sons
+## Updating with evidence: Bayes and unaffected sons
 
-Conditioning can use more than one fact. Bayes' rule combines what you believed before (the **prior**) with how likely the new evidence is under each hypothesis (the **likelihood**).
+Here evidence reweights the hypotheses instead of deleting one, so Bayes' rule from the second film applies. A woman's mother is a known carrier of a fully penetrant X-linked recessive allele, and her father is unaffected. The untested woman has two unaffected sons.
 
-**Worked problem, part 2.** A woman's mother is a known carrier of an X-linked recessive allele that is fully penetrant in males, and her father is unaffected. The woman has not been tested and has two sons, both unaffected. What is the probability that she is a carrier?
+Her unaffected father gave her a normal X and her mother one of two X chromosomes, so her prior is 1/2 carrier and 1/2 not carrier.
 
-1. *Prior.* Her unaffected father gave her a normal X, and she received one of her mother's two X chromosomes, so P(carrier) = 1/2 and P(not carrier) = 1/2.
-2. *Likelihood.* If she is a carrier, each son is unaffected with probability 1/2, so two unaffected sons have probability (1/2)^2 = 1/4. If she is not, the probability is 1.
-3. *Joint.* Carrier: 1/2 x 1/4 = 1/8. Not carrier: 1/2 x 1 = 1/2.
-4. *Posterior.*
+**Predict.** Are two unaffected sons more likely if she is a carrier or if she is not? Should her carrier probability rise or fall?
 
-> P(carrier | two unaffected sons) = (1/8) / (1/8 + 1/2) = (1/8) / (5/8) = 1/5
+<details>
+<summary>Check your prediction</summary>
 
-Check with odds. Prior odds are 1 : 1, the evidence is four times likelier if she is not a carrier, so posterior odds are 1 : 4, which is 1/5. Under the same model, the chance that her next son is affected is 1/5 x 1/2 = 1/10.
+They are more likely if she is not a carrier, so her carrier probability falls. If she is a carrier, each son is unaffected with probability 1/2, so the likelihood for two is 1/4. If she is not a carrier, the likelihood is 1.
 
-Her sons did not change her genotype. They changed what you know about it.
+</details>
+
+Multiply each **prior** (the weight before the evidence) by its **likelihood** (the chance of the evidence under that hypothesis): carrier gives 1/2 x 1/4 = 1/8; not carrier gives 1/2 x 1 = 1/2. Normalize the two weights:
+
+> P(carrier | two unaffected sons) = (1/8) / (1/8 + 1/2) = 1/5
+
+Prior odds of 1 : 1 become posterior odds of 1 : 4, because the evidence is four times likelier if she is not a carrier. Under the same model, her next son's affected risk is 1/5 x 1/2 = 1/10.
 
 ## Why real pedigrees mislead
 
-Every rule above assumed a tidy family. Real families break the assumptions in five common ways.
+One contradiction rules a model out only inside the scope, and real families break the scope in four ways.
 
-**Reduced and age-dependent penetrance.** In Huntington disease, inherited as a dominant, symptoms usually begin in adulthood, so a young unaffected child of an affected parent may carry the allele. Penetrance also depends on the length of a CAG repeat in *HTT*: about 36 to 39 repeats is usually described as reduced penetrance and 40 or more as full penetrance. **Variable expressivity**, the same genotype giving different clinical pictures in different people, blurs the chart further.
+- **Genotype may not predict one visible phenotype.** Huntington disease is dominant, but symptoms usually begin in adulthood, so a young unaffected child of an affected parent may carry the allele. Penetrance also depends on CAG repeat length in *HTT*: about 36 to 39 repeats is usually described as reduced penetrance, and 40 or more as full penetrance. **Variable expressivity** means the same genotype produces different clinical pictures.
+- **A variant may be new or mosaic.** A new pathogenic variant can produce a dominant disorder in a child of unaffected parents, which looks exactly like the observation that rules out autosomal dominant inheritance. In **germline mosaicism**, a parent carries a variant in only some cells, including some sperm or eggs. In a study of 58 families with one affected child and an apparently new variant, deep sequencing of several parental tissues estimated recurrence below 0.1% in 35 families; 5 had parental mosaicism associated with higher risk, and three fathers had the variant in 5.6 to 12.1% of sperm DNA.
+- **Mitochondrial genotype can be a mixture.** With **heteroplasmy**, a cell contains normal and mutant mitochondrial DNA. A mother can transmit different proportions to different children, so severity varies and some children may be unaffected.
+- **A family may be too small to reveal the pattern.**
 
-**New mutations.** A new pathogenic variant can cause a dominant disorder in a child with no affected parent, which looks like the exclusion rule for dominance.
+**Predict.** If two carrier parents have only two children, is seeing no affected child surprising enough to reject autosomal recessive inheritance?
 
-**Germline mosaicism.** A parent can carry a variant in only some cells, including some sperm or eggs. In one study of 58 families with one affected child and an apparently new variant, deep sequencing of several parental tissues, combined with long-read tests to find which parent the variant came from, estimated a recurrence risk below 0.1% for 35 families, while 5 had parental mosaicism associated with higher risk. In three fathers the variant was in 5.6 to 12.1% of sperm DNA. In two further families with repeated affected pregnancies, routine testing of parental blood had not identified the parent of origin.
+<details>
+<summary>Check your prediction</summary>
 
-**Heteroplasmy.** A cell can hold a mixture of normal and mutant mitochondrial DNA. A heteroplasmic mother can pass different proportions to different children, so severity varies and some children may be unaffected.
+No. Each child has a 3/4 chance to be unaffected, so the chance that both are unaffected is (3/4)^2 = 9/16, more than half the time. Small families can look as though nothing is inherited.
 
-**Small families.** Two carriers with two children have no affected child with probability (3/4)^2 = 9/16, more than half the time. Such families look as if nothing is inherited at all.
+</details>
 
-Apparent exceptions need molecular checks. When 11,035 trios were searched for mitochondrial DNA from fathers, the seven candidate signals were each explained by a mitochondrial-derived insert in a nuclear chromosome shared by father and child.
+Apparent exceptions also need molecular checks: among 11,035 trios, all seven apparent paternal mitochondrial signals were explained by a mitochondrial-derived nuclear insert shared by father and child.
 
 ### Design problem
 
-An affected woman has five children, all affected. Her affected son has three children, none affected. Her affected daughter has two children, both affected. Severity varies among the affected. Decide between mitochondrial and X-linked dominant inheritance, and say what data would settle it.
+An affected woman has five children, all affected. Her affected son has three children, none affected. Her affected daughter has two children, both affected. Severity varies. Decide between mitochondrial and X-linked dominant inheritance, and identify data that would settle it.
 
 <details>
 <summary>One way to do it</summary>
 
-**The affected son is the test.** Under X-linked dominant inheritance with full penetrance, he gives his X to every daughter, so all his daughters would be affected and none of his sons. Under mitochondrial inheritance, he passes no mitochondrial DNA to any child, so all three are unaffected. Three unaffected children fit mitochondrial inheritance. They rule out X-linked dominant inheritance if at least one is a daughter.
+**Test the affected son.** He transmits no mitochondrial DNA, so three unaffected children fit mitochondrial inheritance. Under fully penetrant X-linked dominant inheritance every daughter receives his affected X, so they exclude that model only if at least one is a daughter.
 
-**The rest of the chart does not discriminate.** An affected mother with all five children affected, and an affected daughter with both children affected, fit both models. Under X-linked dominant, a heterozygous mother has 1/2 chance per child, so five of five has probability (1/2)^5 = 1/32: possible but unlikely. Under mitochondrial inheritance, a mother passes her mitochondria to every child.
+**The rest does not discriminate.** Both models fit an affected mother with affected children. A mother transmits mitochondria to every child; under X-linked dominant inheritance, five affected children of a heterozygous mother has probability (1/2)^5 = 1/32: possible but unlikely.
 
-**Variable severity** fits heteroplasmy, since children receive different fractions of mutant mitochondrial DNA. It also occurs in X-linked dominant disorders through X-inactivation in women, so it is supporting evidence, not proof.
+**Variable severity fits both models, so it cannot decide between them.** Under heteroplasmy children receive different mutant fractions; X-inactivation in women can vary an X-linked dominant phenotype.
 
-**What would settle it.** Find an affected father with an affected daughter whose mother is outside the maternal line and, on testing, does not carry the family's mitochondrial variant; that excludes mitochondrial inheritance. Or sequence mitochondrial DNA in affected and unaffected relatives, look for a variant present only in the maternal line, and measure its heteroplasmy in more than one tissue. A heteroplasmy level that tracks severity, and absence of the variant in the son's children, would support the mitochondrial model.
+**Settle it molecularly.** An affected father with an affected daughter whose mother lies outside the maternal line and lacks the family's mitochondrial variant would exclude mitochondrial inheritance. Or sequence affected and unaffected relatives, seek a mitochondrial variant confined to the maternal line, and measure heteroplasmy in several tissues. Heteroplasmy tracking severity, with the variant absent from the son's children, would support the mitochondrial model.
 
 </details>
