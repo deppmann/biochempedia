@@ -1,391 +1,660 @@
-"""Evidence for Evolution  (Biochemistrypedia, grade 7 Life Science explainer)
+"""What the Rocks Still Show — a single carried riverbank world.
 
-COLOR MAP (one color per concept, whole video)
-  BLUE   = fossils and the fossil record
-  ORANGE = bones as evidence (upper arm bone); the other bone types have their own colors, bones scene only
-  PINK / PURPLE / TEAL = lower arm bones / wrist bones / finger bones (matching sets, bones scene only)
-  GREEN  = DNA, the bases, "more similar"
-  GOLD   = common ancestor, the shared family story
-  YELLOW = differences, the open question
-  RED    = extinct, gaps, no bones, "not a guess"
-  GREY   = outlines, neutral parts
+COLOUR MAP
+    GOLD  fossils and fossil-bearing observations
+    BLUE  matching body structures (reserved for the following film)
+    TEAL  DNA/protein sequences (reserved for the following film)
+    GREEN supported comparisons and inferences
+    GREY  missing or uncertain evidence
+
+All fossil silhouettes are schematic teaching icons, not reconstructions.  The timeline dates are
+the four values in the lesson table; no curve or quantitative relationship is sketched.
 """
-import numpy as np
-from bp_style import *  # noqa: F401,F403
-
-ORANGE = "#F29E4C"
-PINK = "#E58FB5"
-PURPLE = "#B58CD9"
-TEAL_B = "#3FB8C0"
+from bp_parts import *
 
 
-def arr(a, b, color=GREY, w=5, tip=0.22):
-    return Arrow(a, b, buff=0.0, color=color, stroke_width=w, tip_length=tip,
-                 max_tip_length_to_length_ratio=0.45, max_stroke_width_to_length_ratio=12)
+ROCK = "#6F5A49"
+ROCK_LIGHT = "#92765C"
+WATER = "#367A96"
+SAND = "#B99A68"
 
 
-def scallop(hinge, r, col, fillop=0.3):
-    """a scallop shell drawn as a ridged fan (schematic outline)."""
+def shell(hinge=ORIGIN, radius=1.0, color=GOLD, changed=0.0, fill=0.28):
+    """Large, readable scallop icon; ``changed`` alters its outline without implying ancestry."""
     hinge = np.array(hinge, dtype=float)
-    a0, a1 = 35, 145
-    fan = Sector(radius=r, start_angle=a0 * DEGREES, angle=(a1 - a0) * DEGREES, arc_center=hinge,
-                 stroke_color=col, stroke_width=5, fill_color=col, fill_opacity=fillop)
-    ridges = VGroup(*[Line(hinge + 0.25 * r * np.array([np.cos(a * DEGREES), np.sin(a * DEGREES), 0]),
-                           hinge + 0.95 * r * np.array([np.cos(a * DEGREES), np.sin(a * DEGREES), 0]),
-                           color=col, stroke_width=3) for a in np.linspace(a0 + 8, a1 - 8, 7)])
-    ears = Polygon(hinge + LEFT * 0.35 * r, hinge + RIGHT * 0.35 * r, hinge + RIGHT * 0.25 * r + DOWN * 0.12 * r,
-                   hinge + LEFT * 0.25 * r + DOWN * 0.12 * r, stroke_color=col, stroke_width=4,
-                   fill_color=col, fill_opacity=fillop)
+    left = 31 + changed * 5
+    right = 149 - changed * 3
+    fan = Sector(radius=radius, start_angle=left * DEGREES,
+                 angle=(right - left) * DEGREES, arc_center=hinge,
+                 stroke_color=color, stroke_width=5, fill_color=color,
+                 fill_opacity=fill)
+    ridges = VGroup(*[
+        Line(hinge + radius * 0.18 * np.array([np.cos(a), np.sin(a), 0]),
+             hinge + radius * (0.90 - 0.03 * changed) * np.array([np.cos(a), np.sin(a), 0]),
+             color=color, stroke_width=2.8)
+        for a in np.linspace((left + 9) * DEGREES, (right - 9) * DEGREES, 7)
+    ])
+    ears = Line(hinge + LEFT * radius * 0.38, hinge + RIGHT * radius * 0.38,
+                color=color, stroke_width=5)
     return VGroup(fan, ridges, ears)
 
 
-class S00Title(TitleCard):
-    LESSON = "Evidence for Evolution"
-    TITLE = "Three Kinds of Evidence Agree"
+def bone_icon(color=GOLD):
+    shaft = RoundedRectangle(corner_radius=0.14, width=1.25, height=0.36,
+                             stroke_color=color, stroke_width=4,
+                             fill_color=color, fill_opacity=0.25)
+    ends = VGroup(Dot(LEFT * 0.62, radius=0.25, color=color),
+                  Dot(RIGHT * 0.62, radius=0.25, color=color)).set_opacity(0.85)
+    return VGroup(shaft, ends).rotate(0.18)
 
 
-# ---------------------------------------------------------------------------------------------
-class S01Question(SpokenScene):
+def tooth_icon(color=GOLD):
+    return Polygon([-0.48, 0.42, 0], [0.48, 0.42, 0], [0.22, -0.55, 0],
+                   [0, -0.22, 0], [-0.22, -0.55, 0], color=color,
+                   stroke_width=4, fill_color=color, fill_opacity=0.25)
+
+
+def footprint_icon(color=GOLD):
+    sole = Ellipse(width=0.55, height=1.05, color=color, stroke_width=4,
+                   fill_color=color, fill_opacity=0.22).rotate(-0.25)
+    toes = VGroup(*[Dot([x, 0.66 + 0.08 * abs(x), 0], radius=0.11, color=color)
+                    for x in (-0.28, -0.09, 0.10, 0.29)])
+    return VGroup(sole, toes)
+
+
+def trilobite(color=GOLD):
+    body = Ellipse(width=1.15, height=1.7, stroke_color=color, stroke_width=4,
+                   fill_color=color, fill_opacity=0.23)
+    head = Arc(radius=0.42, start_angle=0, angle=PI, color=color, stroke_width=4).shift(UP * 0.42)
+    ribs = VGroup(*[Line([-0.43, y, 0], [0.43, y, 0], color=color, stroke_width=2.5)
+                    for y in np.linspace(-0.48, 0.32, 5)])
+    spine = Line([0, -0.68, 0], [0, 0.68, 0], color=color, stroke_width=2.5)
+    return VGroup(body, head, ribs, spine)
+
+
+def moving_water(y=2.75, width=12.2):
+    """A broad river with a slow current; the updater persists while narration lands."""
+    river = Rectangle(width=width, height=0.9, stroke_color=WATER, stroke_width=3,
+                      fill_color=WATER, fill_opacity=0.50).move_to([0, y, 0])
+    waves = VGroup(*[
+        Line([-5.8 + i * 1.55, y + 0.08 * (-1) ** i, 0],
+             [-4.85 + i * 1.55, y + 0.08 * (-1) ** i, 0],
+            color=TEXT, stroke_width=3.5).set_opacity(0.72)
+        for i in range(8)
+    ])
+    waves._phase = 0.0
+
+    def drift(mob, dt):
+        mob._phase += dt
+        mob.shift(RIGHT * 1.20 * dt)
+        if mob.get_left()[0] > -5.25:
+            mob.shift(LEFT * 1.55)
+
+    waves.add_updater(drift)
+    return VGroup(river, waves)
+
+
+def grains(n=12, box=(-5.7, 5.7, -2.6, 2.1), color=SAND, speed=0.12):
+    rng = np.random.default_rng(17 + n)
+    dots = VGroup(*[
+        Dot([rng.uniform(box[0], box[1]), rng.uniform(box[2], box[3]), 0],
+            radius=rng.uniform(0.045, 0.075), color=color).set_opacity(0.68)
+        for _ in range(n)
+    ])
+    dots._t = 0.0
+
+    def fall(mob, dt):
+        mob._t += dt
+        mob.shift(DOWN * speed * dt + RIGHT * 0.025 * np.sin(mob._t) * dt)
+        for d in mob:
+            if d.get_y() < box[2]:
+                d.shift(UP * (box[3] - box[2]))
+
+    dots.add_updater(fall)
+    return dots
+
+
+def shimmer_band(y=0.0, width=9.2, color=GREY):
+    """A persistent scan across an explicitly uncertain interval."""
+    mark = Rectangle(width=0.85, height=0.88, stroke_width=0,
+                     fill_color=color, fill_opacity=0.20).move_to([-width / 2, y, 0])
+    mark._left = -width / 2
+    mark._right = width / 2
+    mark._scan_t = 0.0
+
+    def scan(mob, dt):
+        mob._scan_t += dt
+        mob.shift(RIGHT * 0.90 * dt)
+        mob.set_fill(color, opacity=0.12 + 0.43 * (0.5 + 0.5 * np.sin(6.0 * mob._scan_t)))
+        if mob.get_left()[0] > mob._right:
+            mob.shift(LEFT * (width + mob.width))
+
+    mark.add_updater(scan)
+    return mark
+
+
+def breathe_fill(mob, color, lo=0.12, hi=0.34, speed=1.7):
+    """Keep a named block active while its explanatory sentence lands."""
+    mob._breathe_t = 0.0
+
+    def breathe(m, dt):
+        m._breathe_t += dt
+        opacity = lo + (hi - lo) * (0.5 + 0.5 * np.sin(speed * m._breathe_t))
+        m.set_fill(color, opacity=opacity)
+
+    return mob.add_updater(breathe)
+
+
+def riverbank(with_fossils=True, with_gaps=True, label=True):
+    """The carried world, rebuilt at exactly the same scale and coordinates."""
+    layer_specs = [
+        (-2.55, 0.70, ROCK), (-1.75, 0.64, ROCK_LIGHT), (-1.00, 0.62, ROCK),
+        (-0.27, 0.62, ROCK_LIGHT), (0.47, 0.62, ROCK), (1.18, 0.58, ROCK_LIGHT),
+    ]
+    layers = VGroup(*[
+        Rectangle(width=11.9 - 0.15 * i, height=h, stroke_color=SAND,
+                  stroke_width=2, fill_color=c, fill_opacity=0.66).move_to([0, y, 0])
+        for i, (y, h, c) in enumerate(layer_specs)
+    ])
+    water = moving_water()
+    bank = VGroup(layers, water)
+    bank.layers = layers
+    bank.water = water
+    bank.shells = VGroup()
+    if with_fossils:
+        fossils = VGroup(shell([-3.7, -2.35, 0], 0.62),
+                         shell([1.3, -0.82, 0], 0.56, changed=0.35),
+                         shell([-0.5, 0.60, 0], 0.50, changed=0.65))
+        bank.add(fossils)
+        bank.shells = fossils
+    bank.gaps = VGroup()
+    if with_gaps:
+        gs = VGroup(
+            Rectangle(width=11.75, height=0.18, stroke_width=0, fill_color=BG,
+                      fill_opacity=1).move_to([0, -1.38, 0]),
+            Rectangle(width=11.55, height=0.16, stroke_width=0, fill_color=BG,
+                      fill_opacity=1).move_to([0, 0.12, 0]),
+        )
+        bank.add(gs)
+        bank.gaps = gs
+    if label:
+        tag = T("Virginia riverbank, schematic", 28, TEXT).move_to([-3.75, 1.86, 0])
+        bank.add(tag)
+        bank.tag = tag
+    erosion = DashedLine([5.82, -2.86, 0], [5.82, 1.55, 0], color=SAND,
+                         stroke_width=5, dash_length=0.16).set_opacity(0.70)
+    pulse(erosion, base=5.0, amp=1.8, speed=1.7)
+    erosion._sway_t = 0.0
+    erosion._sway_x = erosion.get_x()
+
+    def erode(mob, dt):
+        mob._sway_t += dt
+        mob.set_x(mob._sway_x + 0.18 * np.sin(5.0 * mob._sway_t))
+
+    erosion.add_updater(erode)
+    bank.add(erosion, grains(16, box=(-5.7, 5.7, -2.6, 1.48), speed=0.19))
+    return bank
+
+
+def title_over_bank():
+    bank = riverbank()
+    veil = Rectangle(width=13.2, height=2.0, stroke_width=0, fill_color=BG,
+                     fill_opacity=0.80).move_to([0, 0.25, 0])
+    lesson = T("EVIDENCE FOR CHANGE", 24, TEAL, weight=BOLD).move_to([0, 0.72, 0])
+    title = T("What the Rocks Still Show", 50, TEXT, font=TITLE_FONT).move_to([0, 0.05, 0])
+    rule = Line(LEFT * 1.4, RIGHT * 1.4, color=GOLD, stroke_width=4).move_to([0, -0.48, 0])
+    return bank, VGroup(veil, lesson, title, rule)
+
+
+def observed_pair(include_question=False):
+    """Shared exact frame for prediction, pause, and reveal."""
+    lower = RoundedRectangle(corner_radius=0.12, width=9.7, height=1.35,
+                             stroke_color=SAND, stroke_width=3,
+                             fill_color=ROCK, fill_opacity=0.72).move_to([0, -1.38, 0])
+    upper = RoundedRectangle(corner_radius=0.12, width=9.7, height=1.35,
+                             stroke_color=SAND, stroke_width=3,
+                             fill_color=ROCK_LIGHT, fill_opacity=0.72).move_to([0, 1.38, 0])
+    low_shell = shell([-2.2, -1.58, 0], 0.95)
+    high_shell = shell([2.2, 1.15, 0], 0.95, changed=0.75)
+    missing = Rectangle(width=9.7, height=1.10, stroke_color=GREY, stroke_width=3,
+                        fill_color=GREY, fill_opacity=0.10).move_to([0, 0, 0])
+    missing_label = T("missing layer", 30, GREY).move_to(missing)
+    missing_label.layout_ok = True  # deliberate label inside its own uncertainty band
+    pair = VGroup(lower, upper, missing, low_shell, high_shell, missing_label)
+    pair.lower, pair.upper = lower, upper
+    pair.low_shell, pair.high_shell = low_shell, high_shell
+    pair.missing, pair.missing_label = missing, missing_label
+    pair.add(grains(7, box=(-4.7, 4.7, -1.95, 1.95), speed=0.035))
+    pair.add(shimmer_band())
+    if include_question:
+        pair.add(question_card("Does a gap erase the observed pattern?", y=-3.15, max_w=10.6))
+    return pair
+
+
+def branch_tree(color=GREY, at=(3.8, -0.2, 0), scale=1.0):
+    x, y, _ = at
+    lines = VGroup(Line([x, y - 1.3, 0], [x, y + 0.35, 0]),
+                   Line([x, y - 0.35, 0], [x - 0.9, y + 0.7, 0]),
+                   Line([x, y - 0.05, 0], [x + 0.9, y + 1.0, 0]),
+                   Line([x - 0.9, y + 0.7, 0], [x - 1.35, y + 1.25, 0]),
+                   Line([x - 0.9, y + 0.7, 0], [x - 0.45, y + 1.25, 0]))
+    lines.set_stroke(color, width=5)
+    return lines.scale(scale, about_point=np.array(at))
+
+
+class S00Hook(TitleCard, SpokenScene):
     def construct(self):
-        rock = RoundedRectangle(corner_radius=0.2, width=4.6, height=3.2, stroke_color=GREY, stroke_width=4,
-                                fill_color=GREY, fill_opacity=0.15).move_to([-3.9, 0.55, 0])
-        rl = T("rock", 26, GREY).move_to([-5.7, -0.8, 0])
-        sh = scallop([-3.9, -0.35, 0], 2.1, BLUE, 0.3)
-        hl = T("Virginia's state fossil", 32, BLUE, weight=BOLD).move_to([-3.9, 2.7, 0])
-        self.at("state fossil is")
-        self.play(FadeIn(rock), FadeIn(rl), FadeIn(hl, shift=DOWN * 0.1), run_time=0.6)
-        self.play(GrowFromPoint(sh, [-3.9, -0.35, 0]), run_time=0.9)
-        self.at("millions of years old")
-        ol = T("millions of years old", 30, BLUE).move_to([-3.9, -1.5, 0])
-        self.play(FadeIn(ol, shift=UP * 0.1), run_time=0.5)
-        self.at("looks a lot like")
-        lk = T("looks a lot\nlike", 30, YELLOW, weight=BOLD, line_spacing=0.8).move_to([0, 0.75, 0])
-        ar = DoubleArrow([-1.0, 0.0, 0], [1.0, 0.0, 0], color=YELLOW, stroke_width=5, buff=0, tip_length=0.2)
-        self.play(FadeIn(lk, scale=0.9), GrowFromCenter(ar), run_time=0.5)
-        self.at("on a beach today")
-        sh2 = scallop([3.9, -0.35, 0], 2.1, TEXT, 0.0)
-        hl2 = T("scallop shell on a beach today", 30, TEXT, weight=BOLD).move_to([3.4, 2.7, 0])
-        sand = Line([1.7, -0.55, 0], [6.1, -0.55, 0], color=GREY, stroke_width=4)
-        self.play(FadeIn(hl2, shift=DOWN * 0.1), GrowFromPoint(sh2, [3.9, -0.35, 0]), Create(sand), run_time=0.8)
-        self.at("How do scientists")
-        q1 = T("How do scientists know that living things", 32, TEXT, weight=BOLD)
-        q2 = T("have changed over time, and are related?", 32, YELLOW, weight=BOLD)
-        q = VGroup(q1, q2).arrange(DOWN, buff=0.15).move_to([0, -2.85, 0])
-        self.play(FadeIn(q, shift=UP * 0.15), run_time=0.8)
+        bank = riverbank(with_fossils=False, with_gaps=False)
+        # Begin with the world already moving, then let the gaps interrupt it.
+        self.play(FadeIn(bank.layers), FadeIn(bank.water), run_time=0.7)
+        self.at("record full of gaps")
+        self.play(FadeIn(bank.tag), run_time=0.35)
+        gaps = VGroup(
+            Rectangle(width=11.75, height=0.18, stroke_width=0, fill_color=BG, fill_opacity=1).move_to([0, -1.38, 0]),
+            Rectangle(width=11.55, height=0.16, stroke_width=0, fill_color=BG, fill_opacity=1).move_to([0, 0.12, 0]))
+        self.play(FadeIn(gaps), run_time=0.6)
+        self.at("A fossil scallop")
+        fossil = shell([-3.7, -2.35, 0], 0.72)
+        self.play(GrowFromPoint(fossil, [-3.7, -2.35, 0]), run_time=0.8)
+        self.at("Above it")
+        self.play(Indicate(bank.water, color=TEXT, scale_factor=1.01), run_time=0.6)
+        sea = T("once a shallow sea", 30, WATER).move_to([2.9, 1.84, 0])
+        self.at("once beneath")
+        self.play(FadeIn(sea, shift=DOWN * 0.12), run_time=0.5)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S02Fossils(SpokenScene):
+class S01Title(NarratedScene):
     def construct(self):
-        fc = chip("fossil", BLUE, 34).move_to([-5.1, 3.0, 0])
-        ft = T("remains or traces of a living thing from the past", 28, TEXT)
-        ft.move_to([-3.85 + ft.width / 2, 3.0, 0])
-        self.at("A fossil is")
-        self.play(FadeIn(fc, scale=0.9), run_time=0.4)
-        self.play(FadeIn(ft, shift=RIGHT * 0.15), run_time=0.7)
-        ex = VGroup(*[chip(n, BLUE, 30) for n in ("shell", "bone", "tooth", "footprint")])
-        ex.arrange(RIGHT, buff=0.5).move_to([0.2, 1.75, 0])
-        self.at("Shells")
-        self.play(FadeIn(ex[0], shift=UP * 0.1), run_time=0.35)
-        self.at("bones")
-        self.play(FadeIn(ex[1], shift=UP * 0.1), run_time=0.35)
-        self.at("teeth")
-        self.play(FadeIn(ex[2], shift=UP * 0.1), run_time=0.35)
-        self.at("footprints")
-        self.play(FadeIn(ex[3], shift=UP * 0.1), run_time=0.35)
-        self.at("Fossils are rare")
-        slots = VGroup(*[Square(side_length=0.7, stroke_color=GREY, stroke_width=3).move_to([-3.1 + 0.85 * i, 0.15, 0]) for i in range(9)])
-        rc = chip("fossil record", BLUE, 30).move_to([-5.1, 0.15, 0])
-        self.play(FadeIn(rc), Create(slots), run_time=0.9)
-        self.at("all the fossils found")
-        filled = [0, 1, 3, 6, 8]
-        self.play(*[slots[i].animate.set_stroke(BLUE, 4).set_fill(BLUE, 0.5) for i in filled], run_time=0.8)
-        self.at("has gaps")
-        empty = [2, 4, 5, 7]
-        for i in empty:
-            slots[i].generate_target()
-        self.play(*[slots[i].animate.set_stroke(RED, 4).set_fill(RED, 0.0) for i in empty], run_time=0.5)
-        gl = T("gaps", 30, RED, weight=BOLD).move_to([5.2, 0.15, 0])
-        self.play(FadeIn(gl, shift=LEFT * 0.1), run_time=0.4)
-        self.at("many kinds of life")
-        nl = T("many kinds of life that are not alive now", 28, BLUE).move_to([0, -1.2, 0])
-        self.play(FadeIn(nl, shift=UP * 0.1), run_time=0.6)
-        self.at("A group is extinct")
-        ec = chip("extinct", RED, 34).move_to([-3.9, -2.2, 0])
-        et = T("no living members left", 28, TEXT)
-        et.move_to([-2.45 + et.width / 2, -2.2, 0])
-        self.play(FadeIn(ec, scale=0.9), run_time=0.4)
-        self.at("no living members")
-        self.play(FadeIn(et, shift=RIGHT * 0.15), run_time=0.5)
-        self.at("Trilobites")
-        tr = chip("trilobites", BLUE, 32).move_to([-1.3, -3.1, 0])
-        ar = arr([-0.0, -3.1, 0], [1.1, -3.1, 0], RED, w=5)
-        ex2 = T("extinct", 32, RED, weight=BOLD).move_to([2.3, -3.1, 0])
-        self.play(FadeIn(tr, shift=UP * 0.1), run_time=0.4)
-        self.play(GrowArrow(ar), FadeIn(ex2), run_time=0.5)
+        bank, title = title_over_bank()
+        self.add(bank)
+        self.play(FadeIn(title[0]), FadeIn(title[1]), Write(title[2]), GrowFromCenter(title[3]), run_time=1.1)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S03Timeline(SpokenScene):
+class S02FossilForms(SpokenScene):
     def construct(self):
-        x_of = lambda mya: -5.7 + (550 - mya) / 550 * 11.4
-        y0 = 0.0
-        bar = Line([x_of(550), y0, 0], [x_of(0), y0, 0], color=GREY, stroke_width=7)
-        l0 = T("550 million years ago", 24, GREY).move_to([x_of(550) + 1.3, y0 - 0.5, 0])
-        l1 = T("today", 24, GREY).move_to([x_of(0) - 0.3, y0 - 0.5, 0])
-        self.at("Here is one")
-        self.play(Create(bar), FadeIn(l0), FadeIn(l1), run_time=0.9)
-        head = T("one well-known early fossil per group", 32, BLUE, weight=BOLD).move_to([0, 3.05, 0])
-        self.play(FadeIn(head, shift=DOWN * 0.1), run_time=0.5)
-        self.at("It is not the oldest")
-        nt = chip("not the oldest one found", RED, 28).move_to([0, 2.15, 0])
-        self.play(FadeIn(nt, shift=DOWN * 0.1), run_time=0.5)
-        items = [
-            (518, "Early fish", "Haikouichthys, China", "up", "Early fish", -1),
-            (365, "Four-legged animals", "Ichthyostega, Greenland", "down", "legged animals", 0),
-            (205, "Mammal relatives", "Morganucodon teeth", "up", "Mammal relatives", 0),
-            (150, "Bird-like dinosaurs", "Archaeopteryx", "down", "like dinosaurs", 0),
-        ]
-        # label centers chosen to stay inside the frame and not touch each other
-        centers = {518: -4.2, 365: -1.9, 205: 0.9, 150: 3.8}
-        for mya, name, fossil, side, cue, _ in items:
-            x = x_of(mya)
+        sea = Rectangle(width=13, height=2.0, stroke_color=WATER, stroke_width=3,
+                        fill_color=WATER, fill_opacity=0.40).move_to([0, 2.25, 0])
+        floor = Rectangle(width=13, height=3.9, stroke_color=SAND, stroke_width=3,
+                          fill_color=ROCK, fill_opacity=0.48).move_to([0, -0.72, 0])
+        self.add(sea, floor, grains(15, speed=0.10), scope_tag("schematic"))
+        main_shell = shell([-4.5, -0.2, 0], 1.15)
+        self.play(GrowFromPoint(main_shell, [-4.5, -0.2, 0]), run_time=0.7)
+        self.at("preserved remains")
+        definition = caption("Fossil: preserved remains or traces of past life", color=GOLD)
+        self.play(FadeIn(definition, shift=UP * 0.1), run_time=0.45)
+        icons = [bone_icon(), tooth_icon(), footprint_icon()]
+        for obj, pos, cue in zip(icons, ([-1.6, -0.05, 0], [1.3, -0.05, 0], [4.3, -0.05, 0]),
+                                 ("bones", "teeth", "footprints")):
+            obj.move_to(pos)
             self.at(cue)
-            dot = Dot([x, y0, 0], radius=0.17, color=BLUE)
-            t1 = T(name, 28, BLUE, weight=BOLD)
-            t2 = T(f"about {mya} million years old", 24, TEXT)
-            t3 = T(fossil, 22, GREY)
-            lab = VGroup(t1, t2, t3).arrange(DOWN, buff=0.1)
-            cx = centers[mya]
-            if side == "up":
-                lab.move_to([cx, 1.15, 0]); lab.set_y(1.05)
-                con = Line([x, y0 + 0.17, 0], [min(max(x, lab.get_left()[0] + 0.1), lab.get_right()[0] - 0.1), lab.get_bottom()[1] - 0.05, 0], color=BLUE, stroke_width=3)
-            else:
-                lab.move_to([cx, -1.95, 0])
-                con = Line([x, y0 - 0.17, 0], [min(max(x, lab.get_left()[0] + 0.1), lab.get_right()[0] - 0.1), lab.get_top()[1] + 0.05, 0], color=BLUE, stroke_width=3)
-            self.play(GrowFromCenter(dot), Create(con), FadeIn(lab, shift=(DOWN if side == "up" else UP) * 0.1), run_time=0.7)
+            self.play(FadeIn(obj, shift=UP * 0.18), run_time=0.4)
+        soft = VGroup(*[Circle(radius=0.22 + i * 0.04, color=GREY, fill_color=GREY,
+                              fill_opacity=0.24).move_to([-2.2 + i * 1.0, 1.45, 0]) for i in range(5)])
+        self.at("Most remains")
+        self.play(FadeIn(soft), run_time=0.35)
+        self.at("rot or are eaten")
+        self.play(FadeOut(soft, shift=RIGHT * 1.0), run_time=0.8)
+        self.at("Hard parts")
+        self.play(Indicate(VGroup(main_shell, *icons), color=GOLD, scale_factor=1.04), run_time=0.6)
+        sand = Rectangle(width=3.1, height=0.70, stroke_width=0, fill_color=SAND,
+                         fill_opacity=0.72).move_to([-4.5, -0.60, 0])
+        self.at("quick burial")
+        self.play(FadeIn(sand, shift=DOWN * 0.6), main_shell.animate.shift(DOWN * 0.35), run_time=0.8)
+        self.at("chance stays small")
+        rare = T("rare", 40, GREY, weight=BOLD).move_to([4.6, -1.65, 0])
+        self.play(FadeIn(rare), FadeOut(VGroup(*icons)), run_time=0.5)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-def limb(cx, base_y, up_h, lo_h, up_w, fing_len, fing_w, spread, cols):
-    """a front limb as labelled blocks: 1 upper bone, 2 lower bones, wrist bones, finger bones."""
-    cu, cl, cw, cf = cols
-    up = RoundedRectangle(corner_radius=0.08, width=up_w, height=up_h, stroke_color=cu, stroke_width=3,
-                          fill_color=cu, fill_opacity=0.5).move_to([cx, base_y + up_h / 2, 0])
-    y1 = base_y + up_h + 0.06
-    lw = 0.34
-    lo = VGroup(*[RoundedRectangle(corner_radius=0.06, width=lw, height=lo_h, stroke_color=cl, stroke_width=3,
-                                   fill_color=cl, fill_opacity=0.5).move_to([cx + dx, y1 + lo_h / 2, 0]) for dx in (-0.24, 0.24)])
-    y2 = y1 + lo_h + 0.06
-    wr = VGroup(*[Square(side_length=0.3, stroke_color=cw, stroke_width=3, fill_color=cw, fill_opacity=0.5)
-                  .move_to([cx + dx, y2 + 0.13, 0]) for dx in (-0.34, 0, 0.34)])
-    y3 = y2 + 0.26 + 0.06
-    fi = VGroup(*[RoundedRectangle(corner_radius=0.05, width=fing_w, height=fing_len, stroke_color=cf, stroke_width=3,
-                                   fill_color=cf, fill_opacity=0.5).move_to([cx + k * spread, y3 + fing_len / 2, 0])
-                  for k in (-2, -1, 0, 1, 2)])
-    return VGroup(up, lo, wr, fi)
-
-
-class S04Bones(SpokenScene):
+class S03Record(SpokenScene):
     def construct(self):
-        cols = (ORANGE, PINK, PURPLE, TEAL_B)
-        base = -2.2
-        # name, cx, dims (up_h, lo_h, up_w, fing_len, fing_w, spread), label, job
-        specs = [
-            ("human arm", -2.5, (1.15, 1.2, 0.6, 0.95, 0.2, 0.24), None),
-            ("cat leg", -0.2, (1.0, 1.2, 0.55, 0.8, 0.2, 0.24), "walking"),
-            ("whale flipper", 2.1, (0.8, 0.85, 0.75, 1.5, 0.26, 0.3), "swimming"),
-            ("bat wing", 4.6, (0.95, 1.45, 0.5, 1.5, 0.15, 0.36), "flying"),
-        ]
-        lm = [limb(cx, base, *d, cols) for _, cx, d, _ in specs]
-        legend = [("one upper\narm bone", ORANGE, 0), ("two lower\narm bones", PINK, 1),
-                  ("wrist bones", PURPLE, 2), ("finger\nbones", TEAL_B, 3)]
-        hum = lm[0]
-        ys = [hum[0].get_center()[1], hum[1].get_center()[1], hum[2].get_center()[1], hum[3].get_center()[1] + 0.1]
-        names = [T(n, 26, TEXT, weight=BOLD) for n, *_ in specs]
-        for nm, (n, cx, d, job) in zip(names, specs):
-            nm.move_to([cx, -2.85, 0])
-        self.at("Your arm has")
-        self.play(FadeIn(lm[0]), FadeIn(names[0]), run_time=0.6)
-        self.play(*[m.animate.set_stroke(GREY, 3).set_fill(GREY, 0.12) for m in (hum[0], *hum[1], *hum[2], *hum[3])], run_time=0.01)
-        labs = []
-        for (txt, col, idx), cue in zip(legend, ["one upper arm bone", "two lower arm bones", "wrist bones", "finger bones"]):
+        bank = riverbank(with_fossils=False, with_gaps=False)
+        buried = shell([-3.7, -2.35, 0], 0.62)
+        self.add(bank, buried)
+        heading = T("fossil record", 36, GOLD, weight=BOLD).move_to([0, 3.45, 0])
+        self.at("make the fossil record")
+        self.play(FadeIn(heading), run_time=0.5)
+        more = VGroup(shell([1.3, -0.82, 0], 0.56, changed=0.35),
+                      shell([-0.5, 0.60, 0], 0.50, changed=0.65),
+                      trilobite().scale(0.38).move_to([3.7, 1.15, 0]))
+        self.play(LaggedStart(*[GrowFromCenter(x) for x in more], lag_ratio=0.25), run_time=1.2)
+        gaps = VGroup(
+            Rectangle(width=11.75, height=0.18, stroke_width=0, fill_color=BG, fill_opacity=1).move_to([0, -1.38, 0]),
+            Rectangle(width=11.55, height=0.16, stroke_width=0, fill_color=BG, fill_opacity=1).move_to([0, 0.12, 0]))
+        self.at("record has gaps")
+        self.play(FadeIn(gaps), run_time=0.7)
+        gap_label = T("gap: missing details", 28, GREY).move_to([3.0, 0.14, 0])
+        gap_label.layout_ok = True  # deliberately labels the gap it sits within
+        self.at("some details are missing")
+        self.play(FadeIn(gap_label, shift=LEFT * 0.15), run_time=0.5)
+        self.at("does not make")
+        self.play(gaps[0].animate.stretch(2.0, 1), gaps[1].animate.stretch(2.0, 1),
+                  Indicate(VGroup(buried, more), color=GOLD, scale_factor=1.02), run_time=0.9)
+        self.at("pattern can survive")
+        bracket = Brace(VGroup(buried, more[1]), LEFT, color=GREEN)
+        self.play(GrowFromCenter(bracket), run_time=0.5)
+        self.finish()
+
+
+class S04Patterns(SpokenScene):
+    def construct(self):
+        bank = riverbank()
+        self.add(bank)
+        arrow = Arrow([-6.25, -2.7, 0], [-6.25, 1.55, 0], color=GREEN,
+                      stroke_width=6, tip_length=0.28)
+        # labels start right of the arrow line and stay below the riverbank tag (ship check 2026-11-13)
+        older = T("older", 28, GREEN)
+        older.move_to([-6.05 + older.width / 2, -2.55, 0])
+        younger = T("younger", 28, GREEN)
+        younger.move_to([-6.05 + younger.width / 2, 1.18, 0])
+        older.layout_ok = True  # stratigraphic labels intentionally sit on the bank
+        younger.layout_ok = True
+        self.play(GrowArrow(arrow), FadeIn(older), FadeIn(younger), run_time=0.8)
+        inset = RoundedRectangle(corner_radius=0.16, width=3.15, height=2.15,
+                                 stroke_color=GREY, stroke_width=3, fill_color=BG,
+                                 fill_opacity=0.94).move_to([4.55, 0.75, 0])
+        inset_title = fit_text("older rock, western Virginia", max_w=2.75, size=28,
+                               color=TEXT, max_lines=2).move_to([4.55, 1.40, 0])
+        tri = trilobite().scale(0.40).move_to([4.55, 0.25, 0])
+        self.at("only in older rock")
+        self.play(FadeIn(inset), FadeIn(inset_title), GrowFromCenter(tri), run_time=0.7)
+        self.at("changed forms")
+        forms = VGroup(*[shell([-2.5 + i * 1.8, -1.95 + i * 0.65, 0], 0.42,
+                                    changed=i * 0.25) for i in range(3)])
+        self.play(LaggedStart(*[FadeIn(s, shift=UP * 0.1) for s in forms], lag_ratio=0.25), run_time=0.9)
+        sea_overlay = Rectangle(width=11.7, height=4.15, stroke_width=0,
+                                fill_color=WATER, fill_opacity=0.24).move_to([0, -0.50, 0])
+        self.at("environment that is gone")
+        self.play(FadeIn(sea_overlay), run_time=0.5)
+        self.play(FadeOut(sea_overlay, shift=DOWN * 0.4), run_time=0.8)
+        self.at("changes build history")
+        self.play(Indicate(VGroup(arrow, *bank.shells), color=GREEN, scale_factor=1.01), run_time=0.7)
+        self.finish()
+
+
+class S05Predict(SpokenScene):
+    def construct(self):
+        lower = RoundedRectangle(corner_radius=0.12, width=9.7, height=1.35,
+                                 stroke_color=SAND, stroke_width=3, fill_color=ROCK,
+                                 fill_opacity=0.72).move_to([0, -0.68, 0])
+        upper = RoundedRectangle(corner_radius=0.12, width=9.7, height=1.35,
+                                 stroke_color=SAND, stroke_width=3, fill_color=ROCK_LIGHT,
+                                 fill_opacity=0.72).move_to([0, 0.68, 0])
+        middle = RoundedRectangle(corner_radius=0.08, width=9.7, height=0.85,
+                                  stroke_color=SAND, stroke_width=3, fill_color=SAND,
+                                  fill_opacity=0.48).move_to([0, 0, 0])
+        low_shell = shell([-2.2, -0.88, 0], 0.95)
+        high_shell = shell([2.2, 0.45, 0], 0.95, changed=0.75)
+        self.add(lower, upper, middle, low_shell, high_shell)
+        self.at("remove one band")
+        self.play(middle.animate.shift(RIGHT * 8),
+                  lower.animate.shift(DOWN * 0.70), low_shell.animate.shift(DOWN * 0.70),
+                  upper.animate.shift(UP * 0.70), high_shell.animate.shift(UP * 0.70), run_time=1.0)
+        missing = Rectangle(width=9.7, height=1.10, stroke_color=GREY, stroke_width=3,
+                            fill_color=GREY, fill_opacity=0.10)
+        missing_label = T("missing layer", 30, GREY).move_to(missing)
+        missing_label.layout_ok = True
+        shimmer = shimmer_band()
+        self.play(FadeIn(missing), FadeIn(missing_label), FadeIn(shimmer), run_time=0.4)
+        missing_label._t = 0.0
+        def _bob(mob, dt):
+            missing_label._t += dt
+            k = np.sin(2.2 * missing_label._t)
+            missing.set_fill(GREY, opacity=0.18 + 0.12 * k)
+            missing_label.set_opacity(0.75 + 0.25 * k)
+            low_shell.set_opacity(0.8 + 0.2 * np.sin(2.2 * missing_label._t + 1.5))
+            high_shell.set_opacity(0.8 + 0.2 * np.sin(2.2 * missing_label._t + 1.5))
+        missing_label.add_updater(_bob)
+        self.at("lower layer holds")
+        self.play(Indicate(low_shell, color=GOLD, scale_factor=1.06), run_time=0.5)
+        self.at("upper layer holds")
+        self.play(Indicate(high_shell, color=GOLD, scale_factor=1.06), run_time=0.5)
+        self.at("Does the missing band")
+        q = question_card("Does a gap erase the observed pattern?", y=-3.15, max_w=10.6)
+        self.play(FadeIn(q.question, shift=UP * 0.1), run_time=0.55)
+        self.at("Think before")
+        self.play(missing.animate.set_fill(GREY, opacity=0.18), run_time=0.5, rate_func=there_and_back)
+        self.finish()
+
+
+class S06Pause(PredictPause):
+    QUESTION = "Does a gap erase the observed pattern?"
+    OPTIONS = ()
+    SECONDS = 4.5
+    CARD = {"y": -3.15, "max_w": 10.6}
+
+    def backdrop(self):
+        return observed_pair(False)
+
+
+class S07Reveal(SpokenScene):
+    def construct(self):
+        pair = observed_pair(False)
+        self.add(pair)
+        no = T("NO", 48, GREEN, weight=BOLD).move_to([0, 3.25, 0])
+        self.play(FadeIn(no, scale=1.15), run_time=0.45)
+        self.at("compare the fossils")
+        left_brace = BraceBetweenPoints(pair.low_shell.get_top(), [0, -0.58, 0], color=GREEN)
+        right_brace = BraceBetweenPoints([0, 0.58, 0], pair.high_shell.get_bottom(), color=GREEN)
+        self.play(GrowFromCenter(left_brace), GrowFromCenter(right_brace), run_time=0.8)
+        obs1 = T("observed", 28, GREEN).next_to(pair.low_shell, RIGHT, buff=1.4).shift(DOWN * 0.25)
+        obs2 = T("observed", 28, GREEN).next_to(pair.high_shell, LEFT, buff=1.4).shift(UP * 0.25)
+        self.play(FadeIn(obs1), FadeIn(obs2), run_time=0.5)
+        self.at("limits what we know")
+        unknown = T("unknown details", 30, GREY).move_to(pair.missing)
+        unknown.layout_ok = True
+        self.play(swap(pair.missing_label, unknown), run_time=0.55)
+        self.at("keep it gray")
+        self.play(pair.missing.animate.set_fill(GREY, opacity=0.22), run_time=0.5)
+        self.at("both observations and uncertainty")
+        pulse(left_brace, base=5, amp=1.5, speed=2.0)
+        pulse(right_brace, base=5, amp=1.5, speed=2.0)
+        honest = caption("observations + uncertainty", color=GREEN)
+        self.play(FadeIn(honest, shift=UP * 0.1), run_time=0.5)
+        self.at("Limits stay visible")
+        self.play(Indicate(unknown, color=GREY, scale_factor=1.06), run_time=0.6)
+        self.finish()
+
+
+def timeline_base():
+    x_of = lambda mya: -5.75 + (550 - mya) / 550 * 11.5
+    bar = Line([x_of(550), -0.25, 0], [x_of(0), -0.25, 0], color=GREY, stroke_width=7)
+    labels = VGroup(T("550 million years ago", 28, GREY).move_to([-4.55, -0.78, 0]),
+                    T("today", 28, GREY).move_to([5.38, -0.78, 0]))
+    return x_of, VGroup(bar, labels)
+
+
+class S08Timeline(SpokenScene):
+    def construct(self):
+        bank = riverbank()
+        self.add(bank)
+        x_of, base = timeline_base()
+        self.play(FadeOut(bank), Rotate(base, angle=0.02), FadeIn(base), run_time=0.75)
+        title = T("examples, schematic branches", 34, GOLD, weight=BOLD).move_to([0, 3.35, 0])
+        self.play(FadeIn(title), run_time=0.4)
+        data = [(518, "fish"), (365, "four-legged\nanimals"),
+                (205, "mammal\nrelatives"), (150, "bird-like\ndinosaurs")]
+        branches = VGroup()
+        labels = VGroup()
+        cues = ("Fish", "four-legged animals", "mammal relatives", "bird-like dinosaurs")
+        for i, ((age, name), cue) in enumerate(zip(data, cues)):
+            x = x_of(age)
+            h = 1.05 + 0.33 * (i % 2)
+            stem = Line([x, -0.25, 0], [x, -0.25 + h, 0], color=GOLD, stroke_width=5)
+            dot = Dot([x, -0.25 + h, 0], radius=0.13, color=GOLD)
+            lab = VGroup(T(name, 28, GOLD, weight=BOLD, line_spacing=0.8),
+                         M(f"{age} million years", 24, TEXT)).arrange(DOWN, buff=0.10)
+            centers = [(-5.05, 1.55), (-1.4, 2.20), (0.30, -1.70), (4.65, 2.20)]
+            lab.move_to([centers[i][0], centers[i][1], 0])
             self.at(cue)
-            l = T(txt, 24, col, weight=BOLD, line_spacing=0.8)
-            l.move_to([-5.15, ys[idx], 0])
-            ln = Line([l.get_right()[0] + 0.1, ys[idx], 0], [-3.1 if idx != 3 else -3.0, ys[idx], 0], color=col, stroke_width=2.5)
-            parts = [hum[0]] if idx == 0 else (list(hum[1]) if idx == 1 else (list(hum[2]) if idx == 2 else list(hum[3])))
-            self.play(FadeIn(l), Create(ln), *[p.animate.set_stroke(col, 3).set_fill(col, 0.5) for p in parts], run_time=0.5)
-            labs += [l, ln]
-        self.at("A cat's front leg")
-        self.play(FadeIn(lm[1]), FadeIn(names[1]), run_time=0.5)
-        self.at("a whale's flipper")
-        self.play(FadeIn(lm[2]), FadeIn(names[2]), run_time=0.5)
-        self.at("a bat's wing")
-        self.play(FadeIn(lm[3]), FadeIn(names[3]), run_time=0.5)
-        self.at("have the same set")
-        self.play(*[Indicate(m, color=TEXT, scale_factor=1.04) for m in lm], run_time=0.9)
-        self.at("The shapes differ")
-        self.wait(0.3)
-        self.at("and the jobs differ")
-        jobs = []
-        for (n, cx, d, job), nm in zip(specs, names):
-            if job:
-                j = T(job, 24, YELLOW).move_to([cx, -3.3, 0])
-                jobs.append(j)
-        self.play(*[FadeIn(j, shift=UP * 0.1) for j in jobs], run_time=0.6)
-        self.at("A common ancestor is")
-        ca = chip("common ancestor", GOLD, 32).move_to([-0.2, 3.1, 0])
-        self.play(FadeIn(ca, scale=0.9), run_time=0.5)
-        self.at("Two or more kinds")
-        tops = [m.get_top()[1] for m in lm]
-        bar = Line([-2.5, 2.35, 0], [4.6, 2.35, 0], color=GOLD, stroke_width=4)
-        stem = Line([-0.2, ca.get_bottom()[1], 0], [-0.2, 2.35, 0], color=GOLD, stroke_width=4)
-        drops = [Line([cx, 2.35, 0], [cx, tp + 0.1, 0], color=GOLD, stroke_width=4) for (_, cx, _, _), tp in zip(specs, tops)]
-        self.play(Create(stem), Create(bar), run_time=0.5)
-        self.play(*[Create(d) for d in drops], run_time=0.6)
-        self.at("explains the match best")
-        self.play(Indicate(ca, color=GOLD, scale_factor=1.12), run_time=0.8)
+            self.play(Create(stem), GrowFromCenter(dot), FadeIn(lab, shift=UP * 0.1), run_time=0.55)
+            branches.add(stem, dot)
+            labels.add(lab)
+        pulse(base[0], base=7, amp=2.0, speed=1.6)
+        scan = Rectangle(width=0.28, height=4.6, stroke_width=0, fill_color=GOLD,
+                         fill_opacity=0.16).move_to([-5.6, 0.35, 0])
+        scan._x0 = -5.6
+
+        def scan_time(mob, dt):
+            mob.shift(RIGHT * 1.15 * dt)
+            if mob.get_x() > 5.6:
+                mob.set_x(mob._x0)
+
+        scan.add_updater(scan_time)
+        scan.set_z_index(-1)
+        self.add(scan)
+        self.at("not one ladder")
+        staircase = VGroup(*[Line([-5.55 + i * 0.90, -2.65 + i * 0.20, 0],
+                                    [-4.75 + i * 0.90, -2.65 + i * 0.20, 0], color=GREY,
+                                    stroke_width=5) for i in range(4)])
+        cross = Cross(staircase, stroke_color=GREEN, stroke_width=6)
+        self.play(FadeIn(staircase), run_time=0.35)
+        self.play(Create(cross), FadeOut(staircase), run_time=0.55)
+        self.at("examples, not ancestors")
+        note = caption("examples — not ancestors", color=GREEN)
+        self.play(FadeOut(cross), FadeIn(note), Indicate(branches, color=GREEN, scale_factor=1.01), run_time=0.6)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-def seq_row(letters, center, size=0.42, col=GREEN, fs=26):
-    blocks = VGroup()
-    for k, ch in enumerate(letters):
-        r = Square(side_length=size, stroke_color=col, stroke_width=2.5, fill_color=col, fill_opacity=0.14)
-        t = M(ch, fs, col).move_to(r)
-        blocks.add(VGroup(r, t))
-    blocks.arrange(RIGHT, buff=0.04).move_to(center)
-    return blocks
-
-
-class S05Dna(SpokenScene):
+class S09EvidenceJobs(SpokenScene):
     def construct(self):
-        base = "ATCGGATC"
-        self.at("second check")
-        dn = chip("DNA", GREEN, 38).move_to([-5.2, 3.05, 0])
-        self.play(FadeIn(dn, scale=0.9), run_time=0.4)
-        self.at("the order of the bases")
-        row = seq_row(base, [0.0, 1.55, 0], size=0.72, fs=36)
-        sl = T("a DNA sequence: the order of the bases", 28, GREEN).move_to([0, 2.55, 0])
-        sk1 = T("sketch: made-up letters, not real DNA", 24, GREY).move_to([0, -2.6, 0])
-        self.play(FadeIn(sk1), FadeIn(sl), LaggedStart(*[FadeIn(b, shift=DOWN * 0.1) for b in row], lag_ratio=0.12), run_time=1.0)
-        self.at("Small changes in")
-        row2 = seq_row("ATCGAATC", [0.0, -0.55, 0], size=0.72, fs=36)
-        self.play(FadeIn(row2), run_time=0.4)
-        self.play(row2[4][0].animate.set_stroke(YELLOW, 4).set_fill(YELLOW, 0.3), row2[4][1].animate.set_color(YELLOW), run_time=0.5)
-        cl = T("a small change", 26, YELLOW).move_to([0, -1.4, 0])
-        self.play(FadeIn(cl), run_time=0.3)
-        self.at("get passed on")
-        ar = arr([0.0, 1.05, 0], [0.0, 0.0, 0], GREY, w=5, tip=0.2)
-        po = T("passed on", 26, GREY).move_to([1.4, 0.5, 0])
-        self.play(GrowArrow(ar), FadeIn(po), run_time=0.5)
-        # tree part
-        self.at("split from a common")
-        self.play(FadeOut(VGroup(dn, row, sl, row2, cl, ar, po, sk1)), run_time=0.5)
-        sk = T("sketch: made-up letters, not real DNA", 22, GREY).move_to([-3.1, 3.2, 0])
-        self.play(FadeIn(sk), run_time=0.3)
-
-        tipy = -0.2
-
-        def pair(cx, ynode):
-            node = Dot([cx, ynode, 0], radius=0.16, color=GOLD)
-            tips = [[cx - 1.2, tipy, 0], [cx + 1.2, tipy, 0]]
-            ed = VGroup(*[Line(node.get_center(), t, color=GOLD, stroke_width=4) for t in tips])
-            t_dots = VGroup(*[Dot(t, radius=0.12, color=TEXT) for t in tips])
-            return node, ed, t_dots
-
-        nA, eA, dA = pair(-3.3, 1.3)
-        nB, eB, dB = pair(3.3, 2.7)
-        caL = T("common ancestor", 24, GOLD).next_to(nA, UP, buff=0.12)
-        caR = T("common ancestor", 24, GOLD).next_to(nB, UP, buff=0.12)
-        self.play(FadeIn(nB), FadeIn(caR), run_time=0.3)
-        self.play(Create(eB), FadeIn(dB), run_time=0.5)
-        bl = T("split long ago", 28, TEXT, weight=BOLD).move_to([3.3, -0.75, 0])
-        self.play(FadeIn(bl), run_time=0.2)
-        self.at("more recently")
-        self.play(FadeIn(nA), FadeIn(caL), Create(eA), FadeIn(dA), run_time=0.5)
-        al = T("split more recently", 28, TEXT, weight=BOLD).move_to([-3.3, -0.75, 0])
-        self.play(FadeIn(al), run_time=0.2)
-        rA = [seq_row("ATCGGATC", [-3.3, -1.5, 0], size=0.42, fs=24), seq_row("ATCGAATC", [-3.3, -1.98, 0], size=0.42, fs=24)]
-        rB = [seq_row("ATCGGATC", [3.3, -1.5, 0], size=0.42, fs=24), seq_row("TTCAGCTA", [3.3, -1.98, 0], size=0.42, fs=24)]
-        self.at("less time")
-        tl = T("less time to collect changes", 24, GREEN).move_to([-3.3, -2.55, 0])
-        self.play(FadeIn(VGroup(*rA)), rA[1][4][0].animate.set_stroke(YELLOW, 3).set_fill(YELLOW, 0.3), FadeIn(tl), run_time=0.4)
-        self.play(FadeIn(VGroup(*rB)), *[rB[1][i][0].animate.set_stroke(YELLOW, 3).set_fill(YELLOW, 0.3) for i in (0, 3, 5, 7)],
-                  FadeIn(T("more time to collect changes", 24, GREEN).move_to([3.3, -2.55, 0])), run_time=0.4)
-        self.at("closer relatives")
-        ms = T("more similar DNA", 30, GREEN, weight=BOLD).move_to([-3.3, -3.15, 0])
-        ls = T("less similar DNA", 30, GREEN, weight=BOLD).move_to([3.3, -3.15, 0])
-        self.play(FadeIn(ms, shift=UP * 0.1), FadeIn(ls, shift=UP * 0.1), run_time=0.5)
+        bank = riverbank()
+        self.add(bank)
+        jobs = [("existence", [-4.75, 3.45, 0]), ("extinction", [-1.65, 3.45, 0]),
+                ("change", [1.35, 3.45, 0]), ("environment", [4.65, 3.45, 0])]
+        job_labels = VGroup()
+        for (word, pos), cue in zip(jobs, ("existence", "extinction", "change", "past environments")):
+            lab = T(word, 30, GREEN, weight=BOLD).move_to(pos)
+            job_labels.add(lab)
+            self.at(cue)
+            self.play(FadeIn(lab, shift=DOWN * 0.12), run_time=0.35)
+            self.play(Indicate(bank.shells, color=GOLD, scale_factor=1.015), run_time=0.28)
+        self.at("some claims and not others")
+        self.play(FadeOut(job_labels), run_time=0.4)
+        focus = shell([-2.6, -0.7, 0], 1.25)
+        bob(focus, amp=0.12, speed=4.0)
+        self.play(FadeOut(bank), FadeIn(focus), run_time=0.6)
+        old_sea = VGroup(Rectangle(width=5.2, height=2.2, stroke_color=WATER, stroke_width=3,
+                                   fill_color=WATER, fill_opacity=0.22).move_to([-2.6, -0.5, 0]),
+                         T("old sea", 32, WATER).move_to([-2.6, 0.9, 0]))
+        self.at("place life in an old sea")
+        self.play(FadeIn(old_sea), run_time=0.55)
+        tree = branch_tree(at=(3.8, -0.1, 0))
+        pulse(tree, base=5.0, amp=1.5, speed=1.7)
+        qs = VGroup(*[T("?", 38, GREY).move_to(p) for p in ([2.5, 1.45, 0], [3.8, 1.75, 0], [5.1, 1.45, 0])])
+        self.at("cannot name every branch")
+        self.play(Create(tree), FadeIn(qs), run_time=0.7)
+        self.at("clear scope")
+        self.play(FadeIn(scope_tag("this fossil alone")), run_time=0.4)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S06Agree(SpokenScene):
+class S10Theory(SpokenScene):
     def construct(self):
-        self.at("In science")
-        th = chip("theory", TEAL_B, 36).move_to([-4.9, 3.0, 0])
-        l1 = T("a well-tested explanation", 28, TEXT)
-        l1.move_to([-3.5 + l1.width / 2, 3.3, 0])
-        l2 = T("backed by many lines of evidence", 28, TEXT)
-        l2.move_to([-3.5 + l2.width / 2, 2.7, 0])
-        self.play(FadeIn(th, scale=0.9), run_time=0.4)
-        self.at("tested explanation")
-        self.play(FadeIn(l1, shift=RIGHT * 0.15), run_time=0.5)
-        self.at("many lines of")
-        self.play(FadeIn(l2, shift=RIGHT * 0.15), run_time=0.6)
-        self.at("It is not")
-        gs = chip("a guess", RED, 30).move_to([4.9, 3.0, 0])
-        xs = Cross(gs, stroke_color=RED, stroke_width=5).scale(0.9)
-        self.play(FadeIn(gs), run_time=0.3)
-        self.play(Create(xs), run_time=0.4)
-        self.at("The theory of evolution")
-        self.play(FadeOut(VGroup(th, l1, l2, gs, xs)), run_time=0.4)
-        te = chip("theory of evolution", TEAL_B, 38).move_to([0, 3.1, 0])
-        t1 = T("living things change over time", 32, TEXT)
-        t2 = T("and share common ancestors", 32, GOLD)
-        tt = VGroup(t1, t2).arrange(DOWN, buff=0.12).move_to([0, 1.95, 0])
-        self.play(FadeIn(te, scale=0.9), run_time=0.4)
-        self.at("change over time")
-        self.play(FadeIn(t1, shift=UP * 0.1), run_time=0.5)
-        self.at("share common")
-        self.play(FadeIn(t2, shift=UP * 0.1), run_time=0.5)
-        self.at("It predicts")
-        cf = chip("fossils", BLUE, 40).move_to([-4.2, 0.2, 0])
-        cb = chip("bones", ORANGE, 40).move_to([0, 0.2, 0])
-        cd = chip("DNA", GREEN, 40).move_to([4.2, 0.2, 0])
-        self.at("that fossils")
-        self.play(FadeIn(cf, shift=DOWN * 0.1), run_time=0.4)
-        self.at("bones and")
-        self.play(FadeIn(cb, shift=DOWN * 0.1), run_time=0.4)
-        self.at("will tell", lead=0.5)
-        self.play(FadeIn(cd, shift=DOWN * 0.1), run_time=0.4)
-        self.at("Each one could")
-        qs = []
-        for c, col in ((cf, BLUE), (cb, ORANGE), (cd, GREEN)):
-            bx = RoundedRectangle(corner_radius=0.12, width=3.2, height=1.0, stroke_color=YELLOW, stroke_width=3,
-                                  fill_opacity=0).move_to([c.get_center()[0], -1.55, 0])
-            bx = DashedVMobject(bx, num_dashes=30)
-            q = T("a different story?", 24, YELLOW).move_to([c.get_center()[0], -1.55, 0])
-            a = arr([c.get_center()[0], c.get_bottom()[1] - 0.1, 0], [c.get_center()[0], -1.0, 0], col, w=5, tip=0.2)
-            qs.append(VGroup(bx, q, a))
-        self.play(*[FadeIn(q) for q in qs], run_time=0.8)
-        self.at("they largely agree")
-        gold = chip("the same family story", GOLD, 38).move_to([0, -2.25, 0])
-        arrs = [arr([c.get_center()[0] * 0.9, c.get_bottom()[1] - 0.1, 0], [c.get_center()[0] * 0.28, gold.get_top()[1] + 0.08, 0], col, w=5, tip=0.2)
-                for c, col in ((cf, BLUE), (cb, ORANGE), (cd, GREEN))]
-        self.play(*[FadeOut(q) for q in qs], run_time=0.4)
-        self.play(*[GrowArrow(a) for a in arrs], FadeIn(gold, scale=0.9), run_time=0.8)
-        self.at("how scientists know")
-        ans = T("Three kinds of evidence largely agree.", 36, TEXT, weight=BOLD).move_to([0, -3.3, 0])
-        self.play(FadeIn(ans, shift=UP * 0.1), run_time=0.6)
+        panels = TwoPanel("observations", "explanation", colors=(GOLD, GREEN), top=3.0, bottom=-2.5)
+        self.play(FadeIn(panels), run_time=0.6)
+        obs = VGroup(shell(radius=0.55), trilobite().scale(0.33),
+                     shell(radius=0.45, changed=0.7), T("past sea", 28, WATER)).arrange_in_grid(2, 2, buff=0.45)
+        panels.put(obs, "left")
+        self.play(LaggedStart(*[FadeIn(x) for x in obs], lag_ratio=0.2), run_time=0.9)
+        theory = chip("evolution: tested explanation", GREEN, 30)
+        panels.put(theory, "right")
+        self.at("well-tested explanation")
+        self.play(FadeIn(theory, scale=0.92), run_time=0.55)
+        obs_brace = Brace(obs, RIGHT, color=GREEN)
+        link = Arrow(obs_brace.get_right(), theory.get_left(), buff=0.15, color=GREEN,
+                     stroke_width=4, tip_length=0.18)
+        links = VGroup(obs_brace, link)
+        self.at("many lines of evidence")
+        self.play(GrowFromCenter(obs_brace), GrowArrow(link), run_time=0.8)
+        pulse(theory[0], base=2.5, amp=1.2, speed=1.8)
+        breathe_fill(theory[0], GREEN, lo=0.08, hi=0.55, speed=6.0)
+        rule = caption("populations change + share ancestors", color=GREEN)
+        self.at("populations change")
+        self.play(FadeIn(rule), run_time=0.45)
+        new = RoundedRectangle(corner_radius=0.14, width=3.0, height=1.1,
+                               stroke_color=GREY, stroke_width=3).move_to([4.6, -1.65, 0])
+        new_lab = T("new evidence", 28, GREY).move_to(new)
+        new_lab.layout_ok = True
+        self.at("new evidence can test")
+        self.play(FadeIn(new, shift=LEFT * 0.2), FadeIn(new_lab, shift=LEFT * 0.2), run_time=0.55)
+        test_arrow = Arrow(theory.get_bottom(), new.get_top(), color=GREEN, stroke_width=4,
+                           tip_length=0.18, buff=0.15)
+        q = T("?", 36, GREEN).next_to(test_arrow, LEFT, buff=0.1)
+        self.play(GrowArrow(test_arrow), FadeIn(q), run_time=0.5)
+        self.at("makes it testable")
+        self.play(Indicate(new, color=GREEN, scale_factor=1.03), run_time=0.55)
         self.finish()
 
 
-class S07End(EndCard):
-    LINE = "Fossils, bones and DNA tell the same family story."
+def sequence_strip():
+    letters = "A  T  G  C"
+    box = RoundedRectangle(corner_radius=0.12, width=2.15, height=0.72,
+                           stroke_color=TEAL, stroke_width=3, fill_color=TEAL,
+                           fill_opacity=0.12)
+    txt = M(letters, 25, TEAL).move_to(box)
+    txt.layout_ok = True  # text is intentionally contained by its sequence-strip icon
+    return VGroup(box, txt)
+
+
+class S11Return(SpokenScene):
+    def construct(self):
+        bank = riverbank(with_fossils=False, with_gaps=True)
+        fossil = shell([-3.4, -0.75, 0], 1.25)
+        self.add(bank)
+        self.play(GrowFromCenter(fossil), run_time=0.65)
+        self.at("living thing and an ancient sea")
+        ancient = T("life + ancient sea", 32, GREEN).move_to([-3.4, -2.30, 0])
+        ancient.layout_ok = True  # label is deliberately anchored to its fossil-bearing layer
+        self.play(FadeIn(ancient), run_time=0.5)
+        modern = shell([0.0, 1.55, 0], 1.05, color=TEXT, fill=0.08)
+        bob(modern, amp=0.06, speed=1.5)
+        self.at("living scallops")
+        self.play(FadeIn(modern, shift=LEFT * 0.25), run_time=0.65)
+        self.at("which organisms share branches")
+        tree = branch_tree(at=(4.25, -0.10, 0), scale=0.9)
+        qs = VGroup(*[T("?", 34, GREY).move_to(p) for p in ([3.15, 1.2, 0], [4.2, 1.55, 0], [5.25, 1.2, 0])])
+        for qmark in qs:
+            qmark.layout_ok = True  # unresolved branch marks sit over the landscape
+        self.play(Create(tree), FadeIn(qs), run_time=0.7)
+        bone = bone_icon(BLUE).scale(0.95).move_to([2.3, -2.0, 0])
+        seq = sequence_strip().move_to([4.9, -2.0, 0])
+        self.at("Bones and sequences")
+        self.play(FadeIn(bone, shift=UP * 0.15), FadeIn(seq, shift=UP * 0.15), run_time=0.55)
+        arrows = VGroup(Arrow(bone.get_top(), [3.55, -0.65, 0], buff=0.12, color=BLUE, tip_length=0.16),
+                        Arrow(seq.get_top(), [4.85, -0.65, 0], buff=0.12, color=TEAL, tip_length=0.16))
+        self.at("test that next")
+        self.play(*[GrowArrow(a) for a in arrows], run_time=0.55)
+        self.at("question continues")
+        self.play(Indicate(qs, color=GREY, scale_factor=1.08), run_time=0.5)
+        self.finish()
+
+
+class S12Scope(SpokenScene):
+    def construct(self):
+        bank = riverbank()
+        self.add(bank)
+        self.at("record is incomplete")
+        self.play(Indicate(bank.gaps, color=GREY, scale_factor=1.0), run_time=0.55)
+        limit = caption("Every claim keeps its limits", color=GREY)
+        self.play(FadeIn(limit), run_time=0.45)
+        self.at("observed fossils remain evidence")
+        self.play(Indicate(bank.shells, color=GOLD, scale_factor=1.06), FadeOut(limit), run_time=0.7)
+        outline = SurroundingRectangle(VGroup(bank.layers, bank.shells), color=GREEN,
+                                       stroke_width=5, buff=0.10)
+        self.at("Across many layers")
+        self.play(Create(outline), run_time=0.75)
+        sea = Rectangle(width=11.8, height=4.2, stroke_width=0, fill_color=WATER,
+                        fill_opacity=0.20).move_to([0, -0.5, 0])
+        self.at("life and environments changed")
+        self.play(FadeIn(sea), run_time=0.55)
+        self.play(FadeOut(sea, shift=DOWN * 0.35), bank.water.animate.set_fill(WATER, opacity=0.62), run_time=0.75)
+        self.at("through time")
+        self.play(Indicate(outline, color=GREEN, scale_factor=1.0), run_time=0.5)
+        self.finish()
+
+
+class S13End(EndCard):
+    LINE = "Fossils reveal life's change through time, even with gaps."

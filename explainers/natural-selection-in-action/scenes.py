@@ -1,406 +1,443 @@
-"""Natural selection in action  (Biochemistrypedia explainer, grade 7 Life Science)
+"""How a Population Changes Colour — natural selection in action.
 
-Timed to the SPOKEN words: every self.at("...") cue waits for that phrase in audio/words.json.
-All moth counts and shares are an invented SKETCH (the film says "in this sketch"); no real data is drawn.
+COLOR MAP
+  CREAM: pale moths and quiet plant forms
+  BLUE_BLACK: dark moths and selected plant forms
+  GREEN: survival and successful reproduction
+  RED: predation and removal
+  TEAL: deliberate human choice / defined boundaries
 
-COLOR MAP (one color per concept, whole film)
-  CREAM  = a pale moth
-  DUSK   = a dark moth (purple-grey fill so it can be seen on the dark frame)
-  SOOT   = sooty (dark) bark;  LICHEN = clean, pale bark
-  BLUE   = the bird, and the ring that means "the bird spots this moth"
-  RED    = eaten (cross)
-  GREEN  = survivors, young, "more common"
-  TEAL   = a science word being defined (label)
-  GREY   = outlines, plain labels
+The woodland is always rebuilt by ``woodland`` so every carried landmark keeps the
+same scale and position. Population rows are schematic; no counts are claimed.
 """
-import numpy as np
-from bp_style import *  # noqa: F401,F403
+from bp_parts import *  # noqa: F401,F403
+import bp_style as _style
+
+# Keep the gated take-home sentence verbatim while retaining the standard EndCard at >=22 pt.
+_style.TITLE_FONT = "Avenir Next Condensed"
 
 CREAM = "#E8DDB5"
-DUSK = "#4A3F5C"
-DUSK_LINE = "#9B8DB5"
-SOOT = "#2A2524"
-LICHEN = "#B4AE98"
-PX, PY = 0.0, -0.45          # wide panel centre
+BLUE_BLACK = "#23364D"
+DARK_EDGE = "#78A6D0"
+BARK_PALE = "#8A775F"
+BARK_DARK = "#332D2A"
+LEAF = "#687A58"
+
+MIX = ["pale", "dark", "pale", "dark", "pale", "dark", "pale", "dark"]
+MOTH_POS = [(-4.8, 1.1), (-3.25, 0.35), (-1.65, 1.05), (0.0, 0.2),
+            (1.55, 1.0), (3.1, 0.25), (4.65, 1.0), (5.25, -0.75)]
 
 
-def moth(kind, scale=1.0):
-    """A moth as a labelled-schematic shape: two wings and a body. No texture, no anatomy."""
-    fill, line = (CREAM, "#FFF4D0") if kind == "pale" else (DUSK, DUSK_LINE)
-    wl = Ellipse(width=0.52, height=0.30, fill_color=fill, fill_opacity=1, stroke_color=line, stroke_width=2).rotate(0.5).shift(LEFT * 0.22 + UP * 0.04)
-    wr = Ellipse(width=0.52, height=0.30, fill_color=fill, fill_opacity=1, stroke_color=line, stroke_width=2).rotate(-0.5).shift(RIGHT * 0.22 + UP * 0.04)
-    body = Ellipse(width=0.14, height=0.44, fill_color=fill, fill_opacity=1, stroke_color=line, stroke_width=2).shift(DOWN * 0.02)
-    g = VGroup(wl, wr, body).scale(scale * 1.5)
+def moth(kind="pale", scale=1.0):
+    """A large schematic moth icon, never an anatomical claim."""
+    fill = CREAM if kind == "pale" else BLUE_BLACK
+    edge = "#FFF1C5" if kind == "pale" else DARK_EDGE
+    left = Ellipse(0.72, 0.44, fill_color=fill, fill_opacity=1, stroke_color=edge,
+                   stroke_width=3).rotate(0.48).shift(LEFT * 0.29 + UP * 0.03)
+    right = Ellipse(0.72, 0.44, fill_color=fill, fill_opacity=1, stroke_color=edge,
+                    stroke_width=3).rotate(-0.48).shift(RIGHT * 0.29 + UP * 0.03)
+    body = Ellipse(0.16, 0.55, fill_color=fill, fill_opacity=1, stroke_color=edge,
+                   stroke_width=2)
+    g = VGroup(left, right, body).scale(scale)
     g.kind = kind
     return g
 
 
-def panel(w, h, cx=PX, cy=PY, kind="soot"):
-    fill = SOOT if kind == "soot" else LICHEN
-    r = Rectangle(width=w, height=h, stroke_color=GREY, stroke_width=3, fill_color=fill, fill_opacity=1).move_to([cx, cy, 0])
-    return r
-
-
-def bark_to(rect, kind):
-    return rect.animate.set_fill(SOOT if kind == "soot" else LICHEN, 1)
-
-
-def pulse_anim(group, k=1.25):
-    """scale up and back, without recolouring anything"""
-    return [m.animate.scale(k) for m in group]
-
-
-def ring(m, color=BLUE, r=0.7):
-    return Circle(radius=r, stroke_color=color, stroke_width=4, fill_opacity=0).move_to(m.get_center())
-
-
-def cross(m):
-    c = m.get_center()
-    return VGroup(Line(c + [-0.42, -0.42, 0], c + [0.42, 0.42, 0], color=RED, stroke_width=8),
-                  Line(c + [-0.42, 0.42, 0], c + [0.42, -0.42, 0], color=RED, stroke_width=8))
+def lock_icon(color):
+    shackle = Arc(radius=0.15, start_angle=0, angle=PI, color=color, stroke_width=4)
+    box = RoundedRectangle(0.05, width=0.42, height=0.32, color=color,
+                           fill_color=BG, fill_opacity=0.95, stroke_width=3).shift(DOWN * 0.15)
+    return VGroup(shackle, box)
 
 
 def bird(scale=1.0):
-    body = Ellipse(width=1.1, height=0.7, fill_color=BLUE, fill_opacity=0.9, stroke_color=BLUE, stroke_width=2)
-    head = Circle(radius=0.24, fill_color=BLUE, fill_opacity=0.9, stroke_color=BLUE, stroke_width=2).shift(LEFT * 0.55 + UP * 0.2)
-    beak = Triangle(fill_color=YELLOW, fill_opacity=1, stroke_width=0).scale(0.12).rotate(PI / 2).shift(LEFT * 0.86 + UP * 0.2)
-    tail = Triangle(fill_color=BLUE, fill_opacity=0.9, stroke_width=0).scale(0.2).rotate(-PI / 2).shift(RIGHT * 0.62 + DOWN * 0.04)
-    eye = Dot(head.get_center() + [-0.05, 0.05, 0], radius=0.04, color=BG)
+    """A simple bird silhouette with no species-level detail."""
+    body = Ellipse(1.25, 0.72, fill_color=BLUE, fill_opacity=1,
+                   stroke_color=DARK_EDGE, stroke_width=2)
+    head = Circle(0.27, fill_color=BLUE, fill_opacity=1,
+                  stroke_color=DARK_EDGE, stroke_width=2).shift(LEFT * 0.62 + UP * 0.2)
+    beak = Triangle(fill_color=GOLD, fill_opacity=1, stroke_width=0).scale(0.13)
+    beak.rotate(PI / 2).shift(LEFT * 0.96 + UP * 0.19)
+    tail = Triangle(fill_color=BLUE, fill_opacity=1, stroke_width=0).scale(0.22)
+    tail.rotate(-PI / 2).shift(RIGHT * 0.72 + DOWN * 0.04)
+    eye = Dot(head.get_center() + LEFT * 0.07 + UP * 0.06, radius=0.035, color=TEXT)
     return VGroup(body, head, beak, tail, eye).scale(scale)
 
 
-def place(kinds, pts, scale=1.0):
-    return [moth(k, scale).move_to(p) for k, p in zip(kinds, pts)]
+def woodland(kind="pale", kinds=MIX, moth_scale=1.05, ambient=True):
+    """The carried woodland at its canonical scale and place.
+
+    Returns a group with named ``bark``, ``moths``, and ``leaves`` attributes.
+    """
+    bg = RoundedRectangle(0.18, width=12.6, height=5.75, stroke_color=GREY,
+                          stroke_width=2, fill_color="#172018", fill_opacity=1).shift(UP * 0.15)
+    bg.layout_ok = True
+    bark_color = BARK_PALE if kind == "pale" else BARK_DARK
+    trunk = RoundedRectangle(0.32, width=2.35, height=5.25, stroke_color=CREAM if kind == "pale" else GREY,
+                             stroke_width=3, fill_color=bark_color, fill_opacity=1).shift(LEFT * 0.35 + DOWN * 0.05)
+    branch = RoundedRectangle(0.25, width=11.2, height=1.32, stroke_color=CREAM if kind == "pale" else GREY,
+                              stroke_width=3, fill_color=bark_color, fill_opacity=1).shift(DOWN * 0.38)
+    lichen = VGroup()
+    if kind == "pale":
+        for x, y, s in [(-0.9, 1.5, .42), (.25, 1.0, .34), (-.45, -.95, .36),
+                        (-4.4, -.4, .33), (-2.4, -.25, .27), (2.1, -.55, .35), (4.5, -.2, .28)]:
+            lichen.add(Circle(s, fill_color=CREAM, fill_opacity=.33, stroke_width=0).move_to([x, y, 0]))
+    leaves = VGroup(*[
+        Ellipse(.62, .3, fill_color=CREAM if i % 3 == 0 else LEAF, fill_opacity=.8,
+                stroke_width=0).rotate((-1) ** i * .45).move_to([x, y, 0])
+        for i, (x, y) in enumerate([(-5.5, 2.35), (-4.3, 2.6), (-2.9, 2.3),
+                                    (2.55, 2.45), (3.9, 2.65), (5.25, 2.25)])])
+    ms = VGroup(*[moth(k, moth_scale).move_to([x, y, 0]) for k, (x, y) in zip(kinds, MOTH_POS)])
+    g = VGroup(bg, trunk, branch, lichen, leaves, ms)
+    g.bark = VGroup(trunk, branch, lichen)
+    g.moths = ms
+    g.leaves = leaves
+    if ambient:
+        for i, leaf in enumerate(leaves):
+            bob(leaf, amp=.035, speed=.65 + .08 * i, seed=i)
+        for i, m in enumerate(ms):
+            bob(m, amp=.025, speed=.8 + .05 * i, seed=i + 2)
+    return g
 
 
-def grid_pts(w, h, cx, cy, cols=4, rows=3, jit=None):
-    jit = jit or [(0.0, 0.0)] * (cols * rows)
-    pts = []
-    for r in range(rows):
-        for c in range(cols):
-            x = cx + (c - (cols - 1) / 2) * (w - 1.8) / (cols - 1)
-            y = cy + ((rows - 1) / 2 - r) * (h - 1.5) / (rows - 1)
-            j = jit[r * cols + c]
-            pts.append(np.array([x + j[0], y + j[1], 0]))
-    return pts
+def dark_question_backdrop():
+    w = woodland("dark")
+    br = bird(.9).move_to([4.85, 2.55, 0])
+    bob(br, amp=.04, speed=.8)
+    return VGroup(w, br)
 
 
-JIT = [(-.1, .05), (.1, -.1), (-.05, .1), (.1, 0), (.1, -.05), (-.1, .1), (.05, .05), (-.1, -.1), (.1, .05), (-.05, -.05), (.1, -.05), (-.1, .05)]
-# 12 moths: pale/dark order, same for every scene that shows the one wood
-KINDS12 = ["dark", "pale", "dark", "pale", "pale", "dark", "pale", "dark", "dark", "pale", "dark", "pale"]
+def row_moths(kinds, y, scale=.95, xs=None):
+    xs = np.linspace(-4.9, 4.9, len(kinds)) if xs is None else xs
+    return VGroup(*[moth(k, scale).move_to([x, y, 0]) for k, x in zip(kinds, xs)])
 
 
-class S00Title(TitleCard):
-    LESSON = "Natural selection in action"
-    TITLE = "Why some traits become common"
-
-
-# ---------------------------------------------------------------------------------------------
-class S01Moths(SpokenScene):
+class S00Hook(SpokenScene):
     def construct(self):
-        P = panel(11.4, 4.4, 0, -0.35, "clean")
-        pts8 = grid_pts(11.4, 4.4, 0, -0.35, cols=4, rows=2, jit=[(-.1, .1), (.15, -.1), (-.15, .1), (.1, 0), (.1, -.1), (-.1, .1), (.1, .1), (-.1, -.1)])
-        head = T("Peppered moths", 40, font=TITLE_FONT).move_to([0, 2.75, 0])
+        w = woodland("pale")
+        self.play(FadeIn(w), run_time=1.1)
         self.at("Peppered moths rest")
-        self.play(FadeIn(P), Write(head), run_time=1.0)
-        mix = ["pale", "dark", "pale", "pale", "dark", "pale", "pale", "dark"]
-        ms = place(mix, pts8)
-        pale_i = [i for i, k in enumerate(mix) if k == "pale"]
-        dark_i = [i for i, k in enumerate(mix) if k == "dark"]
-        lp = T("pale", 30, CREAM, weight=BOLD)
-        ld = T("nearly black", 30, DUSK_LINE, weight=BOLD)
+        self.play(LaggedStart(*[FadeIn(m, scale=.6) for m in w.moths], lag_ratio=.08), run_time=1.3)
         self.at("Some are pale")
-        self.play(LaggedStart(*[FadeIn(ms[i], scale=0.6) for i in pale_i], lag_ratio=0.15), run_time=1.0)
-        lp.move_to([-3.6, -2.95, 0]); self.play(FadeIn(lp), run_time=0.3)
-        self.at("nearly black")
-        self.play(LaggedStart(*[FadeIn(ms[i], scale=0.6) for i in dark_i], lag_ratio=0.15), run_time=0.8)
-        ld.move_to([3.2, -2.95, 0]); self.play(FadeIn(ld), run_time=0.3)
-
-        # soot
-        self.at("soot darkened")
-        lab = T("sooty trees", 34, GREY, weight=BOLD).move_to([0, -2.95, 0])
-        mostly_dark = ["dark", "dark", "pale", "dark", "dark", "dark", "dark", "dark"]
-        ms2 = place(mostly_dark, pts8)
-        self.play(FadeOut(VGroup(*ms)), FadeOut(lp), FadeOut(ld), bark_to(P, "soot"), FadeIn(lab), run_time=1.0)
-        self.at("dark moths became common")
-        self.play(FadeIn(VGroup(*ms2), scale=0.7), run_time=0.8)
-        # clean
-        self.at("Later the air got cleaner")
-        lab2 = T("cleaner air, later", 34, GREY, weight=BOLD).move_to([0, -2.95, 0])
-        self.play(bark_to(P, "clean"), FadeOut(VGroup(*ms2)), ReplacementTransform(lab, lab2), run_time=1.0)
-        mostly_pale = ["pale", "pale", "dark", "pale", "pale", "pale", "pale", "pale"]
-        ms3 = place(mostly_pale, pts8)
-        self.at("dark moths became rare")
-        self.play(FadeIn(VGroup(*ms3), scale=0.7), run_time=0.8)
-        # the puzzle
-        nm = T("No adult moth changed\nits wing colour", 48, TEXT, weight=BOLD).move_to([0, 0.0, 0])
-        nmg = nm
-        self.at("moth changed")
-        self.play(FadeOut(VGroup(P, head, lab2, *ms3)), FadeIn(nmg), run_time=0.6)
-        self.at("So why do some traits")
-        q = T("Why do some traits become\nmore common over time?", 50, YELLOW, weight=BOLD, line_spacing=0.9)
-        qg = q.move_to([0, 0.0, 0])
-        self.play(FadeOut(nmg), run_time=0.3)
-        self.play(FadeIn(qg, shift=UP * 0.15), run_time=0.5)
+        pale = VGroup(*[m for m, k in zip(w.moths, MIX) if k == "pale"])
+        self.play(LaggedStart(*[Indicate(m, color=CREAM, scale_factor=1.15) for m in pale], lag_ratio=.12), run_time=1.2)
+        self.at("Others are nearly black")
+        dark = VGroup(*[m for m, k in zip(w.moths, MIX) if k == "dark"])
+        self.play(LaggedStart(*[Indicate(m, color=DARK_EDGE, scale_factor=1.15) for m in dark], lag_ratio=.12), run_time=1.2)
+        self.at("follow them through")
+        q = T("?", 92, GOLD, weight=BOLD).move_to([0, 2.45, 0])
+        q.layout_ok = True  # deliberate text over the woodland background
+        self.play(GrowFromCenter(q), run_time=.8)
+        self.add(scope_tag("schematic"))
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
+class S01Title(TitleCard):
+    LESSON = "Natural selection in action"
+    TITLE = "How a Population Changes Colour"
+
+
 class S02Population(SpokenScene):
     def construct(self):
-        W, H, CX, CY = 7.6, 4.6, -2.6, -0.3
-        P = panel(W, H, CX, CY, "clean")
-        P.set_fill(BG, 1)
-        P.set_stroke(TEAL, 3)
-        pts = grid_pts(W, H, CX, CY, jit=JIT)
-        ms = place(KINDS12, pts)
-        head = T("One wood", 36, font=TITLE_FONT).move_to([CX, 2.75, 0])
-        self.at("The moths in one wood")
-        self.play(Create(P), FadeIn(head), LaggedStart(*[FadeIn(m, scale=0.6) for m in ms], lag_ratio=0.04), run_time=0.8)
-        pop = T("population", 40, TEAL, weight=BOLD).move_to([CX, -3.25, 0])
-        self.at("are a population")
-        self.play(FadeIn(pop, shift=UP * 0.1), P.animate.set_stroke(TEAL, 6), run_time=0.6)
-        self.at("group of the same kind")
-        self.play(*pulse_anim(ms, 1.12), rate_func=there_and_back, run_time=1.2)
-        # not all the same
-        self.at("not all the same")
-        rings = []
-        for i in (1, 0):
-            rings.append(ring(ms[i], TEAL, 0.55))
-        tp = T("pale", 28, CREAM, weight=BOLD).next_to(rings[0], DOWN, buff=0.05)
-        td = T("dark", 28, DUSK_LINE, weight=BOLD).next_to(rings[1], DOWN, buff=0.05)
-        self.at("Some moths are pale")
-        self.play(Create(rings[0]), FadeIn(tp), run_time=0.5)
-        self.at("some are dark")
-        self.play(Create(rings[1]), FadeIn(td), run_time=0.5)
-        # inherited
-        self.at("is inherited")
-        self.play(FadeOut(VGroup(*rings, tp, td)), run_time=0.3)
-        rx = 3.55
-        inh_head = T("inherited", 42, TEAL, weight=BOLD).move_to([rx + 1.4, 2.75, 0])
-        inh_sub = T("in this model", 28, GREY).move_to([rx + 1.4, 2.2, 0])
-        pa = moth("pale", 1.15).move_to([rx - 0.4, 0.75, 0])
-        pb = moth("dark", 1.15).move_to([rx - 0.4, -1.35, 0])
-        ya = moth("pale", 0.8).move_to([rx + 2.7, 0.75, 0])
-        yb = moth("dark", 0.8).move_to([rx + 2.7, -1.35, 0])
-        a1 = Arrow(pa.get_right() + [0.15, 0, 0], ya.get_left() + [-0.15, 0, 0], buff=0.05, color=GREEN, stroke_width=5)
-        a2 = Arrow(pb.get_right() + [0.15, 0, 0], yb.get_left() + [-0.15, 0, 0], buff=0.05, color=GREEN, stroke_width=5)
-        l1 = T("parent", 26, GREY).next_to(pa, UP, buff=0.3).shift(DOWN * 0.1)
-        l2 = T("young", 26, GREEN).next_to(ya, UP, buff=0.3).shift(DOWN * 0.1)
-        self.play(FadeIn(inh_head), FadeIn(inh_sub), FadeIn(pa), FadeIn(pb), FadeIn(l1), run_time=0.6)
-        self.at("young moths have")
-        self.play(GrowArrow(a1), GrowArrow(a2), FadeIn(ya, shift=RIGHT * 0.2), FadeIn(yb, shift=RIGHT * 0.2), FadeIn(l2), run_time=0.9)
-        self.at("have their")
-        self.play(*pulse_anim([pa, ya, pb, yb], 1.2), rate_func=there_and_back, run_time=0.9)
+        w = woodland("pale")
+        boundary = RoundedRectangle(.22, width=12.25, height=5.45, color=TEAL, stroke_width=5).shift(UP * .15)
+        self.play(FadeIn(w), Create(boundary), run_time=1.0)
+        self.at("form a population")
+        pop = T("population", 40, TEAL, weight=BOLD).move_to([0, 3.35, 0])
+        self.play(FadeIn(pop, shift=DOWN * .12), run_time=.6)
+        self.at("Each moth keeps")
+        locks = VGroup(*[lock_icon(CREAM if k == "pale" else DARK_EDGE).scale(.72).next_to(m, DOWN, buff=.08)
+                         for m, k in zip(w.moths, MIX)])
+        self.play(LaggedStart(*[FadeIn(x, scale=.6) for x in locks], lag_ratio=.08), run_time=1.2)
+        self.at("New variation first appears")
+        self.play(FadeOut(locks), run_time=.35)
+        sparkle = VGroup(*[Line(LEFT*.25, RIGHT*.25, color=GOLD, stroke_width=5),
+                           Line(DOWN*.25, UP*.25, color=GOLD, stroke_width=5)]).move_to([5.7, 1.6, 0])
+        chance = T("variation appears by chance", 30, GOLD).move_to([0, -3.2, 0])
+        self.play(GrowFromCenter(sparkle), FadeIn(chance), run_time=.7)
+        self.at("variation already present")
+        self.play(LaggedStart(*[Indicate(m, scale_factor=1.1) for m in w.moths], lag_ratio=.08), run_time=1.4)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S03Birds(SpokenScene):
+class S03Inheritance(SpokenScene):
     def construct(self):
-        W, H, CX, CY = 7.6, 4.6, -2.6, -0.3
-        P = panel(W, H, CX, CY, "clean")
-        P.set_fill(BG, 1); P.set_stroke(TEAL, 3)
-        pts = grid_pts(W, H, CX, CY, jit=JIT)
-        ms = place(KINDS12, pts)
-        self.add(P, *ms)
-        # expand to the wide panel
-        W2, H2 = 11.4, 4.4
-        P2 = panel(W2, H2, PX, PY, "clean")
-        pts2 = grid_pts(W2, H2, PX, PY, jit=JIT)
-        self.at("Now add the environment")
-        env = T("environment", 42, TEAL, weight=BOLD).move_to([0, 2.8, 0])
-        self.play(Transform(P, P2), *[m.animate.move_to(p) for m, p in zip(ms, pts2)], FadeIn(env), run_time=1.0)
-        # chips: bark, air, food, predators
-        self.at("such as bark")
-        names = ["bark", "air", "food", "predators"]
-        chips = [chip(n, GREY, size=28) for n in names]
-        row = VGroup(*chips).arrange(RIGHT, buff=0.4).move_to([0, 2.8, 0])
-        self.play(FadeOut(env), run_time=0.2)
-        self.play(FadeIn(chips[0], shift=DOWN * 0.1), run_time=0.4)
-        self.at("air")
-        self.play(FadeIn(chips[1], shift=DOWN * 0.1), run_time=0.3)
-        self.at("food")
-        self.play(FadeIn(chips[2], shift=DOWN * 0.1), run_time=0.3)
-        self.at("and predators")
-        self.play(FadeIn(chips[3], shift=DOWN * 0.1), run_time=0.3)
-        self.at("Here the bark is dark and sooty")
-        sl = T("dark, sooty bark", 34, GREY, weight=BOLD).move_to([0, -3.05, 0])
-        sk = T("in this sketch (not real counts)", 26, GREY).move_to([0, 2.6, 0])
-        self.play(FadeOut(row), bark_to(P, "soot"), FadeIn(sl), FadeIn(sk), run_time=0.9)
-        # the bird
-        br = bird(1.0).move_to([5.0, 2.55, 0])
-        bl = T("bird", 28, BLUE).next_to(br, UP, buff=0.15)
-        self.at("Birds spot")
-        self.play(FadeIn(br), FadeIn(bl), run_time=0.5)
-        self.wait(0.4)  # Keep the bird above the bark, clear of every moth.
-        pale = [i for i, k in enumerate(KINDS12) if k == "pale"]
-        rings = [ring(ms[i], BLUE) for i in pale]
-        self.at("the pale moths stand out")
-        self.play(LaggedStart(*[Create(r) for r in rings], lag_ratio=0.12), run_time=0.9)
-        sw = T("pale moths stand out", 34, BLUE, weight=BOLD).move_to([0, -3.05, 0])
-        self.play(FadeOut(sl), run_time=0.15)
-        self.play(FadeIn(sw), run_time=0.15)
-        # eat only pale moths; leave every dark moth untouched
-        self.at("So birds find more pale")
-        eat = pale[:4]
-        crosses = []
-        for i in eat:
-            self.wait(0.35)
-            x = cross(ms[i])
-            self.play(FadeIn(x), run_time=0.15)
-            crosses.append(x)
-        self.at("Eaten moths have no young")
-        gone = VGroup(*[ms[i] for i in eat], *crosses, *[r for r, i in zip(rings, pale)])
-        lab = T("eaten: no young", 36, RED, weight=BOLD).move_to([0, -3.05, 0])
-        self.play(FadeOut(gone), FadeOut(sw), FadeOut(sk), FadeOut(VGroup(br, bl)), FadeIn(lab), run_time=0.8)
+        parents = row_moths(MIX, 1.65)
+        p_label = T("parents", 34, GREY).move_to([-5.65, 2.55, 0])
+        self.play(FadeIn(p_label), LaggedStart(*[FadeIn(m, shift=UP*.2) for m in parents], lag_ratio=.06), run_time=1.1)
+        for i, m in enumerate(parents):
+            bob(m, amp=.05, speed=.7 + .04*i, seed=i)
+        self.at("offspring usually share")
+        young = row_moths(MIX, -1.35, .72)
+        paths = VGroup(*[Arrow(p.get_bottom(), y.get_top(), buff=.16, color=CREAM if k == "pale" else DARK_EDGE,
+                                   stroke_width=4, tip_length=.18) for p, y, k in zip(parents, young, MIX)])
+        y_label = T("offspring", 34, GREEN).move_to([-5.35, -2.45, 0])
+        self.play(FadeIn(y_label), LaggedStart(*[AnimationGroup(GrowArrow(a), FadeIn(y))
+                                                 for a, y in zip(paths, young)], lag_ratio=.08), run_time=1.6)
+        for i, m in enumerate(young):
+            bob(m, amp=.04, speed=.75 + .04*i, seed=i + 3)
+        self.at("Real moths receive")
+        pair_a = moth("pale", .6).move_to([-1.1, 3.0, 0])
+        pair_b = moth("dark", .6).move_to([-.45, 3.0, 0])
+        two = T("two parents", 28, TEXT).next_to(VGroup(pair_a, pair_b), RIGHT, buff=.2)
+        merge = Arrow([-.75, 2.65, 0], [-.75, 2.15, 0], color=GREEN, buff=.05)
+        self.play(FadeIn(pair_a), FadeIn(pair_b), FadeIn(two), GrowArrow(merge), run_time=.8)
+        self.at("This picture uses")
+        self.play(FadeOut(VGroup(pair_a, pair_b, two, merge)), run_time=.35)
+        tag = scope_tag("model simplification")
+        self.play(FadeIn(tag), Indicate(paths, color=TEAL, scale_factor=1.02), run_time=1.1)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S04Young(SpokenScene):
+class S04Environment(SpokenScene):
     def construct(self):
-        W2, H2 = 11.4, 4.4
-        P = panel(W2, H2, PX, PY, "soot")
-        pts2 = grid_pts(W2, H2, PX, PY, jit=JIT)
-        pale = [i for i, k in enumerate(KINDS12) if k == "pale"]
-        eaten = set(pale[:4])  # Same four pale moths as scene 3.
-        surv = [i for i in range(12) if i not in eaten]
-        ms = {i: moth(KINDS12[i]).move_to(pts2[i]) for i in surv}
-        self.add(P, *ms.values())
-        self.at("The moths that are not eaten")
-        rs = {i: ring(ms[i], GREEN, 0.58) for i in surv}
-        sl = T("survivors", 36, GREEN, weight=BOLD).move_to([0, 2.8, 0])
-        self.play(LaggedStart(*[Create(r) for r in rs.values()], lag_ratio=0.1), FadeIn(sl), run_time=1.0)
-        # line the survivors up on a top row
-        n = len(surv)
-        xs = np.linspace(-4.6, 4.6, n)
-        top_y, low_y = 0.8, -1.3
-        self.at("live to reproduce")
-        self.play(*[ms[i].animate.move_to([x, top_y, 0]) for i, x in zip(surv, xs)],
-                  *[rs[i].animate.move_to([x, top_y, 0]) for i, x in zip(surv, xs)], run_time=1.0)
-        self.at("To reproduce means")
-        rl = T("reproduce = have young", 34, TEAL, weight=BOLD).move_to([0, 2.8, 0])
-        self.play(ReplacementTransform(sl, rl), run_time=0.5)
-        young = []
-        arrows = []
-        for i, x in zip(surv, xs):
-            y = moth(KINDS12[i], 0.75).move_to([x, low_y, 0])
-            a = Arrow([x, top_y - 0.42, 0], [x, low_y + 0.4, 0], buff=0.03, color=GREEN, stroke_width=4, tip_length=0.18)
-            young.append(y); arrows.append(a)
-        self.at("have young")
-        self.play(LaggedStart(*[AnimationGroup(GrowArrow(a), FadeIn(y)) for a, y in zip(arrows, young)], lag_ratio=0.12), run_time=1.0)
-        yl = T("young", 30, GREEN, weight=BOLD).move_to([0, low_y - 0.85, 0])
-        self.at("pass on genes")
-        self.play(FadeIn(yl), *pulse_anim(young, 1.2), rate_func=there_and_back, run_time=0.9)
-        nd = sum(1 for i in surv if KINDS12[i] == "dark")
-        self.at("Most of the survivors here are dark")
-        dk = [young[j] for j, i in enumerate(surv) if KINDS12[i] == "dark"]
-        self.play(*pulse_anim(dk, 1.35), rate_func=there_and_back, run_time=1.0)
-        gl = T("parents to young: one generation", 36, TEAL, weight=BOLD).move_to([0, -3.05, 0])
-        self.at("One step from parents")
-        self.play(FadeOut(rl), FadeIn(gl), run_time=0.6)
-        self.at("is a generation")
-        self.play(Indicate(gl, color=TEAL, scale_factor=1.08), run_time=0.8)
+        w = woodland("pale")
+        self.add(w, scope_tag("schematic"))
+        self.at("bark darkens with soot")
+        dark = woodland("dark")
+        self.play(Transform(w, dark), run_time=1.5)
+        self.at("environment includes")
+        env = T("environment", 38, TEAL, weight=BOLD).move_to([0, 3.35, 0])
+        labels = VGroup(*[chip(x, GREY, 28) for x in ("bark", "air", "food", "predators")]).arrange(RIGHT, buff=.22)
+        labels.move_to([0, 2.55, 0])
+        for c in labels:
+            c[1].layout_ok = True  # labels intentionally sit inside their own chips
+        self.play(FadeIn(env), run_time=.35)
+        self.play(LaggedStart(*[FadeIn(x, shift=DOWN*.12) for x in labels], lag_ratio=.18), run_time=1.4)
+        self.at("A bird enters")
+        br = bird(.95).move_to([6.4, 1.8, 0])
+        self.play(br.animate.move_to([4.8, 1.8, 0]), FadeOut(labels), run_time=1.0)
+        bob(br, amp=.04, speed=.9)
+        self.at("stand out from the background")
+        pale = [m for m, k in zip(w.moths, MIX) if k == "pale"]
+        rings = VGroup(*[Circle(.58, color=RED, stroke_width=4).move_to(m) for m in pale])
+        self.play(LaggedStart(*[Create(r) for r in rings], lag_ratio=.12), run_time=1.2)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S05Frequency(SpokenScene):
+class S05Predict(SpokenScene):
     def construct(self):
-        # four generations of a SKETCH population: 10 moths each, 4, 6, 8, 9 dark
-        darks = [10, 11, 12, 13]
-        N = 14
-        pw, ph, gap = 2.7, 3.3, 0.45
-        xs = [(k - 1.5) * (pw + gap) for k in range(4)]
-        cy = 0.8
-        panels, sets, labels, bars, fills = [], [], [], [], []
-        for k, x in enumerate(xs):
-            p = panel(pw, ph, x, cy, "soot")
-            arr_ = [None] * N
-            # place pale moths on spread-out cells
-            pale_cells = [1, 12, 6, 9][: N - darks[k]]
-            for c in range(N):
-                arr_[c] = "pale" if c in pale_cells else "dark"
-            ms = VGroup()
-            for c in range(N):
-                col, row = c % 2, c // 2
-                ms.add(moth(arr_[c], 0.42).move_to([x + (col - 0.5) * 1.1, cy + (3 - row) * 0.46, 0]))
-            lb = T(f"generation {k + 1}", 26, GREY).move_to([x, cy - ph / 2 - 0.3, 0])
-            bo = Rectangle(width=pw, height=0.36, stroke_color=GREY, stroke_width=2.5, fill_opacity=0).move_to([x, -1.55, 0])
-            bf = Rectangle(width=pw * darks[k] / N, height=0.36, stroke_width=0, fill_color=GREEN, fill_opacity=0.85)
-            bf.align_to(bo, LEFT).align_to(bo, UP)
-            panels.append(p); sets.append(ms); labels.append(lb); bars.append(bo); fills.append(bf)
-
-        self.at("Repeat that for many generations")
-        for k in range(4):
-            self.play(FadeIn(panels[k]), FadeIn(sets[k], scale=0.8), FadeIn(labels[k]), run_time=0.55)
-            if k == 0:
-                self.wait(0.15)
-        # selection arrow
-        arrow = Arrow([xs[0] - 1.3, 2.8, 0], [xs[3] + 1.3, 2.8, 0], buff=0, color=GREEN, stroke_width=6, tip_length=0.3)
-        self.at("matched the bark becomes more common")
-        self.play(GrowArrow(arrow), run_time=0.8)
-        # trait frequency
-        tf = T("trait frequency", 36, TEAL, weight=BOLD).move_to([0, -2.1, 0])
-        cap = T("share of dark moths, in this sketch (not real counts)", 24, GREY).move_to([0, -2.6, 0])
-        self.at("trait frequency")
-        self.play(FadeIn(tf), *[Create(b) for b in bars], run_time=0.7)
-        self.at("In this sketch")
-        self.play(FadeIn(cap), run_time=0.4)
-        self.at("grows each generation")
-        self.play(LaggedStart(*[GrowFromEdge(f, LEFT) for f in fills], lag_ratio=0.35), run_time=1.8)
-        ns = T("natural selection", 36, TEAL, weight=BOLD).move_to([0, 3.3, 0])
-        self.at("Natural selection shifts")
-        self.play(FadeIn(ns, shift=DOWN * 0.1), Indicate(arrow, color=TEAL, scale_factor=1.04), run_time=0.7)
-        self.at("It does not change any one moth")
-        ng = T("no one moth changes", 34, TEXT, weight=BOLD).move_to([0, -3.15, 0])
-        self.play(FadeIn(ng), run_time=0.6)
+        back = dark_question_backdrop()
+        self.add(back)
+        self.at("which color will birds")
+        creams = VGroup(*[back[0].moths[i] for i, k in enumerate(MIX) if k == "pale"])
+        darks = VGroup(*[back[0].moths[i] for i, k in enumerate(MIX) if k == "dark"])
+        self.play(LaggedStart(*[Indicate(m, color=CREAM) for m in creams], lag_ratio=.08), run_time=.8)
+        self.play(LaggedStart(*[Indicate(m, color=DARK_EDGE) for m in darks], lag_ratio=.08), run_time=.8)
+        self.at("Which color will leave")
+        q = question_card("Which colour leaves more young?", ["cream", "blue-black"], chips_at=[4.75, -1.75, 0])
+        self.play(FadeIn(q.chips), FadeIn(q.question), run_time=.65)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S06Answer(SpokenScene):
+class S06Pause(PredictPause):
+    QUESTION = "Which colour leaves more young?"
+    OPTIONS = ["cream", "blue-black"]
+    CHIPS_AT = [4.75, -1.75, 0]
+    SECONDS = 4.5
+
+    def backdrop(self):
+        return dark_question_backdrop()
+
+
+class S07Reveal(SpokenScene):
     def construct(self):
-        P = panel(11.4, 3.9, PX, -0.1, "soot")
-        pts = grid_pts(11.4, 3.9, PX, -0.1, cols=4, rows=2, jit=[(-.1, .1), (.15, -.1), (-.15, .1), (.1, 0), (.1, -.1), (-.1, .1), (.1, .1), (-.1, -.1)])
-        mix = ["dark", "dark", "pale", "dark", "dark", "dark", "dark", "dark"]
-        ms = place(mix, pts)
-        dark_idx = [i for i, k in enumerate(mix) if k == "dark"]
-        ns = T("natural selection", 44, TEAL, weight=BOLD).move_to([0, 2.7, 0])
-        self.at("This is natural selection")
-        self.play(FadeIn(P), FadeIn(VGroup(*ms), scale=0.8), FadeIn(ns), run_time=0.9)
-        defn = T("traits that suit the environment:\nmore likely to survive and reproduce", 30, TEXT, line_spacing=0.9).move_to([0, -2.95, 0])
-        self.at("Individuals with traits")
-        self.play(FadeIn(defn), run_time=0.6)
-        self.at("more likely to survive")
-        self.play(*pulse_anim([ms[i] for i in dark_idx], 1.25), rate_func=there_and_back, run_time=1.0)
-        ad = T("adaptation", 44, TEAL, weight=BOLD).move_to([0, 2.7, 0])
+        w = woodland("dark")
+        br = bird(.92).move_to([4.9, 2.5, 0])
+        self.add(w, br, scope_tag("schematic"))
+        pale_i = [i for i, k in enumerate(MIX) if k == "pale"]
+        self.at("bird finds more")
+        for j, i in enumerate(pale_i[:3]):
+            path = ArcBetweenPoints(w.moths[i].get_center(), br.get_center() + DOWN*.35,
+                                    angle=(-1)**j * .35, color=RED, stroke_width=5)
+            self.play(Create(path), w.moths[i].animate.move_to(br.get_center()+DOWN*.35).set_opacity(0),
+                      run_time=.55)
+            self.remove(path)
+        self.at("Dark moths are missed")
+        darks = VGroup(*[m for i, m in enumerate(w.moths) if MIX[i] == "dark"])
+        self.play(LaggedStart(*[Indicate(m, color=DARK_EDGE, scale_factor=1.14) for m in darks], lag_ratio=.1), run_time=1.1)
+        self.at("survive to reproduce")
+        survivors = [m for i, m in enumerate(w.moths) if i not in pale_i[:3]]
+        rings = VGroup(*[Circle(.58, color=GREEN, stroke_width=4).move_to(m) for m in survivors])
+        self.play(LaggedStart(*[Create(r) for r in rings], lag_ratio=.08), run_time=1.2)
+        self.at("means to have young")
+        cap = caption("reproduce = have young", color=GREEN)
+        self.play(FadeIn(cap), run_time=.5)
+        self.at("do not become better")
+        arrow = Arrow([-1.0, 2.55, 0], [1.0, 2.55, 0], color=RED, stroke_width=5)
+        before = moth("dark", .75).next_to(arrow, LEFT, buff=.2)
+        after = moth("pale", .75).next_to(arrow, RIGHT, buff=.2)
+        slash = Line(arrow.get_corner(UL)+LEFT*.15, arrow.get_corner(DR)+RIGHT*.15, color=RED, stroke_width=8)
+        self.play(FadeOut(cap), FadeIn(before), GrowArrow(arrow), FadeIn(after), Create(slash), run_time=.8)
+        self.at("already had their color")
+        self.play(FadeOut(VGroup(before, arrow, after, slash)), Indicate(darks, color=GREEN), run_time=.8)
+        self.finish()
+
+
+class S08Generation(SpokenScene):
+    def construct(self):
+        survivor_kinds = ["dark", "dark", "pale", "dark", "dark"]
+        parents = row_moths(survivor_kinds, 1.5, 1.0, np.linspace(-4.2, 4.2, 5))
+        rings = VGroup(*[Circle(.58, color=GREEN, stroke_width=4).move_to(m) for m in parents])
+        self.play(LaggedStart(*[FadeIn(VGroup(m, r), shift=UP*.2) for m, r in zip(parents, rings)], lag_ratio=.1), run_time=1.0)
+        for i, m in enumerate(parents):
+            bob(m, amp=.045, speed=.72 + .05*i, seed=i)
+        pl = T("parents", 34, GREY).move_to([-5.5, 2.35, 0])
+        self.play(FadeIn(pl), run_time=.3)
+        self.at("offspring fill")
+        child_kinds = ["dark", "dark", "pale", "dark", "dark", "dark", "pale", "dark"]
+        children = row_moths(child_kinds, -1.25, .75)
+        arrows = VGroup(*[Arrow(parents[i % 5].get_bottom(), c.get_top(), buff=.18, color=GREEN,
+                                  stroke_width=3, tip_length=.16) for i, c in enumerate(children)])
+        self.play(LaggedStart(*[AnimationGroup(GrowArrow(a), FadeIn(c)) for a, c in zip(arrows, children)],
+                              lag_ratio=.07), run_time=1.5)
+        for i, m in enumerate(children):
+            bob(m, amp=.035, speed=.75 + .04*i, seed=i + 2)
+        self.at("A generation is")
+        brace = BraceBetweenPoints([-5.9, 1.25, 0], [-5.9, -1.0, 0], direction=LEFT, color=TEAL)
+        gl = T("generation", 30, TEAL).rotate(PI/2).move_to([-6.3, .12, 0])
+        self.play(GrowFromCenter(brace), FadeIn(gl), run_time=.7)
+        self.at("larger share of dark")
+        darks = [m for m, k in zip(children, child_kinds) if k == "dark"]
+        self.play(LaggedStart(*[Indicate(m, color=DARK_EDGE, scale_factor=1.14) for m in darks], lag_ratio=.08), run_time=1.2)
+        self.at("every individual kept")
+        locks = VGroup(*[lock_icon(CREAM if k == "pale" else DARK_EDGE).scale(.65).next_to(m, DOWN, buff=.05)
+                         for m, k in zip(children, child_kinds)])
+        self.play(LaggedStart(*[FadeIn(x) for x in locks], lag_ratio=.06), run_time=.8)
+        self.add(scope_tag("schematic"))
+        self.finish()
+
+
+def population_strip(dark_share=.5, y=0, width=10.8, height=.72):
+    border = RoundedRectangle(.12, width=width, height=height, color=GREY, stroke_width=3)
+    dark_w = max(.1, width * dark_share)
+    pale_w = width - dark_w
+    p = Rectangle(width=pale_w, height=height-.08, fill_color=CREAM, fill_opacity=.92, stroke_width=0)
+    d = Rectangle(width=dark_w, height=height-.08, fill_color=BLUE_BLACK, fill_opacity=1, stroke_width=0)
+    p.move_to([-width/2 + pale_w/2, y, 0]); d.move_to([-width/2 + pale_w + dark_w/2, y, 0])
+    border.move_to([0, y, 0])
+    return VGroup(p, d, border)
+
+
+class S09Frequency(SpokenScene):
+    def construct(self):
+        base = population_strip(.5, 1.45)
+        self.play(FadeIn(base), run_time=.6)
+        self.at("called trait frequency")
+        brace = Brace(base[1], UP, color=TEAL)
+        lab = T("trait frequency", 34, TEAL, weight=BOLD).next_to(brace, UP, buff=.12)
+        self.play(GrowFromCenter(brace), FadeIn(lab), run_time=.7)
+        self.at("Advance the woodland")
+        rows = [population_strip(s, y) for s, y in zip((.58, .68, .78), (.45, -.55, -1.55))]
+        gen = VGroup(*[T(f"generation {i}", 28, GREY).move_to([-5.65, y, 0])
+                       for i, y in enumerate((1.45, .45, -.55, -1.55), 1)])
+        for r in rows:
+            r.shift(RIGHT*1.05)
+        self.play(FadeOut(VGroup(brace, lab)), FadeIn(gen[0]), base.animate.shift(RIGHT*1.05), run_time=.5)
+        for i, r in enumerate(rows, 1):
+            self.play(FadeIn(r, shift=UP*.18), FadeIn(gen[i]), run_time=.7)
+        self.at("dark share usually grows")
+        self.play(LaggedStart(*[Indicate(r[1], color=DARK_EDGE, scale_factor=1.02) for r in [base, *rows]], lag_ratio=.16), run_time=1.4)
+        self.add(scope_tag("schematic"))
+        self.finish()
+
+
+class S10Reverse(SpokenScene):
+    def construct(self):
+        w = woodland("dark")
+        self.add(w, scope_tag("schematic"))
+        self.at("clean the air")
+        clean = woodland("pale")
+        self.play(Transform(w, clean), run_time=1.5)
+        self.at("Dark moths now stand out")
+        dark_i = [i for i, k in enumerate(MIX) if k == "dark"]
+        rings = VGroup(*[Circle(.58, color=RED, stroke_width=4).move_to(w.moths[i]) for i in dark_i])
+        self.play(LaggedStart(*[Create(r) for r in rings], lag_ratio=.1), run_time=1.0)
+        self.at("birds remove a larger share")
+        br = bird(.9).move_to([5.2, 2.5, 0])
+        self.play(FadeIn(br), run_time=.35)
+        for i in dark_i[:3]:
+            self.play(w.moths[i].animate.move_to(br.get_center()+DOWN*.3).set_opacity(0), run_time=.42)
+        self.at("direction can reverse")
+        strip = population_strip(.78, -2.5, width=8.5)
+        strip2 = population_strip(.42, -2.5, width=8.5)
+        self.play(FadeOut(rings), FadeIn(strip), run_time=.4)
+        self.play(Transform(strip, strip2), run_time=1.0)
+        self.at("rarer again in Britain")
+        land1 = Polygon([-1.2,.4,0],[-.7,1.0,0],[-.4,.6,0],[-.55,-.1,0],[-1.0,-.35,0],
+                        color=TEAL, fill_color=TEAL, fill_opacity=.28).scale(.8).move_to([-3.0,1.7,0])
+        land2 = Polygon([.1,.4,0],[1.2,.65,0],[1.7,.2,0],[1.0,-.25,0],[.25,-.1,0],
+                        color=TEAL, fill_color=TEAL, fill_opacity=.28).scale(.8).move_to([2.0,1.7,0])
+        maps = VGroup(land1, land2, T("Britain", 28, TEXT).next_to(land1, DOWN, buff=.12),
+                      T("parts of the United States", 28, TEXT).next_to(land2, DOWN, buff=.12))
+        self.play(FadeOut(VGroup(w, br, strip)), FadeIn(maps), run_time=.8)
+        self.finish()
+
+
+class S11Adaptation(SpokenScene):
+    def construct(self):
+        tp = TwoPanel("sooty bark", "pale bark", colors=(DARK_EDGE, CREAM), top=3.0, bottom=-2.15)
+        left_bg = Rectangle(width=5.5, height=3.7, fill_color=BARK_DARK, fill_opacity=1, stroke_width=0)
+        right_bg = Rectangle(width=5.5, height=3.7, fill_color=BARK_PALE, fill_opacity=1, stroke_width=0)
+        tp.put(left_bg, "left"); tp.put(right_bg, "right")
+        ml = moth("dark", 2.15).move_to(left_bg)
+        mr = moth("dark", 2.15).move_to(right_bg)
+        self.play(FadeIn(tp), FadeIn(left_bg), FadeIn(right_bg), FadeIn(ml), FadeIn(mr), run_time=.8)
+        bob(ml, amp=.065, speed=.75, seed=1)
+        bob(mr, amp=.065, speed=.82, seed=3)
         self.at("is an adaptation")
-        self.play(ReplacementTransform(ns, ad), run_time=0.6)
-        sl = T("dark colour, sooty bark: adaptation", 32, GREEN, weight=BOLD).move_to([0, -2.7, 0])
-        self.at("on sooty bark")
-        self.play(FadeOut(defn), FadeIn(sl), run_time=0.5)
-        # clean bark
-        self.at("On clean, pale bark")
-        cl = T("dark colour, clean bark: not an adaptation", 32, RED, weight=BOLD).move_to([0, -2.7, 0])
-        ms_c = place(["pale", "pale", "dark", "pale", "pale", "pale", "pale", "pale"], pts)
-        self.play(bark_to(P, "clean"), ReplacementTransform(sl, cl), FadeOut(VGroup(*ms)), FadeIn(VGroup(*ms_c)), run_time=1.0)
-        ms = ms_c; dark_idx = [2]
-        self.at("the same")
-        self.play(*pulse_anim([ms[i] for i in dark_idx], 1.2), rate_func=there_and_back, run_time=0.9)
-        # answer
-        self.at("So why do some traits")
-        q = T("Why do some traits become more common?", 40, YELLOW, weight=BOLD).move_to([0, 0.0, 0])
-        self.play(FadeOut(VGroup(ad, cl, P, *ms)), FadeIn(q), run_time=0.6)
-        self.at("Individuals with those traits")
-        self.play(FadeOut(q), run_time=0.4)
-        a1 = T("Individuals with those traits", 46, GREEN, weight=BOLD)
-        a2 = T("survive and reproduce more often", 46, GREEN, weight=BOLD)
-        ab = VGroup(a1, a2).arrange(DOWN, buff=0.15).move_to([0, 0.0, 0])
-        self.play(FadeIn(ab, shift=UP * 0.1), run_time=0.7)
+        green = Circle(1.05, color=GREEN, stroke_width=7).move_to(ml)
+        self.play(Create(green), run_time=.55)
+        self.at("not pale bark")
+        red = Circle(1.05, color=RED, stroke_width=7).move_to(mr)
+        self.play(Create(red), run_time=.5)
+        self.at("depends on the environment")
+        cap = caption("adaptation depends on environment", color=GREEN)
+        self.play(FadeIn(cap), run_time=.55)
+        self.at("Moving individuals can pass")
+        self.play(FadeOut(VGroup(tp, left_bg, right_bg, ml, mr, green, red, cap)), run_time=.45)
+        bounds = VGroup(*[RoundedRectangle(.16, width=5.3, height=4.4, color=TEAL, stroke_width=3)
+                          .move_to([x, .25, 0]) for x in (-3.15, 3.15)])
+        moving = moth("pale", 1.25).move_to([-3.2, .2, 0])
+        self.play(FadeIn(bounds), FadeIn(moving), run_time=.5)
+        flow = Arrow([-1.9,.2,0], [1.9,.2,0], color=TEAL, stroke_width=6)
+        self.play(GrowArrow(flow), moving.animate.move_to([3.2,.2,0]), run_time=1.2)
+        self.at("That is gene flow")
+        label = T("gene flow: genes move between populations", 30, TEAL).move_to([0, -2.65, 0])
+        self.play(FadeIn(label), run_time=.6)
         self.finish()
 
 
-class S07End(EndCard):
-    LINE = "Individuals with those traits survive and reproduce more often."
+class S12Rule(SpokenScene):
+    def construct(self):
+        w = woodland("dark")
+        self.play(FadeIn(w), run_time=.75)
+        self.at("This is natural selection")
+        title = T("natural selection", 42, TEAL, weight=BOLD).move_to([0, 3.35, 0])
+        self.play(FadeIn(title), run_time=.45)
+        self.at("inherited traits suit")
+        locks = VGroup(*[lock_icon(CREAM if k == "pale" else DARK_EDGE).scale(.68).next_to(m, DOWN, buff=.06)
+                         for m, k in zip(w.moths, MIX)])
+        self.play(LaggedStart(*[FadeIn(x) for x in locks], lag_ratio=.06), run_time=.85)
+        self.at("survive and reproduce")
+        darks = [m for m, k in zip(w.moths, MIX) if k == "dark"]
+        rings = VGroup(*[Circle(.58, color=GREEN, stroke_width=4).move_to(m) for m in darks])
+        self.play(FadeOut(locks), LaggedStart(*[Create(r) for r in rings], lag_ratio=.08), run_time=1.0)
+        self.at("become more common")
+        self.play(FadeOut(VGroup(w, rings)), run_time=.4)
+        steps = VGroup(chip("inherited variation", DARK_EDGE, 34, pad=.34),
+                       chip("different reproduction", GREEN, 34, pad=.34),
+                       chip("trait frequency changes", TEAL, 34, pad=.34)).arrange(DOWN, buff=.65)
+        arrows = VGroup(*[Arrow(steps[i].get_bottom(), steps[i+1].get_top(), buff=.08, color=TEXT,
+                                  stroke_width=5) for i in range(2)])
+        self.play(FadeIn(steps[0]), run_time=.35)
+        self.play(GrowArrow(arrows[0]), FadeIn(steps[1]), run_time=.65)
+        self.play(GrowArrow(arrows[1]), FadeIn(steps[2]), run_time=.65)
+        self.at("population not a moth")
+        cap = caption("the population changes — each moth keeps its colour", color=GOLD)
+        self.play(FadeIn(cap), Indicate(steps[2], color=TEAL), run_time=.8)
+        self.finish()
+
+
+class S13End(EndCard):
+    LINE = "Inherited traits that help survival and reproduction become more common over generations."
