@@ -1,390 +1,381 @@
-"""What limits a population?  (Biochemistrypedia explainer, high school Biology)
+"""Why Growth Bends — one creek world and one computed model.
 
-Timed to the SPOKEN words: every self.at("...") cue waits for that phrase in audio/words.json.
-
-COLOR MAP (one color per concept, whole video)
-  BLUE   = the population: crab tokens, crab-count bars, the population curve
-  GREEN  = biotic factors, and things that RAISE carrying capacity
-  ORANGE = abiotic factors
-  RED    = limits and things that LOWER carrying capacity
-  GOLD   = carrying capacity (dashed line) and the film's question
-  TEAL   = the winter survey (site marks, dredge)
-  PURPLE = what people do (crabbing)
-  GREY   = outlines, axes, labels
-Crab tokens are an illustration, not counts. The J bars use the lesson's own bacteria numbers
-(10, 20, 40, 80, 160, 320 per 30-minute step). The S curve and the moving carrying capacity are a
-MODEL SKETCH in made-up units (logistic curve computed here), labelled as such, never a measurement.
-Survey comparisons use direction arrows, without invented counts.
+COLOR MAP
+  TEAL = crab population and population curves
+  GOLD = food and carrying capacity
+  GREEN = shelter
+  RED = living challenges
+  COLD = cold water / nonliving challenge
+  GREY = axes and supporting structure
 """
-import numpy as np
-from bp_style import *  # noqa: F401,F403
+from bp_parts import *
 
 ORANGE = "#F29E4C"
-PURPLE = "#B58CD9"
-CTEAL = "#3FB8C0"
-GOLDC = "#F2C94C"
+COLD = "#86CFE8"
+CRAB = TEAL
+K = 100.0
+R = 0.72
+N0 = 5.0
 
 
-def crab(s=1.0):
-    body = RoundedRectangle(corner_radius=0.08, width=0.36, height=0.26, stroke_color=BLUE, stroke_width=2.5,
-                            fill_color=BLUE, fill_opacity=0.35)
-    return VGroup(body).scale(s)
-
-
-def arrow_to(a, b, color, w=6):
-    return Arrow(a, b, color=color, stroke_width=w, buff=0.0, max_tip_length_to_length_ratio=0.3)
-
-
-# ---- the model sketch (made-up units) --------------------------------------------------------
-K0 = 8.0
+def exponential(t):
+    """Made-up stated rule: N starts at 5 and multiplies by 1.55 each step."""
+    return N0 * 1.55 ** t
 
 
 def logistic(t):
-    return K0 / (1 + np.exp(-1.1 * (t - 4.0)))
+    """Lesson equation dN/dt=rN(1-N/K), evaluated in closed form."""
+    return K / (1 + (K / N0 - 1) * np.exp(-R * t))
 
 
-def wob(t):
-    return 0.3 * np.clip((t - 6.0) / 3.0, 0, 1) * np.sin(2.4 * t)
+def crab(scale=1.0, color=CRAB):
+    body = Ellipse(width=0.62, height=0.35, stroke_color=color, stroke_width=3,
+                   fill_color=color, fill_opacity=0.3)
+    eyes = VGroup(Dot([-0.14, 0.16, 0], 0.035, color=color),
+                  Dot([0.14, 0.16, 0], 0.035, color=color))
+    legs = VGroup(*[Line([sx * .22, -.08, 0], [sx * (.42 + .08*i), -.25 + .04*i, 0],
+                               color=color, stroke_width=2)
+                    for sx in (-1, 1) for i in range(3)])
+    claws = VGroup(Arc(radius=.12, start_angle=0, angle=PI, color=color).shift(LEFT*.42+UP*.08),
+                   Arc(radius=.12, start_angle=0, angle=PI, color=color).shift(RIGHT*.42+UP*.08))
+    return VGroup(legs, claws, body, eyes).scale(scale)
 
 
-def f_pop(t):
-    return logistic(t) + wob(t)
+def creek_world(compact=False, crowded=False, cold=False):
+    """The carried creek picture; all creek scenes call this builder."""
+    left, right = (-6.25, -0.35) if compact else (-6.45, 6.45)
+    width = right-left
+    water = Rectangle(width=width, height=5.45, stroke_width=0,
+                      fill_color="#12394A", fill_opacity=.72).move_to([(left+right)/2, .15, 0])
+    sand = Polygon([left,-2.35,0], [right,-2.35,0], [right,-3.1,0], [left,-3.1,0],
+                   fill_color="#8A6E45", fill_opacity=.72, stroke_width=0)
+    waves = VGroup(*[ArcBetweenPoints([left+.25, y, 0], [right-.25, y, 0], angle=.035,
+                                      color=COLD, stroke_width=2).set_opacity(.22)
+                     for y in (-1.5, -.55, .45, 1.45, 2.35)])
+    # Grass is shelter, drawn as blades rooted in the same sandy bottom.
+    grass = VGroup(*[CubicBezier([x,-2.35,0], [x-.18,-1.85,0], [x+.18,-1.35,0], [x+.06,-.8,0])
+                     .set_stroke(GREEN, 5) for x in np.linspace(left+.55, left+1.8, 6)])
+    food = VGroup(*[Dot([left+2.0+(i%4)*.62, -1.75+(i//4)*.45, 0], .07, color=GOLD)
+                    for i in range(8)])
+    if compact:
+        base = [[left+2.0,-.65,0], [left+3.05,.1,0], [left+4.05,-.9,0], [left+4.9,.4,0]]
+    elif crowded:
+        base = [[-.9,-.65,0], [-.25,-.25,0], [.35,-.72,0], [.85,-.2,0], [1.35,-.78,0], [1.85,-.25,0], [2.35,-.7,0]]
+    else:
+        base = [[-3.4,-.55,0], [-1.9,.15,0], [-.2,-.75,0], [1.55,.05,0], [3.15,-.65,0]]
+    crabs = VGroup(*[crab(.78).move_to(p) for p in base])
+    cold_band = Rectangle(width=.55, height=5.45, stroke_width=0, fill_color=COLD,
+                          fill_opacity=.35).move_to([right-.275,.15,0]) if cold else VGroup()
+    world = VGroup(water, waves, sand, grass, food, crabs, cold_band)
+    world.water, world.waves, world.sand = water, waves, sand
+    world.grass, world.food, world.crabs, world.cold = grass, food, crabs, cold_band
+    return world
 
 
-def smooth(x):
-    x = np.clip(x, 0, 1)
-    return x * x * (3 - 2 * x)
+def animate_creek(world):
+    for i, c in enumerate(world.crabs):
+        bob(c, amp=.13, speed=1.2+.12*i, seed=i)
+    for i, blade in enumerate(world.grass):
+        pulse(blade, base=4.5, amp=.8, speed=1.0+.08*i)
+    for i, wave in enumerate(world.waves):
+        pulse(wave, base=3.0, amp=2.0, speed=1.1+.09*i)
 
 
-def K_of_t(t):
-    t = np.asarray(t, dtype=float)
-    return K0 + (9.2 - K0) * smooth((t - 7.0) / 1.4) + (5.6 - 9.2) * smooth((t - 10.0) / 1.8)
+def shimmer(curve, speed=1.4):
+    """Continuous motion for a curve while the curve itself is the subject."""
+    curve._shimmer_t = 0.0
+    def update(mob, dt):
+        mob._shimmer_t += dt
+        mob.set_stroke(width=6.5 + 2.5*np.sin(speed*mob._shimmer_t),
+                       opacity=.78 + .2*np.sin(speed*mob._shimmer_t+.7))
+    curve.add_updater(update)
+    return curve
 
 
-def make_axes():
-    ax = Axes(x_range=[0, 13, 1], y_range=[0, 10, 1], x_length=8.4, y_length=4.9,
-              axis_config={"include_ticks": False, "include_numbers": False, "color": GREY, "stroke_width": 3,
-                           "tip_width": 0.2, "tip_height": 0.2}, tips=True)
-    ax.move_to([2.4, -0.45, 0])
-    xl = T("time", 24, GREY).next_to(ax.x_axis, DOWN, buff=0.12).align_to(ax.x_axis, RIGHT)
-    yl = T("population size", 24, GREY).next_to(ax.y_axis, UP, buff=0.12).align_to(ax.y_axis, LEFT)
-    nt = T("model sketch, made-up units", 22, GREY).next_to(ax, DOWN, buff=0.45)
-    nt.move_to([ax.get_center()[0], nt.get_center()[1], 0])
-    return ax, VGroup(xl, yl), nt
+def runner(P, fn, x1=10.0, period=3.6, color=GOLD):
+    """Ambient motion: a sweeping marker with a drop line and a glow ring travels along a curve."""
+    g = VGroup(Line(ORIGIN, UP, stroke_width=5, color=color), Dot(radius=.17, color=color), Circle(.34, color=color, stroke_width=4))
+    g._rt = 0.0
+    def upd(m, dt):
+        m._rt += dt
+        f = (m._rt % period) / period
+        x = (x1() if callable(x1) else x1) * f
+        top = P.pt(x, fn(x)); base = P.pt(x, 0)
+        m[0].put_start_and_end_on(base, top)
+        m[1].move_to(top)
+        m[2].move_to(top).scale_to_fit_width(.5 + .3*np.sin(6*m._rt))
+    g.add_updater(upd)
+    for o in g: o.layout_ok = True
+    g.layout_ok = True
+    return g
+
+def growth_plot(box=(-.05, 6.15, -2.15, 2.45)):
+    return Plot(box=box, xr=(0, 10), yr=(0, 115), xticks=[0,5,10],
+                yticks=[(0,"0"),(50,"50"),(100,"100")], xlabel="time", ylabel="population size")
 
 
-def curve(ax, f, a, b, color=BLUE, w=6):
-    return ax.plot(lambda t: float(f(t)), x_range=[a, b, 0.05], color=color, stroke_width=w, use_smoothing=False)
+def model_plot():
+    return growth_plot(box=(-5.75, 5.55, -2.35, 2.55))
 
 
-def poly(ax, ts, ys, color, w=6):
-    m = VMobject(stroke_color=color, stroke_width=w, fill_opacity=0)
-    m.set_points_as_corners([ax.c2p(t, y) for t, y in zip(ts, ys)])
-    return m
+def predict_backdrop():
+    w = creek_world(compact=True)
+    P = growth_plot()
+    curve = shimmer(P.curve(exponential, x0=0, x1=6.8, color=CRAB))
+    animate_creek(w)
+    return VGroup(w, P, curve)
 
 
-def kline(ax, a=0, b=13, y=K0, color=GOLDC):
-    return DashedLine(ax.c2p(a, y), ax.c2p(b, y), color=color, stroke_width=5, dash_length=0.18)
-
-
-def prior_scene(scene):
-    """rebuild the end state of S04 in the same place (axes, S curve to t=7, gold line)."""
-    ax, lbls, nt = make_axes()
-    cur = curve(ax, f_pop, 0, 7.0, BLUE)
-    kl = kline(ax, 0, 7)
-    kt = chip("carrying capacity", GOLDC, 28).move_to(ax.c2p(3.6, 9.15))
-    scene.add(ax, lbls, nt, cur, kl, kt)
-    return ax, lbls, nt, cur, kl, kt
-
-
-def delayed(anim, delay):
-    return Succession(Wait(max(0.01, delay)), anim)
-
-
-def model_ext(ax):
-    """the model sketch after t=7: K steps up then down; the population follows (logistic step, made-up units)."""
-    ts = np.arange(7.0, 13.0001, 0.05)
-    Kv = K_of_t(ts)
-    Nv = np.zeros_like(ts)
-    N = float(logistic(7.0))
-    for i in range(len(ts)):
-        if i:
-            N += 0.05 * 1.1 * N * (1 - N / Kv[i])
-        Nv[i] = N
-    Nv = Nv + wob(ts)
-    cut = int(round((10.0 - 7.0) / 0.05))
-    return ts, Kv, Nv, cut
-
-
-
-def population_box():
-    box = RoundedRectangle(corner_radius=0.25, width=4.6, height=3.6,
-                           stroke_color=BLUE, stroke_width=4, fill_color=BLUE,
-                           fill_opacity=0.07).move_to([-3.5, 0.45, 0])
-    tokens = VGroup(*[crab(1.5).move_to(box.get_center() +
-                     [(i % 3 - 1) * 1.2, (0.5 - i // 3) * 1.2, 0]) for i in range(6)])
-    return box, tokens
-
-
-def heading(text, color=TEXT):
-    return T(text, 34, color, font=TITLE_FONT).move_to([0, 3.15, 0])
-
-
-def panel_axes(x):
-    ax = Axes(x_range=[0, 6, 1], y_range=[0, 10, 2], x_length=5.2, y_length=3.3,
-              axis_config={"include_ticks": False, "include_numbers": False,
-                           "color": GREY, "stroke_width": 3}, tips=False).move_to([x, 0, 0])
-    return ax
-
-
-class S00Title(TitleCard):
-    LESSON = "Populations and Carrying Capacity"
-    TITLE = "What Limits a Population?"
-
+class S01Hook(SpokenScene):
     def construct(self):
-        title = T(self.TITLE, 48, font=TITLE_FONT).move_to([0, 2.6, 0])
-        tokens = VGroup(*[crab(1.7).move_to([(i-1)*1.0, 0, 0]) for i in range(3)])
-        labels = VGroup(chip("food", GREEN, 24).move_to([-3.4, 0.8, 0]),
-                        chip("shelter", GREEN, 24).move_to([3.4, 0.8, 0]),
-                        chip("predators", GREEN, 24).move_to([-3.4, -1.5, 0]),
-                        chip("cold water", ORANGE, 24).move_to([3.4, -1.5, 0]))
-        rule = Line([-1.3, 1.65, 0], [1.3, 1.65, 0], color=GOLD, stroke_width=4)
-        self.play(FadeIn(title), Create(rule), FadeIn(tokens), run_time=0.8)
-        self.play(FadeIn(labels), run_time=0.6)
+        w = creek_world()
+        animate_creek(w)
+        q = fit_text("Why does fast growth bend?", 10.5, 42, GOLD).move_to([0,3.25,0])
+        self.at("Why does fast population")
+        self.play(FadeIn(w), FadeIn(q, shift=DOWN*.12), run_time=1.0)
+        self.at("Watch a Chesapeake creek")
+        corner = T("Why does growth bend?", 28, GOLD).move_to([-4.55,3.25,0])
+        self.play(ReplacementTransform(q, corner), run_time=.7)
+        self.at("The water keeps moving")
+        self.play(LaggedStart(*[Indicate(x, scale_factor=1.0, color=COLD) for x in w.waves], lag_ratio=.08), run_time=1.5)
+        self.at("food and hiding places")
+        self.play(Indicate(w.food, color=GOLD, scale_factor=1.08), Indicate(w.grass, color=GREEN, scale_factor=1.04), run_time=1.1)
+        predator = Arrow([6.0,1.6,0],[4.7,.8,0], color=RED, stroke_width=6)
+        disease = Circle(.45, color=RED, stroke_width=5).move_to([-1.2,.0,0]).set_opacity(.75)
+        self.at("Predators and disease")
+        self.play(GrowArrow(predator), Create(disease), run_time=.8)
+        n = ValueTracker(5)
+        track = Readout([("population", lambda:n.get_value(), "{:2.0f}", CRAB)], at=[4.05,2.55,0], widest=[12])
+        self.at("Something in this picture")
+        self.play(FadeIn(track), n.animate.set_value(9), run_time=1.8)
+        self.play(FadeIn(scope_tag("schematic")), run_time=.3)
         self.finish()
 
 
-class S01Puzzle(SpokenScene):
+class S02Title(TitleCard):
+    LESSON = "Carrying Capacity"
+    TITLE = "Why Growth Bends"
+
+
+class S03Population(SpokenScene):
     def construct(self):
-        box, tokens = population_box()
-        bay = T("Chesapeake Bay · crab tokens, not counts", 22, GREY).move_to([-3.5, -1.7, 0])
-        estimate = T("Winter population estimates\ncan change by more than\n100 million", 30, BLUE).move_to([3.2, 0.7, 0])
-        self.at("The number of")
-        self.play(FadeIn(box), FadeIn(tokens), FadeIn(bay), FadeIn(estimate), run_time=0.8)
-        limit = T("Growth cannot continue forever", 32, RED).move_to([0, 3.1, 0])
-        self.at("But no population")
-        self.play(FadeIn(limit), run_time=0.7)
-        resource = chip("limited food\nand hiding places", RED, 28).move_to([3.2, 1.2, 0])
-        self.at("Food and hiding")
-        self.play(ReplacementTransform(estimate, resource), run_time=0.6)
-        living = chip("predators · disease", GREEN, 24).move_to([3.2, -0.15, 0])
-        physical = chip("temperature · salinity", ORANGE, 24).move_to([3.2, -1.2, 0])
-        self.at("Predators disease")
-        self.play(FadeIn(living), run_time=0.5)
-        self.at("temperature and salinity")
-        self.play(FadeIn(physical), run_time=0.6)
-        groups = T("Resources + challenges", 30, TEXT).move_to([3.2, 2.35, 0])
-        self.at("Together resources and challenges")
-        self.play(FadeOut(limit), FadeIn(groups), run_time=0.6)
-        definition = T("Largest population the environment\ncan support over time", 32, TEXT).move_to([0, -2.85, 0])
-        self.at("the largest population")
-        self.play(FadeIn(definition), run_time=0.7)
-        name = heading("Carrying capacity", GOLDC)
-        self.at("That is its")
-        self.play(FadeIn(name), run_time=0.6)
+        w = creek_world(cold=True)
+        animate_creek(w)
+        boundary = RoundedRectangle(width=6.0, height=2.25, corner_radius=.25, color=CRAB,
+                                    stroke_width=4).move_to([.3,-.25,0])
+        poplab = T("population", 30, CRAB).next_to(boundary, UP, buff=.12)
+        self.at("A population is all")
+        self.play(FadeIn(w), Create(boundary), run_time=.9)
+        self.play(FadeIn(poplab), run_time=.45)
+        self.at("Teal crab symbols")
+        self.play(*[c.animate.move_to([-.9+(i%3)*.65,-.55+(i//3)*.65,0]) for i,c in enumerate(w.crabs)], run_time=1.1)
+        self.at("Gold food and green shelter")
+        self.play(w.food.animate.shift(RIGHT*1.2+UP*.25), w.grass.animate.shift(RIGHT*1.0), run_time=1.0)
+        predator = Arrow([5.5,1.5,0],[3.5,.65,0], color=RED, stroke_width=6)
+        disease = Circle(.42,color=RED,stroke_width=5).move_to([2.35,-.25,0])
+        self.at("Red arrows show")
+        self.play(GrowArrow(predator), Create(disease), run_time=.8)
+        self.at("A pale blue band")
+        self.play(Indicate(w.cold, color=COLD, scale_factor=1.0), run_time=1.0)
+        legend = VGroup(T("population",24,CRAB),T("food",24,GOLD),T("shelter",24,GREEN),
+                        T("living challenges",24,RED),T("cold water",24,COLD)).arrange(DOWN,aligned_edge=LEFT,buff=.12).move_to([-4.9,1.55,0])
+        # This is deliberately a legend printed over its own dim water panel.
+        for item in legend:
+            item.layout_ok = True
+        self.at("Together these living")
+        self.play(FadeOut(poplab), FadeIn(legend, shift=RIGHT*.15), run_time=1.1)
         self.finish()
 
 
-class S02Factors(SpokenScene):
+class S04Exponential(SpokenScene):
     def construct(self):
-        box, tokens = population_box()
-        label = heading("One species, one place, one time", BLUE)
-        self.at("A population is")
-        self.play(FadeIn(box), FadeIn(tokens), FadeIn(label), run_time=0.7)
-        limited = T("Limiting factor: keeps a population from growing larger", 26, RED).move_to([0, -3.2, 0])
-        self.at("A limiting factor")
-        self.play(FadeIn(limited), run_time=0.6)
-        biotic = VGroup(T("Biotic: living", 30, GREEN),
-                        T("predators · disease", 26, GREEN)).arrange(DOWN, buff=0.2).move_to([3.3, 1.65, 0])
-        ba = arrow_to([0.8, 1.6, 0], [-0.95, 1.1, 0], GREEN)
-        self.at("Biotic factors are")
-        self.play(FadeIn(biotic), GrowArrow(ba), run_time=0.7)
-        abiotic = VGroup(T("Abiotic: nonliving", 30, ORANGE),
-                         T("temperature", 26, ORANGE), T("salinity = salt level", 26, ORANGE)
-                         ).arrange(DOWN, buff=0.18).move_to([3.3, -0.45, 0])
-        aa = arrow_to([0.8, -0.4, 0], [-0.95, -0.4, 0], ORANGE)
-        self.at("Abiotic factors are")
-        self.play(FadeIn(abiotic), GrowArrow(aa), run_time=0.7)
-        resources = T("Limited food and shelter", 24, RED).move_to([-3.5, -1.85, 0])
-        crowd = T("Crowding: competition + disease increase", 28, RED).move_to([0, -2.65, 0])
-        self.at("Crowding makes")
-        self.play(FadeOut(limited), FadeIn(resources), FadeIn(crowd),
-                  *[c.animate.move_to(box.get_center() + [(i % 3 - 1)*0.62, (0.5-i//3)*0.5, 0])
-                    for i, c in enumerate(tokens)], box.animate.set_stroke(RED), run_time=1.0)
+        w = creek_world(compact=True)
+        animate_creek(w)
+        P = growth_plot()
+        t = ValueTracker(0)
+        live = P.live_curve(exponential,t,color=CRAB)
+        dot = P.dot(lambda:t.get_value(),lambda:exponential(t.get_value()),color=TEXT,ring=CRAB)
+        rule = T("N × 1.55 each step", 26, CRAB).move_to([3.1,3.15,0])
+        self.at("Start with a small population")
+        self.play(FadeIn(w), Create(P), run_time=1.0)
+        self.at("same fraction each step")
+        self.play(FadeIn(rule), run_time=.55)
+        self.add(live,dot)
+        self.add(runner(P,exponential,x1=lambda:max(t.get_value(),.3)))
+        self.at("so the number added grows")
+        self.play(t.animate.set_value(4.2), run_time=2.0, rate_func=linear)
+        label = T("exponential growth",30,CRAB).move_to([4.25,2.85,0])
+        self.at("That pattern is exponential")
+        self.play(ReplacementTransform(rule,label), run_time=.6)
+        self.at("bends upward like")
+        self.play(t.animate.set_value(6.8), run_time=2.5, rate_func=linear)
+        self.at("This model is schematic")
+        self.play(FadeIn(scope_tag("computed model · schematic")), run_time=.5)
         self.finish()
 
 
-class S03Exp(SpokenScene):
+class S05Predict(SpokenScene):
     def construct(self):
-        vals = [10, 20, 40, 80, 160, 320]
-        base, H = -2.15, 3.8
-        xs = [-4.5 + 1.8*i for i in range(6)]
-        floor = Line([-5.6, base, 0], [5.7, base, 0], color=GREY, stroke_width=3)
-        vertical = Line([-5.6, base, 0], [-5.6, 2.3, 0], color=GREY, stroke_width=3)
-        axes_labels = VGroup(T("population size", 24, GREY).move_to([-4.4, 2.5, 0]),
-                            T("time · steps of 30 minutes", 24, GREY).move_to([0, -3.1, 0]))
-        steps = VGroup(*[M(str(i), 22, GREY).move_to([xs[i], base-0.35, 0]) for i in range(6)])
-        top = heading("Fresh food · 10 bacteria", BLUE)
-        bars, labels = [], []
-        for i, value in enumerate(vals):
-            height = H*value/320
-            bar = Rectangle(width=1.0, height=height, stroke_color=BLUE, stroke_width=3,
-                            fill_color=BLUE, fill_opacity=0.45).move_to([xs[i], base+height/2, 0])
-            bars.append(bar)
-            labels.append(M(str(value), 28, TEXT).next_to(bar, UP, buff=0.12))
-        self.at("Suppose 10 bacteria")
-        self.play(FadeIn(top), Create(floor), Create(vertical), FadeIn(axes_labels), FadeIn(steps),
-                  GrowFromEdge(bars[0], DOWN), FadeIn(labels[0]), run_time=0.8)
-        split = T("Each splits in two every 30 minutes", 26, TEXT).move_to([1.6, 2.5, 0])
-        self.at("Each one splits")
-        self.play(FadeIn(split), run_time=0.6)
-        for i, phrase in enumerate(["20", "40", "80", "160", "320"], 1):
-            self.at(phrase)
-            self.play(GrowFromEdge(bars[i], DOWN), FadeIn(labels[i]), run_time=0.4)
-        exponential = heading("Exponential growth", BLUE)
-        self.at("This is exponential growth")
-        self.play(ReplacementTransform(top, exponential), FadeOut(split), run_time=0.6)
-        jc = ParametricFunction(lambda t: np.array([-4.5+1.8*t, base+H*(10*2**t)/320, 0]),
-                                t_range=[0, 5, 0.02], color=BLUE, stroke_width=7)
-        jlabel = T("J shape", 36, BLUE).move_to([-1.5, 0.6, 0])
-        self.at("It makes a J shape")
-        self.play(Create(jc), FadeIn(jlabel), run_time=1.0)
-        resources = T("Plentiful resources", 26, GREEN).move_to([2.6, 2.5, 0])
-        self.at("while resources are plentiful")
-        self.play(FadeIn(resources), run_time=0.6)
+        back = predict_backdrop()
+        self.add(back)
+        self.at("Now predict")
+        q = question_card("What makes the curve bend?", ["resources gone", "limits strengthen sooner"], chips_at=[3.6,.15,0])
+        for item in q.chips:
+            item.layout_ok = True  # answer text belongs inside its choice path
+        self.play(FadeIn(q.question), run_time=.55)
+        self.at("Must the food")
+        self.play(FadeIn(q.chips[0], shift=LEFT*.15), run_time=.55)
+        self.at("Or can crowding")
+        self.play(FadeIn(q.chips[1], shift=LEFT*.15), run_time=.55)
+        self.at("Keep your answer")
+        self.play(Indicate(q.question,color=GOLD,scale_factor=1.02), run_time=.8)
         self.finish()
 
 
-class S04Logistic(SpokenScene):
+class S06Pause(PredictPause):
+    QUESTION = "What makes the curve bend?"
+    OPTIONS = ["resources gone", "limits strengthen sooner"]
+    CHIPS_AT = [3.6,.15,0]
+    SECONDS = 4.5
+    def backdrop(self):
+        return predict_backdrop()
+
     def construct(self):
-        ax, labels, note = make_axes()
-        # Reuse the original equation and axes, centered to use the entire frame.
-        group = VGroup(ax, labels, note).shift(LEFT*2.4)
-        note.become(T("Model, made-up units", 22, GREY).move_to([0, -3.4, 0]))
-        start = curve(ax, f_pop, 0, 4)
-        title = heading("Limits slow growth", RED)
-        self.at("Then limits set in")
-        self.play(Create(ax), FadeIn(labels), FadeIn(note), Create(start), FadeIn(title), run_time=0.8)
-        food = chip("food becomes limited", RED, 24).move_to([-2.0, 1.7, 0])
-        self.at("Food runs short")
-        self.play(FadeIn(food), run_time=0.5)
-        rest = curve(ax, logistic, 4, 9)
-        self.at("growth slows into")
-        self.play(Create(rest), run_time=1.7)
-        capacity = kline(ax)
-        caplabel = T("carrying capacity", 26, GOLDC).move_to([2.5, 1.8, 0])
-        self.at("levels off near")
-        self.play(Create(capacity), FadeIn(caplabel), run_time=0.8)
-        movement = T("Little movement in or out", 24, GREY).move_to([2.5, -0.7, 0])
-        self.at("If few individuals")
-        self.play(FadeOut(food), FadeIn(movement), run_time=0.6)
-        balance = chip("births ≈ deaths", TEXT, 28).move_to([2.5, -1.65, 0])
+        self.add(self.backdrop())
+        q = question_card(self.QUESTION, self.OPTIONS, chips_at=self.CHIPS_AT)
+        for item in q.chips:
+            item.layout_ok = True
+        self.add(q)
+        ring, run = countdown(self.SECONDS, center=self.RING_AT)
+        self.add(ring)
+        self.play(run)
+        self.finish()
+
+
+class S07Crowding(SpokenScene):
+    def construct(self):
+        w = creek_world(crowded=True)
+        animate_creek(w)
+        self.at("Crowding means more crabs")
+        self.play(FadeIn(w), run_time=.9)
+        target = w.food[3].get_center()
+        self.at("Competition grows")
+        self.play(w.crabs[2].animate.move_to(target+LEFT*.25), w.crabs[3].animate.move_to(target+RIGHT*.25), run_time=1.0)
+        ring = Circle(.2,color=RED,stroke_width=5).move_to(w.crabs[2])
+        self.at("Disease may spread")
+        self.play(Create(ring), ring.animate.scale(4.0).move_to(w.crabs[4]).set_opacity(0), run_time=1.4)
+        pred = Arrow([6.1,1.35,0],[1.8,.1,0],color=RED,stroke_width=7)
+        self.at("predators may find")
+        self.play(GrowArrow(pred), run_time=1.0)
+        young = crab(.42).move_to([-.1,1.25,0])
+        self.at("Fewer young survive")
+        self.play(FadeIn(young), FadeOut(young,shift=DOWN*.2), run_time=1.1)
+        n = ValueTracker(7)
+        ro = Readout([("population",lambda:n.get_value(),"{:4.1f}",CRAB)],at=[3.95,2.5,0],widest=[12])
+        self.at("The population can still grow")
+        self.play(FadeIn(ro), n.animate.set_value(9), run_time=3.4, rate_func=linear)
+        self.at("before every resource disappears")
+        self.play(Indicate(VGroup(w.food,w.grass),scale_factor=1.02), run_time=.8)
+        self.finish()
+
+
+class S08Capacity(SpokenScene):
+    def construct(self):
+        P = model_plot()
+        j = P.curve(exponential,x0=0,x1=6.8,color=CRAB)
+        s = shimmer(P.curve(logistic,color=CRAB))
+        self.at("In the simplest limited growth")
+        self.play(Create(P), Create(j), run_time=1.1)
+        self.at("turns the jay into")
+        self.play(ReplacementTransform(j,s), run_time=2.1)
+        self.at("approaches carrying capacity")
+        k = P.hline(K,"carrying capacity",GOLD)
+        self.add(runner(P,logistic,period=4.0))
+        self.play(Create(k), run_time=1.0)
+        definition = fit_text("Largest population this environment can support over time",10.8,28,GOLD).move_to([0,3.25,0])
+        self.at("Carrying capacity is the largest")
+        self.play(FadeIn(definition), run_time=.9)
+        self.at("with its resources and challenges")
+        self.play(Indicate(k,color=GOLD,scale_factor=1.0), run_time=.9)
+        self.at("a level approached")
+        self.play(FadeOut(definition), FadeIn(scope_tag("computed model")), run_time=.7)
+        self.finish()
+
+
+class S09ReadCurve(SpokenScene):
+    def construct(self):
+        P = model_plot(); curve=shimmer(P.curve(logistic,color=CRAB)); k=P.hline(K,"carrying capacity",GOLD)
+        t=ValueTracker(0); dot=P.dot(lambda:t.get_value(),lambda:logistic(t.get_value()),color=TEXT,ring=CRAB)
+        self.add(runner(P,logistic,period=4.5))
+        self.at("Read the ess shaped")
+        self.play(Create(P),Create(curve),Create(k),FadeIn(dot),run_time=1.0)
+        initial=T("initial",28,CRAB).move_to([-2.6,3.15,0])
+        self.at("Growth starts slowly")
+        self.play(FadeIn(initial),t.animate.set_value(2.5),run_time=2.5,rate_func=linear)
+        faster=T("faster",28,CRAB).move_to([0,3.15,0])
+        self.at("Then numbers rise faster")
+        self.play(FadeOut(initial),FadeIn(faster),t.animate.set_value(6.0),run_time=3.0,rate_func=linear)
+        slowing=T("slowing",28,CRAB).move_to([4.2,3.15,0])
+        self.at("Finally growth slows")
+        self.play(FadeOut(faster),FadeIn(slowing),t.animate.set_value(10),run_time=3.0,rate_func=linear)
+        births=T("births  ≈  deaths",32,TEXT).move_to([0,3.15,0])
         self.at("births and deaths")
-        self.play(FadeIn(balance), run_time=0.7)
-        waves = curve(ax, f_pop, 9, 13)
-        self.at("Small ups and downs")
-        self.play(Create(waves), run_time=1.6)
-        equilibrium = heading("Dynamic equilibrium", BLUE)
-        self.at("dynamic equilibrium")
-        self.play(ReplacementTransform(title, equilibrium), run_time=0.6)
+        self.play(FadeIn(births),run_time=.7)
         self.finish()
 
 
-class S05Moves(SpokenScene):
+class S10Scope(SpokenScene):
     def construct(self):
-        left, right = panel_axes(-3.3), panel_axes(3.3)
-        title = heading("Capacity and population size are different", GOLDC)
-        lh = T("Lasting resource change", 26, TEXT).move_to([-3.3, 2.35, 0])
-        rh = T("Single freeze · resources unchanged", 24, TEXT).move_to([3.3, 2.35, 0])
-        note = T("Model, made-up units · time →", 22, GREY).move_to([0, -3.4, 0])
-        legend = VGroup(T("— population size", 24, BLUE), T("- - carrying capacity", 24, GOLDC)
-                        ).arrange(RIGHT, buff=0.8).move_to([0, -2.85, 0])
-        initial = kline(left, 0, 1.5)
-        self.at("Carrying capacity can change")
-        self.play(FadeIn(title), Create(left), FadeIn(lh), FadeIn(note), FadeIn(legend), Create(initial), run_time=0.8)
-        up = poly(left, [1.5, 2.5, 3.6], [8, 9.2, 9.2], GOLDC, 5)
-        updash = DashedVMobject(up, num_dashes=12)
-        more = T("More shelter", 25, GREEN).move_to([-3.3, -2.2, 0])
-        self.at("More hiding places")
-        self.play(Create(updash), FadeIn(more), run_time=1.2)
-        down = DashedVMobject(poly(left, [3.6, 4.6, 6], [9.2, 5.6, 5.6], GOLDC, 5), num_dashes=12)
-        less = T("Marsh grass lost", 25, RED).move_to(more)
-        self.at("Losing marsh grass")
-        self.play(Create(down), ReplacementTransform(more, less), run_time=1.0)
-        fixed = kline(right, 0, 6)
-        pre = poly(right, [0, 1.8], [7.8, 7.8], BLUE)
-        self.at("A single hard freeze")
-        self.play(Create(right), FadeIn(rh), Create(fixed), Create(pre), run_time=0.7)
-        unchanged = T("Resources and capacity unchanged", 24, GOLDC).move_to([3.3, -2.2, 0])
-        self.at("If resources stay the same")
-        self.play(FadeIn(unchanged), run_time=0.6)
-        drop = poly(right, [1.8, 2.1], [7.8, 3.2], BLUE)
-        freeze = arrow_to(right.c2p(2.1, 6.8), right.c2p(2.1, 3.6), ORANGE, 5)
-        self.at("it pushes the population")
-        self.play(Create(drop), GrowArrow(freeze), run_time=0.8)
-        recovery = curve(right, lambda t: 8/(1+1.5*np.exp(-1.6*(t-2.1))), 2.1, 6)
-        self.at("the population can grow back")
-        self.play(Create(recovery), FadeOut(freeze), run_time=1.1)
-        tokens = VGroup(*[crab(1.3).move_to([-4.6+i*0.85, -0.7, 0]) for i in range(4)])
-        basket = RoundedRectangle(width=1, height=0.65, corner_radius=0.1,
-                                  stroke_color=PURPLE).move_to([-1.5, -1.1, 0])
-        crabbing = T("Crabbing removes individuals", 24, PURPLE).move_to([-3.3, -2.2, 0])
-        self.at("Crabbing also removes")
-        self.play(ReplacementTransform(less, crabbing), FadeIn(tokens), FadeIn(basket), run_time=0.5)
-        self.play(tokens[-1].animate.move_to(basket).set_opacity(0), run_time=0.6)
-        self.at("Fewer crabs does not")
-        self.play(Indicate(fixed, color=GOLDC, scale_factor=1),
-                  Indicate(initial, color=GOLDC, scale_factor=1), run_time=0.8)
+        P=model_plot(); model=shimmer(P.curve(logistic,color=CRAB)); k=P.hline(K,None,GOLD)
+        klab=T("carrying capacity",26,GOLD).move_to([4.55,3.15,0])
+        self.at("The computed line")
+        self.play(Create(P),Create(model),Create(k),FadeIn(klab),run_time=1.0)
+        self.add(runner(P,logistic,period=4.0))
+        real=lambda t: logistic(t)+(4.0*np.sin(2.3*t) if t>6 else 0)
+        self.at("In real populations")
+        rcurve=P.curve(real,color=TEXT,width=3,opacity=.55)
+        self.play(Create(rcurve),FadeOut(klab),run_time=2.0)
+        rlab=T("real population · schematic",24,TEXT).move_to([2.6,2.5,0]).set_opacity(.7)
+        self.at("size can move up and down")
+        self.play(FadeIn(rlab),Indicate(rcurve,scale_factor=1.0),run_time=1.2)
+        eq=fit_text("dynamic equilibrium = balance kept by ongoing change",8.6,28,CRAB).move_to([1.0,3.3,0])
+        self.at("That balance kept")
+        self.play(FadeIn(eq),run_time=.8)
+        self.at("Real populations may also")
+        over=P.curve(lambda t: logistic(t)+(18*np.exp(-.5*(t-7)) if t>7 else 0),x0=6.8,color=RED,width=3,opacity=.35)
+        decline=P.curve(lambda t: logistic(t)-(11*(t-7) if t>7 else 0),x0=6.8,color=GREEN,width=3,opacity=.35)
+        wobble=P.curve(real,x0=6.8,color=COLD,width=3,opacity=.35)
+        labs=VGroup(T("overshoot · schematic",24,RED),T("decline · schematic",24,GREEN),T("wobble · schematic",24,COLD)).arrange(DOWN,aligned_edge=LEFT,buff=.12).move_to([-3.9,.75,0])
+        self.play(FadeOut(eq),Create(over),run_time=.7)
+        self.play(Create(decline),run_time=.7)
+        self.play(Create(wobble),FadeIn(labs),run_time=.7)
+        self.at("useful model")
+        self.play(FadeOut(VGroup(over,decline,wobble,labs,rcurve,rlab)),Indicate(model,color=CRAB,scale_factor=1.0),run_time=1.1)
         self.finish()
 
 
-class S06Answer(SpokenScene):
+class S11Return(SpokenScene):
     def construct(self):
-        title = heading("What does the winter survey show?", CTEAL)
-        bay = RoundedRectangle(corner_radius=0.4, width=9, height=3.3,
-                               stroke_color=GREY, fill_color=GREY, fill_opacity=0.08).move_to([0, 0.2, 0])
-        tokens = VGroup(*[crab(1.5).move_to([-3+i*1.2, -0.6, 0]) for i in range(6)])
-        dredge = VGroup(Line([-4.0, 1.3, 0], [-3, 0.0, 0], color=CTEAL),
-                        RoundedRectangle(width=1.1, height=0.7, corner_radius=0.1,
-                                         stroke_color=CTEAL).move_to([-3, 0, 0]))
-        dredgelab = T("Dredge samples crabs", 26, CTEAL).move_to([0, -2.3, 0])
-        self.at("What does the winter survey show")
-        self.play(FadeIn(title), FadeIn(bay), FadeIn(tokens), FadeIn(dredge), FadeIn(dredgelab), run_time=0.5)
-        self.play(dredge.animate.shift(RIGHT*4.8), run_time=1.0)
-        years = heading("2024–2025 → 2025–2026 · estimates", BLUE)
-        self.at("In the last two survey winters")
-        self.play(FadeOut(VGroup(bay, tokens, dredge, dredgelab)), ReplacementTransform(title, years), run_time=0.7)
-        def result(text, x, up):
-            label = T(text, 28, BLUE).move_to([x, 1.5, 0])
-            a = arrow_to([x, -0.8 if up else 0.8, 0], [x, 0.8 if up else -0.8, 0], BLUE)
-            return VGroup(label, a)
-        total, young, adult = result("Total", -4, True), result("Juveniles", 0, True), result("Adult females", 4, False)
-        self.at("the total rose")
-        self.play(FadeIn(total), run_time=0.5)
-        self.at("there were more young crabs")
-        self.play(FadeIn(young), run_time=0.6)
-        self.at("Adult females fell")
-        self.play(FadeIn(adult), run_time=0.6)
-        measured = T("Survey estimates population size", 32, BLUE).move_to([0, -2.2, 0])
-        self.at("These are population estimates")
-        self.play(FadeIn(measured), run_time=0.6)
-        caution = T("Does not measure carrying capacity\nor identify the cause", 32, GOLDC).move_to([0, 0.65, 0])
-        self.at("The survey does not measure")
-        self.play(FadeOut(VGroup(total, young, adult)), FadeIn(caution), run_time=0.7)
-        evidence = VGroup(chip("temperature", ORANGE, 24), chip("habitat", GREEN, 24),
-                          chip("predator data", GREEN, 24)).arrange(RIGHT, buff=0.5).move_to([0, -0.9, 0])
-        self.at("We need temperature")
-        self.play(FadeIn(evidence), run_time=0.7)
-        test = T("Evidence needed to test causes", 28, TEXT).move_to([0, -2.2, 0])
-        self.at("to test that")
-        self.play(ReplacementTransform(measured, test), run_time=0.5)
-        self.at("The central rule")
-        self.play(FadeOut(VGroup(years, caution, evidence, test)), run_time=0.6)
-        rule = T("Environmental limits\nconstrain population growth.", 44, GOLD, font=TITLE_FONT)
-        self.at("environmental limits constrain")
-        self.play(FadeIn(rule, shift=UP*0.15), run_time=0.8)
+        w=creek_world(crowded=True); animate_creek(w)
+        n=ValueTracker(7); ro=Readout([("population",lambda:n.get_value(),"{:4.1f}",CRAB)],at=[3.9,2.75,0],widest=[12])
+        kline=DashedLine([-5.5,2.35,0],[3.2,2.35,0],color=GOLD,stroke_width=3)
+        self.at("Return to the creek")
+        self.play(FadeIn(w),FadeIn(ro),Create(kline),run_time=1.0)
+        self.at("More crabs made")
+        share=VGroup(*[Arrow(p,p+DOWN*.55,color=GOLD,stroke_width=3,buff=.05) for p in ([-1.0,1.2,0],[0,1.2,0],[1,1.2,0])])
+        self.play(FadeIn(share),run_time=.8)
+        self.at("several challenges grew stronger")
+        reds=VGroup(Circle(.42,color=RED).move_to([.2,-.3,0]),Arrow([5.7,1.3,0],[2.1,.1,0],color=RED,stroke_width=7))
+        self.play(Create(reds),run_time=1.0)
+        self.at("Those limits reduced growth")
+        self.play(n.animate.set_value(8.4),run_time=3.2,rate_func=linear)
+        self.at("That is why")
+        bend=ArcBetweenPoints([-2.6,2.65,0],[1.2,2.4,0],angle=-.8,color=CRAB,stroke_width=7)
+        self.play(Create(bend),run_time=.9)
+        self.at("whether the support level")
+        self.play(Indicate(kline,color=GOLD,scale_factor=1.0),run_time=.8)
         self.finish()
 
 
-class S07End(EndCard):
-    LINE = "Limited resources set a carrying capacity, and it can change."
+class S12End(EndCard):
+    LINE = "Limits slow population growth near carrying capacity."
