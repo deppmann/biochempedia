@@ -56,6 +56,22 @@ function entry(slug, date, before) {
   if (changedSince(day, join('public/explainers', slug)) || filmChangedSince(day, f)) parts.push('film');
   return { slug, date, new: parts };
 }
+/**
+ * Has this lesson's level-up actually shipped? Notes folders also exist for work that only touched
+ * a film or a quiz (2026-11-14: gpcrs-and-g-proteins got one for film work, then a commit added only
+ * MCAT questions, and the date logic proposed it as "rewritten"). A lesson counts only if
+ *  (a) its frontmatter carries the chapter-pair film (films: id "chapter-2") plus take-homes, the
+ *      shape every level-up since 2026-11-11 ships, or
+ *  (b) its lesson body (everything after the frontmatter) differs from the saved original
+ *      lesson.before.mdx, so a frontmatter-only change (MCAT, quiz, film links) never counts.
+ */
+const levelUpShipped = (src, before) => {
+  const fm = (/^---\n([\s\S]*?)\n---/.exec(src) || [])[1] || '';
+  if (/^\s*-\s*id:\s*["']?chapter-2["']?\s*$/m.test(fm) && /^\s*takeaways:/m.test(fm)) return true;
+  if (!before || !existsSync(before)) return false;
+  const body = (t) => t.replace(/^---\n[\s\S]*?\n---\n?/, '').replace(/\s+/g, ' ').trim();
+  return body(src) !== body(readFileSync(before, 'utf8'));
+};
 const out = [];
 for (const course of readdirSync(NOTES)) {
   const cdir = join(NOTES, course);
@@ -66,8 +82,10 @@ for (const course of readdirSync(NOTES)) {
     if (!existsSync(join(w, 'lesson.before.mdx')) && !existsSync(join(w, 'review.md'))) continue;
     const f = join('src/content/lessons', slug, 'lesson.mdx');
     if (!existsSync(f)) continue;
-    const fm = (/^---\n([\s\S]*?)\n---/.exec(readFileSync(f, 'utf8')) || [])[1] || '';
+    const src = readFileSync(f, 'utf8');
+    const fm = (/^---\n([\s\S]*?)\n---/.exec(src) || [])[1] || '';
     if (/^draft:\s*true/m.test(fm)) continue;
+    if (!levelUpShipped(src, join(w, 'lesson.before.mdx'))) continue;
     const marks = ['lesson.before.mdx', 'review.md'].filter((m) => existsSync(join(w, m))).map((m) => statSync(join(w, m)).mtime);
     const began = new Date(Math.min(...marks.map(Number)));
     const since = `${began.getFullYear()}-${String(began.getMonth() + 1).padStart(2, '0')}-${String(began.getDate()).padStart(2, '0')} 00:00`;
