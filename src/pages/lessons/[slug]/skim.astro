@@ -10,8 +10,8 @@
  */
 import { getCollection, render } from 'astro:content';
 import BaseLayout from '../../../layouts/BaseLayout.astro';
-import { courseOf, courseHref } from '../../../data/courses';
-import { skimOf } from '../../../lib/skim';
+import { COURSES, courseOf, courseHref, courseSkimHref } from '../../../data/courses';
+import { skimOf, guidingIdeaOf, filmTakeawaysOf, wordsIn } from '../../../lib/skim';
 import { rewrittenFor } from '../../../lib/rewritten';
 
 export async function getStaticPaths() {
@@ -25,14 +25,15 @@ const lesson = entry.data;
 const course = courseOf(lesson.course);
 const { headings } = await render(entry);
 const skim = skimOf(entry.body ?? '', headings);
-const idea = lesson.summary.split(/(?<=[.?!])\s+/)[0];
-const hook = (lesson as { hook?: string }).hook;
+const { idea, hook } = guidingIdeaOf(lesson);
 // Film take-homes: the lesson film, or each chapter film that has them.
-const films = [...(lesson.explainer ? [lesson.explainer] : []), ...lesson.films].filter((f) => f.takeaways?.length);
-const filmWords = films.reduce((n, f) => n + (f.takeaways ?? []).join(' ').split(/\s+/).length, 0);
-const minutes = Math.max(1, Math.round((skim.words + filmWords + idea.split(/\s+/).length) / 200));
+const films = filmTakeawaysOf(lesson);
+const filmWords = films.reduce((n, f) => n + wordsIn(f.takeaways.join(' ')), 0);
+const minutes = Math.max(1, Math.round((skim.words + filmWords + wordsIn(idea)) / 200));
 const rewritten = rewrittenFor(lesson.slug);
 const full = `/lessons/${lesson.slug}/`;
+// The course Skim page (/courses/<slug>/skim/) exists for every listed course with a live lesson.
+const courseSkim = COURSES.some((c) => c.slug === course.slug) ? courseSkimHref(course.slug) : null;
 ---
 
 <BaseLayout title={`Skim: ${lesson.title} — Biochemistrypedia`} description={`The take-home messages of ${lesson.title}: section headings, figures and their captions.`} noindex>
@@ -43,7 +44,7 @@ const full = `/lessons/${lesson.slug}/`;
       About {minutes} min to skim · {skim.figureCount} {skim.figureCount === 1 ? 'figure' : 'figures'}
       {rewritten && <> · Rewritten on <time datetime={rewritten.date}>{rewritten.label}</time></>}
     </p>
-    <p class="skim-back"><a href={full}>Read the full lesson →</a></p>
+    <p class="skim-back"><a href={full}>Read the full lesson →</a>{courseSkim && <> <span aria-hidden="true">·</span> <a href={courseSkim}>Skim the whole course →</a></>}</p>
 
     <section class="skim-idea" aria-labelledby="idea-h">
       <h2 id="idea-h">The guiding idea</h2>
@@ -78,7 +79,7 @@ const full = `/lessons/${lesson.slug}/`;
       ))}
     </ol>
 
-    <p class="skim-back"><a href={full}>Read the full lesson →</a></p>
+    <p class="skim-back"><a href={full}>Read the full lesson →</a>{courseSkim && <> <span aria-hidden="true">·</span> <a href={courseSkim}>Skim the whole course →</a></>}</p>
   </article>
 
   <style>
