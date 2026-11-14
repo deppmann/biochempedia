@@ -195,6 +195,11 @@ def mix_icon(center, colors, scale=1.0):
     return VGroup(boundary, a, b)
 
 
+def stage_tag(text="schematic"):
+    t = scope_tag(text)
+    return t.move_to(pt(5.65 - t.width / 2, -3.5))
+
+
 class S01Hook(TitleCard, FilmScene):
     LESSON = "Meiosis and Variation"
     TITLE = "How Meiosis Remixes Alleles"
@@ -233,17 +238,16 @@ class S02Alleles(FilmScene):
             bands.add(pair)
         self.play(LaggedStart(*[FadeIn(b, shift=LEFT * 0.12) for b in bands], lag_ratio=0.18), run_time=1.1)
         self.at("alleles may differ")
-        A = T("A", 28, BG, weight=BOLD).move_to(bands[1][0])
-        a = T("a", 28, BG, weight=BOLD).move_to(bands[1][1])
-        A.layout_ok = a.layout_ok = True
+        A = T("A", 32, PARENT_A, weight=BOLD).move_to(pt(-1.02, 2.45))
+        a = T("a", 32, PARENT_B, weight=BOLD).move_to(pt(1.02, 2.45))
         self.play(FadeIn(A), FadeIn(a), run_time=0.55)
         self.at("Copying")
         self.play(Indicate(VGroup(world.green, world.orange), color=ACTION), run_time=0.8)
-        sister = T("SISTER CHROMATIDS", 30, ACTION, weight=BOLD).move_to(pt(4.40, 1.55))
+        sister = T("SISTER\nCHROMATIDS", 30, ACTION, weight=BOLD).move_to(pt(4.30, 1.55))
         pointer = Arrow(sister.get_left(), world.orange.get_right(), buff=0.18, color=ACTION)
         self.play(FadeIn(sister), GrowArrow(pointer), run_time=0.65)
         self.at("lie side by side")
-        self.play(FadeOut(VGroup(sister, pointer)), world.green.animate.shift(RIGHT * 0.22), world.orange.animate.shift(LEFT * 0.22), run_time=0.8)
+        self.play(FadeOut(VGroup(sister, pointer)), world.green.animate.shift(RIGHT * 0.22), world.orange.animate.shift(LEFT * 0.22), A.animate.shift(RIGHT * 0.22), a.animate.shift(LEFT * 0.22), run_time=0.8)
         self.at("regions beside each other")
         guides = VGroup(*[DashedLine(p[0].get_right(), p[1].get_left(), color=ACTION, stroke_width=3) for p in bands])
         self.play(LaggedStart(*[Create(g) for g in guides], lag_ratio=0.16), run_time=0.9)
@@ -298,7 +302,7 @@ class S04Assortment(FilmScene):
         self.play(FadeIn(heading, shift=DOWN * 0.1), run_time=0.55)
         self.at("either or choice")
         self.play(LaggedStart(*[Indicate(p, color=ACTION) for p in (world.pairs[0], flipped, world.pairs[2])], lag_ratio=0.18), run_time=1.1)
-        self.add(scope_tag("schematic"))
+        self.add(stage_tag("schematic"))
         self.finish()
 
 
@@ -505,7 +509,7 @@ class S11Close(FilmScene):
             mix_icon(pt(1.1, -2.30), (PARENT_B, PARENT_A), 0.58),
         )
         self.play(Indicate(survivors, color=ACTION), LaggedStart(*[FadeIn(o, scale=0.8) for o in offspring], lag_ratio=0.16), run_time=1.1)
-        self.add(scope_tag("schematic"))
+        self.add(stage_tag("schematic"))
         self.at("does not guarantee")
         self.play(Indicate(not_guarantee, color=ACTION), run_time=0.8)
         self.finish()
