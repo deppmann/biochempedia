@@ -5,8 +5,8 @@ course: "genetics"
 courseChapter: "Genetics and Molecular Biology · Unit 3: DNA: copying, changing, repairing"
 order: 312
 summary: >-
-  Genes are made of DNA, and the structure of DNA suggests how a gene can be copied. This lesson follows the evidence from Griffith's mice to Avery's purified transforming principle, Hershey and Chase's labelled phage, and the 1953 double helix, keeping each result inside the limits its authors stated. Afterwards you can read enzyme-sensitivity and tracer data, use base-pairing rules to work out base composition and strandedness, and explain why the structure suggested a way to copy genes and how Meselson and Stahl tested it.
-hook: "Dead bacteria changed living ones into their own type. What was passed across? The answer is DNA, and the evidence is the lesson."
+  DNA carries inherited information; complementary pairing gives each strand a copying rule. This lesson follows the evidence from Griffith's mice to Avery's purified transforming principle, Hershey and Chase's labelled phage, and the 1953 double helix, keeping each result inside the limits its authors stated. Afterwards you can read enzyme-sensitivity and tracer data, use base-pairing rules to work out base composition and strandedness, and explain how Meselson and Stahl tested the copying proposal.
+hook: "Dead bacteria changed living ones into the dead donor's type. What crossed between them?"
 
 estMinutes: 22
 objectives:
@@ -19,10 +19,29 @@ explainer:
   src: "/explainers/dna-the-genetic-material/explainer.mp4"
   captions: "/explainers/dna-the-genetic-material/explainer.vtt"
   poster: "/explainers/dna-the-genetic-material/poster.jpg"
-  title: "Heredity Travels With DNA"
-  durationSec: 193.6
-  narration: "an AI narrator voice (Gemini, Charon) reading narration written from this lesson's text"
+  title: "What Followed the Trait?"
+  durationSec: 1
+  narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
   aiGenerated: true
+  takeaways:
+    - "Heritable information follows DNA across independent experiments."
+    - "Griffith revealed a heritable change but did not identify its chemical cause."
+    - "Avery's enzyme tests and Hershey and Chase's tracers each kept an important limit."
+    - "Convergence of two independent systems, not one perfect experiment, made DNA the strongest candidate."
+
+films:
+  - id: "chapter-2"
+    src: "/explainers/dna-the-genetic-material/chapter-2.mp4"
+    captions: "/explainers/dna-the-genetic-material/chapter-2.vtt"
+    poster: "/explainers/dna-the-genetic-material/chapter-2-poster.jpg"
+    title: "How One Strand Specifies Another"
+    durationSec: 1
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+    takeaways:
+      - "Complementary pairing lets each DNA strand specify a new partner."
+      - "Whole-duplex base composition follows A equals T and G equals C."
+      - "Density bands tested the prediction that each copy keeps one parental strand."
 
 scientists:
   - name: "Frederick Griffith"
@@ -189,7 +208,7 @@ practiceQuestions:
       - "The two chains coil in a right-handed direction"
     answer: 1
     rationale: >-
-      Adenine pairs only with thymine and guanine only with cytosine, so each strand determines the sequence of the other. If the chains separate, each can serve as a template for a new partner. The outside phosphates, the number of base pairs per turn and the handedness of the coil describe the shape of the helix, but none of them fixes a sequence, so none suggests a copying rule.
+      Under canonical Watson-Crick pairing, adenine pairs with thymine and guanine with cytosine, so each strand determines the sequence of its partner. If the chains separate, each can serve as a template for a new partner. The outside phosphates, the number of base pairs per turn and the handedness of the coil describe the shape of the helix, but none of them fixes a sequence, so none suggests a copying rule.
 
   - stem: "A double-stranded DNA sample is 30% guanine. What percentage of its bases is adenine?"
     choices:
@@ -235,12 +254,12 @@ mcatQuestions:
       - "No phage protein enters, so protein has no role in infection"
       - "The coat enters with the DNA and is passed on to the progeny"
       - "Blending strips phosphorus from DNA, so DNA stays outside"
-      - "Most DNA enters and is passed on; most of the coat stays out"
+      - "Most DNA enters and much reaches progeny; most coat stays out"
     answer: 3
     rationale: >-
-      Most phosphorus stays with the cells and much of it reaches progeny, while most sulfur is
-      removed and almost none reaches progeny, so most DNA enters and is inherited and most coat
-      stays outside. Saying no protein enters overstates 75%, and the coat has a role in attaching
+      Most phosphorus stays with the cells and 30% or more of it reaches progeny, while most sulfur is
+      removed and almost none reaches progeny, so most DNA enters, a substantial fraction of the
+      parental DNA label is passed on, and most coat stays outside. Saying no protein enters overstates 75%, and the coat has a role in attaching
       and delivering DNA. The data show almost no coat passed on, since progeny carry under 1% of parental
       sulfur. Blending does not strip phosphorus from DNA; most phosphorus stayed cell-associated.
   - stem: "Gel analysis shows that a linear phage genome is a double-stranded DNA of 8,400 base pairs. Assume it is in the B form in solution, with a rise of 0.34 nm per base pair and 10.5 base pairs per helical turn. What are its approximate length and number of turns?"
@@ -284,7 +303,7 @@ explainLevels:
       and found it was destroyed by enzymes that break down DNA but not by enzymes that break down
       protein or RNA. In 1952 Alfred Hershey and Martha Chase labelled the protein and the DNA of a
       virus separately and found that mostly the DNA went into the bacteria it infected. In 1953
-      the structure was worked out: two strands wound into a double helix, with A always paired
+      the structure was worked out: two strands wound into a double helix, with A paired
       to T and G to C, so one strand predicts the other.
   - level: "college"
     label: "College"
@@ -367,96 +386,130 @@ draft: false
 
 import HersheyChaseTracer from '../../../components/HersheyChaseTracer.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import LessonFilm from '../../../components/LessonFilm.astro';
 
-**Genes are made of DNA, and the paired structure of DNA suggests how a gene can be copied.**
+The first film followed a heritable change to DNA. Everything in this lesson serves one idea:
 
-That answer took about 25 years, three kinds of experiment and one model. It began in 1928, when a mixture of living harmless bacteria and dead deadly ones killed mice, and the living bacteria that came out of those mice were the dead strain's type. Something in the dead cells had changed the living ones, and the change was inherited. Enzyme tests on the purified material pointed to DNA, a tracer experiment on a virus pointed to DNA again, and a structure built in 1953 suggested how a molecule of paired strands could be copied. This lesson follows that evidence, keeping each result inside the limits its authors gave it. For nucleotide structure, see [nucleotide metabolism](/lessons/nucleotide-metabolism/).
+> **The one idea. DNA carries inherited information; complementary pairing gives each strand a copying rule.**
+>
+> *Scope:* the identity claim is built here from pneumococcal transformation and DNA-phage experiments. The copying rule assumes canonical Watson-Crick pairing in duplex DNA; pairing supplies sequence information, not the machinery of replication.
 
-## The idea: a genetic material must store, copy and act
+A genetic material must store a great deal of information that differs among individuals and species. It must be copied faithfully before cell division, so an ordinary mitosis gives both daughters the same set. It must act by directing what the cell makes. These demands follow from [chromosomes and meiosis](/lessons/chromosomes-and-meiosis/).
 
-Three demands on any genetic material follow from what you met in [chromosomes and meiosis](/lessons/chromosomes-and-meiosis/). It must store a great deal of information that differs between individuals and species. It must be copied faithfully before a cell divides, so that in an ordinary mitotic division both daughters get the same set. And it must act, by directing what the cell makes.
+Chromosomes contain protein and DNA. Protein looked the better candidate: it has about 20 amino-acid building blocks, while DNA has four bases and was thought to repeat simply. For nucleotide structure, see [nucleotide metabolism](/lessons/nucleotide-metabolism/).
 
-Chromosomes are made of protein and DNA. Protein looked like the better candidate: it is built from about 20 kinds of amino acid, while DNA has four kinds of base and was widely thought to be a simple repeating chain. The experiments below overturned that guess one step at a time.
+## From a heritable change to an assay
 
-## Griffith to Avery: a heritable change you can purify
+The film's rough and smooth cells were pneumococcus (*Streptococcus pneumoniae*), whose serological types are set by the polysaccharide capsule. Smooth (S) strains have a capsule and can kill a mouse; rough (R) variants lack it and are generally harmless.
 
-Pneumococcus (*Streptococcus pneumoniae*) comes in serological types, labelled II, III and so on, set by the polysaccharide capsule each strain makes. Smooth (S) strains have a capsule and can kill a mouse. Rough (R) variants lack it and are generally harmless.
+The film left out the mice. In January 1928, Frederick Griffith injected mice with a small dose of living R bacteria derived from type II together with heat-killed type III S bacteria. One control series showed that the heated culture was sterile. Some mice died, and from them Griffith recovered living, encapsulated type III bacteria that bred true.
 
-Frederick Griffith, in a paper published in January 1928, injected mice with a small dose of living R bacteria derived from a type II strain together with heat-killed type III S bacteria. In one control series he showed the heated culture was sterile. Some mice died, and from them he recovered living encapsulated type III bacteria, which bred true. Neither ingredient alone gave this. Griffith did not identify the cause. He suggested that a specific protein structure in the dead cells let the living ones make the new capsule. What he left behind was a test: a trait you could switch on in recipient cells and score.
+<LessonFigure src="/figures/dna-the-genetic-material/griffith-mixed-injection.webp" width={1200} height={772} alt="AI-generated illustration: a syringe loaded with a few living plain rough bacteria of type II origin and heat-killed capsule-coated type III smooth bacteria is injected into a mouse; the mouse dies and living gold-haloed type III bacteria are recovered that breed true; an inset shows neither ingredient alone gives this." caption="Griffith's result established a heritable change to the dead donor's type, but it did not identify the responsible substance." />
 
-<LessonFigure src="/figures/dna-the-genetic-material/griffith-mixed-injection.webp" width={1200} height={772} alt="AI-generated illustration: a syringe loaded with a few living plain rough bacteria of type II origin and heat-killed capsule-coated type III smooth bacteria is injected into a mouse; the mouse dies and living gold-haloed type III bacteria are recovered that breed true; an inset shows neither ingredient alone gives this." caption="Griffith injected living rough type II bacteria together with heat-killed smooth type III bacteria. From mice that died he recovered living encapsulated type III bacteria, which bred true; neither ingredient alone gave this." />
+Griffith suggested that a specific protein structure in the dead cells let the living ones make the capsule. He left an **assay**, a scored experimental readout: transformation to the donor's type, kept by descendants.
 
-Think of it as a recipe card slipped into a kitchen. The R cells already had the kitchen; the dead cells supplied a card for a new capsule, and the change persisted in their descendants.
+Later work at the Rockefeller Institute showed the change could be made in culture and then with extracts free of cells. Oswald Avery, Colin MacLeod and Maclyn McCarty purified the active fraction from type III cells and tested it on type II-derived R cells. In their 1944 paper, the nitrogen-to-phosphorus ratio and ultraviolet absorption matched nucleic acid. The protein-digesting enzymes were crystalline trypsin and chymotrypsin, and the RNA-digesting one was ribonuclease (RNase). The inherited change was specific to the donor's type.
 
-Later work at the Rockefeller Institute showed the change could be made in culture and with extracts free of cells. Oswald Avery, Colin MacLeod and Maclyn McCarty then purified the active fraction from type III cells and tested it on type II-derived R cells in culture. Their 1944 paper made the case in several independent ways:
+**Predict.** Why did each enzyme preparation need to be tested on a known substrate before the transformation result meant anything?
 
-1. **Chemistry.** The active material's ratio of nitrogen to phosphorus and its absorption of ultraviolet light matched nucleic acid.
-2. **Enzymes.** Crystalline trypsin and chymotrypsin, which digest protein, did not abolish activity, and ribonuclease (RNase), which digests RNA, left it intact. Enzyme preparations that broke down known DNA destroyed it.
-3. **Heredity.** The change was specific to the donor's type and passed on through successive generations of recipients.
+<details>
+<summary>Check your prediction</summary>
 
-The authors concluded that the active fraction was "principally, if not solely" highly polymerized DNA, within the limits of their methods. That made DNA the leading candidate. The hedge marks the one objection they could not fully close: a protein present below the detection limit might be the real agent, with DNA as a carrier.
+An unchanged transformation assay is informative only if the enzyme was active. A failed protease could leave a protein agent untouched, just as a failed ribonuclease could leave RNA untouched. Showing that each preparation digested its known target makes “activity remained” evidence against that target being required.
 
-## Hershey and Chase: labels that separate protein from DNA
+</details>
 
-Phage T2, a virus that infects *Escherichia coli* (see [bacterial and phage genetics](/lessons/bacterial-and-phage-genetics/)), is made of little more than a protein coat around DNA. After infection the cell makes new phage. So one part, or both, must carry the instructions in.
+Their conclusion, “principally, if not solely” highly polymerized DNA within the limits of their methods, made DNA the leading candidate. The hedge left one objection open: a protein below the detection limit might be the real agent, with DNA as its carrier. The design problem asks how to answer it.
 
-Alfred Hershey and Martha Chase used the chemistry of the two parts. Protein contains sulfur, in the amino acids cysteine and methionine, and DNA has none. DNA is rich in phosphorus, in its backbone, while protein has little. So they grew one batch of phage with radioactive sulfur-35, labelling protein, and another with phosphorus-32, labelling mostly DNA.
+## An independent tracer test
 
-They let labelled phage attach to *E. coli* bacteria, sheared off the attached material by agitation in a blender, and centrifuged the cells into a pellet. In their summarized result about 75% of the sulfur came off into the fluid, but only about 15% of the phosphorus did. The stripped cells still produced phage. Progeny carried less than 1% of the parental sulfur and 30% or more of the parental phosphorus.
+The film's phage was T2, a virus of *Escherichia coli*; see [bacterial and phage genetics](/lessons/bacterial-and-phage-genetics/). Its gold and blue paths stand for real isotope tracers. Cysteine and methionine put sulfur in protein, while DNA has none. DNA's backbone is rich in phosphorus, while protein has little. Alfred Hershey and Martha Chase therefore used sulfur-35 to label protein and phosphorus-32 to label mostly DNA.
+
+In their summarized result, about 75% of the sulfur came off into the fluid after blending, but only about 15% of the phosphorus did. Progeny carried less than 1% of parental sulfur and 30% or more of parental phosphorus.
 
 <HersheyChaseTracer />
 
-The result: in a second system, with a different method, what enters the cell and is passed on travels with DNA. Hershey and Chase concluded that the coat probably had no function in growth inside the cell and assigned it a role in delivering the DNA. Keep the words "most" and "about" when you retell this. A quarter of the sulfur stayed with the cells, and the authors wrote that whether sulfur-free material other than DNA entered had not been determined. So the result did not prove that no protein entered.
+The authors assigned the coat a role in delivering DNA and said it probably had no function in intracellular phage growth. They left entry of sulfur-free material other than DNA undetermined, and a quarter of the sulfur stayed with the cells, so the result supports “most DNA entered, and most coat stayed out,” not “no protein entered.”
 
-## The double helix and the evidence behind it
+Heredity followed DNA; the next question is how that molecule could be copied.
 
-How can a molecule with four bases store and copy information? The answer in brief: two chains coil together and run in opposite directions, with adenine paired to thymine and guanine to cytosine, so that each chain fixes the sequence of its partner. Three lines of evidence constrained that answer.
+<LessonFilm film={frontmatter.films[0]} />
 
-**Base ratios.** Around 1950 Erwin Chargaff's laboratory at Columbia University measured base composition in DNA from many sources. Composition varied from species to species, but in each sample the amount of adenine was close to that of thymine, and guanine close to cytosine. Base pairing requires these equalities only for double-stranded DNA as a whole.
+## The double helix: constraints before a model
 
-**Diffraction.** At King's College London, Rosalind Franklin and her student Raymond Gosling, and separately Maurice Wilkins with Alexander Stokes and Herbert Wilson, recorded X-ray patterns from DNA fibres. Franklin and Gosling showed that fibres switch between A and B forms as water content changes. For the B form they measured a 3.4-angstrom spacing and a 34-angstrom repeat along the fibre, concluded the structure was probably helical with phosphate on the outside, and considered two chains probable. In 1952 Franklin and Gosling recorded the B-form pattern later called Photograph 51. Wilkins showed it to James Watson in early 1953. Wilkins, Stokes and Wilson found similar patterns from DNA of several sources, including several biological sources, and noted that diffraction could not reveal the order of the bases.
+The second film built the pairing rule from matched bars and rails. These are the measurements behind them.
 
-**Model building.** At the Cavendish Laboratory in Cambridge, Watson and Francis Crick built a model that fitted these constraints. Two right-handed chains coil around one axis and run in opposite directions, which is what antiparallel means. Phosphates sit outside; the bases sit inside, joined across the chains by hydrogen bonds, adenine with thymine and guanine with cytosine. The model, Franklin and Gosling's paper and the Wilkins paper appeared together in *Nature* in April 1953.
+**Base composition asks what must match.** The matched bars come from Erwin Chargaff's laboratory at Columbia University, which around 1950 measured base composition, the percentage of all bases that are A, T, G or C, in DNA from many sources. Composition varied among species, arguing against a simple repeat. Within each sample, A was close to T and G close to C. Pairing requires those equalities only across double-stranded DNA as a whole.
 
-Two details are often garbled. In modern structures a G-C pair has three hydrogen bonds and an A-T pair two, but the helix is held together largely by the stacking of flat bases on one another (see [water and weak bonds](/lessons/water-weak-bonds/)). And the 1953 model had 10 base pairs per turn, an assumption; later measurements of B-DNA in solution gave about 10.5.
+**Fibre diffraction asks what geometry must fit.** At King's College London, Rosalind Franklin and Raymond Gosling, and separately Maurice Wilkins with Alexander Stokes and Herbert Wilson, recorded X-ray patterns from DNA fibres. Franklin and Gosling showed that water content switches fibres between A and B forms. For B form, they measured a 3.4-angstrom spacing and a 34-angstrom repeat, judged the structure probably helical with phosphate outside, and considered two chains probable.
 
-### Worked problem: reading base composition and helix length
+Their 1952 B-form pattern, later called Photograph 51, was shown to James Watson by Wilkins in early 1953. Wilkins, Stokes and Wilson found similar patterns from several sources, including biological ones. Diffraction could constrain repeated geometry, but not reveal base order.
 
-Assume perfect Watson-Crick pairing in any duplex, and percentages taken over all bases in the sample.
+**Model building asks whether one structure can satisfy both.** At Cambridge's Cavendish Laboratory, Watson and Francis Crick built two right-handed chains around one axis. The chains run in opposite directions, like the film's rails: they are **antiparallel**. Phosphates face outward. Bases face inward and pair by hydrogen bonds: adenine with thymine, guanine with cytosine. Their model, Franklin and Gosling's paper and the Wilkins paper appeared together in *Nature* in April 1953.
 
-**(a) A double-stranded DNA sample is 22% A.** Pairing gives T = A = 22%. That leaves 100 - 44 = 56% for G plus C, and G = C, so each is 28%.
+Two refinements followed. Modern structures show three hydrogen bonds in a G-C pair and two in an A-T pair, but stacking between flat bases contributes greatly to helix stability; see [water and weak bonds](/lessons/water-weak-bonds/). The 1953 model assumed 10 base pairs per turn. Later measurements of B-DNA in solution gave about 10.5.
 
-> **A = T, G = C, and A + T + G + C = 100% (double-stranded DNA only)**
+**Predict.** Two B-form segments have the same number of base pairs, but one has more G-C pairs. Using the dimensions here, is one segment longer?
 
-**(b) A viral genome measures A 25%, T 33%, G 24%, C 18%.** The bases total 100%. T is present and U is absent, so this is DNA. But A (25) does not equal T (33) and G (24) does not equal C (18), so the bases are not paired across two strands. The genome is single-stranded DNA.
+<details>
+<summary>Check your prediction</summary>
 
-**(c) A 3,000 bp segment of B-form DNA, with a rise of 0.34 nm per base pair and about 10.5 bp per turn.**
+No. Length is base pairs times the rise per base pair. Hydrogen-bond counts do not enter, so equal base-pair counts give equal calculated lengths under this model.
 
-> **length = base pairs × rise = 3,000 × 0.34 nm = 1,020 nm, about 1.0 micrometre**
-> **turns = base pairs ÷ bp per turn = 3,000 ÷ 10.5 = 285.7, about 286**
+</details>
 
-With the 1953 model's 10 bp per turn you would get 300 turns; 10.5 is the solution value. The rise is per base pair, so do not double it for two strands.
+### Work from the pairing rules
 
-## Pairing as a copying rule
+Assume perfect Watson-Crick pairing in a duplex and percentages over every base in the sample.
 
-Specific pairing means one strand fixes the sequence of the other. Watson and Crick saw the consequence. In a second *Nature* paper later in 1953, on the genetical implications of the structure, they proposed that the two chains separate and each serves as a template on which a new partner is built. A gene could be copied by the same rule that holds the helix together.
+**Predict.** A double-stranded DNA sample is 22% A. What percentages are T, G and C?
 
-An analogy: each strand is a photographic negative of the other. Separate them, print from each, and you get two copies of the original pair.
+<details>
+<summary>Check your prediction</summary>
 
-That was a proposal, not a test. In 1958 Matthew Meselson and Franklin Stahl grew *E. coli* on heavy nitrogen, moved it to light nitrogen and separated DNA by density. After one generation all the DNA was of hybrid density; after two, hybrid and light DNA were present in equal amounts. That is what templating predicts; [DNA replication](/lessons/dna-replication/) takes it further.
+T equals A, so T is 22%. That leaves 56% for G plus C. Because G equals C, each is 28%.
 
-### Design problem
+</details>
 
-A purified extract from heat-killed S type III cells turns R cells (derived from type II) into type III. Activity remaining after treatment: untreated 100%, trypsin plus chymotrypsin 100%, RNase 100%, DNase 0%, heating to 65 C 90%. A critic says a protein below 0.1% of the preparation could be the agent. What do the data show, and what experiments would answer the critic?
+> **A = T, G = C, and A + T + G + C = 100% in double-stranded DNA.**
+
+**Predict.** A viral genome has A 25%, T 33%, G 24% and C 18%. What do the ratios say about strandedness?
+
+<details>
+<summary>Check your prediction</summary>
+
+The bases total 100%, but A does not equal T and G does not equal C. Under the perfect-pairing assumption, they are not paired across two full strands, so this is single-stranded DNA. Thymine with no uracil supports DNA, but sugar chemistry distinguishes DNA from RNA.
+
+</details>
+
+For helix dimensions, a **base pair**, abbreviated bp, is one paired position across the two strands. A 3,000 bp B-form segment with a rise of 0.34 nm per base pair and about 10.5 bp per turn has:
+
+> **length = 3,000 × 0.34 nm = 1,020 nm, about 1.0 micrometre**
+>
+> **turns = 3,000 ÷ 10.5 = 285.7, about 286**
+
+The 1953 model's 10 bp per turn would give 300 turns. Rise is per base pair, so do not double it for two strands.
+
+### From complement to copying
+
+The film's unzipped rail is the second half of the one idea: complementary pairing gives each strand a copying rule. To write a partner 5' to 3', pair the bases and then reverse the order, because the strands are antiparallel. In a second *Nature* paper later in 1953, Watson and Crick proposed that the chains separate and each serves as a template for a new partner.
+
+The film's density bands are the 1958 test by Matthew Meselson and Franklin Stahl. They grew *E. coli* on heavy nitrogen, moved it to light nitrogen and separated DNA by density: all hybrid after one generation, equal hybrid and light after two. [DNA replication](/lessons/dna-replication/) takes the mechanism further.
+
+## Design problem: make the claim no larger than the data
+
+A purified extract from heat-killed S type III cells turns type II-derived R cells into type III. Remaining activity is: untreated 100%, trypsin plus chymotrypsin 100%, RNase 100%, DNase 0%, and heating to 65 C 90%. A critic proposes that a protein below 0.1% is the agent. What do the data show, and what would answer the critic?
 
 <details>
 <summary>One way to do it</summary>
 
-The data show that activity needs intact DNA and survives protease and RNase treatments that digest most proteins and RNA. The small loss after heating shows the agent is fairly heat-stable, and on its own says little about what kind of molecule it is.
+**Claim:** activity requires intact DNA and survives treatments that digest most protein and RNA. The small heat loss shows relative heat stability but does not identify the molecule.
 
-The critic's point is a detection-limit argument, and more enzyme data cannot remove it, since a trace protein might resist proteases. First, follow activity through purification: if activity per microgram of DNA stays constant while protein falls tenfold and more, a protein contaminant becomes harder to defend. Second, measure dose: the number of transformed cells should rise with the amount of DNA added, though a dose response alone cannot separate DNA from a contaminant that travels with it. Third, transfer a different trait with the same kind of preparation, such as resistance to a drug; work by Rollin Hotchkiss and others later did this, and a protein explanation would then need a different trait-specific contaminant to co-purify with the DNA in each preparation. Fourth, use an independent system, as Hershey and Chase did with phage.
+**Limit:** a detection limit cannot prove that a trace protein is absent, and that protein might resist the proteases used.
 
-These data, like the 1944 paper, made DNA the strongest candidate without settling the question alone; the case closed as independent lines converged.
+**Next tests:** follow activity during purification. If activity per microgram of DNA stays constant while protein falls tenfold or more, a protein contaminant becomes harder to defend. Test dose response, though a co-purifying contaminant could follow DNA. Transfer another trait, such as drug resistance; later work by Rollin Hotchkiss and others did this. A protein account would then need a different trait-specific contaminant for each preparation. Finally, test an independent system, as Hershey and Chase did.
+
+Together, the 1944 and phage results made DNA the strongest candidate in these systems without making either experiment universal by itself.
 
 </details>
 
@@ -464,12 +517,12 @@ These data, like the 1944 paper, made DNA the strongest candidate without settli
 
 ### The 1944 preparations
 
-The ratio of nitrogen to phosphorus in the active material ran from 1.58 to 1.75 across four preparations.
+The active material's nitrogen-to-phosphorus ratio ran from 1.58 to 1.75 across four preparations.
 
 ### Chargaff's second rule
 
-Each strand of most double-stranded genomes also comes close to A = T and G = C, a pattern called Chargaff's second rule, but pairing does not require it.
+Each strand of most double-stranded genomes also comes close to A = T and G = C. This is Chargaff's second rule; pairing does not require it.
 
 ### Franklin and the Nobel Prize
 
-Franklin died in 1958. The 1962 Nobel Prize in Physiology or Medicine went to Watson, Crick and Wilkins, and the Nobel Prize has almost never been given after death (since 1974 the statutes have barred it, with rare exceptions such as a laureate who dies after the announcement).
+Franklin died in 1958. The 1962 Nobel Prize in Physiology or Medicine went to Watson, Crick and Wilkins. The Nobel Prize has almost never been given after death; since 1974 its statutes have barred this, with rare exceptions such as death after announcement.

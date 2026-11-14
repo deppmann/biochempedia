@@ -1,420 +1,394 @@
-"""DNA is the genetic material: heredity travels with DNA  (Biochemistrypedia explainer)
+"""What Followed the Trait? — animated explainer.
 
-Timed to the SPOKEN words: every self.at("...") cue waits for that phrase in audio/words.json.
-
-COLOR MAP (one color per concept, whole video)
-  BLUE   = DNA (every strand of DNA; the old, parental strand; phosphorus-32, the DNA label)
-  GREEN  = newly made DNA (the new partner strand, light nitrogen DNA)
-  PURPLE = protein (trypsin target, the phage coat, sulfur-35, the protein label)
-  PINK   = RNA (ribonuclease target)
-  ORANGE = bacterial type III (the dead donor's type)
-  YELLOW = the unknown agent / the measured activity
-  RED    = activity destroyed (0%)
-  GREY   = outlines, living recipient cells, tubes, structure, de-emphasized
-  TEXT   = base letters not under comparison, label dots
+COLOR MAP
+  BLUE  DNA and phosphorus-rich tracer
+  GOLD  protein and sulfur-containing tracer
+  TEAL  living rough recipient cells and bacterial outlines
+  GREEN donor-type capsule and transformation activity
+  GREY  apparatus, limits, and neutral structure
 """
-import numpy as np
-from bp_style import *  # noqa: F401,F403
-
-PURPLE = "#B58CD9"
-TEAL_RNA = "#E88BC4"
-ORANGE = "#F29E4C"
+from bp_parts import *  # noqa: F401,F403
 
 
-# ---------------------------------------------------------------------------------------------
-# helpers
-# ---------------------------------------------------------------------------------------------
-def arr(a, b, color=GREY, w=5, tip=0.22):
-    return Arrow(a, b, buff=0.08, color=color, stroke_width=w, tip_length=tip,
-                 max_tip_length_to_length_ratio=0.45, max_stroke_width_to_length_ratio=12)
+def bench_stage():
+    """The film's single landscape: a softly lit laboratory bench."""
+    panel = RoundedRectangle(corner_radius=0.28, width=13.0, height=6.25,
+                             stroke_width=0, fill_color=GREY,
+                             fill_opacity=0.16).set_z_index(-20)
+    glow = Line([-6.1, -2.75, 0], [-6.1, 2.75, 0], color=TEAL,
+                stroke_width=54, stroke_opacity=0.20).set_z_index(-19)
+    glow._travel = 0.0
+
+    def travel(mob, dt):
+        mob._travel = (mob._travel + dt) % 6.0
+        mob.set_x(-6.1 + 12.2 * mob._travel / 6.0)
+    glow.add_updater(travel)
+    return VGroup(panel, glow)
 
 
-def cell(color, capsule, w=2.5, h=1.15, dashed=False, op=0.25):
-    body = RoundedRectangle(corner_radius=0.5, width=w, height=h, stroke_color=color, stroke_width=3,
-                            fill_color=color, fill_opacity=op)
-    parts = []
+class FilmScene(SpokenScene):
+    def setup(self):
+        super().setup()
+        self.add(bench_stage())
+
+
+def arrow(a, b, color=GREY, width=5):
+    return Arrow(a, b, buff=0.12, color=color, stroke_width=width, tip_length=0.22)
+
+
+def bacterium(capsule=False, scale=1.0, color=TEAL):
+    body = RoundedRectangle(corner_radius=0.42, width=1.65, height=0.78,
+                            stroke_color=color, stroke_width=4,
+                            fill_color=color, fill_opacity=0.18)
+    core = VGroup(Dot(LEFT * 0.33, radius=0.07, color=color),
+                  Dot(RIGHT * 0.33, radius=0.07, color=color))
+    parts = VGroup(body, core)
     if capsule:
-        parts.append(RoundedRectangle(corner_radius=0.62, width=w + 0.3, height=h + 0.3, stroke_color=color,
-                                      stroke_width=7, fill_opacity=0))
-    parts.append(body)
-    return VGroup(*parts)
+        halo = RoundedRectangle(corner_radius=0.54, width=1.92, height=1.05,
+                                stroke_color=GREEN, stroke_width=7,
+                                fill_color=GREEN, fill_opacity=0.07)
+        parts = VGroup(halo, body, core)
+    return parts.scale(scale)
 
 
-def letters(seq, color, size=48, dx=1.0):
-    n = len(seq)
-    return VGroup(*[M(ch, size, color, weight=BOLD).move_to([(i - (n - 1) / 2) * dx, 0, 0]) for i, ch in enumerate(seq)])
-
-
-def strand(seq, color, y, left, right, size=48, dx=1.0):
-    """letters plus the two end labels, as one group at height y."""
-    L = letters(seq, color, size, dx).move_to([0, y, 0])
-    ln = T(left, 26, GREY).move_to([-(len(seq) - 1) / 2 * dx - 0.85, y, 0])
-    rn = T(right, 26, GREY).move_to([(len(seq) - 1) / 2 * dx + 0.85, y, 0])
-    g = VGroup(L, ln, rn)
-    g.L, g.ends = L, VGroup(ln, rn)
+def bench_world(descendants=True):
+    """Carried hook picture, rebuilt at identical positions."""
+    rough = VGroup(*[bacterium().move_to([-4.65, y, 0]) for y in (1.3, 0.0, -1.3)])
+    donors = VGroup(*[bacterium(True, color=GREY).set_opacity(0.55).move_to([0, y, 0])
+                      for y in (1.15, -0.15)])
+    question = T("?", 82, GOLD, weight=BOLD).move_to([0, -1.65, 0])
+    desc = VGroup(*[bacterium(True).move_to([4.55, y, 0]) for y in (1.45, 0.15, -1.15)])
+    labels = VGroup(T("living rough", 28, TEAL).move_to([-4.65, 2.55, 0]),
+                    T("heat-killed donor", 28, GREEN).move_to([0, 2.55, 0]))
+    g = VGroup(rough, donors, question, labels)
+    if descendants:
+        g.add(desc, T("living donor type", 28, GREEN).move_to([4.55, 2.55, 0]))
+    g.rough, g.donors, g.question, g.desc, g.labels = rough, donors, question, desc, labels
     return g
 
 
-def ticks(y_top, y_bot, n=6, dx=1.0, color=GREY):
-    return VGroup(*[Line([(i - (n - 1) / 2) * dx, y_top, 0], [(i - (n - 1) / 2) * dx, y_bot, 0],
-                         color=color, stroke_width=3) for i in range(n)])
+def tray_world(count=5, lamp=True):
+    tray = RoundedRectangle(corner_radius=0.2, width=4.15, height=3.6,
+                            stroke_color=GREY, stroke_width=3).move_to([4.15, -0.15, 0])
+    pts = [(-1.35, 0.8), (0, 0.85), (1.25, 0.65), (-0.8, -0.45), (0.75, -0.6)]
+    colonies = VGroup(*[bacterium(i < count, 0.48).move_to([4.15 + x, -0.2 + y, 0])
+                        for i, (x, y) in enumerate(pts)])
+    light = Circle(radius=0.25, stroke_color=GREEN if lamp else GREY, stroke_width=4,
+                   fill_color=GREEN if lamp else GREY, fill_opacity=0.7 if lamp else 0.1).move_to([5.75, 1.15, 0])
+    lab = T("recipient culture", 28, TEAL).move_to([4.15, 2.45, 0])
+    g = VGroup(tray, colonies, light, lab)
+    g.colonies, g.light = colonies, light
+    return g
 
 
-def bar(x, h, color, base, w=1.2, op=0.85):
-    h = max(h, 0.04)
-    r = Rectangle(width=w, height=h, stroke_color=color, stroke_width=2, fill_color=color, fill_opacity=op)
-    r.move_to([x, base + h / 2, 0])
-    return r
+def enzyme_world(question=False):
+    gates = VGroup()
+    for x, name, col in [(-3.9, "protein", GOLD), (0, "RNA", TEAL), (3.9, "DNA", BLUE)]:
+        box = RoundedRectangle(corner_radius=0.18, width=3.15, height=2.2,
+                               stroke_color=col, stroke_width=4, fill_color=col, fill_opacity=0.1).move_to([x, 0.65, 0])
+        name_t = T(name, 32, col, weight=BOLD).move_to([x, 1.25, 0])
+        check = chip("target checked", GREEN, size=24).move_to([x, 0.25, 0])
+        lamp = Circle(radius=0.22, color=GREEN if name != "DNA" or not question else GREY,
+                      fill_opacity=0.75 if name != "DNA" or not question else 0.1).move_to([x, -0.95, 0])
+        gates.add(VGroup(box, name_t, check, lamp))
+    stream = chip("active fraction", BLUE, size=30).move_to([0, 2.8, 0])
+    paths = VGroup(*[arrow(stream.get_bottom(), g[0].get_top(), BLUE, 4) for g in gates])
+    return VGroup(stream, paths, gates)
 
 
-class S00Title(TitleCard):
-    LESSON = "DNA is the genetic material"
-    TITLE = "Heredity travels with DNA"
+def phage_cartoon(scale=1.0):
+    coat = VGroup(RegularPolygon(6, radius=0.9, color=GOLD, stroke_width=6,
+                                 fill_color=GOLD, fill_opacity=0.13).rotate(PI / 6),
+                  Line([0, -0.78, 0], [0, -1.62, 0], color=GOLD, stroke_width=6),
+                  Line([0, -1.62, 0], [-0.5, -2.0, 0], color=GOLD, stroke_width=5),
+                  Line([0, -1.62, 0], [0.5, -2.0, 0], color=GOLD, stroke_width=5))
+    dna = (chip("DNA", BLUE, size=30, pad=0.13) if scale >= 0.8 else
+           RoundedRectangle(corner_radius=0.12, width=0.95, height=0.48,
+                            color=BLUE, stroke_width=4, fill_color=BLUE, fill_opacity=0.35))
+    dna.move_to([0, 0, 0])
+    g = VGroup(coat, dna).scale(scale)
+    g.coat, g.dna = coat, dna
+    return g
 
 
-# ---------------------------------------------------------------------------------------------
-class S01Question(SpokenScene):
-    """dead type III cells + living harmless cells + a question; mixed; the living cells take the dead cells' type."""
+def tube_world():
+    tube = RoundedRectangle(corner_radius=0.5, width=3.3, height=5.25,
+                            stroke_color=TEAL, stroke_width=5).move_to([0.2, 0.05, 0])
+    fluid = Rectangle(width=2.85, height=2.65, stroke_width=0,
+                      fill_color=BLUE, fill_opacity=0.08).move_to([0.2, 0.7, 0])
+    surface = Line([-1.2, 2.02, 0], [1.6, 2.02, 0], color=TEAL, stroke_width=4)
+    pellet = Ellipse(width=2.1, height=0.55, color=TEAL, fill_color=TEAL,
+                     fill_opacity=0.35).move_to([0.2, -2.1, 0])
+    labels = VGroup(T("fluid", 28, TEAL).move_to([0.2, 1.55, 0]),
+                    T("cell pellet", 28, TEAL).move_to([0.2, -1.55, 0]))
+    return VGroup(tube, fluid, surface, pellet, labels)
 
+
+class S01Hook(FilmScene):
     def construct(self):
-        ys = [2.0, 0.0, -2.0]
-        dead = VGroup(*[cell(ORANGE, True, op=0.12).move_to([-4.6, y, 0]) for y in ys])
-        dead_l = T("heat-killed, type III", 24, ORANGE).move_to([-4.6, 3.1, 0])
-        live = VGroup(*[cell(GREY, False).move_to([4.6, y, 0]) for y in ys])
-        live_l = T("living, harmless", 24, GREY).move_to([4.6, 3.1, 0])
+        world = bench_world()
         self.at("Dead bacteria")
-        self.play(FadeIn(dead), FadeIn(dead_l), run_time=0.8)
-        self.at("living ones")
-        self.play(FadeIn(live), FadeIn(live_l), run_time=0.8)
-        q = chip("?", YELLOW, size=64, pad=0.35)
-        a1 = arr([-2.8, 0, 0], [q.get_left()[0] - 0.05, 0, 0], GREY)
-        a2 = arr([q.get_right()[0] + 0.05, 0, 0], [2.8, 0, 0], GREY)
-        self.at("passed across")
-        self.play(GrowArrow(a1), FadeIn(q, scale=0.8), GrowArrow(a2), run_time=0.8)
-        inj = chip("injected into mice", GREY, size=26)
-        b1 = arr([-2.8, 0, 0], [inj.get_left()[0] - 0.05, 0, 0], GREY)
-        b2 = arr([inj.get_right()[0] + 0.05, 0, 0], [2.8, 0, 0], GREY)
-        self.at("In 1928")
-        self.play(ReplacementTransform(q, inj), ReplacementTransform(a1, b1), ReplacementTransform(a2, b2), run_time=0.9)
-        live2 = VGroup(*[cell(ORANGE, True).move_to([4.6, y, 0]) for y in ys])
-        live2_l = T("living, type III", 24, ORANGE).move_to([4.6, 3.1, 0])
-        self.at("came living bacteria")
-        self.play(ReplacementTransform(live, live2), ReplacementTransform(live_l, live2_l), run_time=1.0)
-        desc = T("passed to descendants", 24, ORANGE).move_to([4.6, -3.2, 0])
-        self.at("bred true")
-        self.play(FadeIn(desc), Indicate(live2, color=ORANGE, scale_factor=1.05), run_time=1.0)
+        self.play(FadeIn(world.donors, shift=DOWN * 0.2), run_time=0.8)
+        self.at("living bacteria")
+        self.play(FadeIn(world.rough, shift=RIGHT * 0.3), run_time=0.8)
+        self.at("What crossed")
+        self.play(FadeIn(world.question, scale=0.6), run_time=0.7)
+        self.at("Living rough cells")
+        self.play(FadeIn(world.labels[0]), LaggedStart(*[Indicate(c, color=TEAL) for c in world.rough], lag_ratio=0.2), run_time=1.0)
+        self.at("Heat killed smooth cells")
+        self.play(FadeIn(world.labels[1]), world.donors.animate.set_opacity(0.35), run_time=0.9)
+        self.at("Yet mixing them")
+        self.play(world.rough.animate.shift(RIGHT * 1.25), world.donors.animate.shift(LEFT * 1.0), run_time=1.2)
+        self.at("living capsule bearing cells")
+        self.play(FadeIn(world.desc, shift=RIGHT * 0.35), FadeIn(T("living donor type", 28, GREEN).move_to([4.55, 2.55, 0])), run_time=1.0)
+        self.at("Their descendants")
+        daughters = VGroup(*[bacterium(True, 0.7).move_to([3.6 + i * 0.95, -2.3, 0]) for i in range(3)])
+        self.play(TransformFromCopy(world.desc[1], daughters), run_time=1.1)
+        self.at("Neither ingredient alone")
+        self.play(Indicate(VGroup(world.rough, world.donors), color=GOLD, scale_factor=1.03), run_time=1.0)
+        self.add(scope_tag("schematic"))
+        bob(daughters, amp=0.035, speed=1.2)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S02Enzymes(SpokenScene):
-    """three enzyme treatments of the purified fraction; activity bars; only the DNA enzyme removes it."""
+class S02Title(TitleCard):
+    LESSON = "DNA: The Genetic Material"
+    TITLE = "What Followed the Trait?"
 
+
+class S03Assay(FilmScene):
     def construct(self):
-        head = T("activity left after each enzyme", 30, font=TITLE_FONT).move_to([0, 3.0, 0])
-        self.play(Write(head), run_time=0.5)
-        frac = chip("purified active fraction", YELLOW, size=30).move_to([-3.2, 0.2, 0])
-        names = T("Avery, MacLeod and McCarty", 26, GREY).next_to(frac, UP, buff=0.5)
-        self.at("Later")
-        self.play(FadeIn(names), FadeIn(frac), run_time=0.8)
-        ech = VGroup(chip("trypsin, chymotrypsin", PURPLE, size=24), chip("ribonuclease", TEAL_RNA, size=24),
-                     chip("DNA-digesting enzymes", BLUE, size=24)).arrange(DOWN, buff=0.45).move_to([3.4, 0.2, 0])
-        arrs = VGroup(*[arr(frac.get_right() + RIGHT * 0.05, e.get_left() + LEFT * 0.05, GREY, w=4) for e in ech])
-        self.at("tried enzymes", lead=0.8)
-        self.play(LaggedStart(*[AnimationGroup(GrowArrow(a_), FadeIn(e)) for a_, e in zip(arrs, ech)], lag_ratio=0.15), run_time=0.7)
-        self.at("break down protein")
-        self.play(FadeOut(VGroup(frac, names, ech, arrs)), run_time=0.3)
-        sub = T("illustrative values, not Avery's measurements", 24, GREY).move_to([0, 2.5, 0])
-        self.play(FadeIn(sub), run_time=0.4)
-        x0, wbar = 0.3, 4.4
-        rows = [(1.7, "protein", PURPLE, "trypsin, chymotrypsin"),
-                (0.4, "RNA", TEAL_RNA, "ribonuclease"),
-                (-0.9, "DNA", BLUE, "DNA-digesting enzymes")]
+        mouse = VGroup(Ellipse(width=1.5, height=0.8, color=GREY, fill_opacity=0.18),
+                       Circle(radius=0.25, color=GREY).move_to([0.75, 0.18, 0]),
+                       Arc(radius=0.65, start_angle=PI, angle=PI, color=GREY).move_to([-0.8, 0, 0])).move_to([-4.6, 0.6, 0])
+        self.at("Griffith's mouse experiment")
+        self.play(FadeIn(mouse), FadeIn(T("transformation", 34, GREEN).move_to([-4.4, 2.4, 0])), run_time=0.9)
+        unknown = chip("unknown substance", GOLD, size=30).move_to([-1.0, 0.6, 0])
+        self.at("did not name")
+        self.play(FadeIn(unknown), run_time=0.7)
+        self.at("pointed to an assay")
+        self.play(FadeOut(mouse), unknown.animate.move_to([-4.0, 0.8, 0]), run_time=0.8)
+        culture = T("later laboratories: culture", 28, TEAL).move_to([-0.8, 1.85, 0])
+        self.at("Later laboratories")
+        self.play(FadeIn(culture), run_time=0.7)
+        drop = chip("donor extract", GREEN, size=30).move_to([-4.0, 0.8, 0])
+        self.at("Add a donor extract")
+        self.play(ReplacementTransform(unknown, drop), run_time=0.7)
+        funnels = VGroup(*[Triangle(color=GREY, stroke_width=4).scale(0.42).rotate(PI).move_to([x, 0.8, 0]) for x in (-1.6, -0.2, 1.2)])
+        pipe = VGroup(arrow(drop.get_right(), funnels[0].get_left(), BLUE, 4),
+                      arrow(funnels[0].get_right(), funnels[1].get_left(), BLUE, 4),
+                      arrow(funnels[1].get_right(), funnels[2].get_left(), BLUE, 4))
+        self.play(LaggedStart(*[FadeIn(f) for f in funnels], lag_ratio=0.2), Create(pipe), run_time=1.1)
+        tray = tray_world(0, lamp=False)
+        self.at("rough recipients")
+        self.play(FadeIn(tray), run_time=0.8)
+        n = ValueTracker(0)
+        read = counter("donor-type colonies  {:.0f}", n, [3.2, -2.75, 0], size=28, color=GREEN)
+        self.add(read)
+        self.at("count colonies")
+        transformed = tray_world(5, lamp=True)
+        self.play(ReplacementTransform(tray, transformed), n.animate.set_value(5), run_time=1.7)
+        self.at("followed through purification")
+        self.play(LaggedStart(*[Indicate(f, color=BLUE) for f in funnels], lag_ratio=0.18), run_time=1.1)
+        self.at("scored phenotype")
+        self.play(Indicate(transformed.colonies, color=GREEN), run_time=1.0)
+        self.finish()
 
-        def row_labels(y, tgt, col, enz):
-            c = chip(tgt, col, size=24).move_to([-5.3, y, 0])
-            c.align_to([-6.2, 0, 0], LEFT)
-            t = T(enz, 24, TEXT).next_to(c, RIGHT, buff=0.3)
-            track = Rectangle(width=wbar, height=0.7, stroke_color=GREY, stroke_width=2).move_to([x0 + wbar / 2, y, 0])
-            return VGroup(c, t), track
 
-        def full(y):
-            return Rectangle(width=wbar, height=0.7, stroke_width=0, fill_color=YELLOW, fill_opacity=0.85).move_to(
-                [x0 + wbar / 2, y, 0])
+class S04Predict(FilmScene):
+    def construct(self):
+        world = enzyme_world(question=True)
+        self.at("purified the active fraction")
+        self.play(FadeIn(world[0], shift=DOWN * 0.2), run_time=0.8)
+        self.at("challenged separate samples")
+        self.play(Create(world[1]), LaggedStart(*[FadeIn(g[0:2]) for g in world[2]], lag_ratio=0.2), run_time=1.2)
+        self.at("Protein digesting enzymes")
+        self.play(FadeIn(world[2][0][2:]), Indicate(world[2][0][3], color=GREEN), run_time=0.9)
+        self.at("RNA digesting enzyme")
+        self.play(FadeIn(world[2][1][2:]), Indicate(world[2][1][3], color=GREEN), run_time=0.9)
+        self.at("Each enzyme was first checked")
+        self.play(FadeIn(world[2][2][2]), LaggedStart(*[Indicate(g[2], color=GREEN) for g in world[2]], lag_ratio=0.2), run_time=1.2)
+        self.at("Now predict")
+        self.play(FadeOut(world[2][0]), FadeOut(world[2][1]), world[2][2].animate.scale(1.35).move_to([0, 0.45, 0]), FadeOut(world[1]), run_time=1.0)
+        q = question_card("If intact DNA is required, what happens here?", y=-3.1, size=30)
+        self.at("If intact DNA")
+        self.play(FadeIn(q.question), run_time=0.8)
+        self.finish()
 
-        pct = lambda s, y, col=YELLOW: M(s, 26, col).move_to([5.45, y, 0])
 
-        l1, t1 = row_labels(*rows[0][:1], *rows[0][1:])
-        l2, t2 = row_labels(*rows[1][:1], *rows[1][1:])
-        l3, t3 = row_labels(*rows[2][:1], *rows[2][1:])
-        self.at("break down protein")
-        self.play(FadeIn(l1), Create(t1), run_time=0.8)
-        f1 = full(rows[0][0])
-        self.at("Activity")
-        self.play(GrowFromEdge(f1, LEFT), FadeIn(pct("100%", rows[0][0])), run_time=0.8)
-        self.at("Ribonuclease")
-        self.play(FadeIn(l2), Create(t2), run_time=0.8)
-        f2 = full(rows[1][0])
-        self.at("Activity", nth=1)
-        self.play(GrowFromEdge(f2, LEFT), FadeIn(pct("100%", rows[1][0])), run_time=0.8)
-        self.at("An enzyme preparation")
-        self.play(FadeIn(l3), Create(t3), run_time=0.8)
-        f3 = full(rows[2][0])
-        p3 = pct("100%", rows[2][0])
-        self.play(GrowFromEdge(f3, LEFT), FadeIn(p3), run_time=0.5)
-        z = pct("0%", rows[2][0], RED)
-        thin = Rectangle(width=0.04, height=0.7, stroke_width=0, fill_color=RED, fill_opacity=1).move_to([x0 + 0.02, rows[2][0], 0])
-        self.at("destroyed it")
-        self.play(ReplacementTransform(f3, thin), ReplacementTransform(p3, z), run_time=0.8)
-        quote = T("principally, if not solely, DNA", 30, BLUE, font=TITLE_FONT).move_to([0, -2.2, 0])
+class S05Pause(PredictPause):
+    QUESTION = "If intact DNA is required, what happens here?"
+    SECONDS = 4.5
+
+    def backdrop(self):
+        gate = enzyme_world(question=True)[2][2]
+        gate.scale(1.35).move_to([0, 0.45, 0])
+        blocks = VGroup(*[chip("DNA", BLUE, size=24).move_to([-5.4 + i * 1.15, 2.15, 0]) for i in range(3)])
+        bob(blocks, amp=0.05, speed=1.1)
+        return VGroup(bench_stage(), gate, blocks)
+
+
+class S06Reveal(FilmScene):
+    def construct(self):
+        gate = enzyme_world(question=True)[2][2].scale(1.25).move_to([-3.8, 0.55, 0])
+        blocks = VGroup(*[chip("DNA", BLUE, size=24).move_to([-6.0 + i * 1.2, 3.05, 0]) for i in range(3)])
+        self.add(gate, blocks)
+        self.at("removed activity")
+        fragments = VGroup(*[Rectangle(width=0.32, height=0.16, color=BLUE, fill_opacity=0.7).move_to([-2.9 + i * 0.42, 1.6 - (i % 2) * 0.35, 0]) for i in range(5)])
+        self.play(ReplacementTransform(blocks, fragments), gate[3].animate.set_fill(GREY, opacity=0.05), run_time=1.2)
+        ledger = Ledger([("chemistry", "matched nucleic acid", BLUE),
+                         ("selective destruction", "activity removed", BLUE),
+                         ("heredity", "donor type persisted", GREEN)],
+                        top_left=(-0.8, 2.1), title="evidence", width=6.8, key_w=3.1, row_h=0.75, size=26)
+        self.at("Chemistry also matched")
+        self.play(FadeIn(ledger), ledger.reveal(0), run_time=0.9)
+        self.at("transformed cells passed")
+        self.play(ledger.reveal(2), run_time=0.8)
+        self.at("concluded that the fraction")
+        self.play(ledger.reveal(1), run_time=0.8)
+        conclusion = caption("principally, if not solely, DNA", color=BLUE, y=-2.75)
         self.at("principally")
-        self.play(FadeIn(quote, shift=UP * 0.1), run_time=0.8)
-        note = T("a protein below the detection limit is not excluded", 24, PURPLE).move_to([0, -3.1, 0])
-        self.at("detection limit")
-        self.play(FadeIn(note), run_time=0.8)
+        self.play(FadeIn(conclusion), run_time=0.8)
+        limit = DashedLine([-0.5, -1.45, 0], [5.7, -1.45, 0], color=GOLD, stroke_width=3)
+        q = chip("?", GOLD, size=28).move_to([4.9, -2.05, 0])
+        lab = T("detection limit", 26, GOLD).move_to([2.2, -1.15, 0])
+        self.at("protein below detection")
+        self.play(Create(limit), FadeIn(q), FadeIn(lab), run_time=0.9)
+        self.at("hedge preserved")
+        self.play(Indicate(VGroup(limit, q), color=GOLD), run_time=1.0)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-def phage():
-    """coat (head, tail, legs) and DNA squiggle; head centre at the origin."""
-    head = RegularPolygon(6, radius=0.85, stroke_color=PURPLE, stroke_width=4, fill_color=PURPLE, fill_opacity=0.25).rotate(PI / 6)
-    tail = Rectangle(width=0.26, height=1.0, stroke_color=PURPLE, stroke_width=4, fill_color=PURPLE, fill_opacity=0.25)
-    tail.move_to([0, -0.85 - 0.5 + 0.02, 0])
-    legs = VGroup(Line([0, -1.85, 0], [-0.45, -2.15, 0], color=PURPLE, stroke_width=4),
-                  Line([0, -1.85, 0], [0.45, -2.15, 0], color=PURPLE, stroke_width=4))
-    coat = VGroup(head, tail, legs)
-    dna = ParametricFunction(lambda t: np.array([0.38 * np.sin(6 * PI * t), (t - 0.5) * 1.1, 0]), t_range=[0, 1],
-                             color=BLUE, stroke_width=5)
-    coat.scale(1.25, about_point=ORIGIN)
-    dna.scale(1.25, about_point=ORIGIN)
-    return coat, dna
-
-
-def dots(points, color):
-    return VGroup(*[Circle(radius=0.085, stroke_color=color, stroke_width=3, fill_color=TEXT, fill_opacity=1).move_to(p) for p in points])
-
-
-class S03Labels(SpokenScene):
-    """phage coat vs DNA, tracers, blender, bars for the fluid and for the progeny."""
-
+class S07PhageSetup(FilmScene):
     def construct(self):
-        coat, dna = phage()
-        hc = np.array([-4.2, 2.0, 0])
-        coat.move_to(coat.get_center() + hc)
-        dna.move_to(hc)
-        # coat dots: five on the hexagon outline, one on the tail
-        head = coat[0]
-        cdots = dots([head.get_vertices()[i] + hc * 0 for i in (0, 1, 2, 3, 5)] + [coat[1].get_center()], PURPLE)
-        ddots = dots([dna.point_from_proportion(p) for p in (0.1, 0.35, 0.6, 0.85)], BLUE)
-        lab_coat = T("protein coat", 24, PURPLE).move_to([-1.4, 2.7, 0])
-        chip_s = chip("sulfur-35", PURPLE, size=24).move_to([-1.4, 2.0, 0])
-        lab_dna = T("DNA", 24, BLUE).move_to([-1.4, 1.0, 0])
-        chip_p = chip("phosphorus-32", BLUE, size=24).move_to([-1.4, 0.3, 0])
-        self.at("protein coat")
-        self.play(FadeIn(coat), FadeIn(dna), FadeIn(lab_coat), FadeIn(lab_dna), run_time=1.0)
-        self.at("the protein with")
-        self.play(FadeIn(chip_s), FadeIn(cdots), run_time=0.7)
-        self.at("mostly the DNA")
-        self.play(FadeIn(chip_p), FadeIn(ddots), run_time=0.7)
-        bact = RoundedRectangle(corner_radius=0.6, width=3.6, height=1.3, stroke_color=GREY, stroke_width=3,
-                                fill_color=GREY, fill_opacity=0.2).move_to([-4.2, -2.1, 0])
-        bl = T("E. coli", 24, GREY).move_to([-4.2, -3.2, 0])
-        phg = VGroup(coat, dna, cdots, ddots)
-        self.at("attach to")
-        self.play(FadeIn(bact), FadeIn(bl), run_time=0.6)
-        self.play(phg.animate.shift(DOWN * 0.75), run_time=0.7)
-        # blender: the coat is sheared off, the DNA stays with the cell
-        title = T("in the fluid after blending", 24, GREY).move_to([3.5, 2.7, 0])
-        base = -2.4
-        axis = Line([1.2, base, 0], [6.0, base, 0], color=GREY, stroke_width=3)
-        xs, xp = 2.1, 4.7
-        ls = T("sulfur-35", 22, PURPLE).move_to([xs, base - 0.4, 0])
-        lp = T("phosphorus-32", 22, BLUE).move_to([xp, base - 0.4, 0])
-        stub = ParametricFunction(lambda t: np.array([0.38 * np.sin(6 * PI * t), (t - 0.5) * 1.1, 0]), t_range=[0, 1],
-                                  color=BLUE, stroke_width=4).scale(0.3).move_to([-4.2, 1.25, 0])
-        stub_dot = dots([stub.point_from_proportion(0.5)], BLUE)
-        left_s = dots([[-5.0, -1.45, 0], [-3.4, -1.45, 0]], PURPLE)
-        coat_g = VGroup(coat, cdots, stub, stub_dot)
-        self.at("in a blender")
-        self.add(stub, stub_dot)
-        self.play(FadeIn(left_s), coat_g.animate.shift(UP * 0.5 + LEFT * 0.9), dna.animate.move_to([-4.2, -2.1, 0]).rotate(PI / 2),
-                  ddots.animate.move_to([-4.2, -2.1, 0]).rotate(PI / 2),
-                  FadeIn(title), Create(axis), FadeIn(ls), FadeIn(lp), run_time=1.2)
-        bs = bar(xs, 3.0, PURPLE, base)
-        vs = M("75%", 26, PURPLE).next_to(bs, UP, buff=0.12)
-        self.at("of the sulfur came off")
-        self.play(GrowFromEdge(bs, DOWN), FadeIn(vs), run_time=0.8)
-        bp = bar(xp, 0.6, BLUE, base)
-        vp = M("15%", 26, BLUE).next_to(bp, UP, buff=0.12)
-        self.at("of the phosphorus did")
-        self.play(GrowFromEdge(bp, DOWN), FadeIn(vp), run_time=0.8)
-        # progeny: reset both bars to nothing, new label, then reveal on the words
-        title2 = T("progeny: share of parental label", 24, GREY).move_to([3.5, 2.7, 0])
-        bs2 = bar(xs, 0.04, PURPLE, base)
-        bp2 = bar(xp, 0.04, BLUE, base)
-        self.at("still made phage")
-        self.play(ReplacementTransform(title, title2), ReplacementTransform(bs, bs2), ReplacementTransform(bp, bp2),
-                  FadeOut(vs), FadeOut(vp), run_time=0.8)
-        vs2 = M("<1%", 26, PURPLE).next_to(bs2, UP, buff=0.12)
-        self.at("less than")
-        self.play(FadeIn(vs2), run_time=0.5)
-        bp3 = bar(xp, 1.2, BLUE, base)
-        vp3 = M("≥30%", 26, BLUE).next_to(bp3, UP, buff=0.12)
-        self.at("or more of the")
-        self.play(ReplacementTransform(bp2, bp3), FadeIn(vp3), run_time=0.8)
-        note = T("not proof that no protein entered", 24, GREY).move_to([3.5, -3.3, 0])
-        self.at("did not prove")
-        self.play(FadeIn(note), run_time=0.7)
+        bact = Ellipse(width=5.2, height=2.3, color=TEAL, stroke_width=6,
+                       fill_color=TEAL, fill_opacity=0.12).move_to([3.2, -0.25, 0])
+        self.at("One system was not enough")
+        self.play(FadeIn(bact), run_time=0.7)
+        p1, p2 = phage_cartoon(1.0).move_to([-4.2, 1.3, 0]), phage_cartoon(1.0).move_to([-4.2, -1.25, 0])
+        self.at("Hershey and Chase")
+        self.play(FadeIn(p1), FadeIn(p2), run_time=0.9)
+        coat_lab = chip("protein coat", GOLD, size=28).move_to([-1.3, 2.55, 0])
+        dna_lab = chip("DNA", BLUE, size=28).move_to([-1.3, 1.75, 0])
+        self.at("protein coat around DNA")
+        self.play(FadeIn(coat_lab), FadeIn(dna_lab), run_time=0.8)
+        sulfur = chip("sulfur tracer", GOLD, size=26).move_to([-1.35, -1.6, 0])
+        phosph = chip("phosphorus tracer", BLUE, size=26).move_to([-1.35, -2.65, 0])
+        self.at("sulfur containing protein")
+        self.play(FadeIn(sulfur), Indicate(p1.coat, color=GOLD), run_time=0.9)
+        self.at("phosphorus rich")
+        self.play(FadeIn(phosph), Indicate(p2.dna, color=BLUE), run_time=0.9)
+        self.at("protein gold and DNA blue")
+        self.play(FadeOut(VGroup(coat_lab, dna_lab, sulfur, phosph)),
+                  p1.animate.shift(RIGHT * 2.3), p2.animate.shift(RIGHT * 2.3), run_time=1.4)
+        self.at("Where each color travelled")
+        self.play(p1.animate.shift(RIGHT * 1.9), p2.animate.shift(RIGHT * 1.9), run_time=1.2)
+        self.at("independent physical test")
+        self.play(Indicate(VGroup(p1, p2, bact), color=TEAL), run_time=1.0)
+        self.add(scope_tag("schematic"))
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-TOP, BOT = "ATGCCA", "TACGGT"
-
-
-class S04Pairing(SpokenScene):
-    """a letter duplex, pairs lit in turn, then the 22 percent worked problem."""
-
+class S08Blend(FilmScene):
     def construct(self):
-        top = strand(TOP, BLUE, 0.7, "5'", "3'")
-        bot = strand(BOT, BLUE, -0.7, "3'", "5'")
-        tk = ticks(0.35, -0.35)
-        self.at("Two chains")
-        self.play(FadeIn(top, shift=DOWN * 0.2), FadeIn(bot, shift=UP * 0.2), Create(tk), run_time=1.0)
-        a_top = arr([-2.8, 1.55, 0], [2.8, 1.55, 0], GREY, w=4)
-        a_bot = arr([2.8, -1.55, 0], [-2.8, -1.55, 0], GREY, w=4)
-        self.at("opposite directions")
-        self.play(GrowArrow(a_top), GrowArrow(a_bot), run_time=0.8)
-
-        def col_box(idx):
-            return VGroup(*[SurroundingRectangle(VGroup(top.L[i], bot.L[i]), color=TEXT, buff=0.12, stroke_width=3)
-                            for i in idx])
-
-        at_box = col_box((0, 1, 5))
-        gc_box = col_box((2, 3, 4))
-        self.at("Adenine pairs")
-        self.play(Create(at_box), run_time=0.7)
-        self.at("Guanine pairs")
-        self.play(FadeOut(at_box), Create(gc_box), run_time=0.7)
-        duplex = VGroup(top.L, bot.L, tk)
-        self.at("amounts match")
-        self.play(FadeOut(gc_box), FadeOut(a_top), FadeOut(a_bot), FadeOut(top.ends), FadeOut(bot.ends), run_time=0.5)
-        self.play(duplex.animate.scale(0.65).move_to([0, 2.55, 0]), run_time=0.8)
-        base = -3.0
-        xs = [-2.7, -0.9, 0.9, 2.7]
-        names = ["A", "T", "G", "C"]
-        labs = [M(n, 30, BLUE, weight=BOLD).move_to([x, base - 0.4, 0]) for n, x in zip(names, xs)]
-        axis = Line([-3.6, base, 0], [3.6, base, 0], color=GREY, stroke_width=3)
-        k = 0.12
-        bA = bar(xs[0], 22 * k, BLUE, base)
-        vA = M("22%", 26, BLUE).next_to(bA, UP, buff=0.12)
-        self.play(Create(axis), FadeIn(VGroup(*labs)), run_time=0.5)
-        self.at("a sample is")
-        self.play(GrowFromEdge(bA, DOWN), FadeIn(vA), run_time=0.7)
-        bT = bar(xs[1], 22 * k, BLUE, base)
-        vT = M("22%", 26, BLUE).next_to(bT, UP, buff=0.12)
-        self.at("thymine is also")
-        self.play(GrowFromEdge(bT, DOWN), FadeIn(vT), run_time=0.7)
-        gc = M("G + C = 56%", 30, TEXT).move_to([1.8, 1.4, 0])
-        self.at("that leaves")
-        self.play(FadeIn(gc, shift=UP * 0.1), run_time=0.7)
-        bG = bar(xs[2], 28 * k, BLUE, base)
-        bC = bar(xs[3], 28 * k, BLUE, base)
-        vG = M("28%", 26, BLUE).next_to(bG, UP, buff=0.12)
-        vC = M("28%", 26, BLUE).next_to(bC, UP, buff=0.12)
-        self.at("so each is")
-        self.play(GrowFromEdge(bG, DOWN), GrowFromEdge(bC, DOWN), FadeIn(vG), FadeIn(vC), run_time=0.9)
+        bact = Ellipse(width=5.2, height=2.3, color=TEAL, stroke_width=6,
+                       fill_color=TEAL, fill_opacity=0.12)
+        coats = VGroup(*[phage_cartoon(0.6).move_to([-2.0 + i * 2.0, 1.65, 0]) for i in range(3)])
+        self.at("Both phage batches")
+        self.play(FadeIn(bact), FadeIn(coats), run_time=0.9)
+        blue_in = VGroup(*[RoundedRectangle(corner_radius=0.1, width=0.8, height=0.42,
+                                           color=BLUE, stroke_width=4, fill_color=BLUE, fill_opacity=0.35).move_to([-1.6 + i * 1.6, 0, 0]) for i in range(3)])
+        self.play(FadeIn(blue_in, shift=DOWN * 0.5), run_time=0.8)
+        vortex = Arc(radius=2.1, start_angle=0, angle=TAU * 0.85, color=TEAL, stroke_width=7)
+        self.at("Blending removed")
+        self.play(Create(vortex), coats.animate.shift(RIGHT * 0.6).rotate(0.5), run_time=1.2)
+        tube = tube_world()
+        self.at("centrifugation separated")
+        self.play(FadeOut(VGroup(bact, vortex, coats, blue_in)), FadeIn(tube), run_time=1.0)
+        gold = ValueTracker(0)
+        blue = ValueTracker(0)
+        ro = Readout([("fluid S", lambda: gold.get_value(), "{:4.0f}%", GOLD),
+                      ("fluid P", lambda: blue.get_value(), "{:4.0f}%", BLUE)],
+                     at=[4.15, 1.2, 0], widest=[100, 100], title="in fluid")
+        self.at("Most gold sulfur")
+        self.add(ro)
+        self.play(gold.animate.set_value(75), run_time=1.3)
+        self.at("Much less blue")
+        self.play(blue.animate.set_value(15), run_time=1.1)
+        progeny = VGroup(*[phage_cartoon(0.32).move_to([3.0 + i * 1.05, -2.25, 0]) for i in range(4)])
+        self.at("stripped cells still produced")
+        self.play(FadeIn(progeny, shift=RIGHT * 0.3), run_time=1.2)
+        prog = VGroup(chip("S <1%", GOLD, size=28), chip("P 30% or more", BLUE, size=28)).arrange(DOWN, buff=0.25).move_to([4.35, -0.8, 0])
+        self.at("progeny carried")
+        self.play(FadeIn(prog), run_time=1.0)
+        self.at("Exact percentages")
+        self.play(Indicate(VGroup(ro, prog), color=TEXT), run_time=1.0)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S05Template(SpokenScene):
-    """the duplex separates and each old strand templates a new green partner."""
-
+class S09Limits(FilmScene):
     def construct(self):
-        top = strand(TOP, BLUE, 0.7, "5'", "3'")
-        bot = strand(BOT, BLUE, -0.7, "3'", "5'")
-        tk = ticks(0.35, -0.35)
-        self.play(FadeIn(top), FadeIn(bot), FadeIn(tk), run_time=0.6)
-        self.at("one strand fixes")
-        self.play(Indicate(top.L, color=BLUE, scale_factor=1.08), run_time=0.8)
-        self.at("separate")
-        self.play(FadeOut(tk), top.animate.shift(UP * 1.7), bot.animate.shift(DOWN * 1.7), run_time=1.2)
-        new_top = strand(BOT, GREEN, 1.3, "3'", "5'")
-        new_bot = strand(TOP, GREEN, -1.3, "5'", "3'")
-        tk_t = ticks(1.7 - 0.0, 1.95 - 0.0)
-        old_lab = T("old strand", 26, BLUE).move_to([5.1, 2.4, 0])
-        new_lab = T("new strand", 26, GREEN).move_to([5.1, 1.3, 0])
-        old_lab2 = T("old strand", 26, BLUE).move_to([5.1, -2.4, 0])
-        new_lab2 = T("new strand", 26, GREEN).move_to([5.1, -1.3, 0])
-        self.at("template")
-        self.play(FadeIn(old_lab), FadeIn(old_lab2), run_time=0.5)
-        self.at("new partner")
-        self.play(LaggedStart(*[FadeIn(new_top.L[i], shift=DOWN * 0.3) for i in range(6)],
-                              *[FadeIn(new_bot.L[i], shift=UP * 0.3) for i in range(6)], lag_ratio=0.08),
-                  FadeIn(new_top.ends), FadeIn(new_bot.ends), FadeIn(new_lab), FadeIn(new_lab2), run_time=1.5)
-        t1 = ticks(1.7, 2.0)
-        t2 = ticks(-1.7, -2.0)
-        self.play(Create(t1), Create(t2), run_time=0.5)
-        self.at("photographic negative")
-        self.play(Indicate(VGroup(top.L, new_top.L), color=TEXT, scale_factor=1.04), run_time=0.9)
-        c1 = T("copy 1", 26, TEXT).move_to([-5.5, 1.85, 0])
-        c2 = T("copy 2", 26, TEXT).move_to([-5.5, -1.85, 0])
-        self.at("two copies")
-        self.play(FadeIn(c1), FadeIn(c2), run_time=0.7)
+        tube = tube_world().move_to([-2.8, 0, 0])
+        self.add(tube)
+        title = T("Tracer limits", 36, GOLD, weight=BOLD).move_to([2.9, 2.75, 0])
+        self.at("tracers set limits")
+        self.play(FadeIn(title), run_time=0.7)
+        bracket = Brace(Line([1.0, 1.4, 0], [5.8, 1.4, 0]), UP, color=GREY)
+        unmeasured = fit_text("unmeasured sulfur-free material?", max_w=5.3, size=28, color=GREY).move_to([3.4, 2.0, 0])
+        self.at("Sulfur could not report")
+        self.play(FadeIn(bracket), FadeIn(unmeasured), run_time=0.9)
+        no_claim = chip("not: no protein entered", GOLD, size=27).move_to([3.4, 0.6, 0])
+        self.at("did not show")
+        self.play(FadeIn(no_claim), run_time=0.8)
+        remainder = Dot([-1.75, -2.1, 0], radius=0.16, color=GOLD)
+        self.at("Some sulfur stayed")
+        self.play(FadeIn(remainder, scale=0.3), run_time=0.8)
+        self.at("distinction matters")
+        self.play(Indicate(VGroup(no_claim, remainder), color=GOLD), run_time=0.9)
+        most = VGroup(chip("most DNA entered", BLUE, size=30), chip("most coat stayed out", GOLD, size=30)).arrange(DOWN, buff=0.35).move_to([3.45, -1.25, 0])
+        self.at("result was narrower")
+        self.play(FadeOut(no_claim), FadeIn(most), run_time=0.9)
+        path = Arrow([-1.6, -1.7, 0], [1.3, -1.7, 0], color=BLUE, stroke_width=10, buff=0.2)
+        self.at("Inheritance travelled")
+        self.play(GrowArrow(path), Indicate(most[0], color=BLUE), run_time=1.2)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S06Density(SpokenScene):
-    """three tubes: heavy, hybrid, then equal hybrid and light."""
-
+class S10Converge(FilmScene):
     def construct(self):
-        xs = [-2.6, 1.0, 4.6]
-        cy = -0.3
-        tubes = [RoundedRectangle(corner_radius=0.3, width=1.8, height=4.4, stroke_color=GREY, stroke_width=3).move_to([x, cy, 0])
-                 for x in xs]
-        ylev = {"light": cy + 0.75, "hybrid": cy - 0.2, "heavy": cy - 1.15}
-
-        def band(x, kind, thick=0.4):
-            if kind == "heavy":
-                return VGroup(Rectangle(width=1.5, height=thick, stroke_width=0, fill_color=BLUE, fill_opacity=0.9)
-                              .move_to([x, ylev["heavy"], 0]))
-            if kind == "light":
-                return VGroup(Rectangle(width=1.5, height=thick, stroke_width=0, fill_color=GREEN, fill_opacity=0.9)
-                              .move_to([x, ylev["light"], 0]))
-            h = thick / 2
-            return VGroup(Rectangle(width=1.5, height=h, stroke_width=0, fill_color=GREEN, fill_opacity=0.9).move_to([x, ylev["hybrid"] + h / 2, 0]),
-                          Rectangle(width=1.5, height=h, stroke_width=0, fill_color=BLUE, fill_opacity=0.9).move_to([x, ylev["hybrid"] - h / 2, 0]))
-
-        prop = T("a proposal, not a test", 40, TEXT, font=TITLE_FONT).move_to([0, 0.2, 0])
-        self.play(FadeIn(prop), run_time=0.8)
-        ecoli = chip("E. coli", GREY, size=30).move_to([-5.0, 0.2, 0])
-        hv = chip("heavy nitrogen", BLUE, size=28).move_to([-0.8, 0.2, 0])
-        lt = chip("light nitrogen", GREEN, size=28).move_to([4.2, 0.2, 0])
-        ar1 = arr(ecoli.get_right() + RIGHT * 0.05, hv.get_left() + LEFT * 0.05, GREY)
-        ar2 = arr(hv.get_right() + RIGHT * 0.05, lt.get_left() + LEFT * 0.05, GREY)
-        self.at("grew")
-        self.play(FadeOut(prop), FadeIn(ecoli), GrowArrow(ar1), FadeIn(hv), run_time=0.8)
-        self.at("light nitrogen")
-        self.play(GrowArrow(ar2), FadeIn(lt), run_time=0.7)
-        tl = [T(s, 24, TEXT).move_to([x, 2.7, 0]) for s, x in zip(["heavy nitrogen", "one generation", "two generations"], xs)]
-        self.at("by density")
-        self.play(FadeOut(VGroup(ecoli, hv, lt, ar1, ar2)), FadeIn(tubes[0]), FadeIn(tl[0]), FadeIn(band(xs[0], "heavy")), run_time=0.9)
-        legend = VGroup(*[T(k, 24, GREY).move_to([-5.55, y, 0]) for k, y in ylev.items()])
-        self.play(FadeIn(legend), run_time=0.7)
-        key = VGroup(chip("old strand", BLUE, size=22), chip("new strand", GREEN, size=22)).arrange(RIGHT, buff=0.5).move_to([0, -3.15, 0])
-        self.at("After one generation")
-        self.play(FadeIn(tubes[1]), FadeIn(tl[1]), run_time=0.7)
-        self.at("all the DNA")
-        self.play(FadeIn(band(xs[1], "hybrid")), FadeIn(key), run_time=0.8)
-        self.at("After two")
-        self.play(FadeIn(tubes[2]), FadeIn(tl[2]), run_time=0.7)
-        self.at("hybrid and light")
-        self.play(FadeIn(band(xs[2], "hybrid")), FadeIn(band(xs[2], "light")), run_time=0.9)
+        frame = RoundedRectangle(corner_radius=0.2, width=12.4, height=5.7, color=GREY, stroke_width=3).move_to([0, 0.15, 0])
+        tray = tray_world(4, True)
+        tray.remove(tray[3])
+        tray.scale(0.72).move_to([-4.25, 0.1, 0])
+        tube = tube_world()
+        tube.remove(tube[4])
+        tube.scale(0.72).move_to([4.25, 0.1, 0])
+        center = chip("inherited information", BLUE, size=34, pad=0.3).move_to([0, 0.15, 0])
+        self.at("Across two independent systems")
+        self.play(FadeIn(frame), FadeIn(tray), FadeIn(tube), run_time=1.0)
+        p1 = Arrow([-2.8, 0.35, 0], center.get_left(), color=BLUE, stroke_width=9, buff=0.15)
+        self.at("heritable change followed DNA")
+        self.play(GrowArrow(p1), FadeIn(center), run_time=1.0)
+        intact = T("intact DNA required", 28, BLUE).move_to([-3.9, -2.35, 0])
+        self.at("Transformation required")
+        self.play(FadeIn(intact), Indicate(tray, color=GREEN), run_time=1.0)
+        p2 = Arrow([2.8, 0.35, 0], center.get_right(), color=BLUE, stroke_width=9, buff=0.15)
+        phage = T("DNA label → cells → progeny", 28, BLUE).move_to([3.35, 2.45, 0])
+        self.at("Phage reproduction")
+        self.play(GrowArrow(p2), FadeIn(phage), run_time=1.0)
+        limits = VGroup(T("bounded claims", 28, GOLD), T("measured evidence", 28, GOLD)).arrange(DOWN, buff=0.2).move_to([-1.7, 2.25, 0])
+        self.at("Neither experiment")
+        self.play(FadeIn(limits), run_time=0.9)
+        self.at("Convergence")
+        pulse(p1, base=9, amp=2, speed=2.5); pulse(p2, base=9, amp=2, speed=2.5)
+        self.play(Indicate(center, color=BLUE), run_time=1.2)
+        bounded = chip("these systems", GREY, size=28).move_to([0, -2.1, 0])
+        self.at("Together")
+        self.play(FadeIn(bounded), run_time=0.8)
+        self.at("strongest candidate")
+        self.play(Indicate(center, color=BLUE, scale_factor=1.05), run_time=1.1)
         self.finish()
 
 
-class S07End(EndCard):
-    LINE = "When strands pair by rule, one strand tells you the other."
+class S11End(EndCard):
+    LINE = "Heritable information follows DNA across independent experiments."

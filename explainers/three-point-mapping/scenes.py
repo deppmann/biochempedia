@@ -1,318 +1,595 @@
-"""A Middle Gene Reveals Double Crossovers (Biochemistrypedia explainer, Genetics: three-point mapping)
+"""The Marker in the Middle.
 
-COLOR MAP (one colour per concept, whole film)
-  BLUE   = the chromosome (and alleles) carrying the three recessive mutations p q r
-  GREEN  = the chromosome (and alleles) carrying the normal + alleles
-  YELLOW = a crossover; single-crossover classes and counts
-  RED    = double crossovers and their counts
-  TEAL   = the middle gene (the one that switches in a double)
-  GREY   = tester, parental classes, labels, axes
-  TEXT   = totals and neutral text
+COLOUR MAP
+  BLUE  = one parental chromosome / allele pattern
+  GOLD  = the other parental chromosome / allele pattern
+  GREEN = the middle marker
+  RED   = crossover points and double-crossover counters
+  GREY  = tester material, shutters, and secondary structure
+  TEXT  = neutral labels
+
+The ribbon, pattern-card, and map builders are shared by every continuing scene so
+the film stays in one visual world at a fixed scale and position.
 """
-from bp_style import *  # noqa: F401,F403
-
-L = 9.0
-GX = {"q": -3.4, "p": 0.0, "r": 3.4}
+from bp_parts import *
 
 
-def pieces(cx, cy, cuts, cols, L=L, h=0.7, op=0.5):
-    xs = [cx - L / 2] + [cx + c for c in cuts] + [cx + L / 2]
-    g = VGroup()
-    for a, b, c in zip(xs[:-1], xs[1:], cols):
-        r = Rectangle(width=b - a, height=h, stroke_color=c, stroke_width=3, fill_color=c, fill_opacity=op)
-        r.move_to([(a + b) / 2, cy, 0])
-        g.add(r)
+RIBBON_X = (-4.8, 0.0, 4.8)
+RIBBON_Y = (1.25, -1.25)
+CARD_Y = (1.15, -1.25)
+
+
+def marker_block(letter, color, x, y, middle=False, fill=None, scale=1.0):
+    """A large allele block; GREEN is reserved for the middle-marker outline."""
+    edge = GREEN if middle else color
+    fc = color if fill is None else fill
+    box = RoundedRectangle(
+        corner_radius=0.12,
+        width=max(0.65, 1.35 * scale),
+        height=max(0.58, 1.02 * scale),
+        stroke_color=edge,
+        stroke_width=5 if middle else 3,
+        fill_color=fc,
+        fill_opacity=0.55,
+    ).move_to([x, y, 0])
+    lab = M(letter, max(22, 34 * scale), TEXT).move_to(box)
+    lab.add_background_rectangle(color=BG, opacity=0.78, buff=0.05)
+    return VGroup(box, lab)
+
+
+def ribbon_row(y, color, alleles=("A", "C", "B"), fills=None, show_middle=True, xshift=0):
+    """One carried chromosome ribbon with three fixed marker slots."""
+    # Leave real gaps behind the marker blocks.  This keeps the ribbon from
+    # crossing letters while reading as one continuous chromosome.
+    edges = (-5.7, -5.5, -4.1, -0.7, 0.7, 4.1, 5.5, 5.7)
+    line = VGroup(*[
+        Line([edges[i] + xshift, y, 0], [edges[i + 1] + xshift, y, 0], color=color, stroke_width=44)
+        for i in (0, 2, 4, 6)
+    ]).set_opacity(0.55)
+    fills = fills or (color, color, color)
+    blocks = VGroup()
+    for i, (x, a, fc) in enumerate(zip(RIBBON_X, alleles, fills)):
+        b = marker_block(a, color, x + xshift, y, middle=(i == 1), fill=fc)
+        if i == 1 and not show_middle:
+            b.set_opacity(0)
+        blocks.add(b)
+    return VGroup(line, blocks)
+
+
+def chromosome_world(show_middle=True, product=False, labels=False, drift=False):
+    """The film's two-ribbon world, rebuilt identically throughout."""
+    top_fills = (BLUE, GOLD if product else BLUE, BLUE)
+    bot_fills = (GOLD, BLUE if product else GOLD, GOLD)
+    top = ribbon_row(RIBBON_Y[0], BLUE, fills=top_fills, show_middle=show_middle)
+    bot = ribbon_row(RIBBON_Y[1], GOLD, fills=bot_fills, show_middle=show_middle)
+    g = VGroup(top, bot)
+    if labels:
+        left = T("left", 28, TEXT).move_to([RIBBON_X[0], 2.25, 0])
+        right = T("right", 28, TEXT).move_to([RIBBON_X[2], 2.25, 0])
+        g.add(left, right)
+    if drift:
+        bob(g, amp=0.045, speed=0.65)
     return g
 
 
-def lab(txt, x, y, size=32):
-    return M(txt, size, TEXT).move_to([x, y, 0])
+def breathe_ribbons(world):
+    """Continuous visible motion on the chromosome itself, not a decorative overlay."""
+    for r, row in enumerate(world[:2]):
+        for i, segment in enumerate(row[0]):
+            pulse(segment, base=44, amp=5.5, speed=1.35 + 0.08 * (i + r))
+    return world
 
 
-def xmark(x, y_top, y_bot, w=0.28):
-    return VGroup(Line([x - w, y_top, 0], [x + w, y_bot, 0], color=YELLOW, stroke_width=7),
-                  Line([x + w, y_top, 0], [x - w, y_bot, 0], color=YELLOW, stroke_width=7))
+def crossover_mark(x):
+    return VGroup(
+        Line([x - 0.22, 0.5, 0], [x + 0.22, -0.5, 0], color=RED, stroke_width=8),
+        Line([x + 0.22, 0.5, 0], [x - 0.22, -0.5, 0], color=RED, stroke_width=8),
+    )
 
 
-Y_TOP, Y_BOT, Y_G = 2.5, 1.1, -1.2
+def switch_arc(x, direction=1):
+    """Two honest schematic paths showing homologous tails exchanging."""
+    a = CurvedArrow([x - 0.4, RIBBON_Y[0] - 0.35, 0], [x + 0.45, RIBBON_Y[1] + 0.35, 0],
+                    angle=-0.65 * direction, color=RED, stroke_width=5, tip_length=0.16)
+    b = CurvedArrow([x + 0.4, RIBBON_Y[1] + 0.35, 0], [x - 0.45, RIBBON_Y[0] - 0.35, 0],
+                    angle=-0.65 * direction, color=RED, stroke_width=5, tip_length=0.16)
+    return VGroup(a, b)
 
 
-def homologs(genes):
-    """Blue (mutant) and green (normal) chromosomes with alleles written inside."""
-    b = pieces(0, Y_TOP, [], [BLUE])
-    g = pieces(0, Y_BOT, [], [GREEN])
-    labs = VGroup()
-    for k in genes:
-        labs.add(lab(k if k != "p" else "p", GX[k], Y_TOP), lab("+", GX[k], Y_BOT))
-    return b, g, labs
+def pattern_card(pattern, border, at, title=None, order=(0, 1, 2), green_c=False, scale=1.0):
+    """A broad A/B/C gamete card, always written in the requested slot order."""
+    frame = RoundedRectangle(corner_radius=0.18, width=4.6 * scale, height=1.45 * scale,
+                             stroke_color=border, stroke_width=4, fill_color=border, fill_opacity=0.09).move_to(at)
+    xs = np.linspace(frame.get_left()[0] + 0.78 * scale, frame.get_right()[0] - 0.78 * scale, 3)
+    chips = VGroup()
+    for slot, idx in enumerate(order):
+        letter, allele_color = pattern[idx]
+        col = GREEN if green_c and letter == "C" else allele_color
+        chips.add(marker_block(letter, col, xs[slot], at[1], middle=(letter == "C" and green_c),
+                               fill=allele_color, scale=0.72 * scale))
+    g = VGroup(frame, chips)
+    if title:
+        t = T(title, 26 * scale, border).next_to(frame, UP, buff=0.13)
+        g.add(t)
+    g.frame, g.chips = frame, chips
+    return g
 
 
-class S00Title(TitleCard):
+P_BLUE = (("A", BLUE), ("B", BLUE), ("C", BLUE))
+P_GOLD = (("A", GOLD), ("B", GOLD), ("C", GOLD))
+R_BLUE = (("A", BLUE), ("B", BLUE), ("C", GOLD))
+R_GOLD = (("A", GOLD), ("B", GOLD), ("C", BLUE))
+
+
+def four_pattern_cards(green_c=False, titles=True):
+    """The exact prediction frame, shared by spoken, pause, and reveal scenes."""
+    cards = VGroup(
+        pattern_card(P_BLUE, BLUE, [-3.25, CARD_Y[0], 0], "parental?" if titles else None, green_c=green_c),
+        pattern_card(P_GOLD, GOLD, [3.25, CARD_Y[0], 0], "parental?" if titles else None, green_c=green_c),
+        pattern_card(R_BLUE, BLUE, [-3.25, CARD_Y[1], 0], "rare" if titles else None, green_c=green_c),
+        pattern_card(R_GOLD, GOLD, [3.25, CARD_Y[1], 0], "rare" if titles else None, green_c=green_c),
+    )
+    return cards
+
+
+def gene_map(y=0.2, labels=("A", "C", "B"), full=True):
+    """The large carried A-C-B map."""
+    xs = (-4.8, 0.0, 4.8)
+    bands = VGroup(
+        RoundedRectangle(corner_radius=0.18, width=4.25, height=1.1, stroke_opacity=0,
+                         fill_color=BLUE, fill_opacity=0.24).move_to([-2.4, y, 0]),
+        RoundedRectangle(corner_radius=0.18, width=4.25, height=1.1, stroke_opacity=0,
+                         fill_color=GOLD, fill_opacity=0.24).move_to([2.4, y, 0]),
+    )
+    line = VGroup(
+        bands,
+        Line([xs[0] + 0.58, y, 0], [xs[1] - 0.58, y, 0], color=GREY, stroke_width=12),
+        Line([xs[1] + 0.58, y, 0], [xs[2] - 0.58, y, 0], color=GREY, stroke_width=12),
+    )
+    dots = VGroup()
+    for x, lab in zip(xs, labels):
+        col = GREEN if lab == "C" else TEXT
+        circ = Circle(radius=0.52, stroke_color=col, stroke_width=6, fill_color=BG, fill_opacity=1).move_to([x, y, 0])
+        dots.add(VGroup(circ, M(lab, 34, col).move_to(circ)))
+    g = VGroup(line, dots)
+    if full:
+        g.add(T("left interval", 30, BLUE).move_to([-2.4, y + 0.82, 0]),
+              T("right interval", 30, GOLD).move_to([2.4, y + 0.82, 0]))
+    g.line, g.dots = line, dots
+    return g
+
+
+def class_bars():
+    """Eight schematic class bars; heights encode only the stated rank groups."""
+    heights = (3.8, 3.6, 2.25, 2.05, 1.8, 1.65, 0.6, 0.48)
+    xs = np.linspace(-5.7, 5.7, 8)
+    bars = VGroup()
+    for i, (x, h) in enumerate(zip(xs, heights)):
+        col = BLUE if i == 0 else GOLD if i == 1 else TEXT if i < 6 else RED
+        r = RoundedRectangle(corner_radius=0.08, width=1.15, height=h, stroke_color=col, stroke_width=4,
+                             fill_color=col, fill_opacity=0.28)
+        r.move_to([x, -2.15 + h / 2, 0])
+        bars.add(r)
+    return bars
+
+
+def mini_gamete(color, middle_color, at):
+    line = Line(LEFT * 1.25, RIGHT * 1.25, color=color, stroke_width=12).move_to(at).set_opacity(0.6)
+    blocks = VGroup(*[
+        RoundedRectangle(corner_radius=0.06, width=0.52, height=0.48, stroke_color=(GREEN if i == 1 else c),
+                         stroke_width=3, fill_color=c, fill_opacity=0.75).move_to([at[0] + (i - 1) * 0.85, at[1], 0])
+        for i, c in enumerate((color, middle_color, color))
+    ])
+    return VGroup(line, blocks)
+
+
+class S00Hook(SpokenScene):
+    def construct(self):
+        world = chromosome_world(show_middle=True)
+        self.play(FadeIn(world), run_time=1.0)
+        self.at("outer markers looking untouched")
+        x1, x2 = crossover_mark(-2.35), crossover_mark(2.35)
+        a1, a2 = switch_arc(-2.35), switch_arc(2.35, -1)
+        self.play(Create(x1), Create(a1), run_time=0.75)
+        self.play(Create(x2), Create(a2), run_time=0.75)
+        product = chromosome_world(show_middle=True, product=True)
+        self.play(ReplacementTransform(world, product), FadeOut(a1), FadeOut(a2), run_time=0.9)
+        bob(product, amp=0.10, speed=1.0)
+        outer = VGroup(product[0][1][0], product[0][1][2])
+        self.play(Indicate(outer, color=TEXT, scale_factor=1.08), run_time=0.7)
+        self.at("How can offspring reveal")
+        q = T("What reveals two switches?", 38, TEXT).move_to([0, 3.15, 0])
+        self.play(FadeIn(q, shift=DOWN * 0.12), run_time=0.6)
+        pulse(x1), pulse(x2)
+        self.add(scope_tag("schematic"))
+        self.finish()
+
+
+class S01Title(TitleCard):
     LESSON = "Three-Point Crosses: Gene Order and Double Crossovers"
-    TITLE = "A Middle Gene Reveals Double Crossovers"
+    TITLE = "The Marker in the Middle"
 
-
-# ---------------------------------------------------------------------------------------------
-class S01Cancel(SpokenScene):
     def construct(self):
-        b, g, labs = homologs(["q", "r"])
-        slot = DashedVMobject(Rectangle(width=L, height=0.9, stroke_color=GREY, stroke_width=3)).move_to([0, Y_G, 0])
-        qm = T("?", 44, TEXT).move_to([0, Y_G, 0])
-        self.play(FadeIn(b), FadeIn(g), FadeIn(labs), run_time=0.8)
-        self.at("How do you count")
-        self.play(FadeIn(slot), FadeIn(qm), run_time=0.6)
-        x1 = xmark(-1.7, Y_TOP - 0.4, Y_BOT + 0.4)
-        gam1 = pieces(0, Y_G, [-1.7], [BLUE, GREEN])
-        gl1 = VGroup(lab("q", GX["q"], Y_G), lab("+", GX["r"], Y_G))
-        tag1 = T("recombined", 28, YELLOW).move_to([0, Y_G - 1.0, 0])
-        self.at("One crossover")
-        self.play(Create(x1), run_time=0.6)
-        self.play(FadeOut(slot), FadeOut(qm), FadeIn(gam1), FadeIn(gl1), FadeIn(tag1), run_time=0.8)
-        x2 = xmark(1.7, Y_TOP - 0.4, Y_BOT + 0.4)
-        gam2 = pieces(0, Y_G, [-1.7, 1.7], [BLUE, GREEN, BLUE])
-        gl2 = VGroup(lab("q", GX["q"], Y_G), lab("r", GX["r"], Y_G))
-        tag2 = T("rearranged twice", 28, YELLOW).move_to([0, Y_G - 1.0, 0])
-        self.at("A second crossover")
-        self.play(Create(x2), run_time=0.6)
-        self.play(ReplacementTransform(gam1, gam2), ReplacementTransform(gl1, gl2),
-                  ReplacementTransform(tag1, tag2), run_time=0.9)
-        tag3 = T("q r  looks parental", 28, BLUE).move_to([0, Y_G - 1.0, 0])
+        world = chromosome_world(show_middle=True, product=True, drift=True).set_opacity(0.42)
+        x1, x2 = crossover_mark(-2.35), crossover_mark(2.35)
+        pulse(x1), pulse(x2)
+        title = T(self.TITLE, 54, TEXT, font=TITLE_FONT).move_to([0, 3.08, 0])
+        self.add(world, x1, x2)
+        self.play(FadeIn(title, shift=UP * 0.12), run_time=0.65)
+        self.finish()
+
+
+class S02Switches(SpokenScene):
+    def construct(self):
+        world = chromosome_world(show_middle=True, labels=True)
+        bob(world, amp=0.09, speed=0.9)
+        breathe_ribbons(world)
+        self.play(FadeIn(world[0], shift=RIGHT * 0.25), run_time=0.7)
+        self.at("one gold chromosome")
+        self.play(FadeIn(world[1], shift=LEFT * 0.25), run_time=0.7)
+        self.at("three marker blocks")
+        self.play(LaggedStart(*[Indicate(world[r][1], scale_factor=1.04) for r in (0, 1)], lag_ratio=0.25), run_time=0.9)
+        self.play(FadeIn(world[2:]), run_time=0.4)
+        n = ValueTracker(0)
+        count = counter("switches  {:.0f}", n, at=[0, -3.15, 0], size=30, color=RED)
+        self.add(count)
+        self.at("A red crossover point")
+        x1, arc1 = crossover_mark(-2.35), switch_arc(-2.35)
+        self.play(Create(x1), Create(arc1), n.animate.set_value(1), run_time=1.0)
+        self.at("One crossover changes")
+        one = chromosome_world(show_middle=True, labels=True)
+        one[0][1][2][0].set_fill(GOLD)
+        one[1][1][2][0].set_fill(BLUE)
+        bob(one, amp=0.09, speed=0.9)
+        breathe_ribbons(one)
+        self.play(ReplacementTransform(world, one), FadeOut(arc1), run_time=1.0)
+        self.at("A second swap")
+        x2, arc2 = crossover_mark(2.35), switch_arc(2.35, -1)
+        self.play(Create(x2), Create(arc2), n.animate.set_value(2), run_time=1.0)
+        restored = chromosome_world(show_middle=True, product=True, labels=True)
+        bob(restored, amp=0.09, speed=0.9)
+        breathe_ribbons(restored)
+        self.play(ReplacementTransform(one, restored), FadeOut(arc2), run_time=1.0)
+        self.play(Indicate(VGroup(restored[0][1][0], restored[0][1][2]), color=BLUE), run_time=0.7)
+        self.finish()
+
+
+class S03Middle(SpokenScene):
+    def construct(self):
+        base = chromosome_world(show_middle=False)
+        bob(base, amp=0.09, speed=0.9)
+        self.add(base)
+        middle = VGroup(base[0][1][1], base[1][1][1]).set_opacity(1)
+        self.at("place a green marker")
+        self.play(FadeIn(middle, scale=0.5), run_time=0.9)
+        self.at("After two swaps")
+        x1, x2 = crossover_mark(-2.35), crossover_mark(2.35)
+        self.play(Create(x1), Create(switch_arc(-2.35)), run_time=0.8)
+        self.play(Create(x2), Create(switch_arc(2.35, -1)), run_time=0.8)
+        product = chromosome_world(show_middle=True, product=True)
+        bob(product, amp=0.09, speed=0.9)
+        self.play(ReplacementTransform(base, product), run_time=1.0)
+        self.at("outer colors again match")
+        self.play(Indicate(VGroup(product[0][1][0], product[0][1][2]), color=BLUE), run_time=0.7)
+        self.at("green middle marker does not")
+        self.play(Indicate(product[0][1][1], color=GREEN, scale_factor=1.22), run_time=0.9)
+        bracket = BraceBetweenPoints([-2.35, -2.35, 0], [2.35, -2.35, 0], direction=DOWN, color=RED)
+        lab = T("hidden double crossover", 30, RED).next_to(bracket, DOWN, buff=0.15)
+        self.at("hidden double crossover")
+        self.play(Create(bracket), FadeIn(lab, shift=UP * 0.1), run_time=0.8)
+        self.finish()
+
+
+class S04TwoViews(SpokenScene):
+    def construct(self):
+        product = chromosome_world(show_middle=True, product=True, drift=False)
+        template = ribbon_row(2.45, BLUE, show_middle=False).set_opacity(0.45)
+        bob(product, amp=0.10, speed=1.0)
+        bob(template, amp=0.07, speed=1.0, seed=2)
+        self.add(product, template)
+        shutter = RoundedRectangle(corner_radius=0.12, width=1.05, height=3.0, stroke_opacity=0,
+                                   fill_color=BG, fill_opacity=0.98).move_to([0, 0, 0])
+        shutter.layout_ok = "covered"  # deliberate occluder over the middle marker
+        shutter_lab = T("outer markers only", 28, TEXT).move_to([0, 3.42, 0])
+        shutter_group = VGroup(shutter, shutter_lab)
+        self.at("Cover the middle marker")
+        self.play(FadeIn(shutter_group, shift=DOWN * 0.2), run_time=0.9)
         self.at("looks parental")
-        self.play(ReplacementTransform(tag2, tag3), run_time=0.6)
+        self.play(Indicate(VGroup(product[0][1][0], product[0][1][2], template), color=BLUE), run_time=0.9)
+        self.at("Uncover it")
+        self.play(FadeOut(shutter_group, shift=UP * 0.2), run_time=0.8)
+        self.play(Indicate(product[0][1][1], color=GREEN, scale_factor=1.2), run_time=0.8)
+        self.at("chromosome did not change")
+        still = T("same chromosome", 30, TEXT).move_to([0, -3.0, 0])
+        self.play(FadeIn(still), run_time=0.5)
+        self.at("third observation changed")
+        three = T("three markers", 30, GREEN).move_to(still)
+        self.play(swap(still, three), run_time=0.7)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S02Middle(SpokenScene):
+class S05TestCross(SpokenScene):
     def construct(self):
-        b, g, labs = homologs(["q", "r"])
-        x1, x2 = xmark(-1.7, Y_TOP - 0.4, Y_BOT + 0.4), xmark(1.7, Y_TOP - 0.4, Y_BOT + 0.4)
-        gam = pieces(0, Y_G, [-1.7, 1.7], [BLUE, GREEN, BLUE])
-        gl = VGroup(lab("q", GX["q"], Y_G), lab("r", GX["r"], Y_G))
-        self.add(b, g, labs, x1, x2, gam, gl)
-        pb, pg = lab("p", 0, Y_TOP), lab("+", 0, Y_BOT)
-        ring1 = Circle(radius=0.36, stroke_color=TEAL, stroke_width=5).move_to(pb)
-        ring2 = Circle(radius=0.36, stroke_color=TEAL, stroke_width=5).move_to(pg)
-        self.at("third gene")
-        self.play(FadeIn(pb), FadeIn(pg), Create(ring1), Create(ring2), run_time=0.8)
-        mid = lab("+", 0, Y_G)
-        ring3 = Circle(radius=0.36, stroke_color=TEAL, stroke_width=5).move_to(mid)
-        self.at("middle marker")
-        self.play(Indicate(ring1, color=TEAL), Indicate(ring2, color=TEAL), run_time=0.9)
-        self.at("double crossover swaps")
-        self.play(FadeIn(mid), Create(ring3), run_time=0.8)
-        self.at("outer genes")
-        self.play(Indicate(gl[0], color=BLUE, scale_factor=1.4), Indicate(gl[1], color=BLUE, scale_factor=1.4), run_time=1.0)
-        dbl = T("double crossover", 30, RED).move_to([0, Y_G - 1.05, 0])
-        self.at("has switched")
-        self.play(Indicate(ring3, color=TEAL, scale_factor=1.5), run_time=0.9)
-        self.at("hidden event")
-        self.play(FadeIn(dbl, shift=UP * 0.1), run_time=0.6)
+        world = chromosome_world(show_middle=True, product=True).scale(0.47).move_to([-3.75, 1.35, 0])
+        for row in world:
+            for block in row[1]:
+                block[1].set_opacity(0)
+        bob(world, amp=0.09, speed=1.0)
+        self.play(FadeIn(world), run_time=0.7)
+        self.at("turns these chromosome patterns")
+        arrow = Arrow([-2.15, 1.8, 0], [-0.7, 1.8, 0], color=TEXT, stroke_width=5, buff=0.05)
+        self.play(GrowArrow(arrow), run_time=0.6)
+        tester = VGroup(
+            RoundedRectangle(corner_radius=0.16, width=4.2, height=1.35, stroke_color=GREY, stroke_width=3,
+                             fill_color=GREY, fill_opacity=0.12),
+            T("recessive tester", 28, GREY),
+            VGroup(*[chip("a", GREY, 24), chip("b", GREY, 24), chip("c", GREY, 24)]).arrange(RIGHT, buff=0.22),
+        )
+        tester[1].move_to([3.5, 1.25, 0]); tester[2].move_to([3.5, 0.65, 0]); tester[0].move_to([3.5, 0.95, 0])
+        pulse(tester[0], base=3, amp=1.2, speed=1.5)
+        self.at("recessive tester contributes")
+        self.play(FadeIn(tester), run_time=0.8)
+        boxes = VGroup(*[
+            RoundedRectangle(corner_radius=0.12, width=2.3, height=1.2, stroke_color=TEXT, stroke_width=3)
+            for _ in range(3)
+        ]).arrange(RIGHT, buff=0.45).move_to([0.8, -1.65, 0])
+        self.play(LaggedStart(*[Create(b) for b in boxes], lag_ratio=0.22), run_time=0.8)
+        greys = VGroup(*[mini_gamete(GREY, GREY, b.get_center() + UP * 0.18).scale(0.62) for b in boxes])
+        gametes = VGroup(mini_gamete(BLUE, GOLD, boxes[0].get_center() + DOWN * 0.2).scale(0.62),
+                         mini_gamete(GOLD, BLUE, boxes[1].get_center() + DOWN * 0.2).scale(0.62),
+                         mini_gamete(BLUE, BLUE, boxes[2].get_center() + DOWN * 0.2).scale(0.62))
+        self.at("same alleles every time")
+        self.play(LaggedStart(*[FadeIn(g) for g in greys], lag_ratio=0.2), run_time=0.8)
+        self.at("each offspring phenotype reports")
+        self.play(LaggedStart(*[FadeIn(g, shift=DOWN * 0.15) for g in gametes], lag_ratio=0.2), run_time=0.9)
+        cards = VGroup(*[pattern_card(p, c, b.get_center(), scale=0.48) for p, c, b in
+                         ((R_BLUE, BLUE, boxes[0]), (R_GOLD, GOLD, boxes[1]), (P_BLUE, BLUE, boxes[2]))])
+        self.play(ReplacementTransform(VGroup(boxes, greys, gametes), cards), run_time=0.9)
+        for i, c in enumerate(cards):
+            bob(c, amp=0.07, speed=0.9, seed=i)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-CLS = [("p q r", 350, GREY), ("+ + +", 342, GREY), ("p q +", 96, YELLOW), ("+ + r", 92, YELLOW),
-       ("p + r", 55, YELLOW), ("+ q +", 53, YELLOW), ("+ q r", 7, RED), ("p + +", 5, RED)]
-# alphabetical listing as in the lesson: the singles are p q + / + + r (p-r side) etc.; shown as the lesson writes them.
-CLS = [("p q r", 350, GREY), ("+ + +", 342, GREY), ("p q +", 96, YELLOW), ("+ + r", 92, YELLOW),
-       ("p + r", 55, YELLOW), ("+ q +", 53, YELLOW), ("+ q r", 7, RED), ("p + +", 5, RED)]
-
-
-class S03Classes(SpokenScene):
+class S06Classes(SpokenScene):
     def construct(self):
-        mom_b = pieces(-4.3, 2.95, [], [BLUE], L=3.0, h=0.36)
-        mom_g = pieces(-4.3, 2.5, [], [GREEN], L=3.0, h=0.36)
-        mom_t = VGroup(M("p q r", 22, TEXT).move_to(mom_b), M("+ + +", 22, TEXT).move_to(mom_g))
-        tes_a = pieces(1.6, 2.95, [], [GREY], L=3.0, h=0.36)
-        tes_b = pieces(1.6, 2.5, [], [GREY], L=3.0, h=0.36)
-        tes_t = VGroup(M("p q r", 22, TEXT).move_to(tes_a), M("p q r", 22, TEXT).move_to(tes_b))
-        ml = T("female", 24, BLUE).move_to([-4.3, 3.5, 0])
-        tl = T("tester", 24, GREY).move_to([1.6, 3.5, 0])
-        times = T("x", 36, TEXT).move_to([-1.35, 2.72, 0])
-        self.at("A female carries")
-        self.play(FadeIn(mom_b), FadeIn(mom_g), FadeIn(mom_t), FadeIn(ml), run_time=0.8)
-        self.at("crossed to a tester")
-        self.play(FadeIn(times), FadeIn(tes_a), FadeIn(tes_b), FadeIn(tes_t), FadeIn(tl), run_time=0.8)
-        base, sc = -1.9, 0.0095
-        xs = [-5.25 + 1.5 * i for i in range(8)]
-        bars = VGroup(); nums = VGroup(); names = VGroup()
-        for (n, v, c), x in zip(CLS, xs):
-            r = Rectangle(width=1.1, height=max(v * sc, 0.05), stroke_color=GREY, stroke_width=3,
-                          fill_color=GREY, fill_opacity=0.25)
-            r.move_to([x, base + max(v * sc, 0.05) / 2, 0])
-            bars.add(r)
-            nums.add(M(str(v), 26, TEXT).move_to([x, base + max(v * sc, 0.05) + 0.3, 0]))
-            names.add(M(n, 24, GREY).move_to([x, base - 0.35, 0]))
-        axis = Line([-6.0, base, 0], [6.0, base, 0], color=GREY, stroke_width=3)
-        self.at("Sort")
-        self.play(Create(axis), *[GrowFromEdge(r, DOWN) for r in bars], FadeIn(nums), FadeIn(names), run_time=1.6)
-
-        def grp(i, j, text, color, y=-2.85):
-            a, b = xs[i] - 0.55, xs[j] + 0.55
-            ln = Line([a, y + 0.25, 0], [b, y + 0.25, 0], color=color, stroke_width=5)
-            t = T(text, 24, color).move_to([(a + b) / 2, y - 0.1, 0])
-            return VGroup(ln, t)
-        g1, g2, g3 = grp(0, 1, "no crossover", GREY), grp(2, 5, "single crossovers", YELLOW), grp(6, 7, "double crossovers", RED)
-        self.at("two biggest")
-        self.play(*[b.animate.set_fill(GREY, 0.6) for b in bars[0:2]], FadeIn(g1), run_time=0.8)
-        self.at("four in the middle")
-        self.play(*[b.animate.set_stroke(YELLOW).set_fill(YELLOW, 0.5) for b in bars[2:6]], FadeIn(g2), run_time=0.8)
-        self.at("two smallest")
-        self.play(*[b.animate.set_stroke(RED).set_fill(RED, 0.7) for b in bars[6:8]], FadeIn(g3),
-                  *[Indicate(nums[k], color=RED, scale_factor=1.4) for k in (6, 7)], run_time=1.0)
+        cards = VGroup(*[
+            RoundedRectangle(corner_radius=0.12, width=1.15, height=0.85,
+                             stroke_color=BLUE if i % 2 == 0 else GOLD, stroke_width=4,
+                             fill_color=BLUE if i % 2 == 0 else GOLD, fill_opacity=0.22)
+            .move_to([-5.6 + i * 1.6, 0, 0])
+            for i in range(8)
+        ])
+        self.play(LaggedStart(*[FadeIn(c, shift=UP * 0.2) for c in cards], lag_ratio=0.08), run_time=0.9)
+        self.at("become eight bars")
+        bars = class_bars()
+        self.play(ReplacementTransform(cards, bars), run_time=1.2)
+        for i, bar in enumerate(bars):
+            pulse(bar, base=4, amp=1.1, speed=1.2 + 0.08 * i)
+        base = Line([-6.3, -2.15, 0], [6.3, -2.15, 0], color=GREY, stroke_width=3)
+        self.add(base, scope_tag("schematic"))
+        self.at("largest pair")
+        p = T("parental?", 30, TEXT).move_to([-4.9, 2.9, 0])
+        self.play(FadeIn(p), Indicate(VGroup(bars[0], bars[1]), scale_factor=1.04), run_time=0.8)
+        self.at("Two middle pairs")
+        s = T("single crossovers", 30, TEXT).move_to([0.0, 1.35, 0])
+        self.play(FadeIn(s), Indicate(VGroup(*bars[2:6]), color=TEXT), run_time=0.8)
+        self.at("smallest pair")
+        d = T("double crossovers?", 30, RED).move_to([4.55, -0.15, 0])
+        self.play(FadeIn(d), Indicate(VGroup(bars[6], bars[7]), color=RED, scale_factor=1.15), run_time=0.8)
+        self.at("Rarity is a clue")
+        clue = caption("Rarity is a clue, not proof.", color=GOLD)
+        self.play(FadeIn(clue), run_time=0.6)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-def gchip(sym, col):
-    r = Rectangle(width=1.14, height=1.05, stroke_color=col, stroke_width=3, fill_color=col, fill_opacity=0.45)
-    return VGroup(r, M(sym, 46, TEXT).move_to(r))
-
-
-def row(cx, y, syms):
-    """syms: three (symbol, colour) in alphabetical slots p q r. Returns list of chips."""
-    chips = []
-    for k, (s, c) in enumerate(syms):
-        ch = gchip(s, c).move_to([cx + (k - 1) * 1.18, y, 0])
-        chips.append(ch)
-    return chips
-
-
-class S04Order(SpokenScene):
+class S07Predict(SpokenScene):
     def construct(self):
-        B, G_ = BLUE, GREEN
-        # left pair: parental p q r vs double + q r ; right pair: parental + + + vs double p + +
-        colL = [(("p", B), ("q", B), ("r", B)), (("+", G_), ("q", B), ("r", B))]
-        colR = [(("+", G_), ("+", G_), ("+", G_)), (("p", B), ("+", G_), ("+", G_))]
-        rows, tags = [], []
-        top = T("written in alphabetical order", 28, GREY).move_to([0, 3.0, 0])
-        for cx, col, names in ((-3.6, colL, ("parental, 350", "double crossover, 7")),
-                               (3.6, colR, ("parental, 342", "double crossover, 5"))):
-            for k, (y, syms) in enumerate(zip((1.0, -1.5), col)):
-                chips = row(cx, y, syms)
-                rows.append(chips)
-                tags.append(T(names[k], 24, GREY if k == 0 else RED).move_to([cx, y + 0.9, 0]))
-        allchips = VGroup(*[c for r in rows for c in r])
-        self.at("Match each rare")
-        self.play(FadeIn(top), FadeIn(VGroup(*tags)), FadeIn(allchips), run_time=1.0)
-        rings = []
-        for r in rows:
-            ring = SurroundingRectangle(r[0], color=TEAL, buff=0.08, stroke_width=6, corner_radius=0.05)
-            rings.append(ring)
-        self.at("differs at")
-        self.play(*[Create(x) for x in rings], run_time=0.8)
-        self.at("swaps only")
-        self.play(Indicate(VGroup(*[r[0] for r in rows[1::2]]), color=TEAL), run_time=0.9)
-        # reorder: p and q swap slots in every row; the ring that marks p moves with it
-        anims = []
-        for r, ring in zip(rows, rings):
-            # r = [chip_p, chip_q, chip_r] in alphabetical slots; p goes to the middle slot, q to the left
-            anims += [Transform(VGroup(r[0], ring), VGroup(r[0], ring).copy().shift(RIGHT * 1.18), path_arc=-PI),
-                      Transform(r[1], r[1].copy().shift(LEFT * 1.18), path_arc=-PI)]
-        mapl = T("in map order", 28, TEAL).move_to([0, 3.0, 0])
-        self.at("So P is")
-        self.play(*anims, run_time=1.4)
-        self.at("order is")
-        self.play(ReplacementTransform(top, mapl), run_time=0.6)
+        cards = four_pattern_cards()
+        self.play(LaggedStart(*[FadeIn(c, shift=UP * 0.15) for c in cards], lag_ratio=0.15), run_time=1.0)
+        for i, c in enumerate(cards):
+            bob(c, amp=0.065, speed=0.85, seed=i)
+        self.add(scope_tag("schematic"))
+        self.at("Which marker must")
+        q = question_card("Which marker is in the middle?", y=3.25, size=36, max_w=9.5)
+        self.play(FadeIn(q.question, shift=DOWN * 0.1), run_time=0.6)
+        self.at("Compare each rare pattern")
+        self.play(Indicate(VGroup(cards[0], cards[2]), color=BLUE, scale_factor=1.025), run_time=0.7)
+        self.play(Indicate(VGroup(cards[1], cards[3]), color=GOLD, scale_factor=1.025), run_time=0.7)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-SC = 0.28
+class S08PredictPause(PredictPause):
+    QUESTION = "Which marker is in the middle?"
+    SECONDS = 4.5
+    CARD = {"y": 3.25, "size": 36, "max_w": 9.5}
+    RING_AT = (4.2, -3.1, 0)
+
+    def backdrop(self):
+        cards = four_pattern_cards()
+        for i, c in enumerate(cards):
+            bob(c, amp=0.065, speed=0.85, seed=i)
+            pulse(c.frame, base=4, amp=0.7, speed=1.2)
+        return VGroup(cards, scope_tag("schematic"))
 
 
-def sumrow(parts, size=30):
-    g = VGroup(*[M(t, size, c) for t, c in parts]).arrange(RIGHT, buff=0.14)
-    return g
-
-
-def gene_dot(sym, x, y, col=TEXT):
-    c = Circle(radius=0.3, stroke_color=col, stroke_width=4, fill_color=BG, fill_opacity=1).move_to([x, y, 0])
-    return VGroup(c, M(sym, 28, col).move_to(c))
-
-
-class S05Distance(SpokenScene):
+class S09Reveal(SpokenScene):
     def construct(self):
-        ly = 1.0
-        qx, px, rx = -4.48, -4.48 + 12 * SC, -4.48 + 32 * SC
-        line = Line([qx, ly, 0], [rx, ly, 0], color=GREY, stroke_width=5)
-        dq, dp, dr = gene_dot("q", qx, ly), gene_dot("p", px, ly, TEAL), gene_dot("r", rx, ly)
-        m1, m2 = (qx + px) / 2, (px + rx) / 2
-        chp = chip("12 doubles", RED, 32).move_to([(m1 + m2) / 2, 3.0, 0])
-        a1 = Arrow(chp.get_bottom() + DOWN * 0.05, [m1, ly + 0.45, 0], color=RED, buff=0.05, stroke_width=5)
-        a2 = Arrow(chp.get_bottom() + DOWN * 0.05, [m2, ly + 0.45, 0], color=RED, buff=0.05, stroke_width=5)
-        self.play(Create(line), FadeIn(dq), FadeIn(dp), FadeIn(dr), FadeIn(chp, shift=DOWN * 0.1), run_time=0.8)
-        self.at("counts in both")
-        self.play(GrowArrow(a1), GrowArrow(a2), run_time=0.9)
-
-        def block(mid, a, b, parts, total, tot_text, colr):
-            br = BraceBetweenPoints([a, ly - 0.45, 0], [b, ly - 0.45, 0], direction=DOWN, color=GREY)
-            br.set_stroke(width=2)
-            r1 = sumrow(parts).move_to([mid, -0.2, 0])
-            r2 = M(total, 28, TEXT).move_to([mid, -0.95, 0])
-            r3 = M(tot_text, 44, colr).move_to([mid, -1.85, 0])
-            return br, r1, r2, r3
-        b1 = block(m1, qx, px, [("53", YELLOW), ("+", TEXT), ("55", YELLOW), ("+", TEXT), ("12", RED)],
-                   "= 120 / 1,000", "12.0 cM", TEXT)
-        b2 = block(m2, px, rx, [("96", YELLOW), ("+", TEXT), ("92", YELLOW), ("+", TEXT), ("12", RED)],
-                   "= 200 / 1,000", "20.0 cM", TEXT)
-        self.at("From Q to P")
-        self.play(Create(b1[0]), FadeIn(b1[1]), run_time=0.8)
-        self.at("make 120")
-        self.play(FadeIn(b1[2]), run_time=0.5)
-        self.at("That is")
-        self.play(FadeIn(b1[3], shift=UP * 0.1), run_time=0.5)
-        self.at("From P to R")
-        self.play(Create(b2[0]), FadeIn(b2[1]), run_time=0.8)
-        self.at("make 200")
-        self.play(FadeIn(b2[2]), run_time=0.5)
-        self.at("or 20")
-        self.play(FadeIn(b2[3], shift=UP * 0.1), run_time=0.5)
-        tot = M("q to r:  12.0 + 20.0 = 32.0 cM", 36, TEXT).move_to([0, -3.0, 0])
-        self.at("Together")
-        self.play(FadeOut(chp), FadeOut(a1), FadeOut(a2), FadeIn(tot, shift=UP * 0.1), run_time=0.9)
+        cards = four_pattern_cards()
+        q = question_card("Which marker is in the middle?", y=3.25, size=36, max_w=9.5)
+        self.add(cards, q.question)
+        self.at("Only marker C differs")
+        green = four_pattern_cards(green_c=True)
+        self.play(ReplacementTransform(cards, green), run_time=0.9)
+        cs = VGroup(*[c.chips[2] for c in green])
+        self.play(Indicate(cs, color=GREEN, scale_factor=1.12), run_time=0.8)
+        self.at("C belongs in the middle")
+        amap = gene_map(y=-0.15)
+        self.play(FadeOut(green), FadeOut(q.question), FadeIn(amap, shift=UP * 0.15), run_time=1.0)
+        bob(amap, amp=0.085, speed=0.9)
+        self.at("written last")
+        order = M("written A-B-C  →  map A-C-B", 34, TEXT).move_to([0, 2.3, 0])
+        self.play(FadeIn(order), run_time=0.6)
+        self.at("changed marker decided")
+        self.play(Indicate(amap.dots[1], color=GREEN, scale_factor=1.18), run_time=0.8)
+        edge_notes = VGroup(T("parental?", 24, TEXT).move_to([-5.75, -2.85, 0]),
+                            T("double crossovers?", 24, RED).move_to([4.65, -2.85, 0]))
+        self.play(FadeIn(edge_notes), run_time=0.4)
+        self.at("Unequal survival")
+        survival = ValueTracker(0.7)
+        gauge = dial(survival, center=[4.85, 1.9, 0], radius=0.9, label="survival?", color=GREY,
+                     fmt="{:.0f}%", size=28)
+        self.play(FadeIn(gauge), survival.animate.set_value(0.35), run_time=1.0)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S06Twopoint(SpokenScene):
+def eight_small_cards(order=(0, 1, 2)):
+    patterns = (P_BLUE, P_GOLD, R_BLUE, R_GOLD,
+                (("A", BLUE), ("B", GOLD), ("C", BLUE)),
+                (("A", GOLD), ("B", BLUE), ("C", GOLD)),
+                (("A", BLUE), ("B", GOLD), ("C", GOLD)),
+                (("A", GOLD), ("B", BLUE), ("C", BLUE)))
+    cards = VGroup()
+    for i, pat in enumerate(patterns):
+        x = -4.9 + (i % 4) * 3.25
+        y = 2.15 if i < 4 else 0.7
+        cards.add(pattern_card(pat, BLUE if i % 2 == 0 else GOLD, [x, y, 0], order=order,
+                               green_c=True, scale=0.55))
+    return cards
+
+
+class S10Reorder(SpokenScene):
     def construct(self):
-        x0 = -4.6
-        wy, wd = 29.6 * SC, 2.4 * SC
-        ya, yb = 1.4, -1.0
-        la = T("map distance with the middle gene", 26, TEXT).move_to([x0, ya + 0.9, 0], aligned_edge=LEFT)
-        la.align_to([x0, 0, 0], LEFT)
-        A_y = Rectangle(width=wy, height=0.9, stroke_color=YELLOW, stroke_width=3, fill_color=YELLOW, fill_opacity=0.5)
-        A_y.move_to([x0 + wy / 2, ya, 0])
-        A_r = Rectangle(width=wd, height=0.9, stroke_color=RED, stroke_width=3, fill_color=RED, fill_opacity=0.7)
-        A_r.move_to([x0 + wy + wd / 2, ya, 0])
-        na = M("32.0 cM", 30, TEXT).move_to([x0 + wy + wd + 1.0, ya, 0])
-        self.play(FadeIn(la), GrowFromEdge(A_y, LEFT), GrowFromEdge(A_r, LEFT), FadeIn(na), run_time=1.0)
-        lb = T("q and r alone", 26, TEXT).move_to([x0, yb + 0.9, 0])
-        lb.align_to([x0, 0, 0], LEFT)
-        ghost = DashedVMobject(Rectangle(width=wd, height=0.9, stroke_color=RED, stroke_width=4)).move_to([x0 + wy + wd / 2, yb, 0])
-        self.at("only Q and R")
-        self.play(FadeIn(lb), run_time=0.6)
-        self.at("parental combinations")
-        self.play(Indicate(A_r, color=RED, scale_factor=1.3), run_time=0.8)
-        self.at("drop out")
-        self.play(FadeIn(ghost), Create(Cross(ghost, stroke_color=RED, stroke_width=6, scale_factor=0.6)), run_time=0.8)
-        B_y = Rectangle(width=wy, height=0.9, stroke_color=YELLOW, stroke_width=3, fill_color=YELLOW, fill_opacity=0.5)
-        B_y.move_to([x0 + wy / 2, yb, 0])
-        nb = M("296 / 1,000 = 29.6%", 30, TEXT).move_to([x0 + wy / 2, yb - 1.0, 0])
-        self.at("Only the")
-        self.play(GrowFromEdge(B_y, LEFT), run_time=1.0)
-        self.at("which gives")
-        self.play(FadeIn(nb, shift=UP * 0.1), run_time=0.6)
-        gap = BraceBetweenPoints([x0 + wy, yb + 0.55, 0], [x0 + wy + wd, yb + 0.55, 0], direction=UP, color=RED)
-        gl = M("2.4", 30, RED).next_to(gap, UP, buff=0.1)
-        self.at("short")
-        self.play(Create(gap), FadeIn(gl), run_time=0.8)
-        self.at("counted once")
-        self.play(Indicate(A_r, color=RED, scale_factor=1.4), Indicate(ghost, color=RED), run_time=1.0)
+        written = eight_small_cards((0, 1, 2))
+        self.add(written, scope_tag("schematic"))
+        self.at("Move the changed marker")
+        mapped = eight_small_cards((0, 2, 1))
+        self.play(ReplacementTransform(written, mapped, path_arc=0.35), run_time=1.2)
+        for i, c in enumerate(mapped):
+            bob(c, amp=0.075, speed=0.8, seed=i)
+        m = gene_map(y=-2.15)
+        self.play(FadeIn(m), run_time=0.7)
+        pulse(m.line[1], base=12, amp=2.5, speed=1.5)
+        pulse(m.line[2], base=12, amp=2.5, speed=1.7)
+        self.at("single crossover pattern")
+        left_beads = VGroup(*[Dot(radius=0.11, color=RED).move_to(mapped[i].get_bottom()) for i in (4, 5)])
+        self.add(left_beads)
+        self.play(*[b.animate.move_to([-2.4, -2.15, 0]) for b in left_beads], run_time=0.9)
+        self.at("one interval")
+        self.play(Indicate(m[2], color=BLUE), run_time=0.6)
+        self.at("Each double changes")
+        doubles = VGroup(*[Dot(radius=0.12, color=RED).move_to(mapped[i].get_bottom()) for i in (6, 7)])
+        self.add(doubles)
+        self.play(doubles[0].animate.move_to([-2.4, -2.15, 0]),
+                  doubles[1].animate.move_to([2.4, -2.15, 0]), run_time=0.9)
+        self.at("class list has become")
+        self.play(Indicate(m, color=GREEN, scale_factor=1.03), run_time=0.8)
         self.finish()
 
 
-class S07End(EndCard):
-    LINE = "Count every double crossover in both intervals."
+class S11Distance(SpokenScene):
+    def construct(self):
+        m = gene_map(y=2.25)
+        bob(m, amp=0.08, speed=0.85)
+        pulse(m.line[1], base=12, amp=4.0, speed=1.7)
+        pulse(m.line[2], base=12, amp=4.0, speed=1.9)
+        self.add(m)
+        left = Ledger([("singles", "one interval", BLUE), ("doubles", "also here", RED)],
+                      top_left=(-5.9, 0.9), title="A–C ledger", width=5.2, key_w=2.0, row_h=0.75, size=26)
+        right = Ledger([("singles", "one interval", GOLD), ("doubles", "also here", RED)],
+                       top_left=(0.7, 0.9), title="C–B ledger", width=5.2, key_w=2.0, row_h=0.75, size=26)
+        self.at("Count each single crossover")
+        self.play(FadeIn(left), FadeIn(right), run_time=0.7)
+        self.play(left.reveal(0), right.reveal(0), run_time=0.7)
+        self.at("Count every double crossover")
+        double = Dot(radius=0.22, color=RED).move_to([0, 1.55, 0])
+        self.play(FadeIn(double), run_time=0.35)
+        d1, d2 = double.copy(), double.copy()
+        self.play(ReplacementTransform(double, VGroup(d1, d2)),
+                  d1.animate.move_to([-1.3, -0.75, 0]), d2.animate.move_to([5.2, -0.75, 0]), run_time=0.9)
+        bob(d1, amp=0.18, speed=1.45)
+        bob(d2, amp=0.18, speed=1.65, seed=2)
+        self.play(left.reveal(1), right.reveal(1), run_time=0.6)
+        self.at("because each double crossed both")
+        self.play(Indicate(VGroup(m[2], m[3]), color=RED), run_time=0.7)
+        formula = M("cM = 100 × (singles + doubles) / total", 28, TEXT).move_to([0, -1.35, 0])
+        self.at("Divide each interval count")
+        self.play(FadeIn(formula, shift=UP * 0.1), run_time=0.7)
+        self.at("express it in centimorgans")
+        self.play(Indicate(formula, color=GREEN, scale_factor=1.04), run_time=0.7)
+        bars = VGroup(Rectangle(width=4.1, height=0.5, stroke_color=BLUE, fill_color=BLUE, fill_opacity=0.45),
+                      Rectangle(width=5.2, height=0.5, stroke_color=GOLD, fill_color=GOLD, fill_opacity=0.45))
+        bars.arrange(RIGHT, buff=0).move_to([0, -2.6, 0])
+        self.at("adjacent distances then add")
+        self.play(GrowFromEdge(bars[0], LEFT), GrowFromEdge(bars[1], LEFT), run_time=1.0)
+        self.finish()
+
+
+class S12BlindSpot(SpokenScene):
+    def construct(self):
+        m = gene_map(y=1.5)
+        bob(m, amp=0.08, speed=0.85)
+        full = VGroup(Rectangle(width=4.1, height=0.72, stroke_color=BLUE, fill_color=BLUE, fill_opacity=0.45),
+                      Rectangle(width=5.2, height=0.72, stroke_color=GOLD, fill_color=GOLD, fill_opacity=0.45))
+        full.arrange(RIGHT, buff=0).move_to([0, -1.45, 0])
+        counters = VGroup(Dot(radius=0.2, color=RED).move_to([-2.4, -1.45, 0]),
+                          Dot(radius=0.2, color=RED).move_to([2.4, -1.45, 0]))
+        self.add(m, full, counters, scope_tag("schematic distance"))
+        self.at("Hide the green marker")
+        shutter = RoundedRectangle(corner_radius=0.15, width=1.65, height=4.5, stroke_color=GREY, stroke_width=3,
+                                   fill_color=BG, fill_opacity=0.98).move_to([0, 0.35, 0])
+        shutter.layout_ok = "covered"  # deliberate occluder: hiding the middle marker is the narrated action
+        self.play(FadeIn(shutter), run_time=0.8)
+        self.at("Both swaps restore")
+        self.play(counters.animate.move_to([0, -1.45, 0]).set_opacity(0), run_time=0.8)
+        self.at("vanish from a two point count")
+        short = Rectangle(width=7.0, height=0.72, stroke_color=GREY, fill_color=GREY, fill_opacity=0.35).move_to([-1.15, -1.45, 0])
+        self.play(ReplacementTransform(full, short), run_time=0.9)
+        tag = T("too short", 32, RED).move_to([0, -2.25, 0])
+        self.at("map becomes too short")
+        self.play(FadeIn(tag), run_time=0.5)
+        self.at("middle marker is the witness")
+        restored = VGroup(Rectangle(width=4.1, height=0.72, stroke_color=BLUE, fill_color=BLUE, fill_opacity=0.45),
+                          Rectangle(width=5.2, height=0.72, stroke_color=GOLD, fill_color=GOLD, fill_opacity=0.45))
+        restored.arrange(RIGHT, buff=0).move_to([0, -1.45, 0])
+        newc = VGroup(Dot(radius=0.2, color=RED).move_to([-2.4, -1.45, 0]),
+                      Dot(radius=0.2, color=RED).move_to([2.4, -1.45, 0]))
+        self.play(FadeOut(shutter), ReplacementTransform(short, restored), FadeIn(newc), FadeOut(tag), run_time=1.0)
+        self.play(Indicate(m.dots[1], color=GREEN, scale_factor=1.2), run_time=0.7)
+        self.finish()
+
+
+class S13Scope(SpokenScene):
+    def construct(self):
+        world = chromosome_world(show_middle=True, product=True, drift=False).scale(0.45).move_to([3.3, 0.55, 0])
+        for row in world:
+            for block in row[1]:
+                block[1].set_opacity(0)
+        bob(world, amp=0.045, speed=0.65)
+        self.add(world)
+        checklist = Ledger([("✓", "scorable classes", GREEN),
+                            ("✓", "short intervals", GREEN),
+                            ("✓", "rare pair reciprocal and viable", GREEN)],
+                           top_left=(-6.25, 2.2), title="works when", width=5.4, key_w=0.7,
+                           row_h=0.82, size=25)
+        self.at("classes are scoreable")
+        self.play(FadeIn(checklist), checklist.reveal(0), run_time=0.8)
+        self.at("adjacent intervals are short")
+        self.play(checklist.reveal(1), run_time=0.65)
+        self.at("Long intervals can hide more")
+        caution = T("long intervals hide more", 28, RED).move_to([-3.8, -1.25, 0])
+        self.play(FadeIn(caution), run_time=0.6)
+        self.at("Rarity is a clue")
+        clue = T("rarity ≠ proof", 30, GOLD).move_to([-3.8, -1.95, 0])
+        self.play(FadeIn(clue), run_time=0.6)
+        self.at("rare classes survive")
+        self.play(checklist.reveal(2), run_time=0.8)
+        self.at("middle marker makes")
+        x1, x2 = crossover_mark(2.25).scale(0.45).move_to([2.25, 0.55, 0]), crossover_mark(4.35).scale(0.45).move_to([4.35, 0.55, 0])
+        self.play(Create(x1), Create(x2), run_time=0.7)
+        self.play(Indicate(VGroup(world[0][1][1], world[1][1][1]), color=GREEN, scale_factor=1.2), run_time=0.9)
+        pulse(x1), pulse(x2)
+        self.finish()
+
+
+class S14End(EndCard):
+    LINE = "A middle marker makes double crossovers visible."
