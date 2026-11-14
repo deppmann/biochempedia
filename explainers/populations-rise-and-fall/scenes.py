@@ -1,368 +1,481 @@
-"""Populations rise and fall: why crab numbers rise and fall  (Biochemistrypedia explainer, grade 7 Life Science)
+"""Four Ways a Population Changes.
 
-Timed to the SPOKEN words: every self.at("...") cue waits for that phrase in audio/words.json.
-
-COLOR MAP (one color per concept, whole video)
-  BLUE   = blue crabs (young and adult), births and crabs moving in
-  RED    = losses: deaths, crabs moving out, big crabs that eat young crabs
-  GREEN  = grass (a living part of the environment) and the word "biotic"
-  TEAL   = nonliving parts of the environment (cold winter, flood) and the word "abiotic"
-  YELLOW = actions by people (pollution, hard shorelines, harvest) and the sustainable-harvest plan
-  GOLD   = the word "competition"
-  TEXT   = survey numbers, questions, the words "population" and "limiting factor"
-  GREY   = water, mud, outlines, notes
-Dots are schematic crabs ("a sketch, not real counts"). Real numbers on screen: 367 and 852 million crabs
-(estimated for the whole Bay, winter dredge survey, winters 1991-1992 and 1992-1993), "about 34 percent fewer"
-female crabs than the 2004-2007 average (plan of 2008). Bar heights are computed from those numbers.
+Colour map used throughout:
+BLUE = crabs and additions; RED = losses; TEAL = cold/nonliving factors;
+GREEN = shelter; YELLOW = harvest/people; GREY = Bay structure and estimates.
+All dots and arrows in the population window are explicitly schematic.
 """
-import numpy as np
-from bp_style import *  # noqa: F401,F403
+from bp_parts import *
+
 
 CRAB = BLUE
+ADD = BLUE
 LOSS = RED
-GRASS = GREEN
-NONLIVING = TEAL
-PEOPLE = YELLOW
+SHELTER = GREEN
+COLD = TEAL
+HARVEST = YELLOW
+
+DOT_POSITIONS = [
+    (-2.20, 0.95), (-1.25, 1.25), (-0.20, 1.05), (0.95, 1.35), (2.05, 0.85),
+    (-2.45, 0.00), (-1.45, 0.25), (-0.35, -0.05), (0.80, 0.25), (2.25, -0.10),
+    (-1.85, -0.90), (-0.75, -1.15), (0.35, -0.85), (1.45, -1.10),
+]
 
 
-def arr(a, b, color=GREY, w=5, tip=0.22):
-    return Arrow(a, b, buff=0.05, color=color, stroke_width=w, tip_length=tip,
-                 max_tip_length_to_length_ratio=0.45, max_stroke_width_to_length_ratio=12)
+def crab_dot(radius=0.15, color=CRAB):
+    """A schematic crab mark, intentionally a dot rather than an anatomical drawing."""
+    return Dot(radius=radius, color=color, stroke_color=TEXT, stroke_width=1.5)
 
 
-def dot(color=CRAB, r=0.16):
-    return Circle(radius=r, stroke_color=color, stroke_width=2.5, fill_color=color, fill_opacity=0.6)
+def moving_water(width=12.0, center_y=0.0, rows=7, color=BLUE):
+    """A field of gently moving water strokes that keeps the Bay world alive."""
+    g = VGroup()
+    for j in range(rows):
+        y = center_y + (j - (rows - 1) / 2) * 0.48
+        row = VGroup()
+        for i in range(9):
+            x = -width / 2 + 0.45 + i * (width - 0.9) / 8
+            row.add(ArcBetweenPoints([x - 0.32, y, 0], [x + 0.32, y, 0], angle=-0.22,
+                                     color=color, stroke_width=2).set_opacity(0.25))
+        row._water_t = 0.0
+        base = row.get_center().copy()
+
+        def drift(mob, dt, base=base, phase=j * 0.7):
+            mob._water_t += dt
+            mob.move_to(base + RIGHT * 0.28 * np.sin(0.7 * mob._water_t + phase)
+                        + UP * 0.06 * np.sin(1.1 * mob._water_t + phase))
+        row.add_updater(drift)
+        g.add(row)
+    return g
 
 
-def slots(cx, cy, w, h, n, seed, gap=0.55):
-    """n non-overlapping positions inside an ellipse of width w, height h."""
-    rng = np.random.default_rng(seed)
-    out, tries = [], 0
-    while len(out) < n and tries < 20000:
-        tries += 1
-        p = rng.uniform(-1, 1, 2)
-        if p[0] ** 2 + p[1] ** 2 > 0.72:
-            continue
-        q = np.array([cx + p[0] * w / 2, cy + p[1] * h / 2])
-        if all(np.hypot(*(q - o)) > gap for o in out):
-            out.append(q)
-    return out
+def flow_arrow(start, end, color, width=7):
+    a = Arrow(start, end, buff=0.04, color=color, stroke_width=width, tip_length=0.26,
+              max_tip_length_to_length_ratio=0.35, max_stroke_width_to_length_ratio=12)
+    return a
 
 
-class S00Title(TitleCard):
+def flow_motes(start, end, color, count=3):
+    """Dots circulating along a flow arrow, providing meaningful continuous motion."""
+    a, b = np.array(start, dtype=float), np.array(end, dtype=float)
+    g = VGroup(*[Dot(radius=0.07, color=color) for _ in range(count)])
+    g._flow_t = 0.0
+
+    def travel(mob, dt):
+        mob._flow_t += dt
+        for i, d in enumerate(mob):
+            f = (0.28 * mob._flow_t + i / count) % 1.0
+            d.move_to(a + f * (b - a))
+    g.add_updater(travel)
+    return g
+
+
+def shimmer_fill(mob, color, base, amp=0.035, speed=1.6, phase=0.0):
+    """Slow opacity shimmer for water or a live estimate; geometry stays fixed."""
+    mob._shimmer_t = phase
+
+    def shimmer(m, dt):
+        m._shimmer_t += dt
+        m.set_fill(color, opacity=base + amp * np.sin(speed * m._shimmer_t))
+    return mob.add_updater(shimmer)
+
+
+def bay_window(dot_count=10, add_width=7, loss_width=7, labels=True, question=False,
+               factor=None, small=False):
+    """The carried population picture; all continuing scenes call this exact builder."""
+    scale = 0.82 if small else 1.0
+    frame = RoundedRectangle(corner_radius=0.65, width=7.0 * scale, height=4.65 * scale,
+                             stroke_color=GREY, stroke_width=5, fill_color=BLUE,
+                             fill_opacity=0.14).move_to([0, 0.15, 0])
+    shimmer_fill(frame, BLUE, 0.14, amp=0.045, speed=1.7)
+    water = moving_water(5.8 * scale, center_y=0.15, rows=5 if small else 6).scale(scale)
+    water.move_to(frame)
+    dots = VGroup(*[crab_dot(0.13 * scale).move_to([x * scale, 0.15 + y * scale, 0])
+                    for x, y in DOT_POSITIONS[:dot_count]])
+    for i, d in enumerate(dots):
+        bob(d, amp=0.11 * scale, speed=1.25 + 0.08 * (i % 4), seed=i)
+    left_x = frame.get_left()[0]
+    right_x = frame.get_right()[0]
+    add = flow_arrow([left_x - 2.0 * scale, 0.15, 0], [left_x - 0.08, 0.15, 0], ADD, add_width)
+    loss = flow_arrow([right_x + 0.08, 0.15, 0], [right_x + 2.0 * scale, 0.15, 0], LOSS, loss_width)
+    pulse(add, base=add_width, amp=1.0, speed=1.5)
+    pulse(loss, base=loss_width, amp=1.0, speed=1.7)
+    add_motes = flow_motes([left_x - 2.0 * scale, 0.15, 0], [left_x - 0.08, 0.15, 0], ADD)
+    loss_motes = flow_motes([right_x + 0.08, 0.15, 0], [right_x + 2.0 * scale, 0.15, 0], LOSS)
+    g = VGroup(frame, water, dots, add, loss, add_motes, loss_motes)
+    g.frame, g.water, g.dots, g.add_arrow, g.loss_arrow = frame, water, dots, add, loss
+    if labels:
+        al = T("additions", 30, ADD, weight=BOLD).next_to(add, UP, buff=0.18)
+        ll = T("losses", 30, LOSS, weight=BOLD).next_to(loss, UP, buff=0.18)
+        g.add(al, ll)
+        g.add_label, g.loss_label = al, ll
+    if factor:
+        g.add(factor)
+    if question:
+        q = question_card("Which way will the population move?", size=30, max_w=9.6)
+        g.add(q)
+        g.question = q
+    return g
+
+
+def survey_bars(show_double=True):
+    """Survey bars computed directly from 367 and 852 million."""
+    base, max_h = -2.25, 4.65
+    h1, h2 = max_h * 367 / 852, max_h
+    axis = Line([-4.6, base, 0], [4.6, base, 0], color=GREY, stroke_width=4)
+    b1 = Rectangle(width=2.25, height=h1, stroke_color=BLUE, stroke_width=4,
+                   fill_color=BLUE, fill_opacity=0.35).move_to([-2.35, base + h1 / 2, 0])
+    b2 = Rectangle(width=2.25, height=h2, stroke_color=BLUE, stroke_width=4,
+                   fill_color=BLUE, fill_opacity=0.58).move_to([2.35, base + h2 / 2, 0])
+    shimmer_fill(b1, BLUE, 0.35, amp=0.055, speed=1.5)
+    shimmer_fill(b2, BLUE, 0.58, amp=0.055, speed=1.7, phase=0.8)
+    n1 = M("367 million", 34, TEXT).next_to(b1, UP, buff=0.14)
+    n2 = M("852 million", 34, TEXT).next_to(b2, UP, buff=0.14)
+    w1 = T("winter 1991–1992", 26, GREY).next_to(b1, DOWN, buff=0.14)
+    w2 = T("winter 1992–1993", 26, GREY).next_to(b2, DOWN, buff=0.14)
+    est = T("ESTIMATES", 30, GREY, weight=BOLD).move_to([0, 3.35, 0])
+    g = VGroup(axis, b1, b2, n1, n2, w1, w2, est)
+    g.axis, g.b1, g.b2, g.n1, g.n2, g.w1, g.w2, g.est = axis, b1, b2, n1, n2, w1, w2, est
+    if show_double:
+        y = base + 2 * h1
+        double = DashedLine([-4.25, y, 0], [4.25, y, 0], color=YELLOW,
+                            stroke_width=4, dash_length=0.16)
+        dl = M("twice 367\n= 734 million", 22, YELLOW, line_spacing=0.8).move_to([-0.2, y + 0.05, 0])
+        g.add(double, dl)
+        g.double, g.double_label = double, dl
+    return g
+
+
+def factor_icon(kind, at, size=1.0):
+    """Simple labelled lesson icons; no molecular or anatomical detail."""
+    if kind == "cold":
+        bulb = Circle(radius=0.18 * size, color=COLD, fill_color=COLD, fill_opacity=0.55)
+        stem = Line(UP * 0.65 * size, DOWN * 0.05 * size, color=COLD, stroke_width=8)
+        icon = VGroup(stem, bulb.move_to(DOWN * 0.22 * size))
+        lab, col = "cold", COLD
+    elif kind == "shelter":
+        blades = VGroup(*[ArcBetweenPoints([x, -0.42, 0], [x + dx, 0.45, 0], angle=0.25,
+                                          color=SHELTER, stroke_width=6)
+                          for x, dx in [(-0.45, 0.28), (-0.15, -0.22), (0.15, 0.20), (0.42, -0.26)]])
+        icon, lab, col = blades, "shelter", SHELTER
+    elif kind == "predators":
+        icon = crab_dot(0.38 * size, LOSS)
+        lab, col = "predators", LOSS
+    else:
+        pot = RoundedRectangle(corner_radius=0.12, width=1.05 * size, height=0.72 * size,
+                               stroke_color=HARVEST, stroke_width=4)
+        slats = VGroup(*[Line([x, -0.32 * size, 0], [x, 0.32 * size, 0], color=HARVEST, stroke_width=2)
+                         for x in (-0.28 * size, 0, 0.28 * size)])
+        icon, lab, col = VGroup(pot, slats), "harvest", HARVEST
+    label = T(lab, 28, col).next_to(icon, DOWN, buff=0.14)
+    return VGroup(icon, label).move_to(at)
+
+
+class S00Hook(SpokenScene):
+    def construct(self):
+        water = Rectangle(width=13.0, height=4.35, stroke_width=0, fill_color=BLUE,
+                          fill_opacity=0.08).move_to([0, 0.20, 0])
+        waves = moving_water(12.0, center_y=0.45, rows=8)
+        mud = Rectangle(width=13.0, height=1.05, stroke_color=GREY, stroke_width=2,
+                        fill_color=GREY, fill_opacity=0.25).move_to([0, -2.48, 0])
+        shore = VGroup(
+            ArcBetweenPoints([-6.2, 2.35, 0], [-4.2, 2.0, 0], angle=-0.25, color=GREY),
+            ArcBetweenPoints([4.2, 2.0, 0], [6.2, 2.35, 0], angle=0.25, color=GREY),
+        ).set_stroke(width=6)
+        crabs = VGroup(*[crab_dot(0.14).move_to([x, -2.30 + 0.08 * (i % 2), 0])
+                         for i, x in enumerate((-4.7, -3.2, -1.8, -0.3, 1.2, 2.7, 4.3))])
+        for i, d in enumerate(crabs):
+            bob(d, amp=0.035, speed=1.2, seed=i)
+        question = fit_text("How can the crab estimate jump when the Bay has not grown?",
+                            max_w=11.8, size=40, font=TITLE_FONT).move_to([0, 3.25, 0])
+        boat = VGroup(
+            Polygon([-0.9, -0.05, 0], [0.9, -0.05, 0], [0.55, -0.42, 0], [-0.65, -0.42, 0],
+                    color=GREY, fill_color=GREY, fill_opacity=0.45),
+            Rectangle(width=0.72, height=0.40, color=GREY, fill_color=GREY,
+                      fill_opacity=0.32).move_to([0.05, 0.16, 0]),
+        ).move_to([-5.0, 1.65, 0])
+        dredge = Rectangle(width=0.75, height=0.42, color=TEXT, stroke_width=3,
+                           fill_color=TEXT, fill_opacity=0.18).move_to([-4.0, -1.95, 0])
+        tow = always_redraw(lambda: Line(boat.get_bottom(), dredge.get_top(), color=GREY, stroke_width=4))
+
+        self.play(FadeIn(water), FadeIn(waves), FadeIn(mud), Create(shore), Write(question), run_time=1.5)
+        self.at("Watch a survey boat")
+        self.play(FadeIn(boat, shift=RIGHT * 0.2), FadeIn(dredge), FadeIn(tow), run_time=0.8)
+        self.play(boat.animate.shift(RIGHT * 5.8), dredge.animate.shift(RIGHT * 5.8),
+                  run_time=3.6, rate_func=linear)
+        self.at("Its dredge catches")
+        caught = crabs[:3].copy().arrange(RIGHT, buff=0.12).scale(0.75).move_to(dredge)
+        self.play(FadeIn(crabs), FadeIn(caught, scale=0.5), run_time=1.2)
+        self.at("Those catches become")
+        rings = VGroup(*[Circle(radius=0.28, color=YELLOW, stroke_width=4).move_to(p)
+                         for p in [(-4.7, -0.45, 0), (-2.4, 0.65, 0), (0.0, -0.5, 0),
+                                   (2.2, 0.65, 0), (4.55, -0.35, 0)]])
+        self.play(LaggedStart(*[Create(r) for r in rings], lag_ratio=0.14), run_time=1.6)
+        estimate = chip("Bay-wide estimate", YELLOW, size=36).move_to([0, 2.85, 0])
+        self.play(FadeOut(question), ReplacementTransform(rings, estimate), run_time=1.2)
+        self.at("A moving estimate")
+        self.play(estimate.animate.shift(UP * 0.35), shore.animate.set_stroke(opacity=0.45),
+                  run_time=1.4, rate_func=there_and_back)
+        self.finish()
+
+
+class S01Title(TitleCard):
     LESSON = "Populations rise and fall"
-    TITLE = "Why Crab Numbers Rise and Fall"
+    TITLE = "Four Ways a Population Changes"
 
 
-# ---------------------------------------------------------------------------------------------
-class S01Crabs(SpokenScene):
+class S02Estimates(SpokenScene):
     def construct(self):
-        ttl = T("Chesapeake Bay, in winter", 36, TEXT, font=TITLE_FONT).move_to([0, 3.0, 0])
-        water = Rectangle(width=11.6, height=3.0, stroke_color=GREY, stroke_width=2, fill_color=GREY,
-                          fill_opacity=0.08).move_to([0, 0.1, 0])            # y 1.6 .. -1.4
-        mud = Rectangle(width=11.6, height=0.8, stroke_color=GREY, stroke_width=2, fill_color=GREY,
-                        fill_opacity=0.35).move_to([0, -1.8, 0])             # y -1.4 .. -2.2
-        mudl = T("mud", 24, GREY).move_to([-5.1, -2.6, 0])
-        boat = chip("survey boat", TEXT, size=28).move_to([-3.6, 2.0, 0])
-        dredge = Rectangle(width=0.8, height=0.45, stroke_color=TEXT, stroke_width=3, fill_color=TEXT,
-                           fill_opacity=0.25).move_to([-2.5, -1.12, 0])
-        tow = always_redraw(lambda: Line(boat.get_bottom() + DOWN * 0.02, dredge.get_top() + LEFT * 0.2,
-                                         color=GREY, stroke_width=4))
-        dlab = T("dredge", 24, TEXT).move_to([-1.5, -0.85, 0])
-        dlab.add_updater(lambda m: m.move_to(dredge.get_center() + [1.05, 0.05, 0]))
-        crabs = VGroup(*[dot(CRAB, 0.17).move_to([x, -1.8, 0]) for x in (-4.3, -3.0, -1.4, 0.0, 1.3, 2.7, 4.1)])
-        cl = T("blue crabs buried in the mud", 26, CRAB).move_to([1.2, -2.7, 0])
-
-        self.at("Every winter")
-        self.play(FadeIn(ttl, shift=DOWN * 0.1), FadeIn(water), FadeIn(mud), FadeIn(mudl),
-                  FadeIn(boat, shift=DOWN * 0.1), run_time=1.0)
-        self.at("tow dredges")
-        self.add(tow)
-        self.play(FadeIn(dredge, shift=DOWN * 0.2), FadeIn(dlab), run_time=0.8)
-        self.play(boat.animate.shift(RIGHT * 2.4), dredge.animate.shift(RIGHT * 2.4), run_time=2.8, rate_func=linear)
-        self.at("They catch blue crabs")
-        self.play(FadeIn(crabs, lag_ratio=0.12), FadeIn(cl), run_time=1.2)
-        est = chip("estimate for the whole Bay", YELLOW, size=26).move_to([3.9, 2.05, 0])
-        a_est = arr(boat.get_right() + RIGHT * 0.1, est.get_left() + LEFT * 0.05, YELLOW, w=5)
-        self.at("estimate how many")
-        self.play(GrowArrow(a_est), FadeIn(est, shift=LEFT * 0.2), run_time=1.0)
-
-        # bars, computed from 367 and 852 (million), baseline y = -2.2, 852 -> 4.0 tall
-        H = 4.0
-        h1, h2 = H * 367 / 852, H
-        base = -2.2
-        b1 = Rectangle(width=1.8, height=h1, stroke_color=TEXT, stroke_width=3, fill_color=TEXT, fill_opacity=0.35)
-        b1.move_to([-2.2, base + h1 / 2, 0])
-        b2 = Rectangle(width=1.8, height=h2, stroke_color=TEXT, stroke_width=3, fill_color=TEXT, fill_opacity=0.35)
-        b2.move_to([2.2, base + h2 / 2, 0])
-        axis = Line([-3.6, base, 0], [3.6, base, 0], color=GREY, stroke_width=3)
-        t1 = VGroup(M("367", 40, TEXT), T("million", 24, GREY)).arrange(RIGHT, buff=0.15, aligned_edge=DOWN)
-        t1.next_to(b1, UP, buff=0.15)
-        t2 = VGroup(M("852", 40, TEXT), T("million", 24, GREY)).arrange(RIGHT, buff=0.15, aligned_edge=DOWN)
-        t2.next_to(b2, UP, buff=0.15)
-        w1 = T("winter 1991–1992", 24, GREY).next_to(b1, DOWN, buff=0.15)
-        w2 = T("winter 1992–1993", 24, GREY).next_to(b2, DOWN, buff=0.15)
-        ctitle = T("estimated blue crabs in the whole Bay", 30, TEXT).move_to([0, 3.0, 0])
-        dash = DashedLine([-3.1, base + 2 * h1, 0], [3.1, base + 2 * h1, 0], color=YELLOW, stroke_width=4, dash_length=0.18)
-        dl = M("2 × 367 = 734", 26, YELLOW).move_to([-2.2, base + 2 * h1 + 0.4, 0])
-        notbig = T("The Bay did not get bigger.", 32, TEXT).move_to([0, -3.3, 0])
-
-        self.at("From one winter")
-        self.play(*[FadeOut(m) for m in (ttl, water, mud, mudl, boat, dredge, crabs, cl, est, a_est, dlab, tow)], run_time=0.3)
-        self.remove(tow, dlab)
-        self.play(FadeIn(ctitle), Create(axis), FadeIn(b1, shift=UP * 0.2), FadeIn(t1), FadeIn(w1), run_time=0.45)
-        self.at("to the next")
-        self.play(FadeIn(b2, shift=UP * 0.2), FadeIn(t2), FadeIn(w2), run_time=0.7)
-        self.at("more than doubled")
-        self.play(Create(dash), FadeIn(dl), Indicate(b2, color=YELLOW, scale_factor=1.03), run_time=1.0)
-        self.at("did not get bigger")
-        self.play(FadeIn(notbig, shift=UP * 0.1), run_time=0.6)
-        q = T("Why are there lots of crabs some years,\nand far fewer in others?", 44, TEXT, font=TITLE_FONT, line_spacing=0.8)
-        fit(q, max_w=11.6, max_h=2.2)
-        q.move_to([0, 0, 0])
-        self.at("So why are there")
-        self.play(*[FadeOut(m) for m in (ctitle, axis, b1, b2, t1, t2, w1, w2, dash, dl, notbig)], run_time=0.6)
-        self.play(Write(q), run_time=2.2)
+        g = survey_bars(show_double=False)
+        self.at("The earlier estimate")
+        self.play(Create(g.axis), FadeIn(g.b1, shift=UP * 0.2), FadeIn(g.n1), FadeIn(g.w1), run_time=1.3)
+        self.at("The next estimate")
+        self.play(FadeIn(g.b2, shift=UP * 0.2), FadeIn(g.n2), FadeIn(g.w2), run_time=1.4)
+        self.at("These are estimates")
+        self.play(FadeIn(g.est, shift=DOWN * 0.15), run_time=0.8)
+        y = -2.25 + 2 * (4.65 * 367 / 852)
+        double = DashedLine([-4.25, y, 0], [4.25, y, 0], color=YELLOW,
+                            stroke_width=4, dash_length=0.16)
+        dl = M("twice 367\n= 734 million", 22, YELLOW, line_spacing=0.8).move_to([-0.2, y + 0.05, 0])
+        self.at("The survey pattern")
+        self.play(Create(double), FadeIn(dl), run_time=1.2)
+        unknown = T("cause: ?", 32, YELLOW, weight=BOLD).move_to([-4.9, 2.55, 0])
+        self.play(FadeIn(unknown), run_time=0.8)
+        self.at("So read height")
+        self.play(Indicate(VGroup(g.b1, g.b2), color=TEXT, scale_factor=1.02),
+                  FadeOut(unknown), run_time=1.5)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S02Population(SpokenScene):
+class S03Population(SpokenScene):
     def construct(self):
-        cx, cy = 0.0, -0.2
-        bay = Ellipse(width=5.2, height=4.2, stroke_color=GREY, stroke_width=3, fill_color=GREY, fill_opacity=0.10).move_to([cx, cy, 0])
-        baylab = T("the Bay", 26, GREY).move_to([cx, cy - 2.4, 0])
-        pos = slots(cx, cy, 5.2, 4.2, 14, seed=11, gap=0.62)
-        dots = [dot(CRAB, 0.17).move_to([*p, 0]) for p in pos]
-        n = {"v": 0}
-
-        def setn(k):
-            anims = []
-            if k > n["v"]:
-                anims += [FadeIn(d, scale=0.5) for d in dots[n["v"]:k]]
-            elif k < n["v"]:
-                anims += [FadeOut(d) for d in dots[k:n["v"]]]
-            n["v"] = k
-            return anims
-
-        pop = T("population", 40, TEXT, weight=BOLD).move_to([0, 3.0, 0])
-        defn = T("all the members of one species in one place", 28, GREY).move_to([0, 2.45, 0])
-        births = chip("births", CRAB, size=30).move_to([-5.0, 1.0, 0])
-        movin = chip("move in", CRAB, size=30).move_to([-5.0, -1.4, 0])
-        deaths = chip("deaths", LOSS, size=30).move_to([5.0, 1.0, 0])
-        movout = chip("move out", LOSS, size=30).move_to([5.0, -1.4, 0])
-        ab = arr(births.get_right() + RIGHT * 0.1, [-2.35, 0.9, 0], CRAB, w=6)
-        ai = arr(movin.get_right() + RIGHT * 0.1, [-2.35, -1.3, 0], CRAB, w=6)
-        ad = arr([2.35, 0.9, 0], deaths.get_left() + LEFT * 0.1, LOSS, w=6)
-        ao = arr([2.35, -1.3, 0], movout.get_left() + LEFT * 0.1, LOSS, w=6)
-        note = T("dots are a sketch, not real counts", 22, GREY).move_to([0, -3.3, 0])
-
+        world = bay_window(dot_count=12, labels=False)
+        world.remove(world.add_arrow, world.loss_arrow)
+        heading = T("blue crab population", 38, TEXT, weight=BOLD).move_to([0, 3.25, 0])
+        rule = T("same species, same place", 30, BLUE).move_to([0, 2.72, 0])
+        self.at("To explain the change")
+        self.play(FadeIn(world.frame, scale=0.96), FadeIn(world.water), run_time=1.2)
         self.at("A population is")
-        self.play(FadeIn(pop, shift=DOWN * 0.1), FadeIn(defn), FadeIn(bay), run_time=1.0)
-        self.at("The blue crabs in the Bay")
-        self.play(FadeIn(baylab), *setn(8), FadeIn(note), run_time=1.2)
-        self.play(Indicate(VGroup(*dots[:8]), color=CRAB, scale_factor=1.05), run_time=0.8)
+        self.play(FadeIn(world.dots, lag_ratio=0.06), run_time=1.4)
+        self.play(FadeIn(heading, shift=DOWN * 0.12), run_time=0.8)
+        self.at("same species")
+        self.play(FadeIn(rule), run_time=0.9)
+        self.at("Put the bays crabs")
+        self.play(Indicate(world.dots, color=BLUE, scale_factor=1.04), run_time=1.2)
+        self.at("Now track what enters")
+        left = flow_arrow([-5.7, 0.15, 0], [-3.58, 0.15, 0], ADD, 7)
+        right = flow_arrow([3.58, 0.15, 0], [5.7, 0.15, 0], LOSS, 7)
+        self.play(GrowArrow(left), GrowArrow(right), run_time=1.5)
+        self.at("The boundary matters")
+        pulse(world.frame, base=5, amp=2.2, speed=2.0)
+        self.play(Indicate(world.frame, color=YELLOW, scale_factor=1.015), run_time=1.4)
+        self.finish()
+
+
+class S04AdditionsLosses(SpokenScene):
+    def construct(self):
+        world = bay_window(dot_count=8, labels=False)
+        births = T("births", 29, ADD).move_to([-5.15, 1.25, 0])
+        arrivals = T("arrivals", 29, ADD).move_to([-5.15, -0.95, 0])
+        deaths = T("deaths", 29, LOSS).move_to([5.15, 1.25, 0])
+        departures = T("departures", 29, LOSS).move_to([5.15, -0.95, 0])
+        self.add(world.frame, world.water, world.dots)
         self.at("Births add")
-        self.play(FadeIn(births, scale=0.9), GrowArrow(ab), *setn(10), run_time=1.0)
-        self.at("So do crabs moving in")
-        self.play(FadeIn(movin, scale=0.9), GrowArrow(ai), *setn(12), run_time=1.0)
-        self.at("Deaths take")
-        self.play(FadeIn(deaths, scale=0.9), GrowArrow(ad), *setn(10), run_time=1.0)
-        self.at("So do crabs moving out")
-        self.play(FadeIn(movout, scale=0.9), GrowArrow(ao), *setn(8), run_time=1.0)
-        grows = VGroup(T("grows", 40, CRAB, weight=BOLD)).move_to([3.7, -2.9, 0])
-        shrinks = VGroup(T("shrinks", 40, LOSS, weight=BOLD)).move_to([-3.7, -2.9, 0])
-        self.at("more are added than lost")
-        self.play(*setn(12), FadeIn(grows, shift=UP * 0.15), Indicate(VGroup(ab, ai), color=CRAB), run_time=1.2)
-        self.at("When more are lost")
-        self.play(*setn(5), FadeOut(grows), run_time=1.2)
-        self.at("it shrinks")
-        self.play(FadeIn(shrinks, shift=DOWN * 0.15), Indicate(VGroup(ad, ao), color=LOSS), run_time=0.8)
+        born = VGroup(*[crab_dot(0.13).move_to(p) for p in [(-0.8, 0.55, 0), (0.2, -0.55, 0)]])
+        self.play(FadeIn(births), GrowArrow(world.add_arrow), FadeIn(born, scale=0.4), run_time=1.3)
+        self.at("Arrivals add")
+        incoming = VGroup(*[crab_dot(0.13).move_to([-5.2 - 0.45 * i, -0.4, 0]) for i in range(2)])
+        self.play(FadeIn(arrivals), incoming.animate.shift(RIGHT * 3.1), run_time=1.4)
+        self.at("Deaths remove")
+        self.play(FadeIn(deaths), GrowArrow(world.loss_arrow), FadeOut(world.dots[-2:]), run_time=1.2)
+        self.at("Departures remove")
+        leaving = world.dots[-4:-2].copy()
+        self.play(FadeIn(departures), leaving.animate.shift(RIGHT * 5.0), run_time=1.4)
+        self.at("Call births and arrivals")
+        addlab = T("ADDITIONS", 34, ADD, weight=BOLD).move_to([-5.15, 1.05, 0])
+        self.play(FadeOut(births), FadeOut(arrivals), FadeIn(addlab), run_time=1.1)
+        self.at("Call deaths and departures")
+        losslab = T("LOSSES", 34, LOSS, weight=BOLD).move_to([5.15, 1.05, 0])
+        self.play(FadeOut(deaths), FadeOut(departures), FadeIn(losslab), run_time=1.1)
+        self.at("Population change is")
+        balance = caption("population change = additions − losses", size=33)
+        self.play(FadeIn(balance, shift=UP * 0.1), run_time=1.2)
+        self.at("Additions and losses can")
+        self.play(Indicate(world.add_arrow, color=ADD), Indicate(world.loss_arrow, color=LOSS),
+                  run_time=2.0)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S03Factors(SpokenScene):
+class S05Predict(SpokenScene):
     def construct(self):
-        head = chip("limiting factor", TEXT, size=40).move_to([0, 3.0, 0])
-        hdef = T("anything that keeps a population from growing larger", 28, GREY).move_to([0, 2.15, 0])
-        bio = chip("biotic: living", GRASS, size=40).move_to([-3.2, 1.0, 0])
-        abio = chip("abiotic: nonliving", NONLIVING, size=40).move_to([3.2, 1.0, 0])
-        big = dot(LOSS, 0.6).move_to([-4.7, -0.6, 0])
-        biglab = T("big crab", 26, LOSS).next_to(big, DOWN, buff=0.15)
-        young = VGroup(*[dot(CRAB, 0.2).move_to([-2.5 + 0.7 * i, -0.6 + (0.3 if i % 2 else -0.3), 0]) for i in range(4)])
-        ylab = T("young crabs", 26, CRAB).move_to([-1.5, -1.5, 0])
-        eats = arr(big.get_right() + RIGHT * 0.05, [-2.95, -0.6, 0], LOSS, w=5)
-        eatlab = T("big crabs eat many\nyoung crabs", 30, TEXT, line_spacing=0.8).move_to([-3.2, -2.55, 0])
-        cold = chip("very cold winter", NONLIVING, size=36).move_to([3.2, -0.2, 0])
-        row = VGroup(*[dot(CRAB, 0.2).move_to([1.2 + 0.8 * i, -1.4, 0]) for i in range(6)])
-        die = T("more crabs die\nbefore spring", 30, TEXT, line_spacing=0.8).move_to([3.2, -2.55, 0])
-        sk = T("a sketch, not real counts", 24, GREY).move_to([3.2, -3.5, 0])
+        world = bay_window(dot_count=10, labels=True)
+        self.add(world)
+        pulse(world.frame, base=5, amp=2.5, speed=1.3)
+        tag = scope_tag("schematic")
+        self.at("Imagine the loss arrows")
+        wider = flow_arrow([3.58, 0.15, 0], [5.72, 0.15, 0], LOSS, 15)
+        pulse(wider, base=15, amp=2.0, speed=1.4)
+        self.play(ReplacementTransform(world.loss_arrow, wider), run_time=2.8)
+        self.at("What should happen")
+        q = question_card("Which way will the population move?", size=30, max_w=9.6)
+        self.play(FadeIn(q), FadeIn(tag), run_time=1.2)
+        self.at("Follow the arrows")
+        self.play(Indicate(VGroup(world.add_arrow, wider), color=YELLOW, scale_factor=1.02), run_time=1.6)
+        self.at("Watch the balance")
+        self.play(Circumscribe(VGroup(world.add_arrow, wider), color=YELLOW, time_width=0.8), run_time=1.6)
+        self.finish()
 
+
+class S06Pause(PredictPause):
+    QUESTION = "Which way will the population move?"
+    SECONDS = 4.5
+
+    def backdrop(self):
+        return bay_window(dot_count=10, add_width=7, loss_width=15, labels=True)
+
+
+class S07Reveal(SpokenScene):
+    def construct(self):
+        world = bay_window(dot_count=12, add_width=7, loss_width=15, labels=True)
+        tag = scope_tag("schematic")
+        self.add(world, tag)
+        self.at("The number falls")
+        self.play(LaggedStart(*[FadeOut(d, shift=RIGHT * 0.5) for d in world.dots[-6:]], lag_ratio=0.10),
+                  run_time=2.2)
+        fall = T("falls", 38, LOSS, weight=BOLD).move_to([0, 2.8, 0])
+        self.play(FadeIn(fall), run_time=0.7)
+        self.at("Reverse the balance")
+        blue = flow_arrow([-5.72, 0.15, 0], [-3.58, 0.15, 0], ADD, 15)
+        red = flow_arrow([3.58, 0.15, 0], [5.72, 0.15, 0], LOSS, 7)
+        pulse(blue, base=15, amp=2, speed=1.5)
+        pulse(red, base=7, amp=1, speed=1.7)
+        rise = T("rises", 38, ADD, weight=BOLD).move_to(fall)
+        self.play(ReplacementTransform(world.add_arrow, blue), ReplacementTransform(world.loss_arrow, red),
+                  swap(fall, rise), run_time=1.5)
+        newdots = VGroup(*[crab_dot(0.13).move_to([x, 0.15 + y, 0]) for x, y in DOT_POSITIONS[8:14]])
+        self.play(LaggedStart(*[FadeIn(d, shift=RIGHT * 0.4) for d in newdots], lag_ratio=0.10), run_time=2.0)
+        self.at("Match the arrows")
+        blue2 = flow_arrow([-5.72, 0.15, 0], [-3.58, 0.15, 0], ADD, 10)
+        red2 = flow_arrow([3.58, 0.15, 0], [5.72, 0.15, 0], LOSS, 10)
+        pulse(blue2, base=10, amp=1, speed=1.5)
+        pulse(red2, base=10, amp=1, speed=1.7)
+        steady = T("steady", 38, TEXT, weight=BOLD).move_to([0, 2.8, 0])
+        self.play(ReplacementTransform(blue, blue2), ReplacementTransform(red, red2),
+                  FadeOut(rise), FadeIn(steady), run_time=1.5)
+        self.at("This gives the rule")
+        rule = fit_text("Populations rise when additions exceed losses, and fall when losses exceed additions.",
+                        max_w=11.5, size=34, color=TEXT, max_lines=2).move_to([0, -3.05, 0])
+        self.play(FadeIn(rule, shift=UP * 0.1), run_time=1.4)
+        self.at("Populations rise")
+        self.play(Indicate(blue2, color=ADD), run_time=1.1)
+        self.at("and fall when")
+        self.play(Indicate(red2, color=LOSS), run_time=1.1)
+        self.at("The dots show direction")
+        direction = scope_tag("direction, not forecast")
+        self.play(FadeOut(steady), swap(tag, direction), run_time=1.1)
+        self.finish()
+
+
+class S08LimitingFactor(SpokenScene):
+    def construct(self):
+        world = bay_window(dot_count=10, labels=True)
+        self.add(world)
+        pulse(world.frame, base=5, amp=2.5, speed=1.3)
+        heading = T("limiting factor", 38, TEXT, weight=BOLD).move_to([0, 3.25, 0])
         self.at("A limiting factor")
-        self.play(FadeIn(head, shift=DOWN * 0.1), run_time=0.6)
-        self.play(FadeIn(hdef), run_time=0.8)
-        self.at("A biotic factor")
-        self.play(FadeIn(bio, scale=0.9), run_time=0.7)
-        self.at("Big crabs eat")
-        self.play(FadeIn(big, scale=0.8), FadeIn(biglab), FadeIn(young, lag_ratio=0.1), FadeIn(ylab), run_time=1.0)
-        self.play(GrowArrow(eats), FadeIn(eatlab, shift=UP * 0.1), run_time=0.8)
-        self.at("An abiotic factor")
-        self.play(FadeIn(abio, scale=0.9), run_time=0.7)
-        self.at("very cold winter")
-        self.play(FadeIn(cold, scale=0.9), FadeIn(row, lag_ratio=0.1), FadeIn(sk), run_time=1.0)
-        self.at("more crabs die")
-        self.play(FadeOut(row[3:]), FadeIn(die, shift=UP * 0.1), run_time=1.0)
+        self.play(FadeIn(heading), FadeOut(world.water), FadeOut(world.dots),
+                  Indicate(VGroup(world.add_arrow, world.loss_arrow), color=YELLOW), run_time=1.4)
+        self.at("A very cold winter")
+        cold = factor_icon("cold", [0, 0.45, 0], 1.1)
+        bob(cold, amp=0.14, speed=1.15, seed=1)
+        self.play(FadeIn(cold, shift=DOWN * 0.15), run_time=1.0)
+        thick = flow_arrow([3.58, 0.15, 0], [5.72, 0.15, 0], LOSS, 14)
+        self.play(ReplacementTransform(world.loss_arrow, thick), run_time=1.4)
+        self.at("Better shelter")
+        grass = factor_icon("shelter", [0, 0.45, 0], 1.1)
+        bob(grass, amp=0.14, speed=1.25, seed=2)
+        narrow = flow_arrow([3.58, 0.15, 0], [5.72, 0.15, 0], LOSS, 5)
+        self.play(FadeOut(cold), FadeIn(grass), ReplacementTransform(thick, narrow), run_time=1.5)
+        young = VGroup(*[crab_dot(0.11).move_to([-1.0 + 0.45 * i, -0.7, 0]) for i in range(4)])
+        self.play(FadeIn(young, lag_ratio=0.12), run_time=0.9)
+        self.at("Heavy harvest")
+        pot = factor_icon("harvest", [0, 0.45, 0], 1.0)
+        bob(pot, amp=0.14, speed=1.35, seed=3)
+        heavy = flow_arrow([3.58, 0.15, 0], [5.72, 0.15, 0], LOSS, 14)
+        self.play(FadeOut(grass), FadeOut(young), FadeIn(pot), ReplacementTransform(narrow, heavy), run_time=1.5)
+        self.at("Each factor matters")
+        tag = scope_tag("schematic")
+        self.play(FadeIn(tag), Indicate(VGroup(world.add_arrow, heavy), color=YELLOW), run_time=1.4)
+        self.at("Different factors")
+        trio = VGroup(factor_icon("cold", [-2.0, 0.65, 0], 0.8),
+                      factor_icon("shelter", [0, 0.65, 0], 0.8),
+                      factor_icon("harvest", [2.0, 0.65, 0], 0.8))
+        self.play(FadeOut(pot), FadeIn(trio, lag_ratio=0.15), run_time=1.7)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S04Hiding(SpokenScene):
+class S09Scope(SpokenScene):
     def construct(self):
-        top = T("shallow water and grass", 36, GRASS).move_to([0, 3.0, 0])
-        px = [-4.0, -0.7, 2.6]
-        patches = [RoundedRectangle(corner_radius=0.2, width=3.0, height=2.0, stroke_color=GRASS, stroke_width=3,
-                                    fill_color=GRASS, fill_opacity=0.25).move_to([x, 0.8, 0]) for x in px]
-        crabs = [[dot(CRAB, 0.2).move_to([x - 0.5 + 1.0 * j, 0.8, 0]) for j in range(2)] for x in px]
-        big = dot(LOSS, 0.6).move_to([5.4, 0.8, 0])
-        biglab = T("big crab", 26, LOSS).next_to(big, DOWN, buff=0.15)
-        ylab = T("young crabs", 26, CRAB).move_to([px[0], -0.5, 0])
-        glab = T("grass", 26, GRASS).move_to([px[1], -0.5, 0])
-        grid = [[-1.5, 1.15], [-0.7, 1.15], [0.1, 1.15], [-1.5, 0.45], [-0.7, 0.45], [0.1, 0.45]]
-        comp = chip("competition", GOLD, size=40).move_to([0, -1.5, 0])
-        cdef = T("more young crabs need the same hiding place", 30, TEXT).move_to([0, -2.25, 0])
-        c1 = chip("a limiting factor changes", TEXT, size=26)
-        c2 = chip("the population can change", TEXT, size=26)
-        mid = arr(LEFT, RIGHT, GREY, w=5)
-        row = VGroup(c1, mid.scale(0.7), c2).arrange(RIGHT, buff=0.25).move_to([0, -3.05, 0])
-        fit(row, max_w=12.2, max_h=0.9)
-
-        self.at("Young crabs can hide")
-        self.play(FadeIn(top, shift=DOWN * 0.1), *[FadeIn(p) for p in patches], run_time=0.6)
-        self.play(*[FadeIn(d, scale=0.6) for g in crabs for d in g], FadeIn(ylab), FadeIn(glab), run_time=0.6)
-        self.at("from big crabs")
-        self.play(FadeIn(big, scale=0.8), FadeIn(biglab), run_time=0.8)
-        self.at("With less grass")
-        self.play(FadeOut(patches[0]), FadeOut(patches[2]), FadeOut(ylab), run_time=0.9)
-        moves = []
-        for d, p in zip([crabs[0][0], crabs[0][1], crabs[1][0], crabs[1][1], crabs[2][0], crabs[2][1]], grid):
-            moves.append(d.animate.move_to([p[0], p[1], 0]))
-        self.at("more young crabs need")
-        self.play(*moves, run_time=1.3)
-        self.play(Indicate(patches[1], color=GRASS, scale_factor=1.05), run_time=0.8)
-        self.at("That need is called")
-        self.play(FadeIn(comp, scale=0.9), run_time=0.8)
-        self.play(FadeIn(cdef, shift=UP * 0.1), run_time=0.8)
-        self.at("When a limiting factor changes")
-        self.play(FadeIn(c1, shift=UP * 0.1), run_time=0.7)
-        self.at("the population can change")
-        self.play(FadeIn(row[1]), FadeIn(c2, shift=LEFT * 0.1), run_time=0.8)
+        world = bay_window(dot_count=9, labels=False, small=True)
+        world.shift(DOWN * 0.15)
+        self.add(world)
+        self.at("The balance tells")
+        self.play(Indicate(VGroup(world.add_arrow, world.loss_arrow), color=YELLOW), run_time=1.5)
+        self.at("It cannot identify")
+        unknown = T("cause?", 38, YELLOW, weight=BOLD).move_to([0, 2.75, 0])
+        self.play(FadeIn(unknown), run_time=1.0)
+        self.at("Scientists need measurements")
+        icons = VGroup(factor_icon("cold", [-4.9, 1.8, 0], 0.8),
+                       factor_icon("shelter", [-4.9, -1.35, 0], 0.8),
+                       factor_icon("predators", [5.2, 1.8, 0], 0.8),
+                       factor_icon("harvest", [5.2, -1.35, 0], 0.8))
+        self.play(LaggedStart(*[FadeIn(i, scale=0.9) for i in icons], lag_ratio=0.15), run_time=2.2)
+        bracket = BraceBetweenPoints([-4.15, 2.65, 0], [-4.15, -2.25, 0], direction=RIGHT, color=TEXT)
+        measure = T("measure\neach factor", 28, TEXT, line_spacing=0.85).move_to([-5.75, 0.2, 0])
+        self.play(FadeIn(bracket), FadeIn(measure), run_time=1.1)
+        self.at("The survey gives")
+        pattern = chip("survey pattern", BLUE, size=28).move_to([0, -2.3, 0])
+        self.play(FadeIn(pattern), run_time=1.0)
+        self.at("Evidence about the arrows")
+        links = VGroup(
+            flow_arrow([-4.15, 1.8, 0], [-3.1, 0.9, 0], COLD, 4),
+            flow_arrow([-4.15, -1.35, 0], [-3.1, -0.55, 0], SHELTER, 4),
+            flow_arrow([4.45, 1.8, 0], [3.1, 0.9, 0], LOSS, 4),
+            flow_arrow([4.45, -1.35, 0], [3.1, -0.55, 0], HARVEST, 4),
+        )
+        self.play(LaggedStart(*[GrowArrow(a) for a in links], lag_ratio=0.12), run_time=1.8)
+        self.at("That extra evidence")
+        tested = caption("pattern + evidence → tested cause", size=32)
+        self.play(FadeOut(pattern), FadeIn(tested), FadeOut(unknown), run_time=1.4)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S05Causes(SpokenScene):
+class S10Return(SpokenScene):
     def construct(self):
-        nh = T("natural", 42, NONLIVING, weight=BOLD).move_to([-3.3, 2.8, 0])
-        ph = T("caused by people", 42, PEOPLE, weight=BOLD).move_to([3.3, 2.8, 0])
-        cold = chip("cold winters", NONLIVING, size=38).move_to([-3.3, 1.5, 0])
-        flood = chip("floods", NONLIVING, size=38).move_to([-3.3, 0.4, 0])
-        poll = chip("pollution", PEOPLE, size=38).move_to([3.3, 1.7, 0])
-        hard = chip("hard shorelines", PEOPLE, size=38).move_to([3.3, 0.6, 0])
-        hcap = T("can shrink the shallow water\nwhere young crabs hide", 26, GREY, line_spacing=0.8).move_to([3.3, -0.4, 0])
-        over = chip("overharvesting", PEOPLE, size=38).move_to([3.3, -1.4, 0])
-        odef = T("people catch a species\nfaster than it can replace itself", 36, TEXT, line_spacing=0.8).move_to([0, -2.85, 0])
-        divider = Line([0, 3.3, 0], [0, -1.8, 0], color=GREY, stroke_width=2).set_opacity(0.5)
-
-        self.at("Some causes are natural")
-        self.play(FadeIn(nh, shift=DOWN * 0.1), FadeIn(divider), run_time=0.7)
-        self.at("cold winters and floods")
-        self.play(FadeIn(cold, shift=UP * 0.1), run_time=0.6)
-        self.play(FadeIn(flood, shift=UP * 0.1), run_time=0.6)
-        self.at("People cause changes")
-        self.play(FadeIn(ph, shift=DOWN * 0.1), run_time=0.7)
-        self.at("One is pollution")
-        self.play(FadeIn(poll, shift=UP * 0.1), run_time=0.7)
-        self.at("Another is")
-        self.play(FadeIn(hard, shift=UP * 0.1), run_time=0.7)
-        self.at("shrink the shallow water")
-        self.play(FadeIn(hcap, shift=UP * 0.1), run_time=0.8)
-        self.at("A third is")
-        self.play(FadeIn(over, shift=UP * 0.1), run_time=0.7)
-        self.at("That means people catch")
-        self.play(FadeIn(odef, shift=UP * 0.1), run_time=1.0)
+        bars = survey_bars(show_double=True)
+        self.at("Return to the winter bars")
+        self.play(FadeIn(bars, lag_ratio=0.05), run_time=1.6)
+        self.at("If the estimates")
+        add = flow_arrow([-1.4, -3.15, 0], [-0.15, -3.15, 0], ADD, 10)
+        loss = flow_arrow([0.15, -3.15, 0], [1.1, -3.15, 0], LOSS, 5)
+        self.play(GrowArrow(add), GrowArrow(loss), Indicate(bars.b2, color=ADD), run_time=1.6)
+        self.at("The bars alone")
+        icons = VGroup(factor_icon("cold", [-5.25, 1.0, 0], 0.75),
+                       factor_icon("shelter", [5.25, 1.0, 0], 0.75),
+                       factor_icon("harvest", [5.25, -1.25, 0], 0.75))
+        q = T("?", 54, YELLOW, weight=BOLD).move_to([0, 0.65, 0])
+        self.play(FadeIn(icons, lag_ratio=0.12), FadeIn(q), run_time=1.5)
+        self.at("Keep the bay window")
+        ghost = RoundedRectangle(corner_radius=0.25, width=2.0, height=1.25, color=GREY,
+                                 stroke_width=4).set_opacity(0.45).move_to([0, 0.35, 0])
+        self.play(FadeOut(bars.double_label), Create(ghost), run_time=1.2)
+        self.at("Every explanation")
+        prompt = fit_text("Which addition or loss changed — and what evidence supports it?",
+                          max_w=11.5, size=30, max_lines=1).move_to([0, 3.35, 0])
+        self.play(FadeOut(ghost), FadeOut(bars.est), FadeIn(prompt), run_time=1.4)
+        self.play(Indicate(VGroup(add, loss), color=YELLOW, scale_factor=1.05), run_time=1.6)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S06Answer(SpokenScene):
-    def construct(self):
-        # phase 1: the 2008 plan, bar heights computed from "about 34 percent fewer" (1.0 -> 0.66)
-        ttl = T("2008: Virginia and Maryland plan", 34, TEXT).move_to([0, 3.1, 0])
-        base = -0.9
-        H = 2.7
-        hp = H * (1 - 0.34)
-        bar1 = Rectangle(width=2.0, height=H, stroke_color=PEOPLE, stroke_width=3, fill_color=PEOPLE, fill_opacity=0.18).move_to([-4.4, base + H / 2, 0])
-        bar2 = Rectangle(width=2.0, height=hp, stroke_color=PEOPLE, stroke_width=3, fill_color=PEOPLE, fill_opacity=0.5).move_to([-1.8, base + hp / 2, 0])
-        axis = Line([-5.8, base, 0], [-0.4, base, 0], color=GREY, stroke_width=3)
-        ylab = T("female crabs caught (relative)", 28, TEXT).move_to([-3.1, base + H + 0.45, 0])
-        l1 = T("2004 to 2007\naverage", 24, GREY, line_spacing=0.8).next_to(bar1, DOWN, buff=0.15)
-        l2 = T("2008 plan:\nabout 34% fewer", 24, PEOPLE, line_spacing=0.8).next_to(bar2, DOWN, buff=0.15)
-        fem = chip("females carry the eggs", CRAB, size=30).move_to([3.4, 1.9, 0])
-        young = VGroup(*[dot(CRAB, 0.16).move_to([1.9 + 0.65 * i, -0.2, 0]) for i in range(5)])
-        mean = T("can mean", 28, GREY).move_to([4.5, 0.85, 0])
-        a_down = arr([3.4, 1.4, 0], [3.4, 0.35, 0], GREY, w=5)
-        ylab2 = T("more young crabs later", 30, CRAB).move_to([3.4, -0.9, 0])
-        sus = chip("sustainable harvest", PEOPLE, size=40).move_to([0, -2.45, 0])
-        sdef = T("take only as many as the population can replace", 30, TEXT).move_to([0, -3.15, 0])
-
-        self.at("made a plan")
-        self.play(FadeIn(ttl, shift=DOWN * 0.1), Create(axis), FadeIn(bar1, shift=UP * 0.2), FadeIn(l1), FadeIn(ylab), run_time=1.2)
-        self.at("fewer female crabs")
-        self.play(FadeIn(bar2, shift=UP * 0.2), FadeIn(l2), run_time=1.0)
-        self.at("Females carry the eggs")
-        self.play(FadeIn(fem, shift=DOWN * 0.1), run_time=0.8)
-        self.at("leaving more of them")
-        self.play(Indicate(bar2, color=PEOPLE, scale_factor=1.04), run_time=0.8)
-        self.at("can mean more young crabs")
-        self.play(GrowArrow(a_down), FadeIn(mean), FadeIn(young, lag_ratio=0.15), FadeIn(ylab2), run_time=1.4)
-        self.at("Taking only as many")
-        self.play(FadeIn(sus, scale=0.9), run_time=0.8)
-        self.play(FadeIn(sdef, shift=UP * 0.1), run_time=0.8)
-
-        # phase 2: a limit is not a promise
-        lim = T("a limit is not a promise", 46, TEXT, font=TITLE_FONT).move_to([0, 1.3, 0])
-        tl = Arrow([-4.5, -0.6, 0], [4.5, -0.6, 0], color=GREY, stroke_width=6, buff=0, tip_length=0.3)
-        tlab = T("rebuilding can take years", 34, TEXT).move_to([0, -1.5, 0])
-        self.at("not a promise")
-        self.play(*[FadeOut(m) for m in (ttl, axis, bar1, bar2, l1, l2, ylab, fem, young, mean, a_down, ylab2, sus, sdef)], run_time=0.6)
-        self.play(Write(lim), run_time=1.0)
-        self.at("rebuilding can take")
-        self.play(GrowArrow(tl), FadeIn(tlab, shift=UP * 0.1), run_time=1.4)
-
-        # phase 3: the answer
-        q = T("Why lots of crabs some years, and far fewer in others?", 32, GREY).move_to([0, 3.0, 0])
-        crabsn = chip("number of crabs", CRAB, size=46).move_to([0, 0.0, 0])
-        f1 = chip("cold winters", NONLIVING, size=34).move_to([-4.0, 1.7, 0])
-        f2 = chip("hiding places", GRASS, size=34).move_to([4.0, 1.7, 0])
-        f3 = chip("big crabs", LOSS, size=34).move_to([-4.0, -1.7, 0])
-        f4 = chip("harvest", PEOPLE, size=34).move_to([4.0, -1.7, 0])
-        arrows = [arr(f1.get_bottom() + DOWN * 0.05, crabsn.get_left() + UP * 0.15 + LEFT * 0.1, NONLIVING),
-                  arr(f2.get_bottom() + DOWN * 0.05, crabsn.get_right() + UP * 0.15 + RIGHT * 0.1, GRASS),
-                  arr(f3.get_top() + UP * 0.05, crabsn.get_left() + DOWN * 0.15 + LEFT * 0.1, LOSS),
-                  arr(f4.get_top() + UP * 0.05, crabsn.get_right() + DOWN * 0.15 + RIGHT * 0.1, PEOPLE)]
-        ans = T("The things that limit crabs keep changing.", 40, TEXT, font=TITLE_FONT).move_to([0, -3.0, 0])
-        fit(ans, max_w=12.0)
-        self.at("So why does")
-        self.play(FadeOut(lim), FadeOut(tl), FadeOut(tlab), run_time=0.6)
-        self.play(FadeIn(q, shift=DOWN * 0.1), FadeIn(crabsn, scale=0.9), run_time=0.8)
-        self.at("The things that")
-        self.play(FadeIn(ans, shift=UP * 0.1),
-                  *[FadeIn(f, scale=0.9) for f in (f1, f2, f3, f4)], *[GrowArrow(a) for a in arrows], run_time=1.2)
-        self.at("keep changing")
-        self.play(*[Indicate(f, color=c, scale_factor=1.12) for f, c in ((f1, NONLIVING), (f2, GRASS), (f3, LOSS), (f4, PEOPLE))], run_time=1.4)
-        self.finish()
-
-
-class S07End(EndCard):
-    LINE = "The things that limit crabs keep changing."
+class S11End(EndCard):
+    LINE = "Populations rise when additions exceed losses,\nand fall when losses exceed additions."
