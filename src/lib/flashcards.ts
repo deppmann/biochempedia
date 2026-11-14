@@ -51,6 +51,8 @@ export const GOALS: Record<Goal, { name: string; hint: string }> = {
 };
 
 export const STORAGE_KEY = 'biochempedia:cards:v1';
+/** The deck panel's saved choices: goal, levels, highlight (FlashcardDeck.astro). */
+export const PREFS_KEY = 'biochempedia:cards:prefs';
 const MIN = 60_000;
 const DAY = 86_400_000;
 
@@ -90,6 +92,30 @@ function saveStore(s: Store) {
 
 export function stateOf(s: Store, slug: string, id: string): CardState | undefined {
   return s.cards[key(slug, id)];
+}
+
+/**
+ * How many of a lesson's cards a review would show now, on this device, with the deck panel's saved
+ * goal and levels (the same filter and due rule as the panel's "N new · N due"): `due` = studied
+ * cards whose next review has come, `fresh` = cards never studied. Used by the prompt after a film.
+ */
+export function readyCounts(slug: string, cards: Pick<Card, 'id' | 'goals' | 'level'>[], now = Date.now()): { due: number; fresh: number } {
+  let goal: Goal = 'lesson';
+  let levels: Set<number> | null = null;
+  try {
+    const p = JSON.parse(window.localStorage.getItem(PREFS_KEY) ?? '{}');
+    if (p.goal === 'lesson' || p.goal === 'course' || p.goal === 'mcat') goal = p.goal;
+    if (Array.isArray(p.levels)) levels = new Set(p.levels.map(Number));
+  } catch { /* defaults: understand the lesson, every level */ }
+  const st = loadStore();
+  let due = 0, fresh = 0;
+  for (const c of cards) {
+    if (!c.goals.includes(goal) || (levels && !levels.has(c.level))) continue;
+    const s = stateOf(st, slug, c.id);
+    if (!s) fresh++;
+    else if (s.due <= now) due++;
+  }
+  return { due, fresh };
 }
 
 /** What a rating would do to a card, without saving: used for the button labels too. */

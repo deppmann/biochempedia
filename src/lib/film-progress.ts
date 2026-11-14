@@ -13,7 +13,8 @@
    What is kept:
      w   key -> when it was first watched to about 90 percent (ms)
      p   the films started and not finished, newest first (at most 12): where the viewer stopped
-     q   course slug -> the film and second the viewer was at in that course's play-in-order queue */
+     q   course slug -> the film and second the viewer was at in that course's play-in-order queue
+     b   badges earned on this device (src/lib/badges.ts), keyed "<type>:<subject>" (2026-11-14) */
 
 export const FILMS_KEY = 'biochempedia:films:v1';
 export const FILMS_EVENT = 'bp-films';
@@ -32,12 +33,24 @@ export interface Partial {
   href: string;
   poster: string;
   at: number;
+  /** The course's name, for "Pick up where you left off" on the homepage (from 2026-11-14). */
+  course?: string;
 }
 export interface FilmRecord {
   v: 1;
   w: Record<string, number>;
   p: Partial[];
   q: Record<string, QueuePlace>;
+  b?: Record<string, EarnedBadge>;
+}
+/** A badge earned on this device. What each type means lives in src/lib/badges.ts. */
+export interface EarnedBadge {
+  type: string;
+  /** What it was earned for (a course slug) and that thing's name. */
+  subject: string;
+  subjectTitle: string;
+  /** When it was earned (ms). */
+  at: number;
 }
 export interface QueuePlace {
   /** Film key and second, and when this was saved (ms). */
@@ -48,6 +61,8 @@ export interface QueuePlace {
   title?: string;
   poster?: string;
   courseTitle?: string;
+  /** The film's length in seconds, for "about N min left" (from 2026-11-14). */
+  d?: number;
 }
 
 const empty = (): FilmRecord => ({ v: 1, w: {}, p: [], q: {} });
@@ -97,6 +112,17 @@ export function saveQueue(course: string, place: Omit<QueuePlace, 'at'>): void {
   const r = loadFilms();
   r.q[course] = { ...place, t: Math.floor(place.t), at: Date.now() };
   saveFilms(r, false);
+}
+
+/** Keep a badge, once: a badge already earned keeps its first date. Returns the stored badge. */
+export function recordBadge(badge: EarnedBadge): EarnedBadge {
+  const r = loadFilms();
+  const id = `${badge.type}:${badge.subject}`;
+  const had = r.b?.[id];
+  if (had) return had;
+  r.b = { ...(r.b ?? {}), [id]: badge };
+  saveFilms(r, false);
+  return badge;
 }
 
 /** Forget every film watched and every place saved (the "Clear everything" button on /progress/). */
@@ -157,8 +183,37 @@ export function trackFilms(): void {
       || v.closest('figure')?.querySelector('figcaption')?.textContent?.replace(/^\s*Watch\s+/, '').replace(/\s*·\s*\d+:\d+\s*$/, '').trim()
       || document.title.replace(/\s+—\s+Biochemistrypedia$/, '');
     const poster = v.getAttribute('poster') ?? '';
-    savePartial({ f: key, t: Math.floor(v.currentTime), d: Math.round(d), title, href: hrefFor(key), poster, at: now });
+    const course = v.closest<HTMLElement>('[data-course-title]')?.dataset.courseTitle;
+    savePartial({ f: key, t: Math.floor(v.currentTime), d: Math.round(d), title, href: hrefFor(key), poster, at: now, ...(course ? { course } : {}) });
   };
   document.addEventListener('timeupdate', onTime, true);
   document.addEventListener('ended', onTime, true);
+}
+
+/** The link back to an unfinished film, opening it paused at the second the viewer stopped
+ *  (resumeFromLink below reads ?film= and ?at=). The play-in-order page reopens at its own saved place. */
+export function resumeHref(x: Partial): string {
+  if (x.href.startsWith('/films/play/') || x.t < 5) return x.href;
+  const [path, hash = ''] = x.href.split('#');
+  return `${path}${path.includes('?') ? '&' : '?'}film=${encodeURIComponent(x.f)}&at=${Math.floor(x.t)}${hash ? `#${hash}` : ''}`;
+}
+
+/**
+ * ?film=<key>&at=<seconds> on a page with that film: load the film and set it to that second,
+ * paused, and bring it into view. Nothing plays until the viewer presses play. Films inside a
+ * pop-up (a scientist profile) are left alone.
+ */
+export function resumeFromLink(): void {
+  const params = new URLSearchParams(location.search);
+  const key = params.get('film');
+  const at = Number(params.get('at'));
+  if (!key || !Number.isFinite(at) || at <= 0) return;
+  const v = [...document.querySelectorAll<HTMLVideoElement>('video')].find((x) => filmKeyOf(x.currentSrc || x.querySelector('source')?.src || '') === key);
+  if (!v || v.closest('dialog')) return;
+  const box = v.closest('details');
+  if (box && !box.open) box.open = true;
+  const seek = () => { if (at < v.duration - 2) v.currentTime = at; };
+  if (v.readyState >= 1) seek();
+  else { v.addEventListener('loadedmetadata', seek, { once: true }); v.preload = 'metadata'; v.load(); }
+  v.scrollIntoView({ block: 'center' });
 }

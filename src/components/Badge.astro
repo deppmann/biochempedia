@@ -1,0 +1,60 @@
+---
+/**
+ * One badge (src/lib/badges.ts): icon, name, a line saying what it is for, and the date it was
+ * earned. Rendered hidden; showBadges() in src/lib/badges.ts reveals it on a device that earned it
+ * and fills in the date, so without JavaScript or with storage blocked nothing shows.
+ *
+ * `hex` draws Hex cheering with the film library's camera (the course map, where the badge is the
+ * map's finished state). Without it the icon is the camera alone, for lists such as /progress/
+ * where Hex is already on the page (one Hex in view).
+ */
+import Hex from './Hex.astro';
+import { BADGE_TYPES, badgeId } from '../lib/badges';
+interface Props {
+  type: keyof typeof BADGE_TYPES;
+  subject: string;
+  subjectTitle: string;
+  hex?: boolean;
+  /** Print the subject's name on the badge (in a list of several courses). */
+  named?: boolean;
+  class?: string;
+}
+const { type, subject, subjectTitle, hex = false, named = false, class: cls } = Astro.props;
+const t = BADGE_TYPES[type];
+---
+
+<div class:list={['badge', hex && 'badge-hex', cls]} data-badge={badgeId(type, subject)} hidden>
+  <span class="badge-ico">
+    {hex ? <Hex pose="cheer" prop="camera" size={52} /> : (
+      <svg viewBox="57 12 26 28" width="30" height="32" aria-hidden="true" focusable="false">
+        <circle class="b-ink b-thin" cx="63.5" cy="20.5" r="4.6" />
+        <circle class="b-ink b-thin" cx="72.5" cy="20.5" r="4.6" />
+        <path class="b-gold-line" d="M63.5 17.4 V23.6 M60.8 19 L66.2 22 M60.8 22 L66.2 19 M72.5 17.4 V23.6 M69.8 19 L75.2 22 M69.8 22 L75.2 19" />
+        <rect class="b-ink b-body" x="59.5" y="26" width="16" height="11" rx="1.6" />
+        <path class="b-ink" d="M75.5 29 L80.5 26.5 V36.5 L75.5 34" />
+        <circle class="b-gold" cx="63.5" cy="29.5" r="1.3" />
+      </svg>
+    )}
+  </span>
+  <span class="badge-txt">
+    <span class="badge-name">{t.name}{named && <span class="badge-subj"> · {subjectTitle}</span>}</span>
+    <span class="badge-desc">{named ? t.short : t.describe(subjectTitle)}</span>
+    <span class="badge-date">Earned <time data-badge-date></time></span>
+  </span>
+</div>
+
+<style>
+  .badge { display: flex; align-items: center; gap: var(--ddp-space-3); padding: var(--ddp-space-2) var(--ddp-space-4) var(--ddp-space-2) var(--ddp-space-3); border: 1.5px solid color-mix(in srgb, var(--ddp-color-secondary) 70%, transparent); border-radius: 12px; background: color-mix(in srgb, var(--ddp-color-secondary) 10%, var(--ddp-color-surface)); max-width: 30rem; }
+  .badge[hidden] { display: none; }
+  .badge-ico { flex: none; line-height: 0; color: var(--ddp-color-primary); }
+  .badge-txt { display: flex; flex-direction: column; gap: 0.1rem; min-width: 0; }
+  .badge-name { font-family: var(--ddp-font-serif); font-weight: 600; font-size: var(--ddp-text-base); color: var(--ddp-color-primary); line-height: 1.3; }
+  .badge-subj { font-weight: 400; }
+  .badge-desc { font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); line-height: 1.4; }
+  .badge-date { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .b-ink { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .b-thin { stroke-width: 1.6; }
+  .b-body { fill: color-mix(in srgb, currentColor 7%, transparent); }
+  .b-gold { fill: var(--ddp-color-secondary); }
+  .b-gold-line { fill: none; stroke: var(--ddp-color-secondary); stroke-width: 1.8; stroke-linecap: round; }
+</style>
