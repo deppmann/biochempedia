@@ -36,9 +36,9 @@ class NarratedScene(Scene):
         # not `self.duration`: Manim's Scene uses that name internally
         self.narration_s = float(os.environ.get("KX_DURATION", "5.0"))
 
-    # Layout check (layout_check.py): samples what is on screen after every play/wait and every 0.5 s
-    # during animations, and writes issues for render.py's layout_report.json. Report only; never fails.
-    # KX_LAYOUT=0 turns it off.
+    # Layout check (layout_check.py): samples what is on screen after every play/wait ("at rest"), every
+    # 0.1 s while a label moves or fades and every 0.25 s otherwise, and writes errors and warnings for render.py's
+    # layout_report.json. Report only; never fails a render. KX_LAYOUT=0 turns it off.
     def _lc(self):
         if not hasattr(self, "_lc_obj"):
             self._lc_obj = None
