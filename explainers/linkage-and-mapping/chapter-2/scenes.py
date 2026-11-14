@@ -72,8 +72,8 @@ def recombinant_pair(second_site=False, question=False):
     right_bot = marker_label("B", [x1 - 0.55, y2, 0], TEXT, DOWN)
     g = VGroup(top, bot, left_top, right_top, left_bot, right_bot)
     if question:
-        q1 = T("?", 40, GOLD, weight=BOLD).next_to(right_top[0], DOWN, buff=0.22)
-        q2 = T("?", 40, GOLD, weight=BOLD).next_to(right_bot[0], UP, buff=0.22)
+        q1 = T("?", 40, GOLD, weight=BOLD).next_to(right_top[0], DOWN, buff=0.16)
+        q2 = T("?", 40, GOLD, weight=BOLD).next_to(right_bot[0], UP, buff=0.16)
         g.add(q1, q2)
     g.top, g.bottom = top, bot
     return g
