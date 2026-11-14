@@ -261,7 +261,7 @@ class S02Tow(SpokenScene):
                        Line(clock.get_center(), clock.get_center() + RIGHT * 0.26, color=TEXT))
         self.play(FadeIn(clock), Create(hands), run_time=0.6)
         self.at("catch is sorted")
-        tubs = VGroup(chip("blue catch", BLUE, 30), chip("white catch", GOLD, 30)).arrange(RIGHT, buff=0.8).move_to([0, -2.75, 0])
+        tubs = VGroup(chip("blue catch", BLUE, 30), chip("white catch", GOLD, 30)).arrange(RIGHT, buff=0.8).move_to([0, -3.0, 0])
         self.play(FadeOut(net), FadeIn(tubs, shift=UP * 0.2), run_time=0.8)
         self.at("Repeating the method")
         repeat = CurvedArrow([-1.6, 2.65, 0], [1.6, 2.65, 0], angle=-TAU / 4, color=TEAL, stroke_width=5)
@@ -280,7 +280,8 @@ class S03Index(SpokenScene):
         self.play(ReplacementTransform(stations.copy(), calc), run_time=1.0)
         blue_point = Dot([4.3, 0.75, 0], radius=0.18, color=BLUE)
         gold_point = Dot([4.3, -0.55, 0], radius=0.18, color=GOLD)
-        labels = VGroup(T("one year", 28, TEXT).next_to(blue_point, RIGHT), T("one year", 28, TEXT).next_to(gold_point, RIGHT))
+        labels = VGroup(T("one year", 28, TEXT).next_to(blue_point, LEFT, buff=0.3),
+                        T("one year", 28, TEXT).next_to(gold_point, LEFT, buff=0.3))
         self.play(FadeIn(blue_point), FadeIn(gold_point), FadeIn(labels), run_time=0.7)
         self.at("tracks how common")
         signal = T("consistent signal from samples", 32, TEAL).move_to([0, -3.0, 0])

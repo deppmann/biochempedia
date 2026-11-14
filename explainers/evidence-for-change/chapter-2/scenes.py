@@ -175,7 +175,7 @@ def limb_diagram(name, job, variant=0):
     fingers.next_to(wrist, DOWN, buff=0.08)
     parts = VGroup(upper, lowers, wrist, fingers)
     title = T(name, 29, TEXT, weight=BOLD).next_to(parts, UP, buff=0.18)
-    job_lab = chip(job, GREY, 28).next_to(parts, DOWN, buff=0.18)
+    job_lab = chip(job, GREY, 23).next_to(parts, DOWN, buff=0.04)
     g = VGroup(parts, title, job_lab)
     g.parts, g.upper, g.lowers, g.wrist, g.fingers, g.job = parts, upper, lowers, wrist, fingers, job_lab
     return g
@@ -185,7 +185,7 @@ def four_limbs(with_jobs=True):
     specs = (("human arm", "grasp", 0), ("cat leg", "walk", 1),
              ("whale flipper", "swim", 2), ("bat wing", "fly", 3))
     limbs = VGroup(*[limb_diagram(*s) for s in specs]).arrange(RIGHT, buff=0.62)
-    limbs.move_to([0, 0.05, 0])
+    limbs.move_to([0, 0.17, 0])
     if not with_jobs:
         for limb in limbs:
             limb.remove(limb.job)
@@ -303,15 +303,15 @@ class S03BoneMap(SpokenScene):
         limbs = four_limbs(True)
         self.play(LaggedStart(*[FadeIn(x, shift=UP * 0.15) for x in limbs], lag_ratio=0.16), run_time=1.0)
         self.at("upper bone")
-        upper_line = Line([-5.8, 1.05, 0], [5.8, 1.05, 0], color=BLUE, stroke_width=4)
+        upper_line = Line([-5.8, 1.17, 0], [5.8, 1.17, 0], color=BLUE, stroke_width=4)
         upper_lab = T("upper bone", 28, BLUE).move_to([0, 3.28, 0])
         self.play(Create(upper_line), FadeIn(upper_lab), run_time=0.6)
         self.at("paired lower bones")
-        lower_line = Line([-5.8, 0.0, 0], [5.8, 0.0, 0], color=BLUE, stroke_width=4)
+        lower_line = Line([-5.8, 0.12, 0], [5.8, 0.12, 0], color=BLUE, stroke_width=4)
         lower_lab = T("paired lower bones", 28, BLUE).move_to([0, 3.28, 0])
         self.play(Transform(upper_line, lower_line), swap(upper_lab, lower_lab), run_time=0.65)
         self.at("Wrist and finger bones")
-        end_line = Line([-5.8, -1.23, 0], [5.8, -1.23, 0], color=BLUE, stroke_width=4)
+        end_line = Line([-5.8, -1.11, 0], [5.8, -1.11, 0], color=BLUE, stroke_width=4)
         end_lab = T("wrist + fingers", 28, BLUE).move_to([0, 3.28, 0])
         self.play(Transform(upper_line, end_line), swap(lower_lab, end_lab), run_time=0.65)
         self.at("Shapes and jobs differ")
@@ -329,7 +329,7 @@ class S04Construction(SpokenScene):
         jobs = VGroup(*[x.job for x in limbs])
         self.play(FadeOut(jobs, shift=DOWN * 0.45), run_time=0.7)
         guides = VGroup(*[Line([-5.7, y, 0], [5.7, y, 0], color=BLUE, stroke_width=3).set_opacity(0.65)
-                          for y in (1.05, 0.0, -0.72, -1.28)])
+                          for y in (1.17, 0.12, -0.60, -1.16)])
         self.play(LaggedStart(*[Create(g) for g in guides], lag_ratio=0.14), run_time=0.8)
         self.at("reshape an old set")
         self.play(*[limb.parts.animate.stretch(1.0 + i * 0.07, 0) for i, limb in enumerate(limbs)], run_time=0.75)

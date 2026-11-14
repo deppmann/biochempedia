@@ -317,7 +317,7 @@ class S09Challenges(SpokenScene):
         self.at("seeds may spread")
         seeds = VGroup(seed(-0.4), seed(0.1), seed(0.6))
         self.play(FadeIn(seeds), seeds.animate.shift(RIGHT * 1.0 + DOWN * 0.5), run_time=1.3)
-        cloud = RoundedRectangle(corner_radius=0.25, width=3.0, height=0.82, color=RED,
+        cloud = RoundedRectangle(corner_radius=0.25, width=3.5, height=1.0, color=RED,
                                  fill_color=RED, fill_opacity=0.16).move_to([0, 2.65, 0])
         label = T("habitat loss", 30, RED).move_to(cloud)
         self.at("Habitat loss")

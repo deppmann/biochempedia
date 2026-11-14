@@ -346,7 +346,7 @@ class S09Rule(SpokenScene):
         self.play(GrowArrow(a1), GrowArrow(a2), GrowArrow(a3), run_time=1.4)
         self.at("connections timing")
         nodes = VGroup(chip("habitat", GREEN, size=28).move_to([-1.05, 1.65, 0]),
-                       chip("organisms", TEXT, size=28).move_to([2.1, 1.65, 0]),
+                       chip("organisms", TEXT, size=28).move_to([2.1, 1.95, 0]),
                        chip("water", BLUE, size=28).move_to([4.45, -.35, 0]))
         self.play(LaggedStart(*[FadeIn(n) for n in nodes], lag_ratio=.18), run_time=1.1)
         self.at("weaken strengthen or stop")

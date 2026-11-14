@@ -132,6 +132,7 @@ def survival_plot():
              xticks=[(0, "0"), (60, "60"), (100, "100")],
              yticks=[(89, "89%"), (92, "92%"), (96, "96%")],
              xlabel="coat–ground contrast", ylabel="estimated weekly survival", label_size=28)
+    p.tick_labels[-1].shift(LEFT*.1)
     return p
 
 
@@ -477,6 +478,8 @@ class S11Limit(FilmScene):
         self.at("movement, sound")
         icons = VGroup(chip("movement", TEXT, 26), chip("sound", TEXT, 26),
                        chip("smell", TEXT, 26), chip("cover", TEXT, 26)).arrange(RIGHT, buff=.25).move_to([0, 1.55, 0])
+        icons[0].shift(LEFT*.8)
+        icons[1].shift(LEFT*.9)
         self.play(LaggedStart(*[FadeIn(i, shift=DOWN*.15) for i in icons], lag_ratio=.2), run_time=1.4)
         pulse(frame, base=4, amp=1.2, speed=2)
         self.finish()
@@ -558,7 +561,7 @@ class S14Rule(FilmScene):
         self.at("One hair molts")
         self.play(h.body.animate.set_fill(BROWN_C, 1), run_time=1.6)
         self.at("does not choose")
-        no = chip("not a choice", RED, 30).move_to([-3.8, 1.45, 0])
+        no = chip("not a choice", RED, 30).move_to([-4.35, 1.45, 0])
         self.play(FadeIn(no), run_time=.6)
         rule = fit_text("Adaptations help in particular settings; populations change over generations, not individuals.",
                         max_w=11.8, size=34, color=YELLOW, max_lines=2).move_to([0, 3.15, 0])
@@ -572,6 +575,7 @@ class S15Close(FilmScene):
         p = Plot(box=(-6.0, -.65, -1.35, 1.65), xr=(0, 100), yr=(87, 98),
                  xticks=[(0, "0"), (100, "100")], yticks=[(89, "89%"), (96, "96%")],
                  size=22, label_size=24)
+        p.tick_labels[-1].shift(LEFT*.1)
         d = reported_points(p)
         track = Arrow([.2, -.2, 0], [5.8, -.2, 0], buff=0, color=YELLOW, stroke_width=6, tip_length=.25)
         self.play(FadeIn(p), Create(d), GrowArrow(track), run_time=1.0)

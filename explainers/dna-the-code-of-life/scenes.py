@@ -64,7 +64,7 @@ def twisted_ladder(sequence=SEQ_A, center=ORIGIN, width=3.6, height=5.0, label=F
     cx, cy = center[0], center[1]
     ys = np.linspace(cy - height / 2, cy + height / 2, 100)
     phase = (ys - cy) / height * 2 * PI
-    spread = width * (0.28 + 0.16 * np.cos(phase))
+    spread = width * (0.34 + 0.07 * np.cos(phase))
     left_pts = [np.array([cx - s, y, 0]) for s, y in zip(spread, ys)]
     right_pts = [np.array([cx + s, y, 0]) for s, y in zip(spread, ys)]
     l = VMobject(color=BLUE, stroke_width=10).set_points_as_corners(left_pts)
@@ -74,8 +74,8 @@ def twisted_ladder(sequence=SEQ_A, center=ORIGIN, width=3.6, height=5.0, label=F
     rung_ys = np.linspace(cy + height * 0.39, cy - height * 0.39, len(sequence))
     for y, letter in zip(rung_ys, sequence):
         ph = (y - cy) / height * 2 * PI
-        half = width * (0.28 + 0.16 * np.cos(ph))
-        bw = max(0.55, half)
+        half = width * (0.34 + 0.07 * np.cos(ph))
+        bw = half - 0.18
         left = base_block(letter, [cx - bw / 2, y, 0], bw, 0.52, 28)
         right = base_block(PAIR[letter], [cx + bw / 2, y, 0], bw, 0.52, 28)
         pairs.add(VGroup(Line(left.get_right(), right.get_left(), color=GREY, stroke_width=3), left, right))
@@ -299,7 +299,7 @@ class S03Pairs(SpokenScene):
         self.play(FadeIn(cg_lab), run_time=.45)
         self.at("either side tell us")
         bracket = pair_bracket(ladder.pairs[3])
-        lab = T("base pair", 30, TEXT).next_to(bracket, RIGHT, buff=.16)
+        lab = T("base pair", 30, TEXT).next_to(bracket, RIGHT, buff=.28)
         self.play(FadeOut(letters), GrowFromCenter(bracket), FadeIn(lab), run_time=.7)
         lifted = VGroup(*[p[1] for p in ladder.pairs])
         self.play(lifted.animate.shift(UP*.18), run_time=.55)

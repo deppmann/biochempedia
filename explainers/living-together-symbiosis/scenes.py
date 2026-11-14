@@ -245,6 +245,7 @@ class S02Title(TitleCard):
         title = fit_text(self.TITLE, max_w=10.8, size=54, font=TITLE_FONT, weight=BOLD)
         lesson = T(self.LESSON.upper(), 24, GOLD).next_to(title, UP, buff=.35)
         rule = Line(LEFT * 1.4, RIGHT * 1.4, color=GOLD, stroke_width=4).next_to(title, DOWN, buff=.35)
+        VGroup(title, lesson, rule).shift(UP * .8)
         self.add(world)
         self.play(FadeIn(lesson), Write(title), GrowFromCenter(rule), run_time=1.35)
         self.finish()

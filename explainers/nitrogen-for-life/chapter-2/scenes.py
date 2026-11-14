@@ -413,7 +413,7 @@ class S10Back(SpokenScene):
         self.play(FadeIn(pockets), FadeIn(oxygen), run_time=.7)
         self.at("other bacteria change it")
         other = bacteria_cluster([2.0, -2.0, 0], n=4)
-        form2 = chip("usable form 2", GREEN, 26, fill_opacity=.9).move_to([4.2, -.55, 0]).set_z_index(5)
+        form2 = chip("usable form 2", GREEN, 26, fill_opacity=.9).move_to([5.1, .2, 0]).set_z_index(5)
         self.play(tracked.animate.move_to([2.0, -2.0, 0]), FadeIn(other), run_time=.8)
         self.play(tracked.animate.move_to([3.55, -2.0, 0]), FadeIn(form2), FadeOut(form1), run_time=.8)
         self.finish()
@@ -423,17 +423,17 @@ class S10bGas(SpokenScene):
     def construct(self):
         base = soil_and_water()
         tracked = atom([3.55, -2.0, 0], True)
-        form2 = chip("usable form 2", GREEN, 26, fill_opacity=.9).move_to([4.2, -.55, 0]).set_z_index(5)
+        form2 = chip("usable form 2", GREEN, 26, fill_opacity=.9).move_to([5.1, .2, 0]).set_z_index(5)
         pockets = VGroup(*[Circle(radius=.18, color=TEXT, stroke_width=3).move_to([x, -1.15, 0])
                            for x in (1.3, 2.0, 2.7)])
         self.add(base, tracked, form2, pockets, scope_tag("schematic"))
         self.at("heavy rain soaks")
         rain = falling(VGroup(*[Line([x, 3.4, 0], [x - .18, 2.55, 0], color=BLUE, stroke_width=4)
-                                for x in np.linspace(-5.5, 5.5, 12)]), bottom=-.35)
+                                for x in np.linspace(-5.8, 3.2, 12)]), bottom=-.35)
         self.play(Create(rain), base[0].animate.set_fill(BLUE, opacity=.35), FadeOut(pockets), run_time=1.2)
         self.at("little oxygen is left")
-        low = chip("soggy soil: little oxygen", BLUE, 28, fill_opacity=.9).move_to([0, 2.1, 0]).set_z_index(5)
-        self.play(FadeIn(low), run_time=.7)
+        low = chip("soggy soil: little oxygen", BLUE, 28, fill_opacity=.9).move_to([0, 1.2, 0]).set_z_index(5)
+        self.play(Succession(FadeOut(rain, run_time=.25), FadeIn(low, run_time=.45)), run_time=.7)
         self.at("Different bacteria change")
         bugs = bacteria_cluster([1.7, -1.65, 0], color=BLUE)
         self.play(FadeIn(bugs), tracked.animate.move_to([1.7, -1.65, 0]), run_time=.9)
@@ -459,10 +459,10 @@ class S11Cycle(SpokenScene):
         self.at("never made")
         n = ValueTracker(1)
         read_box = RoundedRectangle(corner_radius=.16, width=5.3, height=2.05, color=GREY,
-                                    fill_color=BG, fill_opacity=.94).move_to([0, -.65, 0])
-        read = VGroup(read_box, counter("1 atom: {:.0f}", n, at=[0, -.15, 0], size=30),
-                      T("changed form", 28, GREEN).move_to([0, -.65, 0]),
-                      T("never made • never destroyed", 26, TEXT).move_to([0, -1.12, 0])).set_z_index(5)
+                                    fill_color=BG, fill_opacity=.94).move_to([0, -.35, 0])
+        read = VGroup(read_box, counter("1 atom: {:.0f}", n, at=[0, .15, 0], size=30),
+                      T("changed form", 28, GREEN).move_to([0, -.35, 0]),
+                      T("never made • never destroyed", 26, TEXT).move_to([0, -.82, 0])).set_z_index(5)
         self.play(FadeOut(cyc[-1]), FadeIn(read), run_time=.8)
         self.finish()
 
@@ -507,9 +507,9 @@ class S13Rain(SpokenScene):
         self.at("carries the extra")
         self.play(Create(stream), extras.animate.move_to([4.4, -1.45, 0]).scale(.75), run_time=1.2)
         self.at("Chesapeake Bay")
-        bay = chip("Chesapeake Bay", BLUE, 32).move_to([4.6, 1.2, 0])
+        bay = chip("Chesapeake Bay", BLUE, 32).move_to([4.6, .25, 0])
         bay[0].set_fill(BG, opacity=.94)
-        self.play(FadeIn(bay), run_time=.7)
+        self.play(Succession(FadeOut(rain, run_time=.25), FadeIn(bay, run_time=.45)), run_time=.7)
         self.finish()
 
 
@@ -543,11 +543,11 @@ class S15Rule(SpokenScene):
         self.at("goes around the loop")
         self.play(Indicate(tracked, color=TEXT, scale_factor=1.25), run_time=.7)
         self.at("never used up")
-        rule = caption("never used up, but it can leave a field", color=GREEN)
+        rule = caption("never used up, but it can leave a field", color=GREEN, y=-3.22)
         self.play(FadeIn(rule), run_time=.7)
         self.at("water can carry it")
-        bay = chip("Chesapeake Bay", BLUE, 26).move_to([5.15, -2.35, 0])
-        leak = CurvedArrow([1.0, -2.0, 0], bay.get_left(), angle=-.28, color=BLUE, stroke_width=6,
+        bay = chip("Chesapeake Bay", BLUE, 26).move_to([5.15, -2.95, 0])
+        leak = CurvedArrow([1.6, -2.0, 0], bay.get_left(), angle=-.28, color=BLUE, stroke_width=6,
                            tip_length=.22)
         self.play(Create(leak), tracked.animate.move_to([3.7, -2.2, 0]), FadeIn(bay), run_time=1.2)
         self.finish()

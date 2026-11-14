@@ -141,7 +141,7 @@ def predict_backdrop(empty_last=True):
     pairs = VGroup(*[genotype_label(x, c + UP * 0.34) for x, c in zip(("PP", "Pp", "Pp"), grid.centers[:3])])
     blooms = VGroup(*[flower("purple", c + DOWN * 0.48, 0.40) for c in grid.centers[:3]])
     target = grid.centers[3]
-    waiting_top = sex_cell("p", target + UP * 0.78, 0.30)
+    waiting_top = sex_cell("p", target + UP * 0.67, 0.30)
     waiting_side = sex_cell("p", target + LEFT * 0.78, 0.30)
     path_top = DashedLine(waiting_top.get_bottom(), target + UP * 0.24, color=TEAL, stroke_width=5, dash_length=0.15)
     path_side = DashedLine(waiting_side.get_right(), target + LEFT * 0.24, color=TEAL, stroke_width=5, dash_length=0.15)
@@ -265,13 +265,13 @@ class S03Genotype(SpokenScene):
 
         self.at("appearance alone")
         unknown = RoundedRectangle(corner_radius=0.16, width=2.2, height=1.0, color=GREY, stroke_width=3,
-                                   fill_color=BG, fill_opacity=0.92).move_to([2.65, -2.15, 0])
+                                   fill_color=BG, fill_opacity=0.92).move_to([2.65, -2.50, 0])
         mark = T("PP or Pp?", 32, GOLD, weight=BOLD, t2c={"P": PURPLE, "p": CREAM}).move_to(unknown)
         self.play(FadeIn(unknown), FadeIn(mark), run_time=0.8)
 
         self.at("Carried information")
         link = Arrow([-1.3, 0.35, 0], [0.25, 0.35, 0], color=TEAL, stroke_width=5, buff=0.12)
-        rule = caption("What is carried can differ from what shows.", color=GOLD)
+        rule = caption("What is carried can differ from what shows.", color=GOLD, y=-3.35)
         self.play(GrowArrow(link), FadeIn(rule, shift=UP * 0.12), run_time=1.0)
         self.finish()
 
@@ -280,8 +280,8 @@ class S04SexCells(SpokenScene):
     def construct(self):
         left = pea_plant("purple", [-4.4, 1.25, 0], 2.75)
         right = pea_plant("purple", [4.4, 1.25, 0], 2.75)
-        left_pair = VGroup(allele_tile("P", [-4.75, -0.25, 0], 0.72), allele_tile("p", [-4.05, -0.25, 0], 0.72))
-        right_pair = VGroup(allele_tile("P", [4.05, -0.25, 0], 0.72), allele_tile("p", [4.75, -0.25, 0], 0.72))
+        left_pair = VGroup(allele_tile("P", [-4.75, -0.53, 0], 0.72), allele_tile("p", [-4.05, -0.53, 0], 0.72))
+        right_pair = VGroup(allele_tile("P", [4.05, -0.52, 0], 0.72), allele_tile("p", [4.75, -0.52, 0], 0.72))
         bob(left, amp=0.09, speed=1.4)
         bob(right, amp=0.09, speed=1.3, seed=2)
         self.add(left, right, left_pair, right_pair)
@@ -305,9 +305,9 @@ class S04SexCells(SpokenScene):
         self.play(GrowArrow(paths_left[1]), left_cells[1].animate.move_to([-0.75, -2.85, 0]), run_time=1.0)
 
         self.at("other parent does")
-        right_cells = VGroup(sex_cell("P", [3.85, -1.45, 0], 0.55), sex_cell("p", [3.85, -2.85, 0], 0.55))
+        right_cells = VGroup(sex_cell("P", [3.85, -1.60, 0], 0.55), sex_cell("p", [3.85, -2.85, 0], 0.55))
         paths_right = VGroup(
-            Arrow([3.2, -1.45, 0], [0.05, -1.45, 0], color=TEAL, stroke_width=5, buff=0.12),
+            Arrow([3.2, -1.60, 0], [0.05, -1.60, 0], color=TEAL, stroke_width=5, buff=0.12),
             Arrow([3.2, -2.85, 0], [0.05, -2.85, 0], color=TEAL, stroke_width=5, buff=0.12),
         )
         self.play(TransformFromCopy(right_pair[0], right_cells[0]), TransformFromCopy(right_pair[1], right_cells[1]),
@@ -397,16 +397,16 @@ class S07Pause(NarratedScene):
         for path in world.paths:
             path.layout_ok = True  # tokens deliberately travel along these paths
         self.add(world, q)
-        self.play(world.waiting_top.animate.shift(DOWN * 0.28),
-                  world.waiting_side.animate.shift(RIGHT * 0.28), run_time=4.45, rate_func=linear)
+        self.play(world.waiting_top.animate.shift(DOWN * 0.28 + RIGHT * 0.14),
+                  world.waiting_side.animate.shift(RIGHT * 0.10), run_time=4.45, rate_func=linear)
         self.finish()
 
 
 class S08Reveal(SpokenScene):
     def construct(self):
         world = predict_backdrop()
-        world.waiting_top.shift(DOWN * 0.40)
-        world.waiting_side.shift(RIGHT * 0.40)
+        world.waiting_top.shift(DOWN * 0.40 + RIGHT * 0.14)
+        world.waiting_side.shift(RIGHT * 0.22)
         for path in world.paths:
             path.layout_ok = True  # dashed paths intentionally end at the moving p tokens
         self.add(world)
