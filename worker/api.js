@@ -4,7 +4,8 @@
 // and a nickname (or a code from the teacher's roster); no email, no real name, no
 // password. Lesson pages report what a joined student does; the teacher reads it as
 // a morning brief. No AI model is called in this file; the AI routes are handed to
-// worker/feedback.js (a teacher's own API key), worker/curious.js and worker/planner.js (the site's capped key).
+// worker/feedback.js (a teacher's own API key), and worker/curious.js, worker/planner.js and
+// worker/helper.js (the site's key, each with its own caps).
 //
 // Security: HttpOnly SameSite=Lax cookies; every state-changing request must be
 // JSON from this site's own origin (blocks cross-site form posts); fixed-window rate
@@ -21,6 +22,7 @@ import { DAY, JOIN_MODES, SLUG, json, fail, clean, body, sameOrigin, clientKey, 
 import { handleGroups } from './groups.js';
 import { handleAi, handleClassAi, briefAi, studentAiOn, PROVIDERS, MODEL_RE } from './feedback.js';
 import { handleCurious } from './curious.js';
+import { handleHelp } from './helper.js';
 import { handleLearner } from './learner.js';
 import { handlePlanner, deleteClassLists } from './planner.js';
 
@@ -192,6 +194,13 @@ export async function handleApi(request, env) {
   if (new URL(request.url).pathname.replace(/\/+$/, '') === '/api/curious') {
     try { return await handleCurious(request, env); } catch (e) {
       console.error('curious error', e && e.message);
+      return fail(500, 'Something went wrong. Please try again.');
+    }
+  }
+  // Study helpers for learner accounts (worker/helper.js): off unless HELPER_ENABLED=1; answers its own 503.
+  if (/^\/api\/help(\/|$)/.test(new URL(request.url).pathname)) {
+    try { return await handleHelp(request, env); } catch (e) {
+      console.error('help error', e && e.message);
       return fail(500, 'Something went wrong. Please try again.');
     }
   }

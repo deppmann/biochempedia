@@ -1,0 +1,375 @@
+---
+/**
+ * LessonHelpers: three small study helpers for signed-in learners (worker/helper.js).
+ *
+ *  - "Explain another way": a button added to the highlight bar (select text in the lesson).
+ *    One alternative explanation of that passage, shown as a labelled, dismissible note under it.
+ *  - "Get feedback": a button added to each claim-evidence-reasoning box that has a model answer.
+ *  - "Make flashcards from my highlights": a button added to "Your notes"; the learner picks which
+ *    drafts to keep, and kept cards join this lesson's flashcards (saved in this browser only).
+ *
+ * Nothing renders for signed-out visitors, for a student in a teacher's class on this device, or when
+ * the Worker says the helpers are off (GET /api/help answers 503). The lesson page includes this
+ * component only on courses the helpers are offered on (src/lib/helper-lesson.mjs).
+ * Every output is labelled as written by an AI model.
+ */
+interface Props {
+  slug: string;
+  hasDeck: boolean;
+  levels: { level: string; label: string }[];
+}
+const { slug, hasDeck, levels } = Astro.props;
+---
+
+<div data-help-root data-slug={slug} data-has-deck={hasDeck ? '1' : undefined} data-levels={JSON.stringify(levels)} hidden></div>
+<p class="hp-sr" aria-live="polite" data-help-live></p>
+
+<style is:global>
+  .hp-note {
+    margin: var(--ddp-space-3, 0.75rem) 0 var(--ddp-space-4, 1rem);
+    padding: 0.75rem 0.9rem;
+    border: 1px solid var(--ddp-color-line);
+    border-left: 4px solid var(--ddp-color-secondary, #7a5cc0);
+    border-radius: var(--ddp-radius-sm, 6px);
+    background: var(--ddp-color-surface);
+    color: var(--ddp-color-ink);
+    font-family: var(--ddp-font-sans, system-ui, sans-serif);
+    font-size: var(--ddp-text-sm, 0.92rem);
+    line-height: 1.55;
+  }
+  .hp-note:focus { outline: none; }
+  .hp-note:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .hp-head { display: flex; align-items: flex-start; gap: 0.5rem; margin: 0 0 0.4rem; }
+  .hp-kicker { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs, 0.75rem); letter-spacing: 0.04em; color: var(--ddp-color-secondary-ink, var(--ddp-color-muted)); }
+  .hp-kicker b { font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; }
+  .hp-x { margin-left: auto; min-width: 32px; min-height: 32px; border: 0; background: none; color: var(--ddp-color-muted); font-size: 1.2rem; line-height: 1; cursor: pointer; border-radius: 6px; }
+  .hp-x:focus-visible, .hp-btn:focus-visible, .hp-link:focus-visible, .hp-note select:focus-visible, .hp-note input:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .hp-note p { margin: 0 0 0.45rem; }
+  /* Inside the lesson column, prose rules would enlarge the small print: keep it small. */
+  .hp-note p.hp-kicker, .prose-col .hp-note p.hp-kicker { font-size: var(--ddp-text-xs, 0.75rem); line-height: 1.4; margin: 0; }
+  .hp-note p.hp-muted, .prose-col .hp-note p.hp-muted { font-size: var(--ddp-text-xs, 0.8rem); line-height: 1.45; }
+  .prose-col .hp-note p, .prose-col .hp-note li { font-size: var(--ddp-text-base, 1rem); }
+  .prose-col .hp-note .hp-quote { font-size: var(--ddp-text-sm, 0.92rem); }
+  .hp-note p:last-child { margin-bottom: 0; }
+  .hp-quote { margin: 0 0 0.5rem; padding-left: 0.6rem; border-left: 2px solid var(--ddp-color-line); color: var(--ddp-color-ink-soft); font-style: italic; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  .hp-form { display: grid; gap: 0.45rem; }
+  .hp-form label { font-weight: 600; font-size: var(--ddp-text-xs, 0.8rem); color: var(--ddp-color-ink-soft); }
+  .hp-note select, .hp-note input[type="text"] {
+    width: 100%; box-sizing: border-box; min-height: 40px; padding: 0.35rem 0.5rem; font: inherit;
+    border: 1px solid var(--ddp-color-line); border-radius: 6px; background: var(--ddp-color-bg); color: var(--ddp-color-ink);
+  }
+  .hp-row { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin-top: 0.5rem; }
+  .hp-btn {
+    min-height: 40px; padding: 0.35rem 0.9rem; font: inherit; font-weight: 600; cursor: pointer; border-radius: 999px;
+    border: 1px solid var(--ddp-color-line); background: var(--ddp-color-bg); color: var(--ddp-color-ink);
+  }
+  .hp-btn-main { background: var(--ddp-color-accent); border-color: var(--ddp-color-accent); color: #fff; }
+  .hp-btn:disabled { opacity: 0.55; cursor: default; }
+  .hp-link { background: none; border: 0; padding: 0; font: inherit; color: var(--ddp-color-accent); text-decoration: underline; cursor: pointer; text-align: left; }
+  .hp-muted { color: var(--ddp-color-muted); font-size: var(--ddp-text-xs, 0.8rem); }
+  .hp-limit { margin-top: 0.4rem; padding-top: 0.4rem; border-top: 1px dashed var(--ddp-color-line); }
+  .hp-h { margin: 0.5rem 0 0.15rem; font-weight: 700; font-size: var(--ddp-text-xs, 0.8rem); color: var(--ddp-color-primary); }
+  .hp-note ul { margin: 0 0 0.3rem; padding-left: 1.15rem; }
+  .hp-note li { margin: 0 0 0.2rem; }
+  .hp-err { color: var(--ddp-color-caution-ink, #8a4b00); }
+  .hp-busy::after { content: ''; display: inline-block; width: 0.9em; height: 0.9em; margin-left: 0.4em; vertical-align: -0.1em; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: hp-spin 0.8s linear infinite; }
+  @keyframes hp-spin { to { transform: rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce) { .hp-busy::after { animation: none; } }
+  .hp-bar-btn { white-space: nowrap; font: inherit; cursor: pointer; border-radius: 6px; padding: 0.3rem 0.65rem; border: 1px solid var(--ddp-color-line); background: var(--ddp-color-bg); color: var(--ddp-color-ink); }
+  .hl-bottom .hp-bar-btn { padding: 0.5rem 0.8rem; }
+  /* On a phone the bar sits at the bottom: with this extra button it wraps instead of running off screen. */
+  .hl-bar.hl-bottom:has(.hp-bar-btn) { flex-wrap: wrap; justify-content: center; width: max-content; max-width: calc(100vw - 32px); }
+  .hp-bar-btn:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .hp-cards { list-style: none; margin: 0.4rem 0; padding: 0; display: grid; gap: 0.5rem; }
+  .hp-card { display: grid; grid-template-columns: auto 1fr; gap: 0.5rem; align-items: start; padding: 0.5rem 0.6rem; border: 1px solid var(--ddp-color-line); border-radius: 6px; background: var(--ddp-color-bg); }
+  .hp-card input { width: 20px; height: 20px; margin: 0.15rem 0 0; }
+  .hp-card.is-dup { opacity: 0.7; }
+  .hp-card-front { font-weight: 600; }
+  .hp-card-back { color: var(--ddp-color-ink-soft); }
+  .hp-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .hp-flash { background: color-mix(in srgb, var(--ddp-color-accent) 22%, transparent); border-radius: 3px; transition: background 1.5s; }
+</style>
+
+<script>
+  import { helpStatus, askHelp, keepCards, type HelpStatus } from '../lib/helpers';
+  import { loadNotebook } from '../lib/notebook';
+
+  const root = document.querySelector<HTMLElement>('[data-help-root]');
+  const prose = document.querySelector<HTMLElement>('.prose-col[data-lesson-title]');
+  if (root && prose) start(root, prose);
+
+  async function start(root: HTMLElement, prose: HTMLElement) {
+    const slug = root.dataset.slug!;
+    const status = await helpStatus(slug);
+    if (!status) return;   // signed out, in a class, switched off or capped: nothing is shown
+    const live = document.querySelector<HTMLElement>('[data-help-live]')!;
+    const say = (t: string) => { live.textContent = ''; setTimeout(() => { live.textContent = t; }, 50); };
+    let left = { ...(status.left ?? { explain: 0, feedback: 0, cards: 0 }) } as NonNullable<HelpStatus['left']>;
+    const levels: { level: string; label: string }[] = JSON.parse(root.dataset.levels || '[]');
+
+    // ---- small DOM helpers -------------------------------------------------------------
+    const el = <K extends keyof HTMLElementTagNameMap>(tag: K, cls?: string, text?: string) => {
+      const e = document.createElement(tag);
+      if (cls) e.className = cls;
+      if (text !== undefined) e.textContent = text;
+      return e;
+    };
+    const button = (text: string, cls = 'hp-btn') => { const b = el('button', cls, text); b.type = 'button'; return b; };
+    function noteBox(kicker: string, onClose: () => void) {
+      const box = el('section', 'hp-note');
+      box.tabIndex = -1;
+      box.setAttribute('data-no-hl', '');
+      box.setAttribute('aria-label', kicker.replace(/·.*/, '').trim());
+      const head = el('div', 'hp-head');
+      const k = el('p', 'hp-kicker');
+      const [main, rest] = kicker.split(' · ');
+      k.append(el('b', '', main));
+      if (rest) k.append(` · ${rest}`);
+      const x = button('×', 'hp-x');
+      x.setAttribute('aria-label', 'Close');
+      x.addEventListener('click', onClose);
+      head.append(k, x);
+      const body = el('div');
+      box.append(head, body);
+      box.addEventListener('keydown', (e) => { if (e.key === 'Escape') { e.stopPropagation(); onClose(); } });
+      return { box, body };
+    }
+    const limitLine = (n: number, what: string) => el('p', 'hp-muted', n > 0 ? `${n} ${what} left today.` : `No ${what} left today. They come back tomorrow.`);
+    const errorLine = (msg: string) => el('p', 'hp-err', msg);
+    function busy(b: HTMLButtonElement, on: boolean, text?: string) {
+      b.disabled = on;
+      b.classList.toggle('hp-busy', on);
+      if (text) b.textContent = text;
+    }
+
+    // ---- find a sentence of the lesson again, to point to it ----------------------------
+    const normQ = (t: string) => t.replace(/[“”]/g, '"').replace(/[‘’]/g, "'").replace(/\s+/g, ' ').trim().toLowerCase();
+    function blockWith(sentence: string): HTMLElement | null {
+      const q = normQ(sentence).slice(0, 80);
+      const blocks = prose.querySelectorAll<HTMLElement>('p, li, blockquote, td, figcaption, dd');
+      for (const b of blocks) if (normQ(b.textContent || '').includes(q)) return b;
+      return null;
+    }
+    function goTo(b: HTMLElement) {
+      b.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'center' });
+      b.classList.add('hp-flash');
+      if (!b.hasAttribute('tabindex')) b.tabIndex = -1;
+      b.focus({ preventScroll: true });
+      setTimeout(() => b.classList.remove('hp-flash'), 1800);
+    }
+
+    // =====================================================================================
+    // 1. Explain another way
+    // =====================================================================================
+    const bar = document.querySelector<HTMLElement>('[data-hl-bar]');
+    let lastRange: Range | null = null;
+    document.addEventListener('selectionchange', () => {
+      const sel = window.getSelection();
+      if (!sel || sel.isCollapsed || !sel.rangeCount) return;
+      const r = sel.getRangeAt(0);
+      if (prose.contains(r.commonAncestorContainer)) lastRange = r.cloneRange();
+    });
+    let openExplain: HTMLElement | null = null;
+
+    if (bar && left.explain >= 0) {
+      const b = button('Explain another way', 'hp-bar-btn');
+      b.dataset.helpExplain = '';
+      b.title = 'An AI model rewrites the selected passage from this lesson\'s text';
+      // Keep the selection: a mousedown on the bar must not clear it before the click.
+      b.addEventListener('mousedown', (e) => e.preventDefault());
+      b.addEventListener('click', () => {
+        const r = lastRange;
+        if (!r) return;
+        let passage = r.toString().replace(/\s+/g, ' ').trim();
+        const host = (r.startContainer.nodeType === 1 ? r.startContainer as HTMLElement : r.startContainer.parentElement)?.closest<HTMLElement>('p, li, blockquote, td, figcaption, dd, .cer, details') ?? null;
+        // A few words is not enough to explain: use the whole paragraph they sit in.
+        if (passage.length < 60 && host) passage = (host.textContent || '').replace(/\s+/g, ' ').trim();
+        bar.hidden = true;
+        window.getSelection()?.removeAllRanges();
+        showExplain(passage.slice(0, 1500), host);
+      });
+      bar.append(b);
+    }
+
+    function showExplain(passage: string, host: HTMLElement | null) {
+      openExplain?.remove();
+      const anchor = host?.closest<HTMLElement>('li') ?? host;
+      const close = () => { box.remove(); openExplain = null; anchor?.focus?.(); say('Explanation closed.'); };
+      const { box, body } = noteBox('Another way to say it · written by an AI model from this lesson\'s text', close);
+      openExplain = box;
+      const quote = el('p', 'hp-quote', passage);
+      const form = el('div', 'hp-form');
+      if (levels.length) {
+        const id = `hp-level-${Date.now()}`;
+        const lab = el('label', '', 'Explain it at');
+        lab.htmlFor = id;
+        const sel = el('select');
+        sel.id = id;
+        sel.append(new Option('this lesson\'s level', 'lesson'));
+        for (const l of levels) sel.append(new Option(l.label, l.level));
+        form.append(lab, sel);
+      }
+      const cid = `hp-conf-${Date.now()}`;
+      const clab = el('label', '', 'What is confusing? (optional)');
+      clab.htmlFor = cid;
+      const conf = el('input');
+      conf.type = 'text'; conf.id = cid; conf.maxLength = 200; conf.autocomplete = 'off';
+      conf.placeholder = 'For example: why does this make the voltage go up?';
+      form.append(clab, conf);
+      const go = button('Explain', 'hp-btn hp-btn-main');
+      const row = el('div', 'hp-row');
+      row.append(go);
+      const out = el('div');
+      out.setAttribute('aria-live', 'polite');
+      const foot = el('p', 'hp-muted hp-limit', 'Your selection and question are sent once to an AI model (Anthropic\'s Claude) through this site and are not stored. It can make mistakes: the lesson is the source to trust.');
+      body.append(quote, form, row, out, foot);
+      if (anchor?.parentNode) anchor.after(box); else prose.prepend(box);
+      conf.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); go.click(); } });
+
+      const ask = async (again: boolean) => {
+        if (left.explain <= 0) { out.replaceChildren(limitLine(0, 'explanations')); return; }
+        busy(go, true, again ? 'Trying once more' : 'Explaining');
+        out.replaceChildren(el('p', 'hp-muted', 'Writing an explanation from the lesson…'));
+        const level = (form.querySelector('select') as HTMLSelectElement | null)?.value ?? 'lesson';
+        const r = await askHelp('explain', { slug: root.dataset.slug, passage, confusing: conf.value, level, again });
+        busy(go, false, 'Explain');
+        if (typeof r.data.left === 'number') left.explain = r.data.left;
+        if (!r.data.ok) { out.replaceChildren(errorLine(r.data.error || 'The helper could not answer just now.')); say(r.data.error || 'No explanation.'); return; }
+        form.hidden = true; row.hidden = true;
+        const parts: HTMLElement[] = [el('p', '', r.data.explanation)];
+        if (r.data.comparisonLimit) { const p = el('p'); p.append(el('strong', '', 'Where the comparison stops working: '), r.data.comparisonLimit); parts.push(p); }
+        if (r.data.readNext) {
+          const p = el('p');
+          p.append(el('strong', '', 'Read next in the lesson: '));
+          const target = blockWith(r.data.readNext);
+          if (target) { const a = button(`“${r.data.readNext}”`, 'hp-link'); a.addEventListener('click', () => goTo(target)); p.append(a); }
+          else p.append(`“${r.data.readNext}”`);
+          parts.push(p);
+        }
+        const again2 = el('div', 'hp-row');
+        if ((r.data.againLeft ?? 0) > 0 && left.explain > 0) {
+          const t = button('Try once more');
+          t.addEventListener('click', async () => { t.remove(); form.hidden = false; row.hidden = false; await ask(true); });
+          again2.append(t);
+        }
+        const done = button('Close');
+        done.addEventListener('click', close);
+        again2.append(done);
+        out.replaceChildren(...parts, again2, limitLine(left.explain, 'explanations'));
+        say('Explanation ready.');
+      };
+      go.addEventListener('click', () => ask(false));
+      box.focus({ preventScroll: true });
+      box.scrollIntoView({ block: 'nearest' });
+    }
+
+    // =====================================================================================
+    // 2. Feedback on a claim-evidence-reasoning answer
+    // =====================================================================================
+    prose.querySelectorAll<HTMLElement>('[data-cer]').forEach((cer) => {
+      if (!cer.querySelector('.cer-model')) return;   // nothing to compare with
+      const row = el('div', 'hp-row');
+      const b = button('Get feedback on my answer');
+      b.dataset.helpFeedback = '';
+      row.append(b);
+      const out = el('div');
+      out.setAttribute('aria-live', 'polite');
+      const anchor = cer.querySelector('[data-cer-saved]') ?? cer.lastElementChild;
+      anchor?.after(row, out);
+      b.addEventListener('click', async () => {
+        const v: Record<string, string> = {};
+        cer.querySelectorAll<HTMLTextAreaElement>('textarea[data-cer-field]').forEach((a) => { v[a.dataset.cerField!] = a.value; });
+        if (!Object.values(v).join('').trim()) { out.replaceChildren(errorLine('Write your answer first.')); return; }
+        if (left.feedback <= 0) { out.replaceChildren(limitLine(0, 'feedback requests')); return; }
+        busy(b, true, 'Reading your answer');
+        const r = await askHelp('feedback', { slug: root.dataset.slug, item: cer.dataset.cer, answer: v });
+        busy(b, false, 'Get feedback again');
+        if (typeof r.data.left === 'number') left.feedback = r.data.left;
+        if (!r.data.ok) { out.replaceChildren(errorLine(r.data.error || 'Feedback is not available right now.')); say(r.data.error || 'No feedback.'); return; }
+        const close = () => { box.remove(); b.focus(); };
+        const { box, body } = noteBox('Feedback · written by an AI model, checked against this lesson\'s model answer', close);
+        const list = (items: string[]) => { const ul = el('ul'); for (const t of items) ul.append(el('li', '', t)); return ul; };
+        if (r.data.has?.length) body.append(el('p', 'hp-h', 'What your answer already has'), list(r.data.has));
+        if (r.data.missing?.length) body.append(el('p', 'hp-h', r.data.onTopic ? 'What to look at again' : 'What the task asks for'), list(r.data.missing));
+        if (r.data.next) body.append(el('p', 'hp-h', 'A question to take you further'), el('p', '', r.data.next));
+        body.append(el('p', 'hp-muted hp-limit', `Your answer was sent once to an AI model (Anthropic's Claude) and not stored. It is not a grade. ${left.feedback > 0 ? `${left.feedback} feedback requests left today.` : 'No feedback requests left today.'}`));
+        out.replaceChildren(box);
+        box.focus({ preventScroll: true });
+        say('Feedback ready.');
+      });
+    });
+
+    // =====================================================================================
+    // 3. Notebook to flashcards
+    // =====================================================================================
+    const panel = document.querySelector<HTMLElement>('[data-hl-panel]');
+    if (panel && root.dataset.hasDeck) {
+      const row = el('div', 'hp-row');
+      const b = button('Make flashcards from my highlights');
+      b.dataset.helpCards = '';
+      row.append(b);
+      const out = el('div');
+      out.setAttribute('aria-live', 'polite');
+      panel.append(row, out);
+      b.addEventListener('click', async () => {
+        const items = Object.values(loadNotebook().items)
+          .filter((i) => i.slug === slug && i.kind === 'highlight' && !i.deleted && i.quote.trim())
+          .sort((a, b2) => a.created - b2.created)
+          .slice(-15);
+        if (!items.length) { out.replaceChildren(errorLine('Highlight a few sentences in this lesson first (select text, then pick a colour).')); return; }
+        if (left.cards <= 0) { out.replaceChildren(limitLine(0, 'card drafts')); return; }
+        busy(b, true, 'Drafting cards');
+        const r = await askHelp('cards', { slug, highlights: items.map((i) => ({ quote: i.quote, note: i.note, section: i.section })) });
+        busy(b, false, 'Make flashcards from my highlights');
+        if (typeof r.data.left === 'number') left.cards = r.data.left;
+        if (!r.data.ok) { out.replaceChildren(errorLine(r.data.error || 'The helper could not draft cards just now.')); say(r.data.error || 'No cards.'); return; }
+        const cards = (r.data.cards || []) as any[];
+        const close = () => { box.remove(); b.focus(); };
+        const { box, body } = noteBox('Card drafts · written by an AI model from your highlights and this lesson\'s text', close);
+        if (!cards.length) {
+          body.append(el('p', '', 'None of these highlights made a card that passed the checks. Try highlighting whole sentences that explain something.'));
+        } else {
+          body.append(el('p', '', 'Pick the cards to keep. Each one tests a sentence you highlighted.'));
+          const ul = el('ul', 'hp-cards');
+          cards.forEach((c, i) => {
+            const li = el('li', `hp-card${c.duplicate ? ' is-dup' : ''}`);
+            const id = `hp-card-${i}-${Date.now()}`;
+            const cb = el('input');
+            // A card whose sentence sits in an interactive or a caption the lesson text cannot point to
+            // could never be shown by "Show in lesson", and the flashcard panel would hold it back.
+            const placed = !!blockWith(c.quote);
+            cb.type = 'checkbox'; cb.id = id; cb.checked = !c.duplicate && placed; cb.disabled = !!c.duplicate || !placed; cb.dataset.i = String(i);
+            const lab = el('label');
+            lab.htmlFor = id;
+            const front = String(c.front).replace(/\{\{c\d+::([\s\S]+?)(?:::[\s\S]+?)?\}\}/g, '[…]');
+            const answer = c.type === 'cloze' ? (/\{\{c\d+::([\s\S]+?)(?:::|\}\})/.exec(c.front)?.[1] ?? '') + (c.back ? ` · ${c.back}` : '') : c.back;
+            lab.append(el('span', 'hp-card-front', front), el('br'), el('span', 'hp-card-back', answer));
+            if (c.duplicate) lab.append(el('br'), el('span', 'hp-muted', 'Already in this lesson\'s deck.'));
+            else if (!placed) lab.append(el('br'), el('span', 'hp-muted', 'Its sentence is not in the lesson text the cards can point to, so it cannot be kept.'));
+            li.append(cb, lab);
+            ul.append(li);
+          });
+          const keep = button('Keep the ticked cards', 'hp-btn hp-btn-main');
+          keep.addEventListener('click', () => {
+            const picked = [...ul.querySelectorAll<HTMLInputElement>('input:checked')].map((x) => cards[Number(x.dataset.i)]);
+            if (!picked.length) { say('No cards ticked.'); return; }
+            const n = keepCards(slug, picked.map(({ duplicate, ...c }) => c));
+            const msg = n < 0
+              ? 'This browser is not letting the site save anything, so the cards could not be kept.'
+              : `Kept ${n} card${n === 1 ? '' : 's'}. They are in this lesson's Flashcards now, marked "Your card", and saved in this browser only (not synced to your account).`;
+            body.replaceChildren(el('p', '', msg));
+            say(msg);
+            box.focus({ preventScroll: true });
+          });
+          const actions = el('div', 'hp-row');
+          actions.append(keep);
+          body.append(ul, actions);
+        }
+        body.append(el('p', 'hp-muted hp-limit', `Your highlights were sent once to an AI model (Anthropic's Claude) and not stored. Only cards you keep are saved. ${left.cards > 0 ? `${left.cards} card drafts left today.` : 'No card drafts left today.'}`));
+        out.replaceChildren(box);
+        box.focus({ preventScroll: true });
+        say(cards.length ? `${cards.length} card drafts ready.` : 'No cards.');
+      });
+    }
+  }
+</script>

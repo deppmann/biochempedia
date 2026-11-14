@@ -65,6 +65,9 @@ const json = JSON.stringify({
           <button type="button" class="fc-link" data-fc-show>Show in lesson</button>
           <span class="fc-sec" data-fc-sec></span>
         </p>
+        <p class="fc-src" data-fc-mine hidden>
+          Your card, drafted by an AI model from your highlight. <button type="button" class="fc-link" data-fc-remove>Remove it</button>
+        </p>
       </div>
     </div>
     <button type="button" class="fc-flip" data-fc-flip hidden>Show answer <kbd>Space</kbd></button>
@@ -159,12 +162,18 @@ const json = JSON.stringify({
 <script>
   import { LEVELS, PREFS_KEY, next, rate, resetDeck, loadStore, stateOf, wait, clozeParts, ankiText, type Card, type Deck, type Goal, type Rating } from '../lib/flashcards';
   import { markAgain } from '../lib/classroom';
+  import { myCards, removeCard, MYCARDS_EVENT } from '../lib/helpers';
 
   const panel = document.querySelector<HTMLElement>('[data-fc]');
   if (panel) init(panel);
 
   function init(root: HTMLElement) {
     const deck: Deck = JSON.parse(root.querySelector('[data-fc-data]')!.textContent!);
+    // The learner's own cards for this lesson (kept from "Make flashcards from my highlights",
+    // src/lib/helpers.ts) join the deck and share its schedule. Saved in this browser only.
+    const siteCards = deck.cards;
+    const isMine = (c: Card) => c.id.startsWith('my-');
+    deck.cards = [...siteCards, ...myCards(deck.slug)];
     const $ = <T extends HTMLElement>(s: string) => root.querySelector<T>(s)!;
     const prose = document.querySelector<HTMLElement>('.prose-col[data-lesson-title]');
     const KIND: Record<string, string> = { cloze: 'Fill the gap', qa: 'Question', predict: 'Predict', experiment: 'Experiment', calc: 'Calculate' };
@@ -206,8 +215,15 @@ const json = JSON.stringify({
     index();
     // A card whose passage has changed since the deck was written is held back
     // until the deck is regenerated, rather than shown against text it no longer matches.
-    const live = deck.cards.filter((c) => !prose || rangeFor(c.quote));
-    const held = deck.cards.length - live.length;
+    let live = deck.cards.filter((c) => !prose || rangeFor(c.quote));
+    let held = deck.cards.length - live.length;
+    window.addEventListener(MYCARDS_EVENT, () => {
+      deck.cards = [...siteCards, ...myCards(deck.slug)];
+      live = deck.cards.filter((c) => !prose || rangeFor(c.quote));
+      held = deck.cards.length - live.length;
+      root.dataset.live = live.map((c) => c.id).join(' ');
+      if (!root.hidden) build(); else built = false;
+    });
     // The cards the panel can show, for the "cards ready" prompt after a film (CardsPrompt.astro).
     root.dataset.live = live.map((c) => c.id).join(' ');
 
@@ -286,7 +302,7 @@ const json = JSON.stringify({
       }
       done.hidden = true; card.hidden = false;
       $('[data-fc-lv]').textContent = `L${cur.level} ${LEVELS[cur.level].name}`;
-      $('[data-fc-kind]').textContent = KIND[cur.type] ?? '';
+      $('[data-fc-kind]').textContent = (KIND[cur.type] ?? '') + (isMine(cur) ? ' · Your card' : '');
       $('[data-fc-left]').textContent = `${queue.length} left`;
       $('[data-fc-front]').innerHTML = frontHtml(cur, false);
       $('[data-fc-back]').hidden = true;
@@ -301,6 +317,7 @@ const json = JSON.stringify({
       const why = $('[data-fc-why]');
       why.hidden = !cur.why; why.textContent = cur.why ?? '';
       $('[data-fc-sec]').textContent = cur.section ? `· ${cur.section}` : '';
+      $('[data-fc-mine]').hidden = !isMine(cur);
       $('[data-fc-back]').hidden = false;
       $('[data-fc-flip]').hidden = true;
       const st = stateOf(loadStore(), deck.slug, cur.id);
@@ -365,6 +382,7 @@ const json = JSON.stringify({
     $('[data-fc-flip]').addEventListener('click', flip);
     root.querySelectorAll<HTMLElement>('[data-fc-r]').forEach((b) => b.addEventListener('click', () => answer(Number(b.dataset.fcR) as Rating)));
     $('[data-fc-show]').addEventListener('click', () => cur && highlight(cur, true));
+    $('[data-fc-remove]').addEventListener('click', () => { if (cur && isMine(cur)) removeCard(deck.slug, cur.id); });
     $('[data-fc-ahead]').addEventListener('click', () => build(true));
     root.querySelectorAll('[data-fc-goal], [data-fc-level]').forEach((i) => i.addEventListener('change', () => { savePrefs(); build(); }));
     $('[data-fc-follow]').addEventListener('change', () => { savePrefs(); if (!$<HTMLInputElement>('[data-fc-follow]').checked) clearHighlight(); });

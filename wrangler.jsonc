@@ -39,6 +39,23 @@
     // "1" stores the text of questions (router_queries, 30 days). Off by default; keep it off for a
     // site children use. The box's "your question is not stored" line follows this switch.
     "ROUTER_LOG_QUERIES": "0",
+    // Study helpers for learner accounts (worker/helper.js, /api/help/*): "explain this another way",
+    // feedback on a claim-evidence-reasoning answer, and flashcards from highlights. Same
+    // ANTHROPIC_API_KEY secret as the router, with separate caps. Needs HELPER_ENABLED "1" AND the
+    // helper_budget table (migrations/0008_study_helpers.sql); until both, GET /api/help is a 503 and
+    // no control shows. To turn them off in one step, set HELPER_ENABLED to "0" and deploy.
+    // HELPER_MOCK is for local tests only (canned answers, no API call); never set it here.
+    "HELPER_ENABLED": "0",
+    "HELPER_DAILY_CAP_USD": "1.50",
+    "HELPER_MONTHLY_CAP_USD": "15",
+    "HELPER_EXPLAIN_PER_DAY": "20",
+    "HELPER_FEEDBACK_PER_DAY": "10",
+    "HELPER_CARDS_PER_DAY": "5",
+    "HELPER_AGAIN_PER_LESSON": "3",
+    "HELPER_IP_PER_MIN": "10",
+    "HELPER_IP_PER_DAY": "80",
+    "HELPER_GLOBAL_PER_MIN": "30",
+    "HELPER_EFFORT": "low",
     // Study planner (worker/planner.js, /api/plan/*): learners' study plans and teachers' syllabus
     // matching, on the same ANTHROPIC_API_KEY secret as the router. It also needs the tables in
     // migrations/0007_planner.sql (`npx wrangler d1 migrations apply biochempedia-classes --remote`);

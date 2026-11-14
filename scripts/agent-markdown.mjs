@@ -210,7 +210,10 @@ for (const course of catalog.courses) {
       if (!existsSync(page)) throw new Error(`agent-markdown: no built page for ${l.slug}`);
       const tree = fromHtml(readFileSync(page, 'utf8'));
       const main = find(tree, (x) => x.tagName === 'div' && has(x, 'lesson-main'));
-      const body = main && (main.children || []).find((x) => x.tagName === 'div' && has(x, 'prose-col'));
+      // The lesson text is the prose column that carries the lesson title. A lesson with Supports has an
+      // earlier prose column holding only the Supports switch, so "the first prose-col" is not enough.
+      const cols = main ? (main.children || []).filter((x) => x.tagName === 'div' && has(x, 'prose-col')) : [];
+      const body = cols.find((x) => x.properties?.dataLessonTitle !== undefined) ?? cols[0];
       if (!body) throw new Error(`agent-markdown: lesson body not found in ${page}; did the lesson page layout change?`);
       const review = find(tree, (x) => has(x, 'under-review-tag'));
       const head = [
