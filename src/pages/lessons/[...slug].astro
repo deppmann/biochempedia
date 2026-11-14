@@ -26,6 +26,7 @@ import CardsPrompt from '../../components/CardsPrompt.astro';
 import HighlightLayer from '../../components/HighlightLayer.astro';
 import LessonHelpers from '../../components/LessonHelpers.astro';
 import { helperAllowed } from '../../lib/helper-lesson.mjs';
+import LessonLinks from '../../components/LessonLinks.astro';
 import type { Deck } from '../../lib/flashcards';
 import { feedbackUrl } from '../../lib/feedback';
 import { COURSES, courseOf, courseHref } from '../../data/courses';
@@ -372,6 +373,9 @@ const lessonLd = {
         {mcatCount > 0 && (
           <p class="mcat-forward"><a href={`/mcat/practice/?lesson=${lesson.slug}`}>Practice questions on this lesson ({mcatCount}) →</a> <span>MCAT-style, original, each with an explanation</span></p>
         )}
+
+        {/* Before this / After this / Elsewhere: written offline (src/data/lesson-links.json); outside every data-pagefind-body region. */}
+        <LessonLinks slug={entry.data.slug} />
 
         <FinishLine slug={entry.data.slug} qCount={qCount} prev={prevNav} next={nextNav} allHref={courseHref(course.slug)} nextCourse={nextCourse} />
       </div>

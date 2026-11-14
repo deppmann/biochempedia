@@ -55,7 +55,17 @@
     "HELPER_IP_PER_MIN": "10",
     "HELPER_IP_PER_DAY": "80",
     "HELPER_GLOBAL_PER_MIN": "30",
-    "HELPER_EFFORT": "low"
+    "HELPER_EFFORT": "low",
+    // Study planner (worker/planner.js, /api/plan/*): learners' study plans and teachers' syllabus
+    // matching, on the same ANTHROPIC_API_KEY secret as the router. It also needs the tables in
+    // migrations/0007_planner.sql (`npx wrangler d1 migrations apply biochempedia-classes --remote`);
+    // until they exist it reports itself off and the pages hide it. Evaluated on the real key on
+    // 2026-11-14 before shipping on. "0" switches it off; saved plans and class lists still open. PLANNER_MOCK is for local tests only; never set it here.
+    "PLANNER_ENABLED": "1",
+    "PLANNER_DAILY_CAP_USD": "2",
+    "PLANNER_MONTHLY_CAP_USD": "20",
+    "PLANNER_ACCOUNT_PER_DAY": "5",
+    "PLANNER_EFFORT": "low"
   },
   "observability": { "enabled": true }
 }

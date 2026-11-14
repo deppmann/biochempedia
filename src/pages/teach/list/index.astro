@@ -1,0 +1,50 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import '../../../styles/teach.css';
+import '../../../styles/plan.css';
+---
+
+<!-- A teacher's syllabus matched to the site (?id=), as students see it. Public, read only, no
+     account; nothing is asked of the model to show it (worker/planner.js, GET /api/plan/list/<id>). -->
+<BaseLayout title="Class resources — Biochemistrypedia" description="Lessons, films and simulations your teacher matched to your course." noindex>
+  <article class="wrap tc pl" data-list>
+    <p class="tc-eyebrow" data-eyebrow>Class resources</p>
+    <h1 data-title>Class resources</h1>
+    <p class="tc-lede" data-who hidden></p>
+    <p class="pl-note" data-note hidden></p>
+    <noscript><p class="pl-note warn">This page needs JavaScript.</p></noscript>
+    <p class="tc-muted" data-loading>Loading…</p>
+    <p class="pl-note warn" data-err role="alert" hidden></p>
+    <ul class="pl-totals" data-totals></ul>
+    <div class="pl-plan" data-plan></div>
+    <p class="pl-actions pl-noprint" data-tools hidden><button class="tc-btn ghost" type="button" onclick="window.print()">Print</button></p>
+  </article>
+
+  <script>
+    import { renderPlan, planApi, el, type Plan } from '../../../lib/plan-view';
+    import { load as loadProgress } from '../../../lib/progress';
+    import { loadFilms, isWatched } from '../../../lib/film-progress';
+
+    const root = document.querySelector<HTMLElement>('[data-list]')!;
+    const $ = <T extends HTMLElement>(s: string) => root.querySelector<T>(s)!;
+    const id = new URLSearchParams(location.search).get('id') || '';
+    (async () => {
+      const fail = (t: string) => { const e = $('[data-err]'); e.textContent = t; e.hidden = false; $('[data-loading]').hidden = true; };
+      if (!/^[0-9a-f]{24}$/.test(id)) return fail('This link is missing part of its address. Ask your teacher for it again.');
+      const r = await planApi<Plan & { title: string; note: string; className: string; teacherName: string }>(`/api/plan/list/${id}`);
+      if (!r.ok) return fail(r.data.error || 'Could not open this list.');
+      const d = r.data;
+      $('[data-loading]').hidden = true;
+      $('[data-title]').textContent = d.title;
+      document.title = `${d.title} — Biochemistrypedia`;
+      $('[data-eyebrow]').textContent = `${d.className} · class resources`;
+      const who = $('[data-who]'); who.textContent = `From ${d.teacherName}, for ${d.className}. Each topic lists what to read, watch and try on this site.`; who.hidden = false;
+      const n = $('[data-note]'); n.textContent = d.note; n.hidden = !d.note;
+      const items = d.sections.flatMap((s) => s.items);
+      $('[data-totals]').replaceChildren(el('li', {}, `${d.sections.length} topics`), el('li', {}, `${items.length} lessons`), el('li', {}, `${items.reduce((k, i) => k + i.films.length + i.methods.length, 0)} films`));
+      const p = loadProgress(); const f = loadFilms();
+      renderPlan($('[data-plan]'), d, { done: (s) => !!p.lessons[s]?.d, watched: (k) => isWatched(f, k), emptyNote: 'Nothing on the site for this yet.' });
+      $('[data-tools]').hidden = false;
+    })();
+  </script>
+</BaseLayout>

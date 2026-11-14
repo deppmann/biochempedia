@@ -14,6 +14,8 @@ const titles = Object.fromEntries(lessons.map((l) => [l.data.slug, l.data.title]
 const pathNames = Object.fromEntries(PATHS.map((p) => [p.id, p.label]));
 import Hex from '../../components/Hex.astro';
 import Badge from '../../components/Badge.astro';
+import '../../styles/teach.css';
+import '../../styles/plan.css';
 import { filmCatalog, filmTotal } from '../../lib/film-catalog';
 const catalog = await filmCatalog();
 const filmCount = await filmTotal();
@@ -67,6 +69,16 @@ const filmCourses = courses.filter(({ c }) => catalog.some((f) => f.course === c
       </div>
     </section>
 
+    {/* Study plans (worker/planner.js, 2026-11-14): shown once the planner is set up. Signed-in
+        learners see their saved plans and where they stand, worked out here from this page's own
+        progress record; nothing is asked of the model to show it. */}
+    <section class="tc pl plans-sec" data-plans hidden>
+      <h2>Study plans</h2>
+      <ul class="pl-saved" data-plans-list></ul>
+      <p class="small" data-plans-none>A week-by-week plan from this site's lessons, films, simulations and flashcards, for what you want to learn. Saved with a free account (13 and over).</p>
+      <p><a class="btn" href="/plan/" data-plans-make>Make a study plan →</a></p>
+    </section>
+
     <h2>Courses</h2>
     <ul class="courses">
       {courses.map(({ c, mine }) => (
@@ -104,6 +116,7 @@ const filmCourses = courses.filter(({ c }) => catalog.some((f) => f.course === c
     import { load, dueNow, queued, exportText, importText, clearAll, onChange, STORAGE_KEY } from '../../lib/progress';
     import { loadFilms, keepWatching, onFilmsChange, clearFilms, resumeHref } from '../../lib/film-progress';
     import { showBadges } from '../../lib/badges';
+    import { plannerStatus, planApi, standing, standingText, el, type Plan } from '../../lib/plan-view';
 
     const root = document.querySelector<HTMLElement>('.prog')!;
     const titles: Record<string, string> = JSON.parse(root.getAttribute('data-titles')!);
@@ -177,6 +190,27 @@ const filmCourses = courses.filter(({ c }) => catalog.some((f) => f.course === c
       }
     });
 
+    (async () => {
+      const st = await plannerStatus();
+      if (!st.saved) return;
+      const box = $('[data-plans]')!;
+      box.hidden = false;
+      const make = $<HTMLAnchorElement>('[data-plans-make]')!;
+      if (!st.on) make.textContent = 'Your study plans →';
+      if (!/(?:^|;\s*)bp_signed_in=1/.test(document.cookie)) return;
+      const r = await planApi<{ plans: (Plan & { id: string; title: string; start: number })[] }>('/api/plan/saved');
+      if (!r.ok || !r.data.plans.length) return;
+      $('[data-plans-none]')!.hidden = true;
+      const draw = () => {
+        const p = load();
+        $('[data-plans-list]')!.replaceChildren(...r.data.plans.map((sp) => el('li', {},
+          el('a', { class: 'pl-saved-title', href: `/plan/view/?id=${sp.id}` }, sp.title),
+          el('ul', { class: 'pl-standing' }, ...standingText(standing(sp, sp.start, (s) => !!p.lessons[s]?.d)).map((t) => el('li', {}, t))))));
+      };
+      draw();
+      onChange(draw);
+    })();
+
     $('[data-export]')?.addEventListener('click', () => {
       const blob = new Blob([exportText()], { type: 'application/json' });
       const a = document.createElement('a');
@@ -238,5 +272,7 @@ const filmCourses = courses.filter(({ c }) => catalog.some((f) => f.course === c
       .card:has(.prog-hex) { position: relative; }
     .prog-hex { position: absolute; right: var(--ddp-space-3); top: var(--ddp-space-3); line-height: 0; }
     .prog-hex[hidden] { display: none; }
+    .plans-sec { padding: 0; max-width: none; }
+    .plans-sec[hidden] { display: none; }
 </style>
 </BaseLayout>

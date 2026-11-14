@@ -4,8 +4,8 @@
 // and a nickname (or a code from the teacher's roster); no email, no real name, no
 // password. Lesson pages report what a joined student does; the teacher reads it as
 // a morning brief. No AI model is called in this file; the AI routes are handed to
-// worker/feedback.js (a teacher's own API key), and worker/curious.js and worker/helper.js
-// (the site's key, each with its own caps).
+// worker/feedback.js (a teacher's own API key), and worker/curious.js, worker/planner.js and
+// worker/helper.js (the site's key, each with its own caps).
 //
 // Security: HttpOnly SameSite=Lax cookies; every state-changing request must be
 // JSON from this site's own origin (blocks cross-site form posts); fixed-window rate
@@ -24,6 +24,7 @@ import { handleAi, handleClassAi, briefAi, studentAiOn, PROVIDERS, MODEL_RE } fr
 import { handleCurious } from './curious.js';
 import { handleHelp } from './helper.js';
 import { handleLearner } from './learner.js';
+import { handlePlanner, deleteClassLists } from './planner.js';
 
 const KINDS = ['quiz', 'idea', 'cer', 'done', 'stuck'];
 const MAX_STUDENTS = 200;
@@ -73,6 +74,8 @@ async function purgeStale(db) {
 }
 
 async function deleteClass(db, id) {
+  // Study-planner resource lists (worker/planner.js). Separate, so a database without that table yet is fine.
+  await deleteClassLists(db, id);
   await db.batch([
     db.prepare('DELETE FROM feedback WHERE class_id=?').bind(id),
     db.prepare('DELETE FROM ai_calls WHERE class_id=?').bind(id),
@@ -214,6 +217,8 @@ export async function handleApi(request, env) {
     if (grouped) return grouped;
     // Learner accounts: /api/learner/* (worker/learner.js).
     const learner = await handleLearner(request, env, db, path, method, url); if (learner) return learner;
+    // Study planner: /api/plan/* (worker/planner.js). Signed-in learners and teachers; reports itself off until set up.
+    const planned = await handlePlanner(request, env, db, path, method, url); if (planned) return planned;
     // AI feedback: teacher keys and student feedback (worker/feedback.js).
     const aiRes = await handleAi(request, env, db, path, method, url);
     if (aiRes) return aiRes;

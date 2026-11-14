@@ -13,6 +13,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
 import { COURSES, courseOf, courseHref, courseSkimHref } from '../../../data/courses';
 import { skimOf, guidingIdeaOf, filmTakeawaysOf, wordsIn } from '../../../lib/skim';
 import { rewrittenFor } from '../../../lib/rewritten';
+import LessonLinks from '../../../components/LessonLinks.astro';
 
 export async function getStaticPaths() {
   // Same rule as the lesson route: drafts only in `astro dev`.
@@ -78,6 +79,8 @@ const courseSkim = COURSES.some((c) => c.slug === course.slug) ? courseSkimHref(
         </li>
       ))}
     </ol>
+
+    <LessonLinks slug={lesson.slug} variant="skim" />
 
     <p class="skim-back"><a href={full}>Read the full lesson →</a>{courseSkim && <> <span aria-hidden="true">·</span> <a href={courseSkim}>Skim the whole course →</a></>}</p>
   </article>
