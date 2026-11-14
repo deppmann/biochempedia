@@ -1,6 +1,8 @@
 /* One small JSON file per lesson deck, for the teacher's class brief (/teach/class/):
    it names the cards a class marked "Again" most, so it needs each card's front.
-   Cloze markup is stripped to plain text. Static, written at build; no model runs. */
+   Cloze markup is stripped to plain text. Static, written at build; no model runs.
+   Each card also carries its level and goals (2026-11-14), so the "cards ready" prompt after a film
+   on /watch/ and the play-in-order page can count what the deck panel would show (CardsPrompt.astro). */
 import type { APIRoute } from 'astro';
 import { clozeParts, type Deck } from '../../lib/flashcards';
 
@@ -19,6 +21,6 @@ export async function getStaticPaths() {
 
 export const GET: APIRoute = async ({ props }) => {
   const { deck } = props as { deck: Deck };
-  const body = { slug: deck.slug, title: deck.title, cards: deck.cards.map((c) => ({ id: c.id, front: plainFront(c.front) })) };
+  const body = { slug: deck.slug, title: deck.title, cards: deck.cards.map((c) => ({ id: c.id, level: c.level, goals: c.goals, front: plainFront(c.front) })) };
   return new Response(JSON.stringify(body), { headers: { 'Content-Type': 'application/json' } });
 };

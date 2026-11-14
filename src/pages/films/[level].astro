@@ -1,0 +1,81 @@
+---
+/* One page per level of the film library (2026-11-14): /films/grade-7/, /films/high-school/, ...
+   The level keys are the stage keys in src/data/stages.ts. Every film of the level, grouped by
+   course in course order, with "Play these in order" for each course. Plain HTML: it works with
+   JavaScript off. With scripts, cards get "Watched" marks and each course a "7 of 26 watched" count
+   (src/lib/film-progress.ts, this device only). This is what lets /films/ send only its first 60
+   cards: the full list stays one link away. */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import FilmCard from '../../components/FilmCard.astro';
+import { filmCatalog, filmKey, filmLevelHref, filmPlayHref, type CatalogFilm } from '../../lib/film-catalog';
+import { courseHref } from '../../data/courses';
+import { STAGES, type Stage } from '../../data/stages';
+import '../../styles/film-lib.css';
+
+export async function getStaticPaths() {
+  const films = await filmCatalog();
+  return STAGES.filter((s) => films.some((f) => f.stage === s.key)).map((stage) => ({ params: { level: stage.key }, props: { stage } }));
+}
+
+const { stage } = Astro.props as { stage: Stage };
+const all = await filmCatalog();
+const films = all.filter((f) => f.stage === stage.key);
+const usedStages = STAGES.filter((s) => all.some((f) => f.stage === s.key));
+const courses: { key: string; title: string; films: CatalogFilm[] }[] = [];
+for (const f of films) {
+  let c = courses.find((x) => x.key === f.course);
+  if (!c) courses.push((c = { key: f.course!, title: f.courseTitle, films: [] }));
+  c.films.push(f);
+}
+const fmt = (n: number) => n.toLocaleString('en-US');
+const plural = (n: number, w: string) => `${fmt(n)} ${w}${n === 1 ? '' : 's'}`;
+const minutes = (fs: CatalogFilm[]) => Math.round(fs.reduce((n, f) => n + f.durationSec, 0) / 60);
+const hm = (m: number) => (m < 90 ? `${m} min` : `${Math.floor(m / 60)} h ${m % 60} min`);
+---
+
+<BaseLayout
+  title={`${stage.title}: films — Biochemistrypedia`}
+  description={`Every film for ${stage.title.toLowerCase()} on Biochemistrypedia: ${plural(films.length, 'short narrated film')} in ${plural(courses.length, 'course')}, in course order. Play a course's films back to back.`}
+>
+<div class="film-lib">
+  <header class="wrap fl-head" data-pagefind-ignore>
+    <p class="eyebrow"><a href="/films/">Film library</a> · level</p>
+    <h1 class="lvl-title">{stage.title}</h1>
+    <p class="lede">{plural(films.length, 'film')} in {plural(courses.length, 'course')}, about {hm(minutes(films))} in all. {stage.note}</p>
+    <nav class="lvl-nav" aria-label="Film levels">
+      <a href="/films/">All films</a>
+      {usedStages.map((s) => <a href={filmLevelHref(s.key)} aria-current={s.key === stage.key ? 'page' : undefined}>{s.title}</a>)}
+      <a href="/methods/">Methods library</a>
+    </nav>
+    {courses.length > 1 && (
+      <ol class="toc" aria-label="Courses on this page">
+        {courses.map((c) => <li><a href={`#${c.key}`}>{c.title}</a><span class="n">{fmt(c.films.length)}</span></li>)}
+      </ol>
+    )}
+  </header>
+
+  {courses.map((c) => (
+    <section class="wrap course fl-sec" id={c.key} aria-labelledby={`c-${c.key}-h`} data-pagefind-ignore>
+      <div class="course-h">
+        <h2 id={`c-${c.key}-h`}><a class="ch" href={courseHref(c.key)}>{c.title}</a></h2>
+        <span class="n">{plural(c.films.length, 'film')} · {hm(minutes(c.films))}</span>
+        <span class="seen-n" data-seen-of={c.films.map((f) => filmKey(f.src)).join(' ')} hidden></span>
+        {c.films.length > 1 && <a class="play-link" href={filmPlayHref(c.key)}>Play these in order</a>}
+      </div>
+      <ul class="grid in-course in-level">{c.films.map((f) => <FilmCard film={f} />)}</ul>
+    </section>
+  ))}
+
+  <p class="wrap small fl-sec">
+    Looking for something else? <a href="/films/">Sort and filter the whole library</a>, or see the
+    <a href="/methods/">methods library</a>: a film for each lab technique.
+  </p>
+
+  <script>
+    import { hoverPreviews, liveMarks } from '../../lib/film-cards';
+    const root = document.querySelector<HTMLElement>('.film-lib')!;
+    hoverPreviews(root);
+    liveMarks(root);
+  </script>
+</div>
+</BaseLayout>

@@ -1,443 +1,513 @@
-"""Meiosis and Variation: Meiosis halves and shuffles chromosomes  (Biochemistrypedia explainer)
+"""Homologs First, Sister Chromatids Second.
 
-COLOR MAP (one color per concept, whole video)
-  BLUE   = a chromosome that came from the mother (in the model cell)
-  ORANGE = a chromosome that came from the father (in the model cell)
-  GREY   = a body (diploid) cell outline, labels, de-emphasized
-  GREEN  = a haploid cell / sex cell (gamete) outline
-  TEAL   = a vocabulary term label, shown the moment it is spoken
-  PINK   = chromosomes in an egg, PURPLE = chromosomes in a sperm (last scene only)
-  YELLOW = the count of combinations, and what is highlighted
-Chromosomes are drawn only as labelled bars. No molecules, no helix.
-Model cell: 3 pairs (the real human number is 23).
+COLOR MAP
+  GREEN  chromosome inherited from one parent
+  ORANGE chromosome inherited from the other parent
+  BLUE   cell boundary
+  YELLOW current action / centromere connection
+  TEXT   explanatory labels
+
+The chromosome and cell builders below are the single source for every carried
+picture.  Chromosomes are schematic rods only; no DNA or molecular structure is
+drawn.
 """
-import numpy as np
-from bp_style import *  # noqa: F401,F403
+from bp_parts import *
 
-DAD = "#F29E4C"
-MOM = BLUE
-EGGC = ["#F4A3C8", "#D0457F"]   # the egg's chromosomes (pink family; two shades keep pairs apart)
-SPC = ["#C6B3F5", "#7B4FD6"]    # the sperm's chromosomes (purple family)
-PH = [1.5, 1.1, 0.8]      # bar height of pair 1, 2, 3 (so the pairs can be told apart)
-XP = [-1.2, 0.0, 1.2]     # x of each pair inside the big cell
+PARENT_A = GREEN
+PARENT_B = ORANGE
+CELL = BLUE
+ACTION = YELLOW
 
 
-def rbar(color, h, w=0.26, fo=0.55):
-    return RoundedRectangle(corner_radius=min(0.08, w / 2.5), width=w, height=h, stroke_color=color,
-                            stroke_width=2.5, fill_color=color, fill_opacity=fo)
-
-
-def dbl(color, h):
-    """a copied chromosome: two identical copies (sister chromatids) joined side by side."""
-    return VGroup(rbar(color, h, 0.13), rbar(color, h, 0.13)).arrange(RIGHT, buff=0.02)
-
-
-def cellc(center, r, color=GREY):
-    return Circle(radius=r, stroke_color=color, stroke_width=4, fill_color=color, fill_opacity=0.08).move_to(center)
-
-
-def term(text, size=26):
-    return chip(text, TEAL, size=size)
-
-
-def banner(text, size=28, y=-3.05):
-    return T(text, size, TEXT).move_to([0, y, 0])
-
-
-def arr(a, b, color=GREY, w=5):
-    return Arrow(a, b, buff=0.05, color=color, stroke_width=w, tip_length=0.2,
-                 max_tip_length_to_length_ratio=0.45, max_stroke_width_to_length_ratio=12)
-
-
-def P(x, y):
+def pt(x, y):
     return np.array([x, y, 0.0])
 
 
-class S00Title(TitleCard):
-    LESSON = "Meiosis and Variation"
-    TITLE = "Meiosis halves and shuffles chromosomes"
+def rod(color, height, center=ORIGIN, width=0.34):
+    return RoundedRectangle(
+        corner_radius=0.15,
+        width=width,
+        height=height,
+        stroke_color=color,
+        stroke_width=4,
+        fill_color=color,
+        fill_opacity=0.58,
+    ).move_to(center)
 
 
-# ---------------------------------------------------------------------------------------------
-class S01Question(SpokenScene):
-    """The puzzle: same two parents, children who are not the same."""
+def copied_chromosome(color, height, center=ORIGIN, scale=1.0, connection=True):
+    """A copied chromosome: two sister rods joined at one yellow connection."""
+    a = rod(color, height * scale, width=0.26 * scale).rotate(0.43)
+    b = rod(color, height * scale, width=0.26 * scale).rotate(-0.43)
+    g = VGroup(a, b).move_to(center)
+    if connection:
+        c = Dot(g.get_center(), radius=0.11 * scale, color=ACTION)
+        g.add(c)
+        g.connection = c
+    return g
 
+
+def cell_outline(center=ORIGIN, rx=3.0, ry=2.65, stroke=4):
+    return Ellipse(
+        width=2 * rx,
+        height=2 * ry,
+        stroke_color=CELL,
+        stroke_width=stroke,
+        fill_color=CELL,
+        fill_opacity=0.15,
+    ).move_to(center)
+
+
+def starting_cell(center=pt(0, -0.2), copied=False, brackets=False):
+    """The same two-pair diploid model used throughout scenes 1--4."""
+    cx, cy = center[:2]
+    boundary = cell_outline(center)
+    make = copied_chromosome if copied else rod
+    if copied:
+        chroms = VGroup(
+            make(PARENT_A, 2.25, pt(cx - 0.72, cy + 0.90), scale=1.0),
+            make(PARENT_B, 2.25, pt(cx + 0.72, cy + 0.90), scale=1.0),
+            make(PARENT_A, 1.25, pt(cx - 0.72, cy - 1.25), scale=1.0),
+            make(PARENT_B, 1.25, pt(cx + 0.72, cy - 1.25), scale=1.0),
+        )
+    else:
+        chroms = VGroup(
+            make(PARENT_A, 2.25, pt(cx - 0.72, cy + 0.90)),
+            make(PARENT_B, 2.25, pt(cx + 0.72, cy + 0.90)),
+            make(PARENT_A, 1.25, pt(cx - 0.72, cy - 1.25)),
+            make(PARENT_B, 1.25, pt(cx + 0.72, cy - 1.25)),
+        )
+    g = VGroup(boundary, chroms)
+    g.boundary, g.chroms = boundary, chroms
+    if brackets:
+        long_b = Brace(VGroup(chroms[0], chroms[1]), LEFT, color=ACTION)
+        short_b = Brace(VGroup(chroms[2], chroms[3]), LEFT, color=ACTION)
+        g.add(long_b, short_b)
+        g.brackets = VGroup(long_b, short_b)
+    return g
+
+
+def divided_cells(copied=True, pulse_connections=False):
+    """The carried state after division one: mixed homologs in two cells."""
+    cells = VGroup()
+    specs = [(-3.15, ((PARENT_A, PARENT_B),)), (3.15, ((PARENT_B, PARENT_A),))]
+    for x, mix_wrap in specs:
+        long_c, short_c = mix_wrap[0]
+        boundary = cell_outline(pt(x, -0.15), rx=2.35, ry=2.5)
+        if copied:
+            long_m = copied_chromosome(long_c, 2.25, pt(x - 0.48, 0.55), scale=0.92)
+            short_m = copied_chromosome(short_c, 1.35, pt(x + 0.62, -1.05), scale=0.92)
+        else:
+            long_m = rod(long_c, 2.05, pt(x - 0.48, 0.55), width=0.30)
+            short_m = rod(short_c, 1.20, pt(x + 0.62, -1.05), width=0.30)
+        one = VGroup(boundary, long_m, short_m)
+        one.boundary, one.long_m, one.short_m = boundary, long_m, short_m
+        if pulse_connections and copied:
+            pulse(long_m.connection, base=2.5, amp=2.0, speed=2.3)
+            pulse(short_m.connection, base=2.5, amp=2.0, speed=2.3)
+        cells.add(one)
+    return cells
+
+
+def sway(m, amp=0.35, speed=2.4, seed=0.0):
+    """Rock a chromosome about its own centre (incremental, so it composes with a parent bob)."""
+    m._sw_t = seed
+
+    def u(mob, dt):
+        mob._sw_t += dt
+        mob.rotate(amp * speed * np.cos(speed * mob._sw_t) * dt, about_point=mob.get_center())
+    return m.add_updater(u)
+
+
+def animate_held(cells):
+    """Ambient motion for the held predict picture: cells drift, chromosomes rock, outlines breathe."""
+    for i, c in enumerate(cells):
+        pulse(c.boundary, base=4.0, amp=1.0, speed=2.6)
+        bob(c, amp=0.30, speed=2.0, seed=0 if c.get_x() < 0 else 2)
+        sway(c.long_m, seed=i)
+        sway(c.short_m, amp=0.45, speed=2.9, seed=i + 1.3)
+    return cells
+
+
+def four_cells():
+    """The carried state after division two."""
+    group = VGroup()
+    for x, y, lc, sc in [
+        (-2.75, 1.35, PARENT_A, PARENT_B), (2.75, 1.35, PARENT_A, PARENT_B),
+        (-2.75, -1.35, PARENT_B, PARENT_A), (2.75, -1.35, PARENT_B, PARENT_A),
+    ]:
+        boundary = cell_outline(pt(x, y), rx=1.02, ry=1.15, stroke=3.5)
+        long_m = rod(lc, 1.25, pt(x - 0.25, y), width=0.22)
+        short_m = rod(sc, 0.78, pt(x + 0.28, y), width=0.22)
+        one = VGroup(boundary, long_m, short_m)
+        one.boundary = boundary
+        group.add(one)
+    return group
+
+
+def parent_key():
+    a = VGroup(Dot(color=PARENT_A, radius=0.09), T("one parent", 28, PARENT_A)).arrange(RIGHT, buff=0.14)
+    b = VGroup(Dot(color=PARENT_B, radius=0.09), T("other parent", 28, PARENT_B)).arrange(RIGHT, buff=0.14)
+    return VGroup(a, b).arrange(DOWN, aligned_edge=LEFT, buff=0.18)
+
+
+class S01Hook(SpokenScene):
     def construct(self):
-        mother = chip("mother", MOM, 30).move_to(P(-2.6, 2.6))
-        father = chip("father", DAD, 30).move_to(P(2.6, 2.6))
-        self.at("Why don't siblings")
-        self.play(FadeIn(mother, shift=DOWN * 0.2), FadeIn(father, shift=DOWN * 0.2), run_time=0.7)
-        kids, ars = [], []
-        for k, x in enumerate([-4.2, 0.0, 4.2]):
-            box = RoundedRectangle(corner_radius=0.2, width=3.4, height=2.4, stroke_color=GREY, stroke_width=3,
-                                   fill_color=GREY, fill_opacity=0.08).move_to(P(x, -0.6))
-            half1 = Rectangle(width=1.2, height=0.9, stroke_width=0, fill_color=MOM, fill_opacity=0.6)
-            half2 = Rectangle(width=1.2, height=0.9, stroke_width=0, fill_color=DAD, fill_opacity=0.6)
-            bar_ = VGroup(half1, half2).arrange(RIGHT, buff=0).move_to(box.get_center() + UP * 0.4)
-            lab = T(f"child {k + 1}", 26, TEXT).move_to(box.get_center() + DOWN * 0.55)
-            kids.append(VGroup(box, bar_, lab))
-        self.at("exactly alike")
-        self.play(*[FadeIn(k, shift=UP * 0.2) for k in kids], run_time=0.9)
-        for k, x in zip(kids, [-4.2, 0.0, 4.2]):
-            if x < 0:
-                ars.append(arr(P(-3.0, 2.15), k[0].get_top() + UP * 0.05, MOM))
-            elif x > 0:
-                ars.append(arr(P(3.0, 2.15), k[0].get_top() + UP * 0.05, DAD))
-            else:
-                ars.append(arr(P(-2.4, 2.15), k[0].get_top() + P(-0.3, 0.05), MOM))
-                ars.append(arr(P(2.4, 2.15), k[0].get_top() + P(0.3, 0.05), DAD))
-        self.at("same two parents")
-        self.play(*[GrowArrow(a) for a in ars], run_time=0.8)
-        self.at("half of their chromosomes")
-        half_t = T("half from each parent", 30, YELLOW).move_to(P(0, -2.6))
-        self.play(FadeIn(half_t, shift=UP * 0.15), run_time=0.6)
-        self.at("almost never")
-        qs = [T("?", 64, YELLOW, weight=BOLD).move_to(k[0].get_corner(UR) + P(-0.3, -0.15)) for k in kids]
-        diff = T("not the same mix", 30, RED).move_to(P(0, -2.6))
-        self.play(FadeOut(half_t), FadeIn(diff), *[FadeIn(q, scale=1.4) for q in qs], run_time=0.8)
-        self.at("how eggs and sperm")
-        egg = chip("egg", GREEN, 28).move_to(P(-2.6, 1.55))
-        sperm = chip("sperm", GREEN, 28).move_to(P(2.6, 1.55))
-        self.play(FadeOut(diff), FadeOut(VGroup(*ars)),
-                  FadeIn(egg, shift=DOWN * 0.3), FadeIn(sperm, shift=DOWN * 0.3), run_time=0.9)
-        hint = T("how are they made?", 36, YELLOW).move_to(P(0, -2.6))
-        self.play(FadeIn(hint, shift=UP * 0.15), run_time=0.6)
+        world = starting_cell(brackets=False)
+        pulse(world.boundary, base=4.0, amp=0.7, speed=1.4)
+        self.play(FadeIn(world.boundary), run_time=0.7)
+        self.play(LaggedStart(*[FadeIn(c, shift=UP * 0.12) for c in world.chroms], lag_ratio=0.12), run_time=1.2)
+        self.at("losing any chromosome type")
+        q = T("How can a cell halve its sets?", 34, ACTION, weight=BOLD).move_to(pt(0, 3.28))
+        self.play(FadeIn(q, shift=DOWN * 0.12), run_time=0.55)
+        self.at("Watch this cell")
+        self.play(Rotate(world.chroms, angle=0.10), run_time=1.2, rate_func=there_and_back)
+        self.at("a large pair")
+        long_b = Brace(VGroup(world.chroms[0], world.chroms[1]), LEFT, color=ACTION)
+        self.play(GrowFromCenter(long_b), run_time=0.55)
+        self.at("a small pair")
+        short_b = Brace(VGroup(world.chroms[2], world.chroms[3]), LEFT, color=ACTION)
+        self.play(GrowFromCenter(short_b), run_time=0.55)
+        self.at("Green chromosomes")
+        key = parent_key().move_to(pt(4.75, 1.0))
+        self.play(FadeIn(key[0], shift=LEFT * 0.15), Indicate(VGroup(world.chroms[0], world.chroms[2]), color=PARENT_A), run_time=0.8)
+        self.at("Orange chromosomes")
+        self.play(FadeIn(key[1], shift=LEFT * 0.15), Indicate(VGroup(world.chroms[1], world.chroms[3]), color=PARENT_B), run_time=0.8)
+        self.at("Every pair")
+        title = T("Homologs First, Sister Chromatids Second", 28, TEXT, font=TITLE_FONT).move_to(pt(0, 3.28))
+        self.play(swap(q, title), Indicate(VGroup(long_b, short_b), color=ACTION), run_time=0.9)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S02Sets(SpokenScene):
-    """A model diploid cell (3 pairs), then a haploid gamete."""
-
+class S02Homologs(SpokenScene):
     def construct(self):
-        CY = 0.4
-        cell = cellc(P(0, CY), 2.3)
-        bars = []
-        for i in range(3):
-            b = rbar(MOM, PH[i]).move_to(P(XP[i] - 0.2, CY))
-            o = rbar(DAD, PH[i]).move_to(P(XP[i] + 0.2, CY))
-            bars += [b, o]
-        self.at("A typical cell")
-        self.play(FadeIn(cell), *[FadeIn(b, scale=0.8) for b in bars], run_time=0.8)
-        lab46 = T("46 chromosomes in 23 pairs", 28, TEXT).move_to(P(0, 3.2))
-        note = T("model cell: 3 pairs shown, not 23", 22, GREY).move_to(P(0, -3.3))
-        self.at("46 chromosomes")
-        self.play(FadeIn(lab46, shift=DOWN * 0.1), FadeIn(note), run_time=0.6)
-        self.at("from your mother")
-        leg_m = chip("from mother", MOM, 22).move_to(P(-1.5, -2.55))
-        self.play(FadeIn(leg_m), *[Indicate(bars[k], color=MOM, scale_factor=1.12) for k in (0, 2, 4)], run_time=0.8)
-        self.at("from your father")
-        leg_f = chip("from father", DAD, 22).move_to(P(1.5, -2.55))
-        self.play(FadeIn(leg_f), *[Indicate(bars[k], color=DAD, scale_factor=1.12) for k in (1, 3, 5)], run_time=0.8)
-        self.at("diploid")
-        dip = term("diploid: two sets", 26).move_to(P(0, -2.55))
-        self.play(FadeOut(VGroup(leg_m, leg_f)), FadeIn(dip, shift=UP * 0.1), run_time=0.5)
-        gcell = cellc(P(4.0, CY), 1.5, GREEN)
-        gbars = []
-        for k, (col, i) in enumerate([(MOM, 0), (DAD, 1), (MOM, 2)]):
-            gbars.append(rbar(col, PH[i] * 0.8).move_to(P(4.0 + [-0.6, 0.0, 0.6][k], CY)))
-        self.at("haploid")
-        hap = term("haploid: one set", 26).move_to(P(4.0, -1.75))
-        leg_m2 = chip("from mother", MOM, 22).move_to(P(2.6, 3.2))
-        leg_f2 = chip("from father", DAD, 22).move_to(P(5.0, 3.2))
-        self.play(VGroup(cell, *bars, lab46, dip).animate.shift(LEFT * 3.2), run_time=0.7)
-        self.play(FadeIn(gcell, scale=0.8), *[FadeIn(b, scale=0.8) for b in gbars], FadeIn(hap, shift=UP * 0.1),
-                  FadeIn(leg_m2), FadeIn(leg_f2), run_time=0.9)
-        self.at("a gamete")
-        gam = term("gamete: egg or sperm", 26).move_to(P(4.0, 2.35))
-        self.play(FadeIn(gam, shift=DOWN * 0.1), run_time=0.6)
-        self.at("23 chromosomes")
-        n23 = T("23 chromosomes", 28, YELLOW).move_to(P(4.0, -2.55))
-        self.play(FadeIn(n23, shift=UP * 0.1), run_time=0.6)
+        world = starting_cell(brackets=True)
+        pulse(world.boundary, base=4.0, amp=0.7, speed=1.4)
+        self.add(world)
+        long_pair = VGroup(world.chroms[0], world.chroms[1])
+        others = VGroup(world.chroms[2], world.chroms[3], world.brackets)
+        self.at("partners in each pair")
+        self.play(FadeOut(others), long_pair.animate.scale(1.35).move_to(pt(0, 0)), run_time=1.0)
+        self.at("homologous chromosomes")
+        hom = T("HOMOLOGOUS CHROMOSOMES", 32, ACTION, weight=BOLD).move_to(pt(0, 3.15))
+        self.play(FadeIn(hom, shift=DOWN * 0.12), run_time=0.5)
+        self.at("genes in matching positions")
+        bands = VGroup()
+        for y in (-0.75, 0.0, 0.78):
+            pair = VGroup()
+            for c in long_pair:
+                band = Rectangle(width=0.58, height=0.17, stroke_width=0, fill_color=TEXT, fill_opacity=0.92).move_to(pt(c.get_x(), y))
+                pair.add(band)
+            bands.add(pair)
+        self.play(LaggedStart(*[FadeIn(b, shift=LEFT * 0.15) for b in bands], lag_ratio=0.18), run_time=1.1)
+        scan = Line(pt(-1.75, -0.75), pt(1.75, -0.75), color=ACTION, stroke_width=5).set_opacity(0.65)
+        bob(scan, amp=0.55, speed=0.85)
+        self.add(scan)
+        self.at("alleles may differ")
+        A = T("A", 30, BG, weight=BOLD).move_to(bands[1][0])
+        a = T("a", 30, BG, weight=BOLD).move_to(bands[1][1])
+        A.layout_ok = a.layout_ok = True
+        self.play(FadeIn(A), FadeIn(a), run_time=0.6)
+        # The zoomed pair keeps drifting gently (script visual note); each piece on screen gets the same
+        # bob so rods, bands and allele letters move as one (a new VGroup would not be in the scene).
+        drift = [world.chroms[0], world.chroms[1], *bands, A, a]
+        for m in drift:
+            bob(m, amp=0.09, speed=1.3)
+        self.at("An allele")
+        allele = T("allele = a version of a gene", 30, TEXT).move_to(pt(0, -3.32))
+        self.play(FadeIn(allele, shift=UP * 0.12), run_time=0.6)
+        self.at("Matching does not mean identical")
+        self.play(Indicate(A, color=ACTION), Indicate(a, color=ACTION), run_time=0.9)
+        self.at("starting cell is diploid")
+        pulled = starting_cell(brackets=False)
+        dip = T("DIPLOID · both members of every pair", 30, ACTION).move_to(pt(0, 3.15))
+        scan.clear_updaters()
+        for m in drift:
+            m.clear_updaters()
+        self.play(FadeOut(VGroup(bands, A, a, allele, scan)), ReplacementTransform(VGroup(world.boundary, long_pair), pulled), swap(hom, dip), run_time=1.15)
+        pulse(pulled.boundary, base=4.0, amp=0.7, speed=1.4)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S03Divide(SpokenScene):
-    """Copy once, divide twice: pairs apart, then copies apart -> four cells."""
-
+class S03Copy(SpokenScene):
     def construct(self):
-        CY = 0.4
-        # carried over from the last scene
-        cell = cellc(P(-3.2, CY), 2.3)
-        ob, oo = [], []
-        for i in range(3):
-            ob.append(rbar(MOM, PH[i]).move_to(P(-3.2 + XP[i] - 0.2, CY)))
-            oo.append(rbar(DAD, PH[i]).move_to(P(-3.2 + XP[i] + 0.2, CY)))
-        gcell = cellc(P(4.0, CY), 1.5, GREEN)
-        gb = [rbar(c, PH[i] * 0.8).move_to(P(4.0 + [-0.6, 0.0, 0.6][k], CY))
-              for k, (c, i) in enumerate([(MOM, 0), (DAD, 1), (MOM, 2)])]
-        self.add(cell, *ob, *oo, gcell, *gb)
-        main = VGroup(cell, *ob, *oo)
-        self.at("Meiosis")
-        title = T("Meiosis", 40, TEXT, font=TITLE_FONT).move_to(P(0, 3.15))
-        self.play(FadeOut(VGroup(gcell, *gb)), main.animate.shift(RIGHT * 3.2), FadeIn(title), run_time=0.9)
-        self.at("diploid cell")
-        dip = term("diploid", 26).move_to(P(0, -2.55))
-        self.play(FadeIn(dip, shift=UP * 0.1), run_time=0.5)
-        # --- copy -----------------------------------------------------------------------
-        self.at("copies its")
-        b1 = banner("1 · The DNA is copied once")
-        dB = [dbl(MOM, PH[i]).move_to(ob[i]) for i in range(3)]
-        dO = [dbl(DAD, PH[i]).move_to(oo[i]) for i in range(3)]
-        self.play(FadeOut(dip), FadeIn(b1, shift=UP * 0.1),
-                  *[ReplacementTransform(ob[i], dB[i]) for i in range(3)],
-                  *[ReplacementTransform(oo[i], dO[i]) for i in range(3)], run_time=1.0)
-        self.at("sister chromatids")
-        sc = term("sister chromatids", 26).move_to(P(4.3, 1.7))
-        pt = arr(P(sc.get_left()[0], 1.6), dO[2].get_right() + P(0.05, 0.25), TEAL)
-        self.play(FadeIn(sc, shift=LEFT * 0.2), GrowArrow(pt), Indicate(dO[2], color=TEAL, scale_factor=1.25),
-                  run_time=0.9)
-        # --- divides twice ------------------------------------------------------------------
-        self.at("divides twice")
-        b2 = banner("2 · The cell divides twice")
-        self.play(FadeOut(VGroup(sc, pt)), ReplacementTransform(b1, b2), run_time=0.6)
-        # --- first division -------------------------------------------------------------------
-        self.at("the first division")
-        b3 = banner("First division: the pairs are pulled apart")
-        self.play(ReplacementTransform(b2, b3), run_time=0.5)
-        left_set = [(dB[0], 0), (dO[1], 1), (dB[2], 2)]
-        right_set = [(dO[0], 0), (dB[1], 1), (dO[2], 2)]
-        cr = cell.copy()
-        self.add(cr)
-        self.at("pulled apart")
-        k = 0.674
-        L, R = P(-3.1, CY), P(3.1, CY)
-        anims = [cell.animate.scale(k).move_to(L), cr.animate.scale(k).move_to(R)]
-        for j, (d, i) in enumerate(left_set):
-            anims.append(d.animate.scale(0.8).move_to(P(L[0] + [-0.6, 0.0, 0.6][j], CY)))
-        for j, (d, i) in enumerate(right_set):
-            anims.append(d.animate.scale(0.8).move_to(P(R[0] + [-0.6, 0.0, 0.6][j], CY)))
-        self.play(*anims, run_time=1.3)
-        # --- second division ------------------------------------------------------------------
-        self.at("In the second")
-        b4 = banner("Second division: the copies are pulled apart")
-        self.play(ReplacementTransform(b3, b4), run_time=0.5)
-        cl2, cr2 = cell.copy(), cr.copy()
-        self.add(cl2, cr2)
-        self.at("sister chromatids", nth=1)
-        k2 = 1.2 / 1.55
-        cents = [(-4.5, cell, left_set, -3.1), (-1.5, cl2, left_set, -3.1), (1.5, cr, right_set, 3.1), (4.5, cr2, right_set, 3.1)]
-        anims = [cell.animate.scale(k2).move_to(P(-4.5, CY)), cl2.animate.scale(k2).move_to(P(-1.5, CY)),
-                 cr.animate.scale(k2).move_to(P(1.5, CY)), cr2.animate.scale(k2).move_to(P(4.5, CY))]
-        for (sset, c1, c2) in [(left_set, -4.5, -1.5), (right_set, 1.5, 4.5)]:
-            for j, (d, i) in enumerate(sset):
-                col = MOM if d in dB else DAD
-                s1 = rbar(col, PH[i] * 0.7, 0.2).move_to(P(c1 + [-0.5, 0.0, 0.5][j], CY))
-                s2 = rbar(col, PH[i] * 0.7, 0.2).move_to(P(c2 + [-0.5, 0.0, 0.5][j], CY))
-                anims += [Transform(d[0], s1), Transform(d[1], s2)]
-        self.play(*anims, run_time=1.8)
-        self.at("four cells form")
-        for c in (cell, cl2, cr, cr2):
-            pass
-        res = term("4 haploid cells", 28).move_to(P(0, -1.75))
-        n3 = T("3 chromosomes each (model cell)", 24, GREY).move_to(P(0, -2.4))
-        self.play(FadeOut(b4),
-                  *[c.animate.set_stroke(GREEN) for c in (cell, cl2, cr, cr2)],
-                  FadeIn(res, shift=UP * 0.1), FadeIn(n3), run_time=1.0)
+        world = starting_cell()
+        pulse(world.boundary, base=4.0, amp=0.7, speed=1.4)
+        self.add(world)
+        self.at("each chromosome copies")
+        copied = starting_cell(copied=True)
+        sweep = Rectangle(width=0.35, height=5.2, stroke_width=0, fill_color=ACTION, fill_opacity=0.28).move_to(pt(-2.25, -0.2))
+        self.add(sweep)
+        self.play(
+            *[ReplacementTransform(world.chroms[i], copied.chroms[i]) for i in range(4)],
+            sweep.animate.shift(RIGHT * 4.5),
+            run_time=1.6,
+        )
+        self.remove(sweep)
+        self.at("Each rod becomes")
+        sisters = T("JOINED SISTER CHROMATIDS", 30, ACTION).move_to(pt(0, 3.18))
+        self.play(FadeIn(sisters, shift=DOWN * 0.12), Indicate(copied.chroms[0], color=ACTION), run_time=0.8)
+        self.at("DNA amount doubled")
+        amount = ValueTracker(1)
+        read = Readout(
+            [("chromosomes", lambda: 4, "{:.0f}", TEXT), ("DNA amount", lambda: amount.get_value(), "×{:.0f}", ACTION)],
+            at=pt(4.5, -1.9), widest=[4, 2], size=28, title="copying",
+        )
+        self.play(FadeIn(read), amount.animate.set_value(2), copied.animate.shift(LEFT * 1.35), world.boundary.animate.shift(LEFT * 1.35), run_time=1.2)
+        bob(copied, amp=0.14, speed=1.0)
+        self.at("chromosome count did not")
+        self.play(Indicate(read, color=ACTION), run_time=0.7)
+        self.at("An X shape")
+        xlab = T("one copied chromosome", 28, TEXT).move_to(pt(4.5, 0.45))
+        arrow = Arrow(xlab.get_left(), copied.chroms[1].get_right(), buff=0.15, color=ACTION, stroke_width=4)
+        self.play(FadeIn(xlab), GrowArrow(arrow), run_time=0.7)
+        self.at("Count join sister")
+        one = T("count as 1", 30, ACTION, weight=BOLD).move_to(pt(4.5, 0.45))
+        self.play(FadeOut(VGroup(xlab, arrow)), FadeIn(one), Indicate(copied.chroms[1].connection, color=ACTION, scale_factor=1.8), run_time=0.8)
+        self.at("connection separates")
+        self.play(Flash(copied.chroms[1].connection, color=ACTION, flash_radius=0.45), run_time=0.7)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S04Cross(SpokenScene):
-    """Way one: crossing over swaps matching pieces between the two chromosomes of a pair."""
-
+class S04FirstDivision(SpokenScene):
     def construct(self):
-        W, HP = 0.7, 2.2
-        TOPY, BOTY = 1.3, -0.9
-
-        def piece(color, y, letter, x):
-            r = Rectangle(width=W, height=HP, stroke_color=color, stroke_width=3, fill_color=color, fill_opacity=0.5)
-            band = Rectangle(width=W, height=0.34, stroke_width=0, fill_color=TEXT, fill_opacity=0.9)
-            ltr = T(letter, 24, BG, weight=BOLD)
-            g = VGroup(r, band, ltr)
-            band.move_to(r), ltr.move_to(band)
-            g.move_to(P(x, y))
-            return g
-
-        XB, XO = 1.0, 5.2
-        bt, bb = piece(MOM, TOPY, "A", XB), piece(MOM, BOTY, "B", XB)
-        ot, ob_ = piece(DAD, TOPY, "a", XO), piece(DAD, BOTY, "b", XO)
-        self.at("Meiosis mixes")
-        self.play(*[FadeIn(m, scale=0.9) for m in (bt, bb, ot, ob_)], run_time=0.8)
-        leg1 = chip("blue: from your mother", MOM, 22).move_to(P(-3.4, -2.0))
-        leg2 = chip("orange: from your father", DAD, 22).move_to(P(-3.4, -2.8))
-        self.play(FadeIn(leg1), FadeIn(leg2), run_time=0.5)
-        self.at("allele is")
-        al = T("A and a: two versions", 28, TEXT).move_to(P(-3.4, 1.65))
-        al2 = T("(alleles) of one gene", 28, TEXT).move_to(P(-3.4, 1.15))
-        self.play(FadeIn(al), FadeIn(al2), Indicate(bt[1], color=YELLOW, scale_factor=1.3),
-                  Indicate(ot[1], color=YELLOW, scale_factor=1.3), run_time=1.0)
-        self.at("crossing over")
-        chip1 = term("crossing over", 30).move_to(P(-3.4, 2.85))
-        self.play(FadeIn(chip1, shift=DOWN * 0.1), run_time=0.5)
-        self.at("side by side")
-        self.play(VGroup(bt, bb).animate.shift(RIGHT * 2.0), VGroup(ot, ob_).animate.shift(LEFT * 1.2), run_time=1.0)
-        self.at("swap matching pieces")
-        self.play(CyclicReplace(bb, ob_, path_arc=PI * 0.6), run_time=1.4)
-        self.at("alleles from both")
-        txt = T("one chromosome now has", 26, TEXT).move_to(P(-3.4, -0.35))
-        txt2 = T("pieces from both parents", 26, YELLOW).move_to(P(-3.4, -0.8))
-        a = arr(P(-1.05, -0.55), P(2.5, -0.55), YELLOW)
-        self.play(FadeIn(txt), FadeIn(txt2), GrowArrow(a), run_time=0.9)
+        world = starting_cell(copied=True)
+        pulse(world.boundary, base=4.0, amp=0.7, speed=1.4)
+        self.add(world)
+        self.at("homologous chromosomes meet")
+        self.play(world.chroms.animate.arrange_in_grid(rows=2, cols=2, buff=(0.38, 0.28)).move_to(pt(0, -0.1)), run_time=1.0)
+        self.at("first division")
+        arrows = VGroup(
+            Arrow(pt(-0.5, 0.7), pt(-2.35, 0.7), color=ACTION, buff=0.05),
+            Arrow(pt(0.5, 0.7), pt(2.35, 0.7), color=ACTION, buff=0.05),
+            Arrow(pt(-0.5, -0.85), pt(-2.35, -0.85), color=ACTION, buff=0.05),
+            Arrow(pt(0.5, -0.85), pt(2.35, -0.85), color=ACTION, buff=0.05),
+        )
+        self.play(LaggedStart(*[GrowArrow(a) for a in arrows], lag_ratio=0.12), run_time=0.85)
+        self.at("each homolog moves away")
+        target = divided_cells(copied=True)
+        self.play(
+            FadeOut(arrows),
+            ReplacementTransform(world.boundary, VGroup(target[0].boundary, target[1].boundary)),
+            ReplacementTransform(world.chroms[0], target[0].long_m),
+            ReplacementTransform(world.chroms[3], target[0].short_m),
+            ReplacementTransform(world.chroms[1], target[1].long_m),
+            ReplacementTransform(world.chroms[2], target[1].short_m),
+            run_time=1.8,
+        )
+        moving_left = VGroup(target[0].long_m, target[0].short_m)
+        moving_right = VGroup(target[1].long_m, target[1].short_m)
+        bob(moving_left, amp=0.34, speed=0.9, seed=0)
+        bob(moving_right, amp=0.34, speed=0.9, seed=2)
+        self.add(moving_left, moving_right)
+        self.at("green long chromosome")
+        self.play(Indicate(target[0].long_m, color=PARENT_A), Indicate(target[0].short_m, color=PARENT_B), run_time=0.9)
+        self.at("other homologs")
+        self.play(Indicate(target[1].long_m, color=PARENT_B), Indicate(target[1].short_m, color=PARENT_A), run_time=0.9)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S05Shuffle(SpokenScene):
-    """Way two: independent assortment. Each pair doubles the combinations: 2 x 2 x 2 = 8; 23 pairs = 2^23."""
-
+class S05Predict(SpokenScene):
     def construct(self):
-        H5 = [1.25, 0.9, 0.6]
-        PX = [-3.5, 0.0, 3.5]
-        pairs = VGroup()
-        pb, po, plabs = [], [], []
-        for i in range(3):
-            b = rbar(MOM, H5[i] + 0.2).move_to(P(PX[i] - 0.25, 1.9))
-            o = rbar(DAD, H5[i] + 0.2).move_to(P(PX[i] + 0.25, 1.9))
-            lab = T(f"pair {i + 1}", 24, GREY).move_to(P(PX[i], 0.95))
-            pb.append(b), po.append(o), plabs.append(lab)
-            pairs.add(b, o, lab)
-        self.at("The second way")
-        self.play(FadeIn(pairs, shift=DOWN * 0.15), run_time=0.8)
-        self.at("independent assortment")
-        head = term("independent assortment", 30).move_to(P(0, 3.15))
-        self.play(FadeIn(head, shift=DOWN * 0.1), run_time=0.5)
-
-        def gam(choices, x, y=-0.65):
-            box = RoundedRectangle(corner_radius=0.15, width=1.4, height=1.8, stroke_color=GREEN, stroke_width=3,
-                                   fill_color=GREEN, fill_opacity=0.08).move_to(P(x, y))
-            g = VGroup(box)
-            for j, c in enumerate(choices):
-                col = MOM if c == 0 else DAD
-                g.add(rbar(col, H5[j], 0.22).move_to(P(x + [-0.4, 0.0, 0.4][j], y)))
-            return g
-
-        self.at("lines up and separates")
-        self.play(*[Indicate(m, scale_factor=1.15) for m in (pb[0], po[1], pb[2])], run_time=0.8)
-        self.at("one chromosome from each pair")
-        sample = gam([0, 1, 0], 0.0)
-        cap = T("a normal sex cell: one from each pair", 26, GREEN).move_to(P(0, -2.45))
-        self.play(FadeIn(sample, shift=UP * 0.3), FadeIn(cap), run_time=0.9)
-        self.at("either chromosome")
-        self.play(*[Indicate(m, color=YELLOW, scale_factor=1.15) for m in (pb[0], po[0])], run_time=0.8)
-        # --- doubling ----------------------------------------------------------------------
-        self.at("every pair")
-        self.play(FadeOut(sample), FadeOut(cap), run_time=0.4)
-
-        def stage(k):
-            n = 2 ** k
-            out = []
-            for idx in range(n):
-                bits = [(idx >> (k - 1 - j)) & 1 for j in range(k)]
-                out.append(gam(bits, (idx - (n - 1) / 2) * 1.6))
-            return out
-
-        s1 = stage(1)
-        c1 = T("1 pair: 2 choices", 30, YELLOW).move_to(P(0, -2.45))
-        self.play(*[FadeIn(g, shift=UP * 0.2) for g in s1], FadeIn(c1), run_time=0.8)
-        self.at("combinations")
-        s2 = stage(2)
-        c2 = T("2 pairs: 2 × 2 = 4", 30, YELLOW).move_to(P(0, -2.45))
-        self.play(*[TransformFromCopy(s1[j], s2[2 * j + c]) for j in range(2) for c in range(2)],
-                  FadeOut(VGroup(*s1)), ReplacementTransform(c1, c2), run_time=1.1)
-        self.at("Three pairs give")
-        s3 = stage(3)
-        c3 = T("3 pairs: 2 × 2 × 2 = 8", 30, YELLOW).move_to(P(0, -2.45))
-        self.play(*[TransformFromCopy(s2[j], s3[2 * j + c]) for j in range(4) for c in range(2)],
-                  FadeOut(VGroup(*s2)), ReplacementTransform(c2, c3), run_time=1.3)
-        self.at("which is")
-        note = T("calculated; crossing over not counted", 22, GREY).move_to(P(0, -3.15))
-        self.play(Indicate(c3, color=YELLOW, scale_factor=1.12), FadeIn(note), run_time=0.8)
-        # --- 23 pairs -------------------------------------------------------------------------
-        self.at("Humans have 23 pairs")
-        self.play(FadeOut(VGroup(*s3)), FadeOut(c3), FadeOut(pairs), FadeOut(note), FadeOut(head), run_time=0.7)
-        h23 = T("Humans: 23 pairs", 40, TEXT).move_to(P(0, 2.4))
-        self.play(FadeIn(h23, shift=DOWN * 0.1), run_time=0.5)
-        self.at("to the power")
-        big = T("2²³", 110, YELLOW, weight=BOLD).move_to(P(0, 0.6))
-        self.play(FadeIn(big, scale=0.8), run_time=0.7)
-        self.at("about")
-        num = M("= 8,388,608", 44, TEXT).move_to(P(0, -1.0))
-        txt = T("about 8.4 million chromosome combinations", 34, YELLOW).move_to(P(0, -1.9))
-        nt = T("from one parent · calculated · crossing over not counted", 22, GREY).move_to(P(0, -2.7))
-        self.play(FadeIn(num, shift=UP * 0.1), FadeIn(txt, shift=UP * 0.1), FadeIn(nt), run_time=0.9)
+        cells = divided_cells(copied=True, pulse_connections=True)
+        animate_held(cells)
+        self.add(cells)
+        self.at("member of every homologous pair")
+        self.play(*[Indicate(VGroup(c.long_m, c.short_m), color=ACTION) for c in cells], run_time=0.9)
+        self.at("still made of joined sisters")
+        conns = VGroup(*[m.connection for c in cells for m in (c.long_m, c.short_m)])
+        self.play(Indicate(conns, color=ACTION, scale_factor=1.5), run_time=0.8)
+        self.at("What must separate")
+        q = question_card("WHAT SEPARATES NEXT?", y=-3.35, size=34, max_w=9.8)
+        self.play(FadeIn(q.question, shift=UP * 0.15), run_time=0.6)
+        self.at("Follow the yellow connection")
+        self.play(LaggedStart(*[Flash(d, color=ACTION, flash_radius=0.34) for d in conns], lag_ratio=0.14), run_time=1.0)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S06Answer(SpokenScene):
-    """Egg + sperm -> diploid cell; each child from a different egg and sperm; the answer."""
+class S06Pause(PredictPause):
+    QUESTION = "WHAT SEPARATES NEXT?"
+    SECONDS = 4.5
+    CARD = {"y": -3.35, "size": 34, "max_w": 9.8}
+    RING_AT = (6.0, -3.25, 0)
 
+    def backdrop(self):
+        cells = divided_cells(copied=True, pulse_connections=True)
+        animate_held(cells)
+        return cells
+
+
+class S07SecondDivision(SpokenScene):
     def construct(self):
-        H6 = [1.0, 0.75, 0.55]
-
-        def gcell(center, choices, kind, r=1.1, hs=1.0, w=0.22, color=GREEN):
-            c = cellc(center, r, color)
-            g = VGroup(c)
-            for j, ch in enumerate(choices):
-                g.add(rbar(EGGC[ch] if kind == 'e' else SPC[ch], H6[j] * hs, w).move_to(center + P([-0.4, 0.0, 0.4][j] * hs, 0)))
-            return g
-
-        egg = gcell(P(-3.2, 0.6), [0, 1, 0], 'e')
-        sperm = gcell(P(3.2, 0.6), [1, 1, 0], 'p')
-        self.at("Fertilization")
-        el = T("egg: 23", 28, EGGC[0]).move_to(P(-3.2, -1.0))
-        sl = T("sperm: 23", 28, SPC[0]).move_to(P(3.2, -1.0))
-        fert = term("fertilization", 30).move_to(P(0, 2.9))
-        self.play(FadeIn(egg), FadeIn(sperm), FadeIn(el), FadeIn(sl), FadeIn(fert, shift=DOWN * 0.1), run_time=0.9)
-        self.at("join")
-        # merged diploid cell: the egg's bar and the sperm's bar of each pair side by side
-        zc = cellc(P(0, 0.6), 1.7, GREY)
-        zb = VGroup(zc)
-        for j, (ce, cs) in enumerate([(0, 1), (1, 1), (0, 0)]):
-            zb.add(rbar(EGGC[ce], H6[j] * 1.2, 0.26).move_to(P([-0.8, 0.0, 0.8][j] - 0.2, 0.6)))
-            zb.add(rbar(SPC[cs], H6[j] * 1.2, 0.26).move_to(P([-0.8, 0.0, 0.8][j] + 0.2, 0.6)))
-        self.play(ReplacementTransform(VGroup(egg, sperm), zb), FadeOut(VGroup(el, sl)), run_time=1.4)
-        self.at("diploid cell")
-        dl = term("diploid: 46", 28).move_to(P(0, -1.6))
-        nt = T("model: 3 + 3 = 6 chromosomes", 22, GREY).move_to(P(0, -2.3))
-        self.play(FadeIn(dl, shift=UP * 0.1), FadeIn(nt), run_time=0.6)
-        # --- three children ----------------------------------------------------------------
-        self.at("Each sibling")
-        self.play(FadeOut(VGroup(zb, dl, nt, fert)), run_time=0.5)
-        combos = [([0, 1, 0], [1, 1, 0]), ([1, 0, 0], [0, 1, 1]), ([0, 0, 1], [1, 0, 1])]
-        kids = []
-        for k, x in enumerate([-4.2, 0.0, 4.2]):
-            box = RoundedRectangle(corner_radius=0.2, width=3.3, height=2.5, stroke_color=GREY, stroke_width=3,
-                                   fill_color=GREY, fill_opacity=0.08).move_to(P(x, 0.4))
-            g = VGroup(box)
-            e, s = combos[k]
-            for j in range(3):
-                g.add(rbar(EGGC[e[j]], H6[j] * 1.1, 0.26).move_to(P(x + [-0.95, 0.0, 0.95][j] - 0.2, 0.4)))
-                g.add(rbar(SPC[s[j]], H6[j] * 1.1, 0.26).move_to(P(x + [-0.95, 0.0, 0.95][j] + 0.2, 0.4)))
-            g.add(T(f"child {k + 1}", 26, TEXT).move_to(P(x, -1.2)))
-            kids.append(g)
-        self.play(*[FadeIn(k, shift=UP * 0.2) for k in kids], run_time=0.9)
-        self.at("different egg")
-        d1 = T("a different egg", 30, GREEN).move_to(P(-2.2, 2.6))
-        self.play(FadeIn(d1, shift=DOWN * 0.1), run_time=0.5)
-        self.at("different sperm")
-        d2 = T("and a different sperm", 30, GREEN).move_to(P(2.6, 2.6))
-        self.play(FadeIn(d2, shift=DOWN * 0.1), run_time=0.5)
-        key1 = T("pink: from the egg (mother)", 22, EGGC[0]).move_to(P(-3.0, -3.2))
-        key2 = T("purple: from the sperm (father)", 22, SPC[0]).move_to(P(3.0, -3.2))
-        self.play(FadeIn(key1), FadeIn(key2), run_time=0.4)
-        self.at("a new mix")
-        mix = T("each sex cell is a new mix", 34, YELLOW).move_to(P(0, -2.3))
-        self.play(FadeIn(mix, shift=UP * 0.15), run_time=0.6)
-        self.at("halves the chromosomes")
-        self.play(FadeOut(VGroup(*kids, d1, d2, mix, key1, key2)), run_time=0.5)
-        h = chip("halves the chromosomes", GREEN, 40).move_to(P(0, 1.2))
-        self.play(FadeIn(h, shift=UP * 0.15), run_time=0.7)
-        self.at("shuffles them")
-        s = chip("shuffles them", YELLOW, 40).move_to(P(0, -0.4))
-        self.play(FadeIn(s, shift=UP * 0.15), run_time=0.7)
-        self.at("siblings differ")
-        end = T("so siblings differ", 48, TEXT, font=TITLE_FONT).move_to(P(0, -2.45))
-        self.play(FadeIn(end, shift=UP * 0.15), run_time=0.7)
+        cells = divided_cells(copied=True, pulse_connections=True)
+        for c in cells:
+            bob(c, amp=0.34, speed=0.9, seed=0 if c.get_x() < 0 else 2)
+        self.add(cells)
+        self.at("sister chromatids separate")
+        for c in cells:
+            self.play(Flash(c.long_m.connection, color=ACTION), Flash(c.short_m.connection, color=ACTION), run_time=0.35)
+        self.at("No DNA copying")
+        no_copy = T("NO COPYING BETWEEN DIVISIONS", 30, ACTION, weight=BOLD).move_to(pt(0, 3.25))
+        self.play(FadeIn(no_copy, shift=DOWN * 0.12), run_time=0.55)
+        self.at("Each cell divides again")
+        for c in cells:
+            c.clear_updaters()
+        finished = four_cells()
+        self.play(ReplacementTransform(cells, finished), run_time=2.0)
+        for c in finished:
+            pulse(c.boundary, base=3.5, amp=0.55, speed=1.5)
+            bob(c, amp=0.10, speed=0.9, seed=1 if c.get_x() < 0 else 3)
+        self.at("joined copies pull apart")
+        self.play(*[Indicate(VGroup(c[1], c[2]), color=ACTION) for c in finished], run_time=0.9)
+        self.at("finished cells hold")
+        label = T("one chromosome from every original pair", 30, TEXT).move_to(pt(0, 3.25))
+        self.play(swap(no_copy, label), run_time=0.8)
         self.finish()
 
 
-class S07End(EndCard):
-    LINE = "Meiosis halves the chromosomes and shuffles them, so siblings differ."
+class S08Haploid(SpokenScene):
+    def construct(self):
+        cells = four_cells()
+        for c in cells:
+            pulse(c.boundary, base=3.5, amp=0.55, speed=1.5)
+            bob(c, amp=0.10, speed=0.9, seed=1 if c.get_x() < 0 else 3)
+        self.add(cells)
+        self.at("cells are haploid")
+        hap = T("HAPLOID · one chromosome set", 34, ACTION, weight=BOLD).move_to(pt(0, 3.25))
+        self.play(FadeIn(hap, shift=DOWN * 0.12), run_time=0.65)
+        self.at("simple animal model")
+        scope = scope_tag("simple animal model", size=24)
+        self.play(FadeIn(scope), *[Indicate(c, color=CELL) for c in cells], run_time=0.8)
+        self.at("Human egg formation")
+        egg = Circle(radius=1.55, color=CELL, fill_color=CELL, fill_opacity=0.08).move_to(pt(-3.2, 0))
+        polar = VGroup(*[Circle(radius=0.30, color=CELL, fill_color=CELL, fill_opacity=0.08) for _ in range(3)]).arrange(DOWN, buff=0.18).next_to(egg, RIGHT, buff=0.28)
+        egg_pic = VGroup(egg, polar)
+        egg_lab = T("uneven egg formation", 28, TEXT).next_to(egg_pic, DOWN, buff=0.3)
+        self.play(FadeOut(VGroup(cells, hap, scope)), GrowFromCenter(egg), LaggedStart(*[GrowFromCenter(p) for p in polar], lag_ratio=0.18), FadeIn(egg_lab), run_time=1.2)
+        self.at("plants make spores")
+        spore = VGroup(
+            Circle(radius=0.65, color=PARENT_A, fill_color=PARENT_A, fill_opacity=0.14),
+            *[Dot(radius=0.07, color=PARENT_A).move_to(pt(4.0 + 0.28*np.cos(a), 0.28*np.sin(a))) for a in np.linspace(0, TAU, 7)[:-1]],
+        ).move_to(pt(4.0, 0))
+        spore_lab = T("plant spore", 28, TEXT).next_to(spore, DOWN, buff=0.3)
+        schematic = T("SCHEMATIC", 24, GREY).move_to(pt(0, 2.9))
+        self.play(FadeIn(spore, scale=0.8), FadeIn(spore_lab), FadeIn(schematic), run_time=0.9)
+        self.at("refinements do not change")
+        back = four_cells()
+        self.play(FadeOut(VGroup(egg_pic, egg_lab, spore, spore_lab, schematic)), FadeIn(back), run_time=1.0)
+        rule = T("same separation rule", 32, ACTION).move_to(pt(0, 3.25))
+        self.play(FadeIn(rule, shift=DOWN * 0.1), run_time=0.6)
+        self.finish()
+
+
+def pathway_stage(title, copied=False, separated=False, center=ORIGIN):
+    """Compact chromosome action used in the two-step rule pathway."""
+    frame = RoundedRectangle(corner_radius=0.2, width=5.3, height=2.15, color=CELL, stroke_width=3,
+                             fill_color=CELL, fill_opacity=0.12).move_to(center)
+    lab = T(title, 28, TEXT, weight=BOLD).move_to(frame.get_top() + DOWN * 0.36)
+    if copied:
+        left = copied_chromosome(PARENT_A, 1.05, center + LEFT * (1.15 if separated else 0.38), scale=0.8)
+        right = copied_chromosome(PARENT_B, 1.05, center + RIGHT * (1.15 if separated else 0.38), scale=0.8)
+    else:
+        left = rod(PARENT_A, 1.10, center + LEFT * (1.15 if separated else 0.38), width=0.24)
+        right = rod(PARENT_B, 1.10, center + RIGHT * (1.15 if separated else 0.38), width=0.24)
+    pair = VGroup(left, right).shift(DOWN * 0.22)
+    return VGroup(frame, lab, pair)
+
+
+class S09Rule(SpokenScene):
+    def construct(self):
+        carried = four_cells()
+        self.add(carried)
+        self.at("Meiosis separates homologous pairs")
+        heading = T("HOMOLOGS FIRST, SISTER CHROMATIDS SECOND", 34, ACTION, weight=BOLD).move_to(pt(0, 3.25))
+        self.play(FadeOut(carried), FadeIn(heading, shift=DOWN * 0.12), run_time=0.7)
+        paired = pathway_stage("PAIRED HOMOLOGS", copied=True, separated=False, center=pt(-3.5, 1.1))
+        split_pairs = pathway_stage("SEPARATED PAIRS", copied=True, separated=True, center=pt(3.5, 1.1))
+        arrow1 = Arrow(pt(-0.55, 1.1), pt(0.55, 1.1), color=ACTION, stroke_width=6)
+        self.play(FadeIn(paired), run_time=0.6)
+        self.at("first division separates")
+        self.play(GrowArrow(arrow1), ReplacementTransform(paired.copy(), split_pairs), run_time=1.1)
+        self.at("halves the chromosome sets")
+        first_lab = T("1 · homologs apart", 28, ACTION).move_to(pt(0, -0.25))
+        self.play(FadeIn(first_lab), Indicate(split_pairs[2], color=ACTION), run_time=0.75)
+        self.at("The second separates")
+        sisters = pathway_stage("JOINED SISTERS", copied=True, separated=False, center=pt(-3.5, -2.05))
+        copies = pathway_stage("SEPARATED COPIES", copied=False, separated=True, center=pt(3.5, -2.05))
+        arrow2 = Arrow(pt(-0.55, -2.05), pt(0.55, -2.05), color=ACTION, stroke_width=6)
+        self.play(FadeIn(sisters), GrowArrow(arrow2), ReplacementTransform(sisters.copy(), copies), run_time=1.2)
+        self.at("sister chromatids of each")
+        self.play(Indicate(copies[2], color=ACTION), run_time=0.7)
+        # Order beat: the first-division row lights, then the second-division row, in turn,
+        # for the rest of the rule (homologous pairs first, then sister chromatids).
+        rows = [(paired[0], split_pairs[0]), (sisters[0], copies[0])]
+        t0 = self.elapsed()
+
+        def order_glow(i):
+            def u(fr, dt):
+                ph = ((self.elapsed() - t0) % 3.2) / 3.2
+                w = max(0.0, float(np.sin(np.pi * (2 * ph - i))))
+                fr.set_fill(CELL, opacity=0.12 + 0.33 * w)
+                fr.set_stroke(width=3 + 4 * w)
+            return u
+        for i, frames in enumerate(rows):
+            for fr in frames:
+                fr.add_updater(order_glow(i))
+        self.at("not mitosis repeated")
+        mit = T("MITOSIS: homologs never pair", 28, GREY).move_to(pt(0, -3.45))
+        strike = Line(mit.get_left() + LEFT * 0.1, mit.get_right() + RIGHT * 0.1, color=RED, stroke_width=5)
+        strike.layout_ok = True
+        self.play(FadeIn(mit), Create(strike), run_time=0.75)
+        self.at("never separates homologous pairs")
+        self.play(FadeOut(VGroup(mit, strike)), Indicate(arrow1, color=ACTION), run_time=0.8)
+        self.finish()
+
+
+def haploid_model(center, colors):
+    boundary = cell_outline(center, rx=1.45, ry=1.55, stroke=3.5)
+    long_m = rod(colors[0], 1.55, center + LEFT * 0.28, width=0.25)
+    short_m = rod(colors[1], 0.95, center + RIGHT * 0.32, width=0.25)
+    return VGroup(boundary, long_m, short_m)
+
+
+class S10Close(SpokenScene):
+    def construct(self):
+        egg = haploid_model(pt(-3.6, 0), (PARENT_A, PARENT_B))
+        sperm = haploid_model(pt(3.6, 0), (PARENT_B, PARENT_A))
+        egg_lab = T("egg", 28, TEXT).next_to(egg, DOWN, buff=0.2)
+        sperm_lab = T("sperm", 28, TEXT).next_to(sperm, DOWN, buff=0.2)
+        self.add(egg, sperm, egg_lab, sperm_lab)
+        self.at("egg and sperm later join")
+        dip = starting_cell(center=pt(0, -0.2))
+        self.play(FadeOut(VGroup(egg_lab, sperm_lab)), ReplacementTransform(VGroup(egg, sperm), dip), run_time=1.5)
+        pulse(dip.boundary, base=4.0, amp=0.7, speed=1.4)
+        self.at("restore a diploid cell")
+        label = T("DIPLOID RESTORED", 34, ACTION, weight=BOLD).move_to(pt(0, 3.25))
+        self.play(FadeIn(label, shift=DOWN * 0.12), run_time=0.6)
+        self.at("keeps chromosome number")
+        loop = VGroup(
+            CurvedArrow(pt(3.1, 1.6), pt(5.2, 0), angle=-1.1, color=ACTION),
+            CurvedArrow(pt(5.2, -0.3), pt(3.1, -1.8), angle=-1.1, color=ACTION),
+            T("same number", 28, ACTION).move_to(pt(4.7, 2.25)),
+        )
+        self.play(dip.animate.shift(LEFT * 1.45), label.animate.shift(LEFT * 1.45), FadeIn(loop), run_time=1.0)
+        self.at("different chromosome mixes")
+        self.play(FadeOut(VGroup(dip, label, loop)), run_time=0.4)
+        products = VGroup(
+            haploid_model(pt(-4.5, 0.65), (PARENT_A, PARENT_B)),
+            haploid_model(pt(-1.5, -0.65), (PARENT_A, PARENT_B)),
+            haploid_model(pt(1.5, 0.65), (PARENT_B, PARENT_A)),
+            haploid_model(pt(4.5, -0.65), (PARENT_B, PARENT_A)),
+        ).scale(0.82)
+        for i, product in enumerate(products):
+            bob(product, amp=0.10, speed=0.9, seed=i)
+        mix = T("different chromosome mixes", 34, ACTION).move_to(pt(0, 3.2))
+        self.play(LaggedStart(*[FadeIn(p, shift=UP * 0.15) for p in products], lag_ratio=0.18), FadeIn(mix), run_time=1.4)
+        self.at("next film asks why")
+        next_q = T("What creates different allele mixes?", 30, TEXT).move_to(pt(0, -3.15))
+        self.play(FadeIn(next_q, shift=UP * 0.12), run_time=0.6)
+        self.finish()
+
+
+class S11End(EndCard):
+    LINE = "Meiosis separates homologous pairs first, then sister chromatids."

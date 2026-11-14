@@ -205,6 +205,13 @@ export function savedSection(slug: string): { id: string; title: string } | null
   return r && typeof r.id === 'string' ? { id: r.id, title: String(r.title ?? '') } : null;
 }
 
+/** When the last lesson was last read on this device (ms): its saved section's time, or its first visit. */
+export function lastLessonAt(p: Progress): number {
+  if (!p.last) return 0;
+  const r = loadResume()[p.last];
+  return Math.max(typeof r?.t === 'number' ? r.t : 0, p.lessons[p.last]?.v ?? 0);
+}
+
 /** Remember the section being read. Keeps the 40 most recent lessons. */
 export function saveSection(slug: string, id: string, title: string): void {
   try {

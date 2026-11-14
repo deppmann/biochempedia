@@ -1,0 +1,146 @@
+---
+/**
+ * "Cards ready" after a film (2026-11-14). When a film from a lesson with a flashcard deck ends, a
+ * small prompt appears under the player: how many of that lesson's cards are due for review or new
+ * on this device, and one button that opens the review. Retrieval right after watching is the
+ * point; the prompt is the shortest way there.
+ *
+ * Where: a page marks the lesson with data-cards-lesson="<slug>" on an element around the player
+ * (the lesson page's article, a /watch/ page, the play-in-order page, which changes it per film).
+ * The prompt goes after the nearest [data-cards-anchor], or after the film's <figure>.
+ *
+ * Counts come from the deck panel's own rules (readyCounts in src/lib/flashcards.ts: the saved goal
+ * and levels, "due" = studied cards whose review has come, "new" = never studied), so the prompt and
+ * the panel agree. On the lesson page the deck is already in the page; elsewhere the small
+ * /flashcards/<slug>.json file is fetched once. No prompt when there is no deck, when nothing is due
+ * and nothing is new, or after "Not now" for that lesson in this visit (sessionStorage).
+ *
+ * The play-in-order page listens for the bubbling "bp-cards-open" event to cancel its "Up next".
+ * Nothing here runs without JavaScript; nothing is stored beyond the dismissed list for the visit.
+ */
+---
+
+<script>
+  import { readyCounts } from '../lib/flashcards';
+  import { filmKeyOf } from '../lib/film-progress';
+
+  type Mini = { id: string; level: 1 | 2 | 3 | 4; goals: ('lesson' | 'course' | 'mcat')[] };
+  const DISMISSED = 'biochempedia:cards-prompt:dismissed';
+  const dismissed = new Set<string>();
+  try { for (const s of JSON.parse(sessionStorage.getItem(DISMISSED) ?? '[]')) dismissed.add(String(s)); } catch { /* blocked: this page only */ }
+
+  const fetched = new Map<string, Promise<Mini[] | null>>();
+  function deckCards(slug: string): Promise<Mini[] | null> {
+    // The lesson page carries its deck, and the panel marks the cards it can show (data-live).
+    const panel = document.querySelector<HTMLElement>(`[data-fc][data-slug="${CSS.escape(slug)}"]`);
+    const inline = panel?.querySelector('[data-fc-data]')?.textContent;
+    if (panel && inline) {
+      try {
+        const cards: Mini[] = JSON.parse(inline).cards;
+        const live = panel.dataset.live?.split(' ');
+        return Promise.resolve(live ? cards.filter((c) => live.includes(c.id)) : cards);
+      } catch { /* fall through to the file */ }
+    }
+    if (!fetched.has(slug)) {
+      fetched.set(slug, fetch(`/flashcards/${encodeURIComponent(slug)}.json`)
+        .then((r) => (r.ok ? r.json() : null))
+        .then((d) => (Array.isArray(d?.cards) && d.cards.every((c: Mini) => Array.isArray(c.goals)) ? d.cards as Mini[] : null))
+        .catch(() => null));
+    }
+    return fetched.get(slug)!;
+  }
+
+  const n = (k: number, one: string, many: string) => `${k} ${k === 1 ? one : many}`;
+
+  function show(v: HTMLVideoElement, host: HTMLElement, slug: string, due: number, fresh: number) {
+    document.querySelectorAll('.cards-prompt').forEach((x) => x.remove());
+    const anchor = v.closest('[data-cards-anchor]') ?? v.closest('figure') ?? v;
+    const box = document.createElement('section');
+    box.className = 'cards-prompt';
+    box.setAttribute('aria-label', 'Flashcards for this lesson');
+    box.dataset.pagefindIgnore = '';
+    const line = document.createElement('p');
+    line.className = 'cp-line';
+    line.setAttribute('aria-live', 'polite');
+    const btns = document.createElement('p');
+    btns.className = 'cp-btns';
+
+    const panel = document.querySelector<HTMLElement>(`[data-fc][data-slug="${CSS.escape(slug)}"]`);
+    const label = due ? 'Review the cards' : 'Try the cards';
+    let go: HTMLElement;
+    if (panel) {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.addEventListener('click', () => {
+        v.dispatchEvent(new CustomEvent('bp-cards-open', { bubbles: true }));
+        box.remove();
+        if (panel.hidden) document.querySelector<HTMLElement>('[data-fc-open]')?.click();
+        else panel.focus();
+      });
+      go = b;
+    } else {
+      const a = document.createElement('a');
+      a.href = `/lessons/${encodeURIComponent(slug)}/#flashcards`;
+      a.addEventListener('click', () => v.dispatchEvent(new CustomEvent('bp-cards-open', { bubbles: true })));
+      go = a;
+    }
+    go.className = 'cp-go';
+    go.textContent = label;
+    const no = document.createElement('button');
+    no.type = 'button';
+    no.className = 'cp-no';
+    no.textContent = 'Not now';
+    no.addEventListener('click', () => {
+      dismissed.add(slug);
+      try { sessionStorage.setItem(DISMISSED, JSON.stringify([...dismissed])); } catch { /* this page only */ }
+      box.remove();
+      v.focus();
+    });
+    btns.append(go, no);
+    box.append(line, btns);
+    anchor.after(box);
+
+    // Filled after insertion, so screen readers announce it.
+    const where = host.dataset.cardsTitle ? `“${host.dataset.cardsTitle}”` : 'this lesson';
+    const parts = [due && `${n(due, 'card', 'cards')} due for review`, fresh && `${n(fresh, 'card', 'cards')} you have not tried yet`].filter(Boolean);
+    requestAnimationFrame(() => {
+      line.textContent = '';
+      const k = document.createElement('strong');
+      k.textContent = `Flashcards from ${where}: `;
+      line.append(k, `${parts.join(' and ')}. Recalling it now, just after the film, helps it stay.`);
+    });
+  }
+
+  document.addEventListener('ended', async (e) => {
+    const v = e.target;
+    if (!(v instanceof HTMLVideoElement) || v.closest('dialog')) return;
+    const host = v.closest<HTMLElement>('[data-cards-lesson]');
+    const slug = host?.dataset.cardsLesson;
+    if (!host || !slug || dismissed.has(slug)) return;
+    // Lesson films only: not a scientist profile or a method film shown on the same page.
+    const key = filmKeyOf(v.currentSrc || v.querySelector('source')?.src || '');
+    if (!key || /^(profiles\/|method-)/.test(key)) return;
+    const cards = await deckCards(slug);
+    if (!cards?.length) return;
+    const { due, fresh } = readyCounts(slug, cards);
+    if (due + fresh === 0) return;
+    show(v, host, slug, due, fresh);
+  }, true);
+</script>
+
+<style is:global>
+  .cards-prompt { margin: var(--ddp-space-3) 0 var(--ddp-space-4); max-width: 880px; padding: var(--ddp-space-3) var(--ddp-space-4); border: 1px solid var(--ddp-color-line); border-left: 3px solid var(--ddp-color-secondary); border-radius: 8px; background: var(--ddp-color-surface); display: flex; flex-wrap: wrap; align-items: center; gap: var(--ddp-space-2) var(--ddp-space-4); }
+  .cards-prompt .cp-line { margin: 0; flex: 1 1 18rem; font-size: var(--ddp-text-sm); line-height: 1.5; color: var(--ddp-color-ink-soft); }
+  .cards-prompt .cp-line strong { color: var(--ddp-color-ink); }
+  .cards-prompt .cp-btns { margin: 0; display: flex; flex-wrap: wrap; gap: var(--ddp-space-2); }
+  .cards-prompt .cp-go, .cards-prompt .cp-no { display: inline-flex; align-items: center; min-height: 44px; padding: 0.35em 1.1em; border-radius: 999px; font: inherit; font-size: var(--ddp-text-sm); font-weight: 600; cursor: pointer; text-decoration: none; }
+  .cards-prompt .cp-go { background: var(--ddp-color-primary); color: var(--ddp-color-surface); border: 1.5px solid var(--ddp-color-primary); }
+  .cards-prompt .cp-go:hover { background: var(--ddp-color-accent); border-color: var(--ddp-color-accent); color: #fff; }
+  .cards-prompt .cp-no { background: none; color: var(--ddp-color-ink-soft); border: 1.5px solid var(--ddp-color-line); }
+  .cards-prompt .cp-no:hover { border-color: var(--ddp-color-accent); color: var(--ddp-color-ink); }
+  .cards-prompt :is(.cp-go, .cp-no):focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  @media (prefers-reduced-motion: no-preference) {
+    .cards-prompt { animation: cpIn 0.25s ease-out both; }
+    @keyframes cpIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+  }
+</style>

@@ -47,6 +47,17 @@ export const KIND_PLURALS: Record<FilmKind, string> = {
 };
 export const KIND_ORDER = Object.keys(KIND_LABELS) as FilmKind[];
 
+/** The badge on a card: the kind, or "Part 2 of 4" in a series. */
+export const kindBadge = (f: Pick<CatalogFilm, 'kind' | 'part'>) => (f.part ? `Part ${f.part.n} of ${f.part.of}` : KIND_LABELS[f.kind]);
+
+/** A film's key for "watched" marks: its file under /explainers/ without ".mp4" (src/lib/film-progress.ts). */
+export const filmKey = (src: string) => src.replace(/^\/explainers\//, '').replace(/\.mp4$/, '');
+
+/** One page per level (2026-11-14), so /films/ itself can stay light: /films/high-school/. */
+export const filmLevelHref = (stage: string) => `/films/${stage}/`;
+/** A course's films back to back: /films/play/genetics/. */
+export const filmPlayHref = (course: string) => `/films/play/${course}/`;
+
 export interface CatalogFilm {
   /** Stable id: lesson:<slug>, lesson:<slug>:<film-id>, profile:<slug>:<file>, method:<slug>. */
   id: string;
@@ -94,6 +105,12 @@ let cache: Promise<CatalogFilm[]> | undefined;
 export function filmCatalog(): Promise<CatalogFilm[]> {
   cache ??= build();
   return cache;
+}
+
+/** How many films the site has: the one number every page that states a total uses (the homepage
+ *  hero and tally, /films/, /progress/, /updates/), so they cannot drift apart (2026-11-14). */
+export async function filmTotal(): Promise<number> {
+  return (await filmCatalog()).length;
 }
 
 async function build(): Promise<CatalogFilm[]> {

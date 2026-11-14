@@ -11,6 +11,7 @@ export const GET: APIRoute = async () => {
     llms: `${SITE}/llms.txt`,
     lessonMarkdown: `${SITE}/lessons/{slug}.md`,
     films: `${SITE}/films.json`,
+    filmsInOrder: `${SITE}/films/play/{course}/`,
     // Lesson text, the site's own figures and its films. The licence page lists what is not covered.
     license: 'https://creativecommons.org/licenses/by-nc-sa/4.0/',
     licenseName: 'CC BY-NC-SA 4.0',

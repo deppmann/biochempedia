@@ -22,6 +22,7 @@ import LessonShare from '../../components/LessonShare.astro';
 import DepthLadder from '../../components/DepthLadder.astro';
 import FilmTranscript from '../../components/FilmTranscript.astro';
 import FlashcardDeck from '../../components/FlashcardDeck.astro';
+import CardsPrompt from '../../components/CardsPrompt.astro';
 import HighlightLayer from '../../components/HighlightLayer.astro';
 import type { Deck } from '../../lib/flashcards';
 import { feedbackUrl } from '../../lib/feedback';
@@ -153,7 +154,7 @@ const lessonLd = {
 <BaseLayout title={`${lesson.title} — Biochemistrypedia`} description={metaDescription(hookFor(entry))} ogType="article" jsonLd={lessonLd}
   ogImage={ex?.poster ?? lesson.films[0]?.poster}
   alternates={[{ type: 'text/markdown', href: `/lessons/${lesson.slug}.md`, title: 'This lesson as plain Markdown' }]}>
-  <article id="top">
+  <article id="top" data-course-title={course.title} data-cards-lesson={deck ? lesson.slug : undefined}>
     <header class="lesson-hero wrap">
       <ClassBar slug={lesson.slug} />
       <DesignAnswer />
@@ -616,6 +617,7 @@ const lessonLd = {
     )}
 
     {deck && <FlashcardDeck deck={deck} />}
+    {deck && <CardsPrompt />}
 
     <dialog id="lb-sources" class="lightbox lock-scroll">
       <div class="lightbox-head"><span>Sources &amp; Integrity</span><button type="button" class="lightbox-close" data-close aria-label="Close">✕</button></div>

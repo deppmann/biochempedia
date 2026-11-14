@@ -2,6 +2,7 @@
 import { getCollection } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import CourseUnits from '../../components/CourseUnits.astro';
+import CourseMap from '../../components/CourseMap.astro';
 import SiteSearch from '../../components/SiteSearch.astro';
 import DepthLadder from '../../components/DepthLadder.astro';
 import Drifters from '../../components/Drifters.astro';
@@ -112,6 +113,10 @@ const tierLabel = { families: 'activities for ages 5–10', highschool: course.l
       </details>
     </section>
   )}
+
+  {/* The course map (2026-11-14): fills in from this device as films are watched, quizzes tried and
+      flashcards started; hidden without JavaScript or storage, where the list below is the course. */}
+  <CourseMap course={course} lessons={lessons} />
 
   <section class="wrap lessons" id="lessons">
     <p class="sec-label">{units.length} units · {lessons.length === 1 ? 'one lesson' : `${lessons.length} lessons`}</p>

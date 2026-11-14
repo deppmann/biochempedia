@@ -1,388 +1,581 @@
-"""Extra Nutrients, Less Deep Oxygen  (grade 7 Life Science explainer)
+"""Extra Nutrients, Less Deep Oxygen.
 
-COLOR MAP (one color per concept, whole video)
-  BLUE   = Bay water, rain
-  YELLOW = nutrients (nitrogen, phosphorus, fertilizer, manure, wastewater)
-  GREEN  = algae, underwater grasses
-  GREY   = dead algae, structure, small notes
-  ORANGE = bacteria / decomposers
-  TEAL   = dissolved oxygen
-  RED    = low oxygen, dead zone, trouble, "does not"
-  BROWN  = land
-  TEXT   = animals, plain labels
-  GOLD   = the word eutrophication
+COLOR MAP: nutrients GOLD, algae/plants GREEN, oxygen BLUE, decomposers GREY,
+animals TEXT.  Every Bay scene is rebuilt by ``bay_world`` so the geography and
+all carried objects remain at exactly the same scale and position.
 """
-from bp_style import *  # noqa: F401,F403
+from types import SimpleNamespace
 
-ORANGE = "#F29E4C"
-BROWN = "#A8825A"
-NUT, ALG, DEAD, BAC, OXY, BAD = YELLOW, GREEN, GREY, ORANGE, TEAL, RED
-
-WX0, WX1 = -3.0, 6.1
-XC = (WX0 + WX1) / 2
-COLS = [-0.6 + 0.65 * k for k in range(7)]
-SROW, DROWS = -0.55, (-1.3, -1.95)
-ALGROWS = (0.75, 0.35, -0.05)
-PILE = (-2.55, -2.8, -3.05)
+from bp_parts import *
 
 
-def arr(a, b, color=GREY, w=5, tip=0.2):
-    return Arrow(a, b, buff=0.0, color=color, stroke_width=w, tip_length=tip,
-                 max_tip_length_to_length_ratio=0.5, max_stroke_width_to_length_ratio=14)
+NUT = GOLD
+ALG = GREEN
+OXY = BLUE
+DECOMP = GREY
+ANIMAL = TEXT
+WATER = "#17324A"
+DEEP = "#10263C"
+LAND = "#705A38"
 
 
-def dot(x, y, color=OXY, r=0.075):
-    return Dot([x, y, 0], radius=r, color=color)
+def _wave(y, color=BLUE, opacity=0.35, phase=0.0):
+    """A broad, slowly moving current line used as honest ambient motion."""
+    line = VMobject(stroke_color=color, stroke_width=2.5, stroke_opacity=opacity)
+    line.phase = phase
+
+    def redraw(mob, dt):
+        mob.phase += 0.45 * dt
+        xs = np.linspace(-2.7, 6.25, 70)
+        pts = [np.array([x, y + 0.045 * np.sin(1.25 * x + mob.phase), 0]) for x in xs]
+        mob.set_points_smoothly(pts)
+
+    redraw(line, 0)
+    line.add_updater(redraw)
+    return line
 
 
-def alga(x, y, color=ALG):
-    return Ellipse(width=0.5, height=0.22, stroke_color=color, stroke_width=2, fill_color=color,
-                   fill_opacity=0.5).move_to([x, y, 0])
+def _nutrient(x, y, r=0.085):
+    return Dot([x, y, 0], radius=r, color=NUT)
 
 
-def bact(x, y, s=1.0):
-    return RoundedRectangle(corner_radius=0.08 * s, width=0.42 * s, height=0.2 * s, stroke_color=BAC,
-                            stroke_width=2, fill_color=BAC, fill_opacity=0.55).move_to([x, y, 0])
+def _alga(x, y, color=ALG, scale=1.0):
+    return Ellipse(width=0.22 * scale, height=0.12 * scale, color=color,
+                   fill_color=color, fill_opacity=0.75, stroke_width=2).move_to([x, y, 0])
 
 
-class Bay:
-    """Side view of the Bay: land at left, a surface layer over a deep layer."""
-
-    def __init__(self, labels=True):
-        self.land = Rectangle(width=3.3, height=3.5, stroke_width=0, fill_color=BROWN,
-                              fill_opacity=0.35).move_to([-4.65, -1.55, 0])
-        self.landl = T("land", 22, GREY).move_to([-4.65, -2.9, 0])
-        self.surf = Rectangle(width=9.1, height=1.9, stroke_color=BLUE, stroke_width=2, fill_color=BLUE,
-                              fill_opacity=0.16).move_to([XC, 0.05, 0])
-        self.deep = Rectangle(width=9.1, height=2.4, stroke_color=BLUE, stroke_width=2, fill_color=BLUE,
-                              fill_opacity=0.30).move_to([XC, -2.1, 0])
-        self.sl = T("surface\nlayer", 22, GREY).move_to([-1.6, -0.35, 0])
-        self.dl = T("deep\nlayer", 22, GREY).move_to([-1.6, -2.2, 0])
-        self.sdots = [dot(x, SROW) for x in COLS]
-        self.ddots = [[dot(x, y) for x in COLS] for y in DROWS]
-
-    def base(self):
-        return [self.land, self.landl, self.surf, self.deep, self.sl, self.dl]
-
-    def alldots(self):
-        return self.sdots + self.ddots[0] + self.ddots[1]
+def _oxygen(x, y):
+    return Dot([x, y, 0], radius=0.075, color=OXY, stroke_color=TEXT, stroke_width=1)
 
 
-def show_bay(scene, b, t=0.15):
-    scene.play(*[FadeIn(m) for m in b.base()], *[FadeIn(d) for d in b.alldots()], run_time=t)
+def _bacterium(x, y, scale=1.0):
+    body = RoundedRectangle(corner_radius=0.09, width=0.35 * scale, height=0.17 * scale,
+                            color=DECOMP, fill_color=DECOMP, fill_opacity=0.65, stroke_width=2)
+    return body.rotate(0.25).move_to([x, y, 0])
 
 
-# =============================================================================================
-class S00Title(TitleCard):
-    LESSON = "Big Changes: Dead Zones, Storms and Climate"
-    TITLE = "Extra Nutrients, Less Deep Oxygen"
+def _fish(at=(3.6, -1.35, 0), scale=1.0):
+    body = Ellipse(width=0.72 * scale, height=0.34 * scale, color=ANIMAL,
+                   fill_color=ANIMAL, fill_opacity=0.15, stroke_width=3)
+    tail = Polygon([-0.34, 0, 0], [-0.62, 0.22, 0], [-0.62, -0.22, 0], color=ANIMAL,
+                   fill_color=ANIMAL, fill_opacity=0.12, stroke_width=3).scale(scale)
+    eye = Dot([0.22 * scale, 0.06 * scale, 0], radius=0.025 * scale, color=ANIMAL)
+    return VGroup(tail, body, eye).move_to(at)
 
 
-# =============================================================================================
-class S01Question(SpokenScene):
+def _crab(at=(1.8, -2.05, 0), scale=1.0):
+    shell = Arc(radius=0.27 * scale, start_angle=0, angle=PI, color=ANIMAL, stroke_width=3)
+    legs = VGroup(*[Line([dx, 0, 0], [dx + np.sign(dx) * 0.13, -0.18, 0], color=ANIMAL,
+                              stroke_width=2.5) for dx in (-0.22, -0.08, 0.08, 0.22)])
+    return VGroup(shell, legs).move_to(at)
+
+
+def _oyster(at=(4.9, -2.08, 0), scale=1.0):
+    shell = Arc(radius=0.27 * scale, start_angle=0, angle=PI, color=ANIMAL, stroke_width=4)
+    base = Line(LEFT * 0.29 * scale, RIGHT * 0.29 * scale, color=ANIMAL, stroke_width=4)
+    return VGroup(shell, base).move_to(at)
+
+
+def bay_world(*, nutrients=False, bloom=False, sinking=False, low_oxygen=False,
+              layered=False, bacteria=False, animals=True, questions=False):
+    """Build the single carried Bay world at invariant scale and coordinates."""
+    sky = Rectangle(width=12.8, height=1.55, stroke_width=0, fill_color="#17202B",
+                    fill_opacity=1).move_to([0, 2.3, 0])
+    land = Polygon([-6.4, 1.55, 0], [-3.25, 1.55, 0], [-2.55, 0.85, 0],
+                   [-2.55, -2.35, 0], [-6.4, -2.35, 0], color=LAND,
+                   fill_color=LAND, fill_opacity=0.48, stroke_width=2)
+    upper = Polygon([-2.72, 1.38, 0], [6.35, 1.38, 0], [6.35, -0.25, 0],
+                    [-2.55, -0.25, 0], color=OXY, fill_color=OXY,
+                    fill_opacity=0.16 if not layered else 0.22, stroke_width=2)
+    lower = Polygon([-2.55, -0.25, 0], [6.35, -0.25, 0], [6.35, -2.35, 0],
+                    [-2.55, -2.35, 0], color=OXY, fill_color=DEEP,
+                    fill_opacity=0.58 if layered else 0.42, stroke_width=2)
+    bottom = VMobject(color=LAND, stroke_width=7).set_points_smoothly([
+        [-2.55, -1.55, 0], [-0.8, -1.82, 0], [1.2, -2.18, 0], [3.4, -2.3, 0], [6.35, -2.27, 0]
+    ])
+    river = VMobject(color=OXY, stroke_width=12).set_points_smoothly([
+        [-6.1, 0.7, 0], [-5.1, 0.4, 0], [-4.2, 0.65, 0], [-3.3, 0.75, 0], [-2.58, 0.8, 0]
+    ])
+    currents = VGroup(_wave(0.85, phase=0.0), _wave(0.35, phase=1.4),
+                      _wave(-0.85, opacity=0.22, phase=2.2), _wave(-1.65, opacity=0.18, phase=3.0))
+    root = VGroup(sky, land, upper, lower, currents, bottom, river)
+
+    # Rain and fertilizer are always available in the field; scenes decide visibility.
+    field_nutrients = VGroup(*[_nutrient(-5.75 + 0.32 * (i % 4), 1.18 - 0.23 * (i // 4)) for i in range(8)])
+    rain = VGroup(*[Line([x, 3.0, 0], [x - 0.22, 2.45, 0], color=OXY, stroke_width=3)
+                    for x in (-6.0, -5.45, -4.9, -4.35, -3.8)])
+    sun = VGroup(Circle(radius=0.36, color=YELLOW, fill_color=YELLOW, fill_opacity=0.18,
+                        stroke_width=3).move_to([5.55, 2.65, 0]),
+                 *[Line([5.55, 2.65, 0] + 0.48 * np.array([np.cos(a), np.sin(a), 0]),
+                        [5.55, 2.65, 0] + 0.68 * np.array([np.cos(a), np.sin(a), 0]),
+                        color=YELLOW, stroke_width=2) for a in np.linspace(0, TAU, 8, endpoint=False)])
+    root.add(sun)
+
+    surface_oxygen = VGroup(*[_oxygen(x, y) for x, y in
+                              [(-1.9, 1.0), (-0.7, 0.6), (0.7, 1.08), (2.0, 0.5),
+                               (3.25, 1.02), (4.55, 0.58), (5.7, 1.05)]])
+    deep_positions = [(-1.7, -0.72), (-0.45, -1.3), (0.85, -0.72), (2.1, -1.42),
+                      (3.35, -0.8), (4.55, -1.55), (5.65, -0.9)]
+    deep_oxygen = VGroup(*[_oxygen(x, y) for x, y in deep_positions])
+    if low_oxygen:
+        deep_oxygen = VGroup(*[_oxygen(*deep_positions[i]) for i in (0, 2)])
+    root.add(surface_oxygen, deep_oxygen)
+    bob(surface_oxygen, amp=0.035, speed=1.1)
+    bob(deep_oxygen, amp=0.025, speed=0.9, seed=2)
+
+    grass = VGroup(*[Line([x, -1.75, 0], [x + 0.04, -1.25, 0], color=ALG,
+                               stroke_width=5) for x in (-2.25, -2.0, -1.75)])
+    root.add(grass)
+    algae_positions = [(-1.8, 0.92), (-1.05, 0.55), (-0.25, 1.02), (0.55, 0.62),
+                       (1.35, 1.0), (2.15, 0.58), (2.95, 0.98), (3.8, 0.58),
+                       (4.65, 1.0), (5.45, 0.65)]
+    algae = VGroup(*[_alga(x, y) for x, y in algae_positions[:3 if not bloom else 10]])
+    if bloom:
+        root.add(algae)
+        bob(algae, amp=0.035, speed=1.3, seed=1)
+    dead_positions = [(-0.9, -0.55), (0.15, -1.15), (1.25, -1.72), (2.35, -0.95),
+                      (3.35, -1.75), (4.45, -1.15)]
+    dead = VGroup(*[_alga(x, y, DECOMP, 0.9) for x, y in dead_positions])
+    if sinking:
+        root.add(dead)
+        bob(dead, amp=0.055, speed=0.8, seed=3)
+    bugs = VGroup(*[_bacterium(x, y) for x, y in
+                    [(-0.55, -1.9), (0.35, -1.72), (1.35, -2.02), (2.35, -1.8),
+                     (3.4, -2.03), (4.35, -1.78)]])
+    if bacteria:
+        root.add(bugs)
+        pulse(bugs, base=2.2, amp=0.7, speed=2.0)
+    fish, crab, oyster = _fish(), _crab(), _oyster()
+    animal_group = VGroup(fish, crab, oyster)
+    if animals:
+        root.add(animal_group)
+        bob(fish, amp=0.045, speed=1.4)
+    if nutrients:
+        root.add(field_nutrients, rain)
+        bob(field_nutrients, amp=0.035, speed=2.0)
+    if layered:
+        boundary = _wave(-0.25, color=TEXT, opacity=0.5, phase=0.5).set_stroke(width=5)
+        root.add(boundary)
+    else:
+        boundary = VGroup()
+    return SimpleNamespace(root=root, sky=sky, land=land, upper=upper, lower=lower,
+                           river=river, rain=rain, field_nutrients=field_nutrients,
+                           surface_oxygen=surface_oxygen, deep_oxygen=deep_oxygen,
+                           grass=grass, algae=algae, dead=dead, bacteria=bugs,
+                           fish=fish, crab=crab, oyster=oyster, animals=animal_group,
+                           boundary=boundary, sun=sun)
+
+
+def path_nodes():
+    """Five compact nodes placed on the geography, not as a separate list."""
+    return VGroup(
+        Dot([-4.65, 0.55, 0], radius=0.16, color=NUT),
+        Dot([0.15, 0.88, 0], radius=0.16, color=ALG),
+        Dot([1.6, -1.82, 0], radius=0.16, color=DECOMP),
+        Dot([3.2, -1.0, 0], radius=0.16, color=OXY),
+        Dot([4.65, -1.86, 0], radius=0.16, color=ANIMAL),
+    )
+
+
+def path_arrows(nodes):
+    return VGroup(*[Arrow(nodes[i].get_center(), nodes[i + 1].get_center(), buff=0.2,
+                          color=GREY, stroke_width=3, max_tip_length_to_length_ratio=0.08)
+                    for i in range(4)])
+
+
+class S00Hook(SpokenScene):
     def construct(self):
-        b = Bay()
-        show_bay(self, b, 0.15)
-        self.at("Each summer")
-        title = T("Chesapeake Bay in summer", 30, TEXT, weight=BOLD).move_to([XC, 1.55, 0])
-        self.play(FadeIn(title), run_time=0.5)
-        self.at("deep water")
-        hl = Rectangle(width=9.1, height=2.4, stroke_color=TEXT, stroke_width=5).move_to([XC, -2.1, 0])
-        self.play(Create(hl), run_time=0.6)
-        self.at("very low on oxygen")
-        low = T("very low\noxygen", 24, BAD, weight=BOLD).move_to([4.95, -1.4, 0])
-        gone = b.ddots[0][3:] + b.ddots[1][3:]
-        self.play(LaggedStart(*[FadeOut(d) for d in gone], lag_ratio=0.08), FadeIn(low), run_time=1.4)
-        self.at("Fish and crabs")
-        fish = chip("fish", TEXT, size=24, pad=0.14).move_to([0.1, -2.7, 0])
-        crab = chip("crabs", TEXT, size=24, pad=0.14).move_to([1.6, -2.7, 0])
-        self.play(FadeIn(fish), FadeIn(crab), run_time=0.5)
-        self.at("swim away")
-        self.play(fish.animate.move_to([0.1, 0.35, 0]), crab.animate.move_to([1.6, 0.35, 0]), run_time=1.3)
-        self.at("Animals that cannot leave")
-        stay = chip("cannot leave", TEXT, size=24, pad=0.14).move_to([3.6, -2.85, 0])
-        self.play(FadeIn(stay), run_time=0.5)
-        self.at("sick or die")
-        die = chip("may get sick or die", BAD, size=24, pad=0.14).move_to([3.6, -2.85, 0])
-        self.play(ReplacementTransform(stay, die), run_time=0.6)
-        self.at("dead zone")
-        dz = chip("dead zone", BAD, size=28, pad=0.14).move_to([4.95, -2.2, 0])
-        dzr = Rectangle(width=5.05, height=2.4, stroke_color=BAD, stroke_width=5).move_to([3.575, -2.1, 0])
-        self.play(ReplacementTransform(hl, dzr), FadeIn(dz, scale=0.8), run_time=0.7)
-        self.at("How can too much")
-        q = VGroup(T("How can too much fertilizer", 34, TEXT, weight=BOLD),
-                   T("make part of the Bay run out of oxygen?", 34, TEXT, weight=BOLD)).arrange(DOWN, buff=0.15)
-        q.move_to([XC, 2.85, 0])
-        self.play(FadeIn(q, shift=UP * 0.15), run_time=0.7)
-        self.at("run out of")
-        fert = chip("fertilizer", NUT, size=24, pad=0.14).move_to([-4.65, 0.75, 0])
-        a = arr([-3.75, 0.75, 0], [-2.7, 0.75, 0], NUT, w=6)
-        qm = T("?", 44, TEXT, weight=BOLD).move_to([-2.25, 0.75, 0])
-        self.play(FadeIn(fert), GrowArrow(a), FadeIn(qm), run_time=0.8)
+        w = bay_world(nutrients=True)
+        self.at("How can fertilizer")
+        self.play(FadeIn(w.root), run_time=1.2)
+        q = fit_text("How can fertilizer leave deep animals without oxygen?", max_w=8.6,
+                     size=30, color=TEXT).move_to([0.0, 3.08, 0])
+        self.play(FadeIn(q, shift=DOWN * 0.12), run_time=0.8)
+        # Keep the opening question alive while its first sentence lands.
+        self.play(w.rain.animate.shift(DOWN * 0.32),
+                  w.upper.animate.set_fill(OXY, 0.27), run_time=2.2,
+                  rate_func=there_and_back)
+        self.at("Watch one Chesapeake")
+        tag = scope_tag("schematic")
+        river_flash = w.river.copy().set_stroke(OXY, width=18, opacity=0.9)
+        self.play(ShowPassingFlash(river_flash, time_width=0.7), FadeIn(tag),
+                  w.lower.animate.set_fill(DEEP, 0.62), run_time=1.7,
+                  rate_func=there_and_back)
+        self.at("answer begins")
+        land_ring = SurroundingRectangle(w.field_nutrients, color=NUT, buff=0.16,
+                                         corner_radius=0.12, stroke_width=4)
+        self.play(Create(land_ring), Indicate(w.field_nutrients, color=NUT, scale_factor=1.25),
+                  run_time=1.4)
+        self.play(FadeOut(land_ring), run_time=0.45)
+        self.at("surface may look")
+        self.play(w.upper.animate.set_fill(ALG, 0.27), run_time=1.2)
+        self.play(w.upper.animate.set_fill(OXY, 0.16), run_time=0.75)
+        self.at("animals below")
+        self.play(Indicate(w.animals, color=ANIMAL, scale_factor=1.15),
+                  w.lower.animate.set_fill(DEEP, 0.62), run_time=1.7)
         self.finish()
 
 
-# =============================================================================================
-NUTPOS = [(-2.5, 0.6), (-1.8, 0.35), (-1.3, 0.7), (-2.2, 0.05), (-1.5, 0.1), (-2.65, 0.3)]
-ALG0 = [(COLS[1], ALGROWS[1]), (COLS[3], ALGROWS[1]), (COLS[5], ALGROWS[1])]
+class S01Title(TitleCard):
+    LESSON = "Big Changes: Dead Zones, Storms and Climate"
+    TITLE = "Extra Nutrients, Less Deep Oxygen"
+
+    def construct(self):
+        w = bay_world(nutrients=True)
+        self.add(w.root, scope_tag("schematic"))
+        title = fit_text(self.TITLE, max_w=8.8, size=48, color=TEXT,
+                         font=TITLE_FONT).move_to([0.7, 2.7, 0])
+        backing = BackgroundRectangle(title, color=BG, fill_opacity=0.88, buff=0.22)
+        self.play(FadeIn(backing), Write(title), run_time=0.75)
+        self.wait(0.55)
+        self.play(FadeOut(VGroup(backing, title), shift=RIGHT * 0.35), run_time=0.7)
+        self.finish()
 
 
 class S02Nutrients(SpokenScene):
     def construct(self):
-        b = Bay()
-        show_bay(self, b, 0.15)
-        self.at("A nutrient")
-        defn = VGroup(chip("nutrient", NUT, size=30, pad=0.16),
-                      T("a substance living things need to grow", 26, TEXT)).arrange(RIGHT, buff=0.3)
-        defn.move_to([0, 3.0, 0])
-        self.play(FadeIn(defn, shift=DOWN * 0.15), run_time=0.6)
-        self.at("Algae are tiny")
-        algs = VGroup(*[alga(x, y) for x, y in ALG0])
-        al = T("algae", 26, ALG, weight=BOLD).move_to([COLS[3], 1.45, 0])
-        self.play(FadeIn(algs, scale=0.6), FadeIn(al), run_time=0.7)
-        self.at("need nitrogen")
-        n1 = chip("nitrogen", NUT, size=26, pad=0.14).move_to([-1.2, 2.15, 0])
-        n2 = chip("phosphorus", NUT, size=26, pad=0.14).move_to([1.3, 2.15, 0])
-        self.play(FadeIn(n1, shift=DOWN * 0.1), FadeIn(n2, shift=DOWN * 0.1), run_time=0.6)
-        self.at("Farm fertilizer")
-        f = chip("fertilizer", NUT, size=24, pad=0.14).move_to([-4.65, -0.35, 0])
-        self.play(FadeIn(f, shift=RIGHT * 0.2), run_time=0.5)
-        self.at("and manure")
-        m = chip("manure", NUT, size=24, pad=0.14).move_to([-4.65, -1.2, 0])
-        self.play(FadeIn(m, shift=RIGHT * 0.2), run_time=0.5)
-        self.at("So does")
-        w = chip("wastewater", NUT, size=24, pad=0.14).move_to([-4.65, -2.05, 0])
-        self.play(FadeIn(w, shift=RIGHT * 0.2), run_time=0.5)
-        self.at("Rain washes")
-        rain = VGroup(*[Line([x, 1.7, 0], [x - 0.3, 1.1, 0], color=BLUE, stroke_width=4) for x in (-5.5, -4.9, -4.3, -3.7)])
-        rl = T("rain", 26, BLUE, weight=BOLD).move_to([-4.6, 2.25, 0])
-        self.play(FadeIn(rain, shift=DOWN * 0.2), FadeIn(rl), run_time=0.6)
-        self.at("fields and lawns")
-        nd = [dot(-4.1 + 0.25 * i, 0.5, NUT, 0.09) for i in range(6)]
-        self.play(*[FadeIn(d) for d in nd], run_time=0.4)
-        self.at("into rivers")
-        self.play(*[d.animate.move_to([NUTPOS[i][0], NUTPOS[i][1], 0]) for i, d in enumerate(nd)],
-                  run_time=1.6, rate_func=smooth)
+        w = bay_world(nutrients=True)
+        self.add(w.root, scope_tag("schematic"))
+        self.at("Rain carries")
+        self.play(w.rain.animate.shift(DOWN * 0.35), run_time=1.0)
+        self.at("into a creek")
+        moving = w.field_nutrients.copy()
+        self.add(moving)
+        self.play(moving.animate.move_to([-4.25, 0.55, 0]).scale(0.8), run_time=1.25)
+        self.play(moving.animate.move_to([-1.35, 0.75, 0]), run_time=1.2)
+        self.at("Fertilizer and manure")
+        labels = VGroup(chip("fertilizer", NUT, 28), chip("manure", NUT, 28)).arrange(DOWN, buff=0.18)
+        labels.move_to([-4.85, -0.75, 0])
+        self.play(FadeIn(labels, shift=RIGHT * 0.15), run_time=0.7)
+        self.at("nutrients that")
+        nutrient = chip("nutrients", NUT, 32).move_to([0.7, 2.65, 0])
+        self.play(ReplacementTransform(labels.copy(), nutrient), run_time=0.9)
         self.finish()
 
 
-# =============================================================================================
-class S03Bloom(SpokenScene):
+class S03Sources(SpokenScene):
     def construct(self):
-        b = Bay()
-        show_bay(self, b, 0.15)
-        al3 = [alga(x, y) for x, y in ALG0]
-        nd = [dot(x, y, NUT, 0.09) for x, y in NUTPOS]
-        self.add(*al3, *nd)
-        grid = [(COLS[k], r) for r in ALGROWS for k in range(7)]
-        others = [(x, y) for (x, y) in grid if (x, y) not in ALG0]
-        extra = [alga(x, y) for x, y in others]
-        self.at("In the Bay")
-        self.wait(0.1)
-        self.at("feed the algae")
-        tgt = [al3[0], al3[0], al3[1], al3[1], al3[2], al3[2]]
-        self.play(*[d.animate.move_to(tgt[i].get_center()) for i, d in enumerate(nd)], run_time=0.9)
-        self.play(*[FadeOut(d) for d in nd], *[Indicate(a, scale_factor=1.3, color=ALG) for a in al3], run_time=0.6)
-        self.at("grow very fast")
-        self.play(LaggedStart(*[GrowFromCenter(a) for a in extra], lag_ratio=0.07),
-                  b.surf.animate.set_fill(ALG, 0.28), run_time=2.0)
+        w = bay_world(nutrients=True)
+        self.add(w.root, scope_tag("schematic"))
+        self.at("Wastewater")
+        waste = chip("wastewater", NUT, 28).move_to([-4.65, -0.55, 0])
+        self.play(FadeIn(waste), run_time=0.6)
+        self.at("air pollution")
+        air = chip("some air pollution", NUT, 28).move_to([-1.1, 2.65, 0])
+        self.play(FadeIn(air, shift=DOWN * 0.15), run_time=0.7)
+        self.at("add nutrients too")
+        streams = VGroup(Arrow(waste.get_right(), [-2.7, 0.58, 0], buff=0.15, color=NUT),
+                         Arrow(air.get_bottom(), [-0.15, 0.85, 0], buff=0.15, color=NUT))
+        self.play(LaggedStart(*[GrowArrow(a) for a in streams], lag_ratio=0.25), run_time=1.0)
+        self.at("Nutrients help growth")
+        self.play(Indicate(w.grass, color=ALG, scale_factor=1.15), run_time=1.0)
+        self.at("where they go")
+        self.play(FadeOut(VGroup(waste, air, streams)), Indicate(w.river, color=NUT), run_time=1.1)
+        self.at("how much arrives")
+        self.play(w.field_nutrients.animate.scale(1.25), rate_func=there_and_back, run_time=1.0)
+        self.finish()
+
+
+class S04Green(SpokenScene):
+    def construct(self):
+        w = bay_world(nutrients=True)
+        self.add(w.root, scope_tag("schematic"))
+        self.at("Pond water")
+        window = VGroup(Rectangle(width=2.2, height=2.15, color=TEXT, stroke_width=4),
+                        Line(UP * 1.07, DOWN * 1.07, color=TEXT, stroke_width=2),
+                        Line(LEFT * 1.1, RIGHT * 1.1, color=TEXT, stroke_width=2)).move_to([-0.4, 0.4, 0])
+        jar = RoundedRectangle(corner_radius=0.2, width=0.95, height=1.25, color=TEXT,
+                               fill_color=OXY, fill_opacity=0.22).move_to([-0.4, 0.15, 0])
+        inset = VGroup(window, jar)
+        self.play(FadeIn(inset), run_time=0.75)
+        self.at("turn green")
+        self.play(jar.animate.set_fill(ALG, 0.58), run_time=1.2)
+        self.at("In the bay")
+        self.play(FadeOut(inset, scale=1.5), run_time=0.65)
+        self.at("extra nitrogen")
+        np_label = chip("nitrogen + phosphorus", NUT, 28).move_to([0.8, 2.65, 0])
+        self.play(FadeIn(np_label), run_time=0.65)
+        self.at("feed fast growth")
+        algae = VGroup(*[_alga(x, y) for x, y in
+                         [(-1.8, .92), (-1.05, .55), (-.25, 1.02), (.55, .62),
+                          (1.35, 1.0), (2.15, .58), (2.95, .98), (3.8, .58), (4.65, 1.0)]])
+        self.play(LaggedStart(*[GrowFromCenter(a) for a in algae], lag_ratio=0.09),
+                  run_time=2.0)
+        self.finish()
+
+
+class S05Bloom(SpokenScene):
+    def construct(self):
+        w = bay_world(nutrients=True, bloom=True)
+        self.add(w.root, scope_tag("schematic"))
+        self.at("A thick growth")
+        self.play(w.upper.animate.set_fill(ALG, 0.34), run_time=1.1)
         self.at("algae bloom")
-        bl = chip("algae bloom", ALG, size=30, pad=0.16).move_to([XC, 1.6, 0])
-        bl2 = T("a thick, fast growth of algae", 24, TEXT).move_to([XC, 2.25, 0])
-        self.play(FadeIn(bl, scale=0.8), FadeIn(bl2), run_time=0.6)
-        self.at("The green water")
-        shelf = Rectangle(width=0.7, height=2.4, stroke_width=0, fill_color=BROWN, fill_opacity=0.5).move_to([-2.65, -2.1, 0])
-        gr = VGroup(*[Line([x, -0.9, 0], [x + 0.06, -0.45, 0], color=ALG, stroke_width=5) for x in (-2.9, -2.7, -2.5)])
-        gl = T("underwater\ngrasses", 22, ALG).move_to([-1.85, 0.55, 0])
-        self.play(FadeIn(shelf), FadeIn(gr, shift=UP * 0.1), FadeIn(gl), run_time=0.6)
-        self.at("underwater grasses")
-        gl2 = T("grasses\nshaded", 22, ALG).move_to([-1.85, 0.55, 0])
-        self.play(gr.animate.set_stroke(opacity=0.3), ReplacementTransform(gl, gl2), run_time=0.7)
-        self.at("Then the algae")
-        allg = al3 + extra
-        self.play(*[a.animate.set_stroke(DEAD).set_fill(DEAD, 0.5) for a in allg],
-                  b.surf.animate.set_fill(BLUE, 0.16), FadeOut(bl), FadeOut(bl2), run_time=0.8)
-        self.at("sink to the bottom")
-        moves = []
-        for a in allg:
-            x, y = a.get_center()[0], a.get_center()[1]
-            ny = PILE[ALGROWS.index(min(ALGROWS, key=lambda r: abs(r - y)))]
-            moves.append(a.animate.move_to([x, ny, 0]))
-        self.play(*moves, run_time=2.2, rate_func=smooth)
-        dd = T("dead algae", 24, DEAD, weight=BOLD).move_to([XC - 0.6, -3.55 + 0.0, 0])
+        label = chip("algae bloom", ALG, 32).move_to([1.4, 2.65, 0])
+        self.play(GrowFromCenter(label), run_time=0.7)
+        self.at("More nutrients")
+        self.play(w.field_nutrients.animate.shift(RIGHT * 1.3), run_time=1.2)
+        self.at("conditions still matter")
+        maybe = T("conditions still matter", 28, TEXT).move_to([-3.9, 2.05, 0])
+        self.play(FadeIn(maybe), run_time=0.6)
+        self.at("block sunlight")
+        shadow = Polygon([-1.3, 0.25, 0], [0.35, 0.25, 0], [-1.35, -1.72, 0], [-2.35, -1.72, 0],
+                         stroke_width=0, fill_color=BG, fill_opacity=0.62)
+        self.play(FadeIn(shadow), w.grass.animate.set_opacity(0.3), run_time=1.4)
+        self.at("grasses below")
+        self.play(Indicate(w.grass, color=ALG), run_time=0.8)
         self.finish()
 
 
-# =============================================================================================
-class S04Decomposers(SpokenScene):
+def predict_backdrop():
+    w = bay_world(bloom=True, sinking=True)
+    return w.root
+
+
+class S06Sinking(SpokenScene):
     def construct(self):
-        b = Bay()
-        show_bay(self, b, 0.15)
-        pile = [alga(x, y, DEAD) for y in PILE for x in COLS]
-        self.add(*pile)
-        self.at("A decomposer is")
-        dc = chip("decomposer", BAC, size=30, pad=0.16).move_to([-2.6, 2.7, 0])
-        dt = T("breaks down dead matter", 24, TEXT).move_to([-2.6, 2.05, 0])
-        self.play(FadeIn(dc, scale=0.8), run_time=0.5)
-        self.at("dead matter")
-        self.play(FadeIn(dt), run_time=0.5)
-        self.at("Bacteria decompose")
-        bs = [bact(x, -2.28) for x in COLS]
-        bl = chip("bacteria", BAC, size=24, pad=0.14).move_to([4.95, -2.8, 0])
-        self.play(*[FadeIn(x, scale=0.5) for x in bs], FadeIn(bl), run_time=0.8)
-        self.at("They use oxygen")
-        low = b.ddots[1]
-        self.play(LaggedStart(*[d.animate.move_to([COLS[i], -2.28, 0]) for i, d in enumerate(low)], lag_ratio=0.12),
-                  run_time=1.6)
-        self.play(*[FadeOut(d) for d in low], run_time=0.3)
-        self.at("Dissolved oxygen is")
-        lg = VGroup(dot(0, 0), T("dissolved oxygen", 26, OXY, weight=BOLD)).arrange(RIGHT, buff=0.2)
-        lg2 = T("oxygen gas mixed into water", 22, TEXT)
-        leg = VGroup(lg, lg2).arrange(DOWN, buff=0.15).move_to([3.7, 2.45, 0])
-        self.play(FadeIn(leg, shift=DOWN * 0.1), run_time=0.6)
-        self.at("The deep water runs")
-        gone = b.ddots[0][:5]
-        lw = T("low oxygen", 24, BAD, weight=BOLD).move_to([4.95, -1.3, 0])
-        self.play(*[d.animate.move_to([COLS[i], -2.28, 0]) for i, d in enumerate(gone)], run_time=1.0)
-        self.play(*[FadeOut(d) for d in gone], FadeIn(lw), run_time=0.4)
+        w = bay_world(bloom=True)
+        self.add(w.root, scope_tag("schematic"))
+        self.at("Later")
+        self.play(w.algae.animate.set_color(DECOMP), run_time=0.7)
+        self.at("die and sink")
+        targets = [[-0.9, -0.55, 0], [0.15, -1.15, 0], [1.25, -1.72, 0],
+                   [2.35, -0.95, 0], [3.35, -1.75, 0], [4.45, -1.15, 0]]
+        self.play(*[w.algae[i].animate.move_to(targets[i]) for i in range(6)],
+                  *[FadeOut(w.algae[i]) for i in range(6, len(w.algae))], run_time=2.0)
+        self.at("next part")
+        self.play(Indicate(VGroup(*w.algae[:6]), color=DECOMP), run_time=0.9)
+        self.at("Now predict")
+        q = question_card("Where will oxygen run low?", ["near the surface", "in deep water"],
+                          chips_at=[-4.75, 2.45, 0], y=-3.22, max_w=9.4)
+        self.play(FadeIn(q.chips), run_time=0.65)
+        self.at("near the surface")
+        self.play(FadeIn(q.question), run_time=0.65)
         self.finish()
 
 
-# =============================================================================================
-class S05Deep(SpokenScene):
+class S07PredictPause(PredictPause):
+    QUESTION = "Where will oxygen run low?"
+    OPTIONS = ["near the surface", "in deep water"]
+    CHIPS_AT = [-4.75, 2.45, 0]
+    CARD = {"y": -3.22, "max_w": 9.4}
+    SECONDS = 4.5
+
+    def backdrop(self):
+        return predict_backdrop()
+
+
+class S08Decomposers(SpokenScene):
     def construct(self):
-        # panel A: the gauge
-        BX, YB, H = -4.2, -2.8, 4.4
-        bar = Rectangle(width=1.2, height=H, stroke_color=GREY, stroke_width=3).move_to([BX, YB + H / 2, 0])
-        yt = YB + H * 0.4
-        redz = Rectangle(width=1.2, height=H * 0.4, stroke_width=0, fill_color=BAD, fill_opacity=0.18)
-        redz.align_to(bar, DOWN).align_to(bar, LEFT)
-        fill = Rectangle(width=1.2, height=H * 0.28, stroke_width=0, fill_color=OXY, fill_opacity=0.7)
-        fill.align_to(bar, DOWN).align_to(bar, LEFT)
-        line = Line([-5.2, yt, 0], [-3.2, yt, 0], color=BAD, stroke_width=5)
-        ll = M("2 mg/L", 28, BAD).move_to([-2.2, yt, 0])
-        gt = T("dissolved oxygen", 26, OXY, weight=BOLD).move_to([BX, 2.2, 0])
-        gn = T("in this sketch, not to scale", 22, GREY).move_to([BX + 0.6, -3.3, 0])
-        self.at("In this lesson")
-        dz = chip("dead zone", BAD, size=34, pad=0.16).move_to([1.7, 1.5, 0])
-        self.play(Create(bar), FadeIn(gt), FadeIn(gn), FadeIn(fill), FadeIn(redz), Create(line), FadeIn(ll),
-                  FadeIn(dz, scale=0.8), run_time=0.9)
-        self.at("per liter")
-        lt = T("less than 2 mg/L", 34, BAD, weight=BOLD).move_to([1.7, 0.7, 0])
-        self.play(FadeIn(lt, shift=UP * 0.1), run_time=0.5)
-        self.at("It is not empty")
-        ne = T("not empty", 36, TEXT, weight=BOLD).move_to([1.7, -0.2, 0])
-        self.play(FadeIn(ne), run_time=0.5)
-        self.at("Bacteria live there")
-        bs = VGroup(*[bact(0.4 + 0.75 * i, -1.05, 1.5) for i in range(4)])
-        bt = T("bacteria live here", 28, BAC, weight=BOLD).move_to([1.7, -1.7, 0])
-        self.play(FadeIn(bs, scale=0.6), FadeIn(bt), run_time=0.6)
-        self.at("little to no")
-        lo = T("may hold little to no oxygen", 28, OXY, weight=BOLD).move_to([1.7, -2.6, 0])
-        self.play(fill.animate.stretch_to_fit_height(H * 0.05).align_to(bar, DOWN), FadeIn(lo), run_time=1.0)
-        # panel B
-        self.at("Why the deep")
-        self.play(*[FadeOut(m) for m in (bar, redz, fill, line, ll, gt, gn, dz, lt, ne, bs, bt, lo)], run_time=0.5)
-        q1 = T("Why the deep water?", 40, TEXT, weight=BOLD).move_to([0, 3.0, 0])
-        self.play(FadeIn(q1), run_time=0.4)
-        self.at("why summer")
-        q2 = T("Why summer?", 40, TEXT, weight=BOLD).move_to([0, 2.3, 0])
-        self.play(FadeIn(q2), run_time=0.4)
+        w = bay_world(sinking=True)
+        self.add(w.root, scope_tag("schematic"))
+        self.at("Deep water")
+        deep = T("deep water", 30, OXY).move_to([-1.0, -2.85, 0])
+        self.play(FadeIn(deep), run_time=0.6)
+        self.at("runs low")
+        self.play(*[FadeOut(d) for d in w.deep_oxygen[2:]], run_time=1.2)
+        self.at("Bacteria gather")
+        bugs = VGroup(*[_bacterium(x, y) for x, y in
+                        [(-.55, -1.9), (.35, -1.72), (1.35, -2.02), (2.35, -1.8), (3.4, -2.03)]])
+        self.play(LaggedStart(*[FadeIn(b, scale=0.5) for b in bugs], lag_ratio=0.12), run_time=1.1)
+        self.at("These decomposers")
+        label = chip("decomposers", DECOMP, 30).move_to([2.8, 2.65, 0])
+        self.play(FadeIn(label), run_time=0.6)
+        self.at("use dissolved oxygen")
+        survivors = list(w.deep_oxygen[:2])
+        self.play(*[d.animate.move_to(bugs[i].get_center()) for i, d in enumerate(survivors)], run_time=1.2)
+        self.play(*[FadeOut(d) for d in survivors], run_time=0.5)
+        self.at("algae are food")
+        self.play(Indicate(w.dead, color=DECOMP), Indicate(bugs, color=DECOMP), run_time=1.0)
+        self.at("not direct")
+        direct = T("not direct oxygen thieves", 30, TEXT).move_to([0.7, 2.6, 0])
+        self.play(swap(label, direct), run_time=0.8)
+        pulse(bugs, base=2.2, amp=0.7, speed=2.0)
+        self.finish()
+
+
+class S09Rule(SpokenScene):
+    def construct(self):
+        w = bay_world(nutrients=True, bloom=True, sinking=True, low_oxygen=True, bacteria=True)
+        self.add(w.root, scope_tag("schematic"))
+        nodes = path_nodes()
+        arrows = path_arrows(nodes)
+        self.at("Change one ecosystem")
+        rule = fit_text("Change one part; effects can spread through the system.", max_w=8.4,
+                        size=34, color=TEXT).move_to([-0.1, 2.8, 0])
+        self.play(FadeIn(rule), run_time=0.8)
+        self.at("Here")
+        self.play(FadeIn(nodes[0]), run_time=0.4)
+        self.at("nutrients change algae")
+        self.play(GrowArrow(arrows[0]), FadeIn(nodes[1]), run_time=0.9)
+        self.at("decomposition")
+        self.play(GrowArrow(arrows[1]), FadeIn(nodes[2]), run_time=0.9)
+        self.at("oxygen")
+        self.play(GrowArrow(arrows[2]), FadeIn(nodes[3]), run_time=0.9)
+        self.at("animal habitat")
+        self.play(GrowArrow(arrows[3]), FadeIn(nodes[4]), run_time=0.9)
+        self.at("Each step")
+        self.play(LaggedStart(*[Indicate(n, scale_factor=1.8) for n in nodes], lag_ratio=0.22), run_time=2.8)
+        self.finish()
+
+
+class S10Layers(SpokenScene):
+    def construct(self):
+        w = bay_world(bloom=True, sinking=True, low_oxygen=True, layered=True, bacteria=True)
+        self.add(w.root, scope_tag("schematic"))
+        self.at("Summer makes")
+        self.play(Indicate(w.sun, color=YELLOW, scale_factor=1.15), run_time=1.0)
+        self.at("Fresher river water")
+        fresh = T("fresher", 30, OXY).move_to([0.2, 0.8, 0])
+        fresh.layout_ok = True  # Deliberately labels the upper water layer.
+        self.play(FadeIn(fresh), run_time=0.7)
+        self.at("saltier bay water")
+        salty = T("saltier", 30, OXY).move_to([0.2, -1.05, 0])
+        salty.layout_ok = True  # Deliberately labels the lower water layer.
+        self.play(FadeIn(salty), run_time=0.7)
+        self.at("layers mix poorly")
+        self.play(Indicate(w.boundary, color=TEXT), run_time=1.2)
+        mix = chip("mix poorly", TEXT, 28).move_to([-1.0, 2.65, 0])
+        self.play(FadeIn(mix), run_time=0.55)
         self.at("Warm water")
-        cool = Rectangle(width=1.6, height=2.8, stroke_color=OXY, stroke_width=3, fill_color=OXY, fill_opacity=0.45)
-        warm = Rectangle(width=1.6, height=1.8, stroke_color=OXY, stroke_width=3, fill_color=OXY, fill_opacity=0.45)
-        cool.move_to([-2.2, -2.4 + 1.4, 0])
-        warm.move_to([2.2, -2.4 + 0.9, 0])
-        cl = T("cool water", 28, TEXT).move_to([-2.2, -2.85, 0])
-        wl = T("warm water", 28, TEXT).move_to([2.2, -2.85, 0])
-        ht = T("oxygen the water can hold", 26, OXY, weight=BOLD).move_to([0, 1.3, 0])
-        note = T("in this sketch, not to scale", 22, GREY).move_to([0, -3.4, 0])
-        self.play(GrowFromEdge(cool, DOWN), FadeIn(cl), FadeIn(ht), FadeIn(note), run_time=0.6)
-        self.play(GrowFromEdge(warm, DOWN), FadeIn(wl), run_time=0.7)
-        # panel C
-        self.at("In summer")
-        self.play(*[FadeOut(m) for m in (q1, q2, cool, warm, cl, wl, ht, note)], run_time=0.5)
-        sf = Rectangle(width=10, height=1.8, stroke_color=BLUE, stroke_width=2, fill_color=BLUE, fill_opacity=0.16).move_to([0, 1.1, 0])
-        dp = Rectangle(width=10, height=2.6, stroke_color=BLUE, stroke_width=2, fill_color=BLUE, fill_opacity=0.30).move_to([0, -1.1, 0])
-        sm = T("summer", 32, TEXT, weight=BOLD).move_to([0, 2.75, 0])
-        sd = [dot(x, 0.75) for x in (0.2, 0.85, 1.5, 3.3, 3.95, 4.6)]
-        self.play(FadeIn(sm), FadeIn(sf), FadeIn(dp), *[FadeIn(d) for d in sd], run_time=0.5)
-        self.at("fresher river water")
-        fl = T("fresher river water", 30, BLUE, weight=BOLD).move_to([-2.2, 1.1, 0])
-        self.play(FadeIn(fl), run_time=0.4)
-        self.at("saltier Bay water")
-        sl = T("saltier Bay water", 30, BLUE, weight=BOLD).move_to([-2.2, -1.2, 0])
-        self.play(FadeIn(sl), run_time=0.4)
-        self.at("mix poorly")
-        mp = chip("mix poorly", GREY, size=26, pad=0.14).move_to([-2.2, 0.2, 0])
-        mp[0].set_fill(BG, 1.0)
-        bd = VGroup(Line([-5, 0.2, 0], [mp.get_left()[0] - 0.05, 0.2, 0], color=GREY, stroke_width=7),
-                    Line([mp.get_right()[0] + 0.05, 0.2, 0], [5, 0.2, 0], color=GREY, stroke_width=7))
-        self.play(Create(bd), FadeIn(mp), run_time=0.6)
-        self.at("new oxygen")
-        ar = DashedLine([2.3, 0.9, 0], [2.3, -1.5, 0], color=OXY, stroke_width=4).add_tip(tip_length=0.2)
-        nt = T("new oxygen\narrives slowly", 24, OXY, weight=BOLD).move_to([3.7, -0.8, 0])
-        self.play(Create(ar), FadeIn(nt), run_time=1.0)
+        self.play(w.upper.animate.set_fill(YELLOW, 0.12), run_time=1.1)
+        self.at("holds less oxygen")
+        self.play(*[FadeOut(d) for d in w.surface_oxygen[::2]], run_time=1.1)
+        self.at("Algae fed")
+        self.play(Indicate(w.algae, color=ALG), run_time=1.0)
+        self.at("sinking and decaying")
+        self.play(w.dead.animate.shift(DOWN * 0.18), Indicate(w.bacteria, color=DECOMP), run_time=1.6)
         self.finish()
 
 
-# =============================================================================================
-class S06Answer(SpokenScene):
+class S11Animals(SpokenScene):
     def construct(self):
-        self.at("Here is the chain")
-        c1 = chip("extra nutrients", NUT, size=26, pad=0.16).move_to([-4.3, 1.2, 0])
-        c2 = chip("algae bloom", ALG, size=26, pad=0.16).move_to([0, 1.2, 0])
-        c3 = chip("algae die and sink", DEAD, size=26, pad=0.16).move_to([4.3, 1.2, 0])
-        c4 = chip("decomposers use oxygen", BAC, size=26, pad=0.16).move_to([-3.0, -0.9, 0])
-        c5 = chip("animals leave, or may die", BAD, size=26, pad=0.16).move_to([3.0, -0.9, 0])
-        a12 = arr([c1.get_right()[0] + 0.05, 1.2, 0], [c2.get_left()[0] - 0.05, 1.2, 0], GREY)
-        a23 = arr([c2.get_right()[0] + 0.05, 1.2, 0], [c3.get_left()[0] - 0.05, 1.2, 0], GREY)
-        a45 = arr([c4.get_right()[0] + 0.05, -0.9, 0], [c5.get_left()[0] - 0.05, -0.9, 0], GREY)
-        el = VGroup(Line([c3.get_bottom()[0], c3.get_bottom()[1] - 0.05, 0], [c3.get_bottom()[0], 0.0, 0], color=GREY, stroke_width=5),
-                    Line([c3.get_bottom()[0], 0.0, 0], [-3.0, 0.0, 0], color=GREY, stroke_width=5),
-                    arr([-3.0, 0.0, 0], [-3.0, c4.get_top()[1] + 0.05, 0], GREY))
-        self.at("Extra nutrients feed")
-        self.play(FadeIn(c1, scale=0.8), run_time=0.5)
-        self.play(GrowArrow(a12), FadeIn(c2, scale=0.8), run_time=0.6)
-        self.at("The algae die")
-        self.play(GrowArrow(a23), FadeIn(c3, scale=0.8), run_time=0.6)
-        self.at("Decomposers use")
-        self.play(Create(el), FadeIn(c4, scale=0.8), run_time=0.9)
+        w = bay_world(sinking=True, low_oxygen=True, layered=True, bacteria=True)
+        self.add(w.root, scope_tag("schematic"))
         self.at("Fish and crabs")
-        self.play(GrowArrow(a45), FadeIn(c5, scale=0.8), run_time=0.7)
-        self.at("Eutrophication is")
-        eu = T("eutrophication", 46, GOLD, weight=BOLD, font=TITLE_FONT).move_to([0, 3.0, 0])
-        rl = Line([-6.0, 2.35, 0], [6.0, 2.35, 0], color=GOLD, stroke_width=4)
-        d1 = T("extra nutrients feeding too much algae growth", 28, TEXT).move_to([0, -2.2, 0])
-        self.play(FadeIn(eu, shift=DOWN * 0.1), Create(rl), FadeIn(d1), run_time=0.8)
-        self.at("It can lead")
-        d2 = T("it can lead to low oxygen", 28, BAD, weight=BOLD).move_to([0, -2.85, 0])
-        self.play(FadeIn(d2), run_time=0.5)
-        self.at("So fertilizer")
-        self.play(*[FadeOut(m) for m in (c1, c2, c3, c4, c5, a12, a23, a45, el, eu, rl, d1, d2)], run_time=0.5)
-        fe = chip("fertilizer", NUT, size=30, pad=0.16).move_to([-3.8, 2.2, 0])
-        ox = chip("oxygen", OXY, size=30, pad=0.16).move_to([3.8, 2.2, 0])
-        ax = arr([-2.4, 2.2, 0], [2.5, 2.2, 0], GREY)
-        x1 = Line([-0.3, 1.9, 0], [0.3, 2.5, 0], color=BAD, stroke_width=9)
-        x2 = Line([-0.3, 2.5, 0], [0.3, 1.9, 0], color=BAD, stroke_width=9)
-        tk = T("does not take", 28, BAD, weight=BOLD).move_to([0, 3.0, 0])
-        self.play(FadeIn(fe), FadeIn(ox), GrowArrow(ax), run_time=0.6)
-        self.play(Create(x1), Create(x2), FadeIn(tk), run_time=0.5)
-        self.at("It's")
-        nu = chip("its nutrients", NUT, size=30, pad=0.16).move_to([-3.8, 0.4, 0])
-        al = chip("algae", ALG, size=30, pad=0.16).move_to([3.8, 0.4, 0])
-        an = arr([-2.1, 0.4, 0], [3.0, 0.4, 0], GREY)
-        ft = T("feed", 28, TEXT, weight=BOLD).move_to([0.3, 0.95, 0])
-        self.play(FadeIn(nu), GrowArrow(an), FadeIn(ft), FadeIn(al), run_time=0.7)
-        self.at("Decomposers use", nth=1)
-        de = chip("decomposers", BAC, size=30, pad=0.16).move_to([-3.8, -1.6, 0])
-        o2 = chip("the oxygen", OXY, size=30, pad=0.16).move_to([3.8, -1.6, 0])
-        ad = arr([-2.1, -1.6, 0], [2.6, -1.6, 0], GREY)
-        ut = T("use", 28, TEXT, weight=BOLD).move_to([0.3, -1.05, 0])
-        self.play(FadeIn(de), GrowArrow(ad), FadeIn(ut), FadeIn(o2), run_time=0.7)
+        self.play(Indicate(VGroup(w.fish, w.crab), color=ANIMAL), run_time=0.8)
+        self.at("move away")
+        self.play(w.fish.animate.move_to([1.0, 0.55, 0]),
+                  w.crab.animate.move_to([-1.55, -1.35, 0]), run_time=2.0)
+        self.at("Adult oysters")
+        oyster_label = T("fixed in place", 30, ANIMAL).move_to([3.4, -2.9, 0])
+        self.play(FadeIn(oyster_label), Indicate(w.oyster, color=ANIMAL), run_time=0.8)
+        self.at("cannot leave")
+        self.play(w.oyster.animate.set_opacity(0.5), run_time=1.1)
+        self.at("sick or die")
+        risk = T("may become sick or die", 30, RED).move_to([1.4, 2.65, 0])
+        self.play(FadeIn(risk), run_time=0.7)
+        self.at("Bacteria still")
+        self.play(Indicate(w.bacteria, color=DECOMP), run_time=1.0)
+        self.at("Low oxygen shrinks")
+        habitat = Polygon([-2.45, -0.38, 0], [6.18, -0.38, 0], [6.18, -2.22, 0],
+                          [-2.45, -1.55, 0], color=RED, fill_color=RED, fill_opacity=0.10,
+                          stroke_width=4)
+        self.play(Create(habitat), run_time=1.2)
+        self.at("deep habitat")
+        self.play(habitat.animate.scale(0.78, about_point=[6.18, -1.3, 0]), run_time=1.3)
         self.finish()
 
 
-# =============================================================================================
-class S07End(EndCard):
-    LINE = "Extra nutrients feed algae; decomposers then use the deep oxygen."
+class S12Eutrophication(SpokenScene):
+    def construct(self):
+        w = bay_world(nutrients=True, bloom=True, sinking=True, low_oxygen=True, bacteria=True)
+        self.add(w.root, scope_tag("schematic"))
+        nodes = path_nodes()
+        arrows = path_arrows(nodes)
+        self.add(nodes, arrows)
+        self.at("This process")
+        title = T("eutrophication", 44, NUT, font=TITLE_FONT, weight=BOLD).move_to([0.8, 2.82, 0])
+        self.play(FadeIn(title), run_time=0.7)
+        self.at("Extra nutrients")
+        self.play(Indicate(nodes[0], color=NUT, scale_factor=1.8), run_time=0.7)
+        self.at("too much algae")
+        self.play(Indicate(nodes[1], color=ALG, scale_factor=1.8), run_time=0.7)
+        self.at("lead to low oxygen")
+        self.play(Indicate(nodes[2], color=DECOMP, scale_factor=1.8),
+                  Indicate(nodes[3], color=OXY, scale_factor=1.8), run_time=1.2)
+        bracket = Brace(arrows, DOWN, color=NUT)
+        meaning = T("can lead to low oxygen", 30, OXY).next_to(bracket, DOWN, buff=0.28)
+        self.play(GrowFromCenter(bracket), FadeIn(meaning), run_time=0.9)
+        self.at("Fertilizer does not")
+        no_direct = Cross(Arrow(nodes[0].get_center(), nodes[3].get_center(), buff=0.2,
+                                color=RED), stroke_color=RED, stroke_width=5)
+        self.play(Create(no_direct), run_time=1.0)
+        self.finish()
+
+
+class S13Connections(SpokenScene):
+    def construct(self):
+        w = bay_world(nutrients=True, bloom=True, sinking=True, low_oxygen=True, bacteria=True)
+        self.add(w.root, scope_tag("schematic"))
+        nodes = path_nodes()
+        arrows = path_arrows(nodes)
+        self.add(nodes, arrows)
+        self.at("effects travel")
+        self.play(LaggedStart(*[Indicate(n, scale_factor=1.8) for n in nodes], lag_ratio=0.25), run_time=2.2)
+        self.at("living connections")
+        self.play(Indicate(arrows, color=NUT), run_time=1.0)
+        self.at("word names")
+        bracket = Brace(arrows, DOWN, color=NUT)
+        label = T("eutrophication", 34, NUT).next_to(bracket, DOWN, buff=0.28)
+        self.play(GrowFromCenter(bracket), FadeIn(label), run_time=0.8)
+        self.at("not every patch")
+        unrelated = VGroup(*[_alga(-5.75 + .28 * i, 2.45, ALG) for i in range(4)])
+        self.play(FadeIn(unrelated), run_time=0.5)
+        self.play(unrelated.animate.set_opacity(0.18), run_time=0.7)
+        self.finish()
+
+
+class S14Model(SpokenScene):
+    def construct(self):
+        w = bay_world(nutrients=True, bloom=True, sinking=True, low_oxygen=True, bacteria=True)
+        self.add(w.root, scope_tag("schematic"))
+        nodes = path_nodes()
+        arrows = path_arrows(nodes)
+        self.add(nodes, arrows)
+        self.at("A useful model")
+        self.play(LaggedStart(*[Indicate(a, color=NUT) for a in arrows], lag_ratio=0.18), run_time=1.8)
+        self.at("starting point")
+        self.play(Indicate(nodes[0], color=NUT, scale_factor=1.9), run_time=0.8)
+        self.at("each connected part")
+        self.play(LaggedStart(*[Indicate(n, scale_factor=1.6) for n in nodes[1:]], lag_ratio=0.16), run_time=1.6)
+        self.at("what could weaken")
+        qs = VGroup(*[T("?", 42, YELLOW, weight=BOLD).move_to(p) for p in
+                      [(-3.7, 0.95, 0), (0.8, -0.25, 0), (5.3, -1.35, 0)]])
+        for q in qs:
+            q.layout_ok = True  # Each question mark intentionally sits on the link it questions.
+        self.play(LaggedStart(*[FadeIn(q, scale=0.5) for q in qs], lag_ratio=0.25), run_time=1.2)
+        self.at("interrupt the path")
+        self.play(LaggedStart(*[Indicate(q, color=YELLOW) for q in qs], lag_ratio=0.25), run_time=1.2)
+        self.finish()
+
+
+class S15Evidence(SpokenScene):
+    def construct(self):
+        w = bay_world(nutrients=True, bloom=True, sinking=True, low_oxygen=True, bacteria=True)
+        self.add(w.root, scope_tag("schematic"))
+        nodes = path_nodes()
+        arrows = path_arrows(nodes)
+        self.add(nodes, arrows)
+        self.at("makes the model")
+        heading = T("test each connection", 34, TEXT).move_to([0.8, 2.75, 0])
+        self.play(FadeIn(heading), run_time=0.7)
+        self.at("useful for evidence")
+        checks = VGroup()
+        for a in arrows:
+            check = T("✓", 31, NUT).move_to(a.get_center() + UP * 0.22)
+            check.layout_ok = True  # Evidence mark intentionally belongs to its tested connection.
+            checks.add(check)
+            self.play(Indicate(a, color=NUT), FadeIn(check), run_time=0.65)
+        self.at("not just memorizing")
+        self.play(arrows.animate.set_opacity(0.45), checks.animate.set_opacity(0.8), run_time=0.8)
+        self.at("Evidence can test")
+        self.play(LaggedStart(*[Indicate(a, color=NUT) for a in arrows], lag_ratio=0.2), run_time=1.5)
+        self.at("first and last")
+        q = T("?", 44, YELLOW, weight=BOLD).move_to([5.35, -1.35, 0])
+        self.play(FadeIn(q), run_time=0.6)
+        self.finish()
+
+
+class S16End(EndCard):
+    LINE = "Change one ecosystem part, and effects can spread through the system."

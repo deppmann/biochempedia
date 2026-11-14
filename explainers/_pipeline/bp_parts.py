@@ -6,6 +6,7 @@ safely by construction (inside the frame, labels clear of each other, text 24 pt
 Read this list first and build from these where one fits; draw by hand only the lesson's own picture.
 
     fit_text      text that shrinks (not below 24) and then wraps to a width
+    boxed_label   a label in a box sized to it (or fitted into a fixed box), never spilling past the border
     Plot          axes with ticks that never collide, computed curves, a growing curve, a tracker dot
     counter       a live number tied to a ValueTracker, at a fixed spot
     Readout       a boxed panel of live numbers ("N = 512", "rate = +0.12 /day"), sized for the widest value
@@ -24,6 +25,18 @@ Read this list first and build from these where one fits; draw by hand only the 
 Zones (16:9 frame 14.22 x 8): main picture y -2.5..3.0; heading band y 3.0..3.55; bottom band
 y -3.55..-2.6 (question card, caption, scope tag on the right). The layout check (layout_check.py)
 runs on every render; these components pass it by default.
+
+What the check reports (2026-11-14) and the usual fix:
+    covered / straddle   a line or outline through a label or through its chip: move the label (the hint
+                         says which way and how far), route the line around it, or end the arrow at the
+                         chip's edge (chip.get_right() + RIGHT * 0.1), never inside it
+    box_overlap / near   chips touching or overlapping: arrange(..., buff=0.3) or place_label(avoid=[...])
+    overflow             letters past their own box: boxed_label(...) sizes the box to the text
+    outside              a bar or fill past its panel: TwoPanel.put / fit the picture to the panel area
+    small                under 22 pt after a group scale: scale the picture, add the label after
+    in motion            old and new text visible together in a cross-fade: swap(old, new)
+Do not hide a finding with `layout_ok`: it is for deliberate designs only, and opted-out findings are
+still listed under "suppressed" in layout_report.json for the frame checker.
 """
 import numpy as np
 from bp_style import *  # noqa: F401,F403
@@ -62,6 +75,35 @@ def fit_text(text, max_w=11.0, size=30, color=TEXT, min_size=MIN_SIZE, max_lines
     lines = lines[:max_lines - 1] + [" ".join(lines[max_lines - 1:])] if len(lines) > max_lines else lines
     t = T("\n".join(lines), min_size, color, font=font, weight=weight, line_spacing=0.8, **kw)
     return fit(t, max_w=max_w)
+
+
+def boxed_label(text, color=TEXT, size=28, box=None, pad=0.22, min_size=MIN_SIZE, stroke=2.5, fill_opacity=0.16,
+                corner_radius=0.14):
+    """A label in a rounded box. Without `box`, the box is sized to the text plus `pad` (like chip()). With
+    `box=(w, h)`, the text is shrunk to fit that fixed size, but not below `min_size`; if it still does not
+    fit, the box grows to hold it and a note is printed, so the letters never cross the border.
+
+        g = boxed_label("people choose", TEAL, box=(2.4, 0.52))   # prints a note; box widened to fit
+        g.box, g.label
+    """
+    lab = T(text, size, color)
+    if box is None:
+        w, h = lab.width + 2 * pad, lab.height + 2 * pad
+    else:
+        w, h = box
+        s = min(1.0, (w - 2 * pad) / lab.width, (h - pad) / lab.height)   # half the padding above and below
+        if s < 1.0:
+            lab = T(text, max(min_size, size * s), color)
+        if lab.width > w - 2 * pad + 1e-6 or lab.height > h - pad + 1e-6:
+            nw, nh = max(w, lab.width + 2 * pad), max(h, lab.height + pad)
+            print(f"[boxed_label] {text!r} does not fit a {w:g} x {h:g} box at {min_size} pt: box enlarged to "
+                  f"{nw:.2f} x {nh:.2f}")
+            w, h = nw, nh
+    rect = RoundedRectangle(corner_radius=min(corner_radius, h / 2), width=w, height=h, stroke_color=color,
+                            stroke_width=stroke, fill_color=color, fill_opacity=fill_opacity)
+    g = VGroup(rect, lab.move_to(rect))
+    g.box, g.label = rect, lab
+    return g
 
 
 # ------------------------------------------------------------------ plots

@@ -1,436 +1,542 @@
-"""Daily and seasonal rhythms: how living things keep time  (Biochemistrypedia explainer)
+"""From One Day to One Year.
 
-Timed to the SPOKEN words: every self.at("...") cue waits for that phrase in audio/words.json.
+COLOR MAP (fixed across the film)
+  BLUE  = light and day length
+  RED   = temperature
+  GOLD  = inner timing
+  GREEN = biological response
+  GREY  = structure and neutral context
 
-COLOR MAP (one color per concept, whole video)
-  YELLOW = light and day length (the light cue)
-  INDIGO = darkness / night
-  BLUE   = temperature (cold nights, warming climate)
-  GREEN  = plants and plant growth
-  ORANGE = animals and their responses (monarch, owl, squirrel, groundhog)
-  GOLD   = a vocabulary word (the label that appears as the word is spoken)
-  RED    = crossed out / "not"
-  GREY   = outlines, structure, de-emphasized
+The nested dial is the film's one carried world.  Every scene that uses it calls
+``nested_dial`` so its circles and landmarks stay at exactly the same scale and place.
 """
-import numpy as np
-from bp_style import *  # noqa: F401,F403
-
-INDIGO = "#8E8CF2"
-ORANGE = "#F29E4C"
+from bp_parts import *
 
 
-# ---------------------------------------------------------------------------------------------
-# helpers
-# ---------------------------------------------------------------------------------------------
-def vocab(text, size=32):
-    """A vocabulary label: gold chip with bold text."""
-    label = T(text, size=size, color=GOLD, weight=BOLD)
-    box = RoundedRectangle(corner_radius=0.14, width=label.width + 0.5, height=label.height + 0.4,
-                           stroke_color=GOLD, stroke_width=3, fill_color=GOLD, fill_opacity=0.14)
-    return VGroup(box, label.move_to(box))
+NIGHT = "#17264A"
+PINK = "#F3A7C5"
 
 
-def arr(a, b, color=GREY, w=5, tip=0.22):
-    return Arrow(a, b, buff=0.0, color=color, stroke_width=w, tip_length=tip,
-                 max_tip_length_to_length_ratio=0.45, max_stroke_width_to_length_ratio=12)
+def arrow(a, b, color=GREY, width=5, tip=0.22):
+    return Arrow(a, b, buff=0, color=color, stroke_width=width,
+                 tip_length=tip, max_tip_length_to_length_ratio=0.35)
 
 
-def monarch(scale=1.0):
-    """A schematic butterfly: four wing ellipses and a body bar."""
-    def wing(w, h, ang, dx, dy):
-        return Ellipse(width=w, height=h, stroke_color=ORANGE, stroke_width=3, fill_color=ORANGE,
-                       fill_opacity=0.45).rotate(ang).shift([dx, dy, 0])
-    parts = [wing(0.8, 0.5, 0.5, -0.45, 0.22), wing(0.8, 0.5, -0.5, 0.45, 0.22),
-             wing(0.55, 0.38, -0.4, -0.35, -0.2), wing(0.55, 0.38, 0.4, 0.35, -0.2),
-             RoundedRectangle(corner_radius=0.05, width=0.1, height=0.9, stroke_width=0, fill_color=TEXT,
-                              fill_opacity=1)]
-    return VGroup(*parts).scale(scale)
+def slow_turn(mob, center, speed=0.055):
+    """Keep a narrated timing band visibly turning between spoken beats."""
+    c = np.array(center, dtype=float)
+    return mob.add_updater(lambda m, dt: m.rotate(speed * dt, about_point=c))
 
 
-def tree(scale=1.0):
-    trunk = Rectangle(width=0.3, height=0.9, stroke_color=GREY, stroke_width=3, fill_color=GREY,
-                      fill_opacity=0.35).shift(DOWN * 0.55)
-    crown = Circle(radius=0.75, stroke_color=GREEN, stroke_width=4, fill_color=GREEN,
-                   fill_opacity=0.4).shift(UP * 0.5)
-    bl = VGroup(*[Circle(radius=0.11, stroke_width=0, fill_color="#F7A8C8", fill_opacity=0.95).move_to(
-        [0.5 * np.cos(a) * r, 0.5 + 0.5 * np.sin(a) * r, 0]) for a, r in
-        [(0.4, 1), (1.5, 0.8), (2.6, 1), (3.7, 0.75), (4.7, 1), (5.7, 0.8), (1.0, 0.3), (3.0, 0.25), (5.0, 0.3)]])
-    return VGroup(trunk, crown, bl).scale(scale)
+def monarch(height=0.9):
+    """A schematic butterfly, used only as the narrated organism marker."""
+    left = VGroup(
+        Ellipse(width=0.75, height=0.52, color=GREEN, stroke_width=3,
+                fill_color=GREEN, fill_opacity=0.30).rotate(0.45).shift(LEFT * 0.38 + UP * 0.18),
+        Ellipse(width=0.58, height=0.40, color=GREEN, stroke_width=3,
+                fill_color=GREEN, fill_opacity=0.20).rotate(-0.35).shift(LEFT * 0.31 + DOWN * 0.20),
+    )
+    right = left.copy().flip(RIGHT)
+    body = RoundedRectangle(width=0.11, height=0.85, corner_radius=0.05,
+                            stroke_width=0, fill_color=GREEN, fill_opacity=1)
+    g = VGroup(left, right, body)
+    g.set_height(height)
+    return g
 
 
-def cross(mob, color=RED, pad=0.15):
-    w, h = mob.width / 2 + pad, mob.height / 2 + pad
-    c = mob.get_center()
-    return VGroup(Line(c + [-w, h, 0], c + [w, -h, 0], color=color, stroke_width=7),
-                  Line(c + [-w, -h, 0], c + [w, h, 0], color=color, stroke_width=7))
+def twig(height=1.25, open_bud=True):
+    stem = Line(DOWN * 0.55 + LEFT * 0.35, UP * 0.48 + RIGHT * 0.28,
+                color=GREEN, stroke_width=7)
+    bud = Circle(radius=0.25, color=GREEN, stroke_width=4,
+                 fill_color=GREEN, fill_opacity=0.28).move_to(stem.get_end() + UP * 0.18)
+    if open_bud:
+        petals = VGroup(*[
+            Circle(radius=0.13, stroke_color=PINK, stroke_width=3,
+                   fill_color=PINK, fill_opacity=0.55).move_to(bud.get_center() +
+                   0.20 * np.array([np.cos(a), np.sin(a), 0]))
+            for a in np.linspace(0, TAU, 6)[:-1]
+        ])
+        bud = VGroup(bud, petals)
+    g = VGroup(stem, bud).set_height(height)
+    g.bud = bud
+    return g
 
 
-def calendar_icon():
-    body = RoundedRectangle(corner_radius=0.1, width=1.5, height=1.3, stroke_color=GREY, stroke_width=4,
-                            fill_color=GREY, fill_opacity=0.12)
-    bar = Rectangle(width=1.5, height=0.3, stroke_width=0, fill_color=GREY, fill_opacity=0.5).move_to(
-        body.get_top() + DOWN * 0.15)
-    cells = VGroup(*[Square(0.2, stroke_color=GREY, stroke_width=2).move_to(body.get_center() + [(i - 1) * 0.38, -(j - 0.2) * 0.3 - 0.05, 0])
-                     for i in range(3) for j in range(2)])
-    return VGroup(body, bar, cells)
+def groundhog(height=1.0):
+    body = Ellipse(width=1.10, height=0.70, color=GREEN, stroke_width=4,
+                   fill_color=GREEN, fill_opacity=0.20)
+    head = Circle(radius=0.30, color=GREEN, stroke_width=4,
+                  fill_color=GREEN, fill_opacity=0.30).move_to(body.get_right() + LEFT * 0.10 + UP * 0.25)
+    ears = VGroup(*[Circle(radius=0.09, color=GREEN, stroke_width=3,
+                           fill_color=GREEN, fill_opacity=0.35).move_to(head.get_top() + d)
+                    for d in (LEFT * 0.16, RIGHT * 0.14)])
+    eye = Dot(head.get_center() + RIGHT * 0.09 + UP * 0.04, radius=0.035, color=TEXT)
+    g = VGroup(body, head, ears, eye).set_height(height)
+    return g
 
 
-def eye_icon():
-    e = Ellipse(width=1.3, height=0.65, stroke_color=GREY, stroke_width=4)
-    p = Circle(radius=0.19, stroke_color=GREY, stroke_width=4, fill_color=GREY, fill_opacity=0.5)
-    return VGroup(e, p)
+def owl(height=1.0):
+    body = Ellipse(width=0.85, height=1.05, color=GREEN, stroke_width=4,
+                   fill_color=GREEN, fill_opacity=0.20)
+    eyes = VGroup(*[Circle(radius=0.16, color=TEXT, stroke_width=3).add(
+        Dot(radius=0.045, color=TEXT)) for _ in range(2)]).arrange(RIGHT, buff=0.08)
+    eyes.move_to(body.get_center() + UP * 0.18)
+    g = VGroup(body, eyes).set_height(height)
+    return g
 
 
-def bar_track(w, color, frac=1.0, h=0.32):
-    track = RoundedRectangle(corner_radius=0.1, width=w, height=h, stroke_color=GREY, stroke_width=2.5,
-                             fill_opacity=0)
-    fill = RoundedRectangle(corner_radius=0.1, width=max(0.12, w * frac), height=h, stroke_width=0,
-                            fill_color=color, fill_opacity=0.85)
-    fill.align_to(track, LEFT)
-    return track, fill
+def squirrel(height=1.0):
+    body = Ellipse(width=0.80, height=0.50, color=GREEN, stroke_width=4,
+                   fill_color=GREEN, fill_opacity=0.20)
+    head = Circle(radius=0.22, color=GREEN, stroke_width=4,
+                  fill_color=GREEN, fill_opacity=0.22).next_to(body, RIGHT, buff=-0.08).shift(UP * 0.13)
+    tail = Arc(radius=0.43, start_angle=-0.4, angle=4.5, color=GREEN,
+               stroke_width=9).next_to(body, LEFT, buff=-0.25).shift(UP * 0.18)
+    g = VGroup(body, head, tail).set_height(height)
+    return g
 
 
-class S00Title(TitleCard):
+def nested_dial(center=ORIGIN, outer_r=3.0, inner_r=1.62,
+                light=True, temperature=True, inner_gold=True):
+    """The single carried world: one year ring containing one day ring."""
+    c = np.array(center, dtype=float)
+    outer = Circle(radius=outer_r, color=GREY, stroke_width=5,
+                   fill_color=GREY, fill_opacity=0.18).move_to(c)
+    seasons = VGroup(
+        T("SPRING", 24, GREY).move_to(c + UP * outer_r * 1.08),
+        T("SUMMER", 24, GREY).move_to(c + RIGHT * outer_r * 1.27),
+        T("FALL", 24, GREY).move_to(c + DOWN * outer_r * 1.08),
+        T("WINTER", 24, GREY).move_to(c + LEFT * outer_r * 1.27),
+    )
+    day_outline = Circle(radius=inner_r, color=GREY, stroke_width=4,
+                         fill_color=NIGHT, fill_opacity=0.24).move_to(c)
+    night = AnnularSector(inner_radius=inner_r - 0.25, outer_radius=inner_r,
+                          angle=PI, start_angle=PI / 2, fill_color=NIGHT,
+                          fill_opacity=0.95, stroke_width=0).move_to(c)
+    day = AnnularSector(inner_radius=inner_r - 0.25, outer_radius=inner_r,
+                        angle=PI, start_angle=-PI / 2, fill_color=BLUE,
+                        fill_opacity=0.75, stroke_width=0).move_to(c)
+    daynight = VGroup(night, day) if light else VGroup(
+        AnnularSector(inner_radius=inner_r - 0.25, outer_radius=inner_r,
+                      angle=TAU - 0.002, start_angle=0, fill_color=NIGHT,
+                      fill_opacity=0.95, stroke_width=0).move_to(c))
+    gold = Arc(radius=inner_r - 0.48, start_angle=0.15, angle=TAU - 0.3,
+               arc_center=c, color=GOLD, stroke_width=10) if inner_gold else VGroup()
+    temp = Arc(radius=outer_r - 0.18, start_angle=-PI * 0.05, angle=PI * 0.92,
+               arc_center=c, color=RED, stroke_width=12) if temperature else VGroup()
+    g = VGroup(outer, seasons, day_outline, daynight, gold, temp)
+    g.outer, g.seasons, g.day_outline, g.daynight, g.gold, g.temp = (
+        outer, seasons, day_outline, daynight, gold, temp)
+    return g
+
+
+def full_dial_with_life():
+    """Stable opening/pull-back composition shared by s01, s08 and s12."""
+    d = nested_dial(center=[0, 0.15, 0], outer_r=2.85, inner_r=1.47)
+    t = twig(1.15).move_to([-4.65, 1.85, 0])
+    m = monarch(1.0).move_to([4.75, 1.75, 0])
+    g = groundhog(1.0).move_to([3.0, -2.85, 0])
+    return VGroup(d, t, m, g)
+
+
+def dark_prediction_backdrop():
+    d = nested_dial(center=[-1.6, 0.35, 0], outer_r=2.65, inner_r=2.05,
+                    light=False, temperature=False)
+    # The question occupies the right and bottom bands.
+    d.seasons.set_opacity(0)
+    d.outer.set_stroke(opacity=0.35).set_fill(opacity=0.18)
+    return d
+
+
+class S01Hook(SpokenScene):
+    def construct(self):
+        world = full_dial_with_life()
+        dial, tree, butterfly, hog = world
+        self.play(FadeIn(dial.outer), FadeIn(dial.day_outline), run_time=0.7)
+        self.play(FadeIn(tree), FadeIn(butterfly), run_time=0.7)
+        self.at("Watch one dial")
+        self.play(FadeIn(dial.seasons), FadeIn(dial.daynight), run_time=0.8)
+        slow_turn(dial.daynight, dial.get_center(), 0.045)
+        self.play(Rotate(dial.daynight, angle=PI / 2, about_point=dial.get_center()), run_time=1.6, rate_func=linear)
+        self.at("blue light band turns")
+        self.play(Rotate(dial.daynight, angle=PI, about_point=dial.get_center()), run_time=2.1, rate_func=linear)
+        self.at("red temperature band")
+        self.play(Create(dial.temp), run_time=1.4)
+        self.play(Rotate(dial.temp, angle=0.35, about_point=dial.get_center()), run_time=1.1, rate_func=there_and_back)
+        self.at("living things change")
+        self.play(FadeIn(hog), butterfly.animate.shift(DOWN * 0.35),
+                  tree.animate.scale(1.08), run_time=1.5)
+        bob(butterfly, amp=0.06, speed=2.2)
+        bob(hog, amp=0.035, speed=1.5, seed=2)
+        self.finish()
+
+
+class S02Title(TitleCard):
     LESSON = "Daily and seasonal rhythms"
-    TITLE = "How Living Things Keep Time"
+    TITLE = "From One Day to One Year"
 
-
-# ---------------------------------------------------------------------------------------------
-class S01Calendar(SpokenScene):
     def construct(self):
-        mon = monarch(1.7).move_to([-3.8, 0.6, 0])
-        tr = tree(1.4).move_to([3.8, 0.7, 0])
-        cal = calendar_icon().scale(1.0).move_to([-3.8, 3.0, 0])
-        cal_l = T("calendar", 24, GREY).next_to(cal, RIGHT, buff=0.25)
-        eye = eye_icon().move_to([3.8, 3.05, 0])
-        eye_l = T("eyes", 24, GREY).next_to(eye, RIGHT, buff=0.25)
-        c1 = chip("Fall: monarchs fly south", ORANGE, size=26).move_to([-3.6, -1.6, 0])
-        c2 = chip("Spring: cherry trees bloom", GREEN, size=26).move_to([3.6, -1.6, 0])
-        self.at("Every fall")
-        self.play(FadeIn(mon, shift=DOWN * 0.3), run_time=0.7)
-        self.play(FadeIn(c1), run_time=0.5)
-        self.play(mon.animate.shift(DOWN * 0.25), run_time=1.2)
-        self.at("Every spring")
-        self.play(FadeIn(tr, scale=0.9), run_time=0.7)
-        self.play(FadeIn(c2), run_time=0.5)
-        self.at("no calendar")
-        self.play(FadeIn(cal), FadeIn(cal_l), run_time=0.5)
-        x1 = cross(cal)
-        self.play(Create(x1), run_time=0.5)
-        self.at("no eyes")
-        self.play(FadeIn(eye), FadeIn(eye_l), run_time=0.5)
-        x2 = cross(eye)
-        self.play(Create(x2), run_time=0.5)
-        self.at("how do plants")
-        q = T("How do they know?", 50, TEXT, font=TITLE_FONT).move_to([0, -2.85, 0])
-        self.play(Write(q), run_time=1.2)
+        d = nested_dial(center=[0, -0.05, 0], outer_r=3.25, inner_r=1.70)
+        d.set_opacity(0.38)
+        d.seasons.set_opacity(0)
+        title = T(self.TITLE, 54, TEXT, font=TITLE_FONT)
+        lesson = T(self.LESSON.upper(), 24, TEAL)
+        plate = RoundedRectangle(width=9.7, height=1.75, corner_radius=0.2,
+                                 stroke_width=0, fill_color=BG, fill_opacity=0.88)
+        words = VGroup(lesson, title).arrange(DOWN, buff=0.25).move_to(plate)
+        self.add(d)
+        self.play(Rotate(d.daynight, PI / 2, about_point=d.get_center()), FadeIn(plate),
+                  FadeIn(words), run_time=1.0, rate_func=linear)
+        self.play(Rotate(d.daynight, PI / 2, about_point=d.get_center()), run_time=1.0, rate_func=linear)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S02Day(SpokenScene):
+class S03Daily(SpokenScene):
     def construct(self):
-        X0, SEG, Y = -3.9, 2.5, 1.0
-        segs = []
-        for i in range(4):
-            day = (i % 2 == 0)
-            col = YELLOW if day else INDIGO
-            r = Rectangle(width=SEG, height=0.9, stroke_color=col, stroke_width=2, fill_color=col,
-                          fill_opacity=0.28 if day else 0.38).move_to([X0 + SEG * (i + 0.5), Y, 0])
-            lab = T("light" if day else "dark", 24, col).move_to(r)
-            segs.append(VGroup(r, lab))
-        self.at("Start with one day")
-        self.play(FadeIn(segs[0]), run_time=0.5)
-        self.play(FadeIn(segs[1]), run_time=0.5)
+        d = nested_dial(center=[0, 0.15, 0], outer_r=3.15, inner_r=2.62,
+                        temperature=False)
+        d.seasons.set_opacity(0)
+        d.outer.set_stroke(opacity=0.25).set_fill(opacity=0.18)
+        self.play(FadeIn(d.day_outline), FadeIn(d.daynight), run_time=0.8)
+        slow_turn(d.daynight, d.get_center(), 0.16)
         self.at("circadian rhythm")
-        voc = vocab("circadian rhythm", 34).move_to([0, 3.05, 0])
-        self.play(FadeIn(voc, scale=0.9), run_time=0.6)
-        self.at("repeats about")
-        self.play(FadeIn(segs[2]), FadeIn(segs[3]), run_time=0.7)
-        L = X0 + 0.05
-        R = X0 + 2 * SEG - 0.05
-        yb = Y + 0.65
-        br = VGroup(Line([L, yb, 0], [R, yb, 0], color=TEXT, stroke_width=3),
-                    Line([L, yb - 0.15, 0], [L, yb, 0], color=TEXT, stroke_width=3),
-                    Line([R, yb - 0.15, 0], [R, yb, 0], color=TEXT, stroke_width=3))
-        bl = T("about every 24 hours", 26, TEXT).next_to(br, UP, buff=0.12)
-        self.play(Create(br), FadeIn(bl), run_time=0.8)
+        self.play(Create(d.gold), run_time=1.7)
+        circ = T("CIRCADIAN RHYTHM", 32, GOLD).move_to([0, 0.15, 0])
+        circ.layout_ok = True  # Deliberately labels the open centre of its own rhythm ring.
+        hours = M("24 h", 32, TEXT).next_to(circ, DOWN, buff=0.20)
+        self.play(FadeIn(circ), FadeIn(hours), run_time=0.6)
         self.at("Light and darkness")
-        self.play(Indicate(segs[0], color=YELLOW, scale_factor=1.08), Indicate(segs[1], color=INDIGO, scale_factor=1.08),
-                  run_time=1.0)
-        # owl row and squirrel row
-        yo, ys = -0.5, -1.8
-        owl_l = T("owl", 28, ORANGE).move_to([-5.3, yo, 0])
-        sq_l = T("tree squirrel", 24, ORANGE).move_to([-5.0, ys, 0])
-        track_o = Line([X0, yo - 0.4, 0], [X0 + 4 * SEG, yo - 0.4, 0], color=GREY, stroke_width=1.5)
-        track_s = Line([X0, ys - 0.4, 0], [X0 + 4 * SEG, ys - 0.4, 0], color=GREY, stroke_width=1.5)
-        owl_blocks = VGroup(*[Rectangle(width=SEG - 0.3, height=0.7, stroke_color=ORANGE, stroke_width=2,
-                                        fill_color=ORANGE, fill_opacity=0.75).move_to([X0 + SEG * (i + 0.5), yo, 0])
-                              for i in (1, 3)])
-        sq_blocks = VGroup(*[Rectangle(width=SEG - 0.3, height=0.7, stroke_color=ORANGE, stroke_width=2,
-                                       fill_color=ORANGE, fill_opacity=0.75).move_to([X0 + SEG * (i + 0.5), ys, 0])
-                             for i in (0, 2)])
+        light_lab = T("LIGHT AND DARK", 29, BLUE).move_to([0, 3.43, 0])
+        self.play(FadeIn(light_lab), Rotate(d.daynight, PI / 2, about_point=d.get_center()), run_time=1.5)
         self.at("Many owls")
-        self.play(FadeIn(owl_l), Create(track_o), run_time=0.5)
-        self.play(FadeIn(owl_blocks[0], scale=0.6), run_time=0.5)
-        self.play(FadeIn(owl_blocks[1], scale=0.6), run_time=0.5)
-        self.at("rest in the day")
-        rest = T("rest", 24, GREY).move_to([X0 + SEG * 0.5, yo, 0])
-        self.play(FadeIn(rest), run_time=0.4)
+        ow = owl(1.15).move_to([-4.65, 0.8, 0])
+        self.play(FadeIn(ow), Rotate(d.daynight, PI / 3, about_point=d.get_center()), run_time=1.2)
         self.at("Tree squirrels")
-        self.play(FadeIn(sq_l), Create(track_s), run_time=0.5)
-        self.play(FadeIn(sq_blocks[0], scale=0.6), run_time=0.5)
-        self.play(FadeIn(sq_blocks[1], scale=0.6), run_time=0.5)
-        self.at("In many animals")
-        # steady darkness: every light segment turns dark, squirrel row fades, owl row keeps its beat
-        new_segs = []
-        anims = []
-        for i in (0, 2):
-            r = Rectangle(width=SEG, height=0.9, stroke_color=INDIGO, stroke_width=2, fill_color=INDIGO,
-                          fill_opacity=0.38).move_to(segs[i][0])
-            lab = T("dark", 24, INDIGO).move_to(r)
-            anims += [Transform(segs[i][0], r), Transform(segs[i][1], lab)]
-        self.play(*anims, FadeOut(sq_blocks), FadeOut(sq_l), FadeOut(track_s), FadeOut(rest), run_time=1.0)
-        an_l = T("another animal", 21, ORANGE).move_to([-5.3, ys, 0])
-        track_a = Line([X0, ys - 0.4, 0], [X0 + 4 * SEG, ys - 0.4, 0], color=GREY, stroke_width=1.5)
-        an_blocks = VGroup(*[Rectangle(width=SEG - 0.3, height=0.7, stroke_color=ORANGE, stroke_width=2,
-                                       fill_color=ORANGE, fill_opacity=0.75).move_to([X0 + SEG * (i + 0.5), ys, 0])
-                             for i in (0, 2)])
-        ex_l = T("one example", 20, GREY).next_to(owl_l, DOWN, buff=0.08)
-        self.play(FadeIn(an_l), Create(track_a), FadeIn(an_blocks, scale=0.6), FadeIn(ex_l), run_time=0.8)
-        self.play(FadeOut(br), FadeOut(bl), run_time=0.3)
-        st = T("steady darkness", 28, INDIGO).move_to([X0 + 2 * SEG, 2.2, 0])
-        self.play(FadeIn(st), run_time=0.5)
-        self.play(Indicate(VGroup(owl_blocks, an_blocks), color=ORANGE, scale_factor=1.05), run_time=1.0)
+        sq = squirrel(1.15).move_to([4.65, 0.8, 0])
+        self.play(FadeIn(sq), Rotate(d.daynight, PI / 3, about_point=d.get_center()), run_time=1.2)
+        self.at("Yet the rhythm")
+        inner_lab = T("INNER RHYTHM", 29, GOLD).move_to([0, -3.30, 0])
+        self.play(FadeIn(inner_lab), Rotate(d.gold, PI / 2, about_point=d.get_center()),
+                  run_time=2.0, rate_func=linear)
+        bob(ow, amp=0.04, speed=1.7)
+        bob(sq, amp=0.04, speed=1.9, seed=2)
+        self.finish()
+
+
+class S04Predict(SpokenScene):
+    def construct(self):
+        d = nested_dial(center=[-1.6, 0.35, 0], outer_r=2.65, inner_r=2.05,
+                        temperature=False)
+        d.seasons.set_opacity(0)
+        d.outer.set_stroke(opacity=0.35).set_fill(opacity=0.18)
+        self.add(d.day_outline, d.daynight, d.gold, d.outer)
+        slow_turn(d.gold, d.get_center(), 0.040)
+        self.at("blue light band disappears")
+        dark = dark_prediction_backdrop()
+        self.play(Transform(d.daynight, dark.daynight), run_time=1.4)
+        self.at("Will the gold")
+        q = question_card("VANISH OR CONTINUE?", ["VANISH", "CONTINUE"],
+                          chips_at=[4.45, -0.15, 0], y=-3.15, size=36, chip_size=30)
+        self.play(FadeIn(q.question), run_time=0.6)
+        self.play(FadeIn(q.chips), run_time=0.6)
+        self.at("Watch the gold marker")
+        marker = Dot(d.gold.point_from_proportion(0.12), radius=0.22, color=GOLD)
+        self.play(FadeIn(marker), run_time=0.4)
+        sweep = Arc(radius=2.35, start_angle=0.5, angle=1.7, arc_center=d.get_center(),
+                    color=GOLD, stroke_width=18, stroke_opacity=0.45)
+        slow_turn(sweep, d.get_center(), 1.3)
+        self.add(sweep)
+        slow_turn(marker, d.get_center(), 1.3)
+        self.play(marker.animate.scale(1.5), run_time=0.7, rate_func=there_and_back)
+        self.at("Choose before")
+        self.play(Indicate(q.question, color=GOLD, scale_factor=1.03), run_time=1.0)
+        self.finish()
+
+
+class S05Pause(PredictPause):
+    QUESTION = "VANISH OR CONTINUE?"
+    OPTIONS = ["VANISH", "CONTINUE"]
+    CHIPS_AT = [4.45, -0.15, 0]
+    CARD = {"y": -3.15, "size": 36, "chip_size": 30}
+    RING_AT = [5.95, -3.15, 0]
+    SECONDS = 4.5
+
+    def backdrop(self):
+        d = dark_prediction_backdrop()
+        marker = Dot(d.gold.point_from_proportion(0.12), radius=0.22, color=GOLD)
+        pulse(d.gold, base=9.0, amp=2.0, speed=2.0)
+        slow_turn(marker, d.get_center(), 1.3)
+        sweep = Arc(radius=2.35, start_angle=0.5, angle=1.7, arc_center=d.get_center(),
+                    color=GOLD, stroke_width=18, stroke_opacity=0.45)
+        slow_turn(sweep, d.get_center(), 1.3)
+        return VGroup(d, marker, sweep)
+
+
+class S06Reveal(SpokenScene):
+    def construct(self):
+        d = dark_prediction_backdrop()
+        marker = Dot(d.gold.point_from_proportion(0.10), radius=0.17, color=GOLD)
+        self.add(d, marker)
+        slow_turn(marker, d.get_center(), 0.24)
+        pulse(d.gold, base=10.0, amp=1.8, speed=1.7)
+        self.at("keeps circling")
+        self.play(MoveAlongPath(marker, d.gold.copy()), Rotate(d.gold, TAU,
+                  about_point=d.get_center()), run_time=3.2, rate_func=linear)
+        inside = T("TIMING FROM INSIDE", 31, GOLD).move_to([3.9, 1.75, 0])
         self.at("inside the body")
-        body = chip("part of the timing comes from inside the body", TEAL, size=26).move_to([0.5, -3.0, 0])
-        self.play(FadeIn(body, shift=UP * 0.2), run_time=0.7)
+        self.play(FadeIn(inside), run_time=0.7)
+        self.at("Outside light")
+        lit = nested_dial(center=[-1.6, 0.35, 0], outer_r=2.65, inner_r=2.05,
+                          temperature=False)
+        lit.seasons.set_opacity(0)
+        lit.outer.set_opacity(0.35)
+        self.play(Transform(d.daynight, lit.daynight), run_time=1.2)
+        self.at("lined up with the day")
+        step = T("KEPT IN STEP", 34, BLUE).move_to([3.9, 0.65, 0])
+        self.play(Rotate(d.gold, 0.65, about_point=d.get_center()), FadeIn(step), run_time=1.8)
+        self.at("work together")
+        link = VGroup(arrow([3.0, 0.15, 0], [4.75, 0.15, 0], BLUE),
+                      T("TOGETHER", 30, GREEN).move_to([3.9, -0.35, 0]))
+        self.play(FadeIn(link), Rotate(d.daynight, PI / 3, about_point=d.get_center()), run_time=1.5)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S03Bend(SpokenScene):
-    N, ELL, W = 6, 0.85, 1.6
-    X0, Y0 = -1.4, -3.3
+def bean_shoot(curve=0.0):
+    """Computed centreline and paired cell blocks for the narrated tropism schematic."""
+    n, seg = 6, 0.78
+    k = max(curve, 0.0001)
+    radius = 1 / k
+    parts = VGroup()
+    for i in range(n):
+        s0, s1 = i * seg, (i + 1) * seg
+        def p(s, side):
+            a = k * s
+            centre = np.array([radius * (1 - np.cos(a)), -2.65 + radius * np.sin(a), 0])
+            normal = np.array([-np.cos(a), np.sin(a), 0])
+            return centre + side * 0.48 * normal
+        mid0, mid1 = p(s0, 0), p(s1, 0)
+        parts.add(Polygon(p(s0, 1), p(s1, 1), mid1, mid0,
+                          color=GREEN, stroke_width=3, fill_color=GREEN, fill_opacity=0.34))
+        parts.add(Polygon(mid0, mid1, p(s1, -1), p(s0, -1),
+                          color=GREEN, stroke_width=3, fill_color=GREEN, fill_opacity=0.14))
+    return parts
 
-    def stem(self, k):
-        k = max(k, 1e-4)
-        R = 1.0 / k
-        cells = VGroup()
-        for i in range(self.N):
-            s0, s1 = i * self.ELL, (i + 1) * self.ELL
-            def cp(s, side):
-                a = k * s
-                cx = self.X0 + R * (1 - np.cos(a))
-                cy = self.Y0 + R * np.sin(a)
-                nx, ny = -np.cos(a), np.sin(a)  # left normal
-                return np.array([cx + side * nx, cy + side * ny, 0])
-            hw = self.W / 2
-            left = [cp(s0, hw), cp(s1, hw), cp(s1, 0), cp(s0, 0)]
-            right = [cp(s0, 0), cp(s1, 0), cp(s1, -hw), cp(s0, -hw)]
-            cells.add(Polygon(*left, stroke_color=GREEN, stroke_width=3.5, fill_color=GREEN, fill_opacity=0.32))
-            cells.add(Polygon(*right, stroke_color=GREEN, stroke_width=3.5, fill_color=GREEN, fill_opacity=0.18))
-        return cells
 
+class S07Tropism(SpokenScene):
     def construct(self):
-        kt = ValueTracker(0.0)
-        st = always_redraw(lambda: self.stem(kt.get_value()))
-        self.at("Plants respond too")
-        self.play(FadeIn(st), run_time=0.8)
-        self.at("plant growth")
-        voc = vocab("tropism", 34).move_to([-4.3, 3.0, 0])
-        self.play(FadeIn(voc, scale=0.9), run_time=0.6)
-        self.at("Light shines")
-        arrows = VGroup(*[arr([6.3, y, 0], [4.3, y, 0], YELLOW, w=7, tip=0.3) for y in (-0.8, 0.4, 1.6)])
-        lt = T("light", 30, YELLOW).move_to([5.3, 2.4, 0])
-        self.play(LaggedStart(*[GrowArrow(a) for a in arrows], lag_ratio=0.25), FadeIn(lt), run_time=1.2)
-        self.at("shaded side")
-        sh = T("shaded side", 28, TEXT).move_to([-5.0, -1.6, 0])
-        sh_a = arr([-3.85, -1.6, 0], [-2.35, -1.6, 0], TEXT, w=4, tip=0.18)
-        self.play(FadeIn(sh), GrowArrow(sh_a), run_time=0.6)
-        self.at("grow longer")
-        lg = T("longer cells", 28, GREEN, weight=BOLD).move_to([-5.0, -2.2, 0])
-        d1 = max(0.8, self.t_of("lit side") - self.t_of("pushes") - 0.2)
-        self.play(kt.animate.set_value(0.12), FadeIn(lg), run_time=d1, rate_func=linear)
-        self.at("into")
-        lit = T("lit side", 28, TEXT).move_to([1.5, -2.6, 0])
-        lit_a = arr([0.55, -2.6, 0], [-0.55, -2.6, 0], TEXT, w=4, tip=0.18)
-        self.play(FadeIn(lit), GrowArrow(lit_a), run_time=0.5)
-        self.at("The longer side")
-        d2 = max(0.8, self.t_of("bend toward the light") - self.t_of("The longer side"))
-        self.play(kt.animate.set_value(0.22), run_time=d2, rate_func=smooth)
-        self.at("bend toward the light")
-        self.play(Indicate(st, color=GREEN, scale_factor=1.03), run_time=1.0)
+        seed = nested_dial(center=[0, 0.15, 0], outer_r=2.8, inner_r=2.2,
+                           temperature=False)
+        seed.seasons.set_opacity(0)
+        shoot = bean_shoot(0.0001)
+        self.play(ReplacementTransform(seed.day_outline, shoot), run_time=1.0)
+        pulse(shoot, base=3.5, amp=1.0, speed=1.5)
+        bob(shoot, amp=0.11, speed=1.7)
+        self.at("A tropism")
+        name = T("TROPISM", 36, GREEN).move_to([0, 3.35, 0])
+        self.play(FadeIn(name), run_time=0.5)
+        self.at("Light moves")
+        lamp = VGroup(Circle(radius=0.38, color=BLUE, stroke_width=5,
+                             fill_color=BLUE, fill_opacity=0.25),
+                      VGroup(*[Line(ORIGIN, LEFT * 0.45, color=BLUE, stroke_width=4)
+                               .rotate(a, about_point=ORIGIN) for a in (-0.45, 0, 0.45)])
+                      .shift(LEFT * 0.45)).move_to([5.3, 0.8, 0])
+        beam = Polygon([-4.2, 2.8, 0], [-4.2, -2.1, 0], [4.7, 0.8, 0],
+                       stroke_width=0, fill_color=BLUE, fill_opacity=0.10)
+        beam.set_z_index(-1)
+        self.play(FadeIn(beam), FadeIn(lamp), lamp.animate.move_to([-4.8, 0.8, 0]), run_time=1.8)
+        self.at("Cells lengthen")
+        shaded = T("SHADED SIDE", 29, GREEN).move_to([3.8, 1.85, 0])
+        lit = T("LIT SIDE", 29, BLUE).move_to([3.8, 1.25, 0])
+        self.play(FadeIn(shaded), run_time=0.5)
+        self.play(FadeIn(lit), run_time=0.5)
+        bent = bean_shoot(-0.17)
+        self.at("bends toward light")
+        shoot.clear_updaters()
+        self.play(Transform(shoot, bent), run_time=2.5, rate_func=smooth)
+        bob(shoot, amp=0.09, speed=1.6)
+        self.at("Roots can also")
+        root = arrow([0.0, -2.65, 0], [-2.0, -3.25, 0], BLUE, width=5)
+        wet = T("WETTER", 28, BLUE).move_to([-3.1, -3.25, 0])
+        self.play(GrowArrow(root), FadeIn(wet), run_time=1.2)
+        self.add(scope_tag("schematic"))
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S04Season(SpokenScene):
+class S08Seasons(SpokenScene):
     def construct(self):
-        PX, PW, PY, PH = [-4.2, 0.0, 4.2], 3.85, -1.8, 3.4
-        TOPY = PY + PH / 2 - 0.55
-        head = T("Fall and winter in Virginia", 40, TEXT, font=TITLE_FONT).move_to([0, 3.15, 0])
-        self.at("Now think about")
-        self.play(Write(head), run_time=1.0)
-        c_day = chip("short days", YELLOW, size=26).move_to([PX[0], 2.0, 0])
-        c_cold = chip("cold nights", BLUE, size=26).move_to([PX[1], 2.0, 0])
-        c_food = chip("food hard to find", GREY, size=26).move_to([PX[2], 2.0, 0])
-        self.at("Days are short")
-        self.play(FadeIn(c_day, shift=DOWN * 0.2), run_time=0.5)
-        self.at("nights are cold")
-        self.play(FadeIn(c_cold, shift=DOWN * 0.2), run_time=0.5)
-        self.at("hard to find")
-        self.play(FadeIn(c_food, shift=DOWN * 0.2), run_time=0.5)
-        # cues -> responses
-        self.at("Queues")
-        rail = Line([PX[0], 1.05, 0], [PX[2], 1.05, 0], color=GREY, stroke_width=4)
-        drops = VGroup(*[arr([x, 1.05, 0], [x, 0.3, 0], GREY, w=4, tip=0.18) for x in PX])
-        s1 = Line([PX[0], 1.5, 0], [PX[0], 1.05, 0], color=YELLOW, stroke_width=5)
-        s2 = Line([PX[1], 1.5, 0], [PX[1], 1.05, 0], color=BLUE, stroke_width=5)
-        cue_l = T("cues", 26, TEXT).move_to([PX[2], 1.05 + 0.0, 0])
-        self.play(Create(s1), Create(s2), run_time=0.5)
-        self.play(Create(rail), FadeOut(c_food), FadeIn(cue_l.set_x(2.3).set_y(1.45)), run_time=0.6)
-        self.play(*[GrowArrow(d) for d in drops], run_time=0.6)
-        panels = [RoundedRectangle(corner_radius=0.18, width=PW, height=PH, stroke_color=GREY, stroke_width=2.5,
-                                   fill_opacity=0).move_to([x, PY, 0]) for x in PX]
-        self.play(*[Create(p) for p in panels], run_time=0.6)
-        # --- panel 1: migration
+        world = full_dial_with_life()
+        d, bud, mon, hog = world
+        self.play(FadeIn(d), FadeIn(bud), FadeIn(mon), FadeIn(hog), run_time=1.0)
+        slow_turn(d.daynight, d.get_center(), 0.17)
+        bob(bud, amp=0.07, speed=1.5)
+        bob(hog, amp=0.07, speed=1.7, seed=2)
+        self.at("Shorter days")
+        short = Arc(radius=1.47, start_angle=-PI / 2, angle=PI * 0.55,
+                    arc_center=d.get_center(), color=BLUE, stroke_width=15)
+        self.play(Transform(d.daynight[1], short), Rotate(d.temp, -0.75,
+                  about_point=d.get_center()), run_time=2.2)
         self.at("Monarchs migrate")
-        va = chip("Virginia", GREY, size=24).move_to([PX[0], -1.4, 0])
-        so = chip("south", GREY, size=24).move_to([PX[0], -3.05, 0])
-        down = arr([PX[0] - 0.9, -1.8, 0], [PX[0] - 0.9, -2.65, 0], ORANGE, w=6, tip=0.25)
-        mon = monarch(0.5).move_to([PX[0] + 0.95, -1.95, 0])
-        self.play(FadeIn(va), FadeIn(so), FadeIn(mon), run_time=0.5)
-        self.at("south in fall")
-        self.play(GrowArrow(down), mon.animate.move_to([PX[0] + 0.95, -2.55, 0]), run_time=1.3)
-        self.at("Migration is")
-        v1 = vocab("migration", 28).move_to([PX[0], TOPY, 0])
-        self.play(FadeIn(v1, scale=0.9), run_time=0.5)
-        self.at("and back")
-        up = DashedLine([PX[0] - 0.55, -2.65, 0], [PX[0] - 0.55, -1.9, 0], color=ORANGE, stroke_width=5,
-                        dash_length=0.18)
-        up_t = arr([PX[0] - 0.55, -2.15, 0], [PX[0] - 0.55, -1.8, 0], ORANGE, w=5, tip=0.22)
-        sm = VGroup(*[monarch(0.2).move_to([PX[0] + 0.6 + 0.0 * k, y, 0]) for k, y in enumerate([-2.5, -2.25, -2.0])])
-        sm.arrange(RIGHT, buff=0.1).move_to([PX[0] + 0.7, -1.95, 0])
-        back_l = VGroup(T("and back, over", 18, ORANGE), T("several generations", 18, ORANGE)).arrange(
-            DOWN, buff=0.05).move_to([PX[0] + 0.7, -2.4, 0])
-        self.play(Create(up), FadeIn(up_t), FadeOut(mon), FadeIn(sm, shift=UP * 0.3), FadeIn(back_l), run_time=1.0)
-        # --- panel 2: dormancy
-        self.at("Dormancy is")
-        v2 = vocab("dormancy", 28).move_to([PX[1], TOPY, 0])
-        self.play(FadeIn(v2, scale=0.9), run_time=0.5)
-        g_l = T("growth", 26, GREEN).move_to([PX[1], -1.45, 0])
-        tr_, fl_ = bar_track(2.8, GREEN, 1.0)
-        VGroup(tr_, fl_).move_to([PX[1], -2.0, 0])
-        fl_.align_to(tr_, LEFT)
-        self.play(FadeIn(g_l), Create(tr_), FadeIn(fl_), run_time=0.5)
-        self.at("Growth slows")
-        small = fl_.copy().stretch_to_fit_width(0.14).align_to(tr_, LEFT)
-        self.play(Transform(fl_, small), run_time=1.5)
-        self.at("stays alive")
-        alive = chip("still alive", GREEN, size=26).move_to([PX[1], -2.95, 0])
-        self.play(FadeIn(alive, shift=UP * 0.2), run_time=0.6)
-        # --- panel 3: hibernation
+        south = arrow([4.75, 1.2, 0], [4.75, -1.0, 0], GREEN, width=6)
+        self.play(GrowArrow(south), mon.animate.shift(DOWN * 1.9), run_time=1.5)
+        self.at("Tree buds")
+        closed = twig(1.15, open_bud=False).move_to(bud)
+        self.play(Transform(bud, closed), run_time=1.0)
+        self.at("Groundhogs hibernate")
+        temp = ValueTracker(0.78)
+        gauge = dial(temp, center=[-4.55, -1.55, 0], radius=0.85,
+                     label="BODY TEMPERATURE", color=RED, fmt="{:.0f}%", size=30)
+        self.play(FadeIn(gauge), run_time=0.6)
+        self.play(temp.animate.set_value(0.25), hog.animate.shift(DOWN * 0.18), run_time=2.0)
+        self.at("Deciduous trees")
+        leaves = VGroup(*[Dot(radius=0.10, color=GREEN).move_to([-4.7 + 0.18*i, 1.6 + 0.12*(i%2), 0])
+                          for i in range(5)])
+        self.play(FadeIn(leaves), leaves.animate.shift(DOWN * 1.2), run_time=1.6)
+        self.finish()
+
+
+def winter_response_world():
+    sector = AnnularSector(inner_radius=2.25, outer_radius=3.05, angle=PI * 0.88,
+                           start_angle=PI * 0.56, fill_color=BLUE, fill_opacity=0.20,
+                           stroke_color=BLUE, stroke_width=4)
+    mon = monarch(0.85).move_to([-4.35, 1.6, 0])
+    bud = twig(1.05, open_bud=False).move_to([0, 1.55, 0])
+    hog = groundhog(0.90).move_to([4.25, 1.55, 0])
+    return VGroup(sector, mon, bud, hog)
+
+
+class S09Survival(SpokenScene):
+    def construct(self):
+        w = winter_response_world()
+        sector, mon, bud, hog = w
+        self.play(FadeIn(sector), FadeIn(mon), FadeIn(bud), FadeIn(hog), run_time=0.9)
+        bob(bud, amp=0.10, speed=1.6)
+        bob(hog, amp=0.10, speed=1.8, seed=2)
+        self.at("Migration changes place")
+        move = T("MOVE", 32, GREEN).move_to([-5.55, -0.15, 0])
+        path = arrow([-4.3, 1.0, 0], [-4.3, -2.0, 0], GREEN, width=6)
+        self.play(GrowArrow(path), mon.animate.move_to([-4.3, -1.55, 0]), FadeIn(move), run_time=2.0)
+        self.at("Dormancy slows")
+        pause_lab = T("PAUSE GROWTH", 30, GREEN).move_to([0, -0.15, 0])
+        life = Circle(radius=0.18, color=GREEN, stroke_width=6).move_to([0, 0.65, 0])
+        self.play(FadeIn(pause_lab), FadeIn(life), run_time=0.8)
+        pulse(sector, base=4.0, amp=1.4, speed=1.4)
+        self.play(life.animate.scale(1.45), run_time=1.0, rate_func=there_and_back)
         self.at("Hibernation is")
-        v3 = vocab("hibernation", 28).move_to([PX[2], TOPY, 0])
-        self.play(FadeIn(v3, scale=0.9), run_time=0.5)
-        self.at("dormancy in animals")
-        link = arr([PX[1] + 1.25, TOPY, 0], [PX[2] - 1.5, TOPY, 0], GOLD, w=5, tip=0.2)
-        self.play(GrowArrow(link), run_time=0.6)
-        t_l = T("body temperature", 25, ORANGE).move_to([PX[2], -1.45, 0])
-        tr2, fl2 = bar_track(2.8, ORANGE, 1.0)
-        VGroup(tr2, fl2).move_to([PX[2], -2.0, 0])
-        fl2.align_to(tr2, LEFT)
-        self.play(FadeIn(t_l), Create(tr2), FadeIn(fl2), run_time=0.5)
-        self.at("body temperature drops")
-        small2 = fl2.copy().stretch_to_fit_width(1.0).align_to(tr2, LEFT)
-        self.play(Transform(fl2, small2), run_time=1.5)
-        self.at("less stored fat")
-        fat = chip("less stored fat used", ORANGE, size=23).move_to([PX[2], -2.95, 0])
-        self.play(FadeIn(fat, shift=UP * 0.2), run_time=0.6)
+        cool = T("COOL AND REWARM", 29, GREEN).move_to([4.15, -0.15, 0])
+        bt = ValueTracker(0.65)
+        bar_bg = RoundedRectangle(width=2.1, height=0.34, corner_radius=0.12,
+                                  color=GREY, stroke_width=3).move_to([4.15, 0.65, 0])
+        bar = always_redraw(lambda: RoundedRectangle(width=max(0.18, 2.1 * bt.get_value()), height=0.30,
+                            corner_radius=0.10, stroke_width=0, fill_color=RED, fill_opacity=0.9)
+                            .align_to(bar_bg, LEFT).move_to([bar_bg.get_left()[0] + max(0.18, 2.1*bt.get_value())/2,
+                                                           bar_bg.get_y(), 0]))
+        self.play(FadeIn(bar_bg), FadeIn(bar), FadeIn(cool), run_time=0.8)
+        self.play(bt.animate.set_value(0.18), run_time=1.4)
+        self.at("briefly warm")
+        self.play(bt.animate.set_value(0.72), run_time=1.0)
+        self.at("then cool again")
+        self.play(bt.animate.set_value(0.20), run_time=1.2)
+        self.at("Each response")
+        cap = caption("Different responses meet the same hard season.", color=TEXT)
+        cap.layout_ok = True  # Bottom-band summary is intentionally below the winter sector.
+        self.play(FadeIn(cap), run_time=0.8)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S05Instinct(SpokenScene):
+class S10Clocks(SpokenScene):
     def construct(self):
-        self.at("Are these behaviors learned")
-        q = T("Learned?", 60, TEXT, font=TITLE_FONT).move_to([0, 2.9, 0])
-        self.play(Write(q), run_time=1.0)
-        self.at("Mostly not")
-        strike = Line(q.get_left() + LEFT * 0.15, q.get_right() + RIGHT * 0.15, color=RED, stroke_width=7)
-        mn = T("mostly not", 30, RED).next_to(q, RIGHT, buff=0.5)
-        self.play(Create(strike), FadeIn(mn), run_time=0.8)
-        self.at("An instinct")
-        voc = vocab("instinct", 54).move_to([0, 1.1, 0])
-        self.play(FadeIn(voc, scale=0.9), run_time=0.7)
-        self.at("inherits")
-        a1 = chip("inherited", GREY, size=32).move_to([-3.0, -0.4, 0])
-        a2 = chip("without being taught", GREY, size=32).move_to([2.9, -0.4, 0])
-        l1 = Line(voc.get_bottom() + LEFT * 0.4, a1.get_top(), color=GREY, stroke_width=3)
-        l2 = Line(voc.get_bottom() + RIGHT * 0.4, a2.get_top(), color=GREY, stroke_width=3)
-        self.play(Create(l1), FadeIn(a1), run_time=0.6)
-        self.at("without being taught")
-        self.play(Create(l2), FadeIn(a2), run_time=0.6)
-        self.at("A monarch flying south")
-        mon = monarch(1.1).move_to([-3.4, -1.9, 0])
-        south = chip("south", GREY, size=28).move_to([-3.4, -3.2, 0])
-        dn = arr([-3.4, -2.55, 0], [-3.4, -2.9, 0], ORANGE, w=6, tip=0.2)
-        self.play(FadeIn(mon), run_time=0.4)
-        self.play(GrowArrow(dn), FadeIn(south), mon.animate.shift(DOWN * 0.15), run_time=1.0)
-        self.at("never made the trip")
-        nm = chip("never made this trip before", ORANGE, size=32).move_to([1.9, -2.3, 0])
-        self.play(FadeIn(nm, shift=LEFT * 0.2), run_time=0.7)
+        d = nested_dial(center=[-2.0, 0.2, 0], outer_r=2.85, inner_r=1.65,
+                        temperature=False, inner_gold=False)
+        self.play(FadeIn(d.outer), FadeIn(d.daynight), run_time=0.8)
+        slow_turn(d.daynight, d.get_center(), 0.18)
+        self.at("inner yearly timing")
+        yearly = Arc(radius=2.28, start_angle=0.08, angle=TAU - 0.16,
+                     arc_center=d.get_center(), color=GOLD, stroke_width=11)
+        self.play(Create(yearly), run_time=2.0)
+        slow_turn(yearly, d.get_center(), 0.050)
+        yl = T("INNER YEARLY TIMING", 30, GOLD).move_to([3.85, 2.55, 0])
+        self.play(FadeIn(yl), run_time=0.6)
+        self.at("day length held steady")
+        steady = T("DAY LENGTH HELD STEADY", 27, BLUE).move_to([3.85, 1.85, 0])
+        self.play(FadeIn(steady), Rotate(yearly, PI / 2, about_point=d.get_center()), run_time=1.5)
+        self.at("cycles kept repeating")
+        cyc = T("EATING + WEIGHT CYCLES", 28, GREEN).move_to([3.85, 1.15, 0])
+        self.play(FadeIn(cyc), Rotate(yearly, PI, about_point=d.get_center()), run_time=2.0)
+        self.at("monarch can fly")
+        young = monarch(0.9).move_to([3.2, 0.15, 0])
+        south = arrow([3.2, -0.35, 0], [3.2, -2.1, 0], GREEN, width=6)
+        self.play(FadeIn(young), GrowArrow(south), young.animate.shift(DOWN * 1.4), run_time=1.7)
+        self.at("some animals do learn")
+        birds = VGroup(*[Arc(radius=0.20, start_angle=0.2, angle=1.1, color=GREEN, stroke_width=4)
+                         .rotate(i * 0.25) for i in range(2)]).arrange(RIGHT, buff=0.3).move_to([5.0, -1.1, 0])
+        learned = T("SOME ROUTES ARE LEARNED", 25, GREEN).move_to([3.9, -2.65, 0])
+        self.play(FadeIn(birds), FadeIn(learned), birds.animate.shift(LEFT * 0.45), run_time=1.3)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S06Answer(SpokenScene):
+class S11Refine(SpokenScene):
     def construct(self):
-        self.at("So how do they know")
-        q = T("How do they know?", 44, TEXT, font=TITLE_FONT).move_to([0, 3.0, 0])
-        self.play(Write(q), run_time=1.0)
-        self.at("such as light")
-        XS = [-4.3, 0.0, 4.3]
-        c1 = chip("light", YELLOW, size=28).move_to([XS[0], 1.5, 0])
-        c2 = chip("day length", YELLOW, size=28).move_to([XS[1], 1.5, 0])
-        c3 = chip("temperature", BLUE, size=28).move_to([XS[2], 1.5, 0])
-        self.play(FadeIn(c1, shift=DOWN * 0.2), run_time=0.5)
-        self.at("day length")
-        self.play(FadeIn(c2, shift=DOWN * 0.2), run_time=0.5)
-        self.at("temperature")
-        self.play(FadeIn(c3, shift=DOWN * 0.2), run_time=0.5)
-        cue_t = T("cues", 26, GREY).move_to([-0.0, 2.3, 0])
-        rail = Line([XS[0], 0.75, 0], [XS[2], 0.75, 0], color=GREY, stroke_width=4)
-        stems = VGroup(*[Line([x, 1.1, 0], [x, 0.75, 0], color=GREY, stroke_width=4) for x in XS])
-        down = arr([0, 0.75, 0], [0, 0.1, 0], GREY, w=5, tip=0.22)
-        resp = chip("responses of living things", TEXT, size=30).move_to([-1.9, -0.45, 0])
-        self.play(Create(stems), Create(rail), GrowArrow(down), run_time=0.7)
-        self.play(FadeIn(resp), run_time=0.5)
-        self.at("inherited instincts")
-        inst = vocab("many are instincts", 28).move_to([3.7, -0.45, 0])
-        lk = arr([resp.get_right()[0] + 0.05, -0.45, 0], [inst.get_left()[0] - 0.05, -0.45, 0], GOLD, w=4, tip=0.18)
-        self.play(GrowArrow(lk), FadeIn(inst, scale=0.9), run_time=0.7)
-        # years timeline
-        self.at("last for many years")
-        ax = Arrow([-5.8, -2.55, 0], [5.8, -2.55, 0], buff=0, color=GREY, stroke_width=4, tip_length=0.22)
-        yl = T("many years", 26, GREY).move_to([4.4, -3.0, 0])
-        mk = Rectangle(width=0.35, height=0.6, stroke_color=ORANGE, stroke_width=3, fill_color=ORANGE,
-                       fill_opacity=0.6).move_to([-0.7, -2.15, 0])
-        mk_l = T("timing of a response", 24, ORANGE).move_to([-3.8, -3.05, 0])
-        self.play(Create(ax), FadeIn(yl), FadeIn(mk), FadeIn(mk_l), run_time=0.8)
-        self.at("warming climate")
-        wc = chip("a warming climate", BLUE, size=26).move_to([-3.5, -1.55, 0])
-        wa = arr([-1.8, -1.7, 0], [-1.0, -2.0, 0], BLUE, w=4, tip=0.2)
-        self.play(FadeIn(wc, shift=DOWN * 0.15), GrowArrow(wa), run_time=0.6)
-        self.at("can shift")
-        self.play(mk.animate.shift(RIGHT * 1.2), run_time=0.9)
-        self.play(mk.animate.shift(LEFT * 2.1), run_time=1.1)
-        sh = T("timing can shift", 28, TEXT, weight=BOLD).move_to([3.0, -1.6, 0])
-        sh2 = T("earlier or later", 22, GREY).move_to([3.0, -2.05, 0])
-        self.play(FadeIn(sh), FadeIn(sh2), run_time=0.5)
+        dial = Circle(radius=2.7, color=GREY, stroke_width=5,
+                      fill_color=GREY, fill_opacity=0.14).move_to([-1.2, 0.15, 0])
+        cold = Arc(radius=2.7, start_angle=PI * 0.65, angle=PI * 0.55,
+                   arc_center=dial.get_center(), color=BLUE, stroke_width=14)
+        warm = Arc(radius=2.7, start_angle=PI * 0.15, angle=PI * 0.38,
+                   arc_center=dial.get_center(), color=RED, stroke_width=14)
+        bud = twig(1.2, open_bud=False).move_to(dial.get_center() + RIGHT * 2.7)
+        self.play(FadeIn(dial), FadeIn(bud), run_time=0.8)
+        pulse(dial, base=5.0, amp=1.2, speed=1.3)
+        self.at("winter cold")
+        self.play(Create(cold), MoveAlongPath(bud, cold.copy()), run_time=2.0)
+        cold_lab = T("COLD", 30, BLUE).move_to([-3.25, 2.8, 0])
+        self.play(FadeIn(cold_lab), run_time=0.5)
+        self.at("later warmth")
+        self.play(Create(warm), MoveAlongPath(bud, warm.copy()), run_time=2.0)
+        warm_lab = T("WARM", 30, RED).move_to([0.7, 3.0, 0])
+        opened = twig(1.25, open_bud=True).move_to(bud)
+        self.play(FadeIn(warm_lab), Transform(bud, opened), run_time=1.0)
+        self.at("order of cues")
+        order = T("COLD  →  WARM  →  OPEN", 27, TEXT).move_to([4.20, 1.55, 0])
+        self.play(FadeIn(order), run_time=0.7)
+        self.at("one warm day")
+        other = twig(1.1, open_bud=False).move_to([3.45, -0.2, 0])
+        question = T("?", 54, GOLD).next_to(other, RIGHT, buff=0.3)
+        warm_day = T("WARM DAY", 29, RED).move_to([3.45, -1.15, 0])
+        self.play(FadeIn(other), FadeIn(warm_day), FadeIn(question), run_time=1.0)
+        self.at("timing system")
+        system = T("THE ORGANISM'S TIMING SYSTEM", 28, GREEN).move_to([3.45, -2.25, 0])
+        self.play(FadeIn(system), question.animate.scale(1.2), run_time=1.0, rate_func=there_and_back)
         self.finish()
 
 
-class S07End(EndCard):
-    LINE = "Living things respond to cues like light, day length and temperature."
+class S12Rule(SpokenScene):
+    def construct(self):
+        d = nested_dial(center=[0, 0.15, 0], outer_r=3.0, inner_r=1.55)
+        d.seasons.set_opacity(0)
+        self.play(FadeIn(d), run_time=1.0)
+        slow_turn(d.daynight, d.get_center(), 0.045)
+        slow_turn(d.gold, d.get_center(), -0.040)
+        self.at("Gold inner rhythms")
+        self.play(Rotate(d.gold, PI, about_point=d.get_center()), run_time=2.0, rate_func=linear)
+        self.at("Blue and red cues")
+        self.play(Rotate(d.daynight, PI / 2, about_point=d.get_center()),
+                  Rotate(d.temp, 0.55, about_point=d.get_center()), run_time=2.0, rate_func=linear)
+        self.at("line up responses")
+        marks = VGroup(*[Dot(d.outer.point_at_angle(a), radius=0.16, color=GREEN)
+                         for a in (0.2, 2.15, 4.35)])
+        arrows = VGroup(*[arrow(d.get_center() + 1.8 * np.array([np.cos(a), np.sin(a), 0]),
+                                d.get_center() + 2.65 * np.array([np.cos(a), np.sin(a), 0]),
+                                color=GREEN, width=4, tip=0.16)
+                         for a in (0.2, 2.15, 4.35)])
+        self.play(LaggedStart(*[GrowArrow(a) for a in arrows], lag_ratio=0.18),
+                  FadeIn(marks), run_time=1.7)
+        self.at("No single cue")
+        many = T("NO SINGLE CUE FITS EVERY ORGANISM", 30, TEXT).move_to([0, -3.35, 0])
+        self.play(FadeIn(many), Rotate(d.daynight, PI / 3, about_point=d.get_center()), run_time=1.6)
+        self.at("useful response")
+        rule = T("A USEFUL RESPONSE AT A USEFUL TIME", 32, GREEN).move_to([0, 3.48, 0])
+        self.play(FadeIn(rule), Rotate(d.gold, PI / 2, about_point=d.get_center()), run_time=1.6)
+        self.finish()
+
+
+class S13End(EndCard):
+    LINE = "Inner rhythms and environmental cues time responses;\nlong-term changes can shift them."

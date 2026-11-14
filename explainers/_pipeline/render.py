@@ -12,7 +12,8 @@ scenes.py can `from kx_manim import NarratedScene`. Each scene video is padded (
 to the audio length, never the reverse. KX_SCRIPT / KX_SCENE_ID name the script and the scene (xm.XMScene uses them to time sentences).
 Quality m = 720p30. Output: H.264 + AAC, yuv420p, +faststart.
 Every render also runs the layout check (layout_check.py) and writes layout_report.json beside the
-output, with a one-line summary at the end. It only reports; KX_LAYOUT=0 turns it off.
+output, with a one-line summary at the end (errors, warnings, transient, suppressed by layout_ok).
+It only reports, never blocks a render; KX_LAYOUT=0 turns it off.
 """
 import argparse
 import json

@@ -1,0 +1,175 @@
+---
+/**
+ * A course map that fills in (2026-11-14). One cell per lesson in course order, grouped by unit,
+ * each with three small marks read from this device: the lesson's films watched (outline, part,
+ * filled), its quiz tried, its flashcards started. A mark is left out when the lesson has no films,
+ * no quiz or no deck. The marks are shapes, not colours; each cell's name says the same in words,
+ * and a line above the map sums it up. Unwatched is the normal state, so empty marks stay quiet.
+ *
+ * When every film in the course is watched, the map shows the course's first badge, "Watched every
+ * film" (src/lib/badges.ts), with Hex holding the film library's camera and the date.
+ *
+ * Device only: films from src/lib/film-progress.ts, quiz answers from src/lib/progress.ts (its
+ * `items`), flashcards from src/lib/flashcards.ts. Rendered hidden: without JavaScript, or when the
+ * browser will not store anything, the page keeps the plain lesson list below and no map.
+ */
+import Badge from './Badge.astro';
+import { unitsFor, type Course } from '../data/courses';
+import { filmCatalog, filmKey } from '../lib/film-catalog';
+
+interface Props { course: Course; lessons: any[] }
+const { course, lessons } = Astro.props;
+const units = unitsFor(course, lessons);
+const films = (await filmCatalog()).filter((f) => f.course === course.slug);
+const keysOf = (slug: string) => films.filter((f) => f.lesson === slug).map((f) => filmKey(f.src));
+const DECK_FILES = Object.keys(import.meta.glob('../data/flashcards/*.json'));
+const hasDeck = (slug: string) => DECK_FILES.some((f) => f.endsWith(`/${slug}.json`));
+const hasQuiz = (d: any) => d.practiceQuestions.length + d.mcatQuestions.length > 0;
+const allKeys = films.map((f) => filmKey(f.src));
+const word = course.tier === 'families' ? 'activity' : 'lesson';
+---
+
+<section class="wrap cmap" id="course-map" data-cmap data-course={course.slug} data-course-title={course.title} data-keys={allKeys.join(' ')} data-word={word} hidden aria-labelledby="cmap-h" data-pagefind-ignore>
+  <div class="cmap-head">
+    <h2 id="cmap-h">Your map of this course</h2>
+    <p class="cmap-sum" data-cmap-sum></p>
+  </div>
+  {allKeys.length > 0 && <Badge type="films-all" subject={course.slug} subjectTitle={course.title} hex class="cmap-badge" />}
+  <ol class="cmap-units">
+    {units.map((u, ui) => (
+      <li class="cmap-unit">
+        <p class="cmap-uh" id={`cmap-u${ui + 1}`}>Unit {ui + 1} · {u.name}</p>
+        <ol class="cmap-cells" aria-labelledby={`cmap-u${ui + 1}`}>
+          {u.entries.map(({ l, n }) => {
+            const keys = keysOf(l.data.slug);
+            return (
+              <li>
+                <a class="cmap-cell" href={`/lessons/${l.data.slug}/`} data-slug={l.data.slug} data-n={n} data-title={l.data.title}
+                  data-films={keys.join(' ')} data-has-quiz={hasQuiz(l.data) ? '1' : undefined} data-has-deck={hasDeck(l.data.slug) ? '1' : undefined}
+                  aria-label={`${word === 'activity' ? 'Activity' : 'Lesson'} ${n}, ${l.data.title}`}>
+                  <span class="cmap-n">{n}</span>
+                  <span class="cmap-marks" aria-hidden="true">
+                    <svg class="mk mk-film" viewBox="0 0 10 10" width="10" height="10" data-mk="film" data-state={keys.length ? 'none' : 'na'}><path class="mk-o" d="M2 1.3 L9 5 L2 8.7 Z" /><path class="mk-i" d="M3 3.6 L5.6 5 L3 6.4 Z" /></svg>
+                    <svg class="mk mk-quiz" viewBox="0 0 10 10" width="10" height="10" data-mk="quiz" data-state={hasQuiz(l.data) ? 'none' : 'na'}><circle class="mk-o" cx="5" cy="5" r="3.7" /></svg>
+                    <svg class="mk mk-card" viewBox="0 0 10 10" width="10" height="10" data-mk="card" data-state={hasDeck(l.data.slug) ? 'none' : 'na'}><rect class="mk-o" x="1.2" y="2.4" width="7.6" height="5.2" rx="0.8" /></svg>
+                  </span>
+                </a>
+              </li>
+            );
+          })}
+        </ol>
+      </li>
+    ))}
+  </ol>
+  <p class="cmap-legend">
+    <span><svg class="mk" viewBox="0 0 10 10" width="10" height="10" data-state="all" aria-hidden="true"><path class="mk-o" d="M2 1.3 L9 5 L2 8.7 Z" /></svg> films watched</span>
+    <span><svg class="mk" viewBox="0 0 10 10" width="10" height="10" data-state="some" aria-hidden="true"><path class="mk-o" d="M2 1.3 L9 5 L2 8.7 Z" /><path class="mk-i" d="M3 3.6 L5.6 5 L3 6.4 Z" /></svg> some of them</span>
+    <span><svg class="mk" viewBox="0 0 10 10" width="10" height="10" data-state="all" aria-hidden="true"><circle class="mk-o" cx="5" cy="5" r="3.7" /></svg> quiz tried</span>
+    <span><svg class="mk" viewBox="0 0 10 10" width="10" height="10" data-state="all" aria-hidden="true"><rect class="mk-o" x="1.2" y="2.4" width="7.6" height="5.2" rx="0.8" /></svg> flashcards started</span>
+    <span>An outline is not yet; no mark, the {word} has none. Saved only on this device.</span>
+  </p>
+</section>
+
+<script>
+  import { load, onChange, type Progress } from '../lib/progress';
+  import { loadFilms, onFilmsChange, type FilmRecord } from '../lib/film-progress';
+  import { loadStore } from '../lib/flashcards';
+  import { checkFilmsBadge, showBadges } from '../lib/badges';
+
+  const map = document.querySelector<HTMLElement>('[data-cmap]');
+  let canStore = false;
+  try { localStorage.setItem('biochempedia:probe', '1'); localStorage.removeItem('biochempedia:probe'); canStore = true; } catch { /* blocked: keep the plain list */ }
+
+  if (map && canStore) {
+    const cells = [...map.querySelectorAll<HTMLAnchorElement>('.cmap-cell')];
+    const keys = (map.dataset.keys ?? '').split(' ').filter(Boolean);
+    const Word = map.dataset.word === 'activity' ? 'Activity' : 'Lesson';
+    const setMark = (cell: HTMLElement, mk: string, state: string) => {
+      const svg = cell.querySelector<SVGElement>(`[data-mk="${mk}"]`);
+      if (svg && svg.dataset.state !== 'na') svg.dataset.state = state;
+    };
+
+    const draw = () => {
+      const p: Progress = load();
+      const r: FilmRecord = loadFilms();
+      const cardKeys = Object.keys(loadStore().cards);
+      const quizzed = new Set(Object.values(p.items).map((it) => it.l));
+      let withFilms = 0, filmsDone = 0, withQuiz = 0, quizDone = 0, withDeck = 0, deckDone = 0;
+      for (const cell of cells) {
+        const slug = cell.dataset.slug!;
+        const fk = (cell.dataset.films ?? '').split(' ').filter(Boolean);
+        const seen = fk.filter((k) => typeof r.w[k] === 'number').length;
+        const words: string[] = [];
+        if (fk.length) {
+          withFilms++;
+          if (seen === fk.length) filmsDone++;
+          setMark(cell, 'film', seen === 0 ? 'none' : seen === fk.length ? 'all' : 'some');
+          words.push(fk.length === 1 ? (seen ? 'film watched' : 'film not watched yet') : `${seen} of ${fk.length} films watched`);
+        }
+        if (cell.dataset.hasQuiz) {
+          withQuiz++;
+          const tried = quizzed.has(slug);
+          if (tried) quizDone++;
+          setMark(cell, 'quiz', tried ? 'all' : 'none');
+          words.push(tried ? 'quiz tried' : 'quiz not tried yet');
+        }
+        if (cell.dataset.hasDeck) {
+          withDeck++;
+          const started = cardKeys.some((k) => k.startsWith(`${slug}:`));
+          if (started) deckDone++;
+          setMark(cell, 'card', started ? 'all' : 'none');
+          words.push(started ? 'flashcards started' : 'flashcards not started');
+        }
+        const marks = [...cell.querySelectorAll<SVGElement>('[data-mk]')].filter((s) => s.dataset.state !== 'na');
+        cell.classList.toggle('is-full', marks.length > 0 && marks.every((s) => s.dataset.state === 'all'));
+        const label = `${Word} ${cell.dataset.n}, ${cell.dataset.title}${words.length ? `: ${words.join(', ')}` : ''}`;
+        cell.setAttribute('aria-label', label);
+        cell.title = label;
+      }
+      const sum: string[] = [];
+      if (withFilms) sum.push(`films watched for ${filmsDone} of ${withFilms} ${Word.toLowerCase()}s${filmsDone < withFilms ? ` (${withFilms - filmsDone} to go)` : ''}`);
+      if (withQuiz) sum.push(`quiz tried in ${quizDone} of ${withQuiz}`);
+      if (withDeck) sum.push(`flashcards started in ${deckDone} of ${withDeck}`);
+      map.querySelector('[data-cmap-sum]')!.textContent = sum.length ? `On this device: ${sum.join('; ')}.` : '';
+      if (keys.length) checkFilmsBadge(map.dataset.course!, map.dataset.courseTitle!, keys);
+      showBadges(map);
+    };
+
+    map.hidden = false;
+    onChange(draw);
+    onFilmsChange(draw);
+  }
+</script>
+
+<style>
+  .cmap { padding-block: var(--ddp-space-6) 0; }
+  .cmap[hidden] { display: none; }
+  .cmap-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--ddp-space-1) var(--ddp-space-4); margin-bottom: var(--ddp-space-3); }
+  .cmap-head h2 { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: 0.12em; text-transform: uppercase; font-weight: 600; color: var(--ddp-color-muted); }
+  .cmap-sum { margin: 0; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); }
+  .cmap :global(.cmap-badge) { margin-bottom: var(--ddp-space-3); }
+  .cmap-units { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--ddp-space-2); }
+  .cmap-unit { display: grid; grid-template-columns: minmax(0, 13rem) minmax(0, 1fr); gap: var(--ddp-space-3); align-items: start; }
+  .cmap-uh { margin: 0; padding-top: 0.55rem; font-size: var(--ddp-text-xs); line-height: 1.35; color: var(--ddp-color-muted); }
+  .cmap-cells { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+  .cmap-cell { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; width: 44px; min-height: 44px; padding: 4px 2px; border: 1px solid var(--ddp-color-line); border-radius: 8px; background: var(--ddp-color-surface); text-decoration: none; color: var(--ddp-color-ink-soft); }
+  .cmap-cell:hover { border-color: var(--ddp-color-accent); }
+  .cmap-cell:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .cmap-cell.is-full { border-color: color-mix(in srgb, var(--ddp-color-secondary) 75%, transparent); background: color-mix(in srgb, var(--ddp-color-secondary) 12%, var(--ddp-color-surface)); }
+  .cmap-n { font-family: var(--ddp-font-mono); font-size: 0.7rem; line-height: 1; color: var(--ddp-color-ink); }
+  .cmap-marks { display: flex; gap: 2px; line-height: 0; }
+  .mk { display: block; color: var(--ddp-color-primary); }
+  .mk .mk-o { fill: none; stroke: currentColor; stroke-width: 1.1; stroke-linejoin: round; opacity: 0.45; }
+  .mk .mk-i { fill: currentColor; display: none; }
+  .mk[data-state="some"] .mk-o { opacity: 1; }
+  .mk[data-state="some"] .mk-i { display: inline; }
+  .mk[data-state="all"] .mk-o { fill: currentColor; opacity: 1; }
+  .mk[data-state="na"] { visibility: hidden; }
+  .cmap-legend { margin: var(--ddp-space-3) 0 0; display: flex; flex-wrap: wrap; gap: var(--ddp-space-1) var(--ddp-space-4); font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .cmap-legend span { display: inline-flex; align-items: center; gap: 0.35em; }
+  .cmap-legend .mk { display: inline-block; }
+  @media (max-width: 640px) {
+    .cmap-unit { grid-template-columns: minmax(0, 1fr); gap: var(--ddp-space-1); }
+    .cmap-uh { padding-top: 0; }
+  }
+</style>
