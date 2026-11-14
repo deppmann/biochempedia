@@ -5,10 +5,10 @@ course: "life-science"
 courseChapter: "Life Science · Unit 5: Living together"
 order: 1021
 summary: >-
-  What happens to a white snowshoe hare when the snow melts early? You run a hillside model where you
-  set when the snow melts and when hares change color, then read real survival estimates from hares in
-  Montana and attack counts on clay mice in Florida. Afterwards you can sort adaptations into physical
-  and behavioral, explain trade-offs and variation, and explain why populations adapt, not single animals.
+  Adaptations help in particular settings; populations change over generations, not individuals. You
+  test what happens when snow melts before a hare changes color, sort physical and behavioral
+  adaptations, and use survival estimates from Montana hares and attack counts on Florida clay mice to
+  explain trade-offs, variation and population change.
 hook: "What happens to a snowshoe hare that is still white when the snow melts early?"
 estMinutes: 40
 supports: true
@@ -29,10 +29,30 @@ explainer:
   src: "/explainers/adaptations-for-survival/explainer.mp4"
   captions: "/explainers/adaptations-for-survival/explainer.vtt"
   poster: "/explainers/adaptations-for-survival/poster.jpg"
-  title: "A White Hare on Bare Ground"
-  durationSec: 128.1
-  narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+  title: "Why a White Coat Can Help—and Hurt"
+  durationSec: 202.2
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+  takeaways:
+    - "An adaptation is an inherited trait that helps survival and reproduction in a particular ecosystem."
+    - "Physical adaptations are body features; behavioral adaptations are actions or patterns of actions."
+    - "A white coat hides a hare on snow but can expose it on bare ground."
+    - "Adaptations help in particular settings; populations change over generations, not individuals."
+
+films:
+  - id: "chapter-2"
+    src: "/explainers/adaptations-for-survival/chapter-2.mp4"
+    captions: "/explainers/adaptations-for-survival/chapter-2.vtt"
+    poster: "/explainers/adaptations-for-survival/chapter-2-poster.jpg"
+    title: "What the Hare Data Show"
+    durationSec: 210.9
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+    takeaways:
+      - "A coat that mismatches the ground can make prey easier for predators to find."
+      - "The Montana values are weekly survival estimates, not guarantees for every hare."
+      - "Variation means individuals in one population do not all have the same traits."
+      - "Adaptations help in particular settings; populations change over generations, not individuals."
 
 scientists: []
 
@@ -45,8 +65,8 @@ techniques:
   - name: "Scoring coat color and snow cover"
     blurb: >-
       Observers looked at each hare, and used photos, to estimate what percent of its coat was white.
-      They also estimated what percent of the ground around it was covered by snow, and compared the
-      two numbers.
+      They also estimated what percent of the nearby ground was covered by snow, averaged those
+      estimates into a weekly value for each site, and compared each coat with that value.
   - name: "Clay model test"
     blurb: >-
       Scientists set out clay models of mice in light and dark colors on light and dark ground. Bite, beak
@@ -119,10 +139,10 @@ practiceQuestions:
       - "Nothing changes, since all hares in a species are alike"
     answer: 0
     rationale: >-
-      Hares vary in timing. If early-brown hares survive and have more young, and the timing is
-      inherited, that timing may become more common in the population. Single hares do not learn a new
-      molt schedule. Hares in a species are not all alike; they differ in timing. Wanting to hide does
-      not change when a hare molts.
+      Adaptations help in particular settings; populations change over generations, not individuals.
+      Hares vary in timing. If the early-brown timing is inherited and those hares survive and have
+      more young, it may become more common in the population. A single hare does not learn a new molt
+      schedule because it wants to hide, and hares in one species are not all alike.
   - stem: "A great blue heron hunts in shallow water in a Virginia marsh. Which statement about its long legs is best?"
     choices:
       - "They are perfect for every habitat the heron visits"
@@ -232,75 +252,86 @@ import Support from '../../../components/Support.astro';
 import CER from '../../../components/CER.astro';
 import ScaffoldFigure from '../../../components/ScaffoldFigure.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import LessonFilm from '../../../components/LessonFilm.astro';
 
 **In fall, a snowshoe hare’s brown fur turns white over several weeks. On snow it is hard to see, but what if the snow melts early and the hare is still white?**
 
-Snowshoe hares live in snowy forests in Canada and the northern United States, including Montana. Scientists there put radio collars on hares and checked on them each week. They asked a plain question. Does a coat that stands out cost a hare its life?
+Snowshoe hares live in snowy forests in Canada and the northern United States, including Montana. Scientists there put radio collars on hares and checked on them each week to answer one question: does a coat that stands out cost a hare its life?
+
+<Support>**The one idea:** Adaptations help in particular settings; populations change over generations, not individuals. **Scope:** Here, an adaptation is an inherited trait that helps survival and reproduction in a particular ecosystem. Population change means that inherited traits become more or less common. It does not mean that one animal never learns, grows or responds.</Support>
 
 <IdeaCheck items={[
-  { idea: 'Animals adapt because they want or need to.', answer: 'disagree', explain: 'Scientists in Montana watched white hares on bare ground. The hares did not move to snowier spots, and many were still the wrong color for the ground. Traits change in a population over many generations, when animals with helpful inherited traits leave more young.' },
-  { idea: 'Animals are perfectly adapted to where they live.', answer: 'disagree', explain: 'Adaptations usually have a cost somewhere. A white coat hides a hare on snow, but the same coat stands out on brown ground. Survival estimates from Montana show what that cost looks like.' },
+  { idea: 'Animals adapt because they want or need to.', answer: 'disagree', explain: 'White hares in Montana did not move to snowier spots, and many stayed the wrong color for the ground. Traits change in a population over many generations, when animals with helpful inherited traits leave more young.' },
+  { idea: 'Animals are perfectly adapted to where they live.', answer: 'disagree', explain: 'Adaptations usually have a cost somewhere. A white coat hides a hare on snow, but the same coat stands out on brown ground.' },
   { idea: 'All animals of one species have the same adaptations.', answer: 'disagree', explain: 'Hares in the same Montana forest turned white at different times. In some places with little snow, snowshoe hares stay brown all winter. These differences matter when the weather changes.' },
 ]} />
 
 ## Explore: change when the snow melts
 
-In this model, a hillside goes from fall to spring. Each dot is a hare. You choose the week the snow melts and when the hares change color. A warmer climate switch makes the snowy season shorter. Hares that stand out are highlighted, and a bar shows how many hares are lost to predators each week.
+Each dot on this hillside is a hare. You choose when the snow melts and when the hares change color. A warmer-climate switch makes the snowy season shorter. Hares that stand out are highlighted, and a bar shows how many are lost to predators each week.
 
 <HareCoatMatch />
 
-**Try this.**
-1. Set the snow to melt early, and keep the hares’ color change normal. Predict which hares will be lost most. Then run it and check.
-2. Shift the hares’ color change earlier. Predict whether more hares will survive the spring. Then test it.
-3. Turn on the warmer climate switch. Write down how many hares you think will survive. Then run it and compare.
+First melt the snow early with the usual color-change timing, and watch which hares stand out.
+
+**Predict.** Now turn on the warmer-climate switch, run the season with the usual timing, and note the survivors. If you move the color change two weeks earlier, will the final number of survivors rise, fall or stay about the same? The slider moves both the fall and the spring change, so think about both seasons before you test it.
 
 The model shows only color. Real predators also use smell, sound and movement, and real hares differ in many ways.
 
-## Explain: what an adaptation is
+## What counts as an adaptation?
 
 <WordBank terms={['adaptation', 'physical adaptation', 'behavioral adaptation', 'camouflage', 'migration', 'hibernation', 'trade-off', 'variation']} />
 
-Look at a snowshoe hare’s back feet. They are large, and fur covers the bottoms. Big feet help the hare move on top of soft snow. The fur helps keep its feet warm.
-
-An **adaptation** is an inherited trait that helps a living thing survive and reproduce in its ecosystem. Inherited means it passes from parents to their young. In this lesson we sort adaptations into two groups. Scientists also name a third group, **physiological adaptations**, which are about how the body works inside.
+An **adaptation** is an inherited trait that helps survival and reproduction in a particular ecosystem. Inherited means passed from parents to their young. Scientists also name a third group, **physiological adaptations**, which are about how the body works inside.
 
 - A **physical adaptation** is a feature of the body: a body covering, a color, or a structure.
 - A **behavioral adaptation** is an action or a pattern of actions.
 
 | Adaptation | Type | How it helps |
 |---|---|---|
-| Hare’s large, furry back feet | Physical (structure and covering) | Moves on snow; keeps feet warm |
+| Hare’s large, furry back feet | Physical (structure and covering) | Spread its weight on soft snow; keep feet warm |
 | Hare’s white winter coat | Physical (coloration) | Harder for predators to see on snow |
 | Eastern box turtle’s shell | Physical (covering) | Shields its soft body from predators |
 | Great blue heron’s long legs | Physical (structure) | Wades into water to catch fish |
 | Monarchs flying south in fall | Behavioral (migration) | Reach a warmer place for winter |
 | Groundhog’s winter hibernation | Behavioral and physiological (hibernation) | Needs much less food while food is scarce |
 
-The hare’s white coat is **camouflage**, coloring that helps an animal blend in with its background. Blending in lowers the chance that a predator notices the hare. It does not make the hare invisible.
+The hare's white coat is **camouflage**, coloring that helps an animal blend into its background.
 
-Bird beaks work a bit like tools. A cardinal’s short, thick beak cracks seeds. A hummingbird’s long, thin beak reaches nectar deep in a flower. A heron’s long, sharp beak grabs fish. The comparison breaks here: you can put a tool down, but a bird cannot swap its beak.
+Bird beaks work a bit like tools. A cardinal’s short, thick beak cracks seeds. A hummingbird’s long, thin beak reaches nectar deep in a flower. A heron’s long, sharp beak grabs fish.
 
-<ScaffoldFigure src="/figures/adaptations-for-survival/hare-coats-and-feet.webp" width={1200} height={800} keyItems={["large, furry back feet", "white winter coat", "brown summer coat", "white hare on bare ground"]} given={[1, 2]} alt="AI-generated illustration: three panels of a snowshoe hare. A white hare with large furry back feet sits on snow; a brown hare sits on brown forest ground; and the same white hare sits on bare brown ground where it stands out. Four numbered circles mark the parts." caption="The snowshoe hare's feet and coats are physical adaptations, and one coat comes with a trade-off once the snow is gone." />
+**Predict.** Where does the tool comparison break? Name one thing a person can do with a tool that a bird cannot do with its beak.
 
-<Support min={2}>**Key idea:** Adaptations are inherited body features or behaviors that help a living thing get what it needs or avoid predators in its ecosystem.</Support>
+<details>
+<summary>Check</summary>
 
-## Explain: behaviors, trade-offs and who changes
+You can put a tool down or pick up a different one, but a bird cannot swap its beak.
 
-**Migration** is a regular journey between places used in different seasons. Many monarch butterflies pass through Virginia in fall on their way to Mexico. The monarchs that make this trip have never made it before. **Hibernation** is a deep, inactive state some animals enter for winter. A hibernating groundhog’s heart beats much more slowly, and its body cools. This is not the same as sleep, and the groundhog warms up and wakes briefly now and then. So hibernation is also a physiological adaptation: it changes how the whole body works, not only what the animal does. Many behaviors like these are instinctive: animals do them without being taught. How animals respond to seasons is the topic of [the next lesson](/lessons/daily-and-seasonal-rhythms/).
+</details>
 
-<LessonFigure src="/figures/adaptations-for-survival/two-behavioral-adaptations.webp" width={1200} height={800} alt="AI-generated illustration: two panels. On the left, a line of monarch butterflies flies across a fall field along a dashed arrow; on the right, a groundhog lies curled up, hibernating, in a burrow under a snowy hillside." caption="Two behavioral adaptations to the seasons: monarchs migrate south in fall, and groundhogs hibernate through the winter." />
+<ScaffoldFigure src="/figures/adaptations-for-survival/hare-coats-and-feet.webp" width={1200} height={800} keyItems={["large, furry back feet", "white winter coat", "brown summer coat", "white hare on bare ground"]} given={[1, 2]} alt="AI-generated illustration: three panels of a snowshoe hare. A white hare with large furry back feet sits on snow; a brown hare sits on brown forest ground; and the same white hare sits on bare brown ground where it stands out. Four numbered circles mark the parts." caption="The hare's feet and coats are physical adaptations, and the useful coat depends on the setting. Name the four numbered parts." />
 
-A **trade-off** means a trait helps in one way but costs in another. A white coat hides a hare on snow. On bare brown ground, the same coat stands out. A box turtle’s heavy shell protects it, but it is also heavy to carry. No living thing is perfectly adapted.
+<Support min={2}>**Key idea:** Inherited body features or behaviors can help a living thing get resources or avoid predators, but which trait helps depends on the setting.</Support>
 
-Hares in one forest are not all alike. In Montana, some hares turned white earlier than others. In some places with little snow, snowshoe hares stay brown all winter. These differences between individuals of a species are called **variation**.
+## Behaviors, trade-offs and variation
 
-A single hare cannot decide to change color. Its coat changes on a yearly schedule, day length seems to help set it, and snow can shift the spring timing somewhat, but not enough to keep every hare matched. Montana studies found no sign that white hares moved to snowier spots. Change in how common an inherited trait is happens in a **population**, all the members of one species in one area. If molt timing is inherited, hares whose timing fits the snow may survive and have more young. Over many generations, that timing can become more common. This is natural selection, which you will study in [a later lesson](/lessons/natural-selection-in-action/). If the climate changes faster than that, a population can struggle.
+The film placed hibernation in both groups; here is where the line falls. **Hibernation** is a deep, inactive state some animals enter for winter. Going into a burrow and staying inactive is the behavior. Inside, the groundhog’s heart beats much more slowly and its body cools, which is a change in how the body works. It is not ordinary sleep: the groundhog warms up and wakes briefly now and then.
 
-<Support min={2}>**Key idea:** Adaptations usually have trade-offs, individuals vary, and inherited traits become more or less common in a population over many generations.</Support>
+**Migration** is a regular journey between places used in different seasons. Many monarch butterflies pass through Virginia in fall on their way to Mexico, and the monarchs making the trip have never made it before. Many behaviors like these are instinctive, so animals do them without being taught. How animals respond to seasons is the topic of [the next lesson](/lessons/daily-and-seasonal-rhythms/).
 
-## Elaborate: survival of matched and mismatched hares
+<LessonFigure src="/figures/adaptations-for-survival/two-behavioral-adaptations.webp" width={1200} height={800} alt="AI-generated illustration: two panels. On the left, a line of monarch butterflies flies across a fall field along a dashed arrow; on the right, a groundhog lies curled up, hibernating, in a burrow under a snowy hillside." caption="Migration moves monarchs to a warmer place, while hibernation lets groundhogs need much less food when food is scarce." />
 
-Scientists followed 186 snowshoe hares with radio collars at two sites in Montana. Each week they checked each hare’s radio signal to see if it was alive, and tried to find it. They scored how white its coat was and how much snow covered the ground. When they missed a hare, the model filled in its coat color. Then a math model estimated the chance of surviving one week for hares at each level of mismatch.
+A **trade-off** means a trait helps in one way but costs in another, like the white coat on bare ground or the turtle's heavy shell in the film. A trade-off is not a failure; no living thing is perfectly adapted.
+
+**Variation** means differences among individuals of a species. In Montana, some hares turned white earlier than others. Variation is a difference between hares, not a change inside one hare: a hare cannot choose a new coat, because its molt follows a yearly schedule. Day length seems to help set that schedule. Snow can shift spring timing somewhat, but not enough to keep every Montana hare matched.
+
+So does a mismatched coat change survival enough to matter across generations? The second film follows the evidence.
+
+<LessonFilm film={frontmatter.films[0]} />
+
+## Survival of matched and mismatched hares
+
+Here are the rounded model estimates from 186 hares at two Montana sites. Snow cover was a weekly average for each site, and for weeks when a hare was missed, the model also estimated its coat color.
 
 | Coat compared with the ground | Difference between coat whiteness and snow cover (percentage points) | Estimated chance of surviving one week (percent) |
 |---|---|---|
@@ -310,7 +341,16 @@ Scientists followed 186 snowshoe hares with radio collars at two sites in Montan
 
 Source: Zimova, Mills and Nowak, Ecology Letters (2016), Discussion and Figure 3. Hares were near Seeley Lake (2009 to 2012) and Gardiner (2010 to 2012), Montana. These are rounded estimates from a model, not counts of hares, and the true values could be somewhat higher or lower. On average, each hare was badly mismatched for less than one week a year. The worry is that shorter snow seasons will make those weeks more common.
 
-A second team tested color directly, with clay mice instead of live ones.
+**Predict.** A drop from 96 percent to 89 percent is a drop of how many **percentage points**? For groups of 100, how many hares would the estimates leave alive in each group?
+
+<details>
+<summary>Check</summary>
+
+The difference is 7 percentage points. Out of 100, the estimates give about 96 matched survivors and 89 fully mismatched survivors. This is an expectation for groups, not a promise about any one hare.
+
+</details>
+
+A second team tested color directly with clay mice.
 
 | Model color | Ground | Attacks recorded (number) |
 |---|---|---|
@@ -321,9 +361,20 @@ A second team tested color directly, with clay mice instead of live ones.
 
 Source: Vignieri, Larson and Hoekstra, Evolution (2010), Table 1. Models sat out in the field at Topsail Hill Preserve State Park (beach) and at an inland site, in Florida.
 
-1. By how many percentage points does weekly survival drop from matched to fully mismatched hares?
-2. Imagine 100 matched hares and 100 fully mismatched hares. About how many in each group would you expect to be alive after one week?
-3. On each kind of ground, which model color was attacked more? What fraction of all 28 attacks hit models that did not match?
+**Your turn.** What fraction of all 28 attacks hit models that did not match the ground?
+
+<details>
+<summary>Check</summary>
+
+Mismatched models (dark on sand, light on soil) received 5 + 16 = 21 of 28 attacks, or three out of four. The study's statistics test showed that chance alone was unlikely to explain the difference.
+
+</details>
+
+## Who changes?
+
+A **population** is all the members of one species in one area. The second film traced how an inherited tendency to turn brown earlier may become more common over many generations. This is natural selection, which you will study in [a later lesson](/lessons/natural-selection-in-action/). The film left out one risk: if the climate changes faster than the population can change, the population can struggle.
+
+<Support min={2}>**Key idea:** Adaptations usually have trade-offs, individuals vary, and inherited traits become more or less common in a population over many generations.</Support>
 
 <CER
   task="Make a claim that answers this question: what happens to a white hare when the snow melts early? Use both tables."
@@ -336,6 +387,8 @@ Source: Vignieri, Larson and Hoekstra, Evolution (2010), Table 1. Models sat out
 ### Design problem
 
 You cannot test live hares at school. Plan a safe classroom test of whether matching the background protects prey, using paper “prey” and classmates as “predators.”
+
+**Predict.** If you move the same white and brown paper prey from a white background to a brown one, which color should become easier to find? Name the independent variable and the dependent variable before opening the plan.
 
 <details>
 <summary>One way to do it</summary>
@@ -354,6 +407,6 @@ If matching squares are picked up less on both backgrounds, the result supports 
 
 ## Evaluate: check your thinking
 
-When the snow melts early, a white hare stands out on brown ground. In Montana, mismatched hares had a lower estimated chance of surviving each week. Snow can shift a single hare’s spring timing somewhat, but in Montana that was not enough to stop mismatch. A lasting change in timing would happen in a population, over many generations, if hares vary in an inherited way.
+When snow melts early, a white hare stands out on brown ground, and in Montana mismatched hares had a lower estimated chance of surviving each week. A lasting change in timing can happen only across generations, if hares vary in an inherited way and some leave more young.
 
 **Science practices you used:** making predictions and testing them with a model, reading data tables, calculating a difference in percentage points, planning a fair test with constants and repeated trials, and naming the limits of a model and of the data.
