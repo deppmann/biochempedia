@@ -115,6 +115,23 @@ def cues_from(words, offset, max_chars=84):
     return cues
 
 
+def keep_narrated(cues, scene):
+    """Drop cues the narration does not contain. Speech recognition invents text ("please visit www .x .org",
+    "thanks for watching") over silent stretches; a cue stays only if at least 60% of its words are found in
+    the scene's narration or tts (allowing small spelling differences). No narration, no cues."""
+    known = {key(t) for f in ("narration", "tts") for t in (scene.get(f) or "").split()} - {""}
+    kept = []
+    for c in cues:
+        ws = [key(t) for t in c[2].split()]
+        ws = [w for w in ws if w]
+        hit = sum(1 for w in ws if w in known or difflib.get_close_matches(w, known, 1, 0.8))
+        if ws and hit / len(ws) >= 0.6:
+            kept.append(c)
+        else:
+            print(f"  dropped invented cue in {scene['id']} at {c[0]:.1f}s: {c[2]!r}")
+    return kept
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--dir", required=True)
@@ -132,7 +149,7 @@ def main():
         if s.get("narration"):
             if poster_t is None:
                 poster_t = t0 + L * 0.55
-            cues += cues_from(respell(words_for(d / "audio" / f"{s['id']}.wav"), s["narration"]), t0)
+            cues += keep_narrated(cues_from(respell(words_for(d / "audio" / f"{s['id']}.wav"), s["narration"]), t0), s)
         end_t = t0          # start of the last scene (the Hex end card), where the mark stops
         t0 += L
     for i in range(len(cues) - 1):   # let each cue linger until the next starts, at most 0.8 s extra
