@@ -36,6 +36,16 @@ check("partial real cue (first half)", "RNA polymerase III makes transfer RNAs",
 check("stock hallucination", "Thanks for watching, please visit www dot example dot org", SCENE, False)
 check("empty-narration scene", "RNA polymerase II transcribes messenger RNA", EMPTY, False)
 
+print("-- repeated cues")
+L = "Mating pattern alone changes genotype frequencies, not allele frequencies."
+sc = {"id": "s3", "narration": L + " Selection changes allele frequencies."}
+r = mw.keep_narrated([[0, 3, L], [3, 6, L], [6, 8, "Selection changes allele frequencies."]], sc)
+ok = len(r) == 2 and r[0][1] == 6
+fails += not ok; print(f"{'ok  ' if ok else 'FAIL'} said once, emitted twice: merged ({len(r)} cues, first ends {r[0][1]})")
+sc2 = {"id": "s4", "narration": "Again and again. Again and again."}
+r = mw.keep_narrated([[0, 2, "Again and again."], [2, 4, "Again and again."]], sc2)
+fails += len(r) != 2; print(f"{'ok  ' if len(r) == 2 else 'FAIL'} said twice, emitted twice: both kept")
+
 print("-- corner occupancy")
 H, W = 90, 160
 bg = np.array(mw.BG_RGB, dtype=np.uint8)

@@ -234,6 +234,28 @@ def best_run(cue, narr):
 MIN_RUN = 0.75  # share of a cue's words that must line up, in order, inside one narration run
 
 
+def times_said(ws, narr):
+    """How many times the word run `ws` occurs (spelling-tolerant, exact order) in the narration words."""
+    n = len(ws)
+    return sum(all(_same(a, b) for a, b in zip(ws, narr[j:j + n])) for j in range(len(narr) - n + 1)) if n else 0
+
+
+def merge_repeats(cues, scene):
+    """The recognizer sometimes emits one spoken line as two consecutive identical cues. A cue that repeats the
+    previous cue's text is merged into it (the earlier cue stretches to the later one's end) unless the
+    narration says that text at least twice. Returns the cues without the repeats."""
+    narrs = [toks(scene.get(f)) for f in ("narration", "tts")]
+    out = []
+    for c in cues:
+        ws = toks(c[2])
+        if out and ws and ws == toks(out[-1][2]) and max(times_said(ws, nw) for nw in narrs) < 2:
+            print(f"  merged repeated cue in {scene['id']} at {c[0]:.1f}s: {c[2]!r}")
+            out[-1][1] = max(out[-1][1], c[1])
+        else:
+            out.append(c)
+    return out
+
+
 def keep_narrated(cues, scene):
     """Drop cues the narrator does not say. Speech recognition invents text ("please visit www .x .org",
     "thanks for watching", or a sentence rebuilt from words of the scene: "Polymerase II makes transfer RNAs
@@ -250,7 +272,7 @@ def keep_narrated(cues, scene):
             kept.append(c)
         else:
             print(f"  dropped invented cue in {scene['id']} at {c[0]:.1f}s: {c[2]!r}")
-    return kept
+    return merge_repeats(kept, scene)
 
 
 def main():
