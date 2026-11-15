@@ -1,16 +1,17 @@
 // Biochemistrypedia edge worker.
 //
-// Everything is served as static assets from dist/ exactly as before. This script runs first for
-// pages, media, /api/* and /g/* (run_worker_first in wrangler.jsonc; fingerprinted and bulk files
-// are left out). It first decides, from the host, whether the request belongs here at all
-// (worker/host.js: the site's address, src/lib/site-host.mjs); on the primary host every page goes
-// straight to the static assets, untouched. For media it adds
+// Everything is served as static assets from dist/ exactly as before; this script runs FIRST only
+// for the paths in run_worker_first (wrangler.jsonc): media, /api/* and /g/* today, every page once
+// the site's address moves. It first decides, from the host, whether the request belongs here at all
+// (worker/host.js: the site's address, src/lib/site-host.mjs); on the primary host a page goes
+// straight to the static assets, untouched. If anything in here throws on a GET or HEAD outside the
+// API, the request falls back to the static assets (fail open). For media it adds
 // HTTP byte-range support, which the static-asset server does not provide: Safari
 // (macOS and iOS) refuses to play <video>, and is unreliable with <audio>, unless
 // the server answers "Range: bytes=…" with 206 Partial Content.
 import { handleApi } from './api.js';
-import { route, redirectResponse, webauthnOrigins, switched } from './host.js';
-import { handoffPage, signinPage, receive, mergeEndpoint, accountNote } from './handoff.js';
+import { HOSTS, route, redirectResponse, webauthnOrigins, switched } from './host.js';
+import { handoffPage, signinPage, doneResponse, receive, mergeEndpoint, accountNote } from './handoff.js';
 import { redeemBridge } from './learner.js';
 
 // Paths the media code below is for (byte ranges, files in R2). Everything else that reaches the
@@ -55,18 +56,22 @@ async function fromBucket(request, env) {
   }
 }
 
-export default {
-  async fetch(request, env) {
+/** The worker for one set of host settings. Production uses the settings in src/lib/site-host.mjs;
+ *  scripts/test-host.mjs builds one for each phase. */
+export function createWorker(cfg = HOSTS) {
+  async function handle(request, env) {
     // Which host is this? Another of ours answers with a redirect (worker/host.js).
-    const r = route(request);
+    const r = route(request, cfg);
     if (r.kind === 'redirect') return redirectResponse(r.status, r.location);
     if (r.kind === 'webauthn') {
-      return new Response(JSON.stringify({ origins: webauthnOrigins() }), { headers: { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=3600', 'Access-Control-Allow-Origin': '*' } });
+      return new Response(JSON.stringify({ origins: webauthnOrigins(cfg) }), { headers: { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=3600', 'Access-Control-Allow-Origin': '*' } });
     }
-    if (r.kind === 'handoff') return handoffPage(r.to);
-    if (r.kind === 'signin') return signinPage(new URL(request.url).searchParams.get('to'));
-    if (r.kind === 'receive') return receive(request, env, undefined, (code) => redeemBridge(env.CLASSES, request, code));
+    if (r.kind === 'handoff') return handoffPage(r.to, cfg);
+    if (r.kind === 'signin') return signinPage(request.url, cfg);
+    if (r.kind === 'done') return doneResponse(request, r.to, cfg);
+    if (r.kind === 'receive') return receive(request, env, cfg, (code) => redeemBridge(env.CLASSES, request, code));
     if (r.kind === 'merge') return mergeEndpoint(request);
+    if (cfg !== HOSTS) env = { ...env, SITE_HOSTS: cfg };   // tests only
 
     // Teacher classes API (worker/api.js).
     const { pathname } = new URL(request.url);
@@ -80,7 +85,7 @@ export default {
     if (!MEDIA.test(pathname)) {
       const page = await env.ASSETS.fetch(request);
       // After the switch only: the passkey way back for browsers without Related Origin Requests.
-      return switched() && pathname === '/account/' && page.status === 200 ? accountNote(page) : page;
+      return switched(cfg) && pathname === '/account/' && page.status === 200 ? accountNote(page, cfg) : page;
     }
     if (request.method === 'GET' || request.method === 'HEAD') {
       const hit = await fromBucket(request, env);
@@ -117,5 +122,22 @@ export default {
     headers.set('Content-Range', `bytes ${start}-${end}/${size}`);
     headers.set('Content-Length', String(end - start + 1));
     return new Response(body.slice(start, end + 1), { status: 206, headers });
-  },
-};
+  }
+
+  return {
+    async fetch(request, env) {
+      try {
+        return await handle(request, env);
+      } catch (e) {
+        // Fail open: a page, a film or a file is still served from the static assets. The API keeps
+        // its own errors (worker/api.js answers them); anything else unexpected there is rethrown.
+        console.error('worker error', request.method, new URL(request.url).pathname, e && (e.stack || e.message));
+        const get = request.method === 'GET' || request.method === 'HEAD';
+        if (get && !new URL(request.url).pathname.startsWith('/api/') && env?.ASSETS) return env.ASSETS.fetch(request);
+        throw e;
+      }
+    },
+  };
+}
+
+export default createWorker();

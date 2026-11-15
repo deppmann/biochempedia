@@ -4,10 +4,11 @@
 // serves the site and where every other known host is sent; email links; Google sign-in).
 //
 // THE SWITCH is the one line below: set PRIMARY_HOST to 'stemhop.com', merge, and Workers Builds
-// redeploys. Before that, stemhop.com must be attached to the Worker as a Custom Domain, and the
-// Google console must list it (see the checklist in the pull request that added this file).
-//   PRIMARY_HOST = 'biochemistrypedia.com' (phase A): stemhop.com and www.stemhop.com answer with a
-//     302 to the same path here, so nobody signs in or saves progress there yet.
+// redeploys. Before that: stemhop.com attached to the Worker as a Custom Domain, the Google console
+// listing it, and the worker running first for every page (run_worker_first "/*" in wrangler.jsonc;
+// scripts/test-host.mjs fails a phase B setting without it). See the switch-day checklist.
+//   PRIMARY_HOST = 'biochemistrypedia.com' (phase A): stemhop.com is sent here by a Redirect Rule on
+//     its own zone; any request of ours that reaches the Worker there gets a 302 to the same path here.
 //   PRIMARY_HOST = 'stemhop.com' (phase B): biochemistrypedia.com and its www answer with a 301 to the
 //     same path on stemhop.com, except the one-time hand-off of browser-only progress (/handoff/)
 //     and what passkeys need (/.well-known/webauthn and the sign-in bridge).

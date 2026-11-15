@@ -1,9 +1,17 @@
 // Which host serves the site, and what every other host of ours answers (src/lib/site-host.mjs).
 //
-// Phase A (PRIMARY_HOST is biochemistrypedia.com, today): stemhop.com and www.stemhop.com answer
-// every request, pages, API, media and files alike, with a 302 to the same path and query on
-// biochemistrypedia.com. 302, not 301, so no browser or crawler remembers the direction for good.
+// The worker only sees the paths in run_worker_first (wrangler.jsonc). Today those are media, /api/*
+// and /g/*: page requests never reach this code. So:
+//
+// Phase A (PRIMARY_HOST is biochemistrypedia.com, today): any request of ours that does reach the
+// worker on stemhop.com or www.stemhop.com (API, media, group pages) gets a 302 (307 for non-GET) to
+// the same path on biochemistrypedia.com, so nobody signs in or syncs there. Pages are NOT redirected
+// here while the worker does not run first for them: phase A for whole hosts is a Cloudflare Redirect
+// Rule on the stemhop.com zone, and stemhop.com is not attached to the Worker until the switch.
 // www.biochemistrypedia.com and plain http keep being served exactly as before.
+//
+// Phase B needs the worker to run first for every page ("/*", the worker-first-all-paths change);
+// scripts/test-host.mjs refuses a phase B setting without it.
 //
 // Phase B (PRIMARY_HOST is stemhop.com): biochemistrypedia.com, its www, and www.stemhop.com answer
 // with a 301 (308 for anything but GET and HEAD) to the same path and query on stemhop.com; the
@@ -20,7 +28,8 @@ import { PRIMARY_HOST, LEGACY_HOST, PASSKEY_RP_ID, KNOWN_HOSTS } from '../src/li
 
 export const HOSTS = { primary: PRIMARY_HOST, legacy: LEGACY_HOST, rpId: PASSKEY_RP_ID, known: KNOWN_HOSTS };
 
-// Set on the old host once its /handoff/ page has run, so later visits are a straight 301.
+// Set on the old host once the new host has taken this browser's data (or there was none), so later
+// visits are a straight 301. A failed transfer leaves it unset, and the hand-off is offered again.
 export const MOVED_COOKIE = 'bp_moved';
 
 export const inFamily = (host, base) => host === base || host.endsWith('.' + base);
@@ -43,8 +52,9 @@ export function webauthnOrigins(cfg = HOSTS) {
 
 // What stays on the old host after the switch (see the header).
 const OLD_HOST_PATHS = new Set([
-  '/handoff/', '/handoff', '/handoff/signin/', '/handoff/signin',
+  '/handoff/', '/handoff', '/handoff/signin/', '/handoff/signin', '/handoff/done',
   '/api/learner/passkey/login/options', '/api/learner/passkey/login/verify', '/api/learner/bridge/issue',
+  '/api/learner/passkey/register/options', '/api/learner/passkey/register/verify',
 ]);
 
 /** A page address (a directory, an .html file or no extension), as opposed to a file. */
@@ -71,6 +81,7 @@ const hasCookie = (request, name) => new RegExp(`(?:^|;\\s*)${name}=`).test(requ
  *   { kind: 'webauthn' }                   the /.well-known/webauthn document
  *   { kind: 'handoff', to }                the old host's hand-off page; `to` is the path to land on
  *   { kind: 'signin' }                     the old host's passkey sign-in page
+ *   { kind: 'done', to }                   the old host marks the browser as moved, then forwards
  *   { kind: 'receive' } / { kind: 'merge' } the new host's end of the hand-off
  */
 export function route(request, cfg = HOSTS) {
@@ -99,6 +110,7 @@ export function route(request, cfg = HOSTS) {
       if (path.startsWith('/api/')) return { kind: 'pass' };
       if (!safe) return { kind: 'redirect', status: 308, location };
       if (path.startsWith('/handoff/signin')) return { kind: 'signin' };
+      if (path === '/handoff/done') return { kind: 'done', to: url.searchParams.get('to') || '/' };
       return { kind: 'handoff', to: url.searchParams.get('to') || '/' };
     }
     if (request.method === 'GET' && isPagePath(path) && isBrowserNavigation(request) && !hasCookie(request, MOVED_COOKIE)) {

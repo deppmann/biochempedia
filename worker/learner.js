@@ -18,7 +18,7 @@ import { generateRegistrationOptions, verifyRegistrationResponse, generateAuthen
 import { sha256Hex, randomToken, readCookie, cookie } from './auth.js';
 import { json, fail, clean, clientKey, allow } from './util.js';
 import { exportLearnerPlans, deleteLearnerPlans } from './planner.js';
-import { HOSTS, inFamily, switched } from './host.js';
+import { HOSTS as DEFAULT_HOSTS, inFamily, switched } from './host.js';
 import { mergeNotebookItems, mergeProgress, validProgress, validNoteItem } from '../src/lib/learner-merge.mjs';
 
 export const LEARNER_COOKIE = 'bp_learner';
@@ -272,11 +272,15 @@ export async function issueBridge(db, learnerId) {
 }
 
 /** Redeem a one-time bridge code on the new host. Returns the session cookies, or [] if the code is no good. */
+// One statement takes the row: of two redeems racing for the same code, only one gets it back, and
+// "no row" is a refusal. An ordinary login row (no "bridge:" challenge) is not touched.
 export async function redeemBridge(db, request, raw) {
-  if (!db) return [];
-  const flow = await takeFlow(db, String(raw || ''), 'login');
-  if (!flow || !String(flow.challenge).startsWith('bridge:') || !flow.learner_id) return [];
-  const l = await db.prepare('SELECT id FROM learners WHERE id=?').bind(flow.learner_id).first();
+  const code = String(raw || '');
+  if (!db || !/^[0-9a-f]{64}$/.test(code)) return [];
+  const row = await db.prepare("DELETE FROM learner_challenges WHERE id=? AND purpose='login' AND challenge LIKE 'bridge:%' RETURNING learner_id, expires_at")
+    .bind(await sha256Hex(code)).first();
+  if (!row || !row.learner_id || row.expires_at < Date.now()) return [];
+  const l = await db.prepare('SELECT id FROM learners WHERE id=?').bind(row.learner_id).first();
   return l ? startSession(db, request, l.id) : [];
 }
 
@@ -284,6 +288,8 @@ export async function redeemBridge(db, request, raw) {
 /** Returns a Response for /api/learner/* paths, or null for anything else. */
 export async function handleLearner(request, env, db, path, method, url) {
   if (!path.startsWith('/api/learner/')) return null;
+  // The site's hosts (worker/host.js). Tests pass other settings in as env.SITE_HOSTS; production never sets it.
+  const HOSTS = env.SITE_HOSTS || DEFAULT_HOSTS;
   const sub = path.slice('/api/learner'.length);
   const ip = await clientKey(request);
   const signinLimit = () => allow(db, 'lsign:' + ip, 30, 60_000);

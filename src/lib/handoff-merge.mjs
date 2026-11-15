@@ -19,12 +19,22 @@ import { mergeNotebookItems, mergeProgress, sameJson } from './learner-merge.mjs
 //   bp-teachers-demo-v3 (teacher demo). scripts/test-host.mjs fails if a key outside these
 //   prefixes appears in src/.
 export const HANDOFF_KEY = /^(biochempedia:|bcp-arcade:|bcp:|bp-)/;
-// Not carried: storage probes, and the cached account summary (an account signs in again, or is
-// carried by the sign-in code; its cache is rebuilt on the first sync).
-export const HANDOFF_SKIP = /^biochempedia:learner:v1$|:probe$|:test$/;
+// Not carried: storage probes, the cached account summary (an account signs in again, or is
+// carried by the sign-in code; its cache is rebuilt on the first sync), and the hand-off's own
+// count of failed tries (biochempedia:handoff:tries, kept on the old origin).
+export const HANDOFF_SKIP = /^biochempedia:learner:v1$|^biochempedia:handoff:|:probe$|:test$/;
 
 export const MAX_KEYS = 5000;
-export const MAX_BYTES = 8 * 1024 * 1024;
+// Browsers keep at most 5 MiB of localStorage per origin (MDN, "Storage quotas and eviction
+// criteria"), counted in UTF-16 characters by Chromium. The old host's page sends the store as one
+// multipart field, so its size on the wire is the store's own size (UTF-8) plus the escaping of
+// quotes inside the saved JSON (about a tenth more). A store of up to MAX_STORE_CHARS characters as
+// sent is accepted; that is well above what any browser lets the site keep (about 5.2 million
+// characters), so in practice everything fits. Above it the page offers a download instead.
+export const MAX_STORE_CHARS = 8_000_000;
+// The server's cap on the body: the largest store in UTF-8 (non-ASCII text takes up to 3 bytes a
+// character) plus the form's few hundred bytes of framing.
+export const MAX_BYTES = 26 * 1024 * 1024;
 
 export const carried = (k) => typeof k === 'string' && k.length <= 400 && HANDOFF_KEY.test(k) && !HANDOFF_SKIP.test(k);
 
