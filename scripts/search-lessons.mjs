@@ -12,6 +12,7 @@
  * ranking module directly. See src/lib/lesson-search.ts.
  */
 import { nodeEngine, lib } from './lesson-search-node.mjs';
+import { SITE_ORIGIN } from '../src/lib/site-host.mjs';
 
 const args = process.argv.slice(2);
 const flag = (name) => { const i = args.indexOf(`--${name}`); if (i === -1) return undefined; const v = args[i + 1]; args.splice(i, v && !v.startsWith('--') ? 2 : 1); return v && !v.startsWith('--') ? v : true; };
@@ -30,7 +31,7 @@ try {
   process.exit(1);
 }
 if (json) console.log(JSON.stringify(hits, null, 2));
-else if (model) console.log(lib.formatForModel(hits, 'https://biochemistrypedia.com'));
+else if (model) console.log(lib.formatForModel(hits, SITE_ORIGIN));
 else {
   if (!hits.length) console.log(`No lesson matches “${query}”.`);
   for (const h of hits) {

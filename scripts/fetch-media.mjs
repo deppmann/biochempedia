@@ -10,17 +10,18 @@
 // folders, checks its sha256 against the manifest and writes it in place. A file already on disk
 // with the right hash is left alone; one with another hash (a local re-render not yet uploaded)
 // is also left alone unless --force is given. Posters and captions are in git and are not fetched.
-// The site address can be changed with MEDIA_BASE_URL (default https://biochemistrypedia.com).
+// The site address can be changed with MEDIA_BASE_URL (default: the site's address, src/lib/site-host.mjs).
 import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
+import { SITE_ORIGIN } from '../src/lib/site-host.mjs';
 
 const args = process.argv.slice(2);
 const only = args.flatMap((a, i) => (a === '--only' && args[i + 1] ? [args[i + 1].replace(/^\/+|\/+$/g, '')] : []));
 const all = args.includes('--all');
 const dry = args.includes('--dry-run');
 const force = args.includes('--force');
-const BASE = (process.env.MEDIA_BASE_URL || 'https://biochemistrypedia.com').replace(/\/+$/, '');
+const BASE = (process.env.MEDIA_BASE_URL || SITE_ORIGIN).replace(/\/+$/, '');
 const PARALLEL = Number(process.env.MEDIA_PARALLEL || 4);
 
 if (!all && !only.length) {

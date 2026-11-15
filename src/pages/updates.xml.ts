@@ -3,8 +3,11 @@
 import type { APIRoute } from 'astro';
 import { MILESTONES, KIND_LABEL } from '../data/updates';
 import { milestoneId } from '../lib/updates-feed';
+import { SITE_ORIGIN } from '../lib/site-host.mjs';
 
-const SITE = 'https://biochemistrypedia.com';
+// The feed's ids (tag:biochemistrypedia.com,2026:…) are names, not addresses: they never change, or
+// readers would show every entry again. The links follow the site's address.
+const SITE = SITE_ORIGIN;
 const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const stamp = (d: string) => `${d}T12:00:00Z`;
 

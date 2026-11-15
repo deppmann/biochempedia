@@ -6,8 +6,9 @@ import { COURSES, unitsFor, courseHref } from '../data/courses';
 import { lessonMinutes } from './reading-time';
 import REWRITTEN from '../data/recently-rewritten.json';
 import LINKS from '../data/lesson-links.json';
+import { SITE_ORIGIN } from './site-host.mjs';
 
-export const SITE = 'https://biochemistrypedia.com';
+export const SITE = SITE_ORIGIN;
 
 const TIER_LEVEL: Record<string, string> = {
   families: 'ages 5–10, with a parent or teacher',

@@ -20,9 +20,10 @@
 import { fromHtml } from 'hast-util-from-html';
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
+import { SITE_ORIGIN } from '../src/lib/site-host.mjs';
 
 const dist = process.argv[2] || 'dist';
-const SITE = 'https://biochemistrypedia.com';
+const SITE = SITE_ORIGIN;
 const catalog = JSON.parse(readFileSync(join(dist, 'catalog.json'), 'utf8'));
 
 const cls = (n) => (n.properties?.className || []).join(' ');
