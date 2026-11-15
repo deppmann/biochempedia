@@ -5,7 +5,10 @@ course: "genetics"
 courseChapter: "Genetics and Molecular Biology · Unit 4: From gene to protein, and its control"
 order: 317
 summary: >-
-  In the eukaryotic nucleus, the RNA that polymerase II makes is not yet a message. This lesson follows the three changes that make it one: a cap on the 5' end and a poly(A) tail on the 3' end, which protect the message and help it be exported and translated, and splicing, which removes introns and joins exons. It tells how split genes were found in adenovirus 2 in 1977, and shows how to work out, from exon lengths, what a given splicing outcome does to an mRNA's length and reading frame.
+  Processing marks transcript ends and chooses which segments join into messenger RNA. This lesson
+  follows the 5' cap, 3' cleavage and poly(A) tail, and splicing; examines the adenovirus evidence
+  for split genes; and shows how exon lengths predict a splice outcome's effect on message length
+  and the protein-reading frame.
 hook: "Why is a message copied from more than 5,000 nucleotides of DNA only 737 nucleotides long?"
 
 estMinutes: 24
@@ -19,10 +22,30 @@ explainer:
   src: "/explainers/rna-processing/explainer.mp4"
   captions: "/explainers/rna-processing/explainer.vtt"
   poster: "/explainers/rna-processing/poster.jpg"
-  title: "A Gene Is Longer Than Its Message"
-  durationSec: 164.0
-  narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+  title: "From Transcript to Message"
+  durationSec: 203.6
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+  takeaways:
+    - "Processing marks transcript ends and chooses which segments join into messenger RNA."
+    - "A cap marks the 5' end, while cleavage and a poly(A) tail form the 3' end."
+    - "The branch-point adenosine starts a two-step reaction that joins the exons."
+    - "The spliceosome uses small nuclear RNAs and proteins to recognize sites and rearrange the transcript."
+
+films:
+  - id: "chapter-2"
+    src: "/explainers/rna-processing/chapter-2.mp4"
+    captions: "/explainers/rna-processing/chapter-2.vtt"
+    poster: "/explainers/rna-processing/chapter-2-poster.jpg"
+    title: "When the Joins Change"
+    durationSec: 216.3
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+    takeaways:
+      - "Coding-length changes keep the downstream frame only in multiples of three."
+      - "Alternative splicing lets one gene make mRNAs with different combinations of exons."
+      - "A weakened splice site most often causes exon skipping; less often a cryptic site takes over or the intron is retained."
+      - "The frame rule applies to net changes in coding sequence; sequence decides the protein outcome."
 
 scientists:
   - name: "Phillip Sharp"
@@ -218,9 +241,9 @@ practiceQuestions:
       - "The mRNA loses its poly(A) tail, because the 5' splice site also serves as the cleavage signal"
     answer: 1
     rationale: >-
-      Losing the GU most often causes the neighbouring exon to be skipped or a cryptic 5' site
-      nearby to be used, and one allele can give both, as the cloned beta-thalassemia allele did in
-      HeLa cells. Whole-intron retention can happen but is less common and is not the only outcome.
+      A weakened splice site most often causes exon skipping; less often a nearby cryptic 5' site
+      takes over, and one allele can give both, as the cloned beta-thalassemia allele did in HeLa
+      cells. Whole-intron retention can happen but is less common and is not the only outcome.
       U1 snRNP reads the 5' splice site by base pairing, so a change there matters. Cleavage and
       polyadenylation depend on AAUAAA and downstream elements at the 3' end, not on a 5' splice site.
 
@@ -345,114 +368,154 @@ draft: false
 
 import SplicingBuilder from '../../../components/SplicingBuilder.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import LessonFilm from '../../../components/LessonFilm.astro';
 
-**The RNA that polymerase II copies from a eukaryotic gene is not the RNA that a ribosome reads.**
+The first film followed one transcript through capping, tailing and splicing; the text adds the chemistry, the evidence and the arithmetic.
 
-Take an imagined human gene with four exons and three introns that runs to 5,137 nucleotides from the start of transcription to the end of its last exon. The finished mRNA carries 737 of them, plus a cap and a tail that the gene never encoded. Three changes close the gap. The cap and the poly(A) tail protect the message and help it leave the nucleus and be translated, and splicing removes the introns and joins the exons. This lesson is about the gap: what is added, what is cut out, how, and what goes wrong when one base at a cut site changes.
+An imagined human gene with four exons and three introns runs 5,137 nucleotides from transcription start to the end of its last exon. Its finished mRNA carries 737 of those nucleotides, plus a cap and tail not encoded in the gene.
 
-## The idea: a primary transcript is not yet a message
+## One transcript, three processing decisions
 
-What RNA polymerase II makes from a protein-coding gene in [transcription](/lessons/transcription/) is the **primary transcript**, or pre-mRNA. Three changes turn it into mRNA.
+RNA polymerase II first makes a **primary transcript**, or pre-mRNA ([transcription](/lessons/transcription/)). Its **exons** are kept; the **introns** between them are removed in splicing.
 
-1. A **cap** is added to the 5' end.
-2. The 3' end is **cut** and given a **poly(A) tail**.
-3. **Splicing** removes the **introns**, the stretches of the gene that are not kept, and joins the **exons**, the stretches that are.
+> **The one idea.** Processing marks transcript ends and chooses which segments join into messenger RNA.
+>
+> *Scope:* eukaryotic protein-coding RNA polymerase II transcripts. Other eukaryotic RNAs and bacterial RNAs follow different routes.
 
-Think of an editor cutting a film while it is still being shot: all three steps can begin before transcription ends. Capping happens when the RNA is only about 25 to 30 nucleotides long, and splicing of early introns often begins while later parts of the gene are still being copied.
+The three decisions (a 5' **cap**, 3' cleavage with a **poly(A) tail**, and **splicing**) need not wait: capping begins when the RNA is only about 25 to 30 nucleotides long, and early introns often splice while later regions are still being copied.
 
-Bacterial mRNAs get no m7G cap (some carry other kinds of cap, such as NAD+) and carry no spliceosomal introns (a few bacterial genes hold self-splicing introns), and ribosomes translate them while they are still being made. The nuclear envelope gives eukaryotes time to process the message before it meets a ribosome.
+## Marking the two ends
 
-## Caps and tails: marking both ends
+The cap, 7-methylguanosine (m7G), is joined to the first transcribed nucleotide 5' to 5' through three phosphates, where a normal backbone links 3' to 5'. That reversed link blocks 5'-to-3' exonucleases. The film's helpers are a nuclear cap-binding complex for export and the cytoplasmic translation factor eIF4E, which grips the cap to help recruit the translation machinery.
 
-**The cap** is a guanosine methylated at position 7 (7-methylguanosine, m7G) joined to the first transcribed nucleotide 5' to 5', through a bridge of three phosphates, where a normal backbone links 3' to 5'. Three enzyme activities build it in order (in mammals one protein carries the first two):
+The film's 3' signal is AAUAAA, read in mammals by CPSF. Cross-linking with purified human CPSF by Chan and colleagues in 2014 showed its subunits CPSF30 and Wdr33 contacting it directly. CstF binds a downstream GU-rich stretch, and the nuclease CPSF73 cuts between the two, about 10 to 30 nucleotides beyond AAUAAA. **Poly(A) polymerase** then adds the tail.
 
-1. An RNA triphosphatase removes the outermost (gamma) phosphate from the RNA's 5' end.
-2. A guanylyltransferase transfers GMP from GTP onto that end, through an intermediate in which GMP is bound to a lysine of the enzyme.
-3. A methyltransferase adds a methyl group to N7 of the guanine, taking it from S-adenosylmethionine (see [nucleotide metabolism](/lessons/nucleotide-metabolism/) for GTP and its relatives). This is cap 0. In many organisms a further methyl on the 2'-OH of the first transcribed nucleotide makes cap 1.
+## The evidence for split genes
 
-The cap blocks 5'-to-3' exonucleases. In the nucleus a cap-binding complex holds it and helps the mRNA's export. In the cytoplasm the translation factor eIF4E grips it and recruits the machinery that starts translation.
+Until 1977 a gene was expected to be a continuous stretch of DNA, as in *E. coli*. Two groups mapping the messages of adenovirus 2, a DNA virus that grows in human cells, found otherwise. At MIT, Susan Berget, Claire Moore and Phillip Sharp purified hexon mRNA, the message for the virus's main coat protein, and paired it with mapped viral DNA. At Cold Spring Harbor, Louise Chow, Richard Gelinas, Thomas Broker and Richard Roberts paired viral DNA with RNA from infected-cell polysomes. Both viewed the hybrids by electron microscopy and mapped the messages' 5' ends with single-stranded DNA fragments. Chow and colleagues also made **R loops**, where RNA displaces one DNA strand and pairs with the other.
 
-**The tail** starts with a cut. Near the end of the gene the RNA carries the signal AAUAAA, read in mammals by a complex called CPSF; cross-linking with purified human CPSF (Chan and colleagues, 2014) showed its subunits CPSF30 and Wdr33 contacting AAUAAA directly. Another complex, CstF, binds a GU-rich stretch downstream. The RNA is cut between them, about 10 to 30 nucleotides past AAUAAA, by the nuclease CPSF73. **Poly(A) polymerase** then adds adenosines to the new 3' end without copying any DNA. The tail is not in the gene.
+**Predict.** If the message came from one continuous DNA stretch, what should its RNA-DNA hybrid look like?
 
-Newly made tails in mammalian cells are usually given as about 200 to 250 adenosines; yeast tails are shorter. Tails also shrink with time. Ask of any tail length which organism, and whether new RNA or the whole population was measured.
+<details>
+<summary>Check your prediction</summary>
 
-With poly(A)-binding proteins, the tail helps protect the mRNA and promote translation. It is not universal. The replication-dependent histone mRNAs of animals are cut but not normally polyadenylated; their 3' ends form a stem-loop instead.
+One unbroken paired stretch. Instead, the message body paired continuously while its 5' end paired with separated regions, leaving the DNA between them unpaired.
 
-## The 1977 surprise: genes in pieces
+</details>
 
-Until 1977 a gene was expected to be a continuous stretch of DNA, as in *E. coli*. The evidence against came from adenovirus 2, a DNA virus that grows in human cells, and from two groups.
+Chow and colleagues mapped a 150-to-200-nucleotide leader shared by many late mRNAs and copied from three separated regions, the tripartite leader. Berget and colleagues proposed that four separate segments may be joined to make hexon mRNA, implying that intervening RNA is removed.
 
-At MIT, Susan Berget, Claire Moore and Phillip Sharp purified hexon mRNA, the message for the virus's main coat protein, and paired it with mapped pieces of viral DNA. At Cold Spring Harbor, Louise Chow, Richard Gelinas, Thomas Broker and Richard Roberts paired viral DNA with RNA from the polysomes of infected cells. Both viewed RNA-DNA hybrids in the electron microscope. Chow and colleagues made **R loops**, in which RNA displaces one DNA strand and pairs with the other. Both groups also paired the messages with single-stranded DNA fragments to map their 5' ends.
+<LessonFigure src="/figures/rna-processing/split-gene-hybrids.webp" width={1200} height={413} alt="AI-generated illustration: a viral DNA duplex with a message paired along one stretch of it, while the message's 5' end is made of three short segments paired with separate regions and the DNA between them looping out; small insets show a continuous-gene expectation and an R loop." caption="A message from a continuous gene would pair with one unbroken DNA stretch, but adenovirus 2 leaders paired with separated regions and left the intervening DNA looped out." />
 
-If a gene were continuous, a message would pair with one unbroken stretch of DNA. The body of each message did. Its 5' end did not. Chow and colleagues mapped a leader of 150 to 200 nucleotides, shared by many late mRNAs and copied from three separate regions of DNA, now called the tripartite leader. Berget and colleagues proposed that four separate segments may be joined to make hexon mRNA, which implied that RNA copied from the DNA between them is removed.
+Split genes were soon found in animal genes, including globin genes, and Roberts and Sharp received the 1993 Nobel Prize in Physiology or Medicine for discoveries of split genes. Introns are not simply junk: some contain sequences that control splicing or transcription.
 
-<LessonFigure src="/figures/rna-processing/split-gene-hybrids.webp" width={1200} height={413} alt="AI-generated illustration: a viral DNA duplex with a message paired along one stretch of it, while the message's 5' end is made of three short segments paired with separate regions and the DNA between them looping out; small insets show a continuous-gene expectation and an R loop." caption="A continuous gene would let a message pair with one unbroken stretch of DNA. The body of each adenovirus 2 message did, but its 5' end did not: a leader of 150 to 200 nucleotides was copied from three separate regions, with the DNA between them left looped out." />
+## How the spliceosome joins exons
 
-Split genes were soon found in animal cell genes, including globin genes. The 1993 Nobel Prize in Physiology or Medicine went to Roberts and Sharp for their discoveries of split genes. Introns are not junk: some carry sequences that control splicing or transcription.
+Most major-class (U2-type) human introns follow the film's **GU-AG rule**. The **branch point** usually lies a few dozen nucleotides before the 3' end, with a pyrimidine-rich run between it and the AG.
 
-## The spliceosome's chemistry
+Chemically, the film's two attacks are **transesterifications**, reactions that exchange one phosphodiester bond for another.
 
-Most human introns of the major (U2-type) class follow the **GU-AG rule**: GU at the 5' end, AG at the 3' end. A third site lies inside the intron, usually a few dozen nucleotides upstream of the 3' end: the **branch point**, which contains an adenosine. Between it and the AG lies a run of pyrimidines.
+1. The branch adenosine's 2'-OH attacks the phosphate at the 5' splice site. The intron's 5' G is now joined to branch A through a 2'-to-5' bond, which closes the **lariat**.
+2. The freed upstream exon's 3'-OH attacks the phosphate at the 3' splice site, joining the exons.
 
-Splicing is two transesterifications, each swapping one phosphodiester bond for another. No bond is lost overall, so the chemistry itself needs no ATP; the spliceosome spends ATP on assembling and rearranging itself.
+**Predict.** Does this bond-exchange chemistry itself need ATP?
 
-1. The 2'-OH of the branch-point adenosine attacks the phosphate at the 5' splice site. The upstream exon is freed, and the intron's 5' G is now joined to the branch A by a 2'-5' bond, forming a loop with a tail: the **lariat**.
-2. The freed 3'-OH of the upstream exon attacks the phosphate at the 3' splice site. The exons are joined and the lariat intron is released.
+<details>
+<summary>Check your prediction</summary>
 
-The **spliceosome** is built anew on each intron from five small nuclear ribonucleoproteins (snRNPs: U1, U2, U4, U5 and U6, each a small RNA with proteins) and many other proteins. U1 snRNA finds the 5' splice site by base pairing. U2 pairs with the branch-point sequence, leaving the branch A bulged out. The U4/U6.U5 tri-snRNP then joins, and after rearrangements U6 folds with U2 into the active site. Cryo-EM structures of yeast and human spliceosomes show U6 snRNA positioning the catalytic metal ions, so the active site is largely RNA, held and rearranged by proteins.
+No. No bond is lost overall, so the exchanges need no ATP; the machinery spends ATP to assemble and to rearrange between catalytic states.
 
-That fits a 1982 result: Thomas Cech's laboratory showed that the intron of *Tetrahymena* ribosomal RNA removes itself with no protein. This **group I** intron uses an external guanosine, not a branch A, as the first attacking group. Self-splicing group II introns, found in organelles and bacteria, form a lariat as the spliceosome does.
+</details>
 
-A second, minor spliceosome removes a small class of introns, well under 1 percent of those in human genes.
+The film's guides are small nuclear ribonucleoproteins, or **snRNPs** (U1, U2, U4, U5 and U6), each a small RNA with proteins; with many other proteins they build the **spliceosome** anew on each intron. Part of the guiding is base pairing: U1 snRNA pairs with the 5' splice site, and U2 snRNA with the branch-point sequence, leaving branch A bulged out. After the U4/U6.U5 tri-snRNP joins, U6 folds with U2 into the active site; cryo-EM structures from yeast and humans show U6 positioning catalytic metal ions. The active site is largely RNA, supported and rearranged by proteins.
 
-## One gene, several proteins, and what a splice mutation does
+This fits a 1982 result from Thomas Cech's laboratory: a *Tetrahymena* ribosomal RNA **group I intron** removed itself without protein, using external guanosine rather than branch A for the first attack. Self-splicing group II introns in organelles and bacteria form a lariat as the spliceosome does.
 
-Because splicing chooses which pieces to join, one gene can make several mRNAs. Wang and colleagues (2008) classed the patterns they found in human transcriptomes into skipped exons, alternative 5' or 3' splice sites, mutually exclusive exons and retained introns, and estimated that 92 to 94 percent of human genes undergo alternative splicing. Regulation of these choices belongs to [eukaryotic gene regulation](/lessons/eukaryotic-regulation/).
+Because splice sites are short, loosely defined signals read by snRNAs and proteins together, a transcript can offer more than one possible site, and the joins can change.
 
-<LessonFigure src="/figures/rna-processing/four-kinds-of-alternative-splicing.webp" width={1200} height={800} alt="AI-generated illustration: four rows of small block diagrams, each showing a gene and the two different mRNAs it can make by a skipped exon, a shifted splice site, one of two exclusive exons, or a retained intron." caption="One gene can make several mRNAs because splicing chooses which pieces to join. Four patterns are skipped exons, alternative 5' or 3' splice sites, mutually exclusive exons and retained introns; the gold piece is the one that differs." />
+<LessonFilm film={frontmatter.films[0]} />
 
-The same logic predicts [mutations](/lessons/mutation/). A change that weakens a splice site most often causes the exon to be skipped. Less often a **cryptic splice site**, a sequence not normally used, takes over, or the intron is kept. A cloned beta-thalassemia allele with a change at the GT of intron 2, expressed in HeLa cells, gave a main RNA that kept the first 47 nucleotides of intron 2 and a minor one that joined exon 1 to exon 3. Since 47 = 3 x 15 + 2, the first shifts the frame.
+## One gene, several messages
 
-The worked problem uses one rule: a change in coding length keeps the downstream frame only if it is a multiple of three.
+Wang and colleagues (2008) classed the patterns they found in human transcriptomes into skipped exons, alternative 5' or 3' splice sites, mutually exclusive exons and retained introns, the four patterns in the second film, and estimated that 92 to 94 percent of human genes undergo alternative splicing. Their regulation belongs to [eukaryotic gene regulation](/lessons/eukaryotic-regulation/).
+
+<LessonFigure src="/figures/rna-processing/four-kinds-of-alternative-splicing.webp" width={1200} height={800} alt="AI-generated illustration: four rows of small block diagrams, each showing a gene and the two different mRNAs it can make by a skipped exon, a shifted splice site, one of two exclusive exons, or a retained intron." caption="Splice-site choices let one gene make messages with skipped exons, alternative 5' or 3' splice sites, mutually exclusive exons or retained introns." />
+
+**Predict.** A splice-junction sequencing read connects exon 1 directly to exon 3. Does that one read show that every message from the gene skips exon 2?
+
+<details>
+<summary>Check your prediction</summary>
+
+No. It proves only that this product exists; how often exon 2 is included needs counts from many informative reads and a suitable comparison.
+
+</details>
+
+## What a splice-site mutation can do
+
+A weakened splice site most often causes exon skipping; less often a **cryptic splice site**, a sequence not normally used, takes over, or the intron is retained. Competing signals nearby set the outcome, so it cannot be promised for one variant ([mutation](/lessons/mutation/)).
+
+The film's beta-thalassemia allele changed the GT at the start of intron 2. In HeLa cells its main RNA retained the intron's first 47 nucleotides, and a smaller amount joined exon 1 directly to exon 3. Because 47 = 3 x 15 + 2, that insertion shifts the frame.
+
+That is the second film's rule for net changes within coding sequence: **coding-length changes keep the downstream frame only in multiples of three.**
 
 > **frame kept if (change in coding length) / 3 leaves remainder 0**
 
-**Worked problem.** An imagined human gene has four exons. Exon 1 is 150 nucleotides: a 60-nucleotide 5' UTR, then 90 coding nucleotides that begin with the AUG. Exon 2 is 87, exon 3 is 100, and exon 4 is 400 (it holds the stop codon and the 3' UTR). Introns 1, 2 and 3 are 900, 1,500 and 2,000. Ignore the cap and tail.
+Why does losing one site so often drop a whole exon? Vertebrate exons are often recognized as units by the sites at both ends.
 
-1. **Mature mRNA.** 150 + 87 + 100 + 400 = 737 nucleotides. (Adding the introns, 900 + 1,500 + 2,000 = 4,400, gives the 5,137 of the pre-mRNA.)
-2. **A 5' splice-site mutation of intron 2 causes exon 2 to be skipped.** In vertebrates an exon is often recognised as a unit by the sites at both its ends, so losing one site can drop the whole exon. Length: 737 - 87 = 650. Since 87 = 3 x 29, the frame is kept and the protein loses 29 amino acids.
-3. **Exon 3 is skipped instead.** Length: 737 - 100 = 637. Since 100 = 3 x 33 + 1, the frame shifts by one base from the exon 2 to exon 4 junction on, and a premature stop codon in exon 4 is likely, though not certain without the sequence. In mammalian cells, a premature stop in the last exon usually escapes nonsense-mediated decay that depends on exon junctions (covered in [the genetic code and translation](/lessons/genetic-code-and-translation/)), so a truncated protein could be made.
-4. **Intron 1 is retained.** Length: 737 + 900 = 1,637. Such RNAs are often kept in the nucleus or degraded.
+**Worked problem.** An imagined human gene has four exons. Exon 1 has a 60-nucleotide 5' UTR followed by 90 coding nucleotides beginning with AUG, for 150 total. Exons 2, 3 and 4 have 87, 100 and 400 nucleotides; exon 4 contains the stop codon and 3' UTR. Introns 1, 2 and 3 have 900, 1,500 and 2,000. Ignore cap and tail.
+
+1. **Mature mRNA:** 150 + 87 + 100 + 400 = 737 nucleotides. Adding 4,400 intron nucleotides gives a 5,137-nucleotide pre-mRNA.
+2. **A 5' splice-site mutation of intron 2 causes exon 2 to be skipped:** 737 - 87 = 650. Because 87 = 3 x 29, the frame stays aligned and the protein loses 29 amino acids.
+3. **Exon 3 skipped:** 737 - 100 = 637. Because 100 = 3 x 33 + 1, the frame shifts by one base after the new exon 2-to-exon 4 junction. A premature stop in exon 4 is likely, though sequence is required. In mammalian cells, a premature stop in the last exon usually escapes exon-junction-dependent nonsense-mediated decay, so a truncated protein could be made ([genetic code and translation](/lessons/genetic-code-and-translation/)).
+4. **Intron 1 retained:** 737 + 900 = 1,637. Such RNAs are often held in the nucleus or degraded.
 
 <SplicingBuilder />
 
 ### Design problem
 
-A patient variant changes intron 3 position +5 (the G of GU is +1) from G to A, in a gene expressed in muscle. Design a minigene experiment that tests whether the variant changes splicing, predict the band sizes for each outcome, and say what the result can and cannot tell you.
+A patient variant changes intron 3 position +5 from G to A; the G of GU is +1. The gene is expressed in muscle. Design a minigene test, predict band sizes and state the limits.
+
+**Predict.** If one band lies close to the normal-splicing size, is its size alone enough to call the junction normal?
+
+<details>
+<summary>Check your prediction</summary>
+
+No. A nearby cryptic site can make a nearly normal-sized band, so sequence every band.
+
+</details>
 
 <details>
 <summary>One way to do it</summary>
 
-Clone exon 3, intron 3 and exon 4, with some intron sequence on either side so that the outer splice sites are kept (this assumes exon 4 is not the last exon), into a splicing reporter plasmid between two vector exons (see [hacking the cell](/lessons/hacking-the-cell/)), in two versions differing only at +5. Transfect each into a cell line, ideally muscle-derived, and run RT-PCR with primers in the vector exons.
+Clone exon 3, intron 3 and exon 4, with enough flanking intron to keep the outer splice sites (assuming exon 4 is not last), between two vector exons of a splicing reporter ([hacking the cell](/lessons/hacking-the-cell/)). Transfect wild-type and +5 versions into a cell line, ideally muscle-derived, and run RT-PCR with primers in the vector exons.
 
-With invented lengths (100 nucleotides of vector exon between the primers, exon 3 of 120, exon 4 of 150, intron 3 of 800): normal splicing gives 100 + 120 + 150 = 370 bp, skipping exon 3 gives 250, and retaining intron 3 gives 1,170. A nearby cryptic 5' site gives a band slightly off 370 that only sequencing can resolve.
+With invented lengths of 100 vector-exon nucleotides between the primers, 120 for exon 3, 150 for exon 4 and 800 for intron 3, normal splicing gives 370 bp. Exon 3 skipping gives 250 bp; intron 3 retention gives 1,170 bp.
 
-Controls: empty vector (100 bp); wild-type minigene; a change known to disrupt the same 5' splice site, such as +1 G to A; no reverse transcriptase, to rule out plasmid DNA as template. Sequence every band.
-
-Limits: the minigene lacks the rest of the gene, and the cell line may lack splicing factors of muscle, so the result is evidence, not proof. Confirm in patient RNA if it is available. The assay describes splicing; it is not a clinical reading of the variant.
+Controls are empty vector at 100 bp, the wild-type minigene, a change known to disrupt the same 5' splice site, such as +1 G to A, and a no-reverse-transcriptase sample to detect plasmid DNA. The minigene lacks the rest of the gene and the cell line may lack muscle splicing factors, so the result is evidence, not proof; confirm it in patient RNA if available. The assay tests splicing, not the variant's clinical meaning.
 
 </details>
 
 ## Going deeper
 
-### Poly(A) tail length in one animal
+### Variations at the ends
 
-In L4-stage *C. elegans* larvae, sequencing of individual tails found a median of 57.
+Three activities build the cap in order; in mammals, one protein carries the first two. Triphosphatase removes the outermost, gamma phosphate. Guanylyltransferase transfers GMP from GTP through a lysine-bound intermediate. Methyltransferase moves a methyl group from S-adenosylmethionine to guanine N7, making cap 0; in many organisms, 2'-OH methylation of the first nucleotide makes cap 1 ([nucleotide metabolism](/lessons/nucleotide-metabolism/)).
 
-### The order of snRNP exchanges
+**Predict.** If the triphosphatase fails, can guanylyltransferase still attach GMP normally?
 
-After the U4/U6.U5 tri-snRNP joins, U1 leaves, and U6 takes over pairing with the 5' splice site. The helicase Brr2 then unwinds U4 from U6, U4 leaves, and U6 folds with U2 into the active site.
+<details>
+<summary>Check your prediction</summary>
 
-### The minor spliceosome
+No. Guanylyltransferase needs the end that triphosphatase prepares by removing the outermost phosphate.
 
-The minor spliceosome is built with U11, U12, U4atac and U6atac plus the shared U5.
+</details>
+
+New mammalian tails are commonly described as about 200 to 250 adenosines; yeast tails are shorter, and tails shrink with time, so any tail length needs an organism and whether new RNA or the whole population was measured. In L4-stage *C. elegans* larvae, sequencing individual tails found a median of 57. Animal replication-dependent histone mRNAs are a textbook exception: they are cut but normally form a 3' stem-loop instead of receiving a poly(A) tail.
+
+Bacterial mRNAs lack an m7G cap, though some carry other caps such as NAD+, and lack spliceosomal introns, though some genes contain self-splicing introns. Bacterial ribosomes can translate an RNA while it is still being made; in eukaryotes the nuclear envelope separates the two, giving time to process the message first.
+
+### The snRNP exchange and the minor spliceosome
+
+After the tri-snRNP joins, U1 leaves and U6 takes over the 5' splice site. The helicase Brr2 unwinds U4 from U6, and U4 leaves before U6 and U2 form the active site.
+
+A second, minor spliceosome removes well under 1 percent of introns in human genes. It uses U11, U12, U4atac and U6atac, plus the shared U5.
