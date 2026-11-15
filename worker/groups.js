@@ -12,6 +12,7 @@
 
 import { sha256Hex, randomToken, getTeacher } from './auth.js';
 import { DAY, JOIN_MODES, json, fail, clean, body, allow, allowN, clientKey, mailOn, sendMail } from './util.js';
+import { siteOrigin } from './host.js';
 
 const GSLUG = /^[a-z0-9](?:[a-z0-9-]{1,38}[a-z0-9])$/;
 const RESERVED = new Set(['admin', 'api', 'teach', 'join', 'new', 'www', 'help', 'about', 'g', 'group', 'groups', 'login', 'signup']);
@@ -216,7 +217,7 @@ export async function handleGroups(request, env, db, path, method, url) {
     const now = Date.now();
     await db.prepare('INSERT INTO group_invites (token_hash, group_id, role, created_by, created_at, expires_at, max_uses, note) VALUES (?,?,?,?,?,?,?,?)')
       .bind(await sha256Hex(token), g.id, role, teacher.id, now, now + INVITE_DAYS * DAY, role === 'admin' ? 3 : 50, clean(b?.note, 120)).run();
-    const link = `${new URL(request.url).origin}/teach/invite/?t=${token}`;
+    const link = `${siteOrigin(request.url)}/teach/invite/?t=${token}`;
     // Optional emails: from the site's address, with the inviting teacher's name and reply-to.
     const emails = [...new Set((Array.isArray(b?.emails) ? b.emails : []).map((e) => String(e).trim().toLowerCase()).filter((e) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)))].slice(0, 30);
     // A daily budget of invitation emails per teacher, so an account cannot be used to send mail in bulk.

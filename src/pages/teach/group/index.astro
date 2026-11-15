@@ -1,4 +1,5 @@
 ---
+import { PRIMARY_HOST } from '../../../lib/site-host.mjs';
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 import { COURSES } from '../../../data/courses';
 import '../../../styles/teach.css';
@@ -71,7 +72,7 @@ const MODES = [
     <section data-pane="settings" hidden>
       <form class="tc-form" data-settings>
         <label>Group name<input type="text" name="name" maxlength="80" required /></label>
-        <label>Page address: biochemistrypedia.com/g/<input type="text" name="slug" maxlength="40" required pattern="[a-z0-9][a-z0-9\-]{1,38}[a-z0-9]" /></label>
+        <label>Page address: {PRIMARY_HOST}/g/<input type="text" name="slug" maxlength="40" required pattern="[a-z0-9][a-z0-9\-]{1,38}[a-z0-9]" /></label>
         <label>About (shown on the public page)<textarea name="about" rows="3" maxlength="600"></textarea></label>
         <label>Only teachers with this email domain may join (optional)<input type="text" name="emailDomain" maxlength="190" placeholder="school.k12.va.us" /></label>
         <p class="tc-muted" data-domain-note style="margin:0"></p>

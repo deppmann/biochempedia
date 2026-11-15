@@ -13,6 +13,7 @@ import { createReadStream, existsSync, statSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { join, normalize, extname, sep } from 'node:path';
+import { SITE_ORIGIN, PRIMARY_HOST } from './src/lib/site-host.mjs';
 
 // Full-text search index. Pagefind reads the built HTML, so it runs once the build has written
 // dist/ and puts its files in dist/pagefind/ (config: pagefind.yml). It is an integration, not a
@@ -70,13 +71,17 @@ const devPagefind = () => ({
 // Deployed as a Cloudflare Worker (Workers Builds, git-connected to main) whose
 // origin is biochempedia.deppmann.workers.dev. `site` is the PUBLIC canonical
 // host — every canonical link, OG url and sitemap entry derives from it — so it
-// must name the domain actually bound to the Worker, not the origin.
+// must name the domain actually bound to the Worker, not the origin. It comes from
+// src/lib/site-host.mjs, the one place the site's address is set (the Worker reads it too).
 export default defineConfig({
-  site: 'https://biochemistrypedia.com',
+  site: SITE_ORIGIN,
   // Method names in lesson prose link to the methods library (first mention per section).
   // Abbreviations are spelled out at first use per section and labelled after (rehype-abbr, src/data/abbreviations.json).
   integrations: [mdx({ rehypePlugins: [[rehypeMethodLinks, { methods: METHODS }], rehypeDesignAnswer, rehypeTableCards, rehypeSubSup, rehypeListen, rehypeAbbr] }), pagefindIndex()],
   vite: {
     plugins: [tailwindcss(), devPagefind()],
+    // The site's address for code that runs in the browser, put in as plain text at build time
+    // (src/site-host.d.ts), so a browser bundle holds the same string a literal would.
+    define: { __SITE_HOST__: JSON.stringify(PRIMARY_HOST), __SITE_ORIGIN__: JSON.stringify(SITE_ORIGIN) },
   },
 });

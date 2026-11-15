@@ -1,8 +1,11 @@
 {
   // Cloudflare Workers config. The site is static (Astro output in dist/); the
-  // worker script runs first only for the paths in run_worker_first: media (HTTP range
-  // requests, which Safari needs to play video, and files kept in R2), the API, and
-  // group pages. Everything else is served straight from the static assets.
+  // worker script runs first for the paths in run_worker_first: every page, so a host
+  // that is not the site's address can be redirected (worker/host.js, src/lib/site-host.mjs),
+  // media (HTTP range requests, which Safari needs to play video, and files kept in R2),
+  // the API, and group pages. On the primary host a page is handed to the static assets
+  // untouched. The "!" lines are files only (fingerprinted bundles, search index, figures,
+  // quiz and card data): they skip the worker and are served straight from the assets on any host.
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "biochempedia",
   "compatibility_date": "2026-07-03",
@@ -11,7 +14,7 @@
     "directory": "./dist",
     "binding": "ASSETS",
     "not_found_handling": "404-page",
-    "run_worker_first": ["/explainers/*", "/api/*", "/g/*", "/listen/*"]
+    "run_worker_first": ["/*", "!/_astro/*", "!/pagefind/*", "!/vendor/*", "!/figures/*", "!/scientists/*", "!/quiz/*", "!/flashcards/*", "!/helper-data/*"]
   },
   // Film files also live in this R2 bucket under the same paths they have on the site
   // (uploaded with `node scripts/upload-media.mjs`). The worker serves them from here and
@@ -24,6 +27,9 @@
   // Optional: set RESEND_API_KEY as a secret (`npx wrangler secret put RESEND_API_KEY`) to turn on
   // email verification and password-reset links. Without it, teachers use a recovery code.
   "vars": {
+    // The site's address is not a var here: the build needs it too (canonical tags, sitemap, QR codes),
+    // and a Worker var cannot reach the build. It is PRIMARY_HOST in src/lib/site-host.mjs, read by both.
+    // MAIL_FROM stays on biochemistrypedia.com until Resend has verified stemhop.com.
     "MAIL_FROM": "Biochemistrypedia <classes@biochemistrypedia.com>",
     // Curiosity router (worker/curious.js, POST /api/curious). Currently ON: it needs both
     // ROUTER_ENABLED "1" and the ANTHROPIC_API_KEY secret (`npx wrangler secret put ANTHROPIC_API_KEY`).

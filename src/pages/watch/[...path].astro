@@ -1,4 +1,5 @@
 ---
+import { SITE_ORIGIN } from '../../lib/site-host.mjs';
 /* One page per film, so a link shared on social media has somewhere to land:
    /watch/<lesson>/ is the lesson's opening film, /watch/<lesson>/<film-id>/ each further film.
    The player, captions and transcript are the same component the lesson uses (LessonFilm). */
@@ -19,7 +20,7 @@ export async function getStaticPaths() {
 
 const { film } = Astro.props as { film: FilmEntry };
 const course = courseOf(film.course);
-const site = (Astro.site?.href ?? 'https://biochemistrypedia.com/').replace(/\/$/, '');
+const site = (Astro.site?.href ?? `${SITE_ORIGIN}/`).replace(/\/$/, '');
 const abs = (p: string) => `${site}${p}`;
 const lessonHref = `/lessons/${film.lesson}/`;
 const others = (await allFilms()).filter((f) => f.lesson === film.lesson && f.href !== film.href);

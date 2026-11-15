@@ -1,6 +1,7 @@
 /* /catalog.json: every course, unit and lesson, for AI agents and other programs. See src/lib/agent-catalog.ts. */
 import type { APIRoute } from 'astro';
 import { agentCatalog, SITE } from '../lib/agent-catalog';
+import { PRIMARY_HOST } from '../lib/site-host.mjs';
 
 export const GET: APIRoute = async () => {
   const courses = await agentCatalog();
@@ -16,7 +17,7 @@ export const GET: APIRoute = async () => {
     license: 'https://creativecommons.org/licenses/by-nc-sa/4.0/',
     licenseName: 'CC BY-NC-SA 4.0',
     licenseDetails: `${SITE}/license/`,
-    attribution: 'Biochemistrypedia, Chris Deppmann, biochemistrypedia.com',
+    attribution: `Biochemistrypedia, Chris Deppmann, ${PRIMARY_HOST}`,
     generated: new Date().toISOString().slice(0, 10),
     courses,
   };

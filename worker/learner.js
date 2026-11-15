@@ -18,6 +18,7 @@ import { generateRegistrationOptions, verifyRegistrationResponse, generateAuthen
 import { sha256Hex, randomToken, readCookie, cookie } from './auth.js';
 import { json, fail, clean, clientKey, allow } from './util.js';
 import { exportLearnerPlans, deleteLearnerPlans } from './planner.js';
+import { HOSTS, inFamily, switched } from './host.js';
 import { mergeNotebookItems, mergeProgress, validProgress, validNoteItem } from '../src/lib/learner-merge.mjs';
 
 export const LEARNER_COOKIE = 'bp_learner';
@@ -256,6 +257,29 @@ async function deleteLearner(db, id) {
   ]);
 }
 
+// ---- carrying a session across the address change (worker/handoff.js) --------------------
+// Kept in learner_challenges, so no new table: purpose 'login' (the table only allows register,
+// login and google) with a challenge "bridge:<random>" that is never shown to anyone. A passkey
+// login cannot use such a row (it would need an assertion over that hidden challenge, and it signs
+// in the passkey's own learner anyway), and redeemBridge takes only rows with that prefix.
+const BRIDGE_MS = 2 * 60 * 1000;
+export async function issueBridge(db, learnerId) {
+  const raw = randomToken(32);
+  const now = Date.now();
+  await db.prepare('INSERT INTO learner_challenges (id, purpose, challenge, learner_id, display_name, extra, created_at, expires_at) VALUES (?,?,?,?,?,?,?,?)')
+    .bind(await sha256Hex(raw), 'login', 'bridge:' + randomToken(16), learnerId, null, null, now, now + BRIDGE_MS).run();
+  return raw;
+}
+
+/** Redeem a one-time bridge code on the new host. Returns the session cookies, or [] if the code is no good. */
+export async function redeemBridge(db, request, raw) {
+  if (!db) return [];
+  const flow = await takeFlow(db, String(raw || ''), 'login');
+  if (!flow || !String(flow.challenge).startsWith('bridge:') || !flow.learner_id) return [];
+  const l = await db.prepare('SELECT id FROM learners WHERE id=?').bind(flow.learner_id).first();
+  return l ? startSession(db, request, l.id) : [];
+}
+
 // ---- router ----------------------------------------------------------------------------
 /** Returns a Response for /api/learner/* paths, or null for anything else. */
 export async function handleLearner(request, env, db, path, method, url) {
@@ -264,13 +288,15 @@ export async function handleLearner(request, env, db, path, method, url) {
   const ip = await clientKey(request);
   const signinLimit = () => allow(db, 'lsign:' + ip, 30, 60_000);
   const origin = url.origin;
-  // www.biochemistrypedia.com serves the site too (no redirect), so passkeys are tied to the parent
-  // domain: one passkey then works on both hostnames. Google sign-in always returns to the bare
-  // domain, so only one redirect URI needs registering.
-  const SITE = 'biochemistrypedia.com';
-  const onSite = url.hostname === SITE || url.hostname.endsWith('.' + SITE);
-  const rpID = onSite ? SITE : url.hostname;
-  const googleOrigin = onSite ? `https://${SITE}` : origin;
+  // Passkeys are tied to one RP ID for good: PASSKEY_RP_ID (biochemistrypedia.com, src/lib/site-host.mjs).
+  // www.biochemistrypedia.com uses it as its parent domain; after the switch stemhop.com uses it through
+  // WebAuthn Related Origin Requests (/.well-known/webauthn, worker/host.js), so a passkey made on
+  // either host works on both. Google sign-in always returns to the primary host, so only one
+  // redirect URI is in use at a time. Off our hosts (local tests), the request's own host.
+  const host = url.hostname.toLowerCase();
+  const onSite = HOSTS.known.includes(host) || inFamily(host, HOSTS.rpId);
+  const rpID = onSite ? HOSTS.rpId : url.hostname;
+  const googleOrigin = onSite ? `https://${HOSTS.primary}` : origin;
 
   if (sub === '/me' && method === 'GET') {
     const l = await getLearner(db, request);
@@ -285,8 +311,8 @@ export async function handleLearner(request, env, db, path, method, url) {
   // ---------- Google ----------
   if (sub === '/google/start' && method === 'GET') {
     const ret = safeReturn(url.searchParams.get('return'));
-    // Start on the bare domain, so the state cookie and the callback share one hostname.
-    if (onSite && url.hostname !== SITE) return redirect(`https://${SITE}${url.pathname}${url.search}`);
+    // Start on the primary host, so the state cookie and the callback share one hostname.
+    if (onSite && host !== HOSTS.primary) return redirect(`${googleOrigin}${url.pathname}${url.search}`);
     if (!googleOn(env)) return redirect('/account/?error=google-off');
     if (!(await signinLimit())) return redirect('/account/?error=busy');
     const current = await getLearner(db, request);
@@ -481,6 +507,17 @@ export async function handleLearner(request, env, db, path, method, url) {
 
   // Everything below needs a signed-in learner.
   const l = await getLearner(db, request);
+
+  // ---------- after the address changes: carry a session from the old host to the new ----------
+  // Only on the old host once switched (worker/host.js). The code is used by /handoff/receive on the
+  // new host (worker/handoff.js), once, within two minutes.
+  if (sub === '/bridge/issue' && method === 'POST') {
+    if (!switched(HOSTS) || !inFamily(host, HOSTS.legacy) || !HOSTS.known.includes(host)) return fail(404, 'Not found.');
+    if (!l) return fail(401, 'Not signed in.');
+    if (!(await signinLimit())) return fail(429, 'Too many tries from here. Wait a minute and try again.');
+    return json({ code: await issueBridge(db, l.id) });
+  }
+
   if (!l) return withCookies(fail(401, 'Not signed in.'), readCookie(request, HINT_COOKIE) ? [hintCookie(request, false)] : []);
 
   if (sub === '/sync' && method === 'GET') {
@@ -508,7 +545,7 @@ export async function handleLearner(request, env, db, path, method, url) {
     const sessions = ((await db.prepare('SELECT created_at, expires_at FROM learner_sessions WHERE learner_id=? ORDER BY created_at').bind(l.id).all()).results || [])
       .map((s) => ({ created: iso(s.created_at), expires: iso(s.expires_at) }));
     const out = {
-      site: 'biochemistrypedia.com',
+      site: HOSTS.primary,
       exported: new Date().toISOString(),
       note: 'Everything Biochemistrypedia holds about your account. Signed-in devices are listed by date only; their keys are stored as one-way hashes and are not included.',
       account: {

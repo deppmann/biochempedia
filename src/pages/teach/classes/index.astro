@@ -1,4 +1,5 @@
 ---
+import { PRIMARY_HOST } from '../../../lib/site-host.mjs';
 import { getCollection } from 'astro:content';
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 import { COURSES } from '../../../data/courses';
@@ -36,7 +37,7 @@ const MODES = [
       <summary>Make a group</summary>
       <form class="tc-form" data-new-group style="margin-top: var(--ddp-space-3)">
         <label>Group name<input type="text" name="name" maxlength="80" required placeholder="e.g. Albemarle High School Science" /></label>
-        <label>Page address: biochemistrypedia.com/g/<input type="text" name="slug" maxlength="40" required placeholder="albemarle-science" /></label>
+        <label>Page address: {PRIMARY_HOST}/g/<input type="text" name="slug" maxlength="40" required placeholder="albemarle-science" /></label>
         <label>Only teachers with this email domain may join (optional)<input type="text" name="emailDomain" maxlength="190" placeholder="school.k12.va.us" /></label>
         <label>About (shown on the page, optional)<textarea name="about" rows="2" maxlength="600"></textarea></label>
         <button class="tc-btn" type="submit">Make the group</button>

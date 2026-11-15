@@ -175,7 +175,7 @@ const esc = (t: string) => t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replac
 
 /** Anki import file (File → Import, a .txt with headers): Cloze and Basic notes in one file,
  *  deck and tags set per row, each back ending with a link to the lesson section. */
-export function ankiText(deck: Deck, cards: Card[], site = 'https://biochemistrypedia.com'): string {
+export function ankiText(deck: Deck, cards: Card[], site = __SITE_ORIGIN__): string {
   const deckName = `Biochemistrypedia::${deck.title.replace(/::/g, ':')}`;
   const lines = ['#separator:tab', '#html:true', '#notetype column:1', '#deck column:2', '#tags column:5'];
   for (const c of cards) {

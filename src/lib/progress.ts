@@ -152,7 +152,7 @@ export function queued(p: Progress, upTo = Infinity): [string, ItemState][] {
 export const dueNow = (p: Progress) => queued(p, Date.now());
 
 export function exportText(): string {
-  return JSON.stringify({ ...load(), exported: new Date().toISOString(), site: 'biochemistrypedia.com' }, null, 1);
+  return JSON.stringify({ ...load(), exported: new Date().toISOString(), site: __SITE_HOST__ }, null, 1);
 }
 
 /** Replace this device's progress with an exported file. Returns false if the file is not one of ours. */

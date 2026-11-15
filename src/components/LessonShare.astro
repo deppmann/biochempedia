@@ -1,4 +1,5 @@
 ---
+import { SITE_ORIGIN } from '../lib/site-host.mjs';
 /**
  * LessonShare — "Share with your class" (2026-11-10).
  *
@@ -10,7 +11,7 @@
  * no outside service, no script, and it works with JavaScript off because the fold is a
  * <details>. The panel is laid over the page, so opening it moves nothing.
  *
- * The code always holds the public address (https://biochemistrypedia.com/lessons/<slug>/),
+ * The code always holds the public address (the site's address from src/lib/site-host.mjs),
  * also on a local preview. The printed address leaves off "https://" and the last "/"; the
  * site sends that address on to the full one.
  */
@@ -22,7 +23,7 @@ interface Props {
   activity?: boolean;
 }
 const { slug, activity = false } = Astro.props;
-const site = Astro.site ?? new URL('https://biochemistrypedia.com');
+const site = Astro.site ?? new URL(SITE_ORIGIN);
 const url = new URL(`/lessons/${slug}/`, site).href;
 const short = `${site.host}/lessons/${slug}`;
 const qr = qrSvg(url);

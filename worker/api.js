@@ -25,6 +25,7 @@ import { handleCurious } from './curious.js';
 import { handleHelp } from './helper.js';
 import { handleLearner } from './learner.js';
 import { handlePlanner, deleteClassLists } from './planner.js';
+import { siteOrigin } from './host.js';
 
 const KINDS = ['quiz', 'idea', 'cer', 'done', 'stuck'];
 const MAX_STUDENTS = 200;
@@ -43,7 +44,7 @@ async function emailLink(env, db, request, teacherId, email, purpose) {
   const now = Date.now();
   await db.prepare('INSERT INTO email_tokens (token_hash, teacher_id, purpose, created_at, expires_at) VALUES (?,?,?,?,?)')
     .bind(await sha256Hex(token), teacherId, purpose, now, now + (purpose === 'verify' ? 7 : 1) * DAY).run();
-  const origin = new URL(request.url).origin;
+  const origin = siteOrigin(request.url);   // the primary host, whichever host the request came on
   if (purpose === 'verify') {
     return sendMail(env, email, 'Confirm your email for Biochemistrypedia classes',
       `Confirm this address to finish setting up your teacher account:\n\n${origin}/teach/verify/?t=${token}\n\nThe link works for 7 days. If you did not sign up, ignore this email.`);

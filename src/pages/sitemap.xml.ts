@@ -4,6 +4,7 @@ import { getCollection } from 'astro:content';
 import { METHODS } from '../data/methods';
 import { SETS as MCAT_SETS } from '../lib/mcat';
 import { allFilms } from '../lib/films';
+import { SITE_ORIGIN } from '../lib/site-host.mjs';
 
 /**
  * Hand-rolled sitemap (no @astrojs/sitemap — Astro deps are pinned). Lists the
@@ -11,7 +12,7 @@ import { allFilms } from '../lib/films';
  * astro.config.mjs. Prerendered to /sitemap.xml at build time.
  */
 export async function GET(context: APIContext): Promise<Response> {
-  const base = (context.site?.href ?? 'https://biochemistrypedia.com').replace(/\/$/, '');
+  const base = (context.site?.href ?? SITE_ORIGIN).replace(/\/$/, '');
   const lessons = (await getCollection('lessons')).filter((l) => !l.data.draft);
   // A course page exists only once the course has a published lesson.
   const courses = [...new Set(lessons.map((l) => l.data.course))];

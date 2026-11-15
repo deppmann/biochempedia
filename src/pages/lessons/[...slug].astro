@@ -1,4 +1,5 @@
 ---
+import { SITE_ORIGIN } from '../../lib/site-host.mjs';
 import { getCollection, render } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import MolViewer from '../../components/MolViewer.astro';
@@ -144,15 +145,15 @@ const lessonLd = {
   about: lesson.courseChapter,
   isPartOf: { '@type': 'Course', name: course.slug === 'biochemistry' ? 'Biochemistrypedia' : course.title, provider: { '@type': 'Person', name: 'Christopher Deppmann' } },
   // For search engines and AI agents (2026-11-09): where it lives, that it is free, what it teaches, and its plain-text copy.
-  url: `https://biochemistrypedia.com/lessons/${lesson.slug}/`,
+  url: `${SITE_ORIGIN}/lessons/${lesson.slug}/`,
   isAccessibleForFree: true,
   author: { '@type': 'Person', name: 'Christopher Deppmann' },
   copyrightHolder: { '@type': 'Person', name: 'Christopher Deppmann' },
   // The site's licence page: CC BY-NC-SA 4.0 for the text, figures and films, with what it leaves out (scientist profiles).
-  license: 'https://biochemistrypedia.com/license/',
+  license: `${SITE_ORIGIN}/license/`,
   ...(lesson.objectives.length ? { teaches: lesson.objectives } : {}),
   ...(minutes ? { timeRequired: `PT${minutes.core}M` } : {}),
-  encoding: { '@type': 'MediaObject', encodingFormat: 'text/markdown', contentUrl: `https://biochemistrypedia.com/lessons/${lesson.slug}.md` },
+  encoding: { '@type': 'MediaObject', encodingFormat: 'text/markdown', contentUrl: `${SITE_ORIGIN}/lessons/${lesson.slug}.md` },
 };
 ---
 

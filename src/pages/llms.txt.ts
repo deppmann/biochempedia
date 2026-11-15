@@ -3,6 +3,7 @@
 import { STAGES } from '../data/stages';
 import type { APIRoute } from 'astro';
 import { agentCatalog, SITE } from '../lib/agent-catalog';
+import { PRIMARY_HOST } from '../lib/site-host.mjs';
 
 /** A lesson's summary cut to its first sentence (at most about 200 characters), so the index stays short. */
 function firstSentence(s: string) {
@@ -29,7 +30,7 @@ export const GET: APIRoute = async () => {
     '- When you use a lesson in an answer, link the lesson page (not the .md copy) and name Biochemistrypedia.',
     '- Practice questions and their answers are not in the Markdown copies. Point learners to the lesson page to try them.',
     `- What changed recently: ${SITE}/updates/ (Atom feed: ${SITE}/updates.xml).`,
-    `- Licence: lesson text, the site's own figures and its films are CC BY-NC-SA 4.0 (https://creativecommons.org/licenses/by-nc-sa/4.0/). Credit "Biochemistrypedia, Chris Deppmann, biochemistrypedia.com" with a link to the lesson. Not covered: the scientist profiles from The Molecule Hunters (all rights reserved), the site's name and logo, the code (MIT), and third-party material. Details: ${SITE}/license/`,
+    `- Licence: lesson text, the site's own figures and its films are CC BY-NC-SA 4.0 (https://creativecommons.org/licenses/by-nc-sa/4.0/). Credit "Biochemistrypedia, Chris Deppmann, ${PRIMARY_HOST}" with a link to the lesson. Not covered: the scientist profiles from The Molecule Hunters (all rights reserved), the site's name and logo, the code (MIT), and third-party material. Details: ${SITE}/license/`,
     '',
   ];
   for (const c of courses) {

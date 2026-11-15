@@ -1,11 +1,21 @@
 // Biochemistrypedia edge worker.
 //
-// Everything is served as static assets from dist/ exactly as before; this script
-// runs FIRST only for media paths, /api/* and /g/* (see run_worker_first in wrangler.jsonc). It adds
+// Everything is served as static assets from dist/ exactly as before. This script runs first for
+// pages, media, /api/* and /g/* (run_worker_first in wrangler.jsonc; fingerprinted and bulk files
+// are left out). It first decides, from the host, whether the request belongs here at all
+// (worker/host.js: the site's address, src/lib/site-host.mjs); on the primary host every page goes
+// straight to the static assets, untouched. For media it adds
 // HTTP byte-range support, which the static-asset server does not provide: Safari
 // (macOS and iOS) refuses to play <video>, and is unreliable with <audio>, unless
 // the server answers "Range: bytes=…" with 206 Partial Content.
 import { handleApi } from './api.js';
+import { route, redirectResponse, webauthnOrigins, switched } from './host.js';
+import { handoffPage, signinPage, receive, mergeEndpoint, accountNote } from './handoff.js';
+import { redeemBridge } from './learner.js';
+
+// Paths the media code below is for (byte ranges, files in R2). Everything else that reaches the
+// worker is passed to the static assets as it is.
+const MEDIA = /^\/(explainers|listen)\//;
 
 const MEDIA_CACHE = 'public, max-age=86400, stale-while-revalidate=604800';
 
@@ -47,13 +57,30 @@ async function fromBucket(request, env) {
 
 export default {
   async fetch(request, env) {
-    // Teacher classes API (worker/api.js). Everything else below is the media path.
+    // Which host is this? Another of ours answers with a redirect (worker/host.js).
+    const r = route(request);
+    if (r.kind === 'redirect') return redirectResponse(r.status, r.location);
+    if (r.kind === 'webauthn') {
+      return new Response(JSON.stringify({ origins: webauthnOrigins() }), { headers: { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=3600', 'Access-Control-Allow-Origin': '*' } });
+    }
+    if (r.kind === 'handoff') return handoffPage(r.to);
+    if (r.kind === 'signin') return signinPage(new URL(request.url).searchParams.get('to'));
+    if (r.kind === 'receive') return receive(request, env, undefined, (code) => redeemBridge(env.CLASSES, request, code));
+    if (r.kind === 'merge') return mergeEndpoint(request);
+
+    // Teacher classes API (worker/api.js).
     const { pathname } = new URL(request.url);
     if (pathname.startsWith('/api/')) return handleApi(request, env);
     // Group pages: every /g/<slug>/ is the one static page /g/, which reads the slug itself.
     if (/^\/g(\/[a-z0-9-]+)?\/?$/.test(pathname)) {
       if (!pathname.endsWith('/')) return Response.redirect(new URL(pathname + '/', request.url), 301);
       return env.ASSETS.fetch(new Request(new URL('/g/', request.url), request));
+    }
+    // Pages and every other file: the static assets, exactly as when the worker did not run first.
+    if (!MEDIA.test(pathname)) {
+      const page = await env.ASSETS.fetch(request);
+      // After the switch only: the passkey way back for browsers without Related Origin Requests.
+      return switched() && pathname === '/account/' && page.status === 200 ? accountNote(page) : page;
     }
     if (request.method === 'GET' || request.method === 'HEAD') {
       const hit = await fromBucket(request, env);
