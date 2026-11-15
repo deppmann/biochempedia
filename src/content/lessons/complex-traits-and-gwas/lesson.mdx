@@ -5,6 +5,7 @@ course: "genetics"
 courseChapter: "Genetics and Molecular Biology · Unit 6: Populations and complex traits"
 order: 326
 summary: >-
+  For complex traits, population patterns partition variation and flag regions, not causes.
   Height, blood pressure and the risk of most common diseases vary smoothly from person to
   person, yet every allele behind them is inherited by Mendel's rules. This lesson shows how many
   small effects plus environment make a continuous trait, what heritability measures and what it
@@ -12,7 +13,7 @@ summary: >-
   genetic effects, and why polygenic scores predict less well outside the groups they were built
   in. Afterwards you can compute a twin heritability estimate, explain a genome-wide threshold,
   and plan the path from an association to a causal gene.
-hook: "If height is 80 percent heritable, is 80 percent of your height genetic? No, and the reason is the whole lesson."
+hook: "If height is 80 percent heritable, does that mean 80 percent of your height came from your genes?"
 
 estMinutes: 24
 objectives:
@@ -25,10 +26,30 @@ explainer:
   src: "/explainers/complex-traits-and-gwas/explainer.mp4"
   captions: "/explainers/complex-traits-and-gwas/explainer.vtt"
   poster: "/explainers/complex-traits-and-gwas/poster.jpg"
-  title: "Heritability Describes Populations, Not People"
-  durationSec: 167.4
-  narration: "an AI narrator voice (Gemini, Charon) reading narration written from this lesson's text"
+  title: "Heritability Is About Variation"
+  durationSec: 227.5
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+  takeaways:
+    - "Heritability describes variation in a population and environment, never a person."
+    - "Many small Mendelian effects plus environmental differences can make a continuous trait."
+    - "Narrow-sense heritability uses additive variance; broad-sense heritability uses all genetic variance."
+    - "Changing environmental variance can change heritability even when no DNA changes."
+
+films:
+  - id: "chapter-2"
+    src: "/explainers/complex-traits-and-gwas/chapter-2.mp4"
+    captions: "/explainers/complex-traits-and-gwas/chapter-2.vtt"
+    poster: "/explainers/complex-traits-and-gwas/chapter-2-poster.jpg"
+    title: "A GWAS Hit Is a Starting Point"
+    durationSec: 224.8
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+    takeaways:
+      - "A GWAS peak marks an associated region, not a proven cause."
+      - "Linkage disequilibrium lets a noncausal SNP tag a nearby causal variant."
+      - "Fine-mapping, colocalization and editing build the case; a person-level effect needs separate evidence."
+      - "A polygenic score must be tested outside its GWAS; accuracy can drop where LD and allele frequencies differ."
 
 scientists:
   - name: "Ronald A. Fisher"
@@ -202,8 +223,8 @@ practiceQuestions:
       - "Principal components remove the causal variant's own signal"
     answer: 0
     rationale: >-
-      Variants near one another are inherited together on shared stretches of chromosome, so
-      their alleles are correlated in the population (linkage disequilibrium), and a SNP that
+      Recombination separates variants near one another only slowly, so their alleles can stay
+      correlated in the population (linkage disequilibrium), and a SNP that
       tags the causal variant shows a strong association too. A tiny p-value is what genome-wide
       significance requires and is not a sign of error. Most associated variants lie outside
       coding sequence, often in regulatory regions, so the claim that causal variants are always
@@ -368,14 +389,17 @@ draft: false
 import VariancePartitionExplorer from '../../../components/VariancePartitionExplorer.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
 import EquationCard from '../../../components/EquationCard.astro';
+import LessonFilm from '../../../components/LessonFilm.astro';
 
 **Adult height in a well-fed population forms a smooth bell curve, yet each allele that affects it is passed on by Mendel's rules. A 2022 study of up to 5.4 million people listed 12,111 independent variants associated with height.**
 
-Height comes in every value between short and tall. For traits like it, called complex or quantitative traits, this lesson asks how discrete alleles make a continuous trait, how much of the variation among people tracks their genes, and how you find the variants and the genes they act through.
+Traits like height are called complex or quantitative traits.
 
 ## The idea: many small Mendelian effects add up to a curve
 
 A **locus** is a position on a chromosome, and the alternative versions at a locus are its **alleles**. A **polygenic** trait is one influenced by many loci, usually alongside the environment.
+
+**Predict.** With six independently inherited allele copies, how many plus-allele totals are possible?
 
 **Worked problem 1.** Suppose three unlinked loci (A, B, C) each have one allele that adds 2 cm to height and one that adds nothing, with no dominance, so effects simply add. Cross two people heterozygous at all three loci (AaBbCc x AaBbCc). Assume independent assortment and no environmental effect.
 
@@ -384,13 +408,17 @@ A **locus** is a position on a chromosome, and the alternative versions at a loc
 3. For k = 0 to 6 the counts are 1, 6, 15, 20, 15, 6, 1 (sum 64).
 4. So 20/64, about 31%, of offspring sit in the middle class (6 cm above baseline), and 1/64 at each extreme.
 
-Three loci already give seven classes in a bell shape. With thousands of loci, and environment blurring each class, they merge into a curve. ([Probability and crosses](/lessons/probability-and-crosses/) has the tools.) This is the argument Ronald Fisher made formally in 1918, when he showed that many Mendelian factors of small effect predict the correlations between relatives that measurers of height had found.
+Three loci already give seven bell-shaped classes; with thousands of loci and environmental blur, they can merge into a curve. ([Probability and crosses](/lessons/probability-and-crosses/) has the tools.) This is the argument Ronald Fisher made formally in 1918, when he showed that many Mendelian factors of small effect predict the correlations between relatives that measurers of height had found.
 
 Real traits are less tidy: effect sizes are unequal, and many alleles show **penetrance** below 100%, so not every carrier shows the effect ([extending Mendel](/lessons/extending-mendel/)). Autism risk, for example, includes rare variants of large effect and many common variants of small effect, as [the lesson on synapse disorders](/lessons/synapse-disorders/) describes.
 
+> **The one idea.** For complex traits, population patterns partition variation and flag regions, not causes.
+>
+> *Scope:* variance components describe one population in one environment; GWAS signals mark associated regions in one study population. Neither assigns one person's cause or proves a causal variant or gene.
+
 ## Heritability: a ratio of variances in one population
 
-Variance is the average squared distance of values from the mean, so it carries squared units (cm^2 for height). The plan is to split the variation among people into a part that tracks genes and a part that tracks environment, then ask what share is genetic. If the components are uncorrelated, the variance of a trait in a population splits like this:
+Variance is the average squared distance of values from the mean, so it carries squared units (cm^2 for height). Written as a sum of the first film's four parts:
 
 <EquationCard
   purpose="Split the variation in a trait among people into genetic and environmental parts."
@@ -408,7 +436,9 @@ Variance is the average squared distance of values from the mean, so it carries 
   check="If everyone shared one environment, VE = 0 and all the variation would be genetic. If everyone had the same genotype, VG = 0 and VP = VE. The sum assumes the parts are uncorrelated; real data can add gene-environment covariance and interaction, which it leaves out."
 />
 
-Heritability is then a share of that total, written as a fraction:
+**Predict.** With VA = 30, VD = 0, VI = 0 and VE = 70, calculate broad- and narrow-sense heritability. Should they differ?
+
+Heritability is a share of that total:
 
 <EquationCard
   purpose="What share of the variation in a trait, in one population, goes with genetic differences."
@@ -422,7 +452,7 @@ Heritability is then a share of that total, written as a fraction:
     ["VA", "V sub A", "additive variance"],
   ]}
   toolkit={["ratios"]}
-  check="Both lie between 0 and 1, and h^2 can never exceed H^2, because VA is part of VG. The units cancel, so heritability has none. A change in VE alone changes both, with no change in DNA."
+  check="As variance proportions in this model, both lie between 0 and 1, and h^2 cannot exceed H^2 because VA is part of VG. Empirical estimates can fall outside that range when sampling noise or model failure gives inadmissible values. The units cancel, so heritability has none. A change in VE alone changes both, with no change in DNA."
 >
   <Fragment slot="example">
     <p>Round values to keep the arithmetic easy (not data): VA = 30, VD = 0, VI = 0 and VE = 70, all in cm².</p>
@@ -431,21 +461,20 @@ Heritability is then a share of that total, written as a fraction:
   </Fragment>
 </EquationCard>
 
-**Worked problem 2.** In a hypothetical height population, VA = 40 cm^2, VD = 10 cm^2, VI = 0 and VE = 50 cm^2. Then VP = 100 cm^2, h^2 = 40/100 = 0.40 and H^2 = 50/100 = 0.50. Now improve nutrition so that VE falls to 20 cm^2, with genetic variance unchanged: VP = 70 cm^2 and h^2 = 40/70, about 0.57. Heritability rose though no DNA changed. The units cancel, so heritability has none.
+**Worked problem 2.** Here is the first film's change in reverse. In a hypothetical height population, VA = 40 cm^2, VD = 10 cm^2, VI = 0 and VE = 50 cm^2. Then VP = 100 cm^2, h^2 = 40/100 = 0.40 and H^2 = 50/100 = 0.50. Now improve nutrition so that VE falls to 20 cm^2, with genetic variance unchanged: VP = 70 cm^2 and h^2 = 40/70, about 0.57. Heritability rose though no DNA changed.
 
 <VariancePartitionExplorer />
 
-Three common errors follow.
+As the first film showed, an h^2 of 0.60 does not mean that 60% of any individual's height comes from genes. Two more limits:
 
-- **It is not about a person.** One person has no variance. An h^2 of 0.60 does not mean that 60% of any individual's height comes from genes.
 - **High does not mean fixed.** Phenylketonuria is a single-gene disorder, yet a low-phenylalanine diet, started early and kept up, prevents most of its harm. Height is highly heritable within populations, yet average height rose across the twentieth century.
 - **Within-group says nothing about between-group.** In an analogy Richard Lewontin set out in 1970, take a varied stock of seed and plant half in rich soil and half in poor. Within each tray, height differences are entirely genetic; the difference between trays is entirely environmental.
 
 ### Twins: two kinds of sibling as a natural experiment
 
-Monozygotic (MZ) twins are genetically identical at conception. Dizygotic (DZ) twins share on average half of their segregating genetic variation, like ordinary siblings. If both kinds of pair share environments equally, extra MZ similarity reflects genes. The **ACE model** splits variance into additive genetic (A), shared environment (C) and unique environment plus measurement error (E).
+Monozygotic (MZ) twins are genetically identical at conception; dizygotic (DZ) twins share on average half of their segregating genetic variation, like ordinary siblings. The **ACE model** splits variance into additive genetic (A), shared environment (C) and unique environment plus measurement error (E).
 
-The twin correlations, rMZ and rDZ, measure how alike the two members of a pair are, from 0 (no more alike than strangers) to 1 (identical). MZ pairs share all their genes and DZ pairs about half, so the gap between the two correlations reflects half the additive variance. Doubling the gap estimates it:
+The twin correlations, rMZ and rDZ, measure how alike the two members of a pair are, from 0 (no more alike than strangers) to 1 (identical). Under the equal-environments, additive-effects and random-mating assumptions, the gap between them reflects half the additive variance, so doubling the gap estimates it:
 
 <EquationCard
   purpose="Estimate the shares of variance from genes, shared environment and unique environment, from two twin correlations (Falconer's estimates)."
@@ -471,40 +500,48 @@ The twin correlations, rMZ and rDZ, measure how alike the two members of a pair 
   </Fragment>
 </EquationCard>
 
-**Worked problem 3.** For a trait in one population, the MZ correlation is rMZ = 0.80 and the DZ correlation is rDZ = 0.50.
+**Worked problem 3.** For a trait in one population, rMZ = 0.80 and rDZ = 0.50.
 
 1. h^2 = 2(0.80 - 0.50) = 2(0.30) = 0.60.
 2. c^2 = 2(0.50) - 0.80 = 0.20.
 3. e^2 = 1 - 0.80 = 0.20.
 4. Check: 0.60 + 0.20 + 0.20 = 1.00.
 
-These are Falconer's estimates. They assume equal MZ and DZ environments, additive effects and random mating; if MZ pairs share more trait-relevant environment than DZ pairs, h^2 is overestimated. Polderman and colleagues' 2015 meta-analysis of twin studies of 17,804 traits reported a heritability of 49% across all traits: a summary of that literature under these assumptions, not a law.
+**Predict.** If MZ twins share more trait-relevant environment than DZ twins, which component will the model overestimate?
+
+If MZ pairs share more trait-relevant environment than DZ pairs, h^2 is overestimated. Sampling noise or a poor fit can also push estimates below 0 or above 1. Polderman and colleagues' 2015 meta-analysis of twin studies of 17,804 traits reported a heritability of 49% across all traits: a summary of that literature under these assumptions, not a law.
+
+A twin estimate says how much variation tracks genotype, not which DNA differences carry it; the second film looks for them.
+
+<LessonFilm film={frontmatter.films[0]} />
 
 ## Scanning the genome: association, tags and a threshold
 
-A **single nucleotide polymorphism (SNP)** is a base position where people carry different nucleotides. A **genome-wide association study (GWAS)** genotypes hundreds of thousands to millions of SNPs in many people and, at each SNP, tests whether allele dosage (0, 1 or 2 copies) associates with the trait, by linear regression for a measurement and logistic regression for a disease.
+A **single nucleotide polymorphism (SNP)** is a base position where people carry different nucleotides. A **genome-wide association study (GWAS)** genotypes hundreds of thousands to millions of SNPs in many people and regresses the trait on allele dosage (0, 1 or 2 copies) at each one: linear regression for a measurement, logistic for a disease.
 
-The key to reading the result is **linkage disequilibrium (LD)**, the nonrandom association of alleles at different loci in a population, usually strongest between nearby loci. Neighbouring variants travel together on a stretch of chromosome for many generations before recombination separates them. It differs from linkage in a family, where you count recombinant offspring ([linkage and mapping](/lessons/linkage-and-mapping/)). Because of LD, a SNP that does nothing can show a strong association by tagging a causal variant nearby. A GWAS peak marks a region.
+The second film's travelling block is **linkage disequilibrium (LD)**, the nonrandom association of alleles at different loci in a population, usually strongest between nearby loci. Recombination erodes it only slowly, so it can persist for many generations; mutation, drift, selection and admixture create or reshape it. It differs from linkage in a family, where you count recombinant offspring ([linkage and mapping](/lessons/linkage-and-mapping/)).
 
 <LessonFigure src="/figures/complex-traits-and-gwas/ld-tagging-a-region.webp" width={1200} height={492} alt="AI-generated illustration: a chromosome stretch drawn as twelve equal tiles. A bracket over the middle tiles marks a block of neighbouring variants that travel together; a hollow circle marks a tagging SNP and a gold diamond marks the causal variant nearby." caption="Neighbouring variants travel together on a stretch of chromosome for many generations. Because of linkage disequilibrium, a SNP that does nothing can show a strong association by tagging a causal variant nearby, so a GWAS peak marks a region." />
 
 In 2005 Klein and colleagues, with 96 cases of age-related macular degeneration and 50 controls, found a strong association with a common intronic SNP in CFH, then proposed a coding change in LD with it as a candidate cause.
 
-**Worked problem 4.** Why 5 x 10^-8? Pe'er and colleagues estimated about one million independent common-variant tests across the genome in European-ancestry HapMap data. A Bonferroni correction divides the acceptable chance of any false positive, 0.05, by the number of tests: 0.05 / 1,000,000 = 5 x 10^-8. In powers of ten, 0.05 is 5 x 10^-2 and a million is 10^6, and dividing subtracts the exponents: −2 − 6 = −8. Written out, that is 0.00000005 (see [powers](/math-toolkit/#powers)). The same study estimated about twice as many independent tests in African-ancestry HapMap data, where LD blocks are shorter. The threshold is a convention tied to those LD patterns.
+**Predict.** With twice as many independent tests, should the Bonferroni threshold be larger or smaller?
 
-A false hit can also come from **population stratification**. If cases and controls differ in ancestry, SNPs whose frequencies differ between the source populations can look associated even when they do not affect the trait. Price and colleagues showed in 2006 that principal components of genome-wide genotypes (a few summary axes of genetic variation that track ancestry) can model these differences; they are now standard covariates that reduce confounding without guaranteeing its absence.
+**Worked problem 4.** Why 5 x 10^-8? Pe'er and colleagues estimated about one million independent common-variant tests across the genome in European-ancestry HapMap data. A Bonferroni correction divides the acceptable chance of any false positive, 0.05, by the number of tests: 0.05 / 1,000,000 = 5 x 10^-8. In powers of ten, 0.05 is 5 x 10^-2 and a million is 10^6, and dividing subtracts the exponents: −2 − 6 = −8. Written out, that is 0.00000005 (see [powers](/math-toolkit/#powers)). The same study estimated about twice as many independent tests in African-ancestry HapMap data, where LD blocks are shorter. Twice the tests halves the threshold, to about 0.05 / 2,000,000 = 2.5 x 10^-8. The threshold is a convention tied to those LD patterns.
+
+A false hit can also come from **population stratification**, the second film's ancestry imbalance: SNPs whose frequencies differ between the source populations can look associated even when they do not affect the trait. Price and colleagues showed in 2006 that principal components of genome-wide genotypes (a few summary axes of genetic variation that track ancestry) can model these differences; they are now standard covariates that reduce confounding without guaranteeing its absence.
 
 Yang, Visscher and colleagues estimated in 2010 that common SNPs analysed jointly captured 45% of height variance in 3,925 unrelated people, far more than the significant hits alone, because most effects are too small to pass the threshold. Later whole-genome sequencing suggested that much of the remaining gap lies in rare variants that arrays tag poorly.
 
 ## From a hit to a mechanism
 
-Moving from an association to a cause takes converging evidence. Three common kinds are these. **Fine-mapping** uses the LD pattern, often across several ancestry groups, to rank variants and define a credible set likely to contain the causal one. **Colocalization** tests whether the trait signal and a gene-expression signal in a relevant tissue share the same variant, which points to a gene, often not the nearest. **Editing** changes the allele in the right cell type and measures the genes and the cellular phenotype.
+The second film's three rungs, **fine-mapping**, **colocalization** and **editing**, are tidier than a real locus. Fine-mapping often uses LD patterns from several ancestry groups to build a credible set likely to contain the causal variant, and colocalization often points to a gene other than the nearest.
 
-The FTO region shows why such evidence matters, though the work there relied on chromatin contacts, epigenomic maps and editing more than on formal fine-mapping. The obesity association lies in FTO introns, but Smemo and colleagues (2014) reported that the region regulates IRX3. Claussnitzer and colleagues (2015) linked the signal in human fat-cell precursors to rs1421085, a T-to-C change that disrupts a binding motif for the repressor ARID5B and is associated with doubled IRX3 and IRX5 expression early in differentiation. Correcting the allele by CRISPR in cultured primary adipocytes from a risk-allele carrier restored heat production, reported as about sevenfold. That is a cellular result; it does not show weight change in a person. Later work found several functional variants on the same haplotype, and mice carrying the risk base had more brown-fat heat production, not less, so the mechanism is still debated. See [the CRISPR lesson](/lessons/crispr-and-functional-genomics/) for the tools.
+At FTO the work relied on chromatin contacts, epigenomic maps and editing more than on formal fine-mapping. The obesity association lies in FTO introns, yet Smemo and colleagues (2014) reported that the region regulates IRX3. Claussnitzer and colleagues (2015) then studied human fat-cell precursors and linked the signal to rs1421085, a T-to-C change that disrupts a binding motif for the repressor ARID5B and is associated with doubled IRX3 and IRX5 expression early in differentiation. Correcting the allele by CRISPR in cultured primary adipocytes from a risk-allele carrier restored heat production, reported as about sevenfold. That edit supports a cellular mechanism; it does not show weight change in a person. The mechanism is still debated: later work found several functional variants on the same haplotype, and mice carrying the risk base had more brown-fat heat production, not less. See [the CRISPR lesson](/lessons/crispr-and-functional-genomics/) for the tools.
 
 ## Polygenic scores, portability and the weight of history
 
-A **polygenic score** adds up a person's allele counts, each weighted by its GWAS effect estimate:
+A **polygenic score** sums weighted allele counts:
 
 <EquationCard
   purpose="Combine thousands of small GWAS effects into one predicted value for a person."
@@ -524,23 +561,25 @@ A **polygenic score** adds up a person's allele counts, each weighted by its GWA
   </Fragment>
 </EquationCard>
 
-Scores must be tested in people outside the GWAS, and accuracy depends on who they are. Yengo and colleagues reported in 2022 that their 12,111-SNP height panel captured about 40% of variance out of sample in European-ancestry analyses but around 10 to 20% in the other ancestry groups examined; they judged differences in LD and allele frequency likely explanations. Martin and colleagues reported in 2019 that the scores of that time were several times more accurate in European-ancestry individuals, and warned that clinical use could widen health disparities. Accuracy also varied with age, sex and socioeconomic characteristics within one ancestry group in UK Biobank, as Mostafavi and colleagues found in 2020. Allele frequencies are the subject of [population genetics](/lessons/population-genetics/).
+A polygenic score must be tested outside its GWAS; accuracy can drop when LD, allele frequencies, effect sizes or environments differ. Like heritability, its accuracy belongs to the population and setting where it is tested. Yengo and colleagues reported in 2022 that their 12,111-SNP height panel captured about 40% of variance out of sample in European-ancestry analyses but around 10 to 20% in the other ancestry groups examined; they judged differences in LD and allele frequency likely explanations. Martin and colleagues reported in 2019 that the scores of that time were several times more accurate in European-ancestry individuals, and warned that clinical use could widen health disparities. Accuracy also varied with age, sex and socioeconomic characteristics within one ancestry group in UK Biobank, as Mostafavi and colleagues found in 2020. Allele frequencies are the subject of [population genetics](/lessons/population-genetics/).
 
-Genetic prediction has a history. Francis Galton coined the word eugenics in 1883. In the United States, states passed laws for forced sterilization of people judged unfit, and in Buck v. Bell (1927) the Supreme Court upheld Virginia's law. Tens of thousands of people were sterilized. Present questions are narrower but real: who is in the training data, who benefits, and who controls the data.
+Genetic prediction has a history. Francis Galton coined the word eugenics in 1883. In the United States, states passed laws for forced sterilization of people judged unfit, and in Buck v. Bell (1927) the Supreme Court upheld Virginia's law. Tens of thousands of people were sterilized. That history is why the second film's three questions come before clinical use.
 
 ### Design problem
+
+**Predict.** Does p = 3 x 10^-12 pass a threshold of 5 x 10^-8? Compare the exponents first.
 
 A GWAS reports a lead SNP in an intron of gene A, with p = 3 x 10^-12 and an odds ratio of 1.08 per risk allele. The associated LD block spans genes A, B and C. In the relevant tissue, the risk allele associates with higher expression of C, not A. Which gene is causal, and how would you find out?
 
 <details>
 <summary>One way to do it</summary>
 
-Do not name a gene from the association. The p-value (3 x 10^-12, below 5 x 10^-8) says data this extreme would be very unlikely if the lead SNP had no association with the trait, not which variant or gene is responsible, because every SNP in strong LD with the lead SNP carries a similar signal. An odds ratio of 1.08 is a small effect for any one person.
+Do not name a gene from the association. The p-value (3 x 10^-12, below 5 x 10^-8) says data this extreme would be very unlikely if the lead SNP had no association with the trait, not which variant or gene is responsible, because SNPs in strong LD with the lead SNP can carry a similar signal. An odds ratio of 1.08 is a small effect for any one person.
 
 1. **Fine-map.** Use the LD structure, ideally from cohorts of more than one ancestry, to build a credible set of variants likely to contain the causal one.
 2. **Colocalize.** Test whether the disease signal and the expression signal for C share one causal variant, rather than being two nearby signals; test A and B too.
 3. **Edit.** In the relevant human cell type, use CRISPR to swap the credible-set variant (or delete the candidate enhancer), with matched unedited and sham-edited controls. Measure A, B and C expression and a cellular phenotype linked to the disease.
 
-The FTO region is the precedent, though still debated: an intronic signal named after one gene was reported to act through regulation of IRX3 and IRX5. A positive edit implicates C in that cell type; linking C to the disease still needs evidence from whole organisms or human genetics.
+The FTO region, though still debated, is the precedent. A positive edit implicates C in that cell type; linking C to the disease still needs evidence from whole organisms or human genetics.
 
 </details>

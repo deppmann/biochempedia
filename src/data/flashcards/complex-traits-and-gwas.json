@@ -1,0 +1,530 @@
+{
+ "slug": "complex-traits-and-gwas",
+ "title": "Complex Traits, Heritability and GWAS",
+ "generated": {
+  "date": "2026-11-12",
+  "pipeline": "extract → Sonnet draft → Sonnet accuracy gate (separate agent) → Sonnet fixes",
+  "models": {
+   "draft": "claude-sonnet-5-5",
+   "gate": "claude-sonnet-5-5",
+   "fix": "claude-sonnet-5-5"
+  }
+ },
+ "lessonHash": "d0f9adf35dc9",
+ "sectionHashes": {
+  "The idea: many small Mendelian effects add up to a curve": "378f480e4f4d",
+  "Heritability: a ratio of variances in one population": "edb07f8868f5",
+  "Twins: two kinds of sibling as a natural experiment": "a5dd767c068f",
+  "Scanning the genome: association, tags and a threshold": "9cbd2ef95ce4",
+  "From a hit to a mechanism": "ca0250730b20",
+  "Polygenic scores, portability and the weight of history": "d527495385be",
+  "Design problem": "725476bfdf48"
+ },
+ "cards": [
+  {
+   "id": "complex-traits-and-gwas-c01",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A {{c1::polygenic}} trait is one influenced by many loci, usually alongside the environment.",
+   "back": "",
+   "quote": "A polygenic trait is one influenced by many loci, usually alongside the environment.",
+   "section": "The idea: many small Mendelian effects add up to a curve"
+  },
+  {
+   "id": "complex-traits-and-gwas-c02",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Adult height forms a smooth bell curve, yet every allele affecting it is inherited by Mendel's rules. How can both be true?",
+   "back": "Many loci each add a small effect, and environment blurs the classes, so the many Mendelian factors together give a continuous curve.",
+   "why": "Fisher showed in 1918 that many small-effect Mendelian factors predict the correlations between relatives.",
+   "quote": "when he showed that many Mendelian factors of small effect predict the correlations between relatives that measurers of height had found.",
+   "section": "The idea: many small Mendelian effects add up to a curve"
+  },
+  {
+   "id": "complex-traits-and-gwas-c03",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Two unlinked loci each have a plus allele adding 2 cm and a null allele adding nothing, with no dominance and no environment. Cross AaBb x AaBb. What fraction of offspring carry exactly two plus alleles, and what fraction carry none?",
+   "back": "Four alleles, each plus with probability 1/2, so k is binomial with n = 4: P(k) = C(4,k)/16. Exactly two plus: 6/16 = 37.5%. None: 1/16 = 6.25%.",
+   "quote": "The number of plus alleles, k, is binomial with n = 6 and p = 1/2, so P(k) = C(6,k)/64.",
+   "section": "The idea: many small Mendelian effects add up to a curve"
+  },
+  {
+   "id": "complex-traits-and-gwas-c04",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Name the four components that sum to total phenotypic variance, VP.",
+   "back": "Additive genetic variance (VA), dominance variance (VD), interaction variance (VI) and environmental variance (VE).",
+   "quote": "Written as a sum of the first film's four parts:",
+   "section": "Heritability: a ratio of variances in one population"
+  },
+  {
+   "id": "complex-traits-and-gwas-c05",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "How do broad-sense heritability (H^2) and narrow-sense heritability (h^2) differ, and when are they equal?",
+   "back": "H^2 = VG/VP counts all genetic variance. h^2 = VA/VP counts only additive variance. They are equal when VD and VI are zero.",
+   "quote": "With no dominance or interaction variance, the two heritabilities are equal.",
+   "section": "Heritability: a ratio of variances in one population"
+  },
+  {
+   "id": "complex-traits-and-gwas-c06",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In a hypothetical population VA = 20 cm^2, VD = 10 cm^2, VI = 0 and VE = 70 cm^2. Calculate H^2 and h^2.",
+   "back": "VG = 20 + 10 + 0 = 30 and VP = 30 + 70 = 100 cm^2. H^2 = 30/100 = 0.30 and h^2 = 20/100 = 0.20.",
+   "quote": "VP = 100 cm^2, h^2 = 40/100 = 0.40 and H^2 = 50/100 = 0.50.",
+   "section": "Heritability: a ratio of variances in one population"
+  },
+  {
+   "id": "complex-traits-and-gwas-c07",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A height population has VA = 30 cm^2, VD = 0, VI = 0 and VE = 70 cm^2. Nutrition improves so that VE falls to 30 cm^2 and genetic variance is unchanged. What happens to h^2, and does any DNA change?",
+   "back": "h^2 rises from 30/100 = 0.30 to 30/60 = 0.50. No DNA changed.",
+   "why": "Heritability is a ratio of variances, so shrinking environmental variance raises it.",
+   "quote": "Heritability rose though no DNA changed.",
+   "section": "Heritability: a ratio of variances in one population"
+  },
+  {
+   "id": "complex-traits-and-gwas-c08",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A trait has h^2 = 0.60. Why does this not mean that 60% of any one person's trait comes from genes?",
+   "back": "Heritability is a share of variance among people in one population and environment. A single person has no variance to partition.",
+   "quote": "an h^2 of 0.60 does not mean that 60% of any individual's height comes from genes.",
+   "section": "Heritability: a ratio of variances in one population"
+  },
+  {
+   "id": "complex-traits-and-gwas-c09",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why does high heritability not mean a trait is fixed? Give the lesson's phenylketonuria example.",
+   "back": "Phenylketonuria is a single-gene disorder, yet a low-phenylalanine diet started early and kept up prevents most of its harm. Heritability does not say how the environment can change outcomes.",
+   "quote": "Phenylketonuria is a single-gene disorder, yet a low-phenylalanine diet, started early and kept up, prevents most of its harm.",
+   "section": "Heritability: a ratio of variances in one population"
+  },
+  {
+   "id": "complex-traits-and-gwas-c10",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "Height is highly heritable within each of two populations. One population is on average 8 cm shorter and has poorer nutrition. Can the within-population heritability explain the 8 cm gap? Use the seed-tray analogy.",
+   "back": "No. In the analogy, differences within each tray are entirely genetic while the difference between trays is entirely environmental. Within-group heritability says nothing about between-group differences.",
+   "why": "Rests on the rule that heritability describes variance within one population in one environment.",
+   "quote": "Within each tray, height differences are entirely genetic; the difference between trays is entirely environmental.",
+   "section": "Heritability: a ratio of variances in one population"
+  },
+  {
+   "id": "complex-traits-and-gwas-c11",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Dizygotic twins share on average {{c1::half}} of their segregating genetic variation, like ordinary siblings, while monozygotic twins are genetically identical at conception.",
+   "back": "",
+   "quote": "dizygotic (DZ) twins share on average half of their segregating genetic variation, like ordinary siblings.",
+   "section": "Twins: two kinds of sibling as a natural experiment"
+  },
+  {
+   "id": "complex-traits-and-gwas-c12",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In the ACE twin model, what do A, C and E stand for?",
+   "back": "A: additive genetic variance. C: shared environment. E: unique environment plus measurement error.",
+   "quote": "The ACE model splits variance into additive genetic (A), shared environment (C) and unique environment plus measurement error (E).",
+   "section": "Twins: two kinds of sibling as a natural experiment"
+  },
+  {
+   "id": "complex-traits-and-gwas-c13",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Under the ACE model, why does h^2 = 2(rMZ - rDZ)?",
+   "back": "rMZ = h^2 + c^2 and rDZ = h^2/2 + c^2. Subtracting removes shared environment and leaves h^2/2, so doubling the gap gives h^2.",
+   "why": "Assumes equal environments, additive effects and random mating.",
+   "quote": "Subtract: rMZ − rDZ = h^2/2, so h^2 = 2 × (rMZ − rDZ).",
+   "section": "Twins: two kinds of sibling as a natural experiment"
+  },
+  {
+   "id": "complex-traits-and-gwas-c14",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "For a trait in one population rMZ = 0.55 and rDZ = 0.35. Under the ACE model, estimate h^2, c^2 and e^2.",
+   "back": "h^2 = 2(0.55 - 0.35) = 0.40. c^2 = 2(0.35) - 0.55 = 0.15. e^2 = 1 - 0.55 = 0.45. Check: 0.40 + 0.15 + 0.45 = 1.",
+   "quote": "Put that back into the first line: c^2 = rMZ − h^2 = 2 × rDZ − rMZ.",
+   "section": "Twins: two kinds of sibling as a natural experiment"
+  },
+  {
+   "id": "complex-traits-and-gwas-c15",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In a twin study, MZ pairs share more trait-relevant environment than DZ pairs. Which estimate is biased, and in which direction?",
+   "back": "h^2 is overestimated. The extra MZ similarity from environment is wrongly credited to genes.",
+   "why": "Rests on the equal-environments assumption behind h^2 = 2(rMZ - rDZ).",
+   "quote": "If MZ pairs share more trait-relevant environment than DZ pairs, h^2 is overestimated.",
+   "section": "Twins: two kinds of sibling as a natural experiment"
+  },
+  {
+   "id": "complex-traits-and-gwas-c16",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A twin study finds rMZ = 0.40 and rDZ = 0.10. Compute c^2 with the ACE formulas. What does the result tell you about the estimate?",
+   "back": "c^2 = 2(0.10) - 0.40 = -0.20, which is impossible for a share of variance. Sampling noise or a poor model fit can push estimates below 0 or above 1.",
+   "quote": "Sampling noise or a poor fit can also push estimates below 0 or above 1.",
+   "section": "Twins: two kinds of sibling as a natural experiment"
+  },
+  {
+   "id": "complex-traits-and-gwas-c17",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A {{c1::single nucleotide polymorphism (SNP)}} is a base position where people carry different nucleotides.",
+   "back": "",
+   "quote": "A single nucleotide polymorphism (SNP) is a base position where people carry different nucleotides.",
+   "section": "Scanning the genome: association, tags and a threshold"
+  },
+  {
+   "id": "complex-traits-and-gwas-c18",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In a GWAS, what is tested at each SNP, and which regression suits a measured trait versus a disease?",
+   "back": "The trait is regressed on allele dosage (0, 1 or 2 copies). Linear regression for a measurement, logistic regression for a disease.",
+   "quote": "regresses the trait on allele dosage (0, 1 or 2 copies) at each one: linear regression for a measurement, logistic for a disease.",
+   "section": "Scanning the genome: association, tags and a threshold"
+  },
+  {
+   "id": "complex-traits-and-gwas-c19",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "{{c1::Linkage disequilibrium}} is the nonrandom association of alleles at different loci in a population, usually strongest between nearby loci.",
+   "back": "",
+   "quote": "the nonrandom association of alleles at different loci in a population, usually strongest between nearby loci.",
+   "section": "Scanning the genome: association, tags and a threshold"
+  },
+  {
+   "id": "complex-traits-and-gwas-c20",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why can nearby SNPs stay correlated in a population for many generations?",
+   "back": "Recombination erodes linkage disequilibrium only slowly, so alleles at nearby loci keep travelling together. A SNP can therefore tag a causal variant.",
+   "quote": "Recombination erodes it only slowly, so it can persist for many generations",
+   "section": "Scanning the genome: association, tags and a threshold"
+  },
+  {
+   "id": "complex-traits-and-gwas-c21",
+   "type": "calc",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Where does the genome-wide threshold of 5 x 10^-8 come from?",
+   "back": "Bonferroni: divide the acceptable chance of any false positive, 0.05, by about one million independent common-variant tests. 0.05 / 10^6 = 5 x 10^-8.",
+   "why": "Exponents: -2 - 6 = -8.",
+   "quote": "A Bonferroni correction divides the acceptable chance of any false positive, 0.05, by the number of tests: 0.05 / 1,000,000 = 5 x 10^-8.",
+   "section": "Scanning the genome: association, tags and a threshold"
+  },
+  {
+   "id": "complex-traits-and-gwas-c22",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In African-ancestry data LD blocks are shorter than in European-ancestry data. Predict how the number of independent tests and the Bonferroni threshold change, and why.",
+   "back": "Shorter blocks mean more independent tests, about twice as many, so the threshold is stricter: about 0.05 / 2,000,000 = 2.5 x 10^-8.",
+   "why": "Rests on the rule that the threshold is a convention tied to LD patterns.",
+   "quote": "Twice the tests halves the threshold, to about 0.05 / 2,000,000 = 2.5 x 10^-8.",
+   "section": "Scanning the genome: association, tags and a threshold"
+  },
+  {
+   "id": "complex-traits-and-gwas-c23",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A GWAS lead SNP has p = 3 x 10^-12 and an odds ratio of 1.08 per risk allele. What does the p-value tell you, and what does it not?",
+   "back": "It passes 5 x 10^-8, so such data would be very unlikely if the SNP had no association. It does not say which variant or gene is causal. An odds ratio of 1.08 is a small effect for any one person.",
+   "quote": "The p-value (3 x 10^-12, below 5 x 10^-8) says data this extreme would be very unlikely if the lead SNP had no association with the trait",
+   "section": "Design problem"
+  },
+  {
+   "id": "complex-traits-and-gwas-c24",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Cases and controls in a GWAS come from source populations with different ancestry. Predict what happens to SNPs whose allele frequencies differ between those populations, and what reduces the problem.",
+   "back": "They can look associated with the trait even though they do not affect it (population stratification). Principal components of genome-wide genotypes are used as covariates and reduce confounding without guaranteeing its absence.",
+   "quote": "SNPs whose frequencies differ between the source populations can look associated even when they do not affect the trait.",
+   "section": "Scanning the genome: association, tags and a threshold"
+  },
+  {
+   "id": "complex-traits-and-gwas-c25",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "Why did common SNPs analysed jointly capture far more height variance than the significant hits alone?",
+   "back": "Most effects are too small to pass the genome-wide threshold, but together they add up.",
+   "quote": "because most effects are too small to pass the threshold.",
+   "section": "Scanning the genome: association, tags and a threshold"
+  },
+  {
+   "id": "complex-traits-and-gwas-c26",
+   "type": "qa",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "Twin studies give a high heritability for height, but genome-wide significant SNPs explain much less. Using the lesson's reasoning, give two reasons for the gap.",
+   "back": "Many effects are too small to pass the threshold, though common SNPs jointly capture more. Later sequencing suggested much of the rest lies in rare variants that genotyping arrays tag poorly.",
+   "why": "Rests on the rule that twin estimates say how much variation tracks genotype, not which DNA differences carry it.",
+   "quote": "Later whole-genome sequencing suggested that much of the remaining gap lies in rare variants that arrays tag poorly.",
+   "section": "Scanning the genome: association, tags and a threshold"
+  },
+  {
+   "id": "complex-traits-and-gwas-c27",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "In an early GWAS of age-related macular degeneration, a strong association appeared at a common intronic SNP in CFH. What follow-up idea did the authors propose, and why?",
+   "back": "They proposed a coding change in LD with the intronic SNP as the candidate cause. A lead SNP is usually a tag in LD, not the cause.",
+   "quote": "found a strong association with a common intronic SNP in CFH, then proposed a coding change in LD with it as a candidate cause.",
+   "section": "Scanning the genome: association, tags and a threshold"
+  },
+  {
+   "id": "complex-traits-and-gwas-c28",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "What does fine-mapping produce, and what does it use?",
+   "back": "A credible set of variants likely to contain the causal one, built from LD patterns, often from several ancestry groups.",
+   "quote": "Fine-mapping often uses LD patterns from several ancestry groups to build a credible set likely to contain the causal variant",
+   "section": "From a hit to a mechanism"
+  },
+  {
+   "id": "complex-traits-and-gwas-c29",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "What question does colocalization ask?",
+   "back": "Whether a disease signal and a gene-expression signal share one causal variant, rather than being two nearby signals.",
+   "quote": "Test whether the disease signal and the expression signal for C share one causal variant, rather than being two nearby signals; test A and B too.",
+   "section": "Design problem"
+  },
+  {
+   "id": "complex-traits-and-gwas-c30",
+   "type": "qa",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "An obesity association lies in introns of FTO. Is FTO necessarily the gene the variant acts on? Give the lesson's example.",
+   "back": "No. Smemo and colleagues reported that the region regulates IRX3, a different gene. The nearest gene is not necessarily the target.",
+   "quote": "The obesity association lies in FTO introns, yet Smemo and colleagues (2014) reported that the region regulates IRX3.",
+   "section": "From a hit to a mechanism"
+  },
+  {
+   "id": "complex-traits-and-gwas-c31",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "CRISPR correction of the FTO-region allele in primary adipocytes from a risk-allele carrier restored heat production, about sevenfold. What does this show, and what does it not show?",
+   "back": "It supports a cellular mechanism for the variant in those cells. It does not show weight change in a person.",
+   "quote": "That edit supports a cellular mechanism; it does not show weight change in a person.",
+   "section": "From a hit to a mechanism"
+  },
+  {
+   "id": "complex-traits-and-gwas-c32",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A GWAS lead SNP lies between genes D and E, in an LD block spanning D, E and F. In the relevant tissue the risk allele associates with higher expression of E. Outline the three steps that move from this hit toward a mechanism.",
+   "back": "Fine-map to a credible set of variants. Colocalize the disease and expression signals for D, E and F. Edit the candidate variant by CRISPR in the relevant cell type, with controls, and measure expression and a phenotype. A positive edit implicates E in that cell type only.",
+   "why": "Rests on the rule that GWAS signals flag regions, not causes.",
+   "quote": "Use the LD structure, ideally from cohorts of more than one ancestry, to build a credible set of variants likely to contain the causal one.",
+   "section": "Design problem"
+  },
+  {
+   "id": "complex-traits-and-gwas-c33",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A three-SNP polygenic score has effects +0.4, -0.2 and +0.3 cm per copy. A person carries 1, 2 and 2 copies. Calculate the score.",
+   "back": "PGS = 0.4 x 1 + (-0.2) x 2 + 0.3 x 2 = 0.4 - 0.4 + 0.6 = 0.6 cm.",
+   "quote": "A polygenic score sums weighted allele counts",
+   "section": "Polygenic scores, portability and the weight of history"
+  },
+  {
+   "id": "complex-traits-and-gwas-c34",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why does a polygenic score built in one ancestry group often predict less well in another?",
+   "back": "Where LD and allele frequencies differ, the tag SNPs follow causal variants less closely; effect sizes and environments can differ too. Yengo and colleagues judged LD and allele-frequency differences likely explanations.",
+   "quote": "they judged differences in LD and allele frequency likely explanations.",
+   "section": "Polygenic scores, portability and the weight of history"
+  },
+  {
+   "id": "complex-traits-and-gwas-c35",
+   "type": "qa",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "How are heritability and polygenic-score accuracy alike, and what does that imply for using a score built in one group on another group?",
+   "back": "Both belong to the population and setting where they are measured. A score must be tested outside its GWAS, and accuracy can drop when LD, allele frequencies, effect sizes or environments differ.",
+   "why": "Rests on the rule that variance components describe one population in one environment.",
+   "quote": "Like heritability, its accuracy belongs to the population and setting where it is tested.",
+   "section": "Polygenic scores, portability and the weight of history"
+  },
+  {
+   "id": "complex-traits-and-gwas-c36",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "Which 1927 US Supreme Court decision upheld a state forced-sterilization law, and which state's?",
+   "back": "Buck v. Bell upheld Virginia's law.",
+   "quote": "in Buck v. Bell (1927) the Supreme Court upheld Virginia's law.",
+   "section": "Polygenic scores, portability and the weight of history"
+  },
+  {
+   "id": "complex-traits-and-gwas-c37",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "State the lesson's one idea about complex traits.",
+   "back": "For complex traits, population patterns partition variation and flag regions, not causes.",
+   "quote": "For complex traits, population patterns partition variation and flag regions, not causes.",
+   "section": "The idea: many small Mendelian effects add up to a curve"
+  }
+ ]
+}

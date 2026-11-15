@@ -1,382 +1,415 @@
-"""Heritability describes populations, not people  (Biochemistrypedia explainer)
+"""Heritability Is About Variation.
 
-COLOR MAP (one color per concept, whole video)
-  GREY   = people, structure, labels
-  BLUE   = additive genetic variance (the genetic part that makes children resemble parents)
-  PURPLE = dominance variance
-  ORANGE = environmental variance / the environment (soil, nutrition)
-  YELLOW = the mean, variance, the heritability ratio (what is being measured)
-  GREEN  = seedlings
-  RED    = wrong reading / crossed out
-  GOLD   = title rule only
+COLOR MAP
+  BLUE = measured genetic differences / additive effects
+  GREY = environment, context, and neutral structure
+  GOLD = questions, scope, and candidate causes
 """
 import numpy as np
-from bp_style import *  # noqa: F401,F403
-
-PURPLE = "#B58CD9"
-ORANGE = "#F29E4C"
-
-HEIGHTS = [2.5, 3.4, 1.9, 3.7, 2.9, 2.2, 3.9, 1.7, 3.1]
-XS = [-4.8 + 1.2 * i for i in range(9)]
-BASE = -1.4
-LONE = 4
-MEAN = sum(HEIGHTS) / len(HEIGHTS)
+from bp_parts import *  # noqa: F401,F403
 
 
-def figure(h, x, base, color=GREY, w=0.5, r=0.18):
-    body = RoundedRectangle(corner_radius=0.12, width=w, height=h - 2 * r, stroke_color=color, stroke_width=3,
-                            fill_color=color, fill_opacity=0.3).move_to([x, base + (h - 2 * r) / 2, 0])
-    head = Circle(radius=r, stroke_color=color, stroke_width=3, fill_color=color,
-                  fill_opacity=0.3).move_to([x, base + h - r, 0])
+BASE_Y = -1.45
+PERSON_X = np.linspace(-4.8, 4.8, 9)
+TILE_COUNTS = [1, 2, 3, 4, 5, 4, 3, 2, 1]
+
+
+class FilmScene(SpokenScene):
+    """Spoken scene with the film's quiet, continuously moving population texture."""
+    def setup(self):
+        super().setup()
+        motes = VGroup()
+        for i in range(180):
+            x = -6.35 + (i % 30) * .44
+            y = -3.38 + (i // 30) * 1.24 + (i % 3) * .08
+            d = Dot([x, y, 0], radius=.066 + .008 * (i % 2), color=GREY).set_opacity(.22)
+            d.v = 1.05 + .045 * (i % 5)
+            def drift(m, dt):
+                m.shift(RIGHT * m.v * dt)
+                if m.get_x() > 6.55:
+                    m.shift(LEFT * 13.0)
+            d.add_updater(drift)
+            motes.add(d)
+        motes.set_z_index(-20)
+        self.add(motes)
+
+
+def person(x=0, base=BASE_Y, height=2.15, color=TEXT, opacity=0.32):
+    """The one carried person drawing, rebuilt at the same scale everywhere."""
+    head = Circle(radius=0.23, color=color, stroke_width=3, fill_color=color, fill_opacity=opacity)
+    body = RoundedRectangle(width=0.62, height=height - 0.48, corner_radius=0.16,
+                            color=color, stroke_width=3, fill_color=color, fill_opacity=opacity)
+    body.move_to([x, base + (height - 0.48) / 2, 0])
+    head.move_to([x, base + height - 0.23, 0])
     return VGroup(body, head)
 
 
-def crowd(base=BASE):
-    return [figure(h, x, base) for h, x in zip(HEIGHTS, XS)]
+def crowd(base=BASE_Y, scale=1.0, opacity=0.22):
+    heights = [1.65, 2.05, 2.35, 2.65, 2.9, 2.65, 2.35, 2.05, 1.65]
+    return VGroup(*[person(x, base, h * scale, opacity=opacity) for x, h in zip(PERSON_X, heights)])
 
 
-def vbracket(x, y0, y1, color, side=1, w=5):
-    t = 0.18 * side
-    return VGroup(Line([x, y0, 0], [x, y1, 0], color=color, stroke_width=w),
-                  Line([x, y0, 0], [x + t, y0, 0], color=color, stroke_width=w),
-                  Line([x, y1, 0], [x + t, y1, 0], color=color, stroke_width=w))
+def tile_stack(x, n, y=-2.45):
+    return VGroup(*[RoundedRectangle(width=0.46, height=0.20, corner_radius=0.04,
+                                     color=BLUE, stroke_width=2, fill_color=BLUE, fill_opacity=0.55)
+                    .move_to([x, y + i * 0.23, 0]) for i in range(n)])
 
 
-def hbracket(y, x0, x1, color, side=1, w=5):
-    t = 0.18 * side
-    return VGroup(Line([x0, y, 0], [x1, y, 0], color=color, stroke_width=w),
-                  Line([x0, y, 0], [x0, y + t, 0], color=color, stroke_width=w),
-                  Line([x1, y, 0], [x1, y + t, 0], color=color, stroke_width=w))
+def genetic_tiles():
+    return VGroup(*[tile_stack(x, n) for x, n in zip(PERSON_X, TILE_COUNTS)])
 
 
-def cross_over(mob, color=RED, w=7):
-    c = mob.get_center()
-    hw, hh = max(mob.width / 2, 0.35), max(mob.height / 2, 0.35)
-    return VGroup(Line([c[0] - hw, c[1] + hh, 0], [c[0] + hw, c[1] - hh, 0], color=color, stroke_width=w),
-                  Line([c[0] - hw, c[1] - hh, 0], [c[0] + hw, c[1] + hh, 0], color=color, stroke_width=w))
+def normal_pdf(x, sigma=1.0):
+    return np.exp(-0.5 * (x / sigma) ** 2)
 
 
-def btext(text, size=24, color=GREY):
-    t = T(text, size, color)
-    back = Rectangle(width=t.width + 0.2, height=t.height + 0.14, stroke_width=0, fill_color=BG,
-                     fill_opacity=1).move_to(t)
-    return VGroup(back, t)
+def distribution_area(p, sigma=1.0, color=BLUE, opacity=.19):
+    xs = np.linspace(-4, 4, 90)
+    pts = [p.pt(-4, 0), *[p.pt(x, normal_pdf(x, sigma)) for x in xs], p.pt(4, 0)]
+    return Polygon(*pts, stroke_width=0, fill_color=color, fill_opacity=opacity)
 
 
-def seg(x0, w, y, color, hgt=1.0):
-    return Rectangle(width=w, height=hgt, stroke_color=color, stroke_width=3, fill_color=color,
-                     fill_opacity=0.45).move_to([x0 + w / 2, y, 0])
+def distribution_plot():
+    return Plot(box=(-5.65, 5.15, -2.25, 2.25), xr=(-4, 4), yr=(0, 1.05),
+                xticks=[-4, -2, 0, 2, 4], yticks=(), xlabel="trait value", ylabel="people")
 
 
-class S00Title(TitleCard):
-    LESSON = "Complex traits, heritability and GWAS"
-    TITLE = "Heritability describes populations, not people"
+def curve_world(sigma=1.35, include_thin=True, dots=False):
+    p = distribution_plot()
+    wide = p.curve(lambda x: normal_pdf(x, sigma), color=GREY, width=8)
+    out = VGroup(p, wide, distribution_area(p, sigma, GREY, .19))
+    if include_thin:
+        out.add(p.curve(lambda x: normal_pdf(x, 0.92), color=BLUE, width=5),
+                distribution_area(p, .92, BLUE, .15))
+    if dots:
+        beads = VGroup(*[Dot(p.pt(x, normal_pdf(x, sigma)), radius=0.065, color=TEXT)
+                         for x in np.linspace(-3.1, 3.1, 19)])
+        out.add(beads)
+    return out
 
 
-# ---------------------------------------------------------------------------------------------
-class S01Person(SpokenScene):
+def variance_containers():
+    specs = [("additive", BLUE, 0.46), ("dominance", BLUE, 0.20),
+             ("interaction", BLUE, 0.14), ("environment", GREY, 0.38)]
+    xs = [-4.65, -1.55, 1.55, 4.65]
+    groups = VGroup()
+    for (name, col, fill), x in zip(specs, xs):
+        box = RoundedRectangle(width=2.55, height=2.75, corner_radius=0.16, color=col,
+                               stroke_width=3, fill_color=col, fill_opacity=0.12).move_to([x, -0.35, 0])
+        level = Rectangle(width=2.18, height=1.65 * fill + 0.28, stroke_width=0,
+                          fill_color=col, fill_opacity=0.55).set_x(x).align_to(box, DOWN).shift(UP * 0.18)
+        label = T(name, 28, col).next_to(box, DOWN, buff=0.24)
+        groups.add(VGroup(box, level, label))
+    return groups
+
+
+def hbracket(y, x0, x1, color=GOLD, down=True):
+    tick = -0.20 if down else 0.20
+    return VGroup(Line([x0, y, 0], [x1, y, 0], color=color, stroke_width=5),
+                  Line([x0, y, 0], [x0, y + tick, 0], color=color, stroke_width=5),
+                  Line([x1, y, 0], [x1, y + tick, 0], color=color, stroke_width=5))
+
+
+def predict_backdrop(wide=False):
+    """Exact shared frame for the spoken question, pause, and reveal."""
+    p = Plot(box=(-5.7, 3.65, -1.65, 2.10), xr=(-4, 4), yr=(0, 1.05),
+             xticks=[-4, 0, 4], yticks=(), xlabel="trait value", ylabel="people")
+    genetic = p.curve(lambda x: normal_pdf(x, 0.92), color=BLUE, width=6)
+    env_sigma = 1.55 if wide else 1.28
+    env = p.curve(lambda x: normal_pdf(x, env_sigma), color=GREY, width=8)
+    arrows = VGroup(*[DoubleArrow(p.pt(x - (0.34 if wide else 0.2), 0.08),
+                                  p.pt(x + (0.34 if wide else 0.2), 0.08),
+                                  color=GREY, stroke_width=3, buff=0, tip_length=0.12)
+                      for x in (-2.3, -1.15, 0, 1.15, 2.3)])
+    tiles = VGroup(*[RoundedRectangle(width=0.34, height=0.17, corner_radius=0.03,
+                                      color=BLUE, fill_color=BLUE, fill_opacity=0.55, stroke_width=2)
+                     .move_to([x, 2.72, 0]) for x in np.linspace(-4.7, 2.7, 9)])
+    areas = VGroup(distribution_area(p, env_sigma, GREY, .19), distribution_area(p, .92, BLUE, .14))
+    return VGroup(p, env, genetic, arrows, tiles, areas)
+
+
+def twin_pair(x, identical=True):
+    a = person(x - 0.43, -1.15, 2.15, BLUE if identical else TEXT, 0.18)
+    b = person(x + 0.43, -1.15, 2.15, BLUE if identical else TEXT, 0.18)
+    band = DoubleArrow([x - 0.75, 1.35, 0], [x + 0.75, 1.35, 0], color=BLUE if identical else GREY,
+                       stroke_width=6, buff=0, tip_length=0.18)
+    return VGroup(a, b, band)
+
+
+class S01Hook(FilmScene):
     def construct(self):
-        top = chip("heritability of height = 0.6", YELLOW, 30).move_to([0, 3.1, 0])
-        figs = crowd()
-        lone = figs[LONE]
-        self.at("Suppose the heritability")
-        mis = T("a common misreading comes next: is it 60% of one person?", 24, RED).move_to([0, 2.45, 0])
-        self.play(FadeIn(top, shift=DOWN * 0.2), FadeIn(lone, shift=UP * 0.2), FadeIn(mis), run_time=0.8)
-        self.at("your own height")
-        topy = BASE + HEIGHTS[LONE]
-        br = vbracket(-0.75, BASE, BASE + 0.6 * HEIGHTS[LONE], BLUE)
-        lab = T("60% from genes?", 28, BLUE).next_to(br, LEFT, buff=0.25)
-        self.play(Create(br), FadeIn(lab, shift=RIGHT * 0.2), run_time=0.8)
-        self.at("It does not")
-        x = cross_over(lab)
-        self.play(Create(x), br.animate.set_color(RED), lab.animate.set_color(RED), run_time=0.5)
-        self.wait(0.4)
-        self.play(FadeOut(VGroup(x, br, lab, mis)), run_time=0.4)
-        self.at("whole population")
-        others = [f for i, f in enumerate(figs) if i != LONE]
-        self.play(LaggedStart(*[FadeIn(f, shift=UP * 0.2) for f in others], lag_ratio=0.1), run_time=1.3)
-        note = T("one population", 28, GREY).move_to([0, -2.1, 0])
-        self.play(FadeIn(note), run_time=0.4)
-        self.at("variance")
-        self.play(FadeOut(note), Indicate(top, color=YELLOW, scale_factor=1.05), run_time=0.7)
+        lone = person(0, -2.35, 5.35, TEXT, 0.18)
+        q = question_card("How much of your height came from genes?", y=-3.15, size=34)
+        self.play(FadeIn(lone, shift=UP * 0.2), run_time=0.8)
+        self.at("does that tell you")
+        self.play(FadeIn(q.question, shift=UP * 0.15), run_time=0.7)
+        self.at("Now")
+        no = boxed_label("No.", GOLD, 48, box=(1.8, .95)).move_to([-4.8, 2.75, 0])
+        self.play(FadeIn(no, scale=0.8), FadeOut(q.question), run_time=0.6)
+        self.at("describes differences")
+        many = crowd()
+        self.play(Transform(lone, many[4]), FadeOut(no),
+                  LaggedStart(*[FadeIn(m, shift=(LEFT if i < 4 else RIGHT) * 0.25)
+                                for i, m in enumerate(many) if i != 4], lag_ratio=0.06), run_time=1.4)
+        tag = scope_tag("schematic")
+        self.play(FadeIn(tag), run_time=0.4)
+        bob(lone, amp=0.025, speed=1.6)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S02Variance(SpokenScene):
+class S02Title(NarratedScene):
     def construct(self):
-        figs = crowd()
-        self.add(*figs)
-        mean_y = BASE + MEAN
-        formula = T("variance = average of (distance from the mean)²", 28, YELLOW).move_to([0, 3.2, 0])
-        self.at("Variance is the")
-        self.play(Write(formula), run_time=1.6)
-        mline = DashedLine([-5.5, mean_y, 0], [5.4, mean_y, 0], color=YELLOW, stroke_width=4)
-        mlab = T("mean", 24, YELLOW).move_to([5.85, mean_y, 0])
-        self.at("from the mean")
-        self.play(Create(mline), FadeIn(mlab), run_time=0.8)
-        self.at("Here is a population")
-        self.play(*[Indicate(f, color=TEXT, scale_factor=1.04) for f in figs], run_time=0.9)
-        segs, sqs = [], []
-        for i, (h, x) in enumerate(zip(HEIGHTS, XS)):
-            ty = BASE + h
-            segs.append(Line([x + 0.38, mean_y, 0], [x + 0.38, ty, 0], color=YELLOW, stroke_width=6))
-            d = abs(h - MEAN)
-            sq = Square(side_length=max(d, 0.04), stroke_color=YELLOW, stroke_width=3, fill_color=YELLOW,
-                        fill_opacity=0.35).move_to([x, BASE - 0.4 - d / 2, 0])
-            sqs.append(sq)
-        self.at("distance from the mean")
-        self.play(LaggedStart(*[Create(s) for s in segs], lag_ratio=0.1), run_time=1.0)
-        self.at("square it")
-        self.play(LaggedStart(*[GrowFromPoint(q, q.get_top()) for q in sqs], lag_ratio=0.1), run_time=1.2)
-        lab = T("average of these squares = the variance", 26, YELLOW).move_to([0, -3.3, 0])
-        self.at("average of those")
-        self.play(FadeIn(lab, shift=UP * 0.15), run_time=0.6)
-        self.at("One person alone")
-        lone_top = BASE + HEIGHTS[LONE]
-        gone = [f for i, f in enumerate(figs) if i != LONE] + [s for i, s in enumerate(segs)] + sqs
-        self.play(FadeOut(VGroup(*gone)), FadeOut(lab), mline.animate.move_to([0, lone_top, 0]).set_x(0),
-                  mlab.animate.move_to([5.85, lone_top, 0]), run_time=1.0)
-        lone_lab = T("one person: no spread, no variance", 28, YELLOW).move_to([0, -2.6, 0])
-        self.at("no spread")
-        self.play(FadeIn(lone_lab, shift=UP * 0.15), run_time=0.6)
+        people = crowd(opacity=0.13)
+        title = T("Heritability Is About Variation", 52, font=TITLE_FONT).move_to([0, 2.8, 0])
+        rule = Line([-5.2, 2.15, 0], [5.2, 2.15, 0], color=GOLD, stroke_width=4)
+        self.add(people)
+        self.play(Write(title), Create(rule), run_time=0.8)
+        baseline = Line([-5.2, -1.45, 0], [5.2, -1.45, 0], color=GREY, stroke_width=4)
+        self.play(ReplacementTransform(rule, baseline), FadeOut(title, shift=DOWN * 0.25), run_time=0.7)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-def bar_labels(x0, k, y, ve, names=True):
-    pass
-
-
-class S03Parts(SpokenScene):
+class S03Tiles(FilmScene):
     def construct(self):
-        x0, k, y = -5.0, 0.1, 1.3
-        outline = Rectangle(width=10, height=1.4, stroke_color=GREY, stroke_width=3).move_to([0, y, 0])
-        div = Line([0, y - 0.7, 0], [0, y + 0.7, 0], color=GREY, stroke_width=3)
-        self.at("Take a hypothetical")
-        self.play(Create(outline), run_time=0.8)
-        self.play(Create(div), run_time=0.5)
-        gl = T("genetic parts", 26, BLUE).move_to([-2.5, y, 0])
-        el = T("environmental part", 26, ORANGE).move_to([2.5, y, 0])
-        self.at("genetic parts")
-        self.play(FadeIn(gl), run_time=0.5)
-        self.at("environmental part")
-        self.play(FadeIn(el), run_time=0.6)
-        va = seg(x0, 4.0, y, BLUE, 1.4)
-        vd = seg(x0 + 4.0, 1.0, y, PURPLE, 1.4)
-        ve = seg(x0 + 5.0, 5.0, y, ORANGE, 1.4)
-        na = M("40", 30, BLUE).move_to(va)
-        nd = M("10", 28, PURPLE).move_to(vd)
-        ne = M("50", 30, ORANGE).move_to(ve)
-        la = T("additive", 26, BLUE).move_to([va.get_center()[0], y - 1.1, 0])
-        ld = T("dominance", 26, PURPLE).move_to([vd.get_center()[0], y - 1.1, 0])
-        le = T("environment", 26, ORANGE).move_to([ve.get_center()[0], y - 1.1, 0])
-        self.at("Additive variance")
-        self.play(FadeOut(VGroup(div, gl, el)), GrowFromEdge(va, LEFT), FadeIn(na), FadeIn(la), run_time=0.9)
-        self.at("Dominance variance")
-        self.play(GrowFromEdge(vd, LEFT), FadeIn(nd), FadeIn(ld), run_time=0.7)
-        li = T("interaction = 0", 24, GREY).move_to([vd.get_center()[0], y - 1.65, 0])
-        self.at("interaction variance")
-        self.play(FadeIn(li, shift=UP * 0.1), run_time=0.5)
-        self.at("environmental variance")
-        self.play(GrowFromEdge(ve, LEFT), FadeIn(ne), FadeIn(le), run_time=0.9)
-        tb = hbracket(y + 1.0, x0, x0 + 10, YELLOW, side=-1)
-        tl = T("total = 100", 28, YELLOW).move_to([0, y + 1.6, 0])
-        self.at("the total")
-        self.play(Create(tb), FadeIn(tl), FadeOut(outline), run_time=0.8)
-        f1 = M("h² = 40 / 100 = 0.40", 32, YELLOW)
-        t1 = T("narrow-sense: additive only", 26, BLUE)
-        r1 = VGroup(t1, f1).arrange(RIGHT, buff=0.5).move_to([0, -1.8, 0])
-        hl = Rectangle(width=4.0, height=1.4, stroke_color=YELLOW, stroke_width=7).move_to(va)
-        self.at("Narrow sense heritability")
-        self.play(Create(hl), run_time=0.5)
-        self.at("variance over the total")
-        self.play(FadeIn(r1, shift=UP * 0.15), run_time=0.7)
-        f2 = M("H² = 50 / 100 = 0.50", 32, YELLOW)
-        t2 = T("broad-sense: adds dominance", 26, PURPLE)
-        r2 = VGroup(t2, f2).arrange(RIGHT, buff=0.5).move_to([0, -2.9, 0])
-        hl2 = Rectangle(width=5.0, height=1.4, stroke_color=YELLOW, stroke_width=7).move_to([x0 + 2.5, y, 0])
-        self.at("Broad sense heritability")
-        self.play(ReplacementTransform(hl, hl2), run_time=0.6)
-        self.at("dominance part")
-        self.play(FadeIn(r2, shift=UP * 0.15), run_time=0.7)
+        people = crowd(base=-0.65, scale=0.82)
+        self.play(LaggedStart(*[FadeIn(p, shift=UP * 0.15) for p in people], lag_ratio=0.05), run_time=1.0)
+        self.at("Give each small effect")
+        tiles = genetic_tiles().shift(UP * 0.45)
+        self.play(LaggedStart(*[FadeIn(s, shift=UP * 0.7) for s in tiles], lag_ratio=0.07), run_time=1.8)
+        self.at("Few people collect")
+        self.play(Indicate(VGroup(tiles[0], tiles[-1]), color=GOLD, scale_factor=1.06), run_time=0.8)
+        self.at("Most gather combinations")
+        self.play(Indicate(VGroup(*tiles[2:7]), color=BLUE, scale_factor=1.04), run_time=1.0)
+        self.at("With more loci")
+        copies = VGroup(*[s.copy().scale(0.72) for s in tiles]).arrange(RIGHT, buff=0.22).move_to([0, -2.65, 0])
+        self.play(Transform(tiles, copies), run_time=1.5)
+        tag = scope_tag("schematic")
+        self.play(FadeIn(tag), run_time=0.35)
+        for s in tiles:
+            pulse(s, base=2.0, amp=0.5, speed=2.0)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S04Nutrition(SpokenScene):
+class S04Curve(FilmScene):
     def construct(self):
-        x0, y1, y2 = -5.0, 2.0, -0.2
-        def bar(y, ve):
-            va = seg(x0, 4.0, y, BLUE, 1.1)
-            vd = seg(x0 + 4.0, 1.0, y, PURPLE, 1.1)
-            vv = seg(x0 + 5.0, ve * 0.1, y, ORANGE, 1.1)
-            na = M("40", 28, BLUE).move_to(va)
-            nd = M("10", 26, PURPLE).move_to(vd)
-            nv = M(str(ve), 28, ORANGE).move_to(vv)
-            return va, vd, vv, na, nd, nv
-        top = bar(y1, 50)
-        cap1 = T("before: total 100, h² = 0.40", 26, GREY).move_to([x0 + 3.0, y1 + 1.05, 0])
-        self.add(*top, cap1)
-        self.at("nutrition")
-        bot = list(bar(y2, 50))
-        cap2 = T("after better nutrition", 26, ORANGE).move_to([x0 + 1.9, y2 + 1.05, 0])
-        self.play(*[FadeIn(m, shift=DOWN * 0.3) for m in bot], FadeIn(cap2), run_time=0.9)
-        new_vv = seg(x0 + 5.0, 2.0, y2, ORANGE, 1.1)
-        new_nv = M("20", 28, ORANGE).move_to(new_vv)
-        self.at("falls")
-        self.play(ReplacementTransform(bot[2], new_vv), ReplacementTransform(bot[5], new_nv), run_time=1.3)
-        dl = DashedLine([0, y1 + 0.65, 0], [0, y2 - 0.65, 0], color=TEXT, stroke_width=3)
-        dlab = btext("genetic variance, unchanged", 24, TEXT)
-        dlab.move_to([0.25 + dlab.width / 2, (y1 + y2) / 2 + 0.1, 0])
-        self.at("stays the same")
-        self.play(Create(dl), FadeIn(dlab), run_time=0.8)
-        tot = T("total = 70", 28, YELLOW).move_to([x0 + 7.0 + 1.5, y2, 0])
-        self.at("the total")
-        self.play(FadeIn(tot, shift=LEFT * 0.2), run_time=0.5)
-        f = M("h² = 40 / 70 = 0.57", 34, YELLOW).move_to([0, -1.7, 0])
-        self.at("Heritability is now")
-        self.play(FadeIn(f, shift=UP * 0.15), run_time=0.8)
-        a = M("0.40", 32, GREY)
-        ar = Arrow(LEFT * 0.6, RIGHT * 0.6, color=YELLOW, buff=0, stroke_width=6)
-        b = M("0.57", 34, YELLOW)
-        cmp_ = VGroup(a, ar, b).arrange(RIGHT, buff=0.3).move_to([0, -2.6, 0])
-        self.at("went up")
-        self.play(FadeIn(a), GrowArrow(ar), FadeIn(b), run_time=0.7)
-        u = T("cm² ÷ cm²: no units", 26, GREY).move_to([0, -3.35, 0])
-        self.at("units cancel")
-        self.play(FadeIn(u, shift=UP * 0.1), run_time=0.5)
+        p = distribution_plot()
+        bars = VGroup(*[Rectangle(width=0.7, height=h, color=BLUE, stroke_width=2,
+                                  fill_color=BLUE, fill_opacity=0.35)
+                        .move_to(p.pt(x, 0) + UP * h / 2)
+                        for x, h in zip(np.linspace(-3.4, 3.4, 9), [0.25, .42, .62, .82, 1.0, .82, .62, .42, .25])])
+        self.add(p, bars)
+        self.at("environmental differences")
+        arrows = VGroup(*[Arrow(p.pt(x, .12), p.pt(x + d, .12), color=GREY, buff=0, tip_length=.16)
+                          for x, d in zip(np.linspace(-3, 3, 7), [-.35,.25,-.2,.3,-.3,.2,.35])])
+        self.play(LaggedStart(*[GrowArrow(a) for a in arrows], lag_ratio=.08), run_time=1.2)
+        thin = p.curve(lambda x: normal_pdf(x, .92), color=BLUE, width=6)
+        self.at("columns blur")
+        self.play(ReplacementTransform(bars, thin), FadeOut(arrows), run_time=1.5)
+        wide = p.curve(lambda x: normal_pdf(x, 1.35), color=GREY, width=8)
+        area = distribution_area(p, 1.35, GREY, .20)
+        self.at("then widened")
+        self.play(Create(wide), FadeIn(area), run_time=1.7)
+        dots = VGroup(*[Dot(p.pt(x, normal_pdf(x, 1.35)), radius=.065, color=TEXT)
+                        for x in np.linspace(-3, 3, 17)])
+        self.play(FadeIn(dots), run_time=.5)
+        tag = scope_tag("computed simulation")
+        self.at("picture is a model")
+        self.play(FadeIn(tag), run_time=.5)
+        bob(dots, amp=.025, speed=1.4)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S05Seeds(SpokenScene):
+class S05Variance(FilmScene):
     def construct(self):
-        # --- part A: average height rose ---
-        ox, oy = -4.5, -2.3
-        axes = VGroup(Line([ox, oy, 0], [ox + 9, oy, 0], color=GREY, stroke_width=4),
-                      Line([ox, oy, 0], [ox, oy + 4.6, 0], color=GREY, stroke_width=4))
-        xl = T("twentieth century", 26, GREY).move_to([0, oy - 0.5, 0])
-        yl = T("average height", 26, GREY).move_to([ox + 0.1, oy + 5.1, 0]).align_to([ox, 0, 0], LEFT)
-        pts = [[ox + 0.3 + t * 8.4, oy + 0.9 + 3.0 * t, 0]
-               for t in np.linspace(0, 1, 30)]
-        curve = VMobject(color=YELLOW, stroke_width=7).set_points_smoothly([np.array(p) for p in pts])
-        self.at("High heritability")
-        self.play(Create(axes), FadeIn(xl), FadeIn(yl), run_time=1.0)
-        hh = chip("highly heritable within populations", BLUE, 26).move_to([2.0, oy + 4.5, 0])
-        self.at("highly heritable")
-        self.play(FadeIn(hh, shift=DOWN * 0.15), run_time=0.6)
-        self.at("average height rose")
-        self.play(Create(curve), run_time=1.6)
-        self.wait(0.4)
-        # --- part B: seed trays ---
-        self.at("Lewontin's")
-        self.play(FadeOut(VGroup(axes, xl, yl, curve, hh)), run_time=0.6)
-        seeds = VGroup(*[Circle(radius=r, stroke_color=GREEN, stroke_width=3, fill_color=GREEN, fill_opacity=0.5)
-                         for r in [0.12, 0.2, 0.15, 0.24, 0.13, 0.19]]).arrange(RIGHT, buff=0.3)
-        seed_lab = T("a varied stock of seed", 26, GREEN)
-        stock = VGroup(seeds, seed_lab).arrange(DOWN, buff=0.2).move_to([0, 3.1, 0])
-        self.at("varied stock of seed")
-        self.play(FadeIn(stock, shift=DOWN * 0.15), run_time=0.7)
-        soilY = -1.9
-        poor_h = [v * 1.3 for v in [0.8, 1.4, 1.0, 1.8, 1.2, 1.6]]
-        diff = 1.1
-
-        def tray(cx, soil_op, label, lc):
-            soil = Rectangle(width=4.6, height=0.55, stroke_color=ORANGE, stroke_width=3, fill_color=ORANGE,
-                             fill_opacity=soil_op).move_to([cx, soilY, 0])
-            lb = T(label, 26, lc).move_to([cx, soilY - 0.7, 0])
-            return soil, lb
-
-        def plants(cx, add):
-            out = VGroup()
-            for j, h in enumerate(poor_h):
-                x = cx - 1.75 + 0.7 * j
-                top = soilY + 0.275 + h + add
-                out.add(VGroup(Line([x, soilY + 0.275, 0], [x, top, 0], color=GREEN, stroke_width=6),
-                               Circle(radius=0.16, stroke_color=GREEN, stroke_width=3, fill_color=GREEN,
-                                      fill_opacity=0.8).move_to([x, top, 0])))
-            return out
-        s1, l1 = tray(-3.3, 0.2, "poor soil", ORANGE)
-        s2, l2 = tray(3.3, 0.65, "rich soil", ORANGE)
-        p1 = plants(-3.3, 0.0)
-        p2 = plants(3.3, diff)
-        self.at("rich soil")
-        self.play(FadeIn(s2), FadeIn(l2), FadeIn(s1), FadeIn(l1), run_time=0.8)
-        self.play(LaggedStart(*[GrowFromPoint(p, p.get_bottom()) for p in list(p2) + list(p1)], lag_ratio=0.07),
-                  run_time=1.2)
-        self.at("Within each tray")
-        base_y = soilY + 0.275
-        groups = VGroup()
-        for cx, add in ((-3.3, 0.0), (3.3, diff)):
-            br = vbracket(cx - 2.05, base_y + min(poor_h) + add, base_y + max(poor_h) + add, BLUE, side=1)
-            gl = T("genetic", 24, BLUE).move_to([cx, base_y + max(poor_h) + add + 0.65, 0])
-            groups.add(br, gl)
-        self.play(Create(groups), run_time=1.0)
-        mp = base_y + sum(poor_h) / 6
-        m1 = DashedLine([-5.5, mp, 0], [0, mp, 0], color=ORANGE, stroke_width=3)
-        m2 = DashedLine([0, mp + diff, 0], [5.5, mp + diff, 0], color=ORANGE, stroke_width=3)
-        env = Arrow([0, mp, 0], [0, mp + diff, 0], color=ORANGE, buff=0, stroke_width=9, tip_length=0.3, max_tip_length_to_length_ratio=0.5)
-        env_lab = T("environment", 24, ORANGE).move_to([0, mp + diff + 0.55, 0])
-        self.at("between the trays")
-        self.play(Create(m1), Create(m2), run_time=0.6)
-        self.play(GrowArrow(env), FadeIn(env_lab), run_time=0.7)
+        curve = curve_world(1.35, include_thin=False)[1].scale(.55).move_to([0, 2.75, 0])
+        self.play(Create(curve), run_time=.8)
+        self.at("partition that spread")
+        boxes = variance_containers()
+        self.play(LaggedStart(*[FadeIn(g, shift=DOWN*.2) for g in boxes], lag_ratio=.13), run_time=1.7)
+        total = hbracket(1.45, -5.95, 5.95)
+        lab = T("total spread", 30, GOLD).next_to(total, UP, buff=.18)
+        self.play(Create(total), FadeIn(lab), FadeOut(curve), run_time=.8)
+        self.at("additive part")
+        self.play(Indicate(boxes[0], color=BLUE, scale_factor=1.03), run_time=1.0)
+        self.at("helps predict resemblance")
+        parent = person(-5.05, 1.68, 1.35, BLUE, .18)
+        child = person(-4.15, 1.68, 1.0, BLUE, .18)
+        self.play(FadeIn(VGroup(parent, child), shift=DOWN*.15), run_time=.8)
+        self.at("only under")
+        tag = scope_tag("simplified model")
+        self.play(FadeIn(tag), run_time=.4)
+        for g in boxes:
+            bob(g[1], amp=.025, speed=1.3)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S06Rule(SpokenScene):
+class S06Ratios(FilmScene):
     def construct(self):
-        # --- two groups, heritability inside each, nothing across the gap ---
-        def mini(cx, cy, n=5):
-            hs = [1.2, 1.6, 1.0, 1.8, 1.4]
-            return VGroup(*[figure(hs[i] * 0.8, cx - 1.6 + 0.8 * i, cy - 1.5, w=0.36, r=0.13) for i in range(n)])
-        fr1 = RoundedRectangle(corner_radius=0.2, width=4.6, height=3.6, stroke_color=GREY, stroke_width=3).move_to([-4.1, 0.4, 0])
-        fr2 = fr1.copy().move_to([4.1, 0.4, 0])
-        m1, m2 = mini(-4.1, 0.4), mini(4.1, 0.4)
-        h1 = chip("heritability", YELLOW, 26).move_to([-4.1, 1.5, 0])
-        h2 = chip("heritability", YELLOW, 26).move_to([4.1, 1.5, 0])
-        self.at("within a group")
-        self.play(Create(fr1), Create(fr2), FadeIn(m1), FadeIn(m2), FadeIn(h1), FadeIn(h2), run_time=1.2)
-        q = T("?", 80, RED, weight=BOLD).move_to([0, 0.7, 0])
-        ql = T("why groups differ", 26, GREY).move_to([0, -0.3, 0])
-        self.at("why groups differ")
-        self.play(FadeIn(q, scale=0.6), FadeIn(ql), run_time=0.7)
-        # --- one person ---
-        self.at("It cannot split")
-        self.play(FadeOut(VGroup(fr1, fr2, m1, m2, h1, h2, q, ql)), run_time=0.6)
-        lone = figure(HEIGHTS[LONE], 0, BASE)
-        self.play(FadeIn(lone, shift=UP * 0.2), run_time=0.5)
-        bg = vbracket(-0.8, BASE, BASE + 0.6 * HEIGHTS[LONE], BLUE)
-        bg_l = T("genetic", 26, BLUE).next_to(bg, LEFT, buff=0.25)
-        be = vbracket(0.8, BASE + 0.6 * HEIGHTS[LONE], BASE + HEIGHTS[LONE], ORANGE, side=-1)
-        be_l = T("environmental", 26, ORANGE).next_to(be, RIGHT, buff=0.25)
-        self.play(Create(bg), Create(be), FadeIn(bg_l), FadeIn(be_l), run_time=0.8)
-        xs = cross_over(VGroup(bg_l, be_l, lone), w=8)
-        self.at("because one person")
-        self.play(Create(xs), run_time=0.5)
-        nv = T("one person: no variance", 30, RED).move_to([0, -2.5, 0])
-        self.play(FadeIn(nv, shift=UP * 0.1), run_time=0.5)
-        # --- the rule ---
-        self.at("ratio of variances")
-        self.play(FadeOut(VGroup(lone, bg, be, bg_l, be_l, xs, nv)), run_time=0.6)
-        crowd_s = VGroup(*[figure(h * 0.75, x * 0.85, -2.6, w=0.4, r=0.15) for h, x in zip(HEIGHTS, XS)])
-        frame = RoundedRectangle(corner_radius=0.2, width=9.0, height=3.7, stroke_color=YELLOW, stroke_width=3).move_to([0, -1.15, 0])
-        flab = T("one population, one environment", 26, YELLOW).move_to([0, -3.3, 0])
-        self.play(Create(frame), FadeIn(crowd_s), FadeIn(flab), run_time=0.9)
-        self.at("Keep this rule")
-        r1 = T("Heritability describes", 44, font=TITLE_FONT).move_to([0, 3.0, 0])
-        r2 = T("a population in an environment,", 44, font=TITLE_FONT).move_to([0, 2.15, 0])
-        self.play(FadeIn(r1, shift=UP * 0.1), run_time=0.5)
-        self.at("a population in")
-        self.play(FadeIn(r2, shift=UP * 0.1), run_time=0.5)
-        r3 = T("never a person.", 44, RED, font=TITLE_FONT).move_to([0, 1.3, 0])
-        lone2 = figure(HEIGHTS[LONE] * 0.75, 5.7, -2.6, w=0.4, r=0.15)
-        self.at("never a person")
-        self.play(FadeIn(r3, shift=UP * 0.1), FadeIn(lone2), run_time=0.6)
-        self.play(Create(cross_over(lone2, w=6)), run_time=0.4)
+        boxes = variance_containers()
+        total = hbracket(1.45, -5.95, 5.95)
+        den = T("total phenotypic variance", 28, GREY).next_to(total, UP, buff=.18)
+        self.add(boxes, total, den)
+        self.at("additive variance")
+        num1 = hbracket(-2.62, -5.9, -3.4, BLUE, down=False)
+        f1 = M("h² = V_A / V_P", 38, BLUE).move_to([0, 2.45, 0])
+        self.play(Create(num1), FadeIn(f1), run_time=.8)
+        self.at("Broad sense")
+        num2 = hbracket(-2.62, -5.9, 2.8, BLUE, down=False)
+        f2 = M("H² = V_G / V_P", 38, BLUE).move_to([0, 2.45, 0])
+        self.play(ReplacementTransform(num1, num2), swap(f1, f2), run_time=1.0)
+        self.at("no units")
+        units = T("ratios • no units", 30, GOLD).move_to([0, -3.25, 0])
+        self.play(FadeIn(units), run_time=.5)
+        self.at("belong to the population")
+        scope = T("population + environment", 30, GOLD).move_to([0, 3.25, 0])
+        self.play(swap(f2, scope), FadeOut(units), run_time=.8)
+        self.at("alter the denominator")
+        self.play(Indicate(total, color=GREY, scale_factor=1.02), boxes[3][1].animate.stretch(1.35, 1), run_time=1.2)
         self.finish()
 
 
-class S07End(EndCard):
-    LINE = "Heritability describes a population in an environment, never a person."
+class S07Predict(FilmScene):
+    def construct(self):
+        world = predict_backdrop(False)
+        self.add(world)
+        self.at("Now make")
+        wider = predict_backdrop(True)
+        self.play(Transform(world[1], wider[1]), Transform(world[3], wider[3]), run_time=1.5)
+        self.at("Will heritability")
+        q = question_card("Will heritability rise, fall, or stay the same?", y=-3.12, size=32)
+        q.question.add_background_rectangle(color=BG, opacity=.96, buff=.12)
+        self.play(FadeIn(q.question, shift=UP*.12), run_time=.6)
+        self.finish()
+
+
+class S08Pause(PredictPause):
+    QUESTION = "Will heritability rise, fall, or stay the same?"
+    SECONDS = 4.5
+    CARD = {"y": -3.12, "size": 32}
+    def backdrop(self):
+        w = predict_backdrop(True)
+        pulse(w[3], base=3.0, amp=1.2, speed=1.8)
+        return w
+
+
+class S09Reveal(FilmScene):
+    def construct(self):
+        world = predict_backdrop(True)
+        h = ValueTracker(.68)
+        gauge = dial(h, [5.05, .4, 0], radius=1.15, label="heritability", color=BLUE)
+        tag = scope_tag("computed simulation")
+        self.add(world, gauge, tag)
+        self.at("so heritability falls")
+        self.play(h.animate.set_value(.36), world[1].animate.set_stroke(width=10), run_time=1.5)
+        self.at("Reverse the change")
+        narrow = predict_backdrop(False)
+        self.play(Transform(world[1], narrow[1]), Transform(world[3], narrow[3]),
+                  h.animate.set_value(.68), run_time=1.6)
+        self.at("A ratio changes")
+        rule = caption("A ratio changes when one part changes.", color=GOLD, y=-3.1)
+        self.play(FadeIn(rule), run_time=.6)
+        self.finish()
+
+
+class S10Person(FilmScene):
+    def construct(self):
+        people = crowd(opacity=.12)
+        label = T("heritability", 30, BLUE).move_to([0, 2.85, 0])
+        self.add(people, label)
+        self.at("one person's height")
+        lone = person(0, -2.25, 4.55, TEXT, .22)
+        self.play(FadeOut(VGroup(*[p for i,p in enumerate(people) if i != 4])),
+                  Transform(people[4], lone), run_time=1.2)
+        split = VGroup(Rectangle(width=1.25, height=1.25, color=BLUE, fill_color=BLUE, fill_opacity=.35),
+                       Rectangle(width=1.25, height=1.25, color=GREY, fill_color=GREY, fill_opacity=.35))
+        split.arrange(RIGHT, buff=.08).move_to([3.5, .3, 0])
+        self.play(FadeIn(split), run_time=.5)
+        self.at("no population variance")
+        self.play(FadeOut(split, scale=.6), label.animate.set_opacity(.22), run_time=.8)
+        self.at("trait cannot change")
+        env = Arrow([-2.8,-.5,0], [-2.8,1.0,0], color=GREY, stroke_width=7)
+        self.play(GrowArrow(env), people[4].animate.shift(UP*.7), run_time=1.2)
+        self.finish()
+
+
+class S11Groups(FilmScene):
+    def construct(self):
+        panels = TwoPanel("group A", "group B", colors=(BLUE, BLUE), top=3.0, bottom=-2.15)
+        self.play(FadeIn(panels), run_time=.7)
+        def mini_curve(cx):
+            ax = Line([cx-2.35,-1.35,0],[cx+2.35,-1.35,0],color=GREY,stroke_width=3)
+            pts = [[cx+x, -1.35+2.4*normal_pdf(x,1.05), 0] for x in np.linspace(-2.2,2.2,70)]
+            cv = VMobject(color=BLUE, stroke_width=7).set_points_smoothly(pts)
+            fill = Polygon([cx-2.2,-1.35,0], *pts, [cx+2.2,-1.35,0], stroke_width=0,
+                           fill_color=BLUE, fill_opacity=.20)
+            return VGroup(ax,cv,fill)
+        a, b = mini_curve(-3.3), mini_curve(3.3)
+        self.play(Create(a), Create(b), run_time=1.2)
+        self.at("does not explain")
+        q = T("?", 64, GOLD, weight=BOLD).move_to([0,3.35,0])
+        self.play(FadeIn(q, scale=.7), run_time=.5)
+        self.at("Different environments")
+        arr = Arrow([1.2,-2.55,0],[5.3,-2.55,0],color=GREY,stroke_width=7)
+        self.play(GrowArrow(arr), b.animate.shift(RIGHT*.65), run_time=1.5)
+        tag = scope_tag("schematic analogy")
+        self.play(FadeIn(tag), run_time=.4)
+        pulse(VGroup(a[1],b[1]), base=7, amp=1, speed=1.5)
+        self.finish()
+
+
+class S12Twins(FilmScene):
+    def construct(self):
+        xs = np.linspace(-5.7, 5.7, 90)
+        pts = [[x, -1.45 + 2.55 * normal_pdf(x / 1.4, 1.45), 0] for x in xs]
+        population = Polygon([-5.7,-1.45,0], *pts, [5.7,-1.45,0], stroke_color=GREY,
+                             stroke_width=5, fill_color=GREY, fill_opacity=.16)
+        self.add(population)
+        idp, frp = twin_pair(-3.15, True), twin_pair(1.1, False)
+        li = T("identical", 30, BLUE).move_to([-3.15,-2.0,0])
+        lf = T("fraternal", 30, GREY).move_to([1.1,-2.0,0])
+        self.play(FadeIn(idp, shift=RIGHT*.2), FadeIn(frp, shift=LEFT*.2), FadeIn(li), FadeIn(lf), run_time=1.1)
+        self.at("Under their assumptions")
+        assumptions = boxed_label("equal environments • additive effects • random mating", GOLD, 28,
+                                  box=(-.8, 1.35), min_size=24).move_to([0,2.75,0])
+        self.play(FadeIn(assumptions), run_time=.6)
+        self.at("extra similarity")
+        gap = DoubleArrow(idp[2].get_right()+RIGHT*.15, frp[2].get_left()+LEFT*.15,
+                          color=GOLD, stroke_width=5, buff=0, tip_length=.16)
+        self.play(Create(gap), run_time=.8)
+        self.at("Doubling that gap")
+        cbox = RoundedRectangle(width=2.25, height=2.45, corner_radius=.15, color=BLUE,
+                                fill_color=BLUE, fill_opacity=.12, stroke_width=3).move_to([5.15,-.25,0])
+        clevel = Rectangle(width=1.9, height=.95, stroke_width=0, fill_color=BLUE,
+                           fill_opacity=.42).set_x(5.15).align_to(cbox, DOWN).shift(UP*.18)
+        clabel = T("additive", 28, BLUE).next_to(cbox, DOWN, buff=.2)
+        container = VGroup(cbox, clevel, clabel)
+        self.play(gap.animate.scale(1.5), FadeIn(container, shift=LEFT*.2), run_time=1.0)
+        self.at("sampled population")
+        scope = T("sampled population + environment", 28, GOLD).move_to([0,-3.05,0])
+        self.play(FadeIn(scope), run_time=.5)
+        self.finish()
+
+
+class S13Rule(FilmScene):
+    def construct(self):
+        twins = VGroup(twin_pair(-2.1,True), twin_pair(2.1,False)).scale(.85)
+        self.add(twins)
+        self.at("create smooth variation")
+        people = crowd(base=-1.4, scale=.85)
+        self.play(ReplacementTransform(twins, people), run_time=1.1)
+        pworld = curve_world(1.35, include_thin=True, dots=True)
+        self.play(ReplacementTransform(people, pworld), run_time=1.2)
+        self.at("variation is partitioned")
+        boxes = variance_containers().scale(.83).shift(DOWN*.15)
+        curve = VGroup(pworld[1].copy(), pworld[2].copy()).scale(.45).move_to([0,2.45,0])
+        self.play(FadeOut(pworld), FadeIn(boxes), Create(curve), run_time=1.2)
+        self.at("Keep the scope")
+        scope = boxed_label("population + environment", GOLD, 34, box=(5.8,1.0)).move_to([0,2.75,0])
+        self.play(ReplacementTransform(curve, scope), run_time=.8)
+        for g in boxes:
+            bob(g[1], amp=.02, speed=1.25)
+        self.finish()
+
+
+class S14End(EndCard):
+    LINE = "Heritability describes variation in a population and environment, never a person."
