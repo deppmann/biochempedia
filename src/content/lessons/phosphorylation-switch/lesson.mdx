@@ -6,8 +6,8 @@ courseChapter: "Cell Signaling · Unit 2: The parts — switches and wiring"
 order: 106
 underReview:
   - "One citation detail, a gel-shift result attributed to a 2003 BATF paper, is being checked against the original figure."
-summary: "Cells switch proteins on, off or toward new partners by adding a phosphate group and removing it again. This lesson explains what a phosphate does to a protein, why kinases and phosphatases have to work as a pair, and how each family is steered to the right targets. You will finish able to plan the experiments that show a protein is phosphorylated, at which residue, and to what effect."
-hook: "A cell can change what a protein does by fastening a phosphate to it and taking it off again. What makes a phosphate such a good switch?"
+summary: "A stable, removable phosphate changes protein behavior through its charge and shape. This lesson builds that physical idea, shows how kinase and phosphatase rates together set the phosphorylated fraction, and uses it to explain activity, docking, location and priming. You will finish able to plan experiments that show a protein is phosphorylated, map the modified residue and test what the phosphate does."
+hook: "How can one small chemical mark change what a protein does without rebuilding it?"
 
 estMinutes: 24
 objectives:
@@ -20,10 +20,15 @@ explainer:
   src: "/explainers/phosphorylation-switch/explainer.mp4"
   captions: "/explainers/phosphorylation-switch/explainer.vtt"
   poster: "/explainers/phosphorylation-switch/poster.jpg"
-  title: "A Charge You Can Add and Remove"
-  durationSec: 175.9
-  narration: "an AI narrator voice (ElevenLabs, Sarah) reading narration written from this lesson's text"
+  title: "The Charge That Changes the Odds"
+  durationSec: 215.2
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+  takeaways:
+    - "A stable, removable phosphate changes protein behavior through its charge and shape."
+    - "Kinases transfer phosphate from ATP to proteins, and phosphatases remove it with water."
+    - "Phosphorylation may change activity, docking, location or a later modification."
+    - "A phosphate can favor activity or inhibition; it is not an automatic on signal."
 
 scientists:
   - name: "Edwin G. Krebs"
@@ -404,123 +409,165 @@ corpusTags:
   - "kinase-inhibitors"
 draft: false
 films:
-  - id: "how-we-know"
-    src: "/explainers/phosphorylation-switch/how-we-know.mp4"
-    captions: "/explainers/phosphorylation-switch/how-we-know.vtt"
-    poster: "/explainers/phosphorylation-switch/how-we-know-poster.jpg"
-    title: "How a Phosphate Was Found"
-    durationSec: 95.7
-    narration: "an AI narrator voice (ElevenLabs, Sarah) reading narration written from this lesson's text"
+  - id: "chapter-2"
+    src: "/explainers/phosphorylation-switch/chapter-2.mp4"
+    captions: "/explainers/phosphorylation-switch/chapter-2.vtt"
+    poster: "/explainers/phosphorylation-switch/chapter-2-poster.jpg"
+    title: "Two Enzymes Set the Level"
+    durationSec: 214.8
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
     aiGenerated: true
+    takeaways:
+      - "Phosphorylation level depends on both the kinase and the phosphatase."
+      - "At simple first-order rates, their ratio sets the steady phosphorylated fraction."
+      - "Either activating the kinase or inhibiting the phosphatase can raise that fraction."
+      - "Faster opposing rates make the level settle faster but spend more ATP."
 ---
 
 import LessonFilm from '../../../components/LessonFilm.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
 
-**Cells change what a protein does by fastening a phosphate group to it, and they undo the change by taking the phosphate off.** The enzymes that fasten it are protein kinases, which take the end phosphate from ATP and put it on a protein. Why do cells rely so heavily on one chemical group, what does it do once it is on, which enzymes take it off, and how would you prove that a protein is controlled this way?
+The first film shows the switch; this page adds the chemistry, numbers and evidence.
 
-## The idea: a phosphate is a charge you can add and take away
+> **The one idea.** A stable, removable phosphate changes protein behavior through its charge and shape.
+>
+> *Scope:* regulatory phosphorylation of proteins, especially the well-studied serine, threonine and tyrosine sites in animal signaling. The charge is the main handle, but partners also read the phosphate's shape and the residues around it, which is why aspartate is only a rough mimic. It may favor activity or inhibition; it is not an automatic on signal.
 
-Start with a question: if we have a protein, what are some of the ways we could alter its function? You could make more of it, which is slow, or bind a small molecule to it. Or an enzyme could attach a chemical group to one of its side chains after the protein is made. That last route is covalent modification. For a reversible mark like phosphate it comes as a pair, modifications and modifiers: the mark, and the enzymes that write and erase it.
+## Write the mark, erase the mark
 
-Of the many marks cells use, signaling pathways use phosphate most. A **protein kinase** is an enzyme that moves the end (gamma) phosphate of ATP onto a protein. A **protein phosphatase** is an enzyme that removes that phosphate with water.
+A cell can change what a protein does by making more of it, which is slow, by binding a small molecule to it, or by attaching a chemical group after the protein is made. That last route is a **covalent modification**, and signaling pathways use phosphate most. The first film's two reactions:
 
 > **protein-OH + ATP → protein-O-PO3(2−) + ADP   (kinase)**
 >
 > **protein-O-PO3(2−) + H2O → protein-OH + Pi   (phosphatase)**
 
-In animal signaling the best-studied sites are side chains that end in a hydroxyl group: serine, threonine and tyrosine. Mammals also phosphorylate histidine, but that phosphate falls off in the acid used by standard methods, so how common it is remains unclear. Most of it sits on serine and threonine. Tyrosine carries well under 1% of the protein-bound phosphate in a cell (about 2% of mapped sites), which kept it hidden until 1979.
+A **protein kinase** moves the end, or gamma, phosphate of ATP onto the protein; a **protein phosphatase** removes it with water. ATP sits at millimolar concentration in the cell. Near pH 7 the attached phosphate carries close to two negative charges where there were none.
 
-Four properties make phosphate a good switch.
+Most protein-bound phosphate sits on serine and threonine. Tyrosine carries well under 1% of it in a cell, about 2% of mapped sites, which kept phosphotyrosine hidden until 1979. Mammals also phosphorylate histidine, but the acid in standard methods strips that phosphate, so how common phosphohistidine is remains unclear.
 
-*Charge.* Near pH 7 a phosphate on a protein carries close to two negative charges, on a spot that had none. Charges on a protein attract and repel each other and help set its shape and its contacts with partners, so adding two where there were none can shift either one.
+## Four consequences of one added phosphate
 
-*Reversibility.* The bond holds until an enzyme removes it, and removal leaves the protein exactly as it was.
+The phosphate has no activity of its own; the protein and its neighbours respond to it. The first film's four outcomes, case by case:
 
-*A separate writer and eraser.* The phosphatase does not run the kinase reaction backwards; it runs a different reaction, and each one goes downhill. A whiteboard works because the marker and the eraser are different tools that you can hand to different people. The cell likewise regulates adding and removing independently, at the price of one ATP per round trip.
+**Activity through shape.** In muscle glycogen phosphorylase the phosphate lands on serine 14, near the chain's start and far from the catalytic site, yet it favors the active form. The same mark inhibits glycogen synthase.
 
-*Supply.* ATP sits at millimolar concentration in the cell, so a kinase rarely waits for its donor.
+**A docking site.** A partner whose pocket recognises the phosphorylated side chain can dock; a later lesson covers those pockets.
 
-## What a phosphate does: four results of modification
+<LessonFigure src="/figures/phosphorylation-switch/phosphate-docking-site.webp" width={1200} height={485} alt="AI-generated illustration: a two-step schematic. Before phosphorylation, a protein and a partner with a recognition pocket are separate. After phosphate is added to a side chain, the phosphorylated side chain docks in the partner's pocket, bringing the two proteins together." caption="A phosphate can create a docking surface that brings two proteins together without changing either protein's catalytic rate." />
 
-The phosphate has no activity of its own. What matters is how the protein and its neighbours respond to the new charge. The lecture lists four results.
+**A new location.** NFAT is a transcription factor, a protein that switches genes on. It waits in the cytoplasm with many phosphates hiding its nuclear-entry sequence. When calcineurin removes them, NFAT enters the nucleus: the eraser carries the signal.
 
-**It changes shape, and with it activity.** Every copy of a protein flickers among several arrangements, some working and some not. A phosphate makes the arrangements that accommodate its charge cheaper to occupy, so more copies sit in them. In muscle glycogen phosphorylase the phosphate lands on serine 14, near the start of the chain and far from the catalytic site, and it shifts the enzyme toward its active form. The same trick can turn a protein off: glycogen synthase, which builds glycogen, is inhibited by phosphorylation.
-
-**It creates a docking site.** A phosphorylated side chain is a surface that was not there a moment ago, and some proteins carry pockets built to recognise one (a later lesson covers them). A phosphate can therefore bring two proteins together without changing either one's catalytic rate.
-
-<LessonFigure src="/figures/phosphorylation-switch/phosphate-docking-site.webp" width={1200} height={485} alt="AI-generated illustration: a two-step schematic. Before phosphorylation, a protein and a partner with a recognition pocket are separate. After phosphate is added to a side chain, the phosphorylated side chain docks in the partner's pocket, bringing the two proteins together." caption="A phosphorylated side chain is a surface that was not there a moment ago. A partner with a pocket built to recognise it can dock, bringing two proteins together without changing either one's catalytic rate." />
-
-**It changes location.** NFAT is a transcription factor, a protein that switches genes on. It waits in the cytoplasm carrying many phosphates, which hide the sequence that would send it into the nucleus. When the phosphatase calcineurin strips them off, NFAT enters the nucleus. Here the erasing enzyme carries the signal.
-
-<LessonFigure src="/figures/phosphorylation-switch/nfat-location-switch.webp" width={1200} height={761} alt="AI-generated illustration: three schematic stages show phosphorylated NFAT in the cytoplasm with its nuclear entry sequence hidden, calcineurin removing attached phosphates so the sequence becomes exposed, and NFAT entering the nucleus." caption="NFAT waits in the cytoplasm with many phosphates hiding the sequence that would send it into the nucleus. The phosphatase calcineurin strips them off and NFAT enters, so here the erasing enzyme carries the signal." />
-
-**It primes another modification.** Some kinases accept a substrate only if a phosphate is already nearby. Glycogen synthase kinase 3 is the standard example: it prefers a serine or threonine that lies four residues before one that another kinase has already phosphorylated. When the priming kinase answers a different signal, priming lets a protein wait for two inputs before it responds.
-
-## The modifiers: 518 kinases and the phosphatases that answer them
-
-The human genome holds about 518 genes for protein kinases. Most phosphorylate serine and threonine; about 90 are tyrosine kinases. The exact family tallies are in Going deeper.
-
-Why does a cell need phosphatases at all? Think of a sink with the tap running and the drain open. The water level depends on both, and you can change it at either end. The same holds for a pool of protein acted on by a kinase and a phosphatase at simple first-order rates:
-
-> **fraction phosphorylated at steady state = k(kinase) / (k(kinase) + k(phosphatase))**
-
-A signal can raise the phosphorylated fraction by activating the kinase or by inhibiting the phosphatase, and cells do both. The time the level takes to settle after a change is set by the sum of the two rates, so a pathway that must shut off in seconds needs a fast phosphatase. If that phosphatase runs all the time against the kinase, the speed is paid for in ATP; some pathways instead switch the phosphatase on when the signal ends.
-
-On the tyrosine side the eraser family is about as large as the writer family by count, though only about 38 of its members are classical enzymes that read only phosphotyrosine, and many erasers are built like membrane receptors.
-
-On the serine/threonine side the counts are lopsided: hundreds of kinases against a few dozen genes for phosphatase catalytic subunits. Specificity comes from partners: PP1, a major catalytic subunit, is encoded by just three genes yet pairs with well over a hundred regulatory subunits, which decide where the enzyme goes and what it touches.
-
-The counts suggest that tyrosine dephosphorylation is steered by the choice of enzyme, and serine/threonine dephosphorylation by the company the enzyme keeps. That is an inference from numbers, not a proof.
-
-## How we know: one muscle enzyme, then all the rest
-
-<LessonFilm film={frontmatter.films[0]} />
-
-**1943.** Carl and Gerty Cori and their colleague Arda Green, in St. Louis, crystallized glycogen phosphorylase, the muscle enzyme that releases glucose units from glycogen, and found it in two forms. Phosphorylase *a* was active alone; phosphorylase *b* worked only when AMP was present. They also had an enzyme that turned *a* into *b* and assumed it clipped off a bound AMP. It was in fact a phosphatase.
-
-**1954.** Burnett and Kennedy reported a liver enzyme that moves phosphate from ATP onto the milk protein casein, the first protein kinase described.
-
-**1955.** Edmond Fischer and Edwin Krebs, in Seattle, reported what had started as an effort to make phosphorylase *a* by the Coris' recipe: they kept getting *b*, unless they filtered the extract through paper. The paper was leaching calcium, and extracts left standing ran out of ATP. Over the next few years the conversion of *b* to *a* proved to be the work of an enzyme that moves one phosphate from ATP onto one serine on each phosphorylase chain. The overview lesson on signal transduction tells this story in full.
-
-**1979 to 1980.** Tony Hunter saw a radioactive spot run between the phosphoserine and phosphothreonine markers, and a phosphotyrosine standard he made ran to the same place. He and Bartholomew Sefton then showed that Src, the cancer-causing protein of Rous sarcoma virus, phosphorylates tyrosine. Within the year H. Ushiro and Stanley Cohen, using membranes from a tumour cell line and no living cells, found that epidermal growth factor (EGF) switches on the same activity, which was later traced to the EGF receptor itself, a cell's own protein with no virus involved.
-
-**1988.** Nicholas Tonks, working with Fischer, purified the first protein tyrosine phosphatase, PTP1B, from human placenta. Its sequence resembled part of CD45, a surface protein of white blood cells, so a tyrosine phosphatase could be built like a receptor too.
-
-## When the switch breaks: kinases in disease and in the clinic
-
-One lecture slide carries the title "Nearly every kinase has been associated with disease." That is a slight stretch: many have been, but a large part of the kinome is still poorly studied. A common pattern in cancer is a gain-of-function mutation, one that makes a protein more active: a kinase, often a receptor tyrosine kinase, is stuck on and tells the cell to grow when no signal has arrived. Losing a phosphatase can do similar damage, because the brake is gone.
-
-That makes kinases drug targets, and a second slide says why they are good ones: "Highly conserved: target for lots of drugs." Kinases bind ATP in a cleft between two lobes, a snug, mostly greasy pocket of the kind a small drug molecule can fill. Imatinib, approved in 2001 for chronic myeloid leukemia, sits in that pocket in the kinase that drives the disease: BCR-ABL, an overactive fusion protein made when a chromosome rearrangement joins two genes. Gefitinib and erlotinib, approved in the United States in 2003 and 2004, do the same in the EGF receptor.
-
-The pocket is a good target because a small molecule can fill it, but its conservation makes selectivity hard. A molecule shaped to fit one ATP pocket tends to fit some of the other 517, and each extra kinase it blocks is a possible side effect. The drug also has to outcompete the cell's own millimolar ATP. Chemists find selectivity at the edges of the pocket, where kinases differ, or in shapes that only some kinases adopt: imatinib binds the Abl kinase of BCR-ABL in an inactive conformation, which helps explain why it spares most other kinases.
-
-### Design problem
-
-You have a protein that you suspect is phosphorylated. Show that it is, find where, and show what the phosphate does.
+**Predict.** If calcineurin is inhibited while the kinases keep working, where should NFAT accumulate?
 
 <details>
-<summary>One way to do it</summary>
+<summary>Check your prediction</summary>
 
-**Show that it is.** Run the protein from cells on an SDS gel, which sorts proteins by size; a phosphorylated protein often runs a little slower. Treat half the sample with a purified phosphatase. If the slow band collapses into the fast one, and a phosphatase inhibitor prevents the collapse, the difference was phosphate. Confirm it by growing cells with radioactive phosphate (32P), pulling the protein out with an antibody, and checking that it is labelled. A site found only in a test tube must still be confirmed in cells.
-
-**Find where.** Break the labelled protein down to amino acids and separate them to learn whether serine, threonine or tyrosine carries the label. Then change each candidate serine or threonine to alanine, or each tyrosine to phenylalanine, which leaves no hydroxyl, and see which change removes the label or the gel shift. Mass spectrometry does the same job faster: a phosphate adds 80 Da to a peptide, and fragmenting the peptide usually shows which residue holds it.
-
-**Show what it does.** Compare the alanine mutant, which can never be phosphorylated, with an aspartate mutant, whose negative charge imitates a phosphate that never leaves. Ask which of the four results the mimic shows. Aspartate carries one charge where a phosphate carries two, and it is smaller, so a mimic that does nothing proves little. Check the answer by inhibiting or activating the kinase: the normal protein should respond and the alanine mutant should not.
-
-To find which kinase does the writing, inhibitors narrow the list, and Kevan Shokat's analog-sensitive kinases, engineered to accept an ATP analog that normal kinases cannot use, label only their direct targets.
-
-Work this problem with a transcription factor from Deppmann and colleagues' 2003 paper: a phosphatase-sensitive gel shift, serine and threonine sites, and a serine-to-aspartate mimic.
+In the cytoplasm. Its phosphates remain, so the sequence that sends NFAT into the nucleus stays hidden.
 
 </details>
 
+<LessonFigure src="/figures/phosphorylation-switch/nfat-location-switch.webp" width={1200} height={761} alt="AI-generated illustration: three schematic stages show phosphorylated NFAT in the cytoplasm with its nuclear entry sequence hidden, calcineurin removing attached phosphates so the sequence becomes exposed, and NFAT entering the nucleus." caption="Calcineurin removes NFAT's phosphates, exposing its nuclear-entry sequence, so the erasing enzyme carries this signal." />
+
+**Priming another modification.** Glycogen synthase kinase 3, for example, prefers a serine or threonine four residues before a site another kinase has phosphorylated. If the priming kinase answers a different signal, the substrate can wait for two inputs.
+
+These outcomes concern single copies; the second film asks what sets the fraction of a population carrying the mark.
+
+<LessonFilm film={frontmatter.films[0]} />
+
+## How much protein carries the phosphate?
+
+**Predict.** A kinase works at 0.6 per minute against a phosphatase at 0.2 per minute. A drug cuts only the kinase rate tenfold, to 0.06 per minute. Does the phosphorylated fraction fall tenfold?
+
+The **phosphorylated fraction**, *f*, is the share of a protein pool carrying phosphate at the measured site. Take the second film's simplest model: one site, a fixed total pool and effective first-order rates, with no saturated enzymes and no multisite network. Fraction *(1 − f)* is available to the kinase:
+
+> **rate in = k(kinase) × (1 − f)**
+>
+> **rate out = k(phosphatase) × f**
+
+At steady state the rates match, so:
+
+> **f = k(kinase) / (k(kinase) + k(phosphatase))**
+
+<details>
+<summary>Check your prediction</summary>
+
+No. Before the drug, f = 0.6 / (0.6 + 0.2) = 0.75. After it, f = 0.06 / (0.06 + 0.2), about 0.23. A tenfold cut in kinase rate gives only about a threefold fall, because the phosphatase rate stays in the denominator.
+
+</details>
+
+So the phosphorylation level depends on both the kinase and the phosphatase, not on kinase activity alone. Because the summed rates set how fast the level settles, a pathway that must shut off in seconds needs a fast phosphatase; running it constantly costs ATP, so some pathways switch it on only when the signal ends.
+
+## How the enzymes find the right targets
+
+The human genome holds about 518 protein-kinase genes. Most encode serine/threonine kinases; about 90 encode tyrosine kinases. The tyrosine-phosphatase family is about as large by count, but only about 38 members are classical enzymes that read only phosphotyrosine, and many erasers are built like membrane receptors.
+
+Serine/threonine counts are lopsided: hundreds of kinases but only a few dozen genes for phosphatase catalytic subunits. Specificity comes from partners. PP1, a major catalytic subunit, is encoded by three genes yet pairs with well over a hundred regulatory subunits, which choose its location and substrates. The counts suggest that tyrosine dephosphorylation is steered more by enzyme choice, and serine/threonine dephosphorylation by company. That is an inference from counts, not proof.
+
+## Build the evidence: detect, map, test
+
+Three claims need different evidence: the protein carries phosphate, a particular residue carries it, and changing that site changes function.
+
+**Predict.** A stimulated sample shows an extra, slower band on an SDS gel. What control would tie that band to phosphate, and what would it still leave open?
+
+<details>
+<summary>Check your prediction</summary>
+
+Treat half the sample with purified phosphatase. If the slow band collapses into the fast one and a phosphatase inhibitor prevents that, the shift depends on phosphate. The residue and the function remain open.
+
+</details>
+
+**Detect it.** A phosphorylated protein often runs more slowly on an SDS gel, which sorts proteins by apparent size; the phosphatase test above is the quick first check. Confirm that the protein carries phosphate by growing cells with radioactive phosphate (32P), pulling the protein out with an antibody and checking for label. A site found only in a test tube must still be confirmed in cells.
+
+**Map it.** Break the labelled protein into amino acids and separate them to learn which kind of residue carries the label. Change candidate serine or threonine residues to alanine, or tyrosine to phenylalanine, removing the hydroxyl, and ask which change removes the label or shift. Mass spectrometry is faster: each phosphate adds 80 Da to a peptide, and peptide fragments usually locate the residue.
+
+**Predict.** A peptide from the upper gel band is 240 Da heavier than the matching peptide below, and the band runs an apparent 3 kDa higher. How many phosphates does the peptide carry?
+
+<details>
+<summary>Check your prediction</summary>
+
+Three, because 240 / 80 = 3. Three phosphates add only 0.24 kDa; the 3 kDa is apparent migration, not mass, so it cannot be converted into a phosphate count.
+
+</details>
+
+**Test function.** Compare an alanine mutant, which cannot be phosphorylated, with an aspartate mutant, whose negative charge roughly imitates a persistent phosphate. Ask which of the four consequences the mimic reproduces: activity, docking, location or priming.
+
+**Predict.** A kinase activates enzyme E. The serine-to-alanine mutant no longer responds to the kinase, but the serine-to-aspartate mutant is no more active than the unstimulated normal enzyme. What can you conclude?
+
+<details>
+<summary>Check your prediction</summary>
+
+The alanine result points to this serine as the site that matters. The silent mimic proves little: aspartate carries one charge where phosphate carries two, it is smaller, and a partner may not recognise it. Seek another line of evidence.
+
+</details>
+
+The normal protein should respond to kinase inhibition or activation; the alanine mutant should not. Inhibitors can narrow the writer list. Kevan Shokat's analog-sensitive kinases are engineered to accept an ATP analog that normal kinases cannot use, so they label only direct targets.
+
+Work this approach on a real case: the transcription factor in Deppmann and colleagues' 2003 paper, which combined a phosphatase-sensitive gel shift, serine and threonine sites and a serine-to-aspartate mimic.
+
+## When the switch breaks: kinases in disease and the clinic
+
+A lecture slide claims nearly every kinase has been linked to disease, a slight stretch: many have, but much of the kinome is poorly studied. A common cancer pattern is a gain-of-function mutation that leaves a kinase, often a receptor tyrosine kinase, active without a signal and telling the cell to grow. Losing a phosphatase can cause similar damage because the brake is gone.
+
+A second slide calls kinases "highly conserved: target for lots of drugs." The ATP cleft between the two lobes is snug and mostly greasy, so small drugs can fill it. Imatinib, approved in 2001 for chronic myeloid leukemia, binds BCR-ABL, the overactive fusion kinase made when a chromosome rearrangement joins two genes. Gefitinib and erlotinib, approved in the United States in 2003 and 2004, target the EGF receptor similarly.
+
+Conservation makes selectivity hard: a molecule fitting one ATP pocket may fit some of the other 517, causing side effects, and it must compete with millimolar cellular ATP. Chemists find selectivity at the edges of the pocket, where kinases differ, or in inactive shapes that only some kinases adopt. Imatinib binds Abl in an inactive conformation, helping explain why it spares most other kinases.
+
 ## Going deeper
 
-### Pseudokinases
+### How reversible protein phosphorylation emerged
 
-About one in ten of the human kinases, called pseudokinases, has lost the catalytic activity and works by binding other proteins instead.
+**1943.** Carl and Gerty Cori and Arda Green in St. Louis crystallized glycogen phosphorylase, the muscle enzyme that releases glucose units from glycogen. Phosphorylase *a* was active alone; *b* required AMP. An enzyme turned *a* into *b*. They thought it removed bound AMP; it was a phosphatase.
 
-### Family counts and what they cover
+**1954.** Burnett and Kennedy described a liver enzyme moving phosphate from ATP onto casein, the first protein kinase described.
 
-Of the 518 or so human kinases, about 90 are tyrosine kinases, and 58 of those are receptors, proteins that span the plasma membrane with the kinase on the inside. Most of the rest phosphorylate serine and threonine. On the tyrosine side the tally reads "107 PTPs to counteract 90 PTKs" (PTP, protein tyrosine phosphatase; PTK, protein tyrosine kinase). The 107 counts the whole PTP family, though: about 38 are classical enzymes that read only phosphotyrosine, and some relatives, such as PTEN, prefer substrates other than proteins.
+**1955.** Edmond Fischer and Edwin Krebs in Seattle set out to make phosphorylase *a* by the Coris' recipe. They kept getting *b* unless they filtered the extract through paper. The paper leached calcium, and standing extracts ran out of ATP. Over the next few years, conversion of *b* to *a* proved to be an enzyme moving one phosphate from ATP onto one serine on each chain. The overview lesson on signal transduction tells the full story.
 
+**1979 to 1980.** Tony Hunter saw a radioactive spot between phosphoserine and phosphothreonine markers; his phosphotyrosine standard matched it. He and Bartholomew Sefton showed that Src, the cancer-causing protein of Rous sarcoma virus, phosphorylates tyrosine. Within the year, H. Ushiro and Stanley Cohen used tumour-cell membranes without living cells to show that EGF switches on the same activity. It was later traced to the cell's own EGF receptor.
+
+**1988.** Nicholas Tonks, working with Fischer, purified PTP1B, the first protein tyrosine phosphatase, from human placenta. Its sequence resembled part of CD45, a white-blood-cell surface protein, showing that a phosphatase could be receptor-like.
+
+### Pseudokinases and family counts
+
+About one in ten human kinases, called pseudokinases, has lost catalytic activity and instead works by binding other proteins.
+
+Of the roughly 90 human tyrosine kinases, 58 are receptors spanning the plasma membrane with the kinase inside. The tally “107 PTPs to counteract 90 PTKs” (protein tyrosine phosphatases and kinases) counts the whole phosphatase family: only about 38 are classical phosphotyrosine-specific enzymes, and relatives such as PTEN prefer substrates other than proteins.

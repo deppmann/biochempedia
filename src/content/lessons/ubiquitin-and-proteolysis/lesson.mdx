@@ -5,14 +5,14 @@ slug: "ubiquitin-and-proteolysis"
 course: "signaling"
 courseChapter: "Cell Signaling · Unit 2: The parts — switches and wiring"
 order: 108
-summary: "A phosphate can be taken off again, but a destroyed protein cannot be put back. This lesson follows the E1, E2 and E3 relay that tags proteins with ubiquitin, shows how a signal writes a destruction mark with a phosphate or with oxygen, and explains why other ubiquitin marks move or assemble proteins instead. Afterwards you can trace oxygen sensing and auxin sensing from the signal to the gene."
+summary: "Signals change protein fate by changing what an E3 can recognize. This lesson follows the E1, E2 and E3 relay, shows how phosphorylation, oxygen and auxin change target recognition, and explains why different ubiquitin marks destroy, move or assemble proteins. Afterwards you can trace oxygen sensing and auxin sensing from the signal to the gene."
 
 hook: "Why would a cell build a protein only to destroy it within minutes?"
 
 estMinutes: 22
 objectives:
   - "Describe the E1, E2 and E3 cascade and say where the specificity lives."
-  - "Explain how a signal writes a destruction mark, using a phosphorylated inhibitor and oxygen-dependent hydroxylation of HIF-1α as examples."
+  - "Explain how a signal writes a degron that an E3 recognizes, using a phosphorylated inhibitor and oxygen-dependent hydroxylation of HIF-1α as examples."
   - "Distinguish the ubiquitin marks that send a protein to the proteasome from those that move or assemble proteins."
   - "Explain why irreversible destruction is a useful way for a signaling pathway to act."
 
@@ -20,10 +20,15 @@ explainer:
   src: "/explainers/ubiquitin-and-proteolysis/explainer.mp4"
   captions: "/explainers/ubiquitin-and-proteolysis/explainer.vtt"
   poster: "/explainers/ubiquitin-and-proteolysis/poster.jpg"
-  title: "Oxygen Writes the Destruction Mark"
-  durationSec: 145.9
-  narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+  title: "How a Signal Marks One Protein"
+  durationSec: 209.1
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+  takeaways:
+    - "Signals change protein fate by changing what an E3 can recognize."
+    - "E1 activates ubiquitin, E2 carries it and an E3 brings it to a recognized target."
+    - "In oxygen sensing, PHD hydroxylation lets VHL recognize HIF-1α."
+    - "When oxygen falls, HIF-1α is hydroxylated less often and accumulates."
 
 scientists:
   - name: "Mark Estelle"
@@ -383,14 +388,19 @@ corpusTags:
   - "molecular-glue"
 draft: false
 films:
-  - id: "receptor-ligase"
-    src: "/explainers/ubiquitin-and-proteolysis/receptor-ligase.mp4"
-    captions: "/explainers/ubiquitin-and-proteolysis/receptor-ligase.vtt"
-    poster: "/explainers/ubiquitin-and-proteolysis/receptor-ligase-poster.jpg"
-    title: "A Receptor Built Into the Destroyer"
-    durationSec: 101.6
-    narration: "an AI narrator voice (Gemini, Charon) reading narration written from this lesson's text"
+  - id: "chapter-2"
+    src: "/explainers/ubiquitin-and-proteolysis/chapter-2.mp4"
+    captions: "/explainers/ubiquitin-and-proteolysis/chapter-2.vtt"
+    poster: "/explainers/ubiquitin-and-proteolysis/chapter-2-poster.jpg"
+    title: "One Tag, Different Destinations"
+    durationSec: 217.6
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
     aiGenerated: true
+    takeaways:
+      - "Ubiquitin marks route proteins; molecular glues change what an E3 grips."
+      - "A single ubiquitin more often changes a protein's location than destroys it."
+      - "A lysine-48 chain is a classic proteasome signal; a lysine-63 chain can assemble a complex."
+      - "Auxin tightens TIR1's grip on a repressor, coupling detection to destruction."
 ---
 
 import LessonFilm from '../../../components/LessonFilm.astro';
@@ -398,92 +408,137 @@ import LessonFilm from '../../../components/LessonFilm.astro';
 import HifOxygenSwitch from '../../../components/HifOxygenSwitch.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
 
-**Cells in your body make a transcription factor called HIF-1α and, while oxygen is around, destroy it again within minutes. Why build a protein only to throw it away?**
+The first film showed oxygen marking one protein, HIF-1α, for destruction. HIF-1α is a transcription factor, a protein that switches genes on, and it turns on the genes a cell needs when oxygen runs short. This lesson is about that one-way switch and how a signal writes it.
 
-A transcription factor is a protein that switches genes on, and HIF-1α switches on the genes a cell needs when oxygen runs short. Phosphorylation, from the previous lesson, can be undone: a phosphatase takes the phosphate off and the protein is as it was. Destroying a protein cannot be undone. This lesson is about that one-way switch and how a signal writes it. Destruction is the classic meaning of a ubiquitin mark, not the only one: other ubiquitin marks move a protein or gather proteins into a complex, and a later section covers those.
+## One recognition step can change a protein's fate
 
-## The idea: a switch you cannot flip back
+**Ubiquitin** is a small protein, 76 amino acids long, attached to other proteins as a tag. The **proteasome** is a barrel-shaped protease that destroys proteins carrying an appropriate ubiquitin signal. A **degron** is the feature the tagging machinery recognizes on a target: a short sequence, a chemical change or both.
 
-A phosphate is a sticky note. A kinase puts it on, a phosphatase peels it off, and the page underneath is unharmed. That suits a signal that should come and go. Destruction is the shredder. Once a protein is broken into amino acids, the cell has to make a new copy from the gene.
+> **The one idea.** Signals change protein fate by changing what an E3 can recognize.
+>
+> *Scope:* this rule covers the regulated ubiquitin pathways in this lesson. A signal may complete a degron or strengthen an E3-target contact. The mark built afterward also helps determine the outcome.
 
-That makes destruction the right tool when a pathway must move in one direction. Destroying an inhibitor frees whatever it was holding, and the pathway cannot slip back by accident. Destroying an activator ends a signal for good: a cell leaves mitosis because cyclin B, a protein that keeps it in mitosis, is destroyed.
+Proteolysis makes the choice costly to reverse. A phosphate can be removed, and a ubiquitin mark can be cut off before degradation. Once a protein is cut into peptides, only a newly made copy replaces it. Destroying an inhibitor can free a pathway until new inhibitor is made; destroying an activator can end a signal until it is replaced. A cell leaves mitosis by destroying cyclin B, which keeps it there.
 
-The cell has two parts for the job. Ubiquitin is a small protein, 76 amino acids long, that is attached to other proteins as a tag. The proteasome is a barrel-shaped protease that destroys tagged proteins. The earlier lesson on protein turnover and amino acid catabolism covers the proteasome and the discovery of ubiquitin, so here the question is how a signal decides which protein gets tagged. The answer is a degron: a short sequence or chemical change on a protein that tells the tagging system to destroy it.
+The earlier lesson on [protein turnover and amino acid catabolism](/lessons/protein-turnover-amino-acid-catabolism/) covers proteasome mechanics and ubiquitin's discovery.
 
-## The tagging machine: where the specificity lives
+## The bonds and branches behind the relay
 
-Think of a parcel relay: a loading dock, a depot, and a local courier who knows the addresses. Ubiquitin travels through three enzymes the same way, called E1, E2 and E3.
+The film showed the handoff; here are the bonds. **E1**, the activating enzyme, spends ATP to join ubiquitin's carboxyl end, glycine 76, to one of its own cysteines. That temporary **thioester** is an energy-rich sulfur-carbonyl bond. E1 passes ubiquitin to a cysteine on **E2**, the conjugating enzyme. **E3**, the ligase, completes the transfer, usually by an **isopeptide bond**: an amide between ubiquitin's C-terminus and a target lysine side chain rather than the backbone.
 
-E1, the activating enzyme, spends ATP to join the carboxyl end of ubiquitin (glycine 76) to one of its own cysteines through a thioester, an energy-rich bond between a sulfur and a carbonyl carbon. E1 hands the ubiquitin to a cysteine on an E2, the conjugating enzyme. An E3, the ligase, binds the loaded E2 and the target at once, and ubiquitin ends up on a lysine side chain of the target. The bond is an isopeptide bond: an amide formed with the lysine's side-chain amine instead of the backbone.
+Human cells have two E1s, about forty E2s and roughly six hundred predicted E3s. One E1 supplies nearly the whole system, while each E3 recognizes a set of degrons. For the examples here, most target specificity sits in the E3 or its substrate receptor.
 
-The relay fans out toward the target. Human cells have two E1s, about forty E2s and roughly six hundred predicted E3s. One E1 loads ubiquitin for nearly the whole system, and each E3 recognizes its own set of degrons. The specificity lives in the E3.
+E3s have two main designs. A **RING-type** ligase holds loaded E2 beside the target, so ubiquitin passes directly across. A **HECT-type** ligase first takes ubiquitin onto its own cysteine. **SCF ligases** are RING-type: a cullin scaffold holds a small RING protein that docks E2, the adaptor Skp1 and an interchangeable F-box protein that binds the degron.
 
-E3s come in two main designs. A RING-type ligase is a scaffold that holds the loaded E2 next to the target, and the ubiquitin passes straight across. A HECT-type ligase first takes the ubiquitin onto a cysteine of its own. The SCF ligases are RING-type, built from a cullin scaffold, a small RING protein that docks the E2, an adaptor called Skp1, and an F-box protein. The F-box protein is the interchangeable part that binds the degron, so swapping it aims the same machine at different proteins.
+**Predict.** Mixed with ubiquitin-loaded E2, an E3 first carries ubiquitin as a short-lived thioester on one of its own cysteines before the target receives it. Is the E3 RING-type or HECT-type?
 
-<LessonFigure src="/figures/ubiquitin-and-proteolysis/scf-swappable-f-box.webp" width={1200} height={825} alt="AI-generated illustration: a labelled SCF ligase with a cullin scaffold, RING protein, E2 carrying ubiquitin, Skp1 adaptor and clay F-box protein gripping a target, with an inset showing a different F-box gripping a different target." caption="An SCF ligase is a cullin scaffold, a RING protein that docks the E2, the adaptor Skp1 and an F-box protein. Only the F-box protein changes between targets, so swapping it aims the same machine at a different protein." />
+<details>
+<summary>Check your prediction</summary>
 
-Once one ubiquitin is on, the E3 can add more, each joined to a lysine of the one before. Ubiquitin has seven lysines, and a chain can also be joined through its first amino acid, methionine 1. Which link is used, along with the chain's length and branching, shapes what the chain means. A chain joined through lysine 48 and at least four ubiquitins long is the usual signal for the proteasome.
+HECT-type. A HECT ligase accepts ubiquitin from E2 onto its catalytic cysteine, then transfers it to the target. A RING ligase never holds ubiquitin itself; it promotes direct transfer from E2 to the target.
 
-## Writing the mark: a phosphate or an oxygen atom
+</details>
 
-Many regulated proteins do not carry a degron all the time. A signal writes it. Two examples show the logic.
+<LessonFigure src="/figures/ubiquitin-and-proteolysis/scf-swappable-f-box.webp" width={1200} height={825} alt="AI-generated illustration: a labelled SCF ligase with a cullin scaffold, RING protein, E2 carrying ubiquitin, Skp1 adaptor and clay F-box protein gripping a target, with an inset showing a different F-box gripping a different target." caption="Swapping the F-box protein redirects the same SCF core toward a different degron and target." />
 
-**A phosphate that completes a docking site.** Some inhibitor proteins carry a short sequence with two serines. The F-box protein β-TrCP binds that sequence only when both serines carry a phosphate. A kinase that a signal has switched on adds the phosphates, β-TrCP brings the inhibitor to an SCF ligase, a lysine-48 chain follows, and the proteasome destroys the inhibitor. IκB, the inhibitor of the transcription factor NF-κB, is the classic case, and the NF-κB lesson covers its pathway. The Wnt lesson shows the same trick on β-catenin, except that there the signal works by stopping the phosphorylation. The reversible phosphate reads the signal, and the irreversible destruction commits the cell.
+After the first ubiquitin, more can be added to a lysine on the preceding ubiquitin. Ubiquitin has seven lysines, and chains can also join through its first amino acid, methionine 1. Linkage, length and branching shape how a mark is read. A chain joined through lysine 48 and at least four ubiquitins long is a usual proteasome signal.
 
-**An oxygen atom that completes a docking site.** The second example answers the opening question.
+## Signals write recognizable degrons
 
-Gregg Semenza found HIF-1 while studying erythropoietin, the kidney hormone that tells the bone marrow to make red blood cells. Its subunit HIF-1α was made all the time and destroyed almost as fast, so the amount standing at any instant changed with oxygen. The destruction depends on a protein called VHL, and only when oxygen is present. VHL is mutated in an inherited cancer syndrome, and cells lacking it made oxygen-regulated messages at high levels in ordinary air. VHL is the substrate receptor of a cullin-RING ligase, the role an F-box protein plays in an SCF. So VHL had to be reading a degron on HIF-1α, and nobody knew what it was.
+Some regulated targets carry an incomplete degron that a signal completes.
 
-The degron is a hydroxyl group on one proline of HIF-1α. A short HIF-1α peptide made with hydroxyproline already in place bound VHL tightly with no cell extract, and the same peptide with an ordinary proline did not. The enzymes that add the hydroxyl are the prolyl hydroxylases, or PHDs. A PHD needs iron, a small molecule called 2-oxoglutarate, and one molecule of oxygen, O2.
+**Phosphorylation can complete a docking site.** Some inhibitors have a short sequence containing two serines. The F-box protein β-TrCP binds only when both serines are phosphorylated. A signal-activated kinase adds the phosphates, and β-TrCP brings the inhibitor to an SCF for a lysine-48 chain and proteasomal destruction. IκB, inhibitor of NF-κB, is the classic case, followed in the NF-κB lesson. The Wnt lesson uses the same logic for β-catenin, except its signal stops phosphorylation. The reversible phosphate reads the signal; destruction commits that target molecule.
 
-Oxygen is a substrate here, used up like flour in bread, and the pathway needs no separate oxygen receptor. When oxygen falls, the enzyme finishes the reaction less often, fewer prolines are hydroxylated, VHL has less to grip, and HIF-1α is spared. It builds up, pairs with a partner protein called ARNT in the nucleus, and switches on genes such as VEGF, a growth factor that drives new blood vessels. A close relative, HIF-2α, is destroyed through the same hydroxylation and VHL. In the body it is mainly HIF-2α that switches on erythropoietin, and in kidney cancers that lack VHL it is mainly HIF-2α that drives the tumour.
+**Predict.** Both degron serines are replaced by alanines, but the kinase and proteasome still work. What step fails first?
 
-<LessonFigure src="/figures/ubiquitin-and-proteolysis/writing-the-degron.webp" width={1200} height={800} alt="AI-generated illustration: two columns. Left: a kinase adds two phosphates to the tail of an inhibitor protein, the F-box protein β-TrCP grips both phosphates, and the inhibitor gets a lysine-48 ubiquitin chain and goes to the proteasome. Right: the enzyme PHD uses oxygen to add a hydroxyl to HIF-1α, VHL grips the hydroxylated proline, and HIF-1α gets a ubiquitin chain and goes to the proteasome." caption="A signal can write a degron by completing a docking site. A kinase adds two phosphates that β-TrCP grips; a prolyl hydroxylase uses oxygen to add a hydroxyl that VHL grips. Either way a lysine-48 chain follows and the proteasome destroys the protein, so when oxygen falls HIF-1α is spared." />
+<details>
+<summary>Check your prediction</summary>
+
+Phosphorylation fails first: alanine has no hydroxyl, so the active kinase cannot add phosphates. Without them β-TrCP cannot recognize the degron, so the inhibitor never reaches the SCF.
+
+</details>
+
+**Oxygen-dependent hydroxylation completes another docking site.** Gregg Semenza found HIF-1 while studying erythropoietin, the kidney hormone that tells bone marrow to make red blood cells. Its subunit HIF-1α was made continuously and destroyed rapidly when oxygen was available, so its standing amount changed with oxygen.
+
+VHL is mutated in an inherited cancer syndrome, and cells lacking it made oxygen-regulated messages at high levels in ordinary air. VHL, the substrate receptor of a cullin-RING ligase, plays the role an F-box protein plays in an SCF, so it had to be reading some degron on HIF-1α. The film's peptide test named it: a hydroxylated proline, recognized with no cell extract present.
+
+**Prolyl hydroxylases**, or PHDs, add that hydroxyl. The reaction needs iron, 2-oxoglutarate and one molecule of oxygen. Oxygen is a substrate, used up like flour in bread; no separate oxygen receptor is required. Falling oxygen lowers how often PHDs finish the reaction, so VHL has less to grip and HIF-1α builds up while synthesis continues. It pairs with ARNT in the nucleus and switches on genes including VEGF, a growth factor that drives new blood vessels.
+
+A close relative, HIF-2α, is destroyed through the same hydroxylation and VHL pathway. In the body it is the main factor switching on erythropoietin, and in kidney cancers lacking VHL it is the main tumour driver.
+
+<LessonFigure src="/figures/ubiquitin-and-proteolysis/writing-the-degron.webp" width={1200} height={800} alt="AI-generated illustration: two columns. Left: a kinase adds two phosphates to the tail of an inhibitor protein, the F-box protein β-TrCP grips both phosphates, and the inhibitor gets a lysine-48 ubiquitin chain and goes to the proteasome. Right: the enzyme PHD uses oxygen to add a hydroxyl to HIF-1α, VHL grips the hydroxylated proline, and HIF-1α gets a ubiquitin chain and goes to the proteasome." caption="Phosphorylation lets β-TrCP recognize an inhibitor, while oxygen-dependent hydroxylation lets VHL recognize HIF-1α." />
 
 <HifOxygenSwitch />
 
-A simple model captures the dynamics. A protein P is made at a constant rate s and destroyed at a rate proportional to how much there is, with rate constant k:
+### Production minus destruction
 
-> **dP/dt = s - k × P, so at steady state P = s / k, and the half-life is 0.69 / k**
+How fast can HIF-1α rise once destruction stops? Let a protein amount, P, be made at constant rate s and destroyed with first-order rate constant k:
 
-A large k means a low steady state and a short half-life, and the half-life sets how fast the level can change.
+> **dP/dt = s − k × P; at steady state P = s/k; half-life = 0.69/k.**
 
-## Ubiquitin is a code: the kind of mark matters
+A larger k gives a lower steady state and a shorter response time.
 
-One ubiquitin on one lysine, called monoubiquitination, seldom sends a protein to the proteasome. It more often changes where the protein goes. A monoubiquitinated growth-factor receptor can be pulled into the cell by endocytosis, in which the membrane folds inward and pinches off a vesicle.
+**Predict.** Synthesis stays fixed while k falls to half its original value. What happens to steady-state P and the half-life?
 
-A chain joined through lysine 63 acts as a scaffold. Proteins with ubiquitin-binding domains, which are small folds that grip ubiquitin, clamp onto the chain, so one chain can gather several proteins into a complex. Signaling complexes assemble this way, and so do repair proteins at breaks in DNA.
+<details>
+<summary>Check your prediction</summary>
 
-These marks can be erased. Deubiquitinating enzymes cut ubiquitin off, and they can trim lysine-48 chains too, so a ubiquitin mark can be undone until the protein is actually destroyed. Movement and destruction can also go together: a receptor pulled into the cell by its ubiquitin marks is often carried to the lysosome and degraded there.
+Both double: the steady state becomes s/(k/2) = 2s/k, and the half-life becomes 0.69/(k/2), twice 0.69/k.
 
-<LessonFigure src="/figures/ubiquitin-and-proteolysis/ubiquitin-code.webp" width={1200} height={676} alt="AI-generated illustration: three frames. One ubiquitin on a membrane receptor's tail goes with the receptor into a pinched-off vesicle. A lysine-48 chain of four ubiquitins leads a protein into the proteasome, which releases fragments. A lysine-63 chain has three different proteins clamped onto it. Below, scissors cut a ubiquitin off a chain." caption="The kind of ubiquitin mark sets what happens. One ubiquitin more often moves a protein, as when a receptor is pulled in by endocytosis; a lysine-48 chain of at least four sends it to the proteasome; a lysine-63 chain is a scaffold that gathers proteins. Deubiquitinating enzymes can erase a mark until the protein is destroyed." />
+</details>
 
-SUMO is a close relative. A small ubiquitin-like modifier is a protein of about 100 amino acids folded like ubiquitin and attached to lysines by its own E1, E2 and E3. A SUMO mark usually changes what a protein binds or where it sits. Some SUMO chains, though, are read by ubiquitin ligases that then send the protein to the proteasome.
-
-## A hormone receptor that is a ligase
+The second film asks what different ubiquitin marks make happen, then shows a hormone that changes target choice without modifying the target first.
 
 <LessonFilm film={frontmatter.films[0]} />
 
-The plant hormone auxin tells shoots which way to bend and roots where to grow. Many botanists looked for its receptor at the cell surface, because animal biology said a receptor catches the hormone, changes shape, and starts a cascade. The receptor that controls auxin's effect on genes turned out to be part of the destruction machine.
+## Ubiquitin marks remain editable
 
-The clue was a mutant. Arabidopsis plants with a broken TIR1 gene respond poorly to auxin. TIR1 is an F-box protein, the interchangeable part of an SCF ligase, and F-box proteins were thought to grab targets and sense nothing. In 2005 two laboratories, working independently, reported in the same issue of Nature that TIR1 binds auxin itself.
+**Deubiquitinating enzymes** cut ubiquitin off and can trim lysine-48 chains.
 
-Here is how it works. The genes that auxin switches on are held off by repressor proteins of the Aux/IAA family. Without auxin, TIR1 binds one of them poorly. Auxin fits into a pocket at the exact place where TIR1 and the repressor touch, and the grip tightens. The repressor is ubiquitinated and destroyed, and the genes come on. The 2007 crystal structure, from Estelle's group with Ning Zheng, showed auxin sitting in the joint between the two proteins. The hormone is part of the joint, a molecular glue, and detecting the hormone and grabbing the repressor for destruction are a single binding step.
+**Predict.** A deubiquitinating enzyme removes a target's lysine-48 chain before the proteasome engages it. Can the same protein molecule still be rescued? What if proteolysis has begun?
 
-Drug makers now use the same principle on purpose. Lenalidomide, a relative of thalidomide used in multiple myeloma, binds cereblon, the substrate receptor of a cullin-RING ligase. The bound drug changes cereblon's surface so that it grips two transcription factors, Ikaros and Aiolos, which it would otherwise ignore, and they are ubiquitinated and destroyed. The drug was in clinical use years before anyone knew this. Chemists also build two-headed molecules called PROTACs, with one end that grips a target and one that grips a ligase such as VHL, using a small molecule built around the hydroxyproline that VHL grips in HIF-1α.
+<details>
+<summary>Check your prediction</summary>
+
+Before engagement, yes: chain removal rescues that molecule from this destruction signal. Once proteolysis has cut the protein, removing ubiquitin cannot rebuild it; a replacement must be made.
+
+</details>
+
+<LessonFigure src="/figures/ubiquitin-and-proteolysis/ubiquitin-code.webp" width={1200} height={676} alt="AI-generated illustration: three frames. One ubiquitin on a membrane receptor's tail goes with the receptor into a pinched-off vesicle. A lysine-48 chain of four ubiquitins leads a protein into the proteasome, which releases fragments. A lysine-63 chain has three different proteins clamped onto it. Below, scissors cut a ubiquitin off a chain." caption="A single ubiquitin often changes location, a classic lysine-48 chain targets the proteasome, and a lysine-63 chain can assemble readers." />
+
+**SUMO**, a small ubiquitin-like modifier of about 100 amino acids, is folded like ubiquitin and attached to lysines by its own E1, E2 and E3. It usually changes binding or location, though some SUMO chains are read by ubiquitin ligases that send the protein to the proteasome.
+
+## Evidence that TIR1 is receptor and selector
+
+The film called auxin a **molecular glue**, a small molecule that strengthens or creates a protein-protein contact. Auxin tells shoots which way to bend and roots where to grow. Botanists long sought its receptor at the cell surface, but the receptor behind its gene response is part of an SCF destruction machine.
+
+Arabidopsis plants with a broken TIR1 gene respond poorly to auxin. TIR1 is an F-box protein, then thought to grab targets rather than sense hormones. In 2005 two laboratories independently showed that TIR1 binds auxin itself (see Going deeper). The relevant targets are Aux/IAA repressors, which hold auxin-responsive genes off.
+
+A 2007 crystal structure from Mark Estelle's group with Ning Zheng confirmed the film's picture: auxin sits where TIR1 and an Aux/IAA repressor meet.
+
+**Predict.** Auxin and TIR1 bind normally, but the proteasome is blocked. Will the repressor disappear and the genes switch on by this route?
+
+<details>
+<summary>Check your prediction</summary>
+
+No. Recognition and ubiquitination can occur, but the repressor remains if the proteasome cannot destroy it, so the genes stay off.
+
+</details>
+
+Drug makers use the same principle. Lenalidomide, a thalidomide relative used in multiple myeloma, binds cereblon, a cullin-RING substrate receptor. The drug reshapes cereblon's surface so it grips the transcription factors Ikaros and Aiolos, which it would otherwise ignore, and they are then ubiquitinated and destroyed. The drug was used clinically before this mechanism was known. **PROTACs** are two-headed molecules: one end binds a target, while the other binds a ligase such as VHL, using a small molecule built around the hydroxyproline VHL recognizes in HIF-1α.
 
 ### Design problem
 
-A transcription factor must be nearly absent when oxygen is plentiful and present in the nucleus within minutes when oxygen falls. Design the control. Why is destroying it continuously better than making it on demand?
+A transcription factor must be nearly absent when oxygen is plentiful and enter the nucleus within minutes when oxygen falls. Design the control. Why destroy it continuously rather than make it on demand?
 
 <details>
 <summary>One way to do it</summary>
 
-Make the factor all the time and destroy it with a tag that needs oxygen to be written. Give it a half-life of five minutes in air, so k is about 0.14 per minute and the steady-state pool equals about seven minutes (1/k) of synthesis. The sensing sits in the tag, because the hydroxylation that writes it consumes oxygen.
+Make the factor continuously and destroy it through an oxygen-dependent tag. Give it a five-minute half-life in air. Then k is about 0.14 per minute and 1/k about seven minutes, so the steady pool equals about seven minutes of synthesis.
 
-When oxygen falls, hydroxylation slows and destruction stops. Synthesis that was already running adds s molecules every minute to a pool that held s/k, so the pool grows by about 14 percent of its baseline each minute and is about five times baseline after 30 minutes, with no new transcription.
+In this simple model, when oxygen falls, hydroxylation and destruction stop while synthesis continues. Each minute adds s to the existing s/k pool, about 14 percent of baseline. After 30 minutes the pool is about five times baseline, without waiting for new transcription.
 
-Making the factor on demand would need the signal to switch on the gene, then wait for transcription, RNA processing and translation, which takes tens of minutes to hours. Continuous destruction also makes the off-switch as fast as the on-switch: when oxygen returns, the excess above baseline halves every five minutes, and after 25 minutes only about 3 percent of the excess is left. The cost is ATP and amino acids spent on a protein the cell keeps discarding.
+Making it on demand would wait tens of minutes to hours for transcription, RNA processing and translation. Continuous destruction also makes the off-switch as fast as the on-switch: when oxygen returns, the excess above baseline halves every five minutes, and after 25 minutes only about 3 percent of the excess is left. The cost is ATP and amino acids spent on discarded protein.
 
 </details>
 
@@ -491,13 +546,17 @@ Making the factor on demand would need the signal to switch on the gene, then wa
 
 ### How VHL was tied to oxygen
 
-Peter Ratcliffe's group showed in 1999 that the destruction depends on a protein called VHL, and only when oxygen is present. William Kaelin had reached VHL from the other side, through the cancer syndrome described above.
+Peter Ratcliffe's group showed in 1999 that HIF-1α destruction depends on VHL and occurs efficiently when oxygen is available. William Kaelin reached VHL from the other direction, through the inherited cancer syndrome above.
 
-### The 2001 discovery of the degron, and the oxygen bookkeeping
+### The degron and oxygen bookkeeping
 
-In 2001 the two laboratories, knowing they were competitors, each found it independently. The degron is a hydroxyl group on one proline of HIF-1α (proline 564 in the human protein; proline 402 is modified too). One atom of the oxygen ends up in the new hydroxyl and the other in succinate, which forms when 2-oxoglutarate loses a CO2.
+In 2001 the two competing laboratories independently identified the hydroxylated degron. Proline 564 in human HIF-1α is one site; proline 402 is modified too. One oxygen atom enters the new hydroxyl. The other enters succinate when 2-oxoglutarate loses carbon dioxide.
+
+### Where target choice really sits
+
+E2-E3 pairing and the rest of the machinery can also influence ubiquitin transfer and chain architecture, so the E3 is the main selector in these pathways, not the only one.
 
 ### The auxin receptor papers
 
-On 26 May 2005, Estelle's laboratory at Indiana University and, independently, Ottoline Leyser and Stefan Kepinski at the University of York reported in the same issue of Nature that TIR1 binds auxin itself.
+On 26 May 2005, Estelle's laboratory at Indiana University and, independently, Ottoline Leyser and Stefan Kepinski at the University of York reported in the same issue of *Nature* that TIR1 binds auxin itself.
 

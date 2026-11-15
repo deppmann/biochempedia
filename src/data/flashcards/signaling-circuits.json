@@ -1,0 +1,539 @@
+{
+ "slug": "signaling-circuits",
+ "title": "Circuits: Amplification, Feedback, Adaptation and Switches",
+ "generated": {
+  "date": "2026-11-12",
+  "pipeline": "extract → Sonnet draft → Sonnet accuracy gate (separate agent) → Sonnet fixes",
+  "models": {
+   "draft": "claude-sonnet-5-5",
+   "gate": "claude-sonnet-5-5",
+   "fix": "claude-sonnet-5-5"
+  }
+ },
+ "lessonHash": "6e6a7a72f615",
+ "sectionHashes": {
+  "(opening)": "48126d16053c",
+  "Gain is a product, within a simple model": "d962e3da3db8",
+  "Amplification sends a bill": "2782421bf71d",
+  "Negative feedback can set how long a signal lasts": "07705e2d0159",
+  "Positive feedback turns a dial into a switch": "5c005c98c5bf",
+  "Adaptation: returning to rest while the signal is still on": "16b034db68a3",
+  "What the simple gain product leaves out": "82245c7ea2ba"
+ },
+ "cards": [
+  {
+   "id": "signaling-circuits-c01",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In the simple unsaturated cascades used in this lesson, the overall gain of a cascade is the {{c1::product}} of its step gains.",
+   "back": "",
+   "quote": "Step gains multiply in the simple unsaturated cascades used here, where each active molecule independently reaches a fixed number downstream."
+  },
+  {
+   "id": "signaling-circuits-c02",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In signaling circuits, what is gain?",
+   "back": "Output molecules per input molecule.",
+   "quote": "Gain is output molecules per input molecule.",
+   "section": "Gain is a product, within a simple model"
+  },
+  {
+   "id": "signaling-circuits-c03",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "In a rod cell, about how much does the current change when one rhodopsin molecule absorbs one photon?",
+   "back": "About one picoamp, a few percent of the roughly 20 picoamp dark current.",
+   "quote": "One photon, absorbed by one rhodopsin molecule in a rod cell, changes the current through that cell by about one picoamp, a trillionth of an ampere."
+  },
+  {
+   "id": "signaling-circuits-c04",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "In the rod cascade, why does one photon activate only about 16 transducins in mouse, although active rhodopsin in isolated membranes switches on 120 to 150 molecules per second?",
+   "back": "Rhodopsin is switched off quickly in an intact rod, so it stays active only briefly.",
+   "why": "Rate multiplied by active lifetime helps set the first step's gain.",
+   "quote": "Rhodopsin is switched off quickly, though, so in an intact rod one photon activates only about 16 transducins in mouse and about 60 in frog.",
+   "section": "Gain is a product, within a simple model"
+  },
+  {
+   "id": "signaling-circuits-c05",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In the mouse rod, one photon activates about 16 transducins and the resulting PDE destroys about 2,000 cGMP molecules. Does more of the gain lie in the first catalytic step or the last?",
+   "back": "The last. The first step multiplies by about 16; the last multiplies those 16 into about 2,000 cGMP, roughly 125 per active PDE.",
+   "why": "The transducin-to-PDE handoff is one-to-one, so it adds no gain.",
+   "quote": "The last multiplies those 16 into about 2,000 destroyed cGMP molecules, roughly 125 per active PDE.",
+   "section": "Gain is a product, within a simple model"
+  },
+  {
+   "id": "signaling-circuits-c06",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In a simple unsaturated cascade, one active receptor activates 10 G proteins. Each active G protein activates one effector enzyme. Each active effector enzyme makes 300 second-messenger molecules. How many messenger molecules does one active receptor produce?",
+   "back": "3,000. Gain = 10 × 1 × 300 = 3,000.",
+   "why": "Step gains multiply; the one-to-one step contributes a factor of 1.",
+   "quote": "Rhodopsin to transducin and PDE to cGMP are catalytic steps, where one active molecule changes many downstream molecules while it stays active",
+   "section": "Gain is a product, within a simple model"
+  },
+  {
+   "id": "signaling-circuits-c07",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Name the three costs of amplification discussed in the lesson.",
+   "back": "Noise, shutoff and spread.",
+   "why": "Noise: upstream fluctuations are magnified. Shutoff: the response must be ended. Spread: a messenger made in many copies may reach unintended targets.",
+   "quote": "The first film named three costs: noise, shutoff and spread.",
+   "section": "Amplification sends a bill"
+  },
+  {
+   "id": "signaling-circuits-c08",
+   "type": "experiment",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "Baylor's group dimmed flashes until most trials on a rod gave no response. Why did the blank fraction following a Poisson distribution support trusting the one-picoamp dip?",
+   "back": "It showed each response was one photon caught at random: rare, independent events.",
+   "quote": "if each response is one photon caught at random, the blank fraction must follow a Poisson distribution, the signature of rare independent events.",
+   "section": "Amplification sends a bill"
+  },
+  {
+   "id": "signaling-circuits-c09",
+   "type": "qa",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In a rod, light closes cGMP-gated channels and lowers calcium inside the cell. How does this give negative feedback on the response?",
+   "back": "Calcium-sensing GCAP proteins respond to the lower calcium by speeding the enzyme that makes cGMP, which opposes the light-driven fall in cGMP.",
+   "quote": "closing channels lowers calcium inside the cell, and calcium-sensing GCAP proteins speed the enzyme that makes cGMP.",
+   "section": "Amplification sends a bill"
+  },
+  {
+   "id": "signaling-circuits-c10",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "Which two proteins shut down active rhodopsin in a rod?",
+   "back": "Rhodopsin kinase and arrestin.",
+   "why": "The RGS9 complex separately speeds transducin's self-shutoff.",
+   "quote": "Rhodopsin kinase and arrestin shut down rhodopsin.",
+   "section": "Amplification sends a bill"
+  },
+  {
+   "id": "signaling-circuits-c11",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "How does mAKAP insulate a cyclic AMP signal from other pathways' targets?",
+   "back": "It holds a kinase, a messenger-destroying phosphodiesterase and the kinase's target within nanometres, so the cyclic AMP that matters stays in that small neighbourhood.",
+   "quote": "mAKAP, for example, holds a kinase, a messenger-destroying phosphodiesterase and the kinase's target within nanometres",
+   "section": "Amplification sends a bill"
+  },
+  {
+   "id": "signaling-circuits-c12",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In a design where a growth factor drives a kinase and the kinase's output induces a phosphatase X that dephosphorylates the kinase, what happens to the signal if X acts as fast as the kinase?",
+   "back": "The signal would barely rise, because X would remove the kinase's phosphates almost as soon as they are added.",
+   "why": "X must act late, for example by needing to be made from scratch, and that delay sets the window.",
+   "quote": "If it worked as fast as the kinase, the signal would barely rise.",
+   "section": "Negative feedback can set how long a signal lasts"
+  },
+  {
+   "id": "signaling-circuits-c13",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "In a delayed negative feedback loop like the kinase-induced phosphatase X, why should X be short-lived?",
+   "back": "If X lingered after the growth factor was gone, the cell could respond only weakly a second time.",
+   "quote": "If it lingered once the growth factor was gone, the cell could respond only weakly a second time.",
+   "section": "Negative feedback can set how long a signal lasts"
+  },
+  {
+   "id": "signaling-circuits-c14",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "ERK drives production of DUSP-family phosphatases that remove ERK's own phosphates. A cell cannot make DUSP. Under continuing growth factor, how would you expect ERK activity to change compared with normal cells, and why?",
+   "back": "The activity window should lengthen or fall less, because the delayed brake is missing.",
+   "why": "Other loops, receptor traffic and degradation can still shape duration, so the change need not be complete.",
+   "quote": "ERK drives production of DUSP-family phosphatases that remove ERK's own phosphates.",
+   "section": "Negative feedback can set how long a signal lasts"
+  },
+  {
+   "id": "signaling-circuits-c15",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "Does delayed negative feedback explain every signal's duration? Give the lesson's answer.",
+   "back": "No. It is one design, not a universal timer; receptor traffic, component degradation and other loops can also set duration.",
+   "quote": "The brake's delay, strength and lifetime help set the activity window, but this is one design, not a universal timer",
+   "section": "Negative feedback can set how long a signal lasts"
+  },
+  {
+   "id": "signaling-circuits-c16",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Pooled Xenopus oocytes show a smooth S-shaped MAP kinase response to progesterone. Which single measurement could show whether each egg is partly active or eggs are fully on or off?",
+   "back": "Assay MAP kinase in one egg per lane. Fully on or off eggs show up as separate populations; a pooled average cannot tell them from partly active eggs.",
+   "quote": "Pooling eggs at each dose produced a smooth S-shaped average.",
+   "section": "Positive feedback turns a dial into a switch"
+  },
+  {
+   "id": "signaling-circuits-c17",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "At one progesterone dose, a pooled extract of oocytes reads 30 percent of maximal MAP kinase activity. Of 200 single oocytes at that dose, 60 are fully active and 140 are at background. Does the pooled value fit this all-or-none pattern, and can it prove the pattern?",
+   "back": "It fits: 60/200 = 30 percent. It cannot prove it, since 200 oocytes each at 30 percent also give 30 percent.",
+   "quote": "A pooled average cannot distinguish intermediate cells from a mixture of fully on and off cells.",
+   "section": "Positive feedback turns a dial into a switch"
+  },
+  {
+   "id": "signaling-circuits-c18",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "What does the Hill coefficient n measure in a dose-response curve?",
+   "back": "How abruptly output rises with dose: larger n means a steeper, more switch-like response.",
+   "quote": "The Hill coefficient, n, measures how abruptly output rises with dose.",
+   "section": "Positive feedback turns a dial into a switch"
+  },
+  {
+   "id": "signaling-circuits-c19",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "For a Hill response, dose at 90% of maximum ÷ dose at 10% of maximum = {{c1::81^(1/n)}}.",
+   "back": "",
+   "quote": "dose at 90% of maximum ÷ dose at 10% of maximum = 81^(1/n)",
+   "section": "Positive feedback turns a dial into a switch"
+  },
+  {
+   "id": "signaling-circuits-c20",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "By the Hill relation, how many-fold is the 10-to-90 percent dose span for n = 2 and for n = 6?",
+   "back": "For n = 2 the span is 81^(1/2) = 9-fold. For n = 6 it is 81^(1/6), about 2.1-fold.",
+   "why": "Larger n gives a narrower, more switch-like response.",
+   "quote": "The spans are 81^(1/3), about 4.3-fold, and 81^(1/35), about 1.13-fold.",
+   "section": "Positive feedback turns a dial into a switch"
+  },
+  {
+   "id": "signaling-circuits-c21",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In single cells, a response is 10 percent of maximum at 10 nM and 90 percent of maximum at 90 nM. Assuming a Hill response, what is n?",
+   "back": "n = 2. The dose ratio is 90/10 = 9, so 81^(1/n) = 9. Since 81 = 9^2, 1/n = 1/2 and n = 2.",
+   "quote": "dose at 90% of maximum ÷ dose at 10% of maximum = 81^(1/n)",
+   "section": "Positive feedback turns a dial into a switch"
+  },
+  {
+   "id": "signaling-circuits-c22",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Why does multisite phosphorylation of ERK by MEK make the response ultrasensitive?",
+   "back": "ERK needs two phosphates, added in separate encounters, and one leaves it mostly off. The result is steeper than proportional: an S-shaped curve, not a true threshold, and still reversible.",
+   "quote": "MEK adds the phosphates in separate encounters, releasing ERK between them.",
+   "section": "Positive feedback turns a dial into a switch"
+  },
+  {
+   "id": "signaling-circuits-c23",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Stacking three relay tiers in the MAP kinase cascade gives a Hill coefficient of about 4 to 5. Ferrell and Machleder reported at least 35 in oocytes. What did they propose to account for the difference?",
+   "back": "A positive feedback loop around the cascade drives an egg that has started switching the remaining distance.",
+   "quote": "Ferrell and Machleder proposed that a loop around the cascade drives an egg that has started switching the remaining distance.",
+   "section": "Positive feedback turns a dial into a switch"
+  },
+  {
+   "id": "signaling-circuits-c24",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "What can sufficiently strong positive feedback add to an ultrasensitive response?",
+   "back": "Bistability, two stable output states under the same conditions, and memory.",
+   "quote": "Sufficiently strong positive feedback can add bistability, two stable output states under the same conditions, and memory.",
+   "section": "Positive feedback turns a dial into a switch"
+  },
+  {
+   "id": "signaling-circuits-c25",
+   "type": "experiment",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Xiong and Ferrell removed the hormone from oocytes that had committed to maturation, and the oocytes stayed matured. What does this show about the circuit?",
+   "back": "The response has memory: the committed state persists without the input, which sufficiently strong positive feedback can produce.",
+   "quote": "Xiong and Ferrell showed in 2003 that an oocyte committed to maturation stays matured after hormone removal.",
+   "section": "Positive feedback turns a dial into a switch"
+  },
+  {
+   "id": "signaling-circuits-c26",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Cell A's output rises steeply with dose but returns to baseline when the dose is removed. Cell B's output stays high after the dose is removed. Which cell's circuit could include sufficiently strong positive feedback, and does the steep response of cell A require it?",
+   "back": "Cell B. Cell A's steep response needs no feedback: ultrasensitivity is steeper than proportional and still reversible. Sufficiently strong positive feedback can give persistence after input removal.",
+   "quote": "This multisite process makes the response ultrasensitive: steeper than proportional, an S-shaped curve rather than a true threshold, and still reversible.",
+   "section": "Positive feedback turns a dial into a switch"
+  },
+  {
+   "id": "signaling-circuits-c27",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A pooled oocyte extract reads 25, 50 and 75 percent MAP kinase activity at three rising doses. Single-oocyte assays at each dose show only fully active or background oocytes, at 25, 50 and 75 percent fully active. What does each oocyte do, and why does the pooled curve look graded?",
+   "back": "Each oocyte switches nearly fully on or off. Oocytes differ in switching threshold, so the pooled value reports the fraction that has flipped, which rises smoothly with dose.",
+   "quote": "Eggs differ in switching threshold, so at an intermediate dose a homogenate reports the fraction that has flipped as if every egg responded partway.",
+   "section": "Positive feedback turns a dial into a switch"
+  },
+  {
+   "id": "signaling-circuits-c28",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "What is adaptation in a signaling pathway?",
+   "back": "A return toward rest while the stimulus remains.",
+   "quote": "Adaptation is a return toward rest while the stimulus remains.",
+   "section": "Adaptation: returning to rest while the signal is still on"
+  },
+  {
+   "id": "signaling-circuits-c29",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "Why is adaptation useful to E. coli swimming in an attractant gradient?",
+   "back": "It lets the bacterium respond to a climb in attractant, not stay saturated by the level already reached.",
+   "quote": "It lets E. coli respond to a climb in attractant rather than stay saturated by the level already reached.",
+   "section": "Adaptation: returning to rest while the signal is still on"
+  },
+  {
+   "id": "signaling-circuits-c30",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Receptor methylation in E. coli acts as a running total of the error, which engineers call {{c1::integral feedback}}.",
+   "back": "A negative feedback that keeps correcting until the error is zero.",
+   "quote": "The second film showed receptor methylation acting as a running total of the error, which engineers call integral feedback",
+   "section": "Adaptation: returning to rest while the signal is still on"
+  },
+  {
+   "id": "signaling-circuits-c31",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "In E. coli chemotaxis, CheR adds methyl groups to the receptor and {{c1::CheB}} removes them.",
+   "back": "",
+   "quote": "CheR adds methyl groups to the receptor and CheB removes them.",
+   "section": "Adaptation: returning to rest while the signal is still on"
+  },
+  {
+   "id": "signaling-circuits-c32",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "In the idealized E. coli adaptation model, which two enzyme properties make the loop correct to zero error?",
+   "back": "CheB acts mainly on active receptors, and CheR works near its top speed.",
+   "quote": "The idealized model works because CheB acts mainly on active receptors and CheR works near its top speed.",
+   "section": "Adaptation: returning to rest while the signal is still on"
+  },
+  {
+   "id": "signaling-circuits-c33",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "In the shower-knob picture of integral feedback, what does correction speed set and what sets the stopping point?",
+   "back": "Correction speed affects arrival time; the target value, 'right', sets the stopping point.",
+   "quote": "Like turning a shower knob until the water feels right, correction speed affects arrival time",
+   "section": "Adaptation: returning to rest while the signal is still on"
+  },
+  {
+   "id": "signaling-circuits-c34",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "An E. coli strain overproduces one of the two methylation enzymes. After attractant is added and left in place, what should its tumbling rate return to, and what may still differ from normal cells?",
+   "back": "It should return, within experimental error, to its own pre-attractant rate. Its resting rate and return time may differ from normal cells.",
+   "quote": "a cell can still return within experimental error to its own pre-attractant rate while differing from normal neighbours in resting rate and return time.",
+   "section": "Adaptation: returning to rest while the signal is still on"
+  },
+  {
+   "id": "signaling-circuits-c35",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "In E. coli chemotaxis, each receptor has a fixed number of methylation sites. What should happen at very high attractant levels?",
+   "back": "Free sites run out before the error reaches zero, so real cells adapt measurably short of their starting rate.",
+   "why": "Exact adaptation is a limit of the model, not a guarantee.",
+   "quote": "Free methylation sites run out before the error reaches zero, so real cells adapt measurably short of their starting rate.",
+   "section": "Adaptation: returning to rest while the signal is still on"
+  },
+  {
+   "id": "signaling-circuits-c36",
+   "type": "experiment",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Alon, Surette, Barkai and Leibler tested E. coli carrying different amounts of one circuit protein at a time. What varied and what did not?",
+   "back": "Adaptation time and steady-state behaviour varied strongly with protein concentration; the precision of adaptation did not.",
+   "quote": "Adaptation time and steady-state behaviour varied strongly with protein concentration. The precision of adaptation did not.",
+   "section": "Adaptation: returning to rest while the signal is still on"
+  },
+  {
+   "id": "signaling-circuits-c37",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "{{c1::Robustness}} means that a specified output property holds when component amounts or rates vary.",
+   "back": "It does not mean every property is protected.",
+   "quote": "Robustness means that a specified output property holds when component amounts or rates vary; it never means that every property is protected.",
+   "section": "Adaptation: returning to rest while the signal is still on"
+  },
+  {
+   "id": "signaling-circuits-c38",
+   "type": "qa",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In the simple cascade model, where a step's gain is proportional to its rate multiplied by its active lifetime, a rod's rhodopsin stays active twice as long, other rates unchanged. What happens to the first step's gain, and why is the final output duration not locked to it?",
+   "back": "In that simple model the first step's gain roughly doubles. Duration is not locked, because downstream shutoff or feedback can still shorten a high-gain output.",
+   "quote": "Rate multiplied by active lifetime helps set a step's gain, but amplitude and duration are not locked together",
+   "section": "What the simple gain product leaves out"
+  },
+  {
+   "id": "signaling-circuits-c39",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A signal rises, then falls to baseline within an hour while the ligand stays on. A second circuit stays on after the ligand is removed. A third returns to its own pre-stimulus output across wide ranges of enzyme levels, with only the speed changing. Name the feedback in each.",
+   "back": "First: delayed negative feedback. Second: sufficiently strong positive feedback, giving memory. Third: integral negative feedback, giving robust adaptation.",
+   "quote": "Circuit architecture and kinetics shape a signal's size, duration, and reversibility."
+  }
+ ]
+}
