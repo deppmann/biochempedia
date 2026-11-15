@@ -6,7 +6,8 @@
 //
 // Each file under public/explainers/ becomes the object "explainers/<...>", the same path it
 // has on the site, so no lesson has to change. A manifest of what was uploaded (path, size,
-// sha256) is kept in media-manifest.json so a second run sends only what changed. Needs
+// sha256) is kept in media-manifest.json so a second run sends only what changed.
+// Films are not tracked in git: render, upload with this script, commit media-manifest.json. Needs
 // `wrangler login` once on this machine (run it from outside this folder). The bucket name is read from wrangler.jsonc.
 import { execFile } from 'node:child_process';
 import { createHash } from 'node:crypto';
@@ -25,7 +26,10 @@ const cfg = readFileSync('wrangler.jsonc', 'utf8').replace(/^\s*\/\/.*$/gm, '');
 const bucket = (/"bucket_name"\s*:\s*"([^"]+)"/.exec(cfg) || [])[1] || process.env.MEDIA_BUCKET;
 if (!bucket) { console.error('No r2_buckets entry in wrangler.jsonc and no MEDIA_BUCKET set.'); process.exit(1); }
 
-const walk = (d) => readdirSync(d).flatMap((n) => {
+// Films are not in the repository (only their posters and captions are), so public/explainers may
+// hold a few films, none, or not exist at all. Upload what is here; a manifest row is never removed
+// because its file is absent on this machine (the object is still in R2 and pages still use it).
+const walk = (d) => (existsSync(d) ? readdirSync(d) : []).flatMap((n) => {
   const p = join(d, n);
   return statSync(p).isDirectory() ? walk(p) : [p];
 });

@@ -5,7 +5,8 @@ precise, scene-by-scene work order. No model reads anything.
     python3 explainers/_pipeline/film_plan.py --lint docs/expansion/films/lint.jsonl --out docs/expansion/films/plans
     python3 explainers/_pipeline/film_plan.py --lint ... --only history-of-life        # one film, printed
 
-For every lesson-level film (explainers/<slug>/script.json with public/explainers/<slug>/explainer.mp4)
+For every lesson-level film (explainers/<slug>/script.json with public/explainers/<slug>/explainer.mp4
+on disk or in media-manifest.json; the planner reads the captions, never the film itself)
 it writes plans/<course>.md (films ordered oldest-and-worst first) and plans/plan.csv.
 Each film gets a LEVEL (see docs/expansion/films/PROCESS.md):
   L1 re-pace     no tokens: add "pace" (and "ambient") to script.json, rebuild_kokoro.sh
@@ -156,6 +157,8 @@ def main():
             j = json.loads(ln); lint[j["film"]] = j
         except Exception:
             pass
+    mf = R / "media-manifest.json"
+    media = json.loads(mf.read_text()) if mf.exists() else {}
     chaptered = {p.parent.parent.name for p in R.glob("explainers/*/*/script.json")}
     rows = []
     for sp in sorted(R.glob("explainers/*/script.json")):
@@ -163,7 +166,8 @@ def main():
         if slug.startswith(("_", "bio-")) or (a.only and slug != a.only):
             continue
         mp4 = f"public/explainers/{slug}/explainer.mp4"
-        if not (R / mp4).exists():
+        # Films are not tracked in git: a film counts when it is on disk or listed in media-manifest.json (R2).
+        if not (R / mp4).exists() and mp4.removeprefix("public/") not in media:
             continue
         try:
             r = plan(slug, lint.get(mp4)); r["chapters"] = slug in chaptered; rows.append(r)
