@@ -1,390 +1,541 @@
-"""The genetic code and translation: one base moves the reading frame  (Biochemistrypedia explainer)
+"""The Frame Sets the Message — genetic code and translation explainer.
 
-COLOR MAP (one color per concept, whole film)
-  TEXT   = bases of the message being read (letters inside a codon box)
-  BLUE   = a codon box / a codon read in the right frame (triplet words that are the original words)
-  GREEN  = an amino acid in the protein chain
-  YELLOW = the base that is changed, added or removed
-  RED    = a stop, or a triplet word that is wrong after a frame shift
-  GREY   = bases not read (before the start codon, after the stop), notes, unknown "?" answers
+COLOR MAP (one meaning throughout)
+  BLUE  message ribbon / RNA bases
+  TEAL  reading window and correctly aligned triplets
+  GOLD  selected start and inserted/deleted bases
+  GREEN amino-acid outcomes / restored alignment
+  RED   too little capacity or translation stop
+  GREY  inactive, uncertain, or displaced evidence
 """
-import numpy as np
-from bp_style import *  # noqa: F401,F403
-
-ORIG = "GCCAUGGCUUGGAAACCUGACUAGCC"
-W = 0.44
-N = 27
-X0 = -(N * W) / 2 + W / 2
-YS = 1.3      # the strip
-YC = -0.2     # the amino acid chips
-YG = -1.7     # the "before" ghost row
-YL = -2.9     # bottom label
-FS = 40
+from bp_parts import *
 
 
-def sx(i):
-    return X0 + i * W
+SEQ = "AUGGCUUGGAAACCUGACUAG"
+TILE_W = 0.60
+TILE_H = 1.0
+RIBBON_X = -6.15
 
 
-def L(ch, i, color=TEXT, y=YS, size=FS):
-    return M(ch, size, color).move_to([sx(i), y, 0])
+def tile_x(i, x0=RIBBON_X):
+    return x0 + i * TILE_W
 
 
-def cbox(k, color=BLUE, op=0.1):
-    return RoundedRectangle(corner_radius=0.1, width=3 * W - 0.05, height=1.0, stroke_color=color,
-                            stroke_width=2.5, fill_color=color, fill_opacity=op).move_to([sx(4 + 3 * k), YS, 0])
+def message_ribbon(y=0.35, seq=SEQ, x0=RIBBON_X, start=1, brackets=True,
+                   tile_color=BLUE, letter_color=TEXT):
+    """The one carried picture: all ribbon scenes call this at identical scale and coordinates."""
+    tiles = VGroup()
+    for i, base in enumerate(seq):
+        box = RoundedRectangle(
+            corner_radius=0.08, width=TILE_W - 0.12, height=TILE_H,
+            stroke_color=tile_color, stroke_width=2.2,
+            fill_color=tile_color, fill_opacity=0.16,
+        ).move_to([tile_x(i, x0), y, 0])
+        letter = M(base, 28, letter_color).move_to(box)
+        tiles.add(VGroup(box, letter))
+
+    groups = VGroup()
+    if brackets:
+        for first in range(start, len(seq) - 2, 3):
+            groups.add(
+                RoundedRectangle(
+                    corner_radius=0.1, width=3 * TILE_W - 0.04, height=TILE_H + 0.22,
+                    stroke_color=TEAL, stroke_width=3.2,
+                    fill_color=TEAL, fill_opacity=0.035,
+                ).move_to([tile_x(first + 1, x0), y, 0])
+            )
+
+    flag_x = tile_x(start, x0)
+    pole = Line([flag_x, y + 0.48, 0], [flag_x, y + 1.25, 0], color=GOLD, stroke_width=5)
+    pennant = Polygon(
+        [flag_x, y + 1.23, 0], [flag_x + 0.48, y + 1.04, 0], [flag_x, y + 0.86, 0],
+        color=GOLD, fill_color=GOLD, fill_opacity=0.9, stroke_width=2,
+    )
+    flag = VGroup(pole, pennant)
+    world = VGroup(tiles, groups, flag)
+    world.tiles, world.brackets, world.flag = tiles, groups, flag
+    world.y, world.x0, world.start = y, x0, start
+    return world
 
 
-def aa(name, k, y=YC):
-    color = RED if name == "stop" else (GREY if name == "?" else GREEN)
-    return chip(name, color, size=30, pad=0.17).move_to([sx(4 + 3 * k), y, 0])
+def reading_window(first, y=0.35, x0=RIBBON_X, color=TEAL):
+    """A three-slot reading window whose dividers fall only in tile gaps."""
+    cx = tile_x(first + 1, x0)
+    outer = RoundedRectangle(
+        corner_radius=0.13, width=3 * TILE_W + 0.12, height=TILE_H + 0.34,
+        stroke_color=color, stroke_width=6, fill_color=color, fill_opacity=0.08,
+    ).move_to([cx, y, 0])
+    dividers = VGroup(*[
+        Line([tile_x(first + j, x0) + TILE_W / 2, y - 0.52, 0],
+             [tile_x(first + j, x0) + TILE_W / 2, y + 0.52, 0],
+             color=color, stroke_width=3)
+        for j in (0, 1)
+    ])
+    return VGroup(outer, dividers)
 
 
-def tie(k):
-    return Line([sx(4 + 3 * k), YS - 0.5, 0], [sx(4 + 3 * k), YC + 0.45, 0], color=GREY, stroke_width=2, stroke_opacity=0.5)
+def shimmer_ribbon(world, speed=1.15, depth=0.62):
+    """A slow wave of colour along the message, keeping long spoken holds alive."""
+    tiles = world.tiles
+    tiles._shimmer_t = 0.0
+
+    def update(mob, dt):
+        mob._shimmer_t += dt
+        for i, tile in enumerate(mob):
+            tile[0].set_fill(opacity=0.12 + depth * (0.5 + 0.5 * np.sin(speed * mob._shimmer_t - i * 0.55)))
+    tiles.add_updater(update)
+    return world
 
 
-def base_letters(unread=(0, 1, 2, 24, 25)):
-    return [L(c, i, GREY if i in unread else TEXT) for i, c in enumerate(ORIG)]
+def shimmer_marks(group, speed=1.1, low=0.48):
+    """Gentle opacity wave for capacity dots and evidence rows."""
+    group._shimmer_t = 0.0
+
+    def update(mob, dt):
+        mob._shimmer_t += dt
+        for i, mark in enumerate(mob):
+            mark.set_opacity(low + (1 - low) * (0.5 + 0.5 * np.sin(speed * mob._shimmer_t - i * 0.35)))
+    group.add_updater(update)
+    return group
 
 
-CHAIN = ["Met", "Ala", "Trp", "Lys", "Pro", "Asp", "stop"]
+def amino_blocks(y=-1.35, labels=("Met", "Ala", "Trp", "Lys", "Pro", "Asp"),
+                 start=1, color=GREEN):
+    blocks = VGroup()
+    for k, name in enumerate(labels):
+        blocks.add(boxed_label(name, color, size=26, box=(1.55, 0.68), pad=0.14).move_to(
+            [tile_x(start + 1 + 3 * k), y, 0]))
+    return blocks
 
 
-class S00Title(TitleCard):
+def predict_backdrop():
+    world = message_ribbon(y=0.65)
+    insert = VGroup(
+        RoundedRectangle(corner_radius=0.08, width=TILE_W - 0.035, height=TILE_H,
+                         stroke_color=GOLD, stroke_width=3, fill_color=BLUE, fill_opacity=0.2),
+        M("?", 31, GOLD),
+    ).move_to([tile_x(4) + TILE_W / 2, 2.05, 0])
+    near = boxed_label("nearby only", TEXT, size=27).move_to([-2.55, -1.25, 0])
+    all_down = boxed_label("all downstream codons", TEXT, size=27).move_to([2.25, -1.25, 0])
+    return VGroup(world, insert, near, all_down)
+
+
+def trial_row(y, mode="opposite"):
+    """A compact copy of the same ribbon for the three experimental shift trials."""
+    seq = SEQ[:18]
+    row = message_ribbon(y=y, seq=seq, x0=-4.8, start=1, brackets=True)
+    shimmer_ribbon(row, speed=0.9)
+    row.flag.set_opacity(0)
+    if mode == "opposite":
+        marks = VGroup(T("+", 30, GOLD).move_to([-1.7, y + 1.15, 0]),
+                       T("−", 30, GOLD).move_to([0.0, y + 1.15, 0]))
+        tail = Line([0.1, y - 0.58, 0], [4.9, y - 0.58, 0], color=TEAL, stroke_width=5)
+    elif mode == "same":
+        marks = VGroup(T("+", 30, GOLD).move_to([-1.7, y + 1.15, 0]),
+                       T("+", 30, GOLD).move_to([0.0, y + 1.15, 0]))
+        tail = Line([0.1, y - 0.58, 0], [4.9, y - 0.58, 0], color=GREY, stroke_width=5)
+    else:
+        marks = VGroup(*[T("+", 30, GOLD).move_to([-1.7 + 1.35 * i, y + 1.15, 0]) for i in range(3)])
+        tail = Line([0.1, y - 0.58, 0], [4.9, y - 0.58, 0], color=TEAL, stroke_width=5)
+    return VGroup(row, marks, tail)
+
+
+class S00Hook(TitleCard, SpokenScene):
     LESSON = "The Genetic Code and Translation"
-    TITLE = "One Base Moves the Reading Frame"
+    TITLE = "The Frame Sets the Message"
 
-
-# ---------------------------------------------------------------------------------------------
-class S01Surprise(SpokenScene):
     def construct(self):
-        letters = base_letters(unread=())
-        self.play(LaggedStart(*[FadeIn(l, shift=UP * 0.1) for l in letters], lag_ratio=0.03), run_time=0.9)
-
-        def row(label, y):
-            c = chip(label, YELLOW, size=34)
-            a = Arrow(LEFT * 0.6, RIGHT * 0.6, color=GREY, stroke_width=5, buff=0)
-            q = T("protein ?", 40, GREEN)
-            return VGroup(c, a, q).arrange(RIGHT, buff=0.45).move_to([0, y, 0])
-
-        self.at("in a gene")
-        new = L("C", 8, YELLOW)
-        rowa = row("one base changed", 0.0)
-        self.play(Transform(letters[8], new), FadeIn(rowa, shift=RIGHT * 0.3), run_time=0.7)
-
-        self.at("Add one base")
-        g = L("G", 6, YELLOW, y=YS + 1.0)
-        rowb = row("one base added", -1.5)
-        self.play(Transform(letters[8], L("U", 8)), FadeIn(g, shift=DOWN * 0.3), run_time=0.5)
-        self.play(g.animate.move_to([sx(6), YS, 0]),
-                  *[l.animate.shift(RIGHT * W) for l in letters[6:]], FadeIn(rowb, shift=RIGHT * 0.3), run_time=0.7)
-
-        self.at("one rule")
-        self.play(FadeOut(g), *[l.animate.shift(LEFT * W) for l in letters[6:]],
-                  FadeOut(rowa), FadeOut(rowb), run_time=0.7)
-        self.at("four bases")
-        lab = T("messenger RNA", 36, GREY).move_to([0, YS + 1.1, 0])
-        self.play(FadeIn(lab, shift=DOWN * 0.15), run_time=0.5)
+        world = message_ribbon(y=-0.15, brackets=False)
+        shimmer_ribbon(world)
+        window = reading_window(1, y=-0.15).shift(UP * 1.2)
+        q = T("Which groups will the cell read?", 38, GOLD).move_to([-0.5, 2.85, 0])
+        tag = scope_tag("schematic")
+        self.play(LaggedStart(*[FadeIn(t, shift=UP * 0.12) for t in world.tiles], lag_ratio=0.03),
+                  run_time=1.4)
+        self.at("regroup every downstream")
+        self.play(FadeIn(q), FadeIn(world.flag, shift=DOWN * 0.2), run_time=0.7)
+        self.at("answer lies")
+        self.play(FadeIn(window, shift=DOWN * 0.2), FadeIn(tag), run_time=0.7)
+        self.at("continuous message")
+        self.play(window.animate.shift(RIGHT * 2.1), run_time=2.1, rate_func=there_and_back)
+        self.at("same ribbon")
+        self.play(Indicate(world.tiles, color=BLUE, scale_factor=1.03), run_time=1.2)
+        self.at("letters will stay fixed")
+        pulse(window[0], base=6, amp=2, speed=3)
+        self.wait(1.4)
+        self.at("deliberately change")
+        self.play(window.animate.shift(RIGHT * 1.2), run_time=1.1, rate_func=there_and_back)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S02Triplets(SpokenScene):
+class S01Title(NarratedScene):
     def construct(self):
-        def grid(n, color, x, y, sp=0.45):
-            dots = VGroup(*[Dot(radius=0.13, color=color).move_to([(i - (n - 1) / 2) * sp, ((n - 1) / 2 - j) * sp, 0])
-                            for j in range(n) for i in range(n)])
-            return dots.move_to([x, y, 0])
-
-        gl = grid(4, GREY, -4.2, 0.1)
-        gr = grid(8, BLUE, 4.0, 0.1)
-        ll = T("pairs: 16", 38, GREY).next_to(gl, UP, buff=0.5)
-        lr = T("triplets: 64", 38, BLUE).next_to(gr, UP, buff=0.5)
-        need = T("20 amino acids", 38, GREEN).move_to([0, 0.1, 0])
-        self.at("Pairs of bases")
-        self.play(LaggedStart(*[FadeIn(d, scale=0.5) for d in gl], lag_ratio=0.03), FadeIn(ll), run_time=0.8)
-        self.at("too few")
-        toofew = T("too few", 34, RED).next_to(gl, DOWN, buff=0.5)
-        self.play(FadeIn(toofew), run_time=0.3)
-        self.at("20 amino acids")
-        self.play(FadeIn(need, scale=0.9), run_time=0.4)
-        self.at("Triplets give")
-        self.play(LaggedStart(*[FadeIn(d, scale=0.5) for d in gr], lag_ratio=0.01), FadeIn(lr), run_time=1.0)
-        self.at("more than enough")
-        enough = T("more than enough", 34, BLUE).next_to(gr, DOWN, buff=0.5)
-        self.play(FadeIn(enough), run_time=0.3)
-
-        self.at("A codon")
-        letters = base_letters(unread=())
-        self.play(FadeOut(VGroup(gl, gr, ll, lr, need, toofew, enough)),
-                  LaggedStart(*[FadeIn(l, shift=UP * 0.1) for l in letters], lag_ratio=0.03), run_time=1.0)
-        self.at("three bases")
-        boxes = [cbox(k) for k in range(7)]
-        self.play(LaggedStart(*[FadeIn(b) for b in boxes], lag_ratio=0.3),
-                  *[letters[i].animate.set_color(GREY) for i in (0, 1, 2, 24, 25)], run_time=2.0)
-        self.at("Of the")
-        cnt = VGroup(T("61 amino acids", 38, GREEN), T("+", 38, GREY), T("3 stop", 38, RED)).arrange(RIGHT, buff=0.35)
-        cnt.move_to([0, -1.2, 0])
-        self.play(FadeIn(cnt, shift=UP * 0.15), run_time=0.5)
-        self.at("stand for")
-        self.play(Indicate(cnt[0], color=GREEN, scale_factor=1.15), run_time=0.6)
-        self.at("and 3")
-        self.play(Indicate(cnt[2], color=RED, scale_factor=1.15), run_time=0.6)
-        self.at("usually starts")
-        self.play(*[letters[i].animate.set_color(YELLOW) for i in (3, 4, 5)], Indicate(boxes[0], color=YELLOW, scale_factor=1.15), run_time=0.7)
-        self.at("runs on")
-        self.play(*[letters[i].animate.set_color(TEXT) for i in (3, 4, 5)],
-                  LaggedStart(*[Indicate(b, color=BLUE, scale_factor=1.1) for b in boxes], lag_ratio=0.25), run_time=2.0)
+        world = message_ribbon(y=-1.25, brackets=False)
+        shimmer_ribbon(world)
+        window = reading_window(4, y=-1.25)
+        title = T("The Frame Sets the Message", 50, TEXT, font=TITLE_FONT).move_to([-0.5, 1.35, 0])
+        self.add(world, window, scope_tag("schematic"))
+        pulse(window[0], base=6, amp=2, speed=3)
+        self.play(FadeIn(title, shift=UP * 0.15), run_time=0.55)
+        self.wait(0.8)
+        self.play(FadeOut(title), run_time=0.35)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S03Lookup(SpokenScene):
+class S02Window(SpokenScene):
     def construct(self):
-        letters = base_letters()
-        boxes = [cbox(k) for k in range(7)]
-        self.add(*letters, *boxes)
-        self.at("looked up")
-        head = T("look up each codon in the genetic code", 36, GREY).move_to([0, 3.0, 0])
-        self.play(FadeIn(head), run_time=0.5)
-        chips, ties = [], []
-        for name, cue in zip(CHAIN, ["methionine", "alanine", "tryptophan", "lysine", "proline", "aspartate", "a stop"]):
-            k = len(chips)
-            self.at(cue)
-            c = aa(name, k)
-            t = tie(k)
-            anims = [Create(t), FadeIn(c, shift=DOWN * 0.25)]
-            if name == "stop":
-                anims += [boxes[k].animate.set_stroke(RED).set_fill(RED, 0.15)]
-            else:
-                anims += [Indicate(boxes[k], color=BLUE, scale_factor=1.1)]
-            self.play(*anims, run_time=0.6)
-            chips.append(c); ties.append(t)
-        self.at("adds no amino acid")
-        self.play(Indicate(chips[6], color=RED), run_time=0.5)
-        self.at("six residues")
-        br = Brace(VGroup(*chips[:6]), DOWN, color=GREEN, buff=0.15)
-        lab = T("6 residues", 40, GREEN).next_to(br, DOWN, buff=0.15)
-        self.play(GrowFromCenter(br), FadeIn(lab), run_time=0.7)
+        world = message_ribbon(y=0.15, brackets=False)
+        shimmer_ribbon(world)
+        window = reading_window(1, y=0.15).shift(UP * 1.35)
+        self.add(world.tiles)
+        self.at("starting place")
+        self.play(FadeIn(world.flag, shift=DOWN * 0.2), run_time=0.7)
+        self.at("initiation selects")
+        self.play(Indicate(world.flag, color=GOLD, scale_factor=1.12), run_time=0.8)
+        self.at("reading window locks")
+        target = reading_window(1, y=0.15)
+        self.play(FadeIn(window), run_time=0.35)
+        self.play(FadeOut(window), FadeIn(target), run_time=0.65)
+        window = target
+        codon = T("codon", 30, TEAL).next_to(target, DOWN, buff=0.3)
+        self.at("covers a triplet")
+        self.play(FadeIn(codon), world.tiles[1:4].animate.shift(UP * 0.08), run_time=0.7)
+        self.at("advances to the next")
+        next_window = reading_window(4, y=0.15)
+        self.play(swap(window, next_window), world.tiles[1:4].animate.shift(DOWN * 0.08),
+                  world.tiles[4:7].animate.shift(UP * 0.08), run_time=1.0)
+        window = next_window
+        codon2 = T("codon", 30, TEAL).move_to(codon).shift(RIGHT * 3 * TILE_W)
+        self.play(swap(codon, codon2), run_time=0.45)
+        self.at("Each window position")
+        last_window = reading_window(7, y=0.15)
+        self.play(swap(window, last_window),
+                  world.tiles[4:7].animate.shift(DOWN * 0.08),
+                  world.tiles[7:10].animate.shift(UP * 0.08),
+                  codon2.animate.shift(RIGHT * 3 * TILE_W), run_time=1.25)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S04OneBase(SpokenScene):
+class S03Frame(SpokenScene):
     def construct(self):
-        letters = base_letters()
-        boxes = [cbox(k) for k in range(7)]
-        boxes[6].set_stroke(RED).set_fill(RED, 0.15)
-        chips = [aa(n, k) for k, n in enumerate(CHAIN)]
-        ties = [tie(k) for k in range(7)]
-        self.add(*letters, *boxes, *chips, *ties)
-
-        def q(k):
-            return aa("?", k)
-
-        label = None
-        self.at("change one base")
-        head = T("one base changed", 38, YELLOW).move_to([0, 3.0, 0])
-        self.play(FadeIn(head), run_time=0.4)
-
-        # ---- case 1: silent -------------------------------------------------------------
-        self.at("First")
-        self.play(Transform(letters[8], L("C", 8, YELLOW)), Transform(chips[1], q(1)), run_time=0.5)
-        self.at("alanine")
-        self.play(Transform(chips[1], aa("Ala", 1)), run_time=0.4)
-        self.at("silent")
-        lab = T("silent: the protein is the same", 44).move_to([0, -1.9, 0])
-        self.play(FadeIn(lab, shift=UP * 0.15), run_time=0.5)
-
-        # ---- case 2: missense ------------------------------------------------------------
-        self.at("Second")
-        self.play(Transform(letters[8], L("U", 8)), Transform(letters[6], L("A", 6, YELLOW)),
-                  Transform(chips[1], q(1)), FadeOut(lab), run_time=0.5)
-        self.at("threonine")
-        self.play(Transform(chips[1], aa("Thr", 1)), run_time=0.4)
-        self.at("missense")
-        lab = T("missense: Ala to Thr", 44).move_to([0, -1.9, 0])
-        self.play(FadeIn(lab, shift=UP * 0.15), run_time=0.5)
-
-        # ---- case 3: nonsense ------------------------------------------------------------
-        self.at("Third")
-        self.play(Transform(letters[6], L("G", 6)), Transform(letters[11], L("A", 11, YELLOW)),
-                  Transform(chips[1], aa("Ala", 1)), Transform(chips[2], q(2)), FadeOut(lab), run_time=0.5)
-        self.at("is a stop")
-        self.play(Transform(chips[2], aa("stop", 2)), boxes[2].animate.set_stroke(RED).set_fill(RED, 0.15),
-                  *[FadeOut(c) for c in chips[3:]], *[FadeOut(t) for t in ties[3:]],
-                  *[boxes[k].animate.set_stroke(GREY, opacity=0.5).set_fill(GREY, 0.04) for k in range(3, 7)],
-                  *[letters[i].animate.set_color(GREY) for i in range(15, 24)], run_time=0.5)
-        self.at("nonsense")
-        lab = T("nonsense: the chain ends early", 44).move_to([0, -1.9, 0])
-        self.play(FadeIn(lab, shift=UP * 0.15), run_time=0.5)
+        upper = message_ribbon(y=1.25, start=1, brackets=False)
+        lower = message_ribbon(y=-1.25, start=2, brackets=False)
+        shimmer_ribbon(upper)
+        shimmer_ribbon(lower, speed=0.95)
+        wu = reading_window(1, y=1.25)
+        wl = reading_window(2, y=-1.25)
+        self.add(upper.tiles, lower.tiles)
+        self.at("alignment between")
+        self.play(FadeIn(upper.flag), FadeIn(wu), run_time=0.75)
+        self.at("different base")
+        self.play(FadeIn(lower.flag), FadeIn(wl), run_time=0.75)
+        self.at("every box contains")
+        wu2, wl2 = reading_window(4, y=1.25), reading_window(5, y=-1.25)
+        self.play(swap(wu, wu2), swap(wl, wl2), run_time=0.9)
+        wu, wl = wu2, wl2
+        wu3, wl3 = reading_window(7, y=1.25), reading_window(8, y=-1.25)
+        self.play(swap(wu, wu3), swap(wl, wl3), run_time=0.9)
+        wu, wl = wu3, wl3
+        self.at("same base")
+        fresh = reading_window(1, y=0.15)
+        self.play(FadeOut(wl), FadeOut(wu), FadeIn(fresh), lower.animate.set_opacity(0.22),
+                  upper.animate.shift(DOWN * 1.1), run_time=1.0)
+        wu = fresh
+        self.at("boxes remain fixed")
+        fixed = message_ribbon(y=0.15, start=1, brackets=True).brackets
+        self.play(LaggedStart(*[Create(b) for b in fixed], lag_ratio=0.18), run_time=1.5)
+        self.at("window moves")
+        last = reading_window(7, y=0.15)
+        self.play(swap(wu, last), run_time=1.0)
+        self.at("fixed start makes")
+        rule = caption("A fixed start makes each next triplet a codon.", color=TEAL)
+        self.play(FadeIn(rule), run_time=0.65)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S05Insert(SpokenScene):
+class S04Capacity(SpokenScene):
     def construct(self):
-        letters = base_letters()
-        boxes = [cbox(k) for k in range(7)]
-        boxes[6].set_stroke(RED).set_fill(RED, 0.15)
-        chips = [aa(n, k) for k, n in enumerate(CHAIN)]
-        ties = [tie(k) for k in range(7)]
-        self.add(*letters, *boxes, *chips, *ties)
+        panels = VGroup(*[
+            RoundedRectangle(corner_radius=0.18, width=3.55, height=3.65, stroke_color=GREY,
+                             stroke_width=2, fill_color=GREY, fill_opacity=0.04).move_to([x, 0.25, 0])
+            for x in (-4.25, 0, 4.25)
+        ]).set_z_index(-2)
+        panels._shimmer_t = 0.0
 
-        self.at("add one base")
-        g = L("G", 6, YELLOW, y=YS + 1.0)
-        self.play(FadeIn(g, shift=DOWN * 0.3), run_time=0.5)
-        self.at("right after")
-        ghost = VGroup(*[aa(n, k, y=YC).scale(0.85).set_opacity(0.55) for k, n in enumerate(CHAIN)])
-        before = T("before", 26, GREY).move_to([-5.2, YC, 0])
-        after = T("after", 26, GREEN).move_to([-5.2, YC, 0])
-        self.add(ghost)
-        self.play(ghost.animate.shift(DOWN * (YC - YG)), FadeIn(before.move_to([-5.2, YG, 0])),
-                  FadeIn(after),
-                  g.animate.move_to([sx(6), YS, 0]), *[l.animate.shift(RIGHT * W) for l in letters[6:]],
-                  *[Transform(chips[k], aa("?", k)) for k in range(1, 6)], FadeOut(chips[6]), FadeOut(ties[6]),
-                  boxes[6].animate.set_stroke(BLUE).set_fill(BLUE, 0.1), run_time=0.9)
-        self.at("stays")
-        self.play(Indicate(VGroup(letters[3], letters[4], letters[5], boxes[0]), color=BLUE, scale_factor=1.1), run_time=0.6)
-        self.at("slides along")
-        self.play(Indicate(VGroup(*letters[6:]), color=YELLOW, scale_factor=1.05), run_time=0.8)
-        self.at("regroup")
-        self.play(*[Indicate(boxes[k], color=BLUE, scale_factor=1.08) for k in range(1, 6)], run_time=0.6)
-        self.at("methionine")
-        self.play(Indicate(chips[0], color=GREEN), run_time=0.4)
-        for name, k, cue in [("Gly", 1, "glycine"), ("Leu", 2, "leucine"), ("Glu", 3, "glutamate"), ("Thr", 4, "threonine")]:
-            self.at(cue)
-            self.play(Transform(chips[k], aa(name, k)), run_time=0.35)
-        self.at("a stop")
-        self.play(Transform(chips[5], aa("stop", 5)), boxes[5].animate.set_stroke(RED).set_fill(RED, 0.15),
-                  boxes[6].animate.set_stroke(GREY, opacity=0.5).set_fill(GREY, 0.04),
-                  *[letters[i].animate.set_color(GREY) for i in range(21, 26)], run_time=0.6)
-        self.at("early")
-        lab = T("frameshift: every codon after it changes", 40).move_to([0, YL, 0])
-        self.play(FadeIn(lab, shift=UP * 0.15), run_time=0.5)
-        self.at("shorter")
-        lab2 = T("frameshift: 5 residues, not 6", 40, YELLOW).move_to([0, YL, 0])
-        self.play(Transform(lab, lab2), run_time=0.5)
+        def breathe_panels(mob, dt):
+            mob._shimmer_t += dt
+            for i, panel in enumerate(mob):
+                panel.set_fill(opacity=0.04 + 0.13 * (0.5 + 0.5 * np.sin(0.9 * mob._shimmer_t - i * 1.2)))
+        panels.add_updater(breathe_panels)
+        self.add(panels)
+        heads = VGroup(T("single", 30, TEXT), T("pairs", 30, TEXT), T("triplets", 30, TEAL))
+        heads.arrange(RIGHT, buff=2.1).move_to([0, 2.65, 0])
+
+        def dot_grid(n, center, color):
+            dots = VGroup(*[Dot(radius=0.07 if n > 16 else 0.12, color=color) for _ in range(n)])
+            cols = 8 if n == 64 else (4 if n == 16 else 2)
+            rows = n // cols
+            dots.arrange_in_grid(rows, cols, buff=0.14 if n < 64 else 0.08).move_to(center)
+            return dots
+
+        grids = [dot_grid(4, [-4.25, 0.6, 0], RED), dot_grid(16, [0, 0.6, 0], RED),
+                 dot_grid(64, [4.25, 0.6, 0], TEAL)]
+        for i, grid in enumerate(grids):
+            shimmer_marks(grid, speed=0.9 + 0.12 * i)
+        nums = VGroup(M("4", 42, RED).move_to([-4.25, -1.05, 0]),
+                      M("16", 42, RED).move_to([0, -1.05, 0]),
+                      M("64", 42, TEAL).move_to([4.25, -1.05, 0]))
+        self.at("One base")
+        self.play(FadeIn(heads[0]), LaggedStart(*[FadeIn(d) for d in grids[0]], lag_ratio=0.1),
+                  FadeIn(nums[0]), run_time=0.8)
+        self.at("two bases")
+        self.play(FadeIn(heads[1]), LaggedStart(*[FadeIn(d) for d in grids[1]], lag_ratio=0.035),
+                  FadeIn(nums[1]), run_time=0.9)
+        few = T("too few", 30, RED).move_to([-2.1, -1.95, 0])
+        self.at("too few words")
+        self.play(FadeIn(few), run_time=0.5)
+        self.play(Indicate(VGroup(grids[0], grids[1]), color=RED, scale_factor=1.035), run_time=2.3)
+        self.at("Triplets make enough")
+        self.play(FadeIn(heads[2]), LaggedStart(*[FadeIn(d) for d in grids[2]], lag_ratio=0.012),
+                  FadeIn(nums[2]), run_time=1.2)
+        enough = T("enough", 30, TEAL).move_to([4.25, -1.95, 0])
+        self.play(FadeIn(enough), run_time=0.45)
+        self.at("at least triplets")
+        self.play(Indicate(VGroup(heads[2], grids[2], nums[2]), color=TEAL, scale_factor=1.04), run_time=0.9)
+        self.at("Only experiments")
+        actual = VGroup(T("actual unit?", 30, GREY), T("?", 48, GREY)).arrange(DOWN, buff=0.15).move_to([0, -2.7, 0])
+        self.play(FadeOut(few), FadeIn(actual), run_time=0.7)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-SENT = "THEFATCATATETHERAT"
-WORDS = {"THE", "FAT", "CAT", "ATE", "RAT"}
-W6 = 0.42
-M6 = 21
-
-
-def rx(i):
-    return -(M6 * W6) / 2 + W6 / 2 + i * W6
-
-
-class Row:
-    def __init__(self, y, nbox):
-        self.y = y
-        self.mobs = {}
-        self.boxes = VGroup(*[RoundedRectangle(corner_radius=0.1, width=3 * W6 - 0.05, height=0.75, stroke_color=BLUE,
-                                               stroke_width=2, fill_color=BLUE, fill_opacity=0.07)
-                              .move_to([rx(3 * j + 1), y, 0]) for j in range(nbox)])
-        self.nbox = nbox
-
-    def colors(self, seq):
-        cols = []
-        for i, (idn, ch) in enumerate(seq):
-            if str(idn).startswith("q"):
-                cols.append(YELLOW)
-            elif i >= 3 * self.nbox:
-                cols.append(GREY)
-            else:
-                w = "".join(c for _, c in seq[(i // 3) * 3:(i // 3) * 3 + 3])
-                cols.append(BLUE if w in WORDS else RED)
-        return cols
-
-    def anims(self, seq):
-        out = []
-        ids = {s[0] for s in seq}
-        for idn in list(self.mobs):
-            if idn not in ids:
-                out.append(FadeOut(self.mobs.pop(idn)))
-        cols = self.colors(seq)
-        for i, (idn, ch) in enumerate(seq):
-            tgt = [rx(i), self.y, 0]
-            if idn in self.mobs:
-                out.append(self.mobs[idn].animate.move_to(tgt).set_color(cols[i]))
-            else:
-                m = M(ch, FS, cols[i]).move_to(tgt)
-                self.mobs[idn] = m
-                out.append(FadeIn(m, shift=DOWN * 0.35))
-        return out
-
-
-def orig_seq():
-    return [(i, c) for i, c in enumerate(SENT)]
-
-
-def with_q(seq, after_ids, names):
-    out = []
-    for idn, ch in seq:
-        out.append((idn, ch))
-        if idn in after_ids:
-            out.append((names[after_ids.index(idn)], "Q"))
-    return out
-
-
-class S06PlusMinus(SpokenScene):
+class S05Substitution(SpokenScene):
     def construct(self):
-        y1, y2, y3 = 1.8, 0.3, -1.2
-        r1, r2, r3 = Row(y1, 6), Row(y2, 6), Row(y3, 7)
-
-        def tag(text, y, color, left=True):
-            t = T(text, 28, color)
-            x = rx(0) - 0.2 + t.width / 2 if left else 4.6 - t.width / 2
-            return t.move_to([x, y + 0.68, 0])
-
-        self.at("Picture")
-        head = T("a sentence of three-letter words", 34, GREY).move_to([0, 3.2, 0])
-        s0 = orig_seq()
-        self.play(FadeIn(head), FadeIn(r1.boxes), *r1.anims(s0), run_time=0.9)
-
-        self.at("plus with a nearby")
-        s1 = with_q(s0, [2], ["q1"])
-        t1 = tag("+ : one kind of change", y1, YELLOW)
-        self.play(FadeIn(t1), *r1.anims(s1), run_time=0.9)
-        self.at("nearby minus")
-        self.play(Indicate(r1.mobs[5], color=YELLOW, scale_factor=1.4), run_time=0.5)
-        s2 = [s for s in s1 if s[0] != 5]
-        t1b = tag("+ and \u2212: opposite kinds of change", y1, YELLOW)
-        self.play(Transform(t1, t1b), *r1.anims(s2), run_time=0.9)
-        self.at("restored function")
-        res1 = tag("often restored", y1, BLUE, left=False)
-        self.play(FadeIn(res1, shift=LEFT * 0.2), run_time=0.5)
-
-        self.at("Two pluses")
-        t2 = tag("two +", y2, YELLOW)
-        self.play(FadeIn(r2.boxes), FadeIn(t2), *r2.anims(s0), run_time=0.3)
-        self.play(*r2.anims(with_q(s0, [2, 4], ["q1", "q2"])), run_time=0.45)
-        self.at("did not")
-        res2 = tag("not restored", y2, RED, left=False)
-        self.play(FadeIn(res2, shift=LEFT * 0.2), run_time=0.5)
-
-        self.at("three pluses")
-        t3 = tag("three +", y3, YELLOW)
-        self.play(FadeIn(r3.boxes[:6]), FadeIn(t3), *r3.anims(s0), run_time=0.3)
-        s3 = with_q(s0, [2, 5, 8], ["q1", "q2", "q3"])
-        self.play(FadeIn(r3.boxes[6]), *r3.anims(s3), run_time=0.6)
-        self.at("wild or nearly wild")
-        res3 = tag("wild or nearly wild, as tested", y3, BLUE, left=False)
-        self.play(FadeIn(res3, shift=LEFT * 0.2), run_time=0.5)
-
-        self.at("Keep this rule")
-        f1 = T("one base more or less moves the frame", 36, YELLOW).move_to([0, -2.6, 0])
-        self.play(FadeIn(f1, shift=UP * 0.15), run_time=0.6)
-        self.at("frame sets every")
-        f2 = T("and the frame sets every codon", 32).move_to([0, -3.2, 0])
-        self.play(FadeIn(f2, shift=UP * 0.15), run_time=0.5)
+        world = message_ribbon(y=1.0)
+        shimmer_ribbon(world)
+        blocks = amino_blocks(y=-0.75)
+        self.add(world, blocks)
+        changed = 8
+        replacement = VGroup(world.tiles[changed][0].copy().set_stroke(GOLD).set_fill(BLUE, 0.2),
+                             M("C", 28, TEXT).move_to(world.tiles[changed])).move_to(world.tiles[changed])
+        self.at("replace a base")
+        self.play(Transform(world.tiles[changed], replacement), run_time=0.75)
+        self.at("boundaries do not move")
+        self.play(Indicate(world.brackets, color=TEAL, scale_factor=1.02), run_time=1.0)
+        outcome = boxed_label("same", GREEN, size=28, box=(1.55, 0.68)).move_to(blocks[2])
+        self.at("keep the same")
+        self.play(swap(blocks[2], outcome), run_time=0.65)
+        current = outcome
+        outcome2 = boxed_label("different", GOLD, size=28, box=(1.55, 0.68)).move_to(blocks[2])
+        self.at("another amino acid")
+        self.play(swap(current, outcome2), run_time=0.65)
+        current = outcome2
+        stop = boxed_label("stop", RED, size=28, box=(1.55, 0.68)).move_to(blocks[2])
+        self.at("become a stop")
+        self.play(swap(current, stop), run_time=0.65)
+        self.at("Later codons")
+        bob(blocks[3], amp=0.05, seed=1)
+        bob(blocks[4], amp=0.05, seed=2)
+        bob(blocks[5], amp=0.05, seed=3)
+        self.play(Indicate(VGroup(*world.brackets[3:]), color=TEAL, scale_factor=1.03), run_time=1.0)
         self.finish()
 
 
-class S07End(EndCard):
-    LINE = "One base more or less moves the frame."
+class S06Predict(SpokenScene):
+    def construct(self):
+        back = predict_backdrop()
+        world, insert, near, all_down = back
+        shimmer_ribbon(world)
+        self.add(world)
+        self.at("base is inserted")
+        self.play(FadeIn(insert, shift=DOWN * 0.25), run_time=0.7)
+        pulse(insert[0], base=3, amp=2, speed=3)
+        self.at("only the nearest")
+        self.play(FadeIn(near), run_time=0.6)
+        self.at("every downstream")
+        self.play(FadeIn(all_down), run_time=0.6)
+        self.at("Hold the reading")
+        q = question_card("Which codons will be regrouped?", y=-2.85, max_w=8.8)
+        self.play(FadeIn(q.question), run_time=0.6)
+        self.at("follow the ribbon")
+        self.play(Indicate(world.tiles[4:], color=BLUE, scale_factor=1.025), run_time=1.0)
+        self.finish()
+
+
+class S07Pause(PredictPause):
+    QUESTION = "Which codons will be regrouped?"
+    OPTIONS = ()
+    CARD = {"y": -2.85, "max_w": 8.8}
+    SECONDS = 4.5
+
+    def backdrop(self):
+        back = predict_backdrop()
+        shimmer_ribbon(back[0])
+        return back
+
+
+class S08Insert(SpokenScene):
+    def construct(self):
+        world = message_ribbon(y=1.15)
+        shimmer_ribbon(world)
+        blocks = amino_blocks(y=-0.6)
+        inserted = VGroup(
+            RoundedRectangle(corner_radius=0.08, width=TILE_W - 0.035, height=TILE_H,
+                             stroke_color=GOLD, stroke_width=3, fill_color=BLUE, fill_opacity=0.2),
+            M("G", 28, GOLD),
+        ).move_to([tile_x(4) + TILE_W / 2, 2.65, 0])
+        self.add(world, blocks)
+        self.at("new base joins")
+        shifted_tiles = world.tiles[4:].copy().shift(RIGHT * TILE_W)
+        self.play(FadeIn(inserted), inserted.animate.move_to([tile_x(4), 1.15, 0]),
+                  FadeOut(world.tiles[4:]), run_time=0.48)
+        self.play(FadeIn(shifted_tiles), run_time=0.52)
+        self.at("Every downstream letter slides")
+        self.play(Indicate(VGroup(inserted, shifted_tiles), color=GOLD, scale_factor=1.025), run_time=1.0)
+        self.at("New triplets appear")
+        questions = VGroup(*[boxed_label("?", GREY, size=28, box=(1.55, 0.68)).move_to(b) for b in blocks[1:]])
+        self.play(*[swap(blocks[i + 1], questions[i]) for i in range(len(questions))], run_time=0.8)
+        current = list(questions)
+        names = ("Gly", "Leu", "Glu", "Thr")
+        for i, name in enumerate(names):
+            new = boxed_label(name, GREEN, size=27, box=(1.55, 0.68)).move_to(blocks[i + 1])
+            self.play(swap(current[i], new), run_time=0.42)
+            current[i] = new
+        self.at("until a stop")
+        stop = boxed_label("stop", RED, size=28, box=(1.55, 0.68)).move_to(blocks[5])
+        self.play(swap(current[4], stop), world.brackets[5].animate.set_color(RED), run_time=0.7)
+        self.at("This is a frame shift")
+        lab = caption("frameshift: the grouping changed", color=GOLD)
+        self.play(FadeIn(lab), run_time=0.65)
+        self.at("not merely a letter")
+        self.play(Indicate(world.brackets[1:], color=TEAL, scale_factor=1.025), run_time=1.0)
+        self.finish()
+
+
+class S09PlusMinus(SpokenScene):
+    def construct(self):
+        labels = VGroup(T("opposite shifts", 28, TEXT).move_to([-4.85, 2.65, 0]),
+                        T("same-sign shifts", 28, TEXT).move_to([-4.7, 0.25, 0]),
+                        T("three same-sign", 28, TEXT).move_to([-4.65, -2.15, 0]))
+        r1, r2, r3 = trial_row(1.75, "opposite"), trial_row(-0.65, "same"), trial_row(-3.05, "triple")
+        self.at("plus and minus")
+        self.play(FadeIn(labels[0]), FadeIn(r1[0]), FadeIn(r1[1]), run_time=0.9)
+        self.at("often restored function")
+        note = T("often restored function\nin tested combinations", 26, GREEN).move_to([3.9, 2.88, 0])
+        self.play(Create(r1[2]), FadeIn(note), run_time=0.8)
+        self.at("Same sign shifts")
+        self.play(FadeIn(labels[1]), FadeIn(r2[0]), FadeIn(r2[1]), run_time=0.85)
+        self.at("did not restore")
+        self.play(Create(r2[2]), run_time=0.7)
+        self.at("complete triplet")
+        self.play(FadeIn(labels[2]), FadeIn(r3[0]), LaggedStart(*[FadeIn(m) for m in r3[1]], lag_ratio=0.2), run_time=1.0)
+        self.at("later message")
+        self.play(Create(r3[2]), run_time=0.8)
+        self.at("earlier grouping")
+        self.play(Indicate(VGroup(r1[2], r3[2]), color=TEAL, scale_factor=1.02), run_time=0.8)
+        self.finish()
+
+
+class S10Restoration(SpokenScene):
+    def construct(self):
+        board = RoundedRectangle(corner_radius=0.18, width=7.0, height=5.3, stroke_color=GREY,
+                                 stroke_width=2.5, fill_color=GREY, fill_opacity=0.04).move_to([-2.6, 0, 0])
+        start = Line([-5.2, -2.0, 0], [-5.2, 2.0, 0], color=GOLD, stroke_width=6)
+        rows = VGroup(*[Line([-4.8, y, 0], [0.3, y, 0], color=c, stroke_width=7)
+                        for y, c in ((1.35, TEAL), (0, GREY), (-1.35, TEAL))])
+        shimmer_marks(rows, speed=0.8, low=0.55)
+        board._shimmer_t = 0.0
+        board.add_updater(lambda m, dt: (setattr(m, "_shimmer_t", m._shimmer_t + dt),
+                                         m.set_fill(opacity=0.05 + 0.06 * (0.5 + 0.5 * np.sin(m._shimmer_t))))[-1])
+        self.add(board, start, rows)
+        self.at("often restored gene function")
+        self.play(Indicate(VGroup(rows[0], rows[2]), color=GREEN, scale_factor=1.03), run_time=0.9)
+        supported = T("supported", 32, GOLD).move_to([3.5, 2.0, 0])
+        self.at("They supported")
+        self.play(FadeIn(supported), run_time=0.5)
+        fixed = boxed_label("fixed reading point", TEAL, size=29).move_to([3.5, 0.65, 0])
+        self.at("fixed reading point")
+        self.play(FadeIn(fixed, shift=UP * 0.15), run_time=0.7)
+        trip = boxed_label("triplet or multiple", GREEN, size=29).move_to([3.5, -0.75, 0])
+        self.at("triplet or a multiple")
+        self.play(FadeIn(trip, shift=UP * 0.15), run_time=0.7)
+        self.finish()
+
+
+class S11Dictionary(SpokenScene):
+    def construct(self):
+        board = RoundedRectangle(corner_radius=0.16, width=4.2, height=5.3, stroke_color=GREY,
+                                 stroke_width=2.5).move_to([-4.25, 0.15, 0])
+        board._shimmer_t = 0.0
+        board.set_fill(GREY, 0.04)
+        board.add_updater(lambda m, dt: (setattr(m, "_shimmer_t", m._shimmer_t + dt),
+                                         m.set_fill(opacity=0.04 + 0.1 * (0.5 + 0.5 * np.sin(m._shimmer_t))))[-1])
+        fixed = T("fixed frame", 29, TEAL).move_to([-4.25, 1.25, 0])
+        unknown = T("dictionary ?", 31, GREY).move_to([-4.25, -0.25, 0])
+        self.add(board, fixed, unknown)
+        self.at("did not assign")
+        self.play(Indicate(unknown, color=GREY, scale_factor=1.08), run_time=0.8)
+        tube = RoundedRectangle(corner_radius=0.35, width=2.2, height=3.4, stroke_color=TEXT,
+                                stroke_width=4, fill_color=BLUE, fill_opacity=0.06).move_to([2.5, 0.5, 0])
+        rna = boxed_label("RNA", BLUE, size=29).move_to([2.5, 1.15, 0])
+        aas = VGroup(*[Dot(radius=0.14, color=GREEN) for _ in range(5)]).arrange(RIGHT, buff=0.18).move_to([2.5, -0.05, 0])
+        self.at("Cell free translation")
+        self.play(FadeIn(tube), FadeIn(rna, shift=DOWN * 0.2), FadeIn(aas), run_time=0.9)
+        self.at("ribosome binding tests")
+        filt = Line([1.0, -0.2, 0], [5.5, -0.2, 0], color=GREY, stroke_width=5)
+        ribo = boxed_label("ribosome", TEAL, size=28).move_to([3.1, 0.35, 0])
+        self.play(FadeOut(tube), FadeIn(filt), Transform(rna, ribo),
+                  aas.animate.shift(DOWN * 1.15), run_time=1.0)
+        self.at("linked defined")
+        codon = boxed_label("codon", BLUE, size=28).move_to([-1.25, -1.6, 0])
+        amino = boxed_label("amino acid", GREEN, size=28).move_to([2.25, -1.6, 0])
+        link = Arrow(codon.get_right() + RIGHT * 0.12, amino.get_left() + LEFT * 0.12,
+                     color=GOLD, stroke_width=4, buff=0.02)
+        self.play(FadeIn(codon), Create(link), FadeIn(amino), run_time=0.9)
+        self.at("codons with assignments")
+        assigned = T("codon assignments", 30, GREEN).move_to(unknown)
+        self.play(swap(unknown, assigned), run_time=0.7)
+        self.finish()
+
+
+class S12Rule(SpokenScene):
+    def construct(self):
+        world = message_ribbon(y=0.5)
+        shimmer_ribbon(world)
+        window = reading_window(1, y=0.5)
+        self.add(world, window)
+        changed = world.tiles[8].copy()
+        changed[0].set_stroke(GOLD).set_fill(BLUE, 0.2)
+        changed[1].become(M("C", 28, TEXT).move_to(changed[0]))
+        self.at("substitution can alter")
+        self.play(Transform(world.tiles[8], changed), run_time=0.75)
+        self.at("without moving later")
+        self.play(Indicate(world.brackets[3:], color=TEAL, scale_factor=1.02), run_time=0.9)
+        insert = world.tiles[4].copy().set_color(GOLD)
+        insert[1].set_color("#10141C")
+        insert.move_to([tile_x(4) + TILE_W / 2, 2.2, 0])
+        self.at("insertion or deletion")
+        self.play(FadeIn(insert), run_time=0.55)
+        self.at("moves the downstream frame")
+        shifted = world.brackets[1:].copy().shift(RIGHT * TILE_W)
+        self.play(insert.animate.move_to([tile_x(4), 0.5, 0]),
+                  *[t.animate.shift(RIGHT * TILE_W) for t in world.tiles[4:]],
+                  FadeOut(world.brackets[1:]), run_time=0.55)
+        self.play(FadeIn(shifted), run_time=0.45)
+        self.at("lasting lesson")
+        original = message_ribbon(y=0.5)
+        shimmer_ribbon(original)
+        fresh_window = reading_window(1, y=0.5)
+        self.play(FadeOut(VGroup(world, window, insert)), FadeIn(original), FadeIn(fresh_window), run_time=0.9)
+        self.at("Keep the starting register")
+        rule = caption("Keep the starting register, and every later codon keeps its place.", color=TEAL)
+        self.play(FadeIn(rule), run_time=0.7)
+        self.at("every later codon")
+        for first in (4, 7, 10):
+            nxt = reading_window(first, y=0.5)
+            self.play(swap(fresh_window, nxt), run_time=0.82)
+            fresh_window = nxt
+        self.finish()
+
+
+class S13End(EndCard):
+    LINE = "A fixed start makes each next triplet a codon."

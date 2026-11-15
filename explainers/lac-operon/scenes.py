@@ -1,549 +1,554 @@
-"""The lac operon: two signals switch the lactose genes on  (Biochemistrypedia genetics explainer)
+"""The lac operon: two inputs produce high expression.
 
-Timed to the SPOKEN words: every self.at("...") cue waits for that phrase in audio/words.json.
-
-COLOR MAP (one color per concept, whole video)
-  BLUE   = the lacZ, lacY, lacA genes and the permease they encode
-  RED    = the lac repressor (and its gene, lacI); also "blocked"
-  GOLD   = the operator
-  YELLOW = lactose and allolactose (the inducer signal)
-  ORANGE = glucose and its transport protein
-  TEAL   = CAP (the activator) and the CAP site
-  TEXT   = the cyclic AMP badge
-  PURPLE = RNA polymerase
-  GREEN  = messenger RNA, and "transcription on"
-  GREY   = DNA bar, promoter, membrane, labels
+The cell, DNA rail, regulators, and expression meter are rebuilt by shared
+builders so carried pictures never drift between scenes.  All geometry is
+schematic; no molecular structures are shown.
 """
-import numpy as np
-from bp_style import *  # noqa: F401,F403
+from types import SimpleNamespace
 
-PURPLE = "#B58CD9"
-ORANGE = "#F29E4C"
-
-DY = -0.4                 # y of the DNA bar
-YR = DY + 0.8            # y of the polymerase and the mRNA
-MY = 2.9                  # y of the cell membrane
-X = dict(lacI=-5.5, cap=-3.8, prom=-2.5, op=-1.3, Z=0.4, Y=2.0, A=3.6)
-RNA_X0 = -2.0             # where the mRNA starts
+from bp_parts import *  # noqa: F401,F403
 
 
-# ---------------------------------------------------------------------------------------------
-# helpers
-# ---------------------------------------------------------------------------------------------
-def box(x, w, color, h=0.8):
-    return RoundedRectangle(corner_radius=0.08, width=w, height=h, stroke_color=color, stroke_width=3,
-                            fill_color=color, fill_opacity=0.3).move_to([x, DY, 0])
+# One colour per concept, following this film's script.
+GLUCOSE = BLUE
+LACTOSE = YELLOW
+GENE = GREEN
+OPERATOR = ORANGE = "#F29E4C"
+POLYMERASE = TEXT
+REPRESSOR = RED
+ACTIVATOR = TEAL
+
+RAIL_Y = -1.25
+GX = (0.2, 1.9, 3.6)
 
 
-def gene(name, x, color=BLUE, w=1.5):
-    b = box(x, w, color, h=0.95)
-    return VGroup(b, T(name, 28, color).move_to(b))
+def sugar(text, color, at, size=28):
+    return boxed_label(text, color=color, size=size, pad=0.18).move_to(at)
 
 
-def under(text, x, row=1, color=GREY):
-    return T(text, 24, color).move_to([x, DY - 0.72 - 0.5 * (row - 1), 0])
+def membrane(width=12.0, y=2.35, gate_x=3.4, gate_color=LACTOSE):
+    """Cell membrane with a single labelled-cartoon gate-sized gap."""
+    left = Line([-width / 2, y, 0], [gate_x - 0.55, y, 0], color=GREY, stroke_width=8)
+    right = Line([gate_x + 0.55, y, 0], [width / 2, y, 0], color=GREY, stroke_width=8)
+    gate = RoundedRectangle(corner_radius=0.14, width=0.85, height=0.7,
+                            stroke_color=gate_color, stroke_width=4,
+                            fill_color=gate_color, fill_opacity=0.25).move_to([gate_x, y, 0])
+    return VGroup(left, right, gate)
 
 
-def dna_line():
-    return Line([-6.2, DY, 0], [4.6, DY, 0], color=GREY, stroke_width=6)
+def expression_meter(value=0.08, center=(4.8, 0.6, 0), label="lac expression"):
+    level = ValueTracker(value)
+    gauge = dial(level, center=center, radius=1.25, label=label, color=GENE,
+                 fmt="{:.0f}%", scale=100, size=34)
+    return gauge, level
 
 
-def parts():
-    """every fixed piece of the DNA bar; scenes add the ones they need."""
-    p = {}
-    p["line"] = dna_line()
-    p["lacI"] = gene("lacI", X["lacI"], RED, w=1.0)
-    p["capsite"] = VGroup(box(X["cap"], 0.7, TEAL), under("CAP site", X["cap"], 1, TEAL))
-    p["prom"] = VGroup(box(X["prom"], 1.0, GREY), under("promoter", X["prom"], 2))
-    p["op"] = VGroup(box(X["op"], 0.6, GOLD), under("operator", X["op"], 1, GOLD))
-    p["Z"] = gene("lacZ", X["Z"])
-    p["Y"] = gene("lacY", X["Y"])
-    p["A"] = gene("lacA", X["A"])
-    return p
+def cell_shell():
+    body = RoundedRectangle(corner_radius=1.0, width=12.2, height=5.8,
+                            stroke_color=TEXT, stroke_width=4,
+                            fill_color=BLUE, fill_opacity=0.12).move_to([0, -0.05, 0])
+    # Breathing the outline is visible but does not distract from the teaching action.
+    pulse(body, base=4.0, amp=1.0, speed=1.3)
+    bob(body, amp=0.045, speed=0.9)
+    return body
 
 
-def poly_blob(color=PURPLE):
-    blob = RoundedRectangle(corner_radius=0.25, width=1.0, height=0.7, stroke_color=color, stroke_width=3,
-                            fill_color=color, fill_opacity=0.5).move_to([0, YR, 0])
-    lab = T("RNA\npolymerase", 24, color, line_spacing=0.7).next_to(blob, UP, buff=0.2).shift(LEFT * 0.7)
-    return VGroup(blob, lab)
+def compact_rail(y=RAIL_Y, include_genes=True):
+    """The carried DNA picture used inside the cell."""
+    prom = boxed_label("promoter", GREY, 26, pad=0.14).move_to([-3.35, y, 0])
+    op = boxed_label("operator", OPERATOR, 26, pad=0.14).move_to([-1.45, y, 0])
+    genes = VGroup()
+    if include_genes:
+        genes = VGroup(*[boxed_label(name, GENE, 28, box=(1.45, 0.72), pad=0.13)
+                         .move_to([x, y, 0]) for name, x in zip(("lacZ", "lacY", "lacA"), GX)])
+        genes[2].shift(UP * 0.08)
+    blocks = [prom, op, *genes]
+    endpoints = [(-4.75, blocks[0].get_left()[0] - 0.08)]
+    endpoints += [(a.get_right()[0] + 0.08, b.get_left()[0] - 0.08)
+                  for a, b in zip(blocks, blocks[1:])]
+    endpoints += [(blocks[-1].get_right()[0] + 0.08, 4.25)]
+    line = VGroup(*[Line([a, y, 0], [b, y, 0], color=GREY, stroke_width=7)
+                    for a, b in endpoints if b > a])
+    return SimpleNamespace(group=VGroup(line, prom, op, genes), line=line,
+                           promoter=prom, operator=op, genes=genes)
 
 
-class Poly:
-    """RNA polymerase at x = tracker value; the label travels with it and can fade (lab_op)."""
-
-    def __init__(self, x):
-        self.px = ValueTracker(x)
-        self.lab_op = ValueTracker(1.0)
-        self.g = poly_blob()
-        blob, lab = self.g[0], self.g[1]
-        off = lab.get_center() - blob.get_center()
-
-        def upd(m):
-            blob.move_to([self.px.get_value(), YR, 0])
-            lab.move_to(blob.get_center() + off)
-            lab.set_opacity(self.lab_op.get_value())
-        self.g.add_updater(upd)
-        upd(self.g)
-
-    @property
-    def blob(self):
-        return self.g[0]
+def repressor(at=(-1.45, -0.25, 0), open_state=False, label=True):
+    """A red two-jaw clamp.  Open jaws are rotated away from the operator."""
+    x, y, _ = at
+    left = RoundedRectangle(corner_radius=0.15, width=0.48, height=1.35,
+                            stroke_color=REPRESSOR, stroke_width=4,
+                            fill_color=REPRESSOR, fill_opacity=0.32).move_to([x - 0.3, y, 0])
+    right = left.copy().move_to([x + 0.3, y, 0])
+    if open_state:
+        left.rotate(0.38, about_point=[x - 0.3, y - 0.55, 0])
+        right.rotate(-0.38, about_point=[x + 0.3, y - 0.55, 0])
+    jaws = VGroup(left, right)
+    lab = T("repressor", 28, REPRESSOR).next_to(jaws, UP, buff=0.14) if label else VGroup()
+    return SimpleNamespace(group=VGroup(jaws, lab), jaws=jaws, label=lab,
+                           left=left, right=right)
 
 
-def mrna(ex, w, col=GREEN, op=1.0):
-    """a line from RNA_X0 to the tracker ex, stroke width from tracker w."""
-    def f():
-        e, wd = ex.get_value(), w.get_value()
-        if e - RNA_X0 < 0.04 or wd < 0.05:
-            return Line([RNA_X0, YR, 0], [RNA_X0 + 0.01, YR, 0], stroke_width=0, stroke_opacity=0)
-        return Line([RNA_X0, YR, 0], [e, YR, 0], color=col, stroke_width=wd, stroke_opacity=op)
-    return always_redraw(f)
+def polymerase(at=(-3.9, 0.35, 0), label=True):
+    body = RoundedRectangle(corner_radius=0.28, width=1.15, height=0.72,
+                            stroke_color=POLYMERASE, stroke_width=4,
+                            fill_color=POLYMERASE, fill_opacity=0.15).move_to(at)
+    lab = T("polymerase", 28, POLYMERASE).next_to(body, UP, buff=0.14) if label else VGroup()
+    return SimpleNamespace(group=VGroup(body, lab), body=body, label=lab)
 
 
-class Rep:
-    """the repressor: two lobes that grip the operator. Closed = holds; open = has changed shape."""
-    OPEN = 0.3
-
-    def __init__(self, x=X["op"]):
-        by = DY + 0.4
-        mk = lambda dx: RoundedRectangle(corner_radius=0.14, width=0.5, height=1.3, stroke_color=RED, stroke_width=3,
-                                         fill_color=RED, fill_opacity=0.4).move_to([x + dx, by + 0.65, 0])
-        self.L, self.R = mk(-0.25), mk(0.25)
-        self.anchor = Dot([x, by, 0], radius=0.001).set_opacity(0)
-        self.lobes = VGroup(self.L, self.R)
-        self.lab = T("repressor", 24, RED).next_to(self.lobes, RIGHT, buff=0.6)
-        self.g = VGroup(self.lobes, self.lab, self.anchor)
-
-    def pl(self):
-        return self.anchor.get_center() + LEFT * 0.25
-
-    def pr(self):
-        return self.anchor.get_center() + RIGHT * 0.25
-
-    def open_now(self):
-        self.L.rotate(self.OPEN, about_point=self.pl())
-        self.R.rotate(-self.OPEN, about_point=self.pr())
-
-    def open_anim(self):
-        return [self.L.animate.rotate(self.OPEN, about_point=self.pl()),
-                self.R.animate.rotate(-self.OPEN, about_point=self.pr())]
-
-    def close_anim(self):
-        return [self.L.animate.rotate(-self.OPEN, about_point=self.pl()),
-                self.R.animate.rotate(self.OPEN, about_point=self.pr())]
-
-    def top(self):
-        return self.anchor.get_center() + UP * 1.4
+def cap_unit(at=(-4.0, 0.25, 0), with_badge=True):
+    cap = boxed_label("CAP", ACTIVATOR, 28, box=(1.25, 0.72)).move_to(at)
+    badge = boxed_label("cyclic AMP", ACTIVATOR, 24, pad=0.12)
+    badge.next_to(cap, UP, buff=0.13)
+    return SimpleNamespace(group=VGroup(cap, badge) if with_badge else VGroup(cap),
+                           cap=cap, badge=badge)
 
 
-PARK = np.array([0.7, 0.95, 0.0])      # shift from the operator to the parking place
+def hook_world(meter_value=0.08, question=True):
+    """The full cell used by the hook, title, prediction, and reveal."""
+    shell = cell_shell()
+    rail = compact_rail(y=-1.25)
+    gauge, level = expression_meter(meter_value, center=(4.65, 0.55, 0))
+    glu = sugar("glucose", GLUCOSE, [-3.55, 1.35, 0])
+    lac = sugar("lactose", LACTOSE, [0.0, 1.35, 0])
+    q = T("?", 56, LACTOSE, weight=BOLD).next_to(lac, RIGHT, buff=0.3) if question else VGroup()
+    return SimpleNamespace(group=VGroup(shell, rail.group, gauge, glu, lac, q), shell=shell,
+                           rail=rail, gauge=gauge, level=level, glucose=glu, lactose=lac, question=q)
 
 
-def lactose(pos, label=True):
-    c = Circle(radius=0.2, stroke_color=YELLOW, stroke_width=3, fill_color=YELLOW, fill_opacity=0.9).move_to(pos)
-    if not label:
-        return VGroup(c)
-    return VGroup(c, T("lactose", 24, YELLOW).next_to(c, RIGHT, buff=0.15))
+def prediction_backdrop(meter_value=0.42, with_labels=False):
+    """Same compact cell state for predict, pause, and reveal."""
+    world = hook_world(meter_value=meter_value, question=False)
+    rep = repressor(at=(-1.45, -0.18, 0), open_state=True, label=False)
+    cap = cap_unit(at=(-4.0, 0.25, 0), with_badge=False)
+    blocker = boxed_label("transport", GLUCOSE, 24, pad=0.12).move_to([1.95, 1.45, 0])
+    permease = boxed_label("permease", LACTOSE, 24, pad=0.12).move_to([1.95, 0.65, 0])
+    extras = VGroup(rep.group, cap.group, blocker, permease)
+    if with_labels:
+        classic = boxed_label("classic account", ACTIVATOR, 24, pad=0.12).move_to([-4.45, 2.25, 0])
+        exclusion = boxed_label("inducer exclusion", GLUCOSE, 24, pad=0.12).move_to([2.7, 2.25, 0])
+        extras.add(classic, exclusion)
+    bob(world.glucose, amp=0.05, speed=1.0)
+    bob(world.lactose, amp=0.05, speed=1.2, seed=2)
+    group = VGroup(world.group, extras)
+    group.world = world
+    group.extras = extras
+    return group
 
 
-def allolactose(pos):
-    d = Square(side_length=0.3, stroke_color=YELLOW, stroke_width=3, fill_color=YELLOW, fill_opacity=0.9).rotate(PI / 4).move_to(pos)
-    return d
+def high_state():
+    """The enlarged, stable high-expression cell used by the last two spoken scenes."""
+    shell = cell_shell()
+    rail = compact_rail(y=-1.25)
+    rep = repressor(at=(0.4, 1.25, 0), open_state=True, label=False)
+    allo = boxed_label("allolactose", LACTOSE, 24, pad=0.12).next_to(rep.jaws, RIGHT, buff=0.2)
+    cap = cap_unit(at=(-4.0, 0.28, 0), with_badge=True)
+    poly = polymerase(at=(-2.6, 0.25, 0), label=False)
+    link = Line(cap.cap.get_right(), poly.body.get_left(), color=ACTIVATOR, stroke_width=7)
+    gauge, level = expression_meter(0.9, center=(4.65, 0.65, 0))
+    return SimpleNamespace(group=VGroup(shell, rail.group, rep.group, allo, cap.group, link, poly.group, gauge),
+                           shell=shell, rail=rail, rep=rep, allo=allo, cap=cap, poly=poly,
+                           link=link, gauge=gauge, level=level)
 
 
-def membrane(gaps=(2.6,)):
-    segs, x0 = [], -6.3
-    for gx in gaps:
-        segs.append((x0, gx - 0.4))
-        x0 = gx + 0.4
-    segs.append((x0, 6.3))
-    return VGroup(*[RoundedRectangle(corner_radius=0.08, width=b - a, height=0.26, stroke_color=GREY, stroke_width=3,
-                                     fill_color=GREY, fill_opacity=0.35).move_to([(a + b) / 2, MY, 0]) for a, b in segs])
-
-
-def permease(x=2.6):
-    return RoundedRectangle(corner_radius=0.12, width=0.55, height=0.5, stroke_color=BLUE, stroke_width=3,
-                            fill_color=BLUE, fill_opacity=0.45).move_to([x, MY, 0])
-
-
-def cap_blob(x=X["cap"]):
-    b = RoundedRectangle(corner_radius=0.2, width=1.2, height=0.75, stroke_color=TEAL, stroke_width=3,
-                         fill_color=TEAL, fill_opacity=0.45).move_to([x, YR, 0])
-    return VGroup(b, T("CAP", 28, TEAL).move_to(b))
-
-
-def camp_badge(cap):
-    return chip("cAMP", TEXT, size=24, pad=0.1).next_to(cap, UP + LEFT, buff=0.0).shift(UP * 0.05)
-
-
-def at_t(scene, t):
-    rest = t - scene.elapsed()
-    if rest > 0.02:
-        scene.wait(rest)
-
-
-class S00Title(TitleCard):
-    LESSON = "The lac operon"
-    TITLE = "Two signals switch lactose genes on"
-
-
-# ---------------------------------------------------------------------------------------------
-class S01Choice(SpokenScene):
-    """glucose then lactose with a pause; the choice is made by three genes and two signals."""
-
+class S01Hook(SpokenScene):
     def construct(self):
-        broth = RoundedRectangle(corner_radius=0.25, width=6.2, height=1.5, stroke_color=GREY, stroke_width=3).move_to([-1.9, 2.55, 0])
-        blabel = T("medium", 22, GREY).move_to([-5.7, 2.55, 0])
-        rng = np.random.RandomState(4)
-        gl, la = [], []
-        for i in range(6):
-            gl.append(Dot([-4.7 + i * 1.0 + rng.uniform(-.2, .2), 2.55 + (0.35 if i % 2 else -0.3), 0], radius=0.17, color=ORANGE))
-            la.append(Dot([-4.2 + i * 1.0 + rng.uniform(-.2, .2), 2.55 + (-0.3 if i % 2 else 0.35), 0], radius=0.17, color=YELLOW))
-        gl, la = VGroup(*gl), VGroup(*la)
-        leg = VGroup(Dot(radius=0.14, color=ORANGE), T("glucose", 22, ORANGE), Dot(radius=0.14, color=YELLOW), T("lactose", 22, YELLOW)).arrange(RIGHT, buff=0.18)
-        leg.move_to([-1.9, 1.55, 0])
-        cell = RoundedRectangle(corner_radius=0.5, width=2.6, height=1.1, stroke_color=TEXT, stroke_width=3).move_to([4.6, 2.55, 0])
-        cl = T("E. coli", 28, TEXT).move_to(cell)
-        self.play(FadeIn(broth), FadeIn(blabel), FadeIn(gl), FadeIn(la), FadeIn(leg), FadeIn(cell), FadeIn(cl), run_time=1.3)
-
-        axis = Arrow([-5.4, -0.05, 0], [5.0, -0.05, 0], buff=0, color=GREY, stroke_width=4, tip_length=0.2)
-        tl = T("time", 22, GREY).move_to([5.5, -0.05, 0])
-        self.at("both at once")
-        self.play(Create(axis), FadeIn(tl), run_time=0.7)
-        bar1 = RoundedRectangle(corner_radius=0.1, width=4.0, height=0.8, stroke_color=ORANGE, stroke_width=3, fill_color=ORANGE, fill_opacity=0.3).move_to([-3.2, 0.6, 0])
-        t1 = T("eats glucose", 28, ORANGE).move_to(bar1)
-        self.at("uses up the glucose")
-        self.play(GrowFromEdge(bar1, LEFT), LaggedStart(*[FadeOut(d) for d in gl], lag_ratio=0.1), FadeIn(t1), run_time=1.2)
-        pause = T("pause", 28, GREY).move_to([-0.4, -0.55, 0])
-        q = T("?", 56, GREY, weight=BOLD).move_to([-0.4, 0.6, 0])
-        self.at("pauses")
-        self.play(FadeIn(pause), FadeIn(q, scale=0.7), run_time=0.5)
-        bar2 = RoundedRectangle(corner_radius=0.1, width=4.0, height=0.8, stroke_color=YELLOW, stroke_width=3, fill_color=YELLOW, fill_opacity=0.3).move_to([2.4, 0.6, 0])
-        t2 = T("eats lactose", 28, YELLOW).move_to(bar2)
-        self.at("only then")
-        self.play(GrowFromEdge(bar2, LEFT), LaggedStart(*[FadeOut(d) for d in la], lag_ratio=0.1), FadeIn(t2), run_time=1.2)
-        self.at("How does one")
-        self.play(q.animate.set_color(TEXT).scale(1.4), run_time=0.5)
-        self.play(q.animate.scale(1 / 1.4), run_time=0.3)
-
-        # --- the answer is in the DNA -----------------------------------------------------
-        line = dna_line()
-        Z, Y, A = (gene("lacZ", X["Z"]), gene("lacY", X["Y"]), gene("lacA", X["A"]))
-        self.at("The answer is")
-        self.play(FadeOut(VGroup(broth, blabel, leg, cell, cl, axis, tl, bar1, t1, bar2, t2, pause, q, gl, la)), run_time=0.6)
-        self.play(Create(line), run_time=0.9)
-        self.at("lac genes")
-        self.play(LaggedStart(*[FadeIn(g, shift=DOWN * 0.15) for g in (Z, Y, A)], lag_ratio=0.35), run_time=1.4)
-        s1 = chip("lactose here?", YELLOW, 28).move_to([-0.6, 1.4, 0])
-        s2 = chip("glucose here?", ORANGE, 28).move_to([3.6, 1.4, 0])
-        a1 = Arrow(s1.get_bottom(), [1.2, DY + 0.55, 0], buff=0.1, color=YELLOW, stroke_width=5)
-        a2 = Arrow(s2.get_bottom(), [2.8, DY + 0.55, 0], buff=0.1, color=ORANGE, stroke_width=5)
-        self.at("two separate signals")
-        self.play(FadeIn(s1, shift=DOWN * 0.2), GrowArrow(a1), run_time=0.7)
-        self.play(FadeIn(s2, shift=DOWN * 0.2), GrowArrow(a2), run_time=0.7)
+        world = hook_world()
+        # Show the whole question before naming its parts.
+        self.play(FadeIn(world.shell), FadeIn(world.rail.group), run_time=0.8)
+        self.play(FadeIn(world.glucose, shift=DOWN * 0.15),
+                  FadeIn(world.lactose, shift=DOWN * 0.15), run_time=0.7)
+        self.at("glucose and lactose")
+        self.play(world.glucose.animate.shift(DOWN * 0.45),
+                  world.lactose.animate.shift(DOWN * 0.1), run_time=0.9)
+        self.at("postpone")
+        self.play(FadeIn(world.gauge), FadeIn(world.question, scale=0.7), run_time=0.7)
+        self.play(world.glucose.animate.shift(LEFT * 1.0).set_opacity(0.35),
+                  Wiggle(world.lactose, scale_value=1.04), run_time=1.0)
+        self.at("Follow one promoter")
+        self.play(Indicate(world.rail.promoter, color=TEXT), run_time=0.8)
+        self.at("Two signals")
+        arrows = VGroup(Arrow(world.glucose.get_bottom(), world.rail.promoter.get_top(), buff=0.15,
+                              color=GLUCOSE, stroke_width=5),
+                        Arrow(world.lactose.get_bottom(), world.rail.operator.get_top(), buff=0.15,
+                              color=LACTOSE, stroke_width=5))
+        self.play(GrowArrow(arrows[0]), run_time=0.5)
+        self.play(GrowArrow(arrows[1]), run_time=0.5)
+        self.at("output becomes high")
+        self.play(Indicate(world.gauge, color=GENE, scale_factor=1.04), run_time=0.8)
+        self.add(scope_tag("schematic"))
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S02Genes(SpokenScene):
-    """one mRNA from three genes; the repressor on the operator blocks the polymerase."""
-
+class S02Title(NarratedScene):
     def construct(self):
-        p = parts()
-        self.add(p["line"], p["Z"], p["Y"], p["A"])
-        # the three genes, one by one
-        t1, t2 = self.t_of("called"), self.t_of("One promoter")
-        for k, key in enumerate("ZYA"):
-            at_t(self, t1 + (t2 - t1) * (0.15 + 0.3 * k))
-            self.play(Indicate(p[key], color=BLUE, scale_factor=1.15), run_time=0.6)
-        self.at("promoter")
-        self.play(FadeIn(p["prom"]), run_time=0.5)
-        ex, w = ValueTracker(RNA_X0), ValueTracker(5)
-        poly = Poly(X["prom"])
-        rna = mrna(ex, w)
-        self.at("RNA polymerase")
-        self.add(rna)
-        self.play(FadeIn(poly.g), run_time=0.5)
-        self.at("reads them")
-        self.play(poly.px.animate.set_value(4.1), ex.animate.set_value(3.6), run_time=1.3, rate_func=linear)
-        one = T("one mRNA", 28, GREEN).move_to([1.2, YR + 0.55, 0])
-        self.at("single messenger")
-        self.play(FadeIn(one, shift=UP * 0.1), run_time=0.5)
+        world = hook_world()
+        bob(world.glucose, amp=0.04, speed=1.1)
+        bob(world.lactose, amp=0.04, speed=1.3, seed=2)
+        self.add(world.group, scope_tag("schematic"))
+        title = fit_text("When Are the lac Genes High?", max_w=10.0, size=50,
+                         font=TITLE_FONT, color=TEXT).move_to([0, 2.35, 0])
+        self.play(Write(title), run_time=0.7)
+        self.wait(0.7)
+        self.play(FadeOut(title), run_time=0.5)
+        self.finish()
 
-        # --- the fourth gene and its repressor --------------------------------------------
-        rep = Rep()
-        rep.g.shift(LEFT * 4.2 + UP * 1.5)       # born above lacI (x about -5.5)
-        self.at("fourth gene")
-        self.play(FadeIn(p["lacI"], shift=DOWN * 0.15), run_time=0.6)
-        self.at("It makes")
-        self.play(FadeIn(rep.g, shift=DOWN * 0.3), run_time=0.7)
-        # clear the old run; a fresh polymerase waits at the promoter
-        self.at("The repressor binds")
-        poly.px.set_value(X["prom"])
-        self.play(FadeOut(one), w.animate.set_value(0), FadeOut(poly.g), run_time=0.5)
-        self.remove(rna)
-        poly = Poly(X["prom"])
-        self.play(FadeIn(poly.g), run_time=0.4)
+
+class S03Operon(SpokenScene):
+    def construct(self):
+        shell = cell_shell()
+        rail = compact_rail(y=-0.55)
+        self.add(shell)
+        self.play(Create(rail.line), run_time=0.7)
+        self.at("lacC")  # the aligned audio's near-match for spoken lac Z
+        self.play(LaggedStart(*[FadeIn(g, shift=UP * 0.15) for g in rail.genes], lag_ratio=0.25), run_time=1.2)
+        self.at("one promoter")
+        self.play(FadeIn(rail.promoter, shift=UP * 0.15), run_time=0.6)
+        poly = polymerase(at=(-4.15, 0.42, 0))
+        rna = Line([-2.65, -1.55, 0], [-2.55, -1.55, 0], color=GENE, stroke_width=8)
+        self.at("Polymerase")
+        self.play(FadeIn(poly.group), run_time=0.6)
+        self.at("copy them")
+        self.play(poly.group.animate.shift(RIGHT * 7.1),
+                  rna.animate.put_start_and_end_on([-2.65, -1.55, 0], [3.55, -1.55, 0]),
+                  run_time=2.2, rate_func=linear)
+        mrna_label = T("one messenger RNA", 30, GENE).next_to(rna, DOWN, buff=0.2)
+        self.at("Together")
+        self.play(FadeIn(mrna_label), LaggedStart(*[Indicate(g, color=GENE, scale_factor=1.04)
+                                                   for g in rail.genes], lag_ratio=0.2), run_time=1.4)
+        self.at("three coding regions")
+        self.play(LaggedStart(*[Indicate(g, color=GENE, scale_factor=1.04)
+                                for g in rail.genes], lag_ratio=0.2), run_time=0.8)
+        self.at("red repressor")
+        self.play(FadeOut(VGroup(poly.group, rna, mrna_label)), FadeIn(rail.operator), run_time=0.6)
+        rep = repressor(at=(-1.45, 0.55, 0))
+        self.play(FadeIn(rep.group, shift=UP * 0.2), run_time=0.7)
+        poly2 = polymerase(at=(-3.55, 0.42, 0), label=False)
         self.at("operator")
-        self.play(FadeIn(p["op"]), run_time=0.5)
-        self.play(rep.g.animate.shift(UP * 0.5), run_time=0.4)
-        self.play(rep.g.animate.shift(RIGHT * 4.2), run_time=0.7)
-        self.play(rep.g.animate.shift(DOWN * 2.0), run_time=0.5)
-        self.at("Bound there")
-        self.play(Indicate(rep.lobes, color=RED, scale_factor=1.1), run_time=0.6)
-        self.at("keeps")
-        bar = Line([-1.9, DY + 0.45, 0], [-1.9, DY + 1.45, 0], color=RED, stroke_width=7)
-        self.play(poly.px.animate.set_value(X["prom"] + 0.18), run_time=0.3)
-        self.play(poly.px.animate.set_value(X["prom"]), Create(bar), run_time=0.4)
-        self.play(Wiggle(poly.g, scale_value=1.05, rotation_angle=0.02 * TAU), run_time=0.7)
+        self.play(FadeIn(poly2.group), Indicate(rail.operator, color=OPERATOR), run_time=0.6)
+        self.at("blocks transcription")
+        self.play(poly2.group.animate.shift(RIGHT * 1.0), run_time=0.5)
+        self.play(poly2.group.animate.shift(LEFT * 0.35), Wiggle(rep.jaws), run_time=0.7)
+        self.add(scope_tag("schematic"))
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S03Release(SpokenScene):
-    """lactose -> allolactose; allolactose opens the repressor, which lets go of the operator."""
-
+class S04Inducer(SpokenScene):
     def construct(self):
-        p = parts()
-        for k in ("line", "lacI", "prom", "op", "Z", "Y", "A"):
-            self.add(p[k])
-        rep = Rep()
-        poly = Poly(X["prom"])
-        self.add(rep.g, poly.g)
-        mem = membrane()
-        perm = permease()
-        plab = T("permease", 24, BLUE).move_to([4.15, 2.4, 0])
-        self.at("Lactose enters")
-        self.play(FadeIn(mem), FadeIn(perm), run_time=0.6)
-        lac = lactose([2.6, 3.3, 0])
-        self.play(FadeIn(lac, shift=DOWN * 0.2), run_time=0.4)
-        self.at("called the permease")
-        self.play(FadeIn(plab), lac.animate.move_to([2.6, 1.9, 0]), run_time=1.3)
-        # the lactose label stays to the right of its circle
-        arr = Arrow([2.25, 1.9, 0], [1.0, 1.9, 0], buff=0, color=GREY, stroke_width=5, tip_length=0.2)
-        enz = T("β-galactosidase", 24, GREY).move_to([1.3, 2.4, 0])
-        self.at("An enzyme")
-        self.play(GrowArrow(arr), FadeIn(enz), run_time=0.6)
-        allo = allolactose([0.55, 1.9, 0])
-        allo_l = T("allolactose", 24, YELLOW).move_to([0.55, 1.4, 0])
-        self.at("into allolactose")
-        self.play(FadeIn(allo, scale=0.5), FadeIn(allo_l), run_time=0.6)
-        self.at("itself")
-        cross = VGroup(Line(lac[0].get_corner(UL), lac[0].get_corner(DR), color=RED, stroke_width=6),
-                       Line(lac[0].get_corner(UR), lac[0].get_corner(DL), color=RED, stroke_width=6))
-        self.play(Create(cross), lac[1].animate.set_opacity(0.4), run_time=0.5)
-        self.at("Allolactose is")
-        self.play(Indicate(VGroup(allo, allo_l), color=YELLOW, scale_factor=1.25), run_time=0.7)
-        self.at("binds the repressor")
-        self.play(FadeOut(allo_l), FadeOut(VGroup(lac, cross)), FadeOut(arr), FadeOut(enz),
-                  allo.animate.move_to(rep.top() + UP * 0.1), run_time=1.0)
-        self.at("changes its shape")
-        self.play(*rep.open_anim(), allo.animate.move_to(rep.top() + UP * 0.05), run_time=0.8)
-        self.at("more weakly")
-        self.play(Indicate(rep.lobes, color=RED, scale_factor=1.05), run_time=0.5)
-        self.at("comes off")
-        grp = VGroup(rep.g, allo)
-        self.play(grp.animate.shift(PARK), run_time=1.0)
-        # transcription starts: a thin mRNA
-        ex, w = ValueTracker(RNA_X0), ValueTracker(3.5)
-        rna = mrna(ex, w, op=0.7)
-        self.add(rna)
-        self.at("transcription starts")
-        self.play(poly.lab_op.animate.set_value(0), run_time=0.25)
-        self.play(poly.px.animate.set_value(4.1), ex.animate.set_value(3.6), run_time=2.75, rate_func=linear)
-        self.play(FadeOut(poly.g), FadeOut(plab), run_time=0.4)
-        poly2 = Poly(X["prom"])
-        self.play(FadeIn(poly2.g), run_time=0.4)
+        shell = cell_shell()
+        rail = compact_rail(y=-1.2)
+        mem = membrane(y=2.45, gate_x=3.5)
+        rep = repressor(at=(-1.45, -0.05, 0), label=False)
+        poly = polymerase(at=(-3.55, -0.22, 0), label=False)
+        self.add(shell, rail.group, rep.group, poly.group)
+        self.play(FadeIn(mem), run_time=0.6)
+        lac = sugar("lactose", LACTOSE, [3.5, 3.15, 0], 26)
+        self.at("Yellow lactose")
+        self.play(FadeIn(lac), run_time=0.4)
+        self.play(lac.animate.move_to([3.5, 1.55, 0]), run_time=1.1)
+        gate_lab = T("permease", 28, LACTOSE).move_to([3.5, 3.1, 0])
+        self.at("permease")
+        self.play(FadeIn(gate_lab), Indicate(mem[2], color=LACTOSE), run_time=0.6)
+        enzyme = boxed_label("β-galactosidase", GENE, 28, pad=0.18).move_to([0.2, 1.55, 0])
+        self.at("Beta")
+        self.play(FadeIn(enzyme, shift=RIGHT * 0.2), run_time=0.6)
+        self.at("turns a little lactose")
+        self.play(lac.animate.next_to(enzyme, RIGHT, buff=0.85), run_time=0.7)
+        allo = boxed_label("allolactose", LACTOSE, 28, pad=0.18).move_to(lac.get_center())
+        self.at("allolactose")
+        self.play(Transform(lac, allo), run_time=0.8)
+        natural = T("natural inducer", 28, LACTOSE).next_to(lac, DOWN, buff=0.32)
+        self.at("natural inducer")
+        self.play(FadeIn(natural), run_time=0.5)
+        self.at("Lactose itself")
+        old = T("lactose", 30, LACTOSE).move_to([1.5, 0.1, 0])
+        new = T("conversion matters", 30, TEXT).move_to([1.5, 0.1, 0])
+        self.play(FadeIn(old), run_time=0.4)
+        self.at("Conversion matters")
+        self.play(swap(old, new), run_time=0.7)
+        self.at("Allolactose reshapes")
+        self.play(FadeOut(VGroup(natural, enzyme, new, gate_lab)), run_time=0.3)
+        self.play(lac.animate.move_to([-1.45, 0.95, 0]), run_time=0.6)
+        self.play(rep.left.animate.rotate(0.38, about_point=[-1.55, -0.6, 0]),
+                  rep.right.animate.rotate(-0.38, about_point=[-0.95, -0.6, 0]), run_time=0.9)
+        self.at("lowers its affinity")
+        self.play(VGroup(rep.group, lac).animate.shift(UP * 0.65 + RIGHT * 1.2), run_time=0.9)
+        rna = Line([-2.65, -2.0, 0], [-2.55, -2.0, 0], color=GENE, stroke_width=8)
+        self.at("polymerase can move")
+        self.play(poly.group.animate.shift(RIGHT * 6.7),
+                  rna.animate.put_start_and_end_on([-2.65, -2.0, 0], [3.55, -2.0, 0]),
+                  run_time=1.8, rate_func=linear)
+        self.add(scope_tag("schematic"))
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S04Activator(SpokenScene):
-    """CAP with cyclic AMP docks on the CAP site, grips the polymerase; the mRNA gets much stronger."""
-
+class S05Leak(SpokenScene):
     def construct(self):
-        p = parts()
-        for k in ("line", "lacI", "prom", "op", "Z", "Y", "A"):
-            self.add(p[k])
-        mem, perm = membrane(), permease()
-        self.add(mem, perm)
-        rep = Rep()
-        rep.open_now()
-        allo = allolactose(rep.top() + UP * 0.05)
-        VGroup(rep.g, allo).shift(PARK)
-        poly = Poly(X["prom"])
-        ex0, w0 = ValueTracker(3.6), ValueTracker(3.5)
-        weak = mrna(ex0, w0, op=0.7)
-        self.add(rep.g, allo, poly.g, weak)
-
-        self.at("weak on its own")
-        self.play(Indicate(p["prom"], color=GREY, scale_factor=1.15), run_time=0.7)
-        cap = cap_blob()
-        cap.shift(LEFT * 0.55)
-        badge = camp_badge(cap)
-        self.at("activator called")
-        self.play(FadeIn(cap, shift=RIGHT * 0.2), run_time=0.7)
-        self.at("bound to")
-        self.play(FadeIn(badge, shift=DOWN * 0.1), run_time=0.5)
-        self.at("attaches just")
-        self.play(FadeIn(p["capsite"]), run_time=0.4)
-        self.play(VGroup(cap, badge).animate.shift(RIGHT * 0.55), run_time=0.9)
-        link = Line(cap[0].get_right() + LEFT * 0.05, poly.blob.get_left() + RIGHT * 0.05, color=TEAL, stroke_width=16)
-        self.at("contacts RNA")
-        self.play(Create(link), Indicate(poly.blob, color=PURPLE, scale_factor=1.15), run_time=0.7)
-        ex, w = ValueTracker(RNA_X0), ValueTracker(9)
-        strong = mrna(ex, w)
-        self.add(strong)
-        self.at("helps it")
-        self.play(FadeOut(link), run_time=0.2)
-        self.play(poly.lab_op.animate.set_value(0), run_time=0.25)
-        self.play(poly.px.animate.set_value(4.1), ex.animate.set_value(3.6), run_time=2.75, rate_func=linear)
-        self.play(FadeOut(poly.g), run_time=0.4)
-        poly2 = Poly(X["prom"])
-        self.play(FadeIn(poly2.g), run_time=0.4)
+        shell = cell_shell()
+        field = Circle(radius=3.15, stroke_width=0, fill_color=GENE, fill_opacity=0.10)
+        loop = Arc(radius=2.8, start_angle=0.25, angle=TAU - 0.5,
+                   color=GENE, stroke_width=7)
+        tip = Triangle(color=GENE, fill_color=GENE, fill_opacity=1).scale(0.16).rotate(-0.3)
+        tip.move_to(loop.get_end())
+        gate = boxed_label("permease", LACTOSE, 28).move_to([0, 1.75, 0])
+        enzyme = boxed_label("β-galactosidase", GENE, 28).move_to([1.55, -0.15, 0])
+        signal = boxed_label("allolactose", LACTOSE, 28).move_to([0, -1.75, 0])
+        genes = boxed_label("lac genes", GENE, 28).move_to([-1.55, -0.15, 0])
+        self.add(shell)
+        self.play(FadeIn(field), Create(loop), FadeIn(tip), run_time=0.8)
+        self.at("This creates a loop")
+        self.play(LaggedStart(*[FadeIn(x) for x in (gate, enzyme, signal, genes)], lag_ratio=0.2), run_time=1.3)
+        self.at("help produce the signal")
+        self.play(Indicate(gate, color=LACTOSE), Indicate(enzyme, color=GENE), run_time=0.8)
+        self.play(Indicate(signal, color=LACTOSE), run_time=0.6)
+        self.at("increases their own production")
+        self.play(Indicate(genes, color=GENE), Rotate(tip, angle=TAU, about_point=ORIGIN), run_time=1.4)
+        self.at("amplify a small beginning")
+        meter, level = expression_meter(0.08, center=(4.85, 0.35, 0), label="expression")
+        self.play(FadeOut(VGroup(field, loop, tip, signal, gate, enzyme, genes)), run_time=0.35)
+        gate.move_to([-4.45, 1.05, 0])
+        enzyme.move_to([-4.45, 0.0, 0])
+        genes.move_to([-4.45, -1.05, 0])
+        self.play(FadeIn(VGroup(gate, enzyme, genes)), FadeIn(meter), run_time=0.6)
+        self.play(level.animate.set_value(0.7), run_time=2.4, rate_func=smooth)
+        tiny = VGroup(boxed_label("permease", LACTOSE, 24, pad=0.1),
+                      boxed_label("β-gal", GENE, 24, pad=0.1)).arrange(DOWN, buff=0.25).move_to([-2.35, 1.45, 0])
+        self.at("Basal leak")
+        self.play(FadeIn(tiny), run_time=0.6)
+        leak_lab = T("basal leak", 30, TEXT).move_to([-0.2, 1.45, 0])
+        self.play(FadeIn(leak_lab), level.animate.set_value(0.12), run_time=0.8)
+        self.at("not perfectly binary")
+        band = Line([3.45, 0.35, 0], [4.2, 0.35, 0], color=GENE, stroke_width=12)
+        self.play(Create(band), Indicate(meter, color=GENE), run_time=0.8)
+        self.add(scope_tag("schematic"))
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S05Glucose(SpokenScene):
-    """glucose lowers cAMP (CAP lets go) and its transport protein plugs the permease (repressor returns)."""
-
+class S06Activator(SpokenScene):
     def construct(self):
-        p = parts()
-        for k in ("line", "lacI", "prom", "op", "Z", "Y", "A", "capsite"):
-            self.add(p[k])
-        mem, perm = membrane(), permease()
-        self.add(mem, perm)
-        rep = Rep()
-        rep.open_now()
-        allo = allolactose(rep.top() + UP * 0.05)
-        VGroup(rep.g, allo).shift(PARK)
-        poly = Poly(X["prom"])
-        cap = cap_blob()
-        badge = camp_badge(cap)
-        ex0, w0 = ValueTracker(3.6), ValueTracker(3.5)
-        weak = mrna(ex0, w0, op=0.7)
-        ex, w = ValueTracker(3.6), ValueTracker(9)
-        strong = mrna(ex, w)
-        self.add(rep.g, allo, poly.g, weak, strong, cap, badge)
-
-        # meters: glucose and cyclic AMP (levels only)
-        def meter(name, y, color, level):
-            lab = T(name, 24, color).move_to([4.5 - 0.15, y, 0])
-            lab.move_to([4.45 - lab.width / 2, y, 0])
-            track = Line([4.6, y, 0], [6.2, y, 0], color=GREY, stroke_width=14, stroke_opacity=0.4)
-            lv = ValueTracker(level)
-            fill = always_redraw(lambda: Line([4.6, y, 0], [4.6 + 1.6 * lv.get_value(), y, 0], color=color, stroke_width=14)
-                                 if lv.get_value() > 0.02 else Line([4.6, y, 0], [4.61, y, 0], stroke_width=0, stroke_opacity=0))
-            return lab, track, fill, lv
-        gl_lab, gl_tr, gl_fill, gl_lv = meter("glucose", 2.15, ORANGE, 0.06)
-        cm_lab, cm_tr, cm_fill, cm_lv = meter("cyclic AMP", 1.65, TEXT, 0.9)
-        self.at("Now add")
-        key = T("bars show order only", 22, GREY).move_to([6.2 - 1.45, 1.2, 0])
-        self.play(FadeIn(VGroup(gl_lab, gl_tr, cm_lab, cm_tr, key)), run_time=0.5)
-        self.add(gl_fill, cm_fill)
-        self.at("is higher")
-        self.play(Indicate(VGroup(cm_lab, cm_tr), color=TEXT, scale_factor=1.05), run_time=0.6)
-        self.at("is scarce")
-        self.play(Indicate(VGroup(gl_lab, gl_tr), color=ORANGE, scale_factor=1.08), run_time=0.6)
-        self.at("is active")
-        self.play(Indicate(cap, color=TEAL, scale_factor=1.15), run_time=0.6)
-        # glucose plentiful: cAMP falls, CAP lets go
-        self.at("plentiful")
-        self.play(gl_lv.animate.set_value(0.95), run_time=0.8)
-        self.at("is lower")
-        self.play(cm_lv.animate.set_value(0.3), FadeOut(badge, shift=UP * 0.2),
-                  cap[0].animate.set_stroke(GREY).set_fill(GREY, 0.2), cap[1].animate.set_color(GREY), run_time=0.6)
-        self.play(w.animate.set_value(5), run_time=0.7)
-        deb = T("how much this matters is debated", 24, GREY).move_to([3.7, 0.85, 0])
-        self.at("Scientists debate")
-        self.play(FadeIn(deb), run_time=0.5)
-
-        # second effect: the transport protein plugs the permease
-        self.at("second effect")
-        self.play(FadeOut(VGroup(gl_lab, gl_tr, gl_fill, cm_lab, cm_tr, cm_fill, deb, key)), run_time=0.6)
-        tp = RoundedRectangle(corner_radius=0.15, width=0.7, height=0.4, stroke_color=ORANGE, stroke_width=3,
-                              fill_color=ORANGE, fill_opacity=0.6).move_to([-4.2, MY, 0])
-        tpl = T("transport protein", 24, ORANGE).move_to([-4.2, 2.4, 0])
-        gdots = VGroup(*[Dot([-4.2 + dx, 3.4 + dy, 0], radius=0.15, color=ORANGE) for dx, dy in ((-0.3, 0), (0.0, 0.35), (0.3, 0))])
-        self.at("glucose is taken")
-        self.play(FadeIn(tp), FadeIn(gdots), run_time=0.4)
-        self.play(gdots.animate.shift(DOWN * 1.2), run_time=0.7)
-        self.play(FadeOut(gdots, shift=DOWN * 0.3), run_time=0.3)
-        self.at("a transport protein")
-        self.play(FadeIn(tpl), Indicate(tp, color=ORANGE, scale_factor=1.3), run_time=0.7)
-        self.at("binds the permease")
-        self.play(FadeOut(tpl), tp.animate.move_to([2.6, MY - 0.4, 0]), run_time=1.2)
-        tpl.move_to([3.9, 1.9, 0])
-        self.play(FadeIn(tpl), run_time=0.3)
-        lac = lactose([2.6, 3.5, 0], label=False)
-        bar = Line([2.2, MY + 0.3, 0], [3.0, MY + 0.3, 0], color=RED, stroke_width=7)
-        self.at("blocks lactose")
-        self.play(lac.animate.move_to([2.6, 3.1, 0]), run_time=0.5)
-        self.play(Create(bar), lac.animate.shift(UP * 0.6 + RIGHT * 0.5), run_time=0.5)
-        self.play(FadeOut(lac), run_time=0.3)
-        self.at("means less")
-        self.play(FadeOut(allo), FadeOut(VGroup(tpl)), run_time=0.7)
-        self.at("so more")
-        self.play(w.animate.set_value(3.5), run_time=0.3)
-        grp = rep.g
-        self.play(grp.animate.shift(-PARK), run_time=1.0)
-        self.play(*rep.close_anim(), rep.lobes.animate.set_opacity(0.45), rep.lab.animate.set_opacity(0.6), run_time=0.5)
+        shell = cell_shell()
+        rail = compact_rail(y=-1.25)
+        rep = repressor(at=(0.6, 1.25, 0), open_state=True, label=False)
+        poly = polymerase(at=(-2.65, 0.18, 0), label=False)
+        meter, level = expression_meter(0.22, center=(4.65, 0.65, 0))
+        self.add(shell, rail.group, rep.group, poly.group, meter)
+        self.at("Removing the brake")
+        self.play(Indicate(rep.jaws, color=REPRESSOR), run_time=0.7)
+        self.play(level.animate.set_value(0.24), run_time=2.2, rate_func=linear)
+        self.at("weak by itself")
+        self.play(poly.group.animate.shift(RIGHT * 0.55), run_time=0.45)
+        self.play(poly.group.animate.shift(LEFT * 0.55), level.animate.set_value(0.26), run_time=0.55)
+        cap = cap_unit(at=(-4.55, 1.65, 0), with_badge=True)
+        self.at("TLCAP")  # transcript's joined rendering of “teal C A P”
+        self.play(FadeIn(cap.cap, shift=DOWN * 0.15), run_time=0.6)
+        self.at("cyclic AMP")
+        self.play(FadeIn(cap.badge), run_time=0.5)
+        self.at("docks upstream")
+        self.play(cap.group.animate.move_to([-4.35, 0.65, 0]), run_time=0.9)
+        link = Line(cap.cap.get_right(), poly.body.get_left(), color=ACTIVATOR, stroke_width=8)
+        self.at("contacts polymerase")
+        self.play(Create(link), Indicate(poly.body, color=ACTIVATOR), run_time=0.7)
+        rna = Line([-2.65, -1.7, 0], [-2.55, -1.7, 0], color=GENE, stroke_width=9)
+        self.at("helps transcription start")
+        self.play(poly.group.animate.shift(RIGHT * 6.2),
+                  rna.animate.put_start_and_end_on([-2.65, -1.7, 0], [3.55, -1.7, 0]),
+                  level.animate.set_value(0.88), run_time=2.2, rate_func=linear)
+        brake = boxed_label("repressor: brake", REPRESSOR, 28).move_to([-2.5, 2.35, 0])
+        boost = boxed_label("CAP: activator", ACTIVATOR, 28).move_to([1.4, 2.35, 0])
+        self.at("does not remove repressor")
+        self.play(FadeIn(brake), FadeIn(boost), run_time=0.8)
+        self.at("different job")
+        self.play(Indicate(brake, color=REPRESSOR), Indicate(boost, color=ACTIVATOR), run_time=0.8)
+        positive = T("positive control", 34, ACTIVATOR).move_to([0, -2.5, 0])
+        self.at("positive control")
+        self.play(FadeIn(positive), run_time=0.6)
+        self.add(scope_tag("schematic"))
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S06Rule(SpokenScene):
-    """a two-by-two grid: lactose against glucose -> very low, very low, reduced, high."""
+class S07Glucose(SpokenScene):
+    def construct(self):
+        panels = TwoPanel("classic account", "inducer exclusion",
+                          colors=(ACTIVATOR, GLUCOSE), top=2.85, bottom=-2.45, size=30)
+        panels.left_frame.set_fill(ACTIVATOR, opacity=0.12)
+        panels.right_frame.set_fill(GLUCOSE, opacity=0.12)
+        pulse(panels.left_frame, base=2.5, amp=0.8, speed=1.2)
+        pulse(panels.right_frame, base=2.5, amp=0.8, speed=1.4)
+        bob(panels.left_frame, amp=0.045, speed=0.85)
+        bob(panels.right_frame, amp=0.045, speed=1.0, seed=2)
+        self.play(FadeIn(panels), run_time=0.7)
+        # Left: glucose plentiful -> cyclic AMP sparse -> CAP docks less often.
+        gleft = VGroup(*[Dot(radius=0.16, color=GLUCOSE) for _ in range(6)]).arrange(RIGHT, buff=0.22)
+        cap = boxed_label("CAP", ACTIVATOR, 28)
+        camps = VGroup(*[boxed_label("cAMP", ACTIVATOR, 24, pad=0.1) for _ in range(3)]).arrange(RIGHT, buff=0.18)
+        left = VGroup(gleft, camps, cap).arrange(DOWN, buff=0.55)
+        panels.put(left, "left")
+        # Right: a transport-system block narrows permease and slows lactose.
+        perm = boxed_label("permease", LACTOSE, 28)
+        transport = boxed_label("transport protein", GLUCOSE, 26)
+        lact = VGroup(*[boxed_label("lactose", LACTOSE, 24, pad=0.1) for _ in range(3)]).arrange(DOWN, buff=0.18)
+        right = VGroup(transport, perm, lact).arrange(DOWN, buff=0.35)
+        panels.put(right, "right")
+        self.at("Glucose changes both inputs")
+        self.play(FadeIn(gleft), FadeIn(transport), run_time=0.7)
+        self.play(gleft.animate.shift(DOWN * 0.35), run_time=1.5, rate_func=smooth)
+        self.at("classic account")
+        self.play(FadeIn(camps), run_time=0.6)
+        self.at("lower when glucose")
+        self.play(FadeOut(camps[1:]), cap.animate.set_opacity(0.45), run_time=0.8)
+        self.at("debated")
+        debated = T("importance in living cells is debated", 24, TEXT).move_to([-3.25, -1.9, 0])
+        self.play(FadeIn(debated), run_time=0.6)
+        self.at("transport protein")
+        self.play(FadeIn(perm), FadeIn(lact), run_time=0.5)
+        self.play(transport.animate.next_to(perm, UP, buff=0.05), run_time=0.8)
+        self.at("Less lactose enters")
+        self.play(lact.animate.set_opacity(0.3).shift(UP * 0.25), run_time=0.8)
+        allo = boxed_label("allolactose", LACTOSE, 24, pad=0.1).move_to([4.75, -1.2, 0])
+        self.at("less allolactose")
+        self.play(FadeOut(lact), run_time=0.3)
+        self.play(FadeIn(allo), allo.animate.set_opacity(0.3), run_time=0.5)
+        clamp = repressor(at=(2.15, -1.25, 0), open_state=False, label=False)
+        self.at("repressor")
+        self.play(FadeIn(clamp.group), Wiggle(clamp.jaws), run_time=0.7)
+        self.add(scope_tag("schematic"))
+        self.finish()
+
+
+class S08Predict(SpokenScene):
+    QUESTION = "Will lac expression reach high, or stop below it?"
+    OPTIONS = ("high", "below high")
 
     def construct(self):
-        cols = [-1.5, 3.3]
-        rows = [0.85, -1.55]
-        cw, ch = 4.6, 2.1
-        col_h = [T("glucose present", 30, ORANGE).move_to([cols[0], 2.85, 0]), T("glucose scarce", 30, ORANGE).move_to([cols[1], 2.85, 0])]
-        row_h = [T("lactose\nabsent", 30, YELLOW, line_spacing=0.8).move_to([-5.3, rows[0], 0]),
-                 T("lactose\npresent", 30, YELLOW, line_spacing=0.8).move_to([-5.3, rows[1], 0])]
-        cells = {}
-        for r in range(2):
-            for c in range(2):
-                cells[(r, c)] = RoundedRectangle(corner_radius=0.15, width=cw, height=ch, stroke_color=GREY, stroke_width=2.5).move_to([cols[c], rows[r], 0])
-        self.at("Put the two")
-        self.play(LaggedStart(*[FadeIn(h) for h in col_h + row_h], lag_ratio=0.15), run_time=1.0)
-        self.play(*[Create(c) for c in cells.values()], run_time=0.8)
+        back = prediction_backdrop(meter_value=0.42)
+        self.play(FadeIn(back), run_time=0.8)
+        self.at("Lactose is present")
+        self.play(Indicate(back[0][4], color=LACTOSE), run_time=0.6)
+        self.at("glucose is also plentiful")
+        self.play(Indicate(back[0][3], color=GLUCOSE), run_time=0.7)
+        q = question_card(self.QUESTION, self.OPTIONS, y=-3.35, size=28, chip_size=24)
+        self.at("Will the expression meter")
+        self.play(FadeIn(q.chips), run_time=0.5)
+        self.play(FadeIn(q.question), run_time=0.5)
+        self.at("Hold both signals")
+        self.play(Wiggle(back[0][3], scale_value=1.03), Wiggle(back[0][4], scale_value=1.03), run_time=0.9)
+        self.finish()
 
-        def fill(rc, word, level, color=GREEN):
-            cell = cells[rc]
-            txt = T(word, 38, TEXT, weight=BOLD).move_to(cell.get_center() + UP * 0.38)
-            x0 = cell.get_left()[0] + 0.5
-            track = Line([x0, cell.get_center()[1] - 0.5, 0], [x0 + 3.6, cell.get_center()[1] - 0.5, 0], color=GREY, stroke_width=16, stroke_opacity=0.35)
-            bar = Line([x0, cell.get_center()[1] - 0.5, 0], [x0 + 3.6 * level, cell.get_center()[1] - 0.5, 0], color=color, stroke_width=16)
-            return txt, track, bar
 
-        self.at("With no lactose")
-        self.play(Indicate(row_h[0], color=YELLOW, scale_factor=1.15), Indicate(col_h[0], color=ORANGE, scale_factor=1.1), run_time=0.8)
-        txt, tr, bar = fill((0, 0), "very low", 0.06)
+class S09Pause(PredictPause):
+    QUESTION = S08Predict.QUESTION
+    OPTIONS = S08Predict.OPTIONS
+    SECONDS = 4.5
+    CARD = {"y": -3.35, "size": 28, "chip_size": 24}
+
+    def backdrop(self):
+        return prediction_backdrop(meter_value=0.42)
+
+
+class S10Reveal(SpokenScene):
+    def construct(self):
+        back = prediction_backdrop(meter_value=0.42, with_labels=True)
+        self.add(back)
+        meter, level = back.world.gauge, back.world.level
+        reduced = boxed_label("reduced", GENE, 32).move_to([4.65, -2.0, 0])
+        self.at("output is reduced")
+        self.play(level.animate.set_value(0.45), FadeIn(reduced), run_time=1.0)
+        self.at("not high")
+        high = T("not high  •  not absent", 28, REPRESSOR).move_to([-0.2, -2.5, 0])
+        absent = VGroup()
+        self.play(FadeIn(high), FadeIn(absent), run_time=0.8)
+        self.at("Some inducer")
+        rep = repressor(at=(-1.45, -0.18, 0), open_state=True, label=False)
+        self.play(Indicate(rep.jaws, color=REPRESSOR), run_time=0.7)
+        self.at("activation is weaker")
+        poly = polymerase(at=(-3.1, 0.2, 0), label=False)
+        self.play(FadeIn(poly.group), poly.group.animate.shift(RIGHT * 2.1), run_time=1.0)
+        self.at("lactose entry is inhibited")
+        self.play(Indicate(back.extras[3], color=GLUCOSE), run_time=0.7)
+        self.at("two controls combine")
+        self.play(Indicate(reduced, color=GENE), level.animate.set_value(0.48), run_time=0.9)
+        self.add(scope_tag("schematic"))
+        self.finish()
+
+
+class S11Cases(SpokenScene):
+    def construct(self):
+        shell = cell_shell()
+        col_heads = VGroup(T("lactose absent", 28, LACTOSE), T("lactose present", 28, LACTOSE))
+        col_heads[0].move_to([-2.1, 2.45, 0]); col_heads[1].move_to([3.25, 2.45, 0])
+        row_heads = VGroup(T("scarce", 28, GLUCOSE), T("plentiful", 28, GLUCOSE))
+        row_heads[0].rotate(PI / 2).move_to([-5.45, 1.0, 0])
+        row_heads[1].rotate(PI / 2).move_to([-5.45, -1.65, 0])
+        centers = [(-2.1, 1.0), (3.25, 1.0), (-2.1, -1.65), (3.25, -1.65)]
+        outcomes = (("very low", 0.08), ("high", 0.9), ("very low", 0.08), ("reduced", 0.45))
+        cells = VGroup()
+        fills = VGroup()
+        for (x, y), (word, amount) in zip(centers, outcomes):
+            box = RoundedRectangle(corner_radius=0.18, width=4.75, height=2.25,
+                                   stroke_color=GREY, stroke_width=2.5,
+                                   fill_color=GENE, fill_opacity=0.10).move_to([x, y, 0])
+            pulse(box, base=2.5, amp=0.7, speed=1.0 + 0.15 * len(cells))
+            label = T(word, 32, GENE if word != "very low" else TEXT, weight=BOLD).move_to([x, y + 0.35, 0])
+            track = Line([x - 1.65, y - 0.45, 0], [x + 1.65, y - 0.45, 0], color=GREY,
+                         stroke_width=14, stroke_opacity=0.35)
+            fill = Line([x - 1.65, y - 0.45, 0], [x - 1.65 + 3.3 * amount, y - 0.45, 0],
+                        color=GENE, stroke_width=14)
+            cells.add(VGroup(box, label, track)); fills.add(fill)
+        self.add(shell)
+        self.play(FadeIn(col_heads), FadeIn(row_heads), FadeIn(cells), run_time=1.0)
+        self.at("Without lactose")
+        self.play(Create(fills[0]), Create(fills[2]), run_time=0.9)
         self.at("very low")
-        self.play(FadeIn(txt), FadeIn(tr), GrowFromEdge(bar, LEFT), run_time=0.6)
-        self.at("That holds even")
-        self.play(Indicate(col_h[1], color=ORANGE, scale_factor=1.1), run_time=0.7)
-        txt2, tr2, bar2 = fill((0, 1), "very low", 0.06)
-        self.play(FadeIn(txt2), FadeIn(tr2), GrowFromEdge(bar2, LEFT), run_time=0.6)
-        self.at("lactose and glucose together")
-        self.play(Indicate(row_h[1], color=YELLOW, scale_factor=1.15), Indicate(col_h[0], color=ORANGE, scale_factor=1.1), run_time=0.8)
-        txt3, tr3, bar3 = fill((1, 0), "reduced", 0.4)
+        self.play(Indicate(cells[0][1]), Indicate(cells[2][1]), run_time=0.7)
+        self.at("With both sugars")
+        self.play(Create(fills[3]), run_time=0.7)
         self.at("reduced")
-        self.play(FadeIn(txt3), FadeIn(tr3), GrowFromEdge(bar3, LEFT), run_time=0.6)
-        self.at("Lactose present and")
-        self.play(Indicate(row_h[1], color=YELLOW, scale_factor=1.15), Indicate(col_h[1], color=ORANGE, scale_factor=1.1), run_time=0.8)
-        txt4, tr4, bar4 = fill((1, 1), "high", 1.0)
-        self.at("gives high")
-        self.play(FadeIn(txt4), FadeIn(tr4), GrowFromEdge(bar4, LEFT), cells[(1, 1)].animate.set_stroke(GREEN, 5), run_time=0.7)
-        self.at("The genes switch on")
-        self.play(*[VGroup(txt, tr, bar).animate.set_opacity(0.35) for txt, tr, bar in ((txt, tr, bar), (txt2, tr2, bar2), (txt3, tr3, bar3))],
-                  Indicate(VGroup(txt4, tr4, bar4), color=GREEN, scale_factor=1.05), run_time=0.9)
+        self.play(Indicate(cells[3][1], color=GENE), run_time=0.6)
+        self.at("Only lactose with scarce glucose")
+        self.play(Create(fills[1]), run_time=0.9)
+        self.at("strong activation together")
+        self.play(Indicate(cells[1], color=GENE, scale_factor=1.03), run_time=0.8)
+        self.at("This table predicts")
+        note = caption("expression levels — not identical behaviour in every cell", size=26, y=-3.35)
+        self.play(FadeIn(note), run_time=0.6)
+        self.at("not whether every cell")
+        high = high_state()
+        self.play(FadeOut(VGroup(shell, col_heads, row_heads, cells, fills, note)), run_time=0.5)
+        self.play(FadeIn(high.group), run_time=1.0)
         self.finish()
 
 
-class S07End(EndCard):
-    LINE = "On only when lactose is present and glucose is scarce."
+class S12Rule(SpokenScene):
+    def construct(self):
+        high = high_state()
+        self.add(high.group)
+        lactose = boxed_label("lactose present", LACTOSE, 28).move_to([-2.25, 2.35, 0])
+        scarce = boxed_label("glucose scarce", GLUCOSE, 28).move_to([1.65, 2.35, 0])
+        self.at("two conditions")
+        self.play(FadeIn(lactose), run_time=0.5)
+        self.play(FadeIn(scarce), run_time=0.5)
+        together = Line(lactose.get_right() + RIGHT * 0.08,
+                        scarce.get_left() + LEFT * 0.08, color=GENE, stroke_width=6)
+        self.play(Create(together), Indicate(high.gauge, color=GENE), run_time=0.8)
+        self.at("not naming a preferred food")
+        food = T("preferred food?", 28, GREY).move_to([0, -2.6, 0])
+        strike = Line(food.get_left(), food.get_right(), color=REPRESSOR, stroke_width=5)
+        strike.layout_ok = "covered"
+        self.play(FadeIn(food), Create(strike), run_time=0.7)
+        self.at("Keep the scope clear")
+        self.play(FadeOut(VGroup(food, strike)), FadeIn(scope_tag("standard model")), run_time=0.6)
+        scope = fit_text("wild-type E. coli", max_w=4.5, size=30, color=TEXT).move_to([0, -2.55, 0])
+        self.at("wild type E")
+        self.play(FadeIn(scope), run_time=0.7)
+        synthetic = boxed_label("synthetic inducer", LACTOSE, 28).move_to([-2.25, 2.35, 0])
+        self.at("synthetic inducer")
+        self.play(FadeOut(together), run_time=0.2)
+        self.play(swap(lactose, synthetic), run_time=0.8)
+        self.at("stand in for lactose")
+        self.play(Indicate(synthetic, color=LACTOSE), run_time=0.8)
+        self.finish()
+
+
+class S13End(EndCard):
+    LINE = "In wild-type E. coli, high lac expression requires lactose and scarce glucose."

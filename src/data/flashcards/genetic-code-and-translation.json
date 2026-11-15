@@ -1,0 +1,585 @@
+{
+ "slug": "genetic-code-and-translation",
+ "title": "The Genetic Code and Translation",
+ "generated": {
+  "date": "2026-11-12",
+  "pipeline": "extract → Sonnet draft → Sonnet accuracy gate (separate agent) → Sonnet fixes",
+  "models": {
+   "draft": "claude-sonnet-5-5",
+   "gate": "claude-sonnet-5-5",
+   "fix": "claude-sonnet-5-5"
+  }
+ },
+ "lessonHash": "ee466fc6d82e",
+ "sectionHashes": {
+  "(opening)": "f8317f839296",
+  "Finding the size and frame of a codon": "8d2574c7999c",
+  "Assigning the codon dictionary": "da693aecc76f",
+  "Use the frame before changing it": "40b4a69a97e6",
+  "Two checks connect codons to amino acids": "789eb2315d5d",
+  "The ribosome sets the start, extends the chain and stops": "e0b3b0111d85",
+  "A premature stop can also destroy the message": "fb7e0c2de45d",
+  "Design problem: assign codons from repeating RNAs": "bf1bf955ec86"
+ },
+ "cards": [
+  {
+   "id": "genetic-code-and-translation-c01",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A {{c1::codon}} is a group of three bases in mRNA that specifies one amino acid or a stop.",
+   "back": "",
+   "quote": "A codon is a group of three bases in messenger RNA (mRNA) that specifies one amino acid or a stop."
+  },
+  {
+   "id": "genetic-code-and-translation-c02",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why can one added base regroup every codon that follows, while one substituted base may change no amino acid at all?",
+   "back": "An insertion shifts the reading frame, so every downstream codon is regrouped. A substitution changes one codon, and because most amino acids have several codons, the amino acid may stay the same.",
+   "quote": "How can one added base regroup every codon that follows, while one substituted base may change no amino acid at all?"
+  },
+  {
+   "id": "genetic-code-and-translation-c03",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A {{c1::frameshift}} is an insertion or deletion that is not a multiple of three bases.",
+   "back": "It moves downstream codons out of register until a stop or a compensating change.",
+   "quote": "A frameshift, an insertion or deletion that is not a multiple of three, moves the downstream codons out of register until a stop or a compensating change.",
+   "section": "Finding the size and frame of a codon"
+  },
+  {
+   "id": "genetic-code-and-translation-c04",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In the phage T4 rIIB gene, three single-base insertions restored wild or nearly wild growth, and so did three deletions, in the combinations tested. What does this show about how the code is read?",
+   "back": "The code is read from a fixed starting point in nonoverlapping groups of three bases (or a multiple of three), with no punctuation between words. Three same-sign changes add or remove a whole codon's worth of bases and restore the frame.",
+   "quote": "Three pluses, or three minuses, restored wild or nearly wild growth in the combinations tested.",
+   "section": "Finding the size and frame of a codon"
+  },
+  {
+   "id": "genetic-code-and-translation-c05",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "Four bases can spell 4, 16 and 64 words of one, two and three bases. Why does this arithmetic not show that cells read triplets?",
+   "back": "It only shows that equal-length codewords need at least three bases to cover twenty amino acids. It is arithmetic, not evidence about what cells use.",
+   "quote": "If every codeword has the same length, it needs at least three bases; that is arithmetic, not evidence that cells use triplets.",
+   "section": "Finding the size and frame of a codon"
+  },
+  {
+   "id": "genetic-code-and-translation-c06",
+   "type": "experiment",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "An E. coli cell-free system is given poly(U) and radioactive amino acids. What was the result, and what did the reaction require?",
+   "back": "Phenylalanine entered an acid-insoluble product with many properties of polyphenylalanine. The reaction needed ribosomes and the soluble fraction.",
+   "quote": "Phenylalanine entered an acid-insoluble product with many properties of polyphenylalanine.",
+   "section": "Assigning the codon dictionary"
+  },
+  {
+   "id": "genetic-code-and-translation-c07",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In a cell-free system, poly(U) directs polyphenylalanine. Could that result alone distinguish a one-base word U, a two-base word UU and a three-base word UUU?",
+   "back": "No. Every grouping of poly(U) contains only U, so the result links U runs to phenylalanine but cannot give codeword length. The frame evidence made UUU the likely Phe codon.",
+   "quote": "Every grouping of poly(U) contains only U, so the experiment linked U runs to phenylalanine but could not determine codeword length.",
+   "section": "Assigning the codon dictionary"
+  },
+  {
+   "id": "genetic-code-and-translation-c08",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Random copolymers gave codon composition but not order. How did the triplet-binding experiment assign a trinucleotide to an amino acid?",
+   "back": "One trinucleotide is mixed with ribosomes and an aminoacyl-tRNA. If the triplet matches, it holds that tRNA on the ribosome, which sticks to a filter while free tRNA passes through. UUU held Phe-tRNA.",
+   "quote": "Ribosome complexes stick to a filter while free tRNA passes through, so each triplet could be tested separately.",
+   "section": "Assigning the codon dictionary"
+  },
+  {
+   "id": "genetic-code-and-translation-c09",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Poly(UC), read as UCU CUC UCU CUC, directs an alternating peptide of serine and leucine. What does this assign, and what does it leave open?",
+   "back": "It links the two codons UCU and CUC to Ser and Leu. It does not say which codon is which; other evidence is needed for that.",
+   "quote": "Poly(UC), read as UCU CUC UCU CUC, gave an alternating peptide of serine and leucine.",
+   "section": "Assigning the codon dictionary"
+  },
+  {
+   "id": "genetic-code-and-translation-c10",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In the standard genetic code, how many codons are there, how many are sense codons, and which are the stops?",
+   "back": "64 codons: 61 sense codons for amino acids and three stops, UAA, UAG and UGA.",
+   "quote": "The finished standard table has 64 codons: 61 sense codons for amino acids and three stops, UAA, UAG and UGA.",
+   "section": "Assigning the codon dictionary"
+  },
+  {
+   "id": "genetic-code-and-translation-c11",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In the standard code, AUG means {{c1::methionine}} both at a start and inside a gene.",
+   "back": "",
+   "quote": "AUG means methionine both at a start and inside a gene.",
+   "section": "Assigning the codon dictionary"
+  },
+  {
+   "id": "genetic-code-and-translation-c12",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "What does the wobble hypothesis say about how one tRNA can read more than one synonymous codon?",
+   "back": "The third codon base can pair loosely with the first anticodon base, so one tRNA can read more than one codon.",
+   "quote": "the third codon base can pair loosely with the first anticodon base, so one tRNA can read more than one codon.",
+   "section": "Assigning the codon dictionary"
+  },
+  {
+   "id": "genetic-code-and-translation-c13",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "What is degeneracy of the genetic code, and at which codon base do synonymous codons usually differ?",
+   "back": "Most amino acids have several codons. Synonymous codons usually differ at the third base.",
+   "quote": "Most amino acids have several codons, a property called degeneracy. Synonymous codons usually differ at the third base.",
+   "section": "Assigning the codon dictionary"
+  },
+  {
+   "id": "genetic-code-and-translation-c14",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "The standard code is nearly universal, not universal. Give three exceptions.",
+   "back": "Vertebrate mitochondria read UGA as Trp; some ciliates read UAA and UAG as Gln; a special mRNA signal can make UGA encode selenocysteine.",
+   "quote": "Vertebrate mitochondria read UGA as Trp, some ciliates read UAA and UAG as Gln, and a special mRNA signal can make UGA encode selenocysteine.",
+   "section": "Assigning the codon dictionary"
+  },
+  {
+   "id": "genetic-code-and-translation-c15",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "How many reading frames does a single RNA strand have, and how many does double-stranded DNA have?",
+   "back": "Three on one RNA strand, beginning at base 1, 2 or 3. Double-stranded DNA has six, three on each strand.",
+   "quote": "A single RNA strand has three reading frames, beginning at base 1, 2 or 3. Double-stranded DNA has six, three on each strand.",
+   "section": "Use the frame before changing it"
+  },
+  {
+   "id": "genetic-code-and-translation-c16",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "An mRNA reads 5'-GGAUGUUUAAAGGCUGAUCC-3'. Assume translation begins at the first AUG. What peptide is made?",
+   "back": "Met-Phe-Lys-Gly, then stop. The first AUG is at bases 3 to 5, so the codons are AUG UUU AAA GGC UGA UCC, and UGA is a stop that adds no residue.",
+   "quote": "Assume translation begins at the first AUG.",
+   "section": "Use the frame before changing it"
+  },
+  {
+   "id": "genetic-code-and-translation-c17",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "An mRNA 5'-GCCAUGGCUUGGAAACCUGACUAGCC-3' is translated from its first AUG as Met-Ala-Trp-Lys-Pro-Asp. A G is inserted right after AUG. What is the product, and what kind of mutation is this?",
+   "back": "AUG GGC UUG GAA ACC UGA gives Met-Gly-Leu-Glu-Thr, then stop. It is a frameshift: every downstream codon is regrouped, and a formerly out-of-frame stop is now early.",
+   "quote": "Inserting G after AUG gives AUG GGC UUG GAA ACC UGA: Met-Gly-Leu-Glu-Thr, then stop.",
+   "section": "Use the frame before changing it"
+  },
+  {
+   "id": "genetic-code-and-translation-c18",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "The codon AAA encodes Lys. Classify the single-base changes AAA to AAG, AAA to GAA and AAA to UAA, given AAG is Lys and GAA is Glu.",
+   "back": "AAG is silent (still Lys). GAA is missense (Lys to Glu). UAA is nonsense (a stop codon). Silent leaves the sequence unchanged, missense swaps one amino acid, nonsense creates a stop.",
+   "quote": "GCU to ACU gives Met-Thr-Trp-Lys-Pro-Asp, Ala to Thr: missense.",
+   "section": "Use the frame before changing it"
+  },
+  {
+   "id": "genetic-code-and-translation-c19",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "Does a silent mutation have to be harmless?",
+   "back": "No. Silent means the amino-acid sequence is unchanged, not necessarily harmless. In human cell lines, synonymous changes can alter mRNA stability.",
+   "quote": "Silent means unchanged amino-acid sequence, not necessarily harmless.",
+   "section": "Use the frame before changing it"
+  },
+  {
+   "id": "genetic-code-and-translation-c20",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "What two checks connect a codon to the right amino acid?",
+   "back": "For most tRNAs, an aminoacyl-tRNA synthetase chooses the amino acid for its tRNA. The ribosome then tests the tRNA's anticodon against the codon.",
+   "quote": "for most tRNAs an aminoacyl-tRNA synthetase chooses the amino acid, and the ribosome tests the tRNA's anticodon, three bases that pair with a codon.",
+   "section": "Two checks connect codons to amino acids"
+  },
+  {
+   "id": "genetic-code-and-translation-c21",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "The amino acid rides on the tRNA's {{c1::3' CCA end}}.",
+   "back": "",
+   "quote": "The amino acid rides on the tRNA's 3' CCA end.",
+   "section": "Two checks connect codons to amino acids"
+  },
+  {
+   "id": "genetic-code-and-translation-c22",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Write the two steps by which an aminoacyl-tRNA synthetase charges a tRNA.",
+   "back": "Amino acid + ATP gives aminoacyl-AMP + PPi. Then aminoacyl-AMP + tRNA gives aminoacyl-tRNA + AMP. Hydrolysis of PPi means charging spends two high-energy phosphate bonds.",
+   "quote": "There is usually one synthetase per amino acid, and it charges its tRNA or tRNAs in two steps",
+   "section": "Two checks connect codons to amino acids"
+  },
+  {
+   "id": "genetic-code-and-translation-c23",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why does it matter that some synthetases edit, hydrolyzing a wrong amino acid?",
+   "back": "Editing matters because the ribosome checks codon-anticodon pairing, not the amino acid.",
+   "quote": "Editing matters because the ribosome checks codon-anticodon pairing, not the amino acid.",
+   "section": "Two checks connect codons to amino acids"
+  },
+  {
+   "id": "genetic-code-and-translation-c24",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Name the three tRNA-binding sites of the ribosome, and say which one receives the initiator tRNA.",
+   "back": "A (aminoacyl), P (peptidyl) and E (exit). The initiator tRNA goes in the P site, which also fixes the frame.",
+   "quote": "Initiation places an initiator tRNA in the P site and fixes the frame, but bacteria and eukaryotes often find the start differently.",
+   "section": "The ribosome sets the start, extends the chain and stops"
+  },
+  {
+   "id": "genetic-code-and-translation-c25",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Name the subunits of the bacterial ribosome and of the eukaryotic cytosolic ribosome, and the whole particles they form.",
+   "back": "Bacterial 30S and 50S make 70S; eukaryotic 40S and 60S make 80S. Svedberg values measure sedimentation, so they do not add.",
+   "quote": "A ribosome has two subunits: bacterial 30S and 50S make 70S; eukaryotic cytosolic 40S and 60S make 80S.",
+   "section": "The ribosome sets the start, extends the chain and stops"
+  },
+  {
+   "id": "genetic-code-and-translation-c26",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In many bacterial mRNAs, how does the small subunit place the start codon?",
+   "back": "A purine-rich Shine-Dalgarno sequence a few bases upstream of the start pairs with the 3' end of 16S rRNA, placing the start codon on the small subunit.",
+   "quote": "a purine-rich Shine-Dalgarno sequence a few bases upstream of the start codon pairs with the 3' end of 16S rRNA",
+   "section": "The ribosome sets the start, extends the chain and stops"
+  },
+  {
+   "id": "genetic-code-and-translation-c27",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "What initiator tRNA do most bacteria use, and what does a typical eukaryote use? Which start codons can bacteria use?",
+   "back": "Most bacteria use fMet-tRNA; eukaryotes use Met-tRNAi. In bacteria GUG can serve as a start as well as AUG.",
+   "quote": "Most bacteria use an fMet-tRNA (formylmethionine-tRNA) initiator, and GUG can serve as a start as well as AUG.",
+   "section": "The ribosome sets the start, extends the chain and stops"
+  },
+  {
+   "id": "genetic-code-and-translation-c28",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "How does the ribosome usually find the start in most eukaryotic mRNAs, and which context favors an AUG?",
+   "back": "The 40S subunit and initiation factors load at the 5' cap and scan 5' to 3', usually starting at the first AUG in good Kozak context: a purine at -3 and G at +4, with the A of AUG as +1.",
+   "quote": "In most eukaryotic mRNAs, the 40S subunit and initiation factors load at the 5' cap and scan 5' to 3'.",
+   "section": "The ribosome sets the start, extends the chain and stops"
+  },
+  {
+   "id": "genetic-code-and-translation-c29",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In a mammalian mRNA, the first AUG has a C at -3 and a U at +4, while a later AUG has good context. How does this affect where scanning ribosomes start?",
+   "back": "Many scanning ribosomes pass the first AUG and start at the next AUG in good context (leaky scanning). A poor context lacks the favorable -3 purine and +4 G, so the first AUG is often skipped.",
+   "quote": "Many scanning ribosomes can pass an AUG in poor context and begin at the next AUG in good context.",
+   "section": "The ribosome sets the start, extends the chain and stops"
+  },
+  {
+   "id": "genetic-code-and-translation-c30",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "What do EF-Tu and EF-G do during bacterial elongation, and what do they spend?",
+   "back": "EF-Tu delivers aminoacyl-tRNA to the A site, with GTP hydrolyzed if the anticodon matches. EF-G uses another GTP to move the ribosome one codon. Eukaryotic equivalents are eEF1A and eEF2.",
+   "quote": "EF-Tu (eEF1A in eukaryotes) uses GTP to deliver aminoacyl-tRNA to A; if the anticodon matches, GTP is hydrolyzed.",
+   "section": "The ribosome sets the start, extends the chain and stops"
+  },
+  {
+   "id": "genetic-code-and-translation-c31",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In elongation, what does the large subunit do, which RNA catalyzes it in bacteria, and in which direction does the chain grow?",
+   "back": "It transfers the chain from the P-site tRNA to the amino group of the A-site amino acid. In bacteria the catalyst is 23S rRNA. The chain grows from N to C terminus.",
+   "quote": "The large subunit transfers the chain from P to the amino group of the A-site amino acid.",
+   "section": "The ribosome sets the start, extends the chain and stops"
+  },
+  {
+   "id": "genetic-code-and-translation-c32",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Counting charging, one delivery and one translocation per residue, about how many high-energy phosphate bonds are spent to add 50 residues in elongation?",
+   "back": "Per peptide bond: charging 2 (ATP to AMP), EF-Tu delivery 1 GTP, EF-G translocation 1 GTP, total about 4. For 50 bonds, 50 x 4 = about 200.",
+   "quote": "Charging costs two, because ATP is split to AMP; EF-Tu delivery and EF-G translocation cost one GTP each.",
+   "section": "The ribosome sets the start, extends the chain and stops"
+  },
+  {
+   "id": "genetic-code-and-translation-c33",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A ribosome elongates at about 10 amino acids per second on a reporter mRNA whose coding sequence is 2,700 nucleotides, not counting the stop codon. Assuming a constant rate, about how long does one ribosome take?",
+   "back": "A codon is three bases, so 2,700 / 3 = 900 codons. At 10 per second, 900 / 10 = 90 seconds, about 1.5 minutes.",
+   "quote": "A codon is a group of three bases in messenger RNA (mRNA) that specifies one amino acid or a stop."
+  },
+  {
+   "id": "genetic-code-and-translation-c34",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "What happens when a stop codon reaches the ribosomal A site?",
+   "back": "Normally no tRNA reads the stop. A release factor promotes hydrolysis of the bond to the P-site tRNA, releasing the chain.",
+   "quote": "At termination, normally no tRNA reads the stop in the A site; a release factor promotes hydrolysis of the bond to the P-site tRNA.",
+   "section": "The ribosome sets the start, extends the chain and stops"
+  },
+  {
+   "id": "genetic-code-and-translation-c35",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Which stop codons does each of RF1, RF2 and eRF1 read?",
+   "back": "RF1 reads UAA and UAG; RF2 reads UAA and UGA; eukaryotic eRF1 reads all three stops.",
+   "quote": "In bacteria RF1 reads UAA and UAG, while RF2 reads UAA and UGA; eukaryotic eRF1 reads all three stops.",
+   "section": "The ribosome sets the start, extends the chain and stops"
+  },
+  {
+   "id": "genetic-code-and-translation-c36",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A bacterial extract has lost RF1 but keeps RF2. An mRNA ends in a UAG stop codon. What is the most likely result at the stop?",
+   "back": "Termination is impaired, because RF2 reads UAA and UGA, not UAG. With no release factor that reads UAG, the chain is not efficiently released.",
+   "quote": "In bacteria RF1 reads UAA and UAG, while RF2 reads UAA and UGA; eukaryotic eRF1 reads all three stops.",
+   "section": "The ribosome sets the start, extends the chain and stops"
+  },
+  {
+   "id": "genetic-code-and-translation-c37",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why does a premature stop in an early exon of a mammalian gene usually trigger nonsense-mediated decay?",
+   "back": "Splicing leaves exon junction complexes upstream of most exon-exon junctions, and a first-round ribosome displaces them. A premature stop in an early exon ends translation while complexes remain downstream, which flags the mRNA for decay.",
+   "quote": "The exon 2 mRNA is usually targeted for nonsense-mediated decay (NMD) because translation stops while exon junction complexes remain downstream.",
+   "section": "A premature stop can also destroy the message"
+  },
+  {
+   "id": "genetic-code-and-translation-c38",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "In a human mRNA, one premature stop lies 100 bases upstream of the last exon-exon junction and another lies 20 bases upstream of it. Which is likely to trigger NMD, and what is the other likely to make?",
+   "back": "The stop 100 bases upstream usually triggers NMD, since it is more than about 50 to 55 bases from the last junction. The stop 20 bases upstream usually escapes and may make a truncated protein.",
+   "quote": "one in the last exon, or within about 50 bases of the last junction, usually escapes and may make a truncated protein.",
+   "section": "A premature stop can also destroy the message"
+  },
+  {
+   "id": "genetic-code-and-translation-c39",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In a cell-free E. coli system, poly(AG) directs alternating Arg and Glu, and poly(AAG) directs polyLys, polyArg and polyGlu. Why can the data not assign AGA, and what experiment settles it?",
+   "back": "AGA is shared by both polymers, as are Arg and Glu, so the data cannot say whether AGA is Arg or Glu. The triplet-binding test with labelled aminoacyl-tRNAs settles each trinucleotide: AGA Arg, GAG Glu.",
+   "quote": "AGA is shared by both polymers, as are Arg and Glu, so the data cannot assign it.",
+   "section": "Design problem: assign codons from repeating RNAs"
+  },
+  {
+   "id": "genetic-code-and-translation-c40",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In a phage gene, a one-base insertion at codon 20 abolishes function. A one-base deletion at codon 24 is added to it. Predict function, and say which codons are misread.",
+   "back": "Function is likely restored: the deletion is a compensating change that returns the frame to register. Only the codons between the two changes are misread. This rests on frameshifts holding until a compensating change.",
+   "quote": "A frameshift, an insertion or deletion that is not a multiple of three, moves the downstream codons out of register until a stop or a compensating change.",
+   "section": "Finding the size and frame of a codon"
+  },
+  {
+   "id": "genetic-code-and-translation-c41",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In a phage gene, one-base insertions at codons 20 and 22 and a one-base deletion at codon 40 are combined. Is the frame restored downstream of codon 40?",
+   "back": "No. Two insertions and one deletion net one added base, which is not a multiple of three, so downstream codons stay out of register. Only net changes of three bases or a multiple of three restore the frame.",
+   "quote": "They concluded that the code is read from a fixed starting point, in nonoverlapping groups of three bases or a multiple of three, with no punctuation between words.",
+   "section": "Finding the size and frame of a codon"
+  },
+  {
+   "id": "genetic-code-and-translation-c42",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "A one-base deletion in exon 2 of a six-exon human gene brings a stop codon early in the new frame. Predict the fate of the mRNA and the protein, naming the rules used.",
+   "back": "The deletion is a frameshift that regroups downstream codons, so a formerly out-of-frame stop is now early. A premature stop in exon 2, well upstream of later junctions, leaves exon junction complexes downstream, so the mRNA is usually targeted for nonsense-mediated decay (NMD), a tendency with exceptions.",
+   "quote": "This is a frameshift because every downstream codon is regrouped, and a formerly out-of-frame stop is now early.",
+   "section": "Use the frame before changing it"
+  }
+ ]
+}
