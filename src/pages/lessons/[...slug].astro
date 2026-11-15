@@ -28,6 +28,7 @@ import HighlightLayer from '../../components/HighlightLayer.astro';
 import LessonHelpers from '../../components/LessonHelpers.astro';
 import { helperAllowed } from '../../lib/helper-lesson.mjs';
 import LessonLinks from '../../components/LessonLinks.astro';
+import BuildsOn from '../../components/BuildsOn.astro';
 import type { Deck } from '../../lib/flashcards';
 import { feedbackUrl } from '../../lib/feedback';
 import { COURSES, courseOf, courseHref } from '../../data/courses';
@@ -250,6 +251,8 @@ const lessonLd = {
         </details>
       </aside>
     )}
+
+    <BuildsOn slug={lesson.slug} />
 
     {lesson.ladder && <LessonLadder ladder={lesson.ladder} explainLevels={lesson.explainLevels} step={course.ladderStep ?? 2} />}
 
