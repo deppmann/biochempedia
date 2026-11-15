@@ -94,7 +94,7 @@ function teacherCookie(token, request) { return cookie(TEACHER_COOKIE, token, re
 function studentCookie(token, request) { return cookie(STUDENT_COOKIE, token, request, STUDENT_SESSION_DAYS * 86400); }
 
 async function studentView(db, s) {
-  const assignments = ((await db.prepare('SELECT lesson_slug AS slug, due_date AS due, flashcards FROM assignments WHERE class_id=? ORDER BY due_date IS NULL, due_date, assigned_at').bind(s.class_id).all()).results || [])
+  const assignments = ((await db.prepare('SELECT lesson_slug AS slug, due_date AS due, flashcards FROM assignments WHERE class_id=? ORDER BY due_date IS NULL, due_date, rowid').bind(s.class_id).all()).results || [])
     .map((a) => ({ ...a, flashcards: !!a.flashcards }));
   const done = (await db.prepare("SELECT lesson_slug FROM answers WHERE student_id=? AND kind='done'").bind(s.id).all()).results || [];
   return {
@@ -117,7 +117,7 @@ function briefToday(url) {
 
 async function buildBrief(db, cls, today = new Date().toISOString().slice(0, 10)) {
   const students = (await db.prepare('SELECT id, nickname, status, created_at, last_seen_at FROM students WHERE class_id=? ORDER BY nickname').bind(cls.id).all()).results || [];
-  const assignments = ((await db.prepare('SELECT lesson_slug AS slug, due_date AS due, assigned_at, flashcards FROM assignments WHERE class_id=? ORDER BY due_date IS NULL, due_date, assigned_at').bind(cls.id).all()).results || [])
+  const assignments = ((await db.prepare('SELECT lesson_slug AS slug, due_date AS due, assigned_at, flashcards FROM assignments WHERE class_id=? ORDER BY due_date IS NULL, due_date, rowid').bind(cls.id).all()).results || [])
     .map((a) => ({ ...a, flashcards: !!a.flashcards }));
   const rows = (await db.prepare(
     'SELECT a.* FROM answers a JOIN students s ON s.id = a.student_id WHERE s.class_id=?').bind(cls.id).all()).results || [];
@@ -447,6 +447,8 @@ export async function handleApi(request, env) {
       }
       if (sub === 'assignments' && method === 'PUT') {
         // Replace the whole assignment list: [{slug, due?, flashcards?}]
+        // Rows go in in the list's order, and readers sort by due date, then that order (rowid), so the
+        // teacher's order holds among equal due dates: "Also assign" review lessons sit before the lesson.
         const b = await body(request);
         const list = Array.isArray(b?.assignments) ? b.assignments.slice(0, 400) : null;
         if (!list) return fail(400, 'Bad list.');
