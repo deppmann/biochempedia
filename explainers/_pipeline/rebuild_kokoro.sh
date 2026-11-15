@@ -17,5 +17,7 @@ perl -0pi -e 's/  narration: "this lesson.s (?:own )?narrated lecture slides, (?
 FFPROBE=$HOME/miniconda3/bin/ffprobe; [ -x "$FFPROBE" ] || FFPROBE=ffprobe
 D=$("$FFPROBE" -v error -show_entries format=duration -of csv=p=0 web/explainer.mp4)
 perl -0pi -e "s/(explainer:\\n(?:  .*\\n)*?  durationSec: )[0-9.]+/\${1}$(printf %.1f "$D")/" "$P/../../src/content/lessons/$1/lesson.mdx"
+mkdir -p "$P/../../public/explainers/$1"
 cp web/explainer.mp4 web/explainer.vtt web/poster.jpg "$P/../../public/explainers/$1/"
-echo "rebuilt $1"
+# The .mp4 is not tracked in git: upload it (node scripts/upload-media.mjs) and commit media-manifest.json.
+echo "rebuilt $1 (upload the film with scripts/upload-media.mjs; git ignores the .mp4)"

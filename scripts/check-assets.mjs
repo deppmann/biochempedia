@@ -5,6 +5,9 @@
  * build if any points at a file that does not exist in dist/. Catches missing figure WebP,
  * narration MP3, scientist portraits, OG image, and broken internal links before they ship.
  *
+ * Films (/explainers/**.mp4) are not in the repository: one missing from dist/ passes when
+ * media-manifest.json lists it (the Worker serves it from R2). Caption files must be present.
+ *
  * External (http/https/protocol-relative), data:, mailto:, tel:, and #fragment refs are skipped.
  * Run automatically after `astro build` (see package.json) or standalone: `npm run check:assets`.
  */
@@ -61,8 +64,21 @@ if (!files.length) {
   process.exit(1);
 }
 
+/* Films are not in the repository: the Worker serves /explainers/*.mp4 from R2, and
+   media-manifest.json lists every object uploaded there. So a film missing from dist/ passes
+   when its key is in the manifest. Only films: posters and captions are tracked files and must
+   be in dist/ (a missing caption file also silently drops the film's transcript, so it fails). */
+const MANIFEST_FILE = join(process.cwd(), 'media-manifest.json');
+const MEDIA = existsSync(MANIFEST_FILE) ? JSON.parse(await readFile(MANIFEST_FILE, 'utf8')) : {};
+const cleanRef = (u) => decodeURI(u.split('#')[0].split('?')[0]);
+const inR2 = (urlPath) => {
+  const clean = cleanRef(urlPath);
+  return /^\/explainers\/.+\.mp4$/.test(clean) && Boolean(MEDIA[clean.slice(1)]);
+};
+
 const missing = new Map(); // urlPath -> Set(pages)
 let checked = 0;
+let fromR2 = 0;
 for (const file of files) {
   const html = await readFile(file, 'utf8');
   const page = '/' + posix.relative(DIST.split(/[\\/]/).join('/'), file.split(/[\\/]/).join('/'));
@@ -70,10 +86,44 @@ for (const file of files) {
     if (!isLocal(ref)) continue;
     checked++;
     if (!resolves(ref)) {
+      if (inR2(ref)) { fromR2++; continue; }
       if (!missing.has(ref)) missing.set(ref, new Set());
       missing.get(ref).add(page);
     }
   }
+}
+
+const films = [...missing.keys()].filter((r) => /^\/explainers\/.+\.mp4$/.test(cleanRef(r)));
+const captions = [...missing.keys()].filter((r) => /^\/explainers\/.+\.vtt$/.test(cleanRef(r)));
+if (films.length) {
+  console.error(`\n✗ check-assets: ${films.length} film(s) referenced by a page are in neither dist/ nor media-manifest.json.`);
+  console.error(`  Films are served from R2. Upload each one (node scripts/upload-media.mjs) and commit`);
+  console.error(`  media-manifest.json, or fix the film path in the lesson frontmatter.`);
+}
+if (captions.length) {
+  console.error(`\n✗ check-assets: ${captions.length} caption file(s) referenced by a film are missing from public/explainers/.`);
+  console.error(`  Captions are tracked in the repository and are a build input: without the .vtt the film`);
+  console.error(`  plays without captions and its "Read the transcript" section silently disappears. Commit the .vtt.`);
+}
+// The same rule straight from the source, for every lesson (drafts included): a film's caption
+// file named in frontmatter must exist, or the build quietly drops its transcript.
+const LESSONS = join(process.cwd(), 'src', 'content', 'lessons');
+const lostCaptions = [];
+if (existsSync(LESSONS)) {
+  for (const slug of await readdir(LESSONS)) {
+    const f = join(LESSONS, slug, 'lesson.mdx');
+    if (!existsSync(f)) continue;
+    const fm = (await readFile(f, 'utf8')).split(/\n---\s*\n/)[0];
+    for (const m of fm.matchAll(/^\s*captions:\s*["']?(\/explainers\/[^"'\s]+\.vtt)/gm)) {
+      if (!existsSync(join(process.cwd(), 'public', m[1]))) lostCaptions.push(`${m[1]}  (lesson ${slug})`);
+    }
+  }
+}
+if (lostCaptions.length) {
+  console.error(`\n✗ check-assets: ${lostCaptions.length} caption file(s) named in lesson frontmatter are missing from public/:`);
+  for (const c of lostCaptions) console.error(`  ${c}`);
+  console.error(`  The film would play without captions and its transcript would vanish. Commit the .vtt.\n`);
+  process.exit(1);
 }
 
 if (missing.size) {
@@ -86,7 +136,8 @@ if (missing.size) {
   process.exit(1);
 }
 
-console.log(`✓ check-assets: ${checked} local references across ${files.length} pages all resolve.`);
+console.log(`✓ check-assets: ${checked} local references across ${files.length} pages all resolve` +
+  (fromR2 ? ` (${fromR2} film references served from R2, listed in media-manifest.json).` : '.'));
 
 /* ---------------------------------------------------------------------------
    Webfont gate.
