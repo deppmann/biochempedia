@@ -5,13 +5,12 @@ course: "genetics"
 courseChapter: "Genetics and Molecular Biology · Unit 6: Populations and complex traits"
 order: 325
 summary: >-
-  Why does a dominant allele not take over a population, and what does it take to change how
-  common an allele is? This lesson derives the Hardy-Weinberg proportions, tests a real-looking
-  sample against them with a chi-square, and then sets each evolutionary force (selection, drift,
-  migration, mutation and non-random mating) against that null model. Afterwards you can turn
-  genotype counts into allele frequencies, estimate carrier frequency from the incidence of a
-  recessive condition, and explain how heterozygote advantage keeps the sickle allele in
-  malaria-exposed populations.
+  Mating reshuffles alleles; dominance alone does not change their frequency. For a two-allele
+  autosomal locus, this lesson derives the Hardy-Weinberg proportions, tests a sample against
+  them with a chi-square, and then asks how selection, drift, migration, mutation and non-random
+  mating differ from that null model. Afterwards you can turn genotype counts into allele
+  frequencies, estimate carrier frequency from the incidence of a recessive condition, and
+  explain how heterozygote advantage keeps the sickle allele in malaria-exposed populations.
 hook: "If a trait is dominant, why does it not take over a population?"
 
 estMinutes: 24
@@ -25,10 +24,30 @@ explainer:
   src: "/explainers/population-genetics/explainer.mp4"
   captions: "/explainers/population-genetics/explainer.vtt"
   poster: "/explainers/population-genetics/poster.jpg"
-  title: "Why Dominant Alleles Do Not Spread"
-  durationSec: 148.2
-  narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+  title: "Why Dominance Does Not Spread an Allele"
+  durationSec: 214.1
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+  takeaways:
+    - "Mating reshuffles alleles; dominance alone does not change their frequency."
+    - "At a two-allele autosomal locus, allele frequency counts copies across the population."
+    - "With equal allele frequencies in eggs and sperm, random mating gives expected genotype proportions p squared, two p q and q squared."
+    - "Hardy-Weinberg is a null model, not proof that no evolutionary force acts."
+
+films:
+  - id: "chapter-2"
+    src: "/explainers/population-genetics/chapter-2.mp4"
+    captions: "/explainers/population-genetics/chapter-2.vtt"
+    poster: "/explainers/population-genetics/chapter-2-poster.jpg"
+    title: "What Moves Allele Frequencies?"
+    durationSec: 227.7
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+    takeaways:
+      - "Forces change allele frequencies in distinct, testable ways."
+      - "Selection changes which genotypes contribute copies; migration mixes populations."
+      - "Mutation creates alleles, while drift samples them without a preferred direction."
+      - "Non-random mating alone rearranges genotypes without changing allele frequencies."
 
 scientists:
   - name: "G. H. Hardy"
@@ -375,16 +394,19 @@ draft: false
 import DriftSelectionSimulator from '../../../components/DriftSelectionSimulator.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
 import EquationCard from '../../../components/EquationCard.astro';
+import LessonFilm from '../../../components/LessonFilm.astro';
 
-**If an allele is dominant, it shows up in heterozygotes as well as homozygotes. So why does a dominant allele not spread, generation by generation, until almost everyone shows it?**
-
-That was the question put to the mathematician G. H. Hardy in 1908. The answer is short, and it became the reference point for population genetics: dominance describes how alleles act inside one person, and says nothing about how common they become. To change how common an allele is, something has to act on the population. This lesson builds the baseline in which nothing acts, then adds each force in turn.
+Here you calculate the first film's answer and test it against real counts.
 
 ## The idea: with nothing acting, frequencies stay put
 
-A **population**, here, is a group of individuals that mate with one another. At a **locus** (a place on a chromosome) with two **alleles**, A and a, call the fraction of all allele copies that are A **p**, and the fraction that are a **q**. Both are numbers between 0 and 1, and with only two alleles, p + q = 1. (In this lesson p and q are always allele frequencies. The capital P in "P = 0.05" further down is a probability from the chi-square test.)
+A **population**, here, is a group of individuals that mate with one another. At a **locus** (a place on a chromosome) with two **alleles** (versions), A and a, the fraction of all allele copies that are A is **p** and the fraction that are a is **q**: the **allele frequencies**. A **genotype frequency** is the fraction of individuals who are AA, Aa or aa. With two alleles, p + q = 1. (In this lesson p and q are always allele frequencies. The capital P in "P = 0.05" further down is a probability from the chi-square test.)
 
-Now picture every egg and sperm in the population thrown into one pool, and zygotes made by drawing one of each at random. The chance of drawing A from both is p x p. The chance of a heterozygote is pq for A from the egg and a from the sperm, plus qp for the reverse. That gives the **Hardy-Weinberg proportions**:
+> **The one idea.** Mating reshuffles alleles; dominance alone does not change their frequency.
+>
+> *Scope:* one two-allele autosomal locus in a large population, with the same allele frequencies in eggs and sperm. (In a small population, chance sampling of gametes moves frequencies: that is drift.) The Hardy-Weinberg baseline below adds random mating at this locus and no selection, mutation or migration.
+
+Written as algebra, the first film's square gives the **Hardy-Weinberg proportions**:
 
 <EquationCard
   purpose="Given how common each allele is, how common each genotype should be when nothing is acting on the population."
@@ -407,39 +429,65 @@ Now picture every egg and sperm in the population thrown into one pool, and zygo
   </Fragment>
 </EquationCard>
 
-This is the product and sum rule from [probability and crosses](/lessons/probability-and-crosses/), applied to a whole population instead of one cross. Now count the A copies in the next generation. AA zygotes are all A; Aa zygotes are half A:
+This is the product and sum rule from [probability and crosses](/lessons/probability-and-crosses/), applied to a whole population. The first film's recount of A copies, in three lines (AA zygotes are all A; Aa zygotes are half A):
 
 1. A frequency = p^2 + (half of 2pq) = p^2 + pq.
 2. Take p out of both terms: p^2 + pq = p(p + q).
 3. p + q = 1, so this is just p.
 
-The allele frequency has not moved, and one round of random mating restores the proportions whatever they were before.
+The allele frequency has not moved, and one generation of random mating gives these genotype proportions whatever the proportions were before, provided eggs and sperm begin with the same p and q.
 
-Wilhelm Weinberg, a physician in Stuttgart, derived the same result independently in a lecture in January 1908, so the principle carries both names. W. E. Castle and Karl Pearson had made earlier attempts at the same problem.
+G. H. Hardy published this in 1908; Wilhelm Weinberg, a physician in Stuttgart, derived it independently in a lecture in January 1908, so the principle carries both names. W. E. Castle and Karl Pearson had made earlier attempts at the same problem.
 
-The assumptions are the whole point. The population is large, mating is random with respect to this locus, allele frequencies are the same in both sexes, and there is no selection, mutation, migration or drift. Real populations break these. Hardy-Weinberg is a **null model**: a statement of what you would see if nothing were happening, against which you detect what is.
+Hardy-Weinberg is a **null model**: what you would see under the baseline in the box above, against which you detect departures. Real populations break its assumptions.
 
 ## Counting alleles and testing equilibrium
 
 **Worked problem, part 1.** In a sample of 1,000 people typed at a codominant locus (each genotype distinguishable), there are MM 298, MN 489 and NN 213. Assume unrelated individuals and accurate typing.
 
-1. *Count alleles, not people.* Each MM person carries two M copies and each MN person one. M copies = 2 x 298 + 489 = 1,085, out of 2,000. So p = 0.5425, and q = 1 - p = 0.4575. Count first; never take a square root of a homozygote frequency to find p before you know the sample is at equilibrium.
-2. *Expected counts.* Multiply the sample size by each Hardy-Weinberg proportion (a calculator helps). MM = 1,000 x 0.5425^2 = 294.3. MN = 1,000 x 2 x 0.5425 x 0.4575 = 496.4. NN = 1,000 x 0.4575^2 = 209.3. They add to 1,000.
+1. *Count alleles, not people.* Each MM person carries two M copies and each MN person one. M copies = 2 x 298 + 489 = 1,085, out of 2,000. So p = 0.5425, and q = 1 - p = 0.4575. Count first; never find p from the square root of a homozygote frequency before you know the sample is at equilibrium.
+2. *Expected counts.* Multiply the sample size by each Hardy-Weinberg proportion. MM = 1,000 x 0.5425^2 = 294.3. MN = 1,000 x 2 x 0.5425 x 0.4575 = 496.4. NN = 1,000 x 0.4575^2 = 209.3. They add to 1,000.
 3. *Chi-square*, a score for how far the counts sit from the expected ones (bigger means more surprising; see [probability and crosses](/lessons/probability-and-crosses/)). (298 - 294.3)^2 / 294.3 = 0.046; (489 - 496.4)^2 / 496.4 = 0.110; (213 - 209.3)^2 / 209.3 = 0.065. The total is 0.22.
 4. *Degrees of freedom.* Three classes, minus 1 because the counts must add to 1,000, minus 1 more because p was estimated from these same counts: **1**, not 2.
-5. *Decide.* The critical value at P = 0.05 for one degree of freedom, read from a chi-square table, is 3.84. Since 0.22 is far below it (P is about 0.64), there is no evidence of departure.
+5. *Decide.* The critical value at P = 0.05 for one degree of freedom is 3.84. Since 0.22 is far below it (P is about 0.64), there is no evidence of departure.
 
-That last sentence is all you can say. A good fit does not prove random mating or the absence of selection. A poor fit does not prove selection either, because inbreeding, a sample that mixes two populations, and genotyping errors can all produce one.
+That is all: a good fit does not prove random mating or the absence of selection, and a poor fit does not prove selection, because inbreeding, a sample that mixes two populations, and genotyping errors can all produce one.
 
-**Worked problem, part 2.** A recessive condition affects 1 in 2,500 newborns in a hypothetical population. Assume the population is at equilibrium at this locus. Affected people are aa, so q^2 = 1/2,500. To undo a square, take the square root: the square root of 1/2,500 is 1/50, so q = 0.02 and p = 0.98. Carriers are 2pq = 2 x 0.98 x 0.02 = 0.039, about 1 in 26 (1 ÷ 0.0392 is about 25.5).
+**Worked problem, part 2.** A recessive condition affects 1 in 2,500 newborns in a hypothetical population. Assume the population is at equilibrium at this locus.
 
-Carriers are about 100 times as common as affected people (0.0392 / 0.0004 = 98). In symbols, the ratio is 2pq / q^2. One q cancels top and bottom, leaving 2p/q, and when q is small p is close to 1, so the ratio is close to 2/q. Here 2/0.02 = 100. A rare allele sits almost entirely in heterozygotes: here 98% of a copies are in carriers. This is how families meet a recessive condition with no affected relatives in the [pedigree](/lessons/pedigrees/).
+**Predict.** Will carriers be nearer 1 in 2,500, 1 in 50 or 1 in 25? Name their Hardy-Weinberg term.
 
-## The forces that move frequencies
+<details>
+<summary>Check your prediction</summary>
 
-**Selection** means genotypes differ consistently in survival or reproduction. It changes allele frequencies, and its speed depends on which genotypes it can see. Against a rare recessive it is slow, because selection acts only on aa, and almost every a copy is hiding in a carrier. If aa individuals never reproduced, q would fall as q_n = q_0 / (1 + n q_0), where q_0 is the starting frequency and q_n the frequency after n generations. Starting at 0.02, halving q to 0.01 would take 50 generations. To see it, set q_n = 0.01: then 1 + n × 0.02 must equal 0.02 / 0.01 = 2, so n × 0.02 = 1 and n = 50. (Sanity line: at n = 0 the formula gives back q_0, and q only ever shrinks, ever more slowly as it gets rarer.)
+Carriers are two p q, about 1 in 26, so 1 in 25 is the closest choice.
 
-**Migration** (gene flow) mixes gene pools. The new frequency is a weighted average of the residents' frequency and the migrants' frequency:
+</details>
+
+Affected people are aa, so q^2 = 1/2,500; the square root gives q = 1/50 = 0.02, and p = 0.98. Carriers are 2pq = 2 x 0.98 x 0.02 = 0.039, about 1 in 26 (1 ÷ 0.0392 is about 25.5).
+
+Carriers are about 100 times as common as affected people (0.0392 / 0.0004 = 98). In symbols, 2pq / q^2 = 2p/q (one q cancels), and when q is small p is close to 1, so the ratio is close to 2/q: here 2/0.02 = 100. A rare allele sits almost entirely in heterozygotes: here 98% of a copies are in carriers. This is how families meet a recessive condition with no affected relatives in the [pedigree](/lessons/pedigrees/).
+
+That 1 in 26 needs both q = 0.02 and Hardy-Weinberg proportions: non-random mating can change it while q stays fixed. The second film asks what can move q.
+
+<LessonFilm film={frontmatter.films[0]} />
+
+## What can move a frequency?
+
+The second film showed what each process touches; here is how far and how fast. Recall the rule: mating reshuffles alleles; dominance alone does not change their frequency. To move a frequency, something has to act on the population.
+
+**Selection** (genotypes differing consistently in survival or reproduction) is fast or slow depending on which genotypes it can “see.” Against a rare recessive it is slow, because selection acts only on aa, and almost every a copy is hidden in a carrier. If aa individuals never reproduced, q would fall as q_n = q_0 / (1 + n q_0), where q_0 is the starting frequency and q_n the frequency after n generations. Starting at 0.02, halving q to 0.01 takes 50 generations: with q_n = 0.01, 1 + n × 0.02 must equal 0.02 / 0.01 = 2, so n = 50. (Check: at n = 0 the formula gives q_0, and q shrinks ever more slowly as it gets rarer.)
+
+**Migration** (gene flow) gives the second film's weighted average.
+
+**Predict.** Residents have p = 0.2, migrants p = 0.6, and migrants supply one tenth of the copies. Estimate the new p.
+
+<details>
+<summary>Check your prediction</summary>
+
+Nearer 0.2, because residents supply nine tenths of the copies.
+
+</details>
 
 <EquationCard
   purpose="How far one generation of migration moves a population's allele frequency."
@@ -460,19 +508,24 @@ Carriers are about 100 times as common as affected people (0.0392 / 0.0004 = 98)
   </Fragment>
 </EquationCard>
 
-Migration pulls populations toward each other.
+**Mutation**, the source of new alleles (see [mutation](/lessons/mutation/)), is weak on frequency. In human parent-offspring trios, the TOPMed study estimated about 1.2 x 10^-8 new single-base changes per base pair per generation, a genome average. That is about one change per 83 million base pairs (1 ÷ 1.2 x 10^-8 is about 83 million; see [powers](/math-toolkit/#powers)). Over a few generations, that barely moves an allele frequency.
 
-**Mutation** is the source of new alleles (see [mutation](/lessons/mutation/)) but a weak force on frequency. In human parent-offspring trios, the TOPMed study estimated about 1.2 x 10^-8 new single-base changes per base pair per generation, a genome average. That is about one change per 83 million base pairs (1 ÷ 1.2 x 10^-8 is about 83 million; see [powers](/math-toolkit/#powers)). Over a few generations, that barely moves an allele frequency.
-
-**Non-random mating** is the odd one out. **Inbreeding**, mating between relatives, and **assortative mating** for a trait influenced by the locus, make homozygotes more common and heterozygotes rarer. They pair the same copies differently, so on their own they change genotype frequencies and leave p and q where they were. They can still expose recessive alleles to selection.
+**Non-random mating** is the odd one out, as the second film showed: same copies, different pairs. Its two kinds are **inbreeding** (mating between relatives) and **assortative mating** (partners alike in a trait the locus affects). By putting more rare recessive copies into aa individuals, they can still expose those alleles to selection.
 
 <LessonFigure src="/figures/population-genetics/same-copies-paired-differently.webp" width={1200} height={637} alt="AI-generated illustration: two panels each showing four people holding two allele blocks apiece. With random mating there are one AA, two Aa and one aa person. With inbreeding or assortative mating there are two AA and two aa people. Both panels use the same four A and four a blocks, re-paired by a broad arrow between them." caption="Inbreeding and assortative mating pair the same allele copies differently: homozygotes become more common and heterozygotes rarer, so genotype frequencies change while p and q stay where they were." />
 
-**Drift** is change by chance.
-
 ## Drift and founders: chance in small populations
 
-Each generation, only a sample of the parents' allele copies makes it into the offspring. In a small population that sample can stray far from the parents' frequency. Under the simplest model, with a constant **effective population size** Ne (the number of breeders in an idealized population that would drift at the same rate), you can say how big that chance wobble is in one generation:
+The second film's two cups showed **drift**: chance sampling of the parents' allele copies. Under the simplest model, with a constant **effective population size** Ne (the number of breeders in an idealized population that would drift at the same rate), one generation's wobble has a known size.
+
+**Predict.** At the same Ne, is one-generation variance larger at p = 0.5 or p = 0.1? Check the boundaries.
+
+<details>
+<summary>Check your prediction</summary>
+
+Larger at p = 0.5; p(1 - p) peaks halfway between the boundaries.
+
+</details>
 
 <EquationCard
   purpose="How far, on average, chance alone moves an allele frequency in one generation."
@@ -489,23 +542,32 @@ Each generation, only a sample of the parents' allele copies makes it into the o
   <Fragment slot="example">
     <p>With Ne = 50 and p = 0.5: the top is 0.5 × 0.5 = 0.25 and the bottom is 2 × 50 = 100.</p>
     <p>Variance = 0.25 / 100 = 0.0025. The standard deviation is its square root, 0.05.</p>
-    <p>So in a single generation p typically moves about 0.05 either way, from 0.5 to somewhere around 0.45 or 0.55.</p>
+    <p>Across repeated populations, the one-generation changes have standard deviation 0.05. Any one population can move less or more, in either direction.</p>
   </Fragment>
 </EquationCard>
 
-Drift has no direction, and in a small population a frequency wanders until it hits 0 (the allele is lost) or 1 (it is **fixed**).
+Left long enough, a small population's frequency wanders until it hits 0 (the allele is lost) or 1 (it is **fixed**).
 
 <DriftSelectionSimulator />
 
-Peter Buri saw this in 1956 with 107 laboratory populations of Drosophila, each kept at 8 males and 8 females and each started at a frequency of one half for an eye-colour allele. Over 19 generations the populations spread apart, and many lost or fixed the allele, while the average across them stayed near where it began.
+Peter Buri saw this in 1956 in 107 laboratory populations of Drosophila, each kept at 8 males and 8 females and started at one half for an eye-colour allele. Over 19 generations they spread apart and many lost or fixed the allele, while their average stayed near where it began.
 
-A **founder effect** is drift at the start of a population: a small group carries, by chance, a different set of alleles than the population it left. In a 2020 exome study of 5,521 Lancaster County Old Order Amish participants, 124 carried the KCNQ1 variant p.T224M, about 1 in 45, and none was homozygous. Each person carries two copies, so the 124 carriers hold 124 variant copies out of 2 x 5,521 = 11,042. That is an allele frequency of 124 / (2 x 5,521), about 0.011: a carrier frequency of 1 in 45 is not an allele frequency of 1/45. The authors note that pathogenic variants may occur at much higher frequency in founder populations, and they attribute this variant's frequency to a founder effect and drift. Tay-Sachs disease among Ashkenazi Jewish people, and the group of rare diseases called the Finnish disease heritage, are other examples often taught this way. These are features of particular populations and their histories, not of races: most human genetic variation lies within populations, not between them.
+A **founder effect** is drift at the start of a population: a small group carries, by chance, a different set of alleles than the population it left. In a 2020 exome study of 5,521 Lancaster County Old Order Amish participants, 124 carried the KCNQ1 variant p.T224M, about 1 in 45, and none was homozygous. Each person carries two copies, so the 124 carriers hold 124 variant copies out of 2 x 5,521 = 11,042, an allele frequency of about 0.011: a carrier frequency of 1 in 45 is not an allele frequency of 1/45. The authors note that pathogenic variants may occur at much higher frequency in founder populations, and they attribute this variant's frequency to a founder effect and drift. Tay-Sachs disease among Ashkenazi Jewish people and the rare diseases of the Finnish disease heritage are other examples often taught this way. These are features of particular populations and their histories, not of races: most human genetic variation lies within populations, not between them.
 
 ## Balanced polymorphism: sickle cell and malaria
 
 The sickle allele of the β-globin gene (HBB) changes glutamate to valine at position 6 of the β chain, and deoxygenated HbS polymerises (see [protein binding and allostery](/lessons/protein-binding-allostery/)). Sickle-cell disease (SS) is autosomal recessive. In conditions where the disease shortens life, selection should remove S. Yet in regions with intense falciparum malaria the allele is common.
 
-The reason is heterozygote advantage. Sickle-cell trait (AS) does not give immunity to malaria. In two cohorts of children on the Kenyan coast it made no difference to how often children carried parasites without symptoms, but it was associated with about 50% protection against mild malaria, 75% against hospital admission and almost 90% against severe disease. AS outsurvives AA through malaria and SS through the disease, and selection then holds both alleles. The allele settles where the losses at the two homozygotes balance. If the cost to AA is s and the cost to SS is t, the equilibrium is:
+**Predict.** If AS survives better than both homozygotes, should S disappear, become fixed, or settle between?
+
+<details>
+<summary>Check your prediction</summary>
+
+Between the extremes: rare S sits mostly in favoured AS, while common S makes more SS, which selection removes.
+
+</details>
+
+The reason is heterozygote advantage. In two cohorts of children on the Kenyan coast, sickle-cell trait (AS) made no difference to how often children carried parasites without symptoms, but it was associated with about 50% protection against mild malaria, 75% against hospital admission and almost 90% against severe disease. The allele settles where the losses at the two homozygotes balance; with costs s to AA and t to SS, the equilibrium is:
 
 <LessonFigure src="/figures/population-genetics/sickle-heterozygote-advantage.webp" width={1200} height={732} alt="AI-generated illustration: three tiles showing red blood cells for genotypes AA, AS and SS. The AA cell is round with a malaria parasite inside. The AS cell is round, also with a parasite, and is outlined in gold with a shield badge. The SS cell is crescent-shaped with a bundle of rods inside. A band below reads that selection holds both alleles." caption="Sickle-cell trait (AS) does not give immunity to malaria, but it was associated with protection against mild, admitted and severe malaria. AS outsurvives AA through malaria and SS through the disease, so selection holds both alleles." />
 
@@ -539,7 +601,7 @@ Heterozygotes survive best, so this is balancing selection. The fitness costs ar
 
 Check one generation. Survivors are AA 0.81 x 0.88 = 0.713, AS 0.18, SS 0.01 x 0.20 = 0.002, out of 0.895. As fractions of adults: AA 0.797, AS 0.201, SS 0.002. Adult q = 0.201/2 + 0.002 = 0.103. Under Hardy-Weinberg, q = 0.103 predicts 2 x 0.897 x 0.103 = 0.185 heterozygotes, but adults have 0.201. Adults show a **heterozygote excess**, even though their newborns fit. When to sample matters.
 
-To separate selection from the alternatives, show that the allele's frequency follows the historical intensity of malaria across regions, that AS children are protected in follow-up studies, and that newborns fit equilibrium while adults show the excess. Migration from a high-S population would raise q, but mixing in migrants from a population at Hardy-Weinberg proportions gives a heterozygote deficit, not an excess. The exception is adult migrants who were themselves selected in a malarious region, so record where each adult was born.
+To separate selection from the alternatives, show that the allele's frequency follows the historical intensity of malaria across regions, that AS children are protected in follow-up studies, and that newborns fit equilibrium while adults show the excess. Migrants from a high-S population would raise q, but if they come from a population at Hardy-Weinberg proportions the mixture shows a heterozygote deficit, not an excess, unless the adult migrants were themselves selected in a malarious region; so record where each adult was born.
 
 </details>
 
