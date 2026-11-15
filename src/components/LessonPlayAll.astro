@@ -1,0 +1,105 @@
+---
+/**
+ * "Play all films" (Chris, 2026-11-14): on a lesson with two or more films, one press plays the first
+ * film and then each next one, in the order they stand in the lesson. Placed under the first film's row.
+ *
+ * The films are the <video data-listen-film> elements on the page (the opening film and every
+ * <LessonFilm>), the same set the Listen read-aloud stops at. The control is hidden until the script
+ * finds two or more, so with JavaScript off, or on a one-film lesson, nothing shows.
+ *
+ * When a film ends the next one gets the captions state and playback speed of the one just watched,
+ * scrolls into view (a jump under reduced motion) and starts. If the browser refuses to start it, a
+ * "Continue to the next film" button takes its place. "Stop after this film" cancels the chain, and
+ * so does starting any other film by hand. Pausing and seeking leave the chain alone. Watched marks and
+ * progress come from trackFilms() (src/lib/film-progress.ts), which listens to every video on the page.
+ */
+---
+
+<div class="pa" data-play-all hidden>
+  <div class="pa-row">
+    <button type="button" class="pa-btn pa-go" data-pa-go>
+      <span aria-hidden="true">▶</span> Play all films <span class="pa-sub" data-pa-sub></span>
+    </button>
+    <button type="button" class="pa-btn" data-pa-stop hidden>Stop after this film</button>
+    <button type="button" class="pa-btn pa-cont" data-pa-cont hidden>Continue to the next film</button>
+  </div>
+  <p class="pa-status" data-pa-status role="status" aria-live="polite"></p>
+</div>
+
+<script>
+  const box = document.querySelector<HTMLElement>('[data-play-all]');
+  const films = Array.from(document.querySelectorAll<HTMLVideoElement>('video[data-listen-film]'));
+  if (box && films.length >= 2) {
+    const $ = <T extends HTMLElement>(s: string) => box.querySelector<T>(s)!;
+    const go = $('[data-pa-go]'), stop = $('[data-pa-stop]'), cont = $('[data-pa-cont]');
+    const status = $('[data-pa-status]'), sub = $('[data-pa-sub]');
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const secs = films.reduce((n, v) => n + (Number(v.dataset.listenFilmSec) || 0), 0);
+    sub.textContent = `(${films.length} films, ${Math.max(1, Math.round(secs / 60))} min)`;
+    box.hidden = false;
+
+    let cur = -1; // the film the chain is on; -1 when no chain is running
+    const label = (i: number) => `Film ${i + 1} of ${films.length}: ${films[i].dataset.listenFilm ?? ''}`;
+    const view = (on: boolean) => { go.hidden = on; stop.hidden = !on; if (!on) cont.hidden = true; };
+    const end = (msg = '') => { cur = -1; view(false); status.textContent = msg; };
+
+    const start = (i: number) => {
+      const v = films[i];
+      cur = i;
+      view(true);
+      cont.hidden = true;
+      status.textContent = label(i);
+      // The opening film sits in a closed <details> until opened.
+      const fold = v.closest('details');
+      if (fold && !fold.open) fold.open = true;
+      (v.closest('figure') ?? v).scrollIntoView({ block: 'center', behavior: reduce.matches ? 'auto' : 'smooth' });
+      v.play().catch(() => {
+        // The browser wants a press first: offer one instead of failing silently.
+        if (cur !== i) return;
+        cont.hidden = false;
+        stop.hidden = false;
+        status.textContent = `${label(i)}. Your browser did not start it by itself.`;
+        cont.textContent = i === 0 ? 'Play the first film' : 'Continue to the next film';
+        cont.focus();
+      });
+    };
+
+    go.addEventListener('click', () => start(0));
+    cont.addEventListener('click', () => start(cur));
+    stop.addEventListener('click', () => end('The films will stop after this one.'));
+
+    // Starting any other film by hand cancels the chain. (Media events do not bubble; capture them.)
+    document.addEventListener('play', (e) => {
+      if (cur >= 0 && e.target !== films[cur] && films.includes(e.target as HTMLVideoElement)) end();
+    }, true);
+
+    document.addEventListener('ended', (e) => {
+      const from = e.target as HTMLVideoElement;
+      if (cur < 0 || from !== films[cur]) return;
+      if (cur >= films.length - 1) { end(); return; }
+      const to = films[cur + 1];
+      // Carry the viewer's choices forward: playback speed, and captions if they were showing.
+      to.playbackRate = from.playbackRate;
+      const showing = [...from.textTracks].some((t) => t.mode === 'showing');
+      for (const t of to.textTracks) t.mode = showing ? 'showing' : t.mode === 'showing' ? 'disabled' : t.mode;
+      start(cur + 1);
+    }, true);
+  }
+</script>
+
+<style>
+  .pa { margin: var(--ddp-space-3) 0 0; max-width: 880px; }
+  .pa-row { display: flex; flex-wrap: wrap; gap: var(--ddp-space-2); }
+  .pa-btn {
+    font: inherit; font-size: var(--ddp-text-sm); font-weight: 600; min-height: 44px; padding: 0.4rem 1rem;
+    border-radius: 999px; border: 1px solid var(--ddp-color-line); background: var(--ddp-color-surface);
+    color: var(--ddp-color-primary); cursor: pointer;
+  }
+  .pa-btn:hover { border-color: var(--ddp-color-accent); }
+  .pa-btn:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .pa-go, .pa-cont { background: var(--ddp-color-accent-soft); border-color: var(--ddp-color-accent); }
+  .pa-sub { font-weight: 400; color: var(--ddp-color-muted); }
+  .pa-status { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); }
+  .pa-status:empty { display: none; }
+  .pa [hidden] { display: none; }
+</style>

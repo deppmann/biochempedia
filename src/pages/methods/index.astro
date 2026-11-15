@@ -1,6 +1,9 @@
 ---
 import { getCollection } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import Hex from '../../components/Hex.astro';
+import { hexFor } from '../../data/hex';
+const hex = hexFor('methods');
 import { CATEGORY_LABELS, METHODS, filmLength, listedMethods, methodHref, type MethodCategory } from '../../data/methods';
 
 /* The methods library: every experimental method taught on the site, one film each,
@@ -16,7 +19,7 @@ const coming = METHODS.filter((m) => !m.film).sort((a, b) => a.name.localeCompar
 <BaseLayout title="Methods library — Biochemistrypedia" description="One short narrated film for every experimental method the courses teach: what it solves, how it works, how to read the result, and what it made possible.">
   <section class="wrap methods-hero">
     <p class="eyebrow"><a href="/courses/">All courses</a> · methods</p>
-    <h1>Methods library</h1>
+    <h1>Methods library<Hex pose={hex.pose} prop={hex.prop} size={60} alive title={hex.label} class="hex-inline" /></h1>
     <p class="lede">
       Every claim in these courses rests on a measurement. Each film here explains one method once:
       the problem it solves, how it works, how to read what it gives you, what can go wrong, and what it

@@ -4,13 +4,17 @@
  * benzene ring, a honeycomb cell, a sheet of graphene, the shape that tiles a plane and the
  * head of a bolt, so Hex belongs to every subject the site will teach. Hex is "it".
  *
+ * Six poses and the subject props are drawn below; each course's own look (a course pose and
+ * prop, 2026-11-14) is drawn in src/data/hex-art.ts and mapped to its course in src/data/hex.ts.
  * Six poses and four props (one per subject area). Usage rules are on /hex/: Hex appears
  * where something happens (the header, a finished quiz, an empty search, a 404), never in
  * the reading column of a lesson. Decorative by default; pass `label` where Hex is the only
  * thing carrying a meaning.
  */
 import type { HexPose, HexProp } from '../data/hex';
+import { PROP_ART, courseHexMarkup, type HexCourseProp } from '../data/hex-art';
 interface Props {
+  /** The six basic poses, or a course pose (peer, kneel, lookup, reach, point, carry, hold). */
   pose?: HexPose;
   /** What Hex holds: leaf (biology), flask (chemistry), pendulum (physics), compass (math), or
    *  camera (the film library; its reels turn once when the svg gets the class is-rolling). */
@@ -21,13 +25,35 @@ interface Props {
   alive?: boolean;
   /** Accessible name. Leave it out and Hex is hidden from screen readers. */
   label?: string;
+  /** A tooltip for sighted readers on a decorative Hex (stays hidden from screen readers). */
+  title?: string;
   class?: string;
 }
-const { pose = 'stand', prop, size = 72, alive = false, label, class: cls } = Astro.props;
+const { pose = 'stand', prop, size = 72, alive = false, label, title, class: cls } = Astro.props;
 const w = prop ? 82 : 64;
 const armUp = prop === 'pendulum';
+/* A course look (2026-11-14): a course prop or a course pose is drawn by src/data/hex-art.ts. */
+const BASIC = ['stand', 'wave', 'lean', 'think', 'cheer', 'sleep'];
+const course = (prop && prop in PROP_ART) || !BASIC.includes(pose)
+  ? courseHexMarkup(pose, prop && prop in PROP_ART ? (prop as HexCourseProp) : undefined)
+  : null;
 ---
 
+{course ? (
+<svg
+  class:list={['hex', `hex-${pose}`, 'hex-course', alive && 'is-alive', cls]}
+  viewBox={course.viewBox}
+  width={Math.round((size * course.width) / 72)}
+  height={Math.round((size * course.height) / 72)}
+  role={label ? 'img' : undefined}
+  aria-label={label}
+  aria-hidden={label ? undefined : 'true'}
+  focusable="false"
+>
+  {title && !label && <title>{title}</title>}
+  <Fragment set:html={course.inner} />
+</svg>
+) : (
 <svg
   class:list={['hex', `hex-${pose}`, alive && 'is-alive', cls]}
   viewBox={`0 0 ${w} 72`}
@@ -38,6 +64,7 @@ const armUp = prop === 'pendulum';
   aria-hidden={label ? undefined : 'true'}
   focusable="false"
 >
+  {title && !label && <title>{title}</title>}
   <g class="hex-all">
     {/* Legs and feet */}
     <path class="hex-ink" d={pose === 'lean' ? 'M27 48 L31 60 M37 48 L34 60' : 'M27 48 L25.5 60 M37 48 L38.5 60'} />
@@ -141,8 +168,11 @@ const armUp = prop === 'pendulum';
     </g>
   )}
 </svg>
+)}
 
-<style>
+{/* Global, every selector anchored on .hex-: the course looks arrive as markup (set:html), which
+    Astro's scoping never stamps. */}
+<style is:global>
   .hex { flex: none; overflow: visible; color: var(--ddp-color-primary); }
   /* Beside a heading's text (the site's reset makes every svg a block). */
   .hex-inline { display: inline-block; margin-left: 0.3em; vertical-align: -0.1em; }
@@ -153,10 +183,18 @@ const armUp = prop === 'pendulum';
   .hex-gold { fill: var(--ddp-color-secondary); stroke: none; }
   .hex-goldline { fill: none; stroke: var(--ddp-color-secondary); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
   .hex-ghost { opacity: 0.3; stroke-dasharray: 1.5 2.5; }
+  /* Course looks: a few strokes need their own weight to stay readable at 40 px. */
+  .hex-course .hex-handle { stroke-width: 3.4; }
+  .hex-course .hex-bold { stroke-width: 2.6; }
+  .hex-course .hex-string { stroke-width: 1.4; }
+  .hex-course .hex-myelin { stroke-width: 3; }
+  .hex-course .hex-row1 { stroke-dasharray: 2 1.4; }
+  .hex-course .hex-row2 { stroke-dasharray: 1.6 1.4; }
+  .hex-course .hex-row3 { stroke-width: 1.4; stroke-dasharray: 1.2 1.2; }
   .hex-lean .hex-all { transform-box: view-box; transform-origin: 32px 61px; transform: rotate(9deg); }
 
   /* ---- Alive: a blink for every pose, and one small movement that suits the pose ---- */
-  .hex-eyes, .hex-arm-r, .hex-arm-l, .hex-all, .hex-zz, .hex-dots { transform-box: view-box; }
+  .hex-eyes, .hex-arm-r, .hex-arm-l, .hex-all, .hex-zz, .hex-dots, .hex-pulse { transform-box: view-box; }
   /* The camera's reels: three quick turns when the page asks for them (never on a loop). */
   .hex-reel { transform-box: fill-box; transform-origin: center; }
   .is-rolling .hex-reel { animation: hexReel 0.45s linear 3; }
@@ -168,12 +206,14 @@ const armUp = prop === 'pendulum';
   .is-alive.hex-sleep .hex-zz { animation: hexZz 2.6s ease-in-out infinite; }
   .is-alive.hex-sleep .hex-all { transform-origin: 32px 61px; animation: hexBreathe 2.6s ease-in-out infinite alternate; }
   .is-alive.hex-think .hex-dots { animation: hexZz 2.2s ease-in-out infinite; }
+  .is-alive.hex-course.hex-wave .hex-arm-l { transform-origin: 14.7px 26px; animation: hexWave 0.5s ease-in-out 6 alternate-reverse; }
+  .is-alive.hex-course .hex-pulse { animation: hexZz 2.4s ease-in-out infinite; }
   @keyframes hexBlink { 0%, 94%, 100% { transform: scaleY(1); } 97% { transform: scaleY(0.1); } }
   @keyframes hexWave { from { transform: rotate(-14deg); } to { transform: rotate(18deg); } }
   @keyframes hexJump { from { transform: translateY(0); } to { transform: translateY(-5px); } }
   @keyframes hexZz { 0%, 100% { opacity: 0.25; transform: translateY(1.5px); } 50% { opacity: 1; transform: translateY(-1.5px); } }
   @keyframes hexBreathe { from { transform: scale(1, 1); } to { transform: scale(1.02, 0.98); } }
   @media (prefers-reduced-motion: reduce) {
-    .is-alive .hex-eyes, .is-alive .hex-arm-r, .is-alive .hex-all, .is-alive .hex-zz, .is-alive .hex-dots, .is-rolling .hex-reel { animation: none !important; }
+    .is-alive .hex-eyes, .is-alive .hex-arm-r, .is-alive .hex-all, .is-alive .hex-zz, .is-alive .hex-dots, .is-rolling .hex-reel, .is-alive .hex-arm-l, .is-alive .hex-pulse { animation: none !important; }
   }
 </style>
