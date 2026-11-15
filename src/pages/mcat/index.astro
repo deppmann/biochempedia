@@ -1,5 +1,8 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import Hex from '../../components/Hex.astro';
+import { hexFor } from '../../data/hex';
+const hex = hexFor('mcat');
 import { SETS, SECTION, CATEGORY, discreteItems, BEYOND_COURSES, BEYOND_LABEL, DIAGNOSTIC_LENGTH } from '../../lib/mcat';
 import { courseOf } from '../../data/courses';
 import { MCAT_SCOPE_NOTE } from '../../data/paths';
@@ -20,7 +23,7 @@ const sections = ['bb', 'cp'].map((s) => ({ s, sets: SETS.filter((x) => x.sectio
 <BaseLayout title="MCAT practice — Biochemistrypedia" description="Free, original MCAT-style practice: research passages with data, a diagnostic, and topic practice that sends every miss back to the lesson that teaches it.">
   <article class="wrap mhub" data-mhub>
     <p class="mh-eyebrow"><a href="/paths/mcat/">MCAT path</a> · Practice</p>
-    <h1>MCAT practice</h1>
+    <h1>MCAT practice<Hex pose={hex.pose} prop={hex.prop} size={60} alive title={hex.label} class="hex-inline" /></h1>
     <p class="mh-lede">
       Most science questions on the MCAT come in sets after a short research passage with data. These are
       written the same way: a study, a figure or table, then questions that ask you to read the data, judge the
