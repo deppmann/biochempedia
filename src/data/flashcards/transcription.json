@@ -1,0 +1,537 @@
+{
+ "slug": "transcription",
+ "title": "Transcription: From DNA to RNA",
+ "generated": {
+  "date": "2026-11-12",
+  "pipeline": "extract → Sonnet draft → Sonnet accuracy gate (separate agent) → Sonnet fixes",
+  "models": {
+   "draft": "claude-sonnet-5-5",
+   "gate": "claude-sonnet-5-5",
+   "fix": "claude-sonnet-5-5"
+  }
+ },
+ "lessonHash": "cab01bee317b",
+ "sectionHashes": {
+  "(opening)": "51bde148d437",
+  "The reaction fixes the direction": "bf7a9089b58b",
+  "Use the rule on a sequence": "9c83da5669dd",
+  "Bacteria: sigma places one core enzyme": "dffef7c06914",
+  "Eukaryotic nuclei divide the work": "65eb9429b65d",
+  "Placing Pol II": "1fc268030fe7",
+  "Elongation as a rate problem": "06d1580c691e",
+  "Stopping transcription": "c57a259dec5a",
+  "Design problem: identify the polymerase": "e7abdd6da72b"
+ },
+ "cards": [
+  {
+   "id": "transcription-c01",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In transcription from double-stranded DNA, what do the start site and its orientation determine?",
+   "back": "Which DNA strand is read as the template.",
+   "why": "The promoter sets the start site and the direction the polymerase faces there.",
+   "quote": "The start site and its orientation determine which strand is read."
+  },
+  {
+   "id": "transcription-c02",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "RNA polymerase reads the template strand {{c1::3′ to 5′}} while extending the RNA 5′ to 3′.",
+   "back": "",
+   "quote": "RNA polymerase then reads that one template 3′ to 5′ while extending RNA 5′ to 3′."
+  },
+  {
+   "id": "transcription-c03",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why does RNA polymerase read its template 3′ to 5′?",
+   "back": "Each nucleotide is joined to the 3′ hydroxyl of the growing RNA, so RNA grows 5′ to 3′. The RNA is antiparallel to its template, so the template is read 3′ to 5′.",
+   "quote": "That chemistry fixes the directions: RNA grows 5′ to 3′, as DNA does in DNA replication.",
+   "section": "The reaction fixes the direction"
+  },
+  {
+   "id": "transcription-c04",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Which DNA strand has the same sequence as the RNA (with U for T), and what is its other name?",
+   "back": "The coding strand, also called the nontemplate strand.",
+   "quote": "RNA matches the other DNA strand, the coding strand (nontemplate strand), with U in place of T.",
+   "section": "The reaction fixes the direction"
+  },
+  {
+   "id": "transcription-c05",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Unlike DNA polymerase, RNA polymerase needs no {{c1::primer}}.",
+   "back": "",
+   "quote": "Unlike DNA polymerase, RNA polymerase needs no primer; it can join the first two nucleotides itself.",
+   "section": "The reaction fixes the direction"
+  },
+  {
+   "id": "transcription-c06",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "On the coding strand, how are positions numbered relative to the first transcribed base?",
+   "back": "The first transcribed base is +1. Bases before it (toward the 5′ end) are upstream and negative; positions after it are downstream.",
+   "quote": "On the coding strand, bases toward its 5′ end before +1 are upstream and have negative numbers; positions after +1 are downstream.",
+   "section": "The reaction fixes the direction"
+  },
+  {
+   "id": "transcription-c07",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A gene's template strand is written 3′-TACCGATTG-5′, left to right. Which way does the polymerase move on the page, and what is the RNA, written 5′ to 3′?",
+   "back": "It moves left to right; the RNA is 5′-AUGGCUAAC-3′. The template is read 3′ to 5′, and its 3′ end is on the left. The RNA is the complement, which equals the coding strand with U for T.",
+   "why": "Rests on: RNA grows 5′ to 3′ and the polymerase reads the template 3′ to 5′.",
+   "quote": "The polymerase reads the top template 3′ to 5′.",
+   "section": "Use the rule on a sequence"
+  },
+  {
+   "id": "transcription-c08",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "An RNA is 5′-GCAUUC-3′. Write the template DNA strand that made it, 5′ to 3′.",
+   "back": "5′-GAATGC-3′. The template pairs antiparallel with the RNA, so it reads 3′-CGTAAG-5′; written 5′ to 3′ it is GAATGC.",
+   "quote": "RNA polymerase opens a short stretch of the double helix and uses one DNA strand, the template strand (antisense or noncoding strand)",
+   "section": "The reaction fixes the direction"
+  },
+  {
+   "id": "transcription-c09",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Two neighbouring genes lie on the same chromosome and face opposite directions. Do they use the same DNA strand as template?",
+   "back": "No. Each gene uses one strand as its template, and genes facing opposite ways use opposite strands.",
+   "quote": "Each gene uses one strand as its template, but neighbouring genes can face opposite ways and use opposite strands.",
+   "section": "The reaction fixes the direction"
+  },
+  {
+   "id": "transcription-c10",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In E. coli, what are the two coding-strand promoter elements recognized by sigma 70, with their consensus sequences?",
+   "back": "The −35 element, 5′-TTGACA-3′, and the −10 element, 5′-TATAAT-3′, separated by about 17 bp.",
+   "quote": "The housekeeping factor sigma 70 recognizes two coding-strand elements.",
+   "section": "Bacteria: sigma places one core enzyme"
+  },
+  {
+   "id": "transcription-c11",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "What is the E. coli holoenzyme, and what does sigma add to the core enzyme?",
+   "back": "Core enzyme plus a sigma factor. Core makes RNA; sigma lets it recognize promoters and place the start.",
+   "quote": "Bound to a sigma factor, it becomes the holoenzyme.",
+   "section": "Bacteria: sigma places one core enzyme"
+  },
+  {
+   "id": "transcription-c12",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "What is the difference between the closed complex and the open complex at a bacterial promoter?",
+   "back": "In the closed complex the promoter DNA is still double-stranded. In the open complex about a turn of helix near the −10 element and +1 is melted, with template DNA in the active site.",
+   "quote": "Melting about a turn of the helix around the −10 element and +1 makes the open complex, with template DNA in the active site.",
+   "section": "Bacteria: sigma places one core enzyme"
+  },
+  {
+   "id": "transcription-c13",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "What is abortive initiation, and what ends it?",
+   "back": "The polymerase makes and releases short RNAs at the promoter. It ends when one RNA grows long enough and the polymerase leaves for productive elongation (promoter escape).",
+   "quote": "Making and releasing short RNAs at the promoter is abortive initiation;",
+   "section": "Bacteria: sigma places one core enzyme"
+  },
+  {
+   "id": "transcription-c14",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A mutation makes one E. coli −10 element closer to consensus. Does that guarantee more transcription from that promoter?",
+   "back": "No. A closer match usually raises initiation, but spacing, other elements and bound proteins can outweigh that one change.",
+   "quote": "A closer match usually raises sigma-dependent initiation, but the promoter's spacing, other elements and bound proteins can outweigh that one change.",
+   "section": "Bacteria: sigma places one core enzyme"
+  },
+  {
+   "id": "transcription-c15",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In E. coli, core enzyme is fixed and sigma 32 rises after a temperature rise. Which promoters gain access to core, and what happens to transcription?",
+   "back": "Promoters recognized by sigma 32, so heat-shock genes are transcribed more. The core has not changed; its promoter-selecting partner has.",
+   "quote": "In E. coli, sigma 32 directs transcription of heat-shock genes, so a temperature rise changes which promoters are used.",
+   "section": "Bacteria: sigma places one core enzyme"
+  },
+  {
+   "id": "transcription-c16",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why can a bacterial mRNA be translated while it is still being transcribed?",
+   "back": "Bacteria have no nucleus, so ribosomes can start translating an mRNA while its 3′ end is still being made.",
+   "quote": "Because bacteria have no nucleus, ribosomes can translate an mRNA while its 3′ end is still being made.",
+   "section": "Bacteria: sigma places one core enzyme"
+  },
+  {
+   "id": "transcription-c17",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Many bacterial mRNAs are polycistronic, carrying several coding sequences from one promoter in an {{c1::operon}}.",
+   "back": "The lesson notes not all are; the lac operon is an example.",
+   "quote": "Many bacterial mRNAs are polycistronic, carrying several coding sequences from one promoter in an operon, though not all are (the lac operon).",
+   "section": "Bacteria: sigma places one core enzyme"
+  },
+  {
+   "id": "transcription-c18",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In mammalian cells, what does Pol I transcribe?",
+   "back": "The large 45S or 47S rRNA precursor, later cut into 28S, 18S and 5.8S rRNA.",
+   "quote": "Pol I makes the large 45S or 47S rRNA precursor, later cut into 28S, 18S and 5.8S rRNA.",
+   "section": "Eukaryotic nuclei divide the work"
+  },
+  {
+   "id": "transcription-c19",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In mammalian cells, which RNAs does Pol II make?",
+   "back": "Pre-mRNAs, most small nuclear RNAs and microRNA precursors.",
+   "quote": "Pol II makes pre-mRNAs, most small nuclear RNAs and microRNA precursors.",
+   "section": "Eukaryotic nuclei divide the work"
+  },
+  {
+   "id": "transcription-c20",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In mammalian cells, Pol III makes tRNAs, {{c1::5S rRNA}}, U6 snRNA and other small RNAs.",
+   "back": "",
+   "quote": "Pol III makes tRNAs, 5S rRNA, U6 snRNA and other small RNAs.",
+   "section": "Eukaryotic nuclei divide the work"
+  },
+  {
+   "id": "transcription-c21",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "How does alpha-amanitin separate the three nuclear RNA polymerases in mammalian cells?",
+   "back": "Very low doses block Pol II while Pol I and Pol III keep working; much higher doses also inhibit Pol III. Pol I resists across the range.",
+   "quote": "very low doses block Pol II while the other two keep working, and much higher doses inhibit Pol III.",
+   "section": "Eukaryotic nuclei divide the work"
+  },
+  {
+   "id": "transcription-c22",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In isolated mammalian nuclei with labeled nucleotides, a new gene Y's RNA labeling is almost unchanged at 1 µg/mL and at 300 µg/mL alpha-amanitin, while a tRNA gene falls sharply at 300 µg/mL. Which polymerase most likely transcribes gene Y?",
+   "back": "Pol I. Gene Y resists both the low dose that blocks Pol II and the high dose that blocks Pol III.",
+   "quote": "very low doses block Pol II while the other two keep working, and much higher doses inhibit Pol III.",
+   "section": "Eukaryotic nuclei divide the work"
+  },
+  {
+   "id": "transcription-c23",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In the classic stepwise picture of Pol II initiation, which general factor recognizes the core promoter first, and which subunit binds TATA?",
+   "back": "TFIID recognizes the core promoter first; its TBP subunit is the TATA-binding protein.",
+   "quote": "In the classic stepwise picture, TFIID recognizes the core promoter first.",
+   "section": "Placing Pol II"
+  },
+  {
+   "id": "transcription-c24",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "In the Pol II preinitiation complex, which factor brings Pol II, and which factor's XPB translocase helps open the DNA?",
+   "back": "TFIIF brings Pol II; TFIIH's XPB translocase helps open the DNA.",
+   "quote": "TFIIF brings Pol II, TFIIE helps recruit TFIIH, and TFIIH's XPB translocase helps open DNA.",
+   "section": "Placing Pol II"
+  },
+  {
+   "id": "transcription-c25",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A human gene's core promoter has no TATA box. Can Pol II still transcribe it, and how is TFIID placed?",
+   "back": "Yes. Most human promoters lack a TATA box; other TFIID subunits recognize other core elements, such as an initiator spanning the start site.",
+   "quote": "At those promoters, other TFIID subunits recognize other core elements, including an initiator spanning the start site.",
+   "section": "Placing Pol II"
+  },
+  {
+   "id": "transcription-c26",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "What does the TFIIH kinase CDK7 do to Pol II at the start of transcription?",
+   "back": "It phosphorylates serine 5 of the CTD, a tail of seven-amino-acid repeats (YSPTSPS) on the largest Pol II subunit.",
+   "quote": "As Pol II starts, CDK7 phosphorylates serine 5; other kinases phosphorylate serine 2 during elongation.",
+   "section": "Placing Pol II"
+  },
+  {
+   "id": "transcription-c27",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "CDK7 kinase activity is inhibited but XPB is active. Predict one effect on the Pol II transcript and the reason.",
+   "back": "The CTD is not phosphorylated on serine 5, so the CTD-recruited processing enzymes (capping) are not recruited as the lesson describes. XPB can still help open the DNA.",
+   "quote": "The phosphorylated CTD recruits enzymes that cap the RNA and later those that splice and cut its 3′ end (RNA processing).",
+   "section": "Placing Pol II"
+  },
+  {
+   "id": "transcription-c28",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Assume Pol II elongates at a constant 3.8 kb per minute with no pauses. How long until new RNA first reaches a point 95 kb from the start?",
+   "back": "time = length / rate = 95 kb / 3.8 kb per min = 25 min. This is elongation time only, not time to a finished mRNA.",
+   "quote": "In one study of long genes in cultured human cells, Pol II averaged about 3.8 kb per minute.",
+   "section": "Elongation as a rate problem"
+  },
+  {
+   "id": "transcription-c29",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "After release from a reversible Pol II block, new RNA is detected at 57 kb into a gene after 15 minutes. At the same constant rate, when should it first appear at 190 kb?",
+   "back": "Rate = 57 kb / 15 min = 3.8 kb per min, so 190 kb / 3.8 = 50 min after release.",
+   "quote": "In one study of long genes in cultured human cells, Pol II averaged about 3.8 kb per minute.",
+   "section": "Elongation as a rate problem"
+  },
+  {
+   "id": "transcription-c30",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "What does an intrinsic terminator in E. coli encode, and how does it release the RNA?",
+   "back": "A GC-rich RNA hairpin followed by a U tract. The hairpin forms near the exit channel while weak A-U pairs hold the RNA to the template, destabilizing the complex.",
+   "quote": "An intrinsic terminator encodes a GC-rich RNA hairpin followed by a U tract.",
+   "section": "Stopping transcription"
+  },
+  {
+   "id": "transcription-c31",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "What does a Rho-dependent terminator require?",
+   "back": "Rho, an ATP-driven protein that binds the nascent RNA at a Rho utilization (rut) site.",
+   "quote": "A Rho-dependent terminator needs Rho, an ATP-driven protein that binds the nascent RNA at a Rho utilization (rut) site.",
+   "section": "Stopping transcription"
+  },
+  {
+   "id": "transcription-c32",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In an E. coli intrinsic terminator the hairpin stem is intact, but the U tract in the RNA is mutated to C residues. What should happen to termination?",
+   "back": "Termination should fall and readthrough rise. The weak A-U pairs that hold the RNA to the template are lost, so the hairpin is weakened in destabilizing the complex.",
+   "quote": "The hairpin forms near the RNA exit channel while weak A-U pairs hold the RNA to the DNA template in that tract, and together they destabilize the complex.",
+   "section": "Stopping transcription"
+  },
+  {
+   "id": "transcription-c33",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "In the torpedo model of Pol II termination, what does XRN2 do?",
+   "back": "After CPSF73 cuts the RNA, XRN2 degrades the RNA still attached to Pol II 5′ to 3′, catches the polymerase and knocks it off the DNA.",
+   "quote": "In the torpedo model, XRN2 catches the polymerase and knocks it off the DNA;",
+   "section": "Stopping transcription"
+  },
+  {
+   "id": "transcription-c34",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "Pol III stops at a T run in the {{c1::nontemplate}} strand.",
+   "back": "Other features can assist in budding yeast.",
+   "quote": "Pol III stops at a T run in the nontemplate strand, although other features can assist in budding yeast.",
+   "section": "Stopping transcription"
+  },
+  {
+   "id": "transcription-c35",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A newly found mammalian gene makes an RNA of unknown type. Design an experiment to decide which nuclear RNA polymerase transcribes it.",
+   "back": "Nuclear run-on: give isolated nuclei labeled nucleotides and titrate alpha-amanitin from none through about 1 µg/mL to a few hundred µg/mL. Measure the gene beside controls: rRNA (Pol I) resists the range, an actin-type mRNA gene (Pol II) falls near 1 µg/mL, a tRNA or 5S gene (Pol III) falls only at much higher doses. Match the unknown curve to a control.",
+   "why": "Measure RNA, not protein, because Pol I and Pol III products are not translated.",
+   "quote": "Titrate alpha-amanitin from none through roughly 1 µg/mL to a few hundred µg/mL;",
+   "section": "Design problem: identify the polymerase"
+  },
+  {
+   "id": "transcription-c36",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Purified E. coli core enzyme (sigma removed) makes RNA from nicked DNA nearly as well as before but little from intact phage DNA. Adding back the removed fraction restores RNA from intact DNA, starting at defined sites. What does this show?",
+   "back": "The removed fraction directs the enzyme to start at specific sites. The active site still works without it, so what was lost is promoter-directed starting, which is what sigma does.",
+   "quote": "In E. coli, one kind of core enzyme, two alpha subunits, one beta, one beta prime and one omega, makes nearly all cellular RNA.",
+   "section": "Bacteria: sigma places one core enzyme"
+  },
+  {
+   "id": "transcription-c37",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A promoter is inverted in place, so it now faces the opposite way on the chromosome. Predict which strand becomes the template, which way the polymerase travels, and what the new RNA sequence is.",
+   "back": "The former coding strand becomes the template and the polymerase travels the opposite direction. The new RNA matches the former template strand, with U for T.",
+   "why": "Rests on: the promoter sets the direction the polymerase faces, and the template is read 3′ to 5′.",
+   "quote": "A promoter and its initiation machinery set a start site and the direction the polymerase faces there;"
+  },
+  {
+   "id": "transcription-c38",
+   "type": "qa",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Compare transcription of a gene in E. coli with a human nuclear gene: compartment, coupling to translation, and processing of the RNA.",
+   "back": "E. coli: no nucleus, so translation can start on an mRNA still being made, and an operon can give one polycistronic mRNA. Human Pol II gene: transcription in the nucleus, with the phosphorylated CTD recruiting capping, splicing and 3′ end-cutting enzymes.",
+   "quote": "Because bacteria have no nucleus, ribosomes can translate an mRNA while its 3′ end is still being made.",
+   "section": "Bacteria: sigma places one core enzyme"
+  }
+ ]
+}

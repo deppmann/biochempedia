@@ -1,0 +1,588 @@
+{
+ "slug": "mutation",
+ "title": "Mutation: Where Variation Comes From",
+ "generated": {
+  "date": "2026-11-12",
+  "pipeline": "extract → Sonnet draft → Sonnet accuracy gate (separate agent) → Sonnet fixes",
+  "models": {
+   "draft": "claude-sonnet-5-5",
+   "gate": "claude-sonnet-5-5",
+   "fix": "claude-sonnet-5-5"
+  }
+ },
+ "lessonHash": "82854a489d8b",
+ "sectionHashes": {
+  "(opening)": "2b426e0a9802",
+  "Classify the sequence change, then its consequence": "896320f3eb66",
+  "Does selection cause the mutation? Luria and Delbrück": "4b49d1c64a77",
+  "From scatter to a mutation rate": "7ff77102e43d",
+  "Replica plating: seeing the mutants before the test": "3c51190ad7ad",
+  "Where mutations come from: spontaneous and induced": "5cfa99ac308a",
+  "The Ames test and what it can and cannot say": "f489bc43e596",
+  "Design problem": "26a82adcb11e"
+ },
+ "cards": [
+  {
+   "id": "mutation-c01",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In genetics, what does mutation supply, and what does selection then do with it?",
+   "back": "Mutation creates heritable DNA variants; selection changes how common they become.",
+   "quote": "Mutation creates heritable DNA variants; selection changes how common they become."
+  },
+  {
+   "id": "mutation-c02",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A mutation is a {{c1::heritable}} change in the DNA sequence.",
+   "back": "",
+   "quote": "A mutation is a heritable change in the DNA sequence.",
+   "section": "Classify the sequence change, then its consequence"
+  },
+  {
+   "id": "mutation-c03",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A {{c1::transition}} swaps a purine for a purine (A and G) or a pyrimidine for a pyrimidine (C and T).",
+   "back": "A transversion swaps a purine for a pyrimidine or the reverse.",
+   "quote": "A transition swaps a purine for a purine (A and G) or a pyrimidine for a pyrimidine (C and T).",
+   "section": "Classify the sequence change, then its consequence"
+  },
+  {
+   "id": "mutation-c04",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "For any one base, how many transition partners and how many transversion partners does it have? Which kind is more common in many organisms studied?",
+   "back": "One transition partner and two transversion partners. Transitions are the more common kind in many organisms studied.",
+   "quote": "Each base has one transition partner and two transversion partners, so there are 4 possible transitions and 8 possible transversions.",
+   "section": "Classify the sequence change, then its consequence"
+  },
+  {
+   "id": "mutation-c05",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A {{c1::frameshift}} is an indel whose length is not a multiple of three, so every codon downstream is read in different groups.",
+   "back": "",
+   "quote": "A frameshift is an indel whose length is not a multiple of three, so every codon downstream is read in different groups.",
+   "section": "Classify the sequence change, then its consequence"
+  },
+  {
+   "id": "mutation-c06",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In a coding sequence, what is a nonsense change, and how does it differ from a missense change?",
+   "back": "A nonsense change turns an amino-acid codon into a stop codon. A missense change gives a different amino acid instead.",
+   "quote": "A nonsense change turns an amino-acid codon into a stop codon.",
+   "section": "Classify the sequence change, then its consequence"
+  },
+  {
+   "id": "mutation-c07",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Does the label \"missense\" tell you how severe a mutation is for the protein?",
+   "back": "No. Some missense changes leave the protein working, so the label alone does not give severity.",
+   "quote": "Some missense changes leave the protein working; the label does not tell you the severity.",
+   "section": "Classify the sequence change, then its consequence"
+  },
+  {
+   "id": "mutation-c08",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A G:C base pair becomes T:A. Is this a transition or a transversion, and can that label alone tell you its protein effect?",
+   "back": "A transversion: G, a purine, is replaced by T, a pyrimidine. The protein effect depends on whether the site is in a coding sequence and which codon it changes.",
+   "quote": "A transversion: G, a purine, is replaced by T, a pyrimidine.",
+   "section": "Classify the sequence change, then its consequence"
+  },
+  {
+   "id": "mutation-c09",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A deletion removes exactly three bases from the middle of a coding sequence. Must it shift the reading frame, and what is the usual protein result?",
+   "back": "No, the frame is kept because three bases make one codon. The protein usually loses one amino acid, and later codons stay grouped as before.",
+   "why": "A deletion straddling two codons can also change the junction amino acid, or create a stop.",
+   "quote": "Three bases make one codon, so the frame is kept and later codons stay grouped as before.",
+   "section": "Classify the sequence change, then its consequence"
+  },
+  {
+   "id": "mutation-c10",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "What does a frameshift do that a one-base substitution does not?",
+   "back": "A substitution changes one codon. A frameshift regroups every codon downstream of the indel, like deleting one letter from a string of three-letter words.",
+   "quote": "Delete one letter and every group after it changes.",
+   "section": "Classify the sequence change, then its consequence"
+  },
+  {
+   "id": "mutation-c11",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why can a synonymous (silent) change in an exon still reduce the amount of protein made?",
+   "back": "\"Silent\" describes the codon, not the consequence. Exons also carry signals for splicing, mRNA stability and translation speed, which the change can disrupt.",
+   "quote": "Exons also carry signals for splicing, mRNA stability and translation speed, so a synonymous change can still lower the amount of protein.",
+   "section": "Classify the sequence change, then its consequence"
+  },
+  {
+   "id": "mutation-c12",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In a Luria and Delbrück fluctuation test, what variance among independent cultures does induction predict, and what does mutation first predict?",
+   "back": "Induction predicts a variance close to the mean. Mutation first predicts a variance far larger than the mean.",
+   "quote": "induction predicts a variance close to the mean; mutation first predicts one far larger.",
+   "section": "Does selection cause the mutation? Luria and Delbrück"
+  },
+  {
+   "id": "mutation-c13",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In a fluctuation test, why are repeated samples of one bulk culture plated alongside the independent cultures?",
+   "back": "Repeated bulk samples measure sampling and plating error alone. Their variance should be close to the mean, giving a baseline for the independent cultures.",
+   "quote": "repeated samples of one bulk culture measure sampling and plating error alone",
+   "section": "Does selection cause the mutation? Luria and Delbrück"
+  },
+  {
+   "id": "mutation-c14",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "E. coli fluctuation test on phage T1. Ten independent cultures gave 0, 0, 1, 0, 3, 0, 0, 52, 2, 2 resistant colonies (mean 6.0, variance about 262). Ten bulk samples had mean 6.0 and variance 4.0. What do these data show?",
+   "back": "The independent variance is about 44 times its mean, while the bulk variance is close to its mean. Mutation before exposure fits; induction does not.",
+   "quote": "The independent variance is about 44 times its mean.",
+   "section": "From scatter to a mutation rate"
+  },
+  {
+   "id": "mutation-c15",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "What did Luria and Delbrück conclude from the scatter of independent cultures, and how far does the lesson say that conclusion reaches?",
+   "back": "That resistance arose independently of the virus, in their system (E. coli B and phage T1).",
+   "quote": "so they concluded that, in their system, resistance arose independently of the virus.",
+   "section": "Does selection cause the mutation? Luria and Delbrück"
+  },
+  {
+   "id": "mutation-c16",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Zero-class method: 10 independent cultures of E. coli each reach about 2 x 10^8 cells, and 5 have no resistant mutants. Assume mutation events are Poisson and divisions roughly equal final cell number. What is the rate per cell per division?",
+   "back": "p0 = 5/10 = 0.5, so m = -ln(0.5) = 0.69 events per culture. Rate = 0.69 / (2 x 10^8) = 3.5 x 10^-9 per cell per division.",
+   "quote": "m = -ln(p0) = -ln(0.5) = 0.69 mutation events per culture",
+   "section": "From scatter to a mutation rate"
+  },
+  {
+   "id": "mutation-c17",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Twenty independent cultures each grow to 5 x 10^7 cells and are plated entirely on antibiotic. Eight plates have no colonies. Assume all mutants are counted, mutants grow like the parent, no mutations arise after plating, and divisions equal final cell number. Estimate the mutation rate per division.",
+   "back": "p0 = 8/20 = 0.4. m = -ln(0.4) = 0.92 events per culture. Rate = 0.92 / (5 x 10^7) = about 1.8 x 10^-8 per cell division.",
+   "quote": "Assume every mutant survives plating and is counted, mutants grow like the parent, no mutations arise after plating, and divisions roughly equal the final cell number.",
+   "section": "From scatter to a mutation rate"
+  },
+  {
+   "id": "mutation-c18",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Define mutant frequency and mutation rate, and say what each one counts.",
+   "back": "Mutant frequency is mutant cells divided by all cells. Mutation rate counts mutation events per division.",
+   "quote": "Mutant frequency is mutant cells divided by all cells; mutation rate counts mutation events per division.",
+   "section": "From scatter to a mutation rate"
+  },
+  {
+   "id": "mutation-c19",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In a fluctuation test, why can one jackpot culture mislead you about the mutation rate?",
+   "back": "One early event leaves a large clone, so mutant frequency in that culture is far above the rate (here about 75 times). Confusing the two makes one lucky culture look like a mutator.",
+   "quote": "Confusing them makes one lucky culture look like a mutator, a strain with an elevated mutation rate.",
+   "section": "From scatter to a mutation rate"
+  },
+  {
+   "id": "mutation-c20",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In a zero-class fluctuation test, a jackpot clone gains 100 more resistant descendants but no new mutation event occurs. Do p0 and the rate estimate change? Does mutant frequency?",
+   "back": "p0 and the rate estimate do not change, because that culture was already nonempty. Mutant frequency rises.",
+   "quote": "That culture was already nonempty, so p0 is unchanged.",
+   "section": "From scatter to a mutation rate"
+  },
+  {
+   "id": "mutation-c21",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "Why is the fluctuation test described as an argument from statistics, and what did replica plating add?",
+   "back": "The fluctuation test infers the timing of mutation from variance across cultures. Replica plating gave a direct demonstration by locating resistant colonies on a plate never exposed to the agent.",
+   "quote": "The fluctuation test is an argument from statistics.",
+   "section": "Replica plating: seeing the mutants before the test"
+  },
+  {
+   "id": "mutation-c22",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A master plate is grown with no selecting agent and printed with sterile velvet onto separate selective plates. If resistant cells were already present on the master, what pattern should the prints show?",
+   "back": "Resistant colonies should appear at matching positions on the separate prints. Each match points back to the same colony on the unexposed master plate.",
+   "quote": "Resistant colonies should appear at matching positions.",
+   "section": "Replica plating: seeing the mutants before the test"
+  },
+  {
+   "id": "mutation-c23",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Four colony positions give streptomycin-resistant colonies on every velvet print of an E. coli master plate. Cells from those four master-plate spots, never exposed to the drug, grow into resistant cultures. What does this show?",
+   "back": "Resistant mutants were present on the master before any exposure. Cells that never met the drug were already resistant, so the drug did not induce resistance.",
+   "quote": "The Lederbergs sampled those master-plate spots, whose cells had never touched the phage or drug",
+   "section": "Replica plating: seeing the mutants before the test"
+  },
+  {
+   "id": "mutation-c24",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Spontaneous deamination: cytosine loses its amino group and becomes {{c1::uracil}}, which repair enzymes recognize as foreign.",
+   "back": "",
+   "quote": "Cytosine loses its amino group and becomes uracil, which repair enzymes recognize as foreign.",
+   "section": "Where mutations come from: spontaneous and induced"
+  },
+  {
+   "id": "mutation-c25",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Why are CpG sites hot spots for C:G to T:A transitions in vertebrates?",
+   "back": "Cytosines there are often methylated. 5-Methylcytosine deaminates to thymine, a normal base, so the G:T mismatch is harder to resolve correctly.",
+   "quote": "5-Methylcytosine deaminates to thymine, a normal base, so the G:T mismatch is harder to resolve correctly.",
+   "section": "Where mutations come from: spontaneous and induced"
+  },
+  {
+   "id": "mutation-c26",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "What is depurination, and why is the resulting site a problem for copying?",
+   "back": "The bond between a purine and its sugar breaks. The site has no base to copy.",
+   "quote": "The bond between a purine and its sugar breaks, leaving a site with no base to copy.",
+   "section": "Where mutations come from: spontaneous and induced"
+  },
+  {
+   "id": "mutation-c27",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "How can DNA slippage during copying of a run of repeated bases change the sequence?",
+   "back": "The new strand can loop out or slip back, adding or removing repeat units.",
+   "quote": "In repeated bases, the new strand can loop out or slip back during copying, adding or removing repeat units.",
+   "section": "Where mutations come from: spontaneous and induced"
+  },
+  {
+   "id": "mutation-c28",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "The alkylating agent EMS chiefly gives {{c1::G:C to A:T transitions}}.",
+   "back": "",
+   "quote": "EMS chiefly gives G:C to A:T transitions.",
+   "section": "Where mutations come from: spontaneous and induced"
+  },
+  {
+   "id": "mutation-c29",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "You treat E. coli with proflavine, an intercalator, and sequence many independent mutants. What kind of change should be common, and what is its protein consequence?",
+   "back": "Single-base insertions and deletions, which are frameshifts. Downstream codons are read in different groups.",
+   "quote": "Intercalators such as proflavine slip between base pairs and favor single-base insertions and deletions, so frameshifts.",
+   "section": "Where mutations come from: spontaneous and induced"
+  },
+  {
+   "id": "mutation-c30",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Ultraviolet light joins two adjacent thymines into a dimer. Is the dimer a mutation?",
+   "back": "No, it is damage. It becomes a mutation only if repair or copying past it leaves a heritable sequence change.",
+   "quote": "Each dimer is damage until repair or copying past it leaves a heritable sequence change.",
+   "section": "Where mutations come from: spontaneous and induced"
+  },
+  {
+   "id": "mutation-c31",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "How do base analogs such as 5-bromouracil cause mutations?",
+   "back": "They are built into DNA in place of a normal base and mispair, giving transitions.",
+   "quote": "Base analogs such as 5-bromouracil are built into DNA in place of a normal base and mispair, giving transitions.",
+   "section": "Where mutations come from: spontaneous and induced"
+  },
+  {
+   "id": "mutation-c32",
+   "type": "experiment",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "What did Hermann Muller's Drosophila experiments in 1927 show about X-rays?",
+   "back": "X-rays greatly raise the mutation rate. He counted new lethal mutations on the X chromosome.",
+   "quote": "Hermann Muller reported in Science in 1927 that X-rays greatly raise the mutation rate in Drosophila",
+   "section": "Where mutations come from: spontaneous and induced"
+  },
+  {
+   "id": "mutation-c33",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In the Ames test, what does each revertant colony on a low-histidine plate mark?",
+   "back": "A new mutation that restored histidine synthesis in a strain that could not make it, sometimes at the original site and sometimes at a second, compensating site.",
+   "quote": "Each revertant colony marks such an event, sometimes at the original site and sometimes at a second, compensating site.",
+   "section": "The Ames test and what it can and cannot say"
+  },
+  {
+   "id": "mutation-c34",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In the Ames test, which mutation type does each of strains TA100 and TA98 mainly detect?",
+   "back": "TA100 reverts mainly by base-pair substitution; TA98 mainly by frameshift.",
+   "quote": "TA100 reverts mainly by base-pair substitution; TA98 reverts mainly by frameshift.",
+   "section": "The Ames test and what it can and cannot say"
+  },
+  {
+   "id": "mutation-c35",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why are Ames plates run both with and without S9?",
+   "back": "S9 is a rat-liver enzyme fraction. Many carcinogens become reactive only after liver metabolism, so S9 reveals activity of metabolites.",
+   "quote": "Plates run with and without S9, a rat-liver enzyme fraction, because many carcinogens become reactive only after liver metabolism.",
+   "section": "The Ames test and what it can and cannot say"
+  },
+  {
+   "id": "mutation-c36",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "What does a positive Ames result show, and what does it not show?",
+   "back": "It shows that a chemical, or a metabolite, mutates bacteria. It does not measure cancer risk in people.",
+   "quote": "A positive result shows that a chemical, or a metabolite, mutates bacteria; it does not measure cancer risk in people.",
+   "section": "The Ames test and what it can and cannot say"
+  },
+  {
+   "id": "mutation-c37",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Why does a negative Ames result not prove a chemical is safe?",
+   "back": "Some carcinogens act without mutating DNA or through processes bacteria lack.",
+   "quote": "A negative result does not prove safety, because some carcinogens act without mutating DNA or through processes bacteria lack.",
+   "section": "The Ames test and what it can and cannot say"
+  },
+  {
+   "id": "mutation-c38",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Ames test, background about 120 (TA100) and 30 (TA98). Compound X at rising doses: TA100 without S9 gives 125, 118, 130; TA100 with S9 gives 240, 480, 950; TA98 with S9 gives 30, 28, 35. What does X do, and what does this not show?",
+   "back": "A metabolite of X is a base-substitution mutagen in Salmonella: TA100 with S9 rises to about 2, 4 and 8 times background, while the other conditions stay at background. It does not show that X causes cancer in people.",
+   "quote": "TA100 with S9 rises to about 2, 4 and 8 times background: a dose-dependent rise in base-pair substitutions after liver metabolism.",
+   "section": "Design problem"
+  },
+  {
+   "id": "mutation-c39",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A compound is tested in TA98 and TA100 with and without S9. TA98 revertants rise about fourfold over background only with S9; TA100 stays at background in both conditions. What fits these data?",
+   "back": "A metabolite of the compound causes frameshifts in bacteria. The rise is only in the frameshift strain and only with liver enzymes.",
+   "quote": "Read an Ames result in a fixed order: compare with spontaneous background, look for a dose response, compare strains, then compare with and without S9.",
+   "section": "The Ames test and what it can and cannot say"
+  },
+  {
+   "id": "mutation-c40",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "In fluctuation tests of two E. coli strains with similar final cell numbers, strain A has several cultures with very large counts but 6 of 10 cultures at zero. Strain B has only 1 of 10 cultures at zero. Which strain looks more like a mutator, and why?",
+   "back": "Strain B. It has more cultures with at least one event, so the zero-class estimate of m, and the rate, is higher. Strain A's large counts probably reflect early events, which inflate mutant frequency but not the rate.",
+   "why": "Rests on: rate counts events per division; the zero-class method ignores clone size.",
+   "quote": "Confusing them makes one lucky culture look like a mutator, a strain with an elevated mutation rate.",
+   "section": "From scatter to a mutation rate"
+  },
+  {
+   "id": "mutation-c41",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A methylated CpG in an exon deaminates and the G:T mismatch is resolved the wrong way. Classify the DNA change, and say which protein effects are possible.",
+   "back": "A C:G to T:A transition. Its protein effect depends on the codon: it could be silent, missense or nonsense. A silent result could still alter splicing or mRNA handling.",
+   "why": "Rests on: transition definition, CpG hot spots, and that DNA class alone does not give the protein effect.",
+   "quote": "CpG sites, where cytosines are often methylated in vertebrates, are hot spots for C:G to T:A transitions.",
+   "section": "Where mutations come from: spontaneous and induced"
+  },
+  {
+   "id": "mutation-c42",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A replica-plating screen shows resistant colonies at the same positions on every print, yet a colleague proposes the drug induced resistance during printing. Which observation from the experiment argues against this?",
+   "back": "Cells from those master-plate spots, which never touched the drug, already grow into resistant cultures. Induction cannot explain resistance in cells never exposed, so mutants preceded selection.",
+   "why": "Rests on: mutation creates variants; selection only changes how common they become.",
+   "quote": "The Lederbergs sampled those master-plate spots, whose cells had never touched the phage or drug",
+   "section": "Replica plating: seeing the mutants before the test"
+  }
+ ]
+}
