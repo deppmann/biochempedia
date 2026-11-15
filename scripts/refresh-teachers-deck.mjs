@@ -23,7 +23,7 @@
  *
  * What it does NOT do: build the PDF, or upload anything. The PDF is main-only screenshots of the
  * deck (see docs/teachers/README.md); upload the movies with `node scripts/upload-media.mjs`
- * only when deploying.
+ * before the change is merged (the .mp4 files are not tracked in git; the site serves them from R2).
  */
 import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync, copyFileSync } from 'node:fs';
 import { homedir } from 'node:os';
@@ -99,4 +99,5 @@ for (const [name, from] of movies) {
 console.log(`main path only: ${steps.length} steps (${dropped} appendix steps dropped), ${slides.size} slides`);
 console.log(`images kept: ${used.size}; movies and captions: ${[...movies.keys()].join(', ')}`);
 console.log(`wrote ${OUT}/ and ${MOVIES}/ (no notes.json)`);
-console.log('Next: node scripts/upload-media.mjs (when deploying) sends the files in public/explainers/talk-deck/ to R2.');
+console.log('Next: node scripts/upload-media.mjs sends the files in public/explainers/talk-deck/ to R2; commit media-manifest.json\n' +
+  'and the .vtt captions. The .mp4 files are not committed (git ignores them; the site serves them from R2).');

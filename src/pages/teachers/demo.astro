@@ -3,9 +3,12 @@ import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { TALK_VIDEO } from '../../data/teachers';
+import { filmInR2 } from '../../lib/media-manifest';
 
+// The film itself is not in the repository (it is served from R2, see media-manifest.json);
+// its poster and captions are. So the film counts as present when it is on disk or in R2.
 const pub = (p: string) => existsSync(join(process.cwd(), 'public', p));
-const hasVideo = pub(TALK_VIDEO.src) && pub(TALK_VIDEO.poster) && pub(TALK_VIDEO.captions);
+const hasVideo = (pub(TALK_VIDEO.src) || filmInR2(TALK_VIDEO.src)) && pub(TALK_VIDEO.poster) && pub(TALK_VIDEO.captions);
 
 /*
  * Every fact below is from the talk brief (Fast Tools, Slow Thinking, 24 Oct 2026).

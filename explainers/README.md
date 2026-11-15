@@ -9,6 +9,13 @@ Each `<slug>/` holds `script.json` (scenes, the slide clip or narration each one
 spoken text) and `scenes.py` (one Manim scene per narration clip). `_pipeline/` holds the shared
 look (`bp_style.py`), the narration builder, and the packaging step.
 
+The finished films (`.mp4`) are not tracked in git. They are served from R2 and listed in
+`media-manifest.json`; their posters and captions (`.jpg`, `.vtt`) stay in the repository.
+To ship a new or re-rendered film, copy it into `public/explainers/<slug>/`, run
+`node scripts/upload-media.mjs` and commit `media-manifest.json` with the poster and captions.
+To get a film on disk for a tool that reads it, run `node scripts/fetch-media.mjs --only <slug>`
+(or `--all`, about 5.6 GB).
+
 Rebuild one video (Manim CE in `~/.venvs/manim`, no LaTeX; faster-whisper for captions, in `~/.venvs/stt`):
 
 ```bash
