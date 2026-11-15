@@ -5,28 +5,49 @@ course: "signaling"
 courseChapter: "Cell Signaling · Unit 1: How a cell knows anything"
 order: 105
 summary: >-
-  How can one photon, caught by one molecule, change the current of a whole cell, and what keeps
-  a signal like that from running forever? This lesson gives you the circuit words (gain,
-  feedback, adaptation, switch-like response, robustness, insulation) and one real example of
-  each. Afterwards you can compute the gain of a cascade, say what amplification costs, and
-  explain how feedback sets a signal's duration, makes a decision, or returns a cell to rest.
-hook: "One photon changes a rod's current by about a picoamp. How does one molecule get that loud, and how does the cell make it stop?"
+  Circuit architecture and kinetics shape a signal's size, duration, and reversibility. Follow
+  one photon through a rod's amplifying cascade, then compare feedback circuits that limit a
+  response, make a switch, or return an output toward rest. Afterwards you can compute a simple
+  cascade's gain, explain the costs of amplification, distinguish ultrasensitivity from memory,
+  and explain robust adaptation in bacterial chemotaxis.
+hook: "How can one photon change a rod's current without letting the signal spread or run forever?"
 
 estMinutes: 22
 objectives:
   - "Use circuit words (gain, negative and positive feedback, feed-forward, adaptation, switch-like response, robustness, insulation, cross-talk) to describe a pathway."
   - "Compute the gain of a cascade as a product of its steps and state what amplification costs."
-  - "Explain how negative feedback sets how long a signal lasts and how positive feedback can make a decision that does not reverse."
+  - "Explain how delayed negative feedback can set how long a signal lasts and how sufficiently strong positive feedback around an ultrasensitive step can make a decision that does not reverse."
   - "Explain adaptation using one real example."
 
 explainer:
   src: "/explainers/signaling-circuits/explainer.mp4"
   captions: "/explainers/signaling-circuits/explainer.vtt"
   poster: "/explainers/signaling-circuits/poster.jpg"
-  title: "One photon's signal grows through a chain of steps"
-  durationSec: 143.6
-  narration: "an AI narrator voice (ElevenLabs, Brian) reading a passage Chris Deppmann wrote for his graduate signaling course"
+  title: "How One Photon Becomes a Cellular Signal"
+  durationSec: 229.9
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+  takeaways:
+    - "Simple cascades multiply gain; high gain needs shutoff and sometimes insulation."
+    - "In a simple unsaturated cascade, the total gain is the product of the step gains."
+    - "Catalytic rate and active lifetime help set how many downstream molecules one active molecule reaches."
+    - "Downstream shutoff or feedback can shorten a high-gain output, so size and duration are not locked together."
+    - "Local binding, anchoring and destruction can keep a diffusible messenger near its intended targets."
+
+films:
+  - id: "chapter-2"
+    src: "/explainers/signaling-circuits/chapter-2.mp4"
+    captions: "/explainers/signaling-circuits/chapter-2.vtt"
+    poster: "/explainers/signaling-circuits/chapter-2-poster.jpg"
+    title: "Three Ways a Signal Changes with Time"
+    durationSec: 224.5
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+    takeaways:
+      - "Feedback can limit duration, sharpen decisions, or restore resting output."
+      - "Delayed negative feedback can make output fall while an input remains present."
+      - "Sufficiently strong positive feedback can add bistability and memory to an ultrasensitive response."
+      - "Integral feedback, a negative feedback that corrects until the error is zero, can make adaptation precise even when protein amounts change."
 
 scientists:
   - name: "Denis Baylor"
@@ -279,15 +300,15 @@ explainLevels:
       Cells pass messages along chains of proteins, and many steps in a chain are enzymes that
       switch on many copies of the next protein. Because the steps multiply, one photon hitting
       one molecule in your eye can change the electrical current of a whole cell. Cells also use
-      feedback. In negative feedback the signal makes something that turns the signal down, so
-      the message lasts a limited time, like a thermostat. In positive feedback the signal
-      helps make more of itself, so the cell flips fully on or fully off instead of sitting in
-      between. In adaptation a cell returns to its resting level even though the stimulus is
+      feedback. Negative feedback can turn a signal down and limit how long it lasts, like a
+      thermostat. Positive feedback reinforces a response; when the loop is strong enough and
+      includes a steep step, it can make the cell switch fully on or off. In adaptation a cell returns to its resting level even though the stimulus is
       still there, which lets a bacterium tell whether food is getting closer.
   - level: "college"
     label: "College"
     text: >-
-      The gain of a cascade is the product of the gain of each step. A catalytic step, where
+      In a simple unsaturated cascade whose steps multiply independently, the total gain is the
+      product of the step gains. A catalytic step, where
       one active molecule switches on many copies of the next component while it stays active,
       contributes a factor above one, and a one-to-one step contributes one. The size of the
       response depends on how many copies each active molecule reaches, and its duration
@@ -365,57 +386,59 @@ draft: false
 
 import CascadeAmplifier from '../../../components/CascadeAmplifier.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import LessonFilm from '../../../components/LessonFilm.astro';
+import Support from '../../../components/Support.astro';
 
-**One photon, absorbed by one rhodopsin molecule in a rod cell, changes the current flowing through that cell by about one picoamp (a trillionth of an ampere). A single rhodopsin molecule cannot carry a picoamp, so how does the cell register it?**
+One photon, absorbed by one rhodopsin molecule in a rod cell, changes the current through that cell by about one picoamp, a trillionth of an ampere. A single molecule cannot carry that current. How does its signal become large enough to register, yet remain local and stop?
 
-The answer is arithmetic, and the arithmetic comes with a bill.
+<Support>**The one idea.** Circuit architecture and kinetics shape a signal's size, duration, and reversibility. **Scope:** Use this rule for a defined pathway, cell and input. Wiring alone is not enough: component abundance, catalytic rate, active lifetime, saturation, localization and delays matter. Step gains multiply in the simple unsaturated cascades used here, where each active molecule independently reaches a fixed number downstream.</Support>
 
-## We need a new vocabulary for signaling
+A pathway diagram is only a wiring list. To predict behaviour, ask how much output one input produces, how output changes with time, and whether the response can reverse.
 
-A pathway diagram is a wiring list. Its arrows say which protein switches on which, not how strongly, for how long, or whether the response can be undone. Signaling needs a new vocabulary, and the words come from amplifier and control engineering:
+## Gain is a product, within a simple model
 
-- **Gain:** how many output molecules one input molecule produces.
-- **Negative feedback:** the output acts to reduce its own production.
-- **Positive feedback:** the output acts to increase its own production.
-- **Feed-forward:** an input reaches the output by a direct route and an indirect one at once.
-- **Adaptation:** the response returns toward rest while the stimulus is still present.
-- **Switch-like (ultrasensitive) response:** the output climbs from near zero to near maximum over a narrow range of input.
-- **Robustness:** the output holds when the amounts or rates of the parts vary.
-- **Insulation:** keeping one pathway's signal away from another's targets. **Cross-talk** is signal passing between pathways; sometimes the cell uses it, and sometimes it is a leak.
+The first film turned one photon's path through rhodopsin, transducin and phosphodiesterase (PDE) into a product of step gains. Here are the measured numbers.
 
-His lectures also borrow a picture from process control: water, malt and hops flow into a fermenter, a threshold indicator trips when a level is crossed, and the product goes to a storage tank. Two of his questions run through this lesson: "Insulation versus connectivity?" and "Does a signaling pathway have to be the most logical or efficient of all possible scenarios?"
+In darkness a rod carries a **dark current** of about 20 picoamps through channels that cGMP holds open. Denis Baylor, Trevor Lamb and King-Wai Yau recorded the single-photon dip from one toad rod in 1979: about one picoamp, a few percent of that current.
 
-## The idea: gain is a product, and it has a price
+<LessonFigure src="/figures/signaling-circuits/rod-photon-chain.webp" width={1200} height={800} alt="AI-generated illustration: a chain of rhodopsin hit by a photon, then transducin, then PDE, then falling cGMP; an inset compares a membrane in the dark with channels open to one after the photon with some of them closed." caption="One photon activates a multiplying relay that lowers cGMP, closes some channels and reduces the dark current." />
 
-A rod cell in the dark leaks, like a tap left running. Ion channels in the membrane of its outer segment are held open by cGMP, a small signaling molecule, and ions flow through them all the time. That flow is the dark current, about 20 picoamps. A photon does not add current. It briefly reduces one that is already running.
+**Gain** is output molecules per input molecule. Rhodopsin to transducin and PDE to cGMP are **catalytic** steps, where one active molecule changes many downstream molecules while it stays active; the transducin-to-PDE handoff is **one-to-one** and multiplies nothing.
 
-Here is the chain. A photon is absorbed by one molecule of rhodopsin, the light-sensitive protein of the rod, and flips it into an active shape. Active rhodopsin switches on many molecules of transducin, a G protein that can act only after it binds GTP. Each active transducin switches on one catalytic subunit of phosphodiesterase (PDE), an enzyme that destroys cGMP. The cGMP level falls, some channels close, and the current dips by about one picoamp, a few percent of the dark current. Denis Baylor, Trevor Lamb and King-Wai Yau recorded that dip from a single toad rod in 1979.
+Leskov and colleagues measured the first step in isolated rod membranes as a rate: one active rhodopsin switches on transducin, and through it PDE, at 120 to 150 molecules per second. Rhodopsin is switched off quickly, though, so in an intact rod one photon activates only about 16 transducins in mouse and about 60 in frog. Those PDE molecules then destroy about 2,000 cGMP molecules in mouse and about 72,000 in frog.
 
-<LessonFigure src="/figures/signaling-circuits/rod-photon-chain.webp" width={1200} height={800} alt="AI-generated illustration: a chain of rhodopsin hit by a photon, then transducin, then PDE, then falling cGMP; an inset compares a membrane in the dark with channels open to one after the photon with some of them closed." caption="One photon flips one rhodopsin, which switches on many transducin, each of which switches on PDE. PDE destroys cGMP, so some channels that cGMP held open close and the dark current dips." />
+**Predict.** Use the mouse numbers. Does more of the gain lie in the first catalytic step or the last?
 
-Gain is multiplication. A step is catalytic when one active molecule keeps switching on new copies of the next component while it stays active, and one-to-one when it handles a single partner. In the rod, rhodopsin to transducin and PDE to cGMP are catalytic, and the step between them multiplies nothing. Leskov and colleagues measured the first as a rate in isolated rod membranes: one active rhodopsin switches on transducin, and through it the phosphodiesterase, at 120 to 150 molecules per second. Rhodopsin is switched off quickly, though, so in a living rod one photon activates only about 16 transducins in a mouse and about 60 in a frog. Most of the gain comes at the last catalytic step, where those phosphodiesterases destroy about 2,000 (mouse) to 72,000 (frog) molecules of cGMP.
+<details>
+<summary>Check your prediction</summary>
 
-> **gain of a cascade = gain of step 1 × gain of step 2 × gain of step 3**
+The last. The first step multiplies one rhodopsin into about 16 transducins. The last multiplies those 16 into about 2,000 destroyed cGMP molecules, roughly 125 per active PDE. In frog the split is about 60 against about 1,200.
 
-With invented numbers, two catalytic steps that reach 100 copies each, around a one-to-one step, give 100 × 1 × 100 = 10,000. The interactive below uses a different cascade, from epinephrine to glycogen breakdown, with a slider for each step. Change one step at a time and watch the product.
+</details>
+
+The interactive uses a different cascade, epinephrine to glycogen breakdown. Change one step at a time.
 
 <CascadeAmplifier />
 
-That gives two dials, and they are linked. A bigger response needs each active molecule to reach more copies, by working faster or by staying active longer. A longer response needs the components to stay active longer, which also tends to make it bigger.
+## Amplification sends a bill
 
-Amplification has a price. Multiplying a signal also multiplies its mistakes, and a one-picoamp dip sits on a baseline that never stops moving. Baylor's group could trust the dip only because they counted. They dimmed the flashes until most produced nothing and sorted trials into blank and response. If each response is one photon caught at random, the fraction of blanks must follow a Poisson distribution, the signature of rare independent events. It did. A chain whose steps keep multiplying also needs a way to stop. In the rod, each active molecule is switched off in turn: rhodopsin kinase and arrestin shut down rhodopsin, and transducin turns itself off by splitting its GTP, sped up by the RGS9 complex. The rod also has negative feedback: as channels close, calcium inside the cell falls, and calcium-sensing proteins called GCAPs speed up the enzyme that makes cGMP. Negative feedback is the subject of the next section.
+The first film named three costs: noise, shutoff and spread. The rod shows how the first two are paid; other pathways show the third.
 
-A loud messenger also travels. Amplification makes a small, soluble messenger strong enough to reach proteins its receptor was never meant to reach, so a cell that answers different receptors differently must keep each pool of messenger near where it was made. It slows the messenger, binds it near its source and destroys it nearby. Anchoring proteins such as mAKAP go further and hold a kinase, the phosphodiesterase that destroys its messenger, and the kinase's target within nanometres of each other. The cyclic AMP that matters is then the cyclic AMP in the kinase's own small neighbourhood, where the nearby phosphodiesterase keeps its level separate from the rest of the cell. That is insulation, and it has to be built.
+First, noise: amplification can magnify upstream fluctuations, and a one-picoamp dip sits on a baseline that never stops moving. Baylor's group could trust the dip only because they counted. They dimmed flashes until most trials were blanks; if each response is one photon caught at random, the blank fraction must follow a Poisson distribution, the signature of rare independent events. It did.
 
-## Negative feedback sets how long a signal lasts
+Second, shutoff. Rhodopsin kinase and arrestin shut down rhodopsin. The RGS9 complex speeds transducin's self-shutoff by GTP splitting. The rod also uses **negative feedback**, output acting to reduce its own production: closing channels lowers calcium inside the cell, and calcium-sensing GCAP proteins speed the enzyme that makes cGMP.
 
-A thermostat is negative feedback: the heat it makes warms the sensor that tells it to stop. A pathway does the same when something its output switches on turns the pathway down. When the brake takes time to build, the loop's timing sets how long the signal lasts, even while the ligand is still there.
+Third, a diffusible messenger made in many copies risks reaching unintended targets. A cell that answers different receptors differently must keep each pool of messenger near where it was made. mAKAP, for example, holds a kinase, a messenger-destroying phosphodiesterase and the kinase's target within nanometres, so the cyclic AMP that matters stays in that small neighbourhood. That is **insulation**, keeping one pathway's signal away from another pathway's targets, and it has to be built.
 
-In one summary figure, feedback loops set the activity window of a signal: about 20 minutes after TNF (tumor necrosis factor), 30 after EGF (epidermal growth factor), 90 after NGF (nerve growth factor) and 120 after LPS (a molecule from bacterial outer membranes). The figure attributes each window to the loops that handle that signal.
+Amplification creates output; shutoff and feedback loops, like the rod's calcium loop, decide how that output changes with time. The second film compares three feedback designs under a continuing input.
 
-### Design problem
+<LessonFilm film={frontmatter.films[0]} />
 
-Design a pathway that turns itself off after activation. You have a growth factor, its receptor, a kinase and one protein X whose properties you may choose. Decide what X senses, what it does and when. The growth factor must stay present while the output falls.
+## Negative feedback can set how long a signal lasts
+
+The second film drew a delayed brake; here is a molecular design for one.
+
+**Predict.** You have a growth factor, its receptor, a kinase and one protein X. How could X make kinase activity fall while the growth factor remains present? What must X sense, what must it act on, and what timing must it have?
 
 <details>
 <summary>One way to do it</summary>
@@ -430,35 +453,90 @@ Cells use this design: ERK drives production of DUSP-family phosphatases that re
 
 </details>
 
+The brake's delay, strength and lifetime help set the activity window, but this is one design, not a universal timer: receptor traffic, component degradation and other loops can also set duration.
+
 ## Positive feedback turns a dial into a switch
 
-**If a population of cells gives a smooth dose-response curve, does each cell give a smooth response?** At Stanford, James Ferrell and Eric Machleder loaded a gel with one frog egg per lane. Each was a *Xenopus* oocyte, an immature egg about 1.2 millimetres across, big enough to assay alone on an immunoblot (a gel-based protein detection). The eggs had been incubated in a range of progesterone concentrations, the hormone that starts maturation. The blot showed whether MAP kinase was on, because the active enzyme runs slightly slower through the gel. The usual version of the experiment pooled groups of eggs in one tube per dose and gave the textbook lazy S: more hormone, more active kinase.
+The second film drew an idealized switch. The experimental question is whether a smooth population average can hide individual switches.
 
-A pooled curve cannot tell two stories apart: every egg responds a little more at each dose, or some fraction is fully on and the rest fully off. Read one egg at a time, the second was true. Ferrell and Machleder put a number on the steepness on 8 May 1998: a Hill coefficient of at least 35. The Hill coefficient n measures how abruptly a response turns on, and hemoglobin binding oxygen, with n of about 3, is the textbook case.
+James Ferrell and Eric Machleder incubated *Xenopus* oocytes, immature frog eggs, in different concentrations of progesterone, the hormone that starts their maturation. Each egg is about 1.2 millimetres across, large enough to assay alone by immunoblot, a gel-based protein detection method in which active MAP kinase runs slightly slower. Pooling eggs at each dose produced a smooth S-shaped average.
+
+**Predict.** Which experiment distinguishes two possibilities: every egg is partly active, or some eggs are fully active while the rest are off?
+
+<details>
+<summary>Check your prediction</summary>
+
+Assay one egg per lane. A pooled average cannot distinguish intermediate cells from a mixture of fully on and off cells.
+
+</details>
+
+The single-oocyte assay supported the second story. Ferrell and Machleder reported on 8 May 1998 that the response had a Hill coefficient of at least 35. The **Hill coefficient**, *n*, measures how abruptly output rises with dose. Hemoglobin binding oxygen, with *n* about 3, is the textbook comparison.
 
 > **response = dose^n / (K^n + dose^n)**, where K is the dose that gives half the maximal response
 >
 > **dose at 90% of maximum ÷ dose at 10% of maximum = 81^(1/n)**
 
-Going from 10 to 90 percent takes an 81-fold rise in dose when n = 1, about 4.3-fold when n = 3, and about 1.13-fold when n = 35.
+**Predict.** Use the second relation. How wide is the 10-to-90 percent dose span for *n* = 3 and *n* = 35?
 
-Where does that steepness come from? ERK, a MAP kinase, turns on only after it receives two phosphates, a threonine and a tyrosine one residue apart, both installed by the enzyme above it, MEK. One tag leaves it mostly off. MEK adds the two phosphates in separate encounters, letting go of ERK in between, and that makes the response steeper than proportional: an S-shaped curve rather than a true threshold. Stacking the three tiers of the relay sharpens it further. On 17 September 1996, Chi-Ying Huang and Ferrell published a calculation, confirmed by measurements in oocyte extracts, that gave the cascade a Hill coefficient of about 4 to 5.
+<details>
+<summary>Check your prediction</summary>
 
-Thirty-five is a different kind of object. Ferrell and Machleder proposed that a positive feedback loop in which the cascade is embedded adds the rest, so an egg that has begun to switch on drives itself the remaining distance. Steepness alone is still reversible, since the output follows the dose back down. Here positive feedback adds memory: later work from the same laboratory (Xiong and Ferrell, 2003) showed that an oocyte that has committed to maturing stays matured after the hormone is removed.
+The spans are 81^(1/3), about 4.3-fold, and 81^(1/35), about 1.13-fold. For *n* = 1 the span is 81-fold. Larger *n* means a narrower, more switch-like response.
 
-That is why the pooled curve misled. Eggs differ in where their thresholds lie, so at a middling dose some have flipped and others have not, and a homogenate reports the fraction that flipped as though every egg had responded partway.
+</details>
 
-<LessonFigure src="/figures/signaling-circuits/pooled-vs-single-egg.webp" width={1200} height={800} alt="AI-generated illustration: two rows of four circles (eggs) show two stories that give the same pooled reading. Story one, every egg partly on: four uniformly pale-gold eggs feed a tube labeled Pooled and then a pale-gold reading box. Story two, all or none, marked with a check: two dark-gold eggs labeled Fully on and two empty eggs labeled Off feed a tube and an identical pale-gold reading box. A callout reading Same pooled reading connects the two boxes. A bottom strip, One egg per lane, shows a single egg loaded into one of four empty gel lanes." caption="Pooling eggs in one tube gives the same middling reading for two different stories. Read one egg at a time, some were fully on and the rest fully off." />
+ERK, a MAP kinase, turns on only after MEK adds two phosphates, one to threonine and one to tyrosine one residue apart. One tag leaves ERK mostly off. MEK adds the phosphates in separate encounters, releasing ERK between them. This multisite process makes the response **ultrasensitive**: steeper than proportional, an S-shaped curve rather than a true threshold, and still reversible. Stacking three relay tiers sharpens it further. On 17 September 1996, Chi-Ying Huang and Ferrell published a calculation, confirmed in oocyte extracts, with a Hill coefficient about 4 to 5.
+
+Thirty-five needs more. **Positive feedback** means that output increases its own production. Ferrell and Machleder proposed that a loop around the cascade drives an egg that has started switching the remaining distance. Sufficiently strong positive feedback can add **bistability**, two stable output states under the same conditions, and memory. Xiong and Ferrell showed in 2003 that an oocyte committed to maturation stays matured after hormone removal.
+
+Eggs differ in switching threshold, so at an intermediate dose a homogenate reports the fraction that has flipped as if every egg responded partway.
+
+<LessonFigure src="/figures/signaling-circuits/pooled-vs-single-egg.webp" width={1200} height={800} alt="AI-generated illustration: two rows of four circles (eggs) show two stories that give the same pooled reading. Story one, every egg partly on: four uniformly pale-gold eggs feed a tube labeled Pooled and then a pale-gold reading box. Story two, all or none, marked with a check: two dark-gold eggs labeled Fully on and two empty eggs labeled Off feed a tube and an identical pale-gold reading box. A callout reading Same pooled reading connects the two boxes. A bottom strip, One egg per lane, shows a single egg loaded into one of four empty gel lanes." caption="The same population average can hide partly active cells or a mixture of fully on and off cells, so single-cell measurements are decisive." />
 
 ## Adaptation: returning to rest while the signal is still on
 
-A bacterium such as *E. coli* that smells something worth swimming toward stops tumbling and runs straight. After a while, with the attractant still there, it tumbles at its former rate again. It must, because to register a climb in concentration the cell has to forget the level it has reached. That return is adaptation.
+**Adaptation** is a return toward rest while the stimulus remains. It lets *E. coli* respond to a climb in attractant rather than stay saturated by the level already reached. The second film showed receptor methylation acting as a running total of the error, which engineers call **integral feedback**, a negative feedback that keeps correcting until the error is zero. Here is the molecular wiring.
 
-The receptor controls CheA, which hands a phosphate to CheY, and phosphorylated CheY drives tumbling. A second loop resets the receptor: the enzyme CheR hangs methyl groups on it, the enzyme CheB takes them off, and the pair keeps adding or stripping until the receptor's output is back where it rests. The methylation level is a running total of the gap between current output and resting output, and in the idealized model it stops changing only when the gap is zero. Engineers call this integral feedback. In the model it works because CheB acts mainly on active receptors and CheR works near its top speed. A shower knob you keep turning until the water feels right works the same way: your speed sets how long you take, and "right" sets where you stop.
+The receptor controls CheA, which transfers a phosphate to CheY; phosphorylated CheY drives tumbling. CheR adds methyl groups to the receptor and CheB removes them. The idealized model works because CheB acts mainly on active receptors and CheR works near its top speed. Like turning a shower knob until the water feels right, correction speed affects arrival time, while "right" sets the stopping point.
 
+In most networks, changing an enzyme's amount shifts the steady state the network settles into. Barkai and Leibler derived in 1997 that this loop should instead return each cell to its own pre-stimulus output across wide ranges of enzyme levels. On 14 January 1999, Alon, Surette, Barkai and Leibler tested *E. coli* carrying different amounts of one circuit protein at a time. Adaptation time and steady-state behaviour varied strongly with protein concentration. The precision of adaptation did not. **Robustness** means that a specified output property holds when component amounts or rates vary; it never means that every property is protected.
 
-In most networks, doubling an enzyme shifts the steady state the network settles into. If the stopping point is set by the zero, though, a cell with more or less enzyme should still return to the tumbling rate it had before the attractant. Only that resting rate, and the time the return takes, should change with the enzyme level. Barkai and Leibler derived that on paper in 1997. On 14 January 1999, Alon, Surette, Barkai and Leibler tested it by making *E. coli* carry different amounts of one circuit protein at a time, then adding attractant. Adaptation time and steady-state behavior varied strongly with protein concentration. The precision of adaptation did not.
+With an overloaded correcting enzyme, a cell can still return within experimental error to its own pre-attractant rate while differing from normal neighbours in resting rate and return time.
 
-The protection is narrow. Overload the correcting enzyme and the cell still returns, to within experimental error, to the tumbling rate it had before the attractant, but that resting rate is no longer the one its normal neighbors have, and the return takes a different time. Precision also has limits: at higher attractant levels, as free methylation sites run out, real cells adapt measurably short of their starting rate.
+**Predict.** Each receptor has a fixed number of methylation sites. What should happen at very high attractant levels?
 
-So does a pathway have to be the most logical or efficient of all possible scenarios? This one is not the simplest wiring that works. It is wired so that one property stays put when the parts are sloppy: how exactly the cell returns to its own starting rate.
+<details>
+<summary>Check your prediction</summary>
+
+Free methylation sites run out before the error reaches zero, so real cells adapt measurably short of their starting rate. Exact adaptation is a limit of the model, not a guarantee.
+
+</details>
+
+## Put the circuit words to work
+
+| Circuit word | Question it answers |
+| --- | --- |
+| **Gain** | How many output molecules does one input produce? |
+| **Negative feedback** | Does output act back to reduce its own production? |
+| **Positive feedback** | Does output act back to increase its own production? |
+| **Feed-forward** | Does one input reach an output by direct and indirect routes at once? |
+| **Ultrasensitive response** | Does output climb from near zero to near maximum over a narrow input range? |
+| **Adaptation** | Does output return toward rest while stimulus remains? |
+| **Robustness** | Which specified output holds as parts or rates vary? |
+| **Insulation** | How is one pathway's signal kept from another's targets? |
+
+**Cross-talk** is signal passing between pathways. A cell may use that connection, or it may be an unwanted leak. Chris's lectures borrow a picture from process control: water, malt and hops flow into a fermenter, a threshold indicator trips, and product goes to a storage tank. Two of his questions apply to every case here: "Insulation versus connectivity?" and "Does a signaling pathway have to be the most logical or efficient of all possible scenarios?" The chemotaxis circuit answers the second. It is not the simplest wiring that responds; its architecture and kinetics protect one output, how precisely each cell returns to its own starting rate, and not everything.
+
+## Going deeper
+
+### Different inputs, different activity windows
+
+One summary figure attributes feedback-shaped activity windows of about 20 minutes after TNF (tumor necrosis factor), 30 after EGF (epidermal growth factor), 90 after NGF (nerve growth factor) and 120 after LPS, a molecule from bacterial outer membranes, to the loops handling each signal. These examples do not make feedback the only possible timer.
+
+### What the simple gain product leaves out
+
+The product rule counts independently multiplying steps before saturation. Real pathways may share substrates, saturate enzymes, deactivate components while transmission continues, and feed output back into earlier steps. Rate multiplied by active lifetime helps set a step's gain, but amplitude and duration are not locked together: downstream shutoff or feedback can shorten a high-gain output.
+
+### Exact adaptation is a model limit
+
+Experiments show return within measurement limits over a range of protein amounts, not unlimited perfection.

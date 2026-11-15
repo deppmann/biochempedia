@@ -1,0 +1,498 @@
+{
+ "slug": "gtpase-switches",
+ "title": "GTPase Switches: The Timer",
+ "generated": {
+  "date": "2026-11-12",
+  "pipeline": "extract → Sonnet draft → Sonnet accuracy gate (separate agent) → Sonnet fixes",
+  "models": {
+   "draft": "claude-sonnet-5-5",
+   "gate": "claude-sonnet-5-5",
+   "fix": "claude-sonnet-5-5"
+  }
+ },
+ "lessonHash": "9ed1a69a846f",
+ "sectionHashes": {
+  "From switch cycle to timer": "a9209e50af81",
+  "Two implementations of the cycle": "8fbe7661b28c",
+  "Breaking the timer": "711a09529018",
+  "How the GTP requirement and the transducer were found": "912cc58a9f93"
+ },
+ "cards": [
+  {
+   "id": "gtpase-switches-c01",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A GTPase is on when it holds {{c1::GTP}} and off when it holds GDP, which is GTP minus its third phosphate.",
+   "back": "",
+   "quote": "A GTPase cuts the GTP it binds: on with GTP, off with GDP, which is GTP minus its third phosphate.",
+   "section": "From switch cycle to timer"
+  },
+  {
+   "id": "gtpase-switches-c02",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A guanine nucleotide exchange factor (GEF) promotes release of bound {{c1::GDP}} so that GTP can load.",
+   "back": "",
+   "quote": "A guanine nucleotide exchange factor (GEF) promotes release of bound GDP.",
+   "section": "From switch cycle to timer"
+  },
+  {
+   "id": "gtpase-switches-c03",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Once a GEF has released GDP from a GTPase, why does the empty site usually fill with GTP?",
+   "back": "GTP is far more plentiful than GDP in the cell, so GTP usually takes the empty place.",
+   "quote": "GTP is far more plentiful than GDP in the cell, so GTP usually takes the empty place.",
+   "section": "From switch cycle to timer"
+  },
+  {
+   "id": "gtpase-switches-c04",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "For a heterotrimeric G protein under a receptor, which protein is the GEF?",
+   "back": "The occupied receptor itself.",
+   "quote": "For a heterotrimeric G protein under a receptor, the occupied receptor is the GEF.",
+   "section": "From switch cycle to timer"
+  },
+  {
+   "id": "gtpase-switches-c05",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Intrinsic GTP cutting is slow; a {{c1::GTPase-activating protein (GAP)}} binds the GTPase and accelerates it.",
+   "back": "",
+   "quote": "Intrinsic cutting is slow; a GTPase-activating protein (GAP) binds the GTPase and accelerates it.",
+   "section": "From switch cycle to timer"
+  },
+  {
+   "id": "gtpase-switches-c06",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why can one occupied receptor drive a large response even though each G protein reloads slowly by itself?",
+   "back": "One occupied receptor loads many freely moving G proteins in succession, and each loaded G protein can switch on a cyclase of its own.",
+   "quote": "one occupied receptor can load many freely moving G proteins in succession",
+   "section": "From switch cycle to timer"
+  },
+  {
+   "id": "gtpase-switches-c07",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "For first-order GTP cutting, mean time on = {{c1::1 / k(cut)}}.",
+   "back": "",
+   "quote": "mean time on = 1 / k(cut)",
+   "section": "From switch cycle to timer"
+  },
+  {
+   "id": "gtpase-switches-c08",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "In the equation for mean time on, why do the hormone and receptor not appear?",
+   "back": "They start the clock, but the equation describes one already-loaded switch, whose time on depends only on how fast it cuts GTP.",
+   "quote": "The hormone and the receptor start the clock, but they do not appear in the equation; it describes one loaded switch.",
+   "section": "From switch cycle to timer"
+  },
+  {
+   "id": "gtpase-switches-c09",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A purified G alpha cuts GTP with k(cut) = 0.02 per second. Saturating RGS raises it to 1.0 per second. Give the two mean lifetimes and the factor by which the lifetime changes.",
+   "back": "1/0.02 = 50 s and 1/1.0 = 1 s, so the lifetime is 50-fold shorter.",
+   "why": "A rate constant is not a duration; take its reciprocal.",
+   "quote": "The means are 1/0.02 = 50 seconds and 1/1.0 = 1 second, a 50-fold shorter lifetime.",
+   "section": "From switch cycle to timer"
+  },
+  {
+   "id": "gtpase-switches-c10",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A loaded GTPase stays on for a mean of 8 seconds with first-order cutting. What is k(cut), and what is the mean time on if a GAP raises k(cut) 10-fold?",
+   "back": "k(cut) = 1/8 = 0.125 per second. At 10 times that rate the mean time on is 1/1.25 = 0.8 s.",
+   "quote": "mean time on = 1 / k(cut)",
+   "section": "From switch cycle to timer"
+  },
+  {
+   "id": "gtpase-switches-c11",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "After a hormone is washed out, what determines how long each already-loaded G protein keeps signaling?",
+   "back": "Its own GTP-cutting clock. Loading nearly stops after washout, and each loaded protein runs out its own time on.",
+   "quote": "after washout, loading nearly stops and each loaded protein runs out its own clock.",
+   "section": "From switch cycle to timer"
+  },
+  {
+   "id": "gtpase-switches-c12",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Cyclic AMP falls slowly after hormone washout. What extra measurement separates slow GTP cutting from slow cyclic AMP clearance, and how is it read?",
+   "back": "Measure GTP-bound Gs alpha too. If it returns to GDP quickly while cyclic AMP stays high, downstream clearance is slow. If GTP-bound Gs alpha persists, the delay lies at or before its off step.",
+   "why": "Rests on the rule that the off step of the GTPase sets its time on.",
+   "quote": "If GTP-bound Gs alpha persists, the delay lies at or before its off step.",
+   "section": "From switch cycle to timer"
+  },
+  {
+   "id": "gtpase-switches-c13",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "What does each of Gs, Gi and Gq act on?",
+   "back": "Gs switches adenylyl cyclase on, Gi turns it down, and Gq switches on phospholipase C-beta.",
+   "quote": "Gs switches adenylyl cyclase on, Gi turns it down, and Gq switches on phospholipase C-beta.",
+   "section": "Two implementations of the cycle"
+  },
+  {
+   "id": "gtpase-switches-c14",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Which trimeric G protein families have RGS proteins as major GAPs, and which family does not?",
+   "back": "Gi- and Gq-family subunits do; Gs does not.",
+   "quote": "For Gi- and Gq-family subunits, but not Gs, major GAPs include RGS proteins, regulators of G-protein signaling.",
+   "section": "Two implementations of the cycle"
+  },
+  {
+   "id": "gtpase-switches-c15",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "How do RGS4 and GAIP change a Gi-family G protein, and why can more of them shorten a Gi-coupled response?",
+   "back": "They make it cut GTP at least 40 times faster in vitro. GAIP binds the GTP-holding form, so it acts only while the switch is on.",
+   "quote": "RGS4 and its relative GAIP make a Gi-family G protein cut at least 40 times faster in vitro.",
+   "section": "Two implementations of the cycle"
+  },
+  {
+   "id": "gtpase-switches-c16",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Gq activates phospholipase C-beta, which then speeds Gq's GTP cutting. Is this connection reinforcing or self-limiting?",
+   "back": "Self-limiting. The effector that active Gq turns on accelerates Gq's return to GDP, so output and shutoff are coupled.",
+   "quote": "The effector that active Gq turns on accelerates Gq's return to GDP, so the same encounter couples output to shutoff.",
+   "section": "Two implementations of the cycle"
+  },
+  {
+   "id": "gtpase-switches-c17",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "For Ras, which protein is the GEF, and which proteins are its GAPs?",
+   "back": "SOS is the GEF. Neurofibromin and p120 GAP are the GAPs.",
+   "quote": "SOS, short for son of sevenless, is its exchange factor, and growth-factor receptors recruit it to the membrane.",
+   "section": "Two implementations of the cycle"
+  },
+  {
+   "id": "gtpase-switches-c18",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "In vitro, a crude extract sped normal Ras's GTP cutting more than 200-fold but did nothing to the oncogenic mutant. What does this show about the mutant?",
+   "back": "The oncogenic mutant does not respond to the GAP activity, so its off step stays slow.",
+   "quote": "a factor that sped normal Ras's GTP cutting more than 200-fold in vitro and did nothing to the oncogenic mutant",
+   "section": "Two implementations of the cycle"
+  },
+  {
+   "id": "gtpase-switches-c19",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "What did the Ras structure holding an uncuttable GTP analogue show about its fold, and what does that imply?",
+   "back": "The fold matches EF-Tu, a bacterial protein that delivers tRNAs to the ribosome. Ras and EF-Tu inherited the same ancient fold from a common ancestor.",
+   "quote": "Ras and EF-Tu inherited the same ancient fold from a common ancestor.",
+   "section": "Two implementations of the cycle"
+  },
+  {
+   "id": "gtpase-switches-c20",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "What do the Rho and Rab small-GTPase families each regulate?",
+   "back": "Rho: the actin cytoskeleton and cell shape. Rab: vesicle traffic between membranes.",
+   "quote": "Rho: the actin cytoskeleton and cell shape.",
+   "section": "Two implementations of the cycle"
+  },
+  {
+   "id": "gtpase-switches-c21",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why can a G protein bind Gpp(NH)p but not cut it?",
+   "back": "In Gpp(NH)p the oxygen bridging the last two phosphates is replaced by NH, so the G protein can bind it and cannot cut it.",
+   "quote": "In Gpp(NH)p the oxygen bridging the last two phosphates is replaced by NH, so the G protein can bind it and cannot cut it.",
+   "section": "Breaking the timer"
+  },
+  {
+   "id": "gtpase-switches-c22",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Frog red blood cell membranes were treated with isoproterenol plus Gpp(NH)p. After washing, adenylyl cyclase stayed on and propranolol could not reverse it. What does this show?",
+   "back": "The persistent state lies downstream of the receptor, in the G protein holding the uncuttable nucleotide. A receptor locked on would still be turned off by the blocker.",
+   "quote": "It did not, which places the persistent state downstream of the receptor, in the G protein holding the uncuttable nucleotide.",
+   "section": "Breaking the timer"
+  },
+  {
+   "id": "gtpase-switches-c23",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "What does cholera toxin do to Gs, and what is the result for cyclic AMP?",
+   "back": "The toxin is an enzyme that splits NAD and can attach its ADP-ribose group to arginine. Its target is Gs, and the attached group blocks the step that switches Gs off, so cyclic AMP stays high.",
+   "quote": "It splits NAD and can attach its ADP-ribose group to the amino acid arginine.",
+   "section": "Breaking the timer"
+  },
+  {
+   "id": "gtpase-switches-c24",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Trace how persistent Gs activation in an intestinal cell leads to watery diarrhea in cholera.",
+   "back": "With cyclic AMP high, the intestinal cell opens CFTR chloride channels. Salt leaves into the gut, water follows, and the result is watery diarrhea.",
+   "quote": "An intestinal cell responds by opening CFTR chloride channels; salt leaves into the gut, water follows, and the result is the watery diarrhea of cholera.",
+   "section": "Breaking the timer"
+  },
+  {
+   "id": "gtpase-switches-c25",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Cells are treated with cholera toxin, then given extra RGS protein. Predict the effect on Gs signal duration.",
+   "back": "Little or no shortening. The toxin blocks the step that switches Gs off, and RGS proteins do not act on Gs.",
+   "why": "Rests on two stated rules: the modified Gs cannot be switched off, and RGS proteins are not GAPs for Gs.",
+   "quote": "The attached group blocks the step that switches Gs off, so cyclic AMP stays high.",
+   "section": "Breaking the timer"
+  },
+  {
+   "id": "gtpase-switches-c26",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "Why does Ras G12V stay GTP-bound even when a GAP binds it?",
+   "back": "Valine puts a bulkier side chain where the GAP's arginine must reach, disrupting the catalytic arrangement. GAP binds without giving its normal acceleration.",
+   "quote": "Replacing it with valine puts a bulkier side chain where the GAP's arginine must reach and disrupts the catalytic arrangement, so GAP can bind without giving its normal acceleration.",
+   "section": "Breaking the timer"
+  },
+  {
+   "id": "gtpase-switches-c27",
+   "type": "qa",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "How does the defect in Ras Q61 mutants differ from that in G12V?",
+   "back": "Q61 mutants cut GTP poorly with or without GAP. In G12V, GAP can bind but does not give its normal acceleration.",
+   "quote": "Q61 mutants cut poorly with or without GAP.",
+   "section": "Breaking the timer"
+  },
+  {
+   "id": "gtpase-switches-c28",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A cell expresses Ras Q61K. Extra p120 GAP is added. Does Ras time on shorten much?",
+   "back": "No. Glutamine 61 helps stabilize the cutting transition state, and Q61 mutants cut poorly with or without GAP, so Ras stays GTP-bound.",
+   "quote": "Glutamine 61, changed to lysine in the tumor mutant Q61K, helps stabilize the cutting reaction's transition state.",
+   "section": "Breaking the timer"
+  },
+  {
+   "id": "gtpase-switches-c29",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Why is Ras S17N rarely GTP-loaded, and what happens even if it holds GTP?",
+   "back": "Asparagine in place of serine 17 lowers affinity for GTP much more than for GDP. Even holding GTP, it fails to switch on its targets.",
+   "quote": "Asparagine in place of serine 17 lowers Ras's affinity for GTP much more than for GDP.",
+   "section": "Breaking the timer"
+  },
+  {
+   "id": "gtpase-switches-c30",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "What is a dominant-negative mutant, in the case of Ras S17N?",
+   "back": "A mutant that blocks its normal partner. S17N is thought to hold on to exchange factors such as SOS, soaking up what normal Ras needs.",
+   "quote": "A mutant that blocks its normal partner this way is called dominant-negative.",
+   "section": "Breaking the timer"
+  },
+  {
+   "id": "gtpase-switches-c31",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "What rescue experiment would support the proposal that Ras S17N suppresses normal Ras by soaking up SOS, and what result would support it?",
+   "back": "Supply more SOS and measure GTP loading of normal Ras. If loading recovers, the exchange factor was the limiting part S17N had taken up.",
+   "quote": "Supply more SOS and measure GTP loading of normal Ras.",
+   "section": "Breaking the timer"
+  },
+  {
+   "id": "gtpase-switches-c32",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "After a growth factor is washed out, GTP-bound Ras is wild type 30% to 4%, G12V 85% to 83%, S17N 2% to 2%. Which step is broken in each mutant?",
+   "back": "G12V holds GTP after the stimulus ends, so its off step is broken. S17N stays nearly empty of GTP, so its on step is broken.",
+   "quote": "So Ras is rarely loaded with GTP, and even holding GTP it fails to switch on its targets.",
+   "section": "Breaking the timer"
+  },
+  {
+   "id": "gtpase-switches-c33",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Glucagon came off liver membranes with ATP because of contaminating GTP. Why does this show GTP acts as a regulator and not as fuel?",
+   "back": "The cyclase runs on ATP, and a trace of GTP was enough, so GTP was not used up once per cyclic AMP made.",
+   "quote": "GTP was not the fuel, because the cyclase runs on ATP, and a trace was enough",
+   "section": "How the GTP requirement and the transducer were found"
+  },
+  {
+   "id": "gtpase-switches-c34",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "cyc- lymphoma cells lack the link between receptor and enzyme. A soluble extract from normal cells restored hormone response even with its own cyclase inactivated. What does this show?",
+   "back": "The transducer is a separate, movable protein that can be supplied from outside the membrane.",
+   "quote": "The transducer was therefore a separate, movable protein.",
+   "section": "How the GTP requirement and the transducer were found"
+  },
+  {
+   "id": "gtpase-switches-c35",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Extra RGS protein is expressed in a cell with a Gi-coupled receptor. Predict the effect on how often G proteins are loaded and on how long each stays on.",
+   "back": "Loading frequency is unchanged, since the receptor is the GEF. Each loaded Gi-family protein stays on for a shorter time, so the response shortens.",
+   "why": "Rests on the split between how often switches are loaded and how long each stays on.",
+   "quote": "so more of these RGS proteins can shorten a Gi-coupled response.",
+   "section": "Two implementations of the cycle"
+  },
+  {
+   "id": "gtpase-switches-c36",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "A Ras mutant stays GTP-bound. What measurements would show whether its on step or its off step is changed?",
+   "back": "Measure GTP loading and GTP cutting separately, with and without GAP. A broken off step cuts poorly even with GAP; a changed on step shows little GTP loading.",
+   "why": "Rests on the cycle: GEF loads, cutting with GAP shuts off.",
+   "quote": "Either way Ras stays GTP-bound and keeps signaling.",
+   "section": "Breaking the timer"
+  }
+ ]
+}

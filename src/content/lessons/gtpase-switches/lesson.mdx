@@ -5,16 +5,16 @@ course: "signaling"
 courseChapter: "Cell Signaling · Unit 2: The parts — switches and wiring"
 order: 107
 summary: >-
-  When a hormone leaves a cell, what decides how much longer the cell keeps answering? This lesson
-  follows the discovery of G proteins and of Ras and shows that each carries its own timer, the slow
-  cutting of the GTP it holds. Afterwards you can predict how long a response lasts when GTP cannot
-  be cut, with cholera toxin, with extra RGS protein, and with cancer mutations in Ras.
-hook: "A hormone leaves the cell and the response stops. What keeps time?"
+  Faster GTP cutting shortens an already-loaded GTPase's time on. This lesson builds that rule from
+  the GTPase cycle, follows the evidence that revealed the switch, compares trimeric G proteins with
+  Ras, and uses analogues, cholera toxin, RGS proteins and Ras mutations to test what happens when
+  the loading or cutting step changes.
+hook: "After a receptor lets go, what decides how long an already-loaded G protein keeps signaling?"
 
 estMinutes: 22
 objectives:
   - "Describe the GTPase cycle: GDP-bound off, GTP-bound on, a GEF to load it, slow self-hydrolysis, and a GAP to speed the off step."
-  - "Explain why the off rate makes the switch a timer: it sets how long each activation lasts."
+  - "Explain why the switch is a timer: faster GTP cutting shortens an already-loaded GTPase's time on, with mean time on = 1 / k(cut)."
   - "Compare trimeric G proteins (the receptor is the GEF; RGS proteins and some effectors are GAPs for the Gi and Gq families) with small GTPases such as Ras (SOS is its GEF; neurofibromin and p120 GAP are its GAPs)."
   - "Predict the effect on signal duration of an uncuttable GTP analogue, cholera toxin, extra RGS protein, and the Ras mutations G12V, Q61 and S17N."
 
@@ -22,10 +22,15 @@ explainer:
   src: "/explainers/gtpase-switches/explainer.mp4"
   captions: "/explainers/gtpase-switches/explainer.vtt"
   poster: "/explainers/gtpase-switches/poster.jpg"
-  title: "The G protein times its own signal"
-  durationSec: 179.7
-  narration: "an AI narrator voice (ElevenLabs, Brian) reading a passage Chris Deppmann wrote for his graduate signaling course"
+  title: "The Timer Inside the Switch"
+  durationSec: 219.5
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+  takeaways:
+    - "Faster GTP cutting shortens an already-loaded GTPase's time on."
+    - "A GEF promotes GDP release so GTP can bind and turn the switch on."
+    - "A GAP accelerates GTP cutting and returns the switch to its GDP-bound state."
+    - "The rule describes one loaded switch; other steps can shape a whole-cell response."
 
 scientists:
   - name: "Martin Rodbell"
@@ -368,14 +373,19 @@ corpusTags:
   - "cell-signaling"
 draft: false
 films:
-  - id: "gtp-puzzle"
-    src: "/explainers/gtpase-switches/gtp-puzzle.mp4"
-    captions: "/explainers/gtpase-switches/gtp-puzzle.vtt"
-    poster: "/explainers/gtpase-switches/gtp-puzzle-poster.jpg"
-    title: "The Hidden Requirement for GTP"
-    durationSec: 112.4
-    narration: "an AI narrator voice (Gemini, Charon) reading narration written from this lesson's text"
+  - id: "chapter-2"
+    src: "/explainers/gtpase-switches/chapter-2.mp4"
+    captions: "/explainers/gtpase-switches/chapter-2.vtt"
+    poster: "/explainers/gtpase-switches/chapter-2-poster.jpg"
+    title: "How the Timer Breaks"
+    durationSec: 224.5
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
     aiGenerated: true
+    takeaways:
+      - "Block GTP cutting to prolong signaling; speed it to shorten signaling."
+      - "Faster GTP cutting shortens an already-loaded GTPase's time on."
+      - "Uncuttable GTP, cholera toxin and some Ras mutations obstruct the off step."
+      - "Extra RGS protein shortens Gi- and Gq-family signals, not Gs; Ras S17N impairs loading."
 ---
 
 import LessonFilm from '../../../components/LessonFilm.astro';
@@ -383,58 +393,79 @@ import LessonFilm from '../../../components/LessonFilm.astro';
 import GtpaseTimer from '../../../components/GtpaseTimer.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
 
-**Wash a hormone off a cell and its response fades. Give the cell a GTP look-alike that it cannot cut, and the response stays on through repeated washing. What was keeping time?**
+**After a receptor lets go, what decides how long an already-loaded G protein keeps signaling?**
 
-The receptor is not the only clock. The hormone leaves, the receptor lets go, and something else helps decide how much longer the cell goes on answering. That something is a protein holding a molecule of GTP and slowly cutting it. It is on while it holds GTP and off when it holds GDP, a GEF, an exchange factor, loads the GTP, and the slow cutting, which a GAP, a GTPase-activating protein, can speed, is the timer. This lesson follows how that protein was found and what happens when its timer is broken.
+The first film built the cycle; the text times it and tests it against experiments.
 
-## The puzzle: a requirement nobody expected
+> **The one idea. Faster GTP cutting shortens an already-loaded GTPase's time on.**
+>
+> *Scope:* one GTPase molecule after GTP loading, when first-order hydrolysis ends its active state. Receptor shutoff, repeated loading, effector kinetics and messenger removal can also shape a whole-cell response.
 
-<LessonFilm film={frontmatter.films[0]} />
+## From switch cycle to timer
 
-Around 1970, Martin Rodbell's laboratory at the National Institutes of Health was studying how the hormone glucagon switches on adenylyl cyclase in liver membranes. Adenylyl cyclase is the enzyme that makes cyclic AMP, the small messenger that tells the inside of a cell a hormone has arrived. The group found that GTP, supplied on purpose, was required. Without it, glucagon barely switched the cyclase on. Think about what that implies. GTP was not the fuel, because the cyclase runs on ATP. And a trace was enough: commercial ATP carries a little GTP, and that contaminant alone had an effect. So GTP was not being used up once for every cyclic AMP made. It was acting as a regulator, not as a raw material.
+A **GTPase** cuts the GTP it binds: on with GTP, off with GDP, which is GTP minus its third phosphate.
 
-Many different hormone receptors switch on the same enzyme, and Rodbell thought it impossible that all of them were built into it. So he proposed a separate component between receptors and enzyme, a transducer. Nobody knew what it was. Here is a UVa moment: the answer came from the pharmacology department at the University of Virginia, in the 1970s, in the laboratory of Alfred Gilman. A soluble extract from normal cells restored the hormone response in membranes from cyc⁻ lymphoma cells, which lack the link between receptor and enzyme, even when the extract's own cyclase had been inactivated. So the transducer was a separate protein, one that could be moved from one membrane to another. Using that rescue as an assay, Gilman and his colleagues purified Gs, the stimulatory G protein, from rabbit liver membranes. The pure protein carried an alpha and a beta subunit, and a small gamma subunit, unnoticed at first, was added to the picture later. G protein is short for guanine-nucleotide-binding protein.
+A **guanine nucleotide exchange factor (GEF)** promotes release of bound GDP. GTP is far more plentiful than GDP in the cell, so GTP usually takes the empty place. For a heterotrimeric G protein under a receptor, the occupied receptor is the GEF. GTP binding rearranges the complex and can separate alpha from beta-gamma. Alpha regulates a target such as adenylyl cyclase; beta-gamma can also signal, for example by opening potassium channels in the heart. After alpha cuts GTP, it rejoins beta-gamma.
 
-## The idea: a switch with a timer built in
+Intrinsic cutting is slow; a **GTPase-activating protein (GAP)** binds the GTPase and accelerates it. The G protein reloads slowly by itself, but one occupied receptor can load many freely moving G proteins in succession, and each can switch on a cyclase of its own.
 
-The definition of a G protein is short: on when it holds GTP, off when it holds GDP. GTP carries three phosphate groups in a row, and GDP is the same molecule with the last one removed. Here is the cycle for a G protein that sits under a receptor.
+<LessonFigure src="/figures/gtpase-switches/gtpase-cycle-gef-gap.webp" width={1200} height={800} alt="AI-generated illustration: a G protein drawn as a slate block holding GDP, loaded by an occupied receptor acting as GEF into a gold block holding GTP that switches on adenylyl cyclase, then slowly cutting GTP back to GDP, with a GAP speeding the return; a small inset compares GDP's two phosphate tiles with GTP's three." caption="A GEF promotes GDP release and GTP loading, while a GAP speeds GTP cutting and shortens the loaded switch's time on." />
 
-1. A hormone binds a receptor in the membrane.
-2. The occupied receptor does one thing. It pulls a spent GDP out of a nearby G protein, and a fresh GTP takes its place. GTP is far more plentiful than GDP in the cell, so it usually wins. Any protein that does this job is a guanine nucleotide exchange factor, or GEF.
-3. Holding GTP forces the G protein's alpha subunit into a shape that lets go of the beta-gamma pair and switches on its target, here adenylyl cyclase. The freed beta-gamma pair can signal too, for example by opening potassium channels in the heart. Once the GTP is cut, the alpha subunit rejoins beta-gamma.
-4. The G protein is also a weak enzyme, and the GTP it holds is its substrate. Sooner or later it cuts off the third phosphate. That leaves GDP, and the shape falls back to off.
-5. On its own it reloads only slowly. Another occupied receptor normally pulls out the GDP first.
+For first-order cutting:
 
-A GTPase is simply an enzyme that cuts GTP, and step 4 is slow. A GTPase-activating protein, or GAP, binds the G protein and makes it cut faster. Because the G protein drifts freely in the membrane, one occupied receptor can load many of them in succession, and each can switch on a cyclase of its own.
+> **mean time on = 1 / k(cut)**
 
-<LessonFigure src="/figures/gtpase-switches/gtpase-cycle-gef-gap.webp" width={1200} height={800} alt="AI-generated illustration: a G protein drawn as a slate block holding GDP, loaded by an occupied receptor acting as GEF into a gold block holding GTP that switches on adenylyl cyclase, then slowly cutting GTP back to GDP, with a GAP speeding the return; a small inset compares GDP's two phosphate tiles with GTP's three." caption="The GTPase cycle. An occupied receptor, acting as the GEF, swaps GDP for GTP and turns the G protein on; the protein then cuts its own GTP slowly, and a GAP speeds that step." />
+The hormone and the receptor start the clock, but they do not appear in the equation; it describes one loaded switch. If k(cut) is 0.05 per second, a round number chosen for illustration, the mean time on is 20 seconds. Speeding the step 40-fold shortens that mean to half a second.
 
-> **average time on = 1 / k(cut), where k(cut) is the rate constant for cutting the bound GTP**
+**Predict.** A purified G alpha cuts GTP with k(cut) = 0.02 per second. Saturating RGS raises it to 1.0 per second. What are the two mean lifetimes, and by what factor does the lifetime change?
 
-That is why a G protein is a timer as well as a switch. Step 2 turns it on. Step 4 decides how long it stays on, and the hormone and the receptor do not appear in the equation. Say a G alpha subunit has k(cut) = 0.05 per second, a round number chosen for illustration. It stays on for about 20 seconds on average. A GAP that speeds the step 40-fold cuts that to half a second.
+<details>
+<summary>Check your prediction</summary>
+
+The means are 1/0.02 = 50 seconds and 1/1.0 = 1 second, a 50-fold shorter lifetime. A rate constant is not a duration; take its reciprocal.
+
+</details>
 
 <GtpaseTimer />
 
-Now the washout puzzle has an answer. While hormone is present, occupied receptors keep reloading G proteins. When the hormone is gone, reloading nearly stops, and each protein that is still on runs out its own clock. Other steps shape the timing too: receptors are switched off, some effectors speed the cutting of GTP, and cyclic AMP has to be broken down. This lesson tracks the G protein's delay. The rule to keep: **the off step sets how long each switch stays on.**
+The first film separated how often switches are loaded from how long each stays on. That split explains a washout: while hormone is present, occupied receptors keep loading fresh G proteins; after washout, loading nearly stops and each loaded protein runs out its own clock.
 
-## Two main flavors: trimeric and small
+**Predict.** A pathway's cyclic AMP falls slowly after hormone washout. What additional measurement would help distinguish slow GTP cutting from slow cyclic AMP clearance?
 
-G proteins come in 2 main flavors, and they share the cycle.
+<details>
+<summary>Check your prediction</summary>
+
+Measure GTP-bound Gs alpha as well as cyclic AMP. If Gs alpha returns to GDP quickly while cyclic AMP stays high, downstream clearance is slow. If GTP-bound Gs alpha persists, the delay lies at or before its off step. A whole-pathway trace alone cannot identify the clock.
+
+</details>
+
+## Two implementations of the cycle
+
+Two main kinds of protein run this switch: heterotrimeric G proteins and small GTPases such as Ras.
 
 | | Trimeric G proteins | Small GTPases such as Ras |
 |---|---|---|
 | Build | Alpha, beta and gamma subunits; alpha holds the nucleotide | One small protein, about 20 to 25 kilodaltons |
 | Loads GTP (GEF) | The occupied receptor itself | For Ras, SOS; each family has its own GEFs |
-| Speeds the off step (GAP) | RGS proteins for the Gi and Gq families; some effectors, such as phospholipase C-beta | For Ras, neurofibromin and p120 GAP; each family has its own GAPs |
+| Speeds GTP cutting (GAP) | RGS proteins for the Gi and Gq families, but not Gs; some effectors, such as phospholipase C-beta | For Ras, neurofibromin and p120 GAP; each family has its own GAPs |
 | Examples | Gs, Gi, Gq | Ras, Rho, Rab, Arf, Ran |
 
-<LessonFigure src="/figures/gtpase-switches/trimeric-vs-small.webp" width={1200} height={800} alt="AI-generated illustration: two panels. In the trimeric G protein panel, an occupied seven-pass receptor loads GTP onto a gold alpha subunit, which has let go of the beta-gamma pair, and a clay RGS protein touches the alpha subunit. In the Ras panel, a single small gold Ras protein holding GTP hangs from the membrane, with SOS loading it on one side and a clay GAP on the other." caption="Trimeric G proteins and small GTPases run the same cycle with different parts. For a trimeric G protein the occupied receptor itself is the GEF, the alpha subunit holds the nucleotide and RGS proteins speed the off step for the Gi and Gq families; Ras is one small protein, loaded by SOS and switched off faster by GAPs such as neurofibromin and p120 GAP." />
+<LessonFigure src="/figures/gtpase-switches/trimeric-vs-small.webp" width={1200} height={800} alt="AI-generated illustration: two panels. In the trimeric G protein panel, an occupied seven-pass receptor loads GTP onto a gold alpha subunit, which has let go of the beta-gamma pair, and a clay RGS protein touches the alpha subunit. In the Ras panel, a single small gold Ras protein holding GTP hangs from the membrane, with SOS loading it on one side and a clay GAP on the other." caption="Trimeric G proteins and Ras use different loaders and GAPs to run the same GDP-off, GTP-on cycle." />
 
-Different alpha subunits point at different targets. Gs switches adenylyl cyclase on, Gi turns it down, and Gq switches on a different enzyme, phospholipase C-beta. For Gi- and Gq-family subunits the main GAPs are the RGS proteins, short for regulators of G-protein signaling. Gs is not a substrate for them, and some effectors are GAPs too: phospholipase C-beta speeds the cutting of GTP by the Gq that switched it on. RGS4 and a relative called GAIP make a Gi-family G protein cut its GTP at least 40 times faster in vitro. GAIP binds the active, GTP-holding form of a G protein, so it can act only while the switch is on. A cell can therefore shorten a Gi-coupled response by making more of these RGS proteins.
+Different alpha subunits point at different targets. Gs switches adenylyl cyclase on, Gi turns it down, and Gq switches on phospholipase C-beta. For Gi- and Gq-family subunits, but not Gs, major GAPs include **RGS proteins**, regulators of G-protein signaling. Some effectors are GAPs too: phospholipase C-beta speeds GTP cutting by the Gq that activated it. RGS4 and its relative GAIP make a Gi-family G protein cut at least 40 times faster in vitro. GAIP binds the GTP-holding form, acting only while the switch is on, so more of these RGS proteins can shorten a Gi-coupled response.
 
-Ras is a single small chain with no receptor attached. SOS, short for son of sevenless, is its exchange factor, and growth-factor receptors recruit it to the membrane. Left alone, Ras cuts its GTP slowly. In 1987 Frank McCormick and Meg Trahey found the first GAP, a factor that sped normal Ras's GTP cutting more than 200-fold in vitro and did nothing to the oncogenic mutant. That was a crude extract; purified GAP was later found to speed the step about 100,000-fold. The first structures of Ras were solved in 1988 and 1989, and the one holding a GTP analogue it could not cut showed a fold that matches EF-Tu, a bacterial protein that delivers tRNAs to the ribosome. Ras and EF-Tu inherited the same ancient fold from a common ancestor.
+**Predict.** Gq activates phospholipase C-beta, which then speeds Gq's GTP cutting. Is that connection reinforcing or self-limiting?
 
-Ras is one of five families that run this same cycle, each with its own GEFs and GAPs:
+<details>
+<summary>Check your prediction</summary>
+
+Self-limiting. The effector that active Gq turns on accelerates Gq's return to GDP, so the same encounter couples output to shutoff.
+
+</details>
+
+Ras is a single small chain with no receptor attached. SOS, short for son of sevenless, is its exchange factor, and growth-factor receptors recruit it to the membrane. Ras cuts its GTP slowly. In 1987 Frank McCormick and Meg Trahey found the first GAP, a factor that sped normal Ras's GTP cutting more than 200-fold in vitro and did nothing to the oncogenic mutant. That was a crude extract; purified GAP was later found to speed the step about 100,000-fold. The structure of Ras itself, holding a GTP analogue it could not cut, showed a fold that matches EF-Tu, a bacterial protein that delivers tRNAs to the ribosome. Ras and EF-Tu inherited the same ancient fold from a common ancestor.
+
+Ras is one of five small-GTPase families, each with its own GEFs and GAPs:
 
 - **Ras:** cell growth and proliferation.
 - **Rho:** the actin cytoskeleton and cell shape.
@@ -442,52 +473,57 @@ Ras is one of five families that run this same cycle, each with its own GEFs and
 - **Arf:** the budding of vesicles, also membrane traffic.
 - **Ran:** movement of proteins into and out of the nucleus.
 
+The shared cycle now lets us classify failures by the step they change.
+
+<LessonFilm film={frontmatter.films[0]} />
+
 ## Breaking the timer
 
-If the off step sets the duration, anything that blocks it should lengthen the response, and anything that speeds it should shorten it. Each has been tested.
+The second film gave the direction of each break; here are the experiments and molecular detail behind it.
 
-**An uncuttable GTP.** In Gpp(NH)p the oxygen bridging the last two phosphates is replaced by NH, so the G protein can bind it and cannot cut it. In 1975 Schramm and Rodbell treated frog red blood cell membranes with isoproterenol, a drug that activates the adrenaline receptor, together with Gpp(NH)p. Adenylyl cyclase switched on and stayed on through extensive washing, sonication and detergent, and propranolol, which blocks the receptor, could no longer reverse it. With isoproterenol alone, diluting the drug dropped activity to nearly nothing.
+**An uncuttable GTP.** In Gpp(NH)p the oxygen bridging the last two phosphates is replaced by NH, so the G protein can bind it and cannot cut it. In 1975 Schramm and Rodbell treated frog red blood cell membranes with isoproterenol, a drug that activates the adrenaline receptor, together with Gpp(NH)p. Adenylyl cyclase stayed on through extensive washing, sonication and detergent, and propranolol, which blocks the receptor, could no longer reverse it. With isoproterenol alone, diluting the drug dropped activity to nearly nothing.
 
-**Cholera toxin.** In 1976 and 1977 Joel Moss and Martha Vaughan showed that the toxin is an enzyme. It splits NAD and can attach its ADP-ribose group to the amino acid arginine. In 1978 D. Michael Gill and R. Meren, and in a separate study Cassel and Pfeuffer, showed that the target is the cyclase system's GTP-binding protein, now called Gs. The group blocks the step that switches Gs off, so Gs stays on and cyclic AMP rises and stays high. A cell lining the intestine responds by opening CFTR chloride channels, so salt leaves the cell into the gut, water follows the salt, and the result is the watery diarrhea of cholera.
-
-**Ras G12V and Q61.** Glycine 12 sits where the GAP reaches into the pocket. When it is replaced by valine, Ras ignores the GAP. A GAP works partly by pushing an arginine into the pocket, and the bulkier side chain gets in the way. Glutamine 61 (changed to lysine in the tumor mutant Q61K) helps stabilize the transition state of the cutting reaction, so Q61 mutants cut poorly, with or without a GAP. In both, GTP stays in the pocket far longer than normal, so Ras keeps signaling. A single amino acid change at codon 12 turns up in many different cancers.
-
-**The mirror image: S17N.** This mutant breaks the other half of the cycle. Asparagine in place of serine 17 lowers Ras's affinity for GTP much more than for GDP. So Ras is rarely loaded with GTP, and even when it does hold GTP it fails to switch on its targets. It is also thought to hold on to exchange factors such as SOS, which would soak up exchange factor that normal Ras in the same cell needs. A mutant that blocks its normal partner this way is called dominant-negative.
-
-### Design problem
-
-Predict how long the response lasts, compared with normal, in four cases: an uncuttable GTP analogue; cholera toxin; extra RGS protein; and Ras G12V with normal GAP present. Give one rule that covers all four.
+**Predict.** If Gpp(NH)p merely locked the receptor on, what should propranolol still be able to do after washing? Does the result fit that model?
 
 <details>
-<summary>One way to do it</summary>
+<summary>Check your prediction</summary>
 
-With the uncuttable analogue, the response is far longer than normal. The G protein cannot cut what it holds, so it outlasts the hormone, the washing and the detergent.
-
-With cholera toxin, the response is far longer. Gs cannot switch itself off, so cyclic AMP stays high and the intestinal cell keeps secreting salt.
-
-With extra RGS protein acting on a Gi-family subunit, the response is shorter. Each loaded G protein spends less time on, and the hormone and receptor are unchanged.
-
-With Ras G12V and normal GAP, the response is far longer. The GAP is present and the mutant ignores it, so GTP stays in the pocket far longer than normal.
-
-One rule covers all four: the off step sets the duration. Block it, by an analogue, a toxin or a mutation, and the response lengthens. Speed up a Gi-family switch with RGS, and the response shortens. The hormone and the receptor start the clock; the cutting of GTP decides how long each switch runs.
+The blocker should still turn off a receptor-dependent response. It did not, which places the persistent state downstream of the receptor, in the G protein holding the uncuttable nucleotide.
 
 </details>
 
-<LessonFigure src="/figures/gtpase-switches/breaking-the-timer.webp" width={1200} height={800} alt="AI-generated illustration: a switch cycle with an off state holding GDP on the left and an on state holding GTP on the right, a loading arrow along the top and an off-step arrow along the bottom. Three bars block the off step: an uncuttable GTP analogue, cholera toxin on Gs, and Ras G12V or Q61, each labelled stays on. A double chevron on the off step marks extra RGS, a shorter response. A bar on the loading arrow marks Ras S17N, rarely loaded." caption="The off step sets how long each switch stays on. An uncuttable GTP analogue, cholera toxin acting on Gs, and the Ras G12V and Q61 mutants all block it, so the response lasts far longer; extra RGS speeds it for Gi-family subunits and shortens the response. Ras S17N breaks the other half of the cycle and is rarely loaded with GTP." />
+**Cholera toxin.** In 1976 and 1977 Joel Moss and Martha Vaughan showed that the toxin is an enzyme. It splits NAD and can attach its ADP-ribose group to the amino acid arginine. In 1978 D. Michael Gill and R. Meren, and in a separate study Cassel and Pfeuffer, showed that the target is the cyclase system's GTP-binding protein, now called Gs. The attached group blocks the step that switches Gs off, so cyclic AMP stays high. An intestinal cell responds by opening CFTR chloride channels; salt leaves into the gut, water follows, and the result is the watery diarrhea of cholera.
+
+**Ras G12V and Q61.** A Ras GAP helps form the transition-state arrangement for hydrolysis by placing an arginine in the nucleotide pocket. Glycine 12 sits beside that site. Replacing it with valine puts a bulkier side chain where the GAP's arginine must reach and disrupts the catalytic arrangement, so GAP can bind without giving its normal acceleration. Glutamine 61, changed to lysine in the tumor mutant Q61K, helps stabilize the cutting reaction's transition state. Q61 mutants cut poorly with or without GAP. Either way Ras stays GTP-bound and keeps signaling. A single amino-acid change at codon 12 occurs in many cancers.
+
+**The mirror image: S17N.** Asparagine in place of serine 17 lowers Ras's affinity for GTP much more than for GDP. So Ras is rarely loaded with GTP, and even holding GTP it fails to switch on its targets. It is also thought to hold on to exchange factors such as SOS, soaking up what normal Ras in the same cell needs. A mutant that blocks its normal partner this way is called dominant-negative.
+
+**Predict.** What rescue experiment would support the proposal that S17N suppresses normal Ras by soaking up SOS?
+
+<details>
+<summary>Check your prediction</summary>
+
+Supply more SOS and measure GTP loading of normal Ras. If loading recovers, the exchange factor was the limiting part S17N had taken up.
+
+</details>
+
+The second film sorted these cases by the arrow each changes: block GTP cutting to prolong signaling; speed it to shorten signaling. Before applying that, check two things it took for granted: that the regulator acts on that GTPase (RGS proteins do not act on Gs), and that the experiment asks about an already-loaded switch.
+
+<LessonFigure src="/figures/gtpase-switches/breaking-the-timer.webp" width={1200} height={800} alt="AI-generated illustration: a switch cycle with an off state holding GDP on the left and an on state holding GTP on the right, a loading arrow along the top and an off-step arrow along the bottom. Three bars block the off step: an uncuttable GTP analogue, cholera toxin on Gs, and Ras G12V or Q61, each labelled stays on. A double chevron on the off step marks extra RGS, a shorter response. A bar on the loading arrow marks Ras S17N, rarely loaded." caption="Blocking GTP cutting prolongs signaling, accelerating it shortens signaling, and Ras S17N instead impairs loading." />
 
 ## Going deeper
 
 ### How the GTP requirement and the transducer were found
 
-Around 1970, Martin Rodbell's laboratory at the National Institutes of Health was studying how the hormone glucagon switches on adenylyl cyclase in liver membranes. Adenylyl cyclase is the enzyme that makes cyclic AMP, the small messenger that tells the inside of a cell a hormone has arrived. The glucagon-binding experiments behaved strangely: in plain buffer the hormone stuck to the membranes and would not wash off, but when ATP was in the buffer it came off within seconds, which was odd, since ATP is the enzyme's fuel. The cause was a contaminant: commercial ATP carries a little GTP. When the group added GTP on purpose, it proved to be required. Without it, glucagon barely switched the cyclase on.
+Around 1970, Martin Rodbell's laboratory at the National Institutes of Health studied how glucagon switches on adenylyl cyclase in liver membranes. Adenylyl cyclase makes cyclic AMP, a messenger that carries the hormone signal inside. In plain buffer, glucagon stuck to the membranes and would not wash off; with ATP present it came off within seconds. The cause was GTP contaminating the ATP. Added deliberately, GTP proved necessary: without it, glucagon barely activated the cyclase.
 
-Think about what that implies. GTP was not the fuel, because the cyclase runs on ATP. And a trace was enough, so GTP was not being used up once for every cyclic AMP made. It was acting as a regulator, not as a raw material.
+GTP was not the fuel, because the cyclase runs on ATP, and a trace was enough, so it was not used up once per cyclic AMP made. It was acting as a regulator, not a raw material.
 
-For years many laboratories had trouble reproducing the effect, in part because their membranes and nucleotides were not as clean as Rodbell's. Suppose the ATP is 1% GTP. Then the "no GTP" tube already holds enough for a full response, the difference between tubes never appears, and adding more GTP only scatters the data.
+For years many laboratories had trouble reproducing the effect, partly because their membranes and nucleotides were not as clean. If ATP is 1% GTP, the “no GTP” tube can already hold enough for a full response, and adding more GTP only scatters the data.
 
-Rodbell had a second problem. Many different hormone receptors switch on the same enzyme, and he thought it impossible that all of them were built into it. So he proposed a separate component between receptors and enzyme, passing the signal from one to the other. He called it a transducer. Nobody knew what it was.
+Rodbell had a second problem. Many different hormone receptors switch on the same enzyme, and he thought it impossible that all were built into it. So he proposed a separate component, a transducer, passing the signal between them, before anyone knew what it was.
 
-Here is a UVa moment: the answer came from the pharmacology department at the University of Virginia, in the 1970s, in the laboratory of Alfred Gilman. He used cyc⁻ lymphoma cells, a line of cancer cells in which hormone cannot raise cyclic AMP because the link between receptor and enzyme is missing. Gilman and his postdoctoral fellow Elliott Ross added a soluble extract from normal cells to cyc⁻ membranes. The hormone response came back, and it came back even when the extract's own cyclase had been inactivated. So the transducer was a separate protein, one that could be moved from one membrane to another. Using that rescue as an assay, Gilman and his colleagues purified Gs, the stimulatory G protein, from rabbit liver membranes. The pure protein carried an alpha and a beta subunit, and a small gamma subunit, unnoticed at first, was added to the picture later. G protein is short for guanine-nucleotide-binding protein.
+Here is a UVa moment: the answer came from Alfred Gilman's pharmacology laboratory at the University of Virginia in the 1970s. Gilman used cyc⁻ lymphoma cells, in which hormone cannot raise cyclic AMP because the link between receptor and enzyme is missing. He and Elliott Ross added a soluble extract from normal cells to cyc⁻ membranes, and the response returned even when the extract's own cyclase had been inactivated. The transducer was therefore a separate, movable protein. Using that rescue as an assay, Gilman and colleagues purified Gs from rabbit liver membranes. The protein carried alpha and beta subunits; a small gamma subunit was missed at first. G protein means guanine-nucleotide-binding protein.
 
 ### The first Ras structures
 
