@@ -216,6 +216,10 @@ for (const course of catalog.courses) {
       const body = cols.find((x) => x.properties?.dataLessonTitle !== undefined) ?? cols[0];
       if (!body) throw new Error(`agent-markdown: lesson body not found in ${page}; did the lesson page layout change?`);
       const review = find(tree, (x) => has(x, 'under-review-tag'));
+      const builds = find(tree, (x) => has(x, 'builds-on'));
+      const buildsOn = builds
+        ? 'Builds on: ' + (builds.children || []).filter((x) => x.tagName === 'a' && !has(x, 'bo-why')).map((x) => squash(text(x))).join(' · ')
+        : '';
       const head = [
         `# ${l.title}`,
         '',
@@ -226,6 +230,7 @@ for (const course of catalog.courses) {
         ...(review ? ['Note: parts of this lesson are still being checked ("Under review").'] : []),
         '',
       ];
+      if (buildsOn) head.push(buildsOn, '');
       if (l.objectives?.length) head.push("## What you'll learn", '', ...l.objectives.map((o) => `- ${squash(o)}`), '');
       const md = (head.join('\n') + '\n' + blocks(body))
         .replace(/\n{3,}/g, '\n\n')
