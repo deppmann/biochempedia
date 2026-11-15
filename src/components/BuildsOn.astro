@@ -1,0 +1,37 @@
+---
+/**
+ * "Builds on: A · B · C" (2026-11-15): one plain line under the Overview naming the lessons to review
+ * first, read at build time from the same src/data/lesson-links.json "before" list that the end-of-lesson
+ * "Where this lesson fits" block uses (same order, first three). Static HTML, no client script. A lesson
+ * with no record, or whose links no longer resolve, renders nothing. The reasons stay in the end block;
+ * a title attribute carries each reason, and "Why these?" jumps down to that block.
+ */
+import { getCollection } from 'astro:content';
+import links from '../data/lesson-links.json';
+
+interface Props { slug: string }
+const { slug } = Astro.props;
+type Rec = { before: { slug: string; why: string }[] };
+const rec = (links.lessons as Record<string, Rec>)[slug];
+const live = new Map((await getCollection('lessons', ({ data }) => !data.draft)).map((l) => [l.data.slug, l.data]));
+const items = rec && live.has(slug)
+  ? rec.before.filter((x) => live.has(x.slug)).slice(0, 3).map((x) => ({ href: `/lessons/${x.slug}/`, title: live.get(x.slug)!.title, why: x.why }))
+  : [];
+---
+{items.length > 0 && (
+  <p class="wrap builds-on">
+    <span class="bo-k">Builds on:</span>
+    {items.map((it, i) => (<>{i > 0 && <span class="bo-sep" aria-hidden="true"> · </span>}<a href={it.href} title={it.why}>{it.title}</a></>))}
+    <a class="bo-why" href="#ll-h-lesson">Why these?</a>
+  </p>
+)}
+
+<style>
+  .builds-on { margin: 0 auto var(--ddp-space-4); font-size: var(--ddp-text-sm); line-height: 1.5; color: var(--ddp-color-ink-soft); overflow-wrap: anywhere; }
+  .bo-k { font-weight: 600; margin-right: 0.35em; }
+  .builds-on a { color: var(--ddp-color-ink); text-underline-offset: 2px; }
+  .builds-on a:hover { color: var(--ddp-color-accent); }
+  .bo-sep { color: var(--ddp-color-muted); }
+  .builds-on .bo-why { margin-left: 0.75em; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  @media print { .bo-why { display: none; } }
+</style>
