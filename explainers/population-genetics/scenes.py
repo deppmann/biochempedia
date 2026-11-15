@@ -1,405 +1,501 @@
-"""Population genetics: why dominant alleles do not spread  (Biochemistrypedia explainer)
-
-Timed to the SPOKEN words: every self.at("...") cue waits for that phrase in audio/words.json.
-
-COLOR MAP (one color per concept, whole video)
-  BLUE    = allele M, and the MM genotype
-  YELLOW  = allele N, and the NN genotype
-  GREEN   = the heterozygote MN, and "no departure / holds"
-  PURPLE  = a person who shows the dominant trait (scene 1 only)
-  TEAL    = expected counts (Hardy-Weinberg)
-  ORANGE  = observed counts
-  RED     = "no", a broken assumption, a force acting on the population
-  GOLD    = highlight outline around the M copies
-  GREY    = outlines, labels, de-emphasized
-"""
+"""Why dominance does not spread an allele — population-genetics teaching film."""
 import numpy as np
-from bp_style import *  # noqa: F401,F403
+from bp_parts import *
 
-PURPLE = "#B58CD9"
-ORANGE = "#F29E4C"
-P = 0.5425
-Q = 0.4575
+P, Q = 0.60, 0.40
 
 
-# ---------------------------------------------------------------------------------------------
-# helpers
-# ---------------------------------------------------------------------------------------------
-def person_row(n_trait, n=10, r=0.26, gap=0.78):
-    dots = VGroup(*[Circle(radius=r, stroke_width=2, stroke_color=PURPLE if i < n_trait else GREY,
-                           fill_color=PURPLE if i < n_trait else GREY, fill_opacity=0.9 if i < n_trait else 0.35)
-                    for i in range(n)])
-    dots.arrange(RIGHT, buff=gap - 2 * r)
-    return dots
+def allele_block(kind, w=0.52, h=0.46, label=True):
+    """One inherited copy.  A is always blue and a is always gold."""
+    color = BLUE if kind == "A" else GOLD
+    box = RoundedRectangle(corner_radius=0.08, width=w, height=h, stroke_color=color,
+                           stroke_width=2.5, fill_color=color, fill_opacity=0.48)
+    if not label:
+        return box
+    return VGroup(box, M(kind, 30, TEXT).move_to(box))
 
 
-def split_bar(frac, width, height, ml=True, size=34, show_letters=True):
-    """horizontal bar: blue M part (p) and yellow N part (q), left to right."""
-    wp, wq = width * frac, width * (1 - frac)
-    a = Rectangle(width=wp, height=height, stroke_color=BLUE, stroke_width=3, fill_color=BLUE, fill_opacity=0.35)
-    b = Rectangle(width=wq, height=height, stroke_color=YELLOW, stroke_width=3, fill_color=YELLOW, fill_opacity=0.35)
-    a.move_to(ORIGIN).align_to(ORIGIN, LEFT).shift(LEFT * width / 2)
-    b.next_to(a, RIGHT, buff=0)
-    la = M("p", size, BLUE, weight=BOLD).move_to(a)
-    lb = M("q", size, YELLOW, weight=BOLD).move_to(b)
-    g = VGroup(a, b, la, lb)
-    g.a, g.b, g.la, g.lb = a, b, la, lb
+def allele_pair(genotype, gap=0.10):
+    return VGroup(*[allele_block(a) for a in genotype]).arrange(RIGHT, buff=gap)
+
+
+def person(genotype, height=1.65, phenotype=True):
+    """Pale person outline with a carried genotype; dominance affects only its rim."""
+    dominant = "A" in genotype
+    rim = BLUE if phenotype and dominant else (GOLD if phenotype else GREY)
+    head = Circle(radius=0.24, stroke_color=GREY, stroke_width=3).shift(UP * 0.53)
+    body = RoundedRectangle(corner_radius=0.22, width=1.12, height=1.08,
+                            stroke_color=rim, stroke_width=5 if phenotype else 3,
+                            fill_color=rim, fill_opacity=0.07).shift(DOWN * 0.25)
+    shapes = VGroup(*[allele_block(a, label=False) for a in genotype]).arrange(RIGHT, buff=0.10)
+    pair = VGroup(shapes).move_to(body.get_center() + DOWN * 0.03)
+    g = VGroup(body, head, pair)
+    g.set_height(height)
+    letters = VGroup(*[M(a, 24, TEXT).move_to(s) for a, s in zip(genotype, shapes)])
+    pair.add(letters)
+    g.pair, g.body, g.genotype = pair, body, genotype
     return g
 
 
-def allele_dot(kind, r=0.15):
-    c = BLUE if kind == "M" else YELLOW
-    return Circle(radius=r, stroke_color=c, stroke_width=2, fill_color=c, fill_opacity=0.9)
+GENOTYPES = ["AA", "AA", "Aa", "Aa", "Aa", "aa"]
 
 
-SQ = 4.8          # side of the Hardy-Weinberg square
-SQC = np.array([-1.7, -0.5, 0.0])
+def people_row(center=(0, 0.3, 0), height=1.72, phenotype=True):
+    row = VGroup(*[person(g, height=height, phenotype=phenotype) for g in GENOTYPES])
+    row.arrange(RIGHT, buff=0.38).move_to(center)
+    return row
 
 
-def build_square():
-    """the area model. returns a group with named parts."""
-    wp, wq = SQ * P, SQ * Q
-    x0, y0 = SQC[0] - SQ / 2, SQC[1] + SQ / 2
+def split_bar(center=(0, -2.35, 0), width=10.4, height=0.78, labels=True, title=None):
+    """Computed p/q bar: the boundary is exactly P of the total width."""
+    left = center[0] - width / 2
+    a = Rectangle(width=width * P, height=height, stroke_color=BLUE, stroke_width=3,
+                  fill_color=BLUE, fill_opacity=0.42).move_to([left + width * P / 2, center[1], 0])
+    b = Rectangle(width=width * Q, height=height, stroke_color=GOLD, stroke_width=3,
+                  fill_color=GOLD, fill_opacity=0.42).move_to([left + width * P + width * Q / 2, center[1], 0])
+    g = VGroup(a, b)
+    if labels:
+        la = M("p = 0.60", 28, BLUE).move_to(a)
+        lb = M("q = 0.40", 28, GOLD).move_to(b)
+        g.add(la, lb)
+    if title:
+        g.add(T(title, 28, TEXT).next_to(VGroup(a, b), UP, buff=0.18))
+    g.a, g.b = a, b
+    return g
+
+
+def pool(center=(0, 0.35, 0), width=10.8, height=3.75, labels=True):
+    """Twenty-copy inventory (12 A, 8 a), built in the same positions every time."""
+    frame = RoundedRectangle(corner_radius=0.28, width=width, height=height, stroke_color=GREY,
+                             stroke_width=3, fill_color=GREY, fill_opacity=0.025).move_to(center)
+    blocks = VGroup()
+    for i in range(20):
+        kind = "A" if i < 12 else "a"
+        blocks.add(allele_block(kind, w=0.56, h=0.48))
+    blocks.arrange_in_grid(rows=2, cols=10, buff=(0.34, 0.58)).move_to(center)
+    g = VGroup(frame, blocks)
+    if labels:
+        lab = T("population allele copies", 30, TEXT).next_to(frame, UP, buff=0.20)
+        g.add(lab)
+    g.frame, g.blocks = frame, blocks
+    return g
+
+
+def genotype_cards(center=(0, -1.65, 0), scale=1.0):
+    cards = VGroup()
+    for gt in ("AA", "Aa", "aa"):
+        col = BLUE if "A" in gt else GOLD
+        box = RoundedRectangle(corner_radius=0.18, width=2.25, height=1.25, stroke_color=col,
+                               stroke_width=4, fill_color=col, fill_opacity=0.10)
+        pair = allele_pair(gt).scale(0.82).move_to(box.get_center() + UP * 0.13)
+        lab = M(gt, 28, col).next_to(pair, DOWN, buff=0.09)
+        cards.add(VGroup(box, pair, lab))
+    cards.arrange(RIGHT, buff=0.55).scale(scale).move_to(center)
+    return cards
+
+
+def gamete_lanes():
+    """Same 60:40 split in egg and sperm lanes."""
+    lanes = VGroup()
+    for name, y in (("egg lane", 1.55), ("sperm lane", -0.45)):
+        frame = RoundedRectangle(corner_radius=0.2, width=9.8, height=1.28, stroke_color=GREY,
+                                 stroke_width=3).move_to([0, y, 0])
+        copies = VGroup(*[allele_block("A" if i < 6 else "a", w=0.45, h=0.42) for i in range(10)])
+        copies.arrange(RIGHT, buff=0.18).move_to([0.72, y, 0])
+        label_y = y + (0.36 if name == "egg lane" else 0.91)
+        label = T(name, 28, TEXT).move_to([-4.02, label_y, 0])
+        lane = VGroup(frame, copies, label)
+        lane.copies = copies
+        lanes.add(lane)
+    return lanes
+
+
+def probability_square(center=(-0.65, -0.25, 0), side=5.55, labels=False):
+    """Area model computed from p=.60 and q=.40; rows are sperm, columns eggs."""
+    x0, y1 = center[0] - side / 2, center[1] + side / 2
+    wp, wq, hp, hq = side * P, side * Q, side * P, side * Q
+    specs = [
+        ("AA", x0, y1 - hp, wp, hp, BLUE),
+        ("Aa_top", x0 + wp, y1 - hp, wq, hp, TEAL),
+        ("Aa_bottom", x0, y1 - hp - hq, wp, hq, TEAL),
+        ("aa", x0 + wp, y1 - hp - hq, wq, hq, GOLD),
+    ]
     cells = {}
-    spec = [("MM", 0, 0, wp, wp, BLUE), ("NM", 1, 0, wq, wp, GREEN), ("MN", 0, 1, wp, wq, GREEN), ("NN", 1, 1, wq, wq, YELLOW)]
-    for name, cx, cy, w, h, col in spec:
-        px = x0 + (wp if cx else 0)
-        py = y0 - (wp if cy else 0)
-        r = Rectangle(width=w, height=h, stroke_color=col, stroke_width=3, fill_color=col, fill_opacity=0.0)
-        r.move_to([px + w / 2, py - h / 2, 0])
+    g = VGroup()
+    for name, x, y, w, h, color in specs:
+        r = Rectangle(width=w, height=h, stroke_color=color, stroke_width=4,
+                      fill_color=color, fill_opacity=0.28).move_to([x + w / 2, y + h / 2, 0])
         cells[name] = r
-    g = VGroup(*cells.values())
+        g.add(r)
+    if labels:
+        texts = {"AA": ("AA   p²", BLUE), "Aa_top": ("Aa   pq", TEAL),
+                 "Aa_bottom": ("Aa   qp", TEAL), "aa": ("aa   q²", GOLD)}
+        for key, (txt, col) in texts.items():
+            g.add(M(txt, 27, col).move_to(cells[key]))
     g.cells = cells
     return g
 
 
-def cell_label(cell, geno, expr, col):
-    t1 = T(geno, 28, col, weight=BOLD)
-    t2 = M(expr, 26, TEXT)
-    return VGroup(t1, t2).arrange(DOWN, buff=0.12).move_to(cell)
+def lane_question_world():
+    lanes = gamete_lanes()
+    q = question_card("What happens to p?", ["higher", "lower", "unchanged"],
+                      y=-3.23, chips_at=[4.75, -1.42, 0], max_w=5.8, left=-5.95)
+    return VGroup(lanes, q)
 
 
-def square_heads():
-    """egg heads above the columns and sperm heads left of the rows."""
-    sq = build_square()
-    c = sq.cells
-    egg_m = chip("egg M  p", BLUE, size=24, pad=0.14).next_to(c["MM"], UP, buff=0.18)
-    egg_n = chip("egg N  q", YELLOW, size=24, pad=0.14).next_to(c["NM"], UP, buff=0.18)
-    sp_m = chip("sperm M  p", BLUE, size=24, pad=0.14).next_to(c["MM"], LEFT, buff=0.18)
-    sp_n = chip("sperm N  q", YELLOW, size=24, pad=0.14).next_to(c["MN"], LEFT, buff=0.18)
-    return VGroup(egg_m, egg_n, sp_m, sp_n)
+def eye_icon(center=(-4.85, 2.4, 0), width=1.9):
+    eye = Ellipse(width=width, height=0.95, stroke_color=TEXT, stroke_width=4).move_to(center)
+    iris = Circle(radius=0.24, color=BLUE, fill_color=BLUE, fill_opacity=0.55).move_to(center)
+    return VGroup(eye, iris)
 
 
-class S00Title(TitleCard):
-    LESSON = "Population genetics"
-    TITLE = "Why dominant alleles do not spread"
-
-
-# ---------------------------------------------------------------------------------------------
-class S01Question(SpokenScene):
-    """rows of people with the trait creeping up the generations; red no."""
-
+class S00Hook(SpokenScene):
     def construct(self):
-        ys = [2.05, 0.8, -0.45, -1.7]
-        rows = [person_row(3), person_row(5), person_row(7), person_row(9)]
-        for r, y in zip(rows, ys):
-            r.move_to([1.2, y, 0])
-        labs = [T(s, 26, GREY) for s in ("generation 1", "generation 2", "generation 3", "almost everyone")]
-        for l, y in zip(labs, ys):
-            l.move_to([-4.6, y, 0])
-        leg = VGroup(
-            Circle(radius=0.17, stroke_color=PURPLE, fill_color=PURPLE, fill_opacity=0.9, stroke_width=2),
-            T("shows the dominant trait", 24, PURPLE),
-            Circle(radius=0.17, stroke_color=GREY, fill_color=GREY, fill_opacity=0.35, stroke_width=2),
-            T("does not", 24, GREY)).arrange(RIGHT, buff=0.2).move_to([0.6, -3.05, 0])
-        qmark = M("?", 56, YELLOW, weight=BOLD).move_to([5.75, -1.7, 0])
-
-        self.at("dominant allele")
-        guess = chip("the naive guess", RED, size=26).move_to([1.2, 3.2, 0])
-        self.play(FadeIn(leg), FadeIn(guess), run_time=0.5)
-        self.at("heterozygotes")
-        self.play(FadeIn(labs[0]), LaggedStart(*[FadeIn(d, scale=0.6) for d in rows[0]], lag_ratio=0.08), run_time=1.0)
-        self.at("generation by generation")
-        self.play(FadeIn(labs[1]), LaggedStart(*[FadeIn(d, scale=0.6) for d in rows[1]], lag_ratio=0.06), run_time=0.9)
-        self.play(FadeIn(labs[2]), LaggedStart(*[FadeIn(d, scale=0.6) for d in rows[2]], lag_ratio=0.06), run_time=0.9)
-        self.at("almost everyone")
-        self.play(FadeIn(labs[3]), LaggedStart(*[FadeIn(d, scale=0.6) for d in rows[3]], lag_ratio=0.05),
-                  FadeIn(qmark, scale=1.4), run_time=1.1)
-        self.at("mathematician")
-        hardy = chip("G. H. Hardy, 1908", GOLD, size=26).to_corner(UR, buff=0.5)
-        self.play(FadeIn(hardy, shift=DOWN * 0.15), run_time=0.6)
-        self.at("His answer was no")
-        no = M("no", 72, RED, weight=BOLD).move_to([5.75, 0.2, 0])
-        cross = VGroup(Line([-5.7, 2.9, 0], [6.6, -2.3, 0], color=RED, stroke_width=8),
-                       Line([-5.7, -2.3, 0], [6.6, 2.9, 0], color=RED, stroke_width=8)).set_opacity(0.0)
-        self.play(FadeIn(no, scale=1.5), qmark.animate.set_opacity(0.2), run_time=0.7)
-        self.wait(self.beat(0.05))
-        self.at("reference point")
-        self.play(FadeOut(VGroup(*rows, *labs, leg, no, qmark, hardy, guess)), run_time=0.6)
-        end = T("population genetics", 50, font=TITLE_FONT).move_to([0, 0.2, 0])
-        self.play(Write(end), run_time=1.0)
+        question = T("Why not everyone?", 42, TEXT, font=TITLE_FONT).move_to([0, 3.28, 0])
+        self.at("A dominant allele")
+        row = people_row(center=(0, 0.85, 0), height=2.0)
+        self.play(LaggedStart(*[FadeIn(p, shift=UP * 0.12) for p in row], lag_ratio=0.08), run_time=1.7)
+        for p in row:
+            bob(p.pair, amp=0.035, speed=1.8, seed=len(p.genotype))
+        hw = boxed_label("already at Hardy-Weinberg proportions", GREY, size=25).move_to([0, -1.22, 0])
+        self.play(FadeIn(hw), run_time=0.55)
+        self.at("Why does it not spread")
+        self.play(FadeIn(question, shift=DOWN * 0.1), run_time=0.65)
+        bar = split_bar(center=(0, -2.35, 0), width=10.2, height=0.7, labels=False)
+        self.play(FadeIn(bar), run_time=0.55)
+        predicted = DashedLine(bar.a.get_corner(UR), [5.10, -0.93, 0], color=TEXT, stroke_width=4)
+        pred_lab = T("predicted?", 27, TEXT).move_to([3.55, -0.45, 0])
+        everyone = T("everyone", 27, GREY).move_to([5.35, -0.80, 0])
+        self.play(Create(predicted), FadeIn(pred_lab), FadeIn(everyone), run_time=0.9)
+        self.at("Follow the allele copies")
+        self.play(FadeOut(VGroup(predicted, pred_lab, everyone, hw)),
+                  Indicate(VGroup(*[p.pair for p in row]), color=TEXT, scale_factor=1.08), run_time=1.1)
+        self.at("Their count")
+        count = M("12 A  +  8 a", 36, TEXT).move_to([0, -1.35, 0])
+        self.play(FadeIn(count), bar.a.animate.set_fill(BLUE, 0.65), bar.b.animate.set_fill(GOLD, 0.65), run_time=0.8)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S02Pool(SpokenScene):
-    """a pool of M and N copies sorts into a bar split p and q."""
-
+class S01Title(NarratedScene):
     def construct(self):
-        rng = np.random.default_rng(7)
-        center = np.array([-3.5, 0.5, 0.0])
-        pts = []
-        gx = np.linspace(-1.9, 1.9, 11)
-        for x in gx:
-            for y in gx:
-                if x * x + y * y < 2.05 ** 2:
-                    pts.append([x + rng.uniform(-0.12, 0.12), y + rng.uniform(-0.12, 0.12)])
-        rng.shuffle(pts)
-        n = len(pts)
-        nm = int(round(n * P))
-        dots = VGroup(*[allele_dot("M" if i < nm else "N", 0.15).move_to(center + [p[0], p[1], 0]) for i, p in enumerate(pts)])
-        rng.shuffle(dots.submobjects)
-        ring = Circle(radius=2.45, stroke_color=GREY, stroke_width=4).move_to(center)
-        plab = T("one pool of eggs and sperm", 24, GREY).next_to(ring, DOWN, buff=0.25)
-
-        self.at("every egg")
-        self.play(Create(ring), FadeIn(plab), LaggedStart(*[FadeIn(d, scale=0.5) for d in dots], lag_ratio=0.01), run_time=1.8)
-        self.at("two alleles")
-        lm = chip("M", BLUE, size=30)
-        ln = chip("N", YELLOW, size=30)
-        leg = VGroup(lm, ln).arrange(RIGHT, buff=0.4).move_to([3.4, 3.0, 0])
-        self.play(FadeIn(leg, shift=DOWN * 0.1), run_time=0.6)
-        self.at("fraction of copies that are M")
-        bar = split_bar(P, 6.2, 1.1).move_to([3.4, 1.4, 0])
-        self.play(FadeIn(bar.a, shift=RIGHT * 0.3), FadeIn(bar.la), run_time=0.8)
-        self.at("that are N")
-        self.play(FadeIn(bar.b, shift=RIGHT * 0.3), FadeIn(bar.lb), run_time=0.8)
-        self.at("p plus q")
-        br = Brace(VGroup(bar.a, bar.b), UP, color=GREY, buff=0.12)
-        eq = M("p + q = 1", 34, TEXT).next_to(br, UP, buff=0.12)
-        self.play(FadeOut(leg), run_time=0.3)
-        self.play(GrowFromCenter(br), FadeIn(eq), run_time=0.7)
-        self.at("In a sample of")
-        chp = chip("sample of 1,000 people", GREY, size=26).move_to([3.4, -0.5, 0])
-        self.play(FadeIn(chp, shift=UP * 0.1), run_time=0.6)
-        self.at("counting copies gives")
-        pv = M("p = 0.5425", 34, BLUE, weight=BOLD)
-        qv = M("q = 1 - p = 0.4575", 34, YELLOW, weight=BOLD)
-        vals = VGroup(pv, qv).arrange(DOWN, buff=0.35, aligned_edge=LEFT).move_to([3.4, -2.2, 0])
-        self.play(FadeIn(pv, shift=UP * 0.1), run_time=0.7)
-        self.play(FadeIn(qv, shift=UP * 0.1), run_time=0.7)
+        row = people_row(center=(0, 0.15, 0), height=1.7).set_opacity(0.28)
+        for p in row:
+            bob(p.pair, amp=0.035, speed=1.7, seed=1)
+        question = T("Why not everyone?", 31, GREY).move_to([0, -2.05, 0]).set_opacity(0.55)
+        title = fit_text("Why Dominance Does Not Spread an Allele", max_w=11.4, size=50,
+                         min_size=36, font=TITLE_FONT).move_to([0, 2.25, 0])
+        rule = Line(LEFT * 1.3, RIGHT * 1.3, color=GOLD, stroke_width=4).next_to(title, DOWN, buff=0.25)
+        self.add(row, question)
+        self.play(Write(title), GrowFromCenter(rule), run_time=1.05)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S03Square(SpokenScene):
-    """the pool bar becomes the sides of a square; its areas are the genotype proportions."""
-
+class S02Copies(SpokenScene):
     def construct(self):
-        sq = build_square()
-        heads = square_heads()
-        c = sq.cells
-        self.at("drawing one egg")
-        self.play(Create(VGroup(*[c[k] for k in c]).set_fill(opacity=0.0)), run_time=0.9)
-        self.play(FadeIn(heads, shift=DOWN * 0.1), run_time=0.8)
-
-        self.at("p times p")
-        l_mm = cell_label(c["MM"], "MM", "p × p", BLUE)
-        self.play(c["MM"].animate.set_fill(BLUE, 0.35), FadeIn(l_mm), run_time=0.7)
-        self.at("two ways")
-        self.play(Indicate(VGroup(c["MN"], c["NM"]), color=GREEN, scale_factor=1.03), run_time=0.8)
-        self.at("has chance pq")
-        l_mn = cell_label(c["MN"], "MN", "p q", GREEN)
-        self.play(c["MN"].animate.set_fill(GREEN, 0.35), FadeIn(l_mn), run_time=0.7)
-        self.at("reverse has chance")
-        l_nm = cell_label(c["NM"], "MN", "q p", GREEN)
-        self.play(c["NM"].animate.set_fill(GREEN, 0.35), FadeIn(l_nm), run_time=0.7)
-
-        panel_x = 4.3
-        tit = T("Hardy-Weinberg proportions", 26, GREY).move_to([panel_x, 2.6, 0])
-        self.at("These are")
-        self.play(FadeIn(tit), run_time=0.5)
-        self.at("mm is")
-        c_mm = chip("MM = p²", BLUE, size=36).move_to([panel_x, 1.4, 0])
-        self.play(TransformFromCopy(c["MM"], c_mm), run_time=0.8)
-        self.at("2pq")
-        c_mn = chip("MN = 2pq", GREEN, size=36).move_to([panel_x, 0.0, 0])
-        both = VGroup(c["MN"], c["NM"])
-        self.play(TransformFromCopy(both, c_mn), run_time=0.9)
-        self.at("and nn")
-        l_nn = cell_label(c["NN"], "NN", "q × q", YELLOW)
-        self.play(c["NN"].animate.set_fill(YELLOW, 0.35), FadeIn(l_nn), run_time=0.7)
-        self.at("q squared")
-        c_nn = chip("NN = q²", YELLOW, size=36).move_to([panel_x, -1.4, 0])
-        self.play(TransformFromCopy(c["NN"], c_nn), run_time=0.8)
+        row = people_row(center=(0, 1.6, 0), height=1.28, phenotype=False)
+        self.at("Each person holds")
+        self.play(FadeIn(row), run_time=0.9)
+        brace = Brace(row[2].pair, DOWN, color=TEXT)
+        glab = T("one genotype", 28, TEXT).next_to(brace, DOWN, buff=0.12)
+        self.play(GrowFromCenter(brace), FadeIn(glab), run_time=0.65)
+        self.at("Population genetics")
+        self.play(FadeOut(VGroup(brace, glab)), row.animate.shift(UP * 0.45).set_opacity(0.42), run_time=0.6)
+        po = pool(center=(0, -0.15, 0), width=11.2, height=2.65)
+        po[2].next_to(po.frame, DOWN, buff=0.16)
+        self.play(Create(po.frame), run_time=0.5)
+        self.at("Across everyone")
+        self.play(LaggedStart(*[FadeIn(b, shift=DOWN * 0.25) for b in po.blocks], lag_ratio=0.025),
+                  FadeIn(po[2]), run_time=1.7)
+        self.at("what fraction")
+        bar = split_bar(center=(0, -2.65, 0), width=10.9, height=0.72, labels=True)
+        self.play(GrowFromEdge(bar.a, LEFT), run_time=0.8)
+        self.at("That fraction")
+        self.play(FadeIn(VGroup(bar.b, bar[2], bar[3])), run_time=0.75)
+        self.at("An individual")
+        self.play(row.animate.set_opacity(0.16), Indicate(VGroup(po.blocks, bar), color=TEXT, scale_factor=1.025), run_time=1.0)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S04Count(SpokenScene):
-    """count the M copies: the M column of the square adds up to p."""
-
+class S03SameInventory(SpokenScene):
     def construct(self):
-        sq = build_square()
-        heads = square_heads()
-        c = sq.cells
-        cols = {"MM": (BLUE, "MM", "p × p"), "NM": (GREEN, "MN", "q p"), "MN": (GREEN, "MN", "p q"), "NN": (YELLOW, "NN", "q × q")}
-        labs = VGroup(*[cell_label(c[k], g, e, col) for k, (col, g, e) in cols.items()])
-        for k, (col, g, e) in cols.items():
-            c[k].set_fill(col, 0.35)
-        self.add(sq, heads, labs)
-
-        self.at("count the M copies")
-        # the M-from-the-egg column: MM and NM cells are in the left column (egg M)
-        left = VGroup(c["MM"], c["MN"])
-        box = SurroundingRectangle(left, color=GOLD, buff=0.04, stroke_width=7)
-        # dim everything outside the column
-        out = VGroup(c["NM"], c["NN"], labs[1], labs[3])
-        self.play(Create(box), out.animate.set_opacity(0.3), run_time=0.9)
-
-        x = 4.3
-        f1 = M("p² + pq", 44, GOLD, weight=BOLD).move_to([x, 2.6, 0])
-        self.at("fraction is")
-        self.play(FadeIn(f1, shift=UP * 0.1), run_time=0.7)
-        self.at("p times p plus q")
-        f2 = M("= p (p + q)", 44, TEXT).move_to([x, 1.6, 0])
-        self.play(FadeIn(f2, shift=UP * 0.1), run_time=0.7)
-        self.at("Since p plus q")
-        f3 = M("p + q = 1", 34, GREY).move_to([x, 0.7, 0])
-        self.play(FadeIn(f3, shift=UP * 0.1), run_time=0.6)
-        self.at("simply p")
-        f4 = M("= p", 60, GREEN, weight=BOLD).move_to([x, -0.35, 0])
-        self.play(FadeIn(f4, scale=1.3), run_time=0.7)
-
-        self.at("allele frequency has not moved")
-        w = 4.2
-        l1 = T("this generation", 24, GREY).move_to([x - w / 2 + 0.9, -1.35, 0])
-        b1 = split_bar(P, w, 0.55, size=26).move_to([x, -1.85, 0])
-        l2 = T("next generation", 24, GREY).move_to([x - w / 2 + 0.95, -2.55, 0])
-        b2 = split_bar(P, w, 0.55, size=26).move_to([x, -3.05, 0])
-        self.play(FadeIn(l1), FadeIn(b1), run_time=0.6)
-        self.play(FadeIn(l2), FadeIn(b2), run_time=0.6)
-        self.at("whatever they were before")
-        self.play(Indicate(VGroup(b1, b2), color=GREEN, scale_factor=1.04), run_time=0.8)
+        po = pool(center=(0, 1.02, 0), width=11.3, height=3.25)
+        for i, b in enumerate(po.blocks):
+            bob(b, amp=0.055, speed=1.4 + 0.04 * i, seed=i)
+        bar = split_bar(center=(0, -1.1, 0), width=10.6, height=0.72, labels=True)
+        self.at("The pool contains")
+        self.play(FadeIn(po), run_time=0.9)
+        self.at("Their fractions")
+        self.play(FadeIn(bar), run_time=0.75)
+        lock = T("same copies", 28, TEXT).next_to(bar, DOWN, buff=0.16)
+        self.at("Together")
+        self.play(FadeIn(lock), Indicate(bar, color=TEXT, scale_factor=1.02), run_time=0.75)
+        self.at("Dominance changes")
+        self.play(FadeOut(po), bar.animate.shift(UP * 2.65).scale(0.78), FadeOut(lock), run_time=0.75)
+        cards = genotype_cards(center=(0, -0.65, 0), scale=1.15)
+        self.play(LaggedStart(*[FadeIn(c, shift=UP * 0.15) for c in cards], lag_ratio=0.18), run_time=1.2)
+        visible = T("dominant trait visible", 30, BLUE).move_to([0, -2.05, 0])
+        self.play(FadeIn(visible), Indicate(VGroup(cards[0], cards[1]), color=BLUE, scale_factor=1.04), run_time=0.9)
+        self.at("but it adds no")
+        same = M("A copies: unchanged", 34, TEXT).move_to([0, -2.75, 0])
+        self.play(FadeIn(same), run_time=0.6)
+        self.at("inheritance")
+        self.play(Indicate(bar, color=TEXT, scale_factor=1.04), cards.animate.set_opacity(0.55), run_time=0.8)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S05Null(SpokenScene):
-    """assumptions of the null model, then observed against expected counts."""
-
+class S04Predict(SpokenScene):
     def construct(self):
-        items = ["large population", "random mating at this locus", "no selection", "no mutation", "no migration", "no drift"]
-        chips = [chip(s, GREY, size=34, pad=0.28) for s in items]
-        grid = VGroup(*chips)
-        grid.arrange_in_grid(rows=3, cols=2, buff=(1.5, 0.75)).move_to([0.3, 1.0, 0])
-        marks = []
-        for ch in chips:
-            m = VGroup()
-            marks.append(m)
-        self.at("population is large")
-        self.play(FadeIn(chips[0], shift=RIGHT * 0.2), FadeIn(marks[0]), run_time=0.5)
-        self.at("mating is random")
-        self.play(FadeIn(chips[1], shift=RIGHT * 0.2), FadeIn(marks[1]), run_time=0.5)
-        self.at("no selection")
-        self.play(FadeIn(chips[2], shift=RIGHT * 0.2), FadeIn(marks[2]), run_time=0.4)
-        self.play(FadeIn(chips[3], shift=RIGHT * 0.2), FadeIn(marks[3]), run_time=0.4)
-        self.play(FadeIn(chips[4], shift=RIGHT * 0.2), FadeIn(marks[4]), run_time=0.4)
-        self.play(FadeIn(chips[5], shift=RIGHT * 0.2), FadeIn(marks[5]), run_time=0.4)
-        self.at("Real populations break these")
-        cap = T("real populations can break any of these", 32, RED).move_to([0, -1.5, 0])
-        self.play(FadeIn(cap, shift=UP * 0.1), run_time=0.8)
-        self.at("null model")
-        nm = chip("Hardy-Weinberg = null model", TEAL, size=34).move_to([0, -2.8, 0])
-        self.play(FadeIn(nm, shift=UP * 0.15), run_time=0.7)
-
-        self.at("In our sample")
-        self.play(FadeOut(VGroup(grid, nm, cap)), run_time=0.6)
-
-        # observed vs expected
-        scale = 0.0085
-        base = -2.3
-        obs = [298, 489, 213]
-        exp = [294.3, 496.4, 209.3]
-        names = ["MM", "MN", "NN"]
-        gx = [-5.2, -2.6, 0.0]
-        base_line = Line([-6.4, base, 0], [1.2, base, 0], color=GREY, stroke_width=3)
-        ob_bars, ex_bars, ob_l, ex_l, gl = [], [], [], [], []
-        for x, o, e, nme in zip(gx, obs, exp, names):
-            bo = Rectangle(width=0.95, height=o * scale, stroke_color=ORANGE, stroke_width=3, fill_color=ORANGE, fill_opacity=0.4)
-            bo.move_to([x - 0.55, base + o * scale / 2, 0])
-            be = Rectangle(width=0.95, height=e * scale, stroke_color=TEAL, stroke_width=3, fill_color=TEAL, fill_opacity=0.4)
-            be.move_to([x + 0.55, base + e * scale / 2, 0])
-            ob_bars.append(bo); ex_bars.append(be)
-            ob_l.append(M(f"{o}", 24, ORANGE).next_to(bo, UP, buff=0.1))
-            ex_l.append(M(f"{e}", 24, TEAL).next_to(be, UP, buff=0.1))
-            gl.append(T(nme, 28, TEXT).move_to([x, base - 0.4, 0]))
-        self.play(Create(base_line), FadeIn(VGroup(*gl)), run_time=0.6)
-        self.at("observed counts")
-        key1 = chip("observed", ORANGE, size=26).move_to([-4.2, 3.2, 0])
-        self.play(FadeIn(key1), *[GrowFromEdge(b, DOWN) for b in ob_bars], run_time=0.9)
-        self.play(FadeIn(VGroup(*ob_l)), run_time=0.4)
-        self.at("expected ones")
-        key2 = chip("expected", TEAL, size=26).move_to([-1.6, 3.2, 0])
-        self.play(FadeIn(key2), *[GrowFromEdge(b, DOWN) for b in ex_bars], run_time=0.9)
-        self.play(FadeIn(VGroup(*ex_l)), run_time=0.4)
-
-        # chi-square panel
-        px = 3.9
-        self.at("square is")
-        chi = M("chi-square = 0.22", 28, TEXT, weight=BOLD).move_to([px, 2.2, 0])
-        scale_len = 4.0
-        x0 = px - scale_len / 2
-        u = scale_len / 4.5
-        axis = Line([x0, 0.3, 0], [x0 + scale_len, 0.3, 0], color=GREY, stroke_width=4)
-        t0 = M("0", 24, GREY).move_to([x0, -0.1, 0])
-        mark = Triangle(color=ORANGE, fill_color=ORANGE, fill_opacity=1).scale(0.14).rotate(PI).move_to([x0 + 0.22 * u, 0.55, 0])
-        self.play(FadeIn(chi, shift=DOWN * 0.1), Create(axis), FadeIn(t0), FadeIn(mark, shift=DOWN * 0.2), run_time=0.9)
-        self.at("critical value")
-        crit = Line([x0 + 3.84 * u, 0.0, 0], [x0 + 3.84 * u, 0.9, 0], color=RED, stroke_width=6)
-        cl = M("3.84", 26, RED, weight=BOLD).move_to([x0 + 3.84 * u, -0.35, 0])
-        ct = T("critical value", 24, RED).move_to([px + 0.2, 1.35, 0])
-        self.play(Create(crit), FadeIn(cl), FadeIn(ct), run_time=0.8)
-        self.at("one degree of freedom")
-        df = T("1 degree of freedom", 26, GREY).move_to([px, -1.2, 0])
-        self.play(FadeIn(df), run_time=0.5)
-        self.at("no evidence of departure")
-        ok = chip("no evidence of departure", GREEN, size=26).move_to([px, -2.4, 0])
-        self.play(FadeIn(ok, shift=UP * 0.1), run_time=0.7)
+        lanes = gamete_lanes()
+        self.at("Now let eggs")
+        self.play(LaggedStart(*[FadeIn(l, shift=RIGHT * 0.2) for l in lanes], lag_ratio=0.2), run_time=1.1)
+        for j, lane in enumerate(lanes):
+            bob(lane.copies, amp=0.05, speed=1.35, seed=j)
+        gates = VGroup(*[Line([5.15, y - 0.42, 0], [5.15, y + 0.42, 0], color=TEAL, stroke_width=7)
+                         for y in (1.55, -0.45)])
+        self.play(FadeIn(gates), run_time=0.55)
+        self.at("Before they pair")
+        prompt = question_card("What happens to p?", ["higher", "lower", "unchanged"],
+                               y=-3.23, max_w=5.8, left=-5.55)
+        self.play(FadeIn(prompt.question), run_time=0.55)
+        self.at("Does random pairing")
+        self.play(LaggedStart(*[FadeIn(c, shift=LEFT * 0.15) for c in prompt.chips], lag_ratio=0.16), run_time=1.0)
+        self.at("Keep your eye")
+        self.play(Indicate(VGroup(*[l.copies for l in lanes]), color=TEXT, scale_factor=1.025), run_time=0.8)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S06Rule(SpokenScene):
-    """dominance acts inside a person; to change frequencies something must act on the population."""
+class S05PredictPause(PredictPause):
+    QUESTION = "What happens to p?"
+    OPTIONS = ["higher", "lower", "unchanged"]
+    CHIPS_AT = None
+    CARD = {"y": -3.23, "max_w": 5.8, "left": -5.55}
+    RING_AT = (6.05, -3.18, 0)
+    SECONDS = 4.5
 
+    def backdrop(self):
+        lanes = gamete_lanes()
+        for j, lane in enumerate(lanes):
+            bob(lane.copies, amp=0.05, speed=1.35, seed=j)
+        gates = VGroup(*[Line([5.15, y - 0.42, 0], [5.15, y + 0.42, 0], color=TEAL, stroke_width=7)
+                         for y in (1.55, -0.45)])
+        pulse(gates, base=7, amp=1.2, speed=2.6)
+        return VGroup(lanes, gates)
+
+
+class S06RandomPairing(SpokenScene):
     def construct(self):
-        # one person with two alleles
-        body = Circle(radius=1.0, stroke_color=PURPLE, stroke_width=4, fill_color=PURPLE, fill_opacity=0.15).move_to([-4.6, 2.4, 0])
-        d1 = allele_dot("M", 0.2).move_to(body.get_center() + LEFT * 0.35)
-        d2 = allele_dot("N", 0.2).move_to(body.get_center() + RIGHT * 0.35)
-        plab = T("inside one person", 26, PURPLE).next_to(body, RIGHT, buff=0.35)
-        self.at("Dominance describes")
-        self.play(FadeIn(body, scale=0.8), FadeIn(d1), FadeIn(d2), FadeIn(plab), run_time=0.9)
-
-        bar = split_bar(P, 10.0, 1.6, size=40).move_to([0, 0.0, 0])
-        self.at("how common they become")
-        com = T("how common each allele is in the population", 28, GREY).move_to([0, -1.25, 0])
-        self.play(FadeIn(bar), FadeIn(com), run_time=0.9)
-        self.at("something has to act")
-        arrow = Arrow([3.2, 2.7, 0], [1.2, 0.9, 0], color=RED, stroke_width=8, buff=0.0)
-        act = chip("something acts on the population", RED, size=28).move_to([3.4, 3.1, 0])
-        new = split_bar(0.38, 10.0, 1.6, size=40).move_to([0, 0.0, 0])
-        self.play(FadeIn(act), GrowArrow(arrow), run_time=0.7)
-        self.play(ReplacementTransform(bar, new), run_time=1.0)
-        self.at("Keep this rule")
-        bar2 = split_bar(P, 10.0, 1.6, size=40).move_to([0, 0.0, 0])
-        self.play(FadeOut(VGroup(act, arrow)), ReplacementTransform(new, bar2), run_time=0.9)
-        self.at("With nothing acting")
-        hold = chip("nothing acts: p stays put", GREEN, size=36).move_to([0, -2.7, 0])
-        self.play(FadeIn(hold, shift=UP * 0.15), run_time=0.7)
+        sq = probability_square(labels=False)
+        heads = VGroup(M("egg: A  0.60", 27, BLUE), M("egg: a  0.40", 27, GOLD)).arrange(RIGHT, buff=0.75)
+        heads.move_to([-0.65, 3.18, 0])
+        sides = VGroup(M("sperm A\n0.60", 26, BLUE), M("sperm a\n0.40", 26, GOLD))
+        sides[0].move_to([-4.55, 0.72, 0]); sides[1].move_to([-4.55, -1.98, 0])
+        self.at("Random means")
+        self.play(FadeIn(heads), FadeIn(sides), Create(VGroup(*sq.cells.values()).set_fill(opacity=0)), run_time=1.2)
+        self.at("Draw blue from both")
+        aa = M("AA", 36, BLUE).move_to(sq.cells["AA"])
+        self.play(sq.cells["AA"].animate.set_fill(BLUE, 0.35), FadeIn(aa), run_time=0.85)
+        cursor1 = SurroundingRectangle(heads[0], color=TEXT, buff=0.08)
+        cursor2 = SurroundingRectangle(sides[0], color=TEXT, buff=0.08)
+        self.play(Create(cursor1), Create(cursor2), run_time=0.5)
+        self.at("Draw unlike")
+        mixed = VGroup(sq.cells["Aa_top"], sq.cells["Aa_bottom"])
+        mixlabs = VGroup(*[M("Aa", 34, TEAL).move_to(c) for c in mixed])
+        self.play(FadeOut(VGroup(cursor1, cursor2)), mixed.animate.set_fill(TEAL, 0.35), FadeIn(mixlabs), run_time=0.9)
+        self.at("in either order")
+        self.play(Indicate(mixed, color=TEXT, scale_factor=1.025), run_time=0.65)
+        self.at("Draw gold from both")
+        al = M("aa", 36, GOLD).move_to(sq.cells["aa"])
+        self.play(sq.cells["aa"].animate.set_fill(GOLD, 0.35), FadeIn(al), run_time=0.85)
+        self.at("No draw remembers")
+        no_memory = boxed_label("copies, not phenotype", TEXT, size=28).move_to([4.35, -2.25, 0])
+        self.play(FadeIn(no_memory), run_time=0.75)
         self.finish()
 
 
-class S07End(EndCard):
-    LINE = "With nothing acting, allele frequencies stay put."
+class S07Proportions(SpokenScene):
+    def construct(self):
+        bar = split_bar(center=(0, 3.08, 0), width=8.4, height=0.48, labels=True)
+        sq = probability_square(center=(-0.75, -0.35, 0), side=5.45, labels=False)
+        for cell in sq.cells.values():
+            pulse(cell, base=4.0, amp=1.4, speed=1.7)
+        title = T("genotype proportions", 30, TEXT).move_to([4.45, 2.28, 0])
+        self.at("The square gives")
+        self.play(FadeIn(bar), Create(VGroup(*sq.cells.values())), FadeIn(title), run_time=1.2)
+        self.at("Blue homozygotes")
+        l1 = M("p²", 38, TEXT).move_to(sq.cells["AA"])
+        self.play(FadeIn(l1), sq.cells["AA"].animate.set_fill(BLUE, 0.62), run_time=0.75)
+        self.at("Heterozygotes")
+        l2 = M("pq", 34, TEXT).move_to(sq.cells["Aa_top"])
+        l3 = M("qp", 34, TEXT).move_to(sq.cells["Aa_bottom"])
+        self.play(FadeIn(l2), FadeIn(l3),
+                  sq.cells["Aa_top"].animate.set_fill(TEAL, 0.62),
+                  sq.cells["Aa_bottom"].animate.set_fill(TEAL, 0.62), run_time=0.9)
+        self.at("Gold homozygotes")
+        l4 = M("q²", 38, TEXT).move_to(sq.cells["aa"])
+        self.play(FadeIn(l4), sq.cells["aa"].animate.set_fill(GOLD, 0.62), run_time=0.75)
+        self.at("Together")
+        total = M("p² + 2pq + q² = 1", 30, TEXT).move_to([4.5, 0.15, 0])
+        self.play(FadeOut(VGroup(l2, l3)), FadeIn(total), run_time=0.75)
+        mix = boxed_label("Aa = 2pq", TEAL, size=30).move_to([4.35, -1.15, 0])
+        self.play(FadeIn(mix), run_time=0.65)
+        self.at("These areas describe")
+        people = T("people", 32, TEXT).move_to([4.35, -2.25, 0])
+        copies = T("not new copies", 30, GREY).next_to(people, DOWN, buff=0.18)
+        self.play(FadeIn(people), FadeIn(copies), title.animate.set_color(GREY), run_time=0.75)
+        self.finish()
+
+
+class S08Recount(SpokenScene):
+    def construct(self):
+        cards = genotype_cards(center=(-2.35, 1.35, 0), scale=0.95)
+        bob(cards, amp=0.045, speed=1.45)
+        self.at("Recount blue")
+        self.play(LaggedStart(*[FadeIn(c, shift=DOWN * 0.2) for c in cards], lag_ratio=0.15), run_time=1.1)
+        self.at("Every blue homozygote")
+        f1 = M("p²", 40, BLUE).move_to([3.85, 1.75, 0])
+        self.play(Indicate(cards[0], color=BLUE), FadeIn(f1), run_time=0.8)
+        self.at("Every mixed pair")
+        f2 = M("+  pq", 40, TEAL).next_to(f1, DOWN, buff=0.35).align_to(f1, LEFT)
+        self.play(Indicate(cards[1], color=TEAL), FadeIn(f2), run_time=0.8)
+        self.at("Together")
+        eq1 = M("p² + pq", 42, TEXT).move_to([0, -0.35, 0])
+        self.play(FadeOut(VGroup(f1, f2)), FadeIn(eq1), run_time=0.35)
+        released = VGroup()
+        for i in range(10):
+            source = cards[0] if i < 4 else (cards[1] if i < 9 else cards[2])
+            released.add(allele_block("A" if i < 6 else "a", w=0.42, h=0.36, label=False).move_to(source))
+        self.add(released)
+        targets = [np.array([-3.6 + 0.8 * i, -1.18, 0]) for i in range(10)]
+        self.play(LaggedStart(*[b.animate.move_to(t) for b, t in zip(released, targets)], lag_ratio=0.05),
+                  run_time=0.75)
+        self.at("return exactly")
+        eq2 = M("p(p + q)", 42, TEXT).move_to(eq1)
+        eq3 = M("p", 58, BLUE).move_to(eq1)
+        self.play(swap(eq1, eq2), run_time=0.7)
+        self.play(swap(eq2, eq3), run_time=0.7)
+        before = split_bar(center=(0, -1.65, 0), width=9.6, height=0.62, labels=False, title="before")
+        after = split_bar(center=(0, -3.05, 0), width=9.6, height=0.62, labels=False, title="next generation")
+        self.play(FadeOut(released), FadeIn(before), run_time=0.6)
+        self.at("Random mating changed")
+        self.play(FadeIn(after), run_time=0.65)
+        outline = SurroundingRectangle(after, color=TEXT, buff=0.09, stroke_width=4)
+        self.play(Create(outline), run_time=0.65)
+        self.finish()
+
+
+class S09Dominance(SpokenScene):
+    def construct(self):
+        row = people_row(center=(0, 0.72, 0), height=1.7, phenotype=True)
+        self.at("Dominance still")
+        self.play(LaggedStart(*[FadeIn(p) for p in row], lag_ratio=0.08), run_time=1.0)
+        self.at("Both blue homozygotes")
+        eye = eye_icon(center=(-4.9, 2.65, 0))
+        count = M("5 visible", 30, BLUE).next_to(eye, RIGHT, buff=0.25)
+        self.play(FadeIn(eye), FadeIn(count), Indicate(VGroup(*row[:5]), color=BLUE, scale_factor=1.025), run_time=0.9)
+        self.at("Yet visibility")
+        bar = split_bar(center=(0, -1.55, 0), width=10.4, height=0.72, labels=True)
+        self.play(FadeIn(bar), run_time=0.7)
+        self.at("A visible effect")
+        proposal = Arrow([-3.8, -2.72, 0], [3.75, -2.72, 0], color=BLUE, stroke_width=7, buff=0)
+        shortcut = T("extra copying route?", 29, BLUE).next_to(proposal, DOWN, buff=0.16)
+        self.play(GrowArrow(proposal), FadeIn(shortcut), run_time=0.75)
+        no = M("×", 64, RED).move_to(proposal)
+        self.play(FadeIn(no, scale=1.25), proposal.animate.set_opacity(0.18), shortcut.animate.set_opacity(0.25), run_time=0.65)
+        self.at("Without unequal survival")
+        forces = VGroup(*[boxed_label(s, RED, size=25) for s in ("survival", "reproduction", "other force")])
+        forces.arrange(RIGHT, buff=0.35).move_to([0, -3.15, 0])
+        self.play(FadeOut(VGroup(proposal, shortcut, no)), run_time=0.3)
+        self.play(LaggedStart(*[FadeIn(x) for x in forces], lag_ratio=0.15), run_time=0.6)
+        self.at("no extra")
+        self.play(FadeOut(forces), Indicate(bar, color=TEXT, scale_factor=1.025), run_time=0.7)
+        self.finish()
+
+
+class S10NullModel(SpokenScene):
+    def construct(self):
+        expected = [P * P, 2 * P * Q, Q * Q]
+        labels = ["AA", "Aa", "aa"]
+        cols = [BLUE, TEAL, GOLD]
+        base, scale = -2.25, 8.0
+        axes = Line([-5.8, base, 0], [1.0, base, 0], color=GREY, stroke_width=3)
+        bars = VGroup()
+        outlines = VGroup()
+        for x, val, lab, col in zip((-4.65, -2.35, -0.05), expected, labels, cols):
+            r = Rectangle(width=0.92, height=val * scale, stroke_color=TEXT, stroke_width=4,
+                          fill_color=col, fill_opacity=0.32).move_to([x, base + val * scale / 2, 0])
+            bars.add(VGroup(r, M(lab, 28, col).move_to([x, base - 0.38, 0])))
+            outlines.add(Rectangle(width=0.92, height=val * scale, stroke_color=GREY, stroke_width=2,
+                                   fill_opacity=0).move_to(r))
+        for outline in outlines:
+            pulse(outline, base=2.0, amp=0.8, speed=1.6)
+        bob(bars, amp=0.035, speed=1.3)
+        self.at("This is a baseline")
+        baseline = boxed_label("Hardy-Weinberg baseline", TEXT, size=30).move_to([-2.4, 3.16, 0])
+        pulse(baseline.box, base=2.5, amp=1.0, speed=1.8)
+        self.play(FadeIn(baseline), Create(axes), run_time=0.75)
+        self.play(LaggedStart(*[Create(o) for o in outlines], lag_ratio=0.28), run_time=2.4)
+        self.at("It assumes")
+        assumptions = VGroup(*[boxed_label(s, GREY, size=25) for s in
+                               ("large population", "random mating", "no force on copies")])
+        assumptions.arrange(DOWN, buff=0.3, aligned_edge=LEFT).move_to([4.25, 1.65, 0])
+        bob(assumptions, amp=0.04, speed=1.25)
+        self.play(Indicate(outlines, color=TEXT, scale_factor=1.02), run_time=0.45)
+        self.at("large population")
+        self.play(FadeIn(assumptions[0], shift=LEFT * 0.5), run_time=0.55)
+        self.at("random mating")
+        self.play(FadeIn(assumptions[1], shift=LEFT * 0.5), run_time=0.55)
+        self.at("no force")
+        self.play(FadeIn(assumptions[2], shift=LEFT * 0.5), run_time=0.55)
+        self.at("Hardy Weinberg predicts")
+        self.play(LaggedStart(*[GrowFromEdge(b[0], DOWN) for b in bars], lag_ratio=0.18),
+                  FadeIn(VGroup(*[b[1] for b in bars])), run_time=1.25)
+        bracket = Brace(VGroup(*[b[0] for b in bars]), UP, color=TEXT)
+        null = T("null expectation", 29, TEXT).next_to(bracket, UP, buff=0.12)
+        self.play(GrowFromCenter(bracket), FadeIn(null), run_time=0.65)
+        self.at("testable expectation")
+        observed = VGroup()
+        for x, val in zip((-4.65, -2.35, -0.05), (0.31, 0.54, 0.15)):
+            r = Rectangle(width=0.52, height=val * scale, stroke_color=GREY, stroke_width=3,
+                          fill_color=GREY, fill_opacity=0.38).move_to([x + 0.72, base + val * scale / 2, 0])
+            observed.add(r)
+        self.play(LaggedStart(*[GrowFromEdge(r, DOWN) for r in observed], lag_ratio=0.16), run_time=1.0)
+        self.at("Data can then depart")
+        outside = VGroup(*[boxed_label(s, RED, size=24) for s in ("selection", "migration", "mutation", "drift")])
+        outside.arrange_in_grid(rows=2, cols=2, buff=(0.35, 0.28)).move_to([4.25, -1.55, 0])
+        bob(outside, amp=0.04, speed=1.3)
+        self.play(FadeOut(assumptions),
+                  LaggedStart(*[FadeIn(x) for x in outside], lag_ratio=0.12), run_time=0.9)
+        self.add(scope_tag("schematic"))
+        self.finish()
+
+
+class S11Rule(SpokenScene):
+    def construct(self):
+        row = people_row(center=(0, 2.15, 0), height=1.30, phenotype=False)
+        po = pool(center=(0, 0.25, 0), width=9.6, height=1.55, labels=False)
+        po.blocks.move_to(po.frame)
+        pulse(po.frame, base=3.0, amp=1.5, speed=1.5)
+        bar = split_bar(center=(0, -1.25, 0), width=9.8, height=0.7, labels=True)
+        self.at("answer the opening")
+        self.play(FadeIn(row), FadeIn(po), run_time=0.9)
+        self.at("counting copies")
+        self.play(FadeIn(bar), Indicate(po.blocks, color=TEXT, scale_factor=1.025), run_time=0.8)
+        self.at("Mating reshuffles")
+        reshuffle = T("mating reshuffles", 32, TEAL).move_to([-3.3, -2.45, 0])
+        self.play(FadeIn(reshuffle), Rotate(po.blocks, angle=0.06, rate_func=there_and_back), run_time=0.75)
+        self.at("Dominance alone")
+        fixed = T("frequency unchanged", 32, TEXT).move_to([2.7, -2.45, 0])
+        boundary = Line(bar.a.get_right() + UP * 0.48, bar.a.get_right() + DOWN * 0.48,
+                        color=TEXT, stroke_width=7)
+        self.play(FadeIn(fixed), Create(boundary), run_time=0.75)
+        self.at("A changing allele bar")
+        force = Arrow([4.8, 3.1, 0], [4.8, -0.65, 0], color=RED, stroke_width=8, buff=0.15)
+        flab = boxed_label("force changes copies", RED, size=27).move_to([4.55, 3.25, 0])
+        self.play(FadeIn(flab), GrowArrow(force), run_time=0.9)
+        self.at("enter the next generation")
+        self.play(force.animate.shift(DOWN * 0.18), Indicate(bar, color=RED, scale_factor=1.02), run_time=0.7)
+        self.finish()
+
+
+class S12End(EndCard):
+    LINE = "Mating reshuffles alleles; dominance alone does not change their frequency."
