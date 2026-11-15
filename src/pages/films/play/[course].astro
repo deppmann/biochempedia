@@ -57,9 +57,16 @@ const queue = films.map((f) => ({
       <span class="seen-n" data-seen-of={queue.map((q) => q.f).join(' ')} hidden></span>
     </p>
     <p class="small pl-filter" data-pl-filter hidden></p>
+    <div class="pb" data-pb aria-labelledby="pb-h">
+      <p class="pb-h" id="pb-h">Have 10 minutes? 20? 30?</p>
+      <ul class="pb-links">
+        {[10, 20, 30].map((m) => <li><a class="fl-btn soft" href={`?t=${m}#queue`} data-pb-min={m}>{m} minutes</a></li>)}
+      </ul>
+      <p class="pb-rule small">Starts at the first film you have not watched and plays whole films in order. It stops after the last one that fits, and never starts a film that would run more than a minute over.</p>
+    </div>
   </header>
 
-  <div class="wrap pl-main" data-pagefind-ignore>
+  <div class="wrap pl-main" id="queue" data-pagefind-ignore>
     <div class="pl-stage">
       <div class="pl-player" data-pl-player data-cards-anchor>
         <LessonFilm film={{ src: first.src, captions: first.captions, poster: first.poster, title: first.title, durationSec: first.durationSec, id: 'play' }} transcript={false} />
@@ -78,6 +85,9 @@ const queue = films.map((f) => ({
         <p class="pl-pos" data-pl-pos aria-live="polite">Film 1 of {fmt(films.length)}</p>
         <button type="button" class="fl-btn" data-pl-nextbtn>Next <span aria-hidden="true">▶</span></button>
       </div>
+
+      <p class="pb-text" data-pb-text role="status" aria-live="polite"></p>
+      <p class="pb-keep" data-pb-keepwrap hidden><button type="button" class="fl-btn primary" data-pb-keep>Keep going</button></p>
 
       <section class="pl-now" aria-labelledby="pl-now-h">
         <p class="spot-k" data-pl-badge>{kindBadge(first)}</p>
@@ -121,7 +131,7 @@ const queue = films.map((f) => ({
 
   <script>
     import { liveMarks } from '../../../lib/film-cards';
-    import { loadFilms, saveQueue, onFilmsChange } from '../../../lib/film-progress';
+    import { loadFilms, saveQueue, onFilmsChange, isWatched } from '../../../lib/film-progress';
     import { checkFilmsBadge } from '../../../lib/badges';
 
     type Q = { f: string; t: string; h: string; l: string; lt: string; s: string; c: string; o: string; d: number; b: string; k: string; th: string[]; cd: string };
@@ -225,6 +235,8 @@ const queue = films.map((f) => ({
 
     const select = (n: number, play: boolean, seek = 0) => {
       cancelNext();
+      // Going outside the time-budget plan by hand (previous, next, a film in the queue) ends the plan.
+      if (plan && (n < plan.a || n > plan.b)) clearPlan();
       cur = Math.max(0, Math.min(order.length - 1, n));
       const q = all[order[cur]];
       setSource(q);
@@ -256,6 +268,7 @@ const queue = films.map((f) => ({
       nextBox.hidden = true;
     };
     video.addEventListener('ended', () => {
+      if (plan && cur >= plan.b) { finishPlan(); return; }
       if (cur >= order.length - 1) {
         remember(0);
         $('[data-pl-pos]').textContent = `That was the last of ${order.length} films.`;
@@ -289,15 +302,100 @@ const queue = films.map((f) => ({
       if (n >= 0) { select(n, true); video.scrollIntoView({ block: 'nearest', behavior: reduce ? 'auto' : 'smooth' }); }
     });
 
+    /* ---- "Have 10 minutes? 20? 30?": play from the first unwatched film until the time is used.
+       Plan = a run of positions a..b in `order`. A film is added while it would end no more than a
+       minute past the budget; the first is always added. The choice lives in the URL (?t=) and in
+       sessionStorage for this tab only; nothing leaves the browser. */
+    const SLACK = 60;
+    const BKEY = `biochempedia:films:budget:v1:${course}`;
+    let plan: { a: number; b: number; min: number } | null = null;
+    const text = $<HTMLElement>('[data-pb-text]');
+    const keepWrap = $<HTMLElement>('[data-pb-keepwrap]');
+    const store = (v: unknown) => { try { if (v) sessionStorage.setItem(BKEY, JSON.stringify(v)); else sessionStorage.removeItem(BKEY); } catch { /* storage blocked: the URL still holds it */ } };
+    const readStore = (): { m: number; keys: string[] } | null => { try { return JSON.parse(sessionStorage.getItem(BKEY) ?? 'null'); } catch { return null; } };
+    const setT = (m: number | null) => {
+      const u = new URL(location.href);
+      if (m) u.searchParams.set('t', String(m)); else u.searchParams.delete('t');
+      try { history.replaceState(null, '', u); } catch { /* ignore */ }
+    };
+    const films = (p: { a: number; b: number }) => order.slice(p.a, p.b + 1).map((i) => all[i]);
+    const plural = (n: number, w: string) => `${n} ${w}${n === 1 ? '' : 's'}`;
+    const clearPlan = () => { plan = null; store(null); setT(null); text.textContent = ''; keepWrap.hidden = true; };
+    const describe = (p: { a: number; b: number }) => {
+      const fs = films(p);
+      const sec = fs.reduce((n, q) => n + q.d, 0);
+      const names = fs.length > 5 ? `${fs.slice(0, 5).map((q) => q.t).join(', ')}, and ${fs.length - 5} more` : fs.map((q) => q.t).join(', ');
+      return { n: fs.length, mins: Math.max(1, Math.round(sec / 60)), names };
+    };
+    const startPlan = (min: number, fromStore = false) => {
+      const rec = loadFilms();
+      const unseen = (p: number) => !isWatched(rec, all[order[p]].f);
+      let a = order.findIndex((_, p) => unseen(p));
+      const allSeen = a < 0;
+      if (allSeen) a = 0;
+      let b = a, total = all[order[a]].d;
+      while (b + 1 < order.length && total + all[order[b + 1]].d <= min * 60 + SLACK) { b += 1; total += all[order[b]].d; }
+      const stored = fromStore ? readStore() : null;
+      if (stored && stored.m === min) {
+        // Reload in the same tab: keep the same run of films the viewer was shown.
+        const pos = stored.keys.map((k) => order.findIndex((i) => all[i].f === k));
+        if (pos.length && pos.every((p, i) => p >= 0 && (i === 0 || p === pos[i - 1] + 1))) {
+          const live = pos.find((p) => unseen(p));
+          if (live === undefined) { plan = { a: pos[0], b: pos[pos.length - 1], min }; finishPlan(); return; }
+          a = live; b = pos[pos.length - 1];
+        }
+      }
+      plan = { a, b, min };
+      store({ m: min, keys: films(plan).map((q) => q.f) });
+      setT(min);
+      const d = describe(plan);
+      keepWrap.hidden = true;
+      const lead = allSeen ? 'You have watched every film here, so this starts at the top. ' : '';
+      const base = `${lead}${plural(d.n, 'film')}, ${d.mins} min: ${d.names}.`;
+      text.textContent = base;
+      select(a, false);
+      if (!fromStore) video.scrollIntoView({ block: 'nearest', behavior: reduce ? 'auto' : 'smooth' });
+      video.play().catch(() => { if (plan) text.textContent = `${base} Press play to start.`; });
+    };
+    const finishPlan = () => {
+      if (!plan) return;
+      const p = plan;
+      const d = describe(p);
+      const rec = loadFilms();
+      const inPlan = (pos: number) => pos >= p.a && pos <= p.b;
+      const nextPos = order.findIndex((_, pos) => !inPlan(pos) && !isWatched(rec, all[order[pos]].f));
+      const tail = nextPos < 0 ? 'You have now watched every film here.' : `Next time you will start at ${all[order[nextPos]].t}.`;
+      text.textContent = `That was ${plural(d.n, 'film')}, ${plural(d.mins, 'minute')}. ${tail}`;
+      keepWrap.hidden = p.b >= order.length - 1;
+      if (nextPos >= 0) { const nx = all[order[nextPos]]; saveQueue(course, { f: nx.f, t: 0, title: nx.t, poster: nx.o, courseTitle, d: nx.d }); }
+      store({ m: p.min, keys: films(p).map((q) => q.f) });
+      cancelNext();
+    };
+    $<HTMLElement>('[data-pb-keep]').addEventListener('click', () => {
+      const n = plan ? plan.b + 1 : cur + 1;
+      clearPlan();
+      select(n, true);
+    });
+    for (const a of root.querySelectorAll<HTMLAnchorElement>('[data-pb-min]')) {
+      a.addEventListener('click', (e) => {
+        if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+        e.preventDefault();
+        startPlan(Number(a.dataset.pbMin));
+      });
+    }
+
     $<HTMLElement>('[data-pl-ctrl]').hidden = false;
     liveMarks(root);
     // The course's "Watched every film" badge (src/lib/badges.ts), earned when the last film is watched.
     onFilmsChange(() => { checkFilmsBadge(course, courseTitle, all.map((q) => q.f)); });
 
     /* Open where the viewer stopped last time, paused. */
+    const wanted = Number(params.get('t'));
     const saved = loadFilms().q[course];
     const at = saved ? order.findIndex((i) => all[i].f === saved.f) : -1;
-    if (at > 0 || (at === 0 && saved!.t > 4)) {
+    if ([10, 20, 30].includes(wanted)) {
+      startPlan(wanted, true);
+    } else if (at > 0 || (at === 0 && saved!.t > 4)) {
       select(at, false, saved!.t > 4 ? saved!.t : 0);
       const note = $<HTMLElement>('[data-pl-resume]');
       note.textContent = saved!.t > 4 ? `You stopped here at ${clock(saved!.t)}. Press play to carry on.` : 'You stopped before this film. Press play to carry on.';
