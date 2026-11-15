@@ -1,8 +1,10 @@
 ---
 import { getCollection } from 'astro:content';
 import BaseLayout from '../../../layouts/BaseLayout.astro';
-import { COURSES, unitsFor } from '../../../data/courses';
+import { COURSES, unitsFor, courseOf } from '../../../data/courses';
+import { stageOf, STAGES } from '../../../data/stages';
 import PRICES from '../../../data/model-prices.json';
+import links from '../../../data/lesson-links.json';
 import '../../../styles/teach.css';
 
 // Every published lesson, grouped by course and unit, for the lesson picker and for
@@ -20,6 +22,26 @@ const catalog = COURSES
 // "include flashcards" only where there is a deck.
 const DECKS = import.meta.glob<{ default: { slug: string; cards?: unknown[] } }>('../../../data/flashcards/*.json', { eager: true });
 const deckSlugs = Object.values(DECKS).map((m) => m.default).filter((d) => d.slug && d.cards?.length).map((d) => d.slug);
+// "This lesson builds on": each lesson's review-first lessons (src/data/lesson-links.json, the
+// same "Before this" links the lesson page shows), offered as "Also assign" when a teacher ticks
+// a lesson. Only slug, tag and reason per link go to the page (no search phrases), in a JSON
+// block read by the script below; no network call. A link to a lesson from a higher level than
+// the one being assigned is left out, so a grade 7 or Biology Together class is never pointed up.
+const course = new Map(lessons.map((l) => [l.data.slug, l.data.course]));
+const lessonNo = new Map(catalog.flatMap((c) => c.units.flatMap((u) => u.lessons.map((l) => [l.slug, l.n] as const))));
+const rankOf = (c: string) => STAGES.findIndex((s) => s.key === stageOf(courseOf(c)));
+const reviewFirst: Record<string, [slug: string, tag: string, why: string][]> = {};
+for (const [slug, rec] of Object.entries(links.lessons as Record<string, { before?: { slug: string; why: string }[] }>)) {
+  const mine = course.get(slug);
+  if (!mine || !lessonNo.has(slug)) continue;
+  const items = (rec.before ?? []).flatMap(({ slug: s, why }) => {
+    const theirs = course.get(s);
+    if (!theirs || s === slug || !lessonNo.has(s) || rankOf(theirs) > rankOf(mine)) return [];
+    const tag = theirs === mine ? `This course · Lesson ${lessonNo.get(s)}` : `${courseOf(theirs).title} · ${STAGES[rankOf(theirs)]?.title ?? ''}`;
+    return [[s, tag, why] as [string, string, string]];
+  });
+  if (items.length) reviewFirst[slug] = items;
+}
 const MODES = [
   ['open', 'Open: anyone with the code joins with a nickname'],
   ['approve', 'Approve: students wait until you let them in'],
@@ -64,7 +86,7 @@ const MODES = [
     <!-- Assign -->
     <section data-pane="assign" hidden>
       <p class="tc-note good tc-noprint" data-syllabus hidden>Have a syllabus? <a data-syllabus-link href="/teach/syllabus/">Match my syllabus</a>: paste or upload it, and get the lessons, films and simulations on this site for each class meeting, as a list your students can open.</p>
-      <p class="tc-muted">Tick the lessons you want students to do. A due date is optional; it's how the brief knows who is behind. Lessons with a flashcard deck can also include flashcards: the brief then lists the three cards your class most often marked "again."</p>
+      <p class="tc-muted">Tick the lessons you want students to do. A due date is optional; it's how the brief knows who is behind. Lessons with a flashcard deck can also include flashcards: the brief then lists the three cards your class most often marked "again." When a lesson builds on earlier ones, ticking it lists them underneath, each with an "Also assign" box.</p>
       <label class="tc-row" style="font-weight:600">Show lessons from
         <select data-course-pick></select>
       </label>
@@ -140,6 +162,8 @@ const MODES = [
       <button class="tc-btn danger" type="button" data-delete>Delete class</button>
     </section>
   </article>
+
+  <script is:inline type="application/json" data-review-first set:html={JSON.stringify(reviewFirst).replace(/</g, '\\u003c')}></script>
 
   <script>
     // "Match my syllabus" (worker/planner.js): offered once the planner is set up and on.
@@ -499,10 +523,39 @@ const MODES = [
     // ---- assign ----
     const chosen = new Map<string, string | null>();
     const withCards = new Set<string>();
+    // "This lesson builds on" (src/data/lesson-links.json, shipped with the page; no AI, no fetch):
+    // per lesson, [slug, tag, reason] for each lesson to review first.
+    const reviewFirst: Record<string, [string, string, string][]> = JSON.parse(document.querySelector('[data-review-first]')?.textContent || '{}');
+    // Review lessons ticked under a lesson during this visit: review slug -> that lesson.
+    const viaReview = new Map<string, string>();
+    // Lessons ticked during this visit: their "builds on" list starts open.
+    const tickedNow = new Set<string>();
+    // Each drawn row and list re-reads `chosen` through one of these.
+    let syncs: (() => void)[] = [];
     let pickCourse = '';
+    const titleOf = (s: string) => lessonInfo.get(s)?.title ?? s;
+    function sync() { for (const f of syncs) f(); count(); }
+    // Review lessons ticked under `main` sit just before it in the list, in the data's order. The
+    // server keeps the list's order among equal due dates, so students see them first.
+    function place(main: string) {
+      const mine = (reviewFirst[main] ?? []).map(([s]) => s).filter((s) => viaReview.get(s) === main && chosen.has(s));
+      if (!chosen.has(main) || !mine.length) return;
+      const rest = [...chosen].filter(([s]) => !mine.includes(s));
+      rest.splice(rest.findIndex(([s]) => s === main), 0, ...mine.map((s) => [s, chosen.get(s) ?? null] as [string, string | null]));
+      chosen.clear();
+      for (const [k, v] of rest) chosen.set(k, v);
+    }
+    function untick(slug: string) {
+      chosen.delete(slug);
+      viaReview.delete(slug);
+      // Review lessons that were ticked only because of this one go with it.
+      for (const [s, m] of [...viaReview]) if (m === slug) { chosen.delete(s); viaReview.delete(s); withCards.delete(s); }
+    }
     function renderAssign() {
       chosen.clear();
       withCards.clear();
+      viaReview.clear();
+      tickedNow.clear();
       for (const a of brief.assignments) { chosen.set(a.slug, a.due); if (a.flashcards) withCards.add(a.slug); }
       const sel = $<HTMLSelectElement>('[data-course-pick]');
       if (!sel.options.length) {
@@ -513,10 +566,51 @@ const MODES = [
       sel.value = pickCourse;
       drawUnits();
     }
+    // Under a ticked lesson: the lessons it builds on, each with an "Also assign" box. Ticking one
+    // adds it to the assignment list, due the same day as this lesson and listed before it.
+    function reviewList(main: string) {
+      const items = reviewFirst[main];
+      if (!items?.length) return null;
+      const det = el('details', { className: 'tc-rf', open: tickedNow.has(main) });
+      det.append(el('summary', { textContent: `This lesson builds on ${items.length === 1 ? '1 earlier lesson' : `${items.length} earlier lessons`}` }));
+      const fs = el('fieldset', {});
+      fs.append(el('legend', { textContent: 'This lesson builds on:' }));
+      fs.append(el('p', { className: 'tc-legend', style: 'margin:0 0 .4rem', textContent: 'Tick "Also assign" to add a lesson to the assignment, due with this one and listed before it.' }));
+      const ul = el('ul');
+      const rows: (() => void)[] = [];
+      for (const [s, tag, why] of items) {
+        const cid = `rf-${main}--${s}`;
+        const cb = el('input', { type: 'checkbox', id: cid });
+        cb.setAttribute('aria-describedby', `${cid}-why`);
+        const state = el('span', { className: 'tc-pill' });
+        const lab = el('label', { htmlFor: cid }, cb, el('span', {}, 'Also assign ', el('strong', { textContent: titleOf(s) })));
+        ul.append(el('li', {}, lab,
+          el('span', { className: 'tc-rf-meta' }, el('span', { className: 'tc-rf-tag', textContent: tag }), ' ', state),
+          el('p', { id: `${cid}-why`, className: 'tc-rf-why', textContent: why })));
+        rows.push(() => {
+          const mine = viaReview.get(s) === main;
+          const already = chosen.has(s) && !mine;
+          cb.checked = chosen.has(s);
+          cb.disabled = already;
+          state.hidden = !already && !mine;
+          state.className = `tc-pill${mine ? ' good' : ''}`;
+          state.textContent = already ? 'already assigned' : `added · ${fmtDue(chosen.get(s) ?? null)}`;
+        });
+        cb.addEventListener('change', () => {
+          if (cb.checked) { chosen.set(s, chosen.get(main) ?? null); viaReview.set(s, main); place(main); } else untick(s);
+          sync();
+        });
+      }
+      fs.append(ul);
+      det.append(fs);
+      syncs.push(() => { det.hidden = !chosen.has(main); rows.forEach((f) => f()); });
+      return det;
+    }
     function drawUnits() {
       const c = catalog.find((x) => x.slug === pickCourse) ?? catalog[0];
       const box = $('[data-units]');
       box.textContent = '';
+      syncs = [];
       for (const u of c.units) {
         const div = el('div', { className: 'tc-unit' }, el('h3', { textContent: u.name }));
         for (const l of u.lessons) {
@@ -524,6 +618,7 @@ const MODES = [
           const cb = el('input', { type: 'checkbox', checked: chosen.has(l.slug), id: `as-${l.slug}` });
           const lab = el('label', { htmlFor: `as-${l.slug}`, textContent: `${l.n}. ${l.title}` });
           const due = el('input', { type: 'date', value: chosen.get(l.slug) ?? '', disabled: !chosen.has(l.slug), title: 'Due date (optional)' });
+          due.setAttribute('aria-label', `Due date for ${l.title} (optional)`);
           // Only lessons with a deck get the flashcards box.
           const fc = hasDeck.has(l.slug)
             ? el('input', { type: 'checkbox', checked: withCards.has(l.slug), disabled: !chosen.has(l.slug), id: `fc-${l.slug}` })
@@ -533,29 +628,45 @@ const MODES = [
             : el('span');
           fc?.addEventListener('change', () => { if (fc.checked) withCards.add(l.slug); else withCards.delete(l.slug); });
           cb.addEventListener('change', () => {
-            if (cb.checked) chosen.set(l.slug, due.value || null); else chosen.delete(l.slug);
-            due.disabled = !cb.checked;
-            if (fc) fc.disabled = !cb.checked;
-            count();
+            if (cb.checked) { chosen.set(l.slug, due.value || null); tickedNow.add(l.slug); if (rf) rf.open = true; } else untick(l.slug);
+            sync();
           });
-          due.addEventListener('change', () => { if (cb.checked) chosen.set(l.slug, due.value || null); });
+          due.addEventListener('change', () => {
+            if (!cb.checked) return;
+            chosen.set(l.slug, due.value || null);
+            // Review lessons ticked under this one keep its due date.
+            for (const [s, m] of viaReview) if (m === l.slug) chosen.set(s, due.value || null);
+            sync();
+          });
+          syncs.push(() => {
+            cb.checked = chosen.has(l.slug);
+            due.disabled = !cb.checked;
+            if (document.activeElement !== due) due.value = chosen.get(l.slug) ?? '';
+            if (fc) fc.disabled = !cb.checked;
+          });
+          const rf = reviewList(l.slug);
           row.append(cb, lab, fcLab, due);
+          if (rf) row.append(rf);
           div.append(row);
         }
         box.append(div);
       }
-      count();
+      sync();
     }
     function count() {
       $('[data-assign-count]').textContent = `${chosen.size} ${chosen.size === 1 ? 'lesson' : 'lessons'} assigned`;
       const here = new Set(catalog.find((x) => x.slug === pickCourse)?.units.flatMap((u) => u.lessons.map((l) => l.slug)));
       const other = [...chosen.keys()].filter((s) => !here.has(s));
       $('[data-assigned-elsewhere]').hidden = !other.length;
-      $('[data-assigned-elsewhere]').textContent = `Also assigned from other courses: ${other.map((s) => lessonInfo.get(s)?.title ?? s).join(', ')}`;
+      $('[data-assigned-elsewhere]').textContent = `Also assigned from other courses: ${other.map(titleOf).join(', ')}`;
     }
     $('[data-save-assign]').addEventListener('click', async () => {
+      const before = new Set(brief.assignments.map((a) => a.slug));
+      const added = [...viaReview].filter(([s]) => chosen.has(s) && !before.has(s));
       const r = await api(`/api/classes/${id}/assignments`, { assignments: [...chosen].map(([slug, due]) => ({ slug, due, flashcards: withCards.has(slug) && hasDeck.has(slug) })) }, 'PUT');
-      $('[data-assign-msg]').textContent = r.ok ? 'Saved.' : r.data.error || 'Could not save.';
+      $('[data-assign-msg]').textContent = !r.ok ? r.data.error || 'Could not save.'
+        : added.length ? `Saved. Also assigned to review first: ${added.map(([s, m]) => `${titleOf(s)} (${fmtDue(chosen.get(s) ?? null)}, before ${titleOf(m)})`).join('; ')}.`
+        : 'Saved.';
       if (r.ok) load();
     });
 
