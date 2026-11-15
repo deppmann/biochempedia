@@ -1,612 +1,1667 @@
-"""DNA repair and recombination: DNA holds its information twice  (Biochemistrypedia explainer)
-
-Timed to the SPOKEN words: every self.at("...") cue waits for that phrase in audio/words.json.
-
-COLOR MAP (one color per concept, whole video)
-  BLUE   = the original (template, old) DNA strand and the chromosomes
-  GREEN  = newly made or repaired DNA (new strand, refilled bases, new synthesis)
-  RED    = the wrong base, the lesion, the mismatch, the break
-  YELLOW = repair proteins at work (glycosylase, polymerase, ligase, MutS, Ku, Rad51 ...)
-  ORANGE = the methyl mark on GATC
-  PURPLE = ultraviolet light
-  GREY   = not yet known / outlines / de-emphasized
-DNA is drawn as letter tiles on a backbone line (two strands, paired by short rungs), never as
-a molecular structure.
 """
-import numpy as np
-from bp_style import *  # noqa: F401,F403
+How DNA Chooses a Repair Route — Animation for biochemistrypedia.com
 
-PURPLE = "#B58CD9"
-ORANGE = "#F29E4C"
+COLOUR MAP (one colour per concept, held across all 11 scenes):
+- BLUE   (#58C4DD): Intact DNA base blocks, pairing rungs, and undamaged strands
+- RED    (#FC6255): Damage/lesions (warped base, chemical mark, linked pair, mismatch ?, sequence changed)
+- GOLD   (#D4A843): Intact partner, trustworthy template, and source pointers
+- TEAL   (#3FB8C0): Repair machinery (scanner, eraser tool, clamps, cut markers) and new-strand signal
+- GREEN  (#83C167): Newly synthesized replacement base(s) and restored sequence
+- TEXT   (#E8EAF0): Primary headings, pathway labels, and questions
+- GREY   (#8B93A1): Structural DNA backbone rails and 'schematic' scope tag
+
+CARRIED PICTURE OF THE WORLD:
+Two horizontal rows of large paired DNA base blocks (upper and lower rows) linked by vertical
+pairing rungs and framed by horizontal backbone rails. Every scene transforms this same duplex.
+
+WHAT CHANGES IN EACH SPOKEN SCENE (AND WHAT IT IS COMPUTED FROM):
+- s01_hook: 11 paired columns scroll continuously left via phase tracker x_i(t) with smooth edge taper;
+  a scanning teal beam sweeps to center, one upper block warps red, and its lower partner gains a gold frame.
+- s03_rule: Full-height paired rows restore; a red 'chemical mark' badge sits on an intact blue block inside a
+  gold bracket while a teal eraser tool glides across, lifts the badge off, and an intact-backbone pulse runs.
+- s04_small: Neighboring columns oscillate in a continuous vertical sine wave dy(i, t); one red block lifts
+  out, a gold guide line projects from the intact partner, a green block rises in, and teal clamps seal the rail.
+- s05_bulky: Two adjacent upper blocks link red and the upper row bows via a computed Gaussian bump dy(x);
+  teal cuts excise a 4-block patch, gold guides project upward, 4 green blocks fill and straighten the row, then turn blue.
+- s06_predict: Straightened blue rows hold one mismatched normal pair with a rocking red '?' and two balanced
+  'replace?' arrows while a soft white highlight alternates cleanly between upper and lower block.
+- s08_reveal: A moving teal ribbon ('new strand') and gold ribbon ('template') stream along the upper/lower
+  backbones; the teal stretch peels away past the mismatch, green blocks copy up from gold and turn blue.
+- s09_sort: One continuous 14-column duplex runs four left-to-right transformations (reverse, one base,
+  short patch, new strand) while gold pointers mark the repaired base (reversal) or intact lower partner (excision).
+- s10_consequence: Repaired rows glide continuously along an upper green 'sequence restored' lane while an
+  unrepaired red block passes through a schematic replication fork into a paired red 'sequence changed' lane;
+  both outcomes keep gliding as the center question 'What information remains?' appears.
+"""
+
+from bp_parts import *
 
 
-# ---------------------------------------------------------------------------------------------
-# helpers
-# ---------------------------------------------------------------------------------------------
-def bchip(text, color=YELLOW, size=26, **kw):
-    """chip with an opaque backing so lines drawn behind it do not show through."""
-    c = chip(text, color, size=size, **kw)
-    back = RoundedRectangle(corner_radius=0.14, width=c[0].width, height=c[0].height, stroke_width=0,
-                            fill_color=BG, fill_opacity=1).move_to(c[0])
-    return VGroup(back, *c)
+# ------------------------------------------------------------------ shared geometry
+N_COLS = 11
+DX = 1.12
+BW = 0.86
+BH = 1.18
+Y_UP = 1.06
+Y_DN = -1.06
+Y_RAIL_UP = 1.78
+Y_RAIL_DN = -1.78
 
 
-def arr(a, b, color=GREY, w=5, tip=0.22):
-    return Arrow(a, b, buff=0.06, color=color, stroke_width=w, tip_length=tip,
-                 max_tip_length_to_length_ratio=0.45, max_stroke_width_to_length_ratio=12)
+def make_block(color=BLUE, w=BW, h=BH, fill_op=0.30, stroke_w=3.5, radius=0.14):
+    """One DNA letter/base block."""
+    return RoundedRectangle(
+        corner_radius=radius,
+        width=w,
+        height=h,
+        stroke_color=color,
+        stroke_width=stroke_w,
+        fill_color=color,
+        fill_opacity=fill_op,
+    )
 
 
-def slash(x, y, color=YELLOW, s=0.26):
-    return Line([x - s * 0.55, y + s, 0], [x + s * 0.55, y - s, 0], color=color, stroke_width=7)
+def make_warped_block(color=RED, w=BW, h=BH, fill_op=0.36, stroke_w=4.0):
+    """A pinched/skewed block representing base distortion/damage."""
+    pts = [
+        [-w * 0.44, h * 0.48, 0],
+        [w * 0.48, h * 0.36, 0],
+        [w * 0.36, -h * 0.48, 0],
+        [-w * 0.48, -h * 0.34, 0],
+    ]
+    return Polygon(
+        *pts,
+        stroke_color=color,
+        stroke_width=stroke_w,
+        fill_color=color,
+        fill_opacity=fill_op,
+    ).round_corners(0.10)
 
 
-class Duplex:
-    """Two strands of letter tiles on backbone lines. Index i is a column. side 't' = top strand, 'b' = bottom.
+def col_x(i, n_cols=N_COLS, dx=DX):
+    return (i - (n_cols - 1) / 2.0) * dx
 
-    Parts are kept in lists so a scene can lift one tile out, cut one backbone segment, or put
-    new tiles in: tile[side][i], conn[side][i], node[side][i], seg[side][i] (node i to i+1), rung[i].
-    """
 
-    def __init__(s, top, bot, cx=0.0, cy=0.0, tcol=BLUE, bcol=BLUE, tc=None, bc=None, tdy=None,
-                 sp=1.05, tw=0.9, th=0.8, ty=0.8, by=1.75, fs=34, norung=()):
-        s.n = len(top)
-        s.cx, s.cy, s.sp, s.tw, s.th, s.ty, s.by, s.fs = cx, cy, sp, tw, th, ty, by, fs
-        s.col = {"t": tcol, "b": bcol}
-        s.dy = tdy or {}
-        tc, bc = tc or {}, bc or {}
-        s.over = {"t": tc, "b": bc}
-        s.letters = {"t": list(top), "b": list(bot)}
-        s.tile = {"t": [], "b": []}
-        s.conn = {"t": [], "b": []}
-        s.node = {"t": [], "b": []}
-        s.seg = {"t": [], "b": []}
-        s.rung = []
-        for side in "tb":
-            for i, ch in enumerate(s.letters[side]):
-                s.node[side].append(s.mk_node(side, i))
-                if ch is None:
-                    s.tile[side].append(None)
-                    s.conn[side].append(None)
-                else:
-                    s.tile[side].append(s.mk_tile(side, i, ch, s.over[side].get(i, s.col[side])))
-                    s.conn[side].append(s.mk_conn(side, i))
-            for i in range(s.n - 1):
-                s.seg[side].append(s.mk_seg(side, i))
-        for i in range(s.n):
-            if i in norung or s.letters["t"][i] is None or s.letters["b"][i] is None:
-                s.rung.append(None)
-            else:
-                s.rung.append(s.mk_rung(i))
-        parts = []
-        for side in "tb":
-            parts += s.seg[side] + s.conn[side]
-        parts += s.rung
-        for side in "tb":
-            parts += s.node[side]
-        for side in "tb":
-            parts += s.tile[side]
-        s.all = VGroup(*[p for p in parts if p is not None])
+def build_duplex(
+    n_cols=N_COLS,
+    dx=DX,
+    bw=BW,
+    bh=BH,
+    y_up=Y_UP,
+    y_dn=Y_DN,
+    rail_up=Y_RAIL_UP,
+    rail_dn=Y_RAIL_DN,
+):
+    """Build the carried two-row DNA duplex centered at ORIGIN."""
+    x_left = col_x(0, n_cols, dx) - bw * 0.58
+    x_right = col_x(n_cols - 1, n_cols, dx) + bw * 0.58
+    top_rail = Line([x_left, rail_up, 0], [x_right, rail_up, 0], color=GREY, stroke_width=5)
+    bot_rail = Line([x_left, rail_dn, 0], [x_right, rail_dn, 0], color=GREY, stroke_width=5)
+    upper = VGroup()
+    lower = VGroup()
+    rungs = VGroup()
+    for i in range(n_cols):
+        x = col_x(i, n_cols, dx)
+        ub = make_block(BLUE, bw, bh).move_to([x, y_up, 0])
+        lb = make_block(BLUE, bw, bh).move_to([x, y_dn, 0])
+        rg = Line(
+            [x, y_dn + bh / 2 + 0.04, 0],
+            [x, y_up - bh / 2 - 0.04, 0],
+            color=BLUE,
+            stroke_width=3.0,
+            stroke_opacity=0.45,
+        )
+        upper.add(ub)
+        lower.add(lb)
+        rungs.add(rg)
+    g = VGroup(top_rail, bot_rail, rungs, upper, lower)
+    g.top_rail = top_rail
+    g.bot_rail = bot_rail
+    g.rungs = rungs
+    g.upper = upper
+    g.lower = lower
+    return g
 
-    def X(s, i):
-        return s.cx + (i - (s.n - 1) / 2) * s.sp
 
-    def ytile(s, side, i):
-        return s.cy + (s.ty + s.dy.get(i, 0) if side == "t" else -s.ty)
+def gold_bracket_around(mob, pad=0.14, color=GOLD, stroke_w=4.5):
+    """Two clean corner brackets around a block (without crossing its interior)."""
+    l = mob.get_left()[0] - pad
+    r = mob.get_right()[0] + pad
+    t = mob.get_top()[1] + pad * 0.6
+    b = mob.get_bottom()[1] - pad * 0.6
+    arm = 0.20
+    left_b = VMobject(color=color, stroke_width=stroke_w)
+    left_b.set_points_as_corners([[l + arm, t, 0], [l, t, 0], [l, b, 0], [l + arm, b, 0]])
+    right_b = VMobject(color=color, stroke_width=stroke_w)
+    right_b.set_points_as_corners([[r - arm, t, 0], [r, t, 0], [r, b, 0], [r - arm, b, 0]])
+    return VGroup(left_b, right_b)
 
-    def ynode(s, side, i):
-        return s.cy + (s.by + s.dy.get(i, 0) if side == "t" else -s.by)
 
-    def mk_tile(s, side, i, ch, color):
-        r = RoundedRectangle(corner_radius=0.1, width=s.tw, height=s.th, stroke_color=color, stroke_width=3,
-                             fill_color=color, fill_opacity=0.16)
-        t = T(ch, s.fs, color, weight=BOLD)
-        g = VGroup(r, t)
-        g.move_to([s.X(i), s.ytile(side, i), 0])
+def make_eraser_tool():
+    """Teal schematic repair tool with a sloped eraser edge."""
+    body = RoundedRectangle(
+        corner_radius=0.18,
+        width=1.45,
+        height=0.72,
+        stroke_color=TEAL,
+        stroke_width=4,
+        fill_color=TEAL,
+        fill_opacity=0.25,
+    )
+    tip = Polygon(
+        [-0.72, -0.36, 0],
+        [-0.25, -0.36, 0],
+        [-0.42, -0.56, 0],
+        [-0.72, -0.56, 0],
+        stroke_color=TEAL,
+        stroke_width=3.5,
+        fill_color=TEAL,
+        fill_opacity=0.45,
+    )
+    return VGroup(body, tip)
+
+
+def make_cut_marker(x, y):
+    """Small teal wedge cut marker pointing down onto the backbone."""
+    w = Polygon(
+        [x - 0.16, y + 0.34, 0],
+        [x + 0.16, y + 0.34, 0],
+        [x, y + 0.04, 0],
+        stroke_color=TEAL,
+        stroke_width=3,
+        fill_color=TEAL,
+        fill_opacity=0.65,
+    )
+    return w
+
+
+def make_gold_pointer(x, y, point_up=True):
+    """Small gold triangle pointer."""
+    dy = 0.26 if point_up else -0.26
+    return Polygon(
+        [x - 0.15, y - dy * 0.5, 0],
+        [x + 0.15, y - dy * 0.5, 0],
+        [x, y + dy * 0.5, 0],
+        stroke_color=GOLD,
+        stroke_width=2.5,
+        fill_color=GOLD,
+        fill_opacity=0.85,
+    )
+
+
+def moving_ribbon_ticks(x0, x1, y, color, tracker, n_ticks=14, stroke_w=7):
+    """A ribbon bar plus bold moving chevron ticks driven by a phase ValueTracker."""
+    bar = Line([x0, y, 0], [x1, y, 0], color=color, stroke_width=stroke_w)
+    span = x1 - x0
+
+    def mk():
+        g = VGroup()
+        ph = tracker.get_value()
+        step = span / n_ticks
+        for k in range(n_ticks):
+            tx = x0 + ((k * step + ph) % span)
+            vis = 0.95 if (x0 + 0.16 < tx < x1 - 0.16) else 0.0
+            tk = VMobject(color=TEXT, stroke_width=3.5, stroke_opacity=vis)
+            tk.set_points_as_corners([
+                [tx - 0.13, y - 0.10, 0],
+                [tx + 0.07, y, 0],
+                [tx - 0.13, y + 0.10, 0],
+            ])
+            g.add(tk)
         return g
 
-    def mk_conn(s, side, i):
-        sign = 1 if side == "t" else -1
-        y1 = s.ynode(side, i)
-        y2 = s.ytile(side, i) + sign * s.th / 2
-        return Line([s.X(i), y1, 0], [s.X(i), y2, 0], color=s.col[side], stroke_width=3)
-
-    def mk_node(s, side, i):
-        return Dot([s.X(i), s.ynode(side, i), 0], radius=0.09, color=s.col[side])
-
-    def mk_seg(s, side, i, color=None):
-        return Line([s.X(i), s.ynode(side, i), 0], [s.X(i + 1), s.ynode(side, i + 1), 0],
-                    color=color or s.col[side], stroke_width=5)
-
-    def mk_rung(s, i, color=GREY, w=3):
-        y1 = s.ytile("t", i) - s.th / 2
-        y2 = s.ytile("b", i) + s.th / 2
-        return Line([s.X(i), y1, 0], [s.X(i), y2, 0], color=color, stroke_width=w)
-
-    def ghost(s, side, i):
-        r = RoundedRectangle(corner_radius=0.1, width=s.tw, height=s.th, stroke_color=GREY, stroke_width=3)
-        return DashedVMobject(r, num_dashes=18).move_to([s.X(i), s.ytile(side, i), 0])
-
-    def column(s, side, i):
-        """tile + connector + node of one position (what a base is)."""
-        return VGroup(*[m for m in (s.tile[side][i], s.conn[side][i], s.node[side][i]) if m is not None])
+    ticks = always_redraw(mk)
+    return bar, ticks
 
 
-def helix_curves(x0, x1, yc, amp=0.6, period=1.5, color=BLUE, w=7, phase=0.0):
-    """Two plain parallel bars (a double-stranded piece of DNA), not a drawn helix."""
-    off = amp * 0.4
-    mk = lambda y: Line([x0, y, 0], [x1, y, 0], color=color, stroke_width=w * 1.1).set_cap_style(CapStyleType.ROUND)
-    return VGroup(mk(yc + off), mk(yc - off))
+def mismatch_backdrop(rock_t=None, alt_t=None, show_arrows=True):
+    """Shared mismatch picture for S06Predict end and S07Pause."""
+    dup = build_duplex()
+    mid = 5
+    dup.rungs[mid].set_stroke(opacity=0.0)
+    qmark = T("?", size=50, color=RED, weight=BOLD).move_to([0, 0, 0])
+
+    if rock_t is not None:
+        qmark.add_updater(lambda m, dt: m.rotate_to(0.18 * np.sin(2.4 * rock_t.get_value())) if False else None)
+
+    g = VGroup(dup, qmark)
+    g.dup = dup
+    g.qmark = qmark
+    if show_arrows:
+        arr_up = Arrow([0, 2.35, 0], [0, 1.86, 0], buff=0, color=TEXT, stroke_width=4, max_tip_length_to_length_ratio=0.35)
+        arr_dn = Arrow([0, -2.35, 0], [0, -1.86, 0], buff=0, color=TEXT, stroke_width=4, max_tip_length_to_length_ratio=0.35)
+        lab_up = T("replace?", size=28, color=TEXT).next_to(arr_up, UP, buff=0.14)
+        lab_dn = T("replace?", size=28, color=TEXT).next_to(arr_dn, DOWN, buff=0.14)
+        g.add(arr_up, arr_dn, lab_up, lab_dn)
+        g.arrows = VGroup(arr_up, arr_dn, lab_up, lab_dn)
+    return g
 
 
-def wave_arrow(x, y0, y1, color=PURPLE):
-    n = abs(y0 - y1)
-    w = ParametricFunction(lambda t: np.array([x + 0.14 * np.sin(14 * t), y0 + (y1 - y0) * t, 0]),
-                           t_range=[0, 1, 0.01], color=color, stroke_width=5)
-    tip = Triangle(color=color, fill_color=color, fill_opacity=1, stroke_width=0).scale(0.16)
-    tip.rotate(PI)
-    tip.move_to([x, y1 + 0.05, 0])
-    return VGroup(w, tip)
-
-
-class S00Title(TitleCard):
-    LESSON = "DNA repair and recombination"
-    TITLE = "DNA holds its information twice"
-
-
-# ---------------------------------------------------------------------------------------------
-class S01Uracil(SpokenScene):
-    """C·G turns into U·G; replication puts A opposite U; the next round leaves A·T; then one wrong base in a long row."""
-
+# ------------------------------------------------------------------ S01
+class S01Hook(SpokenScene):
     def construct(self):
-        kw = dict(cx=-2.6, sp=0.78, tw=0.62, th=0.56, ty=0.42, by=0.8, fs=26)
-        r1 = Duplex(list("AGTCGAT"), list("TCAGCTA"), cy=2.35, **kw)
-        r2 = Duplex(list("AGTUGAT"), list("TCAACTA"), cy=0.0, bcol=GREEN, tc={3: RED}, **kw)
-        r3 = Duplex(list("TCAACTA"), list("AGTTGAT"), cy=-2.35, tcol=GREEN, bcol=GREEN, **kw)
-        self.play(FadeIn(r1.all), run_time=0.9)
+        # Continuous conveyor of 11 visible paired columns scrolling left inside [-6.0, 6.0].
+        scroll = ValueTracker(0.0)
+        span = N_COLS * DX
+        half_span = span / 2.0
+        target_id = 14  # enters from the right and settles at x = 0 at scene end
 
-        self.at("amino group")
-        self.play(Indicate(r1.tile["t"][3], color=TEXT, scale_factor=1.3), run_time=0.9)
-        self.at("turn into uracil")
-        u = r1.mk_tile("t", 3, "U", RED)
-        lab1 = T("cytosine becomes uracil", 26, RED).move_to([2.6, 2.35, 0], aligned_edge=LEFT)
-        lab1.align_to([0.9, 0, 0], LEFT)
-        self.play(ReplacementTransform(r1.tile["t"][3], u), FadeIn(lab1, shift=LEFT * 0.2), run_time=0.7)
+        top_rail = Line([-5.95, Y_RAIL_UP, 0], [5.95, Y_RAIL_UP, 0], color=GREY, stroke_width=5)
+        bot_rail = Line([-5.95, Y_RAIL_DN, 0], [5.95, Y_RAIL_DN, 0], color=GREY, stroke_width=5)
+        self.add(top_rail, bot_rail, scope_tag("schematic"))
 
-        self.at("Uracil pairs")
-        lab1b = T("uracil pairs with adenine", 26, TEXT).align_to([0.9, 0, 0], LEFT).set_y(1.5)
-        self.play(FadeIn(lab1b, shift=LEFT * 0.2), Indicate(u, color=RED, scale_factor=1.3), run_time=0.7)
+        # Track whether the target column has warped red and partner gained gold
+        warp_t = ValueTracker(0.0)
+        rung_boost = ValueTracker(0.0)
+        scan_x = ValueTracker(-5.2)
+        scan_alpha = ValueTracker(0.0)
 
-        self.at("next replication")
-        a1 = arr([-2.6, 1.5, 0], [-2.6, 0.95, 0], GREY)
-        lab2 = T("replication puts an A opposite U", 26, TEXT).align_to([0.9, 0, 0], LEFT).set_y(0.0)
-        self.play(GrowArrow(a1), FadeIn(r2.all), FadeIn(lab2, shift=LEFT * 0.2), run_time=1.0)
+        def draw_conveyor():
+            ph = scroll.get_value()
+            wt = warp_t.get_value()
+            rb = rung_boost.get_value()
+            g = VGroup()
+            # Draw 17 logical columns wrapping cleanly inside [-half_span, half_span]
+            for cid in range(int(np.floor(ph / DX)) - 6, int(np.floor(ph / DX)) + 8):
+                x = cid * DX - ph
+                if abs(x) > 5.75:
+                    continue
+                edge_fade = float(np.clip((5.75 - abs(x)) / 0.85, 0.0, 1.0))
+                is_target = (cid == target_id)
 
-        self.at("the round after")
-        a2 = arr([-2.6, -0.85, 0], [-2.6, -1.4, 0], GREY)
-        lab3 = T("replication again: an A·T pair", 26, TEXT).align_to([0.9, 0, 0], LEFT).set_y(-2.35)
-        self.play(GrowArrow(a2), FadeIn(r3.all), FadeIn(lab3, shift=LEFT * 0.2), run_time=1.0)
+                # Rung
+                rop = (0.45 + 0.45 * rb) * edge_fade
+                rcol = TEAL if rb > 0.5 else BLUE
+                rung = Line(
+                    [x, Y_DN + BH / 2 + 0.04, 0],
+                    [x, Y_UP - BH / 2 - 0.04, 0],
+                    color=rcol,
+                    stroke_width=3.0 + 1.5 * rb,
+                    stroke_opacity=rop,
+                )
+                g.add(rung)
 
-        self.at("AT pair")
-        self.play(Indicate(r3.tile["t"][3], color=TEXT, scale_factor=1.3),
-                  Indicate(r3.tile["b"][3], color=TEXT, scale_factor=1.3), run_time=0.8)
+                # Upper block
+                if is_target and wt > 0.01:
+                    col = interpolate_color(ManimColor(BLUE), ManimColor(RED), wt)
+                    ub = make_warped_block(col, BW, BH, fill_op=0.34 * edge_fade, stroke_w=3.8)
+                    ub.set_stroke(opacity=edge_fade)
+                    ub.move_to([x, Y_UP, 0])
+                else:
+                    ub = make_block(BLUE, BW, BH, fill_op=0.30 * edge_fade).set_stroke(opacity=edge_fade)
+                    ub.move_to([x, Y_UP, 0])
+                g.add(ub)
 
-        self.at("mutation made")
-        box = RoundedRectangle(corner_radius=0.12, width=0.9, height=1.75, stroke_color=RED, stroke_width=5)
-        box.move_to([r3.X(3), r3.cy, 0])
-        mut = T("a mutation", 28, RED, weight=BOLD).next_to(lab3, DOWN, buff=0.25, aligned_edge=LEFT)
-        self.play(Create(box), FadeIn(mut), run_time=0.8)
+                # Lower block
+                if is_target and wt > 0.01:
+                    lb = make_block(BLUE, BW, BH, fill_op=0.30 * edge_fade, stroke_w=3.5 + 2.5 * wt)
+                    lb.set_stroke(color=interpolate_color(ManimColor(BLUE), ManimColor(GOLD), wt), opacity=edge_fade)
+                    lb.move_to([x, Y_DN, 0])
+                else:
+                    lb = make_block(BLUE, BW, BH, fill_op=0.30 * edge_fade).set_stroke(opacity=edge_fade)
+                    lb.move_to([x, Y_DN, 0])
+                g.add(lb)
+            return g
 
-        self.at("find a few")
-        left = [r1.all, u, lab1, lab1b, a1, r2.all, lab2, a2, r3.all, lab3, box, mut]
-        row = VGroup(*[Square(0.36, stroke_color=BLUE, stroke_width=2, fill_color=BLUE, fill_opacity=0.25)
-                       for _ in range(27)]).arrange(RIGHT, buff=0.08).move_to([0, 0.1, 0])
-        bad = Square(0.36, stroke_color=RED, stroke_width=4, fill_color=RED, fill_opacity=0.7).move_to(row[17])
-        self.play(*[FadeOut(m) for m in left], run_time=0.3)
-        self.play(LaggedStart(*[FadeIn(q) for q in row], lag_ratio=0.02), run_time=0.6)
-        self.play(Transform(row[17], bad), run_time=0.2)
-        lab_bad = T("a few wrong bases", 30, RED).next_to(row[17], UP, buff=0.8)
-        pt = arr(lab_bad.get_bottom() + DOWN * 0.05, row[17].get_top() + UP * 0.05, RED)
-        self.play(FadeIn(lab_bad), GrowArrow(pt), run_time=0.3)
-        self.at("among billions")
-        lab_ok = T("billions of right ones", 30, BLUE).next_to(row, DOWN, buff=0.7)
-        self.play(FadeIn(lab_ok, shift=UP * 0.15), run_time=0.6)
-        self.at("right ones")
-        q = T("?", 110, TEXT, weight=BOLD).move_to([0, 2.6, 0])
-        self.play(FadeIn(q, scale=0.6), run_time=0.5)
+        conveyor = always_redraw(draw_conveyor)
+        self.add(conveyor)
+
+        def draw_scanner():
+            a = scan_alpha.get_value()
+            if a <= 0.02:
+                return VGroup()
+            sx = scan_x.get_value()
+            beam = RoundedRectangle(
+                corner_radius=0.16,
+                width=1.12,
+                height=3.92,
+                stroke_color=TEAL,
+                stroke_width=4.0,
+                stroke_opacity=a,
+                fill_color=TEAL,
+                fill_opacity=0.10 * a,
+            ).move_to([sx, 0, 0])
+            beam.layout_ok = True
+            return beam
+
+        scanner = always_redraw(draw_scanner)
+        self.add(scanner)
+
+        # Beat 1 (0.00 -> 3.96): continuous leftward drift of blue DNA rows
+        self.play(scroll.animate.set_value(4.5), run_time=3.7, rate_func=linear)
+
+        # Beat 2 (3.96): "How can a cell..." — scanning teal spotlight enters and sweeps
+        self.at("How can a cell")
+        self.play(
+            scroll.animate.set_value(9.5),
+            scan_alpha.animate.set_value(0.95),
+            scan_x.animate.set_value(3.8),
+            run_time=4.6,
+            rate_func=linear,
+        )
+
+        # Beat 3 (8.88): "Watch these two blue rows" — sweep across to highlight both rows
+        self.at("Watch these two blue rows")
+        self.play(
+            scroll.animate.set_value(12.2),
+            scan_x.animate.set_value(-2.8),
+            run_time=2.3,
+            rate_func=linear,
+        )
+
+        # Beat 4 (11.46): "They carry paired information" — highlight pairing rungs
+        self.at("They carry paired information")
+        self.play(
+            scroll.animate.set_value(14.3),
+            rung_boost.animate.set_value(1.0),
+            scan_x.animate.set_value(-4.5),
+            run_time=2.3,
+            rate_func=linear,
+        )
+
+        # Beat 5 (14.08): "A red mark changes..." — target_id=14 enters center, warps red, scanner locks onto it
+        self.at("A red mark changes")
+        target_x = lambda: target_id * DX - scroll.get_value()
+        lbl_damage = always_redraw(
+            lambda: T("damage", size=30, color=RED).move_to([target_x(), 2.38, 0])
+        )
+        lbl_partner = always_redraw(
+            lambda: T("intact partner", size=30, color=GOLD).move_to([target_x(), -2.38, 0])
+        )
+
+        self.play(
+            scroll.animate.set_value(target_id * DX - 0.7),
+            warp_t.animate.set_value(1.0),
+            rung_boost.animate.set_value(0.0),
+            scan_x.animate.set_value(0.7),
+            run_time=2.6,
+            rate_func=smooth,
+        )
+        self.add(lbl_damage)
+        self.play(FadeIn(lbl_damage, shift=DOWN * 0.1), run_time=0.4)
+
+        # Beat 6 (16.94): "while the lower row" — label 'intact partner' appears below gold-outlined block
+        self.at("while the lower row")
+        self.add(lbl_partner)
+        self.play(
+            FadeIn(lbl_partner, shift=UP * 0.1),
+            scroll.animate.set_value(target_id * DX - 0.35),
+            scan_x.animate.set_value(0.35),
+            run_time=2.5,
+            rate_func=linear,
+        )
+
+        # Beat 7 (20.80): "shape determines" — gentle final drift to x = 0 at rest
+        self.at("shape determines")
+        self.play(
+            scroll.animate.set_value(target_id * DX),
+            scan_x.animate.set_value(0.0),
+            run_time=1.8,
+            rate_func=smooth,
+        )
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S02Partner(SpokenScene):
-    """Base excision repair: glycosylase flips U out, a nick, polymerase copies the partner, ligase seals."""
-
+# ------------------------------------------------------------------ S02
+class S02Title(NarratedScene):
     def construct(self):
-        d = Duplex(list("TAGCUATGC"), list("ATCGGTACG"), cy=-0.5, tc={4: RED}, sp=1.05)
-        x4 = d.X(4)
-        yb_top = d.ynode("t", 4)
-        self.play(FadeIn(d.all), run_time=0.9)
+        # Start from the carried end state of S01Hook (target column centered at x=0)
+        dup = build_duplex()
+        mid = 5
+        warped = make_warped_block(RED, BW, BH).move_to(dup.upper[mid].get_center())
+        dup.upper[mid].become(warped)
+        dup.lower[mid].set_stroke(GOLD, width=5.5)
+        self.add(dup)
 
-        self.at("information twice")
-        tag_t = T("damaged\nstrand", 22, GREY).move_to([-5.85, d.ytile("t", 0), 0])
-        tag_b = T("partner\nstrand", 22, GREY).move_to([-5.85, d.ytile("b", 0), 0])
-        self.play(FadeIn(tag_t), FadeIn(tag_b),
-                  Indicate(VGroup(*[t for t in d.tile["t"] if t is not d.tile["t"][4]]), color=TEXT, scale_factor=1.06),
-                  Indicate(VGroup(*d.tile["b"]), color=TEXT, scale_factor=1.06), run_time=1.0)
+        # Compact focal 3-column motif (cols 4, 5, 6) and move it beside the title on the left
+        focal = VGroup(
+            dup.upper[4], dup.upper[5], dup.upper[6],
+            dup.lower[4], dup.lower[5], dup.lower[6],
+            dup.rungs[4], dup.rungs[5], dup.rungs[6],
+        )
+        outer = VGroup(
+            dup.top_rail, dup.bot_rail,
+            *[dup.upper[i] for i in range(N_COLS) if i not in (4, 5, 6)],
+            *[dup.lower[i] for i in range(N_COLS) if i not in (4, 5, 6)],
+            *[dup.rungs[i] for i in range(N_COLS) if i not in (4, 5, 6)],
+        )
 
-        self.at("one strand is damaged")
-        sq = SurroundingRectangle(d.tile["t"][4], color=RED, buff=0.12, stroke_width=5)
-        self.play(Create(sq), run_time=0.5)
+        lesson = T("DNA REPAIR AND RECOMBINATION", size=22, color=TEAL, weight=BOLD)
+        title = fit_text("How DNA Chooses a Repair Route", max_w=7.2, size=44, font=TITLE_FONT, max_lines=2)
+        rule = Line(LEFT * 1.4, RIGHT * 1.4, color=GOLD, stroke_width=4)
+        lockup = VGroup(lesson, title, rule).arrange(DOWN, aligned_edge=LEFT, buff=0.28).move_to([1.85, 0, 0])
 
-        self.at("copies the partner")
-        self.play(Indicate(VGroup(*d.tile["b"]), color=GREEN, scale_factor=1.06), run_time=0.9)
-
-        self.at("glycosylase flips")
-        dome = Sector(radius=1.0, angle=PI, start_angle=0, stroke_color=YELLOW, stroke_width=5,
-                      fill_color=YELLOW, fill_opacity=0.18).move_to([x4, yb_top + 0.35 + 0.5, 0])
-        dome.align_to([0, yb_top + 0.35, 0], DOWN)
-        gly = bchip("glycosylase", YELLOW, 26).move_to([x4, dome.get_top()[1] + 0.45, 0])
-        utile = d.tile["t"][4]
-        self.play(FadeOut(sq), FadeIn(dome), FadeIn(gly), run_time=0.5)
-        self.play(FadeOut(d.conn["t"][4]), FadeOut(d.rung[4]),
-                  utile.animate.move_to([x4, yb_top + 0.35 + 0.5, 0]),
-                  run_time=0.9)
-
-        self.at("cuts it from its sugar")
-        ghost = d.ghost("t", 4)
-        self.play(Indicate(utile, color=RED, scale_factor=1.1), FadeIn(ghost), run_time=0.5)
-        self.play(FadeOut(dome), FadeOut(utile), FadeOut(gly), run_time=0.6)
-
-        self.at("nicks the backbone")
-        xm = (d.X(3) + d.X(4)) / 2
-        enz = bchip("enzyme", YELLOW, 26).move_to([x4 - 2.4, yb_top + 1.5, 0])
-        ar_e = arr(enz.get_bottom() + DOWN * 0.02, [xm - 0.1, yb_top + 0.35, 0], YELLOW)
-        cut = slash(xm, yb_top)
-        self.play(FadeIn(enz), GrowArrow(ar_e), run_time=0.4)
-        self.play(FadeOut(d.seg["t"][3]), Create(cut), run_time=0.4)
-
-        self.at("polymerase inserts")
-        pol = bchip("polymerase", YELLOW, 26).move_to([x4 + 2.2, yb_top + 1.5, 0])
-        ar_p = arr(pol.get_bottom() + DOWN * 0.02, [x4 + 0.1, d.ytile("t", 4) + d.th / 2 + 0.12, 0], YELLOW)
-        self.play(FadeOut(enz), FadeOut(ar_e), FadeOut(cut), FadeIn(pol), GrowArrow(ar_p), run_time=0.5)
-        newt = d.mk_tile("t", 4, "C", GREEN)
-        newc = d.mk_conn("t", 4)
-        self.play(FadeIn(newt, scale=0.6), FadeIn(newc), FadeOut(ghost), run_time=0.7)
-
-        self.at("using the partner")
-        rg = d.mk_rung(4, GREEN, 6)
-        self.play(Create(rg), Indicate(d.tile["b"][4], color=TEXT, scale_factor=1.15), run_time=0.8)
-
-        self.at("ligase seals")
-        lig = bchip("ligase", YELLOW, 26).move_to(pol)
-        seal = d.mk_seg("t", 3, GREEN)
-        self.play(FadeOut(pol), FadeOut(ar_p), FadeIn(lig), run_time=0.4)
-        self.play(Create(seal), Flash(seal.get_center(), color=YELLOW, flash_radius=0.4), run_time=0.7)
-        self.play(FadeOut(lig), run_time=0.4)
+        self.play(
+            FadeOut(outer, run_time=0.5),
+            focal.animate.scale(0.85).move_to([-4.2, 0, 0]),
+            FadeIn(lockup, shift=LEFT * 0.25),
+            run_time=0.95,
+        )
+        # Red block and gold-outlined partner pulse once
+        self.play(
+            Indicate(dup.upper[5], color=RED, scale_factor=1.12),
+            Indicate(dup.lower[5], color=GOLD, scale_factor=1.12),
+            run_time=0.75,
+        )
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S03Bulky(SpokenScene):
-    """UV makes a dimer that bends the helix; NER cuts both sides, removes a piece, polymerase refills, ligase seals."""
-
+# ------------------------------------------------------------------ S03
+class S03Rule(SpokenScene):
     def construct(self):
-        top, bot = list("GACGTTCAGC"), list("CTGCAAGTCG")
-        d = Duplex(top, bot, cy=-0.4, sp=0.98)
-        bent = Duplex(top, bot, cy=-0.4, sp=0.98, tc={4: RED, 5: RED}, tdy={3: -0.12, 4: -0.35, 5: -0.35, 6: -0.12})
-        self.add(d.all)
-        at_x = (d.X(4) + d.X(5)) / 2
-        top_y = d.ynode("t", 4)
+        # Return full-height carried blue rows
+        dup = build_duplex()
+        self.play(FadeIn(dup), run_time=0.8)
 
-        self.at("Ultraviolet light")
-        ws = VGroup(*[wave_arrow(at_x + dx, 3.5, top_y + 0.55) for dx in (-0.9, 0, 0.9)])
-        uv = T("UV light", 28, PURPLE).move_to([at_x + 2.6, 2.7, 0])
-        self.play(FadeIn(ws, shift=DOWN * 0.3), FadeIn(uv), run_time=1.0)
+        # Beat 1 (0.00 -> 6.44): full-duplex inspection bracket glides left-to-right checking pairs
+        inspect_box = RoundedRectangle(
+            corner_radius=0.14,
+            width=1.22,
+            height=3.65,
+            stroke_color=TEAL,
+            stroke_width=4.5,
+            fill_color=TEAL,
+            fill_opacity=0.11,
+        ).move_to([col_x(0), 0, 0])
+        inspect_box.layout_ok = True
+        self.play(FadeIn(inspect_box), run_time=0.45)
 
-        self.at("joins two neighboring")
-        bridge = Rectangle(width=0.28, height=0.3, stroke_width=0, fill_color=RED, fill_opacity=1)
-        bridge.move_to([at_x, d.ytile("t", 4), 0])
-        dimer = T("dimer", 28, RED).move_to([at_x, top_y + 0.65, 0])
-        self.play(*[m.animate.set_stroke(RED).set_fill(RED, 0.16) for m in (d.tile["t"][4][0], d.tile["t"][5][0])],
-                  *[d.tile["t"][i][1].animate.set_color(RED) for i in (4, 5)],
-                  FadeOut(ws), FadeOut(uv), run_time=0.8)
+        for idx in (1, 4, 7, 9):
+            self.play(
+                inspect_box.animate.move_to([col_x(idx), 0, 0]),
+                dup.rungs[idx].animate.set_stroke(GOLD, width=6, opacity=0.95),
+                dup.upper[idx].animate.set_fill(GOLD, opacity=0.45).set_stroke(GOLD, width=4.5),
+                dup.lower[idx].animate.set_fill(GOLD, opacity=0.45).set_stroke(GOLD, width=4.5),
+                run_time=0.62,
+            )
+            self.play(
+                dup.rungs[idx].animate.set_stroke(BLUE, width=3, opacity=0.45),
+                dup.upper[idx].animate.set_fill(BLUE, opacity=0.30).set_stroke(BLUE, width=3.5),
+                dup.lower[idx].animate.set_fill(BLUE, opacity=0.30).set_stroke(BLUE, width=3.5),
+                run_time=0.38,
+            )
+        self.play(inspect_box.animate.move_to([col_x(5), 0, 0]), run_time=0.85)
 
-        self.at("dimer that")
-        self.play(FadeIn(bridge, scale=0.5), FadeIn(dimer), run_time=0.6)
+        # Beat 2 (6.44): "Sometimes the original base..."
+        self.at("Sometimes the original base")
+        mid = 5
+        upper_target = dup.upper[mid]
+        bracket = RoundedRectangle(
+            corner_radius=0.14,
+            width=BW + 0.28,
+            height=BH + 0.28,
+            stroke_color=GOLD,
+            stroke_width=4.5,
+            fill_color=GOLD,
+            fill_opacity=0.14,
+        ).move_to(upper_target.get_center())
+        bracket.layout_ok = True
+        badge = RoundedRectangle(
+            corner_radius=0.09,
+            width=0.44,
+            height=0.24,
+            stroke_color=RED,
+            stroke_width=3,
+            fill_color=RED,
+            fill_opacity=0.88,
+        ).move_to(upper_target.get_top() + DOWN * 0.06)
+        chem_lbl = T("chemical mark", size=28, color=RED).move_to([0, 2.55, 0])
+        chem_arr = Arrow(
+            chem_lbl.get_bottom() + DOWN * 0.06,
+            badge.get_top() + UP * 0.08,
+            buff=0,
+            color=RED,
+            stroke_width=3.5,
+            max_tip_length_to_length_ratio=0.35,
+        )
+        self.play(ReplacementTransform(inspect_box, bracket), FadeIn(badge, scale=0.8), run_time=1.0)
+        self.play(FadeIn(chem_lbl, shift=DOWN * 0.12), GrowArrow(chem_arr), run_time=0.9)
 
-        self.at("distorts the helix")
-        self.play(Transform(d.all, bent.all), bridge.animate.shift(DOWN * 0.35), run_time=0.9)
+        # Clear fill + scale pulse on the marked base and focus bracket while line finishes
+        self.play(
+            bracket.animate.scale(1.16).set_stroke(GOLD, width=6.5),
+            upper_target.animate.set_fill(RED, opacity=0.48).scale(1.09),
+            badge.animate.scale(1.22),
+            run_time=1.25,
+        )
+        self.play(
+            bracket.animate.scale(1.0 / 1.16).set_stroke(GOLD, width=4.5),
+            upper_target.animate.set_fill(BLUE, opacity=0.30).scale(1.0 / 1.09),
+            badge.animate.scale(1.0 / 1.22),
+            run_time=1.25,
+        )
+        self.play(
+            bracket.animate.scale(1.12),
+            upper_target.animate.set_fill(RED, opacity=0.45),
+            run_time=0.85,
+        )
+        self.play(
+            bracket.animate.scale(1.0 / 1.12),
+            upper_target.animate.set_fill(BLUE, opacity=0.30),
+            run_time=0.85,
+        )
 
-        self.at("senses the distortion")
-        y_hi = top_y + 0.22
-        y_lo = d.cy + d.ty - 0.35 - d.th / 2 - 0.12
-        sense = Rectangle(width=d.X(6) - d.X(3) + 0.95, height=y_hi - y_lo, stroke_color=YELLOW, stroke_width=4)
-        sense.move_to([at_x, (y_hi + y_lo) / 2, 0])
-        xer = bchip("excision repair", YELLOW, 26).move_to([at_x + 3.7, 2.9, 0])
-        self.play(Create(sense), FadeIn(xer), run_time=0.7)
+        # Beat 3 (12.92): "Direct reversal removes"
+        self.at("Direct reversal removes")
+        heading = T("direct reversal", size=34, color=TEAL, weight=BOLD).move_to([0, HEAD_Y, 0])
+        tool = make_eraser_tool().move_to([3.8, 2.35, 0])
+        self.play(
+            FadeIn(heading, shift=DOWN * 0.1),
+            FadeOut(chem_lbl),
+            FadeOut(chem_arr),
+            FadeIn(tool, shift=LEFT * 0.3),
+            run_time=0.9,
+        )
+        # Slide tool over the badge, attach badge, carry it off to the right
+        self.play(tool.animate.move_to([0.2, 2.15, 0]), run_time=0.85)
+        carried = VGroup(tool, badge)
+        self.play(carried.animate.shift(RIGHT * 4.4), run_time=1.0)
+        self.play(FadeOut(carried), run_time=0.4)
 
-        self.at("cuts the damaged")
-        c1 = slash((d.X(2) + d.X(3)) / 2, top_y, YELLOW)
-        c2 = slash((d.X(6) + d.X(7)) / 2, top_y, YELLOW)
-        self.play(FadeOut(d.seg["t"][2]), Create(c1), run_time=0.5)
+        # Beat 4 (16.52): "The backbone stays uncut"
+        self.at("The backbone stays uncut")
+        # Full-height teal integrity band glides smoothly end-to-end over the continuous uncut upper backbone
+        x_l = dup.top_rail.get_left()[0]
+        x_r = dup.top_rail.get_right()[0]
+        scanner = RoundedRectangle(
+            corner_radius=0.14,
+            width=1.35,
+            height=3.75,
+            stroke_color=TEAL,
+            stroke_width=4.5,
+            fill_color=TEAL,
+            fill_opacity=0.14,
+        ).move_to([x_l + 0.72, 0, 0])
+        scanner.layout_ok = True
+        self.play(
+            FadeIn(scanner),
+            dup.top_rail.animate.set_stroke(TEAL, width=7),
+            run_time=0.55,
+        )
+        self.play(
+            scanner.animate.move_to([x_r - 0.72, 0, 0]),
+            run_time=2.8,
+            rate_func=linear,
+        )
+        self.play(
+            scanner.animate.move_to([0.0, 0, 0]),
+            run_time=1.8,
+            rate_func=smooth,
+        )
+        self.play(
+            FadeOut(scanner),
+            dup.top_rail.animate.set_stroke(GREY, width=5),
+            run_time=0.55,
+        )
 
-        self.at("on both sides")
-        self.play(FadeOut(d.seg["t"][6]), Create(c2), run_time=0.5)
-
-        self.at("removes a short piece")
-        piece = VGroup(*[m for i in range(3, 7) for m in (d.tile["t"][i], d.conn["t"][i], d.node["t"][i], d.rung[i])],
-                       *[d.seg["t"][i] for i in (3, 4, 5)], bridge, sense, dimer)
-        self.play(piece.animate.shift(UP * 0.9).set_opacity(0), FadeOut(c1), FadeOut(c2), FadeOut(xer), run_time=1.0)
-
-        self.at("polymerase fills")
-        pol = bchip("polymerase", YELLOW, 26).move_to([at_x, 2.9, 0])
-        news = []
-        for i in range(3, 7):
-            news.append(VGroup(d.mk_tile("t", i, top[i], GREEN), d.mk_conn("t", i), d.mk_node("t", i),
-                               d.mk_rung(i, GREEN, 4)))
-        self.play(FadeIn(pol), run_time=0.3)
-        self.play(LaggedStart(*[FadeIn(n, scale=0.7) for n in news], lag_ratio=0.25), run_time=1.4)
-        gseg = [d.mk_seg("t", i, GREEN) for i in (3, 4, 5)]
-        self.play(*[Create(g) for g in gseg], run_time=0.5)
-
-        self.at("ligase seals")
-        lig = bchip("ligase", YELLOW, 26).move_to(pol)
-        s2, s6 = d.mk_seg("t", 2, GREEN), d.mk_seg("t", 6, GREEN)
-        self.play(FadeOut(pol), FadeIn(lig), run_time=0.3)
-        self.play(Create(s2), Create(s6), Flash(s2.get_center(), color=YELLOW, flash_radius=0.4),
-                  Flash(s6.get_center(), color=YELLOW, flash_radius=0.4), run_time=0.7)
-        self.play(FadeOut(lig), run_time=0.4)
+        # Beat 5 (22.70): "fits only damage" — enzyme checks neighbors briefly, locks onto the repaired base
+        self.at("fits only damage")
+        self.play(
+            bracket.animate.scale(1.16).set_stroke(GOLD, width=6.5),
+            upper_target.animate.set_fill(GOLD, opacity=0.55).scale(1.10),
+            dup.rungs[mid].animate.set_stroke(GOLD, width=5.5, opacity=0.95),
+            run_time=1.15,
+        )
+        self.play(
+            bracket.animate.scale(1.0 / 1.16).set_stroke(TEAL, width=4.5),
+            upper_target.animate.set_fill(BLUE, opacity=0.30).scale(1.0 / 1.10),
+            dup.rungs[mid].animate.set_stroke(BLUE, width=3.0, opacity=0.45),
+            run_time=1.15,
+        )
+        self.play(
+            bracket.animate.scale(1.14).set_stroke(GOLD, width=6.0),
+            upper_target.animate.set_fill(GOLD, opacity=0.50).scale(1.08),
+            run_time=1.15,
+        )
+        self.play(
+            bracket.animate.scale(1.0 / 1.14).set_stroke(GOLD, width=4.5),
+            upper_target.animate.set_fill(BLUE, opacity=0.30).scale(1.0 / 1.08),
+            run_time=1.05,
+        )
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S04Mismatch(SpokenScene):
-    """G opposite T: which is wrong? The new strand, found by missing methyl on GATC; MutS, MutL, MutH; strand removed and rebuilt."""
-
+# ------------------------------------------------------------------ S04
+class S04Small(SpokenScene):
     def construct(self):
-        top, bot = list("CGATCATGCA"), list("GCTAGTATGT")
-        # bottom letters: complement of the top, except column 7 (G over T)
-        bot = [{"A": "T", "T": "A", "G": "C", "C": "G"}[c] for c in top]
-        bot[7] = "T"
-        kw = dict(cy=0.1, sp=0.95, tw=0.8, th=0.7, ty=0.72, by=1.6, fs=30, norung=(7,))
-        d = Duplex(top, bot, tcol=GREY, bcol=GREY, **kw)
-        db = Duplex(top, bot, tcol=BLUE, bcol=GREEN, **kw)
-        self.add(d.all)
-        x7, ymid = d.X(7), d.cy
-        qm = T("?", 40, RED, weight=BOLD).move_to([x7, ymid, 0])
-        wrong_t = d.tile["t"][7]
-        wrong_b = d.tile["b"][7]
+        dup = build_duplex()
+        self.add(dup)
 
-        self.at("paired wrongly")
-        self.play(wrong_t[0].animate.set_stroke(RED), wrong_t[1].animate.set_color(RED),
-                  wrong_b[0].animate.set_stroke(RED), wrong_b[1].animate.set_color(RED),
-                  FadeIn(qm, scale=0.6), run_time=0.7)
+        mid = 5
+        wave_t = ValueTracker(0.0)
+        wave_on = ValueTracker(1.0)
+        # Track active upper block vertical offset so it lifts cleanly without fighting the wave
+        repair_active = set([mid])
 
-        self.at("Neither is damaged")
-        self.play(Indicate(VGroup(wrong_t, wrong_b), color=TEXT, scale_factor=1.1), run_time=0.9)
+        for i in range(N_COLS):
+            if i == mid:
+                continue
+            bx = col_x(i)
+            ub = dup.upper[i]
+            lb = dup.lower[i]
+            rg = dup.rungs[i]
+            ub.add_updater(
+                lambda m, dt, x=bx, idx=i: m.move_to(
+                    [x, Y_UP + wave_on.get_value() * 0.075 * np.sin(2.6 * wave_t.get_value() - 0.55 * idx), 0]
+                )
+            )
+            lb.add_updater(
+                lambda m, dt, x=bx, idx=i: m.move_to(
+                    [x, Y_DN + wave_on.get_value() * 0.075 * np.sin(2.6 * wave_t.get_value() - 0.55 * idx), 0]
+                )
+            )
+            rg.add_updater(
+                lambda m, dt, x=bx, idx=i: m.put_start_and_end_on(
+                    [x, Y_DN + BH / 2 + 0.04 + wave_on.get_value() * 0.075 * np.sin(2.6 * wave_t.get_value() - 0.55 * idx), 0],
+                    [x, Y_UP - BH / 2 - 0.04 + wave_on.get_value() * 0.075 * np.sin(2.6 * wave_t.get_value() - 0.55 * idx), 0],
+                )
+            )
 
-        self.at("new strand")
-        tag_t = T("template", 22, BLUE).move_to([-5.75, d.ytile("t", 0), 0])
-        tag_b = T("new\nstrand", 22, GREEN).move_to([-5.75, d.ytile("b", 0), 0])
-        self.play(Transform(d.all, db.all), FadeIn(tag_t), FadeIn(tag_b), run_time=0.9)
+        # Drive wave_t continuously across the scene via a lightweight dummy updater
+        clock = ValueTracker(0.0)
+        clock.add_updater(lambda m, dt: wave_t.increment_value(dt))
+        self.add(clock)
 
-        self.at("cole")
-        ecoli = T("E. coli", 28, GREY, slant=ITALIC).move_to([-5.2, 3.0, 0])
-        self.play(FadeIn(ecoli), run_time=0.5)
+        # Beat 1 (0.00 -> 4.10): "A small damaged base needs a different move"
+        small_red = make_warped_block(RED, BW * 0.86, BH * 0.86).move_to([0, Y_UP, 0])
+        self.play(Transform(dup.upper[mid], small_red), run_time=1.8)
+        self.wait(1.6)
 
-        self.at("carries methyl")
-        box = Rectangle(width=4 * d.sp + 0.1, height=2 * (d.ty + d.th / 2) + 0.2, stroke_color=TEXT,
-                        stroke_width=2).move_to([(d.X(1) + d.X(4)) / 2, d.cy, 0])
-        xa = d.X(2)
-        yb_top = d.ynode("t", 2)
-        me = VGroup(Circle(radius=0.27, stroke_color=ORANGE, stroke_width=3, fill_color=ORANGE, fill_opacity=0.9),
-                    T("Me", 22, BG, weight=BOLD)).move_to([xa, yb_top + 0.7, 0])
-        stem = Line([xa, yb_top + 0.43, 0], [xa, yb_top, 0], color=ORANGE, stroke_width=3)
-        gatc = T("GATC", 26, TEXT)
-        gatc.move_to([xa + 0.5 + gatc.width / 2, yb_top + 0.7, 0])
-        self.play(FadeIn(me, scale=0.6), Create(stem), run_time=0.6)
+        # Beat 2 (4.10): "Base excision repair" — lift out single red block, leaving empty slot
+        self.at("Base excision repair")
+        heading = T("base excision repair", size=34, color=TEAL, weight=BOLD).move_to([0, HEAD_Y, 0])
+        # Open a small break in upper backbone above mid
+        left_rail = Line([dup.top_rail.get_left()[0], Y_RAIL_UP, 0], [-0.48, Y_RAIL_UP, 0], color=GREY, stroke_width=5)
+        right_rail = Line([0.48, Y_RAIL_UP, 0], [dup.top_rail.get_right()[0], Y_RAIL_UP, 0], color=GREY, stroke_width=5)
+        self.remove(dup.top_rail)
+        self.add(left_rail, right_rail)
+        self.play(
+            FadeIn(heading, shift=DOWN * 0.1),
+            FadeOut(dup.rungs[mid]),
+            dup.upper[mid].animate.shift(UP * 1.45),
+            run_time=1.8,
+        )
+        self.play(FadeOut(dup.upper[mid], shift=UP * 0.3), run_time=0.8)
 
-        self.at("G at")
-        self.play(Create(box), FadeIn(gatc), run_time=0.6)
+        # Beat 3 (8.72): "The lower row guides" — gold partner sends guide line up; green block rises in
+        self.at("The lower row guides")
+        guide = DashedLine([0, Y_DN + BH / 2 + 0.04, 0], [0, Y_UP - BH / 2 - 0.04, 0], color=GOLD, stroke_width=4, dash_length=0.10)
+        green_blk = (
+            make_block(GREEN, BW, BH)
+            .move_to([0, Y_DN + 0.85, 0])
+            .set_fill(GREEN, opacity=0.0)
+            .set_stroke(GREEN, opacity=0.0)
+        )
+        self.play(dup.lower[mid].animate.set_stroke(GOLD, width=5.5), Create(guide), run_time=1.1)
+        self.add(green_blk)
+        self.play(
+            green_blk.animate.set_fill(GREEN, opacity=0.30).set_stroke(GREEN, opacity=1.0).move_to([0, Y_UP, 0]),
+            run_time=1.6,
+        )
 
-        self.at("briefly unmethylated")
-        xb = d.X(3)
-        yb_bot = d.ynode("b", 3)
-        empty = DashedVMobject(Circle(radius=0.27, stroke_color=ORANGE, stroke_width=3), num_dashes=12)
-        empty.move_to([xb, yb_bot - 0.7, 0])
-        unm = T("unmethylated", 24, ORANGE).next_to(empty, RIGHT, buff=0.25)
-        self.play(FadeIn(empty), FadeIn(unm), run_time=0.6)
+        # Beat 4 (12.06): "the strand is sealed" — two teal clamps close the backbone gap
+        self.at("the strand is sealed")
+        clamp_l = RoundedRectangle(corner_radius=0.08, width=0.30, height=0.44, color=TEAL, fill_opacity=0.65).move_to([-0.85, Y_RAIL_UP, 0])
+        clamp_r = RoundedRectangle(corner_radius=0.08, width=0.30, height=0.44, color=TEAL, fill_opacity=0.65).move_to([0.85, Y_RAIL_UP, 0])
+        seal_seg = Line([-0.50, Y_RAIL_UP, 0], [0.50, Y_RAIL_UP, 0], color=TEAL, stroke_width=5)
+        self.play(FadeIn(clamp_l), FadeIn(clamp_r), run_time=0.4)
+        self.play(
+            clamp_l.animate.move_to([-0.16, Y_RAIL_UP, 0]),
+            clamp_r.animate.move_to([0.16, Y_RAIL_UP, 0]),
+            Create(seal_seg),
+            run_time=1.1,
+        )
+        self.play(FadeOut(clamp_l), FadeOut(clamp_r), seal_seg.animate.set_stroke(GREY), run_time=0.5)
 
-        self.at("binds the mismatch")
-        muts = bchip("MutS", YELLOW, 26).move_to([x7, -3.0, 0])
-        a_s = arr(muts.get_top() + UP * 0.02, [x7, -1.5, 0], YELLOW)
-        self.play(FadeIn(muts, shift=UP * 0.3), GrowArrow(a_s), run_time=0.7)
+        # Beat 5 (14.42): "One damaged block" — emphasize the restored green block
+        self.at("One damaged block")
+        self.play(Indicate(green_blk, color=GREEN, scale_factor=1.10), run_time=1.5)
 
-        self.at("joins it")
-        mutl = bchip("MutL", YELLOW, 26).move_to([x7 + 3.2, -3.0, 0])
-        self.play(mutl.animate.move_to([x7 + 1.7, -3.0, 0]), run_time=0.7)
+        # Beat 6 (18.76): "Most surrounding DNA" — green becomes blue; sweep focus over untouched neighbors
+        self.at("Most surrounding DNA")
+        restored_blue = make_block(BLUE, BW, BH).move_to([0, Y_UP, 0])
+        restored_rung = Line([0, Y_DN + BH / 2 + 0.04, 0], [0, Y_UP - BH / 2 - 0.04, 0], color=BLUE, stroke_width=3, stroke_opacity=0.45)
+        self.play(
+            Transform(green_blk, restored_blue),
+            FadeOut(guide),
+            FadeIn(restored_rung),
+            dup.lower[mid].animate.set_stroke(BLUE, width=3.5),
+            run_time=1.8,
+        )
 
-        self.at("nicks the")
-        xm = (d.X(2) + d.X(3)) / 2
-        muth = bchip("MutH", YELLOW, 26).move_to([-3.4, -3.0, 0])
-        a_h = arr(muth.get_top() + UP * 0.02, [xm - 0.15, yb_bot - 0.25, 0], YELLOW)
-        cut = slash(xm, yb_bot)
-        self.play(FadeIn(muth, shift=UP * 0.3), GrowArrow(a_h), run_time=0.5)
-        self.play(FadeOut(d.seg["b"][2]), Create(cut), run_time=0.4)
-
-        self.at("removed past")
-        cols = range(3, 9)
-        piece = VGroup(*[m for i in cols for m in (d.tile["b"][i], d.conn["b"][i], d.node["b"][i], d.rung[i]) if m is not None],
-                       *[d.seg["b"][i] for i in range(3, 9)], empty, unm)
-        self.play(FadeOut(muts), FadeOut(mutl), FadeOut(muth), FadeOut(a_s), FadeOut(a_h), FadeOut(cut),
-                  FadeOut(qm), piece.animate.shift(DOWN * 0.9).set_opacity(0), run_time=1.0)
-
-        self.at("rebuilt")
-        corr = {"A": "T", "T": "A", "G": "C", "C": "G"}
-        news = [VGroup(d.mk_tile("b", i, corr[top[i]], GREEN), d.mk_conn("b", i), d.mk_node("b", i)) for i in cols]
-        news[4].add(d.mk_rung(7, GREEN, 4))
-        segs = [d.mk_seg("b", i, GREEN) for i in range(2, 9)]
-        self.play(LaggedStart(*[FadeIn(n, scale=0.7) for n in news], lag_ratio=0.2), run_time=1.3)
-        self.play(*[Create(sg) for sg in segs], run_time=0.5)
+        # Beat 7 (22.68): "Repair machinery works" — clean preservation sweep over untouched neighbors
+        self.at("Repair machinery works")
+        self.play(
+            LaggedStart(
+                *[Indicate(dup.upper[i], color=BLUE, scale_factor=1.07) for i in range(N_COLS) if i != mid],
+                lag_ratio=0.09,
+            ),
+            run_time=2.5,
+        )
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S05Break(SpokenScene):
-    """Both strands cut: the copy option is gone. Rope: knot the ends or splice. Ku rings grip ends; a ligase joins; no template."""
-
+# ------------------------------------------------------------------ S05
+class S05Bulky(SpokenScene):
     def construct(self):
-        d = Duplex(list("GATCGGCA"), list("CTAGCCGT"), cy=0.0, sp=1.1)
-        self.add(d.all)
-        ax = 5.6
-        carrow = arr([ax, -1.5, 0], [ax, 1.5, 0], GREEN, w=7)
-        carrow_lab = T("copy the\npartner", 24, GREEN).move_to([ax, 2.4, 0])
-        self.play(GrowArrow(carrow), FadeIn(carrow_lab), run_time=0.7)
+        dup = build_duplex()
+        self.add(dup, scope_tag("schematic"))
 
-        self.at("removes the copying")
-        left = VGroup(*[m for i in range(0, 4) for m in (d.tile["t"][i], d.tile["b"][i], d.conn["t"][i], d.conn["b"][i],
-                                                          d.node["t"][i], d.node["b"][i], d.rung[i])],
-                      *[d.seg["t"][i] for i in range(0, 3)], *[d.seg["b"][i] for i in range(0, 3)])
-        right = VGroup(*[m for i in range(4, 8) for m in (d.tile["t"][i], d.tile["b"][i], d.conn["t"][i], d.conn["b"][i],
-                                                           d.node["t"][i], d.node["b"][i], d.rung[i])],
-                       *[d.seg["t"][i] for i in range(4, 7)], *[d.seg["b"][i] for i in range(4, 7)])
-        xmid = (d.X(3) + d.X(4)) / 2
-        crossed = VGroup(Line([ax - 0.4, -0.4, 0], [ax + 0.4, 0.4, 0], color=RED, stroke_width=9),
-                         Line([ax - 0.4, 0.4, 0], [ax + 0.4, -0.4, 0], color=RED, stroke_width=9))
-        self.play(FadeOut(d.seg["t"][3]), FadeOut(d.seg["b"][3]),
-                  left.animate.shift(LEFT * 0.5), right.animate.shift(RIGHT * 0.5),
-                  Create(crossed, lag_ratio=0), carrow.animate.set_opacity(0.4), carrow_lab.animate.set_opacity(0.4),
-                  run_time=0.9)
-        cuts = VGroup(slash(xmid, d.cy + d.by, RED, 0.3), slash(xmid, d.cy - d.by, RED, 0.3))
-        self.play(FadeIn(cuts, scale=1.4), run_time=0.4)
+        # Compute Gaussian bow on upper row around cols 4..7 (centered at x_mid = col 5.5)
+        patch_cols = [4, 5, 6, 7]
+        x_mid = (col_x(5) + col_x(6)) / 2.0
 
-        self.at("Picture a rope")
-        RY = 0.7
-        self.play(FadeOut(VGroup(left, right, cuts, crossed, carrow, carrow_lab)), run_time=0.5)
-        rl = helix_curves(-6.0, -0.45, RY, amp=0.8, period=1.8)
-        rr = helix_curves(0.45, 6.0, RY, amp=0.8, period=1.8)
-        self.play(Create(rl, lag_ratio=0), Create(rr, lag_ratio=0), run_time=0.9)
+        def bow_dy(x, amp):
+            return amp * float(np.exp(-((x - x_mid) / 1.85) ** 2))
 
-        self.at("knot the ends")
-        knot = Ellipse(width=1.0, height=1.6, stroke_color=YELLOW, stroke_width=8).move_to([0, RY, 0])
-        self.play(rl.animate.shift(RIGHT * 0.45), rr.animate.shift(LEFT * 0.45), run_time=0.6)
-        self.play(Create(knot), run_time=0.4)
+        bow_amp = ValueTracker(0.0)
+        # Store initial rail points to deform rail smoothly
+        x_l, x_r = dup.top_rail.get_left()[0], dup.top_rail.get_right()[0]
+        xs_rail = np.linspace(x_l, x_r, 60)
 
-        self.at("splice in")
-        sister = helix_curves(-6.0, 6.0, -2.1, amp=0.8, period=1.8, color=BLUE)
-        sister.set_stroke(opacity=0.55)
-        brk = DashedVMobject(Rectangle(width=2.4, height=1.6, stroke_color=YELLOW, stroke_width=4), num_dashes=40)
-        brk.move_to([0, -2.1, 0])
-        up = arr([0, -0.95, 0], [0, -0.2, 0], YELLOW, w=6)
-        self.play(FadeOut(knot), rl.animate.shift(LEFT * 0.45), rr.animate.shift(RIGHT * 0.45),
-                  FadeIn(sister), run_time=0.7)
-        self.play(Create(brk), GrowArrow(up), run_time=0.7)
+        def make_bowed_rail(amp, color=GREY, width=5):
+            m = VMobject(color=color, stroke_width=width)
+            m.set_points_as_corners([[x, Y_RAIL_UP + bow_dy(x, amp), 0] for x in xs_rail])
+            return m
 
-        self.at("end joining knots")
-        nhej = T("non-homologous end joining", 30, TEXT).move_to([0, 2.9, 0])
-        self.play(FadeOut(sister), FadeOut(brk), FadeOut(up), FadeIn(nhej, shift=DOWN * 0.15), run_time=0.7)
+        bow_rail = always_redraw(lambda: make_bowed_rail(bow_amp.get_value()))
+        self.remove(dup.top_rail)
+        self.add(bow_rail)
 
-        self.at("grips each end")
-        ku1 = Ellipse(width=0.6, height=1.5, stroke_color=YELLOW, stroke_width=8).move_to([-0.6, RY, 0])
-        ku2 = Ellipse(width=0.6, height=1.5, stroke_color=YELLOW, stroke_width=8).move_to([0.6, RY, 0])
-        kul = T("Ku", 30, YELLOW, weight=BOLD).move_to([0, RY + 1.75, 0])
-        self.play(FadeIn(ku1, scale=0.7), FadeIn(ku2, scale=0.7), FadeIn(kul), FadeOut(nhej), run_time=0.9)
+        # Linked red pair at cols 5 & 6
+        c5, c6 = col_x(5), col_x(6)
+        link_bar = Line([c5, Y_UP, 0], [c6, Y_UP, 0], color=RED, stroke_width=10)
 
-        self.at("ligase joins")
-        lig = bchip("ligase", YELLOW, 26).move_to([0, RY + 1.75, 0])
-        self.play(FadeOut(kul), FadeIn(lig), run_time=0.3)
-        self.play(rl.animate.shift(RIGHT * 0.45), rr.animate.shift(LEFT * 0.45),
-                  ku1.animate.shift(RIGHT * 0.3), ku2.animate.shift(LEFT * 0.3), run_time=0.7)
-        self.play(FadeOut(ku1), FadeOut(ku2), Flash([0, RY, 0], color=YELLOW, flash_radius=0.7), run_time=0.5)
+        # Beat 1 (0.00 -> 5.54): Transform cols 5 & 6 into a red linked pair and bow the upper row
+        linked_5 = make_warped_block(RED, BW, BH).move_to([c5, Y_UP, 0])
+        linked_6 = make_warped_block(RED, BW, BH).move_to([c6, Y_UP, 0])
 
-        self.at("uses no template")
-        nt = T("no template", 30, GREY).move_to([0, -1.0, 0])
-        self.play(FadeIn(nt, shift=UP * 0.15), FadeOut(lig), run_time=0.6)
+        def update_bow_blocks(amp_val):
+            anims = []
+            for i in range(N_COLS):
+                x = col_x(i)
+                dy = bow_dy(x, amp_val)
+                anims.append(dup.upper[i].animate.move_to([x, Y_UP + dy, 0]))
+                anims.append(
+                    dup.rungs[i].animate.put_start_and_end_on(
+                        [x, Y_DN + BH / 2 + 0.04, 0],
+                        [x, Y_UP + dy - BH / 2 - 0.04, 0],
+                    )
+                )
+            return anims
 
-        self.at("needed trimming")
-        jb = DashedVMobject(Rectangle(width=1.6, height=1.6, stroke_color=RED, stroke_width=4), num_dashes=36)
-        jb.move_to([0, RY, 0])
-        self.play(Create(jb), run_time=0.7)
+        self.play(
+            Transform(dup.upper[5], linked_5),
+            Transform(dup.upper[6], linked_6),
+            Create(link_bar),
+            run_time=1.3,
+        )
+        # Bow upper blocks + link bar + rail upward
+        self.play(
+            bow_amp.animate.set_value(0.46),
+            *[
+                dup.upper[i].animate.move_to([col_x(i), Y_UP + bow_dy(col_x(i), 0.46), 0])
+                for i in range(N_COLS)
+            ],
+            *[
+                dup.rungs[i].animate.put_start_and_end_on(
+                    [col_x(i), Y_DN + BH / 2 + 0.04, 0],
+                    [col_x(i), Y_UP + bow_dy(col_x(i), 0.46) - BH / 2 - 0.04, 0],
+                )
+                for i in range(N_COLS)
+            ],
+            link_bar.animate.put_start_and_end_on(
+                [c5, Y_UP + bow_dy(c5, 0.46), 0],
+                [c6, Y_UP + bow_dy(c6, 0.46), 0],
+            ),
+            run_time=2.3,
+        )
 
-        self.at("gained or lost")
-        gl = T("a few bases may be gained or lost", 28, RED).move_to([0, -2.1, 0])
-        self.play(FadeIn(gl, shift=UP * 0.15), run_time=0.6)
+        # Beat 2 (5.54): "Nucleotide excision repair" — label + wide scanning box sweeping distorted zone
+        self.at("Nucleotide excision repair")
+        heading = T("nucleotide excision repair", size=34, color=TEAL, weight=BOLD).move_to([0, 3.38, 0])
+        scan_box = RoundedRectangle(
+            corner_radius=0.18,
+            width=4.4,
+            height=2.15,
+            stroke_color=TEAL,
+            stroke_width=4.5,
+            fill_color=TEAL,
+            fill_opacity=0.13,
+        ).move_to([x_mid - 1.1, Y_UP + 0.25, 0])
+        scan_box.layout_ok = True
+        self.play(
+            FadeIn(heading, shift=DOWN * 0.1),
+            FadeIn(scan_box),
+            run_time=1.2,
+        )
+        self.play(scan_box.animate.move_to([x_mid + 1.1, Y_UP + 0.25, 0]), run_time=1.6)
+        self.play(scan_box.animate.move_to([x_mid, Y_UP + 0.25, 0]), run_time=1.3)
+
+        # Beat 3 (10.42): "Two cuts lift" — teal cut markers land on both sides, short red patch rises out
+        self.at("Two cuts lift")
+        cut_l_x = (col_x(3) + col_x(4)) / 2.0
+        cut_r_x = (col_x(7) + col_x(8)) / 2.0
+        cut_l = make_cut_marker(cut_l_x, Y_RAIL_UP + bow_dy(cut_l_x, 0.46))
+        cut_r = make_cut_marker(cut_r_x, Y_RAIL_UP + bow_dy(cut_r_x, 0.46))
+        self.play(FadeOut(scan_box), FadeIn(cut_l, shift=DOWN * 0.15), FadeIn(cut_r, shift=DOWN * 0.15), run_time=0.9)
+
+        # Split bowed rail into left, excised center, and right
+        xs_c = np.linspace(cut_l_x, cut_r_x, 24)
+        xs_ll = np.linspace(x_l, cut_l_x, 20)
+        xs_rr = np.linspace(cut_r_x, x_r, 20)
+        rail_l = VMobject(color=GREY, stroke_width=5).set_points_as_corners([[x, Y_RAIL_UP + bow_dy(x, 0.46), 0] for x in xs_ll])
+        rail_r = VMobject(color=GREY, stroke_width=5).set_points_as_corners([[x, Y_RAIL_UP + bow_dy(x, 0.46), 0] for x in xs_rr])
+        rail_c = VMobject(color=RED, stroke_width=5).set_points_as_corners([[x, Y_RAIL_UP + bow_dy(x, 0.46), 0] for x in xs_c])
+        self.remove(bow_rail)
+        self.add(rail_l, rail_r, rail_c)
+
+        excised_patch = VGroup(
+            rail_c, link_bar,
+            *[dup.upper[i] for i in patch_cols],
+        )
+        self.play(
+            *[FadeOut(dup.rungs[i]) for i in patch_cols],
+            FadeOut(cut_l),
+            FadeOut(cut_r),
+            excised_patch.animate.shift(UP * 0.62),
+            run_time=1.5,
+        )
+        self.play(FadeOut(excised_patch, shift=UP * 0.12), run_time=0.6)
+
+        # Beat 4 (14.66): "The intact row guides" — gold outlines + guides + green blocks sweep in
+        self.at("The intact row guides")
+        guides = VGroup(*[
+            DashedLine([col_x(i), Y_DN + BH / 2 + 0.04, 0], [col_x(i), Y_UP - BH / 2 - 0.04, 0],
+                       color=GOLD, stroke_width=4, dash_length=0.10)
+            for i in patch_cols
+        ])
+        self.play(
+            *[dup.lower[i].animate.set_stroke(GOLD, width=5.5) for i in patch_cols],
+            Create(guides),
+            run_time=1.0,
+        )
+        greens = VGroup(*[
+            make_block(GREEN, BW, BH)
+            .move_to([col_x(i), Y_DN + 0.7, 0])
+            .set_fill(GREEN, opacity=0.0)
+            .set_stroke(GREEN, opacity=0.0)
+            for i in patch_cols
+        ])
+        self.add(greens)
+        # Straighten outer rows back to flat Y_UP while green blocks sweep in
+        straight_l = Line([x_l, Y_RAIL_UP, 0], [cut_l_x, Y_RAIL_UP, 0], color=GREY, stroke_width=5)
+        straight_r = Line([cut_r_x, Y_RAIL_UP, 0], [x_r, Y_RAIL_UP, 0], color=GREY, stroke_width=5)
+        seal_mid = Line([cut_l_x, Y_RAIL_UP, 0], [cut_r_x, Y_RAIL_UP, 0], color=GREEN, stroke_width=5)
+        self.play(
+            LaggedStart(
+                *[g.animate.set_fill(GREEN, opacity=0.30).set_stroke(GREEN, opacity=1.0).move_to([col_x(i), Y_UP, 0]) for g, i in zip(greens, patch_cols)],
+                lag_ratio=0.15,
+            ),
+            Transform(rail_l, straight_l),
+            Transform(rail_r, straight_r),
+            *[dup.upper[i].animate.move_to([col_x(i), Y_UP, 0]) for i in range(N_COLS) if i not in patch_cols],
+            *[
+                dup.rungs[i].animate.put_start_and_end_on([col_x(i), Y_DN + BH / 2 + 0.04, 0], [col_x(i), Y_UP - BH / 2 - 0.04, 0])
+                for i in range(N_COLS) if i not in patch_cols
+            ],
+            run_time=2.2,
+        )
+        self.play(Create(seal_mid), run_time=0.6)
+
+        # Beat 5 (19.12): "The same partner" — sweep a gold template band & pulse lower partner bases smoothly
+        self.at("The same partner")
+        partner_box = RoundedRectangle(
+            corner_radius=0.14,
+            width=4.2,
+            height=1.36,
+            stroke_color=GOLD,
+            stroke_width=4.5,
+            fill_color=GOLD,
+            fill_opacity=0.14,
+        ).move_to([x_mid, Y_DN, 0])
+        partner_box.layout_ok = True
+        self.play(
+            FadeIn(partner_box),
+            *[dup.lower[i].animate.set_fill(GOLD, opacity=0.50).scale(1.07) for i in patch_cols],
+            run_time=1.1,
+        )
+        self.play(
+            partner_box.animate.shift(RIGHT * 0.55),
+            *[dup.lower[i].animate.set_fill(BLUE, opacity=0.30).scale(1.0 / 1.07) for i in patch_cols],
+            run_time=1.1,
+        )
+        self.play(
+            partner_box.animate.shift(LEFT * 0.55),
+            *[dup.lower[i].animate.set_fill(GOLD, opacity=0.45).scale(1.06) for i in patch_cols],
+            run_time=1.1,
+        )
+
+        # Beat 6 (23.02): "chemistry and distortion" — green patch becomes blue sequentially, verifying restored duplex
+        self.at("chemistry and distortion")
+        new_rungs = VGroup(*[
+            Line([col_x(i), Y_DN + BH / 2 + 0.04, 0], [col_x(i), Y_UP - BH / 2 - 0.04, 0],
+                 color=BLUE, stroke_width=3, stroke_opacity=0.45)
+            for i in patch_cols
+        ])
+        verify_band = RoundedRectangle(
+            corner_radius=0.16,
+            width=4.3,
+            height=3.65,
+            stroke_color=BLUE,
+            stroke_width=4.5,
+            fill_color=BLUE,
+            fill_opacity=0.12,
+        ).move_to([x_mid, 0, 0])
+        verify_band.layout_ok = True
+        self.play(
+            LaggedStart(
+                *[g.animate.set_color(BLUE).set_fill(BLUE, opacity=0.35).set_stroke(BLUE, width=3.5) for g in greens],
+                lag_ratio=0.18,
+            ),
+            *[dup.lower[i].animate.set_fill(BLUE, opacity=0.30).set_stroke(BLUE, width=3.5).scale(1.0 / 1.06) for i in patch_cols],
+            ReplacementTransform(partner_box, verify_band),
+            FadeOut(guides),
+            FadeIn(new_rungs),
+            seal_mid.animate.set_stroke(GREY, width=5),
+            run_time=2.2,
+        )
+        self.play(
+            verify_band.animate.scale(1.08),
+            *[g.animate.set_fill(BLUE, opacity=0.52) for g in greens],
+            seal_mid.animate.set_stroke(TEAL, width=6),
+            run_time=1.1,
+        )
+        self.play(
+            FadeOut(verify_band),
+            *[g.animate.set_fill(BLUE, opacity=0.30) for g in greens],
+            seal_mid.animate.set_stroke(GREY, width=5),
+            run_time=0.9,
+        )
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S06Splice(SpokenScene):
-    """Homologous recombination: trim to tails, Rad51 coats, tail invades the sister, synthesis copies what was lost; the rule."""
-
+# ------------------------------------------------------------------ S06
+class S06Predict(SpokenScene):
     def construct(self):
-        yb = 2.0
-        ys = -1.7
-        hs = 0.32
-        lw = 8
+        dup = build_duplex()
+        mid = 5
+        dup.rungs[mid].set_stroke(opacity=0.0)
+        qmark = T("?", size=38, color=RED, weight=BOLD).move_to([0, 0, 0])
+        self.add(dup, qmark)
 
-        def line(x0, x1, y, color=BLUE):
-            return Line([x0, y, 0], [x1, y, 0], color=color, stroke_width=lw).set_cap_style(CapStyleType.ROUND)
+        # Beat 1 (0.00 -> 5.04): two normal blue blocks, mismatch wiggle + '?' rock showing unresolved choice
+        self.play(
+            dup.upper[mid].animate.shift(RIGHT * 0.09),
+            dup.lower[mid].animate.shift(LEFT * 0.09),
+            Rotate(qmark, angle=0.16),
+            run_time=1.4,
+        )
+        self.play(
+            dup.upper[mid].animate.shift(LEFT * 0.18),
+            dup.lower[mid].animate.shift(RIGHT * 0.18),
+            Rotate(qmark, angle=-0.32),
+            run_time=1.5,
+        )
+        self.play(
+            dup.upper[mid].animate.move_to([0, Y_UP, 0]),
+            dup.lower[mid].animate.move_to([0, Y_DN, 0]),
+            Rotate(qmark, angle=0.16),
+            run_time=1.3,
+        )
 
-        lu = line(-6.0, -0.5, yb + hs)
-        ll = line(-6.0, -0.5, yb - hs)
-        ru = line(0.5, 6.0, yb + hs)
-        rl_ = line(0.5, 6.0, yb - hs)
-        brk_lab = T("break", 26, RED).move_to([0, yb + 1.2, 0])
-        self.play(Create(VGroup(lu, ll, ru, rl_), lag_ratio=0), FadeIn(brk_lab), run_time=0.8)
+        # Beat 2 (5.04): "Neither looks damaged" — highlight both blue blocks clearly while '?' keeps rocking
+        self.at("Neither looks damaged")
+        self.play(
+            dup.upper[mid].animate.set_fill(WHITE, opacity=0.48).scale(1.10),
+            dup.lower[mid].animate.set_fill(WHITE, opacity=0.48).scale(1.10),
+            Rotate(qmark, angle=0.22),
+            run_time=1.0,
+        )
+        self.play(
+            dup.upper[mid].animate.set_fill(BLUE, opacity=0.30).scale(1.0 / 1.10),
+            dup.lower[mid].animate.set_fill(BLUE, opacity=0.30).scale(1.0 / 1.10),
+            Rotate(qmark, angle=-0.22),
+            run_time=1.0,
+        )
 
-        self.at("matching rope")
-        su = line(-6.0, 6.0, ys + hs)
-        sl = line(-6.0, 6.0, ys - hs)
-        self.play(Create(VGroup(su, sl), lag_ratio=0), run_time=0.8)
+        # Beat 3 (7.28): "If the strands carry" — glide a crisp white choice halo smoothly between upper and lower block
+        self.at("If the strands carry")
+        arr_up = Arrow([0, 2.35, 0], [0, 1.86, 0], buff=0, color=TEXT, stroke_width=4, max_tip_length_to_length_ratio=0.35)
+        arr_dn = Arrow([0, -2.35, 0], [0, -1.86, 0], buff=0, color=TEXT, stroke_width=4, max_tip_length_to_length_ratio=0.35)
+        lab_up = T("replace?", size=28, color=TEXT).next_to(arr_up, UP, buff=0.14)
+        lab_dn = T("replace?", size=28, color=TEXT).next_to(arr_dn, DOWN, buff=0.14)
+        self.play(
+            FadeIn(arr_up), FadeIn(lab_up),
+            FadeIn(arr_dn), FadeIn(lab_dn),
+            run_time=1.0,
+        )
 
-        self.at("trim the ends")
-        self.play(FadeOut(brk_lab),
-                  ll.animate.put_start_and_end_on([-6.0, yb - hs, 0], [-2.0, yb - hs, 0]),
-                  ru.animate.put_start_and_end_on([2.0, yb + hs, 0], [6.0, yb + hs, 0]),
-                  run_time=0.9)
-        tails_lab = T("single-stranded tails", 26, TEXT).move_to([0, yb + 1.2, 0])
-        self.play(FadeIn(tails_lab), run_time=0.4)
+        choice_halo = RoundedRectangle(
+            corner_radius=0.14,
+            width=1.04,
+            height=1.34,
+            stroke_color=WHITE,
+            stroke_width=4.0,
+            fill_color=WHITE,
+            fill_opacity=0.22,
+        ).move_to([0, Y_UP, 0])
 
-        self.at("Rad51 coats")
-        coat_l = Line([-2.0, yb + hs, 0], [-0.5, yb + hs, 0], color=YELLOW, stroke_width=18, stroke_opacity=0.45)
-        coat_r = Line([0.5, yb - hs, 0], [2.0, yb - hs, 0], color=YELLOW, stroke_width=18, stroke_opacity=0.45)
-        rad = bchip("Rad51", YELLOW, 28).move_to([0, yb + 1.2, 0])
-        self.play(FadeIn(coat_l), FadeIn(coat_r), ReplacementTransform(tails_lab, rad), run_time=0.8)
+        self.play(FadeIn(choice_halo), Rotate(qmark, angle=-0.20), run_time=0.65)
+        self.play(
+            choice_halo.animate.move_to([0, Y_DN, 0]),
+            dup.lower[mid].animate.set_fill(WHITE, opacity=0.45),
+            dup.upper[mid].animate.set_fill(BLUE, opacity=0.30),
+            Rotate(qmark, angle=0.40),
+            run_time=1.05,
+        )
+        self.play(
+            choice_halo.animate.move_to([0, Y_UP, 0]),
+            dup.upper[mid].animate.set_fill(WHITE, opacity=0.45),
+            dup.lower[mid].animate.set_fill(BLUE, opacity=0.30),
+            Rotate(qmark, angle=-0.40),
+            run_time=1.05,
+        )
+        self.play(
+            choice_halo.animate.move_to([0, Y_DN, 0]),
+            dup.lower[mid].animate.set_fill(WHITE, opacity=0.45),
+            dup.upper[mid].animate.set_fill(BLUE, opacity=0.30),
+            Rotate(qmark, angle=0.20),
+            run_time=1.05,
+        )
 
-        self.at("invades a matching")
-        start = np.array([-2.0, yb + hs, 0])
-        end = np.array([-1.0, ys, 0])
-        path = CubicBezier(start, start + np.array([1.6, 0.0, 0]), end + np.array([-0.9, 1.8, 0]), end)
-        inv = path.copy().set_stroke(BLUE, lw)
-        coat_inv = path.copy().set_stroke(YELLOW, 18, opacity=0.45)
-        self.play(lu.animate.put_start_and_end_on([-6.0, yb + hs, 0], [-2.0, yb + hs, 0]), FadeOut(coat_l),
-                  FadeIn(inv), FadeIn(coat_inv), run_time=1.0)
-        tip = Dot(end, radius=0.1, color=GREEN)
-        note = T("one end shown invading", 24, GREY).move_to([-4.0, 0.2, 0])
-        self.play(FadeIn(note), run_time=0.4)
-
-        self.at("primes synthesis")
-        newdna = Line(end, [2.0, ys, 0], color=GREEN, stroke_width=10)
-        self.play(FadeIn(tip), run_time=0.2)
-        self.play(Create(newdna), run_time=1.3)
-
-        self.at("lost at the break")
-        lost = T("copying what was lost", 28, GREEN).move_to([3.2, ys + 1.0, 0])
-        self.play(FadeIn(lost, shift=UP * 0.15), run_time=0.5)
-
-        self.at("sister chromatid")
-        sis = T("sister chromatid", 30, BLUE).move_to([-3.7, ys - 1.2, 0])
-        self.play(FadeIn(sis, shift=UP * 0.15), run_time=0.5)
-
-        self.at("One rule runs")
-        everything = [note, lu, ll, ru, rl_, su, sl, coat_r, rad, inv, coat_inv, tip, newdna, lost, sis]
-        self.play(*[FadeOut(m) for m in everything], run_time=0.6)
-        hx = helix_curves(-4.4, 4.4, 0.7, amp=1.0, period=2.2, color=BLUE, w=10)
-        self.play(Create(hx, lag_ratio=0), run_time=0.9)
-        self.at("held twice")
-        twice = T("the information, held twice", 44, TEXT, font=TITLE_FONT).move_to([0, -1.8, 0])
-        self.play(FadeIn(twice, shift=UP * 0.15), run_time=0.6)
+        # Beat 4 (12.34): "Choose the upper block" — keep gliding between both choices through pause handoff
+        self.at("Choose the upper block")
+        self.play(
+            choice_halo.animate.move_to([0, Y_UP, 0]),
+            dup.upper[mid].animate.set_fill(WHITE, opacity=0.45),
+            dup.lower[mid].animate.set_fill(BLUE, opacity=0.30),
+            Rotate(qmark, angle=-0.18),
+            run_time=1.1,
+        )
+        self.play(
+            choice_halo.animate.move_to([0, Y_DN, 0]),
+            dup.lower[mid].animate.set_fill(WHITE, opacity=0.45),
+            dup.upper[mid].animate.set_fill(BLUE, opacity=0.30),
+            Rotate(qmark, angle=0.36),
+            run_time=1.1,
+        )
         self.finish()
 
 
-class S07End(EndCard):
-    LINE = "One rule runs through almost all repair:\nthe information is held twice."
+# ------------------------------------------------------------------ S07
+class S07Pause(PredictPause):
+    QUESTION = "Which strand is new?"
+    OPTIONS = ()
+    CARD = {"y": -3.15}
+    RING_AT = (6.0, -3.15, 0)
+    SECONDS = 4.5
+
+    def backdrop(self):
+        bg = mismatch_backdrop(show_arrows=True)
+        # Keep the red '?' gently rocking and white highlight alternating between upper and lower block
+        q_state = {"t": 0.0, "prev": 0.0}
+        qmark = bg.qmark
+
+        def rock_q(m, dt):
+            q_state["t"] += dt
+            ang = 0.22 * np.sin(2.8 * q_state["t"])
+            m.rotate(ang - q_state["prev"])
+            q_state["prev"] = ang
+
+        qmark.add_updater(rock_q)
+
+        hi_up = make_block(WHITE, BW + 0.08, BH + 0.08, fill_op=0.16, stroke_w=4.0).move_to([0, Y_UP, 0])
+        hi_dn = make_block(WHITE, BW + 0.08, BH + 0.08, fill_op=0.16, stroke_w=4.0).move_to([0, Y_DN, 0])
+        hi_up.layout_ok = True
+        hi_dn.layout_ok = True
+        hi_t = {"up": 0.0, "dn": 0.0}
+
+        def alt_up(m, dt):
+            hi_t["up"] += dt
+            s = 0.5 + 0.5 * np.sin(3.2 * hi_t["up"])
+            m.set_fill(opacity=0.18 * s)
+            m.set_stroke(opacity=0.85 * s)
+
+        def alt_dn(m, dt):
+            hi_t["dn"] += dt
+            s = 0.5 - 0.5 * np.sin(3.2 * hi_t["dn"])
+            m.set_fill(opacity=0.18 * s)
+            m.set_stroke(opacity=0.85 * s)
+
+        hi_up.add_updater(alt_up)
+        hi_dn.add_updater(alt_dn)
+
+        return VGroup(bg, hi_up, hi_dn)
+
+
+# ------------------------------------------------------------------ S08
+class S08Reveal(SpokenScene):
+    def construct(self):
+        bg = mismatch_backdrop(show_arrows=True)
+        dup = bg.dup
+        qmark = bg.qmark
+        self.add(bg)
+
+        # Beat 1 (0.00 -> 3.52): "The mismatch alone cannot answer" — clear pause arrows, wiggle unresolved pair & '?'
+        self.play(FadeOut(bg.arrows), run_time=0.45)
+        self.play(
+            dup.upper[5].animate.shift(RIGHT * 0.10),
+            dup.lower[5].animate.shift(LEFT * 0.10),
+            Rotate(qmark, angle=0.22),
+            run_time=1.0,
+        )
+        self.play(
+            dup.upper[5].animate.shift(LEFT * 0.20),
+            dup.lower[5].animate.shift(RIGHT * 0.20),
+            Rotate(qmark, angle=-0.44),
+            run_time=1.0,
+        )
+        self.play(
+            dup.upper[5].animate.move_to([0, Y_UP, 0]),
+            dup.lower[5].animate.move_to([0, Y_DN, 0]),
+            Rotate(qmark, angle=0.22),
+            run_time=0.95,
+        )
+
+        # Beat 2 (3.52): "Repair needs another clue" — moving teal ribbon 'new strand' along upper row
+        self.at("Repair needs another clue")
+        rib_phase = ValueTracker(0.0)
+        rib_phase.add_updater(lambda m, dt: m.increment_value(1.15 * dt))
+        self.add(rib_phase)
+
+        x_l, x_r = dup.top_rail.get_left()[0], dup.top_rail.get_right()[0]
+        new_bar, new_ticks = moving_ribbon_ticks(x_l, x_r, Y_RAIL_UP + 0.14, TEAL, rib_phase, n_ticks=14)
+        new_lbl = T("new strand", size=30, color=TEAL, weight=BOLD).move_to([-4.2, 2.48, 0])
+        self.add(new_ticks)
+        self.play(FadeIn(new_bar), FadeIn(new_lbl, shift=DOWN * 0.08), run_time=0.85)
+        self.play(
+            LaggedStart(*[Indicate(dup.upper[i], color=TEAL, scale_factor=1.05) for i in range(N_COLS)], lag_ratio=0.06),
+            run_time=2.5,
+        )
+
+        # Beat 3 (8.28): "During replication" — gold ribbon 'template' along lower row
+        self.at("During replication")
+        tmpl_bar, tmpl_ticks = moving_ribbon_ticks(x_l, x_r, Y_RAIL_DN - 0.14, GOLD, rib_phase, n_ticks=14)
+        tmpl_lbl = T("template", size=30, color=GOLD, weight=BOLD).move_to([-4.2, -2.48, 0])
+        patch = [4, 5, 6, 7]
+        self.add(tmpl_ticks)
+        self.play(
+            FadeIn(tmpl_bar),
+            FadeIn(tmpl_lbl, shift=UP * 0.1),
+            *[dup.lower[i].animate.set_stroke(GOLD, width=5.5) for i in patch],
+            run_time=1.8,
+        )
+        self.play(
+            LaggedStart(*[Indicate(dup.lower[i], color=GOLD, scale_factor=1.07) for i in patch], lag_ratio=0.14),
+            run_time=2.0,
+        )
+
+        # Beat 4 (13.08): "Signals that tell new" — teal upper stretch containing mismatch peels away
+        self.at("Signals that tell new")
+        peel_grp = VGroup(*[dup.upper[i] for i in patch])
+        self.play(
+            FadeOut(qmark),
+            *[FadeOut(dup.rungs[i]) for i in patch if i != 5],
+            *[dup.upper[i].animate.set_stroke(TEAL, width=4.5).set_fill(TEAL, opacity=0.30) for i in patch],
+            run_time=1.0,
+        )
+        self.play(peel_grp.animate.shift(UP * 1.15 + RIGHT * 0.25), run_time=1.4)
+        self.play(FadeOut(peel_grp, shift=UP * 0.3), run_time=0.7)
+
+        # Beat 5 (18.44): "The template then guides" — green blocks copy upward from gold template
+        self.at("The template then guides")
+        guides = VGroup(*[
+            DashedLine([col_x(i), Y_DN + BH / 2 + 0.04, 0], [col_x(i), Y_UP - BH / 2 - 0.04, 0],
+                       color=GOLD, stroke_width=4, dash_length=0.10)
+            for i in patch
+        ])
+        greens = VGroup(*[
+            make_block(GREEN, BW, BH)
+            .move_to([col_x(i), Y_DN + 0.7, 0])
+            .set_fill(GREEN, opacity=0.0)
+            .set_stroke(GREEN, opacity=0.0)
+            for i in patch
+        ])
+        self.add(greens)
+        self.play(Create(guides), run_time=0.7)
+        self.play(
+            LaggedStart(
+                *[g.animate.set_fill(GREEN, opacity=0.30).set_stroke(GREEN, opacity=1.0).move_to([col_x(i), Y_UP, 0]) for g, i in zip(greens, patch)],
+                lag_ratio=0.15,
+            ),
+            run_time=1.9,
+        )
+
+        # Beat 6 (22.80): "trustworthy information includes" — turn corrected patch blue sequentially & verify pairing
+        self.at("trustworthy information includes")
+        restored_rungs = VGroup(*[
+            Line([col_x(i), Y_DN + BH / 2 + 0.04, 0], [col_x(i), Y_UP - BH / 2 - 0.04, 0],
+                 color=BLUE, stroke_width=3, stroke_opacity=0.45)
+            for i in patch
+        ])
+        self.play(
+            LaggedStart(
+                *[g.animate.set_color(BLUE).set_fill(BLUE, opacity=0.30).set_stroke(BLUE, width=3.5) for g in greens],
+                lag_ratio=0.18,
+            ),
+            FadeOut(guides),
+            LaggedStart(*[FadeIn(r) for r in restored_rungs], lag_ratio=0.18),
+            run_time=2.6,
+        )
+        self.play(
+            LaggedStart(*[Indicate(g, color=BLUE, scale_factor=1.08) for g in greens], lag_ratio=0.15),
+            LaggedStart(*[Indicate(dup.lower[i], color=GOLD, scale_factor=1.08) for i in patch], lag_ratio=0.15),
+            run_time=2.3,
+        )
+
+        # Beat 7 (28.74): "extra label solves" — emphasize the two identity labels cleanly
+        self.at("extra label solves")
+        self.play(
+            Indicate(new_lbl, color=TEAL, scale_factor=1.10),
+            Indicate(tmpl_lbl, color=GOLD, scale_factor=1.10),
+            run_time=1.3,
+        )
+        self.play(
+            Indicate(new_lbl, color=TEAL, scale_factor=1.08),
+            Indicate(tmpl_lbl, color=GOLD, scale_factor=1.08),
+            run_time=1.1,
+        )
+        self.finish()
+
+
+# ------------------------------------------------------------------ S09
+class S09Sort(SpokenScene):
+    def construct(self):
+        # Continuous 14-column duplex showing all four repair routes left-to-right
+        n14 = 14
+        dx14 = 0.88
+        bw14 = 0.68
+        bh14 = 1.04
+        y_u, y_d = 1.02, -1.02
+        ru, rd = 1.68, -1.68
+
+        dup = build_duplex(n_cols=n14, dx=dx14, bw=bw14, bh=bh14, y_up=y_u, y_dn=y_d, rail_up=ru, rail_dn=rd)
+
+        # Zone column assignments:
+        # Zone 1 ('reverse'): col 1
+        # Zone 2 ('one base'): col 3
+        # Zone 3 ('short patch'): cols 5, 6, 7 (with linked red pair at 5, 6)
+        # Zone 4 ('new strand'): cols 10, 11, 12 (with teal ribbon & mismatch ? at 11)
+        z1 = 1
+        z2 = 3
+        z3 = [5, 6, 7]
+        z4 = [10, 11, 12]
+
+        # Set initial damage visuals along the continuous row
+        # Zone 1: red badge on intact blue block
+        badge = RoundedRectangle(
+            corner_radius=0.07, width=0.34, height=0.18,
+            stroke_color=RED, stroke_width=2.5, fill_color=RED, fill_opacity=0.90,
+        ).move_to(dup.upper[z1].get_top() + DOWN * 0.05)
+
+        # Zone 2: single red warped block
+        dup.upper[z2].become(make_warped_block(RED, bw14, bh14).move_to(dup.upper[z2].get_center()))
+
+        # Zone 3: linked red pair (5, 6) + slight upward bow on cols 5, 6, 7 and local top rail arch
+        bow = {5: 0.12, 6: 0.16, 7: 0.12}
+        for c, dy in bow.items():
+            dup.upper[c].shift(UP * dy)
+            x = dup.upper[c].get_center()[0]
+            dup.rungs[c].put_start_and_end_on([x, y_d + bh14 / 2 + 0.04, 0], [x, y_u + dy - bh14 / 2 - 0.04, 0])
+        dup.upper[5].become(make_warped_block(RED, bw14, bh14).move_to(dup.upper[5].get_center()))
+        dup.upper[6].become(make_warped_block(RED, bw14, bh14).move_to(dup.upper[6].get_center()))
+        link3 = Line(dup.upper[5].get_center(), dup.upper[6].get_center(), color=RED, stroke_width=8)
+
+        # Replace flat top rail with a locally bowed top rail clearing Zone 3 blocks
+        rail_xl = dup.top_rail.get_left()[0]
+        rail_xr = dup.top_rail.get_right()[0]
+        x_b_mid = col_x(6, n14, dx14)
+        xs_bow = np.linspace(rail_xl, rail_xr, 90)
+        bowed_top_rail = VMobject(color=GREY, stroke_width=5).set_points_as_corners([
+            [x, ru + 0.30 * np.exp(-((x - x_b_mid) / 1.15) ** 2), 0] for x in xs_bow
+        ])
+        flat_top_rail = Line([rail_xl, ru, 0], [rail_xr, ru, 0], color=GREY, stroke_width=5)
+        dup.top_rail.become(bowed_top_rail)
+
+        # Zone 4: teal new-strand segment over cols 10..12 + mismatch ? at col 11
+        x10 = dup.upper[10].get_left()[0] - 0.06
+        x12 = dup.upper[12].get_right()[0] + 0.06
+        teal_seg = Line([x10, ru + 0.13, 0], [x12, ru + 0.13, 0], color=TEAL, stroke_width=6)
+        for c in z4:
+            dup.upper[c].set_stroke(TEAL, width=4.0)
+        dup.rungs[11].set_stroke(opacity=0.0)
+        q11 = T("?", size=38, color=RED, weight=BOLD).move_to([col_x(11, n14, dx14), 0, 0])
+
+        focus_box = RoundedRectangle(
+            corner_radius=0.14,
+            width=1.05,
+            height=3.65,
+            stroke_color=TEAL,
+            stroke_width=4.0,
+            fill_color=TEAL,
+            fill_opacity=0.11,
+        ).move_to([col_x(z1, n14, dx14), 0, 0])
+        focus_box.layout_ok = True
+        self.play(FadeIn(dup), FadeIn(badge), FadeIn(link3), FadeIn(teal_seg), FadeIn(q11), run_time=1.2)
+        self.play(FadeIn(focus_box, shift=RIGHT * 0.4), run_time=1.0)
+        self.play(
+            dup.upper[z2].animate.set_fill(RED, opacity=0.45),
+            dup.upper[5].animate.set_fill(RED, opacity=0.45),
+            dup.upper[6].animate.set_fill(RED, opacity=0.45),
+            run_time=0.9,
+        )
+
+        # Beat 1 (3.62): "reversibly damaged base" -> Zone 1 transformation + gold pointer under upper block itself
+        self.at("reversibly damaged base")
+        lbl1 = T("reverse", size=28, color=TEAL, weight=BOLD).move_to([col_x(z1, n14, dx14), 2.85, 0])
+        dup.rungs[z1].set_stroke(opacity=0.0)
+        ptr1 = make_gold_pointer(col_x(z1, n14, dx14), 0.16, point_up=True)
+        eraser = make_eraser_tool().scale(0.55).move_to([col_x(z1, n14, dx14) - 0.65, 1.95, 0])
+        self.play(FadeIn(lbl1), FadeIn(ptr1), FadeIn(eraser), run_time=0.6)
+        self.play(eraser.animate.move_to([col_x(z1, n14, dx14) + 0.05, 1.85, 0]), run_time=0.7)
+        carried1 = VGroup(eraser, badge)
+        self.play(carried1.animate.shift(DOWN * 0.12 + LEFT * 0.35).set_opacity(0), run_time=0.55)
+        self.remove(carried1)
+        self.play(
+            dup.upper[z1].animate.set_fill(BLUE, opacity=0.55).scale(1.08),
+            run_time=0.75,
+        )
+        self.play(
+            dup.upper[z1].animate.set_fill(BLUE, opacity=0.30).scale(1.0 / 1.08),
+            focus_box.animate.move_to([col_x(z2, n14, dx14), 0, 0]),
+            run_time=0.85,
+        )
+
+        # Beat 2 (7.62): "small lesion loses" -> Zone 2 one red block exchanged + gold pointer under lower partner
+        self.at("small lesion loses")
+        lbl2 = T("one base", size=28, color=TEAL, weight=BOLD).move_to([col_x(z2, n14, dx14), 2.85, 0])
+        ptr2 = make_gold_pointer(col_x(z2, n14, dx14), -2.05, point_up=True)
+        self.play(
+            FadeIn(lbl2), FadeIn(ptr2),
+            dup.lower[z2].animate.set_fill(GOLD, opacity=0.45).set_stroke(GOLD, width=5.0),
+            FadeOut(dup.rungs[z2]),
+            dup.upper[z2].animate.shift(UP * 0.55).set_opacity(0),
+            run_time=0.95,
+        )
+        g2 = (
+            make_block(GREEN, bw14, bh14)
+            .move_to([col_x(z2, n14, dx14), y_d + 0.6, 0])
+            .set_fill(GREEN, opacity=0.0)
+            .set_stroke(GREEN, opacity=0.0)
+        )
+        self.add(g2)
+        self.play(
+            g2.animate.set_fill(GREEN, opacity=0.35).set_stroke(GREEN, opacity=1.0).move_to([col_x(z2, n14, dx14), y_u, 0]),
+            run_time=0.85,
+        )
+        z3_focus = RoundedRectangle(
+            corner_radius=0.14,
+            width=2.80,
+            height=3.65,
+            stroke_color=TEAL,
+            stroke_width=4.0,
+            fill_color=TEAL,
+            fill_opacity=0.11,
+        ).move_to([col_x(6, n14, dx14), 0, 0])
+        z3_focus.layout_ok = True
+        self.play(
+            ReplacementTransform(focus_box, z3_focus),
+            dup.lower[z2].animate.set_fill(BLUE, opacity=0.30),
+            run_time=0.95,
+        )
+
+        # Beat 3 (10.64): "bulky distortion loses" -> Zone 3 short patch exchanged + gold pointer under lower partner
+        self.at("bulky distortion loses")
+        lbl3 = T("short patch", size=28, color=TEAL, weight=BOLD).move_to([col_x(6, n14, dx14), 2.85, 0])
+        ptr3 = make_gold_pointer(col_x(6, n14, dx14), -2.05, point_up=True)
+        patch3_grp = VGroup(link3, *[dup.upper[c] for c in z3])
+        self.play(
+            FadeIn(lbl3), FadeIn(ptr3),
+            *[dup.lower[c].animate.set_fill(GOLD, opacity=0.45).set_stroke(GOLD, width=5.0) for c in z3],
+            *[FadeOut(dup.rungs[c]) for c in z3],
+            patch3_grp.animate.shift(UP * 0.55).set_opacity(0),
+            run_time=1.0,
+        )
+        g3 = VGroup(*[
+            make_block(GREEN, bw14, bh14)
+            .move_to([col_x(c, n14, dx14), y_d + 0.6, 0])
+            .set_fill(GREEN, opacity=0.0)
+            .set_stroke(GREEN, opacity=0.0)
+            for c in z3
+        ])
+        self.add(g3)
+        self.play(
+            *[blk.animate.set_fill(GREEN, opacity=0.35).set_stroke(GREEN, opacity=1.0).move_to([col_x(c, n14, dx14), y_u, 0]) for blk, c in zip(g3, z3)],
+            Transform(dup.top_rail, flat_top_rail),
+            run_time=0.95,
+        )
+        self.play(
+            z3_focus.animate.move_to([col_x(11, n14, dx14), 0, 0]),
+            *[dup.lower[c].animate.set_fill(BLUE, opacity=0.30) for c in z3],
+            run_time=1.0,
+        )
+
+        # Beat 4 (13.86): "mismatch loses part" -> Zone 4 teal new-strand segment exchanged + gold pointer under lower partner
+        self.at("mismatch loses part")
+        lbl4 = T("new strand", size=28, color=TEAL, weight=BOLD).move_to([col_x(11, n14, dx14), 2.85, 0])
+        ptr4 = make_gold_pointer(col_x(11, n14, dx14), -2.05, point_up=True)
+        patch4_grp = VGroup(teal_seg, *[dup.upper[c] for c in z4])
+        self.play(
+            FadeIn(lbl4), FadeIn(ptr4),
+            FadeOut(q11),
+            *[dup.lower[c].animate.set_fill(GOLD, opacity=0.45).set_stroke(GOLD, width=5.0) for c in z4],
+            *[FadeOut(dup.rungs[c]) for c in z4 if c != 11],
+            patch4_grp.animate.shift(UP * 0.55).set_opacity(0),
+            run_time=1.1,
+        )
+        g4 = VGroup(*[
+            make_block(GREEN, bw14, bh14)
+            .move_to([col_x(c, n14, dx14), y_d + 0.6, 0])
+            .set_fill(GREEN, opacity=0.0)
+            .set_stroke(GREEN, opacity=0.0)
+            for c in z4
+        ])
+        self.add(g4)
+        self.play(
+            *[blk.animate.set_fill(GREEN, opacity=0.35).set_stroke(GREEN, opacity=1.0).move_to([col_x(c, n14, dx14), y_u, 0]) for blk, c in zip(g4, z4)],
+            run_time=1.1,
+        )
+        self.play(
+            *[dup.lower[c].animate.set_fill(BLUE, opacity=0.30) for c in z4],
+            z3_focus.animate.move_to([col_x(z1, n14, dx14), 0, 0]).stretch_to_fit_width(1.65),
+            run_time=1.5,
+        )
+
+        # Beat 5 (19.10): "limits its work" — turn all replaced green blocks blue, sweep focus scanner across all 4 zones
+        self.at("limits its work")
+        self.play(
+            *[blk.animate.set_color(BLUE).set_fill(BLUE, opacity=0.30).set_stroke(BLUE, width=3.5) for blk in [g2, *g3, *g4]],
+            z3_focus.animate.move_to([col_x(6, n14, dx14), 0, 0]),
+            run_time=1.8,
+        )
+        self.play(
+            z3_focus.animate.move_to([col_x(11, n14, dx14), 0, 0]),
+            LaggedStart(
+                Indicate(lbl1, color=TEAL),
+                Indicate(lbl2, color=TEAL),
+                Indicate(lbl3, color=TEAL),
+                Indicate(lbl4, color=TEAL),
+                lag_ratio=0.28,
+            ),
+            run_time=2.2,
+        )
+        self.play(FadeOut(z3_focus), run_time=0.4)
+
+        # Beat 6 (23.80): "copy the intact partner" — upward gold copy guides + visible gold partner wave
+        self.at("copy the intact partner")
+        copy_cols = [z2] + z3 + z4
+        copy_guides = VGroup(*[
+            DashedLine(
+                [col_x(c, n14, dx14), y_d + bh14 / 2 + 0.04, 0],
+                [col_x(c, n14, dx14), y_u - bh14 / 2 - 0.04, 0],
+                color=GOLD,
+                stroke_width=4.5,
+                dash_length=0.08,
+            )
+            for c in copy_cols
+        ])
+        self.play(
+            Create(copy_guides),
+            *[dup.lower[c].animate.set_fill(GOLD, opacity=0.52).scale(1.07) for c in copy_cols],
+            ptr2.animate.shift(UP * 0.14),
+            ptr3.animate.shift(UP * 0.14),
+            ptr4.animate.shift(UP * 0.14),
+            run_time=1.35,
+        )
+        self.play(
+            *[dup.lower[c].animate.set_fill(BLUE, opacity=0.30).scale(1.0 / 1.07) for c in copy_cols],
+            ptr2.animate.shift(DOWN * 0.14),
+            ptr3.animate.shift(DOWN * 0.14),
+            ptr4.animate.shift(DOWN * 0.14),
+            FadeOut(copy_guides),
+            run_time=1.35,
+        )
+        self.finish()
+
+
+# ------------------------------------------------------------------ S10
+class S10Consequence(SpokenScene):
+    def construct(self):
+        # Compact mini-duplex builder for the two moving outcome lanes
+        def mini_pair(col_up=BLUE, col_dn=BLUE, w=0.52, h=0.60, alpha=1.0):
+            u = make_block(col_up, w, h, fill_op=0.34 * alpha, stroke_w=3.0).set_stroke(opacity=alpha).move_to([0, 0.42, 0])
+            d = make_block(col_dn, w, h, fill_op=0.34 * alpha, stroke_w=3.0).set_stroke(opacity=alpha).move_to([0, -0.42, 0])
+            r = Line([0, -0.10, 0], [0, 0.10, 0], color=col_up, stroke_width=2.5, stroke_opacity=0.65 * alpha)
+            return VGroup(r, u, d)
+
+        def mini_strip(cols_up, cols_dn, spacing=0.64, alpha=1.0):
+            g = VGroup()
+            for idx, (cu, cd) in enumerate(zip(cols_up, cols_dn)):
+                x = (idx - (len(cols_up) - 1) / 2.0) * spacing
+                g.add(mini_pair(cu, cd, alpha=alpha).move_to([x, 0, 0]))
+            return g
+
+        # Top lane (y = +2.15): repaired strip moving smoothly rightward
+        top_lane_bg = RoundedRectangle(
+            corner_radius=0.16, width=11.8, height=1.85,
+            stroke_color=GREEN, stroke_width=2.5, fill_color=GREEN, fill_opacity=0.06,
+        ).move_to([0, 2.05, 0])
+        top_lane_bg.layout_ok = True
+        lbl_restored = T("sequence restored", size=28, color=GREEN, weight=BOLD).move_to([-3.6, 3.25, 0])
+
+        # Bottom lane (y = -1.90): unrepaired red block passes through schematic replication fork -> stable red pair
+        bot_lane_bg = RoundedRectangle(
+            corner_radius=0.16, width=11.8, height=2.05,
+            stroke_color=RED, stroke_width=2.5, fill_color=RED, fill_opacity=0.06,
+        ).move_to([0, -1.85, 0])
+        bot_lane_bg.layout_ok = True
+        lbl_changed = T("sequence changed", size=28, color=RED, weight=BOLD).move_to([2.4, -3.15, 0])
+
+        # Schematic Y-shaped replication fork centered around x = -1.0, y = -1.85
+        fork = VGroup(
+            Line([-2.2, -1.85, 0], [-0.9, -1.85, 0], color=GREY, stroke_width=4),
+            Line([-0.9, -1.85, 0], [0.4, -1.35, 0], color=GREY, stroke_width=4),
+            Line([-0.9, -1.85, 0], [0.4, -2.35, 0], color=GREY, stroke_width=4),
+        )
+        fork_tag = scope_tag("schematic")
+
+        # Moving strips driven by continuous trackers (starting clear of fork tips x=0.40)
+        top_x = ValueTracker(-4.2)
+        bot_in_x = ValueTracker(-4.6)
+        bot_in_op = ValueTracker(0.0)
+        bot_out_x = ValueTracker(1.38)
+        show_out = ValueTracker(0.0)
+
+        top_strip = always_redraw(
+            lambda: mini_strip([BLUE, GREEN, BLUE, BLUE], [BLUE, BLUE, BLUE, BLUE], alpha=1.0).move_to([top_x.get_value(), 2.05, 0])
+        )
+        bot_in_strip = always_redraw(
+            lambda: mini_strip([BLUE, RED, BLUE], [BLUE, BLUE, BLUE], alpha=bot_in_op.get_value()).move_to([bot_in_x.get_value(), -1.85, 0])
+        )
+        bot_out_strip = always_redraw(
+            lambda: mini_strip([BLUE, RED, BLUE], [BLUE, RED, BLUE], alpha=show_out.get_value()).move_to([bot_out_x.get_value(), -1.85, 0])
+        )
+
+        self.add(top_lane_bg, lbl_restored, top_strip, fork_tag, bot_in_strip)
+        self.play(FadeIn(bot_lane_bg), Create(fork), bot_in_op.animate.set_value(1.0), run_time=1.0)
+
+        # Beat 1 (2.26): "replication may turn" — red lesion enters fork, fades into fork, emerges as stable RED paired block
+        self.at("replication may turn")
+        self.add(bot_out_strip)
+        self.play(
+            top_x.animate.set_value(-2.8),
+            bot_in_x.animate.set_value(-2.95),
+            run_time=1.3,
+            rate_func=linear,
+        )
+        self.play(
+            top_x.animate.set_value(-2.2),
+            bot_in_x.animate.set_value(-2.2),
+            bot_in_op.animate.set_value(0.0),
+            run_time=0.65,
+            rate_func=linear,
+        )
+        self.remove(bot_in_strip)
+        self.play(
+            top_x.animate.set_value(-1.0),
+            show_out.animate.set_value(1.0),
+            bot_out_x.animate.set_value(2.05),
+            FadeIn(lbl_changed, shift=UP * 0.1),
+            run_time=1.9,
+            rate_func=linear,
+        )
+
+        # Beat 2 (7.10): "Repair can also change" — highlight the stable red paired block & keep both lanes moving
+        self.at("Repair can also change")
+        self.play(
+            top_x.animate.set_value(0.45),
+            bot_out_x.animate.set_value(2.75),
+            Indicate(lbl_changed, color=RED, scale_factor=1.06),
+            run_time=2.8,
+            rate_func=linear,
+        )
+
+        # Beat 3 (11.36): "That is why finding" — keep gliding while transitioning focus
+        self.at("That is why finding")
+        self.play(
+            top_x.animate.set_value(1.75),
+            bot_out_x.animate.set_value(3.35),
+            run_time=2.6,
+            rate_func=linear,
+        )
+
+        # Beat 4 (15.64): "The cell must also know" — keep labels crisp 1.0, dim lane borders only, reveal question cleanly
+        self.at("The cell must also know")
+        question = T("What information remains?", size=46, color=GOLD, weight=BOLD).move_to([0, 0.12, 0])
+        self.play(
+            top_lane_bg.animate.set_stroke(opacity=0.55).set_fill(opacity=0.03),
+            bot_lane_bg.animate.set_stroke(opacity=0.55).set_fill(opacity=0.03),
+            fork.animate.set_stroke(opacity=0.45),
+            FadeIn(question, scale=0.96),
+            top_x.animate.set_value(2.15),
+            bot_out_x.animate.set_value(3.55),
+            run_time=0.7,
+            rate_func=linear,
+        )
+        self.play(
+            top_x.animate.set_value(3.15),
+            bot_out_x.animate.set_value(4.05),
+            run_time=2.2,
+            rate_func=linear,
+        )
+
+        # Beat 5 (20.54): "Follow that question" — keep both outcomes moving steadily through scene end
+        self.at("Follow that question")
+        self.play(
+            top_x.animate.set_value(4.58),
+            bot_out_x.animate.set_value(4.90),
+            run_time=3.7,
+            rate_func=linear,
+        )
+        self.finish()
+
+
+# ------------------------------------------------------------------ S11
+class S11End(EndCard):
+    LINE = "Repair outcomes depend on what is damaged and what intact information remains."

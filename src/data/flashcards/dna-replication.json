@@ -1,0 +1,530 @@
+{
+ "slug": "dna-replication",
+ "title": "DNA Replication: Semiconservative Copying and Its Machinery",
+ "generated": {
+  "date": "2026-11-12",
+  "pipeline": "extract → Sonnet draft → Sonnet accuracy gate (separate agent) → Sonnet fixes",
+  "models": {
+   "draft": "claude-sonnet-5-5",
+   "gate": "claude-sonnet-5-5",
+   "fix": "claude-sonnet-5-5"
+  }
+ },
+ "lessonHash": "df80384d93ab",
+ "sectionHashes": {
+  "(opening)": "db891a14bbd6",
+  "Three models, one experiment": "ec92e31f9098",
+  "Testing the pieces": "3821fe9b82eb",
+  "The fork's jobs, organism by organism": "997054454166",
+  "Three layers of accuracy": "4cd92beb4bcd",
+  "Linear chromosomes need finishing work": "327c2b104b9c",
+  "Design problem": "cccf640520c3",
+  "Going deeper": "45046cfcc07b"
+ },
+ "cards": [
+  {
+   "id": "dna-replication-c01",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In semiconservative replication, each daughter molecule keeps {{c1::one old strand}} and builds one new strand.",
+   "back": "",
+   "quote": "Each daughter molecule keeps one old strand and builds one new strand."
+  },
+  {
+   "id": "dna-replication-c02",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In the Meselson and Stahl E. coli experiment, what property of DNA does equilibrium centrifugation in concentrated caesium chloride separate?",
+   "back": "Buoyant density, which separates heavy, hybrid and light DNA into bands.",
+   "quote": "Equilibrium density-gradient centrifugation in concentrated caesium chloride then separates heavy, hybrid and light DNA by buoyant density.",
+   "section": "Three models, one experiment"
+  },
+  {
+   "id": "dna-replication-c03",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Heavy-nitrogen E. coli are moved to ordinary nitrogen and, after one generation, give one hybrid band. Which model does this rule out, and which does it leave open?",
+   "back": "It rules out conservative replication. Dispersive replication is not ruled out.",
+   "why": "Conservative copying predicts a heavy band and a light band, never a hybrid band.",
+   "quote": "A single hybrid band after one generation rules out conservative copying, though not dispersive.",
+   "section": "Three models, one experiment"
+  },
+  {
+   "id": "dna-replication-c04",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "After two generations in light medium, E. coli DNA shows hybrid and light bands in equal amounts. Which model does this rule out?",
+   "back": "Uniform dispersive copying.",
+   "why": "Even dispersive mixing would give one band about one quarter of the way from light to heavy, not two bands.",
+   "quote": "Hybrid and light bands after two generations, in equal amounts, rule out uniform dispersive copying.",
+   "section": "Three models, one experiment"
+  },
+  {
+   "id": "dna-replication-c05",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Heavy E. coli DNA is moved to light medium with complete synchronous rounds and no recycled heavy nitrogen. Under conservative replication, what bands and fractions appear after three generations?",
+   "back": "One heavy duplex and seven light duplexes: 12.5% heavy, 87.5% light, and no hybrid band.",
+   "why": "The parental duplex is kept whole in every round, so it never mixes with new strands.",
+   "quote": "conservative replication keeps the parental duplex whole, semiconservative gives each daughter one parental and one new strand, and dispersive mixes old and new segments through both strands",
+   "section": "Three models, one experiment"
+  },
+  {
+   "id": "dna-replication-c06",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Start with one heavy-heavy duplex in light medium. Assume complete synchronous rounds and no recycled heavy nitrogen. Under semiconservative replication, what fraction of molecules is hybrid after four generations?",
+   "back": "The 2 heavy strands stay in 2 hybrids among 2^4 = 16 molecules. 2/16 = 12.5% hybrid, 87.5% light.",
+   "why": "After three generations the same rule gives 25% hybrid and 75% light.",
+   "quote": "Each original heavy strand stays in one hybrid; the other six molecules are light: 25% hybrid and 75% light.",
+   "section": "Three models, one experiment"
+  },
+  {
+   "id": "dna-replication-c07",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In a Meselson and Stahl type experiment, DNA after two generations in light medium forms a single band one quarter of the way from light to heavy. Which replication model fits?",
+   "back": "Dispersive replication with even mixing.",
+   "why": "It predicts a single band at 1/2, then 1/4, then 1/8 of the way from light to heavy; semiconservative predicts discrete hybrid and light bands.",
+   "quote": "Hybrid and light bands after two generations, in equal amounts, rule out uniform dispersive copying.",
+   "section": "Three models, one experiment"
+  },
+  {
+   "id": "dna-replication-c08",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Three models of DNA copying are compared across generations in heavy-to-light nitrogen. Does the average heavy fraction of the DNA differ among them?",
+   "back": "No. In every model it is one half, one quarter, then one eighth. The distribution of label among molecules distinguishes the models, not the average.",
+   "quote": "The distribution of label among molecules, not its average, distinguishes the models.",
+   "section": "Three models, one experiment"
+  },
+  {
+   "id": "dna-replication-c09",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Every DNA polymerase extends only a free {{c1::3'-OH}}, whose hydroxyl attacks the incoming dNTP.",
+   "back": "The reaction releases pyrophosphate.",
+   "quote": "Every DNA polymerase extends only a free 3'-OH, whose hydroxyl attacks the incoming dNTP and releases pyrophosphate",
+   "section": "Three models, one experiment"
+  },
+  {
+   "id": "dna-replication-c10",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "What must a replicative DNA polymerase be given before it can start a new chain?",
+   "back": "A primer: a short paired stretch with a 3' end to extend.",
+   "quote": "The replicative DNA polymerases also cannot start a chain: each needs a primer, a short paired stretch with a 3' end to extend.",
+   "section": "Three models, one experiment"
+  },
+  {
+   "id": "dna-replication-c11",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "At one replication fork, why can one new strand be made continuously while the other is made in pieces?",
+   "back": "Polymerases extend only 3' ends and the templates are antiparallel. On one template the new strand grows away from the opening fork, so it is restarted again and again on new primers.",
+   "quote": "The templates are antiparallel, so how can one fork extend 3' ends on both?",
+   "section": "Three models, one experiment"
+  },
+  {
+   "id": "dna-replication-c12",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "At a replication fork, which strand is made in Okazaki fragments, and which is made continuously?",
+   "back": "The lagging strand is made in Okazaki fragments; the leading strand is made continuously.",
+   "quote": "The second film named the leading strand and the lagging strand's Okazaki fragments, not the evidence for them.",
+   "section": "Testing the pieces"
+  },
+  {
+   "id": "dna-replication-c13",
+   "type": "experiment",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Okazaki and colleagues gave E. coli B pulses of radioactive thymidine as short as five seconds at 20°C, denatured the DNA and sized it on alkaline sucrose gradients. What did they see, and what did it suggest?",
+   "back": "After a five-second pulse most label was in a slow component of about 11S; with longer labelling it moved into long DNA. This suggested at least some new DNA is made as short pieces (about 1,000 to 2,000 nucleotides), with joining and direction left to later proof.",
+   "quote": "After a five-second pulse most label was in a slow component of about 11S; with longer labelling it moved into long DNA.",
+   "section": "Testing the pieces"
+  },
+  {
+   "id": "dna-replication-c14",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "In E. coli, which protein binds oriC and opens a short AT-rich stretch?",
+   "back": "DnaA.",
+   "quote": "DnaA binds oriC and opens a short AT-rich stretch",
+   "section": "The fork's jobs, organism by organism"
+  },
+  {
+   "id": "dna-replication-c15",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "What do SSB and gyrase each do at an E. coli replication fork?",
+   "back": "SSB coats the single strands. Gyrase, a topoisomerase, relieves overwinding ahead of the fork.",
+   "quote": "SSB coats single strands; gyrase, a topoisomerase, relieves overwinding",
+   "section": "The fork's jobs, organism by organism"
+  },
+  {
+   "id": "dna-replication-c16",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "How does the eukaryotic replicative helicase become active, and on which template does it move?",
+   "back": "Inactive MCM2-7 rings are loaded in G1. In S phase Cdc45 and GINS join to form the active CMG helicase, which moves 3' to 5' on the leading-strand template.",
+   "quote": "In S phase, Cdc45 and GINS join MCM as the active CMG helicase, which moves 3' to 5' on the leading-strand template",
+   "section": "The fork's jobs, organism by organism"
+  },
+  {
+   "id": "dna-replication-c17",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "What does eukaryotic Pol α-primase make, in contrast to E. coli DnaG primase, which makes short RNA primers?",
+   "back": "RNA, which it then extends briefly with DNA.",
+   "quote": "Pol α-primase makes RNA and extends it briefly with DNA",
+   "section": "The fork's jobs, organism by organism"
+  },
+  {
+   "id": "dna-replication-c18",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "What does the β sliding clamp do for the E. coli Pol III holoenzyme?",
+   "back": "It keeps the polymerase on DNA for thousands of nucleotides.",
+   "quote": "Pol III holoenzyme; its β sliding clamp keeps it on DNA for thousands of nucleotides",
+   "section": "The fork's jobs, organism by organism"
+  },
+  {
+   "id": "dna-replication-c19",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "In the usual summary of eukaryotic replication, which polymerase makes most of the leading strand and which most of the lagging strand?",
+   "back": "Pol ε makes most leading-strand synthesis and Pol δ most lagging-strand synthesis, both on the PCNA clamp.",
+   "why": "The division is dynamic: in a rebuilt yeast replisome Pol δ helped start leading strands before handing off to Pol ε.",
+   "quote": "In the usual summary, Pol ε most leading-strand and Pol δ most lagging-strand synthesis, both on the PCNA clamp",
+   "section": "The fork's jobs, organism by organism"
+  },
+  {
+   "id": "dna-replication-c20",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "How does E. coli remove each RNA primer and fill the gap?",
+   "back": "Pol I removes the primer with its 5' to 3' exonuclease while filling the gap; DNA ligase then seals the nick.",
+   "quote": "Pol I removes each primer with its 5' to 3' exonuclease while filling the gap",
+   "section": "The fork's jobs, organism by organism"
+  },
+  {
+   "id": "dna-replication-c21",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "How do eukaryotes remove RNA primer material from the lagging strand?",
+   "back": "Pol δ displaces primer material as a 5' flap. FEN1 cuts short flaps and Dna2 helps with longer ones; RNase H has a smaller part. DNA ligase I seals.",
+   "quote": "Pol δ displaces primer material as a 5' flap; FEN1 cuts short flaps, Dna2 helps with longer ones, RNase H has a smaller part",
+   "section": "The fork's jobs, organism by organism"
+  },
+  {
+   "id": "dna-replication-c22",
+   "type": "experiment",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Pol I was purified first, yet a 1969 E. coli mutant with very little Pol I polymerase activity still grew. What does this show?",
+   "back": "Pol I is not the main replicative polymerase. Pol III is the replicative polymerase.",
+   "quote": "Arthur Kornberg's laboratory purified Pol I first, but a 1969 mutant with very little Pol I polymerase activity still grew; Pol III is the replicative polymerase.",
+   "section": "The fork's jobs, organism by organism"
+  },
+  {
+   "id": "dna-replication-c23",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "E. coli in rich medium divide about every 20 minutes, yet one round of chromosome copying takes about 38 minutes. How can each division still receive a finished chromosome?",
+   "back": "New rounds begin at oriC before earlier rounds finish, so replication runs ahead of division. Fork speed rises only modestly with growth rate, too little to close the gap.",
+   "quote": "so new rounds begin at oriC before earlier rounds finish, and each division still receives a finished chromosome",
+   "section": "The fork's jobs, organism by organism"
+  },
+  {
+   "id": "dna-replication-c24",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "The E. coli K-12 chromosome is about 4.6 million base pairs. Two forks each move at about 1,000 nucleotides per second. How long would one round take if only one fork copied the whole chromosome, and how does that compare with two forks?",
+   "back": "One fork: 4.6 × 10^6 / 1,000 = 4,600 s, about 77 minutes. Two forks each copy half: 2,300 s, about 38 minutes.",
+   "quote": "Two forks each move at about 1,000 nucleotides per second.",
+   "section": "The fork's jobs, organism by organism"
+  },
+  {
+   "id": "dna-replication-c25",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "Polymerases first select bases: the active site closes well around a correct pair, leaving roughly one error per {{c1::10^4 to 10^5}} nucleotides.",
+   "back": "",
+   "quote": "Polymerases first select bases: the active site closes well around a correct pair and poorly around a mispair, leaving roughly one error per 10^4 to 10^5 nucleotides.",
+   "section": "Three layers of accuracy"
+  },
+  {
+   "id": "dna-replication-c26",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "What is proofreading by a replicative DNA polymerase, and about how much does it improve accuracy?",
+   "back": "A 3' to 5' exonuclease removes a mispaired 3' end. It improves accuracy about 100-fold, up to 1,000-fold depending on polymerase and mispair.",
+   "why": "In E. coli Pol III this activity is in the ε subunit.",
+   "quote": "Proofreading improves accuracy about 100-fold, and up to 1,000-fold depending on polymerase and mispair.",
+   "section": "Three layers of accuracy"
+  },
+  {
+   "id": "dna-replication-c27",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A replicative polymerase loses its 3' to 5' exonuclease but keeps normal base selection. What happens to copying accuracy, and what can still catch some errors?",
+   "back": "More errors survive, because mispaired 3' ends are no longer removed. Mismatch repair, which acts after the fork, can still fix some.",
+   "why": "Rests on the three layers: base selection, proofreading, mismatch repair.",
+   "quote": "They then proofread: a 3' to 5' exonuclease removes a mispaired 3' end.",
+   "section": "Three layers of accuracy"
+  },
+  {
+   "id": "dna-replication-c28",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Name the three layers of accuracy in copying DNA, in the order they act.",
+   "back": "Base selection by the polymerase, then proofreading by a 3' to 5' exonuclease, then mismatch repair after the fork.",
+   "quote": "Mismatch repair then fixes errors after the fork",
+   "section": "Three layers of accuracy"
+  },
+  {
+   "id": "dna-replication-c29",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "E. coli copies DNA with roughly one error per 10^9 base pairs per round. On average, how many copies of a 4.6-million-base-pair chromosome are made per error?",
+   "back": "4.6 × 10^6 / 10^9 = 0.0046 errors per copy, so about 1 error per 217 copies, roughly one in 200. At one per 10^10 it is about one in 2,000.",
+   "why": "These are orders of magnitude, not fixed constants.",
+   "quote": "Together they bring the E. coli rate to roughly one error per 10^9 to 10^10 base pairs per round.",
+   "section": "Three layers of accuracy"
+  },
+  {
+   "id": "dna-replication-c30",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "After an RNA primer is removed, why can a circular chromosome always fill the gap, while the gap left by the last primer at a linear tip may not be filled?",
+   "back": "A circle has DNA behind every gap, which supplies a 3' end for extension. At a linear tip no upstream 3' end may remain. This is the end-replication problem.",
+   "quote": "A circle has DNA behind every gap, supplying a 3' end for extension.",
+   "section": "Linear chromosomes need finishing work"
+  },
+  {
+   "id": "dna-replication-c31",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Human telomeres are repeats of {{c1::TTAGGG}}; the ciliate Tetrahymena uses TTGGGG.",
+   "back": "",
+   "quote": "Telomeres are repeated sequences at chromosome ends: TTGGGG in the ciliate Tetrahymena and TTAGGG in humans.",
+   "section": "Linear chromosomes need finishing work"
+  },
+  {
+   "id": "dna-replication-c32",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "What is telomerase, and what does it carry that lets it extend a chromosome end?",
+   "back": "A reverse transcriptase that carries its own RNA, which acts as the template, and extends the G-rich 3' strand.",
+   "quote": "Telomerase is a reverse transcriptase (it makes DNA from an RNA template) that carries its own RNA and extends the G-rich 3' strand.",
+   "section": "Linear chromosomes need finishing work"
+  },
+  {
+   "id": "dna-replication-c33",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "The RNA of Tetrahymena telomerase contains CAACCCCAA. The enzyme adds TTGGGG repeats. What does the RNA sequence suggest?",
+   "back": "It contains CCCCAA, which pairs with TTGGGG, so it fits as the template for the repeat.",
+   "quote": "In 1989 they reported that the enzyme's RNA contains CAACCCCAA, suggested as the template.",
+   "section": "Linear chromosomes need finishing work"
+  },
+  {
+   "id": "dna-replication-c34",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "An extract adds tandem TTGGGG repeats to a synthetic telomeric primer. Heat and protease destroy the activity. Brief treatment with an RNA-degrading enzyme also destroys it, but a control with the enzyme already inactivated does not. What does the RNase result add?",
+   "back": "An RNA is needed in addition to a protein, as expected if the enzyme carries its own RNA template. The inactivated-enzyme control shows the loss is due to RNA degradation.",
+   "why": "Rests on telomerase being a reverse transcriptase with its own RNA.",
+   "quote": "In 1985 Carol Greider and Elizabeth Blackburn found that Tetrahymena extracts added TTGGGG repeats to synthetic telomeric primers; heat and protease destroyed the activity.",
+   "section": "Linear chromosomes need finishing work"
+  },
+  {
+   "id": "dna-replication-c35",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A cell line has linear chromosomes copied with RNA primers by polymerases that extend only 3' ends, and it makes no telomerase. Predict what happens to its chromosome ends over many divisions.",
+   "back": "The ends shorten with each division, because the gap left by the last primer at a linear tip cannot always be filled. Human somatic cells with little telomerase behave this way.",
+   "why": "Rests on: polymerases extend only 3' ends, and a linear tip has no upstream 3' end.",
+   "quote": "Most human somatic cells make little telomerase, so their telomeres shorten as they divide; germline cells and most cancer cells keep it active.",
+   "section": "Linear chromosomes need finishing work"
+  },
+  {
+   "id": "dna-replication-c36",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "E. coli get a 5-second pulse of tritiated thymidine; their DNA is denatured and sized. Label is in pieces of about 1,000 to 2,000 nucleotides, and after a 60-second chase it is in long DNA. In a ligase-defective mutant the short pieces persist after the chase. What do you conclude, and what control would you add?",
+   "back": "At least some new DNA is made as short pieces later joined into long strands; the chase shows precursor to product, and the mutant shows joining needs ligase. Control: long-labelled DNA handled the same way should stay long, which rules out extraction breakage.",
+   "quote": "E. coli are given a 5-second pulse of tritiated thymidine, and their DNA is denatured and sized.",
+   "section": "Design problem"
+  },
+  {
+   "id": "dna-replication-c37",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "In budding-yeast replisomes rebuilt on linear DNA, what two problems appeared at the lagging-strand end, and what supplies the C-strand fill-in?",
+   "back": "No primers were laid on the overhang, and lagging-strand synthesis stopped in a zone more than 26 nucleotides from the template end. CST with Pol α-primase supplies the fill-in.",
+   "quote": "no primers were laid on the overhang, and lagging-strand synthesis stopped in a zone more than 26 nucleotides from the template end",
+   "section": "Going deeper"
+  }
+ ]
+}
