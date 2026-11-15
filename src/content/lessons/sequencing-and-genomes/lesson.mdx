@@ -5,13 +5,13 @@ course: "genetics"
 courseChapter: "Genetics and Molecular Biology · Unit 5: Tools and genomes"
 order: 323
 summary: >-
-  How do you read three billion bases when no machine can read more than a short stretch of one
-  molecule at a time? This lesson explains Sanger chain termination, short-read sequencing by
-  synthesis and the two main long-read methods, then shows how reads are counted into coverage
-  and stitched into a genome, and why repeats break the stitching. Afterwards you can calculate
-  how many reads a genome needs, explain why the human reference took two decades to finish, and
-  read a structural variant from the pattern of reads it leaves.
-hook: "Two drafts of the human genome appeared in 2001. Why did a gapless one take until 2022?"
+  Genome results depend on what each read records and where it fits. This lesson follows Sanger
+  chain termination, short-read sequencing by synthesis and the two main long-read methods, then
+  separates random sampling gaps from repeat ambiguity. Afterwards you can calculate the reads a
+  genome needs, explain how long reads, with a nearly homozygous cell line, closed the last gaps
+  in a human assembly, and interpret structural
+  variants while accounting for the reference used.
+hook: "A deeply sequenced genome can have almost no random gaps and still break at one repeat. How can both be true?"
 
 estMinutes: 24
 objectives:
@@ -24,10 +24,32 @@ explainer:
   src: "/explainers/sequencing-and-genomes/explainer.mp4"
   captions: "/explainers/sequencing-and-genomes/explainer.vtt"
   poster: "/explainers/sequencing-and-genomes/poster.jpg"
-  title: "Depth cannot fix a repeat"
-  durationSec: 168.8
-  narration: "an AI narrator voice (Gemini, Charon) reading narration written from this lesson's text"
+  title: "How Chemistry Becomes a Read"
+  durationSec: 211.8
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+  takeaways:
+    - "Sequencing turns molecular events into ordered base calls."
+    - "Sanger sequencing reads permanent stops sorted by fragment length."
+    - "Short-read sequencing records one reversible pause per cycle across many clusters."
+    - "Long-read methods follow single molecules and preserve longer-range context."
+    - "Genome results depend on what each read records and where it fits."
+
+films:
+  - id: "chapter-2"
+    src: "/explainers/sequencing-and-genomes/chapter-2.mp4"
+    captions: "/explainers/sequencing-and-genomes/chapter-2.vtt"
+    poster: "/explainers/sequencing-and-genomes/chapter-2-poster.jpg"
+    title: "When Reads Become a Genome"
+    durationSec: 211.0
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+    takeaways:
+      - "More reads fill sampling gaps; reads that span a repeat place it."
+      - "Coverage is a mean, so random sampling can leave some bases unread."
+      - "An internal read from an exact repeat may fit more than one place."
+      - "A reference helps place reads but also shapes which differences are reported."
+      - "Genome results depend on what each read records and where it fits."
 
 scientists:
   - name: "Frederick Sanger"
@@ -377,36 +399,52 @@ draft: false
 import CoverageAndRepeatsSampler from '../../../components/CoverageAndRepeatsSampler.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
 import EquationCard from '../../../components/EquationCard.astro';
+import LessonFilm from '../../../components/LessonFilm.astro';
 
-**Two drafts of the human genome were published in February 2001. The first assembly in which every human chromosome but one ran from end to end without a gap was published in 2022.**
+Two drafts of the human genome were published in February 2001. The first assembly in which every chromosome but Y ran end to end without a gap came in 2022. As the first film showed, faster machines alone could not close the gaps: a sequencer reports **reads**, the base sequences of single DNA fragments, and reporting a base is not locating it in a genome.
 
-Why the twenty-year wait, when the machines got faster every year? Speed was never the bottleneck. No instrument reads a chromosome in one pass. Every method reads pieces, and a genome is only as good as the way the pieces are put back together. This lesson is about reading the pieces, counting them, and the one feature of genomes that defeats short pieces: repeats.
+> **The one idea.** Genome results depend on what each read records and where it fits.
+>
+> *Scope:* sequencing, alignment, assembly and variant calling. Read evidence alone does not say what a variant means for a person.
 
 ## Reading DNA one base at a time: Sanger's stopped copies
 
-Imagine photocopying a long sentence a thousand times on a copier that, at random, quits after some letter and highlights the letter it quit on. Sort the copies by length and read the highlighted letters in order, and you have the sentence.
+For the first film's stopped copies, you supply a single-stranded template, a short **primer** (DNA that pairs with the template and gives the polymerase a 3' end to extend), the four ordinary deoxynucleotides, and a small amount of **dideoxynucleotides** (ddNTPs). A ddNTP lacks the 3' hydroxyl that the next nucleotide must bond to, the chemistry you met in [nucleotide metabolism](/lessons/nucleotide-metabolism/).
 
-Sanger sequencing does this with a DNA polymerase. You supply a single-stranded template, a short **primer** (a piece of DNA that pairs with the template and gives the polymerase a 3' end to extend), the four ordinary deoxynucleotides, and a small amount of **dideoxynucleotides** (ddNTPs). A ddNTP lacks the 3' hydroxyl that the next nucleotide must bond to, the chemistry you met in [nucleotide metabolism](/lessons/nucleotide-metabolism/). The polymerase adds it opposite its partner base, and that copy can grow no further. Across millions of template molecules, every possible stopping point is represented.
+Frederick Sanger, Steve Nicklen and Alan Coulson published the method in 1977, using DNA from the phage phiX174. In the classical version, four tubes each held one kind of ddNTP, and the radioactive fragments ran in four lanes of a gel that separates pieces differing by a single nucleotide. Later versions give each terminator its own fluorescent dye, so one reaction holds all four, and a capillary sorts fragments by size while a detector reads each colour. Shortest to longest spells the **new** strand 5' to 3'; the template is its reverse complement.
 
-Frederick Sanger, Steve Nicklen and Alan Coulson published the method in 1977, using DNA from the phage phiX174. In the classical version, four tubes each held one kind of ddNTP, and the radioactive fragments ran in four lanes of a gel that separates pieces differing by a single nucleotide. Later versions put a different fluorescent dye on each of the four terminators, so one reaction holds all four, and a capillary sorts the fragments by size while a detector reads the colour of each. Reading from the shortest fragment to the longest gives the **new** strand, 5' to 3'; the template is its reverse complement.
+**Predict.** A detector reports the shortest fragments in order as A, C and G. What are the new strand and its template, each written 5' to 3'?
+
+<details>
+<summary>Check your prediction</summary>
+
+The new strand is 5'-ACG-3'. Its antiparallel template is 3'-TGC-5', or 5'-CGT-3'. Complementing without reversing gives the template backwards.
+
+</details>
 
 Sanger reads are accurate, but each reaction reads one region, commonly up to about 800 to 1,000 bases, and the first few dozen bases are often poor. The sequence in the 2001 drafts came mostly from this chemistry, run on many instruments at once.
 
 ## Reading millions at once, short and long
 
-Short-read sequencing reads hundreds of millions of fragments in parallel. Genomic DNA is broken into fragments a few hundred bases long and fitted with adapters. In the Illumina method, which David Bentley and colleagues used to sequence a human genome in 2008, each fragment is copied in place on a glass flow cell into a **cluster** of identical copies. Then the polymerase adds one nucleotide per cycle. Each nucleotide carries a dye and a **reversible terminator**, a removable block on the 3' end. The machine images every cluster, reads the colour, then cleaves off the dye and the block to regenerate the 3' hydroxyl for the next cycle.
+Short-read sequencing runs the first film's add, image and reset cycle on hundreds of millions of fragments at once. Genomic DNA is broken into fragments a few hundred bases long and fitted with adapters. In the Illumina method, which David Bentley and colleagues used to sequence a human genome in 2008, each fragment is copied in place on a glass flow cell into a **cluster** of identical copies. The pause comes from a **reversible terminator**, a removable block on the 3' end of each dye-carrying nucleotide; cleaving off the dye and the block regenerates the 3' hydroxyl for the next cycle.
 
-<LessonFigure src="/figures/sequencing-and-genomes/sequencing-by-synthesis-cycle.webp" width={1200} height={631} alt="AI-generated illustration: a cluster of identical DNA copies on a glass flow cell shown in three steps: a nucleotide with a dye and a terminator block is added, the cluster is imaged and its colour read, and the dye and block are cleaved off so the cycle can repeat." caption="In short-read sequencing by synthesis, each fragment is copied into a cluster on a glass flow cell. One nucleotide with a dye and a reversible terminator is added per cycle, the cluster is imaged, and the dye and block are cleaved off to free the 3' hydroxyl for the next cycle." />
+<LessonFigure src="/figures/sequencing-and-genomes/sequencing-by-synthesis-cycle.webp" width={1200} height={631} alt="AI-generated illustration: a cluster of identical DNA copies on a glass flow cell shown in three steps: a nucleotide with a dye and a terminator block is added, the cluster is imaged and its colour read, and the dye and block are cleaved off so the cycle can repeat." caption="A removable dye and block let every cluster report one base, reset and begin the next sequencing cycle." />
 
-This is not Sanger run in parallel. Sanger stops chains for good and reads lengths; sequencing by synthesis pauses every chain at each base and reads colours, cycle by cycle. Each fragment is often read from both ends, a **paired-end** read, so you know two short sequences and roughly how far apart they lie. Reads are short (35 bases from each end in the 2008 human genome; commonly 100 to 150 now), and the errors in the study of one such instrument were mostly substitutions.
+Reading each fragment from both ends, a **paired-end** read, gives two short sequences and roughly how far apart they lie. Reads are short (35 bases from each end in the 2008 human genome; commonly 100 to 150 now), and the errors in the study of one such instrument were mostly substitutions.
 
-Long-read methods read single molecules. In PacBio instruments one polymerase sits at the bottom of a tiny well and copies a circular template, with the dye on the nucleotide's terminal phosphate so it is released as the base joins; going round the circle many times gives **HiFi** reads, in a 2019 study of one human genome averaging 13.5 kilobases at 99.8% accuracy, with leftover errors mostly small insertions or deletions in runs of one base. In Oxford Nanopore instruments a strand passes through a protein pore and software decodes the changing ionic current into bases; a 2018 study of human DNA reported ultra-long libraries in which about half the sequence lay in reads of roughly 100 kilobases or longer. The trade-off is plain: short reads give many accurate bases per run but cannot span long repeats; long reads span most of them, though the largest repeat arrays still need ultra-long reads and special assembly methods.
+In PacBio instruments the polymerase sits at the bottom of a tiny well, with the dye on the nucleotide's terminal phosphate so it is released as the base joins; going round the circular template many times gives **HiFi** reads, in a 2019 study of one human genome averaging 13.5 kilobases at 99.8% accuracy, with leftover errors mostly small insertions or deletions in runs of one base. In Oxford Nanopore instruments the pore is a protein; a 2018 study of human DNA reported ultra-long libraries in which about half the sequence lay in reads of roughly 100 kilobases or longer. The trade-off: short reads give many accurate bases per run but cannot span long repeats; long reads span most of them, though the largest repeat arrays still need ultra-long reads and special assembly methods.
 
-<LessonFigure src="/figures/sequencing-and-genomes/two-long-read-methods.webp" width={1200} height={658} alt="AI-generated illustration: on the left a single polymerase at the bottom of a tiny well copying a circular template, releasing a dye as each base joins; on the right a single strand threading through a protein pore in a membrane, with software decoding the current." caption="Long-read methods read single molecules. In PacBio one polymerase at the bottom of a tiny well copies a circular template, going round many times; in Oxford Nanopore a strand passes through a protein pore and software decodes the changing ionic current into bases." />
+<LessonFigure src="/figures/sequencing-and-genomes/two-long-read-methods.webp" width={1200} height={658} alt="AI-generated illustration: on the left a single polymerase at the bottom of a tiny well copying a circular template, releasing a dye as each base joins; on the right a single strand threading through a protein pore in a membrane, with software decoding the current." caption="Single-molecule methods preserve longer-range context: PacBio follows one polymerase round a circular template many times, and Oxford Nanopore reads the current as one strand passes through a pore." />
 
-## Coverage and assembly: the repeat problem
+That trade-off sets up the second film: once the reads exist, can their combined evidence determine one genome?
 
-A **read** is the sequence reported from one fragment. **Coverage** (depth) is how many reads, on average, lie over each base. To find it, add up all the bases you read and spread them over the genome:
+<LessonFilm film={frontmatter.films[0]} />
+
+## Coverage and assembly: two different limits
+
+Reads **aligned** to a reference are placed on it; reads assembled **de novo**, without one, are joined by their overlaps, first into an assembly graph or **contigs**, continuous consensus sequences. **Scaffolds** place contigs in order and orientation, with estimated gaps between them.
+
+**Coverage** (depth), the second film's mean stack of reads over each base, is all the bases read, spread over the genome:
 
 <EquationCard
   purpose="How many times, on average, each base of a genome is read."
@@ -428,19 +466,15 @@ A **read** is the sequence reported from one fragment. **Coverage** (depth) is h
   </Fragment>
 </EquationCard>
 
-Reads are then either **aligned** to a reference genome, or assembled **de novo**, without one, by their overlaps. A de novo assembly yields **contigs**, continuous consensus sequences, and **scaffolds**, contigs placed in order and orientation with estimated gaps between them.
-
 **Worked problem.** Assume reads start at random positions, all reads are usable, and the haploid human genome is G = 3.1 x 10^9 bases (an estimate rounded for the calculation).
 
-(a) How many 150-base reads give 30-fold mean coverage? Rearrange the coverage formula for N in two steps: multiply both sides by G (C x G = N x L), then divide both sides by L.
+**Predict, then calculate.** How many 150-base reads give 30-fold mean coverage? First decide: should it rise or fall if each read were longer? Then multiply both sides by G (C x G = N x L) and divide by L.
 
 > **N = C x G / L = 30 x 3.1 x 10^9 / 150 = 9.3 x 10^10 / 150 = 6.2 x 10^8 reads**
 
-The powers of ten: 30 x 3.1 = 93, so 30 x 3.1 x 10^9 = 93 x 10^9 = 9.3 x 10^10. Then 9.3 / 150 = 0.062, and 0.062 x 10^10 = 6.2 x 10^8 (see [powers](/math-toolkit/#powers)).
+That is 620 million reads, or 310 million read pairs of 2 x 150 bases, and 93 billion bases. Check: 6.2 x 10^8 x 150 = 9.3 x 10^10, and dividing by 3.1 x 10^9 gives 30. Longer reads mean fewer of them: doubling L to 300 bases halves N to 3.1 x 10^8. (Going deeper works the powers of ten step by step; see also [powers](/math-toolkit/#powers).)
 
-That is 620 million reads, or 310 million read pairs of 2 x 150 bases, and 93 billion bases. Check: 6.2 x 10^8 x 150 = 9.3 x 10^10, and dividing by 3.1 x 10^9 gives 30.
-
-(b) How much of the genome gets no read at all? With random starts, the number of reads over a base follows a Poisson distribution with mean C, the coverage. That model gives one short answer for the fraction with zero reads:
+**Predict, then calculate.** At C = 5, what fraction of bases should be unread, and how many bases is that in this genome? The second film's falling curve comes from the Poisson model: with random starts, the number of reads over a base follows a Poisson distribution with mean C. The fraction with zero reads is then:
 
 <EquationCard
   purpose="What fraction of the genome gets no read at all at a given mean coverage, if reads start at random."
@@ -459,7 +493,7 @@ That is 620 million reads, or 310 million read pairs of 2 x 150 bases, and 93 bi
   </Fragment>
 </EquationCard>
 
-Apply it at three depths:
+At three depths:
 
 > **C = 1: e^-1 = 0.37, so 37% unread**
 >
@@ -467,39 +501,51 @@ Apply it at three depths:
 >
 > **C = 30: e^-30 is about 9 x 10^-14, far less than one base**
 
-So 30-fold is a mean, not a guarantee, and real libraries cover some regions, such as very GC-rich ones, less evenly than this model assumes. This Poisson treatment follows Eric Lander and Michael Waterman's 1988 analysis of random clones.
+So 30-fold is a mean, not a guarantee; Going deeper adds real libraries and the model's source.
 
-(c) Now give the genome two identical copies of a 6-kilobase repeat. A 150-base read from inside the repeat fits both copies equally well. Reads at its edges are unique, but no read, and no pair from a 400-base fragment, reaches across 6 kilobases to the far edge. The assembler cannot tell which flanking sequences belong together, so it collapses the two copies into one or breaks the contig. Deeper coverage adds more reads of the same ambiguous kind. A 15-kilobase read, by contrast, can hold a whole 6-kilobase copy with several kilobases of unique sequence on each side, and that pins the copy in place. Some human-specific gene duplications described in [the human brain expansion lesson](/lessons/human-brain-expansion/) sit in long near-identical repeats like these, one reason they were hard to study.
+Put numbers on the second film's repeat: two identical 6-kilobase copies. No 150-base read, and no pair from a 400-base fragment, reaches from unique sequence on one side across the repeat to its far edge. The assembler cannot determine which flanking sequences belong together, so it may collapse the copies or break the contig. More reads fill sampling gaps but add no new span; reads that span a repeat place it. A 15-kilobase read can hold one whole copy plus several kilobases of unique sequence on each side, pinning that copy in place.
+
+That is the rule in short: ask what each read records, then where it fits. The exact-repeat model is deliberately simple: differences between copies, linked pairs and other long-range evidence can sometimes place repeats no single read spans. Some human-specific gene duplications described in [the human brain expansion lesson](/lessons/human-brain-expansion/) sit in long near-identical repeats, one reason they were hard to study.
 
 <CoverageAndRepeatsSampler />
 
 ## The human reference: gaps, a finished genome and a pangenome
 
-The 2001 papers, from the public International Human Genome Sequencing Consortium and from Celera Genomics, were drafts. The consortium's "finished" sequence of 2004 covered about 99% of the **euchromatin** (the gene-rich, less tightly packed part of the genome) and still had 341 gaps, many associated with segmental duplications; centromeres and other heterochromatin were not part of its target. The same paper estimated 20,000 to 25,000 protein-coding genes, far fewer than the 2001 estimate. The current standard reference, GRCh38, descends from it, and it is a mosaic of DNA clones from several people, not the genome of any one person.
+The 2001 papers, from the public International Human Genome Sequencing Consortium and from Celera Genomics, were drafts. The consortium's "finished" sequence of 2004 covered about 99% of the **euchromatin** (the gene-rich, less tightly packed part of the genome) and still had 341 gaps, many associated with segmental duplications; centromeres and other heterochromatin were not part of its target. The same paper estimated 20,000 to 25,000 protein-coding genes, far fewer than the 2001 estimate. The current standard reference, GRCh38, descends from it: a mosaic of DNA clones from several people, not any one person's genome.
 
-Most of the remaining gaps were the repeats from the worked problem, at chromosome scale. The Telomere-to-Telomere Consortium closed them using the CHM13 cell line, whose two copies of each chromosome are nearly identical, and a combination of PacBio HiFi and Oxford Nanopore ultra-long reads. Their 2022 assembly, T2T-CHM13, is 3.055 billion bases and gapless for every chromosome except Y, which CHM13 lacks. A complete Y from a different person, HG002, followed in 2023.
+Many remaining gaps were the worked example's repeat problem at chromosome scale, in large centromeric arrays and near-identical segmental duplications. The Telomere-to-Telomere Consortium closed them using the CHM13 cell line, whose two copies of each chromosome are nearly identical, and a combination of PacBio HiFi and Oxford Nanopore ultra-long reads. Their 2022 assembly, T2T-CHM13, is 3.055 billion bases and gapless for every chromosome except Y, which CHM13 lacks. A complete Y from a different person, HG002, followed in 2023.
 
-One complete genome still represents one person. In 2023 the Human Pangenome Reference Consortium released a draft **pangenome**: 47 people's genomes, each with its two chromosome copies assembled separately, joined into a graph in which each person's copy is a path. It added 119 million bases of variable euchromatic sequence missing from GRCh38.
+One complete genome still represents one person. In 2023 the Human Pangenome Reference Consortium released a draft **pangenome**, the second film's branching reference: 47 people's genomes, each with its two chromosome copies assembled separately, joined into a graph in which each person's copy is a path. It added 119 million bases of variable euchromatic sequence missing from GRCh38.
 
 ## What varies between two genomes, and why the reference matters
 
 Differences come in sizes. A **single-nucleotide variant** (SNV) changes one base. A small **indel** inserts or deletes a few bases. A **structural variant** is larger, by a common convention 50 bases or more, and includes deletions, duplications, inversions, insertions and translocations; when a deletion or duplication changes the number of copies of a segment, it is a **copy-number variant**. The chromosome-scale versions are in [chromosome changes](/lessons/chromosome-changes/), and how such changes arise is in [mutation](/lessons/mutation/).
 
-In the 1000 Genomes Project's 2015 analysis of 2,504 people from 26 populations, a typical genome differed from the reference at 4.1 to 5.0 million sites, and structural variants affected more bases than SNVs and small indels together. Every one of those calls is a difference from a reference. Where the reference carries a rare allele, most people look "variant" there; where a sequence is missing from the reference, reads from it have no correct place to align, so they go unmapped or land on similar sequence elsewhere. In the Human Pangenome Reference Consortium's benchmarks, short-read workflows using the pangenome made 34% fewer small-variant errors and found 104% more structural variants per haplotype than workflows using GRCh38.
+In the 1000 Genomes Project's 2015 analysis of 2,504 people from 26 populations, a typical genome differed from the reference at 4.1 to 5.0 million sites, and structural variants affected more bases than SNVs and small indels together. Each is a comparison with a reference. Where the reference carries a rare allele, most people look "variant" there; where a sequence is missing from the reference, reads from it have no correct place to align, so they go unmapped or land on similar sequence elsewhere. In the Human Pangenome Reference Consortium's benchmarks, short-read workflows using the pangenome made 34% fewer small-variant errors and found 104% more structural variants per haplotype (2.04 times as many) than workflows using GRCh38; those figures describe the workflows tested, not every data set.
 
 Short reads detect large variants indirectly, from **depth** (copy number changes the number of reads), **discordant pairs** (two ends of a fragment mapping farther apart than the fragment could be, or in an unexpected orientation) and **split reads** (one read aligning in two pieces across a junction).
 
-### Design problem
+### Predict and design
 
-Short paired-end reads from a patient sample are aligned to the reference. The fragments are normally 400 ± 50 bases long. Depth is 30-fold across a chromosome segment but 15-fold across one 10-kilobase stretch within it. Forty read pairs map with their two ends 10.4 kilobases apart across that stretch, and several reads split, aligning partly to each edge. What does this pattern show, and how would you confirm it?
+**Predict.** Short paired-end reads from a patient sample are aligned to the reference. The fragments are normally 400 ± 50 bases long. Depth is 30-fold across a chromosome segment but 15-fold across one 10-kilobase stretch within it. Forty read pairs map with their two ends 10.4 kilobases apart across that stretch, and several reads split, aligning partly to each edge. What does this pattern show, and how would you confirm it?
 
 <details>
 <summary>One way to do it</summary>
 
-Read the three signals in turn. Half depth means one copy instead of two: one chromosome has lost the stretch and the other has not, a heterozygous deletion. The discordant pairs give its size: ends that should lie about 400 bases apart map 10.4 kilobases apart, so about 10.4 - 0.4 = 10 kilobases are missing from the chromosome they came from. The split reads mark the two breakpoints to the base.
+Half depth means one copy instead of two: one chromosome has lost the stretch and the other has not, a heterozygous deletion. The discordant pairs give its size: ends that should lie about 400 bases apart map 10.4 kilobases apart, so about 10.4 - 0.4 = 10 kilobases are missing from the chromosome they came from. The split reads mark the two breakpoints to the base.
 
 Confirm it two ways. Design PCR primers just outside the two breakpoints. On the intact chromosome they lie about 10.4 kilobases apart, too far for a standard short PCR, but on the deleted chromosome they lie a few hundred bases apart, so a short product appears only from the deleted allele; sequence it to read the junction. Long reads across the region would show both alleles directly.
 
 Then ask whether the deletion is unusual at all. Check population variant collections and the pangenome haplotypes: if many people lack this stretch, the reference may carry a less common insertion, and the "deletion" is common. Finding a variant says nothing on its own about any effect on health.
 
 </details>
+
+## Going deeper
+
+### The powers of ten in the coverage problem
+
+The full arithmetic behind the read count is 30 x 3.1 = 93, so 30 x 3.1 x 10^9 = 93 x 10^9 = 9.3 x 10^10. Then 9.3 / 150 = 0.062, and 0.062 x 10^10 = 6.2 x 10^8 reads.
+
+### Where the ideal coverage model breaks
+
+Real libraries cover some regions, such as very GC-rich ones, less evenly than the Poisson model assumes. The treatment here follows Eric Lander and Michael Waterman's 1988 analysis of random clones; the same reasoning applies to ideal random shotgun sampling.

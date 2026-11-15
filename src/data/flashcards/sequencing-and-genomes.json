@@ -1,0 +1,499 @@
+{
+ "slug": "sequencing-and-genomes",
+ "title": "Sequencing and Genomes",
+ "generated": {
+  "date": "2026-11-12",
+  "pipeline": "extract → Sonnet draft → Sonnet accuracy gate (separate agent) → Sonnet fixes",
+  "models": {
+   "draft": "claude-sonnet-5-5",
+   "gate": "claude-sonnet-5-5",
+   "fix": "claude-sonnet-5-5"
+  }
+ },
+ "lessonHash": "365fc1237599",
+ "sectionHashes": {
+  "(opening)": "b0c66845015a",
+  "Reading DNA one base at a time: Sanger's stopped copies": "67f3e6570471",
+  "Reading millions at once, short and long": "e12422dcf95e",
+  "Coverage and assembly: two different limits": "b08df58807c8",
+  "The human reference: gaps, a finished genome and a pangenome": "1f7c42724c64",
+  "What varies between two genomes, and why the reference matters": "2d6e9ecb9521",
+  "Predict and design": "c7c27f49e469",
+  "Where the ideal coverage model breaks": "4702c84aa401"
+ },
+ "cards": [
+  {
+   "id": "sequencing-and-genomes-c01",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "What does a sequencer report, and why is that not yet a genome?",
+   "back": "It reports reads, the base sequences of single DNA fragments. Reporting a base is not locating it in a genome.",
+   "quote": "a sequencer reports reads, the base sequences of single DNA fragments, and reporting a base is not locating it in a genome."
+  },
+  {
+   "id": "sequencing-and-genomes-c02",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "State the one idea of the sequencing and genomes lesson.",
+   "back": "Genome results depend on what each read records and where it fits.",
+   "quote": "Genome results depend on what each read records and where it fits."
+  },
+  {
+   "id": "sequencing-and-genomes-c03",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In a Sanger reaction, what is the primer for?",
+   "back": "It is short DNA that pairs with the template and gives the polymerase a 3' end to extend.",
+   "quote": "a short primer (DNA that pairs with the template and gives the polymerase a 3' end to extend)",
+   "section": "Reading DNA one base at a time: Sanger's stopped copies"
+  },
+  {
+   "id": "sequencing-and-genomes-c04",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In the classical Sanger method, how were the four bases read from the products?",
+   "back": "Four tubes each held one kind of ddNTP. The radioactive fragments ran in four lanes of a gel that separates pieces differing by one nucleotide, so band order gave base order.",
+   "quote": "four tubes each held one kind of ddNTP, and the radioactive fragments ran in four lanes of a gel",
+   "section": "Reading DNA one base at a time: Sanger's stopped copies"
+  },
+  {
+   "id": "sequencing-and-genomes-c05",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why does a dideoxynucleotide stop a growing DNA chain after the polymerase adds it?",
+   "back": "It lacks the 3' hydroxyl, so the next nucleotide has nothing to bond to.",
+   "quote": "A ddNTP lacks the 3' hydroxyl that the next nucleotide must bond to",
+   "section": "Reading DNA one base at a time: Sanger's stopped copies"
+  },
+  {
+   "id": "sequencing-and-genomes-c06",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In Sanger sequencing, shortest to longest fragment spells the new strand 5' to 3'; the template is its {{c1::reverse complement}}.",
+   "back": "",
+   "quote": "Shortest to longest spells the new strand 5' to 3'; the template is its reverse complement.",
+   "section": "Reading DNA one base at a time: Sanger's stopped copies"
+  },
+  {
+   "id": "sequencing-and-genomes-c07",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A Sanger detector reports the shortest fragments in order as T, G, G and A. What are the new strand and its template, each written 5' to 3'?",
+   "back": "New strand 5'-TGGA-3'. The template is antiparallel and complementary: 3'-ACCT-5', which is 5'-TCCA-3'. Complementing without reversing gives the template backwards.",
+   "quote": "Shortest to longest spells the new strand 5' to 3'; the template is its reverse complement.",
+   "section": "Reading DNA one base at a time: Sanger's stopped copies"
+  },
+  {
+   "id": "sequencing-and-genomes-c08",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "How did later Sanger methods get all four bases into one reaction and read them?",
+   "back": "Each terminator carries its own fluorescent dye. A capillary sorts fragments by size while a detector reads each colour.",
+   "quote": "Later versions give each terminator its own fluorescent dye, so one reaction holds all four, and a capillary sorts fragments by size while a detector reads each colour.",
+   "section": "Reading DNA one base at a time: Sanger's stopped copies"
+  },
+  {
+   "id": "sequencing-and-genomes-c09",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "What are the main limits of a Sanger read?",
+   "back": "Each reaction reads one region, commonly up to about 800 to 1,000 bases, and the first few dozen bases are often poor.",
+   "quote": "each reaction reads one region, commonly up to about 800 to 1,000 bases, and the first few dozen bases are often poor.",
+   "section": "Reading DNA one base at a time: Sanger's stopped copies"
+  },
+  {
+   "id": "sequencing-and-genomes-c10",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In Illumina short-read sequencing, how does a reversible terminator let the machine read one base per cycle?",
+   "back": "It blocks the 3' end, so only one dye-carrying nucleotide adds. Imaging reads it, then cleaving off the dye and block restores the 3' hydroxyl for the next cycle.",
+   "quote": "cleaving off the dye and the block regenerates the 3' hydroxyl for the next cycle.",
+   "section": "Reading millions at once, short and long"
+  },
+  {
+   "id": "sequencing-and-genomes-c11",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "What does a paired-end read give that a single-end read does not?",
+   "back": "Two short sequences from both ends of one fragment, plus roughly how far apart they lie.",
+   "quote": "Reading each fragment from both ends, a paired-end read, gives two short sequences and roughly how far apart they lie.",
+   "section": "Reading millions at once, short and long"
+  },
+  {
+   "id": "sequencing-and-genomes-c12",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "What is the trade-off between short reads and long reads?",
+   "back": "Short reads give many accurate bases per run but cannot span long repeats. Long reads span most of them, though the largest repeat arrays still need ultra-long reads and special assembly.",
+   "quote": "short reads give many accurate bases per run but cannot span long repeats; long reads span most of them",
+   "section": "Reading millions at once, short and long"
+  },
+  {
+   "id": "sequencing-and-genomes-c13",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "In de novo assembly, what are contigs and what do scaffolds add?",
+   "back": "Contigs are continuous consensus sequences joined by read overlaps. Scaffolds place contigs in order and orientation, with estimated gaps between them.",
+   "quote": "Scaffolds place contigs in order and orientation, with estimated gaps between them.",
+   "section": "Coverage and assembly: two different limits"
+  },
+  {
+   "id": "sequencing-and-genomes-c14",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "How is mean coverage C calculated from the number of reads N, read length L and genome size G?",
+   "back": "C = N x L / G: all bases read, spread over the genome. Example: 1,000 reads of 100 bases on 10,000 bases gives 10-fold.",
+   "quote": "Spread over 10,000 bases: 100,000 / 10,000 = 10.",
+   "section": "Coverage and assembly: two different limits"
+  },
+  {
+   "id": "sequencing-and-genomes-c15",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "How many 100-base reads give 25-fold mean coverage of a 2-megabase genome, assuming random, usable reads?",
+   "back": "N = C x G / L = 25 x 2,000,000 / 100 = 500,000 reads. Check: 500,000 x 100 / 2,000,000 = 25.",
+   "quote": "N = C x G / L = 30 x 3.1 x 10^9 / 150 = 9.3 x 10^10 / 150 = 6.2 x 10^8 reads",
+   "section": "Coverage and assembly: two different limits"
+  },
+  {
+   "id": "sequencing-and-genomes-c16",
+   "type": "predict",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "At a fixed mean coverage and genome size, what happens to the number of reads needed if read length doubles?",
+   "back": "It halves, because N = C x G / L. Doubling L from 150 to 300 bases halves 6.2 x 10^8 reads to 3.1 x 10^8 in the 30-fold human example.",
+   "quote": "Longer reads mean fewer of them: doubling L to 300 bases halves N to 3.1 x 10^8.",
+   "section": "Coverage and assembly: two different limits"
+  },
+  {
+   "id": "sequencing-and-genomes-c17",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "With random read starts and mean coverage C, what fraction of bases is expected to get no read, and why?",
+   "back": "e^-C. With random starts, the number of reads over a base follows a Poisson distribution with mean C, and e^-C is its zero class.",
+   "quote": "with random starts, the number of reads over a base follows a Poisson distribution with mean C.",
+   "section": "Coverage and assembly: two different limits"
+  },
+  {
+   "id": "sequencing-and-genomes-c18",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A 5-megabase genome is sequenced at 2-fold mean coverage with random starts. About how many bases get no read?",
+   "back": "About 680 kilobases. Unread fraction is e^-2 = 0.135 (e^-1 is 0.37, squared). 0.135 x 5,000,000 is about 677,000 bases.",
+   "quote": "At C = 3: e^-3 is about 0.37 × 0.37 × 0.37, about 0.05 (0.0498 on a calculator).",
+   "section": "Coverage and assembly: two different limits"
+  },
+  {
+   "id": "sequencing-and-genomes-c19",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why do more reads fix random sampling gaps but not a repeat longer than the reads?",
+   "back": "More reads add coverage but no new span. For an exact repeat, reads that span it, with unique sequence on each side, place it.",
+   "quote": "More reads fill sampling gaps but add no new span; reads that span a repeat place it.",
+   "section": "Coverage and assembly: two different limits"
+  },
+  {
+   "id": "sequencing-and-genomes-c20",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A genome has two identical 3-kilobase repeats at different loci. Reads of 150 bases at high depth and reads of 8 kilobases are available. Which can place each copy, and why?",
+   "back": "The 8-kilobase reads can. One can hold a whole copy plus unique flank on both sides, pinning it. A 150-base read inside the repeat fits either copy equally well.",
+   "quote": "A 15-kilobase read can hold one whole copy plus several kilobases of unique sequence on each side, pinning that copy in place.",
+   "section": "Coverage and assembly: two different limits"
+  },
+  {
+   "id": "sequencing-and-genomes-c21",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A lab raises short-read coverage from 30-fold to 60-fold hoping to close a gap at two identical 6-kilobase repeats. Predict the result, using what limits each kind of gap.",
+   "back": "The repeat gap stays. Random sampling gaps are already negligible at 30-fold, and more reads add no new span. The repeat needs reads that cross it. Rule: reads that span a repeat place it.",
+   "quote": "No 150-base read, and no pair from a 400-base fragment, reaches from unique sequence on one side across the repeat to its far edge.",
+   "section": "Coverage and assembly: two different limits"
+  },
+  {
+   "id": "sequencing-and-genomes-c22",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "What did the consortium's 2004 finished human sequence still lack?",
+   "back": "It still had 341 gaps, many associated with segmental duplications. Centromeres and other heterochromatin were not part of its target.",
+   "quote": "still had 341 gaps, many associated with segmental duplications; centromeres and other heterochromatin were not part of its target.",
+   "section": "The human reference: gaps, a finished genome and a pangenome"
+  },
+  {
+   "id": "sequencing-and-genomes-c23",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "What kind of sequence is the GRCh38 reference?",
+   "back": "A mosaic of DNA clones from several people, not any one person's genome.",
+   "quote": "a mosaic of DNA clones from several people, not any one person's genome.",
+   "section": "The human reference: gaps, a finished genome and a pangenome"
+  },
+  {
+   "id": "sequencing-and-genomes-c24",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Why could the Telomere-to-Telomere Consortium close the remaining human gaps?",
+   "back": "CHM13 cells have two nearly identical copies of each chromosome, and PacBio HiFi plus Oxford Nanopore ultra-long reads spanned the large repeats and duplications.",
+   "quote": "whose two copies of each chromosome are nearly identical, and a combination of PacBio HiFi and Oxford Nanopore ultra-long reads.",
+   "section": "The human reference: gaps, a finished genome and a pangenome"
+  },
+  {
+   "id": "sequencing-and-genomes-c25",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "Why is T2T-CHM13 gapless for every chromosome except Y?",
+   "back": "The CHM13 cell line lacks a Y chromosome. The assembly is 3.055 billion bases.",
+   "quote": "is 3.055 billion bases and gapless for every chromosome except Y, which CHM13 lacks.",
+   "section": "The human reference: gaps, a finished genome and a pangenome"
+  },
+  {
+   "id": "sequencing-and-genomes-c26",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "How is the 2023 draft human pangenome built, and what does it add over GRCh38?",
+   "back": "It joins 47 people's genomes, each chromosome copy assembled separately, into a graph with each copy as a path. It added 119 million bases of variable euchromatic sequence missing from GRCh38.",
+   "quote": "47 people's genomes, each with its two chromosome copies assembled separately, joined into a graph in which each person's copy is a path.",
+   "section": "The human reference: gaps, a finished genome and a pangenome"
+  },
+  {
+   "id": "sequencing-and-genomes-c27",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Distinguish an SNV, a small indel and a structural variant by size.",
+   "back": "An SNV changes one base. A small indel inserts or deletes a few bases. A structural variant is larger, by a common convention 50 bases or more.",
+   "quote": "A structural variant is larger, by a common convention 50 bases or more",
+   "section": "What varies between two genomes, and why the reference matters"
+  },
+  {
+   "id": "sequencing-and-genomes-c28",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "What is a copy-number variant?",
+   "back": "A deletion or duplication that changes the number of copies of a segment.",
+   "quote": "when a deletion or duplication changes the number of copies of a segment, it is a copy-number variant.",
+   "section": "What varies between two genomes, and why the reference matters"
+  },
+  {
+   "id": "sequencing-and-genomes-c29",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Give two ways the choice of reference changes which variants a genome appears to have.",
+   "back": "Where the reference carries a rare allele, most people look variant. Where sequence is missing from the reference, reads have no correct place to align and go unmapped or land elsewhere.",
+   "quote": "where a sequence is missing from the reference, reads from it have no correct place to align, so they go unmapped or land on similar sequence elsewhere.",
+   "section": "What varies between two genomes, and why the reference matters"
+  },
+  {
+   "id": "sequencing-and-genomes-c30",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A person carries a 20-kilobase stretch that the reference lacks. Short reads from it are aligned to that reference. What happens to those reads?",
+   "back": "They go unmapped or land on similar sequence elsewhere. Rule: with no correct place in the reference, reads cannot align properly.",
+   "quote": "where a sequence is missing from the reference, reads from it have no correct place to align, so they go unmapped or land on similar sequence elsewhere.",
+   "section": "What varies between two genomes, and why the reference matters"
+  },
+  {
+   "id": "sequencing-and-genomes-c31",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "By what three kinds of evidence do short reads detect large variants?",
+   "back": "Depth, since copy number changes the number of reads. Discordant pairs, ends mapping farther apart than expected or in an unexpected orientation. Split reads, one read aligning in two pieces across a junction.",
+   "quote": "Short reads detect large variants indirectly, from depth (copy number changes the number of reads)",
+   "section": "What varies between two genomes, and why the reference matters"
+  },
+  {
+   "id": "sequencing-and-genomes-c32",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Short reads from a diploid person give 30-fold depth across a chromosome region but 45-fold across one 50-kilobase segment. How many copies does the segment have, and what does that imply?",
+   "back": "Three copies in total. Two copies give 30-fold, so 45-fold is 1.5 times that. Discordant pairs oriented head to tail at the ends would support a duplication. Rule: copy number changes the number of reads.",
+   "quote": "Half depth means one copy instead of two: one chromosome has lost the stretch and the other has not, a heterozygous deletion.",
+   "section": "Predict and design"
+  },
+  {
+   "id": "sequencing-and-genomes-c33",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Read pairs from fragments of about 400 bases map with their ends 5.4 kilobases apart across a region. About how much sequence is missing from that chromosome?",
+   "back": "About 5 kilobases: 5.4 - 0.4 = 5.0 kilobases. The extra distance between the ends is the deleted length.",
+   "quote": "The discordant pairs give its size: ends that should lie about 400 bases apart map 10.4 kilobases apart",
+   "section": "Predict and design"
+  },
+  {
+   "id": "sequencing-and-genomes-c34",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Short-read data suggest a heterozygous 10-kilobase deletion. Design a PCR test with primers just outside the breakpoints and say what each chromosome gives.",
+   "back": "The intact chromosome has primers about 10.4 kb apart, too far for a standard short PCR. The deleted one has them a few hundred bases apart, so a short product comes only from the deleted allele; sequence it to read the junction.",
+   "quote": "on the deleted chromosome they lie a few hundred bases apart, so a short product appears only from the deleted allele; sequence it to read the junction.",
+   "section": "Predict and design"
+  },
+  {
+   "id": "sequencing-and-genomes-c35",
+   "type": "qa",
+   "level": 4,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A patient's deletion is called against GRCh38, but many pangenome haplotypes also lack the stretch. How should it be read, and does it imply a health effect?",
+   "back": "The reference may carry a less common insertion, so the deletion is common. Either way, finding a variant says nothing on its own about any effect on health.",
+   "quote": "Finding a variant says nothing on its own about any effect on health.",
+   "section": "Predict and design"
+  },
+  {
+   "id": "sequencing-and-genomes-c36",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "Why can real sequencing leave more unread bases than the Poisson coverage model predicts?",
+   "back": "Real libraries cover some regions, such as very GC-rich ones, less evenly than the model assumes.",
+   "quote": "Real libraries cover some regions, such as very GC-rich ones, less evenly than the Poisson model assumes.",
+   "section": "Where the ideal coverage model breaks"
+  }
+ ]
+}

@@ -5,13 +5,12 @@ course: "genetics"
 courseChapter: "Genetics and Molecular Biology · Unit 5: Tools and genomes"
 order: 322
 summary: >-
-  How do you get millions of copies of one gene, and how do you know you have the right one? This
-  lesson covers the two routes: cutting DNA with restriction enzymes, joining it into a plasmid
-  with ligase and growing it in E. coli, or copying one region directly by PCR. It then shows how
-  qPCR turns the cycle at which a signal appears into a measure of starting amount, and how gels
-  and Southern, Northern and Western blots read out the result. Afterwards you can plan a cloning
-  experiment, calculate a qPCR fold change and choose the controls that make each result believable.
-hook: "Thirty rounds of copying can turn ten molecules of DNA into about ten billion. Why does a real reaction stop short?"
+  Amplification solves scarcity, not identity: cut sites and primers set what can be joined or
+  copied, while readouts and controls test what actually was. This lesson follows that rule through restriction-ligation
+  cloning and PCR, then shows how qPCR estimates starting amount and how gels and Southern,
+  Northern and Western blots read out the result. Afterwards you can plan a cloning experiment,
+  calculate a qPCR fold change and choose the controls that make each result believable.
+hook: "A white colony survives ampicillin and a PCR tube ends with a bright band. How do you know either contains the DNA you wanted?"
 
 estMinutes: 24
 objectives:
@@ -24,10 +23,31 @@ explainer:
   src: "/explainers/recombinant-dna-and-pcr/explainer.mp4"
   captions: "/explainers/recombinant-dna-and-pcr/explainer.vtt"
   poster: "/explainers/recombinant-dna-and-pcr/poster.jpg"
-  title: "Copies of Copies, Doubling Each Cycle"
-  durationSec: 157.3
-  narration: "an AI narrator voice (Gemini, Charon) reading narration written from this lesson's text"
+  title: "From DNA Fragment to Verified Clone"
+  durationSec: 219.2
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+  takeaways:
+    - "Selection finds plasmids; screening narrows candidates; sequencing identifies the construct."
+    - "Matching restriction cuts make compatible ends, and DNA ligase seals the joins."
+    - "A cloning vector needs an origin, a selectable marker and a cloning site."
+    - "Antibiotic survival alone does not show that the intended insert is present."
+
+films:
+  - id: "chapter-2"
+    src: "/explainers/recombinant-dna-and-pcr/chapter-2.mp4"
+    captions: "/explainers/recombinant-dna-and-pcr/chapter-2.vtt"
+    poster: "/explainers/recombinant-dna-and-pcr/chapter-2-poster.jpg"
+    title: "Reading a PCR as It Grows"
+    durationSec: 228.0
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+    takeaways:
+      - "Copy timing estimates input; endpoint abundance does not."
+      - "Opposite-strand primers point their 3' ends into the target."
+      - "Early ideal copying follows N = N0 x 2^n, for n cycles."
+      - "With matched near-perfect efficiency, a lower Ct means more starting template."
+      - "Controls distinguish target signal from contamination, genomic DNA and assay failure."
 
 scientists:
   - name: "Hamilton O. Smith"
@@ -367,65 +387,102 @@ draft: false
 
 import PcrCyclePlotter from '../../../components/PcrCyclePlotter.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import LessonFilm from '../../../components/LessonFilm.astro';
 
-**In 1985 a team at Cetus Corporation reported raising the number of copies of one short stretch of the human beta-globin gene about 220,000-fold, in a tube, with no living cell involved.**
+The first film took one insert from cut ends to a sequenced clone; here is what it skipped.
 
-Before then, the usual way to get many copies of one piece of DNA was to cut it out, paste it into a small circle of DNA that bacteria copy, and let the bacteria grow. Both routes are still in daily use. This lesson takes them in order, works through the arithmetic that makes PCR powerful and quantitative, and ends with how you read the result and which controls make it believable.
+> **The one idea.** Amplification solves scarcity, not identity: cut sites and primers set what can be joined or copied, while readouts and controls test what actually was.
+>
+> *Scope:* this lesson's methods. A restriction site or primer pair can still admit an unintended product, and not every readout establishes sequence. Nor does making more DNA report the starting amount; only qPCR timing estimates that, under stated assumptions.
 
-## Cut and paste: restriction enzymes and ligase
+## Cut at a known site, then seal the join
 
-Bacteria are attacked by phages, viruses that inject their DNA. Many bacteria defend themselves with a restriction enzyme, which cuts DNA at one short sequence, paired with a methylase that marks the same sequence in the cell's own DNA so that it is spared. Unmarked phage DNA gets cut.
+Many bacteria fight phages, viruses that inject their DNA into bacterial cells, with a restriction enzyme that cuts unmodified copies of a short recognition sequence and a methylase that marks those sites in their own DNA. Host DNA is usually spared; matching sites in incoming unmarked phage DNA can be cut.
 
-The restriction enzymes used in the laboratory are type II enzymes. Each recognizes a defined sequence, in many cases a palindrome of four to eight base pairs, and cuts at a fixed position in or near it. Palindrome here means the site reads the same 5' to 3' on both strands. EcoRI, from E. coli, recognizes 5'-GAATTC-3' and cuts each strand between the G and the A. The two cuts are four bases apart, so each end carries a single-stranded 5' overhang reading AATT. Any EcoRI end can pair with any other EcoRI end through those four bases, which is why such ends are called sticky, or cohesive. Other enzymes, such as SmaI at CCCGGG, cut both strands at the same point and leave blunt ends.
+Laboratory **type II restriction enzymes** recognize defined sequences and cut at fixed positions in or near them. Many sites are palindromes of four to eight base pairs: they read the same 5' to 3' on both strands. EcoRI, from *E. coli*, recognizes 5'-GAATTC-3' and cuts each strand between G and A. The cuts sit four bases apart, leaving single-stranded 5' AATT overhangs that let EcoRI ends pair, so they are called **sticky**, or cohesive. SmaI cuts both strands at the same point in CCCGGG and leaves **blunt ends**.
 
-<LessonFigure src="/figures/recombinant-dna-and-pcr/sticky-ends-and-ligase.webp" width={1200} height={430} alt="AI-generated illustration: a three-step strip. EcoRI cuts a double rail of beads at two points four beads apart, leaving staggered ends. Two such ends from different pieces pair through short single-stranded overhangs. DNA ligase then seals the join into one continuous double rail." caption="EcoRI cuts each strand four bases apart, leaving a single-stranded 5' overhang, so any EcoRI end can pair with any other. DNA ligase then makes the join permanent." />
+**Predict.** EcoRI leaves AATT overhangs and BamHI leaves GATC. Will an EcoRI-cut insert pair with a BamHI-cut vector?
 
-Think of a jigsaw cutter that always cuts the same tab shape: any two pieces cut by it fit, but only loosely. DNA ligase makes the join permanent by forming the missing phosphodiester bond between a 3'-OH and a 5'-phosphate on each strand. T4 DNA ligase can also join blunt ends in vitro.
+<details>
+<summary>Check your prediction</summary>
 
-The first recombinant molecules were made entirely in the test tube. In 1972 David Jackson, Robert Symons and Paul Berg joined lambda phage genes and the E. coli galactose operon to the DNA of the virus SV40. The same year Janet Mertz and Ronald Davis showed that EcoRI ends are complementary and that restriction enzyme plus ligase can make hybrid molecules. The next step was to have such a molecule copied by a living cell.
+No. “Sticky” means single-stranded, not universally compatible; AATT and GATC do not pair. For enzymes like these, which leave a fixed overhang, the same enzyme on vector and insert gives compatible ends; two enzymes whose ends are distinct and cannot pair, such as EcoRI at one end and BamHI at the other, also fix the insert's orientation.
 
-## Into bacteria: finding the colony that carries your insert
+</details>
 
-A plasmid is a small circle of DNA that a bacterium copies separately from its chromosome (see [bacterial and phage genetics](/lessons/bacterial-and-phage-genetics/)). A basic plasmid cloning vector needs three working parts. An **origin of replication** is the site where the host's replication machinery starts copying; without it the plasmid is not copied and is lost as cells divide. A **selectable marker**, such as a gene for ampicillin resistance, lets only plasmid-bearing cells grow. A **cloning site** holds unique restriction sites where the insert goes.
+<LessonFigure src="/figures/recombinant-dna-and-pcr/sticky-ends-and-ligase.webp" width={1200} height={430} alt="AI-generated illustration: a three-step strip. EcoRI cuts a double rail of beads at two points four beads apart, leaving staggered ends. Two such ends from different pieces pair through short single-stranded overhangs. DNA ligase then seals the join into one continuous double rail." caption="Compatible overhangs let DNA pieces pair, and DNA ligase seals the backbone to make the join permanent." />
 
-In 1973 Stanley Cohen, Annie Chang, Herbert Boyer and Robert Helling joined restriction fragments from separate plasmids, put the products into E. coli and recovered plasmids that replicated and carried properties of both parents. Berg's group had made recombinant DNA first; the Cohen and Boyer collaboration first showed a recombinant plasmid replicating in a cell.
+Like matching jigsaw tabs, compatible ends fit but only loosely. **DNA ligase** forms the missing phosphodiester bond between a 3'-OH and a 5'-phosphate on each strand. T4 DNA ligase can also join blunt ends in vitro.
 
-Getting the plasmid in is **transformation**: uptake of naked DNA by a bacterial cell. Cells treated with cold calcium chloride take up DNA during a brief heat shock; other cells take it up during an electric pulse, which is electroporation. Either way only a fraction take up a plasmid. Bacterial transformation is a different process from transfection, which is putting DNA into animal cells, and from oncogenic transformation, which is a cell becoming cancer-like.
+## Into bacteria: retain, screen, confirm
 
-Now the two questions every cloning experiment must keep apart. **Selection** asks whether a cell has a plasmid: on ampicillin, cells without one die. But a vector that closed up without an insert also confers resistance. **Screening** asks which plasmid it is. In blue-white screening the cloning site sits inside lacZ-alpha, a short piece of the beta-galactosidase gene from the [lac operon](/lessons/lac-operon/). The host strain makes the rest of the enzyme, and the two pieces together are active. Active enzyme turns the colorless substrate X-gal blue. An insert in the cloning site usually breaks lacZ-alpha, so recombinant colonies stay white. White is a strong hint, not proof: some white colonies carry no insert. The final checks are a restriction digest or colony PCR, then sequencing across both junctions and through the insert. Even then a correct plasmid need not express its insert; that needs a promoter and the other parts of an expression construct (see [hacking the cell](/lessons/hacking-the-cell/)).
+A **plasmid** is a small DNA circle copied separately from the bacterial chromosome (see [bacterial and phage genetics](/lessons/bacterial-and-phage-genetics/)). A cloning vector carries an **origin of replication**, without which the plasmid is lost as cells divide; a **selectable marker** such as ampicillin resistance; and a **cloning site** of unique restriction sites.
 
-<LessonFigure src="/figures/recombinant-dna-and-pcr/blue-white-screening.webp" width={1200} height={839} alt="AI-generated illustration: two plasmid rings. The left ring has an origin of replication, an ampicillin resistance block and an intact lacZ-alpha block, and gives a blue colony. The right ring has an insert splitting lacZ-alpha and gives a white colony. A small inset shows an ampicillin plate with blue and white colonies." caption="A vector closed without an insert keeps lacZ-alpha intact and makes blue colonies on X-gal. An insert in the cloning site usually breaks lacZ-alpha, so recombinant colonies stay white. White is a strong hint, not proof: some white colonies carry no insert." />
+Bacterial uptake of naked DNA is **transformation**: cold calcium chloride and a brief heat shock, or an electric pulse (**electroporation**), let a fraction of cells take it up. It differs from **transfection** (DNA entry into animal cells) and **oncogenic transformation** (a cell becoming cancer-like).
 
-## PCR: copying one region a billion times
+**Selection** on ampicillin kills plasmid-free cells but spares empty vectors, so **screening** asks which plasmid survived. In blue-white screening, the cloning site lies inside **lacZ-alpha**, a short part of the beta-galactosidase gene from the [lac operon](/lessons/lac-operon/). The host makes the rest of the enzyme; together the parts turn colorless X-gal blue. An insert usually disrupts lacZ-alpha, so recombinant colonies stay white, but some white colonies carry no insert.
 
-PCR needs a template, two primers, the four dNTPs (see [nucleotide metabolism](/lessons/nucleotide-metabolism/)) and a DNA polymerase. Polymerase can only add nucleotides to the 3'-OH of a primer paired to a template, as you saw in [DNA replication](/lessons/dna-replication/). Each cycle has three steps:
+<LessonFigure src="/figures/recombinant-dna-and-pcr/blue-white-screening.webp" width={1200} height={839} alt="AI-generated illustration: two plasmid rings. The left ring has an origin of replication, an ampicillin resistance block and an intact lacZ-alpha block, and gives a blue colony. The right ring has an insert splitting lacZ-alpha and gives a white colony. A small inset shows an ampicillin plate with blue and white colonies." caption="Blue-white screening changes the odds that a colony carries an insert, but restriction analysis or colony PCR and sequencing must test the construct." />
 
-1. **Denature** at about 94 to 98 °C, so the two strands separate.
-2. **Anneal** at a lower temperature, set a few degrees below the primers' melting temperature, so each primer pairs with its complementary site.
-3. **Extend**, typically at 72 °C for Taq polymerase, so each primer is lengthened 5' to 3'.
+**Predict.** A colony on the same ampicillin plate is blue. What does it most likely carry?
 
-Primer design follows from the polymerase rule. The two primers bind **opposite strands**, with their 3' ends **pointing toward each other**, so each new strand contains a binding site for the other primer. Then products of one cycle become templates for the next, like a photocopier whose copies can be copied. Primers are commonly 15 to 30 nucleotides, the pair should have matched melting temperatures, and each should avoid pairing with itself or folding into a hairpin. Tools such as Primer-BLAST check a pair against a sequence database for unintended targets.
+<details>
+<summary>Check your prediction</summary>
 
-Exact-length double-stranded products do not appear at once. In cycle 1, copies of a genomic template start at a primer but run past the other site. Molecules bounded by both primers first appear in cycle 3, and after n cycles there are 2^n - 2n of them per starting duplex. By cycle 30 they are nearly all of the product.
+A vector that closed up without an insert, leaving lacZ-alpha intact. Pick white colonies, but white is a strong hint, not proof: check each as the first film did.
+
+</details>
+
+Expressing the insert needs a promoter and other expression parts (see [hacking the cell](/lessons/hacking-the-cell/)).
+
+Before PCR, cloning in bacteria was the usual way to make many copies of a DNA fragment; both routes remain routine. PCR copies DNA in a tube, with no living cell involved; the second film follows one bounded region as it grows.
+
+<LessonFilm film={frontmatter.films[0]} />
+
+## PCR: copying one bounded region
+
+PCR needs a template, two primers, four dNTPs (see [nucleotide metabolism](/lessons/nucleotide-metabolism/)) and a DNA polymerase, which adds nucleotides only to the 3'-OH of a primer paired with a template, as in [DNA replication](/lessons/dna-replication/). Each cycle has three steps:
+
+1. **Denature** at about 94 to 98 °C to separate the strands.
+2. **Anneal** a few degrees below the primers' melting temperature so each primer pairs with its site.
+3. **Extend**, typically at 72 °C for Taq polymerase, which lengthens each primer 5' to 3'.
+
+Primers are commonly 15 to 30 nucleotides, with matched melting temperatures and no self-pairing or hairpins. Primer-BLAST can check a pair against a sequence database for unintended targets.
+
+**Predict.** After two ideal cycles from one long genomic duplex, are any double-stranded molecules bounded by both primers?
+
+<details>
+<summary>Check your prediction</summary>
+
+No. The first copies start at one primer but run past the other site. Exact-length strands appear in cycle 2, paired with longer strands; exact-length duplexes first appear in cycle 3.
+
+</details>
+
+After *n* ideal cycles, exact-length duplexes number 2^n - 2n per starting genomic duplex. By cycle 30, they are nearly all the product.
 
 <PcrCyclePlotter />
 
-**Worked problem (a).** You start with 10 double-stranded template molecules. Assuming perfect doubling every cycle, how many copies are there after 30 cycles?
+**Worked problem (a).** Starting from 10 double-stranded template molecules with perfect doubling every cycle, how many copies are there after 30 cycles?
 
 > N = N0 x (1 + E)^n, with E = 1 for perfect doubling
 
 1. Each cycle multiplies by 2, so 30 cycles multiply by 2^30 = 1,073,741,824.
 2. N = 10 x 1,073,741,824 = 10,737,418,240, or about 1.07 x 10^10.
 
-A real reaction stops short. Amplification is exponential only in the early cycles; then it slows and reaches a plateau. In one model system, reactions with different starting amounts converged on the same final level, so a bright endpoint band does not tell you how much template you began with.
+Amplification is exponential only early; in one model system, reactions with different starting amounts converged on the same plateau. Making more DNA neither identifies nor quantifies it.
 
-The first published PCR, in 1985, used the Klenow fragment of E. coli DNA polymerase I, which heat destroys, so fresh enzyme went in every cycle. In 1988 the Cetus group reported PCR with the polymerase of Thermus aquaticus, which survives denaturation. Taq lacks a 3' to 5' proofreading exonuclease, so its copies carry more errors; in one 1991 reporter assay, products made with Pfu polymerase carried fewer than a tenth as many mutations. Kary Mullis shared the 1993 Nobel Prize in Chemistry for conceiving PCR.
+### Counting from when the signal appears
 
-### Counting with qPCR
+The **threshold cycle, Ct**, from the second film, is the cycle at which fluorescence crosses a set threshold during exponential amplification. **Real-time quantitative PCR (qPCR)** reads fluorescence each cycle with a double-stranded-DNA dye or a sequence-specific probe. **RT-PCR** (reverse-transcription PCR) first copies RNA into complementary DNA (cDNA); **RT-qPCR** combines them to measure mRNA. With matched, near-perfect efficiency and the same threshold, a lower Ct means more starting template; at 100% efficiency, one cycle earlier means twice the starting template.
 
-Two names are easily confused. **RT-PCR** is reverse-transcription PCR: reverse transcriptase first copies RNA into complementary DNA (cDNA), which is then amplified. **Real-time quantitative PCR (qPCR)** measures product during cycling with a fluorescent dye that binds double-stranded DNA or a sequence-specific probe. RT-qPCR combines the two to measure mRNA.
+**Predict.** Target and reference Ct values both move one cycle earlier in a treated sample. Has target abundance changed relative to the reference?
 
-The readout is the **threshold cycle, Ct**: the cycle at which fluorescence crosses a set threshold during the exponential phase. A lower Ct means more starting template, because fewer doublings are needed to reach the same amount of product. At 100% efficiency, one cycle earlier means twice as much template.
+<details>
+<summary>Check your prediction</summary>
+
+No. Subtracting reference Ct from target Ct removes the shared shift, so delta Ct is unchanged; relative qPCR asks whether that gap changes between conditions.
+
+</details>
 
 **Worked problem (b).** Both reactions are about 100% efficient. Target gene Ct is 24.0 in treated cells and 26.5 in control; reference gene Ct is 18.0 in treated and 18.5 in control.
 
@@ -438,18 +495,27 @@ The readout is the **threshold cycle, Ct**: the cycle at which fluorescence cros
 
 The method assumes equal efficiencies near 100% for both assays and a reference gene shown not to change in this experiment.
 
-## Reading the result: gels and blots
+## Reading the result: size, identity and controls
 
-DNA's phosphate backbone is negatively charged, so in an agarose gel it moves toward the positive electrode. The gel is a mesh, and smaller linear fragments slip through faster. A **size ladder** of known fragments in a neighboring lane turns position into length. Uncut circular plasmid runs at a different position from the same plasmid cut to a line. A band of the right size is evidence about size, not identity.
+In an agarose gel, DNA's negatively charged backbone moves toward the positive electrode, and smaller linear fragments move faster through the mesh. A **size ladder** of known fragments in a neighboring lane turns position into an estimated length. Uncut circular plasmid runs differently from the same plasmid cut into a line. A right-sized band is evidence about size, not identity.
 
-Blots add identity. In Southern's 1975 method, fragments in the gel are denatured and transferred to a membrane, which is then soaked in a labeled probe; only fragments that pair with it light up. The Northern blot applies the same idea to RNA. The Western blot transfers proteins separated by SDS-PAGE and detects one with an antibody (covered in [protein purification techniques](/lessons/protein-purification-techniques/)).
+Blots add identity: in Southern's 1975 method, gel-separated DNA fragments are denatured, transferred to a membrane and paired with a labeled probe. Only complementary fragments light up. A Northern blot does the same for RNA. A Western blot transfers proteins separated by SDS-PAGE and detects one with an antibody (see [protein purification techniques](/lessons/protein-purification-techniques/)).
 
-Each readout needs its controls:
+**Predict.** In an RT-qPCR run, the no-reverse-transcriptase control crosses the threshold ten cycles after the matched full reaction. Does genomic DNA explain much of the signal?
 
-- a **size ladder** on every gel;
-- a **no-template control** for every PCR, to detect contamination, and a **no-RT control** for RNA, to detect genomic DNA;
-- a **positive control**, to show that the assay works, and a check for inhibitors in the sample, such as a spike-in, so a negative result means the target was not detected rather than that the reaction failed;
-- a **loading control** on blots, such as a reprobe for a stable RNA or a total-protein stain, read within its linear range.
+<details>
+<summary>Check your prediction</summary>
+
+Very little. With no cDNA made, that signal comes from DNA already in the RNA. At about equal efficiency, ten cycles later means about 2^10, or roughly 1,000-fold, less template: about a tenth of a percent of the signal.
+
+</details>
+
+Match each control to a failure:
+
+- a **size ladder** calibrates every gel;
+- a **no-template control** detects PCR contamination, and a **no-RT control** detects genomic DNA in an RNA preparation;
+- a **positive control** shows the assay works, and an inhibitor check such as a spike-in shows that a negative sample means the target was not detected rather than that the reaction failed;
+- a **loading control** on a blot, such as a stable-RNA reprobe or total-protein stain, supports comparison within its linear range.
 
 ### Design problem
 
@@ -468,3 +534,17 @@ You cut a 5.0 kb vector and a 1.2 kb insert with EcoRI and BamHI, ligate, transf
 5. Screen colonies by colony PCR or by EcoRI plus BamHI digest, expecting bands of 5.0 and 1.2 kb, then sequence across both junctions and through the insert.
 
 </details>
+
+## Going deeper
+
+### From test-tube joins to copied constructs
+
+In 1972 David Jackson, Robert Symons and Paul Berg joined lambda phage genes and the *E. coli* galactose operon to SV40 DNA entirely in a test tube. That year Janet Mertz and Ronald Davis showed that EcoRI ends are complementary and that a restriction enzyme plus ligase can make hybrid molecules.
+
+In 1973 Stanley Cohen, Annie Chang, Herbert Boyer and Robert Helling joined restriction fragments from separate plasmids, transformed *E. coli* and recovered plasmids with properties of both parents. Berg's group made recombinant DNA first; the Cohen and Boyer collaboration first showed a recombinant plasmid replicating in a cell.
+
+### Why PCR no longer needs fresh enzyme each cycle
+
+The first published PCR, in 1985, used the Klenow fragment of *E. coli* DNA polymerase I. Heating destroyed it, so fresh enzyme was added every cycle. That Cetus team amplified a short beta-globin region about 220,000-fold.
+
+In 1988 the group reported PCR with polymerase from *Thermus aquaticus*, which survives denaturation. Taq lacks a 3' to 5' proofreading exonuclease, so its copies carry more errors. In one 1991 reporter assay, products made with Pfu polymerase carried fewer than a tenth as many mutations. Kary Mullis shared the 1993 Nobel Prize in Chemistry for conceiving PCR.

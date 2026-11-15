@@ -1,0 +1,556 @@
+{
+ "slug": "crispr-and-functional-genomics",
+ "title": "Forward and Reverse Genetics: Screens, RNAi and CRISPR",
+ "generated": {
+  "date": "2026-11-12",
+  "pipeline": "extract → Sonnet draft → Sonnet accuracy gate (separate agent) → Sonnet fixes",
+  "models": {
+   "draft": "claude-sonnet-5-5",
+   "gate": "claude-sonnet-5-5",
+   "fix": "claude-sonnet-5-5"
+  }
+ },
+ "lessonHash": "15bcb22ac262",
+ "sectionHashes": {
+  "Phenotype first: the forward screen": "53d099537940",
+  "Gene first: knockdown and knockout": "9132596be4e5",
+  "CRISPR came from a bacterial immune system": "e4dc3084d3dc",
+  "Programming the cut, and what the cell does next": "ded393247c5f",
+  "A pooled CRISPR screen uses both directions": "1b8f1bca5ab9",
+  "Design problem": "6e1f58d185b3",
+  "Somatic, germline, and who decides": "5217f416bf66",
+  "Forward-genetics and targeting tallies": "317aac41d899"
+ },
+ "cards": [
+  {
+   "id": "crispr-and-functional-genomics-c01",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "What does a forward genetic screen start from, and what is it searching for?",
+   "back": "It starts from a phenotype and searches for the genetic cause, the gene or locus behind the trait.",
+   "quote": "A forward screen begins with a phenotype, an observable or measurable trait, and works back toward its genetic cause",
+   "section": "Phenotype first: the forward screen"
+  },
+  {
+   "id": "crispr-and-functional-genomics-c02",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A {{c1::locus}} is a position in the genome where a gene sits; a screen can locate it before anyone knows what its product does.",
+   "back": "",
+   "quote": "A locus is a position in the genome where a gene sits; a screen can locate it before anyone knows what its product does.",
+   "section": "Phenotype first: the forward screen"
+  },
+  {
+   "id": "crispr-and-functional-genomics-c03",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "List the steps of a forward screen in order.",
+   "back": "Mutagenize at random, score the phenotype, recover mutant lines, map each lesion, then test whether a candidate gene causes the phenotype.",
+   "quote": "mutagenize at random, score the phenotype, recover mutant lines, map each lesion, then test whether a candidate gene causes it.",
+   "section": "Phenotype first: the forward screen"
+  },
+  {
+   "id": "crispr-and-functional-genomics-c04",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Two recessive mutants in a diploid organism give the same phenotype. Offspring carrying one mutant allele from each parent are normal. Under the standard complementation assumptions, are the mutations in the same gene or in different genes?",
+   "back": "Different genes. Each offspring still has one working copy of each gene, so the mutations complement. Offspring with the mutant phenotype would place the mutations in one complementation group.",
+   "quote": "Each offspring still has one working copy of each gene, so the mutations complement.",
+   "section": "Phenotype first: the forward screen"
+  },
+  {
+   "id": "crispr-and-functional-genomics-c05",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "What is a complementation group?",
+   "back": "A set of mutations that fail to restore function in combination. Under the standard assumptions they are hits in one gene.",
+   "quote": "A complementation group is a set of mutations that fail to restore function in combination, which under the standard assumptions marks them as hits in one gene.",
+   "section": "Phenotype first: the forward screen"
+  },
+  {
+   "id": "crispr-and-functional-genomics-c06",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "In budding yeast, Hartwell and colleagues sorted 148 temperature-sensitive mutants into 32 complementation groups. What does the smaller number of groups tell you?",
+   "back": "Several mutants hit the same gene, so the 148 mutants mark about 32 genes under the standard complementation assumptions.",
+   "quote": "in budding yeast, Hartwell and colleagues organized 148 temperature-sensitive mutants into 32 complementation groups.",
+   "section": "Forward-genetics and targeting tallies"
+  },
+  {
+   "id": "crispr-and-functional-genomics-c07",
+   "type": "experiment",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "In the 1980 Drosophila screen of embryonic-lethal mutants, what did Nüsslein-Volhard and Wieschaus score, and what did they report?",
+   "back": "They scored changes in larval segmentation and reported 15 loci. The phenotype classes acted at different scales, indicating at least three levels of spatial organization in segmentation.",
+   "quote": "They looked through embryonic-lethal mutants for changes in larval segmentation and reported 15 loci.",
+   "section": "Phenotype first: the forward screen"
+  },
+  {
+   "id": "crispr-and-functional-genomics-c08",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why does a forward screen in a mutagenized strain need backcrossing and a causal test before a gene is blamed for the phenotype?",
+   "back": "Mutagenized backgrounds carry extra variants. A causal test is complementation, rescue by restoring the candidate gene, or a second independent allele.",
+   "quote": "Mutagenized backgrounds also carry extra variants, so backcrossing and a causal test",
+   "section": "Phenotype first: the forward screen"
+  },
+  {
+   "id": "crispr-and-functional-genomics-c09",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "What does reverse genetics start from, and what does it ask?",
+   "back": "It starts from a chosen gene and asks what changing its sequence or expression does.",
+   "quote": "Reverse genetics starts from a chosen gene and asks what changing its sequence or expression does.",
+   "section": "Gene first: knockdown and knockout"
+  },
+  {
+   "id": "crispr-and-functional-genomics-c10",
+   "type": "experiment",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "Thomas and Capecchi disrupted mouse Hprt in embryonic stem cells by homologous recombination. What fraction of drug-resistant colonies had actually lost Hprt function?",
+   "back": "Only a small fraction, about one in a thousand. Most drug-resistant colonies had not lost Hprt function.",
+   "quote": "about one in a thousand drug-resistant colonies had also lost Hprt function",
+   "section": "Forward-genetics and targeting tallies"
+  },
+  {
+   "id": "crispr-and-functional-genomics-c11",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "What does RNA interference (RNAi) change, and what does it leave alone?",
+   "back": "It lowers how much protein a gene makes, without changing the gene's DNA.",
+   "quote": "RNA interference, or RNAi, lowers how much protein a gene makes without changing the gene's DNA.",
+   "section": "Gene first: knockdown and knockout"
+  },
+  {
+   "id": "crispr-and-functional-genomics-c12",
+   "type": "experiment",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "In the 1998 C. elegans injections, what did double-stranded RNA show compared with single strands, and which observation suggested an amplifying or catalytic step?",
+   "back": "Double-stranded RNA gave substantially stronger, specific interference than either single strand; the small effective amount suggested the catalytic or amplifying step.",
+   "quote": "double-stranded RNA produced substantially stronger, specific interference than either single strand, and the small effective amount suggested a catalytic or amplifying step.",
+   "section": "Gene first: knockdown and knockout"
+  },
+  {
+   "id": "crispr-and-functional-genomics-c13",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "What controls does an RNAi knockdown phenotype need before it is believed?",
+   "back": "A measurement of the target protein, two non-overlapping reagents against the same gene, and rescue with a transgene engineered to resist the reagent.",
+   "quote": "two non-overlapping reagents against the same gene, and rescue with a transgene engineered to resist the reagent.",
+   "section": "Gene first: knockdown and knockout"
+  },
+  {
+   "id": "crispr-and-functional-genomics-c14",
+   "type": "qa",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Two independent siRNAs against gene X give the same migration defect. What has this agreement still not shown, and what does even a successful rescue leave open?",
+   "back": "Agreement does not measure the protein, so knockdown must be checked by blot or immunofluorescence. Rescue does not formally exclude a phenotype that also needs an off-target effect.",
+   "quote": "Agreement between two reagents does not measure the protein, and even successful rescue does not formally exclude a phenotype that also requires an off-target effect.",
+   "section": "Gene first: knockdown and knockout"
+  },
+  {
+   "id": "crispr-and-functional-genomics-c15",
+   "type": "experiment",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "In S. thermophilus, what did adding or removing particular CRISPR spacers show about their function?",
+   "back": "Resistance to phage changed with the spacers, tracking spacer-phage sequence similarity. CRISPR spacers act as an immune memory against foreign DNA.",
+   "quote": "phage challenge added phage-derived spacers, and adding or removing particular spacers changed resistance",
+   "section": "CRISPR came from a bacterial immune system"
+  },
+  {
+   "id": "crispr-and-functional-genomics-c16",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In the native S. pyogenes type II CRISPR system, what do the crRNA and the tracrRNA each do?",
+   "back": "The crRNA carries the guide sequence. The tracrRNA is required by Cas9 alongside it.",
+   "quote": "a crRNA that carries the guide sequence and a tracrRNA that Cas9 requires alongside it",
+   "section": "CRISPR came from a bacterial immune system"
+  },
+  {
+   "id": "crispr-and-functional-genomics-c17",
+   "type": "experiment",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "The 2012 Jinek study fused crRNA and tracrRNA into one chimeric RNA. What did it show, and why was it not yet genome editing?",
+   "back": "Purified Cas9 cut DNA where the RNA specified, beside a short motif. It was biochemistry with purified parts. Editing in cells came in 2013.",
+   "quote": "In 2012 the Jinek study fused those RNAs into one chimeric RNA that sent purified Cas9 to cut DNA where the RNA specified, beside a short motif",
+   "section": "CRISPR came from a bacterial immune system"
+  },
+  {
+   "id": "crispr-and-functional-genomics-c18",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In Cas9 genome editing, what does the experimenter decide and what does the cell decide?",
+   "back": "The experimenter chooses the site to cut. The cell's repair decides which allele results.",
+   "quote": "Editing means choosing a site; the cell decides the allele.",
+   "section": "CRISPR came from a bacterial immune system"
+  },
+  {
+   "id": "crispr-and-functional-genomics-c19",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "For S. pyogenes Cas9, the guide's target-binding segment is 20 nucleotides, and the target must sit beside a {{c1::PAM}}, a protospacer-adjacent motif, preferably NGG.",
+   "back": "",
+   "quote": "For S. pyogenes Cas9, the target-binding segment of the guide is 20 nucleotides, and the target must sit beside a PAM, a protospacer-adjacent motif, preferably NGG.",
+   "section": "Programming the cut, and what the cell does next"
+  },
+  {
+   "id": "crispr-and-functional-genomics-c20",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "In the original plasmid assay, where did S. pyogenes Cas9 cut relative to the PAM?",
+   "back": "Three base pairs upstream of the PAM.",
+   "quote": "In the original plasmid assay, cleavage fell three base pairs upstream of that motif.",
+   "section": "Programming the cut, and what the cell does next"
+  },
+  {
+   "id": "crispr-and-functional-genomics-c21",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A 20-nucleotide target matches your guide perfectly, but the only PAM beside it is NAG, not NGG. What do you expect from S. pyogenes Cas9?",
+   "back": "Cutting, but weak: about one fifth of the activity seen with NGG. NAG is read, only much less efficiently.",
+   "quote": "Cas9 also cuts beside NAG, but far less efficiently, at about one fifth of NGG activity.",
+   "section": "Programming the cut, and what the cell does next"
+  },
+  {
+   "id": "crispr-and-functional-genomics-c22",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Is a single mismatch between guide and target a clean off switch for Cas9 in human cells?",
+   "back": "No. Tolerance depended on the number, position and distribution of mismatches.",
+   "quote": "A single mismatch is not a clean off switch either: tolerance in human cells depended on the number, position and distribution of mismatches.",
+   "section": "Programming the cut, and what the cell does next"
+  },
+  {
+   "id": "crispr-and-functional-genomics-c23",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Name the two main routes for repairing a Cas9 double-strand break, and the difference in template.",
+   "back": "End joining needs no supplied template. Homology-directed repair copies a supplied template and is more efficient in dividing cells.",
+   "quote": "A Cas9 double-strand break is repaired mainly by end joining, which needs no supplied template, or, for a designed edit, by homology-directed repair, which copies a supplied template",
+   "section": "Programming the cut, and what the cell does next"
+  },
+  {
+   "id": "crispr-and-functional-genomics-c24",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Cas9 cuts a site and the ends are rejoined accurately by canonical end joining. What does sequencing that site show, and what follows?",
+   "back": "The original sequence, identical to uncut DNA. Sequencing cannot tell a repaired cut from an uncut site, so unedited reads may include cut cells.",
+   "quote": "accurate rejoining at one cut restores the original sequence, so sequencing that final site cannot distinguish it from uncut DNA.",
+   "section": "Programming the cut, and what the cell does next"
+  },
+  {
+   "id": "crispr-and-functional-genomics-c25",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "What does amplicon sequencing of an edited pool measure?",
+   "back": "Counts of sequence variants in one amplified window: allele frequencies, not function.",
+   "quote": "Amplicon sequencing counts sequence variants in one amplified window: allele frequencies, not function.",
+   "section": "Programming the cut, and what the cell does next"
+  },
+  {
+   "id": "crispr-and-functional-genomics-c26",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "One guide cuts exon 2 of a diploid line. Amplicon sequencing of the pool gives unedited 20%, minus 2 bp 30%, plus 1 bp 20%, minus 3 bp 20%, minus 9 bp 10%. What fraction of alleles is frameshifted?",
+   "back": "50%. Frameshift means an indel length not a multiple of three: minus 2 (30) and plus 1 (20) qualify. Minus 3 and minus 9 are in frame (30) and 20 is unedited.",
+   "quote": "A frameshift has an indel length that is not a multiple of three.",
+   "section": "Programming the cut, and what the cell does next"
+  },
+  {
+   "id": "crispr-and-functional-genomics-c27",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A pool has 60% frameshifted alleles, and the two alleles in each diploid cell are edited independently. What fraction of cells has both alleles frameshifted?",
+   "back": "36%: 0.60 x 0.60 = 0.36. About 64% of cells keep at least one in-frame or unedited allele. An allele count is not a cell count.",
+   "quote": "Both independent events must occur, so multiply their probabilities",
+   "section": "Programming the cut, and what the cell does next"
+  },
+  {
+   "id": "crispr-and-functional-genomics-c28",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why is an edited pool with many frameshifted alleles a mosaic, not a null population?",
+   "back": "Some cells keep in-frame or unedited alleles. Frameshifts often trigger nonsense-mediated decay, but in-frame deletions can leave partial function.",
+   "quote": "Frameshifts often trigger nonsense-mediated decay and in-frame deletions can leave partial function",
+   "section": "Programming the cut, and what the cell does next"
+  },
+  {
+   "id": "crispr-and-functional-genomics-c29",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Why can an amplicon read-out look clean while the gene is still disrupted at the cut site?",
+   "back": "Amplicon sequencing sees only its amplified window, and long-range assays have revealed large on-target deletions and rearrangements in mouse and human preparations.",
+   "quote": "amplicon sequencing sees only its amplified window, and long-range assays have revealed large on-target deletions and rearrangements in mouse and human preparations.",
+   "section": "Programming the cut, and what the cell does next"
+  },
+  {
+   "id": "crispr-and-functional-genomics-c30",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "What is the checklist for calling an edited line a functional knockout?",
+   "back": "Isolate clones, check both alleles, measure product or activity, then confirm with independent guides.",
+   "quote": "The second film's checklist follows: clones, both alleles, a measurement of product or activity, then independent guides.",
+   "section": "Programming the cut, and what the cell does next"
+  },
+  {
+   "id": "crispr-and-functional-genomics-c31",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "The same approach edits a human locus at 10 to 25% of alleles in 293T cells but 2 to 4% in induced pluripotent stem cells. A student concludes one approach suits both preparations. Is that sound?",
+   "back": "No. The locus and approach are the same, so editing frequency depends on the preparation as well as on the guide sequence. Repair spectra also depended on cell line.",
+   "quote": "Repair spectra depended reproducibly on local sequence and cell line.",
+   "section": "Programming the cut, and what the cell does next"
+  },
+  {
+   "id": "crispr-and-functional-genomics-c32",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A guide with only an NAG PAM gives 3% edited alleles in a pool, and the pool shows no phenotype. Can you conclude the gene is dispensable?",
+   "back": "No. NAG cuts at only about one fifth of NGG activity, so most cells are likely unedited. Allele frequencies are not function, and low editing says little about the gene.",
+   "quote": "Cas9 also cuts beside NAG, but far less efficiently, at about one fifth of NGG activity.",
+   "section": "Programming the cut, and what the cell does next"
+  },
+  {
+   "id": "crispr-and-functional-genomics-c33",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In a pooled CRISPR screen under drug selection, what do enriched and depleted guides each suggest?",
+   "back": "Enrichment marks genes whose perturbation may help under that selection. Depletion marks those whose perturbation may hurt, through the selected condition or a general fitness cost.",
+   "quote": "Enrichment marks candidates whose perturbation may help under that selection, depletion those whose perturbation may hurt, through the selected condition or a general fitness cost.",
+   "section": "A pooled CRISPR screen uses both directions"
+  },
+  {
+   "id": "crispr-and-functional-genomics-c34",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why can't you call a gene a resistance gene from an enriched guide count alone, and what do you do next?",
+   "back": "A guide count is not an allele sequence or a function test. Test independent guides, identify alleles in derived clones, and attempt rescue.",
+   "quote": "A guide count is not an allele sequence or a function test, so before calling an enriched hit a resistance gene, test independent guides, identify alleles in derived clones, and attempt rescue.",
+   "section": "A pooled CRISPR screen uses both directions"
+  },
+  {
+   "id": "crispr-and-functional-genomics-c35",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A pooled screen is repeated and gives the same enriched guides. What has this tested, and what has it not?",
+   "back": "It tests reproducibility. It does not test specificity or causality.",
+   "quote": "Repeating the same screen tests reproducibility, not specificity or causality.",
+   "section": "A pooled CRISPR screen uses both directions"
+  },
+  {
+   "id": "crispr-and-functional-genomics-c36",
+   "type": "qa",
+   "level": 4,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A pooled Cas9 screen selects a phenotype (drug survival) while a guide library is delivered so that most transduced cells carry one guide. Is it forward or reverse genetics, and where does the claim stop?",
+   "back": "It is a hybrid. The phenotype is selected as in forward genetics, but the perturbation is gene-first as in reverse genetics. Direction limits discovery; validation limits the claim.",
+   "quote": "The first film ran this hybrid lane, with most transduced cells carrying one guide",
+   "section": "A pooled CRISPR screen uses both directions"
+  },
+  {
+   "id": "crispr-and-functional-genomics-c37",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "An siRNA against gene X reduces cell migration, but a CRISPR knockout clone of X migrates normally. Give one way each result could mislead, and one test for each.",
+   "back": "Knockdown: off-target effect. Test with two independent siRNAs, a protein blot and rescue. Knockout: in-frame indel, large deletion or compensation by related genes. Genotype both alleles, test several clones and measure paralogues.",
+   "quote": "Make and test several independent clones with different guides, because one clone is an n of 1 with its own history.",
+   "section": "Design problem"
+  },
+  {
+   "id": "crispr-and-functional-genomics-c38",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "How is a knockdown rescue designed, and what does each outcome mean?",
+   "back": "Express an siRNA-resistant X cDNA with silent changes in the target site. If migration returns, the phenotype tracks X. If not, an off-target effect is one explanation, though a poorly expressed construct can also fail.",
+   "quote": "rescue the knockdown by expressing an siRNA-resistant X cDNA, with silent changes in the target site.",
+   "section": "Design problem"
+  },
+  {
+   "id": "crispr-and-functional-genomics-c39",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "What separates a somatic genome edit from a germline edit?",
+   "back": "A somatic edit changes cells in one person. A germline edit in an embryo can be passed to descendants.",
+   "quote": "A somatic edit changes cells in one person. A germline edit in an embryo can be passed to descendants",
+   "section": "Somatic, germline, and who decides"
+  },
+  {
+   "id": "crispr-and-functional-genomics-c40",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "In the first reported somatic-editing patients for blood disease, which cells were edited and where?",
+   "back": "The person's own CD34-positive blood stem cells were edited at the BCL11A erythroid enhancer, then returned after myeloablation.",
+   "quote": "a person's own CD34-positive blood stem cells were edited at the BCL11A erythroid enhancer and returned after myeloablation",
+   "section": "Somatic, germline, and who decides"
+  }
+ ]
+}
