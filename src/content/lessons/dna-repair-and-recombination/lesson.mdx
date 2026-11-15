@@ -5,13 +5,13 @@ course: "genetics"
 courseChapter: "Genetics and Molecular Biology · Unit 3: DNA: copying, changing, repairing"
 order: 315
 summary: >-
-  DNA is damaged all the time, by its own chemistry, by light and by the polymerase that copies
-  it. This lesson sorts the damage into kinds and matches each kind to the system that fixes it:
-  direct reversal, base excision, nucleotide excision, mismatch repair, and the two main ways of mending
-  a broken chromosome. Afterwards you can calculate how much mismatch repair lowers the error rate
-  of replication, explain how a cell tells the new strand from the old, and connect xeroderma
-  pigmentosum, Lynch syndrome and BRCA1 or BRCA2 variants to the repair step each disrupts.
-hook: "Humans have no photolyase, the enzyme that lets bacteria and plants undo UV damage with light. So how do your skin cells fix sunburned DNA?"
+  Repair outcomes depend on what is damaged and what intact information remains. This lesson uses
+  that rule to match direct reversal, base excision repair, nucleotide excision repair and mismatch
+  repair to their substrates, and to compare end joining with homologous recombination at broken
+  chromosomes. You will calculate how much mismatch repair lowers a model replication error rate,
+  explain how a cell identifies the new strand, and connect xeroderma pigmentosum, Lynch syndrome
+  and BRCA1 or BRCA2 variants to the repair step each disrupts.
+hook: "If ultraviolet light joins two neighboring bases in your skin-cell DNA, how can the cell restore the original sequence?"
 
 estMinutes: 24
 objectives:
@@ -24,10 +24,30 @@ explainer:
   src: "/explainers/dna-repair-and-recombination/explainer.mp4"
   captions: "/explainers/dna-repair-and-recombination/explainer.vtt"
   poster: "/explainers/dna-repair-and-recombination/poster.jpg"
-  title: "DNA Holds Its Information Twice"
-  durationSec: 166.0
-  narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+  title: "How DNA Chooses a Repair Route"
+  durationSec: 217.5
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+  takeaways:
+    - "Repair outcomes depend on what is damaged and what intact information remains."
+    - "Direct reversal restores some damaged bases without cutting the DNA backbone."
+    - "Base excision repair removes one damaged base; nucleotide excision repair removes a damaged stretch."
+    - "Mismatch repair also needs a signal that identifies the newly made strand."
+
+films:
+  - id: "chapter-2"
+    src: "/explainers/dna-repair-and-recombination/chapter-2.mp4"
+    captions: "/explainers/dna-repair-and-recombination/chapter-2.vtt"
+    poster: "/explainers/dna-repair-and-recombination/chapter-2-poster.jpg"
+    title: "Two Ways to Mend a Broken Chromosome"
+    durationSec: 223.5
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+    takeaways:
+      - "A broken chromosome can join its ends or copy a matching template."
+      - "End joining needs no template and can work throughout the cell cycle."
+      - "End joining can be exact when compatible ends need no processing."
+      - "Homologous recombination usually copies the sister chromatid in S and G2."
 
 scientists:
   - name: "James Cleaver"
@@ -213,7 +233,7 @@ practiceQuestions:
       with the old strand unmethylated, would lead the system to correct the template and fix the
       error in place. Uracil in DNA is a target of base excision repair, not a strand marker for
       mismatch repair. Ku binds double-strand break ends in end joining, not mismatches.
-  - stem: "A human cell in G1 of the cell cycle has a double-strand break in a chromosome. Which repair route is it most likely to use?"
+  - stem: "Repair outcomes depend on what is damaged and what intact information remains. A human cell in G1 of the cell cycle has a double-strand break in a chromosome. Which repair route is it most likely to use?"
     choices:
       - "Homologous recombination using the sister"
       - "Base excision repair of the broken ends"
@@ -227,7 +247,7 @@ practiceQuestions:
       after replication. Base excision repair replaces single damaged bases and cannot rejoin a
       broken chromosome. Mismatch repair can use a nick to choose a strand, but it corrects
       mispaired bases in an intact duplex, not a break through both strands.
-  - stem: "Use the lesson's round numbers: a polymerase error rate of 1 in 10^5, 99.9% correction by mismatch repair, and 6.4 x 10^9 bp copied. If proofreading were lost but mismatch repair still worked, about how many errors would remain per genome replication?"
+  - stem: "Use the lesson's round numbers: a polymerase error rate of 1 in 10^5, 99.9% correction by mismatch repair, and 6.4 x 10^9 newly made nucleotides in each daughter genome. If proofreading were lost but mismatch repair still worked, about how many errors would remain per daughter genome?"
     choices:
       - "About 0.64 errors per genome"
       - "About 64 errors per genome"
@@ -236,7 +256,7 @@ practiceQuestions:
     answer: 1
     rationale: >-
       Without proofreading the polymerase leaves 10^-5 errors per base pair, and mismatch repair
-      removes all but one in 1,000, giving 10^-8 per base pair; 6.4 x 10^9 x 10^-8 is 64 errors.
+      removes all but one in 1,000, giving 10^-8 per base pair; 6.4 x 10^9 x 10^-8 is 64 errors per daughter genome.
       About 0.64 is the figure with both proofreading and mismatch repair working. About 640 is the
       figure with proofreading but no mismatch repair. About 6,400 would need an error rate of
       10^-6 per base pair, which comes from applying only a tenfold correction.
@@ -378,53 +398,83 @@ draft: false
 
 import RepairPathwayChooser from '../../../components/RepairPathwayChooser.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import LessonFilm from '../../../components/LessonFilm.astro';
 
-**Every day, in the DNA of your cells, some cytosines lose their amino group and turn into uracil, a base that pairs with adenine.**
+This page adds the lesions, proteins and strand signals behind the first film's sorting of one-strand problems.
 
-Water and body temperature are enough. If the uracil stayed, the next replication would put an A opposite it, and the round after that would leave an A·T pair where a G·C pair had been: a mutation made by chemistry alone. This lesson asks how cells find a few wrong bases among billions of right ones, and what happens to people who inherit a broken repair system.
+> **The one idea.** Repair outcomes depend on what is damaged and what intact information remains.
+>
+> *Scope:* sequence-level repair here. Direct reversal needs no template; excision copies a partner as in [DNA replication](/lessons/dna-replication/); mismatch repair needs strand identity; a double-strand break may have only its ends unless a homologous template exists. Repair need not restore the starting sequence; end joining, for example, can lose a few bases at a break.
 
 ## Damage is constant: the lesions
 
-A **lesion** is any change to DNA's chemical structure, and it is not yet a mutation. It usually becomes a **mutation**, a heritable change in sequence, when replication copies it into a normal-looking base pair on both strands. Repair can also change the sequence, as when end joining loses a few bases at a break.
+A **lesion** is a change to DNA's chemical structure, not yet a **mutation**, a heritable sequence change. A lesion usually becomes one when replication converts it into a normal-looking base pair on both strands.
 
-The lesions fall into a few kinds:
+Water and body temperature alone make some cytosines lose an amino group and become uracil, which pairs with adenine. If it remains, one round of replication puts A opposite U; the next can leave A·T where G·C had been.
 
-- **Spontaneous chemistry.** Cytosine deaminates to uracil, and purine bases fall off their sugars, leaving an **abasic (AP) site**, a sugar with no base.
+The main kinds:
+
+- **Spontaneous chemistry.** Besides deamination, purine bases fall off their sugars, leaving an **abasic (AP) site**, a sugar with no base.
 - **Oxidation and alkylation.** Reactive oxygen produces 8-oxoguanine, which can pair with adenine. Alkylating agents add methyl groups; O6-methylguanine pairs with thymine.
 - **Ultraviolet light.** UV joins two neighboring pyrimidines on the same strand into a **cyclobutane pyrimidine dimer** or a **6-4 photoproduct**. Both distort the helix, the 6-4 photoproduct much more than the dimer, and both stall polymerases.
 - **Strand breaks.** Ionizing radiation and collapsed replication forks can break both strands at once.
 - **Replication errors.** The polymerase pairs normal bases wrongly or slips on repeats (see [mutation](/lessons/mutation/)).
 
-One rule runs through almost all of repair: the double helix holds its information twice. If one strand is damaged, a cell can cut out the bad stretch and copy the partner strand, the same templating used in [DNA replication](/lessons/dna-replication/). A break through both strands removes that option at one spot, which is why it needs separate machinery.
-
 ## Reversing and cutting out: direct reversal, BER and NER
 
-**Direct reversal** undoes the chemistry in place, without cutting the backbone. Photolyases use blue and near-UV light to split pyrimidine dimers back into separate bases. They work in bacteria, yeast and plants, but humans lack the photolyases that reverse UV dimers, so your skin cannot use this route. The second example is **O6-methylguanine methyltransferase** (MGMT). It moves the methyl group from the guanine to a cysteine in its own active site, which restores the base and inactivates the protein for good. One molecule repairs one lesion, so it is called a suicide enzyme.
+**Direct reversal** undoes the chemistry in place, without cutting the backbone. Photolyases use blue and near-UV light to split pyrimidine dimers back into separate bases. They work in bacteria, yeast and plants, but humans lack the photolyases that reverse UV dimers, so your skin cannot use this route. **O6-methylguanine methyltransferase** (MGMT) moves the methyl group from the guanine to a cysteine in its own active site, which restores the base and inactivates the protein for good. One molecule repairs one lesion, so it is called a suicide enzyme.
 
-**Base excision repair** (BER) handles most small, non-bulky base lesions that direct reversal does not: uracil, 8-oxoguanine, some alkylated bases, AP sites. It runs in steps:
+**Base excision repair** (BER) handles most small, non-bulky base lesions that direct reversal does not: uracil, 8-oxoguanine, some alkylated bases and AP sites. Each **DNA glycosylase** recognizes one damaged base or a few related ones, flips it out and cuts its bond to the sugar, leaving an AP site. **AP endonuclease** cuts the backbone there. Polymerase beta (in human cells) inserts the correct nucleotide from the partner strand and removes the leftover sugar fragment; a ligase seals the nick. This short-patch route replaces one nucleotide; a long-patch route replaces several.
 
-1. A **DNA glycosylase** that recognizes one damaged base, or a few related ones, flips that base out of the helix and cuts the bond to its sugar, leaving an AP site.
-2. **AP endonuclease** cuts the backbone at the AP site. Some glycosylases, including the one that removes 8-oxoguanine, also cut the backbone themselves, and AP endonuclease then trims the cut end.
-3. A polymerase (polymerase beta in human cells) inserts the correct nucleotide, using the partner strand, and removes any leftover sugar fragment.
-4. A ligase seals the nick.
+Some glycosylases, including the one that removes 8-oxoguanine, also cut the backbone; AP endonuclease then trims the cut end.
 
-This is the short-patch route, which replaces one nucleotide. A long-patch route replaces several.
+**Predict.** A cell has working uracil-DNA glycosylase but no working AP endonuclease. After cytosine deamination, which intermediate should accumulate: uracil in DNA, AP sites with an intact backbone, or sealed repaired DNA?
 
-In 1974 Tomas Lindahl reported an E. coli activity that released uracil from deaminated DNA and left the backbone uncut. In 1996 his group rebuilt human uracil repair from four purified proteins, which filled a one-nucleotide patch.
+<details>
+<summary>Check your prediction</summary>
 
-**Nucleotide excision repair** (NER) handles bulky lesions that distort the helix: UV dimers and 6-4 photoproducts, and adducts from drugs such as cisplatin. It recognizes distortion of the helix rather than one chemical change, so one pathway copes with many lesions. In human cells the sensor XPC finds distorted DNA anywhere in the genome, helped by UV-DDB for the weakly distorting cyclobutane dimers, and an RNA polymerase stalled at a lesion flags damage in genes being transcribed. TFIIH, a complex with helicase activity, then opens the DNA and checks that a lesion is there. NER then cuts the damaged strand on both sides and removes a short oligonucleotide. Aziz Sancar and Dean Rupp showed this dual incision in 1983 with the purified E. coli proteins UvrA, UvrB and UvrC. The E. coli fragment is about 12 to 13 nucleotides; in a human cell-free system the removed piece was 27 to 29 nucleotides long. In human cells the cut on the 5′ side is made by XPF-ERCC1 and the cut on the 3′ side by XPG. A polymerase then fills the gap, and a ligase seals it.
+AP sites with an intact backbone should accumulate. Glycosylase removes uracil, but AP endonuclease cannot make the next cut. The glycosylase exception means this result does not fit every BER substrate.
+
+</details>
+
+**Nucleotide excision repair** (NER) handles bulky, helix-distorting lesions: UV dimers, 6-4 photoproducts and adducts from drugs such as cisplatin. Because it recognizes distortion rather than one chemical group, one pathway handles many lesions. TFIIH, a complex with helicase activity, opens the DNA and helps verify the lesion before the dual cut and refill shown in the first film.
+
+Human NER has two entry routes. XPC surveys the genome for distorted DNA, helped by UV-DDB at weakly distorting cyclobutane dimers. In a transcribed gene, RNA polymerase stalled at a lesion flags the damage. XPF-ERCC1 makes the 5′ cut and XPG the 3′ cut.
+
+**Predict.** A lesion barely distorts the helix but strongly stalls RNA polymerase in an active gene. Which recognition route gives NER its clearest starting signal?
+
+<details>
+<summary>Check your prediction</summary>
+
+The transcription-coupled route: the stalled polymerase supplies the signal. Both routes then feed the same opening, cutting and refill steps.
+
+</details>
 
 ## Fixing the copier's mistakes: mismatch repair
 
-A **mismatch** is two normal bases paired wrongly, such as G with T. Neither base is damaged, so which one is wrong? The answer is whichever is on the new strand, because the template was correct before the polymerase arrived.
+A **mismatch** is two normal bases paired wrongly, such as G with T. The first film showed why the new strand's base is the one replaced; cells must mark that strand.
 
-In E. coli the new strand carries a mark of absence. The Dam methylase adds a methyl group to the adenine in GATC sequences, but only some time after the fork passes. For that window, new DNA is **hemimethylated**: methylated on the template strand only. **MutS** binds the mismatch, **MutL** joins it, and together they activate **MutH**, which nicks the unmethylated strand at a GATC site. The helicase UvrD unwinds the new strand from the nick past the mismatch, exonucleases degrade it, and the polymerase and ligase fill in. In Paul Modrich's purified system a GATC site about 1 kilobase away still directed repair.
+In *E. coli* the new strand carries a mark of absence: Dam methylase methylates adenine in GATC sequences only after the fork has passed, so for a window DNA is **hemimethylated**, methylated on the template strand only. **MutS** binds the mismatch, **MutL** joins it and they activate **MutH**, which nicks the unmethylated strand at GATC. From the nick, UvrD helicase and exonucleases remove the strand past the mismatch; polymerase resynthesizes the tract and ligase seals it. In Paul Modrich's purified system, a GATC site about 1 kilobase away still directed repair.
 
-That GATC signal belongs to E. coli and its relatives. It is unusual, not universal. Eukaryotes keep MutS and MutL relatives (MSH2 paired with MSH6, and MLH1 paired with PMS2 in humans) but have no MutH. They appear to read **strand breaks** instead: new DNA has free ends, at the tip of the growing strand and between Okazaki fragments. A purified human system could be directed by a nick on either side of a mismatch. Human mismatch repair also corrects small loops left when the polymerase slips on a repeat.
+That GATC signal is limited to E. coli and its relatives. Eukaryotes keep MutS and MutL relatives (MSH2 paired with MSH6, and MLH1 paired with PMS2 in humans) but have no MutH. They appear to read **strand breaks** instead: new DNA has free ends, at the tip of the growing strand and between Okazaki fragments. Human mismatch repair also corrects small loops left when the polymerase slips on a repeat.
 
-<LessonFigure src="/figures/dna-repair-and-recombination/mismatch-strand-signal.webp" width={1200} height={515} alt="AI-generated illustration: two DNA duplexes with the same mismatch. In E. coli the template strand carries a methyl mark at GATC and the new strand does not, so MutS binds the mismatch, MutL joins it, and they activate MutH, which nicks the unmethylated new strand at GATC. In eukaryotes there is no MutH, and a break in the new strand appears to mark it." caption="E. coli marks the template with a methyl group and nicks the unmethylated new strand. Eukaryotes have no MutH and appear to read strand breaks in the new DNA instead." />
+**Predict.** In a purified human system, must the nick be on one particular side of the mismatch to direct repair?
 
-**Worked problem.** The numbers here are round and chosen for illustration, not measured for one polymerase. Assume a replicative polymerase inserts a wrong base about once per 10^5 nucleotides, proofreading removes 99% of those errors, mismatch repair removes 99.9% of what is left, and a human diploid cell copies about 6.4 x 10^9 base pairs per S phase.
+<details>
+<summary>Check your prediction</summary>
+
+No. A nick on either side could direct repair in the purified system. This supports strand breaks as signals but does not settle every in-vivo strand signal.
+
+</details>
+
+<LessonFigure src="/figures/dna-repair-and-recombination/mismatch-strand-signal.webp" width={1200} height={515} alt="AI-generated illustration: two DNA duplexes with the same mismatch. In E. coli the template strand carries a methyl mark at GATC and the new strand does not, so MutS binds the mismatch, MutL joins it, and they activate MutH, which nicks the unmethylated new strand at GATC. In eukaryotes there is no MutH, and a break in the new strand appears to mark it." caption="Mismatch repair needs more than a mispair: E. coli uses delayed GATC methylation, whereas eukaryotic systems appear to use breaks in newly made DNA to choose the strand to replace." />
+
+**Worked problem.** The numbers here are round and chosen for illustration, not measured for one polymerase. Assume a replicative polymerase inserts a wrong base about once per 10^5 nucleotides, proofreading removes 99% of those errors, and mismatch repair removes 99.9% of what is left. Count errors per daughter genome: each daughter cell inherits a diploid genome of about 6.4 x 10^9 base pairs, one strand of each pair newly made. (One S phase makes two daughter genomes, so the whole cell's totals are double.)
+
+**Predict.** Before calculating, remove mismatch repair from this model. Should the errors left per daughter genome stay below one, rise to tens, or rise to hundreds?
+
+<details>
+<summary>Check with the calculation</summary>
 
 **Step 1. Turn each percentage into a fraction that survives.** Proofreading lets 1% through, 10^-2. Mismatch repair lets 0.1% through, 10^-3.
 
@@ -432,29 +482,48 @@ That GATC signal belongs to E. coli and its relatives. It is unusual, not univer
 
 > **final error rate = 10^-5 x 10^-2 x 10^-3 = 10^-10 per base pair**
 
-**Step 3. Scale to the genome.**
+**Step 3. Scale to one daughter genome.**
 
-> **6.4 x 10^9 bp x 10^-10 = 0.64 errors per genome per replication**
+> **6.4 x 10^9 bp x 10^-10 = 0.64 errors per daughter genome**
 
-**Step 4. Remove mismatch repair.** The rate is now 10^-5 x 10^-2 = 10^-7 per base pair, and 6.4 x 10^9 x 10^-7 = 640 errors.
+**Step 4. Remove mismatch repair.** The rate is now 10^-5 x 10^-2 = 10^-7 per base pair, and 6.4 x 10^9 x 10^-7 = 640 errors per daughter genome.
 
-So with these numbers, losing mismatch repair raises the error rate a thousandfold, from under one error per division to hundreds.
+So with these numbers, losing mismatch repair raises the error rate a thousandfold, from under one error per daughter genome to hundreds.
 
-<RepairPathwayChooser />
+</details>
+
+Every route so far worked on one strand while its partner stayed whole. The second film asks what a cell can use when a break cuts both strands.
+
+<LessonFilm film={frontmatter.films[0]} />
 
 ## Broken chromosomes: end joining and homologous recombination
 
-A **double-strand break** cuts the chromosome in two. Picture a rope cut through: you can knot the ends, or splice in a matching length from an identical rope. Cells do both. These are the two main routes. Others, such as single-strand annealing and alternative end joining by polymerase theta, join resected ends at short matching sequences and usually delete DNA in the process.
+A **double-strand break** cuts both strands and can split a chromosome. The one idea still decides: a cell with only two ends joins them; one with an intact template can copy it.
 
-**Non-homologous end joining** (NHEJ) knots the ends. The ring-shaped **Ku** protein binds each end, recruits the kinase DNA-PKcs, and nucleases such as Artemis and polymerases trim or fill ends that do not fit. XRCC4 with DNA ligase IV joins them. NHEJ uses no template, so if the ends had to be processed, a few bases may be gained or lost at the joint. Calling it error-prone overstates this: how accurate it is depends on the structure of the ends, and clean, compatible ends are often rejoined exactly. NHEJ works throughout the cell cycle.
+**Non-homologous end joining** (NHEJ) works with the ends it has. Ring-shaped **Ku** binds each end and recruits the kinase DNA-PKcs. If the ends do not fit, nucleases such as Artemis and polymerases trim or fill them, and XRCC4 with DNA ligase IV joins the result. NHEJ uses no template, so if the ends had to be processed, a few bases may be gained or lost at the joint. Calling it simply error-prone overstates the case: clean, compatible ends are often rejoined exactly.
 
-**Homologous recombination** (HR) splices from a matching rope. Nucleases resect the 5′ ends, leaving 3′ single-stranded tails. A recombinase coats each tail, **RecA** in E. coli and **Rad51** in eukaryotes, and the filament searches for a matching duplex and invades it, forming a displacement loop (**D-loop**). The invading 3′ end primes DNA synthesis, copying the information lost at the break. The best template is the **sister chromatid**, the identical copy made during replication, so HR acts mainly in S and G2.
+**Homologous recombination** (HR) copies matching DNA. The second film's 3′ single-stranded tails come from **resection**: nucleases trim the 5′ ends. The recombinase (**RecA** in *E. coli*, **Rad51** in eukaryotes) invades the matching duplex, making a displacement loop (**D-loop**) where the 3′ end primes synthesis. The best template is the **sister chromatid**, made during replication, so HR acts mainly in S and G2; in meiosis, breaks are repaired from the homologous chromosome.
 
-Most often the extended end is then released from the D-loop and pairs with the other end of the break, a route called **synthesis-dependent strand annealing** (SDSA) that forms no crossover. In another branch, which makes most meiotic crossovers, the second end is also captured and the two duplexes are linked by two **Holliday junctions**, four-stranded crossings named for Robin Holliday, who proposed the structure in 1964. In their 1983 yeast model, Szostak, Orr-Weaver, Rothstein and Stahl made the double-strand break the event that starts recombination. Before the chromosomes separate, the junctions are either dissolved, giving no crossover, or cut by resolvases, giving a crossover or not depending on which strands are cut. Related machinery, started by programmed breaks and joined by meiosis-specific proteins, makes the meiotic crossovers of [chromosomes and meiosis](/lessons/chromosomes-and-meiosis/) that [linkage mapping](/lessons/linkage-and-mapping/) measures. How a CRISPR cut is repaired is taken up in [forward and reverse genetics](/lessons/crispr-and-functional-genomics/).
+The second film's usual finish, in which the extended strand leaves the D-loop and pairs with the other end, is **synthesis-dependent strand annealing** (SDSA); it forms no crossover. In another branch, second-end capture links the two duplexes through two **Holliday junctions**, four-stranded crossings. Before chromosome separation, these junctions are dissolved (no crossover) or cut by resolvases, giving a crossover or not depending on which strands are cut.
+
+This double-junction branch makes most meiotic crossovers. Related machinery, started by programmed breaks and using meiosis-specific proteins, makes the crossovers that [chromosomes and meiosis](/lessons/chromosomes-and-meiosis/) introduces and [linkage mapping](/lessons/linkage-and-mapping/) measures. Repair of a CRISPR cut appears in [forward and reverse genetics](/lessons/crispr-and-functional-genomics/).
+
+NHEJ and HR are the two main routes. Single-strand annealing and alternative end joining by polymerase theta use short matching sequences on resected ends and usually delete DNA.
+
+<RepairPathwayChooser />
 
 ## When repair fails: three human conditions
 
-Unrepaired damage also triggers checkpoints, signaled by the kinases ATM and ATR and enforced in part by p53, described in [stress signals](/lessons/stress-signals/). Three inherited conditions show what happens when a repair pathway is lost: from birth in XP, and in tumor cells of people with Lynch syndrome or BRCA variants.
+Unrepaired damage also triggers checkpoints, signaled by the kinases ATM and ATR and enforced partly by p53 (see [stress signals](/lessons/stress-signals/)). Three inherited conditions show what happens when a repair pathway is lost.
+
+**Predict.** Compare an affected person with two nonworking XP alleles to a Lynch syndrome carrier with one working MSH2 allele. Whose normal cells should already lack the relevant repair pathway?
+
+<details>
+<summary>Check your prediction</summary>
+
+The person with XP: every cell has two nonworking copies of one XP gene (an NER gene in most forms). One working MSH2 allele usually supports repair in the carrier's normal cells; losing it can remove repair in a tumor lineage.
+
+</details>
 
 **Xeroderma pigmentosum** (XP) is autosomal recessive: affected people have two nonworking alleles of one gene. Most forms disrupt NER, so UV dimers in skin cells go unrepaired, and the condition is associated with sunlight-induced skin cancers. Cell fusion sorted patients into several complementation groups, each a different NER gene. One form, the **XP variant**, has normal excision. Its cells cannot replicate efficiently past UV damage, and in 1999 two groups, Masutani and colleagues and Johnson, Prakash and colleagues, found mutations in the gene for DNA polymerase eta, a bypass polymerase, in XP variant cell lines.
 
@@ -469,7 +538,7 @@ Fibroblasts from four unrelated XP patients, P1 to P4, each show low unscheduled
 <details>
 <summary>One way to do it</summary>
 
-Use the logic of [complementation and pathways](/lessons/complementation-and-pathways/): XP is recessive, so a fused cell repairs normally only if each partner supplies the working gene the other lacks.
+Use the logic of [complementation and pathways](/lessons/complementation-and-pathways/): XP is recessive, so a fused cell repairs normally only if each partner supplies the gene the other lacks.
 
 1. P1+P3 stays low, so P1 and P3 are defective in the same gene. P2+P4 stays low, so they share a gene.
 2. Every pair across those groups (P1+P2, P1+P4, P2+P3, P3+P4) is normal, so the two groups are different genes.
@@ -478,3 +547,11 @@ Use the logic of [complementation and pathways](/lessons/complementation-and-pat
 To identify them, transfect cells of each group with cloned candidate NER genes, one at a time, and look for the gene that restores UV-induced repair synthesis in one group but not the other. Then sequence that gene in the group's patients, expecting two nonworking alleles in each. A patient sensitive to UV but with normal unscheduled DNA synthesis would point instead to the XP variant, a defect in bypass by polymerase eta.
 
 </details>
+
+## Going deeper
+
+### How excision repair was rebuilt
+
+Tomas Lindahl's 1974 *E. coli* uracil-releasing activity left the backbone uncut; his group's 1996 human system of four purified proteins filled a one-nucleotide patch.
+
+Aziz Sancar and Dean Rupp showed NER's dual incision in 1983 with purified *E. coli* UvrA, UvrB and UvrC. The removed *E. coli* fragment is about 12 to 13 nucleotides long; in a human cell-free system it was 27 to 29 nucleotides.
