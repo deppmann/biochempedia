@@ -24,7 +24,9 @@ export const wordsIn = (s: string) => s.trim() ? s.trim().split(/\s+/).length : 
 /** The guiding idea a Skim page leads with: the first sentence of the lesson's summary, plus its
  *  hook question when it has one. Shared by the lesson Skim page and the course Skim page. */
 export function guidingIdeaOf(lesson: { summary: string; hook?: string }) {
-  return { idea: lesson.summary.split(/(?<=[.?!])\s+/)[0], hook: lesson.hook };
+  // A lone capital initial followed by a lowercase word ("E. coli") does not end the sentence.
+  const SENTENCE_END = /(?:(?<=[.?!])(?<![\s(][A-Z]\.)|(?<=[\s(][A-Z]\.)(?=\s+[^a-z]))\s+/;
+  return { idea: lesson.summary.split(SENTENCE_END)[0], hook: lesson.hook };
 }
 
 export interface SkimFilm { title: string; takeaways: string[]; position: number }
