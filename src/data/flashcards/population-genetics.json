@@ -1,0 +1,506 @@
+{
+ "slug": "population-genetics",
+ "title": "Population Genetics: Hardy-Weinberg and Evolutionary Forces",
+ "generated": {
+  "date": "2026-11-12",
+  "pipeline": "extract → Sonnet draft → Sonnet accuracy gate (separate agent) → Sonnet fixes",
+  "models": {
+   "draft": "claude-sonnet-5-5",
+   "gate": "claude-sonnet-5-5",
+   "fix": "claude-sonnet-5-5"
+  }
+ },
+ "lessonHash": "3f0f67a56041",
+ "sectionHashes": {
+  "The idea: with nothing acting, frequencies stay put": "2c0319aea398",
+  "Counting alleles and testing equilibrium": "6ed14a8cc9e8",
+  "What can move a frequency?": "a65fd1a6a744",
+  "Drift and founders: chance in small populations": "6ac2e9f46383",
+  "Balanced polymorphism: sickle cell and malaria": "ffe51f4f7191",
+  "Design problem": "43655b939113"
+ },
+ "cards": [
+  {
+   "id": "population-genetics-c01",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "At a two-allele locus with alleles A and a, what do the allele frequencies p and q measure, and what do they sum to?",
+   "back": "p is the fraction of all allele copies that are A, and q the fraction that are a. With two alleles, p + q = 1.",
+   "quote": "the fraction of all allele copies that are A is p and the fraction that are a is q: the allele frequencies.",
+   "section": "The idea: with nothing acting, frequencies stay put"
+  },
+  {
+   "id": "population-genetics-c02",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "State the one idea behind Hardy-Weinberg for a large population: what does mating do to allele frequencies, and what does dominance do?",
+   "back": "Mating reshuffles alleles, and dominance alone does not change their frequency.",
+   "quote": "Mating reshuffles alleles; dominance alone does not change their frequency.",
+   "section": "The idea: with nothing acting, frequencies stay put"
+  },
+  {
+   "id": "population-genetics-c03",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "For a two-allele autosomal locus, give the Hardy-Weinberg genotype proportions and the baseline conditions they assume.",
+   "back": "AA = p^2, Aa = 2pq, aa = q^2. They assume a large population with random mating at the locus and no selection, mutation or migration.",
+   "quote": "The Hardy-Weinberg baseline below adds random mating at this locus and no selection, mutation or migration.",
+   "section": "The idea: with nothing acting, frequencies stay put"
+  },
+  {
+   "id": "population-genetics-c04",
+   "type": "calc",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A recessive allele a has frequency q = 0.10 in a population at Hardy-Weinberg proportions. What are the AA, Aa and aa genotype frequencies?",
+   "back": "p = 0.90, so AA = 0.81, Aa = 2 x 0.90 x 0.10 = 0.18, aa = 0.01. They sum to 1.00.",
+   "quote": "With an allele at 10%, only 1 person in 100 is aa, but 18 in 100 carry one copy.",
+   "section": "The idea: with nothing acting, frequencies stay put"
+  },
+  {
+   "id": "population-genetics-c05",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Show why one generation of random mating leaves the frequency of A unchanged at p.",
+   "back": "AA zygotes are all A and Aa zygotes half A, so A = p^2 + pq = p(p + q) = p, because p + q = 1.",
+   "quote": "p + q = 1, so this is just p.",
+   "section": "The idea: with nothing acting, frequencies stay put"
+  },
+  {
+   "id": "population-genetics-c06",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "What role does the Hardy-Weinberg model play when we study real populations?",
+   "back": "It is a null model: the baseline expectation under the stated assumptions, against which departures are detected.",
+   "quote": "Hardy-Weinberg is a null model: what you would see under the baseline in the box above, against which you detect departures.",
+   "section": "The idea: with nothing acting, frequencies stay put"
+  },
+  {
+   "id": "population-genetics-c07",
+   "type": "calc",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "At a codominant two-allele locus, 200 people are typed: AA 72, Aa 96, aa 32. What is the frequency of allele a?",
+   "back": "Count alleles, not people. a copies = 2 x 32 + 96 = 160 out of 400, so q = 0.40.",
+   "quote": "Count alleles, not people. Each MM person carries two M copies and each MN person one.",
+   "section": "Counting alleles and testing equilibrium"
+  },
+  {
+   "id": "population-genetics-c08",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "When estimating allele frequencies from genotype counts, why count alleles first rather than take the square root of the homozygote frequency?",
+   "back": "The square-root shortcut assumes Hardy-Weinberg proportions. Counting alleles makes no such assumption, so the fit can be tested afterwards.",
+   "quote": "Count first; never find p from the square root of a homozygote frequency before you know the sample is at equilibrium.",
+   "section": "Counting alleles and testing equilibrium"
+  },
+  {
+   "id": "population-genetics-c09",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A sample of 200 people has allele frequency p = 0.7 for A at a two-allele locus. What genotype counts does Hardy-Weinberg expect?",
+   "back": "Multiply 200 by each proportion: AA = 200 x 0.49 = 98, Aa = 200 x 0.42 = 84, aa = 200 x 0.09 = 18.",
+   "quote": "Expected counts. Multiply the sample size by each Hardy-Weinberg proportion.",
+   "section": "Counting alleles and testing equilibrium"
+  },
+  {
+   "id": "population-genetics-c10",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A Hardy-Weinberg chi-square uses three genotype classes, with p estimated from the same sample. How many degrees of freedom, and why?",
+   "back": "One. Three classes, minus 1 because counts must add to the sample size, minus 1 because p was estimated from these counts.",
+   "quote": "Three classes, minus 1 because the counts must add to 1,000, minus 1 more because p was estimated from these same counts: 1, not 2.",
+   "section": "Counting alleles and testing equilibrium"
+  },
+  {
+   "id": "population-genetics-c11",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In a sample of 100, observed counts are AA 55, Aa 30, aa 15 and p = 0.7 was estimated from them. Test for Hardy-Weinberg at P = 0.05 (critical value 3.84).",
+   "back": "Expected 49, 42, 9. Chi-square = 36/49 + 144/42 + 36/9 = 0.73 + 3.43 + 4.00 = 8.16, above 3.84 on one degree of freedom. It departs, with too few heterozygotes.",
+   "quote": "The critical value at P = 0.05 for one degree of freedom is 3.84.",
+   "section": "Counting alleles and testing equilibrium"
+  },
+  {
+   "id": "population-genetics-c12",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A sample fits Hardy-Weinberg well. What does that fail to prove? A poor fit does not prove selection: name other causes.",
+   "back": "A good fit does not prove random mating or no selection. A poor fit can come from inbreeding, a sample mixing two populations, or genotyping errors.",
+   "quote": "a good fit does not prove random mating or the absence of selection, and a poor fit does not prove selection",
+   "section": "Counting alleles and testing equilibrium"
+  },
+  {
+   "id": "population-genetics-c13",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In a hypothetical population at Hardy-Weinberg equilibrium, a recessive condition affects 1 in 40,000 newborns. About what fraction are carriers?",
+   "back": "aa = q^2 = 1/40,000, so q = 1/200 = 0.005 and p = 0.995. Carriers = 2pq = 2 x 0.995 x 0.005, about 0.01, or 1 in 100.",
+   "quote": "Affected people are aa, so q^2 = 1/2,500; the square root gives q = 1/50 = 0.02, and p = 0.98.",
+   "section": "Counting alleles and testing equilibrium"
+  },
+  {
+   "id": "population-genetics-c14",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why does a rare recessive allele sit almost entirely in carriers rather than in affected people?",
+   "back": "Affected aa people are q^2, tiny for small q, while carriers are 2pq, about 2q. At q = 0.02, 98% of a copies are in carriers.",
+   "quote": "A rare allele sits almost entirely in heterozygotes: here 98% of a copies are in carriers.",
+   "section": "Counting alleles and testing equilibrium"
+  },
+  {
+   "id": "population-genetics-c15",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A child has a rare autosomal recessive condition, and no relative in the pedigree is affected. Is this surprising at Hardy-Weinberg equilibrium?",
+   "back": "No. Almost every a copy is in an unaffected carrier, so both parents can be carriers with no affected relatives. Carriers are far commoner than affected people.",
+   "quote": "This is how families meet a recessive condition with no affected relatives in the pedigree.",
+   "section": "Counting alleles and testing equilibrium"
+  },
+  {
+   "id": "population-genetics-c16",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Name the two kinds of non-random mating.",
+   "back": "Inbreeding (mating between relatives) and assortative mating (partners alike in a trait the locus affects).",
+   "quote": "Its two kinds are inbreeding (mating between relatives) and assortative mating (partners alike in a trait the locus affects).",
+   "section": "What can move a frequency?"
+  },
+  {
+   "id": "population-genetics-c17",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Which of selection, drift, migration, mutation and non-random mating changes genotype frequencies without changing allele frequencies, and why?",
+   "back": "Non-random mating: same allele copies, different pairs. The other four can change allele frequencies.",
+   "quote": "Non-random mating is the odd one out, as the second film showed: same copies, different pairs.",
+   "section": "What can move a frequency?"
+  },
+  {
+   "id": "population-genetics-c18",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why is selection against a rare recessive allele slow?",
+   "back": "Selection acts only on aa individuals, and almost every a copy is hidden in a carrier.",
+   "quote": "Against a rare recessive it is slow, because selection acts only on aa, and almost every a copy is hidden in a carrier.",
+   "section": "What can move a frequency?"
+  },
+  {
+   "id": "population-genetics-c19",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "If aa individuals never reproduce, q_n = q_0 / (1 + n q_0). Starting at q_0 = 0.05, how many generations to halve q?",
+   "back": "Halving needs 1 + n x 0.05 = 2, so n = 20 generations.",
+   "quote": "Starting at 0.02, halving q to 0.01 takes 50 generations",
+   "section": "What can move a frequency?"
+  },
+  {
+   "id": "population-genetics-c20",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Residents have p = 0.3. Migrants have p = 0.7 and supply 20% of the copies. What is the new p?",
+   "back": "p' = 0.8 x 0.3 + 0.2 x 0.7 = 0.24 + 0.14 = 0.38, a weighted average.",
+   "quote": "The frequency moved a tenth of the way from 0.2 toward 0.6, because a tenth of the copies are new.",
+   "section": "What can move a frequency?"
+  },
+  {
+   "id": "population-genetics-c21",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Why is mutation weak at moving an allele frequency over a few generations?",
+   "back": "New changes are rare: about 1.2 x 10^-8 per base pair per generation in humans, so a few generations barely move a frequency.",
+   "quote": "estimated about 1.2 x 10^-8 new single-base changes per base pair per generation, a genome average",
+   "section": "What can move a frequency?"
+  },
+  {
+   "id": "population-genetics-c22",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "What is genetic drift, and where does it end up if left long enough in a small population?",
+   "back": "Chance sampling of the parents' allele copies. The frequency wanders until the allele is lost (0) or fixed (1).",
+   "quote": "The second film's two cups showed drift: chance sampling of the parents' allele copies.",
+   "section": "Drift and founders: chance in small populations"
+  },
+  {
+   "id": "population-genetics-c23",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "In the simplest drift model at constant Ne, is the one-generation variance of allele frequency larger at p = 0.5 or p = 0.1?",
+   "back": "Larger at p = 0.5, because p(1 - p) peaks halfway between the boundaries 0 and 1.",
+   "quote": "Larger at p = 0.5; p(1 - p) peaks halfway between the boundaries.",
+   "section": "Drift and founders: chance in small populations"
+  },
+  {
+   "id": "population-genetics-c24",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "In the simplest drift model, one-generation variance is p(1 - p) / (2Ne). For Ne = 200 and p = 0.5, what is the standard deviation?",
+   "back": "Variance = 0.25 / 400 = 0.000625. The standard deviation is its square root, 0.025.",
+   "quote": "Across repeated populations, the one-generation changes have standard deviation 0.05.",
+   "section": "Drift and founders: chance in small populations"
+  },
+  {
+   "id": "population-genetics-c25",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Many replicate Drosophila populations, each kept at 8 males and 8 females, start an eye-colour allele at 0.5. After 19 generations, frequencies have spread apart, many lost or fixed it, but the mean stayed near 0.5. What does this show?",
+   "back": "Drift. Chance sampling in small populations pushes replicates in random directions, with no net change on average and some loss or fixation.",
+   "quote": "Over 19 generations they spread apart and many lost or fixed the allele, while their average stayed near where it began.",
+   "section": "Drift and founders: chance in small populations"
+  },
+  {
+   "id": "population-genetics-c26",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "What is a founder effect?",
+   "back": "Drift at the start of a population: a small group carries, by chance, a different set of alleles than the population it left.",
+   "quote": "A founder effect is drift at the start of a population: a small group carries, by chance, a different set of alleles than the population it left.",
+   "section": "Drift and founders: chance in small populations"
+  },
+  {
+   "id": "population-genetics-c27",
+   "type": "calc",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In a founder population, 60 of 3,000 sampled people carry one copy of a variant and none carries two. What is the variant's allele frequency?",
+   "back": "60 variant copies out of 2 x 3,000 = 6,000 allele copies, so 0.01. The carrier frequency is 1 in 50, not the allele frequency.",
+   "quote": "a carrier frequency of 1 in 45 is not an allele frequency of 1/45.",
+   "section": "Drift and founders: chance in small populations"
+  },
+  {
+   "id": "population-genetics-c28",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "Founder-effect variants such as those in Tay-Sachs or Amish populations are features of what, and why is this not a statement about races?",
+   "back": "Of particular populations and their histories. Most human genetic variation lies within populations, not between them.",
+   "quote": "These are features of particular populations and their histories, not of races: most human genetic variation lies within populations, not between them.",
+   "section": "Drift and founders: chance in small populations"
+  },
+  {
+   "id": "population-genetics-c29",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "What change does the sickle allele of HBB cause in the beta chain, and what does deoxygenated HbS do?",
+   "back": "Glutamate to valine at position 6 of the beta chain. Deoxygenated HbS polymerises. Sickle-cell disease (SS) is autosomal recessive.",
+   "quote": "changes glutamate to valine at position 6 of the β chain, and deoxygenated HbS polymerises",
+   "section": "Balanced polymorphism: sickle cell and malaria"
+  },
+  {
+   "id": "population-genetics-c30",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In a malaria region, AS survives better than both AA and SS. Should S disappear, become fixed, or settle between? Why?",
+   "back": "It settles between. Rare S sits mostly in favoured AS, while common S makes more SS, which selection removes: heterozygote advantage.",
+   "quote": "Between the extremes: rare S sits mostly in favoured AS, while common S makes more SS, which selection removes.",
+   "section": "Balanced polymorphism: sickle cell and malaria"
+  },
+  {
+   "id": "population-genetics-c31",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In Kenyan coast children, sickle-cell trait (AS) did not change asymptomatic parasite carriage. How did protection vary with malaria severity?",
+   "back": "Protection grew with severity: about 50% against mild malaria, 75% against hospital admission and almost 90% against severe disease. That supports heterozygote advantage.",
+   "quote": "it was associated with about 50% protection against mild malaria, 75% against hospital admission and almost 90% against severe disease.",
+   "section": "Balanced polymorphism: sickle cell and malaria"
+  },
+  {
+   "id": "population-genetics-c32",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Relative survival is 0.80 for AA, 1.00 for AS, 0.40 for SS. With survival the only force, random mating and a large population, where does S settle? Use q = s/(s + t), costs s to AA and t to SS.",
+   "back": "s = 0.20 and t = 0.60, so q = 0.20 / 0.80 = 0.25.",
+   "quote": "The allele settles where the losses at the two homozygotes balance",
+   "section": "Balanced polymorphism: sickle cell and malaria"
+  },
+  {
+   "id": "population-genetics-c33",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Illustrative data: newborns AA 0.64, AS 0.32, SS 0.04 (q = 0.2). Survival to adulthood is AA 0.90, AS 1.00, SS 0.50. Predict adult genotype frequencies and compare adult heterozygotes with Hardy-Weinberg for the adult q.",
+   "back": "Survivors 0.576, 0.32, 0.02 of 0.916: adults AA 0.629, AS 0.349, SS 0.022. Adult q = 0.197 predicts 0.316 heterozygotes, so adults show an excess. Newborns fit; adults do not, so sampling time matters.",
+   "quote": "Adults show a heterozygote excess, even though their newborns fit.",
+   "section": "Design problem"
+  },
+  {
+   "id": "population-genetics-c34",
+   "type": "qa",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Two populations, each at Hardy-Weinberg with different S frequencies, are pooled in one adult sample. Would the sample show a heterozygote excess or deficit? How could that separate migration from selection?",
+   "back": "A deficit. Selection in malarious regions predicts an excess, so a deficit favours mixing, unless migrants were themselves selected. Record where each adult was born.",
+   "quote": "the mixture shows a heterozygote deficit, not an excess, unless the adult migrants were themselves selected in a malarious region",
+   "section": "Design problem"
+  },
+  {
+   "id": "population-genetics-c35",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A small isolated population has a rare recessive allele at q = 0.02 after a founder effect, and relatives often mate. Will affected births be more or fewer than 1 in 2,500?",
+   "back": "More. Inbreeding puts more copies of the rare recessive allele into aa people without changing q. It rests on non-random mating changing genotype frequencies only.",
+   "quote": "By putting more rare recessive copies into aa individuals, they can still expose those alleles to selection.",
+   "section": "What can move a frequency?"
+  },
+  {
+   "id": "population-genetics-c36",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Malaria is eliminated, so AA and AS survive equally, but SS still dies young. How should the S frequency change, and how fast?",
+   "back": "When S is rare, S declines slowly. Selection acts only on SS, and most S copies are hidden in AS carriers. The rule is that selection against a rare recessive is slow.",
+   "quote": "Against a rare recessive it is slow, because selection acts only on aa, and almost every a copy is hidden in a carrier.",
+   "section": "What can move a frequency?"
+  }
+ ]
+}
