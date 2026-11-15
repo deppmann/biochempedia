@@ -49,7 +49,9 @@
 // ---------------------------------------------------------------- types
 
 /** One record of /search-index.json (src/pages/search-index.json.ts). */
-export interface IndexRec { s: string; c: string; n: number; t: string; u: string; k: string; h: string; x: string; g: [string, string][] }
+export interface IndexRec { s: string; c: string; n: number; t: string; u: string; k: string; h: string; x: string; g: [string, string][];
+  /** Search phrases: what a student might type that the lesson answers in other words (src/data/lesson-links.json). */
+  w?: string[] }
 export interface SearchIndex { courses: { s: string; t: string }[]; lessons: IndexRec[] }
 
 /** The slice of Pagefind's client API used here. */
@@ -139,6 +141,12 @@ export const RANKING = { pageLength: 0.3, termFrequency: 1, termSaturation: 1.4,
 
 /** Weights of the three parts of the score; see the header. */
 export const W = { pf: 1, near: 2, title: 1.5 };
+
+/** Search phrases (src/data/lesson-links.json): per matched word (title 10, heading 4, hook 3, summary 2),
+ *  and when the whole query is inside one phrase, a bonus scaled by how much title evidence is missing
+ *  (bonus × (1 − title share)), so it helps a lesson the title index barely matches and adds nothing
+ *  to one whose title and headings already hold the words. */
+export const WEIGHT_PHRASE = { word: 1, bonus: 0.6 };
 
 /** Below this many full matches, lessons that lack one word are added. */
 export const PARTIAL_BELOW = 10;
@@ -275,7 +283,7 @@ export function browserEngine(base = ''): Engine {
 
 // ---------------------------------------------------------------- the search
 
-type Prepared = IndexRec & { nt: string; nh: string; nx: string; ng: string[] };
+type Prepared = IndexRec & { nt: string; nh: string; nx: string; ng: string[]; nw: string; nws: string[] };
 
 export interface TitleHit { rec: Prepared; raw: number; /** Extra evidence: the whole query is the title (0.5) or inside it (0.3). */ bonus: number; heads: [string, string][] }
 
@@ -323,7 +331,10 @@ export function createLessonSearch(engine: Engine, defaults: { excerptLength?: n
     if (prepared) return;
     const idx = await engine.index();
     courses = idx.courses;
-    prepared = idx.lessons.map((r) => ({ ...r, nt: norm(r.t), nh: norm(`${r.h} ${r.k} ${r.u}`), nx: norm(r.x), ng: r.g.map((g) => norm(g[0])) }));
+    prepared = idx.lessons.map((r) => {
+      const nws = (r.w ?? []).map((p) => norm(p).replace(/\s+/g, ' ').trim());
+      return { ...r, nt: norm(r.t), nh: norm(`${r.h} ${r.k} ${r.u}`), nx: norm(r.x), ng: r.g.map((g) => norm(g[0])), nw: nws.join(' · '), nws };
+    });
     bySlug = new Map(prepared.map((r) => [r.s, r]));
   };
   const courseTitle = (s: string): string => courses.find((c) => c.s === s)?.t ?? s;
@@ -362,13 +373,21 @@ export function createLessonSearch(engine: Engine, defaults: { excerptLength?: n
         r.ng.forEach((g, i) => { if (hits(g, tok)) { s += 4; heads.add(i); } });
         if (hits(r.nh, tok)) s += 3;
         if (hits(r.nx, tok)) s += 2;
+        // Search phrases weigh least of all (WEIGHT_PHRASE): they help a lesson be found by everyday
+        // words, never outrank one whose title or headings hold the words.
+        if (hits(r.nw, tok)) s += WEIGHT_PHRASE.word;
         if (s === 0) { all = false; break; }
         raw += s;
       }
       if (!all) continue;
       // The whole phrase in the title is the best answer there is.
       if (toks.length > 1 && r.nt.includes(q)) raw += 15;
-      const bonus = r.nt === q ? 0.5 : toks.length > 1 && r.nt.includes(q) ? 0.3 : 0;
+      // A query that is one of the lesson's search phrases (or a run of words inside one): a modest
+      // bonus, below the title's.
+      // It only fills the gap a weaker title match leaves, so it never lifts a lesson past one whose
+      // title and headings already hold the words.
+      const phrase = toks.length > 1 && r.nws.some((p) => p.includes(q));
+      const bonus = r.nt === q ? 0.5 : toks.length > 1 && r.nt.includes(q) ? 0.3 : phrase ? WEIGHT_PHRASE.bonus * Math.max(0, 1 - raw / (19 * toks.length)) : 0;
       out.push({ rec: r, raw, bonus, heads: [...heads].slice(0, 3).map((i) => r.g[i]) });
     }
     out.sort((a, b) => b.raw - a.raw || a.rec.c.localeCompare(b.rec.c) || a.rec.n - b.rec.n);

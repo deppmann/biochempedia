@@ -1,0 +1,187 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import '../../../styles/teach.css';
+import '../../../styles/plan.css';
+---
+
+<!-- "Match my syllabus" (worker/planner.js, POST /api/plan/syllabus). A teacher pastes or uploads
+     their syllabus; the planner matches each class meeting or topic to the site's lessons, films,
+     simulations, method films and flashcards, and says where the site has nothing. The teacher
+     edits, then saves it to a class as a list students open without an account. The syllabus
+     itself is sent once and never stored. -->
+<BaseLayout title="Match my syllabus — Biochemistrypedia" description="Match a course syllabus to the site's lessons, films and simulations." noindex>
+  <article class="wrap tc pl" data-syl>
+    <p class="tc-eyebrow"><a href="/teach/classes/">My classes</a> · Match my syllabus</p>
+    <h1>Match my syllabus</h1>
+    <p class="tc-lede">Paste your syllabus or upload it as a PDF. For each class meeting or topic, you get the lessons, films, simulations and flashcard decks on this site that fit, each with a one-line reason, and a plain note where the site has nothing yet. Edit it, then share it with a class.</p>
+
+    <noscript><p class="pl-note warn">This page needs JavaScript.</p></noscript>
+    <p class="tc-muted" data-loading>Checking…</p>
+    <p class="pl-note warn" data-off hidden></p>
+    <p class="pl-note warn" data-signin hidden>Sign in to your teacher account first. <a href="/teach/">Teacher sign-in</a></p>
+
+    <section data-make hidden>
+      <form class="tc-form pl-form" data-form novalidate>
+        <label>For which class?
+          <select name="classId" data-classes></select>
+          <span class="pl-hint">Its course helps the planner judge the level. The match can use lessons from any course.</span>
+        </label>
+        <fieldset style="border:0;padding:0;margin:0;display:grid;gap:var(--ddp-space-2)">
+          <legend style="font-size:var(--ddp-text-sm);font-weight:600;margin-bottom:.3rem">Your syllabus</legend>
+          <label class="tc-check"><input type="radio" name="how" value="text" checked /> <span>Paste the text</span></label>
+          <label class="tc-check"><input type="radio" name="how" value="pdf" /> <span>Upload a PDF</span></label>
+        </fieldset>
+        <label data-text-wrap>Syllabus text <span class="pl-hint">(the schedule of topics or weeks is enough; up to 30,000 characters)</span>
+          <textarea name="text" rows="10" maxlength="30000" placeholder={'Week 1: Cells and membranes\nWeek 2: Enzymes and metabolism\n…'}></textarea>
+        </label>
+        <label data-pdf-wrap hidden>PDF file <span class="pl-hint">(up to 3 MB and 20 pages)</span>
+          <input type="file" name="pdf" accept="application/pdf,.pdf" />
+        </label>
+        <p class="pl-age">The syllabus is sent once to an AI model from Anthropic to find matching items on this site, and is not stored. Nothing about your students is ever sent. <a href="/teach/privacy/#planner">Privacy</a></p>
+        <div class="tc-row"><button class="tc-btn" type="submit" data-go>Match my syllabus</button><span class="tc-muted" data-left></span></div>
+        <p class="tc-error" data-err role="alert"></p>
+      </form>
+      <div class="pl-progress" data-progress hidden aria-live="polite"></div>
+    </section>
+
+    <section data-result hidden aria-live="polite">
+      <div class="pl-head"><h2 tabindex="-1" data-r-h>Matched to the site</h2></div>
+      <ul class="pl-totals" data-r-totals></ul>
+      <p class="tc-muted pl-noprint" style="margin-top: var(--ddp-space-3)">Rename any topic, move items with the arrows, remove what you won't use. Topics with nothing on the site stay in the list with a note, so students know.</p>
+      <div class="pl-plan" data-r-plan></div>
+      <form class="tc-form pl-save pl-noprint" data-save novalidate>
+        <h3>Share it with the class</h3>
+        <label>Name of the list<input type="text" name="title" maxlength="80" required placeholder="Biology 101: what to watch and read" /></label>
+        <label>Note to students <span class="pl-hint">(optional)</span><textarea name="note" rows="2" maxlength="1000"></textarea></label>
+        <div class="tc-row"><button class="tc-btn" type="submit">Save to the class</button><button class="tc-btn ghost" type="button" onclick="window.print()">Print</button></div>
+        <p class="tc-error" data-save-err role="alert"></p>
+      </form>
+      <div class="pl-note" data-saved hidden></div>
+    </section>
+
+    <section data-lists-wrap hidden>
+      <h2>Lists for this class</h2>
+      <ul class="tc-assigned" data-lists></ul>
+    </section>
+  </article>
+
+  <script>
+    import { renderPlan, plannerStatus, planApi, cappedText, progressSteps, toRefSections, el, type Plan } from '../../../lib/plan-view';
+
+    const root = document.querySelector<HTMLElement>('[data-syl]')!;
+    const $ = <T extends HTMLElement>(s: string) => root.querySelector<T>(s)!;
+    const form = $<HTMLFormElement>('[data-form]');
+    const sel = $<HTMLSelectElement>('[data-classes]');
+    const err = $('[data-err]');
+    let plan: Plan | null = null;
+    let maxBytes = 3_000_000;
+
+    async function lists() {
+      const cls = sel.value;
+      const wrap = $('[data-lists-wrap]');
+      if (!cls) { wrap.hidden = true; return; }
+      const r = await planApi<{ lists: { id: string; title: string; lessons: number; sections: number; href: string; updated: number }[] }>(`/api/plan/lists?class=${encodeURIComponent(cls)}`);
+      const ul = $('[data-lists]');
+      ul.replaceChildren();
+      if (!r.ok || !r.data.lists.length) { wrap.hidden = true; return; }
+      wrap.hidden = false;
+      for (const l of r.data.lists) {
+        const del = el('button', { type: 'button', class: 'tc-btn ghost small', onclick: async () => {
+          if (!window.confirm(`Delete "${l.title}"? Students' link stops working.`)) return;
+          await planApi(`/api/plan/lists/${l.id}`, {}, 'DELETE'); lists();
+        } }, 'Delete');
+        ul.append(el('li', { class: 'tc-row' }, el('a', { href: l.href }, l.title), el('span', { class: 'tc-muted' }, `${l.sections} topics, ${l.lessons} lessons`), del));
+      }
+    }
+
+    (async () => {
+      const status = await plannerStatus();
+      $('[data-loading]').hidden = true;
+      if (!status.saved) { const o = $('[data-off]'); o.textContent = 'Syllabus matching is not available yet.'; o.hidden = false; return; }
+      const me = await planApi<{ classes: { id: string; name: string }[] }>('/api/teacher/me');
+      if (me.status === 401) { $('[data-signin]').hidden = false; return; }
+      if (!me.ok) { const o = $('[data-off]'); o.textContent = me.data.error || 'Could not load your classes.'; o.hidden = false; return; }
+      const want = new URLSearchParams(location.search).get('class');
+      sel.replaceChildren(...me.data.classes.map((c) => el('option', { value: c.id, selected: c.id === want }, c.name)));
+      if (!me.data.classes.length) sel.replaceChildren(el('option', { value: '' }, 'No classes yet: make one first to save a list'));
+      sel.addEventListener('change', lists);
+      lists();
+      if (!status.on) { const o = $('[data-off]'); o.textContent = status.capped ? cappedText(status.capped) : 'Syllabus matching is switched off for now. Saved lists still open.'; o.hidden = false; return; }
+      if (status.maxPdfBytes) maxBytes = status.maxPdfBytes;
+      if (status.perDay) $('[data-left]').textContent = `Up to ${status.perDay} matches a day.`;
+      $('[data-make]').hidden = false;
+    })();
+
+    form.addEventListener('change', () => {
+      const pdf = (form.elements.namedItem('how') as RadioNodeList).value === 'pdf';
+      $('[data-text-wrap]').hidden = pdf; $('[data-pdf-wrap]').hidden = !pdf;
+    });
+
+    const readPdf = (file: File) => new Promise<string>((res, rej) => {
+      const fr = new FileReader();
+      fr.onload = () => res(String(fr.result).replace(/^data:[^,]*,/, ''));
+      fr.onerror = () => rej(fr.error);
+      fr.readAsDataURL(file);
+    });
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      err.textContent = '';
+      const pdfMode = (form.elements.namedItem('how') as RadioNodeList).value === 'pdf';
+      const body: Record<string, unknown> = { classId: sel.value || undefined };
+      if (pdfMode) {
+        const file = (form.elements.namedItem('pdf') as HTMLInputElement).files?.[0];
+        if (!file) { err.textContent = 'Choose a PDF file.'; return; }
+        if (file.size > maxBytes) { err.textContent = `That file is over ${Math.round(maxBytes / 1e6)} MB. Paste the schedule part as text instead.`; return; }
+        body.pdf = await readPdf(file);
+      } else {
+        const text = String((form.elements.namedItem('text') as HTMLTextAreaElement).value || '').trim();
+        if (text.length < 40) { err.textContent = 'Paste the syllabus, or at least its list of weeks or topics.'; return; }
+        body.text = text;
+      }
+      const go = $<HTMLButtonElement>('[data-go]'); go.disabled = true;
+      const stop = progressSteps($('[data-progress]'), ['Reading your syllabus', 'Finding each class meeting or topic', 'Matching lessons, films and simulations', 'Noting what the site does not cover', 'Checking every pick against the site']);
+      const r = await planApi<{ kind: string; plan: Plan; message?: string }>('/api/plan/syllabus', body);
+      stop(); go.disabled = false;
+      if (!r.ok) { err.textContent = r.data.capped ? cappedText(r.data.capped) : r.data.error || 'Something went wrong. Please try again.'; return; }
+      if (r.data.kind !== 'plan') { err.textContent = r.data.message || 'Could not match that.'; return; }
+      plan = r.data.plan;
+      show();
+    });
+
+    function totals() {
+      const items = plan!.sections.flatMap((s) => s.items);
+      const gaps = plan!.sections.filter((s) => !s.items.length).length;
+      $('[data-r-totals]').replaceChildren(...[
+        el('li', {}, `${plan!.sections.length} topics`), el('li', {}, `${items.length} lessons`),
+        el('li', {}, `${items.reduce((n, i) => n + i.films.length + i.methods.length, 0)} films`),
+        el('li', {}, `${items.reduce((n, i) => n + i.sims.length, 0)} simulations`),
+        gaps ? el('li', {}, `${gaps} not covered yet`) : null].filter((x): x is HTMLLIElement => !!x));
+    }
+    function show() {
+      $('[data-result]').hidden = false;
+      $('[data-saved]').hidden = true;
+      totals();
+      renderPlan($('[data-r-plan]'), plan!, { editable: true, labels: true, onChange: totals, emptyNote: 'Nothing on the site for this yet.' });
+      const t = $<HTMLFormElement>('[data-save]').elements.namedItem('title') as HTMLInputElement;
+      if (!t.value && plan!.title) t.value = plan!.title;
+      $('[data-r-h]').focus();
+    }
+
+    $<HTMLFormElement>('[data-save]').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!plan) return;
+      const f = new FormData(e.target as HTMLFormElement);
+      const se = $('[data-save-err]'); se.textContent = '';
+      if (!sel.value) { se.textContent = 'Make a class first, then save the list to it.'; return; }
+      const r = await planApi<{ id: string; href: string }>('/api/plan/lists', { classId: sel.value, title: String(f.get('title') || '').trim(), note: String(f.get('note') || ''), sections: toRefSections(plan) });
+      if (!r.ok) { se.textContent = r.data.error || 'Could not save.'; return; }
+      const url = new URL(r.data.href, location.origin).href;
+      const box = $('[data-saved]');
+      const copy = el('button', { type: 'button', class: 'tc-btn ghost small', onclick: async () => { try { await navigator.clipboard.writeText(url); copy.textContent = 'Copied'; } catch { /* the link is on screen */ } } }, 'Copy link');
+      box.replaceChildren(el('p', { style: 'margin:0' }, 'Saved. Students open it with this link, no account needed: '), el('p', { class: 'tc-row', style: 'margin:.5rem 0 0' }, el('a', { href: r.data.href }, url), copy));
+      box.hidden = false;
+      lists();
+    });
+  </script>
+</BaseLayout>

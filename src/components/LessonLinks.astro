@@ -1,0 +1,118 @@
+---
+/**
+ * "Before this / After this / Elsewhere on the site" (2026-11-14): lessons to review first, lessons
+ * to study next, and films, simulations and method films in other courses, each with a one-line
+ * reason. Read at build time from src/data/lesson-links.json, which a model wrote once per lesson,
+ * offline, and rules checked (scripts/lesson-links/). No client script. A lesson with no record, or
+ * whose links no longer resolve, shows nothing. It sits beside the Finish line and never replaces
+ * the course's own previous/next navigation.
+ */
+import { getCollection } from 'astro:content';
+import { courseOf } from '../data/courses';
+import { stageOf, STAGES } from '../data/stages';
+import { listedMethods, methodHref } from '../data/methods';
+import { watchHref } from '../lib/films';
+import links from '../data/lesson-links.json';
+
+interface Props {
+  slug: string;
+  /** "skim": the Skim page's lighter version (same content, no surrounding card). */
+  variant?: 'lesson' | 'skim';
+}
+const { slug, variant = 'lesson' } = Astro.props;
+
+type Rec = { before: { slug: string; why: string }[]; after: { slug: string; why: string }[]; elsewhere: { id: string; why: string }[] };
+const rec = (links.lessons as Record<string, Rec>)[slug];
+
+const live = new Map((await getCollection('lessons', ({ data }) => !data.draft)).map((l) => [l.data.slug, l.data]));
+const rankOf = (course: string) => STAGES.findIndex((s) => s.key === stageOf(courseOf(course)));
+const me = live.get(slug);
+const myRank = me ? rankOf(me.course) : 0;
+const methods = new Map(listedMethods().map((m) => [m.slug, m]));
+
+interface Item { href: string; title: string; tag: string; why: string }
+const lessonItem = (s: string, why: string): Item | null => {
+  const l = live.get(s);
+  if (!l || !me) return null;
+  const c = courseOf(l.course);
+  const r = rankOf(l.course);
+  const level = STAGES[r]?.title ?? '';
+  const tag = l.course === me.course ? `This course · Lesson ${[...live.values()].filter((x) => x.course === l.course).sort((a, b) => (a.order ?? 99) - (b.order ?? 99)).findIndex((x) => x.slug === s) + 1}`
+    : r > myRank ? `One level up · ${c.title}` : `${c.title} · ${level}`;
+  return { href: `/lessons/${s}/`, title: l.title, tag, why };
+};
+const resourceItem = (id: string, why: string): Item | null => {
+  const [kind, key] = id.split(':');
+  if (kind === 'method') {
+    const m = methods.get(key);
+    return m ? { href: methodHref(key), title: m.name, tag: 'Method film', why } : null;
+  }
+  const l = live.get(key);
+  if (!l) return null;
+  const c = courseOf(l.course).title;
+  if (kind === 'film' && l.explainer) return { href: watchHref(key), title: l.explainer.title, tag: `Film · ${c}`, why };
+  const sim = l.simulations.find((x) => x.type === 'local');
+  if (kind === 'sim' && sim) return { href: `/lessons/${key}/`, title: sim.title.split('(')[0].trim(), tag: `Simulation · ${c}`, why };
+  return null;
+};
+const clean = <T,>(xs: (T | null)[]) => xs.filter((x): x is T => !!x);
+const before = rec && me ? clean(rec.before.map((x) => lessonItem(x.slug, x.why))) : [];
+const after = rec && me ? clean(rec.after.map((x) => lessonItem(x.slug, x.why))) : [];
+const elsewhere = rec && me ? clean(rec.elsewhere.map((x) => resourceItem(x.id, x.why))) : [];
+const groups = [
+  { key: 'before', title: 'Before this', note: 'Review first', items: before },
+  { key: 'after', title: 'After this', note: 'Study next', items: after },
+  { key: 'elsewhere', title: 'Elsewhere on the site', note: 'Films, simulations and method films in other courses', items: elsewhere },
+].filter((g) => g.items.length);
+---
+{groups.length > 0 && (
+  <section class:list={['lesson-links', `ll-${variant}`]} aria-labelledby={`ll-h-${variant}`}>
+    <h2 id={`ll-h-${variant}`}>Where this lesson fits</h2>
+    <div class="ll-grid">
+      {groups.map((g) => (
+        <div class="ll-group">
+          <h3>{g.title} <span>{g.note}</span></h3>
+          <ul>
+            {g.items.map((it) => (
+              <li>
+                <a href={it.href}>{it.title}</a>
+                <span class="ll-tag">{it.tag}</span>
+                <p>{it.why}</p>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
+    </div>
+    <p class="ll-note">Suggested by an AI model from the lessons themselves, then checked. <a href="/about/#how-ai-is-used">How we use AI</a></p>
+  </section>
+)}
+
+<style>
+  .lesson-links { margin-top: var(--ddp-space-12); }
+  .lesson-links h2 {
+    font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--ddp-color-accent); margin: 0 0 var(--ddp-space-3);
+  }
+  .ll-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); gap: var(--ddp-space-4); align-items: start; }
+  .ll-group {
+    padding: var(--ddp-space-3) var(--ddp-space-4); min-width: 0;
+    border: 1px solid var(--ddp-color-line); border-radius: var(--ddp-radius-sm, 8px);
+    background: var(--ddp-color-surface);
+  }
+  .ll-group h3 { margin: 0 0 var(--ddp-space-2); font-size: var(--ddp-text-base); }
+  .ll-group h3 span { display: block; font-weight: 400; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .ll-group ul { list-style: none; margin: 0; padding: 0; }
+  .ll-group li + li { margin-top: var(--ddp-space-3); padding-top: var(--ddp-space-3); border-top: 1px solid var(--ddp-color-line); }
+  .ll-group a { color: var(--ddp-color-ink); font-weight: 600; text-underline-offset: 2px; overflow-wrap: anywhere; }
+  .ll-group a:hover { color: var(--ddp-color-accent); }
+  .ll-tag {
+    display: block; margin-top: 0.15rem; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs);
+    color: var(--ddp-color-ink-soft);
+  }
+  .ll-group p { margin: 0.25rem 0 0; font-size: var(--ddp-text-sm); line-height: 1.5; color: var(--ddp-color-ink-soft); }
+  .ll-note { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .ll-note a { color: var(--ddp-color-accent); }
+  .ll-skim { margin-top: var(--ddp-space-8); }
+  @media print { .lesson-links { break-inside: avoid; } .ll-note a { display: none; } }
+</style>

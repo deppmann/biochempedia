@@ -1,5 +1,6 @@
 import { getCollection, render } from 'astro:content';
 import { COURSES, courseOf } from '../data/courses';
+import lessonLinks from '../data/lesson-links.json';
 
 /**
  * The search index: one small record per published lesson, built with the site
@@ -13,7 +14,10 @@ import { COURSES, courseOf } from '../data/courses';
  */
 export async function GET(): Promise<Response> {
   const lessons = (await getCollection('lessons', ({ data }) => import.meta.env.DEV || !data.draft));
-  const records: { s: string; c: string; n: number; t: string; u: string; k: string; h: string; x: string; g: [string, string][] }[] = [];
+  const records: { s: string; c: string; n: number; t: string; u: string; k: string; h: string; x: string; g: [string, string][]; w?: string[] }[] = [];
+  // Phrases a student might type that the lesson answers but its title and headings do not contain
+  // (src/data/lesson-links.json, written offline). A low-weight field: see `w` in src/lib/lesson-search.ts.
+  const phrases = lessonLinks.lessons as Record<string, { search?: string[] }>;
   for (const course of COURSES) {
     const mine = lessons
       .filter((l) => l.data.course === course.slug)
@@ -40,6 +44,7 @@ export async function GET(): Promise<Response> {
         ].filter(Boolean).join(' · '),
         // Section headings, each a place to land: [text, anchor].
         g: headings.filter((g) => g.depth === 2 || g.depth === 3).map((g): [string, string] => [g.text, g.slug]),
+        ...(phrases[d.slug]?.search?.length ? { w: phrases[d.slug].search } : {}),
       });
     }
   }

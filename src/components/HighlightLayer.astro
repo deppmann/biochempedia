@@ -487,7 +487,8 @@ const { slug, title } = Astro.props;
       const b = (e.target as HTMLElement).closest('button');
       if (!b) return;
       if (b.hasAttribute('data-hl-bar-note')) createFromPending('yellow', true);
-      else createFromPending(b.dataset.color as HighlightColor, false);
+      // Only the colour swatches highlight; other buttons added to the bar (LessonHelpers' "Explain another way") do their own thing.
+      else if (b.dataset.color) createFromPending(b.dataset.color as HighlightColor, false);
     });
 
     function sectionOf(node: Node): HTMLHeadingElement | null {

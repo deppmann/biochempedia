@@ -1,0 +1,221 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { COURSES } from '../../data/courses';
+import '../../styles/teach.css';
+import '../../styles/plan.css';
+
+// Courses a plan can start from (?course=slug pre-fills the goal). Grade 7 Life Science and
+// Biology Together are for under-13 audiences: the planner never offers itself there.
+const HIDDEN = ['biology-together', 'life-science'];
+const courseNames = Object.fromEntries(COURSES.filter((c) => !HIDDEN.includes(c.slug)).map((c) => [c.slug, c.title]));
+---
+
+<!-- The study planner (worker/planner.js). Kept out of the top navigation for now; reached from
+     /progress/ and the course pages. Everything below the intro waits for /api/plan/status. -->
+<BaseLayout title="Make a study plan — Biochemistrypedia" description="A week-by-week plan made from this site's lessons, films, simulations and flashcards, saved with your account." noindex>
+  <article class="wrap tc pl" data-planner data-courses={JSON.stringify(courseNames)}>
+    <p class="tc-eyebrow"><a href="/progress/">Your progress</a> · Study plan</p>
+    <h1>Make a study plan</h1>
+    <p class="tc-lede">
+      Say what you want to learn and how much time you have. The planner builds a week-by-week plan
+      from this site's lessons, films, simulations and flashcards, and says plainly where the site has
+      nothing for part of your goal yet.
+    </p>
+
+    <noscript><p class="pl-note warn">The planner needs JavaScript.</p></noscript>
+    <p class="tc-muted" data-loading>Checking…</p>
+    <p class="pl-note warn" data-off hidden></p>
+
+    <section class="pl-panel" data-signin hidden style="margin-top: var(--ddp-space-6)">
+      <h2>Sign in to make a plan</h2>
+      <p>Study plans are saved with a free learner account, so they are there on every device you use. Accounts are for people 13 and older.</p>
+      <p><a class="tc-btn" href="/account/?return=/plan/">Sign in or make an account</a></p>
+    </section>
+
+    <section data-saved-wrap hidden>
+      <h2>Your plans</h2>
+      <ul class="pl-saved" data-saved></ul>
+      <p class="tc-muted" data-saved-full hidden></p>
+    </section>
+
+    <section data-make hidden>
+      <h2 data-make-h>A new plan</h2>
+      <form class="tc-form pl-form" data-form novalidate>
+        <label>What do you want to learn, or what are you preparing for?
+          <textarea name="goal" rows="3" maxlength="400" required placeholder="For example: prepare for the MCAT's biology and biochemistry in 10 weeks"></textarea>
+          <span class="pl-hint">A subject, a course, an exam or a question. Up to 400 characters.</span>
+        </label>
+        <div class="pl-two">
+          <label>Weeks<input type="number" name="weeks" min="1" max="26" value="6" required inputmode="numeric" /></label>
+          <label>Hours a week<input type="number" name="hours" min="1" max="20" step="0.5" value="4" required inputmode="decimal" /></label>
+          <label>Your level
+            <select name="level">
+              <option value="high-school">High school</option>
+              <option value="intro-college" selected>First or second year of college</option>
+              <option value="upper-college">Upper-level college</option>
+              <option value="graduate">Graduate or professional school</option>
+              <option value="refresher">Coming back to it as an adult</option>
+            </select>
+          </label>
+        </div>
+        <label>What you already know <span class="pl-hint">(optional)</span>
+          <textarea name="known" rows="2" maxlength="300" placeholder="For example: I took intro biology and general chemistry last year"></textarea>
+        </label>
+        <p class="pl-age">For learners 13 and over. What you type here is sent once to an AI model from Anthropic to choose lessons from this site, and is not stored unless you save the plan. <a href="/privacy/#planner">Privacy</a></p>
+        <div class="tc-row">
+          <button class="tc-btn" type="submit" data-go>Make my plan</button>
+          <span class="tc-muted" data-left></span>
+        </div>
+        <p class="tc-error" data-err role="alert"></p>
+      </form>
+      <div class="pl-progress" data-progress hidden aria-live="polite"></div>
+    </section>
+
+    <section data-result hidden aria-live="polite">
+      <div class="pl-head"><h2 data-r-title tabindex="-1">Your plan</h2></div>
+      <p class="pl-summary" data-r-summary></p>
+      <ul class="pl-totals" data-r-totals></ul>
+      <p class="tc-muted pl-noprint" style="margin-top: var(--ddp-space-3)">Move lessons with the arrows, or remove what you don't want, then save. Nothing is kept until you save.</p>
+      <div class="pl-plan" data-r-plan></div>
+      <div class="pl-actions pl-noprint">
+        <button class="tc-btn ghost" type="button" data-regen>Make a different version</button>
+        <span class="tc-muted" data-regen-note></span>
+      </div>
+      <form class="tc-form pl-save pl-noprint" data-save novalidate>
+        <h3>Save this plan</h3>
+        <label>Name<input type="text" name="title" maxlength="80" required /></label>
+        <label>Notes <span class="pl-hint">(optional, only for you)</span><textarea name="notes" rows="2" maxlength="1000"></textarea></label>
+        <div class="tc-row"><button class="tc-btn" type="submit">Save to my account</button><span class="tc-ok" data-save-msg role="status"></span></div>
+        <p class="tc-error" data-save-err role="alert"></p>
+      </form>
+    </section>
+  </article>
+
+  <script>
+    import { renderPlan, plannerStatus, planApi, cappedText, progressSteps, standing, standingText, toRefSections, fmtMin, planMinutes, el, type Plan } from '../../lib/plan-view';
+    import { load as loadProgress } from '../../lib/progress';
+
+    interface Saved extends Plan { id: string; title: string; start: number; updated: number; goal: Record<string, unknown> }
+    const root = document.querySelector<HTMLElement>('[data-planner]')!;
+    const $ = <T extends HTMLElement>(s: string) => root.querySelector<T>(s)!;
+    const courses: Record<string, string> = JSON.parse(root.dataset.courses || '{}');
+    const form = $<HTMLFormElement>('[data-form]');
+    const err = $('[data-err]');
+    let goal: Record<string, unknown> | null = null;
+    let plan: Plan | null = null;
+    let regens = 0;
+    let busy = false;
+
+    (async () => {
+      const status = await plannerStatus();
+      $('[data-loading]').hidden = true;
+      const off = $('[data-off]');
+      if (!status.saved) {
+        off.textContent = 'The study planner is not available yet. Lessons, paths and your progress page all work as usual.';
+        off.hidden = false;
+      } else {
+        const saved = await planApi<{ plans: Saved[]; max: number }>('/api/plan/saved');
+        if (saved.status === 401) $('[data-signin]').hidden = false;
+        else if (saved.ok) {
+          showSaved(saved.data.plans, saved.data.max);
+          if (status.on) {
+            $('[data-make]').hidden = false;
+            $('[data-make-h]').textContent = saved.data.plans.length ? 'A new plan' : 'Your first plan';
+            if (status.perDay) $('[data-left]').textContent = `Up to ${status.perDay} plans a day.`;
+          }
+        }
+        if (!status.on) {
+          off.textContent = status.capped ? cappedText(status.capped) : 'Making new plans is switched off for now. Saved plans still open.';
+          off.hidden = false;
+        }
+      }
+    })();
+
+    const pre = new URLSearchParams(location.search).get('course');
+    if (pre && courses[pre]) (form.elements.namedItem('goal') as HTMLTextAreaElement).value = `Work through ${courses[pre]} on this site`;
+
+    function showSaved(plans: Saved[], max: number) {
+      const ul = $('[data-saved]');
+      ul.replaceChildren();
+      if (!plans.length) return;
+      $('[data-saved-wrap]').hidden = false;
+      const p = loadProgress();
+      const done = (s: string) => !!p.lessons[s]?.d;
+      for (const sp of plans) {
+        const lines = standingText(standing(sp, sp.start, done));
+        ul.append(el('li', {},
+          el('a', { class: 'pl-saved-title', href: `/plan/view/?id=${sp.id}` }, sp.title),
+          el('ul', { class: 'pl-standing' }, ...lines.map((t) => el('li', {}, t))),
+          el('a', { href: `/plan/view/?id=${sp.id}` }, 'Open the plan →')));
+      }
+      if (plans.length >= max) {
+        const full = $('[data-saved-full]');
+        full.textContent = `You have ${max} saved plans, the most an account keeps. Delete one (open it, then "Delete this plan") to save another.`;
+        full.hidden = false;
+      }
+    }
+
+    async function make() {
+      if (busy) return;
+      err.textContent = '';
+      const f = new FormData(form);
+      const body = { goal: String(f.get('goal') || '').trim(), weeks: Number(f.get('weeks')), hours: Number(f.get('hours')), level: String(f.get('level')), known: String(f.get('known') || '').trim() };
+      if (body.goal.length < 3) { err.textContent = 'Say in a few words what you want to learn.'; (form.elements.namedItem('goal') as HTMLElement).focus(); return; }
+      if (!(body.weeks >= 1 && body.weeks <= 26)) { err.textContent = 'Choose between 1 and 26 weeks.'; return; }
+      if (!(body.hours >= 1 && body.hours <= 20)) { err.textContent = 'Choose between 1 and 20 hours a week.'; return; }
+      busy = true;
+      root.querySelectorAll<HTMLButtonElement>('[data-go], [data-regen]').forEach((b) => (b.disabled = true));
+      const stop = progressSteps($('[data-progress]'), ['Reading your goal', 'Looking through every course', 'Choosing lessons, films and simulations', 'Ordering them week by week', 'Checking every pick against the site']);
+      const r = await planApi<{ kind: string; plan: Plan; goal: Record<string, unknown>; message?: string }>('/api/plan/learner', body);
+      stop();
+      busy = false;
+      root.querySelectorAll<HTMLButtonElement>('[data-go], [data-regen]').forEach((b) => (b.disabled = false));
+      if (!r.ok) { err.textContent = r.data.capped ? cappedText(r.data.capped) : r.data.error || 'Something went wrong. Please try again.'; return; }
+      if (r.data.kind !== 'plan') { err.textContent = r.data.message || 'The planner could not make a plan from that.'; return; }
+      goal = r.data.goal;
+      plan = r.data.plan;
+      show();
+    }
+
+    function totals() {
+      const t = $('[data-r-totals]');
+      const items = plan!.sections.flatMap((s) => s.items);
+      t.replaceChildren(
+        el('li', {}, `${plan!.sections.length} week${plan!.sections.length === 1 ? '' : 's'}`),
+        el('li', {}, `${items.length} lesson${items.length === 1 ? '' : 's'}`),
+        el('li', {}, `${items.reduce((n, i) => n + i.films.length + i.methods.length, 0)} films`),
+        el('li', {}, `about ${fmtMin(planMinutes(plan!))} in all`),
+      );
+    }
+
+    function show() {
+      if (!plan) return;
+      $('[data-result]').hidden = false;
+      $('[data-r-title]').textContent = plan.title || 'Your plan';
+      $('[data-r-summary]').textContent = plan.summary || '';
+      totals();
+      renderPlan($('[data-r-plan]'), plan, { editable: true, times: true, onChange: totals, emptyNote: 'Nothing this week now. That is fine: use it to catch up or review.' });
+      const t = $<HTMLFormElement>('[data-save]').elements.namedItem('title') as HTMLInputElement;
+      if (!t.value) t.value = plan.title || 'My study plan';
+      const rg = $<HTMLButtonElement>('[data-regen]');
+      rg.hidden = regens >= 1;
+      $('[data-regen-note]').textContent = regens >= 1 ? 'This is the second version. Edit it, or change the form above and make a new plan.' : 'You can ask for one different version.';
+      $('[data-r-title]').focus();
+    }
+
+    form.addEventListener('submit', (e) => { e.preventDefault(); regens = 0; make(); });
+    $('[data-regen]').addEventListener('click', () => { regens++; make(); });
+
+    $<HTMLFormElement>('[data-save]').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!plan || !goal) return;
+      const f = new FormData(e.target as HTMLFormElement);
+      const se = $('[data-save-err]');
+      se.textContent = '';
+      const r = await planApi<{ plan: { id: string } }>('/api/plan/saved', { title: String(f.get('title') || '').trim(), notes: String(f.get('notes') || ''), goal, summary: plan.summary, gaps: plan.gaps, sections: toRefSections(plan) });
+      if (!r.ok) { se.textContent = r.data.error || 'Could not save. Please try again.'; return; }
+      $('[data-save-msg]').textContent = 'Saved.';
+      location.href = `/plan/view/?id=${r.data.plan.id}`;
+    });
+  </script>
+</BaseLayout>

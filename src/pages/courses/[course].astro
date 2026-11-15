@@ -121,8 +121,18 @@ const tierLabel = { families: 'activities for ages 5–10', highschool: course.l
   <section class="wrap lessons" id="lessons">
     <p class="sec-label">{units.length} units · {lessons.length === 1 ? 'one lesson' : `${lessons.length} lessons`}</p>
     <p class="course-skim"><a href={courseSkimHref(course.slug)}><span aria-hidden="true">≡</span> Skim the whole course</a><span class="course-skim-note">: the guiding idea of every {course.tier === 'families' ? 'activity' : 'lesson'} on one page, with film take-homes</span></p>
+    {/* The study planner (worker/planner.js): shown only once it is on, and never on the under-13 courses. */}
+    {!['biology-together', 'life-science'].includes(course.slug) && (
+      <p class="course-skim" data-plan-link hidden><a href={`/plan/?course=${course.slug}`}><span aria-hidden="true">▦</span> Make a study plan</a><span class="course-skim-note">: this course, or any goal, fitted to your weeks</span></p>
+    )}
     <CourseUnits course={course} lessons={lessons} />
   </section>
+
+  <script>
+    import { plannerStatus } from '../../lib/plan-view';
+    const planLink = document.querySelector<HTMLElement>('[data-plan-link]');
+    if (planLink) plannerStatus().then((st) => { planLink.hidden = !st.on; });
+  </script>
 
   <script>
     import { load, onChange } from '../../lib/progress';
@@ -188,6 +198,7 @@ const tierLabel = { families: 'activities for ages 5–10', highschool: course.l
     .course-skim { margin: 0 0 var(--ddp-space-4); font-size: var(--ddp-text-sm); line-height: 1.5; }
     .course-skim a { font-weight: 600; color: var(--ddp-color-accent); text-underline-offset: 3px; }
     .course-skim-note { color: var(--ddp-color-muted); }
+    .course-skim[hidden] { display: none; }
     @media (prefers-reduced-motion: reduce) { .cta, .cta-play, .funbar-link { transition: none; } }
   </style>
 </BaseLayout>

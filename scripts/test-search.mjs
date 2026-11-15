@@ -85,6 +85,20 @@ await expect('insulin signaling', first('pi3k-akt-insulin'));
 await expect('ATP synthase', inTop('proton-motive-force', 2));
 await expect('western blot', inTop('detecting-a-signal', 3));
 
+console.log('\nSearch phrases (src/data/lesson-links.json): everyday words find the lesson');
+// Probes are read from the data file, not written here, so regenerating a record cannot break them:
+// for six lessons spread over the catalog, the record's first phrase must put that lesson in the top 3.
+// scripts/lesson-links/filter-search.mjs drops any phrase that fails this before a record ships.
+{
+  const { readFileSync, existsSync } = await import('node:fs');
+  const { fileURLToPath } = await import('node:url');
+  const f = fileURLToPath(new URL('../src/data/lesson-links.json', import.meta.url));
+  const recs = existsSync(f) ? Object.entries(JSON.parse(readFileSync(f, 'utf8')).lessons ?? {}).filter(([, r]) => r.search?.length) : [];
+  const step = Math.max(1, Math.floor(recs.length / 6));
+  for (const [slug, r] of recs.filter((_x, i) => i % step === 0).slice(0, 6)) await expect(r.search[0], inTop(slug, 3));
+  if (!recs.length) pass('no search phrases yet');
+}
+
 console.log('\nCourse scope');
 await expect('action potential', (hits) => (hits.length && hits.every((h) => h.course === 'neuroscience') ? null : `all hits should be in neuroscience, got ${[...new Set(hits.map((h) => h.course))].join(',')}`), { scope: 'neuroscience' });
 

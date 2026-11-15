@@ -1,0 +1,167 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import '../../../styles/teach.css';
+import '../../../styles/plan.css';
+---
+
+<!-- One saved study plan (?id=). Showing it never calls the model: the plan is plain data and
+     where the learner stands is worked out in this browser from progress and films watched.
+     "Re-plan from here" is the one button that asks the planner again. -->
+<BaseLayout title="Study plan — Biochemistrypedia" description="Your saved study plan." noindex>
+  <article class="wrap tc pl" data-view>
+    <p class="tc-eyebrow"><a href="/progress/">Your progress</a> · <a href="/plan/">Study plans</a></p>
+    <h1 data-title>Study plan</h1>
+    <noscript><p class="pl-note warn">Study plans need JavaScript.</p></noscript>
+    <p class="tc-muted" data-loading>Loading…</p>
+    <p class="pl-note warn" data-err role="alert" hidden></p>
+    <p class="pl-summary" data-notes hidden></p>
+
+    <section data-body hidden>
+      <div class="pl-standing-box" data-standing-box>
+        <ul class="pl-standing" data-standing></ul>
+        <div class="pl-actions pl-noprint" style="margin-top: var(--ddp-space-3)">
+          <button class="tc-btn" type="button" data-replan>Re-plan from here</button>
+          <span class="tc-muted" data-replan-note>Keeps the weeks behind you and plans the rest around what you have done.</span>
+        </div>
+        <div class="pl-progress" data-progress hidden aria-live="polite"></div>
+        <p class="tc-error" data-replan-err role="alert"></p>
+      </div>
+
+      <section class="pl-preview" data-preview hidden aria-live="polite">
+        <h3 tabindex="-1" data-preview-h>A new plan for the weeks ahead</h3>
+        <p class="tc-muted" data-preview-sum></p>
+        <div class="pl-actions" style="margin-top: var(--ddp-space-3)">
+          <button class="tc-btn" type="button" data-accept>Use the new weeks</button>
+          <button class="tc-btn ghost" type="button" data-discard>Keep my plan as it is</button>
+        </div>
+        <div class="pl-plan" data-preview-plan></div>
+      </section>
+
+      <ul class="pl-totals" data-totals></ul>
+      <div class="pl-plan" data-plan></div>
+
+      <div class="pl-actions pl-noprint">
+        <button class="tc-btn ghost" type="button" data-edit>Edit the plan</button>
+        <button class="tc-btn" type="button" data-edit-save hidden>Save changes</button>
+        <button class="tc-btn ghost" type="button" data-edit-cancel hidden>Cancel</button>
+        <button class="tc-btn ghost" type="button" onclick="window.print()">Print</button>
+        <span class="tc-ok" data-msg role="status"></span>
+      </div>
+
+      <details class="pl-noprint" style="margin-top: var(--ddp-space-6)">
+        <summary>Rename, notes, or delete</summary>
+        <form class="tc-form pl-save" data-meta novalidate>
+          <label>Name<input type="text" name="title" maxlength="80" required /></label>
+          <label>Notes<textarea name="notes" rows="2" maxlength="1000"></textarea></label>
+          <div class="tc-row"><button class="tc-btn" type="submit">Save</button></div>
+        </form>
+        <p style="margin-top: var(--ddp-space-4)"><button class="tc-btn danger" type="button" data-delete>Delete this plan</button></p>
+        <p class="tc-muted">Made from: <span data-goal></span></p>
+      </details>
+    </section>
+  </article>
+
+  <script>
+    import { renderPlan, plannerStatus, planApi, cappedText, progressSteps, standing, standingText, toRefSections, fmtMin, planMinutes, el, type Plan } from '../../../lib/plan-view';
+    import { load as loadProgress, onChange } from '../../../lib/progress';
+    import { loadFilms, isWatched } from '../../../lib/film-progress';
+
+    interface Saved extends Plan { id: string; title: string; notes: string; start: number; goal: { goal?: string; weeks?: number; hours?: number } }
+    const root = document.querySelector<HTMLElement>('[data-view]')!;
+    const $ = <T extends HTMLElement>(s: string) => root.querySelector<T>(s)!;
+    const id = new URLSearchParams(location.search).get('id') || '';
+    let saved: Saved;
+    let editing: Plan | null = null;
+    let fresh: { fromWeek: number; plan: Plan } | null = null;
+
+    const done = (s: string) => !!loadProgress().lessons[s]?.d;
+    const watched = (k: string) => isWatched(loadFilms(), k);
+    const fail = (t: string) => { const e = $('[data-err]'); e.textContent = t; e.hidden = false; $('[data-loading]').hidden = true; };
+
+    function draw() {
+      $('[data-title]').textContent = saved.title;
+      document.title = `${saved.title} — Biochemistrypedia`;
+      const n = $('[data-notes]'); n.textContent = saved.notes; n.hidden = !saved.notes;
+      const st = standing(saved, saved.start, done);
+      $('[data-standing]').replaceChildren(...standingText(st).map((t) => el('li', {}, t)));
+      const items = saved.sections.flatMap((s) => s.items);
+      $('[data-totals]').replaceChildren(
+        el('li', {}, `${saved.sections.length} weeks`), el('li', {}, `${items.filter((i) => done(i.slug)).length} of ${items.length} lessons done`),
+        el('li', {}, `about ${fmtMin(planMinutes(saved))} in all`));
+      const plan = editing ?? saved;
+      renderPlan($('[data-plan]'), plan, editing ? { editable: true, times: true } : { done, watched, currentWeek: st.week, times: true, emptyNote: 'Nothing planned this week.' });
+      $('[data-goal]').textContent = `"${saved.goal.goal ?? ''}", ${saved.goal.hours ?? '?'} hours a week.`;
+      const meta = $<HTMLFormElement>('[data-meta]');
+      (meta.elements.namedItem('title') as HTMLInputElement).value = saved.title;
+      (meta.elements.namedItem('notes') as HTMLTextAreaElement).value = saved.notes;
+    }
+
+    (async () => {
+      if (!/^[0-9a-f]{24}$/.test(id)) return fail('No plan chosen. Go back to your study plans.');
+      const r = await planApi<{ plan: Saved }>(`/api/plan/saved/${id}`);
+      if (r.status === 401) return fail('Sign in to see your study plans.');
+      if (!r.ok) return fail(r.data.error || 'Could not open this plan.');
+      saved = r.data.plan;
+      $('[data-loading]').hidden = true;
+      $('[data-body]').hidden = false;
+      draw();
+      onChange(() => { if (!editing) draw(); });
+      const status = await plannerStatus();
+      if (!status.on) {
+        $<HTMLButtonElement>('[data-replan]').disabled = true;
+        $('[data-replan-note]').textContent = status.capped ? cappedText(status.capped) : 'Re-planning is switched off for now.';
+      }
+    })();
+
+    $('[data-replan]').addEventListener('click', async () => {
+      const btn = $<HTMLButtonElement>('[data-replan]');
+      const errEl = $('[data-replan-err]');
+      errEl.textContent = '';
+      btn.disabled = true;
+      const p = loadProgress();
+      const doneSlugs = Object.entries(p.lessons).filter(([, v]) => v.d).map(([s]) => s).slice(0, 600);
+      const stop = progressSteps($('[data-progress]'), ['Looking at what you have done', 'Choosing what comes next', 'Fitting it to your weeks', 'Checking every pick against the site']);
+      const r = await planApi<{ kind: string; fromWeek: number; plan: Plan; message?: string }>('/api/plan/replan', { id, done: doneSlugs });
+      stop();
+      btn.disabled = false;
+      if (!r.ok) { errEl.textContent = r.data.capped ? cappedText(r.data.capped) : r.data.error || 'Could not re-plan just now.'; return; }
+      if (r.data.kind !== 'plan') { errEl.textContent = r.data.message || 'Nothing new to suggest.'; return; }
+      fresh = { fromWeek: r.data.fromWeek, plan: r.data.plan };
+      $('[data-preview]').hidden = false;
+      $('[data-preview-sum]').textContent = `Weeks ${r.data.fromWeek} to ${r.data.fromWeek + r.data.plan.sections.length - 1}, about ${fmtMin(planMinutes(r.data.plan))} in all. Your plan stays as it is unless you choose the new weeks.`;
+      renderPlan($('[data-preview-plan]'), fresh.plan, { editable: true, times: true });
+      $('[data-preview-h]').focus();
+    });
+    $('[data-discard]').addEventListener('click', () => { fresh = null; $('[data-preview]').hidden = true; });
+    $('[data-accept]').addEventListener('click', async () => {
+      if (!fresh) return;
+      const r = await planApi<{ plan: Saved }>(`/api/plan/saved/${id}`, { replan: { fromWeek: fresh.fromWeek, sections: toRefSections(fresh.plan) } }, 'PUT');
+      if (!r.ok) { $('[data-replan-err]').textContent = r.data.error || 'Could not save.'; return; }
+      saved = r.data.plan; fresh = null; $('[data-preview]').hidden = true; draw();
+      $('[data-msg]').textContent = 'The new weeks are in your plan.';
+    });
+
+    const editBtns = (on: boolean) => { $('[data-edit]').hidden = on; $('[data-edit-save]').hidden = !on; $('[data-edit-cancel]').hidden = !on; };
+    $('[data-edit]').addEventListener('click', () => { editing = structuredClone({ sections: saved.sections }) as Plan; editBtns(true); draw(); });
+    $('[data-edit-cancel]').addEventListener('click', () => { editing = null; editBtns(false); draw(); });
+    $('[data-edit-save]').addEventListener('click', async () => {
+      if (!editing) return;
+      const r = await planApi<{ plan: Saved }>(`/api/plan/saved/${id}`, { sections: toRefSections(editing) }, 'PUT');
+      if (!r.ok) { $('[data-msg]').textContent = r.data.error || 'Could not save.'; return; }
+      saved = r.data.plan; editing = null; editBtns(false); draw();
+      $('[data-msg]').textContent = 'Saved.';
+    });
+    $<HTMLFormElement>('[data-meta]').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const f = new FormData(e.target as HTMLFormElement);
+      const r = await planApi<{ plan: Saved }>(`/api/plan/saved/${id}`, { title: String(f.get('title') || ''), notes: String(f.get('notes') || '') }, 'PUT');
+      if (r.ok) { saved = r.data.plan; draw(); $('[data-msg]').textContent = 'Saved.'; }
+      else $('[data-msg]').textContent = r.data.error || 'Could not save.';
+    });
+    $('[data-delete]').addEventListener('click', async () => {
+      if (!window.confirm('Delete this plan? Your progress in the lessons is not affected.')) return;
+      const r = await planApi(`/api/plan/saved/${id}`, {}, 'DELETE');
+      if (r.ok) location.href = '/plan/';
+    });
+  </script>
+</BaseLayout>

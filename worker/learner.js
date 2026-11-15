@@ -17,6 +17,7 @@
 import { generateRegistrationOptions, verifyRegistrationResponse, generateAuthenticationOptions, verifyAuthenticationResponse } from '@simplewebauthn/server';
 import { sha256Hex, randomToken, readCookie, cookie } from './auth.js';
 import { json, fail, clean, clientKey, allow } from './util.js';
+import { exportLearnerPlans, deleteLearnerPlans } from './planner.js';
 import { mergeNotebookItems, mergeProgress, validProgress, validNoteItem } from '../src/lib/learner-merge.mjs';
 
 export const LEARNER_COOKIE = 'bp_learner';
@@ -245,6 +246,7 @@ function cleanIncoming(b) {
 
 // ---- delete: every learner table is here ---------------------------------------------
 async function deleteLearner(db, id) {
+  await deleteLearnerPlans(db, id);   // saved study plans (worker/planner.js); a no-op before that migration
   await db.batch([
     db.prepare('DELETE FROM learner_challenges WHERE learner_id=?').bind(id),
     db.prepare('DELETE FROM learner_sessions WHERE learner_id=?').bind(id),
@@ -514,6 +516,7 @@ export async function handleLearner(request, env, db, path, method, url) {
         created: iso(l.created_at), lastActive: iso(l.last_active_at),
       },
       passkeys, sessions,
+      studyPlans: await exportLearnerPlans(db, l.id),
       lastSynced: d.updatedAt ? iso(d.updatedAt) : null,
       notebook: { v: 1, items: d.items },
       progress: d.progress,
