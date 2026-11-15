@@ -1,509 +1,446 @@
-"""Cancer as a genetic disease: acquired changes and clonal evolution  (Biochemistrypedia explainer)
+"""One Cell, Two Routes.
 
-Timed to the SPOKEN words: every self.at("...") cue waits for that phrase in audio/words.json.
+COLOR MAP (fixed across both cancer-genetics chapters)
+  GREY / TEXT = ordinary cells and DNA
+  CLAY        = acquired somatic change and the selected lineage
+  GOLD        = inherited / germline first hit
+  BLUE        = active growth signal / oncogene accelerator
+  GREEN       = working tumour-suppressor brake
+  RED         = lost function
+  TEAL        = sequencing reads (reserved for chapter 2)
 
-COLOR MAP (one color per concept, whole video)
-  RED    = the broken (mutant) copy of RB1, a hit
-  GREEN  = the working copy of RB1
-  YELLOW = the second hit as an event (the thing that strikes)
-  ORANGE = a tumor: a tumor cell, a tumor in an eye, an affected person
-  TEAL   = a probability with no tumor / numbers that are computed
-  BLUE   = a pre-existing treatment-resistant subline
-  GREY   = outlines, axes, healthy cells, labels; passenger markers
+All gene copies are labelled blocks or bars, never molecular structures.  The
+cell, brake and retinal worlds are rebuilt by shared builders wherever carried.
 """
-import numpy as np
-from math import exp, factorial
-from bp_style import *  # noqa: F401,F403
-
-ORANGE = "#F29E4C"
+from bp_parts import *  # noqa: F401,F403
 
 
-# ---------------------------------------------------------------------------------------------
-# helpers
-# ---------------------------------------------------------------------------------------------
-def cell(center, s=1.0, l=RED, r=GREEN, outline=GREY, fill=0.0):
-    """A cell as a rounded square holding the two copies of RB1 as two small bars."""
-    center = np.array(center, float)
-    box = RoundedRectangle(corner_radius=0.12 * s, width=s, height=s, stroke_color=outline, stroke_width=3,
-                           fill_color=outline, fill_opacity=fill).move_to(center)
-    lb = RoundedRectangle(corner_radius=0.05 * s, width=0.14 * s, height=0.58 * s, stroke_width=0,
-                          fill_color=l, fill_opacity=1).move_to(center + LEFT * 0.17 * s)
-    rb = RoundedRectangle(corner_radius=0.05 * s, width=0.14 * s, height=0.58 * s, stroke_width=0,
-                          fill_color=r, fill_opacity=1).move_to(center + RIGHT * 0.17 * s)
-    g = VGroup(box, lb, rb)
-    g.box, g.lb, g.rb = box, lb, rb
+CLAY = "#C9825B"
+
+
+def tissue_cell(at, radius=0.82, stroke=GREY, fill=0.32):
+    """A schematic tissue cell; optional badges are added by the caller."""
+    c = Circle(radius=radius, stroke_color=stroke, stroke_width=4,
+               fill_color=stroke, fill_opacity=fill).move_to(at)
+    n = Circle(radius=radius * 0.24, stroke_color=GREY, stroke_width=2,
+               fill_color=GREY, fill_opacity=0.12).move_to(at)
+    g = VGroup(c, n)
+    g.body, g.nucleus = c, n
     return g
 
 
-def tumorize(c):
-    """animations: the working copy is hit, the cell becomes a tumor cell."""
-    return [c.rb.animate.set_fill(RED, 1), c.box.animate.set_stroke(ORANGE).set_fill(ORANGE, 0.4)]
+def badge(color=CLAY, radius=0.15):
+    return Circle(radius=radius, stroke_width=0, fill_color=color, fill_opacity=1)
 
 
-def grid_cells(rows=4, cols=9, pitch=1.3, cy=-0.3, s=1.0):
-    cells = []
-    for i in range(rows):
-        for j in range(cols):
-            x = (j - (cols - 1) / 2) * pitch
-            y = cy + ((rows - 1) / 2 - i) * pitch
-            cells.append(cell([x, y, 0], s))
+TISSUE_POS = [(-4.55, 1.05), (-2.15, 1.15), (0.25, 1.05),
+              (-3.35, -1.15), (-0.95, -1.20), (1.45, -1.05)]
+
+
+def six_cell_tissue(marked=False):
+    cells = VGroup(*[tissue_cell([x, y, 0], 0.94) for x, y in TISSUE_POS])
+    if marked:
+        m = badge().move_to(cells[2].get_center() + RIGHT * 0.34)
+        cells[2].add(m)
+        cells[2].mark = m
     return cells
 
 
-def legend(y=-3.42):
-    a = RoundedRectangle(corner_radius=0.03, width=0.11, height=0.4, stroke_width=0, fill_color=RED, fill_opacity=1)
-    ta = T("broken copy", 22, RED)
-    b = RoundedRectangle(corner_radius=0.03, width=0.11, height=0.4, stroke_width=0, fill_color=GREEN, fill_opacity=1)
-    tb = T("working copy", 22, GREEN)
-    sq = RoundedRectangle(corner_radius=0.06, width=0.4, height=0.4, stroke_color=ORANGE, stroke_width=3,
-                          fill_color=ORANGE, fill_opacity=0.4)
-    tc = T("tumor cell", 22, ORANGE)
-    g = VGroup(VGroup(a, ta).arrange(RIGHT, buff=0.15), VGroup(b, tb).arrange(RIGHT, buff=0.15),
-               VGroup(sq, tc).arrange(RIGHT, buff=0.15)).arrange(RIGHT, buff=0.8)
-    return g.move_to([0, y, 0])
+def family_cell(at, marked=False, passenger=False, radius=0.48):
+    c = tissue_cell(at, radius, stroke=CLAY if marked else GREY,
+                    fill=0.34 if marked else 0.28)
+    if marked:
+        c.add(badge(CLAY, radius * 0.16).move_to(c.get_center() + LEFT * radius * 0.27))
+    if passenger:
+        c.add(Dot(c.get_center() + RIGHT * radius * 0.27,
+                  radius=radius * 0.09, color=TEXT))
+    return c
 
 
-def hit_dot():
-    return Circle(radius=0.14, stroke_width=0, fill_color=YELLOW, fill_opacity=1)
-
-
-def eye(center, tumor=False, s=1.0):
-    center = np.array(center, float)
-    body = Ellipse(width=1.3 * s, height=0.78 * s, stroke_color=GREY, stroke_width=3, fill_color=BG, fill_opacity=1).move_to(center)
-    iris = Circle(radius=0.2 * s, stroke_color=GREY, stroke_width=3, fill_color=GREY, fill_opacity=0.35).move_to(center)
-    g = VGroup(body, iris)
-    if tumor:
-        dot = Circle(radius=0.14 * s, stroke_width=0, fill_color=ORANGE, fill_opacity=1).move_to(center + RIGHT * 0.38 * s + DOWN * 0.03 * s)
-        g.add(dot)
+def selection_tree(final=True, passenger=True):
+    """Carried clay family tree used for selection and the closing rule."""
+    root = family_cell([-5.2, 0, 0], True, False, 0.58)
+    level1 = VGroup(family_cell([-2.65, 1.45, 0], True, passenger, 0.52),
+                    family_cell([-2.65, -1.45, 0], False, False, 0.52))
+    clay_pts = [(0.0, 2.35), (0.0, 0.85), (0.0, -0.5)]
+    pale_pts = [(0.0, -2.25)]
+    clay = VGroup(*[family_cell([x, y, 0], True, passenger, 0.46) for x, y in clay_pts])
+    pale = VGroup(*[family_cell([x, y, 0], False, False, 0.46) for x, y in pale_pts])
+    links1 = VGroup(Arrow(root.get_right(), level1[0].get_left(), buff=0.1,
+                          color=CLAY, stroke_width=5, tip_length=0.2),
+                    Arrow(root.get_right(), level1[1].get_left(), buff=0.1,
+                          color=GREY, stroke_width=3, tip_length=0.2))
+    links2 = VGroup(*[Arrow(level1[0].get_right(), c.get_left(), buff=0.1,
+                                color=CLAY, stroke_width=6, tip_length=0.2) for c in clay],
+                    Arrow(level1[1].get_right(), pale[0].get_left(), buff=0.1,
+                          color=GREY, stroke_width=3, tip_length=0.2))
+    g = VGroup(root, links1, level1, links2, clay, pale)
+    g.root, g.links1, g.level1, g.links2, g.clay, g.pale = root, links1, level1, links2, clay, pale
     return g
 
 
-def eyes(center, tl, tr, s=1.0):
-    center = np.array(center, float)
-    return VGroup(eye(center + LEFT * 0.85 * s, tl, s), eye(center + RIGHT * 0.85 * s, tr, s))
+def division_wheel(center=(2.45, 0.0, 0), radius=1.45):
+    c = np.array(center, dtype=float)
+    rim = Circle(radius=radius, color=TEXT, stroke_width=10).move_to(c)
+    spokes = VGroup(*[Line(c, c + radius * 0.82 * np.array([np.cos(a), np.sin(a), 0]),
+                            color=GREY, stroke_width=9) for a in np.linspace(0, TAU, 8, endpoint=False)])
+    hub = Dot(c, radius=0.18, color=TEXT)
+    wheel = VGroup(rim, spokes, hub)
+    wheel.spin_speed = 0.16
+
+    def turn(mob, dt):
+        mob.rotate(mob.spin_speed * dt, about_point=c)
+    wheel.add_updater(turn)
+    return wheel
 
 
-def bracket(x0, x1, y, color, tick=0.18):
-    return VGroup(Line([x0, y - tick, 0], [x0, y, 0], color=color, stroke_width=4),
-                  Line([x0, y, 0], [x1, y, 0], color=color, stroke_width=4),
-                  Line([x1, y, 0], [x1, y - tick, 0], color=color, stroke_width=4))
+def brake_world(question=False):
+    """Exact carried frame for the prediction, pause, and suppressor reveal."""
+    cell = Circle(radius=3.0, color=GREY, stroke_width=4,
+                  fill_color=GREY, fill_opacity=0.24).move_to([0, -0.15, 0])
+    wheel = division_wheel((2.2, -0.15, 0), 1.28)
+    lost = RoundedRectangle(width=0.34, height=2.45, corner_radius=0.08,
+                            stroke_color=RED, fill_color=RED, fill_opacity=0.9).move_to([-1.25, -0.15, 0])
+    crack = VGroup(Line([-1.45, 0.25, 0], [-1.07, -0.02, 0], color=BG, stroke_width=5),
+                   Line([-1.07, -0.02, 0], [-1.42, -0.35, 0], color=BG, stroke_width=5))
+    working = RoundedRectangle(width=0.42, height=2.8, corner_radius=0.08,
+                               stroke_color=GREEN, fill_color=GREEN, fill_opacity=0.95).move_to([0.64, -0.15, 0])
+    world = VGroup(cell, wheel, lost, crack, working)
+    world.cell, world.wheel, world.lost, world.crack, world.working = cell, wheel, lost, crack, working
+    return world
 
 
-def arr(a, b, color=GREY, w=5):
-    return Arrow(a, b, buff=0.08, color=color, stroke_width=w, tip_length=0.22,
-                 max_tip_length_to_length_ratio=0.45, max_stroke_width_to_length_ratio=12)
+PREDICT_QUESTION = "Does the cell lose the brake now, or can one copy hold it?"
 
 
-def pedigree():
-    S = 0.62
-
-    def sym(x, y, sq, aff):
-        col = ORANGE if aff else GREY
-        if sq:
-            s = Square(side_length=S, stroke_color=col, stroke_width=3, fill_color=col, fill_opacity=0.9 if aff else 0)
-        else:
-            s = Circle(radius=S / 2, stroke_color=col, stroke_width=3, fill_color=col, fill_opacity=0.9 if aff else 0)
-        return s.move_to([x, y, 0])
-
-    yI, yII, yIII = 2.3, 0.5, -1.4
-    f = sym(-4.6, yI, True, True)
-    mo = sym(-2.9, yI, False, False)
-    m1 = Line(f.get_right(), mo.get_left(), color=GREY, stroke_width=3)
-    mid1 = (f.get_right() + mo.get_left()) / 2
-    kx = [-5.8, -4.3, -2.8]
-    ks = [sym(kx[0], yII, True, True), sym(kx[1], yII, False, False), sym(kx[2], yII, False, True)]
-    sib = Line([kx[0], yII + 0.95, 0], [kx[2], yII + 0.95, 0], color=GREY, stroke_width=3)
-    d1 = Line(mid1, [mid1[0], yII + 0.95, 0], color=GREY, stroke_width=3)
-    drops = VGroup(*[Line([x, yII + 0.95, 0], [x, yII + 0.31, 0], color=GREY, stroke_width=3) for x in kx])
-    p = sym(-1.3, yII, True, False)
-    m2 = Line(ks[2].get_right(), p.get_left(), color=GREY, stroke_width=3)
-    mid2 = (ks[2].get_right() + p.get_left()) / 2
-    gx = [-2.8, -1.3]
-    gk = [sym(gx[0], yIII, False, True), sym(gx[1], yIII, True, False)]
-    sib2 = Line([gx[0], yIII + 0.95, 0], [gx[1], yIII + 0.95, 0], color=GREY, stroke_width=3)
-    d2 = Line(mid2, [mid2[0], yIII + 0.95, 0], color=GREY, stroke_width=3)
-    drops2 = VGroup(*[Line([x, yIII + 0.95, 0], [x, yIII + 0.31, 0], color=GREY, stroke_width=3) for x in gx])
-    ped = VGroup(f, mo, m1, d1, sib, drops, *ks, p, m2, d2, sib2, drops2, *gk)
-    return ped
-
-def heading(text, color=TEXT):
-    return T(text, 34, color, font=TITLE_FONT).move_to([0, 3.15, 0])
+def retinal_cell(at, first_hit=True, second_hit=False, r=0.53):
+    c = tissue_cell(at, r)
+    if first_hit:
+        c.add(badge(GOLD, r * 0.15).move_to(c.get_center() + LEFT * r * 0.28))
+    bar_color = RED if second_hit else GREEN
+    bar = RoundedRectangle(width=r * 0.18, height=r * 0.8, corner_radius=0.04,
+                           stroke_width=0, fill_color=bar_color, fill_opacity=1)
+    bar.move_to(c.get_center() + RIGHT * r * 0.27)
+    c.add(bar)
+    c.bar = bar
+    return c
 
 
-def copy_key(y=-3.1):
-    return VGroup(chip("altered copy", RED, 24), chip("working copy", GREEN, 24)).arrange(RIGHT, buff=0.6).move_to([0, y, 0])
+RETINA_POS = [(-4.4, 1.35), (-2.9, 1.65), (-1.35, 1.5), (0.25, 1.55), (1.85, 1.3),
+              (-4.15, -0.25), (-2.55, 0.0), (-0.95, -0.15), (0.65, -0.05), (2.25, -0.35),
+              (-3.45, -1.75), (-1.75, -1.6), (-0.05, -1.65), (1.55, -1.75)]
 
 
-def lineage():
-    """Seven schematic body cells; bars represent DNA regions, not molecules."""
-    pts = [(-4.8, 0), (-1.8, 1.35), (-1.8, -1.35), (1.7, 2), (1.7, 0.65), (1.7, -0.65), (1.7, -2)]
-    nodes = VGroup(*[cell([x, y, 0], 0.95, RED, GREEN, ORANGE, 0.12) for x, y in pts])
-    links = VGroup(*[arr(nodes[a].get_right(), nodes[b].get_left(), GREY, 3)
-                     for a, b in [(0, 1), (0, 2), (1, 3), (1, 4), (2, 5), (2, 6)]])
-    return nodes, links
+def retina_world(second_index=None):
+    outline = Ellipse(width=9.0, height=5.4, stroke_color=GREY, stroke_width=4,
+                      fill_color=GREY, fill_opacity=0.22).move_to([-1.0, -0.1, 0])
+    cells = VGroup(*[retinal_cell([x, y, 0], True, i == second_index)
+                     for i, (x, y) in enumerate(RETINA_POS)])
+    g = VGroup(outline, cells)
+    g.outline, g.cells = outline, cells
+    return g
 
 
-def chromosome_pair(mode="normal"):
-    """Abstract chromosome bars with a labelled RB1 region; no molecular geometry."""
-    pair = VGroup()
-    for x, col in [(-0.45, RED), (0.45, GREEN)]:
-        stem = RoundedRectangle(width=0.24, height=2.2, corner_radius=0.08,
-                                stroke_color=GREY, fill_color=GREY, fill_opacity=0.3).move_to([x, 0, 0])
-        region = Rectangle(width=0.34, height=0.55, stroke_width=0, fill_color=col, fill_opacity=1).move_to([x, 0.35, 0])
-        pair.add(VGroup(stem, region))
-    if mode == "deletion":
-        pair[1][0].become(VGroup(
-            RoundedRectangle(width=0.24, height=1.17, corner_radius=0.04,
-                             stroke_color=GREY, fill_color=GREY, fill_opacity=0.3).move_to([0.45, -0.515, 0]),
-            RoundedRectangle(width=0.24, height=0.47, corner_radius=0.04,
-                             stroke_color=GREY, fill_color=GREY, fill_opacity=0.3).move_to([0.45, 0.865, 0])))
-        pair[1][1].set_opacity(0)
-        pair.add(DashedLine([0.45, 0.07, 0], [0.45, 0.63, 0], color=YELLOW, stroke_width=4))
-    elif mode == "loss":
-        pair[1].set_opacity(0)
-    elif mode == "recombination":
-        pair[1][1].set_fill(RED, 1)
-    return pair
+def route_panel_cells(inherited=True):
+    pts = [(-1.4, 0.7), (0.0, 0.7), (1.4, 0.7), (-0.7, -0.8), (0.7, -0.8)]
+    cells = VGroup(*[retinal_cell([x, y, 0], first_hit=inherited, r=0.42) for x, y in pts])
+    if not inherited:
+        for c in cells:
+            # Pale lineages begin with two working copies represented by the unmarked cell + green bar.
+            pass
+        cells[3].add(badge(CLAY, 0.07).move_to(cells[3].get_center() + LEFT * 0.13))
+        cells[3].bar.set_fill(RED, 1)
+    else:
+        cells[3].bar.set_fill(RED, 1)
+    return cells
 
 
-class S00Title(TitleCard):
-    LESSON = "Cancer as a genetic disease"
-    TITLE = "Cancer as a Genetic Disease"
-
+class S00Hook(SpokenScene):
     def construct(self):
-        title = T(self.TITLE, 46, font=TITLE_FONT).move_to([0, 2.3, 0])
-        brand = T("BIOCHEMISTRYPEDIA", 22, TEAL).move_to([0, 3.2, 0])
-        nodes = VGroup(cell([-3, -0.8, 0], 1.1, GREEN, GREEN),
-                       cell([0, -0.8, 0], 1.1, RED, GREEN),
-                       cell([3, -0.8, 0], 1.1, RED, GREEN))
-        links = VGroup(arr(nodes[0].get_right(), nodes[1].get_left()), arr(nodes[1].get_right(), nodes[2].get_left()))
-        label = T("acquired DNA change → daughter cells", 26, GREY).move_to([0, -2.4, 0])
-        self.play(FadeIn(brand), Write(title), run_time=0.8)
-        self.play(FadeIn(nodes[0]), run_time=0.3)
-        self.play(GrowArrow(links[0]), FadeIn(nodes[1]), run_time=0.5)
-        self.play(GrowArrow(links[1]), FadeIn(nodes[2]), FadeIn(label), run_time=0.5)
+        tissue = six_cell_tissue(False)
+        question = fit_text("If cancer is genetic, why is it usually not inherited?",
+                            max_w=11.2, size=36, color=GOLD).move_to([0, 3.25, 0])
+        for i, c in enumerate(tissue):
+            bob(c, amp=0.055, speed=1.2 + 0.08 * i, seed=i)
+        self.play(FadeIn(tissue), FadeIn(question), run_time=0.8)
+        self.at("Watch one pale tissue cell")
+        mark = badge().move_to(tissue[2].get_center() + RIGHT * 0.34)
+        self.play(FadeIn(mark, scale=0.4), run_time=0.7)
+        self.at("That cell divides")
+        tissue[2].clear_updaters()
+        a = family_cell([0.0, 1.35, 0], True, False, 0.62)
+        b = family_cell([1.55, 1.15, 0], True, False, 0.62)
+        self.play(FadeOut(mark), ReplacementTransform(tissue[2], a),
+                  TransformFromCopy(a, b), run_time=1.15)
+        self.at("change follows its daughters")
+        c = family_cell([0.1, 0.0, 0], True, False, 0.5)
+        d = family_cell([1.4, -0.05, 0], True, False, 0.5)
+        self.play(a.animate.scale(0.86), b.animate.scale(0.86),
+                  TransformFromCopy(a, c), TransformFromCopy(b, d), run_time=1.2)
+        for i, cell in enumerate((a, b, c, d)):
+            bob(cell, amp=0.045, speed=1.1 + i * 0.12, seed=i)
+        self.at("Nearby cells lack it")
+        self.play(Indicate(VGroup(tissue[0], tissue[1], tissue[3], tissue[4], tissue[5]),
+                           color=TEXT, scale_factor=1.03), run_time=0.8)
+        self.at("This is a somatic change")
+        label = boxed_label("somatic: acquired during life", CLAY, 30).move_to([3.25, -3.05, 0])
+        self.play(FadeOut(question), FadeIn(label), run_time=0.7)
+        self.at("not a change carried")
+        self.play(Indicate(VGroup(a, b, c, d), color=CLAY, scale_factor=1.04), run_time=0.8)
         self.finish()
 
 
-class S08Acquired(SpokenScene):
+class S01Title(TitleCard):
+    LESSON = "Cancer genetics"
+    TITLE = "One Cell, Two Routes"
+
+
+class S02Selection(SpokenScene):
     def construct(self):
-        c = cell([0, 0, 0], 2.6, GREEN, GREEN)
-        head = heading("Altered DNA in a body cell")
-        self.at("Cancer is a genetic disease")
-        self.play(FadeIn(head), FadeIn(c), run_time=0.6)
-        self.at("most changes")
-        note = T("most tumor changes are acquired", 28, GREY).move_to([0, -2.5, 0])
-        self.play(FadeIn(note), run_time=0.5)
-        self.at("They arise")
-        somatic = T("somatic: arises during life", 28, RED).move_to([0, -2.5, 0])
-        self.play(c.lb.animate.set_fill(RED, 1), ReplacementTransform(note, somatic), run_time=0.7)
-        self.at("Some changes switch on")
-        on = chip("growth drive: ON", RED, 28).move_to([-3.7, 0.3, 0])
-        self.play(c.animate.move_to([0, 0.3, 0]).scale(0.65), FadeIn(on), run_time=0.6)
-        self.at("Others switch off")
-        off = chip("restraint: OFF", RED, 28).move_to([3.7, 0.3, 0])
-        self.play(FadeIn(off), run_time=0.6)
-        self.at("cells divide more")
-        self.play(FadeOut(on), FadeOut(off), c.animate.move_to([0, 1.4, 0]), run_time=0.6)
-        self.at("their descendants expand")
-        daughters = VGroup(*[cell([x, -0.8, 0], 1.25, RED, GREEN) for x in (-3, 0, 3)])
-        arrows = VGroup(*[arr(c.get_bottom(), d.get_top()) for d in daughters])
-        inheritance = T("daughter cells receive the altered DNA", 28, RED).move_to([0, -2.6, 0])
-        self.play(FadeOut(somatic), *[GrowArrow(a) for a in arrows],
-                  *[TransformFromCopy(c, d) for d in daughters], FadeIn(inheritance), run_time=0.8)
+        tree = selection_tree(passenger=False)
+        bob(tree.root, amp=0.13, speed=1.4)
+        for i, c in enumerate(list(tree.level1) + list(tree.clay) + list(tree.pale)):
+            bob(c, amp=0.085, speed=1.05 + 0.08 * i, seed=i + 1)
+        self.play(FadeIn(tree.root), run_time=0.5)
+        self.at("driver lets cells divide")
+        self.play(Create(tree.links1), FadeIn(tree.level1), run_time=1.0)
+        driver = boxed_label("driver", CLAY, 30).next_to(tree.level1[0], UP, buff=0.18)
+        self.play(FadeIn(driver), run_time=0.45)
+        self.at("Its branch widens")
+        self.play(Create(tree.links2), FadeIn(tree.clay), FadeIn(tree.pale), run_time=1.4)
+        self.at("A passenger may ride")
+        p0 = Dot(tree.level1[0].get_center() + RIGHT * 0.15, radius=0.075, color=TEXT)
+        pd = VGroup(*[Dot(c.get_center() + RIGHT * 0.14, radius=0.065, color=TEXT) for c in tree.clay])
+        passenger = boxed_label("passenger", TEXT, 28).move_to([3.6, -2.65, 0])
+        self.play(FadeIn(p0), FadeIn(passenger), run_time=0.55)
+        self.at("did not cause the widening")
+        self.play(*[TransformFromCopy(p0, q) for q in pd], run_time=1.0)
+        self.at("Selection acts on cells")
+        self.play(FadeOut(driver), FadeOut(passenger), Indicate(tree.clay, color=CLAY,
+                                                               scale_factor=1.04), run_time=1.0)
+        self.at("marks spread with them")
+        self.play(Indicate(VGroup(tree.level1[0], tree.clay), color=CLAY,
+                           scale_factor=1.035), run_time=0.9)
         self.finish()
 
 
-class S09GeneClasses(SpokenScene):
+class S03Oncogene(SpokenScene):
     def construct(self):
-        left = cell([-3.4, 0.5, 0], 2.2, RED, GREEN)
-        right = cell([3.4, 0.5, 0], 2.2, RED, GREEN)
-        lh = T("oncogene", 32, RED).move_to([-3.4, 2.4, 0])
-        rh = T("tumor suppressor", 32, GREEN).move_to([3.4, 2.4, 0])
-        accelerator = arr([-4.5, -1.3, 0], [-2.3, -1.3, 0], RED)
-        state_l = T("accelerator stuck ON", 26, RED).move_to([-3.4, -2.1, 0])
-        self.at("An oncogene")
-        self.play(FadeIn(lh), FadeIn(left), GrowArrow(accelerator), FadeIn(state_l), run_time=0.7)
-        self.at("One altered copy")
-        enough = T("usually: one altered copy suffices", 24, RED).move_to(state_l)
-        self.play(Indicate(left.lb, color=RED), ReplacementTransform(state_l, enough), run_time=0.6)
-        self.at("A tumor suppressor")
-        brake = Line([2.3, -1.3, 0], [4.5, -1.3, 0], color=GREEN, stroke_width=10)
-        state_r = T("usually: one working holds", 26, GREEN).move_to([3.4, -2.1, 0])
-        self.play(FadeIn(rh), FadeIn(right), Create(brake), run_time=0.6)
-        self.at("One working copy")
-        self.play(FadeIn(state_r), Indicate(right.rb, color=GREEN), run_time=0.6)
-        self.at("both copies normally")
-        failed = T("normally: both lose function", 26, RED).move_to(state_r)
-        self.play(right.rb.animate.set_fill(RED, 1), FadeOut(brake), ReplacementTransform(state_r, failed), run_time=0.7)
-        self.at("These are useful rules")
-        qualifier = T("Usually — these rules have exceptions", 28, YELLOW).move_to([0, -3.15, 0])
-        self.play(FadeIn(qualifier), run_time=0.5)
+        cell = Circle(radius=2.85, color=GREY, stroke_width=4,
+                      fill_color=GREY, fill_opacity=0.24).move_to([-0.8, -0.1, 0])
+        bob(cell, amp=0.1, speed=1.35)
+        self.play(FadeIn(cell), run_time=0.5)
+        self.at("proto -duoncogene normally promotes growth")
+        copies = VGroup(boxed_label("gene copy", TEXT, 29, box=(2.25, 0.72)),
+                        boxed_label("gene copy", TEXT, 29, box=(2.25, 0.72))).arrange(DOWN, buff=0.72)
+        copies.move_to([-1.35, 0.0, 0])
+        bob(copies, amp=0.045, speed=1.15)
+        self.play(FadeIn(copies[0]), FadeIn(copies[1]), run_time=0.8)
+        self.at("gain of function change")
+        track = RoundedRectangle(width=3.4, height=0.72, corner_radius=0.34,
+                                 color=BLUE, stroke_width=4).move_to(copies[0])
+        knob = Circle(radius=0.28, color=BLUE, fill_color=BLUE, fill_opacity=1).move_to(track.get_left() + RIGHT * 0.42)
+        on = T("ON", 30, BLUE, weight=BOLD).next_to(track, RIGHT, buff=0.25)
+        self.play(Succession(FadeOut(copies[0], run_time=0.2),
+                             AnimationGroup(FadeIn(track), FadeIn(knob), run_time=0.35)))
+        self.at("one switch locked on")
+        self.play(knob.animate.move_to(track.get_right() + LEFT * 0.42), FadeIn(on), run_time=0.8)
+        arrow = Arrow([2.1, -0.1, 0], [5.45, -0.1, 0], buff=0.0, color=BLUE,
+                      stroke_width=10, tip_length=0.35)
+        pulse(arrow, base=8, amp=2, speed=2.2)
+        divide = T("division", 31, BLUE).next_to(arrow, UP, buff=0.24)
+        self.at("One altered allele")
+        self.play(FadeIn(arrow), FadeIn(divide), run_time=0.65)
+        self.at("Extra gene copies")
+        extras = VGroup(*[boxed_label("copy", BLUE, 25, box=(1.15, 0.55)) for _ in range(3)]).arrange(RIGHT, buff=0.2)
+        extras.move_to([-1.2, -0.72, 0])
+        self.play(Succession(FadeOut(copies[1], run_time=0.25),
+                             FadeIn(extras, run_time=0.45)))
+        self.at("translocation can also activate")
+        rearranged = extras.copy().arrange(RIGHT, buff=0.45).rotate(0.08).move_to([-1.2, -0.72, 0])
+        self.play(Transform(extras, rearranged), run_time=0.7)
+        self.add(scope_tag("schematic"))
         self.finish()
 
 
-class S10Selection(SpokenScene):
+class S04Predict(SpokenScene):
     def construct(self):
-        nodes, links = lineage()
-        VGroup(nodes, links).shift(RIGHT * 1.55)
-        head = heading("Usually a clone: one cell's descendants")
-        self.at("A tumor is usually")
-        self.play(FadeIn(head), FadeIn(nodes[0]), run_time=0.5)
-        self.at("the descendants")
-        self.play(Create(links), FadeIn(nodes[1:]), run_time=0.8)
-        self.at("More changes accumulate")
-        self.play(nodes[1].rb.animate.set_fill(RED, 1), run_time=0.5)
-        self.at("A driver gives")
-        driver = T("driver: selective advantage", 26, RED).move_to([0, -2.9, 0])
-        driver_marks = VGroup(*[Dot(nodes[i].get_center() + UP * 0.44, radius=0.13, color=RED)
-                               for i in (1, 3, 4)])
-        for i in (3, 4):
-            nodes[i].rb.set_fill(RED, 1)
-        self.play(FadeIn(driver), FadeIn(driver_marks),
-                  *[nodes[i].animate.scale(1.12) for i in (3, 4)], run_time=0.7)
-        self.at("A passenger gives")
-        passenger = T("passenger: no advantage; carried along", 26, GREY).move_to(driver)
-        marks = VGroup(*[Dot(nodes[i].get_center() + DOWN * 0.29, radius=0.07, color=GREY) for i in (1, 3, 4)])
-        self.play(ReplacementTransform(driver, passenger), FadeIn(marks), run_time=0.6)
-        self.at("clone expands")
-        self.play(Indicate(driver_marks, color=RED, scale_factor=1.12), run_time=0.6)
-        self.at("Mutation supplies variants")
-        variant = T("different sublines", 28, TEXT).move_to(passenger)
-        resistant = T("resistant subline", 24, BLUE).next_to(nodes[6], RIGHT, buff=0.25)
-        self.play(ReplacementTransform(passenger, variant), nodes[6].box.animate.set_stroke(BLUE),
-                  FadeIn(resistant), run_time=0.6)
-        self.at("Selection favors")
-        favored = T("divide more or die less", 28, ORANGE).move_to(variant)
-        self.play(ReplacementTransform(variant, favored), Indicate(nodes[3:5], color=ORANGE), run_time=0.6)
-        self.at("A resistant subline")
-        self.play(Indicate(nodes[6], color=BLUE), run_time=0.5)
-        self.at("survive treatment")
-        treatment = heading("Treatment selects a surviving subline", BLUE)
-        self.play(ReplacementTransform(head, treatment), FadeOut(marks), FadeOut(driver_marks),
-                  *[FadeOut(nodes[i]) for i in range(6)], FadeOut(links), run_time=0.7)
-        self.at("and expand")
-        survivors = VGroup(*[cell([x, y, 0], 0.95, RED, GREEN, BLUE, 0.2)
-                              for x, y in [(1.6, -0.2), (3.25, 0.5), (4.9, -0.2)]])
-        expansion_links = VGroup(*[arr(nodes[6].get_top(), c.get_bottom(), BLUE, 3) for c in survivors])
-        self.play(*[TransformFromCopy(nodes[6], c) for c in survivors],
-                  *[GrowArrow(a) for a in expansion_links], FadeOut(resistant),
-                  FadeOut(favored), run_time=0.7)
-        self.at("so treatment can fail")
-        self.play(FadeIn(T("the resistant subline expands", 28, BLUE).move_to([0, -3, 0])), run_time=0.5)
+        world = brake_world()
+        self.play(FadeIn(world.cell), FadeIn(world.wheel), run_time=0.55)
+        self.at("two tumor suppressor copies")
+        green2 = world.working.copy().move_to([-1.25, -0.15, 0])
+        self.play(FadeIn(green2), FadeIn(world.working), run_time=0.6)
+        self.at("One turns red")
+        self.play(Transform(green2, world.lost), FadeIn(world.crack), run_time=0.8)
+        self.at("other remains green")
+        self.play(Indicate(world.working, color=GREEN, scale_factor=1.04), run_time=0.55)
+        self.at("Predict")
+        q = question_card(PREDICT_QUESTION, y=3.3, size=31, max_w=11.0)
+        self.play(FadeIn(q), run_time=0.65)
+        self.at("working copy still hold it")
+        world.wheel.spin_speed = 0.12
+        self.play(world.wheel.animate.shift(LEFT * 0.16), rate_func=there_and_back, run_time=1.0)
         self.finish()
 
 
-class S01Puzzle(SpokenScene):
+class S05Pause(PredictPause):
+    QUESTION = PREDICT_QUESTION
+    SECONDS = 4.5
+    CARD = {"y": 3.3, "size": 31, "max_w": 11.0}
+
+    def backdrop(self):
+        return brake_world()
+
+
+class S06Suppressor(SpokenScene):
     def construct(self):
-        big = cell([0, 0.2, 0], 2.6)
-        head = heading("RB1: inherited risk")
-        self.at("shows how inherited risk")
-        self.play(FadeIn(head), FadeIn(big), run_time=0.6)
-        self.at("A child inherits")
-        cells = VGroup(*grid_cells(rows=2, cols=3, pitch=2.2, cy=0.15, s=1.4))
-        self.play(ReplacementTransform(big, cells), FadeIn(copy_key()), run_time=0.8)
-        self.at("only a few retinal cells")
-        candidate = SurroundingRectangle(cells[1], color=YELLOW, buff=0.12)
-        question = T("a few retinal cells: later second hit?", 28, YELLOW).move_to([0, -2.1, 0])
-        self.play(Create(candidate), FadeIn(question), run_time=0.6)
-        self.at("One working copy")
-        brake = heading("RB1: one working copy usually provides the brake", GREEN)
-        self.play(ReplacementTransform(head, brake), Indicate(cells[1].rb, color=GREEN), run_time=0.7)
+        world = brake_world()
+        self.add(world)
+        holds = boxed_label("one working copy holds", GREEN, 29).move_to([-3.9, 3.15, 0])
+        usually = boxed_label("usually", GOLD, 25).move_to([-5.25, 1.95, 0])
+        self.play(FadeIn(holds), FadeIn(usually), run_time=0.65)
+        self.at("A second loss")
+        crack2 = VGroup(Line([0.43, 0.28, 0], [0.84, -0.02, 0], color=BG, stroke_width=6),
+                        Line([0.84, -0.02, 0], [0.46, -0.38, 0], color=BG, stroke_width=6))
+        self.play(world.working.animate.set_fill(RED, 1).set_stroke(RED), FadeIn(crack2),
+                  FadeOut(holds), run_time=0.8)
+        self.at("growth or survival advantage")
+        world.wheel.spin_speed = 0.85
+        self.play(world.wheel.animate.shift(RIGHT * 0.65), run_time=1.0)
+        self.at("branch may expand")
+        tree = selection_tree(passenger=False).scale(0.7).move_to([0.4, -0.05, 0])
+        for i, c in enumerate(list(tree.level1) + list(tree.clay) + list(tree.pale)):
+            bob(c, amp=0.05, speed=1.0 + i * 0.1, seed=i)
+        bob(tree.root, amp=0.12, speed=1.3)
+        pulse(tree.links1, base=5, amp=2.5, speed=1.5)
+        pulse(tree.links2, base=6, amp=3, speed=1.35)
+        self.play(FadeOut(VGroup(world.cell, world.lost, world.crack, world.working, crack2)),
+                  ReplacementTransform(world.wheel, tree), run_time=1.1)
+        caution = boxed_label("can expand, not must", CLAY, 29).move_to([4.1, -2.55, 0])
+        self.play(FadeIn(caution), run_time=0.5)
+        self.at("does not by itself guarantee")
+        self.play(Indicate(caution, color=GOLD, scale_factor=1.03), run_time=0.7)
+        self.at("usually recessive within one cell")
+        rule = caption("usually: both copies lose function", 30, RED)
+        self.play(FadeOut(caution), FadeIn(rule), run_time=0.65)
+        self.at("exceptions to these rules")
+        self.play(Indicate(usually, color=GOLD, scale_factor=1.08), run_time=0.65)
+        self.add(scope_tag("schematic"))
         self.finish()
 
 
-class S02Second(SpokenScene):
+class S07Inherited(SpokenScene):
     def construct(self):
-        cells = VGroup(*grid_cells(rows=2, cols=3, pitch=2.2, cy=0.15, s=1.4))
-        head = heading("RB1: inherited first hit")
-        self.add(cells, head, copy_key())
-        self.at("The inherited change")
-        self.play(Indicate(cells[1].lb, color=RED), run_time=0.5)
-        self.at("A rare second hit")
-        dot = hit_dot().move_to(cells[1].rb.get_center() + UP * 0.9)
-        self.play(FadeIn(dot), run_time=0.2)
-        self.play(dot.animate.move_to(cells[1].rb), run_time=0.4)
-        self.at("removes the working")
-        self.play(*tumorize(cells[1]), FadeOut(dot), run_time=0.6)
-        self.at("Often this is")
-        pair = chromosome_pair().move_to([0, 0.2, 0])
-        loh = heading("RB1: loss of heterozygosity")
-        self.play(*[FadeOut(m) for m in list(self.mobjects) if m is not head],
-                  ReplacementTransform(head, loh), FadeIn(pair), run_time=0.7)
-        self.at("keeps only the mutant")
-        label = T("working allele lost; mutant allele retained", 28, RED).move_to([0, -2.7, 0])
-        self.play(Transform(pair, chromosome_pair("loss").move_to(pair)), FadeIn(label), run_time=0.5)
-        # Each route begins from the original heterozygote: they are alternatives.
-        self.at("Deletion")
-        deletion = chromosome_pair("deletion").move_to([-4.2, 0.1, 0])
-        dl = T("deletion", 26, YELLOW).move_to([-4.2, -1.6, 0])
-        deletion_start = chromosome_pair().move_to([-4.2, 0.1, 0])
-        routes = T("alternative second-hit routes", 26, GREY).move_to([0, 2.2, 0])
-        self.play(ReplacementTransform(pair, deletion_start), FadeIn(dl), FadeIn(routes), FadeOut(label), run_time=0.2)
-        self.play(Transform(deletion_start, deletion), run_time=0.3)
-        self.at("chromosome loss")
-        loss = chromosome_pair("loss").move_to([0, 0.1, 0])
-        ll = T("chromosome loss", 26, YELLOW).move_to([0, -1.6, 0])
-        before_loss = chromosome_pair().move_to(loss)
-        self.play(FadeIn(before_loss), FadeIn(ll), run_time=0.2)
-        self.play(Transform(before_loss, loss), run_time=0.4)
-        self.at("mitotic recombination")
-        recomb = chromosome_pair().move_to([4.2, 0.1, 0])
-        rl = T("mitotic recombination", 24, YELLOW).move_to([4.2, -1.6, 0])
-        self.play(FadeIn(recomb), FadeIn(rl), run_time=0.3)
-        self.play(Transform(recomb, chromosome_pair("recombination").move_to(recomb)), run_time=0.5)
-        note = T("two mutant regions\nboth chromosomes retained", 22, RED).move_to([4.2, -2.5, 0])
-        self.at("can supply that")
-        self.play(FadeIn(note), run_time=0.4)
+        head = Circle(radius=0.6, color=GREY, stroke_width=4).move_to([0, 2.25, 0])
+        body = RoundedRectangle(width=2.5, height=3.8, corner_radius=1.1,
+                                color=GREY, stroke_width=4).move_to([0, -0.45, 0])
+        body_cells = VGroup(*[retinal_cell([x, y, 0], True, r=0.32)
+                              for x, y in [(-0.55, 0.55), (0.55, 0.55), (-0.55, -0.55),
+                                           (0.55, -0.55), (0, -1.45)]])
+        person = VGroup(head, body, body_cells)
+        for i, c in enumerate(body_cells):
+            bob(c, amp=0.04, speed=1.0 + i * 0.1, seed=i)
+        bob(person, amp=0.11, speed=1.35)
+        self.play(FadeIn(person), run_time=0.75)
+        self.at("Gold first -hit badges")
+        self.play(Indicate(body_cells, color=GOLD, scale_factor=1.04), run_time=0.7)
+        self.at("including every retinal cell")
+        retina = retina_world()
+        label = T("retina", 34, TEXT).move_to([4.55, 2.35, 0])
+        self.play(ReplacementTransform(person, retina), FadeIn(label), run_time=1.0)
+        for i, c in enumerate(retina.cells):
+            bob(c, amp=0.025, speed=1.0 + 0.03 * i, seed=i)
+        self.at("raises risk")
+        risk = boxed_label("risk rises", GOLD, 29).move_to([4.45, 0.6, 0])
+        self.play(FadeIn(risk), run_time=0.55)
+        self.at("does not make every cell")
+        no_tumor = boxed_label("not a tumor", TEXT, 27).move_to([4.55, -3.15, 0])
+        self.play(FadeIn(no_tumor), run_time=0.55)
+        self.at("one working copy")
+        self.play(Indicate(VGroup(*[c.bar for c in retina.cells]), color=GREEN,
+                           scale_factor=1.04), run_time=0.9)
+        self.at("pass to the next generation")
+        arrow = Arrow([3.55, -1.65, 0], [5.55, -1.65, 0], color=GOLD,
+                      stroke_width=6, tip_length=0.3)
+        self.play(FadeOut(risk), FadeOut(no_tumor), GrowArrow(arrow), run_time=0.7)
+        self.add(scope_tag("schematic"))
         self.finish()
 
 
-class S05Sporadic(SpokenScene):
+class S08SecondHit(SpokenScene):
     def construct(self):
-        self.add(heading("RB1: two pathways to loss of the brake"))
-        inherited = VGroup(cell([-1.8, 1.4, 0], 1.1), cell([2.2, 1.4, 0], 1.1, RED, RED, ORANGE, 0.3))
-        ia = arr(inherited[0].get_right(), inherited[1].get_left(), YELLOW)
-        il = T("inherited first hit", 24, RED).move_to([-4.4, 1.4, 0])
-        self.add(inherited, ia, il)
-        normal = cell([-1.8, -0.7, 0], 1.1, GREEN, GREEN)
-        nl = T("nonhereditary", 24, GREY).move_to([-4.4, -0.7, 0])
-        self.at("Without a germline")
-        self.play(FadeIn(normal), FadeIn(nl), run_time=0.5)
+        retina = retina_world()
+        for i, c in enumerate(retina.cells):
+            bob(c, amp=0.03, speed=1.0 + i * 0.04, seed=i)
+        bob(retina, amp=0.09, speed=1.25)
+        self.add(retina, T("retina", 34, TEXT).move_to([4.55, 2.35, 0]))
+        target = retina.cells[7]
+        self.at("removes the working copy")
+        self.play(target.bar.animate.set_fill(RED, 1), run_time=0.65)
+        self.at("Only that cell's descendants expand")
+        cluster = VGroup(*[retinal_cell([x, y, 0], True, True, r=0.34)
+                           for x, y in [(-1.35, -0.45), (-0.75, -0.55), (-1.15, -1.05), (-0.55, -1.08)]])
+        self.play(*[TransformFromCopy(target, c) for c in cluster], run_time=1.1)
+        self.at("Without an inherited first hit")
+        panels = TwoPanel("inherited first hit", "two somatic hits", colors=(GOLD, CLAY),
+                          top=3.0, bottom=-2.55, size=30)
+        left, right = route_panel_cells(True), route_panel_cells(False)
+        panels.put(left, "left"), panels.put(right, "right")
+        bob(left, amp=0.045, speed=1.05, seed=2)
+        bob(right, amp=0.045, speed=1.15, seed=4)
+        old_labels = VGroup(*[m for m in self.mobjects if isinstance(m, Text)])
+        self.play(FadeOut(VGroup(retina, cluster, old_labels)), run_time=0.3)
+        self.play(FadeIn(panels), FadeIn(left), FadeIn(right), run_time=0.7)
         self.at("both hits must arise")
-        middle = cell([0.2, -0.7, 0], 1.1)
-        end = cell([2.2, -0.7, 0], 1.1, RED, RED, ORANGE, 0.3)
-        aa = arr(normal.get_right(), middle.get_left(), YELLOW)
-        ab = arr(middle.get_right(), end.get_left(), YELLOW)
-        self.play(GrowArrow(aa), TransformFromCopy(normal, middle), run_time=0.5)
-        self.play(GrowArrow(ab), TransformFromCopy(middle, end), run_time=0.5)
-        self.at("same body cell")
-        self.play(Indicate(VGroup(normal, middle, end), color=YELLOW), run_time=0.6)
-        self.at("These tumors tend")
-        self.play(*[FadeOut(m) for m in list(self.mobjects)], run_time=0.3)
-        ee = eyes([0, 1.1, 0], True, False, 2)
-        label = T("tend to be single and one-sided", 32, ORANGE).move_to([0, -0.5, 0])
-        self.play(FadeIn(ee), FadeIn(label), run_time=0.5)
-        self.at("diagnosed later")
-        timeline = arr([-4.5, -2, 0], [4.5, -2, 0])
-        later = T("later diagnosis", 28, GREY).move_to([3, -2.7, 0])
-        self.play(GrowArrow(timeline), FadeIn(later), run_time=0.6)
-        self.finish()
-
-
-class S06Rule(SpokenScene):
-    def construct(self):
-        ped = pedigree()
-        # Retain the old pedigree geometry; use muted red fills to mean inherited
-        # allele/risk, rather than imply every carrier has a tumor.
-        for shape in ped.family_members_with_points():
-            if isinstance(shape, (Square, Circle)) and shape.get_fill_opacity() > 0:
-                shape.set_fill(RED, 0.4).set_stroke(RED)
-        c = cell([3.6, 0.7, 0], 2.6)
-        self.add(heading("RB1: family risk and cell function"))
-        pl = T("family: inherited risk", 28, RED).move_to([-3.4, -2.4, 0])
-        dom = T("dominant", 28, RED).move_to([-3.4, -3.1, 0])
-        self.at("the inherited allele")
-        self.play(FadeIn(ped), FadeIn(pl), run_time=0.6)
+        self.play(Indicate(right[3], color=CLAY, scale_factor=1.08), run_time=0.8)
         self.at("dominant in a family")
-        self.play(FadeIn(dom), run_time=0.5)
-        cl = T("cell: recessive", 28, GREEN).move_to([3.6, -1.2, 0])
-        self.at("recessive in the cell")
-        self.play(FadeIn(c), FadeIn(cl), run_time=0.6)
-        self.at("A pedigree tracks risk")
-        self.play(Indicate(ped, color=RED, scale_factor=1.03), run_time=0.6)
-        self.at("A cell needs")
-        disabled = T("both RB1 copies disabled", 26, RED).move_to([3.6, -2.4, 0])
-        self.play(c.rb.animate.set_fill(RED, 1), FadeIn(disabled), run_time=0.7)
+        fam = boxed_label("family: risk looks dominant", GOLD, 26).move_to([-3.2, -3.3, 0])
+        self.play(FadeIn(fam), run_time=0.55)
+        self.at("recessive within a cell")
+        cellrule = boxed_label("cell: two losses", RED, 27).move_to([3.25, -2.95, 0])
+        self.play(FadeIn(cellrule), run_time=0.55)
         self.finish()
 
 
-class S11Instability(SpokenScene):
+class S09Rule(SpokenScene):
     def construct(self):
-        head = heading("Genome instability adds variation")
-        self.at("Genome instability")
-        self.play(FadeIn(head), run_time=0.5)
-        repair = chip("faulty DNA repair", RED, 28).move_to([-3.6, 1.9, 0])
-        seq = VGroup(*[chip(letter, GREY, 26) for letter in "ACGT"]).arrange(RIGHT, buff=0.16).move_to([-3.6, 0.5, 0])
-        self.at("Faulty")
-        self.play(FadeIn(repair), FadeIn(seq), run_time=0.6)
-        self.at("can increase mutations")
-        self.play(Transform(seq[1], chip("T", RED, 26).move_to(seq[1])),
-                  Transform(seq[3], chip("A", RED, 26).move_to(seq[3])), run_time=0.7)
-        segregation = chip("faulty segregation", RED, 28).move_to([3.6, 1.9, 0])
-        # Bars are whole chromosome counts, not molecular structures.
-        def count_bars(n, x):
-            return VGroup(*[RoundedRectangle(width=0.18, height=1.1, corner_radius=0.06,
-                         stroke_color=GREY, fill_color=GREY, fill_opacity=0.7)
-                         for _ in range(n)]).arrange(RIGHT, buff=0.22).move_to([x, 0.3, 0])
-        source = count_bars(4, 3.6)
-        self.at("Faulty chromosome segregation")
-        self.play(FadeIn(segregation), FadeIn(source), run_time=0.6)
-        self.at("produces chromosome gains")
-        gains, losses = count_bars(3, 2.4), count_bars(1, 4.8)
-        labels = VGroup(T("gain", 24, YELLOW).move_to([2.4, -0.7, 0]), T("loss", 24, YELLOW).move_to([4.8, -0.7, 0]))
-        self.play(ReplacementTransform(source, VGroup(gains, losses)), FadeIn(labels), run_time=0.8)
-        self.at("That variation supplies")
-        root = cell([0, -1.3, 0], 0.8, RED, GREEN, ORANGE, 0.2)
-        branches = VGroup(*[cell([x, -2.7, 0], 0.8, RED, RED if x > 0 else GREEN, ORANGE, 0.2) for x in (-2, 2)])
-        inputs = VGroup(arr([-3.6, -0.2, 0], root.get_left()), arr([3.6, -1, 0], root.get_right()))
-        outputs = VGroup(*[arr(root.get_bottom(), b.get_top()) for b in branches])
-        self.play(Create(inputs), FadeIn(root), Create(outputs), FadeIn(branches), run_time=0.7)
-        self.at("material for selection")
-        self.play(Indicate(branches, color=YELLOW), run_time=0.6)
+        tree = selection_tree(passenger=True).shift(RIGHT * 1.0)
+        bob(tree.root, amp=0.13, speed=1.35)
+        pulse(tree.links1, base=5, amp=2.5, speed=1.45)
+        pulse(tree.links2, base=6, amp=3, speed=1.3)
+        accelerator = boxed_label("accelerator ON", BLUE, 29).move_to([-4.7, 2.35, 0])
+        brake = boxed_label("brake lost", RED, 29).move_to([-4.7, -2.35, 0])
+        bob(accelerator, amp=0.12, speed=1.35, seed=1)
+        bob(brake, amp=0.12, speed=1.45, seed=4)
+        a1 = Arrow(accelerator.get_right() + RIGHT * 0.24, tree.root.get_left() + UP * 0.12, buff=0.1,
+                   color=BLUE, stroke_width=6, tip_length=0.25)
+        a2 = Arrow(brake.get_right() + RIGHT * 0.24, tree.root.get_left() + DOWN * 0.12, buff=0.1,
+                   color=RED, stroke_width=6, tip_length=0.25)
+        self.play(FadeIn(accelerator), FadeIn(brake), run_time=0.6)
+        self.at("altered DNA passes")
+        self.play(GrowArrow(a1), GrowArrow(a2), FadeIn(tree.root), run_time=0.8)
+        self.at("most relevant changes arise somatically")
+        self.play(Indicate(tree.root, color=CLAY, scale_factor=1.06), run_time=0.7)
+        self.at("accelerator or remove a brake")
+        self.play(Indicate(VGroup(accelerator, brake), color=GOLD, scale_factor=1.03), run_time=0.8)
+        self.at("Cell lineages expand")
+        self.play(Create(tree.links1), FadeIn(tree.level1), run_time=0.8)
+        self.at("improved growth or survival")
+        self.play(Create(tree.links2), FadeIn(tree.clay), FadeIn(tree.pale), run_time=1.15)
+        advantage = boxed_label("growth or survival advantage", CLAY, 30).move_to([0.1, -3.35, 0])
+        self.play(FadeOut(accelerator), FadeOut(brake), FadeOut(a1), FadeOut(a2),
+                  FadeIn(advantage), run_time=0.7)
+        self.at("driver or passenger")
+        passenger = Dot(tree.level1[0].get_center() + RIGHT * 0.15, radius=0.075, color=TEXT)
+        self.play(FadeIn(passenger), run_time=0.45)
+        self.at("spreads with it")
+        pd = VGroup(*[Dot(c.get_center() + RIGHT * 0.14, radius=0.06, color=TEXT) for c in tree.clay])
+        self.play(*[TransformFromCopy(passenger, q) for q in pd],
+                  Indicate(tree.clay, color=CLAY, scale_factor=1.03), run_time=1.1)
+        for i, c in enumerate(tree.clay):
+            bob(c, amp=0.1, speed=1.2 + i * 0.1, seed=i)
         self.finish()
 
 
-class S12Sequencing(SpokenScene):
-    def construct(self):
-        head = heading("Compare tumor and matched normal")
-        normal = chip("matched normal", GREY, 30).move_to([-3.5, 2, 0])
-        tumor = chip("tumor sample", ORANGE, 30).move_to([3.5, 2, 0])
-        self.at("Sequencing a tumor")
-        samples = VGroup(cell([-3.5, 0, 0], 1.8, GREEN, GREEN),
-                         cell([3.5, 0, 0], 1.8, RED, GREEN, ORANGE, 0.2))
-        self.play(FadeIn(head), FadeIn(normal), FadeIn(tumor), FadeIn(samples), run_time=0.7)
-        shared = VGroup(chip("variant A", RED, 26).move_to([-3.5, 0.6, 0]),
-                        chip("variant A", RED, 26).move_to([3.5, 0.6, 0]))
-        germ = T("shared → usually germline", 28, TEXT).move_to([0, -0.35, 0])
-        self.at("Variants in both")
-        self.play(FadeOut(samples), FadeIn(shared), FadeIn(germ), run_time=0.7)
-        som = T("tumor only → usually somatic", 28, TEXT).move_to([0, -2.5, 0])
-        only = chip("variant B", RED, 26).move_to([3.5, -1.4, 0])
-        self.at("Variants only in the tumor")
-        self.play(FadeIn(only), FadeIn(som), run_time=0.6)
-        self.at("The tumor sample also")
-        self.play(FadeOut(shared), FadeOut(germ), FadeOut(only), FadeOut(som), FadeOut(normal),
-                  tumor.animate.move_to([0, 2, 0]), run_time=0.5)
-        mixed = VGroup(cell([-2.7, 0, 0], 1.15, RED, GREEN, ORANGE, 0.3),
-                       cell([-0.9, 0, 0], 1.15, RED, GREEN, ORANGE, 0.3),
-                       cell([0.9, 0, 0], 1.15, GREEN, GREEN), cell([2.7, 0, 0], 1.15, GREEN, GREEN))
-        mixlabels = VGroup(T("tumor cells", 24, ORANGE).move_to([-1.8, -1, 0]),
-                           T("normal cells", 24, GREY).move_to([1.8, -1, 0]))
-        self.at("contains normal cells")
-        self.play(FadeIn(mixed), FadeIn(mixlabels), run_time=0.6)
-        purity = T("purity = fraction of tumor cells", 30, ORANGE).move_to([0, -2.1, 0])
-        effect = T("purity matters for variant fractions", 26, GREY).move_to([0, -3, 0])
-        self.at("its purity matters")
-        self.play(FadeIn(purity), FadeIn(effect), run_time=0.6)
-        # Hold the purity definition through the last spoken sentence, then
-        # return to the acquired-change lineage to connect to the end card.
-        self.at("variant fractions")
-        self.wait(0.5)
-        nodes, links = lineage()
-        self.play(*[FadeOut(m) for m in list(self.mobjects)], FadeIn(nodes), Create(links), run_time=0.7)
-        self.finish()
-
-
-class S07End(EndCard):
-    LINE = "Cancer grows from acquired DNA changes selected in a clone."
-
-    def construct(self):
-        nodes, links = lineage()
-        VGroup(nodes, links).shift(DOWN * 0.3)
-        self.add(nodes, links)
-        first, second = self.LINE.split(" selected", 1)
-        line = VGroup(T(first, 34, font=TITLE_FONT), T("selected" + second, 34, font=TITLE_FONT))
-        line.arrange(DOWN, buff=0.15).move_to([0, 3.15, 0])
-        sub = T("biochemistrypedia.com", 22, TEAL).move_to([0, -3.1, 0])
-        self.play(FadeIn(line), FadeIn(sub), run_time=0.6)
-        self.finish()
+class S10End(EndCard):
+    LINE = "Cell lineages expand when their DNA changes improve growth or survival."

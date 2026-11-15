@@ -4,12 +4,12 @@ slug: "cancer-genetics"
 course: "genetics"
 courseChapter: "Genetics and Molecular Biology · Unit 4: From gene to protein, and its control"
 order: 321
-summary: "Cancer arises when cells acquire DNA changes that give a lineage a growth advantage, and most of those changes arise in body cells during life; they are not inherited. This lesson separates the two kinds of cancer gene, uses retinoblastoma and Knudson's two-hit idea to show how an inherited change and an acquired one combine, shows how loss of heterozygosity supplies the second hit, and follows mutation and selection inside a growing tumor. Afterwards you can read variant allele fractions from tumor and matched-normal sequencing and say which changes are inherited, clonal or subclonal."
-hook: "Cancer is a genetic disease, yet most of the DNA changes in a tumor were never inherited. How do changes acquired in body cells during life add up to a growing tumor?"
+summary: "Cell lineages expand when their DNA changes improve growth or survival. Every change a lineage carries, driver or passenger, spreads with it. Most cancer-associated changes arise in body cells during life rather than being inherited; oncogene activation and tumor-suppressor loss can give a lineage an advantage, loss of heterozygosity can supply a second hit, and mutation plus selection can build a branching tumor. Tumor and matched-normal sequencing then help place variants as germline, somatic, clonal or subclonal."
+hook: "If cancer is a genetic disease, why are most of the DNA changes in a tumor not inherited?"
 
 estMinutes: 24
 objectives:
-  - "Explain why cancer is a genetic disease but usually not an inherited one: acquired changes accumulate, and drivers that give a cell a selective advantage are sorted from passengers that do not."
+  - "Explain why cancer is a genetic disease but usually not an inherited one: acquired changes accumulate, drivers give a cell lineage a selective advantage, and passengers ride along without one."
   - "Distinguish oncogenes (gain of function, one altered allele usually enough in the cell) from tumor-suppressor genes (loss of function, usually both alleles lost), with RAS, MYC, RB1 and TP53 as examples."
   - "Explain why an inherited tumor-suppressor allele is dominant in a pedigree but recessive in the cell, using Knudson's two-hit hypothesis for retinoblastoma."
   - "Describe how loss of heterozygosity, by deletion, chromosome loss or mitotic recombination, often supplies the second hit."
@@ -19,10 +19,30 @@ explainer:
   src: "/explainers/cancer-genetics/explainer.mp4"
   captions: "/explainers/cancer-genetics/explainer.vtt"
   poster: "/explainers/cancer-genetics/poster.jpg"
-  title: "Cancer as a Genetic Disease"
-  durationSec: 159.8
-  narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+  title: "One Cell, Two Routes"
+  durationSec: 208.8
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+  takeaways:
+    - "Cell lineages expand when their DNA changes improve growth or survival. Every change a lineage carries, driver or passenger, spreads with it."
+    - "Most cancer-associated changes arise in body cells during life, not through inheritance."
+    - "Oncogenes usually gain function, while tumor suppressors usually lose function."
+    - "An inherited RB1 change raises risk, but a retinal cell still needs a second hit."
+
+films:
+  - id: "chapter-2"
+    src: "/explainers/cancer-genetics/chapter-2.mp4"
+    captions: "/explainers/cancer-genetics/chapter-2.vtt"
+    poster: "/explainers/cancer-genetics/chapter-2-poster.jpg"
+    title: "Reading a Tumor Family Tree"
+    durationSec: 201.2
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+    takeaways:
+      - "Variant fractions trace DNA changes through expanding tumor cell lineages."
+      - "A matched normal helps separate variants that are usually germline from somatic variants."
+      - "A clonal variant is in every tumor cell; a subclonal variant is in only one branch."
+      - "Purity and copy number shape the variant fraction measured in a tumor sample."
 
 scientists:
   - name: "Alfred Knudson"
@@ -189,7 +209,7 @@ practiceQuestions:
       - "A driver always inactivates a tumor-suppressor gene; a passenger always activates an oncogene"
       - "A driver is found in every tumor of a given type; a passenger is found in only one"
     answer: 0
-    rationale: "Drivers are the changes that let a clone divide more or die less, so selection acts on them. Passengers ride along in the clone without helping it. Both kinds are usually somatic, so inheritance does not separate them. Drivers include both oncogene activation and tumor-suppressor loss, so neither class belongs to only one kind of gene. The number of drivers per tumor depends on how drivers are called, and the lesson does not say a given driver appears in every tumor of a type."
+    rationale: "Drivers are the changes that let a clone divide more or die less, so selection favors the clones that carry them. Passengers ride along in the clone without helping it. Both kinds are usually somatic, so inheritance does not separate them. Drivers include both oncogene activation and tumor-suppressor loss, so neither class belongs to only one kind of gene. The number of drivers per tumor depends on how drivers are called, and the lesson does not say a given driver appears in every tumor of a type."
   - stem: "A tumor cell becomes homozygous for the mutant RB1 allele and still has two copies of chromosome 13. Which event could do this?"
     choices:
       - "Mitotic recombination between the two homologs"
@@ -356,66 +376,127 @@ draft: false
 
 import TwoHitTimeline from '../../../components/TwoHitTimeline.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import Support from '../../../components/Support.astro';
+import LessonFilm from '../../../components/LessonFilm.astro';
 
-**Cancer is a genetic disease: tumor cells carry altered DNA that they pass to their daughter cells. That does not make it inherited. Most changes in a tumor are *somatic*: they arise in body cells during life and are not passed to children.**
+The first film followed one somatic change through a dividing lineage. A **somatic** change arises in a body cell during life and passes to its daughters, but usually not to the person's children. A **germline** change comes through the egg or sperm, is usually in every cell, and can be inherited. A **driver** gives its cell a selective advantage. A **passenger** gives none.
 
-A tumor grows because some of those changes give a cell a selective advantage. They switch on genes that drive growth, called oncogenes, or switch off genes that restrain it, called tumor suppressors. Cells with such changes divide more or die less, their descendants expand, and more changes accumulate.
-
-Retinoblastoma shows how an inherited change and an acquired one combine. Every cell in a child who inherits one broken copy of the gene *RB1* carries that broken copy. Yet most such children develop only a few tumors, mostly in the retina of the eye, and often in both eyes. If the inherited allele were enough to make a cell cancerous, the whole retina would be tumor. The way out is that the inherited mutation is the first of two steps, and the second is a rare event in only a few cells. That idea, worked out from clinic records in 1971, organizes much of what is known about how mutations make cancer.
+<Support>**The one idea:** Cell lineages expand when their DNA changes improve growth or survival. Every change a lineage carries, driver or passenger, spreads with it. **Scope:** This rule describes selection among somatic cell lineages within a tissue. It does not say that every DNA change helps, that every expanding lineage owes its growth to selection, that every selected clone becomes cancer, or that every cancer follows one fixed sequence.</Support>
 
 ## Two kinds of cancer gene: accelerators and brakes
 
-Think of a car that will not stop: either the accelerator is stuck or the brakes have failed.
+The first film set the one-copy and two-copy rules; here are the molecules behind them, then the exceptions. One change alone usually does not make a malignant cancer.
 
 <LessonFigure src="/figures/cancer-genetics/accelerator-and-brake-genes.webp" width={1200} height={800} alt="AI-generated illustration: three panels, each with a cell holding two gene copies. With one altered oncogene copy the cell divides; with one working copy of a tumor suppressor the cell is held back; with both tumor-suppressor copies lost the cell divides. Simple pedal shapes mark a stuck accelerator and a working or cracked brake." caption="An oncogene is an accelerator stuck on, so one altered copy is usually enough. A tumor suppressor is a brake, and one working copy usually still holds, so a cell must normally lose both copies before it divides unchecked." />
 
-A **proto-oncogene** is a normal gene whose product drives growth or division. An **oncogene** is an altered, overactive form: a gain of function. Because the altered protein is active even when the other copy is normal, one mutant allele (one copy of the gene) is usually enough, so the mutation is dominant within the cell. RAS is a switch that is on while it holds GTP and off once it cuts GTP to GDP; the [oncogenes lesson](/lessons/oncogenes/) and [the RAS-to-MAPK lesson](/lessons/ras-to-mapk/) cover the signaling. The transforming gene from a human bladder carcinoma line differed from normal HRAS by one base change, which put valine in place of glycine at codon 12, and the purified Val12 protein hydrolyzed GTP several times more slowly than normal HRAS protein made in *E. coli*. The larger effect was that a cell protein, later called a GTPase-activating protein (GAP), sped GTP hydrolysis by normal RAS more than 200-fold but had no effect on codon 12 mutants, so they stay GTP-bound.
+A **proto-oncogene** is a normal gene whose product drives growth or division; an **oncogene** is its altered, overactive form, a gain of function dominant within the cell.
+
+RAS is a switch: on while it holds GTP, off once it hydrolyzes GTP to GDP. A one-base change in HRAS from a human bladder carcinoma line replaces glycine with valine at codon 12. Purified Val12 protein hydrolyzed GTP several times more slowly than normal HRAS made in *E. coli*. The larger effect: a GTPase-activating protein, or GAP, sped hydrolysis by normal RAS more than 200-fold but did not speed codon 12 mutants (signaling in the [oncogenes](/lessons/oncogenes/) and [RAS-to-MAPK](/lessons/ras-to-mapk/) lessons).
+
+**Predict.** If a RAS mutant ignores the GAP that normally speeds its off reaction, does it spend more or less time in the GTP-bound state?
+
+<details>
+<summary>Check your prediction</summary>
+
+More time. Without GAP speeding its off reaction, the mutant stays GTP-bound, and on, longer.
+
+</details>
 
 MYC is usually activated another way: by extra copies (amplification) or by a translocation that puts it under the control of a highly active gene's regulatory DNA. In Burkitt lymphoma the commonest change is t(8;14), which places MYC beside an immunoglobulin heavy-chain gene (see [chromosome changes](/lessons/chromosome-changes/)).
 
-A **tumor-suppressor gene** is a brake: its product restrains division or stops a damaged cell, and losing its function helps a cell become cancerous, usually together with other changes. One working copy usually gives enough brake, so a cell must normally lose both alleles. RB1 encodes RB, which in its underphosphorylated form binds E2F transcription factors that switch on genes for DNA replication. TP53 encodes p53, which accumulates after DNA damage and can halt the cell cycle or trigger cell death (see [stress signals](/lessons/stress-signals/) and [death receptors and BCL-2](/lessons/death-receptors-bcl2-caspases/)). Returning a cloned RB gene to RB-deficient human tumor cells suppressed their tumor-like growth in a 1988 test.
+A **tumor-suppressor gene** encodes a brake: its product restrains division or stops a damaged cell. Losing both alleles, a change recessive within the cell, can help a cell become cancerous, usually together with other changes.
 
-Now the paradox. An inherited tumor-suppressor allele such as mutant *RB1* usually shows **autosomal dominant** inheritance in a family: about half a carrier's children inherit the risk, and affected people appear generation after generation (see [reading pedigrees](/lessons/pedigrees/)). Yet the allele is recessive in the cell. Both hold because a pedigree tracks risk, and a carrier has a vast number of cells that each already have one hit, so a second hit in at least one is likely. **Penetrance**, the fraction of carriers who show the trait, is therefore high but below 100%.
+RB1 encodes RB. In its underphosphorylated form, RB binds E2F transcription factors that turn on genes for DNA replication. Returning a cloned RB gene to RB-deficient human tumor cells suppressed their tumor-like growth in a 1988 test. TP53 encodes p53, which accumulates after DNA damage and can halt the cell cycle or trigger cell death (see [stress signals](/lessons/stress-signals/) and [death receptors and BCL-2](/lessons/death-receptors-bcl2-caspases/)).
 
-p53 warns against tidy rules. It acts as a tetramer, and many TP53 missense mutant proteins can disable wild-type subunits they join, a dominant-negative effect. In mice with one p53-null allele, many tumors kept a functional wild-type allele, so reduced dose may suffice in that model.
+The first film's paradox, an *RB1* allele dominant in a family yet recessive in a cell, rests on pedigree terms: the allele shows **autosomal dominant** inheritance: about half a carrier's children inherit the risk, and affected people can appear generation after generation (see [reading pedigrees](/lessons/pedigrees/)). Both hold because a pedigree tracks risk, and a carrier has very many cells that each already have one hit, so a second hit in at least one is likely. **Penetrance**, the fraction of carriers who show the trait, is therefore high but below 100%.
+
+p53 shows two exceptions to the copy rules. It acts as a tetramer, and many TP53 missense mutant proteins can disable wild-type subunits they join, a dominant-negative effect. In mice with one p53-null allele, many tumors kept a functional wild-type allele, so reduced dose may suffice in that model.
+
+**Predict.** If mutant p53 disables a tetramer that also contains wild-type subunits, must both TP53 alleles be lost before function falls?
+
+<details>
+<summary>Check your prediction</summary>
+
+Not necessarily. A mutant subunit can interfere with wild-type subunits in the same tetramer.
+
+</details>
 
 ## Retinoblastoma and the two-hit arithmetic
 
-Retinoblastoma is a tumor of the developing retina. Hereditary cases tend to be bilateral (both eyes) and diagnosed earlier; nonhereditary cases involve a single tumor in one eye. Most hereditary cases have no family history, because the mutation arose new, most often in the father's sperm, and some carriers have a tumor in only one eye. Alfred Knudson analysed 48 cases with published series and proposed in 1971 that two mutational events are needed. In the hereditary form the first is in the germline, inherited from a parent or new in the egg or sperm, and present in every cell; in the nonhereditary form both must happen somatically, in the same cell. He estimated that carriers develop about three tumors on average. Knudson did not find the gene: a cDNA from the *RB1* locus, on chromosome 13, was isolated by Stephen Friend and colleagues in 1986.
+Retinoblastoma is a tumor of the developing retina. Hereditary cases tend to be bilateral (both eyes) and diagnosed earlier; nonhereditary cases usually involve one tumor in one eye. Most hereditary cases lack a family history because the mutation arose new, most often in the father's sperm, and some carriers have a tumor in only one eye.
 
-A simple model shows what the two hits predict. Assume that in a carrier of one mutant *RB1* allele each tumor arises from an independent second hit, so the number of tumors per eye follows a Poisson distribution, and the eyes are independent. With about three tumors per carrier, about 5% of carriers have no tumor, so penetrance is about 95%, and most affected carriers have bilateral disease. The full calculation is under Going deeper.
+The first film's two routes come from Alfred Knudson. In 1971 he analysed 48 cases with published series and concluded that two events are needed. He estimated that carriers develop about three tumors on average, not a whole retina of tumor. Knudson did not find the gene; Stephen Friend and colleagues isolated a cDNA from the chromosome 13 *RB1* locus in 1986.
 
-Now a nonhereditary case. Both rare hits must fall in one cell, so the expected number of tumors per eye is far below 1. Nonhereditary tumors are therefore single and one-sided, and because two events must accumulate in one cell lineage, they tend to be diagnosed later.
+A simple model shows what the two hits predict. If each tumor in a carrier arises from an independent second hit, tumors per eye follow a Poisson distribution. With about three tumors per carrier and independent eyes, about 5% of carriers have no tumor, so penetrance is about 95%, and most affected carriers have bilateral disease (full calculation under Going deeper).
+
+**Predict.** Under this model, is a carrier more likely to have tumors in both eyes or in one eye only?
+
+<details>
+<summary>Check your prediction</summary>
+
+Both eyes: about 60% of carriers, against about 35% with one eye only.
+
+</details>
+
+In a nonhereditary case, both rare hits must fall in one lineage, so the expected number of tumors per eye is far below 1. Such tumors tend to be single, one-sided and diagnosed later.
 
 <TwoHitTimeline />
 
 ## How the second hit happens: loss of heterozygosity
 
-A carrier is **heterozygous** at *RB1*: one mutant allele, one wild-type. The second hit can be a new point mutation in the wild-type allele, or silencing of its promoter by DNA methylation (see [eukaryotic regulation](/lessons/eukaryotic-regulation/)). Often it is something larger. **Loss of heterozygosity** (LOH) means that a cell that was heterozygous at a site keeps only one of the two alleles. In a carrier's tumor the allele lost is the wild-type one, leaving only the mutant. It can happen by deletion, by loss of the whole chromosome through nondisjunction, by loss then duplication of the remaining chromosome, or by **mitotic recombination**, a crossover between homologs in a dividing body cell that can leave a daughter cell with two copies of the mutant region.
+A carrier is **heterozygous** at *RB1*: one mutant allele and one wild-type allele. A second hit can be a new point mutation in the wild-type allele or silencing of its promoter by DNA methylation (see [eukaryotic regulation](/lessons/eukaryotic-regulation/)).
 
-In 1983 Webster Cavenee, Thaddeus Dryja and colleagues tested this with DNA markers that differ between the two copies of chromosome 13. In several patients whose normal tissue was heterozygous at those markers, the tumor showed only one allele. The patterns fitted mitotic recombination, or nondisjunction with loss of the wild-type homolog. The second hit was often chromosomal, and LOH in tumor DNA became a way to find suppressor genes in other cancers.
+Often it is larger. **Loss of heterozygosity** (LOH) means that a site no longer has two different allele identities. In a carrier's tumor, only the mutant identity remains. The cell may keep one physical copy, after a deletion or chromosome loss, or two matching copies, after loss and duplication of the mutant chromosome or after **mitotic recombination**, a crossover between homologs in a dividing body cell that leaves a daughter cell with two copies of the mutant region.
 
-<LessonFigure src="/figures/cancer-genetics/ways-to-lose-the-second-copy.webp" width={1200} height={1000} alt="AI-generated illustration: a heterozygous cell with a pair of chromosomes carrying one mutant allele (orange) and one wild-type allele (green). Below, four routes start from that cell: deletion of the wild-type segment, loss of the whole wild-type chromosome, loss followed by duplication of the mutant chromosome, and mitotic recombination. Each ends in a gold-outlined cell with only mutant alleles, shown in a Result box." caption="A cell with one mutant and one working RB1 allele can lose the working one by deletion, by losing the whole chromosome, by losing it and duplicating the remaining one, or by mitotic recombination. Each leaves only the mutant allele." />
+**Predict.** A tumor retains two copies of chromosome 13 but shows only the mutant marker near *RB1*. Does that pattern require a deletion?
+
+<details>
+<summary>Check your prediction</summary>
+
+No. Mitotic recombination or loss followed by duplication can leave two copies with one allele identity.
+
+</details>
+
+In 1983 Webster Cavenee, Thaddeus Dryja and colleagues tested this with DNA markers that differ between the two copies of chromosome 13. In several patients heterozygous at those markers in normal tissue, the tumor showed only one allele. The patterns fitted mitotic recombination, or nondisjunction with loss of the wild-type homolog. The second hit was often chromosomal, and LOH in tumor DNA became a way to find suppressor genes in other cancers.
+
+<LessonFigure src="/figures/cancer-genetics/ways-to-lose-the-second-copy.webp" width={1200} height={1000} alt="AI-generated illustration: a heterozygous cell with a pair of chromosomes carrying one mutant allele (orange) and one wild-type allele (green). Below, four routes start from that cell: deletion of the wild-type segment, loss of the whole wild-type chromosome, loss followed by duplication of the mutant chromosome, and mitotic recombination. Each ends in a gold-outlined cell with only mutant alleles, shown in a Result box." caption="A cell with one mutant and one working RB1 allele can lose the working one by deletion, by losing the whole chromosome, by losing it and duplicating the remaining one, or by mitotic recombination. Each route removes the two-different-alleles state." />
 
 ## Instability and clonal evolution
 
-A tumor is usually a **clone**, the descendants of one cell. In 1976 Peter Nowell proposed that tumors evolve: acquired genetic variability lets more aggressive sublines be selected, and treatment can fail when a resistant subline emerges. As in bacteria under an antibiotic, mutation supplies variants and selection keeps those that divide more or die less.
+The same lineage logic scales from one retinal cell to competing subclones in a tumor. A tumor is usually a **clone**, the descendants of one cell. In 1976 Peter Nowell proposed that tumors evolve: acquired genetic variability lets more aggressive sublines be selected. Treatment can fail when a resistant subline emerges. As in bacteria under an antibiotic, mutation supplies variants and selection keeps those that divide more or die less.
 
 **Genome instability** raises the supply. Mutations in DNA-repair genes tend to cause further mutations in other genes. Cells lacking mismatch repair, as in Lynch syndrome tumors, accumulate copying errors in short repeats. Loss of BRCA1 or BRCA2 impairs repair of double-strand breaks by homologous recombination (see [DNA repair and recombination](/lessons/dna-repair-and-recombination/) and [mutation](/lessons/mutation/)). Faulty chromosome segregation produces whole-chromosome gains and losses, and chromothripsis can produce many clustered rearrangements in one catastrophic event.
 
+**Predict.** Does losing mismatch repair directly make every new mutation advantageous, or does it mainly change the supply of variants?
+
+<details>
+<summary>Check your prediction</summary>
+
+It raises the supply. Selection favors lineages whose drivers improve growth or survival, while passengers carried by those lineages can hitchhike with them.
+
+</details>
+
 Colorectal tumors show the accumulation. RAS mutations were found far more often in larger adenomas and in carcinomas than in small adenomas, and the changes accumulated as tumors progressed (Vogelstein and colleagues, 1988). Eric Fearon and Vogelstein's 1990 model stressed the accumulation of changes over their exact order; it is a colorectal model, not a fixed sequence for every tumor.
 
-A **driver** gives its cell a selective advantage; a **passenger** gives no advantage and was simply present in a cell whose clone expanded. In whole cancer genomes from many tumor types, each with matched normal tissue, the Pan-Cancer Analysis of Whole Genomes consortium identified an average of 4.6 drivers per tumor with current knowledge, a figure that depends on the rules used to call drivers. Selection also works before cancer, in clones of normal human esophagus.
+Back to the one idea: instability creates more candidates, and growth or survival decides which lineages expand. In whole cancer genomes from many tumor types, each with matched normal tissue, the Pan-Cancer Analysis of Whole Genomes consortium identified an average of 4.6 drivers per tumor with current knowledge. That figure depends on the rules used to call drivers. Selection also works before cancer, in clones of normal human esophagus; a selected clone is not automatically a cancer.
 
 ## Reading a tumor genome
 
-To call a variant somatic, you sequence the tumor and a **matched normal** sample, often blood, from the same person (the [sequencing lesson](/lessons/sequencing-and-genomes/) covers the method). A variant in both is usually germline, most often inherited (rarely new in the egg or sperm); one only in the tumor is somatic. Blood is not a perfect normal: blood-cell clones that expand with age carry somatic mutations of their own, and these cells can also turn up in the tumor sample. The **variant allele fraction** (VAF) is the fraction of reads that carry the variant. A tumor sample also contains normal cells, so its **purity**, the fraction of tumor cells, must enter the reading.
+All those competing lineages end up mixed in one tumor sample. Can its reads still show which lineage carries a change?
 
-<LessonFigure src="/figures/cancer-genetics/tumor-and-matched-normal.webp" width={1200} height={800} alt="AI-generated illustration: two sample vials, a matched normal of blood cells and a tumor sample that mixes tumor and normal cells. Under them a gold variant appears in both and a clay variant appears only in the tumor, labelled germline and somatic." caption="Sequencing the tumor and a matched normal sample from the same person separates variants seen in both, which are usually germline, from variants only in the tumor, which are usually somatic. The tumor sample also holds normal cells, so its purity matters." />
+<LessonFilm film={frontmatter.films[0]} />
+
+The second film compared the tumor with a **matched normal** sample, often blood, from the same person, and read each variant's **variant allele fraction** (VAF), the fraction of reads carrying it, against the sample's **purity**, the fraction of cells that are tumor cells (method in the [sequencing lesson](/lessons/sequencing-and-genomes/)).
+
+A variant in both samples is usually germline, most often inherited and rarely new in the egg or sperm, but blood is not a perfect normal. Blood-cell clones that expand with age carry somatic mutations, and those cells can also enter the tumor sample.
+
+<LessonFigure src="/figures/cancer-genetics/tumor-and-matched-normal.webp" width={1200} height={800} alt="AI-generated illustration: two sample vials, a matched normal of blood cells and a tumor sample that mixes tumor and normal cells. Under them a gold variant appears in both and a clay variant appears only in the tumor, labelled germline and somatic." caption="Tumor and matched-normal sequencing separates variants seen in both samples, which are usually germline, from variants seen only in the tumor, which are usually somatic; purity and copy number then shape the measured VAF." />
 
 > **expected VAF (heterozygous, all tumor cells, two copies) = purity × 0.5**
 
-Genotype now shapes diagnosis: in chronic myeloid leukemia the 9;22 translocation makes the BCR-ABL kinase that imatinib inhibits (see [drugs against a part](/lessons/drugs-against-a-part/)). In a 2021 study of acute myeloid leukemia and myelodysplastic syndromes, whole-genome sequencing was fast enough to change the genetic risk category for some patients.
+When any of the shortcut's four conditions fails (heterozygous, in every tumor cell, absent from normal cells, two copies), count mutant copies over all copies in the mixed sample, as the design problem does.
+
+Genotype now shapes diagnosis. In chronic myeloid leukemia, the 9;22 translocation makes the BCR-ABL kinase that imatinib inhibits (see [drugs against a part](/lessons/drugs-against-a-part/)). In a 2021 study of acute myeloid leukemia and myelodysplastic syndromes, whole-genome sequencing was fast enough to change the genetic risk category for some patients.
 
 ### Design problem
 
@@ -424,13 +505,15 @@ A colorectal tumor sample is estimated at 60% tumor cells. Tumor and matched-nor
 <details>
 <summary>One way to do it</summary>
 
-**KRAS.** A heterozygous variant in every tumor cell predicts 0.6 × 0.5 = 0.30, as seen: KRAS G12D is heterozygous and clonal.
+In this simplified problem, reads sample DNA copies evenly.
 
-**TP53.** If every tumor cell had only mutant copies, the VAF would be 0.6 × 1.0 = 0.60. That fits: the mutation is clonal and the wild-type allele is gone, a second hit by LOH. The value also says what kind of LOH. If the wild-type allele had been deleted, leaving one copy in each tumor cell while normal cells keep two, the VAF would be mutant copies over all copies: (0.6 × 1) / (0.6 × 1 + 0.4 × 2) = 0.43. A VAF of 0.60 fits copy-neutral LOH, such as mitotic recombination.
+**KRAS.** If every tumor cell has one mutant and one wild-type copy, and normal cells have none, the expected VAF is 0.6 × 0.5 = 0.30, as observed: a heterozygous, clonal variant.
 
-**PIK3CA.** If heterozygous, its VAF divided by the clonal expectation is 0.08 / 0.30 = 0.27, so about 27% of tumor cells carry it: a subclone that arose later.
+**TP53.** If tumor cells retain two mutant copies, every tumor-cell read is mutant: 0.6 × 1.0 = 0.60, as observed. Had the wild-type allele been deleted instead, tumor cells would carry one copy and normal cells two, giving mutant over all copies: (0.6 × 1) / (0.6 × 1 + 0.4 × 2) = 0.43. So 0.60 fits clonal, copy-neutral LOH, such as mitotic recombination, under these assumptions.
 
-**BRCA2.** A VAF of 0.50 in normal tissue fits a heterozygous germline allele, most likely inherited; testing the parents would show whether it is. In the tumor, 0.6 × 1.0 + 0.4 × 0.5 = 0.80 fits tumor cells that carry two mutant copies and no wild-type copy, while normal cells keep one of each: copy-neutral LOH, as for TP53. A plain deletion of the wild-type allele would give (0.6 × 1 + 0.4 × 1) / (0.6 × 1 + 0.4 × 2) = 0.71. Either way it is a second hit in a gene present in one-hit form.
+**PIK3CA.** If it is heterozygous, a clonal variant would sit at 0.30; 0.08 / 0.30 = 0.27, so about 27% of tumor cells carry it: a subclone that arose later.
+
+**BRCA2.** A VAF of 0.50 in normal tissue fits a heterozygous germline allele, most likely inherited; testing the parents would show whether it is new. In the tumor, 0.6 × 1.0 + 0.4 × 0.5 = 0.80 fits two mutant copies in tumor cells and one of each in normal cells: copy-neutral LOH, as for TP53. A deletion of the wild-type copy would instead give (0.6 × 1 + 0.4 × 1) / (0.6 × 1 + 0.4 × 2) = 0.71. Either route supplies a second hit in a gene already present in one-hit form.
 
 **The matched normal.** Tumor data alone cannot separate an inherited BRCA2 allele from a somatic one, or set aside the many harmless inherited variants every person carries. These are inferences about one sample, not clinical advice.
 
@@ -448,19 +531,19 @@ Step 1. The Poisson probability of zero events is e^(−m).
 
 Step 2. So P(at least one tumor in an eye) = 1 − 0.223 = 0.777.
 
-Step 3. No tumor in either eye: 0.223 × 0.223 = 0.050, which equals e^(−3). About 5% of carriers stay tumor free, so penetrance is about 95%.
+Step 3. No tumor in either eye: 0.223 × 0.223 = 0.050, which equals e^(−3). About 5% stay tumor free, so penetrance is about 95%.
 
 Step 4. Tumors in both eyes: 0.777 × 0.777 = 0.604.
 
 Step 5. A tumor in one eye only, where either eye can be the affected one: 2 × 0.223 × 0.777 = 0.347.
 
-Check: 0.050 + 0.604 + 0.347 = 1.001, which is 1 within rounding. Most affected carriers have bilateral disease, and about one carrier in twenty has no tumor yet can pass the allele on.
+Check: 0.050 + 0.604 + 0.347 = 1.001, which is 1 within rounding. About one carrier in twenty has no tumor yet can pass the allele on.
 
-For a nonhereditary tumor, the expected number of tumors per eye is far below 1. For a nonhereditary tumor, the expected number of tumors per eye is far below 1. If it were 0.0001, a tumor in each eye would have a chance of about 1 in 100 million.
+If a nonhereditary case's expected number of tumors per eye were 0.0001, a tumor in each eye would have a chance of about 1 in 100 million.
 
 ### Who found what, and when
 
-In 1982 several laboratories, among them those of Mariano Barbacid, Robert Weinberg and Michael Wigler, reported in *Nature* the codon 12 valine-for-glycine change described above. The slower GTP hydrolysis by the purified Val12 protein was measured in a 1984 assay. The larger effect was found in 1987, when the cell protein later called GAP was shown to speed GTP hydrolysis by normal RAS more than 200-fold but not by codon 12 mutants. Riccardo Dalla-Favera and colleagues mapped c-myc to chromosome 8 in 1982.
+In 1982 several laboratories, among them those of Mariano Barbacid, Robert Weinberg and Michael Wigler, reported in *Nature* the codon 12 valine-for-glycine change described above; the slower hydrolysis was measured in 1984 and the GAP effect in 1987. Riccardo Dalla-Favera and colleagues mapped c-myc to chromosome 8 in 1982.
 
 ### Cohort sizes and percentages
 

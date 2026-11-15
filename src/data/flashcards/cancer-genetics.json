@@ -1,0 +1,518 @@
+{
+ "slug": "cancer-genetics",
+ "title": "Cancer as a Genetic Disease",
+ "generated": {
+  "date": "2026-11-12",
+  "pipeline": "extract → Sonnet draft → Sonnet accuracy gate (separate agent) → Sonnet fixes",
+  "models": {
+   "draft": "claude-sonnet-5-5",
+   "gate": "claude-sonnet-5-5",
+   "fix": "claude-sonnet-5-5"
+  }
+ },
+ "lessonHash": "4125aacea4d0",
+ "sectionHashes": {
+  "(opening)": "7d32e34be174",
+  "Two kinds of cancer gene: accelerators and brakes": "890b053228fa",
+  "Retinoblastoma and the two-hit arithmetic": "9c23ce6fc829",
+  "How the second hit happens: loss of heterozygosity": "461d78101074",
+  "Instability and clonal evolution": "94657a2a8521",
+  "Reading a tumor genome": "ce2d7798bb83",
+  "Design problem": "d3647ee388d1",
+  "The two-hit arithmetic in full": "48baed01affd"
+ },
+ "cards": [
+  {
+   "id": "cancer-genetics-c01",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In cancer genetics, what is the difference between a somatic change and a germline change?",
+   "back": "A somatic change arises in a body cell during life and passes to its daughter cells, usually not to the person's children. A germline change comes through egg or sperm, is usually in every cell, and can be inherited.",
+   "quote": "A somatic change arises in a body cell during life and passes to its daughters, but usually not to the person's children."
+  },
+  {
+   "id": "cancer-genetics-c02",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In a tumor lineage, how does a driver differ from a passenger, and why do both spread when the clone expands?",
+   "back": "A driver gives its cell a selective advantage; a passenger gives none. Both spread because every change a lineage carries is copied into its descendants as the clone expands.",
+   "quote": "A driver gives its cell a selective advantage. A passenger gives none."
+  },
+  {
+   "id": "cancer-genetics-c03",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "RAS is a switch: on while it holds {{c1::GTP}}, off once it hydrolyzes GTP to GDP.",
+   "back": "",
+   "quote": "RAS is a switch: on while it holds GTP, off once it hydrolyzes GTP to GDP.",
+   "section": "Two kinds of cancer gene: accelerators and brakes"
+  },
+  {
+   "id": "cancer-genetics-c04",
+   "type": "experiment",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Purified HRAS carrying valine instead of glycine at codon 12 was compared with normal HRAS. The mutant hydrolyzed GTP several times more slowly. Why does this make the mutant an oncogene product?",
+   "back": "A slower off reaction leaves RAS in its GTP-bound, on state longer, so the growth signal is overactive: a gain of function.",
+   "quote": "Purified Val12 protein hydrolyzed GTP several times more slowly than normal HRAS made in E. coli.",
+   "section": "Two kinds of cancer gene: accelerators and brakes"
+  },
+  {
+   "id": "cancer-genetics-c05",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A GTPase-activating protein (GAP) was added to purified normal RAS and to codon 12 mutants. What result, and what does it add to the hydrolysis-rate finding?",
+   "back": "GAP sped hydrolysis by normal RAS more than 200-fold but did not speed the codon 12 mutants. The mutants also ignore the GAP that normally turns RAS off, so they stay GTP-bound longer.",
+   "quote": "a GTPase-activating protein, or GAP, sped hydrolysis by normal RAS more than 200-fold but did not speed codon 12 mutants",
+   "section": "Two kinds of cancer gene: accelerators and brakes"
+  },
+  {
+   "id": "cancer-genetics-c06",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "What is an oncogene, how does it relate to a proto-oncogene, and how many altered alleles usually matter in the cell?",
+   "back": "An oncogene is the altered, overactive form of a proto-oncogene, a gain of function dominant within the cell, so one altered allele is usually enough.",
+   "quote": "A proto-oncogene is a normal gene whose product drives growth or division; an oncogene is its altered, overactive form, a gain of function dominant within the cell.",
+   "section": "Two kinds of cancer gene: accelerators and brakes"
+  },
+  {
+   "id": "cancer-genetics-c07",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "MYC is usually activated by gene dosage or position rather than by a point mutation. Name the two routes, with the example in Burkitt lymphoma.",
+   "back": "Amplification (extra copies), or a translocation that puts MYC under a highly active gene's regulatory DNA. In Burkitt lymphoma the commonest change is t(8;14), placing MYC beside an immunoglobulin heavy-chain gene.",
+   "quote": "MYC is usually activated another way: by extra copies (amplification) or by a translocation that puts it under the control of a highly active gene's regulatory DNA.",
+   "section": "Two kinds of cancer gene: accelerators and brakes"
+  },
+  {
+   "id": "cancer-genetics-c08",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "What does underphosphorylated RB protein do in the cell cycle?",
+   "back": "It binds E2F transcription factors that turn on genes for DNA replication, acting as a brake on division.",
+   "quote": "In its underphosphorylated form, RB binds E2F transcription factors that turn on genes for DNA replication.",
+   "section": "Two kinds of cancer gene: accelerators and brakes"
+  },
+  {
+   "id": "cancer-genetics-c09",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "What does p53, the product of TP53, do after DNA damage?",
+   "back": "It accumulates and can halt the cell cycle or trigger cell death.",
+   "quote": "TP53 encodes p53, which accumulates after DNA damage and can halt the cell cycle or trigger cell death",
+   "section": "Two kinds of cancer gene: accelerators and brakes"
+  },
+  {
+   "id": "cancer-genetics-c10",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A tumor-suppressor gene encodes a brake. What kind of change usually helps a cell become cancerous, and how many alleles are usually affected in the cell?",
+   "back": "Loss of function, usually of both alleles, a change recessive within the cell, and usually together with other changes.",
+   "quote": "Losing both alleles, a change recessive within the cell, can help a cell become cancerous, usually together with other changes.",
+   "section": "Two kinds of cancer gene: accelerators and brakes"
+  },
+  {
+   "id": "cancer-genetics-c11",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A cell has one wild-type TP53 allele and one allele encoding a missense mutant p53 that joins tetramers. Must the wild-type allele be lost before p53 function falls?",
+   "back": "Not necessarily. Mutant subunits can disable the wild-type subunits in the same tetramer, a dominant-negative effect, so function can fall with one mutant allele.",
+   "quote": "It acts as a tetramer, and many TP53 missense mutant proteins can disable wild-type subunits they join, a dominant-negative effect.",
+   "section": "Two kinds of cancer gene: accelerators and brakes"
+  },
+  {
+   "id": "cancer-genetics-c12",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "An inherited RB1 mutation shows autosomal dominant inheritance in families yet is recessive in the cell. How can both hold?",
+   "back": "A pedigree tracks risk. A carrier has very many cells that each already carry one hit, so a second hit in at least one of them is likely.",
+   "quote": "a carrier has very many cells that each already have one hit, so a second hit in at least one is likely",
+   "section": "Two kinds of cancer gene: accelerators and brakes"
+  },
+  {
+   "id": "cancer-genetics-c13",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "What is penetrance, and why is it high but below 100% for inherited RB1 mutations?",
+   "back": "Penetrance is the fraction of carriers who show the trait. A second hit in at least one cell is likely but not certain.",
+   "quote": "Penetrance, the fraction of carriers who show the trait, is therefore high but below 100%.",
+   "section": "Two kinds of cancer gene: accelerators and brakes"
+  },
+  {
+   "id": "cancer-genetics-c14",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "How do hereditary and nonhereditary retinoblastoma usually differ in the number of eyes affected and age at diagnosis?",
+   "back": "Hereditary cases tend to be bilateral and diagnosed earlier. Nonhereditary cases usually have one tumor in one eye.",
+   "quote": "Hereditary cases tend to be bilateral (both eyes) and diagnosed earlier; nonhereditary cases usually involve one tumor in one eye.",
+   "section": "Retinoblastoma and the two-hit arithmetic"
+  },
+  {
+   "id": "cancer-genetics-c15",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "In Knudson's two-hit analysis of retinoblastoma, why do carriers develop only about three tumors rather than a whole retina of tumor?",
+   "back": "Each cell has one inherited hit, but the second hit is a rare, separate event, so only a few cells acquire it. The estimate was about three tumors per carrier on average.",
+   "quote": "He estimated that carriers develop about three tumors on average, not a whole retina of tumor.",
+   "section": "Retinoblastoma and the two-hit arithmetic"
+  },
+  {
+   "id": "cancer-genetics-c16",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In a retinoblastoma carrier, tumors per eye follow a Poisson distribution with mean m = 1.5, and the eyes are independent. What fraction of carriers have no tumor in either eye, and what is the penetrance?",
+   "back": "P(no tumor in one eye) = e^(-1.5) = 0.223. Both eyes: 0.223 × 0.223 = 0.050, so about 5% stay tumor free and penetrance is about 95%.",
+   "quote": "About 5% stay tumor free, so penetrance is about 95%.",
+   "section": "The two-hit arithmetic in full"
+  },
+  {
+   "id": "cancer-genetics-c17",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "With the same model (Poisson mean 1.5 tumors per eye, independent eyes), what fraction of carriers have tumors in both eyes, and what fraction in one eye only?",
+   "back": "P(tumor in an eye) = 1 - 0.223 = 0.777. Both eyes: 0.777 × 0.777 = 0.604, about 60%. One eye only: 2 × 0.223 × 0.777 = 0.347, about 35%.",
+   "quote": "Tumors in both eyes: 0.777 × 0.777 = 0.604.",
+   "section": "The two-hit arithmetic in full"
+  },
+  {
+   "id": "cancer-genetics-c18",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why are nonhereditary retinoblastomas usually single, one-sided and diagnosed later?",
+   "back": "Both rare hits must fall in one lineage, so the expected number of tumors per eye is far below 1.",
+   "quote": "In a nonhereditary case, both rare hits must fall in one lineage, so the expected number of tumors per eye is far below 1.",
+   "section": "Retinoblastoma and the two-hit arithmetic"
+  },
+  {
+   "id": "cancer-genetics-c19",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Besides large chromosomal events, name two ways the wild-type RB1 allele of a carrier can receive the second hit.",
+   "back": "A new point mutation in the wild-type allele, or silencing of its promoter by DNA methylation.",
+   "quote": "A second hit can be a new point mutation in the wild-type allele or silencing of its promoter by DNA methylation",
+   "section": "How the second hit happens: loss of heterozygosity"
+  },
+  {
+   "id": "cancer-genetics-c20",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "What does loss of heterozygosity (LOH) mean at a site where a carrier was heterozygous?",
+   "back": "The site no longer has two different allele identities. In a carrier's tumor, only the mutant identity remains.",
+   "quote": "Loss of heterozygosity (LOH) means that a site no longer has two different allele identities.",
+   "section": "How the second hit happens: loss of heterozygosity"
+  },
+  {
+   "id": "cancer-genetics-c21",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A tumor retains two copies of chromosome 13 but shows only the mutant marker near RB1. Is a deletion required to explain this, and what could?",
+   "back": "No. Loss of the wild-type chromosome followed by duplication of the mutant one, or mitotic recombination, leaves two copies with one allele identity.",
+   "quote": "The cell may keep one physical copy, after a deletion or chromosome loss, or two matching copies",
+   "section": "How the second hit happens: loss of heterozygosity"
+  },
+  {
+   "id": "cancer-genetics-c22",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "DNA markers that differ between the two copies of chromosome 13 were typed in patients' normal tissue and tumors. In several patients heterozygous in normal tissue, the tumor showed only one allele. What does this show?",
+   "back": "The patterns fitted mitotic recombination, or nondisjunction with loss of the wild-type homolog, so the second hit was often chromosomal. Tumor LOH then became a way to find suppressor genes.",
+   "quote": "In several patients heterozygous at those markers in normal tissue, the tumor showed only one allele.",
+   "section": "How the second hit happens: loss of heterozygosity"
+  },
+  {
+   "id": "cancer-genetics-c23",
+   "type": "qa",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A child with bilateral retinoblastoma has an affected father. Blood shows marker allele A (father) and B (mother) near RB1. The tumor shows only A, at a signal of two copies, and the same pattern along the chromosome. What happened?",
+   "back": "Assuming the father's mutant RB1 lies with allele A, the tumor lost the maternal region and duplicated the paternal one. Two copies of A along the whole chromosome fits loss then duplication (copy-neutral LOH).",
+   "quote": "A tumor retains two copies of chromosome 13 but shows only the mutant marker near RB1.",
+   "section": "How the second hit happens: loss of heterozygosity"
+  },
+  {
+   "id": "cancer-genetics-c24",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "In the clonal-evolution view of tumors, what do mutation and selection each contribute?",
+   "back": "Mutation supplies variants, and selection keeps those that divide more or die less, as with bacteria under an antibiotic.",
+   "quote": "As in bacteria under an antibiotic, mutation supplies variants and selection keeps those that divide more or die less.",
+   "section": "Instability and clonal evolution"
+  },
+  {
+   "id": "cancer-genetics-c25",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A tumor shrinks on a targeted drug, then regrows. The regrowth carries a resistance change that was in only a few cells before treatment. Explain the regrowth.",
+   "back": "The drug selected a pre-existing resistant subclone, which divided in its presence and expanded. Treatment can fail when a resistant subline emerges.",
+   "quote": "Treatment can fail when a resistant subline emerges.",
+   "section": "Instability and clonal evolution"
+  },
+  {
+   "id": "cancer-genetics-c26",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Cells lacking {{c1::mismatch repair}}, as in Lynch syndrome tumors, accumulate copying errors in short repeats.",
+   "back": "",
+   "quote": "Cells lacking mismatch repair, as in Lynch syndrome tumors, accumulate copying errors in short repeats.",
+   "section": "Instability and clonal evolution"
+  },
+  {
+   "id": "cancer-genetics-c27",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "What repair process is impaired when BRCA1 or BRCA2 is lost?",
+   "back": "Repair of double-strand breaks by homologous recombination.",
+   "quote": "Loss of BRCA1 or BRCA2 impairs repair of double-strand breaks by homologous recombination",
+   "section": "Instability and clonal evolution"
+  },
+  {
+   "id": "cancer-genetics-c28",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Does losing mismatch repair make every new mutation advantageous, or does it mainly change the supply of variants?",
+   "back": "It raises the supply. Selection then favors lineages whose drivers improve growth or survival, and passengers in those lineages can hitchhike.",
+   "quote": "Selection favors lineages whose drivers improve growth or survival, while passengers carried by those lineages can hitchhike with them.",
+   "section": "Instability and clonal evolution"
+  },
+  {
+   "id": "cancer-genetics-c29",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "Selection also acts in clones of normal human esophagus. Does a selected clone mean cancer?",
+   "back": "No. A selected clone is not automatically a cancer.",
+   "quote": "Selection also works before cancer, in clones of normal human esophagus; a selected clone is not automatically a cancer.",
+   "section": "Instability and clonal evolution"
+  },
+  {
+   "id": "cancer-genetics-c30",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "What did the colorectal tumor progression model emphasize, and can it be applied as a fixed sequence to every tumor?",
+   "back": "It stressed accumulation of changes over their exact order. It is a colorectal model, not a fixed sequence for every tumor.",
+   "quote": "stressed the accumulation of changes over their exact order; it is a colorectal model, not a fixed sequence for every tumor",
+   "section": "Instability and clonal evolution"
+  },
+  {
+   "id": "cancer-genetics-c31",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A variant appears in both a tumor and matched blood from the same person. What is it usually, and what caution applies?",
+   "back": "Usually germline, most often inherited. Blood is not a perfect normal, since age-related blood-cell clones carry somatic mutations and can enter the tumor sample.",
+   "quote": "A variant in both samples is usually germline, most often inherited and rarely new in the egg or sperm, but blood is not a perfect normal.",
+   "section": "Reading a tumor genome"
+  },
+  {
+   "id": "cancer-genetics-c32",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "expected VAF (heterozygous, all tumor cells, two copies) = {{c1::purity × 0.5}}",
+   "back": "",
+   "quote": "expected VAF (heterozygous, all tumor cells, two copies) = purity × 0.5",
+   "section": "Reading a tumor genome"
+  },
+  {
+   "id": "cancer-genetics-c33",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A tumor sample is 70% tumor cells. A heterozygous variant absent from matched blood has VAF 0.20; all regions have two copies. What fraction of tumor cells carries it?",
+   "back": "If every tumor cell carried it, VAF = 0.7 × 0.5 = 0.35. So 0.20 / 0.35 = 0.57: about 57% of tumor cells, a subclone.",
+   "quote": "expected VAF (heterozygous, all tumor cells, two copies) = purity × 0.5",
+   "section": "Reading a tumor genome"
+  },
+  {
+   "id": "cancer-genetics-c34",
+   "type": "calc",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A sample is 60% tumor. A tumor variant has VAF 0.60 and the other allele is lost. Does a deletion of the wild-type copy or copy-neutral LOH fit?",
+   "back": "Deletion gives (0.6 × 1) / (0.6 × 1 + 0.4 × 2) = 0.43. Copy-neutral LOH gives 0.6 × 1.0 = 0.60, which fits the observed VAF.",
+   "quote": "Had the wild-type allele been deleted instead, tumor cells would carry one copy and normal cells two",
+   "section": "Design problem"
+  },
+  {
+   "id": "cancer-genetics-c35",
+   "type": "calc",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A sample is 60% tumor. PIK3CA is found at VAF 0.08, assumed heterozygous with two copies. Is it clonal, and what fraction of tumor cells carry it?",
+   "back": "A clonal heterozygous variant would sit at 0.6 × 0.5 = 0.30. 0.08 / 0.30 = 0.27, so about 27% of tumor cells: a subclone that arose later.",
+   "quote": "If it is heterozygous, a clonal variant would sit at 0.30; 0.08 / 0.30 = 0.27",
+   "section": "Design problem"
+  },
+  {
+   "id": "cancer-genetics-c36",
+   "type": "calc",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "A BRCA2 frameshift has VAF 0.50 in normal tissue and 0.80 in a 60% tumor sample. Is it inherited, and what event gave the tumor its second hit?",
+   "back": "0.50 in normal tissue fits a heterozygous germline allele. In the tumor, 0.6 × 1.0 + 0.4 × 0.5 = 0.80 fits copy-neutral LOH; a deletion would give 0.71. Either route supplies a second hit.",
+   "quote": "A VAF of 0.50 in normal tissue fits a heterozygous germline allele, most likely inherited; testing the parents would show whether it is new.",
+   "section": "Design problem"
+  },
+  {
+   "id": "cancer-genetics-c37",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In chronic myeloid leukemia, which translocation makes which kinase, and which drug inhibits it?",
+   "back": "The 9;22 translocation makes the BCR-ABL kinase, which imatinib inhibits.",
+   "quote": "In chronic myeloid leukemia, the 9;22 translocation makes the BCR-ABL kinase that imatinib inhibits",
+   "section": "Reading a tumor genome"
+  }
+ ]
+}
