@@ -831,7 +831,7 @@ class S06Pause(PredictPause):
     OPTIONS = ()
     CARD = {"y": -2.95, "size": 28, "max_w": 10.0}
     RING_AT = (5.75, -2.95, 0)
-    SECONDS = 2.0
+    SECONDS = 4.5
 
     def backdrop(self):
         t_hold = ValueTracker(0.0)
