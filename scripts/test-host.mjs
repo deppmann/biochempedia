@@ -28,6 +28,9 @@ const B = { ...A, primary: 'stemhop.com' };
 let n = 0;
 const check = async (name, fn) => { await fn(); n++; console.log('  ok  ' + name); };
 const NAV = { 'Sec-Fetch-Mode': 'navigate', 'Sec-Fetch-Dest': 'document', 'User-Agent': 'Mozilla/5.0 (Macintosh) AppleWebKit/605.1.15 Safari/605.1.15' };
+const CHROME_UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36';
+// What Chrome sent on a plain-http navigation in the 2026-11-15 browser test: no Sec-Fetch-* at all.
+const HTTP_NAV = { 'Upgrade-Insecure-Requests': '1', Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8', 'User-Agent': CHROME_UA };
 const req = (url, { method = 'GET', headers = {}, body } = {}) => new Request(url, { method, headers, ...(body !== undefined ? { body } : {}) });
 const go = (url, cfg, opts) => H.route(req(url, opts), cfg);
 
@@ -194,6 +197,23 @@ await check('a person following an old link gets the hand-off page first; the mo
     assert.deepEqual(go(`https://biochemistrypedia.com${p}`, B, { headers: p === '/g/x/' ? {} : NAV }), { kind: 'redirect', status: 301, location: `https://stemhop.com${p}` }, p);
   }
 });
+await check('plain-http old links: a browser navigation (no Sec-Fetch on http) gets the hand-off; crawlers and scripts do not', () => {
+  for (const host of ['biochemistrypedia.com', 'www.biochemistrypedia.com']) {
+    assert.deepEqual(go(`http://${host}/lessons/a/?u=1`, B, { headers: HTTP_NAV }), { kind: 'handoff', to: '/lessons/a/?u=1' }, host);
+  }
+  const no = (headers, url = 'http://biochemistrypedia.com/lessons/a/') => assert.equal(go(url, B, { headers }).status, 301, JSON.stringify(headers));
+  no({ ...HTTP_NAV, 'User-Agent': 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)' });
+  no({ ...HTTP_NAV, 'User-Agent': 'facebookexternalhit/1.1' });
+  no({ ...HTTP_NAV, 'User-Agent': 'curl/8.7.1' });
+  no({ ...HTTP_NAV, 'User-Agent': '' });
+  no({ Accept: '*/*', 'User-Agent': 'curl/8.7.1' });
+  no({ 'User-Agent': CHROME_UA, Accept: HTTP_NAV.Accept });                                  // no Upgrade-Insecure-Requests
+  no({ ...HTTP_NAV, Accept: 'image/avif,image/webp,*/*' });                                    // an image, not a page
+  no({ ...HTTP_NAV, 'Sec-Fetch-Mode': 'no-cors', 'Sec-Fetch-Dest': 'image' });                // Fetch Metadata wins when present
+  no(HTTP_NAV, 'https://biochemistrypedia.com/lessons/a/');                                    // on https, browsers always send Sec-Fetch
+  assert.equal(H.isBrowserNavigation(req('http://biochemistrypedia.com/', { headers: HTTP_NAV })), true);
+  assert.equal(H.isBrowserNavigation(req('https://biochemistrypedia.com/', { headers: NAV })), true);
+});
 await check('the old-host exemptions', () => {
   assert.deepEqual(go('https://biochemistrypedia.com/handoff/?to=/lessons/a/', B), { kind: 'handoff', to: '/lessons/a/' });
   assert.deepEqual(go('https://biochemistrypedia.com/handoff/', B, { headers: { ...NAV, Cookie: 'bp_moved=1' } }), { kind: 'handoff', to: '/' });
@@ -263,6 +283,27 @@ await check('the hand-off page script: nothing saved marks moved at once; saved 
   p = await runPage(html, { origin: 'http://biochemistrypedia.com', cookie: 'bp_signed_in=1', store: { 'bp-supports': '1' } });
   assert.deepEqual(p.fetched, []);
 });
+await check('a plain-http old link through fetch: the hand-off page; with bp_moved or as a crawler, the 301', async () => {
+  const r = await fetchB('http://biochemistrypedia.com/lessons/a/?u=1', { headers: HTTP_NAV });
+  assert.equal(r.status, 200);
+  assert.match(await r.text(), /"to":"\/lessons\/a\/\?u=1"/);
+  assert.equal((await fetchB('http://biochemistrypedia.com/lessons/a/', { headers: { ...HTTP_NAV, Cookie: 'bp_moved=1' } })).status, 301);
+  assert.equal((await fetchB('http://biochemistrypedia.com/lessons/a/', { headers: { ...HTTP_NAV, 'User-Agent': 'Googlebot/2.1' } })).status, 301);
+});
+await check('every hand-off page: a data: favicon in the head and img-src allowing it (no /favicon.ico request to block)', async () => {
+  const pages = [
+    await fetchB('https://biochemistrypedia.com/handoff/?to=/x/'),
+    await fetchB('https://biochemistrypedia.com/handoff/signin/'),
+    await fetchB('https://biochemistrypedia.com/handoff/done?to=/x/'),
+    await fetchB('https://stemhop.com/handoff/receive', { method: 'POST', headers: { Origin: 'https://evil.example' }, body: multipart({ data: '{}', to: '/' }) }),
+  ];
+  for (const r of pages) {
+    const html = await r.text();
+    assert.match(html, /<head>[\s\S]*<link rel="icon" href="data:,">[\s\S]*<\/head>/);
+    assert.match(r.headers.get('Content-Security-Policy'), /img-src 'self' data:(;|$)/);
+    assert.ok(r.headers.get('Content-Security-Policy').includes(`'sha256-${b64sha(scriptOf(html))}'`), 'hash still matches');
+  }
+});
 let code;
 await check('bridge/issue on the old host gives a code to a signed-in learner, through fetch', async () => {
   const r = await fetchB('https://biochemistrypedia.com/api/learner/bridge/issue', { method: 'POST', headers: { Origin: 'https://biochemistrypedia.com', 'Content-Type': 'application/json', Cookie: `bp_learner=${token}` }, body: '{}' });
@@ -322,6 +363,34 @@ await check('the receive page writes, then marks moved only through /handoff/don
   p = await runPage(receivedHtml, { origin: 'https://stemhop.com', store: { 'biochempedia:progress:v1': newer }, fetchImpl: async () => new Response('', { status: 503 }) });
   assert.equal(p.replaced, '/lessons/a/#sec');
   assert.ok(!go('https://biochemistrypedia.com/lessons/a/', B, { headers: NAV }).status, 'still the hand-off next time');
+});
+await check('if /handoff/receive itself fails: a page with the way on, the work still on the old address, nothing marked', async () => {
+  const brokenDb = { prepare() { throw new Error('D1 down'); } };
+  const W = createWorker(B);
+  const errors = []; const orig = console.error; console.error = (...a) => errors.push(a.join(' '));
+  let r;
+  try {
+    r = await W.fetch(req('https://stemhop.com/handoff/receive?to=' + encodeURIComponent('/lessons/a/#s2'), { method: 'POST', headers: { Origin: 'https://biochemistrypedia.com' }, body: multipart({ data: '{"v":1,"items":{}}', to: '/lessons/a/#s2', signin: 'c'.repeat(64) }) }), { ASSETS, CLASSES: brokenDb });
+  } finally { console.error = orig; }
+  assert.equal(r.status, 500);
+  assert.deepEqual(r.headers.getSetCookie(), []);
+  const html = await r.text();
+  assert.match(html, /href="\/lessons\/a\/#s2">Continue to the page you asked for/);
+  assert.match(html, /still saved in this browser at the old address, and it will be offered again/);
+  assert.match(html, /href="https:\/\/biochemistrypedia\.com\/handoff\/\?to=%2Flessons%2Fa%2F%23s2"/);
+  assert.ok(errors.some((e) => e.includes('handoff receive error')), 'logged');
+  // An unreadable form: the page asked for still comes from the query string.
+  const bad = await fetchB('https://stemhop.com/handoff/receive?to=%2Fnotebook%2F', { method: 'POST', headers: { Origin: 'https://biochemistrypedia.com', 'Content-Type': 'multipart/form-data; boundary=x' }, body: 'not multipart' });
+  assert.equal(bad.status, 400);
+  assert.match(await bad.text(), /href="\/notebook\/">Continue to the page you asked for/);
+});
+await check('the hand-off page posts with the page asked for in the query too; the retry line after a failed try is accurate', async () => {
+  const html = await (await fetchB('https://biochemistrypedia.com/lessons/a/?u=1', { headers: NAV })).text();
+  let p = await runPage(html, { origin: 'https://biochemistrypedia.com', store: { 'bp-supports': '1' } });
+  assert.equal(p.els.f.action, 'https://stemhop.com/handoff/receive?to=%2Flessons%2Fa%2F%3Fu%3D1');
+  p = await runPage(html, { origin: 'https://biochemistrypedia.com', store: { 'bp-supports': '1', 'biochempedia:handoff:tries': '1' } });
+  assert.match(p.els.msg.textContent, /may not all have come across/);
+  assert.match(p.els.msg.textContent, /Trying again is safe/);
 });
 await check('/handoff/done on the old host sets the moved cookie and forwards', async () => {
   const r = await fetchB('https://biochemistrypedia.com/handoff/done?to=%2Flessons%2Fa%2F');
