@@ -1,661 +1,537 @@
-"""GPCRs and trimeric G proteins: the receptor and its G protein decide the answer  (Biochemistrypedia explainer)
+"""How a Receptor Loads a Switch — one carried, schematic membrane world.
 
-Timed to the SPOKEN words: every self.at("...") cue waits for that phrase in audio/words.json.
-
-COLOR MAP (one color per concept, whole video)
-  YELLOW = acetylcholine, the signal (and its "agonist" tag)
-  BLUE   = the receptor (the seven helices, "receptor", M2, M3)
-  PURPLE = the G protein alpha part (Gα, and the names Gi / Gq / "G protein")
-  ORANGE = beta gamma
-  GREEN  = on / active: GTP, and the outline of Gα once GTP sits in it
-  TEAL   = the targets that a messenger switches on (potassium channel, phospholipase C-β)
-  PINK   = ions and small messengers (K+, IP3, Ca2+)
-  RED    = ruled out (the crossed-out "instruction", the struck-out signal)
-  GREY   = membranes, cell outlines, GDP, the unknown, labels
-  GOLD   = title rule only
-
-No molecular structures: the receptor is seven plain bars in a membrane band, the G protein parts are
-labelled rounded blobs, GDP / GTP are chips, channels and enzymes are blocks and chips, ions are dots.
-
-Framing: s02 and s03 are one stage (membrane band across the middle, receptor left of centre, G protein
-under it). s04 and s05 keep that stage and add the target on the right and a small readout card on the
-top left. s01 and s06 are the same two-cell picture, before and after the answer is filled in.
+Colour map: receptor BLUE; agonist GOLD; G-alpha PURPLE; beta-gamma TEAL;
+GDP GREY; GTP GREEN.  Proteins are labelled cartoons, never structures.
 """
-import numpy as np
-from bp_style import *  # noqa: F401,F403
+from bp_parts import *
+
 
 PURPLE = "#B58CD9"
-ORANGE = "#F29E4C"
-PINK = "#F08BB4"
-
-# ---- the stage -------------------------------------------------------------------------------
-MEM_Y, MEM_H = 0.6, 2.5
-BAND_TOP, BAND_BOT = MEM_Y + MEM_H / 2, MEM_Y - MEM_H / 2          # 1.85, -0.65
-HW, HH, PITCH = 0.5, 2.7, 0.64                                     # helix width, length, spacing
-RX = -0.9                                                          # centre of the helix bundle
-HTOP, HBOT = MEM_Y + HH / 2, MEM_Y - HH / 2                        # 1.95, -0.75
-NOTCH = 0.6                                                        # the three middle helices stop short: the pocket
-SWING = 28 * DEGREES                                               # how far helix 6 swings out
-GX = 0.61                                                          # x of the cavity and the G alpha tail
-YB_WAIT, YB_DOCK = -2.35, -1.55                                    # G alpha centre: waiting, docked
-FA = np.array([-3.9, -2.4, 0])                                     # G alpha-GTP once it has let go
-FB = np.array([4.8, -2.4, 0])                                      # beta gamma once it has let go
-LIG_DOCK = np.array([RX, HTOP - NOTCH + 0.33, 0])                  # acetylcholine in the pocket
-CX = 4.2                                                           # x of the potassium channel
-XC = 3.4                                                           # x centre of each cell column (s01, s06)
+MEM_Y = 0.45
 
 
-def hx(i):
-    # the seventh bar stands a little apart, so helix 6 (the sixth) has room to swing out
-    return RX + (i - 3) * PITCH + (1.5 if i == 6 else 0.0)
+def arrow_between(a, b, color=TEXT, width=5, buff=0.12):
+    return Arrow(a, b, buff=buff, color=color, stroke_width=width,
+                 tip_length=0.22, max_tip_length_to_length_ratio=0.35)
 
 
-# s02 is drawn zoomed in (the receptor is the subject), then eases back to the stage s03 starts on
-K2 = 1.35
-Z0 = np.array([RX, MEM_Y, 0.0])
-Z1 = np.array([-0.5, -0.15, 0.0])
+def flow_markers(paths, colors, per_path=3, speed=0.28, radius=0.11):
+    """Dots that repeatedly traverse real pathway arrows, showing signal flow."""
+    paths = list(paths)
+    colors = list(colors) if isinstance(colors, (list, tuple)) else [colors] * len(paths)
+    dots = VGroup()
+    for i, (path, color) in enumerate(zip(paths, colors)):
+        for j in range(per_path):
+            d = Dot(path.point_from_proportion(j / per_path), radius=radius, color=color)
+            d.path, d.phase = path, (j / per_path + i * 0.07) % 1.0
+            dots.add(d)
+
+    def advance(group, dt):
+        for d in group:
+            d.phase = (d.phase + speed * dt) % 1.0
+            d.move_to(d.path.point_from_proportion(d.phase))
+    dots.add_updater(advance)
+    return dots
 
 
-def zp(p):
-    return Z1 + K2 * (np.array(p, float) - Z0)
+def wave_bars(bars, amp=0.08, speed=3.2):
+    """A small travelling displacement through a receptor bundle."""
+    for i, bar in enumerate(bars):
+        base = bar.get_center().copy()
+        bar._wave_t = i * 0.35
+
+        def wave(mob, dt, base=base):
+            mob._wave_t += dt
+            mob.move_to(base + UP * amp * np.sin(speed * mob._wave_t))
+        bar.add_updater(wave)
+    return bars
 
 
-def zoom(m):
-    return m.scale(K2, about_point=Z0).shift(Z1 - Z0)
+def membrane():
+    """The membrane used in every close view."""
+    wash = Rectangle(width=13.0, height=1.52, stroke_width=0,
+                     fill_color=GREY, fill_opacity=0.22).move_to([0, MEM_Y, 0])
+    top = Line([-6.5, MEM_Y + 0.78, 0], [6.5, MEM_Y + 0.78, 0], color=GREY, stroke_width=4)
+    bottom = Line([-6.5, MEM_Y - 0.78, 0], [6.5, MEM_Y - 0.78, 0], color=GREY, stroke_width=4)
+    lipids = VGroup(*[Dot([x, MEM_Y + s * 0.55, 0], radius=0.035, color=GREY).set_opacity(0.45)
+                      for x in np.linspace(-6.35, 6.35, 25) for s in (-1, 1)])
+    return VGroup(wash, top, bottom, lipids)
 
 
-# ---- helpers ---------------------------------------------------------------------------------
-def G(text, size=28, color=PURPLE):
-    """a Greek-letter label. Avenir draws alpha like a Latin a, so these use the serif title face."""
-    return T(text, size, color, font=TITLE_FONT, weight=BOLD)
+def receptor_bundle(center=(-1.2, MEM_Y, 0), scale=1.0, active=False, labels=False):
+    """Seven bars and one continuous path; helix 6 is the moving cytoplasmic bar."""
+    cx, cy, _ = center
+    xs = [cx + (i - 3) * 0.55 * scale for i in range(7)]
+    bars = VGroup()
+    for i, x in enumerate(xs):
+        h = (2.35 if i not in (2, 3, 4) else 1.85) * scale
+        y = cy - (0.15 * scale if i in (2, 3, 4) else 0)
+        bar = RoundedRectangle(corner_radius=0.2 * scale, width=0.34 * scale, height=h,
+                               stroke_color=BLUE, stroke_width=4,
+                               fill_color=BLUE, fill_opacity=0.38).move_to([x, y, 0])
+        bars.add(bar)
+    if active:
+        bars[5].rotate(23 * DEGREES, about_point=bars[5].get_top())
+    pts = []
+    for i, bar in enumerate(bars):
+        pts.extend([bar.get_top(), bar.get_bottom()] if i % 2 == 0 else [bar.get_bottom(), bar.get_top()])
+    chain = VMobject(color=BLUE, stroke_width=3, stroke_opacity=0.75).set_points_as_corners(pts)
+    group = VGroup(bars) if labels else VGroup(chain, bars)
+    group.bars, group.chain = bars, chain
+    if labels:
+        nums = VGroup(*[boxed_label(str(i + 1), BLUE, 24, box=(0.48, 0.48), pad=0.09)
+                        .move_to([xs[i], 3.18, 0]) for i in range(7)])
+        group.add(nums)
+        group.nums = nums
+    return group
 
 
-def bchip(text, color=BLUE, size=26, pad=0.2, **kw):
-    """chip with an opaque backing so lines drawn behind it do not show through. [back, box, label]"""
-    c = chip(text, color, size=size, pad=pad, **kw)
-    back = RoundedRectangle(corner_radius=0.14, width=c[0].width, height=c[0].height, stroke_width=0,
-                            fill_color=BG, fill_opacity=1).move_to(c[0])
-    return VGroup(back, *c)
-
-
-def ghost_chip(text, size=24):
-    """a dashed grey chip: something that is NOT there."""
-    t = T(text, size, GREY)
-    box = RoundedRectangle(corner_radius=0.14, width=t.width + 0.4, height=t.height + 0.32)
-    return VGroup(DashedVMobject(box, num_dashes=max(18, int(box.width * 9))).set_color(GREY), t)
-
-
-def strike(m, color=RED):
-    return Line(m.get_corner(DL) + [-0.08, -0.04, 0], m.get_corner(UR) + [0.08, 0.04, 0], color=color, stroke_width=7)
-
-
-def arr(a, b, color=GREY, w=5, tip=0.2):
-    return Arrow(a, b, buff=0.06, color=color, stroke_width=w, tip_length=tip,
-                 max_tip_length_to_length_ratio=0.45, max_stroke_width_to_length_ratio=12)
-
-
-def glow(*mobs, s=1.1, color=TEXT):
-    """flash each mobject in place (one animation each: a new VGroup would re-add them on top)."""
-    return [Indicate(m, color=color, scale_factor=s) for m in mobs]
-
-
-def chip_glow(c, s=1.1, color=TEXT):
-    return glow(c[1], c[2], s=s, color=color)
-
-
-def band():
-    return RoundedRectangle(corner_radius=0.12, width=12.6, height=MEM_H, stroke_color=GREY, stroke_width=3,
-                            fill_color=GREY, fill_opacity=0.2).move_to([0, MEM_Y, 0])
-
-
-def side_labels():
-    return VGroup(T("outside", 24, GREY).move_to([-5.6, 2.45, 0]), T("inside", 24, GREY).move_to([-5.6, -1.05, 0]))
-
-
-# ---- the receptor: seven bars --------------------------------------------------------------------
-def helix(i):
-    x = hx(i)
-    top = HTOP - (NOTCH if i in (2, 3, 4) else 0)
-    h = top - HBOT
-    back = RoundedRectangle(corner_radius=HW / 2, width=HW, height=h, stroke_width=0, fill_color=BG, fill_opacity=1)
-    body = RoundedRectangle(corner_radius=HW / 2, width=HW, height=h, stroke_color=BLUE, stroke_width=3,
-                            fill_color=BLUE, fill_opacity=0.35)
-    return VGroup(back, body).move_to([x, (top + HBOT) / 2, 0])
-
-
-def pivot6():
-    return np.array([hx(5), HTOP, 0])
-
-
-def receptor(swung=False):
-    g = VGroup(*[helix(i) for i in range(7)])
-    if swung:
-        g[5].rotate(SWING, about_point=pivot6())
+def agonist(at=(-1.2, 2.55, 0), text="agonist"):
+    g = boxed_label(text, GOLD, size=28, pad=0.2).move_to(at)
     return g
 
 
-def silhouette():
-    return RoundedRectangle(corner_radius=0.3, width=4.6, height=HH + 0.1, stroke_color=BLUE, stroke_width=3,
-                            fill_color=BLUE, fill_opacity=0.18).move_to([RX, MEM_Y, 0])
-
-
-def cavity():
-    e = Ellipse(width=1.0, height=0.8).move_to([GX, -0.2, 0])
-    return DashedVMobject(e, num_dashes=24).set_color(TEXT).set_stroke(width=3)
-
-
-def ligand(center, tag=True, k=1.0):
-    """[dot, label, (agonist tag)]: the label rides above the dot. k scales the dot and the label offsets."""
-    dot = Circle(radius=0.28 * k, stroke_color=YELLOW, stroke_width=3, fill_color=YELLOW, fill_opacity=1).move_to(center)
-    lab = T("acetylcholine", 26, YELLOW).move_to(np.array(center) + UP * 0.68 * k)
-    g = VGroup(dot, lab)
-    g.dot, g.lab = dot, lab
-    if tag:
-        g.add(T("agonist", 24, YELLOW).move_to(np.array(center) + UP * 1.08 * k))
+def nucleotide(text="GDP", color=GREY, at=(0, 0, 0)):
+    g = boxed_label(text, color, size=26, box=(1.0, 0.52), pad=0.12).move_to(at)
+    g.box.set_fill(BG, 1.0)
     return g
 
 
-# ---- the G protein -------------------------------------------------------------------------------
-def galpha(x, yb, label="Gα", active=False):
-    """[tail, back, body, label]; the tail is the part that fits the cavity."""
-    tail = RoundedRectangle(corner_radius=0.14, width=0.4, height=0.9, stroke_color=PURPLE, stroke_width=3,
-                            fill_color=PURPLE, fill_opacity=0.5).move_to([x, yb + 0.95, 0])
-    back = RoundedRectangle(corner_radius=0.45, width=1.9, height=1.3, stroke_width=0, fill_color=BG,
-                            fill_opacity=1).move_to([x, yb, 0])
-    body = RoundedRectangle(corner_radius=0.45, width=1.9, height=1.3, stroke_color=GREEN if active else PURPLE,
-                            stroke_width=3.5, fill_color=PURPLE, fill_opacity=0.3).move_to([x, yb, 0])
-    lbl = G(label, 28, PURPLE).move_to([x, yb + 0.3, 0])
-    return [tail, back, body, lbl]
+def gprotein(center=(-0.25, -2.05, 0), nucleotide_text="GDP", nucleotide_color=GREY,
+             joined=True, tail=True):
+    """A fitted alpha/nucleotide block and the adjacent beta-gamma unit."""
+    cx, cy, _ = center
+    body = Ellipse(width=2.45, height=1.35, stroke_width=0,
+                   fill_color=PURPLE, fill_opacity=0.48).move_to([cx - 0.55, cy, 0])
+    ga = T("G-alpha", 28, PURPLE, weight=BOLD).move_to(body.get_center() + UP * 0.16 + RIGHT * 0.22)
+    nuc = nucleotide(nucleotide_text, nucleotide_color, body.get_center() + DOWN * 0.43)
+    tail_m = Line([cx - 0.55, cy + 0.72, 0], [cx - 0.55, cy + 1.55, 0],
+                  color=PURPLE, stroke_width=10)
+    bx = cx + (1.95 if joined else 2.85)
+    bg = RoundedRectangle(corner_radius=0.38, width=2.25, height=1.2,
+                          stroke_color=TEAL, stroke_width=4,
+                          fill_color=TEAL, fill_opacity=0.28).move_to([bx, cy, 0])
+    bgl = T("beta-gamma", 24, TEAL, weight=BOLD).move_to(bg)
+    group = VGroup(body, ga, nuc, bg, bgl)
+    if tail:
+        group.add(tail_m)
+    group.body, group.ga, group.nuc, group.bg, group.bgl, group.tail = body, ga, nuc, bg, bgl, tail_m
+    return group
 
 
-def nuc(x, y, text, color):
-    return bchip(text, color, 22, pad=0.12).move_to([x, y, 0])
-
-
-def lobe(x, y, w, h, text, r=0.35):
-    back = RoundedRectangle(corner_radius=r, width=w, height=h, stroke_width=0, fill_color=BG, fill_opacity=1)
-    body = RoundedRectangle(corner_radius=r, width=w, height=h, stroke_color=ORANGE, stroke_width=3.5,
-                            fill_color=ORANGE, fill_opacity=0.3)
-    lab = G(text, 26, ORANGE)
-    return VGroup(back, body, lab).move_to([x, y, 0])
-
-
-def bgamma(x, y):
-    """the beta gamma unit: one blob."""
-    back = RoundedRectangle(corner_radius=0.45, width=1.5, height=1.2, stroke_width=0, fill_color=BG,
-                            fill_opacity=1).move_to([x, y, 0])
-    body = RoundedRectangle(corner_radius=0.45, width=1.5, height=1.2, stroke_color=ORANGE, stroke_width=3.5,
-                            fill_color=ORANGE, fill_opacity=0.3).move_to([x, y, 0])
-    lbl = G("βγ", 30, ORANGE).move_to([x, y, 0])
-    return [back, body, lbl]
-
-
-def shift_all(parts, v):
-    return [p.animate.shift(v) for p in parts]
-
-
-# ---- ions, targets, cards ------------------------------------------------------------------------------
-def ion(text, x, y, r=0.26):
-    c = Circle(radius=r, stroke_color=PINK, stroke_width=2.5, fill_color=PINK, fill_opacity=0.9)
-    return VGroup(c, T(text, 22, BG, weight=BOLD).move_to(c)).move_to([x, y, 0])
-
-
-def channel(opened):
-    """the potassium channel: two blocks across the membrane; closed they touch, open they leave a gap."""
-    off = 0.65 if opened else 0.275
-    g = VGroup()
-    for sgn in (-1, 1):
-        back = RoundedRectangle(corner_radius=0.12, width=0.55, height=MEM_H, stroke_width=0, fill_color=BG, fill_opacity=1)
-        body = RoundedRectangle(corner_radius=0.12, width=0.55, height=MEM_H, stroke_color=TEAL, stroke_width=3.5,
-                                fill_color=TEAL, fill_opacity=0.4)
-        g.add(VGroup(back, body).move_to([CX + sgn * off, MEM_Y, 0]))
+def opening_world(question=True):
+    """Exact carried frame for s01–s03."""
+    mem = membrane()
+    rec = receptor_bundle(center=(-1.55, MEM_Y, 0), scale=0.9)
+    lig = agonist((-1.55, 2.62, 0))
+    gp = gprotein(center=(-0.6, -2.25, 0), joined=True)
+    rlab = T("7-pass GPCR", 28, BLUE).move_to([-4.6, 1.75, 0])
+    lead = arrow_between(rlab.get_right() + RIGHT * 0.16, rec.get_left() + UP * 0.5,
+                         BLUE, width=3, buff=0.02)
+    qarr = DashedLine([-6.0, 2.5, 0], [-6.0, -1.85, 0], color=TEXT, stroke_width=5,
+                      dash_length=0.18)
+    qtip = Triangle(color=TEXT, fill_color=TEXT, fill_opacity=1).scale(0.13).rotate(PI).move_to(qarr.get_end())
+    q = fit_text("How does binding outside load a switch inside?", max_w=7.0, size=34,
+                 color=TEXT).move_to([3.0, 3.28, 0])
+    g = VGroup(mem, rec, lig, gp, rlab, lead, qarr, qtip)
+    if question:
+        g.add(q)
+    g.mem, g.rec, g.lig, g.gp, g.qarr, g.qtip, g.question = mem, rec, lig, gp, qarr, qtip, q
     return g
 
 
-def qbox(x, y, w=0.9, h=0.9):
-    shape = RoundedRectangle(corner_radius=0.14, width=w, height=h).move_to([x, y, 0])
-    back = shape.copy().set_stroke(width=0).set_fill(BG, 1)
-    return VGroup(back, DashedVMobject(shape, num_dashes=24).set_color(GREY),
-                  T("?", 40, TEXT, weight=BOLD).move_to([x, y, 0]))
+def active_receptor_world(with_trimer=False, nucleotide_text="GDP", nucleotide_color=GREY, labels=False):
+    """Exact carried close view for s04–s06."""
+    mem = membrane()
+    rec = receptor_bundle(center=(-1.65, MEM_Y, 0), scale=1.25, active=True, labels=labels)
+    lig = agonist((-1.65, 2.45, 0))
+    cavity = DashedVMobject(Ellipse(width=1.2, height=0.72).move_to([0.12, -0.82, 0]),
+                            num_dashes=24).set_color(TEXT).set_stroke(width=3)
+    g = VGroup(mem, rec, lig, cavity)
+    if with_trimer:
+        gp = gprotein(center=(0.1, -2.15, 0), nucleotide_text=nucleotide_text,
+                      nucleotide_color=nucleotide_color, joined=True)
+        g.add(gp)
+        g.gp = gp
+    g.mem, g.rec, g.lig, g.cavity = mem, rec, lig, cavity
+    return g
 
 
-def card():
-    return RoundedRectangle(corner_radius=0.2, width=5.0, height=2.3, stroke_color=GREY, stroke_width=2).move_to([1.05, -2.15, 0])
+def family_chip(text, x, y, color=PURPLE):
+    return boxed_label(text, color, size=25, box=(1.55, 0.58), pad=0.12).move_to([x, y, 0])
 
 
-def title_tag(text):
-    return T(text, 28, GREY).move_to([-4.2, 3.2, 0])
+def pathway_hourglass(outputs=True):
+    """Carried schematic for s08–s09."""
+    receptors = VGroup(*[RoundedRectangle(corner_radius=0.15, width=0.45, height=1.0,
+                                          stroke_color=BLUE, fill_color=BLUE, fill_opacity=0.3)
+                         for _ in range(4)]).arrange(DOWN, buff=0.18).move_to([-5.25, 0.45, 0])
+    fams = VGroup(family_chip("Gs", -1.5, 2.0), family_chip("Gi/o", -1.5, 0.85),
+                  family_chip("Gq/11", -1.5, -0.3), family_chip("G12/13", -1.5, -1.45),
+                  family_chip("beta-gamma", -1.5, -2.6, TEAL))
+    in_arrows = VGroup(*[arrow_between(receptors.get_right(), f.get_left(), GREY, 3) for f in fams])
+    group = VGroup(receptors, fams, in_arrows)
+    if outputs:
+        outs = VGroup(family_chip("cAMP up", 3.55, 2.0, GREEN),
+                      family_chip("cAMP down", 3.55, 0.85, GOLD),
+                      family_chip("calcium up", 3.55, -0.3, RED),
+                      family_chip("Rho GEF", 3.55, -1.45, TEXT),
+                      family_chip("K+ channel", 3.55, -2.6, TEAL))
+        out_arrows = VGroup(*[arrow_between(f.get_right(), o.get_left(), f.box.get_color(), 3)
+                              for f, o in zip(fams, outs)])
+        group.add(outs, out_arrows)
+        group.outs, group.out_arrows = outs, out_arrows
+    group.receptors, group.fams, group.in_arrows = receptors, fams, in_arrows
+    return group
 
 
-def ticks(cx, y, h=0.22):
-    xs = np.array([0, 0.3, 0.65, 1.05, 1.55, 2.15])
-    xs = xs - xs.mean() + cx
-    return VGroup(*[Line([x, y - h, 0], [x, y + h, 0], color=TEXT, stroke_width=6) for x in xs])
-
-
-# ---- the two-cell picture (s01 and s06) ------------------------------------------------------------------
-class Cells:
-    """ACh on top; below, a heart pacemaker cell on the left and an airway muscle cell on the right.
-    In each: arrow in, a box for the path (a question mark, then receptor -> G protein), arrow out, the outcome."""
-
-    def __init__(self):
-        self.ach = bchip("acetylcholine", YELLOW, 30).move_to([0, 2.95, 0])
-        self.col = {}
-        for side, tag in ((-1, "heart pacemaker cell"), (1, "airway muscle cell")):
-            x = side * XC
-            outline = RoundedRectangle(corner_radius=0.3, width=5.8, height=4.8, stroke_color=GREY, stroke_width=3).move_to([x, -0.95, 0])
-            name = T(tag, 26, GREY).move_to([x, -3.0, 0])
-            shape = RoundedRectangle(corner_radius=0.16, width=5.0, height=1.0).move_to([x, 0.55, 0])
-            box = VGroup(shape.copy().set_stroke(width=0).set_fill(BG, 1), DashedVMobject(shape, num_dashes=48).set_color(GREY))
-            q = T("?", 44, TEXT, weight=BOLD).move_to([x, 0.55, 0])
-            a_in = arr([side * 0.55, 2.55, 0], [x, 1.1, 0], YELLOW)
-            a_out = arr([x, 0.0, 0], [x, -0.5, 0], GREY)
-            if side < 0:
-                out = T("heart slows", 34, TEXT, weight=BOLD).move_to([x, -0.95, 0])
-                glyph = ticks(x, -2.0)
-            else:
-                out = T("muscle contracts", 34, TEXT, weight=BOLD).move_to([x, -0.95, 0])
-                glyph = RoundedRectangle(corner_radius=0.25, width=3.2, height=0.5, stroke_color=TEXT, stroke_width=3,
-                                         fill_color=GREY, fill_opacity=0.5).move_to([x, -2.0, 0])
-            self.col[side] = dict(outline=outline, name=name, box=box, q=q, a_in=a_in, a_out=a_out, out=out, glyph=glyph, x=x)
-
-    def pair(self, side, left, right, lc=BLUE, rc=PURPLE):
-        """the two chips and the arrow between them, in the box."""
-        x = self.col[side]["x"]
-        a = bchip(left, lc, 26).move_to([x - 1.35, 0.55, 0])
-        b = bchip(right, rc, 26).move_to([x + 1.35, 0.55, 0])
-        mid = arr([a.get_right()[0] + 0.05, 0.55, 0], [b.get_left()[0] - 0.05, 0.55, 0], GREY, w=4, tip=0.16)
-        return a, mid, b
-
-
-class S00Title(TitleCard):
-    LESSON = "GPCRs and Trimeric G Proteins"
-    TITLE = "The Receptor Decides the Answer"
-
-
-# ---------------------------------------------------------------------------------------------
-class S01Question(SpokenScene):
-    """one molecule, two opposite answers: who decides, the molecule or the cell? (the puzzle, two cells)"""
+class S01Hook(SpokenScene, TitleCard):
+    LESSON = "GPCRs and G Proteins"
+    TITLE = "How a Receptor Loads a Switch"
 
     def construct(self):
-        C = Cells()
-        L, R = C.col[-1], C.col[1]
-        self.at("Acetylcholine")
-        self.play(FadeIn(C.ach, shift=DOWN * 0.2), run_time=0.5)
-
-        self.at("slows the heart")
-        self.play(FadeIn(L["outline"]), FadeIn(L["name"]), GrowArrow(L["a_in"]), FadeIn(L["box"]), FadeIn(L["q"]), run_time=0.7)
-        self.play(GrowArrow(L["a_out"]), FadeIn(L["out"], shift=DOWN * 0.1), run_time=0.4)
-        self.play(LaggedStart(*[Create(t) for t in L["glyph"]], lag_ratio=0.3), run_time=1.0)
-
-        self.at("makes the muscle")
-        self.play(FadeIn(R["outline"]), FadeIn(R["name"]), GrowArrow(R["a_in"]), FadeIn(R["box"]), FadeIn(R["q"]), run_time=0.7)
-        self.play(FadeIn(R["glyph"]), run_time=0.3)
-        self.at("contract")
-        self.play(GrowArrow(R["a_out"]), FadeIn(R["out"], shift=DOWN * 0.1), run_time=0.4)
-        self.play(R["glyph"].animate.stretch_to_fit_width(1.7).stretch_to_fit_height(0.75), run_time=0.7)
-
-        self.at("Who decides")
-        self.play(*[Indicate(c["q"], color=YELLOW, scale_factor=1.3) for c in (L, R)], run_time=0.8)
-        self.at("the molecule")
-        self.play(*chip_glow(C.ach, 1.12), run_time=0.6)
-        self.at("or the cell")
-        self.play(*[Indicate(c["outline"], color=TEXT, scale_factor=1.02) for c in (L, R)], run_time=0.8)
-
-        ghost = ghost_chip("instruction", 24).move_to([4.0, 2.95, 0])
-        link = arr([C.ach.get_right()[0], 2.95, 0], [ghost.get_left()[0], 2.95, 0], GREY, w=3, tip=0.15)
-        self.at("carries no instruction")
-        self.play(GrowArrow(link), FadeIn(ghost), run_time=0.6)
-        x1 = strike(ghost)
-        self.play(Create(x1), run_time=0.4)
-
-        self.at("Each cell decides")
-        self.play(FadeOut(VGroup(link, ghost, x1)), *[Indicate(c["outline"], color=TEXT, scale_factor=1.02) for c in (L, R)],
-                  run_time=0.8)
-        recs, gps = [], []
-        for side in (-1, 1):
-            a, mid, b = C.pair(side, "receptor", "G protein")
-            recs.append((a, mid, b))
-        self.at("its receptor")
-        self.play(*[FadeOut(c["q"]) for c in (L, R)], *[FadeIn(r[0], scale=0.8) for r in recs], run_time=0.6)
-        self.at("G protein")
-        self.play(*[GrowArrow(r[1]) for r in recs], *[FadeIn(r[2], scale=0.8) for r in recs], run_time=0.7)
-        self.play(*[pulse for r in recs for pulse in chip_glow(r[2], 1.08, PURPLE)], run_time=0.6)
+        w = opening_world()
+        self.add(w.mem)
+        self.at("How can binding")
+        self.play(FadeIn(w.lig, shift=DOWN * 0.25), FadeIn(w.rec), run_time=1.0)
+        bob(w.lig, amp=0.16, speed=3.0)
+        self.play(FadeIn(w.gp, shift=UP * 0.2), run_time=0.8)
+        self.play(Create(w.qarr), FadeIn(w.qtip), run_time=0.8)
+        pulse(w.qarr, base=5, amp=1.5, speed=2.2)
+        self.at("Follow one membrane")
+        self.play(FadeIn(w.question), FadeIn(w[4]), GrowArrow(w[5]), run_time=0.8)
+        self.play(Indicate(w.lig, color=GOLD, scale_factor=1.08), run_time=1.0)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S02Pocket(SpokenScene):
-    """the seven-helix receptor: the agonist binds in a pocket, helix 6 swings out and opens a cavity. (zoomed in)"""
-
+class S02Predict(Scene):
     def construct(self):
-        mem = zoom(band())
-        labs = VGroup(T("outside", 24, GREY).move_to([-5.6, 2.0, 0]), T("inside", 24, GREY).move_to([-5.6, -2.1, 0]))
-        self.add(mem, labs)
-        sil = zoom(silhouette())
-        gp = T("GPCR", 30, BLUE, weight=BOLD).move_to([-0.5, -2.45, 0])
-        self.at("This receptor")
-        self.play(FadeIn(sil, scale=0.9), FadeIn(gp), run_time=0.7)
+        w = opening_world()
+        self.add(w)
+        bob(w.lig, amp=0.16, speed=3.0)
+        bob(w.gp, amp=0.15, speed=2.8, seed=2)
+        pulse(w.qarr, base=5, amp=1.5, speed=2.2)
+        self.wait(4.5)
 
-        self.at("coupled receptor")
-        self.play(Indicate(sil, color=TEXT, scale_factor=1.03), run_time=0.8)
-        self.at("Its chain")
-        self.play(Indicate(gp, color=TEXT, scale_factor=1.25), run_time=0.8)
 
-        rec = zoom(receptor())
-        self.at("crosses the membrane")
-        self.play(FadeOut(sil), LaggedStart(*[FadeIn(h, shift=UP * 0.25) for h in rec], lag_ratio=0.18), run_time=1.6)
-        self.at("seven helices")
-        self.play(LaggedStart(*[Indicate(h[1], color=TEXT, scale_factor=1.08) for h in rec], lag_ratio=0.18), run_time=1.4)
+class S03Title(Scene):
+    def construct(self):
+        w = opening_world(question=False).set_opacity(0.35)
+        bob(w.lig, amp=0.04, speed=1.7)
+        title = fit_text("How a Receptor Loads a Switch", max_w=11.0, size=50,
+                         color=TEXT, font=TITLE_FONT).move_to([0, 0.25, 0])
+        self.add(w)
+        self.play(FadeIn(title), run_time=0.45)
+        self.wait(1.1)
+        self.play(FadeOut(title), run_time=0.45)
 
-        dock = zp(LIG_DOCK)
-        lig = ligand([4.0, 1.9, 0], tag=False, k=K2)
-        self.at("Acetylcholine is")
-        self.play(FadeIn(lig, shift=DOWN * 0.2), run_time=0.6)
-        ag = T("agonist", 24, YELLOW).move_to(lig.dot.get_center() + UP * 1.08 * K2)
-        self.at("agonist")
-        self.play(FadeIn(ag, shift=DOWN * 0.1), run_time=0.4)
-        lig.add(ag)
-        self.at("activates its receptor")
-        self.play(Indicate(lig.dot, color=TEXT, scale_factor=1.4), Indicate(rec[3][1], color=TEXT, scale_factor=1.04), run_time=0.7)
 
-        self.at("binds in a pocket")
-        self.play(lig.animate.shift(dock - lig.dot.get_center()), FadeOut(gp), run_time=1.3)
-        self.at("favors")
-        self.play(LaggedStart(*[Indicate(rec[i][1], color=TEXT, scale_factor=1.05) for i in (1, 2, 3, 4, 5)], lag_ratio=0.12),
-                  run_time=0.9)
-
-        pv = zp(pivot6())
-        lab6 = T("helix 6", 26, BLUE, weight=BOLD).move_to(pv + np.array([1.5, 0.55, 0]))
-        ptr = Line(pv + np.array([0.85, 0.43, 0]), pv + np.array([0.2, 0.13, 0]), color=BLUE, stroke_width=3)
-        self.at("inner end of helix")
-        self.play(FadeIn(lab6), Create(ptr), Indicate(rec[5][1], color=TEXT, scale_factor=1.12), run_time=0.8)
-        self.at("swings outward")
-        self.play(Rotate(rec[5], SWING, about_point=pv), run_time=1.4)
-        cav = zoom(cavity())
-        cav_lbl = T("cavity", 24, TEXT).move_to(zp([GX, -1.15, 0]))
-        self.at("opens a cavity")
-        self.play(Create(cav), FadeIn(cav_lbl), run_time=0.8)
-
-        # after the last word: ease back to the stage the next scene starts on
-        rest = self.narration_s - 0.02 - self.elapsed()
-        if rest > 0:
-            self.wait(rest)
-        nlig, nrec, nlabs = ligand(LIG_DOCK), receptor(swung=True), VGroup(*side_labels())
-        self.play(FadeOut(lab6), FadeOut(ptr), FadeOut(cav_lbl), run_time=0.3)
-        self.play(Transform(mem, band()), *[Transform(rec[i], nrec[i]) for i in range(7)], Transform(cav, cavity()),
-                  Transform(lig.dot, nlig.dot), lig.lab.animate.move_to(nlig.lab.get_center()),
-                  ag.animate.move_to(nlig[2].get_center()),
-                  labs[0].animate.move_to(nlabs[0].get_center()), labs[1].animate.move_to(nlabs[1].get_center()),
-                  run_time=0.9)
+class S04Receptor(SpokenScene):
+    def construct(self):
+        w = active_receptor_world(labels=True)
+        mem, rec, lig, cavity = w.mem, w.rec, w.lig, w.cavity
+        rec0 = receptor_bundle(center=(-1.65, MEM_Y, 0), scale=1.25, active=False, labels=True)
+        self.add(mem)
+        self.at("A G protein")
+        self.play(LaggedStart(*[FadeIn(b, shift=UP * 0.2) for b in rec0.bars], lag_ratio=0.12), run_time=1.5)
+        self.play(Create(rec0.chain), run_time=1.0)
+        pulse(rec0.bars, base=4, amp=1.0, speed=1.8)
+        wave_bars(rec0.bars)
+        self.at("one chain")
+        self.play(Indicate(rec0.chain, color=TEXT, scale_factor=1.02), run_time=0.7)
+        self.play(FadeOut(rec0.chain), FadeIn(rec0.nums), run_time=0.5)
+        outer = T("outer pocket", 28, BLUE).move_to([3.6, 2.2, 0])
+        inner = T("inner face", 28, BLUE).move_to([3.6, -0.62, 0])
+        self.at("Its outer pocket")
+        self.play(FadeIn(outer), FadeIn(inner), run_time=0.7)
+        self.play(Indicate(rec0, color=BLUE, scale_factor=1.02), run_time=1.0)
+        self.at("An agonist")
+        self.play(FadeOut(VGroup(outer, inner)), FadeIn(lig, shift=DOWN * 0.3), run_time=0.8)
+        bob(lig, amp=0.035, speed=2)
+        self.at("It settles")
+        lig.clear_updaters()
+        pocket_lig = Circle(radius=0.22, stroke_color=GOLD, stroke_width=3,
+                            fill_color=GOLD, fill_opacity=1).move_to([-1.65, 1.58, 0])
+        pocket_lab = T("agonist", 28, GOLD).move_to([3.35, 2.2, 0])
+        self.play(FadeOut(lig), FadeIn(pocket_lig, shift=DOWN * 0.2), FadeIn(pocket_lab), run_time=1.2)
+        self.play(Indicate(rec0.bars[2:5], color=GOLD, scale_factor=1.05), run_time=0.8)
+        self.at("One cytoplasmic")
+        for b in rec0.bars:
+            b.clear_updaters()
+        self.play(Transform(rec0, rec), run_time=1.4)
+        h6 = T("helix 6", 28, BLUE).move_to([3.45, -1.45, 0])
+        h6a = arrow_between(h6.get_left(), rec.bars[5].get_bottom(), BLUE, 3)
+        self.play(FadeIn(h6), GrowArrow(h6a), Create(cavity), run_time=0.8)
+        pulse(cavity, base=3, amp=1.2, speed=2.4)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S03Loading(SpokenScene):
-    """the receptor loads the G protein: GDP out, GTP in, Gα·GTP and βγ let go."""
-
+class S05Resting(SpokenScene):
     def construct(self):
-        mem, labs = band(), side_labels()
-        rec = receptor(swung=True)
-        lig = ligand(LIG_DOCK)
-        cav = cavity()
-        self.add(mem, labs, rec, lig, cav)
-
-        ga = galpha(GX, YB_WAIT)
-        gdp = nuc(GX, YB_WAIT - 0.27, "GDP", GREY)
-        bx, by = GX + 1.95, YB_WAIT
-        gp_lab = T("G protein", 26, PURPLE).move_to([(GX + bx) / 2, -3.3, 0])
-        self.at("Waiting just inside")
-        self.play(FadeIn(VGroup(*ga), shift=UP * 0.3), run_time=0.7)
-        self.at("a G protein")
-        self.play(FadeIn(gp_lab), *glow(ga[2], ga[3], s=1.06, color=TEXT), run_time=0.6)
-        self.at("holds")
-        self.play(FadeIn(gdp, scale=0.7), run_time=0.5)
-
-        # beta and gamma bind each other and become one unit
-        beta = lobe(bx + 1.2, by + 0.45, 0.95, 0.95, "Gβ")
-        gamma = lobe(bx + 2.0, by - 0.55, 0.8, 0.8, "Gγ", r=0.3)
-        self.at("bind each other")
-        self.play(FadeIn(beta, shift=LEFT * 0.2), FadeIn(gamma, shift=LEFT * 0.2), run_time=0.5)
-        self.play(beta.animate.move_to([bx - 0.4, by + 0.1, 0]), gamma.animate.move_to([bx + 0.5, by - 0.1, 0]), run_time=0.9)
-        bg = bgamma(bx, by)
-        self.at("one unit")
-        self.play(FadeOut(beta), FadeOut(gamma), FadeIn(VGroup(*bg)), run_time=0.5)
-
-        # the active receptor grips the G protein: its tail fits the cavity
-        dock = np.array([0, YB_DOCK - YB_WAIT, 0])
-        self.at("The active receptor")
-        self.play(LaggedStart(*[Indicate(h[1], color=TEXT, scale_factor=1.05) for h in rec], lag_ratio=0.08), run_time=0.9)
-        self.at("grips")
-        self.play(FadeOut(cav), FadeOut(gp_lab), *shift_all(ga, dock), gdp.animate.shift(dock), *shift_all(bg, dock), run_time=1.0)
-        self.at("loosens")
-        self.play(Wiggle(gdp, scale_value=1.15, rotation_angle=0.05 * TAU), run_time=1.0)
-        self.at("leaves")
-        self.play(gdp.animate.shift(DOWN * 1.5 + LEFT * 1.4).set_opacity(0), run_time=0.9)
-        gtp = nuc(3.0, -3.1, "GTP", GREEN)
-        slot = np.array([GX, YB_DOCK - 0.27, 0])
-        self.at("takes the empty")
-        self.play(FadeIn(gtp, shift=UP * 0.2), run_time=0.3)
-        self.play(gtp.animate.move_to(slot), run_time=0.8)
-        self.play(ga[2].animate.set_stroke(GREEN, 4), run_time=0.4)
-
-        tb = T("textbook picture", 24, GREY).move_to([0.6, -3.3, 0])
-        self.at("textbook picture")
-        self.play(FadeIn(tb), run_time=0.4)
-        pull = np.array([0, -0.7, 0])                         # first the tail comes out of the cavity
-        free_a = FA - np.array([GX, YB_DOCK - 0.7, 0])        # then each part drifts away
-        free_b = FB - np.array([bx, YB_DOCK - 0.7, 0])
-        self.at("lets go")
-        self.play(*shift_all(ga, pull), gtp.animate.shift(pull), *shift_all(bg, pull), run_time=0.6)
-        self.play(*shift_all(ga, free_a), gtp.animate.shift(free_a), *shift_all(bg, free_b), FadeOut(tb), run_time=1.3)
+        w = active_receptor_world()
+        self.add(w)
+        pulse(w.cavity, base=3, amp=1.2, speed=2.6)
+        bob(w.lig, amp=0.10, speed=2.4)
+        gp = gprotein(center=(2.0, -2.25, 0), joined=True)
+        self.at("A membrane bound")
+        self.play(FadeIn(gp.body), FadeIn(gp.tail), run_time=0.8)
+        bob(gp, amp=0.20, speed=3.0)
+        self.at("Purple G alpha")
+        self.play(FadeIn(gp.ga), FadeIn(gp.nuc), run_time=0.7)
+        self.at("Teal beta gamma")
+        self.play(FadeIn(gp.bg), FadeIn(gp.bgl), run_time=0.7)
+        tether1 = Line([1.45, -1.55, 0], [1.45, -0.35, 0], color=GREY, stroke_width=3)
+        tether2 = Line([3.25, -1.7, 0], [3.25, -0.35, 0], color=GREY, stroke_width=3)
+        self.play(Create(tether1), Create(tether2), run_time=0.7)
+        off = boxed_label("inactive", GREY, 28).move_to([4.9, -3.35, 0])
+        self.at("In this resting")
+        self.play(FadeIn(off), run_time=0.5)
+        self.play(Indicate(gp.nuc, color=TEXT, scale_factor=1.12), run_time=0.8)
+        self.at("The G alpha tail")
+        gp.clear_updaters()
+        self.play(FadeOut(VGroup(tether1, tether2, off)), gp.animate.shift(LEFT * 1.9 + UP * 0.55), run_time=1.6)
+        self.play(Indicate(w.cavity, color=TEXT, scale_factor=1.12), run_time=0.8)
+        pulse(w.cavity, base=3, amp=1.0, speed=2.2)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-def free_state():
-    """what s03 leaves behind (and s04, s05 start from): receptor, ligand, Gα·GTP left, βγ right."""
-    rec = receptor(swung=True)
-    lig = ligand(LIG_DOCK)
-    ga = galpha(FA[0], FA[1], active=True)
-    gtp = nuc(FA[0], FA[1] - 0.27, "GTP", GREEN)
-    bg = bgamma(FB[0], FB[1])
-    return rec, lig, ga, gtp, bg
-
-
-class S04Heart(SpokenScene):
-    """pacemaker cell: M2 couples to Gi, free βγ opens a potassium channel, potassium leaves, the heart slows."""
-
+class S06Exchange(SpokenScene):
     def construct(self):
-        mem = band()
-        rec, lig, ga, gtp, bg = free_state()
-        self.add(mem, rec, lig, *ga, gtp, *bg)
-
-        tag_a = T("messenger", 24, GREY).move_to([FA[0], -3.3, 0])
-        tag_b = T("messenger", 24, GREY).move_to([FB[0], -3.3, 0])
-        self.at("alpha with")
-        self.play(*glow(ga[2], ga[3], s=1.08, color=TEXT), FadeIn(tag_a), run_time=0.7)
-        self.at("free beta gamma")
-        self.play(*glow(bg[1], bg[2], s=1.08, color=TEXT), FadeIn(tag_b), run_time=0.7)
-
-        qa, qb = qbox(-5.7, FA[1]), qbox(CX, MEM_Y)
-        da = DashedLine([FA[0] - 0.98, FA[1], 0], [-5.2, FA[1], 0], color=GREY, stroke_width=3, dash_length=0.1)
-        db = DashedLine([FB[0] - 0.2, FB[1] + 0.7, 0], [CX + 0.3, MEM_Y - 0.5, 0], color=GREY, stroke_width=3, dash_length=0.1)
-        self.at("each can find")
-        self.play(FadeIn(qa), Create(da), FadeIn(qb), Create(db), run_time=0.8)
-
-        ttl = title_tag("heart pacemaker cell")
-        self.at("pacemaker cells")
-        self.play(FadeIn(ttl, shift=DOWN * 0.1), FadeOut(qa), FadeOut(da), run_time=0.6)
-        m2 = bchip("M2", BLUE, 26).move_to([-4.6, MEM_Y, 0])
-        self.at("the receptor is")
-        self.play(FadeIn(m2, shift=RIGHT * 0.15), LaggedStart(*[Indicate(h[1], color=TEXT, scale_factor=1.04) for h in rec],
-                                                              lag_ratio=0.06), run_time=0.9)
-        gi = bchip("Gi", PURPLE, 26, pad=0.12).move_to([FA[0] + 1.75, FA[1], 0])
-        gi_lbl = G("Gαi", 28, PURPLE).move_to(ga[3])
-        self.at("G protein called")
-        self.play(FadeOut(tag_a), FadeIn(gi, shift=LEFT * 0.15), ReplacementTransform(ga[3], gi_lbl), run_time=0.7)
-
-        ch0, ch1 = channel(False), channel(True)
-        ch_lbl = T("potassium\nchannel", 22, TEAL, line_spacing=0.8).move_to([5.45, 2.6, 0])
-        tb = T("textbook picture", 24, GREY).move_to([5.0, -2.9, 0])
-        self.at("opens")
-        self.play(FadeIn(tb), run_time=0.4)
-        self.play(FadeOut(tag_b), FadeOut(qb), FadeOut(db), FadeIn(ch0), FadeIn(ch_lbl),
-                  *shift_all(bg, np.array([5.45 - FB[0], -1.25 - FB[1], 0])), run_time=1.2)
-        self.at("potassium channel")
-        self.play(*[Transform(a, b) for a, b in zip(ch0, ch1)], run_time=0.8)
-
-        # potassium streams out through the gap, for as long as the scene runs
-        Y0, Y1 = -1.4, 3.1
-        ions = [ion("K⁺", CX, Y0 - 0.9 * k) for k in range(5)]
-
-        def mover(m, dt):
-            m.shift(UP * 2.0 * dt)
-            y = m.get_center()[1]
-            if y > Y1:
-                m.shift(DOWN * (Y1 - Y0))
-                y = m.get_center()[1]
-            m.set_opacity(float(np.clip(min((y - Y0) / 0.5, (Y1 - y) / 0.8), 0, 1)))
-        for d in ions:
-            d.set_opacity(0)
-            self.add(d)
-        self.at("potassium leaves")
-        for d in ions:
-            d.add_updater(mover)
-        self.wait(0.6)
-
-        cd = card()
-        thr = DashedLine([-1.1, -1.5, 0], [0.3, -1.5, 0], color=GREY, stroke_width=3, dash_length=0.12)
-        thr_l = T("firing threshold", 22, GREY).move_to([1.95, -1.5, 0])
-        mark = Line([-1.1, -1.95, 0], [0.3, -1.95, 0], color=TEXT, stroke_width=7)
-        mark_l = T("membrane potential", 22, TEXT).move_to([1.95, -1.95, 0])
-        self.at("moving the voltage")
-        self.play(FadeIn(cd), Create(thr), FadeIn(thr_l), Create(mark), FadeIn(mark_l), run_time=0.8)
-        self.at("away from threshold")
-        self.play(mark.animate.shift(DOWN * 0.85), mark_l.animate.shift(DOWN * 0.85), run_time=1.3)
-
-        camp = T("cAMP ↓", 22, PINK).move_to([-4.0, -3.05, 0])
-        current = T("pacemaker current ↓", 22, TEXT).move_to([-4.0, -3.5, 0])
-        self.at("Alpha lowers")
-        self.play(*glow(ga[2], gi_lbl, s=1.08, color=TEXT), FadeIn(camp), run_time=0.7)
-        self.at("pacemaker current")
-        self.play(FadeIn(current), run_time=0.6)
-
-        out = T("heart slows", 32, TEXT, weight=BOLD).move_to([-4.2, 2.65, 0])
-        tk = ticks(-4.2, 2.2, 0.13)
-        self.at("the heart slows")
-        self.play(FadeIn(out, shift=DOWN * 0.1), run_time=0.4)
-        self.play(LaggedStart(*[Create(t) for t in tk], lag_ratio=0.3), run_time=1.0)
+        w = active_receptor_world(with_trimer=True)
+        self.add(w)
+        pulse(w.cavity, base=3, amp=1.0, speed=2.2)
+        bob(w.gp, amp=0.18, speed=3.0)
+        bob(w.lig, amp=0.13, speed=2.8)
+        self.at("Docking changes")
+        self.play(Indicate(w.gp.body, color=TEXT, scale_factor=1.04), run_time=0.9)
+        self.at("The gray nucleotide")
+        gdp = w.gp.nuc
+        w.gp.clear_updaters()
+        escape = CubicBezier(gdp.get_center(), gdp.get_center() + DOWN * 1.0,
+                             [2.4, -3.2, 0], [3.6, -3.2, 0])
+        self.play(MoveAlongPath(gdp, escape), run_time=1.1)
+        self.play(FadeOut(gdp, shift=DOWN * 0.2), run_time=0.5)
+        empty = DashedVMobject(RoundedRectangle(corner_radius=0.12, width=1.0, height=0.52),
+                               num_dashes=18).set_color(TEXT).move_to(w.gp.body.get_center() + DOWN * 0.43)
+        self.play(Create(empty), run_time=0.6)
+        self.at("Green GTP")
+        gtp = nucleotide("GTP", GREEN, at=(3.8, -2.75, 0))
+        self.play(FadeIn(gtp), run_time=0.4)
+        self.play(gtp.animate.move_to(empty), FadeOut(empty), run_time=1.1)
+        bob(gtp, amp=0.10, speed=3.2)
+        factor = boxed_label("exchange factor", BLUE, 28).move_to([4.35, 2.15, 0])
+        fa = arrow_between(factor.get_left(), w.rec.get_right() + UP * 0.3, BLUE, 3)
+        self.at("The receptor has acted")
+        self.play(FadeIn(factor), GrowArrow(fa), run_time=0.7)
+        source = T("not a GTP source", 28, GREY).move_to([4.2, 0.55, 0])
+        self.play(FadeIn(source), run_time=0.6)
+        self.at("It remains ready")
+        second = VGroup(
+            RoundedRectangle(corner_radius=0.3, width=1.25, height=0.85, stroke_color=PURPLE,
+                             fill_color=PURPLE, fill_opacity=0.22),
+            RoundedRectangle(corner_radius=0.3, width=0.9, height=0.75, stroke_color=TEAL,
+                             fill_color=TEAL, fill_opacity=0.22).shift(RIGHT * 1.15),
+        ).move_to([5.0, -2.25, 0])
+        self.play(FadeOut(source), FadeIn(second, shift=LEFT * 0.4), run_time=0.8)
+        bob(second, amp=0.04, speed=1.6)
+        self.play(Indicate(w.lig, color=GOLD, scale_factor=1.08), run_time=0.8)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S05Airways(SpokenScene):
-    """airway muscle: M3 couples to Gq, Gα·GTP switches on phospholipase C-β, PIP2 -> IP3, calcium, contraction."""
-
+class S07Outputs(SpokenScene):
     def construct(self):
-        mem = band()
-        rec, lig, ga, gtp, bg = free_state()
-        self.add(mem, rec, lig, *ga, gtp, *bg)
-
-        ttl = title_tag("airway muscle cell")
-        self.at("airway muscle")
-        self.play(FadeIn(ttl, shift=DOWN * 0.1), *[FadeOut(p) for p in bg], run_time=0.6)
-        m3 = bchip("M3", BLUE, 26).move_to([-4.6, MEM_Y, 0])
-        self.at("the receptor is")
-        self.play(FadeIn(m3, shift=RIGHT * 0.15), LaggedStart(*[Indicate(h[1], color=TEXT, scale_factor=1.04) for h in rec],
-                                                              lag_ratio=0.06), run_time=0.9)
-        gq = bchip("Gq", PURPLE, 26, pad=0.12).move_to([FA[0] + 1.75, FA[1], 0])
-        gq_lbl = G("Gαq", 28, PURPLE).move_to(ga[3])
-        self.at("different G protein")
-        self.play(FadeIn(gq, shift=LEFT * 0.15), ReplacementTransform(ga[3], gq_lbl), run_time=0.7)
-        ga = [ga[0], ga[1], ga[2], gq_lbl]
-
-        # Gα·GTP slides along the inner face to the enzyme
-        px, py = 4.0, -1.35
-        enz = bchip("enzyme", TEAL, 24).move_to([px, py, 0])
-        plc = bchip("phospholipase\nC-β", TEAL, 22).move_to([px, py, 0])
-        gdx = np.array([1.7 - FA[0], 0, 0])
-        self.at("Alpha with")
-        self.play(*glow(ga[2], gq_lbl, s=1.06, color=TEXT), run_time=0.5)
-        self.at("switches on")
-        self.play(*shift_all(ga, gdx), gtp.animate.shift(gdx), gq.animate.shift(gdx).set_opacity(0), FadeIn(enz, shift=LEFT * 0.2),
-                  run_time=1.3)
-        self.at("phospholipase")
-        self.play(ReplacementTransform(enz, plc), run_time=0.5)
-        self.play(plc[1].animate.set_stroke(GREEN, 4), run_time=0.4)
-
-        pip = bchip("PIP2", GREY, 24).move_to([px, -0.2, 0])
-        ip3 = bchip("IP3", PINK, 24).move_to([px, -0.2, 0])
-        self.at("The enzyme cuts")
-        self.play(FadeIn(pip, shift=DOWN * 0.1), *glow(plc[1], plc[2], s=1.06, color=TEXT), run_time=0.6)
-        self.play(ReplacementTransform(pip, ip3), run_time=0.5)
-        self.play(ip3.animate.move_to([5.8, -0.2, 0]), run_time=0.5)
-        self.play(ip3.animate.move_to([5.8, -2.3, 0]), run_time=0.6)
-
-        store = bchip("calcium store", GREY, 24).move_to([4.9, -3.2, 0])
-        self.at("releases")
-        self.play(FadeIn(store, shift=UP * 0.15), run_time=0.5)
-        spots = [(3.4, -2.45), (4.3, -2.45), (5.2, -2.45), (6.0, -2.45)]
-        cas = [ion("Ca²⁺", 4.9, -2.9, r=0.34) for _ in spots]
-        self.at("stored calcium")
-        self.play(FadeOut(ip3, scale=0.5), *[FadeIn(c) for c in cas], run_time=0.3)
-        self.play(*[c.animate.move_to([x, y, 0]) for c, (x, y) in zip(cas, spots)], run_time=1.0)
-
-        bar = RoundedRectangle(corner_radius=0.15, width=2.6, height=0.36, stroke_color=TEXT, stroke_width=3,
-                               fill_color=GREY, fill_opacity=0.5).move_to([-4.2, 2.2, 0])
-        out = T("muscle contracts", 32, TEXT, weight=BOLD).move_to([-4.2, 2.65, 0])
-        self.at("the muscle contracts")
-        self.play(FadeIn(bar), FadeIn(out, shift=DOWN * 0.1), run_time=0.5)
-        self.play(bar.animate.stretch_to_fit_width(1.4).stretch_to_fit_height(0.55), run_time=0.9)
+        alpha = gprotein(center=(-1.5, 0.0, 0), nucleotide_text="GTP", nucleotide_color=GREEN,
+                         joined=True, tail=False)
+        self.add(alpha)
+        self.at("GTP changes")
+        self.play(Indicate(alpha.nuc, color=GREEN, scale_factor=1.15), run_time=0.8)
+        canonical = T("textbook picture", 30, TEXT).move_to([0, 3.2, 0])
+        self.at("The textbook picture")
+        bg_unit = VGroup(alpha.bg, alpha.bgl)
+        self.play(FadeIn(canonical), bg_unit.animate.shift(RIGHT * 3.4), run_time=1.4)
+        alpha_unit = VGroup(alpha.body, alpha.ga, alpha.nuc)
+        bob(alpha_unit, amp=0.18, speed=2.8)
+        bob(bg_unit, amp=0.18, speed=2.8, seed=2)
+        gi = T("Gi may rearrange", 30, GOLD).move_to([0, 3.2, 0])
+        self.at("Activated G I")
+        self.play(swap(canonical, gi), bg_unit.animate.shift(LEFT * 1.55), run_time=1.2)
+        targets = VGroup(boxed_label("target A", TEXT, 28).move_to([-4.6, -2.45, 0]),
+                         boxed_label("target B", TEXT, 28).move_to([4.6, -2.45, 0]))
+        arrows = VGroup(arrow_between(alpha.body.get_bottom(), targets[0].get_top(), PURPLE, 4),
+                        arrow_between(alpha.bg.get_bottom(), targets[1].get_top(), TEAL, 4))
+        self.at("Either way")
+        self.play(GrowArrow(arrows[0]), GrowArrow(arrows[1]), FadeIn(targets), run_time=1.0)
+        self.play(Indicate(targets, color=TEXT, scale_factor=1.04), run_time=0.8)
+        self.at("Hydrolysis later")
+        gdp = nucleotide("GDP", GREY).move_to(alpha.nuc)
+        self.play(swap(alpha.nuc, gdp), FadeOut(VGroup(arrows, targets, gi)), run_time=0.9)
+        alpha_unit.clear_updaters(); bg_unit.clear_updaters()
+        self.play(bg_unit.animate.shift(LEFT * 1.85), run_time=1.2)
+        cycle = CurvedArrow([2.4, 1.0, 0], [1.5, 1.7, 0], angle=PI / 2, color=GREY)
+        self.play(Create(cycle), run_time=0.7)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S06Rule(SpokenScene):
-    """the opening picture, answered: M2 + Gi in the heart, M3 + Gq in the airways; same acetylcholine."""
-
+class S08Paths(SpokenScene):
     def construct(self):
-        C = Cells()
-        L, R = C.col[-1], C.col[1]
-        R["glyph"].stretch_to_fit_width(1.7).stretch_to_fit_height(0.75)
-        parts = [C.ach]
-        for c in (L, R):
-            parts += [c["outline"], c["name"], c["box"], c["a_in"], c["a_out"], c["out"], c["glyph"]]
-        pairs = {s: C.pair(s, "receptor", "G protein") for s in (-1, 1)}
-        for s in (-1, 1):
-            parts += list(pairs[s])
-        self.add(*parts)
-
-        new = {-1: C.pair(-1, "M2", "Gi"), 1: C.pair(1, "M3", "Gq")}
-        self.at("In the heart")
-        self.play(*[ReplacementTransform(pairs[-1][i], new[-1][i]) for i in (0, 2)], Indicate(L["outline"], color=TEXT, scale_factor=1.02),
-                  run_time=0.9)
-        self.at("the heart slows")
-        self.play(*glow(L["out"], s=1.1, color=TEXT), *[Indicate(t, color=TEXT, scale_factor=1.2) for t in L["glyph"]], run_time=0.8)
-        self.at("In the airways")
-        self.play(*[ReplacementTransform(pairs[1][i], new[1][i]) for i in (0, 2)], Indicate(R["outline"], color=TEXT, scale_factor=1.02),
-                  run_time=0.9)
-        self.at("muscle contracts")
-        self.play(*glow(R["out"], s=1.1, color=TEXT), R["glyph"].animate.stretch_to_fit_width(3.2).stretch_to_fit_height(0.5), run_time=0.5)
-        self.play(R["glyph"].animate.stretch_to_fit_width(1.7).stretch_to_fit_height(0.75), run_time=0.5)
-
-        self.at("is the same")
-        self.play(*chip_glow(C.ach, 1.12), *glow(L["a_in"], R["a_in"], s=1.05, color=TEXT), run_time=0.8)
-        self.at("are different")
-        self.play(*[g for s in (-1, 1) for g in (chip_glow(new[s][0], 1.1, BLUE) + chip_glow(new[s][2], 1.1, PURPLE))], run_time=1.0)
-
-        fade = [C.ach, L["a_in"], R["a_in"], L["a_out"], R["a_out"], L["out"], R["out"], L["glyph"], R["glyph"], L["name"], R["name"]]
-        self.at("keep this rule")
-        self.play(*[m.animate.set_opacity(0.3) for m in fade], run_time=0.7)
-        self.at("decide")
-        self.play(*[g for s in (-1, 1) for g in (chip_glow(new[s][0], 1.15, TEXT) + chip_glow(new[s][2], 1.15, TEXT))], run_time=1.0)
-        x1 = strike(C.ach)
-        self.at("not the signal")
-        self.play(Create(x1), run_time=0.5)
+        h = pathway_hourglass(outputs=False)
+        tag = scope_tag("schematic")
+        self.at("Now the cell")
+        self.play(FadeIn(h.receptors), run_time=0.7)
+        bob(h.receptors, amp=0.025, speed=1.4)
+        self.at("Follow the hourglass")
+        waist = T("G-protein families", 30, PURPLE).move_to([-1.5, 3.15, 0])
+        self.play(FadeIn(waist), LaggedStart(*[GrowArrow(a) for a in h.in_arrows], lag_ratio=0.12),
+                  LaggedStart(*[FadeIn(f) for f in h.fams], lag_ratio=0.12), run_time=1.8)
+        self.add(tag)
+        outputs = pathway_hourglass(outputs=True)
+        self.at("then widen")
+        self.play(LaggedStart(*[GrowArrow(a) for a in outputs.out_arrows], lag_ratio=0.12),
+                  LaggedStart(*[FadeIn(o) for o in outputs.outs], lag_ratio=0.12), run_time=1.8)
+        pulse(outputs.out_arrows, base=3, amp=1.2, speed=1.8)
+        flow = flow_markers(outputs.out_arrows, [GREEN, GOLD, RED, TEXT, TEAL], per_path=3)
+        self.add(flow)
+        self.at("One branch raises")
+        self.play(Indicate(outputs.outs[0], color=GREEN, scale_factor=1.08), run_time=0.8)
+        self.at("Another lowers")
+        self.play(Indicate(outputs.outs[1], color=GOLD, scale_factor=1.08), run_time=0.8)
+        self.at("Another raises calcium")
+        self.play(Indicate(outputs.outs[2], color=RED, scale_factor=1.08), run_time=0.8)
+        self.at("Beta gamma can open")
+        self.play(Indicate(outputs.outs[4], color=TEAL, scale_factor=1.08), run_time=0.9)
+        flow = Dot(outputs.out_arrows[4].get_start(), radius=0.09, color=TEAL)
+        self.add(flow)
+        self.play(MoveAlongPath(flow, outputs.out_arrows[4]), run_time=1.1)
         self.finish()
 
 
-class S07End(EndCard):
-    LINE = "The receptor, G protein and downstream proteins decide, not the signal."
+class S09Cells(SpokenScene):
+    def construct(self):
+        h = pathway_hourglass(outputs=True)
+        heading = T("main targets, not exclusive", 30, GOLD).move_to([0, 3.25, 0])
+        self.add(h, scope_tag("schematic"))
+        pulse(h.in_arrows, base=3, amp=1.0, speed=1.7)
+        pulse(h.out_arrows, base=3, amp=1.0, speed=1.9)
+        flow = flow_markers(h.out_arrows, [GREEN, GOLD, RED, TEXT, TEAL], per_path=3)
+        self.add(flow)
+        self.at("Each family")
+        self.play(FadeIn(heading), run_time=0.6)
+        faint = CurvedArrow(h.fams[1].get_right(), h.outs[4].get_left(), angle=-0.4,
+                            color=GREY, stroke_opacity=0.45, stroke_width=3)
+        self.play(Create(faint), run_time=1.0)
+        self.at("The receptor makes")
+        self.play(Indicate(h.receptors, color=BLUE, scale_factor=1.08), run_time=0.9)
+        cells = TwoPanel("cell A", "cell B", colors=(BLUE, TEAL), top=0.35, bottom=-3.0, width=8.6)
+        cells.left_frame.set_fill(BLUE, 0.18)
+        cells.right_frame.set_fill(TEAL, 0.18)
+        a = VGroup(boxed_label("cAMP", GREEN, 28), boxed_label("protein A", BLUE, 26)).arrange(DOWN, buff=0.35)
+        b = VGroup(boxed_label("cAMP", GREEN, 28), boxed_label("protein B", TEAL, 26)).arrange(DOWN, buff=0.35)
+        cells.put(a, "left"); cells.put(b, "right")
+        self.at("The cell then supplies")
+        self.play(FadeOut(h), FadeOut(flow), FadeOut(faint), FadeOut(heading),
+                  FadeIn(cells), FadeIn(a), FadeIn(b), run_time=1.2)
+        bob(a[0], amp=0.22, speed=3.0); bob(b[0], amp=0.22, speed=3.2)
+        pa = Line(a.get_right() + RIGHT * 0.22 + UP * 0.4, a.get_right() + RIGHT * 0.22 + DOWN * 0.4,
+                  stroke_opacity=0)
+        pb = Line(b.get_right() + RIGHT * 0.22 + UP * 0.4, b.get_right() + RIGHT * 0.22 + DOWN * 0.4,
+                  stroke_opacity=0)
+        self.add(flow_markers([pa, pb], [BLUE, TEAL], per_path=3, speed=0.38, radius=0.10))
+        outa = Arrow(a.get_bottom(), a.get_bottom() + LEFT * 1.0 + DOWN * 0.55, color=BLUE, buff=0.05)
+        outb = Arrow(b.get_bottom(), b.get_bottom() + RIGHT * 1.0 + DOWN * 0.55, color=TEAL, buff=0.05)
+        self.at("So one messenger")
+        self.play(GrowArrow(outa), GrowArrow(outb), run_time=1.0)
+        pulse(outa, base=4, amp=1.5, speed=3.0); pulse(outb, base=4, amp=1.5, speed=3.0)
+        pulse(cells.left_frame, base=3, amp=1.2, speed=2.0); pulse(cells.right_frame, base=3, amp=1.2, speed=2.0)
+        self.add(flow_markers([outa, outb], [BLUE, TEAL], per_path=2, speed=0.45, radius=0.10))
+        self.finish()
+
+
+class S10Cells(SpokenScene):
+    def construct(self):
+        panels = TwoPanel("pacemaker cell", "airway muscle", colors=(BLUE, PURPLE), top=2.7, bottom=-2.55)
+        panels.left_frame.set_fill(BLUE, 0.16)
+        panels.right_frame.set_fill(PURPLE, 0.16)
+        ach = boxed_label("acetylcholine", GOLD, 28).move_to([0, 3.25, 0])
+        self.add(panels)
+        self.at("The same acetylcholine")
+        self.play(FadeIn(ach), run_time=0.8)
+        bob(ach, amp=0.06, speed=1.6)
+        pulse(ach.box, base=2.5, amp=1.0, speed=1.8)
+        heart = VGroup(boxed_label("M2", BLUE, 28), boxed_label("Gi", PURPLE, 28),
+                       boxed_label("beta-gamma", TEAL, 26), boxed_label("K+ channel", TEAL, 26)).arrange(DOWN, buff=0.24)
+        airway = VGroup(boxed_label("M3", BLUE, 28), boxed_label("Gq", PURPLE, 28),
+                        boxed_label("PLC-beta", TEAL, 26), boxed_label("calcium", RED, 26)).arrange(DOWN, buff=0.24)
+        panels.put(heart, "left"); panels.put(airway, "right")
+        self.at("In a pacemaker")
+        self.play(LaggedStart(*[FadeIn(x) for x in heart], lag_ratio=0.18), run_time=1.6)
+        pulse(VGroup(*[x.box for x in heart]), base=2.5, amp=1.0, speed=1.7)
+        hp = Line(heart.get_right() + RIGHT * 0.22 + UP * 1.25,
+                  heart.get_right() + RIGHT * 0.22 + DOWN * 1.25, stroke_opacity=0)
+        self.add(flow_markers([hp], [TEAL], per_path=4, speed=0.34, radius=0.11))
+        self.at("freed beta gamma")
+        self.play(Indicate(heart[2], color=TEAL, scale_factor=1.08), Indicate(heart[3], color=TEAL, scale_factor=1.08), run_time=0.9)
+        beats = VGroup(*[Line([x, -2.95, 0], [x, -2.6, 0], color=TEXT, stroke_width=6)
+                         for x in (-5.2, -3.8, -2.2, -0.9)])
+        self.at("Firing slows")
+        self.play(LaggedStart(*[Create(b) for b in beats], lag_ratio=0.35), run_time=1.2)
+        self.at("In airway muscle")
+        self.play(LaggedStart(*[FadeIn(x) for x in airway], lag_ratio=0.18), run_time=1.6)
+        pulse(VGroup(*[x.box for x in airway]), base=2.5, amp=1.0, speed=1.9)
+        ap = Line(airway.get_left() + LEFT * 0.22 + UP * 1.25,
+                  airway.get_left() + LEFT * 0.22 + DOWN * 1.25, stroke_opacity=0)
+        self.add(flow_markers([ap], [RED], per_path=4, speed=0.34, radius=0.11))
+        self.at("phospholipase C beta")
+        self.play(Indicate(airway[2], color=TEAL, scale_factor=1.08), Indicate(airway[3], color=RED, scale_factor=1.08), run_time=0.9)
+        band = RoundedRectangle(corner_radius=0.16, width=3.4, height=0.42, stroke_color=TEXT,
+                                fill_color=GREY, fill_opacity=0.5).move_to([3.25, -2.78, 0])
+        self.at("The muscle contracts")
+        self.play(FadeIn(band), run_time=0.4)
+        self.play(band.animate.stretch_to_fit_width(1.9).stretch_to_fit_height(0.65), run_time=1.0)
+        self.at("The input matches")
+        self.play(Indicate(ach, color=GOLD), run_time=0.8)
+        self.add(scope_tag("schematic"))
+        self.finish()
+
+
+class S11Rule(SpokenScene):
+    def construct(self):
+        ligand = boxed_label("ligand", GOLD, 30).move_to([-5.7, 0.25, 0])
+        rec = boxed_label("GPCR subtype", BLUE, 30).move_to([-2.75, 0.25, 0])
+        gp = boxed_label("G protein", PURPLE, 30).move_to([0.35, 0.25, 0])
+        targets = boxed_label("downstream proteins", TEAL, 30).move_to([4.25, 0.25, 0])
+        a1 = arrow_between(ligand.get_right(), rec.get_left(), GOLD, 4)
+        a2 = arrow_between(rec.get_right(), gp.get_left(), GREY, 4)
+        a3 = arrow_between(gp.get_right(), targets.get_left(), GREY, 4)
+        self.at("So do not predict")
+        self.play(FadeIn(ligand), run_time=0.6)
+        bob(ligand, amp=0.18, speed=3.0)
+        wrong = T("ligand alone?", 32, GREY).move_to([0, 2.65, 0])
+        cross = T("×", 58, RED, weight=BOLD).next_to(wrong, LEFT, buff=0.35)
+        self.play(FadeIn(wrong), FadeIn(cross), run_time=0.8)
+        self.at("Trace the receptor")
+        self.play(FadeOut(VGroup(wrong, cross)), GrowArrow(a1), FadeIn(rec), run_time=0.7)
+        self.play(GrowArrow(a2), FadeIn(gp), run_time=0.7)
+        self.play(GrowArrow(a3), FadeIn(targets), run_time=0.7)
+        pulse(VGroup(a1, a2, a3), base=4, amp=1.0, speed=1.8)
+        pathflow = flow_markers([a1, a2, a3], [GOLD, BLUE, PURPLE], per_path=3, speed=0.32)
+        self.add(pathflow)
+        self.at("That path predicts")
+        response = boxed_label("first response", TEXT, 30).move_to([4.25, -2.0, 0])
+        ar = arrow_between(targets.get_bottom(), response.get_top(), TEXT, 4)
+        self.play(GrowArrow(ar), FadeIn(response), run_time=0.9)
+        tag = scope_tag("first response")
+        self.add(tag)
+        self.at("Dose and efficacy")
+        strength = ValueTracker(0.25)
+        gauge = dial(strength, center=[-1.8, -2.0, 0], radius=1.0, label="activation", color=GOLD, size=30)
+        self.play(FadeIn(gauge), run_time=0.6)
+        self.play(strength.animate.set_value(0.9), run_time=1.4)
+        self.at("The wiring decides")
+        self.play(Indicate(VGroup(rec, gp, targets), color=TEXT, scale_factor=1.03), run_time=1.0)
+        self.play(FadeOut(VGroup(ligand, rec, gp, targets, a1, a2, a3, pathflow,
+                                 response, ar, gauge, tag)), run_time=0.8)
+        self.finish()
+
+
+class S12End(EndCard):
+    LINE = "GPCR subtype, G protein, and downstream proteins decide the first response."

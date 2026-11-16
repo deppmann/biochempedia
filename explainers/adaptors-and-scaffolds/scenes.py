@@ -1,729 +1,508 @@
-"""Adaptors, docking proteins and scaffolds: switching on Ras without touching it  (Biochemistrypedia explainer)
+"""How a receptor reaches Ras.
 
-Timed to the SPOKEN words: every self.at("...") cue waits for that phrase in audio/words.json.
+COLOR MAP
+  BLUE   receptor / input
+  GREEN  Grb2 / binding organiser
+  ORANGE Sos / enzyme
+  PURPLE Ras / output switch
+  GOLD   phosphate / GTP highlight
+  GREY   membrane / inactive labels
 
-COLOR MAP (one color per concept, whole video)
-  YELLOW = the growth factor (the signal outside the cell)
-  BLUE   = the receptor and its tail
-  GOLD   = a phosphate (the round "P" badge)
-  PINK   = an SH2 domain (the cup that closes on a phosphate)
-  TEAL   = Grb2, the adaptor
-  ORANGE = an SH3 domain (the claw that holds a partner)
-  PURPLE = Sos, the exchange factor
-  GREEN  = on (Ras switched on, GTP)
-  RED    = ruled out (the line from the receptor to Ras, the kinase that is not needed)
-  GREY   = membrane, Ras while off (GDP), proteins not yet named, labels
-
-No molecular structures: the receptor is a bar with a tail, proteins are labelled pills, the SH2 domain
-is a cup, an SH3 domain is a claw, a phosphate is a "P" badge, the membrane is a bar.
-
-One picture, two framings (the same parts, rebuilt bigger where they are the subject):
-  STAGE  (scenes 1, 2, 4, 5, 6)  the membrane across the top; the receptor tail runs down the left,
-         Ras hangs under the membrane on the right, and the space between them is the gap the film fills.
-  CLOSE  (scene 3)               the adaptor and its partner fill the frame; no membrane.
-The change of framing is animated after the narration (Film.outro), so each scene starts on the picture
-the last one left.
+All proteins are schematic labelled cartoons.  No molecular structures are drawn.
 """
-import numpy as np
-from bp_style import *  # noqa: F401,F403
+from bp_parts import *  # noqa: F401,F403
 
-PURPLE = "#B58CD9"
-PINK = "#F08BB4"
+
 ORANGE = "#F29E4C"
+PURPLE = "#B58CD9"
 
-# ---------------------------------------------------------------------------------------------
-# geometry of the STAGE (frame units)
-# ---------------------------------------------------------------------------------------------
-MEM_Y, MEM_H = 1.70, 0.38          # membrane bar
-XR = -3.7                          # the receptor
-BAR_TOP, BAR_BOT = 2.55, 1.25      # the receptor bar crosses the membrane
-TAIL_END = -2.75
-NUB = 0.45                         # the stub that carries a tyrosine
-YP = (0.15, -0.95, -2.1)           # the three tyrosines on the tail
-PR = 0.24                          # phosphate badge radius
-PX = XR + NUB + PR                 # centre x of a phosphate
-CUP_IN, CUP_OUT = 0.31, 0.47       # SH2 cup radii
-OPEN, SHUT = 150, 290              # cup opening angle (degrees): open / closed on a phosphate
-C_DOCK = np.array([PX, YP[2], 0.0])          # cup centre when it grips the lowest phosphate
-PREDOCK = C_DOCK + np.array([1.0, 0.0, 0.0])
-
-# the adaptor, offsets from the cup centre (scaled by k)
-CUP_TO_BODY = CUP_OUT - 0.05
-BODY_W, BODY_H = 2.1, 0.95
-BODY_HG = 1.6                       # Grb2 is taller: SH3 claw, SH2 cup, SH3 claw run down its length
-CLAW_DY = 0.62
-BODY_DX = CUP_TO_BODY + BODY_W / 2
-CLAW_X0 = CUP_TO_BODY + BODY_W     # right edge of the body
-CLAW_LEN = 0.40
-SOS_LEFT = CLAW_X0 + 0.48
-SOS_W, SOS_H = 2.4, 3.8
-SOS_DY = 1.0                        # Sos centre is this far above the cup centre
-SOS_RIGHT = SOS_LEFT + SOS_W
-RAS_W, RAS_H = 1.4, 0.9
-RAS_X = C_DOCK[0] + SOS_RIGHT + RAS_W / 2          # Ras sits against the top of Sos
-RAS_Y = C_DOCK[1] + 2.85
-
-
-# ---------------------------------------------------------------------------------------------
-# helpers
-# ---------------------------------------------------------------------------------------------
-def bchip(text, color=BLUE, size=24, pad=0.2, **kw):
-    """chip with an opaque backing so lines drawn behind it do not show through."""
-    c = chip(text, color, size=size, pad=pad, **kw)
-    back = RoundedRectangle(corner_radius=0.14, width=c[0].width, height=c[0].height, stroke_width=0,
-                            fill_color=BG, fill_opacity=1).move_to(c[0])
-    return VGroup(back, *c)
-
-
-def ghost_chip(text, size=22):
-    """a dashed grey chip: something that is NOT in this pathway."""
-    t = T(text, size, GREY)
-    box = RoundedRectangle(corner_radius=0.14, width=t.width + 0.4, height=t.height + 0.32)
-    return VGroup(DashedVMobject(box, num_dashes=max(18, int(box.width * 9))).set_color(GREY), t)
-
-
-def strike(m, color=RED):
-    return Line(m.get_corner(DL) + [-0.08, -0.04, 0], m.get_corner(UR) + [0.08, 0.04, 0], color=color, stroke_width=7)
-
-
-def cross_at(p, r=0.24, color=RED, w=7):
-    p = np.array(p, float)
-    return VGroup(Line(p + [-r, -r, 0], p + [r, r, 0], color=color, stroke_width=w),
-                  Line(p + [-r, r, 0], p + [r, -r, 0], color=color, stroke_width=w))
-
-
-def arr(a, b, color=GREY, w=5, tip=0.2):
-    return Arrow(a, b, buff=0.06, color=color, stroke_width=w, tip_length=tip,
-                 max_tip_length_to_length_ratio=0.45, max_stroke_width_to_length_ratio=12)
-
-
-def pbadge(r=PR):
-    c = Circle(radius=r, stroke_color=GOLD, stroke_width=2, fill_color=GOLD, fill_opacity=1)
-    return VGroup(c, T("P", 22, BG, weight=BOLD).move_to(c))
-
-
-def pop(m, s=1.35):
-    """swell and settle, without recolouring (Indicate would hide the P on a badge)."""
-    return m.animate(rate_func=there_and_back).scale(s)
-
-
-def glow(*mobs, s=1.1, color=TEXT):
-    """flash each mobject in place (one animation per mobject)."""
-    return [Indicate(m, color=color, scale_factor=s) for m in mobs]
+MEM_Y = 1.65
+REC_X = -3.85
+RAS_X = 3.75
+TAIL_Y = -0.35
 
 
 def membrane():
-    return RoundedRectangle(corner_radius=0.12, width=12.6, height=MEM_H, stroke_color=GREY, stroke_width=3,
-                            fill_color=GREY, fill_opacity=0.35).move_to([0, MEM_Y, 0])
+    """The one membrane used throughout the film."""
+    m = RoundedRectangle(
+        corner_radius=0.12, width=12.5, height=0.5,
+        stroke_color=GREY, stroke_width=3, fill_color=GREY, fill_opacity=0.24,
+    ).move_to([0, MEM_Y, 0])
+    return pulse(m, base=3.0, amp=2.2, speed=4.0)
 
 
-def receptor():
-    """the receptor: a bar through the membrane and a tail with three tyrosines. [tail, stubs, dots, back, bar]"""
-    mid = (BAR_TOP + BAR_BOT) / 2
-    tail = Line([XR, BAR_BOT, 0], [XR, TAIL_END, 0], color=BLUE, stroke_width=7)
-    stubs = VGroup(*[Line([XR, y, 0], [XR + NUB, y, 0], color=BLUE, stroke_width=6) for y in YP])
-    dots = VGroup(*[Dot([XR + NUB, y, 0], radius=0.08, color=BLUE) for y in YP])
-    back = RoundedRectangle(corner_radius=0.14, width=0.42, height=BAR_TOP - BAR_BOT, stroke_width=0,
-                            fill_color=BG, fill_opacity=1).move_to([XR, mid, 0])
-    bar = RoundedRectangle(corner_radius=0.14, width=0.42, height=BAR_TOP - BAR_BOT, stroke_color=BLUE, stroke_width=4,
-                           fill_color=BLUE, fill_opacity=0.4).move_to([XR, mid, 0])
-    g = VGroup(tail, stubs, dots, back, bar)
-    g.tail, g.bar = tail, bar
+def cell_field():
+    """A broad, quiet cell-interior field below the membrane."""
+    return Rectangle(width=12.5, height=3.45, stroke_width=0,
+                     fill_color=GREY, fill_opacity=0.16).move_to([0, -0.33, 0])
+
+
+def phosphate_badge(point, scale=1.0):
+    ring = Circle(radius=0.27 * scale, color=GOLD, stroke_width=3,
+                  fill_color=GOLD, fill_opacity=0.92).move_to(point)
+    letter = T("P", size=max(22, 25 * scale), color=BG, weight=BOLD).move_to(ring)
+    g = VGroup(ring, letter)
+    g.ring = ring
     return g
 
 
-def ras(color=GREY, opacity=1.0):
-    """Ras: a pill hanging from the inner face of the membrane on a short anchor. [stalk, back, body, label]"""
-    stalk = Line([RAS_X, RAS_Y + RAS_H / 2, 0], [RAS_X, MEM_Y + 0.05, 0], color=color, stroke_width=7)
-    back = RoundedRectangle(corner_radius=0.3, width=RAS_W, height=RAS_H, stroke_width=0, fill_color=BG,
-                            fill_opacity=1).move_to([RAS_X, RAS_Y, 0])
-    body = RoundedRectangle(corner_radius=0.3, width=RAS_W, height=RAS_H, stroke_color=color, stroke_width=4,
-                            fill_color=color, fill_opacity=0.3).move_to([RAS_X, RAS_Y, 0])
-    lab = T("Ras", 32, color, weight=BOLD).move_to(body)
-    g = VGroup(stalk, back, body, lab)
-    g.stalk, g.body, g.lab = stalk, body, lab
-    if opacity < 1:
-        stalk.set_stroke(opacity=opacity)
-        body.set_stroke(opacity=opacity).set_fill(opacity=0.3 * opacity)
-        lab.set_opacity(opacity)
+def receptor(phosphates=0, growth_factor=False):
+    """Shared receptor builder; every membrane-world scene calls this."""
+    outer = RoundedRectangle(corner_radius=0.22, width=1.9, height=1.15,
+                             stroke_color=BLUE, stroke_width=4,
+                             fill_color=BLUE, fill_opacity=0.22).move_to([REC_X, 2.42, 0])
+    outer_label = T("receptor", 28, BLUE, weight=BOLD).move_to(outer)
+    tail = Line([REC_X, 1.62, 0], [REC_X, -1.45, 0], color=BLUE, stroke_width=8)
+    ys = [0.55, -0.35, -1.2]
+    twigs = VGroup(*[
+        Line([REC_X, y, 0], [REC_X + 0.55, y, 0], color=BLUE, stroke_width=6)
+        for y in ys
+    ])
+    tips = VGroup(*[Dot([REC_X + 0.55, y, 0], radius=0.08, color=BLUE) for y in ys])
+    g = VGroup(tail, twigs, tips, outer, outer_label)
+    g.outer, g.outer_label, g.tail = outer, outer_label, tail
+    g.badges = VGroup(*[
+        phosphate_badge([REC_X + 0.82, ys[i], 0]) for i in range(phosphates)
+    ])
+    if phosphates:
+        g.add(g.badges)
+    g.factor = None
+    if growth_factor:
+        g.factor = boxed_label("growth factor", BLUE, size=28).move_to([REC_X, 3.35, 0])
+        g.add(g.factor)
     return g
 
 
-def ras_to(r, color):
-    """animations that turn Ras to a colour."""
-    return [r.stalk.animate.set_stroke(color), r.body.animate.set_stroke(color).set_fill(color, 0.3),
-            r.lab.animate.set_color(color)]
-
-
-def ras_dim(r, o):
-    return [r.stalk.animate.set_stroke(opacity=o), r.body.animate.set_stroke(opacity=o).set_fill(opacity=0.3 * o),
-            r.lab.animate.set_opacity(o)]
-
-
-def phos_pos(i):
-    return np.array([PX, YP[i], 0.0])
-
-
-class Stage:
-    """the fixed part of the picture: membrane, receptor, growth factor, phosphates, Ras."""
-
-    def __init__(self, gf=True, ps=(0, 1, 2), ras_opacity=1.0, ras_color=GREY, with_ras=True):
-        self.mem = membrane()
-        self.rec = receptor()
-        self.rlab = T("receptor", 24, BLUE).move_to([XR - 1.15, 2.2, 0])
-        self.gf = bchip("growth factor", YELLOW, 24).move_to([XR, 3.0, 0]) if gf else None
-        self.ps = {i: pbadge().move_to(phos_pos(i)) for i in ps}
-        self.ras = ras(ras_color, ras_opacity) if with_ras else None
-
-    def parts(self, ras_too=True):
-        ms = [self.mem, self.rec, self.rlab]
-        if self.gf is not None:
-            ms.append(self.gf)
-        ms += list(self.ps.values())
-        if ras_too and self.ras is not None:
-            ms.append(self.ras)
-        return ms
-
-
-def cup_shape(c, deg, k=1.0, color=PINK):
-    s = AnnularSector(inner_radius=CUP_IN * k, outer_radius=CUP_OUT * k, angle=deg * DEGREES,
-                      start_angle=-deg / 2 * DEGREES, color=color, fill_opacity=1, stroke_width=0)
-    return s.shift(np.array(c, float))
-
-
-def reader(c, k=1.0, label="x", color=GREY, deg=SHUT, size=24, lcolor=None, show_label=True, bh=BODY_H):
-    """a protein that carries an SH2 cup on its left end. c is the cup centre. [back, body, label, cup]"""
-    c = np.array(c, float)
-    ctr = c + k * np.array([BODY_DX, 0, 0])
-    w, h = BODY_W * k, bh * k
-    back = RoundedRectangle(corner_radius=0.4 * k, width=w, height=h, stroke_width=0, fill_color=BG,
-                            fill_opacity=1).move_to(ctr)
-    body = RoundedRectangle(corner_radius=0.4 * k, width=w, height=h, stroke_color=color, stroke_width=4 * k ** 0.5,
-                            fill_color=color, fill_opacity=0.25).move_to(ctr)
-    lab = T(label, size * k, lcolor or color, weight=BOLD, line_spacing=0.8).move_to(ctr)
-    if not show_label:
-        lab.set_opacity(0)
-    cup = cup_shape(c, deg, k)
-    g = VGroup(back, body, lab, cup)
-    g.back, g.body, g.lab, g.cup, g.k = back, body, lab, cup, k
+def ras(x=RAS_X, state="", nucleotide=None, scale=1.0):
+    """Shared membrane-bound Ras cartoon."""
+    y = 0.55
+    anchor = Line([x, 1.42, 0], [x, 1.03, 0], color=PURPLE, stroke_width=6)
+    body = RoundedRectangle(corner_radius=0.28, width=2.15 * scale, height=0.95 * scale,
+                            stroke_color=PURPLE, stroke_width=4,
+                            fill_color=PURPLE, fill_opacity=0.20).move_to([x, y, 0])
+    name = T("Ras" if not state else f"Ras {state}", 30, PURPLE, weight=BOLD).move_to(body)
+    g = VGroup(anchor, body, name)
+    g.anchor, g.body, g.name = anchor, body, name
+    g.tag = None
+    if nucleotide:
+        col = GOLD if nucleotide == "GTP" else GREY
+        g.tag = boxed_label(nucleotide, col, size=26).next_to(body, DOWN, buff=0.48)
+        g.add(g.tag)
     return g
 
 
-def cup_anim(g, d0, d1):
-    """open or close the cup of a reader, wherever the reader now is."""
-    k = g.k
-
-    def upd(m, a):
-        c = g.body.get_left() - np.array([CUP_TO_BODY * k, 0, 0])
-        m.become(cup_shape(c, d0 + (d1 - d0) * a, k))
-    return UpdateFromAlphaFunc(g.cup, upd)
-
-
-def claws(c, k=1.0, color=ORANGE):
-    """the two SH3 claws on the right end of the adaptor, opening to the right."""
-    x0 = c[0] + CLAW_X0 * k
-    g = VGroup()
-    for dy in (CLAW_DY, -CLAW_DY):
-        y = c[1] + dy * k
-        m = VMobject().set_points_as_corners([[x0 + CLAW_LEN * k, y + 0.17 * k, 0], [x0, y + 0.17 * k, 0],
-                                              [x0, y - 0.17 * k, 0], [x0 + CLAW_LEN * k, y - 0.17 * k, 0]])
-        m.set_stroke(color, 9 * k ** 0.5).set_fill(opacity=0)
-        g.add(m)
+def sh2_cup(center=(0, 0, 0), scale=1.0, label=True):
+    """A visibly open phosphotyrosine-reading cup."""
+    arc = Arc(radius=0.62 * scale, start_angle=55 * DEGREES, angle=250 * DEGREES,
+              color=GREEN, stroke_width=12 * scale).rotate(PI).move_to(center)
+    g = VGroup(arc)
+    if label:
+        lab = T("SH2", max(24, 29 * scale), GREEN, weight=BOLD)
+        lab.move_to(np.array(center, dtype=float) + UP * 0.98 * scale)
+        g.add(lab)
+        g.label = lab
+    g.arc = pulse(arc, base=12 * scale, amp=2.5, speed=4.0)
     return g
 
 
-def sos(c, k=1.0):
-    """Sos, held by the two claws. [back, body, label, tabs]"""
-    c = np.array(c, float)
-    ctr = c + k * np.array([SOS_LEFT + SOS_W / 2, SOS_DY, 0])
-    w, h = SOS_W * k, SOS_H * k
-    back = RoundedRectangle(corner_radius=0.45 * k, width=w, height=h, stroke_width=0, fill_color=BG,
-                            fill_opacity=1).move_to(ctr)
-    body = RoundedRectangle(corner_radius=0.45 * k, width=w, height=h, stroke_color=PURPLE, stroke_width=4 * k ** 0.5,
-                            fill_color=PURPLE, fill_opacity=0.25).move_to(ctr)
-    lab = T("Sos", 36 * k ** 0.6, PURPLE, weight=BOLD).move_to(ctr)
-    tabs = VGroup()
-    for dy in (CLAW_DY, -CLAW_DY):
-        t = Rectangle(width=(SOS_LEFT - CLAW_X0 - 0.1) * k + 0.12 * k, height=0.14 * k, stroke_width=0,
-                      fill_color=PURPLE, fill_opacity=0.8)
-        t.move_to(c + k * np.array([(CLAW_X0 + 0.1 + SOS_LEFT) / 2, dy, 0]))
-        tabs.add(t)
-    g = VGroup(back, body, lab, tabs)
-    g.back, g.body, g.lab, g.tabs = back, body, lab, tabs
+def sh3_grip(center=(0, 0, 0), scale=1.0, label=True):
+    lines = VGroup(
+        Line([-0.55, 0.36, 0], [0.28, 0.36, 0], color=GREEN, stroke_width=10),
+        Line([-0.55, -0.36, 0], [0.28, -0.36, 0], color=GREEN, stroke_width=10),
+        Line([-0.55, -0.36, 0], [-0.55, 0.36, 0], color=GREEN, stroke_width=10),
+    ).scale(scale).move_to(center)
+    pulse(lines, base=10 * scale, amp=2.0, speed=4.0)
+    g = VGroup(lines)
+    if label:
+        lab = T("SH3", max(24, 27 * scale), GREEN, weight=BOLD)
+        lab.move_to(np.array(center, dtype=float) + UP * 0.80 * scale)
+        g.add(lab)
+        g.label = lab
     return g
 
 
-def partner(c, k=1.0, gap=0.0, ph=0.75):
-    """a protein that is not yet named, standing next to the adaptor. [back, body, label]"""
-    c = np.array(c, float)
-    w, h = 1.4 * k, ph * k
-    ctr = c + k * np.array([CLAW_X0 + gap + 0.7, 0, 0])
-    back = RoundedRectangle(corner_radius=0.3 * k, width=w, height=h, stroke_width=0, fill_color=BG,
-                            fill_opacity=1).move_to(ctr)
-    body = RoundedRectangle(corner_radius=0.3 * k, width=w, height=h, stroke_color=GREY, stroke_width=4 * k ** 0.5,
-                            fill_color=GREY, fill_opacity=0.25).move_to(ctr)
-    lab = T("partner", 22 * k, GREY, weight=BOLD).move_to(ctr)
-    g = VGroup(back, body, lab)
-    g.back, g.body, g.lab = back, body, lab
+def grb2_sos(center=(-1.85, -0.45, 0), scale=1.0, with_sos=True,
+             activity_tag=False, separate_notch=False):
+    """Shared Grb2–Sos builder, rebuilt at an identical scale and place."""
+    c = np.array(center, dtype=float)
+    backplate = RoundedRectangle(corner_radius=0.35 * scale, width=4.35 * scale,
+                                 height=1.30 * scale, stroke_width=0,
+                                 fill_color=GREEN, fill_opacity=0.18).move_to(c)
+    left = sh3_grip(c + LEFT * 1.35 * scale, 0.82 * scale)
+    cup = sh2_cup(c, 0.82 * scale)
+    right = sh3_grip(c + RIGHT * 1.35 * scale, 0.82 * scale)
+    name = boxed_label("Grb2", GREEN, size=max(24, 29 * scale), pad=0.18).move_to(c + UP * 1.65 * scale)
+    adaptor = VGroup(backplate, left, cup, right, name)
+    g = VGroup(adaptor)
+    g.adaptor, g.name, g.cup, g.grips = adaptor, name, cup, VGroup(left, right)
+    g.sos = None
+    if with_sos:
+        sos = boxed_label("Sos", ORANGE, size=max(24, 31 * scale),
+                          box=(2.0 * scale, 0.82 * scale), pad=0.16)
+        sos.move_to(c + DOWN * 1.25 * scale)
+        if separate_notch:
+            notch = Circle(radius=0.16 * scale, color=ORANGE, stroke_width=3,
+                           fill_color=BG, fill_opacity=1).move_to(sos.get_right() + LEFT * 0.03)
+            sos.add(notch)
+            sos.notch = notch
+        g.sos = sos
+        g.add(sos)
+    g.activity = None
+    if activity_tag:
+        tag = T("no enzyme activity", max(24, 25 * scale), GREY)
+        tag.next_to(g, DOWN, buff=0.2)
+        g.activity = tag
+        g.add(tag)
     return g
 
 
-def gdp_chip():
-    return bchip("GDP", GREY, 26, pad=0.16).move_to([RAS_X, RAS_Y - 1.05, 0])
+def base_world(phosphates=0, factor=False, ras_x=RAS_X, ras_state="", ras_nucleotide=None):
+    """The carried membrane world at its canonical scale and position."""
+    field = cell_field()
+    m = membrane()
+    rec = receptor(phosphates=phosphates, growth_factor=factor)
+    r = ras(ras_x, ras_state, ras_nucleotide)
+    world = VGroup(field, m, rec, r)
+    world.field, world.membrane, world.receptor, world.ras = field, m, rec, r
+    return world
 
 
-def gtp_chip():
-    return bchip("GTP", GREEN, 26, pad=0.16).move_to([RAS_X, RAS_Y - 1.05, 0])
+def predict_picture():
+    rec = receptor(phosphates=1)
+    rec.shift(LEFT * 0.45 + DOWN * 0.25)
+    badge = rec.badges[0]
+    cup = sh2_cup([-0.75, 0.9, 0], 1.18)
+    grip = sh3_grip([2.2, 0.9, 0], 1.05)
+    return VGroup(rec, cup, grip)
 
 
-def ring(c, r=0.6, color=TEXT, w=4):
-    return Circle(radius=r, stroke_color=color, stroke_width=w).move_to(np.array(c, float))
+def route_cluster(ras_state="ON"):
+    world = base_world(phosphates=1, factor=False, ras_x=3.2, ras_state=ras_state,
+                       ras_nucleotide="GTP" if ras_state == "ON" else None)
+    pair = grb2_sos(center=(-1.6, -0.55, 0), scale=0.84)
+    g = VGroup(world, pair)
+    g.world, g.pair = world, pair
+    return g
 
 
-class Film(SpokenScene):
-    def frac(self, a, b, f, lead=0.2):
-        """wait until a fraction f of the way from the start of phrase a to the start of phrase b."""
-        t = self.t_of(a) + f * (self.t_of(b) - self.t_of(a)) - lead
-        rest = t - self.elapsed()
-        with open(Path(os.environ["KX_SCRIPT"]).parent / "sync.log", "a") as lg:
-            lg.write(f"{os.environ.get('KX_SCENE_ID')}  {('%.2f of %s>%s' % (f, a, b))[:30]!r:36} at {t + lead:6.2f}  "
-                     f"now {self.elapsed():6.2f}  late {-rest:+5.2f}\n")
-        if rest > 0.02:
-            self.wait(rest)
-
-    def outro(self, *anims, then=None, after=None, run_time=0.38):
-        """hold until the narration ends, clear what the next scene does not inherit, then (optionally)
-        change framing. These run after the last word, so they add a short breath between scenes."""
-        rest = self.narration_s - 0.02 - self.elapsed()
-        if rest > 0:
-            self.wait(rest)
-        if anims:
-            self.play(*anims, run_time=run_time)
-        if then:
-            self.play(*then, run_time=0.9)
-        if after:
-            self.play(*after, run_time=0.45)
-        if then or after:
-            self.wait(0.15)
+class S00Hook(SpokenScene):
+    def construct(self):
+        world = base_world()
+        question = T("?", 72, GOLD, weight=BOLD).move_to([0, 0.3, 0])
+        dotted = VGroup(
+            DashedLine([-2.8, 0.35, 0], [-0.65, 0.35, 0], color=GREY,
+                       stroke_width=4, dash_length=0.12),
+            DashedLine([0.65, 0.35, 0], [2.75, 0.35, 0], color=GREY,
+                       stroke_width=4, dash_length=0.12),
+        )
+        schematic = scope_tag()
+        self.play(FadeIn(world.field), FadeIn(world.membrane),
+                  FadeIn(world.receptor), FadeIn(world.ras), run_time=0.8)
+        self.at("without ever touching")
+        self.play(Create(dotted), FadeIn(question), run_time=1.0)
+        self.at("How does the message")
+        self.play(question.animate.scale(1.15), rate_func=there_and_back, run_time=1.3)
+        self.at("Watch the blue receptor")
+        self.play(Indicate(world.receptor.outer, color=BLUE),
+                  Indicate(world.ras.body, color=PURPLE), FadeIn(schematic), run_time=1.4)
+        self.at("Both sit at")
+        self.play(world.receptor.animate.shift(RIGHT * 0.10),
+                  world.ras.animate.shift(LEFT * 0.16), rate_func=there_and_back, run_time=2.1)
         self.finish()
 
 
-HOME_Z, HOME_C = 1.18, np.array([0.0, 0.25, 0.0])           # scenes 1, 4, 5, 6: the whole stage, a little closer
-Z2, CEN2 = 1.5, np.array([-1.3, -0.67, 0.0])              # scenes 2 and 3 open on the tail, a little closer
-C_CLOSE = C_DOCK + np.array([2.0, 0.0, 0.0])               # where the adaptor floats free in the close-up
-Z3A, CEN3A = 2.0, np.array([C_CLOSE[0] + 1.9, C_DOCK[1] + 0.2, 0.0])     # close on Grb2 and the claws
-Z3, CEN3 = 1.5, np.array([C_CLOSE[0] + (SOS_RIGHT - CUP_OUT) / 2, C_DOCK[1] + 1.1, 0.0])   # back far enough for all of Sos
-
-
-class ZFilm(Film, MovingCameraScene):
-    """a Film whose frame can move in on the action."""
-
-    def look(self, z, cen):
-        """the camera move, as an animation."""
-        return self.camera.frame.animate.set(width=config.frame_width / z).move_to(cen)
-
-    def look_now(self, z, cen):
-        self.camera.frame.set(width=config.frame_width / z).move_to(cen)
-
-    def look_home(self):
-        return self.look(HOME_Z, HOME_C)
-
-
-
-
-class S00Title(TitleCard):
-    LESSON = "Adaptors, Docking Proteins and Scaffolds"
-    TITLE = "Switching On Ras Without Touching It"
-
-
-# ---------------------------------------------------------------------------------------------
-class S01Gap(ZFilm):
-    """a growth factor switches on Ras, yet the receptor never touches it: what sits in between? (STAGE)"""
-
+class S01Title(NarratedScene):
     def construct(self):
-        self.look_now(HOME_Z, HOME_C)
-        st = Stage(gf=False, ps=())
-        gf = bchip("growth factor", YELLOW, 24).move_to([XR + 2.2, 3.0, 0])
-        self.play(FadeIn(st.mem), FadeIn(st.rec), FadeIn(st.rlab), FadeIn(st.ras), FadeIn(gf), run_time=0.5)
-
-        self.at("binds its")
-        self.play(gf.animate.move_to([XR, 3.0, 0]), run_time=0.7)
-        on = T("on", 32, GREEN, weight=BOLD).move_to([RAS_X + 1.2, RAS_Y, 0])
-        self.at("switches on")
-        self.play(Indicate(st.ras.body, color=GREEN, scale_factor=1.12), Indicate(st.ras.lab, color=GREEN, scale_factor=1.12),
-                  FadeIn(on, shift=RIGHT * 0.15), run_time=0.8)
-
-        # the receptor and Ras never meet: a dimension line across the gap
-        y = RAS_Y
-        x0, x1 = XR + 0.4, RAS_X - RAS_W / 2 - 0.1
-        dim_line = DashedLine([x0, y, 0], [x1, y, 0], color=RED, stroke_width=5, dash_length=0.16)
-        caps = VGroup(Line([x0, y - 0.2, 0], [x0, y + 0.2, 0], color=RED, stroke_width=5),
-                      Line([x1, y - 0.2, 0], [x1, y + 0.2, 0], color=RED, stroke_width=5))
-        never = T("never touches", 26, RED).move_to([(x0 + x1) / 2, y + 0.42, 0])
-        self.at("never touches")
-        self.play(FadeOut(on), Create(dim_line), FadeIn(caps), FadeIn(never, shift=DOWN * 0.1), run_time=0.9)
-
-        small = T("small switch protein", 24, GREY).move_to([RAS_X + 0.35, RAS_Y - 0.9, 0])
-        self.at("small switch")
-        self.play(FadeIn(small, shift=UP * 0.1), Indicate(st.ras.body, color=TEXT, scale_factor=1.1),
-                  Indicate(st.ras.lab, color=TEXT, scale_factor=1.1), run_time=0.7)
-
-        inner_y = MEM_Y - MEM_H / 2
-        inner = Line([-6.3, inner_y, 0], [6.3, inner_y, 0], color=TEXT, stroke_width=5)
-        inner_lbl = T("inner face", 24, TEXT).move_to([RAS_X + 2.05, inner_y - 0.32, 0])
-        self.at("interface")
-        self.play(Create(inner), FadeIn(inner_lbl), run_time=0.6)
-        pm = T("plasma membrane", 24, GREY).move_to([4.2, MEM_Y + 0.55, 0])
-        self.at("plasma membrane")
-        self.play(FadeIn(pm, shift=DOWN * 0.1), run_time=0.5)
-
-        # the receptor writes phosphates on its own tail
-        ps = [pbadge().move_to([XR, BAR_BOT - 0.35, 0]) for _ in YP]
-        self.at("adds phosphates")
-        self.play(FadeOut(inner), FadeOut(inner_lbl), FadeOut(small), FadeOut(dim_line), FadeOut(caps), FadeOut(never),
-                  FadeIn(VGroup(*ps), scale=0.5), run_time=0.5)
-        self.play(LaggedStart(*[p.animate.move_to(phos_pos(i)) for i, p in enumerate(ps)], lag_ratio=0.3), run_time=1.5)
-        tl = T("tail", 26, BLUE).move_to([XR - 0.6, -1.0, 0])
-        self.at("own tail")
-        self.play(FadeIn(tl, shift=RIGHT * 0.1), run_time=0.4)
-        self.at("nothing can read")
-        self.play(LaggedStart(*[pop(p, 1.4) for p in ps], lag_ratio=0.2), run_time=1.1)
-
-        # the unknown path from the lowest phosphate to Ras
-        a, b = phos_pos(2) + [0.45, 0, 0], np.array([1.15, YP[2], 0])
-        c, d = np.array([1.15, RAS_Y, 0]), np.array([RAS_X - RAS_W / 2 - 0.12, RAS_Y, 0])
-        path = DashedVMobject(VMobject().set_points_as_corners([a, b, c, d]), num_dashes=46).set_color(GREY)
-        tip = Triangle(fill_color=GREY, fill_opacity=1, stroke_width=0).scale(0.13).rotate(-PI / 2).move_to(d + [0.05, 0, 0])
-        qs = VGroup()
-        for p in (np.array([-0.75, YP[2], 0]), np.array([1.15, -0.65, 0])):
-            shape = RoundedRectangle(corner_radius=0.12, width=0.85, height=0.75)
-            bk = shape.copy().set_stroke(width=0).set_fill(BG, 1).move_to(p)
-            edge = DashedVMobject(shape.copy().move_to(p), num_dashes=20).set_color(GREY)
-            qs.add(VGroup(bk, edge, T("?", 30, TEXT, weight=BOLD).move_to(p)))
-        self.at("in between")
-        self.play(Create(path), FadeIn(tip), FadeOut(pm), LaggedStart(*[FadeIn(q, scale=0.8) for q in qs], lag_ratio=0.35),
-                  run_time=1.3)
-        self.play(LaggedStart(*[pop(q[2], 1.5) for q in qs], lag_ratio=0.3), run_time=0.9)
-        self.outro(FadeOut(VGroup(path, tip, qs, tl)), *ras_dim(st.ras, 0.35))
-
-
-def s2_stage(with_ras=True):
-    return Stage(gf=True, ps=(0, 1, 2), ras_opacity=0.35, with_ras=with_ras)
-
-
-def pulse_body(g):
-    return Indicate(g.body, color=TEXT, scale_factor=1.05)
-
-
-class S02Reader(ZFilm):
-    """each phosphate is a handhold; the SH2 cup closes on it; the proteins that carry a cup are enzymes or not. (TAIL)"""
-
-    def construct(self):
-        self.look_now(HOME_Z, HOME_C)
-        st = s2_stage()
-        self.add(*st.parts())
-        P = st.ps
-
-        self.at("phosphorylated tyrosine")
-        self.play(self.look(Z2, CEN2), FadeOut(st.ras), LaggedStart(*[pop(P[i], 1.4) for i in (0, 1, 2)], lag_ratio=0.2), run_time=1.3)
-        hand = T("handhold", 28, GOLD).next_to(P[0], RIGHT, buff=0.3)
-        self.at("handhold")
-        self.play(FadeIn(hand, shift=LEFT * 0.12), pop(P[0], 1.4), run_time=0.7)
-
-        # a lone SH2 cup, then it grips the middle phosphate
-        c_far = phos_pos(1) + np.array([1.5, 0, 0])
-        cup = cup_shape(c_far, OPEN)
-        self.at("that carry")
-        self.play(FadeOut(hand), FadeIn(cup, scale=0.6), run_time=0.5)
-        sh2 = T("SH2 domain", 28, PINK, weight=BOLD).move_to(c_far + [0.45, 0.95, 0])
-        self.at("small folded")
-        self.play(FadeIn(sh2, shift=DOWN * 0.1), Indicate(cup, color=TEXT, scale_factor=1.3), run_time=0.8)
-        self.at("it grips")
-        sh2_to = phos_pos(1) + np.array([2.0, 0.8, 0])
-        lead2 = Line(sh2_to + [-0.85, -0.2, 0], phos_pos(1) + [0.42, 0.3, 0], color=PINK, stroke_width=3)
-        self.play(cup.animate.shift(LEFT * 1.5), sh2.animate.move_to(sh2_to), run_time=0.7)
-        cup2 = cup_shape(phos_pos(1), SHUT)
-        self.play(Transform(cup, cup2), pop(P[1], 1.3), Create(lead2), run_time=0.45)
-        self.play(*glow(cup, s=1.25), run_time=0.4)
-
-        # the proteins that carry the cup arrive: one is an enzyme, one is not
-        A = reader(phos_pos(1), 1.0, "enzyme", GREY, deg=SHUT, size=26, lcolor=TEXT)
-        B = reader(phos_pos(2) + [2.2, 0, 0], 1.0, "no enzyme\nactivity", GREY, deg=OPEN, size=22, lcolor=TEXT)
-        self.remove(cup)
-        self.add(A.cup)                       # the cup that is already there
-        self.at("recruiting these")
-        self.play(FadeOut(sh2), FadeOut(lead2), GrowFromEdge(VGroup(A.back, A.body), LEFT), run_time=0.7)
-        self.add(B.back, B.body, B.cup)
-        self.play(B.animate.shift(LEFT * 2.2), run_time=1.0)
-        self.play(cup_anim(B, OPEN, SHUT), pop(P[2], 1.3), run_time=0.45)
-        self.at("enzymes")
-        self.play(FadeIn(A.lab), pulse_body(A), run_time=0.7)
-        self.at("have no enzyme")
-        self.play(FadeIn(B.lab), pulse_body(B), run_time=0.8)
-        pt = partner(phos_pos(2), 1.0)
-        self.at("stands next to")
-        self.play(GrowFromEdge(pt, LEFT), run_time=0.6)
-        self.play(*glow(st.rec.tail, s=1.0, color=TEXT), *glow(pt.body, pt.lab, s=1.1), run_time=0.8)
-        self.outro()
-
-
-# ---------------------------------------------------------------------------------------------
-class S03Adaptor(ZFilm):
-    """the protein with no enzyme is Grb2: one SH2 cup, two SH3 claws that already hold Sos. (TAIL, then CLOSE)"""
-
-    def construct(self):
-        self.look_now(Z2, CEN2)
-        st = s2_stage(with_ras=False)
-        A = reader(phos_pos(1), 1.0, "enzyme", GREY, deg=SHUT, size=26, lcolor=TEXT)
-        B = reader(phos_pos(2), 1.0, "no enzyme\nactivity", GREY, deg=SHUT, size=22, lcolor=TEXT)
-        pt = partner(phos_pos(2), 1.0)
-        self.add(*st.parts(), A, B, pt)
-
-        self.at("One of those")
-        self.play(FadeOut(A), run_time=0.5)
-        self.at("no enzyme activity")
-        self.play(Indicate(B.lab, color=TEXT, scale_factor=1.12), run_time=0.7)
-        g_lab = T("Grb2", 30, TEAL, weight=BOLD).move_to(B.body)
-        self.frac("at all", "It has", 0.4)            # "Grab two" is heard as one word, so cue on the words around it
-        tall = reader(phos_pos(2), 1.0, "Grb2", TEAL, deg=SHUT, bh=BODY_HG)
-        self.play(Transform(B.lab, g_lab), Transform(B.back, tall.back), Transform(B.body, tall.body), run_time=0.7)
-
-        # let go of the tail and close in on the adaptor: it holds its partner with nothing gripped
-        c2 = C_CLOSE
-        gone = VGroup(*st.parts())
-        movers = VGroup(B.back, B.body, B.lab, pt)
-        self.at("It has")
-        self.play(movers.animate.shift(RIGHT * 2.0), cup_anim(B, SHUT, OPEN), FadeOut(gone), self.look(Z3A, CEN3A),
-                  run_time=1.3)
-
-        sh2 = T("SH2 domain", 28, PINK, weight=BOLD).move_to(c2 + [0.0, 1.15, 0])
-        lead = Line(sh2.get_bottom() + [-0.1, -0.05, 0], c2 + [0, CUP_OUT + 0.02, 0], color=PINK, stroke_width=3)
-        self.frac("has one", "nothing else", 0.22)
-        self.play(FadeIn(sh2, shift=DOWN * 0.1), Create(lead), Indicate(B.cup, color=TEXT, scale_factor=1.2), run_time=0.7)
-
-        cl = claws(c2, 1.0)
-        gapx = SOS_LEFT - CLAW_X0
-        sh3 = T("SH3 domains", 28, ORANGE, weight=BOLD).move_to(c2 + [CLAW_X0 - 0.35, 1.15, 0])
-        self.frac("has one", "nothing else", 0.6)
-        tp = partner(c2, 1.0, gap=SOS_LEFT - CLAW_X0, ph=1.5)
-        self.play(FadeOut(sh2), FadeOut(lead), Transform(pt.back, tp.back), Transform(pt.body, tp.body),
-                  pt.lab.animate.shift(RIGHT * gapx), run_time=0.5)
-        self.play(Create(cl), FadeIn(sh3, shift=DOWN * 0.1), run_time=0.7)
-        ne = T("nothing else", 26, GREY).move_to(B.body.get_center() + [0, -BODY_HG / 2 - 0.4, 0])
-        self.at("nothing else")
-        self.play(FadeIn(ne, shift=UP * 0.1), Indicate(B.body, color=TEXT, scale_factor=1.04), run_time=0.8)
-
-        # what an SH3 domain is: the camera backs off slowly while the claws take hold of short stretches on the partner
-        self.at("another small")
-        frame = self.camera.frame
-        frame.add_updater(lambda m, dt: m.scale(1 + 0.016 * dt))
-        self.play(FadeOut(ne), *glow(cl[0], cl[1], s=1.3, color=TEXT), run_time=0.8)
-        tabs = sos(c2, 1.0).tabs.set_fill(GREY, 0.8)
-        self.at("short stretches")
-        self.play(FadeIn(tabs, shift=RIGHT * 0.2), *glow(cl[0], cl[1], s=1.2, color=TEXT), run_time=0.8)
-
-        # the claws already hold Sos
-        S = sos(c2, 1.0)
-        self.at("already hold")
-        self.play(*glow(cl[0], cl[1], s=1.2, color=TEXT), run_time=0.6)
-        self.at("called")
-        frame.clear_updaters()
-        self.play(Transform(pt.back, S.back), Transform(pt.body, S.body), Transform(tabs, S.tabs), FadeOut(pt.lab),
-                  FadeIn(S.lab, rate_func=lambda t: smooth(max(0.0, 2 * t - 1))),
-                  FadeOut(sh3), self.look(Z3, CEN3), run_time=1.0)
-        pt.remove(pt.lab)
-        pt.add(S.lab)
-        p_visit = pbadge().move_to(c2 + np.array([CLAW_X0, 1.1, 0]))
-        self.at("with or")
-        self.play(FadeIn(p_visit, scale=0.5), *glow(cl[0], cl[1], s=1.15, color=TEXT), run_time=0.5)
-        self.at("without")
-        self.play(FadeOut(p_visit), *glow(cl[0], cl[1], s=1.15, color=TEXT), run_time=0.5)
-
-        # only the SH2 cup needs a phosphate
-        self.at("Only the")
-        p_cup = pbadge(PR * 1.4).move_to(c2 + np.array([-1.1, 0.0, 0]))
-        self.play(FadeIn(p_cup, scale=0.5), run_time=0.4)
-        self.play(p_cup.animate.move_to(c2), run_time=0.6)
-        self.play(cup_anim(B, OPEN, SHUT), pop(p_cup, 1.25), run_time=0.5)
-
-        # back out to the stage: the adaptor goes to just beside the tail
-        st4 = Stage(gf=True, ps=(0, 1, 2), with_ras=False)
-        asm = VGroup(B, cl, pt, tabs)
-        self.outro(FadeOut(p_cup), cup_anim(B, SHUT, OPEN),
-                   then=[asm.animate.shift(LEFT * 1.0), self.look_home(), FadeIn(VGroup(*st4.parts()))])
-
-
-# ---------------------------------------------------------------------------------------------
-def adaptor_group(c, k=1.0, deg=SHUT):
-    """Grb2 and Sos together, as they stand at the tail."""
-    B = reader(c, k, "Grb2", TEAL, deg=deg, size=28, lcolor=TEAL, bh=BODY_HG)
-    S = sos(c, k)
-    cl = claws(c, k)
-    return B, cl, S
-
-
-class S04Dock(ZFilm):
-    """the cup clamps the phosphate on the tail; the receptor holds Grb2, Grb2 holds Sos; Sos stands against Ras. (STAGE)"""
-
-    def construct(self):
-        self.look_now(HOME_Z, HOME_C)
-        st = Stage(gf=True, ps=(0, 1, 2), with_ras=False)
-        B, cl, S = adaptor_group(PREDOCK, 1.0, OPEN)
-        self.add(*st.parts(), S, B, cl)
-        P3 = st.ps[2]
-        asm = VGroup(B, cl, S)
-        r1 = ring([PX - 0.05, YP[2], 0], 0.68)
-        r2 = ring([C_DOCK[0] + CLAW_X0 + 0.55, YP[2], 0], 0.88)
-        r3 = ring([C_DOCK[0] + SOS_RIGHT - 0.04, RAS_Y - 0.25, 0], 0.3)
-
-        self.play(asm.animate.shift(LEFT * 1.0), run_time=1.0)
-        self.at("clamps down")
-        self.play(cup_anim(B, OPEN, SHUT), pop(P3, 1.35), run_time=0.7)
-        self.at("receptor tail")
-        self.play(*glow(st.rec.tail, st.rec.bar, s=1.0, color=TEXT), run_time=0.7)
-
-        # the two holds, each drawn as it is named
-        self.at("So the receptor holds")
-        self.play(Create(r1), *glow(st.rec.tail, s=1.0, color=BLUE), *glow(B.body, s=1.08, color=TEAL), run_time=0.8)
-        self.at("holds", nth=1)
-        self.play(Create(r2), *glow(cl[0], cl[1], s=1.3, color=TEXT), *glow(S.body, s=1.03, color=PURPLE), run_time=0.9)
-
-        r = ras()
-        self.at("now stands at")
-        self.play(FadeIn(r), run_time=0.8)
-        contact = np.array([C_DOCK[0] + SOS_RIGHT, RAS_Y - 0.15, 0])
-        self.at("where")
-        self.play(Flash(contact, color=TEXT, line_length=0.3, flash_radius=0.38, num_lines=10), Create(r3),
-                  Indicate(r.body, color=TEXT, scale_factor=1.1), run_time=0.8)
-
-        # the message from the phosphate to Ras, by position alone: the holds light up in order
-        self.at("one phosphatira")
-        self.play(pop(P3, 1.4), run_time=0.5)
-        self.at("positioning")
-        self.play(pop(P3, 1.35),
-                  LaggedStart(Indicate(B.cup, color=TEXT, scale_factor=1.1), Indicate(B.body, color=TEXT, scale_factor=1.05),
-                              Indicate(cl, color=TEXT, scale_factor=1.15), Indicate(S.body, color=TEXT, scale_factor=1.03),
-                              Indicate(r.body, color=TEXT, scale_factor=1.1), lag_ratio=0.4), run_time=2.2)
-        self.at("Position is")
-        self.play(Indicate(r.body, color=TEXT, scale_factor=1.12), Indicate(S.body, color=TEXT, scale_factor=1.03), run_time=0.9)
-        self.outro(FadeOut(VGroup(r1, r2, r3)))
-
-
-# ---------------------------------------------------------------------------------------------
-class S05Flip(ZFilm):
-    """Sos swaps GDP for GTP on Ras: off to on, no kinase; Grb2 never grips Ras. (STAGE)"""
-
-    def construct(self):
-        self.look_now(HOME_Z, HOME_C)
-        st = Stage(gf=True, ps=(0, 1, 2))
-        B, cl, S = adaptor_group(C_DOCK, 1.0, SHUT)
-        self.add(*st.parts(), S, B, cl)
-        r = st.ras
-
-        self.at("has one task")
-        self.play(Indicate(S.body, color=TEXT, scale_factor=1.03), Indicate(S.lab, color=TEXT, scale_factor=1.1), run_time=0.8)
-        sos_c = S.body.get_center()
-        exch = T("exchange\nfactor", 24, PURPLE, weight=BOLD, line_spacing=0.8).move_to(sos_c + [0, -0.95, 0])
-        self.at("exchange factor")
-        self.play(FadeIn(exch, shift=UP * 0.12), run_time=0.7)
-
-        gdp = gdp_chip()
-        tether = Line([RAS_X, RAS_Y - RAS_H / 2, 0], gdp.get_top(), color=GREY, stroke_width=4)
-        self.at("swaps the")
-        self.play(FadeIn(gdp, shift=UP * 0.15), Create(tether), run_time=0.7)
-        gtp = gtp_chip().move_to([RAS_X + 2.0, RAS_Y - 1.05, 0])
-        self.frac("swaps the", "flips", 0.55)
-        self.play(FadeIn(gtp, shift=LEFT * 0.15), run_time=0.35)
-        gtp_tether = Line([RAS_X, RAS_Y - RAS_H / 2, 0], [RAS_X, RAS_Y - 1.05 + 0.31, 0], color=GREEN, stroke_width=4)
-        self.play(gdp.animate.shift(DOWN * 1.0).set_opacity(0), FadeOut(tether),
-                  gtp.animate.move_to([RAS_X, RAS_Y - 1.05, 0]), Create(gtp_tether), run_time=0.9)
-
-        on = T("on", 32, GREEN, weight=BOLD).move_to([RAS_X + 1.2, RAS_Y, 0])
-        self.at("flips")
-        self.play(*ras_to(r, GREEN), FadeIn(on, shift=RIGHT * 0.15), run_time=0.8)
-
-        kin = ghost_chip("kinase").move_to([RAS_X + 2.0, RAS_Y - 1.05, 0])
-        kx = strike(kin)
-        self.at("no kinase")
-        self.play(FadeIn(kin), run_time=0.4)
-        self.play(Create(kx), run_time=0.4)
-
-        # Grb2 never reaches Ras
-        a, b, c = np.array([C_DOCK[0] + BODY_DX, YP[2] + BODY_HG / 2 + 0.03, 0]), None, None
-        x_up = C_DOCK[0] + BODY_DX
-        corner = np.array([x_up, RAS_Y + 0.3, 0])
-        end = np.array([RAS_X - RAS_W / 2 - 0.08, RAS_Y + 0.3, 0])
-        direct = DashedVMobject(VMobject().set_points_as_corners([a, corner, end]), num_dashes=40).set_color(GREY)
-        self.at("never grips")
-        self.play(FadeOut(VGroup(kin, kx)), Create(direct), run_time=1.0)
-        xmark = cross_at([0.55, RAS_Y + 0.3, 0])
-        self.at("at all")
-        self.play(Create(xmark), direct.animate.set_color(RED), run_time=0.5)
-
-        self.at("only holds")
-        self.play(*glow(cl[0], cl[1], s=1.3, color=TEXT), *glow(S.body, s=1.03, color=PURPLE), run_time=0.8)
-        contact = np.array([C_DOCK[0] + SOS_RIGHT, RAS_Y - 0.15, 0])
-        self.at("which acts")
-        self.play(Flash(contact, color=TEXT, line_length=0.3, flash_radius=0.38, num_lines=10),
-                  Indicate(r.body, color=TEXT, scale_factor=1.08), run_time=0.8)
-        self.outro(FadeOut(VGroup(direct, xmark, exch)))
-
-
-# ---------------------------------------------------------------------------------------------
-class S06Rule(ZFilm):
-    """the whole chain: receptor holds Grb2, Grb2 holds Sos, position does the rest. (STAGE)"""
-
-    def construct(self):
-        self.look_now(HOME_Z, HOME_C)
-        st = Stage(gf=True, ps=(0, 1, 2), ras_color=GREEN)
-        B, cl, S = adaptor_group(C_DOCK, 1.0, SHUT)
-        gtp = gtp_chip()
-        gtp_tether = Line([RAS_X, RAS_Y - RAS_H / 2, 0], [RAS_X, RAS_Y - 1.05 + 0.31, 0], color=GREEN, stroke_width=4)
-        self.add(*st.parts(), S, B, cl, gtp, gtp_tether)
-        r = st.ras
-
-        y = RAS_Y + 0.3
-        x0, x1 = XR + 0.4, RAS_X - RAS_W / 2 - 0.1
-        dim_line = DashedLine([x0, y, 0], [x1, y, 0], color=RED, stroke_width=5, dash_length=0.16)
-        caps = VGroup(Line([x0, y - 0.2, 0], [x0, y + 0.2, 0], color=RED, stroke_width=5),
-                      Line([x1, y - 0.2, 0], [x1, y + 0.2, 0], color=RED, stroke_width=5))
-        never = T("never touched", 26, RED).move_to([-1.55, y - 0.45, 0])
-        self.at("never touched")
-        self.play(Create(dim_line), FadeIn(caps), FadeIn(never, shift=DOWN * 0.1), run_time=0.9)
-
-        self.at("clamped a")
-        self.play(FadeOut(dim_line), FadeOut(caps), FadeOut(never), pop(st.ps[2], 1.4), *glow(B.cup, s=1.3), run_time=0.8)
-        self.at("already in its")
-        self.play(*glow(cl[0], cl[1], s=1.3, color=TEXT), run_time=0.8)
-        self.at("then flipped")
-        self.play(Indicate(r.body, color=TEXT, scale_factor=1.12), Indicate(r.lab, color=TEXT, scale_factor=1.12), run_time=0.8)
-
-        ad = T("adaptor", 32, TEAL, weight=BOLD).move_to([C_DOCK[0] + BODY_DX, -0.3, 0])
-        self.at("is called an")
-        self.play(FadeIn(ad, shift=DOWN * 0.1), Indicate(B.body, color=TEXT, scale_factor=1.05), run_time=0.8)
-        ne = T("no enzyme\nactivity", 22, GREY, line_spacing=0.8).move_to([C_DOCK[0] + BODY_DX, -0.95, 0])
-        self.at("no enzyme")
-        self.play(FadeIn(ne, shift=DOWN * 0.1), run_time=0.6)
-        two_l = T("partner", 24, GREY).move_to([XR - 0.95, YP[2], 0])
-        two_r = T("partner", 24, GREY).move_to([C_DOCK[0] + SOS_LEFT + SOS_W / 2, C_DOCK[1] + SOS_DY + SOS_H / 2 + 0.32, 0])
-        self.at("links two")
-        self.play(FadeIn(two_l, shift=RIGHT * 0.1), FadeIn(two_r, shift=DOWN * 0.1),
-                  *glow(st.rec.tail, s=1.0, color=TEAL), *glow(S.body, s=1.03, color=TEAL), run_time=0.9)
-
-        # the rule: three holds, one after another
-        r1 = ring([PX - 0.05, YP[2], 0], 0.68)
-        r2 = ring([C_DOCK[0] + CLAW_X0 + 0.55, YP[2], 0], 0.88)
-        r3 = ring([C_DOCK[0] + SOS_RIGHT - 0.04, RAS_Y - 0.25, 0], 0.3)
-        self.at("Keep this")
-        self.play(FadeOut(ad), FadeOut(ne), FadeOut(two_l), FadeOut(two_r), run_time=0.5)
-        self.at("the receptor holds")
-        self.play(Create(r1), run_time=0.7)
-        self.at("holds", nth=1)
-        self.play(Create(r2), run_time=0.7)
-        self.at("position is")
-        self.play(Create(r3), Indicate(r.body, color=TEXT, scale_factor=1.1), run_time=0.9)
+        world = base_world()
+        world.set_opacity(0.34)
+        title = fit_text("How a Receptor Reaches Ras", max_w=10.8, size=50,
+                         color=TEXT, font=TITLE_FONT).move_to([0, -2.65, 0])
+        question = T("?", 72, GOLD, weight=BOLD).move_to([0, 0.3, 0])
+        self.add(world, question)
+        self.play(ReplacementTransform(question, title), run_time=0.7)
+        self.wait(0.55)
+        self.play(FadeOut(title), FadeOut(world), run_time=0.55)
         self.finish()
 
 
-class S07End(EndCard):
-    LINE = "The receptor holds Grb2, Grb2 holds Sos, position is the first step."
+class S02Phosphate(SpokenScene):
+    def construct(self):
+        world = base_world()
+        sos_wait = boxed_label("Sos", ORANGE, size=30).move_to([0.45, -1.85, 0])
+        self.add(world)
+        factor = boxed_label("growth factor", BLUE, size=28).move_to([0.5, 3.18, 0])
+        self.play(FadeIn(factor), factor.animate.move_to([-1.25, 3.18, 0]), run_time=1.4)
+        self.at("receptor add phosphate")
+        self.play(world.receptor.outer.animate.scale(1.08), rate_func=there_and_back, run_time=0.9)
+        badges = VGroup(*[phosphate_badge([REC_X + 0.82, y, 0]) for y in (0.55, -0.35, -1.2)])
+        self.play(LaggedStart(*[GrowFromCenter(b) for b in badges], lag_ratio=0.35), run_time=1.7)
+        self.at("Each gold mark")
+        self.play(LaggedStart(*[Indicate(b, color=GOLD, scale_factor=1.25) for b in badges],
+                              lag_ratio=0.25), run_time=1.7)
+        self.at("Yet a phosphate")
+        stopped = DashedLine([REC_X + 1.2, -0.35, 0], [-0.45, -0.35, 0],
+                             color=GOLD, stroke_width=5, dash_length=0.13)
+        self.play(FadeIn(sos_wait), Create(stopped), run_time=1.3)
+        self.play(badges[1].animate.scale(1.22), rate_func=there_and_back, run_time=1.0)
+        self.finish()
+
+
+class S03Problem(SpokenScene):
+    def construct(self):
+        world = base_world(phosphates=1)
+        outline = RoundedRectangle(corner_radius=0.3, width=2.7, height=1.25,
+                                   color=GREEN, stroke_width=4).set_stroke(opacity=0.6)
+        outline.move_to([-1.65, -0.55, 0])
+        sos_wait = boxed_label("Sos", ORANGE, size=30).move_to([-0.4, -2.15, 0])
+        self.add(world)
+        self.at("each free to drift")
+        self.play(world.receptor.animate.shift(RIGHT * 0.12),
+                  world.ras.animate.shift(LEFT * 0.24), rate_func=there_and_back, run_time=2.2)
+        self.at("missing part must bind")
+        self.play(FadeIn(outline, shift=UP * 0.35), run_time=1.3)
+        self.play(outline.animate.shift(LEFT * 0.75 + UP * 0.15), run_time=1.2)
+        self.at("It must also carry")
+        self.play(FadeIn(sos_wait, shift=UP * 0.25), run_time=0.9)
+        self.play(outline.animate.shift(RIGHT * 0.15), sos_wait.animate.shift(UP * 0.15),
+                  rate_func=there_and_back, run_time=1.5)
+        self.finish()
+
+
+class S03Grb2(SpokenScene):
+    def construct(self):
+        pair = grb2_sos(center=(0, 0.45, 0), scale=1.18, with_sos=False)
+        pair.activity = T("no enzyme activity", 27, GREY).next_to(pair, DOWN, buff=0.35)
+        self.play(FadeIn(pair.adaptor, shift=UP * 0.2), run_time=1.1)
+        back = pair.adaptor[0]
+        clock = ValueTracker(0)
+        clock.add_updater(lambda m, dt: m.increment_value(dt))
+        self.add(clock)
+        back.add_updater(lambda m: m.set_fill(GREEN, opacity=0.26 + 0.12 * np.sin(clock.get_value() * 3.0)))
+        self.at("green adapter with")
+        self.play(FadeIn(pair.activity), run_time=0.8)
+        self.at("Its central")
+        self.play(Indicate(pair.cup, color=GREEN, scale_factor=1.12), run_time=1.1)
+        p = phosphate_badge(pair.cup.get_center() + LEFT * 1.7, 1.15)
+        self.play(FadeIn(p), p.animate.move_to(pair.cup.get_center()), run_time=1.3)
+        self.at("domains are paired")
+        self.play(LaggedStart(*[Indicate(x, color=GREEN, scale_factor=1.12) for x in pair.grips],
+                              lag_ratio=0.3), run_time=1.4)
+        self.at("grips already hold")
+        sos = boxed_label("Sos", ORANGE, size=34, box=(2.35, 0.95)).move_to([0, -1.55, 0])
+        self.play(FadeIn(sos, shift=UP * 0.35), run_time=1.2)
+        self.play(pair.grips.animate.shift(DOWN * 0.12), sos.animate.shift(UP * 0.12),
+                  rate_func=there_and_back, run_time=1.3)
+        self.finish()
+
+
+class S04Predict(SpokenScene):
+    QUESTION = "Which faces the phosphate: SH2 or SH3?"
+
+    def construct(self):
+        picture = predict_picture()
+        rec, cup, grip = picture
+        card = question_card(self.QUESTION, y=-3.18, size=29)
+        self.play(FadeIn(rec), run_time=0.8)
+        self.at("the SH2 cup")
+        self.play(FadeIn(cup, shift=LEFT * 0.2), run_time=0.8)
+        self.at("or an SH3")
+        self.play(FadeIn(grip, shift=LEFT * 0.2), FadeIn(card), run_time=0.9)
+        self.at("two shapes move")
+        self.play(cup.animate.shift(LEFT * 0.45), grip.animate.shift(LEFT * 0.45),
+                  rate_func=there_and_back, run_time=2.0)
+        self.finish()
+
+
+class S05Pause(PredictPause):
+    QUESTION = S04Predict.QUESTION
+    SECONDS = 4.5
+    CARD = {"y": -3.18, "size": 29}
+    RING_AT = (6.05, -3.15, 0)
+
+    def backdrop(self):
+        picture = predict_picture()
+        pulse(picture[0].badges[0].ring, base=3.0, amp=1.5, speed=2.2)
+        bob(picture[1], amp=0.05, speed=1.8)
+        bob(picture[2], amp=0.05, speed=1.8, seed=2)
+        return picture
+
+
+class S06Reveal(SpokenScene):
+    def construct(self):
+        picture = predict_picture()
+        rec, cup, grip = picture
+        self.add(picture)
+        self.play(FadeOut(grip, shift=RIGHT * 0.4), run_time=0.7)
+        self.at("cup closes around")
+        badge = rec.badges[0]
+        self.play(cup.animate.move_to(badge).scale(1.18), run_time=1.3)
+        self.play(Indicate(VGroup(cup, badge), color=GOLD, scale_factor=1.08), run_time=0.9)
+        self.at("grips keep holding")
+        full = grb2_sos(center=(-1.35, -0.55, 0), scale=0.80)
+        self.play(FadeOut(cup), FadeIn(full), run_time=1.2)
+        self.at("complete GRB2")
+        self.play(full.animate.shift(LEFT * 0.3), run_time=0.7)
+        self.play(full.animate.shift(RIGHT * 0.3), run_time=0.7)
+        self.at("adapter has connected")
+        path1 = VMobject(color=GREEN, stroke_width=7).set_points_as_corners([
+            badge.get_left() + LEFT * 0.08,
+            [-3.45, -1.72, 0],
+            full.adaptor[0].get_left() + LEFT * 0.08,
+        ])
+        path2 = Line(full.cup.get_bottom() + DOWN * 0.08, full.sos.get_top() + UP * 0.08,
+                     color=ORANGE, stroke_width=7)
+        self.play(Create(path1), Create(path2), run_time=1.5)
+        self.finish()
+
+
+class S07Exchange(SpokenScene):
+    def construct(self):
+        cluster = route_cluster(ras_state="OFF")
+        world, pair = cluster.world, cluster.pair
+        old_gdp = boxed_label("GDP", GREY, size=27).next_to(world.ras.body, DOWN, buff=0.48)
+        self.add(world.field, world.membrane, world.receptor, pair, world.ras, old_gdp)
+        self.play(world.ras.animate.shift(LEFT * 1.05), run_time=1.4)
+        self.at("SOs is a")
+        self.play(Indicate(pair.sos, color=ORANGE, scale_factor=1.1), run_time=1.1)
+        self.at("It releases GDP")
+        self.play(old_gdp.animate.shift(DOWN * 0.75), FadeOut(old_gdp), run_time=1.1)
+        self.at("allowing GTP")
+        gtp = boxed_label("GTP", GOLD, size=27).next_to(world.ras.body, DOWN, buff=0.48)
+        self.play(FadeIn(gtp, shift=UP * 0.45), run_time=1.0)
+        self.at("Purple RAS changes")
+        on = T("Ras ON", 30, TEXT, weight=BOLD).move_to(world.ras.name)
+        self.play(swap(world.ras.name, on), world.ras.body.animate.set_fill(PURPLE, 0.52), run_time=1.2)
+        self.at("GRB2 never")
+        self.play(Indicate(pair.adaptor, color=GREEN, scale_factor=1.05), run_time=1.1)
+        self.play(pair.sos.animate.scale(1.08), rate_func=there_and_back, run_time=1.1)
+        self.finish()
+
+
+class S07Position(SpokenScene):
+    def construct(self):
+        panels = TwoPanel("BEFORE", "AFTER")
+        left_pair = grb2_sos(center=(-3.25, -0.55, 0), scale=0.75)
+        right_mem = RoundedRectangle(corner_radius=0.08, width=5.2, height=0.34,
+                                     color=GREY, stroke_width=2, fill_color=GREY,
+                                     fill_opacity=0.25).move_to([3.25, 1.45, 0])
+        rec_box = boxed_label("receptor", BLUE, size=24, box=(1.75, 0.72)).move_to([2.05, 1.95, 0])
+        rec_tail = Line([2.05, 1.59, 0], [2.05, 0.2, 0], color=BLUE, stroke_width=6)
+        rec_p = phosphate_badge([2.34, 0.32, 0])
+        right_rec = VGroup(rec_tail, rec_box, rec_p)
+        right_pair = grb2_sos(center=(3.35, -0.72, 0), scale=0.75)
+        right_ras = ras(5.2, scale=0.82)
+        pin = VGroup(Circle(radius=0.18, color=GOLD, fill_color=GOLD, fill_opacity=0.8),
+                     Triangle(color=GOLD, fill_color=GOLD, fill_opacity=0.8).scale(0.16).rotate(PI))
+        pin.arrange(DOWN, buff=-0.05).next_to(left_pair.sos, DOWN, buff=0.12)
+        self.play(FadeIn(panels), FadeIn(left_pair), FadeIn(pin), run_time=1.0)
+        self.at("not chemical identity")
+        self.play(Indicate(left_pair.sos, color=ORANGE, scale_factor=1.08), run_time=1.1)
+        self.at("already attached")
+        self.play(left_pair.animate.shift(UP * 0.15), rate_func=there_and_back, run_time=1.1)
+        self.at("After the")
+        self.play(FadeIn(right_mem), FadeIn(right_rec), run_time=0.9)
+        self.at("same SOES sits")
+        right_pin = pin.copy().next_to(right_pair.sos, RIGHT, buff=0.08)
+        self.play(FadeIn(right_pair, shift=RIGHT * 0.25),
+                  FadeIn(right_pin, shift=RIGHT * 0.25), run_time=1.4)
+        self.at("where it can meet")
+        self.play(FadeIn(right_ras), right_ras.animate.shift(LEFT * 0.25), run_time=1.0)
+        self.at("Positioning has become")
+        rule = caption("Recruitment changes location", size=30, color=GOLD)
+        self.play(FadeIn(rule), run_time=0.9)
+        self.finish()
+
+
+class S07Feedback(SpokenScene):
+    def construct(self):
+        sos = boxed_label("Sos", ORANGE, size=38, box=(3.2, 2.5)).move_to([0, 0.25, 0])
+        exchange = Circle(radius=0.28, color=ORANGE, stroke_width=5).move_to([-1.25, 0.25, 0])
+        allosteric = Circle(radius=0.28, color=ORANGE, stroke_width=5).move_to([1.25, 0.75, 0])
+        exchange_lab = T("exchange site", 27, ORANGE).move_to([-1.8, 2.15, 0])
+        second_lab = T("Ras-binding site", 27, PURPLE).move_to([1.55, 2.15, 0])
+        self.add(sos, exchange, exchange_lab)
+        self.at("another RAS binding")
+        self.play(Create(allosteric), FadeIn(second_lab), run_time=1.1)
+        self.at("away from the")
+        self.play(Indicate(VGroup(exchange, allosteric), color=GOLD, scale_factor=1.06), run_time=1.1)
+        self.at("RAS with GTP")
+        activator = boxed_label("Ras–GTP", PURPLE, size=29).move_to([4.65, 0.75, 0])
+        self.play(FadeIn(activator), activator.animate.move_to([2.8, 0.75, 0]), run_time=1.3)
+        self.at("speed SOES")
+        neighbor = ras(-4.45, state="", nucleotide="GDP", scale=0.88)
+        neighbor.anchor.set_opacity(0)
+        self.play(FadeIn(neighbor), run_time=0.7)
+        flash = Arrow(exchange.get_left(), neighbor.body.get_right(), buff=0.12,
+                      color=GOLD, stroke_width=7, tip_length=0.22)
+        tag = scope_tag()
+        self.play(GrowArrow(flash), FadeIn(tag), run_time=0.7)
+        self.play(flash.animate.set_stroke(width=12), rate_func=there_and_back, run_time=1.2)
+        self.at("help SOES activate")
+        more = VGroup(*[Dot([-4.7 + i * 0.55, -1.65, 0], radius=0.14, color=PURPLE) for i in range(4)])
+        self.play(LaggedStart(*[GrowFromCenter(d) for d in more], lag_ratio=0.22), run_time=1.3)
+        self.finish()
+
+
+class S08Route(SpokenScene):
+    def construct(self):
+        cluster = route_cluster()
+        world, pair = cluster.world, cluster.pair
+        self.add(cluster)
+        self.at("follow the route")
+        self.play(Indicate(world.receptor.outer, color=BLUE, scale_factor=1.08), run_time=1.0)
+        self.at("receptor recruits")
+        self.play(Indicate(pair.adaptor, color=GREEN, scale_factor=1.08), run_time=1.0)
+        self.at("GRB2 brings")
+        self.play(Indicate(pair.sos, color=ORANGE, scale_factor=1.1), run_time=1.0)
+        self.at("where RAS sits")
+        self.play(world.ras.animate.shift(LEFT * 0.35), rate_func=there_and_back, run_time=1.0)
+        self.at("performs the exchange")
+        flash = Line(pair.sos.get_right(), world.ras.body.get_left(), color=GOLD, stroke_width=9)
+        self.play(Create(flash), Indicate(world.ras.body, color=PURPLE), run_time=1.0)
+        self.at("Binding controls")
+        bind_label = boxed_label("binding", GREEN, size=27).move_to([-0.2, 2.75, 0])
+        self.play(FadeIn(bind_label), run_time=0.7)
+        self.at("while SOs performs")
+        work_label = boxed_label("chemical work", ORANGE, size=27).move_to([2.5, -1.8, 0])
+        self.play(FadeOut(bind_label), FadeIn(work_label),
+                  flash.animate.set_stroke(width=13), rate_func=there_and_back, run_time=1.3)
+        self.finish()
+
+
+class S09Payoff(SpokenScene):
+    def construct(self):
+        cluster = route_cluster()
+        world, pair = cluster.world, cluster.pair
+        # Only the three requested labels remain.
+        for obj in (world.receptor.outer_label, pair.name, pair.sos.label, world.ras.name,
+                    world.ras.tag.label if world.ras.tag else VGroup()):
+            obj.set_opacity(0)
+        adaptor_lab = T("adaptor", 28, GREEN).move_to(pair.name)
+        enzyme_lab = T("enzyme", 28, ORANGE).move_to(pair.sos)
+        ras_lab = T("Ras ON", 28, PURPLE).move_to(world.ras.body)
+        self.add(cluster, adaptor_lab, enzyme_lab, ras_lab)
+        self.at("but the receptor")
+        self.play(world.receptor.animate.shift(RIGHT * 0.10),
+                  world.ras.animate.shift(LEFT * 0.20), rate_func=there_and_back, run_time=1.8)
+        self.at("adapter changes")
+        self.play(Indicate(pair.adaptor, color=GREEN, scale_factor=1.07), run_time=1.1)
+        self.at("who meets whom")
+        pulse1 = VMobject(color=GREEN, stroke_width=8).set_points_as_corners([
+            world.receptor.badges[0].get_left() + LEFT * 0.08,
+            [-3.45, -1.72, 0],
+            pair.adaptor[0].get_left() + LEFT * 0.08,
+        ])
+        pulse2 = Line(pair.sos.get_right() + RIGHT * 0.08,
+                      world.ras.body.get_left() + LEFT * 0.08,
+                      color=ORANGE, stroke_width=8)
+        self.play(Create(pulse1), Create(pulse2), run_time=1.3)
+        self.at("right enzyme reach")
+        self.play(Indicate(pair.sos, color=ORANGE, scale_factor=1.1),
+                  Indicate(world.ras.body, color=PURPLE, scale_factor=1.08), run_time=1.2)
+        self.at("without the adapter")
+        self.play(pair.adaptor.animate.scale(1.04), rate_func=there_and_back, run_time=1.3)
+        self.finish()
+
+
+class S10End(EndCard):
+    LINE = "Adaptors route signals by linking partners, not by catalyzing reactions."
