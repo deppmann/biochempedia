@@ -6,9 +6,9 @@ import '../../styles/teach.css';
 // the script reads the slug from the address and loads the group from the API.
 ---
 
-<BaseLayout title="School page — Biochemistrypedia" description="A school or department's page for free Biochemistrypedia classes." noindex>
+<BaseLayout title="School page — STEMhop" description="A school or department's page for free STEMhop classes." noindex>
   <article class="wrap tc" data-group-page>
-    <p class="tc-eyebrow">Biochemistrypedia classes</p>
+    <p class="tc-eyebrow">STEMhop classes</p>
     <h1 data-name>Loading…</h1>
     <p class="tc-lede" data-about></p>
 
@@ -52,7 +52,7 @@ import '../../styles/teach.css';
       if (!slug) { $('[data-name]').textContent = 'School pages'; $('[data-none]').hidden = false; return; }
       const r = await api<{ name: string; about: string; domain: string | null; teachers: string[] }>(`/api/g/${slug}`);
       if (!r.ok) { $('[data-name]').textContent = 'No school page here'; $('[data-none]').hidden = false; return; }
-      document.title = `${r.data.name} — Biochemistrypedia`;
+      document.title = `${r.data.name} — STEMhop`;
       $('[data-name]').textContent = r.data.name;
       $('[data-about]').textContent = r.data.about;
       const ul = $('[data-teachers]');

@@ -64,7 +64,7 @@ const devPagefind = () => ({
   },
 });
 
-// Biochemistrypedia — static-first Astro site. Islands only where interactive
+// STEMhop (formerly Biochemistrypedia) — static-first Astro site. Islands only where interactive
 // (the Mol* viewer and the Michaelis–Menten plotter ship JS; everything else
 // renders to static HTML).
 //

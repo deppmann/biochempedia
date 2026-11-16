@@ -3,7 +3,7 @@
 import type { APIRoute } from 'astro';
 import { SITE_ORIGIN } from '../lib/site-host.mjs';
 
-const body = `# Biochemistrypedia: free science lessons. People and well-behaved agents are welcome.
+const body = `# STEMhop: free science lessons. People and well-behaved agents are welcome.
 #
 # Content signals (https://contentsignals.org): yes to search indexing, and yes to AI
 # systems reading pages to answer a person's question (please link the lesson you used).

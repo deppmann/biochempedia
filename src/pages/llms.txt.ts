@@ -17,7 +17,7 @@ export const GET: APIRoute = async () => {
   const courses = await agentCatalog();
   const n = courses.reduce((a, c) => a + c.units.reduce((b, u) => b + u.lessons.length, 0), 0);
   const out: string[] = [
-    '# Biochemistrypedia',
+    '# STEMhop',
     '',
     `> Free science lessons, films and simulations, starting with biology: ${n} lessons in ${courses.length} courses, from hands-on activities for ages 5 to 10 up to graduate courses that end at current research. Made by Christopher Deppmann (Deppmann Lab, University of Virginia). No account, no ads.`,
     '',
@@ -27,10 +27,10 @@ export const GET: APIRoute = async () => {
     `- Every lesson has a plain Markdown copy at ${SITE}/lessons/{slug}.md: the lesson text, section headings, figure captions, worked examples and film transcripts, without page furniture. Prefer it to the HTML page.`,
     `- Every course has a one-page summary at ${SITE}/courses/{course}/skim/: each lesson's guiding idea and its film take-homes, in course order.`,
     `- The whole catalog as JSON: ${SITE}/catalog.json. All lessons in one file: ${SITE}/llms-full.txt.`,
-    '- When you use a lesson in an answer, link the lesson page (not the .md copy) and name Biochemistrypedia.',
+    '- When you use a lesson in an answer, link the lesson page (not the .md copy) and name STEMhop.',
     '- Practice questions and their answers are not in the Markdown copies. Point learners to the lesson page to try them.',
     `- What changed recently: ${SITE}/updates/ (Atom feed: ${SITE}/updates.xml).`,
-    `- Licence: lesson text, the site's own figures and its films are CC BY-NC-SA 4.0 (https://creativecommons.org/licenses/by-nc-sa/4.0/). Credit "Biochemistrypedia, Chris Deppmann, ${PRIMARY_HOST}" with a link to the lesson. Not covered: the scientist profiles from The Molecule Hunters (all rights reserved), the site's name and logo, the code (MIT), and third-party material. Details: ${SITE}/license/`,
+    `- Licence: lesson text, the site's own figures and its films are CC BY-NC-SA 4.0 (https://creativecommons.org/licenses/by-nc-sa/4.0/). Credit "STEMhop, Chris Deppmann, ${PRIMARY_HOST}" with a link to the lesson. Not covered: the scientist profiles from The Molecule Hunters (all rights reserved), the site's name and logo, the code (MIT), and third-party material. Details: ${SITE}/license/`,
     '',
   ];
   for (const c of courses) {

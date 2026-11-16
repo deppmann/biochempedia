@@ -197,7 +197,7 @@ function blocks(n) {
 }
 
 const full = [
-  '# Biochemistrypedia: every lesson',
+  '# STEMhop: every lesson',
   '',
   `> Every lesson on ${SITE}, as plain Markdown, in course order. One lesson: ${SITE}/lessons/{slug}.md. Index: ${SITE}/llms.txt.`,
   '',
@@ -235,7 +235,7 @@ for (const course of catalog.courses) {
       if (l.objectives?.length) head.push("## What you'll learn", '', ...l.objectives.map((o) => `- ${squash(o)}`), '');
       const md = (head.join('\n') + '\n' + blocks(body))
         .replace(/\n{3,}/g, '\n\n')
-        .trim() + `\n\n---\n\nFrom Biochemistrypedia (${SITE}), free lessons by Christopher Deppmann. Lesson text © the authors. Practice questions: ${l.url}\n`;
+        .trim() + `\n\n---\n\nFrom STEMhop (${SITE}), free lessons by Christopher Deppmann. Lesson text © the authors. Practice questions: ${l.url}\n`;
       writeFileSync(join(dist, 'lessons', `${l.slug}.md`), md);
       full.push(md.replace(/^(#+) /gm, '#$1 '), '');
       written++;

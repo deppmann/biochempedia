@@ -143,7 +143,7 @@ const lessonLd = {
   learningResourceType: course.tier === 'families' ? 'hands-on activity guide' : 'interactive lesson',
   inLanguage: 'en',
   about: lesson.courseChapter,
-  isPartOf: { '@type': 'Course', name: course.slug === 'biochemistry' ? 'Biochemistrypedia' : course.title, provider: { '@type': 'Person', name: 'Christopher Deppmann' } },
+  isPartOf: { '@type': 'Course', name: course.title, provider: { '@type': 'Person', name: 'Christopher Deppmann' } },
   // For search engines and AI agents (2026-11-09): where it lives, that it is free, what it teaches, and its plain-text copy.
   url: `${SITE_ORIGIN}/lessons/${lesson.slug}/`,
   isAccessibleForFree: true,
@@ -157,7 +157,7 @@ const lessonLd = {
 };
 ---
 
-<BaseLayout title={`${lesson.title} — Biochemistrypedia`} description={metaDescription(hookFor(entry))} ogType="article" jsonLd={lessonLd}
+<BaseLayout title={`${lesson.title} — STEMhop`} description={metaDescription(hookFor(entry))} ogType="article" jsonLd={lessonLd}
   ogImage={ex?.poster ?? lesson.films[0]?.poster}
   alternates={[{ type: 'text/markdown', href: `/lessons/${lesson.slug}.md`, title: 'This lesson as plain Markdown' }]}>
   <article id="top" data-course-title={course.title} data-cards-lesson={deck ? lesson.slug : undefined}>

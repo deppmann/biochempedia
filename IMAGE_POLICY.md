@@ -1,6 +1,6 @@
 # Image & Structure Integrity Policy
 
-Biochemistrypedia teaches biochemistry. A confidently-wrong picture does real harm, so
+STEMhop teaches science, starting with biology and biochemistry. A confidently-wrong picture does real harm, so
 the project is built so that **bad visual content cannot ship** — the rules below
 are enforced by the build, not by good intentions.
 

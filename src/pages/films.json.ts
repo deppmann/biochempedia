@@ -29,7 +29,7 @@ export const GET: APIRoute = async () => {
     ...(f.method ? { method: { ...f.method, url: `${SITE}/methods/${f.method.slug}/` } } : {}),
   }));
   const body = {
-    name: 'Biochemistrypedia films',
+    name: 'STEMhop films',
     url: `${SITE}/films/`,
     license: 'https://creativecommons.org/licenses/by-nc-sa/4.0/',
     note: 'Animations and narration are AI-generated. Scientist profile films read text from The Molecule Hunters, which is not covered by the CC licence.',

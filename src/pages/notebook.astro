@@ -14,7 +14,7 @@ const titles = Object.fromEntries(lessons.map((l) => {
 ---
 
 <BaseLayout
-  title="Your notebook — Biochemistrypedia"
+  title="Your notebook — STEMhop"
   description="Your highlights and notes from the lessons, in one place. Saved in this browser."
 >
   <article class="wrap nb" data-titles={JSON.stringify(titles)}>
@@ -261,7 +261,7 @@ const titles = Object.fromEntries(lessons.map((l) => {
       const groups = new Map<string, NotebookItem[]>();
       for (const it of items) { if (!groups.has(it.slug)) groups.set(it.slug, []); groups.get(it.slug)!.push(it); }
       const origin = window.location.origin;
-      const out = [`# My Biochemistrypedia notebook`, '', `Exported ${new Date().toLocaleString()}.`, ''];
+      const out = [`# My STEMhop notebook`, '', `Exported ${new Date().toLocaleString()}.`, ''];
       const sorted = Array.from(groups.entries()).sort((a, b) => lessonTitle(a[1][0]).localeCompare(lessonTitle(b[1][0])));
       for (const [slug, g] of sorted) {
         out.push(`## [${lessonTitle(g[0])}](${origin}/lessons/${slug}/)`, '');
@@ -284,7 +284,7 @@ const titles = Object.fromEntries(lessons.map((l) => {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `biochempedia-notebook-${new Date().toISOString().slice(0, 10)}.md`;
+      a.download = `stemhop-notebook-${new Date().toISOString().slice(0, 10)}.md`;
       document.body.append(a);
       a.click();
       a.remove();

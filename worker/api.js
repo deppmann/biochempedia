@@ -46,10 +46,10 @@ async function emailLink(env, db, request, teacherId, email, purpose) {
     .bind(await sha256Hex(token), teacherId, purpose, now, now + (purpose === 'verify' ? 7 : 1) * DAY).run();
   const origin = siteOrigin(request.url);   // the primary host, whichever host the request came on
   if (purpose === 'verify') {
-    return sendMail(env, email, 'Confirm your email for Biochemistrypedia classes',
+    return sendMail(env, email, 'Confirm your email for STEMhop classes',
       `Confirm this address to finish setting up your teacher account:\n\n${origin}/teach/verify/?t=${token}\n\nThe link works for 7 days. If you did not sign up, ignore this email.`);
   }
-  return sendMail(env, email, 'Reset your Biochemistrypedia teacher password',
+  return sendMail(env, email, 'Reset your STEMhop teacher password',
     `Choose a new password here:\n\n${origin}/teach/reset/?t=${token}\n\nThe link works for 24 hours and only once. If you did not ask for this, ignore this email; your password has not changed.`);
 }
 

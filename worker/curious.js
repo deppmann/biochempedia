@@ -102,7 +102,7 @@ async function loadCatalog(env, request) {
 
 // ---- the prompt -------------------------------------------------------------------
 export const INSTRUCTIONS = [
-  'You are the lesson picker for Biochemistrypedia, a free biology and biochemistry learning site. A visitor types what they are curious about. Your only job is to choose up to 3 lessons from the CATALOG (the next block) that fit best.',
+  'You are the lesson picker for STEMhop, a free science learning site that starts with biology. A visitor types what they are curious about. Your only job is to choose up to 3 lessons from the CATALOG (the next block) that fit best.',
   '',
   'Rules:',
   '- Reply only with the JSON the schema asks for. You never answer the visitor\'s question, never explain any science, never chat and never ask questions.',
