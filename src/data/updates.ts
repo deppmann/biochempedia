@@ -37,7 +37,13 @@ export interface Milestone {
   course?: string;
 }
 
+/* SWITCH DAY: set this to the day stemhop.com becomes the site's address (YYYY-MM-DD). It dates the
+   rename milestone below and the sentence about the name on /about/. PLACEHOLDER until then. */
+export const STEMHOP_SWITCH_DATE = '2026-11-15';
+
 export const MILESTONES: Milestone[] = [
+  { date: STEMHOP_SWITCH_DATE, kind: 'site', title: 'A new name: STEMhop', prs: [],
+    text: 'Biochemistrypedia becomes STEMhop, with a new address, as the site grows beyond biology into the rest of science and math. A new wordmark with Hex as the O, and a front page that starts with the subjects. Old links still work, and it is still free.' },
   { date: '2026-06-12', kind: 'site', title: 'The first lesson', prs: [1, 3],
     text: 'Enzyme kinetics, written as the model for every lesson after it, and the bare frame of the site.' },
   { date: '2026-08-01', kind: 'course', title: 'Biochemistry goes live', prs: [], course: 'biochemistry',

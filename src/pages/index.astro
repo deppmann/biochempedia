@@ -1,45 +1,66 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import SiteSearch from '../components/SiteSearch.astro';
-import HomeFilm from '../components/HomeFilm.astro';
-import Drifters from '../components/Drifters.astro';
-import Sprout from '../components/Sprout.astro';
-import { courseHref } from '../data/courses';
+import Wordmark from '../components/Wordmark.astro';
+import Hex from '../components/Hex.astro';
+import { courseHref, unitsFor } from '../data/courses';
 import { PATHS } from '../data/paths';
 import { STAGES, stageOf } from '../data/stages';
-import { courseCards, plural } from '../lib/catalog';
+import { COMING_SUBJECTS } from '../data/subjects';
+import { courseCards } from '../lib/catalog';
 import { feedbackUrl } from '../lib/feedback';
 import { getCollection } from 'astro:content';
 import { courseOf } from '../data/courses';
 import rewritten from '../data/recently-rewritten.json';
 import { filmTotal } from '../lib/film-catalog';
 
-/* The homepage is a front door, not the catalog (rearranged 2026-11-08 for user flow: Chris, "people
-   have to scroll a bit before they get to the lesson"). Top to bottom: the hero with search and
-   "continue"; where are you starting (courses by level); what do you want to do (goals); recently
-   rewritten; things to try; one line about the work in progress. The six-level demo and the full
-   "built in public" note moved to /about/. The full catalog lives at /courses/. */
+/* The STEMhop front door (2026-11-15, Chris chose mock-up A1: subject tiles, with a first-lesson
+   link on each level row). Top to bottom: the hero (wordmark, tagline, what this is, search,
+   "Welcome back"); pick a subject (Biology, open, with its live counts, and the coming subjects,
+   never links); start where you are (one row per level, its courses and its first lesson); or
+   start from a goal; recently rewritten; more ways in and things to try; one line about the work
+   in progress. The hero film moved to /about/ (Chris: "Ditch the hero film. It can go on the about
+   page"). Every number and name below is counted or read from the data, never typed. */
 const { cards, lessonCount } = await courseCards();
 const courseCount = cards.length;
-
-/* The live counter under the hero film. Counted at build time from the content
-   collection (the same sums the /courses/ cards show), so it moves with every deploy. */
 const sum = (k: 'films' | 'sims' | 'questions') => cards.reduce((n, c) => n + c[k], 0);
 const fmt = (n: number) => n.toLocaleString('en-US');
 /* Every film count on this page is the film library's (Chris, 2026-11-14: "Make the tally agree with
    the film page"): lesson films, scientist profiles and method films, from src/lib/film-catalog.ts. */
 const libraryFilms = await filmTotal();
-const COUNTS = [
-  plural(lessonCount, 'lesson', 'lessons'),
-  plural(libraryFilms, 'film', 'films'),
-  plural(sum('sims'), 'simulation', 'simulations'),
-  plural(sum('questions'), 'practice question', 'practice questions'),
-].map((t) => t.replace(/^\d+/, (d) => fmt(Number(d))));
+const STATS = [
+  [lessonCount, lessonCount === 1 ? 'lesson' : 'lessons'],
+  [courseCount, courseCount === 1 ? 'course' : 'courses'],
+  [libraryFilms, 'short films'],
+  [sum('sims'), 'simulations'],
+  [sum('questions'), 'practice questions'],
+] as const;
 
-/* "Recently rewritten": the last ten lessons through the level-up pass (new text, figures and
+/* The levels, from src/data/stages.ts, each with its courses in courses.ts order. */
+const bands = STAGES.map((s) => ({ ...s, cards: cards.filter((k) => stageOf(k.c) === s.key) })).filter((s) => s.cards.length > 0);
+
+/* Each level's first lesson: the first lesson of its first course, in that course's unit order
+   (the same order its course page lists). Derived, never typed in. */
+const liveLessons = await getCollection('lessons', ({ data }) => !data.draft);
+const firstLesson = (slug: string) => {
+  const c = courseOf(slug);
+  const first = unitsFor(c, liveLessons.filter((l) => l.data.course === slug))[0]?.entries[0]?.l;
+  return first ? { slug: first.data.slug, title: first.data.title } : null;
+};
+const rows = bands.map((b) => ({ ...b, first: firstLesson(b.cards[0].c.slug) }));
+
+/* The Biology tile's one line: the course at each end of the ladder, and the "going further" courses. */
+const firstCard = cards[0];
+const lastCard = cards[cards.length - 1];
+const WHO: Record<string, string> = { 'ages-5-10': 'for ages 5–10', graduate: 'at graduate level' };
+const whoFor = (k: (typeof cards)[number]) => WHO[stageOf(k.c)] ?? `(${STAGES.find((s) => s.key === stageOf(k.c))?.title ?? ''})`;
+const further = cards.filter((k) => stageOf(k.c) === 'college-further').map((k) => k.c.title);
+const listJoin = (xs: string[]) => (xs.length < 2 ? xs.join('') : `${xs.slice(0, -1).join(', ')} and ${xs[xs.length - 1]}`);
+
+/* "Recently rewritten": the last lessons through the level-up pass (new text, figures and
    simulation fixes), from src/data/recently-rewritten.json, which scripts/rewritten-shelf.mjs writes
-   from the level-up notes. Static: works with JavaScript off. */
-const live = new Map((await getCollection('lessons', ({ data }) => !data.draft)).map((l) => [l.data.slug, l.data]));
+   from the production record. Static: works with JavaScript off. */
+const live = new Map(liveLessons.map((l) => [l.data.slug, l.data]));
 const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const day = (d: string) => `${MON[Number(d.slice(5, 7)) - 1]} ${Number(d.slice(8, 10))}`;
 const rewrittenAll = (rewritten as { slug: string; date: string }[]).filter((r) => live.has(r.slug));
@@ -47,23 +68,10 @@ const shelf = rewrittenAll.slice(0, 20).map((r) => {
   const l = live.get(r.slug)!;
   return { slug: r.slug, title: l.title, course: courseOf(l.course).title, date: day(r.date) };
 });
+const SHELF_TOP = 4;
 
-/* ---- Films. The files live under /explainers/home/ like every lesson film
-   (poster.jpg, explainer.mp4, explainer.vtt) and are served the same way. ---- */
-const heroFilm = {
-  src: '/explainers/home/sizzle/explainer.mp4',
-  captions: '/explainers/home/sizzle/explainer.vtt',
-  poster: '/explainers/home/sizzle/poster.jpg',
-  title: 'What is here, in about a minute',
-  durationSec: 62.10,
-};
-
-/* ---- Door 2: stage chooser. Bands come from src/data/stages.ts; each links to
-   its course page(s). ---- */
-const bands = STAGES.map((s) => ({ ...s, cards: cards.filter((k) => stageOf(k.c) === s.key) })).filter((s) => s.cards.length > 0);
-
-/* ---- Door 3: goals. Each goal points at /paths/<id>/. A missing id fails the
-   build instead of shipping a dead card. ---- */
+/* Or start from a goal: each goal is one chip to its path. A missing path id fails the build
+   instead of shipping a dead chip. */
 interface Goal { label: string; line: string; links: { text: string; href: string; primary?: boolean }[]; ids: string[] }
 const GOALS: Goal[] = [
   { label: 'Get ready for the MCAT', line: 'The biology and biochemistry the exam leans on, with original MCAT-style questions and a review queue.', ids: ['mcat'], links: [{ text: 'See the MCAT path', href: '/paths/mcat/', primary: true }, { text: 'MCAT practice', href: '/mcat/' }] },
@@ -76,144 +84,175 @@ for (const g of GOALS) for (const id of g.ids) {
   if (!PATHS.some((p) => p.id === id)) throw new Error(`Homepage: goal "${g.label}" points at path "${id}", which is not in src/data/paths.ts.`);
 }
 
-
+const WAYS = [
+  { title: 'MCAT practice', line: 'Passages with data, a diagnostic and topic practice.', href: '/mcat/' },
+  { title: 'For teachers', line: 'Make a class with one link and set the level of help.', href: '/teachers/' },
+  { title: 'The film library', line: `${fmt(libraryFilms)} short films, first questions to current research.`, href: '/films/' },
+  { title: 'Paths', line: 'The MCAT, a class you’re taking, teaching, curiosity, or the edge of research.', href: '/paths/' },
+  { title: 'Study planner', line: 'Say what you want to learn and how much time you have.', href: '/plan/' },
+  { title: `All ${courseCount} courses`, line: 'The full catalog, by level.', href: '/courses/' },
+];
 const TRY = [
   { title: 'Metabolism Arcade', line: 'Six games from the Biochemistry course: wire the cell, fix a broken enzyme, and drill for the MCAT.', href: '/play' },
-  { title: 'MCAT practice', line: 'Passages with data, a diagnostic and topic practice.', href: '/mcat/' },
   { title: 'The methods library', line: 'How scientists find things out.', href: '/methods/' },
   { title: 'The Fun Stuff', line: 'Trading cards, memes, songs and a podcast, made by students in my biochemistry course (BIOL 3030).', href: '/fun' },
 ];
 ---
 
 <BaseLayout
-  title="Biochemistrypedia — free science, from a first question to current research"
+  title="STEMhop — STEM, one short lesson at a time"
   description="Free lessons, films and simulations, starting with biology. Ages 5 to graduate school. No account needed, no ads."
 >
-  {/* Hero: what this is, search, and (for a returning visitor) where they left off. On a wide
-      screen the film sits beside it; on a phone it is a compact row under it. */}
-  <Drifters />
-  <div class="wrap top">
+  <div class="wrap home">
+    {/* Hero: the wordmark (the page's h1, named "STEMhop"), the tagline, what this is, search, and,
+        for a returning visitor, where they left off. */}
     <section class="hero" aria-labelledby="home-h1">
-      <h1 id="home-h1">From a first question <em>to current research.</em></h1>
-      <div class="goldrule" aria-hidden="true"></div>
-      <p class="lede">Free lessons, films and simulations in science, starting with biology. Ages 5 to graduate school. No account needed, no ads.</p>
-      <div class="home-search"><SiteSearch label="Search every course" /></div>
-      {/* The film library, one click from the top of the page (Chris, 2026-11-14; until then this line
-          linked the methods library, which /films/ now links as one of its kinds). */}
-      <p class="hero-methods">
-        <a href="/films/"><strong>The film library</strong> <span>· {fmt(libraryFilms)} short films, from first questions to current research →</span></a>
-      </p>
-      {/* Filled from this device's saved progress (src/lib/progress.ts); stays
-          hidden for a first visit, without JavaScript, or when storage is blocked. */}
-      <p class="resume" data-resume hidden>
-        <span data-resume-text></span>
-        <a href="/progress/" class="resume-link">Your progress →</a>
-      </p>
-      <p class="tally"><span class="tally-row">
-        {COUNTS.map((t) => <span class="tally-i">{t}</span>)}<span class="tally-i tally-more">and counting</span>
-      </span></p>
-      <p class="byline">Made by <a href="/about/">Chris Deppmann</a>, professor of biology at the University of Virginia.</p>
+      <div class="hero-mark">
+        <h1 id="home-h1" class="hero-wm"><Wordmark hop size="clamp(3.2rem, 2rem + 4.6vw, 5.4rem)" /></h1>
+        <p class="tagline">STEM, one short lesson at a time.</p>
+      </div>
+      <div class="hero-side">
+        <p class="lede"><strong>Free</strong> lessons, films, simulations and practice questions, from age 5 to graduate school. Biology is ready now; more subjects are coming. No account needed, no ads.</p>
+        <div class="home-search"><SiteSearch label="Search every lesson" placeholder="Search: try “allostery” or “Ras”" /></div>
+        {/* Filled from this device's saved progress (src/lib/progress.ts); stays
+            hidden for a first visit, without JavaScript, or when storage is blocked. */}
+        <p class="resume" data-resume hidden>
+          <span data-resume-text></span>
+          <a href="/progress/" class="resume-link">Your progress →</a>
+        </p>
+        <p class="byline">Made by <a href="/about/">Chris Deppmann</a>, professor of biology at the University of Virginia.</p>
+      </div>
     </section>
 
-    <div class="hero-film">
-      <HomeFilm film={heroFilm} id="hero-film" eager>
-        <strong>{heroFilm.title}.</strong> From planting a seed at five to questions nobody has answered yet. Captions are available.
-      </HomeFilm>
-    </div>
-  </div>
-
-  {/* Where are you starting: one row per level, its courses as links. `courses` and `lessons`
-      stay as anchors: older links point at /#courses and /#lessons. */}
-  <section class="wrap stage" id="stage" aria-labelledby="stage-h">
-    <span class="anchor" id="courses"></span><span class="anchor" id="lessons"></span>
-    <h2 class="sec-h" id="stage-h">Where are you starting?</h2>
-    <ul class="bands">
-      {bands.map((b) => (
-        <li class="band">
-          <div class="band-head">
-            <h3 class="band-t"><Sprout step={STAGES.findIndex((s) => s.key === b.key)} total={STAGES.length} size={38} />{b.title}</h3>
-            <p class="band-d">{b.here}</p>
-          </div>
-          <ul class="band-courses">
-            {b.cards.map((k) => (
-              <li>
-                <a class="bc" href={courseHref(k.c.slug)}>
-                  <span class="bc-t">{k.c.title}</span>
-                  <span class="bc-n">{k.lessons}</span>
-                </a>
-              </li>
-            ))}
+    {/* Pick a subject: Biology is open; the others are named and marked "Coming", never links.
+        On a phone the coming subjects fold into one row of chips. */}
+    <section class="subjects" aria-labelledby="subj-h">
+      <h2 class="sec-h" id="subj-h">Pick a subject</h2>
+      <div class="subj-grid">
+        <div class="leap" aria-hidden="true">
+          <svg class="arc" viewBox="0 0 200 60" preserveAspectRatio="none"><path class="hop-arc" vector-effect="non-scaling-stroke" d="M4 58 Q100 -22 196 58" /></svg>
+          <Hex pose="cheer" size={61} class="leap-hex" />
+        </div>
+        <div class="bio">
+          <div class="bio-top"><h3>Biology</h3><span class="pill-live">Open now</span></div>
+          <ul class="stats">
+            {STATS.map(([n, label]) => <li><b>{fmt(n)}</b><span>{label}</span></li>)}
           </ul>
-        </li>
-      ))}
-    </ul>
-    <p class="stage-foot">
-      Anyone can start on any rung, and every lesson has a simpler version of its idea.
-      <a href="/courses/">All {courseCount} courses in full →</a>
-    </p>
-  </section>
+          <p class="incl">
+            From <em>{firstCard.c.title}</em> {whoFor(firstCard)} to <em>{lastCard.c.title}</em> {whoFor(lastCard)}.
+            {further.length > 0 && ` ${listJoin(further)} ${further.length === 1 ? 'is' : 'are'} here too.`}
+          </p>
+          <a class="go" href="/courses/">Start with biology <svg viewBox="0 0 26 12" aria-hidden="true"><path class="hop-arc" d="M1 11 Q13 -4 25 11" /></svg></a>
+        </div>
+        {COMING_SUBJECTS.map((s) => (
+          <div class="soon">
+            <div class="soon-top"><h3>{s.name}</h3><span class="pill-soon">Coming</span></div>
+            <p>{s.note}{s.link && <>{' '}{s.link.before}<a href={s.link.href}>{s.link.text}</a>{s.link.after}</>}</p>
+          </div>
+        ))}
+      </div>
+      <p class="soon-row"><span class="lbl">Coming</span>{COMING_SUBJECTS.map((s) => <span class="sc">{s.name}</span>)}</p>
+    </section>
 
-  {/* What do you want to do: each goal is one chip to its path. */}
-  <section class="wrap goals" id="goals" aria-labelledby="goals-h">
-    <h2 class="sec-h" id="goals-h">What do you want to do?</h2>
-    <ul class="goal-row">
-      {GOALS.map((g) => {
-        const primary = g.links.find((l) => l.primary);
-        const rest = g.links.filter((l) => !l.primary);
-        return (
-          <li class="goal" title={g.line}>
-            {primary ? <a class="goal-main" href={primary.href}>{g.label} →</a> : <span class="goal-main goal-plain">{g.label}:</span>}
-            {rest.map((l) => <a class="goal-sub" href={l.href}>{l.text}</a>)}
+    {/* Start where you are: one row per level, its courses as links, and its first lesson.
+        `courses` and `lessons` stay as anchors: older links point at /#courses and /#lessons. */}
+    <section class="levels" id="stage" aria-labelledby="stage-h">
+      <span class="anchor" id="courses"></span><span class="anchor" id="lessons"></span>
+      <h2 class="sec-h" id="stage-h">Start where you are</h2>
+      <ul class="lv-list">
+        {rows.map((b) => (
+          <li class="lv">
+            <div class="lv-head">
+              <h3 class="lv-t">{b.title}</h3>
+              <p class="lv-d">{b.here}</p>
+            </div>
+            <ul class="lv-courses">
+              {b.cards.map((k) => (
+                <li>
+                  <a class="bc" href={courseHref(k.c.slug)}>
+                    <span class="bc-t">{k.c.title}</span>
+                    <span class="bc-n">{k.lessons}</span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+            {b.first && (
+              <a class="lv-first" href={`/lessons/${b.first.slug}/`}>
+                <small>First lesson</small> <b>{b.first.title} →</b>
+              </a>
+            )}
           </li>
-        );
-      })}
-    </ul>
-  </section>
-
-  {shelf.length > 0 && (
-    <section class="wrap rewritten" aria-labelledby="rewritten-h">
-      <h2 id="rewritten-h" class="sec-h-quiet">Recently rewritten <span>· new text, figures and fixed simulations · {rewrittenAll.length} lessons so far</span></h2>
-      <ul class="rewritten-list">
-        {shelf.slice(0, 5).map((r) => (
-          <li><a href={`/lessons/${r.slug}/`}><span class="rw-t">{r.title}</span> <span class="rw-m">{r.course} · {r.date}</span></a></li>
         ))}
       </ul>
-      {shelf.length > 5 && (
-        <details class="rw-more">
-          <summary>{shelf.length - 5} more</summary>
-          <ul class="rewritten-list">
-            {shelf.slice(5).map((r) => (
-              <li><a href={`/lessons/${r.slug}/`}><span class="rw-t">{r.title}</span> <span class="rw-m">{r.course} · {r.date}</span></a></li>
-            ))}
-          </ul>
-        </details>
-      )}
+      <p class="lv-foot">
+        Anyone can start on any rung, and every lesson has a simpler version of its idea.
+        <a href="/courses/">All {courseCount} courses in full →</a>
+      </p>
+
+      {/* Or start from a goal (the old "What do you want to do?" chips; /#goals still lands here). */}
+      <div class="goals" id="goals">
+        <h3 class="goals-h">Or start from what you want to do</h3>
+        <ul class="goal-row">
+          {GOALS.map((g) => {
+            const primary = g.links.find((l) => l.primary);
+            const rest = g.links.filter((l) => !l.primary);
+            return (
+              <li class="goal" title={g.line}>
+                {primary ? <a class="goal-main" href={primary.href}>{g.label} →</a> : <span class="goal-main goal-plain">{g.label}:</span>}
+                {rest.map((l) => <a class="goal-sub" href={l.href}>{l.text}</a>)}
+              </li>
+            );
+          })}
+        </ul>
+      </div>
     </section>
-  )}
 
-  <section class="wrap tryrow" aria-labelledby="try-h">
-    <h2 class="sec-h-quiet" id="try-h">Things to try</h2>
-    <ul class="try-grid">
-      {TRY.map((t) => (
-        <li>
-          <a class="try" href={t.href}>
-            <span class="try-t">{t.title}</span>
-            <span class="try-d">{t.line}</span>
-          </a>
-        </li>
-      ))}
-    </ul>
-  </section>
+    {shelf.length > 0 && (
+      <section class="rewritten" aria-labelledby="rewritten-h">
+        <h2 id="rewritten-h" class="eyebrow">Recently rewritten <span>· new text, figures and fixed simulations · {fmt(rewrittenAll.length)} lessons so far</span></h2>
+        <ul class="rw-list">
+          {shelf.slice(0, SHELF_TOP).map((r) => (
+            <li><a href={`/lessons/${r.slug}/`}><span class="rw-t">{r.title}</span> <span class="rw-m">{r.course} · {r.date}</span></a></li>
+          ))}
+        </ul>
+        {shelf.length > SHELF_TOP && (
+          <details class="rw-more">
+            <summary>{shelf.length - SHELF_TOP} more</summary>
+            <ul class="rw-list">
+              {shelf.slice(SHELF_TOP).map((r) => (
+                <li><a href={`/lessons/${r.slug}/`}><span class="rw-t">{r.title}</span> <span class="rw-m">{r.course} · {r.date}</span></a></li>
+              ))}
+            </ul>
+          </details>
+        )}
+      </section>
+    )}
 
-  {/* The full note is on /about/ ("A work in progress"); old /#wip links land here. */}
-  <section class="wrap wip-band" id="wip" aria-label="Built in public">
-    <p class="wip-line">
-      <strong>Built in public.</strong> Lessons still being checked carry an <em>Under review</em> tag, and
-      chemistry, physics, math and under-fives aren’t built yet.
-      <a href={feedbackUrl()} target="_blank" rel="noopener">Report an error</a> ·
-      <a href="/about/">How it’s made and checked →</a>
-    </p>
-  </section>
+    <div class="ways">
+      <section aria-labelledby="ways-h">
+        <h2 class="eyebrow" id="ways-h">More ways in</h2>
+        <ul class="also">
+          {WAYS.map((t) => <li><a href={t.href}><b>{t.title}</b><span>{t.line}</span></a></li>)}
+        </ul>
+      </section>
+      <section aria-labelledby="try-h">
+        <h2 class="eyebrow" id="try-h">Things to try</h2>
+        <ul class="try">
+          {TRY.map((t) => <li><a href={t.href}><b>{t.title}</b><span>{t.line}</span></a></li>)}
+        </ul>
+      </section>
+    </div>
+
+    {/* The full note is on /about/ ("A work in progress"); old /#wip links land here. */}
+    <section class="wip" id="wip" aria-label="Built in public">
+      <p>
+        <strong>Built in public.</strong> Lessons still being checked carry an <em>Under review</em> tag, and
+        chemistry, physics, math and under-fives aren’t built yet.
+        <a href={feedbackUrl()} target="_blank" rel="noopener">Report an error</a> ·
+        <a href="/about/">How it’s made and checked →</a>
+      </p>
+    </section>
+  </div>
 
   <script>
     import { load, dueNow, onChange, lastLessonAt } from '../lib/progress';
@@ -287,111 +326,81 @@ const TRY = [
   </script>
 
   <style>
-    /* ---- Top: hero text (with search and continue) beside the film ---- */
-    .top {
-      display: grid;
-      grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
-      grid-template-areas: "hero film";
-      gap: var(--ddp-space-8) var(--ddp-space-12);
-      align-items: center;
-      padding: var(--ddp-space-10, 2.5rem) var(--ddp-space-6) var(--ddp-space-4);
-    }
-    .hero { grid-area: hero; }
-    .hero-film { grid-area: film; min-width: 0; }
-    /* Live counter: quiet on purpose. Mono, small, muted; items wrap whole. */
-    .tally { margin: var(--ddp-space-2) 0 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: 0.03em; line-height: 1.7; color: var(--ddp-color-muted); }
-    /* Each item carries its own dot; the row is pulled left by one dot's width and
-       clipped, so a dot that starts a wrapped line is hidden. */
-    .tally { overflow: hidden; }
-    .tally-row { display: flex; flex-wrap: wrap; margin-left: -1.6em; }
-    .tally-i { white-space: nowrap; }
-    .tally-i::before { content: '·'; display: inline-block; width: 1.6em; text-align: center; opacity: 0.7; }
-    .tally-more { font-style: italic; }
-    .byline { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-sm); color: var(--ddp-color-muted); }
-    /* Recently rewritten: a quiet strip under the totals; wraps on phones. */
-    .rewritten { margin-top: var(--ddp-space-6); }
-    .rewritten-h { margin: 0 0 var(--ddp-space-2); font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: 0.06em; text-transform: uppercase; font-weight: 600; color: var(--ddp-color-primary); }
-    .rewritten-h span { text-transform: none; letter-spacing: 0.02em; font-weight: 400; color: var(--ddp-color-muted); }
-    .rewritten-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr)); gap: var(--ddp-space-2); }
-    .rewritten-list a { display: flex; flex-direction: column; gap: 0.1rem; padding: 0.5rem 0.75rem; border: 1px solid var(--ddp-color-line); border-radius: 10px; background: var(--ddp-color-surface); text-decoration: none; height: 100%; }
-    .rewritten-list a:hover { border-color: var(--ddp-color-accent); }
-    .rw-t { font-size: var(--ddp-text-sm); font-weight: 600; color: var(--ddp-color-ink); line-height: 1.35; }
-    .rw-m { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
-    @media (max-width: 640px) {
-      .rewritten-list { display: block; border-top: 1px solid var(--ddp-color-line); }
-      .rewritten-list a { flex-direction: row; justify-content: space-between; align-items: baseline; gap: 0.75rem; padding: 0.45rem 0; border: 0; border-bottom: 1px solid var(--ddp-color-line); border-radius: 0; background: none; }
-      .rw-t { font-weight: 500; }
-      .rw-m { flex: none; }
-    }
-    @media (max-width: 900px) {
-      .top { grid-template-columns: minmax(0, 1fr); grid-template-areas: "hero" "film"; padding-top: var(--ddp-space-4); gap: var(--ddp-space-3); }
-      .home-search { margin-top: var(--ddp-space-4); }
-      .stage { padding-top: var(--ddp-space-4); }
-    }
-    .hero h1 {
-      font-family: var(--ddp-font-serif);
-      font-weight: 500;
-      font-size: var(--ddp-text-3xl);
-      line-height: 1.1;
-      color: var(--ddp-color-primary);
-      max-width: 17ch;
-      margin: 0;
-    }
-    .hero h1 em { font-style: italic; color: var(--ddp-color-accent); }
-    .goldrule {
-      width: 64px;
-      height: 3px;
-      background: var(--ddp-color-secondary);
-      margin: var(--ddp-space-6) 0;
-      transform-origin: left center;
-    }
-    @media (max-width: 720px) { .goldrule { margin: var(--ddp-space-4) 0; } }
-    .lede { max-width: 52ch; font-size: var(--ddp-text-lg); line-height: 1.6; color: var(--ddp-color-ink-soft); margin: 0; }
-    .resume { margin: var(--ddp-space-4) 0 0; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); display: flex; flex-wrap: wrap; gap: var(--ddp-space-3); align-items: baseline; }
+    .home { padding-bottom: var(--ddp-space-10, 2.5rem); }
+    .anchor { display: block; height: 0; scroll-margin-top: 5.5rem; }
+    #stage, #goals, #wip { scroll-margin-top: 5.5rem; }
+    .sec-h { font-family: var(--ddp-font-serif); font-weight: 500; font-size: var(--ddp-text-2xl); line-height: 1.2; color: var(--ddp-color-primary); margin: 0 0 0.75rem; }
+    .eyebrow { display: block; margin: 0 0 0.5rem; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ddp-color-primary); }
+    .eyebrow span { text-transform: none; letter-spacing: 0.02em; font-weight: 400; color: var(--ddp-color-muted); }
+    ul { list-style: none; margin: 0; padding: 0; }
+
+    /* ---- Hero ---- */
+    .hero { padding: 2.75rem 0 0.5rem; display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 1rem 3rem; align-items: center; }
+    .hero-wm { margin: 0; line-height: 1; }
+    .tagline { margin: 1.1rem 0 0; font-family: var(--ddp-font-serif); font-size: var(--ddp-text-xl); color: var(--ddp-color-accent); font-style: italic; }
+    .lede { margin: 0; font-size: var(--ddp-text-lg); color: var(--ddp-color-ink-soft); line-height: 1.6; max-width: 46ch; }
+    .lede strong { color: var(--ddp-color-ink); font-weight: 600; }
+    .home-search { margin-top: 1rem; }
+    .home-search :global(.ss-label) { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; margin: 0; }
+    .resume { margin: 0.75rem 0 0; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); display: flex; flex-wrap: wrap; gap: 0.25rem 0.75rem; align-items: baseline; }
     .resume[hidden] { display: none; }
     .resume :global(a) { color: var(--ddp-color-accent); font-weight: 600; }
     .resume :global(.resume-meta) { color: var(--ddp-color-muted); }
+    .byline { margin: 0.6rem 0 0; font-size: var(--ddp-text-sm); color: var(--ddp-color-muted); }
+    .byline a { font-weight: 600; }
 
-    .home-search { margin-top: var(--ddp-space-5); max-width: 36rem; }
-    .hero-methods { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-sm); }
-    .hero-methods a { color: var(--ddp-color-ink-soft); text-decoration: none; }
-    .hero-methods a strong { color: var(--ddp-color-accent); font-weight: 600; }
-    .hero-methods a:hover strong, .hero-methods a:focus-visible strong { text-decoration: underline; }
-    .tally { margin-top: var(--ddp-space-3); }
+    /* ---- Pick a subject ---- */
+    .subjects { padding-top: 2rem; }
+    .subj-grid { position: relative; display: grid; grid-template-columns: minmax(0, 1.35fr) repeat(2, minmax(0, 1fr)); gap: 1rem; margin-top: 3.2rem; }
+    .bio { grid-row: 1 / span 2; display: flex; flex-direction: column; gap: 0.8rem; padding: 1.4rem 1.5rem; background: var(--ddp-color-surface); border: 1.5px solid var(--ddp-color-accent); border-radius: var(--ddp-radius); box-shadow: var(--ddp-shadow); }
+    .bio-top { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; }
+    .bio h3 { margin: 0; font-size: var(--ddp-text-3xl); font-weight: 600; }
+    .stats { display: flex; flex-wrap: wrap; gap: 0.4rem 1.5rem; }
+    .stats li { display: flex; flex-direction: column; }
+    .stats b { font-family: var(--ddp-font-serif); font-size: var(--ddp-text-xl); color: var(--ddp-color-primary); font-weight: 600; line-height: 1.2; }
+    .stats span { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+    .incl { margin: 0; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); }
+    .go { margin-top: auto; align-self: flex-start; display: inline-flex; gap: 0.5rem; align-items: center; min-height: 44px; box-sizing: border-box; padding: 0.6rem 1.1rem; border-radius: 999px; background: var(--color-navy, #1B2A4A); color: #fff; font-weight: 600; font-size: var(--ddp-text-sm); text-decoration: none; white-space: nowrap; }
+    .go:hover, .go:focus-visible { text-decoration: none; box-shadow: var(--ddp-shadow); color: #fff; }
+    .go svg { display: block; width: 26px; height: 12px; overflow: visible; }
+    .go .hop-arc { stroke: var(--ddp-color-secondary); stroke-dasharray: 1.5 3.5; stroke-width: 1.6; }
+    @media (prefers-color-scheme: dark) { .go, .go:hover, .go:focus-visible { background: var(--ddp-color-accent); color: #0f1522; } .go .hop-arc { stroke: #0f1522; } }
+    .pill-live, .pill-soon { display: inline-block; flex: none; font-family: var(--ddp-font-mono); font-size: 0.7rem; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.15rem 0.55rem; border-radius: 999px; font-weight: 600; }
+    .pill-live { background: color-mix(in srgb, var(--ddp-color-accent) 14%, var(--ddp-color-surface)); color: var(--ddp-color-accent); }
+    .pill-soon { border: 1px dashed var(--ddp-color-muted); color: var(--ddp-color-muted); }
+    .soon { display: flex; flex-direction: column; gap: 0.35rem; padding: 1rem 1.1rem; border: 1.5px dashed color-mix(in srgb, var(--ddp-color-muted) 45%, transparent); border-radius: var(--ddp-radius); }
+    .soon h3 { margin: 0; font-size: var(--ddp-text-xl); color: var(--ddp-color-muted); font-weight: 500; }
+    .soon p { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); line-height: 1.5; }
+    .soon-top { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; }
+    /* Hex hops from Biology over to the coming subjects. */
+    .leap { position: absolute; left: 30%; top: -3.6rem; width: 30%; height: 4.6rem; pointer-events: none; }
+    .leap svg.arc { display: block; width: 100%; height: 100%; overflow: visible; }
+    .leap :global(.leap-hex) { position: absolute; left: 50%; top: -1.4rem; transform: translateX(-50%) rotate(10deg); }
+    .soon-row { display: none; flex-wrap: wrap; align-items: center; gap: 0.35rem 0.4rem; margin: 0.7rem 0 0; font-size: var(--ddp-text-sm); color: var(--ddp-color-muted); }
+    .soon-row .lbl { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; margin-right: 0.2rem; }
+    .soon-row .sc { display: inline-flex; align-items: center; min-height: 30px; padding: 0.15rem 0.65rem; border: 1.5px dashed color-mix(in srgb, var(--ddp-color-muted) 45%, transparent); border-radius: 999px; font-size: var(--ddp-text-xs); }
 
-    /* ---- Sections ---- */
-    .stage, .goals, .rewritten, .tryrow, .wip-band { padding-inline: var(--ddp-space-6); }
-    .stage { padding-top: var(--ddp-space-6); }
-    .goals, .rewritten, .tryrow { padding-top: var(--ddp-space-8); }
-    .anchor { display: block; height: 0; scroll-margin-top: 5.5rem; }
-    #stage, #goals, #wip { scroll-margin-top: 5.5rem; }
-    .sec-h { font-family: var(--ddp-font-serif); font-weight: 500; font-size: var(--ddp-text-2xl); line-height: 1.15; color: var(--ddp-color-primary); margin: 0 0 var(--ddp-space-3); }
-    .sec-h-quiet { margin: 0 0 var(--ddp-space-2); font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ddp-color-primary); }
-    .sec-h-quiet span { text-transform: none; letter-spacing: 0.02em; font-weight: 400; color: var(--ddp-color-muted); }
-
-    /* ---- Where are you starting: one compact row per level ---- */
-    .bands { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--ddp-color-line); }
-    .band { display: grid; grid-template-columns: minmax(12rem, 0.9fr) minmax(0, 2fr); gap: var(--ddp-space-2) var(--ddp-space-6); padding: var(--ddp-space-3) 0; border-bottom: 1px solid var(--ddp-color-line); align-items: center; }
-    .band-t { display: flex; align-items: flex-end; gap: 0.5rem; font-family: var(--ddp-font-serif); font-weight: 600; font-size: var(--ddp-text-lg); line-height: 1.2; color: var(--ddp-color-primary); margin: 0; }
-    .band-d { padding-left: calc(27px + 0.5rem); }
-    .band-d { margin: 0.15rem 0 0; font-size: var(--ddp-text-xs); line-height: 1.45; color: var(--ddp-color-muted); max-width: 40ch; }
-    .band-courses { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--ddp-space-2); }
+    /* ---- Start where you are ---- */
+    .levels { padding-top: 2.4rem; }
+    .lv-list { border-top: 1px solid var(--ddp-color-line); }
+    .lv { display: grid; grid-template-columns: minmax(15rem, 1fr) minmax(0, 1.55fr) minmax(12rem, 0.9fr); gap: 0.5rem 1.4rem; padding: 0.7rem 0; border-bottom: 1px solid var(--ddp-color-line); align-items: center; }
+    .lv-t { margin: 0; font-family: var(--ddp-font-serif); font-weight: 600; font-size: var(--ddp-text-lg); color: var(--ddp-color-primary); }
+    .lv-d { margin: 0.1rem 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); line-height: 1.45; }
+    .lv-courses { display: flex; flex-wrap: wrap; gap: 0.45rem; }
     .bc { display: inline-flex; align-items: baseline; gap: 0.45em; min-height: 40px; box-sizing: border-box; padding: 0.45rem 0.8rem; background: var(--ddp-color-surface); border: 1px solid var(--ddp-color-line); border-radius: 999px; text-decoration: none; color: inherit; transition: border-color 0.14s ease, box-shadow 0.14s ease, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
     .bc:hover, .bc:focus-visible { border-color: var(--ddp-color-accent); box-shadow: var(--ddp-shadow); text-decoration: none; transform: translateY(-2px) rotate(-1.2deg); }
-    .band-courses li:nth-child(even) .bc:hover, .band-courses li:nth-child(even) .bc:focus-visible { transform: translateY(-2px) rotate(1.2deg); }
+    .lv-courses li:nth-child(even) .bc:hover, .lv-courses li:nth-child(even) .bc:focus-visible { transform: translateY(-2px) rotate(1.2deg); }
     .bc-t { font-weight: 700; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); line-height: 1.25; }
     .bc-n { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
-    @media (max-width: 720px) {
-      .band { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ddp-space-2) var(--ddp-space-3); padding: var(--ddp-space-2) 0; }
-      .band-head { flex: 0 1 auto; }
-      .band-d { display: none; }
-      .band-t { font-size: var(--ddp-text-base); }
-    }
-    .stage-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); }
-    .stage-foot a { color: var(--ddp-color-accent); font-weight: 600; }
-
-    /* ---- Goals: one row of chips ---- */
-    .goal-row { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--ddp-space-2); }
+    .lv-first { display: flex; flex-direction: column; text-decoration: none; border-left: 2px solid var(--ddp-color-secondary); padding-left: 0.75rem; }
+    .lv-first:hover b, .lv-first:focus-visible b { text-decoration: underline; }
+    .lv-first small { font-family: var(--ddp-font-mono); font-size: 0.68rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ddp-color-secondary-ink); font-weight: 600; }
+    .lv-first b { font-size: var(--ddp-text-sm); color: var(--ddp-color-accent); font-weight: 600; line-height: 1.35; }
+    .lv-foot { margin: 0.75rem 0 0; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); }
+    .lv-foot a { font-weight: 600; }
+    .goals { margin-top: 1.4rem; }
+    .goals-h { margin: 0 0 0.5rem; font-family: var(--ddp-font-serif); font-size: var(--ddp-text-lg); font-weight: 500; color: var(--ddp-color-primary); }
+    .goal-row { display: flex; flex-wrap: wrap; gap: 0.5rem; }
     .goal { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 0.2rem 0.7rem; padding: 0.35rem 0.9rem; min-height: 44px; box-sizing: border-box; background: var(--ddp-color-surface); border: 1px solid var(--ddp-color-line); border-radius: 999px; }
     .goal:hover { border-color: var(--ddp-color-accent); }
     .goal-main { font-family: var(--ddp-font-serif); font-weight: 600; color: var(--ddp-color-primary); text-decoration: none; }
@@ -400,54 +409,63 @@ const TRY = [
     .goal-sub { font-size: var(--ddp-text-sm); font-weight: 600; color: var(--ddp-color-accent); }
 
     /* ---- Recently rewritten ---- */
-    .rewritten-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr)); gap: var(--ddp-space-2); }
-    .rewritten-list a { display: flex; flex-direction: column; gap: 0.1rem; padding: 0.5rem 0.75rem; border: 1px solid var(--ddp-color-line); border-radius: 10px; background: var(--ddp-color-surface); text-decoration: none; height: 100%; box-sizing: border-box; }
-    .rewritten-list a:hover { border-color: var(--ddp-color-accent); }
+    .rewritten { padding-top: 2.5rem; }
+    .rw-list { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.5rem; }
+    .rw-list a { display: flex; flex-direction: column; gap: 0.15rem; height: 100%; box-sizing: border-box; padding: 0.55rem 0.75rem; border: 1px solid var(--ddp-color-line); border-radius: 10px; background: var(--ddp-color-surface); text-decoration: none; }
+    .rw-list a:hover { border-color: var(--ddp-color-accent); }
     .rw-t { font-size: var(--ddp-text-sm); font-weight: 600; color: var(--ddp-color-ink); line-height: 1.35; }
     .rw-m { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
-    .rw-more { margin-top: var(--ddp-space-2); }
+    .rw-more { margin-top: 0.45rem; }
     .rw-more > summary { cursor: pointer; font-size: var(--ddp-text-sm); font-weight: 600; color: var(--ddp-color-accent); padding: 0.3rem 0; }
-    .rw-more[open] > summary { margin-bottom: var(--ddp-space-2); }
-    @media (max-width: 640px) {
-      .rewritten-list { display: block; border-top: 1px solid var(--ddp-color-line); }
-      .rewritten-list a { flex-direction: row; justify-content: space-between; align-items: baseline; gap: 0.75rem; padding: 0.45rem 0; border: 0; border-bottom: 1px solid var(--ddp-color-line); border-radius: 0; background: none; }
-      .rw-t { font-weight: 500; }
-      .rw-m { flex: none; }
-    }
+    .rw-more[open] > summary { margin-bottom: 0.5rem; }
 
-    /* ---- Things to try: one compact row ---- */
-    .try-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--ddp-space-2); }
-    @media (max-width: 900px) { .try-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-    .try { display: flex; flex-direction: column; gap: 0.15rem; height: 100%; box-sizing: border-box; min-height: 44px; padding: 0.6rem 0.8rem; background: color-mix(in srgb, var(--ddp-color-secondary) 8%, var(--ddp-color-surface)); border: 1px solid var(--ddp-color-line); border-radius: var(--ddp-radius-sm); color: inherit; text-decoration: none; transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.14s ease; }
-    .try:hover, .try:focus-visible { border-color: var(--ddp-color-accent); text-decoration: none; transform: translateY(-3px) rotate(-0.8deg); box-shadow: var(--ddp-shadow); }
-    .try-grid li:nth-child(even) .try:hover, .try-grid li:nth-child(even) .try:focus-visible { transform: translateY(-3px) rotate(0.8deg); }
-    .try-t { font-family: var(--ddp-font-serif); font-weight: 600; font-size: var(--ddp-text-base); color: var(--ddp-color-primary); }
-    .try-d { font-size: var(--ddp-text-xs); line-height: 1.45; color: var(--ddp-color-ink-soft); }
-    @media (max-width: 640px) { .try-d { display: none; } }
+    /* ---- More ways in + Things to try ---- */
+    .ways { padding-top: 2.5rem; display: grid; grid-template-columns: minmax(0, 1.65fr) minmax(0, 1fr); gap: 1.5rem; }
+    .also { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.5rem; }
+    .also a, .try a { display: flex; flex-direction: column; gap: 0.15rem; height: 100%; box-sizing: border-box; min-height: 44px; padding: 0.65rem 0.85rem; border: 1px solid var(--ddp-color-line); border-radius: var(--ddp-radius-sm); text-decoration: none; transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.14s ease; }
+    .also a { background: color-mix(in srgb, var(--ddp-color-secondary) 8%, var(--ddp-color-surface)); }
+    .try a { background: var(--ddp-color-surface); padding: 0.6rem 0.85rem; }
+    .also a:hover, .also a:focus-visible, .try a:hover, .try a:focus-visible { border-color: var(--ddp-color-accent); text-decoration: none; transform: translateY(-3px) rotate(-0.8deg); box-shadow: var(--ddp-shadow); }
+    .also b, .try b { font-family: var(--ddp-font-serif); font-weight: 600; color: var(--ddp-color-primary); font-size: var(--ddp-text-base); }
+    .also span, .try span { font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.45; }
+    .try { display: grid; gap: 0.5rem; }
 
-    /* ---- Built in public: one line; the full note is on /about/ ---- */
-    .wip-band { padding-top: var(--ddp-space-8); padding-bottom: var(--ddp-space-10, 2.5rem); }
-    .wip-line { margin: 0; padding-top: var(--ddp-space-4); border-top: 1px solid var(--ddp-color-line); max-width: 75ch; font-size: var(--ddp-text-sm); line-height: 1.6; color: var(--ddp-color-ink-soft); }
-    .wip-line a { color: var(--ddp-color-accent); font-weight: 600; }
+    /* ---- Built in public ---- */
+    .wip { margin-top: 2.25rem; }
+    .wip p { margin: 0; padding-top: 1rem; border-top: 1px solid var(--ddp-color-line); max-width: 75ch; font-size: var(--ddp-text-sm); line-height: 1.6; color: var(--ddp-color-ink-soft); }
+    .wip a { font-weight: 600; }
 
-    /* ---- Phone: the film is a compact row (thumbnail + title); it grows when played ---- */
+    /* ---- Tablet and phone ---- */
     @media (max-width: 900px) {
-      .hero-film :global(.hf:not(:has(video))) { display: grid; grid-template-columns: 112px 1fr; gap: 0.75rem; align-items: center; padding: 0.4rem; border: 1px solid var(--ddp-color-line); border-radius: 12px; background: var(--ddp-color-surface); }
-      .hero-film :global(.hf:not(:has(video)) .hf-play-text) { display: none; }
-      .hero-film :global(.hf:not(:has(video)) .hf-cap) { margin: 0; font-size: var(--ddp-text-sm); line-height: 1.4; }
-      .hero-film :global(.hf:not(:has(video)) .hf-play) { transform: scale(0.7); }
+      .hero { grid-template-columns: minmax(0, 1fr); padding-top: 1.5rem; gap: 1rem; }
+      .subj-grid { grid-template-columns: minmax(0, 1fr); margin-top: 0.75rem; }
+      .bio { grid-row: auto; padding: 1.1rem 1.1rem 1.2rem; }
+      .stats { gap: 0.3rem 1.1rem; }
+      .subj-grid .soon, .leap { display: none; }
+      .soon-row { display: flex; }
+      .lv { grid-template-columns: minmax(0, 1fr); gap: 0.45rem; padding: 0.8rem 0; }
+      .lv-d { display: none; }
+      .lv-t { font-size: var(--ddp-text-base); }
+      .bc { min-height: 36px; padding: 0.35rem 0.7rem; }
+      .lv-first { flex-direction: row; flex-wrap: wrap; align-items: baseline; gap: 0 0.5rem; }
+      .rw-list { display: block; border-top: 1px solid var(--ddp-color-line); }
+      .rw-list a { gap: 0.05rem; padding: 0.45rem 0; border: 0; border-bottom: 1px solid var(--ddp-color-line); border-radius: 0; background: none; }
+      .rw-t { font-weight: 500; }
+      .ways { grid-template-columns: minmax(0, 1fr); }
+      .also { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .try { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .try span { display: none; }
     }
+    @media (max-width: 640px) { .also span { display: none; } }
 
-    /* ---- Entrance: one calm rise. Disabled under reduced motion. ---- */
+    /* ---- Entrance: one calm rise. Off under reduced motion. ---- */
     @keyframes riseIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
-    @keyframes drawRule { from { transform: scaleX(0); } to { transform: scaleX(1); } }
-    .hero h1, .hero .lede { animation: riseIn 0.5s ease both; }
+    .hero-mark, .hero .lede { animation: riseIn 0.5s ease both; }
     .hero .lede { animation-delay: 0.1s; }
-    .goldrule { animation: drawRule 0.5s ease 0.1s both; }
     @media (prefers-reduced-motion: reduce) {
-      .hero h1, .hero .lede, .goldrule { animation: none !important; }
-      .bc, .try { transition: none; }
-      .bc:hover, .bc:focus-visible, .try:hover, .try:focus-visible { transform: none !important; }
+      .hero-mark, .hero .lede { animation: none !important; }
+      .bc, .also a, .try a { transition: none; }
+      .bc:hover, .bc:focus-visible, .also a:hover, .also a:focus-visible, .try a:hover, .try a:focus-visible { transform: none !important; }
     }
   </style>
 </BaseLayout>
