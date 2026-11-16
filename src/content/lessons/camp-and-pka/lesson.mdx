@@ -5,12 +5,12 @@ course: "signaling"
 courseChapter: "Cell Signaling · Unit 3: G-protein-coupled receptors and second messengers"
 order: 113
 summary: >-
-  Adrenaline gives its order from outside the cell, so something made inside must carry it.
-  This lesson follows that something, cyclic AMP, from the broken-cell experiment that found it,
-  through the enzymes that make and destroy it, to protein kinase A, the enzyme it switches on.
-  You will finish able to explain how one messenger and one kinase give different answers in
-  different cells, and in different parts of one cell.
-hook: "How can one cell with one messenger give two different responses?"
+  cAMP levels reflect the balance of synthesis and breakdown; PKA responses depend on which
+  targets are nearby. Follow cyclic AMP from the broken-cell experiment that revealed an
+  intracellular messenger, through the enzymes that make and destroy it, to protein kinase A,
+  the enzyme it switches on. Then use target proteins, anchoring and local cAMP dynamics to
+  explain how the same messenger produces different responses across cells and within one cell.
+hook: "Adrenaline stays outside a liver cell, so how can enzymes inside respond?"
 
 estMinutes: 22
 objectives:
@@ -23,10 +23,15 @@ explainer:
   src: "/explainers/camp-and-pka/explainer.mp4"
   captions: "/explainers/camp-and-pka/explainer.vtt"
   poster: "/explainers/camp-and-pka/poster.jpg"
-  title: "Adrenaline stays outside, and the membrane makes a second messenger"
-  durationSec: 183.3
-  narration: "an AI narrator voice (ElevenLabs, Brian) reading a passage Chris Deppmann wrote for his graduate signaling course"
+  title: "The Messenger Level: Made and Erased"
+  durationSec: 216.8
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+  takeaways:
+    - "cAMP levels reflect the balance of synthesis and breakdown."
+    - "Adenylyl cyclase makes cAMP from ATP, while phosphodiesterase converts it to 5′-AMP."
+    - "Gs stimulates adenylyl cyclase, while Gi inhibits some forms of the enzyme."
+    - "When breakdown is first order, the level settles where synthesis and breakdown match; faster breakdown gives a lower plateau and a briefer signal."
 
 scientists:
   - name: "Earl Sutherland"
@@ -195,7 +200,7 @@ practiceQuestions:
       subunit, so real substrates cannot enter. The catalytic subunit can bind ATP perfectly well
       and never binds cAMP itself; cAMP binds the regulatory subunits. Phosphodiesterase destroys
       cAMP and is not the inhibitor of the kinase. The catalytic subunit is fully folded in the
-      resting complex, which is why it is active the moment it is released.
+      resting complex, which is why it works as soon as the regulatory subunit lets go.
   - stem: "A cell whose adenylyl cyclase is inhibited by Gi receives two hormones at once. One acts through a receptor coupled to Gs and the other through a receptor coupled to Gi. Compared with the Gs hormone alone, the cAMP level will:"
     choices:
       - "fall to zero, because Gi breaks down cAMP in the cytosol"
@@ -365,104 +370,153 @@ corpusTags:
   - "camp-compartments"
 draft: false
 films:
-  - id: "pka-held-shut"
-    src: "/explainers/camp-and-pka/pka-held-shut.mp4"
-    captions: "/explainers/camp-and-pka/pka-held-shut.vtt"
-    poster: "/explainers/camp-and-pka/pka-held-shut-poster.jpg"
-    title: "A Blank Key Holds the Kinase Shut"
-    durationSec: 108.8
-    narration: "an AI narrator voice (Gemini, Charon) reading narration written from this lesson's text"
+  - id: "chapter-2"
+    src: "/explainers/camp-and-pka/chapter-2.mp4"
+    captions: "/explainers/camp-and-pka/chapter-2.vtt"
+    poster: "/explainers/camp-and-pka/chapter-2-poster.jpg"
+    title: "PKA: The Target Sets the Response"
+    durationSec: 225.8
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
     aiGenerated: true
+    takeaways:
+      - "PKA responses depend on which targets are nearby."
+      - "Regulatory subunits block PKA catalytic sites until cAMP relieves the inhibition."
+      - "Different cells offer PKA different target proteins, so the same pathway can produce different responses."
+      - "Within one cell, anchoring and local cAMP dynamics help direct PKA toward selected targets."
 ---
 
 import LessonFilm from '../../../components/LessonFilm.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import Support from '../../../components/Support.astro';
 
-**Adrenaline does not need to enter the liver cell to give it orders.** It binds a receptor on the outer face of the membrane and acts from there, yet enzymes in the cytosol change what they are doing. Something made inside the cell has to carry the order. That something is cyclic AMP (cAMP), and the enzyme that reads it is protein kinase A (PKA). Once you know both, you can take on this question: how can one cell with one messenger give two different responses?
+**Adrenaline binds outside a liver cell, yet enzymes in the cytosol change their activity.** The first film showed the relay through cyclic AMP (cAMP); here is the experiment that proved it, then its main reader, protein kinase A (PKA).
 
-## Adrenaline stays outside
+## Finding the messenger in broken cells
 
-When Earl Sutherland began studying hormones, he later recalled, there was "a widespread feeling among biologists that hormone action could not be studied meaningfully in the absence of organized cell structure." His laboratory at Western Reserve University in Cleveland tested that feeling on liver, where adrenaline switches on phosphorylase, the enzyme that starts glycogen breakdown.
+Earl Sutherland later recalled “a widespread feeling among biologists that hormone action could not be studied meaningfully in the absence of organized cell structure.” His laboratory tested it on liver, where adrenaline switches on phosphorylase to start glycogen breakdown.
 
-The laboratory homogenized liver and spun it in a centrifuge. That gave two fractions: a pellet of particles that later work traced to fragments of the cell membrane, and a clear liquid called the supernatant, which held the phosphorylase. The paper, by Theodore Rall, Sutherland and Jacques Berthet, came out in 1957. Its logic fits in three lines.
+The researchers homogenized liver and centrifuged it. A pellet held particles later traced to membrane fragments; the clear **supernatant** held phosphorylase. Every tube also held ATP and magnesium, which both steps needed.
 
-- Hormone added to the supernatant alone: phosphorylase stayed off.
-- Hormone added to the supernatant with a little of the pellet mixed back in: phosphorylase switched on.
-- Hormone incubated with the pellet, then the liquid from that tube added to the supernatant: phosphorylase switched on.
+**Predict.** Hormone added to the supernatant alone left phosphorylase off. Which of these should switch it on: hormone with supernatant plus a little pellet mixed back in, or liquid from a tube of hormone and pellet, added to supernatant?
 
-And the liquid still worked after the whole tube was boiled. Every tube also held ATP and magnesium: the pellet needed them to make the factor, and the supernatant needed them to switch on phosphorylase.
+<details>
+<summary>Check your prediction</summary>
 
-Read each result as a clue. The supernatant answers the hormone only when some pellet is added back, so the hormone acts on the pellet, and the pellet hands something to the soluble enzymes. That something survives boiling and passes through a dialysis membrane, so it is small and it is not an enzyme. Nothing in either tube is alive, so whatever passed between them is chemistry.
+Both did. So the hormone acts on the pellet, which hands something to the soluble fraction, where the phosphorylase is. That liquid still worked after boiling and passed through a dialysis membrane, so the transferred factor was small and not an enzyme. Nothing in the tubes was alive: the relay was chemistry.
 
-The factor turned out to be an adenine nucleotide whose single phosphate is bonded to the ribose at two positions, the 3′ and 5′ carbons, which closes the molecule into a small ring. Its name is adenosine 3′,5′-monophosphate, or cyclic AMP. David Lipkin's chemistry group at Washington University in St. Louis had isolated the same compound from ATP treated with barium hydroxide, with no hormone in the work, and later established its structure.
+</details>
 
-Sutherland called the hormone the first messenger and cAMP the second messenger. Let cAMP be your definition. A second messenger is a small molecule or ion whose level inside the cell rises when the first messenger binds outside, and that moves through the interior where the hormone cannot go. cAMP is made for the purpose; calcium, another second messenger, is released from internal stores instead. The cell must also be able to remove it quickly, or the signal would never end; for cAMP that means destroying it. And it amplifies: one bound hormone yields many cAMP molecules.
+The paper, by Theodore Rall, Sutherland and Jacques Berthet, came out in 1957. The factor was an adenine nucleotide with one phosphate bonded to the ribose at both the 3′ and 5′ carbons, closing a ring: adenosine 3′,5′-monophosphate, or **cyclic AMP**. David Lipkin's chemistry group had isolated the same compound from ATP treated with barium hydroxide, without hormone, and later established its structure.
 
-## The idea: the cAMP level is a balance between a tap and a drain
+Sutherland called the hormone the **first messenger** and cAMP the **second messenger**. Here, a second messenger is a small intracellular molecule or ion whose level changes after an extracellular first messenger binds, and that carries the signal to intracellular effectors. cAMP is made for the purpose; calcium, another second messenger, is instead released from internal stores.
 
-The tap is **adenylyl cyclase**. The hormone-sensitive forms of this enzyme sit in the plasma membrane with the active site facing the cytosol. Adenylyl cyclase converts ATP to cAMP and releases pyrophosphate. The G protein Gs turns the cyclase up and Gi turns some forms of it down (whether it does depends on which form of the cyclase a cell makes), so two receptors can cast opposing votes on one enzyme. The G-protein cycle itself is in the lesson on GTPase switches.
+<Support>**The one idea.** cAMP levels reflect the balance of synthesis and breakdown; PKA responses depend on which targets are nearby. **Scope:** This rule covers the classical cAMP–PKA pathway. The balance equation below assumes first-order, unsaturated breakdown; other proteins also read cAMP.</Support>
 
-The drain is **phosphodiesterase**, which cuts the 3′ bond of the ring and leaves ordinary 5′-AMP. 5′-AMP does not switch on PKA, so the message is erased.
+## How much cAMP accumulates?
 
-<LessonFigure src="/figures/camp-and-pka/tap-and-drain.webp" width={1200} height={661} alt="AI-generated illustration: a cell membrane with the enzyme adenylyl cyclase in it. Gs pushes it up and Gi pushes it down; Gi inhibits only some forms of the cyclase. The cyclase makes a pool of cAMP in the cytosol, and a second enzyme, phosphodiesterase, removes cAMP and leaves 5′-AMP." caption="The cAMP level balances synthesis and breakdown. Gs stimulates adenylyl cyclase; Gi inhibits some forms, as in the example shown. Phosphodiesterase converts cAMP to 5′-AMP, which does not activate PKA." />
+The first film showed a source filling the pool and a sink draining it; here are the reaction details and the arithmetic behind that picture.
 
-While phosphodiesterase is working well below saturation, it removes cAMP at a rate proportional to how much is there. The level then settles where the two rates match:
+The source is **adenylyl cyclase**. Its hormone-sensitive forms, in the plasma membrane, convert ATP to cAMP and release pyrophosphate. Whether Gi lowers its activity depends on which cyclase form the cell makes. The prerequisite lesson on GTPase switches develops the G-protein cycle.
 
-> **steady-state [cAMP] = rate of synthesis ÷ rate constant of breakdown**
+The sink is **phosphodiesterase**, which hydrolyses the ring's 3′ bond to leave 5′-AMP.
 
-Two things follow. First, you can raise cAMP by opening the tap or by narrowing the drain, and doing both multiplies. Theophylline, a drug that inhibits phosphodiesterase, strengthens the effect of hormones that work through cAMP, and Sutherland made that one of his tests for whether a hormone uses cAMP at all. Caffeine is a close chemical relative and inhibits phosphodiesterase in the test tube, although at the levels reached by drinking coffee its main action is thought to be blocking adenosine receptors. Second, a fast drain makes a brief signal. When the hormone leaves, cAMP falls on a timescale set by the drain. The lesson on turning signals off takes that further.
+<LessonFigure src="/figures/camp-and-pka/tap-and-drain.webp" width={1200} height={661} alt="AI-generated illustration: a cell membrane with the enzyme adenylyl cyclase in it. Gs pushes it up and Gi pushes it down; Gi inhibits only some forms of the cyclase. The cyclase makes a pool of cAMP in the cytosol, and a second enzyme, phosphodiesterase, removes cAMP and leaves 5′-AMP." caption="The cAMP level settles where synthesis matches breakdown: Gs raises synthesis, Gi lowers it for some cyclase forms, and phosphodiesterase removes cAMP." />
 
-## A kinase held shut by its own partner
+The film's curve assumed first-order removal, proportional to cAMP concentration (the box above gives its scope). At steady state:
+
+> **steady-state [cAMP] = synthesis rate ÷ breakdown rate constant**
+
+For example, 2 micromolar per second ÷ 4 per second = 0.5 micromolar.
+
+**Predict.** If both the synthesis rate and the first-order breakdown constant double, what happens to the steady cAMP level?
+
+<details>
+<summary>Check your prediction</summary>
+
+Unchanged: the same factor appears above and below the division. Turnover is faster, so the level responds more quickly when either rate changes.
+
+</details>
+
+**Predict.** If cAMP rises high enough to saturate phosphodiesterase, can you still use the simple division rule unchanged?
+
+<details>
+<summary>Check your prediction</summary>
+
+No. A saturated phosphodiesterase removes cAMP at a rate no longer proportional to its concentration, so no single breakdown constant describes it.
+
+</details>
+
+Raising synthesis and lowering breakdown multiply their effects; the lesson on turning signals off takes up signal duration. Theophylline inhibits phosphodiesterase and strengthens cAMP-linked hormone responses, one of Sutherland's tests for a cAMP messenger. Caffeine, a close relative, inhibits phosphodiesterase in vitro, although at concentrations reached by drinking coffee it is thought to act mainly at adenosine receptors.
+
+The cAMP level is only half the explanation; the next question is what its kinase can reach.
 
 <LessonFilm film={frontmatter.films[0]} />
 
-The main reader of cAMP is PKA, which Walsh, Perkins and Krebs described in 1968 as a protein kinase that depends on cAMP. At rest PKA is a complex of four subunits. Two are **catalytic** subunits, each a complete kinase. Two are **regulatory** subunits, which keep the catalytic ones off.
+## How cAMP relieves PKA inhibition
 
-How they do it is simple. PKA phosphorylates a serine or threonine that lies close after a pair of arginines in its target. Each regulatory subunit carries a short stretch that looks like such a target, and that stretch lies in the catalytic subunit's active site, where a substrate would go. In type I regulatory subunits the serine position holds a residue that cannot accept a phosphate, so the stretch fits but is never phosphorylated. Biochemists call it a pseudosubstrate. Think of a blank key left in a lock: it fits and will not turn, so no working key can get in.
+The second film showed each of PKA's two **regulatory** subunits blocking the groove of one of its two **catalytic** subunits (each a complete kinase) with a target-mimicking segment. Here is why that segment fits, at the level of sequence.
 
-Each regulatory subunit also has two binding sites for cAMP, which makes four in the whole complex. When cAMP fills them, the regulatory subunit changes shape and lets go. In the classical model the catalytic subunits come away free and begin phosphorylating targets. There is evidence that PKA held on an anchoring protein can act on nearby targets without fully coming apart, so take "the catalytic subunits float away" as the textbook picture, which may not hold everywhere.
+Many preferred PKA targets place a serine or threonine just after basic residues, often a pair of arginines (Arg-Arg-X-Ser/Thr). The regulatory subunit's blocking stretch copies that pattern. In type I regulatory subunits the phosphate-receiving position holds a residue that cannot accept one: a **pseudosubstrate**, which fits but cannot be phosphorylated.
 
-We can describe the blocked active site because of Susan Taylor. In 1991 her laboratory and Janusz Sowadski's crystallography group published the first three-dimensional structure of any protein kinase, the PKA catalytic subunit. The fold has two lobes. ATP binds under the small lobe, the substrate lies along the large lobe, and the phosphate is transferred in the cleft between them. In that crystal the substrate groove was filled by a 20-residue piece of a separate inhibitor protein, itself a pseudosubstrate. Later structures from Taylor's laboratory showed a regulatory subunit's own inhibitor stretch in the same groove. The human genome encodes about 500 protein kinases, and their catalytic cores are variations on this two-lobed fold.
+**Predict.** A free target-like peptide, with alanine in place of the serine, is added to purified catalytic subunit. If the experiment supplies far more real substrate, should inhibition become easier or harder to detect?
 
-## What PKA phosphorylates depends on the cell
+<details>
+<summary>Check your prediction</summary>
 
-A free catalytic subunit phosphorylates the suitable targets it meets, and cells differ in which targets they make.
+Harder. Real substrate competes for the same groove, so enough substrate can displace a free pseudosubstrate peptide. In the whole complex the regulatory subunit grips the catalytic subunit over a much larger surface, so extra substrate does not release it; cAMP does.
 
-- **Liver.** PKA phosphorylates phosphorylase kinase, which switches on glycogen phosphorylase; the overview lesson on signal transduction walks through that cascade. PKA also phosphorylates glycogen synthase, which shuts glycogen synthesis down.
-- **Heart.** PKA phosphorylates phospholamban, releasing a brake on the pump that returns calcium to its internal store, and troponin I on the contractile filaments. PKA activity also increases calcium entry through L-type calcium channels. The result is a stronger beat and a faster relaxation.
-- **Fat.** PKA phosphorylates hormone-sensitive lipase and perilipin, a protein that coats the fat droplet, and stored fat is broken down.
+</details>
 
-Over a longer time, catalytic subunits that reach the nucleus phosphorylate the transcription factor CREB, which changes gene expression.
+Four cAMP, two on each regulatory subunit, relieve the hold. In the classical model, the catalytic subunits come away free. There is evidence that anchored PKA can act on nearby targets without fully coming apart, so take release as the textbook picture, which may not hold everywhere.
 
-<LessonFigure src="/figures/camp-and-pka/cell-types-same-kinase-different-targets.webp" width={1200} height={555} alt="AI-generated illustration: three side-by-side schematic cells labelled liver, heart and fat. Each has the same gold chain of cAMP and protein kinase A under the membrane, with an arrow to different target proteins: phosphorylase kinase and glycogen synthase in liver, phospholamban and troponin I in heart, hormone-sensitive lipase and perilipin in fat." caption="All three cells use the same messenger and the same kind of kinase; the main difference is the set of targets PKA finds there." />
+## Different cells offer different targets
 
-PKA is also one of several proteins that read cAMP. Epac, an exchange factor for the small GTPase Rap, is activated directly by cAMP, and cyclic-nucleotide-gated ion channels, such as those in olfactory neurons, open when cAMP binds them.
+Here is what the film's targets do:
 
-## One messenger, many meanings
+- **Liver:** PKA phosphorylates phosphorylase kinase, which activates glycogen phosphorylase (the overview lesson on signal transduction walks through that cascade), and phosphorylates glycogen synthase, inhibiting glycogen synthesis.
+- **Heart:** PKA phosphorylates phospholamban, releasing a brake on the pump that returns calcium to its internal store, and troponin I on contractile filaments. PKA activity also increases calcium entry through L-type calcium channels, producing a stronger beat and faster relaxation.
+- **Fat:** perilipin, the film's second fat target, is the protein coating the fat droplet.
 
-Half of the answer to the opening question is now plain. The effect depends on the proteins inside each cell. The messenger and the kind of kinase are the same; the substrates are what differ most.
+Catalytic subunits reaching the nucleus can phosphorylate CREB and change gene expression over a longer time.
 
-The other half is harder: two cAMP signals inside one cell. Heart muscle supplied the classic case. Hayes, Brunton and colleagues reported that kinase activity in the heart depended on which hormone was used. Isoproterenol, which acts on β-adrenergic receptors, and prostaglandin E1 both raised cAMP, but only isoproterenol activated the particulate pool of PKA, the part that pellets with the cell's structures. In 1983 Buxton and Brunton named the result: compartments of cAMP and protein kinase. About twenty years later Zaccolo and Pozzan imaged cAMP in stimulated heart cells from newborn rats and saw small regions of high cAMP.
+<LessonFigure src="/figures/camp-and-pka/cell-types-same-kinase-different-targets.webp" width={1200} height={555} alt="AI-generated illustration: three side-by-side schematic cells labelled liver, heart and fat. Each has the same gold chain of cAMP and protein kinase A under the membrane, with an arrow to different target proteins: phosphorylase kinase and glycogen synthase in liver, phospholamban and troponin I in heart, hormone-sensitive lipase and perilipin in fat." caption="The same cAMP–PKA relay produces different responses because liver, heart and fat cells place different targets within the kinase's reach." />
 
-So cAMP does not fill a cell the way water fills a glass. cAMP is made at particular places, by receptors and cyclases grouped in the membrane, and several things can then keep it there:
+## Different addresses within one cell
 
-1. The messenger moves slowly through the crowded interior of the cell.
-2. Proteins that bind the messenger, PKA among them, may hold it near where it was made.
-3. Phosphodiesterases sit where the cell needs the concentration to fall.
+In heart muscle, Hayes, Brunton and colleagues reported that isoproterenol acting at β-adrenergic receptors and prostaglandin E1 both raised cAMP, yet only isoproterenol activated the particulate pool of PKA that pellets with cell structures. In 1983 Buxton and Brunton named the result: compartments of cAMP and protein kinase. About twenty years later, Zaccolo and Pozzan imaged local regions of high cAMP in stimulated heart cells from newborn rats.
 
-Anchoring proteins (the AKAPs from the lesson on adaptors and scaffolds) supply the addresses. They hold PKA beside a particular substrate, often with a phosphodiesterase in the same complex.
+**Predict.** If a phosphodiesterase helps confine one local cAMP signal, what should happen when that enzyme is inhibited?
 
-How much each mechanism matters is still disputed. Agarwal, Clancy and Harvey found that buffering, meaning that PKA binds cAMP and holds it, helps explain the slow movement of cAMP in heart cells. Richards and colleagues, working in adult ventricular myocytes, also found slow movement but explained it by tortuosity, the winding paths through a crowded cell, because cAMP moved no faster when they saturated the binding sites. Several studies also argue against a common textbook idea, that phosphodiesterases alone explain cAMP gradients. The compartments are observed. Their mechanism is not settled.
+<details>
+<summary>Check your prediction</summary>
+
+The signal should spread farther or last longer, so separate responses may begin to mix. That would support a role for local breakdown without proving it is the only barrier.
+
+</details>
+
+The film's local clouds show **cAMP compartmentation**: cAMP concentrations and effects are not uniform across a cell. Its anchoring proteins are **A-kinase anchoring proteins (AKAPs)**, from the lesson on adaptors and scaffolds; they often hold a phosphodiesterase beside PKA too.
+
+Which candidate contributes most may depend on the preparation. Agarwal, Clancy and Harvey found support for buffering by PKA. Richards and colleagues found similarly slow movement in adult ventricular myocytes but attributed it to tortuosity, the winding paths around cellular obstacles, because saturating binding sites did not speed cAMP. Other studies argue against phosphodiesterase alone explaining gradients. The compartments are observed; their mechanism is not settled.
 
 ### Design problem
 
-A heart cell and a liver cell both raise cAMP when adrenaline arrives (in the liver, glucagon is the main hormone that does this, and adrenaline also acts through calcium). Using the same messenger and the same kinase, design how the heart cell contracts harder while the liver cell releases glucose. Then say how one cell could keep two cAMP signals from mixing.
+A heart cell and a liver cell both raise cAMP when adrenaline arrives. In liver, glucagon is the main hormone using this route, and adrenaline also acts through calcium. Design how heart contracts harder while liver releases glucose, then explain how one cell could keep two cAMP signals apart.
 
 <details>
 <summary>One way to do it</summary>
 
-Keep everything upstream identical: receptor, Gs, adenylyl cyclase, cAMP and PKA. Change only what PKA finds. Give the heart cell phospholamban, troponin I, and L-type calcium channels with their brake protein Rad, which PKA phosphorylates to let more calcium in, so that PKA activity means more calcium cycling and a stronger beat. Give the liver cell phosphorylase kinase and glycogen phosphorylase, plus glucose 6-phosphatase so that the glucose can leave the cell. Neither cell needs a new messenger. Each needs its own substrates.
+Keep receptor, Gs, adenylyl cyclase, cAMP and PKA as the shared relay. In heart, place phospholamban, troponin I and L-type calcium channels with their brake protein Rad within PKA's reach; PKA phosphorylation of Rad lets more calcium enter. In liver, supply phosphorylase kinase and glycogen phosphorylase, plus glucose 6-phosphatase so glucose can leave.
 
-To keep two signals apart in one cell, give each one an address. Put the first receptor, its cyclase, an AKAP carrying PKA and the first substrate together at one site. Place phosphodiesterase around that site, with cAMP-binding proteins to slow its spread, so that cAMP made there is destroyed or held before it travels far. Build a second assembly somewhere else for the second receptor and its substrate. Your design makes a prediction you can test: inhibit phosphodiesterase, and the two signals should start to mix.
+Within one cell, put each receptor and cyclase near an AKAP carrying PKA, its substrate and a phosphodiesterase, with cAMP-binding proteins or obstacles slowing spread; several mechanisms may contribute.
 
 </details>
+
+## Going deeper
+
+### How the kinase structure established the blocked groove
+
+Walsh, Perkins and Krebs described cAMP-dependent protein kinase in 1968. In 1991 Susan Taylor's laboratory and Janusz Sowadski's crystallography group produced the first three-dimensional structure of a protein kinase, PKA's catalytic subunit. It has two lobes: ATP lies under the small lobe, substrate follows the large lobe, and phosphate transfer occurs in the cleft. Their crystal held a 20-residue pseudosubstrate from a separate inhibitor protein; later structures placed a regulatory subunit's inhibitor sequence in the same groove. The human genome encodes about 500 protein kinases whose catalytic cores vary around this fold.
+
+### Other cAMP readers
+
+PKA is not the only direct reader. Epac is a cAMP-activated exchange factor for the small GTPase Rap. Cyclic-nucleotide-gated channels, including those in olfactory neurons, open when cAMP binds. These effectors sit outside the guiding rule's PKA-response clause.
