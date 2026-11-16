@@ -3,7 +3,8 @@ import '../styles/global.css';
 import SiteMenu from '../components/SiteMenu.astro';
 import AccountLink from '../components/AccountLink.astro';
 import WaterBear from '../components/WaterBear.astro';
-import Hex from '../components/Hex.astro';
+import Wordmark from '../components/Wordmark.astro';
+import { wordmarkHtml } from '../lib/wordmark';
 import Footer from '../../brand/Footer.astro';
 import { feedbackUrl } from '../lib/feedback';
 
@@ -24,7 +25,7 @@ interface Props {
   extraMeta?: [('name' | 'property'), string, string][];
 }
 const { title, description, ogType = 'website', jsonLd, noindex = false, alternates = [], ogImage: ogImageProp, extraMeta = [] } = Astro.props;
-const SITE_NAME = 'Biochemistrypedia';
+const SITE_NAME = 'STEMhop';
 const DEFAULT_DESC =
   'Free lessons, films and simulations, starting with biology. Ages 5 to graduate school. No account needed, no ads.';
 const desc = description ?? DEFAULT_DESC;
@@ -104,16 +105,16 @@ const websiteLd = {
         </script>
       </Fragment>
     )}
-    <link rel="alternate" type="application/atom+xml" title="Biochemistrypedia: what’s new" href="/updates.xml" />
+    <link rel="alternate" type="application/atom+xml" title="STEMhop: what’s new" href="/updates.xml" />
     {alternates.map((a) => <link rel="alternate" type={a.type} href={a.href} title={a.title} />)}
   </head>
   <body>
     <a href="#main" class="skip-link">Skip to content</a>
     <header class="site-header">
       <nav class="wrap">
-        <a href="/" class="brand" aria-label="Biochemistrypedia home">
-          <Hex pose="lean" size={42} class="brand-hex" />
-          <span class="brand-name">Biochemistrypedia</span>
+        {/* The wordmark, with Hex as the O (2026-11-15). The link carries the name; the mark is drawn. */}
+        <a href="/" class="brand" aria-label="STEMhop home">
+          <Wordmark label="" class="brand-wm" />
         </a>
         {/* The six main links sit in the bar on wide screens; on a phone they are in
             the Menu button (SiteMenu.astro), which has the same six. */}
@@ -153,11 +154,15 @@ const websiteLd = {
         brand default of "<brand>, University of Virginia"; tagline="" is
         deliberate, since omitting it would inherit the lab's department line.
         `rights` replaces "All rights reserved": the lessons are CC BY-NC-SA 4.0 (see /license/). */}
+    {/* The shared footer takes its brand as a string, so the wordmark goes in as the first
+        address line (the brand line is left empty and hidden below). */}
     <Footer
-      brand="Biochemistrypedia"
+      brand=""
       address={[
+        wordmarkHtml({ size: 26, tone: 'onDark', className: 'footer-wm' }),
         'Free science courses, from age 5 to graduate school.',
         'Started in the Deppmann Lab at UVA.',
+        '<span class="footer-formerly">Formerly Biochemistrypedia.</span>',
       ]}
       copyright="Christopher Deppmann"
       rights="Some rights reserved"
@@ -231,6 +236,9 @@ const websiteLd = {
       footer.footer .footer__grid .footer__links { gap: 0; }
       footer.footer .footer__grid .footer__links a { display: inline-flex; align-items: center; min-height: 44px; }
       footer.footer .footer__notes { max-width: 72ch; }
+      footer.footer .footer__brand:empty { display: none; }
+      footer.footer .footer__text .footer-wm { margin-bottom: 0.6rem; }
+      footer.footer .footer__text .footer-formerly { font-size: var(--ddp-text-xs); color: rgba(255, 255, 255, 0.55); }
       @media (max-width: 960px) {
         footer.footer .footer__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-xl, 2rem); }
         footer.footer .footer__grid > :first-child { grid-column: 1 / -1; }
@@ -259,24 +267,27 @@ const websiteLd = {
       .brand {
         display: inline-flex;
         align-items: center;
-        gap: 0.5rem;
+        align-self: center;
         text-decoration: none;
-        color: var(--ddp-color-primary);
-        font-family: var(--ddp-font-serif);
-        font-weight: 700;
-        font-size: var(--ddp-text-lg);
+        line-height: 1;
+        padding: 0.1rem 0;
       }
-      /* Hex, the mascot, leans on the wordmark. On the first page of a visit it drops in,
-         settles and blinks twice; after that it is simply there. */
-      .brand :global(.brand-hex) { margin: -10px -2px -8px -4px; transform-origin: 50% 85%; }
-      :global(html:not([data-hex-seen])) .brand :global(.brand-hex) { animation: hexArrive 0.9s cubic-bezier(0.34, 1.56, 0.64, 1) 0.25s both; }
-      :global(html:not([data-hex-seen])) .brand :global(.brand-hex .hex-eyes) { transform-box: view-box; transform-origin: 32px 28px; animation: hexHeaderBlink 2.4s ease-in-out 1.6s 2; }
-      .brand:hover :global(.brand-hex) { animation: hexNod 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); }
-      @keyframes hexArrive { 0% { opacity: 0; transform: translateY(-30px) rotate(-24deg); } 55% { opacity: 1; transform: translateY(0) rotate(-10deg); } 100% { opacity: 1; transform: none; } }
+      .brand:hover { text-decoration: none; }
+      .brand :global(.brand-wm) { font-size: 30px; }
+      @media (max-width: 900px) { .brand :global(.brand-wm) { font-size: 26px; } }
+      @media (max-width: 400px) { .brand :global(.brand-wm) { font-size: 24px; } }
+      /* Hex is the O. On the first page of a visit it drops into its place, settles and blinks
+         twice; after that it is simply there. It nods when the wordmark is hovered. The resting
+         transform (a small drop onto the baseline) is the wordmark's own, so every frame ends there. */
+      .brand :global(.wm-o) { transform-origin: 50% 85%; }
+      :global(html:not([data-hex-seen])) .brand :global(.wm-o) { animation: hexArrive 0.9s cubic-bezier(0.34, 1.56, 0.64, 1) 0.25s both; }
+      :global(html:not([data-hex-seen])) .brand :global(.wm-o-eyes) { transform-box: view-box; transform-origin: 32px 28px; animation: hexHeaderBlink 2.4s ease-in-out 1.6s 2; }
+      .brand:hover :global(.wm-o) { animation: hexNod 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); }
+      @keyframes hexArrive { 0% { opacity: 0; transform: translateY(-1.1em) rotate(-24deg); } 55% { opacity: 1; transform: translateY(0.045em) rotate(-10deg); } 100% { opacity: 1; transform: translateY(0.045em); } }
       @keyframes hexHeaderBlink { 0%, 88%, 100% { transform: scaleY(1); } 94% { transform: scaleY(0.1); } }
-      @keyframes hexNod { 0% { transform: none; } 40% { transform: translateY(-3px) rotate(-8deg); } 100% { transform: none; } }
+      @keyframes hexNod { 0% { transform: translateY(0.045em); } 40% { transform: translateY(-0.1em) rotate(-8deg); } 100% { transform: translateY(0.045em); } }
       @media (prefers-reduced-motion: reduce) {
-        .brand :global(.brand-hex), .brand :global(.brand-hex .hex-eyes) { animation: none !important; }
+        .brand :global(.wm-o), .brand :global(.wm-o-eyes) { animation: none !important; }
       }
       /* Main links: wide screens only; the Menu button carries them elsewhere. */
       .nav-main { display: none; margin-left: var(--ddp-space-4); gap: var(--ddp-space-1); align-self: center; }
@@ -338,10 +349,7 @@ const websiteLd = {
       /* Only the first nav-link absorbs the free space, so any siblings group at
          the right edge (two auto margins would split the gap unevenly). */
       .nav-link ~ .nav-link { margin-left: 0; }
-      /* The wordmark must never break across two lines — "Biochem/pedia" in a
-         sticky header is the first thing a phone visitor sees. Below 560px the
-         tagline goes, and below 400px the mark shrinks rather than wraps. */
-      .brand-name { white-space: nowrap; }
+      /* The wordmark never wraps (white-space: nowrap in global.css); below 400px it shrinks. */
       @media (max-width: 560px) {
         .site-header nav { gap: var(--ddp-space-3); }
         /* Room for the progress icon beside search on a phone. */
@@ -351,11 +359,7 @@ const websiteLd = {
       @media (max-width: 400px) {
         .site-header nav { gap: var(--ddp-space-2); }
         .nav-search + .nav-progress { margin-left: 0; }
-        .brand { font-size: var(--ddp-text-base); }
         .nav-link { font-size: 0.66rem; }
-      }
-      @media (max-width: 350px) {
-        .brand-name { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
       }
     </style>
     <script>
