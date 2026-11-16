@@ -5,11 +5,11 @@ course: "signaling"
 courseChapter: "Cell Signaling · Unit 2: The parts — switches and wiring"
 order: 109
 summary: >-
-  A receptor that has phosphorylated its own tyrosines has written a mark, and a mark like that usually does
-  nothing until a protein reads it. This lesson introduces the small, movable domains that do the
-  reading, shows how the residues beside a phosphotyrosine decide which reader binds, and uses Src
-  to show a protein switching itself off with its own modules. Afterwards you can match each common
-  module to its target and design a protein that reads two signals at once.
+  Reusable binding domains turn recognized motifs or lipids into protein connections. This lesson
+  shows how an SH2 domain reads both phosphotyrosine and its sequence context, how Src uses its own
+  SH2 and SH3 domains to stay off, and how several weak grips can make recruitment conditional.
+  Afterwards you can match common modules to their targets and design a protein that reads several
+  signals at once.
 hook: "A receptor has just phosphorylated its own tyrosines. What reads the marks, and how does each reader pick its mark?"
 
 estMinutes: 22
@@ -23,10 +23,14 @@ explainer:
   src: "/explainers/protein-interaction-modules/explainer.mp4"
   captions: "/explainers/protein-interaction-modules/explainer.vtt"
   poster: "/explainers/protein-interaction-modules/poster.jpg"
-  title: "What the SH2 domain is for"
-  durationSec: 119.8
-  narration: "an AI narrator voice (ElevenLabs, Brian) reading a passage Chris Deppmann wrote for his graduate signaling course"
+  title: "How One Mark Finds Its Reader"
+  durationSec: 220.6
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+  takeaways:
+    - "Reusable binding domains turn recognized motifs or lipids into protein connections."
+    - "An SH2 domain grips phosphotyrosine and also reads the residues beside it."
+    - "Sequence preference narrows possible partners; location, abundance and timing narrow them further."
 
 scientists:
   - name: "Tony Pawson"
@@ -358,14 +362,18 @@ corpusTags:
   - "tony-pawson"
 draft: false
 films:
-  - id: "src-clamp"
-    src: "/explainers/protein-interaction-modules/src-clamp.mp4"
-    captions: "/explainers/protein-interaction-modules/src-clamp.vtt"
-    poster: "/explainers/protein-interaction-modules/src-clamp-poster.jpg"
-    title: "A Protein That Clamps Itself Off"
-    durationSec: 113.0
-    narration: "an AI narrator voice (Gemini, Charon) reading narration written from this lesson's text"
+  - id: "chapter-2"
+    src: "/explainers/protein-interaction-modules/chapter-2.mp4"
+    captions: "/explainers/protein-interaction-modules/chapter-2.vtt"
+    poster: "/explainers/protein-interaction-modules/chapter-2-poster.jpg"
+    title: "Two Grips, One Decision"
+    durationSec: 210.0
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
     aiGenerated: true
+    takeaways:
+      - "Combining modules can make binding conditional on more than one signal."
+      - "Src's SH2 and SH3 domains help hold its own kinase in an inactive shape."
+      - "A multi-domain detector stays recruited only while its required targets are together."
 ---
 
 import LessonFilm from '../../../components/LessonFilm.astro';
@@ -373,29 +381,29 @@ import LessonFilm from '../../../components/LessonFilm.astro';
 import DomainMixer from '../../../components/DomainMixer.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
 
-**A receptor tyrosine kinase has just put phosphate on its own tyrosines. What reads those marks, and how does each reader pick its mark?**
+**A receptor tyrosine kinase has phosphorylated its own tail. What reads those marks, and how does one reader choose among them?**
 
-Ligand activates receptor... now what? A phosphotyrosine on a receptor tail is mostly a mark, and such a mark does little until some protein recognises it. This lesson is about those readers: small folded domains that grip a motif, which is a short stretch of amino acids a few residues long.
+A phosphotyrosine on a receptor tail is mostly a mark that changes little until another protein recognises it. What the cell needs is many proteins arriving at the receptor together, and the phosphate is how that request is written. A **motif** is a short amino-acid sequence, a few residues long, that such a reader can recognise.
 
-## The problem: a phosphotyrosine is a mark, and the cell needs a reader
+> **The one idea.** Reusable binding domains turn recognized motifs or lipids into protein connections.
+>
+> **Scope:** a connection here means protein to protein or protein to membrane. A motif alone does not determine binding in a cell, not every PH domain binds a phosphoinositide, and not every contact requires phosphorylation.
 
-A phosphate on a tyrosine adds two negative charges to a small patch of a protein's surface. On a receptor tail, that by itself often changes little. What the cell needs is a coordinated message, many proteins arriving at the receptor together, and the phosphate is how the message is written.
+## Why a mark needs a reader
 
-It works as a handhold for a practical reason. Kinases put it on and phosphatases, the enzymes that take phosphate off, remove it within seconds. A docking site can therefore be switched on and off without the cell making or destroying any protein.
+A phosphate on tyrosine adds two negative charges to a small patch of a protein's surface, and phosphatases can remove it within seconds. The cell can therefore switch a docking site on and off without making or destroying a protein. The first film gives the reader's two jobs; here is where readers came from.
 
-A reader has two jobs. It must grip tyrosine only when the tyrosine carries a phosphate, and it must tell one phosphotyrosine from the many others in the same cell. So where did we get such readers?
+## A module keeps its binding job when it moves
 
-## The idea: a module is a small fold that keeps working when you move it
+A **modular interaction domain** is a protein segment, from a few dozen to roughly two hundred amino acids, that folds by itself, recognises a motif or lipid, and keeps that binding activity in another protein.
 
-A modular interaction domain is a small stretch of protein, from a few dozen to roughly two hundred amino acids, that folds by itself and recognises a motif or a lipid. It keeps doing so when it is moved into a different protein. Think of a snap-on tool head: the handle can be anything.
+In 1986 Ivan Sadowski, a graduate student in Tony Pawson's laboratory in Toronto, altered about a hundred amino acids just before a sarcoma-virus kinase domain. The same region sits in the same place in Src, Abl and Fps, so it probably mattered, but nobody knew for what. The mutant, made in bacteria, phosphorylated tyrosine in a test tube about as well as the original. In rat cells, however, its kinase activity was low and it no longer made the cells cancerous.
 
-One of the first was found through an experiment that looked like a failure. In 1986 Ivan Sadowski, a graduate student in Tony Pawson's laboratory in Toronto, mutated a stretch of about a hundred amino acids just ahead of the kinase domain of a sarcoma-virus protein. The same stretch sits in the same place in Src, Abl and Fps, so it probably mattered, but nobody knew for what. The mutant kinase, made in bacteria, put phosphate on tyrosine in a test tube about as well as the original. In rat cells, it no longer made them cancerous, and its kinase activity there was low. An enzyme assay reports how fast phosphate moves, and a region whose job is to hold on to other proteins, and to steer the kinase beside it, converts nothing itself. It had looked like packaging.
+That mismatch points to a job other than catalysis, holding other proteins and steering the kinase beside them, which a test-tube assay of phosphate transfer cannot see.
 
-The lab named the region Src homology 2, or SH2, after the second conserved block in Src. By 1990 they had shown that SH2 domains from three proteins with little else in common, a phospholipase, a GTPase-activating protein and Src itself, each bind activated growth-factor receptors in vitro. Crystal structures in 1992 showed how. Arginine and lysine side chains, which carry positive charge, close around the phosphate on one tyrosine of the other protein. The grip is reversible. While the domain is bound it shields the phosphate, but each time it lets go a phosphatase can reach the site, and once the phosphate is gone that contact cannot re-form.
+The lab named the region Src homology 2, or **SH2**, after the second conserved block in Src. By 1990, SH2 domains isolated from a phospholipase, a GTPase-activating protein and Src itself each bound activated growth-factor receptors in vitro.
 
-A virus then showed that a reader is a complete part. Bruce Mayer, in Hidesaburo Hanafusa's laboratory at Rockefeller University, cloned the cancer gene of an avian sarcoma virus collected in 1931. Its protein, Crk, was a stretch of viral Gag protein joined to an SH2 domain and a second module, SH3, with no enzyme anywhere in it. Crk does not itself put phosphate on tyrosine, yet cells it transforms carry more phosphotyrosine than normal cells. It reads phosphotyrosines and gathers the cell's own enzymes next to them, outside the cell's usual control.
-
-How does the binding happen? Different modules are shaped for different targets:
+Crk showed that readers can organize signaling without an enzyme of their own. Bruce Mayer, in Hidesaburo Hanafusa's laboratory at Rockefeller University, cloned this cancer gene from an avian sarcoma virus collected in 1931. Its protein is viral Gag joined to an SH2 and an SH3 domain. Crk does not phosphorylate tyrosine, yet transformed cells carry more phosphotyrosine than normal cells: it reads phosphotyrosines and gathers the cell's own enzymes outside their usual arrangement.
 
 <LessonFigure src="/figures/protein-interaction-modules/module-reference-plate.webp" width={1200} height={612} alt="AI-generated illustration: schematic SH2, SH3 and PDZ domains bind, respectively, a phosphotyrosine with following residues, a proline-rich motif and a free protein C-terminal end. Two lower insets show a phosphoinositide-binding member of the PH-domain family contacting a lipid head group on the cytosolic membrane face, and a two-subunit 14-3-3 protein dimer binding a phosphoserine or phosphothreonine motif." caption="Reader proteins recognise different targets: SH2 binds phosphotyrosine and neighbouring residues, SH3 binds proline-rich motifs, and PDZ binds a free C-terminal end. Some PH domains bind phosphoinositides; 14-3-3 proteins form dimers that bind phosphoserine or phosphothreonine motifs." />
 
@@ -409,45 +417,85 @@ How does the binding happen? Different modules are shaped for different targets:
 | PH (about 120 residues) | phosphoinositides, the phosphorylated lipids of the membrane, for some PH domains |
 | 14-3-3 | phosphoserine or phosphothreonine motifs; a whole small protein that works as a dimer |
 
+**Predict.** A PDZ-binding tail gains one extra residue at its carboxyl end. The old final residues are still present. Can a PDZ domain read them as the same terminal motif?
+
+<details>
+<summary>Check your prediction</summary>
+
+No. A PDZ domain reads the last residues together with the free carboxyl end. Adding a residue moves that end, so the old sequence is no longer the same C-terminal target.
+
+</details>
+
 Many PH domains bind lipid weakly or not at all, and only a minority bind a particular phosphoinositide with real specificity. The one that matters for the design problem below is the PH domain of Akt, which binds PIP3 and also PI(3,4)P2, a second lipid that appears when PI 3-kinase is active.
 
-## Specificity: the residues after the phosphotyrosine choose the reader
+## SH2 specificity: two parts of one binding surface
 
-Many tyrosines are phosphorylated in a stimulated cell, and around a hundred human proteins carry SH2 domains, so many kinds of SH2 domain are loose among them. A phosphate pocket alone cannot sort that crowd.
+Here is the evidence behind the first film's two grips. Many tyrosines are phosphorylated in a stimulated cell, and around a hundred human proteins carry SH2 domains, so the phosphate grip alone cannot choose a partner.
 
-In 1992 Gabriel Waksman, a postdoctoral researcher in John Kuriyan's laboratory at Rockefeller, crystallized the SH2 domain of v-Src with a short phosphopeptide. That structure and a 1993 follow-up with a tighter-binding peptide showed two grips on one small fold. One was a pocket clamped on the phosphotyrosine, with lysine and arginine side chains stacked against the ring and bonded to the phosphate. Beside it lay a second groove that holds the residues just after the tyrosine.
+In 1992 Gabriel Waksman, a postdoctoral researcher in John Kuriyan's laboratory at Rockefeller, crystallized the SH2 domain of v-Src with a short phosphopeptide. That structure and a 1993 follow-up with a tighter-binding peptide showed lysine and arginine side chains in one pocket stacking against the phosphotyrosine ring and bonding to the phosphate, and a neighbouring groove holding the residues just after it.
 
-One domain holding one peptide cannot tell you whether that groove matters in a cell. If the pocket did most of the work, every SH2 domain would pick up almost any phosphoprotein, and sorting would have to happen elsewhere, in how much of each protein is made and where it sits. In 1993 Zhou Songyang, in Lewis Cantley's laboratory in Boston, tested it. He made a mixture of many different short peptides, each with a phosphotyrosine at a fixed position and random residues just after it, and let purified SH2 domains from at least ten signaling proteins fish in it one at a time.
+One structure cannot show whether the groove produces selectivity. In 1993 Zhou Songyang, in Lewis Cantley's laboratory in Boston, tested that with a peptide library: phosphotyrosine at a fixed position, random residues after it, sampled by purified SH2 domains from at least ten signaling proteins one at a time.
 
-The Src-family domains (Src, Fyn, Lck and Fgr), screened separately, all came back with the same four residues: phosphotyrosine, glutamate, glutamate, isoleucine. Domains from p85, the regulatory subunit of PI 3-kinase, from phospholipase C-gamma and from the phosphatase SHPTP2 preferred phosphotyrosine followed by a hydrophobic residue, any residue, then another hydrophobic residue. Most other domains picked sequences of their own.
-
-So the groove sets much of the domain's preference, and the groove travels with the domain. The PTB domain of Shc shows the same logic with the layout reversed: it reads an NPXY motif, and the residues before the phosphotyrosine do the choosing.
+Src, Fyn, Lck and Fgr all selected phosphotyrosine–glutamate–glutamate–isoleucine. Domains from p85, the regulatory subunit of PI 3-kinase, phospholipase C-gamma and the phosphatase SHPTP2 preferred phosphotyrosine–hydrophobic–any–hydrophobic. Most other domains selected patterns of their own, so the groove sets much of an SH2 domain's sequence preference.
 
 <LessonFigure src="/figures/protein-interaction-modules/sh2-two-grips.webp" width={1200} height={800} alt="AI-generated illustration: a schematic SH2 domain with two grips on a peptide drawn as beads. A pocket lined with positive side chains holds the phosphotyrosine bead, and a groove beside it holds the next residues. Two insets compare a Src-family SH2 domain holding phosphotyrosine followed by E, E and I with the p85 SH2 domain holding phosphotyrosine followed by a hydrophobic residue, any residue and another hydrophobic residue." caption="An SH2 domain has two grips: a pocket that clamps the phosphotyrosine and a groove that reads the residues just after it. The pocket alone cannot sort the crowd of phosphoproteins; the groove sets much of each domain's preference, such as pTyr-Glu-Glu-Ile for Src-family domains and hydrophobic, any, hydrophobic for p85." />
 
-How tightly a domain holds its target follows the ordinary binding equation:
+**Predict.** A Src-family SH2 domain has the arginine in its phosphate pocket mutated, but its groove is intact. Will it still pull phosphotyrosine–glutamate–glutamate–isoleucine peptides out of the library?
+
+<details>
+<summary>Check your prediction</summary>
+
+Not well. The groove adds preference among phosphopeptides that the pocket already holds; it cannot hold them alone. That is why a pocket-arginine mutation is the standard way to abolish SH2 recruitment, as in the design problem below.
+
+</details>
+
+## How much is bound?
+
+For one independent binding site at equilibrium, occupancy follows:
 
 > **fraction of domain bound = [ligand] / (Kd + [ligand])**
 
-Kd is the ligand concentration at which half the domains are occupied. A modest Kd is a feature here. A bound SH2 domain shields its phosphotyrosine from phosphatases, and a grip that is not too tight lets go often enough for a phosphatase to reach the site. Sequence is also only one filter. Where a protein sits, how much of it there is and when it appears all narrow the field further.
+Kd is the free-ligand concentration at which half the domains are occupied. A lower Kd means less ligand is needed for the same occupancy.
 
-## Src: a protein that reads itself
+**Predict.** Substitute a ligand concentration equal to Kd. What fraction of the domains is bound?
+
+<details>
+<summary>Check your prediction</summary>
+
+One-half: the numerator is Kd and the denominator is Kd plus Kd, or two Kd.
+
+</details>
+
+The equation describes occupancy, not residence time or multivalent binding. Reversible binding matters here: while an SH2 domain is bound it shields phosphotyrosine, but when it releases, a phosphatase can reach the site. Once the phosphate is gone, that contact cannot re-form.
+
+Weak, reversible grips have a second use: a protein with several modules can grip parts of itself, or two targets at once. The second film shows both.
 
 <LessonFilm film={frontmatter.films[0]} />
 
+## Src: a protein that reads itself
+
 Bishop and Varmus won the 1989 Nobel Prize for showing that the cancer gene of a chicken sarcoma virus, v-Src, is a captured copy of a normal cell gene, c-Src. The two proteins differ in how well they stay quiet.
 
-Reading from the amino end, c-Src has a fatty acid, myristate, attached to its second residue, which anchors it to the inner face of the plasma membrane. Then come a short unique region, an SH3 domain, an SH2 domain, a linker, the kinase domain and a short tail containing tyrosine 527, six residues from the end (chicken numbering). The enzyme Csk phosphorylates that tyrosine. The tail folds back, the protein's own SH2 domain grips the phosphotyrosine, and its own SH3 domain grips the linker. Both domains settle on the back of the kinase and hold it in an inactive shape.
+From its amino end, c-Src carries myristate, a fatty acid attached to its second residue that anchors it to the inner plasma-membrane face. Then come a short unique region, SH3, SH2, a linker, the kinase domain and a short tail. Csk phosphorylates tyrosine 527 in the tail, six residues from the end in chicken Src. Crystal structures confirm the clamp the second film draws.
 
-The clamp is deliberately loose. The tail sequence after tyrosine 527 is a poor fit for the SH2 pocket compared with a sequence like pTyr-Glu-Glu-Ile, so a better ligand can pull the SH2 domain away. A phosphorylated PDGF receptor does this, and so does the kinase FAK once integrins have switched it on. A proline-rich partner such as beta-arrestin can take the SH3 domain, which is one proposed route from an activated beta-adrenergic receptor to Src; G-protein alpha subunits can also activate Src directly. Once the clamp opens, one Src molecule can phosphorylate tyrosine 416 in the activation loop of another, which keeps the kinase active until a phosphatase removes that phosphate.
+An outside ligand wins because the tail after tyrosine 527 fits SH2 less well than phosphotyrosine–glutamate–glutamate–isoleucine, so the internal contacts are weak enough to be displaced. Once the clamp opens, one Src molecule can phosphorylate tyrosine 416 in another Src's activation loop, which helps keep the kinase active until a phosphatase removes the phosphate.
 
-Now v-Src makes sense. The viral protein has lost the tail and tyrosine 527 with it, along with some point mutations, so the SH2 domain has no tail of its own to grip and the clamp never forms. Changing tyrosine 527 to phenylalanine in c-Src has the same effect and makes it transform cells. The viral form is always on because it has lost its off-switch.
+v-Src's missing tail, as the second film showed, leaves it with no clamp. Changing tyrosine 527 to phenylalanine in c-Src has the same activating effect and makes it transform cells.
+
+**Predict.** If c-Src loses its amino-terminal myristate but keeps an intact phosphorylated tail, which property changes most directly: membrane anchoring or the SH2-tail grip?
+
+<details>
+<summary>Check your prediction</summary>
+
+Membrane anchoring. The fatty acid is at the amino end, whereas the SH2-binding phosphotyrosine is in the carboxy-terminal tail. The mutation separates localization from the internal clamp.
+
+</details>
 
 ## The virtue of modularity: new pathways from old parts
 
-How did we get such rapid expansion of receptor tyrosine kinases and signaling pathways? The human genome encodes 518 protein kinases, and 58 of them are receptor tyrosine kinases. A new pathway can come from new connections rather than new chemistry, and modules make a connection cheap. A reader spliced onto an enzyme that already works lets a receptor control it.
+The human genome encodes 518 protein kinases, including 58 receptor tyrosine kinases. A pathway can gain a connection without new chemistry: join a reader to an enzyme that already works, and a receptor can recruit that enzyme. Phospholipase C-gamma, a lipid-cutting enzyme, also carries two SH2 domains, an SH3 domain, a PH domain and a C2 domain. The SH2 domains are what let an activated receptor recruit it. Grb2, which the next lesson takes up, is little more than an SH3, an SH2 and a second SH3 in a row. Humans have around a hundred SH2-containing proteins; yeast, with no dedicated tyrosine kinases, has almost none.
 
-Phospholipase C-gamma shows how. It is a lipid-cutting enzyme that also carries two SH2 domains, an SH3 domain, a PH domain and a C2 domain. The SH2 domains are what let an activated receptor recruit it. Grb2, which the next lesson takes up, is little more than an SH3, an SH2 and a second SH3 in a row. Humans have around a hundred SH2-containing proteins; yeast, with no dedicated tyrosine kinases, has almost none. Shuffling readers onto old enzymes is a cheap way to wire a new pathway.
+Combining modules can make binding conditional on more than one signal. The design problem asks you to build such a detector.
 
 ### Design problem
 
@@ -460,10 +508,22 @@ Try your design in the mixer before you open the answer.
 <details>
 <summary>One way to do it</summary>
 
-Fuse a PH domain that binds PIP3 to an SH2 domain whose preferred sequence matches the phosphotyrosine motif on your receptor. Join them with a flexible linker long enough that both can reach the membrane at once. Each grip alone is weak, so the two support each other, and the protein stays only where a receptor tail and PIP3 are both within reach. It is a coincidence detector. The Akt PH domain would work, but it also binds PI(3,4)P2, so for a strict PIP3 detector choose a PH domain known to prefer PIP3.
+Fuse a PH domain that binds PIP3 to an SH2 domain whose preferred sequence matches the phosphotyrosine motif on your receptor. Join them with a flexible linker long enough that both can reach the membrane at once. Like the second film's coincidence detector, it stays only where a receptor tail and PIP3 are both within reach. The Akt PH domain would work, but it also binds PI(3,4)P2, so for a strict PIP3 detector choose a PH domain known to prefer PIP3.
 
 For calcium, add a Ca2+-dependent C2 domain, which binds acidic membrane lipids only when it has Ca2+ bound. If you also weaken the PH and SH2 grips so that no two alone are enough, all three inputs are needed before the protein stays at the membrane. A second route is to hide one of the grips behind an inhibitory segment that Ca2+ and calmodulin pull away, as a better ligand pulls the SH2 domain off the Src tail.
 
-Test each part. A mutation in the arginine of the SH2 pocket, or an unstimulated receptor, should abolish recruitment. A PI 3-kinase inhibitor, or a mutation in the basic pocket of the PH domain, should abolish it too. Chelating intracellular Ca2+ with a cell-permeant chelator such as BAPTA-AM should abolish it as well. If removing any one input still leaves the protein at the membrane, first check that the input was really removed. If it was, the other grips are too strong and the design needs a poorer SH2 or PH domain.
+Test each part. Each of these should abolish recruitment: a mutation in the arginine of the SH2 pocket, or an unstimulated receptor; a PI 3-kinase inhibitor, or a mutation in the basic pocket of the PH domain; chelating intracellular Ca2+ with a cell-permeant chelator such as BAPTA-AM. If removing one input, verified as truly removed, still leaves the protein at the membrane, the other grips are too strong and the design needs a poorer SH2 or PH domain.
 
 </details>
+
+## Going deeper
+
+### More than the motif
+
+SH2 domains commonly bind phosphopeptides with sub-micromolar to low-micromolar dissociation constants, a range that permits exchange. Motif preference narrows the candidate set but does not uniquely specify an in-cell partner. Beyond the location, abundance and timing shown in the first film, scaffold-imposed proximity, competition among related domains and the cell's kinase and phosphatase complement all contribute.
+
+The avidity in the second film comes from rebinding: while one contact holds, the other can re-form before the proteins separate.
+
+### Several routes can open Src
+
+A phosphorylated PDGF receptor can pull Src's SH2 domain from its tail. FAK can do so after integrins activate it. A proline-rich partner such as beta-arrestin can take the SH3 domain, a proposed route from an activated beta-adrenergic receptor to Src, and G-protein alpha subunits can also activate Src directly. These routes refine the clamp model; they do not replace it.
