@@ -29,8 +29,8 @@ export const GET: APIRoute = () => {
   const xml = `<?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>tag:biochemistrypedia.com,2026:updates</id>
-  <title>Biochemistrypedia: what’s new</title>
-  <subtitle>New courses, learning tools and fixes on Biochemistrypedia, a free site for learning science.</subtitle>
+  <title>STEMhop: what’s new</title>
+  <subtitle>New courses, learning tools and fixes on STEMhop, a free site for learning science.</subtitle>
   <link rel="self" type="application/atom+xml" href="${SITE}/updates.xml"/>
   <link rel="alternate" type="text/html" href="${SITE}/updates/"/>
   <updated>${updated}</updated>

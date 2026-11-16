@@ -13,7 +13,7 @@
 //     same path on stemhop.com, except the one-time hand-off of browser-only progress (/handoff/)
 //     and what passkeys need (/.well-known/webauthn and the sign-in bridge).
 // A Worker var cannot reach the Astro build, so this is a module both import, not a wrangler var.
-export const PRIMARY_HOST = 'biochemistrypedia.com';
+export const PRIMARY_HOST = 'stemhop.com';
 
 // The site's first domain. After the switch it still serves the hand-off and the passkey pieces.
 export const LEGACY_HOST = 'biochemistrypedia.com';

@@ -56,15 +56,15 @@ export async function allowN(db, key, n, limit, windowMs) {
 
 // ---- email (Resend). Without RESEND_API_KEY nothing is sent and callers fall back. ----
 // Mail always comes from the site's own address, never a person's. A teacher's
-// invitation shows their name ("Ms. Rivera via Biochemistrypedia") and replies go
+// invitation shows their name ("Ms. Rivera via STEMhop") and replies go
 // to them; putting their address in From would be blocked as spoofing.
 export const mailOn = (env) => !!env.RESEND_API_KEY;
 
 export async function sendMail(env, to, subject, text, { fromName, replyTo } = {}) {
   if (!mailOn(env)) return false;
-  const site = env.MAIL_FROM || 'Biochemistrypedia <classes@biochemistrypedia.com>';
+  const site = env.MAIL_FROM || 'STEMhop <classes@biochemistrypedia.com>';
   const addr = /<([^>]+)>/.exec(site)?.[1] ?? site;
-  const from = fromName ? `${clean(fromName, 60).replace(/[<>"]/g, '')} via Biochemistrypedia <${addr}>` : site;
+  const from = fromName ? `${clean(fromName, 60).replace(/[<>"]/g, '')} via STEMhop <${addr}>` : site;
   try {
     const r = await fetch('https://api.resend.com/emails', {
       method: 'POST',

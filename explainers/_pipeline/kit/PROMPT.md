@@ -1,4 +1,4 @@
-You are animating {n_films} short narrated teaching film(s) for biochemistrypedia.com, a free biology course site. Each film has its own folder in this workspace:
+You are animating {n_films} short narrated teaching film(s) for STEMhop, a free science course site that starts with biology. Each film has its own folder in this workspace:
 
 {film_list}
 

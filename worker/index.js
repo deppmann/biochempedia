@@ -1,4 +1,4 @@
-// Biochemistrypedia edge worker.
+// STEMhop edge worker.
 //
 // Everything is served as static assets from dist/ exactly as before; this script runs FIRST only
 // for the paths in run_worker_first (wrangler.jsonc): media, /api/* and /g/* today, every page once

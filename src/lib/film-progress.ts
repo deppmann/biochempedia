@@ -181,7 +181,7 @@ export function trackFilms(): void {
     lastSave = now;
     const title = v.dataset.filmTitle || v.dataset.listenFilm
       || v.closest('figure')?.querySelector('figcaption')?.textContent?.replace(/^\s*Watch\s+/, '').replace(/\s*·\s*\d+:\d+\s*$/, '').trim()
-      || document.title.replace(/\s+—\s+Biochemistrypedia$/, '');
+      || document.title.replace(/\s+—\s+STEMhop$/, '');
     const poster = v.getAttribute('poster') ?? '';
     const course = v.closest<HTMLElement>('[data-course-title]')?.dataset.courseTitle;
     savePartial({ f: key, t: Math.floor(v.currentTime), d: Math.round(d), title, href: hrefFor(key), poster, at: now, ...(course ? { course } : {}) });

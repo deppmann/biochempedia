@@ -38,7 +38,7 @@ const NEW_PER_DAY = 2000;
 const MAX_ITEMS = 10_000;
 const NAME_MAX = 40;
 const DELETE_WORD = 'DELETE';
-const RP_NAME = 'Biochemistrypedia';
+const RP_NAME = 'STEMhop';
 
 // ---- small helpers --------------------------------------------------------------------
 const b64url = (bytes) => btoa(String.fromCharCode(...new Uint8Array(bytes))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
@@ -553,7 +553,7 @@ export async function handleLearner(request, env, db, path, method, url) {
     const out = {
       site: HOSTS.primary,
       exported: new Date().toISOString(),
-      note: 'Everything Biochemistrypedia holds about your account. Signed-in devices are listed by date only; their keys are stored as one-way hashes and are not included.',
+      note: 'Everything STEMhop holds about your account. Signed-in devices are listed by date only; their keys are stored as one-way hashes and are not included.',
       account: {
         name: l.display_name, email: l.email, googleLinked: !!l.google_sub, googleAccountId: l.google_sub,
         created: iso(l.created_at), lastActive: iso(l.last_active_at),
@@ -567,7 +567,7 @@ export async function handleLearner(request, env, db, path, method, url) {
     return new Response(JSON.stringify(out, null, 1), {
       headers: {
         'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store',
-        'Content-Disposition': `attachment; filename="biochemistrypedia-account-${new Date().toISOString().slice(0, 10)}.json"`,
+        'Content-Disposition': `attachment; filename="stemhop-account-${new Date().toISOString().slice(0, 10)}.json"`,
       },
     });
   }

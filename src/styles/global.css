@@ -317,3 +317,48 @@ h2[id], h3[id], :target { scroll-margin-top: 96px; }
 .prose-col sub, .prose-col sup { font-size: 0.72em; line-height: 0; position: relative; vertical-align: baseline; }
 .prose-col sub { bottom: -0.28em; }
 .prose-col sup { top: -0.5em; }
+
+/* -----------------------------------------------------------------------------
+   The STEMhop wordmark (markup in src/lib/wordmark.ts). Global because the footer
+   belongs to the shared brand package. STEM = the site teal, hop = navy, Hex is the O;
+   both colours follow dark mode through the role tokens (4.54:1 and 13.18:1 on cream,
+   7.45:1 and 13.29:1 on the dark page). The dashed hop arc is decorative gold.
+   -------------------------------------------------------------------------- */
+:root { --hop-arc: var(--color-gold-dark, #B8912E); }
+@media (prefers-color-scheme: dark) { :root { --hop-arc: #e0b452; } }
+.wm {
+  display: inline-flex;
+  align-items: baseline;
+  font-family: var(--ddp-font-serif);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  --wm-stem: var(--ddp-color-accent);
+  --wm-hop: var(--ddp-color-primary);
+}
+.wm-stem { color: var(--wm-stem); letter-spacing: 0.005em; }
+.wm-hop { position: relative; display: inline-flex; align-items: baseline; color: var(--wm-hop); }
+/* The Hex-O: the x-height of Playfair (about 0.52em) plus a little overshoot, on the baseline,
+   with side bearings close to a real o so "h o p" keeps its rhythm. */
+.wm .wm-o {
+  display: inline-block;
+  width: 0.54em;
+  height: 0.61em;
+  margin: 0 0.035em 0 0.045em;
+  transform: translateY(0.045em);
+  color: var(--wm-hop);
+  overflow: visible;
+  flex: none;
+}
+.wm-o-body { fill: color-mix(in srgb, currentColor 7%, transparent); stroke: currentColor; stroke-linejoin: round; }
+.wm-o-bonds { fill: none; stroke: var(--ddp-color-secondary); stroke-linecap: round; }
+.wm-o-eyes { fill: currentColor; }
+.wm-o-smile { fill: none; stroke: currentColor; stroke-linecap: round; }
+/* On the navy footer and the share image, in either mode. */
+.wm-on-dark { --wm-stem: #4fb3c4; --wm-hop: #e7e9f0; }
+.wm-on-dark .wm-o-bonds { stroke: #e0b452; }
+/* The hop: a dashed arc, used sparingly (the homepage hero, the Biology tile, its button). */
+.hop-arc { fill: none; stroke: var(--hop-arc); stroke-width: 2; stroke-dasharray: 2 6; stroke-linecap: round; }
+.wm .wm-arc { display: block; position: absolute; left: -0.08em; bottom: 0.6em; width: 1.07em; height: 0.42em; overflow: visible; pointer-events: none; }
+.wm .wm-arc .hop-arc { stroke-width: 2.4; stroke-dasharray: 2 7; }

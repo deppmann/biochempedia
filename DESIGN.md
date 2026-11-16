@@ -1,4 +1,4 @@
-# Biochemistrypedia — Design Philosophy
+# STEMhop — Design Philosophy
 
 The guiding principle, applied throughout the site:
 

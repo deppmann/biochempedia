@@ -26,6 +26,8 @@ jobs:
       # astro check && validate-mcat && astro build (which also runs Pagefind and the
       # Markdown lesson copies) && check-assets (local refs + webfont gate)
       - run: npm run build
+      # The site is STEMhop: the old name must not creep back into built pages (allow-list in the script).
+      - run: node scripts/check-brand.mjs
       # Answer keys must not be exploitably biased toward one letter.
       - run: node scripts/check-quiz.mjs
       # Draft lessons must not generate public routes or sitemap entries.

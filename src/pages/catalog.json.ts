@@ -6,7 +6,7 @@ import { PRIMARY_HOST } from '../lib/site-host.mjs';
 export const GET: APIRoute = async () => {
   const courses = await agentCatalog();
   const body = {
-    name: 'Biochemistrypedia',
+    name: 'STEMhop',
     url: SITE,
     description: 'Free science lessons, films and simulations, starting with biology: ages 5 to graduate school.',
     llms: `${SITE}/llms.txt`,
@@ -17,7 +17,7 @@ export const GET: APIRoute = async () => {
     license: 'https://creativecommons.org/licenses/by-nc-sa/4.0/',
     licenseName: 'CC BY-NC-SA 4.0',
     licenseDetails: `${SITE}/license/`,
-    attribution: `Biochemistrypedia, Chris Deppmann, ${PRIMARY_HOST}`,
+    attribution: `STEMhop, Chris Deppmann, ${PRIMARY_HOST}`,
     generated: new Date().toISOString().slice(0, 10),
     courses,
   };

@@ -1,0 +1,22 @@
+---
+/**
+ * The STEMhop wordmark: "STEM" in the site teal, "hop" in navy, Hex as the O. One image to
+ * assistive technology, named "STEMhop" (pass label="" inside a link or heading that already
+ * carries the name). Below 24 px it switches to the heavier Hex-O so the face still reads.
+ * Markup and colours: src/lib/wordmark.ts and the "wordmark" block at the end of global.css.
+ */
+import { wordmarkHtml, type WordmarkTone } from '../lib/wordmark';
+interface Props {
+  /** px, or any CSS length such as a clamp(). */
+  size?: number | string;
+  heavy?: boolean;
+  tone?: WordmarkTone;
+  /** The dashed hop arc over the h (homepage hero). */
+  hop?: boolean;
+  label?: string;
+  class?: string;
+}
+const { size, heavy, tone = 'page', hop = false, label = 'STEMhop', class: cls = '' } = Astro.props;
+---
+
+<Fragment set:html={wordmarkHtml({ size, heavy, tone, hop, label, className: cls })} />

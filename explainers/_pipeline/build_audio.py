@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build the narration track for one Biochemistrypedia explainer from the lesson's OWN slide audio.
+"""Build the narration track for one STEMhop explainer from the lesson's OWN slide audio.
 
     build_audio.py --script script.json --out audio/ [--dry-run] [--engine eleven|gemini|kokoro|say]
 

@@ -13,7 +13,7 @@ const MODES = [
 ];
 ---
 
-<BaseLayout title="Group — Biochemistrypedia" description="Your group." noindex>
+<BaseLayout title="Group — STEMhop" description="Your group." noindex>
   <article class="wrap tc" data-group data-courses={JSON.stringify(courseTitles)}>
     <p class="tc-eyebrow"><a href="/teach/classes/">My classes</a> · Group</p>
     <h1 data-name>Group</h1>
@@ -128,7 +128,7 @@ const MODES = [
       if (!r.ok) { $('[data-name]').textContent = r.data.error || 'Could not load this group.'; return; }
       g = r.data;
       const admin = g.role === 'admin';
-      document.title = `${g.name} — Biochemistrypedia`;
+      document.title = `${g.name} — STEMhop`;
       $('[data-name]').textContent = g.name;
       const pub = $<HTMLAnchorElement>('[data-public]');
       pub.href = `/g/${g.slug}/`;

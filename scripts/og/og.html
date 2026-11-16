@@ -1,0 +1,36 @@
+<!doctype html>
+<!-- The share image (public/og.png, 1200 x 630). Written out by scripts/og/render-og.mjs, which fills
+     in the wordmark from src/lib/wordmark.ts and its styles from src/styles/global.css, so the card
+     always draws the same wordmark as the site. Copy: the wordmark, the tagline, "Free". -->
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" />
+<style>
+  :root {
+    --ddp-font-serif: 'Playfair Display', Georgia, serif;
+    --ddp-color-accent: #2A7B88; --ddp-color-primary: #1B2A4A; --ddp-color-secondary: #D4A843;
+    --color-gold-dark: #B8912E;
+  }
+  {{WORDMARK_CSS}}
+  html, body { margin: 0; }
+  body { width: 1200px; height: 630px; background: #F8F6F2; font-family: 'Inter', sans-serif; overflow: hidden; }
+  .card { position: relative; box-sizing: border-box; width: 1200px; height: 630px; padding: 0 96px; display: flex; flex-direction: column; justify-content: center; }
+  .card::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 14px; background: #1B2A4A; }
+  .mark { margin-top: 40px; }
+  .tagline { margin: 34px 0 0; font-family: var(--ddp-font-serif); font-style: italic; font-size: 54px; line-height: 1.15; color: #2A7B88; }
+  .free { margin-top: 44px; display: inline-flex; align-self: flex-start; align-items: center; gap: 14px; padding: 12px 30px 13px; border-radius: 999px; background: #1B2A4A; color: #fff; font-weight: 700; font-size: 34px; letter-spacing: 0.01em; }
+  .free svg { width: 54px; height: 24px; overflow: visible; }
+  .free .hop-arc { stroke: #D4A843; stroke-width: 2.6; stroke-dasharray: 3 6; }
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="mark">{{WORDMARK}}</div>
+    <p class="tagline">STEM, one short lesson at a time.</p>
+    <span class="free">Free <svg viewBox="0 0 26 12" aria-hidden="true"><path class="hop-arc" d="M1 11 Q13 -4 25 11" /></svg></span>
+  </div>
+</body>
+</html>

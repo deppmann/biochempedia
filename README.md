@@ -1,7 +1,9 @@
-# Biochemistrypedia
+# STEMhop
 
-An interactive, **integrity-first** biochemistry learning site for BIOL 3030 at the
-University of Virginia. It is Prof. Chris Deppmann's own project — unfunded, and
+*Formerly Biochemistrypedia.* STEM, one short lesson at a time.
+
+An interactive, **integrity-first** science learning site, starting with biology. It began as
+the biochemistry course for BIOL 3030 at the University of Virginia. It is Prof. Chris Deppmann's own project — unfunded, and
 not a deliverable owed to anyone.
 
 Every molecular structure is loaded **live from a public database** (nothing is
@@ -14,7 +16,7 @@ years of lectures and the scientist stories in *The Molecule Hunters*.
 > one-semester biochemistry sequence (30 lessons) is one of those courses. Most
 > lessons carry short films, an original simulation and a self-test. The current
 > list of courses and lessons is always at
-> [`/catalog.json`](https://biochemistrypedia.com/catalog.json). A full AI tutor
+> [`/catalog.json`](https://stemhop.com/catalog.json). A full AI tutor
 > and "talk to a scientist" chat are intentionally **deferred** (see below). The
 > Metabolism Arcade is live at `/play/`.
 
@@ -114,8 +116,10 @@ and deploys automatically, ~1–2 min. Static Astro build, output `dist/`.
 **Public**; no Cloudflare Access (the members/corpus surfaces are the gated ones).
 
 - Worker origin: `biochempedia.deppmann.workers.dev`
-- Public canonical domain: **`biochemistrypedia.com`** (Cloudflare Registrar,
-  Cloudflare nameservers, same account as the Worker)
+- Public canonical domain: `PRIMARY_HOST` in [`src/lib/site-host.mjs`](src/lib/site-host.mjs)
+  (**`stemhop.com`** from switch day; `biochemistrypedia.com` before it, and kept for good
+  as a redirect and for passkeys). Both are Cloudflare Registrar, Cloudflare nameservers,
+  same account as the Worker.
 
 `site` in [`astro.config.mjs`](astro.config.mjs) must equal the public canonical
 domain — canonical links, OG urls, and `/sitemap.xml` all derive from it, and
@@ -137,6 +141,6 @@ aliases those tokens onto the components' `--ddp-*` names.
 
 Code: **MIT** ([LICENSE](LICENSE)). Lesson text, the site's own figures and its
 films: **CC BY-NC-SA 4.0**. Scientist profiles from *The Molecule Hunters*: all
-rights reserved. See [NOTICE](NOTICE) and https://biochemistrypedia.com/license/.
+rights reserved. See [NOTICE](NOTICE) and https://stemhop.com/license/.
 
 🤖 Scaffolded with [Claude Code](https://claude.com/claude-code).

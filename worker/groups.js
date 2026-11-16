@@ -227,8 +227,8 @@ export async function handleGroups(request, env, db, path, method, url) {
     }
     let sent = 0;
     for (const to of emails) {
-      const ok = await sendMail(env, to, `${teacher.name} invited you to ${g.name} on Biochemistrypedia`,
-        `${teacher.name} invited you to join ${g.name}, a group of teachers using free Biochemistrypedia classes.\n\nJoin here (the link works for ${INVITE_DAYS} days):\n${link}\n\nYou'll need a free teacher account; the link walks you through it.\n\nReplies to this email go to ${teacher.name}.`,
+      const ok = await sendMail(env, to, `${teacher.name} invited you to ${g.name} on STEMhop`,
+        `${teacher.name} invited you to join ${g.name}, a group of teachers using free STEMhop classes.\n\nJoin here (the link works for ${INVITE_DAYS} days):\n${link}\n\nYou'll need a free teacher account; the link walks you through it.\n\nReplies to this email go to ${teacher.name}.`,
         { fromName: teacher.name, replyTo: teacher.email });
       if (ok) sent++;
     }

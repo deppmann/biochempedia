@@ -4,9 +4,10 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import { courseCards } from '../lib/catalog';
 import { feedbackUrl } from '../lib/feedback';
 import AnswerSpace from '../components/AnswerSpace.astro';
+import HomeFilm from '../components/HomeFilm.astro';
 import MadeCheckedFixed from '../components/MadeCheckedFixed.astro';
 import OneIdeaLadder from '../components/OneIdeaLadder.astro';
-import { MILESTONES } from '../data/updates';
+import { MILESTONES, STEMHOP_SWITCH_DATE } from '../data/updates';
 import UPDATE_PRS from '../data/updates-prs.json';
 
 /* Counted from the collection so the numbers below cannot go stale. They are shown
@@ -15,10 +16,20 @@ const { cards, lessonCount } = await courseCards();
 const courseCount = cards.length;
 const bioCount = (await getCollection('lessons', ({ data }) => !data.draft && data.course === 'biochemistry')).length;
 const fmt = (n: number) => n.toLocaleString('en-US');
+/* The one-minute film about the site, moved here from the homepage on 2026-11-15 (Chris: "Ditch the
+   hero film. It can go on the about page"). Its poster and narration still carry the old name. */
+const siteFilm = {
+  src: '/explainers/home/sizzle/explainer.mp4',
+  captions: '/explainers/home/sizzle/explainer.vtt',
+  poster: '/explainers/home/sizzle/poster.jpg',
+  title: 'What is here, in about a minute',
+  durationSec: 62.10,
+};
+const renamed = new Date(STEMHOP_SWITCH_DATE + 'T12:00:00Z').toLocaleDateString('en-US', { month: 'long', year: 'numeric', timeZone: 'UTC' });
 const latest = [...MILESTONES].sort((a, b) => (a.date < b.date ? 1 : -1)).slice(0, 3);
 ---
 
-<BaseLayout title="About — Biochemistrypedia" description="What this site is, how it is made with AI, how it is checked, and how to report an error.">
+<BaseLayout title="About — STEMhop" description="What this site is, how it is made with AI, how it is checked, and how to report an error.">
   <article class="wrap prose-col" style="padding-top: var(--ddp-space-12)">
     <p class="eyebrow">About</p>
     <h1>A free ladder through science, built in public.</h1>
@@ -29,6 +40,12 @@ const latest = [...MILESTONES].sort((a, b) => (a.date < b.date ? 1 : -1)).slice(
       does with a five-year-old to courses that end at current research. Every lesson is free to read. You
       never need an account to learn, and there are no ads.
     </p>
+
+    <div class="about-film">
+      <HomeFilm film={siteFilm} id="site-film">
+        <strong>{siteFilm.title}.</strong> From planting a seed at five to questions nobody has answered yet. Captions are available.
+      </HomeFilm>
+    </div>
 
     <h2>The idea</h2>
     <p>
@@ -70,8 +87,13 @@ const latest = [...MILESTONES].sort((a, b) => (a.date < b.date ? 1 : -1)).slice(
     <p>
       It began in June 2026 as an experiment in my lab at the University of Virginia: {fmt(bioCount)} lessons for my
       undergraduate biochemistry course, built from twenty years of my lectures and my book,
-      <em>The Molecule Hunters</em>. That first course gave the site its name. Biochemistry is now {fmt(bioCount)} of the
-      {fmt(lessonCount)} lessons, and the site is growing into its own thing.
+      <em>The Molecule Hunters</em>. Biochemistry is now {fmt(bioCount)} of the {fmt(lessonCount)} lessons, and the site is
+      growing into its own thing.
+    </p>
+    <p id="name">
+      That first course gave the site its first name, Biochemistrypedia. In {renamed} it became STEMhop,
+      because it is growing beyond biology into the rest of science, technology, engineering and math. Old
+      links still work. It is still free, and still nonprofit.
     </p>
 
     <h2 id="work-in-progress">A work in progress</h2>
@@ -139,7 +161,7 @@ const latest = [...MILESTONES].sort((a, b) => (a.date < b.date ? 1 : -1)).slice(
     </p>
     <p>
       You can also email me at
-      <a href="mailto:deppmann@gmail.com?subject=Biochemistrypedia%20correction">deppmann@gmail.com</a>, which is the
+      <a href="mailto:deppmann@gmail.com?subject=STEMhop%20correction">deppmann@gmail.com</a>, which is the
       way to send a screenshot. I read every report. A confirmed error gets fixed, or the figure comes down.
     </p>
     <p><a class="report-btn" href={feedbackUrl()} target="_blank" rel="noopener">Report an error →</a></p>
@@ -162,6 +184,7 @@ const latest = [...MILESTONES].sort((a, b) => (a.date < b.date ? 1 : -1)).slice(
   </article>
 
   <style>
+    .about-film { margin: var(--ddp-space-6) 0; }
     .updates-teaser {
       margin: var(--ddp-space-6) 0;
       padding: var(--ddp-space-4) var(--ddp-space-5);
