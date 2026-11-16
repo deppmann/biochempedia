@@ -483,5 +483,63 @@ class S11ChangeMeasurement(SpokenScene):
         self.finish()
 
 
-class S12End(EndCard):
+class S12Recap(SpokenScene):
+    """Closing recap (2026-11-16): this narration used to run over the end card. The image is a record of a
+    measurement; label, separation and record are checked along the bench; software zoom then enlarges the
+    same one-peak record without bringing back the dip."""
+
+    def construct(self):
+        b = bench(two=True); light = packets()
+        self.add(b, light)
+        self.at("microscope image is a measurement")
+        heading = T("AN IMAGE IS A MEASUREMENT", 38, YELLOW, weight=BOLD).move_to([.3, 3.2, 0])
+        spot = VGroup(*[Circle(r, stroke_width=0, fill_color=RED, fill_opacity=o)
+                        for r, o in ((.9, .12), (.63, .25), (.36, .65))]).move_to([3.8, -.3, 0])
+        self.play(FadeIn(heading, shift=DOWN * .1), FadeIn(spot, scale=.6), run_time=.9)
+        self.at("not the specimen")
+        spec = T("specimen", 30, GREEN, weight=BOLD).move_to([-5.15, -3.4, 0])
+        neq = T("≠", 40, TEXT, weight=BOLD).move_to([-.8, -3.4, 0])
+        img = T("image", 30, RED, weight=BOLD).move_to([3.8, -3.4, 0])
+        self.play(FadeOut(b[3]), FadeIn(spec), FadeIn(neq), FadeIn(img), Indicate(b.sources, color=GREEN, scale_factor=1.1), run_time=1.0)
+        self.at("Before trusting one")
+        self.play(FadeOut(VGroup(spec, neq, img)), run_time=.6)
+        self.at("ask what was labeled")
+        c_label = T("✓  label", 30, GREEN, weight=BOLD).move_to([-5.15, -3.4, 0])
+        self.play(FadeIn(c_label, shift=UP * .1), Indicate(b.sources, color=GREEN, scale_factor=1.15), run_time=.8)
+        self.at("instrument could separate")
+        c_sep = T("✓  separation", 30, BLUE, weight=BOLD).move_to([-.8, -3.4, 0])
+        self.play(FadeIn(c_sep, shift=UP * .1), Indicate(b.lens, color=BLUE), run_time=.9)
+        self.at("detector recorded")
+        ax = VGroup(*plot_axes()[:2]); s = sum_profile(150)
+        record = T("DETECTOR RECORD", 28, GREY).move_to([3.8, 1.18, 0])
+        c_rec = T("✓  record", 30, TEXT, weight=BOLD).move_to([3.8, -3.4, 0])
+        self.play(FadeOut(spot), Create(ax), Create(s), FadeIn(record), FadeIn(c_rec, shift=UP * .1), run_time=1.1)
+        self.at("Software Zoom makes")
+        frozen = VGroup(ax[0].copy(), ax[1].copy(), s.copy()).scale(.52).move_to([-3.8, -.25, 0])
+        frozen_label = T("DETECTOR RECORD", 24, GREY).move_to([-3.8, 1.45, 0])
+        frame = RoundedRectangle(corner_radius=.15, width=4.8, height=4.6, color=GREY).move_to([-3.8, -.25, 0])
+        display = RoundedRectangle(corner_radius=.15, width=5.3, height=5.1, color=YELLOW).move_to([3.55, -.25, 0])
+        grid = VGroup(*[Line([1.05 + i * .53, -2.4, 0], [1.05 + i * .53, 1.9, 0], color=GREY, stroke_width=1, stroke_opacity=.4) for i in range(10)],
+                      *[Line([1.05, -2.4 + i * .48, 0], [5.82, -2.4 + i * .48, 0], color=GREY, stroke_width=1, stroke_opacity=.4) for i in range(10)])
+        zoomcurve = s.copy().move_to([3.55, -.45, 0])
+        self.play(FadeOut(VGroup(b, light, ax, s, record, c_label, c_sep, c_rec, heading)),
+                  FadeIn(frame), FadeIn(frozen), FadeIn(frozen_label), FadeIn(display), Create(grid), Create(zoomcurve),
+                  run_time=1.3)
+        self.at("same record bigger")
+        zoomlab = T("SOFTWARE ZOOM", 30, YELLOW, weight=BOLD).move_to([3.55, 2.65, 0])
+        arrow = Arrow([-1.25, -.25, 0], [.8, -.25, 0], buff=0, color=YELLOW, stroke_width=5, tip_length=.24)
+        self.play(FadeIn(zoomlab), GrowArrow(arrow), zoomcurve.animate.scale(1.08), grid.animate.scale(1.03), run_time=1.1)
+        self.at("Software Zoom cannot")
+        cross = Cross(Dot([3.55, .2, 0], radius=.3), stroke_color=RED, stroke_width=7).scale(1.35)
+        miss_t = T("never captured", 28, RED).move_to([3.55, 1.45, 0])
+        missing = VGroup(SurroundingRectangle(miss_t, color=BG, fill_color=BG, fill_opacity=.92, stroke_width=0, buff=.1), miss_t)
+        self.play(Create(cross), FadeIn(missing), run_time=.9)
+        self.at("optics and camera")
+        self.play(Indicate(frame, color=BLUE), run_time=.8)
+        self.at("never captured")
+        self.play(Indicate(cross, color=RED, scale_factor=1.25), run_time=.9)
+        self.finish()
+
+
+class S13End(EndCard):
     LINE = "Software zoom cannot add detail the measurement never captured."

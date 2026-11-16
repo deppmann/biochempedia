@@ -719,5 +719,56 @@ class S11Claim(SpokenScene):
         self.finish()
 
 
-class S12End(EndCard):
+class S12Recap(SpokenScene):
+    """Closing recap (2026-11-16): this narration used to run over the end card. The yellow patch is read
+    like chapter 1's blur; the three links (label, channels, record) are checked; the overlap reports only
+    what one resolution volume can separate: proximity, not binding."""
+
+    def construct(self):
+        w = World()
+        w.add_to(self)
+        self.at("read a color overlap")
+        self.play(Indicate(w.patch, color=YELLOW, scale_factor=1.2), run_time=.9)
+        self.at("Chapter 1 read the blur")
+        halo = Ellipse(width=1.4, height=2.2, color=GREEN, stroke_width=3, fill_color=GREEN, fill_opacity=.1)
+        halo.move_to([DET_X, DET_Y, 0])
+        blur = T("read it like the blur", 28, GREEN).move_to([DET_X, -3.3, 0])
+        self.play(FadeIn(halo, scale=.5), FadeIn(blur), run_time=1.0)
+        self.at("Ask what was labeled")
+        ch = chain_chips()
+        fb = filter_block()
+        drops = VGroup(Line([CHIP_XS[0], CHIP_Y - .4, 0], [CHIP_XS[0], 2.5, 0], color=YELLOW, stroke_width=3),
+                       Line([CHIP_XS[1], CHIP_Y - .4, 0], [CHIP_XS[1], fb.get_top()[1], 0], color=YELLOW, stroke_width=3),
+                       Line([CHIP_XS[2], CHIP_Y - .4, 0], [CHIP_XS[2], 2.2, 0], color=YELLOW, stroke_width=3))
+        self.play(FadeOut(blur), FadeIn(ch.chips[0], shift=DOWN * .2), Create(drops[0]),
+                  Indicate(w.mito, color=GREEN, scale_factor=1.08), run_time=.8)
+        self.at("what leaked between channels")
+        self.play(FadeIn(fb), FadeIn(ch.chips[1], shift=DOWN * .2), Create(drops[1]), Create(ch.links[0]), run_time=.9)
+        self.at("detector recorded")
+        self.play(FadeIn(ch.chips[2], shift=DOWN * .2), Create(drops[2]), Create(ch.links[1]),
+                  Indicate(w.det, color=TEXT, scale_factor=1.02), run_time=.9)
+        self.at("The overlap reports")
+        w.calm()
+        ell = ellipsoid(cx=-2.6, cy=-.35)
+        dots = drifters(cx=-2.6, cy=-.35)
+        pix = Square(.25, stroke_width=0, fill_color=YELLOW, fill_opacity=.9).move_to([-2.6, -.35, 0])
+        vol = T("one resolution volume", 30, GREEN, weight=BOLD).move_to([-2.6, 2.75, 0])
+        self.play(FadeOut(VGroup(w.all, ch, fb, drops, halo)), FadeIn(ell), FadeIn(dots), FadeIn(pix), run_time=1.3)
+        self.at("what the measurement could separate")
+        self.play(FadeIn(vol, shift=DOWN * .1), Indicate(ell[1], color=GREEN, scale_factor=1.04), run_time=1.0)
+        self.at("nothing finer")
+        finer = T("nothing finer", 30, RED, weight=BOLD).move_to([-2.6, -3.35, 0])
+        self.play(FadeIn(finer, shift=UP * .1), run_time=.8)
+        self.at("Overlap supports proximity")
+        prox = chip("✓  proximity", GREEN, 36).move_to([3.4, .9, 0])
+        arr = Arrow([-1.2, .2, 0], prox.get_left() + LEFT * .1, buff=0, color=GREEN, stroke_width=5, tip_length=.24)
+        self.play(GrowArrow(arr), FadeIn(prox, shift=LEFT * .2), run_time=1.0)
+        self.at("not binding")
+        bind = chip("✗  not binding", RED, 36, fill_opacity=0).move_to([3.4, -1.3, 0])
+        self.play(FadeIn(bind, shift=LEFT * .2), run_time=.6)
+        self.play(Indicate(bind, color=RED, scale_factor=1.06), run_time=.7)
+        self.finish()
+
+
+class S13End(EndCard):
     LINE = "Overlap supports proximity within one resolution volume, not binding."
