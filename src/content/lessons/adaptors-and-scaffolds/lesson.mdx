@@ -5,27 +5,32 @@ course: "signaling"
 courseChapter: "Cell Signaling · Unit 2: The parts — switches and wiring"
 order: 110
 summary: >-
-  How can an activated receptor switch on Ras when it never touches Ras, and how can one kinase
-  serve two pathways without mixing their messages? You will learn to tell adaptors, docking
-  proteins and scaffolds apart, trace the Grb2 and Sos link from receptor to Ras, and say what a
-  scaffold buys a cell.
-hook: "A receptor switches on Ras without ever touching it. What sits in between?"
+  Binding proteins route signals by controlling which partners meet, where they meet, and when
+  they can act. Trace the Grb2 and Sos link from receptor to Ras, distinguish an adaptor from a
+  docking protein and a scaffold, and explain how one kinase can serve several pathways without
+  mixing their messages.
+hook: "A receptor activates Ras without ever touching it. How does the message cross the gap?"
 
 estMinutes: 22
 objectives:
   - "Tell apart an adaptor, a docking protein and a scaffold by what each holds and whether it has enzyme activity."
   - "Explain how Grb2 and Sos connect an activated receptor to Ras, and how fly genetics and biochemistry found the same link."
-  - "State what a scaffold buys a cell: speed, insulation between pathways that share a part, and location."
+  - "State what a scaffold can do for a cell (more productive encounters, the right output for a shared kinase, a place in the cell) and why more scaffold can mean less signal."
   - "Explain how one kinase can serve two pathways without mixing their messages."
 
 explainer:
   src: "/explainers/adaptors-and-scaffolds/explainer.mp4"
   captions: "/explainers/adaptors-and-scaffolds/explainer.vtt"
   poster: "/explainers/adaptors-and-scaffolds/poster.jpg"
-  title: "Switching On Ras Without Touching It"
-  durationSec: 144.8
-  narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+  title: "How a Receptor Reaches Ras"
+  durationSec: 195.1
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+  takeaways:
+    - "Adaptors route signals by linking partners, not by catalyzing reactions."
+    - "Grb2 uses its SH2 domain to bind a receptor phosphotyrosine."
+    - "Grb2 uses its SH3 domains to hold the exchange factor Sos."
+    - "Recruiting Sos to the membrane lets it meet Ras and exchange GDP for GTP."
 
 scientists:
   - name: "Joseph Schlessinger"
@@ -131,7 +136,7 @@ structures:
     note: "Crystal structure of the mammalian Grb2 adaptor (Maignan et al., Science 1995)."
     caption: >-
       Find the one SH2 domain flanked by two SH3 domains. There is no catalytic site anywhere in
-      the molecule: every surface is a place to hold something.
+      the molecule: its job in this pathway comes from surfaces that bind other proteins.
   - label: "Sos bound to Ras — the switch-thrower on its target"
     source: "rcsb"
     id: "1BKD"
@@ -150,7 +155,7 @@ structures:
 simulations: []
 
 practiceQuestions:
-  - stem: "Which description fits an adaptor such as Grb2?"
+  - stem: "Binding proteins route signals by controlling which partners meet, where they meet, and when they can act. Which description fits an adaptor such as Grb2?"
     choices:
       - "A protein with no enzyme activity that links a phosphorylated receptor to Sos"
       - "A membrane platform that collects many phosphorylated tyrosines for different partners"
@@ -282,18 +287,18 @@ explainLevels:
     text: >-
       Imagine you want to flip a light switch across the room, but your arms are too short. A
       friend holds your hand with one hand and holds a long stick with the other, and the stick
-      reaches the switch. Cells do this too. Small helper proteins do no work of their own. They
-      just hold other proteins together so a message can pass from one to the next, and some of
-      them hold a whole team in one spot so the team can work fast.
+      reaches the switch. Cells do this too. Some helper proteins do not perform the chemical
+      reaction. They hold the right proteins together so a message can pass, and some gather a
+      whole team in one place.
   - level: "highschool"
     label: "High school"
     text: >-
       When a growth factor or insulin lands on its receptor, the receptor adds phosphate tags to
-      its own tail. The cell reads those tags with helper proteins that have no enzyme activity.
+      its own tail. The cell can read those tags with helper proteins that have no enzyme activity.
       An adaptor connects two proteins, a docking protein offers many tags for many partners, and
       a scaffold holds several steps of one pathway on a single frame. Holding things together
-      makes the steps faster, keeps two pathways that share a part from getting mixed up, and puts
-      the pathway in the right place in the cell.
+      can increase useful encounters, help shared parts reach the correct output, and put the
+      pathway in the right place in the cell.
   - level: "college"
     label: "College"
     text: >-
@@ -365,106 +370,157 @@ corpusTags:
   - "receptor-tyrosine-kinase"
 draft: false
 films:
-  - id: "scaffolds"
-    src: "/explainers/adaptors-and-scaffolds/scaffolds.mp4"
-    captions: "/explainers/adaptors-and-scaffolds/scaffolds.vtt"
-    poster: "/explainers/adaptors-and-scaffolds/scaffolds-poster.jpg"
-    title: "The Yeast Protein That Holds Three Kinases"
-    durationSec: 108.7
-    narration: "an AI narrator voice (Gemini, Charon) reading narration written from this lesson's text"
+  - id: "chapter-2"
+    src: "/explainers/adaptors-and-scaffolds/chapter-2.mp4"
+    captions: "/explainers/adaptors-and-scaffolds/chapter-2.vtt"
+    poster: "/explainers/adaptors-and-scaffolds/chapter-2-poster.jpg"
+    title: "How a Scaffold Keeps Signals on Route"
+    durationSec: 216.5
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
     aiGenerated: true
+    takeaways:
+      - "Scaffolds route shared parts by controlling partners, place and activation."
+      - "Ste5 organizes Ste11, Ste7 and Fus3 in the yeast mating pathway."
+      - "Ste5 helps Ste7 activate Fus3; proximity alone does not explain specificity."
+      - "In the simplest model, excess scaffold splits partners across incomplete complexes and lowers output."
 ---
 
 import LessonFilm from '../../../components/LessonFilm.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
 
-**Ligand activates receptor... now what? A growth-factor receptor can switch on Ras without ever touching it, and the adaptor that makes that possible has no enzyme activity at all.**
+**A growth-factor receptor can activate Ras without touching it. The bridge is assembly: an adaptor with no enzyme activity, Grb2, brings the exchange factor Sos to Ras.**
 
-Ras is a small switch protein anchored to the inner face of the plasma membrane. When a growth factor binds its receptor, the receptor adds phosphates to tyrosines on its own tail. A phosphate on a tail is a message written where nothing can read it yet. The cell needs a coordinated message passed into the cytoplasm, and it gets one by recruiting proteins whose job is to put the right partners next to each other. This lesson sorts those proteins into three kinds, then asks what each kind buys the cell.
+> **The one idea.** Binding proteins route signals by controlling which partners meet, where they meet, and when they can act.
+>
+> *Scope:* this rule describes the adaptor, docking-protein and scaffold examples here. Binding alone may not activate a pathway, not every scaffold lacks enzyme activity, and more scaffold does not always mean more signal.
 
-## Zoomed out: the receptor recruits helpers
+## Three ways to organize a signal
 
-Each phosphotyrosine (a tyrosine carrying a phosphate) is a handhold for proteins with an SH2 domain, a small folded module that grips a phosphorylated tyrosine. Some of the proteins that arrive are enzymes. Others have no enzyme activity and only decide who stands next to whom. Three kinds of those are worth telling apart.
+A **phosphotyrosine** is a tyrosine carrying a phosphate. In a matching local sequence, it can become a docking site for an **SH2 domain**, a folded module that recognizes phosphotyrosine and nearby amino acids.
 
-- **Adaptor.** Links two partners and has no enzyme activity. Grb2 is the model.
-- **Docking protein.** A platform at the membrane that the receptor loads with many phosphotyrosines, each a landing site for a different partner. IRS-1 is the model.
-- **Scaffold.** Holds several members of one pathway, often three, on a single protein. Ste5 in yeast is the model. KSR plays a similar part in mammals, but it is a pseudokinase that also changes the shape of its partners and has some kinase activity of its own, so not every scaffold is free of enzyme activity.
+- An **adaptor** has no enzyme activity and supplies a link between partners. Grb2 is the model.
+- A **docking protein** is itself phosphorylated at several sites and supplies a regulated platform for several partners. IRS-1 is the model.
+- A **scaffold** organizes several successive members of one route. Ste5 in yeast is the model.
 
-The number of partners is a quick test: an adaptor typically bridges two, a scaffold holds several. A docking protein is the one that gets phosphorylated and so supplies the sites itself.
+Partner count is only a shortcut: an adaptor typically bridges two partners, and a scaffold holds several, often three. The better test is what the protein supplies. KSR plays a scaffold-like role in mammals, but this pseudokinase changes its partners' shapes and has some kinase activity of its own.
 
-<LessonFigure src="/figures/adaptors-and-scaffolds/three-kinds-of-helper.webp" width={1200} height={697} alt="AI-generated illustration: three side-by-side schematics. An adaptor holds two partners, a receptor tail and Sos. A docking protein is a flat platform with four phosphorylated sites, each holding a different partner. A scaffold is a long bar holding three kinases." caption="Three helpers that work mainly by binding. An adaptor typically bridges two partners, a docking protein is itself phosphorylated and supplies multiple docking sites, and a scaffold holds several members of one pathway on a single protein. Ste5 is shown holding three kinases." />
+**Quick check.** A receptor phosphorylates many tyrosines on a non-enzyme protein, and different sites recruit different effectors. Which category fits best?
 
-## The adaptor: Grb2 and "son of sevenless"
+<details>
+<summary>Check your prediction</summary>
 
-In August 1992, Eve Lowenstein and colleagues in Joseph Schlessinger's laboratory reported a protein with no catalytic machinery: one SH2 domain, two SH3 domains, nothing else. (An SH3 domain is another small module. It grips short proline-rich stretches.) They isolated its gene, found that it sticks by its SH2 domain to the activated receptors for epidermal growth factor and platelet-derived growth factor, and called it growth factor receptor-bound protein 2, or Grb2.
+A docking protein. It supplies several regulated phosphosites itself; holding several partners would not identify that role.
 
-Here is how Grb2 does its job. Its SH2 domain clamps a phosphotyrosine on the receptor tail. Its two SH3 domains already hold a protein called Sos, with or without any phosphate. Sos is an exchange factor: it swaps the GDP on Ras for GTP, which flips Ras from off to on. The receptor holds Grb2, Grb2 holds Sos, and Sos now stands at the membrane where Ras is. Position is the first step. Sos also has a second Ras-binding site, away from its active site, and Ras-GTP bound there makes Sos work faster, so each Ras it turns on helps it turn on more.
+</details>
 
-> **receptor phosphotyrosine → Grb2 (SH2 on the receptor, SH3 on Sos) → Sos → Ras-GDP → Ras-GTP**
+<LessonFigure src="/figures/adaptors-and-scaffolds/three-kinds-of-helper.webp" width={1200} height={697} alt="AI-generated illustration: three side-by-side schematics. An adaptor holds two partners, a receptor tail and Sos. A docking protein is a flat platform with four phosphorylated sites, each holding a different partner. A scaffold is a long bar holding three kinases." caption="An adaptor supplies a link, a docking protein supplies regulated phosphosites, and a scaffold organizes successive members of one pathway." />
 
-In resting rat fibroblasts, injected Grb2 alone did nothing, and injected Ras protein alone did nothing. Injected together, they sent the cells into copying their DNA. That is biochemistry. The same chain turned up in two animals by an entirely different route, genetics.
+## Grb2 routes a receptor signal to Ras
 
-In the compound eye of a fly, a receptor tyrosine kinase called sevenless decides whether one cell in each unit becomes R7, the seventh light-sensing cell. Michael Simon, in Gerald Rubin's laboratory, ran a sensitized screen: weaken sevenless signaling first, then look for mutations that matter only against the weakened background. Out came alleles in a fly ras gene and in a gene resembling CDC25, the yeast protein that switches Ras on (Cell, November 1991). That gene is Sos, for son of sevenless.
+The first film follows the relay, **receptor phosphotyrosine → Grb2 → Sos → Ras-GTP**. Ras is a small switch protein anchored to the inner face of the plasma membrane, so bringing Sos to the membrane brings it within reach. Sos also has a second Ras-binding site, away from its exchange site; Ras-GTP bound there can speed Sos, so each Ras it activates helps it activate more.
 
-In the nematode, Paul Sternberg's group had placed let-23, a gene that looks like the EGF receptor, ahead of let-60, which turned out to be Ras. Stuart Clark, Michael Stern and Robert Horvitz cloned another worm gene on the same pathway, sem-5, in March 1992. Lowenstein's abstract linked Grb2 to it.
+Grb2's two **SH3 domains** grip short proline-rich stretches, here the tail of Sos. Its SH2 domain reads more than the phosphate: nearby amino acids help decide which SH2 domain fits, so two phosphorylated tyrosines need not recruit the same SH2 protein.
 
-So a fly screen, a worm clone and a rat-cell experiment, spread over nine months, pointed to one chain. The physical link came in 1993, when several groups, among them Tony Pawson's and David Bowtell's, showed that Grb2's SH3 domains hold the proline-rich tail of mammalian Sos and that growth factor brings the Grb2-Sos pair to the receptor. Grb2, the fly's Drk and the worm's Sem-5 are orthologs: one ancestral gene carried down three lineages. Ras, fly Ras1 and worm let-60 are orthologs too. The chain was sitting in animal cells before those lineages parted. What differs is what each animal does after Ras. In a worm larva, the chain builds a vulva from three of the six cells beside the gonad. In a resting fibroblast it tells the cell to copy its DNA.
+**Predict.** Two receptor tails are phosphorylated equally, but only one has the local sequence recognized by Grb2's SH2 domain. Which one recruits the Grb2–Sos complex?
 
-## Docking proteins: one platform, many branches
+<details>
+<summary>Check your prediction</summary>
 
-Pathways branch through helper proteins like these, and the cleanest case is a docking protein. A receptor tail has only so much room. A docking protein solves that by being a second tail.
+Only the matching one should recruit it efficiently. The phosphate is necessary for SH2 recognition here; the surrounding residues help provide specificity.
 
-IRS-1 is the example. Insulin binds its receptor, and the receptor phosphorylates IRS-1. IRS-1 reaches the membrane with two modules of its own: a PH domain, which grips membrane lipids, and a PTB domain, which grips a phosphotyrosine motif on the activated receptor. Once it is phosphorylated at many tyrosines, it recruits PI 3-kinase, Grb2, the phosphatase Shp-2 and the adaptor Nck.
+</details>
 
-The few amino acids beside each phosphotyrosine decide which SH2 protein binds there. One loaded platform therefore sends the signal down several branches at once. Two of them:
+### How experiments found the chain
+
+A proposed order makes a genetic prediction: switching on a downstream part should bypass a missing upstream link.
+
+**Predict.** Fly eye cells lacking a gene X never become the R7 photoreceptor. Suppose X acted downstream of Ras rather than upstream. What would always-active Ras do in those cells?
+
+<details>
+<summary>Check your prediction</summary>
+
+Nothing: R7 would still fail, because a part after Ras would still be missing.
+
+</details>
+
+In the fly eye, the receptor tyrosine kinase sevenless decides whether one cell in each unit becomes R7. In a sensitized screen, Michael Simon and Gerald Rubin weakened sevenless signaling, then found mutations in fly ras and in Sos, a relative of the yeast Ras activator CDC25. In nematodes, genetics placed the EGF-receptor-like let-23 before let-60 Ras, with sem-5 on the same pathway.
+
+Biochemistry supplied the physical link. In 1992 Eve Lowenstein and colleagues in Joseph Schlessinger's laboratory isolated Grb2, showed that its SH2 domain associates with activated EGF and PDGF receptors, and found that Grb2 plus Ras, but neither alone, drove resting rat fibroblasts to copy DNA. In 1993 several groups, including Tony Pawson's and David Bowtell's, showed that Grb2's SH3 domains bind mammalian Sos and that growth factor recruits the pair to the receptor.
+
+Grb2, fly Drk and worm Sem-5 are orthologs, as are Ras, fly Ras1 and worm let-60; the chain predates the split between those lineages. What follows Ras differs: three of six cells beside the worm gonad become vulval tissue, fly cells adopt R7 fate and fibroblasts copy DNA.
+
+## IRS-1 turns one input into several branches
+
+A docking protein expands the available surface. Insulin receptor substrate 1, **IRS-1**, reaches the membrane through a PH domain that binds membrane lipids and a PTB domain that recognizes a receptor phosphotyrosine motif. The insulin receptor then phosphorylates many tyrosines on IRS-1. The amino acids beside each phosphotyrosine decide which SH2 protein binds there, so different sites recruit PI 3-kinase, Grb2, the phosphatase Shp-2 and the adaptor Nck, sending the signal down several branches at once. Two of them:
 
 > **Grb2 → Sos → Ras**
 >
 > **PI 3-kinase → PDK1 → AKT**
 
-The first is the adaptor chain you just saw, hung from IRS-1 instead of from the receptor itself. The second ends in AKT, which regulates metabolism. Grb2 sits between two partners. IRS-1 is the thing that is phosphorylated, and it supplies the sites in return.
+AKT helps regulate metabolism.
 
-<LessonFigure src="/figures/adaptors-and-scaffolds/irs1-platform-branches.webp" width={1200} height={800} alt="AI-generated illustration: two schematic panels. A gold IRS-1 docking protein carries four illustrative phosphotyrosine sites bound by PI 3-kinase, Grb2, Shp-2 and Nck. A separate pathway overview shows Grb2 leading to Sos and Ras, and PI 3-kinase leading through an abbreviated pathway to PDK1 and AKT. Membrane attachment is not depicted." caption="Phosphorylated IRS-1 supplies docking sites for several signaling partners. Four examples are shown: PI 3-kinase, Grb2, Shp-2 and Nck. Two downstream branches are Grb2 to Sos to Ras and PI 3-kinase to PDK1 to AKT. The arrows summarize pathway order; they do not specify every intermediate or a direct phosphorylation reaction." />
+<LessonFigure src="/figures/adaptors-and-scaffolds/irs1-platform-branches.webp" width={1200} height={800} alt="AI-generated illustration: two schematic panels. A gold IRS-1 docking protein carries four illustrative phosphotyrosine sites bound by PI 3-kinase, Grb2, Shp-2 and Nck. A separate pathway overview shows Grb2 leading to Sos and Ras, and PI 3-kinase leading through an abbreviated pathway to PDK1 and AKT. Membrane attachment is not depicted." caption="Different phosphotyrosines on IRS-1 recruit different partners, allowing one insulin signal to enter several branches. The arrows summarize pathway order; they do not specify every intermediate or a direct phosphorylation reaction." />
 
-## Scaffolds: what a cell gets from holding a pathway together
+Grb2 now sits in two routes that both lead to Ras. Harder is a kinase shared by routes that must reach different outputs, the problem the second film takes into a yeast scaffold.
 
 <LessonFilm film={frontmatter.films[0]} />
 
-Elaine Elion's laboratory at Harvard Medical School was working out which parts of a yeast protein three enzymes stuck to. The protein was Ste5. Without it a yeast cell cannot mate. Yet the protein had no enzyme activity: it never put a phosphate on anything or took one off. In 1994 that came close to saying it had no mechanism.
+## Ste5 routes shared kinases
 
-Mating runs on three kinases in a row. Ste11 switches on Ste7, and Ste7 switches on Fus3, which halts the cell cycle so that the cell can fuse with a partner. The top one is shared, and the middle one is shared with the filament cascade. Ste11 also feeds one of the two branches of the cascade a yeast cell runs when the salt outside climbs too high, and starts the one it runs to grow in long filaments. One enzyme, three destinations, and a cell that smells pheromone mates and does not start the other two programs.
+The second film shows Ste5 controlling partners, place and activation on the mating route. The second film traced the shared parts to Kss1 and Hog1; of the two branches of the salt-stress cascade, Ste11 feeds only one. Fus3 helps halt the cell cycle for fusion, and without Ste5 a yeast cell cannot mate.
 
-Choi, Satterberg, Lyons and Elion reported in Cell in 1994 that Ste11, Ste7 and Fus3 bind different regions of Ste5, so one Ste5 molecule can hold all three at once. Two other laboratories reached the same result that year, both with the then-new yeast two-hybrid method: Michael Wigler's group (PNAS, 2 August) and George Sprague's (Genetics, November). A protein that catalyzes nothing earns its place by what it buys the cell.
+In 1994 Choi, Satterberg, Lyons and Elaine Elion showed that the three kinases bind different regions of the non-enzyme protein Ste5.
 
-**Speed.** Picture a pegboard with three tools hung within arm's reach. A kinase and its target normally find each other by drifting at random through a crowded cytoplasm. Two proteins fastened to one scaffold are already held close together.
+Scaffolds are often pictured as passive assembly platforms. A kinase and its target normally meet by random drift through a crowded cytoplasm, so holding both can increase productive encounters. That model is a useful start, but incomplete.
 
-**Insulation.** The first idea was sequestration. Ste5 holds the Ste11 that a pheromone switches on beside Ste7 and Fus3, and Marcus and colleagues proposed in 1994 that a pathway-dedicated scaffold keeps kinase modules from talking to each other. Wendell Lim's laboratory later tested that idea and found that Ste5 does not insulate by locking its kinases away. Two other features do the work. Ste5 stays folded shut until pheromone brings it to the membrane. And Fus3 on its own is a poor substrate for Ste7: a domain of Ste5 unlocks Fus3 so that Ste7 can switch it on. Only the mating pathway has Ste5, so only the mating pathway switches on Fus3. In the other direction, the salt-stress kinase Hog1 keeps high salt from switching on the mating pathway.
+The first specificity idea was sequestration: a pathway-dedicated scaffold keeps kinase modules from talking to each other. Wendell Lim's laboratory later found that Ste5 does not insulate by locking its kinases away; membrane gating and Fus3 unlocking do the work. Restraint also runs the other way: Hog1 helps keep high salt from activating the mating route.
 
-**Location.** Scaffolds carry their kinases to a place. InaD, built from PDZ domains (modules that grip the last few amino acids of a partner), gathers the light-response proteins of the fly photoreceptor in one spot. Paxillin collects Ras-pathway proteins at focal adhesions, the places where a cell grips its surroundings.
+Place has clearer cases elsewhere. InaD uses **PDZ domains**, modules that grip the last few amino acids of a partner, to gather light-response proteins in a fly photoreceptor. Paxillin gathers Ras-pathway proteins at focal adhesions, where a cell grips its surroundings.
 
-Scaffolds are often pictured as passive assembly platforms. In 2000, Levchenko, Bruck and Sternberg modeled a kinase cascade with a generic scaffold and showed that adding more scaffold does not keep raising the output. Past a certain amount, extra scaffold pulls the kinases onto separate scaffold molecules and the signal falls again. They proposed the name combinatorial inhibition for this effect. Then in 2006 Wendell Lim's group showed that Ste5 is more than a tether: a Ste5 fragment bound to Fus3 drives Fus3 to put a phosphate on itself at one of its two activating sites. The Fus3 made this way is only partly active and turns pathway output down, so the scaffold tunes the signal rather than simply speeding it.
+### More scaffold can mean less signal
 
-Ste5 has no counterpart in humans. KSR, the scaffold of the Ras-MAPK pathway, and JIP-1 hold cascade kinases together in a comparable way but are not descended from it, so a search of the human genome for something that resembles STE5 would never have found them.
+The second film's excess-scaffold result comes from a model. Levchenko, Bruck and Sternberg modeled a generic scaffolded kinase cascade in 2000, found that output rose and then fell as scaffold increased, and called the effect **combinatorial inhibition**. The model assumes fixed kinase amounts and signaling only when all three share one scaffold; cooperative assembly or other regulation can change the result.
 
-## Place, and rewiring: scaffolds beyond the cascade
+**Predict.** A Ste5 fragment promotes Fus3 autophosphorylation at one of its two activating sites. Must that raise the pathway's final output?
 
-Here is a question about heart cells. A kinase reads a messenger, and an enzyme destroys that messenger. What holds the two close enough together for a local pool of messenger to exist?
+<details>
+<summary>Check your prediction</summary>
 
-The answer is a protein whose job is to hold other proteins next to each other, an anchoring protein. In John Scott's laboratory, Dodge and colleagues showed that mAKAP, the muscle-selective A-kinase anchoring protein, also holds a phosphodiesterase, PDE4, which destroys the messenger cyclic AMP. The kinase and its off-switch sit in the same complex, so the cyclic AMP that matters to this kinase is the cyclic AMP made right beside it, before it can move away. The complex also holds a target. Marx and colleagues reported that protein kinase A adds a phosphate to the cardiac ryanodine receptor, the channel that releases calcium for each heartbeat, and that the phosphate makes a protein called FKBP12.6 come off the channel. They also reported that this regulation is defective in failing hearts. Both findings are still debated, and some groups have not reproduced the loss of FKBP12.6.
+No. The network effect must be measured. In the 2006 experiment from Wendell Lim's laboratory, Fus3 made this way was only partly active and lowered pathway output, so Ste5 tuned the signal rather than simply accelerating it.
 
-Because a scaffold is a string of separate gripping surfaces, you can swap one surface for another that grips a different partner. Then a different input can reach a different output. You can hack scaffolds to mix inputs and outputs, and Lim's laboratory has spent much of its time since building signaling proteins that no organism has had.
+</details>
+
+Ste5 has no human counterpart. KSR in the Ras–MAPK pathway and JIP-1 organize cascade kinases comparably but are not descended from Ste5; sequence similarity to Ste5 would not have found them.
+
+## Local signals and rewiring
+
+A kinase reads a messenger, and an enzyme destroys it. What holds the two close enough for a local pool of messenger to exist? An anchoring protein. In John Scott's laboratory, Dodge and colleagues showed that muscle-selective A-kinase anchoring protein, **mAKAP**, holds protein kinase A and PDE4, a phosphodiesterase that destroys cyclic AMP. The kinase therefore responds especially to cyclic AMP made nearby, before it spreads away.
+
+Separate binding surfaces also make scaffolds rewritable: swap one surface for another that recognizes a different partner, and an input can reach a new output. Wendell Lim's laboratory has used that logic to build signaling proteins no organism has had.
 
 ### Design problem
 
-Two pathways share one kinase, K. Input A must give output A only, and input B output B only. Design two different ways to keep the messages apart.
+Two pathways share kinase K. Input A must give only output A, and input B only output B. Design two ways to keep the messages apart.
 
 <details>
 <summary>One way to do it</summary>
 
-**Design 1: separate scaffolds.** Give each pathway its own scaffold. Scaffold A holds one copy of K, the activator that input A turns on, and the target that produces output A. Scaffold B holds another copy of K with B's partners. The K that input A switches on is sitting against A's target. This is the sequestration picture first proposed for Ste5. Real Ste5 does more: it switches on only when pheromone arrives and it helps the final kinase get activated, so a scaffold can gate its output as well as hold its partners. Its weak point is dose: too much scaffold spreads the partners across incomplete complexes, so the amount has to be tuned.
+**Separate assemblies.** Scaffold A holds K with A's activator and target; scaffold B holds K with B's partners. This is the original sequestration proposal for Ste5; a stronger design also gates each scaffold by its input and helps activate the final kinase. Its weak point is dose: excess scaffold can split partners across incomplete complexes.
 
-**Design 2: separate places.** Anchor K at two sites with two anchoring proteins. Input A makes the messenger at site A and input B makes it at site B. At each site K sits beside its own target and beside an enzyme that destroys the messenger, so the messenger from the other site is cleared before this kinase meets it. This is the mAKAP logic. Its weak point is the anchor: lose the enzyme from a complex and local control goes with it.
+**Separate places.** Anchor K at two locations. Input A makes the messenger at site A, where K sits beside target A; input B makes it at site B, beside target B. Each anchor also holds an enzyme that clears the messenger before it reaches the other site. This is the mAKAP logic. Its weak point is local clearance: remove the clearing enzyme and the signal can grow and spread.
 
-Other answers work. A good one says what keeps the messages apart and what breaks when a part goes missing.
+Other answers can work. A good design states what enforces specificity and what failure would break it.
 
 </details>
+
+## Going deeper
+
+### Discovery order
+
+The fly screen appeared in November 1991; Utpal Banerjee's laboratory had isolated Sos earlier that year. The worm ordering came from Paul Sternberg's group; Stuart Clark, Michael Stern and Robert Horvitz cloned sem-5 in March 1992, and Lowenstein's Grb2 paper linked Grb2 to it in August. Across about nine months, a fly screen, worm clone and rat-cell experiment converged on one receptor-to-Ras chain.
+
+The 1994 Ste5 result surprised because a protein essential for mating appeared to catalyze nothing. Elion's group combined two-hybrid mapping with co-purification; Michael Wigler's group (PNAS, 2 August) and George Sprague's (Genetics, November) reached the same result with the then-new yeast two-hybrid method. Marcus and colleagues proposed that a dedicated scaffold might sequester a kinase module.
+
+### A debated cardiac target
+
+The mAKAP complex also holds a target. Marx and colleagues reported that protein kinase A phosphorylates the cardiac ryanodine receptor, the calcium-release channel for each heartbeat, causing FKBP12.6 to leave. They also reported defective regulation in failing hearts. Both findings remain debated, and some groups have not reproduced FKBP12.6 loss.

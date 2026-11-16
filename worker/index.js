@@ -11,7 +11,7 @@
 // the server answers "Range: bytes=…" with 206 Partial Content.
 import { handleApi } from './api.js';
 import { HOSTS, route, redirectResponse, webauthnOrigins, switched } from './host.js';
-import { handoffPage, signinPage, doneResponse, receive, mergeEndpoint, accountNote } from './handoff.js';
+import { handoffPage, signinPage, doneResponse, receive, receiveFailed, mergeEndpoint, accountNote } from './handoff.js';
 import { redeemBridge } from './learner.js';
 
 // Paths the media code below is for (byte ranges, files in R2). Everything else that reaches the
@@ -69,7 +69,12 @@ export function createWorker(cfg = HOSTS) {
     if (r.kind === 'handoff') return handoffPage(r.to, cfg);
     if (r.kind === 'signin') return signinPage(request.url, cfg);
     if (r.kind === 'done') return doneResponse(request, r.to, cfg);
-    if (r.kind === 'receive') return receive(request, env, cfg, (code) => redeemBridge(env.CLASSES, request, code));
+    if (r.kind === 'receive') {
+      try { return await receive(request, env, cfg, (code) => redeemBridge(env.CLASSES, request, code)); } catch (e) {
+        console.error('handoff receive error', e && (e.stack || e.message));
+        return receiveFailed(request, cfg);
+      }
+    }
     if (r.kind === 'merge') return mergeEndpoint(request);
     if (cfg !== HOSTS) env = { ...env, SITE_HOSTS: cfg };   // tests only
 

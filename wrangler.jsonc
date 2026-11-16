@@ -1,10 +1,13 @@
 {
   // Cloudflare Workers config. The site is static (Astro output in dist/); the
-  // worker script runs first only for the paths in run_worker_first: media (HTTP range
-  // requests, which Safari needs to play video, and files kept in R2), the API, and
-  // group pages. Everything else is served straight from the static assets.
-  // Moving the site to a new address (src/lib/site-host.mjs, phase B) needs the worker to run
-  // first for every page as well; scripts/test-host.mjs refuses a phase B setting without it.
+  // worker script runs first for the paths in run_worker_first: every page, so the host can be
+  // checked (worker/host.js: a host that is not the site's address is redirected, and after the
+  // move the old domain answers 301s and the hand-off), media (HTTP range requests, which Safari
+  // needs to play video, and files kept in R2), the API, and group pages. On the primary host a
+  // page is handed to the static assets untouched. The "!" lines are files only (fingerprinted
+  // bundles, search index, figures, quiz and card data): they skip the worker on any host.
+  // COST: every page view now runs the worker once. On the Workers Free plan (100,000 requests a
+  // day) traffic above that limit gets Cloudflare error 1027 instead of the page; use Workers Paid.
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "biochempedia",
   "compatibility_date": "2026-07-03",
@@ -13,7 +16,7 @@
     "directory": "./dist",
     "binding": "ASSETS",
     "not_found_handling": "404-page",
-    "run_worker_first": ["/explainers/*", "/api/*", "/g/*", "/listen/*"]
+    "run_worker_first": ["/*", "!/_astro/*", "!/pagefind/*", "!/vendor/*", "!/figures/*", "!/scientists/*", "!/quiz/*", "!/flashcards/*", "!/helper-data/*"]
   },
   // Film files also live in this R2 bucket under the same paths they have on the site
   // (uploaded with `node scripts/upload-media.mjs`). The worker serves them from here and

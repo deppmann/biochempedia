@@ -5,13 +5,13 @@ course: "signaling"
 courseChapter: "Cell Signaling · Unit 3: G-protein-coupled receptors and second messengers"
 order: 115
 summary: >-
-  Calcium is the one second messenger a cell cannot make or destroy, so the cell signals by
-  moving it: cytosolic calcium is held about ten thousand times lower than outside, and a channel
-  is opened. This lesson sorts the channels, pumps and buffers into 'on' and 'off', shows how an
-  EF hand and calmodulin turn an ion into a change of protein shape, and explains how place and
-  frequency carry information. Afterwards you can predict what fails when a pump, a sensor or a
-  store-refilling channel is missing, and design a protein that reports calcium by light.
-hook: "A frog heart keeps beating in tap-water saline and stops in twenty minutes in distilled. What was in the tap water?"
+  Cells give calcium meaning by controlling where and when free calcium rises. A steep gradient
+  makes channel opening a fast 'on' signal, while pumps, exchangers and buffers provide the 'off'
+  machinery. EF hands and calmodulin turn the rise into a protein response; local domains, waves
+  and spike frequency let the same ion reach different readers. You will predict what fails when
+  a pump, sensor or store-refilling channel is missing, then design a protein that reports calcium
+  by light.
+hook: "How can the same calcium ion trigger contraction, secretion or gene expression without making the cell respond everywhere at once?"
 
 estMinutes: 24
 objectives:
@@ -24,10 +24,15 @@ explainer:
   src: "/explainers/calcium-signaling/explainer.mp4"
   captions: "/explainers/calcium-signaling/explainer.vtt"
   poster: "/explainers/calcium-signaling/poster.jpg"
-  title: "A Messenger the Cell Can Only Move"
-  durationSec: 169.1
-  narration: "an AI narrator voice (ElevenLabs, Sarah) reading narration written from this lesson's text"
+  title: "How a Cell Makes a Calcium Signal"
+  durationSec: 208.3
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+  takeaways:
+    - "Calcium signals begin and end by moving calcium, not changing it."
+    - "Opening a channel lets an existing gradient raise free cytosolic calcium."
+    - "Pumps, exchangers and buffers lower free cytosolic calcium again."
+    - "Restoring the low resting level makes the next rise noticeable."
 
 scientists:
   - name: "Sydney Ringer"
@@ -305,10 +310,10 @@ explainLevels:
   - level: "eli5"
     label: "Like I'm five"
     text: >-
-      Imagine a quiet room with a big crowd waiting outside every door. Open one door for a
-      moment and people rush in, and everyone in the room notices straight away. Your cells keep
-      a tiny thing called calcium waiting outside like that crowd, so opening a door sends a
-      very fast message. Then little pumps push the calcium back out, and the room is quiet and
+      Imagine a quiet room with a crowd waiting outside every door. Open one door for a moment
+      and people rush in; those nearest that door notice first. Open many doors together, and
+      the whole room notices. Your cells keep a tiny thing called calcium waiting outside like
+      that crowd, so opening a door sends a very fast message. Then little pumps push the calcium back out, and the room is quiet and
       ready for the next message.
   - level: "highschool"
     label: "High school"
@@ -316,8 +321,9 @@ explainLevels:
       Calcium is an element, so a cell cannot build it or break it down the way it builds and
       breaks other messenger molecules. Instead the cell spends energy pumping calcium out of
       its main fluid and into storage compartments, until there is about ten thousand times more
-      calcium outside than inside. When a channel opens, calcium rushes in and its level jumps
-      within milliseconds. Proteins such as calmodulin catch the calcium, change shape and
+      calcium outside than inside. When a channel opens, calcium begins crossing into the cytosol
+      within milliseconds. The level rises first near the channel; how quickly the whole cell's
+      level rises depends on the cell and the signal. Proteins such as calmodulin catch the calcium, change shape and
       switch on enzymes. Pumps then clear the calcium away and the signal ends. Because calcium
       does not spread far, a cell can send different messages by releasing it in one spot or
       everywhere, and by pulsing it slowly or quickly.
@@ -398,105 +404,135 @@ corpusTags:
   - "calcium-imaging"
 draft: false
 films:
-  - id: "place-and-timing"
-    src: "/explainers/calcium-signaling/place-and-timing.mp4"
-    captions: "/explainers/calcium-signaling/place-and-timing.vtt"
-    poster: "/explainers/calcium-signaling/place-and-timing-poster.jpg"
-    title: "Where and How Often Calcium Rises"
-    durationSec: 109.8
-    narration: "an AI narrator voice (ElevenLabs, Sarah) reading narration written from this lesson's text"
+  - id: "chapter-2"
+    src: "/explainers/calcium-signaling/chapter-2.mp4"
+    captions: "/explainers/calcium-signaling/chapter-2.vtt"
+    poster: "/explainers/calcium-signaling/chapter-2-poster.jpg"
+    title: "How One Ion Carries Different Messages"
+    durationSec: 217.0
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
     aiGenerated: true
+    takeaways:
+      - "Cells give calcium meaning by controlling where and when free calcium rises."
+      - "Buffers can keep a rise local, so a sensor beside the channel can respond while an identical one farther away does not."
+      - "Calcium-dependent release can recruit more sites and spread a wave."
+      - "Closely spaced spikes can build activity in a reader that keeps some activity from one spike to the next."
 ---
 
 import LessonFilm from '../../../components/LessonFilm.astro';
-
 import CalciumGradient from '../../../components/CalciumGradient.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import Support from '../../../components/Support.astro';
 
-**In 1883 a frog heart kept beating in salt water mixed with London tap water, and stopped within about twenty minutes when the same recipe was mixed with distilled water.** Sydney Ringer traced the difference to the hard pipe water: it carried dissolved calcium. Sixty-four years later Lewis Heilbrunn and Floyd Wiercinski injected a calcium salt straight into a frog muscle fibre, bypassing the nerve and its electrical impulse, and the fibre shortened. A heart needs calcium, and calcium by itself can make muscle contract. So how does a bare ion, the same atom that sits in limestone, carry a message inside a cell?
+**In 1883 a frog heart kept beating in salt water mixed with London tap water, and stopped within about twenty minutes when the same recipe was mixed with distilled water.** Sydney Ringer traced the difference to calcium in the hard pipe water. Sixty-four years later Lewis Heilbrunn and Floyd Wiercinski injected a calcium salt into a frog muscle fibre. With no nerve impulse at all, the fibre shortened: calcium alone can trigger contraction. How can the same ion control other responses without switching on the whole cell at once?
 
-## The idea: a messenger the cell cannot make or destroy
+<Support>**The one idea.** Cells give calcium meaning by controlling where and when free calcium rises. **Scope:** free cytosolic calcium as an intracellular messenger, not calcium's extracellular or structural roles. Different cells use different sources, sensors, spatial scales and time courses, and the size of a rise matters too; this lesson and its films concentrate on place and timing.</Support>
 
-Every other second messenger you have met is built and then broken. One enzyme makes cAMP and another destroys it. Calcium is an element. No enzyme can make it and none can break it down, so the only thing a cell can do with calcium is move it.
+## Build the rise: gradient, channels and removal
 
-The cell moves it out, and keeps it out. A resting cell holds free calcium in its cytosol near 100 nanomolar. Outside the cell the concentration is between 1 and 2 millimolar, which is ten to twenty thousand times higher. Inside the endoplasmic reticulum (ER), the folded internal membrane compartment that serves as the cell's calcium store, free calcium is several hundred micromolar. Muscle's version of the ER is called the sarcoplasmic reticulum.
+As the first film showed, calcium is an element that no enzyme can make or destroy, so it signals only by being moved. **Free cytosolic calcium** means calcium ions dissolved in the cytosol and not bound to proteins or other molecules. A resting cell holds it near 100 nanomolar; outside, calcium is 1 to 2 millimolar, ten to twenty thousand times higher. In the endoplasmic reticulum (ER), the cell's folded internal calcium store, free calcium is several hundred micromolar; muscle's version is the sarcoplasmic reticulum.
 
-Think of a dam. The reservoir is held high at a steady cost, and opening one gate gives a flood at once. To send a calcium signal the cell makes no calcium. It opens a channel, sometimes by first making another messenger such as IP3, and ions already pressed against the far side come through within milliseconds. Because the starting level is so low, a modest number of ions raises cytosolic calcium tenfold, to about 1 micromolar, and higher still right beside the open channel.
+A signal may first make another messenger, such as IP3 from the previous lesson, which opens its receptor channel on the ER. Ions begin crossing within milliseconds of a channel opening. Because the resting level is so low, a modest number of ions raises bulk cytosolic calcium about tenfold, to roughly 1 micromolar, and much higher right beside the pore.
 
 <CalciumGradient />
 
-## Ca2+ "on" and "off" mechanisms: every channel has a pump against it
-
-Sort the machinery by which way it moves calcium: "on" mechanisms let it into the cytosol, and "off" mechanisms take it away again.
-
-| | Where | What it does |
+| Role | Where | Immediate action |
 |---|---|---|
-| On | Plasma membrane | Channels opened by voltage, by a ligand or by an empty store admit calcium from outside |
-| On | Store membrane | The IP3 receptor and the ryanodine receptor are channels that release stored calcium |
-| Off | Store membrane | The SERCA pump moves 2 Ca2+ into the store for each ATP |
-| Off | Plasma membrane | The PMCA pump expels 1 Ca2+ for each ATP; the Na+/Ca2+ exchanger trades 3 Na+ in for 1 Ca2+ out |
-| Off | Cytosol | Buffer proteins such as parvalbumin bind calcium and take it out of play |
+| On | Plasma membrane | Voltage-, ligand- or store-operated channels admit calcium from outside |
+| On | Store membrane | IP3 and ryanodine receptor channels release stored calcium |
+| Off | Store membrane | SERCA moves 2 calcium ions into the store per ATP |
+| Off | Plasma membrane | PMCA expels 1 calcium ion per ATP; the sodium/calcium exchanger uses the sodium gradient, trading 3 sodium ions in for 1 calcium ion out |
+| Off | Cytosol | Buffers such as parvalbumin bind calcium and remove it from the free pool |
 
-Everything on the "on" side is a channel. A channel only opens a path, and the gradient does the work. You can already place one: the IP3 made in the previous lesson lands on the IP3 receptor, on the ER. Everything on the "off" side either spends energy or soaks calcium up.
+**Predict 1.** A cell in calcium-free fluid receives two identical signals that open IP3 receptors. Calcium that leaves the cell between them cannot be replaced. How should the second cytosolic rise compare with the first?
 
-<LessonFigure src="/figures/calcium-signaling/on-and-off-machinery.webp" width={1200} height={800} alt="AI-generated illustration: a cell with calcium crowded outside and inside a store, and only a few ions in the cytosol. A channel in the plasma membrane lets calcium in and a pump beside it sends calcium back out of the cell; a channel in the store membrane lets calcium out into the cytosol and a pump beside it sends calcium back into the store. Buffer proteins in the cytosol each hold an ion." caption="Every channel that lets calcium into the cytosol has a pump working against it. Channels only open a path; pumps spend energy to move calcium out of the cytosol, into the store or out of the cell, and buffers soak it up." />
+<details>
+<summary>Check your prediction</summary>
 
-The evidence that a quiet cytosol is paid for came from muscle. By late 1961 Wilhelm Hasselbach and Madoka Makinose, in Heidelberg, had collected vesicles of sarcoplasmic reticulum from ground muscle, given them ATP, and watched them pull calcium out of the surrounding fluid. Setsuro Ebashi, working with Fritz Lipmann in New York, independently reported the same ATP-driven uptake in 1962. Within two years the Heidelberg measurements put the cost at about two calcium ions for every ATP split. A relaxed muscle is spending ATP to stay relaxed. Back in Tokyo, Ebashi supplied the other half. Calcium acts on the filaments of skeletal muscle through a separate protein, which he and Ayako Kodama identified in 1965 and named troponin in 1966.
+It should be smaller: SERCA could refill the ER only partly, because calcium pumped out of the cell was not replaced from outside. The exact change depends on how much calcium remained and how completely the first signal emptied the store.
+
+</details>
+
+<LessonFigure src="/figures/calcium-signaling/on-and-off-machinery.webp" width={1200} height={800} alt="AI-generated illustration: a cell with calcium crowded outside and inside a store, and only a few ions in the cytosol. A channel in the plasma membrane lets calcium in and a pump beside it sends calcium back out of the cell; a channel in the store membrane lets calcium out into the cytosol and a pump beside it sends calcium back into the store. Buffer proteins in the cytosol each hold an ion." caption="Channels raise free cytosolic calcium; pumps, exchangers and buffers lower it again." />
+
+The proof that a quiet cytosol is paid for came from muscle. By late 1961 Wilhelm Hasselbach and Madoka Makinose, in Heidelberg, had isolated sarcoplasmic-reticulum vesicles, added ATP and watched calcium leave the surrounding fluid. Setsuro Ebashi and Fritz Lipmann, in New York, independently reported ATP-driven uptake in 1962. Within two years the Heidelberg measurements put the cost at about two calcium ions per ATP split: relaxed muscle spends ATP to stay relaxed. Back in Tokyo, Ebashi and Ayako Kodama identified the separate protein through which calcium acts on the filaments of skeletal muscle in 1965, and named it troponin in 1966.
 
 ### An empty store asks for a refill
 
-A store that empties once and never refills is good for one signal. In 1986 James Putney, reassessing earlier findings on calcium stores, proposed that the emptying is itself the instruction: a depleted store tells the plasma membrane to open calcium channels. The idea is now called store-operated entry.
+A store that never refills supports only a limited release. James Putney, reassessing earlier findings on calcium stores, proposed in 1986 that depletion is itself an instruction to open plasma-membrane channels: **store-operated entry**. STIM1 crosses the ER membrane once, with a calcium-binding site facing the lumen. When luminal calcium falls, STIM1 clusters beneath the plasma membrane and opens Orai1. Orai1 admits calcium to the cytosol; SERCA can then pump some into the ER.
 
-It took twenty years to name the parts. STIM1 crosses the ER membrane once, with a calcium-binding site facing into the store. In 2005 two groups, one including Michael Cahalan's laboratory and one from Tobias Meyer's, independently reported it as the sensor: when the store runs down, STIM1 gathers in clusters just beneath the plasma membrane. There it opens the pore, Orai1, which Stefan Feske and colleagues identified in 2006 from a family whose immune cells lacked store-operated calcium entry.
+**Predict 2.** A drug empties the ER while no calcium is outside. Calcium is then restored outside. What happens in a cell lacking STIM1?
 
-<LessonFigure src="/figures/calcium-signaling/store-operated-entry-strip.webp" width={1200} height={489} alt="AI-generated illustration: three frames of an ER lying beneath the plasma membrane. With a full store, STIM1 is spread out and Orai1 is closed; when the store is empty, STIM1 gathers beneath Orai1 and opens it so calcium enters from outside." caption="An emptied store is itself the instruction to refill. STIM1, which senses calcium inside the ER, gathers just beneath the plasma membrane and opens Orai1, and calcium enters from outside. Numbers of parts are schematic." />
+<details>
+<summary>Check your prediction</summary>
 
-## "How do proteins sense calcium?"
+The sharp store-operated rise should be largely missing. Orai1 cannot sense ER calcium by itself; without STIM1, the main store sensor, an empty store cannot efficiently open that route.
 
-An ion has no shape for a protein to recognise. What calcium has is a double positive charge and a liking for oxygen atoms. A cytosolic protein senses calcium by offering a pocket lined with oxygens that sits empty at 100 nanomolar and fills at around a micromolar, which is the Kd idea from the lesson on binding and dose-response.
+</details>
 
-The commonest such pocket was first seen at the University of Virginia. In 1973 Robert Kretsinger and C. E. Nockolds published the full crystal structure of parvalbumin, a calcium-binding protein from carp muscle. Its chain folds into six helices, lettered A to F. One calcium ion sat in a loop between helix E and helix F. Hold up your right hand with the forefinger pointing and the thumb out: the forefinger is helix E, the thumb is helix F, and the curled middle finger is the loop that holds the ion. Kretsinger named the unit the EF hand. The loop is twelve residues long, and its aspartate and glutamate side chains wrap the ion in oxygen. The same helix-loop-helix has since been found by sequence in a large family of proteins, troponin and the myosin light chains among them.
+<LessonFigure src="/figures/calcium-signaling/store-operated-entry-strip.webp" width={1200} height={489} alt="AI-generated illustration: three frames of an ER lying beneath the plasma membrane. With a full store, STIM1 is spread out and Orai1 is closed; when the store is empty, STIM1 gathers beneath Orai1 and opens it so calcium enters from outside." caption="Low calcium inside the ER makes STIM1 cluster and open Orai1, coupling store depletion to entry from outside. Numbers of parts are schematic." />
 
-**Calmodulin: the ultimate in modularity.** Parvalbumin binds calcium and that is the end of it. It is a buffer. Calmodulin binds calcium and changes shape, and the new shape does work. It is a sensor. Calmodulin is a small protein of 148 amino acids with four EF hands, two in each of two lobes, and a flexible linker between the lobes. When calcium binds, each lobe opens and exposes a hydrophobic (water-avoiding) patch. With many targets, the two lobes then close around a short helix on the target, like two hands gripping a rope. Other targets are held by one lobe, or by the two lobes at separate sites.
+The parts took twenty years to name. Two groups, including laboratories led by Michael Cahalan and Tobias Meyer, independently reported STIM1 as the sensor in 2005. Stefan Feske and colleagues identified Orai1 in 2006 through a family whose immune cells lacked store-operated calcium entry.
 
-The modularity is this. Calmodulin has no catalytic activity of its own, and the one molecule serves many targets, because each target carries its own calmodulin-binding site. Take one enzyme, CaM kinase II (CaMKII). At rest a segment of the kinase lies across its own active site and blocks it. Calcium-loaded calmodulin grips the end of that segment and pulls it clear, and the kinase is free to phosphorylate its substrates. A rise in an ion has become a phosphate on a protein, which the lesson on the phosphorylation switch showed you how to read.
+## How a protein reads the rise
 
-<LessonFigure src="/figures/calcium-signaling/buffer-and-sensor.webp" width={1200} height={800} alt="AI-generated illustration: on the left, a buffer protein binds calcium in its pockets and nothing else changes. On the right, a two-lobed sensor binds calcium, each lobe opens to expose a patch, the two lobes grip a short helix of a target enzyme, and the enzyme&#39;s blocking flap is pulled clear so it can put a phosphate on a substrate." caption="Binding calcium is not the same as doing something about it. A buffer binds and stops there; a sensor changes shape, grips a target and pulls a blocking segment clear, so a rise in an ion becomes a phosphate on a protein." />
+Calcium offers a double positive charge and a preference for oxygen atoms. A protein can therefore make an oxygen-lined pocket that is mostly empty at 100 nanomolar and fills around a micromolar: the Kd idea from the lesson on binding and dose-response.
 
-## Where and how often: place and timing carry the message
+A common calcium-binding motif is the **EF hand**. In the parvalbumin structure published by Robert Kretsinger and C. E. Nockolds in 1973, calcium sits in a twelve-residue loop between helices E and F. Aspartate and glutamate side chains supply oxygens around it. The same helix-loop-helix occurs in a large protein family, including troponin C and the myosin light chains, although a few EF hands have lost calcium binding.
+
+**Predict 3.** Two proteins bind the same amount of calcium. Only one exposes a target-binding surface. Which is a sensor, and which could be only a buffer?
+
+<details>
+<summary>Check your prediction</summary>
+
+The one that exposes a surface is a sensor: binding changes what it can do. The other may still matter as a buffer, but binding alone sends no instruction.
+
+</details>
+
+Parvalbumin binds calcium and acts as a buffer. **Calmodulin** binds calcium and changes shape. It has 148 amino acids and four EF hands, two in each lobe, joined by a flexible linker. Calcium exposes a hydrophobic, water-avoiding patch on each lobe. With many targets, the lobes close around a target helix; other targets use one lobe or separate sites.
+
+Calmodulin has no catalytic activity, so one molecule can serve many targets: each target carries its own calmodulin-binding site. In CaM kinase II (CaMKII), a segment blocks the active site at rest. Calcium-loaded calmodulin grips that segment and pulls it clear, letting the kinase phosphorylate substrates. A rise in an ion has become a phosphate on a protein, read as in the lesson on the phosphorylation switch.
+
+<LessonFigure src="/figures/calcium-signaling/buffer-and-sensor.webp" width={1200} height={800} alt="AI-generated illustration: on the left, a buffer protein binds calcium in its pockets and nothing else changes. On the right, a two-lobed sensor binds calcium, each lobe opens to expose a patch, the two lobes grip a short helix of a target enzyme, and the enzyme&#39;s blocking flap is pulled clear so it can put a phosphate on a substrate." caption="A buffer binds calcium; a sensor also changes shape and passes the signal to a target." />
+
+Which readers a rise reaches depends on where and when it happens; the second film builds that picture.
 
 <LessonFilm film={frontmatter.films[0]} />
 
-Calcium is the same ion in every cell that uses it, so much of the information lies in where it rises and when.
+## Where and how often: the evidence and its limits
 
-Place first. Cytosolic buffers capture a free calcium ion quickly, so calcium does not travel far from the channel it came through. One small cluster of channels opening gives a brief, local signal. In a heart muscle cell such an event from ryanodine receptors is called a spark. A protein anchored beside the channel sees a high concentration, and a protein across the cell sees nothing. What calcium does therefore depends on which protein is standing close enough to catch it.
+In heart muscle, a local release through ryanodine receptors is a **spark**. Each electrical impulse sets off thousands of sparks at once, and together they make the whole-cell rise behind a beat. In eggs and liver cells, release travels instead: calcium from one cluster stimulates the release channels of the next, by positive feedback, and a wave crosses the cell. Not every global rise, however, is built only from sequential local events.
 
-A local signal can also become a global one. In a heart cell, each electrical impulse sets off thousands of sparks at the same moment, and together they sum into the whole-cell rise behind each beat. In other cells, such as eggs and liver cells, the release channels are themselves stimulated by calcium. Calcium from one cluster triggers the next, which is the positive feedback you met in the lesson on signaling circuits, and a wave crosses the cell.
+**Predict 4.** A fast calcium buffer is added, and the whole-cell calcium peak falls sharply. Should a sensor anchored beside an open channel lose its response just as sharply?
 
-Now timing. Under a steady stimulus many cells do not hold calcium high. They spike repeatedly. In 1986 Woods, Cuthbertson and Cobbold recorded single rat liver cells injected with a light-emitting calcium reporter and found that the more hormone they gave, the more often the spikes came. The dose was written in frequency, the way FM radio carries sound.
+<details>
+<summary>Check your prediction</summary>
 
-Something has to count the spikes. In liver cells, mitochondrial enzymes respond to the spike rate, and in immune cells transcription factors such as NFAT respond best to frequent spikes. For faster spikes, such as those in neurons, one counter is CaMKII. Its twelve or fourteen subunits are assembled around a central hub. When two neighbours hold calmodulin at the same moment, one phosphorylates the other, and the phosphorylated subunit stays active after calcium falls. Spikes that come close together build on each other, because subunits are still loaded from the last one. Spikes far apart let the enzyme fall back toward rest in between. In 1998 De Koninck and Schulman showed with purified enzyme that the lasting activity of CaMKII depends on the frequency of calcium pulses.
+Probably not. It sits where calcium is highest, before the buffer can bind much of it; the whole-cell average reflects calcium that has spread, so a distant sensor loses more. The result depends on the buffer's concentration and binding kinetics.
 
-## Seeing calcium: from a jellyfish to a designed protein
+</details>
 
-None of this could be studied until calcium could be watched in a living cell. One of the first tools came from the jellyfish Aequorea. Osamu Shimomura, with Frank Johnson and Saiga, purified from it a protein that gives off blue light when calcium binds, and described it in 1962 under the name aequorin. Injected into a cell, as in the liver cells above, it reports each calcium rise in that one cell as a flash.
+In 1986 Woods, Cuthbertson and Cobbold used a light-emitting reporter in single rat liver cells. More hormone produced more frequent calcium spikes: the dose was written in frequency, not in a higher calcium level.
 
-Dyes followed. Fura-2, from Roger Tsien's laboratory in 1985, is a small fluorescent molecule whose best excitation wavelength shifts when it binds calcium, so the ratio of the signals at two wavelengths can be calibrated to a concentration that depends little on how much dye a cell took up.
+To respond to frequency, a reader must keep some activity from one spike to the next. Mitochondrial enzymes respond to spike rate in liver cells, and transcription factors such as NFAT respond best to frequent spikes in immune cells. For faster neuronal pulses, CaMKII is one counter. In its hub of twelve or fourteen subunits, when two neighbours hold calmodulin together, one can phosphorylate the other, and activity can persist after calcium falls. In 1998 De Koninck and Schulman showed with purified enzyme that lasting activity depends on pulse frequency. Which molecules decode slower cellular oscillations, and how much they read frequency rather than summed calcium, remain open questions.
 
-The third tool is a protein the cell makes from a gene, and designing one is your problem.
+## Seeing calcium without confusing the signal
+
+None of this could be studied until calcium could be watched in a living cell. Aequorin, purified from the jellyfish *Aequorea* by Osamu Shimomura with Frank Johnson and Saiga and described in 1962, emits blue light when it binds calcium. Injected into one cell, as in the liver cells above, it reports rises as flashes. Fura-2, from Roger Tsien's laboratory in 1985, shifts its best excitation wavelength on binding calcium. The ratio at two wavelengths depends little on dye loading and can be calibrated to concentration.
 
 ### Design problem
 
-How could we use calmodulin's shape change to make a calcium sensor? Design a protein that reports calcium by light, and say what control shows that it reports calcium and nothing else.
+How could calmodulin's shape change make a calcium sensor? Design a protein that reports calcium by light. State the control that shows the response depends on calcium.
 
 <details>
 <summary>One way to do it</summary>
 
-Calmodulin's shape change is a change in distance: stretched out when alone, wrapped up when it holds a target helix. Build one chain in this order: a cyan fluorescent protein, calmodulin, a calmodulin-binding peptide, and a yellow fluorescent protein. With calcium low, the two fluorescent proteins are far apart, and exciting the cyan one gives cyan light. When calcium rises, calmodulin grips the peptide in its own chain, the chain folds up, and the two ends come within a few nanometres. At that range energy passes directly from the excited cyan protein to the yellow one, a process called FRET, and the yellow-to-cyan ratio rises. This is the "cameleon" design published by Miyawaki, Tsien and colleagues in 1997.
+Build one chain: cyan fluorescent protein, calmodulin, a calmodulin-binding peptide and yellow fluorescent protein. At low calcium the fluorescent proteins are apart. When calcium rises, calmodulin grips its peptide and brings the ends within a few nanometres. Energy can then pass from excited cyan protein to yellow protein by FRET, raising the yellow-to-cyan ratio. Miyawaki, Tsien and colleagues published this “cameleon” design in 1997.
 
-
-The ratio could also move with pH or with bleaching. The control is a calcium-blind twin: the same protein with the glutamate at the end of each EF-hand loop changed to glutamine, so that calmodulin can no longer hold calcium at cellular concentrations. It should show no change on stimulation, and any change it does show is not calcium. Then calibrate the working sensor inside the cell. An ionophore, a molecule that carries calcium across membranes, gives the maximum ratio in high calcium, and a chelator, a molecule that grips calcium tightly, gives the minimum.
-
-One caution remains: the sensor is itself a calcium buffer, so use as little as you can read.
+Make a calcium-blind twin by changing the glutamate at the end of each EF-hand loop to glutamine, so calmodulin can no longer hold calcium at cellular concentrations. The ratio could also move with pH or bleaching; any change the twin shows is not calcium. The twin shows that the response requires calcium binding, but not where the calcium came from. Calibrate the working sensor inside cells: an ionophore, which carries calcium across membranes, gives the maximum ratio in high calcium, and a chelator, which grips calcium tightly, gives the minimum. The reporter is itself a calcium buffer, so use as little as can be read.
 
 </details>
+
+## Going deeper
+
+Kretsinger and Nockolds lettered parvalbumin's six helices A to F, hence the name. Kretsinger's right-hand analogy (forefinger as helix E, thumb as F, curled middle finger as the loop) captures the topology, not a molecular structure.

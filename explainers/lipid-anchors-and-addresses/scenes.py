@@ -1,661 +1,486 @@
-"""Lipids as anchors and addresses: two weak grips make one strong hold  (Biochemistrypedia explainer)
+"""Why one farnesyl tail is usually not enough.
 
-Timed to the SPOKEN words: every self.at("...") cue waits for that phrase in audio/words.json.
+COLOR MAP
+  BLUE   proteins
+  YELLOW lipid tails / membrane grip
+  RED    positive charge
+  GREEN  address cues / long residence
+  PURPLE enzymes
+  GREY   membrane and neutral geometry
 
-COLOR MAP (one color per concept, whole video)
-  BLUE   = the protein (Ras) and the receptor
-  ORANGE = a fatty chain on the protein (farnesyl, palmitate): the lipid grip
-  TEAL   = the patch of positive charge (lysines): the charge grip
-  PINK   = negative charge (the lipids of the inner face, the charge a phosphate adds)
-  GOLD   = a phosphate (the round "P" badge)
-  PURPLE = an enzyme that edits the grip (the attaching enzyme, protein kinase C, a thioesterase)
-  YELLOW = the growth signal
-  GREEN  = held, tighter, comfortable
-  RED    = weak, uncomfortable, let go, or ruled out
-  GREY   = the membrane, labels, parts not yet known
-
-No molecular structures: the protein is a labelled blob, a fatty chain is a plain capsule, the lysine
-patch is a pad with plus signs, charge is a plus or minus sign, a membrane is a bar, a bond is a ring.
-
-One picture, kept the whole film: the membrane across the top, the protein hanging from it by its
-chain or chains. The size of the protein and the height of the membrane are set for each scene so the
-action fills the frame (use(k, mem_y)): scenes 1 to 4 hang a protein 1.6 times its base size,
-scenes 5 and 6 draw it at 1.8, and scene 4 splits the frame (proteins left, the numbers right).
-Scene 1 starts lower on the screen and slides up at its end to the position scene 2 starts from.
+All pictures are schematic cartoons; no molecular structures are shown.
 """
-import numpy as np
-from bp_style import *  # noqa: F401,F403
+from bp_parts import *  # noqa: F401,F403
 
-ORANGE = "#F2994A"
+
 PURPLE = "#B58CD9"
-PINK = "#F08BB4"
-
-MEM_H = 0.6                               # thickness of the membrane bar
-LAY = {"k": 1.6, "mem_y": 2.6}            # protein scale and membrane height, set per scene by use()
-
-
-def use(k, mem_y):
-    LAY["k"], LAY["mem_y"] = k, mem_y
+CYTOSOL = "#202838"
+MEM_Y = 1.35
+BODY_Y = -0.55
 
 
-def my():
-    return LAY["mem_y"]
+def gentle_drift(mob, amp=0.07, speed=1.7, phase=0.0, sideways=0.025):
+    """Small continuous movement that preserves the object's intended centre."""
+    clock = [phase]
+
+    def update(m, dt):
+        clock[0] += dt
+        m.shift(UP * amp * speed * np.cos(speed * clock[0]) * dt)
+        m.shift(RIGHT * sideways * speed * np.cos(0.71 * speed * clock[0] + 0.8) * dt)
+
+    mob.add_updater(update)
+    return mob
 
 
-def mem_bot():
-    """the inner face of the membrane."""
-    return LAY["mem_y"] - MEM_H / 2
+
+def ambient_motes(n=14, y0=-2.2, y1=0.1, x0=-4.6, x1=4.6, seed=3):
+    """Slow drifting motes in the cytosol: honest ambient motion for held beats."""
+    rng = np.random.default_rng(seed)
+    motes = VGroup()
+    for _ in range(n):
+        d = Dot(radius=0.2, color=GREY).set_opacity(0.3)
+        d.move_to([rng.uniform(x0, x1), rng.uniform(y0, y1), 0])
+        ph = rng.uniform(0, 6.28)
+        sp = rng.uniform(0.5, 0.9)
+        clock = [ph]
+
+        def upd(m, dt, clock=clock, sp=sp):
+            clock[0] += dt
+            m.shift(RIGHT * 1.1 * sp * dt * np.cos(0.8 * clock[0]) + UP * 0.8 * sp * dt * np.sin(1.1 * clock[0]))
+
+        d.add_updater(upd)
+        motes.add(d)
+    band = Rectangle(width=12.2, height=0.45, stroke_width=0, fill_color=WHITE, fill_opacity=0.07)
+    band.move_to([0, -3.0, 0])
+    bc = [0.0]
+
+    def sweep(m, dt):
+        bc[0] += dt
+        m.move_to([0, -3.0 + 3.9 * ((bc[0] / 7.0) % 1.0), 0])
+
+    band.add_updater(sweep)
+    motes.add(band)
+    motes.set_z_index(-4)
+    return motes
 
 
-def bound_y(k=None):
-    """body centre of a protein whose chain runs up to the middle of the membrane."""
-    return LAY["mem_y"] - 1.55 * (k or LAY["k"])
+def membrane(y=MEM_Y, width=12.4):
+    return RoundedRectangle(
+        corner_radius=0.12, width=width, height=0.72,
+        stroke_color=GREY, stroke_width=3,
+        fill_color=GREY, fill_opacity=0.28,
+    ).move_to([0, y, 0])
 
 
-# ---------------------------------------------------------------------------------------------
-# helpers
-# ---------------------------------------------------------------------------------------------
-def bchip(text, color=BLUE, size=24, pad=0.2, **kw):
-    """chip with an opaque backing so lines drawn behind it do not show through."""
-    c = chip(text, color, size=size, pad=pad, **kw)
-    back = RoundedRectangle(corner_radius=0.14, width=c[0].width, height=c[0].height, stroke_width=0,
-                            fill_color=BG, fill_opacity=1).move_to(c[0])
-    return VGroup(back, *c)
+def cytosol_field(top=0.97, bottom=-3.42):
+    return RoundedRectangle(
+        corner_radius=0.18, width=12.55, height=top - bottom,
+        stroke_width=0, fill_color=CYTOSOL, fill_opacity=1,
+    ).move_to([0, (top + bottom) / 2, 0]).set_z_index(-5)
 
 
-def pop(m, s=1.2):
-    """swell and settle, without recolouring."""
-    return m.animate(rate_func=there_and_back).scale(s)
+def tail(x, body_top=0.08, top=MEM_Y - 0.05, color=YELLOW, width=0.28):
+    h = top - body_top
+    return RoundedRectangle(
+        corner_radius=width / 2, width=width, height=h,
+        stroke_color=color, stroke_width=2.5,
+        fill_color=color, fill_opacity=0.9,
+    ).move_to([x, body_top + h / 2, 0])
 
 
-def shake(m, amp=0.09, n=3):
-    """jiggle sideways and come back to rest."""
-    return m.animate(rate_func=lambda t: np.sin(t * TAU * n) * (1 - t)).shift(RIGHT * amp)
+def plus_patch(x, y=0.03, scale=1.0):
+    pad = RoundedRectangle(
+        corner_radius=0.1, width=1.4 * scale, height=0.4 * scale,
+        stroke_color=RED, stroke_width=2.5, fill_color=RED, fill_opacity=0.85,
+    ).move_to([x, y, 0])
+    marks = VGroup(*[
+        T("+", 25, BG, weight=BOLD).move_to([x + dx * scale, y, 0])
+        for dx in (-0.44, 0, 0.44)
+    ])
+    return VGroup(pad, marks)
 
 
-def minus(c, s=0.2, color=PINK, w=4.5):
-    c = np.array(c, float)
-    return Line(c + LEFT * s / 2, c + RIGHT * s / 2, color=color, stroke_width=w)
-
-
-def plus(c, s=0.2, color=TEAL, w=4.5):
-    c = np.array(c, float)
-    return VGroup(Line(c + LEFT * s / 2, c + RIGHT * s / 2, color=color, stroke_width=w),
-                  Line(c + DOWN * s / 2, c + UP * s / 2, color=color, stroke_width=w))
-
-
-def pbadge(k=1.0):
-    c = Circle(radius=0.18 * k, stroke_color=GOLD, stroke_width=2, fill_color=GOLD, fill_opacity=1)
-    return VGroup(c, T("P", 22 * k, BG, weight=BOLD).move_to(c))
-
-
-def membrane():
-    return RoundedRectangle(corner_radius=0.1, width=12.6, height=MEM_H, stroke_color=GREY, stroke_width=3,
-                            fill_color=GREY, fill_opacity=0.35).move_to([0, my(), 0])
-
-
-def sides():
-    out = T("outside", 24, GREY).move_to([-5.45, my() + 0.75, 0])
-    cyt = T("cytosol", 24, GREY).move_to([-5.5, -3.15, 0])
-    return out, cyt
-
-
-def minus_row(anchor, left=15, right=4, step=0.6):
-    """the negative lipids of the inner face: minus signs along the underside of the membrane."""
-    return VGroup(*[minus([anchor + step * j, mem_bot() + 0.17, 0], 0.3, PINK, 6) for j in range(-left, right + 1)])
-
-
-# the protein -------------------------------------------------------------------------------
-def chain_at(x, body_top, k, color=ORANGE):
-    """a fatty chain: a plain capsule rising from the top of the protein."""
-    w, h = 0.24 * k, 1.0 * k
-    return RoundedRectangle(corner_radius=w / 2, width=w, height=h, stroke_color=color, stroke_width=2.5,
-                            fill_color=color, fill_opacity=0.9).move_to([x, body_top - 0.05 * k + h / 2, 0])
-
-
-def ras(cx, name="Ras", y=None, chain=True, size=30):
-    """a labelled blob; its farnesyl chain on the left. [chain, back, body, label]"""
-    k = LAY["k"]
-    y = bound_y() if y is None else y
-    c = np.array([cx, y, 0.0])
-    top = y + 0.6 * k
-    back = RoundedRectangle(corner_radius=0.4 * k, width=2.1 * k, height=1.2 * k, stroke_width=0,
-                            fill_color=BG, fill_opacity=1).move_to(c)
-    body = RoundedRectangle(corner_radius=0.4 * k, width=2.1 * k, height=1.2 * k, stroke_color=BLUE, stroke_width=3,
-                            fill_color=BLUE, fill_opacity=0.25).move_to(c)
-    lbl = T(name, size * k, BLUE, weight=BOLD).move_to(c)
-    g = VGroup()
-    g.k, g.tails = k, []
-    if chain:
-        t = chain_at(cx - 0.55 * k, top, k)
-        g.tails.append(t)
-        g.add(t)
-    g.add(back, body, lbl)
-    g.back, g.body, g.lbl = back, body, lbl
+def ras(x=0, name="Ras", y=BODY_Y, contacts=1, patch=False, scale=1.0):
+    """The carried Ras block. Contacts are rebuilt at identical landmarks."""
+    body = RoundedRectangle(
+        corner_radius=0.36 * scale, width=2.55 * scale, height=1.2 * scale,
+        stroke_color=BLUE, stroke_width=4,
+        fill_color=BLUE, fill_opacity=0.22,
+    ).move_to([x, y, 0])
+    label = T(name, 30, BLUE, weight=BOLD).move_to(body)
+    top = body.get_top()[1]
+    tails = VGroup()
+    offsets = {-1: (-0.62,), 0: (), 1: (-0.62,), 2: (-0.62, 0.62), 3: (-0.75, 0, 0.75)}[contacts]
+    for dx in offsets:
+        tails.add(tail(x + dx * scale, top, MEM_Y - 0.05, width=0.28 * scale))
+    g = VGroup(tails, body, label)
+    g.body, g.label, g.tails = body, label, tails
+    if patch:
+        pg = plus_patch(x + 0.22 * scale, top + 0.30, scale)
+        g.add(pg)
+        g.patch = pg
     return g
 
 
-def new_chain(g):
-    """the second chain, on the right."""
-    return chain_at(g.body.get_center()[0] + 0.55 * g.k, g.body.get_top()[1], g.k)
+def negative_lipids(x0=-1.8, x1=1.8, y=MEM_Y - 0.39):
+    return VGroup(*[T("−", 29, RED, weight=BOLD).move_to([x, y, 0])
+                    for x in np.linspace(x0, x1, 6)])
 
 
-def new_patch(g):
-    """the pad of lysines, on the top edge of the body. pg.pad is the pad, pg.centre where it sits."""
-    k, c, top = g.k, g.body.get_center(), g.body.get_top()[1]
-    pc = np.array([c[0] + 0.15 * k, top + 0.04 * k, 0])
-    pad = RoundedRectangle(corner_radius=0.1 * k, width=0.72 * k, height=0.34 * k, stroke_color=TEAL, stroke_width=2,
-                           fill_color=TEAL, fill_opacity=0.95).move_to(pc)
-    pg = VGroup(pad, *[plus(pc + np.array([dx * k, 0, 0]), 0.17 * k, BG, 3.5) for dx in (-0.22, 0.0, 0.22)])
-    pg.pad, pg.centre = pad, pc
-    return pg
+def schematic_world(protein=None, question=None):
+    """The original carried membrane world used throughout the film."""
+    protein = protein or ras()
+    world = VGroup(cytosol_field(), membrane(), protein)
+    world.add(T("cytosol", 28, TEXT).move_to([-5.25, -2.70, 0]))
+    world.add(scope_tag("schematic"))
+    if question:
+        world.add(fit_text(question, max_w=8.8, size=34, color=GOLD).move_to([0, -2.55, 0]))
+    return world
 
 
-def pulls(pg, k):
-    """dashed lines from the patch to the negative lipids above it (two of the minus signs)."""
-    c = pg.centre
-    return VGroup(*[DashedLine([c[0] + dx, c[1] + 0.2 * k, 0], [c[0] + dx, mem_bot() + 0.06, 0], color=TEAL,
-                               stroke_width=4, dash_length=0.09) for dx in (-0.3, 0.3)])
+def time_strip(long=False, y=-2.15):
+    axis = Line([-4.8, y, 0], [4.8, y, 0], color=GREY, stroke_width=4)
+    ticks = VGroup(*[Line([x, y - 0.13, 0], [x, y + 0.13, 0], color=GREY, stroke_width=3)
+                     for x in (-3.5, -0.8, 1.9)])
+    visits = VGroup()
+    if long:
+        visits.add(Line([-3.9, y + 0.34, 0], [4.2, y + 0.34, 0], color=GREEN, stroke_width=10))
+    else:
+        for x in (-3.5, -0.8, 1.9):
+            visits.add(Line([x - 0.3, y + 0.34, 0], [x + 0.3, y + 0.34, 0], color=YELLOW, stroke_width=10))
+    label = T("membrane visits", 28, TEXT).move_to([0, y - 0.48, 0])
+    return VGroup(axis, ticks, visits, label)
 
 
-def relabel(scene, g, name, size=28, run_time=0.4):
-    """swap the protein's name; the old label fades, the new one joins the group."""
-    new = T(name, size * g.k, BLUE, weight=BOLD).move_to(g.body)
-    scene.play(g.lbl.animate.set_opacity(0), FadeIn(new), run_time=run_time)
-    scene.remove(new)
-    g.add(new)
-    g.lbl = new
+PREDICT_QUESTION = "Will a second contact make visits brief or much longer?"
 
 
-def slot(x, body_top, k):
-    """a dashed outline where a chain used to be."""
-    w, h = 0.24 * k, 1.0 * k
-    shape = RoundedRectangle(corner_radius=w / 2, width=w, height=h).move_to([x, body_top - 0.05 * k + h / 2, 0])
-    return DashedVMobject(shape, num_dashes=22).set_color(ORANGE).set_stroke(width=3)
+def predict_world(with_card=True):
+    r = ras(y=-0.68)
+    world = schematic_world(r)
+    strip = time_strip(False, -1.92)
+    slot = DashedVMobject(
+        RoundedRectangle(corner_radius=0.13, width=0.34, height=1.25).move_to([0.62, 0.64, 0]),
+        num_dashes=20,
+    ).set_color(GOLD).set_stroke(width=3)
+    qmark = T("?", 42, GOLD, weight=BOLD).move_to(slot)
+    g = VGroup(world, strip, slot, qmark)
+    gentle_drift(r, amp=0.035, speed=1.8)
+    if with_card:
+        g.add(question_card(PREDICT_QUESTION, y=-3.23, max_w=10.0))
+    return g
 
 
-class Film(SpokenScene):
-    def outro(self, *anims, then=None, after=None, run_time=0.38):
-        """hold until the narration ends, clear what the next scene does not inherit, then (optionally)
-        move the pieces the next scene starts from (`then`) and bring in what is new (`after`)."""
-        rest = self.narration_s - 0.02 - self.elapsed()
-        if rest > 0:
-            self.wait(rest)
-        if anims:
-            self.play(*anims, run_time=run_time)
-        if then:
-            self.play(*then, run_time=0.9)
-        if after:
-            self.play(*after, run_time=0.45)
-        if then or after:
-            self.wait(0.15)
+def cases_world():
+    """The same three Ras cases, used unchanged in the case and control scenes."""
+    mem = membrane()
+    field = cytosol_field()
+    n = ras(-4.25, "N-Ras", contacts=2, scale=0.72)
+    h = ras(-1.25, "H-Ras", contacts=3, scale=0.72)
+    k = ras(3.75, "K-Ras4B", contacts=1, patch=True, scale=0.86)
+    divider = DashedLine([1.25, -2.45, 0], [1.25, 2.72, 0], color=GREY, stroke_width=2)
+    left = T("farnesyl + palmitate", 30, YELLOW, weight=BOLD).move_to([-2.8, 2.55, 0])
+    right = T("farnesyl + positive patch", 30, RED, weight=BOLD).move_to([3.9, 2.55, 0])
+    return VGroup(field, mem, divider, n, h, k, left, right, scope_tag("schematic")), n, h, k
+
+
+def cell_loop_world():
+    cell = Ellipse(width=11.3, height=6.25, color=GREY, stroke_width=3,
+                   fill_color=CYTOSOL, fill_opacity=0.6).move_to([0, -0.05, 0])
+    golgi = VGroup(*[
+        Arc(radius=0.55 + i * 0.22, start_angle=-1.15, angle=2.3,
+            color=GREEN, stroke_width=6).stretch(1.6, 0).move_to([-3.0, 0.2, 0])
+        for i in range(3)
+    ])
+    glabel = T("Golgi", 30, GREEN, weight=BOLD).move_to([-3.0, -1.18, 0])
+    pm = T("plasma membrane", 28, TEXT).move_to([0, 3.42, 0])
+    loop = VMobject(color=GREY, stroke_width=3).set_points_smoothly([
+        [-3.0, 0.9, 0], [-0.8, 2.25, 0], [3.5, 1.55, 0], [3.6, -1.35, 0],
+        [0.4, -2.45, 0], [-2.6, -1.55, 0], [-3.0, 0.9, 0],
+    ])
+    return VGroup(cell, golgi, glabel, pm, scope_tag("schematic")), loop
+
+
+class S00Hook(SpokenScene):
+    def construct(self):
+        r = ras(0, contacts=0, y=-0.65)
+        world = schematic_world(r)
+        no_tm = VGroup(
+            DashedLine([0.9, 0.1, 0], [0.9, 2.35, 0], color=BLUE, stroke_width=4),
+            Line([0.48, 1.02, 0], [1.32, 1.86, 0], color=RED, stroke_width=8),
+            Line([0.48, 1.86, 0], [1.32, 1.02, 0], color=RED, stroke_width=8),
+        )
+        question = fit_text("What keeps Ras at the inner face?", max_w=8.8, size=38, color=GOLD).move_to([0, -2.55, 0])
+        self.play(FadeIn(world), run_time=0.7)
+        self.at("no segment")
+        self.play(Create(no_tm), run_time=0.8)
+        self.at("What keeps")
+        self.play(FadeIn(question, shift=UP * 0.15), run_time=0.6)
+        first = T("1  attach lipid", 30, YELLOW).move_to([-3.1, 2.55, 0])
+        second = T("2  stay in bilayer", 30, GREEN).move_to([3.0, 2.55, 0])
+        self.at("two parts")
+        self.play(FadeOut(no_tm), FadeIn(first), FadeIn(second), run_time=0.8)
+        newtail = tail(-0.62, r.body.get_top()[1])
+        self.at("lipid must join")
+        self.play(GrowFromEdge(newtail, DOWN), run_time=0.9)
+        self.remove(newtail)
+        r.tails.add(newtail)
+        gentle_drift(r.tails, amp=0.025, speed=2.1)
+        self.at("remain in a bilayer")
+        self.play(Indicate(newtail, color=TEXT, scale_factor=1.06), run_time=0.9)
         self.finish()
 
 
-class S00Title(TitleCard):
+class S01Title(TitleCard):
     LESSON = "Lipids as Anchors and Addresses"
-    TITLE = "Two weak grips make one strong hold"
+    TITLE = "Why One Farnesyl Tail Is Usually Not Enough"
 
 
-# ---------------------------------------------------------------------------------------------
-class S01Puzzle(Film):
-    """Ras sits under the membrane with nothing holding it; a fatty chain is the answer."""
-
+class S02TwoBonds(SpokenScene):
     def construct(self):
-        use(1.6, 1.5)
-        k = 1.6
-        mem = membrane()
-        out, cyt = sides()
-        R = ras(0.7, "Ras", chain=False)
-        top = R.body.get_top()[1]
-        tx = 0.7 - 0.55 * k                                  # where the chain will grow
-        band = (mem_bot() + top) / 2                         # the gap between Ras and the inner face
-
-        # the stretch that would cross the membrane, rising from Ras: it is not there
-        tm = DashedVMobject(RoundedRectangle(corner_radius=0.1, width=0.38, height=2.72).move_to([1.5, top + 1.36, 0]),
-                            num_dashes=32).set_color(BLUE).set_stroke(width=3)
-        tm_lbl = T("crosses the membrane", 26, GREY).move_to([4.1, my() + 0.95, 0])
-        xm = VGroup(Line([1.05, my() - 0.45, 0], [1.95, my() + 0.45, 0], color=RED, stroke_width=9),
-                    Line([1.05, my() + 0.45, 0], [1.95, my() - 0.45, 0], color=RED, stroke_width=9))
-        none = T("Ras has none", 30, RED, weight=BOLD).move_to([4.4, -0.1, 0])
-        face = T("inner face", 26, GREY).move_to([3.7, band, 0])
-
-        # the receptor, and the signal it relays inward to Ras
-        rec = bchip("receptor", BLUE, 26, pad=0.18).move_to([-3.6, my(), 0])
-        sig = bchip("growth signal", YELLOW, 26, pad=0.15).move_to([-3.6, my() + 1.35, 0])
-        down = Arrow([-3.6, my() + 1.0, 0], [-3.6, my() + 0.42, 0], buff=0, color=YELLOW, stroke_width=6, tip_length=0.2)
-        relay = Arrow([-3.6, my() - 0.4, 0], [-1.2, top - 0.5, 0], buff=0.04, color=YELLOW, stroke_width=7, tip_length=0.26)
-
-        # the unknown that holds Ras
-        qbox = RoundedRectangle(corner_radius=0.14, width=0.75, height=0.85)
-        q = VGroup(qbox.copy().set_stroke(width=0).set_fill(BG, 1).move_to([tx, band, 0]),
-                   DashedVMobject(qbox.copy().move_to([tx, band, 0]), num_dashes=22).set_color(GREY),
-                   T("?", 40, TEXT, weight=BOLD).move_to([tx, band, 0]))
-
-        self.play(FadeIn(mem), FadeIn(out), FadeIn(cyt), run_time=0.4)
-        self.play(FadeIn(R, shift=UP * 0.2), run_time=0.5)
-
-        self.at("interface")
-        self.play(FadeIn(face, shift=RIGHT * 0.1), Indicate(mem, color=TEXT, scale_factor=1.0), run_time=0.7)
-        self.play(pop(R, 1.05), run_time=0.5)
-
-        self.at("no stretch")
-        self.play(Create(tm), FadeIn(tm_lbl, shift=DOWN * 0.1), run_time=0.8)
-        self.at("that crosses")
-        self.play(Create(xm), run_time=0.4)
-        self.play(FadeIn(none, shift=LEFT * 0.1), run_time=0.4)
-
-        self.at("what holds")
-        self.play(FadeIn(q, scale=0.6), run_time=0.4)
-        self.play(pop(q, 1.3), run_time=0.5)
-
-        self.at("growth signal")
-        self.play(FadeIn(rec), FadeIn(sig, shift=DOWN * 0.2), GrowArrow(down), run_time=0.7)
-        self.at("inward")
-        self.play(GrowArrow(relay), run_time=0.6)
-        self.at("where it sits")
-        self.play(pop(R, 1.05), pop(q, 1.3), run_time=0.6)
-
-        # the answer: the question box becomes a chain that runs up into the membrane
-        self.at("The answer")
-        self.play(pop(q, 1.3), run_time=0.5)
-        tail = chain_at(tx, top, k)
-        fc = T("fatty chain", 28, ORANGE).next_to(tail, LEFT, buff=0.25).set_y(band + 0.2)
-        self.at("fatty chain")
-        self.play(FadeOut(q), GrowFromEdge(tail, DOWN), run_time=0.7)
-        self.play(FadeIn(fc, shift=RIGHT * 0.1), run_time=0.4)
-        self.remove(tail)
-        R.add(tail)
-        R.tails.append(tail)
-        # clear the puzzle, then slide the picture up to where the next scene starts
-        self.outro(FadeOut(VGroup(tm, tm_lbl, xm, none, face, rec, sig, down, relay, fc)),
-                   then=[m.animate.shift(UP * 1.1) for m in (mem, out, R)])
-
-
-# ---------------------------------------------------------------------------------------------
-class S02Weak(Film):
-    """one short chain is a weak grip: the protein visits the membrane and leaves."""
-
-    def construct(self):
-        use(1.6, 2.6)
-        k = 1.6
-        mem = membrane()
-        out, cyt = sides()
-        R = ras(0.7, "Ras")
-        self.add(mem, out, cyt, R)
-        tail = R.tails[0]
-        top = R.body.get_top()[1]
-        band = (mem_bot() + top) / 2
-        joint = np.array([tail.get_center()[0], top, 0])
-        low, high = -2.0, bound_y()
-
-        enz = bchip("enzyme", PURPLE, 26).move_to([-3.2, band, 0])
-        link = DashedLine(enz.get_right(), joint + LEFT * 0.1, color=PURPLE, stroke_width=4, dash_length=0.1)
-        self.at("attach fatty")
-        self.play(Indicate(tail, color=TEXT, scale_factor=1.12), run_time=0.6)
-        self.at("dedicated enzymes")
-        self.play(FadeIn(enz, shift=RIGHT * 0.2), Create(link), run_time=0.6)
-        self.play(Flash(joint, color=PURPLE, line_length=0.25, flash_radius=0.35, num_lines=10), run_time=0.6)
-
-        name = T("farnesyl", 28, ORANGE).next_to(tail, LEFT, buff=0.25).set_y(band)
-        self.at("is called")
-        self.play(FadeOut(enz), FadeOut(link), run_time=0.3)
-        self.play(FadeIn(name, shift=RIGHT * 0.1), run_time=0.4)
-
-        # in a membrane the chain is comfortable; in water it is not
-        good = T("comfortable", 26, GREEN).next_to(tail, RIGHT, buff=0.3).set_y(band)
-        self.at("long chain")
-        self.play(Indicate(tail, color=TEXT, scale_factor=1.2), run_time=0.6)
-        self.at("comfortable buried")
-        self.play(tail.animate.set_stroke(GREEN, 4), FadeIn(good, shift=LEFT * 0.1), run_time=0.6)
-        loose = DashedVMobject(RoundedRectangle(corner_radius=0.15, width=1.5, height=0.36).move_to([-3.8, -0.4, 0]),
-                               num_dashes=28).set_color(ORANGE).set_stroke(width=3)
-        bad = T("uncomfortable in water", 26, RED).move_to([-3.6, -1.15, 0])
-        self.at("uncomfortable in")
-        self.play(FadeIn(loose, shift=UP * 0.1), FadeIn(bad, shift=UP * 0.1), run_time=0.6)
-
-        # one chain is a weak grip: it pops out
-        weak = T("a weak grip", 28, RED, weight=BOLD).next_to(tail, RIGHT, buff=0.3).set_y(band)
-        self.at("one short chain")
-        self.play(pop(tail, 1.4), run_time=0.6)
-        self.at("weak grip")
-        self.play(FadeOut(loose), FadeOut(bad), FadeOut(good), tail.animate.set_stroke(ORANGE, 2.5),
-                  FadeIn(weak, shift=LEFT * 0.1), run_time=0.5)
-        self.play(shake(R, 0.1, 3), run_time=0.7)
-        self.at("pop out")
-        R.body.set_stroke(RED, 4)
-        self.play(R.animate.shift(DOWN * (high - low)), FadeOut(name), run_time=0.9)
-        # the protein visits the membrane, then leaves
-        self.at("visits a")
-        R.body.set_stroke(BLUE, 3)
-        self.play(R.animate.shift(UP * (high - low)), run_time=1.0)
-        self.at("leaves it")
-        R.body.set_stroke(RED, 4)
-        self.play(R.animate.shift(DOWN * (high - low)), run_time=1.0)
-        self.at("still tied")
-        self.play(Indicate(tail, color=TEXT, scale_factor=1.2), run_time=0.7)
-        self.outro(FadeOut(weak))
-
-
-# ---------------------------------------------------------------------------------------------
-class S03Second(Film):
-    """a second signal of one of two kinds: a second fatty chain (H-Ras) or a patch of positive charge (K-Ras4B)."""
-
-    def construct(self):
-        use(1.6, 2.6)
-        k = 1.6
-        mem = membrane()
-        out, cyt = sides()
-        R = ras(0.7, "Ras", y=-2.0)
-        self.add(mem, out, cyt, R)
-        self.at("cells add")
-        self.play(R.animate.shift(UP * (bound_y() - (-2.0))), run_time=1.0)
-
-        # one protein becomes two, to show the two kinds
-        H, K = ras(0.7, "Ras"), ras(0.7, "Ras")
-        band = (mem_bot() + H.body.get_top()[1]) / 2
-        self.at("one of two")
-        self.remove(R)
-        self.add(H, K)
-        self.play(H.animate.shift(LEFT * 4.3), K.animate.shift(RIGHT * 2.9), run_time=1.0)
-
-        # kind one: a second fatty chain
-        c2 = new_chain(H)
-        h1 = T("a second fatty chain", 28, ORANGE).move_to([-3.6, -1.75, 0])
-        self.at("second fatty chain")
-        self.play(GrowFromEdge(c2, DOWN), FadeIn(h1, shift=UP * 0.1), run_time=0.7)
-        self.remove(c2)
-        H.add(c2)
-        self.at("as in")
-        relabel(self, H, "H-Ras", 26)
-        fH = T("farnesyl", 26, ORANGE).next_to(H.tails[0], LEFT, buff=0.15).set_y(band)
-        pH = T("palmitate", 26, ORANGE).next_to(c2, RIGHT, buff=0.15).set_y(band)
-        self.at("which carries")
-        self.play(FadeIn(fH, shift=RIGHT * 0.1), run_time=0.4)
-        self.at("plus")
-        self.play(FadeIn(pH, shift=LEFT * 0.1), pop(c2, 1.3), run_time=0.6)
-
-        # kind two: a patch of positive charge
-        pg = new_patch(K)
-        h2 = T("a patch of positive charge", 28, TEAL).move_to([3.6, -1.75, 0])
-        self.at("The other kind")
-        self.play(pop(K, 1.05), run_time=0.6)
-        self.at("patch of positive")
-        self.play(FadeIn(pg, scale=0.6), FadeIn(h2, shift=UP * 0.1), run_time=0.7)
-        self.remove(pg)
-        K.add(pg)
-        self.at("positive charge")
-        self.play(pop(pg, 1.25), run_time=0.5)
-        fK = T("farnesyl", 26, ORANGE).next_to(K.tails[0], LEFT, buff=0.15).set_y(band)
-        self.at("carries", nth=1)
-        relabel(self, K, "K-Ras4B", 26)
-        self.play(FadeIn(fK, shift=RIGHT * 0.1), run_time=0.4)
-        lys = T("lysines", 26, TEAL).move_to([5.5, band + 0.1, 0])
-        lead = Line([4.78, band + 0.05, 0], [pg.centre[0] + 0.45, pg.centre[1] + 0.05, 0], color=TEAL, stroke_width=3)
-        self.at("a run of")
-        self.play(FadeIn(lys, shift=LEFT * 0.1), Create(lead), run_time=0.5)
-
-        # they are drawn to the negative lipids of the inner face
-        row = minus_row(pg.centre[0] - 0.3)
-        lines = pulls(pg, k)
-        self.at("Those lysines")
-        self.play(pop(pg, 1.18), run_time=0.6)
-        self.at("attracted to")
-        self.play(LaggedStart(*[FadeIn(m, scale=0.5) for m in row], lag_ratio=0.04), Create(lines), run_time=1.2)
-        neg = T("negative lipids", 26, PINK).move_to([0.0, -0.25, 0])
-        up = Arrow([0, 0.1, 0], [0, mem_bot() - 0.05, 0], buff=0, color=PINK, stroke_width=5, tip_length=0.22)
-        self.at("negative lipids")
-        self.play(FadeIn(neg, shift=UP * 0.1), GrowArrow(up), run_time=0.6)
-        self.play(*[Indicate(m, color=TEXT, scale_factor=1.3) for m in row[::2]], run_time=0.7)
-
-        # hand over to the next scene: H-Ras is the two-chain protein, a plain one-chain protein joins it
-        A = ras(-4.6, "Ras")
-        self.outro(FadeOut(VGroup(h1, h2, fH, pH, fK, lys, lead, row, lines, neg, up, K)),
-                   then=[H.animate.shift(RIGHT * 2.8)], after=[FadeIn(A)])
-
-
-# ---------------------------------------------------------------------------------------------
-class S04Multiply(Film):
-    """free energies add, affinities multiply; one hook falls off when bumped, two hold."""
-
-    def construct(self):
-        use(1.6, 2.6)
-        k = 1.6
-        mem = membrane()
-        A = ras(-4.6, "Ras")
-        B = ras(-0.8, "H-Ras", size=26)
-        c2 = new_chain(B)
-        B.add(c2)
-        self.add(mem, A, B)
-
-        e1 = T("free energy:  first + second", 28, TEXT, t2c={"free energy:": GREY})
-        e2 = T("affinity:  first × second", 28, TEXT, t2c={"affinity:": GREY})
-        e1.move_to([1.3, 1.5, 0], aligned_edge=LEFT)
-        e2.move_to([1.3, 0.85, 0], aligned_edge=LEFT)
-
-        base_y, ymax = -2.7, 2.3
-        axis = Line([1.5, base_y, 0], [1.5, base_y + ymax + 0.1, 0], color=GREY, stroke_width=3)
-        floor = Line([1.5, base_y, 0], [6.0, base_y, 0], color=GREY, stroke_width=3)
-        aff = T("affinity", 24, GREY).move_to([2.0, -0.05, 0])
-        sbar = Rectangle(width=1.2, height=0.23, stroke_color=ORANGE, stroke_width=2, fill_color=ORANGE,
-                         fill_opacity=0.8).move_to([2.2, base_y + 0.115, 0])
-        slab = T("one grip", 26, ORANGE).move_to([2.2, -3.1, 0])
-        ghost = DashedVMobject(Rectangle(width=1.2, height=ymax).move_to([4.5, base_y + ymax / 2, 0]),
-                               num_dashes=40).set_color(GREEN).set_stroke(width=3)
-        klab = T("extra 1.4 kcal/mol", 26, GREY).move_to([4.6, -3.1, 0])
-        tbar = Rectangle(width=1.2, height=ymax, stroke_color=GREEN, stroke_width=2, fill_color=GREEN,
-                         fill_opacity=0.7).move_to([4.5, base_y + ymax / 2, 0])
-        tlab = T("about 10× tighter", 28, GREEN, weight=BOLD).move_to([4.5, -0.05, 0])
-
-        self.at("free energies add")
-        self.play(FadeIn(e1, shift=LEFT * 0.2), run_time=0.6)
-        self.at("affinities multiply")
-        self.play(FadeIn(e2, shift=LEFT * 0.2), run_time=0.6)
-        self.at("Each extra")
-        self.play(Create(axis), Create(floor), GrowFromEdge(sbar, DOWN), FadeIn(slab), FadeIn(aff), run_time=0.8)
-        self.at("per mole")
-        self.play(FadeIn(klab, shift=UP * 0.1), Create(ghost), run_time=0.7)
-        self.at("makes binding")
-        self.play(GrowFromEdge(tbar, DOWN), FadeOut(ghost), run_time=1.0)
-        self.at("times tighter")
-        self.play(FadeIn(tlab, shift=DOWN * 0.1), run_time=0.6)
-
-        # two weak grips make one strong grip
-        la = T("one grip", 26, ORANGE).next_to(A.body, DOWN, buff=0.25)
-        lb = T("two grips", 26, ORANGE).next_to(B.body, DOWN, buff=0.25)
-        self.at("two weak grips")
-        self.play(FadeIn(la, shift=UP * 0.1), FadeIn(lb, shift=UP * 0.1), *[pop(t, 1.3) for t in B.tails], run_time=0.7)
-        self.at("strong grip")
-        self.play(Indicate(B.body, color=GREEN, scale_factor=1.04), *[pop(t, 1.3) for t in B.tails], run_time=0.8)
-        self.at("Think of hooks")
-        self.play(*[pop(t, 1.3) for t in A.tails + B.tails], run_time=0.8)
-        self.at("One hook holds")
-        self.play(pop(A.tails[0], 1.4), run_time=0.6)
-
-        # one hook, bumped, lets go; two hooks hold
-        arrows = VGroup(*[Arrow([x, -1.95, 0], [x, -1.0, 0], buff=0, color=TEXT, stroke_width=8, tip_length=0.28)
-                          for x in (A.body.get_center()[0], B.body.get_center()[0])])
-        bump = T("bump", 28, GREY).next_to(arrows[0], RIGHT, buff=0.15)
-        self.at("someone bumps")
-        self.play(FadeOut(la), FadeOut(lb), GrowArrow(arrows[0]), GrowArrow(arrows[1]), FadeIn(bump), run_time=0.4)
-        self.play(shake(A, 0.12, 3), shake(B, 0.12, 3), run_time=0.5)
-        A.body.set_stroke(RED, 4)
-        lose = T("lets go", 28, RED, weight=BOLD).move_to([A.body.get_center()[0], A.body.get_bottom()[1] - 1.5 - 0.4, 0])
-        self.play(FadeOut(arrows), FadeOut(bump), A.animate.shift(DOWN * 1.5), FadeIn(lose, shift=UP * 0.1), run_time=0.8)
-        self.at("two hooks hold")
-        B.body.set_stroke(GREEN, 4)
-        hold = T("holds", 28, GREEN, weight=BOLD).next_to(B.body, DOWN, buff=0.25)
-        self.play(FadeIn(hold, shift=UP * 0.1), pop(B, 1.05), run_time=0.6)
-        self.outro(FadeOut(VGroup(e1, e2, axis, floor, aff, sbar, slab, klab, tbar, tlab, lose, hold, A, B)))
-
-
-# ---------------------------------------------------------------------------------------------
-class S05Switch(Film):
-    """the second signal is a handle: a phosphate beside the lysines cancels their pull and K-Ras4B lets go."""
-
-    def construct(self):
-        use(1.8, 2.6)
-        k = 1.8
-        mem = membrane()
-        K = ras(0.0, "K-Ras4B", size=26)
-        pg = new_patch(K)
-        K.add(pg)
-        row = minus_row(pg.centre[0] - 0.3, left=9, right=9)
-        lines = pulls(pg, k)
-        band = (mem_bot() + K.body.get_top()[1]) / 2
-        low, high = -2.1, bound_y()
-        self.add(mem)
-        self.play(FadeIn(row), FadeIn(lines), FadeIn(K, shift=UP * 0.15), run_time=0.7)
-
-        fK = T("farnesyl", 28, ORANGE).next_to(K.tails[0], LEFT, buff=0.2).set_y(band)
-        lys = T("lysines", 28, TEAL).move_to([3.4, band, 0])
-        lead = Line([2.7, band - 0.05, 0], [pg.centre[0] + 0.5 * k, pg.centre[1] + 0.05, 0], color=TEAL, stroke_width=3)
-        self.at("handle for control")
-        self.play(pop(pg, 1.2), FadeIn(fK, shift=RIGHT * 0.1), FadeIn(lys, shift=LEFT * 0.1), Create(lead), run_time=0.7)
-        # remove the handle and the protein sags
-        cross = VGroup(Line(pg.centre + [-0.55 * k, -0.3 * k, 0], pg.centre + [0.55 * k, 0.3 * k, 0], color=RED, stroke_width=7),
-                       Line(pg.centre + [-0.55 * k, 0.3 * k, 0], pg.centre + [0.55 * k, -0.3 * k, 0], color=RED, stroke_width=7))
-        self.at("remove it")
-        self.play(Create(cross), run_time=0.4)
-        self.at("loosens")
-        self.play(K.animate.shift(DOWN * 0.3), FadeOut(lines), run_time=0.6)
-        self.at("In")
-        self.play(FadeOut(cross), K.animate.shift(UP * 0.3), FadeIn(lines), FadeOut(fK), FadeOut(lys), FadeOut(lead),
-                  run_time=0.7)
-
-        # protein kinase C puts a phosphate beside the lysines
-        top = K.body.get_top()[1]
-        tgt = np.array([pg.centre[0] + 0.36 * k + 0.55, top + 0.22 * k, 0])
-        pkc = bchip("protein kinase C", PURPLE, 26).move_to([4.6, 0.3, 0])
-        P = pbadge(k).move_to(pkc.get_left() + LEFT * 0.5)
-        self.at("protein kinase")
-        self.play(FadeIn(pkc, shift=LEFT * 0.3), FadeIn(P, shift=LEFT * 0.3), run_time=0.7)
-        self.at("puts a phosphate")
-        self.play(P.animate(path_arc=1.2).move_to(tgt), run_time=0.9)
-        self.at("next to the")
-        self.play(pop(P, 1.5), pop(pg, 1.15), run_time=0.7)
-        self.remove(P)
-        K.add(P)
-        minuses = VGroup(minus(tgt + [0.7, 0.0, 0], 0.26 * k), minus(tgt + [1.2, 0.0, 0], 0.26 * k))
-        self.at("The phosphate adds")
-        self.play(pop(P, 1.4), run_time=0.5)
-        self.at("negative charge")
-        self.play(FadeOut(pkc), LaggedStart(*[FadeIn(m, scale=0.4) for m in minuses], lag_ratio=0.3), run_time=0.8)
-        self.remove(minuses)
-        K.add(minuses)
-        self.at("positive patch")
-        self.play(pop(pg, 1.2), run_time=0.6)
-
-        # the pull weakens and K-Ras4B is released
-        weaker = T("weaker pull", 28, RED).move_to([3.9, band + 0.1, 0])
-        self.at("attraction to")
-        self.play(FadeIn(weaker, shift=RIGHT * 0.1), lines.animate.set_stroke(opacity=0.35), run_time=0.7)
-        self.at("weakens")
-        self.play(FadeOut(lines), run_time=0.5)
-        K.body.set_stroke(RED, 4)
-        self.at("internal membranes")
-        rel = T("leaves", 30, RED, weight=BOLD).move_to([K.body.get_right()[0] + 0.5 + 0.8, K.body.get_center()[1] - (high - low), 0])
-        self.play(FadeOut(weaker), K.animate.shift(DOWN * (high - low)), FadeIn(rel, shift=LEFT * 0.1), run_time=1.1)
-        sw = bchip("farnesyl-electrostatic switch", TEXT, 30).move_to([3.4, 0.7, 0])
-        self.at("This is called")
-        self.play(FadeIn(sw, shift=UP * 0.15), run_time=0.7)
-        self.outro(FadeOut(VGroup(sw, rel, row, K)))
-
-
-# ---------------------------------------------------------------------------------------------
-class S06Palmitate(Film):
-    """palmitate is the one chain that can be put on and taken off; the whole rule replayed on one protein."""
-
-    def construct(self):
-        use(1.8, 2.6)
-        k = 1.8
-        mem = membrane()
-        H = ras(0.0, "H-Ras", size=26)
-        c2 = new_chain(H)
-        H.add(c2)
-        self.add(mem)
-        self.play(FadeIn(H, shift=UP * 0.15), run_time=0.6)
-        top = H.body.get_top()[1]
-        band = (mem_bot() + top) / 2
-        x2 = c2.get_center()[0]
-        low, high = -2.1, bound_y()
-        fH = T("farnesyl", 28, ORANGE).next_to(H.tails[0], LEFT, buff=0.2).set_y(band)
-        pH = T("palmitate", 28, ORANGE).next_to(c2, RIGHT, buff=0.2).set_y(band)
-
-        self.at("second fatty chain")
-        self.play(Indicate(c2, color=TEXT, scale_factor=1.2), FadeIn(fH, shift=RIGHT * 0.1), FadeIn(pH, shift=LEFT * 0.1),
-                  run_time=0.8)
-
-        # the bond that joins palmitate is easily cut
-        joint = np.array([x2, top, 0])
-        ring = DashedVMobject(Circle(radius=0.48).move_to(joint), num_dashes=20).set_color(RED).set_stroke(width=5)
-        bond = T("easily cut bond", 28, RED).move_to([4.3, 0.55, 0])
-        blead = Line([2.55, 0.6, 0], joint + [0.38, -0.05, 0], color=RED, stroke_width=3)
-        self.at("joined by")
-        self.play(Indicate(c2, color=TEXT, scale_factor=1.15), run_time=0.5)
-        self.at("easily cut")
-        self.play(Create(ring), FadeIn(bond, shift=LEFT * 0.1), Create(blead), run_time=0.8)
-
-        # thioesterases cut it
-        thio = bchip("thioesterase", PURPLE, 28).move_to([4.3, -0.55, 0])
-        self.at("Enzymes called")
-        self.play(FadeIn(thio, shift=LEFT * 0.3), run_time=0.6)
-        cut = Line(joint + [-0.45, 0.35, 0], joint + [0.45, -0.35, 0], color=RED, stroke_width=8)
-        gh = slot(x2, top, k)
-        self.at("cut that bond")
-        self.play(Create(cut), run_time=0.3)
-        H.remove(c2)
-        self.add(c2)
-        self.play(c2.animate.shift(RIGHT * 0.9).set_opacity(0), FadeIn(gh), FadeOut(thio), FadeOut(cut), FadeOut(bond),
-                  FadeOut(blead), FadeOut(ring), run_time=0.7)
-        self.remove(c2)
-        c2.shift(LEFT * 0.9).set_opacity(1)
-
-        # put on and take off
-        self.at("so palmitate")
-        self.play(pop(pH, 1.2), pop(gh, 1.2), run_time=0.5)
-        on = T("put on", 30, GREEN, weight=BOLD).move_to([4.4, band, 0])
-        off = T("take off", 30, RED, weight=BOLD).move_to([4.4, band, 0])
-        self.at("put on")
-        self.play(FadeIn(on, shift=UP * 0.1), FadeIn(c2, shift=LEFT * 0.4), FadeOut(gh), run_time=0.6)
-        self.at("take off")
-        self.play(FadeOut(on), FadeIn(off, shift=UP * 0.1), FadeOut(c2, shift=RIGHT * 0.4), FadeIn(gh), run_time=0.6)
-
-        # without it the grip weakens and H-Ras drifts away
-        self.at("Once it is gone")
-        self.play(FadeOut(off), FadeOut(pH), pop(gh, 1.2), run_time=0.6)
-        self.at("grip weakens")
-        self.play(shake(H, 0.1, 3), run_time=0.7)
-        H.body.set_stroke(RED, 4)
-        self.at("drifts away")
-        self.play(H.animate.shift(LEFT * 3.4 + DOWN * (high - low)), FadeOut(gh), FadeOut(fH), run_time=1.3)
-        H.body.set_stroke(BLUE, 3)
-
-        # the rule, acted out on the same protein
-        r1 = T("one chain visits", 36, ORANGE, weight=BOLD)
-        r2 = T("a second signal holds", 36, GREEN, weight=BOLD)
-        r3 = T("removing it loosens", 36, RED, weight=BOLD)
-        VGroup(r1, r2, r3).arrange(DOWN, aligned_edge=LEFT, buff=0.6).move_to([3.0, 0.3, 0])
-        rise = high - low
-        self.at("one chain visits")
-        self.play(FadeIn(r1, shift=RIGHT * 0.2), H.animate.shift(UP * rise), run_time=0.8)
-        self.play(H.animate.shift(DOWN * rise), run_time=0.8)
-        # a second chain is put on, and the protein stays
-        c3 = chain_at(H.body.get_center()[0] + 0.55 * k, H.body.get_top()[1], k)
-        self.at("a second signal")
-        self.play(FadeIn(r2, shift=RIGHT * 0.2), GrowFromEdge(c3, DOWN), run_time=0.6)
-        self.remove(c3)
-        H.add(c3)
-        H.body.set_stroke(GREEN, 4)
-        self.play(H.animate.shift(UP * rise), run_time=0.8)
-        self.at("removing that signal")
-        H.remove(c3)
-        self.add(c3)
-        H.body.set_stroke(RED, 4)
-        self.play(FadeIn(r3, shift=RIGHT * 0.2), FadeOut(c3, shift=RIGHT * 0.3), run_time=0.5)
-        self.play(H.animate.shift(DOWN * rise), run_time=1.0)
+        r = ras(y=-0.62)
+        self.add(schematic_world(r), ambient_motes())
+        clasp = Circle(0.14, color=PURPLE, stroke_width=6).move_to([-0.62, r.body.get_top()[1], 0])
+        cov = T("covalent bond", 32, PURPLE, weight=BOLD).move_to([-3.6, -1.52, 0])
+        contact = T("membrane contact", 32, YELLOW, weight=BOLD).move_to([3.5, 2.5, 0])
+        self.at("separate two interactions")
+        self.play(FadeIn(cov), FadeIn(contact), run_time=0.8)
+        self.at("covalent bond")
+        self.play(Create(clasp), Indicate(r.tails, color=PURPLE, scale_factor=1.04), run_time=0.8)
+        self.at("much weaker")
+        self.play(Indicate(r.tails, color=YELLOW, scale_factor=1.08), run_time=0.7)
+        self.at("repeatedly enters")
+        for _ in range(2):
+            self.play(r.animate.shift(DOWN * 1.25), run_time=0.85)
+            self.play(r.animate.shift(UP * 1.25), run_time=0.85)
+        steady = T("clasp stays closed", 30, PURPLE).move_to([3.65, -2.45, 0])
+        self.at("covalent bond can last")
+        self.play(FadeIn(steady), Indicate(clasp, color=TEXT), run_time=0.8)
+        self.at("does not mean")
+        self.play(r.animate.shift(DOWN * 1.25), run_time=1.0)
+        self.play(r.animate.shift(UP * 1.25), run_time=1.0)
         self.finish()
 
 
-class S07End(EndCard):
-    LINE = "One chain visits. A second signal holds. Removing it loosens the grip."
+class S03Predict(SpokenScene):
+    def construct(self):
+        r = ras(y=-0.68)
+        base = schematic_world(r)
+        strip = time_strip(False, -1.92)
+        self.add(base)
+        self.at("sample the membrane")
+        self.play(FadeIn(strip), run_time=0.7)
+        for _ in range(2):
+            self.play(r.animate.shift(DOWN * 0.48), run_time=0.45)
+            self.play(r.animate.shift(UP * 0.48), run_time=0.45)
+        slot = DashedVMobject(RoundedRectangle(corner_radius=0.13, width=0.34, height=1.25)
+                              .move_to([0.62, 0.64, 0]), num_dashes=20).set_color(GOLD).set_stroke(width=3)
+        qm = T("?", 42, GOLD, weight=BOLD).move_to(slot)
+        self.at("second contact")
+        self.play(FadeIn(slot), FadeIn(qm), run_time=0.6)
+        q = question_card(PREDICT_QUESTION, y=-3.23, max_w=10.0)
+        self.at("Will its visits")
+        self.play(FadeIn(q), run_time=0.6)
+        gentle_drift(r, amp=0.035, speed=1.8)
+        self.finish()
+
+
+class S04Pause(PredictPause):
+    QUESTION = PREDICT_QUESTION
+    SECONDS = 4.5
+    CARD = {"y": -3.23, "max_w": 10.0}
+    RING_AT = (-5.85, 2.55, 0)
+
+    def backdrop(self):
+        return predict_world(False)
+
+
+class S05Reveal(SpokenScene):
+    def construct(self):
+        r = ras(y=-0.68)
+        world = schematic_world(r)
+        short = time_strip(False, -1.92)
+        self.add(world, short, ambient_motes(seed=5))
+        long = time_strip(True, -1.92)
+        second = tail(0.62, r.body.get_top()[1])
+        self.at("visits become longer")
+        self.play(ReplacementTransform(short, long), GrowFromEdge(second, DOWN), run_time=1.1)
+        self.remove(second)
+        r.tails.add(second)
+        self.at("Both contacts")
+        self.play(r.tails[0].animate.shift(DOWN * 0.12), run_time=0.45, rate_func=there_and_back)
+        self.play(r.tails[1].animate.shift(DOWN * 0.12), run_time=0.45, rate_func=there_and_back)
+        rare = T("both must release", 32, GREEN, weight=BOLD).move_to([0, 2.52, 0])
+        self.at("coincidence is rarer")
+        self.play(FadeIn(rare), run_time=0.6)
+        self.at("second lipid")
+        self.play(Indicate(second, color=TEXT, scale_factor=1.08), run_time=0.8)
+        patch = plus_patch(0.22, r.body.get_top()[1] + 0.30)
+        neg = negative_lipids(1.15, 2.55, y=MEM_Y - 0.54)
+        self.at("positive patch")
+        self.play(FadeOut(second), FadeIn(patch), FadeIn(neg), run_time=0.8)
+        self.at("negative lipids")
+        self.play(patch.animate.shift(UP * 0.08), neg.animate.shift(DOWN * 0.04),
+                  run_time=0.7, rate_func=there_and_back)
+        self.finish()
+
+
+class S06RasCases(SpokenScene):
+    def construct(self):
+        world, n, h, k = cases_world()
+        base = VGroup(world[0], world[1], world[2], world[-1])
+        self.add(base)
+        self.at("H Ras and N Ras")
+        self.play(FadeIn(world[3]), FadeIn(world[4]), FadeIn(world[6]), run_time=1.0)
+        self.at("K Ras 4B")
+        self.play(FadeIn(world[5]), FadeIn(world[7]), run_time=0.9)
+        self.at("farnesyl supplies")
+        self.play(Indicate(n.tails[0], color=TEXT), Indicate(h.tails[0], color=TEXT),
+                  Indicate(k.tails[0], color=TEXT), run_time=1.0)
+        self.at("not identical addresses")
+        self.play(world[6].animate.set_opacity(0.55), world[7].animate.set_opacity(0.55),
+                  run_time=0.7, rate_func=there_and_back)
+        self.at("two ways")
+        self.play(h.animate.shift(UP * 0.08), k.animate.shift(UP * 0.08), run_time=0.8, rate_func=there_and_back)
+        self.finish()
+
+
+class S07Energy(SpokenScene):
+    def construct(self):
+        left = ras(-4.65, "Ras", contacts=2, scale=0.8)
+        self.add(cytosol_field(), membrane(), left, scope_tag("computed"), ambient_motes(n=8, x0=-4.8, x1=-1.5, y0=-2.2, y1=0.0, seed=7))
+        plot = Plot(
+            box=(-0.6, 5.75, -1.55, 2.2), xr=(0, 1.6), yr=(1, 16),
+            xticks=[(0.7, "0.7"), (1.4, "1.4")], yticks=[(1, "1"), (10, "10")],
+            xlabel="free-energy contribution (kcal/mol)", ylabel="equilibrium effect",
+            size=24, label_size=25,
+        )
+        # At room temperature, factor = exp(delta-G / RT), RT about 0.593 kcal/mol.
+        fn = lambda dg: np.exp(dg / 0.593)
+        tracker = ValueTracker(0.02)
+        curve = plot.live_curve(fn, tracker, color=GREEN, width=7)
+        dot = plot.dot(lambda: tracker.get_value(), lambda: fn(tracker.get_value()), color=GREEN)
+        self.at("change so large")
+        self.play(FadeIn(plot), run_time=0.7)
+        self.add(curve, dot)
+        self.at("free energy contributions add")
+        self.play(left.tails[0].animate.set_stroke(width=6), left.tails[1].animate.set_stroke(width=6),
+                  run_time=0.8, rate_func=there_and_back)
+        self.at("grows exponentially")
+        self.play(tracker.animate.set_value(1.4), run_time=3.2, rate_func=linear)
+        mark = VGroup(plot.vline(1.4, color=YELLOW), plot.hline(10.6, color=GREEN),
+                      T("1.4 kcal/mol → about 10-fold", 28, TEXT).move_to([3.05, 3.18, 0]))
+        self.at("thermodynamic effect")
+        self.play(FadeIn(mark), run_time=0.8)
+        self.at("computed curve")
+        self.play(Indicate(curve, color=TEXT, scale_factor=1.0), run_time=1.0)
+        self.finish()
+
+
+class S08Control(SpokenScene):
+    def construct(self):
+        world, n, h, k = cases_world()
+        self.add(world)
+        strong = caption("two contacts: strong hold", color=GREEN)
+        self.at("creates control")
+        self.play(FadeIn(strong), run_time=0.6)
+        self.at("Remove palmitate")
+        self.play(FadeOut(h.tails[-1]), run_time=0.8)
+        self.at("weaken a positive patch")
+        self.play(k.patch.animate.set_opacity(0.18), run_time=0.8)
+        weak = caption("one contact: weak sampling", color=YELLOW)
+        self.at("strong hold becomes weak")
+        self.play(swap(strong, weak), h.animate.shift(DOWN * 0.35), k.animate.shift(DOWN * 0.35), run_time=1.0)
+        self.at("switch in location")
+        self.play(h.animate.shift(UP * 0.35), k.animate.shift(UP * 0.35), run_time=0.7)
+        self.play(h.animate.shift(DOWN * 0.35), k.animate.shift(DOWN * 0.35), run_time=0.7)
+        self.at("without breaking")
+        self.play(Indicate(h.tails[0], color=TEXT), Indicate(k.tails[0], color=TEXT), run_time=0.9)
+        self.finish()
+
+
+class S09Palmitate(SpokenScene):
+    def construct(self):
+        world, path = cell_loop_world()
+        self.add(world)
+        h = ras(-3.0, "H-Ras", y=1.62, contacts=0, scale=0.72)
+        farnesyl = tail(-3.42, h.body.get_top()[1], top=h.body.get_top()[1] + 0.8, width=0.2)
+        h.tails.add(farnesyl)
+        enzyme = boxed_label("enzyme", PURPLE, size=28, fill_opacity=0.22).move_to([0, -1.55, 0])
+        second = tail(-2.55, h.body.get_top()[1], top=h.body.get_top()[1] + 0.8, width=0.2)
+        self.at("remove and replace")
+        self.play(FadeIn(h), FadeIn(enzyme), run_time=0.8)
+        self.at("goes on mainly")
+        self.play(GrowFromEdge(second, DOWN), run_time=0.8)
+        self.remove(second)
+        h.tails.add(second)
+        vesicle = Circle(0.5, color=GREY, fill_color=GREY, fill_opacity=0.18).move_to([-0.7, 2.08, 0])
+        self.at("Golgi")
+        self.play(FadeOut(enzyme), h.animate.move_to([-0.7, 0.82, 0]), FadeIn(vesicle), run_time=1.4)
+        self.play(h.animate.move_to([3.35, 0.72, 0]), vesicle.animate.move_to([3.35, 1.82, 0]), run_time=2.0)
+        self.at("come off on any membrane")
+        self.play(FadeOut(second), run_time=0.8)
+        self.at("Pharnacil remains")
+        self.play(Indicate(h.tails[0], color=TEXT), run_time=0.8)
+        self.at("tightly trapped")
+        self.play(h.animate.shift(UP * 0.18), run_time=0.7, rate_func=there_and_back)
+        self.at("loosely sampling")
+        self.play(h.animate.move_to([0.3, -2.0, 0]), run_time=1.8)
+        self.play(h.animate.shift(LEFT * 1.0), run_time=0.7)
+        self.play(h.animate.shift(RIGHT * 2.0), run_time=0.9)
+        self.at("changes residence")
+        self.play(h.animate.shift(LEFT * 1.0), run_time=0.8)
+        self.finish()
+
+
+class S10Scope(SpokenScene):
+    def construct(self):
+        one = ras(-2.5, "H-Ras", contacts=1)
+        two = ras(2.5, "H-Ras", contacts=2)
+        tag = scope_tag("membrane targeting")
+        self.add(cytosol_field(), membrane(), one, two, tag, ambient_motes(seed=9))
+        grip = boxed_label("GRIP", YELLOW, size=38, fill_opacity=0.2).move_to([-2.5, 2.55, 0])
+        address = boxed_label("ADDRESS", GREEN, size=38, fill_opacity=0.04).move_to([2.5, 2.55, 0])
+        self.at("grip half")
+        self.play(FadeIn(grip), FadeIn(address), run_time=0.8)
+        self.at("grip address or both")
+        self.play(grip.animate.set_fill(YELLOW, 0.32), address.animate.set_stroke(GREEN, 4), run_time=0.9)
+        self.at("within this membrane")
+        self.play(Indicate(tag, color=TEXT), run_time=0.5)
+        short = T("brief encounter", 30, YELLOW).move_to([-2.5, -2.35, 0])
+        long = T("regulated residence", 30, GREEN).move_to([2.5, -2.35, 0])
+        self.at("second signal")
+        self.play(FadeIn(short), FadeIn(long), run_time=0.7)
+        self.at("brief encounter")
+        self.play(one.animate.shift(DOWN * 0.55), run_time=0.65)
+        self.play(one.animate.shift(UP * 0.55), run_time=0.65)
+        self.at("regulated membrane residence")
+        self.play(two.animate.shift(UP * 0.08), run_time=1.0, rate_func=there_and_back)
+        self.finish()
+
+
+class S11Close(SpokenScene):
+    def construct(self):
+        cards = VGroup(
+            boxed_label("1  membrane contact?", YELLOW, size=30, fill_opacity=0.15),
+            boxed_label("2  strengthening signal?", GREEN, size=30, fill_opacity=0.15),
+            boxed_label("3  removal or opposition?", PURPLE, size=30, fill_opacity=0.15),
+        ).arrange(DOWN, buff=0.38).move_to([-2.2, 0.2, 0])
+        self.at("three questions")
+        self.play(LaggedStart(*[FadeIn(c, shift=RIGHT * 0.15) for c in cards], lag_ratio=0.22), run_time=1.3)
+        for phrase, card in (("Which contact", cards[0]), ("Which additional", cards[1]), ("what can remove", cards[2])):
+            self.at(phrase)
+            self.play(Indicate(card, color=TEXT, scale_factor=1.03), run_time=0.8)
+        r = ras(3.75, contacts=2, scale=0.95)
+        mem = RoundedRectangle(corner_radius=0.12, width=4.8, height=0.72, stroke_color=GREY,
+                               stroke_width=3, fill_color=GREY, fill_opacity=0.28).move_to([3.75, MEM_Y, 0])
+        self.at("answers predict")
+        self.play(FadeIn(mem), FadeIn(r), run_time=1.0)
+        self.at("switch that can change")
+        self.play(r.tails[-1].animate.set_opacity(0.1), r.animate.shift(DOWN * 0.35), run_time=1.0)
+        self.play(r.animate.shift(UP * 0.35), r.tails[-1].animate.set_opacity(1), run_time=1.0)
+        self.finish()
+
+
+class S12End(EndCard):
+    LINE = "A second signal turns weak membrane contact into a regulated hold."

@@ -5,28 +5,32 @@ course: "signaling"
 courseChapter: "Cell Signaling · Unit 3: G-protein-coupled receptors and second messengers"
 order: 112
 summary: >-
-  How can one receptor fold report adrenaline, acetylcholine, cannabinoids and light, and how can
-  one hormone give opposite answers in two tissues? This lesson shows what an agonist changes in a
-  seven-pass receptor, how the receptor loads a trimeric G protein with GTP, and what the four Gα
-  families and the βγ pair do next. Afterwards you can predict a tissue's first response from its
-  receptor subtype, and tell an agonist, an antagonist and an inverse agonist apart.
-hook: "Adrenaline strengthens the heartbeat and relaxes the airways. Who decides the answer, the hormone or the cell?"
+  GPCR subtype, G protein, and downstream proteins decide the first response. Follow an agonist's
+  effect from a seven-pass receptor through nucleotide exchange on a trimeric G protein, then use
+  the four Gα families and the βγ pair to predict what a cell does next. Finally, use basal
+  activity to distinguish an agonist, a neutral antagonist and an inverse agonist.
+hook: "Adrenaline strengthens the heartbeat but relaxes the airways. How can the same hormone give opposite orders?"
 
 estMinutes: 24
 objectives:
   - "Describe the seven-pass receptor and what an agonist changes in it so that a G protein can dock."
   - "Name the four families of Gα (Gs, Gi/o, Gq/11, G12/13), the main target of each, and one job of the βγ pair."
-  - "Explain how one hormone gives opposite answers in two tissues: the receptor subtype, its G protein and the cell's downstream proteins decide, not the hormone."
+  - "Explain how one hormone gives opposite answers in two tissues: GPCR subtype, G protein, and downstream proteins decide the first response."
   - "Tell apart an agonist, an antagonist and an inverse agonist at a receptor with some activity of its own, and say what pertussis toxin does."
 
 explainer:
   src: "/explainers/gpcrs-and-g-proteins/explainer.mp4"
   captions: "/explainers/gpcrs-and-g-proteins/explainer.vtt"
   poster: "/explainers/gpcrs-and-g-proteins/poster.jpg"
-  title: "The Receptor Decides the Answer"
-  durationSec: 141.8
-  narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+  title: "How a Receptor Loads a Switch"
+  durationSec: 216.1
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+  takeaways:
+    - "GPCR subtype, G protein, and downstream proteins decide the first response."
+    - "An agonist can open a cytoplasmic receptor cavity where a trimeric G protein docks."
+    - "The active receptor promotes GDP release, allowing GTP to bind Gα."
+    - "Gα-GTP and βγ can regulate different targets."
 
 scientists:
   - name: "Robert Lefkowitz"
@@ -457,14 +461,17 @@ explainLevels:
       extracellular amino end and a cytoplasmic carboxyl end. Agonist binding, often in the pocket among
       the helices, favours an active conformation, which the bound G protein stabilises, in which the cytoplasmic end of helix 6 swings
       outward and exposes a docking site for a heterotrimeric G protein. The receptor then acts as
-      a guanine nucleotide exchange factor: Gα releases GDP, binds GTP, and separates from Gβγ.
+      a guanine nucleotide exchange factor: Gα releases GDP and binds GTP. In the textbook picture
+      Gα-GTP separates from Gβγ, although activated Gi may instead rearrange without fully dissociating.
       Four Gα families set the first step downstream. Gs stimulates adenylyl cyclase, Gi/o inhibits
       it, Gq/11 activates phospholipase C-β, and G12/13 activates exchange factors for Rho; free βγ
       has targets of its own, such as the GIRK potassium channel. Because tissues express different
       receptor subtypes coupled to different families, one ligand can produce opposite responses.
-      Pertussis toxin ADP-ribosylates Gαi/o subunits (all but Gαz) and uncouples them from receptors. Ligands are classed by
-      the receptor conformation they favour: agonists the active one, inverse agonists the inactive
-      one, and neutral antagonists neither.
+      Pertussis toxin ADP-ribosylates Gαi/o subunits (all but Gαz) and uncouples them from receptors. In a simple
+      two-state model, agonists favour more-active receptor conformations and inverse agonists
+      less-active ones. Operationally, the class belongs to the measured response: an agonist raises
+      signaling above basal, a neutral antagonist leaves basal signaling unchanged while blocking
+      other ligands, and an inverse agonist lowers it below basal.
   - level: "grad"
     label: "Graduate"
     text: >-
@@ -535,96 +542,133 @@ corpusTags:
   - "cell-signaling"
 draft: false
 films:
-  - id: "biased"
-    src: "/explainers/gpcrs-and-g-proteins/biased.mp4"
-    captions: "/explainers/gpcrs-and-g-proteins/biased.vtt"
-    poster: "/explainers/gpcrs-and-g-proteins/biased-poster.jpg"
-    title: "Three Ways a Drug Moves a Receptor"
-    durationSec: 90.4
-    narration: "an AI narrator voice (ElevenLabs, Sarah) reading narration written from this lesson's text"
+  - id: "chapter-2"
+    src: "/explainers/gpcrs-and-g-proteins/chapter-2.mp4"
+    captions: "/explainers/gpcrs-and-g-proteins/chapter-2.vtt"
+    poster: "/explainers/gpcrs-and-g-proteins/chapter-2-poster.jpg"
+    title: "Above, At, or Below Basal"
+    durationSec: 233.5
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
     aiGenerated: true
+    takeaways:
+      - "Basal activity separates agonists, neutral antagonists, and inverse agonists."
+      - "An agonist raises signaling above basal activity."
+      - "A neutral antagonist leaves basal activity unchanged while blocking other ligands."
+      - "An inverse agonist lowers signaling below basal activity."
 ---
 
 import LessonFilm from '../../../components/LessonFilm.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
 
-**Adrenaline makes your heart beat harder, relaxes the muscle around your airways and narrows the blood vessels in your skin. How does one molecule give each tissue a different order?** The hormone carries no instruction about the answer. Each cell decides, through the receptor subtype it puts on its surface, the G protein that receptor hands the signal to, and the proteins waiting downstream. The mechanism is the same in every case: an agonist changes the shape of a seven-pass receptor, and the active receptor loads a three-part G protein with GTP. This lesson covers that receptor family, the G-protein-coupled receptors (GPCRs), and the three-part G proteins they switch on.
+Adrenaline makes the heart beat harder, relaxes airway muscle and narrows skin blood vessels. The hormone matters, but it cannot specify those opposite outcomes by itself.
 
-## The idea: one fold, lots of inputs
+> **The one idea.** GPCR subtype, G protein, and downstream proteins decide the first response.
+>
+> *Scope:* the first response through the canonical GPCR–heterotrimeric-G-protein pathway in a particular cell. Ligand dose and efficacy still matter, one receptor may use several G proteins, and prolonged signaling recruits other partners.
 
-A GPCR is a single protein chain that crosses the plasma membrane seven times. Each crossing is an alpha helix of twenty or more amino acids, most of them water-avoiding. The amino end of the chain lies outside the cell and the carboxyl end inside. The seven helices pack into a bundle with a pocket open to the outside and loops facing the cytosol. You met this architecture in the receptor field guide.
+## From an outside pocket to an inside switch
 
-**"Lots of inputs/ligands."** Receptors built on this one plan detect adrenaline, acetylcholine, dopamine, histamine, peptide hormones such as glucagon, odorants, bitter and sweet tastes, and light. The human genome holds roughly 800 GPCR genes, about half of them for odorant receptors. Roughly a third of approved drugs act on a GPCR.
+The first film drew this relay as cartoons; here are the real parts.
 
-The prototype is a protein that catches light. Rhodopsin, the pigment of the rod cells in the retina, was sequenced by 1983, and its sequence held seven runs of water-avoiding residues, each long enough to span a membrane. In 1986 the cloned gene for a β-adrenergic receptor, a protein adrenaline acts on, resembled rhodopsin, seven spans included. Adrenaline has nothing to do with light, so the seven spans had to mark something else: the family of receptors that pass their signal to a G protein.
+A **G-protein-coupled receptor (GPCR)** is one protein chain that crosses the plasma membrane seven times. Each crossing is an alpha helix of twenty or more mostly water-avoiding amino acids. The amino end lies outside the cell and the carboxyl end inside, the architecture from the receptor field guide.
 
-## What the agonist changes, and what the receptor does next
+**"Lots of inputs/ligands."** The fold accepts very different inputs: adrenaline, acetylcholine, dopamine, histamine, glucagon and other peptide hormones, odorants, bitter and sweet tastes, and light. Roughly a third of approved drugs act on a GPCR.
 
-An agonist is a ligand that activates its receptor, as in the lesson on binding and dose-response. Adrenaline binds in the pocket among the helices, toward the outer face of the membrane. The contacts it makes shift the helices a little on the outside and a lot on the inside. Compare the crystal structure of the inactive β2-adrenergic receptor with the one caught holding its G protein: the cytoplasmic end of helix 6 has swung outward by about 14 Å. That opens a cavity on the inner face of the receptor, and the tail of the G protein's alpha subunit fits into it.
+An **agonist** activates its receptor (the lesson on binding and dose-response). In the beta-2-adrenergic receptor, adrenaline binds among the helices toward the outer face. Comparing the receptor's inactive crystal structure with one caught holding Gs (with a high-affinity agonist bound) shows the largest change inside: the cytoplasmic end of helix 6 moves outward by about 14 angstroms, opening the cavity where the tail of G alpha docks.
 
-The G protein waiting there has three subunits. Gα holds a guanine nucleotide. Gβ and Gγ bind each other so tightly that they act as one unit, written βγ. Lipid tails on Gα and Gγ keep the trio on the inner face of the membrane, as in the lesson on lipid anchors. While Gα holds GDP the three stay together and are silent.
+The **heterotrimeric G protein** has three subunits. G alpha holds a guanine nucleotide; G beta and G gamma bind so tightly that they act as one beta-gamma unit. Lipid tails on G alpha and G gamma hold the trio at the membrane's inner face, as in the lesson on lipid anchors.
 
-The active receptor is the exchange factor (the GEF) from the lesson on GTPase switches. It grips the G protein and loosens Gα's hold on GDP. GDP leaves, and GTP, which is more plentiful in the cytosol, takes the empty site. In the textbook picture Gα-GTP then lets go of both the receptor and βγ, though measurements in living cells suggest that Gi may rearrange with βγ rather than fully separate.
+The active receptor acts as a **guanine-nucleotide exchange factor (GEF)**: it promotes GDP release from G alpha, and GTP, more plentiful than GDP in the cytosol, fills the empty site. In the textbook picture G-alpha–GTP then leaves beta-gamma; in living cells, activated Gi may instead rearrange without fully separating.
 
 > **active receptor + Gα(GDP)·βγ + GTP → active receptor + Gα(GTP) + βγ + GDP**
 
-The receptor appears on both sides because it is a catalyst. Still holding its agonist, it can load another G protein, which is one source of the gain you saw in the lesson on signaling circuits. The cell now has two messengers, Gα-GTP and free βγ, and each can find a target. The signal ends when Gα hydrolyses its GTP and takes βγ back.
+The receptor appears on both sides because it is a catalyst, the source of the gain from the lesson on signaling circuits. One activation cycle ends when G alpha hydrolyses GTP and the GDP-bound trimer reforms.
 
-## "All the pathways": four Gα families and βγ
+**Predict.** A mutant G alpha can bind GDP but cannot release it. The receptor still binds agonist. What happens to the first downstream response?
 
-Hundreds of receptors feed a small number of G proteins. The human genome has 16 genes for Gα, and by sequence they fall into four families. Learn the main target of each and you have a good first guess at the step after most GPCRs, though many receptors use more than one family.
+<details>
+<summary>Check your prediction</summary>
 
-| Gα family | Main direct target | First consequence | Receptors that use it |
+It fails. The receptor activates, but G alpha cannot release GDP to load GTP, so the G protein stays inactive.
+
+</details>
+
+## "All the pathways": four G-alpha families, then many targets
+
+The human genome has 16 G-alpha genes in four sequence families.
+
+| G-alpha family | Main direct target | First consequence | Example receptors |
 | --- | --- | --- | --- |
-| Gs | adenylyl cyclase, switched on | cAMP rises | β-adrenergic, glucagon |
-| Gi/o | adenylyl cyclase, held back | cAMP falls; freed βγ acts | M2 muscarinic, α2-adrenergic, CB1 cannabinoid |
-| Gq/11 | phospholipase C-β | PIP2 is cut into IP3 and DAG; calcium rises | α1-adrenergic, M3 muscarinic |
-| G12/13 | exchange factors for Rho | actin is rearranged; cells change shape and move | thrombin, lysophosphatidic acid |
+| Gs | adenylyl cyclase, activated | cAMP rises | beta-adrenergic, glucagon |
+| Gi/o | adenylyl cyclase, inhibited | cAMP falls; beta-gamma acts | M2 muscarinic, alpha-2-adrenergic, CB1 cannabinoid |
+| Gq/11 | phospholipase C-beta | PIP2 becomes IP3 and DAG; calcium rises | alpha-1-adrenergic, M3 muscarinic |
+| G12/13 | exchange factors for Rho | actin rearranges; cells change shape and move | thrombin, lysophosphatidic acid |
 
-βγ is a signal in its own right. Its best-known job is in the heart, where βγ released from Gi binds a potassium channel called GIRK (G-protein-gated inwardly rectifying K+ channel) and opens it.
+Beta-gamma is a signal too: in heart pacemaker cells, beta-gamma released from Gi opens the GIRK potassium channel, short for G-protein-gated inwardly rectifying potassium channel. Potassium flows out and moves the membrane potential away from the firing threshold. G-alpha-i also lowers cAMP, reducing current through pacemaker channels that cAMP opens directly.
 
-**"Lots of downstream effectors."** Picture an hourglass: many receptors narrow to four Gα families plus βγ, and these fan out again to enzymes and ion channels.
+**"Lots of downstream effectors."** This is the hourglass the first film drew.
 
-<LessonFigure src="/figures/gpcrs-and-g-proteins/gpcr-hourglass-four-families.webp" width={1200} height={800} alt="AI-generated illustration: a schematic pathway overview links many GPCRs to four Galpha families and the beta-gamma pair. Detail panels show selected targets: Galpha-s stimulates and Galpha-i inhibits adenylyl cyclase; Galpha-q/11 activates phospholipase C-beta; Galpha-12/13 activates exchange factors for Rho; and beta-gamma opens a GIRK potassium channel." caption="Hundreds of GPCRs signal through four Galpha families and the beta-gamma pair. Selected targets: Galpha-s stimulates adenylyl cyclase, Galpha-i inhibits it, Galpha-q/11 activates PLC-beta, Galpha-12/13 activates Rho exchange factors, and beta-gamma opens GIRK channels. Many receptors use more than one family, and each branch has more targets." />
+<LessonFigure src="/figures/gpcrs-and-g-proteins/gpcr-hourglass-four-families.webp" width={1200} height={800} alt="AI-generated illustration: a schematic pathway overview links many GPCRs to four Galpha families and the beta-gamma pair. Detail panels show selected targets: Galpha-s stimulates and Galpha-i inhibits adenylyl cyclase; Galpha-q/11 activates phospholipase C-beta; Galpha-12/13 activates exchange factors for Rho; and beta-gamma opens a GIRK potassium channel." caption="Many GPCRs narrow to four G-alpha families and beta-gamma, then fan out to distinct enzymes and ion channels." />
 
-How do you find out which family a receptor uses? One classic tool is pertussis toxin, made by the bacterium that causes whooping cough. It is an enzyme that attaches ADP-ribose to a cysteine near the tail of Gαi and Gαo, the part that fits into the receptor. A G protein modified this way cannot be activated by its receptor, so it stays in the GDP form and its pathway goes quiet. Cholera toxin, from the lesson on GTPase switches, does the reverse to Gs and jams it on. If pertussis toxin abolishes a response, that response most likely runs through Gi/o. The reverse test is weaker: one family member, Gz, has no toxin site, so a response that survives the toxin can still use a Gi/o-family protein.
+**Predict.** A receptor agonist lowers cAMP. Pertussis toxin leaves basal cAMP unchanged but prevents that fall. Which family carried the response?
 
-<LessonFigure src="/figures/gpcrs-and-g-proteins/pertussis-toxin-uncouples-gi.webp" width={1200} height={640} alt="AI-generated illustration: two matching views of a receptor and its Gi protein. In the normal view the tail of G alpha-i fits the receptor's cavity. In the pertussis toxin view a gold ADP-ribose tag sits on the tail, which no longer fits, so the G protein stays with GDP bound." caption="Pertussis toxin attaches ADP-ribose near the tail of Galpha-i and Galpha-o, the part that fits into the receptor. The modified G protein cannot be activated by its receptor, so it stays in the GDP form. Galpha-z, another Gi/o-family member, lacks the toxin site and is resistant." />
+<details>
+<summary>Check your prediction</summary>
 
-The same test helped identify the cannabinoid receptor CB1: an orphan receptor gene, expressed in cells that lacked it, showed the properties already known for cannabinoids, including loss of the effect after pertussis toxin, and it couples to Gi/o.
+Gi/o. Pertussis toxin, an enzyme from the whooping-cough bacterium, adds ADP-ribose to a cysteine near the tail of G alpha-i and G alpha-o, so the tail cannot engage the receptor and the protein stays GDP-bound. Cholera toxin, from the lesson on GTPase switches, instead jams Gs on.
 
-## Same ligand, opposite answers
+</details>
 
-The receptor subtype, the G protein it couples to and the cell's downstream proteins decide the answer, not the hormone.
+If pertussis toxin abolishes a response, that response most likely runs through Gi/o. The reverse test is weaker: Gz, a Gi/o-family member, lacks the toxin site, so toxin resistance does not exclude that family.
 
-Take acetylcholine. Pacemaker cells of the heart carry the M2 muscarinic receptor, which couples to Gi. The freed βγ opens GIRK channels, potassium flows out, the membrane potential moves away from the firing threshold, and the heart slows. At the same time Gαi lowers cAMP, and less cAMP means less current through pacemaker channels that cAMP opens directly. Smooth muscle around the airways carries the M3 muscarinic receptor, which couples to Gq. Phospholipase C-β cuts PIP2, IP3 releases stored calcium, and the muscle contracts. One transmitter quiets one tissue and excites another. At skeletal muscle acetylcholine meets a different kind of receptor again, an ion channel from the receptor field guide.
+<LessonFigure src="/figures/gpcrs-and-g-proteins/pertussis-toxin-uncouples-gi.webp" width={1200} height={640} alt="AI-generated illustration: two matching views of a receptor and its Gi protein. In the normal view the tail of G alpha-i fits the receptor's cavity. In the pertussis toxin view a gold ADP-ribose tag sits on the tail, which no longer fits, so the G protein stays with GDP bound." caption="Pertussis toxin prevents susceptible Gi/o proteins from engaging their receptor, so they remain GDP-bound and the response disappears." />
 
-Adrenaline does the same with a larger cast. Humans have nine adrenergic receptor genes: three α1 subtypes that couple to Gq, three α2 subtypes that couple to Gi, and three β subtypes that couple to Gs.
+## One ligand, different cellular answers
 
-## Drugs at GPCRs, and why "GPCRs can be unfaithful to trimeric G proteins"
+The first film traced acetylcholine: through M2 and Gi it slows pacemaker cells, and through M3 and Gq it contracts airway muscle. One transmitter quiets one tissue and excites another. Acetylcholine also marks the rule's boundary: at skeletal muscle it meets an ion channel from the receptor field guide, not a GPCR.
+
+Adrenaline has a larger cast: nine human adrenergic receptor genes. Three alpha-1 subtypes couple mainly to Gq, three alpha-2 subtypes to Gi, and three beta subtypes to Gs.
+
+**Predict.** Assign one adrenergic subtype and G-alpha family to make the heart beat harder, relax airway muscle and narrow skin vessels. Then predict the effect of blocking only the heart subtype.
+
+<details>
+<summary>Check your prediction</summary>
+
+Skin vessels: alpha-1 on Gq, because raised cytosolic calcium contracts smooth muscle. Airway muscle: beta-2 on Gs, because raised cAMP favors relaxation there. Heart: beta-1 on Gs. Heart and airway cells interpret the same messenger differently because different downstream proteins wait for cAMP (the next lesson follows that messenger).
+
+Blocking only beta-1, the reasoning behind beta-1-selective beta-blockers, lowers heartbeat rate and force during adrenaline signaling and leaves airway and vessel receptors alone. A blocker that also hits beta-2 removes adrenaline's airway relaxation, a risk for a person with asthma. This is the assignment the body mainly uses.
+
+</details>
+
+**Predict.** The thrombin receptor on platelets activates both Gq and G12/13. If a drug blocked only the Gq branch, which output in the table could remain?
+
+<details>
+<summary>Check your prediction</summary>
+
+The G12/13 branch could still activate Rho exchange factors and reshape the cell, even if the Gq-dependent calcium rise were lost.
+
+</details>
+
+So far ligands have only switched receptors on. But efficacy, how far a bound ligand moves the response, can also push it below where it started.
 
 <LessonFilm film={frontmatter.films[0]} />
 
-A GPCR is flexible. Even with an empty pocket it flickers between inactive and active shapes, and for many receptors a small fraction is active at any moment. Such a receptor signals a little with no ligand at all. That basal activity gives a drug three ways to act where the lesson on binding gave you two.
+## Ligand efficacy, and why "GPCRs can be unfaithful to trimeric G proteins"
 
-- An **agonist** binds the active shape more tightly, so it holds receptors there and signaling rises above the basal level.
-- A neutral **antagonist** binds both shapes equally well. Alone it changes nothing, but it occupies the pocket and keeps other ligands out.
-- An **inverse agonist** binds the inactive shape more tightly, so it pulls receptors out of the active state and signaling falls below basal.
+The second film classed ligands by how they move **basal activity**, a receptor population's signaling with no ligand: an **agonist** raises it, a neutral **antagonist** leaves it while blocking other ligands, an **inverse agonist** lowers it. Its meter was an operational test, not a claim that a GPCR has only two rigid structures.
 
-In a cell with no basal activity an antagonist and an inverse agonist look the same. You need a system with measurable basal activity to tell them apart, and many drugs long called antagonists proved to be inverse agonists when tested that way. Carazolol, the beta-blocker bound in the 2007 crystal structures of the β2 receptor, is a partial inverse agonist.
+For many receptors only a small fraction is active at any moment, so basal activity can be too low to measure. Many drugs long called antagonists proved to be inverse agonists once tested where it was visible. Carazolol, the beta-blocker bound in the inactive beta-2 receptor structures from 2007, is a partial inverse agonist.
 
-The table above gives each receptor one partner, and real receptors are less loyal. One receptor can couple to more than one Gα family. The thrombin receptor on platelets activates both Gq and G12/13, so a single signal both raises calcium and reshapes the cell. Which partner dominates can differ between cell types, so a coupling measured in one cell line is a hypothesis about the next. A receptor that has been active for a while also takes a partner of another kind. Kinases phosphorylate its tail and a protein called arrestin binds, which blocks further G-protein coupling and helps pull the receptor into the cell. Arrestin also binds other signaling proteins, but whether it signals on its own, without G proteins, is still debated. The lesson on turning signals off takes that up.
+The four-family table also simplified: as the thrombin receptor showed, one receptor can couple to several G-alpha families, and the dominant partner can differ between cell types, so a coupling measured in one cell line is a hypothesis about the next. Efficacy is measured the same way: a ligand classed for one response in one cell may be classed differently for another.
 
-### Design problem
+Time adds another partner. Kinases phosphorylate a receptor that has stayed active, then **arrestin** binds its tail, blocks further G-protein coupling and helps pull the receptor into the cell. It also binds other signaling proteins, but whether arrestin signals on its own without G proteins remains debated, a question the lesson on turning signals off develops.
 
-One hormone must make the heart beat harder, relax the muscle of the airways, and narrow blood vessels in the skin. Assign a receptor subtype and a Gα family to each tissue so that this works. Then predict what a drug that blocks only one of your subtypes would do.
+**Predict.** Two cell lines have equal amounts of a Gs-coupled receptor known to undergo beta-arrestin-dependent desensitization, such as the beta-2-adrenergic receptor, but one lacks both beta-arrestins. After prolonged agonist exposure, which line should retain more G-protein signaling?
 
 <details>
-<summary>One way to do it</summary>
+<summary>Check your prediction</summary>
 
-Start with the two smooth muscles, because they must do opposite things. Smooth muscle contracts when cytosolic calcium rises, so the skin vessels get a Gq-coupled receptor: α1. Airway muscle gets a receptor that raises cAMP, which in smooth muscle favours relaxation: β2 on Gs. The heart gets β1, also on Gs. Here the same G protein and the same messenger make muscle contract harder, because heart cells and airway cells have different proteins waiting downstream of cAMP (the next lesson follows that messenger). The receptor and its G protein choose the messenger. The cell's own proteins decide what the messenger means.
-
-Now block one subtype. A drug that blocks only β1 lowers the rate and force of the heartbeat when adrenaline is present and leaves airways and skin vessels alone. That is the reasoning behind β1-selective beta-blockers. A blocker that also hits β2 removes adrenaline's relaxing effect on the airways, which is a risk for a person with asthma. This assignment is the one the body mainly uses.
+The line lacking beta-arrestins. Its initial response can be normal, but it loses a major brake on repeated receptor–G-protein coupling, so desensitization is reduced.
 
 </details>
 
@@ -632,15 +676,15 @@ Now block one subtype. A drug that blocks only β1 lowers the rate and force of 
 
 ### How the seven-pass plan was found
 
-Rhodopsin, the pigment of the rod cells in the retina, was too greasy to sequence whole. Two laboratories, Paul Hargrave's in the United States and Yuri Ovchinnikov's in Moscow, cut it into pieces with a chemical that breaks the chain only at methionine and sequenced the pieces one amino acid at a time. By 1983 both had published the complete sequence of cow rhodopsin. It held seven runs of water-avoiding residues, each long enough to span a membrane.
+Rhodopsin, the light-catching pigment of retinal rod cells, was too greasy to sequence whole. Paul Hargrave's laboratory in the United States and Yuri Ovchinnikov's in Moscow cut it at methionine and sequenced the pieces one amino acid at a time. By 1983 both had published the complete cow-rhodopsin sequence, including seven water-avoiding stretches long enough to span a membrane.
 
-Three years later the same plan turned up in an unexpected place. In 1986 the laboratory of Robert Lefkowitz at Duke, working with a group at Merck, cloned the gene for a β-adrenergic receptor, a protein adrenaline acts on. Brian Kobilka, a cardiology fellow in the laboratory, had worked toward the gene for almost two years. When the new sequence was compared with known proteins, it resembled rhodopsin, seven spans included. The only other seven-pass protein then known also worked with light, and Lefkowitz recalled in his Nobel lecture that it had been speculated that seven spans were a signature of light-sensitive molecules. Adrenaline has nothing to do with light. The seven spans had to mark something else: the family of receptors that pass their signal to a G protein.
+In 1986 Robert Lefkowitz's laboratory at Duke and a Merck group cloned a beta-adrenergic receptor gene. Brian Kobilka, then a cardiology fellow, had worked toward it for almost two years. Its sequence resembled rhodopsin, seven spans included. The only other seven-pass protein then known also used light, and Lefkowitz later recalled speculation that this plan marked light-sensitive molecules. The adrenaline receptor showed instead that it marked receptors that signal through G proteins.
 
 ### How many GPCR genes
 
-The human genome holds roughly 800 GPCR genes (Lefkowitz's Nobel lecture says almost a thousand), about half of them for odorant receptors, and a mouse has about a thousand odorant receptor genes alone.
+The human genome holds roughly 800 GPCR genes; Lefkowitz's Nobel lecture says almost a thousand. About half are odorant receptors, while a mouse has about a thousand odorant-receptor genes alone.
 
-### How the pertussis test named the CB1 receptor
+### How the pertussis test named CB1
 
-The test helped give a name to an orphan, a receptor gene with no known ligand. In 1990 Lisa Matsuda and colleagues, in Tom Bonner's group at the National Institute of Mental Health, had a rat brain gene that predicted a seven-pass protein. Allyn Howlett's laboratory had already shown in nerve-cell preparations that cannabinoids lower cAMP production in a dose-dependent way, that only one mirror-image form of the drug works, and that pertussis toxin blocks the effect. Matsuda expressed the orphan in cultured cells that lacked it, added cannabinoids, and reported the same properties. The orphan was the cannabinoid receptor now called CB1, and it couples to Gi/o.
+An **orphan receptor** is a receptor gene with no known ligand. In 1990 Lisa Matsuda and colleagues in Tom Bonner's group had a rat-brain gene predicting a seven-pass protein. Allyn Howlett's laboratory had shown that cannabinoids lower cAMP dose-dependently in nerve-cell preparations, that only one mirror-image form works, and that pertussis toxin blocks the effect. Expressed in cells that lacked it, the orphan showed those properties: it was CB1, the cannabinoid receptor, which couples to Gi/o.
 
