@@ -1,4 +1,4 @@
-"""Shared look for the Biochemistrypedia explainer videos (all 10 lessons use this).
+"""Shared look for the STEMhop explainer videos (formerly Biochemistrypedia) (all 10 lessons use this).
 
     from bp_style import *          # NarratedScene, colors, fonts, helpers, and all of manim
     from bp_parts import *          # the same, plus scene components (Plot, Readout, Ledger, PredictPause...)
@@ -10,7 +10,7 @@ Rules every scene follows:
   hold still while the narration lands.
 - ONE color per concept for the whole video (pick from BLUE/YELLOW/GREEN/RED/GREY and keep it).
 - NEVER draw a molecular structure (no bond-line/skeletal formulas, no ball-and-stick, no ring
-  drawings, no atom-by-atom geometry). Biochemistrypedia's integrity policy forbids AI-drawn
+  drawings, no atom-by-atom geometry). STEMhop's integrity policy forbids AI-drawn
   molecules. Use labelled boxes/chips, schematic blobs, arrows, timelines, energy diagrams, and
   PLOTS COMPUTED FROM EQUATIONS (Michaelis-Menten, Hill, Henderson-Hasselbalch...). A name like
   "glucose" or "H2O" in text is fine; a drawn structure is not.
@@ -31,8 +31,8 @@ config.disable_caching = True
 FONT = "Avenir Next"     # labels and body
 TITLE_FONT = "Georgia"   # titles (stands in for the site's Playfair Display)
 MONO = "Menlo"           # numbers, units, equations
-TEAL = "#3FB8C0"         # Biochemistrypedia's interactive cue, lifted for a dark ground
-GOLD = "#D4A843"         # Biochemistrypedia gold, used sparingly (title rule, one highlight)
+TEAL = "#3FB8C0"         # the site's interactive cue, lifted for a dark ground
+GOLD = "#D4A843"         # the site's gold, used sparingly (title rule, one highlight)
 
 SAFE_W = 12.6   # Manim frame is 14.22 x 8 units; keep content inside this
 SAFE_H = 7.0
@@ -160,13 +160,36 @@ def fit(mob, max_w=SAFE_W, max_h=SAFE_H):
     return mob.scale(s)
 
 
+# The site's name and address on the shared cards (2026-11-15: the site is STEMhop). Written as the
+# wordmark is, "STEMhop", not in capitals. The address is PRIMARY_HOST from src/lib/site-host.mjs, read
+# here so a film never hard-codes it. Films rendered before this keep their old cards; films whose own
+# scenes.py draws its own card are not changed by this.
+SITE_NAME = "STEMhop"
+
+
+def _site_host():
+    import pathlib
+    import re
+    src = pathlib.Path(__file__).resolve().parents[2] / "src" / "lib" / "site-host.mjs"
+    try:
+        m = re.search(r"export const PRIMARY_HOST = '([^']+)'", src.read_text())
+        if m:
+            return m.group(1)
+    except OSError:
+        pass
+    return "stemhop.com"
+
+
+SITE_HOST = _site_host()
+
+
 class TitleCard(NarratedScene):
     """Opening card. Subclass and set LESSON and TITLE; it runs for the s00 silent clip."""
     LESSON = "Lesson"
     TITLE = "Explainer"
 
     def construct(self):
-        brand = T("BIOCHEMISTRYPEDIA", size=20, color=TEAL, weight=BOLD).set_opacity(0.9)
+        brand = T(SITE_NAME, size=22, color=TEAL, weight=BOLD).set_opacity(0.9)
         brand.layout_ok = True   # the small brand line is deliberate (layout check)
         lesson = T(self.LESSON.upper(), size=22, color=GREY)
         title = T(self.TITLE, size=54, font=TITLE_FONT)
@@ -216,7 +239,7 @@ class EndCard(NarratedScene):
         hexm = hex_mascot(1.5)
         line = T(self.LINE, size=40, font=TITLE_FONT)
         fit(line, max_w=11.5)
-        sub = T("biochemistrypedia.com", size=22, color=TEAL)
+        sub = T(SITE_HOST, size=22, color=TEAL)
         g = VGroup(hexm, line, sub).arrange(DOWN, buff=0.4)
         self.play(FadeIn(hexm, shift=UP * 0.2), FadeIn(line, shift=UP * 0.15), run_time=self.beat(0.3))
         self.play(FadeIn(sub), run_time=self.beat(0.15))

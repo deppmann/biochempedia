@@ -1,6 +1,6 @@
 # Animate one teaching film: "{film_title}"
 
-This folder is one film for the lesson "{lesson_title}" on biochemistrypedia.com, a free biology course site. The narration is written, fact-checked and recorded. You write the animation: one file, `scenes.py`, in this folder. Run every command from this folder.
+This folder is one film for the lesson "{lesson_title}" on STEMhop, a free science course site that starts with biology. The narration is written, fact-checked and recorded. You write the animation: one file, `scenes.py`, in this folder. Run every command from this folder.
 
 ## What is here
 - `script.json`: the narration. Each scene has `tts` (spoken) and a `visual` note saying what the animation must show. Scenes with `silent` are the title card, the thinking pause and the end card. **Do not change script.json.**
