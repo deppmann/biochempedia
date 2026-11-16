@@ -50,7 +50,7 @@ export async function htmlPage(title, body, script, { status = 200, headers = {}
     `script-src 'sha256-${await sha256b64(script)}'`,
     `style-src 'sha256-${await sha256b64(STYLE)}'`,
     "connect-src 'self'",
-    "img-src 'self'",
+    "img-src 'self' data:",
     `form-action ${formAction || "'none'"}`,
     "base-uri 'none'",
     "frame-ancestors 'none'",
@@ -69,7 +69,7 @@ export async function htmlPage(title, body, script, { status = 200, headers = {}
   });
   const html = `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex">
-<title>${esc(title)}</title>${extraHead}<style>${STYLE}</style>
+<title>${esc(title)}</title><link rel="icon" href="data:,">${extraHead}<style>${STYLE}</style>
 </head><body><main>${body}</main><script>${script}</script></body></html>`;
   return new Response(html, { status, headers: h });
 }
@@ -101,12 +101,12 @@ if(!n&&!signin){moved();go();return}
 var data=JSON.stringify({v:1,items:items});
 function send(){try{localStorage.setItem(TRIES,String((+localStorage.getItem(TRIES)||0)+1))}catch(e){}
 $('msg').textContent='Bringing what you saved here with you\\u2026';$('more').hidden=false;$('ask').hidden=true;
-var f=$('f');f.elements.data.value=data;f.elements.to.value=to;f.elements.signin.value=signin;f.submit()}
+var f=$('f');f.action=C.target+'/handoff/receive?to='+encodeURIComponent(to);f.elements.data.value=data;f.elements.to.value=to;f.elements.signin.value=signin;f.submit()}
 $('skip').onclick=function(){moved();go()};$('again').onclick=send;
 $('save').onclick=function(){var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([data],{type:'application/json'}));a.download='biochemistrypedia-saved-in-this-browser.json';document.body.appendChild(a);a.click()};
 if(data.length>C.max){$('msg').textContent='What this browser saved is too large to carry over automatically.';$('more').textContent='Download a copy to keep it, then continue to '+C.host+'. Signing in to an account there keeps your progress and notebook in sync from now on.';$('more').hidden=false;$('again').hidden=true;$('save').hidden=false;$('ask').hidden=false;return}
 var tries=0;try{tries=+localStorage.getItem(TRIES)||0}catch(e){}
-if(tries>0){$('msg').textContent='Last time, what you saved in this browser did not come across to '+C.host+'.';$('more').hidden=false;$('save').hidden=false;$('ask').hidden=false;return}
+if(tries>0){$('msg').textContent='Last time, what you saved in this browser may not all have come across to '+C.host+'. Trying again is safe: nothing is doubled, and anything newer there is kept.';$('more').hidden=false;$('save').hidden=false;$('ask').hidden=false;return}
 send();
 })();`;
   return htmlPage('Biochemistrypedia has a new address', body, script, { formAction: target, extraHead: `<link rel="canonical" href="${esc(dest)}">` });
@@ -173,9 +173,12 @@ export async function receive(request, env, cfg = HOSTS, redeemSignin = null) {
   if (!legacyOrigins(cfg).includes(origin)) {
     return htmlPage('Not moved', '<h1>That did not come from the old address</h1><p><a href="/">Go to the home page</a></p>', '', { status: 403 });
   }
-  if (Number(request.headers.get('Content-Length') || 0) > MAX_BYTES) return retryPage(origin, '/', 413);
+  // The page asked for also rides in the query string (the old host's page puts it there), so a
+  // failure before the form is read can still offer the way on.
+  const asked = safePath(new URL(request.url).searchParams.get('to'));
+  if (Number(request.headers.get('Content-Length') || 0) > MAX_BYTES) return retryPage(origin, asked, 413);
   let form;
-  try { form = await request.formData(); } catch { return retryPage(origin, '/', 400); }
+  try { form = await request.formData(); } catch { return retryPage(origin, asked, 400); }
   const to = safePath(form.get('to'));
   const data = form.get('data');
   if (typeof data !== 'string' || data.length > MAX_BYTES || data[0] !== '{') return retryPage(origin, to, 400);
@@ -208,7 +211,18 @@ fetch('/handoff/merge',{method:'POST',headers:{'Content-Type':'application/json'
 
 function retryPage(origin, to, status) {
   const old = `${origin}/handoff/?to=${encodeURIComponent(to)}`;
-  return htmlPage('Not moved', `<h1>Your saved work did not come across</h1><p>Nothing was lost: it is still in this browser at the old address. <a href="${esc(old)}">Try again</a>, or <a href="${esc(to)}">carry on without it</a>.</p>`, '', { status });
+  return htmlPage('Not moved yet', `<h1>Your saved work did not come across this time</h1><p>Nothing was lost: it is still saved in this browser at the old address, and it will be offered again the next time you open an old link.</p><p><a href="${esc(to)}">Continue to the page you asked for</a> or <a href="${esc(old)}">try again now</a>.</p>`, '', { status });
+}
+
+/**
+ * /handoff/receive threw (worker/index.js catches it): the same way on, so the learner is never left
+ * on a bare error page. (A request the platform itself stops, such as one over the CPU limit, still
+ * shows Cloudflare's error page; the next old link offers the hand-off again, as nothing was marked.)
+ */
+export function receiveFailed(request, cfg = HOSTS) {
+  const origin = request.headers.get('Origin') || '';
+  const old = legacyOrigins(cfg).includes(origin) ? origin : `https://${cfg.legacy}`;
+  return retryPage(old, safePath(new URL(request.url).searchParams.get('to')), 500);
 }
 
 /** POST /handoff/merge on the new host: same-origin JSON in, the keys to write out. Stores nothing. */

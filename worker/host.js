@@ -23,6 +23,17 @@
 //                               been through it yet) gets this page first; it forwards at once.
 //   /handoff/signin/ and the passkey sign-in API, for browsers without Related Origin Requests.
 // Crawlers, link previews, files, feeds and every repeat visit get the plain 301.
+//
+// Not redirected after the switch: the folders run_worker_first leaves out (/_astro, /pagefind,
+// /vendor, /figures, /scientists, /quiz, /flashcards, /helper-data) keep answering 200 on the old
+// host, because the worker never sees them. That is deliberate. Old pages still open in a tab, or
+// restored from the back/forward cache, load their hashed bundles, search index and card data from
+// the old origin; a cross-origin redirect would break the module scripts and the search fetches (no
+// CORS). The hand-off pages need none of these files (their style and script are inline). Hotlinked
+// figures keep working. To move image-search results for figures to the new address, add a Redirect
+// Rule on the biochemistrypedia.com zone for /figures/* and /scientists/* only (301 to the same path
+// on stemhop.com): it runs before the worker and costs no requests. Widening run_worker_first to
+// these folders instead would bill a worker request for every file a page loads.
 
 import { PRIMARY_HOST, LEGACY_HOST, PASSKEY_RP_ID, KNOWN_HOSTS } from '../src/lib/site-host.mjs';
 
@@ -66,10 +77,20 @@ export function isPagePath(pathname) {
 
 const BOT = /bot|crawl|spider|slurp|archiver|facebookexternalhit|embedly|preview|whatsapp|telegram|discord|slack|linkedin|twitter|pinterest|bluesky|mastodon|curl|wget|python|go-http|java\/|okhttp|httpclient|headless|lighthouse/i;
 
-/** A person's browser opening a page (not a crawler, a link preview, or a script). */
+/**
+ * A person's browser opening a page (not a crawler, a link preview, or a script).
+ * Browsers send Fetch Metadata (Sec-Fetch-*) only to secure origins. On plain http there is none, so
+ * there a navigation is recognised by what browsers do send with one: Upgrade-Insecure-Requests: 1
+ * and an Accept that asks for HTML (checked in Chrome, 2026-11-15; inferred for Safari and Firefox,
+ * which send both on navigations too). Crawlers, curl and link previews still fail the User-Agent test.
+ */
 export function isBrowserNavigation(request) {
   const h = request.headers;
-  return h.get('Sec-Fetch-Mode') === 'navigate' && h.get('Sec-Fetch-Dest') === 'document' && !BOT.test(h.get('User-Agent') || '');
+  const ua = h.get('User-Agent') || '';
+  if (!ua || BOT.test(ua)) return false;
+  const mode = h.get('Sec-Fetch-Mode');
+  if (mode) return mode === 'navigate' && h.get('Sec-Fetch-Dest') === 'document';
+  return new URL(request.url).protocol === 'http:' && h.get('Upgrade-Insecure-Requests') === '1' && /\btext\/html\b/.test(h.get('Accept') || '');
 }
 
 const hasCookie = (request, name) => new RegExp(`(?:^|;\\s*)${name}=`).test(request.headers.get('Cookie') || '');
