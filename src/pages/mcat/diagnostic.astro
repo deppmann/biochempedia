@@ -31,13 +31,23 @@ const setsByTopic = Object.fromEntries(Object.keys(CATEGORY).map((t) => [t, SETS
       feedback comes at the end, with a topic-by-topic picture and where to go next. About 30 minutes. This is a
       practice check, not a predictor of your MCAT score.
     </p>
-    <ol class="dg-list" data-list></ol>
-    <p class="tc-row"><button type="button" class="tc-btn" data-finish>See my results</button><span class="tc-muted" data-left></span></p>
+    <p class="dg-progress tc-muted" data-progress aria-live="polite"></p>
+    <fieldset class="dg-mode">
+      <legend>Answer mode</legend>
+      <label class="dg-mode-toggle"><input type="checkbox" data-mode-toggle /><span>Cross out choices</span></label>
+    </fieldset>
+    <ol class="dg-list" data-list aria-label="Diagnostic question"></ol>
+    <nav class="dg-nav" aria-label="Diagnostic questions">
+      <button type="button" class="tc-btn dg-nav-btn" data-back hidden>Back</button>
+      <span class="tc-muted" data-left aria-live="polite"></span>
+      <button type="button" class="tc-btn dg-nav-btn" data-next>Next</button>
+      <button type="button" class="tc-btn dg-nav-btn" data-finish hidden>Submit / see my results</button>
+    </nav>
     <section data-results hidden>
       <h2>Your results</h2>
       <p class="dg-score" data-score></p>
       <div class="tc-scroll"><table class="tc-table"><thead><tr><th>Topic</th><th>Right</th><th>Next</th></tr></thead><tbody data-rows></tbody></table></div>
-      <p class="tc-muted">Every miss is in your review queue. Scroll up to read why each answer is right.</p>
+      <p class="tc-muted">Every miss is in your review queue. Use Back and Next above to review each answer and explanation.</p>
     </section>
   </article>
 
@@ -51,51 +61,109 @@ const setsByTopic = Object.fromEntries(Object.keys(CATEGORY).map((t) => [t, SETS
     const sets: Record<string, { id: string; title: string }[]> = JSON.parse(root.dataset.sets!);
     const list = root.querySelector<HTMLElement>('[data-list]')!;
     const picks: (number | null)[] = items.map(() => null);
+    const crossedOut = items.map(() => new Set<number>());
+    let current = 0;
+    let mode: 'answer' | 'eliminate' = 'answer';
+    let finished = false;
     const el = <K extends keyof HTMLElementTagNameMap>(tag: K, cls = '', text = '') => { const e = document.createElement(tag); if (cls) e.className = cls; if (text) e.textContent = text; return e; };
     const left = root.querySelector<HTMLElement>('[data-left]')!;
-    const updateLeft = () => { const n = picks.filter((p) => p === null).length; left.textContent = n ? `${n} unanswered` : 'All answered.'; };
-
-    items.forEach((q, i) => {
+    const progress = root.querySelector<HTMLElement>('[data-progress]')!;
+    const modeToggle = root.querySelector<HTMLInputElement>('[data-mode-toggle]')!;
+    const back = root.querySelector<HTMLButtonElement>('[data-back]')!;
+    const next = root.querySelector<HTMLButtonElement>('[data-next]')!;
+    const finish = root.querySelector<HTMLButtonElement>('[data-finish]')!;
+    const updateNav = () => {
+      const unanswered = picks.filter((p) => p === null).length;
+      progress.textContent = `Question ${current + 1} of ${items.length}`;
+      left.textContent = unanswered ? `${unanswered} unanswered` : 'All answered.';
+      back.hidden = current === 0;
+      next.hidden = current === items.length - 1;
+      finish.hidden = current !== items.length - 1 || finished;
+    };
+    const setMode = () => {
+      mode = modeToggle.checked ? 'eliminate' : 'answer';
+      renderQuestion();
+    };
+    const renderQuestion = (focusChoice?: number) => {
+      const q = items[current];
+      const i = current;
+      list.replaceChildren();
       const li = el('li', 'mq');
-      li.append(el('p', 'mq-stem', q.stem));
+      li.append(el('h2', 'mq-stem', q.stem));
       const ul = el('ul', 'mq-choices');
       q.choices.forEach((c, ci) => {
         const b = el('button', 'mq-choice');
         b.type = 'button';
-        b.setAttribute('aria-pressed', 'false');
+        const isPicked = picks[i] === ci;
+        const isCrossedOut = crossedOut[i].has(ci);
+        b.setAttribute('aria-pressed', String(mode === 'answer' ? isPicked : isCrossedOut));
+        b.classList.toggle('is-picked', isPicked);
+        b.classList.toggle('is-eliminated', isCrossedOut);
+        if (finished) {
+          b.disabled = true;
+          if (ci === q.answer) b.classList.add('is-correct');
+          if (ci === picks[i] && picks[i] !== q.answer) b.classList.add('is-wrong');
+        }
         b.append(el('span', 'mq-letter', 'ABCD'[ci]), el('span', '', c));
         b.addEventListener('click', () => {
-          if (root.dataset.finished) return;
-          picks[i] = ci;
-          ul.querySelectorAll('button').forEach((x, xi) => { x.setAttribute('aria-pressed', String(xi === ci)); x.classList.toggle('is-picked', xi === ci); });
-          updateLeft();
+          if (finished) return;
+          if (mode === 'answer') {
+            picks[i] = ci;
+            crossedOut[i].delete(ci);
+          } else {
+            if (crossedOut[i].has(ci)) crossedOut[i].delete(ci);
+            else {
+              crossedOut[i].add(ci);
+              if (picks[i] === ci) picks[i] = null;
+            }
+          }
+          renderQuestion(ci);
+          updateNav();
         });
         const w = el('li'); w.append(b); ul.append(w);
       });
-      li.append(ul, el('div', 'mq-feedback'));
-      (li.lastElementChild as HTMLElement).hidden = true;
+      const fb = el('div', 'mq-feedback');
+      fb.hidden = !finished;
+      if (finished) {
+        const ok = picks[i] === q.answer;
+        fb.append(el('p', `mq-verdict ${ok ? 'is-correct' : 'is-wrong'}`, ok ? '✓ Correct' : `✗ The answer is ${'ABCD'[q.answer]}.`), el('p', '', q.rationale));
+        const a = el('a', '', `Lesson: ${q.title} →`) as HTMLAnchorElement;
+        a.href = `/lessons/${q.slug}/`;
+        const p = el('p', 'mq-meta'); p.append(a); fb.append(p);
+      }
+      li.append(ul, fb);
       list.append(li);
-    });
-    updateLeft();
+      if (focusChoice !== undefined) list.querySelectorAll<HTMLButtonElement>('.mq-choice')[focusChoice]?.focus({ preventScroll: true });
+      else li.querySelector<HTMLElement>('.mq-stem')?.setAttribute('tabindex', '-1');
+    };
+    const showQuestion = (index: number) => {
+      current = index;
+      renderQuestion();
+      updateNav();
+      list.querySelector<HTMLElement>('.mq-stem')?.focus({ preventScroll: true });
+    };
 
-    root.querySelector('[data-finish]')!.addEventListener('click', () => {
+    modeToggle.addEventListener('change', setMode);
+    back.addEventListener('click', () => showQuestion(current - 1));
+    next.addEventListener('click', () => showQuestion(current + 1));
+    setMode();
+    showQuestion(0);
+
+    finish.addEventListener('click', () => {
+      if (finished) return;
       if (picks.some((p) => p === null) && !confirm('Some questions are unanswered and will count as wrong. See results anyway?')) return;
-      root.dataset.finished = '1';
+      finished = true;
       const byTopic: Record<string, { n: number; r: number }> = {};
       items.forEach((q, i) => {
         const ok = picks[i] === q.answer;
         (byTopic[q.topic] ??= { n: 0, r: 0 }).n++;
         if (ok) byTopic[q.topic].r++;
         recordFirstTry(q.id, q.slug, ok);
-        const li = list.children[i] as HTMLElement;
-        li.querySelectorAll('.mq-choice').forEach((x, xi) => { (x as HTMLButtonElement).disabled = true; if (xi === q.answer) x.classList.add('is-correct'); if (xi === picks[i] && !ok) x.classList.add('is-wrong'); });
-        const fb = li.querySelector<HTMLElement>('.mq-feedback')!;
-        fb.hidden = false;
-        fb.append(el('p', `mq-verdict ${ok ? 'is-correct' : 'is-wrong'}`, ok ? '✓ Correct' : `✗ The answer is ${'ABCD'[q.answer]}.`), el('p', '', q.rationale));
-        const a = el('a', '', `Lesson: ${q.title} →`) as HTMLAnchorElement;
-        a.href = `/lessons/${q.slug}/`;
-        const p = el('p', 'mq-meta'); p.append(a); fb.append(p);
       });
+      modeToggle.disabled = true;
+      finish.hidden = true;
+      renderQuestion();
+      updateNav();
       const right = items.filter((q, i) => picks[i] === q.answer).length;
       root.querySelector('[data-score]')!.textContent = `${right} of ${items.length} right.`;
       const rows = root.querySelector<HTMLElement>('[data-rows]')!;
@@ -118,16 +186,26 @@ const setsByTopic = Object.fromEntries(Object.keys(CATEGORY).map((t) => [t, SETS
 
   <style is:global>
     @import '../../styles/teach.css';
-    .mpr .dg-list { padding-left: 1.4rem; }
-    .mpr .mq { margin: var(--ddp-space-6) 0; max-width: 760px; }
+    .mpr .dg-list { list-style: none; margin: 0; padding: 0; }
+    .mpr .mq { margin: var(--ddp-space-4) 0 var(--ddp-space-6); max-width: 760px; }
+    .mpr .dg-progress { margin: var(--ddp-space-5) 0 var(--ddp-space-2); font-weight: 600; }
+    .mpr .dg-mode { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ddp-space-2); margin: var(--ddp-space-3) 0; padding: 0; border: 0; }
+    .mpr .dg-mode legend { width: 100%; margin-bottom: var(--ddp-space-1); font-weight: 600; }
+    .mpr .dg-mode-toggle { display: inline-flex; align-items: center; gap: var(--ddp-space-2); min-height: 44px; cursor: pointer; font-weight: 600; }
+    .mpr .dg-mode-toggle input { width: 1.15rem; height: 1.15rem; accent-color: var(--ddp-color-primary); }
+    .mpr .dg-nav { display: flex; align-items: center; justify-content: space-between; gap: var(--ddp-space-3); margin: var(--ddp-space-4) 0 var(--ddp-space-8); }
+    .mpr .dg-nav-btn[hidden] { display: none; }
+    .mpr .dg-nav [data-left] { margin-inline: auto; }
     .mpr .mq-stem { line-height: 1.55; margin: 0 0 var(--ddp-space-3); }
     .mpr .mq-choices { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--ddp-space-2); }
     .mpr .mq-choice { width: 100%; display: flex; gap: var(--ddp-space-3); text-align: left; padding: var(--ddp-space-3) var(--ddp-space-4); border: 1px solid var(--ddp-color-line); border-radius: var(--ddp-radius-sm, 8px); background: var(--ddp-color-surface); color: var(--ddp-color-ink); font: inherit; font-size: var(--ddp-text-sm); cursor: pointer; }
     .mpr .mq-choice:hover:not(:disabled) { border-color: var(--ddp-color-accent); }
     .mpr .mq-choice.is-picked { border-color: var(--ddp-color-primary); box-shadow: inset 0 0 0 1px var(--ddp-color-primary); }
+    .mpr .mq-choice.is-eliminated { color: var(--ddp-color-muted); text-decoration: line-through; opacity: 0.68; }
+    .mpr .mq-choice:disabled { cursor: default; }
     .mpr .mq-letter { font-family: var(--ddp-font-mono); font-weight: 700; color: var(--ddp-color-muted); }
-    .mpr .mq-choice.is-correct { border-color: var(--ddp-color-verified); background: var(--ddp-color-verified-soft); }
-    .mpr .mq-choice.is-wrong { border-color: #c0392b; background: #fcebe9; }
+    .mpr .mq-choice.is-correct { border-color: var(--ddp-color-verified); background: var(--ddp-color-verified-soft); color: #5a5a5a;}
+    .mpr .mq-choice.is-wrong { border-color: #c0392b; background: #fcebe9; color: #5a5a5a; }
     .mpr .mq-feedback { margin-top: var(--ddp-space-3); padding-top: var(--ddp-space-3); border-top: 1px dashed var(--ddp-color-line); font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); }
     .mpr .mq-verdict { font-weight: 700; }
     .mpr .mq-verdict.is-correct { color: var(--ddp-color-verified-ink); }
