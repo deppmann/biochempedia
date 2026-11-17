@@ -112,39 +112,114 @@ for (const st of SETS) {
         beyondGroup.remove();
       }
 
-      let right = 0, done = 0;
-      picked.forEach((q, n) => {
+      if (!picked.length) {
+        status.textContent = 'No questions could be loaded. Please try again.';
+        return;
+      }
+      const picks: (number | null)[] = picked.map(() => null);
+      const crossedOut = picked.map(() => new Set<number>());
+      let current = 0;
+      let finished = false;
+      const progress = el('p', 'tc-muted');
+      progress.setAttribute('aria-live', 'polite');
+      const modeLabel = el('label', 'mpr-crossout-toggle');
+      const crossout = el('input');
+      crossout.type = 'checkbox';
+      modeLabel.append(crossout, 'Cross out choices mode');
+      const question = el('div');
+      const nav = el('nav', 'mpr-question-nav');
+      nav.setAttribute('aria-label', 'Practice questions');
+      const back = el('button', 'tc-btn', 'Back');
+      const next = el('button', 'tc-btn', 'Next');
+      const finish = el('button', 'tc-btn', 'Submit / see my results');
+      const unanswered = el('span', 'tc-muted');
+      unanswered.setAttribute('aria-live', 'polite');
+      [back, next, finish].forEach((button) => { button.type = 'button'; });
+      nav.append(back, unanswered, next, finish);
+      round.append(progress, modeLabel, question, nav);
+
+      function render(focusChoice?: number) {
+        const q = picked[current];
+        const n = current;
+        question.replaceChildren();
+        progress.textContent = `Question ${n + 1} of ${picked.length}`;
+        const missing = picks.filter((p) => p === null).length;
+        unanswered.textContent = missing ? `${missing} unanswered` : 'All answered.';
+        back.hidden = n === 0;
+        next.hidden = n === picked.length - 1;
+        finish.hidden = finished || n !== picked.length - 1;
         const box = el('div', 'mq');
-        box.append(el('p', 'mq-stem', `${n + 1}. ${q.stem}`));
+        const stem = el('p', 'mq-stem', q.stem);
+        stem.tabIndex = -1;
+        box.append(stem);
         const ul = el('ul', 'mq-choices');
-        const fb = el('div', 'mq-feedback');
-        fb.hidden = true;
         q.choices.forEach((c: string, ci: number) => {
           const li = el('li');
-          const b = el('button', 'mq-choice');
-          b.type = 'button';
-          b.append(el('span', 'mq-letter', 'ABCD'[ci]), el('span', '', c));
-          b.addEventListener('click', () => {
-            if (box.dataset.locked) return;
-            box.dataset.locked = '1';
-            const ok = ci === q.answer;
-            ul.querySelectorAll('button').forEach((x, xi) => { (x as HTMLButtonElement).disabled = true; if (xi === q.answer) x.classList.add('is-correct'); if (xi === ci && !ok) x.classList.add('is-wrong'); });
-            recordFirstTry(q.id, q.slug, ok);
-            fb.hidden = false;
-            fb.append(el('p', `mq-verdict ${ok ? 'is-correct' : 'is-wrong'}`, ok ? '✓ Correct' : `✗ Not quite. The answer is ${'ABCD'[q.answer]}.`), el('p', '', q.rationale));
-            const a = el('a', '', q.anchor ? `Review: ${q.anchor.text} →` : `Review: ${q.title} →`) as HTMLAnchorElement;
-            a.href = `/lessons/${q.slug}/${q.anchor ? `#${q.anchor.id}` : ''}`;
-            fb.append(el('p', 'mq-meta'));
-            fb.lastElementChild!.append(a);
-            done++; if (ok) right++;
-            if (done === picked.length) status.textContent = `${right} of ${picked.length} right. Misses are in your review queue.`;
+          const button = el('button', 'mq-choice');
+          button.type = 'button';
+          button.disabled = finished;
+          button.setAttribute('aria-pressed', String(crossout.checked ? crossedOut[n].has(ci) : picks[n] === ci));
+          button.classList.toggle('is-picked', picks[n] === ci);
+          button.classList.toggle('is-eliminated', crossedOut[n].has(ci));
+          button.classList.toggle('is-correct', finished && ci === q.answer);
+          button.classList.toggle('is-wrong', finished && picks[n] === ci && ci !== q.answer);
+          button.append(el('span', 'mq-letter', 'ABCD'[ci]), el('span', '', c));
+          button.addEventListener('click', () => {
+            if (finished) return;
+            if (crossout.checked) {
+              if (crossedOut[n].has(ci)) crossedOut[n].delete(ci);
+              else {
+                crossedOut[n].add(ci);
+                if (picks[n] === ci) picks[n] = null;
+              }
+            } else {
+              picks[n] = picks[n] === ci ? null : ci;
+              crossedOut[n].delete(ci);
+            }
+            render(ci);
           });
-          li.append(b);
+          li.append(button);
           ul.append(li);
         });
-        box.append(ul, fb);
-        round.append(box);
+        box.append(ul);
+        if (finished) {
+          const ok = picks[n] === q.answer;
+          const fb = el('div', 'mq-feedback');
+          fb.append(el('p', `mq-verdict ${ok ? 'is-correct' : 'is-wrong'}`, ok ? '✓ Correct' : `✗ The answer is ${'ABCD'[q.answer]}.`), el('p', '', q.rationale));
+          const link = el('a', '', q.anchor ? `Review: ${q.anchor.text} →` : `Review: ${q.title} →`);
+          link.href = `/lessons/${q.slug}/${q.anchor ? `#${q.anchor.id}` : ''}`;
+          const meta = el('p', 'mq-meta');
+          meta.append(link);
+          fb.append(meta);
+          box.append(fb);
+        }
+        question.append(box);
+        if (focusChoice !== undefined) question.querySelectorAll<HTMLButtonElement>('.mq-choice')[focusChoice]?.focus({ preventScroll: true });
+      }
+      function navigate(delta: number) {
+        current = Math.max(0, Math.min(picked.length - 1, current + delta));
+        render();
+        question.querySelector<HTMLElement>('.mq-stem')?.focus();
+      }
+      crossout.addEventListener('change', () => render());
+      back.addEventListener('click', () => navigate(-1));
+      next.addEventListener('click', () => navigate(1));
+      finish.addEventListener('click', () => {
+        if (finished) return;
+        if (picks.some((p) => p === null) && !confirm('Some questions are unanswered and will count as wrong. See results anyway?')) return;
+        finished = true;
+        crossout.disabled = true;
+        let right = 0;
+        picked.forEach((q, i) => {
+          const ok = picks[i] === q.answer;
+          if (ok) right++;
+          recordFirstTry(q.id, q.slug, ok);
+        });
+        status.textContent = `${right} of ${picked.length} right. Misses are in your review queue. Use Back and Next to review the explanations.`;
+        render();
+        status.scrollIntoView({ behavior: 'smooth' });
       });
+      render();
     }
     // Lesson mode: the first round is this lesson's questions; picking a topic and pressing Start
     // goes back to ordinary topic practice.
@@ -179,6 +254,13 @@ for (const st of SETS) {
     .mpr .mpr-beyond input { width: 1.15rem; height: 1.15rem; accent-color: var(--ddp-color-accent); }
     .mpr .mpr-lesson-h { margin: 0; font-weight: 600; }
     .mpr .mpr-lesson a { color: var(--ddp-color-accent); }
+    .mpr .mpr-crossout-toggle { display: flex; align-items: center; gap: var(--ddp-space-2); min-height: 44px; cursor: pointer; }
+    .mpr .mpr-crossout-toggle input { width: 1.15rem; height: 1.15rem; accent-color: var(--ddp-color-primary); }
+    .mpr .mpr-question-nav { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ddp-space-3); margin-block: var(--ddp-space-4); }
+    .mpr .mpr-question-nav [hidden] { display: none; }
+    .mpr .mpr-question-nav span { margin-inline: auto; }
+    .mpr .mq-choice.is-picked { border-color: var(--ddp-color-primary); box-shadow: inset 0 0 0 1px var(--ddp-color-primary); }
+    .mpr .mq-choice.is-eliminated { text-decoration: line-through; opacity: 0.68; }
     .mpr .mq { margin: var(--ddp-space-6) 0; max-width: 760px; }
     .mpr .mq-stem { line-height: 1.55; margin: 0 0 var(--ddp-space-3); }
     .mpr .mq-choices { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--ddp-space-2); }
