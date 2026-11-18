@@ -225,13 +225,13 @@ class S02FeedbackSign(SpokenScene):
         stage, world, meter, stream = circuit_stage(level=0.62)
         animate_stream(stream)
         self.add(stage)
-        self.at("output changes")
+        self.at("output acts back")
         neg = pathway_world("negative", 1.08, LEFT * 1.25).feedback
         neg_lab = T("negative", 30, RED).next_to(neg, UP, buff=0.12)
         self.play(Create(neg), run_time=1.3)
-        self.at("reduces production")
+        self.at("opposes the change")
         self.play(FadeIn(neg_lab), meter.level.animate.set_value(0.28), run_time=1.3)
-        self.at("increases production")
+        self.at("reinforces the change")
         pos = pathway_world("positive", 1.08, LEFT * 1.25).feedback
         pos_lab = T("positive", 30, BLUE).next_to(pos, UP, buff=0.12)
         self.play(FadeOut(neg), swap(neg_lab, pos_lab), FadeIn(pos),
@@ -272,7 +272,7 @@ class S03NegativeRise(SpokenScene):
         self.add(stage)
         input_high = T("input stays on", 30, GOLD).move_to([-4.95, 2.65, 0])
         self.play(FadeIn(input_high), meter.level.animate.set_value(0.94), run_time=1.7)
-        self.at("brake accumulates")
+        self.at("accumulates")
         brakes = VGroup(*[RoundedRectangle(width=0.33, height=0.33, corner_radius=0.05,
                                            color=RED, fill_color=RED, fill_opacity=0.75)
                           for _ in range(5)]).arrange(RIGHT, buff=0.12).move_to([0.15, 2.25, 0])
@@ -307,7 +307,7 @@ class S04PositiveLoop(SpokenScene):
         animate_stream(stream)
         self.add(stage)
         self.play(world.feedback.animate.set_color(BLUE), run_time=0.7)
-        self.at("strengthens its own")
+        self.at("reinforces its own")
         for val in (0.36, 0.62, 0.92):
             self.play(Indicate(world.blocks[1], color=BLUE), meter.level.animate.set_value(val), run_time=0.85)
         pulse(world.feedback, base=5, amp=1.8, speed=2.3)
@@ -411,7 +411,7 @@ class S08Adaptation(SpokenScene):
         self.at("choose the trace")
         answer = T("adaptation", 30, TEAL).next_to(bg.plots[2], UP, buff=0.15)
         self.play(FadeIn(answer), Indicate(bg.plots[2], color=TEAL), run_time=1.2)
-        self.at("delayed brake")
+        self.at("delayed")
         self.play(bg.plots[2].animate.set_color(RED), run_time=0.9)
         self.at("Integral feedback")
         chem = chemotaxis_world(level=0.86)

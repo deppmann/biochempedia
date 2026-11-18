@@ -354,11 +354,11 @@ class S01Hook(BaseSpoken):
             Line(cross_pt + UL * 0.14, cross_pt + DR * 0.14, color=C_ARR, stroke_width=5),
             Line(cross_pt + UR * 0.14, cross_pt + DL * 0.14, color=C_ARR, stroke_width=5),
         )
-        blocked_lbl = T("new input blocked", size=24, color=C_ARR).move_to([3.9, Y_REC - 0.44, 0])
+        blocked_lbl = T("new input reduced", size=24, color=C_ARR).move_to([3.9, Y_REC - 0.44, 0])
 
         self.add(world, x_mark, scope_tag("schematic"))
 
-        self.at("stopped new G protein")
+        self.at("cut new G protein")
         self.play(FadeIn(blocked_lbl, shift=LEFT * 0.1), run_time=0.45)
 
         self.at("a mark")
@@ -1342,7 +1342,7 @@ class S13Pulses(BaseSpoken):
             self.play(sig_dot.animate.move_to([2.5, -2.12, 0]), run_time=1.8, rate_func=linear)
         self.play(FadeOut(sig_dot), run_time=0.2)
 
-        self.at("In gonadotropes")
+        self.at("gonadotrop")
         block_lbl = T("GnRH: main block appears downstream", size=24, color=C_P, weight=BOLD).move_to([-0.9, -3.22, 0])
         stop_bar = RoundedRectangle(corner_radius=0.06, width=0.22, height=0.72,
                                     stroke_color=C_ARR, stroke_width=2.5, fill_color=C_ARR, fill_opacity=0.92).move_to([0.92, -2.55, 0])
@@ -1435,7 +1435,7 @@ class S14Rule(BaseSpoken):
 
         self.at("Each downstream layer fades")
         self.wait(max(0.1, self.t_of("slowest surviving layer") - 0.35 - self.elapsed()))
-        self.at("slowest surviving layer")
+        self.at("surviving")
         self.play(Indicate(world.pools[2], color=C_P), run_time=0.6)
         self.finish()
 
