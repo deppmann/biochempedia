@@ -276,7 +276,7 @@ class S04GainProduct(SpokenScene):
     def construct(self):
         g = gain_world(False)
         self.play(FadeIn(g.cards), GrowFromCenter(g.arrows), run_time=1.0)
-        self.at("output molecules per input")
+        self.at("output events per input")
         definition = T("gain = output per input", 34, GOLD).move_to([0, 2.45, 0])
         self.play(FadeIn(definition), run_time=.7)
         self.at("simple unsaturated cascade")

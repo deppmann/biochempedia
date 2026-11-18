@@ -24,7 +24,7 @@ explainer:
   captions: "/explainers/signaling-circuits/explainer.vtt"
   poster: "/explainers/signaling-circuits/poster.jpg"
   title: "How One Photon Becomes a Cellular Signal"
-  durationSec: 229.9
+  durationSec: 231.7
   narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
   takeaways:
@@ -40,7 +40,7 @@ films:
     captions: "/explainers/signaling-circuits/chapter-2.vtt"
     poster: "/explainers/signaling-circuits/chapter-2-poster.jpg"
     title: "Three Ways a Signal Changes with Time"
-    durationSec: 224.5
+    durationSec: 224.7
     narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
     aiGenerated: true
     takeaways:
@@ -64,8 +64,8 @@ scientists:
       at roughly twenty picoamps, the current the cell runs in the dark. Baylor's group dimmed
       the flashes until most did nothing. On a few trials the line dipped by about one picoamp
       and came back. A dip that small could be noise, so they sorted the trials into blank and
-      response, varied the flash strength, and showed that the blanks followed a Poisson
-      distribution, the signature of rare independent events. Baylor had trained in recording from photoreceptors in Alan Hodgkin's laboratory in Cambridge, and the recordings were made with
+      response, varied the flash strength, and showed that the share of blank trials tracked a Poisson
+      prediction, the signature of rare independent events. Baylor had trained in recording from photoreceptors in Alan Hodgkin's laboratory in Cambridge, and the recordings were made with
       King-Wai Yau and Trevor Lamb. Their recordings, first reported in 1977 and analysed in full in
       1979, turned an inference that had stood since 1942 into a measurement. It made it possible to ask how large the gain of a G-protein cascade
       is, one receptor molecule at a time, and to check biochemical estimates against it.
@@ -233,7 +233,7 @@ practiceQuestions:
       - "The same final tumbling rate, reached in a different amount of time"
     answer: 3
     rationale: >-
-      Methylation keeps changing until output equals its resting value, so after adaptation each cell is back at the output it had before the attractant, whatever its enzyme level, while the amount of enzyme sets
+      Methylation keeps changing until output equals its resting value, so after adaptation each cell is back at the output it had before the attractant, across the range of enzyme levels where adaptation works, while the amount of enzyme sets
       how fast the cell gets there. A different final rate would be the ordinary enzymology
       expectation that more enzyme shifts the outcome, but the loop stops only at zero error.
       A change in both would carry the same mistake. Predicting no change in timing treats
@@ -250,7 +250,7 @@ mcatQuestions:
     answer: 0
     rationale: >-
       The dose ratio is 60/20 = 3, so 81^(1/n) = 3, which means 3^n = 81 and n = 4. A Hill
-      coefficient of 1 would need the 10-to-90 percent span to be 81-fold, here 1,620 nM, far
+      coefficient of 1 would need an 81-fold span, which puts the 90 percent dose at 1,620 nM, far
       wider than observed. Answering 3 reads the fold span itself as the exponent. Answering 27
       comes from dividing 81 by the span of 3 instead of solving for the exponent.
   - stem: "A researcher grinds up 1,000 oocytes per dose and finds the extract's MAP kinase 10, 48 and 90 percent active at 10, 30 and 100 nM progesterone. She then assays 1,000 single oocytes at each dose. At 30 nM, 480 oocytes show maximal MAP kinase activity and 520 show only background activity. At 10 nM and 100 nM, 100 and 900 oocytes are fully active. Which description of a single oocyte fits all of these data?"
@@ -273,7 +273,7 @@ mcatQuestions:
       - "The timing difference is measurement error, because identical final rates imply identical enzyme speeds"
       - "Extra enzyme blocks attractant from binding, so the cells sense a smaller step and recover sooner"
       - "Adaptation is exact only when enzyme amount falls in a narrow range, and these strains landed inside it"
-      - "Methylation continues until output returns to its resting value, so enzyme amount sets only the speed"
+      - "Methylation continues until output returns to its resting value, so in these strains enzyme amount changes the speed and not the endpoint"
     answer: 3
     rationale: >-
       A correction that stops only when the error is zero returns each cell to its own resting rate,
@@ -367,8 +367,8 @@ anecdotes:
       gripped one outer segment tightly enough, with an amplifier quiet enough, that an event of
       about a picoamp stood clear of the trace. The second was an argument about counting. Sort
       every trial as blank or response, then vary the flash strength. If each response is one
-      photon caught at random, the fraction of blanks has to move in a calculable way, a
-      Poisson distribution. It did. Noise crossing a threshold by chance would have filled
+      photon caught at random, the fraction of blanks has to move in a calculable way, set by a
+      Poisson distribution of photons caught per flash. It did. Noise crossing a threshold by chance would have filled
       the bins in some other proportion.
 
 corpusTags:
@@ -389,7 +389,7 @@ import LessonFigure from '../../../components/LessonFigure.astro';
 import LessonFilm from '../../../components/LessonFilm.astro';
 import Support from '../../../components/Support.astro';
 
-One photon, absorbed by one rhodopsin molecule in a rod cell, changes the current through that cell by about one picoamp, a trillionth of an ampere. A single molecule cannot carry that current. How does its signal become large enough to register, yet remain local and stop?
+One photon, absorbed by one rhodopsin molecule in a rod cell, changes the current through that cell by about one picoamp, a trillionth of an ampere. One rhodopsin cannot carry that current. How does its signal become large enough to register, yet remain local and stop?
 
 <Support>**The one idea.** Circuit architecture and kinetics shape a signal's size, duration, and reversibility. **Scope:** Use this rule for a defined pathway, cell and input. Wiring alone is not enough: component abundance, catalytic rate, active lifetime, saturation, localization and delays matter. Step gains multiply in the simple unsaturated cascades used here, where each active molecule independently reaches a fixed number downstream.</Support>
 
@@ -424,11 +424,11 @@ The interactive uses a different cascade, epinephrine to glycogen breakdown. Cha
 
 The first film named three costs: noise, shutoff and spread. The rod shows how the first two are paid; other pathways show the third.
 
-First, noise: amplification can magnify upstream fluctuations, and a one-picoamp dip sits on a baseline that never stops moving. Baylor's group could trust the dip only because they counted. They dimmed flashes until most trials were blanks; if each response is one photon caught at random, the blank fraction must follow a Poisson distribution, the signature of rare independent events. It did.
+First, noise: amplification can magnify upstream fluctuations, and a one-picoamp dip sits on a baseline that never stops moving. Baylor's group could trust the dip only because they counted. They dimmed flashes until most trials were blanks; if each response is one photon caught at random, photons caught per flash follow a Poisson distribution, the signature of rare independent events, and that fixes the blank fraction at each flash strength. It did.
 
-Second, shutoff. Rhodopsin kinase and arrestin shut down rhodopsin. The RGS9 complex speeds transducin's self-shutoff by GTP splitting. The rod also uses **negative feedback**, output acting to reduce its own production: closing channels lowers calcium inside the cell, and calcium-sensing GCAP proteins speed the enzyme that makes cGMP.
+Second, shutoff. Rhodopsin kinase and arrestin shut down rhodopsin. The RGS9 complex speeds transducin's self-shutoff by GTP splitting. The rod also uses **negative feedback**, output acting back through the circuit to oppose its own change: closing channels lowers calcium inside the cell, and calcium-sensing GCAP proteins speed the enzyme that makes cGMP.
 
-Third, a diffusible messenger made in many copies risks reaching unintended targets. A cell that answers different receptors differently must keep each pool of messenger near where it was made. mAKAP, for example, holds a kinase, a messenger-destroying phosphodiesterase and the kinase's target within nanometres, so the cyclic AMP that matters stays in that small neighbourhood. That is **insulation**, keeping one pathway's signal away from another pathway's targets, and it has to be built.
+Third, a diffusible messenger made in many copies risks reaching unintended targets. One way a cell answers different receptors differently is to keep each pool of messenger near where it was made. mAKAP, for example, holds a kinase, a messenger-destroying phosphodiesterase and the kinase's target within nanometres, so the cyclic AMP that matters stays in that small neighbourhood. That is **insulation**, keeping one pathway's signal away from another pathway's targets, and it has to be built.
 
 Amplification creates output; shutoff and feedback loops, like the rod's calcium loop, decide how that output changes with time. The second film compares three feedback designs under a continuing input.
 
@@ -485,9 +485,9 @@ The spans are 81^(1/3), about 4.3-fold, and 81^(1/35), about 1.13-fold. For *n* 
 
 </details>
 
-ERK, a MAP kinase, turns on only after MEK adds two phosphates, one to threonine and one to tyrosine one residue apart. One tag leaves ERK mostly off. MEK adds the phosphates in separate encounters, releasing ERK between them. This multisite process makes the response **ultrasensitive**: steeper than proportional, an S-shaped curve rather than a true threshold, and still reversible. Stacking three relay tiers sharpens it further. On 17 September 1996, Chi-Ying Huang and Ferrell published a calculation, confirmed in oocyte extracts, with a Hill coefficient about 4 to 5.
+ERK, a MAP kinase, turns on only after MEK adds two phosphates, one to threonine and one to tyrosine one residue apart. One tag leaves ERK mostly off. In test tubes, MEK adds the phosphates in separate encounters, releasing ERK between them. (In HeLa cells the two additions come close to a single encounter.) This multisite process can make the response **ultrasensitive**: steeper than proportional, an S-shaped curve rather than a true threshold, and still reversible. Stacking three relay tiers sharpens it further. On 17 September 1996, Chi-Ying Huang and Ferrell published a calculation, confirmed in oocyte extracts, with a Hill coefficient about 4 to 5.
 
-Thirty-five needs more. **Positive feedback** means that output increases its own production. Ferrell and Machleder proposed that a loop around the cascade drives an egg that has started switching the remaining distance. Sufficiently strong positive feedback can add **bistability**, two stable output states under the same conditions, and memory. Xiong and Ferrell showed in 2003 that an oocyte committed to maturation stays matured after hormone removal.
+Thirty-five needs more. **Positive feedback** means that output acts back to reinforce its own change. Ferrell and Machleder proposed that a loop around the cascade drives an egg that has started switching the remaining distance. Sufficiently strong positive feedback can add **bistability**, two stable output states under the same conditions, and memory. Xiong and Ferrell showed in 2003 that an oocyte committed to maturation stays matured after hormone removal.
 
 Eggs differ in switching threshold, so at an intermediate dose a homogenate reports the fraction that has flipped as if every egg responded partway.
 
@@ -517,8 +517,8 @@ Free methylation sites run out before the error reaches zero, so real cells adap
 | Circuit word | Question it answers |
 | --- | --- |
 | **Gain** | How many output molecules does one input produce? |
-| **Negative feedback** | Does output act back to reduce its own production? |
-| **Positive feedback** | Does output act back to increase its own production? |
+| **Negative feedback** | Does output act back to oppose its own change? |
+| **Positive feedback** | Does output act back to reinforce its own change? |
 | **Feed-forward** | Does one input reach an output by direct and indirect routes at once? |
 | **Ultrasensitive response** | Does output climb from near zero to near maximum over a narrow input range? |
 | **Adaptation** | Does output return toward rest while stimulus remains? |
@@ -531,7 +531,7 @@ Free methylation sites run out before the error reaches zero, so real cells adap
 
 ### Different inputs, different activity windows
 
-One summary figure attributes feedback-shaped activity windows of about 20 minutes after TNF (tumor necrosis factor), 30 after EGF (epidermal growth factor), 90 after NGF (nerve growth factor) and 120 after LPS, a molecule from bacterial outer membranes, to the loops handling each signal. These examples do not make feedback the only possible timer.
+Activity windows shaped by feedback can run from minutes to hours, depending on the signal, the cell and the readout. Feedback is not the only possible timer.
 
 ### What the simple gain product leaves out
 

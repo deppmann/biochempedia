@@ -45,7 +45,7 @@ WHAT CHANGES PER SPOKEN SCENE (and what computes it):
   s10_rule        : Balance bar tips toward removal as mark+reader shut off production;
                     departing green ON blocks dwindle according to pool_n (1.0 -> 0.15).
   s10_consequence : Agonist remains locked ('agonist still bound'); outside-signal meter
-                    dips slightly (1.0 -> 0.85) while arrestin clamps the bay and drives
+                    holds steady while arrestin clamps the bay and drives
                     G-protein activation sharply down (0.92 -> 0.16, not to zero).
   s11_handoff     : Pulled-back blocked receptor feeds a 3-layer downstream cascade while
                     a live Plot computes exponential persistence curves y_i(t)=exp(-k_i*t)
@@ -915,7 +915,7 @@ class S10Rule(FilmScene):
         )
 
         # Mark and reader together prevent new G-protein activation
-        self.at("new receptor signaling stops")
+        self.at("new receptor signaling falls")
         self.play(FadeIn(arr, shift=UP * 0.3, run_time=0.5))
         self.play(arr.animate(run_time=0.9).move_to(arr_dock))
         self.at("mark and reader")
@@ -929,7 +929,7 @@ class S10Rule(FilmScene):
 
 
 class S10Consequence(FilmScene):
-    """Agonist stays firmly bound; outside signal dips slightly while G-protein activation drops sharply (not to zero)."""
+    """Agonist stays firmly bound; outside signal holds steady while G-protein activation drops sharply (not to zero)."""
 
     def construct(self):
         mem = make_membrane(x0=-6.4, x1=0.2, y=1.35)
@@ -968,7 +968,6 @@ class S10Consequence(FilmScene):
         reg_lbl = T("inside regulation", size=28, color=ARR_COL).move_to([-3.5, -3.15, 0])
         self.play(
             FadeIn(reg_lbl, run_time=0.5),
-            out_t.animate(run_time=2.5).set_value(0.85),
             gp_t.animate(run_time=2.5).set_value(0.16),
         )
         rem = max(0.4, self.narration_s + 0.3 - self.elapsed())
