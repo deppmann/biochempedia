@@ -22,6 +22,37 @@ objectives:
   - "Trace the conduction path from the SA node to the Purkinje fibres, explain the AV delay and the hierarchy of pacemaker rates, and recognise first-degree, Mobitz I, Mobitz II and third-degree AV block on the tracing."
   - "Explain why the ECG is flat when every ventricular cell is in the same phase and moves only while a boundary between excited and resting tissue travels, then read an adult human resting ECG at 25 mm per s: name what P, QRS and T record, measure PR, QRS and QT, compute rate from R-R, correct QT by Bazett and Fridericia, estimate the mean QRS axis, and predict how raised or lowered extracellular potassium changes the resting potential, conduction and the ECG."
 
+explainer:
+  src: "/explainers/cardiac-electrophysiology-ecg/explainer.mp4"
+  captions: "/explainers/cardiac-electrophysiology-ecg/explainer.vtt"
+  poster: "/explainers/cardiac-electrophysiology-ecg/poster.jpg"
+  title: "The Tie That Holds"
+  durationSec: 216.3
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
+  aiGenerated: true
+  takeaways:
+    - "A ventricular cell stays depolarized roughly a hundred times as long as a nerve spike."
+    - "During the plateau, inward L-type calcium current and outward potassium currents nearly cancel."
+    - "IK1 largely shuts at plateau voltages, so total conductance is low and small currents hold the voltage."
+    - "Blocking one outward potassium current lengthens the plateau and the QT interval."
+    - "The plateau ends as L-type channels inactivate and the potassium currents win."
+
+films:
+  - id: "chapter-2"
+    src: "/explainers/cardiac-electrophysiology-ecg/chapter-2.mp4"
+    captions: "/explainers/cardiac-electrophysiology-ecg/chapter-2.vtt"
+    poster: "/explainers/cardiac-electrophysiology-ecg/chapter-2-poster.jpg"
+    title: "The Edges of the Wave"
+    durationSec: 204.3
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+    takeaways:
+      - "The ECG is not all the action potentials added up."
+      - "Current reaches the skin only where neighboring cells sit at different voltages."
+      - "A travelling boundary between excited and resting tissue acts like a small battery."
+      - "The more tissue a boundary spans, the bigger the deflection."
+      - "The ST segment is flat, or nearly so, because nearly every ventricular cell is on its plateau."
+
 scientists:
   - name: "Willem Einthoven"
     contribution: >-
@@ -402,6 +433,7 @@ draft: false
 import EcgIntervalReader from '../../../components/EcgIntervalReader.astro';
 import EquationCard from '../../../components/EquationCard.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import LessonFilm from '../../../components/LessonFilm.astro';
 
 **Once excited, a ventricular muscle cell stays depolarised for a few hundred milliseconds, roughly a hundred times as long as a nerve spike.** That plateau sets how much calcium enters, keeps beats from fusing, and shows on the skin as the stretch between the QRS complex and the T wave. This lesson goes further than [circulation and the heart](/lessons/circulation-and-heart/), from currents to the tracing.
 
@@ -509,6 +541,8 @@ From the SA node, excitation crosses the atria to the **atrioventricular (AV) no
 <LessonFigure src="/figures/cardiac-electrophysiology-ecg/conduction-system.webp" width={1200} height={800} alt="AI-generated illustration: front view of a heart with the conduction system highlighted: the sinoatrial node in the right atrium, spread across the atria, the atrioventricular node in the septum with a pause symbol, the bundle of His crossing an insulating ring, bundle branches down the septum and a Purkinje network in the ventricular walls. An inset ranks three pacemaker sites from fastest to slowest." caption="Excitation crosses the atria, pauses at the AV node, normally the only path through the insulating ring, then races through His and Purkinje fibres; slower pacemakers below stay silent because the SA node's wave fires them first." />
 
 Cells of the AV node and the conducting system below it can also pace, at slower intrinsic rates. The SA node is fastest; in a standard textbook account, AV node cells fire about 40 to 60 per min and His-Purkinje cells about 15 to 40. The fastest site leads: its wave reaches each slower site and fires it before that site's own ramp gets to threshold. The resting sinus rate is usually below the node's intrinsic rate because vagal tone slows it.
+
+<LessonFilm film={frontmatter.films[0]} />
 
 ## What the ECG records: cells that disagree
 
