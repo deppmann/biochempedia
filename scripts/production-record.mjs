@@ -6,7 +6,7 @@
  * heartbeat and the Course Progress dashboard, and the ship step writes it.
  *
  * The repository is public, so a row holds facts only: dates, PR numbers, model FAMILY (never a version),
- * film lengths, deck size. No costs, no paths, no names, no copied notes. check-production-record.mjs
+ * film lengths, deck size, Side Hops count. No costs, no paths, no names, no copied notes. check-production-record.mjs
  * enforces that in CI.
  *
  *   node scripts/production-record.mjs table                    # per-course table
@@ -36,7 +36,7 @@ export const TIERS = ['families', 'highschool', 'foundation', 'core', 'elective'
 export const CHANGED = ['text', 'figures', 'flashcards', 'film'];
 /** Open flags. single-film is derived (a shipped level-up still waiting for its film pair); the rest are set. */
 export const FLAGS = ['safety-skipped', 'no-notes', 'single-film', 'no-hex-mark', 'lesson-links-stale'];
-const KEYS = ['slug', 'course', 'subject', 'tier', 'stage', 'levelUp', 'text', 'films', 'deck', 'listen', 'changed', 'flags'];
+const KEYS = ['slug', 'course', 'subject', 'tier', 'stage', 'levelUp', 'text', 'films', 'deck', 'listen', 'sideHops', 'changed', 'flags'];
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
 const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
@@ -64,9 +64,15 @@ export async function readTree(root = ROOT) {
       const d = JSON.parse(readFileSync(dp, 'utf8'));
       deck = { cards: (d.cards || []).length, date: (d.generated && d.generated.date) || null };
     }
+    const hp = join(root, 'src/data/side-hops', `${slug}.json`);
+    let sideHops = null;
+    if (existsSync(hp)) {
+      const h = JSON.parse(readFileSync(hp, 'utf8'));
+      sideHops = { hops: (h.hops || []).length, audioSec: num(h.audio?.durationSec), updated: h.updated };
+    }
     const course = fm.course || 'biochemistry';
     lessons.set(slug, {
-      course, tier: tier.get(course) || null, draft: fm.draft === true, films, deck,
+      course, tier: tier.get(course) || null, draft: fm.draft === true, films, deck, sideHops,
       listen: Array.isArray(listen[slug]) && listen[slug].length ? listen[slug].length : false,
     });
   }
@@ -107,6 +113,7 @@ export function canonical(r) {
   o.films = (r.films || []).map((f) => ({ id: f.id, durationSec: f.durationSec ?? null, animator: f.animator || 'unknown' }));
   o.deck = r.deck ? { cards: r.deck.cards, date: r.deck.date } : null;
   o.listen = r.listen || false;
+  if (r.sideHops) o.sideHops = { hops: r.sideHops.hops, audioSec: r.sideHops.audioSec, updated: r.sideHops.updated };
   if (r.changed && r.changed.length) o.changed = CHANGED.filter((c) => r.changed.includes(c));
   o.flags = FLAGS.filter((f) => (r.flags || []).includes(f));
   return o;
@@ -147,7 +154,7 @@ export function deriveRows(rows, tree) {
     out.push(canonical({
       ...r, course: t.course, subject: r.subject || 'biology', tier: t.tier,
       films: t.films.map((f) => ({ ...f, animator: anim.get(f.id) || 'unknown' })),
-      deck: t.deck, listen: t.listen, flags,
+      deck: t.deck, listen: t.listen, sideHops: t.sideHops, flags,
     }));
   }
   const removed = rows.filter((r) => !tree.lessons.has(r.slug)).map((r) => r.slug);
@@ -201,6 +208,13 @@ export function validateRow(r) {
   }
   if (r.deck !== null && (typeof r.deck !== 'object' || !Number.isInteger(r.deck.cards) || (r.deck.date !== null && !DATE.test(r.deck.date)))) bad('deck must be null or {cards, date}');
   if (!(r.listen === false || (Number.isInteger(r.listen) && r.listen > 0))) bad('listen must be false or a clip count');
+  if (r.sideHops !== undefined) {
+    const h = r.sideHops || {};
+    for (const k of Object.keys(h)) if (!['hops', 'audioSec', 'updated'].includes(k)) bad(`sideHops.${k} unknown`);
+    if (!Number.isInteger(h.hops) || h.hops < 1) bad('sideHops.hops must be a count');
+    if (typeof h.audioSec !== 'number' || !(h.audioSec > 0)) bad('sideHops.audioSec must be a length in seconds');
+    if (!DATE.test(h.updated || '')) bad('sideHops.updated is not YYYY-MM-DD');
+  }
   if (r.changed !== undefined && (!Array.isArray(r.changed) || r.changed.some((c) => !CHANGED.includes(c)))) bad(`changed must list ${CHANGED}`);
   if (!Array.isArray(r.flags) || r.flags.some((f) => !FLAGS.includes(f))) bad(`flags must come from ${FLAGS.join(', ')}`);
   return e;

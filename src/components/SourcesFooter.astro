@@ -1,5 +1,6 @@
 ---
 import type { Lesson } from '../schema';
+import { sideHopsFor } from '../lib/side-hops';
 
 interface Props {
   lesson: Lesson;
@@ -7,6 +8,7 @@ interface Props {
   figures?: { src: string; alt: string }[];
 }
 const { lesson, figures = [] } = Astro.props;
+const sideHopsAudio = sideHopsFor(lesson.slug)?.audio;
 
 const rcsb = lesson.structures.filter((s) => s.source === 'rcsb');
 const pubchem = lesson.structures.filter((s) => s.source === 'pubchem');
@@ -164,7 +166,12 @@ const pubchemNote = idEcho('CID');
       </div>
     )}
 
-    <div class="src-block">
+    {sideHopsAudio && (
+      <div class="src-block">
+        <h3>Side Hops audio</h3>
+        <p class="src-meta"><strong>{sideHopsAudio.title}</strong> · narration: {sideHopsAudio.narration} · the sources for each story are listed on its Side Hop card.</p>
+      </div>
+    )}<div class="src-block">
       <h3>Images &amp; figures</h3>
       {figures.length > 0 && (
         <>

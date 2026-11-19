@@ -1,0 +1,41 @@
+---
+/**
+ * One Side Hop: a short story, myth or thing to try. Styled by SideHopsSwitch.astro, and moved to the
+ * end of its section by the script in SideHopsPanels.astro.
+ *
+ * Hex is the one mascot allowed in the reading column (rule on /hex/). The drawing stays hidden from
+ * screen readers. The button that replays the hop starts switched off, and the script turns it on
+ * only when it can do something: scripts are running and the reader has not asked for reduced motion.
+ */
+import Hex from './Hex.astro';
+import { KIND_LOOK, type SideHop } from '../lib/side-hops';
+
+interface Props {
+  hop: SideHop;
+  /** The id of the ## heading after this card's section, if there is a later one. */
+  before?: string;
+}
+const { hop, before } = Astro.props;
+const look = KIND_LOOK[hop.kind];
+---
+
+<aside class="sh-card" data-sh-card data-sh-before={before} data-no-hl aria-label={`Side Hop: ${hop.title}`}>
+  <div class="sh-card-head">
+    <button type="button" class="sh-hex" data-sh-hex aria-label="Make Hex hop again" aria-hidden="true" tabindex="-1" disabled>
+      <Hex pose={look.pose} size={56} />
+    </button>
+    <div class="sh-card-name">
+      <p class="sh-kicker">Side Hop · {look.label}</p>
+      <h3 class="sh-title">{hop.title}</h3>
+    </div>
+  </div>
+  <p class="sh-text">{hop.text}</p>
+  {hop.sources.length > 0 && (
+    <details class="sh-sources">
+      <summary>Sources</summary>
+      <ul>
+        {hop.sources.map((s) => <li><a href={s.url} target="_blank" rel="noopener">{s.citation}</a></li>)}
+      </ul>
+    </details>
+  )}
+</aside>

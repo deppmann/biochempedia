@@ -30,6 +30,8 @@ import LessonHelpers from '../../components/LessonHelpers.astro';
 import { helperAllowed } from '../../lib/helper-lesson.mjs';
 import LessonLinks from '../../components/LessonLinks.astro';
 import BuildsOn from '../../components/BuildsOn.astro';
+import SideHopsSwitch from '../../components/SideHopsSwitch.astro';
+import SideHopsPanels from '../../components/SideHopsPanels.astro';
 import type { Deck } from '../../lib/flashcards';
 import { feedbackUrl } from '../../lib/feedback';
 import { COURSES, courseOf, courseHref } from '../../data/courses';
@@ -40,6 +42,7 @@ import { metaDescription } from '../../lib/meta';
 import { lessonMinutes } from '../../lib/reading-time';
 import { skimOf } from '../../lib/skim';
 import { rewrittenFor } from '../../lib/rewritten';
+import { sideHopsFor } from '../../lib/side-hops';
 
 export async function getStaticPaths() {
   // Drafts must not generate a route. The homepage and sitemap already filter
@@ -93,6 +96,9 @@ const skim = skimOf(entry.body ?? '', headings);
 const hasSkim = skim.figureCount > 0 || [lesson.explainer, ...lesson.films].some((f) => f?.takeaways?.length);
 // "Rewritten on …" under the title, from src/data/recently-rewritten.json (scripts/rewritten-shelf.mjs).
 const rewritten = rewrittenFor(lesson.slug);
+// Side Hops (2026-11-18): stories and audio beside the lesson, for lessons with a file in src/data/side-hops/.
+const sideHops = sideHopsFor(lesson.slug);
+const sideHopFilms = [...(lesson.explainer ? [lesson.explainer] : []), ...lesson.films];
 // Method films from the shared library that this lesson teaches or relies on.
 const methods = methodsFor(entry.data.slug);
 const isHighSchool = course.tier === 'highschool';
@@ -211,7 +217,7 @@ const lessonLd = {
       </div>
     </header>
 
-    {(lesson.objectives.length > 0 || showSections) && (
+    {sideHops && <SideHopsSwitch slug={lesson.slug} hasFilms={sideHopFilms.length > 0} />}{(lesson.objectives.length > 0 || showSections) && (
       <aside class="wrap overview" aria-label="Lesson overview">
         {/* One closed line instead of a box (2026-11-08): goals, sections and contents fold away so the
             lesson starts on the first screen. A plain <details>, so it works with JavaScript off. */}
@@ -345,7 +351,7 @@ const lessonLd = {
             holds it. The nav, rail, 3D viewers, sources and footer are not indexed. Worked
             answers (bare <details>) and the answer boxes are skipped by exclude_selectors in pagefind.yml. */}
         <div class="prose-col" data-pagefind-body data-pagefind-meta="title[data-lesson-title]" data-pagefind-filter="course[data-lesson-course]"
-          data-lesson-title={lesson.title} data-lesson-course={lesson.course}><Content /></div>
+          data-lesson-title={lesson.title} data-lesson-course={lesson.course}><Content /></div>{sideHops && <SideHopsPanels data={sideHops} headings={headings} films={sideHopFilms} />}
         <HighlightLayer slug={entry.data.slug} title={lesson.title} />
         {/* Study helpers for signed-in learners (worker/helper.js); never on Biology Together or grade 7 Life Science. */}
         {!lesson.draft && helperAllowed(course) && <LessonHelpers slug={lesson.slug} hasDeck={!!deck} levels={lesson.explainLevels.map((l) => ({ level: l.level, label: l.label }))} />}

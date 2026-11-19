@@ -16,7 +16,7 @@ import { redeemBridge } from './learner.js';
 
 // Paths the media code below is for (byte ranges, files in R2). Everything else that reaches the
 // worker is passed to the static assets as it is.
-const MEDIA = /^\/(explainers|listen)\//;
+const MEDIA = /^\/(explainers|listen|side-hops)\//;
 
 const MEDIA_CACHE = 'public, max-age=86400, stale-while-revalidate=604800';
 

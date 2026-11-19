@@ -1,0 +1,139 @@
+---
+/**
+ * The three-way switch near the top of a lesson with Side Hops: Full lesson, Just the films, Side Hops.
+ * Native radio buttons, so arrow keys and screen readers work without extra code. It stays hidden
+ * until a script shows it: with scripts off the reader gets the whole lesson, then every Side Hop
+ * in a labelled section after it (SideHopsPanels.astro).
+ *
+ * The styles and both scripts are inline so that only lessons with Side Hops carry them, and so a
+ * reader who chose another view does not see the full lesson flash first. Every selector starts
+ * with sh- or #top[data-sh-view].
+ */
+interface Props {
+  slug: string;
+  hasFilms: boolean;
+}
+const { slug, hasFilms } = Astro.props;
+const VIEWS = [
+  { id: 'full', label: 'Full lesson' },
+  ...(hasFilms ? [{ id: 'films', label: 'Just the films' }] : []),
+  { id: 'hops', label: 'Side Hops' },
+];
+---
+
+<div class="wrap sh-switch" data-sh-switch data-slug={slug} hidden>
+  <fieldset>
+    <legend class="visually-hidden">How do you want to learn this lesson?</legend>
+    <div class="sh-seg">
+      {VIEWS.map((v) => (
+        <label>
+          <input type="radio" name="sh-view" value={v.id} checked={v.id === 'full'} />
+          <span>{v.label}</span>
+        </label>
+      ))}
+    </div>
+  </fieldset>
+  <p class="visually-hidden" role="status" data-sh-status></p>
+</div>
+
+<script is:inline>
+  (function () {
+    var box = document.querySelector('[data-sh-switch]');
+    var page = document.getElementById('top');
+    if (!box || !page) return;
+    var view = 'full';
+    try {
+      var saved = localStorage.getItem('stemhop:side-hops:view:' + box.getAttribute('data-slug'));
+      if (saved === 'films' || saved === 'hops') view = saved;
+    } catch (e) { /* storage blocked: start on the full lesson */ }
+    // A link to a spot in the lesson, or a search result, always opens the lesson itself.
+    if ((location.hash && location.hash !== '#top') || /[?&]pagefind-highlight=/.test(location.search)) view = 'full';
+    var radio = box.querySelector('input[value="' + view + '"]');
+    if (!radio) { view = 'full'; radio = box.querySelector('input[value="full"]'); }
+    radio.checked = true;
+    if (view !== 'full') page.setAttribute('data-sh-view', view);
+    box.hidden = false;
+  })();
+</script>
+
+<style is:inline>
+  .sh-switch { margin-bottom: var(--ddp-space-4); }
+  .sh-switch[hidden] { display: none; }
+  .sh-switch fieldset { min-width: 0; margin: 0; padding: 0; border: 0; }
+  .sh-seg { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 4px; max-width: 34rem; padding: 4px; background: var(--ddp-color-surface); border: 1px solid var(--ddp-color-line); border-radius: 12px; }
+  .sh-seg label { position: relative; display: block; min-width: 0; cursor: pointer; }
+  .sh-seg input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+  .sh-seg span { display: flex; align-items: center; justify-content: center; min-height: 44px; padding: 0.3rem 0.4rem; border-radius: 9px; font-family: var(--ddp-font-sans); font-size: var(--ddp-text-sm); font-weight: 600; line-height: 1.2; text-align: center; color: var(--ddp-color-ink-soft); }
+  .sh-seg input:hover + span { color: var(--ddp-color-primary); background: var(--ddp-color-accent-soft); }
+  .sh-seg input:checked + span { color: var(--ddp-color-surface); background: var(--ddp-color-primary); }
+  .sh-seg input:focus-visible + span { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+
+  /* The two shorter views: only the title block, the switch and the chosen panel stay on the page. */
+  #top:is([data-sh-view="films"], [data-sh-view="hops"]) > :not(.lesson-hero, .sh-switch, .lesson-layout, dialog),
+  #top:is([data-sh-view="films"], [data-sh-view="hops"]) .rail,
+  #top:is([data-sh-view="films"], [data-sh-view="hops"]) .read-row,
+  #top:is([data-sh-view="films"], [data-sh-view="hops"]) .resume,
+  #top[data-sh-view="films"] .lesson-main > :not(.sh-films),
+  #top[data-sh-view="hops"] .lesson-main > :not(.sh-panel),
+  #top[data-sh-view="full"] .sh-panel,
+  #top[data-sh-view="full"] .sh-films { display: none !important; }
+  #top:is([data-sh-view="films"], [data-sh-view="hops"]) .lesson-layout { display: block; }
+  .sh-films[hidden] { display: none; }
+
+  .sh-panel, .sh-films { max-width: 46rem; margin: var(--ddp-space-8) 0; }
+  #top:is([data-sh-view="films"], [data-sh-view="hops"]) :is(.sh-panel, .sh-films) { margin-top: 0; }
+  .sh-panel-h { margin: 0 0 var(--ddp-space-1); font-size: var(--ddp-text-2xl); }
+  .sh-intro { margin: 0 0 var(--ddp-space-4); color: var(--ddp-color-ink-soft); }
+  .sh-player { padding: var(--ddp-space-4); background: var(--ddp-color-surface); border: 1px solid var(--ddp-color-line); border-radius: var(--ddp-radius); }
+  .sh-player-h { margin: 0 0 var(--ddp-space-3); font-size: var(--ddp-text-lg); }
+  .sh-player audio { display: block; width: 100%; }
+  .sh-note { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); line-height: 1.5; color: var(--ddp-color-muted); }
+  .sh-transcript { margin-top: var(--ddp-space-3); }
+  .sh-transcript summary { display: flex; align-items: center; min-height: 44px; cursor: pointer; font-size: var(--ddp-text-sm); font-weight: 600; color: var(--ddp-color-primary); }
+  .sh-transcript p { margin: 0 0 var(--ddp-space-3); font-size: var(--ddp-text-sm); line-height: 1.65; color: var(--ddp-color-ink-soft); }
+  .sh-back { margin: var(--ddp-space-5) 0 0; }
+  .sh-back[hidden] { display: none; }
+  .sh-back a { display: inline-flex; align-items: center; min-height: 44px; font-weight: 600; color: var(--ddp-color-accent); text-underline-offset: 3px; }
+
+  .sh-film { margin-top: var(--ddp-space-5); }
+  .sh-film figure { margin: 0; }
+  .sh-film video { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; background: #0f1117; border-radius: 10px; }
+  .sh-film figcaption { margin-top: var(--ddp-space-2); font-family: var(--ddp-font-serif); font-size: var(--ddp-text-base); color: var(--ddp-color-primary); }
+  .sh-film figcaption span { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-muted); }
+  .sh-film-note { margin: var(--ddp-space-2) 0 0; padding: var(--ddp-space-2) var(--ddp-space-3); border-left: 3px solid var(--ddp-color-caution); background: var(--ddp-color-caution-soft); border-radius: 4px; font-size: var(--ddp-text-sm); line-height: 1.5; color: var(--ddp-color-ink-soft); }
+  .sh-film-takes { margin: var(--ddp-space-3) 0; padding: var(--ddp-space-3) var(--ddp-space-4); border-left: 3px solid var(--ddp-color-accent); background: var(--ddp-color-accent-soft); border-radius: 4px; }
+  .sh-film-takes p { margin: 0 0 var(--ddp-space-1); font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ddp-color-accent); }
+  .sh-film-takes ul { margin: 0; padding-left: 1.2rem; list-style: disc; line-height: 1.55; }
+  .sh-film-takes li + li { margin-top: 0.25rem; }
+
+  /* A card. overflow-x: clip keeps Hex behind the card's edge until it hops in, and lets it jump above the top edge. */
+  .sh-card { margin: var(--ddp-space-6) 0; padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); background: color-mix(in srgb, var(--ddp-color-secondary) 9%, var(--ddp-color-surface)); border: 1px solid color-mix(in srgb, var(--ddp-color-secondary) 45%, var(--ddp-color-line)); border-radius: var(--ddp-radius); overflow: hidden; overflow-x: clip; overflow-y: visible; }
+  .sh-card-head { display: flex; align-items: flex-end; gap: var(--ddp-space-3); margin-bottom: var(--ddp-space-2); }
+  .sh-card-name { min-width: 0; }
+  .sh-hex { flex: none; padding: 0; border: 0; border-radius: 10px; background: transparent; line-height: 0; cursor: pointer; }
+  .sh-hex:disabled { cursor: default; }
+  .sh-card .sh-kicker { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: 0.06em; line-height: 1.4; text-transform: uppercase; color: var(--ddp-color-accent); }
+  .sh-card .sh-title { margin: 0.1rem 0 0; font-size: var(--ddp-text-lg); line-height: 1.25; }
+  .sh-card .sh-text { margin: 0; line-height: 1.6; }
+  .sh-sources { margin-top: var(--ddp-space-2); font-size: var(--ddp-text-sm); }
+  .sh-sources summary { display: flex; align-items: center; min-height: 44px; cursor: pointer; font-weight: 600; color: var(--ddp-color-primary); }
+  .sh-sources summary::before { content: '▸'; margin-right: 0.4em; }
+  .sh-sources[open] summary::before { content: '▾'; }
+  .sh-sources summary::-webkit-details-marker { display: none; }
+  .sh-sources ul { margin: 0; padding-left: 1.2rem; list-style: disc; }
+  .sh-card .sh-sources li { margin: 0 0 0.35rem; font-size: var(--ddp-text-sm); line-height: 1.45; overflow-wrap: anywhere; }
+
+  @media screen and (prefers-reduced-motion: no-preference) {
+    .sh-card[data-sh-wait] .sh-hex { opacity: 0; transform: translateX(-90px); }
+    .sh-card.is-hopping .sh-hex { animation: shHopIn 0.95s cubic-bezier(0.3, 0.7, 0.3, 1) both; }
+    .sh-card.is-hopping .hex-wave .hex-arm-r { transform-origin: 49.3px 27px; animation: hexWave 0.32s ease-in-out 0.95s 4 alternate; }
+    @keyframes shHopIn {
+      0% { transform: translate(-90px, 0) scale(1, 1); }
+      22% { transform: translate(-62px, -18px) scale(0.96, 1.05); }
+      42% { transform: translate(-34px, 0) scale(1.1, 0.88); }
+      64% { transform: translate(-15px, -12px) scale(0.97, 1.04); }
+      84% { transform: translate(0, 0) scale(1.08, 0.92); }
+      100% { transform: translate(0, 0) scale(1, 1); }
+    }
+  }
+</style>

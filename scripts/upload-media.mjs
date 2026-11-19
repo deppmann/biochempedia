@@ -4,8 +4,8 @@
 //   node scripts/upload-media.mjs --dry-run  # list what would be uploaded
 //   node scripts/upload-media.mjs --all      # upload everything again
 //
-// Each file under public/explainers/ becomes the object "explainers/<...>", the same path it
-// has on the site, so no lesson has to change. A manifest of what was uploaded (path, size,
+// Each file under public/explainers/ and public/side-hops/ becomes the object "explainers/<...>" or
+// "side-hops/<...>", the same path it has on the site, so no lesson has to change. A manifest of what was uploaded (path, size,
 // sha256) is kept in media-manifest.json so a second run sends only what changed.
 // Films are not tracked in git: render, upload with this script, commit media-manifest.json. Needs
 // `wrangler login` once on this machine (run it from outside this folder). The bucket name is read from wrangler.jsonc.
@@ -16,7 +16,7 @@ import { join, relative, extname, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
 
 const ROOT = 'public';
-const DIRS = ['explainers'];
+const DIRS = ['explainers', 'side-hops'];
 const TYPES = { '.mp4': 'video/mp4', '.vtt': 'text/vtt; charset=utf-8', '.jpg': 'image/jpeg', '.png': 'image/png', '.mp3': 'audio/mpeg' };
 const MANIFEST = 'media-manifest.json';
 const dry = process.argv.includes('--dry-run');
