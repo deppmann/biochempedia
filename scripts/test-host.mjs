@@ -40,7 +40,7 @@ const workerFirst = (patterns, path) => patterns.some((p) => !p.startsWith('!') 
 const wranglerText = readFileSync(new URL('../wrangler.jsonc', import.meta.url), 'utf8');
 const CURRENT = JSON.parse(/"run_worker_first":\s*(\[[^\]]*\])/.exec(wranglerText)[1]);
 const FOUR = ['/explainers/*', '/api/*', '/g/*', '/listen/*'];
-const ALL = ['/*', '!/_astro/*', '!/pagefind/*', '!/vendor/*', '!/figures/*', '!/scientists/*', '!/quiz/*', '!/flashcards/*', '!/helper-data/*'];
+const ALL = ['/*', '!/_astro/*', '!/pagefind/*', '!/vendor/*', '!/figures/*', '!/scientists/*', '!/quiz/*', '!/flashcards/*', '!/helper-data/*', '!/graph.json', '!/graph/*'];
 /** What a request gets with a given run_worker_first: the static file as it is, or the worker's answer. */
 const outcome = (url, cfg, patterns, opts) => (workerFirst(patterns, new URL(url).pathname) ? go(url, cfg, opts) : { kind: 'static' });
 
