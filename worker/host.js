@@ -25,7 +25,7 @@
 // Crawlers, link previews, files, feeds and every repeat visit get the plain 301.
 //
 // Not redirected after the switch: the folders run_worker_first leaves out (/_astro, /pagefind,
-// /vendor, /figures, /scientists, /quiz, /flashcards, /helper-data) keep answering 200 on the old
+// /vendor, /figures, /scientists, /quiz, /flashcards, /helper-data, /graph.json, /graph) keep answering 200 on the old
 // host, because the worker never sees them. That is deliberate. Old pages still open in a tab, or
 // restored from the back/forward cache, load their hashed bundles, search index and card data from
 // the old origin; a cross-origin redirect would break the module scripts and the search fetches (no
