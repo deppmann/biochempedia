@@ -1,0 +1,51 @@
+---
+/* The teachers' door. It leads with what works today: the standards maps and the class tool. The
+   paste-your-syllabus box is written and switched off (see flags.ts); until its matcher exists the
+   door says plainly that it is not built, and never links to the switched-off AI planner. */
+import SyllabusBox from './SyllabusBox.astro';
+import { SYLLABUS_BOX } from './flags';
+import type { HomeData } from './data';
+
+interface Props { d: HomeData }
+const { d } = Astro.props;
+---
+
+<section class="home-door" id="teachers" data-door="teacher" aria-labelledby="home-teacher-h">
+  <h2 class="home-h2" id="home-teacher-h">Fast tools for you, slow thinking for them</h2>
+  <p class="home-story">
+    Planning is the part of teaching a tool can make fast, so let it, and spend the hours on your students.
+    Their part should stay slow, and no AI tutor talks to them here.
+  </p>
+
+  <div class="home-trio">
+    <div>
+      <h3 class="home-h3">Find the lesson for a standard</h3>
+      <p class="home-p">
+        Every Virginia standard, with the lessons that teach it:
+        <a href="/teachers/life-science/#standards-map">{d.standards.lifeScience} for grade 7 Life Science</a> and
+        <a href="/teachers/biology/#standards-map">{d.standards.biology} for high school Biology</a>.
+        Other states’ standards are not mapped yet.
+      </p>
+    </div>
+    <div>
+      <h3 class="home-h3">Make a class</h3>
+      <p class="home-p">
+        Give students a code and assign lessons. Each morning, read how they reasoned before class. Students
+        join with a nickname: no email, no real name, no password. It is free and uses no AI.
+        <a href="/teach/">Make a class →</a>
+      </p>
+    </div>
+    <div>
+      <h3 class="home-h3">Read ahead</h3>
+      <p class="home-p">
+        <a href="/teachers/">Everything for teachers</a> has a guide to each school course and how hard every course reads.
+        The headline above is where I landed in a talk for teachers in October 2026:
+        <a href="/teachers/talk-notes/">the talk, its slides and the source for every number</a>.
+      </p>
+    </div>
+  </div>
+
+  {SYLLABUS_BOX
+    ? <SyllabusBox />
+    : <p class="home-small">Not built yet: a box where you paste your syllabus and get back the lessons that match. It is next.</p>}
+</section>

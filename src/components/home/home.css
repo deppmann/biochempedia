@@ -1,0 +1,188 @@
+/* The front door (src/pages/index.astro and src/components/home/). One global file under one class,
+   .home, because the page's script draws some of what is styled here ("Welcome back", the syllabus
+   results), which scoped styles must not target. Colours, type and space are the site's tokens, so
+   dark mode follows from them. New labels are sentence case in the body face: no new mono capitals.
+   Nothing on this page moves unless the reader moved it. */
+
+.home { padding-bottom: var(--ddp-space-10, 2.5rem); }
+.home ul, .home ol { list-style: none; margin: 0; padding: 0; }
+.home .home-anchor { display: block; height: 0; scroll-margin-top: 5.5rem; }
+.home #stage, .home #goals, .home #wip { scroll-margin-top: 5.5rem; }
+
+/* ---- Hero: the wordmark (h1), the tagline, what this is, search, who makes it, "Welcome back" ---- */
+.home-hero { padding: 2.5rem 0 0; display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 1rem 3rem; align-items: center; }
+.home-wm { margin: 0; line-height: 1; }
+.home-tagline { margin: 1.1rem 0 0; font-family: var(--ddp-font-serif); font-size: var(--ddp-text-xl); color: var(--ddp-color-accent); font-style: italic; }
+.home-lede { margin: 0; font-size: var(--ddp-text-lg); color: var(--ddp-color-ink-soft); line-height: 1.55; max-width: 46ch; }
+.home-lede strong { color: var(--ddp-color-ink); font-weight: 600; }
+.home-search { margin-top: 0.9rem; }
+.home-search .ss-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; margin: 0; }
+/* A field's edge must be visible on its own (3:1 against the field, light and dark). */
+.home .ss-input, .home-match textarea, .home-match select { border: 1px solid var(--ddp-color-muted); }
+.home-byline { margin: 0.6rem 0 0; font-size: var(--ddp-text-sm); color: var(--ddp-color-muted); }
+.home-byline a { font-weight: 600; }
+.home-resume { margin: 0.6rem 0 0; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); display: flex; flex-wrap: wrap; gap: 0.25rem 0.75rem; align-items: baseline; }
+.home-resume[hidden] { display: none; }
+.home-resume a { color: var(--ddp-color-accent); font-weight: 600; }
+.home-resume .home-resume-meta { color: var(--ddp-color-muted); }
+
+/* ---- The one choice: three radios drawn as pills. Each has its own edge; the chosen one is filled. ---- */
+.home-roles { border: 0; padding: 0; margin: 1.8rem 0 0; min-width: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem 0.9rem; }
+.home-roles legend { float: left; padding: 0; margin: 0 0.9rem 0 0; font-family: var(--ddp-font-serif); font-size: var(--ddp-text-lg); color: var(--ddp-color-ink); line-height: 44px; }
+.home-role-row { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.home-role { position: relative; display: block; cursor: pointer; }
+.home-role input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+.home-role span { display: flex; align-items: center; justify-content: center; min-height: 44px; min-width: 5.4rem; box-sizing: border-box; padding: 0.4rem 1.1rem; border: 1.5px solid var(--ddp-color-muted); border-radius: 999px; background: var(--ddp-color-surface); font-size: var(--ddp-text-base); font-weight: 600; line-height: 1.2; color: var(--ddp-color-ink); }
+.home-role:hover span { border-color: var(--ddp-color-accent); }
+.home-role input:checked + span { background: var(--color-navy, #1B2A4A); border-color: var(--color-navy, #1B2A4A); color: #fff; }
+.home-role input:focus-visible + span { outline: 2px solid var(--ddp-color-accent); outline-offset: 3px; }
+.home-said { margin: 0; font-size: var(--ddp-text-sm); color: var(--ddp-color-muted); }
+.home-said [hidden] { display: none; }
+
+/* One door at a time. The radios switch doors in the stylesheet alone, so the choice works with
+   JavaScript off. A link to a door's address (/#parents) opens that door too when JavaScript is off;
+   with it on, the page's script checks the matching radio instead. Without :has() and without
+   JavaScript all three doors stay on the page, one after another, and the choice is hidden. */
+.home-door[hidden] { display: none; }
+.home-door { padding-top: 2.2rem; scroll-margin-top: 9rem; }
+@supports selector(:has(*)) {
+  .home:has(#home-role-student:checked) .home-door:not([data-door='student']),
+  .home:has(#home-role-parent:checked) .home-door:not([data-door='parent']),
+  .home:has(#home-role-teacher:checked) .home-door:not([data-door='teacher']) { display: none; }
+  html:not([data-home-js]) .home .home-door:target { display: block !important; }
+}
+@supports not selector(:has(*)) {
+  html:not([data-home-js]) .home-roles { display: none; }
+  html:not([data-home-js]) .home-door + .home-door { margin-top: 3rem; border-top: 1px solid var(--ddp-color-line); }
+}
+
+/* ---- Inside a door ---- */
+.home-h2 { margin: 0 0 0.6rem; font-family: var(--ddp-font-serif); font-weight: 500; font-size: var(--ddp-text-3xl); line-height: 1.12; letter-spacing: -0.01em; color: var(--ddp-color-primary); text-wrap: balance; }
+.home-h3 { margin: 0 0 0.4rem; font-family: var(--ddp-font-serif); font-weight: 600; font-size: var(--ddp-text-xl); line-height: 1.25; color: var(--ddp-color-primary); text-wrap: balance; }
+.home-story { margin: 0; max-width: 64ch; font-size: var(--ddp-text-base); line-height: 1.65; color: var(--ddp-color-ink); }
+.home-p { margin: 0; max-width: 60ch; font-size: var(--ddp-text-base); line-height: 1.6; color: var(--ddp-color-ink-soft); }
+.home-p + .home-p { margin-top: 0.7rem; }
+.home-p a, .home-story a, .home-small a { font-weight: 600; }
+.home-small { margin: 0.8rem 0 0; max-width: 60ch; font-size: var(--ddp-text-sm); line-height: 1.55; color: var(--ddp-color-ink-soft); }
+.home-pair { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 2rem 3rem; align-items: start; margin-top: 1.6rem; }
+
+/* A button that goes somewhere: the navy pill the site already uses. */
+.home-go { display: inline-flex; gap: 0.5rem; align-items: center; min-height: 44px; box-sizing: border-box; padding: 0.6rem 1.15rem; border: 0; border-radius: 999px; background: var(--color-navy, #1B2A4A); color: #fff; font: inherit; font-weight: 600; font-size: var(--ddp-text-sm); text-decoration: none; cursor: pointer; }
+.home-go:hover, .home-go:focus-visible { color: #fff; text-decoration: none; box-shadow: var(--ddp-shadow); }
+.home-quiet { display: inline-flex; align-items: center; min-height: 44px; padding: 0 0.4rem; border: 0; background: none; font: inherit; font-size: var(--ddp-text-sm); font-weight: 600; color: var(--ddp-color-accent); cursor: pointer; text-decoration: none; }
+.home-quiet:hover { text-decoration: underline; }
+@media (prefers-color-scheme: dark) {
+  .home-go, .home-go:hover, .home-go:focus-visible, .home-role input:checked + span { background: var(--ddp-color-accent); border-color: var(--ddp-color-accent); color: #0f1522; }
+}
+
+/* ---- The rungs: one idea at each level, simplest first. A list, not a picture: no rung is marked. ---- */
+.home-rungs { margin-top: 0.5rem !important; border-top: 1px solid var(--ddp-color-line); }
+.home-rung { display: grid; gap: 0.05rem; padding: 0.55rem 0 0.65rem; border-bottom: 1px solid var(--ddp-color-line); }
+.home-rung-level { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); line-height: 1.5; }
+.home-rung-link { justify-self: start; font-weight: 600; font-size: var(--ddp-text-base); line-height: 1.35; padding: 0.75rem 0; margin: -0.6rem 0; }
+.home-rung-note { font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); line-height: 1.5; max-width: 56ch; }
+.home-rung-film { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); line-height: 1.6; }
+
+/* ---- "Here for one thing?" ---- */
+.home-ways { margin-top: 0.5rem !important; border-top: 1px solid var(--ddp-color-line); }
+.home-ways li { padding: 0.7rem 0; border-bottom: 1px solid var(--ddp-color-line); }
+.home-ways b { display: block; font-family: var(--ddp-font-serif); font-weight: 600; font-size: var(--ddp-text-base); color: var(--ddp-color-primary); }
+.home-ways p { margin: 0.15rem 0 0; font-size: var(--ddp-text-sm); line-height: 1.55; color: var(--ddp-color-ink-soft); }
+.home-ways a { font-weight: 600; }
+
+/* ---- The level rows (version A1, 2026-11-15) ---- */
+.home-levels { margin-top: 2.4rem; }
+.home-lv-list { margin-top: 0.5rem !important; border-top: 1px solid var(--ddp-color-line); }
+.home-lv { display: grid; grid-template-columns: minmax(15rem, 1fr) minmax(0, 1.55fr) minmax(12rem, 0.9fr); gap: 0.5rem 1.4rem; padding: 0.75rem 0; border-bottom: 1px solid var(--ddp-color-line); align-items: center; }
+.home-lv-t { margin: 0; font-family: var(--ddp-font-serif); font-weight: 600; font-size: var(--ddp-text-lg); color: var(--ddp-color-primary); }
+.home-lv-d { margin: 0.1rem 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); line-height: 1.45; }
+.home-lv-courses { display: flex; flex-wrap: wrap; gap: 0.45rem; }
+.home-bc { display: inline-flex; flex-wrap: wrap; align-items: baseline; gap: 0 0.45em; min-height: 44px; box-sizing: border-box; padding: 0.55rem 0.85rem; background: var(--ddp-color-surface); border: 1px solid var(--ddp-color-line); border-radius: 22px; text-decoration: none; color: inherit; transition: border-color 0.14s ease, box-shadow 0.14s ease; }
+.home-bc:hover, .home-bc:focus-visible { border-color: var(--ddp-color-accent); box-shadow: var(--ddp-shadow); text-decoration: none; }
+.home-bc-t { font-weight: 700; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); line-height: 1.25; }
+.home-bc-n { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); white-space: nowrap; }
+.home-lv-first { display: flex; flex-direction: column; justify-content: center; min-height: 44px; text-decoration: none; border-left: 2px solid var(--ddp-color-secondary); padding-left: 0.75rem; }
+.home-lv-first:hover b, .home-lv-first:focus-visible b { text-decoration: underline; }
+.home-lv-first small { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+.home-lv-first b { font-size: var(--ddp-text-sm); color: var(--ddp-color-accent); font-weight: 600; line-height: 1.35; }
+
+/* ---- Parents' door: one activity, with what to gather. The card is the one bordered thing. ---- */
+.home-parent-grid { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); grid-template-areas: 'intro act' 'rest act'; gap: 1.6rem 3rem; align-items: start; }
+.home-pg-intro { grid-area: intro; }
+.home-pg-rest { grid-area: rest; }
+.home-later { margin: 1.8rem 0; }
+.home-activity { grid-area: act; padding: 1.1rem 1.25rem 1.3rem; background: var(--ddp-color-surface); border: 1px solid var(--ddp-color-line); border-radius: var(--ddp-radius); }
+.home-act-kicker { margin: 0; font-size: var(--ddp-text-sm); color: var(--ddp-color-muted); }
+.home-act-t { margin: 0.1rem 0 0; font-family: var(--ddp-font-serif); font-weight: 600; font-size: var(--ddp-text-2xl); line-height: 1.2; color: var(--ddp-color-primary); }
+.home-act-meta { margin: 0.3rem 0 0; font-size: var(--ddp-text-sm); font-weight: 600; color: var(--ddp-color-ink); }
+.home-act-meta span { font-weight: 400; color: var(--ddp-color-ink-soft); }
+.home-act-hook { margin: 0.5rem 0 0; font-size: var(--ddp-text-base); line-height: 1.55; color: var(--ddp-color-ink-soft); }
+.home-act-fig { margin: 0.9rem 0 0; }
+.home-act-fig img { display: block; width: 100%; height: auto; border-radius: var(--ddp-radius-sm); }
+.home-act-fig figcaption { padding-top: 0.35rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+.home-act-need { margin: 0.9rem 0 0.3rem; font-size: var(--ddp-text-sm); font-weight: 700; color: var(--ddp-color-ink); }
+.home-act-list li { position: relative; padding: 0.16rem 0 0.16rem 1.15rem; font-size: var(--ddp-text-sm); line-height: 1.5; color: var(--ddp-color-ink); }
+.home-act-list li::before { content: ''; position: absolute; left: 0.1rem; top: 0.68em; width: 0.42rem; height: 0.42rem; border: 1.5px solid var(--ddp-color-accent); border-radius: 2px; box-sizing: border-box; }
+.home-act-list li.is-opt { color: var(--ddp-color-ink-soft); }
+.home-act-adult { margin: 0.9rem 0 0; font-size: var(--ddp-text-sm); line-height: 1.55; color: var(--ddp-color-ink-soft); }
+.home-act-adult b { color: var(--ddp-color-ink); }
+.home-act-go { margin: 1rem 0 0; display: flex; flex-wrap: wrap; gap: 0.3rem 1rem; align-items: center; }
+
+/* ---- Teachers' door ---- */
+.home-trio { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.8rem 2.5rem; margin-top: 1.6rem; }
+.home-box { margin-top: 2.4rem; padding-top: 1.6rem; border-top: 1px solid var(--ddp-color-line); max-width: 46rem; }
+.home-match { display: none; margin-top: 0.8rem; }
+html[data-home-js] .home-match { display: block; }
+html[data-home-js] .home-nojs { display: none; }
+.home-match label { display: block; margin: 0.4rem 0 0.3rem; font-size: var(--ddp-text-sm); font-weight: 600; color: var(--ddp-color-ink); }
+.home-match textarea { display: block; width: 100%; min-height: 8.6rem; box-sizing: border-box; padding: 0.7rem 0.85rem; border-radius: var(--ddp-radius-sm); background: var(--ddp-color-surface); color: var(--ddp-color-ink); font: inherit; font-size: 1rem; line-height: 1.5; resize: vertical; }
+.home-match-row { display: flex; flex-wrap: wrap; gap: 0.6rem 0.9rem; align-items: flex-end; margin-top: 0.75rem; }
+.home-match-level { flex: 1 1 11rem; min-width: 0; }
+.home-match select { display: block; width: 100%; min-height: 44px; box-sizing: border-box; padding: 0 0.6rem; border-radius: var(--ddp-radius-sm); background: var(--ddp-color-surface); color: var(--ddp-color-ink); font: inherit; font-size: 1rem; }
+.home-match-said { margin: 1rem 0 0; font-size: var(--ddp-text-base); font-weight: 600; color: var(--ddp-color-ink); }
+.home-match-said:empty, .home-results:empty { display: none; }
+.home-res { margin-top: 0.5rem !important; border-top: 1px solid var(--ddp-color-line); }
+.home-res-topic { padding: 0.7rem 0; border-bottom: 1px solid var(--ddp-color-line); }
+.home-res-t { margin: 0; font-family: var(--ddp-font-serif); font-weight: 600; color: var(--ddp-color-primary); }
+.home-res-none, .home-res-l { margin: 0.15rem 0 0; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); }
+.home-res-l a { display: inline-block; padding: 0.6rem 0; margin: -0.4rem 0; font-weight: 600; }
+.home-res-m { color: var(--ddp-color-muted); }
+
+/* ---- Under every door: what is open, and the work in progress ---- */
+.home-open { margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--ddp-color-line); }
+.home-open-h { margin: 0 0 0.35rem; font-family: var(--ddp-font-serif); font-weight: 600; font-size: var(--ddp-text-xl); color: var(--ddp-color-primary); }
+.home-open-h span { font-family: var(--ddp-font-sans); font-size: var(--ddp-text-sm); font-weight: 600; color: var(--ddp-color-accent); margin-left: 0.4rem; }
+.home-open .home-p { max-width: 78ch; }
+.home-wip { margin-top: 1.4rem; }
+.home-wip p { margin: 0; max-width: 78ch; font-size: var(--ddp-text-sm); line-height: 1.65; color: var(--ddp-color-ink-soft); }
+.home-wip a { font-weight: 600; }
+
+/* ---- Tablet and phone: one column, the thing itself first ---- */
+@media (max-width: 900px) {
+  .home-hero { grid-template-columns: minmax(0, 1fr); padding-top: 0.8rem; gap: 0.6rem; }
+  .home-tagline { margin-top: 0.45rem; font-size: var(--ddp-text-lg); }
+  .home-lede { font-size: var(--ddp-text-base); line-height: 1.5; }
+  .home-search { margin-top: 0.7rem; }
+  .home-byline { margin-top: 0.5rem; font-size: var(--ddp-text-xs); }
+  .home-roles { margin-top: 0.8rem; }
+  .home-roles legend { margin-right: 0.6rem; }
+  .home-role-row { gap: 0.35rem; }
+  .home-role span { min-width: 0; padding-inline: 0.85rem; }
+  .home-door { padding-top: 1rem; }
+  .home-h2 { font-size: var(--ddp-text-2xl); margin-bottom: 0.4rem; }
+  .home-story { font-size: 0.94em; line-height: 1.5; }
+  .home-h3 { font-size: var(--ddp-text-lg); }
+  .home-pair { grid-template-columns: minmax(0, 1fr); margin-top: 0.9rem; gap: 1.8rem; }
+  .home-parent-grid { grid-template-columns: minmax(0, 1fr); grid-template-areas: 'intro' 'act' 'rest'; gap: 1.1rem; }
+  .home-activity { padding: 0.9rem 1rem 1.1rem; }
+  .home-lv { grid-template-columns: minmax(0, 1fr); gap: 0.35rem; padding: 0.7rem 0 0.5rem; }
+  .home-lv-first { display: block; min-height: 0; padding: 0.55rem 0 0.55rem 0.75rem; }
+  .home-lv-first small { margin-right: 0.3rem; }
+  .home-trio { grid-template-columns: minmax(0, 1fr); gap: 1.4rem; margin-top: 1.2rem; }
+  .home-open { margin-top: 2.2rem; padding-top: 1.3rem; }
+}
+@media (max-width: 360px) {
+  .home-roles legend { float: none; width: 100%; line-height: 1.4; }
+  .home-role span { padding-inline: 0.7rem; }
+}
+@media (prefers-reduced-motion: reduce) { .home-bc { transition: none; } }

@@ -1,0 +1,102 @@
+---
+/* The students' door, and the page a first visit sees. In order: the story (three sentences), one
+   idea at every level it is taught, three short ways in for a reader who came for one thing, then
+   the level rows Chris chose on 2026-11-15, open. Old links to /#stage, /#courses, /#lessons and
+   /#goals land inside this door. */
+import { courseHref } from '../../data/courses';
+import { MCAT_SCOPE_NOTE, PATHS } from '../../data/paths';
+import RungList from './RungList.astro';
+import { fmt, word, type HomeData } from './data';
+
+interface Props { d: HomeData }
+const { d } = Astro.props;
+
+/* The idea the door shows at every level: how things cross a cell membrane, starting from the
+   grade 7 lesson on diffusion and osmosis. The story names that lesson, so if it ever loses its
+   rungs the build stops instead of shipping a sentence that is no longer true. */
+const HOP = { from: 'diffusion-and-osmosis', idea: 'getting across a cell membrane' };
+const rungs = d.ladderFrom(HOP.from);
+const g7 = rungs.find((r) => r.stage === 'grade-7');
+if (!g7 || rungs.length < 3) throw new Error(`Homepage: the ladder from "${HOP.from}" has fewer than three levels, so the students' door needs a new example.`);
+for (const id of ['mcat', 'curious']) {
+  if (!PATHS.some((p) => p.id === id)) throw new Error(`Homepage: path "${id}" is not in src/data/paths.ts.`);
+}
+---
+
+<section class="home-door" id="students" data-door="student" aria-labelledby="home-student-h">
+  <h2 class="home-h2" id="home-student-h">Start where you are</h2>
+  <p class="home-story">
+    Everyone starts somewhere different, and we all have blind spots. When a lesson loses you, hop down a level,
+    get the idea, and hop back up. If osmosis stops making sense in high school Biology,
+    <a href={g7.href}>the grade 7 lesson</a> starts with salt on a cucumber slice, and reading the grade 7 version
+    first is how most people get there.
+  </p>
+
+  <div class="home-pair">
+    <div>
+      <h3 class="home-h3" id="home-hop-h">One idea, {word(rungs.length)} levels: {HOP.idea}</h3>
+      <RungList rungs={rungs} label={`${HOP.idea}, simplest level first`} />
+      <p class="home-small">
+        Down a level is the same idea with less machinery. Up is the same idea with more.
+        Looking for a different idea? <a href="/search/">Search every lesson</a>.
+      </p>
+    </div>
+    {/* /#goals still lands here. */}
+    <div id="goals">
+      <h3 class="home-h3">Here for one thing?</h3>
+      <ul class="home-ways">
+        <li>
+          <b>The MCAT</b>
+          <p>
+            Follow <a href="/paths/mcat/">the MCAT path</a> through the biology and biochemistry, or go straight to
+            <a href="/mcat/">practice passages</a>. {MCAT_SCOPE_NOTE}
+          </p>
+        </li>
+        <li>
+          <b>Rather watch than read</b>
+          <p><a href="/films/">The film library</a> has {fmt(d.films)} short films, sorted by level.</p>
+        </li>
+        <li>
+          <b>No exam, just curious</b>
+          <p>
+            <a href="/paths/curious/">Learn for the love of it</a>, in no set order. Or see
+            <a href="/paths/">all {word(PATHS.length)} paths</a>, which put the courses in order for a class, a degree or research.
+          </p>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  {/* One row per level, its courses and its first lesson. `courses` and `lessons` stay as anchors:
+      older links point at /#courses and /#lessons. */}
+  <div class="home-levels" id="stage">
+    <span class="home-anchor" id="courses"></span><span class="home-anchor" id="lessons"></span>
+    <h3 class="home-h3">Or pick your level</h3>
+    <ul class="home-lv-list">
+      {d.rows.map((b) => (
+        <li class="home-lv">
+          <div>
+            <h4 class="home-lv-t">{b.title}</h4>
+            <p class="home-lv-d">{b.here}</p>
+          </div>
+          <ul class="home-lv-courses">
+            {b.cards.map((k) => (
+              <li>
+                <a class="home-bc" href={courseHref(k.c.slug)}>
+                  <span class="home-bc-t">{k.c.title}</span>
+                  <span class="home-bc-n">{k.lessons} {k.lessons === 1 ? 'lesson' : 'lessons'}</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+          {b.first && (
+            <a class="home-lv-first" href={`/lessons/${b.first.slug}/`}>
+              <small>First lesson</small> <b>{b.first.title} →</b>
+            </a>
+          )}
+        </li>
+      ))}
+    </ul>
+    <p class="home-small">Every level is open, and you need no account.</p>
+  </div>
+</section>

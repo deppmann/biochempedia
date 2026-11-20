@@ -1,471 +1,124 @@
 ---
+/* The STEMhop front door: three doors under one hero (2026-11-20).
+
+   Chris asked for less redundancy ("we have the same paths in too many places") and for Students /
+   Parents / Teachers tabs, "each with its own story". So the hero is the same for everyone (the
+   wordmark, the tagline, what this is, search, who makes it, and "Welcome back"), and one choice
+   under it re-forms the rest of the page for that reader. Students is the page a first visit sees;
+   nothing asks. Each door opens with something usable: an idea at every level it is taught, one
+   activity with what to gather, the standards maps.
+
+   The choice is three native radios, so it works with JavaScript off (the stylesheet switches
+   doors), takes arrow keys, and reads as "1 of 3" to a screen reader. Each door has an address
+   (/#students, /#parents, /#teachers; /?role=parent also works with JavaScript on). The visitor's
+   own choice is kept on the device (src/lib/prefs.ts); a link never sets it.
+
+   Kept from version A1 (Chris, 2026-11-15): the hero, one open row per level with a first-lesson
+   link, no hero film. Old links to /#stage, /#courses, /#lessons and /#goals open the students'
+   door; /#wip lands under every door; /#tier-* still redirects to the catalog. Every number and
+   lesson name is counted or read from the data (src/components/home/data.ts), never typed. */
 import BaseLayout from '../layouts/BaseLayout.astro';
 import SiteSearch from '../components/SiteSearch.astro';
 import Wordmark from '../components/Wordmark.astro';
-import Hex from '../components/Hex.astro';
-import { courseHref, unitsFor } from '../data/courses';
-import { PATHS } from '../data/paths';
-import { STAGES, stageOf } from '../data/stages';
+import StudentsDoor from '../components/home/StudentsDoor.astro';
+import ParentsDoor from '../components/home/ParentsDoor.astro';
+import TeachersDoor from '../components/home/TeachersDoor.astro';
+import { fmt, homeData } from '../components/home/data';
 import { COMING_SUBJECTS } from '../data/subjects';
-import { courseCards } from '../lib/catalog';
 import { feedbackUrl } from '../lib/feedback';
-import { getCollection } from 'astro:content';
-import { courseOf } from '../data/courses';
-import rewritten from '../data/recently-rewritten.json';
-import { filmTotal } from '../lib/film-catalog';
+import '../components/home/home.css';
 
-/* The STEMhop front door (2026-11-15, Chris chose mock-up A1: subject tiles, with a first-lesson
-   link on each level row). Top to bottom: the hero (wordmark, tagline, what this is, search,
-   "Welcome back"); pick a subject (Biology, open, with its live counts, and the coming subjects,
-   never links); start where you are (one row per level, its courses and its first lesson); or
-   start from a goal; recently rewritten; more ways in and things to try; one line about the work
-   in progress. The hero film moved to /about/ (Chris: "Ditch the hero film. It can go on the about
-   page"). Every number and name below is counted or read from the data, never typed. */
-const { cards, lessonCount } = await courseCards();
-const courseCount = cards.length;
-const sum = (k: 'films' | 'sims' | 'questions') => cards.reduce((n, c) => n + c[k], 0);
-const fmt = (n: number) => n.toLocaleString('en-US');
-/* Every film count on this page is the film library's (Chris, 2026-11-14: "Make the tally agree with
-   the film page"): lesson films, scientist profiles and method films, from src/lib/film-catalog.ts. */
-const libraryFilms = await filmTotal();
-const STATS = [
-  [lessonCount, lessonCount === 1 ? 'lesson' : 'lessons'],
-  [courseCount, courseCount === 1 ? 'course' : 'courses'],
-  [libraryFilms, 'short films'],
-  [sum('sims'), 'simulations'],
-  [sum('questions'), 'practice questions'],
-] as const;
-
-/* The levels, from src/data/stages.ts, each with its courses in courses.ts order. */
-const bands = STAGES.map((s) => ({ ...s, cards: cards.filter((k) => stageOf(k.c) === s.key) })).filter((s) => s.cards.length > 0);
-
-/* Each level's first lesson: the first lesson of its first course, in that course's unit order
-   (the same order its course page lists). Derived, never typed in. */
-const liveLessons = await getCollection('lessons', ({ data }) => !data.draft);
-const firstLesson = (slug: string) => {
-  const c = courseOf(slug);
-  const first = unitsFor(c, liveLessons.filter((l) => l.data.course === slug))[0]?.entries[0]?.l;
-  return first ? { slug: first.data.slug, title: first.data.title } : null;
-};
-const rows = bands.map((b) => ({ ...b, first: firstLesson(b.cards[0].c.slug) }));
-
-/* The Biology tile's one line: the course at each end of the ladder, and the "going further" courses. */
-const firstCard = cards[0];
-const lastCard = cards[cards.length - 1];
-const WHO: Record<string, string> = { 'ages-5-10': 'for ages 5–10', graduate: 'at graduate level' };
-const whoFor = (k: (typeof cards)[number]) => WHO[stageOf(k.c)] ?? `(${STAGES.find((s) => s.key === stageOf(k.c))?.title ?? ''})`;
-const further = cards.filter((k) => stageOf(k.c) === 'college-further').map((k) => k.c.title);
-const listJoin = (xs: string[]) => (xs.length < 2 ? xs.join('') : `${xs.slice(0, -1).join(', ')} and ${xs[xs.length - 1]}`);
-
-/* "Recently rewritten": the last lessons through the level-up pass (new text, figures and
-   simulation fixes), from src/data/recently-rewritten.json, which scripts/rewritten-shelf.mjs writes
-   from the production record. Static: works with JavaScript off. */
-const live = new Map(liveLessons.map((l) => [l.data.slug, l.data]));
-const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-const day = (d: string) => `${MON[Number(d.slice(5, 7)) - 1]} ${Number(d.slice(8, 10))}`;
-const rewrittenAll = (rewritten as { slug: string; date: string }[]).filter((r) => live.has(r.slug));
-const shelf = rewrittenAll.slice(0, 20).map((r) => {
-  const l = live.get(r.slug)!;
-  return { slug: r.slug, title: l.title, course: courseOf(l.course).title, date: day(r.date) };
-});
-const SHELF_TOP = 4;
-
-/* Or start from a goal: each goal is one chip to its path. A missing path id fails the build
-   instead of shipping a dead chip. */
-interface Goal { label: string; line: string; links: { text: string; href: string; primary?: boolean }[]; ids: string[] }
-const GOALS: Goal[] = [
-  { label: 'Get ready for the MCAT', line: 'The biology and biochemistry the exam leans on, with original MCAT-style questions and a review queue.', ids: ['mcat'], links: [{ text: 'See the MCAT path', href: '/paths/mcat/', primary: true }, { text: 'MCAT practice', href: '/mcat/' }] },
-  { label: 'Keep up with a class I’m taking', line: 'Grades 7–12, or a college biology class. Find your course and work through it in order.', ids: ['school', 'major'], links: [{ text: 'Grades 7–12', href: '/paths/school/' }, { text: 'College', href: '/paths/major/' }] },
-  { label: 'Teach with it', line: 'Free for your classes. Make a class with one link, set the level of help, and see the standards map.', ids: ['teach'], links: [{ text: 'See the teaching path', href: '/paths/teach/', primary: true }, { text: 'Resources for teachers', href: '/teachers/' }] },
-  { label: 'Learn for the love of it', line: 'No exam and no set order. Start with whatever you’ve wondered about.', ids: ['curious'], links: [{ text: 'Start wondering', href: '/paths/curious/', primary: true }] },
-  { label: 'Reach the edge of research', line: 'Climb to the courses that end at the open questions, with the papers behind them.', ids: ['edge'], links: [{ text: 'Climb to the edge', href: '/paths/edge/', primary: true }] },
-];
-for (const g of GOALS) for (const id of g.ids) {
-  if (!PATHS.some((p) => p.id === id)) throw new Error(`Homepage: goal "${g.label}" points at path "${id}", which is not in src/data/paths.ts.`);
-}
-
-const WAYS = [
-  { title: 'MCAT practice', line: 'Passages with data, a diagnostic and topic practice.', href: '/mcat/' },
-  { title: 'For teachers', line: 'Make a class with one link and set the level of help.', href: '/teachers/' },
-  { title: 'The film library', line: `${fmt(libraryFilms)} short films, first questions to current research.`, href: '/films/' },
-  { title: 'Paths', line: 'The MCAT, a class you’re taking, teaching, curiosity, or the edge of research.', href: '/paths/' },
-  { title: 'Study planner', line: 'Say what you want to learn and how much time you have.', href: '/plan/' },
-  { title: `All ${courseCount} courses`, line: 'The full catalog, by level.', href: '/courses/' },
-];
-const TRY = [
-  { title: 'Metabolism Arcade', line: 'Six games from the Biochemistry course: wire the cell, fix a broken enzyme, and drill for the MCAT.', href: '/play' },
-  { title: 'The methods library', line: 'How scientists find things out.', href: '/methods/' },
-  { title: 'The Fun Stuff', line: 'Trading cards, memes, songs and a podcast, made by students in my biochemistry course (BIOL 3030).', href: '/fun' },
-];
+const d = await homeData();
+const coming = COMING_SUBJECTS.map((s) => s.name);
+const comingList = coming.join(' · ');
 ---
 
 <BaseLayout
   title="STEMhop — STEM, one short lesson at a time"
-  description="Free lessons, films and simulations, starting with biology. Ages 5 to graduate school. No account needed, no ads."
+  description="Free biology lessons, films and simulations, from age 5 to graduate school, with more sciences on the way. No account needed, no ads."
 >
   <div class="wrap home">
-    {/* Hero: the wordmark (the page's h1, named "STEMhop"), the tagline, what this is, search, and,
-        for a returning visitor, where they left off. */}
-    <section class="hero" aria-labelledby="home-h1">
-      <div class="hero-mark">
-        <h1 id="home-h1" class="hero-wm"><Wordmark hop size="clamp(3.2rem, 2rem + 4.6vw, 5.4rem)" /></h1>
-        <p class="tagline">STEM, one short lesson at a time.</p>
+    {/* The hero, the same for every reader. */}
+    <section class="home-hero" aria-labelledby="home-h1">
+      <div class="home-mark">
+        <h1 id="home-h1" class="home-wm"><Wordmark hop size="min(clamp(2.5rem, 1.4rem + 5vw, 5.4rem), 17vw)" /></h1>
+        <p class="home-tagline">STEM, one short lesson at a time.</p>
       </div>
-      <div class="hero-side">
-        <p class="lede"><strong>Free</strong> lessons, films, simulations and practice questions, from age 5 to graduate school. Biology is ready now; more subjects are coming. No account needed, no ads.</p>
-        <div class="home-search"><SiteSearch label="Search every lesson" placeholder="Search: try “allostery” or “Ras”" /></div>
-        {/* Filled from this device's saved progress (src/lib/progress.ts); stays
-            hidden for a first visit, without JavaScript, or when storage is blocked. */}
-        <p class="resume" data-resume hidden>
-          <span data-resume-text></span>
-          <a href="/progress/" class="resume-link">Your progress →</a>
+      <div class="home-side">
+        <p class="home-lede">
+          <strong>Free</strong> biology lessons, films and simulations, from age 5 to graduate school, with more
+          sciences on the way. No account, no ads.
         </p>
-        <p class="byline">Made by <a href="/about/">Chris Deppmann</a>, professor of biology at the University of Virginia.</p>
+        <div class="home-search"><SiteSearch label="Search every lesson" placeholder="Search: try “osmosis” or “vaccines”" /></div>
+        <p class="home-byline">Made by <a href="/about/">Chris Deppmann</a>, professor of biology at the University of Virginia.</p>
+        {/* Filled from this device's own records; hidden on a first visit, without JavaScript, or
+            when storage is blocked. */}
+        <p class="home-resume" data-resume hidden>
+          <span data-resume-text></span>
+          <a href="/progress/">Your progress →</a>
+        </p>
       </div>
     </section>
 
-    {/* Pick a subject: Biology is open; the others are named and marked "Coming", never links.
-        On a phone the coming subjects fold into one row of chips. */}
-    <section class="subjects" aria-labelledby="subj-h">
-      <h2 class="sec-h" id="subj-h">Pick a subject</h2>
-      <div class="subj-grid">
-        <div class="leap" aria-hidden="true">
-          <svg class="arc" viewBox="0 0 200 60" preserveAspectRatio="none"><path class="hop-arc" vector-effect="non-scaling-stroke" d="M4 58 Q100 -22 196 58" /></svg>
-          <Hex pose="cheer" size={61} class="leap-hex" />
-        </div>
-        <div class="bio">
-          <div class="bio-top"><h3>Biology</h3><span class="pill-live">Open now</span></div>
-          <ul class="stats">
-            {STATS.map(([n, label]) => <li><b>{fmt(n)}</b><span>{label}</span></li>)}
-          </ul>
-          <p class="incl">
-            From <em>{firstCard.c.title}</em> {whoFor(firstCard)} to <em>{lastCard.c.title}</em> {whoFor(lastCard)}.
-            {further.length > 0 && ` ${listJoin(further)} ${further.length === 1 ? 'is' : 'are'} here too.`}
-          </p>
-          <a class="go" href="/courses/">Start with biology <svg viewBox="0 0 26 12" aria-hidden="true"><path class="hop-arc" d="M1 11 Q13 -4 25 11" /></svg></a>
-        </div>
-        {COMING_SUBJECTS.map((s) => (
-          <div class="soon">
-            <div class="soon-top"><h3>{s.name}</h3><span class="pill-soon">Coming</span></div>
-            <p>{s.note}{s.link && <>{' '}{s.link.before}<a href={s.link.href}>{s.link.text}</a>{s.link.after}</>}</p>
-          </div>
-        ))}
+    {/* The one choice on the page. Student is checked when nothing is known; nothing asks. */}
+    <fieldset class="home-roles">
+      <legend>I’m a</legend>
+      <div class="home-role-row">
+        <label class="home-role"><input type="radio" name="home-role" id="home-role-student" value="student" checked /><span>Student</span></label>
+        <label class="home-role"><input type="radio" name="home-role" id="home-role-parent" value="parent" /><span>Parent</span></label>
+        <label class="home-role"><input type="radio" name="home-role" id="home-role-teacher" value="teacher" /><span>Teacher</span></label>
       </div>
-      <p class="soon-row"><span class="lbl">Coming</span>{COMING_SUBJECTS.map((s) => <span class="sc">{s.name}</span>)}</p>
-    </section>
+      <p class="home-said" role="status"><span class="visually-hidden" data-home-said></span><span aria-hidden="true" data-home-kept hidden>Saved on this device.</span></p>
+    </fieldset>
+    {/* Runs before the doors are drawn, so a returning parent never sees the students' door flash by.
+        A door's own address wins, then an old link to an anchor inside the students' door, then
+        ?role=, then the choice kept on this device (the same order as in home/client.ts). */}
+    <script is:inline>
+      (function () {
+        var ROLES = ['student', 'parent', 'teacher'], DOOR = { students: 'student', parents: 'parent', teachers: 'teacher' };
+        var h = location.hash.slice(1), role = DOOR[h] || null;
+        if (!role && ['stage', 'courses', 'lessons', 'goals'].indexOf(h) >= 0) role = 'student';
+        if (!role) { try { var q = new URLSearchParams(location.search).get('role'); if (ROLES.indexOf(q) >= 0) role = q; } catch (e) {} }
+        if (!role) { try { var p = JSON.parse(localStorage.getItem('stemhop:prefs:v1') || '{}'); if (p && ROLES.indexOf(p.role) >= 0) role = p.role; } catch (e) {} }
+        var el = role && document.getElementById('home-role-' + role);
+        if (el) el.checked = true;
+        document.documentElement.setAttribute('data-home-js', '');
+      })();
+    </script>
 
-    {/* Start where you are: one row per level, its courses as links, and its first lesson.
-        `courses` and `lessons` stay as anchors: older links point at /#courses and /#lessons. */}
-    <section class="levels" id="stage" aria-labelledby="stage-h">
-      <span class="anchor" id="courses"></span><span class="anchor" id="lessons"></span>
-      <h2 class="sec-h" id="stage-h">Start where you are</h2>
-      <ul class="lv-list">
-        {rows.map((b) => (
-          <li class="lv">
-            <div class="lv-head">
-              <h3 class="lv-t">{b.title}</h3>
-              <p class="lv-d">{b.here}</p>
-            </div>
-            <ul class="lv-courses">
-              {b.cards.map((k) => (
-                <li>
-                  <a class="bc" href={courseHref(k.c.slug)}>
-                    <span class="bc-t">{k.c.title}</span>
-                    <span class="bc-n">{k.lessons}</span>
-                  </a>
-                </li>
-              ))}
-            </ul>
-            {b.first && (
-              <a class="lv-first" href={`/lessons/${b.first.slug}/`}>
-                <small>First lesson</small> <b>{b.first.title} →</b>
-              </a>
-            )}
-          </li>
-        ))}
-      </ul>
-      <p class="lv-foot">
-        Anyone can start on any rung, and every lesson has a simpler version of its idea.
-        <a href="/courses/">All {courseCount} courses in full →</a>
+    <StudentsDoor d={d} />
+    <ParentsDoor d={d} />
+    <TeachersDoor d={d} />
+
+    {/* Under every door: what is open (one subject so far, so this is a strip; when a second
+        subject opens, "Pick a subject" belongs back above the doors), and the work in progress. */}
+    <section class="home-open" aria-labelledby="home-open-h">
+      <h2 class="home-open-h" id="home-open-h">Biology <span>Open now</span></h2>
+      <p class="home-p">
+        {fmt(d.lessonCount)} lessons in {d.courseCount} courses, with {fmt(d.films)} short films, {fmt(d.sims)} simulations
+        and {fmt(d.questions)} practice questions. <a href="/courses/">All {d.courseCount} courses, by level →</a>
       </p>
-
-      {/* Or start from a goal (the old "What do you want to do?" chips; /#goals still lands here). */}
-      <div class="goals" id="goals">
-        <h3 class="goals-h">Or start from what you want to do</h3>
-        <ul class="goal-row">
-          {GOALS.map((g) => {
-            const primary = g.links.find((l) => l.primary);
-            const rest = g.links.filter((l) => !l.primary);
-            return (
-              <li class="goal" title={g.line}>
-                {primary ? <a class="goal-main" href={primary.href}>{g.label} →</a> : <span class="goal-main goal-plain">{g.label}:</span>}
-                {rest.map((l) => <a class="goal-sub" href={l.href}>{l.text}</a>)}
-              </li>
-            );
-          })}
-        </ul>
-      </div>
+      {/* Coming subjects are named, never links. */}
+      <p class="home-small">
+        Not built yet: {comingList}.
+        {COMING_SUBJECTS.filter((s) => s.link).map((s) => <>{' '}{s.link!.before}<a href={s.link!.href}>{s.link!.text}</a>{s.link!.after}</>)}
+      </p>
     </section>
-
-    {shelf.length > 0 && (
-      <section class="rewritten" aria-labelledby="rewritten-h">
-        <h2 id="rewritten-h" class="eyebrow">Recently rewritten <span>· new text, figures and fixed simulations · {fmt(rewrittenAll.length)} lessons so far</span></h2>
-        <ul class="rw-list">
-          {shelf.slice(0, SHELF_TOP).map((r) => (
-            <li><a href={`/lessons/${r.slug}/`}><span class="rw-t">{r.title}</span> <span class="rw-m">{r.course} · {r.date}</span></a></li>
-          ))}
-        </ul>
-        {shelf.length > SHELF_TOP && (
-          <details class="rw-more">
-            <summary>{shelf.length - SHELF_TOP} more</summary>
-            <ul class="rw-list">
-              {shelf.slice(SHELF_TOP).map((r) => (
-                <li><a href={`/lessons/${r.slug}/`}><span class="rw-t">{r.title}</span> <span class="rw-m">{r.course} · {r.date}</span></a></li>
-              ))}
-            </ul>
-          </details>
-        )}
-      </section>
-    )}
-
-    <div class="ways">
-      <section aria-labelledby="ways-h">
-        <h2 class="eyebrow" id="ways-h">More ways in</h2>
-        <ul class="also">
-          {WAYS.map((t) => <li><a href={t.href}><b>{t.title}</b><span>{t.line}</span></a></li>)}
-        </ul>
-      </section>
-      <section aria-labelledby="try-h">
-        <h2 class="eyebrow" id="try-h">Things to try</h2>
-        <ul class="try">
-          {TRY.map((t) => <li><a href={t.href}><b>{t.title}</b><span>{t.line}</span></a></li>)}
-        </ul>
-      </section>
-    </div>
 
     {/* The full note is on /about/ ("A work in progress"); old /#wip links land here. */}
-    <section class="wip" id="wip" aria-label="Built in public">
+    <section class="home-wip" id="wip" aria-label="Built in public">
       <p>
-        <strong>Built in public.</strong> Lessons still being checked carry an <em>Under review</em> tag, and
-        chemistry, physics, math and under-fives aren’t built yet.
-        <a href={feedbackUrl()} target="_blank" rel="noopener">Report an error</a> ·
-        <a href="/about/">How it’s made and checked →</a>
+        <strong>Built in public.</strong> I choose what goes in and direct the AI that makes it. AI models from more
+        than one company check the lessons; a person has not yet read every one, and those waiting for my check
+        carry an <a href="/under-review/">Under review</a> tag.
+        <a href={feedbackUrl()} target="_blank" rel="noopener">See something wrong? Tell me</a> ·
+        <a href="/about/#work-in-progress">How it’s made and checked</a> ·
+        <a href="/updates/">What’s new, including {fmt(d.rewrittenCount)} rewritten lessons</a>
       </p>
     </section>
   </div>
 
   <script>
-    import { load, dueNow, onChange, lastLessonAt } from '../lib/progress';
-    import { loadFilms, keepWatching, isWatched, onFilmsChange, resumeHref } from '../lib/film-progress';
-    import { PATHS } from '../data/paths';
-
-    /* The old homepage had #tier-* anchors. The catalog moved to /courses/, so send
-       those hashes to the matching band there. */
-    const OLD_TIERS: Record<string, string> = {
-      'tier-families': 'stage-ages-5-10',
-      'tier-highschool': 'stage-grade-7',
-      'tier-foundation': 'stage-starting-college',
-      'tier-core': 'stage-college-core',
-      'tier-elective': 'stage-college-further',
-      'tier-advanced': 'research',
-    };
-    const oldTier = OLD_TIERS[location.hash.slice(1)];
-    if (oldTier) location.replace(`/courses/#${oldTier}`);
-
-    /* "Welcome back": the last lesson, an unfinished film or play-in-order queue (2026-11-14), questions
-       due and the chosen path, all from this device. The lesson and the film come in the order they
-       were last opened, newest first. Hidden on a first visit, without JavaScript, or with storage blocked. */
-    const box = document.querySelector<HTMLElement>('[data-resume]');
-    const text = document.querySelector<HTMLElement>('[data-resume-text]');
-    const minsLeft = (t: number, d?: number) => (d && d > t ? `about ${Math.max(1, Math.round((d - t) / 60))} min left` : '');
-    type Item = { at: number; label: string; href: string; meta?: string };
-    /* The newest unfinished film: a film stopped part-way, or a course's play-in-order queue. */
-    function filmItem(): Item | null {
-      const r = loadFilms();
-      const part = keepWatching(r);
-      const q = Object.entries(r.q)
-        .filter(([, x]) => x.title && !(isWatched(r, x.f) && x.t < 5))
-        .sort((a, b) => b[1].at - a[1].at)[0];
-      if (q && (!part || q[1].at >= part.at)) {
-        const [course, x] = q;
-        return {
-          at: x.at, label: `Keep watching: ${x.title}`, href: `/films/play/${encodeURIComponent(course)}/`,
-          meta: [x.courseTitle ? `${x.courseTitle}, films in order` : 'films in order', minsLeft(x.t, x.d)].filter(Boolean).join(' · '),
-        };
-      }
-      if (!part) return null;
-      return { at: part.at, label: `Keep watching: ${part.title}`, href: resumeHref(part), meta: [part.course, minsLeft(part.t, part.d)].filter(Boolean).join(' · ') };
-    }
-    function draw() {
-      if (!box || !text) return;
-      const p = load();
-      const due = dueNow(p).length;
-      const path = PATHS.find((x) => x.id === p.path);
-      const film = filmItem();
-      text.textContent = '';
-      if (!p.last && !path && !due && !film) { box.hidden = true; return; }
-      box.hidden = false;
-      let links = 0;
-      const add = (it: Omit<Item, 'at'>) => {
-        const a = document.createElement('a');
-        a.href = it.href; a.textContent = it.label;
-        if (links++) text.append(' · ');
-        text.append(a);
-        if (it.meta) text.append(Object.assign(document.createElement('span'), { className: 'resume-meta', textContent: ` (${it.meta})` }));
-      };
-      text.append('Welcome back. ');
-      const recent: Item[] = [];
-      if (p.last) recent.push({ at: lastLessonAt(p), label: 'Continue your last lesson', href: `/lessons/${p.last}/` });
-      if (film) recent.push(film);
-      recent.sort((a, b) => b.at - a.at).forEach(add);
-      if (due) add({ label: `${due} ${due === 1 ? 'question' : 'questions'} to review`, href: '/review/' });
-      if (path) add({ label: `Your path: ${path.label}`, href: `/paths/${path.id}/` });
-    }
-    onChange(draw);
-    onFilmsChange(draw);
+    import '../components/home/client';
   </script>
-
-  <style>
-    .home { padding-bottom: var(--ddp-space-10, 2.5rem); }
-    .anchor { display: block; height: 0; scroll-margin-top: 5.5rem; }
-    #stage, #goals, #wip { scroll-margin-top: 5.5rem; }
-    .sec-h { font-family: var(--ddp-font-serif); font-weight: 500; font-size: var(--ddp-text-2xl); line-height: 1.2; color: var(--ddp-color-primary); margin: 0 0 0.75rem; }
-    .eyebrow { display: block; margin: 0 0 0.5rem; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ddp-color-primary); }
-    .eyebrow span { text-transform: none; letter-spacing: 0.02em; font-weight: 400; color: var(--ddp-color-muted); }
-    ul { list-style: none; margin: 0; padding: 0; }
-
-    /* ---- Hero ---- */
-    .hero { padding: 2.75rem 0 0.5rem; display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 1rem 3rem; align-items: center; }
-    .hero-wm { margin: 0; line-height: 1; }
-    .tagline { margin: 1.1rem 0 0; font-family: var(--ddp-font-serif); font-size: var(--ddp-text-xl); color: var(--ddp-color-accent); font-style: italic; }
-    .lede { margin: 0; font-size: var(--ddp-text-lg); color: var(--ddp-color-ink-soft); line-height: 1.6; max-width: 46ch; }
-    .lede strong { color: var(--ddp-color-ink); font-weight: 600; }
-    .home-search { margin-top: 1rem; }
-    .home-search :global(.ss-label) { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; margin: 0; }
-    .resume { margin: 0.75rem 0 0; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); display: flex; flex-wrap: wrap; gap: 0.25rem 0.75rem; align-items: baseline; }
-    .resume[hidden] { display: none; }
-    .resume :global(a) { color: var(--ddp-color-accent); font-weight: 600; }
-    .resume :global(.resume-meta) { color: var(--ddp-color-muted); }
-    .byline { margin: 0.6rem 0 0; font-size: var(--ddp-text-sm); color: var(--ddp-color-muted); }
-    .byline a { font-weight: 600; }
-
-    /* ---- Pick a subject ---- */
-    .subjects { padding-top: 2rem; }
-    .subj-grid { position: relative; display: grid; grid-template-columns: minmax(0, 1.35fr) repeat(2, minmax(0, 1fr)); gap: 1rem; margin-top: 3.2rem; }
-    .bio { grid-row: 1 / span 2; display: flex; flex-direction: column; gap: 0.8rem; padding: 1.4rem 1.5rem; background: var(--ddp-color-surface); border: 1.5px solid var(--ddp-color-accent); border-radius: var(--ddp-radius); box-shadow: var(--ddp-shadow); }
-    .bio-top { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; }
-    .bio h3 { margin: 0; font-size: var(--ddp-text-3xl); font-weight: 600; }
-    .stats { display: flex; flex-wrap: wrap; gap: 0.4rem 1.5rem; }
-    .stats li { display: flex; flex-direction: column; }
-    .stats b { font-family: var(--ddp-font-serif); font-size: var(--ddp-text-xl); color: var(--ddp-color-primary); font-weight: 600; line-height: 1.2; }
-    .stats span { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
-    .incl { margin: 0; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); }
-    .go { margin-top: auto; align-self: flex-start; display: inline-flex; gap: 0.5rem; align-items: center; min-height: 44px; box-sizing: border-box; padding: 0.6rem 1.1rem; border-radius: 999px; background: var(--color-navy, #1B2A4A); color: #fff; font-weight: 600; font-size: var(--ddp-text-sm); text-decoration: none; white-space: nowrap; }
-    .go:hover, .go:focus-visible { text-decoration: none; box-shadow: var(--ddp-shadow); color: #fff; }
-    .go svg { display: block; width: 26px; height: 12px; overflow: visible; }
-    .go .hop-arc { stroke: var(--ddp-color-secondary); stroke-dasharray: 1.5 3.5; stroke-width: 1.6; }
-    @media (prefers-color-scheme: dark) { .go, .go:hover, .go:focus-visible { background: var(--ddp-color-accent); color: #0f1522; } .go .hop-arc { stroke: #0f1522; } }
-    .pill-live, .pill-soon { display: inline-block; flex: none; font-family: var(--ddp-font-mono); font-size: 0.7rem; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.15rem 0.55rem; border-radius: 999px; font-weight: 600; }
-    .pill-live { background: color-mix(in srgb, var(--ddp-color-accent) 14%, var(--ddp-color-surface)); color: var(--ddp-color-accent); }
-    .pill-soon { border: 1px dashed var(--ddp-color-muted); color: var(--ddp-color-muted); }
-    .soon { display: flex; flex-direction: column; gap: 0.35rem; padding: 1rem 1.1rem; border: 1.5px dashed color-mix(in srgb, var(--ddp-color-muted) 45%, transparent); border-radius: var(--ddp-radius); }
-    .soon h3 { margin: 0; font-size: var(--ddp-text-xl); color: var(--ddp-color-muted); font-weight: 500; }
-    .soon p { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); line-height: 1.5; }
-    .soon-top { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; }
-    /* Hex hops from Biology over to the coming subjects. */
-    .leap { position: absolute; left: 30%; top: -3.6rem; width: 30%; height: 4.6rem; pointer-events: none; }
-    .leap svg.arc { display: block; width: 100%; height: 100%; overflow: visible; }
-    .leap :global(.leap-hex) { position: absolute; left: 50%; top: -1.4rem; transform: translateX(-50%) rotate(10deg); }
-    .soon-row { display: none; flex-wrap: wrap; align-items: center; gap: 0.35rem 0.4rem; margin: 0.7rem 0 0; font-size: var(--ddp-text-sm); color: var(--ddp-color-muted); }
-    .soon-row .lbl { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; margin-right: 0.2rem; }
-    .soon-row .sc { display: inline-flex; align-items: center; min-height: 30px; padding: 0.15rem 0.65rem; border: 1.5px dashed color-mix(in srgb, var(--ddp-color-muted) 45%, transparent); border-radius: 999px; font-size: var(--ddp-text-xs); }
-
-    /* ---- Start where you are ---- */
-    .levels { padding-top: 2.4rem; }
-    .lv-list { border-top: 1px solid var(--ddp-color-line); }
-    .lv { display: grid; grid-template-columns: minmax(15rem, 1fr) minmax(0, 1.55fr) minmax(12rem, 0.9fr); gap: 0.5rem 1.4rem; padding: 0.7rem 0; border-bottom: 1px solid var(--ddp-color-line); align-items: center; }
-    .lv-t { margin: 0; font-family: var(--ddp-font-serif); font-weight: 600; font-size: var(--ddp-text-lg); color: var(--ddp-color-primary); }
-    .lv-d { margin: 0.1rem 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); line-height: 1.45; }
-    .lv-courses { display: flex; flex-wrap: wrap; gap: 0.45rem; }
-    .bc { display: inline-flex; align-items: baseline; gap: 0.45em; min-height: 40px; box-sizing: border-box; padding: 0.45rem 0.8rem; background: var(--ddp-color-surface); border: 1px solid var(--ddp-color-line); border-radius: 999px; text-decoration: none; color: inherit; transition: border-color 0.14s ease, box-shadow 0.14s ease, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
-    .bc:hover, .bc:focus-visible { border-color: var(--ddp-color-accent); box-shadow: var(--ddp-shadow); text-decoration: none; transform: translateY(-2px) rotate(-1.2deg); }
-    .lv-courses li:nth-child(even) .bc:hover, .lv-courses li:nth-child(even) .bc:focus-visible { transform: translateY(-2px) rotate(1.2deg); }
-    .bc-t { font-weight: 700; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); line-height: 1.25; }
-    .bc-n { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
-    .lv-first { display: flex; flex-direction: column; text-decoration: none; border-left: 2px solid var(--ddp-color-secondary); padding-left: 0.75rem; }
-    .lv-first:hover b, .lv-first:focus-visible b { text-decoration: underline; }
-    .lv-first small { font-family: var(--ddp-font-mono); font-size: 0.68rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ddp-color-secondary-ink); font-weight: 600; }
-    .lv-first b { font-size: var(--ddp-text-sm); color: var(--ddp-color-accent); font-weight: 600; line-height: 1.35; }
-    .lv-foot { margin: 0.75rem 0 0; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); }
-    .lv-foot a { font-weight: 600; }
-    .goals { margin-top: 1.4rem; }
-    .goals-h { margin: 0 0 0.5rem; font-family: var(--ddp-font-serif); font-size: var(--ddp-text-lg); font-weight: 500; color: var(--ddp-color-primary); }
-    .goal-row { display: flex; flex-wrap: wrap; gap: 0.5rem; }
-    .goal { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 0.2rem 0.7rem; padding: 0.35rem 0.9rem; min-height: 44px; box-sizing: border-box; background: var(--ddp-color-surface); border: 1px solid var(--ddp-color-line); border-radius: 999px; }
-    .goal:hover { border-color: var(--ddp-color-accent); }
-    .goal-main { font-family: var(--ddp-font-serif); font-weight: 600; color: var(--ddp-color-primary); text-decoration: none; }
-    .goal-main:hover { text-decoration: underline; }
-    .goal-plain { color: var(--ddp-color-ink); }
-    .goal-sub { font-size: var(--ddp-text-sm); font-weight: 600; color: var(--ddp-color-accent); }
-
-    /* ---- Recently rewritten ---- */
-    .rewritten { padding-top: 2.5rem; }
-    .rw-list { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.5rem; }
-    .rw-list a { display: flex; flex-direction: column; gap: 0.15rem; height: 100%; box-sizing: border-box; padding: 0.55rem 0.75rem; border: 1px solid var(--ddp-color-line); border-radius: 10px; background: var(--ddp-color-surface); text-decoration: none; }
-    .rw-list a:hover { border-color: var(--ddp-color-accent); }
-    .rw-t { font-size: var(--ddp-text-sm); font-weight: 600; color: var(--ddp-color-ink); line-height: 1.35; }
-    .rw-m { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
-    .rw-more { margin-top: 0.45rem; }
-    .rw-more > summary { cursor: pointer; font-size: var(--ddp-text-sm); font-weight: 600; color: var(--ddp-color-accent); padding: 0.3rem 0; }
-    .rw-more[open] > summary { margin-bottom: 0.5rem; }
-
-    /* ---- More ways in + Things to try ---- */
-    .ways { padding-top: 2.5rem; display: grid; grid-template-columns: minmax(0, 1.65fr) minmax(0, 1fr); gap: 1.5rem; }
-    .also { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.5rem; }
-    .also a, .try a { display: flex; flex-direction: column; gap: 0.15rem; height: 100%; box-sizing: border-box; min-height: 44px; padding: 0.65rem 0.85rem; border: 1px solid var(--ddp-color-line); border-radius: var(--ddp-radius-sm); text-decoration: none; transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.14s ease; }
-    .also a { background: color-mix(in srgb, var(--ddp-color-secondary) 8%, var(--ddp-color-surface)); }
-    .try a { background: var(--ddp-color-surface); padding: 0.6rem 0.85rem; }
-    .also a:hover, .also a:focus-visible, .try a:hover, .try a:focus-visible { border-color: var(--ddp-color-accent); text-decoration: none; transform: translateY(-3px) rotate(-0.8deg); box-shadow: var(--ddp-shadow); }
-    .also b, .try b { font-family: var(--ddp-font-serif); font-weight: 600; color: var(--ddp-color-primary); font-size: var(--ddp-text-base); }
-    .also span, .try span { font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.45; }
-    .try { display: grid; gap: 0.5rem; }
-
-    /* ---- Built in public ---- */
-    .wip { margin-top: 2.25rem; }
-    .wip p { margin: 0; padding-top: 1rem; border-top: 1px solid var(--ddp-color-line); max-width: 75ch; font-size: var(--ddp-text-sm); line-height: 1.6; color: var(--ddp-color-ink-soft); }
-    .wip a { font-weight: 600; }
-
-    /* ---- Tablet and phone ---- */
-    @media (max-width: 900px) {
-      .hero { grid-template-columns: minmax(0, 1fr); padding-top: 1.5rem; gap: 1rem; }
-      .subj-grid { grid-template-columns: minmax(0, 1fr); margin-top: 0.75rem; }
-      .bio { grid-row: auto; padding: 1.1rem 1.1rem 1.2rem; }
-      .stats { gap: 0.3rem 1.1rem; }
-      .subj-grid .soon, .leap { display: none; }
-      .soon-row { display: flex; }
-      .lv { grid-template-columns: minmax(0, 1fr); gap: 0.45rem; padding: 0.8rem 0; }
-      .lv-d { display: none; }
-      .lv-t { font-size: var(--ddp-text-base); }
-      .bc { min-height: 36px; padding: 0.35rem 0.7rem; }
-      .lv-first { flex-direction: row; flex-wrap: wrap; align-items: baseline; gap: 0 0.5rem; }
-      .rw-list { display: block; border-top: 1px solid var(--ddp-color-line); }
-      .rw-list a { gap: 0.05rem; padding: 0.45rem 0; border: 0; border-bottom: 1px solid var(--ddp-color-line); border-radius: 0; background: none; }
-      .rw-t { font-weight: 500; }
-      .ways { grid-template-columns: minmax(0, 1fr); }
-      .also { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      .try { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-      .try span { display: none; }
-    }
-    @media (max-width: 640px) { .also span { display: none; } }
-
-    /* ---- Entrance: one calm rise. Off under reduced motion. ---- */
-    @keyframes riseIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
-    .hero-mark, .hero .lede { animation: riseIn 0.5s ease both; }
-    .hero .lede { animation-delay: 0.1s; }
-    @media (prefers-reduced-motion: reduce) {
-      .hero-mark, .hero .lede { animation: none !important; }
-      .bc, .also a, .try a { transition: none; }
-      .bc:hover, .bc:focus-visible, .also a:hover, .also a:focus-visible, .try a:hover, .try a:focus-visible { transform: none !important; }
-    }
-  </style>
 </BaseLayout>

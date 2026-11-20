@@ -1,0 +1,24 @@
+---
+/* One idea at each level it is taught, lowest first: a plain ordered list. Nothing is selected and
+   nothing is ranked. The lesson's title is the link; the line under it is the lesson's own opening
+   question, as text, so link names stay short. */
+import type { Rung } from './data';
+
+interface Props {
+  rungs: Rung[];
+  /** Accessible name for the list. */
+  label: string;
+}
+const { rungs, label } = Astro.props;
+---
+
+<ol class="home-rungs" aria-label={label}>
+  {rungs.map((r) => (
+    <li class="home-rung">
+      <span class="home-rung-level">{r.stageTitle}</span>
+      <a class="home-rung-link" href={r.href}>{r.title}</a>
+      {r.note && <span class="home-rung-note">{r.note}</span>}
+      {r.filmMin && <span class="home-rung-film">Film, about {r.filmMin} min</span>}
+    </li>
+  ))}
+</ol>
