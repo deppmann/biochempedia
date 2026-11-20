@@ -128,14 +128,14 @@ const sections = headings.filter((h) => h.depth === 2 && h.slug && h.text.trim()
 // summaries open with a question).
 const { text: idea, question: ideaIsQuestion } = mainIdeaOf(lesson);
 const skimWords = skim.words + wordsIn(idea) + filmTakeawaysOf(lesson).reduce((n, f) => n + wordsIn(f.takeaways.join(' ')), 0);
+// Figures a skim shows: worksheet figures (ScaffoldFigure, blank labels to fill in) are left out.
+const skimFigures = [...(entry.body ?? '').matchAll(/<LessonFigure\b/g)].length;
 const time = lessonTime({
   tier: course.tier, body: entry.body ?? '', estMinutes: lesson.estMinutes, simulations: lesson.simulations.length,
   explainer: lesson.explainer, films: lesson.films, questions: qCount,
   h2: headings.filter((h) => h.depth === 2), skimWords, skimFigures,
   stories: sideHops ? { audioSec: sideHops.audio.durationSec, hops: sideHops.hops } : undefined,
 });
-// Figures a skim shows: worksheet figures (ScaffoldFigure, blank labels to fill in) are left out.
-const skimFigures = [...(entry.body ?? '').matchAll(/<LessonFigure\b/g)].length;
 const lines = linesFor(time, { figures: skimFigures, laterLooks: !!lesson.activity?.followUp });
 const endings = endingsFor(time);
 const stopOf = (id: string) => time.stops.find((s) => s.id === id);
