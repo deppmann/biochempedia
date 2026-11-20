@@ -21,6 +21,7 @@ const HO = await import('../worker/handoff.js');
 const { sha256Hex } = await import('../worker/auth.js');
 const { clientKey } = await import('../worker/util.js');
 const FILM = await import('../worker/film-count.js');
+const LEARNER = await import('../worker/learner.js');
 
 let n = 0;
 const check = async (name, fn) => { await fn(); n++; console.log('  ok  ' + name); };
@@ -316,8 +317,12 @@ const jar = {};   // name -> { id, cookie }
     const held = () => db.sql.prepare("SELECT COUNT(*) AS n FROM learner_challenges WHERE display_name='ZZDROPPED'").get().n;
     assert.equal(held(), 1);
     db.sql.exec("UPDATE learner_challenges SET expires_at = 1 WHERE display_name='ZZDROPPED'");
-    await call(env, 'GET', '/api/learner/me');   // any visit to the account page sweeps
+    LEARNER._resetSweep();
+    await call(env, 'GET', '/api/learner/me');   // a visit to the account page sweeps
     assert.equal(held(), 0);
+    const mark = db.seen.length;
+    await call(env, 'GET', '/api/learner/me');   // but at most once a minute: the next page view writes nothing
+    assert.ok(!db.seen.slice(mark).some((q) => /^\s*(DELETE|INSERT|UPDATE)/.test(q)));
   });
   await check('nobody else is shown a role: teacher, class and group answers never carry one', async () => {
     for (const f of ['worker/api.js', 'worker/groups.js', 'worker/feedback.js', 'worker/planner.js', 'worker/helper.js']) {
@@ -567,7 +572,7 @@ console.log('the totals: aggregates only, small cells hidden, one answer a day')
     assert.ok(!('withActiveClass30' in d.teachers) && !('withClass' in d.teachers));
   });
   await check('lessons: no grand totals; a lesson is listed only if neither those who opened it nor those who did not are a small group', async () => {
-    assert.deepEqual(d.lessons, { opened: [{ slug: 'mitosis', opened: 11, finished: null }, { slug: 'glycolysis', opened: 10, finished: 10 }], hidden: 2 });
+    assert.deepEqual(d.lessons, { opened: [{ slug: 'mitosis', opened: 11, finished: null }, { slug: 'glycolysis', opened: 10, finished: 10 }], hidden: null });
   });
   await check('class cells count teachers, not classes: one teacher with five periods is never shown as 5', async () => {
     assert.deepEqual(d.classes.byLevel, { 'college-core': null, 'grade-7': null, other: null, 'college-further': null });
@@ -575,7 +580,7 @@ console.log('the totals: aggregates only, small cells hidden, one answer a day')
     assert.deepEqual(d.classes.joinMode, { open: null, approve: 0, roster: null, locked: 0 }, 'roster = 5 classes, but one teacher');
     assert.deepEqual(d.classes.inGroup, { yes: null, no: null });
     assert.deepEqual(d.classWork.assigned, [{ slug: 'glycolysis', classes: 12, teachers: 6 }], 'osmosis is on 5 class lists, all one teacher');
-    assert.equal(d.classWork.hidden, 1);
+    assert.equal(d.classWork.hidden, null, 'a count of 1 lesson not listed is itself a small count');
     assert.ok(!('assignments' in d.classWork));
   });
   await check('answers count students and classes, not rows: 12 quiz answers from one class are hidden', async () => {
@@ -743,7 +748,7 @@ console.log('the totals: aggregates only, small cells hidden, one answer a day')
       if (change === 'open-lesson') t.sql.prepare("UPDATE learner_data SET progress_json=? WHERE learner_id='L25'").run(JSON.stringify({ v: 1, lessons: { glycolysis: { v: 1 } }, items: {} }));
       const two = JSON.parse(await ADMIN.dailyReply(t, E, new Request(ORIGIN), day2));
       const total = two.learners.total; delete two.learners.total; delete two.generated; delete two.learners.newByWeek; delete two.learners.active;
-      assert.deepEqual(two.learners.withNotes, { yes: 0, no: total }); delete two.learners.withNotes;   // nobody has notes here, so this is the plain total again
+      assert.deepEqual(two.learners.withNotes, { yes: 0, no: 30 }, 'the notes pair is held with the rest');
       assert.equal(total, id ? 29 : 30);
       replies.add(JSON.stringify(two));
     }
@@ -759,6 +764,37 @@ console.log('the totals: aggregates only, small cells hidden, one answer a day')
     const three = JSON.parse(await ADMIN.dailyReply(t, E, new Request(ORIGIN), day2 + 26 * 3_600_000));
     assert.deepEqual(three.learners.role, { student: 11, parent: 6, teacher: 7, unset: 11 });
     assert.equal(three.learners.splitsAsOf, three.asOf);
+  });
+  await check('a query that fails on the day a block is republished does not force it out again the next day', async () => {
+    for (const failing of [/json_each\(CASE/, /COALESCE\(role/]) {
+      const replies = new Set();
+      for (const answer of ['student', 'parent', null]) {
+        const t = await world((sql) => addLearners(sql, BIG));
+        const real = t.prepare; let fail = true;
+        t.prepare = (q) => { if (fail && failing.test(q)) throw new Error('a passing database error'); return real(q); };
+        const one = JSON.parse(await ADMIN.dailyReply(t, E, new Request(ORIGIN), now));
+        fail = false;
+        t.sql.prepare('INSERT INTO learners (id, display_name, created_at, last_active_at, role) VALUES (?,?,?,?,?)').run('NEW', 'x', now, now, answer);
+        t.sql.prepare("UPDATE learner_data SET progress_json=? WHERE learner_id='L15'").run(JSON.stringify({ v: 1, lessons: { glycolysis: { v: 1, d: 2 } }, items: {} }));
+        const two = JSON.parse(await ADMIN.dailyReply(t, E, new Request(ORIGIN), day2));
+        assert.deepEqual(two.learners.role, one.learners.role, 'the role split did not move');
+        assert.deepEqual(two.lessons, one.lessons, 'nor did the lesson list');
+        replies.add(strip(JSON.stringify(two)));
+      }
+      assert.equal(replies.size, 1);
+    }
+  });
+  await check('saved plans and class lists need five different people behind them', async () => {
+    const t = await world((sql) => {
+      addLearners(sql, BIG); sql.prepare("INSERT INTO teachers (email, name, password_hash, created_at) VALUES ('t@x.test','x','x',?)").run(T);
+      sql.prepare("INSERT INTO classes (id, teacher_id, name, course, code, created_at, last_activity_at) VALUES ('C1',1,'x','genetics','K1',?,?)").run(T, T);
+      for (let i = 0; i < 5; i++) {
+        sql.prepare("INSERT INTO learner_plans (id, learner_id, title, goal_json, plan_json, start_at, created_at, updated_at) VALUES (?, 'L0', 'x', '{}', '{}', ?, ?, ?)").run('P' + i, T, T, T);
+        sql.prepare("INSERT INTO class_resource_lists (id, class_id, teacher_id, title, items_json, created_at, updated_at) VALUES (?, 'C1', 1, 'x', '[]', ?, ?)").run('R' + i, T, T);
+      }
+    });
+    const o = JSON.parse(await ADMIN.dailyReply(t, E, new Request(ORIGIN), now));
+    assert.deepEqual(o.planner, { savedPlans: null, classLists: null }, 'five plans from one learner, five lists from one teacher');
   });
   const oneTeacher = (sql, course = 'genetics', extra = 0) => {
     for (let i = 0; i < 8; i++) sql.prepare('INSERT INTO teachers (email, name, password_hash, created_at) VALUES (?,?,?,?)').run(`t${i}@x.test`, 'x', 'x', T);

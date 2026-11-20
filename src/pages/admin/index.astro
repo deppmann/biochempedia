@@ -105,11 +105,11 @@ import '../../styles/teach.css';
   interface Stats {
     generated: string; asOf: string; smallCell: number; on: { role: boolean; films: boolean; catalog: boolean };
     learners: null | { total: number; active: Split; newByWeek: Week[] | null; role: Split; signIn: Split; withNotes: Split; splitsAsOf?: string };
-    lessons: null | { opened: { slug: string; opened: number; finished: Cell }[]; hidden: number };
+    lessons: null | { opened: { slug: string; opened: number; finished: Cell }[]; hidden: Cell };
     teachers: null | { total: number; newByWeek: Week[] | null; verified: Split; classes: Split };
     classes: null | { total: Cell; active: Split; splitsAsOf?: string; newByWeek: Week[] | null; byLevel: Split; byCourse: Split; joinMode: Split; size: Split; withAssignments: Split; inGroup: Split; aiFeedbackOn: Split };
     seats: null | { total: Cell; seen: Split; newByWeek: Week[] | null; status: Split };
-    classWork: { assigned: { slug: string; classes: number; teachers: number }[] | null; hidden: number | null; answers30: Split };
+    classWork: { assigned: { slug: string; classes: number; teachers: number }[] | null; hidden: Cell; answers30: Split };
     groups: { total: Cell };
     films: null | { since: string | null; last7: Tot | null; last30: Tot | null; all: Tot | null; byDay: { day: string; started: number; watched: number }[]; byFilm: { film: string; started: number; watched: number; started30: number; watched30: number }[] };
     router: null | { byDay: { day: string; calls: number; errors: number; blocked: number }[] };
@@ -253,7 +253,7 @@ import '../../styles/teach.css';
         h('p', { class: 'adm-sub' }, heldNote(L.splitsAsOf, 'five more accounts exist').trim()),
         split(L.signIn, { google: 'Google only', passkey: 'A passkey only', both: 'Both', neither: 'Neither yet' }),
         h('h3', {}, 'Accounts with notes'),
-        h('p', { class: 'adm-sub' }, 'How many accounts have synced at least one note or highlight. What the notes say is never read.'),
+        h('p', { class: 'adm-sub' }, 'How many accounts have synced at least one note or highlight. What the notes say is never read.' + heldNote(L.splitsAsOf, 'five more accounts exist')),
         split(L.withNotes, { yes: 'With a note or highlight', no: 'With none' }));
     }
 
@@ -265,7 +265,7 @@ import '../../styles/teach.css';
         X.opened.length
           ? table([['Lesson', false], ['Opened by', true], ['Marked done by', true]], X.opened.map((r) => [lessonCell(r.slug), num(r.opened), show(r.finished)]))
           : h('p', { class: 'adm-sub' }, 'No lesson has been opened by five account holders yet.'),
-        X.hidden ? h('p', { class: 'adm-sub' }, `${num(X.hidden)} more ${X.hidden === 1 ? 'lesson has' : 'lessons have'} been opened and ${X.hidden === 1 ? 'is' : 'are'} not listed.`) : null);
+        X.hidden !== 0 ? h('p', { class: 'adm-sub' }, X.hidden === null ? 'A few more lessons have been opened and are not listed.' : `${num(X.hidden)} more lessons have been opened and are not listed.`) : null);
     }
 
     // Teachers, classes and seats
@@ -304,7 +304,7 @@ import '../../styles/teach.css';
         W.assigned?.length
           ? table([['Lesson', false], ['Teachers', true], ['Classes', true]], W.assigned.map((r) => [lessonCell(r.slug), num(r.teachers), num(r.classes)]))
           : h('p', { class: 'adm-sub' }, 'No lesson has been assigned by five teachers yet.'),
-        W.hidden ? h('p', { class: 'adm-sub' }, `${num(W.hidden)} more ${W.hidden === 1 ? 'lesson is' : 'lessons are'} assigned by fewer than five teachers and not listed.`) : null,
+        W.assigned && W.hidden !== 0 ? h('p', { class: 'adm-sub' }, W.hidden === null ? 'A few more lessons are assigned by fewer than five teachers and not listed.' : `${num(W.hidden)} more lessons are assigned by fewer than five teachers and not listed.`) : null,
         h('h3', {}, 'Class work in the last 30 days'),
         split(W.answers30, { quiz: 'Quiz answers (first tries)', idea: 'Opening statements picked', cer: 'Written answers sent', done: 'Lessons marked done', stuck: 'Stuck notes left' }));
     }

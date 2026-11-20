@@ -326,6 +326,8 @@ export async function redeemBridge(db, request, raw) {
 }
 
 // ---- router ----------------------------------------------------------------------------
+let lastSweep = 0;   // when this instance last cleared expired sign-up rows from /me
+export const _resetSweep = () => { lastSweep = 0; };
 /** Returns a Response for /api/learner/* paths, or null for anything else. */
 export async function handleLearner(request, env, db, path, method, url) {
   if (!path.startsWith('/api/learner/')) return null;
@@ -346,8 +348,12 @@ export async function handleLearner(request, env, db, path, method, url) {
   const googleOrigin = onSite ? `https://${HOSTS.primary}` : origin;
 
   if (sub === '/me' && method === 'GET') {
-    // The account page asks this on every visit, which makes it the sweep for dropped sign-ups.
-    await db.prepare('DELETE FROM learner_challenges WHERE expires_at < ?').bind(Date.now()).run().catch(() => {});
+    // The account page asks this on every visit, which makes it the sweep for dropped sign-ups:
+    // at most once a minute per Worker instance, so an ordinary page view writes nothing.
+    if (Date.now() - lastSweep > 60_000) {
+      lastSweep = Date.now();
+      await db.prepare('DELETE FROM learner_challenges WHERE expires_at < ?').bind(Date.now()).run().catch(() => {});
+    }
     const l = await getLearner(db, request);
     if (!l) {
       const res = json({ signedIn: false, googleAvailable: googleOn(env), ...((await roleReady(db)) ? { roleSupported: true } : {}) });

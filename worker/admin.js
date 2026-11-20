@@ -248,7 +248,7 @@ export async function buildStats(db, env, request, now = Date.now()) {
       else if (n >= 1) hidden++;
     }
     opened.sort((a, b) => b.opened - a.opened || (a.slug < b.slug ? -1 : 1));
-    lessons = { opened: opened.slice(0, 200), hidden };
+    lessons = { opened: opened.slice(0, 200), hidden: cell(hidden) };
   }
 
   // Teachers: one three-way split, so no exact count sits beside a hidden one.
@@ -330,7 +330,7 @@ export async function buildStats(db, env, request, now = Date.now()) {
   const classWork = {
     assigned: assigned ? assigned.filter((r) => int(r.t) >= SMALL).map((r) => ({ slug: r.slug, classes: int(r.n), teachers: int(r.t) }))
       .sort((a, b) => b.teachers - a.teachers || b.classes - a.classes || (a.slug < b.slug ? -1 : 1)).slice(0, 200) : null,
-    hidden: assigned ? assigned.filter((r) => int(r.t) < SMALL).length : null,
+    hidden: assigned ? cell(assigned.filter((r) => int(r.t) < SMALL).length) : null,
     answers30: split(kinds, thin),
   };
 
@@ -375,11 +375,11 @@ export async function buildStats(db, env, request, now = Date.now()) {
   }
 
   // Study planner: present only once its own migration is applied. Saved items only (whole-site totals).
-  const savedPlans = await count(db, 'SELECT COUNT(*) AS n FROM learner_plans WHERE created_at < ?', asOf);
-  const planner = savedPlans === null ? null : {
-    savedPlans: cell(savedPlans),
-    classLists: cell(await count(db, 'SELECT COUNT(*) AS n FROM class_resource_lists WHERE created_at < ?', asOf)),
-  };
+  // One learner can save many plans and one teacher many lists, so each needs 5 different people behind it.
+  const plans = await one(db, 'SELECT COUNT(*) AS n, COUNT(DISTINCT learner_id) AS p FROM learner_plans WHERE created_at < ?', asOf);
+  const lists = await one(db, 'SELECT COUNT(*) AS n, COUNT(DISTINCT teacher_id) AS p FROM class_resource_lists WHERE created_at < ?', asOf);
+  const behind = (r) => (r === null ? null : int(r.n) === 0 ? 0 : int(r.p) >= SMALL ? int(r.n) : null);
+  const planner = plans === null ? null : { savedPlans: behind(plans), classLists: behind(lists) };
 
   const stats = {
     generated: new Date(now).toISOString(),
@@ -392,19 +392,22 @@ export async function buildStats(db, env, request, now = Date.now()) {
 }
 
 // ---- held until five more -----------------------------------------------------------------
-// The parts of a reply that are carried forward (see the header). `pick` takes them out of a
-// reply, `put` writes them back into one.
+// The parts of a reply that are carried forward (see the header). `pick` takes the pieces out of
+// a reply, `put` writes them back into one. A piece that comes back null (its query failed, or its
+// table is not there) is never taken into the hold: the old piece is kept. Otherwise one failed
+// query on a day the block is republished would force the whole block out again at the next
+// count, one day later, and that one day's change could be one person's.
 const HELD = {
   learners: {
-    pick: (s) => ({ role: s.learners?.role ?? null, signIn: s.learners?.signIn ?? null, lessons: s.lessons }),
-    put: (s, h, day) => { if (s.learners) { s.learners.role = h.role; s.learners.signIn = h.signIn; s.learners.splitsAsOf = day; } s.lessons = h.lessons; },
-    // Republish early only to add something that was not there at all before (the role column arriving).
-    missing: (h, fresh) => (h.role === null && fresh.role !== null) || (h.lessons === null && fresh.lessons !== null),
+    pick: (s) => ({ role: s.learners?.role ?? null, signIn: s.learners?.signIn ?? null, withNotes: s.learners?.withNotes ?? null, lessons: s.lessons ?? null }),
+    put: (s, h, day) => { if (s.learners) { s.learners.role = h.role; s.learners.signIn = h.signIn; s.learners.withNotes = h.withNotes; s.learners.splitsAsOf = day; } s.lessons = h.lessons; },
   },
   teachers: {
-    pick: (s) => ({ c: s.classes && { byLevel: s.classes.byLevel, byCourse: s.classes.byCourse, joinMode: s.classes.joinMode, size: s.classes.size, withAssignments: s.classes.withAssignments, inGroup: s.classes.inGroup, aiFeedbackOn: s.classes.aiFeedbackOn }, assigned: s.classWork.assigned, hidden: s.classWork.hidden }),
-    put: (s, h, day) => { if (s.classes && h.c) Object.assign(s.classes, h.c, { splitsAsOf: day }); s.classWork.assigned = h.assigned; s.classWork.hidden = h.hidden; },
-    missing: (h, fresh) => h.c === null && fresh.c !== null,
+    pick: (s) => { const c = s.classes || {}; return { byLevel: c.byLevel ?? null, byCourse: c.byCourse ?? null, joinMode: c.joinMode ?? null, size: c.size ?? null, withAssignments: c.withAssignments ?? null, inGroup: c.inGroup ?? null, aiFeedbackOn: c.aiFeedbackOn ?? null, assigned: s.classWork.assigned ?? null, hidden: s.classWork.hidden ?? null, hiddenKnown: s.classWork.assigned !== null }; },
+    put: (s, h, day) => {
+      if (s.classes) Object.assign(s.classes, { byLevel: h.byLevel, byCourse: h.byCourse, joinMode: h.joinMode, size: h.size, withAssignments: h.withAssignments, inGroup: h.inGroup, aiFeedbackOn: h.aiFeedbackOn, splitsAsOf: day });
+      s.classWork.assigned = h.assigned; s.classWork.hidden = h.hidden;
+    },
   },
 };
 
@@ -414,13 +417,18 @@ export function applyHold(stats, base, prev) {
   for (const [name, block] of Object.entries(HELD)) {
     const fresh = block.pick(stats);
     const old = prev?.[name];
-    if (old && base[name] < old.base + STEP && !block.missing(old.held, fresh)) {
+    if (old && base[name] < old.base + STEP) {
       block.put(stats, old.held, old.day);
       next[name] = old;
-    } else {
-      next[name] = { base: base[name], day: stats.asOf, held: fresh };
-      block.put(stats, fresh, stats.asOf);
+      continue;
     }
+    // A release. Keep the old piece wherever the fresh one is missing. ("hidden" is null both when it failed and
+    // when it is a small count, so it follows the list it belongs to.)
+    const held = {};
+    for (const k of Object.keys(fresh)) held[k] = fresh[k] ?? old?.held?.[k] ?? null;
+    if (name === 'teachers' && fresh.hiddenKnown) held.hidden = fresh.hidden;
+    next[name] = { base: base[name], day: stats.asOf, held };
+    block.put(stats, held, stats.asOf);
   }
   return next;
 }
