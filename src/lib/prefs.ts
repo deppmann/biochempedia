@@ -11,9 +11,12 @@
    - It is a hint for picking a sensible default. Every page must work when it is missing, and
      no page may nag for it.
    - Wherever a preference is shown, the reader can change or clear it there.
-   - It stays on this device. Nothing here sends it anywhere. (A signed-in learner's role is kept
-     with the account by src/lib/learner.ts, which copies it into this entry only when the device
-     has no role yet.)
+   - It stays on this device. Nothing here sends it anywhere, and nothing in this entry may ever
+     be sent to the server or stored with an account: a level such as "grade-7" says roughly how
+     old a child is, and the site promises to ask accounts for no age, grade or school.
+   - It is set only by the visitor's own choice on the page that shows it. The optional role on a
+     learner account (src/lib/learner.ts) is a separate thing and is never copied in here.
+   - "Clear everything" must clear it: call clearPrefs().
    - Every read and write is wrapped: with storage blocked (a private window, strict settings)
      nothing is remembered and nothing breaks.
 

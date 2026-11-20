@@ -23,8 +23,10 @@ interface Props {
   ogImage?: string;
   /** Extra <head> tags as [attribute, name, content] triples, e.g. ['property', 'og:video', url]. */
   extraMeta?: [('name' | 'property'), string, string][];
+  /** Leave the analytics script off this page (the owner's /admin/ page, where a secret is typed: no third-party script runs there). */
+  noAnalytics?: boolean;
 }
-const { title, description, ogType = 'website', jsonLd, noindex = false, alternates = [], ogImage: ogImageProp, extraMeta = [] } = Astro.props;
+const { title, description, ogType = 'website', jsonLd, noindex = false, alternates = [], ogImage: ogImageProp, extraMeta = [], noAnalytics = false } = Astro.props;
 const SITE_NAME = 'STEMhop';
 const DEFAULT_DESC =
   'Free lessons, films and simulations, starting with biology. Ages 5 to graduate school. No account needed, no ads.';
@@ -96,7 +98,7 @@ const websiteLd = {
         runs, and the remote file has to stay a plain async tag.
 
         Production only, so `astro dev` sessions do not report as traffic. */}
-    {import.meta.env.PROD && (
+    {import.meta.env.PROD && !noAnalytics && (
       <Fragment>
         <script is:inline async src="https://plausible.io/js/pa-jxoRZ4lv7R_mVBfemACiu.js"></script>
         <script is:inline>

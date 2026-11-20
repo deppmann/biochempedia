@@ -33,7 +33,7 @@ export function safePath(to) {
 const embed = (x) => JSON.stringify(x).replace(/</g, '\\u003c').replace(/>/g, '\\u003e').replace(/&/g, '\\u0026').replace(/\u2028/g, '\\u2028').replace(/\u2029/g, '\\u2029');
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
-const STYLE = 'body{font:17px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;margin:0;color:#1d2433;background:#fbfaf7}main{max-width:34rem;margin:12vh auto;padding:0 1.25rem}h1{font-size:1.35rem;margin:0 0 .6rem}h2{font-size:1.1rem;margin:1.5rem 0 .4rem}p{margin:.5rem 0}button{font:inherit;padding:.55rem 1.1rem;border-radius:.5rem;border:1px solid #1d2433;background:#1d2433;color:#fff;cursor:pointer;margin:.25rem .5rem .25rem 0}button.ghost{background:transparent;color:#1d2433}input[type=text]{font:inherit;padding:.4rem .6rem;width:100%;box-sizing:border-box}label{display:block;margin:.5rem 0}.quiet{color:#5b6475;font-size:.92rem}[hidden]{display:none}';
+const STYLE = 'body{font:17px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;margin:0;color:#1d2433;background:#fbfaf7}main{max-width:34rem;margin:12vh auto;padding:0 1.25rem}h1{font-size:1.35rem;margin:0 0 .6rem}h2{font-size:1.1rem;margin:1.5rem 0 .4rem}p{margin:.5rem 0}button{font:inherit;padding:.55rem 1.1rem;border-radius:.5rem;border:1px solid #1d2433;background:#1d2433;color:#fff;cursor:pointer;margin:.25rem .5rem .25rem 0}button.ghost{background:transparent;color:#1d2433}input[type=text]{font:inherit;padding:.4rem .6rem;width:100%;box-sizing:border-box}label{display:block;margin:.5rem 0}fieldset{border:0;padding:0;margin:1rem 0;min-width:0}legend{padding:0;font-weight:600}.quiet{color:#5b6475;font-size:.92rem}[hidden]{display:none}';
 
 async function sha256b64(text) {
   const d = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
@@ -130,6 +130,12 @@ async function post(p,b){var r=await fetch('/api/learner'+p,{method:'POST',heade
  * passkey for biochemistrypedia.com cannot be used, or made, on stemhop.com). Signing in and making
  * a new account both happen here, on the passkey's own domain, which every browser allows; the
  * hand-off page then carries the new session to the new host.
+ *
+ * The optional role question (worker/learner.js) is asked here too, or an answer given on the new
+ * host's /account/ page would be lost on the way. It shows only when the account page sent the
+ * visitor here with "#role=..." (which it does only once the server keeps roles), and only after
+ * "I am 13 or older" is ticked. The answer rides in the fragment, which browsers never send to a
+ * server, so it is in no request log; it reaches the server in the body of the sign-up request.
  */
 export function signinPage(url, cfg = HOSTS) {
   const q = new URL(url).searchParams;
@@ -142,11 +148,20 @@ export function signinPage(url, cfg = HOSTS) {
 <form id="new"><h2>New here? Make a passkey</h2>
 <label>A name to show on your account <input id="nm" type="text" maxlength="40" required value="${esc(name)}" autocomplete="nickname"></label>
 <label><input id="age" type="checkbox"> I am 13 or older</label>
+<fieldset id="rl" hidden><legend>One optional question: are you here as a student, a parent or a teacher?</legend>
+<label><input type="radio" name="role" value="student"> A student</label>
+<label><input type="radio" name="role" value="parent"> A parent or guardian</label>
+<label><input type="radio" name="role" value="teacher"> A teacher or tutor</label>
+<label><input type="radio" name="role" value="" checked> I'd rather not say</label>
+<p class="quiet">It is about you, the person making the account: a parent answers as a parent. It is not a question about age or grade. Your answer is counted in totals with no names. It isn't shown to teachers or to anyone else, and you can change or clear it on your account page.</p></fieldset>
 <button type="submit">Create account with a passkey</button></form>
 <p id="msg" class="quiet" role="status"></p>
 <p class="quiet">No passkey? On ${esc(cfg.primary)} you can sign in with Google instead. <a href="https://${esc(cfg.primary)}${esc(back)}">Back to ${esc(cfg.primary)}</a></p>`;
   const script = `(function(){
 var C=${C};var msg=document.getElementById('msg');${B64}
+var rl=document.getElementById('rl'),age=document.getElementById('age'),rm=/^#role=(student|parent|teacher|)$/.exec(location.hash||'');
+if(rm){var pick=rl.querySelector('input[value="'+rm[1]+'"]');if(pick)pick.checked=true;age.addEventListener('change',function(){rl.hidden=!age.checked});rl.hidden=!age.checked}
+function role(){if(!rm||rl.hidden)return null;var c=rl.querySelector('input:checked');return c&&c.value?c.value:null}
 function back(){msg.textContent='Done. Taking you back\\u2026';location.replace('/handoff/?to='+encodeURIComponent(C.to))}
 function oops(e){msg.textContent=(e&&e.name==='NotAllowedError')?'No passkey was chosen. Try again, or sign in with Google on '+C.host+'.':String(e&&e.message||e)}
 document.getElementById('go').addEventListener('click',async function(){msg.textContent='';try{
@@ -157,7 +172,7 @@ response:{clientDataJSON:a2b(c.response.clientDataJSON),authenticatorData:a2b(c.
 var v=await post('/passkey/login/verify',{response:resp});if(v.status!==200)throw new Error((v.data&&v.data.error)||'Sign-in failed.');back()}catch(e){oops(e)}});
 document.getElementById('new').addEventListener('submit',async function(ev){ev.preventDefault();msg.textContent='';try{
 var name=document.getElementById('nm').value.trim();if(!name)throw new Error('Please choose a name.');if(!document.getElementById('age').checked)throw new Error('Accounts are for people 13 and older.');
-var o=await post('/passkey/register/options',{displayName:name,age13:true});if(o.status!==200)throw new Error((o.data&&o.data.error)||'Sign-up is not available right now.');
+var o=await post('/passkey/register/options',{displayName:name,age13:true,role:role()});if(o.status!==200)throw new Error((o.data&&o.data.error)||'Sign-up is not available right now.');
 var op=o.data.options;var c=await navigator.credentials.create({publicKey:{challenge:b2a(op.challenge),rp:op.rp,user:{id:b2a(op.user.id),name:op.user.name,displayName:op.user.displayName},pubKeyCredParams:op.pubKeyCredParams,timeout:op.timeout,attestation:op.attestation,authenticatorSelection:op.authenticatorSelection,
 excludeCredentials:(op.excludeCredentials||[]).map(function(x){return{id:b2a(x.id),type:x.type,transports:x.transports}})}});
 var resp={id:c.id,rawId:a2b(c.rawId),type:c.type,clientExtensionResults:c.getClientExtensionResults?c.getClientExtensionResults():{},authenticatorAttachment:c.authenticatorAttachment||undefined,
@@ -241,8 +256,10 @@ export async function mergeEndpoint(request) {
 export function accountScript(cfg = HOSTS) {
   const C = embed({ old: `https://${cfg.legacy}/handoff/signin/`, legacy: cfg.legacy });
   return `(async function(){try{var c=window.PublicKeyCredential&&PublicKeyCredential.getClientCapabilities?await PublicKeyCredential.getClientCapabilities():null;if(c&&c.relatedOrigins===true)return}catch(e){}
-var C=${C};function link(x){return C.old+'?to=%2Faccount%2F'+(x?'&name='+encodeURIComponent(x):'')}
-var m=document.querySelector('main');if(m){var p=document.createElement('p');p.className='tc-note bp-ror-note';p.appendChild(document.createTextNode('On this browser, passkeys for this site are used on '+C.legacy+'. Signing in or making one takes you there and straight back. '));var a=document.createElement('a');a.href=link('');a.textContent='Go there';p.appendChild(a);m.prepend(p)}
+var C=${C};
+function role(){var f=document.querySelector('[data-role-new][data-role-on]');if(!f)return '';var c=f.querySelector('input:checked');return '#role='+encodeURIComponent(c&&!f.hidden?c.value:'')}
+function link(x){return C.old+'?to=%2Faccount%2F'+(x?'&name='+encodeURIComponent(x):'')+role()}
+var m=document.querySelector('main');if(m){var p=document.createElement('p');p.className='tc-note bp-ror-note';p.appendChild(document.createTextNode('On this browser, passkeys for this site are used on '+C.legacy+'. Signing in or making one takes you there and straight back. '));var a=document.createElement('a');a.href=link('');a.textContent='Go there';a.addEventListener('click',function(){a.href=link('')});p.appendChild(a);m.prepend(p)}
 document.addEventListener('click',function(e){var t=e.target&&e.target.closest&&e.target.closest('[data-pk-login],[data-add-pk]');if(!t)return;e.preventDefault();e.stopImmediatePropagation();
 if(t.hasAttribute('data-pk-login')){location.href=link('');return}
 var out=document.querySelector('[data-add-err]')||document.querySelector('[data-add-msg]');if(out)out.textContent='This browser cannot add a passkey for this site here. Link Google instead, or add a passkey from a newer browser.'},true);
