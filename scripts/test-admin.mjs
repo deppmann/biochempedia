@@ -20,6 +20,7 @@ const ADMIN = await import('../worker/admin.js');
 const HO = await import('../worker/handoff.js');
 const { sha256Hex } = await import('../worker/auth.js');
 const { clientKey } = await import('../worker/util.js');
+const FILM = await import('../worker/film-count.js');
 
 let n = 0;
 const check = async (name, fn) => { await fn(); n++; console.log('  ok  ' + name); };
@@ -155,9 +156,12 @@ console.log('before migration 0009 (the code ships first)');
     assert.equal(db.sql.prepare("SELECT COUNT(*) AS n FROM sqlite_master WHERE name='film_counts'").get().n, 0);
   });
   await check('the totals still answer, with role and films marked as not there yet', async () => {
+    db.sql.exec(`UPDATE learners SET created_at = created_at - ${3 * 86_400_000}`);   // totals are "as of the end of yesterday"
     const r = await admin(env);
     assert.equal(r.status, 200, r.text);
     assert.deepEqual(r.data.on, { role: false, films: false, catalog: true });
+    const again = await admin(env);
+    assert.equal(again.status, 200);   // no snapshot table yet: counted fresh each time, still fine
     assert.equal(r.data.learners.total, 2); assert.equal(r.data.learners.role, null); assert.equal(r.data.films, null);
   });
 }
@@ -174,14 +178,18 @@ const env = { CLASSES: db, ASSETS, LEARNER_TEST: '1', ADMIN_TOKEN: SECRET };
   };
   await check('secret not set: the same 404 as any unknown API path, and nothing is written', async () => {
     const off = makeDb();
-    for (const e of [{ CLASSES: off, ASSETS }, { CLASSES: off, ASSETS, ADMIN_TOKEN: '' }, { CLASSES: off, ASSETS, ADMIN_TOKEN: 'short-secret' }]) {
+    const unusable = ['', 'short-secret', 'a passphrase with spaces that is long enough', 'sécret-with-a-non-ascii-letter-0123456789', 'x'.repeat(513)];
+    for (const e of [{ CLASSES: off, ASSETS }, ...unusable.map((t) => ({ CLASSES: off, ASSETS, ADMIN_TOKEN: t }))]) {
       same(await admin(e), 'unset or too short');
-      same(await admin(e, { token: e.ADMIN_TOKEN || 'x' }), 'even when the caller knows a too-short value');
+      if (/^[\x21-\x7e]+$/.test(e.ADMIN_TOKEN || '')) same(await admin(e, { token: e.ADMIN_TOKEN }), 'even when the caller knows the unusable value');
     }
     assert.equal(off.sql.prepare('SELECT COUNT(*) AS n FROM rate_limits').get().n, 0, 'not even a rate-limit row');
   });
   await check('wrong, missing or misplaced secret: the same 404', async () => {
+    const rowsBefore = db.sql.prepare('SELECT COUNT(*) AS n FROM rate_limits').get().n;
     same(await admin(env, { token: '' }), 'no header');
+    same(await admin(env, { token: '', headers: { Authorization: SECRET } }), 'no Bearer');
+    assert.equal(db.sql.prepare('SELECT COUNT(*) AS n FROM rate_limits').get().n, rowsBefore, 'a request with no Bearer header does no database work');
     same(await admin(env, { token: SECRET.slice(0, -1) + 'X' }), 'wrong secret');
     same(await admin(env, { token: SECRET + 'x' }), 'longer');
     same(await admin(env, { token: '', headers: { Authorization: SECRET } }), 'no Bearer');
@@ -199,8 +207,10 @@ const env = { CLASSES: db, ASSETS, LEARNER_TEST: '1', ADMIN_TOKEN: SECRET };
       same(await admin(env, { token: '', path: `/api/admin/stats?token=${SECRET}` }), 'query only');
       same(await admin(env, { path: `/api/admin/stats?token=${SECRET}` }), 'query and header');
       same(await admin(env, { path: '/api/admin/stats?x=1' }), 'any query string at all');
+      same(await admin(env, { token: '', path: `/api/admin/stats?${SECRET}` }), 'the secret as a bare key');
+      same(await admin(env, { token: '', path: `/api/admin/stats?auth=Bearer%20${SECRET}` }), 'the secret inside a value');
     } finally { console.warn = realWarn; }
-    assert.equal(warned.length, 2); assert.ok(warned.every((w) => /ADMIN_TOKEN/.test(w) && !w.includes(SECRET)), 'the warning never repeats the value');
+    assert.equal(warned.length, 4); assert.ok(warned.every((w) => /ADMIN_TOKEN/.test(w) && !w.includes(SECRET)), 'the warning never repeats the value');
   });
   await check('the right secret in the Authorization header: 200, numbers, never cached, no CORS', async () => {
     const r = await admin(env);
@@ -209,6 +219,7 @@ const env = { CLASSES: db, ASSETS, LEARNER_TEST: '1', ADMIN_TOKEN: SECRET };
     assert.equal(r.headers.get('Access-Control-Allow-Origin'), null);
     assert.equal(r.headers.get('Set-Cookie'), null);
     assert.equal(r.data.learners.total, 0); assert.equal(r.data.smallCell, 5);
+    db.sql.exec('DELETE FROM admin_snapshots');
   });
   await check('twenty a minute per connection, then the same 404 even with the right secret', async () => {
     for (let i = 0; i < 20; i++) assert.equal((await admin(env, { ip: '198.51.100.77' })).status, 200);
@@ -218,7 +229,9 @@ const env = { CLASSES: db, ASSETS, LEARNER_TEST: '1', ADMIN_TOKEN: SECRET };
   await check('the page: noindex, in no sitemap or robots file, and the secret never goes to localStorage or a URL', async () => {
     const page = src('src/pages/admin/index.astro');
     assert.match(page, /<BaseLayout[^>]*\bnoindex\b/);
-    assert.ok(!/localStorage/.test(page), 'no localStorage on the admin page');
+    assert.ok(!/localStorage|sessionStorage|indexedDB|document\.cookie/.test(page.replace(/\/\*[\s\S]*?\*\//g, '')), 'the secret is kept in memory only: no browser storage on the admin page');
+    assert.match(page, /<BaseLayout[^>]*\bnoAnalytics\b/, 'no third-party script on the page where the secret is typed');
+    assert.match(src('src/layouts/BaseLayout.astro'), /import\.meta\.env\.PROD && !noAnalytics/);
     assert.ok(!/stats\?/.test(page) && /Authorization/.test(page), 'the secret is sent in a header');
     assert.ok(!/admin/i.test(src('src/pages/sitemap.xml.ts')) && !/admin/i.test(src('src/pages/robots.txt.ts')));
     assert.ok(!/ADMIN_TOKEN"\s*:/.test(src('wrangler.jsonc')), 'the secret is not a var in wrangler.jsonc');
@@ -269,7 +282,8 @@ const jar = {};   // name -> { id, cookie }
     me = await call(genv, 'GET', '/api/learner/me', { cookie: jar.gia.cookie });
     assert.equal(me.data.role, 'teacher');
     const page = src('src/pages/account/index.astro'), lib = src('src/lib/learner.ts');
-    assert.match(page, /holdRole\(pickedRole\(\)\)/); assert.match(page, /takeHeldRole\(\)/);
+    assert.match(page, /holdRole\(back === '\/account\/' \? pickedRole\(\) : null\)/, 'held only when Google returns to /account/'); assert.match(page, /takeHeldRole\(\)/);
+    assert.ok(!/seedRole|writePrefs/.test(page + lib), "the account's role is never copied into the device preferences");
     assert.ok(!/role/.test(/export const googleStartUrl[\s\S]*?;\n/.exec(lib)[0]), 'googleStartUrl takes no role');
     assert.match(lib, /sessionStorage/);
   });
@@ -298,6 +312,15 @@ const jar = {};   // name -> { id, cookie }
       assert.equal(db.sql.prepare(`SELECT COUNT(*) AS n FROM ${t} WHERE learner_id=?`).get(jar.pat.id).n, 0, t);
     }
     assert.equal(db.sql.prepare("SELECT COUNT(*) AS n FROM learners WHERE role='parent'").get().n, 0, 'no orphan role anywhere');
+  });
+  await check('a sign-up that was started and dropped does not keep its name and role past ten minutes', async () => {
+    const o = await call(env, 'POST', '/api/learner/passkey/register/options', { body: { displayName: 'ZZDROPPED', age13: true, role: 'parent' } });
+    assert.equal(o.status, 200);
+    const held = () => db.sql.prepare("SELECT COUNT(*) AS n FROM learner_challenges WHERE display_name='ZZDROPPED'").get().n;
+    assert.equal(held(), 1);
+    db.sql.exec("UPDATE learner_challenges SET expires_at = 1 WHERE display_name='ZZDROPPED'");
+    await call(env, 'GET', '/api/learner/me');   // any visit to the account page sweeps
+    assert.equal(held(), 0);
   });
   await check('nobody else is shown a role: teacher, class and group answers never carry one', async () => {
     for (const f of ['worker/api.js', 'worker/groups.js', 'worker/feedback.js', 'worker/planner.js', 'worker/helper.js']) {
@@ -348,7 +371,7 @@ console.log('the old-domain sign-up page (browsers that cannot use the passkey o
 console.log('the film counter');
 {
   const post = (body, { ip = '203.0.113.5', headers = {}, cookie } = {}) => call(env, 'POST', '/api/film-count', { body, cookie, headers: { 'CF-Connecting-IP': ip, ...headers } });
-  const today = new Date().toISOString().slice(0, 10);
+  const today = FILM.siteDay();
   await check('the table has four columns and nothing else', async () => {
     assert.deepEqual(db.sql.prepare('PRAGMA table_info(film_counts)').all().map((c) => c.name), ['film_key', 'day', 'started', 'watched']);
   });
@@ -388,7 +411,11 @@ console.log('the film counter');
     assert.ok(!keys.some((k) => k.includes('203.0.113')));
     const plain = await clientKey(new Request(ORIGIN, { headers: { 'CF-Connecting-IP': '203.0.113.99' } }));
     assert.ok(!keys.some((k) => k.endsWith(plain)), 'salted: cannot be matched to the sign-in counters');
-    assert.ok(keys.includes('film:m:' + await sha256Hex('film|203.0.113.99')));
+    assert.ok(keys.includes('film:m:' + await sha256Hex(`film|${SECRET}|203.0.113.99`)), 'keyed with a Worker secret');
+    assert.ok(!keys.includes('film:m:' + await sha256Hex('film||203.0.113.99')) && !keys.includes('film:m:' + await sha256Hex('film|203.0.113.99')), 'not findable by hashing every address');
+    const r1 = new Request(ORIGIN, { headers: { 'CF-Connecting-IP': '203.0.113.99' } });
+    assert.equal(await FILM.filmClientKey(r1, { RATE_SALT: 'a', ADMIN_TOKEN: 'b' }), await sha256Hex('film|a|203.0.113.99'));
+    assert.equal(await FILM.filmClientKey(r1, {}), await sha256Hex('film||203.0.113.99'), 'with no secret it falls back to the fixed prefix');
     const text = JSON.stringify(db.sql.prepare('SELECT * FROM film_counts').all()) + JSON.stringify(db.sql.prepare("SELECT * FROM rate_limits WHERE key LIKE 'film:%'").all());
     assert.ok(!/ZZNAME|bp_/.test(text) && !text.includes('203.0.113') && !text.includes(jar.gia.id));
   });
@@ -407,59 +434,91 @@ console.log('the film counter');
     await post({ k: 'glycolysis/explainer', e: 's' }, { ip: '203.0.113.201' });
     assert.equal(db.sql.prepare("SELECT started FROM film_counts WHERE film_key='glycolysis/explainer'").get().started, start + 121, 'another connection still counts');
   });
+  await check('a long body with no stated length is cut off at the limit, not read whole', async () => {
+    let pulled = 0;
+    const stream = new ReadableStream({ pull(c) { pulled++; if (pulled > 50) c.close(); else c.enqueue(new TextEncoder().encode('{"k":"glycolysis/explainer","e":"s","pad":"' + 'x'.repeat(300))); } });
+    const before = JSON.stringify(filmRows(db));
+    const res = await handleApi(new Request(ORIGIN + '/api/film-count', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: stream, duplex: 'half' }), env);
+    assert.equal(res.status, 204);
+    assert.ok(pulled < 10, `stopped reading early (read ${pulled} chunks)`);
+    assert.equal(JSON.stringify(filmRows(db)), before);
+  });
+  await check('once the site-wide allowance is used up, a flood from new addresses writes no new rows', async () => {
+    db.sql.prepare("INSERT OR REPLACE INTO rate_limits (key, count, window_start) VALUES ('film:g:min', 1500, ?)").run(Date.now());
+    const rows = db.sql.prepare('SELECT COUNT(*) AS n FROM rate_limits').get().n;
+    const before = JSON.stringify(filmRows(db));
+    for (let i = 0; i < 20; i++) await post({ k: 'glycolysis/explainer', e: 's' }, { ip: `2001:db8::${i}` });
+    assert.equal(db.sql.prepare('SELECT COUNT(*) AS n FROM rate_limits').get().n, rows);
+    assert.equal(JSON.stringify(filmRows(db)), before);
+    db.sql.exec("DELETE FROM rate_limits WHERE key='film:g:min'");
+  });
   await check('the page sends the film and the event, without cookies, and fails silently', async () => {
     const lib = src('src/lib/film-progress.ts');
     const send = /fetch\('\/api\/film-count',[\s\S]*?\}\)\.catch/.exec(lib)[0];
     assert.match(send, /credentials: 'omit'/);
+    assert.match(send, /referrerPolicy: 'no-referrer'/);
     assert.match(send, /body: JSON\.stringify\(\{ k: key, e \}\)/);
     assert.ok(!/learner|student|nickname|classroom/.test(/\/\/ ---- the anonymous film count[\s\S]*?\n}\n/.exec(lib)[0]), 'the count code knows nothing about accounts or classes');
   });
 }
 
 // =================================================================================================
-console.log('the totals: aggregates only, small cells hidden');
+console.log('the totals: aggregates only, small cells hidden, one answer a day');
 {
   const s = db.sql;
   const now = Date.now();
   const DAYMS = 86_400_000;
-  s.exec('DELETE FROM learner_passkeys; DELETE FROM learner_sessions; DELETE FROM learner_data; DELETE FROM learner_challenges; DELETE FROM learners; DELETE FROM rate_limits;');
-  // 12 learners: 6 students, 1 parent, 0 teachers, 5 who did not say. Every identifying field carries a marker.
-  const roles = ['student', 'student', 'student', 'student', 'student', 'student', 'parent', null, null, null, null, null];
+  const T = now - 2 * DAYMS;                      // everything is counted "as of the end of yesterday"
+  const yesterday = new Date(FILM.siteDay(now) + 'T12:00:00Z').getTime() - DAYMS;
+  const dayStr = (ms) => new Date(ms).toISOString().slice(0, 10);
+  s.exec('DELETE FROM learner_passkeys; DELETE FROM learner_sessions; DELETE FROM learner_data; DELETE FROM learner_challenges; DELETE FROM learners; DELETE FROM rate_limits; DELETE FROM admin_snapshots;');
+  // 22 learners: 12 students, 1 parent, 0 teachers, 9 who did not say. Every identifying field carries a marker.
+  const roles = [...Array(12).fill('student'), 'parent', ...Array(9).fill(null)];
   roles.forEach((role, i) => {
     const id = `ZZID-learner-${i}`;
     s.prepare('INSERT INTO learners (id, display_name, email, google_sub, created_at, last_active_at, role) VALUES (?,?,?,?,?,?,?)')
-      .run(id, `ZZNAME Maria ${i}`, i < 8 ? `zzmail${i}@marker.example` : null, i < 8 ? `ZZSUB-${i}` : null, now - (i % 4) * 7 * DAYMS, now - i * 3 * DAYMS, role);
-    if (i >= 6) s.prepare('INSERT INTO learner_passkeys (credential_id, learner_id, public_key, counter, transports, created_at) VALUES (?,?,?,?,?,?)').run(`ZZCRED-${i}`, id, 'ZZKEY', 0, '[]', now);
+      .run(id, `ZZNAME Maria ${i}`, i < 14 ? `zzmail${i}@marker.example` : null, i < 14 ? `ZZSUB-${i}` : null, T - (i % 3) * 7 * DAYMS, T - i * 2 * DAYMS, role);
+    if (i >= 8) s.prepare('INSERT INTO learner_passkeys (credential_id, learner_id, public_key, counter, transports, created_at) VALUES (?,?,?,?,?,?)').run(`ZZCRED-${i}`, id, 'ZZKEY', 0, '[]', T);
     const lessons = {};
-    if (i < 6) lessons.glycolysis = { v: 1, d: 2 };          // 6 opened, 6 finished
-    if (i < 7) lessons.mitosis = { v: 1, ...(i < 6 ? { d: 2 } : {}) };   // 7 opened, 6 finished: the one who did not is a cell of 1
-    if (i < 3) lessons.osmosis = { v: 1 };                   // 3: hidden
-    if (i < 9) lessons['zz-typed-by-a-learner'] = { v: 1, d: 2 };   // 9, but not a lesson the site has
-    const notebook = i < 5 ? { [`ZZNOTEID-${i}`]: { id: `ZZNOTEID-${i}`, kind: 'note', slug: 'glycolysis', text: 'ZZNOTE my secret diary', updated: now } } : {};
+    if (i < 10) lessons.glycolysis = { v: 1, d: 2 };                      // 10 opened, 10 finished
+    if (i < 11) lessons.mitosis = { v: 1, ...(i < 10 ? { d: 2 } : {}) };  // 11 opened, 10 finished: the one who did not is a cell of 1
+    if (i < 3) lessons.osmosis = { v: 1 };                                // 3: hidden
+    if (i < 20) lessons['mendel-peas'] = { v: 1, d: 2 };                  // 20 of 22: the 2 who did not are a small group, so it is not listed
+    if (i < 15) lessons['zz-typed-by-a-learner'] = { v: 1, d: 2 };        // not a lesson the site has
+    const notebook = i < 7 ? { [`ZZNOTEID-${i}`]: { id: `ZZNOTEID-${i}`, kind: 'note', slug: 'glycolysis', text: 'ZZNOTE my secret diary', updated: now } } : {};
     s.prepare('INSERT INTO learner_data (learner_id, notebook_json, progress_json, updated_at) VALUES (?,?,?,?)')
-      .run(id, JSON.stringify(notebook), i === 11 ? 'not json at all' : JSON.stringify({ v: 1, lessons, items: {} }), now);
+      .run(id, JSON.stringify(notebook), i === 21 ? 'not json at all' : JSON.stringify({ v: 1, lessons, items: {} }), T);
   });
-  // 7 teachers (6 confirmed), 16 classes, 42 seats.
-  for (let i = 0; i < 7; i++) s.prepare('INSERT INTO teachers (email, name, password_hash, email_verified_at, created_at, last_active_at) VALUES (?,?,?,?,?,?)').run(`zzteacher${i}@marker.example`, `ZZTEACHER Ms Rivera ${i}`, 'ZZHASH', i < 6 ? now : null, now - i * DAYMS, now);
-  s.prepare("INSERT INTO groups (id, slug, name, about, created_by, created_at) VALUES ('ZZGROUPID','zzgroup-lincoln-high','ZZGROUP Lincoln High','ZZABOUT',1,?)").run(now);
-  s.prepare("INSERT INTO group_members (group_id, teacher_id, role, status, joined_at) VALUES ('ZZGROUPID',1,'admin','active',?)").run(now);
-  const courses = [...Array(6).fill('genetics'), ...Array(2).fill('cell-biology'), ...Array(2).fill('biochemistry'), ...Array(5).fill('life-science'), 'zz-made-up-course'];
+  // An account made today: it must not show until tomorrow.
+  s.prepare("INSERT INTO learners (id, display_name, created_at, last_active_at, role) VALUES ('ZZID-today','ZZNAME Today',?,?,'teacher')").run(now, now);
+  // 12 teachers (10 confirmed). Teachers 1 to 6 have classes; teacher 7 has five periods of one course alone.
+  for (let i = 0; i < 12; i++) s.prepare('INSERT INTO teachers (email, name, password_hash, email_verified_at, created_at, last_active_at) VALUES (?,?,?,?,?,?)').run(`zzteacher${i}@marker.example`, `ZZTEACHER Ms Rivera ${i}`, 'ZZHASH', i < 10 ? T : null, T - i * DAYMS, T);
+  s.prepare("INSERT INTO groups (id, slug, name, about, created_by, created_at) VALUES ('ZZGROUPID','zzgroup-lincoln-high','ZZGROUP Lincoln High','ZZABOUT',1,?)").run(T);
+  s.prepare("INSERT INTO group_members (group_id, teacher_id, role, status, joined_at) VALUES ('ZZGROUPID',1,'admin','active',?)").run(T);
+  const courses = [...Array(12).fill('genetics'), ...Array(2).fill('cell-biology'), ...Array(6).fill('life-science'), 'zz-made-up-course', ...Array(5).fill('biochemistry')];
   courses.forEach((course, i) => {
     const id = `ZZCLASSID${i}`;
+    const teacher = course === 'biochemistry' ? 7 : (i % 6) + 1;          // one person's five biochemistry periods
     s.prepare('INSERT INTO classes (id, teacher_id, name, course, code, join_mode, created_at, last_activity_at, group_id) VALUES (?,?,?,?,?,?,?,?,?)')
-      .run(id, (i % 6) + 1, `ZZCLASS Period ${i}`, course, `ZZCODE${i}`, i < 9 ? 'open' : 'roster', now - i * DAYMS, now - i * 4 * DAYMS, i === 0 ? 'ZZGROUPID' : null);
-    if (i < 5) s.prepare('INSERT INTO assignments (class_id, lesson_slug, assigned_at) VALUES (?,?,?)').run(id, 'glycolysis', now);
-    if (i < 2) s.prepare('INSERT INTO assignments (class_id, lesson_slug, assigned_at) VALUES (?,?,?)').run(id, 'osmosis', now);
-    if (i < 6) s.prepare('INSERT INTO assignments (class_id, lesson_slug, assigned_at) VALUES (?,?,?)').run(id, 'zz-assigned-free-text', now);
-    for (let k = 0; k < (i < 14 ? 3 : 0); k++) {
-      const r = s.prepare('INSERT INTO students (class_id, nickname, code_hash, status, created_at, last_seen_at) VALUES (?,?,?,?,?,?)').run(id, `ZZNICK kid ${k}`, 'ZZCODEHASH', i === 0 && k < 2 ? 'pending' : 'active', now, now - k * 10 * DAYMS);
-      if (i < 4) s.prepare("INSERT INTO answers (student_id, lesson_slug, kind, item, value, correct, created_at, updated_at) VALUES (?,?,'stuck','',?,NULL,?,?)").run(Number(r.lastInsertRowid), 'glycolysis', 'ZZANSWER I do not get it', now, now);
+      .run(id, teacher, `ZZCLASS Period ${i}`, course, `ZZCODE${i}`, course === 'biochemistry' ? 'roster' : 'open', T - (i % 4) * 7 * DAYMS, T - i * 2 * DAYMS, i === 0 ? 'ZZGROUPID' : null);
+    if (i < 12) s.prepare('INSERT INTO assignments (class_id, lesson_slug, assigned_at) VALUES (?,?,?)').run(id, 'glycolysis', T);   // 6 teachers
+    if (course === 'biochemistry') s.prepare('INSERT INTO assignments (class_id, lesson_slug, assigned_at) VALUES (?,?,?)').run(id, 'osmosis', T);   // 5 classes, 1 teacher
+    if (i < 6) s.prepare('INSERT INTO assignments (class_id, lesson_slug, assigned_at) VALUES (?,?,?)').run(id, 'zz-assigned-free-text', T);
+    for (let k = 0; k < (i < 20 ? 3 : 0); k++) {
+      const r = s.prepare('INSERT INTO students (class_id, nickname, code_hash, status, created_at, last_seen_at) VALUES (?,?,?,?,?,?)').run(id, `ZZNICK kid ${k}`, 'ZZCODEHASH', i === 0 && k < 2 ? 'pending' : 'active', T - 20 * DAYMS, T - k * 10 * DAYMS);
+      if (i < 6) s.prepare("INSERT INTO answers (student_id, lesson_slug, kind, item, value, correct, created_at, updated_at) VALUES (?,?,'stuck','',?,NULL,?,?)").run(Number(r.lastInsertRowid), 'glycolysis', 'ZZANSWER I do not get it', T, T);
+      if (i === 0) for (let q = 0; q < 4; q++) s.prepare("INSERT INTO answers (student_id, lesson_slug, kind, item, value, correct, created_at, updated_at) VALUES (?,?,'quiz',?,'1',1,?,?)").run(Number(r.lastInsertRowid), 'glycolysis', `q${q}`, T, T);   // 12 quiz rows, 3 children, 1 class
     }
   });
-  s.prepare("INSERT INTO router_budget (period, spent_micro, calls, errors, blocked) VALUES (?, 123456, 9, 1, 2)").run('d' + new Date(now).toLocaleDateString('en-CA', { timeZone: 'America/New_York' }));
+  s.prepare('INSERT INTO router_budget (period, spent_micro, calls, errors, blocked) VALUES (?, 123456, 9, 1, 2)').run('d' + dayStr(yesterday));
+  s.prepare('INSERT INTO router_budget (period, spent_micro, calls) VALUES (?, 99, 77)').run('d' + FILM.siteDay(now));
   s.prepare("INSERT INTO router_budget (period, spent_micro, calls) VALUES ('m2026-11', 654321, 40)").run();
   s.prepare("INSERT INTO router_queries (created_at, query, picks) VALUES (?, 'ZZQUERY why is my kid sick', 'glycolysis')").run(now);
-  s.prepare("INSERT INTO film_counts (film_key, day, started, watched) VALUES ('zz-junk-key', ?, 50, 50)").run(new Date(now).toISOString().slice(0, 10));
+  s.exec('DELETE FROM film_counts');
+  const film = s.prepare('INSERT INTO film_counts (film_key, day, started, watched) VALUES (?,?,?,?)');
+  film.run('glycolysis/explainer', dayStr(yesterday), 20, 9); film.run('glycolysis/explainer', dayStr(yesterday - 40 * DAYMS), 5, 5);
+  film.run('osmosis/explainer', dayStr(yesterday), 1, 1); film.run('zz-junk-key', dayStr(yesterday), 50, 50);
+  film.run('glycolysis/explainer', FILM.siteDay(now), 1000, 1000);        // today: left out
 
   const mark = db.seen.length;
   const r = await admin(env, { ip: '198.51.100.9' });
@@ -467,62 +526,83 @@ console.log('the totals: aggregates only, small cells hidden');
   const d = r.data;
   const ran = db.seen.slice(mark);
 
-  await check('whole-site totals are shown as they are, and the three kinds of account stay separate lines', async () => {
-    assert.equal(d.learners.total, 12); assert.equal(d.teachers.total, 7); assert.equal(d.classes.total, 16); assert.equal(d.seats.total, 42);
-    assert.equal(d.learners.active7, 3); assert.equal(d.learners.active30, 10);
-    assert.equal(d.learners.newByWeek.length, 26);
-    assert.equal(d.learners.newByWeek.reduce((a, w) => a + w.n, 0), 12);
+  await check('plain whole-site totals are shown as they are, as of the end of yesterday, and stay separate lines', async () => {
+    assert.equal(d.learners.total, 22, "today's new account is not counted yet"); assert.equal(d.teachers.total, 12); assert.equal(d.classes.total, 26); assert.equal(d.seats.total, 60);
+    assert.equal(d.asOf, dayStr(yesterday));
     assert.ok(!JSON.stringify(Object.keys(d)).match(/people|users|everyone|allAccounts/i), 'no summed "users" figure');
-    assert.deepEqual(d.groups, { total: 1, members: 1 });
+    assert.deepEqual(d.groups, { total: 1 });
   });
-  await check('role split: a cell of 1 is hidden, and the next smallest with it so it cannot be found by subtraction', async () => {
-    assert.deepEqual(d.learners.role, { student: 6, parent: null, teacher: null, unset: 5 });
+  await check('the same day gives the same bytes, whatever happens in between', async () => {
+    s.prepare("INSERT INTO learners (id, display_name, created_at, last_active_at, role) VALUES ('ZZID-late','ZZNAME Late',?,?,'parent')").run(T, T);
+    s.prepare("UPDATE learners SET role='teacher' WHERE id='ZZID-learner-0'").run();
+    s.prepare("UPDATE film_counts SET started = started + 1 WHERE film_key='osmosis/explainer'").run();
+    const again = await admin(env, { ip: '198.51.100.10' });
+    assert.equal(again.text, r.text);
+    assert.equal(s.prepare('SELECT COUNT(*) AS n FROM admin_snapshots').get().n, 1);
+    s.prepare("INSERT INTO admin_snapshots (day, body, made_at) VALUES ('v2:2001-01-01', '{}', 1)").run();
+    s.exec("DELETE FROM admin_snapshots WHERE day NOT LIKE '%2001%'");
+    await admin(env, { ip: '198.51.100.10' });
+    assert.equal(s.prepare("SELECT COUNT(*) AS n FROM admin_snapshots WHERE day LIKE '%2001%'").get().n, 0, 'older days are not kept');
+    s.exec("DELETE FROM learners WHERE id='ZZID-late'; UPDATE learners SET role='student' WHERE id='ZZID-learner-0'; UPDATE film_counts SET started = started - 1 WHERE film_key='osmosis/explainer'; DELETE FROM admin_snapshots;");
   });
-  await check('sign-in method, notes and progress follow the same rule', async () => {
-    assert.deepEqual(d.learners.signIn, { google: 6, passkey: null, both: null, neither: 0 });   // 6 / 4 / 2 / 0
-    assert.deepEqual(d.learners.withNotes, { yes: 5, no: 7 });
-    assert.deepEqual(d.learners.withProgress, { yes: null, no: null });                           // 9 / 3: with one side of a pair hidden, the other would give it away
+  await check('role split: with 1 parent to hide, every group with anyone in it is hidden; the empty one stays 0', async () => {
+    assert.deepEqual(d.learners.role, { student: null, parent: null, teacher: 0, unset: null });
   });
-  await check('a two-way split with one small side hides both sides', async () => {
-    assert.deepEqual(ADMIN.split({ yes: 9, no: 3 }), { yes: null, no: null });
-    assert.deepEqual(d.teachers.verified, { yes: null, no: null });                               // 6 confirmed, 1 not
+  await check('sign-in method and notes follow the same rule; "active lately" and weekly counts are cells too', async () => {
+    assert.deepEqual(d.learners.signIn, { google: 8, passkey: 8, both: 6, neither: 0 });
+    assert.deepEqual(d.learners.withNotes, { yes: 7, no: 15 });
+    assert.equal(d.learners.active7, null, '4 active in 7 days is a small group');
+    assert.equal(d.learners.active30, 15);
+    assert.equal(d.learners.newByWeek.length, 26);
+    assert.ok(d.learners.newByWeek.every((w) => w.n === null || w.n === 0 || w.n >= 5));
+    assert.ok(!('withProgress' in d.learners));
   });
-  await check('per-lesson lists need five learners, never name a lesson the site does not have, and say only how many were left out', async () => {
-    assert.deepEqual(d.lessons.opened, [{ slug: 'mitosis', opened: 7, finished: null }, { slug: 'glycolysis', opened: 6, finished: 6 }]);
-    assert.equal(d.lessons.hidden, 1);
-    assert.equal(d.lessons.opens, 16); assert.equal(d.lessons.finishes, 12);
-    assert.deepEqual(d.classWork.assigned, [{ slug: 'glycolysis', classes: 5 }]);
-    assert.equal(d.classWork.hidden, 1);
+  await check('teachers are one three-way split, with no exact count beside a hidden one', async () => {
+    assert.deepEqual(d.teachers.classes, { active30: null, idle: null, none: null }, '6 active, 1 idle, 5 with none: the 1 must be hidden, so all three are');
+    assert.deepEqual(d.teachers.verified, { yes: null, no: null });
+    assert.ok(!('withActiveClass30' in d.teachers) && !('withClass' in d.teachers));
   });
-  await check('classes by level and by course: small cells hidden, and a hidden course takes its neighbour with it', async () => {
-    assert.deepEqual(d.classes.byLevel, { 'college-core': 8, 'college-further': null, 'grade-7': 5, other: null });
-    assert.deepEqual(d.classes.byCourse, { genetics: null, 'cell-biology': null, biochemistry: null, 'life-science': 5, other: null });
-    assert.deepEqual(d.classes.joinMode, { open: 9, approve: 0, roster: 7, locked: 0 });
+  await check('lessons: no grand totals; a lesson is listed only if neither those who opened it nor those who did not are a small group', async () => {
+    assert.deepEqual(d.lessons, { opened: [{ slug: 'mitosis', opened: 11, finished: null }, { slug: 'glycolysis', opened: 10, finished: 10 }], hidden: 2 });
+  });
+  await check('class cells count teachers, not classes: one teacher with five periods is never shown as 5', async () => {
+    assert.deepEqual(d.classes.byLevel, { 'college-core': null, 'grade-7': null, other: null, 'college-further': null });
+    assert.deepEqual(d.classes.byCourse, { genetics: null, 'cell-biology': null, 'life-science': null, other: null, biochemistry: null });
+    assert.deepEqual(d.classes.joinMode, { open: null, approve: 0, roster: null, locked: 0 }, 'roster = 5 classes, but one teacher');
     assert.deepEqual(d.classes.inGroup, { yes: null, no: null });
+    assert.deepEqual(d.classWork.assigned, [{ slug: 'glycolysis', classes: 12, teachers: 6 }], 'osmosis is on 5 class lists, all one teacher');
+    assert.equal(d.classWork.hidden, 1);
+    assert.ok(!('assignments' in d.classWork));
+  });
+  await check('answers count students and classes, not rows: 12 quiz answers from one class are hidden', async () => {
+    assert.deepEqual(d.classWork.answers30, { quiz: null, idea: 0, cer: 0, done: 0, stuck: null });
     assert.deepEqual(d.seats.status, { active: null, pending: null });
-    assert.deepEqual(d.classWork.answers30, { quiz: 0, idea: 0, cer: 0, done: 0, stuck: 12 });
+    assert.equal(d.seats.seen7, 20); assert.equal(d.classes.active7, null, 'only 4 classes were used in 7 days');
   });
-  await check('films: counted as they are, for films the site has, with nothing about who', async () => {
+  await check('films: whole days only (today left out), for films the site has, with nothing about who', async () => {
     assert.equal(d.on.films, true);
-    assert.deepEqual(d.films.byFilm.map((f) => f.film), ['glycolysis/explainer', 'osmosis/explainer', 'method-pcr/explainer']);
-    assert.deepEqual(d.films.byFilm[0], { film: 'glycolysis/explainer', started: 124, watched: 2, started30: 124, watched30: 2 });
-    assert.equal(d.films.byDay.length, 30); assert.equal(d.films.byDay.at(-1).started, 176);   // every row for the day, a whole-site total (a film later removed from the site still counted)
-    assert.deepEqual(Object.keys(d.films.byFilm[0]).sort(), ['film', 'started', 'started30', 'watched', 'watched30']);
+    assert.deepEqual(d.films.byFilm, [
+      { film: 'glycolysis/explainer', started: 25, watched: 14, started30: 20, watched30: 9 },
+      { film: 'osmosis/explainer', started: 1, watched: 1, started30: 1, watched30: 1 },
+    ]);
+    assert.equal(d.films.byDay.length, 30); assert.equal(d.films.byDay.at(-1).day, dayStr(yesterday)); assert.equal(d.films.byDay.at(-1).started, 71);
+    assert.deepEqual(d.films.last7, { started: 71, watched: 60 }); assert.deepEqual(d.films.all, { started: 76, watched: 65 });
+    assert.match(src('src/pages/admin/index.astro'), /A rough guide, not an exact count/);
+    assert.ok(!/numbers are exact/.test(src('src/pages/admin/index.astro')));
   });
-  await check('curiosity router: calls per day and nothing about cost or questions', async () => {
-    assert.deepEqual(d.router.byDay.at(-1), { day: d.router.byDay.at(-1).day, calls: 9, errors: 1, blocked: 2 });
-    assert.equal(d.router.callsAll, 40);
-    assert.ok(!/micro|spent|usd|cost|token/i.test(JSON.stringify(d.router)));
+  await check('lesson suggester: calls per whole day and nothing about cost or questions', async () => {
+    assert.deepEqual(d.router.byDay.at(-1), { day: dayStr(yesterday), calls: 9, errors: 1, blocked: 2 });
+    assert.ok(!/micro|spent|usd|cost|token|77/i.test(JSON.stringify(d.router)));
   });
 
   // ---- the scan: nothing that looks like a person, a class or an id, anywhere in the reply ------
   const ALLOWED_KEYS = new Set([
-    'generated', 'smallCell', 'on', 'role', 'films', 'catalog', 'learners', 'lessons', 'teachers', 'classes', 'seats', 'classWork', 'groups', 'router', 'planner', 'helpers',
-    'total', 'active7', 'active30', 'newByWeek', 'week', 'n', 'signIn', 'google', 'passkey', 'both', 'neither', 'withNotes', 'withProgress', 'yes', 'no',
-    'student', 'parent', 'teacher', 'unset', 'opens', 'finishes', 'opened', 'finished', 'slug', 'hidden', 'verified', 'withClass', 'withActiveClass30',
-    'byLevel', 'byCourse', 'joinMode', 'open', 'approve', 'roster', 'locked', 'size', 'none', 's1to9', 's10to29', 's30up', 'withAssignments', 'inGroup', 'aiFeedbackOn',
-    'seen7', 'seen30', 'status', 'active', 'pending', 'assignments', 'assigned', 'answers30', 'quiz', 'idea', 'cer', 'done', 'stuck', 'members',
-    'since', 'last7', 'last30', 'all', 'started', 'watched', 'started30', 'watched30', 'byDay', 'day', 'byFilm', 'film', 'callsAll', 'calls', 'errors', 'blocked',
+    'generated', 'asOf', 'smallCell', 'on', 'role', 'films', 'catalog', 'learners', 'lessons', 'teachers', 'classes', 'seats', 'classWork', 'groups', 'router', 'planner',
+    'total', 'active7', 'active30', 'newByWeek', 'week', 'n', 'signIn', 'google', 'passkey', 'both', 'neither', 'withNotes', 'yes', 'no',
+    'student', 'parent', 'teacher', 'unset', 'opened', 'finished', 'slug', 'hidden', 'verified', 'idle', 'none',
+    'byLevel', 'byCourse', 'joinMode', 'open', 'approve', 'roster', 'locked', 'size', 's1to9', 's10to29', 's30up', 'withAssignments', 'inGroup', 'aiFeedbackOn',
+    'seen7', 'seen30', 'status', 'active', 'pending', 'assigned', 'answers30', 'quiz', 'idea', 'cer', 'done', 'stuck',
+    'since', 'last7', 'last30', 'all', 'started', 'watched', 'started30', 'watched30', 'byDay', 'day', 'byFilm', 'film', 'calls', 'errors', 'blocked',
     'savedPlans', 'classLists', 'other',
   ]);
   const siteKeys = new Set([...CATALOG.levels.map((l) => l[0]), ...Object.keys(CATALOG.courses), ...Object.keys(CATALOG.lessons), ...Object.keys(CATALOG.films)]);
@@ -546,35 +626,86 @@ console.log('the totals: aggregates only, small cells hidden');
     assert.ok(!/123456|654321/.test(r.text), 'no spend figure');
     for (const row of s.prepare('SELECT id FROM learners').all()) assert.ok(!r.text.includes(row.id));
   });
-  await check('every statement it ran was a count or a sum, or read a table that holds no person', async () => {
-    const own = ran.filter((q) => !/\brate_limits\b/.test(q));
+  await check('every statement it ran was a count or a sum, or read a table that holds no person; typed lesson keys never leave the database', async () => {
+    const own = ran.filter((q) => !/\brate_limits\b|\badmin_snapshots\b/.test(q));
     assert.ok(own.length > 30);
     for (const q of own) {
       assert.match(q, /^\s*SELECT\b/i, q);
-      const anonymous = /\bFROM (router_budget|planner_budget|helper_budget|film_counts)\b/.test(q) || /LIMIT 0\s*$/.test(q);
+      const anonymous = /\bFROM (router_budget|film_counts)\b/.test(q) || /LIMIT 0\s*$/.test(q);
       assert.ok(anonymous || /\b(COUNT|SUM)\(/.test(q), 'not an aggregate: ' + q);
       assert.ok(!/\b(display_name|nickname|email|name|code|code_hash|about|note|query|draft|final|answer|password_hash|token_hash|credential_id|public_key|notebook_json AS|progress_json AS)\b(?!_)/.test(q.replace(/email_verified_at/g, '')), 'names a private column: ' + q);
-      assert.ok(!/SELECT[^(]*\b(id|learner_id|student_id|teacher_id|class_id|group_id)\b\s*(,|FROM)/.test(q), 'selects an id: ' + q);
+      // What the statement hands back (its own select list, with the counts taken out) names no id.
+      const handsBack = q.slice(0, q.search(/\bFROM\b/)).replace(/COUNT\((DISTINCT )?[^)]*\)/g, 'COUNT').replace(/[\w.]+ IS (NOT )?NULL/g, 'TEST');
+      assert.ok(!/\b(id|learner_id|student_id|teacher_id|class_id|group_id)\b/.test(handsBack), 'selects an id: ' + q);
+      if (/json_each\(CASE/.test(q) || /lesson_slug AS slug/.test(q)) assert.match(q, /JOIN json_each\(\?1\)/, 'joined to the site\'s lesson list inside SQL: ' + q);
     }
   });
-  await check('the split rules themselves', async () => {
-    assert.equal(ADMIN.cell(0), 0); assert.equal(ADMIN.cell(4), null); assert.equal(ADMIN.cell(1), null); assert.equal(ADMIN.cell(5), 5);
+
+  await check('the split rules themselves, with the cases the review found', async () => {
     assert.deepEqual(ADMIN.split({ a: 10, b: 7, c: 0 }), { a: 10, b: 7, c: 0 });
-    assert.deepEqual(ADMIN.split({ a: 10, b: 7, c: 2 }), { a: 10, b: null, c: null });
-    assert.deepEqual(ADMIN.split({ a: 10, b: 3, c: 2 }), { a: 10, b: null, c: null });
-    assert.deepEqual(ADMIN.split({ a: 3, b: 0, c: 0 }), { a: null, b: null, c: null }, 'a split that adds up to under 5 is hidden whole');
+    assert.deepEqual(ADMIN.split({ a: 10, b: 7, c: 2 }), { a: null, b: null, c: null });
+    assert.deepEqual(ADMIN.split({ a: 10, b: 7, c: 2, d: 0 }), { a: null, b: null, c: null, d: 0 });
+    assert.deepEqual(ADMIN.split({ a: 3, b: 0, c: 0 }), { a: null, b: null, c: null }, 'one cell holds everyone: the zeros would give it away');
+    assert.deepEqual(ADMIN.split({ a: 1, b: 1, c: 0 }), { a: null, b: null, c: null }, 'every filled cell holds one: the zeros would give them away');
     assert.deepEqual(ADMIN.split({ a: 0, b: 0 }), { a: 0, b: 0 });
-    assert.deepEqual(ADMIN.split({ a: 4 }), { a: null });
+    assert.deepEqual(ADMIN.split({ student: 10, parent: 1, teacher: 1, unset: 0 }), { student: null, parent: null, teacher: null, unset: 0 }, 'review: two hidden cells adding up to 2 were recoverable');
+    assert.deepEqual(ADMIN.split({ student: 10, parent: 1, teacher: 0, unset: 0 }), { student: null, parent: null, teacher: 0, unset: 0 }, 'review: the complement must not be a zero cell');
+    assert.deepEqual(ADMIN.split({ a: 10, b: 1, c: 1, d: 1 }), { a: null, b: null, c: null, d: null });
+    assert.deepEqual(ADMIN.split({ a: 5, b: 4, c: 4 }), { a: null, b: null, c: null }, 'the case a rule-aware reader could solve under "hide the next smallest"');
+    assert.deepEqual(ADMIN.split({ a: 9, b: 3 }), { a: null, b: null });
+    assert.deepEqual(ADMIN.split({ a: 9, b: 6, c: 8 }, ['b']), { a: null, b: null, c: null }, 'a forced cell (too few people behind it) is protected like a small one');
+    assert.equal(ADMIN.part(6, 7), null); assert.equal(ADMIN.part(7, 7), 7); assert.equal(ADMIN.part(6, 12), 6); assert.equal(ADMIN.part(11, 12), null); assert.equal(ADMIN.part(0, 12), 0);
     const nest = ADMIN.nestedSplit({ x1: 6, x2: 2, y1: 9, z1: 3, z2: 4 }, (k) => k[0]);
     assert.deepEqual(nest.byParent, { x: 8, y: 9, z: 7 });
     assert.deepEqual(nest.byChild, { x1: null, x2: null, y1: 9, z1: null, z2: null });
     const hid = ADMIN.nestedSplit({ x1: 2, y1: 6, y2: 5, z1: 30 }, (k) => k[0]);
-    assert.deepEqual(hid.byParent, { x: null, y: null, z: 30 });
-    assert.deepEqual(hid.byChild, { x1: null, y1: null, y2: null, z1: 30 }, 'a hidden level hides its courses');
+    assert.deepEqual(hid.byParent, { x: null, y: null, z: null });
+    assert.deepEqual(hid.byChild, { x1: null, y1: null, y2: null, z1: null }, 'a hidden level hides its courses');
+  });
+  await check('property: for every split of up to 4 cells with values 0 to 9, no hidden cell can be worked out from the shown cells and the total, even by a reader who knows the rule', async () => {
+    for (const width of [2, 3, 4]) {
+      const groups = new Map();
+      const cellsOf = (i) => Array.from({ length: width }, (_, k) => Math.floor(i / 10 ** k) % 10);
+      for (let i = 0; i < 10 ** width; i++) {
+        const v = cellsOf(i);
+        const out = ADMIN.split(Object.fromEntries(v.map((x, k) => ['c' + k, x])));
+        const key = v.reduce((a, b) => a + b, 0) + '|' + JSON.stringify(out);     // what a reader sees: the shown cells and the total
+        if (!groups.has(key)) groups.set(key, []);
+        groups.get(key).push(v);
+      }
+      for (const [key, inputs] of groups) {
+        const out = Object.values(JSON.parse(key.slice(key.indexOf('|') + 1)));
+        out.forEach((shown, k) => {
+          if (shown !== null) { assert.ok(shown === 0 || shown >= 5, key); return; }
+          const possible = new Set(inputs.map((v) => v[k]));
+          assert.ok(possible.size >= 2, `cell ${k} of ${key} can only be ${[...possible]}`);
+        });
+      }
+    }
+  });
+  await check('property: across every way 9 or 13 accounts can answer the role question, the whole reply never pins down a hidden role count', async () => {
+    const quiet = { fetch: ASSETS.fetch };
+    for (const N of [9, 13]) {
+      const groups = new Map();
+      for (let a = 0; a <= N; a++) for (let b = 0; a + b <= N; b++) for (let c = 0; a + b + c <= N; c++) {
+        const t = makeDb();
+        const mix = [...Array(a).fill('student'), ...Array(b).fill('parent'), ...Array(c).fill('teacher'), ...Array(N - a - b - c).fill(null)];
+        const ins = t.sql.prepare('INSERT INTO learners (id, display_name, created_at, last_active_at, role) VALUES (?,?,?,?,?)');
+        mix.forEach((role, i) => ins.run('L' + i, 'x', T, T, role));
+        const reply = await ADMIN.buildStats(t, { ASSETS: quiet }, new Request(ORIGIN), now);
+        delete reply.generated;
+        const key = JSON.stringify(reply);
+        if (!groups.has(key)) groups.set(key, []);
+        groups.get(key).push([a, b, c, N - a - b - c]);
+      }
+      for (const [key, mixes] of groups) {
+        const role = Object.values(JSON.parse(key).learners.role);
+        role.forEach((shown, k) => { if (shown === null) assert.ok(new Set(mixes.map((m) => m[k])).size >= 2, `N=${N}: role cell ${k} can only be ${mixes[0][k]} given ${JSON.stringify(JSON.parse(key).learners.role)}`); });
+      }
+    }
   });
 }
 
-// =================================================================================================
 console.log('the shared preferences helper (src/lib/prefs.ts)');
 {
   const store = new Map();

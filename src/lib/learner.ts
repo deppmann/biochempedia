@@ -18,7 +18,7 @@ import { startRegistration, startAuthentication } from '@simplewebauthn/browser'
 import { loadNotebook, mergeItems, NOTEBOOK_KEY, NOTEBOOK_EVENT } from './notebook';
 import { load as loadProgress, STORAGE_KEY as PROGRESS_KEY, CHANGE_EVENT as PROGRESS_EVENT, type Progress } from './progress';
 import { mergeProgress, sameJson } from './learner-merge.mjs';
-import { readPrefs, writePrefs, isRole, type Role } from './prefs';
+import { isRole, type Role } from './prefs';
 
 const CACHE_KEY = 'biochempedia:learner:v1';
 export const LEARNER_EVENT = 'bp-learner';
@@ -79,7 +79,7 @@ export async function getMe(): Promise<Me> {
   try {
     const { status, data } = await api('/me');
     if (status !== 200 || !data) return { signedIn: false, googleAvailable: false };
-    if (data.signedIn) { writeCache({ ...readCache(), name: data.name }); seedRole(data.role); }
+    if (data.signedIn) writeCache({ ...readCache(), name: data.name });
     else if (readCache().name) writeCache(null);
     return data as Me;
   } catch {
@@ -192,15 +192,11 @@ export async function setRole(role: Role | null): Promise<Outcome> {
     const r = await api('/role', { method: 'PUT', body: JSON.stringify({ role }) });
     if (r.status !== 200) return { ok: false, error: r.data?.error || 'Could not save that. Please try again.' };
   } catch { return { ok: false, error: 'No connection. Please try again.' }; }
-  seedRole(role);
   return { ok: true };
 }
-
-/** Copy an account's role into this device's preferences (src/lib/prefs.ts), only if the device
- *  has none: a role the reader chose on this device is theirs and is never overwritten from here. */
-export function seedRole(role: unknown): void {
-  if (isRole(role) && !readPrefs().role) writePrefs({ role });
-}
+/* The account's role lives on the server and nowhere else. It is NOT copied into this device's
+   preferences (src/lib/prefs.ts): those are set only by the visitor's own choice on the page that
+   shows them, and clearing or deleting the account's answer leaves nothing behind in the browser. */
 
 /* Sign-in with Google leaves the page and comes back. A role chosen before leaving waits here, in
    this tab only, and is sent once the learner is signed in. It is never put in a web address. */

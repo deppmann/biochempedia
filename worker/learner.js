@@ -159,7 +159,9 @@ async function createLearner(db, { id = randomToken(16), name, email = null, goo
 async function startFlow(db, purpose, challenge, { learnerId = null, displayName = null, extra = null } = {}) {
   const raw = randomToken();
   const now = Date.now();
-  if (Math.random() < 0.1) await db.prepare('DELETE FROM learner_challenges WHERE expires_at < ?').bind(now).run().catch(() => {});
+  // Every time, not now and then: a sign-up that was started and dropped holds the chosen name (and
+  // role), and must not sit here past its ten minutes on a quiet day. (Also swept on each /me, below.)
+  await db.prepare('DELETE FROM learner_challenges WHERE expires_at < ?').bind(now).run().catch(() => {});
   await db.prepare('INSERT INTO learner_challenges (id, purpose, challenge, learner_id, display_name, extra, created_at, expires_at) VALUES (?,?,?,?,?,?,?,?)')
     .bind(await sha256Hex(raw), purpose, challenge, learnerId, displayName, extra, now, now + FLOW_MS).run();
   return raw;
@@ -344,6 +346,8 @@ export async function handleLearner(request, env, db, path, method, url) {
   const googleOrigin = onSite ? `https://${HOSTS.primary}` : origin;
 
   if (sub === '/me' && method === 'GET') {
+    // The account page asks this on every visit, which makes it the sweep for dropped sign-ups.
+    await db.prepare('DELETE FROM learner_challenges WHERE expires_at < ?').bind(Date.now()).run().catch(() => {});
     const l = await getLearner(db, request);
     if (!l) {
       const res = json({ signedIn: false, googleAvailable: googleOn(env), ...((await roleReady(db)) ? { roleSupported: true } : {}) });

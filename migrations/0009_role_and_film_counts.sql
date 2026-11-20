@@ -1,9 +1,12 @@
 -- An optional role on learner accounts, and an anonymous count of films played.
 -- Database: biochempedia-classes, bound as CLASSES.
 --
--- Both are for the owner's totals page (worker/admin.js, GET /api/admin/stats), which shows
+-- All of it is for the owner's totals page (worker/admin.js, GET /api/admin/stats), which shows
 -- counts only. The code ships before this migration: until it is applied the account page asks
 -- no question and the film counter answers quietly and stores nothing.
+--
+-- Applying migrations applies every one not yet applied: if 0007 (study planner) is still
+-- waiting, this command applies it too and the planner goes live (see wrangler.jsonc).
 --
 -- 1. learners.role: "student", "parent" or "teacher", or NULL for not asked or not answered.
 --    Asked once, optionally, when an account is made (13 and older, as before), and changeable
@@ -17,9 +20,19 @@ ALTER TABLE learners ADD COLUMN role TEXT CHECK (role IN ('student', 'parent', '
 --    address or time of day in a row, so a row cannot be tied to a viewer (worker/film-count.js).
 CREATE TABLE IF NOT EXISTS film_counts (
   film_key  TEXT NOT NULL,                -- the film's file under /explainers/, as in src/lib/film-progress.ts
-  day       TEXT NOT NULL,                -- YYYY-MM-DD, UTC
+  day       TEXT NOT NULL,                -- YYYY-MM-DD, the site's day (US Eastern)
   started   INTEGER NOT NULL DEFAULT 0,
   watched   INTEGER NOT NULL DEFAULT 0,
   PRIMARY KEY (film_key, day)
 );
 CREATE INDEX IF NOT EXISTS idx_film_counts_day ON film_counts(day);
+
+-- 3. admin_snapshots: the owner's totals, as sent, one row for the current day. The totals are
+--    counted once a day (as of the end of the day before) and every request that day gets this
+--    same reply, so no one can compare two reloads and tie a change to one person. The row holds
+--    only what the page shows: counts, with small groups already hidden. Older days are deleted.
+CREATE TABLE IF NOT EXISTS admin_snapshots (
+  day      TEXT PRIMARY KEY,              -- "<reply version>:<YYYY-MM-DD, US Eastern>"
+  body     TEXT NOT NULL,                 -- the JSON reply
+  made_at  INTEGER NOT NULL
+);

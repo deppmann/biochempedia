@@ -37,7 +37,7 @@ import '../../styles/teach.css';
           <label><input type="radio" name="role-new" value="teacher" /> <span>A teacher or tutor</span></label>
           <label><input type="radio" name="role-new" value="" checked /> <span>I'd rather not say</span></label>
         </div>
-        <p class="tc-muted">This is for a new account. Your answer is counted in totals with no names. It isn't shown to teachers or to anyone else, and you can change or clear it here whenever you like.</p>
+        <p class="tc-muted">This is for a new account, and it is about you, the person making it: a parent answers as a parent. It is not a question about age or grade. Your answer is counted in totals with no names. It isn't shown to teachers or to anyone else, and you can change or clear it here whenever you like.</p>
       </fieldset>
 
       <div class="acct-choices">
@@ -86,7 +86,7 @@ import '../../styles/teach.css';
       <div data-role-block hidden>
         <h2>Student, parent or teacher?</h2>
         <fieldset class="acct-role" data-role-mine>
-          <legend class="tc-muted">Optional. Your answer is counted in totals with no names. It isn't shown to teachers or to anyone else.</legend>
+          <legend class="tc-muted">Optional, and about you: a parent answers as a parent. It is not a question about age or grade. Your answer is counted in totals with no names. It isn't shown to teachers or to anyone else.</legend>
           <div class="acct-role-opts">
             <label><input type="radio" name="role-mine" value="student" /> <span>A student</span></label>
             <label><input type="radio" name="role-mine" value="parent" /> <span>A parent or guardian</span></label>
@@ -140,7 +140,7 @@ import '../../styles/teach.css';
 <script>
   import {
     getMe, syncNow, registerPasskey, signInWithPasskey, googleStartUrl, signOut, deleteAccount,
-    passkeysSupported, lastSyncAt, EXPORT_URL, setRole, seedRole, holdRole, takeHeldRole, type Me,
+    passkeysSupported, lastSyncAt, EXPORT_URL, setRole, holdRole, takeHeldRole, type Me,
   } from '../../lib/learner';
   import { isRole, type Role } from '../../lib/prefs';
   import { enrolled } from '../../lib/classroom';
@@ -250,8 +250,11 @@ import '../../styles/teach.css';
   $<HTMLAnchorElement>('[data-google]').addEventListener('click', (e) => {
     e.preventDefault();
     if (needAge()) return;
-    holdRole(pickedRole());   // waits in this tab while Google has the page; never goes in the address
-    location.href = googleStartUrl(params.get('return') || '/account/', true);
+    // The choice waits in this tab while Google has the page; it never goes in the address. It is
+    // kept only when Google sends the reader back to this page, the one place that reads it.
+    const back = params.get('return') || '/account/';
+    holdRole(back === '/account/' ? pickedRole() : null);
+    location.href = googleStartUrl(back, true);
   });
   $('[data-pk-login]').addEventListener('click', async () => {
     outErr.textContent = '';
@@ -271,7 +274,6 @@ import '../../styles/teach.css';
     const role = pickedRole();
     const r = await registerPasskey(name, true, role);
     if (!r.ok) { outErr.textContent = r.error; return; }
-    seedRole(role);
     await syncNow();
     await refresh();
   });

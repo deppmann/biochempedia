@@ -153,7 +153,7 @@ export function signinPage(url, cfg = HOSTS) {
 <label><input type="radio" name="role" value="parent"> A parent or guardian</label>
 <label><input type="radio" name="role" value="teacher"> A teacher or tutor</label>
 <label><input type="radio" name="role" value="" checked> I'd rather not say</label>
-<p class="quiet">Your answer is counted in totals with no names. It isn't shown to teachers or to anyone else, and you can change or clear it on your account page.</p></fieldset>
+<p class="quiet">It is about you, the person making the account: a parent answers as a parent. It is not a question about age or grade. Your answer is counted in totals with no names. It isn't shown to teachers or to anyone else, and you can change or clear it on your account page.</p></fieldset>
 <button type="submit">Create account with a passkey</button></form>
 <p id="msg" class="quiet" role="status"></p>
 <p class="quiet">No passkey? On ${esc(cfg.primary)} you can sign in with Google instead. <a href="https://${esc(cfg.primary)}${esc(back)}">Back to ${esc(cfg.primary)}</a></p>`;

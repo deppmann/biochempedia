@@ -32,11 +32,17 @@
   // The owner's totals page (/admin/, worker/admin.js, GET /api/admin/stats) is gated by a SECRET
   // named ADMIN_TOKEN. It is never a var in this file and never in the repository. Set it with
   // `npx wrangler secret put ADMIN_TOKEN` and paste a long random value (for example the output of
-  // `openssl rand -hex 32`); anything under 24 characters is treated as not set. Until it is set the
+  // `openssl rand -hex 32`); it must be 24 to 512 printable characters with NO SPACES, or it is treated
+  // as not set. It also keys the film counter's rate-limit hashes (worker/film-count.js), unless a
+  // separate RATE_SALT secret is set. Until it is set the
   // route answers the same 404 as any unknown path. To switch the page off, delete the secret
   // (`npx wrangler secret delete ADMIN_TOKEN`). The role question and the film count need the
-  // column and table in migrations/0009_role_and_film_counts.sql (same migrations command as above);
+  // column and tables in migrations/0009_role_and_film_counts.sql (same migrations command as above);
   // until then the account page asks nothing and the film counter stores nothing.
+  // NOTE: that command applies EVERY migration not yet applied. If 0007 has not been applied, it is
+  // applied too, and with PLANNER_ENABLED "1" below the AI study planner goes live on the site's
+  // Anthropic key, within its caps. Do not apply 0009 by itself with `d1 execute --file`: a later
+  // `migrations apply` would run it again and fail on the column that already exists.
   "vars": {
     // The site's address is not a var here: the build needs it too (canonical tags, sitemap, QR codes),
     // and a Worker var cannot reach the build. It is PRIMARY_HOST in src/lib/site-host.mjs, read by both.

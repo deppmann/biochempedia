@@ -148,6 +148,7 @@ function countFilm(key: string, what: 's' | 'w'): void {
     fetch('/api/film-count', {
       method: 'POST',
       credentials: 'omit',
+      referrerPolicy: 'no-referrer',   // the counter is not told which page the film was on
       keepalive: true,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ k: key, e }),
