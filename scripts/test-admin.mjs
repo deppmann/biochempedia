@@ -390,7 +390,7 @@ console.log('the film counter');
     assert.ok(!keys.some((k) => k.endsWith(plain)), 'salted: cannot be matched to the sign-in counters');
     assert.ok(keys.includes('film:m:' + await sha256Hex('film|203.0.113.99')));
     const text = JSON.stringify(db.sql.prepare('SELECT * FROM film_counts').all()) + JSON.stringify(db.sql.prepare("SELECT * FROM rate_limits WHERE key LIKE 'film:%'").all());
-    assert.ok(!/ZZNAME|bp_|osmosis.*203/.test(text) && !text.includes(jar.gia.id));
+    assert.ok(!/ZZNAME|bp_/.test(text) && !text.includes('203.0.113') && !text.includes(jar.gia.id));
   });
   await check('only this site may post, only as JSON, and a GET is the ordinary 404', async () => {
     const before = JSON.stringify(filmRows(db));
