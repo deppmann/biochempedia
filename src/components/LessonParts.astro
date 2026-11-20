@@ -41,7 +41,7 @@ const withOf = (p: LessonTime['parts'][number]) => [
   ))}
 </ol>
 {notes && time.period > 0 && time.period - time.sumMin >= 5 && (
-  <p class="lp-note">Reading and films come to about {time.sumMin} minutes. The {time.period} is {time.guide ? 'the whole activity, with the doing and the talking' : 'a class period: it leaves time for the tasks, the writing and the talk'}.</p>
+  <p class="lp-note">{time.storyCount > 0 ? 'Reading, films and stories' : time.filmCount > 0 ? 'Reading and films' : 'Reading'} come{time.storyCount > 0 || time.filmCount > 0 ? '' : 's'} to about {time.sumMin} minutes. The {time.period} is {time.guide ? 'the whole activity, with the doing and the talking' : 'a class period: it leaves time for the tasks, the writing and the talk'}.</p>
 )}
 {notes && time.quiz > 0 && (
   <p class="lp-note">Then a self-test of {time.quiz} {plural(time.quiz, 'question')}, about {time.quiz} {plural(time.quiz, 'minute')}, when you want it.</p>
