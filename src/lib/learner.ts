@@ -18,6 +18,7 @@ import { startRegistration, startAuthentication } from '@simplewebauthn/browser'
 import { loadNotebook, mergeItems, NOTEBOOK_KEY, NOTEBOOK_EVENT } from './notebook';
 import { load as loadProgress, STORAGE_KEY as PROGRESS_KEY, CHANGE_EVENT as PROGRESS_EVENT, type Progress } from './progress';
 import { mergeProgress, sameJson } from './learner-merge.mjs';
+import { isRole, type Role } from './prefs';
 
 const CACHE_KEY = 'biochempedia:learner:v1';
 export const LEARNER_EVENT = 'bp-learner';
@@ -34,6 +35,10 @@ export interface Me {
   passkeys?: number;
   created?: number;
   lastSynced?: number | null;
+  /** Present (true) only once the server keeps roles; until then the account page asks nothing. */
+  roleSupported?: boolean;
+  /** The learner's own optional answer: student, parent or teacher. null when not given. */
+  role?: Role | null;
 }
 
 interface Cache { name?: string; lastSync?: number }
@@ -152,9 +157,9 @@ function passkeyError(e: unknown): string {
 
 export const passkeysSupported = () => typeof window !== 'undefined' && typeof window.PublicKeyCredential === 'function';
 
-/** Make a passkey. Signed out: creates a new account with `displayName`. Signed in: adds one. */
-export async function registerPasskey(displayName?: string, age13?: boolean): Promise<Outcome> {
-  const o = await post('/passkey/register/options', { displayName, age13 });
+/** Make a passkey. Signed out: creates a new account with `displayName` (and the optional role). Signed in: adds one. */
+export async function registerPasskey(displayName?: string, age13?: boolean, role?: Role | null): Promise<Outcome> {
+  const o = await post('/passkey/register/options', { displayName, age13, ...(role ? { role } : {}) });
   if (o.status !== 200) return { ok: false, error: o.data?.error || 'Could not start. Please try again.' };
   let response;
   try { response = await startRegistration({ optionsJSON: o.data.options }); } catch (e) { return { ok: false, error: passkeyError(e) }; }
@@ -179,6 +184,39 @@ export const googleStartUrl = (ret = '/account/', age13 = false) =>
   `/api/learner/google/start?${new URLSearchParams({ return: ret, ...(age13 ? { age: '1' } : {}) })}`;
 
 export const EXPORT_URL = '/api/learner/export';
+
+// ---- role: the one optional question (student, parent or teacher) --------------------------
+/** Set, change or clear (null) the signed-in learner's role. */
+export async function setRole(role: Role | null): Promise<Outcome> {
+  try {
+    const r = await api('/role', { method: 'PUT', body: JSON.stringify({ role }) });
+    if (r.status !== 200) return { ok: false, error: r.data?.error || 'Could not save that. Please try again.' };
+  } catch { return { ok: false, error: 'No connection. Please try again.' }; }
+  return { ok: true };
+}
+/* The account's role lives on the server and nowhere else. It is NOT copied into this device's
+   preferences (src/lib/prefs.ts): those are set only by the visitor's own choice on the page that
+   shows them, and clearing or deleting the account's answer leaves nothing behind in the browser. */
+
+/* Sign-in with Google leaves the page and comes back. A role chosen before leaving waits here, in
+   this tab only, and is sent once the learner is signed in. It is never put in a web address. */
+const PENDING_ROLE = 'stemhop:role-pending';
+const PENDING_MS = 10 * 60 * 1000;   // as long as a sign-in may take (worker/learner.js FLOW_MS)
+export function holdRole(role: Role | null): void {
+  try {
+    if (role) window.sessionStorage.setItem(PENDING_ROLE, `${role}|${Date.now()}`);
+    else window.sessionStorage.removeItem(PENDING_ROLE);
+  } catch { /* storage blocked: the account page will offer the question again */ }
+}
+/** The role held for this tab's sign-in, once. Older than ten minutes, it is dropped: on a shared
+ *  computer it must not land on the next person's account. */
+export function takeHeldRole(): Role | null {
+  try {
+    const [r, at] = (window.sessionStorage.getItem(PENDING_ROLE) || '').split('|');
+    window.sessionStorage.removeItem(PENDING_ROLE);
+    return isRole(r) && Date.now() - Number(at) < PENDING_MS ? r : null;
+  } catch { return null; }
+}
 
 /** Remove this device's own copy of the notebook and progress. */
 function clearDevice() {
