@@ -80,7 +80,7 @@ for (const w of warnings) console.log(`warn  ${w}`);
 for (const e of errors) console.log(`FAIL  ${e}`);
 if (!errors.length) {
   const d = describeGraph(graph, site);
-  console.log(`check-topic-graph: ${stats.concepts} concept(s), ${stats.core} core and ${stats.uses} uses rung(s), ${stats.films} film link(s), ${stats.near} sideways hop(s); ${d.lessonsCovered} of ${d.lessonsLive} live lessons have a record${notes.length ? ` (${notes.length} read with no idea filed)` : ''}; anchors checked against ${!haveDist ? 'the lesson source (no dist/)' : skipped ? `the built pages for ${builtCache.size} lesson(s) and the lesson source for the rest (reading dist/ was too slow: ${Math.round(spent / 1000)} s)` : 'the built pages'}.`);
+  console.log(`check-topic-graph: ${stats.concepts} concept(s), ${stats.core} core and ${stats.uses} uses rung(s), ${stats.films} film link(s), ${stats.near} sideways hop(s); ${d.lessonsCovered} of ${d.lessonsLive} live lessons have a record${notes.filter((n) => /no idea filed/.test(n)).length ? ` (${notes.filter((n) => /no idea filed/.test(n)).length} read with no idea filed)` : ''}; anchors checked against ${!haveDist ? 'the lesson source (no dist/)' : skipped ? `the built pages for ${builtCache.size} lesson(s) and the lesson source for the rest (reading dist/ was too slow: ${Math.round(spent / 1000)} s)` : 'the built pages'}.`);
 }
 console.log(`check-topic-graph: ${errors.length} failure(s), ${warnings.length} warning(s)`);
 process.exit(errors.length ? 1 : 0);
