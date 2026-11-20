@@ -12,7 +12,7 @@
    through progress.ts setDone(). Every read and write is wrapped: with storage
    blocked the page works for this visit and says so.
    ============================================================================ */
-import { readPrefs, writePrefs, clearPrefs, type Role as PrefRole } from '../prefs';
+import { readPrefs, writePrefs, type Role as PrefRole } from '../prefs';
 import { load as loadProgress, setDone, CHANGE_EVENT, STORAGE_KEY as PROGRESS_KEY } from '../progress';
 import {
   cap, num, type Activity, type CalState, type CourseData, type Iso, type McatData, type Model,
@@ -24,6 +24,8 @@ import { EMAIL_OPT_IN } from './flags';
 import { CAL_KEY as KEY, CAL_EVENT } from './store';
 
 const PREF_OF: Record<Role, PrefRole> = { parent: 'parent', student: 'student', teacher: 'teacher' };
+const SIT_SAY: Record<number, string> = { 60: 'about an hour', 90: 'about an hour and a half', 120: 'about two hours', 180: 'about three hours' };
+const PER_SAY: Record<string, string> = { '1': 'One lesson a meeting', '0.5': 'One lesson over two meetings', '2': 'Two lessons a meeting' };
 
 interface PageData {
   activities?: Activity[];
@@ -48,6 +50,15 @@ document.addEventListener('click', (e) => {
   const a = (e.target as HTMLElement | null)?.closest?.<HTMLAnchorElement>('a[data-role]');
   const r = a?.dataset.role as Role | undefined;
   if (r && PREF_OF[r]) writePrefs({ role: PREF_OF[r] });
+  /* A course picked from the "For myself" list is remembered, like a role. */
+  const plan = (e.target as HTMLElement | null)?.closest?.<HTMLAnchorElement>('a[data-plan]')?.dataset.plan;
+  if (plan) {
+    try {
+      const s = readState();
+      (s.student ??= newStudent()).plan = plan;
+      window.localStorage.setItem(KEY, JSON.stringify(s));
+    } catch { /* blocked: the address still says which plan */ }
+  }
 });
 
 const root = document.getElementById('cal-root');
@@ -104,6 +115,8 @@ function start(root: HTMLElement) {
   let err: Ui['err'];
   let undoFn: (() => void) | undefined;
   let undoFocus: string | undefined;
+  /** What "Put it back" says once it has been pressed. */
+  let undoSaid = 'Put back.';
   /** Things marked done on this page during this visit (so the page works with storage blocked). */
   const doneHere = new Map<string, string>();
   const undoneHere = new Set<string>();
@@ -124,7 +137,7 @@ function start(root: HTMLElement) {
       done.add(slug);
       if (titles.has(slug) && !remarked.has(slug) && !pinned && todayIso(new Date(r.d)) === today) todayTitles.push(titles.get(slug)!);
     }
-    for (const [k, t] of doneHere) { done.add(k); if (!todayTitles.includes(t)) todayTitles.push(t); }
+    for (const [k, t] of doneHere) { done.add(k); if (t && !todayTitles.includes(t)) todayTitles.push(t); }
     return { done, today: todayTitles };
   }
 
@@ -150,6 +163,8 @@ function start(root: HTMLElement) {
     if (a.name) return a.type === 'checkbox' || a.type === 'radio' ? `input[name="${a.name}"][value="${a.value}"]` : `[name="${a.name}"]`;
     if (a.dataset.have) return `input[data-have="${a.dataset.have}"]`;
     if (a.tagName === 'SUMMARY') return `details[data-fold="${(a.parentElement as HTMLElement).dataset.fold}"] > summary`;
+    const href = a.getAttribute('href');
+    if (a.tagName === 'A' && href && !/["\\]/.test(href)) return `a[href="${href}"]`;
     return undefined;
   }
 
@@ -165,12 +180,19 @@ function start(root: HTMLElement) {
       for (const [n, v] of typed) { const i = root.querySelector<HTMLInputElement>(`input[name="${n}"]`); if (i && v) i.value = v; }
       root.classList.add('cal-js');
       if (focus) {
-        const el = root.querySelector<HTMLElement>(focus) ?? root.querySelector<HTMLElement>('h1');
+        const el = root.querySelector<HTMLElement>(focus) ?? root.querySelector<HTMLElement>('[data-fid="title"]') ?? root.querySelector<HTMLElement>('h1');
         el?.focus({ preventScroll: false });
+        // The sentence beside the focused control comes into view with it (the site header is sticky).
+        el?.closest('.cal-said, .cal-card')?.scrollIntoView({ block: 'nearest' });
       }
     };
-    const vt = (document as Document & { startViewTransition?: (cb: () => void) => unknown }).startViewTransition;
-    if (moving && vt && !reduced()) vt.call(document, paint); else paint();
+    type Transition = { ready?: Promise<unknown>; finished?: Promise<unknown>; updateCallbackDone?: Promise<unknown> };
+    const vt = (document as Document & { startViewTransition?: (cb: () => void) => Transition }).startViewTransition;
+    if (moving && vt && !reduced()) {
+      // A second action can cut a transition short; that is not an error.
+      const tr = vt.call(document, paint);
+      for (const pr of [tr?.ready, tr?.finished, tr?.updateCallbackDone]) pr?.catch(() => {});
+    } else paint();
   }
   /** Redraw because something changed elsewhere (a lesson page, another tab, midnight): keep the person's place. */
   const refresh = () => render(focusNow());
@@ -182,13 +204,14 @@ function start(root: HTMLElement) {
   }
 
   /** Make a change, keep it, say what happened, and put focus on the way back. */
-  function act(change: () => void, s: Said, opts: { from?: string; undo?: () => void; focus?: string; noUndo?: boolean } = {}) {
+  function act(change: () => void, s: Said, opts: { from?: string; undo?: () => void; focus?: string; noUndo?: boolean; back?: string } = {}) {
     const before: Model = JSON.parse(JSON.stringify(model));
     change();
     save();
     err = undefined;
     undoFn = opts.noUndo ? undefined : opts.undo ?? (() => { model = before; save(); });
     undoFocus = opts.from;
+    undoSaid = opts.back ?? 'Put back.';
     said = opts.noUndo ? { text: s.text } : s;
     render(opts.focus ?? (said.undo ? '[data-fid="undo"]' : opts.from ? `[data-fid="${opts.from}"]` : undefined), true);
     say(s.text);
@@ -199,9 +222,9 @@ function start(root: HTMLElement) {
     undoFn();
     undoFn = undefined;
     err = undefined;
-    said = { text: 'Put back.' };
+    said = { text: undoSaid };
     render(undoFocus ? `[data-fid="${undoFocus}"]` : 'h1', true);
-    say('Put back.');
+    say(undoSaid);
   }
 
   /** Something the person has to put right: said aloud, and shown beside the field. */
@@ -212,6 +235,12 @@ function start(root: HTMLElement) {
     say(text);
   }
 
+  /** "Go" pressed with the plan already showing: the panel closes, focus stays findable, and a word is said. */
+  function already() {
+    const d = root.querySelector<HTMLDetailsElement>('details[data-fold="set"]');
+    if (d) { d.open = false; d.querySelector('summary')?.focus(); }
+    say('You are already on this one.');
+  }
   const P = () => (model.state.parent ??= newParent());
   const S = () => { const s = (model.state.student ??= newStudent()); if (planKey) s.plan = planKey; return s; };
   /* The first change a teacher makes pins the first class and the breaks that are on screen. */
@@ -234,6 +263,8 @@ function start(root: HTMLElement) {
      redrawn; the date is taken once, when they press Enter or leave the field. A date chosen from
      the picker (no typing) is taken at once. */
   const DATES = ['tfrom', 'stest'];
+  /** Lists whose choice redraws the page. Arrowing or typing through one must not redraw on every key. */
+  const LISTS = ['sstart', 'ssit', 'tper'];
   let typing = '';
   /** Redraw the parts of the page named, leaving everything else (the field in hand, the button
    *  about to be pressed) exactly as it is. */
@@ -246,11 +277,34 @@ function start(root: HTMLElement) {
       if (now && next) now.replaceWith(next);
     }
   }
-  function commitDate(t: HTMLInputElement) {
+  /* A redraw that is owed but must wait a moment: when a field is left by pressing a button, the
+     button has to live until the press lands. Whatever acts next runs the owed redraw first. */
+  let owed: (() => void) | undefined;
+  let owedTimer = 0;
+  const owe = (fn: () => void) => { settle(); owed = fn; owedTimer = window.setTimeout(settle, 400); };
+  function settle() {
+    window.clearTimeout(owedTimer);
+    const fn = owed;
+    owed = undefined;
+    fn?.();
+  }
+  let testTimer = 0;
+
+  function commitDate(t: HTMLInputElement, later = false) {
     typing = '';
+    window.clearTimeout(testTimer);
     if (t.name === 'tfrom') {
       const now = teacherSetup(model.state.teacher, today).from;
-      if (!isIso(t.value) || t.value === now) return;
+      if (t.value === now) return;
+      if (!isIso(t.value)) {
+        // Emptied or half typed: the plan keeps its date, and says so.
+        t.value = now;
+        window.setTimeout(() => { if (!isIso(t.value)) t.value = now; }, 0);   // some browsers clear a half-typed date after this runs
+        said = { text: `The first class is still ${longDate(now)}.` };
+        patch(['.cal-note-slot']);
+        say(said.text);
+        return;
+      }
       const p = T();
       p.from = t.value;
       p.moved = [];
@@ -258,47 +312,70 @@ function start(root: HTMLElement) {
       err = undefined;
       undoFn = undefined;
       said = { text: `The first class is ${longDate(t.value)}.` };
-      patch(['.cal-set > summary', '.cal-note-slot', '.cal-cols', '.cal-print-head']);
       say(said.text);
+      const redraw = () => { patch(['.cal-set > summary', '.cal-note-slot', '.cal-cols', '.cal-print-head']); root.querySelector('.cal-set-body .cal-err')?.remove(); };
+      if (later) owe(redraw); else redraw();
     } else if (t.name === 'stest') {
       const v = isIso(t.value) ? t.value : undefined;
       if (v === model.visit.test) return;
       model.visit.test = v;
-      patch(['#cal-reach']);
+      patch(['#cal-reach']);   // only the sentence under the field; the field and the page stay put
       say(root.querySelector('#cal-reach')?.textContent ?? '');
     }
   }
   root.addEventListener('keydown', (e) => {
     const t = e.target as HTMLInputElement;
+    if (LISTS.includes(t.name)) {
+      if (e.key === 'Enter') { if (typing === t.name) { typing = ''; changed(t); } }
+      else if (e.key !== 'Tab' && e.key !== 'Escape') typing = t.name;
+      return;
+    }
     if (!DATES.includes(t.name)) return;
     if (e.key === 'Enter') { e.preventDefault(); commitDate(t); return; }
     if (e.key !== 'Tab') typing = t.name;
   });
+  /* A test date typed in full answers by itself a second after the last key. */
+  root.addEventListener('input', (e) => {
+    const t = e.target as HTMLInputElement;
+    if (t.name !== 'stest') return;
+    window.clearTimeout(testTimer);
+    if (isIso(t.value) && t.value.slice(0, 4) >= today.slice(0, 4)) testTimer = window.setTimeout(() => { if (root.contains(t)) { const keep = typing; commitDate(t); typing = keep; } }, 1000);
+  });
   root.addEventListener('focusout', (e) => {
     const t = e.target as HTMLInputElement;
-    if (DATES.includes(t.name) && typing === t.name) commitDate(t);
+    if (typing !== t.name) return;
+    if (DATES.includes(t.name)) commitDate(t, true);
+    else if (LISTS.includes(t.name)) { typing = ''; const v = t.value; owe(() => { const now = root.querySelector<HTMLSelectElement>(`select[name="${t.name}"]`); if (now) { now.value = v; changed(now as unknown as HTMLInputElement, focusNow()); } }); }
   });
-  /** A date still being typed is taken before anything else on the page is acted on. */
+  /** A date or a list still in hand is taken, and any owed redraw done, before anything else acts. */
   const flush = (except?: string) => {
-    if (!typing || typing === except) return;
-    const i = root.querySelector<HTMLInputElement>(`input[name="${typing}"]`);
-    if (i) commitDate(i); else typing = '';
+    if (typing && typing !== except) {
+      const i = root.querySelector<HTMLInputElement>(`[name="${typing}"]`);
+      const name = typing;
+      typing = '';
+      if (i && DATES.includes(name)) commitDate(i); else if (i) changed(i, focusNow());
+    }
+    settle();
   };
 
   /* ---------- changes ---------- */
   root.addEventListener('change', (e) => {
     const t = e.target as HTMLInputElement;
     flush(t.name);
+    if (typing === t.name && LISTS.includes(t.name)) return;   // being arrowed or typed through: taken on Enter or on leaving
+    changed(t);
+  });
+  function changed(t: HTMLInputElement, focus?: string) {
     if (t.dataset.have) {
       const p = P();
       if (t.checked) p.have[t.dataset.have] = 1; else delete p.have[t.dataset.have];
       save();
       // The tick is the change. An older sentence about something else comes down.
       said = undefined;
-      root.querySelector('.cal-said')?.remove();
+      root.querySelector('.cal-note-slot .cal-said')?.remove();
       return;
     }
-    const here = sameInput(t);
+    const here = focus ?? sameInput(t);
     switch (t.name) {
       case 'tfrom':
       case 'stest':
@@ -321,7 +398,7 @@ function start(root: HTMLElement) {
         act(() => { const s = S(); if (t.value) s.start[planKey] = t.value; else delete s.start[planKey]; }, { text: 'Starting there. Earlier lessons are still in the whole course, below.' }, { focus: here, noUndo: true });
         return;
       case 'ssit':
-        act(() => { S().sit = Number(t.value); }, { text: 'Sittings changed.' }, { focus: here, noUndo: true });
+        act(() => { S().sit = Number(t.value); }, { text: Number(t.value) ? `Each sitting now holds ${SIT_SAY[Number(t.value)] ?? 'about that long'}.` : 'One lesson at a time now.' }, { focus: here, noUndo: true });
         return;
       case 'scourse': {
         const step = data.mcat?.steps.find((x) => x.s === t.value);
@@ -335,17 +412,17 @@ function start(root: HTMLElement) {
       }
       case 'tmeet': {
         const d = checked('tmeet');
-        if (!d.length) { t.checked = true; complain('meet', 'A class needs at least one day.', here); return; }
+        if (!d.length) { complain('meet', 'A class needs at least one day.', here); return; }
         act(() => { T().meet = d; }, { text: `The class meets ${onDays(d)}.` }, { focus: here, noUndo: true });
         return;
       }
       case 'tper':
-        act(() => { T().per = Number(t.value); }, { text: 'Pace changed. Every date after the first class moved with it.' }, { focus: here, noUndo: true });
+        act(() => { T().per = Number(t.value); }, { text: `${PER_SAY[t.value] ?? 'The pace changed'} now. Every later date moved with it.` }, { focus: here, noUndo: true });
         return;
       /* The two lists that lead to another page (splan, tcourse) do nothing on change:
          each has a button beside it, so arrowing or typing through the list never navigates. */
     }
-  });
+  }
 
   root.addEventListener('click', (e) => {
     const b = (e.target as HTMLElement).closest<HTMLElement>('[data-act]');
@@ -360,7 +437,7 @@ function start(root: HTMLElement) {
       case 'go-plan': {
         const v = field('splan');
         if (!v) return;
-        if (v === planKey) { root.querySelector<HTMLDetailsElement>('details[data-fold="set"]')?.removeAttribute('open'); return; }
+        if (v === planKey) { already(); return; }
         (model.state.student ??= newStudent()).plan = v;
         save();
         location.replace(`/calendar/student/${v}/`);
@@ -369,22 +446,23 @@ function start(root: HTMLElement) {
       case 'go-course': {
         const v = field('tcourse');
         if (!v) return;
-        if (v === data.course?.s) { root.querySelector<HTMLDetailsElement>('details[data-fold="set"]')?.removeAttribute('open'); return; }
-        const tp = T();
-        tp.course = v;
-        tp.moved = [];
+        if (v === data.course?.s) { already(); return; }
+        T().course = v;   // an open day is a fact about the class's calendar, so it stays when the course changes
         save();
         location.replace(`/calendar/teacher/${v}/`);
         return;
       }
       case 'forget': {
-        // Everything the calendar keeps, and the saved role, so the next person starts clean.
+        // Everything the calendar keeps, and who it is for, so the next person starts clean.
         let role0: PrefRole | undefined;
         try { role0 = readPrefs().role; } catch { role0 = undefined; }
-        act(() => { model.state = { v: 1 }; model.visit = {}; }, { text: 'The calendar’s plans and your role are forgotten on this device. Lessons you marked done stay in your progress.', undo: 'Put it back', undoName: 'Put it back: keep the plans after all' }, { from: 'forget' });
+        const text = role === 'parent' ? 'Your days, your ticks and what you did together are forgotten on this device.'
+          : role === 'student' ? 'Your days and choices are forgotten on this device. Lessons you marked done stay marked.'
+          : 'Your class days and breaks are forgotten on this device.';
+        act(() => { model.state = { v: 1 }; model.visit = {}; }, { text, undo: 'Put it back', undoName: 'Put it back: keep it after all' }, { from: 'forget', back: 'Kept after all.' });
         const restore = undoFn;
         try { window.localStorage.removeItem(KEY); } catch { /* blocked */ }
-        clearPrefs();
+        writePrefs({ role: null });   // only who the calendar is for; other saved choices are left alone
         undoFn = () => { restore?.(); if (role0) writePrefs({ role: role0 }); };
         return;
       }
@@ -394,20 +472,34 @@ function start(root: HTMLElement) {
         const a = acts.find((x) => x.s === b.dataset.s);
         if (!a) return;
         const next = parentQueue(acts, parentDid(P(), a))[0];
-        act(() => { model.state.parent = parentDid(P(), a); model.visit.skip = false; }, { text: `Done together: ${end(a.t)}${next ? ` The next one is ${end(next.t)}` : ''}`, undo: 'Put it back', undoName: `Put it back: ${a.t} is not done yet` }, { from: 'did' });
+        // Done on the activity day itself: today is used, so the next one sits on the next chosen day (this visit only).
+        const onDay = parentView(acts, P(), today, { skip: model.visit.skip, used: model.visit.used }).date === today;
+        act(() => { model.state.parent = parentDid(P(), a); model.visit.skip = false; if (onDay) model.visit.used = true; }, { text: `Done together: ${end(a.t)}${next ? ` The next one is ${end(next.t)}` : ''}`, undo: 'Put it back', undoName: `Put it back: ${a.t} is not done yet` }, { from: 'did', back: `${a.t} is back as the next activity.` });
         return;
       }
       case 'undid': {
         const a = (data.activities ?? []).find((x) => x.s === b.dataset.s);
         if (!a) return;
-        act(() => { model.state.parent = parentUndid(P(), a.s); }, { text: `${a.t} is back in the plan.`, undo: 'Undo', undoName: `Undo: ${a.t} stays done` }, { from: 'title' });
+        act(() => { model.state.parent = parentUndid(P(), a.s); }, { text: `${a.t} is back in the plan.`, undo: 'Undo', undoName: `Undo: ${a.t} stays done` }, { from: 'title', back: `${a.t} stays done.` });
         return;
       }
       case 'skip': {
         if (model.visit.skip) return;
-        const v = parentView(data.activities ?? [], P(), today, { skip: true });
+        const v = parentView(data.activities ?? [], P(), today, { skip: true, used: model.visit.used });
         if (!v.next || !v.date || !v.freed) return;
-        act(() => { model.visit.skip = true; }, { text: `Nothing ${daysBetween(today, v.freed) === 0 ? 'today' : `this ${weekday(v.freed)}`}. ${v.next.t} waits for ${longDate(v.date)}.`, undo: 'Put it back', undoName: `Put it back: ${v.next.t} on ${weekday(v.freed)}` }, { from: 'skip' });
+        // The line that says so holds its own "Put it back", so nothing else on the page can take it away.
+        model.visit.skip = true;
+        said = undefined; err = undefined; undoFn = undefined;
+        render('[data-fid="unskip"]', true);
+        say(`Nothing ${daysBetween(today, v.freed) === 0 ? 'today' : `this ${weekday(v.freed)}`}. ${v.next.t} waits for ${longDate(v.date)}.`);
+        return;
+      }
+      case 'unskip': {
+        model.visit.skip = false;
+        const a = parentView(data.activities ?? [], P(), today, { used: model.visit.used }).next;
+        said = { text: a ? `${a.t} is back on its day.` : 'Put back.' };
+        render('[data-fid="skip"]', true);
+        say(said.text);
         return;
       }
       /* student */
@@ -428,7 +520,7 @@ function start(root: HTMLElement) {
           model.visit.later = false;
         };
         const nx = view.rows[0]?.sitting.items[0]?.t;
-        act(() => apply(true), { text: `Done: ${end(name)}${nx ? ` Next: ${end(nx)}` : ''}`, undo: 'Undo', undoName: `Undo: ${name} is not done` }, { from: 'done', undo: () => { apply(false); save(); } });
+        act(() => apply(true), { text: `Done: ${end(name)}${nx ? ` Next: ${end(nx)}` : ''}`, undo: 'Undo', undoName: `Undo: ${name} is not done` }, { from: 'done', undo: () => { apply(false); save(); }, back: `${name} is not done.` });
         return;
       }
       case 'undone': {
@@ -443,7 +535,7 @@ function start(root: HTMLElement) {
           } else st.marks = on ? [...new Set([...st.marks, k])] : st.marks.filter((x) => x !== k);
           if (!on) doneHere.delete(k);
         };
-        act(() => apply(false), { text: `${it.t} is back in the plan.`, undo: 'Undo', undoName: `Undo: ${it.t} stays done` }, { from: 'title', undo: () => { apply(true); save(); } });
+        act(() => apply(false), { text: `${it.t} is back in the plan.`, undo: 'Undo', undoName: `Undo: ${it.t} stays done` }, { from: 'title', undo: () => { apply(true); save(); }, back: `${it.t} stays done.` });
         return;
       }
       case 'later': {
@@ -451,12 +543,19 @@ function start(root: HTMLElement) {
         const p = progress();
         const v = studentView(itemsNow(), p.done, sizing(), today, { later: true });
         const to = v.top?.date;
-        undoFn = () => { model.visit.later = false; };
-        undoFocus = 'later';
         model.visit.later = true;
-        said = undefined; // the emptied card says it, and holds "Put it back"
-        render('[data-fid="undo"]', true);
+        said = undefined; err = undefined; undoFn = undefined;   // the emptied card says it, and holds its own "Put it back"
+        render('[data-fid="unlater"]', true);
         say(to ? `Moved to ${daysBetween(today, to) === 1 ? 'tomorrow' : longDate(to)}.` : 'Moved to your next study day.');
+        return;
+      }
+      case 'unlater': {
+        model.visit.later = false;
+        const p = progress();
+        const top = studentView(itemsNow(), p.done, sizing(), today, { spent: !!p.today.length }).top?.sitting.items[0]?.t;
+        said = { text: top ? `${top} is back on today.` : 'Put back.' };
+        render('[data-fid="later"]', true);
+        say(said.text);
         return;
       }
       /* teacher */
@@ -465,14 +564,14 @@ function start(root: HTMLElement) {
         return;
       case 'unlost': {
         const d = b.dataset.d ?? today;
-        act(() => { const t = T(); t.moved = t.moved.filter((x) => x !== d); }, { text: 'Put back. Every later lesson moved up one class.' }, { focus: d === today ? '[data-fid="lost"]' : 'h1', noUndo: true });
+        act(() => { const t = T(); t.moved = t.moved.filter((x) => x !== d); }, { text: 'Put back. Every later lesson moved up one class.' }, { focus: d === today ? '[data-fid="lost"]' : `[data-fid="row-${d}"]`, noUndo: true });
         return;
       }
       case 'addbreak': {
         const from = field('bfrom');
         const to = field('bto') || from;
-        if (!isIso(from)) { complain('break', 'Give the break a first day.', '[name="bfrom"]'); return; }
-        if (!isIso(to) || to < from) { complain('break', 'The last day of a break cannot be before its first day.', '[name="bto"]'); return; }
+        if (!isIso(from)) { complain('break-from', 'Give the break a first day.', '[name="bfrom"]'); return; }
+        if (!isIso(to) || to < from) { complain('break-to', 'The last day of a break cannot be before its first day.', '[name="bto"]'); return; }
         const label = field('blabel').replace(/[<>]/g, '') || 'No class';
         const next = [...teacherSetup(model.state.teacher, today).breaks, { from, to, label }].sort((a, z) => a.from.localeCompare(z.from));
         const at = next.findIndex((x) => x.from === from && x.to === to && x.label === label);
@@ -507,7 +606,7 @@ function start(root: HTMLElement) {
       const old = parentQueue(acts, P())[0];
       choose.close();
       if (!pick || pick.s === old?.s) { root.querySelector<HTMLElement>('[data-fid="choose"]')?.focus(); return; }
-      act(() => { model.state.parent = parentPick(acts, P(), pick.s); model.visit.skip = false; }, { text: `Next: ${end(pick.t)}${old ? ` Then: ${end(old.t)}` : ''}`, undo: 'Put it back', undoName: `Put it back: ${old?.t ?? 'the plan'} comes first again` }, { from: 'choose' });
+      act(() => { model.state.parent = parentPick(acts, P(), pick.s); model.visit.skip = false; }, { text: `Next: ${end(pick.t)}${old ? ` Then: ${end(old.t)}` : ''}`, undo: 'Put it back', undoName: `Put it back: ${old?.t ?? 'the plan'} comes first again` }, { from: 'choose', back: old ? `${old.t} comes first again.` : 'Put back.' });
     }
   });
   const email = document.getElementById('cal-email') as HTMLDialogElement | null;
@@ -568,6 +667,11 @@ function start(root: HTMLElement) {
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) return;
     const now = pinned ? today : todayIso();
-    if (now !== today) { today = now; model.visit = { test: model.visit.test }; reread(); }
+    if (now !== today) {
+      today = now;
+      model.visit = { test: model.visit.test };
+      for (const k of [...doneHere.keys()]) doneHere.set(k, '');   // still done, but not done today
+      reread();
+    }
   });
 }

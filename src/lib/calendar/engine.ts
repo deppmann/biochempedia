@@ -124,7 +124,11 @@ export interface Lesson {
   down?: { s: string; t: string; level: string };
 }
 
-export interface CourseData { s: string; t: string; level: string; school: boolean; units: string[]; lessons: Lesson[] }
+export interface CourseData {
+  s: string; t: string; level: string; school: boolean; units: string[]; lessons: Lesson[];
+  /** School courses only: the course one level up, for the end of the course. */
+  up?: { s: string; t: string };
+}
 export interface McatStep { s: string; t: string; why: string; optional: boolean; lessons: Lesson[] }
 export interface McatSet { id: string; title: string; lessons: string[] }
 export interface McatData { steps: McatStep[]; sets: McatSet[]; scope: string; links: { label: string; href: string }[]; diagnostic: number }
@@ -258,11 +262,13 @@ export interface ParentView {
   queue: Activity[];
 }
 
-/** `skip` is "Not this week": it lives for this visit only and is never stored. */
-export function parentView(acts: Activity[], plan: ParentPlan, today: Iso, opts: { skip?: boolean } = {}): ParentView {
+/** `skip` is "Not this week"; `used` is "We did it" pressed on the activity day itself, so the
+ *  next activity sits on the next chosen day. Both live for this visit only and are never stored. */
+export function parentView(acts: Activity[], plan: ParentPlan, today: Iso, opts: { skip?: boolean; used?: boolean } = {}): ParentView {
   const days = parentDays(plan);
   const queue = parentQueue(acts, plan);
-  const slots = rhythmDays(days, today, 6 + (opts.skip ? 1 : 0));
+  const slots = rhythmDays(days, today, 7);
+  if (opts.used && slots[0] === today) slots.shift();
   const freed = opts.skip && slots.length ? slots.shift() : undefined;
   const by = new Map(acts.map((a) => [a.s, a]));
   const datedAfter = plan.days !== undefined && days.length > 0;
@@ -489,7 +495,7 @@ export function reach(open: Item[], size: number, days: number[], today: Iso, te
 
 /** What the page holds besides the saved plan. None of it is stored, so a day moved along
  *  with "Later" leaves no trace the next time the page is opened. */
-export interface Visit { later?: boolean; skip?: boolean; test?: Iso }
+export interface Visit { later?: boolean; skip?: boolean; used?: boolean; test?: Iso }
 export interface Model { state: CalState; visit: Visit }
 export interface Step { model: Model; undo: Model }
 /** Apply a change and keep what was there before, so "Put it back" restores it exactly. */

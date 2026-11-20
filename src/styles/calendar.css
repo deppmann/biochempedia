@@ -24,12 +24,16 @@
 /* Until the script has drawn today's page, hold the build-time page back so it does not flash.
    If the script never arrives, it shows by itself. */
 html.cal-wait #cal-root { visibility: hidden; animation: cal-reveal 0s linear 0.5s forwards; }
+/* A device with a saved plan waits longer: for it the build-time page may show the wrong thing. */
+html.cal-wait.cal-wait-long #cal-root { animation-delay: 3s; }
 @keyframes cal-reveal { to { visibility: visible; } }
 
 #cal-root:not(.cal-js) [data-js] { display: none !important; }
 .cal-print-only { display: none; }
 #cal-root :focus-visible, .cal-dialog :focus-visible { outline: 3px solid var(--ddp-color-accent); outline-offset: 2px; }
 #cal-root h1:focus { outline: none; }
+/* The site header is sticky: whatever takes focus, or is scrolled to, stops below it. */
+#cal-root h1, #cal-root [data-fid], #cal-root .cal-said, #cal-root .cal-card, #cal-root input, #cal-root select, #cal-root summary { scroll-margin-top: 6rem; }
 
 /* ---------- top: who it is for, the title, one line, the plan sentence ---------- */
 .cal-top { padding-top: var(--ddp-space-4); margin-bottom: var(--ddp-space-4); max-width: 46rem; }
@@ -55,8 +59,7 @@ html.cal-wait #cal-root { visibility: hidden; animation: cal-reveal 0s linear 0.
 }
 .cal-set > summary::-webkit-details-marker { display: none; }
 .cal-change { color: var(--ddp-color-accent); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
-.cal-set[open] .cal-change { text-decoration: none; }
-.cal-set[open] .cal-change::after { content: ': close'; font-weight: 400; color: var(--ddp-color-ink-soft); }
+.cal-set:not([open]) .cal-open, .cal-set[open] .cal-closed { display: none; }
 .cal-set-body {
   display: grid; min-width: 0; gap: var(--ddp-space-4); padding: var(--ddp-space-4); margin-top: var(--ddp-space-1); max-width: 34rem;
   border: 1px solid var(--ddp-color-line); border-radius: var(--cal-radius); background: var(--ddp-color-surface);
@@ -86,7 +89,7 @@ html.cal-wait #cal-root { visibility: hidden; animation: cal-reveal 0s linear 0.
   border: 1px solid var(--cal-edge); border-radius: 10px; background: var(--ddp-color-bg); color: var(--ddp-color-ink);
   font-size: var(--cal-small); font-weight: 600; cursor: pointer;
 }
-.cal-seg label > span { border-radius: 999px; padding: 0 0.9rem; }
+.cal-seg label > span { border-radius: 999px; padding: 0 clamp(0.5rem, 3vw, 0.9rem); white-space: nowrap; }
 .cal-day input:checked + span, .cal-seg input:checked + span { background: var(--ddp-color-primary); border-color: var(--ddp-color-primary); color: var(--ddp-color-bg); }
 .cal-day input:focus-visible + span, .cal-seg input:focus-visible + span, .cal-check input:focus-visible + .cal-box { outline: 3px solid var(--ddp-color-accent); outline-offset: 2px; }
 
@@ -96,7 +99,9 @@ html.cal-wait #cal-root { visibility: hidden; animation: cal-reveal 0s linear 0.
   display: flex; flex-wrap: wrap; align-items: center; gap: 0 0.75rem; margin: 0 0 var(--ddp-space-4); max-width: 46rem;
   padding-left: 0.75rem; border-left: 3px solid var(--ddp-color-secondary); line-height: 1.5;
 }
-.cal-freed, .cal-donetoday { margin: 0 0 var(--ddp-space-4); color: var(--ddp-color-ink-soft); }
+.cal-donetoday { margin: 0 0 var(--ddp-space-4); color: var(--ddp-color-ink-soft); }
+.cal-gather h3 { margin-top: var(--ddp-space-4); }
+.cal-for a { display: inline-block; padding: 0.2rem 0; overflow-wrap: anywhere; }
 
 /* ---------- columns ---------- */
 .cal-cols { display: grid; gap: var(--ddp-space-8); }
@@ -254,9 +259,11 @@ html.cal-wait #cal-root { visibility: hidden; animation: cal-reveal 0s linear 0.
 .cal-dialog p { line-height: 1.55; margin: 0 0 var(--ddp-space-3); }
 .cal-dialog form { display: grid; gap: var(--ddp-space-4); }
 .cal-dialog form > p { margin: 0; }
-.cal-dlg-head { display: flex; justify-content: space-between; align-items: start; gap: 1rem; position: sticky; top: calc(var(--ddp-space-6) * -1); z-index: 1; margin: calc(var(--ddp-space-3) * -1) 0 var(--ddp-space-3); padding: var(--ddp-space-3) 0 0; background: var(--ddp-color-surface); border-bottom: 1px solid var(--ddp-color-line); }
-@media (min-width: 640px) { .cal-dlg-head { top: calc(var(--ddp-space-8) * -1); } }
-.cal-dlg-head h2 { margin-bottom: var(--ddp-space-2); }
+/* The heading scrolls away with the list (a pinned one hid the focused activity and filled the
+   dialog at large text). Close is at the top and again at the bottom, and Escape closes it. */
+.cal-dlg-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: start; gap: 0 1rem; }
+.cal-dlg-head h2 { min-width: 0; overflow-wrap: anywhere; }
+.cal-choice { scroll-margin: 0.5rem 0; }
 .cal-dlg-do { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 0.5rem; }
 .cal-choice { display: grid; width: 100%; text-align: left; gap: 0.1rem; min-height: 44px; padding: 0.55rem 0.2rem; border: 0; border-top: 1px solid var(--ddp-color-line); background: none; color: var(--ddp-color-ink); font: inherit; cursor: pointer; }
 .cal-choice:hover .cal-choice-t { text-decoration: underline; }
@@ -287,6 +294,7 @@ html.cal-wait #cal-root { visibility: hidden; animation: cal-reveal 0s linear 0.
 /* Windows high contrast: a chosen day, a chosen list and the current page still look chosen. */
 @media (forced-colors: active) {
   .cal-day input:checked + span, .cal-seg input:checked + span { background: Highlight; color: HighlightText; border-color: Highlight; forced-color-adjust: none; }
+  .cal-roles a { border-bottom-color: Canvas; }
   .cal-roles a[aria-current="page"] { border-bottom-color: Highlight; }
   .cal-check input:checked + .cal-box { background: Highlight; border-color: Highlight; forced-color-adjust: none; }
 }

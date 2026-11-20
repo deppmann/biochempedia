@@ -112,7 +112,11 @@ export async function courses(): Promise<CourseData[]> {
       }
     });
     const stage = stageOf(course);
+    /* One level up, for school courses only: grade 7 to high school, high school to the first college course. */
+    const nextStage = stage === 'grade-7' ? 'high-school' : stage === 'high-school' ? 'starting-college' : '';
+    const upCourse = nextStage ? COURSES.find((c) => stageOf(c) === nextStage && all.some((l) => l.data.course === c.slug)) : undefined;
     out.push({
+      ...(upCourse ? { up: { s: upCourse.slug, t: upCourse.title } } : {}),
       s: course.slug, t: course.title, level: STAGES.find((s) => s.key === stage)?.title ?? '',
       school: course.tier === 'highschool' || course.tier === 'families', units: units.map((u) => u.name), lessons,
     });
@@ -122,6 +126,10 @@ export async function courses(): Promise<CourseData[]> {
 
 /** Courses a learner can follow. The activity guides are a grown-up's, so they are not here. */
 export const learnerCourses = async () => (await courses()).filter((c) => c.s !== 'biology-together');
+
+/** Courses the class-plan sample offers. Biology Together is left out: its guides are hands-on
+ *  activities whose safety notes must travel with them, and a dated list of titles would not carry them. */
+export const teacherCourses = learnerCourses;
 
 export async function mcat(): Promise<McatData> {
   const all = await courses();

@@ -21,12 +21,12 @@ const levels = [...new Set(choices.map((c) => c.level))];
       {levels.map((lv) => (
         <section>
           <h2>{lv}</h2>
-          <ul>{choices.filter((c) => c.level === lv).map((c) => <li><a href={`/calendar/student/${c.s}/`}>{c.t}</a></li>)}</ul>
+          <ul>{choices.filter((c) => c.level === lv).map((c) => <li><a href={`/calendar/student/${c.s}/`} data-plan={c.s}>{c.t}</a></li>)}</ul>
         </section>
       ))}
       <section>
         <h2>A path</h2>
-        <ul><li><a href="/calendar/student/mcat/">The MCAT path: biology and biochemistry</a></li></ul>
+        <ul><li><a href="/calendar/student/mcat/" data-plan="mcat">The MCAT path: biology and biochemistry</a></li></ul>
       </section>
     </div>
     <p class="cal-foot">The plan stays on this device and goes nowhere else.</p>

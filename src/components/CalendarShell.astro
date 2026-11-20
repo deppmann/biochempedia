@@ -31,6 +31,8 @@ const json = data ? JSON.stringify(data).replace(/</g, '\\u003c') : '';
       nothing. The page's own script applies the same rule again as a fallback. */}
   <script is:inline define:vars={{ role, known, current }}>
     document.documentElement.classList.add('cal-wait');
+    // With a saved plan the build-time page may show the wrong thing, so it is held back longer.
+    try { if (localStorage.getItem('stemhop:calendar:v1')) document.documentElement.classList.add('cal-wait-long'); } catch (e) {}
     try {
       if (!/[?&]choose\b/.test(location.search)) {
         var to = '';

@@ -37,7 +37,7 @@ export interface Ui {
   /** Titles of things in this plan already done today. */
   doneToday?: string[];
   /** Something the person has to put right, shown beside the field it is about. */
-  err?: { at: 'break' | 'meet'; text: string };
+  err?: { at: 'break-from' | 'break-to' | 'meet'; text: string };
 }
 
 const WHERE = { indoors: 'Indoors', outdoors: 'Outdoors', either: 'Indoors or outdoors' } as const;
@@ -73,12 +73,12 @@ function dayChecks(days: number[], name: string): string {
 
 const opt = (value: string | number, label: string, on: boolean) => `<option value="${esc(value)}"${on ? ' selected' : ''}>${esc(label)}</option>`;
 
-function keptLine(ui: Ui, what: string): string {
+function keptLine(ui: Ui, what: string, more = ''): string {
   if (!ui.today) return '';
   return `<p class="cal-foot cal-noprint">${
     ui.kept === false
       ? `This browser is not letting the page save anything, so ${what} lasts until you close the page.`
-      : `${cap(what)} stays on this device and goes nowhere else.`
+      : `${cap(what)} stays on this device and goes nowhere else.${more}`
   } <button type="button" class="cal-linkbtn" data-act="forget" data-fid="forget">Forget what the calendar keeps here</button></p>`;
 }
 
@@ -125,7 +125,7 @@ function activityCard(a: Activity, canSkip: boolean): string {
   </dl>
   <details class="cal-fold cal-safety cal-noprint" data-fold="safety"><summary>The guide’s safety notes <span class="cal-count">(${a.safety.length})</span></summary><ul>${safety}</ul></details>
   <div class="cal-do cal-noprint">
-    <a class="cal-btn cal-btn-main" href="/lessons/${esc(a.s)}/">Open the guide</a>
+    <a class="cal-btn cal-btn-main" href="/lessons/${esc(a.s)}/" data-fid="open">Open the guide</a>
     <button type="button" class="cal-btn" data-js data-act="did" data-s="${esc(a.s)}" data-fid="did" aria-label="We did it: ${esc(a.t)}">We did it</button>
     ${canSkip ? `<button type="button" class="cal-btn" data-js data-act="skip" data-fid="skip" aria-label="Not this week: ${esc(a.t)} waits for the next one">Not this week</button>` : ''}
     <button type="button" class="cal-btn cal-btn-quiet" data-js data-act="choose" data-fid="choose">Choose a different one</button>
@@ -135,7 +135,7 @@ function activityCard(a: Activity, canSkip: boolean): string {
 
 export function renderParent(acts: Activity[], plan: ParentPlan, visit: Visit, ui: Ui): string {
   const today = ui.today;
-  const v = parentView(acts, plan, today ?? '2000-01-01', { skip: visit.skip });
+  const v = parentView(acts, plan, today ?? '2000-01-01', { skip: visit.skip, used: visit.used });
   const a = v.next;
   const date = today ? v.date : undefined;
   const size = a ? `One activity, about ${a.min} minutes, ${WHERE_SHORT[a.setting]}.` : '';
@@ -154,7 +154,7 @@ export function renderParent(acts: Activity[], plan: ParentPlan, visit: Visit, u
   }
 
   const set = today ? `<details class="cal-set cal-noprint" data-fold="set">
-    <summary><span>${esc(rhythmSentence(v.days))}</span> <span class="cal-change">Change</span></summary>
+    <summary><span>${esc(rhythmSentence(v.days))}</span> <span class="cal-change cal-closed">Change</span><span class="cal-change cal-open">Close</span></summary>
     <div class="cal-set-body">
       <fieldset><legend>Which days suit you?</legend>${dayChecks(v.days, 'pdays')}</fieldset>
       <p class="cal-sub">Pick one, a few, or none. Activities come in the course’s order, and one you don’t get to simply waits.</p>
@@ -173,11 +173,15 @@ export function renderParent(acts: Activity[], plan: ParentPlan, visit: Visit, u
     .filter((k) => k <= v.queue.length)
     .map((k) => `<label><input type="radio" name="plist" value="${k}"${k === n ? ' checked' : ''}><span>${k === 1 ? 'This one' : `Next ${num(k)}`}</span></label>`)
     .join('')}</fieldset>` : ''}
-  <ul class="cal-supplies">${lines
-    .map((l) => `<li><label class="cal-check"><input type="checkbox" data-have="${l.key}"${plan.have[l.key] ? ' checked' : ''}><span class="cal-box" aria-hidden="true"></span><span class="cal-line">${esc(l.text)}${
-      many ? `<span class="cal-for">For ${l.for.map((x) => esc(x.t)).join(' and ')}</span>` : ''
-    }</span></label></li>`)
-    .join('')}</ul>
+  ${forActs.map((act) => {
+    const mine = lines.filter((l) => l.for[0] === act);
+    if (!mine.length) return '';
+    return `${many ? `<h3>For ${esc(act.t)}</h3>` : ''}<ul class="cal-supplies">${mine
+      .map((l) => `<li><label class="cal-check"><input type="checkbox" data-have="${l.key}"${plan.have[l.key] ? ' checked' : ''}><span class="cal-box" aria-hidden="true"></span><span class="cal-line">${esc(l.text)}${
+        l.for.length > 1 ? `<span class="cal-for">Also for ${l.for.slice(1).map((x) => esc(x.t)).join(' and ')}</span>` : ''
+      }${/observation sheet/i.test(l.text) ? `<span class="cal-for">The sheet is in the guide: <a href="/lessons/${esc(act.s)}/">stemhop.com/lessons/${esc(act.s)}/</a></span>` : ''}</span></label></li>`)
+      .join('')}</ul>`;
+  }).join('')}
   ${forActs.map((x) => `<div class="cal-print-only cal-print-safety"><h3>Safety, from the guide: ${esc(x.t)}</h3><ul>${x.safety.map((s) => `<li>${esc(s)}</li>`).join('')}</ul><p>The steps are in the guide: stemhop.com/lessons/${esc(x.s)}/</p></div>`).join('')}
 </section>` : '';
 
@@ -204,11 +208,11 @@ export function renderParent(acts: Activity[], plan: ParentPlan, visit: Visit, u
   const done = v.done.length ? `<section class="cal-record cal-noprint" aria-labelledby="cal-done-h">
   <h2 id="cal-done-h">Done together</h2>
   <ul>${[...v.done].reverse()
-    .map((d) => `<li><span class="cal-next-body"><a href="/lessons/${esc(d.s)}/">${esc(d.t)}</a>${d.follow ? `<span class="cal-meta">The guide’s time: ${esc(howLong(d))}.</span>` : ''}</span><button type="button" class="cal-linkbtn" data-act="undid" data-s="${esc(d.s)}" data-fid="undid-${esc(d.s)}" aria-label="Put it back: ${esc(d.t)} returns to the plan">Put it back</button></li>`)
+    .map((d) => `<li><span class="cal-next-body"><a href="/lessons/${esc(d.s)}/">${esc(d.t)}</a></span><button type="button" class="cal-linkbtn" data-act="undid" data-s="${esc(d.s)}" data-fid="undid-${esc(d.s)}" aria-label="Put it back: ${esc(d.t)} returns to the plan">Put it back</button></li>`)
     .join('')}</ul>
 </section>` : '';
 
-  const freed = v.freed && a && date ? `<p class="cal-freed cal-noprint">Nothing ${daysBetween(today!, v.freed) === 0 ? 'today' : `this ${weekday(v.freed)}`}. ${esc(a.t)} waits for ${longDate(date)}.</p>` : '';
+  const freed = v.freed && a && date ? `<p class="cal-said cal-freed cal-noprint"><span>Nothing ${daysBetween(today!, v.freed) === 0 ? 'today' : `this ${weekday(v.freed)}`}. ${esc(a.t)} waits for ${longDate(date)}.</span> <button type="button" class="cal-linkbtn" data-act="unskip" data-fid="unskip" aria-label="Put it back: ${esc(a.t)} on ${weekday(v.freed)}">Put it back</button></p>` : '';
 
   return `<div class="cal-page cal-parent">
 <header class="cal-top">
@@ -287,7 +291,7 @@ function topCard(s: Sitting, date: Iso | undefined, ui: Ui, mcat: boolean): stri
   <p class="cal-size">${esc(sittingSize(s))}</p>
   ${film}${rung}
   <div class="cal-do">
-    <a class="cal-btn cal-btn-main" href="${esc(it.href)}">${open}</a>
+    <a class="cal-btn cal-btn-main" href="${esc(it.href)}" data-fid="open">${open}</a>
     <button type="button" class="cal-btn" data-js data-act="done" data-fid="done" aria-label="Done: ${esc(name)}">Done</button>
     ${date && today && date === today ? `<button type="button" class="cal-btn" data-js data-act="later" data-fid="later" aria-label="Later: move ${esc(name)} to the next day">Later</button>` : ''}
   </div>
@@ -302,7 +306,7 @@ function reachSentence(r: Reach, test: Iso | undefined, today: Iso): string {
   if (!test) return '';
   const t = fullDate(test);
   switch (r.kind) {
-    case 'passed': return 'That date has passed. Pick a later one, or leave it empty.';
+    case 'passed': return 'That date is today or has passed. Pick a later one, or leave it empty.';
     case 'no-days': return 'Tick the days you study, under Change at the top, and this line will say when the lessons would end.';
     case 'fits': return `At this rhythm the lessons here end around ${dateIn(r.end!, today)}, before your test on ${t}. The time between is for the subjects this site does not have and for full-length practice.`;
     case 'close': return `At this rhythm the lessons here end around ${dateIn(r.end!, today)}, close to your test on ${t}. That leaves little room for the subjects this site does not have. A longer sitting, another day a week, or leaving out a course you already know would open some.`;
@@ -313,9 +317,9 @@ function reachSentence(r: Reach, test: Iso | undefined, today: Iso): string {
         w.course ? 'leaving out a course you already know (untick it above)' : '',
         w.films ? 'reading without the films' : '',
       ].filter(Boolean);
-      const lead = ways.length === 1 ? 'This would bring them inside it' : ways.length === 2 ? 'Either of these brings them inside it' : 'Any one of these brings them inside it';
-      const list = ways.length === 1 ? ways[0] : `${ways.slice(0, -1).join('; ')}; or ${ways[ways.length - 1]}`;
-      return `At this rhythm the lessons here run past ${t}. ${lead}: ${list}.`;
+      if (ways.length === 1) return `At this rhythm the lessons here run past ${t}. ${cap(ways[0])} would finish them before it.`;
+      const lead = ways.length === 2 ? 'Either of these would finish them before it' : 'Any one of these would finish them before it';
+      return `At this rhythm the lessons here run past ${t}. ${lead}: ${ways.slice(0, -1).join('; ')}; or ${ways[ways.length - 1]}.`;
     }
     case 'far-beyond': return `The whole path does not fit before ${t}, and no single change here would make it fit. Untick the courses you already know, above, and start with the ones you need most. Each one stands on its own.`;
     default: return '';
@@ -336,7 +340,7 @@ export function renderStudent(page: StudentPage, plan: StudentPlan, done: Readon
   const sentence = `${cap(name)}${mcat ? `, ${SIT_WORDS[sit]}` : ''}, ${days.length ? onDays(days) : 'with no set days'}.`;
   const groups = [...new Set(page.choices.map((c) => c.level))];
   const set = today ? `<details class="cal-set" data-fold="set">
-    <summary><span>${esc(sentence)}</span> <span class="cal-change">Change</span></summary>
+    <summary><span>${esc(sentence)}</span> <span class="cal-change cal-closed">Change</span><span class="cal-change cal-open">Close</span></summary>
     <div class="cal-set-body">
       <label class="cal-field"><span>What to keep up with</span><select name="splan">${groups
         .map((g) => `<optgroup label="${esc(g)}">${page.choices.filter((c) => c.level === g).map((c) => opt(c.s, c.t, c.s === key)).join('')}</optgroup>`)
@@ -359,7 +363,7 @@ export function renderStudent(page: StudentPage, plan: StudentPlan, done: Readon
     <p class="cal-when"><time datetime="${today}">${dateLabel(today, today)}</time></p>
     <h2 class="cal-card-t" id="cal-empty-t">Nothing today.</h2>
     <p>It moved to ${to ? (daysBetween(today, to) === 1 ? 'tomorrow' : `your next study day, ${longDate(to)}`) : 'your next study day'}.</p>
-    <button type="button" class="cal-btn" data-act="undo" data-fid="undo" aria-label="Put it back: today holds it again">Put it back</button>
+    <button type="button" class="cal-btn" data-act="unlater" data-fid="unlater" aria-label="Put it back: today holds it again">Put it back</button>
   </div>
 </section>`;
   }
@@ -367,7 +371,12 @@ export function renderStudent(page: StudentPage, plan: StudentPlan, done: Readon
   if (v.top && !v.emptied) main += topCard(v.top.sitting, v.top.date, ui, !!mcat);
   if (!v.top) {
     const partial = mcat ? mcatIncluded(mcat, plan).length < mcat.steps.length : !!start;
-    main += `<section class="cal-card"><h2 class="cal-card-t">That is the end of ${esc(name)}${partial ? (mcat ? ', for the courses you kept' : ', from where you started') : ''}.</h2><p>${partial ? `${mcat ? 'The courses you left out' : 'Earlier lessons'} are in the whole ${mcat ? 'path' : 'course'}, below. ` : ''}Where next is yours to pick.</p><div class="cal-do"><a class="cal-btn cal-btn-main" href="/courses/">Look at the other courses</a></div></section>`;
+    const up = course?.up;
+    main += `<section class="cal-card"><h2 class="cal-card-t">That is the last lesson in ${esc(name)}${partial ? (mcat ? ', for the courses you kept' : ', from where you started') : ''}.</h2><p>${
+      partial ? `${mcat ? 'The courses you left out' : 'Earlier lessons'} are in the whole ${mcat ? 'path' : 'course'}, below. ` : ''
+    }${up ? `${esc(up.t)} takes the same ideas further, when you want it.` : 'Where next is yours to pick.'}</p><div class="cal-do">${
+      up ? `<a class="cal-btn cal-btn-main" href="/calendar/student/${esc(up.s)}/" data-fid="open">Go on to ${esc(up.t)}</a><a class="cal-btn cal-btn-quiet" href="/courses/">Look at the other courses</a>` : '<a class="cal-btn cal-btn-main" href="/courses/" data-fid="open">Look at the other courses</a>'
+    }</div></section>`;
   }
 
   const rowList = v.emptied && v.top ? [v.top, ...v.rows] : v.rows;
@@ -436,7 +445,7 @@ export function renderStudent(page: StudentPage, plan: StudentPlan, done: Readon
   return `<div class="cal-page cal-student">
 <header class="cal-top">
   ${roleRow('student')}
-  <h1 tabindex="-1">${mcat ? 'Next on the MCAT path' : `Next in ${esc(course!.t)}`}</h1>
+  <h1 tabindex="-1">${v.top ? (mcat ? 'Next on the MCAT path' : `Next in ${esc(course!.t)}`) : `The end of ${esc(name)}`}</h1>
   <p class="cal-lede">${lede}</p>
   ${set}
 </header>
@@ -446,7 +455,7 @@ ${noteSlot(ui)}
   <div class="cal-side">${side}</div>
   <div class="cal-later">${whole}</div>
 </div>
-${keptLine(ui, 'this plan')}
+${keptLine(ui, 'this plan', ' Lessons you mark done go into your progress, which is saved to your account only if you are signed in.')}
 </div>`;
 }
 
@@ -463,7 +472,7 @@ function meetingRow(m: Meeting, today: Iso, print = false): string {
   const date = `<span class="cal-date">${shortDate(m.date)}${m.date === today ? ' <span class="cal-rel">Today</span>' : ''}</span>`;
   if (m.kind === 'open') return `<li${cls}>${date}<span class="cal-next-body"><span>Open day: nothing planned</span>${print ? '' : `<button type="button" class="cal-linkbtn cal-noprint" data-act="unlost" data-d="${m.date}" data-fid="unlost-${m.date}" aria-label="Put it back: ${shortDate(m.date)} holds its lesson again">Put it back</button>`}</span></li>`;
   const part = m.part ? ` <span class="cal-meta">(${m.part === 1 ? 'first' : 'second'} of two classes)</span>` : '';
-  const titles = m.lessons.map((l) => (print ? esc(l.t) : `<a href="/lessons/${esc(l.s)}/">${esc(l.t)}</a>`)).join(' <span class="cal-meta">and</span> ');
+  const titles = m.lessons.map((l, i) => (print ? esc(l.t) : `<a href="/lessons/${esc(l.s)}/"${i === 0 ? ` data-fid="row-${m.date}"` : ''}>${esc(l.t)}</a>`)).join(' <span class="cal-meta">and</span> ');
   const sol = m.lessons.map((l) => l.sol).filter(Boolean).join('; ');
   return `<li${cls}>${date}<span class="cal-next-body"><span>${titles}${part}</span><span class="cal-meta">${sol ? `SOL ${esc(sol)}` : 'No standard listed'}<span aria-hidden="true"> · </span>${m.lessons.reduce((a, l) => a + l.m, 0)} min</span></span></li>`;
 }
@@ -473,7 +482,7 @@ export function renderTeacher(course: CourseData, choices: { s: string; t: strin
   const head = (inner: string) => `<header class="cal-top">
   ${roleRow('teacher')}
   <h1 tabindex="-1">A sample class plan, by date</h1>
-  <p class="cal-lede">Try it with your own days. Nothing here is saved to a class or shown to students.</p>
+  <p class="cal-lede cal-noprint">Try it with your own days. Nothing here is saved to a class or shown to students.</p>
   ${inner}
 </header>`;
   const real = `<section class="cal-real cal-noprint" aria-labelledby="cal-real-h">
@@ -503,22 +512,22 @@ export function renderTeacher(course: CourseData, choices: { s: string; t: strin
   const sentence = `${course.t}, ${PER_WORDS[String(s.per)]}, ${s.meet.length ? onDays(s.meet) : 'on no days yet'}, from ${monthDay(s.from)}.`;
   const groups = [...new Set(choices.map((c) => c.level))];
   const set = `<details class="cal-set cal-noprint" data-fold="set">
-    <summary><span>${esc(sentence)}</span> <span class="cal-change">Change</span></summary>
+    <summary><span>${esc(sentence)}</span> <span class="cal-change cal-closed">Change</span><span class="cal-change cal-open">Close</span></summary>
     <div class="cal-set-body">
       <label class="cal-field"><span>Course</span><select name="tcourse">${groups.map((g) => `<optgroup label="${esc(g)}">${choices.filter((c) => c.level === g).map((c) => opt(c.s, c.t, c.s === course.s)).join('')}</optgroup>`).join('')}</select></label>
       <button type="button" class="cal-btn cal-go" data-act="go-course" data-fid="go-course">Show this course</button>
       <label class="cal-field"><span>First class</span><input type="date" name="tfrom" value="${s.from}"></label>
-      <fieldset><legend>The class meets on</legend>${dayChecks(s.meet, 'tmeet')}${ui.err?.at === 'meet' ? `<p class="cal-err" id="cal-err">${esc(ui.err.text)}</p>` : ''}</fieldset>
+      <fieldset${ui.err?.at === 'meet' ? ' aria-describedby="cal-err"' : ''}><legend>The class meets on</legend>${dayChecks(s.meet, 'tmeet')}${ui.err?.at === 'meet' ? `<p class="cal-err" id="cal-err">${esc(ui.err.text)}</p>` : ''}</fieldset>
       <label class="cal-field"><span>Pace</span><select name="tper">${Object.entries(PER_WORDS).map(([k, w]) => opt(k, w, Number(k) === s.per)).join('')}</select></label>
       <fieldset class="cal-breaks-set"><legend>Days with no class</legend>
         ${plan?.breaks ? '' : '<p class="cal-sub">Sample breaks. Put in your school’s own.</p>'}
         ${s.breaks.length ? `<ul class="cal-breaks">${s.breaks.map((b, i) => `<li><span>${esc(breakSpan(b.from, b.to))}${b.label ? `: ${esc(b.label)}` : ''}</span> <button type="button" class="cal-linkbtn" data-act="unbreak" data-i="${i}" data-fid="unbreak-${i}" aria-label="Remove: ${esc(b.label || 'this break')}, ${esc(breakSpan(b.from, b.to))}">Remove</button></li>`).join('')}</ul>` : ''}
         <div class="cal-addbreak">
-          <label class="cal-field"><span>From</span><input type="date" name="bfrom"${ui.err?.at === 'break' ? ' aria-invalid="true" aria-describedby="cal-err"' : ''}></label>
-          <label class="cal-field"><span>To <span class="cal-opt">(optional)</span></span><input type="date" name="bto"></label>
+          <label class="cal-field"><span>From</span><input type="date" name="bfrom"${ui.err?.at === 'break-from' ? ' aria-invalid="true" aria-describedby="cal-err"' : ''}></label>
+          <label class="cal-field"><span>To <span class="cal-opt">(optional)</span></span><input type="date" name="bto"${ui.err?.at === 'break-to' ? ' aria-invalid="true" aria-describedby="cal-err"' : ''}></label>
           <label class="cal-field"><span>What it is</span><input type="text" name="blabel" maxlength="60" autocomplete="off" aria-describedby="cal-blabel-hint"></label>
           <p class="cal-sub cal-wide" id="cal-blabel-hint">It stays on this computer and prints on the plan. Don’t use student names.</p>
-          ${ui.err?.at === 'break' ? `<p class="cal-err cal-wide" id="cal-err">${esc(ui.err.text)}</p>` : ''}
+          ${ui.err?.at === 'break-from' || ui.err?.at === 'break-to' ? `<p class="cal-err cal-wide" id="cal-err">${esc(ui.err.text)}</p>` : ''}
           <button type="button" class="cal-btn" data-act="addbreak" data-fid="addbreak">Add a break</button>
         </div>
       </fieldset>
@@ -528,7 +537,7 @@ export function renderTeacher(course: CourseData, choices: { s: string; t: strin
   /* Today. */
   const m = ms.find((x) => x.date === today);
   const next = ms.find((x) => x.date > today && x.kind === 'lesson');
-  const nextLine = next ? `Next class: ${longDate(next.date)}, ${esc(next.lessons.map((l) => l.t).join(' and '))}.` : '';
+  const nextLine = next ? `Next class: ${longDate(next.date)}, ${esc(end(next.lessons.map((l) => l.t).join(' and ')))}` : '';
   let card: string;
   if (m?.kind === 'lesson') {
     const l = m.lessons[0];
@@ -542,7 +551,7 @@ export function renderTeacher(course: CourseData, choices: { s: string; t: strin
     <div><dt>Standard</dt><dd>${m.lessons.map((x) => (x.sol ? `SOL ${esc(x.sol)}` : 'No standard listed')).join('; ')}</dd></div>
   </dl>
   <div class="cal-do cal-noprint">
-    <a class="cal-btn cal-btn-main" href="/lessons/${esc(l.s)}/">Open the lesson</a>
+    <a class="cal-btn cal-btn-main" href="/lessons/${esc(l.s)}/" data-fid="open">Open the lesson</a>
     <button type="button" class="cal-linkbtn" data-act="lost" data-fid="lost">Lost a day? Move today back one class</button>
   </div>
 </section>`;
@@ -577,14 +586,14 @@ export function renderTeacher(course: CourseData, choices: { s: string; t: strin
   const shown = wk.filter((w) => w.monday >= thisMon && w.monday <= addDays(thisMon, 21));
   const rest = wk.filter((w) => w.monday > addDays(thisMon, 21));
   const earlier = wk.filter((w) => w.monday < thisMon);
-  const end = ms[ms.length - 1]?.date;
+  const lastDay = ms[ms.length - 1]?.date;
   const byDate = ms.length ? `<section class="cal-bydate" aria-labelledby="cal-bydate-h">
   <h2 id="cal-bydate-h">By date</h2>
   <ol class="cal-weeks cal-noprint">${shown.map((w) => weekHtml(w)).join('')}</ol>
-  ${rest.length ? `<details class="cal-fold cal-noprint" data-fold="rest"><summary>The rest of the plan, to ${dateIn(end!, today)}</summary><ol class="cal-weeks">${rest.map((w) => weekHtml(w)).join('')}</ol></details>` : ''}
+  ${rest.length ? `<details class="cal-fold cal-noprint" data-fold="rest"><summary>The rest of the plan, to ${dateIn(lastDay!, today)}</summary><ol class="cal-weeks">${rest.map((w) => weekHtml(w)).join('')}</ol></details>` : ''}
   ${earlier.length ? `<details class="cal-fold cal-noprint" data-fold="earlier"><summary>Earlier weeks</summary><ol class="cal-weeks">${earlier.map((w) => weekHtml(w)).join('')}</ol></details>` : ''}
   <ol class="cal-weeks cal-print-only">${wk.map((w) => weekHtml(w, true)).join('')}</ol>
-  <p class="cal-sub">${end ? (end > summerOf(s.from) ? `At this pace the plan runs into summer, to ${fullDate(end)}. A quicker pace or another day a week, under Change, would bring it in.` : `On these days the last lesson lands on ${longDate(end)}, ${end.slice(0, 4)}.`) : ''}</p>
+  <p class="cal-sub">${lastDay ? (lastDay > summerOf(s.from) ? `At this pace the plan runs into summer, to ${fullDate(lastDay)}. A quicker pace or another day a week, under Change, would bring it in.` : `On these days the last lesson lands on ${longDate(lastDay)}, ${lastDay.slice(0, 4)}.`) : ''}</p>
 </section>` : '';
 
   return `<div class="cal-page cal-teacher">

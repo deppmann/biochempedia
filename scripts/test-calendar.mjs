@@ -124,6 +124,18 @@ check('a skipped day leaves no gap and no mark: the same plan, opened later, sim
   assert.equal(JSON.stringify(plan), before, 'looking changes nothing');
   assert.equal(E.holdsDate(plan), false);
 });
+check('"We did it" on the activity day uses the day: the next activity sits on the next chosen day, for this visit only', () => {
+  const sat = '2026-11-21';
+  const before = E.parentView(ACTS, E.newParent(), sat);
+  assert.equal(before.date, sat);
+  const plan = E.parentDid(E.newParent(), ACTS[0]);
+  const after = E.parentView(ACTS, plan, sat, { used: true });
+  assert.deepEqual([after.next.s, after.date], ['b', '2026-11-28']);
+  assert.equal(E.holdsDate(plan), false, 'nothing about the day was stored');
+  // on any other day the flag changes nothing, and with "Not this week" as well a second day is passed over
+  assert.equal(E.parentView(ACTS, plan, '2026-11-20', { used: true }).date, sat);
+  assert.equal(E.parentView(ACTS, plan, sat, { used: true, skip: true }).date, '2026-12-05');
+});
 check('with no day set, nothing is dated at all', () => {
   const v = E.parentView(ACTS, { ...E.newParent(), days: [] }, '2026-11-20');
   assert.equal(v.date, undefined);
@@ -227,6 +239,12 @@ check('something done today uses today: the next lesson waits for the next study
   assert.equal(v.spent, true);
   assert.equal(v.top.sitting.items[0].key, 'p2');
   assert.equal(v.top.date, '2026-11-23');
+});
+check('the class-plan sample leaves out Biology Together, whose safety notes a dated list would not carry', () => {
+  const data = readFileSync(path('../src/lib/calendar/data.ts'), 'utf8');
+  assert.match(data, /export const teacherCourses = learnerCourses;/);
+  for (const f of ['index', '[course]']) assert.match(readFileSync(path(`../src/pages/calendar/teacher/${f}.astro`), 'utf8'), /await teacherCourses\(\)/);
+  if (existsSync(path('../dist/calendar/teacher/index.html'))) assert.ok(!existsSync(path('../dist/calendar/teacher/biology-together/index.html')));
 });
 check('honest minutes: reading plus film for a college lesson; a school lesson is its class period', () => {
   const [it] = E.courseItems(COURSE);
@@ -551,7 +569,7 @@ check('anything date-like that reaches storage by another road is dropped on the
 check('the test date, "Later" and "Not this week" live in the visit, and the page saves only the plan', () => {
   const src = readFileSync(path('../src/lib/calendar/client.ts'), 'utf8');
   const writes = [...src.matchAll(/localStorage\.setItem\((.*?)\);/g)].map((m) => m[1]);
-  assert.deepEqual(writes.sort(), ["KEY, '{\"v\":1}'", 'KEY, JSON.stringify(model.state)'].sort(), 'two writes: a probe that is removed at once, and the plan');
+  assert.deepEqual(writes.sort(), ["KEY, '{\"v\":1}'", 'KEY, JSON.stringify(model.state)', 'KEY, JSON.stringify(s)'].sort(), 'three writes: a probe that is removed at once, the plan, and the plan picked from the list');
   assert.ok(!/sessionStorage|document\.cookie|fetch\(|XMLHttpRequest|sendBeacon/.test(src), 'no other store, and no network request');
   assert.ok(/model\.visit\.test = /.test(src) && /model\.visit\.later = true/.test(src) && /model\.visit\.skip = true/.test(src));
   assert.ok(!/state\.(student|parent)[^;\n]*\.(test|later|skip)\b/.test(src), 'none of them is put in the saved plan');
@@ -571,7 +589,7 @@ check('"Clear everything", the account page\'s "remove from this device" and "Fo
   }
   const client = readFileSync(path('../src/lib/calendar/client.ts'), 'utf8');
   const forget = client.slice(client.indexOf("case 'forget'"), client.indexOf('/* parent */'));
-  assert.ok(/model\.state = \{ v: 1 \}/.test(forget) && /localStorage\.removeItem\(KEY\)/.test(forget) && /clearPrefs\(\)/.test(forget));
+  assert.ok(/model\.state = \{ v: 1 \}/.test(forget) && /localStorage\.removeItem\(KEY\)/.test(forget) && /writePrefs\(\{ role: null \}\)/.test(forget), 'Forget clears the calendar and who it is for, and leaves other saved choices alone');
 });
 check('the calendar stays out of search and out of the sitemap until it has been reviewed', () => {
   assert.match(readFileSync(path('../src/components/CalendarShell.astro'), 'utf8'), /noindex = true/);
@@ -589,6 +607,10 @@ check('a typed date is taken once, on Enter or on leaving the field; the lists t
   assert.ok(!/commitDate[\s\S]{0,900}render\(/.test(client.slice(client.indexOf('function commitDate'), client.indexOf("root.addEventListener('keydown'"))), 'a date is taken without redrawing the field it was typed in');
   assert.match(client, /addEventListener\('focusout'/);
   assert.ok(!/case 'splan'|case 'tcourse'/.test(client), 'no navigation on change');
+  // "Later" and "Not this week" each carry their own way back, which nothing else on the page can clear
+  assert.ok(/case 'unlater'/.test(client) && /case 'unskip'/.test(client));
+  const render = readFileSync(path('../src/lib/calendar/render.ts'), 'utf8');
+  assert.ok(/data-act="unlater"/.test(render) && /data-act="unskip"/.test(render));
   assert.ok(/case 'go-plan'/.test(client) && /case 'go-course'/.test(client));
   assert.match(client, /addEventListener\('pageshow'/);
 });

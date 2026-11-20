@@ -4,12 +4,12 @@
    "By date" tab and is not built yet. Drawn here as the course in order with its standards;
    the browser lays it on the days the teacher sets. */
 import CalendarShell from '../../../components/CalendarShell.astro';
-import { courses } from '../../../lib/calendar/data';
+import { teacherCourses } from '../../../lib/calendar/data';
 import type { CourseData } from '../../../lib/calendar/engine';
 import { renderTeacher } from '../../../lib/calendar/render';
 
 const HOME = 'high-school-biology';
-const all = await courses();
+const all = await teacherCourses();
 const choices = all.map((c) => ({ s: c.s, t: c.t, level: c.level }));
 const course: CourseData = all.find((c) => c.s === HOME)!;
 const isDefault = true;

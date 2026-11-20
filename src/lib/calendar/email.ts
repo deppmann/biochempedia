@@ -218,13 +218,13 @@ export function teacherMail(m: TeacherMail): Mail {
     p(esc(facts)),
     button(href, `Open the lesson: ${l.t}`),
     p(link(m.room, 'Room view, for the projector')),
-    m.next ? p(`Next class: ${esc(m.next)}.`, `color:${SOFT};`) : '',
+    m.next ? p(`Next class: ${esc(/[.?!]$/.test(m.next) ? m.next : `${m.next}.`)}`, `color:${SOFT};`) : '',
     m.links.move ? p(`Lost a day? ${link(m.links.move, 'Move today back one class')}, ${esc(lost)}`) : '',
   ].join('\n');
   const foot = [esc(ends), `${link(m.links.plan, 'Open the class plan')} &nbsp;·&nbsp; ${link(m.links.stop, 'Stop these emails')}: one click, no questions.`, esc(who), FREE];
   const text = [
     `${m.className}. ${m.date}`, '', l.t, facts, '', `Open the lesson: ${href}`, `Room view, for the projector: ${m.room}`,
-    ...(m.next ? ['', `Next class: ${m.next}.`] : []),
+    ...(m.next ? ['', `Next class: ${/[.?!]$/.test(m.next) ? m.next : `${m.next}.`}`] : []),
     ...(m.links.move ? ['', `Lost a day? Move today back one class, ${lost} ${m.links.move}`] : []),
     '', '--', ends, `Open the class plan: ${m.links.plan}`, `Stop these emails (one click, no questions): ${m.links.stop}`, who, FREE,
   ].join('\n');
