@@ -1,0 +1,26 @@
+---
+/* /calendar/parent/: with a child. The next Biology Together activity, what to gather, and the
+   guide's safety notes word for word. Drawn here without dates; the browser adds the day. */
+import CalendarShell from '../../../components/CalendarShell.astro';
+import { activities } from '../../../lib/calendar/data';
+import { newParent } from '../../../lib/calendar/engine';
+import { renderParent, chooserList, emailDialog } from '../../../lib/calendar/render';
+import { EMAIL_OPT_IN } from '../../../lib/calendar/flags';
+
+const acts = await activities();
+const html = renderParent(acts, newParent(), {}, {});
+---
+<CalendarShell title="This week with a child" role="parent" html={html} data={{ activities: acts }}
+  description="One Biology Together activity for ages 5 to 10 on the days that suit you: how long it takes, your part, the guide's safety notes and one list of what to gather. Free, no account.">
+  <Fragment slot="after">
+    <dialog class="cal-dialog" id="cal-choose" aria-labelledby="cal-choose-h">
+      <div class="cal-dlg-head">
+        <h2 id="cal-choose-h">Choose a different activity</h2>
+        <button type="button" class="cal-btn cal-btn-quiet" data-act="close">Close</button>
+      </div>
+      <p>All {acts.length}, in the course’s order. Times are hands-on time with your child. The one you pick comes next; the one it replaces follows it.</p>
+      <Fragment set:html={chooserList(acts)} />
+    </dialog>
+    {EMAIL_OPT_IN && <Fragment set:html={emailDialog()} />}
+  </Fragment>
+</CalendarShell>
