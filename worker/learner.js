@@ -13,6 +13,14 @@
 // header to show the learner's name and to sync, so signed-out visitors make no calls.
 //
 // Nothing here calls a paid service. Google sign-in is free; D1 and Workers are free tier.
+//
+// Role (migration 0009): a learner may say they are a student, a parent or a teacher. It is
+// optional, asked once when the account is made (after the 13-or-older tick) and changeable or
+// clearable on the account page (PUT /api/learner/role). Nothing else is asked. It is shown to
+// nobody but its owner, is in the export, and goes with the account. Its only other use is the
+// owner's totals (worker/admin.js), which count roles and never show one beside anything else.
+// Until the migration is applied the column is missing: /me then says nothing about roles, the
+// page asks nothing, and every answer here is exactly what it was before.
 
 import { generateRegistrationOptions, verifyRegistrationResponse, generateAuthenticationOptions, verifyAuthenticationResponse } from '@simplewebauthn/server';
 import { sha256Hex, randomToken, readCookie, cookie } from './auth.js';
@@ -38,6 +46,9 @@ const NEW_PER_DAY = 2000;
 const MAX_ITEMS = 10_000;
 const NAME_MAX = 40;
 const DELETE_WORD = 'DELETE';
+const ROLES = ['student', 'parent', 'teacher'];
+/** One of the three roles, or null for anything else (skipped, cleared, or not a role). */
+export const cleanRole = (r) => (ROLES.includes(r) ? r : null);
 const RP_NAME = 'STEMhop';
 
 // ---- small helpers --------------------------------------------------------------------
@@ -84,6 +95,25 @@ async function readJson(request, max = 64 * 1024) {
   try { return JSON.parse(text); } catch { return null; }
 }
 
+// ---- role: is the column there yet? ----------------------------------------------------
+// Asked of the database itself, so the question appears the day the migration is applied, with
+// no deploy. "Yes" is remembered for good, "no" for a minute.
+const roleMemo = new WeakMap();
+export async function roleReady(db) {
+  const m = roleMemo.get(db);
+  if (m && (m.yes || Date.now() - m.at < 60_000)) return m.yes;
+  let yes = false;
+  // LIMIT 0: the statement is checked against the column, and no row is read.
+  try { await db.prepare('SELECT role FROM learners LIMIT 0').first(); yes = true; } catch { yes = false; }
+  roleMemo.set(db, { yes, at: Date.now() });
+  return yes;
+}
+async function roleOf(db, learnerId) {
+  if (!(await roleReady(db))) return undefined;
+  const r = await db.prepare('SELECT role FROM learners WHERE id=?').bind(learnerId).first();
+  return cleanRole(r?.role);
+}
+
 // ---- sessions --------------------------------------------------------------------------
 export async function getLearner(db, request) {
   const token = readCookie(request, LEARNER_COOKIE);
@@ -109,11 +139,17 @@ async function startSession(db, request, learnerId) {
   return [cookie(LEARNER_COOKIE, token, request, SESSION_DAYS * 86400), hintCookie(request, true)];
 }
 
-async function createLearner(db, { id = randomToken(16), name, email = null, googleSub = null }) {
+async function createLearner(db, { id = randomToken(16), name, email = null, googleSub = null, role = null }) {
   const now = Date.now();
+  // The role column is named only when there is a role to store, and a role is only ever passed
+  // on once the column exists (see /passkey/register/options), so this runs before the migration too.
+  const r = cleanRole(role);
   await db.batch([
-    db.prepare('INSERT INTO learners (id, display_name, email, google_sub, created_at, last_active_at) VALUES (?,?,?,?,?,?)')
-      .bind(id, name, email, googleSub, now, now),
+    r
+      ? db.prepare('INSERT INTO learners (id, display_name, email, google_sub, created_at, last_active_at, role) VALUES (?,?,?,?,?,?,?)')
+        .bind(id, name, email, googleSub, now, now, r)
+      : db.prepare('INSERT INTO learners (id, display_name, email, google_sub, created_at, last_active_at) VALUES (?,?,?,?,?,?)')
+        .bind(id, name, email, googleSub, now, now),
     db.prepare("INSERT INTO learner_data (learner_id, notebook_json, progress_json, updated_at) VALUES (?, '{}', '{}', 0)").bind(id),
   ]);
   return id;
@@ -123,7 +159,9 @@ async function createLearner(db, { id = randomToken(16), name, email = null, goo
 async function startFlow(db, purpose, challenge, { learnerId = null, displayName = null, extra = null } = {}) {
   const raw = randomToken();
   const now = Date.now();
-  if (Math.random() < 0.1) await db.prepare('DELETE FROM learner_challenges WHERE expires_at < ?').bind(now).run().catch(() => {});
+  // Every time, not now and then: a sign-up that was started and dropped holds the chosen name (and
+  // role), and must not sit here past its ten minutes on a quiet day. (Also swept on each /me, below.)
+  await db.prepare('DELETE FROM learner_challenges WHERE expires_at < ?').bind(now).run().catch(() => {});
   await db.prepare('INSERT INTO learner_challenges (id, purpose, challenge, learner_id, display_name, extra, created_at, expires_at) VALUES (?,?,?,?,?,?,?,?)')
     .bind(await sha256Hex(raw), purpose, challenge, learnerId, displayName, extra, now, now + FLOW_MS).run();
   return raw;
@@ -187,10 +225,13 @@ async function meView(db, env, l) {
   const methods = [];
   if (l.google_sub) methods.push('google');
   if (pk?.n) methods.push('passkey');
+  const role = await roleOf(db, l.id);
   return {
     signedIn: true, name: l.display_name, ...(l.email ? { email: l.email } : {}), methods,
     passkeys: pk?.n || 0, created: l.created_at, lastSynced: data?.updated_at || null,
     googleAvailable: googleOn(env),
+    // Only once the role column exists: the account page shows its question when it sees this.
+    ...(role !== undefined ? { roleSupported: true, role } : {}),
   };
 }
 
@@ -285,6 +326,8 @@ export async function redeemBridge(db, request, raw) {
 }
 
 // ---- router ----------------------------------------------------------------------------
+let lastSweep = 0;   // when this instance last cleared expired sign-up rows from /me
+export const _resetSweep = () => { lastSweep = 0; };
 /** Returns a Response for /api/learner/* paths, or null for anything else. */
 export async function handleLearner(request, env, db, path, method, url) {
   if (!path.startsWith('/api/learner/')) return null;
@@ -305,9 +348,15 @@ export async function handleLearner(request, env, db, path, method, url) {
   const googleOrigin = onSite ? `https://${HOSTS.primary}` : origin;
 
   if (sub === '/me' && method === 'GET') {
+    // The account page asks this on every visit, which makes it the sweep for dropped sign-ups:
+    // at most once a minute per Worker instance, so an ordinary page view writes nothing.
+    if (Date.now() - lastSweep > 60_000) {
+      lastSweep = Date.now();
+      await db.prepare('DELETE FROM learner_challenges WHERE expires_at < ?').bind(Date.now()).run().catch(() => {});
+    }
     const l = await getLearner(db, request);
     if (!l) {
-      const res = json({ signedIn: false, googleAvailable: googleOn(env) });
+      const res = json({ signedIn: false, googleAvailable: googleOn(env), ...((await roleReady(db)) ? { roleSupported: true } : {}) });
       // A stale hint (session expired or deleted elsewhere) is cleared so the header stops asking.
       return readCookie(request, HINT_COOKIE) ? withCookies(res, [hintCookie(request, false)]) : res;
     }
@@ -397,7 +446,7 @@ export async function handleLearner(request, env, db, path, method, url) {
     if (!(await signinLimit())) return fail(429, 'Too many tries from here. Wait a minute and try again.');
     const b = await readJson(request);
     const current = await getLearner(db, request);
-    let userId, name, displayName = null, learnerId = null;
+    let userId, name, displayName = null, learnerId = null, role = null;
     let exclude = [];
     if (current) {
       learnerId = current.id;
@@ -411,13 +460,17 @@ export async function handleLearner(request, env, db, path, method, url) {
       if (b?.age13 !== true) return fail(400, 'Accounts are for people 13 and older.');
       userId = randomToken(16);
       name = displayName;
+      // Optional, and only after the age check above. Dropped unless the column exists.
+      role = cleanRole(b?.role);
+      if (role && !(await roleReady(db))) role = null;
     }
     const options = await generateRegistrationOptions({
       rpName: RP_NAME, rpID, userName: name, userDisplayName: name, userID: enc.encode(userId),
       attestationType: 'none', excludeCredentials: exclude,
       authenticatorSelection: { residentKey: 'required', userVerification: 'preferred' },
     });
-    const raw = await startFlow(db, 'register', options.challenge, { learnerId, displayName, extra: userId });
+    // `extra` is the new user id, as it always was. Only when a role was chosen is it JSON holding both.
+    const raw = await startFlow(db, 'register', options.challenge, { learnerId, displayName, extra: role ? JSON.stringify({ id: userId, role }) : userId });
     return json({ options }, 200, { 'Set-Cookie': flowCookie(request, raw) });
   }
 
@@ -448,7 +501,9 @@ export async function handleLearner(request, env, db, path, method, url) {
       if (!(await allow(db, 'lnew:' + ip, NEW_PER_IP_PER_DAY, 86_400_000)) || !(await allow(db, 'lnew:all', NEW_PER_DAY, 86_400_000))) {
         return withCookies(fail(429, 'Too many new accounts from here today. Please try again tomorrow.'), [clear]);
       }
-      learnerId = await createLearner(db, { id: flow.extra, name: flow.display_name || 'Learner' });
+      let made = { id: flow.extra, role: null };
+      if (String(flow.extra || '').startsWith('{')) { try { made = JSON.parse(flow.extra); } catch { /* keep the plain id */ } }
+      learnerId = await createLearner(db, { id: typeof made.id === 'string' ? made.id : undefined, name: flow.display_name || 'Learner', role: made.role });
     }
     await db.prepare('INSERT INTO learner_passkeys (credential_id, learner_id, public_key, counter, transports, created_at) VALUES (?,?,?,?,?,?)')
       .bind(cred.id, learnerId, b64url(cred.publicKey), cred.counter || 0, JSON.stringify(cred.transports || b?.response?.response?.transports || []), Date.now()).run();
@@ -526,6 +581,16 @@ export async function handleLearner(request, env, db, path, method, url) {
 
   if (!l) return withCookies(fail(401, 'Not signed in.'), readCookie(request, HINT_COOKIE) ? [hintCookie(request, false)] : []);
 
+  // ---------- role: set, change or clear (null). 404 until the column exists, as any unknown path. ----------
+  if (sub === '/role' && method === 'PUT') {
+    if (!(await roleReady(db))) return fail(404, 'Not found.');
+    if (!(await allow(db, 'lrole:' + ip, 30, 60_000))) return fail(429, 'Too many changes. Wait a minute.');
+    const b = await readJson(request, 1024);
+    if (!b || b.tooBig || !(b.role === null || ROLES.includes(b.role))) return fail(400, 'Choose student, parent or teacher, or leave it blank.');
+    await db.prepare('UPDATE learners SET role=? WHERE id=?').bind(b.role, l.id).run();
+    return json({ ok: true, role: b.role });
+  }
+
   if (sub === '/sync' && method === 'GET') {
     if (!(await allow(db, 'lsync:' + ip, 60, 60_000))) return fail(429, 'Syncing too often. It will try again shortly.');
     const d = await readData(db, l.id);
@@ -546,6 +611,7 @@ export async function handleLearner(request, env, db, path, method, url) {
   if (sub === '/export' && method === 'GET') {
     if (!(await allow(db, 'lexport:' + ip, 10, 60_000))) return fail(429, 'Too many downloads. Wait a minute.');
     const d = await readData(db, l.id);
+    const role = await roleOf(db, l.id);
     const passkeys = ((await db.prepare('SELECT credential_id, public_key, counter, transports, created_at FROM learner_passkeys WHERE learner_id=?').bind(l.id).all()).results || [])
       .map((p) => ({ credentialId: p.credential_id, publicKey: p.public_key, counter: p.counter, transports: safeArr(p.transports), created: iso(p.created_at) }));
     const sessions = ((await db.prepare('SELECT created_at, expires_at FROM learner_sessions WHERE learner_id=? ORDER BY created_at').bind(l.id).all()).results || [])
@@ -557,6 +623,7 @@ export async function handleLearner(request, env, db, path, method, url) {
       account: {
         name: l.display_name, email: l.email, googleLinked: !!l.google_sub, googleAccountId: l.google_sub,
         created: iso(l.created_at), lastActive: iso(l.last_active_at),
+        ...(role !== undefined ? { role } : {}),
       },
       passkeys, sessions,
       studyPlans: await exportLearnerPlans(db, l.id),

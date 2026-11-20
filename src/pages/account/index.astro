@@ -27,6 +27,19 @@ import '../../styles/teach.css';
 
       <label class="tc-check acct-age"><input type="checkbox" data-age /> <span>I am 13 or older.</span></label>
 
+      <!-- The one optional question. Shown only once the server keeps roles, and only after the
+           box above is ticked, so the age check always comes first. Nothing is selected for the reader. -->
+      <fieldset class="acct-role" data-role-new hidden>
+        <legend>One optional question: are you here as a student, a parent or a teacher?</legend>
+        <div class="acct-role-opts">
+          <label><input type="radio" name="role-new" value="student" /> <span>A student</span></label>
+          <label><input type="radio" name="role-new" value="parent" /> <span>A parent or guardian</span></label>
+          <label><input type="radio" name="role-new" value="teacher" /> <span>A teacher or tutor</span></label>
+          <label><input type="radio" name="role-new" value="" checked /> <span>I'd rather not say</span></label>
+        </div>
+        <p class="tc-muted">This is for a new account, and it is about you, the person making it: a parent answers as a parent. It is not a question about age or grade. Your answer is counted in totals with no names. It isn't shown to teachers or to anyone else, and you can change or clear it here whenever you like.</p>
+      </fieldset>
+
       <div class="acct-choices">
         <div class="tc-card" data-google-card hidden>
           <h2>Sign in with Google</h2>
@@ -70,6 +83,20 @@ import '../../styles/teach.css';
       <p class="tc-ok" data-add-msg role="status"></p>
       <p class="tc-error" data-add-err role="alert"></p>
 
+      <div data-role-block hidden>
+        <h2>Student, parent or teacher?</h2>
+        <fieldset class="acct-role" data-role-mine>
+          <legend class="tc-muted">Optional, and about you: a parent answers as a parent. It is not a question about age or grade. Your answer is counted in totals with no names. It isn't shown to teachers or to anyone else.</legend>
+          <div class="acct-role-opts">
+            <label><input type="radio" name="role-mine" value="student" /> <span>A student</span></label>
+            <label><input type="radio" name="role-mine" value="parent" /> <span>A parent or guardian</span></label>
+            <label><input type="radio" name="role-mine" value="teacher" /> <span>A teacher or tutor</span></label>
+            <label><input type="radio" name="role-mine" value="" /> <span>I'd rather not say</span></label>
+          </div>
+        </fieldset>
+        <p class="tc-ok" data-role-msg role="status"></p>
+      </div>
+
       <h2>Your data</h2>
       <p>Download a copy of everything we hold about you, as a JSON file.</p>
       <a class="tc-btn ghost" href="#export" download data-export>Download my data</a>
@@ -98,13 +125,24 @@ import '../../styles/teach.css';
   .acct .acct-age { display: flex; gap: 0.6rem; align-items: center; margin-top: var(--ddp-space-5); font-weight: 600; }
   .acct .acct-age input, .acct .tc-check input { width: 20px; height: 20px; flex: none; }
   .acct .tc-check { display: flex; gap: 0.6rem; align-items: flex-start; max-width: 64ch; }
+  /* The optional role question: plain radios, each a full 44px target, wrapping to one per line on a phone. */
+  .acct .acct-role { border: 0; padding: 0; margin: var(--ddp-space-5) 0 0; min-width: 0; max-width: 64ch; }
+  .acct .acct-role legend { padding: 0; font-weight: 600; line-height: 1.45; }
+  .acct .acct-role legend.tc-muted { font-weight: 400; }
+  .acct .acct-role-opts { display: flex; flex-wrap: wrap; gap: 0 var(--ddp-space-5); margin-top: var(--ddp-space-2); }
+  .acct .acct-role-opts label { display: inline-flex; align-items: center; gap: 0.55rem; min-height: 44px; cursor: pointer; }
+  .acct .acct-role-opts input { width: 20px; height: 20px; flex: none; margin: 0; accent-color: var(--ddp-color-accent); }
+  .acct .acct-role .tc-muted { margin: var(--ddp-space-1) 0 0; }
+  .acct [data-role-block] h2 + .acct-role { margin-top: 0; }
+  @media (max-width: 520px) { .acct .acct-role-opts { flex-direction: column; } }
 </style>
 
 <script>
   import {
     getMe, syncNow, registerPasskey, signInWithPasskey, googleStartUrl, signOut, deleteAccount,
-    passkeysSupported, lastSyncAt, EXPORT_URL, type Me,
+    passkeysSupported, lastSyncAt, EXPORT_URL, setRole, holdRole, takeHeldRole, type Me,
   } from '../../lib/learner';
+  import { isRole, type Role } from '../../lib/prefs';
   import { enrolled } from '../../lib/classroom';
 
   const $ = <T extends HTMLElement = HTMLElement>(s: string) => document.querySelector<T>(s)!;
@@ -144,7 +182,36 @@ import '../../styles/teach.css';
     $('[data-title]').textContent = 'Sign in';
     show($('[data-google-card]'), !!me.googleAvailable);
     if (!passkeysSupported()) { show($('[data-pk]'), false); show($('[data-pk-unsupported]'), true); }
+    // The role question exists only once the server keeps roles (data-role-on), and shows only after the age tick.
+    $('[data-role-new]').toggleAttribute('data-role-on', !!me.roleSupported);
+    showRoleQuestion();
   }
+
+  // ---- the optional role question ----
+  const roleNew = $<HTMLFieldSetElement>('[data-role-new]');
+  const ageBox = $<HTMLInputElement>('[data-age]');
+  function showRoleQuestion() { show(roleNew, roleNew.hasAttribute('data-role-on') && ageBox.checked); }
+  ageBox.addEventListener('change', showRoleQuestion);
+  /** The role picked for a new account, or null: nothing is sent unless the question is showing. */
+  function pickedRole(): Role | null {
+    if (roleNew.hidden) return null;
+    const v = roleNew.querySelector<HTMLInputElement>('input:checked')?.value;
+    return isRole(v) ? v : null;
+  }
+  function renderRole(me: Me) {
+    show($('[data-role-block]'), !!me.roleSupported);
+    if (!me.roleSupported) return;
+    for (const r of document.querySelectorAll<HTMLInputElement>('[data-role-mine] input')) r.checked = r.value === (me.role ?? '');
+  }
+  $('[data-role-mine]').addEventListener('change', async (e) => {
+    const v = (e.target as HTMLInputElement).value;
+    const msg = $('[data-role-msg]');
+    msg.className = 'tc-ok';
+    msg.textContent = '';
+    const r = await setRole(isRole(v) ? v : null);
+    if (r.ok) msg.textContent = isRole(v) ? 'Saved.' : 'Cleared.';
+    else { msg.className = 'tc-error'; msg.textContent = r.error; }
+  });
 
   function renderIn(me: Me) {
     show($('[data-out]'), false);
@@ -161,6 +228,7 @@ import '../../styles/teach.css';
     show($('[data-link-google]'), !!me.googleAvailable && !m.includes('google'));
     $<HTMLAnchorElement>('[data-link-google]').href = googleStartUrl('/account/');
     if (!passkeysSupported()) show($('[data-add-pk]'), false);
+    renderRole(me);
   }
 
   async function refresh() {
@@ -182,10 +250,15 @@ import '../../styles/teach.css';
   $<HTMLAnchorElement>('[data-google]').addEventListener('click', (e) => {
     e.preventDefault();
     if (needAge()) return;
-    location.href = googleStartUrl(params.get('return') || '/account/', true);
+    // The choice waits in this tab while Google has the page; it never goes in the address. It is
+    // kept only when Google sends the reader back to this page, the one place that reads it.
+    const back = params.get('return') || '/account/';
+    holdRole(back === '/account/' ? pickedRole() : null);
+    location.href = googleStartUrl(back, true);
   });
   $('[data-pk-login]').addEventListener('click', async () => {
     outErr.textContent = '';
+    holdRole(null);
     const r = await signInWithPasskey();
     if (!r.ok) { outErr.textContent = r.error; return; }
     await syncNow();
@@ -197,7 +270,9 @@ import '../../styles/teach.css';
     if (needAge()) return;
     const name = String(new FormData(e.target as HTMLFormElement).get('displayName') || '').trim();
     if (!name) { outErr.textContent = 'Please choose a name.'; return; }
-    const r = await registerPasskey(name, true);
+    holdRole(null);
+    const role = pickedRole();
+    const r = await registerPasskey(name, true, role);
     if (!r.ok) { outErr.textContent = r.error; return; }
     await syncNow();
     await refresh();
@@ -240,7 +315,10 @@ import '../../styles/teach.css';
     setTimeout(refresh, 2500);
   });
 
-  refresh().then((me) => {
+  refresh().then(async (me) => {
+    // Just back from Google with a role chosen before leaving: keep it, unless the account already has one.
+    const held = takeHeldRole();
+    if (held && me.signedIn && me.roleSupported && !me.role) { await setRole(held); await refresh(); }
     // Just back from Google: sync this device once.
     if (me.signedIn && !lastSyncAt()) syncNow().then(() => refresh());
   });

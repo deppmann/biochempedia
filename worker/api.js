@@ -25,6 +25,8 @@ import { handleCurious } from './curious.js';
 import { handleHelp } from './helper.js';
 import { handleLearner } from './learner.js';
 import { handlePlanner, deleteClassLists } from './planner.js';
+import { handleAdmin } from './admin.js';
+import { handleFilmCount, FILM_COUNT_PATH } from './film-count.js';
 import { siteOrigin } from './host.js';
 
 const KINDS = ['quiz', 'idea', 'cer', 'done', 'stuck'];
@@ -205,6 +207,8 @@ export async function handleApi(request, env) {
       return fail(500, 'Something went wrong. Please try again.');
     }
   }
+  // The anonymous film counter (worker/film-count.js): reads no cookie, always answers 204 to a post.
+  if (new URL(request.url).pathname.replace(/\/+$/, '') === FILM_COUNT_PATH) return handleFilmCount(request, env);
   const db = env.CLASSES;
   if (!db) return fail(503, 'Teacher classes are not switched on yet.');
   const url = new URL(request.url);
@@ -213,6 +217,9 @@ export async function handleApi(request, env) {
   if (method !== 'GET' && !sameOrigin(request)) return fail(403, 'Bad request origin.');
 
   try {
+    // The owner's totals (worker/admin.js): a Response only for the right secret in the right
+    // header; otherwise null, and the request ends at the same 404 as any unknown path below.
+    const admin = await handleAdmin(request, env, db, path, method, url); if (admin) return admin;
     // Groups: /api/g/<slug> (public) and /api/groups/* (worker/groups.js).
     const grouped = await handleGroups(request, env, db, path, method, url);
     if (grouped) return grouped;
