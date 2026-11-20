@@ -1,4 +1,9 @@
-/* Films watched, on this device only (2026-11-14). No account, no server.
+/* Films watched, on this device only (2026-11-14). No account.
+
+   One thing does leave the device, and it says nothing about the viewer: the first time a film
+   is started here, and the first time it is watched, the page tells the site's film counter
+   which film (countFilm below; worker/film-count.js). The message carries the film and nothing
+   else, is sent without cookies, and the counter keeps only a per-film, per-day tally.
 
    One localStorage entry, separate from the learner progress record (src/lib/progress.ts), so it
    does not travel with a signed-in learner's sync; adding it there would need a merge rule on the
@@ -94,6 +99,62 @@ export function filmKeyOf(src: string): string | null {
 
 export const isWatched = (r: FilmRecord, key: string) => typeof r.w[key] === 'number';
 
+// ---- the anonymous film count ---------------------------------------------------------------
+/* Which films this device has already reported as started, so each is counted once per device:
+   { v: 1, s: { filmKey: 1 } }. A film leaves the list once it is watched (the watched mark above
+   then does the remembering). With storage blocked nothing is remembered, so a film counts once
+   per page instead. */
+const COUNTED_KEY = 'stemhop:films:counted:v1';
+/** A film counts as started once it has played this many seconds. */
+const STARTED_AT = 3;
+const sentThisPage = new Set<string>();
+
+function countedStarts(): Record<string, 1> {
+  try {
+    const r = JSON.parse(window.localStorage.getItem(COUNTED_KEY) ?? 'null');
+    if (r && r.v === 1 && r.s && typeof r.s === 'object') return r.s;
+  } catch { /* blocked or damaged */ }
+  return {};
+}
+function saveCountedStarts(s: Record<string, 1>): void {
+  try {
+    if (Object.keys(s).length) window.localStorage.setItem(COUNTED_KEY, JSON.stringify({ v: 1, s }));
+    else window.localStorage.removeItem(COUNTED_KEY);
+  } catch { /* blocked */ }
+}
+
+/**
+ * Tell the counter that a film was started ('s') or watched ('w') for the first time on this
+ * device. Fire and forget: no cookies go with it (credentials "omit"), the answer is ignored, and
+ * any failure is silent. A film watched without a counted start (the viewer skipped to the end)
+ * is sent as both, so "watched" never runs ahead of "started".
+ */
+function countFilm(key: string, what: 's' | 'w'): void {
+  if (sentThisPage.has(`${what}:${key}`)) return;
+  sentThisPage.add(`${what}:${key}`);
+  const starts = countedStarts();
+  let e: 's' | 'w' | 'sw' = what;
+  if (what === 's') {
+    if (starts[key]) return;
+    starts[key] = 1;
+    saveCountedStarts(starts);
+  } else {
+    if (!starts[key] && !sentThisPage.has(`s:${key}`)) e = 'sw';
+    sentThisPage.add(`s:${key}`);
+    if (starts[key]) { delete starts[key]; saveCountedStarts(starts); }
+  }
+  if (import.meta.env?.DEV) return;   // the counter is part of the Worker, which `astro dev` does not run
+  try {
+    fetch('/api/film-count', {
+      method: 'POST',
+      credentials: 'omit',
+      keepalive: true,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ k: key, e }),
+    }).catch(() => { /* offline or blocked: this one is not counted */ });
+  } catch { /* no fetch: nothing to do */ }
+}
+
 export function markWatched(key: string): void {
   const r = loadFilms();
   r.w[key] ??= Date.now();
@@ -127,7 +188,7 @@ export function recordBadge(badge: EarnedBadge): EarnedBadge {
 
 /** Forget every film watched and every place saved (the "Clear everything" button on /progress/). */
 export function clearFilms(): void {
-  try { window.localStorage.removeItem(FILMS_KEY); } catch { /* nothing stored */ }
+  try { window.localStorage.removeItem(FILMS_KEY); window.localStorage.removeItem(COUNTED_KEY); } catch { /* nothing stored */ }
   window.dispatchEvent(new CustomEvent(FILMS_EVENT));
 }
 
@@ -173,8 +234,13 @@ export function trackFilms(): void {
     if (!key || NOT_A_LIBRARY_FILM.test(key)) return;
     const d = v.duration;
     if (e.type === 'ended' || (Number.isFinite(d) && d > 0 && v.currentTime >= d * WATCHED_AT)) {
-      if (!isWatched(loadFilms(), key)) markWatched(key);
+      if (!isWatched(loadFilms(), key)) { markWatched(key); countFilm(key, 'w'); }
       return;
+    }
+    // First few seconds played, for a film not watched here before: counted once as started.
+    if (v.currentTime >= STARTED_AT && !sentThisPage.has(`s:${key}`)) {
+      if (isWatched(loadFilms(), key)) sentThisPage.add(`s:${key}`);
+      else countFilm(key, 's');
     }
     const now = Date.now();
     if (now - lastSave < 4000 || v.currentTime < 5 || !Number.isFinite(d)) return;
