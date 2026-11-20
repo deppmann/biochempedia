@@ -122,6 +122,8 @@ export const MILESTONES: Milestone[] = [
     text: 'Sixteen of the 44 Cell Signaling lessons are rewritten around one guiding idea, with prediction checks and a flashcard deck. The twelve newest, from signaling circuits to calcium, also have two new short films each with take-homes underneath. Signaling Circuits and Turning Signals Off have since had a further accuracy check, with their flashcards and films corrected to match.' },
   { date: '2026-11-19', kind: 'tools', title: 'Side Hops', prs: [392],
     text: 'Three lessons, Turning the Signal Off, Enzymes at Work, and Diffusion and Osmosis, now have Side Hops beside them: short true stories, myth checks and things to try, with a narrated audio segment. A switch near the top shows the full lesson, just the films, or just the Side Hops.' },
+  { date: '2026-11-20', kind: 'media', title: 'New Physiology films', prs: [394, 395, 396, 397, 398],
+    text: 'Five Physiology lessons, from cardiac action potentials and the ECG to blood pressure, the kidney and water and salt balance, now each have two short films with take-homes underneath.' },
   { date: '2026-11-17', kind: 'media', title: 'New title and end cards on films', prs: [338, 341, 342, 345, 346, 347, 348, 349, 350, 351, 352, 353, 354, 356, 357, 358, 359, 360, 361, 362, 363, 364, 365, 366, 367, 368, 369, 370, 371, 372, 373, 374, 375, 376, 377, 378, 379, 380, 381, 382, 383, 384, 385, 386, 387, 388],
     text: 'Films in every course, plus the methods films and scientist profiles, now open and close with the new STEMhop title and end cards. Nothing else in the films changes, and a few films that ended on a card held too long, or on no card at all, now end cleanly.' },
   { date: '2026-11-16', kind: 'site', title: 'A shorter top bar', prs: [355],
