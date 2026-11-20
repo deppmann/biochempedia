@@ -48,7 +48,8 @@ import '../../styles/teach.css';
   /* Everything here is built in the browser, so the rules are global and anchored on .adm. */
   .adm .adm-gate { margin-top: var(--ddp-space-6); }
   .adm .adm-gate .tc-check input { width: 20px; height: 20px; flex: none; }
-  .adm .adm-demo { margin-top: var(--ddp-space-6); }
+  /* The note's own tint is mixed with white, which leaves light text on a light box in dark mode; mix with the surface here. */
+  .adm .adm-demo { margin-top: var(--ddp-space-6); color: var(--ddp-color-ink); background: color-mix(in srgb, var(--ddp-color-secondary) 16%, var(--ddp-color-surface)); }
   .adm section { margin-top: var(--ddp-space-12); }
   .adm section > h2 { margin-top: 0; }
   .adm h3 { font-size: var(--ddp-text-base); margin: var(--ddp-space-8) 0 var(--ddp-space-1); }
@@ -82,6 +83,7 @@ import '../../styles/teach.css';
   .adm .adm-chart .bar:hover { fill: var(--ddp-color-primary); }
   .adm .adm-chart .base, .adm .adm-chart .grid { stroke: var(--ddp-color-line); stroke-width: 1; }
   .adm .adm-chart text { fill: var(--ddp-color-muted); font-family: var(--ddp-font-mono); font-size: 11px; }
+  @media (max-width: 520px) { .adm .adm-chart text { font-size: 17px; } }
   .adm .adm-chart figcaption { font-size: var(--ddp-text-sm); color: var(--ddp-color-ink); margin-bottom: var(--ddp-space-1); }
   .adm .adm-chart figcaption small { color: var(--ddp-color-muted); font-size: var(--ddp-text-xs); }
   .adm details.adm-more { margin-top: var(--ddp-space-2); font-size: var(--ddp-text-sm); max-width: 46rem; }
