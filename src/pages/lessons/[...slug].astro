@@ -30,8 +30,10 @@ import LessonHelpers from '../../components/LessonHelpers.astro';
 import { helperAllowed } from '../../lib/helper-lesson.mjs';
 import LessonLinks from '../../components/LessonLinks.astro';
 import BuildsOn from '../../components/BuildsOn.astro';
-import SideHopsSwitch from '../../components/SideHopsSwitch.astro';
-import SideHopsPanels from '../../components/SideHopsPanels.astro';
+import LessonTime from '../../components/LessonTime.astro';
+import LessonParts from '../../components/LessonParts.astro';
+import LessonStories from '../../components/LessonStories.astro';
+import ActivityCard from '../../components/ActivityCard.astro';
 import type { Deck } from '../../lib/flashcards';
 import { feedbackUrl } from '../../lib/feedback';
 import { COURSES, courseOf, courseHref } from '../../data/courses';
@@ -39,8 +41,9 @@ import { methodsFor, methodHref, filmLength } from '../../data/methods';
 import { LESSON_GAMES, gameHref, unitReviewFor, unitReviewHref } from '../../data/lesson-games';
 import { SETS as MCAT_SETS } from '../../lib/mcat';
 import { metaDescription } from '../../lib/meta';
-import { lessonMinutes } from '../../lib/reading-time';
-import { skimOf } from '../../lib/skim';
+import { lessonTime } from '../../lib/lesson-time';
+import { linesFor, endingsFor, say, plural } from '../../lib/lesson-copy';
+import { skimOf, guidingIdeaOf, filmTakeawaysOf, wordsIn } from '../../lib/skim';
 import { rewrittenFor } from '../../lib/rewritten';
 import { sideHopsFor } from '../../lib/side-hops';
 
@@ -90,15 +93,15 @@ const deck = Object.values(DECKS).map((m) => m.default).find((d) => d.slug === e
 const lessonFigures = [...(entry.body ?? '').matchAll(/<(?:LessonFigure|ScaffoldFigure)\s[^>]*?src="([^"]+)"[^>]*?alt="([^"]+)"/g)].map((m) => ({ src: m[1], alt: m[2] }));
 const course = courseOf(lesson.course);
 // Skim version (2026-11-11): /lessons/<slug>/skim/ shows the headings, figures with their take-home
-// captions and the guiding idea. Linked beside Listen when there is something to skim: a figure or
-// film take-homes. A plain link, so it shows on phones and with JavaScript off (Listen does not).
+// captions and the guiding idea. Since 2026-11-20 the same skim is also a stop on this page (the
+// "Skim" stop of LessonTime); the separate page stays for print, for scripts off (it is linked from
+// a <noscript> line) and for the course skim pages.
 const skim = skimOf(entry.body ?? '', headings);
 const hasSkim = skim.figureCount > 0 || [lesson.explainer, ...lesson.films].some((f) => f?.takeaways?.length);
 // "Rewritten on …" under the title, from src/data/recently-rewritten.json (scripts/rewritten-shelf.mjs).
 const rewritten = rewrittenFor(lesson.slug);
 // Side Hops (2026-11-18): stories and audio beside the lesson, for lessons with a file in src/data/side-hops/.
 const sideHops = sideHopsFor(lesson.slug);
-const sideHopFilms = [...(lesson.explainer ? [lesson.explainer] : []), ...lesson.films];
 // Method films from the shared library that this lesson teaches or relies on.
 const methods = methodsFor(entry.data.slug);
 const isHighSchool = course.tier === 'highschool';
@@ -116,13 +119,30 @@ const localSimNames = localSims.map((s) => s.title.split('(')[0].trim());
 const hasQuiz = lesson.practiceQuestions.length > 0 || lesson.mcatQuestions.length > 0;
 const qCount = lesson.practiceQuestions.length + lesson.mcatQuestions.length;
 const quizAnchors = hasQuiz ? anchorsFor(entry.body ?? '', headings, [...lesson.practiceQuestions, ...lesson.mcatQuestions]) : [];
-// "In this lesson": the main (##) section headings, as plain links built at deploy time, so the list
-// works on phones and with JavaScript off. Only on long lessons: 3 or more sections and about 10
-// minutes or more of reading (or 4+ sections when no reading time is given).
+// The main (##) section headings, as plain links built at deploy time (the Contents pill).
 const sections = headings.filter((h) => h.depth === 2 && h.slug && h.text.trim());
-// Reading time is worked out from the text at build (src/lib/reading-time.ts), not hand-set.
-const minutes = lessonMinutes(entry);
-const showSections = sections.length >= 3 && (minutes ? minutes.core >= 10 : sections.length >= 4);
+// How long the lesson takes, and the stops of "How long have you got?" (src/lib/lesson-time.ts:
+// reading, films and Side Hops audio, summed once; the same whole-lesson figure is on course cards,
+// in /catalog.json and in JSON-LD below).
+const { idea } = guidingIdeaOf(lesson);
+const skimWords = skim.words + wordsIn(idea) + filmTakeawaysOf(lesson).reduce((n, f) => n + wordsIn(f.takeaways.join(' ')), 0);
+const time = lessonTime({
+  tier: course.tier, body: entry.body ?? '', estMinutes: lesson.estMinutes, simulations: lesson.simulations.length,
+  explainer: lesson.explainer, films: lesson.films, questions: qCount,
+  h2: headings.filter((h) => h.depth === 2), skimWords,
+  stories: sideHops ? { audioSec: sideHops.audio.durationSec, hops: sideHops.hops } : undefined,
+});
+// Figures a skim shows: worksheet figures (ScaffoldFigure, blank labels to fill in) are left out.
+const skimFigures = [...(entry.body ?? '').matchAll(/<LessonFigure\b/g)].length;
+const lines = linesFor(time, { figures: skimFigures });
+const endings = endingsFor(time);
+const stopOf = (id: string) => time.stops.find((s) => s.id === id);
+const isGuide = course.tier === 'families';
+/* THE SWITCH FOR CHRIS. Take-homes under the opening film in the Lesson stop:
+     true   always open (his standing rule, 2026-11-10: the text leans on them)
+     false  folded to one line until the film has been watched, or closed after playing
+   They are open in the Skim and Films stops either way. */
+const TAKE_HOMES_OPEN = true;
 // MCAT practice, linked forward: the practice page links every question back to its lesson; this
 // inverts that at deploy time. The lesson's own MCAT-style questions (college lessons only, as on
 // /mcat/practice/) plus passage-set questions whose lesson link names this lesson.
@@ -131,7 +151,6 @@ const mcatPassage = MCAT_SETS.reduce((n, st) => n + st.questions.filter((q) => q
 const mcatCount = mcatDiscrete + mcatPassage;
 const ex = lesson.explainer;
 const exLen = ex ? `${Math.floor(ex.durationSec / 60)}:${String(Math.round(ex.durationSec % 60)).padStart(2, '0')}` : '';
-const hasStats = (ex ? 1 : 0) + lesson.structures.length + qCount + lesson.scientists.length > 0;
 
 // Thumbnail helpers for the rail.
 const rcsbThumb = (id: string) => `https://cdn.rcsb.org/images/structures/${id.toLowerCase()}_assembly-1.jpeg`;
@@ -158,7 +177,8 @@ const lessonLd = {
   // The site's licence page: CC BY-NC-SA 4.0 for the text, figures and films, with what it leaves out (scientist profiles).
   license: `${SITE_ORIGIN}/license/`,
   ...(lesson.objectives.length ? { teaches: lesson.objectives } : {}),
-  ...(minutes ? { timeRequired: `PT${minutes.core}M` } : {}),
+  // The whole lesson: reading, films and Side Hops audio, the figure the page itself prints.
+  timeRequired: `PT${time.whole}M`,
   encoding: { '@type': 'MediaObject', encodingFormat: 'text/markdown', contentUrl: `${SITE_ORIGIN}/lessons/${lesson.slug}.md` },
 };
 ---
@@ -177,24 +197,16 @@ const lessonLd = {
         </p>
       )}
       <p class="eyebrow"><a class="eyebrow-course" href={courseHref(course.slug)}>{course.title}</a> · {lesson.courseChapter.replace(`${course.title} · `, '')}</p>
-      {hsReviews.length > 0 && (
-        <p class="hs-review">
-          <DepthLadder step={4} size="sm" />
-          <span>New to this? Review it at high school level: {hsReviews.map((r, i) => <>{i > 0 && ', '}<a href={`/lessons/${r.slug}/`}>{r.title}</a></>)}</span>
-        </p>
-      )}
-      {/* "Share with your class" sits beside the title: a closed fold the size of the Listen button.
-          Drafts have no public address, so they get no code. */}
-      <div class="title-row">
-        <h1>{lesson.title}</h1>
-        {!lesson.draft && <LessonShare slug={lesson.slug} activity={course.tier === 'families'} />}
-      </div>
+      <h1>{lesson.title}</h1>
+      {/* "Rewritten on" (2026-11-20): in the first screen only for a device that has notes or highlights
+          on this lesson, the readers it warns. The page script shows it. Everyone has it in "About this
+          lesson" and at the foot. */}
       {rewritten && (
-        <p class="rewritten-note">Rewritten on <time datetime={rewritten.date}>{rewritten.label}</time>: {rewritten.note}. Your notes and highlights stay, but the text around them may have moved.</p>
+        <p class="rewritten-note" data-lt-rewritten hidden>Rewritten on <time datetime={rewritten.date}>{rewritten.label}</time>: {rewritten.note}. Your notes and highlights stay, but the text around them may have moved.</p>
       )}
       {lesson.underReview.length > 0 && (
         <div class="under-review" role="note">
-          {/* The notes are in the open (2026-11-09): a reader sees what is being checked without a tap. */}
+          {/* The notes are in the open (2026-11-09): a reader sees what is being checked without a tap, at every stop. */}
           <p><span class="under-review-tag">Under review</span> Parts of this lesson are still being checked.</p>
           <ul>{lesson.underReview.map((r) => <li>{r}</li>)}</ul>
           <p>The text stays up while the check is done. If you spot a problem, <a href={feedbackUrl(lesson.title)} target="_blank" rel="noopener">report it</a>. <a href="/under-review/">All lessons under review</a>.</p>
@@ -203,70 +215,74 @@ const lessonLd = {
       {/* Only the hook shows (2026-11-08, "get to the material quicker"). It is also the share and
           search-result description, cut to 155 characters; the full summary stays in the JSON-LD. */}
       <p class="summary">{hookFor(entry)}</p>
+
+      {/* One question, one row (2026-11-20). Listen and "Play all films" are unchanged components;
+          each sits on the line of the stop it plays. */}
+      <LessonTime slug={lesson.slug} time={time} lines={lines} skimHref={hasSkim && !isGuide ? `/lessons/${lesson.slug}/skim/` : undefined}>
+        <ListenPlayer slot="play-lesson" slug={lesson.slug} />
+        {time.filmCount > 1 && <LessonPlayAll slot="play-films" />}
+      </LessonTime>
+
       {/* "Continue at…": filled in by the script at the foot of the page from this device's storage,
           when the reader left this lesson part-way. Hidden, and simply absent, without JavaScript. */}
-      <p class="resume" data-resume={lesson.slug} hidden><a data-resume-link href="#top">Continue at: <span data-resume-title></span> →</a></p>
-      <div class="read-row">
-        <ListenPlayer slug={lesson.slug} />
-        {hasSkim && (
-          <a class="skim-link" href={`/lessons/${lesson.slug}/skim/`}>
-            <span aria-hidden="true">≡</span> Skim
-            <span class="skim-link-note">{skim.figureCount > 0 ? `${skim.figureCount} ${skim.figureCount === 1 ? 'figure' : 'figures'} and take-homes` : 'the take-homes'}</span>
-          </a>
-        )}
-      </div>
+      <p class="resume" data-resume={lesson.slug} data-lt-only="lesson" hidden><a data-resume-link href="#top">Continue at: <span data-resume-title></span> →</a></p>
+
+      {/* One closed fold for everything that is about the lesson rather than the lesson itself. It
+          replaces the Overview fold and gathers what used to stand between the hook and the text:
+          the parts with their minutes, goals, help with the tasks, standards and where the lesson
+          sits, what it builds on, and the class code. A plain <details>, so it works with scripts off. */}
+      <details class="about" data-lt-about data-lt-only="lesson">
+        <summary>About this {time.noun} <span class="about-has">· {[lesson.objectives.length > 0 && 'goals', lesson.supports && 'help with the tasks', lesson.ladder && 'standards', 'parts'].filter(Boolean).join(', ')}</span></summary>
+        <div class="about-body">
+          <nav aria-label={`In this ${time.noun}`} data-lesson-toc>
+            <p class="about-h">In this {time.noun}</p>
+            <LessonParts time={time} openingFilm={ex} />
+          </nav>
+          {lesson.objectives.length > 0 && (
+            <>
+              <p class="about-h">What you'll learn</p>
+              <ul class="about-goals">{lesson.objectives.map((o) => <li>{o}</li>)}</ul>
+            </>
+          )}
+          {lesson.supports && (
+            <>
+              <p class="about-h">Help with the tasks</p>
+              <SupportsSwitch />
+            </>
+          )}
+          {hsReviews.length > 0 && (
+            <p class="hs-review">
+              <DepthLadder step={4} size="sm" />
+              <span>New to this? Review it at high school level: {hsReviews.map((r, i) => <>{i > 0 && ', '}<a href={`/lessons/${r.slug}/`}>{r.title}</a></>)}</span>
+            </p>
+          )}
+          <BuildsOn slug={lesson.slug} />
+          {lesson.ladder && <LessonLadder ladder={lesson.ladder} explainLevels={lesson.explainLevels} step={course.ladderStep ?? 2} />}
+          {/* HOP BLOCK, compact form: the hop ladder (another workstream) mounts here, in place of
+              BuildsOn and LessonLadder above. */}
+          {/* Drafts have no public address, so they get no code. */}
+          {!lesson.draft && <div class="about-share"><LessonShare slug={lesson.slug} activity={isGuide} /></div>}
+          {rewritten && (
+            <p class="about-rewritten">Rewritten on <time datetime={rewritten.date}>{rewritten.label}</time>: {rewritten.note}. Notes and highlights stay, but the text around them may have moved.</p>
+          )}
+        </div>
+      </details>
     </header>
 
-    {sideHops && <SideHopsSwitch slug={lesson.slug} hasFilms={sideHopFilms.length > 0} />}{(lesson.objectives.length > 0 || showSections) && (
-      <aside class="wrap overview" aria-label="Lesson overview">
-        {/* One closed line instead of a box (2026-11-08): goals, sections and contents fold away so the
-            lesson starts on the first screen. A plain <details>, so it works with JavaScript off. */}
-        <details class="ov">
-          <summary>
-            <span class="ov-k">Overview</span>
-            {lesson.objectives.length > 0 && <span>{lesson.objectives.length} {lesson.objectives.length === 1 ? 'goal' : 'goals'}</span>}
-            {showSections && <span>{sections.length} sections</span>}
-            {minutes && <span>~{minutes.core} min{minutes.optional > 0 && `, plus ${minutes.optional} optional`}</span>}
-          </summary>
-          <div class="ov-body">
-            {lesson.objectives.length > 0 && (
-              <div class="ov-col">
-                <p class="ov-h">What you'll learn</p>
-                <ul class="ov-goals">{lesson.objectives.map((o) => <li>{o}</li>)}</ul>
-              </div>
-            )}
-            <div class="ov-col">
-              {showSections && (
-                <nav class="lesson-toc" aria-label="In this lesson" data-lesson-toc>
-                  <p class="ov-h">In this lesson</p>
-                  <ol>{sections.map((h) => <li><a href={`#${h.slug}`} data-toc-link={h.slug}>{h.text}</a>{h.slug === 'going-deeper' && <span class="toc-opt"> (optional)</span>}</li>)}</ol>
-                </nav>
-              )}
-              {hasStats && (
-                <div class="ov-included">
-                  <p class="ov-h">What's included</p>
-                  <ul>
-              {ex && <li><span aria-hidden="true">🎬</span> <b>{exLen}</b> animated explainer</li>}
-              {lesson.structures.length > 0 && <li><span aria-hidden="true">🧬</span> <b>{lesson.structures.length}</b> live 3D {lesson.structures.length === 1 ? 'structure' : 'structures'}</li>}
-              {qCount > 0 && <li><span aria-hidden="true">📝</span> <b>{qCount}</b> self-test {qCount === 1 ? 'question' : 'questions'}</li>}
-              {lesson.scientists.length > 0 && <li><span aria-hidden="true">👤</span> <b>{lesson.scientists.length}</b> scientist {lesson.scientists.length === 1 ? 'profile' : 'profiles'}</li>}
-            </ul>
-                </div>
-              )}
-            </div>
-          </div>
-        </details>
-      </aside>
+    {/* Ages 5 to 10 guides: what to gather, how long and where come before the film, at every stop.
+        The same card is in the lesson body (for the Markdown copy); that one is hidden on the page. */}
+    {isGuide && lesson.activity && (
+      <div class="wrap act-top"><div class="prose-col"><ActivityCard activity={lesson.activity} headingId="act-card-top-h" /></div></div>
     )}
 
-    <BuildsOn slug={lesson.slug} />
-
-    {lesson.ladder && <LessonLadder ladder={lesson.ladder} explainLevels={lesson.explainLevels} step={course.ladderStep ?? 2} />}
+    {/* The Skim stop leads with the lesson's main idea (the first sentence of its summary). */}
+    <p class="wrap lt-idea" data-lt-only="skim"><span class="lt-idea-k">The main idea.</span> {idea}</p>
 
     {ex && (
-      <section class="wrap explainer" id="explainer" aria-labelledby="explainer-h">
+      <section class="wrap explainer" id="explainer" aria-labelledby="explainer-h" data-lt-only="lesson films skim">
         {/* A compact row (2026-11-08): poster thumbnail, title and length; the player opens in place on
-            a tap and starts playing. A plain <details>, so it opens without JavaScript too. */}
+            a tap and starts playing. A plain <details>, so it opens without JavaScript too. In the
+            Films stop the row is open and its summary hidden: the same player, not a copy. */}
         <details class="ex-row" data-ex-row>
           <summary>
             <img class="ex-thumb" src={ex.poster} alt="" width="160" height="90" loading="lazy" decoding="async" />
@@ -278,6 +294,7 @@ const lessonLd = {
             <track kind="captions" src={ex.captions} srclang="en" label="English" />
             Your browser cannot play this video. <a href={ex.src}>Download the explainer (MP4)</a>.
           </video>
+          <figcaption class="explainer-cap" data-lt-only="films">{ex.title} <span class="explainer-len">· {exLen}</span></figcaption>
           {ex.predatesCorrection && (
             <p class="film-predates"><strong>This film was made before a correction to the lesson text.</strong> {ex.predatesCorrection}</p>
           )}
@@ -285,54 +302,31 @@ const lessonLd = {
         {/* The film's words as text, closed until asked for. Its own search region: see the note at the prose column. */}
         <div data-pagefind-body><FilmTranscript captions={ex.captions} title={ex.title} id="explainer" /></div>
         </details>
-        {lesson.films.length > 0 && <LessonPlayAll />}
-        {/* Take-homes stay visible with the player closed: the lesson text leans on them instead of re-telling the film. */}
-        {ex.takeaways && ex.takeaways.length > 0 && (
+        {/* Take-homes stay visible with the player closed: the lesson text leans on them instead of
+            re-telling the film. The other setting of TAKE_HOMES_OPEN folds them to one line until the
+            film has been watched, or closed after playing. */}
+        {ex.takeaways && ex.takeaways.length > 0 && (TAKE_HOMES_OPEN ? (
           <div class="film-takeaways" aria-label="Key points from the film">
             <p class="film-takeaways-h">From the film</p>
             <ul>{ex.takeaways.map((t) => <li>{t}</li>)}</ul>
           </div>
-        )}
+        ) : (
+          <details class="film-takeaways film-takes-fold" data-lt-takes>
+            <summary>From the film: {say(ex.takeaways.length)} {plural(ex.takeaways.length, 'take-home')}</summary>
+            <ul>{ex.takeaways.map((t) => <li>{t}</li>)}</ul>
+          </details>
+        ))}
+        {/* Before the first paint: the Films stop shows the player, and the short stops show the take-homes. */}
+        <script is:inline>
+          (function () {
+            var t = document.getElementById('top').getAttribute('data-time');
+            var row = document.querySelector('[data-ex-row]'), takes = document.querySelector('details[data-lt-takes]');
+            if (row && t === 'films') row.open = true;
+            if (takes && (t === 'films' || t === 'skim')) takes.open = true;
+          })();
+        </script>
       </section>
     )}
-
-    {/* Mobile-only shortcut. On a phone the two-column grid collapses and the
-        resource rail lands after the whole narrative — on a long lesson that is
-        thousands of pixels down, which effectively hides the best part of the
-        page. These chips reuse the same [data-open] dialogs as the rail, so a
-        reader reaches the self-test and the sources from the first
-        screen. The desktop rail is untouched. */}
-    <nav class="wrap mobile-explore" aria-label="Explore this lesson">
-      <p class="me-title">Explore this lesson</p>
-      <ul class="me-chips">
-        {ex && (
-          <li><a href="#explainer">▶ Explainer <em>{exLen}</em></a></li>
-        )}
-        {lesson.supports && (
-          <li><a href="#supports">Supports</a></li>
-        )}
-        {methods.length > 0 && (
-          <li><a href="#methods">🔬 Methods <em>{methods.length}</em></a></li>
-        )}
-        {lesson.structures.length > 0 && (
-          <li><a href="#rail">🧬 3D molecules <em>{lesson.structures.length}</em></a></li>
-        )}
-        {hasQuiz && (
-          <li><button type="button" data-open="lb-quiz">📝 Self-test <em>{qCount}</em></button></li>
-        )}
-        {deck && (
-          <li><button type="button" data-fc-open>🗂 Flashcards <em>{deck.cards.length}</em></button></li>
-        )}
-        {games.length > 0 && (
-          <li><a href={gameHref(games[0], entry.data.slug)}>Play <em>{games[0].minutes} min</em></a></li>
-        )}
-        {lesson.explainLevels.length > 0 && (
-          <li><button type="button" data-open={`lb-level-${lesson.explainLevels[0].level}`}>🧸 Explain it simply</button></li>
-        )}
-        <li><button type="button" data-open="lb-sources">📚 Sources</button></li>
-        <li><a href="#rail">All resources →</a></li>
-      </ul>
-    </nav>
 
     {/* Two-column: reading column + sticky resource rail. */}
     <div class="wrap lesson-layout">
@@ -340,7 +334,6 @@ const lessonLd = {
           <main id="main"> landmark, and nesting a second one is invalid HTML
           that makes landmark navigation ambiguous for screen readers. */}
       <div class="lesson-main">
-        {lesson.supports && <div class="prose-col"><SupportsSwitch /></div>}
         {/* Full-text search (Pagefind, run after `astro build`; the client is src/lib/lesson-search.ts).
             A lesson page is indexed from several regions, each marked data-pagefind-body: this prose
             column (weight 1, the default), the film transcripts, the "Explain at my level" and story
@@ -351,13 +344,13 @@ const lessonLd = {
             holds it. The nav, rail, 3D viewers, sources and footer are not indexed. Worked
             answers (bare <details>) and the answer boxes are skipped by exclude_selectors in pagefind.yml. */}
         <div class="prose-col" data-pagefind-body data-pagefind-meta="title[data-lesson-title]" data-pagefind-filter="course[data-lesson-course]"
-          data-lesson-title={lesson.title} data-lesson-course={lesson.course}><Content /></div>{sideHops && <SideHopsPanels data={sideHops} headings={headings} films={sideHopFilms} />}
-        <HighlightLayer slug={entry.data.slug} title={lesson.title} />
+          data-lesson-title={lesson.title} data-lesson-course={lesson.course}><Content /></div>{sideHops && <LessonStories data={sideHops} headings={headings} idea={idea} />}
+        <div data-lt-only="lesson"><HighlightLayer slug={entry.data.slug} title={lesson.title} /></div>
         {/* Study helpers for signed-in learners (worker/helper.js); never on Biology Together or grade 7 Life Science. */}
-        {!lesson.draft && helperAllowed(course) && <LessonHelpers slug={lesson.slug} hasDeck={!!deck} levels={lesson.explainLevels.map((l) => ({ level: l.level, label: l.label }))} />}
+        {!lesson.draft && helperAllowed(course) && <div data-lt-only="lesson"><LessonHelpers slug={lesson.slug} hasDeck={!!deck} levels={lesson.explainLevels.map((l) => ({ level: l.level, label: l.label }))} /></div>}
 
         {(lesson.techniques.length > 0 || methods.length > 0) && (
-          <section class="tech-panel" id="methods">
+          <section class="tech-panel" id="methods" data-lt-only="lesson">
             <h2>How we measure it</h2>
             {lesson.techniques.length > 0 && (
               <div class="tech-grid" data-pagefind-body data-pagefind-weight="0.7">
@@ -383,16 +376,49 @@ const lessonLd = {
         <AbbrNote />
 
         {mcatCount > 0 && (
-          <p class="mcat-forward"><a href={`/mcat/practice/?lesson=${lesson.slug}`}>Practice questions on this lesson ({mcatCount}) →</a> <span>MCAT-style, original, each with an explanation</span></p>
+          <p class="mcat-forward" data-lt-only="lesson"><a href={`/mcat/practice/?lesson=${lesson.slug}`}>Practice questions on this lesson ({mcatCount}) →</a> <span>MCAT-style, original, each with an explanation</span></p>
         )}
 
         {/* Before this / After this / Elsewhere: written offline (src/data/lesson-links.json); outside every data-pagefind-body region. */}
-        <LessonLinks slug={entry.data.slug} />
+        <div data-lt-only="lesson"><LessonLinks slug={entry.data.slug} /></div>
+
+        {/* The end of a shorter stop: what was done, then plain offers. They open more of this lesson
+            for this visit; only the control at the top changes what the next lesson opens as. */}
+        {time.stops.length > 1 && (
+          <section class="lt-end" data-lt-only="skim stories films" aria-label="The end of this stop">
+            {(['skim', 'stories', 'films'] as const).filter((id) => stopOf(id)).map((id) => <p class="lt-end-said" data-lt-only={id}>{endings[id]}</p>)}
+            <p class="lt-end-rest">The rest of the {time.noun} is here when you want it.</p>
+            <ul class="lt-end-offers">
+              {stopOf('films') && (
+                <li data-lt-only="skim stories"><a href="?time=films" data-lt-go="films">Watch {time.filmCount === 1 ? 'the film' : 'the films'} <span>· {stopOf('films')!.min} min</span></a></li>
+              )}
+              <li><a href="?time=lesson" data-lt-go="lesson">{isGuide ? 'Open the whole activity' : 'Read the whole lesson'} <span>· {time.whole} min</span></a></li>
+            </ul>
+          </section>
+        )}
 
         <FinishLine slug={entry.data.slug} qCount={qCount} prev={prevNav} next={nextNav} allHref={courseHref(course.slug)} nextCourse={nextCourse} />
+
+        {/* HOP BLOCK: the hop ladder for this lesson's concept (another workstream) mounts here, at the
+            end of the lesson. Until then "Where this lesson fits" (LessonLinks, above) does this job. */}
+
+        <div class="lesson-foot">
+          {!lesson.draft && <div data-lt-only="lesson"><LessonShare slug={lesson.slug} activity={isGuide} /></div>}
+          {rewritten && (
+            <p class="foot-rewritten">Rewritten on <time datetime={rewritten.date}>{rewritten.label}</time>: {rewritten.note}. Notes and highlights stay, but the text around them may have moved.</p>
+          )}
+        </div>
       </div>
 
-      <aside class="rail" id="rail" aria-label="Explore — open any resource">
+      <aside class="rail" id="rail" aria-label="Explore — open any resource" data-lt-only="lesson">
+        {/* On a wide screen the parts list rides at the top of the rail: where you are, and the places
+            to stop. On a phone the same list is in "About this lesson" and the Contents pill. */}
+        {time.parts.some((p) => p.slug) && (
+          <nav class="rail-parts" aria-label={`In this ${time.noun}`}>
+            <p class="rail-title">In this {time.noun}</p>
+            <LessonParts time={time} openingFilm={ex} notes={false} />
+          </nav>
+        )}
         <p class="rail-title">Explore <span>· tap to open</span></p>
 
         {lesson.explainLevels.length > 0 && (
@@ -670,13 +696,25 @@ const lessonLd = {
     ))}
 
     <a href="#top" class="to-top" aria-label="Back to top">↑ Top</a>
-    {showSections && (
-      <>
+    {/* The Contents pill is the phone's route to everything the rail holds on a wide screen (it
+        replaces the "Explore this lesson" chip row that stood above the text): the sections, then
+        the same [data-open] dialogs the rail opens. */}
+    {sections.length > 0 && (
+      <div data-lt-only="lesson">
         <button type="button" class="toc-pill" data-toc-pill aria-expanded="false" aria-controls="toc-pop">☰ Contents</button>
         <nav class="toc-pop" id="toc-pop" aria-label="Contents" hidden data-toc-pop>
           <ol>{sections.map((h) => <li><a href={`#${h.slug}`} data-toc-link={h.slug}>{h.text}</a></li>)}</ol>
+          <ul class="toc-tools" aria-label="Tools for this lesson">
+            {hasQuiz && <li><button type="button" data-open="lb-quiz">Self-test <em>{qCount}</em></button></li>}
+            {deck && <li><button type="button" data-fc-open>Flashcards <em>{deck.cards.length}</em></button></li>}
+            {lesson.explainLevels.length > 0 && <li><button type="button" data-open={`lb-level-${lesson.explainLevels[0].level}`}>Explain it simply</button></li>}
+            {methods.length > 0 && <li><a href="#methods">Methods <em>{methods.length}</em></a></li>}
+            {games.length > 0 && <li><a href={gameHref(games[0], entry.data.slug)}>Play <em>{games[0].minutes} min</em></a></li>}
+            <li><button type="button" data-open="lb-sources">Sources</button></li>
+            <li><a href="#rail">All resources</a></li>
+          </ul>
         </nav>
-      </>
+      </div>
     )}
   </article>
 
@@ -764,25 +802,6 @@ const lessonLd = {
       syncToTop();
       window.addEventListener('scroll', syncToTop, { passive: true });
       window.addEventListener('resize', syncToTop, { passive: true });
-    }
-
-    // The mobile Explore chips stay sticky for the first ~2 screens of
-    // narrative, then release so they never shadow the whole read. Same
-    // scroll-listener pattern as .to-top (IO doesn't fire in hidden tabs).
-    const explore = document.querySelector<HTMLElement>('.mobile-explore');
-    if (explore) {
-      const releaseAt = () => explore.offsetTop + 2 * (window.innerHeight || 800);
-      let limit = releaseAt();
-      const syncExplore = () => {
-        explore.classList.toggle('me-released', window.scrollY > limit);
-        explore.classList.toggle(
-          'is-stuck',
-          window.scrollY > explore.offsetTop && window.scrollY <= limit
-        );
-      };
-      syncExplore();
-      window.addEventListener('scroll', syncExplore, { passive: true });
-      window.addEventListener('resize', () => { limit = releaseAt(); syncExplore(); }, { passive: true });
     }
 
     // Deep links from search. A result can point inside a lightbox (an "Explain at my level" text, a
@@ -889,27 +908,11 @@ const lessonLd = {
     }
     .hs-review a { color: var(--ddp-color-accent); font-weight: 600; text-underline-offset: 3px; }
     .lesson-hero h1 { font-size: var(--ddp-text-3xl); max-width: 20ch; margin-bottom: var(--ddp-space-3); }
-    .title-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 0 var(--ddp-space-5); }
-    .title-row h1 { flex: 0 1 auto; min-width: 0; }
-    @media (max-width: 820px) {
-      .title-row { flex-direction: column; }
-    }
     .summary { max-width: 60ch; font-size: var(--ddp-text-lg); color: var(--ddp-color-ink-soft); }
     .resume { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-sm); }
     /* "Rewritten on" (2026-11-11): a quiet line under the title, not a banner. */
     .rewritten-note { margin: 0 0 var(--ddp-space-3); max-width: 60ch; font-size: var(--ddp-text-sm); color: var(--ddp-color-muted); }
     .rewritten-note time { font-weight: 600; color: var(--ddp-color-ink-soft); }
-    /* Listen and Skim side by side; Listen's own margin moves to the row. */
-    .read-row { display: flex; align-items: center; flex-wrap: wrap; gap: var(--ddp-space-2) var(--ddp-space-3); margin: var(--ddp-space-4) 0 0; }
-    .read-row :global(.bp-listen-launch) { margin: 0; }
-    .skim-link {
-      display: inline-flex; align-items: center; gap: 0.45em; min-height: 40px; box-sizing: border-box;
-      font: 600 var(--ddp-text-sm)/1 var(--ddp-font-sans); color: var(--ddp-color-primary);
-      background: var(--ddp-color-surface); border: 1px solid var(--ddp-color-line); border-radius: 999px;
-      padding: 0.55em 1.1em; text-decoration: none;
-    }
-    .skim-link:hover { border-color: var(--ddp-color-accent); color: var(--ddp-color-accent); }
-    .skim-link-note { font-weight: 400; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
     .resume[hidden] { display: none; }
     .resume a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 1em; border: 1.5px solid var(--ddp-color-accent); border-radius: 999px; color: var(--ddp-color-accent); font-weight: 600; text-decoration: none; }
     .resume a:hover { background: color-mix(in srgb, var(--ddp-color-accent) 12%, transparent); }
@@ -928,25 +931,42 @@ const lessonLd = {
     .orient-obj li::marker { color: var(--ddp-color-muted); }
     .mcat-forward { margin: var(--ddp-space-6) 0 var(--ddp-space-2); font-size: var(--ddp-text-sm); color: var(--ddp-color-muted); }
     .mcat-forward a { font-weight: 600; color: var(--ddp-color-accent); margin-right: 0.4em; }
-    /* Overview bar (2026-11-08): one closed line; opens to goals, sections and what's included. */
-    .overview { margin-bottom: var(--ddp-space-4); }
-    .ov { border: 1px solid var(--ddp-color-line); border-radius: 12px; background: var(--ddp-color-surface); }
-    .ov > summary { list-style: none; cursor: pointer; display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.25rem 0.7rem; padding: 0.6rem 0.9rem; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: 0.03em; color: var(--ddp-color-muted); }
-    .ov > summary::-webkit-details-marker { display: none; }
-    .ov > summary::before { content: '▸'; color: var(--ddp-color-primary); transition: transform 0.15s; }
-    .ov[open] > summary::before { transform: rotate(90deg); }
-    .ov > summary span + span::before { content: '· '; opacity: 0.6; }
-    .ov-k { text-transform: uppercase; letter-spacing: 0.06em; font-weight: 700; color: var(--ddp-color-primary); }
-    .ov > summary:hover .ov-k { text-decoration: underline; }
-    .ov-body { display: grid; grid-template-columns: 1.3fr 1fr; gap: var(--ddp-space-6); padding: 0.4rem 1rem 1rem; border-top: 1px solid var(--ddp-color-line); }
-    @media (max-width: 760px) { .ov-body { grid-template-columns: 1fr; gap: var(--ddp-space-4); } }
-    .ov-h { margin: 0.6rem 0 0.4rem; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ddp-color-muted); }
-    .ov-goals { margin: 0; padding-left: 1.2rem; display: flex; flex-direction: column; gap: 0.35rem; }
-    .ov-goals li, .ov-included li { font-size: var(--ddp-text-sm); line-height: 1.5; color: var(--ddp-color-ink-soft); }
-    .ov-included ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.3rem; }
-    .ov-included b { color: var(--ddp-color-primary); }
-    .lesson-toc ol { margin: 0; padding-left: 1.4rem; list-style: decimal; display: flex; flex-direction: column; gap: 0.35rem; }
-    .lesson-toc li { font-size: var(--ddp-text-sm); }
+    /* "About this lesson" (2026-11-20): one closed line under the control; no box until opened. */
+    .about { margin-top: var(--ddp-space-2); max-width: 60ch; }
+    .about > summary { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 0 0.4em; min-height: 44px; cursor: pointer; list-style: none; font-size: var(--ddp-text-sm); font-weight: 600; color: var(--ddp-color-primary); }
+    .about > summary::-webkit-details-marker { display: none; }
+    .about > summary::before { content: '▸'; color: var(--ddp-color-accent); }
+    .about[open] > summary::before { content: '▾'; }
+    .about > summary:hover { color: var(--ddp-color-accent); }
+    .about-has { font-weight: 400; color: var(--ddp-color-muted); }
+    .about-body { padding: 0 0 var(--ddp-space-4); }
+    .about-h { margin: var(--ddp-space-5) 0 var(--ddp-space-2); font-size: var(--ddp-text-sm); font-weight: 700; color: var(--ddp-color-primary); }
+    .about-body > nav > .about-h { margin-top: var(--ddp-space-2); }
+    .about-goals { margin: 0; padding-left: 1.2rem; list-style: disc; display: flex; flex-direction: column; gap: 0.35rem; }
+    .about-goals li { font-size: var(--ddp-text-sm); line-height: 1.5; color: var(--ddp-color-ink-soft); }
+    .about-body .hs-review { margin-top: var(--ddp-space-5); }
+    /* BuildsOn and LessonLadder bring their own page gutter (.wrap); inside the fold they sit flush. */
+    .about-body :global(.wrap) { max-width: none; margin-inline: 0; padding-inline: 0; }
+    .about-body :global(.builds-on) { margin-top: var(--ddp-space-5); }
+    .about-body :global(.ladder-wrap) { margin-top: var(--ddp-space-4); }
+    .about-share { margin-top: var(--ddp-space-5); }
+    .about-rewritten, .foot-rewritten { margin: var(--ddp-space-5) 0 0; font-size: var(--ddp-text-xs); line-height: 1.5; color: var(--ddp-color-muted); }
+    .lesson-foot { max-width: 46rem; margin-top: var(--ddp-space-6); }
+    .act-top { margin-bottom: var(--ddp-space-2); }
+    .act-top :global(.act-card) { margin-bottom: var(--ddp-space-4); }
+    .act-top ~ .lesson-layout :global(.prose-col[data-lesson-title] > .act-card) { display: none; }
+    .explainer-cap { font-family: var(--ddp-font-serif); font-size: var(--ddp-text-base); color: var(--ddp-color-primary); }
+    .film-takes-fold > summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; font-size: var(--ddp-text-sm); font-weight: 600; color: var(--ddp-color-primary); }
+    .film-takes-fold:not([open]) { background: none; border-left-color: transparent; padding-block: 0; }
+    .rail-parts { padding-bottom: var(--ddp-space-3); border-bottom: 1px solid var(--ddp-color-line); }
+    .rail-parts .rail-title { margin-bottom: var(--ddp-space-1); }
+    @media (max-width: 900px) { .rail-parts { display: none; } }
+    .toc-tools { display: none; }
+    @media (max-width: 900px) {
+      .toc-tools { display: flex; flex-wrap: wrap; gap: var(--ddp-space-2); list-style: none; margin: var(--ddp-space-3) 0 0; padding: var(--ddp-space-3) 0 0; border-top: 1px solid var(--ddp-color-line); }
+      .toc-tools button, .toc-tools a { display: inline-flex; align-items: center; gap: 0.4em; min-height: 44px; padding: 0.4em 0.85em; font: inherit; font-size: var(--ddp-text-sm); font-weight: 600; color: var(--ddp-color-ink); text-decoration: none; background: var(--ddp-color-surface); border: 1px solid var(--ddp-color-line); border-radius: 999px; cursor: pointer; }
+      .toc-tools em { font-style: normal; font-weight: 400; color: var(--ddp-color-muted); }
+    }
     /* Film row (2026-11-08): thumbnail + title; the player opens in place. */
     .ex-row > summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: 0.8rem; padding: 0.45rem; border: 1px solid var(--ddp-color-line); border-radius: 12px; background: var(--ddp-color-surface); max-width: 880px; }
     .ex-row > summary::-webkit-details-marker { display: none; }
@@ -964,7 +984,6 @@ const lessonLd = {
     .toc-pop li { font-size: var(--ddp-text-sm); }
     @media (max-width: 900px) { .toc-pill { left: var(--ddp-space-4); bottom: var(--ddp-space-4); } .toc-pop { left: var(--ddp-space-4); bottom: calc(var(--ddp-space-4) + 3rem); } }
     @media (prefers-reduced-motion: reduce) { .toc-pill { transition: none; } }
-    .lesson-toc { margin-top: var(--ddp-space-4); padding-top: var(--ddp-space-3); border-top: 1px solid var(--ddp-color-line); }
     .lesson-toc-h { margin: 0 0 var(--ddp-space-2); font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ddp-color-muted); }
     .orient-obj .lesson-toc ol { margin: 0; padding-left: 1.4rem; list-style: decimal; display: flex; flex-direction: column; gap: 0.35rem; }
     .orient-obj .lesson-toc li { font-size: var(--ddp-text-sm); }
@@ -1007,54 +1026,6 @@ const lessonLd = {
     }
     .explainer-len { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-muted); }
     .explainer-note { margin: 0; max-width: 72ch; font-size: var(--ddp-text-xs); line-height: 1.55; color: var(--ddp-color-muted); }
-
-    /* Mobile-only Explore chips (see the note at the markup). Hidden entirely at
-       the width where the sticky rail is visible and does the same job. */
-    .mobile-explore { display: none; }
-    @media (max-width: 900px) {
-      .mobile-explore {
-        display: block;
-        padding: var(--ddp-space-2) var(--ddp-space-6);
-        margin-bottom: var(--ddp-space-4);
-        /* Sticky through the first stretch of narrative (JS releases it after
-           ~2 screens), so the shortcuts are in hand at the first "rotate this
-           molecule" reference. */
-        position: sticky;
-        top: 0;
-        z-index: 30;
-        background: var(--ddp-color-bg);
-        border-bottom: 1px solid transparent;
-      }
-      .mobile-explore.is-stuck { border-bottom-color: var(--ddp-color-line); }
-      .mobile-explore.me-released { position: static; }
-      .me-title {
-        position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0);
-        margin: 0 0 var(--ddp-space-2);
-        font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs);
-        letter-spacing: 0.06em; text-transform: uppercase; color: var(--ddp-color-primary);
-      }
-      .me-chips {
-        list-style: none; margin: 0; padding: 0;
-        display: flex; flex-wrap: nowrap; gap: var(--ddp-space-2);
-        /* One scrolling row (2026-11-08), not three wrapped rows. */
-        overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch;
-        margin: 0 calc(-1 * var(--ddp-space-6)); padding: 0 var(--ddp-space-6);
-      }
-      .me-chips::-webkit-scrollbar { display: none; }
-      .me-chips li { flex: none; }
-      .me-chips button, .me-chips a {
-        display: inline-flex; align-items: center; gap: 0.4em;
-        /* 44px min target: these are the primary mobile affordance. */
-        min-height: 44px; padding: 0.5em 0.85em;
-        font: inherit; font-size: var(--ddp-text-sm); font-weight: 600;
-        color: var(--ddp-color-ink); text-decoration: none;
-        background: var(--ddp-color-surface);
-        border: 1px solid var(--ddp-color-line); border-radius: 999px;
-        cursor: pointer;
-      }
-      .me-chips button:hover, .me-chips a:hover { border-color: var(--ddp-color-accent); }
-      .me-chips em { font-style: normal; font-weight: 400; color: var(--ddp-color-muted); }
-    }
 
     /* Two-column layout */
     .lesson-layout {
@@ -1310,6 +1281,9 @@ const lessonLd = {
       if (heads.length) {
         let last: string | null | undefined;
         const mark = () => {
+          // Only the whole lesson keeps a place: a skim scrolled past must not move "Continue at".
+          const stop = document.getElementById('top')?.getAttribute('data-time');
+          if (stop && stop !== 'lesson') return;
           const y = window.innerHeight * 0.3;
           let cur: HTMLElement | null = null;
           for (const h of heads) if (h.getBoundingClientRect().top <= y) cur = h;

@@ -1,0 +1,475 @@
+---
+/**
+ * "How long have you got?" (2026-11-20): one question under a lesson's hook, answered by two to four
+ * stops, each a true number of minutes for this lesson: Skim, Stories, Films, Lesson (Film and
+ * Activity on the ages 5 to 10 guides). It replaces the Listen button row, the Skim pill, the
+ * three-way Side Hops switch and "Play all films" as separate controls; each of those now lives
+ * inside a stop.
+ *
+ * How it works
+ * - The page holds the lesson once. A stop is the attribute #top[data-time] and the CSS below, which
+ *   folds parts of the same page away. No film, figure or paragraph is copied or moved.
+ * - Native radio buttons in a fieldset, so arrow keys and screen readers work without extra code.
+ *   A radio's name is its visible words in order ("About 2 min Skim").
+ * - The row stays hidden until the inline script shows it. With scripts off the reader gets the
+ *   whole lesson, the sentence that says how long it is, and a link to the skim page.
+ * - Which stop opens is decided by src/lib/lesson-stop.mjs, pasted into the inline script so the
+ *   right stop is on the page before the first paint.
+ * - The choice is the site-wide preference "time" in localStorage stemhop:prefs:v1 (src/lib/prefs.ts).
+ *   Only this control writes it. Links at the end of a shorter stop open more of this lesson only.
+ * - Print always prints the whole lesson.
+ *
+ * Every selector here starts with .lt- or #top[data-time]. The styles are global because the page
+ * script adds lines to the reading column (scripts/check-scoped-styles.mjs).
+ */
+import chooseSrc from '../lib/lesson-stop.mjs?raw';
+import { SAID } from '../lib/lesson-copy';
+import type { LessonTime, StopId } from '../lib/lesson-time';
+
+interface Props {
+  slug: string;
+  time: LessonTime;
+  lines: Record<StopId, string>;
+  /** Where "Short on time?" goes with scripts off; leave out when the lesson has no skim page worth linking. */
+  skimHref?: string;
+}
+const { slug, time, lines, skimHref } = Astro.props;
+const { stops } = time;
+const many = stops.length > 1;
+const main = time.parts.filter((p) => !p.optional);
+const pageData = {
+  slug,
+  stops,
+  lines,
+  said: SAID,
+  // Where a sitting ends: the line goes before the next part's heading.
+  landings: main.flatMap((p, i) => (p.landing && main[i + 1]?.slug ? [{ before: main[i + 1].slug!, upTo: p.upTo }] : [])),
+  parts: time.parts.filter((p) => p.slug).map((p) => ({ slug: p.slug!, min: p.min })),
+};
+const boot = `(function(){${chooseSrc.replace(/^export\s+/m, '')}
+var D=${JSON.stringify({ ids: stops.map((s) => s.id), slug, guide: time.guide, said: SAID }).replace(/</g, '\\u003c')};
+var page=document.getElementById('top');if(!page)return;
+var root=document.querySelector('[data-lt]');var box=root&&root.querySelector('[data-lt-ctl]');
+var saved=null,legacy=null,inClass=false;
+try{var o=JSON.parse(localStorage.getItem('stemhop:prefs:v1')||'null');if(o&&typeof o.time==='string')saved=o.time}catch(e){}
+try{legacy=localStorage.getItem('stemhop:side-hops:view:'+D.slug)}catch(e){}
+try{var c=JSON.parse(localStorage.getItem('biochempedia:class:v1')||'null');inClass=!!(c&&typeof c.className==='string')}catch(e){}
+var r=chooseStop({stops:D.ids,hash:location.hash,search:location.search,saved:saved,legacy:legacy,inClass:inClass,guide:D.guide});
+page.setAttribute('data-time',r.stop);
+if(box){var radio=box.querySelector('input[value="'+r.stop+'"]');if(radio)radio.checked=true;box.hidden=false}
+if(r.why&&root){var n=root.querySelector('[data-lt-status]');if(n)n.textContent=D.said[r.why]||''}
+window.__ltStart={stop:r.stop,why:r.why,inClass:inClass};
+})();`;
+---
+
+<div class="lt" data-lt>
+  {many && (
+    <div class="lt-ctl" data-lt-ctl hidden>
+      <fieldset>
+        <legend class="lt-q">{SAID.legend}</legend>
+        <div class="lt-stops" data-n={stops.length}>
+          <span class="lt-thumb" aria-hidden="true"></span>
+          {stops.map((s) => (
+            <label class="lt-stop">
+              <input type="radio" name="lt-time" value={s.id} checked={s.id === 'lesson'} />
+              <span class="lt-min"><span class="visually-hidden">About </span><b>{s.min}</b> min</span>
+              <span class="lt-name">{s.name}</span>
+            </label>
+          ))}
+        </div>
+      </fieldset>
+    </div>
+  )}
+  <div class="lt-lines">
+    {stops.map((s) => <p class="lt-line" data-lt-only={s.id}>{lines[s.id]}</p>)}
+    {/* After a tap this one sentence is both what is shown and what is announced. */}
+    <p class="lt-said" role="status" data-lt-status></p>
+    <div class="lt-play" data-lt-only="lesson"><slot name="play-lesson" /></div>
+    <div class="lt-play" data-lt-only="films"><slot name="play-films" /></div>
+    {skimHref && (
+      <noscript><p class="lt-noscript">Short on time? <a href={skimHref}>The skim</a>: the take-homes and figures on one page.</p></noscript>
+    )}
+  </div>
+</div>
+<script is:inline set:html={boot} />
+<script type="application/json" id="lt-data" set:html={JSON.stringify(pageData).replace(/</g, '\\u003c')} />
+
+<script>
+  import { writePrefs } from '../lib/prefs';
+  import { allItems, NOTEBOOK_EVENT } from '../lib/notebook';
+  import { loadFilms, isWatched, filmKeyOf } from '../lib/film-progress';
+
+  type StopId = 'skim' | 'stories' | 'films' | 'lesson';
+  interface PageData {
+    slug: string;
+    stops: { id: StopId; min: number; name: string }[];
+    lines: Record<string, string>;
+    said: Record<string, string>;
+    landings: { before: string; upTo: number }[];
+    parts: { slug: string; min: number }[];
+  }
+
+  const page = document.getElementById('top');
+  const root = document.querySelector<HTMLElement>('[data-lt]');
+  const raw = document.getElementById('lt-data')?.textContent;
+  const prose = document.querySelector<HTMLElement>('.prose-col[data-lesson-title]');
+  if (page && root && raw && prose) {
+    const data = JSON.parse(raw) as PageData;
+    const SAID = data.said;
+    const ids = data.stops.map((s) => s.id);
+    const box = root.querySelector<HTMLElement>('[data-lt-ctl]');
+    const radios = box ? Array.from(box.querySelectorAll<HTMLInputElement>('input[name="lt-time"]')) : [];
+    const thumb = box?.querySelector<HTMLElement>('.lt-thumb') ?? null;
+    const status = root.querySelector<HTMLElement>('[data-lt-status]')!;
+    const calm = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const start = (window as unknown as { __ltStart?: { stop: StopId; why: string; inClass: boolean } }).__ltStart;
+    let current: StopId | '' = '';
+
+    // ---- the marker: sits on the chosen stop wherever the row has wrapped to -------------------
+    const place = () => {
+      const on = box?.querySelector<HTMLElement>('.lt-stop:has(input:checked)');
+      if (!thumb || !on) return;
+      thumb.style.width = `${on.offsetWidth}px`;
+      thumb.style.height = `${on.offsetHeight}px`;
+      thumb.style.transform = `translate(${on.offsetLeft}px, ${on.offsetTop}px)`;
+    };
+
+    // ---- Side Hop cards: at the end of their section in the lesson, together otherwise ----------
+    const home = document.querySelector<HTMLElement>('[data-sh-cards]');
+    const cards = Array.from(document.querySelectorAll<HTMLElement>('[data-sh-card]'));
+    const toSection = (card: HTMLElement) => {
+      const id = card.getAttribute('data-sh-before');
+      let next: HTMLElement | null = id ? document.getElementById(id) : null;
+      if (!next || !prose.contains(next)) { prose.appendChild(card); return; }
+      while (next.parentElement && next.parentElement !== prose) next = next.parentElement;
+      // A "place to stop" line sits between the card and the next heading.
+      const before = next.previousElementSibling;
+      prose.insertBefore(card, before?.classList.contains('lt-landing') ? before : next);
+    };
+
+    // ---- lines the script adds to the reading column (never part of the lesson's own text) ------
+    const line = (cls: string, only: string) => {
+      const p = document.createElement('p');
+      p.className = cls;
+      p.setAttribute('data-no-hl', '');
+      p.setAttribute('data-listen-skip', '');
+      p.setAttribute('data-lt-only', only);
+      return p;
+    };
+    data.landings.forEach((l) => {
+      const h = document.getElementById(l.before);
+      if (!h || h.parentElement !== prose) return;
+      const p = line('lt-landing', 'lesson');
+      p.textContent = `About ${l.upTo} minutes in. ${SAID.landing}`;
+      prose.insertBefore(p, h);
+    });
+
+    // "Read this part": in the skim, a heading opens its own section in place and folds it again.
+    const partOf = (h: HTMLElement) => {
+      const out: Element[] = [];
+      for (let el = h.nextElementSibling; el && el.tagName !== 'H2'; el = el.nextElementSibling) out.push(el);
+      return out;
+    };
+    const openers: { btn: HTMLButtonElement; close: () => void }[] = [];
+    data.parts.forEach((part) => {
+      const h = document.getElementById(part.slug);
+      if (!h || h.parentElement !== prose) return;
+      const p = line('lt-readpart', 'skim');
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.setAttribute('aria-expanded', 'false');
+      const label = document.createElement('b');
+      label.textContent = SAID.readPart;
+      const m = document.createElement('span');
+      m.textContent = ` · ${part.min} min`;
+      btn.append(label, m);
+      p.append(btn);
+      h.after(p);
+      const fold = line('lt-foldpart', 'skim');
+      const back = document.createElement('button');
+      back.type = 'button';
+      back.textContent = SAID.foldPart;
+      fold.append(back);
+      fold.hidden = true;
+      const set = (open: boolean) => {
+        // The fold line goes last, before the next heading, each time: cards and lines may have moved.
+        if (open) { const rest = partOf(h); (rest[rest.length - 1] ?? p).after(fold); }
+        partOf(h).forEach((el) => { if (el !== p && el !== fold) el.classList.toggle('lt-part-open', open); });
+        fold.hidden = !open;
+        btn.setAttribute('aria-expanded', String(open));
+        p.classList.toggle('is-open', open);
+      };
+      btn.addEventListener('click', () => set(btn.getAttribute('aria-expanded') !== 'true'));
+      back.addEventListener('click', () => {
+        set(false);
+        h.scrollIntoView({ block: 'start' });
+        btn.focus({ preventScroll: true });
+      });
+      openers.push({ btn, close: () => set(false) });
+    });
+
+    // ---- the opening film and its take-homes ---------------------------------------------------
+    const exRow = document.querySelector<HTMLDetailsElement>('[data-ex-row]');
+    const exVid = exRow?.querySelector('video') ?? null;
+    // Only present when the take-homes are set to fold (TAKE_HOMES_OPEN = false on the lesson page).
+    const takes = document.querySelector<HTMLDetailsElement>('details[data-lt-takes]');
+    let seen = false;
+    if (takes && exVid) {
+      try {
+        const key = filmKeyOf(exVid.querySelector('source')?.getAttribute('src') ?? '');
+        seen = !!key && isWatched(loadFilms(), key);
+      } catch { /* storage blocked: the fold opens when the film ends */ }
+      const reveal = () => { seen = true; takes.open = true; };
+      exVid.addEventListener('ended', reveal);
+      exRow!.addEventListener('toggle', () => { if (!exRow!.open && exVid.currentTime > 0) reveal(); });
+      if (seen) takes.open = true;
+    }
+
+    // ---- showing a stop ------------------------------------------------------------------------
+    function show(next: StopId, o: { save?: boolean; url?: boolean; note?: string; first?: boolean } = {}) {
+      if (!ids.includes(next)) next = 'lesson';
+      const leaving = current;
+      const changed = next !== leaving;
+      current = next;
+      if (changed && !o.first) {
+        document.querySelectorAll<HTMLMediaElement>('#top audio, #top video').forEach((m) => m.pause());
+        document.querySelector<HTMLElement>('[data-pa-stop]:not([hidden])')?.click();
+        if (leaving === 'lesson') document.querySelector<HTMLElement>('[data-listen-player]:not([hidden]) [data-lp="close"]')?.click();
+        openers.forEach((x) => x.close());
+      }
+      cards.forEach((c) => { if (next === 'lesson') toSection(c); else home?.appendChild(c); });
+      if (changed) {
+        if (exRow) exRow.open = next === 'films';
+        if (takes) takes.open = seen || next === 'films' || next === 'skim';
+      }
+      page!.setAttribute('data-time', next);
+      radios.forEach((r) => { r.checked = r.value === next; });
+      place();
+      if (o.first) return;
+      if (changed && !calm.matches) {
+        page!.classList.remove('lt-swap');
+        void page!.offsetWidth;
+        page!.classList.add('lt-swap');
+      }
+      let note = o.note ?? '';
+      if (o.save) {
+        // A device in a class opens every lesson whole, so nothing is promised or kept for it.
+        // With storage blocked the choice lasts for the page, and the promise is not made either.
+        if (start?.inClass) note = '';
+        else if (writePrefs({ time: next }).time !== next) note = '';
+      }
+      if (o.url) {
+        try {
+          const u = new URL(location.href);
+          u.searchParams.set('time', next);
+          history.replaceState(history.state, '', u.pathname + u.search + u.hash);
+        } catch { /* the address stays as it was */ }
+      }
+      // One sentence, shown and announced: what this stop holds, then anything worth adding.
+      root!.classList.add('lt-spoke');
+      status.textContent = `${data.lines[next] ?? ''}${note ? ` ${note}` : ''}`;
+    }
+
+    show(start?.stop ?? 'lesson', { first: true });
+    if (box) {
+      requestAnimationFrame(() => { place(); requestAnimationFrame(() => box.classList.add('lt-ready')); });
+      if ('ResizeObserver' in window) new ResizeObserver(place).observe(box);
+      // The control: the only thing that changes what the next lesson opens as.
+      box.addEventListener('change', (e) => {
+        const t = e.target as HTMLInputElement;
+        if (t.name === 'lt-time') show(t.value as StopId, { save: true, url: true, note: SAID.carry });
+      });
+    }
+    // "Watch the films", "Read the whole lesson" at the end of a shorter stop: for this lesson only.
+    document.querySelectorAll<HTMLAnchorElement>('[data-lt-go]').forEach((a) => {
+      a.addEventListener('click', (e) => {
+        e.preventDefault();
+        show(a.getAttribute('data-lt-go') as StopId, { url: true });
+        (box ?? root).scrollIntoView({ block: 'center' });
+        box?.querySelector<HTMLInputElement>('input:checked')?.focus({ preventScroll: true });
+      });
+    });
+    // A link to a place in the text (the notebook, "Continue at", a flashcard's "Show in lesson")
+    // opens the text, and says so.
+    window.addEventListener('hashchange', () => {
+      if (current === 'lesson') return;
+      let el: HTMLElement | null = null;
+      try { el = document.getElementById(decodeURIComponent(location.hash.slice(1))); } catch { return; }
+      if (!el || el === page || el.id === 'explainer' || !page.contains(el) || el.closest('dialog')) return;
+      // Something already on screen outside the reading column (the stories, a film) needs no change.
+      if (el.getClientRects().length > 0 && !prose.contains(el)) return;
+      show('lesson', { url: true, note: SAID.deepLink });
+      el.scrollIntoView();
+    });
+    // "↑ Top" comes back to the control, where the next choice is.
+    document.querySelector<HTMLAnchorElement>('#top .to-top')?.addEventListener('click', (e) => {
+      if (!box) return;
+      e.preventDefault();
+      document.querySelector('#top h1')?.scrollIntoView({ block: 'start' });
+      box.querySelector<HTMLInputElement>('input:checked')?.focus({ preventScroll: true });
+    });
+
+    // ---- "Rewritten on": in the first screen only for a reader with notes on this lesson ---------
+    const rw = document.querySelector<HTMLElement>('[data-lt-rewritten]');
+    if (rw) {
+      const sync = () => {
+        let has = false;
+        try { has = allItems().some((it) => it.slug === data.slug); } catch { /* storage blocked: the line stays at the foot */ }
+        rw.hidden = !has;
+      };
+      sync();
+      // Notes that arrive from a signed-in account's sync count too.
+      window.addEventListener(NOTEBOOK_EVENT, sync);
+    }
+
+    // ---- "About this lesson" holds the Supports switch: a link to #supports opens the fold -------
+    const about = document.querySelector<HTMLDetailsElement>('[data-lt-about]');
+    const openAbout = () => {
+      if (!about || !location.hash) return;
+      let el: HTMLElement | null = null;
+      try { el = document.getElementById(decodeURIComponent(location.hash.slice(1))); } catch { return; }
+      if (el && about.contains(el)) { about.open = true; el.scrollIntoView({ block: 'start' }); }
+    };
+    openAbout();
+    window.addEventListener('hashchange', openAbout);
+
+    // ---- Hex on the Side Hop cards: hops in once when the card comes into view, again on a tap ---
+    if (!calm.matches && cards.length) {
+      const hop = (card: HTMLElement) => {
+        card.removeAttribute('data-sh-wait');
+        card.classList.remove('is-hopping');
+        void card.offsetWidth;
+        card.classList.add('is-hopping');
+      };
+      cards.forEach((card) => {
+        const hex = card.querySelector<HTMLButtonElement>('[data-sh-hex]');
+        if (!hex) return;
+        hex.disabled = false;
+        hex.removeAttribute('aria-hidden');
+        hex.removeAttribute('tabindex');
+        hex.addEventListener('click', () => hop(card));
+      });
+      if ('IntersectionObserver' in window) {
+        const watcher = new IntersectionObserver((hits) => {
+          hits.forEach((s) => { if (s.isIntersecting) { watcher.unobserve(s.target); hop(s.target as HTMLElement); } });
+        }, { rootMargin: '0px 0px -12% 0px' });
+        cards.forEach((card) => { card.setAttribute('data-sh-wait', ''); watcher.observe(card); });
+      }
+    }
+  }
+</script>
+
+<style is:global>
+  /* ---- the control: one question, one row of stops ------------------------------------------- */
+  .lt { margin-top: var(--ddp-space-5); max-width: 60ch; }
+  .lt-ctl { container-type: inline-size; margin-bottom: var(--ddp-space-3); }
+  .lt-ctl[hidden] { display: none; }
+  .lt-ctl fieldset { min-width: 0; margin: 0; padding: 0; border: 0; }
+  .lt-q { margin: 0 0 var(--ddp-space-2); padding: 0; font-family: var(--ddp-font-sans); font-size: var(--ddp-text-base); font-weight: 600; color: var(--ddp-color-primary); }
+  .lt-stops {
+    position: relative; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr);
+    gap: 4px; padding: 4px; max-width: 30rem;
+    background: var(--ddp-color-surface); border: 1px solid var(--ddp-color-line); border-radius: 16px;
+  }
+  /* Four stops wrap to two rows where the row is narrow or the text is large (the width is in rem);
+     any number of stops stack where there is no room for two side by side. */
+  @container (max-width: 25rem) { .lt-stops[data-n='4'] { grid-auto-flow: row; grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @container (max-width: 15rem) { .lt-stops[data-n] { grid-auto-flow: row; grid-template-columns: minmax(0, 1fr); } }
+  .lt-thumb { position: absolute; top: 0; left: 0; width: 0; height: 0; border-radius: 12px; background: var(--ddp-color-primary); pointer-events: none; visibility: hidden; }
+  .lt-ready .lt-thumb { visibility: visible; }
+  .lt-stop {
+    position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+    min-width: 0; min-height: 67px; padding: 8px 4px; border-radius: 12px; cursor: pointer; color: var(--ddp-color-ink-soft); text-align: center;
+  }
+  .lt-stop input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+  .lt-min { font-size: var(--ddp-text-sm); line-height: 1.1; }
+  .lt-min b { font-size: 1.375rem; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--ddp-color-primary); }
+  .lt-name { font-size: 0.8rem; font-weight: 700; line-height: 1.2; overflow-wrap: anywhere; }
+  /* Before the marker is placed (and without it), the chosen stop carries the colour itself. */
+  .lt-ctl:not(.lt-ready) .lt-stop:has(input:checked) { background: var(--ddp-color-primary); }
+  .lt-stop:has(input:checked), .lt-stop:has(input:checked) .lt-min b { color: var(--ddp-color-surface); }
+  .lt-stop:hover:not(:has(input:checked)) .lt-min b { color: var(--ddp-color-accent); }
+  .lt-stop:has(input:focus-visible) { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  @media (forced-colors: active) {
+    .lt-thumb { display: none; }
+    .lt-stop:has(input:checked) { background: Highlight !important; forced-color-adjust: none; }
+    .lt-stop:has(input:checked), .lt-stop:has(input:checked) .lt-min b { color: HighlightText; }
+  }
+  /* The marker moves only after a tap, and settles with a small overshoot. Still under reduced motion. */
+  @media screen and (prefers-reduced-motion: no-preference) {
+    .lt-ready .lt-thumb { transition: transform 0.28s cubic-bezier(0.3, 1.4, 0.5, 1), width 0.28s ease, height 0.28s ease; }
+    #top.lt-swap :is(.lesson-layout, .explainer, .lt-idea) { animation: ltSwap 0.22s ease-out both; }
+    @keyframes ltSwap { from { opacity: 0; } to { opacity: 1; } }
+  }
+
+  /* ---- the one sentence under the row, and the stop's own player ----------------------------- */
+  .lt-lines { display: flex; flex-direction: column; align-items: flex-start; gap: var(--ddp-space-2); }
+  .lt-line, .lt-said, .lt-noscript { margin: 0; font-size: var(--ddp-text-base); line-height: 1.55; color: var(--ddp-color-ink-soft); }
+  .lt-said:empty { display: none; }
+  .lt-spoke .lt-line { display: none !important; }
+  /* Nothing to play at this stop (no Listen clips, a single film): the wrapper takes no room. */
+  .lt-play:not(:has(.bp-listen-launch:not([hidden]), .pa:not([hidden]))) { display: none; }
+  .lt-play .bp-listen-launch, .lt-play .pa { margin: 0; }
+  .lt-noscript a { font-weight: 600; }
+
+  /* ---- which parts of the page each stop shows ------------------------------------------------
+     No attribute (scripts off) and "lesson" are the whole lesson. Each shorter stop folds parts of
+     the same page away. Print always gets the whole lesson, whatever stop is showing. */
+  @media not print {
+    #top:not([data-time]) [data-lt-only]:not([data-lt-only~='lesson'], [data-lt-only~='nojs']),
+    #top[data-time='lesson'] [data-lt-only]:not([data-lt-only~='lesson']),
+    #top[data-time='skim'] [data-lt-only]:not([data-lt-only~='skim']),
+    #top[data-time='stories'] [data-lt-only]:not([data-lt-only~='stories']),
+    #top[data-time='films'] [data-lt-only]:not([data-lt-only~='films']) { display: none !important; }
+    #top:is([data-time='skim'], [data-time='stories'], [data-time='films']) .lesson-layout { display: block; }
+
+    /* Skim: the main idea, the headings, the figures and what the films show. A heading's own part
+       opens in place (.lt-part-open) and folds again. Worksheet figures (blank labels to fill in) stay out. */
+    #top[data-time='skim'] .prose-col[data-lesson-title] > :not(h2, .lesson-figure, .lf-takeaways, .lt-readpart, .lt-foldpart, .lt-part-open),
+    #top[data-time='skim'] .ex-row,
+    #top[data-time='skim'] .bp-listen-h2 { display: none !important; }
+    #top[data-time='skim'] .prose-col[data-lesson-title] > h2 { margin-top: var(--ddp-space-6); margin-bottom: 0; }
+    #top[data-time='skim'] .prose-col[data-lesson-title] > h2:first-of-type { margin-top: var(--ddp-space-2); }
+    #top[data-time='skim'] .prose-col[data-lesson-title] > .lesson-figure:not(.lt-part-open) { margin-block: var(--ddp-space-2) var(--ddp-space-3); }
+
+    /* Films: every film in lesson order, each with its transcript and take-homes. */
+    #top[data-time='films'] .prose-col[data-lesson-title] > :not(.lf, .film-transcript, .lf-takeaways, .cards-prompt),
+    #top[data-time='films'] .ex-row > summary { display: none !important; }
+    #top[data-time='films'] .prose-col[data-lesson-title] > .lf { margin-top: var(--ddp-space-8); }
+
+    /* Stories: the Side Hops are the page. */
+    #top[data-time='stories'] .prose-col[data-lesson-title] { display: none !important; }
+
+    /* "Mark this lesson done" belongs to the whole lesson. */
+    #top:is([data-time='skim'], [data-time='stories'], [data-time='films']) [data-done-row] { display: none !important; }
+  }
+  @media print {
+    #top [data-lt-only]:not([data-lt-only~='lesson']), .lt-ctl, .lt-said, .lt-play { display: none !important; }
+    #top .lt-line[data-lt-only='lesson'] { display: block !important; }
+  }
+
+  /* ---- lines the page script adds to the reading column -------------------------------------- */
+  .lt-idea { max-width: var(--ddp-maxw); margin: 0 0 var(--ddp-space-4); line-height: 1.6; color: var(--ddp-color-ink); }
+  .lt-idea-k, .lt-under-k { font-weight: 700; color: var(--ddp-color-primary); }
+  .prose-col > .lt-readpart, .prose-col > .lt-foldpart { margin: 0; }
+  .lt-foldpart[hidden] { display: none; }
+  .lt-readpart button, .lt-foldpart button {
+    display: inline-flex; align-items: center; min-height: 44px; padding: 0; border: 0; background: none; cursor: pointer;
+    font: inherit; font-size: var(--ddp-text-sm); color: var(--ddp-color-muted);
+  }
+  .lt-readpart button b, .lt-foldpart button { font-weight: 600; color: var(--ddp-color-accent); text-decoration: underline; text-underline-offset: 3px; }
+  .lt-readpart button span { white-space: pre; }
+  .lt-readpart.is-open button b { text-decoration: none; color: var(--ddp-color-muted); }
+  .lt-readpart button:focus-visible, .lt-foldpart button:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; border-radius: 4px; }
+  /* A place to stop, between sittings of a long lesson. */
+  .prose-col > .lt-landing { margin: var(--ddp-space-12) 0 0; padding-top: var(--ddp-space-4); border-top: 1px solid var(--ddp-color-line); font-size: var(--ddp-text-sm); color: var(--ddp-color-muted); }
+  .prose-col > .lt-landing + h2 { margin-top: var(--ddp-space-6); }
+
+  /* ---- the end of a shorter stop: what was done, then plain offers --------------------------- */
+  .lt-end { max-width: 46rem; margin-top: var(--ddp-space-12); padding-top: var(--ddp-space-6); border-top: 1px solid var(--ddp-color-line); }
+  .lt-end-said { margin: 0; font-family: var(--ddp-font-serif); font-size: var(--ddp-text-xl); color: var(--ddp-color-primary); }
+  .lt-end-rest { margin: var(--ddp-space-1) 0 var(--ddp-space-2); color: var(--ddp-color-ink-soft); }
+  .lt-end-offers { margin: 0; padding: 0; list-style: none; }
+  .lt-end-offers a { display: inline-flex; align-items: center; gap: 0.4em; min-height: 44px; font-weight: 600; color: var(--ddp-color-accent); text-underline-offset: 3px; }
+  .lt-end-offers a span { font-weight: 400; color: var(--ddp-color-muted); }
+</style>
