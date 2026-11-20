@@ -301,6 +301,12 @@ window.__ltStart={stop:r.stop,why:r.why,inClass:inClass};
       show('lesson', { url: true, note: SAID.deepLink });
       el.scrollIntoView();
     });
+    // A flashcard's "Show in lesson" and a self-test question's "re-read" link scroll to a passage
+    // without a hash. In a shorter stop that passage is folded away, so the text opens first.
+    document.addEventListener('click', (e) => {
+      if (current === 'lesson' || !(e.target as HTMLElement).closest?.('[data-fc-show], [data-reread-link]')) return;
+      show('lesson', { url: true, note: SAID.deepLink });
+    }, true);
     // "↑ Top" comes back to the control, where the next choice is.
     document.querySelector<HTMLAnchorElement>('#top .to-top')?.addEventListener('click', (e) => {
       if (!box) return;
