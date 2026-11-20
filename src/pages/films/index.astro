@@ -35,7 +35,9 @@ const fmt = (n: number) => n.toLocaleString('en-US');
 const plural = (n: number, w: string) => `${fmt(n)} ${w}${n === 1 ? '' : 's'}`;
 const seconds = (list: CatalogFilm[]) => list.reduce((n, f) => n + f.durationSec, 0);
 const median = [...films].sort((a, b) => a.durationSec - b.durationSec)[Math.floor(films.length / 2)].durationSec;
-const hours = Math.round(seconds(films) / 3600);
+/* "about 48 hours 30 minutes": the same rounding the script uses (film-view.ts, about()). */
+const allMinutes = Math.round(seconds(films) / 60);
+const hours = `${Math.floor(allMinutes / 60)} hours${Math.round((allMinutes % 60) / 5) * 5 ? ` ${Math.round((allMinutes % 60) / 5) * 5} minutes` : ''}`;
 const levelCount = (key: string) => films.filter((f) => f.stage === key).length;
 
 const courses: { key: string; title: string; stage: string; stageTitle: string; films: CatalogFilm[] }[] = [];
@@ -107,7 +109,7 @@ const courseFilms = (key: string) => courses.find((c) => c.key === key)?.films ?
       </div>
       <canvas hidden></canvas>
     </div>
-    <p class="fl-strip-cap" data-fl-strip-cap>All {fmt(films.length)} films, each drawn as long as it runs: about {hours} hours.</p>
+    <p class="fl-strip-cap" data-fl-strip-cap>All {fmt(films.length)} films, each drawn as long as it runs.</p>
 
     <nav class="fl-keys" aria-label="Level" data-fl-keys>
       <a class="fl-key is-on" href="/films/" data-level=""><span class="fl-key-hex" data-fl-hex><Hex pose="stand" size={26} /></span><span class="fl-key-t">Every level</span><span class="fl-key-n">{plural(films.length, 'film')}</span></a>
@@ -161,7 +163,7 @@ const courseFilms = (key: string) => courses.find((c) => c.key === key)?.films ?
     </form>
 
     <div class="fl-count">
-      <p class="fl-status" data-fl-status role="status">{plural(films.length, 'film')}, about {hours} hours.</p>
+      <p class="fl-status" data-fl-status role="status">{plural(films.length, 'film')}, about {hours}.</p>
       <p class="fl-seen" data-fl-seen hidden></p>
     </div>
 

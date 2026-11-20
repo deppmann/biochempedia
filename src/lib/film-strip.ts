@@ -127,10 +127,10 @@ export function filmStrip(canvas: HTMLCanvasElement, films: StripFilm[]) {
       ctx.fillStyle = colours.ink;
       ctx.fillRect(x, 0, 1.5, H);
       ctx.font = '12px system-ui, sans-serif';
-      ctx.textBaseline = 'bottom';
+      ctx.textBaseline = 'top';
       const label = mark.label || markFrom.label;
       const tw = ctx.measureText(label).width;
-      ctx.fillText(label, x + 6 + tw > W ? x - tw - 6 : x + 6, H - 1);
+      ctx.fillText(label, x + 6 + tw > W ? x - tw - 6 : x + 6, 2);
     }
     ctx.globalAlpha = 1;
   };

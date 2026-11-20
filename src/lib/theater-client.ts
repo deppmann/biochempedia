@@ -42,6 +42,9 @@ export function theater(): void {
   const transcript = $<HTMLDetailsElement>('[data-th-transcript]');
 
   root.classList.add('th-live');
+  // The site's header stays at the top of the window; the pinned screen sits under it.
+  const header = document.querySelector<HTMLElement>('.site-header');
+  if (header && getComputedStyle(header).position === 'sticky') root.style.setProperty('--th-top', `${header.offsetHeight}px`);
   let ended = params.get('state') === 'end';
   next.hidden = !ended;
   // A figure of the lesson may show what the film is about to ask, so the fold waits for the film's

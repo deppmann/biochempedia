@@ -2,8 +2,14 @@
    the part of the lesson it goes with, and, where a hand-checked map exists, its named parts with
    figures on cue. All of it comes from scripts/film-timelines/lib.mjs, which reads files already in
    the repository and calls no model. See scripts/film-timelines/README.md. */
-// @ts-ignore: a plain Node module shared with the check, the report and the tests
-import { filmTimeline } from '../../scripts/film-timelines/lib.mjs';
+import * as timelines from '../../scripts/film-timelines/lib.mjs';
+
+/* The module is plain JavaScript shared with the check, the report and the tests; its shape is stated here. */
+type FilmTimeline = (root: string, film: { key: string; lesson: string | null; index: number | null; duration: number }) => {
+  status: Theater['status']; lines: Theater['lines']; region: Theater['region']; parts: TheaterPart[];
+  times: { questions: TheaterQuestion[] } | null;
+};
+const filmTimeline = (timelines as unknown as { filmTimeline: FilmTimeline }).filmTimeline;
 
 export interface TheaterFigure { src: string; alt: string; caption: string; width: number; height: number; keyItems: string[]; scaffold: boolean }
 export interface TheaterPart {

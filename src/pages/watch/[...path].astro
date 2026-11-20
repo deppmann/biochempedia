@@ -119,6 +119,9 @@ const videoLd = {
     data-course-title={course.title}
     data-cards-lesson={hasDeck ? film.lesson : undefined}
   >
+    {/* Before anything is drawn: with scripts on, only the part being played is shown, so a figure
+        for a later part is never fetched (or seen) early. */}
+    <script is:inline>document.currentScript.parentElement.classList.add('th-live');</script>
     <p class="th-crumb"><a href="/films/">Films</a> · <a href={courseHref(course.slug)}>{course.title}</a></p>
     <p class="th-back" data-th-back hidden></p>
 
@@ -154,7 +157,7 @@ const videoLd = {
               <h2 class="th-h th-js-hide">In this film</h2>
               <ol class="th-panels">
                 {th.parts.map((p, i) => (
-                  <li class:list={['th-panel', { 'is-q': p.question !== undefined }]} data-th-panel={i} data-t={tenth(p.start)}>
+                  <li class:list={['th-panel', { 'is-q': p.question !== undefined, 'is-now': i === 0 }]} data-th-panel={i} data-t={tenth(p.start)}>
                     {p.question !== undefined ? (
                       <>
                         <p class="th-k"><span class="th-time">{filmClock(p.start)}</span> The film asks</p>

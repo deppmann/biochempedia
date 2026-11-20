@@ -348,6 +348,7 @@ export function library(): void {
   });
 
   form.hidden = false;
+  if (view.q) void ensureIdeas();
   toForm();
   startCard();
   void render(false);

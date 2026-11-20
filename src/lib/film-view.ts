@@ -44,6 +44,7 @@ export function viewQuery(v: View, extra: Record<string, string> = {}): string {
  *  (/films/ideas.json, loaded the first time someone uses the search box). */
 export type Ideas = Record<string, string>;
 
+const LITTLE = new Set('a an and are as at be by can do does for from how in into is it its of on or so that the their then there this to was what when where which who why will with your you'.split(' '));
 const collator = new Intl.Collator('en', { sensitivity: 'base', numeric: true });
 const COMPARE: Record<string, (a: ListFilm, b: ListFilm) => number> = {
   course: (a, b) => a.i - b.i,
@@ -58,7 +59,11 @@ const COMPARE: Record<string, (a: ListFilm, b: ListFilm) => number> = {
  *  its lesson's title or, once loaded, the questions people ask about that lesson; films matched by
  *  title come first. */
 export function select(list: FilmList, v: View, ideas?: Ideas | null): ListFilm[] {
-  const words = fold(v.q).split(/\s+/).filter((w) => w.length > 1 || /\d/.test(w));
+  // Little words carry no idea ("why do cells swell in water" is cells, swell, water), unless the
+  // search is nothing but little words.
+  const typed = fold(v.q).split(/[^a-z0-9]+/).filter((w) => w.length > 1 || /\d/.test(w));
+  const kept = typed.filter((w) => !LITTLE.has(w));
+  const words = kept.length ? kept : typed;
   const byTitle = new Set<ListFilm>();
   const out = list.films.filter((f) => {
     if (v.level && f.s !== v.level) return false;
