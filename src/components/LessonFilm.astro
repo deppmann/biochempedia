@@ -24,7 +24,9 @@ const len = `${Math.floor(film.durationSec / 60)}:${String(Math.round(film.durat
     <track kind="captions" src={film.captions} srclang="en" label="English" />
     Your browser cannot play this video. <a href={film.src}>Download the film (MP4)</a>.
   </video>
-  <figcaption><span class="lf-kicker">Watch</span> {film.title} <span class="lf-len">· {len}</span></figcaption>
+  {/* The title is a heading to a screen reader, so the films can be stepped through by heading
+      (in the lesson's Films stop the section headings around them are folded away). */}
+  <figcaption><span class="lf-kicker">Watch</span> <span role="heading" aria-level="3">{film.title}</span> <span class="lf-len">· {len}</span></figcaption>
   {film.predatesCorrection && (
     <p class="lf-predates"><strong>This film was made before a correction to the lesson text.</strong> {film.predatesCorrection}</p>
   )}

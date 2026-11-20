@@ -14,8 +14,11 @@ const list = (xs: string[]) => (xs.length > 1 ? `${xs.slice(0, -1).join(', ')} a
 /** "both films", "all six films", "the film" */
 export const theFilms = (n: number) => (n === 1 ? 'the film' : n === 2 ? 'both films' : `all ${say(n)} films`);
 
+/** Said only where the device can keep a place; the page script takes it off when storage is blocked. */
+export const KEPT = ' Your place is kept.';
+
 /** The one sentence under the control for each stop: what the stop holds. */
-export function linesFor(t: LessonTime, o: { figures: number }): Record<StopId, string> {
+export function linesFor(t: LessonTime, o: { figures: number; laterLooks?: boolean }): Record<StopId, string> {
   const n = t.filmCount;
   const stories = t.storyCount ? `${say(t.storyCount)} short ${plural(t.storyCount, 'story', 'stories')}` : '';
 
@@ -25,40 +28,41 @@ export function linesFor(t: LessonTime, o: { figures: number }): Record<StopId, 
     o.figures ? (o.figures === 1 ? 'the figure' : 'the figures') : '',
     t.takeCount ? `what ${n === 1 ? 'the film shows' : 'the films show'}` : '',
   ].filter(Boolean);
-  const skim = `${cap(skimHas.length > 1 ? list(skimHas) : 'the main idea and the headings')}. Tap a heading to read that part.`;
+  const skim = `${cap(skimHas.length > 1 ? list(skimHas) : 'the main idea and the headings')}. Under each heading, "Read this part" opens it.`;
 
   // ---- Stories
   const storiesLine = t.storyCount
-    ? `${cap(stories)} from real life that go with this ${t.noun}. About ${mins(t.storyMin)} to hear, or read them below.`
+    ? `${cap(say(t.storyCount))} real-life ${plural(t.storyCount, 'story', 'stories')} behind this ${t.noun}, about ${mins(t.storyMin)} aloud, or read them below.`
     : '';
 
   // ---- Films. A film under a minute and a half is given in seconds: "1 minute" for 42 seconds is not honest.
   const filmLen = t.filmSec < 90 ? `${t.filmSec} seconds` : mins(t.filmMin);
   let films = '';
   if (n === 1) {
-    films = t.guide ? `The film, ${filmLen}, for the grown-up to look at before the activity.`
-      : t.storyCount ? `The film, ${filmLen}, then ${stories} told aloud, ${t.storyMore} more.`
+    films = t.guide ? `The film, ${filmLen}, and the safety notes, for the grown-up to look at before the activity.`
+      : t.storyCount ? `The film, ${filmLen}, then ${stories} told aloud, ${t.storyMin} more.`
       : t.takeCount ? `The film, ${filmLen}, and what to take from it.` : `The film, ${filmLen}.`;
   } else if (n > 1) {
     films = t.storyCount
-      ? `${cap(theFilms(n))}, ${mins(t.filmMin)}, then ${stories} told aloud, ${t.storyMore} more.`
+      ? `${cap(theFilms(n))}, ${mins(t.filmMin)}, then ${stories} told aloud, ${t.storyMin} more.`
       : `${cap(theFilms(n))} in order, ${mins(t.filmMin)}.${t.takeCount === n ? ' Each one ends with what to take from it.' : ''}`;
   }
 
   // ---- The whole thing
   let lesson: string;
   if (t.period) {
-    const included = [n ? theFilms(n) : '', stories].filter(Boolean).join(' and ');
+    // The hand-set figure is the class period or the hands-on time. What it was meant to cover
+    // (the films? the tasks?) is not recorded, so the sentence claims no more than the figure.
     lesson = t.guide
-      ? `All of it, done with a child: about ${mins(t.period)}${included ? `, ${included} included` : ''}.`
-      : `All of it: about ${mins(t.period)} in class${included ? `, ${included} included` : ''}.`;
+      ? `The hands-on part, done with a child: about ${mins(t.period)}${o.laterLooks ? ', then a few quick looks later' : ''}.`
+      : `The whole lesson: about ${mins(t.period)}, the length of a class.`;
   } else {
-    const bits = [`${mins(t.readMin)} of reading`, n ? `${t.filmInLesson} of film` : '', t.storyCount ? `${t.storyInLesson} of stories` : ''].filter(Boolean);
-    lesson = `All of it: about ${list(bits)}.`;
+    const bits = [`${mins(t.readMin)} of reading`, n ? `${t.filmMin} of film` : '', t.storyCount ? `${t.storyMin} of stories` : ''].filter(Boolean);
+    lesson = `The whole ${t.noun}: about ${list(bits)}`;
     if (t.sittings > 1) {
       const stopsN = t.sittings - 1;
-      lesson += ` There ${stopsN === 1 ? 'is a place' : `are ${say(stopsN)} places`} to stop, and your place is kept.`;
-    }
+      lesson += `, with ${stopsN === 1 ? 'a place' : `${say(stopsN)} places`} to stop.${KEPT}`;
+    } else lesson += '.';
   }
   return { skim, stories: storiesLine, films, lesson };
 }
@@ -67,7 +71,7 @@ export function linesFor(t: LessonTime, o: { figures: number }): Record<StopId, 
 export function endingsFor(t: LessonTime): Record<'skim' | 'stories' | 'films', string> {
   const n = t.filmCount;
   return {
-    skim: 'That is the skim.',
+    skim: 'That is the skim: you have the shape of it.',
     stories: 'Those are the stories.',
     films: n === 1 ? 'That is the film.' : `That is ${theFilms(n)}.`,
   };
@@ -77,12 +81,17 @@ export function endingsFor(t: LessonTime): Record<'skim' | 'stories' | 'films', 
 export const SAID = {
   legend: 'How long have you got?',
   carry: 'The next lesson will open this way too.',
+  // Not every lesson has stories or a film, so the promise names the lessons it is true of.
+  carryStories: 'Lessons with stories will open this way too.',
+  carryFilms: 'Lessons with films will open this way too.',
   remembered: 'Opened the way you left the last lesson.',
   noStories: 'No stories on this lesson yet, so this is the skim.',
   noFilm: 'No film on this lesson, so this is the skim.',
   deepLink: 'That link goes to a place in the text, so the whole lesson is open.',
   inClass: 'You are in a class on this device, so the whole lesson is open.',
-  landing: 'A good place to stop. Your place is kept.',
+  supports: 'That link sets the help with the tasks, so the whole lesson is open.',
+  landing: 'A good place to stop.',
+  kept: KEPT,
   readPart: 'Read this part',
   foldPart: 'Fold it again',
 } as const;

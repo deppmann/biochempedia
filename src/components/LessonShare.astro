@@ -24,7 +24,9 @@ interface Props {
 }
 const { slug, activity = false } = Astro.props;
 const site = Astro.site ?? new URL(SITE_ORIGIN);
-const url = new URL(`/lessons/${slug}/`, site).href;
+// ?time=lesson: a code a teacher projects must open the whole lesson on every phone, whatever
+// length that phone's owner last chose (src/lib/lesson-stop.mjs, rule 2; it saves nothing).
+const url = new URL(`/lessons/${slug}/?time=lesson`, site).href;
 const short = `${site.host}/lessons/${slug}`;
 const qr = qrSvg(url);
 ---

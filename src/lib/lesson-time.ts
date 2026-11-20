@@ -7,15 +7,19 @@
                ("Going deeper" is counted on its own and stated as optional)
      films     the sum of durationSec from the lesson's frontmatter
      stories   Side Hops: the length of their audio
-     skim      the main idea, headings, figure captions and film take-homes at 200 words a minute
+     skim      the main idea, headings, figure captions and film take-homes at 200 words a minute,
+               plus 10 seconds to look at each figure
      self-test always stated apart ("when you want it"), never added to a length
 
    Ages 5 to 10 activity guides and the grade 7 and high school lessons carry a hand-set figure:
    the time the activity or the class period takes. For those the whole-lesson figure is the
    hand-set one, unless text, films and stories add up to more.
 
-   Everything is summed in unrounded seconds and rounded once, so "Films 10 min" over
-   "6 minutes of film, then stories, 4 more" always adds up (see split()).
+   Each kind of thing is summed in unrounded seconds and rounded once, and that one figure is the
+   figure everywhere: a lesson's films are "19 minutes" on the Films stop, in the Lesson stop's
+   sentence and on the "Play all films" button. The Films stop is the films' minutes plus the
+   stories' minutes, so the sentence under it always adds up to its number. Inside the whole lesson,
+   reading is what is left of the whole-lesson figure after films and stories.
 
    This file imports nothing, so scripts/test-lesson-time.mjs can load it in plain Node. */
 
@@ -39,6 +43,8 @@ export interface TimeInput {
   h2: { slug: string; text: string }[];
   /** Words in the skim: headings, figure captions, the main idea and film take-homes. */
   skimWords: number;
+  /** Figures the skim shows (10 seconds each to look at). */
+  skimFigures?: number;
   stories?: { audioSec: number; hops: { afterHeading: string; title: string }[] };
 }
 
@@ -48,6 +54,8 @@ export interface Stop {
   min: number;
   /** The word under the minutes. */
   name: string;
+  /** A few plain words under the name, for a stop whose name does not explain itself. */
+  hint?: string;
 }
 
 export interface Part {
@@ -68,6 +76,7 @@ export interface Part {
 
 const WPM = 150;
 const SKIM_WPM = 200;
+const PER_SKIM_FIGURE = 10;
 const PER_PREDICT = 60;
 const PER_SIM = 180;
 /** A long lesson gets a place to stop at the first section break past this many minutes. */
@@ -157,10 +166,12 @@ export function lessonTime(i: TimeInput) {
   // ---- the stops: fixed order, and a stop the lesson lacks is absent --------------------------
   // An activity guide has no skim: its short stop is the set-up film. Everything else has one.
   const stops: Stop[] = [];
-  const skimSec = Math.max(60, (i.skimWords / SKIM_WPM) * 60);
+  const skimSec = Math.max(60, (i.skimWords / SKIM_WPM) * 60 + (i.skimFigures ?? 0) * PER_SKIM_FIGURE);
+  const filmMin = films.length ? minutesOf(w.film) : 0;
+  const storyMin = hasStories ? minutesOf(w.stories) : 0;
   if (!guide) stops.push({ id: 'skim', min: minutesOf(skimSec), name: 'Skim' });
-  if (hasStories) stops.push({ id: 'stories', min: minutesOf(w.stories), name: 'Stories' });
-  if (films.length) stops.push({ id: 'films', min: minutesOf(w.film + w.stories), name: films.length === 1 ? 'Film' : 'Films' });
+  if (hasStories) stops.push({ id: 'stories', min: storyMin, name: 'Stories', hint: 'real-life cases, told aloud' });
+  if (films.length) stops.push({ id: 'films', min: filmMin + storyMin, name: films.length === 1 ? 'Film' : 'Films' });
   stops.push({ id: 'lesson', min: minutesOf(w.whole), name: guide ? 'Activity' : 'Lesson' });
 
   // ---- the lesson, part by part ---------------------------------------------------------------
@@ -207,9 +218,7 @@ export function lessonTime(i: TimeInput) {
 
   // ---- the parts of each count, as printed, adding up to the stop's number -------------------
   const lessonMin = minutesOf(w.whole);
-  const [readMin, filmInLesson, storyInLesson] = split(lessonMin, [w.read, w.film, w.stories]);
-  const filmsStop = stops.find((s) => s.id === 'films');
-  const [filmMin, storyMore] = filmsStop ? split(filmsStop.min, [w.film, w.stories]) : [0, 0];
+  const readMin = Math.max(0, lessonMin - filmMin - storyMin);
 
   return {
     stops,
@@ -220,17 +229,18 @@ export function lessonTime(i: TimeInput) {
     period: w.period,
     /** Whole-lesson minutes: the figure every card and list prints. */
     whole: lessonMin,
-    /** Minutes of reading, film and stories inside the whole lesson; they add up to `whole` unless a period is set. */
-    readMin, filmInLesson, storyInLesson,
+    /** Minutes of reading inside the whole lesson: what is left of `whole` after `filmMin` and `storyMin`. */
+    readMin,
     /** Reading and films together, for a hand-set lesson's "the rest is doing" note. */
     sumMin: minutesOf(w.sum),
     optional: Math.round(w.optional / 60),
     filmCount: films.length,
-    /** Minutes of film and of stories inside the Films stop; they add up to its number. */
-    filmMin, storyMore,
+    /** Minutes of film, the same figure wherever it is printed. */
+    filmMin,
     filmSec: Math.round(w.film),
     storyCount: i.stories?.hops.length ?? 0,
-    storyMin: minutesOf(w.stories),
+    /** Minutes of Side Hops audio, the same figure wherever it is printed. */
+    storyMin,
     quiz: i.questions,
     takeCount: films.filter((f) => f.takeaways?.length).length,
     parts: parts.map(({ sec: _sec, ...p }) => p),

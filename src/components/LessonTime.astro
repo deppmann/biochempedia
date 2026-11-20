@@ -39,6 +39,7 @@ const many = stops.length > 1;
 const main = time.parts.filter((p) => !p.optional);
 const pageData = {
   slug,
+  guide: time.guide,
   stops,
   lines,
   said: SAID,
@@ -59,6 +60,7 @@ page.setAttribute('data-time',r.stop);
 if(box){var radio=box.querySelector('input[value="'+r.stop+'"]');if(radio)radio.checked=true;box.hidden=false}
 if(r.why&&root){var n=root.querySelector('[data-lt-status]');if(n)n.textContent=D.said[r.why]||''}
 window.__ltStart={stop:r.stop,why:r.why,inClass:inClass};
+try{var rw=document.querySelector('[data-lt-rewritten]');var nb=rw&&JSON.parse(localStorage.getItem('biochempedia:notebook:v1')||'null');if(nb&&nb.items){for(var k in nb.items){var it=nb.items[k];if(it&&it.slug===D.slug&&!it.deleted){rw.hidden=false;break}}}}catch(e){}
 })();`;
 ---
 
@@ -74,6 +76,7 @@ window.__ltStart={stop:r.stop,why:r.why,inClass:inClass};
               <input type="radio" name="lt-time" value={s.id} checked={s.id === 'lesson'} />
               <span class="lt-min"><span class="visually-hidden">About </span><b>{s.min}</b> min</span>
               <span class="lt-name">{s.name}</span>
+              {s.hint && <span class="lt-hint">{s.hint}</span>}
             </label>
           ))}
         </div>
@@ -96,12 +99,13 @@ window.__ltStart={stop:r.stop,why:r.why,inClass:inClass};
 
 <script>
   import { writePrefs } from '../lib/prefs';
-  import { allItems, NOTEBOOK_EVENT } from '../lib/notebook';
+  import { allItems, storageWorks, NOTEBOOK_EVENT } from '../lib/notebook';
   import { loadFilms, isWatched, filmKeyOf } from '../lib/film-progress';
 
   type StopId = 'skim' | 'stories' | 'films' | 'lesson';
   interface PageData {
     slug: string;
+    guide: boolean;
     stops: { id: StopId; min: number; name: string }[];
     lines: Record<string, string>;
     said: Record<string, string>;
@@ -124,6 +128,17 @@ window.__ltStart={stop:r.stop,why:r.why,inClass:inClass};
     const calm = window.matchMedia('(prefers-reduced-motion: reduce)');
     const start = (window as unknown as { __ltStart?: { stop: StopId; why: string; inClass: boolean } }).__ltStart;
     let current: StopId | '' = '';
+    // A tap made before this script arrived: the radio moved, but nothing else could.
+    const early = radios.find((r) => r.checked)?.value as StopId | undefined;
+    // "Your place is kept" is only said where a place can be kept.
+    let keeps = true;
+    try { keeps = storageWorks(); } catch { keeps = false; }
+    if (!keeps) {
+      data.lines.lesson = (data.lines.lesson ?? '').replace(SAID.kept, '');
+      const p = root.querySelector<HTMLElement>('.lt-line[data-lt-only="lesson"]');
+      if (p) p.textContent = data.lines.lesson;
+    }
+    const carryFor = (s: StopId) => (s === 'stories' ? SAID.carryStories : s === 'films' ? SAID.carryFilms : SAID.carry);
 
     // ---- the marker: sits on the chosen stop wherever the row has wrapped to -------------------
     const place = () => {
@@ -160,7 +175,7 @@ window.__ltStart={stop:r.stop,why:r.why,inClass:inClass};
       const h = document.getElementById(l.before);
       if (!h || h.parentElement !== prose) return;
       const p = line('lt-landing', 'lesson');
-      p.textContent = `About ${l.upTo} minutes in. ${SAID.landing}`;
+      p.textContent = `About ${l.upTo} minutes in. ${SAID.landing}${keeps ? SAID.kept : ''}`;
       prose.insertBefore(p, h);
     });
 
@@ -178,6 +193,8 @@ window.__ltStart={stop:r.stop,why:r.why,inClass:inClass};
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.setAttribute('aria-expanded', 'false');
+      // Every button says "Read this part"; its heading tells a screen reader which part.
+      btn.setAttribute('aria-describedby', h.id);
       const label = document.createElement('b');
       label.textContent = SAID.readPart;
       const m = document.createElement('span');
@@ -194,6 +211,8 @@ window.__ltStart={stop:r.stop,why:r.why,inClass:inClass};
       const set = (open: boolean) => {
         // The fold line goes last, before the next heading, each time: cards and lines may have moved.
         if (open) { const rest = partOf(h); (rest[rest.length - 1] ?? p).after(fold); }
+        // A film or a clip in a part that is being folded away must not go on playing out of sight.
+        else partOf(h).forEach((el) => (el.matches('audio, video') ? [el] : Array.from(el.querySelectorAll('audio, video'))).forEach((m) => (m as HTMLMediaElement).pause()));
         partOf(h).forEach((el) => { if (el !== p && el !== fold) el.classList.toggle('lt-part-open', open); });
         fold.hidden = !open;
         btn.setAttribute('aria-expanded', String(open));
@@ -233,7 +252,8 @@ window.__ltStart={stop:r.stop,why:r.why,inClass:inClass};
       current = next;
       if (changed && !o.first) {
         document.querySelectorAll<HTMLMediaElement>('#top audio, #top video').forEach((m) => m.pause());
-        document.querySelector<HTMLElement>('[data-pa-stop]:not([hidden])')?.click();
+        const run = document.querySelector<HTMLElement>('[data-pa-stop]:not([hidden])');
+        if (run) { run.click(); const said = document.querySelector<HTMLElement>('[data-pa-status]'); if (said) said.textContent = ''; }
         if (leaving === 'lesson') document.querySelector<HTMLElement>('[data-listen-player]:not([hidden]) [data-lp="close"]')?.click();
         openers.forEach((x) => x.close());
       }
@@ -253,16 +273,21 @@ window.__ltStart={stop:r.stop,why:r.why,inClass:inClass};
       }
       let note = o.note ?? '';
       if (o.save) {
-        // A device in a class opens every lesson whole, so nothing is promised or kept for it.
+        // A device in a class opens every lesson whole, and an ages 5 to 10 guide always opens as
+        // the whole activity, so nothing is promised or kept for either: a parent's tap on "Film"
+        // must not change how a science lesson opens, nor the other way round.
         // With storage blocked the choice lasts for the page, and the promise is not made either.
-        if (start?.inClass) note = '';
+        if (start?.inClass || data.guide) note = '';
         else if (writePrefs({ time: next }).time !== next) note = '';
       }
       if (o.url) {
         try {
           const u = new URL(location.href);
           u.searchParams.set('time', next);
-          history.replaceState(history.state, '', u.pathname + u.search + u.hash);
+          // The reader has just chosen: an old #hash or search marker in the address must not
+          // overrule that choice on a reload or on Back.
+          u.searchParams.delete('pagefind-highlight');
+          history.replaceState(history.state, '', u.pathname + u.search);
         } catch { /* the address stays as it was */ }
       }
       // One sentence, shown and announced: what this stop holds, then anything worth adding.
@@ -271,13 +296,14 @@ window.__ltStart={stop:r.stop,why:r.why,inClass:inClass};
     }
 
     show(start?.stop ?? 'lesson', { first: true });
+    if (early && ids.includes(early) && early !== (start?.stop ?? 'lesson')) show(early, { save: true, url: true, note: carryFor(early) });
     if (box) {
       requestAnimationFrame(() => { place(); requestAnimationFrame(() => box.classList.add('lt-ready')); });
       if ('ResizeObserver' in window) new ResizeObserver(place).observe(box);
       // The control: the only thing that changes what the next lesson opens as.
       box.addEventListener('change', (e) => {
         const t = e.target as HTMLInputElement;
-        if (t.name === 'lt-time') show(t.value as StopId, { save: true, url: true, note: SAID.carry });
+        if (t.name === 'lt-time') show(t.value as StopId, { save: true, url: true, note: carryFor(t.value as StopId) });
       });
     }
     // "Watch the films", "Read the whole lesson" at the end of a shorter stop: for this lesson only.
@@ -391,6 +417,8 @@ window.__ltStart={stop:r.stop,why:r.why,inClass:inClass};
   .lt-min { font-size: var(--ddp-text-sm); line-height: 1.1; }
   .lt-min b { font-size: 1.375rem; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--ddp-color-primary); }
   .lt-name { font-size: 0.8rem; font-weight: 700; line-height: 1.2; overflow-wrap: anywhere; }
+  .lt-hint { font-size: 0.75rem; line-height: 1.25; color: var(--ddp-color-muted); }
+  .lt-stop:has(input:checked) .lt-hint { color: inherit; }
   /* Before the marker is placed (and without it), the chosen stop carries the colour itself. */
   .lt-ctl:not(.lt-ready) .lt-stop:has(input:checked) { background: var(--ddp-color-primary); }
   .lt-stop:has(input:checked), .lt-stop:has(input:checked) .lt-min b { color: var(--ddp-color-surface); }
@@ -411,7 +439,8 @@ window.__ltStart={stop:r.stop,why:r.why,inClass:inClass};
   /* ---- the one sentence under the row, and the stop's own player ----------------------------- */
   .lt-lines { display: flex; flex-direction: column; align-items: flex-start; gap: var(--ddp-space-2); }
   .lt-line, .lt-said, .lt-noscript { margin: 0; font-size: var(--ddp-text-base); line-height: 1.55; color: var(--ddp-color-ink-soft); }
-  .lt-said:empty { display: none; }
+  /* Empty, the status line stays in the page (a live region must exist before it speaks) but takes no room. */
+  .lt-said:empty { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip-path: inset(50%); }
   .lt-spoke .lt-line { display: none !important; }
   /* Nothing to play at this stop (no Listen clips, a single film): the wrapper takes no room. */
   .lt-play:not(:has(.bp-listen-launch:not([hidden]), .pa:not([hidden]))) { display: none; }
@@ -428,6 +457,8 @@ window.__ltStart={stop:r.stop,why:r.why,inClass:inClass};
     #top[data-time='stories'] [data-lt-only]:not([data-lt-only~='stories']),
     #top[data-time='films'] [data-lt-only]:not([data-lt-only~='films']) { display: none !important; }
     #top:is([data-time='skim'], [data-time='stories'], [data-time='films']) .lesson-layout { display: block; }
+    /* Scripts off: the Side Hops heading has one wording, not the Lesson stop's as well. */
+    #top:not([data-time]) .sh-panel-h [data-lt-only='lesson'] { display: none !important; }
 
     /* Skim: the main idea, the headings, the figures and what the films show. A heading's own part
        opens in place (.lt-part-open) and folds again. Worksheet figures (blank labels to fill in) stay out. */
@@ -439,7 +470,9 @@ window.__ltStart={stop:r.stop,why:r.why,inClass:inClass};
     #top[data-time='skim'] .prose-col[data-lesson-title] > .lesson-figure:not(.lt-part-open) { margin-block: var(--ddp-space-2) var(--ddp-space-3); }
 
     /* Films: every film in lesson order, each with its transcript and take-homes. */
-    #top[data-time='films'] .prose-col[data-lesson-title] > :not(.lf, .film-transcript, .lf-takeaways, .cards-prompt),
+    /* The safety notes of an ages 5 to 10 guide stay at every stop: a grown-up who watches only the
+       set-up film must still meet them. */
+    #top[data-time='films'] .prose-col[data-lesson-title] > :not(.lf, .film-transcript, .lf-takeaways, .cards-prompt, .safety-note),
     #top[data-time='films'] .ex-row > summary { display: none !important; }
     #top[data-time='films'] .prose-col[data-lesson-title] > .lf { margin-top: var(--ddp-space-8); }
 
@@ -478,4 +511,8 @@ window.__ltStart={stop:r.stop,why:r.why,inClass:inClass};
   .lt-end-offers { margin: 0; padding: 0; list-style: none; }
   .lt-end-offers a { display: inline-flex; align-items: center; gap: 0.4em; min-height: 44px; font-weight: 600; color: var(--ddp-color-accent); text-underline-offset: 3px; }
   .lt-end-offers a span { font-weight: 400; color: var(--ddp-color-muted); }
+  /* The lesson's tools stay within reach at every stop: one quiet line, the same dialogs the rail opens. */
+  .lt-end-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 0 var(--ddp-space-4); margin: var(--ddp-space-3) 0 0; padding: 0; list-style: none; font-size: var(--ddp-text-sm); color: var(--ddp-color-muted); }
+  .lt-end-tools button, .lt-end-tools a { display: inline-flex; align-items: center; min-height: 44px; padding: 0; border: 0; background: none; cursor: pointer; font: inherit; color: var(--ddp-color-ink-soft); text-decoration: underline; text-underline-offset: 3px; }
+  .lt-end-tools button:hover, .lt-end-tools a:hover { color: var(--ddp-color-accent); }
 </style>

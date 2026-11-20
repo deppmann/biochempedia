@@ -8,7 +8,7 @@
  */
 import assert from 'node:assert/strict';
 import { lessonTime, wholeSeconds, readingSeconds, minutesOf, split, clock } from '../src/lib/lesson-time.ts';
-import { linesFor, endingsFor } from '../src/lib/lesson-copy.ts';
+import { linesFor, endingsFor, KEPT } from '../src/lib/lesson-copy.ts';
 import { chooseStop } from '../src/lib/lesson-stop.mjs';
 
 let n = 0;
@@ -46,9 +46,15 @@ check('the parts printed under a stop add up to its number', () => {
     assert.equal(split(total, [a, b, c]).reduce((x, y) => x + y, 0), total);
   }
   // Turning Signals Off in the prototype said "Films 11 min" over 8 + 4.
-  const t = lessonTime({ ...base, body: words(2800), explainer: film('a', 230), films: [film('b', 238)], stories: { audioSec: 229, hops: [] } });
-  assert.equal(t.filmMin + t.storyMore, t.stops.find((s) => s.id === 'films')?.min ?? t.filmMin + t.storyMore);
-  assert.equal(t.readMin + t.filmInLesson + t.storyInLesson, t.whole);
+  // Turning Signals Off in the prototype said "Films 11 min" over 8 + 4, and the first build said
+  // "7 minutes" of film beside a "Play all films (8 min)" button. One figure per thing, everywhere.
+  const hop = { afterHeading: 'x', title: 'y' };
+  const t = lessonTime({ ...base, body: words(2800), explainer: film('a', 216), films: [film('b', 234)], stories: { audioSec: 229, hops: [hop] } });
+  assert.equal(t.filmMin, 8); assert.equal(t.storyMin, 4);
+  assert.equal(minOf(t, 'films'), t.filmMin + t.storyMin);
+  assert.equal(minOf(t, 'stories'), t.storyMin);
+  assert.equal(t.readMin + t.filmMin + t.storyMin, t.whole);
+  assert.equal(t.filmMin, Math.max(1, Math.round((216 + 234) / 60)), 'the same rounding as the Play all films button');
 });
 
 check('the whole-lesson figure is the same from the card recipe and the page recipe', () => {
@@ -97,15 +103,19 @@ check('an ages 5 to 10 guide has Film and Activity, and one stop when it has no 
 check('sentences: numbers add up, and no sentence counts what is left', () => {
   const t = lessonTime({ ...base, body: words(2800), explainer: film('a', 230, ['x']), films: [film('b', 238, ['y'])], stories: { audioSec: 229, hops: [{ afterHeading: 'x', title: 'y' }, { afterHeading: 'z', title: 'w' }, { afterHeading: 'q', title: 'r' }] } });
   const l = linesFor(t, { figures: 3 });
-  assert.equal(l.films, `Both films, ${t.filmMin} minutes, then three short stories told aloud, ${t.storyMore} more.`);
-  assert.match(l.skim, /^The main idea, the figures and what the films show\. Tap a heading to read that part\.$/);
-  assert.match(l.lesson, /^All of it: about \d+ minutes of reading, \d+ of film and \d+ of stories\.$/);
+  assert.equal(l.films, `Both films, ${t.filmMin} minutes, then three short stories told aloud, ${t.storyMin} more.`);
+  assert.equal(l.stories, 'Three real-life stories behind this lesson, about 4 minutes aloud, or read them below.');
+  assert.equal(t.stops.find((s) => s.id === 'stories').hint, 'real-life cases, told aloud');
+  assert.equal(l.skim, 'The main idea, the figures and what the films show. Under each heading, "Read this part" opens it.');
+  assert.match(l.lesson, /^The whole lesson: about \d+ minutes of reading, \d+ of film and \d+ of stories\.$/);
+  const long = lessonTime({ ...base, body: [1, 2, 3, 4, 5].map((k) => `## Part ${k}\n\n${words(1500)}\n`).join('\n'), h2: [1, 2, 3, 4, 5].map((k) => ({ slug: `p${k}`, text: `Part ${k}` })) });
+  assert.equal(linesFor(long, { figures: 0 }).lesson, `The whole lesson: about 50 minutes of reading, with two places to stop.${KEPT}`);
   const school = lessonTime({ ...base, tier: 'highschool', estMinutes: 40, body: words(1500), explainer: film('a', 180), films: [film('b', 180)] });
-  assert.equal(linesFor(school, { figures: 1 }).lesson, 'All of it: about 40 minutes in class, both films included.');
+  assert.equal(linesFor(school, { figures: 1 }).lesson, 'The whole lesson: about 40 minutes, the length of a class.');
   const guide = lessonTime({ ...base, tier: 'families', estMinutes: 20, body: words(600), explainer: film('Set up', 41.7) });
-  assert.equal(linesFor(guide, { figures: 0 }).films, 'The film, 42 seconds, for the grown-up to look at before the activity.');
-  assert.equal(linesFor(guide, { figures: 0 }).lesson, 'All of it, done with a child: about 20 minutes, the film included.');
-  assert.deepEqual(endingsFor(t), { skim: 'That is the skim.', stories: 'Those are the stories.', films: 'That is both films.' });
+  assert.equal(linesFor(guide, { figures: 0 }).films, 'The film, 42 seconds, and the safety notes, for the grown-up to look at before the activity.');
+  assert.equal(linesFor(guide, { figures: 0, laterLooks: true }).lesson, 'The hands-on part, done with a child: about 20 minutes, then a few quick looks later.');
+  assert.deepEqual(endingsFor(t), { skim: 'That is the skim: you have the shape of it.', stories: 'Those are the stories.', films: 'That is both films.' });
   for (const s of [...Object.values(l), ...Object.values(endingsFor(t))]) assert.doesNotMatch(s, /\bleft\b|to go\b|remaining|\bof \d+\b/i);
 });
 
@@ -144,6 +154,19 @@ check('?time= opens that stop for the visit and beats the saved choice', () => {
   assert.deepEqual(go({ saved: 'skim', search: '?time=films' }), { stop: 'films', why: '' });
   assert.deepEqual(go({ search: '?supports=2&time=stories' }), { stop: 'stories', why: '' });
   assert.deepEqual(go({ stops: ['skim', 'lesson'], saved: 'skim', search: '?time=films' }), { stop: 'skim', why: 'remembered' }, 'a stop this lesson lacks is ignored');
+});
+
+check('a link that sets the help with the tasks opens the whole lesson', () => {
+  assert.deepEqual(go({ saved: 'skim', search: '?supports=2' }), { stop: 'lesson', why: 'supports' });
+  assert.deepEqual(go({ search: '?supports=0' }), { stop: 'lesson', why: '' });
+  assert.deepEqual(go({ saved: 'skim', search: '?supports=2&time=films' }), { stop: 'films', why: '' });
+  assert.deepEqual(go({ saved: 'skim', search: '?supports=9' }), { stop: 'skim', why: 'remembered' });
+});
+
+check('the skim counts ten seconds a figure', () => {
+  const a = lessonTime({ ...base, body: words(900), skimWords: 200 });
+  const b = lessonTime({ ...base, body: words(900), skimWords: 200, skimFigures: 6 });
+  assert.equal(minOf(a, 'skim'), 1); assert.equal(minOf(b, 'skim'), 2);
 });
 
 check('a device in a class opens the whole lesson, unless the link carries ?time=', () => {

@@ -28,8 +28,10 @@ interface Props {
   headings: { depth: number; slug: string; text: string }[];
   /** The lesson's main idea, shown under the stories in the Stories stop. */
   idea: string;
+  /** True when the lesson's summary gives only a question: the label then says so. */
+  ideaIsQuestion?: boolean;
 }
-const { data, headings, idea } = Astro.props;
+const { data, headings, idea, ideaIsQuestion = false } = Astro.props;
 const sections = headings.filter((h) => h.depth === 2);
 const hops = data.hops.map((hop) => {
   const at = sections.findIndex((h) => h.text === hop.afterHeading);
@@ -61,7 +63,7 @@ const n = say(data.hops.length);
   <div data-sh-cards>
     {hops.map(({ hop, before }) => <SideHopCard hop={hop} before={before} />)}
   </div>
-  <p class="sh-under" data-lt-only="stories"><span class="lt-under-k">The idea underneath them.</span> {idea}</p>
+  <p class="sh-under" data-lt-only="stories"><span class="lt-under-k">{ideaIsQuestion ? 'The question underneath them.' : 'The idea underneath them.'}</span> {idea}</p>
 </section>
 
 <style is:inline>

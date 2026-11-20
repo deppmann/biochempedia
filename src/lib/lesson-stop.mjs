@@ -10,8 +10,10 @@
         lesson. Nothing is saved.
      2. ?time=<stop> in the address opens that stop for this visit. Nothing is saved. This is the
         link a teacher sends to open a lesson at one length.
-     3. A device that has joined a class opens the whole lesson: a saved choice must not quietly
-        shorten assigned work.
+     3. A link that sets the help with the tasks (?supports=) opens the whole lesson: a teacher
+        hands it out, and the tasks are in the text. So does a device that has joined a class: a
+        saved choice must not quietly shorten assigned work. (The "Share with your class" code
+        carries ?time=lesson, which is rule 2.)
      4. An ages 5 to 10 activity guide ignores a choice saved on a science lesson.
      5. The saved choice (stemhop:prefs:v1 "time"), or, where there is none, the choice once saved for
         this one lesson by the old three-way switch (stemhop:side-hops:view:<slug>). If this lesson
@@ -22,7 +24,7 @@
           hash: location.hash, search: location.search,
           saved: prefs.time or null, legacy: the old per-lesson value ('films' | 'hops') or null,
           inClass: boolean, guide: boolean }
-   out: { stop, why }   why is '' or one of: remembered, noStories, noFilm, deepLink, inClass */
+   out: { stop, why }   why is '' or one of: remembered, noStories, noFilm, deepLink, supports, inClass */
 export function chooseStop(i) {
   var stops = i.stops || ['lesson'];
   var has = function (v) { return stops.indexOf(v) > -1; };
@@ -44,6 +46,7 @@ export function chooseStop(i) {
   var deep = (hash && hash !== '#' && hash !== '#top' && hash !== '#explainer') || /[?&]pagefind-highlight=/.test(i.search || '');
   if (deep) return out('lesson', shorter ? 'deepLink' : '');
   if (asked) return out(asked, '');
+  if (/[?&]supports=[012](&|$)/.test(i.search || '')) return out('lesson', shorter ? 'supports' : '');
   if (i.inClass) return out('lesson', shorter ? 'inClass' : '');
   if (i.guide) return out('lesson', '');
   if (saved && saved !== 'lesson') {
