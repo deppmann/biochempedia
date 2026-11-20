@@ -1,0 +1,86 @@
+---
+/**
+ * Contributors (2026-11-20): a thank-you page, not a scoreboard. Named people come from
+ * src/data/contributors.ts and appear only once `confirmed` is true. With none confirmed the page
+ * still reads whole: it says how the site is made and how to help.
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { feedbackUrl } from '../../lib/feedback';
+import { confirmedContributors, sinceLabel } from '../../data/contributors';
+
+const people = confirmedContributors();
+---
+
+<BaseLayout title="Contributors — STEMhop" description="The people who have made STEMhop better, how the site is made, and how to help.">
+  <article class="wrap prose-col" style="padding-top: var(--ddp-space-12)">
+    <p class="eyebrow">Contributors</p>
+    <h1>Thank you to the people who made this better.</h1>
+
+    <p class="lede">
+      I make this site, with a lot of help from AI and from people who gave their time. This page says who
+      did what, as plainly as I can. It is a thank-you, not a scoreboard, so you will find no ranks and no counts.
+    </p>
+
+    <h2>How the site is made</h2>
+    <p>
+      I choose what goes in, direct the AI that drafts the lessons, films and questions, and decide what gets
+      fixed. The people and groups thanked below made it better than I could alone.
+      A person has not yet read every lesson, and I do not claim anyone has.
+    </p>
+
+    {people.length > 0 && (
+      <>
+        <h2>Thanks, by name</h2>
+        <ul class="people">
+          {people.map((c) => (
+            <li>
+              <h3>{c.name}</h3>
+              <p class="role">{c.role}</p>
+              <p class="meta">
+                <span>Since {sinceLabel(c.since)}</span>
+                {c.areas.map((a) => <span class="tag">{a}</span>)}
+                {c.link && <a href={c.link.href} rel="noopener">{c.link.label}</a>}
+              </p>
+            </li>
+          ))}
+        </ul>
+      </>
+    )}
+
+    <h2>Thanks, without names</h2>
+    <p>
+      Some people are thanked here without a name, because that is the agreement. Students in my biochemistry
+      course, BIOL 3030, made <a href="/fun/">The Fun Stuff</a>: the trading cards, memes, songs and podcast.
+      It is shown without names, and with their permission. Former trainees from my lab volunteered to help,
+      and I thank them the same way.
+    </p>
+
+    <h2>How to help</h2>
+    <ul>
+      <li>
+        <strong>Found a mistake?</strong> Use <a href={feedbackUrl()} target="_blank" rel="noopener">Report an error</a>,
+        or the button in any lesson&rsquo;s side panel. You do not have to say who you are. I read every report.
+      </li>
+      <li>
+        <strong>Teach, or study this material?</strong> If you would like to audit lessons in your own field, write
+        to me through <a href="/contact">the contact page</a>. Say which lessons and I will point you to them.
+      </li>
+    </ul>
+    <p>
+      If you help, I will ask before I put your name here, and you can ask me to take it down at any time.
+    </p>
+
+    <p><a href="/about/#who">← Who makes it</a></p>
+  </article>
+
+  <style>
+    .eyebrow { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ddp-color-accent); }
+    .lede { font-size: var(--ddp-text-lg); line-height: 1.6; color: var(--ddp-color-ink-soft); }
+    .people { list-style: none; margin: var(--ddp-space-4) 0; padding: 0; display: grid; gap: var(--ddp-space-3); }
+    .people li { margin: 0; padding: var(--ddp-space-4) var(--ddp-space-5); background: var(--ddp-color-surface); border: 1px solid var(--ddp-color-line); border-left: 4px solid var(--ddp-color-primary); border-radius: var(--ddp-radius); }
+    .people h3 { margin: 0 0 0.25rem; }
+    .people .role { margin: 0 0 var(--ddp-space-2); }
+    .people .meta { margin: 0; display: flex; flex-wrap: wrap; gap: 0.25rem 0.75rem; align-items: baseline; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); }
+    .people .tag { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: 0.04em; }
+  </style>
+</BaseLayout>
