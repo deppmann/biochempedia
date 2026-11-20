@@ -28,12 +28,11 @@ export interface Contributor {
 
 export const CONTRIBUTORS: Contributor[] = [
   {
-    // Placeholder. Chris confirms the first real entry with the person before this is replaced.
-    name: 'First contributor',
-    role: 'A sentence or two about what this person did on the site.',
-    since: '2026-11',
-    areas: ['Area of work'],
-    confirmed: false,
+    name: 'Nolan Rehrig',
+    role: 'Reviews and shapes the MCAT-style practice questions, reading them as someone who recently learned the material. Also fixed parts of the site itself, including the figure pop-up and the Explore rail, and tested the metabolism games.',
+    since: '2026-09',
+    areas: ['MCAT-style questions', 'Site fixes'],
+    confirmed: true,
   },
 ];
 
