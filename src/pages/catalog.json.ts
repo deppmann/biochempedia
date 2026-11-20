@@ -13,6 +13,9 @@ export const GET: APIRoute = async () => {
     lessonMarkdown: `${SITE}/lessons/{slug}.md`,
     films: `${SITE}/films.json`,
     filmsInOrder: `${SITE}/films/play/{course}/`,
+    // The hop graph: which ideas the site teaches and the lessons on each at every level (src/pages/graph.json.ts).
+    ideas: `${SITE}/graph.json`,
+    ideaLadders: `${SITE}/graph/all.json`,
     // Lesson text, the site's own figures and its films. The licence page lists what is not covered.
     license: 'https://creativecommons.org/licenses/by-nc-sa/4.0/',
     licenseName: 'CC BY-NC-SA 4.0',

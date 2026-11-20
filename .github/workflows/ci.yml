@@ -45,6 +45,12 @@ jobs:
       - run: node scripts/check-production-record.mjs
       # "Before this / After this / Elsewhere" links and search phrases: every link resolves and passes the rules.
       - run: node scripts/check-lesson-links.mjs
+      # The hop graph (which ideas each lesson teaches, across levels): every lesson, film and concept it names
+      # resolves and its wording passes the rules. Lessons with no record and stale records are warnings.
+      # Runs after the build so section anchors are checked against the built pages.
+      - run: node scripts/check-topic-graph.mjs
+      # The graph's rules, the merge of readers' answers and the build-time API, against the real lessons.
+      - run: node scripts/test-topic-graph.mjs
       # Lesson search against the index this build just wrote (needs Node 22.18+ to import the .ts file).
       - run: node scripts/test-search.mjs
       # Curiosity router, offline (node:sqlite needs no flag from Node 22.13).

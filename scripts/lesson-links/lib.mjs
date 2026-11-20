@@ -94,6 +94,8 @@ export async function loadSite() {
       sims: (d.simulations ?? []).filter((s) => s.type === 'local').map((s) => s.title.split('(')[0].trim()),
       ladder: d.ladder ?? null, activity: d.activity ?? null,
       methodsShown: allMethodsFor(d.slug).map((m) => m.slug),
+      // The folder and the parsed frontmatter, for tools that need more than the fields above (scripts/topic-graph).
+      dir, fm: d,
     });
   }
   // Position within the course: the same order as the course page and the lesson page's nav.
@@ -119,17 +121,17 @@ export function resolveResource(id, site) {
 // ------------------------------------------------------------------ the rules
 
 /** Words that say nothing about the connection. */
-const VAGUE = /\b(is|are|also) (related|relevant|connected)\b|\brelated (topic|lesson|material)\b|\bsimilar (topic|ideas?)\b|\bcovers? (a )?related\b|\bfor more (on|about) this\b/i;
+export const VAGUE = /\b(is|are|also) (related|relevant|connected)\b|\brelated (topic|lesson|material)\b|\bsimilar (topic|ideas?)\b|\bcovers? (a )?related\b|\bfor more (on|about) this\b/i;
 /** A filler reason ("Not applicable") or a link that rests on an analogy or a contrast, not a real dependency. */
-const FILLER = /\bnot (applicable|used|valid|relevant|needed|a fit|a direct follow)|\bplaceholder\b|^\s*(n\/?a|none|skip)\b|\bskip\b|does ?n[o']t (fit|teach|belong|match|relate|build on)|no (direct|real|clear) (link|connection)|wrong match|should not be listed/i;
-const ANALOGY = /\b(parallels?|mirrors?|analog(y|ous)|same [\w-]+(?: [\w-]+)? (logic|idea|reasoning)|same (logic|idea)|useful contrast|by contrast|in contrast|contrasts? with|similar to how)\b/i;
+export const FILLER = /\bnot (applicable|used|valid|relevant|needed|a fit|a direct follow)|\bplaceholder\b|^\s*(n\/?a|none|skip)\b|\bskip\b|does ?n[o']t (fit|teach|belong|match|relate|build on)|no (direct|real|clear) (link|connection)|wrong match|should not be listed/i;
+export const ANALOGY = /\b(parallels?|mirrors?|analog(y|ous)|same [\w-]+(?: [\w-]+)? (logic|idea|reasoning)|same (logic|idea)|useful contrast|by contrast|in contrast|contrasts? with|similar to how)\b/i;
 /** A phrase must not ask for medical advice. */
-const MEDICAL = /\b(should i (take|stop|eat|see)|is it safe|safe to|dos(e|age)|how much .* (take|should)|cure for|treat(ment)? for my|my (doctor|symptoms?|child'?s? (rash|fever))|do i have|am i (sick|pregnant)|diagnos|side effects? of|prescri|overdose|home remed|medicine for|pills? for)\b/i;
+export const MEDICAL = /\b(should i (take|stop|eat|see)|is it safe|safe to|dos(e|age)|how much .* (take|should)|cure for|treat(ment)? for my|my (doctor|symptoms?|child'?s? (rash|fever))|do i have|am i (sick|pregnant)|diagnos|side effects? of|prescri|overdose|home remed|medicine for|pills? for)\b/i;
 /** Commercial products and test-prep companies (Chris: never name or oppose prep companies). */
-const BRANDS = /\b(kaplan|princeton review|uworld|magoosh|blueprint|examkrackers|next step|altius|jack westin|khan academy|quizlet|chegg|anki|coursera|tylenol|advil|motrin|aleve|aspirin|ibuprofen|acetaminophen|gatorade|red bull|monster energy|coca[- ]?cola|pepsi|ozempic|wegovy|mounjaro|prozac|zoloft|viagra|adderall|ritalin|benadryl|claritin|zyrtec|lipitor|epipen|neosporin|clorox|lysol|miracle[- ]?gro|roundup|23andme|ancestry\.com|apple watch|fitbit|tiktok|youtube|google|chatgpt)\b|[®™]/i;
+export const BRANDS = /\b(kaplan|princeton review|uworld|magoosh|blueprint|examkrackers|next step|altius|jack westin|khan academy|quizlet|chegg|anki|coursera|tylenol|advil|motrin|aleve|aspirin|ibuprofen|acetaminophen|gatorade|red bull|monster energy|coca[- ]?cola|pepsi|ozempic|wegovy|mounjaro|prozac|zoloft|viagra|adderall|ritalin|benadryl|claritin|zyrtec|lipitor|epipen|neosporin|clorox|lysol|miracle[- ]?gro|roundup|23andme|ancestry\.com|apple watch|fitbit|tiktok|youtube|google|chatgpt)\b|[®™]/i;
 
 export const sentenceCount = (s) => (String(s).trim().match(/[.?!](\s|$)/g) ?? []).length;
-const words = (s) => String(s).trim().split(/\s+/).filter(Boolean).length;
+export const words = (s) => String(s).trim().split(/\s+/).filter(Boolean).length;
 
 /** Problems with one reason, '' if none. Younger readers get shorter reasons. */
 export function reasonProblem(reason, lesson) {
