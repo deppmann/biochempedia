@@ -25,7 +25,7 @@ import { createHash } from 'node:crypto';
 import { ROOT, AREAS, loadGraphSite, readGraph, emptyGraph, registryOf, serializeGraph } from './lib.mjs';
 import { buildDigests } from './digest.mjs';
 import { proposeBatchPrompt, canonicalizePrompt, nearPrompt, verifyPrompt } from './prompts.mjs';
-import { ingest, readStaging, ticketOf } from './ingest.mjs';
+import { ingest, readStaging, ticketOf, canonicalPending } from './ingest.mjs';
 
 const argv = process.argv.slice(2);
 const cmd = argv[0];
@@ -42,7 +42,9 @@ if (!existsSync(baseFile)) { writeFileSync(baseFile, serializeGraph(readGraph() 
 const base = JSON.parse(readFileSync(baseFile, 'utf8'));
 const stage = (name) => { const d = join(S, 'prompts', name); mkdirSync(d, { recursive: true }); return d; };
 const answers = (name) => { const d = join(S, name); mkdirSync(d, { recursive: true }); return d; };
-const state = (stages) => ingest({ base, site, staging: readStaging(S), stages });
+// Prompts and status are written from a report-only merge, so two ids with one name are pending work
+// (a warning) until the canonicalize stage has answered; see canonicalPending in ingest.mjs.
+const state = (stages) => { const staging = readStaging(S); return ingest({ base, site, staging, stages, namesPending: canonicalPending(staging, stages) }); };
 const manifest = (dir, rows, extra = {}) => writeFileSync(join(dir, 'MANIFEST.json'), JSON.stringify({ stage: dir.split('/').pop(), written: new Date().toISOString().slice(0, 10), ...extra, items: rows }, null, 1) + '\n');
 const stageOf = (slug) => site.lessons.get(slug)?.stage ?? '?';
 
@@ -130,7 +132,8 @@ else if (cmd === 'canonicalize') {
   if (flag('--cross')) {
     const s = state({ near: false, verify: false });
     const registry = registryOf(s.graph, site);
-    const text = canonicalizePrompt({ area: '_cross', proposed: [] }, registry, { digestDir: join(S, 'digests'), answerFile: join(out, '_cross.json') });
+    // every pair of ids that still shares a name after the area files: the last place it can be settled
+    const text = canonicalizePrompt({ area: '_cross', proposed: [] }, registry, { digestDir: join(S, 'digests'), answerFile: join(out, '_cross.json'), sameName: s.validation.sameName });
     writeFileSync(join(dir, '_cross.md'), text);
     rows.push({ id: '_cross', prompt: join(dir, '_cross.md'), concepts: registry.length, tokens: tokens(text), answer: join(out, '_cross.json') });
     console.log(`canonicalize --cross: ${registry.length} concepts, ~${Math.round(tokens(text) / 1000)}k tokens  ${join(dir, '_cross.md')}`);
@@ -145,9 +148,13 @@ else if (cmd === 'canonicalize') {
       if (!proposed.length) continue;
       const existing = Object.entries(s.info.afterProposals).filter(([id, c]) => base.concepts[id] && c.area === a.id).sort(([x], [y]) => x.localeCompare(y))
         .map(([id, c]) => ({ id, inRegistry: true, defs: [{ name: c.name, blurb: c.blurb, area: c.area, aliases: c.aliases }], rungs: sortRungs(c.rungs) }));
-      const text = canonicalizePrompt({ area: a.id, proposed, existing }, registry, { digestDir: join(S, 'digests'), answerFile: join(out, `${a.id}.json`) });
+      // pairs of ids with one name that this area can settle: both ids are on this shelf (a pair that
+      // straddles two shelves is left for the --cross pass, which sees every concept)
+      const here = new Set([...proposed, ...existing].map((p) => p.id));
+      const sameName = s.validation.sameName.filter((p) => here.has(p.id) && here.has(p.other));
+      const text = canonicalizePrompt({ area: a.id, proposed, existing }, registry, { digestDir: join(S, 'digests'), answerFile: join(out, `${a.id}.json`), sameName });
       writeFileSync(join(dir, `${a.id}.md`), text);
-      rows.push({ id: a.id, prompt: join(dir, `${a.id}.md`), proposedIds: proposed.length, rungs: proposed.reduce((n, p) => n + p.rungs.length, 0), tokens: tokens(text), answer: join(out, `${a.id}.json`) });
+      rows.push({ id: a.id, prompt: join(dir, `${a.id}.md`), proposedIds: proposed.length, rungs: proposed.reduce((n, p) => n + p.rungs.length, 0), sameName: sameName.length, tokens: tokens(text), answer: join(out, `${a.id}.json`) });
       console.log(`${a.id.padEnd(20)} ${String(proposed.length).padStart(3)} new ids  ~${String(Math.round(tokens(text) / 1000)).padStart(3)}k tokens  ${join(dir, `${a.id}.md`)}`);
     }
     manifest(dir, rows, { answersIn: out });
@@ -213,7 +220,7 @@ else if (cmd === 'verify') {
 
 else if (cmd === 'status') {
   const st = readStaging(S);
-  const s = ingest({ base, site, staging: st });
+  const s = ingest({ base, site, staging: st, namesPending: canonicalPending(st) });
   const pend = [...s.info.pending.keys()];
   console.log(`staging ${S}`);
   console.log(`  base graph: ${Object.keys(base.concepts).length} concepts, ${Object.keys(base.lessons).length} lesson records`);
@@ -221,6 +228,12 @@ else if (cmd === 'status') {
   console.log(`  canonical files: ${st.canonical.map((f) => f.name).join(', ') || 'none'}; new ids proposed: ${pend.length}`);
   console.log(`  near files: ${st.near.map((f) => f.name).join(', ') || 'none'}; verdict files: ${st.verify.length}`);
   console.log(`  merged graph right now: ${Object.keys(s.graph.concepts).length} concepts, ${Object.keys(s.graph.lessons).length} lesson records; ${s.log.rejected.length} rejected item(s); ${s.validation.errors.length} error(s)`);
+  const byStage = {};
+  for (const r of s.log.rejected) byStage[r.stage] = (byStage[r.stage] ?? 0) + 1;
+  if (s.log.rejected.length) console.log(`  rejected by stage: ${Object.entries(byStage).map(([k, v]) => `${k} ${v}`).join(', ')}`);
+  if (s.validation.sameName.length) console.log(`  two ids with one name (${canonicalPending(st) ? 'for the canonicalize stage to settle' : 'an error: fix in the canonical files'}): ${s.validation.sameName.map((p) => `"${p.name}" ${p.other} + ${p.id}`).join('; ')}`);
+  const whole = s.log.rejected.filter((r) => r.stage === 'propose' && r.item === '(whole file)').map((r) => r.file.replace(/^proposals\/|\.json$/g, ''));
+  if (whole.length) console.log(`  lessons whose whole proposal was rejected: ${whole.join(', ')}`);
   const missing = [...site.lessons.keys()].filter((x) => !st.proposals.some((p) => p.name === x));
   if (missing.length && missing.length <= 60) console.log(`  lessons with no proposal: ${missing.join(', ')}`);
 }

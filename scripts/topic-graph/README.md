@@ -52,7 +52,11 @@ merged. The stages:
 5. **Verify** (`verifyPrompt`). A reader who did not write the entry is shown a concept and the
    digests of its lessons and asked: is this one idea at every rung, and is each rung really a
    place to learn it? A rung judged wrong is removed and logged. It is not argued with.
-6. **Ingest** (`ingest.mjs`). Merges everything in one fixed order and prints a report: what the
+6. **Review** (`review/<name>.json` in the staging folder). Whoever reads the result writes
+   corrections as one more answer file: a rung to add, move or reword, a concept to make or merge,
+   a sideways hop to add, each with its reason. It is applied after the verdicts and goes through
+   the same checks.
+7. **Ingest** (`ingest.mjs`). Merges everything in one fixed order and prints a report: what the
    graph now holds, every change applied, and every item rejected with its reason.
 
 `emit.mjs` writes the prompt files for each stage into a staging folder, with a manifest that says
@@ -90,6 +94,18 @@ note, description or reason that is too long or breaks the wording rules (no pro
 test names, nothing phrased as medical advice, no analogy formulas, no dashes used as punctuation),
 or a file that is not in the order the tools write.
 
+The medical-advice and analogy rules are the lesson-links rules read with allowances for the graph
+(`medicalAdvice` and `analogyFormula` in `lib.mjs`). The graph's copy names science, so "dose-response
+curve", "dosage compensation", "parallel fibres", "mirror drawing" and "analogous structures" pass.
+A dose or a treatment asked for ("what dose", "should I take", "how to treat my") and an analogy
+formula ("is like a", "think of it as", "mirrors", "parallels", "by contrast") still fail. Lesson
+links keeps its own, stricter rules for search phrases.
+
+Two concepts with one name are a failure in the committed graph and in any ingest that writes. In
+a `--dry` ingest before the canonicalize stage has answered they are a warning: two readers gave
+one idea two ids, and merging them is that stage's job. Its prompts list the pairs under
+"ONE NAME, TWO IDS", and `emit.mjs status` shows them.
+
 It only **warns**, listing each lesson, when:
 
 - a live lesson has no record;
@@ -125,6 +141,7 @@ every function of the build-time API, against the real lessons.
 | `assign.mjs` | The single-lesson top-up |
 | `size.mjs` | Size of the browser files |
 | `dry-run.sh` | The whole pipeline with stand-in answers |
+| `fixtures/seed-graph.json` | The 34 hand-written concepts the first fill started from; the tests edit copies of it |
 | `../check-topic-graph.mjs` | The CI check |
 | `../test-topic-graph.mjs` | The tests |
 | `../../src/lib/topic-graph-core.mjs` | The logic shared by the site, the endpoint and the tools |

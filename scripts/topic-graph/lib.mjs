@@ -158,6 +158,55 @@ export const ADDS_VAGUE = /\b(deeper dive|deep dive|explores?|advanced concepts?
 export const EXTRA_NAMES = /\b(jell-?o|mcat)\b/i;
 const HYPE = /\b(amazing|incredible|fascinating|awesome|mind-?blowing|delve|revolutionary|game-?chang\w+)\b/i;
 
+// The medical-advice and analogy rules come from lesson links, where they judge search phrases a
+// student types and one-line reasons. The graph's copy is different: it NAMES science, so it says
+// "dose-response curve", "dosage compensation", "parallel fibres" and "mirror drawing". Lesson links
+// keeps its rules as they are; the graph reads them with the allowances below. Each allowance lets
+// a plain scientific word through and leaves the advice frame or the analogy formula failing.
+
+/** "dose" not followed by the word that makes it a term of science (dose-response, dosage compensation). */
+const DOSE = String.raw`dos(?:e|age)s?(?![- ](?:response|dependen|compensation|effect|sensitiv|curve))`;
+/** A dose asked for, not named: "what dose", "safe dosage", "how much ... dose", "dose for my child". */
+const DOSE_ADVICE = new RegExp(String.raw`\b(?:what|safe|safest|recommended|my|your|child'?s?) (?:is (?:the|a) )?(?:[\w-]+ )?${DOSE}\b|\bhow (?:much|many|big) (?:[\w-]+ ){0,3}${DOSE}\b|\b${DOSE} (?:for|to give) (?:my|me|your|a child|a baby|kids?|children|babies|adults?|toddlers?|dogs?|cats?)\b`, 'i');
+/** A treatment asked for: "how to treat my rash", "cure your cold". ("How doctors treat cancer" is a topic.) */
+const TREAT_ADVICE = /\bhow (?:to|do i|can i|should i|do you|can you) (?:treat|cure)\b|\b(?:treat|cure|heal)(?:ing)? (?:my|your)\b/i;
+/**
+ * True when a string is phrased as a request for medical advice. The lesson-links rule, except
+ * that the bare words "dose" and "dosage" pass (they are judged by DOSE_ADVICE instead), plus the
+ * "how to treat my" frame, which lesson links does not look for.
+ */
+export function medicalAdvice(s) {
+  const t = String(s ?? '');
+  // "where it is safe to act" describes; "is it safe to take" asks. Only the asking frame is advice.
+  const plainSafe = t.replace(/(?<!\bis it )\bsafe to (?!take|eat|drink|use|give|swallow|touch|mix|stop|swim|breathe)/gi, 'fine to ');
+  return MEDICAL.test(plainSafe.replace(/\bdos(?:e|age)\b/gi, 'amount')) || DOSE_ADVICE.test(t) || TREAT_ADVICE.test(t);
+}
+
+const DET = String.raw`(?:the|a|an|how|what|that|this|those|these|its|their|each|our|every)`;
+/** Words the lesson-links analogy rule stops on that are plain vocabulary here. */
+const PLAIN_SCIENCE = [
+  // "parallel" as a description (parallel fibres, in parallel, runs parallel to the surface). Still an
+  // analogy: the verb ("parallels X", "parallel the ...") and the noun ("a parallel to", "a close parallel with").
+  new RegExp(String.raw`\bparallel\b(?! ${DET}\b)(?!(?<=\b(?:a|an|one|close|direct|clear|striking|exact|obvious) parallel) (?:to|with|between|in|for)\b)`, 'gi'),
+  // "mirror" as a thing (mirror drawing, mirror image, mirror neurons). Still an analogy: the verb ("mirrors X", "mirror the ...").
+  new RegExp(String.raw`\bmirror\b(?! ${DET}\b)`, 'gi'),
+  // analogous structures are a term of evolution, set against homologous ones
+  /\banalogous(?= (?:traits?|structures?|organs?|features?|characters?|limbs?|wings?)\b)|(?<=\bhomologous (?:and|or|versus|vs\.?) )analogous\b/gi,
+  // stimulus contrast in vision ("changes in contrast")
+  /(?<=\b(?:changes?|differences?|increases?|decreases?|steps?|variations?|rise|fall|drop|gain) )in contrast\b/gi,
+];
+/** The simile formulas lesson links does not look for: "X is like a Y", "works like a", "think of it as". */
+const SIMILE = /\b(?:is|are|was|were) (?:a (?:bit|little|lot) |much |just |rather |somewhat |more |very much )?like (?:a|an|the|how|what|when)\b|\bworks? (?:just |much )?like (?:a|an|the)\b|\bthink of (?:it|this|that|them|these|those|(?:(?:a|an|the|each|every|your) )?[\w-]+(?: [\w-]+)?) as\b/i;
+/**
+ * True when a string rests on an analogy or a contrast formula instead of saying what happens. The
+ * lesson-links rule read past the plain scientific uses above, plus the simile formulas.
+ */
+export function analogyFormula(s) {
+  let t = String(s ?? '');
+  for (const re of PLAIN_SCIENCE) t = t.replace(re, 'plain');
+  return ANALOGY.test(t) || SIMILE.test(t);
+}
+
 /** Problems any reader-facing string can have. Returns a list of reasons, empty when clean. */
 export function copyProblems(s) {
   const t = String(s ?? '');
@@ -165,8 +214,9 @@ export function copyProblems(s) {
   if (!t.trim()) out.push('empty');
   if (/[—–]/.test(t)) out.push('dash character (use a comma, a colon or two sentences)');
   if (/\p{Extended_Pictographic}/u.test(t)) out.push('emoji');
-  if (BRANDS.test(t) || EXTRA_NAMES.test(t)) out.push('names a product, company or test');
-  if (MEDICAL.test(t)) out.push('medical-advice phrasing');
+  // "the next step" in lower case is plain English here; lesson links stops on it as a company name.
+  if (BRANDS.test(t.replace(/\bnext step\b/g, 'following step')) || EXTRA_NAMES.test(t)) out.push('names a product, company or test');
+  if (medicalAdvice(t)) out.push('medical-advice phrasing');
   if (HYPE.test(t)) out.push('hype word');
   if (/\s{2,}|^\s|\s$/.test(t)) out.push('stray whitespace');
   return out;
@@ -189,7 +239,7 @@ export function blurbProblem(blurb) {
   if (p.length) return p[0];
   if (sentenceCount(blurb) !== 1) return 'blurb is not one sentence';
   if (words(blurb) > LIMITS.blurbWords) return `blurb is ${words(blurb)} words (limit ${LIMITS.blurbWords})`;
-  if (ANALOGY.test(blurb)) return 'analogy formula';
+  if (analogyFormula(blurb)) return 'analogy formula';
   return '';
 }
 export function addsProblem(adds) {
@@ -198,7 +248,7 @@ export function addsProblem(adds) {
   if (words(adds) > LIMITS.addsWords) return `note is ${words(adds)} words (limit ${LIMITS.addsWords})`;
   if (ADDS_VAGUE.test(adds)) return 'vague note (says "covers" or "more detail" instead of naming the case, experiment or number)';
   if (VAGUE.test(adds) || FILLER.test(adds)) return 'vague or filler note';
-  if (ANALOGY.test(adds)) return 'analogy formula';
+  if (analogyFormula(adds)) return 'analogy formula';
   return '';
 }
 export function whyProblem(why) {
@@ -206,7 +256,7 @@ export function whyProblem(why) {
   if (p.length) return p[0];
   if (sentenceCount(why) !== 1) return 'reason is not one sentence';
   if (words(why) > LIMITS.whyWords) return `reason is ${words(why)} words (limit ${LIMITS.whyWords})`;
-  if (ANALOGY.test(why)) return 'analogy or contrast formula (name a shared mechanism or a real case instead)';
+  if (analogyFormula(why)) return 'analogy or contrast formula (name a shared mechanism or a real case instead)';
   if (VAGUE.test(why) || FILLER.test(why)) return 'vague or filler reason';
   return '';
 }
@@ -269,12 +319,14 @@ export const serializeGraph = (graph) => JSON.stringify(graph, null, 1) + '\n';
  *             matches a heading (the link falls back to the top of the lesson)
  * `opts.builtHeadings(slug)` may return the h2 ids of the BUILT page (a Set) so anchors are
  * checked against what readers get; without it they are checked against ids computed from source.
+ * `opts.namesPending` (ingest only, before the canonicalize stage has answered) turns "two ids
+ * with one name" from an error into a warning; the pairs are returned as `sameName` either way.
  */
 export function validateGraph(graph, site, opts = {}) {
   const errors = [], warnings = [], notes = [];
   const E = (m) => errors.push(m), W = (m) => warnings.push(m);
   const stats = { concepts: 0, core: 0, uses: 0, films: 0, near: 0, anchors: 0, lessons: 0 };
-  if (!graph || typeof graph !== 'object') return { errors: ['not a graph'], warnings, notes, stats };
+  if (!graph || typeof graph !== 'object') return { errors: ['not a graph'], warnings, notes, stats, sameName: [] };
   if (graph.version !== 1) E(`version is ${graph.version}, expected 1`);
   if (!/^\d{4}-\d{2}-\d{2}$/.test(graph.updated ?? '')) E('header has no updated date');
   if (typeof graph.about !== 'string' || !graph.about) E('header has no about text');
@@ -290,10 +342,16 @@ export function validateGraph(graph, site, opts = {}) {
   }
   const concepts = graph.concepts && typeof graph.concepts === 'object' ? graph.concepts : {};
   const names = new Map();
+  const sameName = [];
   for (const [id, c] of Object.entries(concepts)) {
     const k = fold(c?.name ?? '');
-    if (names.has(k)) E(`${id}: same name as ${names.get(k)} ("${c.name}")`);
-    else names.set(k, id);
+    if (!names.has(k)) { names.set(k, id); continue; }
+    sameName.push({ id, other: names.get(k), name: c.name });
+    // Two readers who each met an idea first often give it one name under two ids. Giving each idea one
+    // id is the canonicalize stage's job, so before that stage has answered this is work still to do;
+    // in a graph that is about to be written, or one that is committed, it is a broken record.
+    if (opts.namesPending) W(`${id}: same name as ${names.get(k)} ("${c.name}"): the canonicalize stage must merge the two or rename one; this fails the final ingest`);
+    else E(`${id}: same name as ${names.get(k)} ("${c.name}")`);
   }
   const aliasOwner = new Map();
   const want = {};
@@ -341,7 +399,8 @@ export function validateGraph(graph, site, opts = {}) {
             const built = opts.builtHeadings?.(r.lesson);
             const ok = built ? built.has(r.anchor) : l.h2.has(r.anchor);
             if (!ok) W(`${id}/${r.lesson}: anchor #${r.anchor} is not a section heading of ${built ? 'the built page' : 'the lesson'} any more; the link falls back to the top of the lesson`);
-            else if (!/^[a-z0-9-]+$/.test(r.anchor)) W(`${id}/${r.lesson}: anchor #${r.anchor} has non-ASCII characters`);
+            // It matches the page and works in a browser; listed so nobody is surprised by it in a link.
+            else if (!/^[a-z0-9-]+$/.test(r.anchor)) notes.push(`${id}/${r.lesson}: anchor #${r.anchor} has non-ASCII characters`);
           }
         }
       } else {
@@ -395,7 +454,7 @@ export function validateGraph(graph, site, opts = {}) {
   const uncovered = [...site.lessons.keys()].filter((s) => !records[s]).sort();
   if (stale.length) W(`${stale.length} record(s) were written before their lesson's teaching text last changed; refresh each with node scripts/topic-graph/assign.mjs --emit <slug>:\n      ${wrapList(stale)}`);
   if (uncovered.length) W(`${uncovered.length} live lesson(s) have no record yet (they still work everywhere, by course and level):\n      ${wrapList(uncovered)}`);
-  return { errors, warnings, notes, stats, stale, uncovered };
+  return { errors, warnings, notes, stats, stale, uncovered, sameName };
 }
 
 export const wrapList = (list, width = 110) => {

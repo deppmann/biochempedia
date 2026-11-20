@@ -8,8 +8,10 @@
  * Run: node scripts/test-topic-graph.mjs   (also in npm test and CI)
  */
 import assert from 'node:assert/strict';
-import { loadGraphSite, coreSite, readGraph, validateGraph, normalizeGraph, serializeGraph, contentHash, registryOf, LIMITS, addsProblem, blurbProblem, whyProblem, aliasProblem, copyProblems, idProblem } from './topic-graph/lib.mjs';
-import { ingest, decomposeGraph, ticketOf } from './topic-graph/ingest.mjs';
+import { readFileSync } from 'node:fs';
+import { loadGraphSite, coreSite, readGraph, validateGraph, normalizeGraph, serializeGraph, contentHash, registryOf, LIMITS, addsProblem, blurbProblem, whyProblem, aliasProblem, nameProblem, copyProblems, idProblem, medicalAdvice, analogyFormula } from './topic-graph/lib.mjs';
+import { MEDICAL, ANALOGY, phraseProblem } from './lesson-links/lib.mjs';
+import { ingest, decomposeGraph, ticketOf, canonicalPending } from './topic-graph/ingest.mjs';
 import { makeTopicGraph, headingIds, fold, searchConcepts, expandClientGraph } from '../src/lib/topic-graph-core.mjs';
 import { buildDigests, digestText } from './topic-graph/digest.mjs';
 import { proposePrompt, proposeBatchPrompt, canonicalizePrompt, nearPrompt, assignPrompt, verifyPrompt } from './topic-graph/prompts.mjs';
@@ -19,7 +21,18 @@ const check = (name, fn) => { try { fn(); passed++; console.log(`  ok  ${name}`)
 const clone = (x) => JSON.parse(JSON.stringify(x));
 
 const site = await loadGraphSite();
-const good = readGraph();
+// Two graphs. `real` is the committed graph: it must pass every rule. `good` is a small fixed graph
+// (the 34 hand-written concepts the first fill started from, over 150 lessons) that every bad case
+// and every merge test edits, so the tests do not move when the real graph grows. Its hashes are
+// refreshed here, since lessons are edited all the time; a lesson it names that has since been
+// removed is taken out of it.
+const real = readGraph();
+const good = (() => {
+  const g = JSON.parse(readFileSync(new URL('./topic-graph/fixtures/seed-graph.json', import.meta.url), 'utf8'));
+  for (const c of Object.values(g.concepts)) { c.rungs = c.rungs.filter((r) => site.lessons.has(r.lesson)); c.films = c.films.filter((k) => site.films.has(k)); }
+  for (const slug of Object.keys(g.lessons)) { if (!site.lessons.has(slug)) delete g.lessons[slug]; else g.lessons[slug].hash = site.lessons.get(slug).contentHash; }
+  return normalizeGraph(g, site);
+})();
 assert.ok(good, 'src/data/topic-graph.json is missing');
 const errs = (g) => validateGraph(g, site).errors;
 const warns = (g) => validateGraph(g, site).warnings;
@@ -35,9 +48,18 @@ const C = (g) => g.concepts[ID];
 assert.ok(good.concepts[ID] && good.concepts.diffusion, 'the tests lean on the osmosis and diffusion concepts');
 
 console.log('the committed graph');
-check('passes every rule', () => assert.deepEqual(errs(good), []));
-check('is in the one fixed order the tools write', () => assert.equal(serializeGraph(normalizeGraph(good, site)), serializeGraph(good)));
-check('every hash is the hash of a lesson\'s teaching text', () => { for (const [s, r] of Object.entries(good.lessons)) assert.match(r.hash, /^[0-9a-f]{16}$/, s); });
+check('passes every rule', () => assert.deepEqual(errs(real), []));
+check('is in the one fixed order the tools write', () => assert.equal(serializeGraph(normalizeGraph(real, site)), serializeGraph(real)));
+check('every hash is the hash of a lesson\'s teaching text', () => { for (const [s, r] of Object.entries(real.lessons)) assert.match(r.hash, /^[0-9a-f]{16}$/, s); });
+check('the fixture graph the other tests edit passes every rule too', () => assert.deepEqual(errs(good), []));
+check('the build-time API runs over the whole committed graph without a hole', () => {
+  const a = makeTopicGraph(real, coreSite(site));
+  for (const c of a.concepts) { assert.ok(a.ladder(c.id).length, c.id); a.ladderByLevel(c.id, true); a.filmsFor(c.id); }
+  for (const slug of site.lessons.keys()) a.hops(slug);
+  const all = a.clientGraph(), index = a.clientIndex();
+  assert.equal(all.concepts.length, a.concepts.length); assert.equal(index.concepts.length, a.concepts.length);
+  assert.ok(!/undefined|null/.test(JSON.stringify(index.lessons)));
+});
 
 console.log('header and areas');
 breaks('wrong version', /version/, (g) => { g.version = 2; });
@@ -53,6 +75,15 @@ breaks('missing field', /missing blurb/, (g) => { delete C(g).blurb; });
 breaks('unknown subject', /subject/, (g) => { C(g).subject = 'alchemy'; });
 breaks('unknown area', /unknown area/, (g) => { C(g).area = 'nowhere'; });
 breaks('two concepts with one name', /same name/, (g) => { g.concepts.diffusion.name = C(g).name; });
+check('two concepts with one name: a warning while the canonicalize stage is still to come, and the pair is listed', () => {
+  const g = clone(good); g.concepts.diffusion.name = C(g).name;
+  const v = validateGraph(g, site, { namesPending: true });
+  assert.ok(!v.errors.some((e) => /same name/.test(e)), v.errors.join('\n'));
+  assert.ok(v.warnings.some((w) => /same name/.test(w) && /canonicalize stage must merge the two or rename one/.test(w)));
+  assert.equal(v.sameName.length, 1);
+  assert.deepEqual([v.sameName[0].id, v.sameName[0].other].sort(), ['diffusion', ID].sort());
+  assert.deepEqual(validateGraph(good, site).sameName, []);
+});
 breaks('blurb too long', /blurb is \d+ words/, (g) => { C(g).blurb = Array(30).fill('water').join(' ') + '.'; });
 breaks('blurb of two sentences', /not one sentence/, (g) => { C(g).blurb = 'Water moves. It moves again.'; });
 breaks('dash in copy', /dash/, (g) => { C(g).blurb = 'Water moves across a membrane — toward the salt.'; });
@@ -153,6 +184,54 @@ check('bad copy is named', () => {
   assert.match(aliasProblem('how do you spell mitosis'), /spelled/);
   assert.match(idProblem('Nitrogen Cycle'), /kebab/);
   assert.ok(copyProblems('An amazing idea').includes('hype word'));
+});
+
+// The first fill (2026-11-20) lost these to the lesson-links wording rules, which are written for search
+// phrases. Each is plain scientific vocabulary and must pass; the advice and analogy frames must still fail.
+check('scientific vocabulary is not medical advice: dose-response, dosage compensation, a drug or neuregulin dose', () => {
+  assert.equal(nameProblem('Dose-response and receptor occupancy'), '');
+  assert.equal(nameProblem('Dosage compensation (X inactivation)'), '');
+  assert.equal(nameProblem('Drug binding'), '');
+  assert.equal(nameProblem('Myelin'), '');
+  assert.equal(aliasProblem('dose-response curve'), '');
+  assert.equal(aliasProblem('what is the dose-response relationship'), '');
+  assert.equal(aliasProblem('gene dosage'), '');
+  assert.equal(blurbProblem("A cell's response to a drug or hormone depends on its dose, and on more than how many receptors are filled."), '');
+  assert.equal(addsProblem('Occupancy is [L]/(Kd+[L]): 10% to 90% takes an 81-fold dose span.'), '');
+  assert.equal(addsProblem("Neuregulin dose sets the wrap in nerve; the brain's oligodendrocyte brings its own program."), '');
+  assert.equal(aliasProblem('how doctors treat cancer'), '');
+});
+check('real medical advice still fails, with or without the word "dose"', () => {
+  for (const s of ['should I take iron pills', 'how to treat my cold', 'how do i treat a burn', 'cure your headache', 'what dose of vitamin D for my child',
+    'what is a safe dose of caffeine', 'safe dosage for kids', 'how much melatonin should a child take', 'dose for my dog', 'is it safe to drink salt water', 'side effects of statins']) {
+    assert.ok(medicalAdvice(s), s);
+    assert.match(aliasProblem(s), /medical-advice/, s);
+  }
+});
+check('scientific vocabulary is not an analogy formula: parallel fibres, mirror drawing, analogous structures, contrast', () => {
+  assert.equal(nameProblem('Sensing temperature (hot, warm, cool, cold)'), '');
+  assert.equal(blurbProblem('Nerve endings in skin use temperature-sensitive channels and several parallel fibres to report how hot or cold something is.'), '');
+  assert.equal(nameProblem('Kinds of memory'), '');
+  assert.equal(addsProblem('H.M. improved at mirror drawing over three days with no memory of practising.'), '');
+  assert.equal(addsProblem('Resistances add in series and shrink in parallel.'), '');
+  assert.equal(addsProblem('Fibres run parallel to the surface of the cortex.'), '');
+  assert.equal(blurbProblem('Bird and bat wings are analogous structures that evolved apart.'), '');
+  assert.equal(addsProblem('V1 cells answer changes in contrast, not steady light.'), '');
+  assert.equal(blurbProblem('Some animals change body form completely as they grow up, like a mealworm becoming a beetle.'), '');
+});
+check('real analogy formulas still fail: "is like a", "think of it as", "works like a", mirrors, parallels, by contrast', () => {
+  for (const s of ['A membrane is like a wall with doors.', 'Think of it as a bucket with a hole.', 'Think of the cell as a factory.', 'The pump works like a revolving door.',
+    'Osmosis mirrors what a sponge does.', 'These cells mirror the gut lining.', 'Diffusion parallels osmosis in every way.', 'A close parallel to the kidney.',
+    'By contrast, plants store starch.', 'The same feedback logic as a thermostat.', 'It is analogous to a thermostat.']) {
+    assert.ok(analogyFormula(s), s);
+    assert.match(addsProblem(s), /analogy/, s);
+    assert.match(whyProblem(s), /analogy or contrast/, s);
+  }
+});
+check('the allowances are the graph\'s own: the lesson-links rules are as strict as before', () => {
+  assert.ok(MEDICAL.test('dose-response curve') && MEDICAL.test('dosage compensation'));
+  assert.ok(ANALOGY.test('several parallel fibres') && ANALOGY.test('mirror drawing'));
+  assert.equal(phraseProblem('dose-response curve', { title: 'T', headings: [] }), 'medical-advice query');
 });
 
 console.log('heading ids');
@@ -370,6 +449,28 @@ check('canonicalize: merge two ids into one, keep one, drop one; rungs, films an
   assert.deepEqual(r.graph.lessons[L3.slug].concepts, []);
   assert.ok(r.log.changed.some((x) => /test-idea-c dropped, so .* loses its core rung/.test(x.what)));
 });
+const twins = () => [prop(L1, [core('test-twin-a', L1, { new: newDef('twin') })]), prop(L2, [core('test-twin-b', L2, { new: { ...newDef('twin'), aliases: ['other question', 'other term'] } })])];
+check('two new ids with one name: a warning before the canonicalize stage has answered, an error in the final ingest', () => {
+  assert.equal(canonicalPending({ canonical: [] }), true);
+  assert.equal(canonicalPending({ canonical: [{ name: 'methods' }] }), false);
+  assert.equal(canonicalPending({ canonical: [{ name: 'methods' }] }, { canonical: false }), true);
+  const early = run({ proposals: twins() }, { stages: { canonical: false, near: false, verify: false }, namesPending: true });
+  assert.deepEqual(early.validation.errors, []);
+  assert.ok(early.validation.warnings.some((w) => /test-twin-b: same name as test-twin-a/.test(w)));
+  assert.deepEqual(early.validation.sameName, [{ id: 'test-twin-b', other: 'test-twin-a', name: 'Test idea twin' }]);
+  assert.ok(early.graph.concepts['test-twin-a'] && early.graph.concepts['test-twin-b'], 'both ids are kept for the canonicalize stage to judge');
+  const final = run({ proposals: twins() });
+  assert.ok(final.validation.errors.some((e) => /test-twin-b: same name as test-twin-a/.test(e)), 'a run that writes must refuse it');
+});
+check('two new ids with one name: the canonicalize stage settles it by a merge or by a new name', () => {
+  const merged = run({ proposals: twins(), canonical: [file('canonical', 'methods', { area: 'methods', concepts: [{ id: 'test-twin-a', merge: ['test-twin-a', 'test-twin-b'] }], drop: [] })] });
+  assert.deepEqual(merged.validation.errors, []); assert.deepEqual(merged.validation.sameName, []);
+  assert.equal(merged.graph.concepts['test-twin-a'].rungs.length, 2);
+  const renamed = run({ proposals: twins(), canonical: [file('canonical', 'methods', { area: 'methods', concepts: [{ id: 'test-twin-a', merge: ['test-twin-a'] }, { id: 'test-twin-b', merge: ['test-twin-b'], name: 'Test idea twin, the second kind' }], drop: [] })] });
+  assert.deepEqual(renamed.validation.errors, []); assert.ok(renamed.graph.concepts['test-twin-b']);
+  const ignored = run({ proposals: twins(), canonical: [file('canonical', 'methods', { area: 'methods', concepts: [{ id: 'test-twin-a', merge: ['test-twin-a'] }, { id: 'test-twin-b', merge: ['test-twin-b'] }], drop: [] })] });
+  assert.ok(ignored.validation.errors.some((e) => /same name/.test(e)), 'left unsettled, it is an error once canonical files exist');
+});
 check('canonicalize: merge into a new id needs a full definition; merge into a registry id keeps its fields', () => {
   const bad = run({ proposals: three(), canonical: [file('canonical', 'methods', { area: 'methods', concepts: [{ id: 'test-merged', merge: ['test-idea-a', 'test-idea-b'] }, { id: 'test-idea-c', merge: ['test-idea-c'] }], drop: [] })] });
   assert.ok(rejected(bad, /a new id needs/)); assert.ok(bad.graph.concepts['test-idea-a'] && bad.graph.concepts['test-idea-b']);
@@ -460,6 +561,33 @@ check('unreadable files are reported, not skipped silently', () => {
   assert.equal(r.log.rejected.length, 1);
 });
 
+check('review: corrections after the blind check add, move and rewrite rungs, make a concept and add a hop, each logged', () => {
+  const free = FREE[0];
+  const r = run({ review: [file('review', '01', { by: 'test',
+    concepts: [{ id: 'test-reviewed', new: newDef('reviewed') }, { id: 'osmosis', new: newDef('dup') }],
+    rungs: [
+      { id: 'test-reviewed', lesson: free.slug, role: 'core', anchor: [...free.h2][0], adds: 'A test note that names one case.', films: [free.filmList[0].key], why: 'missing' },
+      { id: 'osmosis', lesson: good.concepts.osmosis.rungs[0].lesson, adds: 'A rewritten note that names the cucumber.', why: 'sharper' },
+      { id: 'osmosis', lesson: free.slug, role: 'core', anchor: 'no-such-section', adds: 'A test note that names one case.' },
+      { id: 'osmosis', lesson: free.slug, role: 'core', adds: 'Covers osmosis in more detail.' },
+      { id: 'diffusion', lesson: 'no-such-lesson', role: 'drop' },
+    ],
+    near: { 'test-reviewed': [{ id: 'osmosis', why: 'A real case joins the two ideas.' }, { id: 'test-reviewed', why: 'Itself.' }] } })] });
+  assert.deepEqual(r.validation.errors, []);
+  assert.deepEqual(r.graph.lessons[free.slug].concepts, ['test-reviewed']);
+  assert.equal(r.graph.concepts.osmosis.rungs[0].adds, 'A rewritten note that names the cucumber.');
+  assert.equal(r.graph.concepts.osmosis.rungs[0].anchor, good.concepts.osmosis.rungs[0].anchor);
+  assert.deepEqual(r.graph.concepts['test-reviewed'].near.map((n) => n.id), ['osmosis']);
+  for (const re of [/already a concept/, /not the id of a ## section/, /vague note/, /not a live lesson/, /a hop to itself/]) assert.ok(rejected(r, re), String(re));
+  assert.ok(r.log.changed.filter((c) => c.stage === 'review').length >= 4);
+});
+check('plain English the lesson-links lists stop on passes here: "the next step", "where it is safe to act"', () => {
+  assert.equal(whyProblem('Once pollen lands, the sperm still has to reach the egg; fertilization is that next step.'), '');
+  assert.equal(whyProblem('Pepsin is turned on by the acid in the stomach, where it is safe to act.'), '');
+  assert.match(aliasProblem('is it safe to eat mouldy bread'), /medical-advice/);
+  assert.match(aliasProblem('safe to take with food'), /medical-advice/);
+});
+
 console.log('digests and prompts');
 const digests = buildDigests(site, ['diffusion-and-osmosis', 'thirsty-celery', 'action-potential']);
 const registry = registryOf(good, site);
@@ -485,6 +613,10 @@ check('every prompt is self-contained: the rules, the registry, the answer shape
   const c = canonicalizePrompt({ area: 'cells', proposed: [{ id: 'water-movement', defs: [{ name: 'Water movement', blurb: 'x', area: 'cells', aliases: ['a', 'b'], by: 'osmoregulation' }], rungs: [{ lesson: 'osmoregulation', title: 'T', stage: 'starting-college', rank: 3, role: 'core', adds: 'n', anchor: 'a' }] }], existing: [] }, registry);
   for (const s of ['water-movement', 'EVERY new id', '"merge"', 'KEEP APART', 'a wrong rung is worse than a missing one']) assert.ok(c.includes(s), s);
   assert.ok(canonicalizePrompt({ area: '_cross', proposed: [] }, registry).includes('ACROSS all areas'));
+  assert.ok(!c.includes('ONE NAME, TWO IDS'), 'no pair, no block');
+  const c2 = canonicalizePrompt({ area: 'ecosystems', proposed: [], existing: [] }, registry, { sameName: [{ id: 'predator-prey', other: 'predation', name: 'Predators and prey' }] });
+  for (const s of ['ONE NAME, TWO IDS', '"Predators and prey": predation and predator-prey', 'merge them under one id']) assert.ok(c2.includes(s), s);
+  assert.ok(c.includes('dose-response curve'), 'the alias rule says a term of science is fine');
   const n = nearPrompt('cells', registry.filter((x) => x.area === 'cells').map((x) => ({ ...x, near: [] })), registry, { hints: [{ a: 'osmosis', b: 'diffusion', note: 'h', by: 'x' }] });
   for (const s of ["from the reader's", 'antibiotic', 'CONCEPTS TO WRITE FOR', 'osmosis <-> diffusion']) assert.ok(n.includes(s), s);
   const a = assignPrompt(d, registry, { ladders: [{ id: 'osmosis', rungs: [{ lesson: 'x', stage: 'grade-7', adds: 'n' }] }] });

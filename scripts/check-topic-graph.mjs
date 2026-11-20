@@ -39,13 +39,22 @@ try { graph = JSON.parse(raw); } catch (e) { console.log(`FAIL  src/data/topic-g
 const site = await loadGraphSite();
 
 const dist = join(ROOT, 'dist', 'lessons');
-const haveDist = existsSync(dist);
+const haveDist = existsSync(dist) && !process.argv.includes('--no-dist');
 const builtCache = new Map();
+// Reading 414 built pages takes about a second on a healthy disk. On a stalled or networked volume one
+// page can take seconds, so the built-page reads share a time budget: once it is spent, the remaining
+// anchors are checked against ids worked out from source (the same rule, minus the cross-check), and
+// the summary says so. The check must never hang a build.
+const BUDGET_MS = Number(process.env.TOPIC_GRAPH_DIST_BUDGET_MS ?? 20000);
+let spent = 0, skipped = 0;
 const builtHeadings = (slug) => {
   if (!haveDist) return undefined;
   if (!builtCache.has(slug)) {
+    if (spent > BUDGET_MS) { skipped++; return undefined; }
+    const t = Date.now();
     const f = join(dist, slug, 'index.html');
     builtCache.set(slug, existsSync(f) ? new Set([...readFileSync(f, 'utf8').matchAll(/<h2[^>]*\bid="([^"]+)"/g)].map((m) => m[1])) : undefined);
+    spent += Date.now() - t;
   }
   return builtCache.get(slug);
 };
@@ -71,7 +80,7 @@ for (const w of warnings) console.log(`warn  ${w}`);
 for (const e of errors) console.log(`FAIL  ${e}`);
 if (!errors.length) {
   const d = describeGraph(graph, site);
-  console.log(`check-topic-graph: ${stats.concepts} concept(s), ${stats.core} core and ${stats.uses} uses rung(s), ${stats.films} film link(s), ${stats.near} sideways hop(s); ${d.lessonsCovered} of ${d.lessonsLive} live lessons have a record${notes.length ? ` (${notes.length} read with no idea filed)` : ''}; anchors checked against ${haveDist ? 'the built pages' : 'the lesson source (no dist/)'}.`);
+  console.log(`check-topic-graph: ${stats.concepts} concept(s), ${stats.core} core and ${stats.uses} uses rung(s), ${stats.films} film link(s), ${stats.near} sideways hop(s); ${d.lessonsCovered} of ${d.lessonsLive} live lessons have a record${notes.length ? ` (${notes.length} read with no idea filed)` : ''}; anchors checked against ${!haveDist ? 'the lesson source (no dist/)' : skipped ? `the built pages for ${builtCache.size} lesson(s) and the lesson source for the rest (reading dist/ was too slow: ${Math.round(spent / 1000)} s)` : 'the built pages'}.`);
 }
 console.log(`check-topic-graph: ${errors.length} failure(s), ${warnings.length} warning(s)`);
 process.exit(errors.length ? 1 : 0);

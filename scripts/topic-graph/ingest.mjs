@@ -7,6 +7,12 @@
  *   canonical/<area>.json    stage 2: one id per idea (canonicalizePrompt); canonical/_cross.json across areas
  *   near/<area>.json         stage 2b: sideways hops (nearPrompt)
  *   verify/<concept>.json    stage 4: the blind check (verifyPrompt)
+ *   review/<name>.json       last: corrections by whoever read the result (a person, or the reader who
+ *                            arbitrates). Applied after the verdicts, so it does not disturb them:
+ *                            { by, concepts: [{ id, new: { name, blurb, area, aliases } }],
+ *                              merge: [{ from, into, why }],
+ *                              rungs: [{ id, lesson, role: core | uses | drop, anchor, adds, films, why }],
+ *                              near: { <id>: [{ id, why }] }   (added to what the concept has) }
  * Every file and every item in it is checked against the lessons and the wording rules. A bad item
  * is rejected with its reason and the rest is kept; nothing is dropped silently. A rung the blind
  * check judged wrong is removed and logged, not argued with.
@@ -25,6 +31,10 @@
  *
  * Exit 0 when the graph was written (rejected items are in the report), 1 when the merged graph
  * would break a rule (nothing is written), 2 for a usage error. Calls no model.
+ *
+ * Two ids with one name are an error in any run that writes. In a --dry run before the canonicalize
+ * stage has answered (--no-canonical, or no canonical file yet) they are a warning, because giving
+ * each idea one id is that stage's job; its prompts list the pairs.
  */
 import { readFileSync, writeFileSync, existsSync, mkdirSync, readdirSync } from 'node:fs';
 import { join, isAbsolute } from 'node:path';
@@ -49,8 +59,8 @@ export function ticketOf(id, c) {
 
 /** Every answer file of a staging folder, parsed. Unreadable files are returned in `problems`. */
 export function readStaging(dir) {
-  const out = { proposals: [], canonical: [], near: [], verify: [], problems: [] };
-  for (const kind of ['proposals', 'canonical', 'near', 'verify']) {
+  const out = { proposals: [], canonical: [], near: [], verify: [], review: [], problems: [] };
+  for (const kind of ['proposals', 'canonical', 'near', 'verify', 'review']) {
     const d = join(dir, kind);
     if (!existsSync(d)) continue;
     for (const f of readdirSync(d).filter((x) => x.endsWith('.json')).sort()) {
@@ -103,11 +113,20 @@ export function decomposeGraph(graph, site) {
 // ------------------------------------------------------------------ the merge
 
 /**
+ * True while the canonicalize stage has not answered for this staging folder: it was switched off
+ * for this run, or no canonical file is there yet. Until then two new ids may carry one name (two
+ * readers named the same idea); a report-only run says so as a warning. A run that writes the
+ * graph never treats names as pending.
+ */
+export const canonicalPending = (staging, stages = {}) => stages.canonical === false || !(staging.canonical ?? []).length;
+
+/**
  * Merge stage answers into a base graph.
+ * `namesPending` turns "two ids with one name" from an error into a warning (see canonicalPending).
  * @param {{ base: any, site: any, staging: ReturnType<typeof readStaging>, maxUses?: number, stages?: { canonical?: boolean, near?: boolean, verify?: boolean }, date?: string }} input
  * @returns {{ graph: any, validation: any, log: { rejected: any[], changed: any[], notes: string[] }, info: any }}
  */
-export function ingest({ base, site, staging, maxUses = LIMITS.usesPerProposal, stages = {}, date, noteLoose = true }) {
+export function ingest({ base, site, staging, maxUses = LIMITS.usesPerProposal, stages = {}, date, noteLoose = true, namesPending = false }) {
   const run = { canonical: true, near: true, verify: true, ...stages };
   const log = { rejected: [...(staging.problems ?? [])], changed: [], notes: [] };
   const reject = (stage, file, item, reason) => log.rejected.push({ stage, file, item, reason });
@@ -429,13 +448,83 @@ export function ingest({ base, site, staging, maxUses = LIMITS.usesPerProposal, 
     tidy('verify');
   }
 
+  // ---------------------------------------------------------------- 5b. review: corrections made after reading the result
+  if (run.review !== false) {
+    for (const f of [...(staging.review ?? [])].sort((a, b) => a.name.localeCompare(b.name))) {
+      const d = f.data;
+      const R = (item, reason) => reject('review', f.file, item, reason);
+      if (!isObj(d)) { R('(whole file)', 'not a JSON object'); continue; }
+      for (const e of Array.isArray(d.concepts) ? d.concepts : []) {
+        const n = e?.new;
+        const what = `new concept ${e?.id}`;
+        if (concepts[e?.id]) { R(what, 'already a concept'); continue; }
+        const why = idProblem(e?.id) || (!isObj(n) ? 'no definition' : nameProblem(n.name ?? '') || blurbProblem(n.blurb ?? '') || (!AREA_IDS.has(n.area) ? `unknown area "${n.area}"` : '')
+          || (!Array.isArray(n.aliases) || n.aliases.length < LIMITS.aliasMin || n.aliases.length > LIMITS.aliasMax ? `needs ${LIMITS.aliasMin} to ${LIMITS.aliasMax} aliases` : n.aliases.map((a) => aliasProblem(a)).find(Boolean) ?? ''));
+        if (why) { R(what, why); continue; }
+        concepts[e.id] = { name: n.name, blurb: n.blurb, area: n.area, subject: 'biology', aliases: [...n.aliases], rungs: [], films: [], near: [] };
+        change('review', `${e.id}: new concept "${n.name}" (${f.file})`);
+      }
+      for (const m of Array.isArray(d.merge) ? d.merge : []) {
+        const from = resolve(String(m?.from)), into = resolve(String(m?.into));
+        if (!concepts[from] || !concepts[into] || from === into) { R(`merge ${m?.from} into ${m?.into}`, 'both must be different concepts'); continue; }
+        for (const a of concepts[from].aliases) if (concepts[into].aliases.length < LIMITS.aliasMax && !concepts[into].aliases.some((x) => fold(x) === fold(a)) && fold(a) !== fold(concepts[into].name)) concepts[into].aliases.push(a);
+        mergeInto(from, into, `${f.file}: ${m.why ?? 'no reason given'}`);
+        log.changed[log.changed.length - 1].stage = 'review';
+        concepts[into].near = concepts[into].near.filter((n) => n.id !== into);
+      }
+      for (const e of Array.isArray(d.rungs) ? d.rungs : []) {
+        const id = resolve(String(e?.id));
+        const c = concepts[id];
+        const l = site.lessons.get(e?.lesson);
+        const what = `rung ${e?.id}/${e?.lesson}`;
+        if (!c) { R(what, 'not a concept'); continue; }
+        if (!l) { R(what, 'not a live lesson'); continue; }
+        const have = c.rungs.find((x) => x.lesson === l.slug);
+        const tail = `: ${e.why ?? 'no reason given'} (${f.file})`;
+        if (e.role === 'drop') {
+          if (!have) { R(what, 'no such rung'); continue; }
+          removeLesson(id, l.slug); change('review', `${id}/${l.slug}: ${have.role} rung removed${tail}`);
+        } else if (e.role === 'uses') {
+          removeLesson(id, l.slug); c.rungs.push({ lesson: l.slug, role: 'uses' });
+          change('review', `${id}/${l.slug}: ${have ? `${have.role} rung set to uses` : 'uses rung added'}${tail}`);
+        } else if (e.role === 'core' || (e.role == null && have?.role === 'core')) {
+          const adds = e.adds ?? have?.adds;
+          const ap = typeof adds !== 'string' ? 'core rung without a note' : addsProblem(adds);
+          if (ap) { R(what, `${ap}: "${adds}"`); continue; }
+          const anchor = e.anchor === undefined ? have?.anchor : e.anchor;
+          if (anchor != null && !l.h2.has(anchor)) { R(what, `"${anchor}" is not the id of a ## section of this lesson`); continue; }
+          const films = e.films === undefined ? c.films.filter((k) => filmLesson(k) === l.slug) : e.films;
+          const badFilm = (Array.isArray(films) ? films : []).find((k) => filmLesson(k) !== l.slug);
+          if (badFilm) { R(what, `"${badFilm}" is not a film of this lesson`); continue; }
+          removeLesson(id, l.slug);
+          c.rungs.push({ lesson: l.slug, role: 'core', ...(anchor ? { anchor } : {}), adds });
+          for (const k of films ?? []) if (!c.films.includes(k)) c.films.push(k);
+          change('review', `${id}/${l.slug}: ${have ? (have.role === 'core' ? `core rung rewritten (note was "${have.adds}", now "${adds}")` : 'uses rung raised to core') : `core rung added ("${adds}")`}${tail}`);
+        } else R(what, `role "${e.role}" (expected core, uses or drop)`);
+      }
+      for (const from of Object.keys(isObj(d.near) ? d.near : {}).sort()) {
+        const id = resolve(from);
+        const c = concepts[id];
+        if (!c) { R(`near ${from}`, 'not a concept'); continue; }
+        for (const e of Array.isArray(d.near[from]) ? d.near[from] : []) {
+          const to = resolve(String(e?.id));
+          const why = !concepts[to] ? 'the target is not a concept' : to === id ? 'a hop to itself' : c.near.some((x) => x.id === to) ? 'already a hop'
+            : typeof e.why !== 'string' ? 'no reason' : whyProblem(e.why) ? `${whyProblem(e.why)}: "${e.why}"` : c.near.length >= LIMITS.nearMax ? `the concept already has ${LIMITS.nearMax} hops` : '';
+          if (why) R(`${from} -> ${e?.id}`, why); else { c.near.push({ id: to, why: e.why }); change('review', `${id}: sideways hop to ${to} added (${f.file})`); }
+        }
+      }
+    }
+    tidy('review');
+  }
+
   // ---------------------------------------------------------------- 6. one fixed order, then the rules
   const lessons = {};
   for (const slug of records) if (site.lessons.has(slug) || base.lessons?.[slug]) lessons[slug] = { hash: hashes[slug], concepts: [] };
   let graph = normalizeGraph({ version: 1, updated: date ?? new Date().toISOString().slice(0, 10), about: ABOUT, areas: base.areas?.length ? base.areas : AREAS, concepts, lessons }, site, { hashFor: (slug) => site.lessons.get(slug)?.contentHash });
   const sameAsBase = JSON.stringify({ ...graph, updated: 0 }) === JSON.stringify({ ...normalizeGraph({ ...emptyGraph(), ...clone(base) }, site), about: ABOUT, updated: 0 });
   if (sameAsBase && base.updated && !date) graph.updated = base.updated;
-  const validation = validateGraph(graph, site);
+  // Two ids with one name: work for the canonicalize stage while `namesPending`, a broken record otherwise.
+  const validation = validateGraph(graph, site, { namesPending });
   return {
     graph, validation, log,
     info: { pending: afterProposals.pending, afterProposals: afterProposals.concepts, preVerify, relations: relations.map((r) => ({ ...r, a: resolve(r.a), b: resolve(r.b) })), mapped, sameAsBase },
@@ -449,7 +538,7 @@ export function ingestReport(result, site, { title = 'Hop graph ingest' } = {}) 
   L.push(reportText(describeGraph(graph, site), site));
   L.push('');
   L.push(`CHANGES APPLIED (${log.changed.length})`);
-  for (const stage of ['propose', 'canonicalize', 'near', 'merge', 'verify']) {
+  for (const stage of ['propose', 'canonicalize', 'near', 'merge', 'verify', 'review']) {
     const mine = log.changed.filter((c) => c.stage === stage);
     if (mine.length) { L.push(`  ${stage} (${mine.length})`); for (const c of mine) L.push(`    ${c.what}`); }
   }
@@ -498,9 +587,13 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
     base = JSON.parse(readFileSync(baseFile, 'utf8'));
     staging = readStaging(stagingDir);
   }
-  const result = ingest({ base, site, staging, maxUses, date: opt('--date'), noteLoose: !graphFile, stages: { canonical: !flag('--no-canonical'), near: !flag('--no-near'), verify: !flag('--no-verify') } });
+  const stages = { canonical: !flag('--no-canonical'), near: !flag('--no-near'), verify: !flag('--no-verify') };
+  // A report-only run of a fill that has not been canonicalized yet may show two ids with one name: that
+  // is the next stage's work, so it is a warning and the run exits 0. Any run that writes makes it an error.
+  const namesPending = !graphFile && flag('--dry') && canonicalPending(staging, stages);
+  const result = ingest({ base, site, staging, maxUses, date: opt('--date'), noteLoose: !graphFile, stages, namesPending });
   const n = (k) => (staging[k] ?? []).length;
-  const report = ingestReport(result, site, { title: `Hop graph ingest: ${n('proposals')} proposal(s), ${n('canonical')} canonical file(s), ${n('near')} near file(s), ${n('verify')} verdict file(s)` });
+  const report = ingestReport(result, site, { title: `Hop graph ingest: ${n('proposals')} proposal(s), ${n('canonical')} canonical file(s), ${n('near')} near file(s), ${n('verify')} verdict file(s), ${n('review')} review file(s)` });
   if (stagingDir) {
     mkdirSync(join(stagingDir, 'reports'), { recursive: true });
     writeFileSync(join(stagingDir, 'reports', 'ingest.txt'), report);

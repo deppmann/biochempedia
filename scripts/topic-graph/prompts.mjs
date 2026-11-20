@@ -120,7 +120,8 @@ term or other name ("Punnett squares", "apoptosis").
   curious reader to the wrong page, and no word check will catch it.
 - Not another concept's name, and not a phrase that fits another concept as well as this one.
 - Lower case unless it is a proper name or an abbreviation. No question mark. At most ${LIMITS.aliasWords} words.
-- Never a request for medical advice (no doses, symptoms, treatments, "should I"), never a brand or product.`;
+- Never a request for medical advice (no "what dose", "my symptoms", "how to treat", "should I"), never a
+  brand or product. A term of science is fine: "dose-response curve", "dosage compensation".`;
 
 const VOICE = `VOICE for every string a reader will see (names, blurbs, notes, aliases, reasons): plain, concrete and
 calm, the way a good teacher talks to one student. No hype ("amazing", "fascinating"). No dashes used as
@@ -411,6 +412,10 @@ ALREADY IN THE REGISTRY on this shelf, with the lessons now on each (these are t
 merge target; you may also fix one of their rungs under "rungs"; they need no entry of their own otherwise):
 ${(areaProposals.existing ?? []).map(block).join('\n\n') || '(none)'}`}
 
+${(opts.sameName ?? []).length ? `ONE NAME, TWO IDS. The graph cannot be written while two concepts carry the same name, and settling it is
+part of this job. For each pair below: if they are one idea, merge them under one id; if they are two ideas,
+give at least one of them a new "name" that says how it differs (an entry with its id, "merge" and "name").
+${opts.sameName.map((p) => `  "${p.name}": ${p.other} and ${p.id}`).join('\n')}\n` : ''}
 ${opts.digestDir ? `If you need to see a lesson to decide, its digest is at ${opts.digestDir}/<slug>.json.\n` : ''}
 YOUR ANSWER is one JSON object of exactly this shape${opts.answerFile ? `, written to ${opts.answerFile}` : ''}:
 ${CANONICAL_SHAPE}
