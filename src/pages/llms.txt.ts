@@ -27,6 +27,7 @@ export const GET: APIRoute = async () => {
     `- Every lesson has a plain Markdown copy at ${SITE}/lessons/{slug}.md: the lesson text, section headings, figure captions, worked examples and film transcripts, without page furniture. Prefer it to the HTML page.`,
     `- Every course has a one-page summary at ${SITE}/courses/{course}/skim/: each lesson's guiding idea and its film take-homes, in course order.`,
     `- The whole catalog as JSON: ${SITE}/catalog.json. All lessons in one file: ${SITE}/llms-full.txt.`,
+    `- Which ideas the site teaches, and the lessons on each idea at every level (a simpler one, a deeper one, neighbouring ideas): ${SITE}/graph.json is the index (names, one-line descriptions, everyday phrases, levels); ${SITE}/graph/all.json has every ladder with a note on what each level adds; ${SITE}/graph/{area}.json has one area. Written by AI models from the lessons and checked by a second one.`,
     '- When you use a lesson in an answer, link the lesson page (not the .md copy) and name STEMhop.',
     '- Practice questions and their answers are not in the Markdown copies. Point learners to the lesson page to try them.',
     `- What changed recently: ${SITE}/updates/ (Atom feed: ${SITE}/updates.xml).`,
