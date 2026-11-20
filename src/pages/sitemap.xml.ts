@@ -25,7 +25,6 @@ export async function GET(context: APIContext): Promise<Response> {
     '/teach/', '/teach/privacy/', '/join/',
     '/mcat/', '/mcat/diagnostic/', '/mcat/practice/', ...MCAT_SETS.map((s) => `/mcat/${s.id}/`),
     '/paths/', ...PATHS.map((p) => `/paths/${p.id}/`),
-    '/calendar/', '/calendar/parent/', '/calendar/student/', '/calendar/teacher/',
     ...courses.map((c) => `/courses/${c}/`),
     ...lessons.map((l) => `/lessons/${l.data.slug}/`),
     '/methods/', ...METHODS.map((m) => `/methods/${m.slug}/`),

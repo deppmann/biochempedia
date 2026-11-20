@@ -9,13 +9,13 @@ const courses = await learnerCourses();
 const choices = courses.map((c) => ({ s: c.s, t: c.t, level: c.level }));
 const levels = [...new Set(choices.map((c) => c.level))];
 ---
-<CalendarShell title="Keep up with a course" role="student" data={{ choices, lessonCourse: await lessonCourse() }}
+<CalendarShell title="Keep up with a course" role="student" data={{ choices, lessonCourse: await lessonCourse() }} known={[...choices.map((c) => c.s), 'mcat']}
   description="Pick a course and keep your next lesson in front of you, with its true length. No dates unless you ask for them, no account, and a lesson you don't get to simply waits.">
   <div class="cal-page">
     <header class="cal-top">
       <Fragment set:html={roleRow('student')} />
       <h1>What do you want to keep up with?</h1>
-      <p class="cal-lede">Pick a course and this page keeps your next lesson in front of you. Nothing has a date unless you ask for one, and a lesson you don’t get to simply waits.</p>
+      <p class="cal-lede">Pick a course and this page keeps your next lesson in front of you. No dates unless you ask for them, and a lesson you don’t get to simply waits.</p>
     </header>
     <div class="cal-pick">
       {levels.map((lv) => (
@@ -29,6 +29,6 @@ const levels = [...new Set(choices.map((c) => c.level))];
         <ul><li><a href="/calendar/student/mcat/">The MCAT path: biology and biochemistry</a></li></ul>
       </section>
     </div>
-    <p class="cal-foot">Free, with no account. The plan stays on this device.</p>
+    <p class="cal-foot">The plan stays on this device and goes nowhere else.</p>
   </div>
 </CalendarShell>

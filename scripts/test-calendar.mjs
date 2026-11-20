@@ -308,42 +308,57 @@ if (existsSync(path('../dist/calendar/student/mcat/index.html'))) {
 }
 
 console.log('Calendar: a test date');
-const mcatAll = (sit) => E.sittings(E.mcatItems(MCAT, { out: [], opt: [] }), sit);
-const brute = (all, days, today) => E.rhythmDays(days, today, all.length).at(-1);
+const mcatOpen = () => E.mcatItems(MCAT, { out: [], opt: [] });
+const brute = (items, size, days, today) => E.rhythmDays(days, today, E.sittings(items, size).length).at(-1);
 check('no date, no arithmetic; no days, no rhythm to count; a date that has passed is said plainly', () => {
-  assert.equal(E.reach(mcatAll(0), [1, 3], '2026-11-20', undefined).kind, 'none');
-  assert.equal(E.reach(mcatAll(0), [], '2026-11-20', '2027-05-14').kind, 'no-days');
-  assert.equal(E.reach(mcatAll(0), [1, 3], '2026-11-20', '2026-11-20').kind, 'passed');
-  assert.equal(E.reach(mcatAll(0), [1, 3], '2026-11-20', '2026-02-30').kind, 'none');
+  assert.equal(E.reach(mcatOpen(), 0, [1, 3], '2026-11-20', undefined).kind, 'none');
+  assert.equal(E.reach(mcatOpen(), 0, [], '2026-11-20', '2027-05-14').kind, 'no-days');
+  assert.equal(E.reach(mcatOpen(), 0, [1, 3], '2026-11-20', '2026-11-20').kind, 'passed');
+  assert.equal(E.reach(mcatOpen(), 0, [1, 3], '2026-11-20', '2026-02-30').kind, 'none');
 });
-check('the day the lessons end is the last sitting laid on the person\'s days, for every rhythm', () => {
+check('the day the lessons end is the last sitting laid on the person\'s days, for every rhythm and sitting size', () => {
   for (const days of [[1], [6], [1, 3, 5], [0, 2, 4, 6], [0, 1, 2, 3, 4, 5, 6]]) {
     for (const today of ['2026-11-20', '2026-11-21', '2026-11-22', '2027-02-27', '2026-03-06']) {
-      const all = mcatAll(0);
-      assert.equal(E.reach(all, days, today, '2030-01-01').end, brute(all, days, today), `${days} from ${today}`);
+      for (const size of [0, 90]) assert.equal(E.reach(mcatOpen(), size, days, today, '2030-01-01').end, brute(mcatOpen(), size, days, today), `${days} from ${today} at ${size}`);
     }
   }
 });
-check('a date the rhythm reaches leaves whole weeks to spare; one it only just reaches is called close', () => {
-  const all = mcatAll(0);                                     // 11 sittings, Mondays and Thursdays
-  const end = brute(all, [1, 4], '2026-11-20');
-  const fits = E.reach(all, [1, 4], '2026-11-20', E.addDays(end, 30));
-  assert.deepEqual([fits.kind, fits.spare, fits.end], ['fits', 4, end]);
-  assert.equal(E.reach(all, [1, 4], '2026-11-20', E.addDays(end, 13)).kind, 'close');
-  assert.equal(E.reach(all, [1, 4], '2026-11-20', end).kind, 'close');
+check('a date the rhythm reaches is said with no count of weeks; one it only just reaches is called close', () => {
+  const end = brute(mcatOpen(), 0, [1, 4], '2026-11-20');           // 11 sittings, Mondays and Thursdays
+  const fits = E.reach(mcatOpen(), 0, [1, 4], '2026-11-20', E.addDays(end, 30));
+  assert.deepEqual(fits, { kind: 'fits', end });
+  assert.equal(E.reach(mcatOpen(), 0, [1, 4], '2026-11-20', E.addDays(end, 13)).kind, 'close');
+  assert.equal(E.reach(mcatOpen(), 0, [1, 4], '2026-11-20', end).kind, 'close');
 });
-check('a date the rhythm cannot reach gives weeks past it and the hours a week that would, never a countdown', () => {
-  const all = mcatAll(0);
-  const end = brute(all, [1], '2026-11-20');                  // one a week: eleven weeks
-  const r = E.reach(all, [1], '2026-11-20', E.addDays(end, -28));
-  assert.equal(r.kind, 'beyond');
-  assert.equal(r.over, 4);
-  assert.ok(r.hoursNeeded > r.hoursNow && r.hoursNow >= 1);
-  const total = all.reduce((a, s) => a + s.min, 0);
-  const weeks = E.daysBetween('2026-11-20', E.addDays(end, -28)) / 7;
-  assert.ok(r.hoursNeeded * weeks * 60 >= total, 'that many hours a week really does bring it inside');
-  assert.equal(E.reach(all, [1], '2026-11-20', '2026-11-23').kind, 'far-beyond', 'three days away is not a pace anyone could keep');
-  for (const v of Object.values(r)) assert.ok(typeof v !== 'number' || v >= 0, 'no number here can go below zero');
+check('a date the rhythm cannot reach offers only the changes that would work, each tried on its own', () => {
+  const end = brute(mcatOpen(), 0, [1], '2026-11-20');              // one a week: eleven weeks
+  const near = E.reach(mcatOpen(), 0, [1], '2026-11-20', E.addDays(end, -21));
+  assert.equal(near.kind, 'beyond');
+  assert.ok(near.ways.hours && near.ways.hours.needed > near.ways.hours.now && near.ways.hours.needed <= E.MOST_HOURS);
+  // leaving out Cell Biology (three lessons and two sets) really does close three weeks
+  assert.equal(near.ways.course, true);
+  const without = E.mcatItems(MCAT, { out: ['cell-biology'], opt: [] });
+  assert.ok(brute(without, 0, [1], '2026-11-20') <= E.addDays(end, -21));
+  // films do not change how many sittings there are at one lesson a sitting, so they are not offered
+  assert.equal(near.ways.films, undefined);
+  // with sittings of an hour, dropping the films packs more lessons into each and is offered when it is enough
+  const hourEnd = brute(mcatOpen(), 60, [1], '2026-11-20');
+  const filmless = mcatOpen().map((i) => ({ ...i, filmSec: 0 }));
+  const filmEnd = brute(filmless, 60, [1], '2026-11-20');
+  assert.ok(filmEnd < hourEnd);
+  assert.equal(E.reach(mcatOpen(), 60, [1], '2026-11-20', filmEnd).ways.films, true);
+  // nothing in the answer counts weeks or goes below zero
+  assert.ok(!('over' in near) && !('spare' in near));
+});
+check('when no single change would do it, the page says the path does not fit and suggests nothing false', () => {
+  const far = E.reach(mcatOpen(), 0, [1], '2026-11-20', '2026-11-23');   // three days away
+  assert.deepEqual(Object.keys(far).sort(), ['end', 'kind']);
+  assert.equal(far.kind, 'far-beyond');
+  // a long path a few weeks out: more hours than a person could keep, one course is not enough
+  const long = { ...MCAT, steps: MCAT.steps.map((s) => ({ ...s, lessons: Array.from({ length: 40 }, (_, i) => lesson(`${s.s}-${i}`, i + 1, 60, 600)) })), sets: [] };
+  const r = E.reach(E.mcatItems(long, { out: [], opt: [] }), 0, [5], '2026-11-20', '2026-12-11');
+  assert.equal(r.kind, 'far-beyond');
+  assert.equal(r.ways, undefined);
 });
 
 console.log('Calendar: for my class');
@@ -394,6 +409,38 @@ check('weeks group by Monday, and a week names its days off; a first visit lays 
     assert.equal(d.per, 1, 'one lesson a meeting unless the teacher says otherwise');
     assert.ok(E.meetings(Array.from({ length: 30 }, (_, i) => lesson(`m${i}`, i + 1)), d).some((m) => m.date >= today));
   }
+});
+check('the sample starts with breaks a school would take: no class on Thanksgiving, none over the winter break', () => {
+  assert.deepEqual(E.sampleBreaks('2026-11-09'), [
+    { from: '2026-11-25', to: '2026-11-27', label: 'Thanksgiving break' },
+    { from: '2026-12-21', to: '2027-01-01', label: 'Winter break' },
+  ]);
+  assert.deepEqual(E.sampleBreaks('2027-11-08').map((b) => b.from), ['2027-11-24', '2027-12-21']);   // the fourth Thursday is the 25th
+  assert.deepEqual(E.sampleBreaks('2027-01-11'), [], 'a spring start has neither ahead of it');
+  const s = E.teacherSetup(undefined, '2026-11-20');
+  const ms = E.meetings(Array.from({ length: 33 }, (_, i) => lesson(`m${i}`, i + 1)), s);
+  for (const m of ms) assert.ok(!(m.date >= '2026-11-25' && m.date <= '2026-11-27') && !(m.date >= '2026-12-21' && m.date <= '2027-01-01'), m.date);
+  assert.ok(ms.at(-1).date > '2027-01-01', 'so the plan no longer ends on December 25');
+  assert.equal(E.summerOf('2026-11-09'), '2027-06-15');
+  assert.equal(E.summerOf('2027-02-01'), '2027-06-15');
+});
+check('a teacher\'s first change pins the first class and the breaks, so the plan is the same plan on Monday', () => {
+  const friday = '2026-11-20';
+  const monday = '2026-11-23';
+  // before any change, the sample follows today (a first look is never stale)
+  assert.notEqual(E.teacherSetup(undefined, friday).from, E.teacherSetup(undefined, monday).from);
+  // the first change (here: Lost a day) keeps what was on screen
+  const plan = E.pinTeacher(E.newTeacher(), friday);
+  plan.moved = [friday];
+  assert.equal(plan.from, '2026-11-09');
+  assert.deepEqual(plan.breaks, E.sampleBreaks('2026-11-09'));
+  const stored = E.cleanState(JSON.parse(JSON.stringify({ v: 1, teacher: plan }))).teacher;
+  assert.deepEqual(E.teacherSetup(stored, monday), E.teacherSetup(stored, friday), 'nothing moved over the weekend');
+  const lessons = Array.from({ length: 20 }, (_, i) => lesson(`m${i}`, i + 1));
+  assert.deepEqual(E.meetings(lessons, E.teacherSetup(stored, monday)), E.meetings(lessons, E.teacherSetup(stored, friday)));
+  // pinning again never overwrites what the teacher set
+  const own = E.pinTeacher({ moved: [], from: '2027-01-11', breaks: [] }, friday);
+  assert.deepEqual([own.from, own.breaks], ['2027-01-11', []]);
 });
 
 console.log('Calendar: the calendar file');
@@ -508,11 +555,42 @@ check('the test date, "Later" and "Not this week" live in the visit, and the pag
   assert.ok(!/sessionStorage|document\.cookie|fetch\(|XMLHttpRequest|sendBeacon/.test(src), 'no other store, and no network request');
   assert.ok(/model\.visit\.test = /.test(src) && /model\.visit\.later = true/.test(src) && /model\.visit\.skip = true/.test(src));
   assert.ok(!/state\.(student|parent)[^;\n]*\.(test|later|skip)\b/.test(src), 'none of them is put in the saved plan');
-  assert.match(src, /const KEY = 'stemhop:calendar:v1'/);
+  assert.match(src, /import \{ CAL_KEY as KEY, CAL_EVENT \} from '.\/store'/);
+  assert.match(readFileSync(path('../src/lib/calendar/store.ts'), 'utf8'), /export const CAL_KEY = 'stemhop:calendar:v1';/);
 });
 check('only a class plan keeps dates, and it is checked on the way in', () => {
   const t = E.cleanState({ teacher: { course: 'high-school-biology', from: '2026-11-16', meet: [1, 3, 5, 8], per: 0.5, breaks: [{ from: '2026-11-25', to: '2026-11-27', label: 'Thanks<b>giving' }, { from: '2026-12-01', to: '2026-11-01', label: 'backwards' }, { from: 'x', to: 'y' }], moved: ['2026-11-18', 'soon', '2026-11-18'] } }).teacher;
   assert.deepEqual(t, { moved: ['2026-11-18'], course: 'high-school-biology', from: '2026-11-16', meet: [1, 3, 5], per: 0.5, breaks: [{ from: '2026-11-25', to: '2026-11-27', label: 'Thanksbgiving' }] });
+});
+check('"Clear everything", the account page\'s "remove from this device" and "Forget" all clear the calendar and the saved role', () => {
+  const store = readFileSync(path('../src/lib/calendar/store.ts'), 'utf8');
+  assert.match(store, /export function clearCalendar\(\)[\s\S]*localStorage\.removeItem\(CAL_KEY\)/);
+  for (const f of ['../src/pages/progress/index.astro', '../src/lib/learner.ts']) {
+    const s = readFileSync(path(f), 'utf8');
+    assert.ok(/clearCalendar\(\);/.test(s) && /clearPrefs\(\);/.test(s), `${f} clears both`);
+  }
+  const client = readFileSync(path('../src/lib/calendar/client.ts'), 'utf8');
+  const forget = client.slice(client.indexOf("case 'forget'"), client.indexOf('/* parent */'));
+  assert.ok(/model\.state = \{ v: 1 \}/.test(forget) && /localStorage\.removeItem\(KEY\)/.test(forget) && /clearPrefs\(\)/.test(forget));
+});
+check('the calendar stays out of search and out of the sitemap until it has been reviewed', () => {
+  assert.match(readFileSync(path('../src/components/CalendarShell.astro'), 'utf8'), /noindex = true/);
+  assert.ok(!readFileSync(path('../src/pages/sitemap.xml.ts'), 'utf8').includes('/calendar'));
+  if (existsSync(path('../dist/calendar/index.html'))) {
+    for (const f of ['calendar/index.html', 'calendar/parent/index.html', 'calendar/student/index.html', 'calendar/student/mcat/index.html', 'calendar/teacher/index.html', 'calendar/email-preview/index.html']) {
+      assert.match(readFileSync(path('../dist/' + f), 'utf8'), /<meta name="robots" content="noindex"/, f);
+    }
+    assert.ok(!readFileSync(path('../dist/sitemap.xml'), 'utf8').includes('/calendar'));
+  }
+});
+check('a typed date is taken once, on Enter or on leaving the field; the lists that lead to another page wait for their button', () => {
+  const client = readFileSync(path('../src/lib/calendar/client.ts'), 'utf8');
+  assert.match(client, /if \(typing !== t\.name\) commitDate\(t\);/);
+  assert.ok(!/commitDate[\s\S]{0,900}render\(/.test(client.slice(client.indexOf('function commitDate'), client.indexOf("root.addEventListener('keydown'"))), 'a date is taken without redrawing the field it was typed in');
+  assert.match(client, /addEventListener\('focusout'/);
+  assert.ok(!/case 'splan'|case 'tcourse'/.test(client), 'no navigation on change');
+  assert.ok(/case 'go-plan'/.test(client) && /case 'go-course'/.test(client));
+  assert.match(client, /addEventListener\('pageshow'/);
 });
 check('the email switch is off, and nothing in the calendar sends anything', () => {
   assert.match(readFileSync(path('../src/lib/calendar/flags.ts'), 'utf8'), /export const EMAIL_OPT_IN = false;/);

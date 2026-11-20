@@ -441,38 +441,48 @@ export interface Reach {
   kind: 'none' | 'no-days' | 'passed' | 'fits' | 'close' | 'beyond' | 'far-beyond';
   /** The day the last sitting lands on at this rhythm. */
   end?: Iso;
-  /** Whole weeks between that day and the test, when it fits. */
-  spare?: number;
-  /** Whole weeks the lessons run past the test. */
-  over?: number;
-  hoursNow?: number;
-  hoursNeeded?: number;
+  /** Each change that would, on its own, bring the lessons inside the date. Only ones that work. */
+  ways?: { hours?: { now: number; needed: number }; course?: boolean; films?: boolean };
 }
 
-/** Does this rhythm reach a test date? Arithmetic only: the sittings laid on the person's days
- *  from today. It never says "ready", and it is worked out only when a date is given. */
-export function reach(all: Sitting[], days: number[], today: Iso, test: Iso | undefined, skipToday = false): Reach {
+/** The most hours a week the page will ever suggest. Past this it says the path does not fit. */
+export const MOST_HOURS = 15;
+
+/** The day the n-th sitting (from 0) lands on, laid on the person's days from `first`. */
+function landing(days: number[], first: Iso, n: number): Iso {
+  const lead = rhythmDays(days, first, days.length);
+  return addDays(lead[n % days.length], Math.floor(n / days.length) * 7);
+}
+
+/** Does this rhythm reach a test date? Arithmetic only: what is open, packed into sittings and
+ *  laid on the person's days from today. It never says "ready", it counts nothing down, and it
+ *  is worked out only when a date is given. When the rhythm falls short it names only the
+ *  changes that would truly bring the lessons inside the date, each tried on its own. */
+export function reach(open: Item[], size: number, days: number[], today: Iso, test: Iso | undefined, skipToday = false): Reach {
   if (!test || !isIso(test)) return { kind: 'none' };
   if (test <= today) return { kind: 'passed' };
   const d = cleanDays(days);
   if (!d.length) return { kind: 'no-days' };
-  if (!all.length) return { kind: 'fits', end: today, spare: Math.floor(daysBetween(today, test) / 7) };
+  const all = sittings(open, size);
+  if (!all.length) return { kind: 'fits', end: today };
   const first = skipToday ? addDays(today, 1) : today;
-  // The n-th study day from `first`, without walking every day.
-  const lead = rhythmDays(d, first, d.length);
-  const n = all.length - 1;
-  const end = addDays(lead[n % d.length], Math.floor(n / d.length) * 7);
-  if (end <= test) {
-    const spare = Math.floor(daysBetween(end, test) / 7);
-    return { kind: spare >= 2 ? 'fits' : 'close', end, spare };
-  }
+  const endOf = (items: Item[]) => { const n = sittings(items, size).length; return n ? landing(d, first, n - 1) : today; };
+  const end = landing(d, first, all.length - 1);
+  if (end <= test) return { kind: daysBetween(end, test) >= 14 ? 'fits' : 'close', end };
+
+  const ways: NonNullable<Reach['ways']> = {};
   const total = all.reduce((a, s) => a + s.min, 0);
-  const hoursNow = Math.max(1, Math.round((total / all.length) * d.length / 60));
-  const weeks = daysBetween(today, test) / 7;
-  const hoursNeeded = Math.ceil(total / 60 / weeks);
-  const over = Math.max(1, Math.ceil(daysBetween(test, end) / 7));
-  if (weeks < 1 || hoursNeeded > 40) return { kind: 'far-beyond', end, over };
-  return { kind: 'beyond', end, over, hoursNow, hoursNeeded: Math.max(hoursNeeded, hoursNow + 1) };
+  const now = Math.max(1, Math.round((total / all.length) * d.length / 60));
+  const weeksLeft = daysBetween(today, test) / 7;
+  const needed = Math.max(now + 1, Math.ceil(total / 60 / weeksLeft));
+  // A rate per week means nothing with under a week to go.
+  if (weeksLeft >= 1 && needed <= MOST_HOURS) ways.hours = { now, needed };
+  // Leaving out one course: true if dropping any single course still in the plan is enough.
+  const groups = [...new Set(open.filter((i) => i.kind === 'lesson').map((i) => i.group))];
+  if (groups.length > 1 && groups.some((g) => endOf(open.filter((i) => i.group !== g)) <= test)) ways.course = true;
+  // Reading without the films.
+  if (open.some((i) => i.filmSec > 0 && !i.school) && endOf(open.map((i) => ({ ...i, filmSec: 0 }))) <= test) ways.films = true;
+  return Object.keys(ways).length ? { kind: 'beyond', end, ways } : { kind: 'far-beyond', end };
 }
 
 /* ---------- this visit only: "Later", "Not this week", and one step of undo ---------- */
@@ -493,17 +503,47 @@ export function step(model: Model, change: (m: Model) => Model): Step {
 export const inBreak = (d: Iso, breaks: Break[]) => breaks.find((b) => d >= b.from && d <= b.to);
 
 export interface TeacherSetup { from: Iso; meet: number[]; per: number; breaks: Break[]; moved: Iso[] }
-/** The sample's starting setup, worked out from today so it never goes stale. */
+
+/** Two breaks most United States schools take, for the sample to start from: Thanksgiving
+ *  (the Wednesday to the Friday around the fourth Thursday of November) and December 21 to
+ *  January 1. Only those that fall in the months after the first class. A teacher replaces them. */
+export function sampleBreaks(from: Iso): Break[] {
+  const y = Number(from.slice(0, 4));
+  const until = addDays(from, 200);
+  const out: Break[] = [];
+  for (const year of [y - 1, y, y + 1]) {
+    const nov1 = `${year}-11-01`;
+    const thu = addDays(nov1, ((4 - dow(nov1) + 7) % 7) + 21);
+    out.push({ from: addDays(thu, -1), to: addDays(thu, 1), label: 'Thanksgiving break' });
+    out.push({ from: `${year}-12-21`, to: `${year + 1}-01-01`, label: 'Winter break' });
+  }
+  return out.filter((b) => b.to >= from && b.from <= until);
+}
+
+/** The sample's starting setup. Until the teacher changes anything it is worked out from today,
+ *  so a first look is never stale; the first change pins it (see pinTeacher). */
 export function teacherSetup(plan: TeacherPlan | undefined, today: Iso): TeacherSetup {
-  const mon = mondayOf(today);
+  const from = plan?.from ?? addDays(mondayOf(today), -7);
   return {
-    from: plan?.from ?? addDays(mon, -7),
+    from,
     meet: plan?.meet?.length ? plan.meet : [1, 2, 3, 4, 5],
     per: plan?.per ?? 1,
-    breaks: plan?.breaks ?? [{ from: addDays(mon, 11), to: addDays(mon, 11), label: 'Teacher workday (a sample day off)' }],
+    breaks: plan?.breaks ?? sampleBreaks(from),
     moved: plan?.moved ?? [],
   };
 }
+
+/** Before a teacher's first change is saved, keep what is on screen: the first class and the
+ *  breaks. Without this the sample would slide a week later every Monday. */
+export function pinTeacher(plan: TeacherPlan, today: Iso): TeacherPlan {
+  const s = teacherSetup(plan, today);
+  plan.from ??= s.from;
+  plan.breaks ??= s.breaks;
+  return plan;
+}
+
+/** The last day of the school year a plan starting on `from` belongs to: June 15. */
+export const summerOf = (from: Iso) => `${Number(from.slice(0, 4)) + (Number(from.slice(5, 7)) >= 7 ? 1 : 0)}-06-15`;
 
 export interface Meeting {
   date: Iso;

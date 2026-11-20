@@ -6,25 +6,23 @@
    After every action: one sentence is said (a polite live region, and the same
    words on the page), and focus moves to the control that undoes it.
 
-   Storage: `stemhop:calendar:v1` (this page's own), the role in the shared
-   `stemhop:prefs:v1` (written only when a role link is pressed), and the site's
-   existing progress record, read for done lessons and written only through
-   progress.ts setDone(). Every read and write is wrapped: with storage blocked
-   the page works for this visit and says so.
+   Storage: `stemhop:calendar:v1` (this page's own, see store.ts), the role in
+   the shared `stemhop:prefs:v1` (written only when a role link is pressed), and
+   the site's existing progress record, read for done lessons and written only
+   through progress.ts setDone(). Every read and write is wrapped: with storage
+   blocked the page works for this visit and says so.
    ============================================================================ */
-import { readPrefs, writePrefs, type Role as PrefRole } from '../prefs';
-import { load as loadProgress, setDone, CHANGE_EVENT } from '../progress';
+import { readPrefs, writePrefs, clearPrefs, type Role as PrefRole } from '../prefs';
+import { load as loadProgress, setDone, CHANGE_EVENT, STORAGE_KEY as PROGRESS_KEY } from '../progress';
 import {
   cap, num, type Activity, type CalState, type CourseData, type Iso, type McatData, type Model,
   cleanState, courseItems, isIso, longDate, mcatItems, newParent, newStudent, newTeacher, onDays, parentDays,
-  parentDid, parentPick, parentQueue, parentUndid, parentView, rhythmIcs, studentView, teacherSetup, todayIso, weekday, daysBetween,
+  parentDid, parentPick, parentQueue, parentUndid, parentView, pinTeacher, rhythmIcs, studentView, teacherSetup, todayIso, weekday, daysBetween,
 } from './engine';
-import { renderParent, renderStudent, renderTeacher, type Role, type Said, type Ui } from './render';
+import { end, renderParent, renderStudent, renderTeacher, type Role, type Said, type Ui } from './render';
 import { EMAIL_OPT_IN } from './flags';
+import { CAL_KEY as KEY, CAL_EVENT } from './store';
 
-const KEY = 'stemhop:calendar:v1';
-/** A title, closed as a sentence: no second full stop after a title that ends in one, or in a question mark. */
-const end = (t: string) => (/[.?!]$/.test(t) ? t : `${t}.`);
 const PREF_OF: Record<Role, PrefRole> = { parent: 'parent', student: 'student', teacher: 'teacher' };
 
 interface PageData {
@@ -65,7 +63,8 @@ function start(root: HTMLElement) {
   const q = new URLSearchParams(location.search);
   const state0 = readState();
 
-  /* The three doors: go straight to the role this device already chose. */
+  /* The three doors: go straight to the role this device already chose. (A small script in the
+     page's frame does this first, before this file has loaded; this is the same rule again.) */
   if (role === 'door') {
     const r = readPrefs().role;
     if (r && !q.has('choose')) { location.replace(`/calendar/${r}/`); return; }
@@ -91,8 +90,10 @@ function start(root: HTMLElement) {
     if (c && c !== data.course?.s && (data.choices ?? []).some((x) => x.s === c)) { location.replace(`/calendar/teacher/${c}/`); return; }
   }
 
-  let today: Iso = isIso(q.get('today')) ? q.get('today')! : todayIso();
-  const pinned = isIso(q.get('today'));
+  /* ?today=YYYY-MM-DD pins the date, for checking the page while it is being built. Never on the live site. */
+  const local = import.meta.env.DEV || /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
+  const pinned = local && isIso(q.get('today'));
+  let today: Iso = pinned ? q.get('today')! : todayIso();
   let model: Model = { state: state0, visit: {} };
   const kept = canKeep();
   const hex = document.getElementById('cal-hex')?.innerHTML ?? '';
@@ -100,11 +101,14 @@ function start(root: HTMLElement) {
   const reduced = () => { try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch { return true; } };
 
   let said: Said | undefined;
+  let err: Ui['err'];
   let undoFn: (() => void) | undefined;
   let undoFocus: string | undefined;
   /** Things marked done on this page during this visit (so the page works with storage blocked). */
   const doneHere = new Map<string, string>();
   const undoneHere = new Set<string>();
+  /** Lessons whose done mark was taken off and put back here: their fresh timestamp is not "done today". */
+  const remarked = new Set<string>();
 
   const planKey = data.mcat ? 'mcat' : data.course?.s ?? '';
   const planItems = () => (data.mcat ? mcatItems(data.mcat, model.state.student ?? newStudent()) : data.course ? courseItems(data.course) : []);
@@ -112,13 +116,13 @@ function start(root: HTMLElement) {
   function progress(): { done: Set<string>; today: string[] } {
     const done = new Set<string>(model.state.student?.marks ?? []);
     const todayTitles: string[] = [];
-    let lessons: Record<string, { d?: number; u?: number }> = {};
-    try { lessons = loadProgress().lessons; } catch { /* storage blocked */ }
+    let lessons: Record<string, { d?: number; u?: number } | null> = {};
+    try { lessons = loadProgress().lessons ?? {}; } catch { /* storage blocked */ }
     const titles = new Map(planItems().map((i) => [i.key, i.t]));
     for (const [slug, r] of Object.entries(lessons)) {
-      if (!r.d || (r.u && r.u > r.d) || undoneHere.has(slug)) continue;
+      if (!r || typeof r !== 'object' || !r.d || (r.u && r.u > r.d) || undoneHere.has(slug)) continue;
       done.add(slug);
-      if (titles.has(slug) && todayIso(new Date(r.d)) === today && !pinned) todayTitles.push(titles.get(slug)!);
+      if (titles.has(slug) && !remarked.has(slug) && !pinned && todayIso(new Date(r.d)) === today) todayTitles.push(titles.get(slug)!);
     }
     for (const [k, t] of doneHere) { done.add(k); if (!todayTitles.includes(t)) todayTitles.push(t); }
     return { done, today: todayTitles };
@@ -129,7 +133,7 @@ function start(root: HTMLElement) {
   }
 
   function draw() {
-    const ui: Ui = { today, said, kept, email: EMAIL_OPT_IN, hex };
+    const ui: Ui = { today, said, kept, email: EMAIL_OPT_IN, hex, err };
     if (role === 'parent') return renderParent(data.activities ?? [], model.state.parent ?? newParent(), model.visit, ui);
     if (role === 'student') {
       const p = progress();
@@ -138,13 +142,27 @@ function start(root: HTMLElement) {
     return renderTeacher(data.course!, data.choices ?? [], model.state.teacher, ui);
   }
 
+  /** Where focus is now, as something that can be found again after the page is redrawn. */
+  function focusNow(): string | undefined {
+    const a = document.activeElement as HTMLInputElement | null;
+    if (!a || !root.contains(a)) return undefined;
+    if (a.dataset.fid) return `[data-fid="${a.dataset.fid}"]`;
+    if (a.name) return a.type === 'checkbox' || a.type === 'radio' ? `input[name="${a.name}"][value="${a.value}"]` : `[name="${a.name}"]`;
+    if (a.dataset.have) return `input[data-have="${a.dataset.have}"]`;
+    if (a.tagName === 'SUMMARY') return `details[data-fold="${(a.parentElement as HTMLElement).dataset.fold}"] > summary`;
+    return undefined;
+  }
+
   let drawn = false;
   function render(focus?: string, moving = false) {
     const paint = () => {
-      const open = drawn ? [...root.querySelectorAll<HTMLDetailsElement>('details[open]')].map((d) => d.className) : [];
+      const open = drawn ? [...root.querySelectorAll<HTMLDetailsElement>('details[open][data-fold]')].map((d) => d.dataset.fold) : [];
+      // A field being filled in keeps what was typed when the page around it is redrawn.
+      const typed = drawn ? [...root.querySelectorAll<HTMLInputElement>('input[name="bfrom"], input[name="bto"], input[name="blabel"]')].map((i) => [i.name, i.value] as const) : [];
       drawn = true;
       root.innerHTML = draw();
-      for (const c of open) root.querySelectorAll<HTMLDetailsElement>('details').forEach((d) => { if (d.className === c) d.open = true; });
+      for (const k of open) { const d = root.querySelector<HTMLDetailsElement>(`details[data-fold="${k}"]`); if (d) d.open = true; }
+      for (const [n, v] of typed) { const i = root.querySelector<HTMLInputElement>(`input[name="${n}"]`); if (i && v) i.value = v; }
       root.classList.add('cal-js');
       if (focus) {
         const el = root.querySelector<HTMLElement>(focus) ?? root.querySelector<HTMLElement>('h1');
@@ -154,6 +172,8 @@ function start(root: HTMLElement) {
     const vt = (document as Document & { startViewTransition?: (cb: () => void) => unknown }).startViewTransition;
     if (moving && vt && !reduced()) vt.call(document, paint); else paint();
   }
+  /** Redraw because something changed elsewhere (a lesson page, another tab, midnight): keep the person's place. */
+  const refresh = () => render(focusNow());
 
   function say(text: string) {
     if (!status) return;
@@ -166,6 +186,7 @@ function start(root: HTMLElement) {
     const before: Model = JSON.parse(JSON.stringify(model));
     change();
     save();
+    err = undefined;
     undoFn = opts.noUndo ? undefined : opts.undo ?? (() => { model = before; save(); });
     undoFocus = opts.from;
     said = opts.noUndo ? { text: s.text } : s;
@@ -177,32 +198,112 @@ function start(root: HTMLElement) {
     if (!undoFn) return;
     undoFn();
     undoFn = undefined;
+    err = undefined;
     said = { text: 'Put back.' };
     render(undoFocus ? `[data-fid="${undoFocus}"]` : 'h1', true);
     say('Put back.');
   }
 
+  /** Something the person has to put right: said aloud, and shown beside the field. */
+  function complain(at: NonNullable<Ui['err']>['at'], text: string, focus: string) {
+    err = { at, text };
+    said = undefined;
+    render(focus);
+    say(text);
+  }
+
   const P = () => (model.state.parent ??= newParent());
   const S = () => { const s = (model.state.student ??= newStudent()); if (planKey) s.plan = planKey; return s; };
-  const T = () => { const t = (model.state.teacher ??= newTeacher()); if (data.course) t.course = data.course.s; return t; };
+  /* The first change a teacher makes pins the first class and the breaks that are on screen. */
+  const T = () => { const t = pinTeacher((model.state.teacher ??= newTeacher()), today); if (data.course) t.course = data.course.s; return t; };
   const checked = (name: string) => [...root.querySelectorAll<HTMLInputElement>(`input[name="${name}"]:checked`)].map((i) => Number(i.value));
   const field = (name: string) => (root.querySelector<HTMLInputElement>(`[name="${name}"]`)?.value ?? '').trim();
   const sameInput = (t: HTMLInputElement | HTMLSelectElement) => (t.type === 'checkbox' || t.type === 'radio' ? `input[name="${t.name}"][value="${t.value}"]` : `[name="${t.name}"]`);
+  const itemsNow = () => {
+    const st = model.state.student ?? newStudent();
+    return data.mcat ? mcatItems(data.mcat, st) : courseItems(data.course!, st.start[planKey]);
+  };
+  const sizing = () => { const st = model.state.student ?? newStudent(); return { days: st.days, sit: data.mcat ? st.sit : 0 }; };
 
   render();
   reveal();
 
+  /* ---------- the two dates a person may type ----------
+     A date field fires "change" on every keystroke that leaves a whole date. Redrawing then would
+     replace the field under the person's fingers. So while a date is being typed nothing is
+     redrawn; the date is taken once, when they press Enter or leave the field. A date chosen from
+     the picker (no typing) is taken at once. */
+  const DATES = ['tfrom', 'stest'];
+  let typing = '';
+  /** Redraw the parts of the page named, leaving everything else (the field in hand, the button
+   *  about to be pressed) exactly as it is. */
+  function patch(selectors: string[]) {
+    const fresh = document.createElement('div');
+    fresh.innerHTML = draw();
+    for (const sel of selectors) {
+      const now = root.querySelector(sel);
+      const next = fresh.querySelector(sel);
+      if (now && next) now.replaceWith(next);
+    }
+  }
+  function commitDate(t: HTMLInputElement) {
+    typing = '';
+    if (t.name === 'tfrom') {
+      const now = teacherSetup(model.state.teacher, today).from;
+      if (!isIso(t.value) || t.value === now) return;
+      const p = T();
+      p.from = t.value;
+      p.moved = [];
+      save();
+      err = undefined;
+      undoFn = undefined;
+      said = { text: `The first class is ${longDate(t.value)}.` };
+      patch(['.cal-set > summary', '.cal-note-slot', '.cal-cols', '.cal-print-head']);
+      say(said.text);
+    } else if (t.name === 'stest') {
+      const v = isIso(t.value) ? t.value : undefined;
+      if (v === model.visit.test) return;
+      model.visit.test = v;
+      patch(['#cal-reach']);
+      say(root.querySelector('#cal-reach')?.textContent ?? '');
+    }
+  }
+  root.addEventListener('keydown', (e) => {
+    const t = e.target as HTMLInputElement;
+    if (!DATES.includes(t.name)) return;
+    if (e.key === 'Enter') { e.preventDefault(); commitDate(t); return; }
+    if (e.key !== 'Tab') typing = t.name;
+  });
+  root.addEventListener('focusout', (e) => {
+    const t = e.target as HTMLInputElement;
+    if (DATES.includes(t.name) && typing === t.name) commitDate(t);
+  });
+  /** A date still being typed is taken before anything else on the page is acted on. */
+  const flush = (except?: string) => {
+    if (!typing || typing === except) return;
+    const i = root.querySelector<HTMLInputElement>(`input[name="${typing}"]`);
+    if (i) commitDate(i); else typing = '';
+  };
+
   /* ---------- changes ---------- */
   root.addEventListener('change', (e) => {
     const t = e.target as HTMLInputElement;
+    flush(t.name);
     if (t.dataset.have) {
       const p = P();
       if (t.checked) p.have[t.dataset.have] = 1; else delete p.have[t.dataset.have];
       save();
-      return; // the tick is the change; nothing else moves
+      // The tick is the change. An older sentence about something else comes down.
+      said = undefined;
+      root.querySelector('.cal-said')?.remove();
+      return;
     }
     const here = sameInput(t);
     switch (t.name) {
+      case 'tfrom':
+      case 'stest':
+        if (typing !== t.name) commitDate(t);
+        return;
       case 'pdays': {
         const d = checked('pdays');
         act(() => { P().days = d; model.visit.skip = false; }, { text: d.length ? `${d.length === 1 ? 'One activity a week' : `${cap(num(d.length))} a week`}, ${onDays(d)}.` : 'No set day. The next activity is here when you are.' }, { focus: here, noUndo: true });
@@ -211,13 +312,6 @@ function start(root: HTMLElement) {
       case 'plist':
         act(() => { const n = Number(t.value); const p = P(); if (n === 2 || n === 3) p.list = n; else delete p.list; }, { text: t.value === '1' ? 'The list is for this activity.' : `The list is for the next ${t.value === '2' ? 'two' : 'three'} activities.` }, { focus: here, noUndo: true });
         return;
-      case 'splan': {
-        const s = (model.state.student ??= newStudent());
-        s.plan = t.value;
-        save();
-        location.href = `/calendar/student/${t.value}/`;
-        return;
-      }
       case 'sdays': {
         const d = checked('sdays');
         act(() => { S().days = d; model.visit.later = false; }, { text: d.length ? `Dates added, counted from today, ${onDays(d)}.` : 'No set days. Nothing is dated.' }, { focus: here, noUndo: true });
@@ -239,47 +333,59 @@ function start(root: HTMLElement) {
         }, { text: t.checked ? `${step.t} is in the plan.` : `${step.t} is left out. The plan closed up.` }, { focus: here, noUndo: true });
         return;
       }
-      case 'stest':
-        model.visit.test = isIso(t.value) ? t.value : undefined;
-        said = undefined;
-        render(here);
-        say(root.querySelector('#cal-reach')?.textContent ?? '');
-        return;
-      case 'tcourse': {
-        const tp = (model.state.teacher ??= newTeacher());
-        tp.course = t.value;
-        tp.moved = [];
-        save();
-        location.href = t.value === root.dataset.home ? '/calendar/teacher/' : `/calendar/teacher/${t.value}/`;
-        return;
-      }
-      case 'tfrom':
-        if (isIso(t.value)) act(() => { const p = T(); p.from = t.value; p.moved = []; }, { text: `The first class is ${longDate(t.value)}.` }, { focus: here, noUndo: true });
-        return;
       case 'tmeet': {
         const d = checked('tmeet');
-        if (!d.length) { t.checked = true; say('A class needs at least one day.'); return; }
+        if (!d.length) { t.checked = true; complain('meet', 'A class needs at least one day.', here); return; }
         act(() => { T().meet = d; }, { text: `The class meets ${onDays(d)}.` }, { focus: here, noUndo: true });
         return;
       }
       case 'tper':
         act(() => { T().per = Number(t.value); }, { text: 'Pace changed. Every date after the first class moved with it.' }, { focus: here, noUndo: true });
         return;
+      /* The two lists that lead to another page (splan, tcourse) do nothing on change:
+         each has a button beside it, so arrowing or typing through the list never navigates. */
     }
   });
 
   root.addEventListener('click', (e) => {
     const b = (e.target as HTMLElement).closest<HTMLElement>('[data-act]');
     if (!b) return;
+    flush();
     switch (b.dataset.act) {
       case 'undo': undo(); return;
       case 'print': window.print(); return;
       case 'ics': makeFile(); return;
       case 'choose': openDialog('cal-choose'); return;
       case 'email': openDialog('cal-email'); return;
+      case 'go-plan': {
+        const v = field('splan');
+        if (!v) return;
+        if (v === planKey) { root.querySelector<HTMLDetailsElement>('details[data-fold="set"]')?.removeAttribute('open'); return; }
+        (model.state.student ??= newStudent()).plan = v;
+        save();
+        location.replace(`/calendar/student/${v}/`);
+        return;
+      }
+      case 'go-course': {
+        const v = field('tcourse');
+        if (!v) return;
+        if (v === data.course?.s) { root.querySelector<HTMLDetailsElement>('details[data-fold="set"]')?.removeAttribute('open'); return; }
+        const tp = T();
+        tp.course = v;
+        tp.moved = [];
+        save();
+        location.replace(`/calendar/teacher/${v}/`);
+        return;
+      }
       case 'forget': {
-        const r = b.dataset.role as Role;
-        act(() => { delete model.state[r]; model.visit = {}; }, { text: 'Forgotten on this device.', undo: 'Put it back', undoName: 'Put it back: keep the plan after all' }, { from: 'forget' });
+        // Everything the calendar keeps, and the saved role, so the next person starts clean.
+        let role0: PrefRole | undefined;
+        try { role0 = readPrefs().role; } catch { role0 = undefined; }
+        act(() => { model.state = { v: 1 }; model.visit = {}; }, { text: 'The calendar’s plans and your role are forgotten on this device. Lessons you marked done stay in your progress.', undo: 'Put it back', undoName: 'Put it back: keep the plans after all' }, { from: 'forget' });
+        const restore = undoFn;
+        try { window.localStorage.removeItem(KEY); } catch { /* blocked */ }
+        clearPrefs();
+        undoFn = () => { restore?.(); if (role0) writePrefs({ role: role0 }); };
         return;
       }
       /* parent */
@@ -298,6 +404,7 @@ function start(root: HTMLElement) {
         return;
       }
       case 'skip': {
+        if (model.visit.skip) return;
         const v = parentView(data.activities ?? [], P(), today, { skip: true });
         if (!v.next || !v.date || !v.freed) return;
         act(() => { model.visit.skip = true; }, { text: `Nothing ${daysBetween(today, v.freed) === 0 ? 'today' : `this ${weekday(v.freed)}`}. ${v.next.t} waits for ${longDate(v.date)}.`, undo: 'Put it back', undoName: `Put it back: ${v.next.t} on ${weekday(v.freed)}` }, { from: 'skip' });
@@ -309,11 +416,11 @@ function start(root: HTMLElement) {
         const view = studentView(itemsNow(), p.done, sizing(), today, { later: model.visit.later, spent: !!p.today.length });
         const s = view.top?.sitting;
         if (!s) return;
-        const keys = s.items.map((i) => i);
-        const name = keys.length > 1 ? `${keys.length} lessons` : keys[0].t;
+        const its = s.items;
+        const name = its.length > 1 ? `${its.length} lessons` : its[0].t;
         const apply = (on: boolean) => {
           const st = S();
-          for (const it of keys) {
+          for (const it of its) {
             if (it.kind === 'lesson') { try { setDone(it.key, on); } catch { /* blocked */ } if (on) undoneHere.delete(it.key); else undoneHere.add(it.key); }
             else st.marks = on ? [...new Set([...st.marks, it.key])] : st.marks.filter((k) => k !== it.key);
             if (on) doneHere.set(it.key, it.t); else doneHere.delete(it.key);
@@ -330,14 +437,17 @@ function start(root: HTMLElement) {
         if (!it) return;
         const apply = (on: boolean) => {
           const st = S();
-          if (it.kind === 'lesson') { try { setDone(k, on); } catch { /* blocked */ } if (on) undoneHere.delete(k); else undoneHere.add(k); }
-          else st.marks = on ? [...new Set([...st.marks, k])] : st.marks.filter((x) => x !== k);
+          if (it.kind === 'lesson') {
+            try { setDone(k, on); } catch { /* blocked */ }
+            if (on) { undoneHere.delete(k); remarked.add(k); } else undoneHere.add(k);
+          } else st.marks = on ? [...new Set([...st.marks, k])] : st.marks.filter((x) => x !== k);
           if (!on) doneHere.delete(k);
         };
         act(() => apply(false), { text: `${it.t} is back in the plan.`, undo: 'Undo', undoName: `Undo: ${it.t} stays done` }, { from: 'title', undo: () => { apply(true); save(); } });
         return;
       }
       case 'later': {
+        if (model.visit.later) return;
         const p = progress();
         const v = studentView(itemsNow(), p.done, sizing(), today, { later: true });
         const to = v.top?.date;
@@ -346,52 +456,50 @@ function start(root: HTMLElement) {
         model.visit.later = true;
         said = undefined; // the emptied card says it, and holds "Put it back"
         render('[data-fid="undo"]', true);
-        say(to ? `Moved to ${daysBetween(today, to) === 1 ? 'tomorrow' : longDate(to)}.` : 'Moved to the next day.');
+        say(to ? `Moved to ${daysBetween(today, to) === 1 ? 'tomorrow' : longDate(to)}.` : 'Moved to your next study day.');
         return;
       }
       /* teacher */
       case 'lost':
-        act(() => { const t = T(); t.moved = [...new Set([...t.moved, today])].sort(); }, { text: 'Moved back one class from today. Every later lesson moved with it.' }, { focus: '[data-fid="undo"]', undo: () => { const t = T(); t.moved = t.moved.filter((d) => d !== today); save(); } });
+        act(() => { const t = T(); t.moved = [...new Set([...t.moved, today])].sort(); }, { text: 'Moved back one class from today. Every later lesson moved with it.' }, { focus: '[data-fid="undo"]', noUndo: true });
         return;
-      case 'unlost':
-        act(() => { const t = T(); t.moved = t.moved.filter((d) => d !== today); }, { text: 'Put back. Every later lesson moved up one class.' }, { focus: '[data-fid="lost"]', noUndo: true });
+      case 'unlost': {
+        const d = b.dataset.d ?? today;
+        act(() => { const t = T(); t.moved = t.moved.filter((x) => x !== d); }, { text: 'Put back. Every later lesson moved up one class.' }, { focus: d === today ? '[data-fid="lost"]' : 'h1', noUndo: true });
         return;
+      }
       case 'addbreak': {
         const from = field('bfrom');
         const to = field('bto') || from;
-        if (!isIso(from) || !isIso(to) || to < from) {
-          say('Give the break a first day, and a last day that is not before it.');
-          root.querySelector<HTMLInputElement>('[name="bfrom"]')?.focus();
-          return;
-        }
+        if (!isIso(from)) { complain('break', 'Give the break a first day.', '[name="bfrom"]'); return; }
+        if (!isIso(to) || to < from) { complain('break', 'The last day of a break cannot be before its first day.', '[name="bto"]'); return; }
         const label = field('blabel').replace(/[<>]/g, '') || 'No class';
         const next = [...teacherSetup(model.state.teacher, today).breaks, { from, to, label }].sort((a, z) => a.from.localeCompare(z.from));
         const at = next.findIndex((x) => x.from === from && x.to === to && x.label === label);
+        for (const n of ['bfrom', 'bto', 'blabel']) { const i = root.querySelector<HTMLInputElement>(`[name="${n}"]`); if (i) i.value = ''; }
         act(() => { T().breaks = next; }, { text: 'Added. Lessons on those days moved to the next class.' }, { focus: `[data-fid="unbreak-${at}"]`, noUndo: true });
         return;
       }
       case 'unbreak':
-        act(() => { const t = T(); t.breaks = teacherSetup(t, today).breaks.filter((_, i) => i !== Number(b.dataset.i)); }, { text: 'Removed. The plan closed up.' }, { focus: '[name="bfrom"]', noUndo: true });
+        act(() => { const t = T(); t.breaks = (t.breaks ?? []).filter((_, i) => i !== Number(b.dataset.i)); }, { text: 'Removed. The plan closed up.' }, { focus: '[name="bfrom"]', noUndo: true });
         return;
     }
   });
-
-  const itemsNow = () => {
-    const st = model.state.student ?? newStudent();
-    return data.mcat ? mcatItems(data.mcat, st) : courseItems(data.course!, st.start[planKey]);
-  };
-  const sizing = () => { const st = model.state.student ?? newStudent(); return { days: st.days, sit: data.mcat ? st.sit : 0 }; };
 
   /* ---------- dialogs (native) ---------- */
   function openDialog(id: string) {
     const d = document.getElementById(id) as HTMLDialogElement | null;
     if (d && !d.open) d.showModal();
   }
+  /** A press on the dimmed page behind a dialog, not on the dialog's own padding. */
+  const outside = (d: HTMLDialogElement, e: MouseEvent) => {
+    const r = d.getBoundingClientRect();
+    return e.target === d && (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom);
+  };
   const choose = document.getElementById('cal-choose') as HTMLDialogElement | null;
   choose?.addEventListener('click', (e) => {
-    const t = e.target as HTMLElement;
-    if (t === choose) { choose.close(); return; }
-    const b = t.closest<HTMLElement>('[data-act]');
+    if (outside(choose, e)) { choose.close(); return; }
+    const b = (e.target as HTMLElement).closest<HTMLElement>('[data-act]');
     if (b?.dataset.act === 'close') choose.close();
     if (b?.dataset.act === 'pick' && b.dataset.s) {
       const acts = data.activities ?? [];
@@ -399,11 +507,11 @@ function start(root: HTMLElement) {
       const old = parentQueue(acts, P())[0];
       choose.close();
       if (!pick || pick.s === old?.s) { root.querySelector<HTMLElement>('[data-fid="choose"]')?.focus(); return; }
-      act(() => { model.state.parent = parentPick(acts, P(), pick.s); }, { text: `Next: ${end(pick.t)}${old ? ` Then: ${end(old.t)}` : ''}`, undo: 'Put it back', undoName: `Put it back: ${old?.t ?? 'the plan'} comes first again` }, { from: 'choose' });
+      act(() => { model.state.parent = parentPick(acts, P(), pick.s); model.visit.skip = false; }, { text: `Next: ${end(pick.t)}${old ? ` Then: ${end(old.t)}` : ''}`, undo: 'Put it back', undoName: `Put it back: ${old?.t ?? 'the plan'} comes first again` }, { from: 'choose' });
     }
   });
   const email = document.getElementById('cal-email') as HTMLDialogElement | null;
-  email?.addEventListener('click', (e) => { if ((e.target as HTMLElement).closest('[data-act="close"]') || e.target === email) email.close(); });
+  email?.addEventListener('click', (e) => { if ((e.target as HTMLElement).closest('[data-act="close"]') || outside(email, e)) email.close(); });
   email?.querySelector('form')?.addEventListener('submit', (e) => {
     e.preventDefault();
     const out = email.querySelector('.cal-email-said');
@@ -447,14 +555,19 @@ function start(root: HTMLElement) {
     say(said.text);
   }
 
-  /* Keep in step with the lesson pages, another tab, and midnight. */
-  window.addEventListener(CHANGE_EVENT, () => { if (role === 'student') render(); });
+  /* ---------- keep in step: the lesson pages, another tab, Back, "Clear everything", midnight ---------- */
+  const reread = () => { model = { state: readState(), visit: model.visit }; said = undefined; err = undefined; undoFn = undefined; refresh(); };
+  window.addEventListener(CHANGE_EVENT, () => { if (role === 'student') refresh(); });
+  window.addEventListener(CAL_EVENT, reread);
   window.addEventListener('storage', (e) => {
-    if (e.key === KEY || e.key === null) { model = { state: readState(), visit: model.visit }; said = undefined; undoFn = undefined; render(); }
+    if (e.key === KEY || e.key === null) reread();
+    else if (e.key === PROGRESS_KEY && role === 'student') refresh();
   });
+  // Back from a lesson: the browser may show this page from its cache, as it was before the lesson was done.
+  window.addEventListener('pageshow', (e) => { if (e.persisted) reread(); });
   document.addEventListener('visibilitychange', () => {
-    if (document.hidden || pinned) return;
-    const now = todayIso();
-    if (now !== today) { today = now; model.visit = { test: model.visit.test }; said = undefined; undoFn = undefined; render(); }
+    if (document.hidden) return;
+    const now = pinned ? today : todayIso();
+    if (now !== today) { today = now; model.visit = { test: model.visit.test }; reread(); }
   });
 }

@@ -180,9 +180,14 @@ export const googleStartUrl = (ret = '/account/', age13 = false) =>
 
 export const EXPORT_URL = '/api/learner/export';
 
-/** Remove this device's own copy of the notebook and progress. */
+import { clearCalendar } from './calendar/store';
+import { clearPrefs } from './prefs';
+
+/** Remove this device's own copy of the notebook and progress, the calendar's plans, and the saved role. */
 function clearDevice() {
   try { window.localStorage.removeItem(NOTEBOOK_KEY); window.localStorage.removeItem(PROGRESS_KEY); } catch { /* blocked */ }
+  clearCalendar();
+  clearPrefs();
   window.dispatchEvent(new CustomEvent(NOTEBOOK_EVENT));
   window.dispatchEvent(new CustomEvent(PROGRESS_EVENT));
 }
