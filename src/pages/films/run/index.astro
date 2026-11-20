@@ -1,0 +1,62 @@
+---
+/* /films/run/ (2026-11-20): a view of the library played in order. /films/ sends the visitor here
+   with the view in the query string (the same names: q, sort, level, course, kind) and, for a time
+   budget, t=10|20|30. One player; the film in it changes when the viewer asks for the next one.
+
+   Rules (the play-in-order page's, applied to any view): whole films, from the first one not yet
+   watched on this device, never more than a minute past the budget, stop at the first film that
+   does not fit. The run says how long it is and where it ends before it starts. Nothing plays until
+   the viewer presses play; the next film is offered, with no clock, and starts when asked.
+   (RUN_ADVANCES in src/lib/film-run.ts holds the other behaviour, switched off: the next film
+   starting by itself after a still pause that any touch cancels.) Nothing is stored here; the
+   watched record is the site's own (trackFilms in BaseLayout).
+
+   With scripts off this page cannot build a queue, so it says so and points at the pages that work
+   without scripts. */
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { filmLevelHref } from '../../../lib/film-catalog';
+import { STAGES } from '../../../data/stages';
+import '../../../styles/film-lib.css';
+---
+
+<BaseLayout title="Films in order — STEMhop" description="A set of films from the library, played in order, with a stated end." noindex>
+<div class="film-lib fl">
+  <article class="wrap fr-wrap" data-fr data-pagefind-ignore>
+    <p class="eyebrow"><a href="/films/" data-fr-back>Films</a> · in order</p>
+    <h1>Films in order</h1>
+    <p class="fr-sum" data-fr-sum role="status">Putting your films in order…</p>
+    <noscript>
+      <p class="fr-sum">This page needs scripts to line the films up. Without them, each level’s page lists its films, and each course has a play-in-order page:</p>
+      <ul>{STAGES.map((s) => <li><a href={filmLevelHref(s.key)}>{s.title}</a></li>)}</ul>
+    </noscript>
+
+    <div data-fr-stage hidden>
+      <div class="fr-screen" data-cards-anchor>
+        <video controls preload="none" playsinline width="1920" height="1080" data-listen-film="">
+          <track kind="captions" srclang="en" label="English" />
+          <span class="fr-novideo">Your browser cannot play this video.</span>
+        </video>
+      </div>
+      <h2 class="fr-now" data-fr-title tabindex="-1"></h2>
+      <p class="fr-meta"><span data-fr-meta></span> · <a href="/films/" data-fr-page>Film page, transcript and lesson</a></p>
+      <p class="fr-take" data-fr-take hidden></p>
+
+      <div class="fr-next" data-fr-next hidden>
+        <p data-fr-next-text></p>
+        <p class="fr-next-btns">
+          <button type="button" class="fl-btn primary" data-fr-play-next>Play next</button>
+          <button type="button" class="fl-btn" data-fr-stop>Stop here</button>
+          <a class="fl-btn" href="/films/" data-fr-more hidden>Back to the films</a>
+        </p>
+      </div>
+
+      <ol class="fr-queue" data-fr-queue aria-label="The films in this run"></ol>
+    </div>
+  </article>
+</div>
+
+<script>
+  import { run } from '../../../lib/film-run';
+  run();
+</script>
+</BaseLayout>
