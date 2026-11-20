@@ -1,0 +1,436 @@
+---
+/* The owner's totals page. A plain static page: anyone can load it, and it shows nothing until the
+   Worker secret is pasted in. The numbers come from GET /api/admin/stats (worker/admin.js), which
+   answers only to that secret, sent in an Authorization header and never in a web address. The
+   secret stays in this page's memory; "keep it for this tab" puts it in sessionStorage, which the
+   browser drops when the tab closes. It is never written anywhere that outlives the tab.
+
+   Not linked from anywhere, not in the sitemap, noindex. Adding ?demo=1 fills the page with
+   invented numbers (clearly labelled) so its layout can be checked without the secret; demo mode
+   never calls the server. */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import '../../styles/teach.css';
+---
+
+<BaseLayout title="Site numbers — STEMhop" description="Totals for the site's owner. Counts only: no names, no notes, no answers." noindex>
+  <article class="wrap tc adm" data-admin>
+    <p class="tc-eyebrow">For the site's owner</p>
+    <h1>How the site is used</h1>
+    <p class="tc-lede">
+      Totals only. No name, email, note or answer reaches this page: the server adds things up first and sends
+      the sums. Where a number describes a group small enough to point at someone, it shows as “under 5”.
+    </p>
+
+    <noscript><p class="tc-note">This page needs JavaScript.</p></noscript>
+    <p class="tc-note adm-demo" data-demo hidden>
+      <strong>Demo.</strong> Every number below is invented, so the page can be looked at without the secret.
+      Nothing here came from the site, and nothing was asked of the server.
+    </p>
+
+    <form class="tc-form adm-gate" data-gate hidden>
+      <label>The site's secret
+        <input type="password" name="secret" autocomplete="off" spellcheck="false" required />
+      </label>
+      <label class="tc-check"><input type="checkbox" name="keep" /> <span>Keep it for this tab, until I close it.</span></label>
+      <div class="tc-row">
+        <button class="tc-btn" type="submit">Show the numbers</button>
+        <button class="tc-btn ghost" type="button" data-forget hidden>Forget the secret</button>
+      </div>
+      <p class="tc-error" data-gate-err role="alert"></p>
+    </form>
+
+    <p class="tc-muted" data-loading role="status" hidden>Adding things up…</p>
+    <div data-out hidden></div>
+  </article>
+</BaseLayout>
+
+<style is:global>
+  /* Everything here is built in the browser, so the rules are global and anchored on .adm. */
+  .adm .adm-gate { margin-top: var(--ddp-space-6); }
+  .adm .adm-gate .tc-check input { width: 20px; height: 20px; flex: none; }
+  .adm .adm-demo { margin-top: var(--ddp-space-6); }
+  .adm section { margin-top: var(--ddp-space-12); }
+  .adm section > h2 { margin-top: 0; }
+  .adm h3 { font-size: var(--ddp-text-base); margin: var(--ddp-space-8) 0 var(--ddp-space-1); }
+  .adm .adm-what { color: var(--ddp-color-ink-soft); max-width: 68ch; margin: 0 0 var(--ddp-space-4); }
+  .adm .adm-sub { color: var(--ddp-color-muted); font-size: var(--ddp-text-sm); max-width: 68ch; margin: 0 0 var(--ddp-space-3); }
+  .adm .adm-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr)); gap: var(--ddp-space-3); margin: var(--ddp-space-4) 0; }
+  .adm .adm-tile { padding: var(--ddp-space-4); border: 1px solid var(--ddp-color-line); border-radius: var(--ddp-radius-sm, 8px); background: var(--ddp-color-surface); }
+  .adm .adm-num { display: block; font-family: var(--ddp-font-serif); font-size: 2.1rem; line-height: 1.05; color: var(--ddp-color-primary); font-variant-numeric: tabular-nums; }
+  .adm .adm-num.small { font-size: 1.35rem; color: var(--ddp-color-ink-soft); }
+  .adm .adm-label { display: block; margin-top: 0.35rem; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink); line-height: 1.35; }
+  .adm .adm-note { display: block; margin-top: 0.15rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); line-height: 1.35; }
+
+  /* A split: one row per group, a bar for its share, the count at the end. */
+  .adm .adm-split { list-style: none; margin: var(--ddp-space-2) 0 0; padding: 0; max-width: 46rem; }
+  .adm .adm-split li { display: grid; grid-template-columns: minmax(7rem, 15rem) minmax(3rem, 1fr) 5.5rem; gap: var(--ddp-space-3); align-items: center; padding: 0.4rem 0; border-top: 1px solid var(--ddp-color-line); font-size: var(--ddp-text-sm); }
+  .adm .adm-split li:first-child { border-top: 0; }
+  .adm .adm-track { height: 10px; border-radius: 5px; background: color-mix(in srgb, var(--ddp-color-line) 60%, transparent); overflow: hidden; }
+  .adm .adm-fill { display: block; height: 100%; border-radius: 5px; background: var(--ddp-color-accent); min-width: 2px; }
+  .adm .adm-count { text-align: right; font-variant-numeric: tabular-nums; color: var(--ddp-color-ink); }
+  .adm .adm-under { color: var(--ddp-color-muted); font-style: italic; }
+  .adm .adm-track.unknown { background: repeating-linear-gradient(135deg, var(--ddp-color-line) 0 4px, transparent 4px 8px); }
+  @media (max-width: 520px) {
+    .adm .adm-split li { grid-template-columns: 1fr auto; }
+    .adm .adm-split .adm-track { grid-column: 1 / -1; grid-row: 2; }
+  }
+
+  /* Small bar charts: one series, one colour, a table underneath for exact values. */
+  .adm figure.adm-chart { margin: var(--ddp-space-3) 0 0; max-width: 46rem; }
+  .adm .adm-chart svg { display: block; width: 100%; height: auto; overflow: visible; }
+  .adm .adm-chart .bar { fill: var(--ddp-color-accent); }
+  .adm .adm-chart .bar:hover { fill: var(--ddp-color-primary); }
+  .adm .adm-chart .base, .adm .adm-chart .grid { stroke: var(--ddp-color-line); stroke-width: 1; }
+  .adm .adm-chart text { fill: var(--ddp-color-muted); font-family: var(--ddp-font-mono); font-size: 11px; }
+  .adm .adm-chart figcaption { font-size: var(--ddp-text-sm); color: var(--ddp-color-ink); margin-bottom: var(--ddp-space-1); }
+  .adm .adm-chart figcaption small { color: var(--ddp-color-muted); font-size: var(--ddp-text-xs); }
+  .adm details.adm-more { margin-top: var(--ddp-space-2); font-size: var(--ddp-text-sm); max-width: 46rem; }
+  .adm details.adm-more > summary { cursor: pointer; color: var(--ddp-color-accent); min-height: 44px; display: inline-flex; align-items: center; }
+  .adm .tc-table td.num, .adm .tc-table th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .adm .tc-table td small { display: block; color: var(--ddp-color-muted); }
+  .adm .adm-foot { margin-top: var(--ddp-space-12); padding-top: var(--ddp-space-4); border-top: 1px solid var(--ddp-color-line); }
+</style>
+
+<script>
+  /* The reply's shape is set in worker/admin.js (buildStats). A cell that is null is a count of 1 to 4, hidden there. */
+  type Cell = number | null;
+  type Split = Record<string, Cell> | null;
+  type Week = { week: string; n: number };
+  interface Stats {
+    generated: string; smallCell: number; on: { role: boolean; films: boolean; catalog: boolean };
+    learners: null | { total: number; active7: Cell; active30: Cell; newByWeek: Week[] | null; role: Split; signIn: Split; withNotes: Split; withProgress: Split };
+    lessons: null | { opens: number; finishes: number; opened: { slug: string; opened: number; finished: Cell }[]; hidden: number };
+    teachers: null | { total: number; newByWeek: Week[] | null; verified: Split; withClass: Split; withActiveClass30: Cell };
+    classes: null | { total: number; active7: Cell; active30: Cell; newByWeek: Week[] | null; byLevel: Split; byCourse: Split; joinMode: Split; size: Split; withAssignments: Split; inGroup: Split; aiFeedbackOn: Split };
+    seats: null | { total: number; seen7: Cell; seen30: Cell; newByWeek: Week[] | null; status: Split };
+    classWork: { assignments: Cell; assigned: { slug: string; classes: number }[] | null; hidden: Cell; answers30: Split };
+    groups: { total: Cell; members: Cell };
+    films: null | { since: string | null; last7: Tot | null; last30: Tot | null; all: Tot | null; byDay: { day: string; started: number; watched: number }[]; byFilm: { film: string; started: number; watched: number; started30: number; watched30: number }[] };
+    router: null | { callsAll: Cell; byDay: { day: string; calls: number; errors: number; blocked: number }[] };
+    planner: null | { callsAll: Cell; savedPlans: Cell; classLists: Cell };
+    helpers: null | { callsAll: Cell };
+  }
+  type Tot = { started: number; watched: number };
+  interface Catalog { levels: [string, string][]; courses: Record<string, [string, string]>; lessons: Record<string, [string, string]>; films: Record<string, [string, string]> }
+
+  const KEEP = 'stemhop:admin:secret';   // sessionStorage only: gone when the tab closes
+  const $ = <T extends HTMLElement = HTMLElement>(s: string) => document.querySelector<T>(s)!;
+  const demo = new URLSearchParams(location.search).get('demo') === '1';
+
+  // ---- building blocks ------------------------------------------------------------------
+  type Child = Node | string | null | undefined | false;
+  function h(tag: string, attrs: Record<string, string> = {}, ...kids: Child[]): HTMLElement {
+    const el = document.createElement(tag);
+    for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
+    for (const k of kids) if (k) el.append(k);
+    return el;
+  }
+  const SVG = 'http://www.w3.org/2000/svg';
+  function s(tag: string, attrs: Record<string, string | number> = {}, text?: string): SVGElement {
+    const el = document.createElementNS(SVG, tag);
+    for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, String(v));
+    if (text !== undefined) el.textContent = text;
+    return el;
+  }
+  const num = (n: number) => n.toLocaleString();
+  /** A cell of a split or a list: null is a count of 1 to 4, hidden by the server. */
+  const show = (c: Cell) => (c === null ? 'under 5' : num(c));
+  const off = (what: string) => h('p', { class: 'adm-sub' }, what);
+
+  /** A whole-site total. These are never hidden for being small, so a missing one means the count could not be made. */
+  function tile(value: Cell | undefined | string, label: string, note = '', small = false): HTMLElement {
+    const missing = value === null || value === undefined;
+    return h('div', { class: 'adm-tile' },
+      h('span', { class: `adm-num${small || missing ? ' small' : ''}` }, typeof value === 'string' ? value : missing ? 'not available' : num(value)),
+      h('span', { class: 'adm-label' }, label),
+      note && h('span', { class: 'adm-note' }, note));
+  }
+  const tiles = (...t: (HTMLElement | false | null)[]) => h('div', { class: 'adm-tiles' }, ...t);
+
+  /** One row per group. Bars share one scale; a hidden cell has a hatched track and the words "under 5". */
+  function split(cells: Split, labels: Record<string, string>, order = Object.keys(labels)): HTMLElement {
+    if (!cells) return off('Not available yet.');
+    const keys = order.filter((k) => k in cells);
+    const max = Math.max(1, ...keys.map((k) => cells[k] ?? 0));
+    return h('ul', { class: 'adm-split' }, ...keys.map((k) => {
+      const v = cells[k];
+      const track = h('span', { class: `adm-track${v === null ? ' unknown' : ''}`, 'aria-hidden': 'true' });
+      if (v) track.append(h('span', { class: 'adm-fill', style: `width:${Math.max(1, (v / max) * 100)}%` }));
+      return h('li', {}, h('span', {}, labels[k] ?? k), track, h('span', { class: `adm-count${v === null ? ' adm-under' : ''}` }, show(v)));
+    }));
+  }
+
+  const shortDay = (iso: string) => new Date(`${iso}T00:00:00Z`).toLocaleDateString(undefined, { month: 'short', day: 'numeric', timeZone: 'UTC' });
+
+  /** A small single-series bar chart with its numbers in a table underneath. */
+  function bars(caption: string, unit: string, points: { label: string; value: number }[], firstCol: string): HTMLElement {
+    const W = 640, H = 150, L = 34, R = 6, T = 12, B = 22;
+    const max = Math.max(1, ...points.map((p) => p.value));
+    const top = max <= 4 ? 4 : Math.ceil(max / 4) * 4;   // a round ceiling, so the gridline labels are whole numbers
+    const step = (W - L - R) / points.length;
+    const bw = Math.max(2, Math.min(18, step - 2));
+    const y = (v: number) => T + (H - T - B) * (1 - v / top);
+    const total = points.reduce((a, p) => a + p.value, 0);
+    const svg = s('svg', { viewBox: `0 0 ${W} ${H}`, role: 'img', 'aria-label': `${caption}: ${num(total)} in all over ${points.length} ${unit}. The table below has each value.` });
+    for (const g of [top, top / 2]) {
+      svg.append(s('line', { class: 'grid', x1: L, x2: W - R, y1: y(g), y2: y(g) }), s('text', { x: L - 6, y: y(g) + 4, 'text-anchor': 'end' }, num(g)));
+    }
+    points.forEach((p, i) => {
+      if (!p.value) return;
+      const x = L + i * step + (step - bw) / 2;
+      const bar = s('rect', { class: 'bar', x, y: y(p.value), width: bw, height: Math.max(1, y(0) - y(p.value)), rx: Math.min(3, bw / 2) });
+      bar.append(s('title', {}, `${p.label}: ${num(p.value)}`));
+      svg.append(bar);
+    });
+    svg.append(s('line', { class: 'base', x1: L, x2: W - R, y1: y(0), y2: y(0) }));
+    const ticks = [...new Set([0, Math.floor((points.length - 1) / 2), points.length - 1])];
+    for (const i of ticks) {
+      svg.append(s('text', { x: L + i * step + step / 2, y: H - 6, 'text-anchor': i === 0 ? 'start' : i === points.length - 1 ? 'end' : 'middle' }, points[i].label));
+    }
+    const rows = points.filter((p) => p.value).reverse();
+    const table = h('details', { class: 'adm-more' }, h('summary', {}, 'See the numbers'),
+      rows.length
+        ? h('div', { class: 'tc-scroll' }, h('table', { class: 'tc-table' },
+          h('thead', {}, h('tr', {}, h('th', { scope: 'col' }, firstCol), h('th', { scope: 'col', class: 'num' }, 'Count'))),
+          h('tbody', {}, ...rows.map((p) => h('tr', {}, h('td', {}, p.label), h('td', { class: 'num' }, num(p.value)))))))
+        : h('p', { class: 'adm-sub' }, 'Nothing in this period.'));
+    return h('figure', { class: 'adm-chart' }, h('figcaption', {}, caption, ' ', h('small', {}, `(${num(total)} in all)`)), svg, table);
+  }
+  const weekly = (caption: string, w: Week[] | null) => (w ? bars(caption, 'weeks', w.map((x) => ({ label: shortDay(x.week), value: x.n })), 'Week starting') : off('Not available yet.'));
+
+  function table(head: [string, boolean][], rows: (string | HTMLElement)[][], limit = 15): HTMLElement {
+    const tr = (r: (string | HTMLElement)[]) => h('tr', {}, ...r.map((c, i) => h('td', head[i][1] ? { class: 'num' } : {}, c)));
+    const make = (rs: (string | HTMLElement)[][]) => h('div', { class: 'tc-scroll' }, h('table', { class: 'tc-table' },
+      h('thead', {}, h('tr', {}, ...head.map(([t, isNum]) => h('th', { scope: 'col', ...(isNum ? { class: 'num' } : {}) }, t)))),
+      h('tbody', {}, ...rs.map(tr))));
+    if (rows.length <= limit) return make(rows);
+    return h('div', {}, make(rows.slice(0, limit)), h('details', { class: 'adm-more' }, h('summary', {}, `All ${num(rows.length)}`), make(rows.slice(limit))));
+  }
+  const titled = (title: string, under: string) => h('span', {}, title, h('small', {}, under));
+  /** Share finished, shown only when enough films were started for a share to mean something. */
+  const share = (t: Tot) => (t.started >= 10 ? `${Math.round((Math.min(t.watched, t.started) / t.started) * 100)}%` : '–');
+
+  // ---- the page -------------------------------------------------------------------------
+  function render(d: Stats, cat: Catalog) {
+    const out = $('[data-out]');
+    out.replaceChildren();
+    const section = (title: string, what: string, ...kids: Child[]) => { const el = h('section', {}, h('h2', {}, title), h('p', { class: 'adm-what' }, what), ...kids); out.append(el); return el; };
+    const levelTitle = Object.fromEntries(cat.levels);
+    const courseTitle = (k: string) => cat.courses[k]?.[0] ?? (k === 'other' ? 'A course the site does not list' : k);
+    const lessonCell = (slug: string) => titled(cat.lessons[slug]?.[0] ?? slug, courseTitle(cat.lessons[slug]?.[1] ?? ''));
+
+    // Learner accounts
+    const L = d.learners;
+    if (L) {
+      section('Learner accounts',
+        'An account is optional and only keeps a reader’s notes and progress the same on their devices, so this is a small share of the people who read the site. Reading without an account is not here; page visits are in Plausible.',
+        tiles(tile(L.total, 'accounts', 'ever made, and not deleted'), tile(L.active7, 'active in the last 7 days', 'signed in or synced'), tile(L.active30, 'active in the last 30 days')),
+        weekly('New accounts each week', L.newByWeek),
+        h('h3', {}, 'Student, parent or teacher'),
+        h('p', { class: 'adm-sub' }, d.on.role
+          ? 'What account holders answered to the one optional question. “Did not say” covers people who skipped it and accounts made before it was asked. It is never set beside anything else on this page.'
+          : 'The question is not being asked yet. It starts once the database has its new column.'),
+        d.on.role && split(L.role, { student: 'A student', parent: 'A parent or guardian', teacher: 'A teacher or tutor', unset: 'Did not say' }),
+        h('h3', {}, 'How they sign in'),
+        split(L.signIn, { google: 'Google only', passkey: 'A passkey only', both: 'Both', neither: 'Neither yet' }),
+        h('h3', {}, 'What accounts hold'),
+        h('p', { class: 'adm-sub' }, 'How many accounts have synced at least one note or highlight, and how many at least one lesson. What the notes say is never read.'),
+        split(L.withNotes && L.withProgress && { notes: L.withNotes.yes, noNotes: L.withNotes.no, progress: L.withProgress.yes, noProgress: L.withProgress.no },
+          { notes: 'With a note or highlight', noNotes: 'With none', progress: 'With a lesson opened', noProgress: 'With none' }));
+    }
+
+    // Lessons among signed-in learners
+    if (d.lessons) {
+      const X = d.lessons;
+      section('Lessons, among signed-in learners',
+        'From the progress that accounts sync: how many account holders have opened each lesson, and how many marked it done. A lesson is listed once five have opened it. This says nothing about readers without an account, who are most readers.',
+        tiles(tile(X.opens, 'lessons opened', 'summed over accounts'), tile(X.finishes, 'marked done')),
+        X.opened.length
+          ? table([['Lesson', false], ['Opened by', true], ['Marked done by', true]], X.opened.map((r) => [lessonCell(r.slug), num(r.opened), show(r.finished)]))
+          : h('p', { class: 'adm-sub' }, 'No lesson has been opened by five account holders yet.'),
+        X.hidden ? h('p', { class: 'adm-sub' }, `${num(X.hidden)} more ${X.hidden === 1 ? 'lesson has' : 'lessons have'} been opened by fewer than five and ${X.hidden === 1 ? 'is' : 'are'} not listed.`) : null);
+    }
+
+    // Teachers, classes and seats
+    const T = d.teachers, C = d.classes, S = d.seats;
+    if (T && C && S) {
+      section('Teachers, classes and class seats',
+        'Three separate counts. One person can be in more than one of them, and in learner accounts too, and nothing links the rows, so they are never added together. A class seat is a nickname in one class, not a person: a student in two classes is two seats.',
+        tiles(tile(T.total, 'teacher accounts'), tile(C.total, 'classes'), tile(S.total, 'class seats', 'nickname only, no account')),
+        tiles(tile(T.withActiveClass30, 'teachers with a class used in the last 30 days'), tile(C.active7, 'classes used in the last 7 days'), tile(C.active30, 'classes used in the last 30 days'),
+          tile(S.seen7, 'seats seen in the last 7 days'), tile(S.seen30, 'seats seen in the last 30 days')),
+        weekly('New classes each week', C.newByWeek),
+        weekly('New class seats each week', S.newByWeek),
+        h('h3', {}, 'Classes by level'),
+        split(C.byLevel, { ...levelTitle, other: 'A course the site does not list' }, [...cat.levels.map((l) => l[0]), 'other']),
+        h('h3', {}, 'Classes by course'),
+        split(C.byCourse, Object.fromEntries(Object.keys(C.byCourse ?? {}).map((k) => [k, courseTitle(k)])), [...Object.keys(cat.courses), 'other']),
+        h('h3', {}, 'How students join'),
+        split(C.joinMode, { open: 'Open: class code and a nickname', approve: 'The teacher approves each one', roster: 'Roster: codes from the teacher', locked: 'Closed to new students' }),
+        h('h3', {}, 'Class size'),
+        split(C.size, { none: 'No students yet', s1to9: '1 to 9 students', s10to29: '10 to 29 students', s30up: '30 or more' }),
+        h('h3', {}, 'Teachers'),
+        split(T.verified && T.withClass && { verified: T.verified.yes, unverified: T.verified.no, withClass: T.withClass.yes, noClass: T.withClass.no },
+          { verified: 'Confirmed their email', unverified: 'Not confirmed', withClass: 'Have made a class', noClass: 'No class yet' }),
+        h('h3', {}, 'Classes that use the extras'),
+        split(C.withAssignments && C.inGroup && C.aiFeedbackOn && { assign: C.withAssignments.yes, group: C.inGroup.yes, ai: C.aiFeedbackOn.yes },
+          { assign: 'Have assigned a lesson', group: 'Belong to a school group', ai: 'AI feedback on (teacher’s own key)' }),
+        d.groups.total !== null ? h('p', { class: 'adm-sub' }, `School groups: ${num(d.groups.total)}, with ${num(d.groups.members ?? 0)} teacher ${d.groups.members === 1 ? 'membership' : 'memberships'} in all.`) : null);
+
+      const W = d.classWork;
+      section('What teachers assign',
+        'How many classes have each lesson on their list. A lesson is listed once five classes assign it, so one class can never be picked out. Students’ answers are counted below by kind only; what they wrote is never read.',
+        tiles(tile(W.assignments, 'lessons assigned', 'summed over classes')),
+        W.assigned?.length
+          ? table([['Lesson', false], ['Classes', true]], W.assigned.map((r) => [lessonCell(r.slug), num(r.classes)]))
+          : h('p', { class: 'adm-sub' }, 'No lesson is assigned by five classes yet.'),
+        W.hidden ? h('p', { class: 'adm-sub' }, `${num(W.hidden)} more ${W.hidden === 1 ? 'lesson is' : 'lessons are'} assigned by fewer than five classes and not listed.`) : null,
+        h('h3', {}, 'Class work in the last 30 days'),
+        split(W.answers30, { quiz: 'Quiz answers (first tries)', idea: 'Opening statements picked', cer: 'Written answers sent', done: 'Lessons marked done', stuck: 'Stuck notes left' }));
+    }
+
+    // Films
+    const F = d.films;
+    if (F) {
+      const key = (f: string) => cat.films[f] ?? [f, ''];
+      const group = (of: (course: string) => string) => {
+        const g = new Map<string, Tot>();
+        for (const f of F.byFilm) { const k = of(key(f.film)[1]); const t = g.get(k) ?? { started: 0, watched: 0 }; t.started += f.started; t.watched += f.watched; g.set(k, t); }
+        return [...g].sort((a, b) => b[1].started - a[1].started);
+      };
+      const levelOf = (course: string) => (course ? levelTitle[cat.courses[course]?.[1] ?? ''] ?? 'Other' : 'Methods library');
+      section('Films',
+        `A film is counted once per device when it starts and once when it has played to about 90 percent. The count holds the film and the day and nothing about the viewer, so these numbers are exact and include everyone: readers with no account, account holders and students in classes.${F.since ? ` Counting began on ${shortDay(F.since)}; films watched before then are not here.` : ''} A private window or cleared browser data counts as a new device.`,
+        tiles(tile(F.last7?.started, 'started, last 7 days'), tile(F.last7?.watched, 'watched, last 7 days'), tile(F.last30?.started, 'started, last 30 days'), tile(F.last30?.watched, 'watched, last 30 days'),
+          tile(F.all?.started, 'started, all time'), tile(F.all?.watched, 'watched, all time'), F.all ? tile(share(F.all), 'of films started were watched', 'all time', true) : null),
+        bars('Films started each day', 'days', F.byDay.map((x) => ({ label: shortDay(x.day), value: x.started })), 'Day'),
+        bars('Films watched to the end each day', 'days', F.byDay.map((x) => ({ label: shortDay(x.day), value: x.watched })), 'Day'),
+        h('h3', {}, 'By film'),
+        h('p', { class: 'adm-sub' }, 'Most started first. The share watched is left blank until a film has been started ten times.'),
+        F.byFilm.length
+          ? table([['Film', false], ['Started', true], ['Watched', true], ['Share watched', true], ['Started, 30 days', true]],
+            F.byFilm.map((f) => [titled(key(f.film)[0], key(f.film)[1] ? courseTitle(key(f.film)[1]) : 'Methods library'), num(f.started), num(f.watched), share(f), num(f.started30)]), 20)
+          : h('p', { class: 'adm-sub' }, 'No film has been counted yet.'),
+        h('h3', {}, 'By course'),
+        table([['Course', false], ['Started', true], ['Watched', true], ['Share watched', true]], group((c) => (c ? courseTitle(c) : 'Methods library')).map(([k, t]) => [k, num(t.started), num(t.watched), share(t)]), 30),
+        h('h3', {}, 'By level'),
+        table([['Level', false], ['Started', true], ['Watched', true], ['Share watched', true]], group(levelOf).map(([k, t]) => [k, num(t.started), num(t.watched), share(t)]), 30));
+    } else {
+      section('Films', 'Films are not being counted yet. Counting starts once the database has its new table; nothing about films is stored before then.');
+    }
+
+    // The curiosity box
+    if (d.router) {
+      const R = d.router;
+      const sum = (k: 'calls' | 'errors' | 'blocked') => R.byDay.reduce((a, x) => a + x[k], 0);
+      section('The “What are you curious about?” box',
+        'How many questions the lesson suggester answered. It keeps a count and never the question, so there is nothing here about what people asked.',
+        tiles(tile(sum('calls'), 'answered, last 30 days'), tile(R.callsAll, 'answered, all time'), tile(sum('errors'), 'failed, last 30 days'), tile(sum('blocked'), 'turned away at the daily limit, last 30 days')),
+        bars('Questions answered each day', 'days', R.byDay.map((x) => ({ label: shortDay(x.day), value: x.calls })), 'Day'));
+    }
+    if (d.planner || d.helpers) {
+      section('Study planner and study helpers',
+        'Counts of use only. What anyone typed is not stored.',
+        tiles(d.planner && tile(d.planner.callsAll, 'plans and syllabus matches made'), d.planner && tile(d.planner.savedPlans, 'study plans saved'), d.planner && tile(d.planner.classLists, 'class reading lists saved'),
+          d.helpers && tile(d.helpers.callsAll, 'study-helper replies')));
+    }
+
+    out.append(h('p', { class: 'tc-muted adm-foot' },
+      `Added up ${new Date(d.generated).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}. Weeks start on Monday and days are UTC, except the curiosity box, whose days are US Eastern. “Under 5” means 1 to 4; when hiding one group would let it be worked out from the others, a second is hidden too.`));
+    out.hidden = false;
+  }
+
+  // ---- invented numbers for ?demo=1 (never real data, never a request to the server) -----
+  function demoStats(cat: Catalog): Stats {
+    let seed = 7;
+    const rnd = (max: number) => { seed = (seed * 1103515245 + 12345) % 2147483648; return Math.floor((seed / 2147483648) * max); };
+    const now = Date.now(), DAY = 86_400_000;
+    const monday = (() => { const dd = Math.floor(now / DAY); return (dd - ((dd + 3) % 7)) * DAY; })();
+    const iso = (ms: number) => new Date(ms).toISOString().slice(0, 10);
+    const weeks = (scale: number): Week[] => Array.from({ length: 26 }, (_, i) => ({ week: iso(monday - (25 - i) * 7 * DAY), n: i < 4 ? 0 : rnd(scale) + (i > 20 ? Math.floor(scale / 2) : 0) }));
+    const films = Object.keys(cat.films).filter((_, i) => i % 9 === 0).slice(0, 60).map((film) => { const started = rnd(90) + 1; const started30 = Math.min(started, rnd(40)); return { film, started, watched: Math.floor(started * (0.35 + rnd(50) / 100)), started30, watched30: Math.floor(started30 * 0.6) }; })
+      .sort((a, b) => b.started - a.started);
+    const byDay = Array.from({ length: 30 }, (_, i) => { const started = i % 7 > 4 ? rnd(12) : 8 + rnd(40); return { day: iso(now - (29 - i) * DAY), started, watched: Math.floor(started * 0.55) }; });
+    const lessons = Object.keys(cat.lessons).filter((_, i) => i % 23 === 0).slice(0, 14);
+    const courses = Object.keys(cat.courses);
+    const all = { started: films.reduce((a, f) => a + f.started, 0), watched: films.reduce((a, f) => a + f.watched, 0) };
+    const byCourse: Record<string, Cell> = {}; const byLevel: Record<string, Cell> = {};
+    courses.forEach((c, i) => { const v = i % 4 === 3 ? null : i % 5 === 4 ? 0 : 5 + rnd(14); byCourse[c] = v; });
+    cat.levels.forEach(([k], i) => { byLevel[k] = i === 0 || i === 6 ? null : 6 + rnd(25); });
+    return {
+      generated: new Date(now).toISOString(), smallCell: 5, on: { role: true, films: true, catalog: true },
+      learners: { total: 214, active7: 37, active30: 96, newByWeek: weeks(14), role: { student: 88, parent: 21, teacher: 34, unset: 71 }, signIn: { google: 131, passkey: 62, both: 21, neither: 0 }, withNotes: { yes: 74, no: 140 }, withProgress: { yes: 163, no: 51 } },
+      lessons: { opens: 1920, finishes: 811, opened: lessons.map((slug, i) => ({ slug, opened: 48 - i * 3, finished: i % 5 === 4 ? null : 30 - i * 2 })), hidden: 187 },
+      teachers: { total: 58, newByWeek: weeks(5), verified: { yes: 49, no: 9 }, withClass: { yes: 41, no: 17 }, withActiveClass30: 19 },
+      classes: { total: 93, active7: 22, active30: 47, newByWeek: weeks(8), byLevel, byCourse, joinMode: { open: 51, approve: 12, roster: 30, locked: 0 }, size: { none: 14, s1to9: 21, s10to29: 49, s30up: 9 }, withAssignments: { yes: 70, no: 23 }, inGroup: { yes: 18, no: 75 }, aiFeedbackOn: { yes: null, no: null } },
+      seats: { total: 1640, seen7: 402, seen30: 911, newByWeek: weeks(120), status: { active: 1611, pending: 29 } },
+      classWork: { assignments: 612, assigned: lessons.slice(0, 8).map((slug, i) => ({ slug, classes: 19 - i * 2 })), hidden: 96, answers30: { quiz: 5210, idea: 1404, cer: 388, done: 902, stuck: 61 } },
+      groups: { total: 6, members: 23 },
+      films: { since: iso(now - 41 * DAY), last7: { started: byDay.slice(-7).reduce((a, x) => a + x.started, 0), watched: byDay.slice(-7).reduce((a, x) => a + x.watched, 0) }, last30: { started: byDay.reduce((a, x) => a + x.started, 0), watched: byDay.reduce((a, x) => a + x.watched, 0) }, all, byDay, byFilm: films },
+      router: { callsAll: 1310, byDay: Array.from({ length: 30 }, (_, i) => ({ day: iso(now - (29 - i) * DAY), calls: 3 + rnd(30), errors: rnd(10) > 8 ? 1 : 0, blocked: i === 12 ? 4 : 0 })) },
+      planner: null, helpers: null,
+    };
+  }
+
+  // ---- getting the numbers ---------------------------------------------------------------
+  const gate = $<HTMLFormElement>('[data-gate]');
+  const err = $('[data-gate-err]');
+  const loading = $('[data-loading]');
+  const forget = $<HTMLButtonElement>('[data-forget]');
+  const kept = (): string => { try { return window.sessionStorage.getItem(KEEP) || ''; } catch { return ''; } };
+  const keep = (v: string) => { try { if (v) window.sessionStorage.setItem(KEEP, v); else window.sessionStorage.removeItem(KEEP); } catch { /* storage blocked: memory only */ } };
+
+  async function catalog(): Promise<Catalog> {
+    const empty: Catalog = { levels: [], courses: {}, lessons: {}, films: {} };
+    try { const r = await fetch('/usage-catalog.json'); return r.ok ? { ...empty, ...(await r.json()) } : empty; } catch { return empty; }
+  }
+
+  async function load(secret: string): Promise<boolean> {
+    err.textContent = '';
+    loading.hidden = false;
+    try {
+      // The secret goes in a header, never in the address, and no cookies go with it.
+      const [r, cat] = await Promise.all([
+        fetch('/api/admin/stats', { headers: { Authorization: `Bearer ${secret}` }, cache: 'no-store', credentials: 'omit' }),
+        catalog(),
+      ]);
+      if (r.status !== 200) {
+        err.textContent = r.status === 404
+          ? 'That did not open anything. The secret may be wrong, the page may not be switched on yet, or there were too many tries in the last minute.'
+          : 'The numbers could not be fetched just now. Please try again.';
+        return false;
+      }
+      render(await r.json(), cat);
+      forget.hidden = false;
+      return true;
+    } catch {
+      err.textContent = 'No connection. Please try again.';
+      return false;
+    } finally { loading.hidden = true; }
+  }
+
+  gate.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const f = new FormData(gate);
+    const secret = String(f.get('secret') || '').trim();
+    if (!secret) return;
+    const ok = await load(secret);
+    keep(ok && f.get('keep') ? secret : '');
+    if (ok) (gate.elements.namedItem('secret') as HTMLInputElement).value = '';
+  });
+  forget.addEventListener('click', () => {
+    keep('');
+    $('[data-out]').replaceChildren();
+    $('[data-out]').hidden = true;
+    forget.hidden = true;
+  });
+
+  if (demo) {
+    $('[data-demo]').hidden = false;
+    catalog().then((cat) => render(demoStats(cat), cat));
+  } else {
+    gate.hidden = false;
+    const secret = kept();
+    if (secret) { (gate.elements.namedItem('keep') as HTMLInputElement).checked = true; load(secret).then((ok) => { if (!ok) keep(''); }); }
+  }
+</script>
