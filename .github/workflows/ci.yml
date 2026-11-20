@@ -45,6 +45,8 @@ jobs:
       - run: node scripts/check-production-record.mjs
       # "Before this / After this / Elsewhere" links and search phrases: every link resolves and passes the rules.
       - run: node scripts/check-lesson-links.mjs
+      # Lesson minutes (one recipe for the page, cards and JSON-LD) and which stop of "How long have you got?" opens.
+      - run: node scripts/test-lesson-time.mjs
       # Lesson search against the index this build just wrote (needs Node 22.18+ to import the .ts file).
       - run: node scripts/test-search.mjs
       # Curiosity router, offline (node:sqlite needs no flag from Node 22.13).

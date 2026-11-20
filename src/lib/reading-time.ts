@@ -8,22 +8,15 @@
    "Going deeper" is counted on its own and shown as optional. Quiz questions at the finish line
    are not included.
 
+   Since 2026-11-20 the recipe itself lives in src/lib/lesson-time.ts, which also counts films and
+   Side Hops audio. lessonMinutes() below is the reading part alone; wholeMinutes() is the whole
+   lesson, and is what the site prints.
+
    Ages 5–10 activity guides and the grade 7 and high school lessons keep their hand-set figure:
    there it is the time the activity or the class period takes, not time spent reading. */
 import { courseOf } from '../data/courses';
-
-const WPM = 150;
-const PER_PREDICT = 1;
-const PER_SIM = 3;
-
-function words(mdx: string): number {
-  const text = mdx
-    .replace(/^import .*$/gm, ' ')
-    .replace(/```[\s\S]*?```/g, ' ')
-    .replace(/<[^>]+>/g, ' ')
-    .replace(/\{[^{}]*\}/g, ' ');
-  return (text.match(/[A-Za-z0-9][A-Za-z0-9'’-]*/g) ?? []).length;
-}
+import { readingSeconds, wholeSeconds, minutesOf, HAND_SET_TIERS } from './lesson-time';
+import { sideHopsFor } from './side-hops';
 
 export interface LessonMinutes {
   /** Minutes for the main text, or the hand-set figure for school and family lessons. */
@@ -37,24 +30,40 @@ interface LessonLike {
   data: { course: string; estMinutes?: number; simulations: unknown[] };
 }
 
+/** Reading only (no films, no stories). The study planner adds the films a plan picks to this. */
 export function lessonMinutes(l: LessonLike): LessonMinutes | undefined {
   const tier = courseOf(l.data.course).tier;
-  if (tier === 'families' || tier === 'highschool' || !l.body) {
+  if (HAND_SET_TIERS.includes(tier) || !l.body) {
     return l.data.estMinutes ? { core: l.data.estMinutes, optional: 0 } : undefined;
   }
-  // Split off "## Going deeper" (up to the next ## heading, if any).
-  const [before, after] = l.body.split(/^## Going deeper.*$/m, 2);
-  let core = before;
-  let deeper = '';
-  if (after !== undefined) {
-    const next = after.search(/^## /m);
-    deeper = next === -1 ? after : after.slice(0, next);
-    if (next !== -1) core += after.slice(next);
-  }
-  const predicts = (core.match(/\*\*Predict\.\*\*/g) ?? []).length;
-  const minutes = words(core) / WPM + predicts * PER_PREDICT + l.data.simulations.length * PER_SIM;
-  return { core: Math.max(1, Math.round(minutes)), optional: Math.round(words(deeper) / WPM) };
+  const sec = readingSeconds(l.body, l.data.simulations.length);
+  return { core: minutesOf(sec.core), optional: Math.round(sec.optional / 60) };
+}
+
+interface WholeLike {
+  body?: string;
+  data: {
+    slug: string; course: string; estMinutes?: number; simulations: unknown[];
+    explainer?: { title: string; durationSec: number }; films: { title: string; durationSec: number }[];
+  };
+}
+
+/**
+ * The whole lesson in minutes: reading, every film and the Side Hops audio, or the hand-set class
+ * period when that is longer. This is the figure the lesson page's control prints on its last stop,
+ * and the one course cards, /catalog.json, the Markdown copies and JSON-LD timeRequired print too
+ * (src/lib/lesson-time.ts has the recipe).
+ */
+export function wholeMinutes(l: WholeLike): number | undefined {
+  const d = l.data;
+  if (!l.body && !d.estMinutes) return undefined;
+  const hops = sideHopsFor(d.slug);
+  return minutesOf(wholeSeconds({
+    tier: courseOf(d.course).tier, body: l.body ?? '', estMinutes: d.estMinutes, simulations: d.simulations.length,
+    explainer: d.explainer, films: d.films,
+    stories: hops ? { audioSec: hops.audio.durationSec, hops: hops.hops } : undefined,
+  }).whole);
 }
 
 /** "~31 min", for cards and lists. */
-export const minutesLabel = (m: LessonMinutes | undefined) => (m ? `~${m.core} min` : undefined);
+export const minutesLabel = (m: number | undefined) => (m ? `~${m} min` : undefined);
