@@ -276,7 +276,7 @@ const lessonLd = {
     )}
 
     {/* The Skim stop leads with the lesson's main idea (the first sentence of its summary). */}
-    <p class="wrap lt-idea" data-lt-only="skim"><span class="lt-idea-k">The main idea.</span> {idea}</p>
+    <div class="wrap" data-lt-only="skim"><p class="lt-idea"><span class="lt-idea-k">The main idea.</span> {idea}</p></div>
 
     {ex && (
       <section class="wrap explainer" id="explainer" aria-labelledby="explainer-h" data-lt-only="lesson films skim">
@@ -957,7 +957,11 @@ const lessonLd = {
     .act-top ~ .lesson-layout :global(.prose-col[data-lesson-title] > .act-card) { display: none; }
     .explainer-cap { font-family: var(--ddp-font-serif); font-size: var(--ddp-text-base); color: var(--ddp-color-primary); }
     .film-takes-fold > summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; font-size: var(--ddp-text-sm); font-weight: 600; color: var(--ddp-color-primary); }
-    .film-takes-fold:not([open]) { background: none; border-left-color: transparent; padding-block: 0; }
+    .film-takes-fold > summary { list-style: none; gap: 0.45em; }
+    .film-takes-fold > summary::-webkit-details-marker { display: none; }
+    .film-takes-fold > summary::before { content: '▸'; color: var(--ddp-color-accent); }
+    .film-takes-fold[open] > summary::before { content: '▾'; }
+    .film-takes-fold:not([open]) { background: none; border-left: 0; padding: 0; }
     .rail-parts { padding-bottom: var(--ddp-space-3); border-bottom: 1px solid var(--ddp-color-line); }
     .rail-parts .rail-title { margin-bottom: var(--ddp-space-1); }
     @media (max-width: 900px) { .rail-parts { display: none; } }
