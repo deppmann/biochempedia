@@ -59,6 +59,14 @@
 /
   Cache-Control: public, max-age=0, must-revalidate
 
+# The hop graph for browsers (src/pages/graph.json.ts and graph/[area].json.ts): which ideas the
+# site teaches and where. Rebuilt with the site and addressed by path, not by hash, so an hour of
+# caching with a day of stale-while-revalidate: a new lesson's rungs show up the same day.
+/graph.json
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+/graph/*
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
 # Plain Markdown copies of lessons and llms-full.txt, for AI agents (scripts/agent-markdown.mjs).
 # Kept out of search results, which should show the lesson page itself; each copy names that page.
 /lessons/*.md
