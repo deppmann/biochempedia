@@ -24,28 +24,44 @@
 // the Worker at all. The only strings in the reply are dates and the site's own keys for levels,
 // courses, lessons and films (worker/usage-catalog.js); a made-up course is counted as "other".
 //
-// ONE ANSWER A DAY. Everything is counted as of the end of yesterday, site time (US Eastern), and
-// the finished reply is kept for the day (admin_snapshots, migration 0009), so two requests on
-// the same day get the same bytes. Nobody can watch a number tick between two reloads and tie
-// the change to one person. Films and lesson-suggester days leave today out for the same reason.
-// Only the newest day's reply is kept.
+// ONE COUNT A DAY, NOT WHEN THE READER ASKS. The finished reply is kept (admin_snapshots,
+// migration 0009) and served unchanged until it is about 20 hours old; only then does the next
+// request make a new one. So a reader cannot pick two moments a few minutes apart and compare
+// them. The figures are as they stood WHEN THE COUNT WAS MADE (the reply carries that time):
+// accounts, classes and seats made before the start of that site day (US Eastern), with roles,
+// progress and "last active" as they were at that moment. Film and lesson-suggester days leave
+// the day of the count out. There is no scheduled job in this change; a fixed time of day would
+// be better still. Until migration 0009 is applied the route stays shut (404), secret or not,
+// because without the table every request would be a fresh count.
+//
+// HELD UNTIL FIVE MORE. A count made the day after one known person signs up would show that
+// person's answer as the only change. So the breakdowns of learners (role, sign-in method, the
+// lesson lists) are carried forward unchanged, marked with the date they were made, until the
+// site has at least 5 more learner accounts than when they were last published. The breakdowns
+// of classes (course, level, join mode, size, extras, what is assigned) are held the same way
+// until 5 more teachers have a class. What is still possible: when a held breakdown is
+// republished, the change is the sum of at least five people's answers, and a plain total
+// (accounts, teachers) still moves by one when one person joins.
 //
 // THE SMALL-CELL RULE (K = 5), applied to people, not rows.
-//   1. Shown as they are, however small: the plain whole-site totals of one kind of thing
-//      (learner accounts, teacher accounts, classes, class seats, school groups).
+//   1. Shown as they are, however small: two plain totals only, learner accounts and teacher
+//      accounts. The totals of classes and class seats are shown only when at least 5 different
+//      teachers have a class; with fewer, a class total would describe those few teachers.
 //   2. Everything else that describes a group is a cell, and a cell of 1 to 4 is sent as null
 //      (the page prints "under 5"). Zero is sent as 0. That covers every split (role, sign-in
 //      method, course, level, join mode, size, kind of answer), every "in the last 7 or 30 days"
-//      figure, and every weekly count of new accounts, classes or seats.
-//   3. A cell that counts classes or answers is hidden unless at least 5 different TEACHERS
-//      (for class cells) or 5 different students in 5 different classes (for answers) stand
-//      behind it. One teacher's five periods are one person, not five.
+//      figure (one three-way split per kind: last 7 days, 8 to 30, older), every weekly count of
+//      new accounts, classes or seats, and the counts of school groups, saved plans and class lists.
+//   3. A cell that counts classes or seats is hidden unless at least 5 different TEACHERS stand
+//      behind it, and a cell that counts answers unless 5 different students in 5 different
+//      classes do. That includes weekly new classes and seats, seat status and seats seen. One teacher's five periods are one person, not five.
 //   4. No subtraction. A split is all or nothing: if any cell in it must be hidden, every cell
 //      with anyone in it is hidden (see split()). A hidden level hides its courses. No published sum includes a hidden row,
 //      and no exact count sits beside a hidden split that it would give away (teachers are one
 //      three-way split; a lesson is listed only if both the learners who opened it and the
 //      learners who did not are 0 or at least 5).
-//   5. Role is never crossed with anything: not with time, not with lessons, not with films.
+//   5. Role is never crossed with lessons, films or anything else, and across time only in the
+//      held form above.
 //   6. Film counts and the lesson suggester's daily counts are not cells. Their rows were never
 //      tied to an account, a class or a device (worker/film-count.js), so there is nobody a small
 //      number could point at. They are also not exact: the film counter takes anonymous
@@ -68,7 +84,10 @@ const WEEK = 7 * DAY;
 const WEEKS = 26;
 const DAYS = 30;
 const PER_MIN = 20;
-const SNAPSHOT_VERSION = 'v2';   // change when the reply's shape changes, so an old day's reply is not served
+const REPLY_KEY = 'reply:v3';    // change when the reply's shape changes, so an old reply is not served
+const HOLD_KEY = 'hold:v1';      // what was last published of the held breakdowns, and the totals then (never sent)
+const KEEP_MS = 20 * 3_600_000;  // a kept reply is served until it is this old
+const STEP = 5;                  // held breakdowns are republished after this many more people
 
 // ---- the gate ---------------------------------------------------------------------------
 async function sameSecret(a, b) {
@@ -109,6 +128,8 @@ export function split(cells, force = []) {
   const giveaway = filled.length === 1 || filled.every((k) => n[k] === 1);
   return Object.fromEntries(keys.map((k) => [k, n[k] > 0 || giveaway ? null : 0]));
 }
+/** A stand-alone count: 1 to 4 is hidden. */
+export const cell = (n) => (n === null || n === undefined ? null : int(n) >= 1 && int(n) < SMALL ? null : int(n));
 /** One number that is part of a known total: shown only if both it and the rest are 0 or at least 5. */
 export const part = (n, total, forced = false) => split({ yes: n, no: Math.max(0, int(total) - int(n)) }, forced ? ['yes'] : []).yes;
 
@@ -148,14 +169,15 @@ export function startOfSiteDay(now) {
 }
 const addDays = (day, k) => isoDay(Date.parse(`${day}T12:00:00Z`) + k * DAY);
 
-/** New rows of `table` in each of the last 26 weeks, each week a cell (a week of 1 to 4 is hidden). */
-async function byWeek(db, table, col, asOf) {
+/** New rows in each of the last 26 weeks, each week a cell. With `teacherOf` (SQL giving the row's teacher), a week also needs 5 different teachers behind it. */
+async function byWeek(db, from, col, asOf, teacherOf = null) {
   const first = weekStart(asOf - 1) - (WEEKS - 1) * WEEK;
-  const got = await rows(db, `SELECT CAST((${col} - ?1) / ${WEEK} AS INTEGER) AS w, COUNT(*) AS n FROM ${table} WHERE ${col} >= ?1 AND ${col} < ?2 GROUP BY w`, first, asOf);
+  const got = await rows(db, `SELECT CAST((${col} - ?1) / ${WEEK} AS INTEGER) AS w, COUNT(*) AS n${teacherOf ? `, COUNT(DISTINCT ${teacherOf}) AS t` : ''} FROM ${from} WHERE ${col} >= ?1 AND ${col} < ?2 GROUP BY w`, first, asOf);
   if (!got) return null;
-  const n = new Map(got.map((r) => [int(r.w), int(r.n)]));
+  const n = new Map(got.map((r) => [int(r.w), r]));
   const weeks = Array.from({ length: WEEKS }, (_, i) => isoDay(first + i * WEEK));
-  const cells = split(Object.fromEntries(weeks.map((w, i) => [w, n.get(i) || 0])));
+  const force = teacherOf ? weeks.filter((_, i) => n.has(i) && int(n.get(i).t) < SMALL) : [];
+  const cells = split(Object.fromEntries(weeks.map((w, i) => [w, int(n.get(i)?.n)])), force);
   return weeks.map((week) => ({ week, n: cells[week] }));
 }
 
@@ -173,10 +195,11 @@ function classSplit(got, keys) {
 }
 
 // ---- the numbers ------------------------------------------------------------------------
+/** A fresh count. Returns the reply and the two totals the holds are measured against (those are never sent). */
 export async function buildStats(db, env, request, now = Date.now()) {
   let catalog = { levels: [], courses: new Map(), lessons: new Map(), films: new Set() };
   try { catalog = await loadUsageCatalog(env, request); } catch { /* no catalog: totals only, nothing named */ }
-  const asOf = startOfSiteDay(now);                 // everything is "as of the end of yesterday"
+  const asOf = startOfSiteDay(now);                 // rows made before the start of the site's day
   const today = siteDay(now);
   const d7 = asOf - 7 * DAY, d30 = asOf - 30 * DAY;
   const lessonKeys = JSON.stringify([...catalog.lessons.keys()]);
@@ -191,11 +214,13 @@ export async function buildStats(db, env, request, now = Date.now()) {
             SUM(CASE WHEN g = 1 AND p = 1 THEN 1 ELSE 0 END) AS both, SUM(CASE WHEN g = 0 AND p = 0 THEN 1 ELSE 0 END) AS neither
        FROM (SELECT (l.google_sub IS NOT NULL) AS g, EXISTS (SELECT 1 FROM learner_passkeys k WHERE k.learner_id = l.id) AS p FROM learners l WHERE l.created_at < ?)`, asOf);
   const withNotes = await count(db, "SELECT COUNT(*) AS n FROM learner_data d JOIN learners l ON l.id = d.learner_id WHERE l.created_at < ? AND d.notebook_json NOT IN ('{}', '')", asOf);
-  const active = (since) => count(db, 'SELECT COUNT(*) AS n FROM learners WHERE created_at < ?1 AND last_active_at >= ?2', asOf, since);
+  const RECENT = (col) => `CASE WHEN ${col} >= ${d7} THEN 'last7' WHEN ${col} >= ${d30} THEN 'days8to30' ELSE 'older' END`;
+  const BUCKETS = ['last7', 'days8to30', 'older'];
+  const activeRows = await rows(db, `SELECT ${RECENT('last_active_at')} AS k, COUNT(*) AS n FROM learners WHERE created_at < ? GROUP BY k`, asOf);
+  const bucketed = (got) => Object.fromEntries(BUCKETS.map((k) => [k, int(got?.find((r) => r.k === k)?.n)]));
   const learners = learnersTotal === null ? null : {
     total: learnersTotal,
-    active7: part(await active(d7), learnersTotal),
-    active30: part(await active(d30), learnersTotal),
+    active: activeRows ? split(bucketed(activeRows)) : null,
     newByWeek: await byWeek(db, 'learners', 'created_at', asOf),
     role: roleRows ? split({ student: roleOf('student'), parent: roleOf('parent'), teacher: roleOf('teacher'), unset: roleOf('unset') }) : null,
     signIn: how ? split({ google: int(how.google), passkey: int(how.passkey), both: int(how.both), neither: int(how.neither) }) : null,
@@ -241,6 +266,8 @@ export async function buildStats(db, env, request, now = Date.now()) {
 
   // Classes. Every cell here is hidden unless at least 5 different teachers stand behind it.
   const classesTotal = await count(db, 'SELECT COUNT(*) AS n FROM classes WHERE created_at < ?', asOf);
+  // With fewer than 5 teachers behind the site's classes, nothing about classes or seats is shown, the totals included.
+  const enoughTeachers = (withClass ?? 0) >= SMALL;
   let classes = null;
   if (classesTotal !== null) {
     const courseCells = {}, courseT = {}, levelT = {};
@@ -255,16 +282,11 @@ export async function buildStats(db, env, request, now = Date.now()) {
     const few = (t) => Object.keys(t).filter((k) => t[k] < SMALL);
     const nest = nestedSplit(courseCells, levelOf, few(courseT), few(levelT));
     const yesNo = (cond) => classCells(db, `CASE WHEN ${cond} THEN 'yes' ELSE 'no' END`, asOf).then((g) => classSplit(g, ['yes', 'no']));
-    const recent = async (since) => {
-      const r = await one(db, 'SELECT COUNT(*) AS n, COUNT(DISTINCT teacher_id) AS t FROM classes WHERE created_at < ?1 AND last_activity_at >= ?2', asOf, since);
-      return r ? part(int(r.n), classesTotal, int(r.t) < SMALL) : null;
-    };
     const SIZED = "(SELECT x.teacher_id, x.created_at, (SELECT COUNT(*) FROM students s WHERE s.class_id = x.id AND s.status = 'active') AS sz FROM classes x) c";
     classes = {
-      total: classesTotal,
-      active7: await recent(d7),
-      active30: await recent(d30),
-      newByWeek: await byWeek(db, 'classes', 'created_at', asOf),
+      total: enoughTeachers || classesTotal === 0 ? classesTotal : null,
+      active: classSplit(await classCells(db, RECENT('c.last_activity_at'), asOf), BUCKETS),
+      newByWeek: await byWeek(db, 'classes', 'created_at', asOf, 'teacher_id'),
       byLevel: nest.byParent,
       byCourse: nest.byChild,
       joinMode: classSplit(await classCells(db, 'c.join_mode', asOf), ['open', 'approve', 'roster', 'locked']),
@@ -275,19 +297,18 @@ export async function buildStats(db, env, request, now = Date.now()) {
     };
   }
 
-  // Class seats. "Seen lately" is shown only when at least 5 different classes were seen.
+  // Class seats. Every figure needs 5 different teachers behind it, like the classes they sit in.
+  const SEATS = 'students s JOIN classes c ON c.id = s.class_id';
   const seatsTotal = await count(db, 'SELECT COUNT(*) AS n FROM students WHERE created_at < ?', asOf);
-  const pending = await count(db, "SELECT COUNT(*) AS n FROM students WHERE created_at < ? AND status = 'pending'", asOf);
-  const seen = async (since) => {
-    const r = await one(db, 'SELECT COUNT(*) AS n, COUNT(DISTINCT class_id) AS c FROM students WHERE created_at < ?1 AND last_seen_at >= ?2', asOf, since);
-    return r ? part(int(r.n), seatsTotal, int(r.c) < SMALL) : null;
+  const seatCells = async (expr, keys) => {
+    const got = await rows(db, `SELECT ${expr} AS k, COUNT(*) AS n, COUNT(DISTINCT c.teacher_id) AS t FROM ${SEATS} WHERE s.created_at < ?1 GROUP BY k`, asOf);
+    return classSplit(got ? got.map((r) => ({ k: String(r.k), n: int(r.n), t: int(r.t) })) : null, keys);
   };
   const seats = seatsTotal === null ? null : {
-    total: seatsTotal,
-    seen7: await seen(d7),
-    seen30: await seen(d30),
-    newByWeek: await byWeek(db, 'students', 'created_at', asOf),
-    status: pending === null ? null : split({ active: Math.max(0, seatsTotal - pending), pending }),
+    total: enoughTeachers || seatsTotal === 0 ? seatsTotal : null,
+    seen: await seatCells(RECENT('COALESCE(s.last_seen_at, 0)'), BUCKETS),
+    newByWeek: await byWeek(db, SEATS, 's.created_at', asOf, 'c.teacher_id'),
+    status: await seatCells('s.status', ['active', 'pending']),
   };
 
   // What teachers assign: a lesson is listed once 5 different teachers have assigned it.
@@ -314,7 +335,7 @@ export async function buildStats(db, env, request, now = Date.now()) {
   };
 
   const groups = {
-    total: await count(db, 'SELECT COUNT(*) AS n FROM groups WHERE created_at < ?', asOf),
+    total: cell(await count(db, 'SELECT COUNT(*) AS n FROM groups WHERE created_at < ?', asOf)),
   };
 
   // Films (rule 6: anonymous by construction, and approximate). Whole days only: today is left out.
@@ -356,32 +377,73 @@ export async function buildStats(db, env, request, now = Date.now()) {
   // Study planner: present only once its own migration is applied. Saved items only (whole-site totals).
   const savedPlans = await count(db, 'SELECT COUNT(*) AS n FROM learner_plans WHERE created_at < ?', asOf);
   const planner = savedPlans === null ? null : {
-    savedPlans,
-    classLists: await count(db, 'SELECT COUNT(*) AS n FROM class_resource_lists WHERE created_at < ?', asOf),
+    savedPlans: cell(savedPlans),
+    classLists: cell(await count(db, 'SELECT COUNT(*) AS n FROM class_resource_lists WHERE created_at < ?', asOf)),
   };
 
-  return {
+  const stats = {
     generated: new Date(now).toISOString(),
     asOf: addDays(today, -1),
     smallCell: SMALL,
     on: { role: hasRole, films: films !== null, catalog: catalog.lessons.size > 0 },
     learners, lessons, teachers, classes, seats, classWork, groups, films, router, planner,
   };
+  return { stats, base: { learners: learnersTotal ?? 0, teachers: withClass ?? 0 } };
 }
 
-// ---- one answer a day -------------------------------------------------------------------
-/** The day's reply as text: the kept one if there is one, else made now and kept. Without the table (before migration 0009), made fresh. */
-async function todaysReply(db, env, request) {
-  const key = `${SNAPSHOT_VERSION}:${siteDay(Date.now())}`;
-  const kept = await one(db, 'SELECT body FROM admin_snapshots WHERE day = ?', key);
-  if (kept?.body) return kept.body;
-  const body = JSON.stringify(await buildStats(db, env, request));
-  if (kept === null) return body;   // no table yet
-  try {
-    await db.prepare('INSERT OR IGNORE INTO admin_snapshots (day, body, made_at) VALUES (?, ?, ?)').bind(key, body, Date.now()).run();
-    await db.prepare('DELETE FROM admin_snapshots WHERE day <> ?').bind(key).run();
-    return (await one(db, 'SELECT body FROM admin_snapshots WHERE day = ?', key))?.body || body;   // two first requests at once: both get the one that was kept
-  } catch { return body; }
+// ---- held until five more -----------------------------------------------------------------
+// The parts of a reply that are carried forward (see the header). `pick` takes them out of a
+// reply, `put` writes them back into one.
+const HELD = {
+  learners: {
+    pick: (s) => ({ role: s.learners?.role ?? null, signIn: s.learners?.signIn ?? null, lessons: s.lessons }),
+    put: (s, h, day) => { if (s.learners) { s.learners.role = h.role; s.learners.signIn = h.signIn; s.learners.splitsAsOf = day; } s.lessons = h.lessons; },
+    // Republish early only to add something that was not there at all before (the role column arriving).
+    missing: (h, fresh) => (h.role === null && fresh.role !== null) || (h.lessons === null && fresh.lessons !== null),
+  },
+  teachers: {
+    pick: (s) => ({ c: s.classes && { byLevel: s.classes.byLevel, byCourse: s.classes.byCourse, joinMode: s.classes.joinMode, size: s.classes.size, withAssignments: s.classes.withAssignments, inGroup: s.classes.inGroup, aiFeedbackOn: s.classes.aiFeedbackOn }, assigned: s.classWork.assigned, hidden: s.classWork.hidden }),
+    put: (s, h, day) => { if (s.classes && h.c) Object.assign(s.classes, h.c, { splitsAsOf: day }); s.classWork.assigned = h.assigned; s.classWork.hidden = h.hidden; },
+    missing: (h, fresh) => h.c === null && fresh.c !== null,
+  },
+};
+
+/** Put the held breakdowns into a fresh reply, republishing a block only when its total has grown by 5. Returns the new hold record. */
+export function applyHold(stats, base, prev) {
+  const next = {};
+  for (const [name, block] of Object.entries(HELD)) {
+    const fresh = block.pick(stats);
+    const old = prev?.[name];
+    if (old && base[name] < old.base + STEP && !block.missing(old.held, fresh)) {
+      block.put(stats, old.held, old.day);
+      next[name] = old;
+    } else {
+      next[name] = { base: base[name], day: stats.asOf, held: fresh };
+      block.put(stats, fresh, stats.asOf);
+    }
+  }
+  return next;
+}
+
+// ---- one count a day ---------------------------------------------------------------------
+const snapshotsReady = async (db) => (await one(db, 'SELECT 1 AS n FROM admin_snapshots LIMIT 0')) !== null;
+
+/** The reply as text: the kept one while it is under about 20 hours old, else a new count, kept. */
+export async function dailyReply(db, env, request, now = Date.now()) {
+  const kept = await one(db, 'SELECT body, made_at FROM admin_snapshots WHERE day = ?', REPLY_KEY);
+  if (kept?.body && now - int(kept.made_at) < KEEP_MS && now >= int(kept.made_at)) return kept.body;
+  let prev = null;
+  try { prev = JSON.parse((await one(db, 'SELECT body FROM admin_snapshots WHERE day = ?', HOLD_KEY))?.body || 'null'); } catch { prev = null; }
+  const { stats, base } = await buildStats(db, env, request, now);
+  const hold = applyHold(stats, base, prev);
+  const body = JSON.stringify(stats);
+  // Two rows only, each replaced in place, so there is no "delete the other days" step to race with.
+  await db.batch([
+    db.prepare('INSERT OR REPLACE INTO admin_snapshots (day, body, made_at) VALUES (?, ?, ?)').bind(REPLY_KEY, body, now),
+    db.prepare('INSERT OR REPLACE INTO admin_snapshots (day, body, made_at) VALUES (?, ?, ?)').bind(HOLD_KEY, JSON.stringify(hold), now),
+    db.prepare('DELETE FROM admin_snapshots WHERE day NOT IN (?, ?)').bind(REPLY_KEY, HOLD_KEY),
+  ]);
+  return body;
 }
 
 // ---- the route --------------------------------------------------------------------------
@@ -400,5 +462,6 @@ export async function handleAdmin(request, env, db, path, method, url) {
   if (!m) return null;                                           // no header: no database work at all
   if (!(await allow(db, 'admin:' + (await clientKey(request)), PER_MIN, 60_000))) return null;
   if (!(await sameSecret(m[1], secret))) return null;
-  return new Response(await todaysReply(db, env, request), { headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' } });
+  if (!(await snapshotsReady(db))) return null;                  // before migration 0009 the route stays shut
+  return new Response(await dailyReply(db, env, request), { headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' } });
 }

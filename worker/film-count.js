@@ -109,10 +109,15 @@ export async function handleFilmCount(request, env) {
     // Only a film the site really has. This is what keeps junk, and anything a person typed, out of the table.
     const catalog = await loadUsageCatalog(env, request);
     if (!catalog.films.has(key)) return quiet();
-    // The site-wide allowance first: once it is used up, a flood from fresh addresses costs one row update each, not new rows.
-    if (!(await allow(db, 'film:g:min', SITE_PER_MIN, 60_000))) return quiet();
+    // 1. A look, without writing, at the site-wide allowance: once it is used up nothing below runs,
+    //    so a flood from fresh addresses writes no rows at all.
+    const g = await db.prepare("SELECT count, window_start FROM rate_limits WHERE key='film:g:min'").first();
+    if (g && Date.now() - g.window_start <= 60_000 && g.count >= SITE_PER_MIN) return quiet();
+    // 2. This connection's own minute. A connection over its limit stops here and spends none of the shared allowance.
     const ip = await filmClientKey(request, env);
     if (!(await allow(db, `film:m:${ip}`, PER_MIN, 60_000))) return quiet();
+    // 3. The shared allowance is spent only by a message that passed 2, then this connection's day.
+    if (!(await allow(db, 'film:g:min', SITE_PER_MIN, 60_000))) return quiet();
     if (!(await allow(db, `film:d:${ip}`, PER_DAY, DAY))) return quiet();
     await db.prepare(
       `INSERT INTO film_counts (film_key, day, started, watched) VALUES (?1, ?2, ?3, ?4)

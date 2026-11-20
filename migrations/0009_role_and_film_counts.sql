@@ -27,12 +27,14 @@ CREATE TABLE IF NOT EXISTS film_counts (
 );
 CREATE INDEX IF NOT EXISTS idx_film_counts_day ON film_counts(day);
 
--- 3. admin_snapshots: the owner's totals, as sent, one row for the current day. The totals are
---    counted once a day (as of the end of the day before) and every request that day gets this
---    same reply, so no one can compare two reloads and tie a change to one person. The row holds
---    only what the page shows: counts, with small groups already hidden. Older days are deleted.
+-- 3. admin_snapshots: two rows. One is the owner's totals as last sent: they are counted about
+--    once a day and every request until the next count gets this same reply, so nobody can
+--    compare two reloads and tie a change to one person. The other remembers the breakdowns that
+--    are held back until five more people have joined (worker/admin.js), with the totals at the
+--    time. Both hold only counts, with small groups already hidden. Until this table exists the
+--    totals route stays shut.
 CREATE TABLE IF NOT EXISTS admin_snapshots (
-  day      TEXT PRIMARY KEY,              -- "<reply version>:<YYYY-MM-DD, US Eastern>"
+  day      TEXT PRIMARY KEY,              -- "reply:<version>" or "hold:<version>"
   body     TEXT NOT NULL,                 -- the JSON reply
   made_at  INTEGER NOT NULL
 );

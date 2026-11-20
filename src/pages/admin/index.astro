@@ -19,9 +19,10 @@ import '../../styles/teach.css';
     <h1>How the site is used</h1>
     <p class="tc-lede">
       Totals only. No name, email, note or answer reaches this page: the server adds things up first and sends
-      the sums, once a day, as things stood at the end of the day before. The plain totals (how many accounts,
-      classes, seats) are shown as they are. Any number that describes a smaller group shows as “under 5” when
-      it is 1 to 4.
+      the sums. The count is made about once a day, and the page shows things as they stood when it was made
+      (the time is at the foot). Two plain totals are shown as they are: learner accounts and teacher accounts.
+      Any number that describes a smaller group shows as “under 5” when it is 1 to 4, and nothing about classes
+      shows until five different teachers stand behind it.
     </p>
 
     <noscript><p class="tc-note">This page needs JavaScript.</p></noscript>
@@ -103,16 +104,16 @@ import '../../styles/teach.css';
   type Week = { week: string; n: Cell };
   interface Stats {
     generated: string; asOf: string; smallCell: number; on: { role: boolean; films: boolean; catalog: boolean };
-    learners: null | { total: number; active7: Cell; active30: Cell; newByWeek: Week[] | null; role: Split; signIn: Split; withNotes: Split };
+    learners: null | { total: number; active: Split; newByWeek: Week[] | null; role: Split; signIn: Split; withNotes: Split; splitsAsOf?: string };
     lessons: null | { opened: { slug: string; opened: number; finished: Cell }[]; hidden: number };
     teachers: null | { total: number; newByWeek: Week[] | null; verified: Split; classes: Split };
-    classes: null | { total: number; active7: Cell; active30: Cell; newByWeek: Week[] | null; byLevel: Split; byCourse: Split; joinMode: Split; size: Split; withAssignments: Split; inGroup: Split; aiFeedbackOn: Split };
-    seats: null | { total: number; seen7: Cell; seen30: Cell; newByWeek: Week[] | null; status: Split };
+    classes: null | { total: Cell; active: Split; splitsAsOf?: string; newByWeek: Week[] | null; byLevel: Split; byCourse: Split; joinMode: Split; size: Split; withAssignments: Split; inGroup: Split; aiFeedbackOn: Split };
+    seats: null | { total: Cell; seen: Split; newByWeek: Week[] | null; status: Split };
     classWork: { assigned: { slug: string; classes: number; teachers: number }[] | null; hidden: number | null; answers30: Split };
-    groups: { total: number | null };
+    groups: { total: Cell };
     films: null | { since: string | null; last7: Tot | null; last30: Tot | null; all: Tot | null; byDay: { day: string; started: number; watched: number }[]; byFilm: { film: string; started: number; watched: number; started30: number; watched30: number }[] };
     router: null | { byDay: { day: string; calls: number; errors: number; blocked: number }[] };
-    planner: null | { savedPlans: number | null; classLists: number | null };
+    planner: null | { savedPlans: Cell; classLists: Cell };
   }
   type Tot = { started: number; watched: number };
   interface Catalog { levels: [string, string][]; courses: Record<string, [string, string]>; lessons: Record<string, [string, string]>; films: Record<string, [string, string]> }
@@ -149,7 +150,7 @@ import '../../styles/teach.css';
       note && h('span', { class: 'adm-note' }, note));
   }
   /** A number about part of the site (active lately, seen lately): hidden by the server when it, or the rest, is 1 to 4, or too few people stand behind it. */
-  const cellTile = (value: Cell, label: string, note = '') => tile(value === null ? 'under 5, or too few to show' : value, label, note, value === null);
+  const cellTile = (value: Cell, label: string, note = '') => tile(value === null ? 'too few to show' : value, label, note, value === null);
   const tiles = (...t: (HTMLElement | false | null)[]) => h('div', { class: 'adm-tiles' }, ...t);
 
   /** One row per group. Bars share one scale; a hidden cell has a hatched track and the words "under 5". */
@@ -230,6 +231,8 @@ import '../../styles/teach.css';
     const section = (title: string, what: string, ...kids: Child[]) => { const el = h('section', {}, h('h2', {}, title), h('p', { class: 'adm-what' }, what), ...kids); out.append(el); return el; };
     const levelTitle = Object.fromEntries(cat.levels);
     const courseTitle = (k: string) => cat.courses[k]?.[0] ?? (k === 'other' ? 'A course the site does not list' : k);
+    const RECENCY = { last7: 'In the last 7 days', days8to30: '8 to 30 days ago', older: 'Longer ago, or never' };
+    const heldNote = (day: string | undefined, who: string) => (day ? ` As it stood on ${shortDay(day)}. It is held as it is until ${who}, so that one newcomer’s answer never shows as the only change.` : '');
     const lessonCell = (slug: string) => titled(cat.lessons[slug]?.[0] ?? slug, courseTitle(cat.lessons[slug]?.[1] ?? ''));
 
     // Learner accounts
@@ -237,14 +240,17 @@ import '../../styles/teach.css';
     if (L) {
       section('Learner accounts',
         'An account is optional and only keeps a reader’s notes and progress the same on their devices, so this is a small share of the people who read the site. Reading without an account is not here; page visits are in Plausible.',
-        tiles(tile(L.total, 'accounts', 'ever made, and not deleted'), cellTile(L.active7, 'active in the last 7 days', 'signed in or synced'), cellTile(L.active30, 'active in the last 30 days')),
+        tiles(tile(L.total, 'accounts', 'ever made, and not deleted')),
+        h('h3', {}, 'Last signed in or synced'),
+        split(L.active, RECENCY),
         weekly('New accounts each week', L.newByWeek),
         h('h3', {}, 'Student, parent or teacher'),
         h('p', { class: 'adm-sub' }, d.on.role
-          ? 'What account holders answered to the one optional question. “Did not say” covers people who skipped it and accounts made before it was asked. It is never set beside anything else on this page.'
+          ? `What account holders answered to the one optional question. “Did not say” covers people who skipped it and accounts made before it was asked. It is never set beside anything else on this page.${heldNote(L.splitsAsOf, 'five more accounts exist')}`
           : 'The question is not being asked yet. It starts once the database has its new column.'),
         d.on.role && split(L.role, { student: 'A student', parent: 'A parent or guardian', teacher: 'A teacher or tutor', unset: 'Did not say' }),
         h('h3', {}, 'How they sign in'),
+        h('p', { class: 'adm-sub' }, heldNote(L.splitsAsOf, 'five more accounts exist').trim()),
         split(L.signIn, { google: 'Google only', passkey: 'A passkey only', both: 'Both', neither: 'Neither yet' }),
         h('h3', {}, 'Accounts with notes'),
         h('p', { class: 'adm-sub' }, 'How many accounts have synced at least one note or highlight. What the notes say is never read.'),
@@ -255,7 +261,7 @@ import '../../styles/teach.css';
     if (d.lessons) {
       const X = d.lessons;
       section('Lessons, among signed-in learners',
-        'From the progress that accounts sync: how many account holders have opened each lesson, and how many marked it done. A lesson is listed only when at least five have opened it and the number who have not is either none or at least five, so no small group shows on either side. There is no grand total here, because it would give the unlisted lessons away. This says nothing about readers without an account, who are most readers.',
+        'From the progress that accounts sync: how many account holders have opened each lesson, and how many marked it done. A lesson is listed only when at least five have opened it and the number who have not is either none or at least five, so no small group shows on either side. There is no grand total here, because it would give the unlisted lessons away. This says nothing about readers without an account, who are most readers.' + heldNote(L?.splitsAsOf, 'five more accounts exist'),
         X.opened.length
           ? table([['Lesson', false], ['Opened by', true], ['Marked done by', true]], X.opened.map((r) => [lessonCell(r.slug), num(r.opened), show(r.finished)]))
           : h('p', { class: 'adm-sub' }, 'No lesson has been opened by five account holders yet.'),
@@ -267,10 +273,12 @@ import '../../styles/teach.css';
     if (T && C && S) {
       section('Teachers, classes and class seats',
         'Three separate counts. One person can be in more than one of them, and in learner accounts too, and nothing links the rows, so they are never added together. A class seat is a nickname in one class, not a person: a student in two classes is two seats.',
-        tiles(tile(T.total, 'teacher accounts'), tile(C.total, 'classes'), tile(S.total, 'class seats', 'nickname only, no account')),
-        tiles(cellTile(C.active7, 'classes used in the last 7 days'), cellTile(C.active30, 'classes used in the last 30 days'),
-          cellTile(S.seen7, 'seats seen in the last 7 days'), cellTile(S.seen30, 'seats seen in the last 30 days')),
-        h('p', { class: 'adm-sub' }, 'Every number about classes below is shown only when at least five different teachers stand behind it. One teacher with five periods is one person, not five, so at today’s size most of these read “under 5”.'),
+        tiles(tile(T.total, 'teacher accounts'), cellTile(C.total, 'classes'), cellTile(S.total, 'class seats', 'nickname only, no account')),
+        h('p', { class: 'adm-sub' }, `Everything about classes and seats, the two totals included, is shown only when at least five different teachers stand behind it. One teacher with five periods is one person, not five, so at today’s size most of this reads “under 5” or “too few to show”.${heldNote(C.splitsAsOf, 'five more teachers have a class')}`),
+        h('h3', {}, 'Classes, by when they were last used'),
+        split(C.active, RECENCY),
+        h('h3', {}, 'Class seats, by when they were last seen'),
+        split(S.seen, RECENCY),
         weekly('New teacher accounts each week', T.newByWeek),
         weekly('New classes each week', C.newByWeek),
         weekly('New class seats each week', S.newByWeek),
@@ -288,7 +296,7 @@ import '../../styles/teach.css';
         h('h3', {}, 'Classes that use the extras'),
         split(C.withAssignments && C.inGroup && C.aiFeedbackOn && { assign: C.withAssignments.yes, group: C.inGroup.yes, ai: C.aiFeedbackOn.yes },
           { assign: 'Have assigned a lesson', group: 'Belong to a school group', ai: 'AI feedback on (teacher’s own key)' }),
-        d.groups.total !== null ? h('p', { class: 'adm-sub' }, `School groups: ${num(d.groups.total)}.`) : null);
+        h('p', { class: 'adm-sub' }, `School groups: ${show(d.groups.total)}.`));
 
       const W = d.classWork;
       section('What teachers assign',
@@ -343,11 +351,11 @@ import '../../styles/teach.css';
     if (d.planner) {
       section('Study planner',
         'What has been saved. What anyone typed to make a plan is not stored.',
-        tiles(tile(d.planner.savedPlans, 'study plans saved'), tile(d.planner.classLists, 'class reading lists saved')));
+        tiles(cellTile(d.planner.savedPlans, 'study plans saved'), cellTile(d.planner.classLists, 'class reading lists saved')));
     }
 
     out.append(h('p', { class: 'tc-muted adm-foot' },
-      `Counted as things stood at the end of ${shortDay(d.asOf)} (US Eastern), and added up ${new Date(d.generated).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}. The numbers change once a day: every look on the same day shows the same page. Weeks start on Monday (UTC). “Under 5” means 1 to 4. When hiding one group would let it be worked out from the others, more are hidden until it cannot be.`));
+      `This count was made ${new Date(d.generated).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}, and shows things as they stood then: accounts, classes and seats made up to the end of ${shortDay(d.asOf)} (US Eastern), with roles, progress and activity as they were at that moment. The same page is shown until the count is about 20 hours old; the next look after that makes a new one. Weeks start on Monday (UTC). “Under 5” means 1 to 4, and when one group in a breakdown has to be hidden, every group with anyone in it is.`));
     out.hidden = false;
   }
 
@@ -372,11 +380,11 @@ import '../../styles/teach.css';
     cat.levels.forEach(([k], i) => { byLevel[k] = i === 0 || i === 6 ? null : 6 + rnd(25); });
     return {
       generated: new Date(now).toISOString(), asOf: iso(now - DAY), smallCell: 5, on: { role: true, films: true, catalog: true },
-      learners: { total: 214, active7: 37, active30: 96, newByWeek: weeks(14), role: { student: 88, parent: 21, teacher: 34, unset: 71 }, signIn: { google: 131, passkey: 62, both: 21, neither: 0 }, withNotes: { yes: 74, no: 140 } },
+      learners: { total: 214, active: { last7: 37, days8to30: 59, older: 118 }, splitsAsOf: iso(now - 9 * DAY), newByWeek: weeks(14), role: { student: 88, parent: 21, teacher: 34, unset: 71 }, signIn: { google: 131, passkey: 62, both: 21, neither: 0 }, withNotes: { yes: 74, no: 140 } },
       lessons: { opened: lessons.map((slug, i) => ({ slug, opened: 48 - i * 3, finished: i % 5 === 4 ? null : 30 - i * 2 })), hidden: 187 },
       teachers: { total: 58, newByWeek: hiddenWeeks(), verified: { yes: 49, no: 9 }, classes: { active30: 19, idle: 22, none: 17 } },
-      classes: { total: 93, active7: 22, active30: 47, newByWeek: weeks(8), byLevel, byCourse, joinMode: { open: 51, approve: 12, roster: 30, locked: 0 }, size: { none: 14, s1to9: 21, s10to29: 49, s30up: 9 }, withAssignments: { yes: 70, no: 23 }, inGroup: { yes: 18, no: 75 }, aiFeedbackOn: { yes: null, no: null } },
-      seats: { total: 1640, seen7: 402, seen30: 911, newByWeek: weeks(120), status: { active: 1611, pending: 29 } },
+      classes: { total: 93, active: { last7: 22, days8to30: 25, older: 46 }, splitsAsOf: iso(now - 16 * DAY), newByWeek: weeks(8), byLevel, byCourse, joinMode: { open: 51, approve: 12, roster: 30, locked: 0 }, size: { none: 14, s1to9: 21, s10to29: 49, s30up: 9 }, withAssignments: { yes: 70, no: 23 }, inGroup: { yes: 18, no: 75 }, aiFeedbackOn: { yes: null, no: null } },
+      seats: { total: 1640, seen: { last7: 402, days8to30: 509, older: 729 }, newByWeek: weeks(120), status: { active: 1611, pending: 29 } },
       classWork: { assigned: lessons.slice(0, 8).map((slug, i) => ({ slug, teachers: 14 - i, classes: 25 - i * 2 })), hidden: 96, answers30: { quiz: 5210, idea: 1404, cer: 388, done: 902, stuck: 61 } },
       groups: { total: 6 },
       films: { since: iso(now - 41 * DAY), last7: { started: byDay.slice(-7).reduce((a, x) => a + x.started, 0), watched: byDay.slice(-7).reduce((a, x) => a + x.watched, 0) }, last30: { started: byDay.reduce((a, x) => a + x.started, 0), watched: byDay.reduce((a, x) => a + x.watched, 0) }, all, byDay, byFilm: films },

@@ -155,14 +155,11 @@ console.log('before migration 0009 (the code ships first)');
     assert.equal(db.sql.prepare('SELECT COUNT(*) AS n FROM rate_limits').get().n, before);
     assert.equal(db.sql.prepare("SELECT COUNT(*) AS n FROM sqlite_master WHERE name='film_counts'").get().n, 0);
   });
-  await check('the totals still answer, with role and films marked as not there yet', async () => {
-    db.sql.exec(`UPDATE learners SET created_at = created_at - ${3 * 86_400_000}`);   // totals are "as of the end of yesterday"
+  await check('the totals stay shut (the unknown-path 404) until the migration is applied, even with the right secret', async () => {
     const r = await admin(env);
-    assert.equal(r.status, 200, r.text);
-    assert.deepEqual(r.data.on, { role: false, films: false, catalog: true });
-    const again = await admin(env);
-    assert.equal(again.status, 200);   // no snapshot table yet: counted fresh each time, still fine
-    assert.equal(r.data.learners.total, 2); assert.equal(r.data.learners.role, null); assert.equal(r.data.films, null);
+    const unknown = await call(env, 'GET', '/api/nothing-here');
+    assert.equal(r.status, 404); assert.equal(r.text, unknown.text);
+    assert.ok(!db.seen.some((q) => /FROM learners WHERE created_at/.test(q)), 'and nothing was counted');
   });
 }
 
@@ -452,6 +449,11 @@ console.log('the film counter');
     assert.equal(JSON.stringify(filmRows(db)), before);
     db.sql.exec("DELETE FROM rate_limits WHERE key='film:g:min'");
   });
+  await check('one connection over its own limit cannot use up the allowance everyone shares', async () => {
+    db.sql.exec("DELETE FROM rate_limits WHERE key LIKE 'film:%'");
+    for (let i = 0; i < 200; i++) await post({ k: 'glycolysis/explainer', e: 's' }, { ip: '203.0.113.210' });
+    assert.equal(db.sql.prepare("SELECT count FROM rate_limits WHERE key='film:g:min'").get().count, 120);
+  });
   await check('the page sends the film and the event, without cookies, and fails silently', async () => {
     const lib = src('src/lib/film-progress.ts');
     const send = /fetch\('\/api\/film-count',[\s\S]*?\}\)\.catch/.exec(lib)[0];
@@ -527,23 +529,24 @@ console.log('the totals: aggregates only, small cells hidden, one answer a day')
   const ran = db.seen.slice(mark);
 
   await check('plain whole-site totals are shown as they are, as of the end of yesterday, and stay separate lines', async () => {
-    assert.equal(d.learners.total, 22, "today's new account is not counted yet"); assert.equal(d.teachers.total, 12); assert.equal(d.classes.total, 26); assert.equal(d.seats.total, 60);
+    assert.equal(d.learners.total, 22, "today's new account is not counted yet"); assert.equal(d.teachers.total, 12);
+    assert.equal(d.classes.total, 26); assert.equal(d.seats.total, 60);   // shown because 7 different teachers have classes
     assert.equal(d.asOf, dayStr(yesterday));
     assert.ok(!JSON.stringify(Object.keys(d)).match(/people|users|everyone|allAccounts/i), 'no summed "users" figure');
-    assert.deepEqual(d.groups, { total: 1 });
+    assert.deepEqual(d.groups, { total: null }, 'one school group is a small count');
   });
-  await check('the same day gives the same bytes, whatever happens in between', async () => {
+  await check('the count is made about once a day, not when the reader asks: the kept reply is served for 20 hours whatever happens', async () => {
     s.prepare("INSERT INTO learners (id, display_name, created_at, last_active_at, role) VALUES ('ZZID-late','ZZNAME Late',?,?,'parent')").run(T, T);
-    s.prepare("UPDATE learners SET role='teacher' WHERE id='ZZID-learner-0'").run();
     s.prepare("UPDATE film_counts SET started = started + 1 WHERE film_key='osmosis/explainer'").run();
     const again = await admin(env, { ip: '198.51.100.10' });
     assert.equal(again.text, r.text);
-    assert.equal(s.prepare('SELECT COUNT(*) AS n FROM admin_snapshots').get().n, 1);
-    s.prepare("INSERT INTO admin_snapshots (day, body, made_at) VALUES ('v2:2001-01-01', '{}', 1)").run();
-    s.exec("DELETE FROM admin_snapshots WHERE day NOT LIKE '%2001%'");
-    await admin(env, { ip: '198.51.100.10' });
-    assert.equal(s.prepare("SELECT COUNT(*) AS n FROM admin_snapshots WHERE day LIKE '%2001%'").get().n, 0, 'older days are not kept');
-    s.exec("DELETE FROM learners WHERE id='ZZID-late'; UPDATE learners SET role='student' WHERE id='ZZID-learner-0'; UPDATE film_counts SET started = started - 1 WHERE film_key='osmosis/explainer'; DELETE FROM admin_snapshots;");
+    for (const h of [0.1, 5, 19.9]) assert.equal(await ADMIN.dailyReply(db, env, new Request(ORIGIN), now + h * 3_600_000), r.text, `${h} hours later`);
+    assert.deepEqual(s.prepare('SELECT day FROM admin_snapshots ORDER BY day').all().map((x) => x.day), ['hold:v1', 'reply:v3'], 'two rows, replaced in place');
+    const later = JSON.parse(await ADMIN.dailyReply(db, env, new Request(ORIGIN), now + 20.5 * 3_600_000));
+    assert.ok(later.learners.total === 23 || later.learners.total === 24, 'after 20 hours a new count is made (24 if the site day has turned and today\'s account now counts)');
+    assert.deepEqual(s.prepare('SELECT day FROM admin_snapshots ORDER BY day').all().map((x) => x.day), ['hold:v1', 'reply:v3']);
+    assert.ok(!/base|held/.test(JSON.stringify(later)), 'the totals the holds are measured against are never sent');
+    s.exec("DELETE FROM learners WHERE id='ZZID-late'; UPDATE film_counts SET started = started - 1 WHERE film_key='osmosis/explainer'; DELETE FROM admin_snapshots;");
   });
   await check('role split: with 1 parent to hide, every group with anyone in it is hidden; the empty one stays 0', async () => {
     assert.deepEqual(d.learners.role, { student: null, parent: null, teacher: 0, unset: null });
@@ -551,8 +554,9 @@ console.log('the totals: aggregates only, small cells hidden, one answer a day')
   await check('sign-in method and notes follow the same rule; "active lately" and weekly counts are cells too', async () => {
     assert.deepEqual(d.learners.signIn, { google: 8, passkey: 8, both: 6, neither: 0 });
     assert.deepEqual(d.learners.withNotes, { yes: 7, no: 15 });
-    assert.equal(d.learners.active7, null, '4 active in 7 days is a small group');
-    assert.equal(d.learners.active30, 15);
+    assert.deepEqual(d.learners.active, { last7: null, days8to30: null, older: null }, '4 active in 7 days is a small group, so the three-way split is hidden');
+    assert.ok(!('active7' in d.learners) && !('active30' in d.learners), 'no nested recency figures to subtract');
+    assert.equal(d.learners.splitsAsOf, d.asOf);
     assert.equal(d.learners.newByWeek.length, 26);
     assert.ok(d.learners.newByWeek.every((w) => w.n === null || w.n === 0 || w.n >= 5));
     assert.ok(!('withProgress' in d.learners));
@@ -577,7 +581,8 @@ console.log('the totals: aggregates only, small cells hidden, one answer a day')
   await check('answers count students and classes, not rows: 12 quiz answers from one class are hidden', async () => {
     assert.deepEqual(d.classWork.answers30, { quiz: null, idea: 0, cer: 0, done: 0, stuck: null });
     assert.deepEqual(d.seats.status, { active: null, pending: null });
-    assert.equal(d.seats.seen7, 20); assert.equal(d.classes.active7, null, 'only 4 classes were used in 7 days');
+    assert.deepEqual(d.seats.seen, { last7: 20, days8to30: 40, older: 0 });
+    assert.deepEqual(d.classes.active, { last7: null, days8to30: null, older: null }, 'the 4 classes used in 7 days belong to 4 teachers');
   });
   await check('films: whole days only (today left out), for films the site has, with nothing about who', async () => {
     assert.equal(d.on.films, true);
@@ -597,7 +602,7 @@ console.log('the totals: aggregates only, small cells hidden, one answer a day')
 
   // ---- the scan: nothing that looks like a person, a class or an id, anywhere in the reply ------
   const ALLOWED_KEYS = new Set([
-    'generated', 'asOf', 'smallCell', 'on', 'role', 'films', 'catalog', 'learners', 'lessons', 'teachers', 'classes', 'seats', 'classWork', 'groups', 'router', 'planner',
+    'generated', 'asOf', 'smallCell', 'splitsAsOf', 'last7', 'days8to30', 'older', 'seen', 'on', 'role', 'films', 'catalog', 'learners', 'lessons', 'teachers', 'classes', 'seats', 'classWork', 'groups', 'router', 'planner',
     'total', 'active7', 'active30', 'newByWeek', 'week', 'n', 'signIn', 'google', 'passkey', 'both', 'neither', 'withNotes', 'yes', 'no',
     'student', 'parent', 'teacher', 'unset', 'opened', 'finished', 'slug', 'hidden', 'verified', 'idle', 'none',
     'byLevel', 'byCourse', 'joinMode', 'open', 'approve', 'roster', 'locked', 'size', 's1to9', 's10to29', 's30up', 'withAssignments', 'inGroup', 'aiFeedbackOn',
@@ -692,7 +697,7 @@ console.log('the totals: aggregates only, small cells hidden, one answer a day')
         const mix = [...Array(a).fill('student'), ...Array(b).fill('parent'), ...Array(c).fill('teacher'), ...Array(N - a - b - c).fill(null)];
         const ins = t.sql.prepare('INSERT INTO learners (id, display_name, created_at, last_active_at, role) VALUES (?,?,?,?,?)');
         mix.forEach((role, i) => ins.run('L' + i, 'x', T, T, role));
-        const reply = await ADMIN.buildStats(t, { ASSETS: quiet }, new Request(ORIGIN), now);
+        const reply = (await ADMIN.buildStats(t, { ASSETS: quiet }, new Request(ORIGIN), now)).stats;
         delete reply.generated;
         const key = JSON.stringify(reply);
         if (!groups.has(key)) groups.set(key, []);
@@ -703,6 +708,86 @@ console.log('the totals: aggregates only, small cells hidden, one answer a day')
         role.forEach((shown, k) => { if (shown === null) assert.ok(new Set(mixes.map((m) => m[k])).size >= 2, `N=${N}: role cell ${k} can only be ${mixes[0][k]} given ${JSON.stringify(JSON.parse(key).learners.role)}`); });
       }
     }
+  });
+
+  // ---- two days running, and the one-teacher site ---------------------------------------------
+  const world = async (setup) => { const t = makeDb(); await setup(t.sql); return t; };
+  const E = { ASSETS: { fetch: ASSETS.fetch } };
+  const addLearners = (sql, mix, at = T, tag = 'L') => { const ins = sql.prepare('INSERT INTO learners (id, display_name, created_at, last_active_at, role) VALUES (?,?,?,?,?)'); mix.forEach((role, i) => { ins.run(tag + i, 'x', at, at, role); sql.prepare("INSERT INTO learner_data (learner_id, notebook_json, progress_json, updated_at) VALUES (?, '{}', ?, 0)").run(tag + i, JSON.stringify({ v: 1, lessons: i < 20 ? { glycolysis: { v: 1, ...(i < 10 ? { d: 1 } : {}) } } : {}, items: {} })); }); };
+  const BIG = [...Array(10).fill('student'), ...Array(5).fill('parent'), ...Array(5).fill('teacher'), ...Array(10).fill(null)];   // every cell is 5 or more: the split is shown
+  const day2 = now + 26 * 3_600_000;
+  const strip = (text) => { const o = JSON.parse(text); delete o.generated; return JSON.stringify(o); };
+  await check('property, two days running: whatever one newcomer answers, the next day\'s reply is the same', async () => {
+    const replies = new Set(); let first = null;
+    for (const answer of ['student', 'parent', 'teacher', null]) {
+      const t = await world((sql) => addLearners(sql, BIG));
+      const one = JSON.parse(await ADMIN.dailyReply(t, E, new Request(ORIGIN), now));
+      assert.deepEqual(one.learners.role, { student: 10, parent: 5, teacher: 5, unset: 10 });
+      t.sql.prepare('INSERT INTO learners (id, display_name, created_at, last_active_at, role) VALUES (?,?,?,?,?)').run('NEW', 'x', now, now, answer);
+      const two = await ADMIN.dailyReply(t, E, new Request(ORIGIN), day2);
+      assert.equal(JSON.parse(two).learners.total, 31); assert.deepEqual(JSON.parse(two).learners.role, one.learners.role, 'the split is carried forward');
+      assert.equal(JSON.parse(two).learners.splitsAsOf, one.asOf);
+      replies.add(strip(two)); first = one;
+    }
+    assert.equal(replies.size, 1, 'the newcomer\'s answer changes nothing a reader can see');
+    assert.ok(first);
+  });
+  await check('property, two days running: a deleted account\'s role, and a lesson one learner finished, do not show the next day', async () => {
+    const replies = new Set();
+    for (const change of ['none', 'delete-student', 'delete-parent', 'delete-unset', 'finish-lesson', 'open-lesson']) {
+      const t = await world((sql) => addLearners(sql, BIG));
+      await ADMIN.dailyReply(t, E, new Request(ORIGIN), now);
+      const id = { 'delete-student': 'L0', 'delete-parent': 'L10', 'delete-unset': 'L25' }[change];
+      if (id) t.sql.exec(`DELETE FROM learner_data WHERE learner_id='${id}'; DELETE FROM learners WHERE id='${id}'`);
+      if (change === 'finish-lesson') t.sql.prepare("UPDATE learner_data SET progress_json=? WHERE learner_id='L15'").run(JSON.stringify({ v: 1, lessons: { glycolysis: { v: 1, d: 2 } }, items: {} }));
+      if (change === 'open-lesson') t.sql.prepare("UPDATE learner_data SET progress_json=? WHERE learner_id='L25'").run(JSON.stringify({ v: 1, lessons: { glycolysis: { v: 1 } }, items: {} }));
+      const two = JSON.parse(await ADMIN.dailyReply(t, E, new Request(ORIGIN), day2));
+      const total = two.learners.total; delete two.learners.total; delete two.generated; delete two.learners.newByWeek; delete two.learners.active;
+      assert.deepEqual(two.learners.withNotes, { yes: 0, no: total }); delete two.learners.withNotes;   // nobody has notes here, so this is the plain total again
+      assert.equal(total, id ? 29 : 30);
+      replies.add(JSON.stringify(two));
+    }
+    assert.equal(replies.size, 1, 'apart from the plain total, nothing a reader sees depends on which account went or what one learner did');
+  });
+  await check('the held split is republished once five more accounts exist, and then the change is five people\'s, not one\'s', async () => {
+    const t = await world((sql) => addLearners(sql, BIG));
+    const one = JSON.parse(await ADMIN.dailyReply(t, E, new Request(ORIGIN), now));
+    addLearners(t.sql, ['teacher', 'teacher', 'student', null], now, 'M');
+    const two = JSON.parse(await ADMIN.dailyReply(t, E, new Request(ORIGIN), day2));
+    assert.deepEqual(two.learners.role, one.learners.role, '4 more: still held');
+    addLearners(t.sql, ['parent'], day2, 'N');
+    const three = JSON.parse(await ADMIN.dailyReply(t, E, new Request(ORIGIN), day2 + 26 * 3_600_000));
+    assert.deepEqual(three.learners.role, { student: 11, parent: 6, teacher: 7, unset: 11 });
+    assert.equal(three.learners.splitsAsOf, three.asOf);
+  });
+  const oneTeacher = (sql, course = 'genetics', extra = 0) => {
+    for (let i = 0; i < 8; i++) sql.prepare('INSERT INTO teachers (email, name, password_hash, created_at) VALUES (?,?,?,?)').run(`t${i}@x.test`, 'x', 'x', T);
+    for (let i = 0; i < 5 + extra; i++) {
+      sql.prepare('INSERT INTO classes (id, teacher_id, name, course, code, join_mode, created_at, last_activity_at) VALUES (?,?,?,?,?,?,?,?)').run('C' + i, 1, 'x', i < 5 ? 'genetics' : course, 'K' + i, 'roster', T, T);
+      for (let k = 0; k < 6; k++) sql.prepare('INSERT INTO students (class_id, nickname, code_hash, status, created_at, last_seen_at) VALUES (?,?,?,?,?,?)').run('C' + i, 'n' + k, 'h', k ? 'active' : 'pending', T, T);
+    }
+  };
+  await check('one teacher with five periods: nothing about classes or seats is shown at all, not even the totals', async () => {
+    const t = await world((sql) => oneTeacher(sql));
+    const o = JSON.parse(await ADMIN.dailyReply(t, E, new Request(ORIGIN), now));
+    assert.equal(o.teachers.total, 8);
+    assert.equal(o.classes.total, null); assert.equal(o.seats.total, null);
+    const nums = [];
+    (function walk(x) { if (typeof x === 'number') nums.push(x); else if (x && typeof x === 'object') Object.values(x).forEach(walk); })({ c: o.classes, s: o.seats, w: o.classWork, t: o.teachers.classes });
+    assert.ok(nums.every((v) => v === 0), 'every class and seat figure is hidden or zero: ' + nums.filter(Boolean));
+    assert.ok(o.classes.newByWeek.every((w) => !w.n) && o.seats.newByWeek.every((w) => !w.n));
+    assert.deepEqual(o.seats.status, { active: null, pending: null }); assert.deepEqual(o.seats.seen, { last7: null, days8to30: null, older: null });
+  });
+  await check('property, two days running: which course a teacher\'s new class is for does not show the next day', async () => {
+    const replies = new Set();
+    for (const course of ['genetics', 'life-science', 'biochemistry']) {
+      const t = await world((sql) => { oneTeacher(sql); for (let i = 2; i <= 7; i++) for (let k = 0; k < 2; k++) sql.prepare('INSERT INTO classes (id, teacher_id, name, course, code, join_mode, created_at, last_activity_at) VALUES (?,?,?,?,?,?,?,?)').run(`D${i}${k}`, i, 'x', 'genetics', `Q${i}${k}`, 'open', T, T); });
+      const one = JSON.parse(await ADMIN.dailyReply(t, E, new Request(ORIGIN), now));
+      assert.equal(one.classes.total, 17); assert.deepEqual(one.classes.byCourse, { genetics: 17 });
+      t.sql.prepare('INSERT INTO classes (id, teacher_id, name, course, code, join_mode, created_at, last_activity_at) VALUES (?,?,?,?,?,?,?,?)').run('NEWC', 2, 'x', course, 'NEWK', 'open', now, now);
+      replies.add(strip(await ADMIN.dailyReply(t, E, new Request(ORIGIN), day2)));
+    }
+    assert.equal(replies.size, 1);
   });
 }
 
