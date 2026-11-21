@@ -457,32 +457,169 @@ class S11Energy(LivingScene):
 
 class S12Level(LivingScene):
     def construct(self):
-        tb = tub()
-        self.play(FadeIn(tb), run_time=.6)
-        self.add(scope_tag("simple model · schematic"))
-        level = ValueTracker(.25)
-        fill = always_redraw(lambda: Rectangle(width=7.8,height=max(.12,level.get_value()*2.8),stroke_width=0,
-                                                fill_color=BROWN,fill_opacity=.62).move_to([1.55,-2.35+level.get_value()*1.4,0]))
-        gauge = always_redraw(lambda: Line([5.95,-2.35,0],[5.95,-2.35+level.get_value()*2.8,0],color=GOLD,stroke_width=12))
-        self.add(fill,gauge)
-        autumn = chip("+1 autumn",GOLD,size=30).move_to([-4.6,2.5,0])
+        # Tub sized for the time-lapse close-up, keeping the film's exact tub geometry & colours.
+        tx0_b, tx1_b = -3.9, 3.3
+        tx0_t, tx1_t = -4.2, 3.6
+        ty0, ty1 = -1.95, 0.45
+        cx = (tx0_b + tx1_b) / 2  # -0.3
+        outline = VMobject(color=BLUE_GREY, stroke_width=6)
+        outline.set_points_as_corners([[tx0_t, ty1, 0], [tx0_b, ty0, 0],
+                                       [tx1_b, ty0, 0], [tx1_t, ty1, 0]])
+        rim = VGroup(Line([tx0_t - 0.25, ty1, 0], [tx0_t + 0.25, ty1, 0], color=BLUE_GREY, stroke_width=6),
+                     Line([tx1_t - 0.25, ty1, 0], [tx1_t + 0.25, ty1, 0], color=BLUE_GREY, stroke_width=6))
+        drain = VGroup(Circle(radius=0.26, color=BLUE_GREY, stroke_width=5,
+                              fill_color=BG, fill_opacity=1).move_to([cx, ty0, 0]),
+                       Line([cx - 0.2, ty0, 0], [cx + 0.2, ty0, 0], color=BLUE_GREY, stroke_width=4))
+        tb = VGroup(outline, rim, drain)
+        tb.outline, tb.drain = outline, drain
+
+        max_model = 2.2
+        level = ValueTracker(0.0)
+        drain_w = ValueTracker(0.0)
+
+        def _fill():
+            lv = max(0.02, float(level.get_value()))
+            f = min(1.0, lv / max_model)
+            yb = ty0 + 0.04
+            yt = yb + f * (ty1 - ty0 - 0.09)
+            s0 = (yb - ty0) / (ty1 - ty0)
+            s1 = (yt - ty0) / (ty1 - ty0)
+            xbl = tx0_b + s0 * (tx0_t - tx0_b) + 0.08
+            xbr = tx1_b + s0 * (tx1_t - tx1_b) - 0.08
+            xtl = tx0_b + s1 * (tx0_t - tx0_b) + 0.08
+            xtr = tx1_b + s1 * (tx1_t - tx1_b) - 0.08
+            return Polygon([xbl, yb, 0], [xbr, yb, 0], [xtr, yt, 0], [xtl, yt, 0],
+                           stroke_width=0, fill_color=BROWN, fill_opacity=0.68)
+
+        fill = always_redraw(_fill)
+
+        # Level gauge on the tub's right side
+        gx = 4.25
+        gauge_track = Line([gx, ty0, 0], [gx, ty1, 0], color=BLUE_GREY, stroke_width=8)
+        gauge_bar = always_redraw(lambda: Line(
+            [gx, ty0, 0],
+            [gx, ty0 + min(1.0, max(0.01, level.get_value()) / max_model) * (ty1 - ty0), 0],
+            color=GOLD, stroke_width=12))
+        gauge_ptr = always_redraw(lambda: Triangle(color=GOLD, fill_color=GOLD, fill_opacity=1)
+                                  .scale(0.14).rotate(PI / 2)
+                                  .move_to([gx + 0.24, ty0 + min(1.0, max(0.01, level.get_value()) / max_model) * (ty1 - ty0), 0]))
+        gauge_title = T("pile level", 24, GOLD).move_to([gx, ty1 + 0.35, 0])
+        scope = scope_tag("simple model (schematic)")
+
+        def _down_arrow(top_y, bot_y, sw, color):
+            sw = max(0.05, sw) / 2
+            hh = min(0.32, abs(top_y - bot_y) * 0.35)
+            hw = sw + 0.16
+            ny = bot_y + hh
+            return Polygon([cx - sw, top_y, 0], [cx + sw, top_y, 0],
+                           [cx + sw, ny, 0], [cx + hw, ny, 0],
+                           [cx, bot_y, 0],
+                           [cx - hw, ny, 0], [cx - sw, ny, 0],
+                           color=color, stroke_width=2, fill_color=color, fill_opacity=0.82)
+
+        w_in = 0.48
+        in_arrow = _down_arrow(2.10, 0.78, w_in, GOLD)
+        autumn_chip = chip("+1 autumn", GOLD, size=28).move_to([cx, 2.65, 0])
+        out_arrow = always_redraw(lambda: _down_arrow(-2.25, -3.32, w_in * max(0.12, drain_w.get_value()), PURPLE))
+        out_label = T("drain", 26, PURPLE).move_to([cx + 0.95, -2.82, 0])
+
+        # Left-side math & bar comparison (no numbers)
+        bar_x = -4.25
+        bar_w = 1.9
+        in_bar_lbl = T("leaf fall", 26, GOLD).move_to([-5.95, 2.85, 0], aligned_edge=LEFT)
+        in_bar = Rectangle(width=bar_w, height=0.24, stroke_width=0, fill_color=GOLD, fill_opacity=0.85)
+        in_bar.move_to([bar_x + bar_w / 2, 2.85, 0])
+        dr_bar_lbl = T("drain", 26, PURPLE).move_to([-5.95, 2.25, 0], aligned_edge=LEFT)
+        dr_bar = always_redraw(lambda: Rectangle(
+            width=max(0.06, bar_w * drain_w.get_value()), height=0.24,
+            stroke_width=0, fill_color=PURPLE, fill_opacity=0.88)
+            .move_to([bar_x + max(0.06, bar_w * drain_w.get_value()) / 2, 2.25, 0]))
+
+        eq_share = fit_text("drain = same share × pile", max_w=4.3, size=24, color=TEXT).move_to([-5.95, 1.45, 0], aligned_edge=LEFT)
+        eq_bigger = T("same share × bigger pile\n= more drain", size=24, color=GOLD, line_spacing=0.85).move_to([-5.95, 1.40, 0], aligned_edge=LEFT)
+        eq_bal = fit_text("drain = leaf fall", max_w=4.3, size=28, color=GOLD).move_to([-5.95, 1.45, 0], aligned_edge=LEFT)
+
+        def _add_layer(target_lv, run_t):
+            layer = RoundedRectangle(corner_radius=0.08, width=5.6, height=0.22,
+                                     color=BROWN, stroke_width=2, fill_color=BROWN, fill_opacity=0.78)
+            layer.move_to([cx, 0.72, 0])
+            self.add(layer)
+            self.play(layer.animate.move_to([cx, ty0 + 0.15 + (target_lv / max_model) * 1.9, 0]).set_opacity(0.0),
+                      level.animate.set_value(target_lv), run_time=run_t)
+            self.remove(layer)
+
+        def _drain_step(target_lv, target_dw, run_t, n_dots=4):
+            xs = np.linspace(-0.22, 0.22, n_dots)
+            dots = VGroup(*[Dot([cx + dx, ty0 - 0.1 - 0.12 * (i % 2), 0], radius=0.065, color=GOLD)
+                            for i, dx in enumerate(xs)])
+            self.add(dots)
+            self.play(drain_w.animate.set_value(target_dw),
+                      level.animate.set_value(target_lv),
+                      dots.animate.shift(DOWN * 0.95).set_opacity(0.05),
+                      run_time=run_t)
+            self.remove(dots)
+
+        def _peak_tick(lv):
+            py = ty0 + (lv / max_model) * (ty1 - ty0)
+            return Line([gx - 0.16, py, 0], [gx + 0.04, py, 0], color=GOLD, stroke_width=3)
+
+        self.play(FadeIn(tb), FadeIn(gauge_track), FadeIn(gauge_title), FadeIn(scope), run_time=0.9)
+        self.add(fill, gauge_bar, gauge_ptr)
+
+        # Beat 1: The same leaf fall comes each autumn
         self.at("same leaf fall")
-        self.play(FadeIn(autumn), level.animate.set_value(.58), run_time=1.1)
-        self.at("drain the same share")
-        self.play(tb.drain.animate.set_color(PURPLE), level.animate.set_value(.41), run_time=1.15)
-        for high,low in [(.74,.54),(.84,.66),(.9,.73)]:
-            self.play(level.animate.set_value(high), run_time=.65)
-            self.play(level.animate.set_value(low), run_time=.65)
-        self.at("as much as falls in")
-        equal = T("drain = leaf fall",34,GOLD).move_to([0,2.6,0])
-        self.play(FadeOut(autumn), FadeIn(equal), level.animate.set_value(.86), run_time=.8)
-        self.play(level.animate.set_value(.74), run_time=.65)
-        self.at("Then it stops")
-        self.play(level.animate.set_value(.86), run_time=.65)
-        self.play(level.animate.set_value(.74), run_time=.65)
-        label = fit_text("levels off when drain = leaf fall",6.5,30,GOLD).move_to([2.1,1.75,0])
+        self.play(FadeIn(in_arrow), FadeIn(autumn_chip, shift=DOWN * 0.15),
+                  FadeIn(in_bar_lbl), FadeIn(in_bar), run_time=0.45)
+        _add_layer(1.0, 0.95)
+        tick1 = _peak_tick(1.0)
+        self.add(tick1)
+
+        # Beat 2: Decomposers drain the same share each year
+        self.at("decomposers drain")
+        self.play(tb.drain.animate.set_color(PURPLE), FadeIn(out_arrow), FadeIn(out_label),
+                  FadeIn(dr_bar_lbl), FadeIn(dr_bar), FadeIn(eq_share), run_time=0.45)
+        _drain_step(0.50, 0.50, 1.35, n_dots=4)
+
+        # Beat 3: A bigger pile loses more each year
+        self.at("A bigger pile")
+        _add_layer(1.50, 0.85)
+        tick2 = _peak_tick(1.50)
+        self.add(tick2)
+        _drain_step(0.75, 0.75, 1.15, n_dots=6)
+
+        # Beat 4: because the same share of a bigger pile is more
+        self.at("same share of a bigger pile")
+        self.play(swap(eq_share, eq_bigger), Indicate(out_arrow, color=GOLD), run_time=0.75)
+
+        # Beat 5: So the drain grows until it matches one autumn's leaf fall
+        self.at("drain grows")
+        _add_layer(1.75, 0.42)
+        self.add(_peak_tick(1.75))
+        _drain_step(0.875, 0.875, 0.48, n_dots=7)
+        _add_layer(1.90, 0.38)
+
+        self.at("matches one")
+        self.play(swap(eq_bigger, eq_bal), run_time=0.55)
+        _drain_step(0.98, 1.00, 0.70, n_dots=8)
+
+        # Beat 6: Then the pile stops growing
+        self.at("pile stops growing")
+        steady_y = ty0 + (2.0 / max_model) * (ty1 - ty0)
+        steady_line = DashedLine([tx0_b + 0.1, steady_y, 0], [gx + 0.15, steady_y, 0],
+                                 color=GOLD, stroke_width=3, dash_length=0.16)
+        self.play(Create(steady_line), run_time=0.35)
+        _add_layer(2.00, 0.50)
+        self.wait(0.25)
+        _drain_step(1.00, 1.00, 0.55, n_dots=8)
+
+        # Beat 7: A real forest floor levels off only when it reaches that balance
         self.at("real forest floor")
-        self.play(FadeIn(label,shift=DOWN*.15), run_time=.65)
+        _add_layer(2.00, 0.42)
+        _drain_step(1.00, 1.00, 0.44, n_dots=8)
+
+        self.at("levels off")
+        g_lab = T("levels off when\ndrain = leaf fall (schematic)", size=24, color=GOLD, line_spacing=0.85).move_to([4.05, 2.15, 0])
+        self.play(FadeIn(g_lab, shift=DOWN * 0.12), run_time=0.55)
         pulse(tb.drain)
         self.finish()
 

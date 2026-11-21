@@ -525,34 +525,108 @@ class S11Narrowing(SpokenScene):
     def construct(self):
         world = web_world()
         self.add(world)
-        starts = [world.phy.get_center() + UP * .25 + RIGHT * .12 * i for i in range(4)]
-        packets = VGroup(*[packet(.22).move_to(s) for s in starts])
+
+        def heat_waves(center, scale=1.0):
+            c = np.array(center, dtype=float)
+            arcs = VGroup(*[
+                Arc(radius=(.18 + .11 * i) * scale, start_angle=.35, angle=1.45,
+                    arc_center=c, color=HEAT, stroke_width=4)
+                for i in range(3)
+            ])
+            return pulse(arcs, base=3.8, amp=1.1, speed=2.6)
+
+        def move_and_shrink(mob, start, end, factor, run_time=1.3):
+            p0, p1 = np.array(start, dtype=float), np.array(end, dtype=float)
+            w0 = mob.width
+            ctrl = (p0 + p1) / 2 + UP * .18
+
+            def upd(m, alpha):
+                pos = (1 - alpha) ** 2 * p0 + 2 * (1 - alpha) * alpha * ctrl + alpha ** 2 * p1
+                m.move_to(pos)
+                target_w = w0 * (1.0 - alpha + alpha * factor)
+                if m.width > 1e-6:
+                    m.scale(target_w / m.width)
+
+            return UpdateFromAlphaFunc(mob, upd, run_time=run_time, rate_func=linear)
+
+        sun_starts = [world.sun.get_center() + np.array([-.12 + .08 * i, .08 - .06 * i, 0])
+                      for i in range(4)]
+        packets = VGroup(*[packet(.22).move_to(s) for s in sun_starts])
         self.at("Now watch each feeding")
-        self.play(FadeIn(packets, lag_ratio=.15), run_time=.7)
-        self.play(Indicate(world.phy, color=ENERGY, scale_factor=1.12), run_time=.7)
-        continuing = packets[0]
-        side = VGroup(packets[1], packets[2], packets[3])
-        self.at("Much energy follows")
-        self.play(side.animate.move_to(world.dec.get_center()).scale(.65),
-                  continuing.animate.move_to(world.zoo).scale(.78), run_time=1.3)
-        heat1 = VGroup(*[Arc(radius=.22 + .10 * i, start_angle=.2, angle=1.4,
-                            color=HEAT, stroke_width=4).move_to(world.zoo.get_center() + RIGHT * .75)
-                         for i in range(3)])
-        self.play(FadeIn(heat1, lag_ratio=.15),
-                  continuing.animate.move_to(world.men).scale(.72), run_time=1.2)
+        self.play(FadeIn(packets, lag_ratio=.12), run_time=.5)
+        self.play(*[p.animate.move_to(world.phy.get_center() + np.array([-.16 + .11 * i, .09 * (i % 2) - .04, 0]))
+                    for i, p in enumerate(packets)], run_time=1.3)
+        self.play(Indicate(world.phy, color=ENERGY, scale_factor=1.10), run_time=.6)
+
+        continuing = packet(.26).move_to(world.phy.get_center())
+        self.at("Organisms release much")
+        self.play(FadeOut(packets, run_time=.25), FadeIn(continuing, run_time=.25))
+        self.play(move_and_shrink(continuing, world.phy.get_center(), world.zoo.get_center(), .66, run_time=1.3))
+
+        heat1 = heat_waves([-2.85, 1.05, 0])
+        self.at("as heat")
+        self.play(FadeIn(heat1, shift=UP * .18, lag_ratio=.15), run_time=.7)
+
+        heat_label = T("life processes: heat", 28, HEAT).move_to([-.4, 3.05, 0])
+        self.at("life processes")
+        self.play(FadeIn(heat_label, shift=DOWN * .1), run_time=.6)
+
+        heat2 = heat_waves([-.95, .62, 0])
+        self.at("like swimming")
+        self.play(world.zoo.animate.shift(RIGHT * .16), world.men.animate.shift(RIGHT * .16),
+                  run_time=.45)
+        self.play(world.zoo.animate.shift(LEFT * .16), world.men.animate.shift(LEFT * .16),
+                  run_time=.45)
+        self.play(FadeIn(heat2, shift=UP * .18, lag_ratio=.15),
+                  move_and_shrink(continuing, world.zoo.get_center(), world.men.get_center(), .68, run_time=1.3))
+
+        down1 = DashedLine([-3.05, .70, 0], [-2.85, -2.42, 0], color=DEC,
+                           stroke_width=4, dash_length=.15)
+        down2 = DashedLine([-.95, .05, 0], [-.85, -2.42, 0], color=DEC,
+                           stroke_width=4, dash_length=.15)
+        down4 = DashedLine([2.45, -.40, 0], [2.60, -2.42, 0], color=DEC,
+                           stroke_width=4, dash_length=.15)
+        dec_route_label = T("undigested food and\nuneaten bodies", 24, DEC, line_spacing=0.9)
+        dec_route_label.move_to([-4.72, -1.55, 0])
+        self.at("Undigested food and")
+        self.play(LaggedStart(Create(down1), Create(down2), Create(down4), lag_ratio=.15),
+                  FadeIn(dec_route_label, shift=RIGHT * .12), run_time=1.2)
+
+        speck1 = packet(.09).move_to(down1.get_start())
+        speck2 = packet(.09).move_to(down2.get_start())
+        speck4 = packet(.08).move_to(down4.get_start())
+        self.add(speck1, speck2, speck4)
+        self.at("go to decomposers")
+        self.play(speck1.animate.move_to(down1.get_end()),
+                  speck2.animate.move_to(down2.get_end()),
+                  speck4.animate.move_to(down4.get_end()), run_time=1.1, rate_func=linear)
+        self.play(Indicate(world.dec, color=DEC, scale_factor=1.05), run_time=.6)
+
         self.at("Energy has not disappeared")
-        down = DashedLine(world.men.get_center(), world.dec.get_center(), color=DEC,
-                          stroke_width=4, dash_length=.15)
-        heat2 = heat1.copy().move_to(world.men.get_center() + RIGHT * .9)
-        self.play(Create(down), FadeIn(heat2), run_time=.8)
-        self.play(continuing.animate.move_to(world.osp).scale(.65), run_time=1.1)
-        rule = caption("less available at each step", size=36, color=ENERGY, y=-1.85)
-        rule.shift(LEFT * 3.2)
-        rule.layout_ok = True  # intended caption over the carried Bay background
+        self.play(Indicate(VGroup(heat1, heat2, speck1, speck2, continuing),
+                           color=ENERGY, scale_factor=1.05), run_time=1.1)
+
+        heat3 = heat_waves([2.15, 1.55, 0])
+        heat4 = heat_waves([2.35, -.08, 0], scale=.85)
+        down3 = DashedLine([2.05, 1.15, 0], [1.75, -2.42, 0], color=DEC,
+                           stroke_width=4, dash_length=.15)
+        speck3 = packet(.08).move_to(down3.get_start())
+        osp_target = world.osp.get_center() + np.array([-.15, -.08, 0])
+        self.at("smaller packet continues upward")
+        self.play(Create(down3), FadeIn(heat3, shift=UP * .15), FadeIn(heat4, shift=UP * .15),
+                  run_time=.6)
+        self.add(speck3)
+        self.play(move_and_shrink(continuing, world.men.get_center(), osp_target, .65, run_time=1.5),
+                  speck3.animate.move_to(down3.get_end()),
+                  run_time=1.5, rate_func=linear)
+
+        rule = T("less available at each step", 36, ENERGY).move_to([-.4, 3.05, 0])
         self.at("At each feeding step")
-        self.play(FadeIn(rule), run_time=.7)
-        self.play(Indicate(VGroup(world.phy, world.zoo, world.men, world.osp),
-                           color=ENERGY, scale_factor=1.03), run_time=1.2)
+        self.play(swap(VGroup(heat_label, dec_route_label), rule, run_time=.8))
+        self.at("less energy is available")
+        self.play(Indicate(VGroup(world.arrows[0], world.arrows[1], world.arrows[2]),
+                           color=ENERGY, scale_factor=1.03),
+                  Indicate(continuing, color=ENERGY, scale_factor=1.8), run_time=1.3)
         self.finish()
 
 

@@ -610,17 +610,17 @@ class S09Products(SpokenScene):
         chl = objs[2]
         self.play(chl.animate.set_fill(GREEN, 0.05).set_stroke(opacity=0.4), run_time=0.4)
         eq = eq_line()
-        a = VGroup(RoundedRectangle(corner_radius=0.18, width=3.0, height=0.9, stroke_color=GREY, stroke_width=3, fill_color=GREY, fill_opacity=0.1),
-                   VGroup(T("6CO2", 30, BLUE, weight=BOLD), T("+", 30), T("6H2O", 30, TEAL, weight=BOLD)).arrange(RIGHT, buff=0.15)).move_to(P(-4.4, -0.7))
+        a = VGroup(RoundedRectangle(corner_radius=0.18, width=2.65, height=0.85, stroke_color=GREY, stroke_width=3, fill_color=GREY, fill_opacity=0.1),
+                   VGroup(T("6CO2", 26, BLUE, weight=BOLD), T("+", 26), T("6H2O", 26, TEAL, weight=BOLD)).arrange(RIGHT, buff=0.12)).move_to(P(-3.88, -0.55))
         a[1].move_to(a[0])
-        arrow = Arrow(P(-2.8, -0.7), P(-1.6, -0.7), buff=0, color=TEXT, stroke_width=6)
+        arrow = Arrow(P(-2.47, -0.55), P(-1.95, -0.55), buff=0, color=TEXT, stroke_width=6)
         self.at("the atoms are rearranged")
         self.play(FadeIn(a, shift=RIGHT * 0.3), FadeIn(eq[0:3]), run_time=0.8)
         self.play(GrowArrow(arrow), FadeIn(eq[3:6]), run_time=0.6)
         self.at("glucose")
-        hexa = RegularPolygon(6, radius=0.85, stroke_color=AMBER, stroke_width=5, fill_color=AMBER, fill_opacity=0.4).move_to(P(-0.4, -0.7))
+        hexa = RegularPolygon(6, radius=0.85, stroke_color=AMBER, stroke_width=5, fill_color=AMBER, fill_opacity=0.4).move_to(P(-1.0, -0.35))
         hl = T("glucose", 24, AMBER, weight=BOLD).move_to(hexa)
-        sub = T("C6H12O6", 24, AMBER).move_to(P(-0.4, -1.95))
+        sub = T("C6H12O6", 24, AMBER).move_to(P(-1.0, -1.45))
         self.play(GrowFromCenter(hexa), FadeIn(hl), run_time=0.8)
         self.play(FadeIn(sub), FadeIn(eq[6]), run_time=0.5)
         self.at("a sugar with six carbon atoms")
@@ -630,7 +630,7 @@ class S09Products(SpokenScene):
         self.at("six molecules of oxygen gas")
         o2 = []
         for i in range(6):
-            c = chip("O2", RED, 28).move_to(P(1.0 + 1.1 * (i % 3), -0.3 - 0.9 * (i // 3) + 0.0))
+            c = chip("O2", RED, 24, pad=0.13).move_to(P(0.26 + 0.76 * (i % 2), 0.01 - 0.56 * (i // 2)))
             o2.append(c)
         self.play(FadeIn(eq[7:9]), run_time=0.3)
         self.play(LaggedStart(*[FadeIn(c, shift=LEFT * 0.3) for c in o2], lag_ratio=0.2), run_time=1.5)
@@ -641,13 +641,15 @@ class S09Products(SpokenScene):
 
         def rise(m, dt):
             k = float(np.clip((self.clock.get_value() - m.t0) / 1.6, 0, 1))
-            if k < 0.5:
-                u = k / 0.5
-                tgt = P(SX, 1.2)
-                m.move_to(m.p0 + (tgt - m.p0) * u)
+            if k < 0.3:
+                u = k / 0.3
+                m.move_to(m.p0 + (P(m.p0[0], 1.50) - m.p0) * u)
+            elif k < 0.7:
+                u = (k - 0.3) / 0.4
+                m.move_to(P(m.p0[0] + (SX - m.p0[0]) * u, 1.50))
             else:
-                u = (k - 0.5) / 0.5
-                m.move_to(P(SX, 1.2 + 2.4 * u))
+                u = (k - 0.7) / 0.3
+                m.move_to(P(SX, 1.50 + 2.10 * u))
             setop(m, 0.0 if k >= 1 else 1.0)
         for c in o2:
             c.add_updater(rise)
@@ -721,42 +723,74 @@ class S10Tally(SpokenScene):
         self.add(eq, tg, a, hexa, hl, sub, o2, arrow)
         # now count: the cell world gives way to the ledger
         ga, gb = group_a(), group_b()
-        self.play(FadeOut(VGroup(*objs)), FadeOut(arrow),
+        self.play(FadeOut(VGroup(*objs)), FadeOut(arrow), FadeOut(eq), FadeOut(tg),
                   a.animate.move_to(ga.get_center()),
                   VGroup(hexa, hl).animate.move_to(P(3.4, 0.45)), sub.animate.move_to(P(3.4, -0.65)),
                   *[o2[i].animate.move_to(gb[3][i].get_center()) for i in range(6)], run_time=1.2)
         pn = Panel(self)
-        self.play(FadeIn(pn.static, scale=0.95), run_time=0.7)
+        self.play(FadeIn(pn.static, scale=0.95), run_time=0.6)
         pn.add_all()
         bobs = [a, VGroup(hexa, hl, sub, o2)]
         for k, b in enumerate(bobs):
             b.base = b.get_center().copy()
             b.add_updater(lambda m, dt, k=k: m.move_to(m.base + UP * 0.05 * np.sin(1.6 * self.clock.get_value() + k)))
+
+        src_top = VGroup(
+            T("6 CO2", 28, BLUE, weight=BOLD),
+            T("+", 28, TEXT),
+            T("6 H2O", 28, TEAL, weight=BOLD),
+        ).arrange(RIGHT, buff=0.14).move_to(P(-4.8, 1.65))
+        src_c = VGroup(
+            T("C:", 28, TEXT, weight=BOLD),
+            T("6", 28, BLUE, weight=BOLD),
+            T("from CO2", 28, BLUE),
+        ).arrange(RIGHT, buff=0.14).move_to(P(-6.2, -0.75), aligned_edge=LEFT)
+        src_h = VGroup(
+            T("H:", 28, TEXT, weight=BOLD),
+            T("12", 28, TEAL, weight=BOLD),
+            T("from H2O", 28, TEAL),
+        ).arrange(RIGHT, buff=0.14).move_to(P(-6.2, -1.45), aligned_edge=LEFT)
+        src_o = VGroup(
+            T("O:", 28, TEXT, weight=BOLD),
+            T("12", 28, BLUE, weight=BOLD),
+            T("+", 28, TEXT),
+            T("6", 28, TEAL, weight=BOLD),
+            T("=", 28, TEXT),
+            T("18", 28, TEXT, weight=BOLD),
+        ).arrange(RIGHT, buff=0.12).move_to(P(-6.2, -2.15), aligned_edge=LEFT)
+
         self.at("going in")
         ringa = SurroundingRectangle(a, color=GOLD, buff=0.15, stroke_width=4)
         self.play(Create(ringa), run_time=0.5)
-        self.at("six carbon")
-        self.play(pn.v[0].animate.set_value(6), run_time=0.9, rate_func=linear)
-        self.at("twelve hydrogen")
-        self.play(pn.v[1].animate.set_value(12), run_time=0.9, rate_func=linear)
-        self.at("eighteen oxygen")
-        self.play(pn.v[2].animate.set_value(18), run_time=1.0, rate_func=linear)
+        self.at("6 carbon dioxide", lead=0.1)
+        self.play(FadeIn(src_top[0], shift=UP * 0.1), run_time=0.5)
+        self.at("6 water", lead=0.1)
+        self.play(FadeIn(src_top[1:3], shift=UP * 0.1), run_time=0.5)
+        self.at("gives 6 carbon", lead=0.35)
+        self.play(FadeIn(src_c, shift=RIGHT * 0.15), pn.v[0].animate.set_value(6), run_time=0.45, rate_func=linear)
+        self.at("12 hydrogen", lead=0.45)
+        self.play(FadeIn(src_h, shift=RIGHT * 0.15), pn.v[1].animate.set_value(12), run_time=0.4, rate_func=linear)
+        self.at("12 plus", lead=0.1)
+        self.play(FadeIn(src_o[0:2], shift=RIGHT * 0.1), run_time=0.35)
+        self.at("plus 6", lead=0.1)
+        self.play(FadeIn(src_o[2:4], shift=UP * 0.08), run_time=0.4)
+        self.at("18 oxygen", lead=0.55)
+        self.play(FadeIn(src_o[4:6], shift=UP * 0.08), pn.v[2].animate.set_value(18), run_time=0.45, rate_func=linear)
         self.at("coming out")
         ringb = SurroundingRectangle(bobs[1], color=GOLD, buff=0.2, stroke_width=4)
         self.play(ReplacementTransform(ringa, ringb), run_time=0.5)
-        self.play(pn.v[3].animate.set_value(6), pn.v[4].animate.set_value(12), pn.v[5].animate.set_value(18), run_time=0.9, rate_func=linear)
+        self.play(pn.v[3].animate.set_value(6), pn.v[4].animate.set_value(12), pn.v[5].animate.set_value(18), run_time=0.8, rate_func=linear)
         self.at("exactly the same")
         self.play(pn.lock.animate.set_value(1), run_time=0.6)
         self.at("no atom is made")
         self.play(Indicate(pn.counters[0:3], color=GREEN, scale_factor=1.25), run_time=1.0)
         self.at("none is destroyed")
         self.play(Indicate(pn.counters[3:6], color=GREEN, scale_factor=1.25), run_time=1.0)
-        self.at("conservation of matter")
-        ck = check()
-        cl = T("conservation of matter:", 28, GREEN, weight=BOLD).move_to(P(0, -1.6))
-        cl2 = T("atoms are rearranged,\nnot made or destroyed", 28, TEXT, line_spacing=0.9).move_to(P(0, -2.45))
-        self.play(Create(ck), FadeOut(ringb), run_time=0.6)
-        self.play(FadeIn(cl, shift=UP * 0.1), FadeIn(cl2, shift=UP * 0.1), run_time=0.8)
+        self.at("this is conservation")
+        ck = check().shift(DOWN * 0.08)
+        cl = T("conservation of matter:", 28, GREEN, weight=BOLD).move_to(P(0, -1.75))
+        cl2 = T("atoms are rearranged,\nnot made or destroyed", 28, TEXT, line_spacing=0.9).move_to(P(0, -2.55))
+        self.play(Create(ck), FadeOut(ringb), FadeIn(cl, shift=UP * 0.1), FadeIn(cl2, shift=UP * 0.1), run_time=0.5)
         self.finish()
 
 

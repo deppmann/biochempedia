@@ -433,39 +433,113 @@ class S11Compare(SpokenScene):
         g = bloom_plot(dim=True)
         self.add(g, g.scan)
         a, b = 3, 7
-        da = Dot(g.plot.pt(a, MEANS[a]), radius=0.17, color=RED)
-        db = Dot(g.plot.pt(b, MEANS[b]), radius=0.17, color=GREEN)
-        la = chip("1950–1959: 96.8", RED, size=28).move_to([-2.9, 3.3, 0])
-        lb = chip("1990–1999: 90.9", GREEN, size=28).move_to([2.9, 3.3, 0])
-        self.at("Compare two groups")
-        self.play(FadeIn(da), FadeIn(db), FadeIn(la), FadeIn(lb), run_time=1.0)
+        da = Dot(g.plot.pt(a, MEANS[a]), radius=0.17, color=RED).set_z_index(2)
+        db = Dot(g.plot.pt(b, MEANS[b]), radius=0.17, color=GREEN).set_z_index(2)
+
+        def two_step_chip(head_txt, val_txt, color, center):
+            head = T(head_txt, size=28, color=color)
+            val = T(val_txt, size=28, color=color)
+            pair = VGroup(head, val).arrange(RIGHT, buff=0.14, aligned_edge=DOWN)
+            box = RoundedRectangle(
+                corner_radius=0.14,
+                width=pair.width + 0.44,
+                height=pair.height + 0.44,
+                stroke_color=color,
+                stroke_width=2.5,
+                fill_color=color,
+                fill_opacity=0.16,
+            )
+            pair.move_to(box)
+            VGroup(box, head, val).move_to(center)
+            return box, head, val
+
+        la_box, la_head, la_val = two_step_chip("1950–1959:", f"{MEANS[a]:.1f}", RED, [-1.8, 3.28, 0])
+        lb_box, lb_head, lb_val = two_step_chip("1990–1999:", f"{MEANS[b]:.1f}", GREEN, [3.2, 3.28, 0])
+
+        diff = MEANS[a] - MEANS[b]
+        s_a, s_b, s_d = f"{MEANS[a]:.1f}", f"{MEANS[b]:.1f}", f"{diff:.1f}"
+        eq_ref = M(f"{s_a} − {s_b} = {s_d} days earlier", 32).move_to([0, -3.32, 0])
+        p1 = M(s_a, 32, RED).move_to(eq_ref[0:4])
+        p2 = M("−", 32, TEXT).move_to(eq_ref[4:5])
+        p3 = M(s_b, 32, GREEN).move_to(eq_ref[5:9])
+        p4 = M("=", 32, TEXT).move_to(eq_ref[9:10])
+        p5 = M(s_d, 32, GREEN).move_to(eq_ref[10:13])
+        p6 = M("days earlier", 32, GREEN).move_to(eq_ref[13:])
+
+        # Horizontal day-number shift bar in the empty upper-right plot space (left = earlier).
+        rx0, rw = 1.85, 3.1
+        rx = lambda day: rx0 + ((day - 89.0) / 10.0) * rw
+        x_start, x_end = rx(MEANS[a]), rx(MEANS[b])
+        ruler_box = RoundedRectangle(
+            corner_radius=0.14, width=4.0, height=1.35,
+            stroke_color=GREY, stroke_width=2, fill_color=BG, fill_opacity=0.96,
+        ).move_to([3.4, 1.58, 0]).set_z_index(1)
+        track = Line([rx0, 1.22, 0], [rx0 + rw, 1.22, 0], color=GREY, stroke_width=4).set_z_index(2)
+        start_tick = Line([x_start, 1.10, 0], [x_start, 1.34, 0], color=RED, stroke_width=4).set_z_index(2)
+        green_marker = Dot([x_start, 1.22, 0], radius=0.14, color=GREEN).set_z_index(3)
+        shift_arrow = Arrow([x_start, 1.58, 0], [x_end, 1.58, 0], buff=0,
+                            color=GREEN, stroke_width=6, tip_length=0.22).set_z_index(2)
+        earlier_lbl = T("EARLIER", 26, GREEN).move_to([(x_start + x_end) / 2, 1.98, 0]).set_z_index(2)
+
+        self.at("Compare")
+        self.at("1950s", lead=0.0)
+        self.play(FadeIn(da), FadeIn(la_box), FadeIn(la_head), run_time=0.6)
+        self.at("96", nth=0, lead=0.0)
+        self.play(FadeIn(la_val), Flash(da, color=RED, flash_radius=0.32), run_time=0.6)
+
+        self.at("1990s", lead=0.0)
+        self.play(FadeIn(db), FadeIn(lb_box), FadeIn(lb_head), run_time=0.6)
+        self.at("90", nth=0, lead=0.0)
+        self.play(FadeIn(lb_val), Flash(db, color=GREEN, flash_radius=0.32), run_time=0.6)
+
         self.at("Subtract the smaller")
-        eq = M("96.8 − 90.9 = 5.9 days", 38, TEXT).move_to([0, -2.95, 0])
-        self.play(Write(eq), run_time=0.3)
-        self.at("The smaller mean")
-        self.play(Indicate(VGroup(db, lb), color=GREEN, scale_factor=1.05), run_time=1.0)
-        self.at("The difference shown")
-        move = Arrow(g.plot.pt(a, 94.0), g.plot.pt(b, 94.0), buff=0,
-                     color=GREEN, stroke_width=8, tip_length=0.25)
-        self.play(GrowArrow(move), run_time=1.2)
+        self.play(Indicate(VGroup(db, lb_box, lb_head, lb_val), color=GREEN, scale_factor=1.05), run_time=0.7)
+        self.at("from the larger")
+        self.play(
+            Indicate(VGroup(da, la_box, la_head, la_val), color=RED, scale_factor=1.05),
+            FadeIn(ruler_box), FadeIn(track), FadeIn(start_tick), FadeIn(green_marker),
+            run_time=0.8,
+        )
+
+        self.at("96", nth=1, lead=0.0)
+        self.play(FadeIn(p1), run_time=0.45)
+        self.at("minus", lead=0.0)
+        self.play(FadeIn(p2), run_time=0.25)
+        self.at("90", nth=1, lead=0.0)
+        self.play(FadeIn(p3), run_time=0.45)
+        self.at("is", nth=0, lead=0.0)
+        self.play(FadeIn(p4), run_time=0.25)
+        self.at("5", nth=0, lead=0.0)
+        self.play(FadeIn(p5), run_time=0.45)
+        self.at("days earlier", lead=0.0)
+        self.play(
+            FadeIn(p6),
+            green_marker.animate.move_to([x_end, 1.22, 0]),
+            GrowArrow(shift_arrow),
+            FadeIn(earlier_lbl),
+            run_time=1.3,
+        )
+
+        self.at("That difference")
+        self.play(Indicate(VGroup(shift_arrow, green_marker, p5, p6), color=GREEN, scale_factor=1.05), run_time=1.0)
         self.finish()
 
 
 class S12Limit(SpokenScene):
     def construct(self):
-        g = bloom_plot(dim=True)
-        frame = RoundedRectangle(width=12.25, height=6.0, corner_radius=0.2,
-                                 stroke_color=GREEN, stroke_width=4).move_to([0, -0.05, 0])
-        label = chip("ONE GROUP OF TREES, ONE CITY", GREEN, size=30).move_to([0, 3.3, 0])
+        g = bloom_plot(dim=True).scale(0.88).move_to([0, -0.15, 0])
+        frame = RoundedRectangle(width=12.0, height=5.7, corner_radius=0.2,
+                                 stroke_color=GREEN, stroke_width=4).move_to([0, -0.15, 0])
+        label = chip("ONE GROUP OF TREES, ONE CITY", GREEN, size=30).move_to([0, 3.35, 0])
         self.at("Be careful")
         self.play(FadeIn(g), Create(frame), FadeIn(label), run_time=1.0)
         self.at("These trees")
         self.play(Indicate(frame, color=GREEN, scale_factor=1.01), run_time=1.0)
         self.at("The dates show")
         temp = VGroup(Arc(radius=0.8, start_angle=PI, angle=-PI, color=RED, stroke_width=10),
-                      T("TEMPERATURE", 28, RED).move_to([0, -0.4, 0])).move_to([-2.0, -1.45, 0])
-        bloom = chip("BLOOM DATES", GREEN, size=28).move_to([2.1, -1.45, 0])
-        equals = T("=", 52, TEXT).move_to([0.15, -1.45, 0])
+                      T("TEMPERATURE", 28, RED).move_to([0, -0.4, 0])).move_to([-2.7, -0.95, 0])
+        bloom = chip("BLOOM DATES", GREEN, size=28).move_to([0.88, -1.10, 0])
+        equals = T("=", 52, TEXT).move_to([-1.03, -1.10, 0])
         self.play(FadeIn(temp), FadeIn(equals), FadeIn(bloom), run_time=0.8)
         self.at("but they alone")
         question = T("?", 60, GOLD).move_to(equals)
