@@ -7,8 +7,12 @@
    press inside the controls, and /films/ideas.json (the questions people ask, for search) when the
    search box is first used.
 
-   Motion happens only in answer to the visitor: the strip re-lays, and cards that stay in the list
-   slide from where they were to where they now are. None of it runs under reduced motion.
+   The gallery opens on a stack per course (2026-11-21). The stacks are in the page; opening one sets
+   the view's course, and its films fly out of the stack. "All courses" brings the stacks back.
+
+   Motion: the strip re-lays; cards that stay in the list slide from where they were to where they
+   now are; a stack's films fly out of it; and the stacks deal themselves out once, the first time
+   the gallery scrolls into view. None of it runs under reduced motion.
    Nothing here is stored. Reading: the watched record (film-progress.ts) and, for the film to start
    with, the level in stemhop:prefs:v1 when the visitor has set one elsewhere on the site.
 
@@ -69,6 +73,8 @@ export function library(): void {
   }));
   root.querySelector('.fl-deck')!.addEventListener('pointerdown', () => void ensure(), { once: true, passive: true });
   root.querySelector('.fl-deck')!.addEventListener('focusin', () => void ensure(), { once: true });
+  listEl.addEventListener('pointerover', () => void ensure(), { once: true, passive: true });
+  listEl.addEventListener('focusin', () => void ensure(), { once: true });
   field('q').addEventListener('focus', () => void ensureIdeas(), { once: true });
 
   /* ---- the view */
@@ -95,8 +101,9 @@ export function library(): void {
   const chooseLevel = (level: string, focus = false, push = true) => {
     performance.mark('fl-tap');
     view.level = level;
-    // A course belongs to one level: choosing another level lets go of it.
-    if (view.course && list && list.films.find((f) => f.c === view.course)?.s !== level) view.course = '';
+    // A level key asks for the level: it lets go of an open course (and of the methods stack).
+    view.course = '';
+    if (view.kind === 'method') view.kind = '';
     limit = PAGE;
     toForm();
     paintKeys();
@@ -177,8 +184,34 @@ export function library(): void {
     return m;
   };
   /* Cards that stay in the list slide from where they were; new ones fade in. On-screen cards only. */
-  const slide = (before: Map<string, DOMRect>) => {
+  const slide = (before: Map<string, DOMRect>, out: DOMRect | null = null) => {
     if (still.matches || !('animate' in Element.prototype)) { performance.mark('fl-settled'); return; }
+    if (out) {
+      // Out of a stack: each card starts as the stack's top sheet and lands in its place, one after another.
+      const head = listEl.querySelector<HTMLElement>('.course-h, .fl-back');
+      head?.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 300, easing: 'ease-out' });
+      const vh = window.innerHeight;
+      let last: Animation | null = null;
+      let k = 0;
+      for (const li of listEl.querySelectorAll<HTMLElement>('li.fc[data-f]')) {
+        const r = li.getBoundingClientRect();
+        if (r.top > vh + 100) break;
+        const pic = li.querySelector('.fc-pic')?.getBoundingClientRect() ?? r;
+        const s = Math.min(1, out.width / pic.width);
+        const turn = ((k * 37) % 9) - 4;
+        li.style.zIndex = String(200 - k);
+        const a = li.animate([
+          { transformOrigin: '0 0', transform: `translate(${out.left - pic.left}px, ${out.top - pic.top}px) scale(${s}) rotate(${turn}deg)`, opacity: 0 },
+          { transformOrigin: '0 0', opacity: 1, offset: 0.2 },
+          { transformOrigin: '0 0', transform: 'none', opacity: 1 },
+        ], { duration: 460, delay: Math.min(k * 28, 560), easing: 'cubic-bezier(.2,.7,.2,1)', fill: 'backwards' });
+        a.finished.then(() => { li.style.zIndex = ''; }, () => {});
+        last = a;
+        k++;
+      }
+      if (last) last.finished.then(() => performance.mark('fl-settled'), () => {}); else performance.mark('fl-settled');
+      return;
+    }
     const vh = window.innerHeight;
     let last: Animation | null = null;
     let k = 0;
@@ -217,6 +250,101 @@ export function library(): void {
     posters.observe(img);
   }
 
+  /* ---- the stacks: one per course, as the page was served */
+  const shelf = $('[data-fl-shelf]');
+  const stackEls = [...shelf.querySelectorAll<HTMLElement>('li.fs')];
+  const stackCount = (level: string) => stackEls.filter((li) => !level || li.dataset.level === level).length;
+  // A level with one course has nothing to choose between: its films are listed, as before.
+  const stacksOn = () => !view.q && !view.course && !view.kind && view.sort === 'course' && stackCount(view.level) > 1;
+  const moving = () => !still.matches && 'animate' in Element.prototype;
+  const EASE = 'cubic-bezier(.2,.7,.2,1)';
+  let backLevel = '';
+  let origin: { x: number; y: number; w: number; h: number } | null = null; // the stack just opened, in page coordinates
+  let closed = ''; // the stack just closed
+  let dealt = false;
+  /* The stacks leave one pile and land in their places. */
+  const deal = () => {
+    dealt = true;
+    if (!moving()) return;
+    const tiles = stackEls.filter((li) => !li.hidden);
+    const box = shelf.querySelector('[data-fl-stacks]')!.getBoundingClientRect();
+    const first = tiles[0]?.getBoundingClientRect();
+    if (!first) return;
+    const from = { x: box.left + box.width / 2 - first.width / 2, y: first.top };
+    tiles.forEach((li, k) => {
+      const r = li.getBoundingClientRect();
+      if (r.top > window.innerHeight + 100) return;
+      const turn = ((k * 37) % 13) - 6;
+      li.style.zIndex = String(tiles.length - k);
+      li.animate([
+        { transform: `translate(${from.x - r.left}px, ${from.y - r.top}px) rotate(${turn}deg) scale(.86)`, opacity: 0 },
+        { opacity: 1, offset: 0.25 },
+        { transform: 'none', opacity: 1 },
+      ], { duration: 520, delay: 60 + k * 45, easing: EASE, fill: 'backwards' }).finished.then(() => { li.style.zIndex = ''; }, () => {});
+    });
+  };
+  const showStacks = (animate: boolean) => {
+    const was = shelf.isConnected;
+    const before = new Map<HTMLElement, DOMRect>();
+    if (was && animate) for (const li of stackEls) if (!li.hidden) before.set(li, li.getBoundingClientRect());
+    if (!was) listEl.replaceChildren(shelf);
+    for (const li of stackEls) li.hidden = !!view.level && li.dataset.level !== view.level;
+    moreRow.hidden = true;
+    none.hidden = true;
+    rest.hidden = true;
+    wait.hidden = true;
+    if (!was) {
+      const back = closed && stackEls.find((li) => li.dataset.stack === closed);
+      closed = '';
+      if (back && !back.hidden) back.querySelector<HTMLAnchorElement>('a')?.focus({ preventScroll: true });
+      if (animate) deal();
+      return;
+    }
+    if (!animate || !moving()) return;
+    let k = 0;
+    for (const li of stackEls) {
+      if (li.hidden) continue;
+      const r = li.getBoundingClientRect();
+      const b = before.get(li);
+      const delay = Math.min(k++ * 25, 200);
+      if (b) li.animate([{ transform: `translate(${b.left - r.left}px, ${b.top - r.top}px)` }, { transform: 'none' }], { duration: 360, easing: EASE });
+      else li.animate([{ opacity: 0, transform: 'translateY(10px) scale(.94)' }, { opacity: 1, transform: 'none' }], { duration: 300, delay, easing: 'ease-out', fill: 'backwards' });
+    }
+  };
+  listEl.addEventListener('click', (e) => {
+    const t = e.target as Element;
+    if (t.closest('[data-fl-back]')) {
+      closed = view.course || 'methods';
+      view = { ...readView(''), level: stackCount(backLevel) > 1 ? backLevel : '' };
+      limit = PAGE;
+      toForm();
+      commit(true);
+      return;
+    }
+    const a = t.closest<HTMLAnchorElement>('li.fs > a');
+    if (!a || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return; // a new tab gets the course's films on its level page
+    e.preventDefault();
+    performance.mark('fl-tap');
+    const li = a.parentElement as HTMLElement;
+    const r = li.querySelector('.fs-pile')!.getBoundingClientRect();
+    origin = { x: r.left + window.scrollX, y: r.top + window.scrollY, w: r.width, h: r.height };
+    backLevel = view.level;
+    if (li.dataset.stack === 'methods') view.kind = 'method';
+    else { view.course = li.dataset.stack!; view.level = li.dataset.level!; }
+    limit = PAGE;
+    toForm();
+    commit(true);
+  });
+  // The first time the gallery comes into view, the stacks deal themselves out.
+  if (moving() && 'IntersectionObserver' in window) {
+    const first = new IntersectionObserver((entries) => {
+      if (!entries.some((e) => e.isIntersecting)) return;
+      first.disconnect();
+      if (!dealt && shelf.isConnected) deal();
+    }, { threshold: 0.15 });
+    first.observe(shelf);
+  }
+
   let drawn = 0;
   async function render(animate: boolean): Promise<void> {
     const mine = ++drawn;
@@ -229,17 +357,23 @@ export function library(): void {
       say(idx.length, idx.reduce((s, i) => s + stripFilms[i].d, 0));
       if (!budget) drawStrip(null);
     }
-    if (!list && isDefault(view) && limit === PAGE && !budget) { paintRun(null); return; } // the page as served
+    // The stacks are in the page: they answer before the list arrives.
+    const stacks = stacksOn();
+    if (stacks) showStacks(animate);
+    if (!list && isDefault(view) && !budget) { paintRun(null); return; } // the page as served
     let d = list;
     if (!d) {
       // The count and the strip have already changed; say plainly that the cards have not yet.
-      listEl.setAttribute('aria-busy', 'true');
-      wait.hidden = false;
-      rest.hidden = true;
+      if (!stacks) {
+        listEl.setAttribute('aria-busy', 'true');
+        wait.hidden = false;
+        rest.hidden = true;
+      }
       d = await ensure();
       listEl.removeAttribute('aria-busy');
       wait.hidden = true;
       if (!d) {
+        if (stacks) return; // the stacks need no list
         // Without the list this page cannot show the view; the level's own page can.
         if (mine === drawn && view.level && levelOnly()) location.href = `/films/${view.level}/`;
         else if (mine === drawn) status.textContent = 'Could not load the full list. Each level’s page has every film.';
@@ -255,18 +389,31 @@ export function library(): void {
       history.replaceState(null, '', `${location.pathname}${viewQuery(view)}`);
     }
     const current = select(d, view, ideas);
-    const before = animate ? cardRects() : new Map<string, DOMRect>();
     say(current.length, current.reduce((s, f) => s + f.d, 0));
     const run = drawStrip(current);
     paintRun(current, run);
+    if (stacksOn()) { showStacks(false); performance.mark('fl-drawn'); performance.mark('fl-settled'); return; }
+    const before = animate ? cardRects() : new Map<string, DOMRect>();
     none.hidden = current.length > 0;
     rest.hidden = true;
     const shown = current.slice(0, limit);
     // Built off the page, so that no poster is asked for until its card is near the screen (below).
     const built = document.createElement('template');
-    built.innerHTML = view.sort === 'course' && !view.q ? groupHTML(shown, d) : `<ul class="grid">${shown.map((f) => cardHTML(f, d)).join('')}</ul>`;
+    // Inside one stack (a course, or the methods library): the way back to all of them comes first.
+    const back = view.course || view.kind === 'method' ? '<p class="fl-back"><button type="button" class="fl-btn" data-fl-back><span aria-hidden="true">←</span> All courses</button></p>' : '';
+    built.innerHTML = back + (view.sort === 'course' && !view.q ? groupHTML(shown, d) : `<ul class="grid">${shown.map((f) => cardHTML(f, d)).join('')}</ul>`);
     for (const img of built.content.querySelectorAll('img')) { img.dataset.src = img.getAttribute('src') ?? ''; img.removeAttribute('src'); img.removeAttribute('loading'); }
     listEl.replaceChildren(built.content);
+    const from = origin;
+    origin = null;
+    let out: DOMRect | null = null;
+    if (from) {
+      // The films take the stacks' place: bring their top to the top of the screen, then fly them out of the stack.
+      const top = listEl.getBoundingClientRect().top;
+      if (top < 70 || top > window.innerHeight * 0.55) window.scrollTo({ top: window.scrollY + top - 96, behavior: 'instant' as ScrollBehavior });
+      out = new DOMRect(from.x - window.scrollX, from.y - window.scrollY, from.w, from.h);
+      listEl.querySelector<HTMLElement>('[data-fl-back]')?.focus({ preventScroll: true });
+    }
     for (const img of listEl.querySelectorAll('img[data-src]')) posters.observe(img);
     if (view.level && view.sort === 'course' && levelOnly()) {
       const pic = listEl.querySelector('li.fc .fc-pic');
@@ -275,7 +422,7 @@ export function library(): void {
     markCards(listEl);
     moreRow.hidden = current.length <= limit;
     performance.mark('fl-drawn');
-    if (animate) slide(before); else performance.mark('fl-settled');
+    if (animate) slide(before, out); else performance.mark('fl-settled');
   }
 
   /* ---- play them in order, or for a while */
@@ -420,6 +567,7 @@ export function library(): void {
   });
 
   form.hidden = false;
+  rest.hidden = true;
   if (view.q) void ensureIdeas();
   toForm();
   startCard();

@@ -4,31 +4,34 @@
    Every film on the site, from src/lib/film-catalog.ts. Top to bottom on a phone: the title and one
    honest line; one film to start with (or where you stopped); a strip that draws the whole library
    at true size; the level keys; search, order and a fold for course and kind; what the view holds
-   and how long it runs; "Play them in order" or for 10, 20 or 30 minutes; then the cards.
+   and how long it runs; "Play them in order" or for 10, 20 or 30 minutes; then the gallery.
+
+   The gallery opens on one stack per course (2026-11-21), not on the first course's films: a pile of
+   posters with the course's name, level and film count. Opening a stack deals its films out of it;
+   "All courses" gathers them back. A level key keeps only that level's stacks. A search, another
+   order or a kind of film lists films, as before.
 
    With scripts off: the film to start with, the level keys as links to /films/<level>/ (every film
-   of a level, plain HTML), the first 60 cards, and each course's play-in-order link.
-   With scripts: a change of level is instant (the strip and the count need no download); the first
-   search, sort, course or kind choice or "Show more" fetches /films/list.json once and the list is
-   drawn from it. The view lives in the query string, with the names it has always had
+   of a level, plain HTML), and the course stacks as links to the course's films on its level page.
+   With scripts: a change of level is instant (the strip and the count need no download); opening a
+   stack, or the first search, sort, course or kind choice, fetches /films/list.json once and the
+   list is drawn from it. The view lives in the query string, with the names it has always had
    (?q=&sort=&level=&course=&kind=), so a view can be shared and Back steps through changes.
 
    Motion: the strip re-lays and the cards slide to their new places when the visitor changes the
-   view, once, and not at all under reduced motion. Nothing moves by itself.
+   view; a stack's films fly out of it; and the stacks deal themselves out once, the first time the
+   gallery scrolls into view. None of it under reduced motion.
    Nothing here counts what is left. "3 films watched on this device." appears after the first.
 
    Client: src/lib/film-library.ts (with film-view.ts and film-strip.ts). */
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Hex from '../../components/Hex.astro';
-import FilmCard from '../../components/FilmCard.astro';
-import { filmCatalog, filmLevelHref, filmPlayHref, KIND_LABELS, KIND_ORDER, type CatalogFilm } from '../../lib/film-catalog';
+import { filmCatalog, filmLevelHref, KIND_LABELS, KIND_ORDER, type CatalogFilm } from '../../lib/film-catalog';
 import { filmClock } from '../../lib/films';
-import { courseHref } from '../../data/courses';
 import { STAGES } from '../../data/stages';
 import '../../styles/film-lib.css';
 
 const films = await filmCatalog();
-const FIRST = 60;
 const usedStages = STAGES.filter((s) => films.some((f) => f.stage === s.key));
 const usedKinds = KIND_ORDER.filter((k) => films.some((f) => f.kind === k));
 const fmt = (n: number) => n.toLocaleString('en-US');
@@ -69,15 +72,13 @@ const start = g7[seed % Math.max(1, g7.length)] ?? starts[0];
 const stageIndex = (k: string | null) => { const i = usedStages.findIndex((s) => s.key === k); return i === -1 ? usedStages.length : i; };
 const strip = films.map((f) => `${stageIndex(f.stage)}${Math.min(1295, Math.round(f.durationSec)).toString(36).padStart(2, '0')}`).join('');
 
-/* The first 60 cards, grouped by course. */
-const groups: { key: string; title: string; stage: string | null; stageTitle: string; films: CatalogFilm[] }[] = [];
-for (const f of films.slice(0, FIRST)) {
-  const key = f.course ?? 'methods';
-  let g = groups.find((x) => x.key === key);
-  if (!g) groups.push((g = { key, title: f.courseTitle, stage: f.stage, stageTitle: f.stageTitle, films: [] }));
-  g.films.push(f);
-}
-const courseFilms = (key: string) => courses.find((c) => c.key === key)?.films ?? [];
+/* The gallery as served: one stack per course, in course order, and one for the methods library. */
+const about = (list: CatalogFilm[]) => { const m = Math.round(seconds(list) / 60); return m < 90 ? `${m} min` : `${Math.round(m / 6) / 10} hours`; };
+const methodFilms = films.filter((f) => !f.course);
+const stacks = [
+  ...courses.map((c) => ({ key: c.key, title: c.title, level: c.stage, levelTitle: c.stageTitle, films: c.films, href: `${filmLevelHref(c.stage)}#${c.key}` })),
+  ...(methodFilms.length ? [{ key: 'methods', title: 'Methods library', level: '', levelTitle: 'Every level', films: methodFilms, href: '/methods/' }] : []),
+];
 ---
 
 <BaseLayout title="Films — STEMhop" description={`${fmt(films.length)} short narrated films, most about ${Math.round(median / 60)} minutes, from every lesson on the site. Find one by level, length or idea, or play a set in order. Each has captions, a transcript and its lesson one tap away.`}>
@@ -192,19 +193,26 @@ const courseFilms = (key: string) => courses.find((c) => c.key === key)?.films ?
 
     <p class="fl-wait" data-fl-wait hidden>Bringing up these films…</p>
     <div data-fl-list>
-      {groups.map((g) => {
-        const all = courseFilms(g.key);
-        return (
-          <section class="course" aria-labelledby={`c-${g.key}-h`}>
-            <div class="course-h">
-              <h2 id={`c-${g.key}-h`}>{g.key === 'methods' ? <a class="ch" href="/methods/">{g.title}</a> : <a class="ch" href={courseHref(g.key)}>{g.title}</a>}</h2>
-              {g.stage && <span class={`n lv-${g.stage}`}><span class="fl-chip"></span>{g.stageTitle}</span>}
-              {all.length > 1 && <a class="play-link" href={filmPlayHref(g.key)}>Play these in order</a>}
-            </div>
-            <ul class="grid in-course">{g.films.map((f) => <FilmCard film={f} />)}</ul>
-          </section>
-        );
-      })}
+      <div class="fl-shelf" data-fl-shelf>
+        <h2 class="fl-shelf-h">Courses</h2>
+        <p class="fl-shelf-note">Open a course to see its films.</p>
+        <ul class="fl-stacks" data-fl-stacks>
+          {stacks.map((k) => (
+            <li class={`fs lv-${k.level || 'methods'}`} data-stack={k.key} data-level={k.level}>
+              <a href={k.href}>
+                <span class="fs-pile" aria-hidden="true">
+                  <span class="fs-sheet"></span>
+                  <span class="fs-sheet"></span>
+                  <span class="fs-top"><img src={k.films[0].poster} alt="" width="320" height="180" loading="lazy" decoding="async" /></span>
+                </span>
+                <span class="fs-t">{k.title}</span>
+                <span class="fs-m"><span class="fl-chip"></span>{k.levelTitle}</span>
+                <span class="fs-n">{plural(k.films.length, 'film')} · {about(k.films)}</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
     </div>
 
     <p class="fl-more-row" data-fl-more-row hidden>
@@ -212,7 +220,7 @@ const courseFilms = (key: string) => courses.find((c) => c.key === key)?.films ?
     </p>
 
     <div class="fl-rest" data-fl-rest>
-      <p>These are the first {FIRST} films, in course order. Every film is listed on its level’s page. Choose a level:</p>
+      <p>Every film is also listed on its level’s page. Choose a level:</p>
       <ul>
         {usedStages.map((s) => <li><a href={filmLevelHref(s.key)}>{s.title}</a></li>)}
         <li><a href="/methods/">Methods library</a></li>
