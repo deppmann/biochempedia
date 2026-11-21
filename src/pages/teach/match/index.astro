@@ -1,0 +1,90 @@
+---
+/* Match a syllabus to the site, on the teacher's own computer.
+
+   A teacher pastes a syllabus (or opens a text or Word file) and picks the class's level. The page
+   lists the syllabus's own topics in the syllabus's own order, each with the lessons and films
+   that teach it at that level, a simpler one for review and a deeper one for stretch, and says
+   plainly where the site has nothing yet. The teacher unticks what they will not use, then copies
+   the list or prints it.
+
+   Nothing pasted is sent anywhere: the matching is src/lib/syllabus-match.mjs running in the
+   browser over static files, and no model is asked. That has to hold with scripts off, blocked or
+   not yet loaded too, so there is no <form> here and the box has no name: nothing on this page can
+   submit the text. The buttons are switched on by the script. This page loads no analytics script,
+   so no third-party code runs where a syllabus is typed. No account is needed.
+
+   "Add ticked lessons to a class" is written but OFF (ADD_TO_CLASS in src/lib/teach-match.ts)
+   until it has been tried on a real class. /teach/syllabus/ is a different tool (it sends the
+   syllabus to an AI model and needs a teacher account); the link to it below is OFF as well. */
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import '../../../styles/teach.css';
+import '../../../styles/hop.css';
+import '../../../styles/teach-match.css';
+import { LEVEL_LABEL, LEVEL_KEYS } from '../../../lib/hop-words.mjs';
+
+/* OFF: whether to link the AI planner (/teach/syllabus/) from this page. Turning it on is the
+   site owner's call, since that tool spends his model budget. */
+const SHOW_AI_PLANNER_LINK = false;
+const sample = `Week 1: Lab safety, scientific method
+Week 2: Cell theory & microscopes
+Week 3: Cell membrane, diffusion and osmosis
+Week 4: Photosynthesis
+Week 5: Cellular respiration; Unit 1 Test
+Week 6: Mitosis and meiosis
+Week 7: Heredity - Punnett squares
+Week 8: Thanksgiving break`;
+---
+<BaseLayout title="Syllabus matcher — STEMhop" description="Paste your syllabus and pick your class's level. For each topic you get the lessons and films that teach it, a simpler one for review and a deeper one for stretch. It runs on your computer; nothing is sent." noAnalytics>
+  <article class="wrap tc tm" data-tm>
+    <p class="tc-eyebrow tm-noprint"><a href="/teachers/">Resources for teachers</a> · Syllabus matcher</p>
+    <h1>Match your syllabus to lessons</h1>
+    <p class="tc-lede tm-noprint">Paste it and pick your class's level. You get your topics, in your order, with the lessons and films that teach each one.</p>
+
+    <div class="tm-form tm-noprint" data-tm-form>
+      <label class="tm-label" for="tm-text">Your syllabus <span>the schedule of topics is enough</span></label>
+      <textarea id="tm-text" rows="8" spellcheck="false" autocomplete="off" placeholder={'Example:\nWeek 1: Cell theory & microscopes\nWeek 2: Diffusion and osmosis'}></textarea>
+      <div class="tm-row tm-go">
+        <label class="tm-level">Your class's level
+          <select data-tm-level autocomplete="off">
+            {LEVEL_KEYS.map((k, i) => <option value={i} selected={k === 'high-school'}>{LEVEL_LABEL[i]}</option>)}
+          </select>
+        </label>
+        <button class="tc-btn" type="button" data-tm-go disabled>Find matching lessons</button>
+      </div>
+      <div class="tm-row tm-more">
+        <label class="tm-file">Or open a syllabus file
+          <input type="file" data-tm-file aria-describedby="tm-file-hint" disabled accept=".txt,.md,.csv,.docx,text/plain,text/markdown,text/csv,application/vnd.openxmlformats-officedocument.wordprocessingml.document" />
+        </label>
+        <button class="tc-btn ghost" type="button" data-tm-sample disabled>Try a sample</button>
+      </div>
+      <p class="tm-hint" id="tm-file-hint">Plain text or Word (.docx). For a PDF, open it, copy the schedule and paste it in the box.</p>
+      <p class="tc-error" data-tm-file-err role="alert"></p>
+      <p class="tm-private"><strong>Your syllabus stays on this computer.</strong> The matching runs in your browser. What you paste or open is never sent, no AI reads it, and you need no account. <a href="/teach/privacy/#matcher">How this differs from the AI planner</a></p>
+    </div>
+    <noscript><p class="tc-note">This page needs JavaScript, because the matching runs in your browser, so the buttons do nothing without it. The lessons are mapped to the Virginia standards for <a href="/teachers/life-science/">grade 7 Life Science</a> and <a href="/teachers/biology/">high school Biology</a>, and <a href="/courses/">every course</a> lists its lessons in order.</p></noscript>
+
+    <p class="tm-status" role="status" aria-live="polite" data-tm-status></p>
+    <section class="tm-result" data-tm-result hidden>
+      <h2 tabindex="-1" data-tm-h>Your syllabus, line by line</h2>
+      <p class="tm-sum" tabindex="-1" data-tm-sum></p>
+      <p class="tm-sum tm-noprint" data-tm-elsewhere hidden></p>
+      <div class="tm-tools tm-noprint" data-tm-tools>
+        <button class="tc-btn ghost" type="button" data-tm-copy>Copy the list</button>
+        <button class="tc-btn ghost" type="button" data-tm-print>Print</button>
+        <button class="tc-btn ghost" type="button" data-tm-assign hidden>Add ticked lessons to a class</button>
+        <span class="tc-ok" data-tm-msg role="status"></span>
+      </div>
+      <div class="tm-assign tm-noprint" data-tm-assign-box role="status" tabindex="-1" hidden></div>
+      <ol class="tm-rows" data-tm-rows></ol>
+      <details class="tm-skipped tm-noprint" data-tm-skipped hidden><summary></summary><ul></ul></details>
+      <p class="tm-foot">The matching is done by rules, not by a person: it compares your words with each idea's names and with lesson titles, and it leaves a topic unmatched when it is not sure. Which lessons teach each idea was written by AI models from the lessons and checked by a second one. A person has not yet read every one. <a href="/contact/">Tell me</a> when a match is wrong.</p>
+      {SHOW_AI_PLANNER_LINK && <p class="tm-foot tm-noprint">Have a teacher account? <a href="/teach/syllabus/">The AI planner</a> also picks simulations and flashcards and saves a list your students can open. It sends your syllabus to an AI model.</p>}
+    </section>
+  </article>
+
+  <script is:inline type="application/json" data-tm-sample-text set:html={JSON.stringify(sample)}></script>
+  <script>
+    import { start } from '../../../lib/teach-match';
+    start();
+  </script>
+</BaseLayout>
