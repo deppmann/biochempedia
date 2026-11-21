@@ -56,6 +56,9 @@ jobs:
       # Hopping: the sentence under each lesson's hook over every lesson and idea in the graph (no empty line,
       # no doubled word, the true size of each step), and the idea search's ranking on fixed queries.
       - run: node scripts/test-hop.mjs
+      # The mini syllabus and the teacher's syllabus matcher: accuracy on fixed questions and syllabi (two sets
+      # held out), the path's minutes, the Word reader, and that nothing typed or pasted is sent anywhere.
+      - run: node scripts/test-syllabus.mjs
       # Lesson search against the index this build just wrote (needs Node 22.18+ to import the .ts file).
       - run: node scripts/test-search.mjs
       # Curiosity router, offline (node:sqlite needs no flag from Node 22.13).

@@ -1,0 +1,63 @@
+---
+/* The mini syllabus: "What are you trying to understand?"
+
+   A learner types a question or a word and says how long they have. The page answers with a short
+   path of films and lessons on that idea at their level, the same idea one level simpler and one
+   level deeper beside it, and the whole ladder on request.
+
+   Everything runs in the browser over static files (/graph.json, /ideas/lessons.json,
+   /start/lessons.json and one /graph/<area>.json): no model is asked and nothing typed is sent
+   anywhere, which is why the typed words are never put in the address. ?idea=<id> opens an idea
+   directly (an idea's id is the site's word, not the visitor's). Level and time are the site-wide
+   device preferences (src/lib/prefs.ts); the page works without them and never asks twice.
+   With JavaScript off the page says so and points to the pages that work without it. */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import '../../styles/hop.css';
+import '../../styles/start.css';
+import { LEVEL_LABEL, LEVEL_KEYS } from '../../lib/hop-words.mjs';
+
+const tries = ['why do leaves change color', 'how do vaccines work', 'what is DNA'];
+---
+<BaseLayout title="What are you trying to understand? — STEMhop" description="Type a question in your own words and say how long you have. You get a short path of films and lessons at your level, with a simpler and a deeper version beside it.">
+  <article class="wrap st">
+    <div class="st-col">
+      <h1>What are you trying to understand?</h1>
+      <p class="st-lede">Type it in your own words. You get a short path of films and lessons at your level.</p>
+
+      <form class="st-form" data-st-form action="/ideas/" method="get">
+        <label class="st-label" for="st-q">Your question, or just a word</label>
+        <div class="st-box">
+          <input id="st-q" name="q" type="search" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="go" maxlength="200" placeholder="why do leaves change color" />
+          <button type="submit">Show me a path</button>
+        </div>
+        <div class="st-opts">
+          <fieldset class="st-time" data-st-time>
+            <legend>How long have you got?</legend>
+            <label><input type="radio" name="st-time" value="skim" autocomplete="off" /><span><b>A few minutes</b><i data-st-min="skim"></i></span></label>
+            <label><input type="radio" name="st-time" value="films" autocomplete="off" checked /><span><b>A film or two</b><i data-st-min="films"></i></span></label>
+            <label><input type="radio" name="st-time" value="lesson" autocomplete="off" /><span><b>The whole lesson</b><i data-st-min="lesson"></i></span></label>
+          </fieldset>
+          <label class="st-level">Your level
+            <select data-st-level autocomplete="off">
+              <option value="">Start simple (pick for me)</option>
+              {LEVEL_KEYS.map((k, i) => <option value={k}>{LEVEL_LABEL[i]}</option>)}
+            </select>
+          </label>
+        </div>
+      </form>
+      <p class="st-try" data-st-try-row>Or try {tries.map((t, i) => <>{i > 0 && (i === tries.length - 1 ? ' or ' : ', ')}<button type="button" class="st-link" data-st-try={t}>{t}</button></>)}.</p>
+      <p class="st-private">What you type stays on this device. Nothing is sent anywhere, and no AI reads it.</p>
+      <noscript><p class="st-note">This box needs JavaScript. Without it, <a href="/ideas/#every-idea">every idea is listed by area</a>, each with a page of its own, and <a href="/courses/">the courses</a> are laid out by level.</p></noscript>
+
+      <p class="st-status" role="status" aria-live="polite" data-st-status></p>
+      <div class="st-out" data-st-out></div>
+
+      <p class="st-foot">Looking for one idea at every level? <a href="/ideas/">Find an idea</a>. Want a whole course? <a href="/courses/">Courses by level</a>.</p>
+    </div>
+  </article>
+
+  <script>
+    import { start } from '../../lib/start-page';
+    start();
+  </script>
+</BaseLayout>
