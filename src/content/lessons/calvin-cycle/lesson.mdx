@@ -25,6 +25,23 @@ explainer:
     - "Over three steady-state turns, five of six G3P rebuild RuBP; one is net."
     - "At steady state, the ordinary C3 cycle costs 3 ATP and 2 NADPH per CO₂."
     - "Rebuilding RuBP explains why ATP demand exceeds NADPH demand."
+
+films:
+  - id: "chapter-2"
+    src: "/explainers/calvin-cycle/chapter-2.mp4"
+    captions: "/explainers/calvin-cycle/chapter-2.vtt"
+    poster: "/explainers/calvin-cycle/chapter-2-poster.jpg"
+    title: "Wired to the Sun"
+    durationSec: 183.5
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+    takeaways:
+      - "If the Calvin cycle ran at night, it would build sugar while another pathway burns it: a futile cycle."
+      - "In the light, protons are pumped from the stroma into the thylakoid lumen, and stromal pH rises from about 7 to 8; in the textbook account, magnesium ions also flow into the stroma."
+      - "A separate CO₂ forms a carbamate on a Rubisco lysine that holds a magnesium ion, so one CO₂ switches Rubisco on and a different one is fixed."
+      - "Thioredoxin, reduced by electrons from Photosystem I's ferredoxin, breaks a sulfur bridge in four Calvin enzymes so they take their active shape."
+      - "At nightfall thioredoxin is re-oxidized, the bridges reform and the cycle stalls: the sugar factory is wired to the sun."
+
 scientists:
   - name: "Melvin Calvin, Andrew Benson, & James Bassham"
     dates: "Calvin 1911–1997; Benson 1917–2015; Bassham 1922–2012"
@@ -244,6 +261,7 @@ import PathwayExplorer from '../../../components/PathwayExplorer.astro';
 import RubiscoFork from '../../../components/RubiscoFork.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
 import EquationCard from '../../../components/EquationCard.astro';
+import LessonFilm from '../../../components/LessonFilm.astro';
 
 export const calvinSteps = [{"n": 1, "enzyme": "Rubisco (carboxylation)", "sub": "RuBP (5C) + CO₂", "prod": "2 × 3-PGA (3C)", "co2": -1, "regulated": true, "note": "The fixation step, and often the rate-limiter. RuBP forms a C2–C3 enediol; CO₂ adds at C2 to give a six-carbon intermediate that is hydrated and then cleaved at the C2–C3 bond into two molecules of 3-PGA. It costs no ATP or NADPH — the energy is paid later. Needs the Lys-201 carbamate plus Mg²⁺, and that carbamate CO₂ is not the substrate CO₂.", "clinical": "Rubisco is the most abundant protein on Earth, yet each active site in a typical plant enzyme fixes only about 3 CO2 per second. That slowness is one of the main limits on crop photosynthesis, and plants compensate by making astonishing amounts of it, up to about half of the soluble protein in a leaf."}, {"n": 2, "enzyme": "Phosphoglycerate kinase", "sub": "3-PGA (3C) + ATP", "prod": "1,3-BPG (3C)", "atp": -1, "doubled": true, "note": "Reduction stage begins. One ATP phosphorylates the carboxylate to a mixed anhydride, priming the carbon for reduction — a glycolytic payoff step run backward. It happens twice per CO₂, once for each 3-PGA."}, {"n": 3, "enzyme": "Glyceraldehyde-3-phosphate dehydrogenase", "sub": "1,3-BPG (3C) + NADPH", "prod": "G3P (3C)", "nadph": -1, "doubled": true, "note": "NADPH delivers the electrons that actually reduce the molecule to a triose sugar, releasing Pᵢ. The chloroplast isoform prefers NADPH (it can also use NADH) — the reducing power comes from Photosystem I, by way of ferredoxin and ferredoxin-NADP+ reductase. This is the only true reduction in the cycle, and it runs twice per CO₂."}, {"n": 4, "enzyme": "Aldolase + transketolase, with isomerase and epimerase (sugar shuffle)", "sub": "the G3P pool: 5 of every 6 G3P (counted over 3 turns, 15C)", "prod": "3 × ribulose-5-P (15C), 1 per turn", "regulated": true, "note": "Regeneration. Five of every six G3P (15 carbons) are reshuffled into three 5-carbon sugars by aldolase and transketolase, with FBPase and SBPase clipping phosphates; an isomerase and an epimerase then turn ribose-5-P and xylulose-5-P into ribulose-5-P. The sixth G3P (3C) leaves as profit — one triose per three CO₂. FBPase and SBPase are light-activated control points."}, {"n": 5, "enzyme": "Phosphoribulokinase (PRK)", "sub": "ribulose-5-P (5C) + ATP", "prod": "RuBP (5C)", "atp": -1, "regulated": true, "note": "The last ATP of the cycle phosphorylates ribulose-5-P back to the CO₂ acceptor RuBP, closing the loop. This regeneration ATP is why the cycle needs more ATP than NADPH (3:2). PRK is switched on by reduced thioredoxin in the light and off in the dark."}];
 
@@ -355,6 +373,8 @@ Calvin's group let algae fix labeled CO₂ steadily, then suddenly changed one i
 </details>
 
 A molecule that piles up when CO₂ is withheld is a candidate acceptor: this is the experiment that pointed to RuBP, later confirmed with the purified enzyme. It also shows the loop's weak point: without regeneration, fixation stops when RuBP runs out.
+
+<LessonFilm film={frontmatter.films[0]} />
 
 ## Act 2: the control panel runs on light
 
