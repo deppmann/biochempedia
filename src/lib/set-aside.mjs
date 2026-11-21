@@ -7,7 +7,10 @@
    here, and the rule is: never delete it.
 
      - The two synced entries (notebook and progress) are MOVED to one set-aside entry, filed under
-       the outgoing account's tag. At most three accounts' worth is kept; the oldest goes first.
+       the outgoing account's tag. AT MOST THREE accounts' notes are kept aside: when a fourth is
+       set aside, the oldest of them is dropped for good. (The account page says so.) That is the
+       one place where this file lets go of anything, and it bounds how much of other people's
+       work a shared browser holds.
      - If the account now signed in has a set-aside copy of its own from an earlier visit, that copy
        is put back, so its unsynced work returns the moment it signs in here again.
      - Nothing else on the device is touched. The calendar's plan and the preferences belong to the
@@ -16,12 +19,18 @@
    If the copy cannot be set aside (storage full or blocked), nothing is moved and nothing is
    removed, and the caller must not sync: the data stays where it is until the person signs out.
 
-   Plain functions over a Storage-like object, so they run in the browser and in a Node test. */
+   Plain functions over a Storage-like object (in the browser, window.localStorage), so they run
+   in the browser and in a Node test. */
 
 export const ASIDE_KEY = 'stemhop:set-aside:v1';
 export const ASIDE_MAX = 3;
 
 /** { tag: { at, items: { key: stored text } } }, or {} when there is none or it is damaged. */
+/** Remove everything set aside. For "clear this device": sign-out with that box ticked, "Clear everything", account deletion. */
+export function clearAside(storage) {
+  try { storage.removeItem(ASIDE_KEY); } catch { /* nothing stored, or storage blocked */ }
+}
+
 export function readAside(storage) {
   try {
     const o = JSON.parse(storage.getItem(ASIDE_KEY) ?? 'null');

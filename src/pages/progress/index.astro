@@ -114,6 +114,7 @@ const filmCourses = courses.filter(({ c }) => catalog.some((f) => f.course === c
 
   <script>
     import { load, dueNow, queued, exportText, importText, clearAll, onChange, STORAGE_KEY } from '../../lib/progress';
+    import { clearAside } from '../../lib/set-aside.mjs';
     import { loadFilms, keepWatching, onFilmsChange, clearFilms, resumeHref } from '../../lib/film-progress';
     import { clearPrefs } from '../../lib/prefs';
     import { clearCalendar } from '../../lib/calendar/store';
@@ -235,6 +236,7 @@ const filmCourses = courses.filter(({ c }) => catalog.some((f) => f.course === c
       clearFilms();
       clearCalendar();   // the calendar's plans (/calendar/)
       clearPrefs();      // and who this device said it is
+      clearAside(window.localStorage);   // and any other account's notes set aside on this browser
       if (msg) msg.textContent = 'Cleared.';
     });
   </script>

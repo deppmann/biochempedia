@@ -441,8 +441,8 @@ console.log("the owner's own account (ADMIN_EMAILS)");
     const branch = /if \(r\.status === 409 && r\.data\?\.accountChanged[\s\S]*?\n    \}\n/.exec(lib)[0];
     assert.match(branch, /switchAccount\(window\.localStorage, known \|\| 'unknown', r\.data\.acct, \[NOTEBOOK_KEY, PROGRESS_KEY\]\)/, 'only the two synced entries are moved');
     assert.ok(!/clearDevice|clearCalendar|clearPrefs|removeItem/.test(branch), 'an account change deletes nothing');
-    assert.match(branch, /if \(!moved\) return \{ ok: false, status: 409/, 'and if the copy cannot be set aside, nothing is synced');
-    assert.match(branch, /writeCache\(\{ \.\.\.readCache\(\), acct: r\.data\.acct \}\)/, 'the cached name is kept');
+    assert.match(branch, /if \(!moved\) \{[\s\S]*?return \{ ok: false, status: 409, error: SET_ASIDE_FAILED \};/, 'and if the copy cannot be set aside, nothing is synced');
+    assert.match(branch, /writeCache\(\{ \.\.\.readCache\(\), acct: r\.data\.acct, asideFull: false \}\)/, 'the cached name is kept');
     assert.match(lib, /\.\.\.\(known \? \{ acct: known \} : \{\}\)/, 'a device with no tag (a signed-out reader\'s own work) sends none, and is merged');
   });
   await check('an account change on one browser sets notes aside and brings them back; the calendar and preferences are never touched', async () => {
@@ -482,6 +482,19 @@ console.log("the owner's own account (ADMIN_EMAILS)");
     assert.equal(SA.switchAccount(full, 'x', 'y', KEYS, 40), false);
     assert.equal(full.getItem(NB), 'KEEP-ME'); assert.equal(full.getItem(PR), 'P'); assert.equal(full.getItem(SA.ASIDE_KEY), null);
     assert.match(src('src/pages/account/index.astro'), /Notes from another account on this browser were set aside\. They come back when that account signs in here\./);
+    // Every "clear this device" path removes what was set aside, so nothing of another account outlives a clear.
+    const cl = mk({ [NB]: 'X' }); SA.switchAccount(cl, 'a', 'b', KEYS, 50); assert.ok(cl.getItem(SA.ASIDE_KEY));
+    SA.clearAside(cl); assert.equal(cl.getItem(SA.ASIDE_KEY), null);
+    const lt = src('src/lib/learner.ts');
+    assert.match(/function clearDevice\(\) \{[\s\S]*?\n\}/.exec(lt)[0], /clearAside\(window\.localStorage\)/, 'sign-out with "remove from this device"');
+    assert.match(/export async function deleteAccount[\s\S]*?\n\}/.exec(lt)[0], /clearAside\(window\.localStorage\)/, 'account deletion on this device');
+    assert.match(/\$\('\[data-clear\]'\)[\s\S]*?\}\);/.exec(src('src/pages/progress/index.astro'))[0], /clearAside\(window\.localStorage\)/, '"Clear everything" on /progress/');
+    // Storage full is said on the account page and the header after an automatic sync too, with advice that works.
+    assert.match(lt, /SET_ASIDE_FAILED = '[^']*sign out with “Also remove my notes and progress from this device” ticked/);
+    assert.match(lt, /writeCache\(\{ \.\.\.readCache\(\), asideFull: true \}\)/);
+    assert.match(src('src/pages/account/index.astro'), /window\.addEventListener\(LEARNER_EVENT, paintAside\)/);
+    assert.match(src('src/components/AccountLink.astro'), /setAsideFailed\(\)/);
+    assert.match(src('src/pages/account/index.astro'), /At most three accounts' notes are kept aside on one browser; a fourth pushes out the oldest\./);
   });
   await check('before migration 0011 sign-in works as it did and the owner\'s page stays shut for accounts; the export says how each device signed in after it', async () => {
     const early = makeDb({ before0011: true }); const eenv = { ...oenv, CLASSES: early };
