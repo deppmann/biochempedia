@@ -625,6 +625,12 @@ check('review fields: reworded copy is checked like any other', () => {
   assert.equal(r.graph.concepts.osmosis.short, undefined);
   assert.ok(rejected(r, /not shorter/)); assert.ok(rejected(r, /not a concept/));
 });
+check('review fields: an alias list replaces the old one when at least two entries are valid', () => {
+  const r = run({ review: [file('review', '01', { fields: { osmosis: { aliases: ['water moving into cells', 'why do cells swell in water', 'how to treat my cold'] }, diffusion: { aliases: ['only one'] } } })] });
+  assert.deepEqual(r.graph.concepts.osmosis.aliases, ['water moving into cells', 'why do cells swell in water']);
+  assert.deepEqual(r.graph.concepts.diffusion.aliases, good.concepts.diffusion.aliases);
+  assert.ok(rejected(r, /medical-advice/)); assert.ok(rejected(r, /kept the existing ones/));
+});
 
 console.log('digests and prompts');
 const digests = buildDigests(site, ['diffusion-and-osmosis', 'thirsty-celery', 'action-potential']);
