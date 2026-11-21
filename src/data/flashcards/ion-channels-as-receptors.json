@@ -1,0 +1,609 @@
+{
+ "slug": "ion-channels-as-receptors",
+ "title": "Ion Channels as Receptors",
+ "generated": {
+  "date": "2026-11-21",
+  "pipeline": "extract → Gemini draft → Claude Sonnet accuracy gate → Sonnet fixes",
+  "models": {
+   "draft": "gemini-4-neon-high",
+   "gate": "claude-sonnet-5-5",
+   "fix": "claude-sonnet-5-5"
+  }
+ },
+ "lessonHash": "befc3d4406ef",
+ "sectionHashes": {
+  "(opening)": "86730beb8a66",
+  "Putting numbers on flow: equilibrium potential and driving force": "16f52b228a7e",
+  "Watching one channel switch: patch-clamp evidence": "deb7aa8a8fe3",
+  "How a pore passes potassium and excludes smaller sodium": "282dc79c2938",
+  "Three keys for one gate": "a3b9d66bc93b",
+  "Design problem": "152bfbaf2cce",
+  "Coincidence detection and plugging a pore": "278b2fd787a2",
+  "Gigohm seals and transmitter packets": "27a086f625f0",
+  "Borrowing channels as tools": "4596c946f9eb"
+ },
+ "cards": [
+  {
+   "id": "ion-channels-as-receptors-c01",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "One open ion channel passes about ten million ions a second and can shift membrane voltage in about {{c1::a millisecond}}.",
+   "back": "",
+   "why": "Because a gated pore skips G-protein and kinase cascades, opening it changes membrane voltage directly and rapidly.",
+   "quote": "One open ion channel passes about ten million ions a second, and open channels shift membrane voltage in about a millisecond."
+  },
+  {
+   "id": "ion-channels-as-receptors-c02",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "What three-part rule summarises how an ion channel controls membrane voltage and ion flow?",
+   "back": "An open channel pulls membrane voltage toward its ion's equilibrium potential; signals open the gate, and pore blocks control whether ions pass.",
+   "why": "This covers passive ion flow along pump-built electrochemical gradients; multi-ion channels pull voltage between their ions' equilibrium potentials.",
+   "quote": "An open channel pulls membrane voltage toward its ion's equilibrium potential; signals open the gate, and pore blocks control whether ions pass."
+  },
+  {
+   "id": "ion-channels-as-receptors-c03",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A neuron sits at −70 mV and a multi-ion channel permeable to both Na+ (E near +60 mV) and K+ (E near −90 mV) opens equally to both. What happens to membrane voltage, and why?",
+   "back": "Membrane voltage depolarises toward a value between −90 mV and +60 mV (less negative than −70 mV). A multi-ion channel pulls voltage toward a point between its permeant ions' equilibrium potentials.",
+   "quote": "A multi-ion channel pulls voltage toward a value between its ions' equilibrium potentials; Ca2+ entry also carries a chemical signal"
+  },
+  {
+   "id": "ion-channels-as-receptors-c04",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "How do ion channels differ from active transporters such as the Na+/K+ pump in mechanism, energy source, and transport rate?",
+   "back": "Transporters bind ions, change shape, and spend ATP to move a few hundred uphill per second; open channels let millions flow downhill through a pore.",
+   "quote": "Transporters such as the Na+/K+ pump bind ions, change shape and spend ATP to move a few hundred uphill each second",
+   "section": "Putting numbers on flow: equilibrium potential and driving force"
+  },
+  {
+   "id": "ion-channels-as-receptors-c05",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "An ion's {{c1::equilibrium potential}} (E) is the membrane voltage at which its concentration push and electrical pull exactly cancel.",
+   "back": "",
+   "quote": "Where concentration push and electrical pull cancel is an ion's equilibrium potential, E, given by the Nernst equation:",
+   "section": "Putting numbers on flow: equilibrium potential and driving force"
+  },
+  {
+   "id": "ion-channels-as-receptors-c06",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "At 37 °C, the Nernst equation gives an ion's equilibrium potential as E = ({{c1::61.5 mV}} ÷ z) × log10(concentration outside ÷ concentration inside).",
+   "back": "Here z is the ion's charge (+1 for Na+ and K+, +2 for Ca2+, −1 for Cl−).",
+   "quote": "E = (61.5 mV ÷ z) × log10 (concentration outside ÷ concentration inside), at 37 °C",
+   "section": "Putting numbers on flow: equilibrium potential and driving force"
+  },
+  {
+   "id": "ion-channels-as-receptors-c07",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In a typical neuron resting near −70 mV, typical equilibrium potentials sit near −90 mV for K+, near {{c1::+60 mV}} for Na+, and above +120 mV for Ca2+.",
+   "back": "",
+   "quote": "Typical E values sit near −90 mV for K+, near +60 mV for Na+ and above +120 mV for Ca2+.",
+   "section": "Putting numbers on flow: equilibrium potential and driving force"
+  },
+  {
+   "id": "ion-channels-as-receptors-c08",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "The electrical push on a permeant ion is its {{c1::driving force}}, calculated as membrane voltage minus E.",
+   "back": "",
+   "quote": "The electrical push follows from one subtraction, the driving force: driving force = membrane voltage − E",
+   "section": "Putting numbers on flow: equilibrium potential and driving force"
+  },
+  {
+   "id": "ion-channels-as-receptors-c09",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why does opening Na+ channels at −70 mV cause a much stronger rush than the resting K+ leak?",
+   "back": "At −70 mV, Na+ sits 130 mV from its E (+60 mV), whereas K+ sits only 20 mV from its E (−90 mV), giving Na+ a far larger driving force.",
+   "quote": "At −70 mV, Na+ sits 130 mV from its E (+60 mV), so opening Na+ channels drives a strong inward rush",
+   "section": "Putting numbers on flow: equilibrium potential and driving force"
+  },
+  {
+   "id": "ion-channels-as-receptors-c10",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Why do intracellular and extracellular bulk ion concentrations barely change when open channels swing membrane voltage?",
+   "back": "Very few ions need to cross the membrane to shift its voltage, so bulk concentrations remain nearly unchanged and nothing new has to be synthesised.",
+   "quote": "Very few ions need to cross to swing voltage, so bulk concentrations barely shift and nothing has to be made.",
+   "section": "Putting numbers on flow: equilibrium potential and driving force"
+  },
+  {
+   "id": "ion-channels-as-receptors-c11",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "At 37 °C, a cell has 1 mM Ca2+ outside and 0.0001 mM Ca2+ inside (z = +2). What is E for Ca2+, and what is its driving force at a resting voltage of −70 mV?",
+   "back": "E = (61.5 mV ÷ 2) × log10(1 ÷ 0.0001) = 30.75 mV × 4 = +123 mV. Driving force = −70 mV − (+123 mV) = −193 mV.",
+   "why": "Dividing 61.5 mV by z = +2 yields 30.75 mV per tenfold concentration ratio, matching typical neuronal E_Ca values above +120 mV.",
+   "quote": "Here z is the ion's charge (+1 for Na+ and K+, +2 for Ca2+, −1 for Cl−).",
+   "section": "Putting numbers on flow: equilibrium potential and driving force"
+  },
+  {
+   "id": "ion-channels-as-receptors-c12",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "At 37 °C, a cell has 100 mM Cl− outside and 5 mM Cl− inside (z = −1), giving E_Cl ≈ −80 mV. If intracellular Cl− increases tenfold to 50 mM, what is the new E_Cl?",
+   "back": "About −18.5 mV. Setup: raising internal Cl− tenfold cuts the outside-to-inside ratio by 10, so log10 drops by 1; multiplying by 61.5 mV ÷ (−1) shifts E_Cl by +61.5 mV (−80 mV + 61.5 mV = −18.5 mV).",
+   "quote": "E = (61.5 mV ÷ z) × log10 (concentration outside ÷ concentration inside), at 37 °C",
+   "section": "Putting numbers on flow: equilibrium potential and driving force"
+  },
+  {
+   "id": "ion-channels-as-receptors-c13",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A mature neuron sits at −65 mV when a GABA-A Cl− channel opens, and E_Cl is −80 mV. Which way do membrane voltage and Cl− ions move, and why?",
+   "back": "Voltage moves downward toward −80 mV (more negative) and Cl− flows into the cell. Making the inside more negative requires negatively charged Cl− to enter, even though Vm − E is positive (+15 mV).",
+   "quote": "Because Cl− is negatively charged, making the inside more negative requires Cl− to move into the cell, even though Vm − E is positive (+10 mV).",
+   "section": "Putting numbers on flow: equilibrium potential and driving force"
+  },
+  {
+   "id": "ion-channels-as-receptors-c14",
+   "type": "experiment",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "In Neher and Sakmann's frog muscle patch-clamp recording, current stepped cleanly between zero and one fixed picoamp level. What did this show about single-channel behaviour?",
+   "back": "To a good approximation, a single channel is either shut or open, so signal strength is set by open probability rather than partial opening.",
+   "quote": "Their 1976 trace stepped cleanly between zero and one fixed level as a single acetylcholine-gated channel opened and shut.",
+   "section": "Watching one channel switch: patch-clamp evidence"
+  },
+  {
+   "id": "ion-channels-as-receptors-c15",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "Because an ion channel switches approximately between shut and open, overall signal strength is set by {{c1::open probability}}, the share of time spent open.",
+   "back": "",
+   "quote": "To a good approximation a channel is either shut or open, and signal strength is set by open probability, the share of time spent open.",
+   "section": "Watching one channel switch: patch-clamp evidence"
+  },
+  {
+   "id": "ion-channels-as-receptors-c16",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A single open channel in a patch-clamp recording passes a monovalent cation current of 4.8 pA. Given that 1.6 pA is about 10^7 monovalent ions per second, about how many ions cross each second while open?",
+   "back": "About 3 × 10^7 ions per second. Setup: 4.8 pA ÷ 1.6 pA = 3, so 3 × 10^7 monovalent ions per second cross the open pore.",
+   "quote": "Current through one open channel is a few picoamps (trillionths of an amp; 1.6 pA is about 10⁷ monovalent ions per second).",
+   "section": "Watching one channel switch: patch-clamp evidence"
+  },
+  {
+   "id": "ion-channels-as-receptors-c17",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "In a patch holding one acetylcholine-gated channel, you keep acetylcholine constant and change the held voltage to double the driving force. What happens to step height and open probability, and why?",
+   "back": "Each current step becomes about twice as tall, while open probability stays roughly the same. Open-pore current equals conductance times driving force, whereas acetylcholine mostly sets how often the channel opens.",
+   "quote": "Each step is about half as tall, because the current through one open pore is its conductance times the driving force.",
+   "section": "Watching one channel switch: patch-clamp evidence"
+  },
+  {
+   "id": "ion-channels-as-receptors-c18",
+   "type": "calc",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A patch holds one acetylcholine-gated Na+-selective channel (E_Na = +60 mV) held at −60 mV with constant acetylcholine. If extracellular Na+ is lowered tenfold at 37 °C, use the Nernst, driving-force, and single-channel current rules to find the new E_Na and predict step height and open probability.",
+   "back": "E_Na shifts to −1.5 mV, step height roughly halves, and open probability stays roughly unchanged. Setup: by the Nernst rule (z = +1), a tenfold drop in outside Na+ shifts E_Na by −61.5 mV (+60 − 61.5 = −1.5 mV), reducing driving force from −120 mV to −58.5 mV (48.8%). By the single-channel current rule, step height scales with driving force, while constant acetylcholine keeps open probability roughly steady.",
+   "quote": "The share of time spent open stays roughly the same, because acetylcholine, not the driving force, mostly sets it.",
+   "section": "Watching one channel switch: patch-clamp evidence"
+  },
+  {
+   "id": "ion-channels-as-receptors-c19",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Suppose a potassium channel worked simply as a rigid size sieve just wide enough for K+ (radius 1.33 Å). What would happen to Na+ (radius 0.95 Å), and why?",
+   "back": "Smaller Na+ would slip through at least as easily as K+, eliminating selectivity. A rigid size sieve cannot block an ion smaller than its permeant ion.",
+   "quote": "Smaller Na+ would slip through at least as easily as K+, so a size sieve fails.",
+   "section": "How a pore passes potassium and excludes smaller sodium"
+  },
+  {
+   "id": "ion-channels-as-receptors-c20",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "What energy trade governs whether a hydrated ion enters the narrow selectivity filter of a potassium channel?",
+   "back": "Stripping an ion's coat of inward-facing water molecules costs energy, so an ion enters a narrow pore only if pore interactions repay that dehydration cost.",
+   "quote": "stripping that coat costs energy, so an ion enters a narrow pore only if the pore repays it.",
+   "section": "How a pore passes potassium and excludes smaller sodium"
+  },
+  {
+   "id": "ion-channels-as-receptors-c21",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "In the bacterial potassium channel KcsA, four identical subunits form a 12 Å selectivity filter lined by rings of {{c1::backbone carbonyl oxygens}} that replace K+'s water shell.",
+   "back": "",
+   "quote": "Rings of backbone carbonyl oxygens line the filter, replacing K+'s water shell at almost no net cost.",
+   "section": "How a pore passes potassium and excludes smaller sodium"
+  },
+  {
+   "id": "ion-channels-as-receptors-c22",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "How did later work refine the 1998 rigid-filter explanation of why K+ channels exclude Na+?",
+   "back": "The filter actually flexes; selectivity rests on its carbonyl oxygens' electrical character and four sequential sites, where Na+ can bind partly wet without being passed along.",
+   "quote": "Later work refined that model: the filter flexes, and selectivity rests on the electrical character of its carbonyl oxygens plus four sites in a row.",
+   "section": "How a pore passes potassium and excludes smaller sodium"
+  },
+  {
+   "id": "ion-channels-as-receptors-c23",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "How can a potassium channel pass up to about a hundred million K+ ions per second despite coordinating K+ tightly in its selectivity filter?",
+   "back": "K+ ions occupy the filter's four sites in single file, so repulsion from each arriving K+ ion pushes an ion out the far end.",
+   "quote": "The same four sites explain speed: K+ ions sit in single file, and repulsion pushes one out as the next arrives.",
+   "section": "How a pore passes potassium and excludes smaller sodium"
+  },
+  {
+   "id": "ion-channels-as-receptors-c24",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "How does an ionotropic receptor differ from a metabotropic receptor in coupling a ligand to ion flow?",
+   "back": "An ionotropic receptor is the ion channel itself, whereas a metabotropic receptor is a G-protein-coupled receptor that acts on a separate channel via an intracellular messenger.",
+   "quote": "A metabotropic receptor is a G-protein-coupled receptor that acts on a channel via an intracellular messenger.",
+   "section": "Three keys for one gate"
+  },
+  {
+   "id": "ion-channels-as-receptors-c25",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Name the intracellularly gated ion channel in each of these four systems: the heart (opened by Gβγ), the rod cell (opened by cGMP), the calcium store, and the T cell.",
+   "back": "The heart's K+ channel, the rod's cGMP-gated channel, the IP3 receptor (on the calcium store), and Orai (in the T cell).",
+   "quote": "the heart's K+ channel by Gβγ (lesson gpcrs-and-g-proteins), the rod's channel by cGMP (lesson senses-and-cgmp), and the IP3 receptor and Orai",
+   "section": "Three keys for one gate"
+  },
+  {
+   "id": "ion-channels-as-receptors-c26",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "In voltage-gated Na+, K+, and Ca2+ channels, each of the four voltage sensors contains an {{c1::S4 helix}} carrying a positive charge at about every third position.",
+   "back": "Depolarisation shifts S4 outward in the membrane's electric field to open the gate.",
+   "quote": "Voltage-gated Na+, K+ and Ca2+ channels each have four voltage sensors whose S4 helix carries a positive charge at about every third position;",
+   "section": "Three keys for one gate"
+  },
+  {
+   "id": "ion-channels-as-receptors-c27",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "During an axonal action potential, what ends the Na+ depolarisation spike and prevents the nerve impulse from travelling backward?",
+   "back": "An inner inactivation loop shuts each voltage-gated Na+ channel while slower K+ channels restore voltage; inactivated Na+ channels behind the impulse block backward re-excitation.",
+   "quote": "Inward Na+ current spreads along the axon (the nerve cell's long fibre), while inactivated channels behind keep the impulse from turning back.",
+   "section": "Three keys for one gate"
+  },
+  {
+   "id": "ion-channels-as-receptors-c28",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "A mutation replaces the positively charged residues along the S4 helix of axonal voltage-gated Na+ channels with uncharged residues. What happens when the axon is depolarised past threshold, and why?",
+   "back": "The Na+ channels fail to open and no action potential fires. Membrane voltage acts as an electric field pushing on S4's positive charges to shift the helix outward and open the gate.",
+   "quote": "a voltage across a membrane is an electric field, which pushes on charge, so depolarisation shifts S4 outward to open the gate.",
+   "section": "Three keys for one gate"
+  },
+  {
+   "id": "ion-channels-as-receptors-c29",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A mutation stops the inner inactivation loop of voltage-gated Na+ channels from shutting after opening. What happens to an axonal action potential, and why?",
+   "back": "The spike is prolonged, repolarisation slows, and the axon behind is less protected from re-excitation. Depolarisation begins normally, but Na+ keeps flowing in and the trailing membrane lacks inactivated channels.",
+   "quote": "Depolarisation starts normally, but Na+ keeps flowing in, so the spike is prolonged and repolarisation is slowed.",
+   "section": "Three keys for one gate"
+  },
+  {
+   "id": "ion-channels-as-receptors-c30",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A mature neuron at −70 mV simultaneously opens excitatory glutamate channels (Na+, E ≈ +60 mV) and inhibitory GABA-A channels (Cl−, E = −80 mV). Using the multi-ion equilibrium-potential and action-potential threshold rules, predict the effect on firing.",
+   "back": "Action potential firing becomes less likely. By the equilibrium-potential and multi-ion rules, Cl− influx pulls voltage toward −80 mV and opposes Na+ influx toward +60 mV, keeping voltage further below the threshold needed for voltage-gated Na+ positive feedback.",
+   "quote": "neuronal glutamate channels let Na+ in and excite, whereas GABA-A receptors pass Cl− and, in most mature neurons, hold voltage down.",
+   "section": "Three keys for one gate"
+  },
+  {
+   "id": "ion-channels-as-receptors-c31",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Why does capsaicin in a chilli pepper feel like burning heat even though it does not raise mouth temperature?",
+   "back": "Capsaicin binds TRPV1's membrane-spanning pocket to open the same gate that painful heat opens, sending identical action potentials that the brain interprets as burning heat.",
+   "quote": "Capsaicin opens the same heat-gated channel, sending identical impulses that the brain reads as burning heat even though your mouth is no hotter.",
+   "section": "Design problem"
+  },
+  {
+   "id": "ion-channels-as-receptors-c32",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "How did David Julius's laboratory isolate the skin's painful-heat detector TRPV1, and what channel property made that screen succeed?",
+   "back": "They screened sensory-neuron DNA libraries for capsaicin sensitivity, which succeeded because capsaicin binds a membrane-spanning pocket in TRPV1 to open the same gate opened by heat.",
+   "quote": "cloned in David Julius's laboratory in 1997 by screening sensory-neuron DNA libraries for capsaicin sensitivity.",
+   "section": "Design problem"
+  },
+  {
+   "id": "ion-channels-as-receptors-c33",
+   "type": "qa",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "Design a skin nerve-ending detector that turns heat above about 43 °C into a travelling nerve impulse within milliseconds, naming the rules that govern your sensor, ion flow, and propagation.",
+   "back": "Use a direct heat-gated cation channel (fast-gating rule, skipping G proteins/kinases) so Na+ and Ca2+ flow inward from −70 mV toward their positive E values (equilibrium-potential rule) to depolarise the ending, plus nearby voltage-gated Na+ channels so crossing threshold launches a full-height action potential down the axon (action-potential rule).",
+   "quote": "Because that local change fades with distance, place voltage-gated Na+ channels nearby: crossing threshold fires a full-height action potential along the axon.",
+   "section": "Design problem"
+  },
+  {
+   "id": "ion-channels-as-receptors-c34",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Why does a synaptic NMDA receptor conduct strongly only when presynaptic and postsynaptic neurons are active together?",
+   "back": "At rest, extracellular Mg2+ sticks in its open pore; strong conduction needs both presynaptic glutamate release to open the gate and postsynaptic depolarisation to expel Mg2+.",
+   "quote": "So it conducts strongly only when two things happen together: the cell before the synapse has released glutamate, and the cell after it is already depolarised.",
+   "section": "Coincidence detection and plugging a pore"
+  },
+  {
+   "id": "ion-channels-as-receptors-c35",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "Glutamate opens the synaptic NMDA receptor gate only when {{c1::glycine or D-serine}} is also bound.",
+   "back": "",
+   "quote": "First, glutamate opens its gate only when glycine or D-serine is also bound.",
+   "section": "Coincidence detection and plugging a pore"
+  },
+  {
+   "id": "ion-channels-as-receptors-c36",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "At synapses, the scaffold protein {{c1::PSD-95}} grips NMDA receptor tails via PDZ domains to hold them opposite glutamate release.",
+   "back": "",
+   "quote": "Third, scaffolds anchor synaptic receptors in place: PSD-95 grips NMDA receptor tails via PDZ domains (lesson protein-interaction-modules), holding them opposite glutamate release.",
+   "section": "Coincidence detection and plugging a pore"
+  },
+  {
+   "id": "ion-channels-as-receptors-c37",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "A neuron is held at −70 mV and given glutamate plus glycine, but extracellular Mg2+ is completely removed from the bath. What happens to NMDA receptor conduction, and why?",
+   "back": "NMDA receptors conduct strongly even at −70 mV, admitting both Na+ and Ca2+. With no extracellular Mg2+ available to lodge in the open pore at rest, depolarisation is no longer needed to unblock it.",
+   "quote": "at rest a Mg2+ ion from outside is drawn into its open pore and sticks there.",
+   "section": "Coincidence detection and plugging a pore"
+  },
+  {
+   "id": "ion-channels-as-receptors-c38",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A skeletal-muscle nerve fibre is bathed in tetrodotoxin (TTX) and given a small depolarising stimulus. What happens to resting voltage and action potential firing, and why?",
+   "back": "Resting voltage stays near normal, but no action potential starts, leading to paralysis. TTX lodges in the outer mouth of voltage-gated Na+ channels to block Na+ entry, without blocking resting K+ leak channels.",
+   "quote": "Tetrodotoxin (TTX), carried by pufferfish, lodges in the outer mouth of nerve and skeletal-muscle voltage-gated Na+ channels; Na+ cannot enter, no action potential starts, and paralysis follows.",
+   "section": "Coincidence detection and plugging a pore"
+  },
+  {
+   "id": "ion-channels-as-receptors-c39",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "A garter snake carrying altered amino acids at the outer pore mouth of its voltage-gated Na+ channels eats a tetrodotoxin-bearing rough-skinned newt. What happens to its nerve impulses, and why?",
+   "back": "Its nerve fibres still fire action potentials and avoid paralysis. Because TTX grips the altered outer pore mouth poorly, Na+ can still enter voltage-gated Na+ channels.",
+   "quote": "resistant snakes have altered amino acids at the outer pore mouth where the toxin grips poorly.",
+   "section": "Coincidence detection and plugging a pore"
+  },
+  {
+   "id": "ion-channels-as-receptors-c40",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Ketamine is applied to a resting neuron without glutamate and completely washed out before glutamate and depolarisation arrive. How does this compare with having ketamine present during stimulation, and why?",
+   "back": "Washout at rest leaves the later response intact, whereas ketamine present during stimulation blocks conduction and reduces opening. Closed NMDA gates bar ketamine at rest; it must enter an open, unblocked pore to plug it from within.",
+   "quote": "Ketamine, an anaesthetic and drug of abuse, enters the open NMDA pore to block it from within and also makes the channel open less often.",
+   "section": "Coincidence detection and plugging a pore"
+  },
+  {
+   "id": "ion-channels-as-receptors-c41",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "At a resting synapse (−70 mV) with normal extracellular Mg2+, a selective blocker silences AMPA receptors while glutamate and glycine are released. Using the equilibrium-potential and coincidence-detection rules, predict the effect on postsynaptic Ca2+ entry through NMDA receptors.",
+   "back": "NMDA-mediated Ca2+ entry is prevented. By the coincidence-detection rule, glutamate and glycine open the NMDA gate, but without AMPA-mediated Na+ influx depolarising the postsynaptic cell (equilibrium-potential rule), Mg2+ stays lodged in the NMDA pore and blocks Ca2+.",
+   "quote": "once the cell is depolarised, usually because nearby AMPA receptors have let Na+ in, Mg2+ is expelled and the pore admits Ca2+ with Na+;",
+   "section": "Coincidence detection and plugging a pore"
+  },
+  {
+   "id": "ion-channels-as-receptors-c42",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "A skin nerve ending expressing TRPV1 is warmed to 45 °C while tetrodotoxin (TTX) blocks the axon just downstream of the ending. Using the gating, equilibrium-potential, and pore-block rules, predict what happens locally and along the axon.",
+   "back": "The nerve ending still depolarises locally, but no travelling action potential propagates down the axon. By the gating and equilibrium-potential rules, heat opens TRPV1 for Na+ and Ca2+ influx; by the pore-block rule, TTX plugs nearby voltage-gated Na+ channels so the fading local shift cannot launch an axon spike.",
+   "quote": "Na+ cannot enter, no action potential starts, and paralysis follows.",
+   "section": "Coincidence detection and plugging a pore"
+  },
+  {
+   "id": "ion-channels-as-receptors-c43",
+   "type": "experiment",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "Why did slight suction that created a gigohm seal let Neher and Sakmann resolve single-channel picoamp steps cleanly?",
+   "back": "Tightening the glass-to-membrane seal more than a hundredfold—from millions to billions of ohms—cut rim leak current that had buried picoamp steps in noise.",
+   "quote": "slight suction tightened the seal more than a hundredfold—from millions of ohms to billions (gigohms)—so picoamp steps stood clear",
+   "section": "Gigohm seals and transmitter packets"
+  },
+  {
+   "id": "ion-channels-as-receptors-c44",
+   "type": "experiment",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "What did Bernard Katz and colleagues show about acetylcholine release at the nerve-muscle junction?",
+   "back": "Acetylcholine is released in packets of roughly constant size, each opening many ion channels at once.",
+   "quote": "Bernard Katz and colleagues showed at the nerve-muscle junction that acetylcholine is released in packets of roughly constant size, each opening many channels at once.",
+   "section": "Gigohm seals and transmitter packets"
+  },
+  {
+   "id": "ion-channels-as-receptors-c45",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "Güler and colleagues engineered mice expressing TRPV1 in chosen neurons normally lacking it, so capsaicin switches those neurons on. Using the gating, equilibrium-potential, and action-potential rules, trace how capsaicin activates them.",
+   "back": "By the gating rule, capsaicin binds TRPV1's membrane-spanning pocket to open its cation pore only in the engineered neurons. By the equilibrium-potential rule, Na+ and Ca2+ rush in from near −70 mV toward their positive E values to depolarise the cell; by the action-potential rule, crossing threshold triggers voltage-gated Na+ positive feedback and spikes.",
+   "quote": "Güler and colleagues (2012) engineered mice expressing TRPV1 in chosen neurons, so a dose of capsaicin switches those neurons on.",
+   "section": "Borrowing channels as tools"
+  }
+ ]
+}

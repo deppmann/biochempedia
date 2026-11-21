@@ -4,7 +4,7 @@ slug: "integrins-and-rho-gtpases"
 course: "signaling"
 courseChapter: "Cell Signaling · Unit 5: Signals that build and defend an animal"
 order: 127
-summary: "Integrins tie the matrix outside a cell to the actin inside it and signal in both directions, and three Rho-family switches turn that grip into movement. This lesson follows the integrin, a receptor with no enzyme, from the grip that is switched on from inside to the focal adhesion that signals and feels force, and then the three Rho-family switches that shape actin. Afterwards you can explain how a cell crawls, and why a missing integrin or a blocked one changes what blood cells can do."
+summary: "Integrin grip switches from inside, and focal adhesions signal and sense force; Rho, Rac and Cdc42 shape actin to turn grip into crawling. This lesson follows the integrin, a receptor with no enzyme, from its matrix handle and inside-out grip to the focal adhesion that borrows kinases and measures pull, and then to the three Rho-family switches that shape actin. Afterwards you can explain how a cell crawls, and why a missing integrin or a blocked one changes what blood cells can do."
 hook: "How does a cell hold on to what it stands on, feel how hard it is pulling, and use that grip to crawl?"
 
 estMinutes: 24
@@ -18,10 +18,15 @@ explainer:
   src: "/explainers/integrins-and-rho-gtpases/explainer.mp4"
   captions: "/explainers/integrins-and-rho-gtpases/explainer.vtt"
   poster: "/explainers/integrins-and-rho-gtpases/poster.jpg"
-  title: "A Grip Switched On From Inside"
-  durationSec: 125.4
-  narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+  title: "A Grip That Signals and Feels Force"
+  durationSec: 198.0
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+  takeaways:
+    - "Integrin grip switches from inside, and focal adhesions signal and sense force."
+    - "An integrin has two chains, α and β, with short tails and no enzyme of its own."
+    - "In platelet and white blood cell integrins, talin and kindlin separate the tails to straighten a bent, low-affinity receptor into a tight grip."
+    - "Clustered integrins assemble focal adhesions that borrow FAK and Src to signal inward, and tension on talin uncovers buried vinculin sites to reinforce the hold."
 
 scientists:
   - name: "Michael Sheetz"
@@ -354,112 +359,150 @@ corpusTags:
   - "actin-cytoskeleton"
 draft: false
 films:
-  - id: "rho-switches"
-    src: "/explainers/integrins-and-rho-gtpases/rho-switches.mp4"
-    captions: "/explainers/integrins-and-rho-gtpases/rho-switches.vtt"
-    poster: "/explainers/integrins-and-rho-gtpases/rho-switches-poster.jpg"
-    title: "Three Switches, Three Shapes"
-    durationSec: 103.7
-    narration: "an AI narrator voice (Gemini, Charon) reading narration written from this lesson's text"
+  - id: "chapter-2"
+    src: "/explainers/integrins-and-rho-gtpases/chapter-2.mp4"
+    captions: "/explainers/integrins-and-rho-gtpases/chapter-2.vtt"
+    poster: "/explainers/integrins-and-rho-gtpases/chapter-2-poster.jpg"
+    title: "Three Switches Turn Grip Into Crawling"
+    durationSec: 200.9
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
     aiGenerated: true
+    takeaways:
+      - "Rho, Rac and Cdc42 shape actin to turn grip into crawling."
+      - "Rho drives contractile stress fibres via Rho kinase and myosin II; Rac builds branching lamellipodia via WAVE and Arp2/3; Cdc42 triggers filopodia and activates WASP-family proteins."
+      - "FAK and Src at front adhesions recruit GEFs for Rac, wiring new grip to more forward pushing."
+      - "Crawling cycles through push, grip, pull and rear release, though live sensors find some Rho activity at the front edge too."
 ---
 
 import LessonFilm from '../../../components/LessonFilm.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import Support from '../../../components/Support.astro';
 
-**Integrins tie the material a cell stands on to the actin inside it, and they signal in both directions. Together with three Rho-family switches that build actin, they let a cell grip, feel a pull and crawl.** A white blood cell carried along in your blood can stop on the wall of a vessel in about a second, and the receptor that stops it has no enzyme activity of its own.
-
-Most receptors in this course read a signal that drifts in from somewhere else. This one reads something solid: the material the cell is standing on. So it has to answer two questions that a hormone receptor never faces. Am I holding on to anything? How hard is it pulling back? The answers help decide whether a cell stays where it is or crawls away. A crawling cell pushes its front edge forward, grips, pulls its body forward against the grip, and lets go at the back. The integrin supplies the grip, and the Rho-family switches supply the push and the pull.
+**Most receptors in this course read a soluble signal that drifts in from elsewhere; an integrin reads something solid—the surface a cell stands on.** The first film traced how this enzyme-free receptor switches grip from inside and builds force-sensing adhesions; here is the molecular evidence behind those steps, and then the actin switches that turn grip into crawling.
 
 ## The idea: a receptor for something solid
 
-Most cells in your body sit on or in the **extracellular matrix**, a mesh of protein fibres and sugar chains that cells secrete around themselves. Collagen is its rope. **Fibronectin** is one of its glues, a long protein that sticks to collagen with one part and to cells with another.
+Most cells sit on or in the **extracellular matrix**, a mesh of protein fibres and sugar chains secreted around cells. Collagen is its rope; **fibronectin** is one of its glues, sticking to collagen with one part and to cells with another.
 
-Which part do cells hold? In 1984 Michael Pierschbacher and Erkki Ruoslahti tested short synthetic pieces of fibronectin's cell-binding region and found that a peptide of four amino acids, Arg-Gly-Asp-Ser, could stand in for it. The first three, **RGD** in one-letter code, are the handle. Add enough free RGD peptide to a dish and fewer cells hold on to fibronectin, because the peptide fills the site that the matrix would have filled.
+Which part do cells hold? In 1984 Michael Pierschbacher and Erkki Ruoslahti tested short synthetic fragments of fibronectin's cell-binding region and found that four amino acids, Arg-Gly-Asp-Ser, could stand in for it. The first three—**RGD** in one-letter code—are the handle. Add enough free RGD peptide to a dish and fewer cells hold on to fibronectin, because the peptide fills the site the matrix would have filled.
 
-<LessonFigure src="/figures/integrins-and-rho-gtpases/rgd-competition-dish.webp" width={1200} height={636} alt="AI-generated illustration: two schematic panels of a cell over a dish. On the left, integrins on the cell underside grip RGD knobs on fibronectin rods and the cell lies flat. On the right, free RGD peptide occupies integrin sites and the cell is drawn lifting and rounding, a simplified picture of competition for binding in which fewer cells hold on, not a measured fraction or certain release of every cell." caption="RGD is the handle that integrins hold on fibronectin. Add enough free RGD peptide to a dish and it fills the integrin sites that the matrix would have filled, so fewer cells hold on. Drawn schematically." />
+<LessonFigure src="/figures/integrins-and-rho-gtpases/rgd-competition-dish.webp" width={1200} height={636} alt="AI-generated illustration: two schematic panels of a cell over a dish. On the left, integrins on the cell underside grip RGD knobs on fibronectin rods and the cell lies flat. On the right, free RGD peptide occupies integrin sites and the cell is drawn lifting and rounding, a simplified picture of competition for binding in which fewer cells hold on, not a measured fraction or certain release of every cell." caption="Free RGD peptide competes with fibronectin for integrin binding sites, leaving fewer cells attached to the dish. Drawn schematically." />
 
-The receptor that holds the handle is an **integrin**. The name was proposed in 1986 by the laboratories of Richard Hynes, Clayton Buck and Alan Horwitz, for an integral membrane protein that ties the matrix outside to the cytoskeleton inside. An integrin is two different chains, α and β, and each crosses the membrane once. Their large outer parts together form a head that grips the matrix. Inside the cell each chain has only a short tail, a few dozen amino acids in nearly every case, and linker proteins join the tails to actin filaments (one integrin, α6β4, joins keratin filaments instead). There is no kinase domain and no channel.
+The receptor that holds that handle is an **integrin**—named in 1986 by Richard Hynes, Clayton Buck and Alan Horwitz for an integral membrane protein tying matrix outside to cytoskeleton inside. An integrin is a heterodimer of two different chains, α and β, each crossing the membrane once. Their outer parts form a head that grips the matrix, while inside each chain has only a short tail (a few dozen amino acids in nearly every case), with no kinase domain and no channel. Linker proteins tie those tails to actin filaments. Different αβ pairs have distinct targets: some recognise RGD, others bind collagen or laminin at non-RGD sites, and some white blood cell integrins grip proteins on other cells.
 
-Integrins come as a family of α and β pairs with different ligand preferences. Some recognise RGD. Others grip collagen or laminin at different sites, and some integrins of white blood cells grip proteins on the surface of other cells.
+**Predict.** Soluble RGD is tiny beside a fibronectin fibre, yet flooding a dish with free RGD blocks cell attachment to fibronectin. Why does it work—and would free RGD block integrins holding cells to collagen at non-RGD sites?
 
-So an integrin is a mechanical link first. Its signalling comes from the proteins that gather on its tails, and it runs in both directions.
+<details>
+<summary>Check your prediction</summary>
+
+Free RGD competes directly for the integrin head's binding cleft, crowding out fibronectin's handle. Integrins gripping collagen through non-RGD sites do not use that handle, so free RGD leaves their attachment largely intact.
+
+</details>
+
+<Support>**The one idea.** Integrin grip switches from inside, and focal adhesions signal and sense force; Rho, Rac and Cdc42 shape actin to turn grip into crawling. **Scope:** This rule covers canonical actin-linked integrins and classical fibroblast crawling; one integrin, α6β4, links to keratin filaments instead, bent-to-extended switching is best established in platelet and leukocyte integrins, and in living cells some filopodia form without Cdc42 or N-WASP while Rho activity also appears at the leading edge.</Support>
 
 ## A grip that is switched on from inside
 
-A hormone receptor waits for its ligand. An integrin is often surrounded by ligand, so the cell controls the receptor instead.
+A hormone receptor waits for its ligand; an integrin is often bathed in ligand continuously, so the cell controls the receptor instead.
 
-In the integrins studied most closely, those of platelets and white blood cells, the outer part can fold at a knee so that the head tips back toward the membrane. Bent, with the head closed, it holds its ligand weakly. Extended, with the head open, it holds tightly.
+In the integrins studied most closely—those of platelets and white blood cells—the resting α and β tails and transmembrane segments pack together, holding the outer legs folded at a knee so the closed head tips toward the membrane and grips weakly. As the first film animated, **inside-out signalling** throws this switch from the cytoplasm: **talin** binds the β tail and pries the α and β tails and membrane segments apart; the change passes through the membrane, straightening the legs and opening the head into a tight grip. A second β-tail-binding protein, **kindlin**, is needed as well.
 
-The switch is thrown from the cytoplasm. A protein called **talin** binds the tail of the β chain. That separates the two tails, the change passes through the membrane, and the outer part straightens. A second tail-binding protein, kindlin, is needed as well. The message starts inside the cell and changes the grip outside, so this is called inside-out signalling.
+**Predict.** A mutation breaks the packing between α and β transmembrane segments so the two tails drift apart without talin. What happens to the outer head and to a platelet carrying this integrin in blood?
 
-A platelet shows why it matters. It carries its integrin, αIIbβ3, on its surface all the time, switched off, while blood full of the integrin's ligand, fibrinogen, flows past. When a vessel is cut, signals from the wound switch the integrin on within seconds. Fibrinogen has two ends, so it bridges one platelet to the next, and a plug forms. A white blood cell faces a harder version of the same problem, and the design problem at the end of this lesson works it through.
+<details>
+<summary>Check your prediction</summary>
+
+Uncoupling the tails should shift the integrin toward its extended, high-affinity state without any inside signal. A platelet carrying it would be expected to bind circulating fibrinogen with no wound to call for it, the first step toward clumping where no plug is needed.
+
+</details>
+
+A normal platelet shows why this switch matters: it carries **αIIbβ3** switched off while blood rich in **fibrinogen** flows past. At a cut vessel, wound signals switch αIIbβ3 on within seconds, and two-ended fibrinogen bridges platelets into a plug. A white blood cell faces a ~1-second version of the same control problem, which you will design at the end of this lesson.
 
 ## The focal adhesion: a signalling machine that can feel a pull
 
-Once integrins hold the matrix they cluster, and their tails collect a crowd of proteins. Talin joins the β tail to actin. **Vinculin** binds both talin and actin and reinforces the join. **Paxillin** is a scaffold, with many docking sites and no enzyme activity. **Focal adhesion kinase (FAK)** is a tyrosine kinase that is recruited from the cytoplasm when an adhesion forms; it also has other jobs, some in the nucleus. The whole assembly is a **focal adhesion**.
+Bound integrins cluster laterally and assemble a **focal adhesion**—the cytoplasmic complex linking clustered integrins to actin and driving **outside-in** signalling. Four core proteins gather on the β tails: **talin** joins the β tail to actin; **vinculin** binds both talin and actin to reinforce the join; **paxillin** is an enzyme-free scaffold crowded with docking sites; and **focal adhesion kinase (FAK)** is a tyrosine kinase recruited from the cytoplasm when an adhesion forms.
 
-<LessonFigure src="/figures/integrins-and-rho-gtpases/focal-adhesion-and-fak.webp" width={1200} height={800} alt="AI-generated illustration: a focal adhesion in side view. Four integrin chains (alpha, beta, beta, alpha) grip fibronectin fibres in the matrix above and cross the membrane; talin binds the two beta tails, vinculin sits beneath talin and touches an actin filament running to the lower left, and paxillin and FAK sit beside them. An inset titled FAK opens shows FAK folded shut, with FERM against the kinase, then at the adhesion with FERM and kinase apart, phosphorylated Tyr397 between them and Src docked on it." caption="Clustered integrins collect talin, vinculin, paxillin and FAK on their short tails to make a focal adhesion. Talin binds the beta tails, and vinculin reinforces the join to actin. FAK starts folded shut; at a cluster it opens, phosphorylates Tyr397 in its linker, and Src docks there. How clustering opens it is not fully worked out. The drawing is a simplified schematic." />
+<LessonFigure src="/figures/integrins-and-rho-gtpases/focal-adhesion-and-fak.webp" width={1200} height={800} alt="AI-generated illustration: a focal adhesion in side view. Four integrin chains (alpha, beta, beta, alpha) grip fibronectin fibres in the matrix above and cross the membrane; talin binds the two beta tails, vinculin sits beneath talin and touches an actin filament running to the lower left, and paxillin and FAK sit beside them. An inset titled FAK opens shows FAK folded shut, with FERM against the kinase, then at the adhesion with FERM and kinase apart, phosphorylated Tyr397 between them and Src docked on it." caption="Clustered integrins assemble talin, vinculin, paxillin and FAK into a focal adhesion, where FAK opens, phosphorylates Tyr397 and recruits Src; how clustering opens FAK is not fully worked out. Drawn schematically." />
 
-This is how a receptor with no enzyme signals inward: it borrows one, as the cytokine receptors in the JAK and STAT lesson do. Resting FAK is folded shut, with one of its own domains lying against the kinase. At a cluster of integrins it opens and phosphorylates itself on one tyrosine, Tyr397. How clustering opens it is not fully worked out. That phosphotyrosine is a docking site for the SH2 domain of Src. Docked Src phosphorylates FAK further, and the pair then phosphorylates its neighbours, paxillin among them, which makes more docking sites.
+With no enzyme of its own, an integrin borrows one, much as cytokine receptors borrow JAKs in the JAK and STAT lesson. Resting FAK is folded shut, with its **FERM domain** lying against its kinase domain. At a cluster of integrins it opens and phosphorylates itself on **Tyr397** (how clustering opens it is not fully worked out). Phosphorylated Tyr397 docks the **SH2 domain** of **Src**; docked Src phosphorylates FAK further, and the pair phosphorylates neighbours such as paxillin to add more docking sites. One site on FAK binds **Grb2**, the adaptor leading to Ras (Going deeper shows how paxillin scaffolds the MAP kinase cascade there). Outside adhesions, FAK also has other jobs, some in the nucleus.
 
-One site on FAK binds Grb2, the adaptor that leads to Ras.
+**Predict.** Cells kept in suspension are given soluble RGD peptide rather than fibronectin fixed to a dish, so integrins bind ligand one at a time without clustering. Would you expect strong FAK–Src signalling?
 
-The adhesion also measures force. A cell pulls on its adhesions with myosin, and a stiff surface resists more than a soft one.
+<details>
+<summary>Check your prediction</summary>
 
-Laser-trap experiments showed that the harder a fibronectin-coated bead on the cell surface was held, the more firmly the cell tied that patch of integrins to its actin. At the level of a single molecule, the long rod of talin is a string of helix bundles, and helices that vinculin binds are folded away inside them. When a piece of the rod was pulled, it bound more vinculin than when it was not.
+No. One-to-one binding in solution does not cluster integrin tails, so FAK is not gathered to open, phosphorylate Tyr397 and recruit Src.
 
-No phosphate was added and no GTP was exchanged. Force alone uncovered binding sites. In a cell, full-length vinculin that binds this way can also hold actin, so each one adds a link and an adhesion that is pulled can get stronger. The experiment used purified protein. Later work saw single talin molecules stretch and relax in living cells, pulled by myosin. Whether stretch uncovers sites in many other proteins is still open.
+</details>
 
-## Three switches for the actin skeleton
+Because its parts sit in series—**matrix ↔ integrin ↔ talin ↔ actin pulled by myosin**—the adhesion also measures force. A soft surface yields under myosin pull; a stiff surface resists and builds tension across talin.
+
+Two experiments from Michael Sheetz's laboratory pinned down how pull becomes binding. In 1997 Daniel Choquet, Dan Felsenfeld and Sheetz held fibronectin-coated beads on fibroblasts with an optical trap (laser tweezers): the harder the trap resisted, the more firmly the cell tied those integrins to actin. In 2009 Armando del Rio and colleagues tested one purified molecule at a time. Talin's rod is a string of helix bundles hiding vinculin-binding helices inside. Tethered between glass and a magnetic bead, an unpulled rod bound at most one fluorescent vinculin head (the part of vinculin that grips talin); pulled with about 12 piconewtons, it bound up to three.
+
+No phosphate was added and no GTP was exchanged: force alone exposed buried sites. In cells, full-length vinculin recruited this way also grips actin, reinforcing pulled adhesions. Sheetz's laboratory later saw single talin molecules stretch and relax under myosin pull in living cells, though whether stretch uncovers sites widely outside talin remains open (Going deeper notes open questions on forces in intact adhesions).
+
+**Predict.** Plate one fibroblast on a soft fibronectin gel and another on stiff fibronectin-coated glass. On which surface does talin stretch more and bind more vinculin—and what happens on stiff glass if myosin II is blocked?
+
+<details>
+<summary>Check your prediction</summary>
+
+Talin should stretch more and recruit more vinculin on stiff glass, where resistance builds tension across the rod. Blocking myosin II removes internal pull even on stiff glass, leaving talin slack so adhesions fail to reinforce.
+
+</details>
+
+An integrin adhesion can grip and sense force, yet a cell still needs shaped actin to move—the second film follows the three Rho-family switches that turn grip into crawling.
 
 <LessonFilm film={frontmatter.films[0]} />
 
-A grip is no use to a cell that cannot change shape. Shape is the work of actin filaments, and three small GTPases of the Rho family decide what the filaments build. They work as Ras does: GTP-bound, "turn on"; GDP-bound, "turn off"; with GEFs and GAPs setting the balance.
+## Three switches for the actin skeleton
 
-In 1992 Anne Ridley and Alan Hall injected purified proteins into fibroblasts that had been starved of serum, which leaves them with few stress fibres. Active Rho filled the cells with thick actin cables. Active Rac made their edges ruffle. In 1995 Catherine Nobes and Hall, and separately the laboratory of Louis Lim, showed that Cdc42 produces thin spikes.
+The second film animated **Rho**, **Rac** and **Cdc42**—small GTPases of the Rho family that cycle between GTP-bound ("on") and GDP-bound ("off") states via GEFs and GAPs, like Ras. Here are the microinjection experiments that assigned each switch its job, their effectors, and the Cdc42 nuance in more detail.
 
-- **Rho** builds **stress fibres**: cables of actin and myosin II that end in focal adhesions and contract. One effector is Rho kinase (ROCK), which raises the activity of myosin II. Rho is also the switch that G12/13-coupled receptors turn on.
-- **Rac** builds **lamellipodia**: broad, thin sheets pushed forward by a branching mesh of filaments. Rac-GTP turns on the WAVE complex, and WAVE turns on Arp2/3, which starts each new filament as a branch on the side of an old one.
-- **Cdc42** is best known for triggering **filopodia**: thin fingers with a core of parallel filaments. The bundles themselves are built mainly by formins and Ena/VASP proteins, and some cells make filopodia without Cdc42 or N-WASP. Cdc42 also turns on WASP-family proteins (WASP in blood cells, N-WASP in most other cells), which are folded shut until Cdc42-GTP binds them and frees the part that turns on Arp2/3.
+In 1992 Anne Ridley and Alan Hall injected purified proteins into serum-starved fibroblasts, which have few stress fibres: active Rho filled them with thick actin cables and focal adhesions, and active Rac made their edges ruffle. In 1995 Catherine Nobes and Hall, and separately Louis Lim's laboratory, showed that Cdc42 produces thin spikes.
 
-The adhesion and the switches are wired together: proteins phosphorylated by FAK and Src recruit GEFs for Rac, so a new grip at the front calls for more protrusion there.
+| Switch | Classic actin structure | Key effector(s) | Additional coupling / nuance |
+| :--- | :--- | :--- | :--- |
+| **Rho** | **Stress fibres**: contractile actin–myosin II cables ending in focal adhesions | **Rho kinase (ROCK)** raises myosin II activity (formins also build unbranched filaments) | Also turned on by G12/13-coupled GPCRs |
+| **Rac** | **Lamellipodia**: broad sheets pushed by a branching actin mesh | **WAVE complex** turns on **Arp2/3**, starting each new filament as a branch | FAK/Src-phosphorylated adhesion proteins recruit Rac GEFs |
+| **Cdc42** | **Filopodia**: thin fingers with parallel actin cores | Opens folded **WASP-family** proteins (WASP in blood cells, N-WASP elsewhere) to activate **Arp2/3** | Parallel cores are built mainly by **formins** and **Ena/VASP**; some cells make filopodia without Cdc42 or N-WASP |
+
+Notice the Cdc42 nuance: Arp2/3 nucleates *branched* actin, whereas filopodia have *parallel* cores. Cdc42-GTP frees autoinhibited WASP or N-WASP to activate Arp2/3 locally, while elongating parallel filopodial bundles relies mainly on formins and Ena/VASP proteins—and some cells form filopodia without Cdc42 or N-WASP.
+
+**Predict.** Active Rac-GTP sits at a cell's leading edge, but a mutation deletes Arp2/3. Can Rac still build a branching lamellipodium—and separately, if Rho is locked in its GTP-bound state while a drug blocks myosin II directly, what happens to stress-fibre contraction?
+
+<details>
+<summary>Check your prediction</summary>
+
+Without Arp2/3, Rac-GTP and WAVE cannot nucleate the branching mesh of a lamellipodium. Likewise, active Rho cannot drive contraction if myosin II itself is blocked downstream of ROCK.
+
+</details>
 
 ## How a cell crawls, and what happens when it cannot
 
-Put the parts in order and the cell moves.
+Both halves of the lesson's rule now meet: inside-out integrin grip and force-sensing adhesions work with Rho, Rac and Cdc42 to drive crawling. As the second film showed, a fibroblast cycles through **push** (Rac lamellipodium), **grip** (new front adhesions feeding back through FAK/Src to Rac GEFs), **pull** (Rho, ROCK and myosin II hauling the body forward) and **let go** (rear adhesions dissolving so the tail draws in)—refining the "Rac in front, Rho behind" first model with live-cell sensors that also detect Rho at the leading edge.
 
-1. **Push.** At the front, Rac drives a lamellipodium forward.
-2. **Grip.** Under the new sheet, integrins catch the matrix and small adhesions form.
-3. **Pull.** Rho, through ROCK and myosin II, contracts the cell body against those adhesions and hauls it forward.
-4. **Let go.** At the back, old adhesions come apart and the tail is drawn in.
+Human genetics and hospital drugs reveal what happens when blood-cell integrins fail or are blocked:
 
-Rac in front and Rho behind is the short version. It is a simplification: sensors that report Rho activity in living cells find some at the front edge too.
-
-The child in the design problem at the end of this lesson is real. In leukocyte adhesion deficiency type I, the gene for β2 (ITGB2), the chain shared by the β2 integrins of white cells, is mutated. White cells cannot stop on the vessel wall, and affected children have severe bacterial infections starting in infancy. A bone marrow transplant can cure it.
-
-Platelets have a matching disease. People without working αIIbβ3 bleed easily, a condition called Glanzmann thrombasthenia. A drug can copy that state on purpose. Abciximab, a fragment of an antibody that bound αIIbβ3 and blocked it, is no longer supplied. Eptifibatide and tirofiban are small molecules that sit in its ligand pocket. They are given by vein, in hospital, to some patients with a heart attack or a threatened one, most often around the catheter procedure that reopens the blocked artery, so that platelets cannot bridge. The main risk is the one the genetics predicts: bleeding.
+- **Leukocyte adhesion deficiency type I (LAD-I):** A mutation in **β2** (*ITGB2*), shared by white-cell β2 integrins, keeps white cells from stopping on vessel walls, causing severe bacterial infections from infancy. A bone marrow transplant can cure it.
+- **Glanzmann thrombasthenia:** People lacking working platelet **αIIbβ3** cannot bridge platelets with fibrinogen and bleed easily. A drug can copy that state on purpose.
+- **Platelet integrin blockers:** **Abciximab**, an antibody fragment that blocked αIIbβ3, is no longer supplied, while **eptifibatide** and **tirofiban** are small molecules that sit in αIIbβ3's ligand pocket. Given by vein in hospital to some patients with a heart attack or a threatened one—most often around the catheter procedure reopening a blocked artery—they keep platelets from bridging. Their main risk is what Glanzmann thrombasthenia predicts: bleeding.
 
 ### Design problem
 
-A white blood cell is carried along in flowing blood. It must stop and crawl out of the vessel where it is needed, such as at an infection, and not elsewhere. So its integrins must be off while it flows and on within about a second at the right place. Design the control, using a signal on the vessel wall and parts from earlier lessons. Then predict what happens to a child whose white cells cannot make this integrin.
+A white blood cell carried in flowing blood must keep its integrins off while flowing, yet stop and crawl out of the vessel at an infection within about a second. Design the control using a signal on the vessel wall and parts from earlier lessons, then predict what a blood count and an infected tissue site look like in a child whose white cells lack this integrin.
 
 <details>
 <summary>One way to do it</summary>
 
-A second is too short to make a new protein, so the integrin must already be on the surface, held in its bent form. The "on" signal must sit on the vessel wall, and only at the inflamed place.
+A second is too short to make a new protein, so the integrin must already sit on the surface in its bent form, with the "on" signal restricted to the inflamed wall.
 
-**The address.** Cells lining a vessel next to an infection put two things on their surface. Selectins are sticky proteins whose short-lived bonds make a passing white cell slow down and roll. Chemokines are small signal proteins that stay stuck to the wall.
+**The address.** Vessel-lining cells near an infection display **selectins**, whose short-lived bonds make passing white cells slow and roll, plus **chemokines**, small signal proteins that stay stuck to the wall.
 
-**The receptor.** The white cell carries a G-protein-coupled receptor for the chemokine, a fast architecture whose parts are already at the membrane.
+**The receptor and relay.** A white-cell G-protein-coupled receptor, a fast architecture whose parts are already at the membrane, detects the chemokine; its G protein activates phospholipase C, raising calcium and diacylglycerol. Calcium activates a GEF for the Ras-family GTPase **Rap1** (CalDAG-GEFI in platelets and mouse neutrophils; other blood cells use other GEFs, and details differ between cell types). Rap1-GTP helps bring talin to the integrin β tail.
 
-**The relay.** The G protein turns on phospholipase C, so calcium and diacylglycerol rise. Calcium turns on a GEF for Rap1, a GTPase of the Ras family (CalDAG-GEFI in platelets and mouse neutrophils; other blood cells use other GEFs). Rap1 with GTP bound (its "on" state) helps bring talin to the integrin tail. The details differ between cell types.
+**The grip.** Talin binds the β tail, the integrin extends and grips **ICAM-1** on the vessel wall, and the cell stops and crawls out between wall cells—all in about a second without making new protein.
 
-**The grip.** Talin binds the β tail, the integrin extends, and it grabs its partner on the vessel wall, a protein called ICAM-1. The cell stops. Then it crawls out between the cells of the wall.
-
-Nothing has to be made, so the relay can run in about a second.
-
-**The child.** White cells without this integrin roll but cannot stop. They stay in the blood, so the blood count of white cells, mostly neutrophils, is very high while infected tissue has very few neutrophils. You would predict repeated bacterial infections that form little pus, since pus is mostly dead white cells. That is what is seen.
+**The child.** White cells without this integrin roll but cannot stop. Trapped in circulation, the blood white-cell count (mostly neutrophils) is very high while infected tissue holds very few neutrophils, so you would predict repeated bacterial infections that form little pus, since pus is mostly dead white cells. That is what is seen.
 
 </details>
 
@@ -467,15 +510,12 @@ Nothing has to be made, so the relay can run in about a second.
 
 ### The integrin family in numbers
 
-Humans have 18 α chains and 8 β chains, which pair to make 24 known integrins. About a third of them recognise RGD.
+Humans have 18 α chains and 8 β chains, pairing selectively into 24 known integrins (out of 144 possible combinations); about a third recognise RGD.
 
 ### A scaffold for the MAP kinase cascade
 
-From Grb2 and Ras the next step follows a rule you met with Ste5 and KSR: **"Scaffolds can localize ras-mapk."** In cells responding to hepatocyte growth factor through its receptor c-Met, paxillin holds Raf, MEK and ERK next to FAK at the focal adhesion. The cascade is the one you know, running at one address.
+From Grb2 and Ras at FAK, the next step follows **"Scaffolds can localize ras-mapk"** (as with Ste5 and KSR). In cells responding to hepatocyte growth factor through c-Met, paxillin holds Raf, MEK and ERK next to FAK at the focal adhesion, running the familiar cascade at one address.
 
-### Two experiments on force at adhesions
+### Open questions on force inside living adhesions
 
-Michael Sheetz's laboratory spent years asking where pull becomes chemistry. In 1997 Daniel Choquet, Dan Felsenfeld and Sheetz held fibronectin-coated beads on fibroblasts with a laser trap. The harder the trap resisted, the more firmly the cell tied that patch of integrins to its actin.
-
-In 2009 Armando del Rio and colleagues went down to one molecule. They fixed a piece of the talin rod to glass at one end and to a magnetic bead at the other, and pulled. Unpulled, a rod bound at most one vinculin head, the part of vinculin that grips talin. Pulled with about 12 piconewtons, it bound up to three. The later work on single talin molecules in living cells also came from Sheetz's laboratory.
-
+The magnetic-tweezer count on talin rod residues 482 to 889 (up to three vinculin heads at ~12 piconewtons) used purified protein, and atomic force microscopy in the same study saw five unfolding peaks averaging 29 to 51 piconewtons, though the authors argued that a lower force held for longer could be as effective. In intact cells, Margadant and colleagues observed talin stretching in 2011, a vinculin tension sensor reported about 2.5 piconewtons in stable adhesions, and the weakest talin bundle, R3, has been reported to open near 5 piconewtons. Which bundles open in living cells, how often, and whether stretch-uncovered sites are common outside talin remain open.

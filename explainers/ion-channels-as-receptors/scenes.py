@@ -1,797 +1,1097 @@
-"""Ion channels as receptors: the signal opens a hole and the gradient does the rest  (Biochemistrypedia explainer)
+"""Open a Hole, Spend the Gradient — STEMhop explainer animation.
 
-Timed to the SPOKEN words: every self.at("...") cue waits for that phrase in audio/words.json.
+COLOUR MAP (one colour per concept for the entire film):
+- YELLOW (#F5D547): Na+ ions, Na+ channel, E_Na, Na+ driving force
+- TEAL   (#3FB8C0): K+ ions, K+ channel, E_K, K+ driving force
+- BLUE   (#58C4DD): Lipid bilayer membrane & generic/multi-ion channel body
+- GREEN  (#83C167): Na+/K+ pump (ATP-driven uphill transport) & open-state accent
+- TEXT   (#E8EAF0): Membrane voltage Vm (gauge needle, readout, trace, primary labels)
+- RED    (#FC6255): Electrical pull / negative inner membrane charge / signal trigger
+- GREY   (#8B93A1): Gauge track, axes, closed gate, schematic tags
 
-COLOR MAP (one color per concept, whole video)
-  YELLOW = the signal, the key that opens a gate (transmitter, voltage, heat)
-  BLUE   = membrane proteins: the ion channel, the pump, an ordinary receptor
-  ORANGE = sodium ions, and E for sodium
-  TEAL   = potassium ions, and E for potassium
-  PINK   = the push of a difference in concentration (the gradient)
-  PURPLE = the membrane voltage: the pull, the scale and its marker
-  GOLD   = ATP, the energy a pump spends
-  GREEN  = a gate that is open
-  RED    = a gate that is shut, and what is ruled out
-  GREY   = membrane, labels, the usual route that a channel does not use
+CARRIED WORLD:
+A cross-section of a cell membrane (Outside Na+ above, lipid bilayer across the middle,
+Inside K+ below) filling >60% of the frame height, paired on the right with a vertical
+membrane-voltage gauge Vm (schematic, -100 mV to +80 mV).
 
-No molecular structures: a channel is two blue blocks with a pore between them and two flaps that swing
-open; a pump is two blocks around a cup that flips; an ion is a small circle with a plus; the membrane
-is a bar; the voltage is a scale computed from the numbers in the lesson (E = -90 mV for potassium,
-+60 mV for sodium, rest = -70 mV).
-
-Two stages:
-  STAGE A (scenes 1 and 2) the whole membrane across the frame, proteins in the middle.
-  STAGE B (scenes 3 to 6)  the channel patch on the left, the voltage scale on the right, the middle
-                           column holds the push and pull arrows, then the rule.
+WHAT CHANGES IN EACH SPOKEN SCENE (and what it is computed from):
+- s00_hook: Ions execute computed thermal motion (fixed-seed rng); a slow 3-step receptor
+  chain advances and is skipped as a signal opens the pore, Na+ streams inward by
+  (Vm - E_Na), and Vm integrates upward via dVm/dt = -k*(Vm - E_Na).
+- s02_pump_vs_channel: Left pump cycles conformational states to push 3 Na+ up and 2 K+
+  down per ATP while its computed counter ticks ~10^2 ions/s; right channel opens and
+  streams Na+ downhill while its counter races at ~10^7 ions/s.
+- s03_two_forces: Concentration push arrow grows from Outside->Inside density difference,
+  electrical pull arrow grows toward negative inner charges at -70 mV, and both merge
+  into the electrochemical gradient driving computed Na+ flow through the pore.
+- s04_equilibrium: Vm sweeps to +60 mV then -90 mV; electrical pull length L_elec =
+  L_conc * (Vm / E_ion) updates continuously until it balances concentration push and
+  net pore flux reaches zero at E_Na and E_K.
+- s05_driving_force_rule: Live vertical brackets grow along the gauge from Vm (-70 mV)
+  to E_Na (+60 mV) and E_K (-90 mV) while counters compute Vm - E = -130 mV and +20 mV
+  and force arrows scale proportionally.
+- s06_predict_q: Na+ and K+ ions bounce off two closed channel gates in computed thermal
+  motion while the predict question card appears in the bottom band.
+- s08_predict_reveal: Na+ channel opens and Vm integrates up toward +60 mV with dense
+  computed inward Na+ flux; Na+ shuts and Vm returns to -70 mV; K+ channel opens with
+  sparse outward flux (scaled by 20/130) as Vm nudges down toward -90 mV.
+- s09_single_channel: A 2-state Markov chain (fixed seed) switches one patch-clamped
+  channel between Closed and Open, synchronizing gate snapping, ion bursts, and a live
+  scrolling square trace at fixed step height as open probability rises with signal.
+- s10_closing: Brief channel opening sends a few computed Na+ ions across while Vm swings
+  boldly and bulk concentration meters stay near 100%; a multi-ion channel then passes
+  Na+ and K+ together so Vm settles between E_K and E_Na.
 """
-import random
-import numpy as np
-from bp_style import *  # noqa: F401,F403
+from bp_parts import *
 
-ORANGE = "#F29E4C"
-PURPLE = "#B58CD9"
-PINK = "#F08BB4"
+# Concept colour map
+NA_COL = YELLOW
+K_COL = TEAL
+MEM_COL = BLUE
+PUMP_COL = GREEN
+VOLT_COL = TEXT
+ELEC_COL = RED
+STRUCT_COL = GREY
 
-MEM_H = 1.2           # membrane thickness
-A_PUMP, A_CHAN = -3.3, 3.3      # stage A: x of the pump and of the channel
-B_X, B_K = -4.05, 1.1           # stage B: x and size of the channel patch
-B_MEM = (-6.3, -1.8)            # stage B membrane extent
-AX = 3.5                        # x of the voltage scale
-V_REST, V_NA, V_K = -70, 60, -90
+# Shared carried-world geometry (16:9 safe frame: x in [-6.3, 6.3], y in [-3.5, 3.5])
+MEM_X0, MEM_X1 = -6.0, 1.9
+MEM_Y0, MEM_Y1 = -0.34, 0.34
+OUT_Y0, OUT_Y1 = 0.54, 2.24
+IN_Y0, IN_Y1 = -1.78, -0.54
 
-
-# ---------------------------------------------------------------------------------------------
-# small helpers
-# ---------------------------------------------------------------------------------------------
-def bchip(text, color=BLUE, size=24, pad=0.2, **kw):
-    """chip with an opaque backing so lines drawn behind it do not show through."""
-    c = chip(text, color, size=size, pad=pad, **kw)
-    back = RoundedRectangle(corner_radius=0.14, width=c[0].width, height=c[0].height, stroke_width=0,
-                            fill_color=BG, fill_opacity=1).move_to(c[0])
-    return VGroup(back, *c)
+GAUGE_X = 3.45
+GAUGE_Y0, GAUGE_Y1 = -2.00, 2.40
+V_MIN, V_MAX = -100.0, 80.0
+E_NA = 60.0
+E_K = -90.0
+V_REST = -70.0
 
 
-def ghost_chip(text, size=24, color=GREY):
-    t = T(text, size, color)
-    box = RoundedRectangle(corner_radius=0.14, width=t.width + 0.4, height=t.height + 0.32)
-    back = box.copy().set_stroke(width=0).set_fill(BG, 1)
-    return VGroup(back, DashedVMobject(box, num_dashes=max(18, int(box.width * 9))).set_color(color), t)
+def v_to_y(v):
+    """Map membrane voltage (mV) linearly onto the vertical gauge y-coordinate."""
+    frac = (v - V_MIN) / (V_MAX - V_MIN)
+    return GAUGE_Y0 + frac * (GAUGE_Y1 - GAUGE_Y0)
 
 
-def strike(m, color=RED):
-    return Line(m.get_corner(DL) + [-0.08, -0.04, 0], m.get_corner(UR) + [0.08, 0.04, 0], color=color, stroke_width=7)
+def build_bilayer(x0=MEM_X0, x1=MEM_X1, gaps=(), gap_half=0.52):
+    """Build the horizontal lipid bilayer with clean cutouts for embedded proteins."""
+    g = VGroup()
+    intervals = []
+    cur = x0
+    for gx in sorted(gaps):
+        if gx - gap_half > cur:
+            intervals.append((cur, gx - gap_half))
+        cur = max(cur, gx + gap_half)
+    if x1 > cur:
+        intervals.append((cur, x1))
 
-
-def arr(a, b, color=GREY, w=5, tip=0.2):
-    return Arrow(a, b, buff=0.06, color=color, stroke_width=w, tip_length=tip,
-                 max_tip_length_to_length_ratio=0.5, max_stroke_width_to_length_ratio=20)
-
-
-def pop(m, s=1.3):
-    return m.animate(rate_func=there_and_back).scale(s)
-
-
-def glow(*mobs, s=1.1, color=TEXT):
-    return [Indicate(m, color=color, scale_factor=s) for m in mobs]
-
-
-def clock(center, r=0.45):
-    center = np.array(center, float)
-    face = Circle(radius=r, stroke_color=GREY, stroke_width=4).move_to(center)
-    ticks = VGroup(*[Line(center + (r - 0.11) * v, center + r * v, color=GREY, stroke_width=4) for v in (UP, RIGHT, DOWN, LEFT)])
-    hand = Line(center, center + UP * (r - 0.15), color=TEXT, stroke_width=5)
-    pin = Dot(center, radius=0.05, color=TEXT)
-    g = VGroup(face, ticks, hand, pin)
-    g.hand, g.c = hand, center
+    for a, b in intervals:
+        band = Rectangle(
+            width=b - a,
+            height=MEM_Y1 - MEM_Y0,
+            stroke_width=0,
+            fill_color=MEM_COL,
+            fill_opacity=0.22,
+        ).move_to([(a + b) / 2, 0.0, 0.0])
+        top_line = Line([a, MEM_Y1, 0], [b, MEM_Y1, 0], color=MEM_COL, stroke_width=4)
+        bot_line = Line([a, MEM_Y0, 0], [b, MEM_Y0, 0], color=MEM_COL, stroke_width=4)
+        g.add(band, top_line, bot_line)
+        n_lipids = max(2, int((b - a) / 0.28))
+        for k in range(n_lipids):
+            lx = a + (k + 0.5) * (b - a) / n_lipids
+            g.add(
+                Line([lx, MEM_Y1 - 0.05, 0], [lx, 0.05, 0], color=MEM_COL, stroke_width=2).set_opacity(0.45),
+                Line([lx, MEM_Y0 + 0.05, 0], [lx, -0.05, 0], color=MEM_COL, stroke_width=2).set_opacity(0.45),
+            )
     return g
 
 
-def label(text, color=GREY, size=24, weight=NORMAL, back=False):
-    t = T(text, size, color, weight=weight)
-    if not back:
-        return t
-    b = Rectangle(width=t.width + 0.16, height=t.height + 0.12, stroke_width=0, fill_color=BG, fill_opacity=1).move_to(t)
-    return VGroup(b, t)
-
-
-# ---------------------------------------------------------------------------------------------
-# membrane, ions, channel, pump
-# ---------------------------------------------------------------------------------------------
-def membrane(x0=-6.3, x1=6.3, y=0.0, h=MEM_H):
-    return RoundedRectangle(corner_radius=0.1, width=x1 - x0, height=h, stroke_color=GREY, stroke_width=3,
-                            fill_color=GREY, fill_opacity=0.35).move_to([(x0 + x1) / 2, y, 0])
-
-
-def ion(color=ORANGE, r=0.18):
-    c = Circle(radius=r, stroke_color=color, stroke_width=2.5, fill_color=color, fill_opacity=0.3)
-    h = Line([-r * 0.5, 0, 0], [r * 0.5, 0, 0], color=color, stroke_width=3)
-    v = Line([0, -r * 0.5, 0], [0, r * 0.5, 0], color=color, stroke_width=3)
-    return VGroup(c, h, v)
-
-
-def fade_ion(p, a):
-    p[0].set_stroke(opacity=a).set_fill(opacity=0.3 * a)
-    p[1].set_stroke(opacity=a)
-    p[2].set_stroke(opacity=a)
-
-
-def scatter(n, box, seed, avoid=(), gap=0.52, color=ORANGE, r=0.18):
-    """n ions at random, well spaced, inside box = (x0, x1, y0, y1), never inside an avoid box."""
-    x0, x1, y0, y1 = box
-    rng = random.Random(seed)
-    pts, tries = [], 0
-    while len(pts) < n and tries < 40000:
-        tries += 1
-        p = (rng.uniform(x0, x1), rng.uniform(y0, y1))
-        if any(a0 <= p[0] <= a1 and b0 <= p[1] <= b1 for a0, a1, b0, b1 in avoid):
-            continue
-        if any((p[0] - q[0]) ** 2 + (p[1] - q[1]) ** 2 < gap ** 2 for q in pts):
-            continue
-        pts.append(p)
-    return VGroup(*[ion(color, r).move_to([x, y, 0]) for x, y in pts])
-
-
-def flaps(cx, k, a):
-    """the gate: one door hinged on the left pore wall. a = 0 shut (red, across the pore), a = 1 open (green, standing along the wall)."""
-    pw, ft = 0.8 * k, 0.17 * k
-    col = interpolate_color(ManimColor(RED), ManimColor(GREEN), a)
-    hinge = np.array([cx - pw / 2, 0.0, 0.0])
-    f = RoundedRectangle(corner_radius=ft / 2, width=pw, height=ft, stroke_width=0, fill_color=col, fill_opacity=1)
-    f.move_to(hinge + np.array([pw / 2, 0, 0]))
-    f.rotate(a * PI / 2, about_point=hinge)
-    f.shift(np.array([(ft / 2) * a, 0, 0]))
-    return VGroup(f)
-
-
-def channel(cx, k=1.0, a=0.0, color=BLUE):
-    """[pore, left block, right block, flaps]: two blocks with a pore between and a gate across it."""
-    pw, bw, hh = 0.8 * k, 0.9 * k, 2.0 * k
-    pore = Rectangle(width=pw, height=MEM_H + 0.08, stroke_width=0, fill_color=BG, fill_opacity=1).move_to([cx, 0, 0])
-
-    def block(x):
-        back = RoundedRectangle(corner_radius=0.16 * k, width=bw, height=hh, stroke_width=0, fill_color=BG, fill_opacity=1).move_to([x, 0, 0])
-        body = RoundedRectangle(corner_radius=0.16 * k, width=bw, height=hh, stroke_color=color, stroke_width=3.5,
-                                fill_color=color, fill_opacity=0.4).move_to([x, 0, 0])
-        return VGroup(back, body)
-    g = VGroup(pore, block(cx - pw / 2 - bw / 2), block(cx + pw / 2 + bw / 2), flaps(cx, k, a))
-    g.cx, g.k = cx, k
+def build_compartment_headers(x0=MEM_X0, include_legends=True):
+    """Build Outside / Inside labels and ion colour legends strictly clear of ion paths."""
+    out_lab = T("Outside", size=28, color=TEXT, weight=BOLD).move_to([x0 + 0.68, 2.75, 0])
+    in_lab = T("Inside", size=28, color=TEXT, weight=BOLD).move_to([x0 + 0.56, -2.20, 0])
+    g = VGroup(out_lab, in_lab)
+    if include_legends:
+        na_dot = Dot([x0 + 1.75, 2.75, 0], radius=0.10, color=NA_COL)
+        na_txt = T("Na+", size=26, color=NA_COL, weight=BOLD).next_to(na_dot, RIGHT, buff=0.12)
+        k_dot = Dot([x0 + 1.55, -2.20, 0], radius=0.10, color=K_COL)
+        k_txt = T("K+", size=26, color=K_COL, weight=BOLD).next_to(k_dot, RIGHT, buff=0.12)
+        g.add(na_dot, na_txt, k_dot, k_txt)
     return g
 
 
-def swing(ch, a0, a1, run_time=0.45):
-    """open (a0 < a1) or shut the gate of a channel, turning the flaps for real."""
-    cx, k = ch.cx, ch.k
+def build_channel(x, color=MEM_COL, open_tracker=None, y=0.0):
+    """Build a gated pore protein with left/right subunits and hinged gate bar."""
+    wall_w, wall_h = 0.26, 1.02
+    pore_half = 0.28
+    left_wall = RoundedRectangle(
+        corner_radius=0.08, width=wall_w, height=wall_h,
+        stroke_color=color, stroke_width=3.5, fill_color=color, fill_opacity=0.38,
+    ).move_to([x - pore_half - wall_w / 2, y, 0])
+    right_wall = RoundedRectangle(
+        corner_radius=0.08, width=wall_w, height=wall_h,
+        stroke_color=color, stroke_width=3.5, fill_color=color, fill_opacity=0.38,
+    ).move_to([x + pore_half + wall_w / 2, y, 0])
 
-    def upd(m, alpha):
-        ch[3].become(flaps(cx, k, a0 + (a1 - a0) * alpha))
-    return UpdateFromAlphaFunc(ch, upd, run_time=run_time)
-
-
-def reshape(ch, cx, k, a):
-    """move and resize a channel (Transform), remembering where it now is so that swing() still works."""
-    tgt = channel(cx, k, a)
-    ch.cx, ch.k = cx, k
-    return Transform(ch, tgt)
-
-
-def pump(cx, k=1.0):
-    """[cavity, left block, right block]: two blocks around a cavity that holds a cup."""
-    cw, bw, hh = 1.05 * k, 0.8 * k, 2.0 * k
-    cav = Rectangle(width=cw, height=MEM_H + 0.08, stroke_width=0, fill_color=BG, fill_opacity=1).move_to([cx, 0, 0])
-
-    def block(x):
-        back = RoundedRectangle(corner_radius=0.16 * k, width=bw, height=hh, stroke_width=0, fill_color=BG, fill_opacity=1).move_to([x, 0, 0])
-        body = RoundedRectangle(corner_radius=0.16 * k, width=bw, height=hh, stroke_color=BLUE, stroke_width=3.5,
-                                fill_color=BLUE, fill_opacity=0.4).move_to([x, 0, 0])
-        return VGroup(back, body)
-    return VGroup(cav, block(cx - cw / 2 - bw / 2), block(cx + cw / 2 + bw / 2))
-
-
-def cup(cx, up=False):
-    """the pump's cup: a ring with a gap, open to the inside (down) or to the outside (up)."""
-    a = Arc(radius=0.36, start_angle=-60 * DEGREES, angle=300 * DEGREES, color=BLUE, stroke_width=9).move_to([cx, 0, 0])
-    if up:
-        a.rotate(PI, about_point=np.array([cx, 0, 0]))
-    return a
-
-
-def flow(ions, xs, y_a, y_b):
-    """animations that carry each ion from y_a to y_b along its own lane, fading in and out at the ends."""
-    out = []
-    for p, x in zip(ions, xs):
-        pa, pb = np.array([x, y_a, 0.0]), np.array([x, y_b, 0.0])
-
-        def upd(m, alpha, pa=pa, pb=pb):
-            m.move_to(pa + (pb - pa) * alpha)
-            fade_ion(m, max(0.0, min(1.0, alpha / 0.1, (1 - alpha) / 0.1)))
-        fade_ion(p, 0.0)
-        p.move_to(pa)
-        out.append(UpdateFromAlphaFunc(p, upd, rate_func=linear))
-    return out
-
-
-def stream(color, x, y_a, y_b, n=6, lanes=None, r=0.18):
-    """n ions, one after another, down (or up) one lane. Returns (ions, animations to run in a LaggedStart)."""
-    ions = [ion(color, r) for _ in range(n)]
-    xs = [x + (lanes[i % len(lanes)] if lanes else 0.0) for i in range(n)]
-    return ions, flow(ions, xs, y_a, y_b)
-
-
-# ---------------------------------------------------------------------------------------------
-# the voltage scale (stage B)
-# ---------------------------------------------------------------------------------------------
-def vy(v):
-    """height of a voltage on the scale: -95 mV at the bottom, +65 mV at the top."""
-    return -3.0 + (v + 95) * 6.0 / 160.0
-
-
-def mv(v):
-    return f"{'+' if v > 0 else '−'}{abs(v)} mV"
-
-
-def axis():
-    line = Line([AX, vy(-95), 0], [AX, vy(65), 0], color=GREY, stroke_width=4)
-    zero = Line([AX - 0.14, vy(0), 0], [AX + 0.14, vy(0), 0], color=GREY, stroke_width=3)
-    zl = M("0 mV", 22, GREY).next_to(zero, RIGHT, buff=0.12)
-    ttl = T("membrane voltage", 24, PURPLE, weight=BOLD).move_to([AX + 0.1, 3.3, 0])
-    return VGroup(line, zero, zl, ttl)
-
-
-def etag(name, v, color):
-    """E for one ion: a tick on the scale and its name and value to the right. [tick, name, value]"""
-    tick = Line([AX - 0.2, vy(v), 0], [AX + 0.2, vy(v), 0], color=color, stroke_width=6)
-    t1 = T(f"E {name}", 24, color, weight=BOLD)
-    t2 = M(mv(v), 22, color)
-    VGroup(t1, t2).arrange(DOWN, aligned_edge=LEFT, buff=0.06).next_to(tick, RIGHT, buff=0.15)
-    g = VGroup(tick, t1, t2)
-    g.tick, g.t1, g.t2 = tick, t1, t2
-    return g
-
-
-def marker(v):
-    y = vy(v)
-    tri = Polygon([AX - 0.1, y, 0], [AX - 0.5, y + 0.2, 0], [AX - 0.5, y - 0.2, 0], fill_color=PURPLE, fill_opacity=1, stroke_width=0)
-    tick = Line([AX - 0.12, y, 0], [AX + 0.12, y, 0], color=PURPLE, stroke_width=5)
-    return VGroup(tri, tick)
-
-
-def mlabel(v, text=None):
-    t = M(text or mv(v), 24, PURPLE, weight=BOLD)
-    return t.next_to([AX + 0.2, vy(v), 0], RIGHT, buff=0.12)
-
-
-def drag(v_from, e_val, color, w=7):
-    """an arrow along the scale from the marker toward an E."""
-    return Arrow([AX - 0.78, vy(v_from), 0], [AX - 0.78, vy(e_val), 0], buff=0, color=color, stroke_width=w, tip_length=0.24,
-                 max_tip_length_to_length_ratio=0.5, max_stroke_width_to_length_ratio=20)
-
-
-# push and pull panel (stage B, scene 3)
-PUSH_X, PULL_X, ION_X, Y0 = -0.2, 1.4, 0.6, 0.0
-PUSH_L, SC = 1.8, 0.03
-
-
-def pull_arrow(v):
-    d = -v * SC       # downward length; negative means the pull points up
-    vis = abs(d) >= 0.14
-    a = Arrow([PULL_X, Y0, 0], [PULL_X, Y0 - (d if vis else 0.14), 0], buff=0, color=PURPLE, stroke_width=9, tip_length=0.3,
-              max_tip_length_to_length_ratio=0.5, max_stroke_width_to_length_ratio=30)
-    if not vis:
-        a.set_stroke(opacity=0).set_fill(opacity=0)
-    return a
-
-
-def push_arrow():
-    return Arrow([PUSH_X, Y0, 0], [PUSH_X, Y0 - PUSH_L, 0], buff=0, color=PINK, stroke_width=9, tip_length=0.3,
-                 max_tip_length_to_length_ratio=0.5, max_stroke_width_to_length_ratio=30)
-
-
-# ---------------------------------------------------------------------------------------------
-# stage B populations
-# ---------------------------------------------------------------------------------------------
-B_AVOID = [(B_X - 0.9, B_X + 0.9, -3.6, 3.6)]
-B_OUT, B_IN = (-6.1, -2.0, 1.62, 2.78), (-6.1, -2.0, -2.78, -1.62)
-
-
-def crowd_b(kind):
-    """kind 'na': many sodium ions outside, few inside.  kind 'k': many potassium ions inside, few outside."""
-    if kind == "na":
-        g = VGroup(scatter(9, B_OUT, 21, B_AVOID, color=ORANGE), scatter(2, B_IN, 22, B_AVOID, color=ORANGE))
+    if open_tracker is None:
+        gate = Line([x - pore_half + 0.03, y, 0], [x + pore_half - 0.03, y, 0], color=TEXT, stroke_width=6)
     else:
-        g = VGroup(scatter(2, B_OUT, 23, B_AVOID, color=TEAL), scatter(9, B_IN, 24, B_AVOID, color=TEAL))
+        def mk_gate():
+            op = float(np.clip(open_tracker.get_value(), 0.0, 1.0))
+            pivot = np.array([x - pore_half + 0.03, y, 0.0])
+            ang = -op * 1.15
+            L = 2 * pore_half - 0.06
+            end = pivot + np.array([L * np.cos(ang), L * np.sin(ang), 0.0])
+            col = GREEN if op > 0.4 else TEXT
+            return Line(pivot, end, color=col, stroke_width=6)
+        gate = always_redraw(mk_gate)
+
+    return VGroup(left_wall, right_wall, gate)
+
+
+def build_pump(x, phase_tracker, y=0.0):
+    """Build a conformational Na+/K+ pump that rocks between inward-open and outward-open."""
+    def mk():
+        ph = float(phase_tracker.get_value())  # 0 = open inside, 1 = open outside
+        tilt = (0.5 - ph) * 0.28
+        left_pts = [
+            [x - 0.46, y - 0.50, 0],
+            [x - 0.16 - tilt, y - 0.50, 0],
+            [x - 0.10 + tilt, y + 0.50, 0],
+            [x - 0.46, y + 0.50, 0],
+        ]
+        right_pts = [
+            [x + 0.16 + tilt, y - 0.50, 0],
+            [x + 0.46, y - 0.50, 0],
+            [x + 0.46, y + 0.50, 0],
+            [x + 0.10 - tilt, y + 0.50, 0],
+        ]
+        lw = Polygon(*left_pts, stroke_color=PUMP_COL, stroke_width=3.5, fill_color=PUMP_COL, fill_opacity=0.38)
+        rw = Polygon(*right_pts, stroke_color=PUMP_COL, stroke_width=3.5, fill_color=PUMP_COL, fill_opacity=0.38)
+        return VGroup(lw, rw)
+    return always_redraw(mk)
+
+
+def build_gauge(vm_tracker, show_e_na=False, show_e_k=False, show_readout=True, gx=GAUGE_X):
+    """Build the carried vertical membrane voltage gauge with live needle and readout."""
+    track = RoundedRectangle(
+        corner_radius=0.08, width=0.22, height=GAUGE_Y1 - GAUGE_Y0,
+        stroke_color=STRUCT_COL, stroke_width=2.5, fill_color=STRUCT_COL, fill_opacity=0.20,
+    ).move_to([gx, (GAUGE_Y0 + GAUGE_Y1) / 2, 0])
+    title = T("Vm (schematic)", size=24, color=STRUCT_COL).move_to([gx + 0.55, 2.85, 0])
+
+    ticks = VGroup()
+    for val, txt in [(-100, "−100"), (-70, "−70"), (0, "0"), (80, "+80")]:
+        ty = v_to_y(val)
+        ticks.add(Line([gx - 0.22, ty, 0], [gx - 0.09, ty, 0], color=STRUCT_COL, stroke_width=2.5))
+        lab = M(txt, size=22, color=STRUCT_COL).next_to([gx - 0.26, ty, 0], LEFT, buff=0.08)
+        ticks.add(lab)
+
+    needle = always_redraw(lambda: VGroup(
+        Line([gx - 0.13, v_to_y(vm_tracker.get_value()), 0],
+             [gx + 0.22, v_to_y(vm_tracker.get_value()), 0], color=VOLT_COL, stroke_width=5),
+        Triangle(color=VOLT_COL, fill_color=VOLT_COL, fill_opacity=1.0).scale(0.12).rotate(PI / 2).move_to(
+            [gx + 0.30, v_to_y(vm_tracker.get_value()), 0]
+        ),
+    ))
+
+    g = VGroup(track, title, ticks, needle)
+
+    if show_e_na:
+        ey = v_to_y(E_NA)
+        na_tick = Line([gx - 0.12, ey, 0], [gx + 0.38, ey, 0], color=NA_COL, stroke_width=4)
+        na_lab = M("E_Na +60", size=24, color=NA_COL).next_to([gx + 0.66, ey + 0.26, 0], RIGHT, buff=0.06)
+        g.add(na_tick, na_lab)
+
+    if show_e_k:
+        ky = v_to_y(E_K)
+        k_tick = Line([gx - 0.12, ky, 0], [gx + 0.38, ky, 0], color=K_COL, stroke_width=4)
+        k_lab = M("E_K −90", size=24, color=K_COL).next_to([gx + 0.66, ky - 0.26, 0], RIGHT, buff=0.06)
+        g.add(k_tick, k_lab)
+
+    if show_readout:
+        ro = always_redraw(lambda: M(
+            f"Vm = {vm_tracker.get_value():+.0f} mV" if abs(vm_tracker.get_value()) >= 0.5 else "Vm = 0 mV",
+            size=26, color=VOLT_COL,
+        ).move_to([gx + 0.55, -2.55, 0]))
+        g.add(ro)
+
     return g
 
 
-def strips():
-    """pink bands behind the outside and inside crowds: the difference in concentration."""
-    o = RoundedRectangle(corner_radius=0.15, width=4.5, height=1.64, stroke_color=PINK, stroke_width=2.5, fill_color=PINK, fill_opacity=0.1).move_to([-4.05, 2.2, 0])
-    i = RoundedRectangle(corner_radius=0.15, width=4.5, height=1.64, stroke_color=PINK, stroke_width=2.5, fill_color=PINK, fill_opacity=0.1).move_to([-4.05, -2.2, 0])
-    return VGroup(o, i)
+def make_ion_swarm(
+    seed, n_na=32, n_k=32, x0=MEM_X0 + 0.18, x1=MEM_X1 - 0.18,
+    pores=(), allow_cross=None, speed_scale=0.55,
+):
+    """Create a computed ion particle simulation with thermal motion and pore flux.
+
+    pores: list of (pore_x, open_tracker, dir_sign_fn, rate_fn)
+    Returns (VGroup of Dot mobjects, updater function dt -> None).
+    """
+    rng = np.random.default_rng(seed)
+    na_dots = []
+    k_dots = []
+
+    # Initial thermal positions
+    na_pos = np.column_stack([
+        rng.uniform(x0, x1, n_na),
+        rng.uniform(OUT_Y0 + 0.08, OUT_Y1 - 0.08, n_na),
+    ])
+    na_vel = rng.normal(0.0, speed_scale, (n_na, 2))
+    na_state = np.zeros(n_na, dtype=int)  # 0=outside, 1=crossing down, 2=inside
+
+    k_pos = np.column_stack([
+        rng.uniform(x0, x1, n_k),
+        rng.uniform(IN_Y0 + 0.08, IN_Y1 - 0.08, n_k),
+    ])
+    k_vel = rng.normal(0.0, speed_scale, (n_k, 2))
+    k_state = np.zeros(n_k, dtype=int)  # 0=inside, 1=crossing up, 2=outside
+
+    for p in na_pos:
+        na_dots.append(Dot([p[0], p[1], 0.0], radius=0.095, color=NA_COL))
+    for p in k_pos:
+        k_dots.append(Dot([p[0], p[1], 0.0], radius=0.095, color=K_COL))
+
+    swarm = VGroup(*na_dots, *k_dots)
+    # Keep track of active crossing slots
+    cross_timer = {"na": 0.0, "k": 0.0}
+
+    def step_group(pos, vel, state, dots, y_lo, y_hi, ion_kind, dt):
+        for i in range(len(dots)):
+            st = state[i]
+            if st == 0:
+                pos[i] += vel[i] * dt
+                if pos[i, 0] < x0:
+                    pos[i, 0] = x0
+                    vel[i, 0] = abs(vel[i, 0])
+                elif pos[i, 0] > x1:
+                    pos[i, 0] = x1
+                    vel[i, 0] = -abs(vel[i, 0])
+                if pos[i, 1] < y_lo:
+                    pos[i, 1] = y_lo
+                    vel[i, 1] = abs(vel[i, 1])
+                elif pos[i, 1] > y_hi:
+                    pos[i, 1] = y_hi
+                    vel[i, 1] = -abs(vel[i, 1])
+                # Slight thermal jitter
+                vel[i] += rng.normal(0.0, 0.25 * dt, 2)
+                spd = np.linalg.norm(vel[i])
+                if spd > 1.2 * speed_scale:
+                    vel[i] *= 1.2 * speed_scale / spd
+            else:
+                # Crossing through assigned pore x (stored in vel[i, 0] = pore_x, vel[i, 1] = vy)
+                px, vy = vel[i, 0], vel[i, 1]
+                pos[i, 0] += (px - pos[i, 0]) * min(1.0, 12.0 * dt)
+                pos[i, 1] += vy * dt
+                if ion_kind == "na" and pos[i, 1] < IN_Y0 + 0.12:
+                    # Recycle smoothly to outer pool so concentration stays visually rich
+                    state[i] = 0
+                    pos[i] = [rng.uniform(x0, x1), OUT_Y1 - 0.12]
+                    vel[i] = rng.normal(0.0, speed_scale, 2)
+                elif ion_kind == "k" and pos[i, 1] > OUT_Y1 - 0.12:
+                    state[i] = 0
+                    pos[i] = [rng.uniform(x0, x1), IN_Y0 + 0.12]
+                    vel[i] = rng.normal(0.0, speed_scale, 2)
+
+            dots[i].move_to([pos[i, 0], pos[i, 1], 0.0])
+
+        # Check open pores for ion entry
+        for px, kind_match, op_fn, vy_fn in pores:
+            if kind_match != ion_kind:
+                continue
+            if op_fn() > 0.5:
+                rate = vy_fn()  # desired crossings per second
+                if rate > 0.05:
+                    cross_timer[ion_kind] += rate * dt
+                    while cross_timer[ion_kind] >= 1.0:
+                        cross_timer[ion_kind] -= 1.0
+                        # Pick closest idle ion in pool to pore mouth
+                        idle = np.where(state == 0)[0]
+                        if len(idle) == 0:
+                            break
+                        mouth_y = OUT_Y0 + 0.1 if ion_kind == "na" else IN_Y1 - 0.1
+                        dists = np.hypot(pos[idle, 0] - px, pos[idle, 1] - mouth_y)
+                        pick = idle[int(np.argmin(dists))]
+                        state[pick] = 1
+                        pos[pick, 0] = px + rng.uniform(-0.10, 0.10)
+                        pos[pick, 1] = mouth_y
+                        vy_speed = -max(1.8, 0.55 * rate) if ion_kind == "na" else max(1.3, 0.55 * rate)
+                        vel[pick] = [px, vy_speed]
+
+    def update(mob, dt):
+        dt = min(dt, 0.06)
+        step_group(na_pos, na_vel, na_state, na_dots, OUT_Y0 + 0.08, OUT_Y1 - 0.08, "na", dt)
+        step_group(k_pos, k_vel, k_state, k_dots, IN_Y0 + 0.08, IN_Y1 - 0.08, "k", dt)
+
+    swarm.add_updater(update)
+    return swarm
 
 
-def side_labels():
-    o = T("outside", 22, GREY).move_to([-1.2, 0.95, 0])
-    i = T("inside", 22, GREY).move_to([-1.2, -0.95, 0])
-    return VGroup(o, i)
+# ------------------------------------------------------------------ scenes
+class S00Hook(SpokenScene):
+    def construct(self):
+        pore_x = -2.0
+        op = ValueTracker(0.0)
+        vm = ValueTracker(V_REST)
 
+        bilayer = build_bilayer(gaps=(pore_x,))
+        headers = build_compartment_headers()
+        chan = build_channel(pore_x, color=MEM_COL, open_tracker=op)
+        gauge = build_gauge(vm)
 
-def ch_name(kind):
-    return T("sodium channel" if kind == "na" else "potassium channel", 26, ORANGE if kind == "na" else TEAL, weight=BOLD).move_to([B_X, 3.28, 0])
+        # Rate proportional to driving force |Vm - E_Na| when gate is open
+        swarm = make_ion_swarm(
+            seed=10, n_na=30, n_k=28,
+            pores=[(pore_x, "na", lambda: op.get_value(), lambda: 0.12 * max(0.0, E_NA - vm.get_value()))],
+        )
 
+        # Slow G-protein/kinase chain inset in upper right of membrane area (clear of pore & ions)
+        chain_steps = VGroup(
+            boxed_label("Receptor", STRUCT_COL, size=24, pad=0.14),
+            boxed_label("G protein", STRUCT_COL, size=24, pad=0.14),
+            boxed_label("Kinase", STRUCT_COL, size=24, pad=0.14),
+        ).arrange(RIGHT, buff=0.45).move_to([-0.2, 2.75, 0])
+        c_arr1 = Arrow(chain_steps[0].get_right(), chain_steps[1].get_left(), buff=0.06, color=STRUCT_COL, stroke_width=3, max_tip_length_to_length_ratio=0.35)
+        c_arr2 = Arrow(chain_steps[1].get_right(), chain_steps[2].get_left(), buff=0.06, color=STRUCT_COL, stroke_width=3, max_tip_length_to_length_ratio=0.35)
+        chain_grp = VGroup(chain_steps, c_arr1, c_arr2)
 
-# ---------------------------------------------------------------------------------------------
-class Film(SpokenScene):
-    def room(self, phrase, nth=0, lead=0.2):
-        """seconds left before the narrator says `phrase` (so a long animation can be cut to fit)."""
-        return max(0.3, self.t_of(phrase, nth) - lead - self.elapsed())
+        ms_badge = boxed_label("~1 ms?", NA_COL, size=28, pad=0.16).move_to([0.3, -2.20, 0])
 
-    def outro(self, *anims, then=None, after=None, run_time=0.38):
-        """hold until the narration ends, clear what the next scene does not inherit, then (optionally)
-        change layout (`then`, and `after` once that has settled)."""
-        rest = self.narration_s - 0.02 - self.elapsed()
-        if rest > 0:
-            self.wait(rest)
-        if anims:
-            self.play(*anims, run_time=run_time)
-        if then:
-            self.play(*then, run_time=0.9)
-        if after:
-            self.play(*after, run_time=0.45)
-        if then or after:
-            self.wait(0.15)
+        self.add(bilayer, headers, chan, gauge, swarm)
+        self.at("about a millisecond")
+        self.play(FadeIn(ms_badge, shift=UP * 0.1), run_time=0.5)
+
+        self.at("hand their message")
+        self.play(FadeIn(chain_grp), run_time=0.5)
+        # Step highlight cleanly below the boxes (y=2.36) so nothing crosses text
+        relay_dot = Dot([chain_steps[0].get_center()[0], 2.34, 0], radius=0.08, color=ELEC_COL)
+        self.play(
+            FadeIn(relay_dot),
+            chain_steps[0].box.animate.set_stroke(ELEC_COL),
+            run_time=0.5,
+        )
+        self.play(
+            relay_dot.animate.move_to([chain_steps[1].get_center()[0], 2.34, 0]),
+            chain_steps[1].box.animate.set_stroke(ELEC_COL),
+            run_time=1.0,
+        )
+        self.play(
+            relay_dot.animate.move_to([chain_steps[2].get_center()[0], 2.34, 0]),
+            chain_steps[2].box.animate.set_stroke(ELEC_COL),
+            run_time=1.0,
+        )
+
+        self.at("skips that chain")
+        self.play(FadeOut(VGroup(chain_grp, relay_dot), shift=UP * 0.15), run_time=0.55)
+
+        self.at("opens a hole")
+        sig = Dot([pore_x - 0.55, 0.72, 0], radius=0.12, color=ELEC_COL)
+        self.play(FadeIn(sig, scale=1.3), run_time=0.3)
+        self.play(sig.animate.move_to([pore_x - 0.42, 0.38, 0]), op.animate.set_value(1.0), run_time=0.45)
+        self.play(FadeOut(sig), run_time=0.2)
+
+        self.at("ions rush through")
+        # Integrate dVm/dt = -k*(Vm - E_Na) smoothly toward +32 mV
+        self.at("voltage shifts")
+        self.play(vm.animate.set_value(32.0), run_time=1.4, rate_func=rush_from)
         self.finish()
 
 
-class S00Title(TitleCard):
+class S01Title(TitleCard):
     LESSON = "Ion Channels as Receptors"
-    TITLE = "The signal opens a hole"
+    TITLE = "Open a Hole, Spend the Gradient"
 
 
-# ---------------------------------------------------------------------------------------------
-class S01Hole(Film):
-    """A channel hands the signal to nothing: it opens a hole, ions pour through. Which way? (STAGE A)"""
-
+class S02PumpVsChannel(SpokenScene):
     def construct(self):
-        mem = membrane()
-        self.play(FadeIn(mem), run_time=0.4)
-        sig = bchip("signal", YELLOW, 26).move_to([0, 1.3, 0])
-        self.play(FadeIn(sig, shift=DOWN * 0.3), run_time=0.5)
+        pump_x, chan_x = -1.5, 3.0
+        pump_ph = ValueTracker(0.0)
+        chan_op = ValueTracker(0.0)
+        pump_cnt = ValueTracker(0.0)
+        chan_cnt = ValueTracker(0.0)
 
-        # the question, posed in the picture: an unknown answer inside the cell
-        qbox = ghost_chip("?", 60)
-        qbox[2].set_color(TEXT)
-        qbox.move_to([0, -1.9, 0])
-        self.at("answer a signal")
-        self.play(FadeIn(qbox, scale=0.8), run_time=0.5)
-        ck = clock([1.9, 2.6, 0])
-        ms = T("about a millisecond", 26, GREY).next_to(ck, RIGHT, buff=0.25)
-        self.at("in about a")
-        self.play(FadeIn(ck), FadeIn(ms), run_time=0.3)
-        self.play(Rotate(ck.hand, -TAU / 4, about_point=ck.c), run_time=0.6)
+        bilayer = build_bilayer(x0=-6.0, x1=6.0, gaps=(pump_x, chan_x))
+        headers = build_compartment_headers(x0=-6.0)
+        pump = build_pump(pump_x, pump_ph)
+        chan = build_channel(chan_x, color=MEM_COL, open_tracker=chan_op)
 
-        # the usual route: receptor, G protein, kinase
-        rec = RoundedRectangle(corner_radius=0.2, width=0.55, height=2.0, stroke_color=BLUE, stroke_width=3.5, fill_color=BLUE, fill_opacity=0.4).move_to([-3.3, 0, 0])
-        rec_back = RoundedRectangle(corner_radius=0.2, width=0.55, height=2.0, stroke_width=0, fill_color=BG, fill_opacity=1).move_to([-3.3, 0, 0])
-        rec_g = VGroup(rec_back, rec)
-        rec_l = T("receptor", 26, BLUE).move_to([-3.3, 2.35, 0])
-        self.at("Most receptors")
-        self.play(FadeOut(qbox), FadeOut(ck), FadeOut(ms), FadeIn(rec_g), FadeIn(rec_l), sig.animate.move_to([-3.3, 1.55, 0]), run_time=0.8)
-        gp = bchip("G protein", GREY, 24).move_to([-3.3, -1.75, 0])
-        ka = bchip("kinase", GREY, 24).move_to([-3.3, -2.95, 0])
-        a1 = arr([-3.3, -1.0, 0], gp.get_top(), GREY)
-        a2 = arr(gp.get_bottom(), ka.get_top(), GREY)
-        self.at("such as")
-        self.play(GrowArrow(a1), FadeIn(gp, shift=DOWN * 0.15), run_time=0.5)
-        self.at("or a")
-        self.play(GrowArrow(a2), FadeIn(ka, shift=DOWN * 0.15), run_time=0.5)
+        swarm = make_ion_swarm(
+            seed=20, n_na=42, n_k=36, x0=-5.8, x1=5.8,
+            pores=[(chan_x, "na", lambda: chan_op.get_value(), lambda: 8.5)],
+        )
 
-        # the channel hands it to nothing
-        ch = channel(A_CHAN, 1.0, 0.0)
-        sig2 = bchip("signal", YELLOW, 26).move_to([A_CHAN, 1.55, 0])
-        chl = T("ion channel", 26, BLUE).move_to([A_CHAN, 2.35, 0])
-        self.at("channel hands")
-        self.play(FadeIn(ch), FadeIn(sig2, shift=DOWN * 0.2), FadeIn(chl), run_time=0.7)
-        nothing = ghost_chip("nothing", 26)
-        nothing.move_to([A_CHAN, -1.85, 0])
-        self.at("to nothing")
-        self.play(FadeIn(nothing, shift=UP * 0.1), run_time=0.5)
+        pump_lab = T("Pump (ATP)", size=28, color=PUMP_COL, weight=BOLD).move_to([pump_x, 2.75, 0])
+        chan_lab = T("Channel", size=28, color=MEM_COL, weight=BOLD).move_to([chan_x, 2.75, 0])
 
-        # the signal opens a hole: the channel comes to the middle and grows
-        self.at("The signal opens")
-        self.play(FadeOut(VGroup(rec_g, rec_l, gp, ka, a1, a2, sig, nothing, chl)),
-                  reshape(ch, 0, 1.7, 0.0), sig2.animate.move_to([0, 2.7, 0]), run_time=0.9)
-        self.play(swing(ch, 0, 1, 0.5))
+        pump_rate = M("~10² ions/s", size=26, color=PUMP_COL).move_to([pump_x, -2.20, 0])
+        pump_live = counter("moved: {:.0f}", pump_cnt, at=[pump_x, -2.75, 0], size=26, color=TEXT)
+        chan_rate = M("~10⁷ ions/s", size=26, color=NA_COL).move_to([chan_x, -2.20, 0])
+        chan_live = counter("moved: {:,.0f}", chan_cnt, at=[chan_x, -2.75, 0], size=26, color=TEXT)
 
-        # ions pour through, in both directions: nobody has said which way yet
-        down, da = stream(ORANGE, 0, 2.05, -2.05, n=6, lanes=[0.0])
-        up, ua = stream(ORANGE, 0, -2.05, 2.05, n=6, lanes=[0.42])
-        self.add(*down, *up)
-        self.at("pour through")
-        self.play(LaggedStart(*[a for pr in zip(da, ua) for a in pr], lag_ratio=0.1), run_time=min(2.6, self.room("the voltage across")))
+        self.add(bilayer, headers, swarm)
+        self.at("Two kinds of protein")
+        self.play(FadeIn(pump), FadeIn(chan), FadeIn(pump_lab), FadeIn(chan_lab), run_time=0.7)
 
-        # the voltage across the membrane
-        vb = DoubleArrow([-2.65, 0.6, 0], [-2.65, -0.6, 0], buff=0, color=PURPLE, stroke_width=6, tip_length=0.22)
-        vl = T("voltage", 28, PURPLE, weight=BOLD).next_to(vb, LEFT, buff=0.25)
-        self.at("the voltage across")
-        self.play(GrowFromCenter(vb), FadeIn(vl), run_time=0.6)
-        self.play(*glow(vb, s=1.12, color=PURPLE), run_time=0.5)
+        self.at("A pump binds ions")
+        p_na = Dot([pump_x, -0.45, 0], radius=0.11, color=NA_COL)
+        p_k = Dot([pump_x, 0.45, 0], radius=0.11, color=K_COL)
+        self.play(FadeIn(p_na, scale=1.2), run_time=0.4)
 
-        big = VGroup(T("about ten million ions", 28, ORANGE), T("every second", 28, ORANGE)).arrange(DOWN, buff=0.12, aligned_edge=LEFT).move_to([-4.3, 2.55, 0])
-        d2, d2a = stream(ORANGE, 0, 2.05, -2.05, n=8, lanes=[0.0])
-        u2, u2a = stream(ORANGE, 0, -2.05, 2.05, n=8, lanes=[0.42])
-        self.add(*d2, *u2)
-        self.at("One open")
-        wait_label = max(0.1, self.t_of("million ions") - 0.2 - self.elapsed())
-        self.play(LaggedStart(*[a for pr in zip(d2a, u2a) for a in pr], lag_ratio=0.1),
-                  Succession(Wait(wait_label), FadeIn(big, shift=RIGHT * 0.1, run_time=0.5)),
-                  run_time=min(6.0, self.room("which way")))
+        self.at("uses")
+        atp_tag = boxed_label("ATP", PUMP_COL, size=24, pad=0.12).move_to([pump_x, -2.20, 0])
+        self.play(FadeIn(atp_tag, shift=UP * 0.15), run_time=0.35)
 
-        # which way?
-        wy = DoubleArrow([2.65, -2.1, 0], [2.65, 2.1, 0], buff=0, color=GREY, stroke_width=7, tip_length=0.3)
-        qq = T("?", 64, TEXT, weight=BOLD).move_to([3.4, 0, 0])
-        self.at("which way")
-        self.play(GrowFromCenter(wy), FadeIn(qq, scale=0.6), run_time=0.7)
-        self.play(pop(qq, 1.25), run_time=0.6)
-        # leave the channel closed and small, at the right, for the next scene
-        self.outro(FadeOut(VGroup(vb, vl, big, wy, qq, sig2)),
-                   then=[reshape(ch, A_CHAN, 1.0, 1.0)])
+        self.at("pushes them uphill")
+        self.play(
+            pump_ph.animate.set_value(1.0),
+            p_na.animate.move_to([pump_x, 0.65, 0]),
+            run_time=0.55,
+        )
+        self.play(FadeIn(p_k), FadeOut(p_na), run_time=0.15)
+        self.play(
+            pump_ph.animate.set_value(0.0),
+            p_k.animate.move_to([pump_x, -0.65, 0]),
+            run_time=0.55,
+        )
+        self.play(FadeOut(p_k), FadeOut(atp_tag), run_time=0.15)
 
+        self.at("only a few hundred")
+        self.play(FadeIn(pump_rate), FadeIn(pump_live), run_time=0.4)
+        self.play(pump_cnt.animate.set_value(300), run_time=1.0, rate_func=linear)
 
-# ---------------------------------------------------------------------------------------------
-def crowd_a(seed=31):
-    avoid_p = [(A_PUMP - 1.3, A_PUMP + 1.3, -3.6, 3.6)]
-    avoid_c = [(A_CHAN - 1.3, A_CHAN + 1.3, -3.6, 3.6)]
-    lab = [(-6.3, -4.7, -1.3, 1.3), (A_PUMP - 1.6, A_PUMP + 1.6, -2.7, -1.7), (A_CHAN - 1.6, A_CHAN + 1.6, -2.7, -1.7)]
-    av = avoid_p + avoid_c + lab
-    out = scatter(24, (-5.9, 5.9, 1.55, 3.0), seed, av)
-    inn = scatter(4, (-5.9, 5.9, -3.0, -1.55), seed + 1, av)
-    return VGroup(out, inn)
+        self.at("A channel is a gated pore")
+        chan_open_lab = T("Open channel", size=28, color=MEM_COL, weight=BOLD).move_to([chan_x, 2.75, 0])
+        self.play(Indicate(chan, color=NA_COL), run_time=0.6)
 
+        self.at("Open it")
+        self.play(chan_op.animate.set_value(1.0), swap(chan_lab, chan_open_lab, run_time=0.5), run_time=0.5)
 
-class S02Gate(Film):
-    """Two kinds of protein: a pump carries ions uphill, slowly; a channel lets them run downhill, fast. (STAGE A)"""
+        self.at("millions")
+        self.play(FadeIn(chan_rate), FadeIn(chan_live), run_time=0.4)
+        self.play(
+            chan_cnt.animate.set_value(10_000_000),
+            pump_cnt.animate.set_value(600),
+            run_time=2.2,
+            rate_func=linear,
+        )
 
-    def construct(self):
-        mem = membrane()
-        ch = channel(A_CHAN, 1.0, 1.0)
-        # the gate was left open by scene 1; shut it so the keys can open it
-        self.add(mem, ch)
-        pm = pump(A_PUMP)
-        ring = cup(A_PUMP)
-        crowd = crowd_a()
-        out_l, in_l = T("outside", 22, GREY).move_to([-5.45, 0.95, 0]), T("inside", 22, GREY).move_to([-5.45, -0.95, 0])
-        self.at("Two kinds of")
-        self.play(FadeIn(pm), FadeIn(ring), FadeIn(out_l), FadeIn(in_l), swing(ch, 1, 0, 0.6), run_time=0.7)
-        self.at("move ions across")
-        self.play(LaggedStart(*[FadeIn(i, scale=0.6) for i in list(crowd[0]) + list(crowd[1])], lag_ratio=0.03), run_time=1.0)
-
-        # the pump
-        pl = T("pump", 26, BLUE, weight=BOLD).move_to([A_PUMP - 1.95, 0, 0])
-        pl_b = VGroup(Rectangle(width=pl.width + 0.16, height=pl.height + 0.12, stroke_width=0, fill_color=BG, fill_opacity=1).move_to(pl), pl)
-        carried = ion(ORANGE).move_to([A_PUMP, -1.95, 0])
-        self.at("A pump binds")
-        self.play(FadeIn(pl_b), FadeIn(carried, scale=0.6), run_time=0.4)
-        self.play(carried.animate.move_to([A_PUMP, 0, 0]), run_time=0.7)
-        unit = VGroup(ring, carried)
-        self.at("changes shape to")
-        self.play(Rotate(unit, PI, about_point=np.array([A_PUMP, 0, 0])), run_time=1.0)
-        up_l = T("uphill", 24, GREY).move_to([A_PUMP - 0.6, 2.2, 0])
-        self.at("uphill")
-        self.play(carried.animate.move_to([A_PUMP, 1.9, 0]), FadeIn(up_l), run_time=0.8)
-        atp = bchip("ATP", GOLD, 24).move_to([A_PUMP + 1.95, 0, 0])
-        self.at("if it spends")
-        self.play(FadeIn(atp, scale=0.8), run_time=0.4)
-        self.play(atp.animate.move_to([A_PUMP + 1.0, 0.0, 0]).scale(0.5).set_opacity(0), run_time=0.6)
-
-        # the channel
-        cl = T("channel", 26, BLUE, weight=BOLD).move_to([A_CHAN + 1.95, 0, 0])
-        cl_b = VGroup(Rectangle(width=cl.width + 0.16, height=cl.height + 0.12, stroke_width=0, fill_color=BG, fill_opacity=1).move_to(cl), cl)
-        self.at("A channel is")
-        self.play(FadeOut(up_l), FadeIn(cl_b), run_time=0.4)
-        self.at("with a gate")
-        self.play(*glow(ch[3][0], s=1.5, color=TEXT), run_time=0.6)
-
-        # three keys, one after another
-        key = bchip("transmitter", YELLOW, 22).move_to([A_CHAN, 3.1, 0])
-        self.at("which a transmitter")
-        self.play(FadeIn(key), run_time=0.2)
-        self.play(key.animate.move_to([A_CHAN, 1.65, 0]), run_time=0.5)
-        self.play(swing(ch, 0, 1, 0.3))
-        k2 = bchip("voltage", YELLOW, 22).move_to([A_CHAN, 1.65, 0])
-        self.at("a voltage")
-        self.play(swing(ch, 1, 0, 0.2), run_time=0.2)
-        self.play(ReplacementTransform(key, k2), run_time=0.3)
-        self.play(swing(ch, 0, 1, 0.3))
-        k3 = bchip("heat", YELLOW, 22).move_to([A_CHAN, 1.65, 0])
-        self.at("or heat")
-        self.play(swing(ch, 1, 0, 0.2), run_time=0.2)
-        self.play(ReplacementTransform(k2, k3), run_time=0.3)
-        self.play(swing(ch, 0, 1, 0.3))
-
-        # open: ions run downhill
-        down_l = T("downhill", 24, GREY).move_to([A_CHAN - 0.6, 2.2, 0])
-        self.at("Once it is open")
-        self.play(FadeOut(k3), run_time=0.3)
-        ions, anims = stream(ORANGE, A_CHAN + 0.08, 1.9, -1.9, n=8)
-        self.add(*ions)
-        self.at("run downhill")
-        self.play(FadeIn(down_l), LaggedStart(*anims, lag_ratio=0.16), run_time=min(2.2, self.room("at around")))
-        ten = T("around ten million a second", 24, ORANGE).move_to([A_CHAN, -2.15, 0])
-        self.at("at around")
-        ions2, anims2 = stream(ORANGE, A_CHAN + 0.08, 1.9, -1.9, n=8)
-        self.add(*ions2)
-        self.play(FadeIn(ten), LaggedStart(*anims2, lag_ratio=0.16), run_time=min(2.0, self.room("while a pump")))
-
-        # the pump is slow
-        few = T("a few hundred", 24, BLUE).move_to([A_PUMP, -2.15, 0])
-        self.at("while a pump")
-        self.play(Rotate(ring, PI, about_point=np.array([A_PUMP, 0, 0])), run_time=1.3)
-        self.at("a few hundred")
-        self.play(FadeIn(few), run_time=0.4)
-        # gradients: pink bands behind the crowds
-        st = VGroup(
-            RoundedRectangle(corner_radius=0.15, width=12.4, height=1.9, stroke_color=PINK, stroke_width=2.5, fill_color=PINK, fill_opacity=0.08).move_to([0, 2.25, 0]),
-            RoundedRectangle(corner_radius=0.15, width=12.4, height=1.9, stroke_color=PINK, stroke_width=2.5, fill_color=PINK, fill_opacity=0.08).move_to([0, -2.25, 0]))
-        gl = T("gradient", 26, PINK, weight=BOLD).move_to([-5.2, 0, 0])
-        self.at("build")
-        self.play(FadeIn(st), run_time=0.6)
-        ions3, anims3 = stream(ORANGE, A_CHAN + 0.08, 1.9, -1.9, n=8)
-        self.add(*ions3)
-        self.at("channels spend them")
-        self.play(LaggedStart(*anims3, lag_ratio=0.16), run_time=1.8)
-        # leave the channel for scene 3: the patch of membrane goes left and shrinks; the crowd is rebuilt there
-        crowd_b_na = crowd_b("na")
-        mem_b = membrane(*B_MEM)
-        self.outro(FadeOut(VGroup(pm, ring, carried, pl_b, cl_b, out_l, in_l, ten, few, down_l, crowd, st)),
-                   then=[Transform(mem, mem_b), reshape(ch, B_X, B_K, 1.0)],
-                   after=[FadeIn(crowd_b_na), FadeIn(side_labels())])
-
-
-# ---------------------------------------------------------------------------------------------
-def equation():
-    eq1 = T("driving force", 26, TEXT, weight=BOLD)
-    eq2 = VGroup(T("=", 24, TEXT), T("membrane voltage", 24, PURPLE), T("\u2212", 24, TEXT), T("E", 24, TEXT)).arrange(RIGHT, buff=0.12)
-    eq = VGroup(eq1, eq2).arrange(DOWN, buff=0.14, aligned_edge=LEFT)
-    eq.move_to([0.45, 2.45, 0])
-    return eq, eq1, eq2
-
-
-def scene_b_state(kind="na"):
-    mem = membrane(*B_MEM)
-    ch = channel(B_X, B_K, 1.0)
-    crowd = crowd_b(kind)
-    sides = side_labels()
-    nm = ch_name(kind)
-    ax = axis()
-    tag_na, tag_k = etag("sodium", V_NA, ORANGE), etag("potassium", V_K, TEAL)
-    return mem, ch, crowd, sides, nm, ax, tag_na, tag_k
-
-
-class S03Pushpull(Film):
-    """The push of the gradient and the pull of the voltage on one sodium ion; slide the voltage to the E where they balance. (STAGE B)"""
-
-    def construct(self):
-        mem = membrane(*B_MEM)
-        ch = channel(B_X, B_K, 1.0)
-        crowd = crowd_b("na")
-        sides = side_labels()
-        self.add(mem, ch, crowd, sides)
-
-        vt = ValueTracker(V_REST)
-        base = DashedLine([PUSH_X, Y0, 0], [PULL_X, Y0, 0], color=GREY, stroke_width=3, dash_length=0.1)
-        panel_ion = ion(ORANGE, 0.26).move_to([ION_X, Y0, 0])
-        push = push_arrow()
-        pull = always_redraw(lambda: pull_arrow(vt.get_value()))
-        push_l = T("push", 30, PINK, weight=BOLD).next_to([PUSH_X, Y0, 0], LEFT, buff=0.2)
-        pull_l = T("pull", 30, PURPLE, weight=BOLD).next_to([PULL_X, Y0, 0], RIGHT, buff=0.2)
-
-        self.at("Downhill has two")
-        ions, anims = stream(ORANGE, B_X + 0.08, 1.5, -1.5, n=5)
-        self.add(*ions)
-        self.play(FadeIn(base), FadeIn(panel_ion), LaggedStart(*anims, lag_ratio=0.18), run_time=min(1.8, self.room("push from")))
-        self.at("push from")
-        self.play(GrowArrow(push), FadeIn(push_l), run_time=0.6)
-        sts = strips()
-        self.at("difference in")
-        self.play(FadeIn(sts), run_time=0.5)
-        self.at("and a pull")
-        self.add(pull)
-        self.play(FadeIn(pull_l), FadeOut(sts), run_time=0.6)
-        # the scale and the minus signs: the voltage across the membrane
-        ax = axis()
-        minus = VGroup(*[Line([x - 0.12, -1.0, 0], [x + 0.12, -1.0, 0], color=PURPLE, stroke_width=6) for x in (-6.05, -5.75, -2.35, -2.05)])
-        self.at("the voltage across")
-        self.play(FadeIn(ax), FadeIn(minus), run_time=0.6)
-
-        # sodium
-        nm = ch_name("na")
-        self.at("Take sodium")
-        self.play(FadeIn(nm, shift=DOWN * 0.1), *glow(*crowd[0], s=1.2, color=ORANGE), run_time=0.8)
-        self.at("mostly outside")
-        self.play(*glow(*crowd[0], s=1.25, color=TEXT), run_time=0.7)
-
-        # rest
-        mk = always_redraw(lambda: marker(vt.get_value()))
-        ml = mlabel(V_REST)
-        self.at("resting neuron")
-        self.add(mk)
-        self.play(FadeIn(ml), FadeIn(mk), run_time=0.5)
-        self.play(*glow(ml, s=1.2, color=TEXT), run_time=0.6)
-
-        # slide the voltage until push and pull balance
-        self.at("For each ion")
-        self.play(FadeOut(ml), FadeOut(minus), run_time=0.4)
-        self.at("one voltage")
-        self.play(vt.animate.set_value(V_NA), run_time=min(2.6, self.room("push and pull balance")))
-        bal = T("balance", 30, TEXT, weight=BOLD).move_to([(PUSH_X + PULL_X) / 2, Y0 + 2.45, 0])
-        self.at("push and pull balance")
-        self.play(FadeIn(bal, shift=DOWN * 0.1), pop(push, 1.1), run_time=0.6)
-
-        # E
-        tag = etag("sodium", V_NA, ORANGE)
-        self.at("equilibrium potential")
-        self.play(FadeIn(tag.tick), FadeIn(tag.t1), run_time=0.5)
-        self.at("for sodium it is")
-        self.play(FadeIn(tag.t2, shift=LEFT * 0.1), run_time=0.5)
-        self.play(*glow(tag.t1, tag.t2, s=1.12), run_time=0.6)
-
-        # back to rest for the next scene
-        self.outro(FadeOut(VGroup(base, panel_ion, push, push_l, pull_l, bal)), FadeOut(pull),
-                   then=[vt.animate.set_value(V_REST)], after=[FadeIn(mlabel(V_REST))])
-
-
-# ---------------------------------------------------------------------------------------------
-class S04Drag(Film):
-    """E for potassium; an open channel drags the voltage toward the E of the ion it passes; one subtraction. (STAGE B)"""
-
-    def construct(self):
-        mem, ch, na, sides, nm, ax, tag_na, tag_k = scene_b_state("na")
-        vt = ValueTracker(V_REST)
-        mk = always_redraw(lambda: marker(vt.get_value()))
-        ml = mlabel(V_REST)
-        self.add(mem, ch, na, sides, nm, ax, tag_na.tick, tag_na.t1, tag_na.t2, mk, ml)
-
-        # potassium lives inside
-        k = crowd_b("k")
-        nk = ch_name("k")
-        self.at("keeps potassium mostly")
-        self.play(FadeOut(na), FadeOut(nm), FadeIn(k), FadeIn(nk), run_time=0.8)
-        self.at("for potassium")
-        self.play(FadeIn(tag_k.tick), FadeIn(tag_k.t1), run_time=0.5)
-        self.at("is about")
-        self.play(FadeIn(tag_k.t2, shift=LEFT * 0.1), run_time=0.5)
-
-        # an open channel drags the voltage toward the E of the ion it passes
-        ions, anims = stream(TEAL, B_X + 0.08, -1.5, 1.5, n=3)
-        self.add(*ions)
-        d_k = drag(V_REST, V_K, TEAL)
-        self.at("An open channel drags")
-        self.play(FadeOut(ml), GrowArrow(d_k), LaggedStart(*anims, lag_ratio=0.3), run_time=1.4)
-        self.play(vt.animate.set_value(-79), Transform(d_k, drag(-79, V_K, TEAL)), run_time=0.8)
-        self.at("toward the")
-        d_na = drag(V_REST, V_NA, ORANGE)
-        self.play(FadeOut(d_k), vt.animate.set_value(V_REST), FadeOut(k), FadeOut(nk), FadeIn(na), FadeIn(nm), run_time=0.8)
-        ions2, anims2 = stream(ORANGE, B_X + 0.08, 1.5, -1.5, n=6)
-        self.add(*ions2)
-        self.play(GrowArrow(d_na), LaggedStart(*anims2, lag_ratio=0.2), run_time=1.4)
-        self.play(vt.animate.set_value(-52), Transform(d_na, drag(-52, V_NA, ORANGE)), run_time=0.8)
-
-        # one subtraction
-        d_k2 = drag(V_REST, V_K, TEAL)
-        self.at("one subtraction")
-        self.play(vt.animate.set_value(V_REST), Transform(d_na, drag(V_REST, V_NA, ORANGE)), FadeIn(d_k2), run_time=0.9)
-        self.play(*glow(d_na, d_k2, s=1.15, color=TEXT), run_time=0.7)
-        eq, eq1, eq2 = equation()
-        self.at("The driving force")
-        self.play(FadeIn(eq1, shift=DOWN * 0.1), run_time=0.5)
-        self.at("is the membrane")
-        self.play(FadeIn(eq2[0]), FadeIn(eq2[1]), run_time=0.5)
-        self.at("voltage minus")
-        self.play(FadeIn(eq2[2]), FadeIn(eq2[3]), *glow(tag_na.t1, tag_k.t1, s=1.1), run_time=0.6)
-        self.outro(FadeOut(d_k2), FadeOut(d_na), FadeIn(mlabel(V_REST)))
-
-
-# ---------------------------------------------------------------------------------------------
-class S05Numbers(Film):
-    """At rest sodium is 130 mV from its E and rushes in; potassium is 20 mV from its E and leaks out. (STAGE B)"""
-
-    def construct(self):
-        mem, ch, na, sides, nm, ax, tag_na, tag_k = scene_b_state("na")
-        eq, eq1, eq2 = equation()
-        vt = ValueTracker(V_REST)
-        mk = always_redraw(lambda: marker(vt.get_value()))
-        ml = mlabel(V_REST)
-        self.add(mem, ch, na, sides, nm, ax, tag_na, tag_k, mk, ml, eq)
-
-        # sodium: 130 mV
-        d_na = drag(V_REST, V_NA, ORANGE)
-        n130 = T("130 mV", 34, ORANGE, weight=BOLD).next_to(d_na, LEFT, buff=0.2)
-        self.play(*glow(ml, s=1.2, color=TEXT), run_time=0.6)
-        self.at("sodium is")
-        self.play(GrowArrow(d_na), FadeIn(n130), run_time=0.8)
-        self.at("away from its")
-        self.play(*glow(tag_na.t1, tag_na.t2, s=1.15), run_time=0.6)
-        ions, anims = stream(ORANGE, B_X + 0.08, 1.5, -1.5, n=5)
-        ions_b, anims_b = stream(ORANGE, B_X + 0.08, 1.5, -1.5, n=7)
-        self.add(*ions, *ions_b)
-        self.at("So it rushes in")
-        self.play(FadeOut(d_na), FadeOut(n130), FadeOut(ml), LaggedStart(*anims, lag_ratio=0.2), run_time=min(1.6, self.room("the cell")))
-        less = T("less negative", 24, PURPLE)
-        self.at("the cell")
-        self.play(LaggedStart(*anims_b, lag_ratio=0.2), vt.animate.set_value(-35), run_time=min(2.4, self.room("becomes less negative")))
-        self.at("becomes less negative")
-        less.next_to([AX + 0.2, vy(-35), 0], RIGHT, buff=0.15)
-        self.play(FadeIn(less, shift=LEFT * 0.1), run_time=0.5)
-
-        # potassium: 20 mV
-        k = crowd_b("k")
-        nk = ch_name("k")
-        d_k = drag(V_REST, V_K, TEAL)
-        n20 = T("20 mV", 34, TEAL, weight=BOLD).next_to(d_k, LEFT, buff=0.2)
-        self.at("Potassium is only")
-        self.play(FadeOut(less), vt.animate.set_value(V_REST), FadeOut(na), FadeOut(nm), FadeIn(k), FadeIn(nk), run_time=1.0)
-        self.play(GrowArrow(d_k), FadeIn(n20), run_time=0.6)
-        self.at("from its", nth=1)
-        self.play(*glow(tag_k.t1, tag_k.t2, s=1.15), run_time=0.6)
-        ions2, anims2 = stream(TEAL, B_X + 0.08, -1.5, 1.5, n=2)
-        ions3, anims3 = stream(TEAL, B_X + 0.08, -1.5, 1.5, n=2)
-        self.add(*ions2, *ions3)
-        self.at("leaks out gently")
-        self.play(FadeOut(d_k), FadeOut(n20), LaggedStart(*anims2, lag_ratio=0.5), run_time=min(2.0, self.room("pulls the voltage")))
-        self.at("pulls the voltage")
-        self.play(LaggedStart(*anims3, lag_ratio=0.5), vt.animate.set_value(-80), run_time=1.6)
-        self.outro(FadeOut(k), FadeOut(nk), then=[vt.animate.set_value(V_REST)], after=[FadeIn(na), FadeIn(nm), FadeIn(mlabel(V_REST))])
-
-
-# ---------------------------------------------------------------------------------------------
-class S06Rule(Film):
-    """Few ions change the voltage, the crowds stay the same; the signal opens the hole and the gradient does the rest. (STAGE B)"""
-
-    def construct(self):
-        mem, ch, na, sides, nm, ax, tag_na, tag_k = scene_b_state("na")
-        eq, eq1, eq2 = equation()
-        vt = ValueTracker(V_REST)
-        mk = always_redraw(lambda: marker(vt.get_value()))
-        ml = mlabel(V_REST)
-        self.add(mem, ch, na, sides, nm, ax, tag_na, tag_k, mk, ml, eq)
-
-        # a few ions are enough to move the voltage a long way
-        ions, anims = stream(ORANGE, B_X + 0.08, 1.5, -1.5, n=3)
-        self.add(*ions)
-        self.at("Very few ions")
-        self.play(FadeOut(ml), LaggedStart(*anims, lag_ratio=0.35), vt.animate.set_value(-40), run_time=min(2.4, self.room("the concentrations barely")))
-        sts = strips()
-        barely = T("barely shifts", 30, PINK, weight=BOLD).move_to([0.45, 0.1, 0])
-        self.at("the concentrations barely")
-        self.play(FadeIn(sts), FadeIn(barely), run_time=0.6)
-        made = ghost_chip("new molecules", 26)
-        made.move_to([0.45, -1.9, 0])
-        cross = strike(made)
-        self.at("nothing has to")
-        self.play(FadeIn(made), run_time=0.4)
-        self.play(Create(cross), run_time=0.4)
-        msg = T("the message", 30, PURPLE, weight=BOLD).next_to([AX + 0.2, vy(-40), 0], RIGHT, buff=0.15)
-        self.at("The voltage is the")
-        self.play(FadeOut(sts), FadeOut(barely), FadeOut(made), FadeOut(cross), FadeIn(msg, shift=LEFT * 0.1),
-                  *glow(mk, s=1.5, color=PURPLE), run_time=0.8)
-
-        # the rule: shut the gate, then let the signal open it
-        self.at("So keep this rule")
-        self.play(FadeOut(msg), FadeOut(eq), vt.animate.set_value(V_REST), swing(ch, 1, 0, 0.6), run_time=0.8)
-        sig = bchip("signal", YELLOW, 26).move_to([B_X, 3.05, 0])
-        self.play(FadeIn(sig), run_time=0.2)
-        self.play(sig.animate.move_to([B_X, 1.55, 0]), run_time=0.5)
-        self.at("the signal opens a")
-        self.play(swing(ch, 0, 1, 0.5), *glow(sig, s=1.12, color=YELLOW))
-        sts2 = strips()
-        self.at("and the gradient")
-        self.play(FadeOut(sig), FadeIn(sts2), run_time=0.6)
-        ions2, anims2 = stream(ORANGE, B_X + 0.08, 1.5, -1.5, n=8)
-        self.add(*ions2)
-        self.at("does the rest")
-        self.play(LaggedStart(*anims2, lag_ratio=0.2), vt.animate.set_value(-45), run_time=2.2)
+        self.at("Pumps build gradients slowly")
+        self.play(pump_ph.animate.set_value(1.0), pump_cnt.animate.set_value(900), run_time=1.4, rate_func=linear)
+        self.at("channels spend them fast")
+        self.play(chan_cnt.animate.set_value(20_000_000), pump_ph.animate.set_value(0.0), run_time=1.4, rate_func=linear)
         self.finish()
 
 
-class S07End(EndCard):
-    LINE = "The signal opens a hole, and the gradient does the rest."
+class S03TwoForces(SpokenScene):
+    def construct(self):
+        pore_x = -0.3
+        op = ValueTracker(1.0)
+        vm = ValueTracker(V_REST)
+
+        bilayer = build_bilayer(gaps=(pore_x,))
+        headers = build_compartment_headers()
+        chan = build_channel(pore_x, color=MEM_COL, open_tracker=op)
+        gauge = build_gauge(vm)
+
+        swarm = make_ion_swarm(
+            seed=30, n_na=32, n_k=28,
+            pores=[(pore_x, "na", lambda: 1.0, lambda: 10.0)],
+        )
+
+        self.add(bilayer, headers, chan, gauge, swarm)
+
+        self.at("Two forces")
+        conc_arrow = Arrow([-2.4, 1.45, 0], [-2.4, 0.25, 0], buff=0, color=NA_COL, stroke_width=8, max_tip_length_to_length_ratio=0.28)
+
+        self.at("Crowded ions spread")
+        self.play(GrowArrow(conc_arrow), run_time=0.6)
+        self.at("from high concentration")
+        conc_badge = boxed_label("Concentration push", NA_COL, size=22, pad=0.11).move_to([-1.60, 2.75, 0])
+        self.play(FadeIn(conc_badge, shift=DOWN * 0.1), run_time=0.5)
+
+        self.at("Membrane voltage pulls")
+        minus_signs = VGroup(*[
+            M("−", size=26, color=ELEC_COL).move_to([x, -0.46, 0])
+            for x in [-5.3, -4.1, -2.9, -1.7, 0.9, 1.6]
+        ])
+        minus_signs.layout_ok = "contrast"
+        elec_arrow = Arrow([0.8, 1.45, 0], [0.8, 0.25, 0], buff=0, color=ELEC_COL, stroke_width=8, max_tip_length_to_length_ratio=0.28)
+        elec_badge = boxed_label("Voltage pull", ELEC_COL, size=22, pad=0.11).move_to([1.25, 2.75, 0])
+
+        self.play(FadeIn(minus_signs), GrowArrow(elec_arrow), FadeIn(elec_badge, shift=DOWN * 0.1), run_time=0.8)
+
+        self.at("resting neuron")
+        rest_tag = M("−70 mV (rest)", size=24, color=VOLT_COL).next_to([GAUGE_X + 0.45, v_to_y(V_REST), 0], RIGHT, buff=0.08)
+        self.play(FadeIn(rest_tag), run_time=0.5)
+
+        self.at("Together")
+        comb_arrow = Arrow([pore_x, 1.50, 0], [pore_x, -0.15, 0], buff=0, color=VOLT_COL, stroke_width=10, max_tip_length_to_length_ratio=0.28)
+        self.play(
+            conc_arrow.animate.move_to([pore_x - 0.16, 0.80, 0]),
+            elec_arrow.animate.move_to([pore_x + 0.16, 0.80, 0]),
+            FadeOut(VGroup(conc_badge, elec_badge)),
+            run_time=0.9,
+        )
+        self.at("electrochemical gradient")
+        grad_badge = boxed_label("Electrochemical gradient", VOLT_COL, size=26, pad=0.16).move_to([-0.5, -2.85, 0])
+        self.play(
+            ReplacementTransform(VGroup(conc_arrow, elec_arrow), comb_arrow),
+            FadeIn(grad_badge, shift=UP * 0.1),
+            run_time=0.8,
+        )
+        self.finish()
+
+
+class S04Equilibrium(SpokenScene):
+    def construct(self):
+        pore_x = -0.3
+        op = ValueTracker(1.0)
+        vm = ValueTracker(V_REST)
+        mode = {"ion": "na", "reveal_target": False}  # "na" or "k"
+
+        bilayer = build_bilayer(gaps=(pore_x,))
+        headers = build_compartment_headers()
+        chan = build_channel(pore_x, color=MEM_COL, open_tracker=op)
+        gauge = build_gauge(vm, show_e_na=False, show_e_k=False)
+
+        # Computed pore flux goes to zero as Vm reaches E_ion!
+        def flux_rate():
+            v = vm.get_value()
+            if mode["ion"] == "na":
+                return 0.12 * max(0.0, E_NA - v)
+            return 0.12 * max(0.0, v - E_K)
+
+        swarm = make_ion_swarm(
+            seed=40, n_na=30, n_k=30,
+            pores=[
+                (pore_x, "na", lambda: 1.0 if mode["ion"] == "na" else 0.0, flux_rate),
+                (pore_x, "k", lambda: 1.0 if mode["ion"] == "k" else 0.0, flux_rate),
+            ],
+        )
+
+        # Computed opposing force arrows: L_conc fixed (1.05), L_elec proportional to Vm / E_ion
+        L_CONC = 1.05
+
+        def mk_force_arrows():
+            v = vm.get_value()
+            if mode["ion"] == "na":
+                # Concentration pushes inward (down: dy = -L_CONC)
+                c_arr = Arrow([-3.8, 1.55, 0], [-3.8, 1.55 - L_CONC, 0], buff=0, color=NA_COL, stroke_width=8, max_tip_length_to_length_ratio=0.30)
+                # Electrical force on Na+: downward (dy < 0) when Vm < 0, upward (dy > 0) when Vm > 0
+                dy = L_CONC * (v / E_NA)
+                if abs(dy) < 0.12:
+                    e_arr = Dot([-2.4, 1.02, 0], radius=0.07, color=ELEC_COL)
+                elif dy < 0:
+                    e_arr = Arrow([-2.4, 1.55, 0], [-2.4, 1.55 + dy, 0], buff=0, color=ELEC_COL, stroke_width=8, max_tip_length_to_length_ratio=0.30)
+                else:
+                    e_arr = Arrow([-2.4, 0.50, 0], [-2.4, 0.50 + dy, 0], buff=0, color=ELEC_COL, stroke_width=8, max_tip_length_to_length_ratio=0.30)
+            else:
+                # K+ concentration pushes outward (up: dy = +L_CONC)
+                c_arr = Arrow([-3.8, -1.55, 0], [-3.8, -1.55 + L_CONC, 0], buff=0, color=K_COL, stroke_width=8, max_tip_length_to_length_ratio=0.30)
+                # Electrical pull on K+ is inward (down: dy < 0) when Vm < 0
+                dy = L_CONC * (v / abs(E_K))
+                if abs(dy) < 0.12:
+                    e_arr = Dot([-2.4, -1.02, 0], radius=0.07, color=ELEC_COL)
+                elif dy < 0:
+                    e_arr = Arrow([-2.4, -0.50, 0], [-2.4, -0.50 + dy, 0], buff=0, color=ELEC_COL, stroke_width=8, max_tip_length_to_length_ratio=0.30)
+                else:
+                    e_arr = Arrow([-2.4, -1.55, 0], [-2.4, -1.55 + dy, 0], buff=0, color=ELEC_COL, stroke_width=8, max_tip_length_to_length_ratio=0.30)
+            return VGroup(c_arr, e_arr)
+
+        arrows = always_redraw(mk_force_arrows)
+
+        def mk_net_readout():
+            v = vm.get_value()
+            target = E_NA if mode["ion"] == "na" else E_K
+            gap = v - target
+            if abs(gap) < 2.0:
+                txt = "Net flow = 0 (balanced)"
+                col = GREEN
+            elif mode["reveal_target"]:
+                txt = f"Pull toward {target:+.0f} mV"
+                col = VOLT_COL
+            else:
+                txt = "Net flow ≠ 0"
+                col = VOLT_COL
+            return M(txt, size=26, color=col).move_to([-0.8, -2.90, 0])
+
+        net_ro = always_redraw(mk_net_readout)
+        eq_title = boxed_label("Equilibrium potential (E)", VOLT_COL, size=26, pad=0.14).move_to([-0.5, 2.75, 0])
+
+        self.add(bilayer, headers, chan, gauge, swarm)
+        self.at("balances those two forces")
+        self.add(arrows, net_ro)
+
+        self.at("equilibrium potential")
+        self.play(FadeIn(eq_title), run_time=0.6)
+
+        self.at("Sodium is crowded outside")
+        na_label_txt = T("Na+ concentration push", size=24, color=NA_COL).move_to([-4.35, 1.88, 0])
+        na_elec_txt = T("Voltage pull", size=24, color=ELEC_COL).move_to([-1.50, 1.88, 0])
+        na_label = VGroup(BackgroundRectangle(na_label_txt, color=BG, fill_opacity=1.0, buff=0.06), na_label_txt)
+        na_elec_label = VGroup(BackgroundRectangle(na_elec_txt, color=BG, fill_opacity=1.0, buff=0.06), na_elec_txt)
+        self.play(FadeIn(na_label), FadeIn(na_elec_label), run_time=0.5)
+
+        self.at("strongly positive inside")
+        self.play(vm.animate.set_value(20.0), run_time=1.3)
+
+        self.at("about plus 60")
+        mode["reveal_target"] = True
+        e_na_tick = Line([GAUGE_X - 0.12, v_to_y(E_NA), 0], [GAUGE_X + 0.38, v_to_y(E_NA), 0], color=NA_COL, stroke_width=4)
+        e_na_lab = M("E_Na ≈ +60", size=24, color=NA_COL).next_to([GAUGE_X + 0.56, v_to_y(E_NA) + 0.28, 0], RIGHT, buff=0.06)
+        self.play(
+            vm.animate.set_value(E_NA), FadeIn(e_na_tick), FadeIn(e_na_lab),
+            run_time=max(0.35, self.t_of("60") - 0.2 - self.elapsed()),
+        )
+
+        self.at("holds it back")
+        self.wait(0.8)
+
+        self.at("Potassium is crowded inside")
+        self.play(FadeOut(na_label), FadeOut(na_elec_label), run_time=0.35)
+        mode["ion"] = "k"
+        mode["reveal_target"] = False
+        vm.set_value(V_REST)
+        k_label_txt = T("K+ concentration push", size=24, color=K_COL).move_to([-4.35, -1.83, 0])
+        k_elec_txt = T("Voltage pull", size=24, color=ELEC_COL).move_to([-1.50, -1.83, 0])
+        k_label = VGroup(BackgroundRectangle(k_label_txt, color=BG, fill_opacity=1.0, buff=0.06), k_label_txt)
+        k_elec_label = VGroup(BackgroundRectangle(k_elec_txt, color=BG, fill_opacity=1.0, buff=0.06), k_elec_txt)
+        self.play(FadeIn(k_label), FadeIn(k_elec_label), run_time=0.4)
+
+        self.at("its balance point")
+        mode["reveal_target"] = True
+        e_k_tick = Line([GAUGE_X - 0.12, v_to_y(E_K), 0], [GAUGE_X + 0.38, v_to_y(E_K), 0], color=K_COL, stroke_width=4)
+        e_k_lab = M("E_K ≈ −90", size=24, color=K_COL).next_to([GAUGE_X + 0.56, v_to_y(E_K) - 0.28, 0], RIGHT, buff=0.06)
+        self.play(
+            vm.animate.set_value(E_K), FadeIn(e_k_tick), FadeIn(e_k_lab),
+            run_time=max(0.4, self.t_of("90") - 0.2 - self.elapsed()),
+        )
+
+        self.at("sits below rest")
+        rest_mark = M("rest −70", size=22, color=STRUCT_COL).next_to([GAUGE_X + 0.56, v_to_y(V_REST), 0], RIGHT, buff=0.06)
+        self.play(FadeIn(rest_mark), run_time=0.5)
+        self.finish()
+
+
+class S05DrivingForceRule(SpokenScene):
+    def construct(self):
+        pore_x = -0.3
+        op = ValueTracker(1.0)
+        vm = ValueTracker(V_REST)
+
+        bilayer = build_bilayer(gaps=(pore_x,))
+        headers = build_compartment_headers()
+        chan = build_channel(pore_x, color=MEM_COL, open_tracker=op)
+        gauge = build_gauge(vm, show_e_na=True, show_e_k=True)
+        swarm = make_ion_swarm(
+            seed=50, n_na=28, n_k=28,
+            pores=[(pore_x, "na", lambda: 1.0, lambda: 8.0)],
+        )
+
+        self.add(bilayer, headers, chan, gauge, swarm)
+
+        self.at("An open channel pulls")
+        pull_arr = Arrow(
+            [GAUGE_X + 0.48, v_to_y(V_REST) + 0.15, 0],
+            [GAUGE_X + 0.48, v_to_y(E_NA) - 0.15, 0],
+            buff=0, color=NA_COL, stroke_width=5, max_tip_length_to_length_ratio=0.14,
+        )
+        self.play(GrowArrow(pull_arr), run_time=1.0)
+
+        self.at("The pull is the driving force")
+        formula = boxed_label("Driving force = Vm − E", VOLT_COL, size=28, pad=0.16).move_to([-0.5, 2.75, 0])
+        self.play(FadeOut(pull_arr), FadeIn(formula, shift=DOWN * 0.1), run_time=0.6)
+
+        self.at("membrane voltage minus")
+        self.wait(0.5)
+
+        self.at("For sodium")
+        na_prog = ValueTracker(0.0)
+        na_bar = always_redraw(lambda: Line(
+            [GAUGE_X + 0.50, v_to_y(V_REST), 0],
+            [GAUGE_X + 0.50, v_to_y(V_REST + na_prog.get_value() * (E_NA - V_REST)), 0],
+            color=NA_COL, stroke_width=10,
+        ))
+        na_gap_num = always_redraw(lambda: M(
+            f"{0 if abs(-130.0 * na_prog.get_value()) < 0.5 else -130.0 * na_prog.get_value():.0f} mV",
+            size=24, color=NA_COL,
+        ).next_to([GAUGE_X + 0.66, v_to_y(-5.0), 0], RIGHT, buff=0.06))
+        na_eq_lhs = M("Na+: −70 − (+60)", size=28, color=NA_COL)
+        na_eq_rhs = M("= −130 mV", size=28, color=NA_COL)
+        na_eq_grp = VGroup(na_eq_lhs, na_eq_rhs).arrange(RIGHT, buff=0.22).move_to([-1.2, -2.55, 0])
+        self.add(na_bar, na_gap_num)
+        self.play(FadeIn(na_eq_lhs), run_time=0.4)
+        self.play(
+            na_prog.animate.set_value(1.0),
+            run_time=max(0.4, self.t_of("is minus 130") - 0.2 - self.elapsed()),
+            rate_func=linear,
+        )
+
+        self.at("is minus 130")
+        self.play(FadeIn(na_eq_rhs), run_time=0.35)
+        self.at("a huge gap")
+        na_force_arr = Arrow([-3.4, 1.75, 0], [-3.4, 0.55, 0], buff=0, color=NA_COL, stroke_width=10, max_tip_length_to_length_ratio=0.28)
+        self.play(GrowArrow(na_force_arr), run_time=0.7)
+
+        self.at("For potassium")
+        k_prog = ValueTracker(0.0)
+        k_bar = always_redraw(lambda: Line(
+            [GAUGE_X + 0.50, v_to_y(V_REST), 0],
+            [GAUGE_X + 0.50, v_to_y(V_REST + k_prog.get_value() * (E_K - V_REST)), 0],
+            color=K_COL, stroke_width=10,
+        ))
+        k_gap_num = always_redraw(lambda: M(
+            f"+{20.0 * k_prog.get_value():.0f} mV", size=24, color=K_COL,
+        ).next_to([GAUGE_X + 0.66, v_to_y(-78.0), 0], RIGHT, buff=0.06))
+        k_eq_lhs = M("K+:  −70 − (−90)", size=28, color=K_COL)
+        k_eq_rhs = M("= +20 mV", size=28, color=K_COL)
+        k_eq_grp = VGroup(k_eq_lhs, k_eq_rhs).arrange(RIGHT, buff=0.22).move_to([-1.2, -3.10, 0])
+        k_eq_grp.align_to(na_eq_grp, LEFT)
+        self.add(k_bar, k_gap_num)
+        self.play(FadeIn(k_eq_lhs), run_time=0.4)
+        self.play(
+            k_prog.animate.set_value(1.0),
+            run_time=max(0.4, self.t_of("is just 20") - 0.2 - self.elapsed()),
+            rate_func=linear,
+        )
+
+        self.at("is just 20")
+        k_force_arr = Arrow([-1.9, -0.95, 0], [-1.9, -0.60, 0], buff=0, color=K_COL, stroke_width=6, max_tip_length_to_length_ratio=0.45)
+        self.play(FadeIn(k_eq_rhs), GrowArrow(k_force_arr), run_time=0.5)
+        self.finish()
+
+
+def build_predict_world():
+    """Shared world builder for S06PredictQ, S07PredictPause, and S08PredictReveal."""
+    na_x, k_x = -1.55, 0.85
+    op_na = ValueTracker(0.0)
+    op_k = ValueTracker(0.0)
+    vm = ValueTracker(V_REST)
+
+    bilayer = build_bilayer(gaps=(na_x, k_x))
+    headers = build_compartment_headers()
+    ch_na = build_channel(na_x, color=NA_COL, open_tracker=op_na)
+    ch_k = build_channel(k_x, color=K_COL, open_tracker=op_k)
+    gauge = build_gauge(vm, show_e_na=True, show_e_k=True)
+    na_lab = T("Na+ channel", size=26, color=NA_COL, weight=BOLD).move_to([na_x, 2.38, 0])
+    k_lab = T("K+ channel", size=26, color=K_COL, weight=BOLD).move_to([k_x, 2.38, 0])
+    return bilayer, headers, ch_na, ch_k, gauge, na_lab, k_lab, op_na, op_k, vm, na_x, k_x
+
+
+PREDICT_QUESTION = "Which ion rushes harder, and which way does Vm move?"
+PREDICT_CARD_KW = {"y": -3.08, "max_w": 10.6, "size": 28}
+
+
+class S06PredictQ(SpokenScene):
+    def construct(self):
+        bilayer, headers, ch_na, ch_k, gauge, na_lab, k_lab, op_na, op_k, vm, na_x, k_x = build_predict_world()
+        swarm = make_ion_swarm(seed=60, n_na=30, n_k=30)
+
+        self.add(bilayer, headers, ch_na, ch_k, gauge, swarm)
+        self.at("two closed channels")
+        self.play(Indicate(ch_na, color=NA_COL), Indicate(ch_k, color=K_COL), run_time=0.7)
+
+        self.at("one for sodium")
+        self.play(FadeIn(na_lab, shift=DOWN * 0.1), run_time=0.5)
+
+        self.at("one for potassium")
+        self.play(FadeIn(k_lab, shift=DOWN * 0.1), run_time=0.5)
+
+        self.at("Pause and predict")
+        q = question_card(PREDICT_QUESTION, **PREDICT_CARD_KW)
+        self.play(FadeIn(q, shift=UP * 0.1), run_time=0.6)
+
+        self.at("open each in turn")
+        self.play(Indicate(ch_na, color=NA_COL), run_time=0.7)
+        self.at("which ion rushes harder")
+        self.play(Indicate(ch_k, color=K_COL), run_time=0.7)
+        self.at("does voltage move each time")
+        self.finish()
+
+
+class S07PredictPause(PredictPause):
+    QUESTION = PREDICT_QUESTION
+    CARD = PREDICT_CARD_KW
+    RING_AT = (6.0, -3.0, 0)
+    SECONDS = 4.5
+
+    def backdrop(self):
+        bilayer, headers, ch_na, ch_k, gauge, na_lab, k_lab, *_ = build_predict_world()
+        swarm = make_ion_swarm(seed=60, n_na=30, n_k=30)
+        swarm.clear_updaters()  # static snapshot of the exact end state; countdown ring animates
+        return VGroup(bilayer, headers, ch_na, ch_k, gauge, na_lab, k_lab, swarm)
+
+
+class S08PredictReveal(SpokenScene):
+    def construct(self):
+        bilayer, headers, ch_na, ch_k, gauge, na_lab, k_lab, op_na, op_k, vm, na_x, k_x = build_predict_world()
+
+        # Flux computed directly from driving force |Vm - E_ion|
+        swarm = make_ion_swarm(
+            seed=60, n_na=32, n_k=32,
+            pores=[
+                (na_x, "na", lambda: op_na.get_value(), lambda: 0.12 * max(0.0, E_NA - vm.get_value())),
+                (k_x, "k", lambda: op_k.get_value(), lambda: 0.12 * max(0.0, vm.get_value() - E_K)),
+            ],
+        )
+        self.add(bilayer, headers, ch_na, ch_k, gauge, na_lab, k_lab, swarm)
+
+        self.at("Sodium's gap is huge")
+        na_gap_line = Line([GAUGE_X + 0.48, v_to_y(V_REST), 0], [GAUGE_X + 0.48, v_to_y(E_NA), 0], color=NA_COL, stroke_width=8)
+        self.play(Create(na_gap_line), op_na.animate.set_value(1.0), run_time=0.7)
+
+        self.at("it pours inward")
+        self.at("voltage shoots upward")
+        self.play(vm.animate.set_value(42.0), FadeOut(na_gap_line), run_time=1.0, rate_func=rush_from)
+
+        self.at("positive charge in")
+        plus_tag = boxed_label("+ charge enters", NA_COL, size=24, pad=0.12).move_to([na_x, -2.20, 0])
+        self.play(FadeIn(plus_tag), run_time=0.5)
+
+        self.at("that is depolarization")
+        depol_tag = boxed_label("Depolarisation", NA_COL, size=28, pad=0.16).move_to([-0.5, -3.05, 0])
+        self.play(FadeIn(depol_tag, shift=UP * 0.1), run_time=0.6)
+
+        self.at("Now shut sodium")
+        self.play(
+            op_na.animate.set_value(0.0),
+            FadeOut(plus_tag),
+            FadeOut(depol_tag),
+            vm.animate.set_value(V_REST),
+            run_time=1.0,
+        )
+
+        self.at("open potassium")
+        k_gap_line = Line([GAUGE_X + 0.48, v_to_y(V_REST), 0], [GAUGE_X + 0.48, v_to_y(E_K), 0], color=K_COL, stroke_width=8)
+        self.play(op_k.animate.set_value(1.0), Create(k_gap_line), run_time=0.7)
+
+        self.at("Its gap is small")
+        self.at("potassium leaks out gently")
+        leak_tag = boxed_label("+ charge leaks out", K_COL, size=24, pad=0.12).move_to([k_x, -2.20, 0])
+        self.play(FadeIn(leak_tag), run_time=0.6)
+
+        self.at("nudges the voltage")
+        self.play(vm.animate.set_value(-85.0), FadeOut(k_gap_line), run_time=1.5, rate_func=smooth)
+        self.finish()
+
+
+class S09SingleChannel(SpokenScene):
+    def construct(self):
+        # Top half: zoomed membrane patch with glass pipette sealed over one channel
+        pore_x = -2.0
+        patch_y = 1.35
+        op = ValueTracker(0.0)
+        sig_level = ValueTracker(0.22)  # open probability: 0.22 (Weak) -> 0.78 (Strong)
+        open_pct = ValueTracker(22.0)
+
+        # Membrane patch around y = 1.35
+        patch_l = RoundedRectangle(corner_radius=0.06, width=3.2, height=0.50, stroke_color=MEM_COL, stroke_width=3.5, fill_color=MEM_COL, fill_opacity=0.22).move_to([pore_x - 2.15, patch_y, 0])
+        patch_r = RoundedRectangle(corner_radius=0.06, width=3.2, height=0.50, stroke_color=MEM_COL, stroke_width=3.5, fill_color=MEM_COL, fill_opacity=0.22).move_to([pore_x + 2.15, patch_y, 0])
+        chan = build_channel(pore_x, color=NA_COL, open_tracker=op, y=patch_y)
+
+        # Glass pipette cone sealing onto the membrane patch
+        pip_left = Line([pore_x - 1.25, 3.35, 0], [pore_x - 0.72, patch_y + 0.25, 0], color=VOLT_COL, stroke_width=4)
+        pip_right = Line([pore_x + 1.25, 3.35, 0], [pore_x + 0.72, patch_y + 0.25, 0], color=VOLT_COL, stroke_width=4)
+        pip_fill = Polygon(
+            [pore_x - 1.25, 3.35, 0], [pore_x + 1.25, 3.35, 0],
+            [pore_x + 0.72, patch_y + 0.25, 0], [pore_x - 0.72, patch_y + 0.25, 0],
+            stroke_width=0, fill_color=MEM_COL, fill_opacity=0.10,
+        )
+        pip_lab = T("Patch pipette", size=26, color=VOLT_COL).move_to([pore_x - 2.45, 2.75, 0])
+        pipette = VGroup(pip_fill, pip_left, pip_right)
+
+        # Signal slider & live open-time readout on upper right (clear of patch)
+        slider_x0, slider_x1, slider_y = 2.0, 5.2, 2.15
+        slider_track = Line([slider_x0, slider_y, 0], [slider_x1, slider_y, 0], color=STRUCT_COL, stroke_width=8)
+        slider_title = T("Signal strength", size=26, color=VOLT_COL).move_to([3.6, 2.75, 0])
+        weak_lab = T("Weak", size=22, color=STRUCT_COL).next_to([slider_x0, slider_y, 0], DOWN, buff=0.20)
+        strong_lab = T("Strong", size=22, color=NA_COL).next_to([slider_x1, slider_y, 0], DOWN, buff=0.20)
+        knob = always_redraw(lambda: Dot(
+            [slider_x0 + np.clip((sig_level.get_value() - 0.22) / 0.56, 0.0, 1.0) * (slider_x1 - slider_x0), slider_y, 0],
+            radius=0.15, color=NA_COL,
+        ))
+        open_ro = counter("Open time: {:.0f}%", open_pct, at=[3.6, 1.15, 0], size=28, color=GREEN)
+        controls = VGroup(slider_track, slider_title, weak_lab, strong_lab, knob, open_ro)
+
+        # Bottom half: live scrolling single-channel current Plot (schematic), leaving right edge clear for step-height callout
+        trace_plot = Plot(
+            box=(-5.0, 4.15, -2.55, -0.35),
+            xr=(0.0, 10.0), yr=(-0.15, 1.25),
+            xticks=[], yticks=[(0.0, "Closed"), (1.0, "Open")],
+            xlabel="time", ylabel="Single-channel current (schematic)",
+            color=STRUCT_COL, size=24, label_size=24,
+        )
+
+        # Computed 2-state Markov simulation with fixed seed
+        rng = np.random.default_rng(42)
+        n_hist = 180
+        trace_vals = np.zeros(n_hist, dtype=float)
+        state = {"open": 0, "accum": 0.0}
+        step_dt = 0.05
+
+        # Bursting ions inside pipette that shoot down through pore whenever state["open"] == 1
+        n_burst = 14
+        ion_pos = np.column_stack([
+            rng.uniform(pore_x - 0.50, pore_x + 0.50, n_burst),
+            rng.uniform(patch_y + 0.45, 3.05, n_burst),
+        ])
+        ion_cross = np.zeros(n_burst, dtype=bool)
+        ion_dots = VGroup(*[Dot([p[0], p[1], 0], radius=0.085, color=NA_COL) for p in ion_pos])
+
+        def sim_step(mob, dt):
+            dt = min(dt, 0.06)
+            state["accum"] += dt
+            p_target = float(sig_level.get_value())
+            while state["accum"] >= step_dt:
+                state["accum"] -= step_dt
+                # Markov switch rates set so stationary P(open) == p_target
+                k_close = 5.5 * (1.0 - p_target)
+                k_open = 5.5 * p_target
+                if state["open"] == 1:
+                    if rng.random() < k_close * step_dt:
+                        state["open"] = 0
+                else:
+                    if rng.random() < k_open * step_dt:
+                        state["open"] = 1
+                trace_vals[:-1] = trace_vals[1:]
+                trace_vals[-1] = float(state["open"])
+
+            op.set_value(float(state["open"]))
+            open_pct.set_value(100.0 * float(np.mean(trace_vals[-35:])))
+
+            for i in range(n_burst):
+                if ion_cross[i]:
+                    ion_pos[i, 1] -= 3.2 * dt
+                    ion_pos[i, 0] += (pore_x - ion_pos[i, 0]) * min(1.0, 10.0 * dt)
+                    if ion_pos[i, 1] < patch_y - 0.95:
+                        ion_cross[i] = False
+                        ion_pos[i] = [rng.uniform(pore_x - 0.55, pore_x + 0.55), rng.uniform(patch_y + 0.65, 3.05)]
+                else:
+                    ion_pos[i] += rng.normal(0.0, 0.35 * dt, 2)
+                    ion_pos[i, 0] = np.clip(ion_pos[i, 0], pore_x - 0.60, pore_x + 0.60)
+                    ion_pos[i, 1] = np.clip(ion_pos[i, 1], patch_y + 0.40, 3.10)
+                    if state["open"] == 1 and rng.random() < 4.5 * dt:
+                        ion_cross[i] = True
+                        ion_pos[i] = [pore_x + rng.uniform(-0.12, 0.12), patch_y + 0.25]
+                ion_dots[i].move_to([ion_pos[i, 0], ion_pos[i, 1], 0.0])
+
+        def mk_trace():
+            xs = np.linspace(0.0, 10.0, n_hist)
+            pts = []
+            for j in range(n_hist):
+                if j > 0:
+                    pts.append(trace_plot.pt(xs[j], trace_vals[j - 1]))
+                pts.append(trace_plot.pt(xs[j], trace_vals[j]))
+            m = VMobject(stroke_color=NA_COL, stroke_width=4, fill_opacity=0)
+            m.set_points_as_corners(pts)
+            return m
+
+        live_trace = always_redraw(mk_trace)
+        open_ref = trace_plot.hline(1.0, color=GREEN, dashed=True)
+
+        self.add(patch_l, patch_r, chan, ion_dots)
+        self.at("A glass pipette")
+        self.play(FadeIn(pipette), FadeIn(pip_lab), run_time=0.8)
+
+        self.at("the patch clamp")
+        self.play(Create(trace_plot), FadeIn(open_ref), run_time=0.8)
+        self.add(live_trace)
+        ion_dots.add_updater(sim_step)
+
+        self.at("one channel at a time")
+        self.wait(1.0)
+
+        self.at("The current jumps")
+        self.at("at a fixed height")
+        y0_sc = trace_plot.pt(10.0, 0.0)[1]
+        y1_sc = trace_plot.pt(10.0, 1.0)[1]
+        height_brace = Line([4.45, y0_sc, 0], [4.45, y1_sc, 0], color=GREEN, stroke_width=6)
+        height_lab = T("Fixed step", size=24, color=GREEN).next_to(height_brace, RIGHT, buff=0.14)
+        self.play(Create(height_brace), FadeIn(height_lab), run_time=0.7)
+
+        self.at("A stronger signal")
+        self.play(FadeIn(controls), run_time=0.6)
+        self.at("does not widen")
+        self.play(sig_level.animate.set_value(0.50), run_time=1.8, rate_func=linear)
+
+        self.at("raises the share of time")
+        self.play(sig_level.animate.set_value(0.78), run_time=2.0, rate_func=linear)
+        self.finish()
+
+
+class S10Closing(SpokenScene):
+    def construct(self):
+        pore_x = -0.5
+        op = ValueTracker(0.0)
+        vm = ValueTracker(V_REST)
+        multi_mode = {"on": False}
+
+        bilayer = build_bilayer(gaps=(pore_x,))
+        headers = build_compartment_headers()
+        chan = build_channel(pore_x, color=MEM_COL, open_tracker=op)
+        gauge = build_gauge(vm, show_e_na=True, show_e_k=True)
+
+        def na_rate():
+            if op.get_value() < 0.5:
+                return 0.0
+            return 5.0 if multi_mode["on"] else 3.0
+
+        def k_rate():
+            if op.get_value() < 0.5 or not multi_mode["on"]:
+                return 0.0
+            return 5.0
+
+        swarm = make_ion_swarm(
+            seed=70, n_na=30, n_k=30,
+            pores=[
+                (pore_x, "na", lambda: op.get_value(), na_rate),
+                (pore_x, "k", lambda: op.get_value() if multi_mode["on"] else 0.0, k_rate),
+            ],
+        )
+
+        # Live bulk concentration meters (virtually flat near 100%)
+        na_bulk = ValueTracker(100.0)
+        k_bulk = ValueTracker(100.0)
+        meters = Readout(
+            [
+                ("Bulk Na+ out", lambda: na_bulk.get_value(), "{:6.2f}%", NA_COL),
+                ("Bulk K+ in", lambda: k_bulk.get_value(), "{:6.2f}%", K_COL),
+            ],
+            at=[-1.0, -2.92, 0], size=24, widest=[100.00, 100.00], color=STRUCT_COL,
+        )
+
+        self.add(bilayer, headers, chan, gauge, swarm)
+
+        self.at("Few ions need to cross")
+        self.play(op.animate.set_value(1.0), run_time=0.35)
+        self.play(vm.animate.set_value(28.0), na_bulk.animate.set_value(99.99), run_time=1.8, rate_func=rush_from)
+        self.play(op.animate.set_value(0.0), run_time=0.3)
+
+        self.at("large voltage")
+        self.wait(0.4)
+
+        self.at("Bulk concentrations barely shift")
+        self.play(FadeIn(meters, shift=UP * 0.1), run_time=0.6)
+
+        self.at("nothing new is made")
+        self.wait(0.8)
+
+        self.at("A channel passing several ions")
+        multi_mode["on"] = True
+        multi_lab = boxed_label("Multi-ion channel", MEM_COL, size=26, pad=0.14).move_to([pore_x, 2.75, 0])
+        self.play(FadeOut(meters), FadeIn(multi_lab, shift=DOWN * 0.1), op.animate.set_value(1.0), run_time=0.7)
+
+        self.at("between their equilibrium potentials")
+        target_y = v_to_y(-5.0)
+        target_mark = Line([GAUGE_X - 0.15, target_y, 0], [GAUGE_X + 0.38, target_y, 0], color=GREEN, stroke_width=5)
+        target_lab = T("target", size=22, color=GREEN).move_to([GAUGE_X + 0.95, target_y, 0])
+        self.play(vm.animate.set_value(-5.0), FadeIn(target_mark), FadeIn(target_lab), run_time=1.4)
+
+        self.at("Spend the stored gradient")
+        self.at("fast signal")
+        self.wait(1.0)
+        self.finish()
+
+
+class S11End(EndCard):
+    LINE = "An open channel pulls membrane voltage toward its ion’s equilibrium potential."
