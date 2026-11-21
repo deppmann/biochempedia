@@ -64,6 +64,7 @@ const ROOTS = {
   evolve: 'evolu', evolved: 'evolu', evolving: 'evolu', evolution: 'evolu', evolutionary: 'evolu', inherit: 'inherit', inherited: 'inherit', heredity: 'inherit', hereditary: 'inherit',
   organ: 'organ', organism: 'organism', organic: 'organic', organelle: 'organell', organization: 'organiz', organize: 'organiz', organized: 'organiz',
   muscle: 'muscl', muscular: 'muscl', nerve: 'nerv', nervous: 'nerv', neural: 'neur', neuron: 'neuron', neuronal: 'neuron', neurone: 'neuron',
+  organizer: 'organizer', organizers: 'organizer', organiser: 'organizer', organisers: 'organizer',
   special: 'special', specials: 'special', specialized: 'special', specialised: 'special', specialize: 'special', specialty: 'special', speciation: 'speciat', speciate: 'speciat',
   adaptive: 'adaptive', climate: 'climate', climates: 'climate', plan: 'plan', plans: 'plan', state: 'state', states: 'state', rate: 'rate', rates: 'rate', size: 'size',
   summer: 'summer', summers: 'summer', summation: 'summation', winter: 'winter', number: 'number',
@@ -302,7 +303,7 @@ export function matchText(m, text, limit = 5, strict = false) {
     if (!strict) { const soft = qCov * (0.4 + 0.6 * tCov) * 0.97; fit = Math.max(fit, tCov >= 0.7 ? soft : Math.min(soft, 0.7)); }
     const one = t.toks.length === 1;
     // The whole term sits inside a longer line, in order: "Ch 7 membranes: diffusion and osmosis".
-    if (tAll && !exactAll && (t.kind === 'name' || t.kind === 'textbook' || ((t.kind === 'lesson' || t.kind === 'phrase' || t.kind === 'part' || t.kind === 'idword') && t.toks.length >= 2)) && inOrder(q, t.toks)) {
+    if (tAll && !exactAll && (t.kind === 'name' || t.kind === 'textbook' || (strict && t.kind === 'part' && m.weightOf(t.toks[0]) >= 0.8) || ((t.kind === 'lesson' || t.kind === 'phrase' || t.kind === 'part' || t.kind === 'idword') && t.toks.length >= 2)) && inOrder(q, t.toks)) {
       const specific = t.toks.some((k) => !GENERIC.has(k.r) && m.weightOf(k) >= 0.7);
       const inside = (t.toks.length >= 2 ? 0.95 : specific ? 0.9 : 0.55) * (0.55 + 0.45 * Math.min(1, qCov * 2.2));
       if (inside > fit) fit = inside;
@@ -389,11 +390,14 @@ function inOrder(q, toks) {
    it will miss sentences; the permanent line is there for those. */
 const HELP_WORDING = new RegExp([
   "\\b(suicid\\w*|sucide|suiside|suicde|kms|unaliv\\w*|self[- ]?harm\\w*)\\b",
-  "\\bk[i1]l{1,2}(ing|ed|s)? (myself|my self|herself|himself|me)\\b",
-  "\\b(hurt|harm|cut)(ing|s)? (myself|my self)\\b|\\bstop cutting\\b",
+  "\\bk[i1]l{1,2}(ing|ed|s)? (myself|my self|yourself|herself|himself|me)\\b",
+  "\\b(hurt|harm|cut|poison|hang|drown|starve|stab|burn|shoot|hit)(t?ing|s)? (myself|my self|yourself|herself|himself)\\b|\\bstop cutting\\b|\\bcutting my (arms?|wrists?|legs?)\\b|\\bcut my wrists?\\b",
+  "\\bwant(ed|s)? (to )?(be dead|sleep forever|never wake up|my life to end|my heart to stop|to stop breathing)\\b|\\b(do not|don'?t|dont) want to wake up\\b|\\bwish i (could die|was never born|were never born)\\b",
+  "\\b(better off|happier) without me\\b|\\bjump(ing)? off (a|the|my) (roof|building|bridge|cliff|balcony|window|ledge)\\b|\\b(slap|kick|choke|punch|beat)(s|ed|es|ing)? me\\b|\\bbeing (hit|abused|hurt|touched)\\b|\\bbeen abused\\b|\\b(i|we) (am|get|got|was) (being )?hit\\b",
+  "^\\s*(please )?help( me)?( please)?[\\s.!?]*$|^\\s*i need help[\\s.!?]*$|\\bwho can i (talk to|tell)\\b|\\bi need (to tell someone|someone to talk to)\\b",
   "\\b(wants?|wanna|going) to die\\b|\\bwanna die\\b|\\bwish i (was|were) dead\\b|\\bbetter off dead\\b|\\bfeel like dying\\b|\\bhow (to|do i|can i) die\\b",
   "\\bend (it all|my life)\\b|\\btake my (own )?life\\b|\\bnot worth living\\b|\\bhate my life\\b|\\bwant to disappear\\b",
-  "\\b(do not|don'?t|dont) (want to|wanna) (live|be alive|be here)\\b",
+  "\\b(do not|don'?t|dont|does not|doesn'?t|doesnt) (want to|wanna) (live|be alive|be here)\\b",
   "\\bpills?\\b.{0,40}\\b(die|dying|overdose)\\b|\\boverdos\\w*\\b|\\b(how|way) to stop breathing\\b",
   "\\b(hits?|hitting|beats?|beating|hurts?|hurting|touch(es|ed|ing)?|rapes?|raped|molest\\w*|abus\\w*) (me|my (mom|mum|mother|dad|father|brother|sister|private\\w*))\\b",
   "\\bprivate parts?\\b|\\bi was raped\\b|\\b(get|got|getting) hit at home\\b",
@@ -402,7 +406,10 @@ const HELP_WORDING = new RegExp([
 
 /** True when the words are plainly about self-harm, abuse or danger. */
 export function needsHelp(text) {
-  return HELP_WORDING.test(String(text ?? '').replace(/[’]/g, "'"));
+  const t = String(text ?? '').replace(/[’]/g, "'");
+  // Biology's own phrases: a "suicide gene" and "cell suicide" are lessons, not disclosures.
+  if (/\b(suicide (genes?|inhibit\w*|substrates?|enzymes?)|cell(ular)? suicide)\b/i.test(t)) return false;
+  return HELP_WORDING.test(t);
 }
 /* In a syllabus the health-class units are the school's to plan; no lesson is suggested for them. */
 const SCHOOL_HEALTH = /\b(puberty|sex ed\w*|sex education|family life|drugs? and alcohol|alcohol and drugs?|substance abuse|suicide prevention)\b/i;
@@ -442,7 +449,7 @@ const dedupe = (list) => { const s = new Set(); return list.filter((r) => (s.has
 // ------------------------------------------------------------------ a syllabus
 
 /* Lines that are a course's housekeeping, not its science. */
-const ADMIN = /\b(exam|midterm|mid term|final|quiz|quizzes|test day|unit test|chapter test|unit \d+ (test|exam|quiz)|test|review( day| session| for)?|holiday|no class|no school|no lab|no lecture|break\b(?!-?\s?down)|thanksgiving|labor day|memorial day|mlk|martin luther king|columbus day|indigenous peoples|veterans day|presidents day|juneteenth|easter|recess|teacher work ?day|early release|snow day|conference|registration|add ?\/ ?drop|withdraw|reading day|study day|commencement|syllabus|course (overview|introduction|intro|policies|expectations|logistics)|welcome|orientation|icebreaker|lab safety|safety (contract|rules|training|quiz)|office hours|make ?up|catch ?up|flex day|buffer|tbd|tba|to be (announced|determined)|presentations?|poster session|project (due|work|day|proposal)|paper due|report due|homework|problem set|worksheet|assignment|due\b|sol (review|test)|ap exam|state test|benchmark|field trip|guest (lecture|speaker)|pre ?test|post ?test|study guide|check ?in|wrap ?up|course evaluations?|procedures|testing window|final projects?|homework:?|sol\b|sols\b|standards? of learning|dissection day|study island|quizlet)\b/i;
+const ADMIN = /\b(exam|midterm|mid term|final|quiz|quizzes|test day|unit test|chapter test|unit \d+ (test|exam|quiz)|tests?\b(?!\s+cross)|review( day| session| for)?|holiday|no class|no school|no lab|no lecture|break\b(?!-?\s?down)|thanksgiving|labor day|memorial day|mlk|martin luther king|columbus day|indigenous peoples|veterans day|presidents day|juneteenth|easter|recess|teacher work ?day|early release|snow day|conference|registration|add ?\/ ?drop|withdraw|reading day|study day|commencement|syllabus|course (overview|introduction|intro|policies|expectations|logistics)|welcome|orientation|icebreaker|lab safety|safety (contract|rules|training|quiz)|office hours|make ?up|catch ?up|flex day|buffer|tbd|tba|to be (announced|determined)|presentations?|poster session|project (due|work|day|proposal)|paper due|report due|homework|problem set|worksheet|assignment|due\b|sol (review|test)|ap exam|state test|benchmark|field trip|guest (lecture|speaker)|pre ?test|post ?test|study guide|check ?in|wrap ?up|course evaluations?|procedures|testing window|final projects?|homework:?|graphic organizers?|sol\b|sols\b|standards? of learning|dissection day|study island|quizlet)\b/i;
 /* Lines from the top of a syllabus: who, where, how it is graded. */
 const POLICY = /@|https?:|www\.|^text:|\(optional\)|subject to change|\b(instructor|professor|teacher:|email|e-mail|phone|room\b|office|textbook|required (text|materials)|isbn|edition|grading|grade scale|grades?:|points|percent|%|attendance|late work|academic (integrity|honesty)|honor code|plagiarism|accommodation|disabilit|prerequisite|credits?\b|credit hours|learning (outcomes|objectives)|course description|tardy|cell ?phones?|supplies|materials needed|canvas|blackboard|google classroom|schoology|meeting time|class meets|section \d|semester|fall 20|spring 20|policy|policies)\b/i;
 
@@ -539,7 +546,7 @@ export function parseSyllabus(text) {
       const strip = (p) => p.replace(new RegExp(ADMIN.source, 'gi'), ' ').replace(/\s+/g, ' ').trim();
       // The pieces with no housekeeping word, then the others with that word taken out.
       // "TEST: Cells and energy", "Exam 2", "Quiz on mitosis" are assessments whatever follows; "Test crosses" is not.
-      const HARD = /^\s*(unit |chapter |lecture |lab )?(tests?|exams?|quiz(zes)?|midterms?|final exam|finals?|benchmarks?)\s*(#?\d+\b|[ivx]+\b|[:\-–]|on\b|$)/i;
+      const HARD = /^\s*(unit |chapter |lecture |lab )?(tests?(?!\s+cross)|exams?|quiz(zes)?|midterms?|final exam|finals?|benchmarks?)\s*(#?\d+\b|[ivx]+\b|[:\-–]|on\b|$)/i;
       const rest = pieces.filter((p) => ADMIN.test(p) && !HARD.test(p)).map(strip).filter((p) => tokens(p).some((k) => !GENERIC.has(k.r) && !/^\d+$/.test(k.w)));
       kind = 'admin?';
       said = [...keep, ...rest].join('; ');
@@ -585,7 +592,7 @@ export function matchTopic(m, topic) {
       else if (near) maybe.push({ ...near.r, from: near.f });
     }
     // A name that runs across the pieces ("Cells, tissues, organs and organ systems").
-    if (whole[0]?.sure && whole[0].score >= 0.9) take(whole[0], topic);
+    if (whole[0]?.sure && whole[0].score >= 0.9 && (whole[0].words.length >= 2 || !sure.length)) take(whole[0], topic);
     else if (!sure.length && whole[0]?.sure) take(whole[0], topic);
   }
   if (!sure.length && whole[0] && !whole[0].sure) maybe.unshift({ ...whole[0], from: topic });

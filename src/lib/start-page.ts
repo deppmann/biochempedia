@@ -6,7 +6,7 @@
    storage, or write it back onto the page (a child may have typed something that is not a biology
    question, and reading it back in a search box's voice is wrong whatever comes after it). The only requests are GETs for static files; the one whose name depends on the answer
    is the matched idea's area (/graph/<area>.json), never the words. */
-import { buildMatcher, matchQuestion } from './syllabus-match.mjs';
+import { buildMatcher, matchQuestion, needsHelp } from './syllabus-match.mjs';
 import { ideaFromArea, buildPath, timeFrom, TIMES } from './start-path.mjs';
 import { ladderHtml, wireLadders } from './hop-ladder.mjs';
 import { LEVEL_KEYS, LEVEL_SHORT, inSentence, gapLine, andList } from './hop-words.mjs';
@@ -26,6 +26,9 @@ const loadArea = (id: string) => { if (!areaCache.has(id)) areaCache.set(id, jso
 
 const KIND: Record<string, string> = { film: 'Watch', skim: 'Skim', lesson: 'Read', activity: 'Do' };
 const KIND_NOTE: Record<string, string> = { skim: 'the main idea, the figures and the take-homes', lesson: 'its films included' };
+/* The help line goes with every reply, not only under the box: after an answer the page has scrolled, and the
+   line under the box is off the screen. It does not depend on what was typed. */
+const HELP_LINE = `<p class="st-help">${esc(HELP.line)} <a href="${esc(HELP.href)}">${esc(HELP.linkText)}</a></p>`;
 const WAYS_OUT = '<a href="/search/">search inside every lesson</a> or <a href="/ideas/#every-idea">see every idea</a>';
 
 interface Shown { ids: string[]; together: number; prefer: (string | undefined)[]; others: { id: string; name: string }[]; pin?: number }
@@ -73,14 +76,15 @@ export function start() {
 
   function fail() {
     settle();
-    out.innerHTML = '<p class="st-none" tabindex="-1" data-st-top>The list of ideas did not load. Check your connection and try again, or <a href="/ideas/">browse the ideas</a>.</p>';
+    out.innerHTML = `<div class="st-none" tabindex="-1" data-st-top><p>The list of ideas did not load. Check your connection and try again, or <a href="/ideas/">browse the ideas</a>.</p>${HELP_LINE}</div>`;
     say('The list of ideas did not load.');
   }
   function nothing(html: string, spoken: string, focus = true) {
     settle();
     shown = null;
     minutesOnControl(null);
-    out.innerHTML = `<div class="st-none" tabindex="-1" data-st-top>${html}</div>`;
+    const urgent = html.includes('st-urgent');
+    out.innerHTML = `<div class="st-none" tabindex="-1" data-st-top>${html}${urgent ? '' : HELP_LINE}</div>`;
     // After the help message nothing else follows it: not the page's own closing links.
     out.toggleAttribute('data-help', html.includes('st-urgent'));
     say(spoken);
@@ -145,6 +149,7 @@ export function start() {
       ${ladders}
       ${nextDoor}
       ${others}
+      ${HELP_LINE}
     </section>`;
     wireLadders(out);
     // The heading takes focus and is read then; the status line adds only what the heading does not say.
@@ -152,10 +157,19 @@ export function start() {
     if (move) reveal(focus);
   }
 
+  /** The help message: first and alone, with no lesson, no chips, and the words not repeated. It needs no data. */
+  function showHelp() {
+    ++run;   // anything still loading is dropped
+    const u = HELP.urgent;
+    nothing(`<div class="st-urgent"><h2>${esc(u.heading)}</h2>${u.lines.map((l: string) => `<p>${withNumbers(l, esc)}</p>`).join('')}<p><a href="${esc(HELP.href)}">${esc(HELP.linkText)}</a></p></div>`, u.status);
+  }
+
   async function ask(typed: string) {
     const q = typed.trim();
     if (!q) { shown = null; out.innerHTML = ''; say('Type a question or a word first.'); minutesOnControl(null); input!.focus(); return; }
     const mine = ++run;
+    // Words that ask for help are answered at once: before, and whatever becomes of, the index files.
+    if (needsHelp(q)) return showHelp();
     busy();
     let m: Matcher;
     try { m = await loadMatcher(); } catch { return fail(); }
@@ -168,17 +182,13 @@ export function start() {
       shown = { ids: res.ideas.slice(0, n).map((r: any) => r.id), together: n, prefer: via ? [via.slug] : res.ideas.slice(0, n).map((r: any) => r.lesson), others: res.ideas.slice(n, n + 3).map((r: any) => ({ id: r.id, name: r.name })), ...(via ? { pin: via.rank } : {}) };
       return draw(true);
     }
-    if (res.kind === 'help') {
-      // The help comes first and alone: no lesson, no chips, and the words are not repeated.
-      const u = HELP.urgent;
-      return nothing(`<div class="st-urgent"><h2>${esc(u.heading)}</h2>${u.lines.map((l: string) => `<p>${withNumbers(l, esc)}</p>`).join('')}<p><a href="${esc(HELP.href)}">${esc(HELP.linkText)}</a></p></div>`, u.status);
-    }
+    if (res.kind === 'help') return showHelp();
     if (res.kind === 'closest') {
-      return nothing(`<p>I am not sure which idea that is. ${res.ideas.length === 1 ? 'This is the closest one' : 'These are the closest'}:</p>
+      return nothing(`<p>No lesson matches those words exactly. ${res.ideas.length === 1 ? 'This idea is the nearest' : 'These ideas are the nearest'}:</p>
         <p class="st-chips">${res.ideas.map((r: any) => `<button type="button" class="st-chip" data-st-idea="${esc(r.id)}">${esc(r.name)}</button>`).join('')}</p>
         <p>If that is not it, you can ${WAYS_OUT}.</p>`, `No sure match. ${res.ideas.length} close ${res.ideas.length === 1 ? 'idea' : 'ideas'} offered.`);
     }
-    return nothing(`<p>I could not match that to an idea yet. You can ${WAYS_OUT}.</p>`, 'No match yet. You can search inside every lesson or see every idea.');
+    return nothing(`<p>No lesson matches those words. You can ${WAYS_OUT}.</p>`, 'No lesson matches those words. You can search inside every lesson or see every idea.');
   }
 
   function openIdea(id: string, focus = true, keep = false) {

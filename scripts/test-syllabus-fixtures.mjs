@@ -950,3 +950,30 @@ Week 14: Winter break`,
     ],
   },
 ];
+
+/* Round 3 of the review: more sentences that ask for help (the detector is still a small extra;
+   the help line in every reply is what the page relies on), biology that must stay biology, and
+   two matcher slips with their neighbours. */
+export const R3_HELP = [
+  'i want to poison myself', 'i want to hang myself', 'how do i drown myself', 'i want to starve myself', 'i want to be dead', 'i wish i could die',
+  'i want to jump off a building', 'I want to sleep forever', 'i want to go to sleep and never wake up', 'i wish i was never born', 'everyone would be happier without me',
+  'how do you hang yourself', 'i want to stop breathing', 'help me', 'i need help', 'who can i talk to', 'i want my life to end', 'my best friend says she doesnt want to live',
+  'i am being hit', 'my dad choked me', 'i am being abused', 'i want my heart to stop', 'my brother kicks me',
+];
+export const R3_NOT_HELP = [
+  'suicide gene therapy', 'cell suicide', 'help me understand photosynthesis', 'i need help with mitosis', 'how do enzymes help digestion', 'what happens when cells die',
+  'how does a fish jump off the water', 'why do muscles get hit by lactic acid',
+];
+export const R3_LINES = [
+  // [a syllabus line, ideas that are right, ideas that must not appear]
+  ['Unit 4 Day 2: Test crosses', ['inheritance'], ['meiosis']],
+  ['Test crosses and pedigrees', ['inheritance', 'pedigree-analysis'], ['meiosis']],
+  ['Monohybrid and test crosses', ['inheritance'], ['meiosis']],
+  ['Unit 5: Final stages of mitosis', ['cell-division'], []],
+  ['Body organization', [], ['organizer']],
+  ['Cell organization', [], ['organizer']],
+  ['How the body is organized', [], ['organizer']],
+  ['Unit 3: Graphic organizers for cell parts', ['organelles'], ['organizer']],
+  ['CNS organization; sleep & memory', [], ['organizer']],
+  ['Baroreceptor reflex', ['baroreflex'], ['stretch-reflex']],
+];

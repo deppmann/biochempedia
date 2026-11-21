@@ -80,7 +80,7 @@ export const SYNONYMS = {
   'circulation': ['the heart', 'cardiovascular system', 'circulatory system', 'how the heart works', 'blood circulation', 'how blood circulates'],
   'cardiac-output': ['Frank-Starling', 'Frank-Starling law', 'Frank-Starling mechanism', 'stroke volume'],
   'blood-flow-resistance': ['hemodynamics', 'pressure, flow, resistance', 'vascular resistance'],
-  'baroreflex': ['regulation of arterial pressure', 'blood pressure regulation', 'arterial pressure'],
+  'baroreflex': ['regulation of arterial pressure', 'blood pressure regulation', 'arterial pressure', 'baroreceptor reflex', 'baroreceptors'],
   'electrocardiogram': ['ECG', 'EKG', 'cardiac electrophysiology'],
   'kidney': ['glomerular filtration', 'renal physiology', 'the nephron', 'excretory system', 'urinary system', 'tubular reabsorption', 'renal clearance', 'kidneys', 'renal'],
   'concentrating-urine': ['loop of Henle', 'countercurrent multiplier', 'concentrating the urine', 'countercurrent'],

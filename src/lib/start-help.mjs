@@ -45,7 +45,9 @@ export const HELP = {
 
 /** The text with its phone numbers made into links a phone can dial. `esc` escapes HTML. */
 export function withNumbers(text, esc = (s) => s) {
-  let out = esc(text);
+  // "call or text 988": one link to call and one to text, so a phone can do either.
+  const both = '<a href="tel:988">call</a> or <a href="sms:988">text</a> 988';
+  let out = esc(text).split('call or text 988').join('\u0001');
   for (const [n, href] of HELP.page.numbers) out = out.split(n).join(`<a href="${href}">${n}</a>`);
-  return out;
+  return out.split('\u0001').join(both);
 }

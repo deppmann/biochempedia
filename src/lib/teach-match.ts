@@ -110,9 +110,11 @@ export function start() {
     const i = info?.get(l.slug);
     const min = m.minutes[l.slug]?.[0];
     const facts = [LEVEL_SHORT[l.rank], i?.course, min ? `${min} min` : ''].filter(Boolean).map(esc);
-    if (i?.film) facts.push(`<a class="tm-film" href="${esc(i.film.href)}" aria-label="film ${mmss(i.film.sec)}: ${esc(i.film.title)}">film ${mmss(i.film.sec)}</a>`);
+    // An activity for ages 5 to 10 is offered as its guide, where the safety notes are; never as its film alone.
+    if (i?.film && l.rank > 0) facts.push(`<a class="tm-film" href="${esc(i.film.href)}" aria-label="film ${mmss(i.film.sec)}: ${esc(i.film.title)}">film ${mmss(i.film.sec)}</a>`);
     const id = `tm-${rowN}-${tag}-${l.slug}`;
     const adds = (l.ideas ?? []).map((x) => i?.adds.get(x)).find(Boolean);
+    if (l.rank === 0) note = note ? `${note} · an activity run by a grown-up; the guide has the safety notes` : 'an activity run by a grown-up; the guide has the safety notes';
     return `<li class="tm-lesson"><input type="checkbox" id="${esc(id)}" aria-describedby="${esc(id)}-f" data-tm-pick="${esc(l.slug)}" data-title="${esc(l.title)}" data-level="${esc(LEVEL_SHORT[l.rank])}" data-min="${min ?? ''}"${isTicked(l.slug, dflt) ? ' checked' : ''} autocomplete="off" />
       <div><label for="${esc(id)}">${esc(l.title)}</label>
       <span class="tm-facts"><span id="${esc(id)}-f">${facts.filter((f) => !f.startsWith('<a')).join(' · ')}${note ? ` · ${note}` : ''}</span>${facts.filter((f) => f.startsWith('<a')).map((f) => ` · ${f}`).join('')}<span class="tm-openwrap"> · <a class="tm-open" href="/lessons/${esc(l.slug)}/" target="_blank" rel="noopener" aria-label="Open ${esc(l.title)} in a new tab">open</a></span></span>

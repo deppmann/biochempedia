@@ -22,7 +22,7 @@ import { SYNONYMS } from '../src/lib/syllabus-synonyms.mjs';
 import { ideaFromArea, buildPath, levelFor, timeFrom, MAX_STEPS } from '../src/lib/start-path.mjs';
 import { docxText, documentXmlToText } from '../src/lib/docx-text.mjs';
 import { mergeAssignments, MAX_ASSIGNMENTS } from '../src/lib/syllabus-assign.mjs';
-import { QUESTIONS, HELD_OUT, SYLLABI, SYLLABI_HELD_OUT, PANEL_QUESTIONS, PANEL_SENSITIVE, PANEL_SYLLABI, R2_HELP, R2_BIOLOGY, R2_QUESTIONS, R2_SYLLABI } from './test-syllabus-fixtures.mjs';
+import { QUESTIONS, HELD_OUT, SYLLABI, SYLLABI_HELD_OUT, PANEL_QUESTIONS, PANEL_SENSITIVE, PANEL_SYLLABI, R2_HELP, R2_BIOLOGY, R2_QUESTIONS, R2_SYLLABI, R3_HELP, R3_NOT_HELP, R3_LINES } from './test-syllabus-fixtures.mjs';
 import { HELP, withNumbers } from '../src/lib/start-help.mjs';
 
 const PRINT = process.argv.includes('--print');
@@ -227,6 +227,21 @@ check(`round 2 of the review: ${R2_SYLLABI.length} syllabi (R2): no wrong match,
   assert.ok(!matchTopic(m, 'Symbiosis (mutualism etc.)').ideas.some((x) => x.id === 'chemiosmosis'));
   assert.equal(rootOf('pollinate'), rootOf('pollination')); assert.equal(rootOf('circulated'), rootOf('circulation')); assert.notEqual(rootOf('special'), rootOf('speciation'));
 });
+check(`round 3 of the review: ${R3_LINES.length} syllabus lines ("Test crosses" is inheritance; "organization" is not the embryo's organizer)`, () => {
+  const pad = 'Week 1: Osmosis\nWeek 2: Enzymes\nWeek 3: Photosynthesis\nWeek 4: Natural selection\n';
+  const bad = [];
+  for (const [line, want, never] of R3_LINES) {
+    const row = matchSyllabus(m, `${pad}${/^(unit|week)/i.test(line) ? line : `Week 5: ${line}`}`, 2).rows[4];
+    const ids = row.ideas.map((x) => x.id);
+    if (never.some((id) => ids.includes(id))) bad.push(`"${line}" -> ${ids.join(', ')}`);
+    if (want.length && !want.some((id) => ids.includes(id))) bad.push(`"${line}" -> ${ids.join(', ') || `(${row.kind})`}; wanted ${want.join(' | ')}`);
+    // And nothing wrong is ticked: the lessons at the level come only from ideas that are right.
+    for (const l of row.lessons?.at ?? []) if (l.main && !l.ideas.some((id) => want.includes(id))) bad.push(`"${line}" ticks ${l.slug}`);
+  }
+  for (const q of ['how is the body organized', 'body organization']) assert.notEqual(matchQuestion(m, q).ideas[0]?.id, 'organizer', q);
+  assert.equal(matchQuestion(m, 'the organizer').ideas[0]?.id, 'organizer', 'the idea is still found by its own name');
+  assert.deepEqual(bad, []);
+});
 check('the word matcher\'s failure does not come back: "Properties of water" is water, not ecosystems', () => {
   const r = matchTopic(m, 'Properties of water');
   assert.deepEqual(r.ideas.map((x) => x.id), ['properties-of-water']);
@@ -427,6 +442,29 @@ check('the question box never repeats the typed words, always carries the help l
   for (const t of all) if (/\b(911|988|1-800)/.test(t)) assert.ok(/United States/.test(t), `a phone number without its country: ${t}`);
   assert.ok(!all.some((t) => /\b(tell|ask) (a|your) parent\b(?!s?,)/i.test(t)), 'a parent is named as the only adult');
   assert.ok(withNumbers('call 988 now').includes('href="tel:988"'));
+});
+check('the help line is in every reply, and words that ask for help never wait for the index', () => {
+  const code = readFileSync('src/lib/start-page.ts', 'utf8');
+  // Every way a reply is drawn carries the line: no match, closest, failed load, a bad link, and a result.
+  assert.ok(/const HELP_LINE = `<p class="st-help">\$\{esc\(HELP\.line\)\}/.test(code));
+  const nothingFn = /function nothing\([\s\S]*?\n  \}/.exec(code)[0], failFn = /function fail\(\) \{[\s\S]*?\n  \}/.exec(code)[0];
+  assert.ok(/HELP_LINE/.test(nothingFn), 'the no-match and closest replies lack the help line');
+  assert.ok(/HELP_LINE/.test(failFn), 'the failed-load reply lacks the help line');
+  assert.ok(/\$\{others\}\s*\$\{HELP_LINE\}\s*<\/section>/.test(code), 'a result lacks the help line');
+  // In ask(), the detector runs before anything is fetched.
+  const ask = /async function ask\([\s\S]*?\n  \}\n/.exec(code)[0];
+  assert.ok(ask.indexOf('needsHelp(q)') > 0 && ask.indexOf('needsHelp(q)') < ask.indexOf('loadMatcher()') && ask.indexOf('needsHelp(q)') < ask.indexOf('busy()'), 'the help detector waits for the index files');
+  const show = /function showHelp\(\) \{[\s\S]*?\n  \}/.exec(code)[0];
+  assert.ok(!/await|loadMatcher|fetch/.test(show), 'the help message depends on something loading');
+  // The detector itself: round 3's sentences, and biology that must stay biology.
+  const missed = R3_HELP.filter((q) => !needsHelp(q));
+  console.log(`      round 3 help wording caught ${pct(R3_HELP.length - missed.length, R3_HELP.length)}`);
+  assert.ok(missed.length <= 2, missed.join('\n'));
+  for (const q of R3_NOT_HELP) assert.equal(needsHelp(q), false, q);
+  // "call or text 988" gives a link for each.
+  const html = withNumbers(HELP.urgent.lines.find((l) => l.includes('988')));
+  assert.ok(html.includes('href="tel:988"') && html.includes('href="sms:988"') && !/<a[^>]*><a/.test(html), html);
+  assert.ok(withNumbers('call 911 now') === 'call <a href="tel:911">911</a> now');
 });
 check('with scripts off, blocked or late, nothing on either page can submit what was typed', () => {
   // A browser sends a form's named fields by itself: on Enter, or on a button press before the page's
