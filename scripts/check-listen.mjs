@@ -11,12 +11,13 @@
 //   node scripts/check-listen.mjs --strict   # also fail below 90% coverage
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
-import { POLISHED } from './listen-courses.mjs';
+import { POLISHED, waitingForLevelUp } from './listen-courses.mjs';
+const WAITING = waitingForLevelUp();
 
 const strict = process.argv.includes('--strict');
 if (!existsSync('.listen')) { console.error('check-listen: no .listen/ folder. Run `npm run build` first.'); process.exit(1); }
 const manifest = JSON.parse(readFileSync('src/data/listen-manifest.json', 'utf8'));
-const none = [], partial = [];
+const none = [], partial = [], waiting = [];
 let checked = 0;
 for (const dir of readdirSync('src/content/lessons').sort()) {
   const f = join('src/content/lessons', dir, 'lesson.mdx');
@@ -35,9 +36,11 @@ for (const dir of readdirSync('src/content/lessons').sort()) {
   const have = new Set(manifest[slug] || []);
   const hit = blocks.filter((b) => have.has(b.hash)).length;
   const pct = Math.round((100 * hit) / blocks.length);
-  if (hit === 0) none.push(`${slug} (${course}): 0 of ${blocks.length} blocks voiced`);
+  if (hit === 0 && WAITING.has(slug)) waiting.push(slug);
+  else if (hit === 0) none.push(`${slug} (${course}): 0 of ${blocks.length} blocks voiced`);
   else if (pct < 90) partial.push(`${slug} (${course}): ${hit} of ${blocks.length} blocks voiced (${pct}%)`);
 }
+if (waiting.length) console.warn(`check-listen: ${waiting.length} lesson(s) wait for their level-up before they are voiced: ${waiting.join(', ')}`);
 if (partial.length) console.warn(`check-listen: ${partial.length} polished lesson(s) partly voiced (edited paragraphs are skipped until re-rendered):\n  ${partial.join('\n  ')}`);
 if (none.length || (strict && partial.length)) {
   console.error(`check-listen: ${none.length} polished lesson(s) have NO Kokoro clips for their current text, so Listen is hidden:\n  ${none.join('\n  ')}\nRender them: node scripts/listen-render.mjs --only <slug>`);
