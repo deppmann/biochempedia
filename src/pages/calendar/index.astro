@@ -1,0 +1,20 @@
+---
+/* /calendar/: three ways in. A device that has already said who it is (the shared role
+   preference) goes straight to that page; everyone else picks a door. Each door is a plain link
+   to a page that is drawn at build time, so this works with JavaScript off. */
+import CalendarShell from '../../components/CalendarShell.astro';
+---
+<CalendarShell title="Calendar" role="door" description="What is next, how long it takes and what it needs: an activity with a child, a course for yourself, or a class plan by date. No account, and anything you don’t get to simply waits.">
+  <div class="cal-page">
+    <header class="cal-top">
+      <h1>Calendar</h1>
+      <p class="cal-lede">What is next, how long it takes and what it needs. Who is it for?</p>
+    </header>
+    <ul class="cal-doors">
+      <li><a class="cal-door" href="/calendar/parent/" data-role="parent"><strong>With a child</strong><span>One hands-on activity for ages 5 to 10 on the days that suit you, and one list of what to gather.</span></a></li>
+      <li><a class="cal-door" href="/calendar/student/" data-role="student"><strong>For myself</strong><span>Keep up with a course one lesson at a time, or take the biology for the MCAT in order. No dates unless you ask for them.</span></a></li>
+      <li><a class="cal-door" href="/calendar/teacher/" data-role="teacher"><strong>For my class</strong><span>A class plan by date, with the standard each lesson serves. For now it is a sample to try.</span></a></li>
+    </ul>
+    <p class="cal-foot">Free, with no account and no email address. The plan stays on this device.</p>
+  </div>
+</CalendarShell>
