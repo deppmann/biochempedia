@@ -1,754 +1,1372 @@
-"""PI 3-kinase, Akt and insulin: a membrane address for Akt  (Biochemistrypedia explainer)
-
-Timed to the SPOKEN words: every self.at("...") cue waits for that phrase in audio/words.json.
-
-COLOR MAP (one color per concept, whole video)
-  YELLOW = insulin, the signal outside the cell
-  BLUE   = the insulin receptor
-  TEAL   = IRS-1, the docking protein, and the tyrosines on its tail
-  ORANGE = kinases at the membrane that put a phosphate on something: PI 3-kinase, PDK1, mTORC2
-  PURPLE = Akt
-  PINK   = a reading domain, drawn as a cup that closes on a phosphate: SH2 (on PI 3-kinase), PH (on Akt and PDK1)
-  GOLD   = a phosphate (the round "P" badge); a lipid head wearing one is PIP3
-  GREEN  = on / active (Akt at the end), and the ticks of the three checks
-  RED    = blocked (insulin cannot cross the membrane)
-  WHITE  = glucose and glycogen (the outcome); the plain lipid head is GREY
-  GREY   = membrane, PIP2 lipid heads, proteins that are not named, labels, parts not yet used
-
-No molecular structures: receptor and kinases are labelled blobs, a lipid is a stalk with a round head,
-a domain is a cup, a phosphate is a "P" badge, the fatty acid anchor is a short curved line.
-
-Two framings of the same picture:
-  WIDE  (scenes 1, 2, 6)  the whole relay, membrane near the top, the cytosol below.
-  CLOSE (scenes 3, 4, 5)  zoomed on the inner face of the membrane where PIP3 is made and Akt arrives.
-Scene 2 ends by zooming from WIDE to CLOSE, so scene 3 starts on exactly the picture scene 2 left.
 """
-import numpy as np
-from bp_style import *  # noqa: F401,F403
+COLOUR MAP (one colour per concept, carried across the whole film):
+  BG          #0F1117  dark background
+  TEXT        #E8EAF0  primary labels and text
+  GREY        #8B93A1  bilayer leaflets, structural dividers, scope tag
+  AMBER       #F59E0B  insulin hormone and transmembrane insulin receptor
+  TEAL_IRS    #2DD4BF  IRS-1 docking protein
+  SKY         #38BDF8  PI 3-kinase (regulatory + catalytic subunits)
+  SLATE       #64748B  PIP2 inner-leaflet lipid tiles (label #94A3B8 on dark BG)
+  PIP3_GOLD   #FACC15  PIP3 inner-leaflet lipid tiles (the membrane address)
+  PHOS        #FEF08A  phosphate badges (P, 3-P)
+  AKT_MUTED   #FB7185  folded, inactive Akt
+  AKT_ACTIVE  #F43F5E  unfolded, doubly phosphorylated active Akt
+  VIOLET      #A78BFA  PDK1 kinase
+  LAVENDER    #C4B5FD  mTORC2 complex
+  RED         #FC6255  drug blockade (X mark) and failed-activation status
 
-PURPLE = "#B58CD9"
-ORANGE = "#F29E4C"
-PINK = "#F08BB4"
+WORLD CARRIED ACROSS SCENES:
+  Schematic cross-section of a muscle cell edge: extracellular space above, plasma membrane
+  bilayer across the upper-middle, cytosol below. The camera zooms onto the gold PIP3 patch
+  for Akt docking and dual phosphorylation (s04, s05, s10) while keeping the upstream relay
+  anchored at the left edge, and zooms back out to show the full relay (s06-s09).
 
-# ---------------------------------------------------------------------------------------------
-# geometry, in WIDE units; a Fr maps them to the screen
-# ---------------------------------------------------------------------------------------------
-MEM_Y, MEM_H = 1.9, 0.34
-MEM_BOT = MEM_Y - MEM_H / 2                  # underside of the membrane
-LIP_X = [0.5, 1.2, 1.9, 2.6, 3.3, 4.0]       # the PIP2 / PIP3 lipids
-HEAD_Y, BADGE_Y = 1.28, 0.93                 # lipid head and the phosphate under it
-AKT_GRIP, PDK_GRIP = LIP_X[1], LIP_X[4]      # the lipids that hold Akt and PDK1
-AKT_C = np.array([AKT_GRIP + 0.45, BADGE_Y - 0.84, 0])      # Akt when held at the membrane
-PDK_C = np.array([PDK_GRIP + 0.45, BADGE_Y - 0.80, 0])
-WAIT = np.array([1.9, -1.1, 0])              # where Akt drifts before the lipid exists
-REC_X = -4.2                                 # the insulin receptor
-IRS_X, IRS_Y = -2.3, 1.32                    # IRS-1 and its tail
-TAIL_Y = [0.55, -0.25, -1.05, -1.7]          # the four tyrosines on the tail
-TAIL_END = -1.85
-PI3K_C = np.array([-0.87, 0.55, 0])          # PI 3-kinase, docked on the top tyrosine
-CUP_R = 0.4                                  # radius of a reading cup
+WHAT CHANGES IN EACH SPOKEN SCENE (computed):
+  s01_hook:           Seeded 2D random-walk trajectories of insulin orbs bounce elastically off
+                      the outer leaflet while folded Akt executes a seeded 2D walk in the cytosol;
+                      the inner-leaflet target patch highlights as the lipid address puzzle.
+  s02_receptor_irs1:  Insulin docks into the receptor jaws, closing them; receptor tyrosines gain
+                      2 P badges and sequentially stamp 3 P badges onto IRS-1's docking tail.
+  s03_pi3k_pip3:      Two-block PI 3-kinase glides from cytosol, locks its notched SH2 pockets onto
+                      IRS-1's P badges, pivots its regulatory block open 26 deg to expose the
+                      catalytic site, and flips 5 slate PIP2 tiles one-by-one into gold PIP3 + 3-P
+                      while an inset schematic ring-shaped head adds P at position 3 (PIP2 -> PIP3).
+  s04_akt_docking:    Zoomed onto gold PIP3; folded Akt executes a cytosolic random walk, then rises
+                      and locks its concave PH pocket cleanly onto the bottom of a gold PIP3 tile.
+  s05_two_phosphates: Docked Akt's hinge swings open from 18 deg to 115 deg exposing Thr308; PDK1
+                      rises to dock on an adjacent PIP3 and leans to stamp Thr308-P, mTORC2 docks
+                      beside the tail to stamp Ser473-P, and Akt shifts to bright coral-red.
+  s06_guiding_rule:   Computed signal-relay wave travels left-to-right across the active assembly
+                      (receptor -> IRS-1 -> PI3K -> PIP3 -> Akt) while Thr308-P and Ser473-P fire.
+  s07_predict_q:      Reset assembly with red X drug block snapping onto PI 3-kinase catalytic block;
+                      PIP2 stays slate while folded Akt walks in the cytosol and question card enters.
+  s09_predict_reveal: Receptor & IRS-1 stay phosphorylated, PIP2 remains slate (no PIP3), folded Akt
+                      walks in the cytosol far from PDK1, and status label confirms Akt stays off.
+  s10_closing:        Active assembly restored: Akt docks on PIP3, unfolds, gains Thr308-P (PDK1) and
+                      Ser473-P (mTORC2) across the scene in sync with the 3-step safety lock.
+"""
 
+from bp_parts import *
 
-class Fr:
-    """A framing: k = zoom, (fx, fy) = the WIDE point that sits at the middle of the screen."""
-
-    def __init__(self, k, fx=0.0, fy=0.0):
-        self.k, self.fx, self.fy = k, fx, fy
-
-    def p(self, x, y=None):
-        if y is None:
-            x, y = x[0], x[1]
-        return np.array([(x - self.fx) * self.k, (y - self.fy) * self.k, 0.0])
-
-    def sw(self, w):
-        return w * self.k ** 0.5
-
-
-WIDE = Fr(1.0)
-RELAY = Fr(1.3, -2.0, 0.75)
-CLOSE = Fr(1.6, 1.3, 0.0)
-
-
-# ---------------------------------------------------------------------------------------------
-# helpers
-# ---------------------------------------------------------------------------------------------
-def bchip(text, color=BLUE, size=26, pad=0.16, **kw):
-    """chip with an opaque backing so lines drawn behind it do not show through."""
-    c = chip(text, color, size=size, pad=pad, **kw)
-    back = RoundedRectangle(corner_radius=0.14, width=c[0].width, height=c[0].height, stroke_width=0,
-                            fill_color=BG, fill_opacity=1).move_to(c[0])
-    return VGroup(back, *c)
-
-
-def arr(a, b, color=GREY, w=5, tip=0.2):
-    return Arrow(a, b, buff=0.06, color=color, stroke_width=w, tip_length=tip,
-                 max_tip_length_to_length_ratio=0.45, max_stroke_width_to_length_ratio=12)
-
-
-def strike(m, color=RED):
-    return Line(m.get_corner(DL) + [-0.08, -0.04, 0], m.get_corner(UR) + [0.08, 0.04, 0], color=color, stroke_width=7)
+# ------------------------------------------------------------------ Film Palette
+AMBER = "#F59E0B"
+TEAL_IRS = "#2DD4BF"
+SKY = "#38BDF8"
+SLATE = "#64748B"
+SLATE_LBL = "#94A3B8"
+PIP3_GOLD = "#FACC15"
+PHOS = "#FEF08A"
+AKT_MUTED = "#FB7185"
+AKT_ACTIVE = "#F43F5E"
+VIOLET = "#A78BFA"
+LAVENDER = "#C4B5FD"
 
 
-def pbadge(F=WIDE, r=0.19):
-    c = Circle(radius=r * F.k, stroke_color=GOLD, stroke_width=2, fill_color=GOLD, fill_opacity=1)
-    return VGroup(c, T("P", 22 * F.k, BG, weight=BOLD).move_to(c))
+# ------------------------------------------------------------------ Computed Diffusion Helpers
+def compute_walk(seed, start, bounds, n_steps=180, step_len=0.14, bounce_y=None):
+    """Compute a deterministic 2D random walk inside bounds=(xmin, xmax, ymin, ymax).
+    If bounce_y is given, trajectories reflect cleanly off that horizontal membrane boundary.
+    """
+    rng = np.random.default_rng(seed)
+    xmin, xmax, ymin, ymax = bounds
+    pts = [np.array([start[0], start[1], 0.0], dtype=float)]
+    bounces = []
+    angle = rng.uniform(0, TAU)
+    for i in range(n_steps):
+        angle += rng.normal(0.0, 0.72)
+        dx = step_len * np.cos(angle)
+        dy = step_len * np.sin(angle)
+        nx = pts[-1][0] + dx
+        ny = pts[-1][1] + dy
+        if nx < xmin:
+            nx = xmin + (xmin - nx)
+            angle = np.pi - angle
+        elif nx > xmax:
+            nx = xmax - (nx - xmax)
+            angle = np.pi - angle
+        if ny < ymin:
+            ny = ymin + (ymin - ny)
+            angle = -angle
+            if bounce_y == "bottom":
+                bounces.append(i + 1)
+        elif ny > ymax:
+            ny = ymax - (ny - ymax)
+            angle = -angle
+            if bounce_y == "top":
+                bounces.append(i + 1)
+        pts.append(np.array([np.clip(nx, xmin, xmax), np.clip(ny, ymin, ymax), 0.0]))
+    return np.array(pts), bounces
 
 
-def pop(m, s=1.35):
-    """swell and settle, without recolouring (Indicate would hide the P on a badge)."""
-    return m.animate(rate_func=there_and_back).scale(s)
+def eval_walk(pts, u):
+    """Linearly interpolate a precomputed walk array at normalized progress u in [0, 1]."""
+    u = float(np.clip(u, 0.0, 1.0))
+    f = u * (len(pts) - 1)
+    idx = int(np.floor(f))
+    if idx >= len(pts) - 1:
+        return pts[-1].copy()
+    frac = f - idx
+    return pts[idx] * (1.0 - frac) + pts[idx + 1] * frac
 
 
-def glow(*mobs, s=1.1, color=TEXT):
-    """flash each mobject in place: one animation per mobject."""
-    return [Indicate(m, color=color, scale_factor=s) for m in mobs]
+# ------------------------------------------------------------------ Shared World Geometry
+def build_bilayer(y_in=0.90, y_out=1.80, x0=-6.1, x1=6.1):
+    """Plasma membrane bilayer without Rectangle panels (avoids false panel-outside flags)."""
+    band = Polygon(
+        [x0, y_in, 0], [x1, y_in, 0], [x1, y_out, 0], [x0, y_out, 0],
+        stroke_width=0, fill_color=SLATE, fill_opacity=0.22,
+    )
+    outer = Line([x0, y_out, 0], [x1, y_out, 0], color=GREY, stroke_width=4.0)
+    inner = Line([x0, y_in, 0], [x1, y_in, 0], color=GREY, stroke_width=4.0)
+    return VGroup(band, outer, inner)
 
 
-def membrane(F):
-    return RoundedRectangle(corner_radius=0.1 * F.k, width=12.6 * F.k, height=MEM_H * F.k, stroke_color=GREY,
-                            stroke_width=F.sw(3), fill_color=GREY, fill_opacity=0.35).move_to(F.p(0, MEM_Y))
+def make_p_badge(text="P", radius=0.25, pill_w=0.70, pill_h=0.40):
+    """Yellow-white phosphate badge with dark high-contrast text (font_size=22) and generous padding."""
+    lbl = T(text, size=22, color=BG, weight=BOLD)
+    if len(text) <= 1:
+        bg = Circle(radius=radius, stroke_color=PHOS, stroke_width=2.0, fill_color=PHOS, fill_opacity=0.98)
+    else:
+        bg = RoundedRectangle(
+            corner_radius=0.14, width=pill_w, height=pill_h,
+            stroke_color=PHOS, stroke_width=2.0, fill_color=PHOS, fill_opacity=0.98,
+        )
+    lbl.move_to(bg.get_center())
+    return VGroup(bg, lbl)
 
 
-def blob(F, c, text, color, w, h, size=30, bold=True):
-    """a labelled rounded blob with an opaque backing: [back, body, label]."""
-    k = F.k
-    back = RoundedRectangle(corner_radius=0.26 * k, width=w * k, height=h * k, stroke_width=0, fill_color=BG, fill_opacity=1)
-    body = RoundedRectangle(corner_radius=0.26 * k, width=w * k, height=h * k, stroke_color=color, stroke_width=F.sw(3.5),
-                            fill_color=color, fill_opacity=0.28)
-    lbl = T(text, size * k, color, weight=BOLD if bold else NORMAL)
-    g = VGroup(back, body, lbl).move_to(c)
-    g.body, g.lbl = body, lbl
+def make_insulin_orb(radius=0.23):
+    """Warm amber insulin hormone orb."""
+    return Circle(radius=radius, stroke_color=AMBER, stroke_width=2.5, fill_color=AMBER, fill_opacity=0.92)
+
+
+def make_receptor(x=-4.65, y_in=0.90, y_out=1.80, scale=1.0, docked=False, active=False):
+    """Transmembrane insulin receptor dimer spanning the bilayer with closing jaws and kinase stalks."""
+    jaw_spread = 0.24 if docked else 0.44
+    col = AMBER
+    fill_op = 0.44 if active else 0.30
+    sw = 3.5 if active else 2.6
+
+    left_pts = [
+        [-0.22 - jaw_spread, y_out + 0.90, 0],
+        [-0.38 - jaw_spread * 0.4, y_out + 0.42, 0],
+        [-0.30, y_out, 0],
+        [-0.30, y_in - 1.32, 0],
+        [-0.06, y_in - 1.32, 0],
+        [-0.06, y_out + 0.24, 0],
+        [-0.20, y_out + 0.50, 0],
+    ]
+    right_pts = [
+        [0.22 + jaw_spread, y_out + 0.90, 0],
+        [0.38 + jaw_spread * 0.4, y_out + 0.42, 0],
+        [0.30, y_out, 0],
+        [0.30, y_in - 1.32, 0],
+        [0.06, y_in - 1.32, 0],
+        [0.06, y_out + 0.24, 0],
+        [0.20, y_out + 0.50, 0],
+    ]
+    left_sub = Polygon(*left_pts, stroke_color=col, stroke_width=sw, fill_color=col, fill_opacity=fill_op)
+    right_sub = Polygon(*right_pts, stroke_color=col, stroke_width=sw, fill_color=col, fill_opacity=fill_op)
+
+    stalk_l = Line([-0.30, y_in - 0.84, 0], [-0.58, y_in - 0.84, 0], color=col, stroke_width=2.6)
+    stalk_r = Line([0.30, y_in - 1.08, 0], [0.58, y_in - 1.08, 0], color=col, stroke_width=2.6)
+
+    g = VGroup(left_sub, right_sub, stalk_l, stalk_r)
+    if scale != 1.0:
+        g.scale(scale, about_point=[0, (y_in + y_out) / 2, 0])
+    g.shift(RIGHT * x)
+
+    g.jaw_center = np.array([x, y_out + 0.58 * scale, 0.0])
+    g.p_spots = [
+        g[2].get_end() + LEFT * 0.29,
+        g[3].get_end() + RIGHT * 0.29,
+    ]
     return g
 
 
-def recolor_blob(g, color):
-    return [g.body.animate.set_stroke(color).set_fill(color, 0.28), g.lbl.animate.set_color(color)]
-
-
-def cup(center, r, face="up", closed=False, color=PINK):
-    """a reading domain: a bowl that opens toward `face`; closed = the same bowl, nearly shut."""
-    a0 = {"up": 170, "left": 260, "down": 350, "right": 80}[face]
-    start, ang = (a0 - 45, 290) if closed else (a0, 200)
-    s = AnnularSector(inner_radius=r * 0.62, outer_radius=r, angle=ang * DEGREES, start_angle=start * DEGREES,
-                      color=color, fill_opacity=1, stroke_width=0)
-    return s.shift(center)
-
-
-def tick(c, s=0.2):
-    a, b, d = c + np.array([-s, 0.0, 0]), c + np.array([-s * 0.3, -s * 0.8, 0]), c + np.array([s, s * 0.9, 0])
-    return VGroup(Line(a, b, color=GREEN, stroke_width=9), Line(b, d, color=GREEN, stroke_width=9))
-
-
-def lipids(F):
-    """the row of PIP2 lipids hanging from the inner face of the membrane: list of [stalk, head]."""
-    out = []
-    for x in LIP_X:
-        stem = Line(F.p(x, MEM_BOT), F.p(x, HEAD_Y + 0.15), color=GREY, stroke_width=F.sw(3))
-        head = Circle(radius=0.15 * F.k, stroke_color=GREY, stroke_width=F.sw(2.5), fill_color=GREY,
-                      fill_opacity=0.5).move_to(F.p(x, HEAD_Y))
-        out.append(VGroup(stem, head))
-    return out
-
-
-def lip_badge(F, i):
-    return pbadge(F, 0.17).move_to(F.p(LIP_X[i], BADGE_Y))
-
-
-def clock(center, r=0.45):
-    center = np.array(center, float)
-    face = Circle(radius=r, stroke_color=GREY, stroke_width=4).move_to(center)
-    ticks = VGroup(*[Line(center + (r - 0.11) * v, center + r * v, color=GREY, stroke_width=4) for v in (UP, RIGHT, DOWN, LEFT)])
-    hand = Line(center, center + UP * (r - 0.15), color=TEXT, stroke_width=5)
-    pin = Dot(center, radius=0.05, color=TEXT)
-    g = VGroup(face, ticks, hand, pin)
-    g.hand, g.c = hand, center
+def make_irs1(x=-2.95, y_in=0.90, scale=1.0, active=False):
+    """Soft teal IRS-1 docking block anchored below the inner leaflet with 3 tyrosine stalks."""
+    sw = 3.2 if active else 2.6
+    body = RoundedRectangle(
+        corner_radius=0.14, width=0.58, height=1.96,
+        stroke_color=TEAL_IRS, stroke_width=sw, fill_color=TEAL_IRS, fill_opacity=0.38 if active else 0.26,
+    )
+    body.move_to([0, y_in - 1.12, 0])
+    stalks = VGroup(*[
+        Line([0.29, y_in - 0.44 - i * 0.64, 0], [0.58, y_in - 0.44 - i * 0.64, 0], color=TEAL_IRS, stroke_width=2.6)
+        for i in range(3)
+    ])
+    g = VGroup(body, stalks)
+    if scale != 1.0:
+        g.scale(scale, about_point=[0, y_in, 0])
+    g.shift(RIGHT * x)
+    g.p_spots = [s.get_end() + RIGHT * 0.29 for s in g[1]]
     return g
 
 
-# Akt and its parts ------------------------------------------------------------------------------
-CUP_OFF = np.array([-0.45, 0.84, 0])
-LOOP_OFF = np.array([0.85, 0.10, 0])           # the activation loop bulges out of the right edge
-LOOP_TIP = np.array([1.05, 0.10, 0])
-TAIL_OFF = np.array([-0.30, -0.50, 0])
-TAIL_TIP = np.array([-0.30, -0.95, 0])
+def make_pi3k(pos=(-0.96, -0.5, 0), open_angle=0.0, scale=1.0, blocked=False):
+    """Two-block sky-blue PI 3-kinase:
+    - Regulatory block (smaller) with two notched SH2 cups on its left face
+    - Catalytic block (larger) with an upward-facing active-site notch
+    """
+    reg_pts = [
+        [-0.52, 0.44, 0],
+        [0.05, 0.44, 0],
+        [0.05, -0.44, 0],
+        [-0.52, -0.44, 0],
+        [-0.52, -0.30, 0],
+        [-0.34, -0.25, 0],
+        [-0.34, -0.09, 0],
+        [-0.52, -0.04, 0],
+        [-0.52, 0.06, 0],
+        [-0.34, 0.11, 0],
+        [-0.34, 0.27, 0],
+        [-0.52, 0.32, 0],
+    ]
+    reg = Polygon(*reg_pts, stroke_color=SKY, stroke_width=2.6, fill_color=SKY, fill_opacity=0.38)
+
+    cat_pts = [
+        [0.08, 0.46, 0],
+        [0.50, 0.46, 0],
+        [0.54, 0.22, 0],
+        [0.80, 0.22, 0],
+        [0.84, 0.46, 0],
+        [1.16, 0.46, 0],
+        [1.16, -0.48, 0],
+        [0.08, -0.48, 0],
+    ]
+    cat = Polygon(*cat_pts, stroke_color=SKY, stroke_width=2.8, fill_color=SKY, fill_opacity=0.44)
+    if open_angle != 0.0:
+        reg.rotate(-open_angle, about_point=np.array([0.06, 0.34, 0.0]))
+
+    g = VGroup(reg, cat)
+    if blocked:
+        c = cat.get_center()
+        x1 = Line(c + UL * 0.34, c + DR * 0.34, color=RED, stroke_width=6)
+        x2 = Line(c + UR * 0.34, c + DL * 0.34, color=RED, stroke_width=6)
+        g.add(VGroup(x1, x2))
+    if scale != 1.0:
+        g.scale(scale)
+    g.move_to(pos)
+    g.reg = reg
+    g.cat = cat
+    return g
 
 
-def akt_blob(F, c):
-    return blob(F, c, "Akt", PURPLE, 1.7, 1.0, 34)
+def make_lipid_tile(x, y_in=0.90, gold=False, width=0.72, height=0.42):
+    """One inner-leaflet phospholipid tile.
+    The '3-P' badge sits cleanly ABOVE the short lipid tails inside the bilayer band
+    so neither the tail lines nor the PH pockets below ever cross the '3-P' pill.
+    """
+    col = PIP3_GOLD if gold else SLATE
+    fill_op = 0.50 if gold else 0.36
+    # Short tails end cleanly BELOW the '3-P' badge (y_in + 0.22)
+    tail1 = Line([x - 0.14, y_in + 0.02, 0], [x - 0.14, y_in + 0.22, 0], color=col, stroke_width=2.6)
+    tail2 = Line([x + 0.14, y_in + 0.02, 0], [x + 0.14, y_in + 0.22, 0], color=col, stroke_width=2.6)
+    head = RoundedRectangle(
+        corner_radius=0.10, width=width, height=height,
+        stroke_color=col, stroke_width=3.0 if gold else 2.4, fill_color=col, fill_opacity=fill_op,
+    ).move_to([x, y_in - height / 2 - 0.02, 0])
+    g = VGroup(tail1, tail2, head)
+    if gold:
+        # Placed at y_in + 0.50 (bottom at y_in + 0.30, clear of tail tips at y_in + 0.22)
+        badge = make_p_badge("3-P").move_to([x, y_in + 0.50, 0])
+        g.add(badge)
+        g.badge = badge
+    g.head = head
+    return g
 
 
-def akt_cup(F, c, closed=False):
-    return cup(np.array(c) + F.k * CUP_OFF, CUP_R * F.k, "up", closed)
+def make_akt(pos=(0.0, -1.5, 0), fold_deg=18.0, active=False, scale=1.0):
+    """Articulated Akt with:
+    - PH domain (upper block with concave semi-circular pocket facing UP toward PIP3)
+    - Kinase lobe + activation loop (Thr308) hinged at right
+    - C-terminal tail (Ser473) extending downward-right into the cytosol when unfolded
+    """
+    col = AKT_ACTIVE if active else AKT_MUTED
+    sw = 3.5 if active else 2.6
+    fill_op = 0.48 if active else 0.34
+
+    ph_pts = [
+        [-0.44, 0.42, 0],
+        [-0.22, 0.42, 0],
+        [-0.18, 0.18, 0],
+        [0.0, 0.12, 0],
+        [0.18, 0.18, 0],
+        [0.22, 0.42, 0],
+        [0.44, 0.42, 0],
+        [0.44, -0.18, 0],
+        [-0.44, -0.18, 0],
+    ]
+    ph = Polygon(*ph_pts, stroke_color=col, stroke_width=sw, fill_color=col, fill_opacity=fill_op)
+
+    hinge = np.array([0.36, -0.14, 0.0])
+    linker = Line(hinge, [0.22, -0.34, 0], color=col, stroke_width=5.0)
+    kin = RoundedRectangle(
+        corner_radius=0.18, width=0.96, height=0.64,
+        stroke_color=col, stroke_width=sw, fill_color=col, fill_opacity=fill_op,
+    ).move_to([-0.14, -0.60, 0])
+
+    loop_arc = Arc(radius=0.16, start_angle=0, angle=PI, arc_center=[-0.16, -0.28, 0], color=col, stroke_width=3.0)
+    loop_stalk = Line([-0.16, -0.12, 0], [-0.16, 0.10, 0], color=col, stroke_width=2.4)
+
+    # Tail built so when kinase_grp swings +97 deg (fold_deg=115), tail extends RIGHT-DOWN into cytosol
+    tail = VMobject(color=col, stroke_width=3.2)
+    tail.set_points_smoothly([
+        np.array([-0.14, -0.92, 0]),
+        np.array([-0.20, -1.24, 0]),
+        np.array([-0.04, -1.50, 0]),
+    ])
+
+    kinase_grp = VGroup(linker, kin, loop_arc, loop_stalk, tail)
+    swing = (fold_deg - 18.0) * DEGREES
+    if abs(swing) > 1e-4:
+        kinase_grp.rotate(swing, about_point=hinge)
+
+    g = VGroup(ph, kinase_grp)
+    if scale != 1.0:
+        g.scale(scale)
+    g.move_to(pos)
+    g.ph = ph
+    g.kinase_grp = kinase_grp
+    g.kin = kin
+    g.loop_pt = loop_stalk.get_end()
+    g.tail_pt = tail.get_end()
+    return g
 
 
-def akt_loop(F, c):
-    return Arc(radius=0.2 * F.k, start_angle=-PI / 2, angle=PI, stroke_color=PURPLE, stroke_width=F.sw(5)).move_arc_center_to(np.array(c) + F.k * LOOP_OFF)
+def make_pdk1(pos=(-1.8, 0.4, 0), lean=0.0, scale=1.0):
+    """Violet PDK1 anchored by its own PH pocket on PIP3, with a kinase arm that leans toward Akt."""
+    ph_pts = [
+        [-0.36, 0.34, 0],
+        [-0.18, 0.34, 0],
+        [-0.14, 0.14, 0],
+        [0.0, 0.08, 0],
+        [0.14, 0.14, 0],
+        [0.18, 0.34, 0],
+        [0.36, 0.34, 0],
+        [0.36, -0.14, 0],
+        [-0.36, -0.14, 0],
+    ]
+    ph = Polygon(*ph_pts, stroke_color=VIOLET, stroke_width=2.6, fill_color=VIOLET, fill_opacity=0.42)
+    linker = Line([0.10, -0.11, 0], [0.14, -0.28, 0], color=VIOLET, stroke_width=5.0)
+    arm = RoundedRectangle(
+        corner_radius=0.14, width=0.68, height=0.46,
+        stroke_color=VIOLET, stroke_width=2.6, fill_color=VIOLET, fill_opacity=0.46,
+    ).move_to([0.22, -0.46, 0])
+    if lean != 0.0:
+        for m in (linker, arm):
+            m.rotate(lean, about_point=np.array([0.10, -0.16, 0]))
+    g = VGroup(ph, linker, arm)
+    if scale != 1.0:
+        g.scale(scale)
+    g.move_to(pos)
+    g.ph = ph
+    g.arm = arm
+    return g
 
 
-def akt_tail(F, c):
-    a, b = np.array(c) + F.k * TAIL_OFF, np.array(c) + F.k * TAIL_TIP
-    return VGroup(Line(a, b, color=PURPLE, stroke_width=F.sw(5)), Dot(b, radius=0.08 * F.k, color=PURPLE))
+def make_mtorc2(pos=(4.9, -1.2, 0), scale=1.0):
+    """Lavender mTORC2 complex docking beside Akt's C-terminal tail."""
+    body = RoundedRectangle(
+        corner_radius=0.22, width=1.24, height=0.70,
+        stroke_color=LAVENDER, stroke_width=2.6, fill_color=LAVENDER, fill_opacity=0.40,
+    )
+    notch = Arc(radius=0.15, start_angle=PI / 2, angle=PI, arc_center=body.get_left() + RIGHT * 0.05,
+                color=LAVENDER, stroke_width=2.8)
+    g = VGroup(body, notch)
+    if scale != 1.0:
+        g.scale(scale)
+    g.move_to(pos)
+    return g
 
 
-def kinase_p(F, c, tip):
-    """a phosphate sitting on an Akt site (c = Akt body centre)."""
-    return pbadge(F, 0.17).move_to(np.array(c) + F.k * tip)
+def akt_dock_pos_for_tile(tile, akt_scale=1.0):
+    """Compute Akt center position so its PH cup cradles the bottom of `tile.head` cleanly."""
+    probe = make_akt(pos=ORIGIN, fold_deg=18.0, scale=akt_scale)
+    cup_top_offset = probe.ph.get_top()[1] - probe.get_center()[1]
+    target_y = tile.head.get_bottom()[1] - cup_top_offset + 0.14 * akt_scale
+    return np.array([tile.head.get_center()[0], target_y, 0.0])
 
 
-# ---------------------------------------------------------------------------------------------
-class Film(SpokenScene):
-    def drift(self, m, amp=0.16, ph=0.0):
-        """let a mobject wander a little around where it is now (the cytosol is crowded and moving)."""
-        def offset():
-            t = self.renderer.time + ph
-            return amp * np.array([np.sin(0.9 * t), 0.8 * np.cos(1.3 * t), 0.0])
-        state = {"off": offset()}
-
-        def upd(mob):
-            off = offset()
-            mob.shift(off - state["off"])
-            state["off"] = off
-        m.add_updater(upd)
-        m._drift = (upd, state)
-
-    def stop(self, m):
-        """stop the wandering where it is."""
-        if getattr(m, "_drift", None):
-            m.remove_updater(m._drift[0])
-            m._drift = None
-
-    def attach(self, g, *parts):
-        """make parts (already on screen) belong to g so they travel with it."""
-        self.remove(*parts)
-        g.add(*parts)
-
-    def outro(self, *anims, then=None, run_time=0.4):
-        """hold until the narration ends, clear what the next scene does not inherit, then (optionally)
-        change framing. These run after the last word, so they add a short breath between scenes."""
-        rest = self.narration_s - 0.02 - self.elapsed()
-        if rest > 0:
-            self.wait(rest)
-        if anims:
-            self.play(*anims, run_time=run_time)
-        if then:
-            self.play(*then, run_time=1.0)
-            self.wait(0.15)
-        self.finish()
+def pdk1_dock_pos_for_tile(tile, pdk_scale=1.0):
+    """Compute PDK1 center position so its PH cup cradles the bottom of `tile.head` cleanly."""
+    probe = make_pdk1(pos=ORIGIN, lean=0.0, scale=pdk_scale)
+    cup_top_offset = probe.ph.get_top()[1] - probe.get_center()[1]
+    target_y = tile.head.get_bottom()[1] - cup_top_offset + 0.12 * pdk_scale
+    return np.array([tile.head.get_center()[0], target_y, 0.0])
 
 
+def build_overview_world(
+    y_in=0.95, y_out=1.85,
+    insulin_docked=True,
+    rec_p=True,
+    irs_p=True,
+    pi3k_docked=True,
+    pi3k_open=True,
+    pi3k_blocked=False,
+    n_pip3=5,
+    akt_docked=False,
+    akt_active=False,
+    show_pdk1=False,
+    show_mtorc2=False,
+):
+    """Build the full cell-edge assembly in consistent world coordinates."""
+    bilayer = build_bilayer(y_in=y_in, y_out=y_out, x0=-6.1, x1=6.1)
+    rec = make_receptor(x=-4.65, y_in=y_in, y_out=y_out, scale=0.94, docked=insulin_docked, active=rec_p)
+    irs = make_irs1(x=-2.95, y_in=y_in, scale=0.94, active=irs_p)
+
+    tile_xs = [0.70 + i * 0.90 for i in range(5)]
+    tiles = VGroup(*[make_lipid_tile(tx, y_in=y_in, gold=(i < n_pip3), width=0.70, height=0.40) for i, tx in enumerate(tile_xs)])
+
+    extras = VGroup()
+    if insulin_docked:
+        ins = make_insulin_orb(0.20).move_to(rec.jaw_center)
+        extras.add(ins)
+    if rec_p:
+        for sp in rec.p_spots:
+            extras.add(make_p_badge("P", radius=0.23).move_to(sp))
+    if irs_p:
+        for sp in irs.p_spots:
+            extras.add(make_p_badge("P", radius=0.23).move_to(sp))
+
+    if pi3k_docked:
+        pi3k = make_pi3k(pos=(-0.92, y_in - 0.65, 0), open_angle=0.40 if pi3k_open else 0.0, scale=0.84, blocked=pi3k_blocked)
+    else:
+        pi3k = make_pi3k(pos=(0.3, -1.55, 0), open_angle=0.0, scale=0.84, blocked=pi3k_blocked)
+
+    akt_p_badges = VGroup()
+    if akt_docked:
+        fold = 115.0 if akt_active else 18.0
+        probe = make_akt(pos=ORIGIN, fold_deg=fold, scale=0.88)
+        ph_offset = probe.ph.get_center() - probe.get_center()
+        cup_top_offset = probe.ph.get_top()[1] - probe.get_center()[1]
+        target_y = tiles[2].head.get_bottom()[1] - cup_top_offset + 0.14 * 0.88
+        dpos = np.array([tiles[2].head.get_center()[0] - ph_offset[0], target_y, 0.0])
+        akt = make_akt(pos=dpos, fold_deg=fold, active=akt_active, scale=0.88)
+        if akt_active:
+            p1 = make_p_badge("P", radius=0.23).next_to(akt.loop_pt, LEFT, buff=0.14)
+            p2 = make_p_badge("P", radius=0.23).next_to(akt.tail_pt, RIGHT, buff=0.14)
+            akt_p_badges.add(p1, p2)
+    else:
+        akt = make_akt(pos=(2.5, -1.55, 0), fold_deg=18.0, active=False, scale=0.88)
+
+    pdk1 = VGroup()
+    if show_pdk1:
+        ppos = pdk1_dock_pos_for_tile(tiles[0], pdk_scale=0.80)
+        if n_pip3 == 0:
+            ppos = ppos + DOWN * 0.45
+        pdk1 = make_pdk1(pos=ppos, lean=0.30 if akt_active else 0.0, scale=0.80)
+
+    mtorc2 = make_mtorc2(pos=(4.95, -1.10, 0), scale=0.80) if show_mtorc2 else VGroup()
+
+    world = VGroup(bilayer, tiles, rec, irs, pi3k, extras, pdk1, mtorc2, akt, akt_p_badges)
+    world.bilayer = bilayer
+    world.tiles = tiles
+    world.rec = rec
+    world.irs = irs
+    world.pi3k = pi3k
+    world.extras = extras
+    world.akt = akt
+    world.akt_p_badges = akt_p_badges
+    world.pdk1 = pdk1
+    world.mtorc2 = mtorc2
+    world.tile_xs = tile_xs
+    return world
+
+
+# ================================================================== Scenes
 class S00Title(TitleCard):
     LESSON = "PI 3-Kinase, Akt and Insulin"
-    TITLE = "A membrane address for Akt"
+    TITLE = "Writing a Membrane Address for Akt"
 
 
-# ---------------------------------------------------------------------------------------------
-class S01Puzzle(Film):
-    """insulin stays outside; glucose is stored; Akt waits inside; the path between them is unknown. (WIDE)"""
-
+class S01Hook(SpokenScene):
     def construct(self):
-        F = WIDE
-        mem = membrane(F)
-        out_l = T("outside the cell", 22, GREY).move_to([-5.0, 2.55, 0])
-        in_l = T("inside the cell", 22, GREY).move_to([-5.0, 1.25, 0])
-        ins = bchip("insulin", YELLOW, 34).move_to([0, 3.0, 0])
-        self.at("Insulin never")
-        self.play(FadeIn(mem), FadeIn(out_l), FadeIn(in_l), FadeIn(ins, shift=DOWN * 0.2), run_time=0.4)
-        bar = Line([-1.05, 2.13, 0], [1.05, 2.13, 0], color=RED, stroke_width=10)
-        no = T("never crosses", 28, RED).move_to([2.55, 2.55, 0])
+        y_in, y_out = 0.90, 1.80
+        bilayer = build_bilayer(y_in=y_in, y_out=y_out)
+        rec = make_receptor(x=-4.65, y_in=y_in, y_out=y_out, scale=0.94, docked=False, active=False)
+        tiles = VGroup(*[make_lipid_tile(0.70 + i * 0.90, y_in=y_in, gold=False, width=0.70, height=0.40) for i in range(5)])
+
+        extra_lbl = T("extracellular space", size=26, color=GREY).move_to([-4.3, 3.28, 0])
+        cyto_lbl = T("cytosol", size=26, color=GREY).move_to([-5.0, -3.05, 0])
+        stag = scope_tag("schematic")
+
+        # Insulin walks confined below y = 2.80 so they never cross top labels
+        ins_walks = [
+            compute_walk(7 + i, start=(-1.4 + i * 1.8, 2.38), bounds=(-2.8, 5.4, y_out + 0.30, 2.82), n_steps=180, step_len=0.15, bounce_y="bottom")[0]
+            for i in range(4)
+        ]
+        akt_walk, _ = compute_walk(17, start=(1.4, -1.65), bounds=(-1.2, 4.2, -2.15, -1.05), n_steps=180, step_len=0.12)
+
+        t_sim = ValueTracker(0.0)
+        ins_orbs = VGroup(*[make_insulin_orb(0.22).move_to(ins_walks[i][0]) for i in range(4)])
+        for i, orb in enumerate(ins_orbs):
+            orb.add_updater(lambda m, idx=i: m.move_to(eval_walk(ins_walks[idx], t_sim.get_value())))
+
+        akt = make_akt(pos=akt_walk[0], fold_deg=18.0, active=False, scale=0.92)
+        akt_lbl = T("Akt (inactive)", size=28, color=AKT_MUTED).next_to(akt, DOWN, buff=0.22)
+        akt.add_updater(lambda m: m.move_to(eval_walk(akt_walk, t_sim.get_value())))
+        akt_lbl.add_updater(lambda m: m.next_to(akt, DOWN, buff=0.22))
+
+        # Placed cleanly in the upper-center band (y = 3.28), clear of extra_lbl and ins_walks (ymax 2.82)
+        ins_lbl = T("insulin", size=28, color=AMBER).move_to([0.4, 3.28, 0])
+
+        self.add(bilayer, tiles, rec, extra_lbl, cyto_lbl, stag, ins_orbs, ins_lbl, akt, akt_lbl)
+
         self.at("never crosses")
-        self.play(ins.animate.move_to([0, 2.55, 0]), Create(bar), FadeIn(no), run_time=0.5)
-        self.play(ins.animate(rate_func=there_and_back).shift(DOWN * 0.12), run_time=0.4)
+        self.play(t_sim.animate.set_value(0.34), run_time=max(1.0, self.t_of("How does a hormone") - self.elapsed() - 0.25), rate_func=linear)
 
-        ck = clock([-4.4, 0.0, 0], 0.55)
-        mins = T("minutes", 26, GREY).move_to([-4.4, -0.85, 0])
-        glu = bchip("glucose", TEXT, 32).move_to([5.1, 2.85, 0])
-        self.at("Yet within minutes")
-        self.play(FadeIn(ck), FadeIn(mins), FadeIn(glu, shift=DOWN * 0.15), run_time=0.4)
-        self.play(Rotate(ck.hand, -TAU / 5, about_point=ck.c), run_time=0.8)
-        self.at("pulls glucose")
-        self.play(glu.animate.move_to([5.1, 0.7, 0]), run_time=0.9)
-        gly = bchip("glycogen", TEXT, 32).move_to([5.1, 0.7, 0])
-        self.at("stores it as")
-        self.play(ReplacementTransform(glu, gly), run_time=0.5)
+        self.at("How does a hormone")
+        q_arrow = DashedLine([0.2, 2.05, 0], [0.8, -0.45, 0], color=TEXT, stroke_width=3.0, dash_length=0.14)
+        q_mark = T("?", size=38, color=PIP3_GOLD, weight=BOLD).move_to([1.25, 0.15, 0])
+        self.play(
+            FadeIn(q_arrow), FadeIn(q_mark),
+            t_sim.animate.set_value(0.68),
+            run_time=max(1.0, self.t_of("writing a temporary lipid") - self.elapsed() - 0.25),
+            rate_func=linear,
+        )
 
-        akt = blob(F, [0, -2.45, 0], "Akt", PURPLE, 1.7, 1.0, 34)
-        akt.scale(1.3)
-        self.at("one kinase")
-        self.play(FadeIn(akt, scale=0.8), run_time=0.5)
-        self.at("drifts")
-        self.drift(akt)
-        cyt = T("cytosol", 26, GREY).move_to([-2.6, -2.45, 0])
-        self.at("in the cytosol")
-        self.play(FadeIn(cyt), run_time=0.4)
-        inact = T("inactive", 28, GREY).move_to([2.6, -2.45, 0])
-        self.at("inactive")
-        self.play(FadeIn(inact), run_time=0.4)
-
-        # the path nobody has drawn yet
-        path = DashedLine([0, 1.66, 0], [0, -1.6, 0], color=GREY, stroke_width=4, dash_length=0.12)
-        tipm = Triangle(fill_color=GREY, fill_opacity=1, stroke_width=0).scale(0.14).rotate(PI).move_to([0, -1.62, 0])
-        qs = VGroup()
-        for y in (0.95, 0.0, -0.95):
-            shape = RoundedRectangle(corner_radius=0.14, width=0.95, height=0.78)
-            back = shape.copy().set_stroke(width=0).set_fill(BG, 1).move_to([0, y, 0])
-            edge = DashedVMobject(shape.copy().move_to([0, y, 0]), num_dashes=24).set_color(GREY)
-            q = T("?", 38, TEXT, weight=BOLD).move_to([0, y, 0])
-            qs.add(VGroup(back, edge, q))
-        self.at("How does a message")
-        self.play(Create(path), FadeIn(tipm), LaggedStart(*[FadeIn(b, scale=0.8) for b in qs], lag_ratio=0.3), run_time=1.1)
-        self.at("from outside")
-        self.play(*glow(ins[1], ins[2], s=1.12), run_time=0.6)
-        self.at("reach it")
-        self.play(LaggedStart(*[pop(b[2], 1.6) for b in qs], lag_ratio=0.25), *glow(akt.body, akt.lbl, s=1.1), run_time=1.0)
-        # clear everything the next scene rebuilds differently; Akt settles back to its start spot
-        self.stop(akt)
-        self.outro(FadeOut(VGroup(ck, mins, gly, bar, no, cyt, inact, out_l, in_l)), akt.animate.move_to([0, -2.45, 0]))
-
-
-# ---------------------------------------------------------------------------------------------
-class S02Relay(Film):
-    """insulin -> receptor -> IRS-1 tail -> SH2 cups -> PI 3-kinase. (WIDE, zoomed to RELAY, ending in a zoom to CLOSE)"""
-
-    def construct(self):
-        W, R, C = WIDE, RELAY, CLOSE
-        k, p = R.k, R.p
-        mem = membrane(W)
-        ins = bchip("insulin", YELLOW, 34).move_to([0, 2.55, 0])
-        path = DashedLine([0, 1.66, 0], [0, -1.6, 0], color=GREY, stroke_width=4, dash_length=0.12)
-        tipm = Triangle(fill_color=GREY, fill_opacity=1, stroke_width=0).scale(0.14).rotate(PI).move_to([0, -1.62, 0])
-        qs = VGroup()
-        for y in (0.95, 0.0, -0.95):
-            shape = RoundedRectangle(corner_radius=0.14, width=0.95, height=0.78)
-            back = shape.copy().set_stroke(width=0).set_fill(BG, 1).move_to([0, y, 0])
-            edge = DashedVMobject(shape.copy().move_to([0, y, 0]), num_dashes=24).set_color(GREY)
-            qs.add(VGroup(back, edge, T("?", 38, TEXT, weight=BOLD).move_to([0, y, 0])))
-        akt = blob(W, [0, -2.45, 0], "Akt", PURPLE, 1.7, 1.0, 34)
-        akt.scale(1.3)
-        self.add(mem, path, tipm, qs, ins, akt)
-
-        # the unknown path gives way to the real one; the view moves in on the left; insulin goes to its receptor
-        self.play(FadeOut(VGroup(path, tipm, qs)), mem.animate.become(membrane(R)),
-                  ins.animate.scale(k).move_to(p(REC_X, 2.55)), akt.animate.scale(k / 1.3).move_to(p(WAIT)), run_time=0.9)
-        self.drift(akt, ph=1.0)
-
-        # the receptor: a bar through the membrane, its kinase on the inner end
-        rbar_h = 1.6
-        rback = RoundedRectangle(corner_radius=0.12 * k, width=0.42 * k, height=rbar_h * k, stroke_width=0, fill_color=BG, fill_opacity=1)
-        rbar = RoundedRectangle(corner_radius=0.12 * k, width=0.42 * k, height=rbar_h * k, stroke_color=BLUE, stroke_width=R.sw(4),
-                                fill_color=BLUE, fill_opacity=0.4)
-        rkin = RoundedRectangle(corner_radius=0.16 * k, width=0.95 * k, height=0.5 * k, stroke_color=BLUE, stroke_width=R.sw(4),
-                                fill_color=BLUE, fill_opacity=0.55).move_to(p(REC_X, 0.92))
-        rec = VGroup(rback, rbar).move_to(p(REC_X, 1.95))
-        rec_all = VGroup(rec, rkin)
-        rec_lbl = T("receptor", 26, BLUE).move_to(p(-5.2, 2.4))
-        self.at("its receptor")
-        self.play(GrowFromPoint(rec_all, p(REC_X, MEM_Y)), ins.animate.move_to(p(REC_X, 3.1)), FadeIn(rec_lbl), run_time=0.7)
-        tk = T("tyrosine\nkinase", 24, BLUE, line_spacing=0.8).move_to(p(-5.25, 0.92))
-        self.at("tyrosine kinase")
-        self.play(FadeIn(tk, shift=RIGHT * 0.1), *glow(rkin, s=1.1), run_time=0.6)
-
-        # the receptor phosphorylates itself
-        rp = [pbadge(R).move_to(p(-3.6, 1.0)), pbadge(R).move_to(p(REC_X, 0.45))]
-        self.at("adds phosphates")
-        self.play(LaggedStart(*[FadeIn(b, scale=0.4) for b in rp], lag_ratio=0.4), run_time=0.7)
-
-        # IRS-1 appears beside it and takes a phosphate
-        irs = blob(R, p(IRS_X, IRS_Y), "IRS-1", TEAL, 1.2, 0.62, 26)
-        self.at("and then to those")
-        self.play(FadeIn(irs, shift=LEFT * 0.15), run_time=0.5)
-        p_irs = pbadge(R)
-        p_irs.move_to(rp[0])
-        self.at("docking protein")
-        self.add(p_irs)
-        self.play(p_irs.animate(path_arc=-0.6).move_to(p(IRS_X - 0.5, IRS_Y - 0.45)), run_time=0.7)
-        dock_lbl = T("docking protein", 24, TEAL).move_to(p(-0.35, IRS_Y))
-        self.play(FadeIn(dock_lbl), run_time=0.3)
-
-        # held at the membrane
-        grip = Line(p(IRS_X - 0.55, MEM_BOT), p(IRS_X + 0.55, MEM_BOT), color=TEAL, stroke_width=8)
-        self.at("held at the membrane")
-        self.play(FadeOut(dock_lbl), Create(grip), run_time=0.5)
-        self.play(FadeOut(grip), run_time=0.3)
-
-        # a long tail with many tyrosines
-        tail = Line(p(IRS_X, IRS_Y - 0.31), p(IRS_X, TAIL_END), color=TEAL, stroke_width=R.sw(5))
-        dots = [Circle(radius=0.1 * k, stroke_color=TEAL, stroke_width=R.sw(3), fill_color=TEAL, fill_opacity=1).move_to(p(IRS_X, y)) for y in TAIL_Y]
-        self.at("long tail")
-        self.play(Create(tail), p_irs.animate.move_to(p(IRS_X, TAIL_Y[0])), LaggedStart(*[FadeIn(d, scale=0.5) for d in dots], lag_ratio=0.2), run_time=1.2)
-        self.bring_to_front(p_irs)
-        self.at("many tyrosines")
-        self.play(LaggedStart(*[pop(d, 1.8) for d in dots[1:]], lag_ratio=0.25), run_time=0.9)
-
-        # the receptor phosphorylates the tail
-        tp = [pbadge(R).move_to(rp[i % 2].get_center()) for i in range(3)]
-        self.at("has phosphorylated")
-        self.add(*tp)
-        self.play(LaggedStart(*[t.animate(path_arc=-0.5 if i == 0 else 0.4).move_to(p(IRS_X, y)) for i, (t, y) in enumerate(zip(tp, TAIL_Y[1:]))],
-                              lag_ratio=0.3), run_time=1.4)
-        tip_badges = [p_irs] + tp
-
-        # proteins with SH2 domains dock: three of them, each with a pink cup that closes on a phosphate
-        pi3k = blob(R, p(PI3K_C) + RIGHT * 0.8 * k, "protein", GREY, 2.1, 0.8, 24, bold=False)
-        others = [blob(R, p(-1.22, y) + RIGHT * 0.8 * k, "protein", GREY, 1.4, 0.5, 22, bold=False) for y in TAIL_Y[1:3]]
-        cups_open = [cup(p(IRS_X, y), CUP_R * k, "left", False) for y in TAIL_Y[:3]]
-        self.at("proteins with")
-        self.play(FadeIn(pi3k, shift=LEFT * 0.2), *[FadeIn(o, shift=LEFT * 0.2) for o in others], run_time=0.6)
-        self.at("dock on it")
-        self.play(pi3k.animate.move_to(p(PI3K_C)), *[o.animate.move_to(p(-1.22, y)) for o, y in zip(others, TAIL_Y[1:3])],
-                  *[FadeIn(c) for c in cups_open], run_time=0.9)
-        cups_closed = [cup(p(IRS_X, y), CUP_R * k, "left", True) for y in TAIL_Y[:3]]
-        self.play(*[Transform(c, cc) for c, cc in zip(cups_open, cups_closed)], run_time=0.5)
-
-        # the SH2 domain is the cup
-        sh2 = T("SH2 domain", 28, PINK, weight=BOLD).move_to(p(-0.3, -1.62))
-        ptr = Line(p(-1.45, -1.5), p(-2.0, -1.22), color=PINK, stroke_width=3)
-        self.at("domain binds")
-        self.play(FadeIn(sh2), Create(ptr), *glow(*cups_open, s=1.3), run_time=0.7)
-        self.at("a phosphorylated")
-        self.play(*[pop(b, 1.4) for b in tip_badges[:3]], run_time=0.7)
-
-        # one of them is PI 3-kinase
-        pi3k_real = blob(R, p(PI3K_C), "PI 3-kinase", ORANGE, 2.1, 0.8, 24)
-        self.at("one such protein")
-        self.play(ReplacementTransform(pi3k, pi3k_real), run_time=0.7)
-        self.play(*glow(pi3k_real.body, pi3k_real.lbl, s=1.08), run_time=0.5)
-
-        # clear the two other proteins, then move in on the membrane (CLOSE)
-        world = VGroup(mem, rec_all, rec_lbl, tk, ins, *rp, irs, tail, *dots, *tip_badges, pi3k_real, cups_open[0], akt)
-        self.stop(akt)
-        self.outro(FadeOut(VGroup(*others, sh2, ptr, cups_open[1], cups_open[2])),
-                   then=[world.animate.scale(C.k / R.k, about_point=ORIGIN).shift(C.k * np.array([R.fx - C.fx, R.fy - C.fy, 0]))])
-
-
-# ---------------------------------------------------------------------------------------------
-def relay_end(F):
-    """what scene 2 leaves behind, rebuilt in framing F: membrane, IRS-1 and its phosphorylated tail,
-    PI 3-kinase docked on the top phosphate, and Akt waiting in the cytosol (not drifting yet)."""
-    mem = membrane(F)
-    irs = blob(F, F.p(IRS_X, IRS_Y), "IRS-1", TEAL, 1.2, 0.62, 26)
-    tail = Line(F.p(IRS_X, IRS_Y - 0.31), F.p(IRS_X, TAIL_END), color=TEAL, stroke_width=F.sw(5))
-    dots = [Circle(radius=0.1 * F.k, stroke_color=TEAL, stroke_width=F.sw(3), fill_color=TEAL, fill_opacity=1).move_to(F.p(IRS_X, y)) for y in TAIL_Y]
-    badges = [pbadge(F).move_to(F.p(IRS_X, y)) for y in TAIL_Y]
-    pi3k = blob(F, F.p(PI3K_C), "PI 3-kinase", ORANGE, 2.1, 0.8, 24)
-    cp = cup(F.p(IRS_X, TAIL_Y[0]), CUP_R * F.k, "left", True)
-    akt = blob(F, F.p(WAIT), "Akt", PURPLE, 1.7, 1.0, 34)
-    return mem, irs, tail, dots, badges, pi3k, cp, akt
-
-
-# ---------------------------------------------------------------------------------------------
-class S03Lipid(Film):
-    """PI 3-kinase at the membrane turns PIP2 into PIP3: a membrane address. (CLOSE)"""
-
-    def construct(self):
-        F = CLOSE
-        mem, irs, tail, dots, badges, pi3k, cp, akt = relay_end(F)
-        self.add(mem, tail, *dots, irs, *badges, pi3k, cp, akt)
-        self.drift(akt, ph=2.0)
-
-        # the substrate: PIP2 lipid heads hang from the inner face
-        lips = lipids(F)
-        self.at("now sits at")
-        self.play(*glow(pi3k.body, pi3k.lbl, s=1.06), run_time=0.6)
-        self.at("the membrane")
-        self.play(LaggedStart(*[FadeIn(l, shift=DOWN * 0.15) for l in lips], lag_ratio=0.12), run_time=1.0)
-        self.at("where its substrate")
-        self.play(*glow(*[l[1] for l in lips], s=1.25), run_time=0.7)
-        lbl2 = T("PIP2", 28, GREY, weight=BOLD).move_to(F.p(4.85, HEAD_Y))
-        self.at("a lipid called")
-        self.play(FadeIn(lbl2, shift=LEFT * 0.15), run_time=0.5)
-
-        # the catalytic subunit adds a phosphate to the 3 position
-        cat = T("catalytic subunit", 24, ORANGE).move_to(F.p(-0.65, -0.42))
-        cat_ptr = Line(F.p(-0.4, -0.2), F.p(-0.4, 0.12), color=ORANGE, stroke_width=3)
-        self.at("catalytic subunit")
-        self.play(FadeIn(cat), Create(cat_ptr), *glow(pi3k.body, s=1.05), run_time=0.7)
-        newp = [lip_badge(F, i) for i in range(len(LIP_X))]
-        src = pbadge(F, 0.17).move_to(F.p(0.3, 0.55))
-        self.at("adds a phosphate")
-        self.play(FadeIn(src, scale=0.4), run_time=0.3)
-        self.play(src.animate.move_to(newp[0].get_center()), run_time=0.6)
-        self.remove(src)
-        self.add(newp[0])
-        lab3 = T("3-phosphate", 24, GOLD).move_to(F.p(1.4, 0.5))
-        self.at("position of the")
-        self.play(FadeIn(lab3, shift=UP * 0.1), pop(newp[0], 1.5), run_time=0.6)
-
-        # the product is PIP3
-        lbl3 = T("PIP3", 28, TEXT, weight=BOLD).move_to(F.p(4.85, HEAD_Y))
-        self.at("The product")
-        self.play(FadeOut(lab3), FadeOut(cat), FadeOut(cat_ptr), ReplacementTransform(lbl2, lbl3),
-                  LaggedStart(*[FadeIn(b, scale=0.4) for b in newp[1:]], lag_ratio=0.15), run_time=1.3)
-        addr = T("membrane address", 30, TEXT, weight=BOLD).move_to(F.p(2.25, 0.5))
-        self.at("is a membrane")
-        self.play(FadeIn(addr, shift=UP * 0.1), LaggedStart(*[pop(b, 1.4) for b in newp], lag_ratio=0.1), run_time=1.1)
-        self.stop(akt)
-        self.outro(FadeOut(addr))
-
-
-# ---------------------------------------------------------------------------------------------
-def lipid_row_pip3(F):
-    """the row after PI 3-kinase has worked: lipids with a phosphate each, and the PIP3 label."""
-    lips = lipids(F)
-    badges = [lip_badge(F, i) for i in range(len(LIP_X))]
-    lbl3 = T("PIP3", 28, TEXT, weight=BOLD).move_to(F.p(4.85, HEAD_Y))
-    return lips, badges, lbl3
-
-
-class S04Grip(Film):
-    """the PH domain is a cup on Akt's amino end; PIP3 holds Akt against the membrane. (CLOSE)"""
-
-    def construct(self):
-        F = CLOSE
-        mem, irs, tail, dots, badges, pi3k, cp, akt = relay_end(F)
-        lips, lb, lbl3 = lipid_row_pip3(F)
-        self.add(mem, tail, *dots, irs, *badges, pi3k, cp, *lips, *lb, lbl3, akt)
-        self.drift(akt, ph=3.0)
-        k = F.k
-
-        c0 = akt.body.get_center()
-        pcup = akt_cup(F, c0, False)
-        self.at("domain at")
-        self.stop(akt)
-        self.play(GrowFromCenter(pcup), run_time=0.5)
-        self.attach(akt, pcup)
-        self.drift(akt, ph=3.5)
-        ph = T("PH domain", 26, PINK, weight=BOLD).move_to(pcup.get_center() + np.array([-1.95, 0.1, 0]))
-        self.play(FadeIn(ph, shift=RIGHT * 0.1), run_time=0.4)
-        am = T("amino end", 24, GREY).move_to(akt.body.get_left() + np.array([-0.95, -0.15, 0]))
-        self.at("amino end")
-        self.play(FadeIn(am, shift=RIGHT * 0.1), run_time=0.4)
-
-        self.at("domain binds")
-        self.play(*glow(pcup, s=1.3), LaggedStart(*[pop(b, 1.4) for b in lb], lag_ratio=0.08), run_time=0.9)
-
-        # Akt leaves the cytosol and rises to the lipid
-        self.at("leaves the cytosol")
-        self.stop(akt)
-        goal = F.p(AKT_C)
-        below = goal + np.array([0.0, -0.5 * k, 0])
-        self.play(FadeOut(ph), FadeOut(am), akt.animate.move_to(below), run_time=1.2)
-        closed = akt_cup(F, goal, True)
-        self.at("lipid holds it")
-        self.play(akt.animate.move_to(goal), run_time=0.5)
-        self.play(Transform(pcup, closed), run_time=0.4)
-        self.play(*glow(pcup, s=1.25), run_time=0.4)
-        hold = T("held against the membrane", 26, GREY).move_to(F.p(2.4, -0.95))
-        self.at("against the membrane")
-        self.play(FadeIn(hold, shift=UP * 0.1), run_time=0.5)
-        self.at("now at the address")
-        self.play(*glow(akt.body, akt.lbl, s=1.08), *glow(*lb, s=1.25), run_time=0.8)
-        self.outro(FadeOut(VGroup(hold, irs, tail, *dots, *badges, pi3k, cp)))
-
-
-# ---------------------------------------------------------------------------------------------
-def pdk_blob(F, c):
-    return blob(F, c, "PDK1", ORANGE, 1.5, 0.9, 30)
-
-
-def pdk_cup(F, c, closed=False):
-    return cup(np.array(c) + F.k * np.array([-0.45, 0.80, 0]), CUP_R * F.k, "up", closed)
-
-
-def held_akt(F):
-    """Akt held at the membrane by its PH cup (as scene 4 leaves it)."""
-    akt = akt_blob(F, F.p(AKT_C))
-    cp = akt_cup(F, F.p(AKT_C), True)
-    akt.add(cp)
-    akt.cup = cp
-    return akt
-
-
-class S05Two(Film):
-    """PDK1, held by its own PH cup, phosphorylates the loop; mTORC2 phosphorylates the tail; Akt is on. (CLOSE)"""
-
-    def construct(self):
-        F = CLOSE
-        k = F.k
-        mem = membrane(F)
-        lips, lb, lbl3 = lipid_row_pip3(F)
-        akt = held_akt(F)
-        self.add(mem, *lips, *lb, lbl3, akt)
-        ac = F.p(AKT_C)
-
-        # a second kinase, held by its own PH domain next to Akt
-        start = np.array([4.7, -1.2, 0])
-        pdk = pdk_blob(F, F.p(start))
-        self.at("A second kinase")
-        self.play(FadeIn(pdk, shift=UP * 0.2), run_time=0.5)
-        pc = pdk_cup(F, F.p(start), False)
-        self.at("its own")
-        self.play(GrowFromCenter(pc), run_time=0.5)
-        self.attach(pdk, pc)
-        goal = F.p(PDK_C)
-        self.at("holds it there")
-        self.play(pdk.animate.move_to(goal), run_time=0.9)
-        self.play(Transform(pc, pdk_cup(F, goal, True)), run_time=0.4)
-        self.play(*glow(pc, s=1.25), run_time=0.4)
-
-        # PDK1 puts a phosphate on a threonine in Akt's activation loop
-        loop = akt_loop(F, ac)
-        p1 = pbadge(F, 0.17).move_to(goal + np.array([-0.75 * k, -0.05, 0]))
-        self.at("adds a phosphate")
-        self.play(GrowFromCenter(loop), FadeIn(p1, scale=0.4), run_time=0.6)
-        self.attach(akt, loop)
-        tip1 = ac + k * LOOP_TIP
-        lead1 = Line(F.p(2.78, 0.0), F.p(2.78, -2.0), color=GREY, stroke_width=2.5)
-        thr = T("threonine in the activation loop", 24, GOLD).move_to(F.p(2.78, -2.2))
-        self.at("a threonine")
-        self.play(FadeIn(thr, shift=UP * 0.1), Create(lead1), run_time=0.6)
-        self.at("activation loop")
-        self.play(p1.animate(path_arc=0.5).move_to(tip1), run_time=0.7)
-        self.at("needs a phosphate")
-        self.play(pop(p1, 1.5), run_time=0.7)
-
-        # mTORC2 puts a second phosphate near the tail
-        m2c = F.p(0.15, -1.15)
-        m2 = blob(F, m2c, "mTORC2", ORANGE, 1.7, 0.7, 26)
-        self.at("A separate kinase")
-        self.play(FadeIn(m2, shift=RIGHT * 0.2), run_time=0.5)
-        tail = akt_tail(F, ac)
-        p2 = pbadge(F, 0.17).move_to(m2c + np.array([0.85 * k + 0.3, 0.0, 0]))
-        self.at("second phosphate")
-        self.play(Create(tail), FadeIn(p2, scale=0.4), run_time=0.6)
-        self.attach(akt, tail)
-        tip2 = ac + k * TAIL_TIP
-        lead2 = Line(F.p(AKT_C[0] + TAIL_TIP[0], -1.0), F.p(AKT_C[0] + TAIL_TIP[0], -1.42), color=GREY, stroke_width=2.5)
-        ser = T("serine near the tail", 24, GOLD).move_to(F.p(AKT_C[0] + TAIL_TIP[0], -1.62))
-        self.at("near the tail")
-        self.play(p2.animate(path_arc=-0.5).move_to(tip2), run_time=0.7)
-        self.at("on a serine")
-        self.play(FadeIn(ser, shift=UP * 0.1), Create(lead2), run_time=0.5)
-
-        # the first does most of the work; together, full activity
-        self.at("first phosphate")
-        self.play(p1.animate.scale(1.45), run_time=0.5)
-        self.at("does most of")
-        self.play(*glow(p1, s=1.25), run_time=0.6)
-        self.at("the second adds")
-        self.play(pop(p2, 1.5), run_time=0.6)
-        act = T("active", 30, GREEN, weight=BOLD).move_to(F.p(0.05, 0.05))
-        self.at("full activity")
-        self.play(akt.body.animate.set_stroke(GREEN, F.sw(6)).set_fill(GREEN, 0.2), akt.lbl.animate.set_color(GREEN),
-                  FadeIn(act, shift=RIGHT * 0.1), run_time=0.7)
-        self.outro(FadeOut(VGroup(pdk, m2, thr, lead1, ser, lead2, act)), p1.animate.scale(1 / 1.45))
-
-
-# ---------------------------------------------------------------------------------------------
-def full_akt(F, c, with_p=False, green=False):
-    """Akt with its cup, loop and tail (optionally with both phosphates), centre at screen point c."""
-    akt = akt_blob(F, c)
-    cp = akt_cup(F, c, False)
-    lp = akt_loop(F, c)
-    tl = akt_tail(F, c)
-    akt.add(cp, lp, tl)
-    akt.cup, akt.loop, akt.tail = cp, lp, tl
-    akt.pl = kinase_p(F, c, LOOP_TIP)
-    akt.pt = kinase_p(F, c, TAIL_TIP)
-    if with_p:
-        akt.add(akt.pl, akt.pt)
-    if green:
-        akt.body.set_stroke(GREEN, F.sw(6)).set_fill(GREEN, 0.2)
-        akt.lbl.set_color(GREEN)
-    return akt
-
-
-class S06Rule(Film):
-    """three checks on the finished Akt; then Akt with no insulin: normal stays in the cytosol, an anchored copy is on."""
-
-    def construct(self):
-        F = CLOSE
-        k = F.k
-        mem = membrane(F)
-        lips, lb, lbl3 = lipid_row_pip3(F)
-        akt = held_akt(F)
-        ac = F.p(AKT_C)
-        lp, tl = akt_loop(F, ac), akt_tail(F, ac)
-        pl, pt = kinase_p(F, ac, LOOP_TIP), kinase_p(F, ac, TAIL_TIP)
-        akt.add(lp, tl)
-        akt.body.set_stroke(GREEN, F.sw(6)).set_fill(GREEN, 0.2)
-        akt.lbl.set_color(GREEN)
-        self.add(mem, *lips, *lb, lbl3, akt, pl, pt)
-
-        # why a lipid and two phosphates? each is a check
-        self.at("a lipid")
-        self.play(*glow(akt.cup, s=1.3), run_time=0.6)
-        self.at("two phosphates")
-        self.play(pop(pl, 1.5), pop(pt, 1.5), run_time=0.7)
-        t_a = tick(F.p(0.45, 0.62), 0.22)
-        t_b = tick(F.p(3.15, 0.2), 0.22)
-        t_c = tick(F.p(0.9, -0.95), 0.22)
-        self.at("Each is a")
-        self.play(LaggedStart(Create(t_a), Create(t_b), Create(t_c), lag_ratio=0.45), run_time=1.4)
-        self.at("on mainly where")
-        self.play(*glow(*lb, s=1.3), run_time=0.8)
-
-        # reset to a new question: no insulin. The membrane stays; everything else is rebuilt wider.
-        F2 = Fr(1.3, 0.0, 0.35)
-        p = F2.p
-        k2 = F2.k
-        self.at("With no insulin")
-        self.play(FadeOut(VGroup(*lips, *lb, lbl3, akt, pl, pt, t_a, t_b, t_c)),
-                  mem.animate.become(membrane(F2)), run_time=0.7)
-        noins = T("no insulin", 32, YELLOW, weight=BOLD).move_to([0, 3.0, 0])
-        div = DashedLine(p(0, 1.5), p(0, -2.6), color=GREY, stroke_width=3, dash_length=0.12)
-        tl_l = T("normal Akt", 30, TEXT, weight=BOLD).move_to([-3.6, 3.0, 0])
-        self.play(FadeIn(noins, shift=DOWN * 0.1), Create(div), FadeIn(tl_l), run_time=0.6)
-        left = full_akt(F2, p(-2.6, -1.0))
-        self.at("stays in the")
-        self.play(FadeIn(left, shift=UP * 0.2), run_time=0.5)
-        self.drift(left, ph=0.5)
-        inact = T("inactive", 28, GREY).move_to(p(-2.6, -2.45))
-        cyt = T("cytosol", 24, GREY).move_to(p(-4.6, -1.0))
-        self.play(FadeIn(inact), FadeIn(cyt), run_time=0.4)
-
-        # the anchored copy
-        tl_r = T("anchored Akt", 30, TEXT, weight=BOLD).move_to([3.6, 3.0, 0])
-        rx = 2.6
-        right = full_akt(F2, p(rx, -1.0))
-        a0 = right.body.get_center()
-        anc_pts = [a0 + k2 * np.array(v) for v in ([0.6, 0.5, 0], [0.35, 0.95, 0], [0.85, 1.35, 0], [0.6, 1.75, 0])]
-        anchor = CubicBezier(*anc_pts, color=GREY, stroke_width=7)
-        anc_lbl = T("fatty acid anchor", 24, GREY).move_to(a0 + k2 * np.array([1.6, 1.3, 0]))
-        self.at("permanent fatty acid")
-        self.play(FadeIn(tl_r), FadeIn(right, shift=UP * 0.2), run_time=0.5)
-        self.drift(right, ph=2.0)
-        self.at("anchor")
-        self.play(Create(anchor), FadeIn(anc_lbl, shift=RIGHT * 0.1), run_time=0.6)
-        self.stop(right)
-        self.attach(right, anchor)
-        goal = p(rx, AKT_C[1])
-        dy = goal[1] - right.body.get_center()[1]
-        self.at("sits at the membrane")
-        self.play(right.animate.shift(goal - right.body.get_center() + np.array([0.0, 0.0, 0.0])),
-                  anc_lbl.animate.shift(UP * dy), run_time=1.0)
-        bc = right.body.get_center()
-        pl2, pt2 = kinase_p(F2, bc, LOOP_TIP), kinase_p(F2, bc, TAIL_TIP)
-        self.at("gains both")
-        self.play(FadeIn(pl2, scale=0.4), run_time=0.4)
-        self.play(FadeIn(pt2, scale=0.4), run_time=0.4)
-        act = T("active", 30, GREEN, weight=BOLD).move_to(bc + np.array([-2.0, -0.1, 0]))
-        self.at("and is active")
-        self.play(right.body.animate.set_stroke(GREEN, 6).set_fill(GREEN, 0.2), right.lbl.animate.set_color(GREEN),
-                  FadeIn(act, shift=RIGHT * 0.1), run_time=0.7)
-
-        # the rule: what the anchor does by force, PIP3 does by being an address
-        cx = right.cup.get_center()[0]
-        stem = Line(p(0, MEM_BOT)[1] * UP + cx * RIGHT, p(0, HEAD_Y + 0.15)[1] * UP + cx * RIGHT, color=GREY, stroke_width=3)
-        head = Circle(radius=0.15 * k2, stroke_color=GREY, stroke_width=3, fill_color=GREY, fill_opacity=0.5).move_to([cx, p(0, HEAD_Y)[1], 0])
-        badge = pbadge(F2, 0.17).move_to([cx, p(0, BADGE_Y)[1], 0])
-        lab = T("PIP3", 28, TEXT, weight=BOLD).move_to([cx + 1.2, p(0, HEAD_Y)[1], 0])
-        closed = cup(np.array([cx, p(0, BADGE_Y)[1], 0]), CUP_R * k2, "up", True)
-        self.at("Keep this rule")
-        right.remove(anchor)
-        self.add(anchor)
-        self.play(FadeOut(anchor), FadeOut(anc_lbl), run_time=0.4)
-        self.at("first puts")
-        self.play(FadeIn(VGroup(stem, head)), FadeIn(badge, scale=0.4), FadeIn(lab), run_time=0.6)
-        self.play(Transform(right.cup, closed), run_time=0.4)
-        self.at("right place")
-        self.play(*glow(right.body, right.lbl, s=1.08), *glow(right.cup, s=1.3), run_time=0.8)
+        self.at("writing a temporary lipid")
+        patch_box = DashedVMobject(
+            RoundedRectangle(corner_radius=0.14, width=4.55, height=0.68, stroke_color=PIP3_GOLD, stroke_width=3.0)
+            .move_to([2.50, y_in - 0.22, 0]),
+            num_dashes=26,
+        )
+        addr_lbl = T("membrane address?", size=28, color=PIP3_GOLD).move_to([2.50, y_in - 0.92, 0])
+        self.play(
+            FadeOut(q_arrow), FadeOut(q_mark),
+            t_sim.animate.set_value(0.72),
+            run_time=0.4,
+            rate_func=linear,
+        )
+        self.play(
+            Create(patch_box), FadeIn(addr_lbl),
+            t_sim.animate.set_value(0.90),
+            run_time=1.9,
+            rate_func=linear,
+        )
+        rest = max(0.2, self.narration_s + 0.35 - self.elapsed())
+        self.play(t_sim.animate.set_value(1.0), run_time=rest, rate_func=linear)
         self.finish()
 
 
-class S07End(EndCard):
-    LINE = "PIP3 puts Akt in place and opens it."
+class S02ReceptorIrs1(SpokenScene):
+    def construct(self):
+        y_in, y_out = 0.95, 1.85
+        bilayer = build_bilayer(y_in=y_in, y_out=y_out)
+        rec = make_receptor(x=-4.65, y_in=y_in, y_out=y_out, scale=0.94, docked=False, active=False)
+        irs = make_irs1(x=-2.95, y_in=y_in, scale=0.94, active=False)
+        tiles = VGroup(*[make_lipid_tile(0.70 + i * 0.90, y_in=y_in, gold=False, width=0.70, height=0.40) for i in range(5)])
+
+        extra_lbl = T("extracellular space", size=26, color=GREY).move_to([-4.3, 3.32, 0])
+        cyto_lbl = T("cytosol", size=26, color=GREY).move_to([-5.0, -3.05, 0])
+        stag = scope_tag("schematic")
+
+        bg_walks = [
+            compute_walk(21 + i, start=(0.8 + i * 2.1, 2.55), bounds=(-1.2, 5.4, y_out + 0.32, 3.15), n_steps=180, step_len=0.13, bounce_y="bottom")[0]
+            for i in range(2)
+        ]
+        t_bg = ValueTracker(0.0)
+        bg_orbs = VGroup(*[make_insulin_orb(0.21).move_to(bg_walks[i][0]) for i in range(2)])
+        for i, orb in enumerate(bg_orbs):
+            orb.add_updater(lambda m, idx=i: m.move_to(eval_walk(bg_walks[idx], t_bg.get_value())))
+
+        dock_ins = make_insulin_orb(0.20).move_to([-2.45, 2.55, 0])
+        ins_lbl = T("insulin", size=28, color=AMBER).next_to(dock_ins, RIGHT, buff=0.22)
+
+        self.add(bilayer, tiles, rec, irs, extra_lbl, cyto_lbl, stag, bg_orbs, dock_ins, ins_lbl)
+
+        self.at("Amber insulin docks")
+        rec_docked = make_receptor(x=-4.65, y_in=y_in, y_out=y_out, scale=0.94, docked=True, active=False)
+        self.play(
+            dock_ins.animate.move_to(rec_docked.jaw_center),
+            FadeOut(ins_lbl),
+            Transform(rec, rec_docked),
+            t_bg.animate.set_value(0.28),
+            run_time=max(1.8, self.t_of("tyrosine kinase") - self.elapsed() - 0.25),
+        )
+
+        self.at("tyrosine kinase")
+        rec_active = make_receptor(x=-4.65, y_in=y_in, y_out=y_out, scale=0.94, docked=True, active=True)
+        rec_lbl = T("receptor\n(tyrosine kinase)", size=26, color=AMBER).move_to([-4.95, -1.95, 0])
+        self.play(
+            Transform(rec, rec_active),
+            FadeIn(rec_lbl),
+            t_bg.animate.set_value(0.46),
+            run_time=max(1.4, self.t_of("own tyrosines") - self.elapsed() - 0.25),
+        )
+
+        self.at("own tyrosines")
+        rec_badges = VGroup(*[make_p_badge("P", radius=0.23).move_to(sp) for sp in rec_active.p_spots])
+        self.play(
+            FadeIn(rec_badges[0], scale=0.7), FadeIn(rec_badges[1], scale=0.7),
+            t_bg.animate.set_value(0.56),
+            run_time=max(1.0, self.t_of("nearby docking protein") - self.elapsed() - 0.25),
+        )
+
+        self.at("nearby docking protein")
+        irs_active = make_irs1(x=-2.95, y_in=y_in, scale=0.94, active=True)
+        irs_lbl = T("IRS-1", size=28, color=TEAL_IRS).move_to([-2.70, -1.90, 0])
+        self.play(
+            Transform(irs, irs_active), FadeIn(irs_lbl),
+            t_bg.animate.set_value(0.66),
+            run_time=max(1.0, self.t_of("IRS1") - self.elapsed() - 0.25),
+        )
+
+        self.at("IRS1")
+        irs_badges = VGroup(*[make_p_badge("P", radius=0.23).move_to(sp) for sp in irs_active.p_spots])
+        for k, b in enumerate(irs_badges):
+            spark = Dot(rec_active.p_spots[1], radius=0.09, color=PHOS)
+            self.add(spark)
+            self.play(
+                spark.animate.move_to(irs_active.p_spots[k]),
+                t_bg.animate.set_value(0.72 + 0.06 * k),
+                run_time=0.65,
+            )
+            self.remove(spark)
+            self.play(FadeIn(b, scale=0.7), run_time=0.55)
+
+        self.at("busy landing pad")
+        pad_lbl = T("landing pad", size=28, color=PHOS).move_to([-0.55, -0.75, 0])
+        self.play(FadeIn(pad_lbl), t_bg.animate.set_value(0.95), run_time=1.3)
+        rest = max(0.15, self.narration_s + 0.35 - self.elapsed())
+        self.play(t_bg.animate.set_value(1.0), run_time=rest, rate_func=linear)
+        self.finish()
+
+
+class S03Pi3kPip3(SpokenScene):
+    def construct(self):
+        y_in, y_out = 0.95, 1.85
+        w = build_overview_world(
+            y_in=y_in, y_out=y_out,
+            insulin_docked=True, rec_p=True, irs_p=True,
+            pi3k_docked=False, pi3k_open=False, n_pip3=0,
+        )
+        rec_lbl = T("receptor", size=26, color=AMBER).move_to([-4.65, -1.90, 0])
+        irs_lbl = T("IRS-1", size=28, color=TEAL_IRS).move_to([-2.95, -1.90, 0])
+        pi3k_lbl = T("PI 3-kinase", size=28, color=SKY).next_to(w.pi3k, DOWN, buff=0.22)
+        pip_lbl = T("PIP2", size=28, color=SLATE_LBL).move_to([2.80, y_in + 1.32, 0])
+        stag = scope_tag("schematic")
+
+        # Keep diffusing insulin orbs strictly in x in [-2.6, 1.4] so they never overlap PIP2/PIP3 on the right
+        bg_walks = [
+            compute_walk(31 + i, start=(-1.8 + i * 1.6, 2.55), bounds=(-2.8, 1.3, y_out + 0.32, 3.20), n_steps=200, step_len=0.14, bounce_y="bottom")[0]
+            for i in range(2)
+        ]
+        t_bg = ValueTracker(0.0)
+        bg_orbs = VGroup(*[make_insulin_orb(0.21).move_to(bg_walks[i][0]) for i in range(2)])
+        for i, orb in enumerate(bg_orbs):
+            orb.add_updater(lambda m, idx=i: m.move_to(eval_walk(bg_walks[idx], t_bg.get_value())))
+
+        self.add(w.bilayer, w.tiles, w.rec, w.irs, w.extras, w.pi3k, rec_lbl, irs_lbl, pi3k_lbl, pip_lbl, stag, bg_orbs)
+
+        self.at("kinase arrives")
+        approach_pos = np.array([-0.75, y_in - 0.80, 0.0])
+        self.play(
+            w.pi3k.animate.move_to(approach_pos),
+            pi3k_lbl.animate.move_to([-0.85, -1.90, 0]),
+            t_bg.animate.set_value(0.16),
+            run_time=max(1.5, self.t_of("regulatory subunit grips") - self.elapsed() - 0.25),
+        )
+
+        self.at("regulatory subunit grips")
+        sh2_lbl = T("SH2 domains", size=26, color=SKY).move_to([-0.85, -2.50, 0])
+        dock_pos = np.array([-0.92, y_in - 0.65, 0.0])
+        self.play(
+            w.pi3k.animate.move_to(dock_pos),
+            FadeIn(sh2_lbl),
+            t_bg.animate.set_value(0.32),
+            run_time=3.2,
+        )
+        rem_pull = max(1.0, self.t_of("loosens its regulatory") - self.elapsed() - 0.25)
+        self.play(
+            w.pi3k.animate.shift(UP * 0.05),
+            t_bg.animate.set_value(0.52),
+            run_time=rem_pull,
+            rate_func=linear,
+        )
+
+        self.at("loosens its regulatory")
+        pi3k_open = make_pi3k(pos=w.pi3k.get_center(), open_angle=0.40, scale=0.84)
+        self.play(
+            Transform(w.pi3k, pi3k_open),
+            FadeOut(sh2_lbl),
+            t_bg.animate.set_value(0.64),
+            run_time=max(1.6, self.t_of("catalytic subunit adds") - self.elapsed() - 0.25),
+        )
+
+        self.at("catalytic subunit adds")
+        new_lbl = T("PIP2 -> PIP3", size=28, color=PIP3_GOLD).move_to([2.80, y_in + 1.32, 0])
+
+        # Inset schematic of the lipid's ring-shaped head with positions 3, 4, 5 numbered
+        inset_box = RoundedRectangle(
+            corner_radius=0.16, width=5.20, height=2.76,
+            stroke_color=GREY, stroke_width=2.2, fill_color=BG, fill_opacity=0.94,
+        ).move_to([3.35, -1.35, 0])
+        inset_tag = T("head ring\n(schematic)", size=24, color=TEXT, line_spacing=0.85).move_to([1.82, -0.52, 0])
+        ring_c = np.array([3.50, -1.38, 0.0])
+        head_ring = Circle(radius=0.40, stroke_color=SLATE_LBL, stroke_width=5.5, fill_color=SLATE, fill_opacity=0.28).move_to(ring_c)
+        num3 = T("3", size=24, color=TEXT).move_to([2.82, -1.38, 0])
+        num4 = T("4", size=24, color=TEXT).move_to([3.50, -0.74, 0])
+        num5 = T("5", size=24, color=TEXT).move_to([4.18, -1.38, 0])
+        p4_badge = make_p_badge("P", radius=0.21).move_to([3.50, -0.30, 0])
+        p5_badge = make_p_badge("P", radius=0.21).move_to([4.76, -1.38, 0])
+        p3_pos = np.array([2.24, -1.38, 0.0])
+        p3_slot = DashedVMobject(
+            Circle(radius=0.21, stroke_color=PIP3_GOLD, stroke_width=2.4),
+            num_dashes=10,
+        ).move_to(p3_pos)
+        inset_lbl = T("PIP2 (P on 4, 5)", size=26, color=SLATE_LBL).move_to([3.35, -2.30, 0])
+        inset_base = VGroup(inset_box, inset_tag, head_ring, num3, num4, num5, p4_badge, p5_badge, inset_lbl)
+
+        self.play(
+            swap(pip_lbl, new_lbl, run_time=0.6),
+            FadeIn(inset_base),
+            t_bg.animate.set_value(0.68),
+        )
+        pip_lbl = new_lbl
+
+        def flip_tile(idx, bg_val):
+            gold_tile = make_lipid_tile(w.tile_xs[idx], y_in=y_in, gold=True, width=0.70, height=0.40)
+            spark = Dot(w.pi3k.cat.get_top(), radius=0.09, color=PHOS)
+            self.add(spark)
+            self.play(
+                spark.animate.move_to(gold_tile.head.get_center()),
+                t_bg.animate.set_value(bg_val),
+                run_time=0.35,
+            )
+            self.remove(spark)
+            self.play(Transform(w.tiles[idx], gold_tile), run_time=0.60)
+
+        flip_tile(0, 0.71)
+
+        self.at("position 3")
+        self.play(Create(p3_slot), num3.animate.set_color(PIP3_GOLD), t_bg.animate.set_value(0.74), run_time=0.55)
+        flip_tile(1, 0.77)
+        flip_tile(2, 0.80)
+
+        self.at("PIP2")
+        flip_tile(3, 0.85)
+        self.play(
+            p4_badge.animate(rate_func=there_and_back).scale(1.16),
+            p5_badge.animate(rate_func=there_and_back).scale(1.16),
+            t_bg.animate.set_value(0.90),
+            run_time=max(0.5, self.t_of("becomes gold") - self.elapsed() - 0.25),
+        )
+
+        self.at("becomes gold")
+        p3_badge = make_p_badge("P", radius=0.21).move_to(p3_pos)
+        head_ring_gold = Circle(radius=0.40, stroke_color=PIP3_GOLD, stroke_width=5.5, fill_color=PIP3_GOLD, fill_opacity=0.28).move_to(ring_c)
+        inset_lbl_pip3 = T("PIP3 (P on 3, 4, 5)", size=26, color=PIP3_GOLD).move_to([3.35, -2.30, 0])
+        gold_tile4 = make_lipid_tile(w.tile_xs[4], y_in=y_in, gold=True, width=0.70, height=0.40)
+        self.play(
+            Transform(w.tiles[4], gold_tile4),
+            FadeOut(p3_slot),
+            FadeIn(p3_badge, scale=0.6),
+            Transform(head_ring, head_ring_gold),
+            swap(inset_lbl, inset_lbl_pip3, run_time=0.7),
+            t_bg.animate.set_value(0.95),
+            run_time=0.95,
+        )
+        rest = max(0.4, self.narration_s + 0.35 - self.elapsed())
+        self.play(
+            w.tiles.animate.shift(UP * 0.04),
+            t_bg.animate.set_value(1.0),
+            run_time=rest,
+            rate_func=there_and_back,
+        )
+        self.finish()
+
+
+class S04AktDocking(SpokenScene):
+    def construct(self):
+        y_in, y_out = 1.45, 2.35
+        bilayer = build_bilayer(y_in=y_in, y_out=y_out)
+
+        rec = make_receptor(x=-5.35, y_in=y_in, y_out=y_out, scale=0.74, docked=True, active=True)
+        rec_idle = make_receptor(x=-5.35, y_in=y_in, y_out=y_out, scale=0.74, docked=False, active=False)
+        rec_active = make_receptor(x=-5.35, y_in=y_in, y_out=y_out, scale=0.74, docked=True, active=True)
+        ins = make_insulin_orb(0.16).move_to(rec.jaw_center)
+        irs = make_irs1(x=-4.10, y_in=y_in, scale=0.74, active=True)
+        pi3k = make_pi3k(pos=(-2.80, y_in - 0.50, 0), open_angle=0.40, scale=0.70)
+        pi3k_closed = make_pi3k(pos=(-2.80, y_in - 0.50, 0), open_angle=0.0, scale=0.70)
+        pi3k_open = make_pi3k(pos=(-2.80, y_in - 0.50, 0), open_angle=0.40, scale=0.70)
+        left_ctx = VGroup(rec, irs, pi3k)
+        for grp in (left_ctx, ins, rec_idle, rec_active, pi3k_closed, pi3k_open):
+            for m in grp.family_members_with_points():
+                m.set_opacity(0.60)
+        ctx_lbl = T("PI 3-kinase", size=24, color=SKY).move_to([-2.95, -0.55, 0])
+
+        tile_xs = [-0.65, 0.80, 2.25, 3.70]
+        tiles = VGroup(*[make_lipid_tile(tx, y_in=y_in, gold=True, width=1.00, height=0.52) for tx in tile_xs])
+        tile_badges = VGroup(*[t.badge for t in tiles])
+        for t, b in zip(tiles, tile_badges):
+            t.remove(b)
+        pip3_lbl = T("PIP3 (membrane address)", size=30, color=PIP3_GOLD).move_to([1.52, y_in + 1.30, 0])
+
+        akt_walk, _ = compute_walk(41, start=(0.9, -1.65), bounds=(-1.0, 4.2, -2.15, -0.75), n_steps=180, step_len=0.12)
+        t_walk = ValueTracker(0.0)
+        akt = make_akt(pos=akt_walk[0], fold_deg=18.0, active=False, scale=1.10)
+        akt_lbl = T("Akt (folded)", size=28, color=AKT_MUTED).next_to(akt, DOWN, buff=0.22)
+        akt.add_updater(lambda m: m.move_to(eval_walk(akt_walk, t_walk.get_value())))
+        akt_lbl.add_updater(lambda m: m.next_to(akt, DOWN, buff=0.22))
+
+        stag = scope_tag("schematic")
+        self.add(bilayer, left_ctx, ins, ctx_lbl, tiles, tile_badges, akt, akt_lbl, stag)
+
+        self.at("gold lipid patch")
+        self.play(FadeIn(pip3_lbl), t_walk.animate.set_value(0.14), run_time=0.8, rate_func=linear)
+        self.play(
+            t_walk.animate.set_value(0.24),
+            run_time=max(0.5, self.t_of("Before insulin arrives") - self.elapsed() - 0.25),
+            rate_func=linear,
+        )
+
+        self.at("Before insulin arrives")
+        slate_tiles = VGroup(*[make_lipid_tile(tx, y_in=y_in, gold=False, width=1.00, height=0.52) for tx in tile_xs])
+        self.play(
+            FadeOut(ins),
+            FadeOut(tile_badges),
+            FadeOut(pip3_lbl),
+            Transform(tiles, slate_tiles),
+            Transform(rec, rec_idle),
+            Transform(pi3k, pi3k_closed),
+            t_walk.animate.set_value(0.32),
+            run_time=0.8,
+            rate_func=linear,
+        )
+        self.play(
+            t_walk.animate.set_value(0.56),
+            run_time=max(0.6, self.t_of("activation loop hidden") - self.elapsed() - 0.25),
+            rate_func=linear,
+        )
+
+        self.at("activation loop hidden")
+        hidden_lbl = T("loop hidden inside", size=26, color=TEXT).move_to([4.05, -1.20, 0])
+        self.play(FadeIn(hidden_lbl), t_walk.animate.set_value(0.60), run_time=0.6, rate_func=linear)
+        self.play(
+            t_walk.animate.set_value(0.72),
+            run_time=max(0.5, self.t_of("lipid binding") - self.elapsed() - 0.25),
+            rate_func=linear,
+        )
+
+        self.at("lipid binding")
+        self.play(FadeOut(hidden_lbl), t_walk.animate.set_value(0.76), run_time=0.5, rate_func=linear)
+        ph_lbl = T("PH domain", size=28, color=AKT_MUTED).next_to(akt.ph, RIGHT, buff=0.42).shift(DOWN * 0.14)
+        ph_leader = Line(
+            akt.ph.get_right() + RIGHT * 0.05 + DOWN * 0.14,
+            ph_lbl.get_left() + LEFT * 0.05,
+            color=AKT_MUTED, stroke_width=2.5,
+        )
+        ph_lbl.add_updater(lambda m: m.next_to(akt.ph, RIGHT, buff=0.42).shift(DOWN * 0.14))
+        ph_leader.add_updater(lambda m: m.put_start_and_end_on(
+            akt.ph.get_right() + RIGHT * 0.05 + DOWN * 0.14,
+            ph_lbl.get_left() + LEFT * 0.05,
+        ))
+        self.play(FadeIn(ph_lbl), FadeIn(ph_leader), t_walk.animate.set_value(0.80), run_time=0.6, rate_func=linear)
+        self.play(
+            t_walk.animate.set_value(0.91),
+            run_time=max(0.5, self.t_of("When the gold patch") - self.elapsed() - 0.25),
+            rate_func=linear,
+        )
+
+        self.at("When the gold patch")
+        gold_tiles = VGroup(*[make_lipid_tile(tx, y_in=y_in, gold=True, width=1.00, height=0.52) for tx in tile_xs])
+        new_badges = VGroup(*[t.badge for t in gold_tiles])
+        for t, b in zip(gold_tiles, new_badges):
+            t.remove(b)
+        ins_restored = make_insulin_orb(0.16).move_to(rec_active.jaw_center)
+        for m in ins_restored.family_members_with_points():
+            m.set_opacity(0.60)
+        self.play(
+            FadeIn(ins_restored),
+            Transform(rec, rec_active),
+            Transform(pi3k, pi3k_open),
+            Transform(tiles, gold_tiles),
+            FadeIn(new_badges),
+            t_walk.animate.set_value(0.96),
+            run_time=0.85,
+            rate_func=linear,
+        )
+        self.play(
+            FadeIn(pip3_lbl),
+            t_walk.animate.set_value(1.0),
+            run_time=max(0.5, self.t_of("pocket grips it") - self.elapsed() - 0.25),
+            rate_func=linear,
+        )
+
+        self.at("pocket grips it")
+        akt.clear_updaters()
+        akt_lbl.clear_updaters()
+        target_akt_pos = akt_dock_pos_for_tile(tiles[1], akt_scale=1.10)
+        self.play(
+            akt.animate.move_to(target_akt_pos),
+            akt_lbl.animate.move_to([tile_xs[1], -1.85, 0]),
+            run_time=0.95,
+        )
+        ph_lbl.clear_updaters()
+        ph_leader.clear_updaters()
+        self.finish()
+
+
+class S05TwoPhosphates(SpokenScene):
+    def construct(self):
+        y_in, y_out = 1.45, 2.35
+        bilayer = build_bilayer(y_in=y_in, y_out=y_out)
+
+        rec = make_receptor(x=-5.35, y_in=y_in, y_out=y_out, scale=0.74, docked=True, active=True)
+        ins = make_insulin_orb(0.16).move_to(rec.jaw_center)
+        irs = make_irs1(x=-4.10, y_in=y_in, scale=0.74, active=True)
+        pi3k = make_pi3k(pos=(-2.80, y_in - 0.50, 0), open_angle=0.40, scale=0.70)
+        left_ctx = VGroup(rec, ins, irs, pi3k)
+        for m in left_ctx.family_members_with_points():
+            m.set_opacity(0.60)
+
+        tile_xs = [-0.65, 0.80, 2.25, 3.70]
+        tiles = VGroup(*[make_lipid_tile(tx, y_in=y_in, gold=True, width=1.00, height=0.52) for tx in tile_xs])
+        pip3_lbl = T("PIP3", size=28, color=PIP3_GOLD).move_to([1.52, y_in + 1.30, 0])
+
+        akt_pos = akt_dock_pos_for_tile(tiles[1], akt_scale=1.10)
+        akt = make_akt(pos=akt_pos, fold_deg=18.0, active=False, scale=1.10)
+        akt_lbl = T("Akt", size=28, color=AKT_MUTED).move_to([tile_xs[1] + 0.10, -2.55, 0])
+
+        # PDK1 begins lower in the cytosol and rises smoothly onto tile 0 during "second kinase"
+        pdk_dock = pdk1_dock_pos_for_tile(tiles[0], pdk_scale=1.00)
+        pdk1 = make_pdk1(pos=[-1.65, -1.65, 0], lean=0.0, scale=1.00)
+        pdk1_lbl = T("PDK1", size=28, color=VIOLET).move_to([-2.75, -1.25, 0])
+
+        stag = scope_tag("schematic")
+        self.add(bilayer, left_ctx, tiles, pip3_lbl, akt, akt_lbl, pdk1, pdk1_lbl, stag)
+
+        self.at("unfolds")
+        akt_open_probe = make_akt(pos=ORIGIN, fold_deg=115.0, active=False, scale=1.10)
+        akt_open_pos = akt.ph.get_center() - akt_open_probe.ph.get_center()
+        akt_open = make_akt(pos=akt_open_pos, fold_deg=115.0, active=False, scale=1.10)
+        thr_lbl = T("Thr308", size=26, color=TEXT).move_to([0.42, -0.88, 0])
+        thr_leader = Line([0.52, -0.68, 0], akt_open.loop_pt + DOWN * 0.07, color=TEXT, stroke_width=2.4)
+        self.play(
+            Transform(akt, akt_open),
+            FadeIn(thr_lbl),
+            Create(thr_leader),
+            run_time=max(2.6, self.t_of("second kinase") - self.elapsed() - 0.25),
+        )
+
+        self.at("second kinase")
+        pdk_ph_target = np.array([-1.80, 0.24, 0.0])
+        pdk_ph_lbl = T("PH domain", size=24, color=VIOLET).move_to(pdk_ph_target)
+        pdk1_docked_probe = make_pdk1(pos=pdk_dock, lean=0.0, scale=1.00)
+        pdk_ph_leader = Line(
+            [-1.45, 0.40, 0],
+            pdk1_docked_probe.ph.get_left() + LEFT * 0.05,
+            color=VIOLET, stroke_width=2.4,
+        )
+        # Continuous upward docking of PDK1 onto tile 0 across ~6.5 s (eliminates freeze)
+        t_dock = max(3.5, self.t_of("phosphorylates that loop") - self.elapsed() - 0.25)
+        self.play(
+            pdk1.animate.move_to(pdk_dock),
+            pdk1_lbl.animate.move_to([-1.10, -0.75, 0]),
+            run_time=t_dock - 0.9,
+        )
+        self.play(FadeIn(pdk_ph_lbl), Create(pdk_ph_leader), run_time=0.9)
+
+        self.at("phosphorylates that loop")
+        pdk1_lean = make_pdk1(pos=pdk_dock, lean=0.45, scale=1.00)
+        p_thr = make_p_badge("P", radius=0.23).next_to(akt_open.loop_pt, LEFT, buff=0.14)
+        self.play(Transform(pdk1, pdk1_lean), FadeOut(pdk_ph_lbl), FadeOut(pdk_ph_leader), run_time=0.9)
+        self.play(FadeIn(p_thr, scale=0.7), run_time=1.0)
+
+        self.at("Another kinase complex")
+        mtorc2 = make_mtorc2(pos=[4.95, -1.85, 0], scale=1.00)
+        mtor_lbl = T("mTORC2\n(a kinase)", size=24, color=LAVENDER, line_spacing=0.85).next_to(mtorc2, DOWN, buff=0.20)
+        self.play(FadeIn(mtorc2, shift=LEFT * 0.35), FadeIn(mtor_lbl), run_time=0.9)
+
+        ser_lbl = T("Ser473", size=26, color=TEXT).move_to([3.08, -0.80, 0])
+        ser_leader = Line([3.02, -0.62, 0], akt_open.tail_pt + DOWN * 0.07, color=TEXT, stroke_width=2.4)
+        p_ser = make_p_badge("P", radius=0.23).next_to(akt_open.tail_pt, RIGHT, buff=0.14)
+        akt_active = make_akt(pos=akt_open.get_center(), fold_deg=115.0, active=True, scale=1.10)
+        akt_active_lbl = T("Akt (active)", size=28, color=AKT_ACTIVE).move_to([tile_xs[1] + 0.10, -2.55, 0])
+        akt_halo = Circle(radius=0.56, stroke_color=AKT_ACTIVE, stroke_width=4.0, fill_color=AKT_ACTIVE, fill_opacity=0.14)
+        akt_halo.move_to(akt_active.kin.get_center())
+        self.play(
+            mtorc2.animate.move_to([4.35, 0.08, 0]),
+            mtor_lbl.animate.move_to([4.72, -0.82, 0]),
+            FadeIn(ser_lbl),
+            Create(ser_leader),
+            run_time=1.2,
+        )
+        self.play(
+            FadeIn(p_ser, scale=0.7),
+            Transform(akt, akt_active),
+            FadeIn(akt_halo),
+            swap(akt_lbl, akt_active_lbl, run_time=0.6),
+            run_time=1.0,
+        )
+        rest = max(0.3, self.narration_s + 0.30 - self.elapsed())
+        self.play(akt_halo.animate(rate_func=there_and_back).scale(1.12), run_time=rest)
+        self.finish()
+
+
+class S06GuidingRule(SpokenScene):
+    def construct(self):
+        y_in, y_out = 1.05, 1.90
+        w = build_overview_world(
+            y_in=y_in, y_out=y_out,
+            insulin_docked=True, rec_p=True, irs_p=True,
+            pi3k_docked=True, pi3k_open=True, n_pip3=5,
+            akt_docked=True, akt_active=True, show_pdk1=True, show_mtorc2=True,
+        )
+        rec_lbl = T("receptor", size=24, color=AMBER).move_to([-4.65, -1.90, 0])
+        irs_lbl = T("IRS-1", size=26, color=TEAL_IRS).move_to([-2.95, -1.90, 0])
+        pi3k_lbl = T("PI 3-kinase", size=24, color=SKY).move_to([-0.85, -1.90, 0])
+        pip_lbl = T("PIP3", size=28, color=PIP3_GOLD).move_to([2.50, y_in + 1.32, 0])
+        akt_lbl = T("Akt (active)", size=26, color=AKT_ACTIVE).move_to([2.40, -2.25, 0])
+        pdk_lbl = T("PDK1", size=24, color=VIOLET).move_to([0.70, -1.25, 0])
+        mtor_lbl = T("mTORC2", size=24, color=LAVENDER).next_to(w.mtorc2, DOWN, buff=0.22)
+        stag = scope_tag("schematic")
+
+        # Keep extracellular insulin orbs strictly to the left-center (x in [-2.6, 1.2]) clear of "PIP3"
+        bg_walks = [
+            compute_walk(61 + i, start=(-1.6 + i * 1.4, 2.60), bounds=(-2.8, 1.2, y_out + 0.30, 3.22), n_steps=180, step_len=0.14, bounce_y="bottom")[0]
+            for i in range(3)
+        ]
+        t_bg = ValueTracker(0.0)
+        bg_orbs = VGroup(*[make_insulin_orb(0.19).move_to(bg_walks[i][0]) for i in range(3)])
+        for i, orb in enumerate(bg_orbs):
+            orb.add_updater(lambda m, idx=i: m.move_to(eval_walk(bg_walks[idx], t_bg.get_value())))
+
+        self.add(w, rec_lbl, irs_lbl, pi3k_lbl, pip_lbl, akt_lbl, pdk_lbl, mtor_lbl, stag, bg_orbs)
+
+        # Signal wave pulse routed cleanly via PH/kinase centers (clear of P badges and mTORC2 text)
+        pulse_ring = Circle(radius=0.28, stroke_color=PHOS, stroke_width=4.5, fill_color=PHOS, fill_opacity=0.22)
+        pulse_ring.move_to(w.pdk1.ph.get_center())
+        self.add(pulse_ring)
+
+        self.at("loop phosphate")
+        self.play(
+            pulse_ring.animate.move_to(w.akt.ph.get_center()),
+            t_bg.animate.set_value(0.12),
+            run_time=0.8,
+        )
+        self.play(
+            pulse_ring.animate.move_to(w.akt.kin.get_center()).scale(1.2),
+            t_bg.animate.set_value(0.22),
+            run_time=max(0.8, self.t_of("tail phosphate") - self.elapsed() - 0.25),
+        )
+
+        self.at("tail phosphate")
+        self.play(
+            pulse_ring.animate.move_to(w.akt.kin.get_center() + DOWN * 0.45),
+            t_bg.animate.set_value(0.32),
+            run_time=0.7,
+        )
+        self.play(
+            pulse_ring.animate.move_to(w.mtorc2.get_center()),
+            t_bg.animate.set_value(0.44),
+            run_time=max(0.8, self.t_of("Keep this rule") - self.elapsed() - 0.25),
+        )
+
+        self.at("Keep this rule")
+        cap = caption("PIP3 recruits Akt to the membrane, where two phosphates activate it.", size=28, color=PIP3_GOLD)
+        self.play(
+            FadeIn(cap),
+            pulse_ring.animate.move_to(w.tiles[0].head.get_center()).scale(1 / 1.2),
+            t_bg.animate.set_value(0.56),
+            run_time=max(1.2, self.t_of("PIP3 recruits") - self.elapsed() - 0.25),
+        )
+
+        self.at("PIP3 recruits")
+        for tile in w.tiles:
+            self.play(pulse_ring.animate.move_to(tile.head.get_center()), t_bg.animate.set_value(0.66), run_time=0.45, rate_func=linear)
+        self.play(
+            pulse_ring.animate.move_to(w.akt.ph.get_center()),
+            t_bg.animate.set_value(0.75),
+            run_time=0.7,
+        )
+        self.play(
+            pulse_ring.animate.move_to(w.akt.kin.get_center()).scale(1.3),
+            t_bg.animate.set_value(0.82),
+            run_time=max(0.8, self.t_of("upstream steps write") - self.elapsed() - 0.25),
+        )
+
+        self.at("upstream steps write")
+        relay_pts = [
+            w.rec.jaw_center,
+            w.irs.get_center(),
+            w.pi3k.get_center(),
+            w.tiles[2].head.get_center(),
+            w.akt.ph.get_center(),
+            w.akt.kin.get_center(),
+        ]
+        self.play(pulse_ring.animate.move_to(relay_pts[0]).scale(1 / 1.3), t_bg.animate.set_value(0.86), run_time=0.50)
+        for k, pt in enumerate(relay_pts[1:], 1):
+            self.play(pulse_ring.animate.move_to(pt), t_bg.animate.set_value(0.86 + 0.028 * k), run_time=0.60, rate_func=linear)
+        self.finish()
+
+
+class S07PredictQ(SpokenScene):
+    def construct(self):
+        y_in, y_out = 1.05, 1.90
+        w = build_overview_world(
+            y_in=y_in, y_out=y_out,
+            insulin_docked=True, rec_p=True, irs_p=True,
+            pi3k_docked=True, pi3k_open=False, pi3k_blocked=False,
+            n_pip3=0, akt_docked=False, akt_active=False, show_pdk1=True,
+        )
+        rec_lbl = T("receptor", size=24, color=AMBER).move_to([-4.65, -1.90, 0])
+        irs_lbl = T("IRS-1", size=26, color=TEAL_IRS).move_to([-2.95, -1.90, 0])
+        pi3k_lbl = T("PI 3-kinase", size=24, color=SKY).move_to([-0.85, -1.90, 0])
+        pip_lbl = T("lipid address?", size=26, color=PIP3_GOLD).move_to([2.50, y_in + 1.32, 0])
+        pdk_lbl = T("PDK1", size=24, color=VIOLET).move_to([0.70, -1.25, 0])
+
+        akt_walk, _ = compute_walk(73, start=(2.9, -0.85), bounds=(1.8, 4.1, -1.15, -0.40), n_steps=180, step_len=0.17)
+        t_walk = ValueTracker(0.0)
+        w.akt.move_to(akt_walk[0])
+        akt_lbl = T("Akt", size=26, color=AKT_MUTED).next_to(w.akt, DOWN, buff=0.18)
+        w.akt.add_updater(lambda m: m.move_to(eval_walk(akt_walk, t_walk.get_value())))
+        akt_lbl.add_updater(lambda m: m.next_to(w.akt, DOWN, buff=0.18))
+
+        stag = scope_tag("schematic")
+        self.add(w, rec_lbl, irs_lbl, pi3k_lbl, pip_lbl, pdk_lbl, akt_lbl, stag)
+
+        self.at("drug blocks")
+        c = w.pi3k.cat.get_center()
+        x_mark = VGroup(
+            Line(c + UL * 0.30, c + DR * 0.30, color=RED, stroke_width=6),
+            Line(c + UR * 0.30, c + DL * 0.30, color=RED, stroke_width=6),
+        )
+        drug_lbl = T("drug-blocked", size=24, color=RED).move_to([-0.85, -2.30, 0])
+        self.play(
+            Create(x_mark), FadeIn(drug_lbl),
+            t_walk.animate.set_value(0.32),
+            run_time=max(2.0, self.t_of("Insulin still binds") - self.elapsed() - 0.25),
+            rate_func=linear,
+        )
+
+        self.at("Insulin still binds")
+        self.play(
+            w.extras.animate.scale(1.06),
+            t_walk.animate.set_value(0.68),
+            run_time=max(2.0, self.t_of("still gain its") - self.elapsed() - 0.25),
+            rate_func=there_and_back,
+        )
+
+        self.at("still gain its")
+        q = question_card("PI 3-kinase blocked + insulin: does Akt get phosphorylated?", y=BOTTOM_Y + 0.15, size=28, max_w=10.6)
+        lipid_q = T("?", size=34, color=PIP3_GOLD, weight=BOLD).move_to([2.50, y_in + 0.48, 0])
+        akt_q1 = T("P?", size=22, color=PHOS, weight=BOLD).next_to(w.akt.ph, RIGHT, buff=0.16)
+        akt_q2 = T("P?", size=22, color=PHOS, weight=BOLD).next_to(w.akt.kin, RIGHT, buff=0.18).shift(DOWN * 0.10)
+        akt_q1.add_updater(lambda m: m.next_to(w.akt.ph, RIGHT, buff=0.16))
+        akt_q2.add_updater(lambda m: m.next_to(w.akt.kin, RIGHT, buff=0.18).shift(DOWN * 0.10))
+        self.play(
+            FadeIn(q.question), FadeIn(lipid_q), FadeIn(akt_q1), FadeIn(akt_q2),
+            t_walk.animate.set_value(0.84),
+            run_time=0.65,
+            rate_func=linear,
+        )
+        self.play(
+            t_walk.animate.set_value(1.0),
+            run_time=max(0.5, self.narration_s + 0.30 - self.elapsed()),
+            rate_func=linear,
+        )
+        self.finish()
+
+
+class S08Pause(PredictPause):
+    QUESTION = "PI 3-kinase blocked + insulin: does Akt get phosphorylated?"
+    CARD = {"y": BOTTOM_Y + 0.15, "size": 28, "max_w": 10.6}
+    SECONDS = 4.5
+
+    def backdrop(self):
+        y_in, y_out = 1.05, 1.90
+        w = build_overview_world(
+            y_in=y_in, y_out=y_out,
+            insulin_docked=True, rec_p=True, irs_p=True,
+            pi3k_docked=True, pi3k_open=False, pi3k_blocked=True,
+            n_pip3=0, akt_docked=False, akt_active=False, show_pdk1=True,
+        )
+        akt_walk, _ = compute_walk(73, start=(2.9, -0.85), bounds=(1.8, 4.1, -1.15, -0.40), n_steps=180, step_len=0.17)
+        w.akt.move_to(akt_walk[-1])
+        rec_lbl = T("receptor", size=24, color=AMBER).move_to([-4.65, -1.90, 0])
+        irs_lbl = T("IRS-1", size=26, color=TEAL_IRS).move_to([-2.95, -1.90, 0])
+        pi3k_lbl = T("PI 3-kinase", size=24, color=SKY).move_to([-0.85, -1.90, 0])
+        drug_lbl = T("drug-blocked", size=24, color=RED).move_to([-0.85, -2.30, 0])
+        pip_lbl = T("lipid address?", size=26, color=PIP3_GOLD).move_to([2.50, y_in + 1.32, 0])
+        lipid_q = T("?", size=34, color=PIP3_GOLD, weight=BOLD).move_to([2.50, y_in + 0.48, 0])
+        pdk_lbl = T("PDK1", size=24, color=VIOLET).move_to([0.70, -1.25, 0])
+        akt_lbl = T("Akt", size=26, color=AKT_MUTED).next_to(w.akt, DOWN, buff=0.18)
+        akt_q1 = T("P?", size=22, color=PHOS, weight=BOLD).next_to(w.akt.ph, RIGHT, buff=0.16)
+        akt_q2 = T("P?", size=22, color=PHOS, weight=BOLD).next_to(w.akt.kin, RIGHT, buff=0.18).shift(DOWN * 0.10)
+        return VGroup(w, rec_lbl, irs_lbl, pi3k_lbl, drug_lbl, pip_lbl, lipid_q, pdk_lbl, akt_lbl, akt_q1, akt_q2)
+
+
+class S09PredictReveal(SpokenScene):
+    def construct(self):
+        y_in, y_out = 1.05, 1.90
+        w = build_overview_world(
+            y_in=y_in, y_out=y_out,
+            insulin_docked=True, rec_p=True, irs_p=True,
+            pi3k_docked=True, pi3k_open=False, pi3k_blocked=True,
+            n_pip3=0, akt_docked=False, akt_active=False, show_pdk1=True,
+        )
+        akt_walk, _ = compute_walk(91, start=(3.1, -1.30), bounds=(2.3, 5.1, -1.85, -0.55), n_steps=180, step_len=0.17)
+        t_walk = ValueTracker(0.0)
+        w.akt.move_to(akt_walk[0])
+
+        rec_lbl = T("receptor", size=24, color=AMBER).move_to([-4.65, -1.90, 0])
+        irs_lbl = T("IRS-1", size=26, color=TEAL_IRS).move_to([-2.95, -1.90, 0])
+        pi3k_lbl = T("PI 3-kinase", size=24, color=SKY).move_to([-0.85, -1.90, 0])
+        drug_lbl = T("drug-blocked", size=24, color=RED).move_to([-0.85, -2.30, 0])
+        pip_lbl = T("PIP2", size=26, color=SLATE_LBL).move_to([2.50, y_in + 1.32, 0])
+        pdk_lbl = T("PDK1", size=24, color=VIOLET).move_to([0.70, -1.25, 0])
+        akt_lbl = T("Akt (folded)", size=26, color=AKT_MUTED).next_to(w.akt, DOWN, buff=0.18)
+
+        w.akt.add_updater(lambda m: m.move_to(eval_walk(akt_walk, t_walk.get_value())))
+        akt_lbl.add_updater(lambda m: m.next_to(w.akt, DOWN, buff=0.18))
+        stag = scope_tag("schematic")
+
+        self.add(w, rec_lbl, irs_lbl, pi3k_lbl, drug_lbl, pip_lbl, pdk_lbl, akt_lbl, stag)
+
+        self.play(t_walk.animate.set_value(0.18), run_time=max(0.8, self.t_of("receptor and docking") - 0.25), rate_func=linear)
+
+        self.at("receptor and docking")
+        self.play(
+            w.extras.animate.scale(1.06),
+            t_walk.animate.set_value(0.36),
+            run_time=max(1.5, self.t_of("no gold lipid") - self.elapsed() - 0.25),
+            rate_func=there_and_back,
+        )
+
+        self.at("no gold lipid")
+        no_pip3 = T("no PIP3", size=28, color=RED).move_to([2.50, y_in + 1.32, 0])
+        self.play(swap(pip_lbl, no_pip3, run_time=0.8), t_walk.animate.set_value(0.55))
+        rem1 = max(0.5, self.t_of("stays folded") - self.elapsed() - 0.25)
+        self.play(t_walk.animate.set_value(0.65), run_time=rem1, rate_func=linear)
+
+        self.at("stays folded")
+        sep_line = DashedLine([1.35, 0.25, 0], [1.35, -2.10, 0], color=GREY, stroke_width=2.5, dash_length=0.14)
+        self.play(
+            Create(sep_line),
+            t_walk.animate.set_value(0.86),
+            run_time=max(1.5, self.t_of("Without the lipid") - self.elapsed() - 0.25),
+            rate_func=linear,
+        )
+
+        self.at("Without the lipid")
+        status = caption("No PIP3: Akt stays off", size=30, color=RED)
+        self.play(FadeIn(status), t_walk.animate.set_value(1.0), run_time=max(1.2, self.narration_s + 0.35 - self.elapsed()), rate_func=linear)
+        self.finish()
+
+
+class S10Closing(SpokenScene):
+    def construct(self):
+        y_in, y_out = 1.45, 2.35
+        bilayer = build_bilayer(y_in=y_in, y_out=y_out, x0=-6.1, x1=1.9)
+        tile_xs = [-4.6, -3.15, -1.70, -0.25]
+        tiles = VGroup(*[make_lipid_tile(tx, y_in=y_in, gold=True, width=0.96, height=0.50) for tx in tile_xs])
+        pip3_lbl = T("PIP3", size=28, color=PIP3_GOLD).move_to([-2.42, y_in + 1.30, 0])
+
+        akt_start = np.array([tile_xs[2], -1.65, 0.0])
+        akt = make_akt(pos=akt_start, fold_deg=18.0, active=False, scale=1.04)
+        pdk_dock = pdk1_dock_pos_for_tile(tiles[1], pdk_scale=0.94)
+        pdk1 = make_pdk1(pos=[-3.85, -1.45, 0], lean=0.0, scale=0.94)
+        pdk_lbl = T("PDK1", size=26, color=VIOLET).move_to([tile_xs[1] - 1.75, -0.75, 0])
+        mtorc2 = make_mtorc2(pos=[1.45, -1.85, 0], scale=0.94)
+        mtor_lbl = T("mTORC2", size=26, color=LAVENDER).next_to(mtorc2, DOWN, buff=0.20)
+
+        lock_title = T("Safety lock", size=30, color=TEXT, weight=BOLD).move_to([4.30, 2.35, 0])
+        row_texts = ["1. PIP3", "2. Thr308-P", "3. Ser473-P"]
+        row_cols = [PIP3_GOLD, VIOLET, LAVENDER]
+        rows = VGroup(*[T(rt, size=28, color=rc) for rt, rc in zip(row_texts, row_cols)]).arrange(DOWN, aligned_edge=LEFT, buff=0.55)
+        rows.move_to([4.05, 0.45, 0])
+        checks = VGroup(*[T("✓", size=30, color=rc, weight=BOLD).next_to(r, RIGHT, buff=0.25) for r, rc in zip(rows, row_cols)])
+
+        stag = scope_tag("schematic")
+        self.add(bilayer, tiles, pip3_lbl, akt, pdk1, pdk_lbl, mtorc2, mtor_lbl, lock_title, rows, stag)
+
+        # Step 1 (0..2.3s): Akt rises and locks onto gold PIP3 -> check 1 ticks on
+        self.at("membrane lipid")
+        dock_pos = akt_dock_pos_for_tile(tiles[2], akt_scale=1.04)
+        self.play(akt.animate.move_to(dock_pos), FadeIn(checks[0]), run_time=1.3)
+
+        # Step 2 (2.3..7.7s): Akt unfolds; PDK1 docks & stamps Thr308-P -> check 2; mTORC2 docks & stamps Ser473-P -> check 3
+        self.at("two separate kinases")
+        akt_open_probe = make_akt(pos=ORIGIN, fold_deg=115.0, active=False, scale=1.04)
+        akt_open_pos = akt.ph.get_center() - akt_open_probe.ph.get_center()
+        akt_open = make_akt(pos=akt_open_pos, fold_deg=115.0, active=False, scale=1.04)
+        pdk1_lean = make_pdk1(pos=pdk_dock, lean=0.45, scale=0.94)
+        self.play(
+            Transform(akt, akt_open),
+            pdk1.animate.move_to(pdk_dock),
+            pdk_lbl.animate.move_to([tile_xs[1] - 1.25, 0.25, 0]),
+            run_time=2.0,
+        )
+
+        p_thr = make_p_badge("P", radius=0.22).next_to(akt_open.loop_pt, LEFT, buff=0.14)
+        self.play(Transform(pdk1, pdk1_lean), FadeIn(p_thr, scale=0.7), FadeIn(checks[1]), run_time=1.6)
+
+        p_ser = make_p_badge("P", radius=0.22).next_to(akt_open.tail_pt, RIGHT, buff=0.14)
+        akt_active = make_akt(pos=akt_open.get_center(), fold_deg=115.0, active=True, scale=1.04)
+        akt_lbl = T("Akt (active)", size=28, color=AKT_ACTIVE).move_to([tile_xs[2] + 0.15, -2.40, 0])
+        self.play(
+            mtorc2.animate.move_to([1.25, -1.00, 0]),
+            mtor_lbl.animate.move_to([1.25, -1.75, 0]),
+            FadeIn(p_ser, scale=0.7),
+            Transform(akt, akt_active),
+            FadeIn(checks[2]),
+            FadeIn(akt_lbl),
+            run_time=max(1.5, self.t_of("active receptors build") - self.elapsed() - 0.25),
+        )
+
+        # Step 3 (7.7..13.8s): Show active receptor building/sustaining gold PIP3 tiles & active Akt halo
+        self.at("active receptors build")
+        rec = make_receptor(x=-5.65, y_in=y_in, y_out=y_out, scale=0.60, docked=True, active=True)
+        ins = make_insulin_orb(0.14).move_to(rec.jaw_center)
+        rec_lbl = T("receptor", size=22, color=AMBER).move_to([-5.65, 0.25, 0])
+        akt_halo = Circle(radius=0.58, stroke_color=AKT_ACTIVE, stroke_width=4.5, fill_color=AKT_ACTIVE, fill_opacity=0.16)
+        akt_halo.move_to(akt_active.kin.get_center())
+        ring = Circle(radius=0.30, stroke_color=PHOS, stroke_width=4.5, fill_color=PHOS, fill_opacity=0.24)
+        ring.move_to(rec.jaw_center)
+        self.play(FadeIn(rec), FadeIn(ins), FadeIn(rec_lbl), FadeIn(akt_halo), FadeIn(ring), run_time=0.9)
+        for tile in tiles:
+            self.play(
+                ring.animate.move_to(tile.head.get_center()),
+                tile.animate(rate_func=there_and_back).scale(1.14),
+                run_time=0.85,
+            )
+        self.play(
+            ring.animate.move_to(akt_active.kin.get_center()).scale(1.35),
+            akt_halo.animate(rate_func=there_and_back).scale(1.18),
+            run_time=max(1.0, self.t_of("Put together") - self.elapsed() - 0.25),
+        )
+
+        # Step 4 (13.8..19.1s): Highlight safety lock rows 1 -> 2 -> 3 & show closing caption
+        self.at("Put together")
+        cap = caption("Lipid docking + dual phosphorylation switch Akt on cleanly.", size=26, color=TEXT)
+        self.play(FadeIn(cap), run_time=0.55)
+        self.play(
+            ring.animate.move_to(rows[0].get_left() + LEFT * 0.42).scale(0.65),
+            tiles.animate(rate_func=there_and_back).scale(1.06),
+            run_time=1.05,
+        )
+        self.play(
+            ring.animate.move_to(rows[1].get_left() + LEFT * 0.42),
+            p_thr.animate(rate_func=there_and_back).scale(1.22),
+            run_time=1.2,
+        )
+        self.play(
+            ring.animate.move_to(rows[2].get_left() + LEFT * 0.42),
+            p_ser.animate(rate_func=there_and_back).scale(1.22),
+            run_time=1.2,
+        )
+        rem_end = max(0.6, self.narration_s + 0.30 - self.elapsed())
+        self.play(
+            ring.animate.move_to(akt_active.kin.get_center()).scale(1.4),
+            akt_halo.animate(rate_func=there_and_back).scale(1.16),
+            run_time=rem_end,
+        )
+        self.finish()
+
+
+class S11End(EndCard):
+    LINE = "PIP3 recruits Akt to the membrane,\nwhere two phosphates activate it."

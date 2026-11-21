@@ -4,8 +4,14 @@ slug: "pi3k-akt-insulin"
 course: "signaling"
 courseChapter: "Cell Signaling · Unit 4: Receptors with enzymes attached"
 order: 120
-summary: "Insulin never crosses the cell membrane, yet within minutes a muscle cell is taking up glucose and storing it. The answer is a relay from the insulin receptor through IRS-1 and PI 3-kinase to a membrane lipid, PIP3, that recruits the kinase Akt and switches it on. This lesson traces that relay, shows how Akt's substrates turn one hormone into several effects, and explains how the signal is ended. Afterwards you will be able to say where the pathway is broken in insulin resistance and in cancers with too much PI 3-kinase or no PTEN."
-hook: "Insulin never crosses the cell membrane. So how does it move glucose transporters to the surface within minutes?"
+summary: >-
+  PIP3 recruits Akt to the membrane, where two phosphates activate it; Akt phosphorylates
+  tissue-specific targets, while erasers and feedback limit the signal. Follow insulin's relay
+  from its receptor through IRS-1 and PI 3-kinase to Akt, see how one kinase turns one hormone
+  into different metabolic and growth responses, and learn how PTEN and feedback restrain the
+  signal. Afterwards you will be able to say where the pathway is broken in insulin resistance
+  and in cancers with too much PI 3-kinase or no PTEN.
+hook: "Insulin never crosses the cell membrane, so how does it move glucose transporters to the surface within minutes?"
 
 estMinutes: 22
 objectives:
@@ -18,10 +24,15 @@ explainer:
   src: "/explainers/pi3k-akt-insulin/explainer.mp4"
   captions: "/explainers/pi3k-akt-insulin/explainer.vtt"
   poster: "/explainers/pi3k-akt-insulin/poster.jpg"
-  title: "A Membrane Address for Akt"
-  durationSec: 172.9
-  narration: "an AI narrator voice (ElevenLabs, Sarah) reading narration written from this lesson's text"
+  title: "Writing a Membrane Address for Akt"
+  durationSec: 201.2
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+  takeaways:
+    - "PIP3 recruits Akt to the membrane, where two phosphates activate it."
+    - "The insulin receptor phosphorylates IRS-1 on tyrosines, letting PI 3-kinase dock via SH2 domains and convert PIP2 into PIP3."
+    - "Binding PIP3 through its PH domain brings Akt beside PDK1 at the membrane and unfolds Akt's self-inhibited shape."
+    - "PDK1 phosphorylates Thr308 in the activation loop and mTORC2 phosphorylates Ser473 near the tail, providing a multi-step check on activation."
 
 scientists:
   - name: "Frederick Banting"
@@ -390,64 +401,106 @@ corpusTags:
   - "insulin-resistance"
 draft: false
 films:
-  - id: "toronto"
-    src: "/explainers/pi3k-akt-insulin/toronto.mp4"
-    captions: "/explainers/pi3k-akt-insulin/toronto.vtt"
-    poster: "/explainers/pi3k-akt-insulin/toronto-poster.jpg"
-    title: "Four Names Behind the First Insulin"
-    durationSec: 109.9
-    narration: "an AI narrator voice (ElevenLabs, Sarah) reading narration written from this lesson's text"
+  - id: "chapter-2"
+    src: "/explainers/pi3k-akt-insulin/chapter-2.mp4"
+    captions: "/explainers/pi3k-akt-insulin/chapter-2.vtt"
+    poster: "/explainers/pi3k-akt-insulin/chapter-2-poster.jpg"
+    title: "One Kinase, Many Targets—and Its Brakes"
+    durationSec: 214.1
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
     aiGenerated: true
+    takeaways:
+      - "Akt phosphorylates tissue-specific targets, while erasers and feedback limit the signal."
+      - "In muscle, fat and liver, Akt switches off AS160, GSK3 and FOXO1 to raise glucose uptake, speed glycogen storage and slow gluconeogenic gene transcription over hours."
+      - "PTEN strips the 3-phosphate from PIP3 back to PIP2, tyrosine and protein phosphatases reset the relay, and serine phosphorylation at some IRS-1 sites provides negative feedback."
+      - "Activating PI 3-kinase mutations or PTEN loss lock the pathway on in tumours, whereas overdone serine feedback on IRS-1 weakens the same relay in insulin resistance."
 ---
 
 import LessonFilm from '../../../components/LessonFilm.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import Support from '../../../components/Support.astro';
 
-**Insulin never crosses the cell membrane, yet within minutes of its arrival a muscle cell is pulling glucose out of the blood and storing it as glycogen.** The signal gets there by a relay: the insulin receptor, a docking protein called IRS-1, PI 3-kinase, a membrane lipid called PIP3, and then the kinase Akt, which the lipid holds at the membrane and switches on. Akt phosphorylates a different protein for each job, so one hormone moves glucose transporters to the surface, speeds glycogen synthesis and changes gene expression in the liver. The same pathway held on too long drives many cancers, and when it is turned down too far it is part of insulin resistance. Insulin has been given to patients since 1922, yet the receptor was not known to be a tyrosine kinase until 1982, and most of the steps after it were found in the 1990s. This lesson follows the signal from the receptor to Akt, then to its outputs, and then asks how the signal is ended and what happens when it is too weak or cannot be shut off.
+**Insulin never crosses the cell membrane, yet within minutes a muscle cell pulls glucose from the blood and stores it as glycogen.** The first film showed how insulin writes a lipid address on the inner membrane to activate the kinase Akt; below are the domains and experiments behind that switch, followed by Akt's tissue targets, its off-switches, and the opposite breaks behind cancer and insulin resistance.
 
-## Recruitment of AKT: the receptor writes an address on the membrane
+<Support>**The one idea.** PIP3 recruits Akt to the membrane, where two phosphates activate it; Akt phosphorylates tissue-specific targets, while erasers and feedback limit the signal. **Scope:** This rule covers the class IA PI 3-kinase–Akt pathway in insulin and growth-factor signaling. Akt's PH domain also binds PI(3,4)P2, and lipid binding relieves autoinhibition as well as recruiting Akt; in the main metabolic examples here, Akt's phosphate switches its targets off, though not every Akt substrate is inhibited, and acute suppression of liver glucose output also depends on signals outside the liver cell.</Support>
 
-"Ligand activates receptor...now what?" The insulin receptor phosphorylates its own tyrosines and then those of a docking protein, IRS-1, which you met with the adaptors and scaffolds. IRS-1 has a PH domain and a PTB domain at one end, which hold it at the membrane beside the activated receptor, and a long tail with many tyrosines. Once the receptor has phosphorylated that tail, proteins with SH2 domains dock on it: PI 3-kinase, the adaptor Grb2 that leads to Ras, and the phosphatase Shp2. Adaptors mediate pathway branching, and this lesson takes the PI 3-kinase branch.
+## Writing the membrane address: from receptor to active Akt
 
-PI 3-kinase has two subunits. The regulatory subunit carries two SH2 domains, and the catalytic subunit does the chemistry. When the SH2 domains bind phosphotyrosines on IRS-1, two things follow. The enzyme is now at the membrane, where its substrate is, and the regulatory subunit loosens the hold it keeps on the catalytic one. The catalytic subunit adds a phosphate to the 3 position of the lipid PIP2 and makes PIP3, the membrane address from the lesson on lipid anchors.
+Insulin has been given to patients since 1922, yet its receptor was not known to be a tyrosine kinase until 1982, and most downstream steps were found in the 1990s. Handing off from the first film's relay, here are the protein modules that wire the receptor to the lipid.
 
-Akt is a serine/threonine kinase, also called protein kinase B, with a PH domain at its amino end. Before insulin arrives it drifts in the cytosol, inactive. PIP3 binds the PH domain and holds Akt against the membrane. A second kinase with its own PH domain, PDK1, is held there too, and it adds a phosphate to a threonine in Akt's activation loop (Thr308), the loop that must carry this phosphate before Akt works well. A separate kinase complex, mTORC2, adds a second phosphate to a serine near Akt's tail (Ser473). The Thr308 phosphate does most of the work, the Ser473 phosphate adds to it, and the two together give full activity. mTORC2 belongs to the next lesson; here you need only its name.
+After autophosphorylating its own tyrosines, the insulin receptor phosphorylates **IRS-1** (insulin receptor substrate 1), the docking protein from the adaptors and scaffolds lesson. Two modules at one end hold IRS-1 at the membrane beside the receptor: a **PH domain** (pleckstrin homology domain, which binds membrane lipids) and a **PTB domain** (phosphotyrosine-binding domain, which binds phosphotyrosine on the receptor). Phosphorylating IRS-1's long tyrosine-rich tail recruits proteins carrying **SH2 domains** (Src homology 2 domains, which recognize specific phosphotyrosine motifs): **PI 3-kinase**, the adaptor **Grb2** (leading to Ras), and the phosphatase **Shp2**. Adaptors mediate pathway branching; this lesson follows PI 3-kinase.
+
+**PI 3-kinase** has a regulatory subunit with two SH2 domains and a catalytic subunit. Docking on IRS-1 both brings the enzyme to its membrane substrate and loosens the regulatory subunit's hold on the catalytic one, which adds phosphate to the 3 position of **PIP2** (**PI(4,5)P2**, phosphatidylinositol 4,5-bisphosphate) to make **PIP3** (**PI(3,4,5)P3**), the membrane address from the lesson on lipid anchors.
+
+**Akt** (also called **protein kinase B**, **PKB**), a serine/threonine kinase, carries an amino-terminal PH domain that binds PIP3 (and the related 3-phosphorylated lipid PI(3,4)P2), anchoring it against the membrane and unfolding its self-inhibited shape. **PDK1**, held at the membrane by its own PH domain, phosphorylates **Thr308** in Akt's activation loop—the site required before Akt works well—and a separate complex, **mTORC2**, phosphorylates **Ser473** near Akt's tail. Thr308 supplies most of the activity, Ser473 adds to it, and both together give full activity (mTORC2 belongs to the next lesson; here you need only its name).
 
 > **insulin → receptor → IRS-1 (tyrosine-P) → PI 3-kinase → PIP3 → Akt at the membrane → Thr308-P (PDK1) + Ser473-P (mTORC2) → active Akt**
 
-Why a lipid and two phosphates? Each is a check, and together they keep Akt on mainly where PI 3-kinase has made its 3-phosphorylated lipids, downstream of an active receptor, and while those lipids last. Two experiments show what the lipid is for. One is a way of visualizing PIP3: fuse Akt's PH domain to green fluorescent protein, add insulin, and the glow moves from the cytosol to the plasma membrane within minutes. The other starts from a plain fact: lipids can be attached. Give Akt a permanent fatty-acid anchor and it sits at the membrane, gains both phosphates and is active with no insulin present. So PIP3's first job is to put Akt in the right place. Its binding also opens Akt's folded, self-inhibited shape so that PDK1 can reach Thr308, and Akt stays most active while it remains on the lipid.
+Together, the lipid and two phosphates keep Akt active mainly where PI 3-kinase has made 3-phosphorylated lipids, downstream of an active receptor, and while those lipids last. Fusing Akt's PH domain to green fluorescent protein (GFP) lets you watch those lipids form: minutes after insulin arrives, the glow shifts from the cytosol to the plasma membrane.
 
-## PI3K–AKT regulation of metabolism: one kinase, three substrates
+A second experiment starts from a plain fact: lipids can be attached. Give Akt a permanent fatty-acid anchor and it sits at the membrane, gains both phosphates and is active with no insulin present. So PIP3's first job is to put Akt in the right place. Its binding also opens Akt's folded, self-inhibited shape so that PDK1 can reach Thr308, and Akt stays most active while it remains on the lipid, though phosphorylated Akt also reaches targets in the cytosol and nucleus.
 
-Different tissues need different things from the same hormone, and Akt provides them by phosphorylating a different protein for each job.
+Once Akt is active at the membrane, one kinase must drive distinct jobs across muscle, fat and liver—and stop cleanly when insulin fades.
 
-**Glucose uptake in muscle and fat.** GLUT4 is the main insulin-responsive glucose transporter of these two tissues. In the resting cell most of it sits in small vesicles inside the cell. Insulin moves transporters from an internal membrane pool to the cell surface, as was shown in rat fat cells. Akt's part, found later, is to phosphorylate AS160, a GAP for the Rab GTPases that direct those vesicles. A GAP switches its GTPase off, as you saw with Ras, and Akt's phosphate stops the GAP acting on those Rabs. With the Rabs left in their GTP form, the vesicles move to the plasma membrane and, helped by other insulin-regulated proteins, fuse with it, and glucose enters. This step was worked out mostly in fat cells.
+<LessonFilm film={frontmatter.films[0]} />
 
-<LessonFigure src="/figures/pi3k-akt-insulin/glut4-as160-before-after.webp" width={1200} height={800} alt="AI-generated illustration: resting and insulin-stimulated cell edges, with extracellular space above and cytosol below. At rest, most GLUT4 is in intracellular vesicles and AS160 keeps a vesicle-associated Rab inactive. With insulin, Akt phosphorylates AS160 and Rab remains in its GTP form; vesicles fuse with help from other insulin-regulated proteins, inserting GLUT4 into the plasma membrane. Glucose crosses a surface GLUT4 transporter into the cytosol, separately from the fusion site." caption="Akt phosphorylates AS160, reducing its GAP action and allowing the relevant Rabs to remain in their GTP form. With help from other insulin-regulated proteins, GLUT4 vesicles reach and fuse with the plasma membrane. The inserted GLUT4 transports glucose into the cytosol. This mechanism was worked out mostly in fat cells." />
+## One kinase, three metabolic substrates
 
-**Glycogen synthesis.** An enzyme called glycogen synthase kinase 3 (GSK3) phosphorylates glycogen synthase and keeps it slow. Akt phosphorylates GSK3 and inhibits it, a link reported in 1995 by the laboratories of Philip Cohen and Brian Hemmings. Phosphatases then strip the inhibitory phosphates from glycogen synthase, and it speeds up. This is one of several ways insulin raises glycogen synthesis.
+The table sets the second film's three targets side by side with their tissues and timescales; below it are the experiments and caveats behind each.
 
-**Gene expression in the liver.** FOXO1 is a transcription factor, a protein that binds DNA and switches genes on. Between meals it sits in the nucleus of a liver cell and helps drive the genes for enzymes of gluconeogenesis, including glucose 6-phosphatase and PEP carboxykinase. Akt phosphorylates FOXO1, the phosphates become binding sites for 14-3-3 proteins, and FOXO1 is moved out of the nucleus and held in the cytosol. Those genes are then transcribed less. FOXO1 leaves the nucleus quickly; the enzymes already made take longer to disappear. So this is not how insulin cuts the liver's glucose output within minutes of a meal. Experiments in mice show that this fast effect can work even without insulin signaling in the liver cell. It depends largely on insulin's brake on fat breakdown in adipose tissue, which lowers the fatty acids reaching the liver.
+| Target (tissue) | Resting role | Akt effect | Outcome | Timescale |
+| --- | --- | --- | --- | --- |
+| **AS160** (muscle, fat) | Rab GAP; holds GLUT4 inside | Inhibited | Rab-GTP lets GLUT4 fuse; uptake rises | Minutes |
+| **GSK3** (muscle, liver) | Phosphorylates, slows glycogen synthase | Inhibited | Phosphatases activate glycogen synthase | Minutes |
+| **FOXO1** (liver) | Nuclear activator of gluconeogenic genes | Moved out of nucleus, held in cytosol | Gluconeogenic gene transcription falls | Hours |
 
-<LessonFigure src="/figures/pi3k-akt-insulin/foxo1-leaves-nucleus.webp" width={1200} height={775} alt="AI-generated illustration: two schematic liver cells. Between meals, nuclear FOXO1 helps activate transcription of gluconeogenic genes. With insulin, Akt phosphorylates FOXO1 before nuclear export; phosphorylated FOXO1 binds 14-3-3 and is retained in the cytosol. The same nuclear genes show reduced transcription. Existing enzyme levels and acute liver glucose output are not depicted." caption="Akt phosphorylates FOXO1, enabling 14-3-3 binding and FOXO1 export and retention in the cytosol. Gluconeogenic genes are then transcribed less. FOXO1 leaves the nucleus quickly, but existing enzymes persist longer; this transcriptional mechanism does not explain insulin's suppression of liver glucose output within minutes." />
+**Glucose uptake in muscle and fat.** **GLUT4** is the main insulin-responsive glucose transporter of muscle and fat, stored mostly in intracellular vesicles at rest. Insulin moves transporters from an internal membrane pool to the cell surface. The 1980 result came from two laboratories working with rat fat cells: Cushman and Wardzala counted transporters in membrane fractions by the binding of cytochalasin B, and Suzuki and Kono measured the transport activity each fraction could give to artificial membranes.
 
-Akt also switches on mTORC1, a controller of cell growth, which is the subject of the next lesson.
+Akt connects to those vesicles through **AS160**, a **GAP** (GTPase-activating protein) for the Rab GTPases directing GLUT4 vesicles. As you saw with Ras, a GAP switches its GTPase off; Akt's phosphate stops AS160 acting on those Rabs, so they stay GTP-bound and the vesicles—helped by other insulin-regulated proteins—fuse with the plasma membrane. This step was worked out mostly in fat cells.
 
-## More AKT: the same pathway says survive and grow
+<LessonFigure src="/figures/pi3k-akt-insulin/glut4-as160-before-after.webp" width={1200} height={800} alt="AI-generated illustration: resting and insulin-stimulated cell edges, with extracellular space above and cytosol below. At rest, most GLUT4 is in intracellular vesicles and AS160 keeps a vesicle-associated Rab inactive. With insulin, Akt phosphorylates AS160 and Rab remains in its GTP form; vesicles fuse with help from other insulin-regulated proteins, inserting GLUT4 into the plasma membrane. Glucose crosses a surface GLUT4 transporter into the cytosol, separately from the fusion site." caption="Akt turns off the Rab GAP AS160 so Rab-GTP lets GLUT4 vesicles reach and fuse with the plasma membrane—with help from other insulin-regulated proteins—raising glucose uptake (worked out mostly in fat cells)." />
 
-Insulin is one of many signals that use this route. Growth factors such as PDGF switch on PI 3-kinase through their own receptor tyrosine kinases, and the PDGF receptor binds the regulatory subunit directly on its own phosphotyrosines, with no IRS-1 in between. In those cells the output of Akt is read as an instruction to stay alive and grow. Its substrates include proteins that would otherwise start the cell-death programme, and FOXO again, which in many cell types switches on genes that stop division.
+**Glycogen synthesis.** **Glycogen synthase kinase 3** (**GSK3**) phosphorylates glycogen synthase and keeps it slow. In 1995 Philip Cohen's and Brian Hemmings's laboratories showed that Akt phosphorylates and inhibits GSK3, letting phosphatases strip the inhibitory phosphates from glycogen synthase—one of several ways insulin raises glycogen synthesis.
 
-A tumour gains from holding such a pathway on, and two breaks are common. PIK3CA, the gene for a catalytic subunit of PI 3-kinase, is among the most often mutated oncogenes in human cancer, including cancers of the breast, colon and endometrium. The mutations cluster at a few positions and raise the enzyme's activity, so that it needs less of the proper signal. PTEN, the phosphatase that removes the 3-phosphate, is a tumour suppressor that many tumours have lost. Either way the membrane carries more PIP3 and holds more Akt.
+**Gene expression in the liver.** **FOXO1** is a transcription factor driving gluconeogenic genes—including **glucose 6-phosphatase** and **PEP carboxykinase**—between meals. Akt phosphorylates FOXO1, the phosphates become binding sites for **14-3-3 proteins**, and FOXO1 is moved out of the nucleus and held in the cytosol, so those genes are transcribed less.
 
-## Ending the signal, and what insulin resistance means
+**Predict.** Akt drives FOXO1 out of the liver nucleus within minutes of a meal. Does that export explain insulin's drop in liver glucose output within minutes?
 
-Every step above has an eraser. Tyrosine phosphatases reset the receptor and IRS-1. PTEN removes the 3-phosphate from PIP3 and returns it to PIP2. With the address gone, Akt leaves the membrane and protein phosphatases take off its two phosphates.
+<details>
+<summary>Check your prediction</summary>
 
-The pathway also turns itself down. Kinases that it switches on, among them mTORC1 and its target S6 kinase from the next lesson, phosphorylate IRS-1 on serines. Phosphate on these serines makes IRS-1 a poorer substrate for the receptor and can mark it for destruction by the proteasome. Not every serine site works this way, and a few support signaling, so the effect depends on the site. This is negative feedback of the kind you met in the signaling circuits lesson: the output reduces its own input, so a long signal fades.
+No. FOXO1 leaves quickly, but pre-existing enzyme proteins take hours to disappear. Mouse experiments show insulin's fast drop in liver glucose output can work even without insulin signaling in the liver cell, relying largely on insulin braking fat breakdown in adipose tissue to lower fatty acids reaching the liver.
 
-Insulin resistance means that a given concentration of insulin produces less response than it should. In muscle and fat from insulin-resistant people and animals, the receptor is usually present and binds insulin, but the steps after it are weak, and the receptor itself can also be fewer or signal less. Less phosphotyrosine appears on IRS-1, less PI 3-kinase is recruited, and fewer GLUT4 vesicles reach the surface. One widely studied explanation is the feedback loop driven too hard. With a chronic excess of nutrients, lipids and inflammatory signals keep serine kinases active, IRS-1 collects phosphoserine, and the docking protein docks less. Some lipid signals act on the receptor itself instead. The dose-response curve for insulin shifts to the right, so the same effect needs more hormone, and when the defect lies after the receptor the maximal response also falls. The pancreas supplies it, often for years, and type 2 diabetes begins when it no longer can.
+</details>
 
-How much of human insulin resistance this one mechanism explains is still argued, and the break is not always at IRS-1. The next lesson takes up the kinase mTORC1, which this pathway switches on.
+<LessonFigure src="/figures/pi3k-akt-insulin/foxo1-leaves-nucleus.webp" width={1200} height={775} alt="AI-generated illustration: two schematic liver cells. Between meals, nuclear FOXO1 helps activate transcription of gluconeogenic genes. With insulin, Akt phosphorylates FOXO1 before nuclear export; phosphorylated FOXO1 binds 14-3-3 and is retained in the cytosol. The same nuclear genes show reduced transcription. Existing enzyme levels and acute liver glucose output are not depicted." caption="Akt-driven 14-3-3 export of FOXO1 slows gluconeogenic gene transcription over hours, whereas existing enzymes persist and do not explain insulin's minute-scale drop in liver glucose output." />
+
+Akt also switches on **mTORC1**, a controller of cell growth (next lesson).
+
+## Ending the signal: erasers and negative feedback
+
+Besides **PTEN** erasing PIP3 back to PIP2 and tyrosine phosphatases resetting the receptor and IRS-1 (both shown in the second film), **protein phosphatases** strip Thr308 and Ser473 once Akt leaves the membrane.
+
+Downstream kinases—including **mTORC1** and its target **S6 kinase** from the next lesson—also generate **negative feedback** (from the signaling circuits lesson: output reduces input so a long signal fades) by phosphorylating IRS-1 on serines. Phosphate on these serines makes IRS-1 a poorer receptor substrate and can mark it for destruction by the proteasome. The effect depends on the site: not every serine site inhibits, and a few support signaling.
+
+## One pathway, two opposite breaks: cancer and insulin resistance
+
+Recall the rule's last clause: erasers and feedback limit the signal. Push that balance in opposite directions and the same relay drives cancer or insulin resistance.
+
+**Stuck on: survival, growth and cancer.** Insulin is one of many signals that use this route. Growth factors such as platelet-derived growth factor (**PDGF**) switch on PI 3-kinase through their own receptor tyrosine kinases, and the PDGF receptor binds the regulatory subunit directly on its own phosphotyrosines, with no IRS-1 in between. In those cells Akt's output is read as an instruction to stay alive and grow: Akt inhibits proteins that start the cell-death programme, and inhibits FOXO again, which in many cell types drives genes that stop division. Tumours gain from locking the pathway on through two common breaks. **PIK3CA**, encoding a PI 3-kinase catalytic subunit, is among the most often mutated oncogenes in human cancer (including breast, colon and endometrium); mutations cluster at a few positions and raise activity so less upstream signal is needed. Conversely, many tumours lose the tumour suppressor **PTEN**. Either way, more PIP3 sits on the membrane and holds more Akt active.
+
+**Turned down: insulin resistance.** **Insulin resistance** means a given insulin concentration produces less response than it should. In muscle and fat from insulin-resistant people and animals, the receptor is usually present and binds insulin, while steps after it are weak (though receptors can also be fewer or signal less): less phosphotyrosine appears on IRS-1, less PI 3-kinase docks, and fewer GLUT4 vesicles reach the surface. One widely studied cause is overdriven feedback: chronic excess nutrients, lipids and inflammatory signals keep serine kinases active, loading IRS-1 with phosphoserine (some lipid signals act on the receptor itself instead). How much of human insulin resistance this mechanism explains is still argued, and the break is not always at IRS-1.
+
+**Predict.** On an insulin dose-response curve (glucose uptake versus insulin), compare losing some receptors when spare receptors remain against a post-receptor bottleneck (fewer IRS-1/PI 3-kinase complexes or impaired translocation). Which can high insulin still overcome, and which lowers the maximal response?
+
+<details>
+<summary>Check your prediction</summary>
+
+With spare receptors present, losing some receptors shifts the curve right—more hormone is needed—yet saturating the remaining receptors approaches the normal maximum. With a post-receptor defect, even saturating every receptor cannot push more flux past the bottleneck, so the curve shifts right *and* the maximal response falls.
+
+</details>
+
+The pancreas compensates with more insulin—often for years—and type 2 diabetes begins when it no longer can. The next lesson takes up mTORC1, which this pathway switches on.
 
 ### Design problem
 
@@ -462,7 +515,7 @@ Storage: GSK3, switched off. It was holding glycogen synthase in its slow, phosp
 
 Liver: FOXO1, switched off by removal from the nucleus. The gluconeogenic genes lose an activator. This is the slow arm; the fast fall in output depends on routes outside the liver cell.
 
-In every case Akt turns its substrate off, and the substrate was a brake on that job.
+In every case Akt turns its substrate off—releasing brakes on glucose uptake and glycogen synthesis, and shutting off a transcriptional activator of glucose production.
 
 The gene is AKT2. With one faulty copy you might expect half the Akt and a mild defect. Predict a larger one if the faulty protein also interferes with the normal one. Then each job weakens: fewer transporters reach the surface after a meal, glycogen is stored more slowly, and the liver keeps making glucose while insulin is present. Blood glucose rises and the pancreas answers with more insulin. A family with this defect was described in 2004. One copy of AKT2 carried a single amino acid change in the kinase domain, the change was inherited together with severe insulin resistance and diabetes, and in cultured cells the mutant kinase blocked the normal one.
 
@@ -472,8 +525,6 @@ The gene is AKT2. With one faulty copy you might expect half the Akt and a mild 
 
 ### The hormone before the pathway: Toronto, 1921 to 1922
 
-<LessonFilm film={frontmatter.films[0]} />
-
 In January 1922 a teenage boy in Toronto was injected with a purified extract of beef pancreas, and his blood sugar fell by about three quarters. Nobody could have said how.
 
 The pancreas makes digestive enzymes and, in small clusters of cells called islets, a hormone released into the blood. By 1920 several researchers had made pancreatic extracts that lowered blood sugar, and none of those extracts could be given safely to a patient.
@@ -482,11 +533,7 @@ Frederick Banting, a surgeon with no research training, took an idea to John Mac
 
 The extract was active and too impure to use. James Collip, a biochemist visiting from Alberta who had joined the group in December, raised the alcohol concentration of the extract in steps so that impurities dropped out of solution while the active substance stayed in, until at the highest concentration the active substance itself came out and could be collected, and he tested each batch on rabbits. His preparation went into the same boy on 23 January, the injection described at the top of this section. The 1923 Nobel Prize named Banting and Macleod. Banting shared his prize money with Best and Macleod shared his with Collip, so the two-name story you may know leaves out half the people.
 
-They had a drug and no mechanism. The mechanism came later, and the rest of this lesson is that story.
-
-### Who showed that insulin moves GLUT4
-
-The 1980 result came from two laboratories working with rat fat cells (Cushman and Wardzala; Suzuki and Kono).
+They had a drug and no mechanism. The mechanism came later, and this lesson traces that relay.
 
 ### Insulin-resistant liver: a puzzle
 
