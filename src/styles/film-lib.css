@@ -333,6 +333,39 @@
 .film-lib.fl .course-h h2 { margin: 0; font-size: var(--ddp-text-lg); }
 .film-lib.fl .course-h .n { font-family: inherit; font-size: var(--ddp-text-sm); }
 .film-lib .fc-start { position: absolute; left: 6px; bottom: 6px; padding: 0.15em 0.55em; border-radius: 999px; background: var(--ddp-color-bg); color: var(--ddp-color-ink); font-size: var(--ddp-text-xs); font-weight: 700; }
+/* The gallery's stacks (2026-11-21): one pile of posters per course. Two tinted sheets sit under the
+   top poster (only the top one is a picture, so a stack costs one image). */
+.film-lib .fl-shelf-h { margin: 0; font-size: var(--ddp-text-xl); }
+.film-lib .fl-shelf-note { margin: 0.2em 0 var(--ddp-space-4); font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); }
+.film-lib .fl-stacks { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr)); gap: var(--ddp-space-6) var(--ddp-space-6); }
+.film-lib .fs { position: relative; min-width: 0; }
+.film-lib .fs[hidden] { display: none; }
+.film-lib .fs > a { display: grid; align-content: start; gap: 0.2rem; padding: 8px; margin: -8px; border-radius: 14px; text-decoration: none; color: var(--ddp-color-ink); }
+.film-lib .fs-pile { position: relative; display: block; aspect-ratio: 16 / 9; margin: 8px 10px 14px; }
+.film-lib .fs-sheet, .film-lib .fs-top { position: absolute; inset: 0; border-radius: 8px; transition: transform 0.24s cubic-bezier(.2, .7, .2, 1), box-shadow 0.24s ease; }
+.film-lib .fs-sheet { background: color-mix(in srgb, var(--lv, var(--lv-methods)) 45%, var(--ddp-color-surface)); box-shadow: 0 0 0 1px color-mix(in srgb, var(--lv, var(--lv-methods)) 75%, var(--ddp-color-ink)); }
+.film-lib .fs-sheet:nth-child(1) { transform: rotate(-5deg) translate(-6px, 6px); }
+.film-lib .fs-sheet:nth-child(2) { transform: rotate(3.5deg) translate(6px, 4px); background: color-mix(in srgb, var(--lv, var(--lv-methods)) 70%, var(--ddp-color-surface)); }
+.film-lib .fs-top { overflow: hidden; background: #0f1117; box-shadow: 0 0 0 1px color-mix(in srgb, var(--ddp-color-line) 70%, transparent), 0 3px 8px rgba(0, 0, 0, 0.18); }
+.film-lib .fs-top img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.film-lib .fs > a:hover .fs-sheet:nth-child(1), .film-lib .fs > a:focus-visible .fs-sheet:nth-child(1) { transform: rotate(-10deg) translate(-14px, 8px); }
+.film-lib .fs > a:hover .fs-sheet:nth-child(2), .film-lib .fs > a:focus-visible .fs-sheet:nth-child(2) { transform: rotate(8deg) translate(14px, 5px); }
+.film-lib .fs > a:hover .fs-top, .film-lib .fs > a:focus-visible .fs-top { transform: translateY(-5px); box-shadow: 0 0 0 1px color-mix(in srgb, var(--ddp-color-line) 70%, transparent), 0 10px 20px rgba(0, 0, 0, 0.24); }
+.film-lib .fs > a:active .fs-top { transform: translateY(-1px) scale(0.98); }
+.film-lib .fs-t { font-weight: 700; line-height: 1.25; }
+.film-lib .fs > a:hover .fs-t { color: var(--ddp-color-accent); }
+.film-lib .fs-m, .film-lib .fs-n { font-size: var(--ddp-text-sm); line-height: 1.35; color: var(--ddp-color-ink-soft); }
+.film-lib .fl-back { margin: 0 0 var(--ddp-space-2); }
+.film-lib .fl-back .fl-btn { min-height: 40px; }
+.film-lib .fl-back + .course { margin-top: var(--ddp-space-3); }
+@media (max-width: 560px) {
+  .film-lib .fl-stacks { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--ddp-space-4) var(--ddp-space-4); }
+  .film-lib .fs-pile { margin: 6px 8px 10px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .film-lib .fs-sheet, .film-lib .fs-top { transition: none; }
+  .film-lib .fs > a:hover :is(.fs-top, .fs-sheet), .film-lib .fs > a:focus-visible :is(.fs-top, .fs-sheet) { transition: none; }
+}
 .film-lib .fl-foot { margin: var(--ddp-space-12) 0 0; max-width: 72ch; font-size: var(--ddp-text-sm); line-height: 1.55; color: var(--ddp-color-muted); }
 
 /* ---- /films/run/: a view played in order ------------------------------------------------------ */
