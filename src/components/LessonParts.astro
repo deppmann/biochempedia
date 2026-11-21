@@ -1,0 +1,66 @@
+---
+/**
+ * "In this lesson": what is in the whole lesson, part by part, with honest minutes
+ * (src/lib/lesson-time.ts). It replaces the Overview fold's section list and its "What's included"
+ * list, which counted one film and left films out of the time. Plain links, so it works with
+ * scripts off; the page script marks the part being read (data-toc-link, aria-current).
+ * Used twice: inside "About this lesson", and at the top of the rail on a wide screen.
+ */
+import { clock, type LessonTime } from '../lib/lesson-time';
+import { plural } from '../lib/lesson-copy';
+
+interface Props {
+  time: LessonTime;
+  openingFilm?: { title: string; durationSec: number };
+  /** Leave the notes under the list out (the rail copy: the fold has them). */
+  notes?: boolean;
+}
+const { time, openingFilm, notes = true } = Astro.props;
+const withOf = (p: LessonTime['parts'][number]) => [
+  ...p.films.map((f) => `a ${clock(f.sec)} film`),
+  ...(p.story ? ['a story'] : []),
+].join(' and ');
+---
+
+<ol class="lp">
+  {openingFilm && (
+    <li class="lp-row">
+      <a href="#explainer">First, a film: {openingFilm.title}</a>
+      <span class="lp-min">{clock(openingFilm.durationSec)}</span>
+    </li>
+  )}
+  {time.parts.map((p) => (
+    <>
+      <li class="lp-row">
+        {p.slug ? <a href={`#${p.slug}`} data-toc-link={p.slug}>{p.text}</a> : <span>{p.text}</span>}
+        <span class="lp-min">{p.optional ? 'optional, ' : ''}{p.min} min</span>
+        {(p.films.length > 0 || p.story) && <span class="lp-with">with {withOf(p)}</span>}
+      </li>
+      {p.landing && <li class="lp-stop">A place to stop</li>}
+    </>
+  ))}
+</ol>
+{notes && time.period > 0 && time.period - time.sumMin >= 5 && (
+  <p class="lp-note">{[ 'Reading', time.filmCount === 1 ? 'the film' : time.filmCount > 1 ? 'films' : '', time.storyCount > 0 ? 'stories' : '' ].filter(Boolean).join(', ').replace(/, ([^,]*)$/, ' and $1')} come{time.storyCount > 0 || time.filmCount > 0 ? '' : 's'} to about {time.sumMin} minutes. The {time.period} is {time.guide ? 'the hands-on time this activity was planned for' : 'the class period this lesson was planned for'}.</p>
+)}
+{notes && time.quiz > 0 && (
+  <p class="lp-note">{time.guide
+    ? `Then ${time.quiz} ${plural(time.quiz, 'question')} to talk over, when you want ${time.quiz === 1 ? 'it' : 'them'}.`
+    : `Then a self-test of ${time.quiz} ${plural(time.quiz, 'question')}, about ${time.quiz} ${plural(time.quiz, 'minute')}, when you want it.`}</p>
+)}
+
+<style>
+  .lp { margin: 0; padding: 0; list-style: none; }
+  .lp-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0 var(--ddp-space-3); padding: 0; font-size: var(--ddp-text-sm); line-height: 1.4; }
+  /* The link is the tap target: 44 px tall. */
+  .lp-row a, .lp-row > span:first-child { display: flex; align-items: center; min-height: 44px; }
+  .lp-row { align-items: center; }
+  .lp-row a { color: var(--ddp-color-primary); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; text-decoration-color: color-mix(in srgb, var(--ddp-color-primary) 30%, transparent); }
+  .lp-row a:hover { text-decoration-color: currentColor; }
+  .lp-row a[aria-current='location'] { font-weight: 700; text-decoration-color: var(--ddp-color-secondary); text-decoration-thickness: 2px; }
+  .lp-min { font-variant-numeric: tabular-nums; white-space: nowrap; color: var(--ddp-color-muted); }
+  .lp-with { grid-column: 1 / -1; margin-top: -0.5rem; padding-bottom: 0.3rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .lp-stop { display: flex; align-items: center; gap: var(--ddp-space-3); padding: 0.3rem 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .lp-stop::after { content: ''; flex: 1; height: 1px; background: var(--ddp-color-line); }
+  .lp-note { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-sm); line-height: 1.5; color: var(--ddp-color-ink-soft); }
+</style>

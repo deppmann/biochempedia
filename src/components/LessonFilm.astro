@@ -24,7 +24,9 @@ const len = `${Math.floor(film.durationSec / 60)}:${String(Math.round(film.durat
     <track kind="captions" src={film.captions} srclang="en" label="English" />
     Your browser cannot play this video. <a href={film.src}>Download the film (MP4)</a>.
   </video>
-  <figcaption><span class="lf-kicker">Watch</span> {film.title} <span class="lf-len">· {len}</span></figcaption>
+  {/* The title is a heading to a screen reader, so the films can be stepped through by heading
+      (in the lesson's Films stop the section headings around them are folded away). */}
+  <figcaption><span class="lf-kicker">Watch</span> <span role="heading" aria-level="3">{film.title}</span> <span class="lf-len">· {len}</span></figcaption>
   {film.predatesCorrection && (
     <p class="lf-predates"><strong>This film was made before a correction to the lesson text.</strong> {film.predatesCorrection}</p>
   )}
@@ -45,8 +47,8 @@ const len = `${Math.floor(film.durationSec / 60)}:${String(Math.round(film.durat
   .lf-kicker { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ddp-color-accent); margin-right: 0.4rem; }
   .lf-predates { margin: var(--ddp-space-2) 0 0; max-width: 72ch; padding: var(--ddp-space-2) var(--ddp-space-3); border-left: 3px solid var(--ddp-color-caution); background: var(--ddp-color-caution-soft); border-radius: 4px; font-size: var(--ddp-text-sm); line-height: 1.5; color: var(--ddp-color-ink-soft); }
   .lf-takeaways { margin: var(--ddp-space-2) 0 var(--ddp-space-5); max-width: 72ch; padding: var(--ddp-space-3) var(--ddp-space-4); border-left: 3px solid var(--ddp-color-accent); background: var(--ddp-color-accent-soft); border-radius: 4px; }
-  .lf-takeaways-h { margin: 0 0 var(--ddp-space-1); font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ddp-color-accent); }
+  .lf-takeaways-h { margin: 0 0 var(--ddp-space-1); font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ddp-color-primary); }
   .lf-takeaways ul { margin: 0; padding-left: 1.2rem; list-style: disc; line-height: 1.55; }
   .lf-takeaways li + li { margin-top: 0.25rem; }
-  .lf-len { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-muted); }
+  .lf-len { white-space: nowrap; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-muted); }
 </style>
