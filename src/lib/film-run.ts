@@ -63,7 +63,8 @@ export async function run(): Promise<void> {
     } catch { /* treated as not found */ }
     const byKey = new Map(list.films.map((f) => [f.f, f]));
     films = (found?.films ?? []).map((k) => byKey.get(k)).filter((f): f is ListFilm => !!f);
-    if (!found) return nothingLink('There is no idea by that name. Every film is on the films page.');
+    // No file: not an idea, or an idea whose films are all at one level.
+    if (!found) return nothingLink('There is no run of films for that idea. Every film is on the films page.');
     if (films.length < 2) return nothing('This idea does not have films at more than one level yet.');
     seconds = films.reduce((s, f) => s + f.d, 0);
     // "Simplest first", not "at every level": most ideas have films at two or three of the seven.

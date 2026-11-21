@@ -22,6 +22,7 @@ import { STAGES, stageOf } from '../data/stages';
 import { watchHref } from './films';
 import links from '../data/lesson-links.json';
 import { hops as graphHops, ladder as graphLadder, filmsFor, conceptsOf, type LadderRung } from './topic-graph';
+import { runOf } from './hop';
 
 export interface Hop {
   lesson: string;
@@ -131,7 +132,7 @@ async function authored(lesson: string): Promise<FilmHops | null> {
 
 /** The films of an idea that teach it, simplest level first (set-up films for grown-ups left out). */
 export async function ideaFilms(id: string) {
-  return (await filmsFor(id)).filter((f) => f.kind !== 'activity' && f.href.startsWith('/watch/')).sort((a, b) => a.rank - b.rank);
+  return runOf(await filmsFor(id)); // one rule, shared with the ladder's "Play the ladder" link
 }
 
 const fromRung = (r: LadderRung, extra: Partial<Hop> = {}): Hop => {
