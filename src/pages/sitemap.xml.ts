@@ -5,6 +5,7 @@ import { METHODS } from '../data/methods';
 import { SETS as MCAT_SETS } from '../lib/mcat';
 import { allFilms } from '../lib/films';
 import { SITE_ORIGIN } from '../lib/site-host.mjs';
+import { allIdeas } from '../lib/hop';
 
 /**
  * Hand-rolled sitemap (no @astrojs/sitemap — Astro deps are pinned). Lists the
@@ -29,6 +30,8 @@ export async function GET(context: APIContext): Promise<Response> {
     ...lessons.map((l) => `/lessons/${l.data.slug}/`),
     '/methods/', ...METHODS.map((m) => `/methods/${m.slug}/`),
     '/films/', ...(await allFilms()).map((f) => f.href),
+    // Find an idea, and one page per idea the hop graph holds.
+    '/ideas/', ...(await allIdeas()).map((i) => `/ideas/${i.id}/`),
   ];
   const body =
     '<?xml version="1.0" encoding="UTF-8"?>\n' +
