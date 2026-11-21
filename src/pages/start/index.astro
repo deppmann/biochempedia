@@ -9,17 +9,23 @@
    /start/lessons.json and one /graph/<area>.json): no model is asked and the typed words are never
    sent. That has to hold with scripts off, blocked or not yet loaded too, so there is no <form>
    here and the box has no name: nothing on this page can submit what was typed. The button is
-   switched on by the script. ?idea=<id> opens an idea directly (an idea's id is the site's word,
-   not the visitor's). Level and time are the site-wide device preferences (src/lib/prefs.ts); the
-   page works without them and never asks twice. */
+   switched on by the script. The page never repeats the typed words back.
+
+   Children use this box. It carries one permanent line saying what the box is and where help is
+   (src/lib/start-help.mjs). That wording is not yet approved by the site's owner, so this page is
+   noindex and unlinked until it is.
+
+   ?idea=<id> opens an idea directly (an idea's id is the site's word, not the visitor's). Level
+   and time are the site-wide device preferences (src/lib/prefs.ts); the page works without them. */
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import '../../styles/hop.css';
 import '../../styles/start.css';
 import { LEVEL_LABEL, LEVEL_KEYS } from '../../lib/hop-words.mjs';
+import { HELP } from '../../lib/start-help.mjs';
 
 const tries = ['how do vaccines work', 'what is DNA', 'how do plants drink water'];
 ---
-<BaseLayout title="What are you trying to understand? — STEMhop" description="Type a question in your own words and say how long you have. You get a short path of films and lessons at your level, with a simpler and a deeper version beside it.">
+<BaseLayout title="What are you trying to understand? — STEMhop" description="Type a question in your own words and say how long you have. You get a short path of films and lessons at your level, with a simpler and a deeper version beside it." noindex>
   <article class="wrap st">
     <div class="st-col">
       <h1>What are you trying to understand?</h1>
@@ -46,6 +52,7 @@ const tries = ['how do vaccines work', 'what is DNA', 'how do plants drink water
           </label>
         </div>
       </div>
+      <p class="st-help">{HELP.line} <a href={HELP.href}>{HELP.linkText}</a></p>
       <p class="st-try" data-st-try-row>Or try {tries.map((t, i) => <>{i > 0 && (i === tries.length - 1 ? ' or ' : ', ')}<button type="button" class="st-link" data-st-try={t} disabled>{t}</button></>)}.</p>
       <p class="st-private">What you type stays on this device. Your words are never sent, and no AI reads them.</p>
       <noscript><p class="st-note">This box needs JavaScript, so the button does nothing without it. <a href="/ideas/#every-idea">Every idea is listed by area</a>, each with a page of its own, and <a href="/courses/">the courses</a> are laid out by level.</p></noscript>

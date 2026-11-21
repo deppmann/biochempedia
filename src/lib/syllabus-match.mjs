@@ -41,8 +41,8 @@ const LEAD_RARE = 0.76;
 const STOP = new Set(('a an the of in on to do does did is are was were and or how why what when where which who whom whose my your you i we it its '
   + 'for with from at by be been being get gets can could would should will that this these those into about so me us our their they them there as if '
   + 'not no some any thing things really actually exactly mean means happen happens work works working make makes made vs versus than then '
-  + 'have has had come comes go goes making use uses used need needs let lets tell explain understand know learn want trying try like just also very much many '
-  + 'between through during after before under over up down out off again still even each every all both other another such per via am im dont doesnt people person someone').split(' '));
+  + 'have has had use uses used need needs let lets tell explain understand know learn want trying try like just also very much many '
+  + 'between through during after before under over up down out off again still even each every all both other another such per via am im dont doesnt people person someone etc').split(' '));
 
 /** A word's plural-free form: cells → cell, viruses → virus, bodies → body. */
 export function stem(w) {
@@ -54,7 +54,7 @@ export function stem(w) {
   return w;
 }
 
-const SUFFIXES = ['ization', 'ational', 'ation', 'ition', 'ular', 'tion', 'sion', 'ment', 'ness', 'ance', 'ence', 'ity', 'ous', 'ive', 'ing', 'ary', 'ion', 'ism',
+const SUFFIXES = ['ization', 'ational', 'ation', 'ating', 'izing', 'ition', 'ular', 'ated', 'ates', 'ized', 'izes', 'ate', 'ize', 'tion', 'sion', 'ment', 'ness', 'ance', 'ence', 'ity', 'ous', 'ive', 'ing', 'ary', 'ion', 'ism',
   'al', 'ic', 'ed', 'er', 'ar', 'um', 'us', 'on', 'e', 'y', 'a'];
 /* Roots that the suffix rule would get wrong, or that two spellings of one word should share. */
 const ROOTS = {
@@ -64,6 +64,9 @@ const ROOTS = {
   evolve: 'evolu', evolved: 'evolu', evolving: 'evolu', evolution: 'evolu', evolutionary: 'evolu', inherit: 'inherit', inherited: 'inherit', heredity: 'inherit', hereditary: 'inherit',
   organ: 'organ', organism: 'organism', organic: 'organic', organelle: 'organell', organization: 'organiz', organize: 'organiz', organized: 'organiz',
   muscle: 'muscl', muscular: 'muscl', nerve: 'nerv', nervous: 'nerv', neural: 'neur', neuron: 'neuron', neuronal: 'neuron', neurone: 'neuron',
+  special: 'special', specials: 'special', specialized: 'special', specialised: 'special', specialize: 'special', specialty: 'special', speciation: 'speciat', speciate: 'speciat',
+  adaptive: 'adaptive', climate: 'climate', climates: 'climate', plan: 'plan', plans: 'plan', state: 'state', states: 'state', rate: 'rate', rates: 'rate', size: 'size',
+  summer: 'summer', summers: 'summer', summation: 'summation', winter: 'winter', number: 'number',
   autumn: 'fall', fall: 'fall', mom: 'parent', mum: 'parent', mother: 'parent', dad: 'parent', father: 'parent', parent: 'parent', parents: 'parent', moms: 'parent', dads: 'parent', tire: 'tire', tired: 'tire', tiring: 'tire', tires: 'tire',
   breathe: 'breath', breathing: 'breath', breath: 'breath', respire: 'respir', respiration: 'respir', respiratory: 'respir',
   die: 'death', dies: 'death', dying: 'death', dead: 'death', death: 'death', sight: 'vision', vision: 'vision', visual: 'vision',
@@ -122,7 +125,7 @@ function twoSlips(a, b) {
 export function tokens(text) {
   const out = [];
   // "don't" and "mom's" lose their endings before folding, so no stray "t" or "s" is left as a word.
-  const plain = String(text ?? '').replace(/n[’']t\b/gi, ' not').replace(/[’']s\b/gi, '');
+  const plain = String(text ?? '').replace(/n[’']t\b/gi, ' not').replace(/[’']s\b/gi, '').replace(/\bbreak[- ]down\b/gi, 'breakdown');
   for (const w of fold(plain).split(' ')) {
     if (!w || STOP.has(w)) continue;
     const s = stem(w);
@@ -274,6 +277,9 @@ export function matchText(m, text, limit = 5, strict = false) {
     }
     return out;
   });
+  // A word the index knows well is taken as typed: "plants" is not a slip of "plans".
+  q.forEach((qt) => { qt.known = (m.byRoot.get(qt.r)?.length ?? 0) >= 3; });
+  const fitOf = (qt, tt) => { const f = wordFit(qt, tt); return f >= 0.9 || !qt.known ? f : 0; };
   const cand = new Set();
   fits.forEach((f) => { for (const r of f.keys()) for (const ti of m.byRoot.get(r) ?? []) cand.add(ti); });
   const qSum = q.reduce((n, k) => n + m.weightOf(k), 0);
@@ -285,13 +291,15 @@ export function matchText(m, text, limit = 5, strict = false) {
     const t = m.terms[ti];
     // The share of the text the term explains, and of the term the text explains.
     let qHit = 0, exactAll = true;
-    for (const qt of q) { let b = 0; for (const tt of t.toks) { const f = wordFit(qt, tt); if (f > b) b = f; } qHit += b * m.weightOf(qt); if (b < 0.9) exactAll = false; }
+    for (const qt of q) { let b = 0; for (const tt of t.toks) { const f = fitOf(qt, tt); if (f > b) b = f; } qHit += b * m.weightOf(qt); if (b < 0.9) exactAll = false; }
     let tHit = 0, tFull = 0, tAll = true, tSeen = 0;
-    for (const tt of t.toks) { let b = 0; for (const qt of q) { const f = wordFit(qt, tt); if (f > b) b = f; } if (b >= 0.6) { tHit += m.weightOf(tt); tFull += m.fullWeight(tt); tSeen++; } if (b < 0.9) tAll = false; }
+    for (const tt of t.toks) { let b = 0; for (const qt of q) { const f = fitOf(qt, tt); if (f > b) b = f; } if (b >= 0.6) { tHit += m.weightOf(tt); tFull += m.fullWeight(tt); tSeen++; } if (b < 0.9) tAll = false; }
     const qCov = qHit / qSum, tCov = tHit / (t.sum || 1);
     let fit = qCov * tCov;
     // A question may carry a few extra words the phrase lacks ("…in the fall"): soften the term side a little.
-    if (!strict) fit = Math.max(fit, qCov * (0.4 + 0.6 * tCov) * 0.97);
+    // …but not much: with a third or more of the phrase missing ("how do I grow taller", for "how do plants
+    // grow taller") it can only suggest.
+    if (!strict) { const soft = qCov * (0.4 + 0.6 * tCov) * 0.97; fit = Math.max(fit, tCov >= 0.7 ? soft : Math.min(soft, 0.7)); }
     const one = t.toks.length === 1;
     // The whole term sits inside a longer line, in order: "Ch 7 membranes: diffusion and osmosis".
     if (tAll && !exactAll && (t.kind === 'name' || t.kind === 'textbook' || ((t.kind === 'lesson' || t.kind === 'phrase' || t.kind === 'part' || t.kind === 'idword') && t.toks.length >= 2)) && inOrder(q, t.toks)) {
@@ -307,15 +315,20 @@ export function matchText(m, text, limit = 5, strict = false) {
     // For a syllabus, a term of several words that shares only one of them ("how much of the body is water",
     // for "water") suggests; it does not decide.
     if (strict && t.toks.length >= 2 && tSeen === 1) fit = Math.min(fit, 0.7);
+    // Counting words plainly: with a third of the term's words missing ("plant" from "how do plants grow
+    // taller"; "cells" from "plant and animal cells"), the text is about something else, however common the
+    // missing word is. It may suggest; it does not decide.
+    if (tSeen / t.toks.length < 0.7 && !(tAll)) fit = Math.min(fit, 0.7);
     const score = fit * W[t.kind];
     if (score < 0.3) continue;
     const own = t.slug ? 0 : score;
     const prev = best.get(t.idea);
-    if (!prev) best.set(t.idea, { score, term: t, cover: qCov, lesson: t.slug, lessonScore: t.slug ? score : 0, own });
+    const share = tSeen / t.toks.length;
+    if (!prev) best.set(t.idea, { score, term: t, cover: qCov, share, lesson: t.slug, lessonScore: t.slug ? score : 0, own });
     else {
       if (t.slug && score > prev.lessonScore) { prev.lesson = t.slug; prev.lessonScore = score; }
       if (own > prev.own) prev.own = own;
-      if (score > prev.score) { prev.score = score; prev.term = t; prev.cover = qCov; }
+      if (score > prev.score) { prev.score = score; prev.term = t; prev.cover = qCov; prev.share = share; }
     }
   }
   // A lesson's title or search phrase was filed under the lesson's main idea. If another idea the
@@ -329,12 +342,24 @@ export function matchText(m, text, limit = 5, strict = false) {
     if (b.score > tb.score) { tb.score = b.score; tb.lesson = b.term.slug; tb.lessonScore = b.score; }
     b.score = Math.max(b.own, MAYBE);
   }
+  for (const b of best.values()) {
+    // Found only through one lesson's search phrase, with none of the idea's own names behind it ("how do
+    // worms breathe" is a phrase of an activity filed under adaptation): the answer is that lesson, so the
+    // result says so and a page should show that lesson, not the idea's lesson at some other level.
+    if (b.term.kind === 'asked' && b.own < 0.3) { b.viaLesson = true; if (q.length === 1 || b.share < 1 || b.cover < 0.95) b.score = Math.min(b.score, 0.7); }
+    // A suggestion must share more than one word in two with the phrase it rests on: "babies" does not
+    // suggest "how does a baby get oxygen in the womb".
+    if (b.score < SURE && b.term.toks.length > 1 && b.share <= 0.5) b.score = 0;
+    // One typed word that is only half of a compound name ("depression", "power") is not offered at all.
+    if (b.term.kind === 'half' && q.length === 1 && !strict) b.score = 0;
+  }
   const out = [...best].map(([i, b]) => {
     const it = m.ideas[i];
     return {
       id: it.id, name: it.name, score: Math.min(1, b.score), sure: b.score >= SURE, cover: b.cover, words: b.term.toks.map((k) => k.r),
       why: { kind: b.term.kind, text: b.term.text, ...(b.term.slug ? { slug: b.term.slug } : {}) },
       ...(b.lesson && b.lessonScore >= b.score * 0.92 ? { lesson: b.lesson } : {}),
+      ...(b.viaLesson && b.term.slug ? { viaLesson: b.term.slug } : {}),
     };
   }).filter((r) => r.score >= MAYBE && m.byId.get(r.id).lessons.length);
   out.sort((a, b) => b.score - a.score || best.get(m.byId.get(b.id).i).own - best.get(m.byId.get(a.id).i).own || bits(m.byId.get(b.id).mask) - bits(m.byId.get(a.id).mask) || a.name.localeCompare(b.name));
@@ -351,38 +376,36 @@ function inOrder(q, toks) {
   return false;
 }
 
-// ------------------------------------------------------------------ questions this page must not answer
+// ------------------------------------------------------------------ when the words are a call for help
 
-/* Children and teenagers use this box. A question about their own health, feelings, body or safety
-   is not a biology search, and a word match on it can be absurd or harmful ("depression" is also
-   the name of a change at synapses). Such a question gets one calm, fixed reply and no lesson.
-   `crisis` is the smaller set where the reply also names a place to get help now.
-   The patterns lean toward catching too much: a missed lesson costs less than a wrong one here.
-   Biology's own uses of the words stay open ("cell death", "critical period", "sex linkage"). */
-const CRISIS = /\b(suicid\w*|kill (myself|my self|me)|hurt(ing)? (myself|my self)|harm(ing)? (myself|my self)|self[- ]?harm\w*|cut(ting)? myself|want to die|wanna die|end my life|don'?t want to (live|be alive)|nobody (loves|likes) me|being (abused|hit|touched)|(hits?|touche[sd]|abuses?) me|run away from home)\b/i;
-const PERSONAL = new RegExp([
-  '\\b(depress(ed|ion|ing)?|anxi(ety|ous)|panic attacks?|lonely|sad all|feel(ing)? (so |very |really )?(sad|empty|worthless|hopeless|scared|ugly|fat)|hate my(self| body)|eating disorders?|anorexi\\w*|bulimi\\w*|am i (fat|ugly|sick|dying|pregnant|gay|normal|depressed|autistic)|lose weight|too (fat|thin|skinny))\\b',
-  '\\b(addict\\w*|get(ting)? high|drunk|alcohol|vap(e|es|ing)|weed|marijuana|cigarettes?|smoking|drugs? and|overdos\\w*|steroids)\\b',
-  '\\b(sex|puberty|my period|a period|have (a |my )?periods?|get (a |my )?periods?|periods? (start|hurt|late)|wet(ting)? the bed|masturbat\\w*|porn\\w*|virgin\\w*|condoms?|birth control|abortion\\w*|having sex|sex ed\\w*|sex education|sexual (health|abuse|assault|orientation)|(am i|is he|is she) (gay|trans)|pregnan(t|cy) (test|at|teen)|get(ting)? pregnant)\\b',
-  '\\b((where|how) (do|are) babies|babies (come from|get made|are made|made)|make a baby|twins? (made|happen|born))\\b',
-  '\\b(when (you|we|i|people|someone) die|after (you|we|i) die|happens when (you|we|i|people) die|am i going to die|will i die|(mom|dad|mum|grandma|grandpa|dog|cat|pet|friend) (died|is dying|dying))\\b',
-  '\\b(tell my (parents?|mom|dad|mum|teacher)|my (parents?|mom|dad) (fight|hit|yell|drink)|bull(y|ied|ying|ies))\\b',
-  '\\b(cause[sd]? autism|(is|are) [\\w ]{2,30} (safe|dangerous|bad for (you|me)|good for (you|me))|safe to|should i (take|stop|eat|see|get|go|tell)|side effects?|dos(e|age)|how much \\w+ (should|can) i|cure for|home remed\\w*|medicine for|pills? for|diagnos\\w*)\\b',
+/* Children use this box, and now and then one will type something that is not a biology question
+   at all. A word list cannot recognise every such sentence, so the page does not depend on one:
+   it carries a permanent line saying what the box is and where help is (src/lib/start-help.mjs),
+   it never repeats typed words back, and its no-match reply is neutral.
+
+   This detector is the small extra: wording that is plainly about self-harm, abuse or danger. Its
+   single effect is that the page shows the help message first and no lessons. It is narrow on
+   purpose (a question about the body, health or feelings is matched like any other question), so
+   it will miss sentences; the permanent line is there for those. */
+const HELP_WORDING = new RegExp([
+  "\\b(suicid\\w*|sucide|suiside|suicde|kms|unaliv\\w*|self[- ]?harm\\w*)\\b",
+  "\\bk[i1]l{1,2}(ing|ed|s)? (myself|my self|herself|himself|me)\\b",
+  "\\b(hurt|harm|cut)(ing|s)? (myself|my self)\\b|\\bstop cutting\\b",
+  "\\b(wants?|wanna|going) to die\\b|\\bwanna die\\b|\\bwish i (was|were) dead\\b|\\bbetter off dead\\b|\\bfeel like dying\\b|\\bhow (to|do i|can i) die\\b",
+  "\\bend (it all|my life)\\b|\\btake my (own )?life\\b|\\bnot worth living\\b|\\bhate my life\\b|\\bwant to disappear\\b",
+  "\\b(do not|don'?t|dont) (want to|wanna) (live|be alive|be here)\\b",
+  "\\bpills?\\b.{0,40}\\b(die|dying|overdose)\\b|\\boverdos\\w*\\b|\\b(how|way) to stop breathing\\b",
+  "\\b(hits?|hitting|beats?|beating|hurts?|hurting|touch(es|ed|ing)?|rapes?|raped|molest\\w*|abus\\w*) (me|my (mom|mum|mother|dad|father|brother|sister|private\\w*))\\b",
+  "\\bprivate parts?\\b|\\bi was raped\\b|\\b(get|got|getting) hit at home\\b",
+  "\\bscared (of my \\w+|to go home)\\b|\\bfeel unsafe\\b|\\bnot safe at home\\b",
 ].join('|'), 'i');
-/* Biology's own phrases that contain one of the words above. */
-const NOT_PERSONAL = /\b(long[- ]term depression|synaptic depression|cell death|programmed cell death|critical periods?|refractory periods?|latent period|sexual (reproduction|selection|dimorphism)|sexual differentiation|sex[- ]link\w*|sex chromosomes?|sex determination|sex cells?|sex ratios?|sex hormones?)\b/i;
 
-/* In a syllabus only the health-class units are set aside; "reward, dopamine and addiction" is neuroscience. */
-const SCHOOL_HEALTH = /\b(puberty|sex ed\w*|sex education|family life|drugs? and alcohol|alcohol and drugs?|substance abuse|suicide prevention|mental health)\b/i;
-
-/** '' when the text is an ordinary question; 'crisis' or 'personal' when the page should not match it to a lesson. */
-export function sensitive(text) {
-  const t = String(text ?? '').replace(/[’]/g, "'");
-  if (CRISIS.test(t)) return 'crisis';
-  if (/^\s*(depression|addiction|puberty|periods?|sex|suicide|anxiety|pregnancy|drugs|alcohol)\s*\??\s*$/i.test(t)) return 'personal';
-  if ((PERSONAL.test(t) || /^\s*(do|did|could|can) i have\b/i.test(t)) && !NOT_PERSONAL.test(t)) return 'personal';
-  return '';
+/** True when the words are plainly about self-harm, abuse or danger. */
+export function needsHelp(text) {
+  return HELP_WORDING.test(String(text ?? '').replace(/[’]/g, "'"));
 }
+/* In a syllabus the health-class units are the school's to plan; no lesson is suggested for them. */
+const SCHOOL_HEALTH = /\b(puberty|sex ed\w*|sex education|family life|drugs? and alcohol|alcohol and drugs?|substance abuse|suicide prevention)\b/i;
 
 // ------------------------------------------------------------------ a student's question
 
@@ -391,16 +414,17 @@ export function sensitive(text) {
  *   kind 'match'    `ideas[0]` is the answer; the rest are other readings worth offering
  *   kind 'closest'  nothing matched well: `ideas` are "might fit", never shown as the answer
  *   kind 'none'     nothing close; offer search and the list of ideas
- *   kind 'sensitive' a question about the asker's own health, feelings, body or safety: no lesson is offered
- *                    (`crisis` true when the reply should also say where to get help now)
+ *   kind 'help'     the words are plainly about self-harm, abuse or danger: the help message, and no lesson
  */
 export function matchQuestion(m, text) {
-  const gate = sensitive(text);
-  if (gate) return { kind: 'sensitive', crisis: gate === 'crisis', ideas: [], together: 0 };
+  if (needsHelp(text)) return { kind: 'help', ideas: [], together: 0 };
   const cleaned = String(text ?? '').replace(/\b(for (kids|children|beginners|dummies)|in (simple|plain) (words|terms|english)|eli5|please|simply|quick(ly)?)\b/gi, ' ');
   let found = matchText(m, cleaned, 6);
+  // "What is ATP and why do cells need it": the first clause names the idea.
+  const clause = cleaned.replace(/\b(and|but) (why|how|what|when|where|who|is|are|do|does|can)\b.*$/i, ' ');
+  if (!found[0]?.sure && clause !== cleaned) { const f = matchText(m, clause, 6); if (f[0]?.sure) found = f; }
   // "photosynthesis and respiration": two ideas asked for at once.
-  const parts = splitTopics(cleaned);
+  const parts = splitTopics(clause);
   if (parts.length > 1 && !(found[0]?.score >= 0.93 && found[0].cover >= 0.8)) {
     const each = parts.map((forms) => forms.map((f) => matchText(m, f, 2)[0]).find((r) => r?.sure)).filter(Boolean);
     if (each.length > 1 || (each.length === 1 && !found[0]?.sure)) {
@@ -418,9 +442,9 @@ const dedupe = (list) => { const s = new Set(); return list.filter((r) => (s.has
 // ------------------------------------------------------------------ a syllabus
 
 /* Lines that are a course's housekeeping, not its science. */
-const ADMIN = /\b(exam|midterm|mid term|final|quiz|quizzes|test day|unit test|chapter test|unit \d+ (test|exam|quiz)|test|review( day| session| for)?|holiday|no class|no school|no lab|no lecture|break|thanksgiving|labor day|memorial day|mlk|martin luther king|columbus day|indigenous peoples|veterans day|presidents day|juneteenth|easter|recess|teacher work ?day|early release|snow day|conference|registration|add ?\/ ?drop|withdraw|reading day|study day|commencement|syllabus|course (overview|introduction|intro|policies|expectations|logistics)|welcome|orientation|icebreaker|lab safety|safety (contract|rules|training|quiz)|office hours|make ?up|catch ?up|flex day|buffer|tbd|tba|to be (announced|determined)|presentations?|poster session|project (due|work|day|proposal)|paper due|report due|homework|problem set|worksheet|assignment|due\b|sol (review|test)|ap exam|state test|benchmark|field trip|guest (lecture|speaker)|pre ?test|post ?test|study guide|check ?in|wrap ?up|course evaluations?|procedures|testing window|final projects?|homework:?|sol\b|sols\b|standards? of learning|dissection day|study island|quizlet)\b/i;
+const ADMIN = /\b(exam|midterm|mid term|final|quiz|quizzes|test day|unit test|chapter test|unit \d+ (test|exam|quiz)|test|review( day| session| for)?|holiday|no class|no school|no lab|no lecture|break\b(?!-?\s?down)|thanksgiving|labor day|memorial day|mlk|martin luther king|columbus day|indigenous peoples|veterans day|presidents day|juneteenth|easter|recess|teacher work ?day|early release|snow day|conference|registration|add ?\/ ?drop|withdraw|reading day|study day|commencement|syllabus|course (overview|introduction|intro|policies|expectations|logistics)|welcome|orientation|icebreaker|lab safety|safety (contract|rules|training|quiz)|office hours|make ?up|catch ?up|flex day|buffer|tbd|tba|to be (announced|determined)|presentations?|poster session|project (due|work|day|proposal)|paper due|report due|homework|problem set|worksheet|assignment|due\b|sol (review|test)|ap exam|state test|benchmark|field trip|guest (lecture|speaker)|pre ?test|post ?test|study guide|check ?in|wrap ?up|course evaluations?|procedures|testing window|final projects?|homework:?|sol\b|sols\b|standards? of learning|dissection day|study island|quizlet)\b/i;
 /* Lines from the top of a syllabus: who, where, how it is graded. */
-const POLICY = /@|https?:|www\.|\b(instructor|professor|teacher:|email|e-mail|phone|room\b|office|textbook|required (text|materials)|isbn|edition|grading|grade scale|grades?:|points|percent|%|attendance|late work|academic (integrity|honesty)|honor code|plagiarism|accommodation|disabilit|prerequisite|credits?\b|credit hours|learning (outcomes|objectives)|course description|tardy|cell ?phones?|supplies|materials needed|canvas|blackboard|google classroom|schoology|meeting time|class meets|section \d|semester|fall 20|spring 20|policy|policies)\b/i;
+const POLICY = /@|https?:|www\.|^text:|\(optional\)|subject to change|\b(instructor|professor|teacher:|email|e-mail|phone|room\b|office|textbook|required (text|materials)|isbn|edition|grading|grade scale|grades?:|points|percent|%|attendance|late work|academic (integrity|honesty)|honor code|plagiarism|accommodation|disabilit|prerequisite|credits?\b|credit hours|learning (outcomes|objectives)|course description|tardy|cell ?phones?|supplies|materials needed|canvas|blackboard|google classroom|schoology|meeting time|class meets|section \d|semester|fall 20|spring 20|policy|policies)\b/i;
 
 const MONTH = '(jan(uary)?|feb(ruary)?|mar(ch)?|apr(il)?|may|june?|july?|aug(ust)?|sept?(ember)?|oct(ober)?|nov(ember)?|dec(ember)?)';
 const DAY = '(mon(day)?|tues?(day)?|wed(nesday)?|thu(rs)?(day)?|fri(day)?|sat(urday)?|sun(day)?|m|t|w|th|r|f|mw|mwf|tr|tth)';
@@ -479,39 +503,46 @@ export function splitTopics(text) {
  */
 export function parseSyllabus(text) {
   const lines = String(text ?? '').replace(/\r\n?/g, '\n').split('\n').map((l) => l.replace(/\t+/g, ' | ').replace(/\s+/g, ' ').trim());
-  const marked = lines.filter((l) => l && LEAD.test(l) && l.replace(LEAD, '').trim().length > 2).length;
+  const TABLE_LEAD = /^\s*[\w.]{0,6}\s*\d[\d/.,\-– ]*\|/;
+  const marked = lines.filter((l) => l && ((LEAD.test(l) && l.replace(LEAD, '').trim().length > 2) || TABLE_LEAD.test(l))).length;
   // With a real schedule in the text, only its lines (and short lines under them) are topics.
   const strict = marked >= 4;
   const rows = [], skipped = [];
   let inSchedule = false, n = 0;
   for (const line of lines) {
     if (!line) { continue; }
-    if (/^(week|date|day|unit|topic|lecture)s?\s*\|\s*(topic|date|reading|chapter|subject|content)/i.test(line) || /^[-=_|\s]{4,}$/.test(line)) continue;
-    const hasLead = LEAD.test(line) && line.replace(LEAD, '').trim().length > 2;
+    if (/^(week|wk|date|day|unit|topic|lecture|lec|class|session|#)s?\.?\s*\|\s*(topic|date|reading|chapter|subject|content|week|day)/i.test(line) || /^[-=_|\s]{4,}$/.test(line)) continue;
+    // A table row that opens with a number or a date cell is a schedule line too.
+    const hasLead = (LEAD.test(line) && line.replace(LEAD, '').trim().length > 2) || TABLE_LEAD.test(line);
     const words = line.split(' ').length;
     const prose = words >= 14 && /[a-z]{3}\. [A-Z]|[a-z]{3}\.$/.test(line);
     if (/^(course )?(schedule|calendar|outline|topics|sequence|pacing|scope and sequence|tentative schedule)\b.{0,40}$/i.test(line)) { inSchedule = true; continue; }
     if (!hasLead && (POLICY.test(line) || prose || line.length > 170)) { skipped.push(line); if (!strict) inSchedule = false; continue; }
     if (strict && !hasLead && !inSchedule && !rows.length) { skipped.push(line); continue; }
     if (hasLead) inSchedule = true;
-    // A table row may hold several cells: the topic is the cell with the most to say.
+    // A table row: every cell that says something is part of the topic (dates, numbers and readings fall away).
     let body = line;
     if (line.includes(' | ')) {
-      const cells = line.split(' | ').map((c) => c.trim()).filter(Boolean);
-      const scored = cells.map((c) => ({ c, t: cleanTopic(c) })).filter((x) => x.t && !/^\d+$/.test(x.t));
-      const pick = scored.find((x) => !ADMIN.test(x.c) && tokens(x.t).length) ?? scored[0];
-      if (!pick) continue;
-      if (cells.some((c) => ADMIN.test(c)) && !scored.some((x) => !ADMIN.test(x.c) && tokens(x.t).length >= 1 && !/^(ch|chapter|pp|read)/i.test(x.c))) body = cells.find((c) => ADMIN.test(c)) ?? pick.c;
-      else body = pick.c;
+      const cells = line.split(' | ').map((c) => cleanTopic(c)).filter((c) => c && !/^[\d\s.,/:\-–]*$/.test(c) && tokens(c).length);
+      if (!cells.length) continue;
+      body = cells.join('; ');
     }
     const topic = cleanTopic(body);
     if (!topic || topic.length < 3 || /^\d[\d\s.,/-]*$/.test(topic)) { if (line.length > 3) skipped.push(line); continue; }
     if (!hasLead && strict && words > 12) { skipped.push(line); continue; }
-    // "Exam I; bacterial genetics" and "Organelles (cell project due Fri)": drop the housekeeping, keep the science.
+    // Housekeeping is a judgement on the whole line, made when it is matched: "Review of mitosis" and
+    // "Buffer systems and pH" are science. Here the line is only marked, with its housekeeping words set aside.
     let kind = 'topic', said = topic;
     if (ADMIN.test(topic)) {
-      const keep = topic.split(/\s*(?:;|\(|\)|\*{2,}|\s[-–—]\s|\s\+\s|,|[!?]+\s|\.\s)\s*/).filter((p) => p && !ADMIN.test(p) && tokens(p).some((k) => !GENERIC.has(k.r)));
-      if (keep.length) said = keep.join('; '); else kind = 'admin';
+      const pieces = topic.split(/\s*(?:;|\(|\)|\*{2,}|\s[-–—]{1,2}\s|\s\/\s|\s\+\s|,|[!?]+\s|\.\s)\s*/).filter(Boolean);
+      const keep = pieces.filter((p) => !ADMIN.test(p) && tokens(p).some((k) => !GENERIC.has(k.r)));
+      const strip = (p) => p.replace(new RegExp(ADMIN.source, 'gi'), ' ').replace(/\s+/g, ' ').trim();
+      // The pieces with no housekeeping word, then the others with that word taken out.
+      // "TEST: Cells and energy", "Exam 2", "Quiz on mitosis" are assessments whatever follows; "Test crosses" is not.
+      const HARD = /^\s*(unit |chapter |lecture |lab )?(tests?|exams?|quiz(zes)?|midterms?|final exam|finals?|benchmarks?)\s*(#?\d+\b|[ivx]+\b|[:\-–]|on\b|$)/i;
+      const rest = pieces.filter((p) => ADMIN.test(p) && !HARD.test(p)).map(strip).filter((p) => tokens(p).some((k) => !GENERIC.has(k.r) && !/^\d+$/.test(k.w)));
+      kind = 'admin?';
+      said = [...keep, ...rest].join('; ');
     }
     rows.push({ n: n++, raw: line, topic: said, kind });
   }
@@ -526,6 +557,8 @@ export function matchTopic(m, topic) {
   // A unit on puberty, drugs or sex education is the school's to plan: no lesson is suggested for it.
   if (SCHOOL_HEALTH.test(topic)) return { ideas: [], maybe: [] };
   const whole = matchText(m, topic, 4, true);
+  // "Digestion and absorption of carbs, fats, proteins": the list after "of" says what is digested; it is not three more topics.
+  const head = /^([^,;:()]{3,70}?)\s+of\s+[^,;:]+,/i.exec(topic)?.[1];
   const sure = [];
   const maybe = [];
   // The same idea found twice keeps its better match (its words decide what else it swallows).
@@ -539,7 +572,7 @@ export function matchTopic(m, topic) {
     take(whole[0], topic);
     if (whole[1]?.sure && whole[1].score >= whole[0].score - 0.02 && whole[1].cover >= 0.8) take(whole[1], topic);
   } else {
-    for (const forms of splitTopics(topic)) {
+    for (const forms of splitTopics(head ?? topic)) {
       let got = null, near = null;
       for (const f of forms) {
         // A bare common word left over from a split ("plant" from "plant and animal cells") is not a topic.
@@ -609,7 +642,13 @@ export function defaultLevel(rungs) {
  */
 export function matchSyllabus(m, text, level) {
   const { rows, skipped } = parseSyllabus(text);
-  const first = rows.map((row) => (row.kind === 'admin' ? { ideas: [], maybe: [] } : matchTopic(m, row.topic)));
+  // A line with a housekeeping word is housekeeping only if nothing in it is surely science.
+  const first = rows.map((row) => {
+    if (row.kind !== 'admin?') return matchTopic(m, row.topic);
+    const r = row.topic ? matchTopic(m, row.topic) : { ideas: [], maybe: [] };
+    row.kind = r.ideas.length ? 'topic' : 'admin';
+    return r.ideas.length ? r : { ideas: [], maybe: [] };
+  });
   // What the course is about, from its clearest matches. A loose match from an area the rest of
   // the syllabus never touches ("pressure flow" as phloem, in a physiology course) is a guess.
   const areaCount = new Map();

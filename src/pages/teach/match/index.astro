@@ -34,22 +34,22 @@ Week 6: Mitosis and meiosis
 Week 7: Heredity - Punnett squares
 Week 8: Thanksgiving break`;
 ---
-<BaseLayout title="Match my syllabus to lessons — STEMhop" description="Paste your syllabus and pick your class's level. For each topic you get the lessons and films that teach it, a simpler one for review and a deeper one for stretch. It runs on your computer; nothing is sent." noAnalytics>
+<BaseLayout title="Syllabus matcher — STEMhop" description="Paste your syllabus and pick your class's level. For each topic you get the lessons and films that teach it, a simpler one for review and a deeper one for stretch. It runs on your computer; nothing is sent." noAnalytics>
   <article class="wrap tc tm" data-tm>
-    <p class="tc-eyebrow tm-noprint"><a href="/teachers/">Resources for teachers</a> · Match my syllabus</p>
+    <p class="tc-eyebrow tm-noprint"><a href="/teachers/">Resources for teachers</a> · Syllabus matcher</p>
     <h1>Match your syllabus to lessons</h1>
     <p class="tc-lede tm-noprint">Paste it and pick your class's level. You get your topics, in your order, with the lessons and films that teach each one.</p>
 
     <div class="tm-form tm-noprint" data-tm-form>
       <label class="tm-label" for="tm-text">Your syllabus <span>the schedule of topics is enough</span></label>
-      <textarea id="tm-text" rows="8" spellcheck="false" autocomplete="off" placeholder={sample}></textarea>
+      <textarea id="tm-text" rows="8" spellcheck="false" autocomplete="off" placeholder={'Example:\nWeek 1: Cell theory & microscopes\nWeek 2: Diffusion and osmosis'}></textarea>
       <div class="tm-row tm-go">
         <label class="tm-level">Your class's level
           <select data-tm-level autocomplete="off">
             {LEVEL_KEYS.map((k, i) => <option value={i} selected={k === 'high-school'}>{LEVEL_LABEL[i]}</option>)}
           </select>
         </label>
-        <button class="tc-btn" type="button" data-tm-go disabled>Match my syllabus</button>
+        <button class="tc-btn" type="button" data-tm-go disabled>Find matching lessons</button>
       </div>
       <div class="tm-row tm-more">
         <label class="tm-file">Or open a syllabus file
@@ -59,16 +59,16 @@ Week 8: Thanksgiving break`;
       </div>
       <p class="tm-hint" id="tm-file-hint">Plain text or Word (.docx). For a PDF, open it, copy the schedule and paste it in the box.</p>
       <p class="tc-error" data-tm-file-err role="alert"></p>
-      <p class="tm-private"><strong>Your syllabus stays on this computer.</strong> The matching runs in your browser. What you paste or open is never sent, no AI reads it, and you need no account.</p>
+      <p class="tm-private"><strong>Your syllabus stays on this computer.</strong> The matching runs in your browser. What you paste or open is never sent, no AI reads it, and you need no account. <a href="/teach/privacy/#matcher">How this differs from the AI planner</a></p>
     </div>
     <noscript><p class="tc-note">This page needs JavaScript, because the matching runs in your browser, so the buttons do nothing without it. The lessons are mapped to the Virginia standards for <a href="/teachers/life-science/">grade 7 Life Science</a> and <a href="/teachers/biology/">high school Biology</a>, and <a href="/courses/">every course</a> lists its lessons in order.</p></noscript>
 
     <p class="tm-status" role="status" aria-live="polite" data-tm-status></p>
     <section class="tm-result" data-tm-result hidden>
-      <h2 tabindex="-1" data-tm-h>Your syllabus, matched</h2>
-      <p class="tm-sum" data-tm-sum></p>
+      <h2 tabindex="-1" data-tm-h>Your syllabus, line by line</h2>
+      <p class="tm-sum" tabindex="-1" data-tm-sum></p>
       <p class="tm-sum tm-noprint" data-tm-elsewhere hidden></p>
-      <div class="tm-tools tm-noprint">
+      <div class="tm-tools tm-noprint" data-tm-tools>
         <button class="tc-btn ghost" type="button" data-tm-copy>Copy the list</button>
         <button class="tc-btn ghost" type="button" data-tm-print>Print</button>
         <button class="tc-btn ghost" type="button" data-tm-assign hidden>Add ticked lessons to a class</button>

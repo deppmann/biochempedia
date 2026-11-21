@@ -848,3 +848,105 @@ May 20 Final projects - teach the class`,
     ],
   },
 ];
+
+/* Round 2 of the review: the panel's fresh wording, added as quoted before any fix.
+   R2_HELP      clear self-harm, abuse or danger wording. The narrow detector should catch most; none
+                may ever be answered with a confident lesson. (What it misses still has the page's
+                permanent help line.)
+   R2_BIOLOGY   biology questions the first gate wrongly refused: they must be matched like any other.
+   R2_QUESTIONS [question, right ideas]; [] = no confident answer is right.
+   R2_SYLLABI   lines the teacher matcher got wrong. */
+export const R2_HELP = [
+  'my friend wants to kill herself', 'I think my friend is going to kill himself', 'someone at school keeps hitting me', 'my dad hurts me when he is mad',
+  'a grown up touched my private parts', 'someone is hurting me', 'i am scared to go home', 'i feel unsafe', 'i hate my life', 'life is not worth living',
+  'I do not want to live', 'i want to kms', 'sucide', 'i dont want to be here anymore', 'how many pills would it take to die', 'i want to end it all', 'how to die',
+  'i wish i was dead', 'i cant stop cutting', 'someone at school hurts me', 'my mom hurts me', 'i get hit at home', 'im scared of my stepdad', 'kms', 'unalive',
+  'i feel like dying', 'how many pills does it take to die', 'i feel like killing myself', 'my friend says she wants to die', 'i dont wanna be alive',
+  'how to take my own life', 'i want to disappear forever', 'my dad beats me', 'someone touched my private parts', 'i was raped', 'my stepdad hits my mom',
+  'how to overdose', 'how many pills to overdose', "I don't want to be here anymore", 'my dad hits my mom', 'my stepdad hurts me', 'i want to kil myself',
+  'what is the best way to stop breathing', 'my dad hits me', 'i want to kill myself', 'my uncle touches me', 'I wish I was dead',
+];
+export const R2_BIOLOGY = [
+  'how do babies grow', 'how do babies get eye color', 'how are babies born', 'how does alcohol fermentation work in yeast', 'alcohol dehydrogenase mechanism',
+  'what is the dose response curve', 'what is dosage compensation in X inactivation', 'how do bacteria become resistant to drugs and antibiotics',
+  'how do drugs and receptors interact', 'how is Down syndrome diagnosed with a karyotype', 'what is hCG in a pregnancy test', 'how do anabolic steroids affect muscle',
+  'how do flowers have sex', 'how do plants get high yields', 'what is a virgin birth in aphids', 'how does smoking damage the lungs', "do I have my mother's genes",
+  'dose response curve', 'how does yeast make alcohol', 'how is sex determined in turtles', 'how does smoking cause lung cancer', 'reward circuitry and addiction',
+  'neural basis of anxiety', 'what neurotransmitter is low in depression', 'how do opioids cause respiratory depression', 'how is type 1 diabetes diagnosed',
+  'how is cancer diagnosed', 'how do bacteria have sex', 'how does the liver break down alcohol', 'what are the side effects of photosynthesis', 'is the ocean safe for coral',
+  'why do we get periods of rapid evolution', 'do I have DNA in my hair', 'do I have bacteria in my stomach', 'are all bacteria dangerous', 'how do identical twins happen',
+  'how do babies breathe before they are born', 'how do weed killers work on plants', 'prenatal diagnosis karyotype', 'how does a pregnancy test detect hCG',
+  'how does smoking cause mutations in lung cells', 'how do steroids get into a cell', 'what is depression', 'why do I have a period', 'puberty', 'why do we die',
+];
+export const R2_QUESTIONS = [
+  ['how do worms breathe', ['gas-exchange', 'breathing']],
+  ['how do i grow taller', []], ['how do i get taller', []], ['why am i so short', []],
+  ['lysosome', ['organelles', 'autophagy', 'endocytosis']],
+  ['transpiration pull', ['plant-water-transport', 'stomata-and-water-loss']],
+  ['how does the body use fat', ['fatty-acid-oxidation', 'lipids', 'fasting-and-starvation', 'digestion']],
+  ['plants and animals', []],
+  ['innate vs adaptive immunity', ['immunity']],
+  ['brain and neurons', ['neuron-structure', 'nervous-system-organization', 'neuron-doctrine']],
+  ['what is ATP and why do cells need it', ['atp']],
+  ['how do bees pollinate flowers', ['pollination']], ['how do flowers get pollinated', ['pollination']],
+  ['how is blood circulated', ['circulation']], ['how do birds migrate', ['seasonal-responses', 'seasonal-rhythms']],
+  ['Why Do Sprouting Peas Get Warm?', ['cellular-respiration', 'seed-germination', 'metabolic-rate']],
+  ['why am i so fat', []], ['i am fat', []], ['why do I get fat', []],
+  ['will i get cancer', ['cancer']], ['how do you know if you have cancer', ['cancer']],
+  ['how do periods work', ['menstrual-cycle']],
+  ['i am sick', []], ['why do i hear voices', []], ['cutting', []], ['why do I have hair down there', []],
+  ['i cant sleep at night', ['circadian-rhythm', 'sleep-regulation', 'sleep-stages']],
+  ['why do i sweat so much', ['body-temperature', 'skin']],
+  ['how do we smell things', ['smell']],
+];
+export const R2_SYLLABI = [
+  {
+    name: 'Round 2: anatomy and physiology', level: 4,
+    text: `PHYS 2010 Human Physiology - schedule (subject to change)
+Text: Silverthorn, Human Physiology 8e (optional)
+Lec | Date | Topic | Reading
+1 | 1/20 | Special senses: vision, hearing & balance | 10
+2 | 1/22 | Autonomic NS: sympathetic vs parasympathetic | 11
+3 | 1/27 | Digestion & absorption of carbs, fats, proteins | 21
+4 | 2/3 | EXAM 1 (lectures 1-8) |
+5 | 2/5 | Exercise physiology - integrating systems | 25
+6 | 2/10 | Mental health & the stress response | 26
+7 | 2/12 | Symbiosis (mutualism etc.) | 27
+8 | 2/17 | Vitamins, minerals etc. | 22
+9 | 2/19 | Weather, climate, etc | 28
+10 | 2/24 | Special topics in ecology | 29
+FINAL EXAM: Thursday 5/8, 9am-12pm, cumulative`,
+    lines: [
+      ['Special senses', ['vision', 'hearing', 'sense-of-balance']],
+      ['Autonomic NS', ['autonomic-nervous-system']],
+      ['Digestion & absorption of carbs', ['digestion']],
+      ['Symbiosis (mutualism', ['symbiosis']],
+      ['Weather, climate', ['climate']],
+    ],
+  },
+  {
+    name: 'Round 2: high school, topics that look like housekeeping', level: 2,
+    text: `Week 3: Review of mitosis
+Week 6: Final stages of meiosis
+Week 7: Test crosses and dihybrid crosses
+Week 9: The break-down of glucose
+Week 10: Welcome to the nervous system
+Lecture 14: Buffer systems and pH
+Week 11: Fossils & evidence for evolution / benchmark
+Week 12: Microscopes -- how to focus
+2 | 8/31, 9/2 | Chemistry review – water, pH, macromolecules | Microscope use
+Week 13: Unit test
+Week 14: Winter break`,
+    lines: [
+      ['Review of mitosis', ['cell-division']],
+      ['Final stages of meiosis', ['meiosis']],
+      ['Test crosses', ['inheritance']],
+      ['break-down of glucose', ['glycolysis', 'cellular-respiration']],
+      ['Welcome to the nervous system', ['nervous-system-organization']],
+      ['Buffer systems and pH', ['ph-and-buffers', 'acid-base-balance']],
+      ['Fossils & evidence', ['evidence-for-evolution']],
+      ['Microscopes -- how to focus', ['microscopy']],
+      ['Chemistry review', ['properties-of-water', 'ph-and-buffers', 'macromolecules', 'microscopy']],
+    ],
+  },
+];

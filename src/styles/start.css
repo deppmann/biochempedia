@@ -34,11 +34,24 @@
 .st-try { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-sm); line-height: 1.4; color: var(--ddp-color-ink-soft); }
 .st-private, .st-note, .st-foot, .st-quiet { font-size: var(--ddp-text-sm); line-height: 1.55; color: var(--ddp-color-muted); }
 .st-private { margin: 0.2rem 0 0; }
+/* The permanent help line: quiet type, always there, the link a full-size target. */
+.st-help { margin: 0.5rem 0 0; font-size: var(--ddp-text-sm); line-height: 1.55; color: var(--ddp-color-ink-soft); }
+.st-help a { display: inline-block; padding: 0.7rem 0; margin: -0.7rem 0; font-weight: 600; }
+/* The help message: shown first and alone. One rule beside it, no alarm colour. */
+.st-urgent { padding-left: var(--ddp-space-4); border-left: 4px solid var(--ddp-color-primary); }
+.st-urgent h2 { margin: 0 0 var(--ddp-space-3); font-family: var(--ddp-font-serif); font-weight: 500; font-size: var(--ddp-text-2xl); line-height: 1.2; color: var(--ddp-color-primary); }
+.st-urgent p { margin: 0 0 var(--ddp-space-3); font-size: var(--ddp-text-lg); line-height: 1.5; color: var(--ddp-color-ink); }
+.st-urgent a { display: inline-block; padding: 0.6rem 0; margin: -0.6rem 0; font-weight: 700; }
+.st-helppage h2 { margin: var(--ddp-space-6) 0 0.3rem; font-family: var(--ddp-font-serif); font-weight: 500; font-size: var(--ddp-text-xl); color: var(--ddp-color-primary); }
+.st-helppage section p { margin: 0; font-size: var(--ddp-text-lg); line-height: 1.55; }
+.st-helppage section a { display: inline-block; padding: 0.6rem 0; margin: -0.6rem 0; font-weight: 700; }
+.st-helpfoot { margin: var(--ddp-space-8) 0 0; font-size: var(--ddp-text-lg); color: var(--ddp-color-ink-soft); }
 .st-note { margin: var(--ddp-space-3) 0 0; color: var(--ddp-color-ink-soft); }
 .st-status { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .st-out { margin-top: var(--ddp-space-8); }
 .st-out:empty { margin-top: 0; }
 .st-foot { margin: var(--ddp-space-8) 0 0; }
+.st-out[data-help] ~ .st-foot { display: none; }
 
 .st-result h2 { margin: 0; font-family: var(--ddp-font-serif); font-weight: 500; font-size: var(--ddp-text-2xl); line-height: 1.15; color: var(--ddp-color-primary); overflow-wrap: anywhere; }
 .st-result h2:focus { outline: none; }
@@ -87,7 +100,6 @@
 }
 @media (forced-colors: active) {
   .st-box button { border: 1px solid ButtonText; }
-  .st-time input:checked + span { outline: 3px solid Highlight; outline-offset: -3px; }
   .st-time input:checked + span::before { border-color: Highlight; }
 }
-@media print { .st-form, .st-try, .st-private, .st-other, .st-chips, .st-next, .st-foot, .st-where, .st-ladder:not([open]) { display: none; } }
+@media print { .site-header, header, footer, .st-help, .st-form, .st-try, .st-private, .st-other, .st-chips, .st-next, .st-foot, .st-where, .st-ladder:not([open]) { display: none; } }

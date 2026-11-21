@@ -77,8 +77,11 @@ export function start() {
   const cannot = 'That file could not be read here. Open it, copy the schedule and paste it in the box.';
   file.addEventListener('change', async () => {
     fileErr.textContent = '';
+    say('');
     const f = file.files?.[0];
     if (!f) return;
+    // Never over a teacher's own text.
+    if (text.value.trim()) { fileErr.textContent = 'The box already has text in it. Clear the box first, then open the file.'; file.value = ''; return; }
     const name = f.name.toLowerCase();
     try {
       let got: string | null;
@@ -88,7 +91,7 @@ export function start() {
       else got = await f.text();
       if (!got || !got.trim() || /\u0000/.test(got.slice(0, 2000))) { fileErr.textContent = cannot; file.value = ''; return; }
       text.value = got.slice(0, MAX_CHARS);
-      say(`${f.name} was read on this computer. Check the text, then press Match my syllabus.`);
+      say(`${f.name} was read on this computer. Check the text, then press Find matching lessons.`);
       text.focus();
     } catch { fileErr.textContent = cannot; }
     file.value = '';
@@ -112,7 +115,7 @@ export function start() {
     const adds = (l.ideas ?? []).map((x) => i?.adds.get(x)).find(Boolean);
     return `<li class="tm-lesson"><input type="checkbox" id="${esc(id)}" aria-describedby="${esc(id)}-f" data-tm-pick="${esc(l.slug)}" data-title="${esc(l.title)}" data-level="${esc(LEVEL_SHORT[l.rank])}" data-min="${min ?? ''}"${isTicked(l.slug, dflt) ? ' checked' : ''} autocomplete="off" />
       <div><label for="${esc(id)}">${esc(l.title)}</label>
-      <span class="tm-facts" id="${esc(id)}-f">${facts.join(' · ')}${note ? ` · ${note}` : ''} · <a class="tm-open" href="/lessons/${esc(l.slug)}/" target="_blank" rel="noopener" aria-label="Open ${esc(l.title)} in a new tab">open</a></span>
+      <span class="tm-facts"><span id="${esc(id)}-f">${facts.filter((f) => !f.startsWith('<a')).join(' · ')}${note ? ` · ${note}` : ''}</span>${facts.filter((f) => f.startsWith('<a')).map((f) => ` · ${f}`).join('')}<span class="tm-openwrap"> · <a class="tm-open" href="/lessons/${esc(l.slug)}/" target="_blank" rel="noopener" aria-label="Open ${esc(l.title)} in a new tab">open</a></span></span>
       <span class="tm-url">${esc(location.host)}/lessons/${esc(l.slug)}/</span>${adds ? `<span class="tm-adds">${esc(adds)}</span>` : ''}</div></li>`;
   };
   const group = (label: string, items: string) => `<ul class="tm-lessons" aria-label="${esc(`${label}: ${rowTopic}`)}">${items}</ul>`;
@@ -132,9 +135,10 @@ export function start() {
         nothing++;
         const maybe = row.maybe.map((x: any) => {
           const ls: Lesson[] = [...x.at, ...(x.at.length ? [] : [...x.down, ...x.up])].slice(0, 2);
-          return ls.length ? `<div class="tm-maybe"><p class="tm-side">Might fit: <a href="/ideas/${esc(x.id)}/">${esc(x.name)}</a> <span>not ticked, because the match is loose</span></p>${group(`Might fit, ${x.name}`, ls.map((l) => lessonRow({ ...l, ideas: [x.id] }, false, m, 'maybe')).join(''))}</div>` : '';
+          return ls.length ? `<div class="tm-maybe"><p class="tm-side">It might fit <a href="/ideas/${esc(x.id)}/">${esc(x.name)}</a> <span>not ticked</span></p>${group(`Might fit, ${x.name}`, ls.map((l) => lessonRow({ ...l, ideas: [x.id] }, false, m, 'maybe')).join(''))}</div>` : '';
         }).join('');
-        return `<li class="tm-rowi tm-nothing">${head}<p class="tm-none">Nothing on the site for this yet.</p>${maybe}</li>`;
+        // "Nothing on the site" would be a claim this page cannot check, so it says only what it knows.
+        return `<li class="tm-rowi tm-nothing">${head}<p class="tm-none">${maybe ? 'Not sure about this line.' : 'No sure match for this line.'}</p>${maybe}</li>`;
       }
       const L = row.lessons;
       if (L.at.length) here++; else away++;
@@ -151,7 +155,7 @@ export function start() {
     const parts = [
       here ? `${count(here, 'has', 'have')} a lesson ${at}` : `none has a lesson ${at}`,
       away ? `${count(away, 'is', 'are')} taught here only at other levels, shown unticked as simpler or deeper` : '',
-      nothing ? `for ${nothing} the site has nothing yet, or I was not sure of the match` : '',
+      nothing ? `for ${nothing} I found no sure match` : '',
     ].filter(Boolean);
     $('[data-tm-sum]').textContent = res.topics
       ? `I read ${count(res.topics, 'topic', 'topics')} for ${LEVEL_CLASS[level]}: ${parts.join('; ')}. Lessons whose main idea is your topic are ticked. Untick any you will not use.`
@@ -166,6 +170,9 @@ export function start() {
     sk.querySelector('summary')!.textContent = `${count(res.skipped.length, 'line was', 'lines were')} left out as course information, not topics`;
     sk.querySelector('ul')!.innerHTML = res.skipped.map((l: string) => `<li>${esc(l)}</li>`).join('');
     result.hidden = false;
+    // With no topics there is nothing to copy or print, and no heading to give it.
+    $('[data-tm-tools]').hidden = !res.topics;
+    $('[data-tm-h]').hidden = !res.topics;
   }
 
   /** Match what is in the box. `focus`: move to the results (a press of the button), or stay put (a level change). */
@@ -181,9 +188,15 @@ export function start() {
       draw();
       box.hidden = true; msg.textContent = '';
       say(last.res.topics ? `Done. ${count(last.res.matched, 'topic', 'topics')} matched ${LEVEL_AT[level]} or at another level.` : 'No topics were found in that text.', true);
-      if (focus) $('[data-tm-h]').focus();
+      if (focus) (last.res.topics ? $('[data-tm-h]') : $('[data-tm-sum]')).focus();
       // Courses, films and the note on what each level adds arrive after the rows; ticks are kept.
-      if (!info) loadInfo().then((got) => { info = got; draw(); }).catch(() => {});
+      if (!info) loadInfo().then((got) => {
+        info = got;
+        // The rows are rebuilt with the extra facts: whoever is already in the list stays where they were.
+        const at = document.activeElement instanceof HTMLElement && rowsEl.contains(document.activeElement) ? document.activeElement.id : '';
+        draw();
+        if (at) document.getElementById(at)?.focus({ preventScroll: true });
+      }).catch(() => {});
     } catch {
       say('The list of lessons did not load. Check your connection and press the button again. Your syllabus is still in the box.');
     }
@@ -222,7 +235,7 @@ export function start() {
       lines.push(li.querySelector('.tm-topic')?.textContent ?? '');
       const mine = Array.from(li.querySelectorAll<HTMLInputElement>('[data-tm-pick]:checked'));
       if (li.classList.contains('tm-admin')) { /* the line alone */ }
-      else if (!mine.length) lines.push(li.classList.contains('tm-nothing') ? '  (nothing on STEMhop for this yet)' : '  (no lesson chosen)');
+      else if (!mine.length) lines.push(li.classList.contains('tm-nothing') ? '  (no sure match on STEMhop)' : '  (no lesson chosen)');
       for (const c of mine) lines.push(`  - ${c.dataset.title} (${c.dataset.level}${c.dataset.min ? `, ${c.dataset.min} min` : ''}) ${location.origin}/lessons/${c.dataset.tmPick}/`);
     });
     return lines.join('\n');

@@ -17,6 +17,11 @@
 .tm .tm-form textarea, .tm-assign textarea { width: 100%; min-height: 10rem; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); line-height: 1.5; resize: vertical; }
 .tm-row { display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--ddp-space-3); }
 .tm-file { flex: 1 1 12rem; display: flex; flex-direction: column; gap: 0.3rem; font-size: var(--ddp-text-sm); font-weight: 600; color: var(--ddp-color-ink); min-width: 0; }
+/* The reset strips the file button's chrome; give it back, so it reads as something to press. */
+.tm-file input::file-selector-button { min-height: 44px; margin-right: 0.6rem; padding: 0 1rem; border: 1.5px solid var(--ddp-color-muted); border-radius: 999px; background: var(--ddp-color-surface); color: var(--ddp-color-ink); font: inherit; font-weight: 600; cursor: pointer; }
+.tm-file input:disabled::file-selector-button { opacity: 0.6; cursor: default; }
+.tm-sum:focus { outline: none; }
+@media (prefers-color-scheme: dark) { .tm .tc-error { color: #f2a79c; } }
 .tm-file input { font: inherit; font-weight: 400; width: 100%; max-width: 100%; min-height: 44px; color: var(--ddp-color-ink); }
 .tm-hint { margin: 0; font-size: var(--ddp-text-sm); color: var(--ddp-color-muted); line-height: 1.45; }
 .tm .tm-level select { max-width: 100%; }
@@ -61,7 +66,7 @@
   .tm-level select { width: 100%; }
 }
 @media print {
-  .tm-noprint, .tm-open, .tm-maybe, .tm-status { display: none !important; }
+  .tm-noprint, .tm-openwrap, .tm-maybe, .tm-status { display: none !important; }
   .tm-url { display: block; }
   .tm-lesson:has(input:not(:checked)) { display: none; }
   .tm-side:not(:has(+ .tm-lessons input:checked)) { display: none; }
