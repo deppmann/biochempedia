@@ -5,11 +5,12 @@ course: "signaling"
 courseChapter: "Cell Signaling · Unit 4: Receptors with enzymes attached"
 order: 118
 summary: >-
-  A receptor tyrosine kinase is a cell-surface receptor, most often for a growth factor, whose inner half is an enzyme. This
-  lesson asks how a ligand outside the cell switches on a kinase inside it, how one switched-on
-  receptor starts several pathways, and how tumours keep the switch thrown. Afterwards you can
-  draw the receptor, explain why it works in pairs, and predict which kind of drug answers which
-  kind of fault.
+  Bringing two receptor kinases together releases self-inhibition and activates the pair;
+  phosphotyrosines recruit specific partners by sequence to branch and end signaling. This
+  lesson asks how a growth factor outside the cell switches on a kinase across one membrane
+  helix, how one active pair starts several pathways and schedules its own removal, and how
+  tumours keep the switch thrown without ligand. Afterwards you can draw the receptor, explain
+  why it works in pairs, and predict which kind of drug answers which kind of fault.
 hook: "One helix crosses the membrane. So how does a growth factor outside switch on a kinase inside?"
 
 estMinutes: 24
@@ -23,10 +24,16 @@ explainer:
   src: "/explainers/receptor-tyrosine-kinases/explainer.mp4"
   captions: "/explainers/receptor-tyrosine-kinases/explainer.vtt"
   poster: "/explainers/receptor-tyrosine-kinases/poster.jpg"
-  title: "The EGF receptor kinase switches on when two copies touch"
-  durationSec: 157.0
-  narration: "an AI narrator voice (ElevenLabs, Brian) reading a passage Chris Deppmann wrote for his graduate signaling course"
+  title: "Two Together: How Pairing Switches an RTK On"
+  durationSec: 214.5
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+  takeaways:
+    - "Bringing two receptor kinases together releases self-inhibition and activates the pair."
+    - "Every RTK has an outer ectodomain, a single transmembrane helix, and an inner kinase domain followed by a tail that carries tyrosines."
+    - "Cells bring two kinases together in at least three ways: a dimeric ligand, a ligand that exposes receptor dimerization arms, or a shape shift in a pre-paired receptor."
+    - "Most paired RTKs switch on by trans-autophosphorylation of their activation loops, while the EGF receptor family uses asymmetric lobe-to-lobe contact."
+    - "Because the pressing copy in an EGF-family pair only supplies a surface, nearly inactive HER3 can still switch HER2 on."
 
 scientists:
   - name: "John Kuriyan"
@@ -410,101 +417,148 @@ corpusTags:
   - "oncogenes"
 draft: false
 films:
-  - id: "docking-sites"
-    src: "/explainers/receptor-tyrosine-kinases/docking-sites.mp4"
-    captions: "/explainers/receptor-tyrosine-kinases/docking-sites.vtt"
-    poster: "/explainers/receptor-tyrosine-kinases/docking-sites-poster.jpg"
-    title: "The tail's sequence picks the partner"
-    durationSec: 109.2
-    narration: "an AI narrator voice (Gemini, Charon) reading narration written from this lesson's text"
+  - id: "chapter-2"
+    src: "/explainers/receptor-tyrosine-kinases/chapter-2.mp4"
+    captions: "/explainers/receptor-tyrosine-kinases/chapter-2.vtt"
+    poster: "/explainers/receptor-tyrosine-kinases/chapter-2-poster.jpg"
+    title: "Tail Codes: How One Receptor Branches and Ends Signaling"
+    durationSec: 219.5
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
     aiGenerated: true
+    takeaways:
+      - "Phosphotyrosines recruit specific partners by sequence to branch and end signaling."
+      - "SH2 domains bind a phosphotyrosine and check the few residues after it, largely deciding which partner docks."
+      - "Different sites on one tail—or on a swapped partner such as HER3—steer one active pair into pathways like Ras–MAP kinase, PLC-gamma, and PI 3-kinase–Akt."
+      - "Another phosphotyrosine recruits Cbl, which tags the receptor with ubiquitin so that after endocytosis it is routed to the lysosome, while tyrosine phosphatases strip phosphates directly."
 ---
 
 import LessonFilm from '../../../components/LessonFilm.astro';
-
 import ReceptorPairing from '../../../components/ReceptorPairing.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import Support from '../../../components/Support.astro';
 
-**Fifty-eight of your 518 protein kinases are built into the cell surface, with a ligand-binding half outside the cell and the kinase inside.** Only one helix crosses the membrane between the two halves. So how does a growth factor that never enters the cell switch on an enzyme on the far side? The cell's answer is to bring two receptors together.
+**Fifty-eight of your 518 protein kinases sit in the cell surface, with a ligand-binding half outside and the kinase inside.** The first film showed how bringing two receptors together answers the single-helix problem; here we examine the family's scale, the experiments behind both activation switches, the docking code, and cancer therapies.
 
-## The idea: one plan, built 58 times
+## One plan, built 58 times
 
-A **receptor tyrosine kinase (RTK)** is a membrane receptor whose inner half is an enzyme that adds phosphate to tyrosine side chains. You met the architecture in the receptor field guide. Every RTK has three parts.
+A **receptor tyrosine kinase (RTK)** is a membrane receptor whose inner half adds phosphate to tyrosine side chains (from the receptor field guide). Each combines an outer ligand-binding **ectodomain**, a **single transmembrane helix** anchoring and joining the two halves, and an inner two-lobed **kinase domain** (holding ATP in its cleft, from the phosphorylation lesson) followed by a flexible tyrosine-carrying **tail**.
 
-- **The ectodomain** is the part outside the cell. It binds the ligand.
-- **A single helix** crosses the membrane. It anchors the receptor and joins its two halves.
-- **The kinase and its tail** sit inside. The kinase is the two-lobed fold from the phosphorylation lesson, with ATP held in the cleft between the lobes. Past the kinase runs a flexible tail that carries tyrosines of its own.
+Of the human genome's 518 protein kinases, about 90 are tyrosine kinases and 58 are RTKs, sorted into about 20 families including the receptors for EGF, insulin, NGF, PDGF, and VEGF. The kinase fold is recognizably conserved across all 58; ectodomains and tails vary most, and each family holds a lone receptor's kinase off, or close to it, in its own way.
 
-The human genome encodes 518 protein kinases. About 90 are tyrosine kinases, and 58 of those are receptors, sorted into about 20 families that include the receptors for EGF, insulin, NGF, PDGF and VEGF. The kinase is recognizably the same fold in each one. The ectodomain and the tail differ most, though each family also holds its resting kinase off in its own way.
+<Support>**The one idea.** Bringing two receptor kinases together releases self-inhibition and activates the pair; phosphotyrosines recruit specific partners by sequence to branch and end signaling. **Scope:** Covers receptor tyrosine kinases as this lesson treats them; a few, such as HER3, have nearly inactive kinases and signal through a partner. Families release self-inhibition differently (loop phosphorylation in trans vs. allosteric contact), some place docking sites outside the tail (such as insulin-receptor IRS adaptors), sequence largely rather than solely picks SH2 partners, phosphatases also erase marks directly, and kinase mutations such as L858R weaken self-inhibition without ligand.</Support>
 
-The working unit is a pair. A lone receptor's kinase stays off, or close to it, and the whole plan fits on one line:
+## Three ways to bring two kinases together
 
-> **two receptors side by side → kinases switch each other on → phosphotyrosines on the tails → SH2 proteins dock → several pathways**
+Growth factors are often **dimeric** (two chains), while most RTKs are **monomeric** (one chain). Cells use at least three structural routes to put two resting kinases side by side:
 
-## The dimerization question: three ways to make a pair
+- **Dimeric ligand:** NGF (two identical chains) bridges two copies of its receptor, TrkA; PDGF and VEGF work the same way.
+- **Exposed dimerization arm:** EGF is a single small chain, and one EGF binds one receptor, so it cannot be the bridge. At rest, the EGF receptor's ectodomain is mostly folded with a loop—the **dimerization arm**—tucked away. EGF binds between two regions of the ectodomain and holds it extended with the arm out, so two arms clasp; in the crystal structure, the two EGFs sit on the outer faces, far from the contact, so whatever holds the pair together belongs to the receptors themselves.
+- **Pre-paired receptor:** The insulin receptor is already two disulfide-linked halves (each an outer alpha chain plus a membrane-spanning beta chain carrying the kinase). Pairing cannot be its signal, because the pair is permanent; insulin instead shifts the pair's shape so that the two kinase-bearing legs, held apart at rest, come together.
 
-Growth factors are often dimeric, meaning built of two chains, and most receptors are monomeric, one chain each. How might ligands activate receptors? Cells use at least three answers.
+**Predict.** Suppose an antibody binds the EGF receptor's ectodomain and holds it in its folded resting shape. Why does signaling stop even though the kinase inside is untouched?
 
-**A ligand that is itself a pair.** NGF is two identical chains, and the pair binds two copies of its receptor, TrkA, one on each side. PDGF and VEGF are pairs too and work the same way.
+<details>
+<summary>Check your prediction</summary>
 
-**A ligand that makes each receptor expose an arm.** EGF is a single small chain, and one EGF binds one receptor, so EGF cannot be the bridge. At rest, the EGF receptor's ectodomain is mostly folded over on itself, with one loop, the dimerization arm, tucked out of reach. EGF binds between two regions of the ectodomain and holds it extended with the arm out. Two extended receptors clasp each other by their arms, and in the crystal structure of the pair the two EGF molecules sit on the outer faces, far from the contact. Whatever holds the pair together belongs to the receptors themselves.
+Holding the ectodomain folded keeps the dimerization arm tucked away, so two receptors cannot clasp and bring their self-inhibited kinases together. Later you will meet cetuximab, an antibody that works partly this way.
 
-**A receptor that is already a pair.** The insulin receptor is built as two halves joined by disulfide bonds. Each half has an alpha chain outside and a beta chain that crosses the membrane and carries the kinase. Pairing cannot be its signal, because the pair is permanent. Insulin instead changes the shape of the pair, so that the two kinase-bearing legs, held apart at rest, come together.
+</details>
 
-All three routes end in the same place: two kinases held side by side. If contact between two kinases is the switch, contact supplied any other way should throw it too.
+Test how each receptor brings its kinases into position below.
 
 <ReceptorPairing />
 
-## "Ligand activates receptor...now what?" The two kinases switch each other on
+## Two ways paired kinases release self-inhibition
 
-Recall the activation loop, the mobile strand beside a kinase's active site. In the insulin receptor's resting kinase the loop lies folded into the active site, and one of its own tyrosines sits where a substrate tyrosine should go. The kinase is plugged by a piece of itself.
+Once two kinases sit side by side, they release self-inhibition by one of two mechanisms.
 
-When two kinases are held together, each phosphorylates the loop of the other. This is called **autophosphorylation in trans**: the receptor phosphorylates its own kind, but across the pair. With three phosphates on the insulin receptor's loop, the loop stays clear of the active site, the two lobes close on ATP, and the kinase runs.
+### Activation-loop phosphorylation in trans
 
-Most RTKs use this scheme, in order: in an FGF receptor followed step by step, a loop tyrosine was phosphorylated first, which raised the kinase's rate, and the docking tyrosines followed.
+Recall the **activation loop**, the mobile strand beside the active site. In the resting insulin receptor kinase, this loop folds into the active site with one of its own tyrosines sitting where a substrate tyrosine belongs—plugged by a piece of itself. Held together by insulin, each kinase phosphorylates its partner's loop (**autophosphorylation in trans**). With three phosphates on the loop, it swings clear, the two lobes close on ATP, and the kinase runs. Most RTKs use this scheme (see Going deeper for ordered phosphorylation in an FGF receptor).
 
-The EGF receptor is the best-studied exception (RET is another), although at first it was assumed, by analogy with other receptors, to use the same mechanism. In 1987 Yosef Yarden and Joseph Schlessinger had presented evidence, from purified receptor, that EGF switches on the receptor's kinase through contact between receptor molecules, and by 1989 there was evidence that one receptor adds phosphate to another, so a phosphate on the activation loop was the expected switch. Experiments from 1992 on had already found that this loop phosphate is not needed, but they did not say what does the switching. Two results in 2006 pointed to an answer.
+### Asymmetric allosteric contact in the EGF receptor
 
-First, changing one amino acid in the loop, a leucine to an arginine, makes the isolated kinase about 20 times more active than normal, and it does not need a phosphate on the loop. Clinicians call this change L858R, and it is found in many lung cancers whose EGF receptor is always on. Second, in John Kuriyan's laboratory, Xuewu Zhang took the normal kinase alone, with no ectodomain and no growth factor, and crowded it by gathering it on the surface of lipid vesicles. It switched on, again without needing the loop phosphate.
+The EGF receptor is the best-studied exception (RET is another): its activation loop needs no phosphate (see Going deeper for that history). Two results reported in 2006 by Xuewu Zhang in John Kuriyan's laboratory pointed to what throws the switch instead. First, changing one activation-loop residue—leucine to arginine, called **L858R** in the clinic and found in many lung cancers whose EGF receptor is always on—made the isolated kinase about 20 times more active without needing a phosphate on the loop.
 
-So the resting kinase holds itself off, and contact with a second copy releases the hold. Crystal structures from Kuriyan's group, published in 2006, showed the contact, and the pair is lopsided. The large lobe of one kinase presses against the small lobe of the other and pushes that kinase's active site into its working shape. A cyclin, the protein that switches on the kinases that drive cell division, works on its kinase in much the same way. The pressed copy is the one that switches on. The pressing copy only has to supply a surface.
+**Predict.** Second, Zhang took the normal kinase alone—no ectodomain, no growth factor—and crowded it by gathering it on the surface of lipid vesicles. If contact between two kinases is the switch, what should crowding do, and should the loop need a phosphate?
 
-<LessonFigure src="/figures/receptor-tyrosine-kinases/two-ways-to-switch-the-kinase-on.webp" width={1200} height={803} alt="AI-generated illustration: on the left, a three-frame strip of two-lobed kinases whose activation loops plug the cleft at rest, are phosphorylated across the pair, and swing clear. On the right, the large lobe of one kinase presses the small lobe of its partner and switches only the pressed copy on." caption="Two ways to throw the switch. In the insulin receptor each kinase phosphorylates the other's activation loop, which swings clear of the active site. In the EGF receptor no loop phosphate is needed: the large lobe of one kinase presses the small lobe of the other, and the pressed copy switches on." />
+<details>
+<summary>Check your prediction</summary>
 
-The EGF receptor has three relatives, HER2, HER3 and HER4, and all four use the same contact, so they can work in mixed pairs. HER3's own kinase has almost no activity, yet a pair of HER2 and HER3 signals strongly, because HER3 can do the pressing.
+It switched on, again without needing the loop phosphate: crowding supplied the contact that a partner would.
 
-## "RTK gets activated...what next?" The tail becomes a set of docking sites
+</details>
+
+So the resting kinase holds itself off, and contact with a second copy releases the hold. Kuriyan's 2006 crystal structures showed that lopsided (**asymmetric**) contact: one kinase's large lobe presses its neighbour's small lobe into the working shape, much as a cyclin activates a cell-division kinase. Only the pressed copy switches on; the pressing copy only supplies a surface.
+
+<LessonFigure src="/figures/receptor-tyrosine-kinases/two-ways-to-switch-the-kinase-on.webp" width={1200} height={803} alt="AI-generated illustration: on the left, a three-frame strip of two-lobed kinases whose activation loops plug the cleft at rest, are phosphorylated across the pair, and swing clear. On the right, the large lobe of one kinase presses the small lobe of its partner and switches only the pressed copy on." caption="Paired RTKs release self-inhibition either by trans-autophosphorylation of their activation loops (insulin receptor) or by asymmetric lobe-to-lobe contact activating only the pressed copy (EGF receptor)." />
+
+The EGF receptor's three relatives—HER2, HER3, and HER4—share this contact and form mixed pairs; as the first film showed, nearly inactive HER3 still drives strong HER2–HER3 signaling by doing the pressing.
+
+Once active, one receptor pair must launch several pathways at once—and schedule its own shutoff.
 
 <LessonFilm film={frontmatter.films[0]} />
 
-Once on, the kinases phosphorylate tyrosines outside the kinase core. In the EGF receptor most of them are on the two tails. Other receptors also use the segment just inside the membrane or an insert in the kinase, and the insulin receptor puts many of its docking sites on separate proteins, the IRS proteins. Each of these phosphates is a docking site.
+## How phosphotyrosines branch and end the signal
 
-You know the reader of these marks from the lesson on interaction modules: an SH2 domain binds a phosphotyrosine and checks the few residues that follow it. So the docking-site sequence largely decides which target binds. Take the EGF receptor family.
+The second film showed how SH2 domains read phosphotyrosines and how Cbl and phosphatases turn signaling off; here are the numbered docking addresses, the mutation test showing that each site recruits its own partner, and the lysosome–proteasome distinction.
 
-- **Phosphotyrosine 1068 on the EGF receptor's tail** has an asparagine two residues later. That suits the SH2 domain of Grb2, which leads to Ras and the MAP kinase cascade.
-- **Phosphotyrosine 992 on the same tail** binds PLC-gamma, the enzyme that makes IP3 and DAG.
-- **Six tyrosines on HER3's tail** each have a methionine three residues later. That suits the SH2 domains of PI 3-kinase, which leads to Akt.
+### Docking addresses and proof of independence
 
-One activated pair therefore starts several pathways at once, and the choice of partner changes the mix. The PDGF receptor carries sites for all three proteins on a single chain, and there the sites were tested one at a time: change the tyrosine that serves one protein to phenylalanine, which cannot be phosphorylated, and that protein fails to dock while the others still do. PI 3-kinase uses two such tyrosines. The next three lessons follow the branches.
+In the EGF receptor, most docking sites sit on the two tails; other RTKs also use the juxtamembrane segment or a kinase insert, and the insulin receptor puts many on separate **IRS proteins**. An **SH2 domain** (from the interaction-modules lesson) binds a phosphotyrosine and checks the following residues, so local sequence largely decides which target binds:
 
-The same marks arrange the receptor's removal. A phosphotyrosine recruits Cbl, an E3 ubiquitin ligase, which tags the receptor with ubiquitin. The receptor is taken into the cell by endocytosis, the pinching-in of a patch of membrane as a vesicle, and the ubiquitin tag routes it to the lysosome, the compartment that digests proteins, and not to the proteasome. Meanwhile protein tyrosine phosphatases (PTPs) strip the phosphates, and there are plenty of them: the human genome has 107 PTP genes, of which 38 are classical enzymes that, with a few exceptions, act only on phosphotyrosine, set against about 90 protein tyrosine kinases (PTKs).
+- **Phosphotyrosine 1068 (EGF receptor):** asparagine two residues later recruits **Grb2** → Ras and MAP kinase.
+- **Phosphotyrosine 992 (EGF receptor):** recruits **PLC-gamma** → IP3 and DAG.
+- **Six tyrosines on HER3:** each has methionine three residues later, recruiting **PI 3-kinase** → Akt.
+
+Swapping partners (such as HER2–HER3) thus shifts the pathway mix; the next three lessons follow each branch.
+
+**Predict.** The PDGF receptor carries docking sites for Grb2, PLC-gamma, and PI 3-kinase (two tyrosines) on one chain. Mutating only the PLC-gamma tyrosine to phenylalanine (which lacks the hydroxyl to accept phosphate) blocks which partner, and leaves which unaffected?
+
+<details>
+<summary>Check your prediction</summary>
+
+PLC-gamma fails to dock while Grb2 and PI 3-kinase still do.
+
+</details>
+
+### Turning the signal off
+
+A phosphotyrosine also recruits **Cbl**, an E3 ubiquitin ligase that tags the receptor with ubiquitin. **Endocytosis** (pinching-in of membrane as a vesicle) brings it inside, where ubiquitin routes it to the **lysosome** (the protein-digesting compartment) rather than the proteasome used for many cytosolic proteins. Meanwhile, **protein tyrosine phosphatases (PTPs)** strip phosphates directly (see Going deeper for their genome count).
 
 ## RTKs in cancer: three ways to stay on, two kinds of drug
 
-Many protein kinases have been linked to human disease, and RTKs come up again and again in human tumours: the EGF receptor and its relatives, c-KIT, the VEGF receptors, c-MET and RET. If contact between kinases is the switch, a tumour can throw it without the ligand in at least three ways.
+Recall the guiding rule's first half: bringing two receptor kinases together releases self-inhibition and activates the pair. RTKs recur across human tumours—including the EGF receptor family, c-KIT, VEGF receptors, c-MET, and RET.
 
-**Make too much receptor.** Gene amplification gives a cell extra copies of a gene. In 1987 Dennis Slamon and colleagues found the HER2 gene amplified in 30 percent of 189 breast tumours, and amplification predicted earlier relapse and shorter survival, most strongly in women whose cancer had reached the lymph nodes. HER2's arm is exposed without any ligand, so crowding alone makes pairs.
+**Predict.** Without adding growth factor, what are two distinct ways a receptor alteration itself can keep its kinase on?
 
-**Change the kinase.** L858R sits in the kinase itself. The outside of the receptor is normal, but the kinase no longer waits for it.
+<details>
+<summary>Check your prediction</summary>
 
-**Lose or replace the outside.** In some thyroid cancers the RET gene breaks, and the half that encodes the kinase is joined to part of another gene whose protein forms pairs without help. The fused protein has no ectodomain at all.
+Either force kinases together without ligand (by crowding excess receptors or fusing the kinase to a self-pairing protein) or mutate the kinase domain to weaken self-inhibition directly.
 
-<LessonFigure src="/figures/receptor-tyrosine-kinases/three-ways-to-stay-on.webp" width={1200} height={676} alt="AI-generated illustration: three membrane panels with no growth factor present. In the first, a crowd of extra receptors forms pairs whose kinases are on and whose tails are tagged. In the second, a normal-looking receptor pair carries a mutation, marked by a star, in one kinase, and the kinases are on. In the third, there is no outer part at all: two kinases inside the cell are joined to pieces of another protein that stick together, and the kinases are on." caption="Three ways a tumour keeps a receptor tyrosine kinase on without its ligand: amplify the gene so crowded receptors pair (HER2), change the kinase so it no longer waits for the outside (L858R in the EGF receptor), or lose the outside and fuse the kinase to a protein that pairs by itself (RET fusions)." />
+</details>
 
-Two kinds of drug answer these faults. An antibody is a large protein that binds one target tightly. It cannot cross the membrane, so it works on the ectodomain: trastuzumab (approved in 1998) binds HER2, and cetuximab (2004) binds the EGF receptor partly where EGF would and holds it folded. A small molecule can enter the cell and sit in the kinase's ATP pocket. Gefitinib (2003) and erlotinib (2004) do this to the EGF receptor, and imatinib (2001), the Abl drug you have met, also blocks c-KIT. In 2004 three papers, by Lynch, Paez, Pao and their colleagues, reported that most lung cancers that shrank on gefitinib carried mutations in the EGF receptor's kinase, L858R among them.
+Tumours use at least three mechanisms:
 
+- **Gene amplification:** Dennis Slamon and colleagues (1987) found extra *HER2* copies in 30 percent of 189 breast tumours, predicting earlier relapse and shorter survival (most strongly with lymph-node spread). HER2's dimerization arm is exposed without any ligand, so crowding alone makes pairs.
+- **Kinase mutation:** **L858R** weakens self-inhibition inside an otherwise normal EGF receptor so it signals without growth factor, though it still needs a partner.
+- **Lost or replaced ectodomain:** In some thyroid cancers, *RET* breaks and fuses its kinase half to a self-pairing protein, leaving no ectodomain at all.
 
-Why so many kinase drugs? "Highly Conserved-- target for lots of drugs." The ATP pocket is much the same across the kinase family, so one chemical strategy suits many kinases, and a molecule made for one pocket tends to fit others.
+<LessonFigure src="/figures/receptor-tyrosine-kinases/three-ways-to-stay-on.webp" width={1200} height={676} alt="AI-generated illustration: three membrane panels with no growth factor present. In the first, a crowd of extra receptors forms pairs whose kinases are on and whose tails are tagged. In the second, a normal-looking receptor pair carries a mutation, marked by a star, in one kinase, and the kinases are on. In the third, there is no outer part at all: two kinases inside the cell are joined to pieces of another protein that stick together, and the kinases are on." caption="Tumours keep an RTK on without ligand by amplifying exposed-arm receptors (HER2), mutating the kinase to weaken self-inhibition (L858R), or fusing the kinase to a self-pairing protein without an ectodomain (RET fusions)." />
+
+Two drug classes answer these faults. **Antibodies** are large proteins that cannot cross the membrane and act on the ectodomain: **trastuzumab** binds HER2, and **cetuximab** binds the EGF receptor partly where EGF would, holding it folded. **Small molecules** enter the cell and fill the ATP pocket: **gefitinib** and **erlotinib** block the EGF receptor, and **imatinib** (the Abl drug you have met) also blocks c-KIT.
+
+**Predict.** Why does a small molecule made for one kinase's ATP pocket—such as imatinib for Abl—often inhibit other kinases like c-KIT too?
+
+<details>
+<summary>Check your prediction</summary>
+
+The ATP pocket between the two kinase lobes is highly conserved across the kinase family, so one chemical strategy targets many kinases—and a drug built for one pocket tends to fit related pockets too.
+
+</details>
+
+See Going deeper for approval years and the 2004 lung-cancer gefitinib papers.
 
 ### Design problem
 
@@ -520,3 +574,17 @@ A tumour cell must keep an RTK switched on with no growth factor present. Design
 The antibody needs the outside to be present and to matter. The small molecule needs only the pocket.
 
 </details>
+
+## Going deeper
+
+### How the EGF receptor's switch was uncovered
+
+In an FGF receptor followed step by step, the sites were filled in order: an activation-loop tyrosine was phosphorylated first, which raised the kinase's rate, and the docking tyrosines followed. In 1987 Yosef Yarden and Joseph Schlessinger presented evidence from purified EGF receptor that activation comes from receptor contact, and by 1989 evidence showed one receptor adds phosphate to another, making loop phosphorylation the expected switch. Experiments from 1992 on showed that loop phosphate is not needed, leaving the switch unexplained until Zhang, Kuriyan, and colleagues published the 2006 vesicle-crowding and asymmetric-dimer results.
+
+### Phosphatases balanced against tyrosine kinases
+
+The human genome encodes 107 protein tyrosine phosphatase (PTP) genes, of which 38 are classical enzymes that, with a few exceptions, act only on phosphotyrosine—set against about 90 protein tyrosine kinases (PTKs).
+
+### Drug approvals and the 2004 gefitinib papers
+
+Trastuzumab was approved in 1998, imatinib in 2001, gefitinib in 2003, and erlotinib and cetuximab in 2004. That year three papers—by Lynch, Paez, Pao, and their colleagues—reported that most lung cancers that shrank on gefitinib carried EGF receptor kinase mutations, L858R among them.
