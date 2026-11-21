@@ -1,0 +1,112 @@
+---
+/**
+ * The Side Hops of one lesson, placed right after the lesson text. (This file was
+ * SideHopsPanels.astro; the three-way switch that drove it, SideHopsSwitch.astro, is replaced by the
+ * "How long have you got?" control in LessonTime.astro, whose page script now moves the cards.)
+ *
+ * With scripts off this is a labelled section after the text: the audio, its transcript and every
+ * card. With scripts on, the stop decides:
+ *   Lesson    each card sits at the end of its section; the audio stays here, after the text
+ *   Films     the cards come back here, after the last film
+ *   Stories   the cards come back here, and this section is the page
+ *   Skim      hidden
+ * The films are no longer copied here from a <template>: the Films stop shows the lesson's own
+ * players, so the page holds one copy of each film.
+ *
+ * The styles are inline so that only lessons with Side Hops carry them. The cards carry data-no-hl,
+ * and lesson.mdx is untouched, so highlights, Listen and search are unaffected. AI narration is
+ * stated beside the player.
+ */
+import SideHopCard from './SideHopCard.astro';
+import type { SideHopsData } from '../lib/side-hops';
+import { clock } from '../lib/lesson-time';
+import { say } from '../lib/lesson-copy';
+
+interface Props {
+  data: SideHopsData;
+  /** The lesson's headings, from render(). */
+  headings: { depth: number; slug: string; text: string }[];
+  /** The lesson's main idea, shown under the stories in the Stories stop. */
+  idea: string;
+  /** True when the lesson's summary gives only a question: the label then says so. */
+  ideaIsQuestion?: boolean;
+}
+const { data, headings, idea, ideaIsQuestion = false } = Astro.props;
+const sections = headings.filter((h) => h.depth === 2);
+const hops = data.hops.map((hop) => {
+  const at = sections.findIndex((h) => h.text === hop.afterHeading);
+  if (at < 0) throw new Error(`Side Hops for ${data.slug}: no ## heading "${hop.afterHeading}" in the lesson`);
+  return { hop, before: sections[at + 1]?.slug };
+});
+const { audio } = data;
+const paragraphs = audio.transcript.split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean);
+const n = say(data.hops.length);
+---
+
+<section class="sh-panel" data-sh-panel aria-labelledby="sh-panel-h" data-lt-only="lesson films stories">
+  <h2 class="sh-panel-h" id="sh-panel-h">
+    <span data-lt-only="lesson">The {n} stories, told aloud</span>
+    <span data-lt-only="films nojs">Side Hops: {n} stories that go with this lesson</span>
+    <span data-lt-only="stories">Side Hops</span>
+  </h2>
+  <div class="sh-player">
+    <h3 class="sh-player-h">{audio.title}</h3>
+    <audio controls preload="none" src={`/${audio.file}`}>
+      <a href={`/${audio.file}`}>Download the audio (MP3)</a>
+    </audio>
+    <p class="sh-note">{clock(audio.durationSec)} · Narration: {audio.narration}.</p>
+    <details class="sh-transcript">
+      <summary>Read the transcript</summary>
+      {paragraphs.map((p) => <p>{p}</p>)}
+    </details>
+  </div>
+  <div data-sh-cards>
+    {hops.map(({ hop, before }) => <SideHopCard hop={hop} before={before} />)}
+  </div>
+  <p class="sh-under" data-lt-only="stories"><span class="lt-under-k">{ideaIsQuestion ? 'The question underneath them.' : 'The idea underneath them.'}</span> {idea}</p>
+</section>
+
+<style is:inline>
+  .sh-panel { max-width: 46rem; margin: var(--ddp-space-8) 0; }
+  #top[data-time="stories"] .sh-panel { margin-top: 0; }
+  .sh-panel-h { margin: 0 0 var(--ddp-space-3); font-size: var(--ddp-text-2xl); }
+  .sh-player { padding: var(--ddp-space-4); background: var(--ddp-color-surface); border: 1px solid var(--ddp-color-line); border-radius: var(--ddp-radius); }
+  .sh-player-h { margin: 0 0 var(--ddp-space-3); font-size: var(--ddp-text-lg); }
+  .sh-player audio { display: block; width: 100%; }
+  .sh-note { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); line-height: 1.5; color: var(--ddp-color-muted); }
+  .sh-transcript { margin-top: var(--ddp-space-3); }
+  .sh-transcript summary { display: flex; align-items: center; min-height: 44px; cursor: pointer; font-size: var(--ddp-text-sm); font-weight: 600; color: var(--ddp-color-primary); }
+  .sh-transcript p { margin: 0 0 var(--ddp-space-3); font-size: var(--ddp-text-sm); line-height: 1.65; color: var(--ddp-color-ink-soft); }
+  .sh-under { max-width: 60ch; margin: var(--ddp-space-6) 0 0; line-height: 1.6; }
+
+  /* A card. overflow-x: clip keeps Hex behind the card's edge until it hops in, and lets it jump above the top edge. */
+  .sh-card { margin: var(--ddp-space-6) 0; padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); background: color-mix(in srgb, var(--ddp-color-secondary) 9%, var(--ddp-color-surface)); border: 1px solid color-mix(in srgb, var(--ddp-color-secondary) 45%, var(--ddp-color-line)); border-radius: var(--ddp-radius); overflow: hidden; overflow-x: clip; overflow-y: visible; }
+  .sh-card-head { display: flex; align-items: flex-end; gap: var(--ddp-space-3); margin-bottom: var(--ddp-space-2); }
+  .sh-card-name { min-width: 0; }
+  .sh-hex { flex: none; padding: 0; border: 0; border-radius: 10px; background: transparent; line-height: 0; cursor: pointer; }
+  .sh-hex:disabled { cursor: default; }
+  .sh-card .sh-kicker { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: 0.06em; line-height: 1.4; text-transform: uppercase; color: var(--ddp-color-accent); }
+  .sh-card .sh-title { margin: 0.1rem 0 0; font-size: var(--ddp-text-lg); line-height: 1.25; }
+  .sh-card .sh-text { margin: 0; line-height: 1.6; }
+  .sh-sources { margin-top: var(--ddp-space-2); font-size: var(--ddp-text-sm); }
+  .sh-sources summary { display: flex; align-items: center; min-height: 44px; cursor: pointer; font-weight: 600; color: var(--ddp-color-primary); }
+  .sh-sources summary::before { content: '▸'; margin-right: 0.4em; }
+  .sh-sources[open] summary::before { content: '▾'; }
+  .sh-sources summary::-webkit-details-marker { display: none; }
+  .sh-sources ul { margin: 0; padding-left: 1.2rem; list-style: disc; }
+  .sh-card .sh-sources li { margin: 0 0 0.35rem; font-size: var(--ddp-text-sm); line-height: 1.45; overflow-wrap: anywhere; }
+
+  @media screen and (prefers-reduced-motion: no-preference) {
+    .sh-card[data-sh-wait] .sh-hex { opacity: 0; transform: translateX(-90px); }
+    .sh-card.is-hopping .sh-hex { animation: shHopIn 0.95s cubic-bezier(0.3, 0.7, 0.3, 1) both; }
+    .sh-card.is-hopping .hex-wave .hex-arm-r { transform-origin: 49.3px 27px; animation: hexWave 0.32s ease-in-out 0.95s 4 alternate; }
+    @keyframes shHopIn {
+      0% { transform: translate(-90px, 0) scale(1, 1); }
+      22% { transform: translate(-62px, -18px) scale(0.96, 1.05); }
+      42% { transform: translate(-34px, 0) scale(1.1, 0.88); }
+      64% { transform: translate(-15px, -12px) scale(0.97, 1.04); }
+      84% { transform: translate(0, 0) scale(1.08, 0.92); }
+      100% { transform: translate(0, 0) scale(1, 1); }
+    }
+  }
+</style>

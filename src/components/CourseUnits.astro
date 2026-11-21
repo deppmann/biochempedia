@@ -7,7 +7,7 @@
  */
 import LessonIcon from './LessonIcon.astro';
 import { unitsFor, type Course } from '../data/courses';
-import { lessonMinutes, minutesLabel } from '../lib/reading-time';
+import { wholeMinutes, minutesLabel } from '../lib/reading-time';
 import { unitReviewByUnit, unitReviewHref } from '../data/lesson-games';
 
 interface Props {
@@ -32,7 +32,8 @@ const metaFor = (l: any) => {
     films > 0 && plural(films, 'film', 'films'),
     d.simulations.length > 0 && plural(d.simulations.length, 'simulation', 'simulations'),
     plural(d.practiceQuestions.length + d.mcatQuestions.length, 'question', 'questions'),
-    minutesLabel(lessonMinutes(l)),
+    // The whole lesson: reading, films and Side Hops audio (src/lib/lesson-time.ts), the lesson page's own figure.
+    minutesLabel(wholeMinutes(l)),
   ].filter(Boolean) as string[];
 };
 ---

@@ -16,12 +16,14 @@ interface Props {
     materials: string[];
     sol: string[];
   };
+  /** The heading's id. The lesson page shows the card above the film too, and gives that copy its own id. */
+  headingId?: string;
 }
-const { activity } = Astro.props;
+const { activity, headingId = 'act-card-h' } = Astro.props;
 const where = { indoors: 'Indoors', outdoors: 'Outdoors', either: 'Indoors or outdoors' }[activity.setting];
 ---
-<section class="act-card" aria-labelledby="act-card-h">
-  <h2 id="act-card-h" class="act-h">Before you start</h2>
+<section class="act-card" aria-labelledby={headingId}>
+  <h2 id={headingId} class="act-h">Before you start</h2>
   <dl class="act-facts">
     <div><dt>Hands-on time</dt><dd>About {activity.minutes} minutes{activity.followUp && <>, {activity.followUp}</>}</dd></div>
     <div><dt>Where</dt><dd>{where}</dd></div>
