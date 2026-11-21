@@ -9,6 +9,7 @@
  */
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
+import { mainIdeaOrder, shortProblem } from './topic-graph/lib.mjs';
 import { loadGraphSite, coreSite, readGraph, validateGraph, normalizeGraph, serializeGraph, contentHash, registryOf, LIMITS, addsProblem, blurbProblem, whyProblem, aliasProblem, nameProblem, copyProblems, idProblem, medicalAdvice, analogyFormula } from './topic-graph/lib.mjs';
 import { MEDICAL, ANALOGY, phraseProblem } from './lesson-links/lib.mjs';
 import { ingest, decomposeGraph, ticketOf, canonicalPending } from './topic-graph/ingest.mjs';
@@ -31,7 +32,9 @@ const good = (() => {
   const g = JSON.parse(readFileSync(new URL('./topic-graph/fixtures/seed-graph.json', import.meta.url), 'utf8'));
   for (const c of Object.values(g.concepts)) { c.rungs = c.rungs.filter((r) => site.lessons.has(r.lesson)); c.films = c.films.filter((k) => site.films.has(k)); }
   for (const slug of Object.keys(g.lessons)) { if (!site.lessons.has(slug)) delete g.lessons[slug]; else g.lessons[slug].hash = site.lessons.get(slug).contentHash; }
-  return normalizeGraph(g, site);
+  const n = normalizeGraph(g, site);
+  for (const slug of Object.keys(n.lessons)) n.lessons[slug].concepts = mainIdeaOrder(slug, n, site);
+  return n;
 })();
 assert.ok(good, 'src/data/topic-graph.json is missing');
 const errs = (g) => validateGraph(g, site).errors;
@@ -586,6 +589,41 @@ check('plain English the lesson-links lists stop on passes here: "the next step"
   assert.equal(whyProblem('Pepsin is turned on by the acid in the stomach, where it is safe to act.'), '');
   assert.match(aliasProblem('is it safe to eat mouldy bread'), /medical-advice/);
   assert.match(aliasProblem('safe to take with food'), /medical-advice/);
+});
+
+console.log('short names and main-idea order');
+check('a long name needs a short one; a short name must be shorter, at most 26 characters and nobody else\'s', () => {
+  assert.equal(shortProblem('Water in plants', 'How water moves through a plant'), '');
+  assert.match(shortProblem('A display name that runs on and on', 'A display name that runs on and on, longer'), /longer than 26/);
+  assert.match(shortProblem('Osmosis', 'Osmosis'), /not shorter/);
+  const g = clone(good); g.concepts.osmosis.name = 'Osmosis, the movement of water across membranes';
+  assert.ok(warns(g).some((w) => /osmosis: the name is \d+ characters and has no short display name/.test(w)));
+  g.concepts.osmosis.short = 'Diffusion';
+  assert.ok(errs(g).some((e) => /short name "Diffusion" is the name or short name of diffusion/.test(e)));
+  g.concepts.osmosis.short = 'Osmosis';
+  assert.deepEqual(errs(g), []); assert.ok(!warns(g).some((w) => /^osmosis: .*no short display name/.test(w)));
+  const a = makeTopicGraph(g, coreSite(site));
+  assert.equal(a.conceptsOf('diffusion-and-osmosis').find((c) => c.id === 'osmosis').label, 'Osmosis');
+  assert.equal(a.clientIndex().concepts.find((c) => c.id === 'osmosis').h, 'Osmosis');
+  assert.equal(a.clientIndex().concepts.find((c) => c.id === 'diffusion').h, undefined);
+});
+check('every long name in the committed graph has a short one', () => { for (const [id, c] of Object.entries(real.concepts)) if (c.name.length > LIMITS.shortOver) assert.ok(c.short && c.short.length <= LIMITS.shortChars, id); });
+check('main idea first: the idea the title names, core before uses, kept by the tools and overruled only by a review file', () => {
+  assert.equal(mainIdeaOrder('synaptic-transmission', good, site)[0], 'synapse');
+  assert.deepEqual(good.lessons['synaptic-transmission'].concepts, ['synapse', 'action-potential']);
+  const g = clone(good); g.lessons['synaptic-transmission'].concepts.reverse();
+  assert.ok(errs(g).some((e) => /must come before ideas it uses/.test(e)));
+  const two = Object.entries(good.lessons).find(([s, r]) => r.concepts.filter((id) => good.concepts[id].rungs.some((x) => x.lesson === s && x.role === 'core')).length === 2);
+  const flipped = [two[1].concepts[1], two[1].concepts[0]];
+  const r = run({ review: [file('review', '01', { order: { [two[0]]: flipped } })] });
+  assert.deepEqual(r.graph.lessons[two[0]].concepts.slice(0, 2), flipped); assert.deepEqual(r.validation.errors, []);
+  assert.equal(serializeGraph(normalizeGraph(r.graph, site)), serializeGraph(r.graph));
+});
+check('review fields: reworded copy is checked like any other', () => {
+  const r = run({ review: [file('review', '01', { fields: { osmosis: { blurb: 'Water crosses a membrane toward the side with more dissolved particles.', short: 'Osmosis is not shorter' }, nope: { blurb: 'x' } } })] });
+  assert.equal(r.graph.concepts.osmosis.blurb, 'Water crosses a membrane toward the side with more dissolved particles.');
+  assert.equal(r.graph.concepts.osmosis.short, undefined);
+  assert.ok(rejected(r, /not shorter/)); assert.ok(rejected(r, /not a concept/));
 });
 
 console.log('digests and prompts');

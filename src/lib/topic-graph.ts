@@ -49,6 +49,8 @@ export interface NearEdge {
 }
 export interface Concept {
   name: string;
+  /** A display name of at most 26 characters, present when `name` is longer than 24. Show `short ?? name`. */
+  short?: string;
   /** One plain sentence, readable at grade 7. */
   blurb: string;
   area: string;
@@ -70,7 +72,8 @@ export interface TopicGraph {
   about: string;
   areas: Area[];
   concepts: Record<string, Concept>;
-  /** Reverse index: the concepts a lesson is on (core first), and the hash of the teaching text
+  /** Reverse index: the concepts a lesson is on, MAIN IDEA FIRST (then its other core ideas, then
+   *  the ideas it only uses), and the hash of the teaching text
    *  the record was written from. A live lesson may be absent. */
   lessons: Record<string, { hash: string; concepts: string[] }>;
 }
@@ -142,6 +145,8 @@ export interface LevelRow {
 export interface LessonConcept {
   id: string;
   name: string;
+  /** `short ?? name`: what to show where space is tight. */
+  label: string;
   area: string;
   role: Role;
   anchor?: string;
@@ -150,6 +155,7 @@ export interface LessonConcept {
 export interface Hop {
   id: string;
   name: string;
+  label: string;
   area: string;
   anchor?: string;
   adds?: string;
@@ -162,11 +168,12 @@ export interface Hop {
   /** Other lessons on this idea at the reader's own level. */
   beside: LadderRung[];
   /** Neighbouring ideas, each with the reason and the lesson on it nearest the reader's level. */
-  sideways: { id: string; name: string; blurb: string; area: string; why: string; to?: HopRung }[];
+  sideways: { id: string; name: string; label: string; blurb: string; area: string; why: string; to?: HopRung }[];
 }
 export interface SearchRow {
   id: string;
   name: string;
+  label: string;
   blurb: string;
   area: string;
   areaName: string;
@@ -189,6 +196,7 @@ export interface ClientGraph {
   concepts: {
     id: string;
     n: string;
+    h?: string;
     b: string;
     a: number;
     s?: string;
@@ -209,7 +217,7 @@ export interface ClientIndex {
   files: { area: string; all: string };
   stages: [key: string, title: string][];
   areas: [id: string, name: string, concepts: number][];
-  concepts: { id: string; n: string; a: number; l: number; b: string; q: string[]; f: number }[];
+  concepts: { id: string; n: string; h?: string; a: number; l: number; b: string; q: string[]; f: number }[];
   lessons: Record<string, number[]>;
 }
 
@@ -283,7 +291,10 @@ function api(): Promise<Api> {
   return apiCache;
 }
 
-/** The concepts a lesson is on, with its role in each, core first. [] for a lesson with no record. */
+/** The display name of a concept: its short name when it has one. */
+export const labelOf = (id: string): string => graph.concepts[id]?.short ?? graph.concepts[id]?.name ?? id;
+
+/** The concepts a lesson is on, with its role in each: the lesson's main idea first, then its other core ideas, then what it uses. [] for a lesson with no record. */
 export const conceptsOf = async (slug: string): Promise<LessonConcept[]> => (await api()).conceptsOf(slug);
 
 /** A concept's ladder: its core rungs, lowest level first, with titles, courses, levels, the

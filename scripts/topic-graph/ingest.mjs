@@ -12,7 +12,9 @@
  *                            { by, concepts: [{ id, new: { name, blurb, area, aliases } }],
  *                              merge: [{ from, into, why }],
  *                              rungs: [{ id, lesson, role: core | uses | drop, anchor, adds, films, why }],
- *                              near: { <id>: [{ id, why }] }   (added to what the concept has) }
+ *                              near: { <id>: [{ id, why }] }   (added to what the concept has),
+ *                              fields: { <id>: { name, short, blurb } }   (reworded copy),
+ *                              order: { <lesson>: [<id>, ...] }   (main idea first, overruling the rule) }
  * Every file and every item in it is checked against the lessons and the wording rules. A bad item
  * is rejected with its reason and the rest is kept; nothing is dropped silently. A rung the blind
  * check judged wrong is removed and logged, not argued with.
@@ -42,7 +44,7 @@ import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import {
   ROOT, GRAPH_FILE, AREAS, LIMITS, ROLES, ABOUT, loadGraphSite, readGraph, emptyGraph, normalizeGraph, serializeGraph, validateGraph,
-  describeGraph, reportText, idProblem, nameProblem, blurbProblem, addsProblem, whyProblem, aliasProblem, fold,
+  describeGraph, reportText, idProblem, nameProblem, blurbProblem, addsProblem, whyProblem, aliasProblem, shortProblem, mainIdeaOrder, fold,
 } from './lib.mjs';
 
 const clone = (x) => JSON.parse(JSON.stringify(x));
@@ -177,12 +179,12 @@ export function ingest({ base, site, staging, maxUses = LIMITS.usesPerProposal, 
       }
       if (aliases.length > LIMITS.aliasMax) { for (const a of aliases.splice(LIMITS.aliasMax)) reject('propose', p.file, `${e.id} alias "${a}"`, `over the limit of ${LIMITS.aliasMax}`); }
       if (aliases.length < LIMITS.aliasMin) { R(`needs ${LIMITS.aliasMin} to ${LIMITS.aliasMax} valid aliases, has ${aliases.length}`); continue; }
-      const def = { name: n.name, blurb: n.blurb, area: n.area, aliases, by: d.lesson };
+      const def = { name: n.name, ...(typeof n.short === 'string' && !shortProblem(n.short, n.name) ? { short: n.short } : {}), blurb: n.blurb, area: n.area, aliases, by: d.lesson };
       if (!pending.has(e.id)) pending.set(e.id, { defs: [def], area: n.area });
       else pending.get(e.id).defs.push(def);
     }
   }
-  for (const [id, pn] of pending) concepts[id] = { name: pn.defs[0].name, blurb: pn.defs[0].blurb, area: pn.defs[0].area, subject: 'biology', aliases: [...pn.defs[0].aliases], rungs: [], films: [], near: [] };
+  for (const [id, pn] of pending) concepts[id] = { name: pn.defs[0].name, ...(pn.defs[0].short ? { short: pn.defs[0].short } : {}), blurb: pn.defs[0].blurb, area: pn.defs[0].area, subject: 'biology', aliases: [...pn.defs[0].aliases], rungs: [], films: [], near: [] };
   // 1b. the rungs
   for (const { p, d, l } of usable) {
     const slug = d.lesson;
@@ -448,6 +450,7 @@ export function ingest({ base, site, staging, maxUses = LIMITS.usesPerProposal, 
     tidy('verify');
   }
 
+  const orderOverride = {};
   // ---------------------------------------------------------------- 5b. review: corrections made after reading the result
   if (run.review !== false) {
     for (const f of [...(staging.review ?? [])].sort((a, b) => a.name.localeCompare(b.name))) {
@@ -461,7 +464,7 @@ export function ingest({ base, site, staging, maxUses = LIMITS.usesPerProposal, 
         const why = idProblem(e?.id) || (!isObj(n) ? 'no definition' : nameProblem(n.name ?? '') || blurbProblem(n.blurb ?? '') || (!AREA_IDS.has(n.area) ? `unknown area "${n.area}"` : '')
           || (!Array.isArray(n.aliases) || n.aliases.length < LIMITS.aliasMin || n.aliases.length > LIMITS.aliasMax ? `needs ${LIMITS.aliasMin} to ${LIMITS.aliasMax} aliases` : n.aliases.map((a) => aliasProblem(a)).find(Boolean) ?? ''));
         if (why) { R(what, why); continue; }
-        concepts[e.id] = { name: n.name, blurb: n.blurb, area: n.area, subject: 'biology', aliases: [...n.aliases], rungs: [], films: [], near: [] };
+        concepts[e.id] = { name: n.name, ...(typeof n.short === 'string' && !shortProblem(n.short, n.name) ? { short: n.short } : {}), blurb: n.blurb, area: n.area, subject: 'biology', aliases: [...n.aliases], rungs: [], films: [], near: [] };
         change('review', `${e.id}: new concept "${n.name}" (${f.file})`);
       }
       for (const m of Array.isArray(d.merge) ? d.merge : []) {
@@ -513,13 +516,34 @@ export function ingest({ base, site, staging, maxUses = LIMITS.usesPerProposal, 
           if (why) R(`${from} -> ${e?.id}`, why); else { c.near.push({ id: to, why: e.why }); change('review', `${id}: sideways hop to ${to} added (${f.file})`); }
         }
       }
+      for (const from of Object.keys(isObj(d.fields) ? d.fields : {}).sort()) {
+        const id = resolve(from);
+        const c = concepts[id];
+        if (!c) { R(`fields ${from}`, 'not a concept'); continue; }
+        const e = d.fields[from];
+        for (const [k, check] of [['name', nameProblem], ['blurb', blurbProblem], ['short', (v) => shortProblem(v, e.name ?? c.name)]]) {
+          if (e[k] == null || e[k] === c[k]) continue;
+          const pr = typeof e[k] !== 'string' ? 'not a string' : check(e[k]);
+          if (pr) { R(`${from} ${k}`, `${pr}: "${e[k]}"`); continue; }
+          if (k !== 'short' || c.short) change('review', `${id}: ${k} changed from ${JSON.stringify(c[k])} to ${JSON.stringify(e[k])}${e.why ? `: ${e.why}` : ''} (${f.file})`);
+          c[k] = e[k];
+        }
+      }
+      for (const [slug, ids] of Object.entries(isObj(d.order) ? d.order : {})) { if (site.lessons.has(slug) && Array.isArray(ids)) orderOverride[slug] = ids.map((x) => resolve(String(x))); else R(`order ${slug}`, 'not a live lesson, or not a list'); }
     }
     tidy('review');
   }
 
   // ---------------------------------------------------------------- 6. one fixed order, then the rules
   const lessons = {};
-  for (const slug of records) if (site.lessons.has(slug) || base.lessons?.[slug]) lessons[slug] = { hash: hashes[slug], concepts: [] };
+  // main idea first: the rule in lib.mjs, unless a review file names the order for a lesson
+  const shaped = { concepts };
+  for (const slug of records) {
+    if (!(site.lessons.has(slug) || base.lessons?.[slug])) continue;
+    const ruled = mainIdeaOrder(slug, shaped, site);
+    const over = (orderOverride[slug] ?? []).filter((id) => ruled.includes(id));
+    lessons[slug] = { hash: hashes[slug], concepts: [...over, ...ruled.filter((id) => !over.includes(id))] };
+  }
   let graph = normalizeGraph({ version: 1, updated: date ?? new Date().toISOString().slice(0, 10), about: ABOUT, areas: base.areas?.length ? base.areas : AREAS, concepts, lessons }, site, { hashFor: (slug) => site.lessons.get(slug)?.contentHash });
   const sameAsBase = JSON.stringify({ ...graph, updated: 0 }) === JSON.stringify({ ...normalizeGraph({ ...emptyGraph(), ...clone(base) }, site), about: ABOUT, updated: 0 });
   if (sameAsBase && base.updated && !date) graph.updated = base.updated;
