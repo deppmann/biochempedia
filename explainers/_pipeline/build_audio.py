@@ -60,7 +60,10 @@ def secs(p):
 
 
 def lesson_notes(slug):
-    text = (REPO / f"src/content/lessons/{slug}/lesson.mdx").read_text()
+    p = REPO / f"src/content/lessons/{slug}/lesson.mdx"
+    if not p.exists():   # a film that belongs to no lesson (the About page films, the teachers talk): spoken scenes only
+        return {}
+    text = p.read_text()
     fm = yaml.safe_load(text.split("\n---", 1)[0].lstrip("-\n"))
     return {s["audio"]: s for s in fm.get("lectureSlides", []) if s.get("audio")}
 
