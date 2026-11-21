@@ -3,7 +3,8 @@
 // How the site is used, for the one person who runs it. Counts only. The page that shows them is
 // /admin/ (src/pages/admin/index.astro), a plain static page; this route is the only gated part.
 //
-// THE GATE. A Worker secret, ADMIN_TOKEN (`npx wrangler secret put ADMIN_TOKEN`; it is never in
+// THE GATE (see WHO GETS IN, above the route at the foot of this file, for the owner's own
+// account; this part is the second way in). A Worker secret, ADMIN_TOKEN (`npx wrangler secret put ADMIN_TOKEN`; it is never in
 // the repository or in wrangler.jsonc). It must arrive in an "Authorization: Bearer ..." header.
 //   - The secret must be 24 to 512 printable characters with no spaces (what a header can carry).
 //     Not set, not of that shape, wrong, or missing: the route answers exactly what any unknown
@@ -13,8 +14,8 @@
 //     secret appears anywhere in a query string, a warning is logged (without the value) so the
 //     owner knows to replace it.
 //   - The comparison is constant-time (both sides are hashed first, so length is not leaked).
-//   - A request with no Bearer header costs nothing: no database work. One with a header is
-//     counted, twenty a minute per connection; over that, 404.
+//   - A request with neither a Bearer header nor a learner cookie costs nothing: no database
+//     work. One with a Bearer header is counted, twenty a minute per connection; over that, 404.
 //   - Cache-Control: no-store, no CORS headers, GET only.
 //
 // AGGREGATES ONLY, BY CONSTRUCTION. Every SQL statement below is a COUNT or a SUM, most with a
@@ -71,11 +72,11 @@
 // One person can be in two of them, and nothing links the rows, so adding them would count
 // people twice. They are reported as separate lines.
 
-import { sha256Hex } from './auth.js';
+import { sha256Hex, readCookie } from './auth.js';
 import { DAY, clientKey, allow } from './util.js';
 import { loadUsageCatalog } from './usage-catalog.js';
 import { filmCountsReady, siteDay } from './film-count.js';
-import { roleReady } from './learner.js';
+import { roleReady, getLearner, LEARNER_COOKIE } from './learner.js';
 
 export const ADMIN_PATH = '/api/admin/stats';
 export const SMALL = 5;
@@ -455,21 +456,71 @@ export async function dailyReply(db, env, request, now = Date.now()) {
 }
 
 // ---- the route --------------------------------------------------------------------------
+// WHO GETS IN. Two ways, and anyone else gets the unknown-path 404.
+//
+//   1. The owner's own account. A signed-in LEARNER session (the ordinary bp_learner cookie) whose
+//      account is linked to Google and whose email, as Google itself reported it at sign-in, is one
+//      of the addresses in the ADMIN_EMAILS var (wrangler.jsonc). The email column is only ever
+//      written from a Google ID token whose signature was checked and whose email_verified claim is
+//      true (worker/learner.js verifyGoogleIdToken): there is no route by which a person can type
+//      an email into a learner account. A passkey-only account has no email at all, a display name
+//      is never looked at, and teacher accounts and class seats are different tables and different
+//      cookies that this code does not read. The match is exact after trimming and lower-casing:
+//      no dot or plus-tag folding, no domain match. The request must come from the site's own
+//      pages (Sec-Fetch-Site / Origin), so another site cannot ask through the owner's browser.
+//   2. The ADMIN_TOKEN secret in an Authorization header, as before. Unset unless the owner sets it.
+//
+// A request that carries neither a well-formed learner cookie nor a Bearer header does no
+// database work at all.
+
+/** The addresses in ADMIN_EMAILS that are plain, whole email addresses, lower-cased. Empty means nobody. */
+export function adminEmails(env) {
+  return String(typeof env.ADMIN_EMAILS === 'string' ? env.ADMIN_EMAILS : '').split(',')
+    .map((e) => e.trim().toLowerCase()).filter((e) => /^[^\s@,<>"]+@[^\s@,<>"]+\.[a-z]{2,}$/.test(e));
+}
+
+/** True for a GET that this site's own page made. A browser says where a request came from; a cross-site one is refused. */
+function fromThisSite(request, url) {
+  const site = request.headers.get('Sec-Fetch-Site');
+  if (site && site !== 'same-origin') return false;
+  const origin = request.headers.get('Origin');
+  return !origin || origin === url.origin;
+}
+
+/** Is this request the owner, signed in with Google as one of the ADMIN_EMAILS addresses? */
+async function ownerSession(request, env, db, url) {
+  const allowed = adminEmails(env);
+  if (!allowed.length || !fromThisSite(request, url)) return false;
+  if (!/^[0-9a-f]{64}$/.test(readCookie(request, LEARNER_COOKIE) || '')) return false;   // no cookie: no database work
+  const l = await getLearner(db, request);
+  // Both must be there: a Google link, and the email Google vouched for. Nothing else about the account counts.
+  if (!l || !l.google_sub || typeof l.email !== 'string') return false;
+  return allowed.includes(l.email.trim().toLowerCase());
+}
+
 /** A Response for an allowed GET /api/admin/stats; null for everything else (the caller's own 404 follows). */
 export async function handleAdmin(request, env, db, path, method, url) {
   if (path !== ADMIN_PATH || method !== 'GET') return null;
   const secret = adminSecret(env);
-  if (!secret) return null;
   if (url.search) {
-    let q = url.search;
-    try { q = decodeURIComponent(url.search); } catch { /* keep it as sent */ }
-    if (q.includes(secret) || url.search.includes(secret)) console.warn('admin: the ADMIN_TOKEN secret arrived in a web address, which the request log keeps. Replace it: npx wrangler secret put ADMIN_TOKEN');
+    if (secret) {
+      let q = url.search;
+      try { q = decodeURIComponent(url.search); } catch { /* keep it as sent */ }
+      if (q.includes(secret) || url.search.includes(secret)) console.warn('admin: the ADMIN_TOKEN secret arrived in a web address, which the request log keeps. Replace it: npx wrangler secret put ADMIN_TOKEN');
+    }
     return null;
   }
-  const m = /^Bearer ([\x21-\x7e]{1,512})$/.exec(request.headers.get('Authorization') || '');
-  if (!m) return null;                                           // no header: no database work at all
-  if (!(await allow(db, 'admin:' + (await clientKey(request)), PER_MIN, 60_000))) return null;
-  if (!(await sameSecret(m[1], secret))) return null;
+  let ok = false;
+  const m = secret && /^Bearer ([\x21-\x7e]{1,512})$/.exec(request.headers.get('Authorization') || '');
+  if (m) {
+    if (!(await allow(db, 'admin:' + (await clientKey(request)), PER_MIN, 60_000))) return null;
+    ok = await sameSecret(m[1], secret);
+  }
+  if (!ok && await ownerSession(request, env, db, url)) {
+    // Counted only once we know it is the owner, so nobody else's visit writes anything.
+    ok = await allow(db, 'admin:' + (await clientKey(request)), PER_MIN, 60_000);
+  }
+  if (!ok) return null;
   if (!(await snapshotsReady(db))) return null;                  // before migration 0009 the route stays shut
-  return new Response(await dailyReply(db, env, request), { headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' } });
+  return new Response(await dailyReply(db, env, request), { headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', Vary: 'Cookie, Authorization' } });
 }
