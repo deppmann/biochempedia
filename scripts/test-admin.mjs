@@ -396,9 +396,18 @@ console.log("the owner's own account (ADMIN_EMAILS)");
     // Linking the owner's address to a passkey account does not make that passkey session the owner.
     const pat = await mk('Pat');
     odb.sql.prepare("DELETE FROM learners WHERE google_sub='G-OWNER-2'").run();
-    await googleSignIn({ sub: 'G-OWNER-2', email: OWNER, email_verified: true }, pat.c, { link: true });
-    assert.equal(odb.sql.prepare('SELECT email FROM learners WHERE id=?').get(pat.id).email, OWNER);
-    shut(await stats(pat.c), 'the session was made with a passkey');
+    // The owner's Google identity is never added to an account made another way (it has a passkey, perhaps someone else's).
+    const tried = await googleSignIn({ sub: 'G-OWNER-2', email: OWNER, email_verified: true }, pat.c, { link: true });
+    assert.equal(tried.location, '/account/?error=google-link-owner');
+    assert.deepEqual({ ...odb.sql.prepare('SELECT google_sub, email FROM learners WHERE id=?').get(pat.id) }, { google_sub: null, email: null });
+    assert.equal((await call(oenv, 'GET', '/api/learner/me', { cookie: pat.c })).data.signedIn, true, 'and nobody was signed out by the refusal');
+    shut(await stats(pat.c), 'the passkey account');
+    assert.match(src('src/pages/account/index.astro'), /'google-link-owner': '[^']*Sign out, then choose Sign in with Google/);
+    // The owner can still add a passkey to the owner's own (Google-made) account, and relinking the same identity is a no-op.
+    assert.equal((await call(oenv, 'POST', '/api/learner/passkey/register/options', { cookie: owner.cookie, body: {} })).status, 200);
+    odb.sql.exec('DELETE FROM rate_limits');
+    assert.equal((await googleSignIn({ sub: 'G-OWNER', email: OWNER, email_verified: true }, owner.cookie, { link: true })).location, '/admin/');
+    assert.equal((await stats(owner.cookie)).status, 200);
     for (const [m, p] of [['PUT', '/api/learner/email'], ['POST', '/api/learner/email'], ['PUT', '/api/learner/me'], ['POST', '/api/learner/google/unlink']]) assert.equal((await call(oenv, m, p, { cookie: mallory.c, body: { email: OWNER } })).status, 404, p);
     const src_ = src('worker/learner.js');
     const writes = [...src_.matchAll(/(INSERT INTO learners[^']*|UPDATE learners SET[^']*)/g)].map((x) => x[1]).filter((q) => /email/.test(q));
@@ -407,6 +416,30 @@ console.log("the owner's own account (ADMIN_EMAILS)");
     assert.deepEqual(creators.filter((c) => /email/.test(c) && !/email = null/.test(c)), ['createLearner(db, { name, email, googleSub: sub_ }'], 'and only the Google callback ever passes an email when an account is made');
     assert.match(src_, /if \(claims\.email_verified !== true && claims\.email_verified !== 'true'\) throw/);
     assert.match(src('src/pages/account/index.astro'), /googleStartUrl\('\/account\/', false, true\)/, 'only the signed-in "Link Google" button asks for a link');
+  });
+  await check('a different account signed in on the same browser: the outgoing person\'s unsynced work is not merged into it', async () => {
+    odb.sql.exec('DELETE FROM rate_limits');
+    const sync = (cookie, body) => call(oenv, 'PUT', '/api/learner/sync', { cookie, body });
+    const P = (lessons) => ({ v: 1, lessons, items: {} });
+    const mkA = await passkeySignUp((m, p, o) => call(oenv, m, p, o), ORIGIN, 'localhost', { displayName: 'Ana', age13: true });
+    const mkB = await passkeySignUp((m, p, o) => call(oenv, m, p, o), ORIGIN, 'localhost', { displayName: 'Ben', age13: true });
+    // Ana was signed out when she did her first work: it merges into her new account, as it always has.
+    const a1 = await sync(mkA, { notebook: { items: {} }, progress: P({ glycolysis: { v: 1, d: 2 } }) });
+    assert.equal(a1.status, 200); assert.match(a1.data.acct, /^[0-9a-f]{16}$/); assert.ok(a1.data.progress.lessons.glycolysis);
+    // Ben signs in on the same browser. The device still holds Ana's work, tagged with her account.
+    const b1 = await sync(mkB, { notebook: { items: { n1: { id: 'n1', kind: 'note', slug: 'osmosis', text: 'ZZ Ana private note', updated: Date.now() } } }, progress: P({ glycolysis: { v: 1, d: 2 }, osmosis: { v: 5 } }), acct: a1.data.acct });
+    assert.equal(b1.status, 409); assert.equal(b1.data.accountChanged, true); assert.notEqual(b1.data.acct, a1.data.acct);
+    const benRow = odb.sql.prepare("SELECT d.notebook_json, d.progress_json FROM learner_data d JOIN learners l ON l.id=d.learner_id WHERE l.display_name='Ben'").get();
+    assert.equal(benRow.notebook_json, '{}'); assert.equal(benRow.progress_json, '{}', 'nothing of Ana\'s reached Ben\'s account');
+    // What the page does next: with the device cleared, it syncs under Ben's tag and gets Ben's own (empty) data.
+    const b2 = await sync(mkB, { notebook: { items: {} }, progress: P({}), acct: b1.data.acct });
+    assert.equal(b2.status, 200); assert.deepEqual(b2.data.progress.lessons, {}); assert.equal(b2.data.acct, b1.data.acct);
+    // Ana's own account is untouched, and her own device keeps syncing.
+    assert.equal((await sync(mkA, { notebook: { items: {} }, progress: P({}), acct: a1.data.acct })).data.progress.lessons.glycolysis.d, 2);
+    assert.equal((await call(oenv, 'GET', '/api/learner/sync', { cookie: mkA })).data.acct, a1.data.acct);
+    const lib = src('src/lib/learner.ts');
+    assert.match(lib, /r\.status === 409 && r\.data\?\.accountChanged[\s\S]{0,600}clearDevice\(\)/, 'the page clears the outgoing account\'s copy before syncing again');
+    assert.match(lib, /\.\.\.\(known \? \{ acct: known \} : \{\}\)/, 'a device with no tag (a signed-out reader\'s own work) sends none, and is merged');
   });
   await check('before migration 0011 sign-in works as it did and the owner\'s page stays shut for accounts; the export says how each device signed in after it', async () => {
     const early = makeDb({ before0011: true }); const eenv = { ...oenv, CLASSES: early };

@@ -41,7 +41,8 @@ export interface Me {
   role?: Role | null;
 }
 
-interface Cache { name?: string; lastSync?: number }
+/** `acct` is the server's non-secret tag for the account this device's notebook and progress were last synced with. */
+interface Cache { name?: string; lastSync?: number; acct?: string }
 
 function readCache(): Cache {
   try { return JSON.parse(window.localStorage.getItem(CACHE_KEY) || '{}') || {}; } catch { return {}; }
@@ -103,11 +104,21 @@ export function syncNow(): Promise<SyncResult> {
   inFlight = (async (): Promise<SyncResult> => {
     const localItems = loadNotebook().items;
     const localProgress = loadProgress();
-    const body = JSON.stringify({ notebook: { items: localItems }, progress: localProgress });
+    const known = readCache().acct;
+    const body = JSON.stringify({ notebook: { items: localItems }, progress: localProgress, ...(known ? { acct: known } : {}) });
     if (body.length > MAX_BYTES) return { ok: false, status: 413, error: 'Your notebook is too big to sync (over 1 MB).' };
     let r;
     try { r = await api('/sync', { method: 'PUT', body }); } catch { return { ok: false, status: 0, error: 'No connection. Your work is saved on this device.' }; }
     if (r.status === 401) { writeCache(null); return { ok: false, status: 401, error: 'Not signed in.' }; }
+    if (r.status === 409 && r.data?.accountChanged && typeof r.data.acct === 'string') {
+      // A different account is signed in than the one this device's notes and progress belong to.
+      // Nothing was merged. The other person's copy is removed from this device (their synced work
+      // is safe in their own account) and this account's own data is fetched instead.
+      applying = true;
+      try { clearDevice(); } finally { applying = false; }
+      writeCache({ acct: r.data.acct });
+      try { r = await api('/sync', { method: 'PUT', body: JSON.stringify({ notebook: { items: {} }, progress: loadProgress(), acct: r.data.acct }) }); } catch { return { ok: false, status: 0, error: 'No connection.' }; }
+    }
     if (r.status !== 200 || !r.data) return { ok: false, status: r.status, error: r.data?.error || 'Sync failed. Your work is saved on this device.' };
 
     // Merge the server's merged state into this device (another device may have added things).
@@ -119,7 +130,7 @@ export function syncNow(): Promise<SyncResult> {
       if (!sameJson(merged, loadProgress())) { writeProgress(merged as Progress); changed = true; }
     } finally { applying = false; }
     const at = Date.now();
-    writeCache({ ...readCache(), lastSync: at });
+    writeCache({ ...readCache(), lastSync: at, ...(typeof r.data.acct === 'string' ? { acct: r.data.acct } : {}) });
     return { ok: true, at, changed };
   })();
   inFlight.finally(() => { inFlight = null; });
@@ -176,7 +187,7 @@ export async function signInWithPasskey(): Promise<Outcome> {
   try { response = await startAuthentication({ optionsJSON: o.data.options }); } catch (e) { return { ok: false, error: passkeyError(e) }; }
   const v = await post('/passkey/login/verify', { response });
   if (v.status !== 200) return { ok: false, error: v.data?.error || 'Sign-in failed.' };
-  writeCache({ name: v.data.name });
+  writeCache({ name: v.data.name, ...(readCache().acct ? { acct: readCache().acct } : {}) });   // keep the tag of the account this device's data belongs to
   return { ok: true, name: v.data.name };
 }
 
