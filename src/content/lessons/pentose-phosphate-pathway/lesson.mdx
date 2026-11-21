@@ -20,6 +20,23 @@ explainer:
   durationSec: 236.2
   narration: "this lesson's narrated lecture slides, read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+
+films:
+  - id: "chapter-2"
+    src: "/explainers/pentose-phosphate-pathway/chapter-2.mp4"
+    captions: "/explainers/pentose-phosphate-pathway/chapter-2.vtt"
+    poster: "/explainers/pentose-phosphate-pathway/chapter-2-poster.jpg"
+    title: "The Bean and the Red Cell"
+    durationSec: 202.8
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+    takeaways:
+      - "A mature red blood cell has no nucleus and no mitochondria, and gets its NADPH mainly from the pentose phosphate pathway."
+      - "Glutathione reductase spends that NADPH to restore reduced glutathione, so the red cell's whole glutathione cycle leans on G6PD."
+      - "G6PD deficiency affects roughly 400 million people; the gene is on the X chromosome, so males are affected more often."
+      - "Fava beans, certain antimalarial or sulfa drugs, or infection can then lead to clumped hemoglobin (Heinz bodies), lost red cells and a hemolytic crisis."
+      - "The trait is thought to persist because it offers some protection against malaria, though how strong that protection is still differs between studies."
+
 scientists:
   - name: "Otto Warburg"
     dates: "1883–1970"
@@ -232,6 +249,7 @@ anecdotes:
 import PathwayExplorer from '../../../components/PathwayExplorer.astro';
 import PPPModes from '../../../components/PPPModes.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import LessonFilm from '../../../components/LessonFilm.astro';
 
 export const pppSteps = [{"n": 1, "enzyme": "Glucose-6-phosphate dehydrogenase (G6PD)", "sub": "Glucose-6-phosphate (C6)", "prod": "6-phosphoglucono-δ-lactone (C6)", "nadph": 1, "regulated": true, "note": "The committed, rate-limiting step. Oxidizes C1 of glucose-6-phosphate and reduces NADP⁺ to the first NADPH. This is the door into the pathway, and the cell holds it shut when NADPH is plentiful.", "clinical": "G6PD deficiency affects ~400 million people. With G6PD weak, red cells cannot regenerate NADPH, glutathione falls, hemoglobin oxidizes into Heinz bodies, and the damaged cells burst or are removed by the spleen — a hemolytic crisis triggered by fava beans, certain drugs, or infection. Deficient red cells also seem to resist the malaria parasite, which is thought to be why the trait persists where malaria is endemic.", "regNote": "NADPH product-inhibits G6PD, so NADP⁺ is what opens the tap: spend NADPH and the step speeds up.", "tracks": [{"label": "Part", "text": "Tap (steps 1–3): one-way; per G6P, 2 NADPH + 1 CO₂ + one five-carbon sugar"}]}, {"n": 2, "enzyme": "6-Phosphogluconolactonase", "sub": "6-phosphoglucono-δ-lactone (C6)", "prod": "6-phosphogluconate (C6)", "note": "Hydrolyzes the strained lactone ring open to the linear acid. A quiet housekeeping step that also occurs slowly on its own, but the enzyme makes it fast and clean."}, {"n": 3, "enzyme": "6-Phosphogluconate dehydrogenase", "sub": "6-phosphogluconate (C6)", "prod": "Ribulose-5-phosphate (C5) + CO₂", "nadph": 1, "co2": 1, "note": "Oxidative decarboxylation: makes the second NADPH and releases C1 as CO₂. Losing that carbon, after the downhill oxidation and lactone hydrolysis, is what locks the oxidative phase in one direction — you can run a sugar uphill, but you cannot put a CO₂ back.", "clinical": "This step releases CO₂ without consuming O₂, but PPP flux alone does not raise the body's CO₂/O₂ ratio, because the NADPH is later spent on oxygen-using reactions or on making fat. Tracers that follow glucose C1 are how PPP flux is actually measured."}, {"n": 4, "enzyme": "Phosphopentose isomerase", "sub": "Ribulose-5-phosphate (C5)", "prod": "Ribose-5-phosphate (C5)", "note": "Ketose → aldose. This is the exit toward biosynthesis: ribose-5-phosphate is the sugar every nucleotide is built from (DNA's deoxyribose is made from it later), so this branch feeds DNA, RNA, ATP, NAD⁺, and coenzyme A.", "clinical": "Ribose-5-phosphate is the precursor of PRPP, the activated sugar that both purine and pyrimidine synthesis require — the reason dividing cells lean on this pathway.", "reversible": true}, {"n": 5, "enzyme": "Phosphopentose epimerase", "sub": "Ribulose-5-phosphate (C5)", "prod": "Xylulose-5-phosphate (C5)", "note": "Inverts the configuration at a single carbon (C3). Ribulose and xylulose are epimers, identical except at that one stereocenter, but transketolase needs xylulose, so the small change matters.", "reversible": true}, {"n": 6, "enzyme": "Transketolase (TPP)", "sub": "Xylulose-5-P (C5) + ribose-5-P (C5)", "prod": "Glyceraldehyde-3-P (C3) + sedoheptulose-7-P (C7)", "note": "Molecular scissors: snips a two-carbon ketol unit off xylulose and welds it onto ribose. Requires thiamine pyrophosphate (TPP), the same cofactor pyruvate dehydrogenase uses. Carbon check: 5 + 5 = 3 + 7.", "clinical": "TPP comes from vitamin B1 (thiamine). In thiamine deficiency (Wernicke-Korsakoff, classically in alcoholism) transketolase activity falls — the assay for it is a clinical test of thiamine status.", "reversible": true, "tracks": [{"label": "Part", "text": "Exchange (steps 4–8): reversible, no NADPH, no CO₂; needs three five-carbon sugars, so three turns of the tap"}]}, {"n": 7, "enzyme": "Transaldolase", "sub": "Sedoheptulose-7-P (C7) + glyceraldehyde-3-P (C3)", "prod": "Fructose-6-P (C6) + erythrose-4-P (C4)", "note": "Transfers a three-carbon dihydroxyacetone unit using an active-site lysine that forms a Schiff base with the substrate, the same trick aldolase uses in glycolysis. No external cofactor. Carbon check: 7 + 3 = 6 + 4.", "reversible": true}, {"n": 8, "enzyme": "Transketolase (TPP)", "sub": "Erythrose-4-P (C4) + xylulose-5-P (C5)", "prod": "Fructose-6-P (C6) + glyceraldehyde-3-P (C3)", "note": "Transketolase again, second cut, moving another two-carbon unit so both end products are ordinary glycolytic intermediates. Carbon check: 4 + 5 = 6 + 3. Net of the non-oxidative phase: three C5 sugars become two F6P and one G3P.", "reversible": true}];
 
@@ -350,6 +368,8 @@ Twelve NADPH, and five glucose-6-phosphate come back. The tap gives 6 × 2 = 12 
 These are limits, not settings. A real cell blends them, and the blend shifts minute by minute as NADP⁺ opens or closes the tap and as nucleotide synthesis pulls on ribose. Pick a demand below and watch which parts run.
 
 <PPPModes />
+
+<LessonFilm film={frontmatter.films[0]} />
 
 ## The red cell: when the tap breaks
 

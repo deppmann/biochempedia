@@ -33,6 +33,23 @@ explainer:
     - "Choose a method using a property that distinguishes the target from contaminants."
   narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+
+films:
+  - id: "chapter-2"
+    src: "/explainers/protein-purification-techniques/chapter-2.mp4"
+    captions: "/explainers/protein-purification-techniques/chapter-2.vtt"
+    poster: "/explainers/protein-purification-techniques/chapter-2-poster.jpg"
+    title: "One Band, Three Questions"
+    durationSec: 202.3
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+    takeaways:
+      - "SDS-PAGE unfolds each chain and coats it with negative charge, so chains sort by size, the small ones running fastest."
+      - "One band per kind of chain is needed but not enough: two proteins of the same size run together, and a contaminant can hide below what the stain detects."
+      - "A band gives a size, not a name; antibodies, masses and sequence say which protein it is."
+      - "A peptide mass fingerprint can name a known protein by matching its trypsin peptide masses against a database, without reading its sequence."
+      - "Edman degradation reads one residue at a time from the start of the chain; tandem mass spectrometry reads sequence from the gaps between peaks."
+
 scientists:
   - name: "Frederick Sanger"
     dates: "1918–2013"
@@ -582,6 +599,7 @@ import PurificationSimulator from '../../../components/PurificationSimulator.ast
 import ChromatographyColumn from '../../../components/ChromatographyColumn.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
 import EquationCard from '../../../components/EquationCard.astro';
+import LessonFilm from '../../../components/LessonFilm.astro';
 
 **Many of the clinical tests you will order as a physician run on the techniques in this lesson.** The pregnancy test detects a hormone with an antibody, the troponin test that helps confirm a heart attack does the same, and the classic confirmatory HIV test was a western blot. The film above shows why purification can improve even while it loses target enzyme. In the table below, that enzyme begins at roughly 1 part in 3,000 of the protein in the tube.
 
@@ -711,6 +729,8 @@ A property tells you which resin to choose; load and volume set the order. Early
 The column chooser below runs one four-protein mixture through four columns, including hydrophobic interaction (HIC), which sorts proteins by how greasy their surfaces are. Switch columns and watch the elution order rearrange.
 
 <ChromatographyColumn />
+
+<LessonFilm film={frontmatter.films[0]} />
 
 ## Know when to stop
 
