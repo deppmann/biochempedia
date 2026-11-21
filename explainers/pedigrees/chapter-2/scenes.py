@@ -291,22 +291,84 @@ class S06Renormalize(SpokenScene):
 
 class S07Rise(SpokenScene):
     def construct(self):
-        panels = TwoPanel("before evidence", "after evidence", colors=(GREY, TEAL), top=3.0, bottom=-2.25)
-        before = VGroup(genotype_tile("AA", 1.2, TEAL), genotype_tile("Aa", 1.2, TEAL),
-                        genotype_tile("aa", 1.2, RED)).arrange(RIGHT, buff=0.10)
-        after = VGroup(genotype_tile("AA", 1.45, TEAL), genotype_tile("Aa", 2.25, TEAL, breathe=True)).arrange(RIGHT, buff=0.10)
-        panels.put(before, "left"); panels.put(after, "right")
-        before.scale(0.84); after.scale(0.84)
-        self.play(FadeIn(panels), FadeIn(before), run_time=1.0)
-        self.at("occupy more")
-        self.play(FadeIn(after), Indicate(after[1], color=TEAL, scale_factor=1.04), run_time=1.1)
-        self.at("person is unaffected")
-        icon = person("female").scale(1.5).move_to([0, -2.75, 0])
-        self.play(FadeIn(icon), run_time=0.7)
-        self.at("comparison set")
-        removed = VGroup(before[2], after[1])
-        self.play(Indicate(removed, color=VIOLET, scale_factor=1.02), run_time=1.0)
-        self.add(scope_tag("schematic"))
+        divider = Line([-1.15, -3.35, 0], [-1.15, 3.35, 0], color=GREY, stroke_width=2.5)
+        before_head = T("before evidence", 30, GREY).move_to([-3.85, 3.15, 0])
+        before_bar = probability_bar(labels=("AA", "Aa", "aa"), colors=(TEAL, TEAL, RED),
+                                     x0=-5.65, x1=-2.05, y=1.35, height=1.32, gap=0.10)
+        unaffected_icon = person("female").scale(1.35).move_to([-3.85, -0.75, 0])
+        unaffected_lab = T("unaffected", 26, WHITE).next_to(unaffected_icon, DOWN, buff=0.22)
+        before_tag = T("schematic", 24, GREY).move_to([-3.85, -3.15, 0])
+        before_group = VGroup(before_head, before_bar, unaffected_icon, unaffected_lab, before_tag)
+
+        after_head = T("after evidence", 30, TEAL).move_to([2.75, 3.15, 0])
+        after_bar = probability_bar(labels=("AA", "Aa", "aa"), colors=(TEAL, TEAL, RED),
+                                    x0=-0.65, x1=2.95, y=1.35, height=1.32, gap=0.10, breathe=True)
+        after_tag = T("schematic", 24, GREY).move_to([2.75, -3.15, 0])
+
+        num_start = T("starting weight", 26, TEAL).move_to([4.75, 1.78, 0])
+        num_carrier = T("carrier weight", 26, TEAL).move_to([4.75, 1.78, 0])
+        frac_line = Line([3.45, 1.35, 0], [6.05, 1.35, 0], color=WHITE, stroke_width=3)
+        den_text = T("remaining total", 26, GOLD).move_to([4.75, 0.92, 0])
+        den_bar = Line([3.55, 0.56, 0], [5.95, 0.56, 0], color=GOLD, stroke_width=4)
+
+        num_block = genotype_tile("Aa", 1.15, TEAL, height=0.64).move_to([2.75, -0.82, 0])
+        block_line = Line([0.75, -1.35, 0], [4.75, -1.35, 0], color=WHITE, stroke_width=3)
+        denom_blocks = VGroup(
+            genotype_tile("AA", 1.15, TEAL, height=0.64),
+            genotype_tile("Aa", 1.15, TEAL, height=0.64),
+            genotype_tile("aa", 1.15, RED, height=0.64),
+        ).arrange(RIGHT, buff=0.12).move_to([2.75, -1.88, 0])
+
+        self.play(FadeIn(divider), FadeIn(before_group), FadeIn(after_head),
+                  FadeIn(after_bar), FadeIn(after_tag), run_time=1.0)
+
+        self.at("starting weight")
+        self.play(FadeIn(num_start, shift=UP * 0.08), FadeIn(num_block, shift=UP * 0.08),
+                  Indicate(after_bar.tiles[1], color=TEAL, scale_factor=1.04), run_time=0.7)
+
+        self.at("divided by")
+        self.play(Create(frac_line), Create(block_line), run_time=0.7)
+
+        self.at("total weight still left")
+        self.play(FadeIn(den_text, shift=DOWN * 0.08), FadeIn(den_bar),
+                  LaggedStart(*[FadeIn(b, shift=DOWN * 0.08) for b in denom_blocks], lag_ratio=0.12),
+                  run_time=1.0)
+
+        self.at("being unaffected")
+        self.play(ShowPassingFlash(unaffected_icon.copy().set_stroke(GOLD, 6), time_width=0.6),
+                  run_time=0.9)
+
+        self.at("incompatible tile")
+        bad_tile, bad_block = after_bar.tiles[2], denom_blocks[2]
+        self.play(bad_tile.animate.set_color(VIOLET), bad_block.animate.set_color(VIOLET), run_time=0.5)
+        self.play(bad_tile.animate.scale(0.01, about_point=bad_tile.get_bottom()), FadeOut(bad_tile),
+                  bad_block.animate.scale(0.01, about_point=bad_block.get_bottom()), FadeOut(bad_block),
+                  run_time=0.9)
+
+        self.at("denominator shrinks")
+        shrunk_line = Line([1.35, -1.35, 0], [4.15, -1.35, 0], color=WHITE, stroke_width=3)
+        shrunk_den_bar = Line([3.95, 0.56, 0], [5.55, 0.56, 0], color=GOLD, stroke_width=4)
+        self.play(denom_blocks[0].animate.move_to([2.115, -1.88, 0]),
+                  denom_blocks[1].animate.move_to([3.385, -1.88, 0]),
+                  Transform(block_line, shrunk_line),
+                  Transform(den_bar, shrunk_den_bar),
+                  run_time=1.3)
+
+        self.at("carrier weight")
+        self.play(swap(num_start, num_carrier, run_time=0.7))
+        self.play(ShowPassingFlash(num_block[0].copy().set_stroke(GOLD, 6), time_width=0.6),
+                  Indicate(num_carrier, color=TEAL, scale_factor=1.02), run_time=0.8)
+
+        self.at("carrier tile")
+        target_after = probability_bar(labels=("AA", "Aa"), colors=(TEAL, TEAL),
+                                       x0=-0.65, x1=2.95, y=1.35, height=1.32, gap=0.10, breathe=True)
+        carrier_tag = T("carrier", 24, GOLD).next_to(target_after.tiles[1], DOWN, buff=0.16)
+        self.play(Transform(after_bar.tiles[0], target_after.tiles[0]),
+                  Transform(after_bar.tiles[1], target_after.tiles[1]),
+                  run_time=1.6)
+        self.play(FadeIn(carrier_tag, shift=UP * 0.06),
+                  after_bar.tiles[1][0].animate.set_stroke(GOLD, 4),
+                  run_time=0.8)
         self.finish()
 
 

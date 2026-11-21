@@ -483,34 +483,76 @@ def surface_marks(center, r, n, color=BLUE):
 
 class S16Double(SpokenScene):
     def construct(self):
-        c1, c2 = np.array([-3.7, .65, 0]), np.array([1.65, .65, 0])
+        c1, c2 = np.array([-3.7, .85, 0]), np.array([1.65, .85, 0])
         small = sphere(c1, 1.0); sm = surface_marks(c1, 1.0, 12)
         self.add(small)
         self.at("Take a sphere")
-        self.play(Create(sm), FadeIn(M("5 µm", 28, BLUE).next_to(small, DOWN)),
-                  Indicate(small, color=BLUE, scale_factor=1.03), run_time=.7)
+        sl = M("5 µm", 28, BLUE).next_to(small, DOWN, buff=.12)
+        self.play(Create(sm), FadeIn(sl), Indicate(small, color=BLUE, scale_factor=1.03), run_time=.7)
         self.at("simplest shape")
-        case = T("sphere: simplest case", 28, YELLOW).move_to([0, 3.35, 0])
+        case = T("sphere: simplest case", 28, YELLOW).move_to([-.5, 3.35, 0])
         self.play(FadeIn(case), run_time=.45)
         self.at("double its radius")
         big = sphere(c2, 2.0); bm = surface_marks(c2, 2.0, 48)
-        bl = M("10 µm", 28, BLUE).next_to(big, DOWN, buff=.12)
+        bl = M("10 µm", 28, BLUE).next_to(big, DOWN, buff=.10)
         self.play(GrowFromCenter(big), LaggedStart(*[Create(x) for x in bm], lag_ratio=.015), FadeIn(bl), run_time=1.4)
-        self.at("area rises four times")
-        area = VGroup(Rectangle(width=2.3, height=.38, color=BLUE, fill_color=BLUE, fill_opacity=.55),
-                      T("area × 4", 28, BLUE)).arrange(RIGHT, buff=.22).move_to([-3.0, -2.65, 0])
-        self.play(GrowFromEdge(area[0], LEFT), FadeIn(area[1]), run_time=.65)
-        self.at("volume 8")
-        vol = VGroup(Rectangle(width=4.6, height=.38, color=ORANGE, fill_color=ORANGE, fill_opacity=.55),
-                     T("volume × 8", 28, ORANGE)).arrange(RIGHT, buff=.22).move_to([1.75, -3.25, 0])
-        self.play(GrowFromEdge(vol[0], LEFT), FadeIn(vol[1]), run_time=.65)
-        self.at("half as much membrane")
-        sectors = VGroup(*[Line(c2, c2 + 1.9*np.array([math.cos(a), math.sin(a), 0]), color=ORANGE,
-                                  stroke_width=2).set_opacity(.25) for a in np.linspace(-PI/2, PI/2, 7)])
-        half = T("membrane per volume: ½", 34, YELLOW).move_to([0, -2.3, 0])
-        calc = M("area ÷ volume: 0.6 → 0.3 per µm", 24, YELLOW).next_to(half, DOWN, buff=.16)
-        self.play(FadeOut(area), FadeOut(vol), run_time=.25)
-        self.play(Create(sectors), FadeIn(half), FadeIn(calc), FadeIn(tag("computed, sphere")), run_time=.7)
+
+        # Row 1: blue area bar + area ~ r² -> 2² = 4
+        y_area = -1.80
+        area_bar = Rectangle(width=.4, height=.34, color=BLUE, fill_color=BLUE, fill_opacity=.55).move_to([-5.7, y_area, 0])
+        area_bar_full = Rectangle(width=1.6, height=.34, color=BLUE, fill_color=BLUE, fill_opacity=.55).move_to([-5.1, y_area, 0])
+        area_lbl = T("area", 26, BLUE).move_to([-4.1, y_area, 0], aligned_edge=LEFT)
+        area_x4 = T("× 4", 26, BLUE).next_to(area_lbl, RIGHT, buff=.12)
+        area_eq1 = M("area ~ r²", 26, BLUE).move_to([-.2, y_area, 0], aligned_edge=LEFT)
+        area_eq2 = M("→ 2²", 26, BLUE).next_to(area_eq1, RIGHT, buff=.14)
+        area_eq3 = M("= 4", 26, BLUE).next_to(area_eq2, RIGHT, buff=.14)
+
+        self.at("Area grows")
+        self.play(GrowFromEdge(area_bar, LEFT), FadeIn(area_lbl), run_time=.5)
+        self.at("radius squared")
+        self.play(FadeIn(area_eq1), run_time=.5)
+        self.at("so 2 squared", lead=.1)
+        self.play(FadeIn(area_eq2), run_time=.45)
+        self.at("4", nth=0, lead=.05)
+        self.play(Transform(area_bar, area_bar_full), FadeIn(area_x4), FadeIn(area_eq3), run_time=.55)
+
+        # Row 2: orange volume bar + volume ~ r³ -> 2³ = 8
+        y_vol = -2.30
+        vol_bar = Rectangle(width=.4, height=.34, color=ORANGE, fill_color=ORANGE, fill_opacity=.55).move_to([-5.7, y_vol, 0])
+        vol_bar_full = Rectangle(width=3.2, height=.34, color=ORANGE, fill_color=ORANGE, fill_opacity=.55).move_to([-4.3, y_vol, 0])
+        vol_lbl = T("volume", 26, ORANGE).move_to([-2.5, y_vol, 0], aligned_edge=LEFT)
+        vol_x8 = T("× 8", 26, ORANGE).next_to(vol_lbl, RIGHT, buff=.12)
+        vol_eq1 = M("volume ~ r³", 26, ORANGE).move_to([-.2, y_vol, 0], aligned_edge=LEFT)
+        vol_eq2 = M("→ 2³", 26, ORANGE).next_to(vol_eq1, RIGHT, buff=.14)
+        vol_eq3 = M("= 8", 26, ORANGE).next_to(vol_eq2, RIGHT, buff=.14)
+
+        self.at("Volume grows")
+        self.play(GrowFromEdge(vol_bar, LEFT), FadeIn(vol_lbl), run_time=.5)
+        self.at("radius cubed", lead=.1)
+        self.play(FadeIn(vol_eq1), run_time=.5)
+        self.at("so 2 cubed", lead=.1)
+        self.play(FadeIn(vol_eq2), run_time=.45)
+        self.at("8", nth=0, lead=.05)
+        self.play(Transform(vol_bar, vol_bar_full), FadeIn(vol_x8), FadeIn(vol_eq3), run_time=.55)
+
+        # Row 3: 4 / 8 = ½ beside membrane per volume: ½ and area ÷ volume readout
+        y_res = -2.90
+        ratio_lhs = M("4 / 8", 28, YELLOW).move_to([-4.0, y_res, 0], aligned_edge=LEFT)
+        ratio_rhs = M("= ½", 28, YELLOW).next_to(ratio_lhs, RIGHT, buff=.14)
+        half = T("membrane per volume: ½", 32, YELLOW).move_to([1.3, y_res, 0])
+        calc = M("area ÷ volume: 0.6 → 0.3 per µm", 24, YELLOW).move_to([1.3, -3.38, 0])
+        sectors = VGroup(
+            *[Line(c2, c2 + 1.9 * np.array([math.cos(a), math.sin(a), 0]), color=ORANGE,
+                   stroke_width=2).set_opacity(.28) for a in np.linspace(-PI / 2, PI / 2, 7)],
+            *[Line(c1, c1 + 0.9 * np.array([math.cos(a), math.sin(a), 0]), color=ORANGE,
+                   stroke_width=2).set_opacity(.28) for a in np.linspace(-PI / 2, PI / 2, 4)],
+        )
+
+        self.at("4 over 8", lead=.05)
+        self.play(FadeIn(ratio_lhs), run_time=.45)
+        self.at("half as much", lead=.05)
+        self.play(Create(sectors), FadeIn(ratio_rhs), FadeIn(half), FadeIn(calc),
+                  FadeIn(tag("computed, sphere", pos=(4.85, 3.35, 0))), run_time=.6)
         self.finish()
 
 

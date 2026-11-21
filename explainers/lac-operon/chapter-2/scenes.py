@@ -465,19 +465,19 @@ class S10Swap(SpokenScene):
 class S11Special(SpokenScene):
     def construct(self):
         world = partial_diploid(roam=False)
-        rep = repressor([1.35, 2.0, 0], scale=0.78)
+        rep = repressor([1.6, 0.0, 0], scale=0.68)
         self.add(world, rep)
         never = T("No purified repressor needed", 32, TEXT).move_to([-1.2, 3.15, 0])
         self.at("never needed")
         self.play(FadeIn(never), run_time=0.7)
-        outline = DashedVMobject(SurroundingRectangle(rep, color=RED, buff=0.22, stroke_width=3), num_dashes=20)
+        outline = DashedVMobject(SurroundingRectangle(rep, color=RED, buff=0.14, stroke_width=3), num_dashes=20)
         inferred = T("inferred from genetics", 28, RED).move_to([-1.2, 3.15, 0])
         self.at("Geneticists mapped")
         self.play(FadeOut(never), Create(outline), FadeIn(inferred), run_time=0.9)
         arrows = VGroup(DoubleArrow([2.75, -0.35, 0], [2.75, 1.75, 0],
                                     buff=0, color=RED, stroke_width=4, tip_length=0.18))
         self.at("traveling product")
-        self.play(Create(arrows), rep.animate.shift(RIGHT * 0.7), run_time=1.0)
+        self.play(Create(arrows), rep.animate.shift(RIGHT * 0.4), outline.animate.shift(RIGHT * 0.4), run_time=1.0)
         isolated = boxed_label("isolated later: a protein", color=RED, size=28).move_to([-1.2, 3.15, 0])
         self.at("later isolated")
         self.play(FadeOut(inferred), FadeIn(isolated), FadeOut(outline), run_time=0.8)
@@ -513,31 +513,115 @@ def trans_panel():
 
 class S12Rule(SpokenScene):
     def construct(self):
+        world = partial_diploid(roam=False)
+        self.add(world)
+
         panels = TwoPanel("local DNA site", "shared cellular product", colors=(GOLD, RED),
-                          top=3.0, bottom=-2.25, size=32)
-        left, right = cis_panel(), trans_panel()
-        panels.put(left, "left")
-        panels.put(right, "right")
-        self.play(FadeIn(panels), run_time=0.7)
+                          top=3.15, bottom=-1.35, size=32)
+
+        # Left panel: single rail with anchored orange operator and reporter
+        l_rail = VGroup(Line([-2.15, 0.70, 0], [-1.52, 0.70, 0], color=GREY, stroke_width=7),
+                        Line([-0.55, 0.70, 0], [-0.02, 0.70, 0], color=GREY, stroke_width=7),
+                        Line([1.42, 0.70, 0], [2.15, 0.70, 0], color=GREY, stroke_width=7))
+        l_op = locus_block("Oc", -1.03, 0.70, 0.84, GOLD, size=26)
+        l_crack = fracture(-1.46, 0.70)
+        l_z = locus_block("Z+", 0.70, 0.70, 1.32, BLUE, size=28)
+        l_anchor = VGroup(
+            Line([-1.03, 1.11, 0], [-1.03, 1.38, 0], color=GOLD, stroke_width=5),
+            Line([-1.32, 1.38, 0], [-0.74, 1.38, 0], color=GOLD, stroke_width=5),
+        )
+        l_br = BraceBetweenPoints([-1.45, 0.12, 0], [1.36, 0.12, 0], color=GOLD, direction=DOWN)
+        cis_lab = T("cis", 28, GOLD, weight=BOLD).next_to(l_br, DOWN, buff=0.10)
+        cis_def = boxed_label("cis = same copy only", color=GOLD, size=26, pad=0.16).move_to([0, -1.16, 0])
+        left_base = VGroup(l_rail, l_op, l_crack, l_z, l_anchor)
+        left_all = VGroup(left_base, l_br, cis_lab, cis_def)
+
+        # Right panel: two rails with moving red repressors and crossing arrows
+        r_rails = VGroup(Line([-2.15, 1.25, 0], [2.15, 1.25, 0], color=GREY, stroke_width=7),
+                         Line([-2.15, 0.15, 0], [2.15, 0.15, 0], color=GREY, stroke_width=7))
+        r_arrows = VGroup(
+            CurvedArrow([-1.60, 1.08, 0], [1.45, 0.30, 0], angle=-0.38, color=RED, stroke_width=4),
+            CurvedArrow([-1.60, 0.30, 0], [1.45, 1.08, 0], angle=0.38, color=RED, stroke_width=4),
+        )
+        rep1 = repressor([-0.85, 0.70, 0], scale=0.58)
+        rep2 = repressor([0.85, 0.70, 0], scale=0.58)
+        trans_lab = T("trans", 28, RED, weight=BOLD).move_to([0, -0.42, 0])
+        trans_def = boxed_label("trans = across copies", color=RED, size=26, pad=0.16).move_to([0, -1.16, 0])
+        right_base = VGroup(r_rails, rep1, rep2)
+        right_all = VGroup(right_base, r_arrows, trans_lab, trans_def)
+
+        panels.put(left_all, "left")
+        panels.put(right_all, "right")
+        dy = cis_def.get_center()[1] - trans_def.get_center()[1]
+        right_all.shift(UP * dy)
+        trans_lab.set_y(cis_lab.get_center()[1])
+
+        checklist = Ledger([
+            ("1", "reporter", GREEN),
+            ("2", "linked operator", GOLD),
+            ("3", "reachable repressor", RED),
+        ], top_left=(-3.1, -1.60), title="checklist", row_h=0.52,
+           key_w=0.55, width=6.2, size=26)
+
         self.at("location into evidence")
-        self.play(FadeIn(left), FadeIn(right), run_time=0.8)
-        self.at("stays linked")
-        self.play(Indicate(left, color=GOLD), run_time=0.8)
-        self.at("control site")
-        self.play(Indicate(left[1], color=GOLD), run_time=0.6)
-        self.at("reaches both rails")
-        self.play(Indicate(right[1], color=RED), run_time=0.8)
-        self.at("diffusible regulator")
-        self.play(right[2].animate.shift(UP * 0.75), run_time=0.6)
-        self.play(right[2].animate.shift(DOWN * 1.5), run_time=0.8)
-        bob(right[2], amp=0.09, speed=1.6, seed=3)
-        self.at("separates a local")
-        rule = caption("Local DNA site  ↔  shared cellular product", color=TEXT)
-        self.play(FadeIn(rule), run_time=0.7)
-        first = boxed_label("WORKING REPORTER FIRST", color=GREEN, size=30).move_to([0, -3.02, 0])
+        self.play(
+            FadeOut(world.cell),
+            FadeIn(panels),
+            ReplacementTransform(world.upper, left_base),
+            ReplacementTransform(world.lower, right_base),
+            FadeIn(checklist), checklist.reveal(0), checklist.reveal(1), checklist.reveal(2),
+            run_time=1.0,
+        )
+
+        self.at("limited to its own")
+        self.play(GrowFromCenter(l_br), Indicate(l_op, color=GOLD), run_time=0.8)
+
+        self.at("called cis")
+        self.play(FadeIn(cis_lab, shift=DOWN * 0.1), FadeIn(cis_def, shift=UP * 0.1), run_time=0.7)
+
+        self.at("local control site")
+        self.play(Indicate(l_op, color=GOLD), Indicate(l_anchor, color=GOLD), run_time=0.7)
+
+        self.at("carried across both")
+        self.play(
+            Create(r_arrows),
+            rep1.animate.shift(DOWN * 0.16),
+            rep2.animate.shift(UP * 0.16),
+            run_time=0.9,
+        )
+
+        self.at("diffusing product")
+        self.play(
+            rep1.animate.shift(UP * 0.32),
+            rep2.animate.shift(DOWN * 0.32),
+            run_time=0.7,
+        )
+        bob(rep1, amp=0.14, speed=1.8, seed=1)
+        bob(rep2, amp=0.14, speed=1.8, seed=4)
+
+        self.at("is trans")
+        self.play(FadeIn(trans_lab, shift=DOWN * 0.1), FadeIn(trans_def, shift=UP * 0.1), run_time=0.7)
+
+        self.at("regulator")
+        self.play(Indicate(rep1, color=RED), Indicate(rep2, color=RED), run_time=0.7)
+
         self.at("Always read")
-        self.play(FadeOut(rule), FadeIn(first, shift=UP * 0.15), run_time=0.7)
-        self.play(Indicate(first, color=GREEN), run_time=0.8)
+        old_row0 = checklist.rows[0][1]
+        new_row0 = checklist._val("working reporter first", old_row0.get_center()[1])
+        checklist.rows[0].submobjects[1] = new_row0
+        row0_grp = VGroup(checklist.rows[0][0], new_row0)
+        ptr = Arrow(
+            [-3.95, new_row0.get_center()[1], 0],
+            [-3.22, new_row0.get_center()[1], 0],
+            buff=0, color=GREEN, stroke_width=5, max_tip_length_to_length_ratio=0.35,
+        )
+        u = Line(row0_grp.get_corner(DL) + DOWN * 0.07, row0_grp.get_corner(DR) + DOWN * 0.07,
+                 color=GREEN, stroke_width=4)
+        self.play(
+            swap(old_row0, new_row0, run_time=0.55),
+            GrowArrow(ptr, run_time=0.55),
+            Create(u, run_time=0.55),
+        )
         self.finish()
 
 

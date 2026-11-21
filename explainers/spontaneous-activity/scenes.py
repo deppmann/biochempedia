@@ -896,7 +896,7 @@ class S17Rule(SpokenScene):
             self.remove(dot)
             self.play(B.animate.set_fill(YELLOW, 0.9).set_stroke(YELLOW), run_time=0.08)
             self.play(B.animate.set_fill(PURPLE, 0.25).set_stroke(PURPLE), FadeOut(n), run_time=0.15)
-        self.at("when cell A")
+        self.at("when")
         self.play(FadeIn(g1, shift=UP * 0.1), run_time=0.4)
         self.at("repeatedly takes part")
         self.play(FadeIn(g2, shift=UP * 0.1), run_time=0.3)
@@ -1127,9 +1127,9 @@ class S22Budget(SpokenScene):
         synR = always_redraw(lambda: eye_syn("R", 0.3 * trR.get_value(), G))
         bino = cell_lab(["binocular:", "driven by", "both eyes"], PURPLE, G)
         self.add(cellm, trunks, ll, lr, synL, synR, bino)
-        bar = bar_group(trL, trR, scale=1.02, h=1.3, size=36)
-        outl = budget_outline().stretch_to_fit_width(10.2).stretch_to_fit_height(1.6)
-        bl = T("fixed budget: 10 units", 30, TEXT, weight=BOLD).move_to([0, BAR_Y3 + 1.45, 0])
+        bar = bar_group(trL, trR, scale=1.02, h=1.15, size=36)
+        outl = budget_outline().stretch_to_fit_width(10.2).stretch_to_fit_height(1.45)
+        bl = T("fixed budget: 10 units", 30, TEXT, weight=BOLD).move_to([0, BAR_Y3 + 1.50, 0])
         self.at("Picture the")
         self.wait(0.2)
         self.at("fixed budget")
@@ -1140,16 +1140,16 @@ class S22Budget(SpokenScene):
         self.play(FadeIn(toy), run_time=0.6)
         self.at("both eyes grow")
         xL = lambda L, R: (-(L + R) * BSC / 2 + L * BSC / 2)
-        gl = T("+1.1", 32, GREEN, weight=BOLD).move_to([xL(6.6, 5.4), BAR_Y3 + 0.95, 0])
-        gr = T("+0.9", 32, GREEN, weight=BOLD).move_to([-(12) * BSC / 2 + 6.6 * BSC + 5.4 * BSC / 2, BAR_Y3 + 0.95, 0])
-        grow = T("after growth: 12 units", 32, GREEN, weight=BOLD).move_to([0, BAR_Y3 - 1.0, 0])
+        gl = T("+1.1", 32, GREEN, weight=BOLD).move_to([xL(6.6, 5.4), BAR_Y3 + 1.02, 0])
+        gr = T("+0.9", 32, GREEN, weight=BOLD).move_to([-(12) * BSC / 2 + 6.6 * BSC + 5.4 * BSC / 2, BAR_Y3 + 1.02, 0])
+        grow = T("after growth: 12 units", 32, GREEN, weight=BOLD).move_to([0, BAR_Y3 - 1.04, 0])
         self.play(trL.animate.set_value(6.6), trR.animate.set_value(5.4), FadeIn(gl), FadeIn(gr), FadeIn(grow), run_time=1.0)
         self.at("same amount")
-        ml = T("-1", 32, RED, weight=BOLD).move_to([xL(6.6, 5.4), BAR_Y3 + 0.95, 0])
+        ml = T("-1", 32, RED, weight=BOLD).move_to([xL(6.6, 5.4), BAR_Y3 + 1.02, 0])
         mr = T("-1", 32, RED, weight=BOLD).move_to(gr.get_center())
         self.play(FadeOut(gl), FadeOut(gr), FadeIn(ml), FadeIn(mr), run_time=0.5)
         self.at("taken back")
-        back = T("after take-back: 10 units", 32, TEXT, weight=BOLD).move_to([0, BAR_Y3 - 1.0, 0])
+        back = T("after take-back: 10 units", 32, TEXT, weight=BOLD).move_to([0, BAR_Y3 - 1.04, 0])
         self.play(FadeOut(grow), run_time=0.15)
         self.play(trL.animate.set_value(5.6), trR.animate.set_value(4.4), FadeIn(back), run_time=0.85)
         self.play(FadeOut(ml), FadeOut(mr), run_time=0.4)
@@ -1158,27 +1158,103 @@ class S22Budget(SpokenScene):
 
 class S23Ahead(SpokenScene):
     def construct(self):
-        cx, sc = 1.2, 0.8
-        ys = [1.2, 0.0, -1.2]
-        vals = [(5.5, 4.5)]
-        for _ in range(2):
-            L, R = vals[-1]
-            vals.append((round(1.2 * L - 1, 3), round(1.2 * R - 1, 3)))
-        rows = [static_bar(vals[i][0], vals[i][1], ys[i], cx, sc, 0.8, 28) for i in range(3)]
-        labs = [T(s_, 28, CAP).move_to([-5.2, y, 0]) for s_, y in zip(("start", "round 1", "round 2"), ys)]
-        toy = T("a toy model, not a measurement", 28, CAP).move_to([0, -3.0, 0])
-        cl = T("left eye: +1.1 growth, -1.0 taken back = +0.1", 30, BLUE).move_to([0, 3.2, 0])
-        cr = T("right eye: +0.9 growth, -1.0 taken back = -0.1", 30, ORANGE).move_to([0, 2.5, 0])
-        self.at("The eye that")
-        self.play(FadeIn(rows[0]), FadeIn(labs[0]), FadeIn(toy), run_time=0.8)
-        self.at("gains more")
-        self.play(FadeIn(cl, shift=DOWN * 0.1), run_time=0.6)
-        self.play(FadeIn(cr, shift=DOWN * 0.1), run_time=0.6)
-        self.play(FadeIn(rows[1], shift=UP * 0.1), FadeIn(labs[1]), run_time=0.7)
+        cx, sc = 1.1, 0.78
+        h = 0.68
+        x0 = cx - 5.0 * sc
+        x1 = cx + 5.0 * sc
+        x_mid0 = x0 + 5.5 * sc
+        x_mid2 = x0 + 5.72 * sc
+        ys = [0.75, -0.50, -1.70]
+
+        def seg(xa, xb, y, col, op=0.75):
+            return Rectangle(width=xb - xa, height=h, stroke_color=col, stroke_width=2,
+                             fill_color=col, fill_opacity=op).move_to([(xa + xb) / 2, y, 0])
+
+        labs = [T(s_, 28, CAP).move_to([-5.1, y, 0]) for s_, y in zip(("start", "round 1", "round 2"), ys)]
+        toy = T("a toy model, not a measurement", 26, CAP).move_to([0, -3.15, 0])
+        grow_note = T("left share keeps growing", 28, BLUE).move_to([cx, -2.50, 0])
+
+        yL, yR = 2.95, 2.25
+        xs = [-4.6, -2.7, -0.8, 1.2, 3.2]
+        eqL_lbl = T("left", 30, BLUE, weight=BOLD).move_to([xs[0], yL, 0])
+        eqR_lbl = T("right", 30, ORANGE, weight=BOLD).move_to([xs[0], yR, 0])
+        eqL_s = M("5.5", 32, BLUE).move_to([xs[1], yL, 0])
+        eqR_s = M("4.5", 32, ORANGE).move_to([xs[1], yR, 0])
+        eqL_add = M("+ 1.1", 32, GREEN).move_to([xs[2], yL, 0])
+        eqR_add = M("+ 0.9", 32, GREEN).move_to([xs[2], yR, 0])
+        eqL_sub = M("− 1", 32, RED).move_to([xs[3], yL, 0])
+        eqR_sub = M("− 1", 32, RED).move_to([xs[3], yR, 0])
+        eqL_res = M("= 5.6", 32, BLUE, weight=BOLD).move_to([xs[4], yL, 0])
+        eqR_res = M("= 4.4", 32, ORANGE, weight=BOLD).move_to([xs[4], yR, 0])
+        grows_lbl = T("each grows by 1/5", 26, GREEN).move_to([xs[2], 1.55, 0])
+
+        b0_L = seg(x0, x_mid0, ys[0], BLUE)
+        b0_R = seg(x_mid0, x1, ys[0], ORANGE)
+        n0_L = M("5.5", 26, TEXT).move_to(b0_L)
+        n0_R = M("4.5", 26, TEXT).move_to(b0_R)
+
+        b1_L = seg(x0, x_mid0, ys[1], BLUE)
+        b1_R = seg(x_mid0, x1, ys[1], ORANGE)
+        n1_L = M("5.5", 26, TEXT).move_to(b1_L)
+        n1_R = M("4.5", 26, TEXT).move_to(b1_R)
+        ext_L = seg(x0 - 1.1 * sc, x0, ys[1], GREEN, op=0.65)
+        ext_R = seg(x1, x1 + 0.9 * sc, ys[1], GREEN, op=0.65)
+        tag_addL = M("+1.1", 24, GREEN).next_to(ext_L, UP, buff=0.10)
+        tag_addR = M("+0.9", 24, GREEN).next_to(ext_R, UP, buff=0.10)
+        cut_L = seg(x0 - 1.1 * sc, x0 - 0.1 * sc, ys[1], RED, op=0.55)
+        cut_R = seg(x1 - 0.1 * sc, x1 + 0.9 * sc, ys[1], RED, op=0.55)
+        tag_subL = M("−1", 24, RED).next_to(cut_L, UP, buff=0.10)
+        tag_subR = M("−1", 24, RED).next_to(cut_R, UP, buff=0.10)
+        b1_L_fin = seg(x0 - 0.1 * sc, x_mid0, ys[1], BLUE)
+        n1_L_fin = M("5.6", 26, TEXT).move_to(b1_L_fin)
+        b1_R_fin = seg(x_mid0, x1 - 0.1 * sc, ys[1], ORANGE)
+        n1_R_fin = M("4.4", 26, TEXT).move_to(b1_R_fin)
+
+        b2_L = seg(x0, x_mid2, ys[2], BLUE)
+        b2_R = seg(x_mid2, x1, ys[2], ORANGE)
+        n2_L = M("5.72", 26, TEXT).move_to(b2_L)
+        n2_R = M("4.28", 26, TEXT).move_to(b2_R)
+
+        self.at("Start at", lead=0.0)
+        self.play(FadeIn(labs[0]), FadeIn(b0_L), FadeIn(b0_R), FadeIn(eqL_lbl), FadeIn(eqR_lbl), FadeIn(toy), run_time=0.5)
+        self.at("at", lead=-0.14)
+        self.play(FadeIn(n0_L), FadeIn(eqL_s), run_time=0.45)
+        self.at("to", lead=-0.24)
+        self.play(FadeIn(n0_R), FadeIn(eqR_s), run_time=0.45)
+
+        self.at("Each eye grows")
+        self.play(FadeIn(labs[1]), FadeIn(b1_L), FadeIn(b1_R), FadeIn(n1_L), FadeIn(n1_R), run_time=0.55)
+        self.at("fifth", lead=0.0)
+        self.play(FadeIn(grows_lbl, shift=DOWN * 0.08), run_time=0.45)
+        self.at("adding", lead=-0.30)
+        self.play(GrowFromEdge(ext_L, RIGHT), FadeIn(tag_addL), FadeIn(eqL_add, shift=DOWN * 0.08), run_time=0.5)
+        self.at("and", lead=-0.34)
+        self.play(GrowFromEdge(ext_R, LEFT), FadeIn(tag_addR), FadeIn(eqR_add, shift=DOWN * 0.08), run_time=0.5)
+
+        self.at("Subtract", lead=-0.32)
+        self.play(FadeOut(tag_addL), FadeOut(tag_addR), run_time=0.18)
+        self.play(FadeIn(cut_L), FadeIn(cut_R), FadeIn(tag_subL), FadeIn(tag_subR),
+                  FadeIn(eqL_sub, shift=DOWN * 0.08), FadeIn(eqR_sub, shift=DOWN * 0.08), run_time=0.45)
+
+        self.at("leaving", lead=-0.26)
+        self.play(FadeOut(cut_L), FadeOut(tag_subL), FadeOut(ext_L), FadeOut(n1_L), run_time=0.2)
+        self.play(Transform(b1_L, b1_L_fin), FadeIn(n1_L_fin), FadeIn(eqL_res, shift=DOWN * 0.08), run_time=0.4)
+        self.at("to", nth=1, lead=-0.22)
+        self.play(FadeOut(cut_R), FadeOut(tag_subR), FadeOut(ext_R), FadeOut(n1_R), run_time=0.2)
+        self.play(Transform(b1_R, b1_R_fin), FadeIn(n1_R_fin), FadeIn(eqR_res, shift=DOWN * 0.08), run_time=0.35)
+        self.play(b1_L.animate.shift(RIGHT * 0.1 * sc), n1_L_fin.animate.shift(RIGHT * 0.1 * sc),
+                  b1_R.animate.shift(RIGHT * 0.1 * sc), n1_R_fin.animate.shift(RIGHT * 0.1 * sc), run_time=0.35)
+
+        self.at("The leader gains", lead=0.0)
+        self.play(Indicate(eqL_add, color=YELLOW, scale_factor=1.18), run_time=0.5)
+        self.play(Indicate(eqL_sub, color=YELLOW, scale_factor=1.18), run_time=0.45)
+        self.at("gives back")
+        self.play(FadeIn(labs[2]), FadeIn(b2_L), FadeIn(b2_R), FadeIn(n2_L), FadeIn(n2_R),
+                  FadeIn(grow_note, shift=UP * 0.08), run_time=0.55)
         self.at("so it pulls")
-        self.play(FadeIn(rows[2], shift=UP * 0.1), FadeIn(labs[2]), run_time=0.8)
-        self.at("further ahead")
-        self.play(*[Indicate(rows[i][2], color=YELLOW, scale_factor=1.25) for i in range(3)], run_time=0.9)
+        self.play(Indicate(n0_L, color=YELLOW, scale_factor=1.22),
+                  Indicate(n1_L_fin, color=YELLOW, scale_factor=1.22),
+                  Indicate(n2_L, color=YELLOW, scale_factor=1.22), run_time=0.9)
         self.finish()
 
 
@@ -1310,15 +1386,3 @@ class S25Take(SpokenScene):
 
 class S26End(EndCard):
     LINE = "Timing is the address: a cell keeps the inputs that fire in step with its other strong inputs, and they crowd out the rest."
-
-    def construct(self):
-        a = T("Timing is the address: a cell keeps the inputs that", 38, TEXT, font=TITLE_FONT)
-        b = T("fire in step with its other strong inputs,", 38, TEXT, font=TITLE_FONT)
-        c = T("and they crowd out the rest.", 38, TEXT, font=TITLE_FONT)
-        sub = T("biochemistrypedia.com", size=24, color=TEAL)
-        g = VGroup(a, b, c).arrange(DOWN, buff=0.28)
-        fit(g, max_w=12.2)
-        VGroup(g, sub).arrange(DOWN, buff=0.5)
-        self.play(FadeIn(g, shift=UP * 0.15), run_time=self.beat(0.3))
-        self.play(FadeIn(sub), run_time=self.beat(0.15))
-        self.finish()
