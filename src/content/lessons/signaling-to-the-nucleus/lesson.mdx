@@ -5,11 +5,11 @@ course: "signaling"
 courseChapter: "Cell Signaling · Unit 6: Channels, the nucleus, and life or death"
 order: 132
 summary: >-
-  Many signaling pathways end at a transcription factor that the cell has already made. This
-  lesson sorts the four ways a signal switches such a factor on, then works through CREB, the
-  bZIP pairs called AP-1, calcineurin and NFAT, and the immediate early genes. Afterwards you
-  can trace a signal from a receptor or a channel to a gene and predict what a drug or a
-  mutation along the way will do.
+  Fast signals flip pre-made factors to switch on first-wave genes; paired factors widen gene
+  choices and drive a slower second wave. This lesson sorts the four ways a signal activates a
+  waiting transcription factor, then works through CREB, calcineurin and NFAT, the bZIP pairs
+  called AP-1, and the immediate early genes. Afterwards you can trace a signal from a receptor or
+  channel to a gene and predict what a drug or mutation along the way will do.
 hook: "A resting cell starts transcribing c-fos within minutes of a signal, even with its ribosomes stopped. What was waiting in the nucleus?"
 
 estMinutes: 24
@@ -23,10 +23,15 @@ explainer:
   src: "/explainers/signaling-to-the-nucleus/explainer.mp4"
   captions: "/explainers/signaling-to-the-nucleus/explainer.vtt"
   poster: "/explainers/signaling-to-the-nucleus/poster.jpg"
-  title: "One Phosphate Flips a Waiting Factor"
-  durationSec: 134.5
-  narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+  title: "Two Phosphate Switches That Flip Waiting Factors"
+  durationSec: 202.4
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+  takeaways:
+    - "Fast signals flip pre-made factors to switch on first-wave genes."
+    - "PKA after cAMP and CaMKIV after calcium phosphorylate CREB on serine 133, creating a binding handle for the co-activator CBP."
+    - "Calcineurin activates NFAT by removing phosphates that hide its nuclear import signal, letting it enter the nucleus."
+    - "Transplant drugs such as FK506 and cyclosporin A join helper proteins to block calcineurin, trapping NFAT in the cytoplasm."
 
 scientists:
   - name: "Gerald Crabtree"
@@ -387,24 +392,30 @@ corpusTags:
   - "memory"
 draft: false
 films:
-  - id: "nfat"
-    src: "/explainers/signaling-to-the-nucleus/nfat.mp4"
-    captions: "/explainers/signaling-to-the-nucleus/nfat.vtt"
-    poster: "/explainers/signaling-to-the-nucleus/nfat-poster.jpg"
-    title: "Taking Phosphates Off Opens the Door"
-    durationSec: 119.2
-    narration: "an AI narrator voice (ElevenLabs, Sarah) reading narration written from this lesson's text"
+  - id: "chapter-2"
+    src: "/explainers/signaling-to-the-nucleus/chapter-2.mp4"
+    captions: "/explainers/signaling-to-the-nucleus/chapter-2.vtt"
+    poster: "/explainers/signaling-to-the-nucleus/chapter-2-poster.jpg"
+    title: "Pairing Up to Launch the Second Wave"
+    durationSec: 204.6
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
     aiGenerated: true
+    takeaways:
+      - "Paired factors widen gene choices and drive a slower second wave."
+      - "A bZIP factor joins two helices along a leucine zipper and grips two DNA half-sites with positively charged tips."
+      - "If n proteins pair freely they make n(n + 1) / 2 pairs, while flanking charges rule out unstable pairs such as Fos–Fos."
+      - "First-wave c-fos mRNA makes Fos protein, which pairs with Jun to form AP-1 and switch on slower second-wave genes."
 ---
 
 import LessonFilm from '../../../components/LessonFilm.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import Support from '../../../components/Support.astro';
 
-**Add a growth factor to a resting cell and, within minutes, the cell is transcribing a gene called c-fos. Stop every ribosome in the cell first, and the gene still switches on.** So whatever switched it on was already made and waiting. This lesson gathers the last step of the pathways in this course: what a signal does to a transcription factor when it arrives.
+**Add a growth factor to a resting cell and, within minutes, it transcribes c-fos—even with every ribosome stopped.** The first film showed two phosphate switches flipping waiting factors; below is the four-way map of fast nuclear switches, followed by their chemistry, drug proofs, pairing math, and two-wave timing.
 
-## Other activation besides expression? The factor is already made
+## Four ways a signal flips a waiting factor
 
-A transcription factor is a protein that binds a short, specific DNA sequence near a gene and changes how often that gene is copied into RNA. A cell could control a factor by making more of it. That works, but it is slow, since a gene must first be transcribed and its RNA translated. So what else could a signal do? Pathways that change genes quickly usually do it by changing a factor that is already made, in one of four ways.
+A **transcription factor** is a protein that binds a short, specific DNA sequence near a gene and changes how often that gene is copied into RNA. Making more factor from scratch works, but transcription plus translation is slow. Fast pathways modify a pre-made factor in one of four ways:
 
 | What the signal does | Example | Where you met it |
 | --- | --- | --- |
@@ -413,75 +424,141 @@ A transcription factor is a protein that binds a short, specific DNA sequence ne
 | Destroys the factor's inhibitor | NF-κB, freed when IκB is destroyed | The Toll-like receptor and NF-κB lesson |
 | Makes the messenger itself the factor | STATs, Smads; the cut piece of Notch joins a DNA-bound partner, CSL | The JAK-STAT, TGF-β and Notch lessons |
 
-The first row has other members; Elk-1, which ERK phosphorylates in the Ras-to-MAPK lesson, is one.
+Row one has other members—such as Elk-1, which ERK phosphorylates in the Ras-to-MAPK lesson. In all four, synthesis is done in advance, so the signal only flips the switch.
 
-In all four, the slow step of making the factor is done in advance, so the signal only has to flip it.
+<Support>**The one idea.** Fast signals flip pre-made factors to switch on first-wave genes; paired factors widen gene choices and drive a slower second wave. **Scope:** Applies to rapid, stimulus-driven gene programs (minutes to hours) across growth-factor, immune, and neuronal pathways; slow developmental or steroid-receptor programs can differ, some first-wave genes encode non-factor proteins, and paired factors include both pre-made dimers (CREB) and newly assembled pairs (Fos–Jun).</Support>
 
 ## CREB: one serine, two messengers
 
-CREB stands for cAMP response element-binding protein. The cAMP response element, or CRE, is an eight-letter DNA site, TGACGTCA, that sits in front of many genes switched on by cAMP. CREB binds this site as a pair, and it is largely there before any signal arrives. Being on the DNA is not enough to switch the gene on.
+The first film traced cAMP and calcium to one serine on CREB; here are the DNA site, the co-activator chemistry, and the neuronal channel route.
 
-The mechanism of CREB activation starts where the cAMP and PKA lesson stopped. cAMP frees the catalytic subunits of PKA, and some of them enter the nucleus. There PKA puts a phosphate on one serine of CREB, serine 133. That phosphate is a handle. A co-activator is a protein that does not bind DNA itself but is brought to a gene by a factor that does. The co-activator CBP (CREB-binding protein) has a small domain called KIX that grips CREB far more tightly when the phosphate is on. Once held at the gene, CBP adds acetyl groups to the histones that package the nearby DNA, which loosens them, and it contacts the machinery that brings in RNA polymerase.
+**CREB** (cAMP response element-binding protein) binds the eight-letter **cAMP response element (CRE)**, `TGACGTCA`, as a pair and sits largely on DNA before any signal arrives. Occupancy alone leaves the gene off.
 
-Now the second messenger. In the calcium lesson, calcium bound calmodulin, and the pair switched on a family of kinases. One of them, CaMKIV, is found largely in the nucleus, and it phosphorylates CREB on the same serine 133. So CREB is a place where two messengers meet: either one adds the handle. Growth factors reach the same serine as well, through kinases that ERK switches on.
+Picking up from the cAMP and PKA lesson, cAMP frees PKA catalytic subunits, and some enter the nucleus to phosphorylate **serine 133**. A **co-activator** does not bind DNA itself but is brought to a gene by a factor that does. The **KIX** domain of **CBP** (CREB-binding protein) grips CREB far more tightly once serine 133 is phosphorylated, then acetylates nearby histones (loosening packaged DNA) and contacts the RNA polymerase machinery.
 
-Try this: draw an ion channel mechanism for activating CREB. In a neuron it runs like this. Activity depolarizes the membrane. L-type voltage-gated calcium channels open, and so do NMDA receptors, which pass calcium when glutamate is bound and depolarization has cleared the magnesium ion that blocks their pore. Calcium enters and binds calmodulin. Calcium-calmodulin switches on CaMKIV, helped by an upstream kinase, CaMKK, that phosphorylates it. CaMKIV phosphorylates serine 133 within minutes, and after strong or long activity a slower route through Ras and ERK keeps the serine phosphorylated. Phosphorylated CREB can then hold CBP, and genes with a CRE can be transcribed, though many also need a second co-activator, a CRTC, that calcium sends into the nucleus.
+From the calcium lesson, calcium–calmodulin activates nuclear **CaMKIV**, which hits the exact same serine 133; growth factors also reach it via ERK-activated kinases (not ERK directly).
+
+**Predict.** A neuron receives glutamate and fires strongly. Trace depolarization at the membrane to phosphorylated CREB on DNA—and predict what happens to CBP if a nuclear phosphatase immediately strips serine 133.
+
+<details>
+<summary>Check your prediction</summary>
+
+Depolarization opens L-type voltage-gated calcium channels and clears the magnesium ion blocking glutamate-bound NMDA receptors. Calcium enters, binds calmodulin, and activates CaMKIV with help from an upstream kinase, **CaMKK**, that phosphorylates CaMKIV. CaMKIV phosphorylates serine 133 within minutes; after strong or prolonged activity, a slower Ras–ERK kinase route keeps it phosphorylated so CBP stays bound. If a phosphatase strips serine 133 immediately, KIX loses its tight grip, CBP detaches, and transcription stops.
+
+</details>
+
+Many neuronal CRE genes also require a second co-activator, a **CRTC**, sent into the nucleus by calcium (*Going deeper*).
+
+## Calcineurin and NFAT: removing phosphates opens the door
+
+The first film showed **NFAT** (nuclear factor of activated T cells) flipping in reverse—entering the nucleus when **calcineurin** strips about a dozen phosphates that hide its nuclear import signal. Here are the T-cell circuit and the living-cell drug proof.
+
+When the T-cell receptor fires, store-operated entry (from the calcium lesson) sustains high calcium, activating calcium–calmodulin and the phosphatase calcineurin. Once inside the nucleus, NFAT binds DNA beside a Fos–Jun pair (met right after the second film) on genes such as **interleukin-2**, which tells the T cell to divide. When calcium drops, kinases restore the phosphates and NFAT exits.
+
+Two chemically unalike transplant drugs mapped this pathway before anyone knew their target. In 1989 a Merck group and Stuart Schreiber's group each identified **FKBP12** as the small protein binding **FK506**; **cyclosporin A** binds **cyclophilin**. In 1991 Schreiber's group and collaborators showed where they converge: each drug–helper complex binds and inhibits calcineurin. Neither drug nor helper blocks calcineurin alone—the pair sits beside the catalytic site and blocks bulky substrates such as NFAT. Jam calcineurin and NFAT keeps its phosphates and stays in the cytoplasm, so the interleukin-2 gene stays quiet.
+
+**Predict.** FKBP12 and cyclophilin are enzymes themselves, so test-tube inhibition does not prove calcineurin is the drug target in living T cells. If calcineurin is the real target, how should overproducing calcineurin change T-cell sensitivity to FK506 and cyclosporin A?
+
+<details>
+<summary>Check your prediction</summary>
+
+The cells should become more resistant to both drugs, needing higher doses to silence NFAT, because extra calcineurin leaves more enzyme unbound. In 1992 Neil Clipstone and Gerald Crabtree tested this in T cells: extra calcineurin raised resistance to both drugs and boosted NFAT-driven transcription. If more enzyme means more drug is needed, the enzyme is probably the target.
+
+</details>
 
 ### Design problem
 
-Design a transcription factor that can be activated by cAMP or calcium. Draw the pathway for each messenger, from the cell surface to the gene. Then say how a cell could require both messengers at once, instead of either.
+Design a transcription factor activated by cAMP or calcium, drawing each pathway from surface to gene. Then modify it to require both messengers at once.
 
 <details>
 <summary>One way to do it</summary>
 
-For "either", copy CREB: a DNA-binding region that keeps the factor on its site, and one serine that two kinases can reach.
+For **OR**, copy CREB: a DNA-bound factor with one serine hit by two kinases. Pathway 1: hormone → GPCR → Gs → adenylyl cyclase → cAMP → nuclear PKA → phosphoserine → co-activator → gene on. Pathway 2: depolarization → calcium channel → calmodulin → CaMKK → CaMKIV → same phosphoserine. Either suffices.
 
-Pathway one: hormone, G-protein-coupled receptor, Gs, adenylyl cyclase, cAMP, PKA into the nucleus, phosphate on the serine, co-activator held, gene on.
-
-Pathway two is the channel route above: depolarization, calcium channel, calmodulin, CaMKK, CaMKIV, phosphate on the same serine.
-
-Either kinase is enough, so the factor computes OR.
-
-For "both", split the job into two steps that need different messengers. Let calcium control location, as in NFAT: phosphates hide the factor's nuclear import signal until calcineurin removes them. Let cAMP control activity: once in the nucleus, the factor still needs PKA to phosphorylate the serine that holds the co-activator. Calcium alone puts a factor in the nucleus that cannot recruit help. cAMP alone phosphorylates a factor that is still shut out. Only the two together give transcription, so the factor computes AND.
+For **AND**, split location and activity. Let calcium/calcineurin unmask a nuclear import signal (as in NFAT), and let cAMP/PKA phosphorylate the co-activator handle. Calcium alone imports an inactive factor; cAMP alone phosphorylates a trapped cytoplasmic factor. Only both switch the gene on. (Composite sites like interleukin-2—NFAT beside Fos–Jun—also compute AND.)
 
 </details>
 
-## Basic Leucine Zipper Factors: a zipper that makes pairs
-
-CREB belongs to the bZIP family, short for basic leucine zipper. The name describes two stretches of one long α-helix.
-
-The zipper stretch has a leucine at nearly every seventh position. An α-helix turns once about every 3.6 residues, so every seventh residue lands on nearly the same side, and the leucines form a stripe down the helix. Two such helices lay their stripes together and wind around each other, which hides the leucines from water. That is the zipper, and it holds two proteins together as a pair.
-
-The basic stretch is rich in lysine and arginine, which carry positive charge. Beyond the end of the zipper the two helices part, and each basic stretch lies in the major groove of the DNA and reads half of the site. Picture chopsticks held together at the top, with the DNA gripped between the tips.
-
-<LessonFigure src="/figures/signaling-to-the-nucleus/bzip-pair-on-dna.webp" width={1200} height={800} alt="AI-generated illustration: two rods joined by a row of dots at the top and parting like chopsticks to grip a marked stretch of DNA at their tips; an inset shows Jun-Jun and Fos-Jun pairing but Fos-Fos not." caption="A bZIP factor works as a pair. The leucine zipper holds two proteins together at the top, and their basic stretches part like chopsticks to read half of a DNA site each. Fos needs a partner, classically a Jun, and a Fos-Jun pair holds DNA more tightly than a Jun-Jun pair." />
-
-Why build a factor that works only as a pair? Because pairs multiply the choices. Each partner reads one half-site, so changing a partner changes which DNA the pair prefers and what it does there. The best-known case is AP-1 (activator protein 1), classically a pair drawn from the Fos and Jun families, though Jun and Fos can also pair with some other bZIP proteins. Jun can pair with Jun. Fos does not pair stably with Fos, so it needs a partner, classically a Jun, and a Fos-Jun pair holds DNA more tightly than a Jun-Jun pair. AP-1 prefers a seven-letter site, TGACTCA, one letter shorter than the CRE. With four Fos proteins and three Jun proteins, seven genes give well over a dozen AP-1 pairs.
-
-> **n proteins that can all pair with one another make n(n + 1) / 2 different pairs**
-
-Humans have roughly fifty bZIP proteins, which would give 1,275 pairs if all paired freely. They do not: the residues beside each leucine stripe decide which helices fit together. A cross-species review by Deppmann, Alvania and Taparowsky (Molecular Biology and Evolution, 2006) compiles which bZIP proteins pair with which in humans, fruit flies, a plant and yeast.
-
-## Calcineurin and NFAT: a phosphatase opens the door
+At interleukin-2, NFAT needs a paired Fos–Jun partner—so how do two factors pair on DNA, and where does Fos come from?
 
 <LessonFilm film={frontmatter.films[0]} />
 
-CREB is switched on by adding a phosphate. NFAT, the nuclear factor of activated T cells, is switched on by taking phosphates off. In a resting T cell NFAT stays in the cytoplasm, carrying many phosphates that hide its signal for import into the nucleus. When the T-cell receptor fires, calcium rises and stays high, through the store-operated entry of the calcium lesson. Calcium-calmodulin switches on calcineurin, a protein phosphatase. Calcineurin strips the phosphates from NFAT, the import signal is exposed, and NFAT enters the nucleus. There it binds DNA beside a Fos-Jun pair on genes such as interleukin-2, whose product tells the T cell to divide. When calcium falls, kinases put the phosphates back and NFAT leaves.
+## Basic leucine zippers: pairing multiplies DNA choices
 
-Much of this was learned from two drugs. Cyclosporin A and FK506 both shut T cells down, and both were being given to transplant patients before anyone knew what they touched inside a cell. Chemically they are unalike. In 1989 a group at Merck and the group of Stuart Schreiber each reported the small cell protein that FK506 binds, later named FKBP12. Cyclosporin A binds a different one, cyclophilin. In 1991 Schreiber's group and collaborators reported where the drugs meet: each drug, held by its helper protein, binds and inhibits calcineurin.
+The second film built the chopstick model of pairing and the two-wave cascade; here are the helix geometry, DNA-site lengths, and pairing ceiling behind that rule—that paired factors widen gene choices and drive a slower second wave.
 
-A test-tube result leaves a question open. Is that why the T cell shuts down? In 1992 Neil Clipstone and Gerald Crabtree answered it by making T cells produce extra calcineurin. Those cells were more resistant to both drugs, and NFAT-driven transcription went up. If more enzyme means more drug is needed, the enzyme is probably the target. Jam calcineurin and NFAT keeps its phosphates and stays in the cytoplasm, so the interleukin-2 gene stays quiet.
+CREB, Fos, and Jun are **bZIP** (basic leucine zipper) proteins, built from two stretches of one long α-helix:
 
-## The first genes to answer
+- **Leucine zipper:** a leucine sits at nearly every seventh position. Because an α-helix turns once every ~3.6 residues, seven residues span `7 / 3.6 ≈ 1.94` turns—just shy of two full turns—so every seventh residue lands on nearly the same side, and the leucines form a gently twisting stripe down the helix. Two helices wind their stripes together to hide the leucines from water.
+- **Basic stretch:** rich in positively charged lysine and arginine; beyond the zipper, the helices part like chopsticks so each basic stretch enters the DNA major groove and reads one half-site.
 
-Return to c-fos. An immediate early gene is one whose transcription rises within minutes of a signal and needs no new protein. The test is the one in the opening, done with a ribosome-blocking drug such as cycloheximide: does the mRNA still rise? For c-fos it does, because its control region carries a site for CREB and a serum response element, bound by serum response factor together with partners such as Elk-1, which ERK switches on. cAMP, calcium and growth factors can each reach the gene through factors already in place.
+<LessonFigure src="/figures/signaling-to-the-nucleus/bzip-pair-on-dna.webp" width={1200} height={800} alt="AI-generated illustration: two rods joined by a row of dots at the top and parting like chopsticks to grip a marked stretch of DNA at their tips; an inset shows Jun-Jun and Fos-Jun pairing but Fos-Fos not." caption="A bZIP factor pairs through a leucine zipper so its basic stretches read DNA half-sites like chopsticks, and partner rules let Fos–Jun bind DNA more tightly than Jun–Jun while excluding Fos–Fos." />
 
-In 1984 Michael Greenberg and Edward Ziff reported that c-fos transcription rises within minutes of adding growth factors to resting fibroblasts and soon shuts off again. The Fos protein that is made pairs with Jun, and that AP-1 pair switches on a second wave of genes. The second wave does need new protein, namely Fos and other first-wave products, so cycloheximide blocks it. A signal that lasts minutes at the membrane becomes a program that lasts hours.
+Swapping a partner changes DNA preference and output. **AP-1** (activator protein 1) is classically a Fos–Jun or Jun–Jun pair (though both can pair with other bZIPs). Jun pairs with Jun; Fos cannot pair stably with Fos because negatively charged residues flanking its zipper repel each other, so Fos needs a partner (classically Jun), and Fos–Jun grips DNA more tightly than Jun–Jun. AP-1 prefers the seven-letter site `TGACTCA`, one letter shorter than the eight-letter CRE (`TGACGTCA`). Four Fos and three Jun genes yield well over a dozen AP-1 pairs.
 
-The practical use: IEGs to map brain function. A resting neuron makes very little Fos. In a strongly excited neuron, calcium enters and the route to CREB switches on c-fos, and the Fos protein can be stained in the nucleus a few hours later. Stain a brain after an animal has done something, and the labeled nuclei show which cells were recently active. Two cautions: a neuron can fire without making Fos, and the stain is a snapshot with timing no finer than hours.
+Adding `n` same-partner pairs to `n(n − 1) / 2` mixed pairs gives the unrestricted ceiling:
 
-<LessonFigure src="/figures/signaling-to-the-nucleus/fos-stain-active-neurons.webp" width={1200} height={739} alt="AI-generated illustration: a resting neuron with no detectable nuclear Fos stain beside a strongly excited neuron with calcium entering through membrane channels and a stained nucleus; an inset row of cells shows stained nuclei marking recently active cells." caption="A resting neuron makes very little Fos. In a strongly excited neuron, calcium enters and the route to CREB switches on c-fos, and the Fos protein can be stained a few hours later. The stain is a snapshot, and a neuron can fire without making Fos." />
+> **n proteins that can all pair with one another make n(n + 1) / 2 different pairs**
 
-### Ion channel to CREB, and memory
+Roughly fifty human bZIPs would make `50 × 51 / 2 = 1,275` pairs if all paired freely, but residues beside each leucine stripe restrict partner choice (*Going deeper*).
 
-The route from ion channel to CREB is involved in memory formation. A brief change at a synapse can be made by modifying proteins already there. A long-lasting change needs new transcription, and CREB is one of the factors it needs, in the animals where this has been tested. In the sea slug Aplysia, Eric Kandel's laboratory reported in 1990 that putting decoy CRE DNA into a sensory neuron's nucleus blocked the long-lasting strengthening of its synapse and spared the short-lasting form. In 1994, fruit flies made to express a blocking form of CREB failed to form long-term memory of an odor, and mice lacking two forms of CREB showed a similar loss, with short-term memory intact in both. Later mouse results varied more: the first mutants still made a third form of CREB, the outcome depended on gene dosage and on how training was spaced, and in CREB-deficient mice the related protein CREM was raised and may partly stand in for it. In Aplysia the messenger is cAMP; in mammalian neurons, calcium entering through NMDA receptors and L-type channels reaches the same serine. None of this shows that CREB is where a memory is stored.
+**Predict.** A cell expresses 3 Fos-family and 2 Jun-family proteins (Jun pairs with any Jun or Fos; Fos never pairs with Fos). How many distinct pairs can form, versus 5 freely pairing proteins?
+
+<details>
+<summary>Check your prediction</summary>
+
+Five freely pairing proteins form `5 × 6 / 2 = 15` pairs. Under the Fos rule: 2 Jun make `2 × 3 / 2 = 3` Jun–Jun pairs, 3 Fos × 2 Jun make `6` Fos–Jun pairs, and Fos–Fos makes `0`, yielding **9 pairs**—still nearly double the gene count.
+
+</details>
+
+## Immediate early genes: from minutes to hours
+
+An **immediate early gene (IEG)** is transcribed within minutes of a signal without new protein synthesis, defined by the **cycloheximide test**: block ribosomes with cycloheximide, add the signal, and measure mRNA.
+
+For `c-fos`, mRNA still rises because its promoter carries both a **CRE** (for CREB) and a **serum response element (SRE)**—named because growth factors in blood serum trigger it in culture—bound by **serum response factor (SRF)** and partners such as **Elk-1** (phosphorylated by ERK). Thus cAMP, calcium, and growth factors all reach `c-fos` via pre-made factors.
+
+In 1984 Michael Greenberg and Edward Ziff showed that `c-fos` transcription surges within minutes of adding growth factors to resting fibroblasts and soon shuts off again. Without cycloheximide, newly translated Fos pairs with Jun to form AP-1, switching on a slower **second wave** of genes that turns a minutes-long signal into an hours-long program.
+
+**Predict.** Resting fibroblasts receive cycloheximide before growth factor. At 30 minutes you measure `c-fos` mRNA and Fos protein; at 2 hours you measure mRNA of an AP-1–driven second-wave gene. What happens to each?
+
+<details>
+<summary>Check your prediction</summary>
+
+At 30 minutes, `c-fos` mRNA rises (pre-made factors need no ribosomes), but Fos protein does not rise (stopped ribosomes cannot translate it). At 2 hours, the second-wave mRNA stays off because it requires newly made Fos and other first-wave products.
+
+</details>
+
+### Mapping active neurons with Fos
+
+Resting neurons make very little Fos. Strong excitation brings calcium in, activating CREB and `c-fos`, so antibody staining a few hours later maps recently active nuclei across a whole brain without electrodes. Two cautions apply: a neuron can fire without making Fos, and the stain is a snapshot with timing no finer than hours.
+
+<LessonFigure src="/figures/signaling-to-the-nucleus/fos-stain-active-neurons.webp" width={1200} height={739} alt="AI-generated illustration: a resting neuron with no detectable nuclear Fos stain beside a strongly excited neuron with calcium entering through membrane channels and a stained nucleus; an inset row of cells shows stained nuclei marking recently active cells." caption="Strongly excited neurons activate c-fos via calcium and CREB so nuclear Fos staining maps recently active cells hours later, though a neuron can fire without making Fos and timing is no finer than hours." />
+
+### From ion channels to CREB and long-term memory
+
+A brief synaptic change modifies existing proteins; a long-lasting change requires new transcription, involving CREB where tested.
+
+**Predict.** Injecting excess short CRE DNA ("decoy CRE DNA") into a sensory neuron's nucleus soaks up CREB away from real genes. After training, what should happen to short-lasting versus long-lasting synaptic strengthening?
+
+<details>
+<summary>Check your prediction</summary>
+
+Short-lasting strengthening survives (it modifies proteins already at the synapse), whereas long-lasting strengthening fails because decoy DNA sequesters CREB. Eric Kandel's laboratory reported this result in *Aplysia* in 1990.
+
+</details>
+
+In 1994, fruit flies expressing a blocking form of CREB failed to form long-term odor memory, and mice lacking two CREB forms showed a similar loss, with short-term memory intact in both. In *Aplysia* the messenger is cAMP; in mammalian neurons, calcium through NMDA receptors and L-type channels hits the same serine 133. Later mouse results varied with isoforms, gene dosage, training spacing, and compensation by CREM (*Going deeper*). None of this shows that CREB is where a memory is stored.
+
+## Going deeper
+
+### CRTC co-activators and coupled folding on CREB
+
+CREB's kinase-inducible domain is largely disordered alone and folds into two helices upon binding CBP's KIX domain when serine 133 is phosphorylated. Many CRE targets also require **CRTC** co-activators, which enter the nucleus when calcineurin dephosphorylates them and cAMP silences the kinases holding them out—making those genes coincidence detectors for calcium and cAMP.
+
+### bZIP partner specificity across species
+
+Charged residues flanking the hydrophobic leucine stripe set which helices pair stably (as in acidic-residue repulsion blocking Fos–Fos while permitting Fos–Jun). Deppmann, Alvania and Taparowsky (*Molecular Biology and Evolution*, 2006) compile bZIP pairing networks across humans, fruit flies, a plant, and yeast.
+
+### Why later mouse CREB memory studies varied
+
+Later mouse studies proved less uniform than the 1994 knockout: the original mutants still made a third CREB isoform, outcomes depended on gene dosage and training spacing, and CREB-deficient mice upregulated the related factor CREM, which may partly stand in for CREB.
