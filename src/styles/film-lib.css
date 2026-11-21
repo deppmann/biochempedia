@@ -3,6 +3,8 @@
    the hundreds of cards a level page carries. Colours come from the site tokens, so the dark theme
    follows from tokens.css. */
 
+@import './film-levels.css';
+
 /* ---- page header ---------------------------------------------------------------------------- */
 .film-lib .fl-head { padding-top: var(--ddp-space-12); }
 .film-lib .eyebrow { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: 0.14em; text-transform: uppercase; color: var(--ddp-color-caution-ink); margin: 0 0 var(--ddp-space-2); }
@@ -249,3 +251,129 @@
 .film-lib .lvl-budget { margin: var(--ddp-space-1) 0 var(--ddp-space-3); color: var(--ddp-color-muted); }
 .film-lib .lvl-budget a { font-weight: 600; }
 .film-lib #queue { scroll-margin-top: 4.5rem; }
+
+/* ==== The library rebuilt (2026-11-20): one line, one film, the strip, the level keys ============
+   Calm rules kept here: a border means "you can do something here" (keys, fields, buttons); what is
+   only information gets space and type. Field and button edges reach 3:1 against the page. */
+.film-lib.fl { --fl-edge: color-mix(in srgb, var(--ddp-color-ink) 58%, var(--ddp-color-bg)); }
+.film-lib .fl-top { padding-top: var(--ddp-space-8); }
+.film-lib .fl-top h1 { margin: 0; font-size: var(--ddp-text-3xl); line-height: 1.1; }
+.film-lib .fl-lede { margin: var(--ddp-space-2) 0 0; max-width: 60ch; font-size: var(--ddp-text-base); line-height: 1.55; color: var(--ddp-color-ink-soft); }
+.film-lib .fl-chip { display: inline-block; width: 0.7em; height: 0.7em; margin-right: 0.4em; border-radius: 2px; background: var(--lv, var(--lv-methods)); }
+.film-lib .fl-link { display: inline-flex; align-items: center; min-height: 44px; padding: 0 0.3em; border: 0; background: none; color: var(--ddp-color-accent); font: inherit; text-decoration: underline; text-underline-offset: 0.2em; cursor: pointer; }
+.film-lib.fl .fl-btn { border-color: var(--fl-edge); }
+
+/* A film to start with: the poster takes two fifths, so the level keys stay on the first phone screen. */
+/* Side by side only where there is room at the reader's text size (a width in rem follows it). */
+.film-lib .fl-start { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--ddp-space-4); align-items: start; margin-top: var(--ddp-space-4); }
+@media (min-width: 22rem) { .film-lib .fl-start { grid-template-columns: minmax(0, 2fr) minmax(0, 3fr); } }
+@media (min-width: 44rem) { .film-lib .fl-start { grid-template-columns: 260px minmax(0, 52ch); } }
+.film-lib .fl-start-pic { display: block; border-radius: 8px; overflow: hidden; background: #0f1117; aspect-ratio: 16 / 9; }
+.film-lib .fl-start-pic img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.film-lib .fl-start h2 { margin: 0; font-family: var(--ddp-font-sans); font-size: var(--ddp-text-sm); font-weight: 400; color: var(--ddp-color-muted); }
+.film-lib .fl-start-t { margin: 0.1em 0 0; font-family: var(--ddp-font-serif); font-size: var(--ddp-text-lg); font-weight: 700; line-height: 1.25; }
+.film-lib .fl-start-t a { color: var(--ddp-color-primary); text-decoration: none; }
+.film-lib .fl-start-m { margin: 0.2em 0 0; font-size: var(--ddp-text-sm); color: var(--ddp-color-muted); }
+.film-lib .fl-start-x { margin: 0.3em 0 0; font-size: var(--ddp-text-sm); line-height: 1.45; color: var(--ddp-color-ink-soft); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.film-lib .fl-start-x:empty { display: none; }
+.film-lib .fl-start-go { margin: var(--ddp-space-2) 0 0; display: flex; flex-wrap: wrap; align-items: center; gap: var(--ddp-space-2); }
+
+/* The strip: the whole library at true size. A picture, not a control. */
+.film-lib .fl-deck { margin-top: var(--ddp-space-6); }
+.film-lib .fl-strip { height: 58px; }
+.film-lib .fl-strip canvas { display: block; width: 100%; height: 100%; }
+.film-lib .fl-strip-plain { display: flex; gap: 3px; height: 100%; }
+.film-lib .fl-strip-plain span { flex: 1 1 0; background: var(--lv); border-radius: 2px; }
+.film-lib .fl-strip.is-drawn .fl-strip-plain { display: none; }
+.film-lib .fl-strip-cap { margin: 0.35em 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); min-height: 1.5em; }
+
+/* Level keys: equal in size, full names. Nothing here rises. */
+.film-lib .fl-keys { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: var(--ddp-space-3); }
+.film-lib .fl-key { position: relative; display: flex; flex-direction: column; justify-content: center; gap: 0.1em; min-height: 64px; padding: 0.45em 0.7em; border: 1.5px solid var(--fl-edge); border-radius: 10px; background: var(--ddp-color-surface); color: var(--ddp-color-ink); text-decoration: none; line-height: 1.25; }
+.film-lib .fl-key-t { font-size: var(--ddp-text-sm); font-weight: 600; }
+.film-lib .fl-key-n { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+.film-lib .fl-key.is-on .fl-key-n { color: var(--ddp-color-ink-soft); }
+.film-lib .fl-key:hover { border-color: var(--ddp-color-accent); }
+.film-lib .fl-key.is-on { border-color: var(--ddp-color-primary); box-shadow: inset 0 0 0 1.5px var(--ddp-color-primary); background: color-mix(in srgb, var(--ddp-color-accent) 14%, var(--ddp-color-surface)); }
+.film-lib .fl-key:active { transform: translateY(1px); }
+.film-lib .fl-key-hex { position: absolute; right: 6px; top: -19px; line-height: 0; pointer-events: none; }
+.film-lib .fl-keys-note { margin: var(--ddp-space-2) 0 0; max-width: 62ch; font-size: var(--ddp-text-sm); line-height: 1.5; color: var(--ddp-color-ink-soft); }
+@media (min-width: 900px) {
+  .film-lib .fl-keys { grid-template-columns: repeat(8, minmax(0, 1fr)); }
+  .film-lib .fl-key { min-height: 76px; }
+  .film-lib .fl-strip { height: 52px; }
+}
+
+.film-lib.fl .fl-controls { margin-top: var(--ddp-space-4); padding: 0; border: 0; background: none; }
+.film-lib.fl .fl-controls input, .film-lib.fl .fl-controls select { border: 1.5px solid var(--fl-edge); }
+.film-lib .fl-q input::placeholder { color: var(--ddp-color-muted); opacity: 1; }
+.film-lib .fl-fold > summary { display: inline-flex; align-items: center; min-height: 44px; cursor: pointer; font-size: var(--ddp-text-sm); color: var(--ddp-color-accent); }
+.film-lib .fl-count { margin-top: var(--ddp-space-3); }
+.film-lib.fl .fl-status { margin: 0; font-family: inherit; font-size: var(--ddp-text-base); font-weight: 600; color: var(--ddp-color-ink); }
+.film-lib .fl-seen { margin: 0.15em 0 0; font-size: var(--ddp-text-sm); color: var(--ddp-color-muted); }
+
+.film-lib .fl-run { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ddp-space-2) var(--ddp-space-3); margin-top: var(--ddp-space-3); }
+.film-lib .fl-budget { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0; padding: 0; border: 0; min-width: 0; }
+.film-lib .fl-budget legend { float: left; padding: 0; margin-right: 8px; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); line-height: 44px; }
+.film-lib .fl-budget label { position: relative; display: inline-flex; }
+.film-lib .fl-budget input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+.film-lib .fl-budget span { display: inline-flex; align-items: center; min-height: 44px; padding: 0 0.9em; border: 1.5px solid var(--fl-edge); border-radius: 999px; background: var(--ddp-color-surface); font-size: var(--ddp-text-sm); font-weight: 600; }
+.film-lib .fl-budget input:checked + span { border-color: var(--ddp-color-primary); background: var(--ddp-color-primary); color: var(--ddp-color-bg); }
+.film-lib .fl-budget input:focus-visible + span { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+.film-lib .fl-run-sum { flex-basis: 100%; max-width: 62ch; line-height: 1.5; }
+.film-lib .fl-run-sum p { margin: 0; }
+.film-lib .fl-run-list { list-style: decimal; margin: 0.3em 0 0; padding-left: 1.6em; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); }
+.film-lib .fc-len-t { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+.film-lib .fl-run-go { margin-top: var(--ddp-space-2) !important; display: flex; align-items: center; gap: var(--ddp-space-2); }
+
+.film-lib .fl-all { margin-top: var(--ddp-space-6); }
+.film-lib [data-fl-list][aria-busy="true"] { opacity: 0.35; }
+.film-lib .fl-wait { margin: 0 0 var(--ddp-space-3); color: var(--ddp-color-ink-soft); }
+.film-lib.fl .course { margin-top: var(--ddp-space-6); }
+.film-lib.fl .course-h h2 { margin: 0; font-size: var(--ddp-text-lg); }
+.film-lib.fl .course-h .n { font-family: inherit; font-size: var(--ddp-text-sm); }
+.film-lib .fc-start { position: absolute; left: 6px; bottom: 6px; padding: 0.15em 0.55em; border-radius: 999px; background: var(--ddp-color-bg); color: var(--ddp-color-ink); font-size: var(--ddp-text-xs); font-weight: 700; }
+.film-lib .fl-foot { margin: var(--ddp-space-12) 0 0; max-width: 72ch; font-size: var(--ddp-text-sm); line-height: 1.55; color: var(--ddp-color-muted); }
+
+/* ---- /films/run/: a view played in order ------------------------------------------------------ */
+/* The page keeps a screen's height from the start, so the footer does not show and then jump when the films arrive. */
+.film-lib .fr-wrap { max-width: 920px; padding-top: var(--ddp-space-8); min-height: 100svh; }
+.film-lib .fr-next-text { margin: var(--ddp-space-3) 0 0; max-width: 68ch; line-height: 1.5; }
+.film-lib .fr-next-text:empty { display: none; }
+.film-lib .fr-wrap h1 { margin: 0 0 var(--ddp-space-2); font-size: var(--ddp-text-2xl); }
+.film-lib .fr-sum { margin: 0 0 var(--ddp-space-4); line-height: 1.5; color: var(--ddp-color-ink-soft); }
+.film-lib .fr-screen video { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; background: #0f1117; border-radius: 10px; }
+.film-lib .fr-now { margin: var(--ddp-space-3) 0 0; font-family: var(--ddp-font-serif); font-size: var(--ddp-text-xl); font-weight: 700; color: var(--ddp-color-primary); }
+.film-lib .fr-meta { margin: 0.2em 0 0; font-size: var(--ddp-text-sm); color: var(--ddp-color-muted); }
+.film-lib .fr-meta a { color: var(--ddp-color-accent); display: inline-flex; min-height: 44px; align-items: center; }
+.film-lib .fr-take { margin: var(--ddp-space-3) 0 0; max-width: 68ch; line-height: 1.55; }
+.film-lib .fr-next { margin-top: var(--ddp-space-2); max-width: 68ch; line-height: 1.5; }
+.film-lib .fr-next p { margin: 0 0 var(--ddp-space-2); }
+.film-lib .fr-next-btns { display: flex; flex-wrap: wrap; gap: var(--ddp-space-2); }
+.film-lib .fr-queue { margin: var(--ddp-space-6) 0 0; padding: 0; list-style: none; max-width: 68ch; counter-reset: fr; }
+.film-lib .fr-queue li { counter-increment: fr; }
+.film-lib .fr-queue button { display: flex; align-items: baseline; gap: 0.7em; width: 100%; min-height: 48px; padding: 0.5em; border: 0; border-top: 1px solid var(--ddp-color-line); background: none; color: var(--ddp-color-ink); font: inherit; text-align: left; cursor: pointer; }
+.film-lib .fr-queue button::before { content: counter(fr); min-width: 1.4em; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+.film-lib .fr-queue button[aria-current] { font-weight: 700; box-shadow: inset 3px 0 0 var(--ddp-color-accent); }
+.film-lib .fr-queue .is-seen button { color: var(--ddp-color-muted); }
+.film-lib .fr-seen { font-size: var(--ddp-text-xs); }
+.film-lib .fr-rest { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-sm); color: var(--ddp-color-muted); }
+.film-lib .fr-crumb { margin: 0 0 var(--ddp-space-2); font-size: var(--ddp-text-sm); color: var(--ddp-color-muted); }
+.film-lib .fr-crumb a, .film-lib .fr-page a { color: var(--ddp-color-accent); display: inline-flex; min-height: 44px; align-items: center; }
+.film-lib .fr-page { margin: 0; font-size: var(--ddp-text-sm); }
+.film-lib .pl-next-w { margin: 0 0 var(--ddp-space-2); font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); }
+.film-lib .fr-novideo, .film-lib .fr-novideo a { color: #e7e9f0; }
+
+@media (max-width: 420px) {
+  .film-lib .fl-top { padding-top: var(--ddp-space-6); }
+  .film-lib .fl-top h1 { font-size: var(--ddp-text-2xl); }
+  .film-lib .fl-start-x { -webkit-line-clamp: 4; }
+}
+@media (prefers-reduced-motion: reduce) { .film-lib .fl-key:active { transform: none; } }
+/* At large text on a narrow phone two keys to a row squeeze their names: one to a row instead. */
+@media (max-width: 21.99rem) { .film-lib .fl-keys { grid-template-columns: minmax(0, 1fr); } }
+/* Windows contrast themes drop backgrounds: the chosen key and the chosen time keep a mark. */
+@media (forced-colors: active) {
+  .film-lib .fl-budget input:checked + span { background: Highlight; color: HighlightText; forced-color-adjust: none; }
+  .film-lib .fl-key.is-on { outline: 3px solid Highlight; outline-offset: -3px; }
+}
