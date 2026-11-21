@@ -49,8 +49,7 @@ for (const f of films) {
 }
 
 /* A film to start with: for each level, a few opening films in course order, the first of them the
-   level's first film. Which level's film shows first on a visit with no level chosen changes from
-   one deploy to the next (a seeded pick), the same for every visitor of one build. */
+   level's first film. */
 const today = new Date().toISOString().slice(0, 10);
 const seed = [...today].reduce((h, ch) => Math.imul(h ^ ch.charCodeAt(0), 16777619), 2166136261) >>> 0;
 const starts = usedStages.flatMap((s) => {
@@ -60,7 +59,11 @@ const starts = usedStages.flatMap((s) => {
     s: s.key, t: f.title, h: f.href, o: f.poster, d: filmClock(f.durationSec), m: `${f.stageTitle} · ${f.courseTitle}`, x: f.description,
   }));
 });
-const start = starts.filter((x) => x.s !== 'ages-5-10')[seed % Math.max(1, starts.filter((x) => x.s !== 'ages-5-10').length)] ?? starts[0];
+/* A first visitor is offered a grade 7 film, where biology starts from its first page (ruling,
+   2026-11-20); which of the four changes with the build. A level chosen on the page, or set on this
+   device, replaces it in the browser. */
+const g7 = starts.filter((x) => x.s === 'grade-7');
+const start = g7[seed % Math.max(1, g7.length)] ?? starts[0];
 
 /* The strip's data: every film's level and length, in catalog order (3 characters a film). */
 const stageIndex = (k: string | null) => { const i = usedStages.findIndex((s) => s.key === k); return i === -1 ? usedStages.length : i; };
@@ -97,6 +100,7 @@ const courseFilms = (key: string) => courses.find((c) => c.key === key)?.films ?
         <a class="fl-btn primary" href={start.h} data-fl-start-link data-fl-start-watch>Watch</a>
         <button type="button" class="fl-link" data-fl-surprise hidden>Surprise me</button>
       </p>
+      <p class="visually-hidden" role="status" data-fl-say></p>
     </div>
   </section>
 
@@ -174,7 +178,7 @@ const courseFilms = (key: string) => courses.find((c) => c.key === key)?.films ?
         {[10, 20, 30].map((m) => <label><input type="radio" name="fl-t" value={m} /><span>{m} minutes</span></label>)}
       </fieldset>
       <div class="fl-run-sum" data-fl-run-sum hidden>
-        <p data-fl-run-text></p>
+        <div data-fl-run-text role="status"></div>
         <p class="fl-run-go"><a class="fl-btn primary" href="/films/run/" data-fl-run-start>Start</a> <button type="button" class="fl-link" data-fl-run-clear>Not now</button></p>
       </div>
     </div>

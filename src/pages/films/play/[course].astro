@@ -2,7 +2,7 @@
 /* Play a course's films in order (Chris, 2026-11-14): /films/play/<course>/.
 
    One player, the course's films back to back in course order (the order of /films/ and the course
-   page): when one ends, a five-second "Up next" with no ticking digits, which any touch cancels, then the next. A queue with
+   page): when one ends, an "Up next" offer that waits for the viewer (nothing starts by itself), then the next. A queue with
    the current film marked, previous and next, the current film's title, a link to its lesson and its
    take-homes underneath, captions from the same caption files. The page remembers on this device
    which film and second the viewer stopped at (src/lib/film-progress.ts) and opens there next time,
@@ -74,8 +74,8 @@ const queue = films.map((f) => ({
           <p class="pl-next-k">Up next <span data-pl-count></span></p>
           <p class="pl-next-t" data-pl-next-t></p>
           <p class="pl-next-btns">
-            <button type="button" class="fl-btn primary" data-pl-now>Play now</button>
-            <button type="button" class="fl-btn" data-pl-cancel>Cancel</button>
+            <button type="button" class="fl-btn primary" data-pl-now>Play next</button>
+            <button type="button" class="fl-btn" data-pl-cancel>Stop here</button>
           </p>
         </div>
       </div>
@@ -261,10 +261,8 @@ const queue = films.map((f) => ({
     });
     video.addEventListener('play', () => { cancelNext(); if (!started) { started = true; remember(video.currentTime); } });
 
-    /* ---- "Up next": five seconds after a film ends, then the next one, unless cancelled. */
-    let timer = 0;
+    /* ---- "Up next": offered when a film ends; the next one starts when the viewer asks. */
     const cancelNext = () => {
-      if (timer) { clearTimeout(timer); timer = 0; }
       nextBox.hidden = true;
     };
     video.addEventListener('ended', () => {
@@ -278,19 +276,11 @@ const queue = films.map((f) => ({
       // Save the next film as the place to come back to.
       saveQueue(course, { f: next.f, t: 0, title: next.t, poster: next.o, courseTitle, d: next.d });
       $('[data-pl-next-t]').textContent = next.t;
-      // No ticking digits (2026-11-20): a still line, and any touch, key or scroll keeps the viewer here.
-      const count = $('[data-pl-count]');
-      count.textContent = 'in a few seconds. Touch anything to stay here.';
+      // Offered, never started (2026-11-20): no clock, seen or unseen. The place is already saved above.
+      $('[data-pl-count]').textContent = 'when you are ready';
       nextBox.hidden = false;
-      const stay = () => {
-        if (!timer) return;
-        clearTimeout(timer); timer = 0;
-        count.textContent = 'when you are ready.';
-      };
-      for (const ev of ['pointerdown', 'keydown', 'wheel', 'touchmove'] as const) window.addEventListener(ev, stay, { once: true, passive: true });
-      timer = window.setTimeout(() => { timer = 0; select(cur + 1, true); }, 5000);
     });
-    // "Review the cards" under the player (CardsPrompt.astro) stops the countdown.
+    // "Review the cards" under the player (CardsPrompt.astro) withdraws the offer.
     root.addEventListener('bp-cards-open', () => cancelNext());
     $('[data-pl-now]').addEventListener('click', () => select(cur + 1, true));
     $('[data-pl-cancel]').addEventListener('click', () => { cancelNext(); $<HTMLButtonElement>('[data-pl-nextbtn]').focus(); });

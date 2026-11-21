@@ -19,9 +19,14 @@
 .th-screen { background: #0f1117; border-radius: 10px; overflow: hidden; }
 .th-screen video { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; background: #0f1117; }
 .th-novideo, .th-novideo a { color: #e7e9f0; }
-/* While the film plays on a phone held upright, the screen stays in view above what it is showing.
-   Never in landscape, never in a short or zoomed window, and never more than 40% of the height. */
+/* While the film plays on a phone held upright, the screen stays in view for the whole page, so the
+   part beside it, the list of parts and the transcript can be read with the film still showing. The
+   two wrappers step aside (display: contents) so that the screen is pinned within the page, not
+   within its own short column. Never in landscape, never in a short or zoomed window, never more
+   than 40% of the height; the script keeps whatever has keyboard focus clear of it. */
 @media (max-width: 959px) and (min-height: 600px) and (orientation: portrait) {
+  .th-stage, .th-main { display: contents; }
+  .th-side { margin-top: var(--ddp-space-4); }
   .th.is-playing .th-screen { position: sticky; top: var(--th-top, 0px); z-index: 5; max-height: 40vh; border-radius: 0; }
   .th.is-playing .th-screen video { max-height: 40vh; width: auto; max-width: 100%; margin: 0 auto; }
 }

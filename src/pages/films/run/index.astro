@@ -6,9 +6,8 @@
    Rules (the play-in-order page's, applied to any view): whole films, from the first one not yet
    watched on this device, never more than a minute past the budget, stop at the first film that
    does not fit. The run says how long it is and where it ends before it starts. Nothing plays until
-   the viewer presses play; the next film is offered, with no clock, and starts when asked.
-   (RUN_ADVANCES in src/lib/film-run.ts holds the other behaviour, switched off: the next film
-   starting by itself after a still pause that any touch cancels.) Nothing is stored here; the
+   the viewer presses play; the next film is offered, with no clock, and starts only when asked.
+   Nothing is stored here; the
    watched record is the site's own (trackFilms in BaseLayout).
 
    With scripts off this page cannot build a queue, so it says so and points at the pages that work
@@ -42,7 +41,7 @@ import '../../../styles/film-lib.css';
       <p class="fr-take" data-fr-take hidden></p>
 
       <div class="fr-next" data-fr-next hidden>
-        <p data-fr-next-text></p>
+        <p data-fr-next-text role="status"></p>
         <p class="fr-next-btns">
           <button type="button" class="fl-btn primary" data-fr-play-next>Play next</button>
           <button type="button" class="fl-btn" data-fr-stop>Stop here</button>

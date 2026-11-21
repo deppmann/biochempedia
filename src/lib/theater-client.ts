@@ -75,7 +75,11 @@ export function theater(): void {
     showPart(i);
   };
   companion.addEventListener('focusout', () => {
-    requestAnimationFrame(() => { if (wanted !== part && !companion.contains(document.activeElement)) showPart(wanted); });
+    requestAnimationFrame(() => {
+      if (companion.contains(document.activeElement)) return;
+      if (wanted !== part) showPart(wanted);
+      if (rest) sync(v.currentTime);
+    });
   });
 
   let line = -1;
@@ -93,7 +97,8 @@ export function theater(): void {
         q.hidden = !on;
         asking ||= on;
       }
-      if (rest) rest.hidden = asking;
+      // Not while someone is on the lesson link: it stays until they move on.
+      if (rest) rest.hidden = asking && !rest.contains(document.activeElement);
     }
     if (figs && figs.hidden && (ended || (lastReveal > 0 && t >= lastReveal))) figs.hidden = false;
     // The parts bar: which segment the film is in, and how far along.
@@ -121,6 +126,18 @@ export function theater(): void {
       }
     }
   }
+
+  /* ---- the pinned screen never sits on top of what has keyboard focus */
+  const screen = $('[data-th-screen]')!;
+  root.addEventListener('focusin', (e) => {
+    const el = e.target as HTMLElement;
+    if (getComputedStyle(screen).position !== 'sticky' || screen.contains(el)) return;
+    requestAnimationFrame(() => {
+      const edge = screen.getBoundingClientRect().bottom;
+      const top = el.getBoundingClientRect().top;
+      if (top < edge + 8) window.scrollBy(0, top - edge - 12);
+    });
+  });
 
   /* ---- controls made from the printed list */
   for (const r of rows) r.addEventListener('click', () => playFrom(num(r, 't')));

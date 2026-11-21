@@ -16,6 +16,7 @@
 import { cardHTML, hoverPreviews, liveMarks, markCards, type FilmList, type ListFilm } from './film-cards';
 import { loadFilms, keepWatching, onFilmsChange, resumeHref } from './film-progress';
 import { filmStrip, type StripFilm } from './film-strip';
+import { readPrefs } from './prefs';
 import { BUDGETS, FIELDS, about, clock, filmsWord, fit, isDefault, readView, runSentence, runnable, select, viewQuery, type Ideas, type View } from './film-view';
 
 const PAGE = 60;
@@ -135,7 +136,11 @@ export function library(): void {
     cap.textContent = `${filmsWord(on.length)} brought forward, with the rest of the ${total.toLocaleString('en-US')} beneath.`;
     return null;
   };
-  const say = (n: number, secs: number) => { status.textContent = n ? `${filmsWord(n)}, ${about(secs)}.` : 'No films.'; };
+  // One sentence per change, and only when it changes (the same words written twice are read twice).
+  const say = (n: number, secs: number) => {
+    const text = n ? `${filmsWord(n)}, ${about(secs)}.` : 'No film matches that.';
+    if (status.textContent !== text) status.textContent = text;
+  };
 
   const groupHTML = (films: ListFilm[], d: FilmList) => {
     const out: string[] = [];
@@ -187,6 +192,18 @@ export function library(): void {
     if (last) last.finished.then(() => performance.mark('fl-settled'), () => {}); else performance.mark('fl-settled');
   };
 
+  /* Posters are 35 to 70 KB each and there is one size of them. The browser's own lazy loading reaches
+     two or three screens ahead, which on a phone is twenty posters for one tap; this asks for a poster
+     when its card is within half a screen. */
+  const posters = new IntersectionObserver((entries) => {
+    for (const e of entries) {
+      if (!e.isIntersecting) continue;
+      const img = e.target as HTMLImageElement;
+      if (img.dataset.src) { img.src = img.dataset.src; delete img.dataset.src; }
+      posters.unobserve(img);
+    }
+  }, { rootMargin: '50% 0px' });
+
   let drawn = 0;
   async function render(animate: boolean): Promise<void> {
     const mine = ++drawn;
@@ -209,7 +226,12 @@ export function library(): void {
     none.hidden = current.length > 0;
     rest.hidden = true;
     const shown = current.slice(0, limit);
-    listEl.innerHTML = view.sort === 'course' && !view.q ? groupHTML(shown, d) : `<ul class="grid">${shown.map((f) => cardHTML(f, d)).join('')}</ul>`;
+    // Built off the page, so that no poster is asked for until its card is near the screen (below).
+    const built = document.createElement('template');
+    built.innerHTML = view.sort === 'course' && !view.q ? groupHTML(shown, d) : `<ul class="grid">${shown.map((f) => cardHTML(f, d)).join('')}</ul>`;
+    for (const img of built.content.querySelectorAll('img')) { img.dataset.src = img.getAttribute('src') ?? ''; img.removeAttribute('src'); img.removeAttribute('loading'); }
+    listEl.replaceChildren(built.content);
+    for (const img of listEl.querySelectorAll('img[data-src]')) posters.observe(img);
     if (view.level && view.sort === 'course' && levelOnly()) {
       const pic = listEl.querySelector('li.fc .fc-pic');
       if (pic) { const s = document.createElement('span'); s.className = 'fc-start'; s.textContent = 'Start here'; pic.append(s); }
@@ -291,15 +313,11 @@ export function library(): void {
   const part = (k: string) => startEl.querySelector<HTMLElement>(`[data-fl-start-${k}]`)!;
   let shownPick: StartPick | null = null;
   let stoppedDismissed = false;
-  const prefLevel = (): string => {
-    try {
-      const p = JSON.parse(window.localStorage.getItem('stemhop:prefs:v1') ?? 'null');
-      return p && typeof p.level === 'string' && levelKeys.includes(p.level) ? p.level : '';
-    } catch { return ''; }
-  };
+  const prefLevel = (): string => { const l = readPrefs().level ?? ''; return levelKeys.includes(l) ? l : ''; };
   const poolFor = () => {
     const level = view.level || prefLevel();
-    const mine = pool.filter((p) => (level ? p.s === level : p.s !== 'ages-5-10'));
+    // With no level chosen here and none set on this device: grade 7, where biology starts.
+    const mine = pool.filter((p) => p.s === (level || 'grade-7'));
     return mine.length ? mine : pool;
   };
   const fill = (k: { kicker: string; title: string; href: string; poster: string; meta: string; len: string; line: string; go: string }) => {
@@ -337,7 +355,11 @@ export function library(): void {
   surprise.addEventListener('click', () => {
     stoppedDismissed = true;
     const mine = poolFor().filter((p) => p !== shownPick);
-    if (mine.length) showPick(mine[Math.floor(Math.random() * mine.length)]);
+    if (!mine.length) return;
+    const p = mine[Math.floor(Math.random() * mine.length)];
+    showPick(p);
+    // The card changes in place, with focus still on the button: say what it now holds.
+    $('[data-fl-say]').textContent = `Now showing ${p.t}, ${p.m}, ${p.d}.`;
   });
 
   /* ---- the record: said only once there is something to say */
