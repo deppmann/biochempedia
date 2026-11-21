@@ -147,8 +147,9 @@ export function makeTopicGraph(graph, site) {
     for (const id of records[slug]?.concepts ?? []) {
       const c = all[id];
       const r = c?.rungs.find((x) => x.lesson === slug);
-      if (c && r) out.push({ id, name: c.name, area: c.area, role: r.role, ...(r.anchor ? { anchor: r.anchor } : {}), ...(r.adds ? { adds: r.adds } : {}) });
+      if (c && r) out.push({ id, name: c.name, label: c.short ?? c.name, area: c.area, role: r.role, ...(r.anchor ? { anchor: r.anchor } : {}), ...(r.adds ? { adds: r.adds } : {}) });
     }
+    // the record's own order is kept: the lesson's main idea first, then its other ideas, then what it uses
     return out.sort((a, b) => (a.role === b.role ? 0 : a.role === 'core' ? -1 : 1));
   }
 
@@ -251,10 +252,10 @@ export function makeTopicGraph(graph, site) {
           const db = Math.abs(b.rank - here.rank) * 2 + (b.rank > here.rank ? 1 : 0);
           return da - db;
         })[0];
-        return [{ id: n.id, name: t.name, blurb: t.blurb, area: t.area, why: n.why, ...(to ? { to: { ...to, jump: to.rank - here.rank } } : {}) }];
+        return [{ id: n.id, name: t.name, label: t.short ?? t.name, blurb: t.blurb, area: t.area, why: n.why, ...(to ? { to: { ...to, jump: to.rank - here.rank } } : {}) }];
       });
       out.push({
-        id: c.id, name: c.name, area: c.area, ...(c.anchor ? { anchor: c.anchor } : {}), ...(c.adds ? { adds: c.adds } : {}),
+        id: c.id, name: c.name, label: c.label, area: c.area, ...(c.anchor ? { anchor: c.anchor } : {}), ...(c.adds ? { adds: c.adds } : {}),
         ...(downAll.length ? { down: downAll[0] } : {}), downAll,
         ...(upAll.length ? { up: upAll[0] } : {}), upAll,
         beside: rungs.filter((r) => r.rank === here.rank && r.slug !== slug),
@@ -269,7 +270,7 @@ export function makeTopicGraph(graph, site) {
   function searchIndex() {
     return concepts.map((c) => {
       const s = span(c.id);
-      return { id: c.id, name: c.name, blurb: c.blurb, area: c.area, areaName: areaName(c.area), terms: [fold(c.name), ...c.aliases.map(fold)], aliases: c.aliases, levels: s.levels, films: filmsFor(c.id).length };
+      return { id: c.id, name: c.name, label: c.short ?? c.name, blurb: c.blurb, area: c.area, areaName: areaName(c.area), terms: [fold(c.name), ...c.aliases.map(fold)], aliases: c.aliases, levels: s.levels, films: filmsFor(c.id).length };
     });
   }
 
@@ -281,7 +282,7 @@ export function makeTopicGraph(graph, site) {
    *   courses  [slug, title, stage index]
    *   lessons  [slug, title, course index]                      (only lessons that have a record)
    *   films    [key, title, lesson index, seconds, film id or 0]  (0 = the lesson's first film)
-   *   concepts { id, n name, b blurb, a area index, s subject (absent = biology), q aliases,
+   *   concepts { id, n name, h short display name (absent when the name is short), b blurb, a area index, s subject (absent = biology), q aliases,
    *              r rungs [lesson index, 0 core | 1 uses, note, anchor], f film indexes,
    *              x near [concept index, why] }
    * Rungs are sorted lowest level first; a level is lessons[i] -> courses[j] -> stages[k].
@@ -315,7 +316,7 @@ export function makeTopicGraph(graph, site) {
         return filmIdx.get(f.key);
       });
       return {
-        id, n: c.name, b: c.blurb, a: areas.findIndex((a) => a.id === c.area), ...(c.subject && c.subject !== 'biology' ? { s: c.subject } : {}),
+        id, n: c.name, ...(c.short ? { h: c.short } : {}), b: c.blurb, a: areas.findIndex((a) => a.id === c.area), ...(c.subject && c.subject !== 'biology' ? { s: c.subject } : {}),
         q: c.aliases,
         r: rungs.map((r) => (r.role === 'core' ? [lessonIdx.get(r.slug), 0, r.adds ?? '', ...(r.anchor ? [r.anchor] : [])] : [lessonIdx.get(r.slug), 1])),
         f: fs,
@@ -331,9 +332,9 @@ export function makeTopicGraph(graph, site) {
    *   covered, live   how many live lessons have a record so far, of how many (the graph fills in over time)
    *   stages          [key, title]
    *   areas           [id, name, number of concepts]; the area's ladders are in /graph/<id>.json
-   *   concepts        { id, n name, a area index, l levels, b blurb, q aliases, f number of films }
+   *   concepts        { id, n name, h short display name (absent when the name is short), a area index, l levels, b blurb, q aliases, f number of films }
    *                   `l` is a bit mask of the levels that have a core lesson (bit 0 = stages[0])
-   *   lessons         { slug: [concept indexes] } for the ideas each lesson TEACHES (core rungs only)
+   *   lessons         { slug: [concept indexes] } for the ideas each lesson TEACHES (core rungs only), main idea first
    */
   function clientIndex() {
     const ids = Object.keys(all);
@@ -348,7 +349,7 @@ export function makeTopicGraph(graph, site) {
         mask |= 1 << l.rank;
         (byLesson[l.slug] ??= []).push(at.get(id));
       }
-      return { id, n: c.name, a: areas.findIndex((a) => a.id === c.area), l: mask, b: c.blurb, q: c.aliases, f: filmsFor(id).length };
+      return { id, n: c.name, ...(c.short ? { h: c.short } : {}), a: areas.findIndex((a) => a.id === c.area), l: mask, b: c.blurb, q: c.aliases, f: filmsFor(id).length };
     });
     return {
       v: 1, updated: graph.updated,
@@ -357,7 +358,7 @@ export function makeTopicGraph(graph, site) {
       stages: stages.map((s) => [s.key, s.title]),
       areas: areas.map((a) => [a.id, a.name, rows.filter((r) => areas[r.a]?.id === a.id).length]),
       concepts: rows,
-      lessons: Object.fromEntries(Object.keys(byLesson).sort().map((s) => [s, byLesson[s]])),
+      lessons: Object.fromEntries(Object.keys(byLesson).sort().map((s) => { const order = records[s]?.concepts ?? []; return [s, [...byLesson[s]].sort((x, y) => order.indexOf(ids[x]) - order.indexOf(ids[y]))]; })),
     };
   }
 
@@ -369,7 +370,7 @@ export function expandClientGraph(g) {
   const lessons = g.lessons.map(([slug, title, ci]) => ({ slug, title, course: g.courses[ci][0], courseTitle: g.courses[ci][1], stage: g.stages[g.courses[ci][2]]?.[0] ?? null, rank: g.courses[ci][2] }));
   const films = g.films.map(([key, title, li, seconds, id]) => ({ key, title, lesson: lessons[li].slug, seconds, href: id ? `/watch/${lessons[li].slug}/${id}/` : `/watch/${lessons[li].slug}/` }));
   return g.concepts.map((c) => ({
-    id: c.id, name: c.n, blurb: c.b, area: g.areas[c.a]?.[0] ?? null, subject: c.s ?? 'biology', aliases: c.q,
+    id: c.id, name: c.n, ...(c.h ? { short: c.h } : {}), blurb: c.b, area: g.areas[c.a]?.[0] ?? null, subject: c.s ?? 'biology', aliases: c.q,
     rungs: c.r.map(([li, role, adds, anchor]) => ({ ...lessons[li], role: role ? 'uses' : 'core', ...(adds ? { adds } : {}), ...(anchor ? { anchor } : {}) })),
     films: c.f.map((i) => films[i]),
     near: c.x.map(([t, why]) => ({ id: typeof t === 'number' ? g.concepts[t].id : t, why })),

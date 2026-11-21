@@ -79,7 +79,9 @@ const CONCEPT_RULES = `WHAT COUNTS AS A CONCEPT.
 - REUSE. If the idea is already in the registry below, use that id exactly. A new id for an idea that
   already has one breaks the ladder in two. Create a new concept only when no registry concept is this idea.
 - A new concept needs: an id (kebab-case, the plainest name of the idea, for example "nitrogen-cycle"),
-  a name (as a learner would say it; a technical term may follow in brackets), a blurb, an area, and aliases.`;
+  a name (as a learner would say it; a technical term may follow in brackets), a blurb, an area, and aliases.
+  If the name is longer than ${LIMITS.shortOver} characters, also give "short": a display name of at most ${LIMITS.shortChars} characters
+  ("Water in plants" for "How water moves through a plant").`;
 
 const BLURB_RULES = `THE BLURB (new concepts only) is one sentence of at most ${LIMITS.blurbWords} words that says what the idea IS, in words a
 grade 7 reader knows. Example: "Water moves across a membrane toward the side with more dissolved stuff."
@@ -182,6 +184,9 @@ The digest is enough for most lessons. OPEN THE LESSON FILE (its path is in the 
 - you are about to create a new concept (read the section first).
 Do not guess. If after reading you are still unsure a rung is core, it is not core.`;
 
+/** The shared rule blocks, for other stages that ask a reader something (extend.mjs). */
+export const RULES = { site: SITE, roles: ROLE_RULES, concept: CONCEPT_RULES, note: NOTE_RULES, anchor: ANCHOR_RULES, films: FILM_RULES, aliases: ALIAS_RULES, voice: VOICE, reading: READING };
+
 // ------------------------------------------------------------------ the registry as text
 
 /** The registry block: one line per concept. `full` adds aliases. */
@@ -219,7 +224,7 @@ const PROPOSAL_SHAPE = `{
   "concepts": [
     {
       "id": "<registry id, or a new kebab-case id>",
-      "new": { "name": "...", "blurb": "...", "area": "<area id>", "aliases": ["...", "..."] },
+      "new": { "name": "...", "short": "<only when the name is long>", "blurb": "...", "area": "<area id>", "aliases": ["...", "..."] },
       "role": "core" or "uses",
       "anchor": "<section id>" or null,
       "adds": "<the note, at most ${LIMITS.addsWords} words>",
@@ -234,6 +239,7 @@ const PROPOSAL_SHAPE = `{
 Rules of the shape:
 - "new" appears ONLY when the id is not in the registry, and then it is required in full. Define a new
   concept once, in the first lesson that needs it; later lessons in your batch reuse the id without "new".
+- List the lesson's MAIN idea first (the one its title names).
 - core entries carry "anchor" (or null), "adds" and "films" (possibly empty). uses entries carry none of the three.
 - "relations" and "notes" may be empty ([] and ""). "concepts" may be empty only for a page that teaches no
   idea at all (say why in "notes").
