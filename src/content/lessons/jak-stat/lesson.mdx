@@ -5,12 +5,13 @@ course: "signaling"
 courseChapter: "Cell Signaling · Unit 4: Receptors with enzymes attached"
 order: 122
 summary: >-
-  How does a cytokine such as interferon or erythropoietin switch on genes within minutes when
-  its receptor has no enzyme at all? This lesson follows the JAK–STAT pathway from receptor to
-  DNA, tells how genetics and biochemistry found its two parts in 1992, and shows what mice and
-  patients missing one JAK reveal. Afterwards you can trace each step, predict what a given
-  mutation breaks, and explain how JAK inhibitor drugs work.
-hook: "How does a signal reach a gene when the only relay between the receptor and the DNA is one kind of protein?"
+  Cytokine receptors borrow JAKs to send paired STATs straight to DNA; receptor tails select
+  specific JAKs and STATs, while brakes restrain signaling. Follow the 1992 biochemical and
+  genetic experiments that tied a JAK to the STATs, trace how one SH2 domain acts twice, and
+  examine mouse knockouts, human immunodeficiency, polycythaemia vera, and selective JAK
+  inhibitors. Afterwards you can trace each step, predict what a given mutation breaks, and
+  explain how ATP-pocket and pseudokinase drugs differ.
+hook: "How does a cytokine receptor with no enzyme of its own switch on genes in the nucleus within minutes?"
 
 estMinutes: 24
 objectives:
@@ -23,10 +24,15 @@ explainer:
   src: "/explainers/jak-stat/explainer.mp4"
   captions: "/explainers/jak-stat/explainer.vtt"
   poster: "/explainers/jak-stat/poster.jpg"
-  title: "One Protein From Receptor to Gene"
-  durationSec: 150.7
-  narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+  title: "A Borrowed Kinase, Straight to DNA"
+  durationSec: 200.6
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+  takeaways:
+    - "Cytokine receptors borrow JAKs to send paired STATs straight to DNA."
+    - "Each class I or class II receptor chain has no enzyme of its own and holds a JAK on its inner tail before cytokine arrives."
+    - "Cytokine binding positions two JAKs to phosphorylate each other, the receptor tails, and a docked STAT."
+    - "A STAT uses its SH2 domain twice: first to dock on a receptor tail, then to lock into a two-grip active pair that binds DNA (with IRF9 added for type I interferons)."
 
 scientists:
   - name: "James Darnell"
@@ -403,102 +409,159 @@ corpusTags:
   - "jak-inhibitors"
 draft: false
 films:
-  - id: "interferon-puzzle"
-    src: "/explainers/jak-stat/interferon-puzzle.mp4"
-    captions: "/explainers/jak-stat/interferon-puzzle.vtt"
-    poster: "/explainers/jak-stat/interferon-puzzle-poster.jpg"
-    title: "Two Labs, One Missing Kinase"
-    durationSec: 109.7
-    narration: "an AI narrator voice (ElevenLabs, Sarah) reading narration written from this lesson's text"
+  - id: "chapter-2"
+    src: "/explainers/jak-stat/chapter-2.mp4"
+    captions: "/explainers/jak-stat/chapter-2.vtt"
+    poster: "/explainers/jak-stat/chapter-2-poster.jpg"
+    title: "Receptor Tails, Specificity, and Brakes"
+    durationSec: 195.7
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
     aiGenerated: true
+    takeaways:
+      - "Receptor tails select specific JAKs and STATs, while brakes restrain signaling."
+      - "On the erythropoietin receptor, other JAKs do not substitute for JAK2: mouse embryos without it make no adult-type red cells."
+      - "Tyrosine phosphatases remove phosphates for STAT reuse, and STAT-induced SOCS proteins feed back after a delay to limit the signal."
+      - "Each JAK's pseudokinase domain restrains its working kinase; weakening that restraint in JAK2 V617F lets JAK2 signal with little or no erythropoietin."
 ---
 
 import LessonFilm from '../../../components/LessonFilm.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import Support from '../../../components/Support.astro';
 
-**Add interferon, a protein that warns cells of a virus, to human cells and a particular set of genes switches on within minutes, even when a drug has stopped the cells from making any new protein.** Every part of the path from the cell surface to those genes must therefore be in the cell already, waiting. The people working on it judged the second messengers of Unit 3 a poor fit: a rise in a second messenger is a fairly nonspecific event, and interferon's action is highly specific. The answer was a receptor that borrows a kinase and a transcription factor that waits in the cytoplasm for one phosphate.
+**Add interferon, a protein that warns cells of a virus, to human cells and a specific set of genes switches on within minutes—even when a drug has blocked all new protein synthesis.** The first film showed how a borrowed kinase and a waiting transcription factor make that speed possible; here is how two laboratories found those parts in 1992.
 
-## The idea: a receptor with no enzyme borrows one
+## Finding the two parts in 1992
 
-A **cytokine** is a small secreted protein that tells other cells what to do, most often cells of the blood and the immune system. Interferons are cytokines. So are the interleukins, which carry messages between white blood cells. Several hormones use receptors of the same family: erythropoietin (EPO), which tells the bone marrow to make red blood cells, and also growth hormone, prolactin and leptin.
+With no new protein made, every component of the relay must already be in the cell. Investigators judged the second messengers of Unit 3 a poor fit: a rise in a second messenger is fairly nonspecific, whereas interferon's transcriptional response is highly specific. Two laboratories searched from opposite ends.
 
-Each receptor chain crosses the membrane once. A receptor tyrosine kinase, such as the insulin receptor from the receptor field guide, is its own kinase. A cytokine receptor of this family (the class I and class II cytokine receptors) has no enzyme in it at all. A stretch of its inside tail, near the membrane, holds a separate tyrosine kinase called a **JAK** (Janus kinase), and the JAK is there before any cytokine arrives. Think of an antenna with no electronics of its own and a radio bolted to its base.
+James Darnell's laboratory at Rockefeller University started at the gene. Interferon-responsive genes share a short DNA sequence, and his group identified a protein complex, **ISGF3**, whose subunits wait in the cytoplasm and gain DNA-binding ability within minutes of interferon treatment. In August 1992 Christian Schindler, Ke Shuai, and colleagues reported that interferon drives tyrosine phosphorylation on proteins of ISGF3, and that **staurosporine**, a broad kinase inhibitor, blocks interferon-induced activation of the complex. That placed a tyrosine kinase upstream of the DNA-binding factor without naming which one.
 
-Binding does one job: it sets receptor chains, and so their JAKs, in the right position against each other. The simplest case is two chains and two JAKs; some receptors assemble more chains around the cytokine. One growth hormone molecule has two different faces, and each face grips one copy of the same receptor chain. For some receptors, the EPO receptor among them, crystal structures suggested the chains might be loosely paired beforehand, with binding re-setting their geometry. Tracking single receptor chains in living cells points the other way: the chains come together when the hormone binds. The question is still argued. Either way, two JAKs end up close enough to phosphorylate each other.
+George Stark and Ian Kerr's laboratory in London came from genetics. Sandra Pellegrini engineered human cells in which an interferon-responsive DNA element controlled a marker gene: in the chosen medium, any cell that still answered interferon switched on the marker and died, leaving only interferon-deaf mutants alive.
 
-A JAK has two kinase-like domains side by side. One is a working kinase. The other, the **pseudokinase** domain, has the kinase fold but little or no catalytic activity, and it restrains the working one. The family is named for Janus, the Roman god with two faces. Mammals have four: JAK1, JAK2, JAK3 and TYK2.
+**Predict.** Pellegrini now holds an interferon-deaf mutant line, but nothing tells her which gene is broken. How could DNA from normal cells identify it?
 
-## The interferon puzzle: activating a factor without making more of it?
+<details>
+<summary>Check your prediction</summary>
 
-<LessonFilm film={frontmatter.films[0]} />
+Put normal genomic DNA into the mutant cells and look for the rare cell whose interferon response returns. The DNA that cell took up carries a working copy of the broken gene. This test is called **complementation**.
 
-A cell can raise a transcription factor's activity by making more of it. The inhibitor experiment rules that out here, so the factor must exist already and be activated some other way. Two laboratories went looking, from opposite ends.
+</details>
 
-James Darnell's laboratory at Rockefeller University started at the gene. Interferon-responsive genes share a short DNA sequence, and the laboratory identified a protein complex, ISGF3, that binds it. Its proteins wait in the cytoplasm and gain the ability to bind DNA within minutes of interferon reaching the cell. In August 1992 Christian Schindler, Ke Shuai and their colleagues reported that interferon causes proteins of the complex to be phosphorylated on tyrosine, and that staurosporine, a drug that inhibits many kinases, blocks the interferon-induced activation of the complex. Some kinase had to act first. The experiment could not say which.
+Pellegrini carried out that DNA rescue in her new laboratory at the Institut Pasteur in Paris (see *Going deeper* for why colleagues doubted the screen could succeed). In July 1992, two weeks before the Darnell paper, her group reported the rescuing gene for one mutant: it encoded the tyrosine kinase **TYK2**. The two results fit together: a JAK is required, and the DNA-binding proteins carry phosphotyrosine. Darnell's laboratory named those proteins **STATs** (signal transducers and activators of transcription).
 
-George Stark and Ian Kerr's laboratory in London started with genetics. Sandra Pellegrini built human cells in which an interferon-responsive stretch of DNA controlled a marker gene, so that in the right medium only cells deaf to interferon survived. She mutagenized the cells and screened about a hundred million of them. Each mutant line that came through had lost a part of the pathway. To find which part, you put DNA from normal cells into the mutant and look for the rare cell whose response returns, a test called **complementation**. Pellegrini did this in her own new laboratory at the Institut Pasteur in Paris. In July 1992, two weeks before the Darnell paper, her group reported the gene that rescued one mutant. It encoded TYK2.
+<Support>**The one idea.** Cytokine receptors borrow JAKs to send paired STATs straight to DNA; receptor tails select specific JAKs and STATs, while brakes restrain signaling. **Scope:** This rule covers class I and class II cytokine receptors. Type I interferons also add IRF9 to STAT1 and STAT2 (forming ISGF3), STAT5A and STAT5B partly cover for each other, and how shared STATs such as STAT3 drive opposite responses to interleukin-6 and interleukin-10 remains an open question.</Support>
 
-The two results fit together: a JAK is required, and the DNA-binding proteins carry phosphotyrosine. Darnell's laboratory named those proteins **STATs**, signal transducers and activators of transcription.
+## Inside the relay: activation loops, two grips, and built-in restraint
 
-## The mechanism: one phosphate, and an SH2 domain used twice
+A **cytokine** is a small secreted protein that tells other cells what to do, most often cells of the blood and immune system—including interferons and the interleukins that carry messages between white blood cells. Several hormones use the same class I and class II cytokine receptor family: **erythropoietin** (EPO), which tells the bone marrow to make red blood cells, along with growth hormone, prolactin, and leptin.
 
-Try this before reading on: design a signaling pathway that is activated by receptor oligomerization and tyrosine phosphorylation. (Oligomerization means several chains coming together.) The cell's version has six steps.
+Unlike a receptor tyrosine kinase such as the insulin receptor from the receptor field guide, a class I or class II cytokine receptor crosses the membrane once and has no catalytic domain of its own. Instead, a stretch of its inner tail near the membrane holds a separate tyrosine kinase, a **JAK** (Janus kinase), before any cytokine arrives—an antenna with no electronics of its own and a radio bolted to its base. Named for Janus, the two-faced Roman god, each JAK carries two kinase-like domains side by side: a working kinase and a **pseudokinase** domain, which has the kinase fold but little or no catalytic activity and restrains the working kinase at rest. Mammals have four JAKs: **JAK1, JAK2, JAK3, and TYK2**.
 
-1. The cytokine sets two receptor chains in position.
-2. The two JAKs phosphorylate each other on their activation loops, the switch described in the phosphorylation lesson, and become fully active.
-3. The JAKs phosphorylate tyrosines along the receptor tails.
-4. A STAT from the cytoplasm docks on one of those phosphotyrosines by its SH2 domain, the phosphotyrosine-binding module from the lesson on protein interaction modules.
-5. The JAK phosphorylates the docked STAT on a single tyrosine near its C-terminal end (tyrosine 701 in STAT1).
-6. Two phosphorylated STATs pair, each SH2 domain holding the other's phosphotyrosine. (Many STATs already sit in loose pairs before this, held together another way; phosphorylation switches them into this active form.) The active pair builds up in the nucleus, binds a specific DNA sequence and switches on transcription.
+The biochemical details behind the first film's relay:
 
-The SH2 domain is used twice. It first holds the STAT on the receptor, next to the JAK. Once the STAT carries its own phosphotyrosine, the same domain holds a partner STAT instead, and two grips hold the pair where one held the STAT to the receptor.
+- **Positioning and trans-phosphorylation:** The simplest receptors assemble two chains and two JAKs around one cytokine, though some assemble more chains. Whether chains meet only on binding is still debated (see *Going deeper*); either way, the two JAKs phosphorylate each other's **activation loops**, the switch from the phosphorylation lesson, turning both kinases fully on.
+- **Docking and two-grip pairing:** Active JAKs phosphorylate tyrosines along the receptor tails. A latent STAT docks on one phosphotyrosine through its **SH2 domain** (the phosphotyrosine-binding module from the lesson on protein interaction modules), and the JAK phosphorylates a single tyrosine near the STAT's C-terminal end (tyrosine 701 in STAT1). The STAT leaves the receptor, and two phosphorylated STATs lock into a reciprocal dimer—each SH2 domain holding its partner's phosphotyrosine, two grips where one held the STAT to the receptor. (Many STATs already sit in loose, inactive pairs; phosphorylation switches them into this active form.) The active pair accumulates in the nucleus, binds a specific DNA sequence, and turns on transcription.
 
-<LessonFigure src="/figures/jak-stat/jak-stat-three-steps.webp" width={1200} height={676} alt="AI-generated illustration: three numbered frames at the plasma membrane. 1: a cytokine holds two receptor chains together, each with a two-lobed JAK already bound to its inner tail, and the JAKs act on each other. 2: the receptor tails carry phosphotyrosines; a STAT docks on one by its SH2 domain, and the JAK tags the single tyrosine that sits right beside that SH2 domain. 3: in the nucleus, two tagged STATs meet head to head, each SH2 domain gripping the other's phosphotyrosine, and the pair sits on DNA and switches a gene on." caption="A cytokine receptor has no enzyme of its own; it borrows a JAK. Once the cytokine sets two chains in place, the JAKs activate each other and tag the receptor tails; a STAT docks by its SH2 domain and is tagged on one tyrosine beside it; then two tagged STATs hold each other, each SH2 gripping the partner's phosphotyrosine, and the pair builds up in the nucleus and switches genes on." />
+**Predict.** Suppose every docking tyrosine along a cytokine receptor's inside tail is changed to phenylalanine, while the receptor's JAK-binding stretch, the JAKs, and the STATs remain normal. When cytokine binds, do the JAKs still activate each other—and can STATs still be phosphorylated?
 
-Count the kinds of protein that carry the message from the receptor complex to the gene: one, the STAT. (Type I interferons add a partner, IRF9, to make ISGF3.) With no second messenger and no chain of kinases, this is about the shortest route there is from the cell surface to a gene.
+<details>
+<summary>Check your prediction</summary>
+
+Yes, the JAKs still position against each other and phosphorylate each other's activation loops, because that step depends only on receptor pairing and intact JAKs. Without phosphotyrosines on the receptor tail, however, STATs lose their SH2 docking sites beside the JAKs, so STAT recruitment and phosphorylation fail.
+
+</details>
+
+<LessonFigure src="/figures/jak-stat/jak-stat-three-steps.webp" width={1200} height={676} alt="AI-generated illustration: three numbered frames at the plasma membrane. 1: a cytokine holds two receptor chains together, each with a two-lobed JAK already bound to its inner tail, and the JAKs act on each other. 2: the receptor tails carry phosphotyrosines; a STAT docks on one by its SH2 domain, and the JAK tags the single tyrosine that sits right beside that SH2 domain. 3: in the nucleus, two tagged STATs meet head to head, each SH2 domain gripping the other's phosphotyrosine, and the pair sits on DNA and switches a gene on." caption="Borrowing a JAK lets a receptor with no enzyme phosphorylate a waiting STAT, whose SH2 domain acts twice—first docking on the tail, then locking into an active pair on DNA." />
 
 ### Design problem
 
-Design the shortest possible path from a receptor at the cell surface to a gene in the nucleus. Say what each part must be able to do. Then compare your design with a STAT protein, domain by domain, and say what this short path gives up when you set it beside a three-kinase cascade.
+Design the shortest possible path from a cell-surface receptor to a gene. List what the moving protein must do, match those jobs to a STAT's domains, and say what this path gives up beside a three-kinase cascade.
 
 <details>
 <summary>One way to do it</summary>
 
-The shortest path has one moving part: a protein that is modified at the receptor and then goes to the DNA itself. It must do four things: tell an active receptor from an idle one, take a mark that records the meeting, change its behaviour once marked so that marked copies build up in the nucleus and bind particular DNA sequences. (Unmarked STATs pass in and out of the nucleus too, but they do not bind the DNA in the same way.)
+The shortest route uses one moving protein that is marked at the active receptor and carries the signal directly to DNA. It must do five jobs: (1) distinguish an active receptor from an idle one, (2) accept a covalent mark recording that meeting, (3) change state once marked so active copies pair and build up in the nucleus, (4) bind a specific DNA sequence, and (5) recruit transcription machinery. (Unmarked STATs also pass in and out of the nucleus, but they do not bind target DNA in the same way.)
 
-A STAT has a part for each job. The SH2 domain finds the active receptor, since only an active receptor carries phosphotyrosines. The single tyrosine near the C-terminus takes the mark. The SH2 domain, used again, reads that mark on a partner and makes the pair. A DNA-binding domain in the middle of the chain grips the DNA, and the C-terminal end recruits the machinery that starts transcription.
+A STAT has a module for each job: the **SH2 domain** detects phosphotyrosines on the active receptor; the single **C-terminal tyrosine** takes the phosphate; the same **SH2 domain** reads that mark on a partner; the central **DNA-binding domain** grips DNA; and the **C-terminal end** recruits the transcription machinery.
 
-What does the short path give up? Some gain, and some places to adjust the signal. In a three-kinase cascade each active kinase can phosphorylate many copies of the next, so a few receptors can give a large output. The stacked steps, together with positive feedback, can also make an all-or-none switch, as in Ferrell's frog oocytes, and each step is a point where another pathway can cut in. Here the only kinase is the JAK. It marks many STATs in turn, but no further kinase stage multiplies the signal again. The reward is a direct line from occupied receptors to genes.
+What does this direct route give up? Multi-stage gain and intermediate control points. In a three-kinase cascade, each active kinase phosphorylates many copies of the next, multiplying a small receptor input; stacked stages with positive feedback can also build an all-or-none switch (as in Ferrell's frog oocytes), and each tier is a junction where another pathway can cut in. Here JAK is the only kinase: it can mark many STATs in turn, but no downstream kinase stage multiplies the signal again. The reward is speed and a direct line from occupied receptors to genes.
 
 </details>
 
-## One family, many jobs: four JAKs, seven STATs
+A direct relay explains the speed, yet dozens of cytokines run through only four JAKs and seven STATs—and each signal must be kept in check.
 
-Mammals have four JAKs and seven STATs (STAT1, 2, 3, 4, 5A, 5B and 6) to serve dozens of cytokines. The receptor does most of the sorting. Each signaling chain's tail holds particular JAKs and carries particular docking tyrosines, and the amino acids around each phosphotyrosine decide which STAT's SH2 domain fits.
+<LessonFilm film={frontmatter.films[0]} />
 
-Mice with one gene deleted, called **knockout** mice, show what each STAT is for:
+## Four JAKs, seven STATs: what knockouts and patients show
 
-- **STAT1**: no response to interferons; the mice succumb to infections that normal mice survive.
-- **STAT4**: impaired response to interleukin-12.
-- **STAT6**: impaired response to interleukin-4.
-- **STAT5A and STAT5B**: failed responses to prolactin and growth hormone; the two partly cover for each other.
-- **STAT3**: the embryo dies early, so its jobs were worked out one tissue at a time.
+Because receptor tails select specific JAKs and STATs, deleting one gene in **knockout** mice—or finding a natural mutation in a patient—shows which cytokines depend on it.
 
-You might expect the JAKs to cover for each other as well, since the four are similar in sequence. Two results say that on at least two receptors they do not.
+| Missing component | Primary cytokines / pathways affected | Observed phenotype |
+| --- | --- | --- |
+| **STAT1** | Interferons | No interferon response; mice succumb to infections normal mice survive |
+| **STAT2** | Type I interferons (with STAT1 and IRF9 in ISGF3) | Required in human mutant cell lines for type I interferon signaling |
+| **STAT3** | Multiple developmental & cytokine signals | Embryo dies early; functions mapped one tissue at a time |
+| **STAT4** | Interleukin-12 | Impaired response to interleukin-12 |
+| **STAT5A / STAT5B** | Prolactin, growth hormone | Failed prolactin and growth-hormone responses; the two partly cover for each other |
+| **STAT6** | Interleukin-4 | Impaired response to interleukin-4 |
 
-James Ihle's laboratory had shown in 1993 that JAK2 is the kinase on the EPO receptor's tail. In 1998 it reported mouse embryos lacking JAK2. They were anaemic and died at about day 12.5 of gestation, and their fetal livers, where a mouse embryo makes its adult-type red cells, held no red-cell precursors that could be grown in culture. Klaus Pfeffer's laboratory reported the same result in the same issue. The genes for JAK1, JAK3 and TYK2 were untouched, and none of those kinases took over.
+You might expect the four similar JAKs to cover for each other too. Two results say that on at least two receptors they do not. First, James Ihle's laboratory showed in 1993 that JAK2 sits on the EPO receptor's tail. In 1998 both Ihle's group and Klaus Pfeffer's group reported (in the same journal issue) that mouse embryos lacking JAK2 were anaemic and died at about day 12.5 of gestation, and their fetal livers, where a mouse embryo makes its adult-type red cells, held no red-cell precursors that could be grown in culture—even though the genes for JAK1, JAK3, and TYK2 are untouched.
 
-The human case is **severe combined immunodeficiency** (SCID), in which a child is born without working T cells, and so with almost no adaptive immune defence. In 1993 Warren Leonard's laboratory reported that boys with the X-linked form carry mutations in the gamma chain of the interleukin-2 receptor. The disease is far worse than losing interleukin-2 alone, because the receptors for interleukins 4, 7, 9, 15 and 21 use the same chain, now called the common gamma chain. Then a patient studied with Rebecca Buckley of Duke University had the disease with a normal gamma chain. In 1995 John O'Shea's and Leonard's groups found that patient's mutations in JAK3, the kinase that sits on the gamma chain, one in each copy of the gene. A group in Italy working with O'Shea had reported JAK3 mutations in other SCID patients about two months before.
+Second came human **severe combined immunodeficiency** (SCID), in which a child is born without working T cells, and so with almost no adaptive immune defence. In 1993 Warren Leonard's laboratory found that boys with the X-linked form, who lack natural killer cells as well, carry mutations in the gamma chain of the interleukin-2 receptor.
 
-## Switching it off, and what happens when a JAK is stuck on
+**Predict.** The boys' disease is far more severe than losing interleukin-2 alone. What does that imply about the gamma chain?
 
-Two kinds of brake do most of the work of ending the signal. Tyrosine phosphatases remove the phosphates from the JAKs, the receptor tails and the STATs. A STAT that loses its phosphate in the nucleus returns to the cytoplasm, ready for reuse.
+<details>
+<summary>Check your prediction</summary>
 
-The pathway also makes its own brake. Among the genes that STATs switch on are those for the **SOCS** proteins, short for suppressors of cytokine signaling. A SOCS protein has an SH2 domain, so it goes to the phosphotyrosines on the active receptor and JAK. Some SOCS proteins block the JAK's catalytic site directly. All of them carry a region that recruits a ubiquitin ligase; for several, including SOCS1 and SOCS3, this can mark the receptor complex for the proteasome. This is negative feedback as you met it in the signaling circuits lesson: more signal makes more brake, after a delay.
+Several cytokine receptors must share that chain—now called the **common gamma chain** (used by receptors for interleukins 2, 4, 7, 9, 15, and 21)—so breaking it silences a whole cluster of immune signals.
 
+</details>
 
-In 2005 several research groups reported the same mutation in most patients with **polycythaemia vera**, a disease in which the bone marrow makes too many red blood cells: valine 617 of JAK2 changed to phenylalanine. Residue 617 lies in the pseudokinase domain. The change weakens that domain's restraint and helps two JAK2 molecules hold together in the active pair, so JAK2 signals from the EPO receptor with little or no EPO present.
+Rebecca Buckley of Duke University studied a SCID patient whose cells failed to answer gamma-chain cytokines despite making a normal gamma chain. In 1995 John O'Shea's and Leonard's groups looked one step along the pathway and found a mutation in each copy of **JAK3**, the kinase on the gamma chain's tail, about two months after an Italian group working with O'Shea reported JAK3 mutations in other non-X-linked SCID patients.
 
-<LessonFigure src="/figures/jak-stat/jak2-restraint-stuck-on.webp" width={1200} height={800} alt="AI-generated illustration: two panels of the erythropoietin receptor with a JAK2 on each tail and no hormone present; in the normal panel the pseudokinase lobe holds the kinase lobe idle, in the mutant panel the restraint is weakened and the kinase is active and a STAT is phosphorylated." caption="Normally the pseudokinase domain restrains the working kinase, and JAK2 waits for EPO. With valine 617 changed to phenylalanine, that restraint is weakened and JAK2 signals with little or no EPO present." />
+## Turning signaling off, stuck-on JAK2, and targeted drugs
 
-Missing JAK2 leaves a mouse embryo with no adult-type red cells, and overactive JAK2 gives people too many, so JAKs became drug targets. Ruxolitinib, which inhibits JAK1 and JAK2, was approved in the United States in 2011 for myelofibrosis, a bone-marrow disease related to polycythaemia vera. Tofacitinib followed in 2012 for rheumatoid arthritis. Its logic came from the SCID patients: a person without JAK3 has an immune defect and little else, so blocking JAK3 should quiet an overactive immune system and spare other tissues. In practice tofacitinib blocks JAK1 as strongly as JAK3, and JAK2 more weakly, and much of its effect comes through JAK1. Like imatinib, these drugs sit in the kinase's ATP pocket. The four JAK pockets are alike, so selectivity between them is hard to win, and anaemia from partly blocked JAK2 is a known side effect of several. One way round this is to aim at the pseudokinase domain instead. Deucravacitinib binds the pseudokinase of TYK2 and holds it in its restraining state, which blocks TYK2 while sparing the other JAKs. It is now approved for psoriasis.
+Two kinds of brake do most of the work of ending the signal:
+1. **Tyrosine phosphatases** strip phosphates from JAKs, receptor tails, and STATs. A STAT dephosphorylated in the nucleus returns to the cytoplasm ready for reuse.
+2. **SOCS proteins** (suppressors of cytokine signaling) are themselves encoded by STAT target genes—delayed negative feedback, as in the signaling circuits lesson. Each SOCS protein carries an SH2 domain that targets phosphotyrosines on active receptors and JAKs. Some, including SOCS1 and SOCS3, block the JAK's substrate-binding groove directly, and all carry a region that recruits a ubiquitin ligase; for several, including SOCS1 and SOCS3, this can mark the receptor complex for the proteasome.
+
+**Predict.** Suppose a cell can no longer induce SOCS proteins after cytokine stimulation, while its tyrosine phosphatases remain intact. How would the STAT signal differ from normal?
+
+<details>
+<summary>Check your prediction</summary>
+
+Active STAT would climb higher and stay elevated longer while cytokine is present, because the delayed negative-feedback brake on the receptor–JAK complex is gone. Phosphatases still dephosphorylate STATs and reset the pathway once signaling stops, so the response does not stay locked on permanently without cytokine.
+
+</details>
+
+The pseudokinase domain is a brake that works before any cytokine arrives. In 2005 several research groups reported the same mutation in most patients with **polycythaemia vera**, a disease in which the bone marrow makes too many red blood cells: **valine 617 of JAK2 changed to phenylalanine (V617F)**. Residue 617 sits in the pseudokinase domain. The change weakens that domain's restraint and helps two JAK2 molecules hold together in the active pair, so JAK2 signals from the EPO receptor with little or no EPO present.
+
+<LessonFigure src="/figures/jak-stat/jak2-restraint-stuck-on.webp" width={1200} height={800} alt="AI-generated illustration: two panels of the erythropoietin receptor with a JAK2 on each tail and no hormone present; in the normal panel the pseudokinase lobe holds the kinase lobe idle, in the mutant panel the restraint is weakened and the kinase is active and a STAT is phosphorylated." caption="JAK2's pseudokinase domain normally holds the working kinase idle until EPO arrives; the V617F change weakens that restraint so JAK2 signals with little or no EPO." />
+
+Because missing JAK2 halts adult-type red-cell production and overactive JAK2 drives excess red cells, JAKs became major drug targets. **Ruxolitinib**, which inhibits JAK1 and JAK2, was approved in the United States in 2011 for myelofibrosis, a bone-marrow disease related to polycythaemia vera. **Tofacitinib** followed in 2012 for rheumatoid arthritis. Its original rationale came from JAK3 SCID: a person without JAK3 has an immune defect and little else, suggesting a JAK3 blocker could quiet autoimmunity while sparing other tissues. In practice, tofacitinib inhibits JAK1 as strongly as JAK3—and JAK2 more weakly—with much of its clinical effect coming through JAK1. Like imatinib, both drugs compete for the kinase's ATP pocket.
+
+**Predict.** Why is anaemia a known side effect of several ATP-pocket JAK inhibitors used for immune disease, and how could targeting a JAK's pseudokinase domain instead improve selectivity?
+
+<details>
+<summary>Check your prediction</summary>
+
+The ATP pockets of the four JAKs are very similar, so drugs aimed there struggle to distinguish one JAK from another and partly inhibit JAK2—blunting EPO-driven red-cell production. A drug that binds one JAK's pseudokinase domain instead, and locks it in its restraining state, can block that JAK while sparing the others.
+
+</details>
+
+That pseudokinase strategy is now in the clinic: **deucravacitinib**, approved for psoriasis, binds the pseudokinase domain of TYK2 and holds it in its restraining state, blocking TYK2 while sparing JAK1, JAK2, and JAK3.
+
+## Going deeper
+
+### Do cytokine receptors pair before or after the cytokine binds?
+
+One growth hormone molecule carries two different surfaces, each gripping one copy of the same receptor chain. For some receptors—the EPO receptor among them—crystal structures suggested the chains might be loosely paired beforehand, with hormone binding resetting the angle between them. Single-molecule tracking of receptor chains in living cells points the other way, toward chains coming together when hormone binds. The question is still argued; either way, ligand binding places two JAKs in position to trans-phosphorylate each other.
+
+### Inside Pellegrini's 1992 screen and the ISGF3 complex
+
+A human cell carries two copies of nearly every gene, so many colleagues doubted a random mutagen could disable both copies of a pathway gene while keeping the cell alive. Pellegrini screened about a hundred million mutagenized cells over many months; the few mutant lines that came through later showed that JAK1, STAT1, and STAT2 are required too. Beyond simple STAT pairs, type I interferons assemble **ISGF3**—STAT1, STAT2, and the partner protein IRF9—to bind interferon-responsive DNA.
+
+### One STAT, opposite outcomes
+
+One question remains open: interleukin-6 and interleukin-10 both signal mainly through STAT3, yet produce largely opposite effects on inflammation. Differences in how long the STAT3 signal lasts have been proposed, and the question is not settled.

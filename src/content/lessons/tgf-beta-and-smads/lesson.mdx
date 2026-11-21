@@ -4,7 +4,7 @@ slug: "tgf-beta-and-smads"
 course: "signaling"
 courseChapter: "Cell Signaling · Unit 4: Receptors with enzymes attached"
 order: 123
-summary: "TGF-β sends its message through a short relay. The ligand brings two receptor kinases together, the type II kinase phosphorylates the type I kinase, the type I kinase phosphorylates a Smad, and the Smad, joined by Smad4, changes which genes are read. The same relay stops many healthy epithelial cells from dividing and helps late tumours, so this lesson also asks why one signal gives different answers in different cells. Afterwards you can trace the phosphorylation steps from receptor to Smad, sort the family into its TGF-β and BMP branches, and explain the pathway's brakes and its opposite roles in early and late cancer."
+summary: "TGF-β bridges two kinases, passing phosphate one way to a Smad; partner factors choose Smad targets, and layered brakes restrain the signal. Follow the two-receptor relay and the mutant experiments that proved its order, sort the TGF-β/activin and BMP branches, and trace why one signal stops many healthy epithelial cells from dividing yet helps fibroblasts make collagen and late tumours spread. Afterwards you can trace phosphorylation from receptor to Smad, explain the pathway's layered brakes, and connect broken components to pancreatic cancer, heavy muscling and ectopic bone."
 hook: "Why does the protein that tells healthy cells to stop dividing end up helping late tumours?"
 
 estMinutes: 22
@@ -18,10 +18,15 @@ explainer:
   src: "/explainers/tgf-beta-and-smads/explainer.mp4"
   captions: "/explainers/tgf-beta-and-smads/explainer.vtt"
   poster: "/explainers/tgf-beta-and-smads/poster.jpg"
-  title: "The Ligand Only Introduces Two Kinases"
-  durationSec: 180.1
-  narration: "an AI narrator voice (ElevenLabs, Sarah) reading narration written from this lesson's text"
+  title: "One-Way Relay: Two Kinases to a Smad"
+  durationSec: 208.0
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+  takeaways:
+    - "TGF-β bridges two kinases, passing phosphate one way to a Smad."
+    - "The type II kinase is active at rest, while type I stays locked by its GS domain and FKBP12 until phosphorylated."
+    - "Phosphorylated receptor-activated Smads join Smad4, typically two to one, and accumulate in the nucleus."
+    - "TGF-β and activin receptors phosphorylate Smad2 and Smad3, while BMP receptors phosphorylate Smad1, Smad5 and Smad8."
 
 scientists:
   - name: "Anita Roberts and Michael Sporn"
@@ -383,93 +388,147 @@ corpusTags:
   - "smurf-ubiquitin-ligase"
 draft: false
 films:
-  - id: "brakes"
-    src: "/explainers/tgf-beta-and-smads/brakes.mp4"
-    captions: "/explainers/tgf-beta-and-smads/brakes.vtt"
-    poster: "/explainers/tgf-beta-and-smads/brakes-poster.jpg"
-    title: "Three Brakes on a Strong Signal"
-    durationSec: 108.2
-    narration: "an AI narrator voice (ElevenLabs, Sarah) reading narration written from this lesson's text"
+  - id: "chapter-2"
+    src: "/explainers/tgf-beta-and-smads/chapter-2.mp4"
+    captions: "/explainers/tgf-beta-and-smads/chapter-2.vtt"
+    poster: "/explainers/tgf-beta-and-smads/chapter-2-poster.jpg"
+    title: "Context and Brakes: How Cells Read TGF-β"
+    durationSec: 214.1
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
     aiGenerated: true
+    takeaways:
+      - "Partner factors choose Smad targets, and layered brakes restrain the signal."
+      - "Smads grip a short four-base DNA sequence weakly, so cell-specific partners and open chromatin decide which genes respond."
+      - "Many healthy epithelial cells arrest via p15, p21 and Myc repression, fibroblasts make collagen, and late tumours that escape arrest can repurpose TGF-β."
+      - "Three layered brakes hold the signal back: a latent precursor wrapper in the matrix, negative-feedback Smad7, and Smurf ubiquitin ligases."
 ---
 
 import LessonFilm from '../../../components/LessonFilm.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import Support from '../../../components/Support.astro';
 
-**TGF-β sends its message through a short relay: the ligand brings two receptor kinases together, the type II kinase phosphorylates the type I kinase, the type I kinase phosphorylates a Smad, and the Smad, joined by Smad4, goes to the nucleus and changes which genes are read.** The same relay tells many healthy epithelial cells to stop dividing and tells fibroblasts to make collagen, and in late cancer it can work for the tumour. The name, transforming growth factor β, records a soft-agar assay from around 1980 in which the protein, helped by EGF, made normal cells grow like cancer cells, and it hides the stop-dividing job. This lesson follows the relay first and then asks why one signal gives different answers in different cells.
+**The protein that stops many healthy epithelial cells from dividing also tells fibroblasts to make collagen and can aid late tumours.** Its name, transforming growth factor β (TGF-β), reflects an early soft-agar assay where TGF-β plus EGF made normal cells grow like cancer cells (see Going deeper). The first film showed the relay from membrane to nucleus; below are the receptor proof, the two branches, and why one signal gives opposite answers.
 
-## The idea: the ligand only introduces two kinases
+<Support>**The one idea.** TGF-β bridges two kinases, passing phosphate one way to a Smad; partner factors choose Smad targets, and layered brakes restrain the signal. **Scope:** This rule covers the canonical Smad pathway across the TGF-β, activin and BMP branches (even when ligand-binding order flips, as with BMP2). Target choice also depends on open chromatin; Smad-independent routes and linker phosphorylation act alongside this relay.</Support>
 
-The insulin and EGF receptors from the receptor field guide are tyrosine kinases. TGF-β receptors are receptor serine/threonine kinases: each crosses the membrane once, and its inner part is a kinase that puts phosphate on serine or threonine. Humans have five type II receptors and seven type I receptors, shared among more than thirty related ligands: the TGF-βs, the activins, the bone morphogenetic proteins (BMPs) and others.
+## The receptor relay: two kinases, one direction
 
-TGF-β itself is a dimer, two chains joined by a disulfide bond. Here is what it does:
+Unlike the insulin and EGF receptor tyrosine kinases from the receptor field guide, TGF-β receptors are **receptor serine/threonine kinases**: each crosses the membrane once, and its inner kinase phosphorylates serine or threonine. Humans share five type II and seven type I receptors across more than thirty related ligands—TGF-βs, activins, bone morphogenetic proteins (BMPs) and others.
 
-1. The dimer binds two type II receptors. (TGF-β2 binds type II weakly and gets help from a co-receptor, betaglycan.) The type II kinase is active before any ligand arrives, and it stays active.
-2. The ligand and type II together recruit two type I receptors, so four receptor chains surround one ligand.
-3. Type II phosphorylates type I on a stretch just inside the membrane called the GS domain, named for its glycines and serines.
-4. The type I kinase, now active, phosphorylates the next protein in line, a Smad.
+As the first film showed, a disulfide-linked TGF-β dimer brings two always-active type II chains and two resting type I chains into one four-chain complex:
 
 > **TGF-β + type II + type I → type II phosphorylates the GS domain of type I → type I phosphorylates a Smad**
 
-Think of type II as a lit match and type I as a fuse. The ligand's only job is to hold the match to the fuse.
+Think of type II as a lit match and type I as a fuse: the ligand holds the match to the fuse. Unlike a real fuse, a lit type I kinase is catalytic, phosphorylating many Smads in turn until brakes shut it off.
 
-<LessonFigure src="/figures/tgf-beta-and-smads/match-and-fuse.webp" width={1200} height={676} alt="AI-generated illustration: four frames of the TGF-beta receptor at the membrane. 1: the ligand dimer sits on two type II chains while two type I chains stand apart. 2: the two type I chains join, so four chains surround one ligand. 3: an arrow runs from a type II kinase to the GS domain of the neighbouring type I chain, which now carries two phosphates. 4: the type I kinase puts two phosphates on the tail of a Smad." caption="The ligand binds two type II receptors first, then brings in two type I receptors. The always-active type II kinase phosphorylates the GS domain of type I, and the now-active type I kinase phosphorylates a Smad: the ligand&#39;s only job is to hold the match to the fuse." />
+Inside the cell, type I's glycine- and serine-rich **GS domain** presses against its kinase lobe at rest, capped by **FKBP12** as a safety catch. Phosphorylation by type II displaces FKBP12, activates the kinase, and turns the GS domain into a Smad docking site.
 
-Jeffrey Wrana and Liliana Attisano worked this out in Joan Massagué's laboratory between 1992 and 1994. First they showed that the type II receptor binds TGF-β but cannot signal without type I, and that type I cannot bind TGF-β without type II. Then they showed that phosphorylation runs one way, from the kinase that never turns off to the kinase that cannot start alone.
+<LessonFigure src="/figures/tgf-beta-and-smads/match-and-fuse.webp" width={1200} height={676} alt="AI-generated illustration: four frames of the TGF-beta receptor at the membrane. 1: the ligand dimer sits on two type II chains while two type I chains stand apart. 2: the two type I chains join, so four chains surround one ligand. 3: an arrow runs from a type II kinase to the GS domain of the neighbouring type I chain, which now carries two phosphates. 4: the type I kinase puts two phosphates on the tail of a Smad." caption="The ligand dimer bridges always-active type II and locked type I receptors so phosphate flows one way, from type II to the type I GS domain to a Smad." />
 
-What keeps the fuse from lighting by accident? In a resting type I receptor the unphosphorylated GS domain holds the kinase in an inactive shape, and a small protein called FKBP12 sits on top of it. Phosphorylation by type II ends that arrangement and turns the GS domain into a docking site for Smads.
+Between 1992 and 1994, Jeffrey Wrana and Liliana Attisano in Joan Massagué's laboratory worked out this order with mutant cell lines and **kinase-dead** receptors (mutated at the ATP-binding lysine so they still fold, bind ligand and pair, without transferring phosphate). Cross-linking labelled TGF-β showed that type II binds TGF-β alone yet cannot signal without type I, whereas type I cannot bind TGF-β without type II. Pairing active and kinase-dead receptors then showed the relay's direction:
 
-The pairing also decides which ligand a cell can hear. Attisano's 1993 paper found that different pairings of a type I with a type II receptor gave complexes with different signaling capacities, so a cell answers only the ligands for which it displays a working pair. (Some relatives, such as BMP2, grip type I more tightly than type II, but the phosphate still passes from type II to type I.)
+| Type II kinase | Type I kinase | Type I GS domain phosphorylated? | Downstream Smad signal? |
+| :--- | :--- | :--- | :--- |
+| Active | Active | Yes | Yes |
+| Kinase-dead | Active | No | No |
+| Active | Kinase-dead | *(Predict below)* | *(Predict below)* |
 
-## The messenger is the transcription factor
+**Predict.** A cell carries active type II alongside kinase-dead type I. When TGF-β arrives, is the type I GS domain phosphorylated, and does the signal reach a Smad?
 
-In the cAMP and Ras pathways several proteins stand between the receptor and a gene. Here there is one. The protein that the type I receptor phosphorylates is itself a transcription factor, a protein that binds DNA, on its own or in a complex, and changes how often a gene is read.
+<details>
+<summary>Check your prediction</summary>
 
-These proteins are the Smads, named for two genes found in animals: sma in the worm and Mad in the fly.
+GS domain yes; Smad no. Phosphorylation of kinase-dead type I shows *trans*-phosphorylation by type II rather than type I autophosphorylation, while type I's dead kinase cannot phosphorylate a Smad.
+
+</details>
+
+Two family refinements fit this one-way relay. First, TGF-β2 binds type II weakly and uses a co-receptor, **betaglycan**, while relatives such as BMP2 grip type I more tightly than type II—yet phosphate still runs from type II to type I. Second, Attisano's 1993 paper showed that different type I–type II pairings differ in signaling capacity, so a cell hears only ligands for which it displays a working pair.
+
+## Direct to the gene: the Smad shortcut
+
+In the cAMP and Ras pathways several proteins sit between receptor and gene. Here type I directly phosphorylates a **transcription factor**—a protein that binds DNA, on its own or in a complex, and changes how often a gene is read. These are the **Smads** (named from worm *sma* and fly *Mad*; see Going deeper).
 
 Humans have eight Smads in three groups:
 
-- **Receptor-activated Smads (R-Smads)** are the receptor's substrates. TGF-β and activin receptors phosphorylate Smad2 and Smad3. BMP receptors phosphorylate Smad1, Smad5 and Smad8.
-- **Smad4** is the partner that both branches share.
-- **Smad6 and Smad7** are inhibitory Smads, covered below with the brakes.
+- **Receptor-activated Smads (R-Smads):** TGF-β and activin receptors phosphorylate **Smad2** and **Smad3**; BMP receptors phosphorylate **Smad1**, **Smad5** and **Smad8**.
+- **Smad4:** the partner shared by both branches.
+- **Smad6 and Smad7:** inhibitory Smads, covered below.
 
-An R-Smad has two folded domains. The front one, MH1, binds DNA in most Smads. The back one, MH2, binds other proteins and ends in a short tail. The type I receptor phosphorylates two serines at the very end of that tail. A phosphorylated tail fits a pocket on a neighbouring MH2 domain, so R-Smads leave the receptor and assemble with Smad4, typically two R-Smads to one Smad4. The complex collects in the nucleus and binds DNA.
+An R-Smad has two **Mad homology** domains joined by a linker: an N-terminal **MH1** domain (binds DNA in most Smads) and a C-terminal **MH2** domain (binds other proteins, ending in a short tail). Type I phosphorylates two serines at the tail's end. Each phosphorylated tail fits a neighbouring MH2 pocket, so R-Smads leave the receptor and assemble with Smad4, typically two R-Smads to one Smad4. Smads shuttle continually between cytosol and nucleus; once phosphorylated and bound to Smad4, the complex accumulates in the nucleus and binds DNA.
 
-The STATs of the last lesson take the same shortcut, except that a STAT is phosphorylated on tyrosine by a separate kinase, a JAK, while a Smad is phosphorylated on serine by the receptor itself.
+**Predict.** A cell loses Smad4 while its BMP receptors stay intact. When BMP arrives, is Smad1 still phosphorylated at its tail, and do canonical BMP genes respond normally?
 
-The BMP branch does much of its work in shaping the embryo, which belongs to the next unit.
+<details>
+<summary>Check your prediction</summary>
 
-## Same signal, different answers
+Smad1 is still phosphorylated—type I acts on R-Smads without Smad4—but canonical Smad-dependent gene regulation fails without Smad4 to complete the trimer.
 
-The MH1 domains of Smad3 and Smad4 read very short DNA sequences, such as the four base pairs GTCT, and they hold them weakly. (Smads also read short GC-rich sequences, which the BMP branch favours.) A sequence that short turns up by chance about once every 256 base pairs (4 × 4 × 4 × 4), which means millions of sites in a human genome. A Smad complex alone cannot pick out a gene.
+</details>
 
-It picks a gene with help. Smads usually bind firmly only next to partner transcription factors that read their own sequences nearby. Each cell type makes its own set of partners and keeps its own set of genes open for reading. The Smad complex carries one message, "TGF-β is here." The partners decide what that means in this cell.
+The STATs of the last lesson take a similar shortcut, except a separate kinase (a JAK) phosphorylates STATs on tyrosine, whereas the receptor itself phosphorylates R-Smads on serine. The BMP branch does much of its work shaping the embryo, covered in the next unit.
 
-<LessonFigure src="/figures/tgf-beta-and-smads/partners-pick-the-gene.webp" width={1200} height={800} alt="AI-generated illustration: two cell nuclei side by side. The same three-block Smad complex sits on DNA in both. In the epithelial cell a clay partner factor sits beside it and the genes p15 and p21 are switched up while Myc is switched down. In the fibroblast a differently shaped partner sits beside the same complex and a collagen gene is switched up." caption="A Smad complex reads sequences too short to pick out a gene on its own; it binds firmly only beside partner transcription factors that each cell type makes for itself. The complex carries one message, that TGF-beta is here, and the partners decide what it means: stop dividing in many epithelial cells, make collagen in a fibroblast." />
-
-In many healthy epithelial cells it means "stop dividing." Smad3 and Smad4, with their partners, switch on the genes for p15 and p21, two proteins that inhibit the cyclin-dependent kinases (the enzymes that push a cell through its division cycle). They also switch off the gene for Myc, a transcription factor that drives growth. In a fibroblast the same pathway switches on collagen genes, which is why TGF-β drives wound repair and, in excess, scarring.
-
-This is also why the pathway has two faces in cancer, as Roberts and Lalage Wakefield set out in 2003. Early on, TGF-β acts as a tumour suppressor, because the cells still obey the stop order. Later the tumour cells no longer stop, and the TGF-β around them works in the tumour's favour: it quiets nearby immune cells and can push tumour cells to loosen from their neighbours and move.
-
-## Three brakes, and what breaks
+That brings the Smad complex into the nucleus; next is why one identical complex gives opposite answers across cells—and what holds it back.
 
 <LessonFilm film={frontmatter.films[0]} />
 
-A signal this strong has to be kept off most of the time.
+## Same signal, different answers
 
-**The ligand is stored locked.** TGF-β is secreted still wrapped in the front portion of its own precursor chain, which has been cut off but stays bound and covers the surfaces that receptors need. This latent complex is usually tethered to the extracellular matrix, the protein mesh between cells. Active TGF-β is released locally, for example when a cell's integrins (adhesion receptors) pull on the wrapper or a protease cuts it.
+As the second film showed, the MH1 domains of Smad3 and Smad4 read very short sequences, such as four-base **GTCT** (plus short GC-rich motifs favoured by BMP Smads), and grip them weakly. In a random sequence with equal base frequencies, any four-base motif appears once every 4 × 4 × 4 × 4 = 256 base pairs—millions of sites in a human genome—so a Smad complex alone cannot pick a gene.
 
-<LessonFigure src="/figures/tgf-beta-and-smads/latent-tgf-beta-release.webp" width={1200} height={800} alt="AI-generated illustration: a gold TGF-β dimer lies within a slate precursor-derived wrapper connected to extracellular matrix fibres by a distinct tether. Two alternative activation insets show a membrane integrin pulling the wrapper against the matrix anchor, or a protease cutting the wrapper. Each shows an intact gold dimer released nearby, separated from the wrapper and matrix tether." caption="TGF-β is secreted in a latent complex: the cleaved front portion of its precursor remains bound and blocks receptor access. This wrapper is usually tethered to the extracellular matrix. Local activation can occur when cell integrins pull on the wrapper or a protease cuts it, releasing active TGF-β from the wrapper." />
+**Predict.** If a Smad complex binds firmly only when its four-base site sits right beside an eight-base sequence read by a partner factor (twelve bases in all), by what factor does that partner site cut down random matches?
 
-**The signal makes its own inhibitor.** One of the genes that Smads switch on encodes Smad7, which binds the active type I receptor and keeps R-Smads away from it. This is negative feedback, as in the signaling circuits lesson. Smad6 does a similar job, with a preference for the BMP branch.
+<details>
+<summary>Check your prediction</summary>
 
-**The parts are destroyed.** Smad7 also brings ubiquitin ligases called Smurfs (Smad ubiquitination regulatory factors) to the receptor. Smurfs tag the receptor, and some Smads, with ubiquitin for destruction, as covered in the lesson on ubiquitin and proteolysis.
+By 4⁸ = 65,536-fold: spacing jumps from 1 in 256 bp to 1 in 4¹² = 16,777,216 bp, shrinking millions of hits to a few hundred exact matches on a human-sized strand.
 
-**Pancreatic cancer.** Smad4 was found in 1996, in Scott Kern's laboratory, as a gene missing from pancreatic tumours, and was first named DPC4, for deleted in pancreatic cancer. It is inactivated in about half of pancreatic cancers.
+</details>
 
-**Muscle size.** Myostatin, a TGF-β relative made by muscle, tells muscle to stop growing. Mice made without the gene in Se-Jin Lee's laboratory in 1997 have muscles two to three times the normal weight.
+Smads therefore bind firmly mostly beside **partner transcription factors** reading nearby DNA in **open chromatin** specific to each cell type. The Smad complex carries one message—"TGF-β is here"—and the partners recruit co-activators or co-repressors to decide what it means.
 
-**Bone in the wrong place.** In fibrodysplasia ossificans progressiva, bone progressively forms in muscle and connective tissue. Nearly all patients with the classic form carry the same single amino acid change in a BMP type I receptor called ACVR1. The change sits in the GS domain, the part of the receptor that keeps the kinase off until type II phosphorylates it.
+<LessonFigure src="/figures/tgf-beta-and-smads/partners-pick-the-gene.webp" width={1200} height={800} alt="AI-generated illustration: two cell nuclei side by side. The same three-block Smad complex sits on DNA in both. In the epithelial cell a clay partner factor sits beside it and the genes p15 and p21 are switched up while Myc is switched down. In the fibroblast a differently shaped partner sits beside the same complex and a collagen gene is switched up." caption="Because Smads grip a four-base sequence weakly, each cell's partner transcription factors decide what the signal means: division arrest in many epithelial cells, collagen in fibroblasts." />
+
+In many healthy epithelial cells, Smad3, Smad4 and their partners switch on **p15** and **p21** (inhibitors of the cyclin-dependent kinases that drive division) and switch off **Myc** (a growth-driving transcription factor). In fibroblasts, other partners switch on collagen genes, driving wound repair and, in excess, scarring.
+
+This context switch explains TGF-β's two faces in cancer, as Anita Roberts and Lalage Wakefield framed it in 2003. Early on, TGF-β acts as a **tumour suppressor** because cells still obey the stop order. Later, once tumour cells escape arrest, surrounding TGF-β acts as a **tumour promoter**: it quiets nearby immune cells and can push tumour cells to loosen from neighbours and move.
+
+## Three brakes, and what breaks
+
+Recall the second half of the guiding rule: partner factors choose Smad targets, and layered brakes restrain the signal. Here are the mechanisms behind the second film's three brakes:
+
+**The ligand is stored locked.** TGF-β is secreted still wrapped in the cleaved front piece of its own precursor, which blocks receptor binding. This **latent complex** is usually tethered to the **extracellular matrix** (the protein mesh between cells) and releases active dimer locally, for example when **integrins** (adhesion receptors) pull on the wrapper or a protease cuts it.
+
+<LessonFigure src="/figures/tgf-beta-and-smads/latent-tgf-beta-release.webp" width={1200} height={800} alt="AI-generated illustration: a gold TGF-β dimer lies within a slate precursor-derived wrapper connected to extracellular matrix fibres by a distinct tether. Two alternative activation insets show a membrane integrin pulling the wrapper against the matrix anchor, or a protease cutting the wrapper. Each shows an intact gold dimer released nearby, separated from the wrapper and matrix tether." caption="TGF-β is secreted in a latent precursor wrapper tethered to the extracellular matrix, freeing active dimer locally, for example when integrins pull or a protease cuts." />
+
+**The signal makes its own inhibitor.** Smads switch on **Smad7**, which caps the active type I receptor and keeps R-Smads away—negative feedback, as in the signaling circuits lesson. **Smad6** acts similarly, preferring the BMP branch.
+
+**The parts are destroyed.** Smad7 also brings **Smurfs** (Smad ubiquitination regulatory factors), ubiquitin ligases that tag the receptor and some Smads for destruction (see the lesson on ubiquitin and proteolysis; Smurf2 can also degrade co-repressors, so its net effect depends on substrate).
+
+**Predict.** If a mutated Smad7 still binds active type I but cannot recruit Smurfs, how does signaling compare with a normal cell and with a cell lacking Smad7?
+
+<details>
+<summary>Check your prediction</summary>
+
+Smad7 still blocks R-Smads competitively, so signaling is lower than with no Smad7; without Smurf-driven receptor destruction, however, active receptors linger and the signal lasts longer than normal.
+
+</details>
+
+### When a part breaks
+
+Human and animal mutations map straight onto the pathway:
+
+- **Shared relay partner lost (pancreatic cancer).** Smad4 was found in 1996 in Scott Kern's laboratory as **DPC4** (deleted in pancreatic cancer) and is inactivated in about half of pancreatic cancers.
+- **Extracellular stop ligand lost (muscle size).** **Myostatin**, a TGF-β relative made in muscle, tells muscle to stop growing; mice lacking it in Se-Jin Lee's laboratory (1997) grew muscles two to three times normal weight.
+- **GS safety catch loosened (bone in the wrong place).** In **fibrodysplasia ossificans progressiva**, bone forms progressively in muscle and connective tissue. Nearly all classic patients share one amino acid change in the GS domain of the BMP type I receptor **ACVR1** (see Going deeper), weakening FKBP12's hold so the receptor signals too readily.
+
+**Predict.** Both myostatin loss in muscle and Smad4 loss in pancreatic cancer remove a growth brake. If purified ligand is added back to myostatin-null muscle cells versus Smad4-null pancreatic tumour cells, which recover their stop signal, and why?
+
+<details>
+<summary>Check your prediction</summary>
+
+Myostatin-null muscle cells recover it—their receptors and Smads are intact, and only the extracellular ligand was missing. Smad4-null tumour cells lack the shared intracellular partner, so extra ligand cannot restore canonical arrest.
+
+</details>
 
 ### Design problem
 
@@ -498,9 +557,8 @@ Then the protein was caught doing the opposite job. In 1984 Tucker, Shipley, Mos
 
 ### Finding the Smads: a name from a worm and a fly
 
-These proteins are the Smads. The name joins two genes that geneticists found in animals: sma, from the worm C. elegans, whose mutants are small, and Mad, from the fruit fly. In 1996 Macías-Silva, Wrana, Attisano and colleagues, by then in Toronto, reported that the TGF-β receptor phosphorylates a human relative they called MADR2, now Smad2. Other laboratories, Massagué's among them, reported related Smads the same year.
+Geneticists found the first Smads before anyone knew what a TGF-β receptor phosphorylates. The name merges two animal genes: *sma*, from the worm *C. elegans*, whose mutants are small, and *Mad* (*Mothers against dpp*), from the fruit fly. In 1996 Macías-Silva, Wrana, Attisano and colleagues, by then in Toronto, reported that the TGF-β receptor phosphorylates a human relative they called MADR2, now Smad2. Other laboratories, Massagué's among them, reported related Smads the same year.
 
 ### The ACVR1 change in fibrodysplasia ossificans progressiva
 
 The change is histidine for arginine at position 206 (R206H), as the laboratory of Eileen Shore and Frederick Kaplan reported in 2006.
-

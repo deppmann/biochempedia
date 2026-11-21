@@ -4,7 +4,7 @@ slug: "wnt-signaling"
 course: "signaling"
 courseChapter: "Cell Signaling · Unit 5: Signals that build and defend an animal"
 order: 124
-summary: "Why does a cell make β-catenin all the time and destroy it all the time? This lesson shows how the destruction complex marks β-catenin, how a Wnt signal stops its destruction so that β-catenin can switch on genes with TCF and so steer cell fate and renew tissues, and why losing APC leaves the pathway on in colon cancer. It then takes up planar cell polarity, a second use of Frizzled and Dishevelled in which each cell learns which side is which from its neighbours."
+summary: "Wnt raises free β-catenin by slowing its constant destruction; planar polarity aligns cells as neighbours sort Frizzled to one edge. Follow how the destruction complex marks free β-catenin, how Wnt slows that removal so β-catenin switches on target genes with TCF to steer cell fate and renew tissues, and why losing APC leaves the pathway stuck on in colon cancer. Then trace planar cell polarity, a second use of Frizzled and Dishevelled in which each cell learns which side is which from its neighbours."
 hook: "Why would a cell make a protein all day only to destroy it?"
 estMinutes: 24
 objectives:
@@ -16,10 +16,15 @@ explainer:
   src: "/explainers/wnt-signaling/explainer.mp4"
   captions: "/explainers/wnt-signaling/explainer.vtt"
   poster: "/explainers/wnt-signaling/poster.jpg"
-  title: "Wnt Plugs the Drain"
-  durationSec: 178.2
-  narration: "an AI narrator voice (ElevenLabs, Sarah) reading narration written from this lesson's text"
+  title: "Wnt Slows the Drain"
+  durationSec: 212.7
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+  takeaways:
+    - "Wnt raises free β-catenin by slowing its constant destruction."
+    - "Without Wnt, the destruction complex (Axin, APC, CK1 and GSK3) marks free β-catenin for β-TrCP, SCF ubiquitination and proteasome breakdown, while cadherin-bound β-catenin at junctions stays stable."
+    - "Wnt grips Frizzled with its lipid tail and joins it to LRP5 or LRP6, recruiting Dishevelled and pulling the destruction complex to the membrane, though how the complex is stopped is still debated."
+    - "Accumulating β-catenin enters the nucleus and, in the simple model, displaces Groucho from TCF to switch target genes on; mutations breaking APC or β-catenin's phosphate sites slow destruction with no Wnt."
 
 scientists:
   - name: "Roel Nusse"
@@ -401,84 +406,134 @@ corpusTags:
   - "neural-tube"
 draft: false
 films:
-  - id: "planar-polarity"
-    src: "/explainers/wnt-signaling/planar-polarity.mp4"
-    captions: "/explainers/wnt-signaling/planar-polarity.vtt"
-    poster: "/explainers/wnt-signaling/planar-polarity-poster.jpg"
-    title: "Frizzled and the Fly Wing's Hairs"
-    durationSec: 87.3
-    narration: "an AI narrator voice (ElevenLabs, Sarah) reading narration written from this lesson's text"
+  - id: "chapter-2"
+    src: "/explainers/wnt-signaling/chapter-2.mp4"
+    captions: "/explainers/wnt-signaling/chapter-2.vtt"
+    poster: "/explainers/wnt-signaling/chapter-2-poster.jpg"
+    title: "Frizzled's Second Job: Aligning a Sheet"
+    durationSec: 189.9
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
     aiGenerated: true
+    takeaways:
+      - "Planar polarity aligns cells as neighbours sort Frizzled to one edge."
+      - "In fly wings, a patch of cells lacking Frizzled misdirects the hairs of normal neighbours on the tip side, showing that cells pass polarity from neighbour to neighbour."
+      - "In each wing cell, Frizzled and Dishevelled gather on the tip-side edge opposite Van Gogh and Prickle, Flamingo links every border, and the actin hair grows from the Frizzled side with no β-catenin."
+      - "Vertebrates reuse the same core polarity genes with Wnt signals to narrow and close the neural plate, so disrupting planar polarity causes neural tube closure defects such as spina bifida."
 ---
 
 import LessonFilm from '../../../components/LessonFilm.astro';
-
 import BetaCateninLevel from '../../../components/BetaCateninLevel.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
 
-**Most of your cells make a protein called β-catenin all day long and, unless a signal tells them to stop, destroy the free copies soon after they are made.** That looks like waste. It is a design: a protein that is always being made and always being destroyed can be raised quickly by one move, which is to stop the destruction. A secreted signal called Wnt works this way, and embryos use it to lay out pattern and tissues such as the lining of the gut use it to keep renewing themselves. This lesson follows Wnt from the destruction complex to the nucleus and into colon cancer, where losing APC leaves the move stuck on. It ends with a second use of the same receptor, in which the cells of a sheet work out which way to point.
+**Most of your cells make β-catenin all day and, without a secreted Wnt signal, destroy the free copies soon after.** Embryos use Wnt to lay out pattern, and tissues such as the gut lining use it to renew themselves. The name **Wnt** splices mouse *int-1* and fly *wingless*—fly mutants also gave us *armadillo*, the fly's β-catenin (*Going deeper*). The first film showed how slowing destruction flips the switch; here are the phosphorylation order, the rate arithmetic, colon cancer and the receptor's second job.
 
-## The name: a mouse tumour gene and a fly gene were one gene
+> **The one idea.** Wnt raises free β-catenin by slowing its constant destruction; planar polarity aligns cells as neighbours sort Frizzled to one edge. **Scope:** Clause 1 covers free cytoplasmic β-catenin (not the stable cadherin-bound junctional pool), assuming constant synthesis and unsaturated, first-order destruction. Clause 2 covers core planar cell polarity, which uses Frizzled and Dishevelled without LRP5/6, β-catenin or TCF.
 
-Wnt began as two genes that turned out to be one. The mouse gene, int-1, was named for the site where a tumour virus kept inserting itself in mammary tumours. What it does in a healthy animal stayed unknown for five years. Then Frank Rijsewijk, in Roel Nusse's group, cloned the fly version, and it proved to be a gene fly geneticists already knew as wingless: weak mutations give adult flies that often lack wings, and stronger ones kill the embryo and scramble the pattern of its segments.
+## Marking free β-catenin for destruction
 
-So one gene, kept in both lineages for more than 500 million years, causes tumours in a mouse when it is switched on in the wrong tissue and lays out pattern in a fly embryo. In 1991 eight researchers signed a one-page note asking the field to use one name, spliced from wingless and int: **Wnt**. The fly match was also practical. Other fly mutants with the same segment defect became candidates for the rest of the pathway, and one of them, armadillo, is the fly's β-catenin.
+β-Catenin has a second, stable job linking **cadherins** to the cytoskeleton at cell junctions. Every free cytoplasmic copy meets the **destruction complex**: the scaffold **Axin** (as in `adaptors-and-scaffolds`), the large protein **APC** (which binds β-catenin and is required for efficient ubiquitination handover) and two kinases, **CK1** and **GSK3**.
 
-## The idea: β-catenin is made all the time and destroyed all the time
+Their order matters because GSK3 prefers a target already phosphorylated four residues toward the C-terminus. CK1 phosphorylates **serine 45**, priming GSK3 to step back in fours across **threonine 41**, **serine 37** and **serine 33**. Then **SCF targets β-catenin:** **β-TrCP**, the substrate-recognition subunit of an **SCF** E3 ubiquitin ligase (`ubiquitin-and-proteolysis`), reads phosphoserines 33 and 37, SCF adds ubiquitin, and the **proteasome** degrades β-catenin.
 
-A Wnt is a protein that one cell secretes and a nearby cell reads. To see what it changes, start with a cell that receives none.
+**Predict.** A mutation changes serine 45 of β-catenin so it cannot accept a phosphate, leaving threonine 41, serine 37 and serine 33 intact. Without Wnt, will β-TrCP still tag this β-catenin for destruction?
 
-β-Catenin has a second job, linking the adhesion proteins called cadherins to the cytoskeleton at cell junctions, and the copies doing that job are stable. Every other copy meets the **destruction complex**. Its scaffold is Axin, which holds an enzyme next to its substrate as the scaffolds in the lesson `adaptors-and-scaffolds` do. A second large protein, APC, also binds β-catenin and is needed for the complex to work. The enzymes are two kinases, CK1 and GSK3.
+<details>
+<summary>Check your prediction</summary>
 
-The order matters. CK1 puts a phosphate on serine 45 of β-catenin. That phosphate primes GSK3, which adds three more, on threonine 41, serine 37 and serine 33. Then comes the step to remember: **SCF targets β-catenin.** The phosphates on serines 33 and 37 are read by β-TrCP, the part of an SCF ubiquitin ligase that chooses the substrate. SCF adds a chain of ubiquitin, and the proteasome destroys the protein. The lesson `ubiquitin-and-proteolysis` gave the general rule, and these are the particulars.
+No. Without CK1's priming phosphate at serine 45, GSK3 is not primed to step back through 41, 37 and 33. With no phosphates on serines 33 and 37, β-TrCP cannot bind, SCF skips it, and free β-catenin accumulates without Wnt.
 
-Picture a bathtub with the tap running and the drain open. The water level depends on both.
+</details>
+
+Picture a bathtub with the tap running and the drain open: the level reflects both. Under the first-order scope above:
 
 > **steady level of β-catenin = rate of synthesis ÷ rate constant of destruction**
 
-Slow the destruction ten-fold and the level rises ten-fold, with no change in how fast the protein is made.
+Slow destruction ten-fold (say from 0.5 to 0.05 per minute at constant synthesis) and the steady level rises ten-fold without changing synthesis. Because synthesis is already running, free β-catenin starts to rise as soon as destruction slows, and clears quickly when destruction resumes.
 
-You have met GSK3 before, as the kinase that Akt switches off after insulin (lesson `pi3k-akt-insulin`). In the cultured cells where this has been tested, insulin does not raise β-catenin. The explanation offered is that the GSK3 held on Axin is a separate pool that Akt does not reach.
+## How Wnt slows destruction and flips TCF
 
-## What Wnt changes: it stops the destruction
+The first film traced Wnt to the membrane and β-catenin to DNA; here are the lipid grip, nuclear switch and two boundaries of the model.
 
-Wnt is an unusual secreted protein because it carries a lipid. In the cell that makes it, an enzyme called Porcupine attaches a fatty acid to one of its serines. The lipid makes Wnt cling to membranes, so it is hard to dissolve, and in many tissues it acts mostly on cells near its source.
+Wnt is an unusual secreted protein carrying a fatty acid that **Porcupine** attaches to a serine in the producing cell. That lipid makes Wnt cling to membranes, hard to dissolve, and mostly short-range in many tissues.
 
-The receptor is Frizzled, a seven-pass membrane protein with the overall shape of the receptors in Unit 3. In the crystal structure of a Wnt bound to the outer domain of Frizzled, the fatty acid lies in a groove on the receptor, so the lipid is part of the grip. Frizzled has a partner, a single-pass protein called LRP5 or LRP6, and Wnt brings the two together.
+Its receptor **Frizzled** is a seven-pass membrane protein with the overall shape of Unit 3 receptors. In the crystal structure of Wnt bound to Frizzled's outer domain, the fatty acid sits in a receptor groove, forming part of the grip. Wnt brings Frizzled together with its single-pass co-receptor, **LRP5** or **LRP6**. Inside, Frizzled recruits **Dishevelled**, and the phosphorylated LRP6 tail binds Axin, pulling the destruction complex to the receptor so it stops delivering β-catenin to the ligase. How it is stopped is still argued, yet newly made β-catenin survives, builds up and enters the nucleus.
 
-Inside the cell two things follow. Frizzled recruits a cytoplasmic protein called Dishevelled, and the tail of LRP6 is phosphorylated and then binds Axin. The destruction complex is pulled to the receptor, and there it stops delivering β-catenin to the ligase. How it is stopped is still argued. The outcome is clear: newly made β-catenin survives, builds up and enters the nucleus.
+There it meets **TCF**, bound to the DNA of many Wnt target genes even before a signal arrives, holding the co-repressor **Groucho** to keep them off. When β-catenin arrives, Groucho leaves and β-catenin recruits transcription machinery, turning TCF from repressor to activator. The simple model is that β-catenin pushes Groucho off; how Groucho is actually removed is still being worked out. Which genes answer depends in part on where TCF sits in that cell type.
 
-In the nucleus it finds TCF, a protein that binds the DNA of many Wnt target genes even before a signal comes. Without β-catenin, TCF holds a co-repressor called Groucho and keeps those genes off. When β-catenin arrives, Groucho leaves and β-catenin brings in the proteins that start transcription, so TCF turns from a repressor into an activator. The simple model is that β-catenin pushes Groucho off. How Groucho is actually removed is still being worked out. Which genes answer depends in part on where TCF sits in that kind of cell. One common target is Axin2, a relative of Axin, which gives negative feedback of the kind in the lesson `signaling-circuits`.
+<LessonFigure src="/figures/wnt-signaling/wnt-off-on.webp" width={1200} height={800} alt="AI-generated illustration: two panels of the same cell. Without Wnt, Frizzled (seven membrane crossings under a rounded outer domain) stands empty beside LRP6; the destruction complex holds a marked β-catenin, which passes to the SCF ubiquitin ligase and is broken up in the proteasome, while TCF on the DNA holds Groucho and the gene is off. With Wnt bound on Frizzled, its lipid lying in a groove on the receptor, and touching LRP6, Dishevelled sits under Frizzled, the complex is held at the membrane, β-catenin builds up in the cytoplasm and joins TCF in the nucleus, and the gene is on." caption="Wnt bridges Frizzled and LRP6 to pull the destruction complex to the membrane, letting free β-catenin accumulate and switch TCF target genes on, though how the complex is stopped is still argued." />
 
-<LessonFigure src="/figures/wnt-signaling/wnt-off-on.webp" width={1200} height={800} alt="AI-generated illustration: two panels of the same cell. Without Wnt, Frizzled (seven membrane crossings under a rounded outer domain) stands empty beside LRP6; the destruction complex holds a marked β-catenin, which passes to the SCF ubiquitin ligase and is broken up in the proteasome, while TCF on the DNA holds Groucho and the gene is off. With Wnt bound on Frizzled, its lipid lying in a groove on the receptor, and touching LRP6, Dishevelled sits under Frizzled, the complex is held at the membrane, β-catenin builds up in the cytoplasm and joins TCF in the nucleus, and the gene is on." caption="Without Wnt, the destruction complex marks β-catenin, SCF tags it with ubiquitin and the proteasome destroys it, while TCF holds Groucho and keeps target genes off. Wnt brings Frizzled and LRP6 together and pulls the complex to the receptor, so new β-catenin survives, builds up and joins TCF in the nucleus to switch genes on. How the complex is stopped is still argued." />
+**Predict.** One common TCF target gene is **Axin2**, a relative of Axin. If Wnt stays present for hours, what should new Axin2 do to the β-catenin level?
 
-## Wnt in disease: a pathway stuck on
+<details>
+<summary>Check your prediction</summary>
 
-Most people who inherit one faulty copy of the APC gene grow hundreds to thousands of small growths called polyps in the colon, a condition called familial adenomatous polyposis. Nearly all of them get colon cancer unless the colon is removed. APC is also mutated in most colon cancers in people with no family history, about four in five.
+Pull it partway back down: extra Axin-like scaffold rebuilds destruction capacity—negative feedback (`signaling-circuits`) that helps bound the response.
 
-Why APC? In 1993 the laboratory of Paul Polakis and the laboratory of Bert Vogelstein and Kenneth Kinzler each reported that the APC protein binds β-catenin. In 1997 Hans Clevers's laboratory and the Vogelstein and Kinzler laboratory published side by side. Colon cancer cells without working APC had β-catenin and TCF switching genes on all the time, and putting APC back turned that transcription off. Some colon tumours with normal APC carried mutations in β-catenin instead, at the serines and the threonine that CK1 and GSK3 phosphorylate.
+</details>
 
-Both routes end in the same place. Without APC the complex can still phosphorylate β-catenin, but the protein is no longer efficiently ubiquitinated and destroyed. Without the phosphorylation sites β-catenin cannot be marked for destruction. Either way the drain is plugged, and TCF is on with no Wnt. The gut is where this matters most, because the stem cells of the gut lining sit at the base of pits called crypts, and they and the dividing cells above them depend on Wnt: newborn mice made without TCF4 lack the dividing compartment of the small intestine. A cell without APC behaves as if it had never left the base of the crypt.
+**Predict.** In `pi3k-akt-insulin`, insulin activates Akt to switch GSK3 off. Adding insulin alone (no Wnt) to cultured cells—should that raise β-catenin and switch on TCF genes?
 
-<LessonFigure src="/figures/wnt-signaling/crypt-apc.webp" width={1200} height={800} alt="AI-generated illustration: a section through one intestinal crypt, a U-shaped pit lined by a single layer of cells. Stem cells sit at the base in a haze of Wnt signal, dividing cells lie above them, and cells move up toward the gut surface. An inset titled Without APC shows a cell higher up the wall whose nucleus is full of β-catenin, with its genes switched on although no Wnt is around it." caption="Stem cells at the base of the gut's crypts, and the dividing cells above them, depend on Wnt. A cell that loses APC keeps β-catenin and TCF switching genes on with no Wnt, so it behaves as if it had never left the crypt base." />
+<details>
+<summary>Check your prediction</summary>
+
+In the cultured cells tested, insulin does not raise β-catenin. The explanation offered is that Axin-bound GSK3 is a separate pool that Akt does not reach.
+
+</details>
+
+## Wnt in disease: a drain stuck shut
+
+Because Wnt raises free β-catenin by slowing its constant destruction, a mutation that slows destruction on its own can switch TCF on without Wnt.
+
+Most people who inherit one faulty copy of **APC** grow hundreds to thousands of colon **polyps** (**familial adenomatous polyposis**), because each cell is one hit away from losing its remaining working copy; nearly all get colon cancer unless the colon is removed. APC is also mutated in about four in five sporadic colon cancers.
+
+In 1993 Paul Polakis's lab and Bert Vogelstein and Kenneth Kinzler's lab each reported that APC binds β-catenin. In 1997 Hans Clevers's lab and the Vogelstein and Kinzler lab published side by side: colon cancer cells without working APC had β-catenin and TCF active all the time, and restoring APC shut that transcription off. Some colon tumours with normal APC carried β-catenin mutations instead, at the CK1 and GSK3 phosphorylation sites.
+
+| Cell state | Wnt | Destruction complex | Free β-catenin & TCF |
+| --- | --- | --- | --- |
+| Normal | None | Phosphorylates & hands off to SCF | Low; genes OFF |
+| Normal | Present | Pulled to Frizzled–LRP5/6 | High; genes ON |
+| APC lost | None | Still phosphorylates, but ubiquitination and destruction are no longer efficient | High; stuck ON |
+| β-Catenin site mutant | None | Cannot build β-TrCP phosphate tag | High; stuck ON |
+
+Both routes plug the drain. Gut lining stem cells at the base of **crypts** and dividing cells above them depend on Wnt: newborn mice without TCF4 lack the dividing compartment of the small intestine. A cell without APC behaves as if it never left the crypt base.
+
+<LessonFigure src="/figures/wnt-signaling/crypt-apc.webp" width={1200} height={800} alt="AI-generated illustration: a section through one intestinal crypt, a U-shaped pit lined by a single layer of cells. Stem cells sit at the base in a haze of Wnt signal, dividing cells lie above them, and cells move up toward the gut surface. An inset titled Without APC shows a cell higher up the wall whose nucleus is full of β-catenin, with its genes switched on although no Wnt is around it." caption="Gut crypt stem and dividing cells depend on Wnt at the crypt base, so losing APC keeps β-catenin and TCF active higher up the wall with no Wnt." />
 
 <BetaCateninLevel />
 
-The same pathway sets bone mass. People with two inactive copies of LRP5 have fragile, low-density bone, and a single change in LRP5, glycine 171 to valine, gives unusually dense bone.
+**Predict.** The same pathway sets bone mass: two inactive copies of **LRP5** cause fragile, low-density bone, whereas one change (glycine 171 to valine) gives unusually dense bone. Which way does each push β-catenin signalling, and which matches losing APC?
 
-## The other Wnt pathway: planar cell polarity tells a cell which side is which
+<details>
+<summary>Check your prediction</summary>
+
+Inactive LRP5 lowers signalling (fragile bone); glycine 171 to valine raises signalling (dense bone), the same direction as losing APC, though APC loss acts at the destruction complex rather than the co-receptor.
+
+</details>
+
+So far, Frizzled has paired with LRP5 or LRP6 to raise β-catenin—yet cells also deploy Frizzled and Dishevelled without that co-receptor to give a whole cell sheet a shared direction.
 
 <LessonFilm film={frontmatter.films[0]} />
 
-Look at a fly wing. Each cell grows one hair, and every hair points toward the wing tip. A direction shared by the cells within the plane of a sheet is called **planar cell polarity**, or PCP.
+## Planar cell polarity: how cells agree which way to point
 
-**UVa moment: Paul Adler.** Every hair must point the same way, though no cell can see the whole sheet. The experiment that showed how the fly solves this, with patches of mutant cells, was done at the University of Virginia. In 1987 Charles Vinson and Paul Adler made patches of cells lacking the gene frizzled in otherwise normal wings. Normal cells on the tip side of a patch grew misdirected hairs. Normal cells on the other side did not. Two years later the laboratory cloned frizzled and found that it encodes a seven-pass membrane protein. It is the same Frizzled: the Wnt receptor family is named for untidy hairs on a fly.
+A direction shared across the plane of a sheet—like fly wing hairs pointing toward the wing tip—is **planar cell polarity** (**PCP**). The second film showed the mutant-patch test and edge sorting; here are the genetics behind that discovery and its vertebrate genes.
 
-Later work placed the parts. Frizzled and Dishevelled gather on the tip-side edge of each wing cell. A membrane protein called Van Gogh gathers on the opposite edge with its partner Prickle. Flamingo, a cadherin, sits on both edges and links each cell to the next. The hair grows from the Frizzled side. None of this uses β-catenin or TCF. In the wing the output is the place where the cell builds the actin bundle that becomes its hair.
+**UVa moment: Paul Adler.** No cell can see the whole wing, yet every hair aligns. At the University of Virginia in 1987, Charles Vinson and Paul Adler made patches of *frizzled*-null cells in normal wings: normal cells on the tip side grew misdirected hairs, while those on the other side did not. Two years later they cloned *frizzled* as a seven-pass membrane protein—the Wnt receptor family carries the name of untidy fly hairs. Later work from Adler's lab showed that hairs point from cells with more Frizzled toward cells with less.
 
-<LessonFigure src="/figures/wnt-signaling/pcp-wing-cells.webp" width={1200} height={800} alt="AI-generated illustration: six fly wing cells seen from above, with the wing tip to the right. In every cell, Frizzled and Dishevelled gather on the right-hand, tip-side edge and Van Gogh and Prickle on the left-hand edge, so each shared border has one cell's Frizzled side facing the next cell's Van Gogh side. Flamingo links neighbouring cells across every border, and each cell's hair sits on its Frizzled side, pointing toward the tip." caption="In each fly wing cell, Frizzled and Dishevelled gather on the edge toward the wing tip and Van Gogh and Prickle on the opposite edge, with Flamingo linking each cell to the next. The hair grows from the Frizzled side, so every hair points the same way, and none of this uses β-catenin or TCF." />
+**Predict.** Using Adler's finding (hairs point from more Frizzled toward less), suppose a patch of wing cells makes **more** Frizzled than normal. Which side—body side or tip side—shows backward hairs on normal neighbours?
 
-Vertebrates use the same genes to move cells. The neural tube, the future brain and spinal cord, starts as a flat plate that must narrow and lengthen while its edges fold up and meet. Cells narrow the plate by squeezing between their neighbours toward the midline, and to do that each cell must know which of its sides faces the midline. **Disrupting PCP causes neural tube closure defects**, the group that includes spina bifida. In mice with two mutant copies of Vangl2, a vertebrate Van Gogh, the tube stays open along most of its length, and rare variants of the related human gene VANGL1 have been found in some patients with neural tube defects. Vertebrates need particular Wnts for these movements, Wnt5a and Wnt11 among them, which is one reason the system is counted as a Wnt pathway.
+<details>
+<summary>Check your prediction</summary>
+
+The body side. Normal neighbours point away from the high-Frizzled patch: normal on the tip side (already pointing tipward), flipped backward on the body side.
+
+</details>
+
+In each wing cell, **Frizzled** and **Dishevelled** sit on the tip-side edge, **Van Gogh** and **Prickle** on the opposite edge, and the cadherin **Flamingo** links every border. Each cell builds its actin hair on the Frizzled side—none of this uses β-catenin or TCF.
+
+<LessonFigure src="/figures/wnt-signaling/pcp-wing-cells.webp" width={1200} height={800} alt="AI-generated illustration: six fly wing cells seen from above, with the wing tip to the right. In every cell, Frizzled and Dishevelled gather on the right-hand, tip-side edge and Van Gogh and Prickle on the left-hand edge, so each shared border has one cell's Frizzled side facing the next cell's Van Gogh side. Flamingo links neighbouring cells across every border, and each cell's hair sits on its Frizzled side, pointing toward the tip." caption="Each fly wing cell sorts Frizzled and Dishevelled opposite Van Gogh and Prickle across Flamingo-linked borders, growing its actin hair from the Frizzled side without β-catenin or TCF." />
+
+Vertebrates reuse these genes as the flat **neural plate** narrows, lengthens and folds into the **neural tube** (future brain and spinal cord) while cells squeeze between neighbours toward the midline. **Disrupting PCP causes neural tube closure defects**, including spina bifida: mice with two mutant copies of **Vangl2** (a vertebrate Van Gogh) keep the tube open along most of its length, and rare human **VANGL1** variants appear in some patients with neural tube defects. Vertebrates also require particular Wnts—**Wnt5a** and **Wnt11** among them—one reason PCP is counted as a Wnt pathway.
 
 ### Design problem
 
@@ -495,11 +550,11 @@ Now make a patch of cells with no A. Those cells have B on every edge. Each norm
 
 ## Going deeper
 
-### How int-1 and wingless were matched
+### How int-1 and wingless became Wnt
 
-Around 1980 Roel Nusse, a postdoctoral fellow in Harold Varmus's laboratory in San Francisco, began to study mammary tumours in mice infected with mouse mammary tumour virus. This virus makes a DNA copy of its RNA genome and inserts that copy into a mouse chromosome wherever it happens to land, and the inserted copy is called a provirus. If a provirus sits in the same stretch of mouse DNA in tumour after tumour, that stretch probably holds a gene that helps a tumour grow when the virus disturbs it.
+Around 1980 Roel Nusse, a postdoctoral fellow in Harold Varmus's UCSF laboratory, studied mouse mammary tumours caused by mouse mammary tumour virus. This retrovirus inserts a DNA copy (**provirus**) into mouse chromosomes; repeated insertions in one stretch of DNA probably flag a gene that favours tumour growth when disturbed.
 
-In 18 of the 26 tumours they examined, a provirus sat inside one region of about 19 kilobases (19,000 base pairs). In the few tumours tested, an RNA was made from that region, and none was detected in the lactating mammary glands tested. They named the place int-1, for integration site 1. Their 1982 paper proposed only that insertion there strongly favours a tumour, perhaps by raising the expression of a cellular gene.
+In 18 of 26 tumours a provirus sat within one region of about 19 kilobases (19,000 base pairs). The few tumours tested made RNA from that region, whereas the lactating mammary glands tested did not. They named the site **int-1** (integration site 1); their 1982 paper cautiously proposed that insertion favours tumours, perhaps by raising a cellular gene's expression.
 
-What the gene does in a healthy animal stayed unknown for five years. Then Frank Rijsewijk, in Nusse's group in Amsterdam, cloned the fly version. Its protein was 54 percent identical to the mouse protein, with all 23 cysteines in the same positions, and the gene proved to be one that fly geneticists already knew as wingless. A weak wingless mutation, described by R. P. Sharma and V. L. Chopra in 1976, gives adult flies that often lack wings. Stronger ones kill the embryo and scramble the pattern of its segments.
+Its normal role stayed unknown for five years until Frank Rijsewijk, in Nusse's Amsterdam group, cloned the fly version: 54 percent identical to mouse, with all 23 cysteines conserved, and the gene proved to be **wingless**. Weak *wingless* mutations (R. P. Sharma and V. L. Chopra, 1976) often remove adult wings; stronger ones kill the embryo and scramble segment pattern. One gene kept across more than 500 million years caused mouse tumours when misexpressed and patterned fly embryos. In 1991 eight researchers signed a one-page note splicing *wingless* and *int* into **Wnt**, and other fly mutants with the same segment defect—including *armadillo*, the fly's β-catenin—mapped the rest of the pathway.
 

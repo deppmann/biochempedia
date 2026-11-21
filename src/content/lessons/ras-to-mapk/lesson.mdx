@@ -4,8 +4,14 @@ slug: "ras-to-mapk"
 course: "signaling"
 courseChapter: "Cell Signaling · Unit 4: Receptors with enzymes attached"
 order: 119
-summary: "How does a signal get from an active receptor at the membrane to a gene in the nucleus? This lesson follows Ras-GTP to Raf, MEK and ERK, shows what three kinases in a row give the cell, and explains what happens when the chain is stuck on, in cancers and in the RASopathies. It then asks how the same chain can tell one cell to divide and another to differentiate, using the PC12 cell line. Afterwards you can trace the cascade step by step and predict the effect of a mutation or a drug at each tier."
-hook: "A growth factor at the cell surface switches on Ras, and a relay of three kinases carries the message to the cell's proteins and genes. The same relay, stuck on, is found in many cancers, and in PC12 cells how long it stays on seems to decide what the cell does."
+summary: >-
+  A three-kinase relay can amplify, sharpen, and control a membrane signal; duration, cell
+  context, and pathway state shape what the cascade does. Follow Ras-GTP to Raf, MEK and ERK,
+  see what three kinases in a row and a two-phosphate lock give the cell, and trace what happens
+  when the chain is stuck on in cancers and in the RASopathies. Then ask how the same chain can
+  tell one cell to divide and another to differentiate, using the PC12 cell line. Afterwards you
+  can trace the cascade step by step and predict the effect of a mutation or a drug at each tier.
+hook: "A growth factor stays outside the cell, yet through the same four proteins it can tell one cell to divide and another to grow nerve-like fibres—how does one relay carry two opposite orders?"
 
 estMinutes: 24
 objectives:
@@ -18,10 +24,15 @@ explainer:
   src: "/explainers/ras-to-mapk/explainer.mp4"
   captions: "/explainers/ras-to-mapk/explainer.vtt"
   poster: "/explainers/ras-to-mapk/poster.jpg"
-  title: "Ras to MAPK: From Membrane to Genes"
-  durationSec: 167.7
-  narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+  title: "Ras to ERK: Three Kinases in Series"
+  durationSec: 194.2
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+  takeaways:
+    - "A three-kinase relay can amplify, sharpen, and control a membrane signal."
+    - "Ras-GTP is not a kinase: it grips Raf at the membrane, where Raf opens and pairs side to side."
+    - "Paired Raf phosphorylates MEK on two serines, and dual-specificity MEK puts both a threonine and a tyrosine phosphate on ERK."
+    - "ERK fans out to cytoplasmic and nuclear targets, while scaffolds keep parallel MAPK modules wired apart and placed where needed."
 
 scientists:
   - name: "Robert Weinberg, Mariano Barbacid and Michael Wigler"
@@ -383,91 +394,161 @@ corpusTags:
   - "raf-and-mek-inhibitors"
 draft: false
 films:
-  - id: "three-kinases"
-    src: "/explainers/ras-to-mapk/three-kinases.mp4"
-    captions: "/explainers/ras-to-mapk/three-kinases.vtt"
-    poster: "/explainers/ras-to-mapk/three-kinases-poster.jpg"
-    title: "Who Switches ERK On?"
-    durationSec: 98.5
-    narration: "an AI narrator voice (ElevenLabs, Sarah) reading narration written from this lesson's text"
+  - id: "chapter-2"
+    src: "/explainers/ras-to-mapk/chapter-2.mp4"
+    captions: "/explainers/ras-to-mapk/chapter-2.vtt"
+    poster: "/explainers/ras-to-mapk/chapter-2-poster.jpg"
+    title: "Timing, Context, and Jammed Relays"
+    durationSec: 211.0
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
     aiGenerated: true
+    takeaways:
+      - "Duration, cell context, and pathway state shape what the cascade does."
+      - "ERK limits its own signal through fast feedback on SOS and Raf and slower induction of dual-specificity phosphatases."
+      - "In PC12 cells a brief ERK pulse goes with division and a sustained plateau with differentiation, while the same always-on MEK transforms fibroblasts."
+      - "ATP-pocket Raf inhibitors block B-Raf V600E but can paradoxically activate normal Raf pairs when Ras is active, which MEK inhibition blocks below Raf."
 ---
 
 import LessonFilm from '../../../components/LessonFilm.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import Support from '../../../components/Support.astro';
 
-**A growth factor lands on a receptor at the cell surface, and a relay of four proteins, Ras, Raf, MEK and ERK, carries the message to proteins in the cytoplasm and to genes in the nucleus. This lesson follows that relay step by step, because the same relay, stuck on, is found in many cancers, and mildly over-active it causes the RASopathy syndromes.** One chain also does more than one job. In PC12 cells, a line grown from a rat adrenal tumour, epidermal growth factor (EGF) makes the cell divide, while nerve growth factor (NGF) makes it stop dividing and grow long, nerve-like fibres. Both growth factors send their signal through the same four proteins. You need the chain first: what each protein physically does to the next. After that, a large part of the answer seems to be a matter of time.
+**In PC12 cells, a line grown from a rat adrenal tumour, epidermal growth factor (EGF) makes the cell divide, while nerve growth factor (NGF) makes it stop dividing and grow long, nerve-like fibres—both through Ras, Raf, MEK and ERK.** Stuck on, this same relay drives many cancers, and mildly over-active it causes the RASopathy syndromes. The first film traced the relay from surface to nucleus; below are the physical mechanisms, the proof behind them, and the worked cases.
 
-## The idea: Ras-GTP catches Raf and holds it at the membrane
+<Support>**The one idea.** A three-kinase relay can amplify, sharpen, and control a membrane signal; duration, cell context, and pathway state shape what the cascade does. **Scope:** This rule describes the classical RTK–Ras–Raf–MEK–ERK cascade. How steep the two-phosphate switch is inside crowded living cells, and how widely cells other than PC12 read ERK by duration, remain open questions; Ras-GTP also recruits other effectors such as PI 3-kinase.</Support>
 
-The first steps are review. An active receptor tyrosine kinase carries phosphotyrosines on its tail. The adaptor Grb2 binds one with its SH2 domain and holds SOS with its SH3 domains, so SOS arrives at the membrane, where Ras sits on its lipid anchors (see [adaptors and scaffolds](/lessons/adaptors-and-scaffolds/) and [lipid anchors and addresses](/lessons/lipid-anchors-and-addresses/)). The next step, in one line: SOS is a guanine exchange factor. SOS makes Ras let go of GDP, and GTP, which is more plentiful in the cell, takes its place. Ras stays on until it cuts that GTP to GDP, the timer covered in [GTPase switches](/lessons/gtpase-switches/).
+## Ras-GTP catches Raf at the membrane
 
-Now think of "Ras as Pacman." Picture Ras stuck to the inner face of the membrane with its mouth open. The mouth is a pair of surface loops, switch I and switch II. With GTP in the pocket they hold a shape that other proteins can grip. With GDP they go slack. What Ras-GTP catches in this lesson is Raf.
+The opening steps review three earlier lessons. An active receptor tyrosine kinase carries phosphotyrosines on its tail. The adaptor **Grb2** binds one with its SH2 domain and holds **SOS** with its SH3 domains, bringing SOS to the membrane where **Ras** sits on its lipid anchors (see [adaptors and scaffolds](/lessons/adaptors-and-scaffolds/) and [lipid anchors and addresses](/lessons/lipid-anchors-and-addresses/)). SOS is a **guanine nucleotide exchange factor** (GEF): it makes Ras release GDP so plentiful GTP takes its place. Ras stays on until it cuts that GTP to GDP ([GTPase switches](/lessons/gtpase-switches/)).
 
-Raf is a kinase that phosphorylates serines and threonines. In a resting cell it floats in the cytosol folded shut, with its front half, which carries a Ras-binding domain, held against its kinase domain. Ras is not a kinase. It works by contact. Binding brings Raf from the cytosol to the membrane, which is well established. Binding alone does not open Raf; at the membrane, contact with the lipids and further steps help release the closed shape. At the membrane two Raf molecules then pair, kinase domain beside kinase domain, and pairing is needed for normal activation. Phosphates are also added to and removed from Raf along the way, and the exact order of those events is still being worked out.
+With GTP in its pocket, two surface loops on Ras—**switch I** and **switch II**—snap taut into a shape effectors can grip; with GDP they go slack. Here Ras-GTP catches **Raf**, a serine/threonine kinase.
 
-## Three kinases in a row, with a two-phosphate lock at the end
+In a resting cell, Raf floats in the cytosol folded shut, its front half (carrying a **Ras-binding domain**) held against its kinase domain. Ras is not a kinase; it acts by contact. Moving Raf to the membrane is well established, but binding alone does not open Raf: membrane lipids and further steps help release the closed shape. Two Raf molecules then pair side to side, kinase domain beside kinase domain, which normal activation requires. Phosphates are added to and removed from Raf along the way, and their exact order is still being worked out.
 
-<LessonFilm film={frontmatter.films[0]} />
+**Predict.** A mutant Ras lacks its lipid anchor and floats in the cytosol, yet still binds GTP and catches Raf. Will it activate Raf and MEK?
 
-Active Raf phosphorylates the next kinase, MEK, on two serines in its activation loop, the flexible stretch beside the active site that you met in [the phosphorylation switch](/lessons/phosphorylation-switch/). MEK then does something unusual. Most kinases phosphorylate either serine and threonine or tyrosine. MEK phosphorylates a threonine and a tyrosine, one residue apart, in the activation loop of ERK. ERK needs both phosphates. Take either one off with a phosphatase and ERK goes quiet.
+<details>
+<summary>Check your prediction</summary>
 
-Purifying the activator of ERK (extracellular signal-regulated kinase) from growth-factor-treated cells showed that it is a separate kinase, now called MEK, which phosphorylates ERK on both threonine and tyrosine. An activator that comes apart from ERK on a column is a different protein, so ERK was not switching itself on.
+No. Catching Raf in the cytosol fails to bring Raf to the membrane, where lipids and further steps help Raf open and pair. Ras works by contact and localization, not phosphorylation.
 
-What do three kinases in a row give the cell? [Signaling circuits](/lessons/signaling-circuits/) covered two answers: each tier can amplify, and the cascade can turn a graded input into an all-or-none output. The two-phosphate lock on ERK is one ingredient of that sharpness. A third answer is control. Each tier is a separate place where a phosphatase, a feedback loop or a scaffold can act.
+</details>
 
-MEK has almost no known substrates other than ERK, so the middle of the cascade is a narrow pipe. ERK is the opposite. It phosphorylates serines and threonines that are followed by a proline, and many proteins carry such a site. Some are in the cytoplasm. Part of the active ERK also moves into the nucleus and phosphorylates transcription factors. One of them, Elk-1, helps switch on c-fos, the best-known immediate early gene. An immediate early gene turns on within minutes of a signal with no new protein made first, because the proteins it needs are already present. Its product is often a transcription factor that turns on later genes.
+## Three kinases in series, and the two-phosphate lock
 
-<LessonFigure src="/figures/ras-to-mapk/narrow-pipe-wide-fan.webp" width={1200} height={800} alt="AI-generated illustration: a schematic Raf–MEK–ERK relay narrows at MEK, whose known substrates are almost exclusively ERK. Active ERK branches to many cytoplasmic targets and into the nucleus, where it phosphorylates Elk-1, which helps switch on the immediate early gene c-fos." caption="A narrow relay that ends in a wide fan: MEK has almost no known substrate but ERK, while ERK reaches many cytoplasmic proteins and, in the nucleus, transcription factors such as Elk-1, which helps switch on c-fos." />
+Paired Raf phosphorylates **MEK** on two serines in its **activation loop**, the flexible stretch beside the active site ([the phosphorylation switch](/lessons/phosphorylation-switch/)). Unlike most kinases (which target Ser/Thr or Tyr alone), MEK is a **dual-specificity kinase**: it phosphorylates **ERK** (extracellular signal-regulated kinase) on both a threonine and a tyrosine, one residue apart, in ERK's activation loop. ERK needs both phosphates; strip either one off with a phosphatase and ERK goes quiet.
 
-A piece of advice here: don't memorize the downstream pathways. Learn the logic: a narrow relay that ends in a wide fan. "Putting it all together":
+**Predict.** When Natalie Ahn fractionated EGF-treated cell extracts on chromatography columns, ERK stayed inactive with ATP alone until a different fraction was added back. Why did that rule out ERK activating itself?
+
+<details>
+<summary>Check your prediction</summary>
+
+An activator that parts from ERK on a column is a separate protein. Purifying that activator (MEK) with Rony Seger showed it phosphorylates ERK on both threonine and tyrosine (see Going deeper).
+
+</details>
+
+What do three kinases in a row give the cell? [Signaling circuits](/lessons/signaling-circuits/) covered two answers—each tier can amplify, and the cascade can turn a graded input into an all-or-none output—and a third is **control**, giving phosphatases, feedback loops, and scaffolds separate points to act.
+
+ERK's two-phosphate lock is one ingredient of that sharpness. Suppose MEK fills ERK's threonine and tyrosine sites independently in a test tube, and only doubly phosphorylated ERK is active. With illustrative round numbers, compare 10% occupancy per site at low MEK with 50% per site at higher MEK (a 5-fold rise per site):
+
+- At 10% per site, doubly phosphorylated ERK is 0.10 × 0.10 = 0.01 (1%).
+- At 50% per site, doubly phosphorylated ERK is 0.50 × 0.50 = 0.25 (25%).
+
+**Predict.** Suppose you want half of all ERK doubly phosphorylated. With the two sites filled independently, how full must each site be?
+
+<details>
+<summary>Check your prediction</summary>
+
+About 71% per site, because 0.71 × 0.71 ≈ 0.50. The square cuts both ways: it keeps doubly phosphorylated ERK very low while occupancy is low, and it means each site must be well filled before much ERK switches on. That is what makes the output steeper than the input—though crowding in living cells may change it (see Going deeper).
+
+</details>
+
+MEK has almost no known substrates besides ERK, making the middle of the chain a **narrow pipe**. ERK is a **wide fan**: it phosphorylates serines and threonines followed by a proline on many cytoplasmic proteins, and part of active ERK enters the nucleus to phosphorylate transcription factors such as **Elk-1**. Elk-1 helps switch on **c-fos**, the best-known **immediate early gene**—a gene turned on within minutes with no new protein made first, because the proteins it needs are already present; its product is often a transcription factor driving later genes.
+
+<LessonFigure src="/figures/ras-to-mapk/narrow-pipe-wide-fan.webp" width={1200} height={800} alt="AI-generated illustration: a schematic Raf–MEK–ERK relay narrows at MEK, whose known substrates are almost exclusively ERK. Active ERK branches to many cytoplasmic targets and into the nucleus, where it phosphorylates Elk-1, which helps switch on the immediate early gene c-fos." caption="The cascade narrows to a single pipe at MEK and fans out at ERK to cytoplasmic proteins and nuclear targets such as Elk-1 and c-fos." />
+
+Do not memorize every downstream target; learn the logic of a narrow relay ending in a wide fan:
 
 > **growth factor → receptor → Grb2 and SOS → Ras-GTP → Raf → MEK → ERK → transcription factors → immediate early genes**
 
-## One design, several cascades
+## One three-tier plan, kept apart by scaffolds
 
-Raf, MEK and ERK are one example of a general plan. A MAP kinase kinase kinase turns on a MAP kinase kinase, which turns on a MAP kinase by phosphorylating a threonine and a tyrosine in its activation loop. MAP kinase, or MAPK, is the family name, and ERK is the member you have met. Animal cells run at least two more modules built this way, ending in the MAP kinases JNK and p38. They use their own kinases at each tier, some shared between JNK and p38, and they answer mainly to stress, such as ultraviolet light or inflammatory signals.
+Raf, MEK and ERK are one example of a general **MAP kinase (MAPK)** plan: a MAP kinase kinase kinase activates a MAP kinase kinase, which phosphorylates a MAP kinase on a threonine and a tyrosine in its activation loop. Animal cells run at least two more modules built this way, ending in **JNK** and **p38**; they use their own kinases (some shared between JNK and p38) and respond mainly to stress such as ultraviolet light or inflammatory signals.
 
-Several look-alike cascades in one cytoplasm create a wiring problem, and scaffolds are part of the answer. A scaffold holds the kinases of one module side by side so that they pass the signal mainly to each other rather than to a neighbour, as Ste5 does in yeast and KSR does for Raf, MEK and ERK (see [adaptors and scaffolds](/lessons/adaptors-and-scaffolds/)). A scaffold can also decide where the cascade runs: "Scaffolds can localize ras-mapk." Two examples are paxillin, which gathers Raf, MEK and ERK at focal adhesions, the spots where a cell grips its surroundings, and MP1, which holds MEK and ERK on endosomes.
+Look-alike cascades in one cytoplasm create a wiring problem, solved in part by **scaffolds**. A scaffold holds one module's kinases side by side so they signal mainly to each other—as **Ste5** does in yeast and **KSR** does for Raf, MEK and ERK ([adaptors and scaffolds](/lessons/adaptors-and-scaffolds/)). Scaffolds also localize the cascade: **paxillin** gathers Raf, MEK and ERK at focal adhesions (where a cell grips its surroundings), and **MP1** holds MEK and ERK on endosomes.
 
-## How long is the signal on?
+Wiring one module cleanly still leaves the bigger puzzle: how that same chain drives opposite cell fates and opposite drug responses. The second film explores how timing, cell identity, and pathway state alter what the cascade instructs.
 
-Back to the PC12 cell. A signal has a size and also a duration. Negative feedback is one thing that sets the duration, alongside how long the receptor stays active, and ERK supplies its own. Active ERK phosphorylates proteins above it in the chain, among them SOS and Raf, in ways that weaken them. It also turns on genes for dual-specificity phosphatases, enzymes that take both phosphates back off ERK. The second kind is slower, because a protein has to be made.
+<LessonFilm film={frontmatter.films[0]} />
 
-Different stimuli leave a pathway on for different lengths of time before feedback closes the window. How long the window stays open depends on the stimulus, the cell type, the dose and which readout is measured.
+## How long the signal stays on
 
-In PC12 cells, ERK activity after EGF rises and falls back within about an hour. After NGF it climbs to a plateau that lasts for hours. In 1992 Christopher Marshall and Philip Cohen's group in Dundee proposed that the difference in duration is itself the instruction: a brief ERK signal goes with division, and a sustained one with differentiation. Marshall set the idea out more widely in a 1995 review. The duration rule comes from this one cell line, and how widely cells read their kinases by the clock is an open question.
+The second film contrasted brief EGF signalling with sustained NGF signalling in PC12 cells; here is how ERK's two feedback arms split in speed, and where the evidence's limits lie.
 
-## When the cascade is stuck on
+Negative feedback works alongside receptor persistence to set duration, and ERK supplies two arms:
+- **Fast feedback:** active ERK phosphorylates upstream proteins, including SOS and Raf, in ways that weaken them.
+- **Slow feedback:** active ERK turns on genes for **dual-specificity phosphatases** that strip both phosphates back off ERK, taking longer because new protein must be made.
 
-In 1994 Sally Cowley, Christopher Marshall and colleagues gave PC12 cells a permanently active MEK1, and the cells grew neurites with no NGF in the medium. They then put the same always-on MEK1 into mouse fibroblasts and got a different result. The cells piled up into foci, the disordered heaps that mark a cell transformed toward cancer. Unending ERK activity means "differentiate" to a PC12 cell and "keep dividing" to an NIH 3T3 fibroblast.
+**Predict.** Treat PC12 cells with a drug that blocks new protein synthesis, then add EGF. Which feedback arm still acts right away, and which fails?
 
-<LessonFigure src="/figures/ras-to-mapk/same-mek-two-answers.webp" width={1200} height={800} alt="AI-generated illustration: two panels compare the effects of the same always-on MEK1. A PC12 cell grows neurites without NGF on the left. NIH 3T3 mouse fibroblasts form a piled-up focus on the right." caption="The same permanently active MEK1 tells a PC12 cell to grow neurites without NGF and tells mouse fibroblasts to pile up into foci." />
+<details>
+<summary>Check your prediction</summary>
 
-Human cancers reach the same state from higher up. In 1982 the laboratories of Robert Weinberg, Mariano Barbacid and Michael Wigler each compared a ras gene cloned from one bladder-tumour cell line with the normal gene. The two differed at a single base, which changed glycine 12 to valine: the G12V mutation, whose effect on the GTP timer you saw in [GTPase switches](/lessons/gtpase-switches/). Mutant RAS genes are common in human cancers, and how common varies widely by tissue: a 1989 survey found them in roughly nine of ten pancreatic tumours and about half of colorectal cancers.
+Phosphorylation of SOS and Raf still acts right away because those proteins are already present; induction of dual-specificity phosphatases fails because it requires new protein synthesis.
 
-One tier down, roughly half of cutaneous melanomas, the common skin form, carry a mutation in B-Raf, one of three Raf kinases in human cells, most often V600E. The glutamate sits in the activation loop and makes B-Raf active by itself, with no Ras-GTP needed. It is often described as active without a partner, although mutant B-Raf can also pair, and whether it truly works alone is debated. Vemurafenib fills the ATP pocket of the mutant kinase, and trametinib binds MEK in a pocket beside its ATP site and holds it inactive. Pairing explains a surprise that came with the Raf drugs. In a cell with normal B-Raf and active Ras, a drug-bound Raf can still pair with a drug-free Raf and switch it on, so the same drug raises ERK activity there. A MEK inhibitor blocks the cascade below that point, one reason the two kinds of drug are commonly given together.
+</details>
 
-<LessonFigure src="/figures/ras-to-mapk/raf-drug-paradox.webp" width={1200} height={800} alt="AI-generated illustration: two panels and one inset. Left, a schematic B-Raf V600E target with its pairing state omitted and partner requirement marked as debated; vemurafenib occupies its ATP pocket and blocks downstream MEK–ERK signalling. Right, active Ras is lipid-anchored on the cytoplasmic face of the membrane beside paired Raf proteins. Drug-bound Raf activates its drug-free partner, which signals to MEK and ERK. The inset shows trametinib occupying a separate MEK pocket beside the ATP site." caption="Vemurafenib occupies the ATP pocket of B-Raf V600E and inhibits signalling to MEK and ERK. The mutant needs no Ras-GTP, but whether it acts without a partner is debated; its pairing state is omitted here. With normal B-Raf and active Ras, a drug-bound Raf can activate a drug-free Raf partner, increasing MEK–ERK signalling. Trametinib binds a pocket beside the MEK ATP site and holds MEK inactive, blocking the cascade below Raf." />
+How long the window stays open depends on stimulus, cell type, dose, and readout. In PC12 cells, ERK activity after EGF rises and falls within about an hour, whereas after NGF it climbs to a plateau lasting hours. In 1992 Christopher Marshall and Philip Cohen's group in Dundee proposed that duration itself is the instruction—brief ERK for division, sustained ERK for differentiation—an idea Marshall expanded in a 1995 review. The rule comes from this one cell line, and how widely cells read kinases by the clock remains open.
 
-The RASopathies are developmental syndromes caused by mutations, inherited or new at conception, that mildly over-activate this pathway. The mutation is carried in every cell, but its effects differ from tissue to tissue, and rarer mosaic forms arise later and affect only some cells. They include Noonan syndrome, Costello syndrome, cardio-facio-cutaneous syndrome and neurofibromatosis type 1. Most of the genes are this lesson's cast, and one example shows the logic: in neurofibromatosis type 1 the Ras GAP neurofibromin is lost, so the timer that turns Ras off is missing. Affected children share features of the face, heart and growth.
+## When the cascade is stuck on: context, cancer, and drugs
 
-Raf is not the only protein that Ras-GTP can catch. PI 3-kinase is another, and it is the next lesson.
+Remember the second half of the guiding rule: **duration, cell context, and pathway state shape what the cascade does.** In 1994 Sally Cowley, Christopher Marshall and colleagues put permanently active MEK1 into two cell types: PC12 cells grew neurites with no NGF, while mouse NIH 3T3 fibroblasts piled into **foci**, disordered heaps marking transformation toward cancer. Unending ERK means "differentiate" to a PC12 cell and "keep dividing" to an NIH 3T3 fibroblast.
+
+<LessonFigure src="/figures/ras-to-mapk/same-mek-two-answers.webp" width={1200} height={800} alt="AI-generated illustration: two panels compare the effects of the same always-on MEK1. A PC12 cell grows neurites without NGF on the left. NIH 3T3 mouse fibroblasts form a piled-up focus on the right." caption="The same permanently active MEK1 instructs a PC12 cell to grow neurites without NGF and mouse fibroblasts to pile into transformed foci." />
+
+Human cancers reach that state from higher up. In 1982 Robert Weinberg, Mariano Barbacid and Michael Wigler each compared a *ras* gene from one bladder-tumour cell line with the normal gene and found a single base change turning glycine 12 to valine—**G12V**, which blunts the GTP timer so Ras stays on ([GTPase switches](/lessons/gtpase-switches/)). Mutant *RAS* genes are common in cancers and vary widely by tissue: a 1989 survey found them in roughly nine of ten pancreatic tumours and about half of colorectal cancers (see Going deeper for updated overall figures).
+
+**Predict.** A tumour carries Ras G12V. Will an EGF-receptor inhibitor shut down ERK in these cells? What about a MEK inhibitor?
+
+<details>
+<summary>Check your prediction</summary>
+
+An EGF-receptor inhibitor fails because Ras G12V stays stuck on independently of the receptor and SOS above it. A MEK inhibitor acts below Ras and Raf, shutting down ERK.
+
+</details>
+
+One tier down, roughly half of cutaneous melanomas (the common skin form) carry a mutation in **B-Raf**, one of three human Raf kinases, most often **V600E**. Glutamate in the activation loop makes B-Raf active without Ras-GTP; it is often described as signalling without a partner, though mutant B-Raf can pair and whether it truly works alone is debated.
+
+**Vemurafenib** fills the ATP pocket of B-Raf V600E, while **trametinib** binds MEK in an allosteric pocket beside its ATP site to hold MEK inactive. As the second film showed, membrane Raf pairing explains why pathway state flips vemurafenib's effect:
+
+| Pathway state | Raf ATP-pocket drug (vemurafenib) | MEK allosteric drug (trametinib) |
+| --- | --- | --- |
+| **B-Raf V600E + normal Ras** | Blocks mutant B-Raf → ERK **falls** | Holds MEK inactive → ERK **falls** |
+| **Active mutant Ras + normal B-Raf** | Drug-bound Raf activates drug-free partner in pairs → ERK **rises** | Holds MEK inactive below Raf → ERK **falls** |
+
+Blocking MEK cuts off signalling below Raf pairs, one reason Raf and MEK inhibitors are commonly combined.
+
+<LessonFigure src="/figures/ras-to-mapk/raf-drug-paradox.webp" width={1200} height={800} alt="AI-generated illustration: two panels and one inset. Left, a schematic B-Raf V600E target with its pairing state omitted and partner requirement marked as debated; vemurafenib occupies its ATP pocket and blocks downstream MEK–ERK signalling. Right, active Ras is lipid-anchored on the cytoplasmic face of the membrane beside paired Raf proteins. Drug-bound Raf activates its drug-free partner, which signals to MEK and ERK. The inset shows trametinib occupying a separate MEK pocket beside the ATP site." caption="Vemurafenib inhibits B-Raf V600E but can paradoxically activate normal Raf pairs when Ras is active; trametinib blocks MEK below Raf." />
+
+The **RASopathies** are developmental syndromes from mutations, inherited or new at conception, that mildly over-activate this pathway; affected children share features of the face, heart and growth. Carried in every cell, the mutation still has tissue-specific effects, and rarer mosaic forms arise later in only some cells. They include Noonan syndrome, Costello syndrome, cardio-facio-cutaneous syndrome and neurofibromatosis type 1—where losing the Ras GAP **neurofibromin** removes Ras's off-timer (see Going deeper for genes).
+
+Raf is not Ras-GTP's only target; PI 3-kinase is another, and it is the next lesson.
 
 ### Design problem
 
-In a PC12 cell the same Ras-to-ERK cascade answers EGF with division, and answers NGF with an end to division and the growth of nerve-like fibres. Design a way for one cascade to give two answers. Then predict what an always-on MEK would do in this cell with no growth factor at all, and compare your prediction with what Cowley and Marshall found.
+In PC12 cells, the same Ras-to-ERK cascade answers EGF with division and NGF with an end to division and neurite growth. Design a two-part circuit that both **sets** signal duration and **reads** it so only sustained ERK triggers differentiation genes, then explain how Cowley and Marshall's matched pair of MEK1 mutants (one always-on, one interfering) tests sufficiency and necessity.
 
 <details>
 <summary>One way to do it</summary>
 
-Put the message in the duration, and build two parts. One sets the duration. Let ERK's negative feedback close the EGF response quickly, and let the NGF response resist it, for instance through a receptor that stays active longer or a positive feedback that keeps Raf on. The other reads it: a gene product that appears after a delay and survives only if ERK is still active. One such reader has been described in fibroblasts. The immediate early protein c-Fos is short-lived unless ERK and RSK, a kinase that ERK switches on, phosphorylate it, so only a sustained signal makes c-Fos that lasts long enough to act on later genes.
+Build two parts:
 
-The prediction follows. An always-on MEK keeps ERK on without end, which to a duration reader looks like a long NGF signal, even though NGF also switches on other pathways. The PC12 cell should stop dividing and grow fibres with no NGF present.
+1. **Duration setter.** Let ERK's negative feedback shut EGF off within an hour while NGF resists shutoff—for example via longer receptor activity or positive feedback on Raf.
+2. **Delayed persistence reader.** Use a gene product made after a delay that survives only if ERK is still active. In fibroblasts, the immediate early protein **c-Fos** is short-lived unless ERK and RSK (a kinase ERK activates) phosphorylate it, so only sustained ERK stabilizes c-Fos long enough to turn on later genes.
 
-That is what Sally Cowley, Christopher Marshall and their colleagues reported in 1994. PC12 cells given a permanently active MEK1 grew neurites, the fibres a nerve cell extends, with no NGF in the medium. A matching MEK1 that could not be activated blocked the differentiation that growth factor normally causes. Forced on, MEK was enough. Forced off, nothing else could stand in for it.
+**Sufficiency and necessity:** Always-on MEK1 mimics a sustained NGF signal without NGF or its other pathways, and drove neurite growth alone (showing MEK is **sufficient**). An interfering MEK1 that could not be activated blocked growth-factor-driven differentiation (showing MEK is **necessary**—nothing else stood in for it).
 
-One caution: the duration rule comes from this one cell line, and how widely cells read their kinases by the clock is an open question.
+One caution: the duration rule comes from this one cell line, and how widely cells read kinases by the clock remains open.
 
 </details>
 
@@ -475,13 +556,16 @@ One caution: the duration rule comes from this one cell line, and how widely cel
 
 ### How the activator of ERK was found
 
-Melanie Cobb's laboratory followed an insulin-stimulated kinase activity through eight chromatography columns, cloned its gene and named the enzyme ERK, for extracellular signal-regulated kinase. Its sequence resembled two yeast kinases that respond to mating pheromone. Natalie Ahn, in Edwin Krebs's laboratory, then asked what switches ERK on. In 1991 she found two activities in extracts of growth-factor-treated cells that switched on inactive ERK, a MAP kinase, in a test tube. An activator that comes apart from ERK on a column is a different protein, so ERK was not switching itself on. Purifying it with Rony Seger showed that it phosphorylates ERK on both threonine and tyrosine. Several laboratories reached this enzyme, now called MEK, at about the same time.
+Melanie Cobb's laboratory followed an insulin-stimulated kinase activity from rat cells through eight chromatography columns—more than 6,300-fold purified as one 43-kilodalton band—cloned its gene, and named it ERK. Its sequence resembled two yeast mating-pheromone kinases, KSS1 and FUS3. Natalie Ahn, in Edwin Krebs's laboratory, then isolated two activities from EGF-treated fibroblasts in 1991 that switched on inactive ERK with ATP; purifying the activator with Rony Seger showed its dual specificity for threonine and tyrosine. Several laboratories reached MEK at about the same time.
+
+### Does the two-phosphate lock stay steep in living cells?
+
+The worked calculation assumes MEK phosphorylates ERK in two separate encounters, releasing singly phosphorylated ERK in between, as in dilute test tubes. Inside cells, scaffolds and crowding can change that: in HeLa cells, crowding appears to make phosphorylation nearly one step, lowering steepness, and how widely that holds is open.
 
 ### How common are RAS mutations?
 
-Beyond the 1989 tissue figures above, reviews have long quoted up to about 30% for all human tumours. A 2020 analysis that cross-checked the large public cancer-mutation databases put it nearer 19% of patients, and the share varies widely by tissue.
+Beyond the 1989 tissue figures above, reviews have long quoted up to about 30% for all human tumours. A 2020 analysis cross-checking large public cancer-mutation databases put it nearer 19% of patients, varying widely by tissue.
 
 ### Genes behind the RASopathies
 
-Most of the genes are this lesson's cast: PTPN11, the gene for the phosphatase SHP2, in about half of cases of Noonan syndrome and SOS1 and RAF1 in some others, HRAS in Costello syndrome, BRAF and the MEK genes in cardio-facio-cutaneous syndrome, and loss of the Ras GAP neurofibromin in neurofibromatosis type 1.
-
+Most of the genes are this lesson's cast: *PTPN11* (the phosphatase SHP2) in about half of Noonan syndrome cases and *SOS1* and *RAF1* in some others, *HRAS* in Costello syndrome, *BRAF* and the *MEK* genes in cardio-facio-cutaneous syndrome, and loss of the Ras GAP neurofibromin in neurofibromatosis type 1.
