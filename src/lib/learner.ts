@@ -180,8 +180,10 @@ export async function signInWithPasskey(): Promise<Outcome> {
   return { ok: true, name: v.data.name };
 }
 
-export const googleStartUrl = (ret = '/account/', age13 = false) =>
-  `/api/learner/google/start?${new URLSearchParams({ return: ret, ...(age13 ? { age: '1' } : {}) })}`;
+/** Where "Sign in with Google" goes. `link` is only for the signed-in account page's "Link Google" button:
+ *  without it the server signs in AS the Google account and never attaches it to whoever is signed in here. */
+export const googleStartUrl = (ret = '/account/', age13 = false, link = false) =>
+  `/api/learner/google/start?${new URLSearchParams({ return: ret, ...(age13 ? { age: '1' } : {}), ...(link ? { link: '1' } : {}) })}`;
 
 export const EXPORT_URL = '/api/learner/export';
 

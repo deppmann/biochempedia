@@ -44,6 +44,12 @@
   // Anthropic key, within its caps. Do not apply 0009 by itself with `d1 execute --file`: a later
   // `migrations apply` would run it again and fail on the column that already exists.
   "vars": {
+    // Who may open the owner's totals page (/admin/, worker/admin.js) just by being signed in: a
+    // learner account signed in WITH GOOGLE whose Google-verified email is one of these addresses
+    // (comma-separated; exact match, case ignored). Not a secret: this address is already printed
+    // on the site's contact page. An empty value means nobody gets in this way. A passkey-only
+    // account, a typed name, a teacher account or a class seat never qualifies.
+    "ADMIN_EMAILS": "deppmann@gmail.com",
     // The site's address is not a var here: the build needs it too (canonical tags, sitemap, QR codes),
     // and a Worker var cannot reach the build. It is PRIMARY_HOST in src/lib/site-host.mjs, read by both.
     // MAIL_FROM stays on biochemistrypedia.com until Resend has verified stemhop.com.

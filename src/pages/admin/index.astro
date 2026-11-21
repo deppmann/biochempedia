@@ -1,14 +1,15 @@
 ---
-/* The owner's totals page. A plain static page: anyone can load it, and it shows nothing until the
-   Worker secret is typed in. The numbers come from GET /api/admin/stats (worker/admin.js), which
-   answers only to that secret, sent in an Authorization header and never in a web address. The
-   secret is held in this page's memory only, for as long as the page is open: it is never put in
-   any browser storage, so a reopened or restored tab does not have it. A password manager can
-   fill the field. No third-party script runs here (noAnalytics).
+/* The owner's totals page. A plain static page: anyone can load it, and it shows nothing unless
+   the Worker says the signed-in visitor is the site's owner. The numbers come from
+   GET /api/admin/stats (worker/admin.js), which opens for a learner session signed in with Google
+   as one of the owner's addresses (the ADMIN_EMAILS var). The page sends no secret and stores
+   nothing: it asks with the ordinary session cookie, and for everyone else the answer is the same
+   404 as any unknown address. (The ADMIN_TOKEN secret, if the owner sets one, still works for a
+   request made by hand with an Authorization header; this page has no box for it.)
+   No third-party script runs here (noAnalytics).
 
    Not linked from anywhere, not in the sitemap, noindex. Adding ?demo=1 fills the page with
-   invented numbers (clearly labelled) so its layout can be checked without the secret; demo mode
-   never calls the server. */
+   invented numbers (clearly labelled) so its layout can be checked; demo mode never calls the server. */
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import '../../styles/teach.css';
 ---
@@ -27,21 +28,12 @@ import '../../styles/teach.css';
 
     <noscript><p class="tc-note">This page needs JavaScript.</p></noscript>
     <p class="tc-note adm-demo" data-demo hidden>
-      <strong>Demo.</strong> Every number below is invented, so the page can be looked at without the secret.
+      <strong>Demo.</strong> Every number below is invented, so the page can be looked at without signing in.
       Nothing here came from the site, and nothing was asked of the server.
     </p>
 
-    <form class="tc-form adm-gate" data-gate hidden>
-      <label>The site's secret
-        <input type="password" name="secret" autocomplete="off" spellcheck="false" required />
-      </label>
-      <p class="tc-muted" style="margin:0">It is kept only while this page is open, and nowhere in the browser. Reload and it is gone.</p>
-      <div class="tc-row">
-        <button class="tc-btn" type="submit">Show the numbers</button>
-        <button class="tc-btn ghost" type="button" data-forget hidden>Hide the numbers</button>
-      </div>
-      <p class="tc-error" data-gate-err role="alert"></p>
-    </form>
+    <p data-signin hidden><a href="/account/?return=%2Fadmin%2F">Sign in to see this page.</a></p>
+    <p class="tc-muted" data-none hidden>There is nothing to show for this account.</p>
 
     <p class="tc-muted" data-loading role="status" hidden>Adding things up…</p>
     <div data-out hidden></div>
@@ -50,7 +42,7 @@ import '../../styles/teach.css';
 
 <style is:global>
   /* Everything here is built in the browser, so the rules are global and anchored on .adm. */
-  .adm .adm-gate { margin-top: var(--ddp-space-6); }
+  .adm [data-signin], .adm [data-none] { margin-top: var(--ddp-space-6); }
   /* The note's own tint is mixed with white, which leaves light text on a light box in dark mode; mix with the surface here. */
   .adm .adm-demo { margin-top: var(--ddp-space-6); color: var(--ddp-color-ink); background: color-mix(in srgb, var(--ddp-color-secondary) 16%, var(--ddp-color-surface)); }
   .adm section { margin-top: var(--ddp-space-12); }
@@ -98,6 +90,7 @@ import '../../styles/teach.css';
 </style>
 
 <script>
+  import { signedInHint } from '../../lib/learner';
   /* The reply's shape is set in worker/admin.js (buildStats). A cell that is null is a count of 1 to 4, hidden there. */
   type Cell = number | null;
   type Split = Record<string, Cell> | null;
@@ -394,58 +387,30 @@ import '../../styles/teach.css';
   }
 
   // ---- getting the numbers ---------------------------------------------------------------
-  const gate = $<HTMLFormElement>('[data-gate]');
-  const err = $('[data-gate-err]');
   const loading = $('[data-loading]');
-  const forget = $<HTMLButtonElement>('[data-forget]');
   async function catalog(): Promise<Catalog> {
     const empty: Catalog = { levels: [], courses: {}, lessons: {}, films: {} };
     try { const r = await fetch('/usage-catalog.json'); return r.ok ? { ...empty, ...(await r.json()) } : empty; } catch { return empty; }
   }
 
-  async function load(secret: string): Promise<boolean> {
-    err.textContent = '';
+  /** Ask with the ordinary session cookie. The Worker answers 200 only for the owner's own Google-signed-in account. */
+  async function load(): Promise<void> {
     loading.hidden = false;
     try {
-      // The secret goes in a header, never in the address, and no cookies go with it.
-      const [r, cat] = await Promise.all([
-        fetch('/api/admin/stats', { headers: { Authorization: `Bearer ${secret}` }, cache: 'no-store', credentials: 'omit' }),
-        catalog(),
-      ]);
-      if (r.status !== 200) {
-        err.textContent = r.status === 404
-          ? 'That did not open anything. The secret may be wrong, the page may not be switched on yet, or there were too many tries in the last minute. (A secret must be 24 or more characters with no spaces.)'
-          : 'The numbers could not be fetched just now. Please try again.';
-        return false;
-      }
-      render(await r.json(), cat);
-      forget.hidden = false;
-      return true;
+      const [r, cat] = await Promise.all([fetch('/api/admin/stats', { cache: 'no-store', credentials: 'same-origin' }), catalog()]);
+      if (r.status === 200) render(await r.json(), cat);
+      else $('[data-none]').hidden = false;
     } catch {
-      err.textContent = 'No connection. Please try again.';
-      return false;
+      $('[data-none]').hidden = false;
     } finally { loading.hidden = true; }
   }
-
-  gate.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const f = new FormData(gate);
-    const secret = String(f.get('secret') || '').trim();
-    if (!secret) return;
-    // Held only in this function while the request is made; never stored.
-    const ok = await load(secret);
-    if (ok) (gate.elements.namedItem('secret') as HTMLInputElement).value = '';
-  });
-  forget.addEventListener('click', () => {
-    $('[data-out]').replaceChildren();
-    $('[data-out]').hidden = true;
-    forget.hidden = true;
-  });
 
   if (demo) {
     $('[data-demo]').hidden = false;
     catalog().then((cat) => render(demoStats(cat), cat));
+  } else if (signedInHint()) {
+    load();
   } else {
-    gate.hidden = false;
+    $('[data-signin]').hidden = false;   // signed out: no request is made at all
   }
 </script>
