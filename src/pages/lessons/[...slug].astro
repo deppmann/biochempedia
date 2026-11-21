@@ -20,7 +20,6 @@ import SupportsSwitch from '../../components/SupportsSwitch.astro';
 import SubSupEnhancer from '../../components/SubSupEnhancer.astro';
 import ListenPlayer from '../../components/ListenPlayer.astro';
 import LessonShare from '../../components/LessonShare.astro';
-import DepthLadder from '../../components/DepthLadder.astro';
 import FilmTranscript from '../../components/FilmTranscript.astro';
 import LessonPlayAll from '../../components/LessonPlayAll.astro';
 import FlashcardDeck from '../../components/FlashcardDeck.astro';
@@ -30,6 +29,9 @@ import LessonHelpers from '../../components/LessonHelpers.astro';
 import { helperAllowed } from '../../lib/helper-lesson.mjs';
 import LessonLinks from '../../components/LessonLinks.astro';
 import BuildsOn from '../../components/BuildsOn.astro';
+import HopSentence from '../../components/hop/HopSentence.astro';
+import HopStandards from '../../components/hop/HopStandards.astro';
+import { lessonHop } from '../../lib/hop';
 import LessonTime from '../../components/LessonTime.astro';
 import LessonParts from '../../components/LessonParts.astro';
 import LessonStories from '../../components/LessonStories.astro';
@@ -105,12 +107,11 @@ const sideHops = sideHopsFor(lesson.slug);
 // Method films from the shared library that this lesson teaches or relies on.
 const methods = methodsFor(entry.data.slug);
 const isHighSchool = course.tier === 'highschool';
-// Reverse ladder links: a college lesson names the high school lessons that list it in
-// ladder.college. Published lessons only (plus drafts in `astro dev`, as elsewhere here).
-const hsReviews = isHighSchool ? [] : (await getCollection('lessons', ({ data }) =>
-  (import.meta.env.DEV || !data.draft) && courseOf(data.course).tier === 'highschool' && (courseOf(data.course).ladderStep ?? 2) === 2 && (data.ladder?.college ?? []).includes(entry.data.slug)))
-  .sort((a, b) => (a.data.order ?? 99) - (b.data.order ?? 99))
-  .map((l) => ({ slug: l.data.slug, title: l.data.title }));
+// The hop sentence (2026-11-20): which idea this lesson teaches and at what level, with a simpler
+// and a deeper version, from the hop graph. It takes over from the "Where this lesson sits" card
+// and from the reverse "review it at high school level" line; a school lesson the graph has no
+// record for keeps the old card.
+const hasHop = ((await lessonHop(lesson.slug))?.ideas.length ?? 0) > 0;
 
 const phetSims = lesson.simulations.filter((s) => s.type === 'phet');
 const localSims = lesson.simulations.filter((s) => s.type === 'local');
@@ -230,6 +231,10 @@ const lessonLd = {
           when the reader left this lesson part-way. Hidden, and simply absent, without JavaScript. */}
       <p class="resume" data-resume={lesson.slug} data-lt-only="lesson" hidden><a data-resume-link href="#top">Continue at: <span data-resume-title></span> →</a></p>
 
+      {/* The hop sentence: the same idea one level simpler (a short version opens in place) and one
+          level deeper, at every stop. Plain HTML and two native folds; see HopSentence.astro. */}
+      <HopSentence slug={lesson.slug} />
+
       {/* One closed fold for everything that is about the lesson rather than the lesson itself. It
           replaces the Overview fold and gathers what used to stand between the hook and the text:
           the parts with their minutes, goals, help with the tasks, standards and where the lesson
@@ -253,16 +258,10 @@ const lessonLd = {
               <SupportsSwitch />
             </>
           )}
-          {hsReviews.length > 0 && (
-            <p class="hs-review">
-              <DepthLadder step={4} size="sm" />
-              <span>New to this? Review it at high school level: {hsReviews.map((r, i) => <>{i > 0 && ', '}<a href={`/lessons/${r.slug}/`}>{r.title}</a></>)}</span>
-            </p>
-          )}
           <BuildsOn slug={lesson.slug} />
-          {lesson.ladder && <LessonLadder ladder={lesson.ladder} explainLevels={lesson.explainLevels} step={course.ladderStep ?? 2} />}
-          {/* HOP BLOCK, compact form: the hop ladder (another workstream) mounts here, in place of
-              BuildsOn and LessonLadder above. */}
+          {/* Standards and the essential question, in plain type, on the school lessons teachers plan
+              by. The levels themselves are the hop sentence under the control row. */}
+          {lesson.ladder && (hasHop ? <HopStandards ladder={lesson.ladder} /> : <LessonLadder ladder={lesson.ladder} explainLevels={lesson.explainLevels} step={course.ladderStep ?? 2} />)}
           {/* Drafts have no public address, so they get no code. */}
           {!lesson.draft && <div class="about-share"><LessonShare slug={lesson.slug} activity={isGuide} /></div>}
           {rewritten && (
@@ -414,8 +413,6 @@ const lessonLd = {
 
         <FinishLine slug={entry.data.slug} qCount={qCount} prev={prevNav} next={nextNav} allHref={courseHref(course.slug)} nextCourse={nextCourse} guide={isGuide} />
 
-        {/* HOP BLOCK: the hop ladder for this lesson's concept (another workstream) mounts here, at the
-            end of the lesson. Until then "Where this lesson fits" (LessonLinks, above) does this job. */}
 
         <div class="lesson-foot">
           {!lesson.draft && <div data-lt-only="lesson"><LessonShare slug={lesson.slug} activity={isGuide} /></div>}
@@ -918,11 +915,6 @@ const lessonLd = {
       letter-spacing: 0.08em; text-transform: uppercase; color: var(--ddp-color-accent);
       margin: 0 0 var(--ddp-space-2);
     }
-    .hs-review {
-      display: flex; align-items: center; flex-wrap: wrap; gap: var(--ddp-space-2) var(--ddp-space-3);
-      margin: 0 0 var(--ddp-space-3); font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft);
-    }
-    .hs-review a { color: var(--ddp-color-accent); font-weight: 600; text-underline-offset: 3px; }
     .lesson-hero h1 { font-size: var(--ddp-text-3xl); max-width: 20ch; margin-bottom: var(--ddp-space-3); }
     .summary { max-width: 60ch; font-size: var(--ddp-text-lg); color: var(--ddp-color-ink-soft); }
     .resume { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-sm); }
@@ -963,8 +955,7 @@ const lessonLd = {
     .about-body > nav > .about-h { margin-top: var(--ddp-space-2); }
     .about-goals { margin: 0; padding-left: 1.2rem; list-style: disc; display: flex; flex-direction: column; gap: 0.35rem; }
     .about-goals li { font-size: var(--ddp-text-sm); line-height: 1.5; color: var(--ddp-color-ink-soft); }
-    .about-body .hs-review { margin-top: var(--ddp-space-5); }
-    /* BuildsOn and LessonLadder bring their own page gutter (.wrap); inside the fold they sit flush. */
+    /* BuildsOn and the fallback LessonLadder bring their own page gutter (.wrap); inside the fold they sit flush. */
     .about-body :global(.wrap) { max-width: none; margin-inline: 0; padding-inline: 0; }
     .about-body :global(.builds-on) { margin-top: var(--ddp-space-5); }
     .about-body :global(.ladder-wrap) { margin-top: var(--ddp-space-4); }
