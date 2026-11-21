@@ -53,27 +53,35 @@ function show(role: Role) {
   // For browsers without :has(), where the stylesheet cannot hide the other two doors.
   for (const d of doors) d.hidden = d.dataset.door !== role;
 }
-show(asked() ?? readPrefs().role ?? current());
+const settle = () => show(asked() ?? readPrefs().role ?? current());
+settle();
+/* Coming back with the Back button, a browser may restore the radios to an older choice after the
+   page is drawn. pageshow runs after that, so the door and the pills are put back in step. */
+addEventListener('pageshow', settle);
 
+/* The visitor's own choice: keep it on this device and say so once. The address is left clean when
+   the choice was saved, so a copied link does not carry one reader's role to another; only with
+   storage blocked does the role go in the address, which is then the one way it survives a reload. */
+function choose(role: Role) {
+  const first = readPrefs().role !== role && !kept?.dataset.shown;
+  show(role);
+  writePrefs({ role });
+  const saved = readPrefs().role === role;
+  try {
+    const u = new URL(location.href);
+    if (saved) u.searchParams.delete('role'); else u.searchParams.set('role', role);
+    u.hash = '';
+    history.replaceState(null, '', u);
+  } catch { /* the door still shows */ }
+  /* Announced once per change. "Saved on this device" is spoken only the first time a choice is
+     kept; on the page the note then stays for the visit, so it never seems to be taken back. */
+  if (said) said.textContent = `Showing the page for ${PLURAL[role]}.${saved && first ? ' Saved on this device.' : ''}`;
+  if (kept && saved) { kept.hidden = false; kept.dataset.shown = '1'; }
+}
 for (const r of radios) {
-  r.addEventListener('change', () => {
-    if (!r.checked) return;
-    const role = r.value as Role;
-    const first = !readPrefs().role;
-    show(role);
-    writePrefs({ role });
-    try {
-      const u = new URL(location.href);
-      u.searchParams.set('role', role);
-      u.hash = '';
-      history.replaceState(null, '', u);
-    } catch { /* the door still shows */ }
-    /* Announced once per change; "Saved on this device" only the first time a choice is kept
-       (and never when storage is blocked and nothing was). */
-    const savedNow = first && readPrefs().role === role;
-    if (said) said.textContent = `Showing the page for ${PLURAL[role]}.${savedNow ? ' Saved on this device.' : ''}`;
-    if (kept) kept.hidden = !savedNow;
-  });
+  r.addEventListener('change', () => { if (r.checked) choose(r.value as Role); });
+  /* A tap on the pill that is already filled (after arriving by a door's link) is also a choice. */
+  r.addEventListener('click', () => { if (r.checked && readPrefs().role !== r.value) choose(r.value as Role); });
 }
 addEventListener('hashchange', () => {
   const want = asked();

@@ -8,6 +8,7 @@ import { STAGES, stageOf } from '../../data/stages';
 import { courseCards } from '../../lib/catalog';
 import { filmTotal } from '../../lib/film-catalog';
 import rewritten from '../../data/recently-rewritten.json';
+import { concept, conceptsOf, ladder, type LadderRung } from '../../lib/topic-graph';
 
 type Lesson = CollectionEntry<'lessons'>;
 
@@ -16,39 +17,38 @@ const WORDS = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven'];
 /** A small count as a word ("four levels"); larger ones stay digits. */
 export const word = (n: number) => WORDS[n] ?? String(n);
 
-/** One rung of an idea's ladder: a lesson, the level it is taught at, and a line about it. */
+/** One rung of an idea's ladder: a lesson, the level it is taught at, and what that level adds. */
 export interface Rung {
   stage: string;
   stageTitle: string;
   href: string;
   title: string;
-  /** The lesson's own opening question (its `hook`). */
+  /** What this level adds to the idea, from the hop graph. */
   note: string;
-  /** Minutes of the lesson's first film, when it has one. */
+  /** Minutes of film in the lesson, all its chapters together, and how many chapters. */
   filmMin: number | null;
+  filmParts: number;
 }
 
-const stageKey = (l: Lesson) => stageOf(courseOf(l.data.course));
-const rank = (key: string) => STAGES.findIndex((s) => s.key === key);
-function rung(l: Lesson): Rung {
-  const key = stageKey(l);
-  const sec = l.data.explainer?.durationSec;
-  return {
-    stage: key,
-    stageTitle: STAGES.find((s) => s.key === key)?.title ?? '',
-    href: `/lessons/${l.data.slug}/`,
-    title: l.data.title,
-    note: l.data.hook ?? '',
-    filmMin: sec ? Math.max(1, Math.round(sec / 60)) : null,
-  };
-}
-/** Lowest level first, one rung per level (where a level has two lessons, the first listed stands for it). */
-function byLevel(lessons: Lesson[]): Rung[] {
+/** Lowest level first, one rung per level (where a level has two lessons, the first stands for it). */
+function byLevel(rungs: LadderRung[], lessons: Map<string, Lesson>): Rung[] {
   const seen = new Set<string>();
-  return lessons
-    .map(rung)
+  return rungs
+    .filter((r) => lessons.has(r.slug))
     .filter((r) => (seen.has(r.stage) ? false : (seen.add(r.stage), true)))
-    .sort((a, b) => rank(a.stage) - rank(b.stage));
+    .map((r) => {
+      const d = lessons.get(r.slug)!.data;
+      const secs = [d.explainer?.durationSec, ...(d.films ?? []).map((f) => f.durationSec)].filter((x): x is number => !!x);
+      return {
+        stage: r.stage,
+        stageTitle: r.stageTitle,
+        href: `/lessons/${r.slug}/`,
+        title: r.title,
+        note: r.adds ?? '',
+        filmMin: secs.length ? Math.max(1, Math.round(secs.reduce((n, x) => n + x, 0) / 60)) : null,
+        filmParts: secs.length,
+      };
+    });
 }
 
 /* The hand-checked activities the parents' door may show, one at a time. Each is done indoors in
@@ -59,7 +59,11 @@ const HOME_ACTIVITIES = [
   { slug: 'wake-up-a-seed', figure: 'wake-up-a-seed-two-bags.webp' },
   { slug: 'watershed-in-a-pan', figure: 'crumpled-paper-landscape.webp' },
 ];
-const WEEK = 7 * 24 * 60 * 60 * 1000;
+const DAY = 24 * 60 * 60 * 1000;
+const WEEK = 7 * DAY;
+/* Day 0 of the clock was a Thursday; three days on puts the weekly change on a Monday (UTC), so the
+   activity a parent shops for midweek is still the one on the page that weekend. */
+const weekOf = (t: number) => Math.floor((t + 3 * DAY) / WEEK);
 const SETTING: Record<string, string> = { indoors: 'indoors', outdoors: 'outdoors', either: 'indoors or out' };
 
 export async function homeData(now = new Date()) {
@@ -67,7 +71,6 @@ export async function homeData(now = new Date()) {
   const sum = (k: 'sims' | 'questions') => cards.reduce((n, c) => n + c[k], 0);
   const liveLessons = await getCollection('lessons', ({ data }) => !data.draft);
   const live = new Map(liveLessons.map((l) => [l.data.slug, l]));
-  const get = (slugs: string[] = []) => slugs.map((s) => live.get(s)).filter((l): l is Lesson => !!l);
 
   /* The levels, each with its courses and the first lesson of its first course, in that course's
      unit order (the order its course page lists). */
@@ -80,28 +83,34 @@ export async function homeData(now = new Date()) {
     .map((b) => ({ ...b, first: firstLesson(b.cards[0].c.slug) }));
   const lessonsIn = (slug: string) => cards.find((k) => k.c.slug === slug)?.lessons ?? 0;
 
-  /**
-   * One idea at every level it is taught, starting from a grade 7 lesson. Today the rungs are the
-   * links authored in the lessons' own frontmatter (`ladder.biology`, `ladder.college`), the only
-   * ladder data on main. When the hop graph is merged, this function is the one place to switch:
-   * return the concept's rungs from the graph in the same `Rung` shape and the page follows.
-   */
-  const ladderFrom = (slug: string): Rung[] => {
-    const start = live.get(slug);
-    if (!start) return [];
-    return byLevel([start, ...get(start.data.ladder?.biology), ...get(start.data.ladder?.college)]);
+  /** One idea at every level it is taught, from the hop graph (src/data/topic-graph.json). */
+  const ladderOf = async (id: string): Promise<{ name: string; rungs: Rung[] }> => {
+    const c = concept(id);
+    if (!c) throw new Error(`Homepage: the hop graph has no idea called "${id}".`);
+    return { name: c.name, rungs: byLevel(await ladder(id), live) };
   };
 
-  /** A Biology Together activity, then the grade 7 and high school lessons its own guide points up to. */
-  const ladderFromActivity = (l: Lesson): Rung[] => {
-    const up = get(l.data.activity?.stepUp).find((g) => get(g.data.ladder?.biology).length > 0);
-    return up ? byLevel([l, up, get(up.data.ladder?.biology)[0]]) : [];
+  /**
+   * Where an activity's idea is taught again, from the hop graph: the idea the activity is a core
+   * lesson of, and that idea's lessons at later levels. Null when the graph has no later lesson
+   * for it, and then the page says nothing about "later" for that activity.
+   */
+  const laterFrom = async (slug: string): Promise<{ name: string; rungs: Rung[] } | null> => {
+    for (const c of (await conceptsOf(slug)).filter((x) => x.role === 'core')) {
+      const all = await ladder(c.id);
+      const here = all.find((r) => r.slug === slug);
+      const later = byLevel(all.filter((r) => here && r.rank > here.rank && r.role === 'core'), live);
+      if (later.length) return { name: c.name, rungs: later };
+    }
+    return null;
   };
 
   /* The parents' activity: one from the hand-checked list, changing once a week (the week of the day
      the site was last built). The build stops if a listed guide stops fitting the list's rule. */
-  const pick = HOME_ACTIVITIES[Math.floor(now.getTime() / WEEK) % HOME_ACTIVITIES.length];
-  const featured = HOME_ACTIVITIES.map((h) => {
+  const week = weekOf(now.getTime());
+  const pick = HOME_ACTIVITIES[week % HOME_ACTIVITIES.length];
+  const before = HOME_ACTIVITIES[(week - 1 + HOME_ACTIVITIES.length) % HOME_ACTIVITIES.length];
+  const checked = HOME_ACTIVITIES.map((h) => {
     const l = live.get(h.slug);
     const a = l?.data.activity;
     const body = l?.body ?? '';
@@ -125,9 +134,10 @@ export async function homeData(now = new Date()) {
       materials: a.materials.map((m) => ({ text: m.replace(/\s*\(optional\)\s*$/, '').replace(/observation sheet below$/, 'observation sheet in the guide'), optional: /\(optional\)\s*$/.test(m) })),
       figure: { src, alt: alt.charAt(0).toUpperCase() + alt.slice(1) },
       underReview: l.data.underReview.length > 0,
-      ladder: ladderFromActivity(l),
     };
-  }).find((x) => x.slug === pick.slug)!;
+  });
+  const chosen = checked.find((x) => x.slug === pick.slug)!;
+  const featured = { ...chosen, later: await laterFrom(chosen.slug), lastWeek: checked.find((x) => x.slug === before.slug)! };
 
   /* The Virginia standards each school course's lessons carry, as a range ("LS.1 to LS.11"). */
   const standards = (course: string, prefix: string) => {
@@ -152,9 +162,11 @@ export async function homeData(now = new Date()) {
     /* Lessons whose text was rewritten (an entry that lists only a new film is not a rewrite). */
     rewrittenCount: (rewritten as { slug: string; new?: string[] }[]).filter((r) => live.has(r.slug) && (!r.new?.length || r.new.includes('text'))).length,
     lessonsIn,
-    ladderFrom,
+    ladderOf,
     featured,
     standards: { lifeScience: standards('life-science', 'LS'), biology: standards('high-school-biology', 'BIO') },
+    /** A lesson's first Virginia standard, for the teachers' one worked example. */
+    standardOf: (slug: string) => live.get(slug)?.data.ladder?.sol[0] ?? null,
   };
 }
 export type HomeData = Awaited<ReturnType<typeof homeData>>;

@@ -1,7 +1,8 @@
 ---
 /* The parents' door: one Biology Together activity a parent can start from this page, with its
-   time, what to gather and the grown-up's part, all read from the guide's own frontmatter. Then
-   where the same question goes in grade 7 and high school, from the links the guide itself carries. */
+   time, what to gather and the grown-up's part, all read from the guide's own frontmatter. Then,
+   when the hop graph has later lessons on the activity's idea, where that idea is taught again.
+   An activity with no later lesson in the graph shows no such block. */
 import { courseHref } from '../../data/courses';
 import RungList from './RungList.astro';
 import { CALENDAR_LINK } from './flags';
@@ -11,8 +12,8 @@ interface Props { d: HomeData }
 const { d } = Astro.props;
 const a = d.featured;
 const together = d.lessonsIn('biology-together');
-/* The card above is the first rung; the list shows where the question goes after it. */
-const later = a.ladder.slice(1);
+const later = a.later;
+const lowerFirst = (t: string) => t.charAt(0).toLowerCase() + t.slice(1);
 ---
 
 <section class="home-door" id="parents" data-door="parent" aria-labelledby="home-parent-h">
@@ -36,21 +37,24 @@ const later = a.ladder.slice(1);
         <figcaption>The set-up, from the guide. AI-generated illustration.</figcaption>
       </figure>
       <p class="home-act-need" id="home-act-need">You will need</p>
-      <ul class="home-act-list" aria-labelledby="home-act-need">
+      <ul class="home-act-list" role="list" aria-labelledby="home-act-need">
         {a.materials.map((m) => <li class={m.optional ? 'is-opt' : ''}>{m.text}{m.optional && ' (optional)'}</li>)}
       </ul>
       <p class="home-act-adult"><b>Your part.</b> {a.adult}</p>
       <p class="home-act-go">
         <a class="home-go" href={`/lessons/${a.slug}/`}>Open the activity guide</a>
-        <a class="home-quiet" href={courseHref('biology-together')}>All {together} activities →</a>
+        <a class="home-quiet" href={courseHref('biology-together')}>All {together} activities <span aria-hidden="true">→</span></a>
       </p>
+      {a.lastWeek.slug !== a.slug && (
+        <p class="home-act-last">Last week’s: <a href={`/lessons/${a.lastWeek.slug}/`}>{a.lastWeek.title}</a></p>
+      )}
     </article>
 
     <div class="home-pg-rest">
       <p class="home-p">
         Each guide has safety notes for the adult, placed before the steps. No lesson needs an account, there are
-        no ads, and no AI tutor talks to your child. AI models from more than one company checked this guide; a
-        person has not yet read every one.
+        no ads, and no AI tutor talks to your child. AI models from more than one company check the guides, and
+        I have not yet read them all myself.
         {a.underReview && <> Part of this one is still waiting for my check, and it carries an <a href="/under-review/">Under review</a> tag.</>}
       </p>
       {CALENDAR_LINK && (
@@ -58,14 +62,14 @@ const later = a.ladder.slice(1);
           <a href="/calendar/parent/">The calendar</a> puts one activity on the days that suit you, with one list of what to gather.
         </p>
       )}
-      {later.length > 0 && (
+      {later && (
         <div class="home-later">
-          <h3 class="home-h3">The same question, years later</h3>
+          <h3 class="home-h3">Where this goes later</h3>
           <p class="home-p">
-            This activity’s question comes back in grade 7 and again in high school. If you have an older child, or
-            you are curious yourself, this is where it goes.
+            This activity is the first lesson on one idea: {lowerFirst(later.name)}. Later courses teach the same
+            idea again. If you have an older child, or you are curious yourself, this is where it goes.
           </p>
-          <RungList rungs={later} label={`The question from ${a.title}, at ${word(later.length)} later levels`} />
+          <RungList rungs={later.rungs} label={`${later.name}, at ${word(later.rungs.length)} later ${later.rungs.length === 1 ? 'level' : 'levels'}`} />
         </div>
       )}
       <p class="home-p">

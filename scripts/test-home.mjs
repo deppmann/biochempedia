@@ -50,7 +50,12 @@ ok(!main.includes('Deppmann') && main.includes('href="/contributors/"'), 'the ho
 for (const href of ['/play/', '/methods/', '/fun/']) ok(main.includes(`href="${href}"`), `Things to try must link ${href}`);
 ok(/Open now/.test(main) && (main.match(/Coming</g) ?? []).length >= 4, 'Pick a subject must show Biology open and the coming subjects');
 
-for (const off of ['/plan/', '/teach/syllabus/', '/curious/']) ok(!main.includes(`href="${off}`), `the homepage must not link ${off} (switched off on the live site)`);
+const site = await readFile('src/data/site-flags.ts', 'utf8');
+const plannerOn = /export const PLANNER_TILE = true/.test(site);
+for (const off of [...(plannerOn ? [] : ['/plan/']), '/teach/syllabus/', '/curious/']) ok(!main.includes(`href="${off}`), `the homepage must not link ${off} (off, or not what the page says it is)`);
+if (!/export const IDEAS_LINK = true/.test(site)) ok(!html.includes('href="/ideas/"'), 'IDEAS_LINK is off, so no page chrome may link /ideas/');
+// The choice is never written into the address by the page's own script when it could be saved instead.
+ok(/autocomplete="off"/.test(radios.join('')), 'the role radios must not be restored by the browser (autocomplete="off")');
 if (!flagOn('CALENDAR_LINK')) ok(!main.includes('/calendar/'), 'CALENDAR_LINK is off, so the page must not link the calendar');
 if (!flagOn('SYLLABUS_BOX')) ok(!main.includes('<textarea'), 'SYLLABUS_BOX is off, so the page must not carry the syllabus box');
 if (flagOn('SYLLABUS_BOX')) ok(!(await readFile('src/lib/syllabus-match.ts', 'utf8')).includes('return { ready: false }'), 'SYLLABUS_BOX is on but src/lib/syllabus-match.ts is still the unbuilt stub');

@@ -26,6 +26,7 @@ import ParentsDoor from '../components/home/ParentsDoor.astro';
 import TeachersDoor from '../components/home/TeachersDoor.astro';
 import { fmt, homeData } from '../components/home/data';
 import { COMING_SUBJECTS } from '../data/subjects';
+import { PLANNER_TILE } from '../data/site-flags';
 import { feedbackUrl } from '../lib/feedback';
 import '../components/home/home.css';
 
@@ -40,10 +41,12 @@ const STATS = [
 ] as const;
 /* Things to try: the playful corners of the site (kept from the page before this one). */
 const TRY = [
-  { title: 'Metabolism Arcade', line: 'Six games from the Biochemistry course: wire the cell, fix a broken enzyme, and drill for the MCAT.', href: '/play/' },
+  { title: 'Metabolism Arcade', line: 'Six games from the Biochemistry course.', href: '/play/' },
   { title: 'The methods library', line: 'How scientists find things out.', href: '/methods/' },
-  { title: 'The Fun Stuff', line: 'Trading cards, memes, songs and a podcast, made by students in my biochemistry course (BIOL 3030).', href: '/fun/' },
+  { title: 'The Fun Stuff', line: 'Cards, memes and songs by my BIOL 3030 students.', href: '/fun/' },
+  ...(PLANNER_TILE ? [{ title: 'Study planner', line: 'Say what you want to learn and how much time you have.', href: '/plan/' }] : []),
 ];
+const comingLinks = COMING_SUBJECTS.filter((s) => s.link);
 ---
 
 <BaseLayout
@@ -62,12 +65,12 @@ const TRY = [
           <strong>Free</strong> biology lessons, films and simulations, from age 5 to graduate school, with more
           sciences on the way. No account, no ads.
         </p>
-        <div class="home-search"><SiteSearch label="Search every lesson" placeholder="Search: try “osmosis” or “vaccines”" /></div>
+        <div class="home-search"><SiteSearch label="Search every lesson" placeholder="Try “osmosis” or “vaccines”" /></div>
         {/* Filled from this device's own records; hidden on a first visit, without JavaScript, or
             when storage is blocked. */}
         <p class="home-resume" data-resume hidden>
           <span data-resume-text></span>
-          <a href="/progress/">Your progress →</a>
+          <a href="/progress/">Your progress <span aria-hidden="true">→</span></a>
         </p>
       </div>
     </section>
@@ -76,9 +79,9 @@ const TRY = [
     <fieldset class="home-roles">
       <legend>I’m a</legend>
       <div class="home-role-row">
-        <label class="home-role"><input type="radio" name="home-role" id="home-role-student" value="student" checked /><span>Student</span></label>
-        <label class="home-role"><input type="radio" name="home-role" id="home-role-parent" value="parent" /><span>Parent</span></label>
-        <label class="home-role"><input type="radio" name="home-role" id="home-role-teacher" value="teacher" /><span>Teacher</span></label>
+        <label class="home-role"><input type="radio" name="home-role" id="home-role-student" value="student" autocomplete="off" checked /><span>Student</span></label>
+        <label class="home-role"><input type="radio" name="home-role" id="home-role-parent" value="parent" autocomplete="off" /><span>Parent</span></label>
+        <label class="home-role"><input type="radio" name="home-role" id="home-role-teacher" value="teacher" autocomplete="off" /><span>Teacher</span></label>
       </div>
       <p class="home-said" role="status"><span class="visually-hidden" data-home-said></span><span aria-hidden="true" data-home-kept hidden>Saved on this device.</span></p>
     </fieldset>
@@ -115,7 +118,7 @@ const TRY = [
         </div>
         <div class="home-bio">
           <div class="home-bio-top"><h3>Biology</h3><span class="home-pill-live">Open now</span></div>
-          <ul class="home-stats">
+          <ul class="home-stats" role="list">
             {STATS.map(([n, label]) => <li><b>{fmt(n)}</b><span>{label}</span></li>)}
           </ul>
           <a class="home-go home-go-arc" href="/courses/">Start with biology <svg viewBox="0 0 26 12" aria-hidden="true"><path class="hop-arc" d="M1 11 Q13 -4 25 11" /></svg></a>
@@ -127,12 +130,14 @@ const TRY = [
           </div>
         ))}
       </div>
+      {/* The narrow layout of the same tiles: the names in one row, and the one note that carries a link. */}
       <p class="home-soon-row"><span class="home-soon-lbl">Coming</span>{COMING_SUBJECTS.map((s) => <span class="home-sc">{s.name}</span>)}</p>
+      <p class="home-soon-note">None of these is built yet.{comingLinks.map((s) => <>{' '}{s.link!.before}<a href={s.link!.href}>{s.link!.text}</a>{s.link!.after}</>)}</p>
     </section>
 
     <section class="home-try-sec" aria-labelledby="home-try-h">
       <h2 class="home-sec-h" id="home-try-h">Things to try</h2>
-      <ul class="home-try">
+      <ul class="home-try" role="list">
         {TRY.map((t) => <li><a href={t.href}><b>{t.title}</b><span>{t.line}</span></a></li>)}
       </ul>
     </section>
@@ -145,7 +150,7 @@ const TRY = [
         carry an <a href="/under-review/">Under review</a> tag.
         <a href={feedbackUrl()} target="_blank" rel="noopener">See something wrong? Tell me</a> ·
         <a href="/about/#work-in-progress">How it’s made and checked</a> ·
-        <a href="/updates/">What’s new, including {fmt(d.rewrittenCount)} rewritten lessons</a> ·
+        <a href="/updates/">What’s new</a> ·
         <a href="/contributors/">Who made it</a>
       </p>
     </section>
