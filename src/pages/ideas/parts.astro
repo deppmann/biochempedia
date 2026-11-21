@@ -1,0 +1,54 @@
+---
+/* The small forms of the hop, on real lessons, for whoever puts them on a film card, a search
+   result or a study path (src/components/hop/). Not linked from the site and kept out of search
+   engines: it is a reference sheet, not a page for readers. */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import '../../styles/hop.css';
+import Ladder from '../../components/hop/Ladder.astro';
+import HopCompact from '../../components/hop/HopCompact.astro';
+import HopTrio from '../../components/hop/HopTrio.astro';
+import { idea, allIdeas } from '../../lib/hop';
+import { taughtAt } from '../../lib/hop-words.mjs';
+
+const pick = async (id: string) => (await idea(id))!;
+const osmosis = await pick('osmosis');
+const touch = await pick('touch');
+const ngf = await pick('nerve-growth-factor');
+// A real idea whose ladder has two lessons on one rung, and one with a level missing in the middle.
+const two = (await allIdeas()).find((i) => i.rungs.length >= 3 && i.rungs.some((r, k) => k > 0 && r.rank === i.rungs[k - 1].rank)) ?? osmosis;
+---
+<BaseLayout title="The hop, in its small forms — STEMhop" description="Reference sheet for the ladder, the one-line form and the simpler, this step, deeper trio." noindex>
+  <article class="wrap ideas">
+    <div class="ideas-col">
+      <p class="ideas-crumb"><a href="/ideas/">Find an idea</a></p>
+      <h1>The hop, in its small forms</h1>
+      <p class="ideas-lede">A reference sheet for builders. Readers meet these on lessons, films and study paths.</p>
+
+      <h2 class="ideas-sec">Full: the ladder that houses the material</h2>
+      <div class="ideas-parts-eg"><p class="ideas-note">Four levels, read from a high school lesson. {taughtAt(osmosis.mask)}</p><Ladder idea={osmosis} here="crossing-the-membrane" window={false} /></div>
+      <div class="ideas-parts-eg"><p class="ideas-note">The same, as a lesson's panel opens it: the reader's rung and the nearest rung each way.</p><Ladder idea={osmosis} here="crossing-the-membrane" hex={false} /></div>
+      <div class="ideas-parts-eg"><p class="ideas-note">A gap of several levels, no reader. {taughtAt(touch.mask)}</p><Ladder idea={touch} hex={false} /></div>
+      <div class="ideas-parts-eg"><p class="ideas-note">One level only. {taughtAt(ngf.mask)}</p><Ladder idea={ngf} hex={false} /></div>
+      <div class="ideas-parts-eg"><p class="ideas-note">Two lessons on one rung: {two.name}.</p><Ladder idea={two} hex={false} facts={false} /></div>
+
+      <h2 class="ideas-sec">Compact and tiny: the ladder as a mark</h2>
+      <div class="ideas-parts-eg">
+        <p class="ideas-note">Compact (20 by 44), then tiny (14 by 31): four levels with a reader at high school, a gap, one level.</p>
+        <p style="display:flex; gap:1.5rem; align-items:flex-end">
+          <Ladder size="compact" mask={osmosis.mask} hereRank={2} /><Ladder size="compact" mask={touch.mask} /><Ladder size="compact" mask={ngf.mask} hereRank={6} />
+          <Ladder size="tiny" mask={osmosis.mask} hereRank={2} /><Ladder size="tiny" mask={touch.mask} /><Ladder size="tiny" mask={ngf.mask} />
+        </p>
+      </div>
+
+      <h2 class="ideas-sec">One line, for a film card or a search result</h2>
+      <div class="ideas-parts-eg"><HopCompact id="osmosis" name={osmosis.name} mask={osmosis.mask} here={2} /></div>
+      <div class="ideas-parts-eg"><HopCompact id="touch" name={touch.name} mask={touch.mask} /></div>
+      <div class="ideas-parts-eg"><HopCompact id="nerve-growth-factor" name={ngf.name} mask={ngf.mask} here={ngf.rungs[0].rank} /></div>
+
+      <h2 class="ideas-sec">Simpler, this step, deeper: for a study-path step or beside a film</h2>
+      <div class="ideas-parts-eg"><HopTrio slug="crossing-the-membrane" id="osmosis" /></div>
+      <div class="ideas-parts-eg"><p class="ideas-note">No simpler lesson: that side is left out.</p><HopTrio slug="diffusion-and-osmosis" id="osmosis" /></div>
+      <div class="ideas-parts-eg"><p class="ideas-note">Beside a film.</p><HopTrio slug={touch.rungs[touch.rungs.length - 1].slug} id="touch" label="This film" /></div>
+    </div>
+  </article>
+</BaseLayout>
