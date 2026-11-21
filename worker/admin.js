@@ -73,7 +73,8 @@
 // people twice. They are reported as separate lines.
 
 import { sha256Hex, readCookie } from './auth.js';
-import { DAY, clientKey, allow } from './util.js';
+import { DAY, clientKey, allow, adminEmails } from './util.js';
+export { adminEmails };
 import { loadUsageCatalog } from './usage-catalog.js';
 import { filmCountsReady, siteDay } from './film-count.js';
 import { roleReady, sessionMethodReady, LEARNER_COOKIE } from './learner.js';
@@ -473,12 +474,6 @@ export async function dailyReply(db, env, request, now = Date.now()) {
 //
 // A request that carries neither a well-formed learner cookie nor a Bearer header does no
 // database work at all.
-
-/** The addresses in ADMIN_EMAILS that are plain, whole email addresses, lower-cased. Empty means nobody. */
-export function adminEmails(env) {
-  return String(typeof env.ADMIN_EMAILS === 'string' ? env.ADMIN_EMAILS : '').split(',')
-    .map((e) => e.trim().toLowerCase()).filter((e) => /^[^\s@,<>"]+@[^\s@,<>"]+\.[a-z]{2,}$/.test(e));
-}
 
 /** True for a GET that this site's own page made. A browser says where a request came from; a cross-site one is refused. */
 function fromThisSite(request, url) {

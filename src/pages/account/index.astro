@@ -69,6 +69,8 @@ import '../../styles/teach.css';
     <section data-in hidden>
       <p class="tc-lede">Signed in as <strong data-name></strong><span data-email></span>.</p>
       <p class="tc-muted" data-synced></p>
+      <p class="acct-aside" data-aside-note hidden>Notes from another account on this browser were set aside. They come back when that account signs in here. <span class="tc-muted">At most three accounts' notes are kept aside on one browser; a fourth pushes out the oldest. Signing out with "Also remove my notes and progress from this device" ticked removes them all.</span></p>
+      <p class="acct-aside" data-aside-full role="status" hidden></p>
       <div class="tc-row">
         <button class="tc-btn" type="button" data-sync>Sync now</button>
         <span class="tc-ok" data-sync-msg role="status"></span>
@@ -121,6 +123,9 @@ import '../../styles/teach.css';
 <style is:global>
   .acct .acct-choices { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: var(--ddp-space-4); margin-top: var(--ddp-space-5); }
   .acct .acct-choices h2 { margin-top: 0; }
+  /* Two quiet lines about another account's notes on this browser. Plain text on the page's own ground, so they read in light and dark. */
+  .acct .acct-aside { max-width: 64ch; margin: var(--ddp-space-3) 0 var(--ddp-space-4); padding-left: var(--ddp-space-3); border-left: 3px solid var(--ddp-color-secondary); font-size: var(--ddp-text-sm); color: var(--ddp-color-ink); }
+  .acct .acct-aside .tc-muted { display: block; margin-top: 0.25rem; }
   .acct .acct-new { margin-top: var(--ddp-space-5); }
   .acct .acct-age { display: flex; gap: 0.6rem; align-items: center; margin-top: var(--ddp-space-5); font-weight: 600; }
   .acct .acct-age input, .acct .tc-check input { width: 20px; height: 20px; flex: none; }
@@ -140,7 +145,7 @@ import '../../styles/teach.css';
 <script>
   import {
     getMe, syncNow, registerPasskey, signInWithPasskey, googleStartUrl, signOut, deleteAccount,
-    passkeysSupported, lastSyncAt, EXPORT_URL, setRole, holdRole, takeHeldRole, type Me,
+    passkeysSupported, lastSyncAt, otherAccountsNotesHere, setAsideFailed, SET_ASIDE_FAILED, LEARNER_EVENT, EXPORT_URL, setRole, holdRole, takeHeldRole, type Me,
   } from '../../lib/learner';
   import { isRole, type Role } from '../../lib/prefs';
   import { enrolled } from '../../lib/classroom';
@@ -154,6 +159,7 @@ import '../../styles/teach.css';
     'google-cancel': 'Google sign-in was cancelled.',
     'google-failed': 'Google sign-in did not work. Please try again.',
     'google-in-use': 'That Google account is already on a different STEMhop account.',
+    'google-link-owner': 'That Google account can’t be added to this account. Sign out, then choose Sign in with Google.',
     age: 'Please tick "I am 13 or older" before making an account.',
     busy: 'Too many tries from here. Wait a minute and try again.',
   };
@@ -213,6 +219,15 @@ import '../../styles/teach.css';
     else { msg.className = 'tc-error'; msg.textContent = r.error; }
   });
 
+  /** The two quiet lines about another account's notes on this browser. Also repainted after an automatic sync. */
+  function paintAside() {
+    show($('[data-aside-note]'), otherAccountsNotesHere());
+    const full = $('[data-aside-full]');
+    full.textContent = setAsideFailed() ? SET_ASIDE_FAILED : '';
+    show(full, setAsideFailed());
+  }
+  window.addEventListener(LEARNER_EVENT, paintAside);
+
   function renderIn(me: Me) {
     show($('[data-out]'), false);
     show($('[data-in]'), true);
@@ -220,6 +235,7 @@ import '../../styles/teach.css';
     $('[data-name]').textContent = me.name || '';
     $('[data-email]').textContent = me.email ? ` (${me.email})` : '';
     $('[data-synced]').textContent = `Last synced: ${when(lastSyncAt() ?? me.lastSynced)}.`;
+    paintAside();
     const m = me.methods || [];
     const parts = [];
     if (m.includes('google')) parts.push('Google');
@@ -287,6 +303,7 @@ import '../../styles/teach.css';
     if (r.ok) {
       msg.textContent = r.changed ? 'Synced. New items from your other devices are here now.' : 'Synced. Everything is up to date.';
       $('[data-synced]').textContent = `Last synced: ${when(r.at)}.`;
+      paintAside();
     } else { msg.className = 'tc-error'; msg.textContent = r.error; }
   });
   $('[data-add-pk]').addEventListener('click', async () => {
