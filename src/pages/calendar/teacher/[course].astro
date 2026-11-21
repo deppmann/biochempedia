@@ -1,0 +1,22 @@
+---
+/* /calendar/teacher/ (high school Biology) and /calendar/teacher/<course>/: a SAMPLE class plan
+   by date. Nothing here touches a real class. The real plan belongs inside /teach/class/ as a
+   "By date" tab and is not built yet. Drawn here as the course in order with its standards;
+   the browser lays it on the days the teacher sets. */
+import CalendarShell from '../../../components/CalendarShell.astro';
+import { teacherCourses } from '../../../lib/calendar/data';
+import type { CourseData } from '../../../lib/calendar/engine';
+import { renderTeacher } from '../../../lib/calendar/render';
+
+export async function getStaticPaths() {
+  const all = await teacherCourses();
+  const choices = all.map((c) => ({ s: c.s, t: c.t, level: c.level }));
+  return all.map((course) => ({ params: { course: course.s }, props: { course, choices } }));
+}
+interface Props { course: CourseData; choices: { s: string; t: string; level: string }[] }
+const { course, choices } = Astro.props;
+const isDefault = false;
+const html = renderTeacher(course, choices, undefined, {});
+---
+<CalendarShell title={`A sample class plan by date: ${course.t}`} role="teacher" html={html} data={{ course, choices }} isDefault={isDefault}
+  description={`A sample class plan for ${course.t}: the lessons laid on the days your class meets, with breaks and the standard each lesson serves. It prints. Nothing is saved to a class.`} />
