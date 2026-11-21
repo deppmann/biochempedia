@@ -27,6 +27,14 @@ export interface Contributor {
 }
 
 export const CONTRIBUTORS: Contributor[] = [
+  /* Chris asked on 2026-11-21 for his credit to live here, with everyone else, and not on the homepage. */
+  {
+    name: 'Chris Deppmann',
+    role: 'Chooses what goes in, directs the AI that drafts the lessons, films and questions, and decides what gets fixed. Professor of biology at the University of Virginia.',
+    since: '2026-06',
+    areas: ['Lessons', 'Films', 'Fixes'],
+    confirmed: true,
+  },
   {
     name: 'Nolan Rehrig',
     role: 'Reviews and shapes the MCAT-style practice questions, reading them as someone who recently learned the material. Also fixed parts of the site itself, including the figure pop-up and the Explore rail, and tested the metabolism games.',
