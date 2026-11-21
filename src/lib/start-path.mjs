@@ -6,11 +6,12 @@
    - Honest minutes. A film counts its own length; a skim and a whole lesson count the figure the
      lesson page itself prints. The total is the sum of the steps and nothing else.
    - The three lengths are the lesson page's own stops: skim, films, lesson.
-   - A path is two to five steps where the lessons allow it, and never padded.
+   - A path is one to five steps, and never padded.
+   - An activity for ages 5 to 10 is always its guide, where the safety notes are; never its film alone.
    - When the reader's level has no lesson on the idea, the path uses the nearest level and says so.
    - Nothing is counted, scored or queued: the path is a list of links. */
 import { LEVEL_SHORT } from './hop-words.mjs';
-import { pickRungs, defaultLevel } from './syllabus-match.mjs';
+import { pickRungs, defaultLevel, LEVEL_AT } from './syllabus-match.mjs';
 
 export const TIMES = ['skim', 'films', 'lesson'];
 export const MAX_STEPS = 5;
@@ -65,16 +66,18 @@ export function levelFor(rungs, asked) {
 const mmss = (s) => `${Math.floor(s / 60)}:${String(Math.round(s) % 60).padStart(2, '0')}`;
 
 function stepsFor(rung, time, room) {
-  const steps = [];
-  const guide = rung.rank === 0;
   const film = (f) => ({ kind: 'film', title: f.title, href: f.href, sec: f.sec, length: mmss(f.sec) });
-  const whole = { kind: guide ? 'activity' : 'lesson', title: rung.title, href: `/lessons/${rung.slug}/?time=lesson`, sec: rung.whole * 60, length: `${rung.whole} min`, slug: rung.slug, ...(rung.anchor && !guide ? { part: `/lessons/${rung.slug}/#${rung.anchor}` } : {}) };
+  // An activity for ages 5 to 10 is always the guide itself, whatever the time: the guide carries the
+  // safety notes and the grown-up's part, and its set-up film is at its top. The film alone is never the path.
+  if (rung.rank === 0) {
+    return rung.whole ? [{ kind: 'activity', title: rung.title, href: `/lessons/${rung.slug}/`, sec: rung.whole * 60, length: `${rung.whole} min`, slug: rung.slug, ...(rung.films[0] ? { filmLength: mmss(rung.films[0].sec) } : {}) }] : [];
+  }
+  const whole = { kind: 'lesson', title: rung.title, href: `/lessons/${rung.slug}/?time=lesson`, sec: rung.whole * 60, length: `${rung.whole} min`, slug: rung.slug, ...(rung.anchor ? { part: `/lessons/${rung.slug}/#${rung.anchor}` } : {}) };
   const skim = rung.skim ? { kind: 'skim', title: rung.title, href: `/lessons/${rung.slug}/?time=skim`, sec: rung.skim * 60, length: `${rung.skim} min`, slug: rung.slug } : null;
   if (time === 'lesson' || (!skim && !rung.films.length)) return rung.whole ? [whole] : [];
-  // An activity guide has no skim: its short version is its set-up film alone.
-  if (guide) return rung.films.slice(0, 1).map(film);
-  const n = time === 'skim' ? 1 : Math.max(1, room - 1);
-  for (const f of rung.films.slice(0, n)) steps.push(film(f));
+  // "A few minutes" is the shortest true thing: the skim alone, or the first film where there is no skim.
+  if (time === 'skim') return [skim ?? film(rung.films[0])];
+  const steps = rung.films.slice(0, Math.max(1, room - 1)).map(film);
   if (skim) steps.push(skim);
   return steps.slice(0, room);
 }
@@ -106,7 +109,7 @@ export function buildPath(ideas, o = {}) {
   const beside = pickRungs(main.rungs, at.rank);
   const side = (r) => (r ? { slug: r.slug, title: r.title, rank: r.rank, level: LEVEL_SHORT[r.rank], adds: r.adds, href: `/lessons/${r.slug}/`, minutes: r.whole, film: r.films[0] ? { href: r.films[0].href, length: mmss(r.films[0].sec), title: r.films[0].title } : null } : null);
   return {
-    time, rank: at.rank, level: LEVEL_SHORT[at.rank] ?? '', moved: at.moved, asked: o.level ?? null,
+    time, rank: at.rank, level: LEVEL_SHORT[at.rank] ?? '', levelAt: LEVEL_AT[at.rank] ?? '', moved: at.moved, asked: o.level ?? null,
     steps: paths[time].steps, minutes: paths[time].minutes,
     stops: Object.fromEntries(TIMES.map((t) => [t, paths[t].minutes])),
     down: side(beside.down[0]), up: side(beside.up[0]),

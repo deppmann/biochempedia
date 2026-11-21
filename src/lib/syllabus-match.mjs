@@ -27,6 +27,11 @@
 import { fold } from './topic-graph-core.mjs';
 import { SYNONYMS } from './syllabus-synonyms.mjs';
 
+/* A level inside a sentence. Written out per level, because the names do not all take the same
+   words: "at grade 7 level", but "in a first college course" and "for ages 5 to 10". */
+export const LEVEL_AT = ['for ages 5 to 10', 'at grade 7 level', 'at high school level', 'in a first college course', 'in the college core', 'in upper-level college courses', 'at graduate level'];
+export const LEVEL_CLASS = ['a class of children aged 5 to 10', 'a grade 7 class', 'a high school class', 'a first college course', 'a college core course', 'an upper-level college course', 'a graduate course'];
+
 export const SURE = 0.74;
 export const MAYBE = 0.5;
 const LEAD_RARE = 0.76;
@@ -37,7 +42,7 @@ const STOP = new Set(('a an the of in on to do does did is are was were and or h
   + 'for with from at by be been being get gets can could would should will that this these those into about so me us our their they them there as if '
   + 'not no some any thing things really actually exactly mean means happen happens work works working make makes made vs versus than then '
   + 'have has had come comes go goes making use uses used need needs let lets tell explain understand know learn want trying try like just also very much many '
-  + 'between through during after before under over up down out off again still even each every all both other another such per via am im s t dont doesnt').split(' '));
+  + 'between through during after before under over up down out off again still even each every all both other another such per via am im dont doesnt people person someone').split(' '));
 
 /** A word's plural-free form: cells → cell, viruses → virus, bodies → body. */
 export function stem(w) {
@@ -59,7 +64,7 @@ const ROOTS = {
   evolve: 'evolu', evolved: 'evolu', evolving: 'evolu', evolution: 'evolu', evolutionary: 'evolu', inherit: 'inherit', inherited: 'inherit', heredity: 'inherit', hereditary: 'inherit',
   organ: 'organ', organism: 'organism', organic: 'organic', organelle: 'organell', organization: 'organiz', organize: 'organiz', organized: 'organiz',
   muscle: 'muscl', muscular: 'muscl', nerve: 'nerv', nervous: 'nerv', neural: 'neur', neuron: 'neuron', neuronal: 'neuron', neurone: 'neuron',
-  autumn: 'fall', fall: 'fall', tire: 'tire', tired: 'tire', tiring: 'tire', tires: 'tire',
+  autumn: 'fall', fall: 'fall', mom: 'parent', mum: 'parent', mother: 'parent', dad: 'parent', father: 'parent', parent: 'parent', parents: 'parent', moms: 'parent', dads: 'parent', tire: 'tire', tired: 'tire', tiring: 'tire', tires: 'tire',
   breathe: 'breath', breathing: 'breath', breath: 'breath', respire: 'respir', respiration: 'respir', respiratory: 'respir',
   die: 'death', dies: 'death', dying: 'death', dead: 'death', death: 'death', sight: 'vision', vision: 'vision', visual: 'vision',
   hear: 'hear', hearing: 'hear', smell: 'smell', taste: 'taste', eat: 'eat', eating: 'eat', food: 'food', grow: 'grow', growth: 'grow', growing: 'grow',
@@ -116,7 +121,9 @@ function twoSlips(a, b) {
 /** The words of a text that carry meaning: [{ w: as folded, s: stem, r: root }]. */
 export function tokens(text) {
   const out = [];
-  for (const w of fold(text).split(' ')) {
+  // "don't" and "mom's" lose their endings before folding, so no stray "t" or "s" is left as a word.
+  const plain = String(text ?? '').replace(/n[’']t\b/gi, ' not').replace(/[’']s\b/gi, '');
+  for (const w of fold(plain).split(' ')) {
     if (!w || STOP.has(w)) continue;
     const s = stem(w);
     if (STOP.has(s)) continue;
@@ -141,9 +148,12 @@ function wordFit(q, t) {
  * @typedef {{ toks: { w: string, s: string, r: string }[], idea: number, kind: 'name' | 'phrase' | 'textbook' | 'lesson' | 'asked', weight: number, text: string, slug?: string, whole: boolean }} Term
  */
 
-const KIND_WEIGHT = { name: 1, textbook: 0.97, phrase: 0.96, part: 0.92, lesson: 0.9, asked: 0.8, half: 0.77 };
+/* `half` (one side of a compound name, or an example in its brackets) is under SURE on purpose: "genes" from
+   "Genes and environment" and "depression" from "Long-term potentiation and depression" may be offered as
+   a closest idea, never given as the answer. `idword` is the idea's id read as words. */
+const KIND_WEIGHT = { name: 1, textbook: 0.97, phrase: 0.96, part: 0.92, idword: 0.92, lesson: 0.9, asked: 0.8, half: 0.72 };
 /* For a syllabus a loose reading is not good enough: a lesson's search phrase or half a name may suggest, never decide. */
-const STRICT_WEIGHT = { ...KIND_WEIGHT, asked: 0.7, half: 0.72 };
+const STRICT_WEIGHT = { ...KIND_WEIGHT, asked: 0.7 };
 
 /** The parts of a name: "Cell division (mitosis)" → whole ["Cell division (mitosis)", "Cell division"], part ["mitosis"].
  *  A bracket that lists examples ("(cadherins and integrins)") and the halves of an "and" name are `half`: hints, not names. */
@@ -182,9 +192,11 @@ export function buildMatcher(g, lessonFile, extra = null) {
   const add = (idea, kind, text, slug, whole = true) => {
     const toks = tokens(text);
     if (!toks.length || toks.length > 12) return;
-    // "What do plants need?" is not the word "plants": a phrase the small words reduce to one word is left out.
-    if (toks.length === 1 && kind !== 'textbook' && fold(text).split(' ').length >= 3) return;
-    terms.push({ toks, idea, kind, text, whole, ...(slug ? { slug } : {}) });
+    // "What do plants need?" is not the word "plants": a title the small words reduce to one word is left out,
+    // and a phrase reduced to one word is kept only when that word is rare ("what do ribosomes do"), see below.
+    const reduced = toks.length === 1 && kind !== 'textbook' && fold(text).split(' ').length >= 3;
+    if (reduced && (kind === 'lesson' || kind === 'name')) return;
+    terms.push({ toks, idea, kind, text, whole, ...(reduced ? { reduced } : {}), ...(slug ? { slug } : {}) });
   };
   const leads = [];
   g.concepts.forEach((c, i) => {
@@ -194,7 +206,7 @@ export function buildMatcher(g, lessonFile, extra = null) {
     for (const p of parts.half) add(i, 'half', p);
     if (parts.lead) leads.push([i, parts.lead]);
     if (c.h && c.h !== c.n) add(i, 'part', c.h);
-    add(i, 'part', c.id.replace(/-/g, ' '));
+    add(i, 'idword', c.id.replace(/-/g, ' '));
     for (const a of c.q) add(i, 'phrase', a);
     for (const s of SYNONYMS[c.id] ?? []) add(i, 'textbook', s);
   });
@@ -218,26 +230,28 @@ export function buildMatcher(g, lessonFile, extra = null) {
   const maxIdf = Math.log(1 + N);
   // Rarity is squeezed into 0.4 to 1, so a common word ("plant") still counts: a phrase that shares only
   // the rare word of a two-word question does not explain the question.
-  const weightOf = (tok) => (0.4 + 0.6 * (idf.get(tok.r) ?? maxIdf) / maxIdf) * (GENERIC.has(tok.r) ? 0.3 : 1);
+  const fullWeight = (tok) => 0.4 + 0.6 * (idf.get(tok.r) ?? maxIdf) / maxIdf;
+  const weightOf = (tok) => fullWeight(tok) * (GENERIC.has(tok.r) ? 0.3 : 1);
+  for (let k = terms.length - 1; k >= 0; k--) if (terms[k].reduced && weightOf(terms[k].toks[0]) < 0.75) terms.splice(k, 1);
   // root → terms, and every indexed token once, for words typed with a slip.
   const byRoot = new Map();
   terms.forEach((t, ti) => { for (const k of new Set(t.toks.map((x) => x.r))) { if (!byRoot.has(k)) byRoot.set(k, []); byRoot.get(k).push(ti); } });
   const vocab = new Map();
   for (const t of terms) for (const k of t.toks) if (!vocab.has(k.s)) vocab.set(k.s, k);
-  for (const t of terms) t.sum = t.toks.reduce((n, k) => n + weightOf(k), 0);
+  for (const t of terms) { t.sum = t.toks.reduce((n, k) => n + weightOf(k), 0); t.full = t.toks.reduce((n, k) => n + fullWeight(k), 0); }
   // A leading half counts as a name when it is a rare word or a phrase ("homeostasis", "blood flow"), not a common one ("genes").
   for (const [i, text] of leads) {
     const tk = tokens(text);
     if (!tk.length || /^(how|why|what|switching|forward|grades)\b/i.test(text) || (tk.length === 1 && weightOf(tk[0]) < LEAD_RARE)) continue;
     const t = { toks: tk, idea: i, kind: 'part', text, whole: true };
-    t.sum = tk.reduce((n, k) => n + weightOf(k), 0);
+    t.sum = tk.reduce((n, k) => n + weightOf(k), 0); t.full = tk.reduce((n, k) => n + fullWeight(k), 0);
     terms.push(t);
     for (const k of new Set(tk.map((x) => x.r))) { if (!byRoot.has(k)) byRoot.set(k, []); byRoot.get(k).push(terms.length - 1); }
   }
   // Every word of an idea's own names, for "this piece is already inside that idea".
   const own = ideas.map(() => new Set());
-  for (const t of terms) if (t.kind === 'name' || t.kind === 'part' || t.kind === 'textbook') for (const k of t.toks) own[t.idea].add(k.r);
-  return { ideas, byId, terms, byRoot, vocab: [...vocab.values()], weightOf, own, single: new Set(terms.filter((t) => t.toks.length === 1 && (t.kind === 'name' || t.kind === 'part' || t.kind === 'textbook')).map((t) => t.toks[0].r)), maxIdf: 1, coreOf: g.lessons ?? {}, minutes: extra?.lessons ?? {}, areas: g.areas, stages: g.stages };
+  for (const t of terms) if (t.kind === 'name' || t.kind === 'part' || t.kind === 'idword' || t.kind === 'textbook') for (const k of t.toks) own[t.idea].add(k.r);
+  return { ideas, byId, terms, byRoot, vocab: [...vocab.values()], weightOf, fullWeight, own, single: new Set(terms.filter((t) => t.toks.length === 1 && (t.kind === 'name' || t.kind === 'part' || t.kind === 'idword' || t.kind === 'textbook')).map((t) => t.toks[0].r)), maxIdf: 1, coreOf: g.lessons ?? {}, minutes: extra?.lessons ?? {}, areas: g.areas, stages: g.stages };
 }
 
 // ------------------------------------------------------------------ matching one piece of text
@@ -272,18 +286,27 @@ export function matchText(m, text, limit = 5, strict = false) {
     // The share of the text the term explains, and of the term the text explains.
     let qHit = 0, exactAll = true;
     for (const qt of q) { let b = 0; for (const tt of t.toks) { const f = wordFit(qt, tt); if (f > b) b = f; } qHit += b * m.weightOf(qt); if (b < 0.9) exactAll = false; }
-    let tHit = 0, tAll = true;
-    for (const tt of t.toks) { let b = 0; for (const qt of q) { const f = wordFit(qt, tt); if (f > b) b = f; } tHit += (b >= 0.6 ? 1 : 0) * m.weightOf(tt); if (b < 0.9) tAll = false; }
+    let tHit = 0, tFull = 0, tAll = true, tSeen = 0;
+    for (const tt of t.toks) { let b = 0; for (const qt of q) { const f = wordFit(qt, tt); if (f > b) b = f; } if (b >= 0.6) { tHit += m.weightOf(tt); tFull += m.fullWeight(tt); tSeen++; } if (b < 0.9) tAll = false; }
     const qCov = qHit / qSum, tCov = tHit / (t.sum || 1);
     let fit = qCov * tCov;
     // A question may carry a few extra words the phrase lacks ("…in the fall"): soften the term side a little.
     if (!strict) fit = Math.max(fit, qCov * (0.4 + 0.6 * tCov) * 0.97);
+    const one = t.toks.length === 1;
     // The whole term sits inside a longer line, in order: "Ch 7 membranes: diffusion and osmosis".
-    if (tAll && !exactAll && (t.kind === 'name' || t.kind === 'textbook' || ((t.kind === 'lesson' || t.kind === 'phrase' || t.kind === 'part') && t.toks.length >= 2)) && inOrder(q, t.toks)) {
+    if (tAll && !exactAll && (t.kind === 'name' || t.kind === 'textbook' || ((t.kind === 'lesson' || t.kind === 'phrase' || t.kind === 'part' || t.kind === 'idword') && t.toks.length >= 2)) && inOrder(q, t.toks)) {
       const specific = t.toks.some((k) => !GENERIC.has(k.r) && m.weightOf(k) >= 0.7);
       const inside = (t.toks.length >= 2 ? 0.95 : specific ? 0.9 : 0.55) * (0.55 + 0.45 * Math.min(1, qCov * 2.2));
       if (inside > fit) fit = inside;
     }
+    // One word must not decide a longer question about something else: "the eye" does not answer "why are
+    // my eyes blue". A one-word term is an answer only when it is most of what was typed.
+    if (!strict && one && q.length > 1 && qCov < 0.6) fit = Math.min(fit, 0.7);
+    // And one typed word is an answer only when it is the term, near enough: "size" is not "the size principle".
+    if (!strict && q.length === 1 && tFull / (t.full || 1) < 0.85) fit = Math.min(fit, 0.7);
+    // For a syllabus, a term of several words that shares only one of them ("how much of the body is water",
+    // for "water") suggests; it does not decide.
+    if (strict && t.toks.length >= 2 && tSeen === 1) fit = Math.min(fit, 0.7);
     const score = fit * W[t.kind];
     if (score < 0.3) continue;
     const own = t.slug ? 0 : score;
@@ -328,6 +351,39 @@ function inOrder(q, toks) {
   return false;
 }
 
+// ------------------------------------------------------------------ questions this page must not answer
+
+/* Children and teenagers use this box. A question about their own health, feelings, body or safety
+   is not a biology search, and a word match on it can be absurd or harmful ("depression" is also
+   the name of a change at synapses). Such a question gets one calm, fixed reply and no lesson.
+   `crisis` is the smaller set where the reply also names a place to get help now.
+   The patterns lean toward catching too much: a missed lesson costs less than a wrong one here.
+   Biology's own uses of the words stay open ("cell death", "critical period", "sex linkage"). */
+const CRISIS = /\b(suicid\w*|kill (myself|my self|me)|hurt(ing)? (myself|my self)|harm(ing)? (myself|my self)|self[- ]?harm\w*|cut(ting)? myself|want to die|wanna die|end my life|don'?t want to (live|be alive)|nobody (loves|likes) me|being (abused|hit|touched)|(hits?|touche[sd]|abuses?) me|run away from home)\b/i;
+const PERSONAL = new RegExp([
+  '\\b(depress(ed|ion|ing)?|anxi(ety|ous)|panic attacks?|lonely|sad all|feel(ing)? (so |very |really )?(sad|empty|worthless|hopeless|scared|ugly|fat)|hate my(self| body)|eating disorders?|anorexi\\w*|bulimi\\w*|am i (fat|ugly|sick|dying|pregnant|gay|normal|depressed|autistic)|lose weight|too (fat|thin|skinny))\\b',
+  '\\b(addict\\w*|get(ting)? high|drunk|alcohol|vap(e|es|ing)|weed|marijuana|cigarettes?|smoking|drugs? and|overdos\\w*|steroids)\\b',
+  '\\b(sex|puberty|my period|a period|have (a |my )?periods?|get (a |my )?periods?|periods? (start|hurt|late)|wet(ting)? the bed|masturbat\\w*|porn\\w*|virgin\\w*|condoms?|birth control|abortion\\w*|having sex|sex ed\\w*|sex education|sexual (health|abuse|assault|orientation)|(am i|is he|is she) (gay|trans)|pregnan(t|cy) (test|at|teen)|get(ting)? pregnant)\\b',
+  '\\b((where|how) (do|are) babies|babies (come from|get made|are made|made)|make a baby|twins? (made|happen|born))\\b',
+  '\\b(when (you|we|i|people|someone) die|after (you|we|i) die|happens when (you|we|i|people) die|am i going to die|will i die|(mom|dad|mum|grandma|grandpa|dog|cat|pet|friend) (died|is dying|dying))\\b',
+  '\\b(tell my (parents?|mom|dad|mum|teacher)|my (parents?|mom|dad) (fight|hit|yell|drink)|bull(y|ied|ying|ies))\\b',
+  '\\b(cause[sd]? autism|(is|are) [\\w ]{2,30} (safe|dangerous|bad for (you|me)|good for (you|me))|safe to|should i (take|stop|eat|see|get|go|tell)|side effects?|dos(e|age)|how much \\w+ (should|can) i|cure for|home remed\\w*|medicine for|pills? for|diagnos\\w*)\\b',
+].join('|'), 'i');
+/* Biology's own phrases that contain one of the words above. */
+const NOT_PERSONAL = /\b(long[- ]term depression|synaptic depression|cell death|programmed cell death|critical periods?|refractory periods?|latent period|sexual (reproduction|selection|dimorphism)|sexual differentiation|sex[- ]link\w*|sex chromosomes?|sex determination|sex cells?|sex ratios?|sex hormones?)\b/i;
+
+/* In a syllabus only the health-class units are set aside; "reward, dopamine and addiction" is neuroscience. */
+const SCHOOL_HEALTH = /\b(puberty|sex ed\w*|sex education|family life|drugs? and alcohol|alcohol and drugs?|substance abuse|suicide prevention|mental health)\b/i;
+
+/** '' when the text is an ordinary question; 'crisis' or 'personal' when the page should not match it to a lesson. */
+export function sensitive(text) {
+  const t = String(text ?? '').replace(/[’]/g, "'");
+  if (CRISIS.test(t)) return 'crisis';
+  if (/^\s*(depression|addiction|puberty|periods?|sex|suicide|anxiety|pregnancy|drugs|alcohol)\s*\??\s*$/i.test(t)) return 'personal';
+  if ((PERSONAL.test(t) || /^\s*(do|did|could|can) i have\b/i.test(t)) && !NOT_PERSONAL.test(t)) return 'personal';
+  return '';
+}
+
 // ------------------------------------------------------------------ a student's question
 
 /**
@@ -335,8 +391,12 @@ function inOrder(q, toks) {
  *   kind 'match'    `ideas[0]` is the answer; the rest are other readings worth offering
  *   kind 'closest'  nothing matched well: `ideas` are "might fit", never shown as the answer
  *   kind 'none'     nothing close; offer search and the list of ideas
+ *   kind 'sensitive' a question about the asker's own health, feelings, body or safety: no lesson is offered
+ *                    (`crisis` true when the reply should also say where to get help now)
  */
 export function matchQuestion(m, text) {
+  const gate = sensitive(text);
+  if (gate) return { kind: 'sensitive', crisis: gate === 'crisis', ideas: [], together: 0 };
   const cleaned = String(text ?? '').replace(/\b(for (kids|children|beginners|dummies)|in (simple|plain) (words|terms|english)|eli5|please|simply|quick(ly)?)\b/gi, ' ');
   let found = matchText(m, cleaned, 6);
   // "photosynthesis and respiration": two ideas asked for at once.
@@ -358,7 +418,7 @@ const dedupe = (list) => { const s = new Set(); return list.filter((r) => (s.has
 // ------------------------------------------------------------------ a syllabus
 
 /* Lines that are a course's housekeeping, not its science. */
-const ADMIN = /\b(exam|midterm|mid term|final|quiz|quizzes|test day|unit test|chapter test|unit \d+ (test|exam|quiz)|test|review( day| session| for)?|holiday|no class|no school|no lab|no lecture|break|thanksgiving|labor day|memorial day|mlk|martin luther king|columbus day|indigenous peoples|veterans day|presidents day|juneteenth|easter|recess|teacher work ?day|early release|snow day|conference|registration|add ?\/ ?drop|withdraw|reading day|study day|commencement|syllabus|course (overview|introduction|intro|policies|expectations|logistics)|welcome|orientation|icebreaker|lab safety|safety (contract|rules|training|quiz)|office hours|make ?up|catch ?up|flex day|buffer|tbd|tba|to be (announced|determined)|presentations?|poster session|project (due|work|day|proposal)|paper due|report due|homework|problem set|worksheet|assignment|due\b|sol (review|test)|ap exam|state test|benchmark|field trip|guest (lecture|speaker)|pre ?test|post ?test|study guide|check ?in|wrap ?up|course evaluations?)\b/i;
+const ADMIN = /\b(exam|midterm|mid term|final|quiz|quizzes|test day|unit test|chapter test|unit \d+ (test|exam|quiz)|test|review( day| session| for)?|holiday|no class|no school|no lab|no lecture|break|thanksgiving|labor day|memorial day|mlk|martin luther king|columbus day|indigenous peoples|veterans day|presidents day|juneteenth|easter|recess|teacher work ?day|early release|snow day|conference|registration|add ?\/ ?drop|withdraw|reading day|study day|commencement|syllabus|course (overview|introduction|intro|policies|expectations|logistics)|welcome|orientation|icebreaker|lab safety|safety (contract|rules|training|quiz)|office hours|make ?up|catch ?up|flex day|buffer|tbd|tba|to be (announced|determined)|presentations?|poster session|project (due|work|day|proposal)|paper due|report due|homework|problem set|worksheet|assignment|due\b|sol (review|test)|ap exam|state test|benchmark|field trip|guest (lecture|speaker)|pre ?test|post ?test|study guide|check ?in|wrap ?up|course evaluations?|procedures|testing window|final projects?|homework:?|sol\b|sols\b|standards? of learning|dissection day|study island|quizlet)\b/i;
 /* Lines from the top of a syllabus: who, where, how it is graded. */
 const POLICY = /@|https?:|www\.|\b(instructor|professor|teacher:|email|e-mail|phone|room\b|office|textbook|required (text|materials)|isbn|edition|grading|grade scale|grades?:|points|percent|%|attendance|late work|academic (integrity|honesty)|honor code|plagiarism|accommodation|disabilit|prerequisite|credits?\b|credit hours|learning (outcomes|objectives)|course description|tardy|cell ?phones?|supplies|materials needed|canvas|blackboard|google classroom|schoology|meeting time|class meets|section \d|semester|fall 20|spring 20|policy|policies)\b/i;
 
@@ -393,7 +453,7 @@ export function cleanTopic(line) {
 /** "Mitosis and meiosis; cancer" → the topics in it. Keeps a phrase whole when splitting leaves a bare generic word. */
 export function splitTopics(text) {
   const s = String(text).replace(/\s+/g, ' ').trim();
-  const rough = s.split(/\s*(?:[;,/|•()]|\s[-–—]\s|:\s|\band\b|&|\bvs\.?\b|\bversus\b|\bplus\b|\+)\s*/i).map((p) => p.trim()).filter(Boolean);
+  const rough = s.split(/\s*(?:[;,/|•()]|\s[-–—]\s|:\s|[!?]+|\band\b|&|\bvs?\.?\s|\bversus\b|\bplus\b|\+|\b(?:lab|activity|demo|video)\s*:)\s*/i).map((p) => p.trim()).filter(Boolean);
   if (rough.length <= 1) return rough.map((p) => [p]);
   const out = [];
   for (let i = 0; i < rough.length; i++) {
@@ -404,7 +464,7 @@ export function splitTopics(text) {
     // "DNA repair", "fatty acid and cholesterol synthesis" for "fatty acid synthesis".
     const forms = [];
     const next = rough[i + 1], prev = rough[i - 1];
-    if (n <= 2 && next) { const nt = fold(next).split(' '); if (nt.length >= 2) forms.push(`${p} ${nt[nt.length - 1]}`); }
+    if (n <= 2 && next) { const nt = fold(next).split(' ').filter((w) => !STOP.has(w)); if (nt.length >= 2) for (const w of nt.slice(1).reverse().slice(0, 3)) forms.push(`${p} ${w}`); }
     if (n === 1 && prev) { const pt = fold(prev).split(' '); if (pt.length >= 2) forms.push(`${pt.slice(0, -1).join(' ')} ${p}`); }
     if (n >= 2) forms.unshift(p); else forms.push(p);
     out.push(forms);
@@ -450,7 +510,7 @@ export function parseSyllabus(text) {
     // "Exam I; bacterial genetics" and "Organelles (cell project due Fri)": drop the housekeeping, keep the science.
     let kind = 'topic', said = topic;
     if (ADMIN.test(topic)) {
-      const keep = topic.split(/\s*(?:;|\(|\)|\*{2,}|\s[-–—]\s|\s\+\s|,)\s*/).filter((p) => p && !ADMIN.test(p) && tokens(p).some((k) => !GENERIC.has(k.r)));
+      const keep = topic.split(/\s*(?:;|\(|\)|\*{2,}|\s[-–—]\s|\s\+\s|,|[!?]+\s|\.\s)\s*/).filter((p) => p && !ADMIN.test(p) && tokens(p).some((k) => !GENERIC.has(k.r)));
       if (keep.length) said = keep.join('; '); else kind = 'admin';
     }
     rows.push({ n: n++, raw: line, topic: said, kind });
@@ -463,10 +523,16 @@ export function parseSyllabus(text) {
  * what might fit, for a row the page shows unticked and labelled.
  */
 export function matchTopic(m, topic) {
+  // A unit on puberty, drugs or sex education is the school's to plan: no lesson is suggested for it.
+  if (SCHOOL_HEALTH.test(topic)) return { ideas: [], maybe: [] };
   const whole = matchText(m, topic, 4, true);
   const sure = [];
   const maybe = [];
-  const take = (r, from) => { if (!sure.some((x) => x.id === r.id)) sure.push({ ...r, from }); };
+  // The same idea found twice keeps its better match (its words decide what else it swallows).
+  const take = (r, from) => {
+    const k = sure.findIndex((x) => x.id === r.id);
+    if (k < 0) sure.push({ ...r, from }); else if (r.score > sure[k].score) sure[k] = { ...r, from };
+  };
   // The whole line is one idea's name, near enough: stop there.
   const settled = whole[0]?.sure && whole[0].score >= 0.9 && whole[0].cover >= 0.8;
   if (settled) {
@@ -491,12 +557,24 @@ export function matchTopic(m, topic) {
   }
   if (!sure.length && whole[0] && !whole[0].sure) maybe.unshift({ ...whole[0], from: topic });
   // "Regulation of gene expression" is not also "gene expression": a match whose words all sit
-  // inside a longer match is dropped.
+  // inside a longer match of the same piece is dropped.
+  const within = (a, b) => b.from === topic || fold(b.from).includes(fold(a.from));
   const lead = whole[0]?.sure && whole[0].score >= 0.9 ? m.own[m.byId.get(whole[0].id).i] : null;
-  const kept = sure.filter((a) => !sure.some((b) => b !== a && b.words.length > a.words.length && a.words.every((w) => b.words.includes(w)))
+  let kept = sure.filter((a) => !sure.some((b) => b !== a && within(a, b) && b.words.length > a.words.length && a.words.every((w) => b.words.includes(w)))
     && !(lead && a.id !== whole[0].id && a.words.every((w) => lead.has(w))));
+  // One known word in a line of words the site does not know ("weathering, erosion, plate tectonics")
+  // is not enough to call the line matched.
+  const q = tokens(topic);
+  if (kept.length && q.length >= 5) {
+    const got = new Set(kept.flatMap((r) => r.words));
+    const total = q.reduce((n, k) => n + m.weightOf(k), 0);
+    const cover = q.reduce((n, k) => n + (got.has(k.r) ? m.weightOf(k) : 0), 0) / (total || 1);
+    const unknown = q.filter((k) => !m.byRoot.has(k.r)).length;
+    if (cover < 0.25 && unknown >= 2 && kept.every((r) => r.words.length === 1)) { maybe.unshift(...kept); kept = []; }
+  }
   const ids = new Set(kept.map((r) => r.id));
-  return { ideas: kept.slice(0, 3), maybe: dedupe(maybe.filter((r) => !ids.has(r.id))).slice(0, kept.length ? 0 : 2) };
+  // A loose reading is offered only when it is reasonably close; "smooth" alone does not suggest a smooth brain.
+  return { ideas: kept.slice(0, 3), maybe: dedupe(maybe.filter((r) => !ids.has(r.id) && r.score >= 0.62)).slice(0, kept.length ? 0 : 2) };
 }
 
 // ------------------------------------------------------------------ lessons at a level
@@ -537,7 +615,7 @@ export function matchSyllabus(m, text, level) {
   const areaCount = new Map();
   let strong = 0;
   for (const r of first) for (const x of r.ideas) if (x.score >= 0.93) { const a = m.byId.get(x.id).area; areaCount.set(a, (areaCount.get(a) ?? 0) + 1); strong++; }
-  const stray = (x) => strong >= 8 && x.why.kind !== 'name' && x.why.kind !== 'textbook' && x.score < 0.985 && (areaCount.get(m.byId.get(x.id).area) ?? 0) / strong < 0.05;
+  const stray = (x) => strong >= 8 && x.why.kind !== 'name' && x.why.kind !== 'textbook' && x.why.kind !== 'part' && x.score < 0.985 && (areaCount.get(m.byId.get(x.id).area) ?? 0) / strong < 0.05;
   const join = (x) => ({ ...x, ...pickRungs(m.byId.get(x.id).lessons, level, x.lesson) });
   const out = rows.map((row, i) => {
     const r = first[i];
@@ -553,7 +631,7 @@ export function matchSyllabus(m, text, level) {
       for (const it of row.ideas) for (const l of it[key]) {
         if (skip.has(l.slug)) continue;
         const have = list.find((x) => x.slug === l.slug);
-        if (have) have.ideas.push(it.id); else list.push({ slug: l.slug, title: l.title, rank: l.rank, ideas: [it.id] });
+        if (have) { have.ideas.push(it.id); have.main ||= !!l.main; } else list.push({ slug: l.slug, title: l.title, rank: l.rank, ideas: [it.id], main: !!l.main });
       }
       return list;
     };
@@ -561,6 +639,9 @@ export function matchSyllabus(m, text, level) {
     const atSlugs = new Set(at.map((l) => l.slug));
     const down = group('down', atSlugs).sort((a, b) => b.rank - a.rank).slice(0, 3);
     const up = group('up', new Set([...atSlugs, ...down.map((l) => l.slug)])).sort((a, b) => a.rank - b.rank).slice(0, 3);
+    // `main`: the lesson's own main idea is one the row asked for. Only those are ticked by default; a lesson
+    // that teaches the idea along the way (diffusion, inside a lesson on breathing) is listed, not ticked.
+    at.sort((a, b) => Number(b.main) - Number(a.main));
     row.lessons = { at: at.slice(0, 5), down, up, missing: row.ideas.filter((it) => !it.at.length).map((it) => it.id) };
   }
   const topics = out.filter((r) => r.kind === 'topic');

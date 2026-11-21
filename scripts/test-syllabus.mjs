@@ -17,12 +17,12 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { deflateRawSync } from 'node:zlib';
 import { loadGraphSite, coreSite, readGraph, makeTopicGraph } from './topic-graph/lib.mjs';
-import { buildMatcher, matchQuestion, matchTopic, matchSyllabus, parseSyllabus, cleanTopic, splitTopics, pickRungs, defaultLevel, rootOf, SURE } from '../src/lib/syllabus-match.mjs';
+import { buildMatcher, matchQuestion, matchTopic, matchSyllabus, parseSyllabus, cleanTopic, splitTopics, pickRungs, defaultLevel, rootOf, sensitive, SURE, LEVEL_AT, LEVEL_CLASS } from '../src/lib/syllabus-match.mjs';
 import { SYNONYMS } from '../src/lib/syllabus-synonyms.mjs';
 import { ideaFromArea, buildPath, levelFor, timeFrom, MAX_STEPS } from '../src/lib/start-path.mjs';
 import { docxText, documentXmlToText } from '../src/lib/docx-text.mjs';
 import { mergeAssignments, MAX_ASSIGNMENTS } from '../src/lib/syllabus-assign.mjs';
-import { QUESTIONS, HELD_OUT, SYLLABI, SYLLABI_HELD_OUT } from './test-syllabus-fixtures.mjs';
+import { QUESTIONS, HELD_OUT, SYLLABI, SYLLABI_HELD_OUT, PANEL_QUESTIONS, PANEL_SENSITIVE, PANEL_SYLLABI } from './test-syllabus-fixtures.mjs';
 
 const PRINT = process.argv.includes('--print');
 let passed = 0;
@@ -74,6 +74,19 @@ check(`${HELD_OUT.length} held-out questions: top-1 at least 80%, top-3 at least
   assert.ok(s.top3 / s.n >= 0.85, `top-3 ${pct(s.top3, s.n)}`);
   assert.ok(s.wrong.length <= 1, s.wrong.join('\n'));
 });
+check(`the review panel's ${PANEL_QUESTIONS.length} questions and ${PANEL_SENSITIVE.length} sensitive ones (PANEL)`, () => {
+  const s = scoreQuestions(PANEL_QUESTIONS);
+  const sens = PANEL_SENSITIVE.filter((q) => matchQuestion(m, q).kind !== 'sensitive');
+  // A confident answer that is not a right one: the costly kind.
+  const confident = PANEL_QUESTIONS.filter(([q, want]) => { const r = matchQuestion(m, q); return r.kind === 'match' && !want.includes(r.ideas[0].id); }).map(([q]) => `"${q}" -> ${matchQuestion(m, q).ideas[0].id}`);
+  console.log(`      top-1 ${pct(s.top1, s.n)}, top-3 ${pct(s.top3, s.n)}, honest "nothing" ${pct(s.noneOk, s.none)}, confident wrong ${confident.length} of ${PANEL_QUESTIONS.length}, sensitive answered calmly ${pct(PANEL_SENSITIVE.length - sens.length, PANEL_SENSITIVE.length)}`);
+  if (PRINT) [...confident.map((x) => `confident wrong ${x}`), ...s.miss.map((x) => `missed ${x}`), ...sens.map((x) => `sensitive, not gated: ${x}`)].forEach((x) => console.log(`      ${x}`));
+  if (process.env.PANEL_BASELINE) return;
+  assert.deepEqual(sens, []);
+  assert.ok(confident.length <= 1, confident.join('\n'));
+  assert.ok(s.noneOk / s.none >= 0.95, `honest nothing ${pct(s.noneOk, s.none)}`);
+  assert.ok(s.top3 / s.n >= 0.65, `top-3 ${pct(s.top3, s.n)}`);
+});
 check('nothing typed, or nonsense, is no match; a loose match is "closest", never an answer', () => {
   assert.equal(matchQuestion(m, '').kind, 'none');
   assert.equal(matchQuestion(m, '   ').kind, 'none');
@@ -88,6 +101,28 @@ check('every idea is found first by its own name, and nine in ten everyday phras
   for (const c of api.concepts) { if (!api.ladder(c.id).length) continue; for (const a of c.aliases) { n++; if (matchQuestion(m, a).ideas.slice(0, 3).some((r) => r.id === c.id)) hit++; } }
   console.log(`      everyday phrases: ${pct(hit, n)}`);
   assert.ok(hit / n >= 0.9, pct(hit, n));
+});
+check("a question about the asker's own health, feelings or body gets no lesson; biology's own words stay open", () => {
+  for (const q of ['how do I hurt myself', 'i want to die', 'nobody likes me']) assert.equal(sensitive(q), 'crisis', q);
+  for (const q of ['am i fat', 'is vaping safe', 'should i take vitamins', 'do i have diabetes', 'what is sex', 'my dog died', 'why am i so anxious']) assert.equal(sensitive(q), 'personal', q);
+  for (const q of ['programmed cell death', 'long-term depression at synapses', 'critical period', 'sex linkage', 'sexual reproduction', 'why do leaves die in the fall', 'how do vaccines work', 'what is DNA', 'refractory period', 'why do i have my moms eyes', 'antibiotic resistance']) assert.equal(sensitive(q), '', q);
+  for (const [q] of [...QUESTIONS, ...HELD_OUT, ...PANEL_QUESTIONS]) assert.equal(sensitive(q), '', `"${q}" is an ordinary question`);
+  const r = matchQuestion(m, 'what is depression');
+  assert.deepEqual([r.kind, r.ideas.length, r.crisis], ['sensitive', 0, false]);
+  // In a syllabus the health-class units are set aside, and nothing is suggested for them.
+  for (const t of ['reproductive system & puberty', 'drugs and alcohol', 'sex education unit']) assert.deepEqual(matchTopic(m, t), { ideas: [], maybe: [] }, t);
+  assert.ok(matchTopic(m, 'Reward, dopamine and addiction').ideas.length, 'a neuroscience line is not a health unit');
+});
+check('one common word, or half of a compound name, never decides', () => {
+  for (const q of ['genes and environment', 'muscle force and speed']) assert.equal(matchQuestion(m, q).kind, 'match', q);
+  for (const q of ['power', 'speed', 'resistance', 'environment', 'size', 'learning', 'repair']) assert.notEqual(matchQuestion(m, q).kind, 'match', q);
+  for (const [q, not] of [['why are my eyes blue', 'vision'], ['lung cancer', 'breathing'], ['fossil fuels', 'evidence-for-evolution'], ['carrier of sickle cell', 'active-transport']]) {
+    const r = matchQuestion(m, q);
+    assert.ok(!(r.kind === 'match' && r.ideas[0].id === not), `"${q}" is answered as ${not}`);
+  }
+  // In a syllabus: one known word among words the site does not know is not a match; "secretion" is not the secretory pathway.
+  assert.deepEqual(matchTopic(m, "Earth's changing surface: weathering, erosion, plate tectonics").ideas, []);
+  for (const t of ['GI motility and secretion; absorption', 'Kidney: secretion and reabsorption', 'Water, pH and buffers']) assert.ok(!matchTopic(m, t).ideas.some((x) => x.id === 'secretory-pathway' || x.id === 'body-water-compartments'), t);
 });
 check('two ideas asked for at once are both in the answer', () => {
   const r = matchQuestion(m, 'photosynthesis and cellular respiration');
@@ -143,6 +178,15 @@ check(`${SYLLABI_HELD_OUT.length} held-out syllabi: at least 92% of matches righ
   assert.deepEqual(s.lost, []);
   assert.ok(s.right / (s.right + s.wrong) >= 0.92, `precision ${pct(s.right, s.right + s.wrong)}\n${s.bad.join('\n')}`);
   assert.ok(s.hit / s.want >= 0.8, `matched ${pct(s.hit, s.want)}\n${s.missed.join('\n')}`);
+});
+check(`the review panel's ${PANEL_SYLLABI.length} syllabi (PANEL): no wrong match`, () => {
+  const s = scoreSyllabi(PANEL_SYLLABI);
+  console.log(`      precision ${pct(s.right, s.right + s.wrong)}, topics matched ${pct(s.hit, s.want)}`);
+  if (PRINT) [...s.bad.map((x) => `wrong  ${x}`), ...s.missed.map((x) => `missed ${x}`), ...s.lost].forEach((x) => console.log(`      ${x}`));
+  if (process.env.PANEL_BASELINE) return;
+  assert.deepEqual(s.lost, []);
+  assert.equal(s.wrong, 0, s.bad.join('\n'));
+  assert.ok(s.hit / s.want >= 0.85, `matched ${pct(s.hit, s.want)}\n${s.missed.join('\n')}`);
 });
 check('the word matcher\'s failure does not come back: "Properties of water" is water, not ecosystems', () => {
   const r = matchTopic(m, 'Properties of water');
@@ -237,10 +281,35 @@ check('with no level said, the path starts at the simplest lesson that is not an
   assert.equal(p.rank, 1);
   assert.equal(p.steps[p.steps.length - 1].kind, 'skim');
   assert.ok(p.steps[0].kind === 'film' && /^\d+:\d\d$/.test(p.steps[0].length));
+  assert.deepEqual(buildPath([it], { time: 'skim' }).steps.map((s) => s.kind), ['skim'], '"a few minutes" is the skim alone');
+  assert.ok(buildPath([it], { time: 'skim' }).minutes <= p.minutes);
   assert.equal(buildPath([it], { time: 'lesson' }).steps[0].kind, 'lesson');
   assert.deepEqual(levelFor([{ rank: 0 }, { rank: 4 }], 2), { rank: 4, moved: true });
   assert.deepEqual(levelFor([{ rank: 1 }, { rank: 4 }], 2), { rank: 1, moved: true });
   assert.equal(timeFrom('stories'), 'films'); assert.equal(timeFrom(undefined), 'films'); assert.equal(timeFrom('skim'), 'skim');
+});
+check('an activity for ages 5 to 10 is always its guide, never its film alone', () => {
+  let n = 0;
+  for (const c of api.concepts) {
+    const it = api.ladder(c.id).some((r) => r.rank === 0) ? ideaOf(c.id) : null;
+    if (!it) continue;
+    for (const time of ['skim', 'films', 'lesson']) {
+      const p = buildPath([it], { level: 0, time });
+      n++;
+      assert.deepEqual(p.steps.map((s) => s.kind), ['activity'], `${c.id} ${time}`);
+      assert.ok(/^\/lessons\/[^/]+\/$/.test(p.steps[0].href), `${c.id}: ${p.steps[0].href} is not the guide`);
+    }
+  }
+  assert.ok(n > 30);
+});
+check('a level reads as a sentence at every level', () => {
+  assert.equal(LEVEL_AT.length, 7); assert.equal(LEVEL_CLASS.length, 7);
+  for (const s of [...LEVEL_AT.map((a) => `A short path ${a}, about 5 minutes.`), ...LEVEL_CLASS.map((c) => `I read 9 topics for ${c}.`)]) {
+    assert.ok(!/level level|at a first|at an? upper|for a college,|  /.test(s), s);
+  }
+  const it = ideaOf('osmosis');
+  for (let level = 0; level < 7; level++) assert.ok(buildPath([it], { level, time: 'films' }).levelAt.length > 5);
+  for (const f of ['src/lib/start-page.ts', 'src/lib/teach-match.ts']) assert.ok(!/\$\{[^}]*(LEVEL_SHORT|path\.level)\b[^}]*\} level/.test(readFileSync(f, 'utf8')), `${f} glues a level name to the word "level"`);
 });
 check('two ideas share one path of at most five steps', () => {
   const p = buildPath([ideaOf('photosynthesis'), ideaOf('cellular-respiration')], { level: 2, time: 'films' });
@@ -286,14 +355,36 @@ check('what is typed or pasted is never put in a request or in the address', () 
   const urls = (src) => [...src.matchAll(/(?:fetch|json|api)\(\s*(`[^`]*`|'[^']*'|"[^"]*")/g)].map((x) => x[1]);
   // Every request in the student page is a GET for a static file named without the typed words.
   for (const u of urls(start)) assert.ok(/^['`]\/(graph\.json|ideas\/lessons\.json|start\/lessons\.json|graph\/\$\{id\}\.json)['`]$/.test(u), `start-page.ts requests ${u}`);
-  assert.ok(!/history\.(push|replace)State|location\.(href|search|hash)\s*=|sendBeacon|XMLHttpRequest|WebSocket|localStorage|sessionStorage/.test(start), 'start-page.ts touches the address, storage or another channel');
+  const channels = /history\.(push|replace)State|location\.(href|search|hash)\s*=|location\.assign|sendBeacon|XMLHttpRequest|WebSocket|localStorage|sessionStorage|document\.cookie|\.submit\(|requestSubmit/;
+  assert.ok(!channels.test(start), 'start-page.ts touches the address, storage or another channel');
   assert.ok(!/encodeURIComponent\((q|typed|input\.value)/.test(start), 'a typed word is put in a link');
-  // The teacher page: static files, and the classes API with ticked lesson slugs only.
+  // The teacher page: static files, and (when switched on) the classes API with ticked lesson slugs only.
   for (const u of urls(teach)) assert.ok(/^['`]\/(graph\.json|ideas\/lessons\.json|start\/lessons\.json|graph\/all\.json|api\/teacher\/me|api\/classes\/\$\{encodeURIComponent\(id\)\}\/(brief|assignments))['`]$/.test(u), `teach-match.ts requests ${u}`);
-  assert.ok(!/history\.(push|replace)State|location\.(href|search|hash)\s*=|sendBeacon|XMLHttpRequest|WebSocket|localStorage|sessionStorage/.test(teach), 'teach-match.ts touches the address, storage or another channel');
+  assert.ok(!channels.test(teach), 'teach-match.ts touches the address, storage or another channel');
   assert.ok(/\{ assignments: merged\.list \}/.test(teach) && !/text\.value[^;]*api\(|api\([^;]*typed/.test(teach), 'only the assignment list is sent');
+  assert.ok(/export const ADD_TO_CLASS = false;/.test(teach), 'adding to a class is off until it has been tried on a real class');
   assert.ok(/noAnalytics/.test(readFileSync('src/pages/teach/match/index.astro', 'utf8')), 'no third-party script where a syllabus is pasted');
   assert.ok(/const SHOW_AI_PLANNER_LINK = false;/.test(readFileSync('src/pages/teach/match/index.astro', 'utf8')), 'the link to the AI planner is off');
+});
+check('with scripts off, blocked or late, nothing on either page can submit what was typed', () => {
+  // A browser sends a form's named fields by itself: on Enter, or on a button press before the page's
+  // script has run. So these pages have no form at all, their boxes have no name, and their buttons do
+  // nothing until the script switches them on.
+  for (const f of ['src/pages/start/index.astro', 'src/pages/teach/match/index.astro']) {
+    const html = readFileSync(f, 'utf8').replace(/^---[\s\S]*?^---/m, '').replace(/<!--[\s\S]*?-->/g, '').replace(/\{\/\*[\s\S]*?\*\/\}/g, '');
+    assert.ok(!/<form\b/i.test(html), `${f} has a <form>`);
+    assert.ok(!/\b(action|formaction|method)\s*=/i.test(html), `${f} has a form action or method`);
+    assert.ok(!/type="submit"/i.test(html), `${f} has a submit button`);
+    for (const tag of html.match(/<(input|textarea)\b[^>]*>/gi) ?? []) {
+      const typedInto = /<textarea/i.test(tag) || /type="(search|text)"/i.test(tag);
+      if (typedInto) assert.ok(!/\bname\s*=/i.test(tag), `${f}: a box someone types into has a name, so a form could send it: ${tag}`);
+    }
+    for (const tag of html.match(/<button\b[^>]*>/gi) ?? []) {
+      assert.ok(/type="button"/.test(tag), `${f}: ${tag} is not type="button"`);
+      if (/data-(st-go|st-try|tm-go|tm-sample)/.test(tag)) assert.ok(/\bdisabled\b/.test(tag), `${f}: ${tag} works before the script has run`);
+    }
+    assert.ok(/<noscript>/.test(html), `${f} says nothing when scripts are off`);
+  }
 });
 check('the pages say only what is true, in the site\'s words', () => {
   for (const f of ['src/pages/start/index.astro', 'src/lib/start-page.ts', 'src/pages/teach/match/index.astro', 'src/lib/teach-match.ts']) {

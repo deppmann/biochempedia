@@ -739,3 +739,112 @@ Session 16: Final Exam (cumulative)`,
     ],
   },
 ];
+
+/* The review panel's own questions and syllabus lines (round 1 of the review of this feature),
+   added as written, before any fix was tuned on them. An empty list means the honest answer is
+   "nothing here", and for PANEL_SENSITIVE the page must answer with the calm fixed message and
+   no lesson: questions a child or a teenager types about health, feelings or their own body. */
+export const PANEL_SENSITIVE = [
+  'what is depression', 'depression', 'what is addiction', 'how do babies get made', 'where do babies come from', 'how are babies made',
+  'what happens when you die', 'why do I have a period', 'how do I tell my parents', 'do vaccines cause autism', 'are GMOs safe',
+  'how do I hurt myself', 'why do I feel sad all the time', 'why do i wet the bed', 'why are drugs addictive', 'puberty', 'how are twins made',
+];
+export const PANEL_QUESTIONS = [
+  ['what does the mitochondria do', ['organelles', 'cellular-respiration', 'chemiosmosis']],
+  ['what is a gene', ['inheritance', 'dna-structure', 'gene-to-protein']],
+  ['genes', ['inheritance', 'dna-structure', 'gene-to-protein']],
+  ['what are genes', ['inheritance', 'dna-structure', 'gene-to-protein']],
+  // one common word that is half of a compound name: never a confident answer
+  ['power', []], ['speed', []], ['resistance', []], ['environment', []], ['nature', []], ['frequency', []], ['repair', []], ['birth', []],
+  ['size', []], ['place', []], ['duration', []], ['export', []], ['mark', []], ['forward', []], ['learning', []],
+  // a one-word synonym must not decide a longer question about something else
+  ['why are my eyes blue', ['inheritance', 'complex-traits', 'genes-and-environment']],
+  ['eye color genetics', ['inheritance', 'complex-traits', 'genes-and-environment']],
+  ['why do i have my moms eyes', ['inheritance', 'complex-traits', 'genes-and-environment']],
+  ['what is a carrier of a disease', ['inheritance', 'pedigree-analysis', 'sex-linkage']],
+  ['carrier of sickle cell', ['inheritance', 'pedigree-analysis', 'sex-linkage', 'mutation']],
+  ['lung cancer', ['cancer']], ['thyroid cancer', ['cancer']], ['fossil fuels', []], ['restriction enzymes', ['genetic-engineering']],
+  ['pink eye', []], ['google translate', []], ['t cells and b cells', ['immunity', 't-cell-receptor-signaling']],
+  ['are viruses alive', ['viruses', 'characteristics-of-life']], ['what is pH', ['ph-and-buffers', 'acid-base-balance']],
+  ['how do hormones work', ['hypothalamic-pituitary-axes', 'receptors', 'nuclear-receptors', 'cell-signaling', 'thyroid-hormone']],
+  ['what is the difference between mitosis and meiosis', ['meiosis', 'cell-division']],
+  ['whats the difference between mitosis and meiosis', ['meiosis', 'cell-division']],
+  ['how do plants eat', ['photosynthesis', 'plant-mineral-nutrition']],
+  ['how do antibiotics work', ['antibiotic-resistance']],
+  // things the site teaches that got "nothing"
+  ['how does the stomach digest food', ['digestion', 'stomach-acid']],
+  ['how do nerves send messages', ['action-potential', 'synapse', 'neurotransmitters']],
+  ['how do we taste sour', ['taste', 'flavour']],
+  ['what eats what in a forest', ['food-webs', 'predation']],
+  ['why do people get diabetes', ['blood-sugar']], ['diabetes', ['blood-sugar']],
+  ['why do i look like my mom', ['inheritance']],
+  ['ribosomes', ['gene-to-protein', 'organelles']],
+  ['competitive inhibition', ['enzymes']],
+  ['hiv', ['viruses', 'immunity']],
+  ['why do my muscles burn when i sprint', ['fermentation', 'muscle-fatigue', 'glycolysis']],
+  ['motor cortex', ['cortical-areas', 'localization-of-function', 'corticospinal-tract']],
+  ['does a tree die in winter', ['seasonal-rhythms', 'seasonal-responses']],
+  // what held up
+  ['how do plants drink water', ['plant-water-transport', 'plant-parts']], ['krebs cycle', ['citric-acid-cycle']],
+  ['renal clearance', ['kidney']], ['henderson hasselbalch', ['ph-and-buffers', 'acid-base-balance']],
+  ['how do cells talk to each other', ['cell-signaling']], ['virus vs bacteria', ['viruses', 'bacteria']],
+  ['punnett square', ['inheritance']], ['how does the eye see color', ['colour-vision', 'vision']],
+  ['how do muscles get tired', ['muscle-fatigue']],
+  ['black hole', []], ['volcanoes', []], ['why do cats purr', []],
+];
+export const PANEL_SYLLABI = [
+  {
+    name: 'Panel: high school pacing guide', level: 2,
+    text: `Biology pacing guide
+Ms. Private  room 214  private@example.org
+Homework: Study Island + Quizlet every night
+
+Aug 24-28 Welcome, procedures, lab safety contract
+Aug 26 Welcome!! What is life? Characteristics of living things
+Sep 14-18 Nature of science and experimental design
+Sep 21-25 Macromolecules
+Sep 28 Macromolecules (carbs, lipids, proteins, nucleic acids)
+Oct 5 Cells!! prokaryotic vs. eukaryotic; organelles
+Oct 7 Prokaryotic and eukaryotic cells, organelles
+Oct 9 Cells!! prokaryote v eukaryote, organelles LAB: microscope
+Oct 12 The cell: prokaryotes vs eukaryotes, organelles
+Sept 11 Membranes & transport (diffusion/osmosis/active transport)
+Oct 23 Gene expression (lac operon)
+Unit 6 - Earth's changing surface: weathering, erosion, plate tectonics
+Nov 2 reproductive system & puberty
+Nov 4 drugs and alcohol
+Nov 9 AP exam prep; sex education unit
+SOL LS.1, LS.2, LS.3
+May 10 SOL testing window
+May 20 Final projects - teach the class`,
+    lines: [
+      ['What is life? Characteristics', ['characteristics-of-life']],
+      ['Sep 21-25 Macromolecules', ['macromolecules']],
+      ['Macromolecules (carbs', ['macromolecules', 'carbohydrates', 'lipids', 'protein-structure', 'dna-structure']],
+      ['Cells!! prokaryotic vs. eukaryotic', ['organelles', 'bacteria', 'cell-theory']],
+      ['Prokaryotic and eukaryotic cells, organelles', ['organelles', 'bacteria', 'cell-theory']],
+      ['prokaryote v eukaryote', ['organelles', 'bacteria', 'cell-theory', 'microscopy']],
+      ['The cell: prokaryotes vs eukaryotes', ['organelles', 'bacteria', 'cell-theory']],
+      ['Membranes & transport', ['cell-membrane', 'diffusion', 'osmosis', 'active-transport']],
+      ['Gene expression (lac operon)', ['gene-to-protein', 'gene-regulation']],
+    ],
+  },
+  {
+    name: 'Panel: college physiology schedule', level: 5,
+    text: `Physiology schedule
+1/20 | Water, pH and buffers (Ch 3) | 3
+2/20 | Smooth & cardiac muscle compared | 9
+2/25 | Renal II: reabsorption & secretion; the loop & countercurrent | 20
+2/27 | GI motility and secretion; absorption | 21
+3/2 | GI: motility, secretion, digestion & absorption | 22
+3/4 | Kidney: secretion and reabsorption | 23`,
+    lines: [
+      ['Water, pH and buffers', ['ph-and-buffers', 'properties-of-water']],
+      ['Smooth & cardiac muscle', ['smooth-muscle-contraction', 'muscle-contraction']],
+      ['Renal II', ['kidney', 'concentrating-urine']],
+      ['GI motility and secretion', ['gut-motility', 'digestion', 'stomach-acid', 'digestive-control']],
+      ['GI: motility, secretion', ['gut-motility', 'digestion', 'stomach-acid', 'digestive-control']],
+      ['Kidney: secretion', ['kidney']],
+    ],
+  },
+];

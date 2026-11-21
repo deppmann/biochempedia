@@ -2,21 +2,22 @@
 /* The mini syllabus: "What are you trying to understand?"
 
    A learner types a question or a word and says how long they have. The page answers with a short
-   path of films and lessons on that idea at their level, the same idea one level simpler and one
-   level deeper beside it, and the whole ladder on request.
+   path of films and lessons on that idea at their level, the same idea simpler and deeper beside
+   it, and the whole ladder on request.
 
    Everything runs in the browser over static files (/graph.json, /ideas/lessons.json,
-   /start/lessons.json and one /graph/<area>.json): no model is asked and nothing typed is sent
-   anywhere, which is why the typed words are never put in the address. ?idea=<id> opens an idea
-   directly (an idea's id is the site's word, not the visitor's). Level and time are the site-wide
-   device preferences (src/lib/prefs.ts); the page works without them and never asks twice.
-   With JavaScript off the page says so and points to the pages that work without it. */
+   /start/lessons.json and one /graph/<area>.json): no model is asked and the typed words are never
+   sent. That has to hold with scripts off, blocked or not yet loaded too, so there is no <form>
+   here and the box has no name: nothing on this page can submit what was typed. The button is
+   switched on by the script. ?idea=<id> opens an idea directly (an idea's id is the site's word,
+   not the visitor's). Level and time are the site-wide device preferences (src/lib/prefs.ts); the
+   page works without them and never asks twice. */
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import '../../styles/hop.css';
 import '../../styles/start.css';
 import { LEVEL_LABEL, LEVEL_KEYS } from '../../lib/hop-words.mjs';
 
-const tries = ['why do leaves change color', 'how do vaccines work', 'what is DNA'];
+const tries = ['how do vaccines work', 'what is DNA', 'how do plants drink water'];
 ---
 <BaseLayout title="What are you trying to understand? — STEMhop" description="Type a question in your own words and say how long you have. You get a short path of films and lessons at your level, with a simpler and a deeper version beside it.">
   <article class="wrap st">
@@ -24,11 +25,11 @@ const tries = ['why do leaves change color', 'how do vaccines work', 'what is DN
       <h1>What are you trying to understand?</h1>
       <p class="st-lede">Type it in your own words. You get a short path of films and lessons at your level.</p>
 
-      <form class="st-form" data-st-form action="/ideas/" method="get">
+      <div class="st-form" role="search" data-st-form>
         <label class="st-label" for="st-q">Your question, or just a word</label>
         <div class="st-box">
-          <input id="st-q" name="q" type="search" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="go" maxlength="200" placeholder="why do leaves change color" />
-          <button type="submit">Show me a path</button>
+          <input id="st-q" type="search" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="go" maxlength="200" placeholder="how do vaccines work" />
+          <button type="button" data-st-go disabled>Show me a path</button>
         </div>
         <div class="st-opts">
           <fieldset class="st-time" data-st-time>
@@ -44,10 +45,10 @@ const tries = ['why do leaves change color', 'how do vaccines work', 'what is DN
             </select>
           </label>
         </div>
-      </form>
-      <p class="st-try" data-st-try-row>Or try {tries.map((t, i) => <>{i > 0 && (i === tries.length - 1 ? ' or ' : ', ')}<button type="button" class="st-link" data-st-try={t}>{t}</button></>)}.</p>
-      <p class="st-private">What you type stays on this device. Nothing is sent anywhere, and no AI reads it.</p>
-      <noscript><p class="st-note">This box needs JavaScript. Without it, <a href="/ideas/#every-idea">every idea is listed by area</a>, each with a page of its own, and <a href="/courses/">the courses</a> are laid out by level.</p></noscript>
+      </div>
+      <p class="st-try" data-st-try-row>Or try {tries.map((t, i) => <>{i > 0 && (i === tries.length - 1 ? ' or ' : ', ')}<button type="button" class="st-link" data-st-try={t} disabled>{t}</button></>)}.</p>
+      <p class="st-private">What you type stays on this device. Your words are never sent, and no AI reads them.</p>
+      <noscript><p class="st-note">This box needs JavaScript, so the button does nothing without it. <a href="/ideas/#every-idea">Every idea is listed by area</a>, each with a page of its own, and <a href="/courses/">the courses</a> are laid out by level.</p></noscript>
 
       <p class="st-status" role="status" aria-live="polite" data-st-status></p>
       <div class="st-out" data-st-out></div>
