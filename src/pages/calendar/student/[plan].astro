@@ -1,0 +1,24 @@
+---
+/* /calendar/student/<course>/ and /calendar/student/mcat/: one card for the next lesson, then
+   two rows. Drawn here in the course's order with no dates; the browser lays it on the person's
+   days, if they have ticked any, and reads which lessons are done from this device. */
+import CalendarShell from '../../../components/CalendarShell.astro';
+import { learnerCourses, mcat } from '../../../lib/calendar/data';
+import { newStudent, type CourseData, type McatData } from '../../../lib/calendar/engine';
+import { renderStudent } from '../../../lib/calendar/render';
+
+export async function getStaticPaths() {
+  const courses = await learnerCourses();
+  const choices = courses.map((c) => ({ s: c.s, t: c.t, level: c.level }));
+  return [
+    ...courses.map((course) => ({ params: { plan: course.s }, props: { course, choices } })),
+    { params: { plan: 'mcat' }, props: { mcat: await mcat(), choices } },
+  ];
+}
+interface Props { course?: CourseData; mcat?: McatData; choices: { s: string; t: string; level: string }[] }
+const { course, mcat: path, choices } = Astro.props;
+const html = renderStudent({ course, mcat: path, choices }, newStudent(), new Set(), {}, {});
+const name = path ? 'the MCAT path' : course!.t;
+---
+<CalendarShell title={path ? 'Next on the MCAT path' : `Next in ${course!.t}`} role="student" html={html} data={{ course, mcat: path, choices }}
+  description={`Keep up with ${name} one sitting at a time: the next lesson, its true length with the films, and what comes after. No dates unless you ask for them, and no account.`} />

@@ -1,0 +1,59 @@
+---
+/* The frame every calendar page shares. The page inside it is drawn when the site is built
+   (with no dates, so it is true on any day and reads with JavaScript off), then redrawn in the
+   browser for today from the plan kept on the device (src/lib/calendar/client.ts). */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Hex from './Hex.astro';
+import '../styles/calendar.css';
+
+interface Props {
+  title: string;
+  description: string;
+  role: 'door' | 'parent' | 'student' | 'teacher';
+  /** The page as drawn at build time. Leave out to use the slot. */
+  html?: string;
+  /** What the browser needs to redraw this page. Built with the site; nothing about a visitor. */
+  data?: unknown;
+  /** Teacher: this is the page with no course in its address. */
+  isDefault?: boolean;
+  /** A page with no plan in its address (student list, teacher default): the plans a saved choice may lead to, and the one shown here. */
+  known?: string[];
+  current?: string;
+  /** Kept out of search until the calendar has been reviewed. Pass false to let a page be indexed. */
+  noindex?: boolean;
+}
+const { title, description, role, html, data, isDefault = false, known = [], current = '', noindex = true } = Astro.props;
+const json = data ? JSON.stringify(data).replace(/</g, '\\u003c') : '';
+---
+<BaseLayout title={`${title} — STEMhop`} description={description} noindex={noindex}>
+  {/* Before anything is drawn: hold the build-time page back for a moment, and if this device
+      already said who it is (or which plan it follows), go straight there. Reads two keys, writes
+      nothing. The page's own script applies the same rule again as a fallback. */}
+  <script is:inline define:vars={{ role, known, current }}>
+    document.documentElement.classList.add('cal-wait');
+    // With a saved plan the build-time page may show the wrong thing, so it is held back longer.
+    try { if (localStorage.getItem('stemhop:calendar:v1')) document.documentElement.classList.add('cal-wait-long'); } catch (e) {}
+    try {
+      if (!/[?&]choose\b/.test(location.search)) {
+        var to = '';
+        if (role === 'door') {
+          var p = JSON.parse(localStorage.getItem('stemhop:prefs:v1') || '{}') || {};
+          if (['parent', 'student', 'teacher'].indexOf(p.role) >= 0) to = '/calendar/' + p.role + '/';
+        } else if (known.length) {
+          var c = JSON.parse(localStorage.getItem('stemhop:calendar:v1') || '{}') || {};
+          var want = role === 'student' ? c.student && c.student.plan : c.teacher && c.teacher.course;
+          if (want && want !== current && known.indexOf(want) >= 0) to = '/calendar/' + role + '/' + want + '/';
+        }
+        if (to) location.replace(to);
+      }
+    } catch (e) { /* storage blocked or damaged: stay here */ }
+  </script>
+  <div id="cal-root" data-role={role} data-default={isDefault ? '1' : undefined}>
+    {html ? <Fragment set:html={html} /> : <slot />}
+  </div>
+  <p id="cal-status" class="visually-hidden" role="status" aria-live="polite"></p>
+  {role === 'student' && <template id="cal-hex"><Hex pose="sleep" size={64} /></template>}
+  <slot name="after" />
+  {json && <script is:inline type="application/json" id="cal-data" set:html={json} />}
+  <script>import '../lib/calendar/client';</script>
+</BaseLayout>
