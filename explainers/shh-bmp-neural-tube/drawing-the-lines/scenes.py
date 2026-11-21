@@ -465,33 +465,61 @@ class S03Blur2(SpokenScene):
             v = DashedLine(p_c, p_x, color=TEXT, stroke_width=3)
             d = Dot(p_x, radius=0.11, color=ORANGE)
             t = lab(name, p_y[0] - 0.12, p_y[1], TEXT, 26, "r")
-            return h, v, d, t
-        h1, v1, d1, t1 = level(0.1, x1, "10%")
-        h2, v2, d2, t2 = level(0.9, x2, "90%")
-        h5, v5, d5, t5 = level(0.5, 0.0, "50%")
-        self.at("from 10")
-        self.play(FadeIn(t1), Create(h1), run_time=0.3)
-        self.play(Create(v1), FadeIn(d1), run_time=0.3)
-        self.at("to 90")
-        self.play(FadeIn(t2), Create(h2), run_time=0.4)
-        self.play(Create(v2), FadeIn(d2), run_time=0.4)
-        self.at("output then")
-        self.play(FadeIn(t5), Create(h5), run_time=0.3)
-        self.play(Create(v5), FadeIn(d5), run_time=0.3)
-        yb = ax.c2p(0, 0)[1] - 0.38
-        xs = [ax.c2p(x1, 0)[0], ax.c2p(0, 0)[0], ax.c2p(x2, 0)[0]]
-        b9a, b9b = hbr(xs[0], xs[1], yb), hbr(xs[1], xs[2], yb)
-        n9a = lab("9×", (xs[0] + xs[1]) / 2, yb - 0.3, TEXT, 28, weight=BOLD)
-        n9b = lab("9×", (xs[1] + xs[2]) / 2, yb - 0.3, TEXT, 28, weight=BOLD)
-        self.play(Create(b9a), FadeIn(n9a), run_time=0.45)
-        self.play(Create(b9b), FadeIn(n9b), run_time=0.45)
-        self.at("81 fold")
-        yb2 = yb - 0.78
-        b81 = hbr(xs[0], xs[2], yb2, GOLD, 0.16, 5)
-        n81 = lab("9 × 9 = 81-fold", xs[2] + 0.2, yb2 - 0.02, GOLD, 34, "l", weight=BOLD)
-        self.play(Create(b81), FadeIn(n81, shift=LEFT * 0.15), run_time=0.8)
-        self.at("in concentration")
-        self.play(Indicate(n81, color=GOLD, scale_factor=1.08), run_time=0.7)
+            tk = Line(p_x, p_x + DOWN * 0.12, color=LG, stroke_width=3)
+            return h, v, d, t, tk
+
+        h1, v1, d1, t1, tk1 = level(0.1, x1, "10%")
+        h2, v2, d2, t2, tk2 = level(0.9, x2, "90%")
+        h5, v5, d5, t5, tk5 = level(0.5, 0.0, "50%")
+
+        y_ax = ax.c2p(0, 0)[1]
+        x_pts = [ax.c2p(x1, 0)[0], ax.c2p(0, 0)[0], ax.c2p(x2, 0)[0]]
+        d19_a = lab("1/9 ×", x_pts[0], y_ax - 0.28, TEXT, 22, weight=BOLD)
+        d19_b = lab("half-output dose", x_pts[0], y_ax - 0.56, LG, 22)
+        d50 = VGroup(lab("half-output", x_pts[1], y_ax - 0.28, LG, 22),
+                     lab("dose", x_pts[1], y_ax - 0.56, LG, 22))
+        d9 = VGroup(lab("9 ×", x_pts[2], y_ax - 0.28, TEXT, 22, weight=BOLD),
+                    lab("half-output dose", x_pts[2], y_ax - 0.56, TEXT, 22))
+
+        yb = y_ax - 0.94
+
+        def split_hbr(xa, xb, y, txt, color=TEXT, tick=0.11, w=3.5, size=24, gap=0.34):
+            xm = (xa + xb) / 2
+            seg1 = Line([xa, y, 0], [xm - gap, y, 0], color=color, stroke_width=w)
+            seg2 = Line([xm + gap, y, 0], [xb, y, 0], color=color, stroke_width=w)
+            t_l = Line([xa, y, 0], [xa, y + tick, 0], color=color, stroke_width=w)
+            t_r = Line([xb, y, 0], [xb, y + tick, 0], color=color, stroke_width=w)
+            lbl = lab(txt, xm, y, color, size, weight=BOLD)
+            return VGroup(seg1, seg2, t_l, t_r), lbl
+
+        b9a, n9a = split_hbr(x_pts[0], x_pts[1] - 0.06, yb, "9×", TEXT, 0.11, 3.5, 24, 0.32)
+        b9b, n9b = split_hbr(x_pts[1] + 0.06, x_pts[2], yb, "9×", TEXT, 0.11, 3.5, 24, 0.32)
+        yb2 = yb - 0.36
+        b81, n81 = split_hbr(x_pts[0], x_pts[2], yb2, "81-fold", GOLD, 0.12, 4.5, 26, 0.78)
+
+        eq_x = -5.0
+        eq_a = lab("10% → 50%:  9×", eq_x, 2.05, TEXT, 28, "l")
+        eq_b = lab("50% → 90%:  9×", eq_x, 1.55, TEXT, 28, "l")
+        eq_9 = lab("9 × 9", eq_x, 0.95, GOLD, 34, "l", weight=BOLD)
+        eq_81 = lab("= 81-fold", 0.0, 0.95, GOLD, 34, "l", weight=BOLD).next_to(eq_9, RIGHT, buff=0.18, aligned_edge=DOWN)
+
+        self.at("10", lead=0.0)
+        self.play(FadeIn(t1), Create(h1), run_time=0.5)
+        self.at("one ninth", lead=0.0)
+        self.play(Create(v1), FadeIn(d1), Create(tk1), FadeIn(d19_a, shift=UP * 0.08), run_time=0.45)
+        self.at("half output dose", lead=0.0)
+        self.play(FadeIn(d19_b), FadeIn(t5), Create(h5), Create(v5), FadeIn(d5), Create(tk5), FadeIn(d50), run_time=0.8)
+        self.at("90", lead=0.0)
+        self.play(FadeIn(t2), Create(h2), run_time=0.5)
+        self.at("nine times that", lead=0.0)
+        self.play(Create(v2), FadeIn(d2), Create(tk2), FadeIn(d9), run_time=0.5)
+        self.play(Create(b9a), FadeIn(n9a), FadeIn(eq_a, shift=RIGHT * 0.1), run_time=0.5)
+        self.play(Create(b9b), FadeIn(n9b), FadeIn(eq_b, shift=RIGHT * 0.1), run_time=0.5)
+        self.at("nine times nine", lead=0.0)
+        self.play(FadeIn(eq_9, shift=RIGHT * 0.1), Indicate(n9a, color=GOLD, scale_factor=1.15),
+                  Indicate(n9b, color=GOLD, scale_factor=1.15), run_time=0.65)
+        self.at("81", lead=0.0)
+        self.play(Create(b81), FadeIn(n81), FadeIn(eq_81, shift=RIGHT * 0.1), run_time=0.55)
         self.finish()
 
 
@@ -502,13 +530,42 @@ class S04Blur3(SpokenScene):
         cells = make_cells(COLX)
         l_sig = lab("signal", STRIPX, 3.5, YELLOW, 26)
         l_out = pos_label()
-        self.play(LaggedStart(*[FadeIn(r) for r in strip], lag_ratio=0.02), FadeIn(cells), FadeIn(l_sig), run_time=0.45)
-        self.at("illustrative slope")
-        l_par = lab("illustrative slope:\ndecay length 20 µm,\ncells 5 µm wide", 2.0, -1.9, LG, 26, "l", line_spacing=0.95)
-        self.play(FadeIn(l_par, shift=LEFT * 0.15), run_time=0.6)
-        self.at("that change", lead=0.7)
+        self.play(LaggedStart(*[FadeIn(r) for r in strip], lag_ratio=0.02), FadeIn(cells), FadeIn(l_sig), run_time=0.4)
+
+        self.at("illustrative slope", lead=0.0)
+        l_par = lab("illustrative slope:\ndecay length 20 µm,\ncells 5 µm wide", 2.0, 2.70, LG, 24, "l", line_spacing=0.92)
+        self.play(FadeIn(l_par, shift=LEFT * 0.15), run_time=0.5)
+
+        self.at("signal drops", lead=0.0)
+        self.play(Indicate(strip, color=YELLOW, scale_factor=1.05), run_time=0.6)
+
+        def step_bk(i0, i1, color=YELLOW, x=BRX, tick=0.15):
+            y0, y1 = cy(i0), cy(i1)
+            return VGroup(Line([x, y0, 0], [x, y1, 0], color=color, stroke_width=3.5),
+                          Line([x - tick, y0, 0], [x, y0, 0], color=color, stroke_width=3.5),
+                          Line([x - tick, y1, 0], [x, y1, 0], color=color, stroke_width=3.5))
+
+        b_steps = [step_bk(4.55 + 4 * k, 8.45 + 4 * k, YELLOW) for k in range(4)]
+        b_rem = step_bk(20.55, 22.45, GOLD)
+        l_div = lab("÷ e\n(about 2.7)", BRX + 0.3, cy(6.5), YELLOW, 22, "l", line_spacing=0.9)
+        l_4c = lab("4 cells\n(20 µm ÷ 5 µm)", BRX + 0.3, cy(10.5), TEXT, 22, "l", line_spacing=0.9)
+        l_04 = lab("0.4 step", BRX + 0.3, cy(21.5), GOLD, 22, "l")
+
+        t_step_hdr = lab("every 4 cells (20 µm ÷ 5 µm):", 2.0, 1.65, TEXT, 24, "l")
+        t_step_div = lab("signal ÷ e (about 2.7)", 2.0, 1.15, YELLOW, 28, "l", weight=BOLD)
+        t_81 = lab("81-fold drop:", 2.0, 0.45, TEXT, 26, "l")
+        t_44 = lab("4.4 steps (ln 81) × 4 cells", 2.0, -0.05, TEXT, 25, "l")
+        t_18 = lab("≈ 18 cells", 2.0, -0.62, GOLD, 32, "l", weight=BOLD)
+
+        self.at("2", lead=0.0)
+        self.play(Create(b_steps[0]), FadeIn(l_div, shift=LEFT * 0.1), FadeIn(t_step_div, shift=LEFT * 0.1), run_time=0.6)
+
+        self.at("4 cells", lead=0.0)
+        self.play(LaggedStart(*[Create(b) for b in b_steps[1:]], lag_ratio=0.15),
+                  FadeIn(l_4c, shift=LEFT * 0.1), FadeIn(t_step_hdr, shift=LEFT * 0.1), run_time=0.5)
+
         ca, cv, sc = curve_axis(), make_curve(1), out_scale()
-        self.play(FadeIn(ca), FadeIn(sc), FadeIn(l_out), run_time=0.4)
+        self.play(FadeIn(ca), FadeIn(sc), FadeIn(l_out), run_time=0.28)
         anims = []
         for i, c in enumerate(cells):
             r = resp(i, 1)
@@ -520,20 +577,31 @@ class S04Blur3(SpokenScene):
         def draw(m, a):
             m.pointwise_become_partial(full, 0, max(a, 0.002))
             m.set_stroke(color=ORANGE, width=6, opacity=min(1.0, a * 6))
-        self.play(UpdateFromAlphaFunc(cv, draw), *anims, run_time=0.9, rate_func=linear)
-        self.at("about 18 cells")
+        self.play(UpdateFromAlphaFunc(cv, draw), *anims, run_time=0.65, rate_func=linear)
+
+        self.at("81", lead=0.0)
+        self.play(FadeIn(t_81, shift=LEFT * 0.1), run_time=0.5)
+
+        self.at("4 4", lead=0.0)
+        self.play(Create(b_rem), FadeIn(l_04, shift=LEFT * 0.1), FadeIn(t_44, shift=LEFT * 0.1), run_time=0.6)
+
+        self.at("18 cells", lead=0.0)
         br = bracket(1)
         l18 = bk_label(1)
-        self.play(Create(br), FadeIn(l18, shift=LEFT * 0.15), run_time=0.8)
-        self.at("18 cells of")
-        self.play(Indicate(l18, color=TEXT, scale_factor=1.08), run_time=0.7)
-        self.at("in between answers")
+        steps_grp = VGroup(*b_steps, b_rem)
+        self.play(FadeOut(VGroup(l_div, l_4c, l_04)), run_time=0.25)
+        self.play(ReplacementTransform(steps_grp, br), FadeIn(l18, shift=LEFT * 0.15),
+                  FadeIn(t_18, shift=LEFT * 0.1), run_time=0.6)
+
+        self.at("in between answers", lead=0.0)
         mid = VGroup(*[cells[i] for i in range(5, 22)])
-        self.play(Indicate(mid, color=TEXT, scale_factor=1.12), run_time=1.0)
-        self.at("is a blur")
-        l_bl = lab("a blur", 2.0, 0.6, ORANGE, 52, "l", weight=BOLD)
-        self.play(FadeIn(l_bl, shift=UP * 0.15), run_time=0.5)
+        self.play(Indicate(mid, color=TEXT, scale_factor=1.10), run_time=0.7)
+
+        self.at("is a blur", lead=0.0)
+        l_bl = lab("a blur", 2.0, -1.75, ORANGE, 50, "l", weight=BOLD)
+        self.play(FadeIn(l_bl, shift=UP * 0.15), run_time=0.45)
         self.finish()
+        self.wait(0.6)
 
 
 class S05Steep(SpokenScene):

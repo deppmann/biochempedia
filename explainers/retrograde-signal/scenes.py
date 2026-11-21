@@ -872,46 +872,202 @@ def fade_note():
 
 
 class S15Fade(SpokenScene):
-    """The active signal falls to about a third every ten micrometres: a glowing cloud and the curve computed from it."""
+    """Build the fade-distance equation above the fading cloud as spoken, then show the 1/e curve and 10 µm scale."""
 
     def construct(self):
-        tb = tube()
-        self.add(tb)
-        tipl = T("tip", 28, LBL).move_to(V(TX0 + 0.55, TUBE_Y))
-        self.add(tipl)
-        self.at("active signal", lead=0.0)
-        bars, kk = cloud(0.04)
-        self.add(bars)
-        al = T("active signal", 28, GREEN).move_to(V(3.0, TUBE_Y - 0.95))
-        self.play(FadeIn(al, shift=DOWN * 0.1), run_time=0.5)
+        tube_y = 1.72
+        pl_top, pl_base = -0.45, -2.50
+        yv15 = lambda d_um: pl_base + (pl_top - pl_base) * np.exp(-d_um / 10.0)
+
+        tb = RoundedRectangle(corner_radius=0.14, width=SPAN, height=0.90, stroke_color=GREY, stroke_width=3,
+                              fill_color=SOLID, fill_opacity=1).move_to(V(TX0 - SPAN / 2, tube_y))
+        tipl = T("tip", 28, LBL).move_to(V(TX0 + 0.55, tube_y))
+
+        # Cloud of glowing signal with a thinning tail inside the tube
+        n_bars = 96
+        inner_span = SPAN - 0.14
+        w_bar = inner_span / n_bars
+        bars = VGroup()
+        for i in range(n_bars):
+            d = (i + 0.5) / n_bars * 40.0
+            xc = TX0 - 0.07 - w_bar * (i + 0.5)
+            h_bar = 0.72 * (0.18 + 0.82 * np.exp(-d / 14.0))
+            bars.add(Rectangle(width=w_bar + 0.02, height=h_bar, stroke_width=0,
+                               fill_color=GREEN, fill_opacity=0).move_to(V(xc, tube_y)))
+        kk = ValueTracker(0.05)
+
+        def upd_cloud(g):
+            k_val = kk.get_value()
+            for i, b in enumerate(g):
+                d = (i + 0.5) / n_bars * 40.0
+                op = 0.9 * np.exp(-d / 10.0) if d <= k_val * 40.0 else 0.0
+                b.set_fill(GREEN, op)
+        bars.add_updater(upd_cloud)
+        upd_cloud(bars)
+
+        # Unnumbered scale bar ticks below the tube initially (numbers appear only after spoken)
+        sb_line = Line(V(TX0 + 0.1, pl_base), V(dx(40) - 0.1, pl_base), color=GREY, stroke_width=4)
+        sb_yax = Line(V(TX0 + 0.1, pl_base), V(TX0 + 0.1, pl_top + 0.2), color=GREY, stroke_width=4)
+        sb_ticks = VGroup(*[Line(V(dx(d), pl_base - 0.1), V(dx(d), pl_base + 0.1), color=GREY, stroke_width=4)
+                            for d in (0, 10, 20, 30)])
+
+        # Pre-layout equation lines above the fading cloud so pieces reveal in place without shifting
+        p_fd = M("fade distance", 32, GREEN)
+        p_eq1 = M("≈ √(", 32, TEXT).next_to(p_fd, RIGHT, buff=0.22)
+        p_d = M("D", 32, TEXT).next_to(p_eq1, RIGHT, buff=0.06)
+        p_mul1 = M("×", 32, TEXT).next_to(p_d, RIGHT, buff=0.18)
+        p_life = M("lifetime)", 32, PHOS).next_to(p_mul1, RIGHT, buff=0.18)
+        p_d.align_to(p_fd, DOWN)
+        p_life.align_to(p_fd, UP)
+        p_eq1.set_y(p_d.get_center()[1])
+        p_mul1.set_y(p_d.get_center()[1])
+        eq_row1 = VGroup(p_fd, p_eq1, p_d, p_mul1, p_life).move_to(V(0.0, 3.26))
+
+        q_d = M("= √(10 µm²/s", 32, TEXT)
+        q_life = M("× 10 s)", 32, PHOS).next_to(q_d, RIGHT, buff=0.22)
+        q_100 = M("= √100", 32, TEXT).next_to(q_life, RIGHT, buff=0.24)
+        q_res = M("= 10 µm", 32, GREEN).next_to(q_100, RIGHT, buff=0.24)
+        q_life.set_y(q_d.get_center()[1])
+        q_100.set_y(q_d.get_center()[1])
+        q_res.set_y(q_d.get_center()[1])
+        eq_row2 = VGroup(q_d, q_life, q_100, q_res).move_to(V(0.0, 2.62))
+
+        self.add(tb, tipl, bars)
+
+        self.at("fade distance")
+        self.play(FadeIn(p_fd, shift=DOWN * 0.08), kk.animate.set_value(0.18), run_time=0.5)
+        self.at("square root")
+        self.play(FadeIn(p_eq1, shift=DOWN * 0.06), run_time=0.35)
+        self.at("diffusion rate")
+        self.play(FadeIn(p_d, shift=DOWN * 0.06), kk.animate.set_value(0.28), run_time=0.45)
+        self.at("times")
+        self.play(FadeIn(p_mul1), run_time=0.25)
+        self.at("lifetime")
+        self.play(FadeIn(p_life, shift=DOWN * 0.06), run_time=0.4)
+
+        self.at("10 square", lead=0.0)
+        self.play(FadeIn(q_d, shift=DOWN * 0.06), run_time=0.5)
+        self.at("10 seconds", lead=0.0)
+        self.play(FadeIn(q_life, shift=DOWN * 0.06), run_time=0.45)
+        self.at("10 times 10", lead=0.0)
+        self.play(Indicate(q_d, color=TEXT, scale_factor=1.06),
+                  Indicate(q_life, color=PHOS, scale_factor=1.06), run_time=0.7)
+        self.at("100", lead=0.0)
+        self.play(FadeIn(q_100, shift=DOWN * 0.06), run_time=0.45)
+        self.at("square root", nth=1)
+        self.play(Indicate(q_100, color=TEXT, scale_factor=1.08), run_time=0.55)
+        self.at("10 so", lead=0.0)
+        self.play(FadeIn(q_res, shift=DOWN * 0.06), run_time=0.45)
+
+        self.at("active signal")
+        al = T("active signal", 28, GREEN).move_to(V(2.8, tube_y - 0.8))
+        self.play(FadeIn(al, shift=DOWN * 0.08), run_time=0.35)
+
         self.at("falls")
-        pf = plot_frame()
-        crv = fade_curve()
-        self.play(kk.animate.set_value(1.0).set_rate_func(smooth), FadeOut(al),
-                  Succession(Create(pf, run_time=0.25), Create(crv, run_time=0.6, rate_func=linear)), run_time=0.95)
+        nums = VGroup(*[T(s, 26, LBL).move_to(V(dx(d), pl_base - 0.35))
+                        for d, s in [(0, "0"), (10, "10"), (20, "20"), (30, "30 µm")]])
+        cap = T("distance from the tip", 28, LBL).move_to(V(0.0, pl_base - 0.78))
+        ylab = VGroup(T("1", 26, LBL).move_to(V(TX0 + 0.5, pl_top)),
+                      T("0", 26, LBL).move_to(V(TX0 + 0.5, pl_base)))
+        ytitle = T("active signal (fraction of tip level)", 26, GREEN).move_to(V(6.2, pl_top + 0.53), aligned_edge=RIGHT)
+        pf = VGroup(sb_line, sb_yax, sb_ticks, nums, cap, ylab, ytitle)
+        crv = VMobject().set_points_smoothly([V(dx(d), yv15(d)) for d in np.linspace(0, 40, 120)]).set_stroke(GREEN, 6)
+        self.play(kk.animate.set_value(1.0).set_rate_func(smooth), FadeOut(al, run_time=0.25),
+                  Succession(Create(pf, run_time=0.2), Create(crv, run_time=0.42, rate_func=linear)), run_time=0.62)
+
         self.at("about a third")
-        mk = third_marks()
-        gl = third_label()
-        self.play(Create(mk), FadeIn(gl), run_time=0.6)
-        self.at("every 10 micrometers")
-        br, bl = bracket()
-        self.play(Create(br), FadeIn(bl), run_time=0.6)
+        mk = VGroup(DashedLine(V(dx(10), pl_base), V(dx(10), yv15(10)), color=TEXT, stroke_width=3),
+                    DashedLine(V(dx(0), yv15(10)), V(dx(10), yv15(10)), color=TEXT, stroke_width=3),
+                    dot(V(dx(10), yv15(10)), TEXT, 0.12))
+        gl = T("about a third", 26, TEXT).move_to(V(dx(5), yv15(10) - 0.36))
+        self.play(Create(mk), FadeIn(gl), run_time=0.5)
+
+        self.at("every 10 micrometers", lead=0.0)
+        by = tube_y - 0.72
+        br = VGroup(Line(V(dx(0), by), V(dx(10), by), color=TEXT, stroke_width=4),
+                    Line(V(dx(0), by + 0.12), V(dx(0), by - 0.12), color=TEXT, stroke_width=4),
+                    Line(V(dx(10), by + 0.12), V(dx(10), by - 0.12), color=TEXT, stroke_width=4))
+        bl = T("10 µm", 28, TEXT).move_to(V(dx(5), by - 0.36))
+        fl = VGroup(T("fade distance about 10 µm", 28, TEXT),
+                    T("illustrative rates", 26, LBL)).arrange(
+            DOWN, buff=0.14, aligned_edge=LEFT).move_to(V(-3.0, -1.15))
+        self.play(Create(br), FadeIn(bl), FadeIn(fl), run_time=0.55)
+
         self.at("from the tip")
-        fl = fade_note()
-        self.play(FadeIn(fl), run_time=0.5)
+        self.play(Indicate(tipl, color=YELLOW, scale_factor=1.15),
+                  Indicate(bl, color=GREEN, scale_factor=1.1), run_time=0.55)
         self.finish()
 
 
 def s15_end(scene):
-    tb = tube()
-    tipl = T("tip", 28, LBL).move_to(V(TX0 + 0.55, TUBE_Y))
-    bars, kk = cloud(1.0)
-    scene.add(tb, tipl, bars)
-    pf, crv, mk, gl = plot_frame(), fade_curve(), third_marks(), third_label()
-    br, bl = bracket()
-    fl = fade_note()
-    scene.add(pf, crv, mk, gl, br, bl, fl)
-    return VGroup(tb, tipl, bars), VGroup(pf, crv, mk, gl, br, bl, fl)
+    tube_y = 1.72
+    pl_top, pl_base = -0.45, -2.50
+    yv15 = lambda d_um: pl_base + (pl_top - pl_base) * np.exp(-d_um / 10.0)
+
+    tb = RoundedRectangle(corner_radius=0.14, width=SPAN, height=0.90, stroke_color=GREY, stroke_width=3,
+                          fill_color=SOLID, fill_opacity=1).move_to(V(TX0 - SPAN / 2, tube_y))
+    tipl = T("tip", 28, LBL).move_to(V(TX0 + 0.55, tube_y))
+
+    n_bars = 96
+    inner_span = SPAN - 0.14
+    w_bar = inner_span / n_bars
+    bars = VGroup()
+    for i in range(n_bars):
+        d = (i + 0.5) / n_bars * 40.0
+        xc = TX0 - 0.07 - w_bar * (i + 0.5)
+        h_bar = 0.72 * (0.18 + 0.82 * np.exp(-d / 14.0))
+        bars.add(Rectangle(width=w_bar + 0.02, height=h_bar, stroke_width=0,
+                           fill_color=GREEN, fill_opacity=0.9 * np.exp(-d / 10.0)).move_to(V(xc, tube_y)))
+
+    p_fd = M("fade distance", 32, GREEN)
+    p_eq1 = M("≈ √(", 32, TEXT).next_to(p_fd, RIGHT, buff=0.22)
+    p_d = M("D", 32, TEXT).next_to(p_eq1, RIGHT, buff=0.06)
+    p_mul1 = M("×", 32, TEXT).next_to(p_d, RIGHT, buff=0.18)
+    p_life = M("lifetime)", 32, PHOS).next_to(p_mul1, RIGHT, buff=0.18)
+    p_d.align_to(p_fd, DOWN)
+    p_life.align_to(p_fd, UP)
+    p_eq1.set_y(p_d.get_center()[1])
+    p_mul1.set_y(p_d.get_center()[1])
+    eq_row1 = VGroup(p_fd, p_eq1, p_d, p_mul1, p_life).move_to(V(0.0, 3.26))
+
+    q_d = M("= √(10 µm²/s", 32, TEXT)
+    q_life = M("× 10 s)", 32, PHOS).next_to(q_d, RIGHT, buff=0.22)
+    q_100 = M("= √100", 32, TEXT).next_to(q_life, RIGHT, buff=0.24)
+    q_res = M("= 10 µm", 32, GREEN).next_to(q_100, RIGHT, buff=0.24)
+    q_life.set_y(q_d.get_center()[1])
+    q_100.set_y(q_d.get_center()[1])
+    q_res.set_y(q_d.get_center()[1])
+    eq_row2 = VGroup(q_d, q_life, q_100, q_res).move_to(V(0.0, 2.62))
+
+    sb_line = Line(V(TX0 + 0.1, pl_base), V(dx(40) - 0.1, pl_base), color=GREY, stroke_width=4)
+    sb_yax = Line(V(TX0 + 0.1, pl_base), V(TX0 + 0.1, pl_top + 0.2), color=GREY, stroke_width=4)
+    sb_ticks = VGroup(*[Line(V(dx(d), pl_base - 0.1), V(dx(d), pl_base + 0.1), color=GREY, stroke_width=4)
+                        for d in (0, 10, 20, 30)])
+    nums = VGroup(*[T(s, 26, LBL).move_to(V(dx(d), pl_base - 0.35))
+                    for d, s in [(0, "0"), (10, "10"), (20, "20"), (30, "30 µm")]])
+    cap = T("distance from the tip", 28, LBL).move_to(V(0.0, pl_base - 0.78))
+    ylab = VGroup(T("1", 26, LBL).move_to(V(TX0 + 0.5, pl_top)),
+                  T("0", 26, LBL).move_to(V(TX0 + 0.5, pl_base)))
+    ytitle = T("active signal (fraction of tip level)", 26, GREEN).move_to(V(6.2, pl_top + 0.53), aligned_edge=RIGHT)
+    pf = VGroup(sb_line, sb_yax, sb_ticks, nums, cap, ylab, ytitle)
+    crv = VMobject().set_points_smoothly([V(dx(d), yv15(d)) for d in np.linspace(0, 40, 120)]).set_stroke(GREEN, 6)
+
+    mk = VGroup(DashedLine(V(dx(10), pl_base), V(dx(10), yv15(10)), color=TEXT, stroke_width=3),
+                DashedLine(V(dx(0), yv15(10)), V(dx(10), yv15(10)), color=TEXT, stroke_width=3),
+                dot(V(dx(10), yv15(10)), TEXT, 0.12))
+    gl = T("about a third", 26, TEXT).move_to(V(dx(5), yv15(10) - 0.36))
+
+    by = tube_y - 0.72
+    br = VGroup(Line(V(dx(0), by), V(dx(10), by), color=TEXT, stroke_width=4),
+                Line(V(dx(0), by + 0.12), V(dx(0), by - 0.12), color=TEXT, stroke_width=4),
+                Line(V(dx(10), by + 0.12), V(dx(10), by - 0.12), color=TEXT, stroke_width=4))
+    bl = T("10 µm", 28, TEXT).move_to(V(dx(5), by - 0.36))
+    fl = VGroup(T("fade distance about 10 µm", 28, TEXT),
+                T("illustrative rates", 26, LBL)).arrange(
+        DOWN, buff=0.14, aligned_edge=LEFT).move_to(V(-3.0, -1.15))
+
+    scene.add(tb, tipl, bars, eq_row1, eq_row2, pf, crv, mk, gl, br, bl, fl)
+    return VGroup(tb, bars), VGroup(tipl, eq_row1, eq_row2, pf, crv, mk, gl, br, bl, fl)
 
 
 # ---------------------------------------------------------------------------------------------
@@ -976,7 +1132,8 @@ class S16Frac(SpokenScene):
         self.at("thousand of those steps")
         d2 = T("1 cm = 1,000 fade distances", 40, TEXT).move_to([0, -1.25, 0])
         note = T("each tick = 10 fade distances (100 ticks drawn)", 26, LBL).move_to([0, -2.0, 0])
-        self.play(Create(comb, lag_ratio=0.02), FadeOut(d1), FadeIn(d2), FadeIn(note), run_time=1.3)
+        self.play(Create(comb, lag_ratio=0.02), Succession(FadeOut(d1, run_time=0.25), FadeIn(d2, run_time=0.35)),
+                  FadeIn(note), run_time=1.3)
         self.at("the rates are illustrative")
         il = T("illustrative rates, not TrkA measurements", 28, LBL).move_to([0, -3.0, 0])
         self.play(FadeIn(il), run_time=0.5)
@@ -1511,12 +1668,3 @@ class S26Take(SpokenScene):
 class S27End(EndCard):
     """The clean end card: the line is simply there (no slow fade in from black)."""
     LINE = "A survival signal must make it home still able to signal."
-
-    def construct(self):
-        line = T(self.LINE, 40, font=TITLE_FONT)
-        fit(line, max_w=11.5)
-        sub = T("biochemistrypedia.com", 26, TEAL)
-        g = VGroup(line, sub).arrange(DOWN, buff=0.4)
-        self.add(g)
-        self.play(FadeIn(g), run_time=0.2)
-        self.finish()

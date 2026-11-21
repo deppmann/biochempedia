@@ -603,11 +603,55 @@ class S10(SpokenScene):
         st = Stage(logc=-11.0, kds=True)
         q = question_text()
         self.add(*st.mobs(), chosen_label(), q)
-        self.at("track sites")
-        self.play(FadeOut(q), st.r["t"].animate.set_value(1.0), run_time=1.3)
-        self.at("only about")
-        self.play(st.r["p"].animate.set_value(1.0), run_time=0.7)
-        pulse(self, st.frames[1], VIOLET)
+
+        one_nm = M("1 nM", 26, VIOLET)
+        eq1 = M("=", 26, TEXT)
+        thou_pm = M("1,000 pM", 26, VIOLET)
+        VGroup(one_nm, eq1, thou_pm).arrange(RIGHT, buff=0.14).move_to([4.85, 1.4, 0])
+
+        num10 = M("10", 26, BLUE)
+        den10 = M("10", 26, BLUE)
+        dplus = M("+", 26, TEXT)
+        d1000 = M("1,000", 26, VIOLET)
+        den = VGroup(den10, dplus, d1000).arrange(RIGHT, buff=0.10)
+        bar_w = max(num10.width, den.width) + 0.24
+        fbar = Line(LEFT * (bar_w / 2), RIGHT * (bar_w / 2), color=TEXT, stroke_width=3.5)
+        frac = VGroup(num10, fbar, den).arrange(DOWN, buff=0.14)
+        approx_sym = M("≈", 28, TEXT)
+        one_pct = M("1%", 28, VIOLET)
+        res = VGroup(approx_sym, one_pct).arrange(RIGHT, buff=0.10)
+        VGroup(frac, res).arrange(RIGHT, buff=0.18).move_to([4.85, -0.3, 0])
+        res.move_to([res.get_x(), fbar.get_y(), 0])
+
+        self.at("track sites", lead=0.0)
+        self.play(FadeOut(q), st.frames[0].animate.set_stroke(PINK, 8), run_time=0.5)
+        self.play(st.frames[0].animate.set_stroke(GREY, 3), run_time=0.4)
+        self.at("about half", lead=0.0)
+        self.play(st.r["t"].animate.set_value(1.0), run_time=0.8)
+
+        self.at("for p 75", lead=0.0)
+        pulse(self, st.frames[1], VIOLET, rt=0.4)
+        self.at("one nanomolar", lead=0.0)
+        self.play(FadeIn(one_nm), run_time=0.35)
+        self.at("is a thousand", lead=0.0)
+        self.play(FadeIn(eq1), run_time=0.25)
+        self.at("thousand picomolar", lead=0.0)
+        self.play(FadeIn(thou_pm), run_time=0.45)
+
+        self.at("ten divided by", lead=0.0)
+        self.play(FadeIn(num10), run_time=0.15)
+        self.at("divided by", lead=0.0)
+        self.play(Create(fbar), run_time=0.45)
+        self.at("ten plus", lead=0.0)
+        self.play(FadeIn(den10), run_time=0.20)
+        self.at("plus a thousand", lead=0.0)
+        self.play(FadeIn(dplus), run_time=0.25)
+        self.at("thousand is about", lead=0.0)
+        self.play(FadeIn(d1000), run_time=0.35)
+        self.at("about one percent", lead=0.0)
+        self.play(FadeIn(approx_sym), run_time=0.20)
+        self.at("one percent", lead=0.0)
+        self.play(FadeIn(one_pct), st.r["p"].animate.set_value(1.0), run_time=0.50)
         self.finish()
 
 
@@ -1086,14 +1130,3 @@ class S28(SpokenScene):
 
 class S29End(EndCard):
     LINE = "Dose sets which sites fill; the cut sets which receptors respond best."
-
-    def construct(self):
-        a = T("Dose sets which sites fill;", 46, font=TITLE_FONT)
-        b = T("the cut sets which receptors respond best.", 46, font=TITLE_FONT)
-        fit(b, max_w=12.0)
-        sub = T("biochemistrypedia.com", 24, color=TEAL)
-        g = VGroup(a, b, sub).arrange(DOWN, buff=0.35)
-        g.move_to(ORIGIN)
-        self.add(a, b)
-        self.play(FadeIn(sub), run_time=self.beat(0.15))
-        self.finish()
