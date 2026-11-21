@@ -16,8 +16,10 @@ interface Props {
   allHref?: string;
   /** After the last lesson: the course that follows this one in the suggested order, if any. */
   nextCourse?: { title: string; tagline: string; href: string };
+  /** An ages 5 to 10 guide: the questions are for a grown-up and a child to talk over. */
+  guide?: boolean;
 }
-const { slug, qCount, prev, next, allHref = '/courses/', nextCourse } = Astro.props;
+const { slug, qCount, prev, next, allHref = '/courses/', nextCourse, guide = false } = Astro.props;
 const games = LESSON_GAMES[slug] ?? [];
 const main = games[0];
 const more = games.slice(1);
@@ -40,7 +42,7 @@ const review = unitReviewFor(slug);
       <div class="fl-card fl-test">
         <p class="fl-kicker">Test yourself</p>
         <p class="fl-title">{qCount} {qCount === 1 ? 'question' : 'questions'}</p>
-        <p class="fl-blurb">Practice and MCAT-style, with explained answers.</p>
+        <p class="fl-blurb">{guide ? 'Questions to talk over together.' : 'Practice and MCAT-style, with explained answers.'}</p>
         <button type="button" class="fl-go" data-open="lb-quiz">Start the quiz →</button>
       </div>
     )}

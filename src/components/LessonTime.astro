@@ -55,9 +55,12 @@ var saved=null,legacy=null,inClass=false;
 try{var o=JSON.parse(localStorage.getItem('stemhop:prefs:v1')||'null');if(o&&typeof o.time==='string')saved=o.time}catch(e){}
 try{legacy=localStorage.getItem('stemhop:side-hops:view:'+D.slug)}catch(e){}
 try{var c=JSON.parse(localStorage.getItem('biochempedia:class:v1')||'null');inClass=!!(c&&typeof c.className==='string')}catch(e){}
-var r=chooseStop({stops:D.ids,hash:location.hash,search:location.search,saved:saved,legacy:legacy,inClass:inClass,guide:D.guide});
+var here=null;try{here=history.state&&typeof history.state.lt==='string'?history.state.lt:null}catch(e){}
+var r=chooseStop({stops:D.ids,hash:location.hash,search:location.search,here:here,saved:saved,legacy:legacy,inClass:inClass,guide:D.guide});
+try{var st=history.state||{};if(st.lt!==r.stop){var ns={};for(var k0 in st)ns[k0]=st[k0];ns.lt=r.stop;history.replaceState(ns,'')}}catch(e){}
 page.setAttribute('data-time',r.stop);
-if(box){var radio=box.querySelector('input[value="'+r.stop+'"]');if(radio)radio.checked=true;box.hidden=false}
+if(box){var radio=box.querySelector('input[value="'+r.stop+'"]');if(radio)radio.checked=true;box.hidden=false;
+box.addEventListener('change',function(e){var v=e.target&&e.target.name==='lt-time'?e.target.value:'';if(!v)return;page.setAttribute('data-time',v);if(!window.__ltLive)window.__ltEarly=v})}
 if(r.why&&root){var n=root.querySelector('[data-lt-status]');if(n)n.textContent=D.said[r.why]||''}
 window.__ltStart={stop:r.stop,why:r.why,inClass:inClass};
 try{var rw=document.querySelector('[data-lt-rewritten]');var nb=rw&&JSON.parse(localStorage.getItem('biochempedia:notebook:v1')||'null');if(nb&&nb.items){for(var k in nb.items){var it=nb.items[k];if(it&&it.slug===D.slug&&!it.deleted){rw.hidden=false;break}}}}catch(e){}
@@ -73,7 +76,8 @@ try{var rw=document.querySelector('[data-lt-rewritten]');var nb=rw&&JSON.parse(l
           <span class="lt-thumb" aria-hidden="true"></span>
           {stops.map((s) => (
             <label class="lt-stop">
-              <input type="radio" name="lt-time" value={s.id} checked={s.id === 'lesson'} />
+              {/* autocomplete off: a browser must not restore an old radio on Back; the boot script sets it. */}
+              <input type="radio" name="lt-time" value={s.id} checked={s.id === 'lesson'} autocomplete="off" />
               <span class="lt-min"><span class="visually-hidden">About </span><b>{s.min}</b> min</span>
               <span class="lt-name">{s.name}</span>
               {s.hint && <span class="lt-hint">{s.hint}</span>}
@@ -98,7 +102,7 @@ try{var rw=document.querySelector('[data-lt-rewritten]');var nb=rw&&JSON.parse(l
 <script type="application/json" id="lt-data" set:html={JSON.stringify(pageData).replace(/</g, '\\u003c')} />
 
 <script>
-  import { writePrefs } from '../lib/prefs';
+  import { readPrefs, writePrefs } from '../lib/prefs';
   import { allItems, storageWorks, NOTEBOOK_EVENT } from '../lib/notebook';
   import { loadFilms, isWatched, filmKeyOf } from '../lib/film-progress';
 
@@ -126,10 +130,13 @@ try{var rw=document.querySelector('[data-lt-rewritten]');var nb=rw&&JSON.parse(l
     const thumb = box?.querySelector<HTMLElement>('.lt-thumb') ?? null;
     const status = root.querySelector<HTMLElement>('[data-lt-status]')!;
     const calm = window.matchMedia('(prefers-reduced-motion: reduce)');
-    const start = (window as unknown as { __ltStart?: { stop: StopId; why: string; inClass: boolean } }).__ltStart;
+    const w = window as unknown as { __ltStart?: { stop: StopId; why: string; inClass: boolean }; __ltEarly?: StopId; __ltLive?: boolean };
+    const start = w.__ltStart;
     let current: StopId | '' = '';
-    // A tap made before this script arrived: the radio moved, but nothing else could.
-    const early = radios.find((r) => r.checked)?.value as StopId | undefined;
+    // A tap made before this script arrived. The boot script recorded it (and folded the page);
+    // a radio a browser restored on Back is never mistaken for a tap.
+    const early = w.__ltEarly;
+    w.__ltLive = true;
     // "Your place is kept" is only said where a place can be kept.
     let keeps = true;
     try { keeps = storageWorks(); } catch { keeps = false; }
@@ -265,6 +272,10 @@ try{var rw=document.querySelector('[data-lt-rewritten]');var nb=rw&&JSON.parse(l
       page!.setAttribute('data-time', next);
       radios.forEach((r) => { r.checked = r.value === next; });
       place();
+      // This history entry remembers its stop, so Back or a reload reopens the page as it was left.
+      try { if (history.state?.lt !== next) history.replaceState({ ...(history.state ?? {}), lt: next }, ''); } catch { /* the address bar stays as it was */ }
+      // "Continue at" (the lesson page's own script) listens for this.
+      if (changed) document.dispatchEvent(new CustomEvent('lt-stop', { detail: next }));
       if (o.first) return;
       if (changed && !calm.matches) {
         page!.classList.remove('lt-swap');
@@ -287,7 +298,7 @@ try{var rw=document.querySelector('[data-lt-rewritten]');var nb=rw&&JSON.parse(l
           // The reader has just chosen: an old #hash or search marker in the address must not
           // overrule that choice on a reload or on Back.
           u.searchParams.delete('pagefind-highlight');
-          history.replaceState(history.state, '', u.pathname + u.search);
+          history.replaceState({ ...(history.state ?? {}), lt: next }, '', u.pathname + u.search);
         } catch { /* the address stays as it was */ }
       }
       // One sentence, shown and announced: what this stop holds, then anything worth adding.
@@ -300,6 +311,17 @@ try{var rw=document.querySelector('[data-lt-rewritten]');var nb=rw&&JSON.parse(l
     if (box) {
       requestAnimationFrame(() => { place(); requestAnimationFrame(() => box.classList.add('lt-ready')); });
       if ('ResizeObserver' in window) new ResizeObserver(place).observe(box);
+      // A page restored from memory on Back (or a radio a browser put back): the control shows the stop on screen.
+      window.addEventListener('pageshow', () => { radios.forEach((r) => { r.checked = r.value === current; }); place(); });
+      // Tapping the stop that is already chosen makes it the saved choice too: a page a link or a
+      // class opened whole can be kept whole from now on without tapping away and back.
+      box.addEventListener('click', (e) => {
+        const t = (e.target as HTMLElement).closest('.lt-stop')?.querySelector<HTMLInputElement>('input');
+        if (!t || t.value !== current || start?.inClass || data.guide || readPrefs().time === t.value) return;
+        if (writePrefs({ time: t.value }).time !== t.value) return;
+        root.classList.add('lt-spoke');
+        status.textContent = `${data.lines[t.value] ?? ''} ${carryFor(t.value as StopId)}`;
+      });
       // The control: the only thing that changes what the next lesson opens as.
       box.addEventListener('change', (e) => {
         const t = e.target as HTMLInputElement;
@@ -479,11 +501,13 @@ try{var rw=document.querySelector('[data-lt-rewritten]');var nb=rw&&JSON.parse(l
     /* Stories: the Side Hops are the page. */
     #top[data-time='stories'] .prose-col[data-lesson-title] { display: none !important; }
 
-    /* "Mark this lesson done" belongs to the whole lesson. */
-    #top:is([data-time='skim'], [data-time='stories'], [data-time='films']) [data-done-row] { display: none !important; }
+    /* "Mark this lesson done" belongs to the whole lesson, and so does the "Finish line" label with
+       its quiz card: a shorter stop has its own ending just above (the self-test is on its tools line).
+       The next and previous lessons stay. */
+    #top:is([data-time='skim'], [data-time='stories'], [data-time='films']) :is([data-done-row], .finish .fl-label, .finish .fl-test) { display: none !important; }
   }
   @media print {
-    #top [data-lt-only]:not([data-lt-only~='lesson']), .lt-ctl, .lt-said, .lt-play { display: none !important; }
+    #top [data-lt-only]:not([data-lt-only~='lesson']), .lt-ctl, .lt-said, .lt-play, .lt-landing { display: none !important; }
     #top .lt-line[data-lt-only='lesson'] { display: block !important; }
   }
 

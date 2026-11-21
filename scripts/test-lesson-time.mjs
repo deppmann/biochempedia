@@ -103,9 +103,9 @@ check('an ages 5 to 10 guide has Film and Activity, and one stop when it has no 
 check('sentences: numbers add up, and no sentence counts what is left', () => {
   const t = lessonTime({ ...base, body: words(2800), explainer: film('a', 230, ['x']), films: [film('b', 238, ['y'])], stories: { audioSec: 229, hops: [{ afterHeading: 'x', title: 'y' }, { afterHeading: 'z', title: 'w' }, { afterHeading: 'q', title: 'r' }] } });
   const l = linesFor(t, { figures: 3 });
-  assert.equal(l.films, `Both films, ${t.filmMin} minutes, then three short stories told aloud, ${t.storyMin} more.`);
+  assert.equal(l.films, `Both films, ${t.filmMin} minutes, then three short stories told aloud, ${t.storyMin} minutes more.`);
   assert.equal(l.stories, 'Three real-life stories behind this lesson, about 4 minutes aloud, or read them below.');
-  assert.equal(t.stops.find((s) => s.id === 'stories').hint, 'real-life cases, told aloud');
+  assert.equal(t.stops.find((s) => s.id === 'stories').hint, 'short, told aloud');
   assert.equal(l.skim, 'The main idea, the figures and what the films show. Under each heading, "Read this part" opens it.');
   assert.match(l.lesson, /^The whole lesson: about \d+ minutes of reading, \d+ of film and \d+ of stories\.$/);
   const long = lessonTime({ ...base, body: [1, 2, 3, 4, 5].map((k) => `## Part ${k}\n\n${words(1500)}\n`).join('\n'), h2: [1, 2, 3, 4, 5].map((k) => ({ slug: `p${k}`, text: `Part ${k}` })) });
@@ -115,7 +115,7 @@ check('sentences: numbers add up, and no sentence counts what is left', () => {
   const guide = lessonTime({ ...base, tier: 'families', estMinutes: 20, body: words(600), explainer: film('Set up', 41.7) });
   assert.equal(linesFor(guide, { figures: 0 }).films, 'The film, 42 seconds, and the safety notes, for the grown-up to look at before the activity.');
   assert.equal(linesFor(guide, { figures: 0, laterLooks: true }).lesson, 'The hands-on part, done with a child: about 20 minutes, then a few quick looks later.');
-  assert.deepEqual(endingsFor(t), { skim: 'That is the skim: you have the shape of it.', stories: 'Those are the stories.', films: 'That is both films.' });
+  assert.deepEqual(endingsFor(t), { skim: 'That is the skim: you have the shape of it.', stories: 'Those are the stories. The idea under them is the one the lesson builds.', films: 'That is both films: the lesson in pictures.' });
   for (const s of [...Object.values(l), ...Object.values(endingsFor(t))]) assert.doesNotMatch(s, /\bleft\b|to go\b|remaining|\bof \d+\b/i);
 });
 
@@ -180,6 +180,20 @@ check('an activity guide ignores a choice saved on a science lesson', () => {
   assert.deepEqual(go({ ...guide, saved: 'films' }), { stop: 'lesson', why: '' });
   assert.deepEqual(go({ ...guide, saved: 'skim' }), { stop: 'lesson', why: '' });
   assert.deepEqual(go({ ...guide, search: '?time=films' }), { stop: 'films', why: '' });
+});
+
+check('Back or a reload reopens a page at the stop it was showing', () => {
+  assert.deepEqual(go({ here: 'lesson', saved: 'skim' }), { stop: 'lesson', why: '' });
+  assert.deepEqual(go({ here: 'films', saved: 'lesson' }), { stop: 'films', why: '' });
+  assert.deepEqual(go({ here: 'films', saved: 'skim', search: '?time=stories' }), { stop: 'stories', why: '' }, '?time= still wins');
+  assert.deepEqual(go({ here: 'skim', hash: '#going-deeper' }), { stop: 'lesson', why: '' }, 'a link into the text still wins');
+  assert.deepEqual(go({ here: 'stories', stops: ['skim', 'lesson'], saved: 'skim' }), { stop: 'skim', why: 'remembered' });
+});
+
+check('a link to the opening film lands on a stop that shows it', () => {
+  assert.deepEqual(go({ saved: 'stories', hash: '#explainer' }), { stop: 'films', why: '' });
+  assert.deepEqual(go({ saved: 'skim', hash: '#explainer', stops: ['skim', 'lesson'] }), { stop: 'lesson', why: '' });
+  assert.deepEqual(go({ saved: 'films', hash: '#explainer' }), { stop: 'films', why: 'remembered' });
 });
 
 check('the old per-lesson choice is a fallback only', () => {

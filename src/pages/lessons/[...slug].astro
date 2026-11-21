@@ -126,7 +126,8 @@ const sections = headings.filter((h) => h.depth === 2 && h.slug && h.text.trim()
 // in /catalog.json and in JSON-LD below).
 // The main idea a skim leads with: the summary's first sentence that states something (a few
 // summaries open with a question).
-const { text: idea, question: ideaIsQuestion } = mainIdeaOf(lesson);
+const { text: idea, question: ideaIsQuestion, describes: ideaDescribes } = mainIdeaOf(lesson);
+const ideaLabel = ideaIsQuestion ? 'The question.' : ideaDescribes ? `In this ${course.tier === 'families' ? 'activity' : 'lesson'}.` : 'The main idea.';
 const skimWords = skim.words + wordsIn(idea) + filmTakeawaysOf(lesson).reduce((n, f) => n + wordsIn(f.takeaways.join(' ')), 0);
 // Figures a skim shows: worksheet figures (ScaffoldFigure, blank labels to fill in) are left out.
 const skimFigures = [...(entry.body ?? '').matchAll(/<LessonFigure\b/g)].length;
@@ -222,7 +223,7 @@ const lessonLd = {
           each sits on the line of the stop it plays. */}
       <LessonTime slug={lesson.slug} time={time} lines={lines} skimHref={hasSkim && !isGuide ? `/lessons/${lesson.slug}/skim/` : undefined}>
         <ListenPlayer slot="play-lesson" slug={lesson.slug} />
-        {time.filmCount > 1 && <LessonPlayAll slot="play-films" />}
+        {time.filmCount > 1 && <LessonPlayAll slot="play-films" minutes={time.filmMin} />}
       </LessonTime>
 
       {/* "Continue at…": filled in by the script at the foot of the page from this device's storage,
@@ -278,7 +279,7 @@ const lessonLd = {
     )}
 
     {/* The Skim stop leads with the lesson's main idea (the first sentence of its summary). */}
-    <div class="wrap" data-lt-only="skim"><p class="lt-idea"><span class="lt-idea-k">{ideaIsQuestion ? 'The question.' : 'The main idea.'}</span> {idea}</p></div>
+    <div class="wrap" data-lt-only="skim"><p class="lt-idea"><span class="lt-idea-k">{ideaLabel}</span> {idea}</p></div>
 
     {/* The Films stop folds the section headings away, so it gets a heading of its own; each film's
         title is a level 3 heading to a screen reader. */}
@@ -402,6 +403,7 @@ const lessonLd = {
             </ul>
             {/* The tools the rail and the Contents pill hold in the Lesson stop, within reach here too. */}
             <ul class="lt-end-tools" aria-label={`Tools for this ${time.noun}`}>
+              {hasQuiz && <li><button type="button" data-open="lb-quiz">{isGuide ? 'Questions to talk over' : 'Self-test'}</button></li>}
               {deck && <li><button type="button" data-fc-open>Flashcards</button></li>}
               {lesson.explainLevels.length > 0 && <li><button type="button" data-open={`lb-level-${lesson.explainLevels[0].level}`}>Explain it simply</button></li>}
               <li><button type="button" data-open="lb-sources">Sources and integrity</button></li>
@@ -410,7 +412,7 @@ const lessonLd = {
           </section>
         )}
 
-        <FinishLine slug={entry.data.slug} qCount={qCount} prev={prevNav} next={nextNav} allHref={courseHref(course.slug)} nextCourse={nextCourse} />
+        <FinishLine slug={entry.data.slug} qCount={qCount} prev={prevNav} next={nextNav} allHref={courseHref(course.slug)} nextCourse={nextCourse} guide={isGuide} />
 
         {/* HOP BLOCK: the hop ladder for this lesson's concept (another workstream) mounts here, at the
             end of the lesson. Until then "Where this lesson fits" (LessonLinks, above) does this job. */}
@@ -614,21 +616,21 @@ const lessonLd = {
 
     {/* ---- Lightboxes (one per resource; hidden until opened) ---- */}
     {lesson.structures.map((s) => (
-      <dialog id={structId(s)} class="lightbox lock-scroll">
+      <dialog id={structId(s)} class="lightbox lock-scroll" aria-label={s.label}>
         <div class="lightbox-head"><span>{s.label}</span><button type="button" class="lightbox-close" data-close aria-label="Close">✕</button></div>
         <div class="lightbox-body"><MolViewer source={s.source} id={s.id} label={s.label} caption={s.caption} height={520} /></div>
       </dialog>
     ))}
 
     {phetSims.map((s, i) => (
-      <dialog id={`lb-phet-${i}`} class="lightbox lock-scroll">
+      <dialog id={`lb-phet-${i}`} class="lightbox lock-scroll" aria-label={s.title}>
         <div class="lightbox-head"><span>{s.title}</span><button type="button" class="lightbox-close" data-close aria-label="Close">✕</button></div>
         <div class="lightbox-body"><PhetEmbed url={s.ref} title={s.title} attribution={s.attribution} caption={s.caption} /></div>
       </dialog>
     ))}
 
     {lesson.scientists.map((s, i) => (
-      <dialog id={`lb-sci-${i}`} class="lightbox lock-scroll">
+      <dialog id={`lb-sci-${i}`} class="lightbox lock-scroll" aria-label={s.name}>
         <div class="lightbox-head"><span>{s.name}</span><button type="button" class="lightbox-close" data-close aria-label="Close">✕</button></div>
         <div class="lightbox-body">
           {s.film && (
@@ -662,14 +664,14 @@ const lessonLd = {
     ))}
 
     {lesson.videos.map((v, i) => (
-      <dialog id={`lb-video-${i}`} class="lightbox lock-scroll">
+      <dialog id={`lb-video-${i}`} class="lightbox lock-scroll" aria-label={v.title}>
         <div class="lightbox-head"><span>{v.title}</span><button type="button" class="lightbox-close" data-close aria-label="Close">✕</button></div>
         <div class="lightbox-body"><YouTubeEmbed youtubeId={v.youtubeId} title={v.title} sourceNote={v.sourceNote} /></div>
       </dialog>
     ))}
 
     {hasQuiz && (
-      <dialog id="lb-quiz" class="lightbox lock-scroll">
+      <dialog id="lb-quiz" class="lightbox lock-scroll" aria-label="Test yourself">
         <div class="lightbox-head"><span>Test yourself</span><button type="button" class="lightbox-close" data-close aria-label="Close">✕</button></div>
         <div class="lightbox-body"><QuizBlock practice={lesson.practiceQuestions} mcat={lesson.mcatQuestions} slug={lesson.slug} anchors={quizAnchors} /></div>
       </dialog>
@@ -678,13 +680,13 @@ const lessonLd = {
     {deck && <FlashcardDeck deck={deck} />}
     {deck && <CardsPrompt />}
 
-    <dialog id="lb-sources" class="lightbox lock-scroll">
+    <dialog id="lb-sources" class="lightbox lock-scroll" aria-label="Sources and integrity">
       <div class="lightbox-head"><span>Sources &amp; Integrity</span><button type="button" class="lightbox-close" data-close aria-label="Close">✕</button></div>
       <div class="lightbox-body"><SourcesFooter lesson={lesson} figures={lessonFigures} /></div>
     </dialog>
 
     {lesson.explainLevels.map((lv) => (
-      <dialog id={`lb-level-${lv.level}`} class="lightbox lock-scroll">
+      <dialog id={`lb-level-${lv.level}`} class="lightbox lock-scroll" aria-label={`Explain at my level: ${lv.label}`}>
         <div class="lightbox-head"><span>{lv.label}</span><button type="button" class="lightbox-close" data-close aria-label="Close">✕</button></div>
         <div class="lightbox-body">
           <div class="prose-col level-body" data-pagefind-body data-pagefind-weight="0.7">
@@ -696,7 +698,7 @@ const lessonLd = {
     ))}
 
     {lesson.anecdotes.map((a, i) => (
-      <dialog id={`lb-anec-${i}`} class="lightbox lock-scroll">
+      <dialog id={`lb-anec-${i}`} class="lightbox lock-scroll" aria-label={a.title}>
         <div class="lightbox-head"><span>{a.title}</span><button type="button" class="lightbox-close" data-close aria-label="Close">✕</button></div>
         <div class="lightbox-body">
           {a.animation && <AnecdoteAnimation anim={a.animation} />}
@@ -901,7 +903,7 @@ const lessonLd = {
   <style>
     .under-review { margin: 0 0 var(--ddp-space-3); max-width: 60ch; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); }
     .film-takeaways { margin: var(--ddp-space-3) 0 0; max-width: 72ch; padding: var(--ddp-space-3) var(--ddp-space-4); border-left: 3px solid var(--ddp-color-accent); background: var(--ddp-color-accent-soft); border-radius: 4px; }
-    .film-takeaways-h { margin: 0 0 var(--ddp-space-1); font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ddp-color-accent); }
+    .film-takeaways-h { margin: 0 0 var(--ddp-space-1); font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ddp-color-primary); }
     .film-takeaways ul { margin: 0; padding-left: 1.2rem; list-style: disc; line-height: 1.55; }
     .film-takeaways li + li { margin-top: 0.25rem; }
     .film-predates { margin: var(--ddp-space-2) 0 0; max-width: 72ch; padding: var(--ddp-space-2) var(--ddp-space-3); border-left: 3px solid var(--ddp-color-caution); background: var(--ddp-color-caution-soft); border-radius: 4px; font-size: var(--ddp-text-sm); line-height: 1.5; color: var(--ddp-color-ink-soft); }
@@ -952,8 +954,8 @@ const lessonLd = {
     .about > summary::before { content: '▸'; color: var(--ddp-color-accent); }
     .about[open] > summary::before { content: '▾'; }
     .about > summary:hover { color: var(--ddp-color-accent); }
-    .about-has { font-weight: 400; color: var(--ddp-color-muted); }
-    .about-has::before { content: '·\00a0'; }
+    /* What the fold holds, as a quiet second line: no separator that could start a wrapped line. */
+    .about-has { flex-basis: 100%; padding-left: 1.1em; margin-top: -0.6em; padding-bottom: 0.5em; font-weight: 400; color: var(--ddp-color-muted); }
     /* "Help with the tasks" names the switch; its own capital "Supports" legend would be a second label. */
     .about-body :global(.supports-legend) { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
     .about-body { padding: 0 0 var(--ddp-space-4); }
@@ -1045,7 +1047,7 @@ const lessonLd = {
       font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: 0.08em;
       text-transform: uppercase; color: var(--ddp-color-accent); margin-right: 0.4em; vertical-align: 0.15em;
     }
-    .explainer-len { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-muted); }
+    .explainer-len { white-space: nowrap; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-muted); }
     .explainer-note { margin: 0; max-width: 72ch; font-size: var(--ddp-text-xs); line-height: 1.55; color: var(--ddp-color-muted); }
 
     /* Two-column layout */
@@ -1282,7 +1284,13 @@ const lessonLd = {
           if (d?.id) saveSection(slug, d.id, (d.title ?? '').trim());
         });
         const target = saved ? document.getElementById(saved.id) : null;
-        if (saved && target && !location.hash) {
+        // The place is the one saved when the page opened. It is offered at load, and again when a
+        // shorter stop gives way to the whole lesson (the "lt-stop" event from LessonTime), so
+        // "Your place is kept" stays true for a reader who arrives on Films and then opens the text.
+        const offer = () => {
+          if (!saved || !target) return;
+          const stop = document.getElementById('top')?.getAttribute('data-time');
+          if (stop && stop !== 'lesson') return;
           // Wait a frame so the browser's own scroll restoration has happened; offer the link only
           // if the saved section is still below the screen.
           requestAnimationFrame(() => {
@@ -1291,7 +1299,9 @@ const lessonLd = {
             box.querySelector<HTMLElement>('[data-resume-title]')!.textContent = saved.title || 'where you left off';
             box.hidden = false;
           });
-        }
+        };
+        if (!location.hash) offer();
+        document.addEventListener('lt-stop', (e) => { if ((e as CustomEvent<string>).detail === 'lesson') offer(); });
       }
     }
     // "In this lesson": mark the section being read (aria-current), so the list doubles as a
