@@ -8,7 +8,8 @@
                   both are switched off on the live site, and the first sends a syllabus to an AI
                   model, which the box's own privacy sentence says never happens.
 
-   CALENDAR_LINK  The parents' link to /calendar/. That page is being built in another pull request;
-                  with the flag on before it exists, check-assets fails the build (a dead link). */
+   CALENDAR_LINK  The parents' link to /calendar/parent/. The calendar was built in another pull
+                  request while this page was; the link stays off until someone has read the two
+                  together. With the flag on and the page missing, check-assets fails the build. */
 export const SYLLABUS_BOX = false;
 export const CALENDAR_LINK = false;

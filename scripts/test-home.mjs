@@ -48,7 +48,7 @@ ok(count(/href="\/courses\/"/g) === 1, `the page body must link the catalog (/co
 ok(main.includes('Made by') && main.includes('href="/about/"'), 'the byline naming Chris must link to /about/');
 
 for (const off of ['/plan/', '/teach/syllabus/', '/curious/']) ok(!main.includes(`href="${off}`), `the homepage must not link ${off} (switched off on the live site)`);
-if (!flagOn('CALENDAR_LINK')) ok(!main.includes('/calendar/'), 'CALENDAR_LINK is off, so the page must not mention /calendar/');
+if (!flagOn('CALENDAR_LINK')) ok(!main.includes('/calendar/'), 'CALENDAR_LINK is off, so the page must not link the calendar');
 if (!flagOn('SYLLABUS_BOX')) ok(!main.includes('<textarea'), 'SYLLABUS_BOX is off, so the page must not carry the syllabus box');
 if (flagOn('SYLLABUS_BOX')) ok(!(await readFile('src/lib/syllabus-match.ts', 'utf8')).includes('return { ready: false }'), 'SYLLABUS_BOX is on but src/lib/syllabus-match.ts is still the unbuilt stub');
 
