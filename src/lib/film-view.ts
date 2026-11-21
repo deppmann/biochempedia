@@ -8,6 +8,7 @@
    plus, for a run: t = 10 | 20 | 30 (minutes). */
 import type { FilmList, ListFilm } from './film-cards';
 import { isWatched, type FilmRecord } from './film-progress';
+import { matchFilms, runnableFilms, runQueue as queueOf } from './film-logic.mjs';
 
 export const FIELDS = ['q', 'sort', 'level', 'course', 'kind'] as const;
 export type Field = (typeof FIELDS)[number];
@@ -44,51 +45,19 @@ export function viewQuery(v: View, extra: Record<string, string> = {}): string {
  *  (/films/ideas.json, loaded the first time someone uses the search box). */
 export type Ideas = Record<string, string>;
 
-const LITTLE = new Set('a an and are as at be by can do does for from how in into is it its of on or so that the their then there this to was what when where which who why will with your you'.split(' '));
-const collator = new Intl.Collator('en', { sensitivity: 'base', numeric: true });
-const COMPARE: Record<string, (a: ListFilm, b: ListFilm) => number> = {
-  course: (a, b) => a.i - b.i,
-  short: (a, b) => a.d - b.d || a.i - b.i,
-  long: (a, b) => b.d - a.d || a.i - b.i,
-  // Newest rewrites first; films whose lesson has no rewrite date follow, in course order.
-  new: (a, b) => ((b.r ?? '') > (a.r ?? '') ? 1 : (b.r ?? '') < (a.r ?? '') ? -1 : 0) || a.i - b.i,
-  az: (a, b) => collator.compare(a.t, b.t) || a.i - b.i,
-};
+/** The films a view selects, in its order, and the films of it a run plays. Both are decided in
+ *  film-logic.mjs (one matcher, tested), and both take the same three arguments. */
+export const select = (list: FilmList, v: View, ideas?: Ideas | null): ListFilm[] => matchFilms(list.films, v, ideas ?? null);
+export const runnable = (films: ListFilm[], v: View): ListFilm[] => runnableFilms(films, v);
+export const runQueue = (list: FilmList, v: View, ideas?: Ideas | null): ListFilm[] => queueOf(list.films, v, ideas ?? null);
 
-/** The films a view selects, in its order. A search matches when every word is in the film's title,
- *  its lesson's title or, once loaded, the questions people ask about that lesson; films matched by
- *  title come first. */
-export function select(list: FilmList, v: View, ideas?: Ideas | null): ListFilm[] {
-  // Little words carry no idea ("why do cells swell in water" is cells, swell, water), unless the
-  // search is nothing but little words.
-  const typed = fold(v.q).split(/[^a-z0-9]+/).filter((w) => w.length > 1 || /\d/.test(w));
-  const kept = typed.filter((w) => !LITTLE.has(w));
-  const words = kept.length ? kept : typed;
-  const byTitle = new Set<ListFilm>();
-  const out = list.films.filter((f) => {
-    if (v.level && f.s !== v.level) return false;
-    if (v.course && f.c !== v.course) return false;
-    if (v.kind && f.k !== v.kind) return false;
-    if (!words.length) return true;
-    const title = fold(`${f.t} ${f.l ?? ''}`);
-    if (words.every((w) => title.includes(w))) { byTitle.add(f); return true; }
-    // Against the questions people ask, a word must start a word ("atp" is not found inside "adaptation").
-    const idea = f.l && ideas ? ` ${title.replace(/[^a-z0-9]+/g, ' ')} ${ideas[f.l] ?? ''}` : '';
-    return !!idea && words.every((w) => idea.includes(` ${w}`));
-  });
-  out.sort(COMPARE[v.sort] ?? COMPARE.course);
-  if (words.length && byTitle.size && byTitle.size < out.length) return [...out.filter((f) => byTitle.has(f)), ...out.filter((f) => !byTitle.has(f))];
-  return out;
-}
-
-/** The films a run plays, before any time budget: the view, without the Biology Together films
- *  (those set up an activity a grown-up runs; they are no use back to back) unless that level, its
- *  course or that kind was asked for, and without scientist profiles and method films, which open on
- *  other pages. */
-export function runnable(films: ListFilm[], v: View): ListFilm[] {
-  const young = v.level === 'ages-5-10' || v.kind === 'activity' || films.every((f) => f.k === 'activity');
-  return films.filter((f) => f.h.startsWith('/watch/') && (young || f.k !== 'activity'));
-}
+/** /films/ideas.json, once. Null if it cannot be had (a search then matches titles only, in the
+ *  library and in the run alike). */
+let ideasOnce: Promise<Ideas | null> | undefined;
+export const loadIdeas = (): Promise<Ideas | null> => (ideasOnce ??= fetch('/films/ideas.json')
+  .then((r) => (r.ok ? (r.json() as Promise<Ideas>) : null))
+  .catch(() => null)
+  .then((d) => { if (!d) ideasOnce = undefined; return d; }));
 
 /**
  * The time-budget rule (the same as the play-in-order page, 2026-11-15): start at the first film not

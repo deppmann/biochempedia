@@ -67,7 +67,7 @@ export function countSeen(root: ParentNode): void {
   for (const el of root.querySelectorAll<HTMLElement>('[data-seen-of]')) {
     const keys = el.dataset.seenOf!.split(' ').filter(Boolean);
     const n = keys.filter((k) => isWatched(r, k)).length;
-    el.textContent = n ? `${n} ${n === 1 ? 'film' : 'films'} watched on this device` : '';
+    el.textContent = n ? `${n} ${n === 1 ? 'film' : 'films'} watched on this device.` : '';
     el.hidden = n === 0;
   }
 }

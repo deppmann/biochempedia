@@ -4,7 +4,7 @@
    Each case here was a fault a reviewer found in a browser.
 
    Run: node scripts/test-film-logic.mjs   (in `npm test` and in CI) */
-import { companionAt, swapRule, pauseLabel, runFilms, runPlace, endWith } from '../src/lib/film-logic.mjs';
+import { companionAt, swapRule, pauseLabel, runFilms, runPlace, endWith, matchFilms, runnableFilms, runQueue } from '../src/lib/film-logic.mjs';
 
 let failed = 0;
 let passed = 0;
@@ -63,6 +63,39 @@ eq(runPlace(run, new Set(['b'])), { index: 0, at: 0 }, 'the first unwatched film
 
 eq(endWith('Which Way Does the Water Go?'), 'Which Way Does the Water Go?', 'no full stop after a title that ends in a question mark');
 eq(endWith('The Size Test'), 'The Size Test.', 'a full stop after a plain title');
+
+/* ---- one matcher for the library and the run. The fault: the library searched the questions people
+   ask and the run did not, so "sodium pump" showed films, promised a run of three, and the run page
+   said "No film matches this view". */
+{
+  const F = (i, t, l, s, c, k, d, h) => ({ i, t, l, s, c, k, d, h: h ?? `/watch/x${i}/`, f: `x${i}/explainer` });
+  const list = [
+    F(0, 'Set Up: Thirsty Celery', 'Thirsty Celery', 'ages-5-10', 'together', 'activity', 42),
+    F(1, 'Random Moves, One-Way Drift', 'Diffusion and Osmosis', 'grade-7', 'life', 'first', 175),
+    F(2, 'Water Drifts to the Saltier Side', 'Diffusion and Osmosis', 'grade-7', 'life', 'second', 196),
+    F(3, 'Downhill for Free', 'Crossing the Membrane', 'high-school', 'bio', 'first', 202),
+    F(4, 'Two Pushes, One Hill', 'Active Transport', 'college-core', 'cell', 'first', 190),
+    F(5, 'Jens Skou', 'Active Transport', 'college-core', 'cell', 'profile', 120, '/lessons/active-transport/#lb-sci-0'),
+    F(6, 'Adaptation at the Edge', 'Sensory Adaptation', 'graduate', 'neuro', 'first', 60),
+  ];
+  const ideas = { 'Crossing the Membrane': 'osmosis red blood cell burst water', 'Active Transport': 'sodium pump atp uphill', 'Thirsty Celery': 'osmosis celery water' };
+  const view = (o = {}) => ({ q: '', sort: 'course', level: '', course: '', kind: '', ...o });
+  const titles = (a) => a.map((f) => f.i);
+  eq(titles(matchFilms(list, view({ q: 'sodium pump' }), ideas)), [4, 5], 'a search through the questions people ask finds the lesson\'s films');
+  eq(titles(matchFilms(list, view({ q: 'sodium pump' }), null)), [], 'without that data the same search finds nothing (so both pages must load it)');
+  eq(titles(runQueue(list, view({ q: 'sodium pump' }), ideas)), [4], 'the run plays the films of that view that have their own page');
+  eq(titles(matchFilms(list, view({ q: 'osmosis' }), ideas)), [1, 2, 0, 3], 'title matches come first, then matches by question, each in course order');
+  eq(titles(runQueue(list, view({ q: 'osmosis' }), ideas)), [1, 2, 3], 'the run is that list, in that order, without the grown-up\'s set-up film');
+  eq(titles(runQueue(list, view({ q: 'osmosis', sort: 'long' }), ideas)), [2, 1, 3], 'the run follows the order the library shows (title matches first, longest first within each)');
+  eq(titles(runQueue(list, view({ level: 'ages-5-10' }), ideas)), [0], 'set-up films play when their level is asked for');
+  eq(titles(matchFilms(list, view({ q: 'atp' }), ideas)), [4, 5], 'a word must start a word among the questions: "atp" is not found in "Adaptation"');
+  eq(titles(matchFilms(list, view({ q: 'why does water' }), ideas)), [2, 0, 3], 'little words are dropped from a search');
+  // The property that matters: for every view, the run is exactly the playable part of what the library shows.
+  for (const v of [view(), view({ q: 'osmosis' }), view({ q: 'pump', course: 'cell' }), view({ level: 'grade-7', sort: 'short' }), view({ kind: 'profile' }), view({ q: 'zzz' })]) {
+    eq(titles(runQueue(list, v, ideas)), titles(runnableFilms(matchFilms(list, v, ideas), v)), `the run is the view: ${JSON.stringify(v)}`);
+  }
+  eq(titles(runQueue(list, view({ kind: 'profile' }), ideas)), [], 'a view of profiles only has nothing to play in a row');
+}
 
 if (failed) { console.error(`✗ test-film-logic: ${failed} failed, ${passed} passed`); process.exit(1); }
 console.log(`✓ test-film-logic: ${passed} checks passed.`);

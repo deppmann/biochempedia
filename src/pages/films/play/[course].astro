@@ -53,7 +53,7 @@ const queue = films.map((f) => ({
     <p class="eyebrow"><a href="/films/">Film library</a> · <a href={filmLevelHref(course.stage)}>{course.stageTitle}</a></p>
     <h1 class="lvl-title">{course.title}, every film in order</h1>
     <p class="lede pl-lede">
-      {fmt(films.length)} films, about {mins < 90 ? `${mins} minutes` : `${Math.floor(mins / 60)} hours ${mins % 60} minutes`}. When one ends, the next waits until you press Play next.
+      {fmt(films.length)} films, about {mins < 60 ? `${mins} minutes` : `${Math.floor(mins / 60)} ${Math.floor(mins / 60) === 1 ? 'hour' : 'hours'}${Math.round((mins % 60) / 5) * 5 ? ` ${Math.round((mins % 60) / 5) * 5} minutes` : ''}`}. When one ends, the next waits until you press Play next.
       <span class="seen-n" data-seen-of={queue.map((q) => q.f).join(' ')} hidden></span>
     </p>
     <p class="small pl-filter" data-pl-filter hidden></p>

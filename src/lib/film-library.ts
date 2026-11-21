@@ -17,7 +17,7 @@ import { cardHTML, hoverPreviews, liveMarks, markCards, type FilmList, type List
 import { loadFilms, keepWatching, onFilmsChange, resumeHref } from './film-progress';
 import { filmStrip, type StripFilm } from './film-strip';
 import { readPrefs } from './prefs';
-import { BUDGETS, FIELDS, about, clock, filmsWord, fit, isDefault, readView, runSentence, runnable, select, viewQuery, type Ideas, type View } from './film-view';
+import { BUDGETS, FIELDS, about, clock, filmsWord, fit, isDefault, loadIdeas, readView, runQueue, runSentence, select, viewQuery, type Ideas, type View } from './film-view';
 
 const PAGE = 60;
 const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
@@ -64,10 +64,9 @@ export function library(): void {
     .then((r) => { if (!r.ok) throw new Error(String(r.status)); return r.json() as Promise<FilmList>; })
     .then((d) => (list = d))
     .catch(() => { loading = null; return null; }));
-  const ensureIdeas = () => (ideasLoading ??= fetch('/films/ideas.json')
-    .then((r) => (r.ok ? r.json() : null))
-    .then((d) => { if (d) { ideas = d as Ideas; if (view.q) void render(false); } })
-    .catch(() => { ideasLoading = null; }));
+  const ensureIdeas = () => (ideasLoading ??= loadIdeas().then((d) => {
+    if (d) { ideas = d; if (view.q) void render(false); } else ideasLoading = null;
+  }));
   root.querySelector('.fl-deck')!.addEventListener('pointerdown', () => void ensure(), { once: true, passive: true });
   root.querySelector('.fl-deck')!.addEventListener('focusin', () => void ensure(), { once: true });
   field('q').addEventListener('focus', () => void ensureIdeas(), { once: true });
@@ -127,7 +126,7 @@ export function library(): void {
   const levelOnly = () => !view.q && !view.course && !view.kind;
   const drawStrip = (current: ListFilm[] | null) => {
     if (budget && current && list) {
-      const run = fit(runnable(current, view), budget, loadFilms());
+      const run = fit(runQueue(list, view, ideas), budget, loadFilms());
       strip.set({ on: run.films.map((f) => f.i), budget, numbered: true });
       cap.textContent = `Your ${budget} minutes, film by film. The line marks ${budget} minutes.`;
       return run;
@@ -291,12 +290,13 @@ export function library(): void {
   function paintRun(current: ListFilm[] | null, run?: ReturnType<typeof fit> | null): void {
     const q = viewQuery(view);
     // Nothing to play in a row (no film matches, or only profiles and method films): offer nothing.
-    const can = !current || runnable(current, view).length > 0;
+    const can = !current || !list || runQueue(list, view, ideas).length > 0;
     runBox.hidden = !can;
     // The whole library in order is 45 hours; "in order" is offered once a view has been chosen.
     play.hidden = isDefault({ ...view, sort: 'course' });
-    // One course, unsearched by level: its own play-in-order page, as before.
-    play.href = view.course && view.sort === 'course' ? `/films/play/${encodeURIComponent(view.course)}/${viewQuery({ ...view, level: '', course: '', sort: 'course' })}` : `/films/run/${q}`;
+    // One course in course order, not searched: its own play-in-order page, as before. A search always
+    // plays on /films/run/, where the same matcher and the same search data decide the films.
+    play.href = view.course && view.sort === 'course' && !view.q ? `/films/play/${encodeURIComponent(view.course)}/${viewQuery({ ...view, level: '', course: '', sort: 'course' })}` : `/films/run/${q}`;
     if (!budget || !current) { runSum.hidden = true; return; }
     runSum.hidden = false;
     if (!run || !run.films.length) {

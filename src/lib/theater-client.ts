@@ -74,7 +74,10 @@ export function theater(): void {
   const focusKind = (within: HTMLElement): 'none' | 'link' | 'pause' => {
     const el = document.activeElement as HTMLElement | null;
     if (!el || !within.contains(el) || el === companion) return 'none';
-    return el.matches('[data-th-pause]') ? 'pause' : 'link';
+    if (el.matches('[data-th-pause]')) return 'pause';
+    // Held for someone moving through the page by keyboard. A link clicked with a mouse (opened in a
+    // new tab, say) keeps focus too, and must not freeze the companion for the rest of the film.
+    return el.matches(':focus-visible') ? 'link' : 'none';
   };
   /* A change of the companion's height must not move what is below it when the reader is below it:
      measure the first thing after the companion before and after, and take the difference out of
@@ -111,17 +114,20 @@ export function theater(): void {
     if (questions.length && asking !== asked) {
       // The question leaving: never from under its own focused button, and never the lesson link
       // from under someone who is on it.
+      // A question arriving always shows, with its pause button; only the lesson link is kept back
+      // from hiding while someone is on it.
       const leaving = asked >= 0 ? questions[asked] : null;
-      const kind = leaving ? focusKind(leaving) : rest ? focusKind(rest) : 'none';
-      const rule = swapRule(kind);
+      const rule = swapRule(leaving ? focusKind(leaving) : 'none');
       if (rule.change) {
         if (rule.moveFocus) companion.focus({ preventScroll: true });
         steady(() => {
           questions.forEach((q, k) => { q.hidden = k !== asking; });
-          if (rest) rest.hidden = asking !== -1;
+          if (rest) rest.hidden = asking !== -1 && focusKind(rest) !== 'link';
         });
         asked = asking;
       }
+    } else if (rest && asking !== -1 && !rest.hidden && focusKind(rest) !== 'link') {
+      steady(() => { rest.hidden = true; });
     }
   };
   companion.addEventListener('focusout', () => {
@@ -178,7 +184,11 @@ export function theater(): void {
   /* ---- controls made from the printed list */
   // A press on the part that is playing pauses it (Space on the row should not rewind the film);
   // any other row plays from its start.
-  rows.forEach((r, k) => r.addEventListener('click', () => { if (k === wanted && !v.paused) v.pause(); else playFrom(num(r, 't')); }));
+  rows.forEach((r, k) => r.addEventListener('click', () => {
+    if (k === wanted && !v.paused) v.pause();
+    else if (k === wanted && started && !v.ended) void v.play().catch(() => {}); // a second press carries on, it does not rewind
+    else playFrom(num(r, 't'));
+  }));
   for (const li of lines) {
     const time = li.querySelector('.th-time');
     if (time) {
@@ -213,6 +223,7 @@ export function theater(): void {
     // If the companion is in view, Where next arrives in view under it; a reader further down is not moved.
     steady(() => { next.hidden = false; });
     sync(duration);
+    endTop = below ? below.getBoundingClientRect().top : null;
     const take = $<HTMLDetailsElement>('details[data-th-take]');
     if (take) take.open = true;
     status.textContent = 'The film has ended. Where next is showing now.';
@@ -228,39 +239,39 @@ export function theater(): void {
   paintPause();
 
   /* ---- "Cards ready" (CardsPrompt.astro) appears after the player; it belongs in Where next. */
+  let endTop: number | null = null;
   const slot = $('[data-th-cards]');
   if (slot && root.dataset.cardsLesson) {
     new MutationObserver(() => {
       const box = document.querySelector<HTMLElement>('.cards-prompt');
       if (!box || box.parentElement === slot) return;
-      // It has just been added above whatever the reader is on: take its whole height back out of
-      // the scroll position when they are below the companion, as for any other change up there.
-      const cs = getComputedStyle(box);
-      const added = box.offsetHeight + (parseFloat(cs.marginTop) || 0) + (parseFloat(cs.marginBottom) || 0);
-      const before = below ? below.getBoundingClientRect().top : 0;
       const sticky = header && getComputedStyle(header).position === 'sticky' ? header.getBoundingClientRect().bottom : 0;
       const parked = !!below && companion.getBoundingClientRect().top < sticky;
       slot.append(box);
-      if (parked) window.scrollBy({ top: added + (below!.getBoundingClientRect().top - before), behavior: 'instant' as ScrollBehavior });
+      // Back to where things stood when the film ended (remembered there), no more and no less.
+      if (parked && endTop !== null) window.scrollBy({ top: below!.getBoundingClientRect().top - endTop, behavior: 'instant' as ScrollBehavior });
     }).observe(document.body, { childList: true, subtree: true });
   }
 
   /* ---- hops keep the way back: "Back to the film you were watching, at 1:02". Carried in the link
      (the page's address, the film's key and the second), stored nowhere. No words are taken from the
      address: a link could otherwise put any text on the page. */
-  for (const a of $$<HTMLAnchorElement>('a[data-th-hop]')) {
-    a.addEventListener('click', () => {
-      const t = Math.floor(v.currentTime || 0);
-      if (t < 5 || !a.pathname.startsWith('/watch/')) return;
+  root.addEventListener('click', (e) => {
+    const a = (e.target as Element).closest?.('a[href]') as HTMLAnchorElement | null;
+    // Only a plain click that leaves this page in this tab; a new tab leaves this one as it is.
+    if (!a || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || a.target === '_blank' || a.origin !== location.origin) return;
+    const t = Math.floor(v.currentTime || 0);
+    if (t < 5 || v.ended) return;
+    if (a.matches('[data-th-hop]') && a.pathname.startsWith('/watch/')) {
       const u = new URL(a.href);
       u.searchParams.set('back', location.pathname);
       u.searchParams.set('backF', root.dataset.film ?? '');
       u.searchParams.set('backAt', String(t));
       a.href = u.pathname + u.search;
-      // The browser's own Back then opens this film at the same second, paused.
-      history.replaceState(history.state, '', `${location.pathname}?film=${encodeURIComponent(root.dataset.film ?? '')}&at=${t}`);
-    });
-  }
+    }
+    // The browser's own Back then opens this film at the same second, paused, whichever link was followed.
+    history.replaceState(history.state, '', `${location.pathname}?film=${encodeURIComponent(root.dataset.film ?? '')}&at=${t}`);
+  });
   const back = params.get('back') ?? '';
   const backF = params.get('backF') ?? '';
   const backAt = Math.floor(Number(params.get('backAt')));

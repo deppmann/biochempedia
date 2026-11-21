@@ -4,7 +4,7 @@
    same run and the same stated end. */
 import type { FilmList, ListFilm } from './film-cards';
 import { isWatched, loadFilms, onFilmsChange } from './film-progress';
-import { BUDGETS, SLACK, about, clock, filmsWord, fit, readView, runSentence, runnable, select, viewQuery } from './film-view';
+import { BUDGETS, SLACK, about, clock, filmsWord, fit, isDefault, loadIdeas, readView, runQueue, runSentence, select, viewQuery } from './film-view';
 import { endWith, runFilms, runPlace } from './film-logic.mjs';
 
 /* The next film is always offered and never starts by itself (ruling, 2026-11-20): a timer nobody can
@@ -41,6 +41,13 @@ export async function run(): Promise<void> {
   $<HTMLAnchorElement>('[data-fr-back]').href = back;
   $<HTMLAnchorElement>('[data-fr-more]').href = back;
   const nothing = (text: string) => { sum.textContent = text; };
+  const nothingLink = (text: string) => {
+    sum.textContent = `${text} `;
+    const a = document.createElement('a');
+    a.href = '/films/';
+    a.textContent = 'Films';
+    sum.append(a);
+  };
 
   let films: ListFilm[] = [];
   let seconds = 0;
@@ -56,16 +63,20 @@ export async function run(): Promise<void> {
     } catch { /* treated as not found */ }
     const byKey = new Map(list.films.map((f) => [f.f, f]));
     films = (found?.films ?? []).map((k) => byKey.get(k)).filter((f): f is ListFilm => !!f);
-    if (!found || films.length < 2) return nothing('This idea does not have films at more than one level yet.');
+    if (!found) return nothingLink('There is no idea by that name. Every film is on the films page.');
+    if (films.length < 2) return nothing('This idea does not have films at more than one level yet.');
     seconds = films.reduce((s, f) => s + f.d, 0);
     // "Simplest first", not "at every level": most ideas have films at two or three of the seven.
     lead = '';
     root.querySelector('h1')!.textContent = `${found.name}, simplest first`;
     document.title = `${found.name}, simplest first — STEMhop`;
   } else {
-    const matched = select(list, view);
-    if (!matched.length) return nothing('No film matches this view.');
-    const queue = runnable(matched, view);
+    // The bare address is the whole library, 45 hours of it: ask for a view instead.
+    if (isDefault({ ...view, sort: 'course' }) && !minutes) return nothingLink('Choose a level or a search on the films page, then play it in order.');
+    // The same films the library showed for this view: the same matcher, with the same search data.
+    const ideas = view.q ? await loadIdeas() : null;
+    if (!select(list, view, ideas).length) return nothing('No film matches this view.');
+    const queue = runQueue(list, view, ideas);
     if (!queue.length) return nothing('Nothing in this view plays in a row. Scientist profiles and method films open on their own pages.');
     // A run keeps the film it started at in its address, so a reload plays the same run to the same end.
     const from = queue.findIndex((f) => f.f === params.get('from'));
@@ -100,6 +111,7 @@ export async function run(): Promise<void> {
   const startAt = $('[data-fr-startat]');
   /* The queue lists the next thirty films; a longer run says how many follow, and the list moves on
      with the run. A watched film says so in words, not by colour alone. */
+  let nextPressed = -1000;
   const SHOWN = 30;
   let first = 0;
   let drawnFrom = -1;
@@ -121,7 +133,8 @@ export async function run(): Promise<void> {
         const s = document.createElement('span');
         s.className = 'fr-seen';
         b.append(s);
-        b.addEventListener('click', () => { show(i); void v.play().catch(() => {}); });
+        // (Not in the half second after Play next: its box closes, the list moves up under the pointer, and a second click would skip a film.)
+        b.addEventListener('click', () => { if (performance.now() - nextPressed < 500) return; show(i); void v.play().catch(() => {}); });
         li.append(b);
         return li;
       }));
@@ -185,10 +198,10 @@ export async function run(): Promise<void> {
     }
     nextText.textContent = `Next, when you are ready: ${nx.t}, ${clock(nx.d)}.`;
   });
-  playNext.addEventListener('click', () => { show(at + 1); title.focus(); void v.play().catch(() => {}); });
+  playNext.addEventListener('click', () => { nextPressed = performance.now(); show(at + 1); title.focus(); void v.play().catch(() => {}); });
   stop.addEventListener('click', () => {
     // True either way: a run reopens at its first film not yet watched (runPlace).
-    nextText.textContent = `Stopped here, after ${filmsWord(at + 1)}. Next time you will start at ${endWith(films[at + 1].t)}`;
+    nextText.textContent = 'Stopped here. Next time this run opens at the first film you have not watched.';
     more.hidden = false;
     more.focus(); // before the button that was pressed goes away
     playNext.hidden = true;
@@ -201,7 +214,8 @@ export async function run(): Promise<void> {
   $('[data-fr-stage]').hidden = false;
   show(place.index);
   if (place.at > 0) {
-    const seek = () => { try { v.currentTime = place.at; } catch { /* stays at the start */ } };
+    // Only for the film the place belongs to: if another is chosen before this one has loaded, it starts at its start.
+    const seek = () => { if (at !== place.index) return; try { v.currentTime = place.at; } catch { /* stays at the start */ } };
     v.addEventListener('loadedmetadata', seek, { once: true });
     v.preload = 'metadata';
     v.load();
