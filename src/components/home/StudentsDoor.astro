@@ -5,7 +5,8 @@
    /#goals land inside this door. */
 import { courseHref } from '../../data/courses';
 import { PATHS } from '../../data/paths';
-import RungList from './RungList.astro';
+import Ladder from '../hop/Ladder.astro';
+import { idea } from '../../lib/hop';
 import { fmt, word, type HomeData } from './data';
 
 interface Props { d: HomeData }
@@ -14,10 +15,10 @@ const { d } = Astro.props;
 /* The idea the door shows at every level: osmosis, from the hop graph. The story names its grade 7
    lesson, so if the graph ever loses that rung the build stops instead of shipping a sentence that
    is no longer true. */
-const hop = await d.ladderOf('osmosis');
-const rungs = hop.rungs;
-const g7 = rungs.find((r) => r.stage === 'grade-7');
-if (!g7 || rungs.length < 3) throw new Error('Homepage: the osmosis ladder has no grade 7 lesson or fewer than three levels, so the students\u2019 door needs a new example.');
+const hop = await idea('osmosis');
+const levels = new Set((hop?.rungs ?? []).map((r) => r.rank)).size;
+const g7 = hop?.rungs.find((r) => r.rank === 1);
+if (!hop || !g7 || levels < 3) throw new Error('Homepage: the osmosis ladder has no grade 7 lesson or fewer than three levels, so the students\u2019 door needs a new example.');
 for (const id of ['mcat', 'curious']) {
   if (!PATHS.some((p) => p.id === id)) throw new Error(`Homepage: path "${id}" is not in src/data/paths.ts.`);
 }
@@ -33,8 +34,9 @@ for (const id of ['mcat', 'curious']) {
 
   <div class="home-pair">
     <div>
-      <h3 class="home-h3" id="home-hop-h">One idea, {word(rungs.length)} levels: {hop.name.toLowerCase()}</h3>
-      <RungList rungs={rungs} label={`${hop.name}, simplest level first`} />
+      <h3 class="home-h3" id="home-hop-h">One idea, {word(levels)} levels: {hop.name.toLowerCase()}</h3>
+      {/* The site's one picture of hopping (src/components/hop/). No reader's rung here, so no Hex. */}
+      <Ladder idea={hop} facts={false} />
       <p class="home-small">
         Down a level is the same idea with less machinery. Up is the same idea with more.
       </p>
