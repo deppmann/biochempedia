@@ -13,6 +13,8 @@ the site is built. No model runs when someone visits a page.
 
 - **Concept**: an idea a learner could ask for by name, with a one-sentence description, an area
   (a shelf for browsing) and a few everyday phrases people type when that idea is the answer.
+  A concept whose name is longer than 24 characters also has a `short` display name of at most 26
+  ("Water in plants" for "How water moves through a plant"). Show `short` when there is one.
 - **Rungs**: the lessons on a concept.
   - `core`: the lesson is a place to learn the idea at its level. It carries a short note on what
     that level adds, and the section of the lesson to land on. A concept's core rungs, sorted by
@@ -23,7 +25,10 @@ the site is built. No model runs when someone visits a page.
 - **Films**: the films that show the idea, chosen one concept at a time.
 - **Near**: sideways hops to other ideas, each with a one-sentence reason.
 - **Lessons**: for each lesson with a record, the concepts it is on and a hash of the teaching
-  text the record was written from.
+  text the record was written from. The list is in order: the lesson's main idea first, then its
+  other ideas, then the ideas it only uses. The main idea is picked by a rule (`mainIdeaOrder` in
+  `lib.mjs`): the idea whose name shares the most words with the lesson's title; a tie goes to the
+  idea with the longer section. A review file can overrule the rule for one lesson.
 
 Titles, courses and levels are not stored. The site joins them at build time
 (`src/lib/topic-graph.ts`), so the graph cannot drift from the lessons.
@@ -58,6 +63,13 @@ merged. The stages:
    the same checks.
 7. **Ingest** (`ingest.mjs`). Merges everything in one fixed order and prints a report: what the
    graph now holds, every change applied, and every item rejected with its reason.
+
+**Looking for missing rungs** (`extend.mjs`). The first fill asked one lesson at a time which
+ideas it teaches, so an idea filed from a college lesson was rarely offered to the high school
+lesson that also teaches it. This pass asks the other way round. It picks candidate pairs of an
+idea and a lesson by counting the idea's own words in each lesson (no model), readers judge each
+pair, a second reader who did not propose a rung judges it blind, and only rungs that pass both go
+into a review file. A rung that would give a lesson a fourth idea is refused.
 
 `emit.mjs` writes the prompt files for each stage into a staging folder, with a manifest that says
 where each answer goes. `dry-run.sh` runs all of it with stand-in answers to test the plumbing.
@@ -139,6 +151,7 @@ every function of the build-time API, against the real lessons.
 | `emit.mjs` | Writes prompt files and manifests for a fill; stand-in answers for testing |
 | `ingest.mjs` | Checks answers and merges them; the report |
 | `assign.mjs` | The single-lesson top-up |
+| `extend.mjs` | The pass that looks for rungs nobody proposed |
 | `size.mjs` | Size of the browser files |
 | `dry-run.sh` | The whole pipeline with stand-in answers |
 | `fixtures/seed-graph.json` | The 34 hand-written concepts the first fill started from; the tests edit copies of it |

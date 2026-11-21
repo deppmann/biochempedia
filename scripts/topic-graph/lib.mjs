@@ -44,6 +44,8 @@ export const ROLES = ['core', 'uses'];
 
 export const LIMITS = {
   blurbWords: 22, addsWords: 14, whyWords: 22, nameChars: 60, idChars: 48,
+  /** A concept whose name is longer than `shortOver` characters carries a `short` display name of at most `shortChars`. */
+  shortChars: 26, shortOver: 24,
   aliasMin: 2, aliasMax: 5, aliasWords: 12, nearMax: 4,
   corePerLesson: 3, usesPerLesson: 4,
   /** What a reader may propose for one lesson in a fill (the graph itself allows usesPerLesson). */
@@ -234,6 +236,14 @@ export function nameProblem(name) {
   if (/[.?!]$/.test(name)) return 'name ends with punctuation';
   return '';
 }
+export function shortProblem(short, name) {
+  const p = copyProblems(short);
+  if (p.length) return p[0];
+  if (short.length > LIMITS.shortChars) return `short name longer than ${LIMITS.shortChars} characters`;
+  if (name != null && short.length >= name.length) return 'short name is not shorter than the name';
+  if (/[.?!:,;(]$/.test(short)) return 'short name ends with punctuation';
+  return '';
+}
 export function blurbProblem(blurb) {
   const p = copyProblems(blurb);
   if (p.length) return p[0];
@@ -292,7 +302,7 @@ export function normalizeGraph(graph, site, { hashFor } = {}) {
       const fa = site.films.get(a), fb = site.films.get(b);
       return cmpLesson(fa?.lesson ?? a.split('/')[0], fb?.lesson ?? b.split('/')[0]) || (fa?.n ?? 0) - (fb?.n ?? 0) || a.localeCompare(b);
     });
-    concepts[id] = { name: c.name, blurb: c.blurb, area: c.area, subject: c.subject ?? 'biology', aliases: [...(c.aliases ?? [])], rungs, films, near: (c.near ?? []).map((n) => ({ id: n.id, why: n.why })) };
+    concepts[id] = { name: c.name, ...(c.short ? { short: c.short } : {}), blurb: c.blurb, area: c.area, subject: c.subject ?? 'biology', aliases: [...(c.aliases ?? [])], rungs, films, near: (c.near ?? []).map((n) => ({ id: n.id, why: n.why })) };
     for (const r of rungs) (index[r.lesson] ??= { core: [], uses: [] })[r.role === 'core' ? 'core' : 'uses'].push(id);
   }
   const lessons = {};
@@ -300,11 +310,40 @@ export function normalizeGraph(graph, site, { hashFor } = {}) {
   for (const slug of [...slugs].sort()) {
     const prior = graph.lessons?.[slug];
     const hash = prior?.hash ?? hashFor?.(slug);
-    const list = index[slug] ? [...index[slug].core, ...index[slug].uses] : [];
+    // Order within a lesson is data: the main idea first (see mainIdeaOrder). What the record already
+    // says is kept, core before uses; an idea the record does not list yet goes after its kind.
+    const at = new Map((prior?.concepts ?? []).map((id, i) => [id, i]));
+    const keep = (ids) => [...ids].sort((a, b) => (at.get(a) ?? 1e6) - (at.get(b) ?? 1e6));
+    const list = index[slug] ? [...keep(index[slug].core), ...keep(index[slug].uses)] : [];
     if (!list.length && !prior) continue;
     lessons[slug] = { hash, concepts: list };
   }
   return { version: 1, updated: graph.updated, about: graph.about ?? ABOUT, areas: graph.areas.map((a) => ({ id: a.id, name: a.name })), concepts, lessons };
+}
+
+/**
+ * The ideas of one lesson, main idea first. A lesson's main idea is the core idea its title names:
+ * the one whose name, short name or id shares the most words with the lesson's title and slug.
+ * Ties go to the idea whose anchored section is longer, then to the section that comes first on
+ * the page. Uses follow, by id. It is a rule, not a judgment, so it gives the same
+ * answer every time; a review file can overrule it for one lesson ("order").
+ */
+export function mainIdeaOrder(slug, graph, site) {
+  const l = site.lessons.get(slug);
+  const mine = Object.entries(graph.concepts).flatMap(([id, c]) => c.rungs.filter((r) => r.lesson === slug).map((r) => ({ id, c, r })));
+  if (!l) return mine.map((m) => m.id);
+  const stemOf = (w) => w.replace(/ies$/, 'y').replace(/(es|s)$/, '');
+  const wordsOf = (s) => new Set(fold(s).split(' ').filter((w) => w.length > 2).map(stemOf));
+  const title = wordsOf(`${l.title} ${slug.replace(/-/g, ' ')}`);
+  const sections = sectionsOf(l.body);
+  const score = (m) => {
+    const w = wordsOf(`${m.c.name} ${m.c.short ?? ''} ${m.id.replace(/-/g, ' ')}`);
+    const hit = [...w].filter((x) => title.has(x)).length;
+    const i = sections.findIndex((s) => s.id === m.r.anchor);
+    return [hit, i >= 0 ? sections[i].words : 0, i >= 0 ? -i : -99];
+  };
+  const core = mine.filter((m) => m.r.role === 'core').map((m) => ({ ...m, s: score(m) })).sort((a, b) => b.s[0] - a.s[0] || b.s[1] - a.s[1] || b.s[2] - a.s[2] || a.id.localeCompare(b.id));
+  return [...core.map((m) => m.id), ...mine.filter((m) => m.r.role !== 'core').map((m) => m.id).sort()];
 }
 
 export const serializeGraph = (graph) => JSON.stringify(graph, null, 1) + '\n';
@@ -354,6 +393,7 @@ export function validateGraph(graph, site, opts = {}) {
     else E(`${id}: same name as ${names.get(k)} ("${c.name}")`);
   }
   const aliasOwner = new Map();
+  const labels = new Map(names);
   const want = {};
   const coreBy = {}, usesBy = {};
   for (const [id, c] of Object.entries(concepts)) {
@@ -366,6 +406,12 @@ export function validateGraph(graph, site, opts = {}) {
     if (!SUBJECTS.includes(c.subject)) E(`${id}: subject "${c.subject}" is not one of ${SUBJECTS.join(', ')}`);
     if (!areaIds.has(c.area)) E(`${id}: unknown area "${c.area}"`);
     const np = nameProblem(c.name); if (np) E(`${id}: name: ${np}`);
+    if (c.short != null) {
+      const sp = typeof c.short !== 'string' ? 'not a string' : shortProblem(c.short, c.name); if (sp) E(`${id}: short name: ${sp}`);
+      const k = fold(c.short ?? '');
+      if (labels.has(k) && labels.get(k) !== id) E(`${id}: short name "${c.short}" is the name or short name of ${labels.get(k)}`);
+      labels.set(k, id);
+    } else if (c.name.length > LIMITS.shortOver) W(`${id}: the name is ${c.name.length} characters and has no short display name`);
     const bp = blurbProblem(c.blurb); if (bp) E(`${id}: blurb: ${bp}`);
     if (c.aliases.length > LIMITS.aliasMax) E(`${id}: ${c.aliases.length} aliases (limit ${LIMITS.aliasMax})`);
     if (c.aliases.length < LIMITS.aliasMin) W(`${id}: only ${c.aliases.length} alias(es); a concept needs ${LIMITS.aliasMin} to ${LIMITS.aliasMax} everyday phrases to be found`);
@@ -439,6 +485,7 @@ export function validateGraph(graph, site, opts = {}) {
   for (const [slug, ids] of Object.entries(want)) {
     const got = records[slug]?.concepts;
     if (!Array.isArray(got) || JSON.stringify([...got].sort()) !== JSON.stringify([...ids].sort())) E(`lessons["${slug}"] does not match the rungs that name it`);
+    else { const roles = got.map((id) => concepts[id].rungs.find((r) => r.lesson === slug)?.role); if (roles.lastIndexOf('core') > roles.indexOf('uses') && roles.includes('uses')) E(`lessons["${slug}"]: ideas the lesson teaches must come before ideas it uses (main idea first)`); }
   }
   for (const [slug, rec] of Object.entries(records)) {
     const l = site.lessons.get(slug);
