@@ -12,8 +12,8 @@
 //
 // What it does:
 //   1. Reads every .listen/<slug>.json ([{hash, text}] in reading order, written during the build).
-//   2. Keeps lessons whose frontmatter `course:` is one of POLISHED (only fully polished courses
-//      get Kokoro audio; the rest use the reader's device voice).
+//   2. Keeps lessons whose frontmatter `course:` is one of POLISHED (every course since 2026-11-21),
+//      minus lessons waiting for a level-up (listen-courses.mjs) unless they are named with --only.
 //   3. Renders each paragraph that has no clip yet with Kokoro-82M voice af_heart
 //      (scripts/kokoro_say.py in ~/.venvs/kokoro), at most 5 Kokoro processes at once (Chris's
 //      rule, so the Mac stays usable), then converts to mp3 at 64 kbps with ffmpeg:
@@ -34,7 +34,8 @@ import { tmpdir, homedir, cpus } from 'node:os';
 import { createInterface } from 'node:readline';
 
 // Chris, 2026-11-06: never the device voice; every levelled-up course gets Kokoro. Lessons with no `course:` are Biochemistry.
-import { POLISHED } from './listen-courses.mjs';
+import { POLISHED, waitingForLevelUp } from './listen-courses.mjs';
+const WAITING = waitingForLevelUp();
 const LISTEN_DIR = '.listen';
 const AUDIO_DIR = 'listen-audio';
 const MANIFEST = 'src/data/listen-manifest.json';
@@ -64,14 +65,18 @@ for (const dir of readdirSync('src/content/lessons')) {
 const lessons = readdirSync(LISTEN_DIR)
   .filter((n) => n.endsWith('.json'))
   .map((n) => ({ slug: n.slice(0, -5), blocks: JSON.parse(readFileSync(join(LISTEN_DIR, n), 'utf8')) }))
-  .filter((l) => POLISHED.has(courseOf[l.slug]) && (!only.length || only.includes(l.slug)));
+  .filter((l) => POLISHED.has(courseOf[l.slug]) && (only.length ? only.includes(l.slug) : !WAITING.has(l.slug)));
+if (!only.length && WAITING.size) console.log(`skipping ${WAITING.size} lesson(s) waiting for their level-up (name one with --only to voice it anyway)`);
 for (const s of only) if (!lessons.some((l) => l.slug === s)) console.warn(`--only ${s}: no .listen/${s}.json for a lesson in ${[...POLISHED].join(', ')}`);
 
 const clipPath = (slug, hash) => join(AUDIO_DIR, slug, `${hash}.mp3`);
 const keyOf = (slug, hash) => `listen/${slug}/${hash}.mp3`;
 const media = existsSync(MEDIA_MANIFEST) ? JSON.parse(readFileSync(MEDIA_MANIFEST, 'utf8')) : {};
 
-const toRender = lessons.flatMap((l) => l.blocks.filter((b) => !existsSync(clipPath(l.slug, b.hash))).map((b) => ({ ...b, slug: l.slug })));
+// A clip already in the bucket (logged in media-manifest.json) is not rendered again, so a machine
+// with no local listen-audio/ cache (the Mac Studio, a fresh worktree) renders only new text.
+const inBucket = (slug, hash) => Boolean(media[keyOf(slug, hash)]);
+const toRender = lessons.flatMap((l) => l.blocks.filter((b) => !existsSync(clipPath(l.slug, b.hash)) && !inBucket(l.slug, b.hash)).map((b) => ({ ...b, slug: l.slug })));
 const words = toRender.reduce((n, b) => n + b.text.split(/\s+/).length, 0);
 console.log(`${lessons.length} lesson(s), ${lessons.reduce((n, l) => n + l.blocks.length, 0)} paragraphs; ${toRender.length} clip(s) to render (~${words} words, ~${(words / 160).toFixed(0)} min of audio)`);
 
