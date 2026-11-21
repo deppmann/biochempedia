@@ -438,8 +438,50 @@ console.log("the owner's own account (ADMIN_EMAILS)");
     assert.equal((await sync(mkA, { notebook: { items: {} }, progress: P({}), acct: a1.data.acct })).data.progress.lessons.glycolysis.d, 2);
     assert.equal((await call(oenv, 'GET', '/api/learner/sync', { cookie: mkA })).data.acct, a1.data.acct);
     const lib = src('src/lib/learner.ts');
-    assert.match(lib, /r\.status === 409 && r\.data\?\.accountChanged[\s\S]{0,600}clearDevice\(\)/, 'the page clears the outgoing account\'s copy before syncing again');
+    const branch = /if \(r\.status === 409 && r\.data\?\.accountChanged[\s\S]*?\n    \}\n/.exec(lib)[0];
+    assert.match(branch, /switchAccount\(window\.localStorage, known \|\| 'unknown', r\.data\.acct, \[NOTEBOOK_KEY, PROGRESS_KEY\]\)/, 'only the two synced entries are moved');
+    assert.ok(!/clearDevice|clearCalendar|clearPrefs|removeItem/.test(branch), 'an account change deletes nothing');
+    assert.match(branch, /if \(!moved\) return \{ ok: false, status: 409/, 'and if the copy cannot be set aside, nothing is synced');
+    assert.match(branch, /writeCache\(\{ \.\.\.readCache\(\), acct: r\.data\.acct \}\)/, 'the cached name is kept');
     assert.match(lib, /\.\.\.\(known \? \{ acct: known \} : \{\}\)/, 'a device with no tag (a signed-out reader\'s own work) sends none, and is merged');
+  });
+  await check('an account change on one browser sets notes aside and brings them back; the calendar and preferences are never touched', async () => {
+    const SA = await import('../src/lib/set-aside.mjs');
+    const mk = (init) => { const m = new Map(Object.entries(init)); let full = false; return { m, fill: (v) => { full = v; }, getItem: (k) => (m.has(k) ? m.get(k) : null), setItem: (k, v) => { if (full) throw new Error('quota'); m.set(k, String(v)); }, removeItem: (k) => { m.delete(k); } }; };
+    const NB = 'biochempedia:notebook:v1', PR = 'biochempedia:progress:v1', CAL = 'stemhop:calendar:v1', PREFS = 'stemhop:prefs:v1', KEYS = [NB, PR];
+    // 1. Ana on a family laptop; Ben signs in with Google.
+    const st = mk({ [NB]: 'ANA-NOTES', [PR]: 'ANA-PROGRESS', [CAL]: 'FAMILY-PLAN', [PREFS]: '{"role":"parent"}' });
+    assert.equal(SA.switchAccount(st, 'ana', 'ben', KEYS, 1), true);
+    assert.equal(st.getItem(NB), null); assert.equal(st.getItem(PR), null);
+    assert.equal(st.getItem(CAL), 'FAMILY-PLAN'); assert.equal(st.getItem(PREFS), '{"role":"parent"}');
+    assert.deepEqual(SA.readAside(st).ana.items, { [NB]: 'ANA-NOTES', [PR]: 'ANA-PROGRESS' });
+    assert.equal(SA.hasSetAside(st, 'ben'), true); assert.equal(SA.hasSetAside(st, 'ana'), false);
+    // Ben works; Ana signs in again: her notes come back, his are set aside, nothing is lost.
+    st.setItem(NB, 'BEN-NOTES');
+    assert.equal(SA.switchAccount(st, 'ben', 'ana', KEYS, 2), true);
+    assert.equal(st.getItem(NB), 'ANA-NOTES'); assert.equal(st.getItem(PR), 'ANA-PROGRESS');
+    assert.deepEqual(Object.keys(SA.readAside(st)), ['ben']); assert.equal(SA.readAside(st).ben.items[NB], 'BEN-NOTES');
+    assert.equal(st.getItem(CAL), 'FAMILY-PLAN');
+    // 2. One person with two accounts, switching back and forth: each account's copy survives every switch.
+    const two = mk({ [NB]: 'WORK-1', [CAL]: 'MY-PLAN', [PREFS]: '{"level":"grade-7"}' });
+    for (let i = 0; i < 6; i++) { assert.equal(SA.switchAccount(two, i % 2 ? 'home' : 'work', i % 2 ? 'work' : 'home', KEYS, 10 + i), true); if (i === 0) two.setItem(NB, 'HOME-1'); }
+    assert.equal(two.getItem(NB), 'WORK-1'); assert.equal(SA.readAside(two).home.items[NB], 'HOME-1');
+    assert.equal(two.getItem(CAL), 'MY-PLAN'); assert.equal(two.getItem(PREFS), '{"level":"grade-7"}');
+    // 3. The account was deleted elsewhere and made again: this device's notebook may be the only copy. It is kept.
+    const gone = mk({ [NB]: 'THE-ONLY-COPY', [PR]: 'P' });
+    assert.equal(SA.switchAccount(gone, 'old-tag', 'new-tag', KEYS, 20), true);
+    assert.equal(SA.readAside(gone)['old-tag'].items[NB], 'THE-ONLY-COPY');
+    gone.setItem(NB, 'LATER');
+    assert.equal(SA.switchAccount(gone, 'old-tag', 'third', KEYS, 21), true);   // the same tag again: kept beside, not overwritten
+    assert.deepEqual(Object.values(SA.readAside(gone)).map((x) => x.items[NB]).sort(), ['LATER', 'THE-ONLY-COPY']);
+    // At most three accounts' worth is kept (oldest first out), and a full or blocked storage changes nothing at all.
+    const many = mk({});
+    for (let i = 0; i < 5; i++) { many.setItem(NB, 'N' + i); SA.switchAccount(many, 'a' + i, 'a' + (i + 1), KEYS, 30 + i); }
+    assert.deepEqual(Object.keys(SA.readAside(many)).sort(), ['a2', 'a3', 'a4']);
+    const full = mk({ [NB]: 'KEEP-ME', [PR]: 'P' }); full.fill(true);
+    assert.equal(SA.switchAccount(full, 'x', 'y', KEYS, 40), false);
+    assert.equal(full.getItem(NB), 'KEEP-ME'); assert.equal(full.getItem(PR), 'P'); assert.equal(full.getItem(SA.ASIDE_KEY), null);
+    assert.match(src('src/pages/account/index.astro'), /Notes from another account on this browser were set aside\. They come back when that account signs in here\./);
   });
   await check('before migration 0011 sign-in works as it did and the owner\'s page stays shut for accounts; the export says how each device signed in after it', async () => {
     const early = makeDb({ before0011: true }); const eenv = { ...oenv, CLASSES: early };

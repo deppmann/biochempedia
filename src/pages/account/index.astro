@@ -69,6 +69,7 @@ import '../../styles/teach.css';
     <section data-in hidden>
       <p class="tc-lede">Signed in as <strong data-name></strong><span data-email></span>.</p>
       <p class="tc-muted" data-synced></p>
+      <p class="tc-note" data-aside-note hidden>Notes from another account on this browser were set aside. They come back when that account signs in here.</p>
       <div class="tc-row">
         <button class="tc-btn" type="button" data-sync>Sync now</button>
         <span class="tc-ok" data-sync-msg role="status"></span>
@@ -140,7 +141,7 @@ import '../../styles/teach.css';
 <script>
   import {
     getMe, syncNow, registerPasskey, signInWithPasskey, googleStartUrl, signOut, deleteAccount,
-    passkeysSupported, lastSyncAt, EXPORT_URL, setRole, holdRole, takeHeldRole, type Me,
+    passkeysSupported, lastSyncAt, otherAccountsNotesHere, EXPORT_URL, setRole, holdRole, takeHeldRole, type Me,
   } from '../../lib/learner';
   import { isRole, type Role } from '../../lib/prefs';
   import { enrolled } from '../../lib/classroom';
@@ -221,6 +222,7 @@ import '../../styles/teach.css';
     $('[data-name]').textContent = me.name || '';
     $('[data-email]').textContent = me.email ? ` (${me.email})` : '';
     $('[data-synced]').textContent = `Last synced: ${when(lastSyncAt() ?? me.lastSynced)}.`;
+    show($('[data-aside-note]'), otherAccountsNotesHere());
     const m = me.methods || [];
     const parts = [];
     if (m.includes('google')) parts.push('Google');
@@ -288,6 +290,7 @@ import '../../styles/teach.css';
     if (r.ok) {
       msg.textContent = r.changed ? 'Synced. New items from your other devices are here now.' : 'Synced. Everything is up to date.';
       $('[data-synced]').textContent = `Last synced: ${when(r.at)}.`;
+      show($('[data-aside-note]'), otherAccountsNotesHere());
     } else { msg.className = 'tc-error'; msg.textContent = r.error; }
   });
   $('[data-add-pk]').addEventListener('click', async () => {

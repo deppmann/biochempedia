@@ -19,6 +19,7 @@ import { loadNotebook, mergeItems, NOTEBOOK_KEY, NOTEBOOK_EVENT } from './notebo
 import { load as loadProgress, STORAGE_KEY as PROGRESS_KEY, CHANGE_EVENT as PROGRESS_EVENT, type Progress } from './progress';
 import { mergeProgress, sameJson } from './learner-merge.mjs';
 import { isRole, type Role } from './prefs';
+import { switchAccount, hasSetAside } from './set-aside.mjs';
 
 const CACHE_KEY = 'biochempedia:learner:v1';
 export const LEARNER_EVENT = 'bp-learner';
@@ -63,6 +64,10 @@ export function signedInHint(): boolean {
 /** The name to show in the header, from the last /me answer on this device. */
 export const cachedName = (): string | undefined => readCache().name;
 export const lastSyncAt = (): number | undefined => readCache().lastSync;
+/** True when notes from another account are set aside on this browser (the account page says so in one sentence). */
+export function otherAccountsNotesHere(): boolean {
+  try { return hasSetAside(window.localStorage, readCache().acct ?? ''); } catch { return false; }
+}
 
 async function api(path: string, init: RequestInit = {}): Promise<{ status: number; data: any }> {
   const res = await fetch(`/api/learner${path}`, {
@@ -112,12 +117,19 @@ export function syncNow(): Promise<SyncResult> {
     if (r.status === 401) { writeCache(null); return { ok: false, status: 401, error: 'Not signed in.' }; }
     if (r.status === 409 && r.data?.accountChanged && typeof r.data.acct === 'string') {
       // A different account is signed in than the one this device's notes and progress belong to.
-      // Nothing was merged. The other person's copy is removed from this device (their synced work
-      // is safe in their own account) and this account's own data is fetched instead.
+      // The server merged nothing. Nothing is deleted here either: the outgoing account's notebook
+      // and progress are MOVED to a set-aside entry under its tag (src/lib/set-aside.mjs) and come
+      // back when that account signs in on this browser again. The calendar and the preferences are
+      // the device's own and are not touched. If the copy cannot be set aside, we stop: no sync.
+      let moved = false;
       applying = true;
-      try { clearDevice(); } finally { applying = false; }
-      writeCache({ acct: r.data.acct });
-      try { r = await api('/sync', { method: 'PUT', body: JSON.stringify({ notebook: { items: {} }, progress: loadProgress(), acct: r.data.acct }) }); } catch { return { ok: false, status: 0, error: 'No connection.' }; }
+      try { moved = switchAccount(window.localStorage, known || 'unknown', r.data.acct, [NOTEBOOK_KEY, PROGRESS_KEY]); } catch { moved = false; } finally { applying = false; }
+      if (!moved) return { ok: false, status: 409, error: 'This browser holds notes from another account, and they could not be set aside. Nothing was synced. Sign out here to keep the two apart.' };
+      window.dispatchEvent(new CustomEvent(NOTEBOOK_EVENT));
+      window.dispatchEvent(new CustomEvent(PROGRESS_EVENT));
+      writeCache({ ...readCache(), acct: r.data.acct });   // the name shown stays; only the tag changes
+      // Sync again as this account, with its own copy if one was set aside here earlier.
+      try { r = await api('/sync', { method: 'PUT', body: JSON.stringify({ notebook: { items: loadNotebook().items }, progress: loadProgress(), acct: r.data.acct }) }); } catch { return { ok: false, status: 0, error: 'No connection.' }; }
     }
     if (r.status !== 200 || !r.data) return { ok: false, status: r.status, error: r.data?.error || 'Sync failed. Your work is saved on this device.' };
 
