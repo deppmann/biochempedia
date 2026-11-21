@@ -25,6 +25,23 @@ explainer:
     - "Palmitate yields 8 acetyl-CoA, 7 FADH₂, 7 NADH, and roughly 106 net ATP."
   narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+
+films:
+  - id: "chapter-2"
+    src: "/explainers/fatty-acid-degradation/chapter-2.mp4"
+    captions: "/explainers/fatty-acid-degradation/chapter-2.vtt"
+    poster: "/explainers/fatty-acid-degradation/chapter-2-poster.jpg"
+    title: "Fuel the Liver Ships"
+    durationSec: 200.5
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+    takeaways:
+      - "Mammals cannot make net glucose from even-chain fat by the usual route: each citric acid cycle turn takes in two carbons and loses two as CO2."
+      - "Only the glycerol backbone and the tail of odd chains make net sugar from fat."
+      - "In a fast, the liver makes acetyl-CoA faster than its citric acid cycle can burn it, and repackages the surplus as ketone bodies."
+      - "The liver cannot use its own ketones because it lacks thiophorase, and red blood cells cannot because they have no mitochondria."
+      - "Heart, muscle, kidney and, after adaptation, the brain run on ketones; by day 40 of a fast, protein breakdown falls from roughly 75 to 20 grams a day."
+
 scientists:
   - name: "Feodor Lynen"
     dates: "1911-1979"
@@ -240,6 +257,7 @@ import PathwayExplorer from '../../../components/PathwayExplorer.astro';
 import FattyAcidEnergyCalculator from '../../../components/FattyAcidEnergyCalculator.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
 import EquationCard from '../../../components/EquationCard.astro';
+import LessonFilm from '../../../components/LessonFilm.astro';
 
 export const boxSteps = [{"n": 1, "enzyme": "Acyl-CoA synthetase (fatty acid thiokinase)", "sub": "Fatty acid + CoA + ATP", "prod": "Acyl-CoA + AMP + 2 Pᵢ", "atp": -2, "regulated": false, "note": "Activation, done once before the spiral begins. The fatty acid is adenylated to an acyl-adenylate, then CoA displaces AMP. ATP is split to AMP plus pyrophosphate, and hydrolysis of that pyrophosphate to 2 Pᵢ pulls the reaction forward and makes it irreversible. The cost is 2 ATP equivalents, not 1, because ATP went to AMP rather than ADP — the most-missed line in the ledger."}, {"n": 2, "enzyme": "Carnitine shuttle (CPT-I → translocase → CPT-II)", "sub": "Acyl-CoA (cytosol)", "prod": "Acyl-CoA (matrix)", "regulated": true, "note": "Acyl-CoA is too charged to cross the inner membrane, so CPT-I, in the outer mitochondrial membrane, swaps CoA for carnitine, a translocase carries acylcarnitine across, and CPT-II regenerates acyl-CoA inside. CPT-I is the main control point for long chains: malonyl-CoA, the first committed intermediate of fatty acid synthesis, inhibits it, so the cell avoids building and burning fat at the same time."}, {"n": 3, "enzyme": "Acyl-CoA dehydrogenase (cycle step 1)", "sub": "Acyl-CoA", "prod": "trans-Δ²-enoyl-CoA", "fadh2": 1, "note": "Removing a hydrogen from C2 and one from C3 installs a trans double bond between them, handing two electrons to FAD to make FADH₂. Chain-length isozymes (VLCAD, MCAD, SCAD; LCAD matters mainly in rodents) split the labor across long-to-short substrates.", "clinical": "MCAD deficiency (roughly 1 in 10,000 to 20,000 births) stalls medium chains here, and with them every long chain on its way down, causing hypoketotic hypoglycemia under fasting; some deaths were once misread as SIDS; it is now usually caught on the newborn heel-prick. In Jamaican vomiting sickness from unripe ackee, a metabolite of hypoglycin A inhibits this same step."}, {"n": 4, "enzyme": "Enoyl-CoA hydratase (crotonase, cycle step 2)", "sub": "trans-Δ²-enoyl-CoA", "prod": "L-3-hydroxyacyl-CoA", "note": "Water adds across the new double bond with strict stereochemistry, placing an OH on the β-carbon (the L-3-hydroxy product). No cofactor; this just sets up the next oxidation."}, {"n": 5, "enzyme": "L-3-hydroxyacyl-CoA dehydrogenase (cycle step 3)", "sub": "L-3-hydroxyacyl-CoA", "prod": "3-ketoacyl-CoA", "nadh": 1, "note": "The β-carbon hydroxyl is oxidized to a ketone, reducing NAD⁺ to NADH. The carbonyl now polarizes the C2–C3 bond, priming it for cleavage. The β-carbon is now a ketone, the handle thiolase needs."}, {"n": 6, "enzyme": "β-ketothiolase (3-ketoacyl-CoA thiolase, cycle step 4)", "sub": "3-ketoacyl-CoA + CoA", "prod": "Acetyl-CoA + acyl-CoA (−2C)", "acoa": 1, "note": "An active-site cysteine attacks the β-keto carbon, releasing the two carbons at the CoA end as acetyl-CoA and holding the rest of the chain on the enzyme; a second CoA then takes that chain off as an acyl-CoA shortened by two carbons that re-enters at the dehydrogenase. Each acetyl-CoA can feed the citric acid cycle; each FADH₂ and NADH feeds the electron-transport chain."}];
 
@@ -377,6 +395,8 @@ Two kinds of real fat break the rule's assumptions of an identical packet per tu
 
 - **Unsaturated chains.** After a few cycles, a natural **cis double bond** lands in a position (cis-Δ³, starting at carbon 3) the standard enzymes cannot process. cis-Δ³-enoyl-CoA isomerase moves it to the trans-Δ² position and the cycle resumes. The double bond is already there, so that turn skips the FAD step: stearate (C18, saturated) nets 120 ATP, oleate (C18, one cis bond at an odd-numbered position) 118.5. Some polyunsaturated chains need a second helper, 2,4-dienoyl-CoA reductase, which spends NADPH.
 - **Odd chains.** The last thiolase cut leaves a three-carbon **propionyl-CoA** instead of an acetyl-CoA. A biotin enzyme converts it to methylmalonyl-CoA, an epimerase flips its arrangement at one carbon, and a vitamin B12 enzyme rearranges it into **succinyl-CoA**, a citric acid cycle intermediate. A B12 deficiency stalls this step and spills methylmalonic acid into urine.
+
+<LessonFilm film={frontmatter.films[0]} />
 
 ## Why even-chain fat gives no net glucose
 
