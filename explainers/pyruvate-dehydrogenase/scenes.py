@@ -97,7 +97,11 @@ class S01ThreeSteps(SpokenScene):
         t1 = step_label(names[0], xs[0], 2.73)
         self.play(FadeIn(t1, shift=DOWN * 0.1), boxes[0].animate.set_stroke(YELLOW).set_fill(YELLOW, 0.1), run_time=0.7)
         self.play(pyr.animate.move_to([xs[0], ROW, 0]), run_time=0.9)
-        self.at("loses carbon dioxide")
+        # 2026-11-21 fix: TPP grabs pyruvate first, then CO2 leaves from that grip (was CO2 first, then TPP capture)
+        self.at("thiamine pyrophosphate grabs")
+        tpp = tok("TPP", PINK).move_to([xs[0], 0.2, 0])
+        self.play(FadeIn(tpp, shift=UP * 0.2), run_time=0.8)
+        self.at("carbon dioxide leaves")
         co2 = T("CO₂", 28, GREY).move_to([xs[0], ROW, 0])
         self.add(co2)
         self.play(co2.animate.move_to([-5.15, 2.45, 0]), run_time=1.1)
@@ -106,9 +110,6 @@ class S01ThreeSteps(SpokenScene):
         frag = tok("2-C unit", YELLOW).move_to([xs[0], ROW, 0])
         self.play(ReplacementTransform(pyr, frag), run_time=0.8)
         pyr = frag
-        self.at("captured on thiamine")
-        tpp = tok("TPP", PINK).move_to([xs[0], 0.2, 0])
-        self.play(FadeIn(tpp, shift=UP * 0.2), run_time=0.8)
 
         # ---- step 2 -------------------------------------------------------------------------
         self.at("Second is oxidation")
