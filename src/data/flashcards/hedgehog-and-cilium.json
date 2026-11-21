@@ -1,0 +1,561 @@
+{
+ "slug": "hedgehog-and-cilium",
+ "title": "Hedgehog and the Primary Cilium",
+ "generated": {
+  "date": "2026-11-21",
+  "pipeline": "extract → Gemini draft → Claude Sonnet accuracy gate → Sonnet fixes",
+  "models": {
+   "draft": "gemini-4-neon-high",
+   "gate": "claude-sonnet-5-5",
+   "fix": "claude-sonnet-5-5"
+  }
+ },
+ "lessonHash": "086fd322b8f9",
+ "sectionHashes": {
+  "(opening)": "33625abf09e1",
+  "A lipid-anchored protein becomes a morphogen": "594a69c6eb7b",
+  "A catalytic brake and a transcription factor cut in two": "af35e9002460",
+  "What Smoothened controls: one protein, two opposite outputs": "6bcf7d2e07ce",
+  "In vertebrates the pathway runs inside an antenna": "7c944d9ae2d2",
+  "Blocking Smoothened deforms an embryo and treats a tumour": "e279174eadc0",
+  "Design problem": "031e18c225d9",
+  "How the fly screen worked and its size": "b074fe5ae873",
+  "How cyclopamine was tied to Smoothened": "37bebd77df01"
+ },
+ "cards": [
+  {
+   "id": "hedgehog-and-cilium-c01",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "What is the core signaling switch of the Hedgehog pathway?",
+   "back": "Hedgehog switches off Patched, letting Smoothened keep the Gli transcription factor whole and active.",
+   "why": "In vertebrates the primary cilium houses this switch, and downstream steps decide the pathway's output.",
+   "quote": "Hedgehog switches off Patched, letting Smoothened keep Gli whole and active; in vertebrates the cilium houses the switch, and downstream steps decide."
+  },
+  {
+   "id": "hedgehog-and-cilium-c02",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Which two lipids are covalently attached to the active front fragment of Hedgehog, and how is each added?",
+   "back": "Self-cleavage joins cholesterol to the front fragment's new end, and a second enzyme adds palmitate (a 16-carbon fatty acid) to its other end.",
+   "quote": "The newly made Hedgehog precursor cuts itself in two: its back part acts once as an enzyme, breaking the chain and joining cholesterol to the front part's new end.",
+   "section": "A lipid-anchored protein becomes a morphogen"
+  },
+  {
+   "id": "hedgehog-and-cilium-c03",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A {{c1::morphogen}} is a signal spreading from a source that draws different cellular responses at different concentrations.",
+   "back": "",
+   "quote": "That makes Hedgehog a morphogen: a signal spreading from a source that draws different responses at different concentrations.",
+   "section": "A lipid-anchored protein becomes a morphogen"
+  },
+  {
+   "id": "hedgehog-and-cilium-c04",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Why cannot newly processed, dual-lipidated Hedgehog simply diffuse away from a sending cell on its own?",
+   "back": "Its covalently attached cholesterol and palmitate anchors tether it to the sending cell's membrane, so a membrane protein (Dispatched) is needed to release it.",
+   "why": "Once freed, Hedgehog crosses tissue in a declining gradient by mechanisms that remain unsettled (proposed routes include lipoprotein particles, multimeric clusters, and thin cell extensions).",
+   "quote": "both lipids tether Hedgehog to a membrane, so sending cells need a membrane protein, Dispatched, to release it.",
+   "section": "A lipid-anchored protein becomes a morphogen"
+  },
+  {
+   "id": "hedgehog-and-cilium-c05",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In the developing vertebrate neural tube and limb bud, what two features of a Sonic hedgehog gradient do target cells read to choose a fate?",
+   "back": "Transcription-factor networks read both the local concentration (dose) of Sonic hedgehog and the duration of exposure to it.",
+   "why": "Sonic hedgehog is produced along the neural tube's ventral midline and the limb bud's future little-finger edge to specify spinal neurons and digits.",
+   "quote": "Made along the limb bud's future little-finger edge and the neural tube's ventral midline, it specifies digits and spinal neurons as transcription-factor networks read both dose and exposure time.",
+   "section": "A lipid-anchored protein becomes a morphogen"
+  },
+  {
+   "id": "hedgehog-and-cilium-c06",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In a simplified exponential morphogen gradient, a secreted signal starts at 24 nM at its source and halves every 15 micrometres. Cells exposed to 3 nM or more adopt fate B. How far from the source does fate B extend?",
+   "back": "45 micrometres. Concentration halves from 24 nM to 12 nM at 15 micrometres, 6 nM at 30 micrometres, and 3 nM at 45 micrometres (24 / 2^3 = 3 nM, so 3 x 15 = 45 micrometres).",
+   "quote": "In a simplified exponential gradient, a morphogen starts at 8 arbitrary units and halves every 10 micrometres; cells above 2 units adopt fate A (to 20 micrometres).",
+   "section": "A lipid-anchored protein becomes a morphogen"
+  },
+  {
+   "id": "hedgehog-and-cilium-c07",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "mcat"
+   ],
+   "front": "In a simplified exponential morphogen gradient with a 12-micrometre halving distance, source concentration is 40 nM and fate C extends to 36 micrometres. If source output quadruples to 160 nM with the same halving distance, how far does fate C now reach?",
+   "back": "60 micrometres. The threshold is 40 / 2^(36/12) = 5 nM. Quadrupling source output is two doublings, shifting the boundary outward by two halving distances: 36 + 2 x 12 = 60 micrometres (160 / 2^5 = 5 nM).",
+   "quote": "Under exponential decay, doubling source output shifts every boundary outward by one halving distance, not twofold.",
+   "section": "A lipid-anchored protein becomes a morphogen"
+  },
+  {
+   "id": "hedgehog-and-cilium-c08",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "How many transmembrane passes do Patched and Smoothened make, and which membrane-protein families do they resemble?",
+   "back": "Patched crosses the membrane 12 times and resembles a transporter (like bacterial pumps and lysosomal NPC1); Smoothened crosses 7 times and resembles G-protein-coupled receptors.",
+   "quote": "Patched crosses the membrane twelve times and resembles a transporter, related to bacterial pumps and NPC1 (which moves cholesterol out of human lysosomes).",
+   "section": "A catalytic brake and a transcription factor cut in two"
+  },
+  {
+   "id": "hedgehog-and-cilium-c09",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In a double-negative pathway where Patched holds Smoothened off and Hedgehog switches Patched off, why does losing Patched mimic constant Hedgehog?",
+   "back": "Patched acts like a handbrake rather than an accelerator, so deleting Patched releases Smoothened into a constitutively active state even without Hedgehog.",
+   "quote": "In logic, Hedgehog releases a car's handbrake rather than pressing an accelerator—which is why losing Patched mimics constant Hedgehog.",
+   "section": "A catalytic brake and a transcription factor cut in two"
+  },
+  {
+   "id": "hedgehog-and-cilium-c10",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "In the working model of Hedgehog signaling, how does one Patched molecule keep many Smoothened molecules off without physically binding them?",
+   "back": "Patched likely uses its transporter-like structure to keep an activating sterol, most likely cholesterol, out of reach of Smoothened.",
+   "why": "Cryo-electron microscopy shows sterol-like densities in both proteins, though what Patched moves and what powers it remain unsettled.",
+   "quote": "The working model is that Smoothened needs a sterol, most likely cholesterol itself, to switch on, and that Patched uses its transporter-like body to keep that sterol out of reach.",
+   "section": "A catalytic brake and a transcription factor cut in two"
+  },
+  {
+   "id": "hedgehog-and-cilium-c11",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Compare two models of how Patched restrains Smoothened without Hedgehog: a 1:1 physical clamp versus catalytic depletion of a shared sterol pool. If a cell makes fivefold more Smoothened while Patched stays constant, in which model is Smoothened more likely to activate, and why?",
+   "back": "The 1:1 physical-clamp model. Excess Smoothened would outnumber Patched and escape restraint, whereas depleting a shared sterol pool lets one Patched silence many Smoothened molecules.",
+   "quote": "Excess Smoothened would outnumber Patched and escape restraint, whereas depleting a shared sterol pool lets one Patched silence many Smoothened molecules.",
+   "section": "A catalytic brake and a transcription factor cut in two"
+  },
+  {
+   "id": "hedgehog-and-cilium-c13",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In the working model, Smoothened requires a sterol to switch on and Patched restrains Smoothened by keeping that sterol out of reach. Predict the effect of depleting accessible cellular sterols in cells lacking Patched, and state what finding would falsify the model.",
+   "back": "In the working model, Smoothened activity should drop even without Patched, because Smoothened needs a sterol to switch on and Patched's role is to keep that sterol out of reach. If Smoothened stayed fully active with no accessible sterol, the sterol-activation model would be falsified.",
+   "quote": "Smoothened needs a sterol, most likely cholesterol itself, to switch on, and that Patched uses its transporter-like body to keep that sterol out of reach.",
+   "section": "A catalytic brake and a transcription factor cut in two"
+  },
+  {
+   "id": "hedgehog-and-cilium-c14",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Fruit flies use a single transcription factor, Cubitus interruptus (Ci), as both activator and repressor in Hedgehog signaling. How do mammals divide these functions across Gli1, Gli2, and Gli3?",
+   "back": "Gli3 acts mostly as a repressor, Gli2 acts mostly as an activator, and Gli1 is a direct target gene of the pathway.",
+   "quote": "Flies use Ci for both roles; mammals divide them across Gli3 (mostly repressor), Gli2 (mostly activator) and Gli1 (a direct target gene).",
+   "section": "What Smoothened controls: one protein, two opposite outputs"
+  },
+  {
+   "id": "hedgehog-and-cilium-c15",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "When Smoothened is off, {{c1::PKA}} adds priming phosphates to full-length Gli, letting CK1 and GSK3 add more.",
+   "back": "",
+   "quote": "When Smoothened is off, PKA adds priming phosphates to full-length Gli, letting CK1 and GSK3 add more.",
+   "section": "What Smoothened controls: one protein, two opposite outputs"
+  },
+  {
+   "id": "hedgehog-and-cilium-c16",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "Even when full-length Gli escapes proteasomal trimming, the downstream brake {{c1::SUFU}} binds it and restrains its activity.",
+   "back": "",
+   "quote": "Even then a downstream brake, SUFU, binds full-length Gli and restrains it.",
+   "section": "What Smoothened controls: one protein, two opposite outputs"
+  },
+  {
+   "id": "hedgehog-and-cilium-c17",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "When Hedgehog is absent, how does the ubiquitin-proteasome system convert full-length Gli into a transcriptional repressor?",
+   "back": "An E3 ligase tags phosphorylated Gli with ubiquitin, and the proteasome degrades only its back activating domain, releasing the front DNA-binding fragment as a repressor.",
+   "quote": "An E3 ligase ubiquitin-tags the phosphorylated cluster for the proteasome, which degrades only the back activating domain and releases the front DNA-binding fragment as a repressor silencing target genes.",
+   "section": "What Smoothened controls: one protein, two opposite outputs"
+  },
+  {
+   "id": "hedgehog-and-cilium-c18",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Without Hedgehog, how would complete proteasomal destruction of Gli (like β-catenin in Wnt signaling) differ in transcriptional outcome from partial trimming?",
+   "back": "Complete destruction would only remove the activator, leaving no DNA-binding repressor fragment behind to actively silence target genes.",
+   "quote": "Complete destruction (as with β-catenin) would leave no repressor fragment to actively silence target genes.",
+   "section": "What Smoothened controls: one protein, two opposite outputs"
+  },
+  {
+   "id": "hedgehog-and-cilium-c19",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "How does the role of protein cleavage in Hedgehog signaling contrast with its role in Notch signaling?",
+   "back": "Notch signaling cuts a receptor to free an activator, whereas Hedgehog signaling prevents a cut on the Gli transcription factor so it remains whole and active.",
+   "quote": "Unlike Notch, which cuts the receptor to free an activator, Hedgehog prevents a cut on the transcription factor.",
+   "section": "What Smoothened controls: one protein, two opposite outputs"
+  },
+  {
+   "id": "hedgehog-and-cilium-c20",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Cells receiving no Hedgehog are treated with a drug that inhibits PKA, the kinase that places priming phosphates on Gli for proteasomal trimming. What happens to Gli repressor formation and target-gene repression, and why?",
+   "back": "Less Gli repressor forms and target-gene repression weakens. Blocking PKA prevents priming phosphorylation needed for further phosphorylation and partial trimming, because resting PKA acts as a pathway brake.",
+   "quote": "Blocking PKA prevents priming phosphorylation, so less Gli repressor forms and repression weakens: resting PKA acts as a brake here.",
+   "section": "What Smoothened controls: one protein, two opposite outputs"
+  },
+  {
+   "id": "hedgehog-and-cilium-c21",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "The vertebrate primary cilium is a single non-motile, microtubule-based projection with its own membrane, built by {{c1::intraflagellar transport}} (IFT) motor shuttles.",
+   "back": "",
+   "quote": "a single non-motile microtubule-based projection with its own membrane, built by intraflagellar transport (IFT) motor shuttles.",
+   "section": "In vertebrates the pathway runs inside an antenna"
+  },
+  {
+   "id": "hedgehog-and-cilium-c22",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "When Hedgehog activates a vertebrate cell, how do Patched and Smoothened move relative to the primary cilium?",
+   "back": "Patched exits the primary cilium while Smoothened enters the primary cilium to transmit the signal.",
+   "quote": "Patched exiting and Smoothened entering the primary cilium—a single non-motile microtubule-based projection with its own membrane, built by intraflagellar transport (IFT) motor shuttles.",
+   "section": "In vertebrates the pathway runs inside an antenna"
+  },
+  {
+   "id": "hedgehog-and-cilium-c23",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "What two mechanisms inside the vertebrate primary cilium link Hedgehog signaling and Smoothened to silencing PKA?",
+   "back": "Hedgehog clears ciliary GPR161 (which keeps cAMP and PKA high without Hedgehog), and active Smoothened also blocks PKA's catalytic site with an internal decoy sequence.",
+   "why": "How these two PKA-silencing mechanisms fit together is still being worked out.",
+   "quote": "without Hedgehog, ciliary GPR161 keeps cAMP and PKA high until Hedgehog clears it; active Smoothened also uses an internal decoy sequence to block PKA's catalytic site.",
+   "section": "In vertebrates the pathway runs inside an antenna"
+  },
+  {
+   "id": "hedgehog-and-cilium-c24",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In fibroblasts lacking Patched, Smoothened stays constitutively active without Hedgehog, so Gli3 stays mostly full-length rather than trimmed to its repressor form. If these cells are treated with a drug that raises cAMP, what happens to the ratio of Gli3 repressor to full-length Gli3, and why?",
+   "back": "The ratio shifts upward toward more Gli3 repressor. Raising cAMP activates PKA, which acts downstream of Patched and Smoothened to restore priming phosphorylation and proteasomal trimming of Gli3.",
+   "quote": "without Hedgehog, ciliary GPR161 keeps cAMP and PKA high until Hedgehog clears it",
+   "section": "In vertebrates the pathway runs inside an antenna"
+  },
+  {
+   "id": "hedgehog-and-cilium-c25",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "In mouse mutagenesis screens, two lines with damaged intraflagellar transport (IFT) genes showed Sonic hedgehog-like neural-tube and limb defects, and genetic crosses placed these genes after Patched and before target genes. What did this show?",
+   "back": "It showed that IFT genes, needed to build the primary cilium, act at a step after Patched and before target-gene transcription in Sonic hedgehog signaling, though not where in the cell they act.",
+   "quote": "Both carried damaged IFT genes, and crosses placed them after Patched and before target genes—without revealing where in the cell they acted.",
+   "section": "In vertebrates the pathway runs inside an antenna"
+  },
+  {
+   "id": "hedgehog-and-cilium-c26",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "When researchers mutated Smoothened's ciliary targeting stretch in vertebrate cells, tagged Smoothened stayed in the cell body upon pathway activation and could no longer trigger target genes. What did this demonstrate?",
+   "back": "It demonstrated that Smoothened must physically enter the primary cilium in vertebrate cells to pass the Hedgehog signal on.",
+   "quote": "Mutating Smoothened's ciliary targeting stretch kept it in the cell body, and it could no longer pass the signal on.",
+   "section": "In vertebrates the pathway runs inside an antenna"
+  },
+  {
+   "id": "hedgehog-and-cilium-c27",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In vertebrate fibroblasts, a small molecule drives Smoothened into the vast majority of primary cilia—matching the ciliary accumulation seen with Hedgehog—yet target-gene transcription stays at untreated baseline levels with or without Hedgehog. What conclusion does this support?",
+   "back": "Entering the primary cilium is not sufficient on its own to activate Smoothened; Smoothened must both enter the cilium and undergo activation there.",
+   "quote": "in vertebrates, losing the primary cilium disrupts both Gli activator and Gli3 repressor, and Smoothened must both enter the cilium and be activated there."
+  },
+  {
+   "id": "hedgehog-and-cilium-c28",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Both Gli2 activator maturation and Gli3 repressor trimming require the primary cilium. Predict the phenotypes of a cilia-less (IFT-mutant) mouse embryo in the ventral neural tube versus the limb bud, and explain why.",
+   "back": "Ventral neural tube cell types are lost (too little Hedgehog response without Gli2 activator), while the limb bud grows extra digits (signs of too much response without Gli3 repressor).",
+   "quote": "Both Gli activator maturation and Gli3 repressor trimming require the primary cilium.",
+   "section": "In vertebrates the pathway runs inside an antenna"
+  },
+  {
+   "id": "hedgehog-and-cilium-c29",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "A mouse embryo lacks both Patched and an essential IFT gene (so it cannot build primary cilia). Predict its phenotypes in the ventral neural tube and the limb bud, and explain why.",
+   "back": "Ventral neural tube fates are still lost and the limb bud still forms extra digits. This rests on genetic epistasis (IFT acts after Patched and before target genes) and the rule that both Gli2 activator maturation and Gli3 repressor trimming require the primary cilium.",
+   "quote": "crosses placed them after Patched and before target genes—without revealing where in the cell they acted.",
+   "section": "In vertebrates the pathway runs inside an antenna"
+  },
+  {
+   "id": "hedgehog-and-cilium-c30",
+   "type": "qa",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "Why does losing primary cilia block canonical Hedgehog activation in mouse embryonic tissues yet leave Hedgehog signaling functional in most fruit-fly cells?",
+   "back": "Vertebrate cells require the primary cilium to run Smoothened activation and Gli processing, resting on the rule that most fruit-fly cells lack a primary cilium and operate the same pathway without one.",
+   "why": "A cilium-based branch of Hedgehog signaling has been reported in ciliated fly olfactory neurons, though why vertebrates route the switch through cilia remains unknown.",
+   "quote": "Most fly cells lack a primary cilium and run the pathway without one; Going deeper notes a 2014 exception in ciliated fly olfactory neurons.",
+   "section": "In vertebrates the pathway runs inside an antenna"
+  },
+  {
+   "id": "hedgehog-and-cilium-c31",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "In humans, failure of midline Sonic hedgehog signaling to split the early forebrain and eye field causes {{c1::holoprosencephaly}}.",
+   "back": "",
+   "why": "Inheriting one faulty copy of SHH is one known cause of holoprosencephaly.",
+   "quote": "In humans, failure of that split is holoprosencephaly, and inheriting one faulty SHH copy is one known cause.",
+   "section": "Blocking Smoothened deforms an embryo and treats a tumour"
+  },
+  {
+   "id": "hedgehog-and-cilium-c32",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Which common human cancer is driven by constitutive Hedgehog pathway activation without ligand, and which two mutations most often cause it?",
+   "back": "Basal cell carcinoma, driven most often by mutations that inactivate PTCH1 (human Patched) and in a smaller share by Patched-resistant Smoothened mutations.",
+   "quote": "The large majority of these tumours run the pathway with no Hedgehog present: most carry mutations inactivating PTCH1 (human Patched), while a smaller share carry Patched-resistant Smoothened.",
+   "section": "Blocking Smoothened deforms an embryo and treats a tumour"
+  },
+  {
+   "id": "hedgehog-and-cilium-c33",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "The drug {{c1::vismodegib}} binds among Smoothened's seven transmembrane helices to hold it off; it treats adults with metastatic basal cell carcinoma, or locally advanced tumours that recurred after surgery or cannot be treated by surgery or radiation.",
+   "back": "",
+   "quote": "Vismodegib binds among Smoothened's seven helices and holds it off.",
+   "section": "Blocking Smoothened deforms an embryo and treats a tumour"
+  },
+  {
+   "id": "hedgehog-and-cilium-c34",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "How does the corn-lily toxin cyclopamine cause lambs exposed early in pregnancy to be born with a single central eye?",
+   "back": "Cyclopamine binds and blocks Smoothened, silencing the midline Sonic hedgehog signal that splits the early forebrain and its single eye field into left and right.",
+   "quote": "cyclopamine binds Smoothened and blocks the midline Sonic hedgehog signal that splits the early forebrain and its single eye field into left and right.",
+   "section": "Blocking Smoothened deforms an embryo and treats a tumour"
+  },
+  {
+   "id": "hedgehog-and-cilium-c35",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In Gorlin syndrome, every skin cell inherits one broken copy of PTCH1 (Patched), yet basal cell carcinomas form in scattered patches rather than across all skin at once. Why?",
+   "back": "The remaining normal PTCH1 copy still supplies enough Patched brake to restrain Smoothened until an individual skin cell loses that second copy too.",
+   "quote": "The remaining normal PTCH1 copy still supplies enough Patched brake until a skin cell loses that second copy too.",
+   "section": "Blocking Smoothened deforms an embryo and treats a tumour"
+  },
+  {
+   "id": "hedgehog-and-cilium-c36",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "Why does the prescribing label for vismodegib carry a strict warning against use during pregnancy?",
+   "back": "Blocking Smoothened disrupts embryonic Sonic hedgehog signaling—the same mechanism by which cyclopamine prevents forebrain and eye-field splitting and causes severe birth defects.",
+   "quote": "Tumours can escape through a Smoothened mutation blocking drug binding or a downstream fault—and the label repeats the lambs' warning against pregnancy.",
+   "section": "Blocking Smoothened deforms an embryo and treats a tumour"
+  },
+  {
+   "id": "hedgehog-and-cilium-c37",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "By what two general genetic mechanisms can a basal cell carcinoma become resistant to a Smoothened-blocking drug?",
+   "back": "A Smoothened mutation that blocks drug binding, or a downstream fault that turns the pathway on independently of Smoothened.",
+   "quote": "Tumours can escape through a Smoothened mutation blocking drug binding or a downstream fault",
+   "section": "Blocking Smoothened deforms an embryo and treats a tumour"
+  },
+  {
+   "id": "hedgehog-and-cilium-c38",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A basal cell carcinoma has lost both copies of Patched (PTCH1), leaving Hedgehog signaling constitutively active without ligand. What happens when the tumor is treated with a Smoothened-blocking drug, and why?",
+   "back": "Pathway signaling shuts down. Because Smoothened lies downstream of Patched, nothing upstream matters once Smoothened is blocked, so the drug silences the tumor.",
+   "quote": "Because Smoothened lies downstream of Patched, nothing upstream matters once Smoothened is blocked, so the drug silences the tumour.",
+   "section": "Blocking Smoothened deforms an embryo and treats a tumour"
+  },
+  {
+   "id": "hedgehog-and-cilium-c39",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In a double-negative pathway where Hedgehog switches off Patched and Patched switches off Smoothened, a cell lacks both Patched and Smoothened. Is the pathway on or off with Hedgehog and without Hedgehog, and why?",
+   "back": "Off both ways. Without Smoothened, nothing passes the signal on so Gli is trimmed to a repressor; because Smoothened acts later, missing its upstream brake Patched changes nothing (epistasis).",
+   "quote": "Without Smoothened, missing its brake changes nothing—the later step decides (epistasis).",
+   "section": "Design problem"
+  },
+  {
+   "id": "hedgehog-and-cilium-c40",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Two tumors both run Hedgehog target genes without Hedgehog: Tumor 1 carries a Patched-resistant Smoothened (that still binds the drug), whereas Tumor 2 lacks the cytoplasmic Gli brake SUFU. Predict how each responds to a Smoothened blocker, and explain why.",
+   "back": "Tumor 1 shuts down while Tumor 2 stays on. This rests on pathway epistasis (downstream steps decide): blocking Smoothened silences a drug-sensitive Smoothened mutant, whereas losing SUFU releases full-length Gli downstream of Smoothened so blocking Smoothened cannot stop it.",
+   "quote": "A tumour lacking a later brake—such as SUFU, which holds full-length Gli in the cytoplasm—stays on regardless.",
+   "section": "Design problem"
+  },
+  {
+   "id": "hedgehog-and-cilium-c41",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "In a chemical mutagenesis screen for recessive embryonic patterning genes (like Nüsslein-Volhard and Wieschaus's fruit-fly screen), why must mutagenized lines be bred until embryos carry two broken copies of the same gene before scoring larval cuticle phenotypes?",
+   "back": "A single intact copy masks recessive loss-of-function mutations in heterozygotes, resting on the rule that embryos must carry two broken copies of the same gene to expose disrupted larval spine-belt patterning.",
+   "quote": "Nüsslein-Volhard and Wieschaus fed male flies a DNA-damaging chemical and bred nearly 27,000 lines, each carrying one damaged chromosome, until embryos carried two broken copies of the same gene.",
+   "section": "How the fly screen worked and its size"
+  },
+  {
+   "id": "hedgehog-and-cilium-c42",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "What three lines of experimental evidence tied cyclopamine, the plant toxin behind one-eyed lambs, to Smoothened?",
+   "back": "Mouse embryos lacking Sonic hedgehog show the same single eye, cyclopamine blocks cellular Sonic hedgehog responses, and cyclopamine binds Smoothened directly—genetic phenocopy, pathway blockade, and direct target binding.",
+   "quote": "In 1998, Philip Beachy's and Henk Roelink's laboratories showed cyclopamine blocks Sonic hedgehog responses, and in 2002 Beachy's group showed it binds Smoothened directly.",
+   "section": "How cyclopamine was tied to Smoothened"
+  }
+ ]
+}

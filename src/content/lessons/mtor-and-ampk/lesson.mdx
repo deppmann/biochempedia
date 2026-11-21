@@ -5,10 +5,11 @@ course: "signaling"
 courseChapter: "Cell Signaling · Unit 4: Receptors with enzymes attached"
 order: 121
 summary: >-
-  How does a cell know it has the supplies to grow? This lesson follows a drug from Easter Island
-  soil to the kinase mTOR, shows why mTORC1 needs both a growth-factor signal and an amino acid
-  signal, and explains AMPK as a fuel gauge that reads AMP. Afterwards you can predict what a cell
-  does when it is fed, when it lacks amino acids and when it lacks energy.
+  mTORC1 needs both growth factors and amino acids to switch on; AMPK reads rising AMP to conserve
+  energy and veto mTORC1. Follow a drug from Easter Island soil to the kinase mTOR, trace how
+  growth factors through Akt, TSC and Rheb meet amino acids through the Rag GTPases at the
+  lysosome, and see why adenylate kinase makes AMP a sensitive fuel alarm for AMPK. Afterwards you
+  can predict what a cell does when it is fed, when it lacks amino acids and when it lacks energy.
 hook: "How does a cell decide it can afford to grow?"
 
 estMinutes: 24
@@ -22,10 +23,15 @@ explainer:
   src: "/explainers/mtor-and-ampk/explainer.mp4"
   captions: "/explainers/mtor-and-ampk/explainer.vtt"
   poster: "/explainers/mtor-and-ampk/poster.jpg"
-  title: "Two Yeses to Grow, One Veto"
-  durationSec: 195.1
-  narration: "an AI narrator voice (ElevenLabs, Sarah) reading narration written from this lesson's text"
+  title: "mTORC1: Two Signals at the Lysosome"
+  durationSec: 212.7
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+  takeaways:
+    - "In the standard model, mTORC1 needs both growth factors and amino acids to switch on."
+    - "Growth factors act through Akt to silence the TSC brake so lipid-anchored Rheb keeps GTP at the lysosome."
+    - "Amino acids switch on the Rag GTPases, which deliver mTORC1 to the lysosome rather than activating the kinase directly."
+    - "With both signals present, mTORC1 promotes protein and lipid synthesis and holds off autophagy, though some nutrients such as glutamine can bypass the Rags."
 
 scientists:
   - name: "Suren Sehgal"
@@ -389,98 +395,153 @@ corpusTags:
   - "metformin"
 draft: false
 films:
-  - id: "ampk-reads-amp"
-    src: "/explainers/mtor-and-ampk/ampk-reads-amp.mp4"
-    captions: "/explainers/mtor-and-ampk/ampk-reads-amp.vtt"
-    poster: "/explainers/mtor-and-ampk/ampk-reads-amp-poster.jpg"
-    title: "Why AMPK Reads AMP"
-    durationSec: 108.9
-    narration: "an AI narrator voice (ElevenLabs, Sarah) reading narration written from this lesson's text"
+  - id: "chapter-2"
+    src: "/explainers/mtor-and-ampk/chapter-2.mp4"
+    captions: "/explainers/mtor-and-ampk/chapter-2.vtt"
+    poster: "/explainers/mtor-and-ampk/chapter-2-poster.jpg"
+    title: "AMPK: The Energy Veto"
+    durationSec: 227.5
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
     aiGenerated: true
-  - id: "rapamycin"
-    src: "/explainers/mtor-and-ampk/rapamycin.mp4"
-    captions: "/explainers/mtor-and-ampk/rapamycin.vtt"
-    poster: "/explainers/mtor-and-ampk/rapamycin-poster.jpg"
-    title: "Rapamycin Needs a Partner"
-    durationSec: 109.0
-    narration: "an AI narrator voice (ElevenLabs, Sarah) reading narration written from this lesson's text"
-    aiGenerated: true
+    takeaways:
+      - "Under energy stress, AMPK reads rising AMP to conserve energy and veto mTORC1."
+      - "Because adenylate kinase links ATP, ADP and AMP, a small drop in ATP drives a steep rise in AMP."
+      - "AMP binding on AMPK's gamma subunit protects the activating phosphate on alpha from phosphatases and adds an allosteric boost."
+      - "Active AMPK cuts fat and cholesterol synthesis, raises muscle glucose uptake, and shuts off mTORC1 through both TSC2 and Raptor."
 ---
 
 import LessonFilm from '../../../components/LessonFilm.astro';
-
 import MtorGate from '../../../components/MtorGate.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import Support from '../../../components/Support.astro';
 
 **The drug that protects a transplanted kidney from rejection came out of soil collected on Easter Island in 1964–65. Working out what it hits inside a cell uncovered the enzyme that decides whether a cell grows.**
 
-Growth is expensive. Making protein uses amino acids and a large share of a cell's ATP, so a cell that starts building without supplies runs short of both. Before it commits, a cell reads two gauges. One, built around the kinase mTOR, reads growth factors and amino acids. The other, AMPK, reads energy.
+The first film sketched mTORC1's two-signal gate at the lysosome; here is the evidence behind it, and the energy gauge that can override it.
 
-## The story: an antifungal from island soil works only with a partner protein
+## How a soil drug uncovered the growth controller
 
-<LessonFilm film={frontmatter.films[1]} />
+From December 1964 to February 1965 a Canadian medical expedition worked on Rapa Nui (Easter Island), where Montreal bacteriologist Georges Nogrady collected soil across the island. At Ayerst Research Laboratories in Montreal, a *Streptomyces hygroscopicus* strain grown from one sample killed fungi. In 1972 Ayerst microbiologist Suren Sehgal isolated the compound and named it **rapamycin**, after the island.
 
-From December 1964 to February 1965 a Canadian medical expedition worked on Rapa Nui (Easter Island). One member, the Montreal bacteriologist Georges Nogrady, collected soil from across the island. At Ayerst Research Laboratories in Montreal, a strain of the bacterium *Streptomyces hygroscopicus* grown from one sample was found to kill fungi. In 1972 the Ayerst microbiologist Suren Sehgal isolated the compound responsible and named it rapamycin, after the island.
+Why it stops cell growth was answered in yeast. In Michael Hall's Basel laboratory, Joseph Heitman plated yeast on rapamycin and collected rare resistant mutants. Most carried mutations not in a kinase, but in a small protein called **FPR1**—the yeast version of human **FKBP12**.
 
-Why it also stops cells from growing was answered in yeast. In Michael Hall's laboratory in Basel, Joseph Heitman spread yeast on plates containing rapamycin and kept the rare mutants that grew anyway. Most had mutations in the gene for a small protein called FPR1, the yeast version of your FKBP12. So at the doses that matter, rapamycin does little alone. It must first bind FKBP12, and the pair is the poison.
+**Predict.** If losing FPR1 makes yeast resistant to rapamycin at working doses, how must the drug block growth?
 
-The remaining mutants had changes in one of two new genes, which the group named TOR1 and TOR2, for "target of rapamycin". The screen was published in 1991. In 1994 and 1995 several laboratories found the mammalian protein that the FKBP12–rapamycin pair binds. The name that lasted is mTOR.
+<details>
+<summary>Check your prediction</summary>
 
-mTOR is a large protein kinase. Beside its kinase domain is a small domain called FRB. Rapamycin sits between FKBP12 and FRB like glue between two blocks, and the bound FKBP12 narrows the path that substrates take to the active site. The drug does not compete with ATP. It is an allosteric inhibitor, meaning one that acts from a site other than the active site.
+Rapamycin does little alone at working doses. It must first bind FKBP12 (FPR1 in yeast), and the **FKBP12–rapamycin pair** is the active poison.
 
-Yeast has two TOR genes and you have one, but in both the kinase works inside two different complexes. mTORC1, built around a partner protein called Raptor, controls growth and is the complex rapamycin blocks quickly. mTORC2, built around a partner called Rictor, is the kinase that gives Akt its second activating phosphate (the previous lesson), and it resists short rapamycin treatment.
+</details>
 
-<LessonFigure src="/figures/mtor-and-ampk/mtorc1-and-mtorc2.webp" width={1200} height={636} alt="AI-generated illustration: two side-by-side panels. In mTORC1 the mTOR kinase is joined to Raptor, controls growth and is blocked quickly by rapamycin bound to FKBP12. In mTORC2 the mTOR kinase is joined to Rictor, gives Akt its second phosphate and resists short rapamycin treatment." caption="The mTOR kinase works inside two complexes. mTORC1, built around Raptor, controls growth and is the one rapamycin blocks quickly. mTORC2, built around Rictor, gives Akt its second activating phosphate and resists short rapamycin treatment." />
+The remaining mutants altered *TOR1* and *TOR2*, for "target of rapamycin" (published 1991). In 1994 and 1995 several labs identified the mammalian protein bound by FKBP12–rapamycin: **mTOR**.
 
-## The idea: mTORC1 switches on only when two questions get a yes
+mTOR is a large protein kinase with a small **FRB domain** beside its kinase domain. Rapamycin glues FKBP12 to FRB, so bound FKBP12 narrows substrate access to the active site. It does not compete with ATP; it is an **allosteric inhibitor**, acting from outside the active site.
 
-In 1996 Hall's group reported that yeast without working TOR behave as if starved, even in rich medium: they sharply cut back the starting of new proteins and enter a resting state. Growth, they argued, is actively controlled, and TOR is the controller. What must mTORC1 hear before it gives the order? Two things, read by separate systems.
+Yeast has two TOR genes and humans have one, yet in both the kinase works in two complexes. **mTORC1**, built around **Raptor**, controls growth and is blocked quickly by rapamycin. **mTORC2**, built around **Rictor**, gives Akt its second activating phosphate (the previous lesson) and resists short rapamycin treatment.
 
-**Has the body said grow?** A growth factor such as insulin switches on Akt. Akt phosphorylates TSC2, one protein of the TSC complex, and that takes the complex out of action. The TSC complex is a GAP, the GTPase off-switch you met in the lesson on GTPase switches, and its target is a small GTPase called Rheb. With the GAP out of action, Rheb stays loaded with GTP, and Rheb-GTP is the direct activator of mTORC1. In the summer of 2003 several laboratories, Kun-Liang Guan's among them, reported within weeks of one another that TSC2 is a GAP for Rheb and that Rheb acts just upstream of mTOR.
+<LessonFigure src="/figures/mtor-and-ampk/mtorc1-and-mtorc2.webp" width={1200} height={636} alt="AI-generated illustration: two side-by-side panels. In mTORC1 the mTOR kinase is joined to Raptor, controls growth and is blocked quickly by rapamycin bound to FKBP12. In mTORC2 the mTOR kinase is joined to Rictor, gives Akt its second phosphate and resists short rapamycin treatment." caption="Raptor puts mTOR into rapamycin-sensitive mTORC1 for growth control, whereas Rictor puts it into mTORC2 to activate Akt and resist short drug exposure." />
 
-**Are there amino acids to build with?** How cells sense amino acids was then unknown. In 2008 Yasemin Sancak, in David Sabatini's laboratory, and independently Guan's laboratory, found the link in another family of small GTPases, the Rags. Sancak's paper carried a surprise: the Rags do not raise mTORC1's kinase activity. They move it. In cells starved of amino acids, mTORC1 is spread through the cytoplasm. Add amino acids back and it gathers on one compartment, which the same laboratory identified in 2010 as the surface of the lysosome, the cell's acidic digestive compartment. Rheb is anchored to internal membranes by a lipid tail, and the lysosome surface is where the two are thought to meet.
+<Support>**The one idea.** mTORC1 needs both growth factors and amino acids to switch on; AMPK reads rising AMP to conserve energy and veto mTORC1. **Scope:** This is the standard coincidence-detection and energy-veto model in normal cells; glutamine can activate mTORC1 without the Rags, AMPK's gamma subunit reads AMP against ATP (with ADP also protecting Thr172), and CaMKK2 can activate AMPK via calcium without an AMP change.</Support>
 
-Rheb-GTP can activate only an mTORC1 that has been brought to it. Growth factors set whether Rheb is on. Amino acids set whether mTORC1 is delivered, and their loss also brings the TSC complex to the lysosome to switch Rheb off. This is an AND gate: output only when both inputs are present. It is the standard model, not the whole story: glutamine, for one, can switch on mTORC1 by a route that does not need the Rags.
+## Two signals, one gate at the lysosome
+
+Growth is expensive: making protein uses amino acids and a large share of cellular ATP. In 1996 Hall's group reported that yeast without working TOR act starved even in rich medium—cutting back translation initiation and entering a resting state. Growth, they argued, is actively controlled, and TOR is the controller.
+
+**Track 1: Growth factors.** A signal such as insulin activates Akt, releasing a brake through a double negative:
+
+> **Growth factor → Akt ⊣ TSC complex (GAP) ⊣ Rheb-GTP → mTORC1**
+
+Akt phosphorylates **TSC2** in the **TSC complex**, taking that complex out of action. The TSC complex is a **GAP** (the GTPase off-switch from the lesson on GTPase switches) for the small GTPase **Rheb**. Without its GAP, Rheb stays loaded with GTP, and **Rheb-GTP** directly activates mTORC1. In summer 2003 several labs, Kun-Liang Guan's among them, reported within weeks of one another that TSC2 is Rheb's GAP and Rheb acts upstream of mTOR.
+
+**Track 2: Amino acids.** In 2008 Yasemin Sancak (David Sabatini's lab) and independently Guan's lab traced amino acid sensing to the **Rag** small GTPases. Sancak's surprise was that the Rags bind Raptor and *move* mTORC1 without raising its kinase activity directly. In amino-acid-starved cells, mTORC1 spreads through the cytoplasm; restore amino acids and it gathers on one organelle, identified by the same lab in 2010 as the **lysosome**, the cell's acidic digestive compartment. Because a lipid tail anchors Rheb to internal membranes, the lysosome surface is where Rheb-GTP and mTORC1 are thought to meet.
+
+Rheb-GTP can activate only an mTORC1 that has been brought to it. Thus the lysosome acts as an **AND gate**: growth factors keep Rheb on, and amino acids deliver mTORC1 (amino acid loss also brings TSC to the lysosome to switch Rheb off).
+
+**Predict.** Suppose Rheb loses the lipid tail that anchors it to membranes, while everything else is normal. In a cell given insulin and plenty of amino acids, is mTORC1 on?
+
+<details>
+<summary>Check your prediction</summary>
+
+In the standard model, largely **off**. Akt still keeps Rheb loaded with GTP and the Rags still bring mTORC1 to the lysosome, but Rheb-GTP is no longer held where mTORC1 is delivered. The two signals have to meet in the same place.
+
+</details>
+
+Test each link below. This is the standard model, not the whole story: **glutamine**, for one, can switch on mTORC1 without the Rags. Amino acid sensors and Rheb's working pool are in *Going deeper*.
 
 <MtorGate />
 
-In 2011 Roberto Zoncu and colleagues reported that part of the amino acid reading is taken inside the lysosome and requires the proton pump in its membrane. Sensor proteins found since then include Sestrin2 for leucine and CASTOR1 for arginine in the cytoplasm, and the transporter SLC38A9 in the lysosomal membrane. All report to the Rags. Which sensor matters most in which tissue is not settled, and neither is where the working pool of Rheb sits.
+When both inputs say yes, mTORC1 phosphorylates two translation-start regulators: **S6 kinase** switches on, and **4E-BP1** releases **eIF4E**, the factor gripping the mRNA cap. mTORC1 also promotes lipid synthesis and holds off **autophagy**, the process in which a cell digests its own contents in lysosomes to recover building blocks.
 
-When both answers are yes, mTORC1 phosphorylates two proteins that control the first step of translation. S6 kinase is switched on. 4E-BP1, which holds back eIF4E, the factor that grips the cap at the start of an mRNA, lets go. mTORC1 also promotes lipid synthesis and holds off autophagy, the process in which a cell digests its own contents in lysosomes to recover building blocks.
+<LessonFigure src="/figures/mtor-and-ampk/mtorc1-outputs-translation-start.webp" width={1200} height={800} alt="AI-generated illustration: an active mTORC1 block with arrows to S6 kinase switched on and to 4E-BP1 letting go, plus lipid synthesis up and autophagy held off. An inset compares eIF4E held back by 4E-BP1 with eIF4E gripping the cap at the start of an mRNA." caption="Active mTORC1 drives growth by turning on S6 kinase and freeing eIF4E from 4E-BP1, while boosting lipid synthesis and suppressing autophagy." />
 
-<LessonFigure src="/figures/mtor-and-ampk/mtorc1-outputs-translation-start.webp" width={1200} height={800} alt="AI-generated illustration: an active mTORC1 block with arrows to S6 kinase switched on and to 4E-BP1 letting go, plus lipid synthesis up and autophagy held off. An inset compares eIF4E held back by 4E-BP1 with eIF4E gripping the cap at the start of an mRNA." caption="With both answers yes, mTORC1 phosphorylates two proteins that control the first step of translation: S6 kinase is switched on, and 4E-BP1 lets go of eIF4E, the factor that grips the cap at the start of an mRNA. mTORC1 also promotes lipid synthesis and holds off autophagy." />
-
-## The idea: AMPK reads AMP, because AMP moves most
+Even with growth factors and amino acids saying yes, building protein burns ATP—so the cell needs an energy gauge that can override mTORC1 before fuel runs dry.
 
 <LessonFilm film={frontmatter.films[0]} />
 
-AMPK answers a third question: is there enough ATP? You met it in the biochemistry course as a fuel gauge. Here is why the gauge watches AMP, more than ATP itself.
+## Why AMP moves most: adenylate kinase and AMPK's switch
 
-A healthy cell holds ATP nearly constant, so ATP is a poor alarm. The enzyme adenylate kinase interconverts the three adenine nucleotides and keeps them near equilibrium:
+Here is the equilibrium behind the fuel gauge you met in the biochemistry course and in the second film.
+
+Because a healthy cell holds ATP nearly constant, ATP is a poor alarm. **Adenylate kinase** keeps the three adenine nucleotides near equilibrium:
 
 > **2 ADP ⇌ ATP + AMP, so [AMP] = K × [ADP]² / [ATP]**
 
-Divide by [ATP] and you have the rule that matters:
+Divide by `[ATP]` for the governing rule:
 
 > **[AMP] / [ATP] = K × ( [ADP] / [ATP] )²**
 
-The AMP:ATP ratio goes as the square of the ADP:ATP ratio. Try round numbers, taking K as 0.5, which lies within the range of reported values. At rest, ATP is 5.0 mM and ADP is 0.5 mM, so AMP is 0.5 × 0.25 / 5.0 = 0.025 mM. Now let work use up a tenth of the ATP. ATP is 4.5 mM, ADP settles near 0.93 mM, and AMP is 0.5 × 0.86 / 4.5 = 0.096 mM. ATP fell by 10 percent and AMP rose almost fourfold. Think of a low-fuel light: the needle has barely moved and the light is on.
+The AMP:ATP ratio varies as the **square** of the ADP:ATP ratio. Take round numbers with `K = 0.5` (within reported values):
 
-AMPK has three subunits. Alpha carries the kinase, beta holds the complex together, and gamma carries the sensor: sites where AMP, ADP and ATP compete to bind, so gamma reads their ratio. The main switch is one threonine in the activation loop of alpha, threonine 172, phosphorylated mainly by an upstream kinase called LKB1. A second kinase, CaMKK2, adds the same phosphate when calcium rises, with no change in AMP. That phosphate raises activity a hundredfold or more. LKB1 is active all the time. What AMP changes is AMPK itself: with AMP on gamma, the phosphate is harder for phosphatases to remove and, by most accounts, easier for LKB1 to add, and the kinase gets a further allosteric push. ADP on gamma also protects the phosphate, though at higher concentrations than AMP, and only AMP gives the allosteric push.
+- **At rest:** ATP is 5.0 mM and ADP is 0.50 mM, so `[AMP] = 0.5 × 0.25 / 5.0 = 0.025 mM` (total adenine pool `ATP + ADP + AMP = 5.525 mM`).
+- **After ATP drops 10%:** ATP is 4.5 mM. Rather than ADP jumping the full 0.5 mM to 1.0 mM, adenylate kinase converts part of that ADP into AMP and ATP while holding the total pool at `5.525 mM`. ADP settles near `0.93 mM`, and `[AMP] = 0.5 × 0.93² / 4.5 ≈ 0.096 mM`.
 
-Once on, AMPK cuts spending and raises income. It phosphorylates and inactivates acetyl-CoA carboxylase, which slows fat synthesis and, as malonyl-CoA falls, lets fatty acids into mitochondria to be burned. It inactivates HMG-CoA reductase, the rate-setting enzyme of cholesterol synthesis. In muscle it brings more GLUT4 glucose transporters to the cell surface.
+ATP fell 10 percent, yet AMP rose almost fourfold—like a low-fuel light tripping while the needle barely moved.
 
-## Two gauges, one decision: energy can veto growth
+**Predict.** Suppose K were 1.0 instead of 0.5, and the ADP:ATP ratio changed in the same way as in the example. Would the fold rise in the AMP:ATP ratio be larger?
 
-AMPK phosphorylates TSC2 at sites different from Akt's, and here the phosphate makes the TSC complex more active, which drains Rheb of GTP. AMPK also phosphorylates Raptor, which inhibits mTORC1 directly.
+<details>
+<summary>Check your prediction</summary>
 
-Both gauges also write on ULK1, the kinase that starts autophagy. mTORC1 adds a phosphate that keeps it off. In the model built on work published in 2011, AMPK adds phosphates at other sites that switch it on. Later studies complicate AMPK's side of this, so hold it loosely.
+No. K multiplies the AMP:ATP ratio in both states, so it cancels when you compare them. The fold rise depends only on how much the ADP:ATP ratio changed, squared.
 
-You can now predict three states.
+</details>
 
-- **Fed.** Akt silences TSC, Rheb holds GTP, the Rags hold mTORC1 on the lysosome and AMPK is quiet. Protein and lipid synthesis run. Autophagy is held low.
-- **No amino acids.** Rheb may still hold GTP, but the Rags release mTORC1 and it leaves the lysosome. Translation slows and autophagy starts, which returns amino acids to the cell.
-- **No energy.** AMP rises and AMPK switches on. Fat and cholesterol synthesis slow, fat burning rises, glucose uptake rises in muscle, and mTORC1 is shut off through TSC2 and Raptor even when growth factors and amino acids are present.
+**AMPK** has three subunits: **alpha** carries the kinase, **beta** holds the complex together, and **gamma** holds binding sites where AMP, ADP and ATP compete, reading their ratio. Full activation requires phosphorylation of **threonine 172 (Thr172)** in alpha's activation loop—boosting activity a hundredfold or more—added mainly by the upstream kinase **LKB1**.
+
+LKB1 is active all the time, so AMP changes **AMPK itself**: AMP on gamma makes the Thr172 phosphate harder for phosphatases to remove and, by most accounts, easier for LKB1 to add, plus a direct allosteric push. (*Going deeper* covers ADP protection and calcium activation by **CaMKK2**.)
+
+**Predict.** A cell lacking LKB1 cannot phosphorylate Thr172 via the energy route. If ATP drops and AMP spikes, does AMPK reach full activity?
+
+<details>
+<summary>Check your prediction</summary>
+
+No. LKB1 adds most of the Thr172 phosphate, the source of the hundredfold or greater boost. Without it there is little phosphate for AMP to shield, and AMP's allosteric push alone gives only weak activity. (CaMKK2 can still add the phosphate if calcium rises.)
+
+</details>
+
+Active AMPK cuts spending and raises income: it phosphorylates and inactivates **acetyl-CoA carboxylase** (slowing fat synthesis and lowering malonyl-CoA so fatty acids enter mitochondria to burn), inactivates **HMG-CoA reductase** (rate-setting enzyme of cholesterol synthesis), and in muscle brings more **GLUT4** glucose transporters to the surface.
+
+## Two gauges, one decision: predicting cell states
+
+Putting both halves of the rule together—mTORC1 needs growth factors and amino acids, while AMPK reads rising AMP to conserve energy and veto it—shows how energy overrides growth.
+
+AMPK blocks mTORC1 twice: it phosphorylates **TSC2** at activating sites different from Akt's (draining Rheb of GTP) and phosphorylates **Raptor** to inhibit mTORC1 directly. Both gauges also write on **ULK1**, the autophagy-initiating kinase (*Going deeper*).
+
+| State | Growth factor / Akt | Amino acids / Rags | Energy / AMPK | Rheb & mTORC1 | Outcome |
+| --- | --- | --- | --- | --- | --- |
+| **Fed** | On (TSC silenced) | On (Rags bind Raptor) | High ATP (AMPK off) | Rheb-GTP; mTORC1 on lysosome | **mTORC1 ON:** protein & lipid synthesis run; autophagy low. |
+| **No amino acids** | On | Off (Rags release mTORC1) | High ATP (AMPK off) | Rheb may hold GTP (loss can draw TSC); mTORC1 in cytoplasm | **mTORC1 OFF:** translation slows; autophagy starts, returning amino acids. |
+| **No energy** | On | On | Low ATP, high AMP (**AMPK ON**) | AMPK activates TSC2 (Rheb-GDP) & brakes Raptor | **mTORC1 OFF (vetoed):** fat & cholesterol synthesis slow; fat burning & muscle glucose uptake rise. |
+
+**Predict.** A cell lacks TSC2, keeping Rheb GTP-bound without growth factors. Will rapamycin still block mTORC1? Why?
+
+<details>
+<summary>Check your prediction</summary>
+
+Largely, yes. FKBP12–rapamycin binds mTOR's FRB domain, downstream of TSC2 and Rheb, and narrows substrate access whatever Rheb's state. The block is not total: rapamycin stops S6 kinase phosphorylation more completely than 4E-BP1 phosphorylation.
+
+</details>
 
 ### Design problem
 
@@ -501,8 +562,22 @@ TSC2 is where two conditions meet. A cell without it largely ignores growth fact
 
 ## When a gauge is drugged or broken
 
-**Rapamycin.** T cells need mTORC1 to grow and divide when interleukin-2, a signaling protein of the immune system, tells them to. Rapamycin, under the drug name sirolimus, blocks that step, and it was approved in the United States in 1999 to prevent rejection of transplanted kidneys. Every other tissue uses mTORC1 too, so mouth ulcers and raised blood sugar are among its side effects.
+**Rapamycin.** T cells need mTORC1 to grow and divide when **interleukin-2**, an immune signaling protein, stimulates them. Rapamycin (**sirolimus**) blocks that step and was approved in the United States in 1999 to prevent kidney transplant rejection. Because other tissues use mTORC1 too, mouth ulcers and raised blood sugar are among its side effects.
 
-**Tuberous sclerosis.** People born with a faulty copy of TSC1 or TSC2 develop benign growths in the brain, kidneys, skin and other organs. In cells without a working TSC brake, Rheb stays on and mTORC1 largely stops waiting for a growth factor. Drugs of the rapamycin family are used to shrink some of these growths.
+**Tuberous sclerosis.** People born with a faulty copy of *TSC1* or *TSC2* develop benign growths in the brain, kidneys, skin and other organs. Without a working TSC brake, Rheb stays on and mTORC1 largely stops waiting for a growth factor; rapamycin-family drugs shrink some of these growths.
 
-**Metformin.** This is the most widely prescribed drug for type 2 diabetes, and how it works is still not fully understood. The liver, where it reduces glucose output, was long thought to be its main site of action, but the gut now looks important too. At high concentrations metformin partly inhibits complex I of the mitochondrial respiratory chain, which raises AMP and switches on AMPK. At lower, clinically relevant concentrations it has been reported to switch on AMPK at the lysosome without changing AMP. Whether AMPK is the reason blood glucose falls is also argued. Mice lacking AMPK in the liver still respond to the drug, and other targets have been proposed in the liver and in the gut.
+**Metformin.** The most widely prescribed type 2 diabetes drug still has an unsettled mechanism. The liver (reducing glucose output) was long thought its main site, though the gut now looks important too. At high concentrations metformin partly inhibits mitochondrial complex I, raising AMP and activating AMPK. At lower, clinically relevant concentrations it has been reported to activate AMPK at the lysosome without changing AMP. Whether AMPK explains the blood-glucose drop is also argued: mice lacking liver AMPK still respond, and other liver and gut targets have been proposed.
+
+## Going deeper
+
+### Amino acid sensors upstream of the Rags
+
+In 2011 Roberto Zoncu and colleagues reported that part of the amino acid reading occurs inside the lysosome and requires its membrane proton pump. Sensors found since include **Sestrin2** (leucine) and **CASTOR1** (arginine) in the cytoplasm, and the lysosomal membrane transporter **SLC38A9**—all reporting to the Rags. Which sensor matters most in which tissue, and where the working pool of Rheb sits, are not settled.
+
+### Beyond AMP: ADP and calcium inputs to AMPK
+
+**ADP** on the gamma subunit also protects Thr172 from phosphatases, though at higher concentrations than AMP, and only AMP gives the allosteric push. Separately, **CaMKK2** phosphorylates Thr172 when calcium rises, with no change in AMP.
+
+### AMPK and ULK1 in autophagy
+
+mTORC1 phosphorylates **ULK1** to keep autophagy off. In the 2011 model, AMPK phosphorylates other sites on ULK1 to switch autophagy on, but later studies complicate AMPK's side of this wiring, so hold it loosely.

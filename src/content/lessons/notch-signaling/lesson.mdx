@@ -5,11 +5,12 @@ course: "signaling"
 courseChapter: "Cell Signaling · Unit 5: Signals that build and defend an animal"
 order: 125
 summary: >-
-  Notch is a receptor that signals almost always between cells that touch, and it does so by being cut:
-  the freed inner part of the receptor travels to the nucleus and switches genes on. This lesson
-  traces the three cuts, weighs what a pathway with no second messenger and no amplification is
-  good for, and shows how two equal neighbours use it to take opposite fates. Afterwards you can
-  predict what happens when the receptor, the ligand or the cutting enzyme is missing or stuck on.
+  A neighbour's pull lets proteases cut one Notch into one nuclear signal; when Notch lowers a
+  cell's sending, equal neighbours split into opposite fates. This lesson traces the preparation
+  cut and the two signal-triggered cuts, weighs what an unamplified, single-use pathway gives up
+  and buys, and follows the experiments that showed proteolytic release and lateral inhibition.
+  Afterwards you can predict what happens when the receptor, the ligand, the cutting enzyme or the
+  destruction tail is missing or stuck on.
 hook: "How do two identical cells, side by side, decide which one becomes the nerve cell?"
 
 estMinutes: 22
@@ -23,10 +24,15 @@ explainer:
   src: "/explainers/notch-signaling/explainer.mp4"
   captions: "/explainers/notch-signaling/explainer.vtt"
   poster: "/explainers/notch-signaling/poster.jpg"
-  title: "The Receptor Is the Message"
-  durationSec: 164.6
-  narration: "an AI narrator voice (ElevenLabs, Sarah) reading narration written from this lesson's text"
+  title: "The Pull and the Cuts: One Receptor, One Message"
+  durationSec: 208.1
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+  takeaways:
+    - "A neighbour's pull lets proteases cut one Notch into one nuclear signal."
+    - "Because Notch ligands stay anchored in the sending cell's membrane, the main fly and mammalian pathways signal where cells touch, and binding without a pull leaves the lock shut."
+    - "After a mammalian preparation cut carrying no signal, pulling lets an ADAM protease cut outside the membrane and γ-secretase cut inside it, freeing NICD to join CSL and Mastermind."
+    - "With no second messenger and no kinase relay, each cut receptor yields one brief, unamplified signal that is soon cleared by the proteasome."
 
 scientists:
   - name: "Iva Greenwald"
@@ -365,97 +371,170 @@ corpusTags:
   - "alagille-syndrome"
 draft: false
 films:
-  - id: "two-neighbours"
-    src: "/explainers/notch-signaling/two-neighbours.mp4"
-    captions: "/explainers/notch-signaling/two-neighbours.vtt"
-    poster: "/explainers/notch-signaling/two-neighbours-poster.jpg"
-    title: "Two Equal Cells, Two Fates"
-    durationSec: 85.8
-    narration: "an AI narrator voice (ElevenLabs, Sarah) reading narration written from this lesson's text"
+  - id: "chapter-2"
+    src: "/explainers/notch-signaling/chapter-2.mp4"
+    captions: "/explainers/notch-signaling/chapter-2.vtt"
+    poster: "/explainers/notch-signaling/chapter-2-poster.jpg"
+    title: "Equal Neighbours, Opposite Fates"
+    durationSec: 198.4
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
     aiGenerated: true
+    takeaways:
+      - "When Notch lowers a cell's sending, equal neighbours split into opposite fates."
+      - "In lateral inhibition, received Notch turns on repressors that block the nerve programme and lower the cell's own sending, turning two inhibitions into positive feedback across two cells."
+      - "Because the signal neither diffuses nor multiplies, each cell compares itself only with cells it contacts, producing fine-grained spacing."
+      - "Cells can also widen that spacing using thin, moving cell extensions while still relying on direct contact."
 ---
 
 import LessonFilm from '../../../components/LessonFilm.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import Support from '../../../components/Support.astro';
 
 **A fruit fly with one broken copy of a gene called *Notch* has nicks in the edges of its wings. An embryo with no working copy builds too much nervous system and too little skin.**
 
-The nicked wing, first described in 1914, gave the gene its name. The embryo tells more. In the part of the embryo's outer layer that gives rise to the nervous system, each cell chooses between becoming a nerve precursor and becoming skin. Normally only some choose nerve. Without Notch, far too many do. So Notch is not what makes a nerve cell. It is what lets a cell be told "not you".
+The nicked wing, first described in 1914, gave the gene its name. In the embryo's outer layer, each cell chooses between nerve precursor and skin; without Notch, far too many choose nerve. So Notch does not make a nerve cell—it lets a cell be told "not you". Fly *Notch* and the worm cell-fate gene *lin-12* encode one family of single-pass membrane receptors (see Going deeper). The first film showed how a neighbour's pull turns Notch into a nuclear signal; below are the biochemical details, the experiments that showed them, and how equal neighbours use that signal.
 
-The fly gene was sequenced in 1985 by the laboratory of Spyros Artavanis-Tsakonas, and soon after by that of Michael Young. It encodes a large protein that crosses the membrane once, with 36 repeats on its outer part that resemble epidermal growth factor. In the same issue of *Cell*, Iva Greenwald reported the same kind of repeat in *lin-12*, a worm gene whose mutants make one cell take the fate of its neighbour. A fly and a worm use one family of receptors to settle what two touching cells become. The sequence did not say how. The answer has two parts: contact, and cutting.
+<Support>**The one idea.** A neighbour's pull lets proteases cut one Notch into one nuclear signal; when Notch lowers a cell's sending, equal neighbours split into opposite fates. **Scope:** This describes standard contact-dependent Notch signalling in flies and mammals, and the lateral-inhibition circuit. Worms also use some secreted ligands, cells can reach several diameters away through thin extensions, standing nuclear NICD also depends on how fast it is destroyed, and lateral-inhibition loops can lower ligand production or activity.</Support>
 
-## The idea: the signal is a touch and a pull
+## Touch, pull and the lock
 
-Most signals you have met leave the cell that makes them. Notch's ligands do not. In flies they are Delta and Serrate; in mammals, the Delta-like and Jagged proteins. Each crosses the membrane of the sending cell and stays anchored there, while the receptor is anchored in the receiving cell. The two can meet only where two cell surfaces meet, so a cell hears Notch from cells it touches. That contact can be made through long, thin cell extensions, and worms have a few secreted ligands, but the main fly and mammalian ligands work only by contact. In one early test, cultured fly cells that do not normally stick together were made to produce either Notch or Delta, and the Notch cells clumped with the Delta cells.
+Notch's ligands are single-pass membrane proteins fixed in the sending cell: **Delta** and **Serrate** in flies, and the **Delta-like** and **Jagged** proteins in mammals. Because Notch is anchored in the receiving cell, the main fly and mammalian pathways signal only where cells touch (worms have a few secreted ligands, and cells can touch across several diameters via thin extensions). In an early test, cultured fly cells that do not normally stick together were made to produce either Notch or Delta, and Notch cells clumped with Delta cells.
 
-Binding is not enough. In culture, a piece of ligand free in solution generally fails to switch Notch on, while the same piece fixed to a dish works. In the standard account the receptor has to be pulled. After binding, the sending cell draws its ligand back inside by endocytosis, the pinching-in of membrane to form a vesicle, and the tug passes to the receptor it holds.
+The first film showed why binding alone fails: just outside the receiving membrane, three small modules fold into a lock—the **negative regulatory region**—that hides Notch's cutting site. In the standard account, the sending cell pulls bound ligand inward by **endocytosis** (the pinching-in of membrane to form a vesicle), and the tug peels the lock open.
 
-Just outside the membrane, Notch folds into a compact lock called the negative regulatory region. Three small modules wrap around the spot where the receptor can be cut and hide it from proteases. The pull peels the lock open. At this point the receptor has registered one fact: a neighbour is holding on and pulling.
+**Predict.** Free ligand pieces in solution generally fail to switch Notch on. What happens if you fix those same ligand pieces to a culture dish before adding Notch cells, and why?
 
-## Three cuts: how the receptor becomes the message
+<details>
+<summary>Check your prediction</summary>
 
-1. **While the receptor is made.** In mammalian cells a furin-like protease in the Golgi cuts the new receptor once in its outer part. The two pieces stay clasped together and reach the surface that way. This cut prepares the receptor and carries no signal.
-2. **After the pull.** An ADAM protease (ADAM10 in mammals) cuts at the newly exposed site, just outside the membrane. The outer part leaves with the ligand, and a stub stays in the membrane.
-3. **Inside the membrane.** γ-Secretase, a complex of four proteins whose cutting subunit is presenilin, cuts the stub within its membrane-spanning segment. It accepts a membrane protein only after most of the outer part has been trimmed away, which is why the second cut must come first.
+The dish-bound ligand switches Notch on. Anchoring prevents the ligand from drifting with the receptor, so tension can peel open the negative regulatory region.
 
-The third cut happens in a strange place. Cutting a peptide bond uses water, and the middle of a membrane is oily, so presenilin keeps its two catalytic aspartates in a pocket that water can reach.
+</details>
 
-That cut frees the inner part of the receptor, the Notch intracellular domain (NICD), which enters the nucleus. A DNA-binding protein called CSL binds at the target genes and, in the standard account, keeps them off with co-repressors. Live imaging in flies refines this: without signal, CSL binds DNA only briefly, and it stays far longer once NICD and Mastermind arrive. NICD binds CSL, displaces the co-repressors and recruits a co-activator called Mastermind. The genes turn on. Many encode repressors of the Hes family.
+## One preparation cut and two signal-triggered cuts
 
-<LessonFigure src="/figures/notch-signaling/pull-and-three-cuts.webp" width={1200} height={676} alt="AI-generated illustration: four steps between a sending cell above and a receiving cell below. The ligand stays anchored in the sending cell and holds the receptor's beaded outer part; the sending cell pulls, the lock just outside the membrane opens and the receptor is cut there; the outer part leaves with the ligand and the stub is cut inside the membrane; the freed inner part travels to the nucleus and joins CSL on a target gene." caption="The ligand never leaves the sending cell. A pull opens the lock just outside the membrane, the second cut, made there, releases the outer part with the ligand, and the third cut, inside the membrane, frees the receptor's inner part, which goes to the nucleus and acts on target genes with CSL." />
+Mammalian Notch undergoes three cuts, but only the last two carry a signal:
 
-How was it shown that the cut-off inner part is the signal? In steps, each answering an objection to the one before.
+1. **Preparation (Cut 1, mammalian Golgi).** While the receptor is made, a furin-like protease cuts its outer part once. The two pieces stay clasped together and reach the surface that way; this cut prepares Notch and carries no signal.
+2. **Outside the membrane (Cut 2, after the pull).** An **ADAM protease** (**ADAM10** in mammals) cuts the newly exposed site. The outer part leaves with the ligand, leaving a membrane-anchored stub.
+3. **Inside the membrane (Cut 3).** **γ-Secretase**—a four-protein complex whose cutting subunit is **presenilin**—cuts the stub within its membrane-spanning segment. It accepts a stub only after most of the outer part is trimmed away, so Cut 2 must come first. Because hydrolysing a peptide bond needs water in an oily bilayer, presenilin holds its two catalytic aspartates in a pocket water can reach.
 
-In 1993 Gary Struhl, Kevin Fitzgerald and Iva Greenwald made flies and worms that produced only the inner part of Notch or LIN-12, with nothing left to bind a ligand. It changed cell fates as an activated receptor does, and in flies it was in the nucleus. Other fly laboratories reported active truncated Notch that year.
+Cut 3 frees the **Notch intracellular domain (NICD)**, which enters the nucleus. There, the DNA-binding protein **CSL** holds target genes off with co-repressors in the standard account; NICD binds CSL, displaces co-repressors and recruits the co-activator **Mastermind** to switch targets on. Many targets encode **Hes-family repressors**—a two-step sign flip in which activating a repressor shuts off the nerve programme and tells the cell "not you". Live imaging in flies refines the off state: without signal, CSL binds DNA only briefly, staying far longer once NICD and Mastermind arrive.
 
-But a fragment made in excess can end up anywhere. In 1996 Raphael Kopan, Eric Schroeter, Harold Weintraub and Jeffrey Nye used a mouse Notch1 that lacked its outer part and was still anchored in the membrane. It was cut, its inner part went to the nucleus, and protease inhibitors stopped the cut.
+<LessonFigure src="/figures/notch-signaling/pull-and-three-cuts.webp" width={1200} height={676} alt="AI-generated illustration: four steps between a sending cell above and a receiving cell below. The ligand stays anchored in the sending cell and holds the receptor's beaded outer part; the sending cell pulls, the lock just outside the membrane opens and the receptor is cut there; the outer part leaves with the ligand and the stub is cut inside the membrane; the freed inner part travels to the nucleus and joins CSL on a target gene." caption="A neighbour's pull opens Notch's extracellular lock so an ADAM protease and γ-secretase cut in turn, freeing NICD to join CSL and Mastermind on target genes." />
 
-In 1998 Struhl and A. Adachi tested the intact receptor in a living fly, where too little reaches the nucleus to see by staining. They placed a transcription activator inside Notch, so that a reporter gene turned on only if that part of the receptor reached the nucleus. It did, and only with ligand. Kopan's laboratory reported ligand-induced release from mouse Notch1 the same year, and two other fly laboratories (Lecourtois and Schweisguth; Kidd, Lieber and Young) reported ligand-dependent processing of Notch.
+### How proteolytic release was shown
 
+Four experiments showed, step by step, that Notch's freed inner part is the signal, each answering an objection to the one before. In 1993, Gary Struhl, Kevin Fitzgerald and Iva Greenwald expressed only the free inner part of fly Notch or worm LIN-12 (other fly groups saw the same), leaving the objection that excess free fragment might drift into nuclei without real cutting. In 1996, Raphael Kopan, Eric Schroeter, Harold Weintraub and Jeffrey Nye tested outer-deleted, membrane-anchored mouse Notch1 with and without protease inhibitors. Still, endogenous nuclear NICD from *intact* Notch is too scarce to see by antibody staining.
 
-In 1999 Struhl and Greenwald showed that flies without Presenilin cannot signal through Notch; other laboratories reported the same need in flies and in mouse cells at the same time.
+**Predict.** Struhl and A. Adachi (1998) inserted a transcription activator into the inner tail of *intact*, full-length Notch in living flies so a sensitive reporter turned on only if that tail reached the nucleus. Where should the reporter turn on?
+
+<details>
+<summary>Check your prediction</summary>
+
+Only where ligand is present. Without a neighbour's ligand, the intact receptor stays uncut at the membrane and keeps the activator out of the nucleus.
+
+</details>
+
+Kopan's laboratory reported ligand-induced release from full-length mouse Notch1 that same year (parallel fly reports are in Going deeper), and in 1999 Struhl and Greenwald—alongside other fly and mouse laboratories—showed that Notch needs Presenilin to signal.
+
+| Year | Test construct or mutant | Objection answered | Result |
+| --- | --- | --- | --- |
+| 1993 | Free inner part alone (fly Notch, worm LIN-12) | Does the inner tail carry the signal? | Enters fly nuclei; activates Notch fates without ligand |
+| 1996 | Outer-deleted, membrane-anchored mouse Notch1 ± inhibitor | Is a membrane receptor really cut? | Cut frees tail to nucleus; protease inhibitors block it |
+| 1998 | Intact Notch carrying a nuclear-access reporter | Does ligand cut intact Notch in vivo? | Reporter turns on only where ligand is present |
+| 1999 | Loss of Presenilin | Does release need Presenilin? | Signalling fails; Notch loses nuclear access |
 
 ## What this design gives up, and what it buys
 
-Set Notch beside a kinase cascade. There, each active enzyme modifies many substrates, so the signal grows at every step, and phosphatases can reset it. Notch has no second messenger and no kinase relay. Between the membrane and the gene nothing multiplies: one cut receptor gives one NICD. A cut cannot be undone, so each receptor signals once.
+The first film contrasted Notch with a kinase cascade; **STAT and Smad** routes from Unit 4 sharpen the point. There too a protein moves from membrane to nucleus, yet the receptor (or its borrowed kinase) acts catalytically on one STAT or Smad after another. In Notch, the traveller is a piece of the receptor itself.
 
-Set it beside the STAT and Smad routes from Unit 4. There too a protein travels from the membrane to the nucleus and acts on genes. But those receptors are kinases, or borrow one, and one active receptor can phosphorylate one STAT or Smad after another. In Notch the traveller is a piece of the receptor itself.
+| Pathway | Amplification before nucleus | Receptor reuse | Nuclear traveller |
+| --- | --- | --- | --- |
+| Kinase cascade (RTK) | High; phosphatases reset | Reused | Downstream kinase or factor |
+| STAT / Smad (Unit 4) | Catalytic (many copies modified) | Reused | Phosphorylated STAT or Smad |
+| Notch | None (1 cut → 1 NICD) | Used once (irreversible) | Freed receptor inner domain |
 
-What the cell buys is a count. The amount of NICD made follows, one for one, the number of receptors a neighbour has pulled and cut. The signal itself does not diffuse; it reaches only cells in contact. It is also brief: a kinase in the nucleus marks NICD's tail, an E3 ligase adds ubiquitin, and the proteasome destroys it (see the lesson on ubiquitin and proteolysis), so many direct target genes go quiet soon after the cutting stops.
+Put numbers on the gap: 100 pulled Notch receptors release 100 NICDs and leave 100 fewer intact receptors, whereas 100 active receptor kinases driving a 20-fold cascade produce 2,000 modified substrates while all 100 receptors stay intact.
 
-The price is sensitivity to dose. With no amplification to cover a shortfall, half the normal amount of a component can show. That is a likely reason a fly with one working copy of *Notch* has nicked wings.
+What the cell buys is a local, non-diffusing count. The signal is also brief: a nuclear kinase marks NICD's tail, an E3 ligase adds ubiquitin, and the proteasome destroys it (see the lesson on ubiquitin and proteolysis), so many direct target genes go quiet soon after cutting stops. Standing nuclear NICD thus reflects both 1:1 release and rapid clearance.
 
-## Two equal neighbours, two fates
+**Predict.** A fly with one broken copy of *Notch* makes roughly half the normal number of receptors. Why does a 50% drop show up readily here (nicked wings), unlike in many kinase cascades?
+
+<details>
+<summary>Check your prediction</summary>
+
+With no amplification before the gene to cover a shortfall, half the receptors yield roughly half the NICD count—a likely reason one broken *Notch* copy nicks the wing.
+
+</details>
+
+One pulled receptor delivers one unamplified message to a touching cell; the next question is how two identical neighbours use that local count to split into opposite fates.
 
 <LessonFilm film={frontmatter.films[0]} />
 
-In the gonad of a worm larva two cells, Z1.ppp and Z4.aaa, lie side by side. In every normal hermaphrodite one becomes the anchor cell and the other a ventral uterine precursor, but which is which varies: each takes the anchor fate in about half of animals. Kill either one with a laser and the survivor always becomes the anchor cell, so the other fate needs a neighbour. Greenwald's thesis work with Paul Sternberg and Robert Horvitz tied the choice to *lin-12*. With no LIN-12, both cells become anchor cells. With overactive LIN-12, neither does.
+## Two equal neighbours, two fates
+
+The second film traced how **lateral inhibition** widens a tiny chance lead across two touching cells. The sharpest genetic test comes from a worm larva's gonad, where two equivalent neighbouring cells (Z1.ppp and Z4.aaa) lie side by side. Normally one becomes the **anchor cell (AC)** and the other a **ventral uterine precursor (VU)**, each taking the AC fate in about half of animals. Greenwald's thesis work with Paul Sternberg and Robert Horvitz tied this choice to *lin-12* (the worm Notch receptor), and both cells initially express LIN-12 and its ligand **LAG-2** before diverging into receptor-only VU and ligand-only AC.
+
+**Predict.** If a mutation locks LIN-12 constitutively ON in both worm gonad cells without any ligand, what fate do the two cells take?
+
+<details>
+<summary>Check your prediction</summary>
+
+Neither becomes an anchor cell. Constitutive LIN-12 runs the received-signal programme in both cells, suppressing the default AC fate.
+
+</details>
+
+| Perturbation (worm gonad or fly sheet) | Outcome | What it shows |
+| --- | --- | --- |
+| Normal touching pair | One sender (AC/nerve), one receiver (VU/skin) | Chance lead widened by mutual inhibition |
+| One neighbour laser-ablated (worm) | Survivor always becomes AC | AC is default; VU requires a neighbour |
+| Neither cell has Notch / LIN-12 | Both AC / excess nerve, too little skin | Without receptor, no cell hears "not you" |
+| Overactive LIN-12 in both cells | Neither becomes AC | Constitutive signal suppresses AC fate |
+| Mosaic: only cell A lacks LIN-12 | Cell A always becomes AC; B becomes VU | The cell that cannot hear ends up as sender |
+
+In the textbook model of the fly, received Notch turns on Hes-type repressors that shut off both the nerve-fate genes and Delta production. Once again, when Notch lowers a cell's sending, equal neighbours split into opposite fates—and because the signal neither diffuses nor multiplies, each cell compares itself only with cells it touches, including neighbours a few diameters away reached by thin moving extensions on the fly's back (live imaging shows these help space bristles).
+
+<LessonFigure src="/figures/notch-signaling/lateral-inhibition.webp" width={1200} height={676} alt="AI-generated illustration: three panels of the same two touching cells, A and B. At the start they carry nearly equal numbers of ligands and receptors, with a small chance lead for A. Then A has more ligands and fewer receptors while B has more receptors and fewer ligands, with arrows crossing from A's ligands to B's receptors. Finally A only sends and B only receives, and the two cells are tinted differently." caption="Lateral inhibition stretches a positive feedback loop across two touching cells: received signal blocks both the sender programme and the cell's own ligand, widening a chance lead into fine-grained opposite fates." />
 
 ### Design problem
 
-Two neighbouring cells start out the same. One must become a nerve cell and the other a skin cell, and nothing outside tells them which. Design a circuit between the two cells that turns a small chance difference into opposite fates. Then predict what the tissue looks like if the receptor in your circuit is missing from every cell.
+Two neighbouring cells start out the same. One must become a nerve cell and the other a skin cell, with no outside cue. Design a circuit between them that turns a small chance difference into opposite fates, then predict what the tissue looks like if the receptor is missing from every cell.
 
 <details>
 <summary>One way to do it</summary>
 
-Give each cell a ligand on its surface and a receptor for that ligand. Add two rules. First, signal received through the receptor blocks the nerve program, so a cell that receives enough becomes skin. Second, the same received signal lowers the cell's own production of ligand.
+Give each cell a surface ligand and a receptor with two rules: received signal blocks the nerve programme (favouring skin) and lowers the cell's own ligand production. A slight chance lead in cell A lowers cell B's ligand, which lowers the signal back to A—two inhibitions in a row create positive feedback (the switch-making loop from the lesson on signaling circuits), stretched across two cells until A sends (nerve) and B receives (skin).
 
-Now let chance give cell A slightly more ligand. Cell B receives more signal and makes less ligand. Cell A then receives less signal and makes more. Each turn of the loop widens the gap, until A sends without receiving (nerve) and B receives without sending (skin). Two inhibitions in a row make positive feedback, the switch-making loop from the lesson on signaling circuits, here stretched across two cells.
-
-Without the receptor, no cell can be told "not you". Every cell runs the nerve program, and the tissue has too many nerve cells and too little skin. That is the fly embryo at the top of this lesson. It is also the worm with no LIN-12, where both cells take the same fate.
+Without the receptor, no cell can be told "not you". Every cell runs the nerve programme, giving too much nervous system and too little skin—the fly embryo at the top of this lesson, and the worm without LIN-12 where both cells become anchor cells.
 
 </details>
 
-Real cells are wired much like this, and the arrangement is called lateral inhibition. In the worm, both cells at first make LIN-12 and its ligand, LAG-2. Before the fates are fixed, the future uterine precursor keeps the receptor and loses the ligand, and the future anchor cell does the reverse. In mosaic worms in which only one of the two cells lacks LIN-12, that cell always becomes the anchor cell: the cell that cannot hear ends up as the sender. In the textbook model of the fly, received signal turns on Hes-type repressors, which shut off the genes that drive both the nerve fate and Delta production. Because the signal neither diffuses nor multiplies, each cell compares itself only with the cells it contacts, and the pattern comes out fine-grained: one nerve precursor among cells that become skin. On the fly's back, cells also reach cells a few diameters away with thin, moving extensions, and live imaging shows that these contacts help set the spacing of bristles.
-
-<LessonFigure src="/figures/notch-signaling/lateral-inhibition.webp" width={1200} height={676} alt="AI-generated illustration: three panels of the same two touching cells, A and B. At the start they carry nearly equal numbers of ligands and receptors, with a small chance lead for A. Then A has more ligands and fewer receptors while B has more receptors and fewer ligands, with arrows crossing from A's ligands to B's receptors. Finally A only sends and B only receives, and the two cells are tinted differently." caption="Lateral inhibition stretches a positive feedback loop across two cells: received signal blocks the receiving cell's nerve programme and its own ligand production, so a small chance lead widens until one cell sends without receiving and its neighbour receives without sending. Because the signal neither diffuses nor multiplies, each cell compares itself only with the cells it touches." />
-
 ## When Notch is stuck on, or missing
 
-**Stuck on.** In 1991 the human gene *NOTCH1* was found broken by a chromosome rearrangement in rare cases of T-cell acute lymphoblastic leukaemia, leaving a shortened receptor. In 2004 mutations in *NOTCH1* were reported in more than half of cases. They cluster in two places. Some loosen the lock near the membrane, so the second cut happens without a pull. Others remove the part of the tail that marks NICD for destruction, so each NICD lasts longer.
+**Stuck on.** In 1991, human *NOTCH1* was found broken by a chromosome rearrangement in rare cases of **T-cell acute lymphoblastic leukaemia**, leaving a shortened receptor. In 2004, *NOTCH1* mutations were reported in over half of cases, clustering in two places: some loosen the lock near the membrane so Cut 2 happens without a pull, while others remove the tail region that marks NICD for destruction so each NICD lasts longer.
 
-<LessonFigure src="/figures/notch-signaling/notch1-stuck-on-two-ways.webp" width={1200} height={676} alt="AI-generated illustration: three schematic comparisons of human NOTCH1. Normally, a ligand pulls toward the sending cell, opening the extracellular lock; successive cuts release NICD with its destruction-marking tail, and NICD is later degraded. A loosened lock permits cleavage without a ligand pull, while released NICD retains its tail. Removing the tail still permits ligand-triggered release but makes the released NICD persist longer." caption="Mutations in NOTCH1 in T-cell acute lymphoblastic leukaemia cluster in two places. Some loosen the lock near the membrane, so the second cut happens without a pull; others remove the part of the tail that marks NICD for destruction, so each NICD lasts longer." />
+<LessonFigure src="/figures/notch-signaling/notch1-stuck-on-two-ways.webp" width={1200} height={676} alt="AI-generated illustration: three schematic comparisons of human NOTCH1. Normally, a ligand pulls toward the sending cell, opening the extracellular lock; successive cuts release NICD with its destruction-marking tail, and NICD is later degraded. A loosened lock permits cleavage without a ligand pull, while released NICD retains its tail. Removing the tail still permits ligand-triggered release but makes the released NICD persist longer." caption="NOTCH1 mutations in T-cell acute lymphoblastic leukaemia hit two controls: loosening the extracellular lock allows ligand-free cutting, while deleting the destruction-marking tail lets released NICD persist longer." />
 
-**Missing.** Alagille syndrome is a dominant genetic disease. In most cases one copy of *JAG1*, the gene for the ligand Jagged1, is broken. Most affected children have too few bile ducts in the liver, and many have a heart defect; severity varies widely. As in the fly's wing, one good copy is not enough.
+**Predict.** Cultured T-cell leukaemia cells from Patient 1 carry a lock-loosening *NOTCH1* mutation; cells from Patient 2 carry a tail-deletion mutation with an intact lock. If you block ligand binding outside both lines, how do they differ?
 
-**Shared scissors.** γ-Secretase also cuts the amyloid precursor protein, and one product is the peptide that builds up in the brain in Alzheimer's disease. A worm made the connection in 1995, when Diane Levitan and Greenwald found that *sel-12*, a gene that helps *lin-12* signal, resembles a human gene whose mutations cause an inherited, early-onset form of the disease. Drugs that block γ-secretase were developed to lower the peptide, and they block the Notch cut as well. In rodents they turned dividing cells of the gut lining into mucus-secreting goblet cells, the change expected when Notch is lost there. A large trial of one such drug, semagacestat, was stopped in 2010 after patients taking it did worse than those on placebo.
+<details>
+<summary>Check your prediction</summary>
+
+Patient 1's cells keep cutting Notch without any pull. Patient 2's cells stop releasing new NICD because their intact lock still needs a pull, though existing NICD clears more slowly than normal.
+
+</details>
+
+**Missing.** **Alagille syndrome** is a dominant genetic disease in which, in most cases, one copy of *JAG1* (encoding Jagged1) is broken. Most affected children have too few bile ducts in the liver and many have a heart defect; severity varies widely. As in the fly's wing, one working copy is not enough.
+
+**Shared scissors.** γ-Secretase also cuts amyloid precursor protein, producing the peptide that builds up in the brain in Alzheimer's disease. In 1995, Diane Levitan and Greenwald found that worm *sel-12* (which helps *lin-12* signal) resembles a human gene mutated in inherited, early-onset Alzheimer's disease. Drugs that block γ-secretase lower that peptide but also block the Notch cut: in rodents they turned dividing cells of the gut lining into mucus-secreting goblet cells, the change expected when Notch is lost there. A large trial of one such drug, **semagacestat**, was stopped in 2010 after patients taking it did worse than those on placebo.
+
+## Going deeper
+
+### How fly Notch and worm lin-12 were linked (1985)
+
+In December 1985, Spyros Artavanis-Tsakonas's laboratory sequenced fly *Notch* (followed soon after by Michael Young's laboratory), finding a large single-pass membrane protein with 36 outer repeats resembling epidermal growth factor. In the same issue of *Cell*, Iva Greenwald reported the same repeats in worm *lin-12*, uniting a nicked-wing fly mutant and a worm cell-fate gene into one receptor family.
+
+### Parallel 1998 and 1999 cleavage reports
+
+Alongside Struhl and Adachi's 1998 fly reporter and Kopan's mouse Notch1 release report, two other fly laboratories—Lecourtois and Schweisguth, and Kidd, Lieber and Young—reported ligand-dependent processing of Notch. In 1999, other fly and mouse laboratories likewise reported the Presenilin requirement at the same time as Struhl and Greenwald.

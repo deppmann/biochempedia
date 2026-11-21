@@ -4,7 +4,7 @@ slug: "hedgehog-and-cilium"
 course: "signaling"
 courseChapter: "Cell Signaling · Unit 5: Signals that build and defend an animal"
 order: 126
-summary: "Hedgehog is a secreted signal that tells the cells of an embryo where they are: each cell reads how much of it arrives, and for how long, and becomes a different cell type. This lesson follows how cells read that signal, with a double negative at the primary cilium, from the fly screen that named the pathway. Afterwards you will be able to use the pathway's double-negative logic to predict what loss of each part does, and to explain why a drug that blocks Smoothened treats some tumours and not others."
+summary: "Hedgehog switches off Patched, letting Smoothened keep Gli whole and active; in vertebrates the cilium houses the switch, and downstream steps decide. This lesson follows how a lipid-anchored morphogen sets embryonic fates, how a double negative at the primary cilium controls Gli cleavage, and how the same switch links a lamb-deforming plant to skin cancer therapy. Afterwards you will be able to predict the effects of pathway mutations, ciliary loss, and Smoothened-blocking drugs."
 hook: "How does one signal tell the cells of an embryo where they are, and why do a lamb-deforming plant and a skin cancer drug hit the same protein?"
 
 estMinutes: 22
@@ -18,10 +18,15 @@ explainer:
   src: "/explainers/hedgehog-and-cilium/explainer.mp4"
   captions: "/explainers/hedgehog-and-cilium/explainer.vtt"
   poster: "/explainers/hedgehog-and-cilium/poster.jpg"
-  title: "Hedgehog Switches Off an Off-Switch"
-  durationSec: 131.9
-  narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+  title: "Hedgehog Releases a Brake"
+  durationSec: 204.8
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+  takeaways:
+    - "Hedgehog switches off Patched, letting Smoothened keep Gli whole and active."
+    - "Hedgehog acts as a morphogen: cells read both its concentration and how long it arrives."
+    - "Patched holds Smoothened off without touching it, likely by keeping a sterol out of reach."
+    - "With Smoothened off, kinases mark Gli and the proteasome trims it to a repressor; with Smoothened on, newly made Gli escapes cutting."
 
 scientists:
   - name: "Christiane Nüsslein-Volhard"
@@ -388,116 +393,167 @@ corpusTags:
   - "vismodegib"
 draft: false
 films:
-  - id: "antenna"
-    src: "/explainers/hedgehog-and-cilium/antenna.mp4"
-    captions: "/explainers/hedgehog-and-cilium/antenna.vtt"
-    poster: "/explainers/hedgehog-and-cilium/antenna-poster.jpg"
-    title: "A Position Becomes a Place"
-    durationSec: 91.2
-    narration: "an AI narrator voice (Gemini, Charon) reading narration written from this lesson's text"
+  - id: "chapter-2"
+    src: "/explainers/hedgehog-and-cilium/chapter-2.mp4"
+    captions: "/explainers/hedgehog-and-cilium/chapter-2.vtt"
+    poster: "/explainers/hedgehog-and-cilium/chapter-2-poster.jpg"
+    title: "Inside the Antenna: Cilia and Downstream Control"
+    durationSec: 219.0
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
     aiGenerated: true
+    takeaways:
+      - "In vertebrates the cilium houses the switch, and downstream steps decide."
+      - "Without Hedgehog, Patched sits in the primary cilium while Smoothened stays out; Hedgehog reverses their positions."
+      - "In vertebrates, both making full-length Gli activators and trimming Gli3 to a repressor depend on the primary cilium."
+      - "Blocking Smoothened overrides signals or faults upstream of it—deforming embryos and shutting off Patched-loss tumours—but cannot stop a fault downstream."
 ---
 
 import LessonFilm from '../../../components/LessonFilm.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import Support from '../../../components/Support.astro';
 
-**Hedgehog is a signal that tells the cells of an embryo where they are.** Each cell reads how much of it arrives and for how long, and becomes a different kind of cell. Cells read it with a pathway that works by releasing brakes. Most pathways you have met work by adding something, such as a phosphate or a second messenger. To follow this one you need one piece of logic, a double negative, and one piece of geography, a single hair-like projection on the surface of the cell. The pathway also explains a puzzle. A plant poison that gave lambs a single eye and a drug now used against a common skin cancer block the same protein, Smoothened, in the middle of it.
+**One secreted signal tells embryonic cells where they are—and a lamb-deforming plant and a common skin cancer drug hit the same protein in its pathway.** The first film animated the core switch; here we follow the biochemistry behind it, the organelle where vertebrates run it, and the genetics linking birth defects to tumours.
 
-## The pathway was found by breaking genes and reading the damage
+<Support>**The one idea.** Hedgehog switches off Patched, letting Smoothened keep Gli whole and active; in vertebrates the cilium houses the switch, and downstream steps decide. **Scope:** This rule covers the core linear Hedgehog pathway. In flies, Ci plays Gli's role and most cells lack a cilium; in vertebrates, losing the primary cilium disrupts both Gli activator and Gli3 repressor, and Smoothened must both enter the cilium and be activated there.</Support>
 
-In the autumn of 1979, at the European Molecular Biology Laboratory in Heidelberg, Christiane Nüsslein-Volhard and Eric Wieschaus began asking how many genes it takes to lay out the body of a fruit fly. Cloning genes from flies was only just beginning, so they broke genes at random. Male flies were fed a chemical that damages DNA, and their descendants were bred into nearly 27,000 separate lines, each carrying one damaged chromosome, until some embryos in a line had two broken copies of the same gene.
+## A lipid-anchored protein becomes a morphogen
 
-Then they looked at skin. On its underside a healthy larva carries belts of tiny spines with smooth cuticle between them, one belt to a segment. An embryo that dies with belts missing, doubled or reversed has lost a gene needed to build that pattern. One mutant had no smooth cuticle left. It was spiny from end to end, and they named the gene *hedgehog*.
+The pathway's odd names come from Christiane Nüsslein-Volhard and Eric Wieschaus's 1979 fruit-fly screen at EMBL Heidelberg. Breaking embryonic genes at random, they found a larva lacking smooth cuticle—spiny from end to end—and named its gene *hedgehog*. Grouped with it in their 1980 paper were *patched*, *cubitus interruptus* and *wingless* (fly Wnt), before anyone knew which encoded the signal, receptor or transcription factor. Going deeper outlines the screen's scale.
 
-The screen produced a parts list, in few enough genes to study one at a time. Grouped with *hedgehog* in the first paper were *patched* and *cubitus interruptus*, along with *wingless*, the fly Wnt gene. Nobody yet knew that *hedgehog* encoded a signal, *patched* its receptor and *cubitus interruptus* the transcription factor at the end of its pathway.
+The newly made Hedgehog precursor cuts itself in two: its back part acts once as an enzyme, breaking the chain and joining **cholesterol** to the front part's new end. A second enzyme adds **palmitate**, a 16-carbon fatty acid, to the other end. That dual-lipidated front part is the signal.
 
-## The signal: a protein that carries two lipids and spreads in a gradient
+<LessonFigure src="/figures/hedgehog-and-cilium/hedgehog-two-lipids-and-release.webp" width={1200} height={423} alt="AI-generated illustration: a three-step strip showing the Hedgehog chain as two blocks, the back part cutting the chain and joining cholesterol to the front part, then a second enzyme adding palmitate so the front part carries a lipid at each end, with an inset showing the membrane protein Dispatched letting the lipid-anchored signal go." caption="Self-cleavage attaches cholesterol and a second enzyme adds palmitate, anchoring Hedgehog to membranes until Dispatched releases it." />
 
-Hedgehog is a secreted protein, and the newly made chain cuts itself in two. Its back part is an enzyme that works once: it breaks the chain and, in the same reaction, joins a molecule of cholesterol to the new end of the front part. A second enzyme adds palmitate, a 16-carbon fatty acid, to the other end. The front part, with a lipid at each end, is the signal.
+As with Ras in [the lesson on lipid anchors](/lessons/lipid-anchors-and-addresses/), both lipids tether Hedgehog to a membrane, so sending cells need a membrane protein, **Dispatched**, to release it. How freed Hedgehog then crosses tissue is unsettled—lipoprotein particles, multimeric clusters and thin cell extensions have all been proposed—but it clearly reaches many cell diameters away in a declining gradient.
 
-<LessonFigure src="/figures/hedgehog-and-cilium/hedgehog-two-lipids-and-release.webp" width={1200} height={423} alt="AI-generated illustration: a three-step strip showing the Hedgehog chain as two blocks, the back part cutting the chain and joining cholesterol to the front part, then a second enzyme adding palmitate so the front part carries a lipid at each end, with an inset showing the membrane protein Dispatched letting the lipid-anchored signal go." caption="Hedgehog makes itself: the chain cuts itself in two, cholesterol joins the front part, a second enzyme adds palmitate, and the front part with a lipid at each end is the signal. Because the lipids hold it on a membrane, Dispatched is needed to let it go." />
+That makes Hedgehog a **morphogen**: a signal spreading from a source that draws different responses at different concentrations. Mammals have three Hedgehog genes; the best studied is **Sonic hedgehog**, named after the video-game character. Made along the limb bud's future little-finger edge and the neural tube's ventral midline, it specifies digits and spinal neurons as transcription-factor networks read both dose and exposure time.
 
-As with Ras in [the lesson on lipid anchors](/lessons/lipid-anchors-and-addresses/), the lipids hold the protein on a membrane. That creates a problem, because a signal stuck to the cell that made it cannot act at a distance. Cells that make Hedgehog need a dedicated membrane protein, Dispatched, to let it go. How the freed protein then travels is not settled. Proposals include lipoprotein particles, clusters of many Hedgehog molecules, and thin cell extensions that carry it outward. The outcome is agreed: Hedgehog reaches cells many cell diameters away, and its concentration falls with distance from the source.
+**Predict.** In a simplified exponential gradient, a morphogen starts at 8 arbitrary units and halves every 10 micrometres; cells above 2 units adopt fate A (to 20 micrometres). If source output doubles to 16 units with the same halving distance, does fate A reach 40 or 30 micrometres?
 
-That makes Hedgehog a **morphogen**: a signal that spreads from a source and draws different answers from cells at different concentrations. Mammals have three Hedgehog genes, and the best studied is Sonic hedgehog, named after the video-game character. In the limb bud it is made along one edge, the future little-finger side, and which digit forms depends on how much of it the cells saw and for how long. In the neural tube, the embryonic spinal cord, it comes from the midline at the bottom, and cells at increasing distances from it become different kinds of neuron. Each cell reads both how much Hedgehog it receives and for how long, and a network of transcription factors turns that reading into a fate.
+<details>
+<summary>Check your prediction</summary>
 
-## The idea: Hedgehog works by switching off an off-switch
+**30 micrometres.** From 16 units, levels fall to 8 at 10 micrometres, 4 at 20, and 2 at 30. Under exponential decay, doubling source output shifts every boundary outward by one halving distance, not twofold.
 
-Two membrane proteins receive the signal. **Patched** crosses the membrane twelve times and looks like a transporter. Its relatives include bacterial pumps and NPC1, a human protein that moves cholesterol out of lysosomes. **Smoothened** crosses seven times, like the G-protein-coupled receptors of Unit 3.
+</details>
 
-Hedgehog binds Patched, and Patched is not the activator. Patched is a brake.
+## A catalytic brake and a transcription factor cut in two
 
-> **No Hedgehog: Patched is active, so Smoothened is off.**
->
-> **Hedgehog present: Patched is switched off, so Smoothened is on.**
+The first film animated the double-negative switch; here are its protein parts and biochemical mechanism.
 
-Picture a car parked on a hill with the handbrake on. Hedgehog does not press the accelerator. It releases the handbrake. That is why a cell that has lost Patched behaves as if Hedgehog were always there.
+**Patched** crosses the membrane twelve times and resembles a transporter, related to bacterial pumps and **NPC1** (which moves cholesterol out of human lysosomes). **Smoothened** crosses seven times, like Unit 3 G-protein-coupled receptors. In logic, Hedgehog releases a car's handbrake rather than pressing an accelerator—which is why losing Patched mimics constant Hedgehog.
 
-How does Patched restrain Smoothened? Not by holding it: one Patched can keep many Smoothened molecules quiet. The working model is that Smoothened needs a sterol, most likely cholesterol itself, to switch on, and that Patched uses its transporter-like body to keep that sterol out of reach. Structures show sterol-shaped molecules inside both proteins, and the fatty acid of Hedgehog pushed into Patched like a plug. What exactly Patched moves, and what powers it, are still being worked out.
+Patched acts as a brake in logic, not by clamping Smoothened: one Patched keeps many Smoothened molecules off. The working model is that Smoothened needs a sterol, most likely cholesterol itself, to switch on, and that Patched uses its transporter-like body to keep that sterol out of reach. Cryo-electron microscopy shows sterol-like densities in both proteins and Hedgehog's palmitate plugging into Patched. What Patched moves and what powers it remain unsettled.
 
-### What Smoothened controls: a transcription factor that is cut in two
+**Predict.** Compare a 1:1 physical clamp with catalytic sterol removal. If a cell makes fivefold more Smoothened while Patched stays constant, in which model is Smoothened more likely to activate without Hedgehog?
 
-The pathway ends at a transcription factor called Gli in vertebrates and Cubitus interruptus (Ci) in flies. With no Hedgehog, [PKA](/lessons/camp-and-pka/) adds phosphates to full-length Gli, and two more kinases, CK1 and GSK3, add more. The cluster of phosphates is recognised by an E3 ligase, and the ubiquitin-tagged protein goes to the [proteasome](/lessons/ubiquitin-and-proteolysis/). There it is only partly destroyed. The back part, which holds the activating region, is degraded. The front part, which still binds DNA, is released. That fragment is a repressor, and it keeps Hedgehog target genes off.
+<details>
+<summary>Check your prediction</summary>
 
-When Smoothened is on, the marking stops. Gli stays whole and becomes an activator. Flies do both jobs with the one Ci protein. Mammals have three Gli proteins, with Gli3 supplying most of the repressor and Gli2 most of the activator. In vertebrates, a receptor in the cilium called GPR161 keeps cAMP and PKA activity up when there is no signal, and Hedgehog clears it from the cilium. Recent work indicates that active Smoothened also uses a decoy sequence within itself to block the active site of the catalytic subunit of PKA, so that Gli escapes the first phosphates; how these steps fit together is still being worked out.
+The **1:1 clamp** model. Excess Smoothened would outnumber Patched and escape restraint, whereas depleting a shared sterol pool lets one Patched silence many Smoothened molecules.
 
-In Unit 3, PKA carried a hormone's message forward; here its resting activity keeps a pathway silent. Wnt uses the same pair of kinases, CK1 and GSK3, to mark β-catenin for complete destruction, and Notch cuts the receptor itself. In Hedgehog the cut falls on the transcription factor, and the signal works by preventing it.
+</details>
 
-## In vertebrates the pathway runs inside an antenna
+### What Smoothened controls: one protein, two opposite outputs
+
+The first film animated Gli trimming; here are the kinases behind it and how vertebrates split the work.
+
+The pathway ends at **Gli** in vertebrates and **Cubitus interruptus (Ci)** in flies. Flies use Ci for both roles; mammals divide them across **Gli3** (mostly repressor), **Gli2** (mostly activator) and **Gli1** (a direct target gene).
+
+When Smoothened is off, [PKA](/lessons/camp-and-pka/) adds priming phosphates to full-length Gli, letting **CK1** and **GSK3** add more. An E3 ligase ubiquitin-tags the phosphorylated cluster for the [proteasome](/lessons/ubiquitin-and-proteolysis/), which degrades only the back activating domain and releases the front DNA-binding fragment as a repressor silencing target genes.
+
+**Predict.** In Unit 3, PKA drove hormone responses forward, and in Wnt, CK1 and GSK3 target β-catenin for complete destruction. Without Hedgehog, how does blocking PKA change repression—and what would differ if the proteasome destroyed Gli completely?
+
+<details>
+<summary>Check your prediction</summary>
+
+Blocking PKA prevents priming phosphorylation, so *less* Gli repressor forms and repression weakens: resting PKA acts as a brake here. Complete destruction (as with β-catenin) would leave no repressor fragment to actively silence target genes.
+
+</details>
+
+With Smoothened on, priming stops. Newly made Gli escapes trimming and enters the nucleus whole as an activator. Even then a downstream brake, **SUFU**, binds full-length Gli and restrains it. Unlike Notch, which cuts the receptor to free an activator, Hedgehog prevents a cut on the transcription factor.
+
+How vertebrate Smoothened silences PKA leads straight to the organelle where these proteins meet—and to why downstream steps decide what mutations and drugs do.
 
 <LessonFilm film={frontmatter.films[0]} />
 
-Many kinds of cell in your body carry one **primary cilium** when they are not dividing: a single hair-like projection that does not beat, built on a core of microtubules and covered by its own stretch of membrane. It is assembled by intraflagellar transport, a shuttle of motor proteins that carries parts up and down the shaft.
+## In vertebrates the pathway runs inside an antenna
 
-In 2003 Kathryn Anderson's laboratory at the Sloan-Kettering Institute was studying mouse mutants from a chemical mutagenesis screen. Two had defects in the neural tube and limbs that pointed to broken Sonic hedgehog signalling. The damaged genes turned out to encode intraflagellar transport proteins. Crosses placed their action after Patched and before the target genes, but a position in a sequence is not a place in the cell.
+The second film showed Patched exiting and Smoothened entering the **primary cilium**—a single non-motile microtubule-based projection with its own membrane, built by **intraflagellar transport (IFT)** motor shuttles. Here is the evidence placing Hedgehog there, and the tissue paradox that proves both Gli outputs require it.
 
-The place came in 2005. Kevin Corbit, in Jeremy Reiter's laboratory at the University of California, San Francisco, followed a tagged Smoothened and found that it collected in the primary cilium when the pathway was switched on. Then the group changed the short stretch of Smoothened that sends it there. That protein stayed in the body of the cell and could no longer pass the signal on.
+In 2003, Kathryn Anderson's laboratory at Sloan-Kettering identified two mutagenized mouse lines with neural-tube and limb defects mimicking broken Sonic hedgehog signalling. Both carried damaged IFT genes, and crosses placed them after Patched and before target genes—without revealing where in the cell they acted.
 
-Later work showed that without Hedgehog, Patched sits at the cilium and Smoothened stays out. When Hedgehog binds, Patched leaves, Smoothened moves in, and Gli proteins gathered at the tip of the cilium are sent to the nucleus as activators. Cutting Gli to its repressor also needs the cilium, so a mouse without cilia makes neither form properly: it shows too little Hedgehog response in tissues that depend on the activator and signs of too much in tissues that depend on the repressor.
+In 2005, Kevin Corbit in Jeremy Reiter's laboratory at UCSF tracked tagged Smoothened into the primary cilium upon pathway activation. Mutating Smoothened's ciliary targeting stretch kept it in the cell body, and it could no longer pass the signal on.
 
-Flies largely manage without: most fly cells have no cilium, and the fly pathway was worked out in cells that lack one.
+Inside the cilium, two mechanisms link Smoothened to PKA: without Hedgehog, ciliary **GPR161** keeps cAMP and PKA high until Hedgehog clears it; active Smoothened also uses an internal decoy sequence to block PKA's catalytic site. How these two steps fit together is still being worked out.
+
+**Predict.** Both Gli activator maturation and Gli3 repressor trimming require the primary cilium. Predict how a cilia-less mouse embryo fares in the ventral neural tube (activator-dependent) versus the limb bud (where Gli3 repressor restricts digit number).
+
+<details>
+<summary>Check your prediction</summary>
+
+It shows opposite defects: *too little* Hedgehog response in the ventral neural tube (ventral cell types lost without activator) and signs of *too much* in the limb bud (extra digits without Gli3 repressor).
+
+</details>
+
+| Condition | Gli2 activator | Gli3 repressor | Ventral neural tube | Limb bud |
+| --- | --- | --- | --- | --- |
+| Normal, −Hh | Off | High | Dorsal fates | Digits restrained |
+| Normal, +Hh | High | Low | Ventral fates induced | Posterior digits induced |
+| No cilia (IFT mutant), −Hh | Off | Lost | Dorsal fates | Extra digits (no repressor) |
+| No cilia (IFT mutant), +Hh | Lost | Lost | Ventral fates lost | Extra digits (no repressor) |
+
+Most fly cells lack a primary cilium and run the pathway without one; Going deeper notes a 2014 exception in ciliated fly olfactory neurons.
 
 ## Blocking Smoothened deforms an embryo and treats a tumour
 
-In the 1950s, sheep ranchers in Idaho found lambs born with a single eye in the middle of the face. Investigators from the US Department of Agriculture traced the defect to the corn lily, *Veratrum californicum*, eaten by the ewe on about the fourteenth day of pregnancy. The alkaloid later purified from the plant was named cyclopamine.
+As before, switching off Patched lets Smoothened keep Gli whole and active—and because downstream steps decide, a drug's target determines which faults it can override.
 
-Mouse embryos lacking Sonic hedgehog show the same single eye, and cyclopamine stops cells responding to Sonic hedgehog by binding Smoothened. The early forebrain starts with one eye field, and Sonic hedgehog from the midline tissue beneath it divides that field and the forebrain into left and right. In people the failure of this division is called **holoprosencephaly**, and inheriting one faulty copy of the Sonic hedgehog gene is one known cause.
+In the 1950s, Idaho ranchers reported lambs born with one central eye. US Department of Agriculture investigators traced it to corn lily (*Veratrum californicum*) eaten around day 14 of pregnancy and purified **cyclopamine**. Mouse embryos lacking Sonic hedgehog show the same single eye: cyclopamine binds Smoothened and blocks the midline Sonic hedgehog signal that splits the early forebrain and its single eye field into left and right. In humans, failure of that split is **holoprosencephaly**, and inheriting one faulty *SHH* copy is one known cause.
 
-The opposite fault, a pathway stuck on, gives a tumour. Basal cell carcinoma is the most common human cancer, and the large majority of these tumours run the Hedgehog pathway with no Hedgehog present. Most carry mutations that inactivate *PTCH1*, the human Patched gene. A smaller share carry a Smoothened that Patched cannot restrain. Most people with Gorlin syndrome are born with one faulty copy of *PTCH1* in every cell, so any skin cell that loses the other copy has no brake. They develop many basal cell carcinomas, often starting young.
+The opposite fault—constitutive activation—drives **basal cell carcinoma**, the most common human cancer. The large majority of these tumours run the pathway with no Hedgehog present: most carry mutations inactivating *PTCH1* (human Patched), while a smaller share carry Patched-resistant Smoothened. Most people with **Gorlin syndrome** inherit one faulty *PTCH1* copy in every cell and develop many basal cell carcinomas starting young.
 
-Vismodegib is a drug that binds among the seven helices of Smoothened and holds it off. It was approved in the United States in 2012 for adults with basal cell carcinomas that have spread, and for locally advanced ones that have come back after surgery or cannot be treated by surgery, when radiation is not an option either. Tumours can escape it through a change in Smoothened that stops the drug binding, or through a change further down the pathway. And the drug's label repeats the lesson of the lambs: it must not be taken during pregnancy.
+**Predict.** In Gorlin syndrome, every skin cell inherits one broken *PTCH1* copy, yet tumours appear in scattered patches rather than across all skin at once. Why—and once a tumour forms, why can a Smoothened blocker shut its pathway down?
 
-<LessonFigure src="/figures/hedgehog-and-cilium/hedgehog-drug-and-two-tumours.webp" width={1200} height={800} alt="AI-generated illustration: two cell-signalling schematics side by side. In a tumour that lost Patched, the drug vismodegib sits on Smoothened and the signal to Gli and target genes is stopped. In a tumour that lost a later brake, the same drug blocks Smoothened but Gli still switches the target genes on." caption="Vismodegib holds Smoothened off. That shuts the pathway off in a tumour that lost Patched, but a tumour that lost a brake further down the pathway stays on whatever Smoothened does." />
+<details>
+<summary>Check your prediction</summary>
+
+The remaining normal *PTCH1* copy still supplies enough Patched brake until a skin cell loses that second copy too. Because Smoothened lies downstream of Patched, nothing upstream matters once Smoothened is blocked, so the drug silences the tumour.
+
+</details>
+
+**Vismodegib** binds among Smoothened's seven helices and holds it off. Approved in the United States in 2012, it treats adults with metastatic basal cell carcinoma, or locally advanced tumours that recurred after surgery or cannot be treated by surgery when radiation is not an option either. Tumours can escape through a Smoothened mutation blocking drug binding or a downstream fault—and the label repeats the lambs' warning against pregnancy.
+
+<LessonFigure src="/figures/hedgehog-and-cilium/hedgehog-drug-and-two-tumours.webp" width={1200} height={800} alt="AI-generated illustration: two cell-signalling schematics side by side. In a tumour that lost Patched, the drug vismodegib sits on Smoothened and the signal to Gli and target genes is stopped. In a tumour that lost a later brake, the same drug blocks Smoothened but Gli still switches the target genes on." caption="Vismodegib silences a tumour that lost Patched because Smoothened acts downstream, but a tumour that lost a brake after Smoothened stays on regardless." />
 
 ### Design problem
 
-Hedgehog switches off Patched, and Patched switches off Smoothened. Predict whether the pathway is on or off, with and without Hedgehog, in four cells: one without Patched, one without Smoothened, one without both, and one with a Smoothened that Patched cannot restrain. Then say which of two tumours a drug that blocks Smoothened can treat: one that lost Patched, or one that lost a brake that acts after Smoothened.
+Hedgehog switches off Patched, and Patched switches off Smoothened. Predict whether the pathway is on or off, with and without Hedgehog, in four cells: no Patched, no Smoothened, neither, and a Patched-resistant Smoothened. Then say which tumour a Smoothened blocker treats: one that lost Patched, or one that lost a brake acting after Smoothened.
 
 <details>
 <summary>One way to do it</summary>
 
-Ask one question of each cell: what state is Smoothened in? Everything after Smoothened follows from that.
+Ask one question per cell: what state is Smoothened in?
 
-- **No Patched.** Nothing restrains Smoothened. On without Hedgehog, on with it.
-- **No Smoothened.** Nothing passes the signal on, so Gli is cut to the repressor. Off without Hedgehog, off with it.
-- **Neither.** Off both ways. If Smoothened is missing, it makes no difference whether its brake is missing too. The later step decides. Geneticists call this rule epistasis.
-- **A Smoothened that Patched cannot restrain.** On both ways.
+- **No Patched.** Nothing restrains Smoothened: on with or without Hedgehog.
+- **No Smoothened.** Nothing passes the signal on, so Gli is cut to repressor: off both ways.
+- **Neither.** Off both ways. Without Smoothened, missing its brake changes nothing—the later step decides (**epistasis**).
+- **Patched-resistant Smoothened.** On both ways.
 
-Now the tumours. The one that lost Patched is on because Smoothened is free, so a drug that blocks Smoothened shuts it down. The one that lost a later brake stays on whatever Smoothened does, and blocking Smoothened changes nothing. In real tumours that later brake can be SUFU, a protein that holds full-length Gli in the cytoplasm.
+A Smoothened blocker shuts down the Patched-loss tumour because Smoothened is free and downstream of Patched. A tumour lacking a later brake—such as **SUFU**, which holds full-length Gli in the cytoplasm—stays on regardless.
 
 </details>
 
 ## Going deeper
 
-### The size of the fly screen
+### How the fly screen worked and its size
 
-In his Nobel lecture Wieschaus reported that 580 mutations with a describable defect fell into 139 genes, few enough to study one at a time. The first paper, in 1980, described fifteen of them.
+In 1979, Nüsslein-Volhard and Wieschaus fed male flies a DNA-damaging chemical and bred nearly 27,000 lines, each carrying one damaged chromosome, until embryos carried two broken copies of the same gene. Healthy larvae have segmental belts of tiny spines separated by smooth cuticle, so missing, doubled or reversed belts revealed lost patterning genes. In his Nobel lecture Wieschaus reported 580 describable mutations falling into 139 genes; their 1980 paper described fifteen.
 
 ### A cilium-based branch in flies
 
-A cilium-based branch of Hedgehog signalling was reported in 2014 in fly olfactory neurons, which are ciliated. Why vertebrates send the same brake and the same switch through this compartment is not known.
+A cilium-based branch of Hedgehog signalling was reported in 2014 in ciliated fly olfactory neurons. Why vertebrates route the same brake and switch through this compartment is not known.
 
 ### How cyclopamine was tied to Smoothened
 
-In 1996 mouse embryos lacking Sonic hedgehog were found to have the same single eye. In 1998 two laboratories, those of Philip Beachy and Henk Roelink, showed that cyclopamine stops cells responding to Sonic hedgehog, and in 2002 Beachy's laboratory showed that it binds Smoothened.
-
+In 1996, mouse embryos lacking Sonic hedgehog were found to have the same single eye seen in affected lambs. In 1998, Philip Beachy's and Henk Roelink's laboratories showed cyclopamine blocks Sonic hedgehog responses, and in 2002 Beachy's group showed it binds Smoothened directly.
