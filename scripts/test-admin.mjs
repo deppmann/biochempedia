@@ -396,9 +396,18 @@ console.log("the owner's own account (ADMIN_EMAILS)");
     // Linking the owner's address to a passkey account does not make that passkey session the owner.
     const pat = await mk('Pat');
     odb.sql.prepare("DELETE FROM learners WHERE google_sub='G-OWNER-2'").run();
-    await googleSignIn({ sub: 'G-OWNER-2', email: OWNER, email_verified: true }, pat.c, { link: true });
-    assert.equal(odb.sql.prepare('SELECT email FROM learners WHERE id=?').get(pat.id).email, OWNER);
-    shut(await stats(pat.c), 'the session was made with a passkey');
+    // The owner's Google identity is never added to an account made another way (it has a passkey, perhaps someone else's).
+    const tried = await googleSignIn({ sub: 'G-OWNER-2', email: OWNER, email_verified: true }, pat.c, { link: true });
+    assert.equal(tried.location, '/account/?error=google-link-owner');
+    assert.deepEqual({ ...odb.sql.prepare('SELECT google_sub, email FROM learners WHERE id=?').get(pat.id) }, { google_sub: null, email: null });
+    assert.equal((await call(oenv, 'GET', '/api/learner/me', { cookie: pat.c })).data.signedIn, true, 'and nobody was signed out by the refusal');
+    shut(await stats(pat.c), 'the passkey account');
+    assert.match(src('src/pages/account/index.astro'), /'google-link-owner': '[^']*Sign out, then choose Sign in with Google/);
+    // The owner can still add a passkey to the owner's own (Google-made) account, and relinking the same identity is a no-op.
+    assert.equal((await call(oenv, 'POST', '/api/learner/passkey/register/options', { cookie: owner.cookie, body: {} })).status, 200);
+    odb.sql.exec('DELETE FROM rate_limits');
+    assert.equal((await googleSignIn({ sub: 'G-OWNER', email: OWNER, email_verified: true }, owner.cookie, { link: true })).location, '/admin/');
+    assert.equal((await stats(owner.cookie)).status, 200);
     for (const [m, p] of [['PUT', '/api/learner/email'], ['POST', '/api/learner/email'], ['PUT', '/api/learner/me'], ['POST', '/api/learner/google/unlink']]) assert.equal((await call(oenv, m, p, { cookie: mallory.c, body: { email: OWNER } })).status, 404, p);
     const src_ = src('worker/learner.js');
     const writes = [...src_.matchAll(/(INSERT INTO learners[^']*|UPDATE learners SET[^']*)/g)].map((x) => x[1]).filter((q) => /email/.test(q));
@@ -407,6 +416,85 @@ console.log("the owner's own account (ADMIN_EMAILS)");
     assert.deepEqual(creators.filter((c) => /email/.test(c) && !/email = null/.test(c)), ['createLearner(db, { name, email, googleSub: sub_ }'], 'and only the Google callback ever passes an email when an account is made');
     assert.match(src_, /if \(claims\.email_verified !== true && claims\.email_verified !== 'true'\) throw/);
     assert.match(src('src/pages/account/index.astro'), /googleStartUrl\('\/account\/', false, true\)/, 'only the signed-in "Link Google" button asks for a link');
+  });
+  await check('a different account signed in on the same browser: the outgoing person\'s unsynced work is not merged into it', async () => {
+    odb.sql.exec('DELETE FROM rate_limits');
+    const sync = (cookie, body) => call(oenv, 'PUT', '/api/learner/sync', { cookie, body });
+    const P = (lessons) => ({ v: 1, lessons, items: {} });
+    const mkA = await passkeySignUp((m, p, o) => call(oenv, m, p, o), ORIGIN, 'localhost', { displayName: 'Ana', age13: true });
+    const mkB = await passkeySignUp((m, p, o) => call(oenv, m, p, o), ORIGIN, 'localhost', { displayName: 'Ben', age13: true });
+    // Ana was signed out when she did her first work: it merges into her new account, as it always has.
+    const a1 = await sync(mkA, { notebook: { items: {} }, progress: P({ glycolysis: { v: 1, d: 2 } }) });
+    assert.equal(a1.status, 200); assert.match(a1.data.acct, /^[0-9a-f]{16}$/); assert.ok(a1.data.progress.lessons.glycolysis);
+    // Ben signs in on the same browser. The device still holds Ana's work, tagged with her account.
+    const b1 = await sync(mkB, { notebook: { items: { n1: { id: 'n1', kind: 'note', slug: 'osmosis', text: 'ZZ Ana private note', updated: Date.now() } } }, progress: P({ glycolysis: { v: 1, d: 2 }, osmosis: { v: 5 } }), acct: a1.data.acct });
+    assert.equal(b1.status, 409); assert.equal(b1.data.accountChanged, true); assert.notEqual(b1.data.acct, a1.data.acct);
+    const benRow = odb.sql.prepare("SELECT d.notebook_json, d.progress_json FROM learner_data d JOIN learners l ON l.id=d.learner_id WHERE l.display_name='Ben'").get();
+    assert.equal(benRow.notebook_json, '{}'); assert.equal(benRow.progress_json, '{}', 'nothing of Ana\'s reached Ben\'s account');
+    // What the page does next: with the device cleared, it syncs under Ben's tag and gets Ben's own (empty) data.
+    const b2 = await sync(mkB, { notebook: { items: {} }, progress: P({}), acct: b1.data.acct });
+    assert.equal(b2.status, 200); assert.deepEqual(b2.data.progress.lessons, {}); assert.equal(b2.data.acct, b1.data.acct);
+    // Ana's own account is untouched, and her own device keeps syncing.
+    assert.equal((await sync(mkA, { notebook: { items: {} }, progress: P({}), acct: a1.data.acct })).data.progress.lessons.glycolysis.d, 2);
+    assert.equal((await call(oenv, 'GET', '/api/learner/sync', { cookie: mkA })).data.acct, a1.data.acct);
+    const lib = src('src/lib/learner.ts');
+    const branch = /if \(r\.status === 409 && r\.data\?\.accountChanged[\s\S]*?\n    \}\n/.exec(lib)[0];
+    assert.match(branch, /switchAccount\(window\.localStorage, known \|\| 'unknown', r\.data\.acct, \[NOTEBOOK_KEY, PROGRESS_KEY\]\)/, 'only the two synced entries are moved');
+    assert.ok(!/clearDevice|clearCalendar|clearPrefs|removeItem/.test(branch), 'an account change deletes nothing');
+    assert.match(branch, /if \(!moved\) \{[\s\S]*?return \{ ok: false, status: 409, error: SET_ASIDE_FAILED \};/, 'and if the copy cannot be set aside, nothing is synced');
+    assert.match(branch, /writeCache\(\{ \.\.\.readCache\(\), acct: r\.data\.acct, asideFull: false \}\)/, 'the cached name is kept');
+    assert.match(lib, /\.\.\.\(known \? \{ acct: known \} : \{\}\)/, 'a device with no tag (a signed-out reader\'s own work) sends none, and is merged');
+  });
+  await check('an account change on one browser sets notes aside and brings them back; the calendar and preferences are never touched', async () => {
+    const SA = await import('../src/lib/set-aside.mjs');
+    const mk = (init) => { const m = new Map(Object.entries(init)); let full = false; return { m, fill: (v) => { full = v; }, getItem: (k) => (m.has(k) ? m.get(k) : null), setItem: (k, v) => { if (full) throw new Error('quota'); m.set(k, String(v)); }, removeItem: (k) => { m.delete(k); } }; };
+    const NB = 'biochempedia:notebook:v1', PR = 'biochempedia:progress:v1', CAL = 'stemhop:calendar:v1', PREFS = 'stemhop:prefs:v1', KEYS = [NB, PR];
+    // 1. Ana on a family laptop; Ben signs in with Google.
+    const st = mk({ [NB]: 'ANA-NOTES', [PR]: 'ANA-PROGRESS', [CAL]: 'FAMILY-PLAN', [PREFS]: '{"role":"parent"}' });
+    assert.equal(SA.switchAccount(st, 'ana', 'ben', KEYS, 1), true);
+    assert.equal(st.getItem(NB), null); assert.equal(st.getItem(PR), null);
+    assert.equal(st.getItem(CAL), 'FAMILY-PLAN'); assert.equal(st.getItem(PREFS), '{"role":"parent"}');
+    assert.deepEqual(SA.readAside(st).ana.items, { [NB]: 'ANA-NOTES', [PR]: 'ANA-PROGRESS' });
+    assert.equal(SA.hasSetAside(st, 'ben'), true); assert.equal(SA.hasSetAside(st, 'ana'), false);
+    // Ben works; Ana signs in again: her notes come back, his are set aside, nothing is lost.
+    st.setItem(NB, 'BEN-NOTES');
+    assert.equal(SA.switchAccount(st, 'ben', 'ana', KEYS, 2), true);
+    assert.equal(st.getItem(NB), 'ANA-NOTES'); assert.equal(st.getItem(PR), 'ANA-PROGRESS');
+    assert.deepEqual(Object.keys(SA.readAside(st)), ['ben']); assert.equal(SA.readAside(st).ben.items[NB], 'BEN-NOTES');
+    assert.equal(st.getItem(CAL), 'FAMILY-PLAN');
+    // 2. One person with two accounts, switching back and forth: each account's copy survives every switch.
+    const two = mk({ [NB]: 'WORK-1', [CAL]: 'MY-PLAN', [PREFS]: '{"level":"grade-7"}' });
+    for (let i = 0; i < 6; i++) { assert.equal(SA.switchAccount(two, i % 2 ? 'home' : 'work', i % 2 ? 'work' : 'home', KEYS, 10 + i), true); if (i === 0) two.setItem(NB, 'HOME-1'); }
+    assert.equal(two.getItem(NB), 'WORK-1'); assert.equal(SA.readAside(two).home.items[NB], 'HOME-1');
+    assert.equal(two.getItem(CAL), 'MY-PLAN'); assert.equal(two.getItem(PREFS), '{"level":"grade-7"}');
+    // 3. The account was deleted elsewhere and made again: this device's notebook may be the only copy. It is kept.
+    const gone = mk({ [NB]: 'THE-ONLY-COPY', [PR]: 'P' });
+    assert.equal(SA.switchAccount(gone, 'old-tag', 'new-tag', KEYS, 20), true);
+    assert.equal(SA.readAside(gone)['old-tag'].items[NB], 'THE-ONLY-COPY');
+    gone.setItem(NB, 'LATER');
+    assert.equal(SA.switchAccount(gone, 'old-tag', 'third', KEYS, 21), true);   // the same tag again: kept beside, not overwritten
+    assert.deepEqual(Object.values(SA.readAside(gone)).map((x) => x.items[NB]).sort(), ['LATER', 'THE-ONLY-COPY']);
+    // At most three accounts' worth is kept (oldest first out), and a full or blocked storage changes nothing at all.
+    const many = mk({});
+    for (let i = 0; i < 5; i++) { many.setItem(NB, 'N' + i); SA.switchAccount(many, 'a' + i, 'a' + (i + 1), KEYS, 30 + i); }
+    assert.deepEqual(Object.keys(SA.readAside(many)).sort(), ['a2', 'a3', 'a4']);
+    const full = mk({ [NB]: 'KEEP-ME', [PR]: 'P' }); full.fill(true);
+    assert.equal(SA.switchAccount(full, 'x', 'y', KEYS, 40), false);
+    assert.equal(full.getItem(NB), 'KEEP-ME'); assert.equal(full.getItem(PR), 'P'); assert.equal(full.getItem(SA.ASIDE_KEY), null);
+    assert.match(src('src/pages/account/index.astro'), /Notes from another account on this browser were set aside\. They come back when that account signs in here\./);
+    // Every "clear this device" path removes what was set aside, so nothing of another account outlives a clear.
+    const cl = mk({ [NB]: 'X' }); SA.switchAccount(cl, 'a', 'b', KEYS, 50); assert.ok(cl.getItem(SA.ASIDE_KEY));
+    SA.clearAside(cl); assert.equal(cl.getItem(SA.ASIDE_KEY), null);
+    const lt = src('src/lib/learner.ts');
+    assert.match(/function clearDevice\(\) \{[\s\S]*?\n\}/.exec(lt)[0], /clearAside\(window\.localStorage\)/, 'sign-out with "remove from this device"');
+    assert.match(/export async function deleteAccount[\s\S]*?\n\}/.exec(lt)[0], /clearAside\(window\.localStorage\)/, 'account deletion on this device');
+    assert.match(/\$\('\[data-clear\]'\)[\s\S]*?\}\);/.exec(src('src/pages/progress/index.astro'))[0], /clearAside\(window\.localStorage\)/, '"Clear everything" on /progress/');
+    // Storage full is said on the account page and the header after an automatic sync too, with advice that works.
+    assert.match(lt, /SET_ASIDE_FAILED = '[^']*sign out with “Also remove my notes and progress from this device” ticked/);
+    assert.match(lt, /writeCache\(\{ \.\.\.readCache\(\), asideFull: true \}\)/);
+    assert.match(src('src/pages/account/index.astro'), /window\.addEventListener\(LEARNER_EVENT, paintAside\)/);
+    assert.match(src('src/components/AccountLink.astro'), /setAsideFailed\(\)/);
+    assert.match(src('src/pages/account/index.astro'), /At most three accounts' notes are kept aside on one browser; a fourth pushes out the oldest\./);
   });
   await check('before migration 0011 sign-in works as it did and the owner\'s page stays shut for accounts; the export says how each device signed in after it', async () => {
     const early = makeDb({ before0011: true }); const eenv = { ...oenv, CLASSES: early };

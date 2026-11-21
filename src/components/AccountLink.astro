@@ -27,7 +27,7 @@
 </style>
 
 <script>
-  import { signedInHint, cachedName, startAutoSync, LEARNER_EVENT } from '../lib/learner';
+  import { signedInHint, cachedName, startAutoSync, setAsideFailed, LEARNER_EVENT } from '../lib/learner';
   const link = document.querySelector<HTMLAnchorElement>('[data-nav-account]');
   const label = document.querySelector<HTMLElement>('[data-nav-account-label]');
   function paint() {
@@ -36,8 +36,11 @@
     const first = on ? (cachedName() || '').trim().split(/\s+/)[0] : '';
     const text = on ? first || 'Account' : 'Sign in';
     label.textContent = text;
-    link.title = on ? 'Your account' : 'Sign in';
-    link.setAttribute('aria-label', on ? `Your account${first ? ` (${first})` : ''}` : 'Sign in');
+    // Sync stopped because another account's notes are on this browser with no room to set them aside: say so quietly here too.
+    const stuck = on && setAsideFailed();
+    link.title = stuck ? 'Your account: syncing is paused, open to see why' : on ? 'Your account' : 'Sign in';
+    link.setAttribute('aria-label', stuck ? 'Your account. Syncing is paused; open to see why.' : on ? `Your account${first ? ` (${first})` : ''}` : 'Sign in');
+    link.toggleAttribute('data-sync-paused', stuck);
     link.toggleAttribute('data-signed-in', on);
   }
   paint();
