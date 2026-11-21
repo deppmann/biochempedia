@@ -9,16 +9,18 @@
    Static, built with the site; nothing about visitors. Columns may be added at the end, never
    removed or reordered. */
 import type { APIRoute } from 'astro';
-import { allIdeas, PLAY_LADDER } from '../../lib/hop';
+import { allIdeas, runOf, PLAY_LADDER } from '../../lib/hop';
 
 export const GET: APIRoute = async () => {
   const runs: Record<string, unknown> = {};
   for (const i of await allIdeas()) {
-    if (new Set(i.films.map((f) => f.rank)).size < 2) continue;
+    // The films the run page plays (runOf): the same list as /films/idea/<id>.json.
+    const films = runOf(i.films);
+    if (new Set(films.map((f) => f.rank)).size < 2) continue;
     runs[i.id] = {
       name: i.name,
-      seconds: Math.round(i.films.reduce((t, f) => t + f.durationSec, 0)),
-      films: i.films.map((f) => [f.key, f.title, f.href, f.rank, Math.round(f.durationSec), f.lesson]),
+      seconds: Math.round(films.reduce((t, f) => t + f.durationSec, 0)),
+      films: films.map((f) => [f.key, f.title, f.href, f.rank, Math.round(f.durationSec), f.lesson]),
     };
   }
   return new Response(JSON.stringify({ v: 1, link: PLAY_LADDER ? '/films/run/?idea={id}' : null, runs }), { headers: { 'Content-Type': 'application/json; charset=utf-8' } });
