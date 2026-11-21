@@ -11,7 +11,6 @@
 import assert from 'node:assert/strict';
 import { loadGraphSite, coreSite, readGraph, makeTopicGraph } from './topic-graph/lib.mjs';
 import { inSentence, lessonSentence, authoredLinks, plain, stepNote, levelNote, gapLine, taughtAt, levelCount, edgeLines, compactLine, maskOf, ranksOf, SENTENCE_MAX, LEVEL_SHORT, LEVEL_LABEL, QUICK_NAME, andList } from '../src/lib/hop-words.mjs';
-import { headingIds } from '../src/lib/topic-graph-core.mjs';
 import { ladderHtml, ladderGlyph, ladderRows } from '../src/lib/hop-ladder.mjs';
 import { buildIndex, search, stem, oneSlip, solCode } from '../src/lib/hop-search.mjs';
 
@@ -41,14 +40,9 @@ function levelTwice(line) {
   return LEVEL_SHORT.filter((l) => t.split(l).length > 2);
 }
 
-const sectionWords = (body) => {
-  const heads = headingIds(body).filter((h) => h.depth === 2);
-  const lines = body.split('\n');
-  return Object.fromEntries(heads.map((h, i) => [h.id, lines.slice(h.line + 1, heads[i + 1]?.line ?? lines.length).join(' ').split(/\s+/).length]));
-};
 const sentences = lessons.map((l) => {
   const authored = authoredLinks(l.slug, site.lessons);
-  const s = lessonSentence(api.hops(l.slug), { slug: l.slug, title: l.title, rank: l.rank, courseTitle: l.courseTitle, explainLevels: l.fm.explainLevels, sections: sectionWords(l.body ?? ''), authored });
+  const s = lessonSentence(api.hops(l.slug), { slug: l.slug, title: l.title, rank: l.rank, courseTitle: l.courseTitle, explainLevels: l.fm.explainLevels, authored });
   const lines = ['teaches', 'simpler', 'deeper', 'next'].filter((k) => s.lines[k]).map((k) => [k, s.lines[k], plain(s.lines[k])]);
   return { l, s, authored, lines, ideas: api.hops(l.slug).map((h) => h.id) };
 });
@@ -68,7 +62,7 @@ console.log('names inside a sentence');
 check('every idea has a name that reads inside a sentence', () => {
   const bad = [];
   for (const c of api.concepts) {
-    const s = inSentence(c.id, c.name);
+    const s = inSentence(c.id, c.short ?? c.name);
     if (!s || /[()]/.test(s) || /[:,]$/.test(s) || s.length > 60) bad.push(`${c.id}: "${s}"`);
     if (/^(A|An|The|How|Why|What|Which|Where|When) /.test(s)) bad.push(`${c.id}: starts with a capital: "${s}"`);
   }
@@ -159,19 +153,34 @@ check('a link chosen by hand wins: the school ladders, the step up from a guide,
   }
   assert.ok(n > 150, `only ${n} hand-picked sides were checked`);
 });
-check('otherwise the link is the nearest lesson on any idea the lesson teaches, and says which idea when it is not the one named', () => {
+check('the sentence and the ladder agree: every lesson the sentence names is on the named idea\u2019s ladder, or drawn on it as picked by hand', () => {
   for (const x of sentences) {
-    const h = api.hops(x.l.slug);
+    const main = x.s.ideas[0];
+    const rungs = new Set(api.ladder(main.id).map((r) => r.slug));
     for (const [k, segs, text] of x.lines) {
-      const dir = k === 'simpler' ? 'down' : 'up';
       const t = target(segs);
-      if (!t || x.authored[dir].length) continue;
-      const nearest = Math.min(...h.filter((i) => i[dir]).map((i) => Math.abs(i[dir].rank - x.l.rank)));
-      assert.equal(Math.abs(t.rank - x.l.rank), nearest, `${x.l.slug} ${k}: a nearer lesson exists: ${text}`);
-      const main = x.s.ideas[0];
-      const onMain = (dir === 'down' ? main.downAll : main.upAll).some((r) => r.slug === t.slug);
-      assert.equal(/^(Simpler|Deeper), for /.test(text), !onMain, `${x.l.slug} ${k}: ${text}`);
+      if (!t) continue;
+      assert.ok(rungs.has(t.slug) || x.s.also.some((a) => a.slug === t.slug), `${x.l.slug} ${k}: ${text} is not on the ladder of ${main.id}`);
+      assert.ok(!/^(Simpler|Deeper), for /.test(text), `${x.l.slug} ${k}: no link to another idea's lesson: ${text}`);
+      const dir = k === 'simpler' ? 'down' : 'up';
+      if (!x.authored[dir].length) assert.equal(t.slug, main[dir].slug, `${x.l.slug} ${k}: the nearest rung of ${main.id}`);
     }
+  }
+});
+check('among hand-picked links at the nearest level, one on the named idea\u2019s ladder is preferred', () => {
+  for (const x of sentences) for (const [dir, key] of [['down', 'simpler'], ['up', 'deeper']]) {
+    const line = x.lines.find(([k]) => k === key); const t = line && target(line[1]);
+    if (!t || !x.authored[dir].length) continue;
+    const rungs = new Set(api.ladder(x.s.ideas[0].id).map((r) => r.slug));
+    const sameLevel = x.authored[dir].filter((a) => a.rank === t.rank);
+    if (sameLevel.some((a) => rungs.has(a.slug))) assert.ok(rungs.has(t.slug), `${x.l.slug} ${key}: ${line[2]}`);
+  }
+});
+check('the level is always said: the lesson\u2019s own, and each linked lesson\u2019s in brackets', () => {
+  const lvl = new RegExp(`\\((${LEVEL_SHORT.join('|')}|a hands-on activity)[;,)]`);
+  for (const x of sentences) {
+    if (x.l.rank > 0) assert.match(x.lines[0][2], /grade 7|high school|college|graduate/, x.l.slug);
+    for (const [k, segs, text] of x.lines) if (target(segs)) assert.match(text, lvl, `${x.l.slug} ${k}`);
   }
 });
 check('the sentence never says "nothing at a level" when the page links a lesson there', () => {
@@ -185,7 +194,7 @@ check('the sentence never says "nothing at a level" when the page links a lesson
 });
 check('ages 5 to 10: an activity, one next lesson, taken from the guide\u2019s own step up when it has one', () => {
   for (const x of sentences.filter((y) => y.l.rank === 0)) {
-    assert.match(x.lines[0][2], /^This activity is about .+ for ages 5 to 10\.$/);
+    assert.match(x.lines[0][2], /^An activity for ages 5 to 10 about .+\.$/);
     assert.ok(!x.s.lines.simpler && !x.s.lines.deeper, x.l.slug);
     if (x.s.lines.next) assert.match(plain(x.s.lines.next), /^Next, for an older child: .+ \((grade 7|high school)\)\.$/);
     const step = (x.l.activity?.stepUp ?? []).filter((s) => site.lessons.has(s));
@@ -199,22 +208,21 @@ check('the short version offered in place exists in that lesson', () => {
   for (const x of sentences) {
     const q = x.lines.flatMap(([, segs]) => segs).find((s) => s.quick);
     if (q) { assert.ok(x.l.fm.explainLevels.some((e) => e.level === q.quick), x.l.slug); assert.ok(QUICK_NAME[q.quick], q.quick); }
-    if (x.l.rank >= 2 && !x.s.lines.simpler?.some((y) => y.href)) assert.ok(q, `${x.l.slug}: with no simpler lesson to name, the short version is offered`);
+    if (x.l.rank >= 2) assert.ok(q, `${x.l.slug}: a lesson from high school up offers its short simpler version in place`);
   }
 });
-check('one idea is named: the one in the lesson\u2019s title, else the one with the longest section', () => {
+check('one idea is named: the lesson\u2019s main idea, the first in the graph\u2019s record, by its short name', () => {
   for (const x of sentences) {
-    const main = inSentence(x.s.ideas[0].id, x.s.ideas[0].name);
-    assert.ok(x.lines[0][2].includes(` ${main}`), `${x.l.slug}: ${x.lines[0][2]}`);
+    assert.equal(x.s.ideas[0].id, graph.lessons[x.l.slug].concepts.find((id) => graph.concepts[id].rungs.some((r) => r.lesson === x.l.slug && r.role === 'core')), x.l.slug);
+    const c = graph.concepts[x.s.ideas[0].id];
+    assert.ok(x.lines[0][2].toLowerCase().includes(inSentence(x.s.ideas[0].id, c.short ?? c.name).toLowerCase()), `${x.l.slug}: ${x.lines[0][2]}`);
     assert.ok(!/ and also |more idea/.test(x.lines[0][2]), x.l.slug);
   }
-  const first = (slug) => sentences.find((x) => x.l.slug === slug).s.ideas[0].id;
-  assert.equal(first('crossing-the-membrane'), 'cell-membrane');
 });
 check('school lessons name their level; college lessons name their course', () => {
   for (const x of sentences) {
-    if (x.l.rank >= 3 && x.s.tight < 5) assert.ok(x.lines[0][2].includes(` in ${x.l.courseTitle}`), x.l.slug);
-    else if (x.l.rank > 0 && x.l.rank <= 2) assert.ok(x.lines[0][2].endsWith(` at ${LEVEL_SHORT[x.l.rank]} level.`), x.l.slug);
+    if (x.l.rank >= 3 && x.s.tight < 3) assert.ok(x.lines[0][2].includes(` in ${x.l.courseTitle}`), x.l.slug);
+    else if (x.l.rank > 0 && x.l.rank <= 2) assert.ok(x.lines[0][2].endsWith(`${LEVEL_SHORT[x.l.rank]} level.`), x.l.slug);
   }
 });
 check(`the closed sentence fits four phone lines: at most ${SENTENCE_MAX} characters in all`, () => {
@@ -223,7 +231,7 @@ check(`the closed sentence fits four phone lines: at most ${SENTENCE_MAX} charac
 });
 
 console.log(`ideas: ${api.concepts.length}`);
-const joined = (id) => { const c = api.concept(id); return { id, name: c.name, short: inSentence(id, c.name), rungs: api.ladder(id) }; };
+const joined = (id) => { const c = api.concept(id); return { id, name: c.name, short: inSentence(id, c.short ?? c.name), rungs: api.ladder(id) }; };
 check('every idea draws a ladder: a rung per level, every lesson on it, nothing locked or counted', () => {
   for (const c of api.concepts) {
     const idea = joined(c.id);

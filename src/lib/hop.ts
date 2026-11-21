@@ -12,8 +12,7 @@ import { stageOf } from '../data/stages';
 import { SETS as MCAT_SETS } from './mcat';
 import { lessonMinutes } from './reading-time';
 import { concept, concepts, hops, ladder, usedBy, filmsFor, areaName, areas, stageRank, type LadderRung, type JoinedFilm } from './topic-graph';
-import { headingIds } from './topic-graph-core.mjs';
-import { lessonSentence, authoredLinks, inSentence, maskOf, QUICK_DOWN, QUICK_UP, QUICK_NAME, readTime } from './hop-words.mjs';
+import { lessonSentence, authoredLinks, inSentence, maskOf, QUICK_UP, QUICK_NAME, readTime } from './hop-words.mjs';
 
 export interface Rung {
   slug: string;
@@ -32,6 +31,8 @@ export interface Rung {
   questions: number;
   /** Virginia standards codes, on school lessons and activities. */
   sol: string[];
+  /** Not a rung of the idea in the graph: a lesson picked by hand for the lesson being read, drawn at its level. */
+  also?: boolean;
 }
 export interface Idea {
   id: string;
@@ -52,7 +53,7 @@ export interface Idea {
   play?: { href: string; n: number; minutes: number; from: number; to: number };
 }
 
-interface Facts { minutes?: number; questions: number; sol: string[]; unit: string; rank: number; sections: Record<string, number>; data: any }
+interface Facts { minutes?: number; questions: number; sol: string[]; unit: string; rank: number; data: any }
 
 let factsCache: Promise<Map<string, Facts>> | undefined;
 /** Per live lesson: reading time, practice questions, standards codes, unit and frontmatter. */
@@ -73,7 +74,6 @@ export function lessonFacts(): Promise<Map<string, Facts>> {
         sol: d.ladder?.sol ?? d.activity?.sol ?? [],
         unit: unitOf.get(d.slug) ?? '',
         rank: stageRank(stageOf(courseOf(d.course))),
-        sections: sectionWords(l.body ?? ''),
         data: d,
       });
     }
@@ -102,15 +102,6 @@ async function toRung(r: Pick<LadderRung, 'slug' | 'title' | 'href' | 'course' |
 export const PLAY_LADDER = false;
 export const playHref = (id: string, firstFilmHref: string) => `${firstFilmHref}${firstFilmHref.includes('?') ? '&' : '?'}idea=${id}`;
 
-/** Words in each `##` section of a lesson, by the section's id: how the main idea of a lesson is chosen. */
-export function sectionWords(body: string): Record<string, number> {
-  const heads = headingIds(body).filter((h) => h.depth === 2);
-  const lines = body.split('\n');
-  const out: Record<string, number> = {};
-  heads.forEach((h, i) => { out[h.id] = lines.slice(h.line + 1, heads[i + 1]?.line ?? lines.length).join(' ').split(/\s+/).length; });
-  return out;
-}
-
 const ideaCache = new Map<string, Promise<Idea | undefined>>();
 const maskCache = new Map<string, Promise<number>>();
 const maskFor = (id: string): Promise<number> => {
@@ -125,7 +116,7 @@ export function idea(id: string): Promise<Idea | undefined> {
     if (!c) return undefined;
     const rungs = await Promise.all((await ladder(id)).map(toRung));
     if (!rungs.length) return undefined;
-    const short = inSentence(id, c.name);
+    const short = inSentence(id, c.short ?? c.name);
     const ranks = [...new Set(rungs.map((r) => r.rank))].sort((a, b) => a - b);
     const films = await filmsFor(id);
     const filmRanks = [...new Set(films.map((f) => f.rank))].sort((a, b) => a - b);
@@ -133,7 +124,7 @@ export function idea(id: string): Promise<Idea | undefined> {
     for (const n of c.near) {
       const t = concept(n.id);
       const m = t ? await maskFor(n.id) : 0;
-      if (t && m) near.push({ id: n.id, name: t.name, short: inSentence(n.id, t.name), why: n.why, mask: m });
+      if (t && m) near.push({ id: n.id, name: t.name, short: inSentence(n.id, t.short ?? t.name), why: n.why, mask: m });
     }
     return {
       id, name: c.name, short, blurb: c.blurb, area: c.area, areaName: areaName(c.area), aliases: c.aliases,
@@ -205,7 +196,7 @@ export function lessonHop(slug: string): Promise<LessonHop | undefined> {
     const rank = stageRank(stageOf(course));
     const lessons = new Map([...facts.entries()].map(([s, f]) => [s, { title: f.data.title as string, rank: f.rank, order: f.data.order as number | undefined, ladder: f.data.ladder, activity: f.data.activity }]));
     const authored = authoredLinks(slug, lessons);
-    const said = lessonSentence(await hops(slug), { slug, title: d.title, rank, courseTitle: course.title, explainLevels: d.explainLevels, sections: me.sections, authored });
+    const said = lessonSentence(await hops(slug), { slug, title: d.title, rank, courseTitle: course.title, explainLevels: d.explainLevels, authored });
     const mine = said.ideas as Awaited<ReturnType<typeof hops>>;
     const ideas: LessonHop['ideas'] = [];
     const from: Record<string, string> = {};
@@ -219,11 +210,24 @@ export function lessonHop(slug: string): Promise<LessonHop | undefined> {
       });
       ideas.push({ ...v, sideways });
     }
+    // A hand-picked lesson the sentence names that is not a rung of the main idea is drawn on that
+    // idea's ladder at its level, so the sentence and the ladder never disagree.
+    if (ideas.length && said.also.length) {
+      const added: Rung[] = [];
+      for (const x of said.also as { slug: string; title: string; rank: number }[]) {
+        const f = facts.get(x.slug);
+        if (!f || ideas[0].rungs.some((r) => r.slug === x.slug)) continue;
+        const c = courseOf(f.data.course);
+        added.push({ ...(await toRung({ slug: x.slug, title: x.title, href: `/lessons/${x.slug}/`, course: c.slug, courseTitle: c.title, rank: x.rank })), also: true });
+        from[x.slug] = x.title;
+      }
+      ideas[0] = { ...ideas[0], rungs: [...ideas[0].rungs, ...added].sort((a, b) => a.rank - b.rank) };
+    }
     const quickDown = quick(d.explainLevels, said.quickDown);
     const more = said.more;
     const lines = said.lines as LessonHop['lines'];
 
-    const rest = [said.quickDown ? null : QUICK_DOWN[rank], QUICK_UP[rank], rank === 1 ? 'bio2' : null, 'eli5']
+    const rest = [QUICK_UP[rank], rank === 1 ? 'bio2' : null, 'eli5']
       .filter((k, i, a) => k && k !== quickDown?.key && a.indexOf(k) === i)
       .map((k) => quick(d.explainLevels, k))
       .filter((q): q is Quick => Boolean(q));
@@ -243,7 +247,7 @@ export function lessonHop(slug: string): Promise<LessonHop | undefined> {
     for (const [label, band, ranks] of [['at grade 7', 1, [1]], ['at high school', 2, [2]], ['at college', 3, [3, 4, 5]]] as const) {
       const list = [...authored.down, ...authored.up].filter((x) => (ranks as readonly number[]).includes(x.rank));
       if (list.length) also.push(band);
-      extra.push(...titled(`Close to this, ${label}`, list.map((x) => x.slug)));
+      extra.push(...titled(`Also ${label}`, list.map((x) => x.slug)));
     }
     return { slug, title: d.title, rank, ideas, lines, quickDown, quickRest: rest, more, extra, also, from };
   })());

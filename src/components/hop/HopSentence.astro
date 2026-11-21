@@ -49,6 +49,7 @@ const q = hop?.quickDown;
       {lines.map((line, i) => (
         <span class="hop-line">{i > 0 && ' '}{line.map((s) =>
           s.href ? <a href={s.href}>{s.t}</a>
+          : s.t === ', or ' ? <span class="hop-quick-or">{s.t}</span>
           : s.quick ? (full ? <a class="hop-quick-open" href="#hop-quick" data-hop-quick-open>{s.t}</a> : <a href={`/lessons/${slug}/#hop-quick`}>{s.t.replace(' here', ' in the lesson')}</a>)
           : s.k === 'dir' ? <span class="hop-dir">{s.t}</span>
           : s.k === 'note' ? <span class="hop-note">{s.t}</span>
@@ -57,10 +58,10 @@ const q = hop?.quickDown;
     </p>
     {full && q && (
       <details class="hop-quick" id="hop-quick" data-hop-quick>
-        <summary>{q.label}<span class="hop-quick-time"> · {q.time}</span></summary>
-        <div class="hop-quick-text" tabindex="-1" data-hop-quick-text>
+        <summary id="hop-quick-h">{q.label}<span class="hop-quick-time"> · {q.time}</span></summary>
+        <div class="hop-quick-text" tabindex="-1" role="group" aria-labelledby="hop-quick-h" data-hop-quick-text>
           {q.paras.map((p) => <p>{p}</p>)}
-          <button type="button" class="hop-back" data-hop-quick-back>Back to the lesson</button>
+          <button type="button" class="hop-back" data-hop-quick-back hidden>Back to the lesson</button>
         </div>
       </details>
     )}
@@ -91,7 +92,7 @@ const q = hop?.quickDown;
                     </ul>
                   </div>
                 )}
-                <p class="hop-idea-more"><a href={`/ideas/${i.id}/`}>{i.name}: films{i.sideways.length > 2 && ', more ideas next door'} and everything else on this idea</a></p>
+                <p class="hop-idea-more"><a href={`/ideas/${i.id}/`}>Everything on {i.short}, films included</a></p>
               </>
             );
             return n === 0
@@ -142,6 +143,7 @@ const q = hop?.quickDown;
       btn.setAttribute('aria-controls', 'hop-quick');
       link.replaceWith(btn);
       const text = panel.querySelector<HTMLElement>('[data-hop-quick-text]');
+      panel.querySelector<HTMLElement>('[data-hop-quick-back]')!.hidden = false;
       const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
       const set = (open: boolean, focus: boolean) => {
         panel.open = open;
@@ -164,6 +166,14 @@ const q = hop?.quickDown;
       });
       if (location.hash === '#hop-quick') set(true, false);
     }
+
+    // Opening the levels brings the drawing up under the header, so Hex is on screen.
+    const all = root.querySelector<HTMLDetailsElement>('.hop-all');
+    all?.addEventListener('toggle', () => {
+      if (!all.open) return;
+      const top = all.getBoundingClientRect().top;
+      if (top > innerHeight * 0.45) scrollBy({ top: top - 96, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+    });
 
     const arrive = root.querySelector<HTMLElement>('[data-hop-arrive]');
     const from = new URLSearchParams(location.search).get('from');

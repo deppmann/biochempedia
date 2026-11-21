@@ -104,7 +104,7 @@ viewer between films.
 
 | File | What it is |
 |---|---|
-| `HopSentence.astro` | Under a lesson's hook: the lesson's main idea and its level, with "Simpler" and "Deeper", in at most four phone lines. A link chosen by hand (a school lesson's ladder, a guide's step up, the way back from college) is used first; otherwise the nearest lesson on any idea the lesson teaches. "read a short … version here" opens the lesson's own short version in place. "See every level" opens the ladder for each idea, the ideas next door and the other short versions. `variant="line"` is the sentence alone. |
+| `HopSentence.astro` | Under a lesson's hook: the lesson's main idea (the first in the graph's record) and its level, with "Simpler" and "Deeper", in at most four phone lines. The sentence and the ladder agree by construction: the links are the nearest rungs of that idea's ladder; a link chosen by hand (a school lesson's ladder, a guide's step up, the way back from college) overrides and, if it is not a rung, is drawn on the ladder as "picked for this lesson". "read a short … version here" opens the lesson's own short version in place. "See every level" opens that idea's ladder with Hex on this lesson's rung, the lesson's other ideas (folded), the ideas next door and the other short versions. `variant="line"` is the sentence alone. |
 | `HopCompact.astro` | One line for a film card or a search result: the compact ladder and "Osmosis, high school. Also at: grade 7 and a first college course." |
 | `HopTrio.astro` | "Simpler / This step / Deeper" for a step of a study path or beside a film. A side with no lesson is left out. |
 | `HopStandards.astro` | Essential question and Virginia standards on a school lesson, in plain type. |

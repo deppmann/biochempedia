@@ -110,7 +110,7 @@ export function ladderHtml(idea, o = {}) {
       if (r.sol?.length) f.push(`Virginia ${esc(r.sol.join(', '))}`);
     }
     return `<div class="hl-lesson${mine ? ' is-here' : ''}">`
-      + (mine ? `<p class="hl-title"><strong>${esc(r.title)}</strong> <span class="hl-this">· this lesson</span></p>` : `<p class="hl-title"><a href="${esc(href)}">${esc(r.title)}</a></p>`)
+      + (mine ? `<p class="hl-title"><strong>${esc(r.title)}</strong> <span class="hl-this">· this lesson</span></p>` : `<p class="hl-title"><a href="${esc(href)}">${esc(r.title)}</a>${r.also ? ' <span class="hl-this">· also at this level, picked for this lesson</span>' : ''}</p>`)
       + (r.adds ? `<p class="hl-adds">${esc(r.adds)}</p>` : '')
       + (r.rank === 0 && !mine ? '<p class="hl-adds hl-grownup">A grown-up runs this one; its safety notes are in the guide.</p>' : '')
       + (f.length ? `<p class="hl-facts">${f.join(' · ')}</p>` : '')

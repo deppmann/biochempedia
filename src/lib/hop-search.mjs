@@ -70,7 +70,7 @@ export function solCode(s) {
 export function buildIndex(g, extra) {
   const lessons = new Map((extra?.lessons ?? []).map(([slug, title, rank, sol, unit]) => [slug, { slug, title, rank, sol, unit }]));
   const ideas = g.concepts.map((c, i) => ({
-    i, id: c.id, name: c.n, blurb: c.b, area: c.a, mask: c.l, films: c.f, aliases: c.q,
+    i, id: c.id, name: c.n, label: c.h ?? c.n, blurb: c.b, area: c.a, mask: c.l, films: c.f, aliases: c.q,
     fName: fold(c.n), wName: words(fold(c.n)),
     fAliases: c.q.map(fold),
     wBlurb: words(fold(c.b)),
