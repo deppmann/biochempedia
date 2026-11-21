@@ -26,6 +26,22 @@ explainer:
   durationSec: 194.5
   narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+
+films:
+  - id: "chapter-2"
+    src: "/explainers/lipid-synthesis/chapter-2.mp4"
+    captions: "/explainers/lipid-synthesis/chapter-2.vtt"
+    poster: "/explainers/lipid-synthesis/chapter-2-poster.jpg"
+    title: "Three Drugs, One Gauge"
+    durationSec: 167.0
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+    takeaways:
+      - "A statin, ezetimibe and a bile-acid resin each lower cholesterol in the liver cell's ER."
+      - "Ezetimibe blocks cholesterol absorption, and a resin traps bile acids so the liver turns more of its own cholesterol into new ones."
+      - "Any drug that lowers liver-cell ER cholesterol tends to raise LDL receptors, because the gauge reads the level, not the cause."
+      - "The same switch turns on PCSK9, which sends LDL receptors to the lysosome, so a statin gives back part of its gain."
+
 scientists:
   - name: "Konrad Emil Bloch"
     dates: "1912-2000"
@@ -283,6 +299,7 @@ anecdotes:
 import PathwayExplorer from '../../../components/PathwayExplorer.astro';
 import CholesterolFeedback from '../../../components/CholesterolFeedback.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import LessonFilm from '../../../components/LessonFilm.astro';
 
 export const cholSteps = [{"n": 1, "enzyme": "Thiolase", "sub": "2 acetyl-CoA", "prod": "Acetoacetyl-CoA", "note": "Two two-carbon acetyl-CoA units condense head-to-tail, releasing one CoA. This is where a 27-carbon molecule literally begins counting up from two-carbon pieces."}, {"n": 2, "enzyme": "HMG-CoA synthase", "sub": "Acetoacetyl-CoA + acetyl-CoA", "prod": "HMG-CoA", "note": "A third acetyl-CoA is added to make 3-hydroxy-3-methylglutaryl-CoA (HMG-CoA), the six-carbon substrate one step before the throttle. The cytosolic pool feeds cholesterol; a separate mitochondrial pool feeds ketone bodies."}, {"n": 3, "enzyme": "HMG-CoA reductase", "sub": "HMG-CoA + 2 NADPH", "prod": "Mevalonate", "nadph": -2, "regulated": true, "note": "The main rate-limiting, irreversible step, and the one that commits carbon to the mevalonate pathway. Two NADPH reduce HMG-CoA to mevalonate. This one enzyme is controlled at four levels (SREBP transcription, translation, AMPK phosphorylation, sterol-triggered degradation); in cultured cells the combined feedback spans more than 200-fold.", "regNote": "Sterol end-product feedback plus SREBP and AMPK give this step its enormous dynamic range.", "clinical": "Statins are nanomolar competitive inhibitors that mimic the reaction intermediate. Blocking the enzyme lowers cell cholesterol, which turns SREBP-2 on, so the liver makes more LDL receptors and clears even more serum LDL."}, {"n": 4, "enzyme": "Mevalonate kinase segment (3 enzymes)", "sub": "Mevalonate + 3 ATP", "prod": "Isopentenyl pyrophosphate (IPP)", "atp": -3, "co2": 1, "note": "Three ATP phosphorylate mevalonate, then a decarboxylation loses CO₂ to make IPP, the universal five-carbon isoprenoid building block (it interconverts with its isomer DMAPP). Cost is 3 ATP per IPP, and six IPP go into one cholesterol (18 ATP).", "clinical": "Nitrogen-containing bisphosphonates, the main osteoporosis drugs of this class, inhibit farnesyl-PP synthase downstream of here, in osteoclasts."}, {"n": 5, "enzyme": "Prenyltransferase (head-to-tail)", "sub": "IPP + DMAPP", "prod": "Geranyl-PP (C10) → farnesyl-PP (C15)", "note": "Five-carbon units add head-to-tail: DMAPP + IPP gives the ten-carbon geranyl-PP, then another IPP gives fifteen-carbon farnesyl-PP. Each coupling releases pyrophosphate, hydrolyzed to pull the reaction forward. Farnesyl-PP is the branch point: CoQ10, dolichol and the prenyl anchors leave the trunk here, above squalene synthase, so a statin cuts them and a squalene synthase inhibitor does not.", "clinical": "Farnesyl-PP anchors Ras and geranylgeranyl-PP anchors Rho-family GTPases — prenyl lipid tethers for signaling proteins, one reason statins have effects beyond cholesterol."}, {"n": 6, "enzyme": "Squalene synthase", "sub": "2 farnesyl-PP + NADPH", "prod": "Squalene (C30)", "nadph": -1, "note": "Two fifteen-carbon farnesyl-PP units join at their pyrophosphate ends, releasing both pyrophosphates and consuming NADPH (textbooks call this coupling both head-to-head and tail-to-tail), to make the thirty-carbon linear hydrocarbon squalene. This is the committing step to sterols: everything past here is locked into the sterol branch, which ends mostly in cholesterol.", "clinical": "Squalene is abundant in shark liver — the model Bloch first chose to chase this intermediate before switching to rats."}, {"n": 7, "enzyme": "Squalene monooxygenase", "sub": "Squalene + O₂ + NADPH", "prod": "2,3-oxidosqualene", "nadph": -1, "regulated": true, "note": "O₂ and NADPH install a single epoxide oxygen on one end of squalene, priming the linear chain for cyclization. A second regulated point in the pathway.", "regNote": "Sterols speed its degradation; with the reductase it is one of the pathway's two irreversible control points."}, {"n": 8, "enzyme": "Oxidosqualene cyclase (lanosterol synthase)", "sub": "2,3-oxidosqualene", "prod": "Lanosterol", "note": "One enzyme, one turnover, builds all four fused rings and sets the stereochemistry in a single cascade of ring closures and shifts — arguably the most elegant single-enzyme step in metabolism. A linear chain becomes a sterol nucleus."}, {"n": 9, "enzyme": "~19-step trimming pathway", "sub": "Lanosterol", "prod": "Cholesterol", "note": "Roughly nineteen steps, many of them using O₂ and NADPH, remove three methyl groups and adjust the double bonds to yield the final 27-carbon cholesterol. ER cholesterol is the gauge's reading: through SCAP and SREBP-2 it turns down the reductase gene and the LDL-receptor gene together; lanosterol-type intermediates and oxysterols also speed the reductase's destruction.", "clinical": "Cholesterol is the scaffold for bile salts (CYP7A1), steroid hormones (P450s including aromatase), and vitamin D — one scaffold, many identities."}];
 
@@ -405,6 +422,8 @@ More. No LDL gets in, so the cell's gauge reads low however much LDL is in the m
 Try both cases in the thermostat below: set how much cholesterol reaches the cell, toggle the statin, and follow the chain from ER cholesterol to blood LDL.
 
 <CholesterolFeedback />
+
+<LessonFilm film={frontmatter.films[0]} />
 
 ## Same gauge, more drugs
 
