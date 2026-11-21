@@ -43,7 +43,7 @@ const STATS = [
 const TRY = [
   { title: 'Metabolism Arcade', line: 'Six games from the Biochemistry course.', href: '/play/' },
   { title: 'The methods library', line: 'How scientists find things out.', href: '/methods/' },
-  { title: 'The Fun Stuff', line: 'Cards, memes and songs by my BIOL 3030 students.', href: '/fun/' },
+  { title: 'The Fun Stuff', line: 'Cards, memes and songs by students in my biochemistry class.', href: '/fun/' },
   ...(PLANNER_TILE ? [{ title: 'Study planner', line: 'Say what you want to learn and how much time you have.', href: '/plan/' }] : []),
 ];
 const comingLinks = COMING_SUBJECTS.filter((s) => s.link);
@@ -65,7 +65,7 @@ const comingLinks = COMING_SUBJECTS.filter((s) => s.link);
           <strong>Free</strong> biology lessons, films and simulations, from age 5 to graduate school, with more
           sciences on the way. No account, no ads.
         </p>
-        <div class="home-search"><SiteSearch label="Search every lesson" placeholder="Try “osmosis” or “vaccines”" /></div>
+        <div class="home-search"><SiteSearch label="Search every lesson" placeholder="Try “osmosis” or “DNA”" /></div>
         {/* Filled from this device's own records; hidden on a first visit, without JavaScript, or
             when storage is blocked. */}
         <p class="home-resume" data-resume hidden>
@@ -85,6 +85,9 @@ const comingLinks = COMING_SUBJECTS.filter((s) => s.link);
       </div>
       <p class="home-said" role="status"><span class="visually-hidden" data-home-said></span><span aria-hidden="true" data-home-kept hidden>Saved on this device.</span></p>
     </fieldset>
+    {/* Only with JavaScript off and a door's own address in use: the pills cannot overrule the
+        address then, so plain links to the three doors stand in for them. */}
+    <p class="home-doors-nojs">See the page for <a href="/#students">students</a>, <a href="/#parents">parents</a> or <a href="/#teachers">teachers</a>.</p>
     {/* Runs before the doors are drawn, so a returning parent never sees the students' door flash by.
         A door's own address wins, then an old link to an anchor inside the students' door, then
         ?role=, then the choice kept on this device (the same order as in home/client.ts). */}
@@ -98,6 +101,7 @@ const comingLinks = COMING_SUBJECTS.filter((s) => s.link);
         var el = role && document.getElementById('home-role-' + role);
         if (el) el.checked = true;
         document.documentElement.setAttribute('data-home-js', '');
+        document.documentElement.setAttribute('data-home-role', role || 'student');
       })();
     </script>
 
@@ -148,11 +152,14 @@ const comingLinks = COMING_SUBJECTS.filter((s) => s.link);
         <strong>Built in public.</strong> I choose what goes in and direct the AI that makes it. AI models from more
         than one company check the lessons; a person has not yet read every one, and those waiting for my check
         carry an <a href="/under-review/">Under review</a> tag.
-        <a href={feedbackUrl()} target="_blank" rel="noopener">See something wrong? Tell me</a> ·
-        <a href="/about/#work-in-progress">How it’s made and checked</a> ·
-        <a href="/updates/">What’s new</a> ·
-        <a href="/contributors/">Who made it</a>
       </p>
+      {/* Each on its own tap area, so a thumb never lands on the neighbour. */}
+      <ul class="home-wip-links" role="list">
+        <li><a href={feedbackUrl()} target="_blank" rel="noopener">See something wrong? Tell me</a></li>
+        <li><a href="/about/#work-in-progress">How it’s made and checked</a></li>
+        <li><a href="/updates/">What’s new</a></li>
+        <li><a href="/contributors/">Who made it</a></li>
+      </ul>
     </section>
   </div>
 

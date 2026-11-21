@@ -7,7 +7,6 @@ import { courseOf, unitsFor } from '../../data/courses';
 import { STAGES, stageOf } from '../../data/stages';
 import { courseCards } from '../../lib/catalog';
 import { filmTotal } from '../../lib/film-catalog';
-import rewritten from '../../data/recently-rewritten.json';
 import { concept, conceptsOf, ladder, type LadderRung } from '../../lib/topic-graph';
 
 type Lesson = CollectionEntry<'lessons'>;
@@ -159,8 +158,6 @@ export async function homeData(now = new Date()) {
     films: await filmTotal(),
     sims: sum('sims'),
     questions: sum('questions'),
-    /* Lessons whose text was rewritten (an entry that lists only a new film is not a rewrite). */
-    rewrittenCount: (rewritten as { slug: string; new?: string[] }[]).filter((r) => live.has(r.slug) && (!r.new?.length || r.new.includes('text'))).length,
     lessonsIn,
     ladderOf,
     featured,

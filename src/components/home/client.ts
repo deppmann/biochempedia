@@ -48,13 +48,15 @@ const said = document.querySelector<HTMLElement>('[data-home-said]');
 const kept = document.querySelector<HTMLElement>('[data-home-kept]');
 
 const current = (): Role => (radios.find((r) => r.checked)?.value as Role) ?? 'student';
+/** The door on screen now. */
+let shown: Role | null = null;
 function show(role: Role) {
+  shown = role;
   for (const r of radios) r.checked = r.value === role;
   // For browsers without :has(), where the stylesheet cannot hide the other two doors.
   for (const d of doors) d.hidden = d.dataset.door !== role;
 }
 const settle = () => show(asked() ?? readPrefs().role ?? current());
-settle();
 /* Coming back with the Back button, a browser may restore the radios to an older choice after the
    page is drawn. pageshow runs after that, so the door and the pills are put back in step. */
 addEventListener('pageshow', settle);
@@ -78,14 +80,26 @@ function choose(role: Role) {
   if (said) said.textContent = `Showing the page for ${PLURAL[role]}.${saved && first ? ' Saved on this device.' : ''}`;
   if (kept && saved) { kept.hidden = false; kept.dataset.shown = '1'; }
 }
+
+/* A pill tapped before this script arrived has already switched doors in the stylesheet. The small
+   inline script recorded the door it opened; if the radios now say otherwise, the visitor chose,
+   so keep that choice. Otherwise open what the address or this device asks for. */
+const opened = document.documentElement.dataset.homeRole;
+if (opened && isRole(opened) && current() !== opened) choose(current());
+else settle();
+
 for (const r of radios) {
+  /* One choice, one run. A browser fires click and then change when a pill is newly picked, so
+     click acts only on the pill that was already showing (after arriving by a door's link, a tap
+     or Space on the filled pill is also a choice), and change handles every new pick. */
+  r.addEventListener('click', () => { if (r.value === shown && readPrefs().role !== r.value) choose(r.value as Role); });
   r.addEventListener('change', () => { if (r.checked) choose(r.value as Role); });
-  /* A tap on the pill that is already filled (after arriving by a door's link) is also a choice. */
-  r.addEventListener('click', () => { if (r.checked && readPrefs().role !== r.value) choose(r.value as Role); });
 }
 addEventListener('hashchange', () => {
   const want = asked();
-  if (!location.hash || !want || want === current()) return;
+  /* Back to an address that asks for nothing: show what this device remembers again. */
+  if (!want) { settle(); return; }
+  if (want === current()) return;
   show(want);
   document.getElementById(location.hash.slice(1))?.scrollIntoView();
 });

@@ -29,18 +29,19 @@ for (const id of ['mcat', 'curious']) {
   <p class="home-story">
     Everyone starts somewhere different, and we all have blind spots. When a lesson loses you, hop down a level,
     get the idea, and hop back up. If osmosis stops making sense in high school Biology,
-    <a href={g7.href}>the grade 7 lesson</a> starts with salt on a cucumber slice. Read that first, then come back.
+    <a href={`/lessons/${g7.slug}/`}>the grade 7 lesson</a> starts with salt on a cucumber slice. Read that first, then come back.
   </p>
 
   <div class="home-pair">
     <div>
       <h3 class="home-h3" id="home-hop-h">One idea, {word(levels)} levels: {hop.name.toLowerCase()}</h3>
-      {/* The site's one picture of hopping (src/components/hop/). Hex stands on the grade 7 rung, the
-          one the story above sends the reader to; the lessons all stay links. */}
-      <Ladder idea={hop} hereRank={g7.rank} facts={false} />
-      <p class="home-small">
+      <p class="home-small home-how">
         Down a level is the same idea, told more simply. Up a level adds the detail.
       </p>
+      {/* The site's one picture of hopping (src/components/hop/). Hex stands on the grade 7 rung, the
+          one the story above sends the reader to; the lessons all stay links. The story's own link
+          goes to the top of that lesson, where the cucumber is; a rung links to the section its note describes. */}
+      <Ladder idea={hop} hereRank={g7.rank} facts={false} />
     </div>
     {/* /#goals still lands here. */}
     <div id="goals">

@@ -19,10 +19,13 @@
    Base typography + layout. Static-first: these styles carry the whole site;
    Tailwind utilities are available in components for one-offs.
    -------------------------------------------------------------------------- */
+/* The header is sticky (about 77px tall). A control reached by tabbing backward would scroll to the
+   very top of the window and sit hidden under it, so a focused control keeps the header's height
+   clear above itself. This is on the focused control only: anchors keep their own scroll-margin-top,
+   and a root scroll-padding would stack on those and drop every anchor jump 80px. */
+:is(a, button, input, select, textarea, summary, [tabindex]):focus-visible { scroll-margin-top: 5.5rem; }
+
 html {
-  /* The header is sticky (about 77px tall). Without this, a control reached by tabbing backward
-     scrolls to the very top of the window and sits hidden under it. */
-  scroll-padding-top: 5rem;
   font-family: var(--ddp-font-sans);
   color: var(--ddp-color-ink);
   background: var(--ddp-color-bg);

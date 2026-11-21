@@ -37,10 +37,6 @@
 .home-role input:focus-visible + span { outline: 2px solid var(--ddp-color-accent); outline-offset: 3px; }
 /* One line is kept for the note, so nothing below moves when it appears. */
 .home-said { margin: 0.2rem 0 0; min-height: 1.5em; font-size: var(--ddp-text-sm); line-height: 1.5; color: var(--ddp-color-muted); }
-/* Windows contrast themes paint every pill alike, so the chosen one is marked with system colours. */
-@media (forced-colors: active) {
-  .home-role input:checked + span { background: Highlight; color: HighlightText; border-color: Highlight; forced-color-adjust: none; }
-}
 .home-said [hidden] { display: none; }
 
 /* One door at a time. The radios switch doors in the stylesheet alone, so the choice works with
@@ -57,6 +53,7 @@
   html:not([data-home-js]) .home:has(.home-door:target) .home-door:not(:target) { display: none !important; }
   /* Without script the pills cannot overrule the address, so in that one state they step aside. */
   html:not([data-home-js]) .home:has(.home-door:target) .home-roles { display: none; }
+  html:not([data-home-js]) .home:has(.home-door:target) .home-doors-nojs { display: block; }
 }
 @supports not selector(:has(*)) {
   html:not([data-home-js]) .home-roles { display: none; }
@@ -69,8 +66,14 @@
 .home-story { margin: 0; max-width: 64ch; font-size: var(--ddp-text-base); line-height: 1.65; color: var(--ddp-color-ink); }
 .home-p { margin: 0; max-width: 60ch; font-size: var(--ddp-text-base); line-height: 1.6; color: var(--ddp-color-ink-soft); }
 .home-p + .home-p { margin-top: 0.7rem; }
-/* A link inside a sentence gets a taller place to tap; padding on an inline box moves nothing. */
-.home-p a, .home-story a, .home-small a, .home-ways a, .home-wip a, .home-soon-note a, .home-act-last a { font-weight: 600; padding: 0.8rem 0; }
+/* A link inside a sentence stays inside its own line: padding it taller made it lie over the
+   links on the lines above and below. Links that stand alone get a full 44px row instead. */
+.home-p a, .home-story a, .home-small a, .home-ways a, .home-wip a, .home-soon-note a, .home-act-last a { font-weight: 600; }
+.home-wip-links { display: flex; flex-wrap: wrap; gap: 0 1.2rem; margin-top: 0.2rem !important; }
+.home-wip-links a, .home-act-last a { display: inline-flex; align-items: center; min-height: 44px; font-size: var(--ddp-text-sm); }
+.home-doors-nojs { display: none; margin: 1rem 0 0; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); }
+.home-doors-nojs a { font-weight: 600; }
+.home-how { margin: 0 0 0.4rem; }
 .home-maps { margin: 0.2rem 0 0.3rem !important; }
 .home-maps a { display: flex; align-items: center; min-height: 44px; font-weight: 600; }
 .home-small { margin: 0.8rem 0 0; max-width: 60ch; font-size: var(--ddp-text-sm); line-height: 1.55; color: var(--ddp-color-ink-soft); }
@@ -79,7 +82,7 @@
 /* A button that goes somewhere: the navy pill the site already uses. */
 .home-go { display: inline-flex; gap: 0.5rem; align-items: center; min-height: 44px; box-sizing: border-box; padding: 0.6rem 1.15rem; border: 0; border-radius: 999px; background: var(--color-navy, #1B2A4A); color: #fff; font: inherit; font-weight: 600; font-size: var(--ddp-text-sm); text-decoration: none; cursor: pointer; }
 .home-go:hover, .home-go:focus-visible { color: #fff; text-decoration: none; box-shadow: var(--ddp-shadow); }
-.home-quiet { display: inline-flex; align-items: center; min-height: 44px; padding: 0 0.4rem; border: 0; background: none; font: inherit; font-size: var(--ddp-text-sm); font-weight: 600; color: var(--ddp-color-accent); cursor: pointer; text-decoration: none; }
+.home-quiet { display: inline-flex; align-items: center; gap: 0.3em; min-height: 44px; padding: 0 0.4rem; border: 0; background: none; font: inherit; font-size: var(--ddp-text-sm); font-weight: 600; color: var(--ddp-color-accent); cursor: pointer; text-decoration: none; }
 .home-quiet:hover { text-decoration: underline; }
 @media (prefers-color-scheme: dark) {
   .home-go, .home-go:hover, .home-go:focus-visible, .home-role input:checked + span { background: var(--ddp-color-accent); border-color: var(--ddp-color-accent); color: #0f1522; }
@@ -105,7 +108,7 @@
 .home-lv-t { margin: 0; font-family: var(--ddp-font-serif); font-weight: 600; font-size: var(--ddp-text-lg); color: var(--ddp-color-primary); }
 .home-lv-d { margin: 0.1rem 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); line-height: 1.45; }
 .home-lv-courses { display: flex; flex-wrap: wrap; gap: 0.45rem; }
-.home-bc { display: inline-flex; flex-wrap: wrap; align-items: baseline; gap: 0 0.45em; min-height: 44px; box-sizing: border-box; padding: 0.4rem 0.85rem; background: var(--ddp-color-surface); border: 1px solid var(--ddp-color-line); border-radius: 22px; text-decoration: none; color: inherit; transition: border-color 0.14s ease, box-shadow 0.14s ease, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.home-bc { position: relative; z-index: 1; display: inline-flex; flex-wrap: wrap; align-items: center; align-content: center; gap: 0 0.45em; min-height: 44px; box-sizing: border-box; padding: 0.4rem 0.85rem; background: var(--ddp-color-surface); border: 1px solid var(--ddp-color-line); border-radius: 22px; text-decoration: none; color: inherit; transition: border-color 0.14s ease, box-shadow 0.14s ease, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
 .home-bc:hover, .home-bc:focus-visible { border-color: var(--ddp-color-accent); box-shadow: var(--ddp-shadow); text-decoration: none; transform: translateY(-2px) rotate(-1.2deg); }
 .home-lv-courses li:nth-child(even) .home-bc:hover, .home-lv-courses li:nth-child(even) .home-bc:focus-visible { transform: translateY(-2px) rotate(1.2deg); }
 .home-bc-t { font-weight: 700; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); line-height: 1.25; }
@@ -137,7 +140,7 @@
 .home-act-adult { margin: 0.9rem 0 0; font-size: var(--ddp-text-sm); line-height: 1.55; color: var(--ddp-color-ink-soft); }
 .home-act-adult b { color: var(--ddp-color-ink); }
 .home-act-go { margin: 1rem 0 0; display: flex; flex-wrap: wrap; gap: 0.3rem 1rem; align-items: center; }
-.home-act-last { margin: 0.5rem 0 0; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); }
+.home-act-last { margin: 0.2rem 0 0; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); display: flex; flex-wrap: wrap; align-items: center; gap: 0 0.4rem; }
 
 /* ---- Teachers' door ---- */
 .home-trio { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.8rem 2.5rem; margin-top: 1.6rem; }
@@ -164,19 +167,19 @@ html[data-home-js] .home-nojs { display: none; }
 .home-subjects { margin-top: 3rem; padding-top: 1.6rem; border-top: 1px solid var(--ddp-color-line); }
 .home-subj-grid { position: relative; display: grid; grid-template-columns: minmax(0, 1.35fr) repeat(2, minmax(0, 1fr)); gap: 1rem; margin-top: 3.2rem; }
 .home-bio { grid-row: 1 / span 2; display: flex; flex-direction: column; gap: 0.8rem; padding: 1.4rem 1.5rem; background: var(--ddp-color-surface); border: 1.5px solid var(--ddp-color-accent); border-radius: var(--ddp-radius); box-shadow: var(--ddp-shadow); }
-.home-bio-top { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; }
+.home-bio-top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.3rem 0.75rem; }
 .home-bio h3 { margin: 0; font-size: var(--ddp-text-3xl); font-weight: 600; }
 .home-stats { display: flex; flex-wrap: wrap; gap: 0.4rem 1.5rem; }
-.home-stats li { display: flex; flex-direction: column; }
+.home-stats li { display: flex; flex-direction: column; min-width: 0; }
 .home-stats b { font-family: var(--ddp-font-serif); font-size: var(--ddp-text-xl); color: var(--ddp-color-primary); font-weight: 600; line-height: 1.2; }
 .home-stats span { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
-.home-go-arc { margin-top: auto; align-self: flex-start; white-space: nowrap; }
+.home-go-arc { margin-top: auto; align-self: flex-start; max-width: 100%; }
 .home-go-arc svg { display: block; width: 26px; height: 12px; overflow: visible; }
 .home-go-arc .hop-arc { stroke: var(--ddp-color-secondary); stroke-dasharray: 1.5 3.5; stroke-width: 1.6; }
 @media (prefers-color-scheme: dark) { .home-go-arc .hop-arc { stroke: #0f1522; } }
-.home-pill-live, .home-pill-soon { display: inline-block; flex: none; font-size: var(--ddp-text-xs); padding: 0.15rem 0.6rem; border-radius: 999px; font-weight: 600; }
+.home-pill-live, .home-pill-soon { display: inline-block; flex: 0 1 auto; font-size: var(--ddp-text-xs); padding: 0.15rem 0.6rem; border-radius: 999px; font-weight: 600; }
 .home-pill-live { background: color-mix(in srgb, var(--ddp-color-accent) 14%, var(--ddp-color-surface)); color: var(--ddp-color-primary); }
-.home-pill-soon { border: 1px dashed var(--ddp-color-muted); color: var(--ddp-color-muted); }
+.home-pill-soon { padding-inline: 0; color: var(--ddp-color-muted); }
 .home-soon { display: flex; flex-direction: column; gap: 0.35rem; padding: 1rem 1.1rem; border: 1.5px dashed color-mix(in srgb, var(--ddp-color-muted) 45%, transparent); border-radius: var(--ddp-radius); }
 .home-soon h3 { margin: 0; font-size: var(--ddp-text-xl); color: var(--ddp-color-muted); font-weight: 500; }
 .home-soon p { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); line-height: 1.5; }
@@ -248,4 +251,19 @@ html[data-home-js] .home-nojs { display: none; }
   .home-mark, .home-hero .home-lede { animation: none !important; }
   .home-bc, .home-try a { transition: none; }
   .home-bc:hover, .home-bc:focus-visible, .home-try a:hover, .home-try a:focus-visible { transform: none !important; }
+}
+
+/* Windows contrast themes paint every pill alike, so the chosen one is marked with the reader's
+   own highlight colours. Last in the file so the dark-mode fill above does not win over it. */
+@media (forced-colors: active) {
+  .home-role input:checked + span { background: Highlight; color: HighlightText; border-color: Highlight; forced-color-adjust: none; }
+  .home-act-list li::before { background: CanvasText; }
+}
+
+/* On paper: the list a parent takes to the shop, without the page's controls. */
+@media print {
+  .home-roles, .home-search, .home-resume, .home-doors-nojs { display: none !important; }
+  .home-go, .home-role input:checked + span { background: none; color: #000; border: 1.5px solid #000; }
+  .home-act-list li::before { background: #000; }
+  .home-activity { break-inside: auto; }
 }
