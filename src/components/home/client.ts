@@ -94,6 +94,8 @@ for (const r of radios) {
      or Space on the filled pill is also a choice), and change handles every new pick. */
   r.addEventListener('click', () => { if (r.value === shown && readPrefs().role !== r.value) choose(r.value as Role); });
   r.addEventListener('change', () => { if (r.checked) choose(r.value as Role); });
+  /* Space on a radio that is already checked fires neither click nor change. */
+  r.addEventListener('keydown', (e) => { if (e.key === ' ' && r.value === shown && readPrefs().role !== r.value) choose(r.value as Role); });
 }
 addEventListener('hashchange', () => {
   const want = asked();
