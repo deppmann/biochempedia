@@ -24,7 +24,7 @@
 
 import { generateRegistrationOptions, verifyRegistrationResponse, generateAuthenticationOptions, verifyAuthenticationResponse } from '@simplewebauthn/server';
 import { sha256Hex, randomToken, readCookie, cookie } from './auth.js';
-import { json, fail, clean, clientKey, allow } from './util.js';
+import { json, fail, clean, clientKey, allow, adminEmails } from './util.js';
 import { exportLearnerPlans, deleteLearnerPlans } from './planner.js';
 import { HOSTS as DEFAULT_HOSTS, inFamily, switched } from './host.js';
 import { mergeNotebookItems, mergeProgress, validProgress, validNoteItem } from '../src/lib/learner-merge.mjs';
@@ -458,6 +458,11 @@ export async function handleLearner(request, env, db, path, method, url) {
       if (owner && owner.id !== flow.learner_id) return redirect('/account/?error=google-in-use', clear);
       // A different Google account may not replace the one already linked.
       if (here.google_sub && here.google_sub !== sub_) return redirect('/account/?error=google-in-use', clear);
+      // The owner's Google identity (ADMIN_EMAILS) is never added to an account that was made some
+      // other way. An account that does not already hold it was made with a passkey, so somebody
+      // else's passkey could be on it. The owner signs in with Google instead, which makes or opens
+      // the owner's own account; a passkey can be added to that one afterwards.
+      if (here.google_sub !== sub_ && email && adminEmails(env).includes(email)) return redirect('/account/?error=google-link-owner', clear);
       await db.batch([
         db.prepare('UPDATE learners SET google_sub=?, email=? WHERE id=?').bind(sub_, email, flow.learner_id),
         // The account can now be reached a new way: every other device is signed out and must sign in again.
@@ -630,7 +635,7 @@ export async function handleLearner(request, env, db, path, method, url) {
   if (sub === '/sync' && method === 'GET') {
     if (!(await allow(db, 'lsync:' + ip, 60, 60_000))) return fail(429, 'Syncing too often. It will try again shortly.');
     const d = await readData(db, l.id);
-    return json({ notebook: { items: d.items }, progress: d.progress, serverTime: d.updatedAt || Date.now() });
+    return json({ notebook: { items: d.items }, progress: d.progress, serverTime: d.updatedAt || Date.now(), acct: await accountTag(l.id) });
   }
 
   if (sub === '/sync' && method === 'PUT') {
@@ -638,10 +643,18 @@ export async function handleLearner(request, env, db, path, method, url) {
     const b = await readJson(request, MAX_SYNC_BYTES);
     if (b?.tooBig) return fail(413, 'Your notebook is too big to sync (over 1 MB).');
     if (!b) return fail(400, 'Bad sync data.');
+    // The browser says which account its saved notes and progress were last synced with. If that is
+    // a DIFFERENT account from the one signed in now (someone signed in with Google on a computer
+    // where another person was still signed in), nothing is merged: the other person's unsynced
+    // work must not land in this account. The browser then sets that data aside and starts from
+    // this account's own. A browser that names no account (a signed-out reader's own work, saved
+    // before they ever signed in) is merged as always.
+    const acct = await accountTag(l.id);
+    if (typeof b.acct === 'string' && b.acct && b.acct !== acct) return json({ error: 'This device was last synced with a different account.', accountChanged: true, acct }, 409);
     const r = await mergeAndStore(db, l.id, cleanIncoming(b));
     if (r.error === 'too big') return fail(413, 'Your notebook is too big to sync (over 1 MB).');
     if (r.error) return fail(503, 'Another device is syncing. Try again in a moment.');
-    return json({ notebook: { items: r.items }, progress: r.progress, serverTime: r.serverTime });
+    return json({ notebook: { items: r.items }, progress: r.progress, serverTime: r.serverTime, acct });
   }
 
   if (sub === '/export' && method === 'GET') {
@@ -690,3 +703,7 @@ function safeArr(s) {
   try { const a = JSON.parse(s || '[]'); return Array.isArray(a) ? a.filter((x) => typeof x === 'string') : []; } catch { return []; }
 }
 const iso = (ms) => (ms ? new Date(ms).toISOString() : null);
+
+/** A short, non-secret tag for an account, so a browser can tell that the account signed in on it has CHANGED
+ *  (see /sync). It is a one-way hash of the account's random id; it names nobody and is shown nowhere. */
+export const accountTag = async (learnerId) => (await sha256Hex('acct|' + learnerId)).slice(0, 16);
