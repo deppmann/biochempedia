@@ -93,14 +93,17 @@ async function toRung(r: Pick<LadderRung, 'slug' | 'title' | 'href' | 'course' |
 }
 
 /* "Play the ladder": an idea's films in order from the simplest level to the deepest, as a run with
-   a stated end. The run page (/films/run/) is the film library's; until it reads ?idea=, the link
-   opens the first film's own page and carries the idea, so that page or a later one can offer the
-   rest. The list itself is /ideas/film-runs.json. To switch every link to the run page, change
-   this one function to `/films/run/?idea=${id}`. */
-/** OFF until the film run page (/films/run/) reads ?idea=<id>. While it is off no page offers a run
- *  of films it cannot deliver; /ideas/film-runs.json still lists each idea's films in order. */
-export const PLAY_LADDER = false;
-export const playHref = (id: string, firstFilmHref: string) => `${firstFilmHref}${firstFilmHref.includes('?') ? '&' : '?'}idea=${id}`;
+   a stated end. The run page is the film library's: /films/run/?idea=<id> plays them one at a time,
+   says how many films and minutes it holds and where it ends, and waits for the viewer between
+   films (src/lib/film-run.ts). The films it plays are those of playable() below, so the link's
+   count, /ideas/film-runs.json, /films/idea/<id>.json and the run itself always agree. */
+export const PLAY_LADDER = true;
+export const playHref = (id: string) => `/films/run/?idea=${encodeURIComponent(id)}`;
+/** A film a run plays: one that teaches the idea and has its own page. An ages 5 to 10 film shows a
+ *  grown-up how to set up an activity, so it is not one. */
+export const playable = (f: JoinedFilm): boolean => f.kind !== 'activity' && f.href.startsWith('/watch/');
+/** An idea's playable films, simplest level first (the order of the run). */
+export const runOf = (films: JoinedFilm[]): JoinedFilm[] => films.filter(playable).sort((a, b) => a.rank - b.rank);
 
 const ideaCache = new Map<string, Promise<Idea | undefined>>();
 const maskCache = new Map<string, Promise<number>>();
@@ -119,7 +122,8 @@ export function idea(id: string): Promise<Idea | undefined> {
     const short = inSentence(id, c.short ?? c.name);
     const ranks = [...new Set(rungs.map((r) => r.rank))].sort((a, b) => a - b);
     const films = await filmsFor(id);
-    const filmRanks = [...new Set(films.map((f) => f.rank))].sort((a, b) => a - b);
+    const run = runOf(films);
+    const filmRanks = [...new Set(run.map((f) => f.rank))].sort((a, b) => a - b);
     const near = [];
     for (const n of c.near) {
       const t = concept(n.id);
@@ -131,7 +135,7 @@ export function idea(id: string): Promise<Idea | undefined> {
       mask: maskOf(ranks), rungs, near,
       uses: await Promise.all((await usedBy(id)).map(toRung)),
       films,
-      ...(PLAY_LADDER && filmRanks.length > 1 ? { play: { href: playHref(id, films[0].href), n: films.length, minutes: Math.max(1, Math.round(films.reduce((t, f) => t + f.durationSec, 0) / 60)), from: filmRanks[0], to: filmRanks[filmRanks.length - 1] } } : {}),
+      ...(PLAY_LADDER && filmRanks.length > 1 ? { play: { href: playHref(id), n: run.length, minutes: Math.max(1, Math.round(run.reduce((t, f) => t + f.durationSec, 0) / 60)), from: filmRanks[0], to: filmRanks[filmRanks.length - 1] } } : {}),
     };
   })());
   return ideaCache.get(id)!;

@@ -19,6 +19,8 @@ import { SITE_ORIGIN } from '../../lib/site-host.mjs';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import LessonFigure from '../../components/LessonFigure.astro';
 import CardsPrompt from '../../components/CardsPrompt.astro';
+import Ladder from '../../components/hop/Ladder.astro';
+import { idea as hopIdea } from '../../lib/hop';
 import { allFilms, filmClock, filmIsoDuration, type FilmEntry } from '../../lib/films';
 import { theaterFor, questionText } from '../../lib/film-theater';
 import { hopsFor, type Hop } from '../../lib/film-hops';
@@ -77,6 +79,12 @@ const hopVerb = (h: Hop) => (h.film ? `Watch ${h.film.title} · ${filmClock(h.fi
 const hopName = (h: Hop) => (h.film ? `${h.film.title} · ${filmClock(h.film.durationSec)}` : h.stage === 'ages-5-10' ? `Try it with a grown-up: ${h.lessonTitle}` : h.lessonTitle);
 const hasLadder = !!hops && (hops.simpler.length > 0 || hops.deeper.length > 0);
 const nextDoor = hops?.sideways.near[0] ?? hops?.sideways.after[0];
+/* The shared ladder (src/components/hop/Ladder.astro), for the idea this film is about: Hex on the
+   rung of the film being watched. When the film's lesson is not itself a rung of that idea, Hex
+   stands at the film's level instead. */
+const ladderIdea = hops?.idea ? await hopIdea(hops.idea.id) : undefined;
+const onLadder = !!ladderIdea?.rungs.some((r) => r.slug === film.lesson);
+const hereRank = STAGES.findIndex((s) => s.key === stage?.key);
 const side = hops ? [
   { label: '', items: hops.sideways.near },
   { label: 'Builds on', items: hops.sideways.before },
@@ -266,17 +274,23 @@ const videoLd = {
       </details>
     )}
 
-    {/* The hop area: one bounded place for "same idea, other levels" and "next door".
-        MOUNT POINT for the shared ladder graphic: the empty [data-hop-graphic] below. It carries
-        nothing itself; its section carries the data a graphic needs (the lesson, the idea this film
-        is about, every idea the lesson teaches, and this film's key). When the graphic is mounted,
-        set [data-hop-text] aside (it is today's text, and the fallback). */}
-    {hops && (hasLadder || side.length > 0) && (
+    {/* The hop area: one bounded place for "same idea, other levels" and "next door". When the hop
+        graph has an idea for this film, [data-hop-graphic] holds the shared ladder, drawn at build
+        time (so it is there with scripts off), with the idea's "Play the ladder" link. Films whose
+        lesson has no idea in the graph keep the older text list in [data-hop-text]. */}
+    {hops && (hasLadder || side.length > 0 || ladderIdea) && (
       <section class="th-hops" aria-labelledby="th-hops-h" data-hop-area data-lesson={film.lesson} data-film={th.key} data-level={hops.here.stage} data-idea={hops.idea?.id} data-ideas={hops.ideas.join(' ')}>
         <h2 id="th-hops-h" class="th-h">{hops.idea ? `${hops.idea.name}: the same idea, other levels` : 'Same idea, other levels'}</h2>
-        <div data-hop-graphic hidden></div>
+        <div data-hop-graphic hidden={!ladderIdea}>
+          {ladderIdea && (
+            <>
+              <p class="th-ladder-note">A level is a place to start, not a rank. If this loses you, the rung below teaches the same idea with less machinery.</p>
+              <Ladder idea={ladderIdea} here={onLadder ? film.lesson : null} hereRank={onLadder ? null : hereRank} hereLabel={onLadder ? '' : 'this film'} />
+            </>
+          )}
+        </div>
         <div data-hop-text>
-          {hasLadder && (
+          {hasLadder && !ladderIdea && (
             <div class="th-ladder">
               <p class="th-ladder-note">A level is a place to start, not a rank. If this loses you, the rung below teaches the same idea with less machinery.</p>
               <ul>
