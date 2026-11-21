@@ -22,6 +22,23 @@ explainer:
   durationSec: 185.3
   narration: "this lesson's narrated lecture slides, read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+
+films:
+  - id: "chapter-2"
+    src: "/explainers/gluconeogenesis/chapter-2.mp4"
+    captions: "/explainers/gluconeogenesis/chapter-2.vtt"
+    poster: "/explainers/gluconeogenesis/chapter-2-poster.jpg"
+    title: "Who Picks the Direction"
+    durationSec: 196.5
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+    takeaways:
+      - "If glycolysis and gluconeogenesis ran at full speed in one cell, each turn would waste four high-energy phosphates as heat."
+      - "Fructose-2,6-bisphosphate is a regulator, not a pathway step: it speeds up PFK-1 and slows FBPase-1."
+      - "One protein with a kinase half and a phosphatase half makes or destroys fructose-2,6-bisphosphate."
+      - "After a meal, insulin lets the kinase half win and glycolysis runs; in a fast, glucagon acting through PKA lets the phosphatase half win and FBPase-1 runs."
+      - "With both pathways downhill, regulation of each enzyme pair, not energy, chooses the direction."
+
 scientists:
   - name: "Carl Cori & Gerty Cori"
     dates: "Carl 1896–1984 · Gerty 1896–1957"
@@ -459,6 +476,7 @@ anecdotes:
 import PathwayExplorer from '../../../components/PathwayExplorer.astro';
 import CoriCycleLab from '../../../components/CoriCycleLab.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import LessonFilm from '../../../components/LessonFilm.astro';
 
 export const gngSteps = [
   { n: 1, enzyme: 'Pyruvate carboxylase (bypass 1a)', sub: 'Pyruvate + CO₂', prod: 'Oxaloacetate', atp: -1, regulated: true, doubled: true,
@@ -643,6 +661,8 @@ In the fed liver, insulin keeps this **bifunctional enzyme** dephosphorylated, t
 So in a healthy liver cell one direction dominates and the waste stays small. Notice that "fasting" and "energy high" point the same way: burning fat supplies the liver's ATP and acetyl-CoA, and while its energy state stays high, AMP stays low, which also leaves FBPase-1 free.
 
 </details>
+
+<LessonFilm film={frontmatter.films[0]} />
 
 ## When a bypass breaks
 
