@@ -170,7 +170,7 @@ export function lessonTime(i: TimeInput) {
   const filmMin = films.length ? minutesOf(w.film) : 0;
   const storyMin = hasStories ? minutesOf(w.stories) : 0;
   if (!guide) stops.push({ id: 'skim', min: minutesOf(skimSec), name: 'Skim' });
-  if (hasStories) stops.push({ id: 'stories', min: storyMin, name: 'Stories', hint: 'real-life cases, told aloud' });
+  if (hasStories) stops.push({ id: 'stories', min: storyMin, name: 'Stories', hint: 'short, told aloud' });
   if (films.length) stops.push({ id: 'films', min: filmMin + storyMin, name: films.length === 1 ? 'Film' : 'Films' });
   stops.push({ id: 'lesson', min: minutesOf(w.whole), name: guide ? 'Activity' : 'Lesson' });
 

@@ -40,11 +40,11 @@ export function linesFor(t: LessonTime, o: { figures: number; laterLooks?: boole
   let films = '';
   if (n === 1) {
     films = t.guide ? `The film, ${filmLen}, and the safety notes, for the grown-up to look at before the activity.`
-      : t.storyCount ? `The film, ${filmLen}, then ${stories} told aloud, ${t.storyMin} more.`
+      : t.storyCount ? `The film, ${filmLen}, then ${stories} told aloud, ${mins(t.storyMin)} more.`
       : t.takeCount ? `The film, ${filmLen}, and what to take from it.` : `The film, ${filmLen}.`;
   } else if (n > 1) {
     films = t.storyCount
-      ? `${cap(theFilms(n))}, ${mins(t.filmMin)}, then ${stories} told aloud, ${t.storyMin} more.`
+      ? `${cap(theFilms(n))}, ${mins(t.filmMin)}, then ${stories} told aloud, ${mins(t.storyMin)} more.`
       : `${cap(theFilms(n))} in order, ${mins(t.filmMin)}.${t.takeCount === n ? ' Each one ends with what to take from it.' : ''}`;
   }
 
@@ -72,8 +72,8 @@ export function endingsFor(t: LessonTime): Record<'skim' | 'stories' | 'films', 
   const n = t.filmCount;
   return {
     skim: 'That is the skim: you have the shape of it.',
-    stories: 'Those are the stories.',
-    films: n === 1 ? 'That is the film.' : `That is ${theFilms(n)}.`,
+    stories: 'Those are the stories. The idea under them is the one the lesson builds.',
+    films: t.guide ? 'That is the film. The rest of the activity is the fun part.' : `That is ${theFilms(n)}: the lesson in pictures.`,
   };
 }
 
@@ -84,7 +84,7 @@ export const SAID = {
   // Not every lesson has stories or a film, so the promise names the lessons it is true of.
   carryStories: 'Lessons with stories will open this way too.',
   carryFilms: 'Lessons with films will open this way too.',
-  remembered: 'Opened the way you left the last lesson.',
+  remembered: 'Opened at the length you last chose.',
   noStories: 'No stories on this lesson yet, so this is the skim.',
   noFilm: 'No film on this lesson, so this is the skim.',
   deepLink: 'That link goes to a place in the text, so the whole lesson is open.',

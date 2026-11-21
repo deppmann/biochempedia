@@ -41,7 +41,7 @@ const withOf = (p: LessonTime['parts'][number]) => [
   ))}
 </ol>
 {notes && time.period > 0 && time.period - time.sumMin >= 5 && (
-  <p class="lp-note">{[ 'Reading', time.filmCount === 1 ? 'the film' : time.filmCount > 1 ? 'films' : '', time.storyCount > 0 ? 'stories' : '' ].filter(Boolean).join(', ').replace(/, ([^,]*)$/, ' and $1')} come{time.storyCount > 0 || time.filmCount > 0 ? '' : 's'} to about {time.sumMin} minutes. The {time.period} is {time.guide ? 'the whole activity, with the doing and the talking' : 'a class period: it leaves time for the tasks, the writing and the talk'}.</p>
+  <p class="lp-note">{[ 'Reading', time.filmCount === 1 ? 'the film' : time.filmCount > 1 ? 'films' : '', time.storyCount > 0 ? 'stories' : '' ].filter(Boolean).join(', ').replace(/, ([^,]*)$/, ' and $1')} come{time.storyCount > 0 || time.filmCount > 0 ? '' : 's'} to about {time.sumMin} minutes. The {time.period} is {time.guide ? 'the hands-on time this activity was planned for' : 'the class period this lesson was planned for'}.</p>
 )}
 {notes && time.quiz > 0 && (
   <p class="lp-note">{time.guide

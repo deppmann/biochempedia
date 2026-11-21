@@ -9,7 +9,9 @@
      1. A link to a place in the text (a #hash, a search result, a notebook link) opens the whole
         lesson. Nothing is saved.
      2. ?time=<stop> in the address opens that stop for this visit. Nothing is saved. This is the
-        link a teacher sends to open a lesson at one length.
+        link a teacher sends to open a lesson at one length. A page reached again by Back or a
+        reload opens the stop it was showing when the reader left it (kept in that history entry),
+        so the place they scroll back to is in the text they were reading.
      3. A link that sets the help with the tasks (?supports=) opens the whole lesson: a teacher
         hands it out, and the tasks are in the text. So does a device that has joined a class: a
         saved choice must not quietly shorten assigned work. (The "Share with your class" code
@@ -22,6 +24,7 @@
 
    in:  { stops: ['skim','stories','films','lesson'] (the ones this lesson has),
           hash: location.hash, search: location.search,
+          here: the stop this history entry was showing, or null,
           saved: prefs.time or null, legacy: the old per-lesson value ('films' | 'hops') or null,
           inClass: boolean, guide: boolean }
    out: { stop, why }   why is '' or one of: remembered, noStories, noFilm, deepLink, supports, inClass */
@@ -46,6 +49,9 @@ export function chooseStop(i) {
   var deep = (hash && hash !== '#' && hash !== '#top' && hash !== '#explainer') || /[?&]pagefind-highlight=/.test(i.search || '');
   if (deep) return out('lesson', shorter ? 'deepLink' : '');
   if (asked) return out(asked, '');
+  if (typeof i.here === 'string' && has(i.here)) return out(i.here, '');
+  // A link to the opening film must land on a stop that shows the film.
+  if (hash === '#explainer' && (saved === 'skim' || saved === 'stories') && !i.inClass && !i.guide) return out(has('films') ? 'films' : 'lesson', '');
   if (/[?&]supports=[012](&|$)/.test(i.search || '')) return out('lesson', shorter ? 'supports' : '');
   if (i.inClass) return out('lesson', shorter ? 'inClass' : '');
   if (i.guide) return out('lesson', '');

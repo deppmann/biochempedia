@@ -376,8 +376,14 @@ const json = JSON.stringify({
       if (!built) { built = true; build(); }
       root.focus({ preventScroll: true });
     }
-    function close(clear = true) { root.hidden = true; document.body.classList.remove('fc-open'); if (clear) clearHighlight(); }
-    document.querySelectorAll<HTMLElement>('[data-fc-open]').forEach((b) => b.addEventListener('click', () => (root.hidden ? open() : close())));
+    // Closing hands keyboard focus back to the button that opened the panel, if it is still on screen.
+    let opener: HTMLElement | null = null;
+    function close(clear = true) {
+      const had = root.contains(document.activeElement);
+      root.hidden = true; document.body.classList.remove('fc-open'); if (clear) clearHighlight();
+      if (had && opener?.getClientRects().length) opener.focus({ preventScroll: true });
+    }
+    document.querySelectorAll<HTMLElement>('[data-fc-open]').forEach((b) => b.addEventListener('click', () => { if (root.hidden) { opener = b; open(); } else close(); }));
     $('[data-fc-close]').addEventListener('click', () => close());
     $('[data-fc-flip]').addEventListener('click', flip);
     root.querySelectorAll<HTMLElement>('[data-fc-r]').forEach((b) => b.addEventListener('click', () => answer(Number(b.dataset.fcR) as Rating)));
