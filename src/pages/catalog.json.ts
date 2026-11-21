@@ -16,6 +16,11 @@ export const GET: APIRoute = async () => {
     // The hop graph: which ideas the site teaches and the lessons on each at every level (src/pages/graph.json.ts).
     ideas: `${SITE}/graph.json`,
     ideaLadders: `${SITE}/graph/all.json`,
+    // For people: search the ideas, and one page per idea at ideaPage with {id} from ideas (src/pages/ideas/).
+    ideaSearch: `${SITE}/ideas/`,
+    ideaPage: `${SITE}/ideas/{id}/`,
+    // Lesson titles, levels, Virginia standards codes and unit names, one row per lesson (src/pages/ideas/lessons.json.ts).
+    ideaLessons: `${SITE}/ideas/lessons.json`,
     // Lesson text, the site's own figures and its films. The licence page lists what is not covered.
     license: 'https://creativecommons.org/licenses/by-nc-sa/4.0/',
     licenseName: 'CC BY-NC-SA 4.0',

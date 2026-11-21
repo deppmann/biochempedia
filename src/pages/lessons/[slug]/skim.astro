@@ -15,6 +15,7 @@ import { COURSES, courseOf, courseHref, courseSkimHref } from '../../../data/cou
 import { skimOf, guidingIdeaOf, filmTakeawaysOf, wordsIn } from '../../../lib/skim';
 import { rewrittenFor } from '../../../lib/rewritten';
 import LessonLinks from '../../../components/LessonLinks.astro';
+import HopSentence from '../../../components/hop/HopSentence.astro';
 
 export async function getStaticPaths() {
   // Same rule as the lesson route: drafts only in `astro dev`.
@@ -47,6 +48,9 @@ const courseSkim = COURSES.some((c) => c.slug === course.slug) ? courseSkimHref(
       {rewritten && <> · Rewritten on <time datetime={rewritten.date}>{rewritten.label}</time></>}
     </p>
     <p class="skim-back"><a href={full}>Read the full lesson →</a>{courseSkim && <> <span aria-hidden="true">·</span> <a href={courseSkim}>Skim the whole course →</a></>}</p>
+
+    {/* The same idea at other levels, as one sentence; the short version and the levels open on the lesson page. */}
+    <HopSentence slug={lesson.slug} variant="line" />
 
     <section class="skim-idea" aria-labelledby="idea-h">
       <h2 id="idea-h">The guiding idea</h2>

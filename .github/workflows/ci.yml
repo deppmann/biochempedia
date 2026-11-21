@@ -59,6 +59,9 @@ jobs:
       - run: node scripts/check-topic-graph.mjs
       # The graph's rules, the merge of readers' answers and the build-time API, against the real lessons.
       - run: node scripts/test-topic-graph.mjs
+      # Hopping: the sentence under each lesson's hook over every lesson and idea in the graph (no empty line,
+      # no doubled word, the true size of each step), and the idea search's ranking on fixed queries.
+      - run: node scripts/test-hop.mjs
       # Lesson search against the index this build just wrote (needs Node 22.18+ to import the .ts file).
       - run: node scripts/test-search.mjs
       # Curiosity router, offline (node:sqlite needs no flag from Node 22.13).

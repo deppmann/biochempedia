@@ -1,0 +1,231 @@
+/* Hopping: the ladder, the hop sentence on a lesson, and the pages under /ideas/.
+   One global sheet (every selector starts .hop, .hl- or .ideas), because the ladder is also drawn
+   at runtime by client scripts (the idea search, the film theater), where scoped styles would not reach.
+   Rules kept here: no text under 13px, links in running text are underlined, list links are at
+   least 44px tall on their own line, and the only motion is caused by the reader (a short version
+   opening, Hex landing on its rung); both are still under reduced motion. */
+
+.hop-vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+/* ------------------------------------------------------------------ the ladder */
+/* Written as it is drawn: the deepest rung at the top, the simplest at the foot. */
+.hop-ladder { --hl-ink: var(--ddp-color-primary); --hl-gold: var(--ddp-color-secondary); }
+.hl-full { max-width: 40rem; }
+.hl-rows { margin: 0; padding: 0; list-style: none; }
+.hl-row { position: relative; display: grid; grid-template-columns: 56px minmax(0, 1fr); gap: 0 0.75rem; }
+.hl-art { position: relative; display: block; min-height: 100%; }
+.hl-svg { position: absolute; inset: 0; height: 100%; overflow: visible; }
+.hl-rail, .hl-rung { stroke: var(--hl-ink); stroke-width: 3; stroke-linecap: round; fill: none; }
+.hl-rung { stroke-width: 4; }
+.hl-broken { stroke-dasharray: 2 7; stroke-width: 2.5; }
+/* The reader's rung: navy, with gold laid on it, so it holds its contrast on light paper. */
+.hl-here .hl-rung { stroke-width: 7; }
+.hl-rung-gold { stroke: var(--hl-gold); stroke-width: 3; stroke-linecap: round; }
+/* The ladder's feet: the rails stop a little under the lowest rung. */
+.hl-rows > .hl-row:last-child .hl-svg { height: calc(100% - 6px); }
+.hl-hex { position: absolute; left: 9px; top: 0; z-index: 1; overflow: visible; }
+.hl-hex-ink { fill: none; stroke: var(--hl-ink); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+.hl-hex-body { fill: var(--ddp-color-bg); }
+.hl-hex-thin { stroke-width: 2.2; }
+.hl-hex-gold { fill: none; stroke: var(--hl-gold); stroke-width: 2.4; stroke-linecap: round; }
+.hl-hex-fill { fill: var(--hl-ink); }
+.hl-text { min-width: 0; padding: 1.05rem 0 0.9rem; overflow-wrap: anywhere; }
+.hl-lvl { margin: 0; font-size: 0.8125rem; font-weight: 700; letter-spacing: 0.01em; line-height: 1.5; color: var(--ddp-color-muted); }
+.hl-here .hl-lvl { color: var(--ddp-color-secondary-ink); }
+.hl-you { font-weight: 400; }
+.hl-you[hidden] { display: none; }
+.hl-lesson + .hl-lesson { margin-top: 0.5rem; padding-top: 0.2rem; border-top: 1px solid var(--ddp-color-line); }
+.hl-title { margin: 0; font-size: var(--ddp-text-base); line-height: 1.35; color: var(--ddp-color-ink); }
+.hop-ladder .hl-title a { display: inline-flex; align-items: center; min-height: 44px; font-weight: 600; color: var(--ddp-color-ink); text-decoration: underline; text-decoration-color: color-mix(in srgb, currentColor 45%, transparent); text-underline-offset: 3px; }
+.hop-ladder .hl-title a:hover { color: var(--ddp-color-accent); }
+.hl-lesson.is-here .hl-title { padding: 0.55rem 0 0.3rem; }
+.hl-this { font-weight: 400; font-size: var(--ddp-text-sm); color: var(--ddp-color-muted); }
+.hl-adds { margin: 0; font-size: var(--ddp-text-sm); line-height: 1.5; color: var(--ddp-color-ink); }
+.hl-facts { margin: 0.15rem 0 0; font-size: 0.8125rem; line-height: 1.9; color: var(--ddp-color-muted); }
+.hop-ladder .hl-facts a { padding: 0.55rem 0; color: inherit; text-decoration: underline; text-underline-offset: 3px; }
+.hop-ladder .hl-facts a:hover { color: var(--ddp-color-accent); }
+.hl-gap { min-height: 30px; }
+.hl-gap-t { margin: 0; align-self: center; padding: 0.3rem 0; font-size: 0.8125rem; line-height: 1.4; color: var(--ddp-color-muted); }
+/* Opened on a lesson: the reader's rung and the nearest rung each way; the rest one tap away. */
+.hl-windowed .hl-far { display: none; }
+.hl-all { margin: 0 0 0.3rem; font-size: var(--ddp-text-sm); }
+.hl-grownup { color: var(--ddp-color-muted); }
+.hop-ladder a, .hop-quick, .hop-all { scroll-margin-top: 6rem; }
+.hl-all-btn { appearance: none; min-height: 44px; margin: 0; padding: 0; border: 0; background: none; font: inherit; font-weight: 600; cursor: pointer; color: var(--ddp-color-accent); text-decoration: underline; text-underline-offset: 3px; }
+.hl-all-btn:focus-visible, .hop-ladder a:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; border-radius: 2px; }
+.hl-play { margin: 0.6rem 0 0; font-size: var(--ddp-text-sm); line-height: 1.5; color: var(--ddp-color-muted); }
+.hop-ladder .hl-play a { display: inline-block; padding: 0.7rem 0; margin: -0.35rem 0; font-weight: 700; color: var(--ddp-color-primary); text-decoration: underline; text-underline-offset: 3px; }
+.hop-ladder .hl-play a::before { content: '▶' / ''; margin-right: 0.45em; font-size: 0.7em; color: var(--ddp-color-accent); }
+/* The ladder as a mark. */
+.hl-glyph { flex: none; vertical-align: middle; overflow: visible; }
+.hl-glyph .hl-rail { stroke-width: 1.6; }
+.hl-glyph .hl-rung { stroke-width: 2; }
+.hl-mark { fill: var(--hl-gold); stroke: var(--hl-ink); stroke-width: 1.4; stroke-linejoin: round; }
+@media (forced-colors: active) {
+  .hl-rail, .hl-rung, .hl-hex-ink { stroke: CanvasText; }
+  .hl-rung-gold, .hl-hex-gold { stroke: Highlight; }
+  .hl-mark { fill: Highlight; stroke: CanvasText; }
+}
+/* Hex lands on its rung when the reader opens a ladder; still under reduced motion. */
+@media (prefers-reduced-motion: no-preference) {
+  .hl-hex { animation: hl-land 320ms cubic-bezier(.3, 1.4, .5, 1) both; }
+  .hl-noland .hl-hex { animation: none; }
+  @keyframes hl-land { from { transform: translateY(-9px); } to { transform: none; } }
+}
+
+/* ------------------------------------------------------------------ the sentence on a lesson */
+.hop { max-width: 60ch; margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-sm); line-height: 1.55; color: var(--ddp-color-ink-soft); }
+.hop-sentence { margin: 0; }
+/* One short paragraph: at most four lines on a phone. */
+.hop-line { display: inline; }
+.hop-dir { font-weight: 700; color: var(--ddp-color-primary); }
+.hop-note { color: var(--ddp-color-muted); }
+.hop a { color: var(--ddp-color-ink); text-decoration: underline; text-decoration-color: color-mix(in srgb, currentColor 45%, transparent); text-underline-offset: 3px; }
+.hop a:hover { color: var(--ddp-color-accent); }
+.hop-sentence a { font-weight: 600; }
+button.hop-quick-open { appearance: none; margin: 0; padding: 2px 0; border: 0; background: none; font: inherit; font-weight: 600; text-align: left; cursor: pointer; color: var(--ddp-color-accent); text-decoration: underline; text-underline-offset: 3px; }
+a.hop-quick-open { color: var(--ddp-color-accent); }
+.hop :is(a, button, summary):focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; border-radius: 2px; }
+
+/* Arrived by a hop: a gold rule, no tint, and the way back as a real target. */
+.hop-arrive { display: flex; flex-wrap: wrap; align-items: center; gap: 0.25rem 0.9rem; margin: 0 0 var(--ddp-space-3); padding: 0.1rem 0 0.1rem 0.75rem; border-left: 3px solid var(--ddp-color-secondary); color: var(--ddp-color-ink); }
+.hop-arrive[hidden] { display: none; }
+.hop .hop-back { display: inline-flex; align-items: center; min-height: 44px; padding: 0 0.9rem; border: 1px solid var(--ddp-color-primary); border-radius: 999px; background: none; font: inherit; font-weight: 600; color: var(--ddp-color-primary); text-decoration: none; cursor: pointer; }
+.hop .hop-back:hover { border-color: var(--ddp-color-accent); color: var(--ddp-color-accent); }
+
+/* The short version, in place. Closed, it is not there at all (the sentence opens it). */
+.hop-quick { display: none; margin: var(--ddp-space-3) 0 0; padding-left: 0.9rem; border-left: 3px solid var(--ddp-color-accent); }
+.hop-quick[open] { display: block; }
+.hop-quick > summary, .hop-rest-one > summary { min-height: 44px; display: flex; flex-wrap: wrap; align-items: center; cursor: pointer; font-weight: 700; color: var(--ddp-color-primary); }
+.hop-quick-time { font-weight: 400; color: var(--ddp-color-muted); white-space: pre-wrap; }
+.hop-quick-text:focus { outline: none; }
+.hop-quick-text p { margin: 0 0 0.7rem; font-size: var(--ddp-text-base); line-height: 1.65; color: var(--ddp-color-ink); }
+.hop-quick-text .hop-back { margin: 0.1rem 0 0.4rem; }
+@media (prefers-reduced-motion: no-preference) {
+  .hop-quick[open] > .hop-quick-text { animation: hop-in 180ms ease-out; }
+  @keyframes hop-in { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+}
+
+/* "See every level": one fold. Inside, type and space do the organising; no boxes. */
+.hop-all { margin-top: 0.1rem; }
+.hop-all > summary { display: inline-flex; align-items: center; gap: 0.4em; min-height: 44px; cursor: pointer; list-style: none; font-weight: 600; color: var(--ddp-color-primary); }
+.hop-all > summary::-webkit-details-marker { display: none; }
+.hop-all > summary::after, .hop-idea-fold > summary::before, .hop-rest-one > summary::before { content: '▸' / ''; margin-right: 0.4em; color: var(--ddp-color-accent); }
+.hop-all[open] > summary::after, .hop-idea-fold[open] > summary::before, .hop-rest-one[open] > summary::before { content: '▾' / ''; }
+.hop-all > summary .hl-glyph { margin-right: 0.15rem; }
+.hop-idea-fold > summary { display: flex; align-items: center; min-height: 44px; cursor: pointer; list-style: none; }
+.hop-idea-fold > summary::-webkit-details-marker, .hop-rest-one > summary::-webkit-details-marker { display: none; }
+.hop-also-teaches { margin: 0 0 var(--ddp-space-3); color: var(--ddp-color-muted); }
+.hop-ai { margin: 0.2rem 0 0; color: var(--ddp-color-muted); }
+.hop-ai a { color: inherit; }
+.hop-all > summary:hover { color: var(--ddp-color-accent); }
+.hop-all:not([open]) .hop-when-open, .hop-all[open] .hop-when-closed { display: none; }
+.hop-all-body { padding: 0 0 var(--ddp-space-4); }
+.hop-idea + .hop-idea, .hop-extra, .hop-rest { margin-top: var(--ddp-space-6); padding-top: var(--ddp-space-4); border-top: 1px solid var(--ddp-color-line); }
+.hop-idea-h { margin: 0; font-family: inherit; font-size: var(--ddp-text-lg); font-weight: 700; line-height: 1.3; color: var(--ddp-color-primary); }
+.hop-idea-blurb { margin: 0.2rem 0 var(--ddp-space-3); }
+.hop-idea-at { margin: 0 0 var(--ddp-space-3); }
+.hop-sub { margin: var(--ddp-space-4) 0 0.3rem; font-family: inherit; font-size: var(--ddp-text-sm); font-weight: 700; color: var(--ddp-color-primary); }
+.hop-rest > .hop-sub { margin-top: 0; }
+.hop-edge { margin: var(--ddp-space-3) 0 0; color: var(--ddp-color-ink-soft); }
+.hop-k { font-weight: 700; color: var(--ddp-color-primary); }
+.hop-extra p { margin: 0 0 0.3rem; line-height: 2; }
+.hop-idea-more, .hop-find { margin: var(--ddp-space-3) 0 0; }
+.hop-idea-more a, .hop-find > a { display: inline-flex; align-items: center; min-height: 44px; font-weight: 600; }
+.hop-find { margin-top: var(--ddp-space-4); }
+.hop-near ul { margin: 0; padding: 0; list-style: none; }
+.hop-near li { padding: 0.15rem 0 0.6rem; }
+.hop-near-name { display: inline-flex; align-items: center; min-height: 44px; font-weight: 600; }
+.hop-why, .hop-near-lesson { display: block; }
+.hop-near-lesson { color: var(--ddp-color-muted); line-height: 2; }
+
+/* Standards on a school lesson: plain lines. */
+.hop-standards { margin: var(--ddp-space-4) 0 0; font-size: var(--ddp-text-sm); line-height: 1.55; color: var(--ddp-color-ink-soft); }
+.hop-standards p { margin: 0 0 0.3rem; }
+.hop-standards-more { color: var(--ddp-color-muted); }
+
+/* ------------------------------------------------------------------ the small forms */
+.hop-compact { display: flex; align-items: center; gap: 0.6rem; margin: 0; font-size: var(--ddp-text-sm); line-height: 1.4; color: var(--ddp-color-ink-soft); }
+.hop-compact a { font-weight: 600; color: var(--ddp-color-ink); text-decoration: underline; text-decoration-color: color-mix(in srgb, currentColor 45%, transparent); text-underline-offset: 3px; padding: 0.7rem 0; }
+.hop-compact a:hover { color: var(--ddp-color-accent); }
+.hop-trio { display: grid; gap: 0.5rem; margin: 0; font-size: var(--ddp-text-sm); line-height: 1.45; }
+.hop-trio-part { display: grid; grid-template-columns: 4.6rem minmax(0, 1fr); gap: 0 0.6rem; align-items: baseline; }
+.hop-trio dt { font-weight: 700; color: var(--ddp-color-muted); }
+.hop-trio dd { margin: 0; }
+.hop-trio dd a { display: inline-flex; align-items: center; min-height: 44px; font-weight: 600; color: var(--ddp-color-ink); text-decoration: underline; text-decoration-color: color-mix(in srgb, currentColor 45%, transparent); text-underline-offset: 3px; }
+.hop-trio .is-here dt, .hop-trio .is-here dd a { color: var(--ddp-color-primary); }
+.hop-trio-lvl, .hop-trio-adds { display: block; color: var(--ddp-color-muted); }
+.hop-trio-adds { color: var(--ddp-color-ink-soft); }
+@media (min-width: 760px) {
+  .hop-trio { grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 0 var(--ddp-space-6); }
+  .hop-trio-part { grid-template-columns: 1fr; }
+}
+
+/* ------------------------------------------------------------------ /ideas/ */
+.ideas { padding-top: var(--ddp-space-8); padding-bottom: var(--ddp-space-12); }
+.ideas-col { max-width: 46rem; }
+.ideas h1 { overflow-wrap: anywhere; margin: 0 0 var(--ddp-space-2); font-size: var(--ddp-text-3xl); line-height: 1.1; }
+.ideas-lede { margin: 0 0 var(--ddp-space-4); font-size: var(--ddp-text-lg); line-height: 1.5; color: var(--ddp-color-ink-soft); }
+.ideas a { color: var(--ddp-color-ink); text-decoration: underline; text-decoration-color: color-mix(in srgb, currentColor 45%, transparent); text-underline-offset: 3px; }
+.ideas a:hover { color: var(--ddp-color-accent); }
+.ideas :is(a, button, summary, input):focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+.ideas-form label { display: block; margin-bottom: 0.35rem; font-size: var(--ddp-text-sm); font-weight: 600; color: var(--ddp-color-primary); }
+.ideas-box { display: flex; gap: 0.5rem; }
+.ideas-box input { flex: 1; min-width: 0; min-height: 48px; padding: 0 0.9rem; border: 1.5px solid var(--ddp-color-primary); border-radius: var(--ddp-radius-sm); background: var(--ddp-color-surface); color: var(--ddp-color-ink); font: inherit; font-size: 1rem; }
+.ideas-box input::placeholder { color: var(--ddp-color-muted); opacity: 1; }
+.ideas-box button { min-height: 48px; padding: 0 1.1rem; border: 0; border-radius: var(--ddp-radius-sm); background: var(--ddp-color-primary); color: var(--ddp-color-bg); font: inherit; font-weight: 600; cursor: pointer; }
+.ideas-try { margin: 0.6rem 0 0; font-size: var(--ddp-text-sm); line-height: 2.2; color: var(--ddp-color-ink-soft); }
+.ideas-try a { padding: 0.7rem 0; font-weight: 600; }
+.ideas-blind { margin: 0.4rem 0 0; font-size: var(--ddp-text-sm); line-height: 1.55; color: var(--ddp-color-muted); }
+.ideas-status { margin: var(--ddp-space-4) 0 0; min-height: 1.5em; font-size: var(--ddp-text-sm); color: var(--ddp-color-muted); }
+.ideas-results { margin: 0; padding: 0; list-style: none; }
+.ideas-results:empty { display: none; }
+.ideas-res { padding: var(--ddp-space-4) 0; border-top: 1px solid var(--ddp-color-line); }
+.ideas-res-name { margin: 0; font-size: var(--ddp-text-lg); line-height: 1.3; }
+.ideas-res-name { display: flex; align-items: center; gap: 0.7rem; }
+.ideas-res-name a { display: inline-flex; align-items: center; min-height: 44px; font-weight: 700; color: var(--ddp-color-primary); }
+.ideas-res-why { margin: 0; font-size: var(--ddp-text-sm); color: var(--ddp-color-muted); }
+.ideas-res-blurb { margin: 0.25rem 0 0.6rem; line-height: 1.5; color: var(--ddp-color-ink); }
+.ideas-res-at { margin: 0.5rem 0 0; font-size: var(--ddp-text-sm); line-height: 2.2; color: var(--ddp-color-ink-soft); }
+.ideas-res-at a { padding: 0.7rem 0; font-weight: 600; }
+.ideas-res .hl-full { margin-top: var(--ddp-space-4); }
+.ideas-res-more { margin: 0.2rem 0 0; font-size: var(--ddp-text-sm); }
+.ideas-res-more a { display: inline-flex; align-items: center; min-height: 44px; font-weight: 600; }
+.ideas-closest { margin: 0 0 0.2rem; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); }
+.ideas-none { margin: var(--ddp-space-3) 0 0; line-height: 1.6; }
+.ideas-none a { font-weight: 600; padding: 0.7rem 0; }
+.ideas-h2 { margin: var(--ddp-space-12) 0 var(--ddp-space-2); font-size: var(--ddp-text-xl); }
+.ideas-note { margin: 0 0 var(--ddp-space-4); font-size: var(--ddp-text-sm); line-height: 1.55; color: var(--ddp-color-ink-soft); }
+.ideas-area { border-top: 1px solid var(--ddp-color-line); }
+.ideas-area > summary { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5em; min-height: 48px; cursor: pointer; list-style: none; font-weight: 600; color: var(--ddp-color-primary); }
+.ideas-area > summary::-webkit-details-marker { display: none; }
+.ideas-area > summary::before { content: '▸' / ''; color: var(--ddp-color-accent); }
+.ideas-area[open] > summary::before { content: '▾' / ''; }
+.ideas-area-n { font-weight: 400; font-size: var(--ddp-text-sm); color: var(--ddp-color-muted); }
+.ideas-list { margin: 0 0 var(--ddp-space-4); padding: 0; list-style: none; }
+.ideas-list li { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 0.6rem; min-height: 44px; padding: 0.15rem 0; }
+.ideas-list a { display: inline-flex; align-items: center; min-width: 0; min-height: 44px; font-weight: 600; overflow-wrap: anywhere; }
+.ideas-list span { font-size: var(--ddp-text-sm); color: var(--ddp-color-muted); }
+@media (min-width: 760px) { .ideas-list { columns: 2; column-gap: var(--ddp-space-8); } .ideas-list li { break-inside: avoid; } }
+.ideas-crumb { margin: 0 0 var(--ddp-space-3); font-size: var(--ddp-text-sm); }
+.ideas-crumb a { display: inline-flex; align-items: center; min-height: 44px; font-weight: 600; }
+.ideas-ask { margin: 0 0 var(--ddp-space-4); font-size: var(--ddp-text-sm); line-height: 1.6; color: var(--ddp-color-ink-soft); }
+.ideas-sec { margin: var(--ddp-space-8) 0 var(--ddp-space-3); font-size: var(--ddp-text-xl); }
+.ideas-pref { margin: 0 0 var(--ddp-space-4); padding-left: 0.75rem; border-left: 3px solid var(--ddp-color-secondary); font-size: var(--ddp-text-sm); line-height: 1.6; }
+.ideas-pref[hidden] { display: none; }
+.ideas-films, .ideas-near, .ideas-uses { margin: 0; padding: 0; list-style: none; }
+.ideas-films li, .ideas-uses li { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 0.6rem; min-height: 44px; }
+.ideas-films a, .ideas-uses a, .ideas-near-name { display: inline-flex; align-items: center; min-height: 44px; font-weight: 600; }
+.ideas-films span, .ideas-uses span { font-size: var(--ddp-text-sm); color: var(--ddp-color-muted); }
+.ideas-near li { padding: 0 0 0.7rem; }
+.ideas-near-top { display: flex; flex-wrap: wrap; align-items: center; gap: 0 0.6rem; }
+.ideas-near-lv { font-size: var(--ddp-text-sm); color: var(--ddp-color-muted); }
+.ideas-near-why { display: block; font-size: var(--ddp-text-sm); line-height: 1.5; color: var(--ddp-color-ink-soft); }
+.ideas-foot { margin: var(--ddp-space-12) 0 0; font-size: var(--ddp-text-sm); line-height: 1.6; color: var(--ddp-color-muted); }
+.ideas-foot a { color: inherit; }
+.ideas-parts-eg { margin: 0 0 var(--ddp-space-6); padding: 0 0 var(--ddp-space-6); border-bottom: 1px solid var(--ddp-color-line); }
+/* Print: the ladder whole, no controls. A closed fold stays closed. */
+@media print {
+  .ideas-form, .ideas-try, .hop .hop-back, .hop .hop-arrive, .hl-all, .hop-quick-or, .hop-quick-open { display: none; }
+  .hl-windowed .hl-far { display: grid; }
+}

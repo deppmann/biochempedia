@@ -1,0 +1,19 @@
+---
+/* Standards on a school lesson, in plain type: the essential question and the Virginia codes
+   teachers plan by. It carries what the "Where this lesson sits" card showed above its steps
+   (the steps themselves are now the hop sentence and its panel). No box: this is information,
+   not a control. */
+import '../../styles/hop.css';
+
+interface Props {
+  ladder: { sol: string[]; practices: string[]; essentialQuestion: string; lifeScience?: string; biology2?: string };
+}
+const { ladder } = Astro.props;
+---
+<div class="hop-standards" id="ladder-h">
+  <p><span class="hop-k">Essential question:</span> {ladder.essentialQuestion}</p>
+  <p><span class="hop-k">Standards:</span> Virginia SOL {ladder.sol.join(', ')}{ladder.practices.length > 0 && <> · Practices {ladder.practices.join(', ')}</>}</p>
+  {(ladder.lifeScience || ladder.biology2) && (
+    <p class="hop-standards-more">{ladder.lifeScience && <>Grade 7 Life Science: {ladder.lifeScience}</>}{ladder.lifeScience && ladder.biology2 && ' · '}{ladder.biology2 && <>Biology II: {ladder.biology2.replace(/^Biology II:\s*/, '')}</>}</p>
+  )}
+</div>
