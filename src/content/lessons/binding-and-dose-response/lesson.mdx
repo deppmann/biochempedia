@@ -28,6 +28,22 @@ explainer:
   narration: "an AI narrator voice (Gemini, Charon) reading narration written from this lesson's text"
   aiGenerated: true
 
+films:
+  - id: "chapter-2"
+    src: "/explainers/binding-and-dose-response/chapter-2.mp4"
+    captions: "/explainers/binding-and-dose-response/chapter-2.vtt"
+    poster: "/explainers/binding-and-dose-response/chapter-2-poster.jpg"
+    title: "Blockers and the Shape of a Shift"
+    durationSec: 216.3
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+    takeaways:
+      - "A competitive antagonist binds reversibly at the agonist site, shifting the log dose-response curve right in parallel without lowering the maximum."
+      - "Non-competitive and irreversible blockers are insurmountable and lower the maximum response, though a receptor reserve lets an irreversible blocker shift the curve right first."
+      - "Across rising blocker doses, simple competition at equilibrium predicts a straight Schild plot of slope 1."
+      - "A slope away from 1 or a curving line warns that an assumption failed, and slope 1 over a narrow range does not rule every alternative out."
+      - "Naloxone competes with morphine for mu-opioid receptors without reacting with morphine, though clinical reversal is time-dependent rather than set by equilibrium alone."
+
 scientists:
   - name: "John Newport Langley"
     dates: "1852–1925"
@@ -383,6 +399,7 @@ draft: false
 import DoseResponseExplorer from '../../../components/DoseResponseExplorer.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
 import EquationCard from '../../../components/EquationCard.astro';
+import LessonFilm from '../../../components/LessonFilm.astro';
 
 **Naloxone can pull a person out of a morphine overdose within minutes, and it never reacts with a single molecule of morphine.** The two drugs compete for the same place on the same cells. This lesson asks how much of that place a given dose fills, how filling it becomes a response, and how two response curves can measure a drug's grip on a receptor nobody has isolated.
 
@@ -539,6 +556,8 @@ A rightward shift first and a lower maximum afterwards is the proof. With no res
 As a control, a second agonist acting through a different receptor should keep its full maximum, which shows that the blocker left the downstream pathway undamaged.
 
 </details>
+
+<LessonFilm film={frontmatter.films[0]} />
 
 ## Blocking the receptor: the shape of the shift names the blocker
 
