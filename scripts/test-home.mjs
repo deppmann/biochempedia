@@ -45,7 +45,10 @@ ok(/<p[^>]*data-resume[^>]*\shidden/.test(main), '"Welcome back" must be in the 
 ok(/<h1[^>]*id="home-h1"/.test(main) && /aria-label="STEMhop"|>STEMhop</.test(main.match(/<h1[\s\S]*?<\/h1>/)?.[0] ?? ''), 'the wordmark must be the page h1, named STEMhop');
 ok(/role="search"[^>]*action="\/search\/"/.test(main) && main.includes('Search every lesson'), 'the hero must carry the search box, labelled "Search every lesson"');
 ok(count(/href="\/courses\/"/g) === 1, `the page body must link the catalog (/courses/) exactly once (found ${count(/href="\/courses\/"/g)})`);
-ok(main.includes('Made by') && main.includes('href="/about/"'), 'the byline naming Chris must link to /about/');
+// Chris, 2026-11-21: his name is not on the homepage; the credit is on /contributors/ with everyone else.
+ok(!main.includes('Deppmann') && main.includes('href="/contributors/"'), 'the homepage must not name its maker; it links /contributors/ instead');
+for (const href of ['/play/', '/methods/', '/fun/']) ok(main.includes(`href="${href}"`), `Things to try must link ${href}`);
+ok(/Open now/.test(main) && (main.match(/Coming</g) ?? []).length >= 4, 'Pick a subject must show Biology open and the coming subjects');
 
 for (const off of ['/plan/', '/teach/syllabus/', '/curious/']) ok(!main.includes(`href="${off}`), `the homepage must not link ${off} (switched off on the live site)`);
 if (!flagOn('CALENDAR_LINK')) ok(!main.includes('/calendar/'), 'CALENDAR_LINK is off, so the page must not link the calendar');

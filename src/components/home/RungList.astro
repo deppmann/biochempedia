@@ -15,10 +15,9 @@ const { rungs, label } = Astro.props;
 <ol class="home-rungs" aria-label={label}>
   {rungs.map((r) => (
     <li class="home-rung">
-      <span class="home-rung-level">{r.stageTitle}</span>
+      <span class="home-rung-level">{r.stageTitle}{r.filmMin && <> · film, about {r.filmMin} min</>}</span>
       <a class="home-rung-link" href={r.href}>{r.title}</a>
       {r.note && <span class="home-rung-note">{r.note}</span>}
-      {r.filmMin && <span class="home-rung-film">Film, about {r.filmMin} min</span>}
     </li>
   ))}
 </ol>

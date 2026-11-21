@@ -3,7 +3,7 @@
 
    Chris asked for less redundancy ("we have the same paths in too many places") and for Students /
    Parents / Teachers tabs, "each with its own story". So the hero is the same for everyone (the
-   wordmark, the tagline, what this is, search, who makes it, and "Welcome back"), and one choice
+   wordmark, the tagline, what this is, search, and "Welcome back"), and one choice
    under it re-forms the rest of the page for that reader. Students is the page a first visit sees;
    nothing asks. Each door opens with something usable: an idea at every level it is taught, one
    activity with what to gather, the standards maps.
@@ -20,6 +20,7 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import SiteSearch from '../components/SiteSearch.astro';
 import Wordmark from '../components/Wordmark.astro';
+import Hex from '../components/Hex.astro';
 import StudentsDoor from '../components/home/StudentsDoor.astro';
 import ParentsDoor from '../components/home/ParentsDoor.astro';
 import TeachersDoor from '../components/home/TeachersDoor.astro';
@@ -29,8 +30,20 @@ import { feedbackUrl } from '../lib/feedback';
 import '../components/home/home.css';
 
 const d = await homeData();
-const coming = COMING_SUBJECTS.map((s) => s.name);
-const comingList = coming.join(' · ');
+/* The Biology tile's numbers: facts about the library, counted here and shown once on the page. */
+const STATS = [
+  [d.lessonCount, d.lessonCount === 1 ? 'lesson' : 'lessons'],
+  [d.courseCount, d.courseCount === 1 ? 'course' : 'courses'],
+  [d.films, 'short films'],
+  [d.sims, 'simulations'],
+  [d.questions, 'practice questions'],
+] as const;
+/* Things to try: the playful corners of the site (kept from the page before this one). */
+const TRY = [
+  { title: 'Metabolism Arcade', line: 'Six games from the Biochemistry course: wire the cell, fix a broken enzyme, and drill for the MCAT.', href: '/play/' },
+  { title: 'The methods library', line: 'How scientists find things out.', href: '/methods/' },
+  { title: 'The Fun Stuff', line: 'Trading cards, memes, songs and a podcast, made by students in my biochemistry course (BIOL 3030).', href: '/fun/' },
+];
 ---
 
 <BaseLayout
@@ -50,7 +63,6 @@ const comingList = coming.join(' · ');
           sciences on the way. No account, no ads.
         </p>
         <div class="home-search"><SiteSearch label="Search every lesson" placeholder="Search: try “osmosis” or “vaccines”" /></div>
-        <p class="home-byline">Made by <a href="/about/">Chris Deppmann</a>, professor of biology at the University of Virginia.</p>
         {/* Filled from this device's own records; hidden on a first visit, without JavaScript, or
             when storage is blocked. */}
         <p class="home-resume" data-resume hidden>
@@ -90,19 +102,39 @@ const comingList = coming.join(' · ');
     <ParentsDoor d={d} />
     <TeachersDoor d={d} />
 
-    {/* Under every door: what is open (one subject so far, so this is a strip; when a second
-        subject opens, "Pick a subject" belongs back above the doors), and the work in progress. */}
-    <section class="home-open" aria-labelledby="home-open-h">
-      <h2 class="home-open-h" id="home-open-h">Biology <span>Open now</span></h2>
-      <p class="home-p">
-        {fmt(d.lessonCount)} lessons in {d.courseCount} courses, with {fmt(d.films)} short films, {fmt(d.sims)} simulations
-        and {fmt(d.questions)} practice questions. <a href="/courses/">All {d.courseCount} courses, by level →</a>
-      </p>
-      {/* Coming subjects are named, never links. */}
-      <p class="home-small">
-        Not built yet: {comingList}.
-        {COMING_SUBJECTS.filter((s) => s.link).map((s) => <>{' '}{s.link!.before}<a href={s.link!.href}>{s.link!.text}</a>{s.link!.after}</>)}
-      </p>
+    {/* Under every door: pick a subject. Biology is open, with its counted numbers (the one place on
+        the page that counts, and what it counts is the library, never the reader). The coming
+        subjects are named and marked "Coming", never links; on a phone they fold into one row.
+        Hex leaps from Biology toward them: drawn still, like the arc in the wordmark. */}
+    <section class="home-subjects" aria-labelledby="home-subj-h">
+      <h2 class="home-sec-h" id="home-subj-h">Pick a subject</h2>
+      <div class="home-subj-grid">
+        <div class="home-leap" aria-hidden="true">
+          <svg class="home-arc" viewBox="0 0 200 60" preserveAspectRatio="none"><path class="hop-arc" vector-effect="non-scaling-stroke" d="M4 58 Q100 -22 196 58" /></svg>
+          <Hex pose="cheer" size={61} class="home-leap-hex" />
+        </div>
+        <div class="home-bio">
+          <div class="home-bio-top"><h3>Biology</h3><span class="home-pill-live">Open now</span></div>
+          <ul class="home-stats">
+            {STATS.map(([n, label]) => <li><b>{fmt(n)}</b><span>{label}</span></li>)}
+          </ul>
+          <a class="home-go home-go-arc" href="/courses/">Start with biology <svg viewBox="0 0 26 12" aria-hidden="true"><path class="hop-arc" d="M1 11 Q13 -4 25 11" /></svg></a>
+        </div>
+        {COMING_SUBJECTS.map((s) => (
+          <div class="home-soon">
+            <div class="home-soon-top"><h3>{s.name}</h3><span class="home-pill-soon">Coming</span></div>
+            <p>{s.note}{s.link && <>{' '}{s.link.before}<a href={s.link.href}>{s.link.text}</a>{s.link.after}</>}</p>
+          </div>
+        ))}
+      </div>
+      <p class="home-soon-row"><span class="home-soon-lbl">Coming</span>{COMING_SUBJECTS.map((s) => <span class="home-sc">{s.name}</span>)}</p>
+    </section>
+
+    <section class="home-try-sec" aria-labelledby="home-try-h">
+      <h2 class="home-sec-h" id="home-try-h">Things to try</h2>
+      <ul class="home-try">
+        {TRY.map((t) => <li><a href={t.href}><b>{t.title}</b><span>{t.line}</span></a></li>)}
+      </ul>
     </section>
 
     {/* The full note is on /about/ ("A work in progress"); old /#wip links land here. */}
@@ -113,7 +145,8 @@ const comingList = coming.join(' · ');
         carry an <a href="/under-review/">Under review</a> tag.
         <a href={feedbackUrl()} target="_blank" rel="noopener">See something wrong? Tell me</a> ·
         <a href="/about/#work-in-progress">How it’s made and checked</a> ·
-        <a href="/updates/">What’s new, including {fmt(d.rewrittenCount)} rewritten lessons</a>
+        <a href="/updates/">What’s new, including {fmt(d.rewrittenCount)} rewritten lessons</a> ·
+        <a href="/contributors/">Who made it</a>
       </p>
     </section>
   </div>

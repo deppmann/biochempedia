@@ -2,7 +2,8 @@
    .home, because the page's script draws some of what is styled here ("Welcome back", the syllabus
    results), which scoped styles must not target. Colours, type and space are the site's tokens, so
    dark mode follows from them. New labels are sentence case in the body face: no new mono capitals.
-   Nothing on this page moves unless the reader moved it. */
+   Motion: one small rise of the hero on arrival, and pills and tiles that lift a little under the
+   reader's own pointer or focus. Nothing loops, and all of it is still under reduced motion. */
 
 .home { padding-bottom: var(--ddp-space-10, 2.5rem); }
 .home ul, .home ol { list-style: none; margin: 0; padding: 0; }
@@ -19,8 +20,6 @@
 .home-search .ss-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; margin: 0; }
 /* A field's edge must be visible on its own (3:1 against the field, light and dark). */
 .home .ss-input, .home-match textarea, .home-match select { border: 1px solid var(--ddp-color-muted); }
-.home-byline { margin: 0.6rem 0 0; font-size: var(--ddp-text-sm); color: var(--ddp-color-muted); }
-.home-byline a { font-weight: 600; }
 .home-resume { margin: 0.6rem 0 0; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); display: flex; flex-wrap: wrap; gap: 0.25rem 0.75rem; align-items: baseline; }
 .home-resume[hidden] { display: none; }
 .home-resume a { color: var(--ddp-color-accent); font-weight: 600; }
@@ -81,7 +80,7 @@
 .home-rung-level { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); line-height: 1.5; }
 .home-rung-link { justify-self: start; font-weight: 600; font-size: var(--ddp-text-base); line-height: 1.35; padding: 0.75rem 0; margin: -0.6rem 0; }
 .home-rung-note { font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); line-height: 1.5; max-width: 56ch; }
-.home-rung-film { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); line-height: 1.6; }
+.home-narrow { display: none; }
 
 /* ---- "Here for one thing?" ---- */
 .home-ways { margin-top: 0.5rem !important; border-top: 1px solid var(--ddp-color-line); }
@@ -97,8 +96,9 @@
 .home-lv-t { margin: 0; font-family: var(--ddp-font-serif); font-weight: 600; font-size: var(--ddp-text-lg); color: var(--ddp-color-primary); }
 .home-lv-d { margin: 0.1rem 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); line-height: 1.45; }
 .home-lv-courses { display: flex; flex-wrap: wrap; gap: 0.45rem; }
-.home-bc { display: inline-flex; flex-wrap: wrap; align-items: baseline; gap: 0 0.45em; min-height: 44px; box-sizing: border-box; padding: 0.55rem 0.85rem; background: var(--ddp-color-surface); border: 1px solid var(--ddp-color-line); border-radius: 22px; text-decoration: none; color: inherit; transition: border-color 0.14s ease, box-shadow 0.14s ease; }
-.home-bc:hover, .home-bc:focus-visible { border-color: var(--ddp-color-accent); box-shadow: var(--ddp-shadow); text-decoration: none; }
+.home-bc { display: inline-flex; flex-wrap: wrap; align-items: baseline; gap: 0 0.45em; min-height: 44px; box-sizing: border-box; padding: 0.55rem 0.85rem; background: var(--ddp-color-surface); border: 1px solid var(--ddp-color-line); border-radius: 22px; text-decoration: none; color: inherit; transition: border-color 0.14s ease, box-shadow 0.14s ease, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.home-bc:hover, .home-bc:focus-visible { border-color: var(--ddp-color-accent); box-shadow: var(--ddp-shadow); text-decoration: none; transform: translateY(-2px) rotate(-1.2deg); }
+.home-lv-courses li:nth-child(even) .home-bc:hover, .home-lv-courses li:nth-child(even) .home-bc:focus-visible { transform: translateY(-2px) rotate(1.2deg); }
 .home-bc-t { font-weight: 700; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); line-height: 1.25; }
 .home-bc-n { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); white-space: nowrap; }
 .home-lv-first { display: flex; flex-direction: column; justify-content: center; min-height: 44px; text-decoration: none; border-left: 2px solid var(--ddp-color-secondary); padding-left: 0.75rem; }
@@ -148,11 +148,41 @@ html[data-home-js] .home-nojs { display: none; }
 .home-res-l a { display: inline-block; padding: 0.6rem 0; margin: -0.4rem 0; font-weight: 600; }
 .home-res-m { color: var(--ddp-color-muted); }
 
-/* ---- Under every door: what is open, and the work in progress ---- */
-.home-open { margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--ddp-color-line); }
-.home-open-h { margin: 0 0 0.35rem; font-family: var(--ddp-font-serif); font-weight: 600; font-size: var(--ddp-text-xl); color: var(--ddp-color-primary); }
-.home-open-h span { font-family: var(--ddp-font-sans); font-size: var(--ddp-text-sm); font-weight: 600; color: var(--ddp-color-accent); margin-left: 0.4rem; }
-.home-open .home-p { max-width: 78ch; }
+/* ---- Under every door: pick a subject (version A1's tiles), things to try, the work in progress ---- */
+.home-sec-h { margin: 0 0 0.75rem; font-family: var(--ddp-font-serif); font-weight: 500; font-size: var(--ddp-text-2xl); line-height: 1.2; color: var(--ddp-color-primary); }
+.home-subjects { margin-top: 3rem; padding-top: 1.6rem; border-top: 1px solid var(--ddp-color-line); }
+.home-subj-grid { position: relative; display: grid; grid-template-columns: minmax(0, 1.35fr) repeat(2, minmax(0, 1fr)); gap: 1rem; margin-top: 3.2rem; }
+.home-bio { grid-row: 1 / span 2; display: flex; flex-direction: column; gap: 0.8rem; padding: 1.4rem 1.5rem; background: var(--ddp-color-surface); border: 1.5px solid var(--ddp-color-accent); border-radius: var(--ddp-radius); box-shadow: var(--ddp-shadow); }
+.home-bio-top { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; }
+.home-bio h3 { margin: 0; font-size: var(--ddp-text-3xl); font-weight: 600; }
+.home-stats { display: flex; flex-wrap: wrap; gap: 0.4rem 1.5rem; }
+.home-stats li { display: flex; flex-direction: column; }
+.home-stats b { font-family: var(--ddp-font-serif); font-size: var(--ddp-text-xl); color: var(--ddp-color-primary); font-weight: 600; line-height: 1.2; }
+.home-stats span { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+.home-go-arc { margin-top: auto; align-self: flex-start; white-space: nowrap; }
+.home-go-arc svg { display: block; width: 26px; height: 12px; overflow: visible; }
+.home-go-arc .hop-arc { stroke: var(--ddp-color-secondary); stroke-dasharray: 1.5 3.5; stroke-width: 1.6; }
+@media (prefers-color-scheme: dark) { .home-go-arc .hop-arc { stroke: #0f1522; } }
+.home-pill-live, .home-pill-soon { display: inline-block; flex: none; font-size: var(--ddp-text-xs); padding: 0.15rem 0.6rem; border-radius: 999px; font-weight: 600; }
+.home-pill-live { background: color-mix(in srgb, var(--ddp-color-accent) 14%, var(--ddp-color-surface)); color: var(--ddp-color-accent); }
+.home-pill-soon { border: 1px dashed var(--ddp-color-muted); color: var(--ddp-color-muted); }
+.home-soon { display: flex; flex-direction: column; gap: 0.35rem; padding: 1rem 1.1rem; border: 1.5px dashed color-mix(in srgb, var(--ddp-color-muted) 45%, transparent); border-radius: var(--ddp-radius); }
+.home-soon h3 { margin: 0; font-size: var(--ddp-text-xl); color: var(--ddp-color-muted); font-weight: 500; }
+.home-soon p { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); line-height: 1.5; }
+.home-soon-top { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; }
+/* Hex hops from Biology over to the coming subjects. Drawn, not animated. */
+.home-leap { position: absolute; left: 30%; top: -3.6rem; width: 30%; height: 4.6rem; pointer-events: none; }
+.home-leap svg.home-arc { display: block; width: 100%; height: 100%; overflow: visible; }
+.home-leap .home-leap-hex { position: absolute; left: 50%; top: -1.4rem; transform: translateX(-50%) rotate(10deg); }
+.home-soon-row { display: none; flex-wrap: wrap; align-items: center; gap: 0.35rem 0.4rem; margin: 0.7rem 0 0; font-size: var(--ddp-text-sm); color: var(--ddp-color-muted); }
+.home-soon-lbl { font-weight: 600; margin-right: 0.2rem; }
+.home-sc { display: inline-flex; align-items: center; min-height: 30px; padding: 0.15rem 0.65rem; border: 1.5px dashed color-mix(in srgb, var(--ddp-color-muted) 45%, transparent); border-radius: 999px; font-size: var(--ddp-text-xs); }
+.home-try-sec { margin-top: 2.4rem; }
+.home-try { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.6rem; }
+.home-try a { display: flex; flex-direction: column; gap: 0.15rem; height: 100%; box-sizing: border-box; min-height: 44px; padding: 0.65rem 0.85rem; background: var(--ddp-color-surface); border: 1px solid var(--ddp-color-line); border-radius: var(--ddp-radius-sm); text-decoration: none; transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.14s ease; }
+.home-try a:hover, .home-try a:focus-visible { border-color: var(--ddp-color-accent); text-decoration: none; transform: translateY(-3px) rotate(-0.8deg); box-shadow: var(--ddp-shadow); }
+.home-try b { font-family: var(--ddp-font-serif); font-weight: 600; color: var(--ddp-color-primary); font-size: var(--ddp-text-base); }
+.home-try span { font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.45; }
 .home-wip { margin-top: 1.4rem; }
 .home-wip p { margin: 0; max-width: 78ch; font-size: var(--ddp-text-sm); line-height: 1.65; color: var(--ddp-color-ink-soft); }
 .home-wip a { font-weight: 600; }
@@ -163,7 +193,6 @@ html[data-home-js] .home-nojs { display: none; }
   .home-tagline { margin-top: 0.45rem; font-size: var(--ddp-text-lg); }
   .home-lede { font-size: var(--ddp-text-base); line-height: 1.5; }
   .home-search { margin-top: 0.7rem; }
-  .home-byline { margin-top: 0.5rem; font-size: var(--ddp-text-xs); }
   .home-roles { margin-top: 0.8rem; }
   .home-roles legend { margin-right: 0.6rem; }
   .home-role-row { gap: 0.35rem; }
@@ -172,17 +201,48 @@ html[data-home-js] .home-nojs { display: none; }
   .home-h2 { font-size: var(--ddp-text-2xl); margin-bottom: 0.4rem; }
   .home-story { font-size: 0.94em; line-height: 1.5; }
   .home-h3 { font-size: var(--ddp-text-lg); }
-  .home-pair { grid-template-columns: minmax(0, 1fr); margin-top: 0.9rem; gap: 1.8rem; }
+  .home-pair { grid-template-columns: minmax(0, 1fr); margin-top: 0.9rem; gap: 1.4rem; }
   .home-parent-grid { grid-template-columns: minmax(0, 1fr); grid-template-areas: 'intro' 'act' 'rest'; gap: 1.1rem; }
   .home-activity { padding: 0.9rem 1rem 1.1rem; }
-  .home-lv { grid-template-columns: minmax(0, 1fr); gap: 0.35rem; padding: 0.7rem 0 0.5rem; }
-  .home-lv-first { display: block; min-height: 0; padding: 0.55rem 0 0.55rem 0.75rem; }
+  /* A phone pays for the subject tiles and Things to try with these: the rungs show the lesson and
+     its level (the opening questions stay on wider screens), the level rows drop their second line
+     (as on the page before this one), and two sentences shorten. */
+  [data-door='student'] .home-rung-note, .home-lv-d, .home-wide { display: none; }
+  .home-narrow { display: inline; }
+  .home-levels { margin-top: 1.6rem; }
+  .home-lv { grid-template-columns: minmax(0, 1fr); gap: 0.3rem; padding: 0.55rem 0 0.3rem; }
+  /* A 44 px target that takes less room: the padding overlaps the row's own spacing. */
+  .home-lv-first { display: block; min-height: 0; padding: 0.75rem 0 0.75rem 0.75rem; margin: -0.45rem 0; border-left: 0; padding-left: 0; }
   .home-lv-first small { margin-right: 0.3rem; }
   .home-trio { grid-template-columns: minmax(0, 1fr); gap: 1.4rem; margin-top: 1.2rem; }
-  .home-open { margin-top: 2.2rem; padding-top: 1.3rem; }
+  .home-subjects { margin-top: 1.6rem; padding-top: 1.1rem; }
+  .home-sec-h { font-size: var(--ddp-text-xl); margin-bottom: 0.5rem; }
+  /* On a phone Hex still leaps: a short arc from the Biology tile to the row of coming subjects. */
+  .home-subj-grid { grid-template-columns: minmax(0, 1fr); margin-top: 0; }
+  .home-bio { grid-row: auto; padding: 0.9rem 1rem 1rem; gap: 0.6rem; }
+  .home-bio h3 { font-size: var(--ddp-text-2xl); }
+  .home-stats { gap: 0.25rem 1.1rem; }
+  .home-stats b { font-size: var(--ddp-text-lg); }
+  .home-subj-grid .home-soon { display: none; }
+  .home-leap { left: auto; right: 0.6rem; top: auto; bottom: -1.9rem; width: 5.2rem; height: 2.2rem; }
+  .home-leap .home-leap-hex { top: -1.5rem; width: 40px; height: auto; }
+  .home-soon-row { display: flex; margin-top: 0.9rem; padding-right: 5.5rem; }
+  .home-try-sec { margin-top: 1.6rem; }
+  .home-try { gap: 0.4rem; }
+  .home-try a { padding: 0.55rem 0.6rem; justify-content: center; }
+  .home-try b { font-size: var(--ddp-text-sm); line-height: 1.25; }
+  .home-try span { display: none; }
 }
 @media (max-width: 360px) {
   .home-roles legend { float: none; width: 100%; line-height: 1.4; }
   .home-role span { padding-inline: 0.7rem; }
 }
-@media (prefers-reduced-motion: reduce) { .home-bc { transition: none; } }
+/* ---- Arrival: the hero rises once, a little. Still under reduced motion, like every hover lift. ---- */
+@keyframes homeRise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+.home-mark, .home-hero .home-lede { animation: homeRise 0.5s ease both; }
+.home-hero .home-lede { animation-delay: 0.1s; }
+@media (prefers-reduced-motion: reduce) {
+  .home-mark, .home-hero .home-lede { animation: none !important; }
+  .home-bc, .home-try a { transition: none; }
+  .home-bc:hover, .home-bc:focus-visible, .home-try a:hover, .home-try a:focus-visible { transform: none !important; }
+}
