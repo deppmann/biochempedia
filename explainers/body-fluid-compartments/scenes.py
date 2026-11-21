@@ -265,7 +265,7 @@ class S04Count(SpokenScene):
 
 # ---------------------------------------------------------------------------------------------
 class S05Litre(SpokenScene):
-    """Trial A: 1 L isotonic saline. Trial B: 1 L solute-free water. Where does each litre go?"""
+    """Trial A: 1 L isotonic saline. Trial B: 1 L solute-free water, with step-by-step equilibrium arithmetic."""
 
     def construct(self):
         R = Rooms()
@@ -287,20 +287,20 @@ class S05Litre(SpokenScene):
         ta = T("Trial A: 1 L isotonic saline", 30, SOL).move_to([0, 3.25, 0])
         bA = block(SOL, "1 L").move_to([R.xe, 2.3, 0])
         sdots = VGroup(*[dot(SOL, R.xe + dx, R.cy + 1.15, 0.1) for dx in (-1.2, -0.6, 0.0, 0.6, 1.2)])
-        self.at("Retain")
+        self.at("one liter")
         self.play(FadeIn(ta, shift=DOWN * 0.1), FadeIn(bA), run_time=0.6)
-        self.at("Its particles stay outside")
+        self.at("particles stay outside")
         self.play(bA.animate.move_to([R.xe, R.top - 0.05, 0]).scale(0.4).set_opacity(0.0),
                   LaggedStart(*[FadeIn(d, scale=0.4) for d in sdots], lag_ratio=0.15), run_time=1.0)
-        self.at("so the concentration does not change")
+        self.at("concentration does not")
         self.play(Indicate(VGroup(ci, ce), color=SOL, scale_factor=1.1), run_time=0.9)
         di = delta("unchanged", R.xi, GREY)
         self.at("Cells stay")
         self.play(FadeIn(di), run_time=0.5)
         ve2 = vol("15.0 L", R.xe, ECF_C)
         de = delta("+1.0 L", R.xe, ECF_C)
-        self.at("grows to")
-        self.play(ReplacementTransform(ve, ve2), FadeIn(de, shift=UP * 0.1), run_time=0.8)
+        self.at("to 15")
+        self.play(ReplacementTransform(ve, ve2), FadeIn(de, shift=UP * 0.1), run_time=0.6)
 
         # ---- Trial B: solute-free water (reset every answer in the same beat as the new label) -----
         tb = T("Trial B: 1 L solute-free water", 30, WATER).move_to([0, 3.25, 0])
@@ -308,33 +308,78 @@ class S05Litre(SpokenScene):
         bB = block(WATER, "1 L").move_to([R.xe, 2.3, 0])
         self.at("Now retain")
         self.play(ReplacementTransform(ta, tb), ReplacementTransform(ve2, ve0), FadeOut(de), FadeOut(di), FadeOut(sdots),
-                  FadeIn(bB, shift=DOWN * 0.2), run_time=0.8)
-        # the litre sits outside cells first: ECF 15.0 L, its concentration no longer the same as the cells'
+                  run_time=0.6)
+        self.at("one liter", nth=1)
+        self.play(FadeIn(bB, shift=DOWN * 0.2), run_time=0.5)
+        # the litre sits outside cells first: ECF 15.0 L, diluted
         ve15 = vol("15.0 L", R.xe, ECF_C)
         de15 = delta("+1.0 L", R.xe, ECF_C)
         cdil = T("diluted", 28, SOL).move_to([R.xe, R.cy - 0.45, 0])
         self.at("first sits")
         self.play(bB.animate.move_to([R.xe, R.top - 0.05, 0]).scale(0.4).set_opacity(0.0),
-                  ReplacementTransform(ve0, ve15), FadeIn(de15, shift=UP * 0.1), ReplacementTransform(ce, cdil),
-                  run_time=1.0)
-        # water crosses the door into the cells; volumes end at 28.67 / 14.33 (sum stays 43 L)
-        vi3 = vol("28.67 L", R.xi, ICF_C)
-        ve3 = vol("14.33 L", R.xe, ECF_C)
+                  ReplacementTransform(ce, cdil), run_time=0.7)
+        self.at("at 15")
+        self.play(ReplacementTransform(ve0, ve15), FadeIn(de15, shift=UP * 0.1), run_time=0.6)
+        # water crosses the door until both rooms match
+        vi_q, ve_q = vol("? L", R.xi, GREY), vol("? L", R.xe, GREY)
+        ci_q, ce_q = conc("? mOsm/kg", R.xi), conc("? mOsm/kg", R.xe)
         mv = VGroup(*[dot(WATER, R.xe - 1.1 + 0.4 * k, R.cy, 0.12) for k in range(3)])
-        self.at("crosses until")
-        self.play(FadeIn(mv, scale=0.5), FadeOut(ci), FadeOut(cdil), FadeOut(de15), run_time=0.3)
-        self.play(mv.animate.shift(LEFT * 3.6), ReplacementTransform(vi, vi3), ReplacementTransform(ve15, ve3),
-                  run_time=1.2, rate_func=linear)
+        self.at("water crosses")
+        self.play(FadeIn(mv, scale=0.5), FadeOut(de15),
+                  ReplacementTransform(vi, vi_q), ReplacementTransform(ve15, ve_q),
+                  ReplacementTransform(ci, ci_q), ReplacementTransform(cdil, ce_q), run_time=0.3)
+        self.play(mv.animate.shift(LEFT * 3.6), run_time=1.2, rate_func=linear)
         self.play(FadeOut(mv), run_time=0.3)
+
+        # ---- Step-by-step arithmetic as spoken --------------------------------------------------
+        eq1_a = M("12,600 mOsm", 24, SOL)
+        eq1_b = M("÷ 43 L", 24, TEXT)
+        eq1_c = M("≈ 293 mOsm/kg", 24, SOL)
+        eq1 = VGroup(eq1_a, eq1_b, eq1_c).arrange(RIGHT, buff=0.18)
+
+        eq2_lbl = T("cells:", 24, ICF_C)
+        eq2_a = M("8,400", 24, SOL)
+        eq2_b = M("÷ 293", 24, TEXT)
+        eq2_c = M("≈ 28.67 L", 24, ICF_C)
+        eq2_d = M("(+0.67 L)", 24, ICF_C)
+        eq2 = VGroup(eq2_lbl, eq2_a, eq2_b, eq2_c, eq2_d).arrange(RIGHT, buff=0.16)
+
+        eq3_lbl = T("ECF:", 24, ECF_C)
+        eq3_a = M("4,200 ÷ 293", 24, SOL)
+        eq3_b = M("≈ 14.33 L", 24, ECF_C)
+        eq3_c = M("(+0.33 L)", 24, ECF_C)
+        eq3 = VGroup(eq3_lbl, eq3_a, eq3_b, eq3_c).arrange(RIGHT, buff=0.16)
+
+        VGroup(eq1, eq2, eq3).arrange(DOWN, aligned_edge=LEFT, buff=0.22).move_to([0, 2.22, 0])
+
+        self.at("same 12")
+        self.play(FadeIn(eq1_a, shift=UP * 0.08), run_time=0.5)
+        self.at("in 43")
+        self.play(FadeIn(eq1_b, shift=RIGHT * 0.08), run_time=0.5)
         ci2, ce2 = conc("293.0 mOsm/kg", R.xi), conc("293.0 mOsm/kg", R.xe)
-        self.at("They end")
-        self.play(FadeIn(ci2, scale=0.9), FadeIn(ce2, scale=0.9), run_time=0.7)
+        self.at("about 293")
+        self.play(FadeIn(eq1_c, shift=RIGHT * 0.08),
+                  ReplacementTransform(ci_q, ci2), ReplacementTransform(ce_q, ce2), run_time=0.5)
+
+        self.at("cells 8")
+        self.play(FadeIn(VGroup(eq2_lbl, eq2_a), shift=UP * 0.08), run_time=0.5)
+        self.at("by")
+        self.play(FadeIn(eq2_b, shift=RIGHT * 0.08), run_time=0.5)
+        vi3 = vol("28.67 L", R.xi, ICF_C)
+        self.at("28", nth=1)
+        self.play(FadeIn(eq2_c, shift=RIGHT * 0.08), ReplacementTransform(vi_q, vi3), run_time=0.5)
         di3 = delta("+0.67 L", R.xi, ICF_C)
-        self.at("Cells gain")
-        self.play(FadeIn(di3, shift=UP * 0.1), run_time=0.6)
+        self.at("2 thirds")
+        self.play(FadeIn(eq2_d, shift=RIGHT * 0.08), FadeIn(di3, shift=UP * 0.1), run_time=0.5)
+
+        self.at("Extracellular fluid", nth=1)
+        self.play(FadeIn(VGroup(eq3_lbl, eq3_a), shift=UP * 0.08), run_time=0.5)
+        ve3 = vol("14.33 L", R.xe, ECF_C)
+        self.at("at 14")
+        self.play(FadeIn(eq3_b, shift=RIGHT * 0.08), ReplacementTransform(ve_q, ve3), run_time=0.5)
         de3 = delta("+0.33 L", R.xe, ECF_C)
-        self.at("gains")
-        self.play(FadeIn(de3, shift=UP * 0.1), run_time=0.6)
+        self.at("1 third")
+        self.play(FadeIn(eq3_c, shift=RIGHT * 0.08), FadeIn(de3, shift=UP * 0.1), run_time=0.4)
         self.finish()
 
 

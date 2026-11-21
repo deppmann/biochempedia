@@ -175,7 +175,7 @@ class Flow(VGroup):
         for _ in range(n):
             self.add(Dot(radius=r, color=color).set_opacity(0))
             self.recs.append([math.radians(rng.uniform(*ang)), rng.random(), rng.uniform(0.85, 1.15)])
-        self.on, self.inward, self.spread, self.depth, self.speed, self.getg = 0.0, inward, spread, depth, speed, getg
+        self.on, self.inward, self.spread, self.flow_depth, self.speed, self.getg = 0.0, inward, spread, getattr(self, "flow_depth", depth), speed, getg
         self.add_updater(lambda m, dt: m._u(dt))
 
     def _u(self, dt):
@@ -185,7 +185,7 @@ class Flow(VGroup):
             th, u, j = rec
             u = (u + dt * self.speed * j) % 1.0
             rec[1] = u
-            f = outer + (self.depth - outer) * u if self.inward else self.depth + (outer - self.depth) * u
+            f = outer + (self.flow_depth - outer) * u if self.inward else self.flow_depth + (outer - self.flow_depth) * u
             dot.move_to(c + np.array([ax * f * math.cos(th), ay * f * math.sin(th), 0]))
             dot.set_opacity(min(1, 4 * u, 4 * (1 - u)) * self.on)
 
@@ -681,46 +681,136 @@ class S11Reveal(SpokenScene):
 
 class S12Grow(SpokenScene):
     def construct(self):
+        class _S12Flow(Flow):
+            def __init__(self, *args, flow_depth=0.15, **kwargs):
+                self.flow_depth = flow_depth
+                super().__init__(*args, **kwargs)
+
+            def _u(self, dt):
+                c, ax, ay = self.getg()
+                outer = 1 + self.spread
+                for dot, rec in zip(self.submobjects, self.recs):
+                    th, u, j = rec
+                    u = (u + dt * self.speed * j) % 1.0
+                    rec[1] = u
+                    f = outer + (self.flow_depth - outer) * u if self.inward else self.flow_depth + (outer - self.flow_depth) * u
+                    dot.move_to(c + np.array([ax * f * math.cos(th), ay * f * math.sin(th), 0]))
+                    dot.set_opacity(min(1, 4 * u, 4 * (1 - u)) * self.on)
+
         cell = RCell((1.5, 0), 2.0)
         self.add(cell)
         g = cell.geom
-        reach = {"d": 0.35, "sp": 0.25}
-        fl = Flow(14, AMBER, g, True, ang=(120, 240), spread=0.9, depth=0.35, seed=1)
-        fl2 = Flow(14, CYAN, g, True, ang=(120, 240), spread=0.9, depth=0.35, seed=2)
+        fl = _S12Flow(14, AMBER, g, True, ang=(150, 210), spread=0.22, flow_depth=0.15, seed=1)
+        fl2 = _S12Flow(14, CYAN, g, True, ang=(150, 210), spread=0.22, flow_depth=0.15, seed=2)
         fl.on = fl2.on = 1
         self.add(fl, fl2)
-        sch = T("schematic", 22, GREY).move_to([5.8, -3.6, 0])
+        sch = T("schematic", 24, GREY).move_to([5.8, -3.45, 0])
         self.add(sch)
-        self.at("grow")
-        self.play(tw(cell, 1.1, r=3.4), run_time=1.1)
+
+        origin = np.array([-5.37, 0.21, 0.0])
+        vx = np.array([1.0, 0.0, 0.0])
+        vy = np.array([0.0, 1.0, 0.0])
+        vz = np.array([0.42, 0.30, 0.0])
+
+        def pt(u, v, w):
+            return origin + u * vx + v * vy + w * vz
+
+        def make_cube(S, stroke_col=TEXT, sw=3.0, fill_op=0.06):
+            front = Polygon(pt(0, 0, 0), pt(S, 0, 0), pt(S, S, 0), pt(0, S, 0),
+                            stroke_color=stroke_col, stroke_width=sw, fill_color=stroke_col, fill_opacity=fill_op)
+            top = Polygon(pt(0, S, 0), pt(S, S, 0), pt(S, S, S), pt(0, S, S),
+                          stroke_color=stroke_col, stroke_width=sw, fill_color=stroke_col, fill_opacity=fill_op * 0.8)
+            right = Polygon(pt(S, 0, 0), pt(S, S, 0), pt(S, S, S), pt(S, 0, S),
+                            stroke_color=stroke_col, stroke_width=sw, fill_color=stroke_col, fill_opacity=fill_op * 0.6)
+            back = VGroup(
+                DashedLine(pt(0, 0, S), pt(S, 0, S), dash_length=0.08, color=GREY, stroke_width=1.5),
+                DashedLine(pt(0, 0, S), pt(0, S, S), dash_length=0.08, color=GREY, stroke_width=1.5),
+                DashedLine(pt(0, 0, S), pt(0, 0, 0), dash_length=0.08, color=GREY, stroke_width=1.5),
+            ).set_opacity(0.45)
+            return VGroup(back, front, top, right)
+
+        def make_face_tiles(S):
+            h = S / 2.0
+            tiles = VGroup()
+            kw = dict(stroke_color=TEAL, stroke_width=3.0, fill_color=TEAL, fill_opacity=0.22)
+            for i in range(2):
+                for j in range(2):
+                    tiles.add(Polygon(pt(i * h, j * h, 0), pt((i + 1) * h, j * h, 0),
+                                      pt((i + 1) * h, (j + 1) * h, 0), pt(i * h, (j + 1) * h, 0), **kw))
+            for i in range(2):
+                for k in range(2):
+                    tiles.add(Polygon(pt(i * h, S, k * h), pt((i + 1) * h, S, k * h),
+                                      pt((i + 1) * h, S, (k + 1) * h), pt(i * h, S, (k + 1) * h), **kw))
+            for j in range(2):
+                for k in range(2):
+                    tiles.add(Polygon(pt(S, j * h, k * h), pt(S, (j + 1) * h, k * h),
+                                      pt(S, (j + 1) * h, (k + 1) * h), pt(S, j * h, (k + 1) * h), **kw))
+            return tiles
+
+        def make_inner_cubes(S):
+            h = S / 2.0
+            gap = 0.06
+            cubes = VGroup()
+            for k in (1, 0):
+                op = 0.16 if k == 1 else 0.28
+                for j in range(2):
+                    for i in range(2):
+                        u0, u1 = i * h + gap, (i + 1) * h - gap
+                        v0, v1 = j * h + gap, (j + 1) * h - gap
+                        w0, w1 = k * h + gap, (k + 1) * h - gap
+                        kw = dict(stroke_color=GOLD, stroke_width=2.0, fill_color=GOLD, fill_opacity=op)
+                        f = Polygon(pt(u0, v0, w0), pt(u1, v0, w0), pt(u1, v1, w0), pt(u0, v1, w0), **kw)
+                        t = Polygon(pt(u0, v1, w0), pt(u1, v1, w0), pt(u1, v1, w1), pt(u0, v1, w1), **kw)
+                        r = Polygon(pt(u1, v0, w0), pt(u1, v1, w0), pt(u1, v1, w1), pt(u1, v0, w1), **kw)
+                        cubes.add(VGroup(f, t, r))
+            return cubes
+
+        unit_cube = make_cube(0.68)
+        dbl_cube = make_cube(1.36)
+        surf_tiles = make_face_tiles(1.36)
+        inner_cubes = make_inner_cubes(1.36)
+
+        sh = T("same shape", 28, TEXT, weight=BOLD).move_to([-4.4, 3.25, 0])
+        w_lbl = M("width: ×2", 26, TEXT).move_to([-4.4, 2.50, 0])
+        surf_lbl = M("surface: ×4", 28, TEXT).move_to([-4.4, -0.45, 0])
+        ins_lbl = M("inside:  ×8", 28, GOLD).move_to([-4.4, -1.25, 0])
+        ml = T("middle falls behind", 28, TEXT, weight=BOLD).move_to([-4.4, -2.45, 0])
+        ma = Arrow(ml.get_right() + RIGHT * 0.12, [0.8, -0.3, 0], buff=0, color=TEXT, stroke_width=4, tip_length=0.2)
+
+        self.at("cell grow")
+        self.play(tw(cell, 1.0, r=2.7, core=1.0), run_time=1.0)
         self.at("shape")
-        sh = plate(T("same shape", 30, TEXT, weight=BOLD).move_to([-4.7, 3.3, 0]))
-        self.play(FadeIn(sh), run_time=0.4)
-        self.at("inside")
-        r0 = plate(M("width  x2", 30, TEXT).move_to([-4.6, 2.4, 0]))
-        r1 = plate(M("inside  x8", 30, GOLD).move_to([-4.6, 1.5, 0]))
-        self.play(FadeIn(r0), run_time=0.4)
-        self.play(FadeIn(r1), run_time=0.4)
+        self.play(FadeIn(sh), FadeIn(unit_cube), run_time=0.7)
+
+        self.at("Double")
+        self.play(tw(cell, 1.0, r=3.4), ReplacementTransform(unit_cube, dbl_cube), FadeIn(w_lbl), run_time=1.0)
+
         self.at("surface")
-        r2 = plate(M("surface x4", 30, TEXT).move_to([-4.6, 0.6, 0]))
-        self.play(FadeIn(r2), run_time=0.4)
+        self.play(LaggedStart(*[FadeIn(t) for t in surf_tiles], lag_ratio=0.04, run_time=0.6))
+        self.at("four times")
+        self.play(FadeIn(surf_lbl), run_time=0.5)
+
+        self.at("its inside")
+        self.play(surf_tiles.animate.set_stroke(opacity=0.35).set_fill(opacity=0.05),
+                  LaggedStart(*[FadeIn(c, scale=0.85) for c in inner_cubes], lag_ratio=0.1, run_time=0.85))
+        self.at("eight times")
+        self.play(FadeIn(ins_lbl), run_time=0.5)
+
         fl.tt = 0.0
 
         def reach(m, dt):
             m.tt += dt
             al = min(1.0, m.tt / 3.5)
             for f in (fl, fl2):
-                f.depth = 0.35 + 0.5 * al
+                f.flow_depth = 0.15 + 0.63 * al
                 f.speed = 0.25 - 0.17 * al
-        fl.add_updater(reach)
 
-        self.at("middle")
-        self.play(tw(cell, 0.8, core=1.0), run_time=0.8)
-        self.at("get food")
-        ml = T("middle falls behind", 30, TEXT, weight=BOLD).move_to([-4.6, -2.0, 0])
-        ma = Arrow(ml.get_right() + RIGHT * 0.05, [0.5, -0.4, 0], buff=0.05, color=TEXT, stroke_width=4, tip_length=0.2)
+        self.at("middle gets farther away")
+        fl.add_updater(reach)
+        self.play(tw(cell, 4.5, core=0.15), run_time=4.5)
+
+        self.at("food and oxygen")
         self.play(FadeIn(ml), GrowArrow(ma), run_time=0.5)
-        self.play(tw(cell, 2.4, core=0.15), run_time=2.4)
         self.finish()
 
 
@@ -743,7 +833,8 @@ class S13Many(SpokenScene):
         wk.on = 1
         self.at("watery fluid")
         fl_l = T("watery fluid", 32, WATER, weight=BOLD).move_to([-4.7, 0.3, 0])
-        fa = Arrow(fl_l.get_right() + RIGHT * 0.05, cl.pts[min(range(len(cl.pts)), key=lambda i: cl.pts[i][0])] + LEFT * 0.25, buff=0.05, color=WATER, stroke_width=4, tip_length=0.18)
+        ch_pt = min((0.5 * (cl.pts[i] + cl.pts[j]) for i, j in cl.edges if 0.1 < 0.5 * (cl.pts[i][1] + cl.pts[j][1]) < 0.9), key=lambda p: p[0])
+        fa = Arrow(fl_l.get_right() + RIGHT * 0.05, ch_pt, buff=0.05, color=WATER, stroke_width=4, tip_length=0.18)
         self.play(FadeIn(fl_l), GrowArrow(fa), run_time=0.6)
         self.finish()
 

@@ -427,23 +427,102 @@ class S08Reveal(SpokenScene):
         self.at("They differ")
         bright = chip("differ", GOLD, 30).move_to(differ)
         self.play(swap(differ, bright), run_time=0.7)
-        results = division_cards(covered=False)
-        foot = T("of all captured energy", 22, GREY).move_to([4.0, 0.68, 0])
-        self.at("three measured steps")
-        for old, new in zip(covered, results):
-            self.play(swap(old[2], new[2]), run_time=0.58)
-        self.play(FadeIn(foot), run_time=0.6)
+
+        # Build the three division formulas aligned with the 10% model marker
+        eq_ys = [1.92, 0.15, -0.82]
+        eq_lefts = []
+        eq_qchips = []
+        eq_rchips = []
+        for i, y in enumerate(eq_ys):
+            col = COLORS[i + 1]
+            left = M(f"{int(VALUES[i + 1]):,} / {int(VALUES[i]):,} =", 24, col)
+            rchip = chip(f"{100 * RATIOS[i]:.1f}%", col, 26)
+            row = VGroup(left, rchip).arrange(RIGHT, buff=0.14).move_to([3.70, y, 0])
+            qchip = chip("?", GREY, 26).move_to(rchip)
+            eq_lefts.append(left)
+            eq_rchips.append(rchip)
+            eq_qchips.append(qchip)
+
+        # Replace the generic dashed marker with a 0%-20% scale centered at the 10% dashed marker
+        x0, x20 = 1.20, 6.10
+        x10 = 0.5 * (x0 + x20)  # 3.65
+        scale_line = Line([x0, -1.96, 0], [x20, -1.96, 0], color=GREY, stroke_width=3)
+        ten_dash = DashedLine([x10, -2.20, 0], [x10, -1.72, 0], color=GOLD, stroke_width=4, dash_length=0.08)
+        marker_lab = T("10% classroom model", 24, GOLD).move_to([x10, -2.46, 0])
+
+        self.at("Divide each level")
+        self.play(
+            FadeOut(q),
+            *[ReplacementTransform(covered[i][0], eq_lefts[i]) for i in range(3)],
+            *[FadeOut(covered[i][1]) for i in range(3)],
+            *[ReplacementTransform(covered[i][2], eq_qchips[i]) for i in range(3)],
+            ReplacementTransform(marker[0], VGroup(scale_line, ten_dash)),
+            ReplacementTransform(marker[1], marker_lab),
+            run_time=1.0,
+        )
+        self.play(
+            LaggedStart(*[Indicate(eq_lefts[i], color=GOLD, scale_factor=1.04) for i in range(3)], lag_ratio=0.18),
+            run_time=0.9,
+        )
+
+        # Uncover each percentage strictly as it is spoken
+        foot = T("of all energy captured\n(see producer row)", 22, GREY, line_spacing=0.85).next_to(
+            VGroup(eq_lefts[0], eq_rchips[0]), DOWN, buff=0.16
+        )
+        self.at("16", lead=0.05)
+        self.play(swap(eq_qchips[0], eq_rchips[0]), run_time=0.55)
+        self.play(FadeIn(foot), run_time=0.45)
+
+        self.at("11", lead=0.05)
+        self.play(swap(eq_qchips[1], eq_rchips[1]), run_time=0.55)
+
+        self.at("5", lead=0.05)
+        self.play(swap(eq_qchips[2], eq_rchips[2]), run_time=0.55)
+
+        # Place all three results around the 10% model marker without highlighting a closest result
+        dot_xs = [x0 + r * (x20 - x0) / 0.20 for r in RATIOS]
+        dots = VGroup(*[Dot([dx, -1.96, 0], radius=0.11, color=COLORS[i + 1]) for i, dx in enumerate(dot_xs)])
+        lab_xs = [dot_xs[0] + 0.18, dot_xs[1] + 0.14, dot_xs[2]]
+        dot_labs = VGroup(*[
+            M(f"{100 * RATIOS[i]:.1f}%", 22, COLORS[i + 1]).move_to([lx, -1.52, 0])
+            for i, lx in enumerate(lab_xs)
+        ])
+
+        self.at("Those steps")
+        self.play(
+            LaggedStart(*[GrowFromCenter(d) for d in dots], lag_ratio=0.2),
+            LaggedStart(*[FadeIn(l, shift=DOWN * 0.1) for l in dot_labs], lag_ratio=0.2),
+            run_time=1.3,
+        )
+
+        # Return all three to the energy bars, leaving their unequal gaps visible
         self.at("Real transfer varies")
-        dots = VGroup(*[Dot([3.55 + (r - 0.10) * 13.0, -2.0, 0], radius=0.12,
-                                 color=c) for r, c in zip(RATIOS, COLORS[1:])])
-        baseline = Line([2.35, -2.0, 0], [5.45, -2.0, 0], color=GREY, stroke_width=3)
-        ten = Line([3.55, -2.2, 0], [3.55, -1.8, 0], color=GOLD, stroke_width=5)
-        self.play(Create(baseline), Create(ten), LaggedStart(*[GrowFromCenter(d) for d in dots], lag_ratio=0.2),
-                  run_time=1.1)
+        target_stack = measured_stack(with_labels=False).scale(0.96).move_to(LEFT * 0.5)
+        bar_pcts = VGroup(*[
+            M(f"{100 * RATIOS[i]:.1f}%", 30, COLORS[i + 1]).next_to(target_stack.bars[i + 1], RIGHT, buff=0.55)
+            for i in range(3)
+        ])
+        step_arrows = VGroup(*[
+            Arrow(target_stack.bars[i].get_top(), target_stack.bars[i + 1].get_bottom(),
+                  color=GOLD, buff=0.04, stroke_width=5, max_tip_length_to_length_ratio=0.28)
+            for i in range(3)
+        ])
+        self.play(
+            FadeOut(VGroup(*eq_lefts, *eq_rchips, foot, scale_line, ten_dash, marker_lab, dots, choices[0], bright, ruler)),
+            run_time=0.45,
+        )
+        self.play(
+            Transform(stack, target_stack),
+            *[ReplacementTransform(dot_labs[i], bar_pcts[i]) for i in range(3)],
+            run_time=1.05,
+        )
+        self.play(LaggedStart(*[GrowArrow(a) for a in step_arrows], lag_ratio=0.2), run_time=0.85)
+
         self.at("No single measured")
-        self.play(FadeOut(covered), FadeOut(results), FadeOut(foot), FadeOut(baseline), FadeOut(ten),
-                  FadeOut(dots), FadeOut(q), FadeOut(choices), FadeOut(bright), FadeOut(marker),
-                  FadeOut(ruler), stack.animate.scale(1.55).move_to(ORIGIN), run_time=1.2)
+        self.play(
+            LaggedStart(*[Indicate(p, color=GOLD, scale_factor=1.06) for p in bar_pcts], lag_ratio=0.18),
+            run_time=1.2,
+        )
         self.finish()
 
 
