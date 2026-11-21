@@ -30,6 +30,23 @@ explainer:
     - "More substrate adds speed only by filling empty enzymes."
     - "Km is the substrate concentration at half Vmax, not automatically binding affinity."
     - "Vmax equals kcat times total enzyme concentration in the simplest model."
+
+films:
+  - id: "chapter-2"
+    src: "/explainers/enzyme-kinetics/chapter-2.mp4"
+    captions: "/explainers/enzyme-kinetics/chapter-2.vtt"
+    poster: "/explainers/enzyme-kinetics/chapter-2-poster.jpg"
+    title: "Empty, Busy, or Both"
+    durationSec: 190.9
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+    takeaways:
+      - "A reversible inhibitor can tie up empty enzyme, busy enzyme, or both, and that choice sets its pattern."
+      - "A competitive inhibitor grabs only empty enzyme: the apparent Km rises, but Vmax is unchanged."
+      - "An uncompetitive inhibitor grabs only busy enzyme, so the apparent Km and Vmax fall by the same factor."
+      - "A pure noncompetitive inhibitor grabs both equally, like having less enzyme: Vmax falls and Km is unchanged."
+      - "Pure noncompetitive is a special case of mixed inhibition, where the apparent Km can rise or fall."
+
 scientists:
   - name: "Emil Fischer"
     dates: "1852–1919"
@@ -488,6 +505,7 @@ import MiniPlot from '../../../components/MiniPlot.astro';
 import EquationCard from '../../../components/EquationCard.astro';
 import InhibitionExplorer from '../../../components/InhibitionExplorer.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import LessonFilm from '../../../components/LessonFilm.astro';
 
 The film above follows an enzyme from 12 to 24 mM substrate and shows why velocity rises far less than twofold. Here we derive that curve, then extend it to assays, kcat/Km, reciprocal plots and inhibitors.
 
@@ -639,6 +657,8 @@ Because Vmax is never reached, reading it off the hyperbola by eye is error-pron
 This **double-reciprocal** or **Lineweaver–Burk** plot has **y-intercept 1/Vmax**, **x-intercept −1/Km** and **slope Km/Vmax**. (Watch the reciprocals: the intercept is 1/Vmax, *not* Vmax — a reliable source of exam mistakes.) The mini-plot draws this line live as you slide Km and Vmax.
 
 One caution: taking reciprocals magnifies the error in the low-[S] points. So today Km and Vmax are estimated by fitting the curve directly (non-linear regression), and the double-reciprocal plot is used to see patterns, such as the type of inhibitor.
+
+<LessonFilm film={frontmatter.films[0]} />
 
 ## When something gets in the way: inhibitors
 
