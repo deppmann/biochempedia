@@ -3,7 +3,7 @@
    written after the build by scripts/agent-markdown.mjs). Feeds /catalog.json and /llms.txt. */
 import { getCollection } from 'astro:content';
 import { COURSES, unitsFor, courseHref } from '../data/courses';
-import { lessonMinutes } from './reading-time';
+import { wholeMinutes } from './reading-time';
 import REWRITTEN from '../data/recently-rewritten.json';
 import LINKS from '../data/lesson-links.json';
 import { SITE_ORIGIN } from './site-host.mjs';
@@ -51,7 +51,7 @@ export async function agentCatalog(): Promise<AgentCourse[]> {
           summary: l.data.summary,
           url: `${SITE}/lessons/${l.data.slug}/`,
           markdown: `${SITE}/lessons/${l.data.slug}.md`,
-          minutes: lessonMinutes(l)?.core,
+          minutes: wholeMinutes(l),
           objectives: l.data.objectives ?? [],
           rewritten: rewritten.get(l.data.slug),
           reviewFirst: slugs(links[l.data.slug]?.before),

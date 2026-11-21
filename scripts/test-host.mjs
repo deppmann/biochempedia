@@ -553,14 +553,20 @@ await check('every localStorage key the site writes is one the hand-off carries'
       else if (/\.(astro|ts|mjs|js)$/.test(f)) {
         const t = readFileSync(p, 'utf8');
         if (!/localStorage/.test(t)) continue;
-        for (const m of t.matchAll(/['"`]((?:biochempedia|bcp|bp)[-:][A-Za-z0-9:_\-]*)/g)) found.add(m[1]);
+        for (const m of t.matchAll(/['"`]((?:(?:biochempedia|bcp|bp)[-:]|stemhop:)[A-Za-z0-9:_\-]*)/g)) found.add(m[1]);
       }
     }
   };
   walk(new URL('../src/', import.meta.url).pathname);
   // Literals that are event names, CSS classes or sessionStorage only, not localStorage keys.
   const notKeys = /^bp-(cards-open|class|films|learner|mycards|notebook|progress|reading|section|hl|lp|listen)\b|^biochempedia:(cards-prompt|films:budget|handoff)|^biochempedia-/;
-  const keys = [...found].filter((k) => !notKeys.test(k));
+  // Keys under the new "stemhop:" prefix were first written on stemhop.com itself, so there is nothing
+  // on the old domain to carry: the site-wide preferences (role, level, how long a lesson to open) and
+  // the old per-lesson Side Hops view, now read only as a fallback. Listing them here keeps the scan
+  // honest: a new "stemhop:" key fails this check until someone decides whether the hand-off carries it.
+  const stemhopOnly = /^stemhop:(prefs:v1|side-hops:view:|prefs|films:counted:v1|role-pending|calendar:v1|calendar)$/;
+  const keys = [...found].filter((k) => !notKeys.test(k) && !stemhopOnly.test(k));
+  assert.ok([...found].some((k) => k === 'stemhop:prefs:v1'), 'the scan sees stemhop: keys');
   assert.ok(keys.length >= 15, 'found the keys: ' + keys.join(' '));
   for (const k of keys) {
     const sample = k.endsWith(':') ? k + 'x' : k;
