@@ -66,13 +66,15 @@ const GEMINI = "an AI narrator voice (Gemini, Charon) reading narration written 
 const fromLesson = "an AI narrator voice (Gemini, Charon) reading narration written from the lesson's text";
 
 /** A library film's files, by the house layout. */
-const libFilm = (slug: string, title: string, durationSec: number): MethodFilm => ({
+const KOKORO = "an AI narrator voice (Kokoro, af_heart) reading narration written from the method's fact sheet";
+
+const libFilm = (slug: string, title: string, durationSec: number, narration: string = GEMINI): MethodFilm => ({
   src: `/explainers/method-${slug}/explainer.mp4`,
   captions: `/explainers/method-${slug}/explainer.vtt`,
   poster: `/explainers/method-${slug}/poster.jpg`,
   title,
   durationSec,
-  narration: GEMINI,
+  narration,
 });
 
 /** A lesson's section film reused as a method film. */
@@ -250,6 +252,9 @@ export const METHODS: Method[] = [
     summary: 'Watching neural activity as fluorescence or light changes, from single cells to fibre photometry and cortical maps.',
     lessons: ['axon-pruning', 'basal-ganglia', 'calcium-signaling', 'chronic-pain', 'cns-synapses', 'cortical-areas', 'direction-selectivity', 'gut-brain-sensing', 'hacking-the-cell', 'hairy-skin-and-affective-touch', 'hearing-and-balance', 'hypothalamus-autonomic', 'injury-and-regeneration', 'ion-channels-as-receptors', 'itch', 'large-scale-neuroscience', 'motivation-and-reward', 'multisensory-and-prediction', 'neurons-and-glia-at-work', 'olfactory-bulb-and-cortex', 'olfactory-receptor-choice', 'retinal-cell-types', 'sensory-coding', 'sensory-neuron-atlas', 'shape-of-a-signal', 'smell-and-taste', 'spontaneous-activity', 'taste-coding', 'thermosensation', 'tissues-and-homeostasis', 'tools-for-development', 'vagal-sensory-neurons'],
     terms: ['calcium imaging', 'GCaMP', 'fura-2', 'fiber photometry', 'fibre photometry', 'miniscope', 'voltage-sensitive dye', 'intrinsic signal imaging'],
+    film: libFilm('calcium-imaging', "Watching Neurons Light Up", 221.0, KOKORO),
+    unlocked: [{"text": "Baden and colleagues (2016) used two-photon calcium imaging in isolated ventral mouse retina to distinguish at least 32 functional ganglion cell types by their light-response profiles.", "lesson": "retinal-cell-types"}, {"text": "Barretto and colleagues (Nature, 2015) used calcium imaging in the geniculate ganglion of anaesthetized mice while tastants flowed over the tongue and found that most responding neurons were strongly activated by only one of the tested qualities.", "lesson": "taste-coding"}],
+    sources: [{"label": "Baden T, Berens P, Franke K, Román Rosón M, Bethge M, Euler T. The functional diversity of retinal ganglion cells in the mouse. Nature 2016.", "url": "https://pubmed.ncbi.nlm.nih.gov/26735013/"}, {"label": "Barretto RP, Gillis-Smith S, Chandrashekar J, Yarmolinsky DA, Schnitzer MJ, Ryba NJ, et al. The neural representation of taste quality at the periphery. Nature 2015.", "url": "https://pubmed.ncbi.nlm.nih.gov/25383521/"}],
   },
   {
     slug: 'cell-adhesion-migration-mechanics-assays',
@@ -625,6 +630,9 @@ export const METHODS: Method[] = [
     summary: 'Fusing GFP and engineered fluorescent sensors to proteins to watch where they go and what signals they report in living cells.',
     lessons: ['axon-pruning', 'calcium-signaling', 'camp-and-pka', 'crossing-the-midline', 'cytokinesis', 'endocytosis-and-signaling-endosomes', 'glia-metabolic-partners', 'hacking-the-cell', 'hedgehog-and-cilium', 'lipid-anchors-and-addresses', 'long-distance-signaling-in-neurons', 'measured-eukaryotic-cell', 'organelles-as-environments', 'pi3k-akt-insulin', 'plant-signals', 'protein-sorting', 'shape-of-a-signal', 'stress-signals', 'tools-for-development'],
     terms: ['GFP', 'green fluorescent protein', 'fluorescent protein', 'FRET'],
+    film: libFilm('fluorescent-protein-tagging', "What a Fluorescent Tag Can Tell You", 212.6, KOKORO),
+    unlocked: [{"text": "Miyawaki, Tsien and colleagues published the “cameleon” calcium-sensor design in 1997, in which rising calcium brings cyan and yellow fluorescent proteins together so FRET raises the yellow-to-cyan ratio.", "lesson": "calcium-signaling"}, {"text": "In 2015 Kurt Schmoller, Jan Skotheim and colleagues tagged Whi5 with a fluorescent protein and measured it in single living cells, showing that a small daughter began G1 with about as many Whi5 molecules as a larger cell, at a higher concentration.", "lesson": "measured-eukaryotic-cell"}],
+    sources: [{"label": "Miyawaki A, Llopis J, Heim R, McCaffery JM, Adams JA, Ikura M, et al. Fluorescent indicators for Ca2+ based on green fluorescent proteins and calmodulin. Nature 1997.", "url": "https://pubmed.ncbi.nlm.nih.gov/9278050/"}, {"label": "Schmoller KM, Turner JJ, Kõivomägi M, Skotheim JM. Dilution of the cell cycle inhibitor Whi5 controls budding-yeast cell size. Nature 2015.", "url": "https://pubmed.ncbi.nlm.nih.gov/26390151/"}],
   },
   {
     slug: 'forward-genetic-screen',
@@ -785,6 +793,9 @@ export const METHODS: Method[] = [
     summary: 'Seeing where a gene is expressed in a tissue or embryo with a labelled probe for its RNA.',
     lessons: ['animal-reproduction', 'competition-for-targets', 'cortical-areas', 'evolution-of-development', 'hox-and-hindbrain', 'iprgcs', 'local-organizers', 'microbes-protists-fungi', 'motor-neuron-code', 'muscle-and-movement', 'neuromuscular-junction', 'olfactory-receptor-choice', 'osmoregulation', 'partners-layers-self-avoidance', 'proneural-and-lateral-inhibition', 'retinal-cell-types', 'sensory-neuron-atlas', 'shh-bmp-neural-tube', 'sleep-and-rhythms', 'smell-and-taste'],
     terms: ['in situ hybridization', 'in situ hybridisation', 'RNA FISH'],
+    film: libFilm('in-situ-hybridization', "Finding a Gene\u2019s Message in Tissue", 180.5, KOKORO),
+    unlocked: [{"text": "Provencio and colleagues (2000) used in situ hybridization on adult macaque and adult and 10-day-old mouse retina to locate melanopsin transcripts in cells of the inner retina, in the ganglion and amacrine cell layers.", "lesson": "iprgcs"}, {"text": "Peng and colleagues (2019) profiled cells from the fovea and periphery of adult macaques and checked the identities of the midget and parasol clusters with fluorescent in situ hybridization and viral labelling of cell shape.", "lesson": "retinal-cell-types"}],
+    sources: [{"label": "Provencio I, Rodriguez IR, Jiang G, Hayes WP, Moreira EF, Rollag MD. A novel human opsin in the inner retina. J Neurosci 2000.", "url": "https://pubmed.ncbi.nlm.nih.gov/10632589/"}, {"label": "Peng YR, Shekhar K, Yan W, Herrmann D, Sappington A, Bryman GS, et al. Molecular classification and comparative taxonomics of foveal and peripheral cells in primate retina. Cell 2019.", "url": "https://pubmed.ncbi.nlm.nih.gov/30712875/"}],
   },
   {
     slug: 'in-vitro-kinase-assay',
@@ -1143,6 +1154,9 @@ export const METHODS: Method[] = [
     summary: 'Switching genetically chosen neurons on or off with light through engineered opsins, with the controls that make it causal.',
     lessons: ['animal-reproduction', 'attention-and-decisions', 'basal-ganglia', 'cerebellum', 'chronic-pain', 'circuit-experiment-design', 'dorsal-horn-touch', 'emotion-and-stress', 'gut-brain-sensing', 'hacking-the-cell', 'hairy-skin-and-affective-touch', 'hypothalamus-autonomic', 'itch', 'large-scale-neuroscience', 'memory-consolidation', 'merkel-cells', 'motivation-and-reward', 'motor-units-reflexes', 'multisensory-and-prediction', 'myelination', 'nuclear-architecture-condensates', 'olfactory-bulb-and-cortex', 'plant-transport', 'sensory-prostheses', 'sleep-and-rhythms', 'spinal-pain-circuits', 'synaptic-integration', 'synaptic-plasticity', 'taste-coding', 'thermosensation', 'tools-for-development', 'touch-and-pain', 'touch-in-autism-models', 'vagal-sensory-neurons', 'vestibular-system', 'vibration-corpuscles'],
     terms: ['optogenetics', 'optogenetic', 'channelrhodopsin', 'halorhodopsin', 'ChR2'],
+    film: libFilm('optogenetics', "What Can a Flash Make a Neuron Do?", 203.0, KOKORO),
+    unlocked: [{"text": "In 2005 Edward Boyden, Feng Zhang, Ernst Bamberg, Georg Nagel and Karl Deisseroth reported that hippocampal neurons in culture, given the channelrhodopsin-2 gene, fired action potentials in step with millisecond flashes of blue light.", "lesson": "hacking-the-cell"}, {"text": "Adamantidis and colleagues (2007) found that stimulation increased transitions from slow-wave and REM sleep to waking after they expressed channelrhodopsin-2 in hypocretin neurons of mice.", "lesson": "sleep-and-rhythms"}],
+    sources: [{"label": "Boyden ES, Zhang F, Bamberg E, Nagel G, Deisseroth K. Millisecond-timescale, genetically targeted optical control of neural activity. Nat Neurosci 2005.", "url": "https://pubmed.ncbi.nlm.nih.gov/16116447/"}, {"label": "Adamantidis AR, Zhang F, Aravanis AM, Deisseroth K, de Lecea L. Neural substrates of awakening probed with optogenetic control of hypocretin neurons. Nature 2007.", "url": "https://pubmed.ncbi.nlm.nih.gov/17943086/"}, {"label": "Owen SF, Liu MH, Kreitzer AC. Thermal constraints on in vivo optogenetic manipulations. Nat Neurosci 2019.", "url": "https://pubmed.ncbi.nlm.nih.gov/31209378/"}],
   },
   {
     slug: 'patch-clamp',
