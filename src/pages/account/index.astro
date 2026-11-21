@@ -226,7 +226,7 @@ import '../../styles/teach.css';
     if (me.passkeys) parts.push(me.passkeys === 1 ? '1 passkey' : `${me.passkeys} passkeys`);
     $('[data-methods]').textContent = parts.length ? `You can sign in with ${parts.join(' and ')}.` : 'No sign-in method yet. Add a passkey so you can get back in.';
     show($('[data-link-google]'), !!me.googleAvailable && !m.includes('google'));
-    $<HTMLAnchorElement>('[data-link-google]').href = googleStartUrl('/account/');
+    $<HTMLAnchorElement>('[data-link-google]').href = googleStartUrl('/account/', false, true);   // an explicit link, not a sign-in
     if (!passkeysSupported()) show($('[data-add-pk]'), false);
     renderRole(me);
   }
