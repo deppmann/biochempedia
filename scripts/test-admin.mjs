@@ -28,11 +28,11 @@ const check = async (name, fn) => { await fn(); n++; console.log('  ok  ' + name
 const src = (p) => readFileSync(new URL('../' + p, import.meta.url), 'utf8');
 
 // ---- an in-memory D1 with the real migrations; `before` stops short of 0009 -------------------
-function makeDb({ before0009 = false } = {}) {
+function makeDb({ before0009 = false, before0011 = false } = {}) {
   const sql = new DatabaseSync(':memory:');
   const dir = new URL('../migrations/', import.meta.url);
   for (const f of readdirSync(dir).sort()) {
-    if (before0009 && f >= '0009') continue;
+    if ((before0009 && f >= '0009') || (before0011 && f >= '0011')) continue;
     sql.exec(readFileSync(new URL(f, dir), 'utf8'));
   }
   const seen = [];   // every SQL statement run, for the "aggregates only" check
@@ -249,11 +249,13 @@ console.log("the owner's own account (ADMIN_EMAILS)");
   const stats = (cookie, { env: e = oenv, headers = {}, path = '/api/admin/stats' } = {}) => call(e, 'GET', path, { cookie, headers: Object.fromEntries(Object.entries({ 'Sec-Fetch-Site': 'same-origin', 'CF-Connecting-IP': '198.51.100.40', ...headers }).filter(([, v]) => v !== undefined)) });
   const shut = (r, why) => { assert.equal(r.status, 404, why); assert.equal(r.text, unknown.text, why); assert.deepEqual([...r.headers].sort(), [...unknown.headers].sort(), why); };
   /** Sign in through the real Google flow (stubbed token endpoint). Returns the session cookie, or the error the callback redirected with. */
-  const googleSignIn = async (claims, cookie = '') => {
-    const start = await call(oenv, 'GET', '/api/learner/google/start?return=%2Fadmin%2F&age=1', { cookie });
+  const googleSignIn = async (claims, cookie = '', { link = false, env: e = oenv, headers = {} } = {}) => {
+    const call_ = (m, p, o) => call(e, m, p, o);
+    const start = await call_('GET', `/api/learner/google/start?return=%2Fadmin%2F&age=1${link ? '&link=1' : ''}`, { cookie, headers });
+    if (!/accounts\.google\.com/.test(start.headers.get('Location') || '')) return { cookie: '', location: start.headers.get('Location') };
     const to = new URL(start.headers.get('Location'));
     nextClaims = { iss: 'https://accounts.google.com', aud: 'client-id.test', nonce: to.searchParams.get('nonce'), exp: Math.floor(Date.now() / 1000) + 600, iat: Math.floor(Date.now() / 1000), ...claims };
-    const back = await call(oenv, 'GET', `/api/learner/google/callback?state=${to.searchParams.get('state')}&code=abc`, { cookie: [cookie, start.cookie].filter(Boolean).join('; ') });
+    const back = await call_('GET', `/api/learner/google/callback?state=${to.searchParams.get('state')}&code=abc`, { cookie: [cookie, start.cookie].filter(Boolean).join('; ') });
     return { cookie: back.cookie, location: back.headers.get('Location') };
   };
   /** A learner row written straight into the table, with a session: for accounts Google would never produce. */
@@ -261,7 +263,9 @@ console.log("the owner's own account (ADMIN_EMAILS)");
   const rawLearner = async (fields) => {
     const id = 'RAW' + (++made), token = crypto.randomBytes(32).toString('hex'), now = Date.now();
     odb.sql.prepare('INSERT INTO learners (id, display_name, email, google_sub, created_at, last_active_at) VALUES (?,?,?,?,?,?)').run(id, fields.name ?? 'x', fields.email ?? null, fields.sub ?? null, now, now);
-    odb.sql.prepare('INSERT INTO learner_sessions (token_hash, learner_id, created_at, expires_at) VALUES (?,?,?,?)').run(await sha256Hex(token), id, now, now + 86_400_000);
+    // As if a Google sign-in had made the session (unless told otherwise), so only the address itself is under test.
+    const via = fields.via === undefined ? { method: 'google', sub: fields.sub ?? null, email: fields.email ?? null } : fields.via;
+    odb.sql.prepare('INSERT INTO learner_sessions (token_hash, learner_id, created_at, expires_at, method, google_sub, google_email) VALUES (?,?,?,?,?,?,?)').run(await sha256Hex(token), id, now, now + 86_400_000, via?.method ?? null, via?.sub ?? null, via?.email ?? null);
     return `bp_learner=${token}; bp_signed_in=1`;
   };
 
@@ -331,18 +335,88 @@ console.log("the owner's own account (ADMIN_EMAILS)");
     assert.equal((await stats(owner.cookie, { env: e2, headers: { Authorization: 'Bearer wrong-wrong-wrong-wrong-wrong' } })).status, 200, 'a wrong secret does not shut out the owner\'s own session');
     shut(await admin({ ...oenv, ADMIN_EMAILS: '' }, { ip: '198.51.100.42' }), 'no secret set and no owner address: nobody');
   });
-  await check('the Google identity cannot be moved: linking it to a second account is refused, and unlinking does not exist', async () => {
-    const thief = await passkeySignUp((m, p, o) => call(oenv, m, p, o), ORIGIN, 'localhost', { displayName: 'Mallory', age13: true });
-    const r = await googleSignIn({ sub: 'G-OWNER', email: OWNER, email_verified: true }, thief);
-    assert.equal(r.location, '/account/?error=google-in-use');
-    shut(await stats(thief), 'the second account');
-    for (const [m, p] of [['PUT', '/api/learner/email'], ['POST', '/api/learner/email'], ['PUT', '/api/learner/me'], ['POST', '/api/learner/google/unlink']]) assert.equal((await call(oenv, m, p, { cookie: thief, body: { email: OWNER } })).status, 404, p);
+  await check('it is the session that counts: on the owner\'s own account, a passkey session, an old session and a carried-over one stay out', async () => {
+    const ownerId = odb.sql.prepare("SELECT id FROM learners WHERE google_sub='G-OWNER'").get().id;
+    const sess = async (method, sub, email) => { const t = crypto.randomBytes(32).toString('hex'); odb.sql.prepare('INSERT INTO learner_sessions (token_hash, learner_id, created_at, expires_at, method, google_sub, google_email) VALUES (?,?,?,?,?,?,?)').run(await sha256Hex(t), ownerId, Date.now(), Date.now() + 86_400_000, method, sub, email); return `bp_learner=${t}`; };
+    shut(await stats(await sess('passkey', null, null)), 'a passkey session on the owner\'s account');
+    shut(await stats(await sess(null, null, null)), 'a session from before the migration, or carried from the old address');
+    shut(await stats(await sess('google', 'G-SOMEONE-ELSE', OWNER)), 'a Google sign-in as a different Google account than the row holds');
+    shut(await stats(await sess('google', 'G-OWNER', 'other@x.org')), 'a Google sign-in whose own verified address is not the owner\'s');
+    shut(await stats(await sess('passkey', 'G-OWNER', OWNER)), 'method passkey, whatever else is recorded');
+    assert.equal((await stats(await sess('google', 'G-OWNER', OWNER))).status, 200);
+    assert.equal((await stats(owner.cookie)).status, 200);
+  });
+  await check('the review\'s attack: the owner presses "Sign in with Google" on a computer where a student is still signed in', async () => {
+    const a = makeDb(); const aenv = { ...oenv, CLASSES: a };
+    const sendA = (m, p, o) => call(aenv, m, p, o);
+    const statsA = (cookie) => stats(cookie, { env: aenv });
+    const shared = await passkeySignUp(sendA, ORIGIN, 'localhost', { displayName: 'Student', age13: true });
+    const student = a.sql.prepare('SELECT id FROM learners').get().id;
+    const phoneTok = crypto.randomBytes(32).toString('hex');
+    a.sql.prepare("INSERT INTO learner_sessions (token_hash, learner_id, created_at, expires_at, method) VALUES (?,?,?,?,'passkey')").run(await sha256Hex(phoneTok), student, Date.now(), Date.now() + 86_400_000);
+    const phone = `bp_learner=${phoneTok}`;
+    shut(await statsA(phone), 'the student\'s phone, before'); shut(await statsA(shared), 'the shared computer, before');
+    const chris = await googleSignIn({ sub: 'G-OWNER', email: OWNER, email_verified: true, given_name: 'Chris' }, shared, { env: aenv });
+    const row = { ...a.sql.prepare('SELECT google_sub, email FROM learners WHERE id=?').get(student) };
+    assert.deepEqual(row, { google_sub: null, email: null }, 'nothing was attached to the student\'s account');
+    assert.equal(a.sql.prepare('SELECT COUNT(*) AS n FROM learners').get().n, 2, 'the owner got an account of his own');
+    assert.equal((await statsA(chris.cookie)).status, 200, 'and his own session opens the page');
+    shut(await statsA(phone), 'the student\'s phone, after');
+    assert.equal((await call(aenv, 'GET', '/api/learner/me', { cookie: shared })).data.signedIn, false, 'the student\'s session on that computer was ended, not left behind the new one');
+    assert.equal((await call(aenv, 'GET', '/api/learner/me', { cookie: phone })).data.name, 'Student', 'her phone is still signed in to her own account');
+    // And if the damage had already been done (the identity sitting on her row), her sessions still stay out.
+    a.sql.prepare("DELETE FROM learners WHERE google_sub='G-OWNER'").run();
+    a.sql.prepare("UPDATE learners SET google_sub='G-OWNER', email=? WHERE id=?").run(OWNER, student);
+    shut(await statsA(phone), 'a passkey session on a row that holds the owner\'s Google identity');
+  });
+  await check('"Link Google" is its own request: it attaches the identity only when asked from the signed-in account page, and signs the other devices out', async () => {
+    const mk = async (name) => { odb.sql.exec('DELETE FROM rate_limits');   /* the sign-in limit is not what is under test here */ const c = await passkeySignUp((m, p, o) => call(oenv, m, p, o), ORIGIN, 'localhost', { displayName: name, age13: true }); return { c, id: odb.sql.prepare('SELECT id FROM learners ORDER BY rowid DESC LIMIT 1').get().id }; };
+    const mallory = await mk('Mallory');
+    // The owner's identity is already on his account: it cannot be linked to a second one.
+    assert.equal((await googleSignIn({ sub: 'G-OWNER', email: OWNER, email_verified: true }, mallory.c, { link: true })).location, '/account/?error=google-in-use');
+    shut(await stats(mallory.c), 'the second account');
+    // A link asked for by another site's page is not a link: it is treated as a plain sign-in.
+    const lee = await mk('Lee');
+    const forged = await googleSignIn({ sub: 'G-LEE', email: 'lee@x.org', email_verified: true }, lee.c, { link: true, headers: { 'Sec-Fetch-Site': 'cross-site' } });
+    assert.equal(odb.sql.prepare('SELECT google_sub FROM learners WHERE id=?').get(lee.id).google_sub, null);
+    assert.ok(forged.cookie && forged.cookie !== lee.c);
+    // A link with nobody signed in is refused before Google is involved.
+    assert.equal((await googleSignIn({ sub: 'G-X' }, '', { link: true })).location, '/account/?error=google-state');
+    // The real thing: signed in, pressed "Link Google". Linked, this device kept, the other device signed out.
+    const kim = await mk('Kim');
+    const otherTok = crypto.randomBytes(32).toString('hex');
+    odb.sql.prepare("INSERT INTO learner_sessions (token_hash, learner_id, created_at, expires_at, method) VALUES (?,?,?,?,'passkey')").run(await sha256Hex(otherTok), kim.id, Date.now(), Date.now() + 86_400_000);
+    const linked = await googleSignIn({ sub: 'G-KIM', email: 'kim@x.org', email_verified: true }, kim.c, { link: true });
+    assert.equal(linked.location, '/admin/'); assert.equal(linked.cookie, '', 'no new session: the same one carries on');
+    assert.deepEqual({ ...odb.sql.prepare('SELECT google_sub, email FROM learners WHERE id=?').get(kim.id) }, { google_sub: 'G-KIM', email: 'kim@x.org' });
+    assert.equal((await call(oenv, 'GET', '/api/learner/me', { cookie: kim.c })).data.signedIn, true);
+    assert.equal((await call(oenv, 'GET', '/api/learner/me', { cookie: `bp_learner=${otherTok}` })).data.signedIn, false, 'the other device must sign in again');
+    // A second, different Google account cannot replace the linked one.
+    assert.equal((await googleSignIn({ sub: 'G-KIM-2', email: 'kim2@x.org', email_verified: true }, kim.c, { link: true })).location, '/account/?error=google-in-use');
+    // Linking the owner's address to a passkey account does not make that passkey session the owner.
+    const pat = await mk('Pat');
+    odb.sql.prepare("DELETE FROM learners WHERE google_sub='G-OWNER-2'").run();
+    await googleSignIn({ sub: 'G-OWNER-2', email: OWNER, email_verified: true }, pat.c, { link: true });
+    assert.equal(odb.sql.prepare('SELECT email FROM learners WHERE id=?').get(pat.id).email, OWNER);
+    shut(await stats(pat.c), 'the session was made with a passkey');
+    for (const [m, p] of [['PUT', '/api/learner/email'], ['POST', '/api/learner/email'], ['PUT', '/api/learner/me'], ['POST', '/api/learner/google/unlink']]) assert.equal((await call(oenv, m, p, { cookie: mallory.c, body: { email: OWNER } })).status, 404, p);
     const src_ = src('worker/learner.js');
     const writes = [...src_.matchAll(/(INSERT INTO learners[^']*|UPDATE learners SET[^']*)/g)].map((x) => x[1]).filter((q) => /email/.test(q));
     assert.equal(writes.length, 4, 'the email column is written by four statements only (two forms of the insert, the link, the refresh at sign-in): ' + writes.join(' | '));
     const creators = [...src_.matchAll(/createLearner\(db, \{[^}]*\}/g)].map((x) => x[0]);
     assert.deepEqual(creators.filter((c) => /email/.test(c) && !/email = null/.test(c)), ['createLearner(db, { name, email, googleSub: sub_ }'], 'and only the Google callback ever passes an email when an account is made');
     assert.match(src_, /if \(claims\.email_verified !== true && claims\.email_verified !== 'true'\) throw/);
+    assert.match(src('src/pages/account/index.astro'), /googleStartUrl\('\/account\/', false, true\)/, 'only the signed-in "Link Google" button asks for a link');
+  });
+  await check('before migration 0011 sign-in works as it did and the owner\'s page stays shut for accounts; the export says how each device signed in after it', async () => {
+    const early = makeDb({ before0011: true }); const eenv = { ...oenv, CLASSES: early };
+    const o = await googleSignIn({ sub: 'G-OWNER', email: OWNER, email_verified: true, given_name: 'Chris' }, '', { env: eenv });
+    assert.equal(o.location, '/admin/'); assert.equal((await call(eenv, 'GET', '/api/learner/me', { cookie: o.cookie })).data.name, 'Chris');
+    shut(await stats(o.cookie, { env: eenv }), 'no record of how the session was made yet');
+    assert.ok(!('signedInWith' in (await call(eenv, 'GET', '/api/learner/export', { cookie: o.cookie })).data.sessions[0]));
+    assert.equal((await admin({ ...eenv, ADMIN_TOKEN: SECRET }, { ip: '198.51.100.43' })).status, 200, 'the secret still works');
+    assert.equal((await call(oenv, 'GET', '/api/learner/export', { cookie: owner.cookie })).data.sessions[0].signedInWith, 'google');
+    assert.equal((await stats(owner.cookie)).headers.get('X-Content-Type-Options'), 'nosniff');
   });
   await check('before migration 0009 the route stays shut for the owner too', async () => {
     const early = makeDb({ before0009: true });

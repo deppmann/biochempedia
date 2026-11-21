@@ -76,7 +76,7 @@ import { sha256Hex, readCookie } from './auth.js';
 import { DAY, clientKey, allow } from './util.js';
 import { loadUsageCatalog } from './usage-catalog.js';
 import { filmCountsReady, siteDay } from './film-count.js';
-import { roleReady, getLearner, LEARNER_COOKIE } from './learner.js';
+import { roleReady, sessionMethodReady, LEARNER_COOKIE } from './learner.js';
 
 export const ADMIN_PATH = '/api/admin/stats';
 export const SMALL = 5;
@@ -458,9 +458,10 @@ export async function dailyReply(db, env, request, now = Date.now()) {
 // ---- the route --------------------------------------------------------------------------
 // WHO GETS IN. Two ways, and anyone else gets the unknown-path 404.
 //
-//   1. The owner's own account. A signed-in LEARNER session (the ordinary bp_learner cookie) whose
-//      account is linked to Google and whose email, as Google itself reported it at sign-in, is one
-//      of the addresses in the ADMIN_EMAILS var (wrangler.jsonc). The email column is only ever
+//   1. The owner's own account. A LEARNER session (the ordinary bp_learner cookie) that was itself
+//      started by a completed Google sign-in, where the email Google reported at that sign-in is
+//      one of the addresses in the ADMIN_EMAILS var (wrangler.jsonc). See ownerSession: it is the
+//      session's own sign-in that counts, not what the account row holds. The email column is only ever
 //      written from a Google ID token whose signature was checked and whose email_verified claim is
 //      true (worker/learner.js verifyGoogleIdToken): there is no route by which a person can type
 //      an email into a learner account. A passkey-only account has no email at all, a display name
@@ -487,15 +488,26 @@ function fromThisSite(request, url) {
   return !origin || origin === url.origin;
 }
 
-/** Is this request the owner, signed in with Google as one of the ADMIN_EMAILS addresses? */
+/**
+ * Is this request the owner? It is decided by how THIS SESSION was made (migration 0011), not by
+ * what the account row holds: the session must have been started by a completed Google sign-in,
+ * the address Google vouched for at that sign-in must be in ADMIN_EMAILS, and the Google account
+ * of that sign-in must still be the one on the row. A session started with a passkey never
+ * passes, even on an account that holds the owner's Google identity, and nor does a session
+ * carried across the address change. Until the migration is applied nobody passes this way.
+ */
 async function ownerSession(request, env, db, url) {
   const allowed = adminEmails(env);
   if (!allowed.length || !fromThisSite(request, url)) return false;
-  if (!/^[0-9a-f]{64}$/.test(readCookie(request, LEARNER_COOKIE) || '')) return false;   // no cookie: no database work
-  const l = await getLearner(db, request);
-  // Both must be there: a Google link, and the email Google vouched for. Nothing else about the account counts.
-  if (!l || !l.google_sub || typeof l.email !== 'string') return false;
-  return allowed.includes(l.email.trim().toLowerCase());
+  const token = readCookie(request, LEARNER_COOKIE) || '';
+  if (!/^[0-9a-f]{64}$/.test(token)) return false;                 // no cookie: no database work
+  if (!(await sessionMethodReady(db))) return false;
+  const s = await db.prepare(
+    `SELECT s.method, s.google_sub AS via_sub, s.google_email AS via_email, s.expires_at, l.google_sub
+       FROM learner_sessions s JOIN learners l ON l.id = s.learner_id WHERE s.token_hash = ?`).bind(await sha256Hex(token)).first();
+  if (!s || s.expires_at < Date.now()) return false;
+  if (s.method !== 'google' || !s.via_sub || s.via_sub !== s.google_sub || typeof s.via_email !== 'string') return false;
+  return allowed.includes(s.via_email.trim().toLowerCase());
 }
 
 /** A Response for an allowed GET /api/admin/stats; null for everything else (the caller's own 404 follows). */
@@ -522,5 +534,5 @@ export async function handleAdmin(request, env, db, path, method, url) {
   }
   if (!ok) return null;
   if (!(await snapshotsReady(db))) return null;                  // before migration 0009 the route stays shut
-  return new Response(await dailyReply(db, env, request), { headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', Vary: 'Cookie, Authorization' } });
+  return new Response(await dailyReply(db, env, request), { headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', Vary: 'Cookie, Authorization', 'X-Content-Type-Options': 'nosniff' } });
 }
