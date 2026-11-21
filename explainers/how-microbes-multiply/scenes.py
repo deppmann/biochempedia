@@ -59,8 +59,11 @@ def flask(cloudy=False):
     vessel = VMobject(stroke_color=TEXT, stroke_width=5, fill_opacity=0)
     vessel.set_points_smoothly([[-1.15, 1.8, 0], [-2.0, 0.6, 0], [-3.45, -2.5, 0],
                                 [0, -3.05, 0], [3.45, -2.5, 0], [2.0, 0.6, 0], [1.15, 1.8, 0]])
-    liquid = Ellipse(width=6.1, height=4.0, stroke_width=0, fill_color=LIQUID,
-                     fill_opacity=0.18 if not cloudy else 0.32).move_to([0, -0.75, 0])
+    pts = [vessel.point_from_proportion(t) for t in np.linspace(0.10, 0.90, 65)]
+    center = np.array([0.0, -1.35, 0.0])
+    inset_pts = [center + 0.97 * (p - center) for p in pts]
+    liquid = Polygon(*inset_pts, stroke_width=0, fill_color=LIQUID,
+                     fill_opacity=0.18 if not cloudy else 0.32)
     liquid.set_z_index(-2)
     g = VGroup(liquid, vessel, neck)
     g.liquid = liquid
@@ -333,27 +336,82 @@ class S08Pause(PredictPause):
 class S09Reveal(SpokenScene):
     def construct(self):
         doublings = ValueTracker(0)
-        cells_n = ValueTracker(1)
         ro = Readout([("doublings", lambda: doublings.get_value(), "{:2.0f}", GOLD),
-                      ("cells", lambda: cells_n.get_value(), "{:9,.0f}", TEXT)],
-                     at=[3.95, 1.3, 0], widest=[21, 2097152], title="calculated", size=28)
-        clock = clock_face(center=(-3.9, 1.35, 0), radius=1.45, label="7 hours")
+                      ("cells", lambda: 2 ** doublings.get_value(), "{:9,.0f}", TEXT)],
+                     at=[4.2, 1.85, 0], widest=[21, 2097152], title="calculated", size=24)
+        clock = clock_face(center=(-4.85, 1.55, 0), radius=1.1, label="7 hours")
         clock[-1].next_to(clock[0], UP, buff=0.18)
-        choice = chip("about 1,000,000?", GOLD, size=30).move_to([3.95, -1.4, 0])
-        haze = VGroup(*[Dot(radius=0.09, color=GREEN) for _ in range(120)]).arrange_in_grid(10, 12, buff=0.08).move_to([-3.9, -1.85, 0])
-        self.add(clock, ro, choice, scope_tag("in this model"))
+        choice = chip("about 1,000,000?", TEXT, size=26).move_to([4.2, -1.55, 0])
+        rods = VGroup(*[mini_cell(ORIGIN, 0.85) for _ in range(4)]).arrange_in_grid(2, 2, buff=0.2).move_to([-4.85, -1.55, 0])
+        haze = VGroup(*[Dot(radius=0.055, color=GREEN) for _ in range(120)]).arrange_in_grid(10, 12, buff=0.08).move_to([-4.85, -1.55, 0])
+
+        # Step-by-step math lines in the centre column, left-aligned at x = -3.35
+        x_mid = -3.35
+        s1_l = T("20 min each", 25, TEXT).move_to([x_mid, 2.1, 0], aligned_edge=LEFT)
+        s1_r = T("= 3 doublings/h", 25, GOLD).next_to(s1_l, RIGHT, buff=0.14)
+        s2_l = T("3 doublings/h × 7 h", 25, TEXT).move_to([x_mid, 1.15, 0], aligned_edge=LEFT)
+        s2_r = T("= 21", 25, GOLD).next_to(s2_l, RIGHT, buff=0.14)
+        rule = Line([x_mid, 0.6, 0], [1.4, 0.6, 0], color=GREY, stroke_width=2)
+        s3_l = T("after 10:", 25, TEXT).move_to([x_mid, 0.0, 0], aligned_edge=LEFT)
+        s3_r = T("~1,000", 25, GREEN).next_to(s3_l, RIGHT, buff=0.18)
+        s4_l = T("after 20:", 25, TEXT).move_to([x_mid, -0.85, 0], aligned_edge=LEFT)
+        s4_r = T("~1,000,000", 25, GREEN).next_to(s4_l, RIGHT, buff=0.18)
+        s5_l = T("after 21:", 25, TEXT).move_to([x_mid, -1.7, 0], aligned_edge=LEFT)
+        s5_r = T("~2,000,000", 25, GOLD).next_to(s5_l, RIGHT, buff=0.18)
+
+        self.add(clock, ro, choice, rods, scope_tag("in this model"))
+        bob(rods, amp=0.07, speed=1.3)
+
         self.at("More than a million")
-        self.play(choice.animate.set_fill(GOLD, opacity=0.45), Indicate(choice, color=GOLD),
-                  LaggedStart(*[FadeIn(d) for d in haze], lag_ratio=0.003), run_time=0.9)
-        self.at("counter reaches")
-        self.play(Rotate(clock.hand, angle=7 * TAU, about_point=clock.center_point),
-                  doublings.animate.set_value(21), cells_n.animate.set_value(2097152),
-                  haze.animate.scale(1.2), run_time=2.6, rate_func=linear)
-        self.at("about 2 million")
-        self.play(Indicate(ro.rows, color=GOLD, scale_factor=1.03), run_time=0.55)
+        self.play(choice[0].animate.set_stroke(GOLD, width=4).set_fill(GOLD, opacity=0.35),
+                  choice[1].animate.set_color(GOLD), run_time=0.85)
+
+        self.at("Every 20 minutes")
+        self.play(FadeIn(s1_l, shift=RIGHT * 0.12),
+                  Rotate(clock.hand, angle=TAU, about_point=clock.center_point),
+                  run_time=1.35, rate_func=linear)
+        self.at("three doublings an hour")
+        self.play(FadeIn(s1_r, shift=RIGHT * 0.12), run_time=0.55)
+
+        self.at("Three times seven hours")
+        self.play(FadeIn(s2_l, shift=RIGHT * 0.12),
+                  Rotate(clock.hand, angle=6 * TAU, about_point=clock.center_point),
+                  run_time=1.4, rate_func=linear)
+        self.at("makes 21 doublings")
+        self.play(FadeIn(s2_r, shift=RIGHT * 0.12), Create(rule), run_time=0.6)
+
+        self.at("Ten doublings")
+        rods.clear_updaters()
+        self.play(FadeIn(s3_l, shift=RIGHT * 0.12),
+                  ReplacementTransform(rods, VGroup(*haze[:40])),
+                  run_time=0.75, rate_func=linear)
+        self.at("about a thousand")
+        self.play(FadeIn(s3_r, shift=RIGHT * 0.12),
+                  doublings.animate.set_value(10),
+                  run_time=0.7, rate_func=linear)
+
+        self.at("twenty about a million")
+        self.play(FadeIn(s4_l, shift=RIGHT * 0.12), run_time=0.3)
+        self.at("about a million")
+        self.play(FadeIn(s4_r, shift=RIGHT * 0.12),
+                  doublings.animate.set_value(20),
+                  FadeIn(VGroup(*haze[40:96]), lag_ratio=0.01),
+                  run_time=0.65, rate_func=linear)
+
+        self.at("twenty -one")
+        self.play(FadeIn(s5_l, shift=RIGHT * 0.12), run_time=0.45)
+        self.at("about two million")
+        self.play(FadeIn(s5_r, shift=RIGHT * 0.12),
+                  doublings.animate.set_value(21),
+                  FadeIn(VGroup(*haze[96:]), lag_ratio=0.02),
+                  run_time=0.7, rate_func=linear)
+        self.play(Indicate(ro.rows, color=GOLD, scale_factor=1.03), run_time=0.5)
+
         self.at("calculated number")
-        stamp = T("CALCULATED • NOT COUNTED", 27, GREEN, weight=BOLD).move_to([3.5, -2.5, 0])
+        stamp = T("calculated, not counted", 25, GREEN, weight=BOLD).next_to(ro, DOWN, buff=0.35)
         self.play(FadeIn(stamp, shift=UP * 0.15), run_time=0.55)
+        self.at("not a count")
+        self.play(Indicate(stamp, color=GOLD, scale_factor=1.04), run_time=0.55)
         self.finish()
 
 
@@ -362,9 +420,9 @@ class S10Flask(SpokenScene):
         world = flask(cloudy=True).shift(LEFT * 1.4)
         haze = VGroup(*[Dot(radius=0.07, color=GREEN) for _ in range(55)]).arrange_in_grid(7, 8, buff=0.14).move_to([-1.4, -0.75, 0])
         food = ValueTracker(1.0); waste = ValueTracker(0.08); count = ValueTracker(50)
-        food_dial = dial(food, [4.75, 1.25, 0], 1.15, "food", GREEN)
-        waste_dial = dial(waste, [4.75, -1.65, 0], 1.15, "waste", BROWN)
-        ro = count_readout(count, at=[4.0, 2.75, 0], widest=1000000)
+        food_dial = dial(food, [4.75, 0.75, 0], 0.92, "food", GREEN)
+        waste_dial = dial(waste, [4.75, -1.85, 0], 0.92, "waste", BROWN)
+        ro = count_readout(count, at=[4.0, 2.95, 0], widest=1000000)
         self.play(FadeIn(world), FadeIn(haze), run_time=0.65)
         bob(haze, amp=0.035, speed=0.7)
         self.at("real flask is closed")

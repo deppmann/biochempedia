@@ -32,21 +32,24 @@ WHAT CHANGES IN EACH SPOKEN SCENE (and what it is computed from):
                             glow; TAN calcitriol appears by gut inlet and dims as FGF23 lowers
                             it and gut arrow briefly thins.
     s04_arithmetic        : Hormone chips park by bone; colour-matched equation strip builds term
-                            by term with the voice; sieve (180), fraction (15%), and gauge (3.3)
-                            highlight in sync with 180 * 0.9 * 33 * 0.15 = 800.
-    s05_idea              : Gut and urine 800 mg/day labels pulse with 'in = out'; ghost sieve
+                            by term with the voice; sieve (180), gauge (3.3), and fraction (15%)
+                            highlight in sync while 3.3 mg/dL = 33 mg/L, 0.9 x 33 ≈ 30 mg/L, and
+                            180 L x 30 mg/L x 0.15 ≈ 800 mg/day build word by word.
+    s05_idea              : Gut and urine 800 mg/day labels pulse with 'from gut = urine'; ghost sieve
                             narrows, '15%' swells, and ghost gauge needle rises and returns,
                             establishing 'in = out: share up, or level up'.
-    s06_moderate          : Sieve narrows to 60 L/day (1/3); needle climbs to computed 9.9 mg/dL
-                            at 15% FE; PTH & FGF23 slide to the boundary and push FE to 50%,
-                            shrinking the bar from 9.0 to 2.7 units and dropping needle to 3.0 mg/dL.
+    s06_moderate          : Sieve narrows to 60 L/day (1/3); formula 1/3 filtration -> 3x level:
+                            3.3 x 3 ≈ 9.9 builds as needle climbs to 9.9 mg/dL at 15% FE; FGF23
+                            and PTH slide to the boundary and push FE to 50%, shrinking the bar
+                            to 2.7 units while 800 ÷ (60 x 0.9 x 0.5) ≈ 30 mg/L = 3.0 mg/dL appears.
     s07_cohort            : '50%' pulses; three schematic cohort bars (FGF23 high, phosphate and
-                            PTH normal) appear with 'FGF23 first?' and then fade cleanly.
+                            PTH normal) appear with arrow and 'FGF23 first?' and bars fade cleanly.
     s08_predict           : Sieve narrows to 15 L/day (1/12); GREEN bar drains to 0 leaving 100%
                             ORANGE 1.35-unit block; needle hides behind '?' under predict card.
-    s10_answer            : RED 'ceiling: 100%' stop line appears; '?' clears to reveal computed
-                            5.9 mg/dL; ghost 50% bar (2.7 units) and ghost needle (11.9 mg/dL)
-                            appear and fade back to 100% / 5.9 mg/dL.
+    s10_answer            : RED 'ceiling: 100%' stop line appears; 800 ÷ (15 x 0.9 x 1.0) ≈ 59 mg/L
+                            = 5.9 mg/dL builds word by word as '?' clears to 5.9 mg/dL; ghost 50%
+                            bar (2.7 units), ghost needle (11.9), and ÷ 0.5 -> 11.9 appear, then
+                            ghosts fade back to the 100% / 5.9 mg/dL case.
     s11_later             : Gauge needle creeps upward from 5.9 (schematic); calcitriol dims, PTH
                             grows at boundary; 'PTH: calcium up, phosphate down' card is crossed
                             out in RED while urine stays 800 mg/day.
@@ -659,9 +662,9 @@ class S03TwoJobs(SpokenScene):
         self.at("absorbed from the gut")
         less_gut = T("less from gut", size=24, color=TAN).move_to([-2.15, 1.62, 0]).set_z_index(8)
         thin_gut = Arrow([-6.25, 2.02, 0], [-4.15, 2.02, 0], buff=0, color=TAN, stroke_width=2.5, tip_length=0.16)
-        self.play(FadeOut(w.gut_arrow), FadeIn(thin_gut), FadeIn(less_gut), run_time=0.7)
-        self.wait(0.8)
-        self.play(FadeOut(thin_gut), FadeIn(w.gut_arrow), run_time=0.6)
+        self.play(FadeOut(w.gut_arrow), FadeIn(thin_gut), FadeIn(less_gut), run_time=0.55)
+        self.wait(0.55)
+        self.play(FadeOut(thin_gut), FadeIn(w.gut_arrow), run_time=0.50)
         self.finish()
 
 
@@ -677,9 +680,24 @@ class S04Arithmetic(SpokenScene):
         t2 = T("filtration", size=26, color=GREY)
         t3 = T("× filterable phosphate", size=26, color=TEXT)
         t4 = T("× fraction out", size=26, color=ORANGE)
-        eq_strip = VGroup(t1, t2, t3, t4).arrange(RIGHT, buff=0.14).move_to([-0.85, 3.28, 0]).set_z_index(9)
+        eq_strip = VGroup(t1, t2, t3, t4).arrange(RIGHT, buff=0.14).move_to([-0.65, 3.28, 0]).set_z_index(9)
         fit(eq_strip, max_w=10.6)
-        filt_tag = T("filterable: about 90%", size=24, color=TEXT).move_to([0.90, 2.66, 0]).set_z_index(8)
+
+        # Pre-laid progressive arithmetic lines above the bar
+        l1_a = M("3.3 mg/dL", size=24, color=TEXT)
+        l1_b = M("= 33 mg/L", size=24, color=TEXT)
+        line1 = VGroup(l1_a, l1_b).arrange(RIGHT, buff=0.16).move_to([0.45, 2.62, 0]).set_z_index(8)
+
+        l2_a = M("0.9 × 33", size=24, color=TEXT)
+        l2_b = M("≈ 30 mg/L", size=24, color=TEXT)
+        filt_tag = T("(90% filterable)", size=22, color=TEXT)
+        line2 = VGroup(l2_a, l2_b, filt_tag).arrange(RIGHT, buff=0.16).move_to([0.45, 2.10, 0]).set_z_index(8)
+
+        l3_a = M("180 L", size=24, color=TEXT)
+        l3_b = M("× 30 mg/L", size=24, color=TEXT)
+        l3_c = M("× 0.15", size=24, color=ORANGE)
+        l3_d = M("≈ 800 mg/day", size=24, color=ORANGE)
+        line3 = VGroup(l3_a, l3_b, l3_c, l3_d).arrange(RIGHT, buff=0.14).move_to([0.45, 1.56, 0]).set_z_index(8)
 
         self.at("Phosphate excreted")
         self.play(FadeIn(t1), run_time=0.6)
@@ -688,27 +706,47 @@ class S04Arithmetic(SpokenScene):
         self.play(FadeIn(t2), run_time=0.8)
 
         self.at("filterable plasma phosphate")
-        self.play(FadeIn(t3), FadeIn(filt_tag), run_time=1.0)
+        self.play(FadeIn(t3), run_time=0.9)
 
         self.at("fraction excreted")
-        self.play(FadeIn(t4), run_time=0.9)
+        self.play(FadeIn(t4), run_time=0.8)
 
         self.at("180 liters")
-        self.play(w.sieve_label.animate.scale(1.16), rate_func=there_and_back, run_time=1.1)
+        self.play(w.sieve_label.animate.scale(1.16), rate_func=there_and_back, run_time=1.0)
 
-        self.at("Fifteen percent")
+        self.at("of 3", lead=0.1)
+        self.play(
+            FadeIn(l1_a, run_time=0.35),
+            w.gauge.healthy_mark.animate(rate_func=there_and_back, run_time=0.9).scale(1.18),
+            w.gauge.readout.animate(rate_func=there_and_back, run_time=0.9).scale(1.12),
+        )
+
+        self.at("is 33", lead=0.1)
+        self.play(FadeIn(l1_b), run_time=0.35)
+
+        self.at("about 90", lead=0.1)
+        self.play(FadeIn(l2_a), FadeIn(filt_tag), run_time=0.45)
+
+        self.at("about 30", lead=0.1)
+        self.play(FadeIn(l2_b), run_time=0.35)
+
+        self.at("15 of the filtered")
         pct = T("15%", size=26, color=ORANGE).move_to([BAR_RIGHT - ORANGE_W / 2, 0.88, 0]).set_z_index(8)
         o_hl = Rectangle(width=ORANGE_W, height=BAR_H, stroke_color=ORANGE, stroke_width=5, fill_opacity=0).move_to([BAR_RIGHT - ORANGE_W / 2, BAR_Y, 0])
-        self.play(FadeIn(pct), FadeIn(o_hl), run_time=0.6)
-        self.play(FadeOut(o_hl), run_time=0.5)
+        self.play(FadeIn(pct), FadeIn(o_hl), run_time=0.5)
+        self.play(FadeOut(o_hl), run_time=0.4)
 
-        self.at("about 3")
-        self.play(
-            w.gauge.healthy_mark.animate.scale(1.22),
-            w.gauge.readout.animate.scale(1.15),
-            rate_func=there_and_back,
-            run_time=1.2,
-        )
+        self.at("180 times", lead=0.1)
+        self.play(FadeIn(l3_a), run_time=0.25)
+
+        self.at("times 30", lead=0.1)
+        self.play(FadeIn(l3_b), run_time=0.25)
+
+        self.at("times 15", lead=0.1)
+        self.play(FadeIn(l3_c), run_time=0.25)
+
+        self.at("about 800", lead=0.1)
+        self.play(FadeIn(l3_d), run_time=0.30)
         self.finish()
 
 
@@ -721,14 +759,20 @@ class S05Idea(SpokenScene):
         self.add(w, fgf_park, pth_park, cal_park)
 
         self.at("excrete the phosphate")
-        eq_badge = T("in = out", size=30, color=TEXT).move_to([-0.50, 2.35, 0]).set_z_index(8)
+        eq_badge = VGroup(
+            T("from gut", size=28, color=TEXT),
+            T("=", size=28, color=TEXT),
+            T("urine", size=28, color=ORANGE),
+        ).arrange(RIGHT, buff=0.16).move_to([-0.50, 2.35, 0]).set_z_index(8)
+        self.play(FadeIn(eq_badge), run_time=0.35)
         self.play(
             w.gut_label.animate.scale(1.14),
             w.urine_label.animate.scale(1.14),
-            FadeIn(eq_badge),
             rate_func=there_and_back,
-            run_time=1.4,
+            run_time=1.0,
         )
+        self.wait(0.6)
+        self.play(FadeOut(eq_badge), run_time=0.4)
 
         self.at("When filtration falls")
         ghost_jaw = VGroup(
@@ -772,25 +816,67 @@ class S06Moderate(SpokenScene):
         )
         w.sieve_label = sieve_60
 
-        self.at("At 15%")
-        pp_hi = calc_plasma_p(60.0, 0.15)  # 9.88 -> 9.9
-        self.play(w.pp_t.animate.set_value(pp_hi), run_time=3.2)
+        self.at("At 15")
+        self.play(w.pct_label.animate.scale(1.22), rate_func=there_and_back, run_time=0.7)
 
-        self.at("push the fraction to 50%")
+        # Pre-laid formula 1 beside the gauge (stacked to stay clear of gut label and gauge title)
+        f1_a = T("1/3 filtration → 3× level:", size=24, color=TEXT).move_to([0.25, 2.62, 0]).set_z_index(8)
+        f1_b = M("3.3", size=24, color=TEXT)
+        f1_c = M("× 3", size=24, color=TEXT)
+        f1_d = M("≈ 9.9", size=24, color=ORANGE)
+        f1_row2 = VGroup(f1_b, f1_c, f1_d).arrange(RIGHT, buff=0.12).move_to([0.25, 2.12, 0]).set_z_index(8)
+        f1 = VGroup(f1_a, f1_b, f1_c, f1_d)
+
+        pp_hi = calc_plasma_p(60.0, 0.15)  # 9.88 -> 9.9
+        self.at("must triple", lead=0.1)
+        self.play(
+            FadeIn(f1_a, run_time=0.4),
+            w.pp_t.animate(run_time=1.1, rate_func=linear).set_value(5.5),
+        )
+
+        self.at("3", lead=0.1)
+        self.play(
+            FadeIn(f1_b, run_time=0.25),
+            w.pp_t.animate(run_time=0.65, rate_func=linear).set_value(7.5),
+        )
+
+        self.at("times 3", lead=0.1)
+        self.play(
+            FadeIn(f1_c, run_time=0.25),
+            w.pp_t.animate(run_time=0.65, rate_func=linear).set_value(8.9),
+        )
+
+        self.at("is about 9", lead=0.1)
+        self.play(
+            FadeIn(f1_d, run_time=0.30),
+            w.pp_t.animate(run_time=0.55).set_value(pp_hi),
+        )
+
+        self.at("FgF23 and Pth")
         self.play(
             pth_park.animate.move_to([2.40, 1.15, 0]).scale(1.08),
             fgf_park.animate.move_to([1.90, -1.12, 0]).scale(1.08),
-            run_time=0.8,
+            run_time=0.9,
         )
+
+        # Pre-laid formula 2 replacing formula 1 (two stacked lines)
+        f2_a = M("800 ÷ (60 × 0.9 × 0.5)", size=24, color=TEXT).move_to([0.25, 2.62, 0]).set_z_index(8)
+        f2_b = M("≈ 30 mg/L = 3.0 mg/dL", size=24, color=TEXT).move_to([0.25, 2.12, 0]).set_z_index(8)
+
+        self.at("fraction to 50")
         pct_50 = T("50%", size=26, color=ORANGE).move_to(w.pct_label.get_center()).set_z_index(8)
         pp_lo = calc_plasma_p(60.0, 0.50)  # 2.96 -> 3.0
         self.play(
             w.fe_t.animate.set_value(0.50),
             w.pp_t.animate.set_value(pp_lo),
             swap(w.pct_label, pct_50, run_time=0.7),
-            run_time=1.5,
+            swap(f1, f2_a, run_time=0.6),
+            run_time=1.3,
         )
         w.pct_label = pct_50
+
+        self.at("about 3", lead=0.1)
+        self.play(FadeIn(f2_b), run_time=0.35)
         self.finish()
 
 
@@ -831,10 +917,11 @@ class S07Cohort(SpokenScene):
         )
 
         self.at("without proving the order")
-        q_first = T("FGF23 first?", size=24, color=GOLD).move_to([2.45, 2.50, 0]).set_z_index(8)
-        self.play(FadeIn(q_first), run_time=0.7)
-        self.wait(0.8)
-        self.play(FadeOut(bars), run_time=0.7)
+        order_arr = Arrow([-1.55, 2.72, 0], [-0.55, 2.72, 0], buff=0.05, color=GOLD, stroke_width=3, tip_length=0.18)
+        q_first = T("FGF23 first?", size=24, color=GOLD).next_to(order_arr, RIGHT, buff=0.14).set_z_index(8)
+        self.play(GrowArrow(order_arr), FadeIn(q_first), run_time=0.55)
+        self.wait(0.45)
+        self.play(FadeOut(bars), FadeOut(order_arr), run_time=0.55)
         self.finish()
 
 
@@ -895,7 +982,7 @@ class S09Pause(PredictPause):
 
 class S10Answer(SpokenScene):
     def construct(self):
-        w = build_world(gfr=15.0, fe=1.00, pp=calc_plasma_p(15.0, 1.00), with_bone=True, with_rule=True, show_pct=True, show_gauge_num=False)
+        w = build_world(gfr=15.0, fe=1.00, pp=3.0, with_bone=True, with_rule=True, show_pct=True, show_gauge_num=False)
         w.gauge.remove(w.gauge.needle)
         fgf_park = make_chip("FGF23", MAGENTA, size=22, pad=0.10).move_to([-3.25, -2.02, 0])
         pth_park = make_chip("PTH", PURPLE, size=22, pad=0.10).move_to([-1.95, -2.02, 0])
@@ -911,20 +998,51 @@ class S10Answer(SpokenScene):
         self.at("fraction cannot pass")
         stop_line = Line([BAR_RIGHT + 0.05, -0.60, 0], [BAR_RIGHT + 0.05, 0.60, 0], color=RED, stroke_width=5)
         ceil_lab = T("ceiling: 100%", size=24, color=RED).move_to([3.35, 1.38, 0]).set_z_index(8)
-        self.play(Create(stop_line), FadeIn(ceil_lab), run_time=0.7)
+        self.play(Create(stop_line), FadeIn(ceil_lab), run_time=0.65)
 
-        self.at("must sit near 5")
+        # Pre-laid progressive calculation beside the gauge (stacked to stay clear of labels)
+        c1_a = M("800", size=24, color=TEXT)
+        c1_b = M("÷ (15", size=24, color=TEXT)
+        c1_c = M("× 0.9 × 1.0)", size=24, color=TEXT)
+        c1_row1 = VGroup(c1_a, c1_b, c1_c).arrange(RIGHT, buff=0.15).move_to([0.15, 2.66, 0]).set_z_index(8)
+
+        c1_d = M("≈ 59 mg/L", size=24, color=TEXT)
+        c1_e = M("= 5.9 mg/dL", size=24, color=ORANGE)
+        c1_row2 = VGroup(c1_d, c1_e).arrange(RIGHT, buff=0.16).move_to([0.15, 2.16, 0]).set_z_index(8)
+
+        c2_a = M("÷ 0.5", size=24, color=RED)
+        c2_b = M("→ 11.9", size=24, color=RED)
+        c2_row = VGroup(c2_a, c2_b).arrange(RIGHT, buff=0.15).move_to([0.15, 1.66, 0]).set_z_index(8)
+
+        self.at("800 milligrams", lead=0.1)
+        self.play(FadeIn(c1_a), run_time=0.25)
+
+        self.at("divided by 15", lead=0.1)
+        self.play(FadeIn(c1_b), run_time=0.25)
+
+        self.at("90", lead=0.1)
+        self.play(FadeIn(c1_c), run_time=0.30)
+
+        pp_ans = calc_plasma_p(15.0, 1.00)  # 5.93 -> 5.9
+        self.at("about 59", lead=0.1)
+        self.play(
+            FadeIn(c1_d, run_time=0.30),
+            FadeOut(q_mark, run_time=0.35),
+            FadeIn(w.gauge.needle, run_time=0.30),
+            w.pp_t.animate(run_time=1.8).set_value(4.8),
+        )
+
+        self.at("That is 5", lead=0.1)
         real_num = always_redraw(
             lambda: M(f"{w.pp_t.get_value():.1f} mg/dL", size=26, color=TEXT).move_to([GAUGE_X - 0.05, -2.42, 0])
         ).set_z_index(8)
         self.play(
-            FadeOut(q_mark),
-            FadeIn(w.gauge.needle),
-            swap(q_num, real_num, run_time=0.6),
-            run_time=0.7,
+            FadeIn(c1_e, run_time=0.30),
+            w.pp_t.animate(run_time=0.55).set_value(pp_ans),
+            swap(q_num, real_num, run_time=0.55),
         )
 
-        self.at("At 50%")
+        self.at("50", lead=0.1)
         ghost_green = Rectangle(width=ORANGE_W, height=BAR_H, stroke_color=GREEN, stroke_width=2.5, fill_color=GREEN, fill_opacity=0.35).move_to([BAR_RIGHT - ORANGE_W - ORANGE_W / 2, BAR_Y, 0])
         ghost_pp = calc_plasma_p(15.0, 0.50)  # 11.85 -> 11.9
         gy_hi = gauge_y(ghost_pp)
@@ -932,12 +1050,20 @@ class S10Answer(SpokenScene):
             Line([GAUGE_X - 0.34, gy_hi, 0], [GAUGE_X - 0.02, gy_hi, 0], color=RED, stroke_width=4),
             Polygon([GAUGE_X, gy_hi, 0], [GAUGE_X - 0.16, gy_hi + 0.09, 0], [GAUGE_X - 0.16, gy_hi - 0.09, 0], color=RED, stroke_width=0, fill_color=RED, fill_opacity=0.9),
         )
-        ghost_lab = T("at 50%: 11.9", size=24, color=RED).move_to([3.45, gy_hi - 0.10, 0]).set_z_index(9)
-        self.play(FadeIn(ghost_green), FadeIn(ghost_needle), FadeIn(ghost_lab), run_time=0.9)
+        ghost_lab_pre = T("at 50%", size=24, color=RED).move_to([3.45, gy_hi - 0.10, 0]).set_z_index(9)
+        self.play(FadeIn(ghost_green), FadeIn(ghost_needle), FadeIn(ghost_lab_pre), run_time=0.65)
 
-        self.at("need about 11")
-        self.wait(0.9)
-        self.play(FadeOut(ghost_green), FadeOut(ghost_needle), FadeOut(ghost_lab), run_time=0.8)
+        self.at("must double", lead=0.1)
+        self.play(FadeIn(c2_a), run_time=0.25)
+
+        self.at("about 11", lead=0.1)
+        ghost_lab_full = T("at 50%: 11.9", size=24, color=RED).move_to([3.45, gy_hi - 0.10, 0]).set_z_index(9)
+        self.play(
+            FadeIn(c2_b, run_time=0.25),
+            swap(ghost_lab_pre, ghost_lab_full, run_time=0.35),
+        )
+        self.wait(0.65)
+        self.play(FadeOut(ghost_green), FadeOut(ghost_needle), FadeOut(ghost_lab_full), run_time=0.55)
         self.finish()
 
 

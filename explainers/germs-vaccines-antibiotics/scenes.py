@@ -157,9 +157,9 @@ def race_world(day=0.0, start=1.0, defense_day=7.0, baseline=0.0,
         crv, dot = VGroup(), VGroup()
     pieces.add(crv, dot)
 
-    frame = RoundedRectangle(width=2.0, height=4.25, corner_radius=0.18,
-                             stroke_color=GOLD, stroke_width=3).move_to([4.65, 0.25, 0])
-    label = T("defense\n(antibody)", 26, GOLD, line_spacing=0.8).move_to([4.65, 2.8, 0])
+    frame = RoundedRectangle(width=2.0, height=3.95, corner_radius=0.18,
+                             stroke_color=GOLD, stroke_width=3).move_to([4.65, 0.05, 0])
+    label = T("defense\n(antibody)", 26, GOLD, line_spacing=0.8).move_to([4.65, 2.62, 0])
     day_box = RoundedRectangle(width=2.05, height=0.55, corner_radius=0.14,
                                stroke_color=GREY, stroke_width=2).move_to([5.05, 3.5, 0])
     day_text = counter("day {:.0f}", tracker, at=[5.05, 3.5, 0], size=28, color=TEXT)
@@ -167,7 +167,7 @@ def race_world(day=0.0, start=1.0, defense_day=7.0, baseline=0.0,
 
     def make_bar():
         frac = defense_fraction(tracker.get_value(), defense_day, baseline)
-        h = 0.16 + 3.75 * frac
+        h = 0.16 + 3.45 * frac
         bar = Rectangle(width=1.45, height=h, stroke_width=0,
                         fill_color=GOLD, fill_opacity=0.78)
         bar.move_to([4.65, bottom + h / 2, 0])
@@ -346,34 +346,94 @@ class S03Germ(SpokenScene):
 class S04Race(SpokenScene):
     def construct(self):
         w = race_world(day=0, defense_day=7, curve="live")
-        self.play(Create(w.plot), FadeIn(VGroup(w.frame, w.label, w.day_box, w.day_text, w.tag)),
-                  run_time=0.75)
-        self.add(w.curve, w.dot, w.bar)
-        self.at("One becomes two")
-        self.play(w.tracker.animate.set_value(1), run_time=1.0, rate_func=linear)
-        self.at("two become four")
-        self.play(w.tracker.animate.set_value(2), run_time=0.9, rate_func=linear)
-        self.at("doubling keeps going")
-        self.play(w.tracker.animate.set_value(3.8), run_time=1.3, rate_func=linear)
-        self.at("body builds a defense")
-        self.play(w.tracker.animate.set_value(4.8), run_time=1.15, rate_func=linear)
 
-        big = microbe(0.72).move_to([-1.0, 0.1, 0])
-        antigen_lab = T("one small part: antigen", 28, TEAL).move_to([-0.65, 3.15, 0])
-        ab = antibody(0.62).rotate(-PI / 2).move_to(big.get_right() + RIGHT * 0.42)
-        ab_lab = T("antibody", 30, GOLD).move_to([1.35, 1.25, 0])
-        demo = VGroup(big, antigen_lab, ab, ab_lab)
-        demo.set_z_index(5)
+        def dot_cluster(n, cols):
+            return VGroup(*[Dot(radius=0.08, color=TEAL) for _ in range(n)]).arrange_in_grid(
+                rows=max(1, (n + cols - 1) // cols), cols=cols, buff=0.08
+            )
+
+        g1 = VGroup(M("1", 34, TEAL), dot_cluster(1, 1)).arrange(DOWN, buff=0.14).move_to([-4.2, 1.0, 0])
+        g2 = VGroup(M("→ 2", 34, TEAL), dot_cluster(2, 2)).arrange(DOWN, buff=0.14).move_to([-2.7, 1.0, 0])
+        g3 = VGroup(M("→ 4", 34, TEAL), dot_cluster(4, 2)).arrange(DOWN, buff=0.14).move_to([-1.15, 0.92, 0])
+        g4 = VGroup(M("→ …", 34, TEAL), dot_cluster(8, 4)).arrange(DOWN, buff=0.14).move_to([0.45, 0.92, 0])
+        for g in (g2, g3, g4):
+            g[0].align_to(g1[0], DOWN)
+        doubling_grp = VGroup(g1, g2, g3, g4)
+
+        self.play(FadeIn(w.plot), FadeIn(VGroup(w.frame, w.label, w.day_box, w.day_text, w.tag)),
+                  FadeIn(g1), run_time=0.45)
+        self.add(w.curve, w.dot, w.bar)
+
+        self.at("two", nth=0)
+        self.play(FadeIn(g2), w.tracker.animate.set_value(1.0), run_time=0.60, rate_func=linear)
+        self.at("two become")
+        self.play(w.tracker.animate.set_value(1.8), run_time=0.50, rate_func=linear)
+        self.at("four")
+        self.play(FadeIn(g3), w.tracker.animate.set_value(2.0), run_time=0.45, rate_func=linear)
+        self.at("the doubling keeps going")
+        self.play(FadeIn(g4), w.tracker.animate.set_value(4.0), run_time=1.80, rate_func=linear)
+
+        self.at("Meanwhile")
+        self.play(FadeOut(doubling_grp), w.tracker.animate.set_value(4.9), run_time=0.40, rate_func=linear)
+        self.at("body builds a defense")
+        self.play(w.tracker.animate(rate_func=linear).set_value(5.35),
+                  Indicate(VGroup(w.frame, w.label), color=GOLD, scale_factor=1.03),
+                  run_time=1.40)
+
+        big = microbe(0.68).move_to([-2.15, 0.30, 0])
+        antigen_lab = fit_text("antigen: a substance the immune system recognizes",
+                               max_w=5.8, size=28, color=TEAL, max_lines=2).move_to([-1.25, 1.75, 0])
+        antigen_arrow = Arrow(
+            [big.antigen.get_center()[0], antigen_lab.get_bottom()[1] - 0.06, 0],
+            big.antigen.get_top() + UP * 0.08,
+            buff=0.0, color=TEAL, stroke_width=4, tip_length=0.18,
+        )
+        self.at("An antigen is a substance")
+        self.play(FadeIn(big, scale=0.65), FadeIn(antigen_lab), GrowArrow(antigen_arrow),
+                  run_time=0.85)
+        self.at("immune system recognizes")
+        self.play(Indicate(big.antigen, color=GOLD, scale_factor=1.25),
+                  w.tracker.animate.set_value(5.45), run_time=1.2, rate_func=linear)
+        self.at("on a microbe surface")
+        self.play(Indicate(big, color=TEAL, scale_factor=1.06),
+                  w.tracker.animate.set_value(5.55), run_time=1.2, rate_func=linear)
+
+        ab = antibody(0.62).rotate(PI / 2).move_to(big.antigen.get_right() + RIGHT * 0.95)
+        ab_lab = T("antibodies", 28, GOLD).move_to([0.90, 0.90, 0])
+        small_dots = VGroup()
+        for pos in ([0.45, -0.25, 0], [1.45, -0.05, 0]):
+            m = microbe(0.24).move_to(pos)
+            y_ab = antibody(0.28).rotate(PI / 2).move_to(m.antigen.get_right() + RIGHT * 0.14)
+            small_dots.add(VGroup(m, y_ab))
         self.at("Antibodies are proteins")
-        self.play(FadeIn(big, scale=0.65), FadeIn(ab_lab), run_time=0.75)
+        self.play(FadeIn(ab, shift=LEFT * 0.2), FadeIn(ab_lab),
+                  LaggedStart(*[FadeIn(s, scale=0.7) for s in small_dots], lag_ratio=0.2),
+                  run_time=0.9)
         self.at("stick to one small part")
-        self.play(FadeIn(antigen_lab), FadeIn(ab, shift=RIGHT * 0.3), run_time=0.9)
+        self.play(ab.animate.move_to(big.antigen.get_right() + RIGHT * 0.22),
+                  Indicate(big.antigen, color=GOLD, scale_factor=1.18),
+                  run_time=0.95)
+        self.play(Indicate(small_dots, color=GOLD, scale_factor=1.05), run_time=0.85)
+
         self.at("block a microbe")
-        self.play(Indicate(VGroup(big, ab), color=GOLD, scale_factor=1.05),
-                  w.tracker.animate.set_value(5.4), run_time=1.0)
+        self.play(Indicate(VGroup(big, ab), color=GOLD, scale_factor=1.06), run_time=0.75)
+
+        toxin_core = Dot(radius=0.14, color=RED).move_to([0.35, -1.05, 0])
+        toxin_ab = antibody(0.32).rotate(PI / 2).move_to(toxin_core.get_right() + RIGHT * 0.16)
+        toxin_lab = T("toxin", 28, RED).next_to(toxin_ab, RIGHT, buff=0.14)
+        toxin_grp = VGroup(toxin_core, toxin_ab, toxin_lab)
+        self.at("or its toxin")
+        self.play(FadeIn(toxin_grp, scale=0.7), run_time=0.8)
+
+        demo = VGroup(big, antigen_lab, antigen_arrow, ab, ab_lab, small_dots, toxin_grp)
+        self.at("first time the body meets")
+        self.play(FadeOut(demo), w.tracker.animate.set_value(5.85), run_time=1.6, rate_func=linear)
+
+        week_line = w.plot.vline(7, color=GOLD)
+        week_lab = T("a week or more", 28, GOLD).next_to(week_line, RIGHT, buff=0.14).shift(UP * 0.85)
         self.at("takes a week or more")
-        self.play(FadeOut(demo), w.tracker.animate.set_value(6.0),
-                  run_time=1.2, rate_func=linear)
+        self.play(Create(week_line), FadeIn(week_lab),
+                  w.tracker.animate.set_value(6.0), run_time=1.2, rate_func=linear)
         self.finish()
 
 
@@ -399,8 +459,8 @@ class S05Rule(SpokenScene):
                       Dot(radius=0.04, color=RED).shift(RIGHT * 0.14 + UP * 0.1),
                       Arc(radius=0.17, start_angle=0.15, angle=PI - 0.3,
                           color=RED, stroke_width=4).shift(DOWN * 0.18))
-        face.move_to([3.0, 1.65, 0])
-        sick = T("often more illness", 28, RED).move_to([3.05, 0.8, 0])
+        face.move_to([3.06, 1.75, 0])
+        sick = T("often\nmore\nillness", 26, RED, line_spacing=0.8).move_to([3.06, 0.50, 0])
         self.at("more microbes means")
         self.play(FadeIn(face), FadeIn(sick), Indicate(bracket, color=TEAL), run_time=0.9)
         bob(face, amp=0.12, speed=3.0)
