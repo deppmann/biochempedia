@@ -1,24 +1,27 @@
 ---
-/* The film library (2026-11-13; made lighter and given featured rows on 2026-11-14).
+/* The film library (2026-11-13; lighter with featured rows 2026-11-14; rebuilt 2026-11-20).
 
-   Every film on the site, from src/lib/film-catalog.ts, which derives the list at build time from the
-   lessons, the scientist profiles and the methods library. Each card opens the film's own page
-   (/watch/... for a lesson film, the method page, or the profile on its lesson page), so this page
-   loads posters only and no player.
+   Every film on the site, from src/lib/film-catalog.ts. Top to bottom on a phone: the title and one
+   honest line; one film to start with (or where you stopped); a strip that draws the whole library
+   at true size; the level keys; search, order and a fold for course and kind; what the view holds
+   and how long it runs; "Play them in order" or for 10, 20 or 30 minutes; then the cards.
 
-   Light on a phone (Chris, 2026-11-14): the HTML carries the header, the featured rows, the first
-   60 cards in course order and links to one page per level (/films/<level>/), which list every film
-   of that level and work with JavaScript off. With JavaScript, the first filter, sort other than
-   course order, search or "Show more" fetches /films/list.json (every card, cut down) and the script
-   draws the list from it. The view lives in the query string (?sort=short&level=graduate&course=...
-   &kind=method&q=...), so a view can be shared and Back steps through changes.
+   With scripts off: the film to start with, the level keys as links to /films/<level>/ (every film
+   of a level, plain HTML), the first 60 cards, and each course's play-in-order link.
+   With scripts: a change of level is instant (the strip and the count need no download); the first
+   search, sort, course or kind choice or "Show more" fetches /films/list.json once and the list is
+   drawn from it. The view lives in the query string, with the names it has always had
+   (?q=&sort=&level=&course=&kind=), so a view can be shared and Back steps through changes.
 
-   When the list is filtered to one course, "Play these in order" opens /films/play/<course>/ (with
-   the kind and search carried over), which plays the films back to back. */
+   Motion: the strip re-lays and the cards slide to their new places when the visitor changes the
+   view, once, and not at all under reduced motion. Nothing moves by itself.
+   Nothing here counts what is left. "3 films watched on this device." appears after the first.
+
+   Client: src/lib/film-library.ts (with film-view.ts and film-strip.ts). */
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Hex from '../../components/Hex.astro';
 import FilmCard from '../../components/FilmCard.astro';
-import { filmCatalog, filmKey, filmLevelHref, filmPlayHref, KIND_LABELS, KIND_ORDER, KIND_PLURALS, type CatalogFilm } from '../../lib/film-catalog';
+import { filmCatalog, filmLevelHref, filmPlayHref, KIND_LABELS, KIND_ORDER, type CatalogFilm } from '../../lib/film-catalog';
 import { filmClock } from '../../lib/films';
 import { courseHref } from '../../data/courses';
 import { STAGES } from '../../data/stages';
@@ -26,525 +29,206 @@ import '../../styles/film-lib.css';
 
 const films = await filmCatalog();
 const FIRST = 60;
-
 const usedStages = STAGES.filter((s) => films.some((f) => f.stage === s.key));
 const usedKinds = KIND_ORDER.filter((k) => films.some((f) => f.kind === k));
-const countOf = (k: string) => films.filter((f) => f.kind === k).length;
-const hours = Math.round(films.reduce((n, f) => n + f.durationSec, 0) / 3600);
 const fmt = (n: number) => n.toLocaleString('en-US');
 const plural = (n: number, w: string) => `${fmt(n)} ${w}${n === 1 ? '' : 's'}`;
-// Method films in the methods library: its own films plus the lesson films it reuses.
-const methodCount = films.filter((f) => f.method).length;
+const seconds = (list: CatalogFilm[]) => list.reduce((n, f) => n + f.durationSec, 0);
+const median = [...films].sort((a, b) => a.durationSec - b.durationSec)[Math.floor(films.length / 2)].durationSec;
+/* "about 48 hours 30 minutes": the same rounding the script uses (film-view.ts, about()). */
+const allMinutes = Math.round(seconds(films) / 60);
+const hours = `${Math.floor(allMinutes / 60)} hours${Math.round((allMinutes % 60) / 5) * 5 ? ` ${Math.round((allMinutes % 60) / 5) * 5} minutes` : ''}`;
+const levelCount = (key: string) => films.filter((f) => f.stage === key).length;
 
-/* Courses in catalog order, with their films, for the course select and the groups. */
-const courses: { key: string; title: string; stage: string; films: CatalogFilm[] }[] = [];
+const courses: { key: string; title: string; stage: string; stageTitle: string; films: CatalogFilm[] }[] = [];
 for (const f of films) {
   if (!f.course) continue;
   let c = courses.find((x) => x.key === f.course);
-  if (!c) courses.push((c = { key: f.course, title: f.courseTitle, stage: f.stage!, films: [] }));
+  if (!c) courses.push((c = { key: f.course, title: f.courseTitle, stage: f.stage!, stageTitle: f.stageTitle, films: [] }));
   c.films.push(f);
 }
 
-/* ---- featured rows ---------------------------------------------------------------------------
-   A small seeded shuffle, so a row changes from one deploy to the next but every visitor of one
-   build sees the same page (the "Surprise me" spot re-picks in the browser). */
+/* A film to start with: for each level, a few opening films in course order, the first of them the
+   level's first film. */
 const today = new Date().toISOString().slice(0, 10);
-let seed = [...today].reduce((h, ch) => Math.imul(h ^ ch.charCodeAt(0), 16777619), 2166136261) >>> 0;
-const rand = () => (seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0) / 2 ** 32;
-const shuffled = <T,>(a: T[]) => { const b = [...a]; for (let i = b.length - 1; i > 0; i--) { const j = Math.floor(rand() * (i + 1)); [b[i], b[j]] = [b[j], b[i]]; } return b; };
-const daysBetween = (a: string, b: string) => Math.round((Date.parse(b) - Date.parse(a)) / 86_400_000);
+const seed = [...today].reduce((h, ch) => Math.imul(h ^ ch.charCodeAt(0), 16777619), 2166136261) >>> 0;
+const starts = usedStages.flatMap((s) => {
+  const firsts = films.filter((f) => f.stage === s.key && (f.kind === 'first' || (f.kind === 'activity' && f.lessonHref?.endsWith('#explainer'))));
+  const step = Math.max(1, Math.floor(firsts.length / 4));
+  return [0, 1, 2, 3].map((k) => firsts[k * step]).filter((f, i, a) => f && a.indexOf(f) === i).map((f) => ({
+    s: s.key, t: f.title, h: f.href, o: f.poster, d: filmClock(f.durationSec), m: `${f.stageTitle} · ${f.courseTitle}`, x: f.description,
+  }));
+});
+/* A first visitor is offered a grade 7 film, where biology starts from its first page (ruling,
+   2026-11-20); which of the four changes with the build. A level chosen on the page, or set on this
+   device, replaces it in the browser. */
+const g7 = starts.filter((x) => x.s === 'grade-7');
+const start = g7[seed % Math.max(1, g7.length)] ?? starts[0];
 
-// One film per lesson for the "new" row: the lesson's first film (or a Biology Together opening film).
-const lessonFirsts = films.filter((f) => f.kind === 'first' || (f.kind === 'activity' && f.lessonHref?.endsWith('#explainer')));
-const newest = films.map((f) => f.rewritten ?? '').sort().at(-1) ?? '';
-const fresh = !!newest && daysBetween(newest, today) <= 7;
-const newRow = lessonFirsts
-  .filter((f) => f.rewritten && daysBetween(f.rewritten, newest) <= 6)
-  .sort((a, b) => (b.rewritten! > a.rewritten! ? 1 : b.rewritten! < a.rewritten! ? -1 : a.position - b.position))
-  .slice(0, 12);
-const startRow = usedStages.map((s) => films.find((f) => f.stage === s.key && f.kind !== 'profile')).filter((f): f is CatalogFilm => !!f);
-const shortRow = shuffled(films.filter((f) => (f.kind === 'first' || f.kind === 'second') && f.durationSec < 180)).slice(0, 12);
-const spotPool = shuffled(films.filter((f) => f.kind !== 'profile' && f.takeaways?.length)).slice(0, 24).map((f) => ({
-  t: f.title, h: f.href, o: f.poster, d: filmClock(f.durationSec),
-  m: `${f.courseTitle}${f.stage ? ` · ${f.stageTitle}` : ''}`, x: f.takeaways![0],
-}));
-const spot = spotPool[0];
+/* The strip's data: every film's level and length, in catalog order (3 characters a film). */
+const stageIndex = (k: string | null) => { const i = usedStages.findIndex((s) => s.key === k); return i === -1 ? usedStages.length : i; };
+const strip = films.map((f) => `${stageIndex(f.stage)}${Math.min(1295, Math.round(f.durationSec)).toString(36).padStart(2, '0')}`).join('');
 
-/* ---- the first 60 cards, grouped by level and course ----------------------------------------- */
-const groups: { key: string; title: string; courses: { key: string; title: string; films: CatalogFilm[] }[] }[] = [];
+/* The first 60 cards, grouped by course. */
+const groups: { key: string; title: string; stage: string | null; stageTitle: string; films: CatalogFilm[] }[] = [];
 for (const f of films.slice(0, FIRST)) {
-  const sKey = f.stage ?? 'methods';
-  let g = groups.find((x) => x.key === sKey);
-  if (!g) groups.push((g = { key: sKey, title: f.stageTitle, courses: [] }));
-  const cKey = f.course ?? 'methods';
-  let c = g.courses.find((x) => x.key === cKey);
-  if (!c) g.courses.push((c = { key: cKey, title: f.courseTitle, films: [] }));
-  c.films.push(f);
+  const key = f.course ?? 'methods';
+  let g = groups.find((x) => x.key === key);
+  if (!g) groups.push((g = { key, title: f.courseTitle, stage: f.stage, stageTitle: f.stageTitle, films: [] }));
+  g.films.push(f);
 }
 const courseFilms = (key: string) => courses.find((c) => c.key === key)?.films ?? [];
-const levelCount = (key: string) => films.filter((f) => f.stage === key).length;
-const coursesIn = (key: string) => courses.filter((c) => c.stage === key).length;
 ---
 
-<BaseLayout title="Films — STEMhop" description="Every short narrated film on the site, from the lessons, the scientist profiles and the methods library. Sort by length, course or level, play a course's films in order, and each film links to the lesson it belongs to.">
-<div class="film-lib">
-  <header class="wrap fl-head" data-pagefind-ignore>
-    <p class="eyebrow"><a href="/courses/">All courses</a> · films</p>
-    <div class="hero-row">
-      <h1>The film library</h1>
-      <Hex pose="cheer" prop="camera" size={56} class="films-hex" />
-    </div>
-    <p class="lede">
-      {fmt(films.length)} short narrated films, a few minutes each, from first questions to current research. Every one has
-      captions and a transcript, and links to the lesson with the full text, the questions and the sources.
-    </p>
-    <ul class="kinds" aria-label="Films by kind">
-      {usedKinds.map((k) => <li><b>{fmt(countOf(k))}</b> {countOf(k) === 1 ? KIND_LABELS[k].toLowerCase() : KIND_PLURALS[k]}</li>)}
-    </ul>
-    <p class="small fl-note">About {fmt(hours)} hours in all. The animations and narration are AI-generated, as each film’s page says.</p>
+<BaseLayout title="Films — STEMhop" description={`${fmt(films.length)} short narrated films, most about ${Math.round(median / 60)} minutes, from every lesson on the site. Find one by level, length or idea, or play a set in order. Each has captions, a transcript and its lesson one tap away.`}>
+<div class="film-lib fl" data-fl data-total={films.length} data-pagefind-ignore>
+  <header class="wrap fl-top">
+    <h1>Films</h1>
+    <p class="fl-lede">{fmt(films.length)} short films, most about {Math.round(median / 60)} minutes. Each has captions, a transcript and its lesson one tap away.</p>
   </header>
 
-  {/* Filled from this device's record of films started (src/lib/film-progress.ts); hidden for a
-      first visit, without JavaScript, or when storage is blocked. */}
-  <section class="wrap" data-keep hidden aria-labelledby="keep-h" data-pagefind-ignore></section>
+  <section class="wrap fl-start" aria-labelledby="fl-start-h" data-fl-start data-pool={JSON.stringify(starts)}>
+    <a class="fl-start-pic" href={start.h} tabindex="-1" aria-hidden="true" data-fl-start-link>
+      <img src={start.o} alt="" width="320" height="180" decoding="async" data-fl-start-img />
+    </a>
+    <div class="fl-start-txt">
+      <h2 id="fl-start-h" data-fl-start-k>A film to start with</h2>
+      <p class="fl-start-t"><a href={start.h} data-fl-start-link data-fl-start-t>{start.t}</a></p>
+      <p class="fl-start-m"><span data-fl-start-m>{start.m}</span> · <span data-fl-start-d>{start.d}</span></p>
+      <p class="fl-start-x" data-fl-start-x>{start.x}</p>
+      <p class="fl-start-go">
+        <a class="fl-btn primary" href={start.h} data-fl-start-link data-fl-start-watch>Watch</a>
+        <button type="button" class="fl-link" data-fl-surprise hidden>Surprise me</button>
+      </p>
+      <p class="visually-hidden" role="status" data-fl-say></p>
+    </div>
+  </section>
 
-  {spot && (
-    <section class="wrap" aria-labelledby="spot-h" data-pagefind-ignore><div class="spot" data-spot data-pool={JSON.stringify(spotPool)}>
-      <a class="spot-pic" href={spot.h} tabindex="-1" aria-hidden="true" data-spot-link>
-        <img src={spot.o} alt="" width="640" height="360" decoding="async" data-spot-img />
-        <span class="spot-play"></span>
-      </a>
-      <div>
-        <p class="spot-k">Surprise me</p>
-        <h2 id="spot-h"><a href={spot.h} data-spot-link data-spot-t>{spot.t}</a></h2>
-        <p class="spot-m"><span data-spot-d>{spot.d}</span> · <span data-spot-m>{spot.m}</span></p>
-        <p class="spot-d" data-spot-x>{spot.x}</p>
-        <p class="spot-btns">
-          <a class="fl-btn primary" href={spot.h} data-spot-link>Watch it</a>
-          <button type="button" class="fl-btn" data-spot-next hidden>Another film</button>
-        </p>
+  <section class="wrap fl-deck" aria-label="Choose films">
+    <div class="fl-strip" data-fl-strip data-d={strip} aria-hidden="true">
+      {/* Before the script draws every film: the levels, each as wide as its films are long. */}
+      <div class="fl-strip-plain">
+        {usedStages.map((s) => <span class={`lv-${s.key}`} style={`flex-grow:${Math.round(seconds(films.filter((f) => f.stage === s.key)))}`}></span>)}
+        <span class="lv-methods" style={`flex-grow:${Math.round(seconds(films.filter((f) => !f.stage)))}`}></span>
       </div>
-    </div></section>
-  )}
+      <canvas hidden></canvas>
+    </div>
+    <p class="fl-strip-cap" data-fl-strip-cap>All {fmt(films.length)} films, each drawn as long as it runs.</p>
 
-  <section class="wrap fl-sec" aria-labelledby="feat-h" data-pagefind-ignore>
-    <h2 id="feat-h" class="visually-hidden">Featured films</h2>
-    {newRow.length >= 4 && (
-      <>
-        <div class="row-h"><h3>{fresh ? 'New this week' : 'Newest films'}</h3><p>From the lessons rewritten most recently.</p></div>
-        <ul class="rail" aria-label={fresh ? 'New this week' : 'Newest films'}>{newRow.map((f) => <FilmCard film={f} />)}</ul>
-      </>
-    )}
-    <div class="row-h"><h3>Start here</h3><p>The first film of each level.</p></div>
-    <ul class="rail" aria-label="Start here">{startRow.map((f) => <FilmCard film={f} />)}</ul>
-    <div class="row-h"><h3>Under three minutes</h3><p>Lesson films picked at random.</p></div>
-    <ul class="rail" aria-label="Under three minutes">{shortRow.map((f) => <FilmCard film={f} />)}</ul>
-  </section>
-
-  <section class="wrap fl-sec" aria-labelledby="lv-h" data-pagefind-ignore>
-    <h2 id="lv-h">Browse by level</h2>
-    <ul class="levels">
+    <nav class="fl-keys" aria-label="Level" data-fl-keys>
+      <a class="fl-key is-on" href="/films/" data-level=""><span class="fl-key-hex" data-fl-hex><Hex pose="stand" size={26} /></span><span class="fl-key-t">Every level</span><span class="fl-key-n">{plural(films.length, 'film')}</span></a>
       {usedStages.map((s) => (
-        <li><a href={filmLevelHref(s.key)}><b>{s.title}</b><span>{plural(levelCount(s.key), 'film')} · {plural(coursesIn(s.key), 'course')}</span></a></li>
+        <a class={`fl-key lv-${s.key}`} href={filmLevelHref(s.key)} data-level={s.key}><span class="fl-key-t"><span class="fl-chip"></span>{s.title}</span><span class="fl-key-n">{plural(levelCount(s.key), 'film')}</span></a>
       ))}
-      <li class="lv-methods"><a href="/methods/"><b>Methods library: a film for each lab technique</b><span>{plural(methodCount, 'method film')}, from PCR to patch clamp</span></a></li>
-    </ul>
-  </section>
+    </nav>
+    <p class="fl-keys-note">A level is a place to start, not a rank. If a film loses you, the level below teaches the same idea with less machinery.</p>
 
-  <section class="wrap fl-sec" aria-labelledby="all-h" data-pagefind-ignore>
-    <h2 id="all-h">All films</h2>
-
-    {/* The controls. Rendered hidden and shown by the inline script right after, so with JavaScript off
-        the section is the first 60 films and the level links. */}
-    <form class="fl-controls" data-fl-controls hidden role="search" aria-label="Sort and filter the films">
+    <form class="fl-controls" data-fl-controls hidden role="search" aria-label="Search and sort the films">
+      <input type="hidden" name="level" value="" />
       <div class="fl-row">
         <label class="fl-field fl-q">
-          <span>Find a film</span>
-          <input type="search" name="q" placeholder="A word in the title, such as kinase" autocomplete="off" spellcheck="false" enterkeyhint="search" />
+          <span>Search</span>
+          <input type="search" name="q" placeholder="A title or a question" autocomplete="off" spellcheck="false" enterkeyhint="search" />
         </label>
         <label class="fl-field">
-          <span>Sort</span>
+          <span>Order</span>
           <select name="sort">
             <option value="course">Course order</option>
             <option value="short">Shortest first</option>
             <option value="long">Longest first</option>
-            <option value="new">Newest rewrites</option>
+            <option value="new">Newest first</option>
             <option value="az">A to Z</option>
           </select>
         </label>
-        <label class="fl-field">
-          <span>Level</span>
-          <select name="level">
-            <option value="">All levels</option>
-            {usedStages.map((s) => <option value={s.key}>{s.title}</option>)}
-          </select>
-        </label>
-        <label class="fl-field">
-          <span>Course</span>
-          <select name="course">
-            <option value="">All courses</option>
-            {courses.map((c) => <option value={c.key}>{c.title}</option>)}
-          </select>
-        </label>
-        <label class="fl-field">
-          <span>Kind</span>
-          <select name="kind">
-            <option value="">All kinds</option>
-            {usedKinds.map((k) => <option value={k}>{KIND_LABELS[k]}</option>)}
-          </select>
-        </label>
       </div>
-      <div class="fl-row fl-row2">
-        <p class="fl-status" data-fl-status role="status" aria-live="polite" data-total={films.length}>{plural(films.length, 'film')}</p>
-        <button type="button" class="fl-btn soft" data-fl-surprise><span aria-hidden="true">🎲</span> Surprise me</button>
-        <button type="button" class="fl-btn" data-fl-reset>Reset</button>
-      </div>
+      <details class="fl-fold" data-fl-fold>
+        <summary>Course and kind of film</summary>
+        <div class="fl-row">
+          <label class="fl-field">
+            <span>Course</span>
+            <select name="course">
+              <option value="">Every course</option>
+              {usedStages.map((s) => (
+                <optgroup label={s.title}>
+                  {courses.filter((c) => c.stage === s.key).map((c) => <option value={c.key}>{c.title}</option>)}
+                </optgroup>
+              ))}
+            </select>
+          </label>
+          <label class="fl-field">
+            <span>Kind of film</span>
+            <select name="kind">
+              <option value="">Every kind</option>
+              {usedKinds.map((k) => <option value={k}>{KIND_LABELS[k]}</option>)}
+            </select>
+          </label>
+        </div>
+      </details>
     </form>
-    <script is:inline>document.currentScript.previousElementSibling.hidden = false;</script>
 
-    <p class="fl-play-row" data-fl-play hidden></p>
-
-    <div class="fl-none" data-fl-none hidden>
-      <Hex pose="think" size={60} />
-      <p>No films match that. Try a shorter word or fewer filters, or <button type="button" data-fl-clear>show all films</button>.</p>
+    <div class="fl-count">
+      <p class="fl-status" data-fl-status role="status">{plural(films.length, 'film')}, about {hours}.</p>
+      <p class="fl-seen" data-fl-seen hidden></p>
     </div>
 
-    <div data-fl-list>
-      {groups.map((g) => (
-        <section class="lvl" aria-labelledby={`lvl-${g.key}-h`}>
-          <h3 id={`lvl-${g.key}-h`}><a href={g.key === 'methods' ? '/methods/' : filmLevelHref(g.key)}>{g.title}</a></h3>
-          {g.courses.map((c) => {
-            const all = courseFilms(c.key);
-            return (
-              <section class="course" aria-labelledby={`c-${c.key}-h`}>
-                <div class="course-h">
-                  <h4 id={`c-${c.key}-h`}><a class="ch" href={courseHref(c.key)}>{c.title}</a></h4>
-                  <span class="n">{plural(all.length, 'film')}</span>
-                  <span class="seen-n" data-seen-of={all.map((f) => filmKey(f.src)).join(' ')} hidden></span>
-                  {all.length > 1 && <a class="play-link" href={filmPlayHref(c.key)}>Play these in order</a>}
-                </div>
-                <ul class="grid in-course">{c.films.map((f) => <FilmCard film={f} />)}</ul>
-              </section>
-            );
-          })}
-        </section>
-      ))}
-    </div>
-
-    <p class="fl-more-row" data-fl-more-row hidden>
-      <button type="button" class="fl-btn" data-fl-more>Show more films</button>
-    </p>
-
-    <div class="fl-rest" data-fl-rest>
-      <p>These are the first {FIRST} of {fmt(films.length)} films, in course order. Every film is on its level’s page:</p>
-      <ul>
-        {usedStages.map((s) => <li><a href={filmLevelHref(s.key)}>{s.title}&nbsp;<span class="n">{fmt(levelCount(s.key))}</span></a></li>)}
-        <li><a href="/methods/">Methods library</a></li>
-      </ul>
+    <div class="fl-run" data-fl-run hidden>
+      <a class="fl-btn" href="/films/run/" data-fl-play>Play them in order</a>
+      <fieldset class="fl-budget">
+        <legend>Play for a set time</legend>
+        {[10, 20, 30].map((m) => <label><input type="radio" name="fl-t" value={m} autocomplete="off" /><span>{m} minutes</span></label>)}
+      </fieldset>
+      <div class="fl-run-sum" data-fl-run-sum hidden>
+        <p data-fl-run-text role="status"></p>
+        <ol class="fl-run-list" data-fl-run-list hidden></ol>
+        <p class="fl-run-go"><a class="fl-btn primary" href="/films/run/" data-fl-run-start>Start</a> <button type="button" class="fl-link" data-fl-run-clear>Not now</button></p>
+      </div>
     </div>
   </section>
 
-  <script>
-    import { cardHTML, clock, hoverPreviews, liveMarks, type FilmList, type ListFilm } from '../../lib/film-cards';
-    import { loadFilms, keepWatching, onFilmsChange } from '../../lib/film-progress';
+  <section class="wrap fl-all" aria-label="Films">
+    <div class="fl-none" data-fl-none hidden>
+      <p>Try fewer words, or <button type="button" class="fl-link" data-fl-clear>show every film</button>.</p>
+    </div>
 
-    const root = document.querySelector<HTMLElement>('.film-lib')!;
-    const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
-    const fmt = (n: number) => n.toLocaleString('en-US');
-    hoverPreviews(root);
-    liveMarks(root);
+    <p class="fl-wait" data-fl-wait hidden>Bringing up these films…</p>
+    <div data-fl-list>
+      {groups.map((g) => {
+        const all = courseFilms(g.key);
+        return (
+          <section class="course" aria-labelledby={`c-${g.key}-h`}>
+            <div class="course-h">
+              <h2 id={`c-${g.key}-h`}>{g.key === 'methods' ? <a class="ch" href="/methods/">{g.title}</a> : <a class="ch" href={courseHref(g.key)}>{g.title}</a>}</h2>
+              {g.stage && <span class={`n lv-${g.stage}`}><span class="fl-chip"></span>{g.stageTitle}</span>}
+              {all.length > 1 && <a class="play-link" href={filmPlayHref(g.key)}>Play these in order</a>}
+            </div>
+            <ul class="grid in-course">{g.films.map((f) => <FilmCard film={f} />)}</ul>
+          </section>
+        );
+      })}
+    </div>
 
-    /* Hex's camera: the reels turn once when the visitor asks for a surprise or more films load.
-       CSS does the turning (Hex.astro), three turns and done, none under reduced motion. */
-    const hex = root.querySelector<SVGElement>('.films-hex');
-    const roll = () => {
-      if (!hex) return;
-      hex.classList.remove('is-rolling');
-      void hex.getBoundingClientRect();
-      hex.classList.add('is-rolling');
-    };
-    hex?.addEventListener('animationend', () => hex.classList.remove('is-rolling'));
+    <p class="fl-more-row" data-fl-more-row hidden>
+      <button type="button" class="fl-btn" data-fl-more>Show 60 more</button>
+    </p>
 
-    /* ---- Keep watching: the newest film started and not finished, or the newest play-in-order queue. */
-    const keep = root.querySelector<HTMLElement>('[data-keep]')!;
-    onFilmsChange(() => {
-      const r = loadFilms();
-      const film = keepWatching(r);
-      const q = Object.entries(r.q).sort((a, b) => b[1].at - a[1].at)[0];
-      let html = '';
-      if (q && q[1].title && (!film || q[1].at >= film.at)) {
-        const [course, s] = q;
-        const href = `/films/play/${encodeURIComponent(course)}/`;
-        html = `<a class="spot-pic" href="${href}" tabindex="-1" aria-hidden="true"><img src="${esc(s.poster ?? '')}" alt="" width="320" height="180" decoding="async"><span class="spot-play"></span></a>`
-          + `<div><p class="spot-k" id="keep-h">Keep watching</p><h3><a href="${href}">${esc(s.courseTitle ?? 'Your films')}, in order</a></h3>`
-          + `<p class="spot-m">Up next: ${esc(s.title!)}${s.t > 4 ? `, from ${clock(s.t)}` : ''}</p></div>`;
-      } else if (film) {
-        const pct = Math.round((film.t / film.d) * 100);
-        html = `<a class="spot-pic" href="${esc(film.href)}" tabindex="-1" aria-hidden="true"><img src="${esc(film.poster)}" alt="" width="320" height="180" decoding="async"><span class="spot-play"></span></a>`
-          + `<div><p class="spot-k" id="keep-h">Keep watching</p><h3><a href="${esc(film.href)}">${esc(film.title)}</a></h3>`
-          + `<p class="spot-m">Stopped at ${clock(film.t)} of ${clock(film.d)}</p><span class="bar" role="img" aria-label="${pct} percent watched"><span style="width:${pct}%"></span></span></div>`;
-      }
-      keep.innerHTML = html ? `<div class="spot keep">${html}</div>` : '';
-      keep.hidden = !html;
-    });
+    <div class="fl-rest" data-fl-rest>
+      <p>These are the first {FIRST} films, in course order. Every film is listed on its level’s page. Choose a level:</p>
+      <ul>
+        {usedStages.map((s) => <li><a href={filmLevelHref(s.key)}>{s.title}</a></li>)}
+        <li><a href="/methods/">Methods library</a></li>
+      </ul>
+    </div>
 
-    /* ---- The "Surprise me" spot: a random film from a small pool picked at build time. */
-    const spot = root.querySelector<HTMLElement>('[data-spot]');
-    if (spot) {
-      type Pick = { t: string; h: string; o: string; d: string; m: string; x: string };
-      const pool: Pick[] = JSON.parse(spot.dataset.pool!);
-      let at = Math.floor(Math.random() * pool.length);
-      const show = () => {
-        const p = pool[at];
-        spot.querySelectorAll<HTMLAnchorElement>('[data-spot-link]').forEach((a) => (a.href = p.h));
-        spot.querySelector<HTMLImageElement>('[data-spot-img]')!.src = p.o;
-        spot.querySelector('[data-spot-t]')!.textContent = p.t;
-        spot.querySelector('[data-spot-d]')!.textContent = p.d;
-        spot.querySelector('[data-spot-m]')!.textContent = p.m;
-        spot.querySelector('[data-spot-x]')!.textContent = p.x;
-      };
-      show();
-      const next = spot.querySelector<HTMLButtonElement>('[data-spot-next]')!;
-      next.hidden = pool.length < 2;
-      next.addEventListener('click', () => { roll(); at = (at + 1 + Math.floor(Math.random() * (pool.length - 1))) % pool.length; show(); });
-    }
+    <p class="fl-foot">
+      The animations and narration are AI-generated, as each film’s page says, and every film has captions and a transcript.
+      What you have watched is kept on this device only; nobody else can see it.
+    </p>
+  </section>
 
-    /* ---- Sort and filter. Until the visitor changes the view, the list is the 60 cards in the HTML.
-       The first change fetches /films/list.json; from then on the script draws the list from it. */
-    const form = root.querySelector<HTMLFormElement>('[data-fl-controls]');
-    const list = root.querySelector<HTMLElement>('[data-fl-list]');
-    if (form && list) {
-      const PAGE = 60;
-      const SORTS = ['course', 'short', 'long', 'new', 'az'];
-      const FIELDS = ['q', 'sort', 'level', 'course', 'kind'] as const;
-      type State = Record<(typeof FIELDS)[number], string>;
-      const $ = <T extends Element>(sel: string) => root.querySelector<T>(sel)!;
-      const status = $<HTMLElement>('[data-fl-status]');
-      const none = $<HTMLElement>('[data-fl-none]');
-      const moreRow = $<HTMLElement>('[data-fl-more-row]');
-      const moreBtn = $<HTMLButtonElement>('[data-fl-more]');
-      const rest = $<HTMLElement>('[data-fl-rest]');
-      const playRow = $<HTMLElement>('[data-fl-play]');
-      const surprise = $<HTMLButtonElement>('[data-fl-surprise]');
-      const fold = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
-      const field = (n: string) => form.elements.namedItem(n) as HTMLInputElement | HTMLSelectElement;
-      const total = Number(status.dataset.total);
-
-      let data: FilmList | null = null;
-      let loading: Promise<FilmList | null> | null = null;
-      let texts: string[] = [];
-      const ensure = () => {
-        loading ??= (async () => {
-          status.setAttribute('aria-busy', 'true');
-          list.setAttribute('aria-busy', 'true');
-          status.textContent = `Loading all ${fmt(total)} films…`;
-          roll();
-          try {
-            const res = await fetch('/films/list.json');
-            if (!res.ok) throw new Error(String(res.status));
-            const d = (await res.json()) as FilmList;
-            texts = d.films.map((f) => fold(`${f.t} ${f.l ?? ''}`));
-            data = d;
-            return d;
-          } catch {
-            status.textContent = 'Could not load the full list. The level pages below have every film.';
-            loading = null;
-            return null;
-          } finally {
-            status.removeAttribute('aria-busy');
-            list.removeAttribute('aria-busy');
-          }
-        })();
-        return loading;
-      };
-
-      const collator = new Intl.Collator('en', { sensitivity: 'base', numeric: true });
-      const COMPARE: Record<string, (a: ListFilm, b: ListFilm) => number> = {
-        course: (a, b) => a.i - b.i,
-        short: (a, b) => a.d - b.d || a.i - b.i,
-        long: (a, b) => b.d - a.d || a.i - b.i,
-        // Newest rewrites first; films whose lesson has no rewrite date follow, in course order.
-        new: (a, b) => ((b.r ?? '') > (a.r ?? '') ? 1 : (b.r ?? '') < (a.r ?? '') ? -1 : 0) || a.i - b.i,
-        az: (a, b) => collator.compare(a.t, b.t) || a.i - b.i,
-      };
-
-      let limit = PAGE;
-      let current: ListFilm[] = [];
-
-      const read = (): State => {
-        const p = new URLSearchParams(location.search);
-        const st = Object.fromEntries(FIELDS.map((f) => [f, (p.get(f) ?? '').trim()])) as State;
-        if (!SORTS.includes(st.sort)) st.sort = 'course';
-        // A value the selects do not offer (an old or mistyped link) is ignored.
-        for (const f of ['level', 'course', 'kind'] as const) {
-          const sel = field(f) as HTMLSelectElement;
-          if (![...sel.options].some((o) => o.value === st[f])) st[f] = '';
-        }
-        return st;
-      };
-      const fromForm = (): State => Object.fromEntries(FIELDS.map((f) => [f, field(f).value.trim()])) as State;
-      const toForm = (st: State) => { for (const f of FIELDS) field(f).value = st[f]; };
-      const isDefault = (st: State) => !st.q && !st.level && !st.course && !st.kind && st.sort === 'course';
-      const urlFor = (st: State) => {
-        const p = new URLSearchParams();
-        for (const f of FIELDS) if (st[f] && !(f === 'sort' && st[f] === 'course')) p.set(f, st[f]);
-        const qs = p.toString();
-        return `${location.pathname}${qs ? `?${qs}` : ''}`;
-      };
-
-      const matches = (d: FilmList, st: State) => {
-        const words = fold(st.q).split(/\s+/).filter(Boolean);
-        return d.films.filter((f, i) =>
-          (!st.level || f.s === st.level) &&
-          (!st.course || f.c === st.course) &&
-          (!st.kind || f.k === st.kind) &&
-          words.every((w) => texts[i].includes(w)));
-      };
-
-      const playHref = (course: string, st: State) => {
-        const p = new URLSearchParams();
-        if (st.kind) p.set('kind', st.kind);
-        if (st.q) p.set('q', st.q);
-        const qs = p.toString();
-        return `/films/play/${encodeURIComponent(course)}/${qs ? `?${qs}` : ''}`;
-      };
-
-      const draw = (d: FilmList, st: State) => {
-        const shown = current.slice(0, limit);
-        let html = '';
-        if (st.sort === 'course') {
-          // Grouped by level, then course, as the page arrives.
-          let lv = '';
-          let co: string | null = null;
-          for (const f of shown) {
-            const lvKey = f.s || 'methods';
-            if (lvKey !== lv) {
-              if (co !== null) html += '</ul></section>';
-              if (lv) html += '</section>';
-              const title = f.s ? d.levels[f.s] : 'Methods library';
-              const href = f.s ? `/films/${f.s}/` : '/methods/';
-              html += `<section class="lvl" aria-labelledby="lvl-${lvKey}-h"><h3 id="lvl-${lvKey}-h"><a href="${href}">${esc(title)}</a></h3>`;
-              lv = lvKey;
-              co = null;
-            }
-            if (f.c !== co) {
-              if (co !== null) html += '</ul></section>';
-              co = f.c;
-              const key = f.c || 'methods';
-              const inCourse = d.films.filter((x) => x.c === f.c);
-              const here = current.filter((x) => x.c === f.c).length;
-              html += `<section class="course" aria-labelledby="c-${key}-h"><div class="course-h">`;
-              html += f.c
-                ? `<h4 id="c-${key}-h"><a class="ch" href="/courses/${encodeURIComponent(f.c)}/">${esc(d.courses[f.c])}</a></h4>`
-                : `<h4 id="c-${key}-h">Method films</h4>`;
-              html += `<span class="n">${here !== inCourse.length ? `${fmt(here)} of ` : ''}${fmt(inCourse.length)} film${inCourse.length === 1 ? '' : 's'}</span>`;
-              html += `<span class="seen-n" data-seen-of="${esc(inCourse.map((x) => x.f).join(' '))}" hidden></span>`;
-              if (f.c && here > 1) html += `<a class="play-link" href="${esc(playHref(f.c, st))}">Play these in order</a>`;
-              html += `</div><ul class="grid in-course">`;
-            }
-            html += cardHTML(f, d);
-          }
-          if (co !== null) html += '</ul></section>';
-          if (lv) html += '</section>';
-        } else {
-          html = `<ul class="grid">${shown.map((f) => cardHTML(f, d)).join('')}</ul>`;
-        }
-        list.innerHTML = html;
-      };
-
-      const render = (st: State, keepLimit = false) => {
-        if (!keepLimit) limit = PAGE;
-        const d = data!;
-        current = matches(d, st).sort(COMPARE[st.sort]);
-        draw(d, st);
-        const n = current.length;
-        const shown = Math.min(limit, n);
-        none.hidden = n > 0;
-        moreRow.hidden = shown >= n;
-        moreBtn.textContent = `Show more films (${fmt(n - shown)} more)`;
-        rest.hidden = n > 0;
-        status.textContent = n === d.count ? `${fmt(d.count)} films` : `${fmt(n)} of ${fmt(d.count)} films`;
-        surprise.disabled = n === 0;
-        // One course chosen: offer its films back to back.
-        if (st.course && n > 0) {
-          const min = Math.max(1, Math.round(current.reduce((s, f) => s + f.d, 0) / 60));
-          playRow.innerHTML = `<a class="play-link" href="${esc(playHref(st.course, st))}">Play these in order</a>`
-            + `<span>${n === 1 ? 'This film' : `All ${fmt(n)}`}, about ${fmt(min)} min, back to back, with each film’s take-homes underneath.</span>`;
-          playRow.hidden = false;
-        } else {
-          playRow.hidden = true;
-        }
-        liveMarks(list);
-      };
-
-      /* The page as it arrived: 60 cards from the HTML, until the first change. */
-      const arrived = list.innerHTML;
-      const showArrived = () => {
-        if (list.innerHTML !== arrived) list.innerHTML = arrived;
-        none.hidden = true;
-        playRow.hidden = true;
-        rest.hidden = false;
-        moreRow.hidden = total <= PAGE;
-        moreBtn.textContent = `Show more films (${fmt(total - PAGE)} more)`;
-        status.textContent = `${fmt(total)} films`;
-        surprise.disabled = false;
-        limit = PAGE;
-        liveMarks(list);
-      };
-
-      let shownState = '';
-      const show = async (st: State) => {
-        if (isDefault(st) && !data) { showArrived(); return; }
-        const d = await ensure();
-        if (!d) return;
-        // A newer change may have come in while the list was loading: draw what the form says now.
-        const now = fromForm();
-        shownState = JSON.stringify(now);
-        render(now);
-      };
-
-      const apply = (push: boolean) => {
-        const st = fromForm();
-        const url = urlFor(st);
-        if (url !== location.pathname + location.search) history[push ? 'pushState' : 'replaceState'](null, '', url);
-        void show(st);
-      };
-
-      form.addEventListener('submit', (e) => e.preventDefault()); // Enter in the find box does not reload
-      // A select change makes a history entry (so Back undoes it); typing replaces the current one.
-      form.addEventListener('change', (e) => { if ((e.target as Element).tagName === 'SELECT') apply(true); });
-      field('q').addEventListener('input', () => apply(false));
-      window.addEventListener('popstate', () => { const st = read(); toForm(st); void show(st); });
-
-      moreBtn.addEventListener('click', async () => {
-        const st = fromForm();
-        const before = data && shownState === JSON.stringify(st) ? Math.min(limit, current.length) : PAGE;
-        if (!data || shownState !== JSON.stringify(st)) {
-          const d = await ensure();
-          if (!d) return;
-          shownState = JSON.stringify(st);
-          render(st);
-        }
-        limit = before + PAGE;
-        render(st, true);
-        list.querySelectorAll<HTMLAnchorElement>('li.fc > a')[before]?.focus();
-      });
-      const clear = () => { form.reset(); field('sort').value = 'course'; apply(true); };
-      $('[data-fl-reset]').addEventListener('click', clear);
-      $('[data-fl-clear]').addEventListener('click', () => { clear(); field('q').focus(); });
-      surprise.addEventListener('click', async () => {
-        roll();
-        const d = await ensure();
-        if (!d) return;
-        const pool = matches(d, fromForm());
-        const from = pool.length ? pool : d.films;
-        location.href = from[Math.floor(Math.random() * from.length)].h;
-      });
-
-      const st = read();
-      toForm(st);
-      void show(st);
-    }
-  </script>
 </div>
+
+<script>
+  import { library } from '../../lib/film-library';
+  library();
+</script>
 </BaseLayout>
