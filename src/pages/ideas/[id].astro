@@ -10,7 +10,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import Ladder from '../../components/hop/Ladder.astro';
 import '../../styles/hop.css';
 import { allIdeas, type Idea } from '../../lib/hop';
-import { edgeLines, taughtAt, LEVEL_SHORT, LEVEL_KEYS, andList } from '../../lib/hop-words.mjs';
+import { edgeLines, taughtAt, levelCount, LEVEL_SHORT, LEVEL_KEYS, andList } from '../../lib/hop-words.mjs';
 
 export async function getStaticPaths() {
   return (await allIdeas()).map((idea) => ({ params: { id: idea.id }, props: { idea } }));
@@ -64,7 +64,7 @@ const ld = {
           <ul class="ideas-near">
             {idea.near.map((n) => (
               <li>
-                <span class="ideas-near-top"><Ladder size="tiny" mask={n.mask} /><a class="ideas-near-name" href={`/ideas/${n.id}/`}>{n.name}</a></span>
+                <span class="ideas-near-top"><Ladder size="tiny" mask={n.mask} /><a class="ideas-near-name" href={`/ideas/${n.id}/`}>{n.name}</a><span class="ideas-near-lv">{levelCount(n.mask)}</span></span>
                 <span class="ideas-near-why">{n.why}</span>
               </li>
             ))}

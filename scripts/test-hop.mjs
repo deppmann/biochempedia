@@ -10,7 +10,8 @@
  */
 import assert from 'node:assert/strict';
 import { loadGraphSite, coreSite, readGraph, makeTopicGraph } from './topic-graph/lib.mjs';
-import { inSentence, lessonSentence, plain, stepNote, levelNote, gapLine, taughtAt, levelCount, edgeLines, compactLine, teachesLine, maskOf, ranksOf, LEVEL_SHORT, LEVEL_LABEL, QUICK_NAME, andList } from '../src/lib/hop-words.mjs';
+import { inSentence, lessonSentence, authoredLinks, plain, stepNote, levelNote, gapLine, taughtAt, levelCount, edgeLines, compactLine, maskOf, ranksOf, SENTENCE_MAX, LEVEL_SHORT, LEVEL_LABEL, QUICK_NAME, andList } from '../src/lib/hop-words.mjs';
+import { headingIds } from '../src/lib/topic-graph-core.mjs';
 import { ladderHtml, ladderGlyph, ladderRows } from '../src/lib/hop-ladder.mjs';
 import { buildIndex, search, stem, oneSlip, solCode } from '../src/lib/hop-search.mjs';
 
@@ -40,10 +41,16 @@ function levelTwice(line) {
   return LEVEL_SHORT.filter((l) => t.split(l).length > 2);
 }
 
+const sectionWords = (body) => {
+  const heads = headingIds(body).filter((h) => h.depth === 2);
+  const lines = body.split('\n');
+  return Object.fromEntries(heads.map((h, i) => [h.id, lines.slice(h.line + 1, heads[i + 1]?.line ?? lines.length).join(' ').split(/\s+/).length]));
+};
 const sentences = lessons.map((l) => {
-  const s = lessonSentence(api.hops(l.slug), { slug: l.slug, title: l.title, rank: l.rank, courseTitle: l.courseTitle, explainLevels: l.fm.explainLevels });
+  const authored = authoredLinks(l.slug, site.lessons);
+  const s = lessonSentence(api.hops(l.slug), { slug: l.slug, title: l.title, rank: l.rank, courseTitle: l.courseTitle, explainLevels: l.fm.explainLevels, sections: sectionWords(l.body ?? ''), authored });
   const lines = ['teaches', 'simpler', 'deeper', 'next'].filter((k) => s.lines[k]).map((k) => [k, s.lines[k], plain(s.lines[k])]);
-  return { l, s, lines, ideas: api.hops(l.slug).map((h) => h.id) };
+  return { l, s, authored, lines, ideas: api.hops(l.slug).map((h) => h.id) };
 });
 
 if (process.argv.includes('--print')) {
@@ -52,7 +59,7 @@ if (process.argv.includes('--print')) {
     if (only.length && !x.ideas.some((i) => only.includes(i)) && !only.includes(x.l.slug)) continue;
     console.log(`\n${x.l.slug}  [${x.l.stage}]`);
     for (const [, , text] of x.lines) console.log(`  ${text}`);
-    console.log(`  > ${x.s.more}`);
+    console.log(`  > ${x.s.more}  (${x.s.length} characters)`);
   }
   process.exit(0);
 }
@@ -132,25 +139,57 @@ check('a hop link never points at the lesson itself, and carries where the reade
     assert.ok(s.href.endsWith(`?from=${x.l.slug}`), x.l.slug);
   }
 });
-check('Simpler points to a lower level and Deeper to a higher one, with the true size of the step', () => {
+const target = (segs) => { const link = segs.find((y) => y.href); return link ? site.lessons.get(link.href.split('/')[2]) : undefined; };
+check('Simpler points to a lower level and Deeper to a higher one', () => {
+  for (const x of sentences) for (const [k, segs] of x.lines) {
+    const t = target(segs);
+    if (t && k === 'simpler') assert.ok(t.rank < x.l.rank, `${x.l.slug} simpler`);
+    if (t && (k === 'deeper' || k === 'next')) assert.ok(t.rank > x.l.rank, `${x.l.slug} ${k}`);
+  }
+});
+check('a link chosen by hand wins: the school ladders, the step up from a guide, the way back from college', () => {
+  let n = 0;
+  for (const x of sentences) for (const [dir, key] of [['down', 'simpler'], ['up', x.l.rank === 0 ? 'next' : 'deeper']]) {
+    const mine = x.authored[dir];
+    if (!mine.length || (x.l.rank === 0 && mine.every((m) => m.rank > 2))) continue;
+    const line = x.lines.find(([k]) => k === key);
+    assert.ok(line, `${x.l.slug}: a hand-picked ${dir} link exists but the ${key} line is missing`);
+    assert.ok(mine.some((m) => m.slug === target(line[1])?.slug), `${x.l.slug} ${key}: ${line[2]} is not one of the hand-picked ${mine.map((m) => m.slug)}`);
+    n++;
+  }
+  assert.ok(n > 150, `only ${n} hand-picked sides were checked`);
+});
+check('otherwise the link is the nearest lesson on any idea the lesson teaches, and says which idea when it is not the one named', () => {
   for (const x of sentences) {
     const h = api.hops(x.l.slug);
     for (const [k, segs, text] of x.lines) {
-      const link = segs.find((s) => s.href);
-      if (!link || (k !== 'simpler' && k !== 'deeper')) continue;
-      const target = site.lessons.get(link.href.split('/')[2]);
-      assert.ok(k === 'simpler' ? target.rank < x.l.rank : target.rank > x.l.rank, `${x.l.slug} ${k}`);
-      assert.ok(h.some((i) => (k === 'simpler' ? i.downAll : i.upAll).some((r) => r.slug === target.slug)), `${x.l.slug} ${k}: not a rung of an idea it teaches`);
-      const step = stepNote(x.l.rank, target.rank);
-      if (step) assert.ok(text.includes(step), `${x.l.slug} ${k}: the size of the step is missing: ${text}`);
+      const dir = k === 'simpler' ? 'down' : 'up';
+      const t = target(segs);
+      if (!t || x.authored[dir].length) continue;
+      const nearest = Math.min(...h.filter((i) => i[dir]).map((i) => Math.abs(i[dir].rank - x.l.rank)));
+      assert.equal(Math.abs(t.rank - x.l.rank), nearest, `${x.l.slug} ${k}: a nearer lesson exists: ${text}`);
+      const main = x.s.ideas[0];
+      const onMain = (dir === 'down' ? main.downAll : main.upAll).some((r) => r.slug === t.slug);
+      assert.equal(/^(Simpler|Deeper), for /.test(text), !onMain, `${x.l.slug} ${k}: ${text}`);
     }
   }
 });
-check('ages 5 to 10: an activity, never a college or graduate link', () => {
+check('the sentence never says "nothing at a level" when the page links a lesson there', () => {
+  for (const x of sentences) for (const [, , text] of x.lines) {
+    const m = /nothing (at grade 7|at high school|at college level) yet/.exec(text);
+    if (!m) continue;
+    const band = { 'at grade 7': [1], 'at high school': [2], 'at college level': [3, 4, 5] }[m[1]];
+    const there = [...api.hops(x.l.slug).flatMap((i) => [...i.downAll, ...i.upAll]), ...x.authored.down, ...x.authored.up].filter((r) => band.includes(r.rank));
+    assert.deepEqual(there.map((r) => r.slug), [], `${x.l.slug}: ${text}`);
+  }
+});
+check('ages 5 to 10: an activity, one next lesson, taken from the guide\u2019s own step up when it has one', () => {
   for (const x of sentences.filter((y) => y.l.rank === 0)) {
     assert.match(x.lines[0][2], /^This activity is about .+ for ages 5 to 10\.$/);
     assert.ok(!x.s.lines.simpler && !x.s.lines.deeper, x.l.slug);
     if (x.s.lines.next) assert.match(plain(x.s.lines.next), /^Next, for an older child: .+ \((grade 7|high school)\)\.$/);
+    const step = (x.l.activity?.stepUp ?? []).filter((s) => site.lessons.has(s));
+    if (step.length) assert.ok(step.includes(target(x.s.lines.next)?.slug), `${x.l.slug}: the next lesson is not in its step up`);
   }
 });
 check('a side with no lesson is left out, never printed as "none"', () => {
@@ -160,31 +199,26 @@ check('the short version offered in place exists in that lesson', () => {
   for (const x of sentences) {
     const q = x.lines.flatMap(([, segs]) => segs).find((s) => s.quick);
     if (q) { assert.ok(x.l.fm.explainLevels.some((e) => e.level === q.quick), x.l.slug); assert.ok(QUICK_NAME[q.quick], q.quick); }
-    if (x.l.rank >= 2) assert.ok(q, `${x.l.slug}: a lesson from high school up offers a short simpler version`);
+    if (x.l.rank >= 2 && !x.s.lines.simpler?.some((y) => y.href)) assert.ok(q, `${x.l.slug}: with no simpler lesson to name, the short version is offered`);
   }
 });
-check('a lesson whose ideas are taught at one level only offers nearby ideas, not levels', () => {
+check('one idea is named: the one in the lesson\u2019s title, else the one with the longest section', () => {
   for (const x of sentences) {
-    const one = api.hops(x.l.slug).every((h) => !h.down && !h.up);
-    assert.equal(x.s.more, one ? 'See nearby ideas' : 'See every level', x.l.slug);
+    const main = inSentence(x.s.ideas[0].id, x.s.ideas[0].name);
+    assert.ok(x.lines[0][2].includes(` ${main}`), `${x.l.slug}: ${x.lines[0][2]}`);
+    assert.ok(!/ and also |more idea/.test(x.lines[0][2]), x.l.slug);
+  }
+  const first = (slug) => sentences.find((x) => x.l.slug === slug).s.ideas[0].id;
+  assert.equal(first('crossing-the-membrane'), 'cell-membrane');
+});
+check('school lessons name their level; college lessons name their course', () => {
+  for (const x of sentences) {
+    if (x.l.rank >= 3 && x.s.tight < 5) assert.ok(x.lines[0][2].includes(` in ${x.l.courseTitle}`), x.l.slug);
+    else if (x.l.rank > 0 && x.l.rank <= 2) assert.ok(x.lines[0][2].endsWith(` at ${LEVEL_SHORT[x.l.rank]} level.`), x.l.slug);
   }
 });
-check('the idea named first is the one in the lesson\u2019s title, when there is one', () => {
-  const first = (slug) => sentences.find((x) => x.l.slug === slug).lines[0][2];
-  assert.match(first('crossing-the-membrane'), /teaches the cell membrane/);
-  assert.match(first('diffusion-and-osmosis'), /teaches diffusion and osmosis/);
-});
-check('college lessons name their course; school lessons name their level', () => {
-  assert.equal(teachesLine({ rank: 1, courseTitle: 'Life Science', ideas: ['osmosis', 'diffusion'] }), 'This lesson teaches osmosis and diffusion at grade 7 level.');
-  assert.equal(teachesLine({ rank: 2, courseTitle: 'Biology', ideas: ['pH and buffers', 'enzymes'] }), 'This lesson teaches pH and buffers, and also enzymes at high school level.');
-  assert.equal(teachesLine({ rank: 5, courseTitle: 'Physiology', ideas: ['osmosis'] }), 'This lesson teaches osmosis in Physiology, an upper-level college course.');
-  assert.equal(teachesLine({ rank: 6, courseTitle: 'Cell Signaling', ideas: ['a', 'b', 'c'] }), 'This lesson teaches a, b, and one more idea in Cell Signaling, a graduate course.');
-  assert.equal(teachesLine({ rank: 1, courseTitle: 'Life Science', ideas: ['cells, tissues, organs and organ systems', 'homeostasis'] }), 'This lesson teaches cells, tissues, organs and organ systems, and one more idea at grade 7 level.');
-  assert.equal(teachesLine({ rank: 1, courseTitle: 'Life Science', ideas: ['enzymes', 'a, b and c', 'x'] }), 'This lesson teaches enzymes and two more ideas at grade 7 level.');
-  for (const x of sentences.filter((y) => y.l.rank >= 3)) assert.ok(x.lines[0][2].includes(` in ${x.l.courseTitle}, `), x.l.slug);
-});
-check('the closed sentence stays short: no line over 170 characters', () => {
-  const long = sentences.flatMap((x) => x.lines.filter(([, , t]) => t.length > 170).map(([k, , t]) => `${x.l.slug} ${k} (${t.length}): ${t}`));
+check(`the closed sentence fits four phone lines: at most ${SENTENCE_MAX} characters in all`, () => {
+  const long = sentences.filter((x) => x.s.length > SENTENCE_MAX).map((x) => `${x.l.slug} (${x.s.length}): ${x.lines.map((l) => l[2]).join(' ')}`);
   assert.deepEqual(long, []);
 });
 
@@ -223,12 +257,19 @@ check('on a lesson the ladder opens on the reader’s rung and the nearest rung 
   assert.ok(levels >= 4, 'osmosis has four levels');
   assert.ok(html.includes('hl-windowed') && html.includes('data-hl-all'));
   assert.equal((html.match(/hl-level hl-far/g) ?? []).length, levels - 2, 'the lowest rung shows itself and the one above');
+  const mid = ladderHtml(idea, { here: 'crossing-the-membrane' });
+  assert.ok(/hl-here"[^>]*data-hop-level="high-school"/.test(mid) && /hl-level" data-hop-level="grade-7"/.test(mid), 'from high school: this rung and the simpler one below it');
+  assert.ok(mid.indexOf('data-hop-level="high-school"') < mid.indexOf('data-hop-level="grade-7"'), 'written as drawn: deeper rungs first');
+  assert.ok(mid.includes('aria-expanded="false"') && mid.includes('data-fewer="Show fewer levels"'), 'the button stays and says what it will do');
   assert.ok(!ladderHtml(joined('nerve-growth-factor'), { here: api.ladder('nerve-growth-factor')[0].slug }).includes('hl-windowed'), 'a one-rung ladder has nothing to fold');
 });
 check('a gap is one short row; college counts as one place', () => {
   const rows = ladderRows({ short: 'touch', name: 'Touch', rungs: [{ rank: 0 }, { rank: 5 }, { rank: 6 }] });
   assert.deepEqual(rows.map((r) => r.kind), ['level', 'gap', 'level', 'level']);
   assert.equal(rows[1].text, 'No lesson on touch at grade 7 or at high school yet.');
+  const covered = ladderRows({ short: 'touch', name: 'Touch', rungs: [{ rank: 0 }, { rank: 5 }] }, [1]);
+  assert.equal(covered[1].text, 'No lesson on touch at high school yet.', 'a level the page links by hand is not called empty');
+  assert.deepEqual(ladderRows({ name: 'x', rungs: [{ rank: 0 }, { rank: 2 }] }, [1]).map((r) => r.kind), ['level', 'level']);
   assert.deepEqual(ladderRows({ name: 'x', rungs: [{ rank: 3 }, { rank: 5 }] }).map((r) => r.kind), ['level', 'level']);
 });
 check('"Play the ladder" states its size and its end', () => {
@@ -250,7 +291,7 @@ const FIXTURES = [
   ['photosynthesis', 'photosynthesis'], ['photosynthsis', 'photosynthesis'], ['why are leaves green', ['leaf-pigments', 'photosynthesis']],
   ['how do vaccines work', 'immunity'], ['action potential', 'action-potential'], ['action potentials', 'action-potential'],
   ['synapses', 'synapse'], ['viruses', 'viruses'], ['virus', 'viruses'], ['enzyme', 'enzymes'], ['mitochondria', ['cellular-respiration', 'endosymbiosis', 'organelles', 'chemiosmosis']],
-  ['cell membrane', 'cell-membrane'], ['dna', 'dna-structure'], ['natural selection', 'natural-selection'], ['colour vision', 'colour-vision'], ['color vision', 'colour-vision'],
+  ['cell membrane', 'cell-membrane'], ['osmo', 'osmosis'], ['dna', 'dna-structure'], ['natural selection', 'natural-selection'], ['colour vision', 'colour-vision'], ['color vision', 'colour-vision'],
   ['hemoglobin', 'oxygen-transport'], ['haemoglobin', 'oxygen-transport'], ['mitosis', 'cell-division'], ['PCR', 'pcr'], ['crispr', 'genetic-engineering'],
   ['heart', 'circulation'], ['food web', 'food-webs'], ['pain', 'pain'], ['atp', 'atp'], ['evolution', ['natural-selection', 'evidence-for-evolution', 'regulatory-evolution', 'coevolution']],
 ];
@@ -293,6 +334,7 @@ check('nonsense finds nothing; a loose match is marked closest, not passed off a
   assert.deepEqual(search(index, '   ').results, []);
   assert.deepEqual(search(index, 'quantum chromodynamics').results.filter((r) => !r.closest), []);
   assert.ok(search(index, 'osmosis').results[0].exact && !search(index, 'osmosis').results[0].closest);
+  assert.ok(!search(index, 'osmo').results[0].closest, 'the start of a name is a match, not a near miss');
 });
 check('plurals and slips', () => {
   assert.equal(stem('cells'), 'cell'); assert.equal(stem('viruses'), 'virus'); assert.equal(stem('bodies'), 'body'); assert.equal(stem('synapses'), 'synapse'); assert.equal(stem('mitosis'), 'mitosis'); assert.equal(stem('glass'), 'glass');

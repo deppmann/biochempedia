@@ -10,10 +10,10 @@ interface Props {
 }
 const { ladder } = Astro.props;
 ---
-<div class="hop-standards">
+<div class="hop-standards" id="ladder-h">
   <p><span class="hop-k">Essential question:</span> {ladder.essentialQuestion}</p>
   <p><span class="hop-k">Standards:</span> Virginia SOL {ladder.sol.join(', ')}{ladder.practices.length > 0 && <> · Practices {ladder.practices.join(', ')}</>}</p>
   {(ladder.lifeScience || ladder.biology2) && (
-    <p class="hop-standards-more">{ladder.lifeScience && <>Grade 7 Life Science: {ladder.lifeScience}</>}{ladder.lifeScience && ladder.biology2 && ' · '}{ladder.biology2 && <>Biology II: {ladder.biology2}</>}</p>
+    <p class="hop-standards-more">{ladder.lifeScience && <>Grade 7 Life Science: {ladder.lifeScience}</>}{ladder.lifeScience && ladder.biology2 && ' · '}{ladder.biology2 && <>Biology II: {ladder.biology2.replace(/^Biology II:\s*/, '')}</>}</p>
   )}
 </div>

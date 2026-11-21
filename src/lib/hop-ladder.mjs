@@ -13,10 +13,11 @@
    - Hex marks "you are here". It is not a score: nothing fills, counts or unlocks, and every rung
      is drawn the same whether or not the reader has been there.
    - Up the ladder is deeper, down is simpler (the words stay "Simpler" and "Deeper"). The markup is
-     written simplest first, so a screen reader and a page without styles read it in that order;
-     the styles stand it upright.
-   - With `window`, only the reader's rung and the nearest rung each way are shown at first, so a
-     phone opens on the reader's own rung, not on the graduate rungs. One button shows the rest.
+     written as it is drawn, deepest rung first, so the eye, the Tab key and a screen reader all
+     move the same way; the list's label says the order.
+   - With `window`, only the reader's rung and the rung below it are shown at first, so a phone
+     opens on the reader's own rung with Hex on it, never on a deeper rung. One button shows the
+     rest and stays in place.
    - A level with no lesson is one short line between two rungs, with the rails broken: honest and small. */
 import { LEVEL_KEYS, LEVEL_LABEL, LEVEL_SHORT, numWord, andList } from './hop-words.mjs';
 
@@ -41,20 +42,22 @@ export const HEX_STAND = '<svg class="hl-hex" viewBox="0 0 64 72" width="38" hei
 const art = (kind, hex) => `<span class="hl-art" aria-hidden="true"><svg class="hl-svg" width="56" height="100%" focusable="false">`
   + `<line class="hl-rail${kind === 'gap' ? ' hl-broken' : ''}" x1="12" y1="0" x2="12" y2="100%"/><line class="hl-rail${kind === 'gap' ? ' hl-broken' : ''}" x1="44" y1="0" x2="44" y2="100%"/>`
   + (kind === 'gap' ? '' : '<line class="hl-rung" x1="12" y1="38" x2="44" y2="38"/>')
+  + (kind === 'here' ? '<line class="hl-rung-gold" x1="14" y1="38" x2="42" y2="38"/>' : '')
   + `</svg>${hex ? HEX_STAND : ''}</span>`;
 
 /**
  * The rows of a ladder, simplest first: one per level that has a lesson, and one short gap row
  * wherever a whole level (grade 7, high school, all of college) lies between two rungs with no lesson.
+ * @param {number[]} [also] levels the page links by hand elsewhere: no gap is claimed there
  * @param {{ short?: string, name: string, rungs: Rung[] }} idea  rungs: { rank, slug, title, href, courseTitle, adds?, minutes?, film?, questions?, sol? }
  */
-export function ladderRows(idea) {
+export function ladderRows(idea, also = []) {
   const ranks = [...new Set(idea.rungs.map((r) => r.rank))].sort((a, b) => a - b);
   const rows = [];
   ranks.forEach((rank, i) => {
     if (i > 0) {
       const missing = [];
-      for (let b = BAND[ranks[i - 1]] + 1; b < BAND[rank]; b++) missing.push(b);
+      for (let b = BAND[ranks[i - 1]] + 1; b < BAND[rank]; b++) if (!also.includes(b)) missing.push(b);
       if (missing.length) rows.push({ kind: 'gap', text: missing.length > 2 ? `No lesson on ${idea.short ?? 'this idea'} at the ${numWord(missing.length)} levels in between yet.` : `No lesson on ${idea.short ?? 'this idea'} ${andList(missing.map((b) => BAND_AT[b]), 'or')} yet.` });
     }
     rows.push({ kind: 'level', rank, rungs: idea.rungs.filter((r) => r.rank === rank) });
@@ -68,27 +71,31 @@ export function ladderRows(idea) {
  * @param {{
  *   here?: string | null,     slug of the lesson the reader is on: Hex stands on its rung, the lesson is in bold, not a link
  *   hereRank?: number | null, or only a level (a film, a chosen level): Hex stands on that rung if it exists
+ *   hereLabel?: string,       words after the level's name on that rung when there is no lesson ("the level you chose")
  *   hex?: boolean,            draw Hex (default true). Pass false for a second ladder in the same view: one Hex in view
- *   window?: boolean,         show the reader's rung and the nearest rung each way first (default: true when `here` is set)
+ *   window?: boolean,         show the reader's rung and the rung below it first (default: true when `here` is set)
  *   facts?: boolean,          course, minutes, film and practice questions under each lesson (default true)
  *   from?: string | null,     lesson links carry ?from=<slug> and go to the top of the lesson (default: `here`)
+ *   also?: number[],          levels (0 ages 5 to 10, 1 grade 7, 2 high school, 3 college, 4 graduate) that the page
+ *                             links by hand elsewhere: the ladder then does not say "no lesson" there
  *   play?: { href: string, n: number, minutes: number, from: number, to: number } | null   the "Play the ladder" link
  * }} [o]
  * @returns {string} HTML
  */
 export function ladderHtml(idea, o = {}) {
-  const { here = null, hex = true, facts = true, play = null } = o;
+  const { here = null, hex = true, facts = true, play = null, also = [], hereLabel = '' } = o;
   const from = o.from === undefined ? here : o.from;
-  const rows = ladderRows(idea);
+  const rows = ladderRows(idea, also);
   const levels = rows.filter((r) => r.kind === 'level');
   const hereRank = here ? idea.rungs.find((r) => r.slug === here)?.rank ?? null : o.hereRank ?? null;
   const onLadder = hereRank !== null && levels.some((r) => r.rank === hereRank);
-  // The window: the reader's rung and the nearest rung each way.
+  // The window: the reader's rung and the rung below it, where a reader at a blind spot looks
+  // first. On the lowest rung, the rung above. Nobody scrolls past a deeper rung to find their own.
   const at = levels.findIndex((r) => r.rank === hereRank);
-  const near = new Set(at < 0 ? [] : [levels[at - 1]?.rank, levels[at].rank, levels[at + 1]?.rank]);
-  const windowed = (o.window ?? Boolean(here)) && onLadder && levels.length > near.size - (near.has(undefined) ? 1 : 0);
+  const near = new Set(at < 0 ? [] : [levels[at].rank, (levels[at - 1] ?? levels[at + 1])?.rank]);
+  near.delete(undefined);
+  const windowed = (o.window ?? Boolean(here)) && onLadder && levels.length > near.size;
   const far = (rank) => windowed && !near.has(rank);
-  // A gap row is hidden with the far rung beyond it.
   const gapFar = (i) => windowed && (rows[i - 1]?.kind === 'level' && far(rows[i - 1].rank) || rows[i + 1]?.kind === 'level' && far(rows[i + 1].rank));
 
   const lesson = (r) => {
@@ -98,30 +105,33 @@ export function ladderHtml(idea, o = {}) {
     if (facts) {
       if (r.courseTitle) f.push(esc(r.courseTitle));
       if (r.minutes) f.push(`about ${r.minutes} min`);
-      if (r.film) f.push(`<a href="${esc(r.film.href)}" aria-label="Film: ${esc(r.film.title)}, ${mmss(r.film.seconds)}">film ${mmss(r.film.seconds)}</a>`);
+      if (r.film) f.push(`<a href="${esc(r.film.href)}" aria-label="film ${mmss(r.film.seconds)}: ${esc(r.film.title)}">film ${mmss(r.film.seconds)}</a>`);
       if (r.questions) f.push(`<a href="/mcat/practice/?lesson=${esc(r.slug)}" aria-label="${r.questions} practice ${r.questions === 1 ? 'question' : 'questions'} on ${esc(r.title)}">${r.questions} practice ${r.questions === 1 ? 'question' : 'questions'}</a>`);
       if (r.sol?.length) f.push(`Virginia ${esc(r.sol.join(', '))}`);
     }
     return `<div class="hl-lesson${mine ? ' is-here' : ''}">`
       + (mine ? `<p class="hl-title"><strong>${esc(r.title)}</strong> <span class="hl-this">· this lesson</span></p>` : `<p class="hl-title"><a href="${esc(href)}">${esc(r.title)}</a></p>`)
       + (r.adds ? `<p class="hl-adds">${esc(r.adds)}</p>` : '')
+      + (r.rank === 0 && !mine ? '<p class="hl-adds hl-grownup">A grown-up runs this one; its safety notes are in the guide.</p>' : '')
       + (f.length ? `<p class="hl-facts">${f.join(' · ')}</p>` : '')
       + '</div>';
   };
 
+  // Drawn as it is written: the deepest rung first, the simplest at the foot.
   const html = rows.map((row, i) => row.kind === 'gap'
     ? `<li class="hl-row hl-gap${gapFar(i) ? ' hl-far' : ''}">${art('gap')}<p class="hl-gap-t">${esc(row.text)}</p></li>`
-    : `<li class="hl-row hl-level${row.rank === hereRank ? ' hl-here' : ''}${far(row.rank) ? ' hl-far' : ''}" data-hop-level="${LEVEL_KEYS[row.rank]}">${art('level', hex && row.rank === hereRank)}`
-      + `<div class="hl-text"><p class="hl-lvl">${esc(LEVEL_LABEL[row.rank])}${row.rank === hereRank && !here ? '<span class="hl-you"> · you are here</span>' : ''}<span class="hl-you" data-hop-you hidden> · the level you chose</span></p>${row.rungs.map(lesson).join('')}</div></li>`).join('');
+    : `<li class="hl-row hl-level${row.rank === hereRank ? ' hl-here' : ''}${far(row.rank) ? ' hl-far' : ''}" data-hop-level="${LEVEL_KEYS[row.rank]}">${art(row.rank === hereRank ? 'here' : 'level', hex && row.rank === hereRank)}`
+      + `<div class="hl-text"><p class="hl-lvl">${esc(LEVEL_LABEL[row.rank])}${row.rank === hereRank && !here && hereLabel ? `<span class="hl-you"> · ${esc(hereLabel)}</span>` : ''}<span class="hl-you" data-hop-you hidden> · the level you chose</span></p>${row.rungs.map(lesson).join('')}</div></li>`).reverse().join('');
 
-  const hidden = levels.filter((r) => far(r.rank)).length;
-  const all = windowed ? `<p class="hl-all"><button type="button" class="hl-all-btn" data-hl-all>Show all ${numWord(levels.length)} levels</button><span class="hl-all-note"> ${hidden === 1 ? 'One more level is' : `${numWord(hidden).replace(/^./, (c) => c.toUpperCase())} more levels are`} on this ladder.</span></p>` : '';
+  const n = numWord(levels.length);
+  const all = windowed ? `<p class="hl-all"><button type="button" class="hl-all-btn" data-hl-all aria-expanded="false" data-more="Show all ${n} levels" data-fewer="Show fewer levels">Show all ${n} levels</button></p>` : '';
   const playLink = play ? `<p class="hl-play"><a href="${esc(play.href)}">Play the ladder</a><span> · ${play.n} films, about ${play.minutes} min, from ${esc(LEVEL_SHORT[play.from])} to ${esc(LEVEL_SHORT[play.to])}. Each film waits for you to press play.</span></p>` : '';
-  return `<div class="hop-ladder hl-full${windowed ? ' hl-windowed' : ''}" data-hop-ladder="${esc(idea.id)}">${all}<ol class="hl-rows" aria-label="${esc(idea.name)}: lessons from the simplest level to the deepest">${html}</ol>${playLink}</div>`;
+  return `<div class="hop-ladder hl-full${windowed ? ' hl-windowed' : ''}" data-hop-ladder="${esc(idea.id)}">${all}<ol class="hl-rows" aria-label="${esc(idea.name)}: lessons from the deepest level to the simplest">${html}</ol>${playLink}</div>`;
 }
 
 /**
- * Wire the "Show all levels" button of every windowed ladder under `root`. Safe to call again.
+ * Wire the "Show all levels" button of every windowed ladder under `root`. The button stays where
+ * it is and keeps focus; it says what it will do next. Safe to call again.
  * @param {ParentNode} [root]
  */
 export function wireLadders(root = document) {
@@ -131,9 +141,9 @@ export function wireLadders(root = document) {
     btn.addEventListener('click', () => {
       const ladder = btn.closest('.hop-ladder');
       if (!ladder) return;
-      ladder.classList.remove('hl-windowed');
-      btn.closest('.hl-all')?.remove();
-      ladder.querySelector('.hl-rows a')?.focus({ preventScroll: true });
+      const open = ladder.classList.toggle('hl-windowed') === false;
+      btn.setAttribute('aria-expanded', String(open));
+      btn.textContent = btn.getAttribute(open ? 'data-fewer' : 'data-more');
     });
   });
 }

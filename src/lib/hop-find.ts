@@ -13,7 +13,7 @@ let indexP: Promise<Index> | undefined;
 const loadIndex = () => (indexP ??= Promise.all([
   fetch('/graph.json').then((r) => r.json()),
   fetch('/ideas/lessons.json').then((r) => r.json()).catch(() => null),
-]).then(([g, extra]) => buildIndex(g, extra)));
+]).then(([g, extra]) => buildIndex(g, extra)).catch((e) => { indexP = undefined; throw e; }));
 const areaCache = new Map<string, Promise<any>>();
 const loadArea = (id: string) => { if (!areaCache.has(id)) areaCache.set(id, fetch(`/graph/${id}.json`).then((r) => r.json())); return areaCache.get(id)!; };
 
@@ -73,7 +73,7 @@ async function openRungs(index: Index, id: string, host: Element, level: number,
       ...(f ? { film: { href: `/watch/${slug}/${f[4] ? `${f[4]}/` : ''}`, seconds: f[3], title: f[1] } } : {}),
     };
   });
-  host.innerHTML = `${ladderHtml({ id, name: it.name, short: inSentence(id, it.name), rungs }, { hereRank: level >= 0 ? level : null, hex: true, window: false })}<p class="ideas-res-more"><a href="/ideas/${esc(id)}/">${esc(it.name)}: films, ideas next door and the rest</a></p>`;
+  host.innerHTML = `${ladderHtml({ id, name: it.name, short: inSentence(id, it.name), rungs }, { hereRank: level >= 0 ? level : null, hereLabel: 'the level you chose', hex: true, window: false })}<p class="ideas-res-more"><a href="/ideas/${esc(id)}/">${esc(it.name)}: films, ideas next door and the rest</a></p>`;
   wireLadders(host);
 }
 
@@ -113,7 +113,7 @@ export function start() {
     }
     const closest = res.results[0].closest;
     const head = res.code
-      ? `<p class="ideas-closest">Ideas taught in lessons that carry Virginia ${esc(typed.toUpperCase())}.</p>`
+      ? `<p class="ideas-closest">Ideas taught in lessons that carry Virginia ${esc((res.results[0].why as any).code ?? typed)}.</p>`
       : closest ? `<p class="ideas-closest">Closest ${res.results.length === 1 ? 'idea' : 'ideas'} so far. Nothing on “${esc(typed)}” itself yet. <a href="/search/?q=${encodeURIComponent(typed)}">Search inside the lessons</a></p>` : '';
     out.innerHTML = `${head}<h2 class="hop-vh">Ideas that match</h2><ol class="ideas-results">${res.results.map((r) => row(index, r, level)).join('')}</ol>`;
     say(closest ? `Nothing on ${typed} itself yet. ${res.results.length} close ${res.results.length === 1 ? 'idea' : 'ideas'} shown.` : `${res.results.length} ${res.results.length === 1 ? 'idea matches' : 'ideas match'}. First: ${res.results[0].name}.`);
