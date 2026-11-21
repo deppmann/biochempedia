@@ -125,15 +125,33 @@ export async function getLearner(db, request) {
   return { ...row, token };
 }
 
-async function startSession(db, request, learnerId) {
+// Is migration 0011 applied (the columns that record how a session was made)? Asked of the
+// database, remembered like roleReady: "yes" for good, "no" for a minute.
+const sessionMemo = new WeakMap();
+export async function sessionMethodReady(db) {
+  const m = sessionMemo.get(db);
+  if (m && (m.yes || Date.now() - m.at < 60_000)) return m.yes;
+  let yes = false;
+  try { await db.prepare('SELECT method, google_sub, google_email FROM learner_sessions LIMIT 0').first(); yes = true; } catch { yes = false; }
+  sessionMemo.set(db, { yes, at: Date.now() });
+  return yes;
+}
+
+/** Start a session. `via` says how the person just proved who they are: { method: 'google', sub, email } from a
+ *  verified Google sign-in, or { method: 'passkey' }. Left out (a carried-over or test session), nothing is recorded. */
+async function startSession(db, request, learnerId, via = null) {
   const token = randomToken();
   const now = Date.now();
+  const how = via && (await sessionMethodReady(db)) ? via : null;
   if (Math.random() < 0.05) {
     await db.prepare('DELETE FROM learner_sessions WHERE expires_at < ?').bind(now).run().catch(() => {});
   }
   await db.batch([
-    db.prepare('INSERT INTO learner_sessions (token_hash, learner_id, created_at, expires_at) VALUES (?,?,?,?)')
-      .bind(await sha256Hex(token), learnerId, now, now + SESSION_DAYS * 86_400_000),
+    how
+      ? db.prepare('INSERT INTO learner_sessions (token_hash, learner_id, created_at, expires_at, method, google_sub, google_email) VALUES (?,?,?,?,?,?,?)')
+        .bind(await sha256Hex(token), learnerId, now, now + SESSION_DAYS * 86_400_000, how.method, how.method === 'google' ? how.sub : null, how.method === 'google' ? how.email : null)
+      : db.prepare('INSERT INTO learner_sessions (token_hash, learner_id, created_at, expires_at) VALUES (?,?,?,?)')
+        .bind(await sha256Hex(token), learnerId, now, now + SESSION_DAYS * 86_400_000),
     db.prepare('UPDATE learners SET last_active_at=? WHERE id=?').bind(now, learnerId),
   ]);
   return [cookie(LEARNER_COOKIE, token, request, SESSION_DAYS * 86400), hintCookie(request, true)];
@@ -370,7 +388,15 @@ export async function handleLearner(request, env, db, path, method, url) {
     if (onSite && host !== HOSTS.primary) return redirect(`${googleOrigin}${url.pathname}${url.search}`);
     if (!googleOn(env)) return redirect('/account/?error=google-off');
     if (!(await signinLimit())) return redirect('/account/?error=busy');
-    const current = await getLearner(db, request);
+    // "Sign in with Google" always means: sign in AS that Google account. It attaches the Google
+    // identity to the account already signed in here ONLY when that was asked for outright, with
+    // link=1, which the signed-in account page's "Link Google" button sends. Without this, pressing
+    // "Sign in with Google" on a computer where somebody else was still signed in would quietly put
+    // your Google identity on THEIR account. A link request must also come from this site's own page.
+    const fetchSite = request.headers.get('Sec-Fetch-Site');
+    const wantsLink = url.searchParams.get('link') === '1' && (!fetchSite || fetchSite === 'same-origin');
+    const current = wantsLink ? await getLearner(db, request) : null;
+    if (wantsLink && !current) return redirect('/account/?error=google-state');
     const verifier = randomToken(32);
     const nonce = randomToken(16);
     const age = url.searchParams.get('age') === '1';
@@ -425,12 +451,22 @@ export async function handleLearner(request, env, db, path, method, url) {
     const name = clean(claims.given_name || claims.name || (email ? email.split('@')[0] : 'Learner'), NAME_MAX) || 'Learner';
     const owner = await db.prepare('SELECT id FROM learners WHERE google_sub=?').bind(sub_).first();
 
+    const here = await getLearner(db, request);
     if (flow.learner_id) {
-      // Signed in already: link this Google account to the current learner.
+      // An explicit "Link Google" from the account page: the same learner must still be signed in on this browser.
+      if (!here || here.id !== flow.learner_id) return redirect('/account/?error=google-state', clear);
       if (owner && owner.id !== flow.learner_id) return redirect('/account/?error=google-in-use', clear);
-      await db.prepare('UPDATE learners SET google_sub=?, email=? WHERE id=?').bind(sub_, email, flow.learner_id).run();
+      // A different Google account may not replace the one already linked.
+      if (here.google_sub && here.google_sub !== sub_) return redirect('/account/?error=google-in-use', clear);
+      await db.batch([
+        db.prepare('UPDATE learners SET google_sub=?, email=? WHERE id=?').bind(sub_, email, flow.learner_id),
+        // The account can now be reached a new way: every other device is signed out and must sign in again.
+        db.prepare('DELETE FROM learner_sessions WHERE learner_id=? AND token_hash<>?').bind(flow.learner_id, await sha256Hex(here.token)),
+      ]);
       return redirect(safeReturn(extra.ret), clear);
     }
+    // A plain sign-in while somebody (anybody) is still signed in on this browser: that session ends here.
+    if (here) await db.prepare('DELETE FROM learner_sessions WHERE token_hash=?').bind(await sha256Hex(here.token)).run();
     let id = owner?.id;
     if (!id) {
       if (!extra.age) return redirect('/account/?error=age', clear);
@@ -438,7 +474,7 @@ export async function handleLearner(request, env, db, path, method, url) {
     } else if (email) {
       await db.prepare('UPDATE learners SET email=? WHERE id=?').bind(email, id).run();
     }
-    return redirect(safeReturn(extra.ret), [...clear, ...(await startSession(db, request, id))]);
+    return redirect(safeReturn(extra.ret), [...clear, ...(await startSession(db, request, id, { method: 'google', sub: sub_, email }))]);
   }
 
   // ---------- passkeys ----------
@@ -507,7 +543,7 @@ export async function handleLearner(request, env, db, path, method, url) {
     }
     await db.prepare('INSERT INTO learner_passkeys (credential_id, learner_id, public_key, counter, transports, created_at) VALUES (?,?,?,?,?,?)')
       .bind(cred.id, learnerId, b64url(cred.publicKey), cred.counter || 0, JSON.stringify(cred.transports || b?.response?.response?.transports || []), Date.now()).run();
-    if (!flow.learner_id) cookies.push(...(await startSession(db, request, learnerId)));
+    if (!flow.learner_id) cookies.push(...(await startSession(db, request, learnerId, { method: 'passkey' })));
     const l = await db.prepare('SELECT display_name FROM learners WHERE id=?').bind(learnerId).first();
     return withCookies(json({ ok: true, name: l?.display_name }), cookies);
   }
@@ -540,7 +576,7 @@ export async function handleLearner(request, env, db, path, method, url) {
     if (!v.verified) return withCookies(fail(400, 'The passkey could not be checked. Please try again.'), [clear]);
     await db.prepare('UPDATE learner_passkeys SET counter=? WHERE credential_id=?').bind(v.authenticationInfo.newCounter || 0, pk.credential_id).run();
     const l = await db.prepare('SELECT display_name FROM learners WHERE id=?').bind(pk.learner_id).first();
-    return withCookies(json({ ok: true, name: l?.display_name }), [clear, ...(await startSession(db, request, pk.learner_id))]);
+    return withCookies(json({ ok: true, name: l?.display_name }), [clear, ...(await startSession(db, request, pk.learner_id, { method: 'passkey' }))]);
   }
 
   // ---------- session ----------
@@ -614,8 +650,9 @@ export async function handleLearner(request, env, db, path, method, url) {
     const role = await roleOf(db, l.id);
     const passkeys = ((await db.prepare('SELECT credential_id, public_key, counter, transports, created_at FROM learner_passkeys WHERE learner_id=?').bind(l.id).all()).results || [])
       .map((p) => ({ credentialId: p.credential_id, publicKey: p.public_key, counter: p.counter, transports: safeArr(p.transports), created: iso(p.created_at) }));
-    const sessions = ((await db.prepare('SELECT created_at, expires_at FROM learner_sessions WHERE learner_id=? ORDER BY created_at').bind(l.id).all()).results || [])
-      .map((s) => ({ created: iso(s.created_at), expires: iso(s.expires_at) }));
+    const withMethod = await sessionMethodReady(db);
+    const sessions = ((await db.prepare(`SELECT created_at, expires_at${withMethod ? ', method' : ''} FROM learner_sessions WHERE learner_id=? ORDER BY created_at`).bind(l.id).all()).results || [])
+      .map((s) => ({ created: iso(s.created_at), expires: iso(s.expires_at), ...(withMethod ? { signedInWith: s.method ?? null } : {}) }));
     const out = {
       site: HOSTS.primary,
       exported: new Date().toISOString(),
