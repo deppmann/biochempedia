@@ -22,26 +22,32 @@ WHAT CHANGES IN EACH SPOKEN SCENE (and what it is computed from):
   s00_hook        : RED acid dots fall under gravity into the upper tank; ORANGE bubbles drift out through
                     breathing lungs; needle trembles around computed pH 7.40; free H+ counter shows 40 nmol/L.
   s02_fraction    : Fraction bar brightens, needle pulses at 7.40, BLUE/ORANGE fluids highlight with
-                    24 mmol/L and 1.2 mmol/L, and 20 : 1 appears on the split fraction bar.
-  s03_equation    : Equation under the gauge computes pH = 6.1 + log(ratio) -> 6.1 + 1.30 -> 7.40 as needle glows.
+                    24 mmol/L and 1.2 mmol/L as spoken, 20 : 1 appears on the split bar, and reaction line
+                    CO2 + H2O -> H2CO3 -> H+ + HCO3- builds term by term beside the lower tank.
+  s03_equation    : Equation under the gauge builds pH = 6.1 + log(ratio), tags 6.1 as pK: acid = base with
+                    gauge tick flash, then transforms to 6.1 + 1.30 -> 7.40 as needle glows.
   s04_double      : bicarb and co2 ValueTrackers animate 24/1.2 -> 48/2.4 -> 24/1.2 -> 12/1.2 -> 24/1.2,
-                    driving fluid heights, concentration labels, ratio (20:1 -> 10:1 -> 20:1), and computed needle (7.40 -> 7.10 -> 7.40).
-  s05_sealed      : pK 6.1 tick and 1.3-below bracket appear; lid and lung clamp close; RED acid burst converts
-                    BLUE dots into ORANGE bubbles that sink, driving bicarb 24->19, co2 1.2->6.2, and computed needle 7.40->6.59.
+                    driving fluid heights, ratio (20:1 -> 10:1 -> 20:1), computed needle (7.40 -> 7.10 -> 7.40),
+                    and equation 6.1 + log 10 = 6.1 + 1 = 7.1 builds under the gauge as spoken.
+  s05_sealed      : 'best here' band lights at 6.1, pK 6.1 tick and 1.3-below bracket appear; lid and lung clamp
+                    close; RED acid burst converts BLUE dots into ORANGE bubbles that sink, driving bicarb 24->19,
+                    co2 1.2->6.2 with stepped label (1.2..6.2), and computed needle 7.40->6.59.
   s06_predict     : Sealed state holds with jostling ORANGE bubbles, breathing lungs behind clamp, and trembling
                     low needle while 'closed: poor buffer' and the predict question appear.
   s08_open        : Rewinds to 24/1.2 (7.40), lid/clamp open, lungs brighten; RED burst reacts into ORANGE bubbles
                     that exit through breathing lungs so co2 stays on 1.2 line while bicarb drops 24->19 and needle dips to 7.30.
   s09_twentyfold  : Gauge slides right; two bars grow in exact 55 : 2.6 proportion (open vs sealed buffering)
-                    with bracket 'about ×20' while lungs breathe ORANGE bubbles out.
+                    with 'all bicarbonate buffers' / 'tiny CO2 pool limits' tags and bracket 'about ×20'.
   s10_idea        : Bars fade, gauge returns; fraction bar and named terms highlight; lungs/tube pulse with ticking
                     stopwatch 'minutes'; kidney/tube brighten and pulse with calendar 'days'.
   s11_not_removal : RED dots gather into bottom tray ('sulfuric acid' / 'still in the body') while ORANGE leaves lungs
                     and trapped RED cannot exit via lungs; dashed 24 line marks 'spent' bicarbonate gap; kidney pulses.
   s12_reclaim     : Kidney morphs into U-shaped tubule with pale cell wall; BLUE stream circulates around the U-loop
-                    and returns to blood; 4,000 : 50 (80:1) bars grow; highlighted BLUE dot vanishes as fresh BLUE appears.
-  s13_make_new    : RED dots leave tray into tubule toward urine droplet, riding TEAL phosphate (2) and GOLD ammonium
-                    from glutamine (5); for each RED excreted, BLUE drops into tank, closing 'spent' gap (19->24) and returning needle to 7.40.
+                    and returns to blood; 4,000 : 50 (80:1) bars grow; highlighted BLUE dot vanishes as fresh BLUE
+                    appears, and tally '−1 tubule, +1 blood = net 0' appears beside the tubule.
+  s13_make_new    : Enlarged wall cell splits H2CO3 into H+ ('to urine') and HCO3- ('to blood'), then shrinks back;
+                    RED dots stream into urine droplet on TEAL phosphate and GOLD ammonium from glutamine while BLUE
+                    dots drop into tank, closing 'spent' gap (19->24) and returning needle to 7.40.
   s14_close       : Full world at 24/1.2, 20:1, steady 7.40; RED rain resumes; lungs breathe ORANGE out ('minutes');
                     tubule excretes RED to urine and returns BLUE to tank ('days').
 """
@@ -543,22 +549,69 @@ def excrete_path_point(s):
     return pts[-1]
 
 
-def make_acid_tray(n_dots=10, seed=41):
-    """Shallow RED tray under the lower tank holding unbreathed protons."""
+TRAY_X = -3.10
+
+
+def make_acid_tray(n_dots=10, seed=41, center_x=TRAY_X):
+    """Shallow RED tray under the left side (away from dissolved CO2) holding unbreathed protons."""
     tray = VGroup(
-        Line([-0.88, -2.96, 0], [-0.88, -3.28, 0], color=ACID_COL, stroke_width=3.4),
-        Line([-0.88, -3.28, 0], [0.88, -3.28, 0], color=ACID_COL, stroke_width=3.4),
-        Line([0.88, -3.28, 0], [0.88, -2.96, 0], color=ACID_COL, stroke_width=3.4),
+        Line([center_x - 0.72, -2.96, 0], [center_x - 0.72, -3.28, 0], color=ACID_COL, stroke_width=3.4),
+        Line([center_x - 0.72, -3.28, 0], [center_x + 0.72, -3.28, 0], color=ACID_COL, stroke_width=3.4),
+        Line([center_x + 0.72, -3.28, 0], [center_x + 0.72, -2.96, 0], color=ACID_COL, stroke_width=3.4),
     )
     rng = np.random.default_rng(seed)
     dots = VGroup()
     for i in range(n_dots):
-        x = -0.68 + (i % 5) * 0.34 + rng.uniform(-0.04, 0.04)
+        x = center_x - 0.56 + (i % 5) * 0.28 + rng.uniform(-0.03, 0.03)
         y = -3.18 + (i // 5) * 0.13
         d = Dot([x, y, 0], radius=0.052, color=ACID_COL, fill_opacity=0.92)
         d.layout_ok = True
         dots.add(d)
     return tray, dots
+
+
+def make_tray_labels(center_x=TRAY_X):
+    """Labels flanking the sulfuric-acid tray, clear of dissolved CO2 and the plasma scope tag."""
+    still_lbl = T("still in the body", 24, ACID_COL).move_to([center_x + 0.90, -3.14, 0], aligned_edge=LEFT)
+    sulf_lbl = T("sulfuric acid", 24, ACID_COL).move_to([center_x - 0.90, -3.14, 0], aligned_edge=RIGHT)
+    return still_lbl, sulf_lbl
+
+
+def make_buffering_bars():
+    """Shared 55 : 2.6 open-vs-sealed buffering comparison bars and ×20 bracket for s09 and s10."""
+    base_y = -1.12
+    max_h = 2.90
+    open_h = max_h
+    sealed_h = max_h * (2.6 / 55.0)
+    x_open, x_sealed, bar_w = 2.58, 4.54, 0.58
+
+    baseline = Line([2.02, base_y, 0], [5.04, base_y, 0], color=TEXT, stroke_width=3.2)
+    axis_lbl = T("acid per pH unit", 26, TEXT).move_to([3.58, base_y - 1.80, 0])
+
+    open_bar = Rectangle(width=bar_w, height=open_h, color=BICARB_COL, stroke_width=3.2,
+                         fill_color=BICARB_COL, fill_opacity=0.28).move_to([x_open, base_y + open_h / 2, 0])
+    open_lbl = M("open: 55", 26, BICARB_COL).move_to([x_open, base_y + open_h + 0.28, 0])
+    open_icon = make_lungs(dim=False).set_height(0.38).move_to([x_open, base_y - 0.34, 0])
+    open_tag = T("all\nbicarbonate\nbuffers", 22, BICARB_COL, line_spacing=0.80).move_to([x_open, base_y - 1.06, 0])
+
+    sealed_bar = Rectangle(width=bar_w, height=sealed_h, color=TEXT, stroke_width=3.0,
+                           fill_color=TEXT, fill_opacity=0.35).move_to([x_sealed, base_y + sealed_h / 2, 0])
+    sealed_lbl = M("sealed: 2.6", 24, TEXT).move_to([x_sealed - 0.08, base_y + sealed_h + 0.36, 0])
+    lid_icon = RoundedRectangle(corner_radius=0.04, width=0.55, height=0.14, color=TEXT, stroke_width=2.5,
+                                fill_color=TEXT, fill_opacity=0.30).move_to([x_sealed, base_y - 0.34, 0])
+    sealed_tag = T("tiny CO2 pool\nlimits", 22, TEXT, line_spacing=0.85).move_to([x_sealed + 0.04, base_y - 0.98, 0])
+
+    br_x = 2.92
+    bracket = BraceBetweenPoints([br_x, base_y + sealed_h, 0], [br_x, base_y + open_h, 0], direction=RIGHT, color=WHITE)
+    x20_lbl = T("about ×20", 26, WHITE).next_to(bracket, RIGHT, buff=0.14)
+    all_grp = VGroup(
+        baseline, axis_lbl, open_bar, open_icon, open_lbl, open_tag,
+        sealed_bar, lid_icon, sealed_lbl, sealed_tag, bracket, x20_lbl,
+    )
+    return (
+        all_grp, baseline, axis_lbl, open_bar, open_icon, open_lbl, open_tag,
+        sealed_bar, lid_icon, sealed_lbl, sealed_tag, bracket, x20_lbl,
+    )
 
 
 # ================================================================== SCENES
@@ -595,7 +648,7 @@ class S01Title(SpokenScene):
         w = make_world(bicarb=24.0, co2=1.2, lungs_dim=True, kidney_dim=True, tremble=0.010, seed=7)
         rain = make_acid_rain()
         q_txt = T("What holds pH there?", 34, WHITE).move_to([-1.25, 3.30, 0])
-        title = T("One Ratio, Two Keepers", 42, WHITE, font=TITLE_FONT).move_to([0.0, 3.40, 0])
+        title = T("One Ratio, Two Keepers", 42, WHITE, font=TITLE_FONT).move_to([0.0, 3.50, 0])
         rule = Line(LEFT * 1.4, RIGHT * 1.4, color=GOLD, stroke_width=3.5).next_to(title, DOWN, buff=0.07)
 
         self.add(w.group, rain, q_txt)
@@ -614,6 +667,19 @@ class S02Fraction(SpokenScene):
         lbl_bot = M("1.2 mmol/L", 28, CO2_COL).move_to([1.62, -1.98, 0], aligned_edge=LEFT)
         split_bar = make_split_frac_bar()
 
+        rx_co2 = M("CO2", 24, WHITE)
+        rx_h2o = M("+ H2O", 24, WHITE)
+        rx_h2co3 = M("→ H2CO3", 24, WHITE)
+        rx_row1 = VGroup(rx_co2, rx_h2o, rx_h2co3).arrange(RIGHT, buff=0.10)
+        rx_row1.move_to([1.62 + rx_row1.width / 2, -0.78, 0])
+
+        rx_arr2 = M("→", 24, WHITE)
+        rx_hp = M("H+", 24, ACID_COL)
+        rx_plus2 = M("+", 24, WHITE)
+        rx_hco3 = M("HCO3-", 24, BICARB_COL)
+        rx_row2 = VGroup(rx_arr2, rx_hp, rx_plus2, rx_hco3).arrange(RIGHT, buff=0.10)
+        rx_row2.move_to([1.92 + rx_row2.width / 2, -1.24, 0])
+
         self.add(w.group, plasma_tag)
 
         self.at("fraction")
@@ -622,13 +688,31 @@ class S02Fraction(SpokenScene):
         self.play(w.frac_bar.animate.set_stroke(WHITE, width=7.0), FadeOut(glow), run_time=0.4)
 
         self.at("bicarbonate")
-        self.play(w.upper_fluid.animate.set_fill(BICARB_COL, opacity=0.62), FadeIn(lbl_top, shift=RIGHT * 0.1), run_time=0.45)
+        self.play(w.upper_fluid.animate.set_fill(BICARB_COL, opacity=0.62), run_time=0.45)
+
+        self.at("24 millimoles")
+        self.play(FadeIn(lbl_top, shift=RIGHT * 0.1), run_time=0.45)
 
         self.at("dissolved carbon")
-        self.play(w.lower_fluid.animate.set_fill(CO2_COL, opacity=0.72), FadeIn(lbl_bot, shift=RIGHT * 0.1), run_time=0.45)
+        self.play(w.lower_fluid.animate.set_fill(CO2_COL, opacity=0.72), run_time=0.45)
 
-        self.at("that is")
+        self.at("1 2")
+        self.play(FadeIn(lbl_bot, shift=RIGHT * 0.1), run_time=0.45)
+
+        self.at("20 to 1")
         self.play(ReplacementTransform(w.frac_bar, split_bar), FadeIn(w.ratio_lbl), run_time=0.45)
+
+        self.at("why is carbon dioxide")
+        self.play(FadeIn(rx_co2, shift=RIGHT * 0.08), run_time=0.35)
+
+        self.at("with water")
+        self.play(FadeIn(rx_h2o, shift=RIGHT * 0.08), run_time=0.30)
+
+        self.at("forms carbonic")
+        self.play(FadeIn(rx_h2co3, shift=RIGHT * 0.08), run_time=0.35)
+
+        self.at("releases a proton")
+        self.play(FadeIn(rx_arr2), FadeIn(rx_hp), FadeIn(rx_plus2), FadeIn(rx_hco3), run_time=0.45)
         self.finish()
 
 
@@ -639,22 +723,43 @@ class S03Equation(SpokenScene):
         lbl_top = M("24 mmol/L", 28, BICARB_COL).move_to([1.62, 0.90, 0], aligned_edge=LEFT)
         lbl_bot = M("1.2 mmol/L", 28, CO2_COL).move_to([1.62, -1.98, 0], aligned_edge=LEFT)
 
-        eq1 = M("pH = 6.1 + log(ratio)", 26, WHITE).move_to([4.55, -2.76, 0])
-        eq2 = M("pH = 6.1 + 1.30", 26, WHITE).move_to([4.55, -2.76, 0])
-        eq3 = M("pH = 7.40", 28, WHITE).move_to([4.55, -2.76, 0])
+        eq1_ph = M("pH =", 24, WHITE)
+        eq1_61 = M("6.1", 24, WHITE)
+        eq1_log = M("+ log(ratio)", 24, WHITE)
+        eq1 = VGroup(eq1_ph, eq1_61, eq1_log).arrange(RIGHT, buff=0.15).move_to([4.35, -2.76, 0])
+
+        eq2 = M("pH = 6.1 + 1.30", 26, WHITE).move_to([4.35, -2.76, 0])
+        eq3 = M("pH = 7.40", 28, WHITE).move_to([4.35, -2.76, 0])
+
+        pk_y = ph_to_y(6.1)
+        pk_tick = Line([GAUGE_X0 - 0.16, pk_y, 0], [GAUGE_X0 + 0.18, pk_y, 0], color=WHITE, stroke_width=4.0)
+        pk_tag = T("pK: acid = base", 22, WHITE).move_to([2.05, -3.26, 0])
+        pk_ptr = Line(pk_tag.get_corner(UR) + [0.06, 0.02, 0], eq1_61.get_bottom() + DOWN * 0.06, color=WHITE, stroke_width=2.2)
 
         self.add(w.group, plasma_tag, lbl_top, lbl_bot)
 
         self.at("pH is")
-        self.play(Write(eq1), run_time=0.75)
-        self.play(w.ratio_lbl.animate.set_color(GOLD), run_time=0.4)
-        self.play(w.ratio_lbl.animate.set_color(WHITE), run_time=0.4)
+        self.play(Write(eq1_ph), run_time=0.40)
+
+        self.at("6 1")
+        self.play(FadeIn(eq1_61), run_time=0.35)
+
+        self.at("plus the log")
+        self.play(FadeIn(eq1_log), run_time=0.40)
+        self.play(w.ratio_lbl.animate.set_color(GOLD), run_time=0.35)
+        self.play(w.ratio_lbl.animate.set_color(WHITE), run_time=0.35)
+
+        self.at("the pair's pK")
+        self.play(FadeIn(pk_tick), FadeIn(pk_tag), Create(pk_ptr), run_time=0.45)
 
         self.at("log 20")
-        self.play(swap(eq1, eq2, run_time=0.5))
+        self.play(FadeOut(pk_tick), FadeOut(pk_tag), FadeOut(pk_ptr), run_time=0.35)
 
-        self.at("so pH")
-        self.play(swap(eq2, eq3, run_time=0.5))
+        self.at("1 3")
+        self.play(swap(eq1, eq2, run_time=0.45))
+
+        self.at("pH 7 4")
+        self.play(swap(eq2, eq3, run_time=0.45))
         glow = Dot([GAUGE_X0, ph_to_y(7.4), 0], radius=0.11, color=WHITE)
         self.play(FadeIn(glow), run_time=0.25)
         self.play(FadeOut(glow), run_time=0.35)
@@ -667,32 +772,59 @@ class S04Double(SpokenScene):
         w.group.remove(w.ratio_lbl)
         plasma_tag = make_plasma_tag()
 
-        lbl_top = always_redraw(lambda: M(f"{w.bicarb.get_value():.0f} mmol/L", 28, BICARB_COL).move_to([1.56, 1.88, 0], aligned_edge=LEFT))
-        lbl_bot = always_redraw(lambda: M(f"{w.co2.get_value():.1f} mmol/L", 28, CO2_COL).move_to([1.56, -1.98, 0], aligned_edge=LEFT))
-        ratio_live = always_redraw(lambda: M(f"{w.bicarb.get_value() / w.co2.get_value():.0f} : 1", 34, WHITE).move_to([0, FRAC_Y, 0]))
-        ph_tag = always_redraw(lambda: M(f"{compute_ph(w.bicarb.get_value(), w.co2.get_value()):.2f}", 26, WHITE).move_to(
-            [GAUGE_X0 - 1.08, ph_to_y(compute_ph(w.bicarb.get_value(), w.co2.get_value())), 0]
+        lbl_top = always_redraw(lambda: M(f"{w.bicarb.get_value():.0f} mmol/L", 28, BICARB_COL).move_to(
+            [1.50, UPPER_BOT + conc_to_h(w.bicarb.get_value()) - 0.12, 0], aligned_edge=LEFT
         ))
+        lbl_bot = always_redraw(lambda: M(f"{w.co2.get_value():.1f} mmol/L", 28, CO2_COL).move_to(
+            [1.50, LOWER_BOT + conc_to_h(w.co2.get_value()) + 0.22, 0], aligned_edge=LEFT
+        ))
+        x2_top = M("×2", 28, BICARB_COL).move_to([-1.92, UPPER_BOT + conc_to_h(48.0) - 0.12, 0])
+        x2_bot = M("×2", 28, CO2_COL).move_to([-1.92, LOWER_BOT + conc_to_h(2.4) + 0.22, 0])
+        co2_pulse = Rectangle(
+            width=TANK_W - 0.04, height=max(0.04, conc_to_h(2.4)),
+            stroke_width=4.0, stroke_color=WHITE, fill_color=CO2_COL, fill_opacity=0.85,
+        ).move_to([TANK_X, LOWER_BOT + max(0.04, conc_to_h(2.4)) / 2, 0])
+        ratio_live = always_redraw(lambda: M(f"{w.bicarb.get_value() / w.co2.get_value():.0f} : 1", 34, WHITE).move_to([0, FRAC_Y, 0]))
+        ph_low = compute_ph(12.0, 1.2)
+        ph_tag = M(f"{ph_low:.2f}", 26, WHITE).move_to([GAUGE_X0 - 1.02, ph_to_y(ph_low), 0])
+
+        eq_a = M("6.1 + log 10", 22, WHITE)
+        eq_b = M("= 6.1 + 1", 22, WHITE)
+        eq_c = M("= 7.1", 22, WHITE)
+        VGroup(eq_a, eq_b, eq_c).arrange(RIGHT, buff=0.14).move_to([4.15, -2.76, 0])
 
         self.add(w.group, plasma_tag, lbl_top, lbl_bot, ratio_live)
 
         self.at("double both")
-        self.play(w.bicarb.animate.set_value(48.0), w.co2.animate.set_value(2.4), run_time=1.5)
+        self.play(
+            w.bicarb.animate.set_value(48.0), w.co2.animate.set_value(2.4),
+            FadeIn(x2_top), FadeIn(x2_bot), run_time=1.3,
+        )
+        self.play(FadeIn(co2_pulse), x2_bot.animate.scale(1.18), run_time=0.22)
+        self.play(FadeOut(co2_pulse), x2_bot.animate.scale(1 / 1.18), run_time=0.23)
 
         self.at("does not move")
-        self.wait(0.75)
-        self.play(w.bicarb.animate.set_value(24.0), w.co2.animate.set_value(1.2), run_time=1.0)
+        self.wait(0.6)
+        self.play(
+            w.bicarb.animate.set_value(24.0), w.co2.animate.set_value(1.2),
+            FadeOut(x2_top), FadeOut(x2_bot), run_time=1.0,
+        )
 
         self.at("the top alone")
-        self.add(ph_tag)
         self.play(w.bicarb.animate.set_value(12.0), run_time=1.5)
 
-        self.at("falls to")
-        self.wait(0.75)
+        self.at("log 10")
+        self.play(FadeIn(eq_a, shift=RIGHT * 0.06), run_time=0.35)
+
+        self.at("is 1")
+        self.play(FadeIn(eq_b, shift=RIGHT * 0.06), run_time=0.35)
+
+        self.at("7 1")
+        self.play(FadeIn(eq_c, shift=RIGHT * 0.06), FadeIn(ph_tag), run_time=0.35)
 
         self.at("follows the ratio")
         self.remove(ph_tag)
-        self.play(w.bicarb.animate.set_value(24.0), run_time=1.4)
+        self.play(FadeOut(eq_a), FadeOut(eq_b), FadeOut(eq_c), w.bicarb.animate.set_value(24.0), run_time=1.4)
         self.finish()
 
 
@@ -701,22 +833,35 @@ class S05Sealed(SpokenScene):
         w = make_world(bicarb=24.0, co2=1.2, lungs_dim=True, kidney_dim=True, tremble=0.0, show_ratio=True, seed=7)
         plasma_tag = make_plasma_tag()
         lid, clamp = make_lid_and_clamp()
-        lid.shift(UP * 0.7).set_opacity(0)
+        lid.shift(RIGHT * 2.0).set_opacity(0)
         clamp.set_opacity(0)
         full_bar = Line([FRAC_X0, FRAC_Y, 0], [FRAC_X1, FRAC_Y, 0], color=WHITE, stroke_width=7.0)
 
         pk_y = ph_to_y(6.1)
         ph74_y = ph_to_y(7.4)
+        pk_band = Rectangle(
+            width=0.52, height=0.56, color=WHITE, stroke_width=0, fill_color=WHITE, fill_opacity=0.20,
+        ).move_to([GAUGE_X0, pk_y, 0])
+        best_lbl = T("best here", 22, WHITE).move_to([GAUGE_X0 - 0.24, pk_y + 0.20, 0], aligned_edge=RIGHT)
         pk_tick = Line([GAUGE_X0 - 0.16, pk_y, 0], [GAUGE_X0, pk_y, 0], color=TEXT, stroke_width=3.0)
-        pk_lbl = M("pK 6.1", 24, TEXT).move_to([GAUGE_X0 - 0.74, pk_y, 0])
-        bracket = BraceBetweenPoints([3.75, pk_y, 0], [3.75, ph74_y, 0], direction=LEFT, color=TEXT)
-        br_lbl = T("1.3 below", 24, TEXT).next_to(bracket, LEFT, buff=0.10)
+        pk_lbl = M("pK 6.1", 24, TEXT).move_to([GAUGE_X0 - 0.24, pk_y - 0.24, 0], aligned_edge=RIGHT)
+        bracket = BraceBetweenPoints([3.74, pk_y, 0], [3.74, ph74_y, 0], direction=LEFT, color=TEXT)
+        br_lbl = T("1.3 above", 24, TEXT).next_to(bracket, LEFT, buff=0.10)
 
         dose_tag = T("schematic dose", 24, TEXT).move_to([0.0, -3.08, 0])
 
+        def _co2_step():
+            v = w.co2.get_value()
+            for thr, txt in [(6.10, "6.2"), (4.75, "4.8"), (3.55, "3.6"), (2.35, "2.4")]:
+                if v >= thr:
+                    return txt
+            return "1.2"
+
+        co2_step_lbl = always_redraw(lambda: M(_co2_step(), 28, CO2_COL).move_to([1.60, LOWER_BOT + 0.50, 0], aligned_edge=LEFT))
+
         rng = np.random.default_rng(31)
         burst_red = VGroup(*[
-            Dot([rng.uniform(-1.0, 1.0), UPPER_TOP + rng.uniform(0.15, 0.85), 0], radius=0.062, color=ACID_COL)
+            Dot([rng.uniform(-1.0, 1.0), rng.uniform(UPPER_TOP - 0.35, UPPER_TOP - 0.08), 0], radius=0.062, color=ACID_COL)
             for _ in range(14)
         ])
         for d in burst_red:
@@ -731,13 +876,19 @@ class S05Sealed(SpokenScene):
 
         self.add(w.group, plasma_tag)
 
-        self.at("pK is")
-        self.play(FadeIn(pk_tick), FadeIn(pk_lbl), Create(bracket), FadeIn(br_lbl), run_time=0.65)
+        self.at("work best near")
+        self.play(FadeIn(pk_band), FadeIn(best_lbl), run_time=0.50)
+
+        self.at("pK")
+        self.play(FadeIn(pk_tick), FadeIn(pk_lbl), run_time=0.45)
+
+        self.at("1 3")
+        self.play(Create(bracket), FadeIn(br_lbl), run_time=0.55)
 
         self.at("seal bicarbonate")
         w.lung_bubbles._active = False
         self.play(
-            lid.animate.shift(DOWN * 0.7).set_opacity(1.0),
+            lid.animate.shift(LEFT * 2.0).set_opacity(1.0),
             clamp.animate.set_opacity(1.0),
             FadeOut(w.lung_bubbles),
             FadeOut(w.ratio_lbl),
@@ -761,8 +912,9 @@ class S05Sealed(SpokenScene):
             run_time=1.0,
         )
 
-        self.at("bottom term grows")
-        self.play(w.co2.animate.set_value(6.2), FadeOut(new_co2_dots), run_time=1.1)
+        self.at("multiplies", lead=0.25)
+        self.add(co2_step_lbl)
+        self.play(w.co2.animate.set_value(6.2), FadeOut(new_co2_dots), run_time=1.05)
 
         self.at("pH crashes")
         self.wait(0.4)
@@ -810,7 +962,7 @@ class S08Open(SpokenScene):
 
         rng = np.random.default_rng(31)
         burst_red = VGroup(*[
-            Dot([rng.uniform(-1.0, 1.0), UPPER_TOP + rng.uniform(0.15, 0.85), 0], radius=0.062, color=ACID_COL)
+            Dot([rng.uniform(-1.0, 1.0), rng.uniform(UPPER_TOP - 0.35, UPPER_TOP - 0.08), 0], radius=0.062, color=ACID_COL)
             for _ in range(12)
         ])
         for d in burst_red:
@@ -823,6 +975,37 @@ class S08Open(SpokenScene):
         for b in bubbles_out:
             b.layout_ok = True
 
+        def _bubble_path(p0, dy):
+            x0, y0 = p0[0], p0[1]
+            r = 0.28
+            y_turn = -1.32 + dy + r
+            pts = [np.array([x0, y0, 0.0])]
+            n_arc = 7
+            for k in range(n_arc + 1):
+                ang = -k * (PI / 2) / n_arc
+                pts.append(np.array([x0 - r + r * np.cos(ang), y_turn + r * np.sin(ang), 0.0]))
+            pts.append(np.array([-3.85, -1.32 + dy, 0.0]))
+            segs = [np.linalg.norm(pts[i + 1] - pts[i]) for i in range(len(pts) - 1)]
+            cum = np.concatenate([[0.0], np.cumsum(segs)])
+            total = cum[-1]
+            uni = []
+            for sv in np.linspace(0.0, total, 48):
+                idx = min(max(int(np.searchsorted(cum, sv, side="right")) - 1, 0), len(segs) - 1)
+                u = (sv - cum[idx]) / max(segs[idx], 1e-9)
+                uni.append(pts[idx] + u * (pts[idx + 1] - pts[idx]))
+            path = VMobject()
+            path.set_points_as_corners(uni)
+            alpha_fade = float(np.clip((total - 0.70) / total, 0.75, 0.92))
+            return path, alpha_fade
+
+        def _move_bubble(b, path, alpha_fade):
+            def anim(m, alpha):
+                m.move_to(path.point_from_proportion(alpha))
+                fade = 1.0 if alpha <= alpha_fade else max(0.0, 1.0 - (alpha - alpha_fade) / max(1.0 - alpha_fade, 1e-6))
+                m.set_fill(opacity=0.80 * fade)
+                m.set_stroke(opacity=fade)
+            return UpdateFromAlphaFunc(b, anim)
+
         self.add(w.group, lid, clamp, closed_grp, q_lbl, plasma_tag)
 
         self.at("the body is open")
@@ -830,7 +1013,7 @@ class S08Open(SpokenScene):
             FadeOut(q_lbl), FadeOut(closed_grp),
             w.bicarb.animate.set_value(24.0),
             w.co2.animate.set_value(1.2),
-            lid.animate.shift(UP * 0.8).set_opacity(0),
+            lid.animate.shift(RIGHT * 2.0).set_opacity(0),
             clamp.animate.set_opacity(0),
             run_time=0.95,
         )
@@ -843,10 +1026,13 @@ class S08Open(SpokenScene):
         self.add(burst_red)
         self.play(*[d.animate.move_to([d.get_center()[0], UPPER_BOT + 0.48, 0]) for d in burst_red], run_time=0.75)
         self.play(*[ReplacementTransform(r, b) for r, b in zip(burst_red, bubbles_out)], run_time=0.45)
+        bubble_anims = []
+        for b in bubbles_out:
+            path, alpha_fade = _bubble_path(b.get_center(), rng.uniform(-0.025, 0.025))
+            bubble_anims.append(_move_bubble(b, path, alpha_fade))
         self.play(
-            FadeIn(co2_out_lbl),
-            *[b.animate.move_to([-3.8, -1.32, 0]).set_opacity(0) for b in bubbles_out],
-            run_time=1.05,
+            FadeIn(co2_out_lbl, run_time=0.45),
+            LaggedStart(*bubble_anims, lag_ratio=0.04, run_time=1.25),
         )
 
         self.at("bottom term stays")
@@ -861,47 +1047,36 @@ class S08Open(SpokenScene):
 class S09Twentyfold(SpokenScene):
     def construct(self):
         w = make_world(bicarb=19.0, co2=1.2, lungs_dim=False, kidney_dim=True, tremble=0.0, seed=29)
+        set_organ_brightness(w.kidney, w.kidney_tube, KIDNEY_COL, bright=False)
+        w.kidney.set_fill(KIDNEY_COL, opacity=0.22).set_stroke(KIDNEY_COL, opacity=0.32)
+        for ln in w.kidney_tube:
+            ln.set_stroke(KIDNEY_COL, opacity=0.32)
         plasma_tag = make_plasma_tag()
         y_12 = LOWER_BOT + conc_to_h(1.2)
         dash_12 = DashedLine([TANK_X - TANK_W / 2 - 0.08, y_12, 0], [TANK_X + TANK_W / 2 + 0.08, y_12, 0],
                              color=CO2_COL, stroke_width=2.6, dash_length=0.12)
 
-        base_y = -1.55
-        max_h = 3.10
-        open_h = max_h
-        sealed_h = max_h * (2.6 / 55.0)
-        x_open, x_sealed, bar_w = 2.38, 4.35, 0.62
-
-        baseline = Line([1.82, base_y, 0], [4.85, base_y, 0], color=TEXT, stroke_width=3.2)
-        axis_lbl = T("acid per pH unit", 26, TEXT).move_to([3.34, -2.55, 0])
-
-        open_bar = Rectangle(width=bar_w, height=open_h, color=BICARB_COL, stroke_width=3.2,
-                             fill_color=BICARB_COL, fill_opacity=0.28).move_to([x_open, base_y + open_h / 2, 0])
-        open_lbl = M("open: 55", 26, BICARB_COL).move_to([x_open, base_y + open_h + 0.30, 0])
-        open_icon = make_lungs(dim=False).set_height(0.38).move_to([x_open, base_y - 0.36, 0])
-
-        sealed_bar = Rectangle(width=bar_w, height=sealed_h, color=TEXT, stroke_width=3.0,
-                               fill_color=TEXT, fill_opacity=0.35).move_to([x_sealed, base_y + sealed_h / 2, 0])
-        sealed_lbl = M("sealed: 2.6", 24, TEXT).move_to([x_sealed + 0.08, base_y + sealed_h + 0.36, 0])
-        lid_icon = RoundedRectangle(corner_radius=0.04, width=0.55, height=0.14, color=TEXT, stroke_width=2.5,
-                                    fill_color=TEXT, fill_opacity=0.30).move_to([x_sealed, base_y - 0.36, 0])
-
-        br_x = 2.74
-        bracket = BraceBetweenPoints([br_x, base_y + sealed_h, 0], [br_x, base_y + open_h, 0], direction=RIGHT, color=WHITE)
-        x20_lbl = T("about ×20", 26, WHITE).next_to(bracket, RIGHT, buff=0.14)
+        (_, baseline, axis_lbl, open_bar, open_icon, open_lbl, open_tag,
+         sealed_bar, lid_icon, sealed_lbl, sealed_tag, bracket, x20_lbl) = make_buffering_bars()
 
         self.add(w.group, dash_12, plasma_tag)
         self.at("measure buffering")
         self.play(w.gauge_x.animate.set_value(5.65), FadeIn(baseline), FadeIn(axis_lbl), run_time=0.85)
 
         self.at("open")
-        self.play(GrowFromEdge(open_bar, DOWN), FadeIn(open_icon), FadeIn(open_lbl), run_time=0.85)
+        self.play(GrowFromEdge(open_bar, DOWN), FadeIn(open_icon), FadeIn(open_tag), run_time=0.85)
+
+        self.at("55")
+        self.play(FadeIn(open_lbl), run_time=0.40)
 
         self.at("sealed")
-        self.play(GrowFromEdge(sealed_bar, DOWN), FadeIn(lid_icon), FadeIn(sealed_lbl), run_time=0.70)
+        self.play(GrowFromEdge(sealed_bar, DOWN), FadeIn(lid_icon), FadeIn(sealed_tag), run_time=0.70)
 
-        self.at("roughly")
-        self.play(Create(bracket), FadeIn(x20_lbl), run_time=0.55)
+        self.at("2 6")
+        self.play(FadeIn(sealed_lbl), run_time=0.40)
+
+        self.at("20 fold")
+        self.play(Create(bracket), FadeIn(x20_lbl), run_time=0.45)
         self.finish()
 
 
@@ -912,6 +1087,7 @@ class S10Idea(SpokenScene):
         y_12 = LOWER_BOT + conc_to_h(1.2)
         dash_12 = DashedLine([TANK_X - TANK_W / 2 - 0.08, y_12, 0], [TANK_X + TANK_W / 2 + 0.08, y_12, 0],
                              color=CO2_COL, stroke_width=2.6, dash_length=0.12)
+        bars_all, *_ = make_buffering_bars()
         top_title = T("One ratio, two keepers", 34, WHITE).move_to([0.0, 3.32, 0])
 
         sw = make_stopwatch([-5.50, -1.05, 0], color=LUNG_COL)
@@ -919,11 +1095,13 @@ class S10Idea(SpokenScene):
         cal = make_calendar([-5.50, 1.55, 0], color=KIDNEY_COL)
         days_lbl = T("days", 26, KIDNEY_COL).move_to([-5.50, 0.85, 0])
 
-        self.add(w.group, dash_12, plasma_tag)
-        self.play(w.gauge_x.animate.set_value(GAUGE_X0), run_time=0.6)
+        self.add(w.group, dash_12, plasma_tag, bars_all)
 
         self.at("one idea")
         self.play(FadeIn(top_title, shift=DOWN * 0.08), run_time=0.4)
+        self.wait(0.45)
+        self.play(FadeOut(bars_all), run_time=0.45)
+        self.play(w.gauge_x.animate.set_value(GAUGE_X0), run_time=0.55)
 
         self.at("one ratio")
         self.play(w.frac_bar.animate.set_stroke(WHITE, width=11.0), run_time=0.45)
@@ -956,8 +1134,7 @@ class S11NotRemoval(SpokenScene):
         dash_12 = DashedLine([TANK_X - TANK_W / 2 - 0.08, y_12, 0], [TANK_X + TANK_W / 2 + 0.08, y_12, 0],
                              color=CO2_COL, stroke_width=2.6, dash_length=0.12)
         tray, tray_dots = make_acid_tray(n_dots=10)
-        still_lbl = T("still in the body", 24, ACID_COL).move_to([1.05, -3.14, 0], aligned_edge=LEFT)
-        sulf_lbl = T("sulfuric acid", 24, ACID_COL).move_to([-1.05, -3.14, 0], aligned_edge=RIGHT)
+        still_lbl, sulf_lbl = make_tray_labels()
 
         y_24 = UPPER_BOT + conc_to_h(24.0)
         y_19 = UPPER_BOT + conc_to_h(19.0)
@@ -981,14 +1158,14 @@ class S11NotRemoval(SpokenScene):
         )
 
         self.at("breathed off")
-        test_red = Dot([0.0, -2.96, 0], radius=0.062, color=ACID_COL)
+        test_red = Dot([TRAY_X, -2.96, 0], radius=0.062, color=ACID_COL)
         test_red.layout_ok = True
         self.add(test_red)
         self.play(test_red.animate.move_to([-1.4, -1.45, 0]), run_time=0.65)
-        self.play(test_red.animate.move_to([-0.2, -3.10, 0]), run_time=0.65)
+        self.play(test_red.animate.move_to([TRAY_X - 0.15, -3.10, 0]), run_time=0.65)
         self.remove(test_red)
 
-        self.at("stay in the body")
+        self.at("protons stay")
         self.play(FadeIn(still_lbl), run_time=0.45)
 
         self.at("bicarbonate they spent")
@@ -1008,8 +1185,7 @@ class S12Reclaim(SpokenScene):
         dash_12 = DashedLine([TANK_X - TANK_W / 2 - 0.08, y_12, 0], [TANK_X + TANK_W / 2 + 0.08, y_12, 0],
                              color=CO2_COL, stroke_width=2.6, dash_length=0.12)
         tray, tray_dots = make_acid_tray(n_dots=10)
-        still_lbl = T("still in the body", 24, ACID_COL).move_to([1.05, -3.14, 0], aligned_edge=LEFT)
-        sulf_lbl = T("sulfuric acid", 24, ACID_COL).move_to([-1.05, -3.14, 0], aligned_edge=RIGHT)
+        still_lbl, sulf_lbl = make_tray_labels()
 
         y_24 = UPPER_BOT + conc_to_h(24.0)
         y_19 = UPPER_BOT + conc_to_h(19.0)
@@ -1045,7 +1221,7 @@ class S12Reclaim(SpokenScene):
         bar_50 = Rectangle(width=0.38, height=h_50, color=ACID_COL, stroke_width=2.0,
                            fill_color=ACID_COL, fill_opacity=0.95).move_to([bx0 + 0.65, by0 + h_50 / 2, 0])
         bar_base = Line([bx0 - 0.25, by0, 0], [bx0 + 0.90, by0, 0], color=TEXT, stroke_width=2.5)
-        lbl_4000 = T("about 4,000 a day", 24, BICARB_COL).move_to([-4.25, 3.38, 0])
+        lbl_4000 = T("about 4,000 mmol a day", 24, BICARB_COL).move_to([-5.62, 3.38, 0], aligned_edge=LEFT)
         lbl_50 = T("day's acid: about 50", 24, ACID_COL).move_to([-3.85, 2.75, 0])
         ptr_50 = Line([bx0 + 0.65, by0 + 0.05, 0], [lbl_50.get_left()[0] - 0.14, 2.66, 0], color=ACID_COL, stroke_width=2.0)
         bars_grp = VGroup(bar_base, bar_4000, bar_50, lbl_4000, lbl_50, ptr_50)
@@ -1054,6 +1230,7 @@ class S12Reclaim(SpokenScene):
         dot_bld = Dot([-1.75, 0.72, 0], radius=0.075, color=BICARB_COL, stroke_color=WHITE, stroke_width=2.5)
         arc = DashedVMobject(ArcBetweenPoints([-3.45, 0.72, 0], [-1.75, 0.72, 0], angle=-1.1, color=WHITE, stroke_width=2.8))
         ind_lbl = T("indirect route", 24, WHITE).move_to([-3.35, 0.04, 0])
+        tally_lbl = T("−1 tubule, +1 blood = net 0", 24, WHITE).move_to([-4.15, 2.88, 0])
 
         w.group.remove(w.kidney, w.kidney_tube)
         k_grp = VGroup(w.kidney, w.kidney_tube)
@@ -1063,10 +1240,13 @@ class S12Reclaim(SpokenScene):
         self.play(ReplacementTransform(k_grp, tubule), FadeIn(filt_lbl), FadeIn(stream), run_time=0.9)
         stream.add_updater(upd_stream)
 
-        self.at("filter about")
-        self.play(FadeIn(bars_grp), run_time=0.6)
+        self.at("4 000")
+        self.play(FadeIn(bar_base), FadeIn(bar_4000), FadeIn(lbl_4000), run_time=0.55)
 
-        self.at("take it back")
+        self.at("80 times")
+        self.play(FadeIn(bar_50), FadeIn(ptr_50), FadeIn(lbl_50), run_time=0.50)
+
+        self.at("takes it back")
         ret_dots = VGroup(*[Dot([-3.6 + 0.4 * i, 0.72, 0], radius=0.055, color=BICARB_COL) for i in range(4)])
         for d in ret_dots:
             d.layout_ok = True
@@ -1074,17 +1254,17 @@ class S12Reclaim(SpokenScene):
         self.play(*[d.animate.move_to([-1.25, 0.72, 0]) for d in ret_dots], run_time=0.8)
         self.remove(ret_dots)
 
-        self.at("one vanishes")
+        self.at("each filtered bicarbonate is destroyed")
         self.play(FadeIn(dot_lum), Create(arc), FadeIn(ind_lbl), run_time=0.55)
         self.play(FadeOut(dot_lum), FadeIn(dot_bld), run_time=0.55)
 
-        self.at("one appears")
+        self.at("sends a twin")
         self.play(dot_bld.animate.move_to([-0.85, 0.72, 0]), run_time=0.75)
         self.remove(dot_bld)
 
-        self.at("no new base")
-        self.play(FadeOut(bars_grp), FadeOut(arc), FadeOut(ind_lbl), run_time=0.5)
-        self.play(spent_band.animate.set_fill(BICARB_COL, opacity=0.58), run_time=0.35)
+        self.at("nothing gained")
+        self.play(FadeOut(bars_grp), FadeOut(arc), FadeOut(ind_lbl), run_time=0.45)
+        self.play(FadeIn(tally_lbl), spent_band.animate.set_fill(BICARB_COL, opacity=0.58), run_time=0.35)
         self.play(spent_band.animate.set_fill(BICARB_COL, opacity=0.25), run_time=0.35)
         self.finish()
 
@@ -1098,8 +1278,7 @@ class S13MakeNew(SpokenScene):
         dash_12 = DashedLine([TANK_X - TANK_W / 2 - 0.08, y_12, 0], [TANK_X + TANK_W / 2 + 0.08, y_12, 0],
                              color=CO2_COL, stroke_width=2.6, dash_length=0.12)
         tray, tray_dots = make_acid_tray(n_dots=7)
-        still_lbl = T("still in the body", 24, ACID_COL).move_to([1.05, -3.14, 0], aligned_edge=LEFT)
-        sulf_lbl = T("sulfuric acid", 24, ACID_COL).move_to([-1.05, -3.14, 0], aligned_edge=RIGHT)
+        still_lbl, sulf_lbl = make_tray_labels()
 
         y_24 = UPPER_BOT + conc_to_h(24.0)
         y_19 = UPPER_BOT + conc_to_h(19.0)
@@ -1119,9 +1298,23 @@ class S13MakeNew(SpokenScene):
         urine_lbl = T("urine", 24, GOLD).move_to([-5.45, -0.62, 0])
         schem_lbl = T("proportions schematic", 24, TEXT).move_to([-4.35, 3.25, 0])
 
-        glut = boxed_label("glutamine", AMM_COL, size=24, pad=0.12).move_to([-2.48, 2.38, 0])
-        amm_lbl = T("ammonium", 24, AMM_COL).move_to([-4.62, 2.38, 0])
-        phos_lbl = T("phosphate", 24, PHOS_COL).move_to([-3.45, 0.22, 0])
+        big_cell = RoundedRectangle(
+            corner_radius=0.10, width=1.55, height=0.88,
+            color=KIDNEY_COL, stroke_width=3.2, fill_color=BG, fill_opacity=0.96,
+        ).move_to([-2.55, 1.32, 0])
+        in_co2 = Circle(radius=0.065, color=CO2_COL, stroke_width=2.5, fill_color=CO2_COL, fill_opacity=0.85).move_to([-1.45, 1.32, 0])
+        in_co2.layout_ok = True
+        h2co3_chip = boxed_label("H2CO3", WHITE, size=22, pad=0.10).move_to(big_cell.get_center())
+        split_red = Dot(big_cell.get_center(), radius=0.062, color=ACID_COL)
+        split_blue = Dot(big_cell.get_center(), radius=0.062, color=BICARB_COL)
+        split_red.layout_ok = True
+        split_blue.layout_ok = True
+        to_urine_lbl = T("to urine", 22, ACID_COL).move_to([-3.85, 0.28, 0])
+        to_blood_lbl = T("to blood", 22, BICARB_COL).move_to([-2.08, 2.46, 0])
+
+        glut = boxed_label("glutamine", AMM_COL, size=22, pad=0.10).move_to([-3.28, 1.30, 0])
+        amm_lbl = T("ammonium", 24, AMM_COL).move_to([-3.55, 2.38, 0])
+        phos_lbl = T("phosphate", 24, PHOS_COL).move_to([-3.32, 1.28, 0])
 
         # Ongoing acid-excretion stream before phosphate/ammonium detail
         stream_red = VGroup(*[Dot(excrete_path_point(i / 4), radius=0.048, color=ACID_COL) for i in range(4)])
@@ -1143,65 +1336,147 @@ class S13MakeNew(SpokenScene):
             for i in range(2)
         ])
         amm_tokens = VGroup(*[
-            VGroup(
-                Circle(radius=0.10, color=AMM_COL, stroke_width=2.2, fill_color=AMM_COL, fill_opacity=0.38),
-                Dot(ORIGIN, radius=0.042, color=ACID_COL),
-            ).move_to(glut.get_bottom() + DOWN * 0.22)
+            Circle(radius=0.10, color=AMM_COL, stroke_width=2.5, fill_color=AMM_COL, fill_opacity=0.0)
+            .set_stroke(AMM_COL, opacity=0.0)
+            .scale(0.25)
+            .move_to(glut.get_bottom() + DOWN * 0.14)
             for _ in range(5)
         ])
+
+        def curve_to_tubule(dot, target):
+            p0 = dot.get_center()
+            p1 = np.array(target, dtype=float)
+            pts = [p0, np.array([-1.85, -2.0, 0.0]), np.array([-1.56, 0.25, 0.0])]
+            if p1[0] < -2.9:
+                pts.append(np.array([-2.65, 0.72, 0.0]))
+            pts.append(p1)
+            path = VMobject()
+            path.set_points_smoothly(pts)
+            return MoveAlongPath(dot, path)
+
+        excrete_pts = [
+            np.array([-2.60, 0.72, 0.0]),
+            np.array([-4.05, 0.72, 0.0]),
+            np.array([-4.20, 0.56, 0.0]),
+            np.array([-5.45, 0.56, 0.0]),
+            np.array([-5.45, 0.18, 0.0]),
+        ]
+        excrete_total = sum(np.linalg.norm(excrete_pts[i + 1] - excrete_pts[i]) for i in range(len(excrete_pts) - 1))
+
+        def excrete_along_tube(mob):
+            x0 = mob.get_center()[0]
+            s0 = float(np.clip((-2.60 - x0) / excrete_total, 0.0, 0.43))
+            end_pt = excrete_path_point(0.9999)
+            drop_pt = droplet.get_center()
+            orig_ops = [(m, m.get_fill_opacity(), m.get_stroke_opacity()) for m in mob.family_members_with_points()]
+
+            def anim(m, alpha):
+                if alpha <= 0.85:
+                    s = s0 + (alpha / 0.85) * (0.9999 - s0)
+                    m.move_to(excrete_path_point(s))
+                    fade = 1.0
+                else:
+                    u = (alpha - 0.85) / 0.15
+                    m.move_to(end_pt * (1.0 - u) + drop_pt * u)
+                    fade = 1.0 - u
+                for sub, fo, so in orig_ops:
+                    sub.set_fill(opacity=fo * fade)
+                    sub.set_stroke(opacity=so * fade)
+
+            return UpdateFromAlphaFunc(mob, anim)
 
         self.add(w.group, tubule, dash_12, plasma_tag, tray, tray_dots, still_lbl, sulf_lbl,
                  dash_24, spent_band, spent_lbl)
 
-        self.at("making new bicarbonate")
+        self.at("Job 2")
         open_bend = Arc(radius=0.74, start_angle=PI / 2, angle=0.692 * PI,
                         arc_center=[-4.20, 1.30, 0], color=KIDNEY_COL, stroke_width=3.4)
         self.play(Transform(tubule.bend_outer, open_bend), Create(exit_tube), FadeIn(droplet), FadeIn(urine_lbl), FadeIn(schem_lbl), run_time=0.6)
+
+        self.at("inside a kidney cell")
+        self.play(
+            FadeOut(tubule.cells[1]), FadeOut(tubule.cells[2]), FadeOut(tubule.cells[3]),
+            FadeIn(big_cell), FadeIn(in_co2), run_time=0.45,
+        )
+        self.play(in_co2.animate.move_to(big_cell.get_center()), run_time=0.50)
+
+        self.at("carbonic acid")
+        self.play(ReplacementTransform(in_co2, h2co3_chip), run_time=0.45)
+
+        self.at("proton goes to the urine")
+        self.play(FadeOut(h2co3_chip), FadeIn(split_red), FadeIn(split_blue), run_time=0.30)
+        self.play(split_red.animate.move_to([-3.65, 0.72, 0]), FadeIn(to_urine_lbl), run_time=0.65)
+
+        self.at("new bicarbonate")
+        self.play(split_blue.animate.move_to([-1.45, 1.32, 0]), FadeIn(to_blood_lbl), run_time=0.55)
+        self.play(
+            split_blue.animate.move_to([-0.80, 1.05, 0]).set_opacity(0),
+            split_red.animate.move_to([-4.20, 0.65, 0]).set_opacity(0),
+            w.bicarb.animate.set_value(19.6),
+            run_time=0.55,
+        )
+        self.play(
+            FadeOut(big_cell), FadeOut(to_urine_lbl), FadeOut(to_blood_lbl),
+            FadeIn(tubule.cells[1]), FadeIn(tubule.cells[2]), FadeIn(tubule.cells[3]),
+            run_time=0.35,
+        )
+        self.remove(split_red, split_blue)
         self.add(stream_red)
         stream_red.add_updater(upd_sred)
 
-        self.at("phosphate")
+        self.at("ride out on phosphate")
         stream_red.clear_updaters()
         self.remove(stream_red)
         p_reds = VGroup(tray_dots[0], tray_dots[1])
         self.play(
             FadeIn(phos_lbl), FadeIn(phos_tokens),
-            p_reds[0].animate.move_to(phos_tokens[0].get_center()),
-            p_reds[1].animate.move_to(phos_tokens[1].get_center()),
+            curve_to_tubule(p_reds[0], phos_tokens[0].get_center()),
+            curve_to_tubule(p_reds[1], phos_tokens[1].get_center()),
             run_time=0.65,
         )
         new_b1 = VGroup(*[Dot([-1.75, 1.1 + 0.3 * i, 0], radius=0.055, color=BICARB_COL) for i in range(2)])
         for d in new_b1:
             d.layout_ok = True
         self.play(
-            phos_tokens.animate.move_to(droplet.get_center()).set_opacity(0),
-            p_reds.animate.move_to(droplet.get_center()).set_opacity(0),
+            *[excrete_along_tube(tok) for tok in phos_tokens],
+            *[excrete_along_tube(rd) for rd in p_reds],
             FadeIn(new_b1),
             run_time=0.75,
         )
         self.play(
             *[d.animate.move_to([-0.5 + 0.6 * i, 0.9, 0]) for i, d in enumerate(new_b1)],
-            w.bicarb.animate.set_value(20.5),
+            w.bicarb.animate.set_value(20.8),
             run_time=0.55,
         )
         self.remove(new_b1, phos_tokens)
 
         self.at("ammonium")
         a_reds = VGroup(*tray_dots[2:])
-        self.play(FadeOut(phos_lbl), FadeIn(glut), FadeIn(amm_lbl), FadeIn(amm_tokens), run_time=0.35)
         self.play(
-            *[tok.animate.move_to([-2.7 - 0.50 * i, 0.72, 0]) for i, tok in enumerate(amm_tokens)],
-            *[rd.animate.move_to([-2.7 - 0.50 * i, 0.72, 0]) for i, rd in enumerate(a_reds)],
-            run_time=0.65,
+            FadeOut(phos_lbl), FadeOut(tubule.cells[1]), FadeOut(tubule.cells[2]),
+            FadeIn(glut), FadeIn(amm_lbl), run_time=0.35,
         )
-        new_b2 = VGroup(*[Dot([-1.75, 0.8 + 0.22 * i, 0], radius=0.055, color=BICARB_COL) for i in range(5)])
+        self.add(amm_tokens)
+        self.play(
+            *[
+                tok.animate.scale(4.0).set_fill(AMM_COL, opacity=0.48).set_stroke(AMM_COL, opacity=1.0)
+                .move_to([-2.65 - 0.33 * i, 0.72, 0])
+                for i, tok in enumerate(amm_tokens)
+            ],
+            *[curve_to_tubule(rd, [-2.65 - 0.33 * i, 0.72, 0]) for i, rd in enumerate(a_reds)],
+            run_time=0.80,
+        )
+        new_b2 = VGroup(*[Dot([-1.52, 0.8 + 0.22 * i, 0], radius=0.055, color=BICARB_COL) for i in range(5)])
         for d in new_b2:
             d.layout_ok = True
+        self.at("which also yields")
         self.play(
-            amm_tokens.animate.move_to(droplet.get_center()).set_opacity(0),
-            a_reds.animate.move_to(droplet.get_center()).set_opacity(0),
+            *[excrete_along_tube(tok) for tok in amm_tokens],
+            *[excrete_along_tube(rd) for rd in a_reds],
             FadeIn(new_b2),
             FadeOut(spent_band), FadeOut(spent_lbl),
+            FadeOut(still_lbl), FadeOut(sulf_lbl),
+            tray.animate.set_stroke(opacity=0.30),
             w.bicarb.animate.set_value(24.0),
             run_time=0.85,
         )
