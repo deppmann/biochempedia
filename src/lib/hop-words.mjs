@@ -163,7 +163,7 @@ export const readTime = (words) => { const m = Math.max(1, Math.round(words / 20
    The three lines are set as one short paragraph: at most four lines on a 390 px phone. */
 
 /** The closed sentence may not run past this many characters (about four phone lines). */
-export const SENTENCE_MAX = 220;
+export const SENTENCE_MAX = 210;
 
 /**
  * The links a person chose by hand for a lesson, which the sentence uses before anything the
@@ -240,7 +240,7 @@ export function lessonSentence(hops, lesson) {
   const sameCut = down && up && cut(down.near.title) === cut(up.near.title);
 
   const build = (tight) => {
-    const name = (near) => (tight >= 2 && !sameCut ? cut(near.title) : near.title);
+    const name = (near) => ((tight >= 2 && !sameCut) || tight >= 6 ? cut(near.title) : near.title);
     const what = main ? inSentence(main.id, main.label ?? main.name) : '';
     const out = {};
     if (!main) return out;
@@ -274,7 +274,8 @@ export function lessonSentence(hops, lesson) {
   // subtitles of the lessons named, then the course's name, then "This lesson teaches", and last
   // the level word in "a short … version". The levels of the lessons and the short version stay.
   let lines = build(0), tight = 0;
-  while (tight < 5 && length(lines) > SENTENCE_MAX) lines = build(++tight);
+  // (only if all that is not enough are two lessons with one main title both cut to it)
+  while (tight < 6 && length(lines) > SENTENCE_MAX) lines = build(++tight);
   return { lines, more, quickDown, ideas, also, length: length(lines), tight };
 }
 
