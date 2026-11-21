@@ -72,7 +72,8 @@ const edge = (i: NonNullable<typeof hop>['ideas'][number]) => {
         </div>
       </details>
     )}
-    {full && q && <noscript><style>{`.hop-quick{display:block!important}`}</style></noscript>}
+    {/* Without scripts the short version is a plain fold under the sentence. */}
+    {full && q && <noscript><style is:inline>.hop-quick{display:block!important}</style></noscript>}
     {full && (
       <details class="hop-all">
         <summary><span class="hop-when-closed">{hop.more}</span><span class="hop-when-open">{hop.more === 'See every level' ? 'Hide the levels' : 'Hide nearby ideas'}</span></summary>
