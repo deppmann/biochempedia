@@ -65,5 +65,9 @@ jobs:
       # Learner sync: the merge rules, then two devices through the worker against the real migrations.
       - run: node scripts/test-learner-merge.mjs
       - run: node scripts/test-learner-sync.mjs
+      # The owner's totals (secret gate, aggregates only, small cells hidden), the optional role question, the anonymous film count.
+      - run: node scripts/test-admin.mjs
       # The site's address: both phases of a domain move, the hand-off of browser-only data, passkey bridge.
       - run: node scripts/test-host.mjs
+      # Calendar: dates worked out from today (nothing stored for a parent or learner), the calendar file, the MCAT order.
+      - run: node scripts/test-calendar.mjs
