@@ -74,3 +74,11 @@ export async function sendMail(env, to, subject, text, { fromName, replyTo } = {
     return r.ok;
   } catch { return false; }
 }
+
+// ---- the owner's addresses (ADMIN_EMAILS in wrangler.jsonc; used by worker/admin.js and worker/learner.js) ----
+/** The addresses in ADMIN_EMAILS that are plain, whole email addresses, lower-cased. Empty means nobody. */
+export function adminEmails(env) {
+  return String(typeof env.ADMIN_EMAILS === 'string' ? env.ADMIN_EMAILS : '').split(',')
+    .map((e) => e.trim().toLowerCase()).filter((e) => /^[^\s@,<>"]+@[^\s@,<>"]+\.[a-z]{2,}$/.test(e));
+}
+
