@@ -21,7 +21,7 @@ import { courseOf } from '../data/courses';
 import { STAGES, stageOf } from '../data/stages';
 import { watchHref } from './films';
 import links from '../data/lesson-links.json';
-import { hops as graphHops, ladder as graphLadder, filmsFor, conceptsOf, concept, type LadderRung } from './topic-graph';
+import { hops as graphHops, ladder as graphLadder, filmsFor, conceptsOf, type LadderRung } from './topic-graph';
 
 export interface Hop {
   lesson: string;
@@ -163,7 +163,7 @@ export async function hopsFor(lesson: string, film?: string): Promise<FilmHops |
   const near = (a: LadderRung, b: LadderRung) => Math.abs(a.rank - rank(me.stage)) - Math.abs(b.rank - rank(me.stage)) || a.order - b.order;
   const simpler = rungs.filter((r) => r.rank < rank(me.stage)).sort(near).map((r) => fromRung(r));
   const deeper = rungs.filter((r) => r.rank > rank(me.stage)).sort(near).map((r) => fromRung(r));
-  const sideways = pick.sideways.filter((n) => n.to).map((n) => fromRung(n.to!, { idea: n.name, why: n.why }));
+  const sideways = pick.sideways.filter((n) => n.to).map((n) => fromRung(n.to!, { idea: n.label || n.name, why: n.why }));
   const films = await ideaFilms(pick.id);
   const levels = new Set(films.map((f) => f.stage)).size;
   return {
@@ -172,8 +172,8 @@ export async function hopsFor(lesson: string, film?: string): Promise<FilmHops |
     simpler: simpler.length ? simpler : old.simpler,
     deeper: deeper.length ? deeper : old.deeper,
     sideways: { near: sideways, before: sideways.length ? [] : old.sideways.before, after: sideways.length ? [] : old.sideways.after, elsewhere: sideways.length ? [] : old.sideways.elsewhere },
-    // The graph may carry a shorter name for an idea ("label"); it reads better in a heading.
-    idea: { id: pick.id, name: (concept(pick.id) as { label?: string } | undefined)?.label || pick.name },
+    // The graph's short name for an idea ("label") reads better in a heading and beside a link.
+    idea: { id: pick.id, name: pick.label || pick.name },
     ideas,
     ...(levels >= 2 ? { everyLevel: { href: `/films/run/?idea=${encodeURIComponent(pick.id)}`, films: films.length, minutes: Math.max(1, Math.round(films.reduce((s, f) => s + f.durationSec, 0) / 60)), levels } } : {}),
   };
