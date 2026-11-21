@@ -1097,9 +1097,9 @@ CTRL_CAT = "late organizer,\nearly ectoderm"
 
 
 def chart_titles():
-    yl = lab("% of wrapped pieces forming neural tissue", GREYL, 26).move_to([X0 + 4.15, 3.55, 0])
+    yl = lab("fraction of wrapped pieces that became neural", GREYL, 26).move_to([X0 + 4.15, 3.55, 0])
     cap = lab("ectoderm of each age, wrapped around early organizer", TEXT, 30).move_to([X0 + 5.3, 3.0, 0])
-    tag = lab("hypothetical numbers", GREYL, 26, slant=ITALIC).move_to([5.0, 3.55, 0])
+    tag = lab("hypothetical numbers", GREYL, 26, slant=ITALIC).move_to([0.4, 1.35, 0])
     return yl, cap, tag
 
 
@@ -1127,17 +1127,21 @@ class S24Series(SpokenScene):
         bars = [chart_bar(i, v, c) for i, (v, c) in enumerate(zip(V4, CATS4))]
         icon = wrap_icon()
         self.add(cap)  # readable from the opening, including before the wrap cue
-        self.play(Create(ax["base"]), Create(ax["yax"]), FadeIn(ax["ticks"]), FadeIn(yl), FadeIn(tag), run_time=0.6)
         self.at("wrap", lead=0.0)
-        self.play(FadeIn(icon, scale=0.8), FadeIn(VGroup(*[b[2] for b in bars]), lag_ratio=0.2), run_time=1.2)
-        self.at("around early organizer")
-        self.play(Indicate(icon[0][1], color=CREAM, scale_factor=1.07), run_time=0.5)
+        self.play(Create(ax["base"]), FadeIn(icon, scale=0.8),
+                  FadeIn(VGroup(*[b[2] for b in bars]), lag_ratio=0.2), run_time=1.6)
+        self.at("around early organiser")
+        self.play(Indicate(icon[0][1], color=CREAM, scale_factor=1.07), run_time=0.8)
+        self.at("count how many")
+        self.play(Create(ax["yax"]), FadeIn(ax["ticks"]), FadeIn(yl, shift=RIGHT * 0.1), run_time=1.1)
+        self.at("these numbers")
+        self.play(FadeIn(tag, shift=UP * 0.08), GrowFromEdge(bars[0][0], DOWN), FadeIn(bars[0][1]), run_time=1.0)
+        self.at("show the shape")
+        self.play(GrowFromEdge(bars[1][0], DOWN), FadeIn(bars[1][1]), run_time=0.9)
         self.at("the response falls")
-        self.play(GrowFromEdge(bars[0][0], DOWN), FadeIn(bars[0][1]), run_time=0.5)
-        self.play(GrowFromEdge(bars[1][0], DOWN), FadeIn(bars[1][1]), run_time=0.5)
+        self.play(GrowFromEdge(bars[2][0], DOWN), FadeIn(bars[2][1]), run_time=0.9)
         self.at("largely stops")
-        self.play(GrowFromEdge(bars[2][0], DOWN), FadeIn(bars[2][1]), run_time=0.5)
-        self.play(GrowFromEdge(bars[3][0], DOWN), FadeIn(bars[3][1]), run_time=0.5)
+        self.play(GrowFromEdge(bars[3][0], DOWN), FadeIn(bars[3][1]), run_time=0.8)
         self.finish()
 
 
@@ -1209,14 +1213,3 @@ class S27Take(SpokenScene):
 
 class S28End(EndCard):
     LINE = "Host cells built the second neural tube while they could still answer."
-
-    def construct(self):
-        a, b = T("Host cells built the second neural tube", 42, TEXT, font=TITLE_FONT), T("while they could still answer.", 42, TEXT, font=TITLE_FONT)
-        line = VGroup(a, b).arrange(DOWN, buff=0.25)
-        fit(line, max_w=11.5)
-        sub = T("biochemistrypedia.com", size=22, color=TEAL)
-        g = VGroup(line, sub).arrange(DOWN, buff=0.45)
-        self.play(FadeIn(line, shift=UP * 0.15), run_time=self.beat(0.3))
-        self.play(FadeIn(sub), run_time=self.beat(0.15))
-        self.finish()
-

@@ -743,11 +743,18 @@ class S11Pause(NarratedScene):
         l10 = lab("+10", 32, ORANGE, weight=BOLD).move_to([-3.7, Yd(5), 0])
         cs, q = cards_group()
         self.add(d1, d2, t1, t2, br, l10, q, cs)
-        cs.add_updater(lambda m: m.set_opacity(0.8 + 0.2 * np.sin(self.clk.get_value() * 4)))
+        def pulse_chips(m):
+            s = np.sin(self.clk.get_value() * 4)
+            for c in m:
+                c[0].set_fill(opacity=0.14 + 0.08 * s)
+                c[0].set_stroke(opacity=0.8 + 0.2 * s)
+                c[1].set_opacity(0.8 + 0.2 * s)
+
+        cs.add_updater(pulse_chips)
         ring_bg = Circle(radius=0.38, stroke_color=GREY, stroke_width=5).move_to([6.1, 3.15, 0])
         prog = ValueTracker(0.0)
         ring = always_redraw(lambda: Arc(radius=0.38, start_angle=PI / 2, angle=-TAU * max(prog.get_value(), 0.001),
-                                         stroke_color=TEAL, stroke_width=7).move_to(ring_bg.get_center()))
+                                         arc_center=ring_bg.get_center(), stroke_color=TEAL, stroke_width=7))
         self.add(ring_bg, ring)
         self.play(prog.animate.set_value(1.0), run_time=4.8, rate_func=linear)
         self.finish()
@@ -763,44 +770,89 @@ class S12Reveal(SpokenScene):
         w.vis_leak.set_value(1)
         w.vis_pb.set_value(1)
         self.add(w.out_tube, w.in_tube, w.out_bar, w.in_bar, w.set_line, w.leak, w.pb, waves, l_out, l_in)
+        d1, d2, t1, t2 = dials(self, w)
         br = bracket(-4.4, Yd(0), Yd(10), ORANGE)
         l10 = lab("+10", 32, ORANGE, weight=BOLD).move_to([-3.7, Yd(5), 0])
         cs, q = cards_group()
-        self.add(br, l10, q, cs)
-        self.play(Indicate(cs[1], color=YELLOW, scale_factor=1.3), run_time=1.2)
+        self.add(d1, d2, t1, t2, br, l10, q, cs)
+        # "Half." (0.00 - 0.74s)
+        self.play(cs[1][0].animate.set_stroke(YELLOW, 4).set_fill(YELLOW, 0.28),
+                  cs[1][1].animate.set_color(YELLOW),
+                  cs[0].animate.set_opacity(0.35),
+                  cs[2].animate.set_opacity(0.35), run_time=0.8)
+        # "In this simple model," (2.04 - 3.00s)
         self.at("In this simple model")
-        # mini dials replace the big ones; the cards give way to the rule
-        m1 = make_dial([2.4, 3.0, 0], ORANGE, lambda: 1.0, r=0.42, clk=self.clk)
-        m2 = make_dial([4.7, 3.0, 0], TEAL, lambda: 1.0, r=0.42, clk=self.clk)
-        n1 = lab("leak", 26, ORANGE).move_to([3.0, 2.35, 0]).move_to([2.4, 2.3, 0])
-        n2 = lab("push-back", 26, TEAL).move_to([4.7, 2.3, 0])
-        self.play(FadeOut(cs), FadeOut(q), FadeIn(m1), FadeIn(m2), FadeIn(n1), FadeIn(n2), run_time=0.8)
-        k = 0.6
-        T_rise = self.t_of("settles") + 0.8 - self.elapsed()
-        end, rf = relax(0, 5.0, k, T_rise)
-        rd = always_redraw(lambda: lab(f"+{w.x.get_value():.1f}", 32, TEAL, weight=BOLD).move_to(
-            [IN_X, Yd(w.x.get_value()) + 0.45, 0]))
-        self.add(rd)
-        self.play(w.x.animate(rate_func=rf).set_value(end), run_time=T_rise)
-        rule = VGroup(lab("inside shift =", 26, TEXT), lab("outside shift × leak strength", 26, TEXT),
-                      lab("÷ (leak strength +", 26, TEXT), lab("push-back strength)", 26, TEXT)
-                      ).arrange(DOWN, aligned_edge=LEFT, buff=0.1).move_to([4.2, 0.9, 0])
-        num = M("10 × 1 ÷ (1 + 1) = 5", 28, YELLOW).move_to([4.2, -0.35, 0])
-        self.play(FadeIn(rule, shift=UP * 0.15), run_time=0.9)
+        m1 = make_dial([2.0, 3.10, 0], ORANGE, lambda: 1.0, r=0.35, clk=self.clk)
+        m2 = make_dial([3.9, 3.10, 0], TEAL, lambda: 1.0, r=0.35, clk=self.clk)
+        n1 = lab("leak", 24, ORANGE).next_to(m1, RIGHT, buff=0.16)
+        n2 = lab("push-back", 24, TEAL).next_to(m2, RIGHT, buff=0.16)
+        self.play(FadeOut(cs), FadeOut(q), FadeOut(d1), FadeOut(d2), FadeOut(t1), FadeOut(t2), run_time=0.3)
+        self.play(FadeIn(m1), FadeIn(m2), FadeIn(n1), FadeIn(n2), run_time=0.5)
+        # "each pull equals its strength times its gap." (3.46 - 5.52s)
+        self.at("each pull equals")
+        pg1 = lab("pull =", 28, YELLOW)
+        pg2 = lab("strength × gap", 28, YELLOW)
+        p_gen = VGroup(pg1, pg2).arrange(RIGHT, buff=0.16).move_to([3.9, 1.4, 0])
+        self.play(FadeIn(pg1, shift=UP * 0.1), run_time=0.5)
+        self.at("strength times its gap")
+        self.play(FadeIn(pg2, shift=UP * 0.1), FadeOut(br), FadeOut(l10),
+                  w.x.animate(rate_func=smooth).set_value(3.2), run_time=1.4)
+        # "Leak's gap is from inside to outside;" (6.94 - 8.68s)
+        self.at("Leak's gap")
+        b_hi = always_redraw(lambda: bracket(-2.15, Yd(w.x.get_value()) + 0.02, Yd(10), ORANGE))
+        c_hi = lab("to outside", 24, ORANGE).move_to([-3.45, Yd((3.2 + 10) / 2), 0])
+        lp1 = lab("leak pull = leak strength ×", 24, ORANGE)
+        lp2 = lab("(outside − inside)", 24, ORANGE)
+        lp = VGroup(lp1, lp2).arrange(DOWN, aligned_edge=LEFT, buff=0.06).move_to([3.9, 2.05, 0]).align_to([1.65, 0, 0], LEFT)
+        self.play(FadeOut(p_gen), FadeIn(b_hi), FadeIn(c_hi), FadeIn(lp1, shift=UP * 0.08), run_time=0.6)
+        self.at("from inside to outside")
+        self.play(FadeIn(lp2, shift=UP * 0.08), run_time=0.7)
+        # "Pushbacks is from set point to inside." (9.46 - 11.40s)
+        self.at("Pushbacks")
+        b_lo = always_redraw(lambda: bracket(-2.15, Yd(0), Yd(w.x.get_value()) - 0.02, TEAL))
+        c_lo = lab("from set\npoint", 24, TEAL).move_to([-3.45, Yd(3.2 / 2), 0])
+        pb1 = lab("push-back pull =", 24, TEAL)
+        pb2 = lab("push-back strength ×", 24, TEAL)
+        pb3 = lab("(inside − set point)", 24, TEAL)
+        pb = VGroup(pb1, pb2, pb3).arrange(DOWN, aligned_edge=LEFT, buff=0.06).move_to([3.9, 1.00, 0]).align_to([1.65, 0, 0], LEFT)
+        self.play(FadeIn(b_lo), FadeIn(c_lo), FadeIn(pb1, shift=UP * 0.08), FadeIn(pb2, shift=UP * 0.08), run_time=0.6)
+        self.at("from set point to inside")
+        self.play(FadeIn(pb3, shift=UP * 0.08), run_time=0.7)
+        # "Once the inside settles, those two pulls balance." (12.78 - 15.40s)
+        self.at("Once the inside")
+        self.play(w.x.animate(rate_func=smooth).set_value(5.0),
+                  c_hi.animate.move_to([-3.45, Yd(7.5), 0]),
+                  c_lo.animate.move_to([-3.45, Yd(2.5), 0]),
+                  run_time=1.5)
+        self.at("those two pulls")
+        settled = lab("settled: the two pulls\nare equal", 24, WHITE).move_to([3.9, -0.05, 0]).align_to([1.65, 0, 0], LEFT)
+        self.play(FadeIn(settled, shift=UP * 0.08), run_time=0.7)
+        # "With equal strengths, they balance when both gaps are equal." (16.76 - 19.56s)
         self.at("With equal strengths")
-        self.play(FadeIn(num, shift=UP * 0.1), run_time=0.8)
-        settled = lab("settled: the two pulls\nare equal", 26, WHITE).move_to([4.2, -1.45, 0])
-        self.play(FadeIn(settled), run_time=0.6)
-        self.at("the two gaps")
-        b_lo = bracket(-2.15, Yd(0), Yd(5), TEAL)
-        b_hi = bracket(-2.15, Yd(5), Yd(10), ORANGE)
-        c_lo = lab("from set\npoint: 5", 24, TEAL).move_to([-3.6, Yd(2.5), 0])
-        c_hi = lab("to outside: 5", 24, ORANGE).move_to([-3.4, Yd(7.5), 0])
-        self.play(FadeOut(br), FadeOut(l10), run_time=0.4)
-        self.play(Create(b_lo), Create(b_hi), FadeIn(c_lo), FadeIn(c_hi), run_time=0.8)
-        self.at("halfway")
-        tg = lab("simple model: after settling,\nset point fixed, effectors\nbelow their limit", 24, TEXT).move_to([4.2, -2.85, 0])
-        self.play(FadeIn(tg), run_time=0.6)
+        rule = VGroup(
+            lab("inside shift =", 24, TEXT),
+            lab("outside shift × leak strength", 24, TEXT),
+            lab("÷ (leak strength +", 24, TEXT),
+            lab("push-back strength)", 24, TEXT),
+        ).arrange(DOWN, aligned_edge=LEFT, buff=0.05).move_to([3.9, -1.15, 0]).align_to([1.65, 0, 0], LEFT)
+        tg = lab("simple model: after settling,\nset point fixed, effectors\nbelow their limit", 24, TEXT
+                 ).move_to([3.9, -2.90, 0]).align_to([1.65, 0, 0], LEFT)
+        self.play(FadeIn(rule, shift=UP * 0.1), FadeIn(tg), run_time=0.9)
+        self.at("both gaps")
+        self.play(Indicate(b_lo, color=YELLOW, scale_factor=1.15),
+                  Indicate(b_hi, color=YELLOW, scale_factor=1.15), run_time=0.9)
+        # "Five degrees each, halfway." (20.26 - 21.68s)
+        self.at("Five")
+        num = M("10 × 1 ÷ (1 + 1) = 5", 28, YELLOW).move_to([3.9, -2.05, 0]).align_to([1.65, 0, 0], LEFT)
+        b_rise = bracket(0.65, Yd(0), Yd(5), TEAL)
+        l_rise = lab("+5", 28, TEAL, weight=BOLD).next_to(b_rise, RIGHT, buff=0.14)
+        c_hi_5 = lab("to outside: 5", 24, ORANGE).move_to([-3.45, Yd(7.5), 0])
+        c_lo_5 = lab("from set\npoint: 5", 24, TEAL).move_to([-3.45, Yd(2.5), 0])
+        self.play(FadeIn(num, shift=UP * 0.08),
+                  Create(b_rise), FadeIn(l_rise),
+                  Succession(FadeOut(c_hi, run_time=0.22), FadeIn(c_hi_5, run_time=0.28)),
+                  Succession(FadeOut(c_lo, run_time=0.22), FadeIn(c_lo_5, run_time=0.28)),
+                  run_time=0.6)
         self.finish()
 
 
