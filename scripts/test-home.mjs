@@ -8,7 +8,7 @@
  *  - "Welcome back" present and hidden until the page's script fills it;
  *  - the hero search, the wordmark as the h1, and one link to the catalog in the page body;
  *  - no link to a feature that is switched off (the study planner, the AI syllabus page), and, while
- *    the calendar and the syllabus box are off, nothing of either on the page;
+ *    the calendar link is off, nothing of it on the page; the syllabus matcher is a link, not a box;
  *  - no count of what is left or due in the page or its script.
  */
 import { readFile, readdir } from 'node:fs/promises';
@@ -57,8 +57,9 @@ if (!/export const IDEAS_LINK = true/.test(site)) ok(!html.includes('href="/idea
 // The choice is never written into the address by the page's own script when it could be saved instead.
 ok(/autocomplete="off"/.test(radios.join('')), 'the role radios must not be restored by the browser (autocomplete="off")');
 if (!flagOn('CALENDAR_LINK')) ok(!main.includes('/calendar/'), 'CALENDAR_LINK is off, so the page must not link the calendar');
-if (!flagOn('SYLLABUS_BOX')) ok(!main.includes('<textarea'), 'SYLLABUS_BOX is off, so the page must not carry the syllabus box');
-if (flagOn('SYLLABUS_BOX')) ok(!(await readFile('src/lib/syllabus-match.ts', 'utf8')).includes('return { ready: false }'), 'SYLLABUS_BOX is on but src/lib/syllabus-match.ts is still the unbuilt stub');
+// The teachers' door hands off to the on-device matcher by a plain link: no box here, so nothing pasted can travel.
+ok(main.includes('href="/teach/match/"') && !main.includes('<textarea'), 'the teachers\u2019 door must link /teach/match/ and carry no syllabus box of its own');
+ok(!main.includes('href="/start/'), 'the homepage must not link /start/');
 
 // Coming subjects are named, never links.
 ok(!/href="\/(chemistry|physics|mathematics|psychology)/.test(main), 'a coming subject must not be a link');

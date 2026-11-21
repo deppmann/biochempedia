@@ -1,9 +1,6 @@
 ---
-/* The teachers' door. It leads with what works today: the standards maps and the class tool. The
-   paste-your-syllabus box is written and switched off (see flags.ts); until its matcher exists the
-   door says plainly that it is not built, and never links to the AI planner as if it were that box. */
-import SyllabusBox from './SyllabusBox.astro';
-import { SYLLABUS_BOX } from './flags';
+/* The teachers' door: the syllabus matcher first (a hand-off to its own page), then the standards
+   maps, the class tool and the talk. It never links the AI planner as if it were the matcher. */
 import type { HomeData } from './data';
 
 interface Props { d: HomeData }
@@ -21,6 +18,17 @@ const code = d.standardOf('diffusion-and-osmosis');
     Planning is the part of teaching a tool can make fast. Let it, and spend the hours on your students. Their
     part should stay slow, because the slow part is the thinking. No AI tutor talks to them here.
   </p>
+
+  {/* The syllabus matcher has its own page (/teach/match/). The door hands off with a plain link, so
+      nothing a teacher pastes is ever carried in an address or kept in storage on the way there. */}
+  <div class="home-lead">
+    <h3 class="home-h3">Match your syllabus to lessons</h3>
+    <p class="home-p">
+      Paste your syllabus and pick your class’s level. You get your topics, in your order, with the lessons and
+      films that teach each one. The matching runs in your browser: what you paste is never sent, and no AI reads it.
+    </p>
+    <p class="home-act-go"><a class="home-go" href="/teach/match/">Match your syllabus</a></p>
+  </div>
 
   <div class="home-trio">
     <div>
@@ -51,8 +59,4 @@ const code = d.standardOf('diffusion-and-osmosis');
       </p>
     </div>
   </div>
-
-  {SYLLABUS_BOX
-    ? <SyllabusBox />
-    : <p class="home-small">Not built yet: a box where you paste your syllabus and get back the lessons that match. It is where I want to take this page.</p>}
 </section>
