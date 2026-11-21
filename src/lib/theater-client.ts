@@ -5,7 +5,10 @@
      - nothing plays until the viewer presses play, or taps a part or a sentence (which is a press);
      - while the film waits on its own question, only the question is up;
      - a word comes up when the film says it, a figure when its part starts, never earlier;
-     - the panel is never swapped out from under keyboard focus;
+     - the panel is never swapped out from under a link someone is on, and a control is never
+       removed while it has focus (focus is moved to the companion first);
+     - nothing below the companion moves when the companion changes height: a reader parked on the
+       list of parts or the transcript stays where they are;
      - part changes are not announced aloud (they would talk over the narration): the list of parts
        carries aria-current instead. One sentence is announced, when the film ends;
      - nothing is stored. The watched record is trackFilms() in BaseLayout.
@@ -14,6 +17,8 @@
    left alone);
    ?state=end shows the end of the film. ?film=<key>&at=<seconds> is the site's resume link
    (resumeFromLink in film-progress.ts does the seek; this adds "Press play to start at m:ss."). */
+
+import { companionAt, pauseLabel, swapRule } from './film-logic.mjs';
 
 const clock = (sec: number) => `${Math.floor(sec / 60)}:${String(Math.floor(sec % 60)).padStart(2, '0')}`;
 
@@ -29,6 +34,7 @@ export function theater(): void {
   const lastReveal = Number(root.dataset.lastReveal) || 0;
 
   const companion = $('[data-th-companion]')!;
+  const screen = $('[data-th-screen]')!;
   const panels = $$('[data-th-panel]');
   const rows = $$<HTMLButtonElement>('[data-th-go]');
   const questions = $$('[data-th-question]');
@@ -60,49 +66,76 @@ export function theater(): void {
     sync(t);
   };
 
-  /* ---- the companion */
+  /* ---- the companion. What should show at a second, and whether it may change under the current
+     focus, are decided in film-logic.mjs (tested in scripts/test-film-logic.mjs). */
+  const partTimes = panels.map((p) => ({ start: num(p, 't') }));
+  const askTimes = questions.map((q) => ({ start: num(q, 't'), until: num(q, 'until') }));
+  companion.tabIndex = -1;
+  const focusKind = (within: HTMLElement): 'none' | 'link' | 'pause' => {
+    const el = document.activeElement as HTMLElement | null;
+    if (!el || !within.contains(el) || el === companion) return 'none';
+    return el.matches('[data-th-pause]') ? 'pause' : 'link';
+  };
+  /* A change of the companion's height must not move what is below it when the reader is below it:
+     measure the first thing after the companion before and after, and take the difference out of
+     the scroll position at once. */
+  const below = $('[data-th-list], .th-take, [data-th-transcript], [data-hop-area]');
+  const steady = (change: () => void) => {
+    // "Below it" means the companion's top is off the top of what can be seen (above the pinned screen,
+    // or the site's header): then what follows the companion is what the reader is looking at.
+    const pinned = getComputedStyle(screen).position === 'sticky';
+    const edge = pinned ? screen.getBoundingClientRect().bottom : header && getComputedStyle(header).position === 'sticky' ? header.getBoundingClientRect().bottom : 0;
+    const parked = !!below && companion.getBoundingClientRect().top < edge;
+    const before = parked ? below!.getBoundingClientRect().top : 0;
+    change();
+    if (parked) {
+      const moved = below!.getBoundingClientRect().top - before;
+      if (moved) window.scrollBy({ top: moved, behavior: 'instant' as ScrollBehavior });
+    }
+  };
+
   let part = -1;
   let wanted = -1;
-  const showPart = (i: number) => {
-    part = i;
-    panels.forEach((p, k) => p.classList.toggle('is-now', k === i));
-  };
-  const setPart = (i: number) => {
+  let asked = -2;
+  const draw = (i: number, asking: number) => {
     // The list of parts always says where the film is, even while the panel is being held.
     if (i !== wanted) rows.forEach((r, k) => { if (k === i) r.setAttribute('aria-current', 'true'); else r.removeAttribute('aria-current'); });
     wanted = i;
-    if (i === part) return;
-    // Someone is on a link in the panel: leave it where it is until they move on.
-    if (part !== -1 && companion.contains(document.activeElement)) return;
-    showPart(i);
+    if (panels.length && i !== part) {
+      const rule = part === -1 ? { change: true, moveFocus: false } : swapRule(focusKind(panels[part]));
+      if (rule.change) {
+        if (rule.moveFocus) companion.focus({ preventScroll: true });
+        steady(() => { part = i; panels.forEach((p, k) => p.classList.toggle('is-now', k === i)); });
+      }
+    }
+    if (questions.length && asking !== asked) {
+      // The question leaving: never from under its own focused button, and never the lesson link
+      // from under someone who is on it.
+      const leaving = asked >= 0 ? questions[asked] : null;
+      const kind = leaving ? focusKind(leaving) : rest ? focusKind(rest) : 'none';
+      const rule = swapRule(kind);
+      if (rule.change) {
+        if (rule.moveFocus) companion.focus({ preventScroll: true });
+        steady(() => {
+          questions.forEach((q, k) => { q.hidden = k !== asking; });
+          if (rest) rest.hidden = asking !== -1;
+        });
+        asked = asking;
+      }
+    }
   };
   companion.addEventListener('focusout', () => {
-    requestAnimationFrame(() => {
-      if (companion.contains(document.activeElement)) return;
-      if (wanted !== part) showPart(wanted);
-      if (rest) sync(v.currentTime);
-    });
+    requestAnimationFrame(() => { if (!companion.contains(document.activeElement) || document.activeElement === companion) sync(v.ended ? duration : v.currentTime || lastT); });
   });
 
   let line = -1;
+  let lastT = 0;
   function sync(t: number): void {
-    if (panels.length) {
-      let i = 0;
-      panels.forEach((p, k) => { if (num(p, 't') <= t + 0.05) i = k; });
-      setPart(i);
-    }
+    lastT = t;
+    const now = companionAt(t, partTimes, askTimes, ended);
+    draw(now.part, now.asking);
     for (const el of terms) el.hidden = t + 0.05 < num(el, 'at');
-    if (questions.length) {
-      let asking = false;
-      for (const q of questions) {
-        const on = t + 0.05 >= num(q, 't') && t < num(q, 'until') && !ended;
-        q.hidden = !on;
-        asking ||= on;
-      }
-      // Not while someone is on the lesson link: it stays until they move on.
-      if (rest) rest.hidden = asking && !rest.contains(document.activeElement);
-    }
-    if (figs && figs.hidden && (ended || (lastReveal > 0 && t >= lastReveal))) figs.hidden = false;
+    if (figs && figs.hidden && (ended || (lastReveal > 0 && t >= lastReveal))) steady(() => { figs.hidden = false; });
     // The parts bar: which segment the film is in, and how far along.
     if (bar) {
       bar.style.setProperty('--th-p', `${duration ? Math.min(100, (t / duration) * 100) : 0}%`);
@@ -129,20 +162,23 @@ export function theater(): void {
     }
   }
 
-  /* ---- the pinned screen never sits on top of what has keyboard focus */
-  const screen = $('[data-th-screen]')!;
+  /* ---- neither the pinned screen nor the site's header sits on top of what has keyboard focus */
   root.addEventListener('focusin', (e) => {
     const el = e.target as HTMLElement;
-    if (getComputedStyle(screen).position !== 'sticky' || screen.contains(el)) return;
+    if (screen.contains(el) || el === companion) return;
     requestAnimationFrame(() => {
-      const edge = screen.getBoundingClientRect().bottom;
+      const pinned = getComputedStyle(screen).position === 'sticky';
+      const edge = pinned ? screen.getBoundingClientRect().bottom : header && getComputedStyle(header).position === 'sticky' ? header.getBoundingClientRect().bottom : 0;
+      if (!edge) return;
       const top = el.getBoundingClientRect().top;
       if (top < edge + 8) window.scrollBy(0, top - edge - 12);
     });
   });
 
   /* ---- controls made from the printed list */
-  for (const r of rows) r.addEventListener('click', () => playFrom(num(r, 't')));
+  // A press on the part that is playing pauses it (Space on the row should not rewind the film);
+  // any other row plays from its start.
+  rows.forEach((r, k) => r.addEventListener('click', () => { if (k === wanted && !v.paused) v.pause(); else playFrom(num(r, 't')); }));
   for (const li of lines) {
     const time = li.querySelector('.th-time');
     if (time) {
@@ -161,16 +197,21 @@ export function theater(): void {
   const startAt = $('[data-th-startat]');
   v.addEventListener('timeupdate', () => { if (!v.seeking) sync(v.currentTime); });
   v.addEventListener('seeked', () => sync(v.currentTime));
+  let started = false;
   v.addEventListener('play', () => {
-    root.classList.add('is-playing');
+    started = true;
+    // is-started pins the screen on a phone: from the first play until the film ends, paused or not,
+    // so pausing to read a sentence does not send the film off the screen.
+    root.classList.add('is-playing', 'is-started');
     if (startAt) startAt.hidden = true;
     if (ended) { ended = false; }
   });
   v.addEventListener('pause', () => root.classList.remove('is-playing'));
   v.addEventListener('ended', () => {
     ended = true;
-    root.classList.remove('is-playing');
-    next.hidden = false;
+    root.classList.remove('is-playing', 'is-started');
+    // If the companion is in view, Where next arrives in view under it; a reader further down is not moved.
+    steady(() => { next.hidden = false; });
     sync(duration);
     const take = $<HTMLDetailsElement>('details[data-th-take]');
     if (take) take.open = true;
@@ -179,17 +220,28 @@ export function theater(): void {
 
   /* ---- "Pause and decide" comes with a way to pause that is right there. */
   const pauses = $$<HTMLButtonElement>('[data-th-pause]');
-  const paintPause = () => { for (const b of pauses) b.textContent = v.paused ? 'Carry on' : 'Pause the film'; };
+  // The words follow the player's real state, whoever changed it (this button, the player's own, a key).
+  const paintPause = () => { for (const b of pauses) b.textContent = pauseLabel({ paused: v.paused, started }); };
   for (const b of pauses) b.addEventListener('click', () => { if (v.paused) void v.play().catch(() => {}); else v.pause(); });
   v.addEventListener('play', paintPause);
   v.addEventListener('pause', paintPause);
+  paintPause();
 
   /* ---- "Cards ready" (CardsPrompt.astro) appears after the player; it belongs in Where next. */
   const slot = $('[data-th-cards]');
   if (slot && root.dataset.cardsLesson) {
     new MutationObserver(() => {
-      const box = document.querySelector('.cards-prompt');
-      if (box && box.parentElement !== slot) slot.append(box);
+      const box = document.querySelector<HTMLElement>('.cards-prompt');
+      if (!box || box.parentElement === slot) return;
+      // It has just been added above whatever the reader is on: take its whole height back out of
+      // the scroll position when they are below the companion, as for any other change up there.
+      const cs = getComputedStyle(box);
+      const added = box.offsetHeight + (parseFloat(cs.marginTop) || 0) + (parseFloat(cs.marginBottom) || 0);
+      const before = below ? below.getBoundingClientRect().top : 0;
+      const sticky = header && getComputedStyle(header).position === 'sticky' ? header.getBoundingClientRect().bottom : 0;
+      const parked = !!below && companion.getBoundingClientRect().top < sticky;
+      slot.append(box);
+      if (parked) window.scrollBy({ top: added + (below!.getBoundingClientRect().top - before), behavior: 'instant' as ScrollBehavior });
     }).observe(document.body, { childList: true, subtree: true });
   }
 
@@ -205,6 +257,8 @@ export function theater(): void {
       u.searchParams.set('backF', root.dataset.film ?? '');
       u.searchParams.set('backAt', String(t));
       a.href = u.pathname + u.search;
+      // The browser's own Back then opens this film at the same second, paused.
+      history.replaceState(history.state, '', `${location.pathname}?film=${encodeURIComponent(root.dataset.film ?? '')}&at=${t}`);
     });
   }
   const back = params.get('back') ?? '';

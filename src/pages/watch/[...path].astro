@@ -187,7 +187,7 @@ const videoLd = {
           ) : (
             <>
               <div class="th-panel th-lesson-q" data-th-rest>
-                <p class="th-k">The lesson’s question</p>
+                <p class="th-k">{film.hook.includes('?') ? 'The lesson’s question' : 'From the lesson'}</p>
                 <p class="th-q">{film.hook}</p>
                 <p class="th-read">
                   {th.region.section
@@ -278,7 +278,7 @@ const videoLd = {
         <div data-hop-text>
           {hasLadder && (
             <div class="th-ladder">
-              <p class="th-ladder-note">A level is a place to start, not a rank. If a film loses you, the simpler one teaches the same idea with less machinery.</p>
+              <p class="th-ladder-note">A level is a place to start, not a rank. If this loses you, the rung below teaches the same idea with less machinery.</p>
               <ul>
                 {[...hops.simpler].reverse().map((h) => (
                   <li><span class="th-dir">Simpler</span> <span class="th-lv"><span class={`th-chip lv-${h.stage}`}></span>{h.stageTitle}</span> <a href={hopHref(h)} data-th-hop>{hopVerb(h)}</a>{h.adds && <span class="th-adds">{h.adds}</span>}</li>
@@ -289,7 +289,7 @@ const videoLd = {
                 ))}
               </ul>
               {hops.everyLevel && (
-                <p class="th-every"><a class="th-btn" href={hops.everyLevel.href}>Play this idea at every level · {hops.everyLevel.films} films, {hops.everyLevel.minutes} min</a></p>
+                <p class="th-every"><a class="th-btn" href={hops.everyLevel.href}>Play this idea, simplest first · {hops.everyLevel.films} films, {hops.everyLevel.minutes} minutes</a></p>
               )}
             </div>
           )}
@@ -301,7 +301,7 @@ const videoLd = {
                   {g.label && <h4>{g.label}</h4>}
                   <ul>
                     {g.items.map((h) => (
-                      <li>{h.idea && <span class="th-door-i">{h.idea}: </span>}<a href={hopHref(h)} data-th-hop>{hopName(h)}</a>{h.film && !h.idea && <span class="th-door-l"> from {h.lessonTitle}</span>}{h.why && <span class="th-why"> {h.why}</span>}</li>
+                      <li>{h.idea && <span class="th-door-i">{h.idea}: </span>}<a href={hopHref(h)} data-th-hop>{hopName(h)}</a>{h.stage !== hops.here.stage && <span class="th-door-l"> · <span class={`th-chip lv-${h.stage}`}></span>{h.stageTitle}</span>}{h.film && !h.idea && <span class="th-door-l"> from {h.lessonTitle}</span>}{h.why && <span class="th-why"> {h.why}</span>}</li>
                     ))}
                   </ul>
                 </div>

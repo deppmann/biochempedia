@@ -335,7 +335,10 @@
 .film-lib .fl-foot { margin: var(--ddp-space-12) 0 0; max-width: 72ch; font-size: var(--ddp-text-sm); line-height: 1.55; color: var(--ddp-color-muted); }
 
 /* ---- /films/run/: a view played in order ------------------------------------------------------ */
-.film-lib .fr-wrap { max-width: 920px; padding-top: var(--ddp-space-8); }
+/* The page keeps a screen's height from the start, so the footer does not show and then jump when the films arrive. */
+.film-lib .fr-wrap { max-width: 920px; padding-top: var(--ddp-space-8); min-height: 100svh; }
+.film-lib .fr-next-text { margin: var(--ddp-space-3) 0 0; max-width: 68ch; line-height: 1.5; }
+.film-lib .fr-next-text:empty { display: none; }
 .film-lib .fr-wrap h1 { margin: 0 0 var(--ddp-space-2); font-size: var(--ddp-text-2xl); }
 .film-lib .fr-sum { margin: 0 0 var(--ddp-space-4); line-height: 1.5; color: var(--ddp-color-ink-soft); }
 .film-lib .fr-screen video { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; background: #0f1117; border-radius: 10px; }
@@ -343,7 +346,7 @@
 .film-lib .fr-meta { margin: 0.2em 0 0; font-size: var(--ddp-text-sm); color: var(--ddp-color-muted); }
 .film-lib .fr-meta a { color: var(--ddp-color-accent); display: inline-flex; min-height: 44px; align-items: center; }
 .film-lib .fr-take { margin: var(--ddp-space-3) 0 0; max-width: 68ch; line-height: 1.55; }
-.film-lib .fr-next { margin-top: var(--ddp-space-4); padding-top: var(--ddp-space-3); border-top: 1px solid var(--ddp-color-line); max-width: 68ch; line-height: 1.5; }
+.film-lib .fr-next { margin-top: var(--ddp-space-2); max-width: 68ch; line-height: 1.5; }
 .film-lib .fr-next p { margin: 0 0 var(--ddp-space-2); }
 .film-lib .fr-next-btns { display: flex; flex-wrap: wrap; gap: var(--ddp-space-2); }
 .film-lib .fr-queue { margin: var(--ddp-space-6) 0 0; padding: 0; list-style: none; max-width: 68ch; counter-reset: fr; }
@@ -366,3 +369,10 @@
   .film-lib .fl-start-x { -webkit-line-clamp: 2; }
 }
 @media (prefers-reduced-motion: reduce) { .film-lib .fl-key:active { transform: none; } }
+/* At large text on a narrow phone two keys to a row squeeze their names: one to a row instead. */
+@media (max-width: 21.99rem) { .film-lib .fl-keys { grid-template-columns: minmax(0, 1fr); } }
+/* Windows contrast themes drop backgrounds: the chosen key and the chosen time keep a mark. */
+@media (forced-colors: active) {
+  .film-lib .fl-budget input:checked + span { background: Highlight; color: HighlightText; forced-color-adjust: none; }
+  .film-lib .fl-key.is-on { outline: 3px solid Highlight; outline-offset: -3px; }
+}

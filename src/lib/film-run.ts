@@ -5,6 +5,7 @@
 import type { FilmList, ListFilm } from './film-cards';
 import { isWatched, loadFilms, onFilmsChange } from './film-progress';
 import { BUDGETS, SLACK, about, clock, filmsWord, fit, readView, runSentence, runnable, select, viewQuery } from './film-view';
+import { endWith, runFilms, runPlace } from './film-logic.mjs';
 
 /* The next film is always offered and never starts by itself (ruling, 2026-11-20): a timer nobody can
    see is worse than the digits it replaced. */
@@ -57,8 +58,10 @@ export async function run(): Promise<void> {
     films = (found?.films ?? []).map((k) => byKey.get(k)).filter((f): f is ListFilm => !!f);
     if (!found || films.length < 2) return nothing('This idea does not have films at more than one level yet.');
     seconds = films.reduce((s, f) => s + f.d, 0);
-    lead = `${found.name} at every level, simplest first: `;
-    root.querySelector('h1')!.textContent = `${found.name} at every level`;
+    // "Simplest first", not "at every level": most ideas have films at two or three of the seven.
+    lead = '';
+    root.querySelector('h1')!.textContent = `${found.name}, simplest first`;
+    document.title = `${found.name}, simplest first — STEMhop`;
   } else {
     const matched = select(list, view);
     if (!matched.length) return nothing('No film matches this view.');
@@ -67,11 +70,7 @@ export async function run(): Promise<void> {
     // A run keeps the film it started at in its address, so a reload plays the same run to the same end.
     const from = queue.findIndex((f) => f.f === params.get('from'));
     if (from >= 0) {
-      for (const f of queue.slice(from)) {
-        if (minutes && films.length && seconds + f.d > minutes * 60 + SLACK) break;
-        films.push(f);
-        seconds += f.d;
-      }
+      ({ films, seconds } = runFilms(queue, from, minutes, SLACK));
     } else {
       const plan = fit(queue, minutes, loadFilms());
       films = plan.films;
@@ -98,38 +97,48 @@ export async function run(): Promise<void> {
   const restNote = $('[data-fr-rest]');
   let at = 0;
 
+  const startAt = $('[data-fr-startat]');
   /* The queue lists the next thirty films; a longer run says how many follow, and the list moves on
      with the run. A watched film says so in words, not by colour alone. */
   const SHOWN = 30;
   let first = 0;
+  let drawnFrom = -1;
   const drawQueue = () => {
     const r = loadFilms();
     queue.setAttribute('start', String(first + 1));
     queue.style.counterReset = `fr ${first}`;
-    queue.replaceChildren(...films.slice(first, first + SHOWN).map((f, k) => {
-      const i = first + k;
-      const li = document.createElement('li');
-      const b = document.createElement('button');
-      b.type = 'button';
-      b.textContent = `${f.t} · ${clock(f.d)}`;
-      if (i === at) b.setAttribute('aria-current', 'true');
-      if (isWatched(r, f.f)) {
-        li.classList.add('is-seen');
+    // The rows are built once for each stretch of thirty and then only marked, so a row that has
+    // keyboard focus is never replaced under it.
+    if (drawnFrom !== first) {
+      drawnFrom = first;
+      queue.replaceChildren(...films.slice(first, first + SHOWN).map((f, k) => {
+        const i = first + k;
+        const li = document.createElement('li');
+        const b = document.createElement('button');
+        b.type = 'button';
+        // An idea's run is its ladder: each row says its level.
+        b.textContent = `${idea && f.s ? `${list.levels[f.s]} · ` : ''}${f.t} · ${clock(f.d)}`;
         const s = document.createElement('span');
         s.className = 'fr-seen';
-        s.textContent = ' · watched';
         b.append(s);
-      }
-      b.addEventListener('click', () => { show(i); void v.play().catch(() => {}); });
-      li.append(b);
-      return li;
-    }));
-    const left = films.length - first - SHOWN;
-    restNote.hidden = left <= 0;
-    restNote.textContent = left > 0 ? `Then ${left.toLocaleString('en-US')} more ${left === 1 ? 'film' : 'films'}, in order.` : '';
+        b.addEventListener('click', () => { show(i); void v.play().catch(() => {}); });
+        li.append(b);
+        return li;
+      }));
+    }
+    [...queue.children].forEach((li, k) => {
+      const i = first + k;
+      const b = li.firstElementChild!;
+      if (i === at) b.setAttribute('aria-current', 'true'); else b.removeAttribute('aria-current');
+      const seen = isWatched(r, films[i].f);
+      li.classList.toggle('is-seen', seen);
+      b.querySelector('.fr-seen')!.textContent = seen ? ' · watched' : '';
+    });
+    const longer = films.length > first + SHOWN;
+    restNote.hidden = !longer;
+    restNote.textContent = longer ? `The run goes on in order to ${endWith(films[films.length - 1].t)}` : '';
   };
-  const marks = () => drawQueue();
-  onFilmsChange(marks);
+  onFilmsChange(drawQueue);
 
   function show(i: number): void {
     at = i;
@@ -157,7 +166,9 @@ export async function run(): Promise<void> {
     take.hidden = true;
     take.textContent = f.th ?? '';
     next.hidden = true;
+    nextText.textContent = '';
     if (i < first || i >= first + SHOWN) first = i;
+    startAt.hidden = true;
     drawQueue();
   }
   v.addEventListener('ended', () => {
@@ -176,12 +187,26 @@ export async function run(): Promise<void> {
   });
   playNext.addEventListener('click', () => { show(at + 1); title.focus(); void v.play().catch(() => {}); });
   stop.addEventListener('click', () => {
-    nextText.textContent = `Stopped here, after ${filmsWord(at + 1)}. Next time you will start at ${films[at + 1].t}.`;
+    // True either way: a run reopens at its first film not yet watched (runPlace).
+    nextText.textContent = `Stopped here, after ${filmsWord(at + 1)}. Next time you will start at ${endWith(films[at + 1].t)}`;
     more.hidden = false;
     more.focus(); // before the button that was pressed goes away
     playNext.hidden = true;
     stop.hidden = true;
   });
+  /* Where the run opens: its first film not yet watched on this device, and, if that film was left
+     part-way, at that second, paused. A reload or a return therefore carries on, not starts over. */
+  const record = loadFilms();
+  const place = runPlace(films, { has: (k: string) => isWatched(record, k) }, record.p);
   $('[data-fr-stage]').hidden = false;
-  show(0);
+  show(place.index);
+  if (place.at > 0) {
+    const seek = () => { try { v.currentTime = place.at; } catch { /* stays at the start */ } };
+    v.addEventListener('loadedmetadata', seek, { once: true });
+    v.preload = 'metadata';
+    v.load();
+    startAt.textContent = `Press play to start at ${clock(place.at)}.`;
+    startAt.hidden = false;
+    v.addEventListener('play', () => { startAt.hidden = true; }, { once: true });
+  }
 }

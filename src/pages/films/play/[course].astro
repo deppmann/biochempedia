@@ -6,7 +6,7 @@
    the current film marked, previous and next, the current film's title, a link to its lesson and its
    take-homes underneath, captions from the same caption files. The page remembers on this device
    which film and second the viewer stopped at (src/lib/film-progress.ts) and opens there next time,
-   paused: a film only starts when the viewer presses play, and the following ones start on their own.
+   paused: a film only starts when the viewer presses play or Play next; nothing starts on its own.
 
    ?kind=first and ?q=words narrow the queue, so "Play these in order" on a filtered /films/ list
    plays what the list showed. Without JavaScript the player shows the first film and the queue is a
@@ -53,7 +53,7 @@ const queue = films.map((f) => ({
     <p class="eyebrow"><a href="/films/">Film library</a> · <a href={filmLevelHref(course.stage)}>{course.stageTitle}</a></p>
     <h1 class="lvl-title">{course.title}, every film in order</h1>
     <p class="lede pl-lede">
-      {fmt(films.length)} films, about {hm(mins)}. Press play and each film starts when the one before it ends.
+      {fmt(films.length)} films, about {mins < 90 ? `${mins} minutes` : `${Math.floor(mins / 60)} hours ${mins % 60} minutes`}. When one ends, the next waits until you press Play next.
       <span class="seen-n" data-seen-of={queue.map((q) => q.f).join(' ')} hidden></span>
     </p>
     <p class="small pl-filter" data-pl-filter hidden></p>
@@ -92,7 +92,7 @@ const queue = films.map((f) => ({
 
       <section class="pl-now" aria-labelledby="pl-now-h">
         <p class="spot-k" data-pl-badge>{kindBadge(first)}</p>
-        <h2 id="pl-now-h" data-pl-title>{first.title}</h2>
+        <h2 id="pl-now-h" data-pl-title tabindex="-1">{first.title}</h2>
         <p class="pl-resume small" data-pl-resume hidden></p>
         <p class="spot-btns">
           <a class="fl-btn primary" href={lessonPage(first)} data-pl-lesson>Read the lesson{first.lessonTitle && <span class="pl-lt">: {first.lessonTitle}</span>}</a>
@@ -283,7 +283,8 @@ const queue = films.map((f) => ({
     });
     // "Review the cards" under the player (CardsPrompt.astro) withdraws the offer.
     root.addEventListener('bp-cards-open', () => cancelNext());
-    $('[data-pl-now]').addEventListener('click', () => select(cur + 1, true));
+    // The button goes away with its box: move focus to the new film's title first.
+    $('[data-pl-now]').addEventListener('click', () => { $<HTMLElement>('[data-pl-title]').focus(); select(cur + 1, true); });
     $('[data-pl-cancel]').addEventListener('click', () => { cancelNext(); $<HTMLButtonElement>('[data-pl-nextbtn]').focus(); });
     $('[data-pl-prev]').addEventListener('click', () => select(cur - 1, true));
     $('[data-pl-nextbtn]').addEventListener('click', () => select(cur + 1, true));

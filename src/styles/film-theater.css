@@ -6,7 +6,7 @@
    companion, because it is the thing that changes; nothing moves unless the film or the viewer moved. */
 @import './film-levels.css';
 
-.th { padding-top: var(--ddp-space-6); max-width: 1180px; --th-edge: color-mix(in srgb, var(--ddp-color-ink) 45%, var(--ddp-color-bg)); }
+.th { padding-top: var(--ddp-space-6); max-width: 1180px; --th-edge: color-mix(in srgb, var(--ddp-color-ink) 58%, var(--ddp-color-bg)); }
 .th-crumb { margin: 0 0 var(--ddp-space-3); font-size: var(--ddp-text-sm); color: var(--ddp-color-muted); }
 .th-crumb a, .th-back a { color: inherit; display: inline-flex; align-items: center; min-height: 44px; }
 .th-back { margin: 0 0 var(--ddp-space-2); font-size: var(--ddp-text-sm); }
@@ -19,7 +19,7 @@
 .th-screen { background: #0f1117; border-radius: 10px; overflow: hidden; }
 .th-screen video { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; background: #0f1117; }
 .th-novideo, .th-novideo a { color: #e7e9f0; }
-/* While the film plays on a phone held upright, the screen stays in view for the whole page, so the
+/* From the first press of play until the film ends, on a phone held upright, the screen stays in view for the whole page, so the
    part beside it, the list of parts and the transcript can be read with the film still showing. The
    two wrappers step aside (display: contents) so that the screen is pinned within the page, not
    within its own short column. Never in landscape, never in a short or zoomed window, never more
@@ -27,8 +27,8 @@
 @media (max-width: 959px) and (min-height: 600px) and (orientation: portrait) {
   .th-stage, .th-main { display: contents; }
   .th-side { margin-top: var(--ddp-space-4); }
-  .th.is-playing .th-screen { position: sticky; top: var(--th-top, 0px); z-index: 5; max-height: 40vh; border-radius: 0; }
-  .th.is-playing .th-screen video { max-height: 40vh; width: auto; max-width: 100%; margin: 0 auto; }
+  .th.is-started .th-screen { position: sticky; top: var(--th-top, 0px); z-index: 5; max-height: 40vh; border-radius: 0; }
+  .th.is-started .th-screen video { max-height: 40vh; width: auto; max-width: 100%; margin: 0 auto; }
 }
 
 /* The parts bar is a picture of where the film is, not a control: the list of parts is the control. */
@@ -62,6 +62,7 @@
 .th [hidden] { display: none !important; }
 
 /* The companion: the one surface that changes as the film plays. */
+.th-companion:focus { outline: none; }
 .th-companion { border: 1px solid var(--th-edge); border-radius: 12px; padding: var(--ddp-space-4); background: var(--ddp-color-surface); }
 .th-panels { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--ddp-space-6); }
 .th-live .th-panels { display: block; }
@@ -117,7 +118,7 @@
 .th-live .th-lines li:hover { color: var(--ddp-color-ink); }
 .th-lines li.is-now { color: var(--ddp-color-ink); background: var(--ddp-color-accent-soft); }
 .th-lines li.is-now .th-time { color: var(--ddp-color-ink-soft); }
-.th-lines button.th-time { flex: none; min-width: 44px; min-height: 32px; padding: 0; border: 0; background: none; cursor: pointer; text-align: left; color: var(--ddp-color-accent); }
+.th-lines button.th-time { flex: none; min-width: 44px; min-height: 44px; padding: 0; border: 0; background: none; cursor: pointer; text-align: left; color: var(--ddp-color-accent); }
 
 .th-ladder-note { margin: 0 0 var(--ddp-space-2); font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); max-width: 62ch; }
 .th-ladder li { display: grid; grid-template-columns: 5.2em minmax(0, 1fr); column-gap: 0.8em; align-items: baseline; padding: var(--ddp-space-2) 0; border-top: 1px solid var(--ddp-color-line); line-height: 1.4; }

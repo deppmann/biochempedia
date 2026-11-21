@@ -175,10 +175,11 @@ const courseFilms = (key: string) => courses.find((c) => c.key === key)?.films ?
       <a class="fl-btn" href="/films/run/" data-fl-play>Play them in order</a>
       <fieldset class="fl-budget">
         <legend>Play for a set time</legend>
-        {[10, 20, 30].map((m) => <label><input type="radio" name="fl-t" value={m} /><span>{m} minutes</span></label>)}
+        {[10, 20, 30].map((m) => <label><input type="radio" name="fl-t" value={m} autocomplete="off" /><span>{m} minutes</span></label>)}
       </fieldset>
       <div class="fl-run-sum" data-fl-run-sum hidden>
-        <div data-fl-run-text role="status"></div>
+        <p data-fl-run-text role="status"></p>
+        <ol class="fl-run-list" data-fl-run-list hidden></ol>
         <p class="fl-run-go"><a class="fl-btn primary" href="/films/run/" data-fl-run-start>Start</a> <button type="button" class="fl-link" data-fl-run-clear>Not now</button></p>
       </div>
     </div>

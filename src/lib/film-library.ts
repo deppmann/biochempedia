@@ -75,7 +75,7 @@ export function library(): void {
   /* ---- the view */
   let view: View = readView(location.search);
   if (view.level && !levelKeys.includes(view.level)) view.level = '';
-  let limit = PAGE;
+  let limit = Math.max(PAGE, Number(history.state?.limit) || PAGE);
   let budget = 0;
   const toForm = () => { for (const f of FIELDS) field(f).value = view[f]; if (view.course || view.kind) $<HTMLDetailsElement>('[data-fl-fold]').open = true; };
 
@@ -208,9 +208,21 @@ export function library(): void {
     }
   }, { rootMargin: '50% 0px' });
 
+  // The cards the page was served with get the same rule, at once: otherwise the browser fetches some
+  // seventeen posters for cards a screen and a half down, ahead of the list a level tap is waiting for.
+  for (const img of listEl.querySelectorAll<HTMLImageElement>('img[loading="lazy"]')) {
+    if (img.complete && img.naturalWidth) continue;
+    img.dataset.src = img.getAttribute('src') ?? '';
+    img.removeAttribute('src');
+    img.removeAttribute('loading');
+    posters.observe(img);
+  }
+
   let drawn = 0;
   async function render(animate: boolean): Promise<void> {
     const mine = ++drawn;
+    // The same search address gives the same films however the page was reached.
+    if (view.q && !ideas) void ensureIdeas();
     paintKeys();
     // What can be said before the list arrives: a level's size is in the page.
     if (!list && levelOnly()) {
@@ -271,6 +283,7 @@ export function library(): void {
   const runBox = $('[data-fl-run]');
   const runSum = $('[data-fl-run-sum]');
   const runText = $('[data-fl-run-text]');
+  const runList = $('[data-fl-run-list]');
   const play = $<HTMLAnchorElement>('[data-fl-play]');
   const startBtn = $<HTMLAnchorElement>('[data-fl-run-start]');
   const radios = [...runBox.querySelectorAll<HTMLInputElement>('input[name="fl-t"]')];
@@ -283,21 +296,26 @@ export function library(): void {
     // The whole library in order is 45 hours; "in order" is offered once a view has been chosen.
     play.hidden = isDefault({ ...view, sort: 'course' });
     // One course, unsearched by level: its own play-in-order page, as before.
-    play.href = view.course ? `/films/play/${encodeURIComponent(view.course)}/${viewQuery({ ...view, level: '', course: '', sort: 'course' })}` : `/films/run/${q}`;
+    play.href = view.course && view.sort === 'course' ? `/films/play/${encodeURIComponent(view.course)}/${viewQuery({ ...view, level: '', course: '', sort: 'course' })}` : `/films/run/${q}`;
     if (!budget || !current) { runSum.hidden = true; return; }
     runSum.hidden = false;
     if (!run || !run.films.length) {
       runText.textContent = 'Nothing in this view plays in a row: scientist profiles and method films open on their own pages.';
+      runList.hidden = true;
       startBtn.hidden = true;
       return;
     }
     startBtn.hidden = false;
     startBtn.href = `/films/run/${viewQuery(view, { t: String(budget) })}`;
-    runText.innerHTML = `${esc(runSentence(run.films, run.seconds))}<ol class="fl-run-list">${run.films.map((f) => `<li>${esc(f.t)} <span class="fc-len-t">${clock(f.d)}</span></li>`).join('')}</ol>`;
+    runText.textContent = runSentence(run.films, run.seconds);
+    runList.innerHTML = run.films.map((f) => `<li>${esc(f.t)} <span class="fc-len-t">${clock(f.d)}</span></li>`).join('');
+    runList.hidden = false;
   }
   for (const r of radios) {
     r.addEventListener('change', () => { performance.mark('fl-tap'); budget = BUDGETS.includes(Number(r.value)) ? Number(r.value) : 0; void render(false); });
   }
+  // Coming back to this page (Back from a run) the browser may restore a pressed time with no summary.
+  window.addEventListener('pageshow', () => { if (!budget) for (const r of radios) r.checked = false; });
   $('[data-fl-run-clear]').addEventListener('click', () => {
     budget = 0;
     for (const r of radios) r.checked = false;
@@ -331,10 +349,11 @@ export function library(): void {
   $('[data-fl-more]').addEventListener('click', () => {
     const had = listEl.querySelectorAll('li.fc').length;
     limit += PAGE;
+    history.replaceState({ limit }, '', location.href);
     void render(false).then(() => listEl.querySelectorAll<HTMLAnchorElement>('li.fc > a')[had]?.focus());
   });
   $('[data-fl-clear]').addEventListener('click', () => { view = readView(''); limit = PAGE; toForm(); commit(true); field('q').focus(); });
-  window.addEventListener('popstate', () => { view = readView(location.search, list ?? undefined); limit = PAGE; toForm(); void render(false); startCard(); });
+  window.addEventListener('popstate', (e) => { view = readView(location.search, list ?? undefined); limit = Math.max(PAGE, Number(e.state?.limit) || PAGE); toForm(); void render(false); startCard(); });
 
   /* ---- a film to start with, or where you stopped */
   type StartPick = { s: string; t: string; h: string; o: string; d: string; m: string; x: string };
