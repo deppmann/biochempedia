@@ -39,9 +39,11 @@ const osmosis = await idea('osmosis');
 | `here` | full | Slug of the lesson the reader is on. Hex stands on its rung; the lesson is bold, not a link; other lessons link with `?from=<slug>`. |
 | `hereRank` | all | A level, 0 to 6, when there is no lesson: a film's level, a level the reader chose. |
 | `hex` | full | Draw Hex (default). Pass `false` on a second ladder in the same view: one Hex in view. |
-| `window` | full | Show the reader's rung and the nearest rung each way first, with a "Show all N levels" button. Default: on when `here` is set. This is what keeps a phone from opening on the graduate rungs. |
+| `window` | full | Show the reader's rung and the rung below it first (on the lowest rung, the rung above), with a "Show all N levels" button that stays in place and toggles. Default: on when `here` is set. A phone then opens on the reader's own rung, never on a deeper one. |
+| `also` | full | Levels the page links by hand elsewhere (0 ages 5 to 10, 1 grade 7, 2 high school, 3 college, 4 graduate). The ladder does not say "no lesson" at those. |
+| `hereLabel` | full | Words after the level's name on the marked rung when there is no lesson, such as "the level you chose". |
 | `facts` | full | Course, minutes, film and practice questions under each lesson (default on). Turn off where space is tight. |
-| `play` | full | Show "Play the ladder" when the idea has films at two or more levels (default on). |
+| `play` | full | Show "Play the ladder" when `idea.play` exists. It does not exist while `PLAY_LADDER` in `src/lib/hop.ts` is off. |
 
 ### From a client script
 
@@ -71,14 +73,18 @@ Load `src/styles/hop.css` on any page that draws a ladder (the Astro components 
 
 - The marks are pictures only (`aria-hidden`). Put the same thing in words beside them:
   `compactLine()` or `taughtAt()` in `src/lib/hop-words.mjs`.
-- The markup is written simplest first and stood upright by the styles, so a screen reader, a page
-  without styles and a keyboard all go from the simplest level to the deepest.
+- The markup is written as it is drawn, deepest rung first, so the eye, the Tab key and a screen
+  reader move the same way. The list's label says the order.
 - The words are "Simpler" and "Deeper". Never "easier", "harder", "level up", or a step number.
 - A level with no lesson is one short line with broken rails. Do not stretch it.
 
 ## Play the ladder
 
-For an idea with films at two or more levels, `idea.play` is `{ href, n, minutes, from, to }` and the
+**Off for now.** `PLAY_LADDER` in `src/lib/hop.ts` is `false` until the film run page reads
+`?idea=<id>`; while it is off no page shows the link and `link` in the file below is `null`. Turn
+it on by setting the constant to `true` and pointing `playHref()` at `/films/run/?idea=${id}`.
+
+When on, for an idea with films at two or more levels, `idea.play` is `{ href, n, minutes, from, to }` and the
 full ladder shows "Play the ladder · 4 films, about 13 min, from grade 7 to upper-level college."
 The films, in order from the simplest level to the deepest, are in `/ideas/film-runs.json`:
 
@@ -98,7 +104,7 @@ viewer between films.
 
 | File | What it is |
 |---|---|
-| `HopSentence.astro` | Under a lesson's hook: which idea the lesson teaches and at what level, with "Simpler" and "Deeper". "read a short … version here" opens the lesson's own short version in place. "See every level" opens the ladder for each idea, the ideas next door and the other short versions. `variant="line"` is the sentence alone. |
+| `HopSentence.astro` | Under a lesson's hook: the lesson's main idea and its level, with "Simpler" and "Deeper", in at most four phone lines. A link chosen by hand (a school lesson's ladder, a guide's step up, the way back from college) is used first; otherwise the nearest lesson on any idea the lesson teaches. "read a short … version here" opens the lesson's own short version in place. "See every level" opens the ladder for each idea, the ideas next door and the other short versions. `variant="line"` is the sentence alone. |
 | `HopCompact.astro` | One line for a film card or a search result: the compact ladder and "Osmosis, high school. Also at: grade 7 and a first college course." |
 | `HopTrio.astro` | "Simpler / This step / Deeper" for a step of a study path or beside a film. A side with no lesson is left out. |
 | `HopStandards.astro` | Essential question and Virginia standards on a school lesson, in plain type. |

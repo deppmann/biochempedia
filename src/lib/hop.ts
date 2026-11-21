@@ -12,7 +12,8 @@ import { stageOf } from '../data/stages';
 import { SETS as MCAT_SETS } from './mcat';
 import { lessonMinutes } from './reading-time';
 import { concept, concepts, hops, ladder, usedBy, filmsFor, areaName, areas, stageRank, type LadderRung, type JoinedFilm } from './topic-graph';
-import { lessonSentence, orderIdeas, inSentence, maskOf, QUICK_UP, QUICK_NAME, readTime } from './hop-words.mjs';
+import { headingIds } from './topic-graph-core.mjs';
+import { lessonSentence, authoredLinks, inSentence, maskOf, QUICK_DOWN, QUICK_UP, QUICK_NAME, readTime } from './hop-words.mjs';
 
 export interface Rung {
   slug: string;
@@ -51,7 +52,7 @@ export interface Idea {
   play?: { href: string; n: number; minutes: number; from: number; to: number };
 }
 
-interface Facts { minutes?: number; questions: number; sol: string[]; unit: string; data: any }
+interface Facts { minutes?: number; questions: number; sol: string[]; unit: string; rank: number; sections: Record<string, number>; data: any }
 
 let factsCache: Promise<Map<string, Facts>> | undefined;
 /** Per live lesson: reading time, practice questions, standards codes, unit and frontmatter. */
@@ -71,6 +72,8 @@ export function lessonFacts(): Promise<Map<string, Facts>> {
         questions: own + (passage.get(d.slug) ?? 0),
         sol: d.ladder?.sol ?? d.activity?.sol ?? [],
         unit: unitOf.get(d.slug) ?? '',
+        rank: stageRank(stageOf(courseOf(d.course))),
+        sections: sectionWords(l.body ?? ''),
         data: d,
       });
     }
@@ -94,7 +97,19 @@ async function toRung(r: Pick<LadderRung, 'slug' | 'title' | 'href' | 'course' |
    opens the first film's own page and carries the idea, so that page or a later one can offer the
    rest. The list itself is /ideas/film-runs.json. To switch every link to the run page, change
    this one function to `/films/run/?idea=${id}`. */
+/** OFF until the film run page (/films/run/) reads ?idea=<id>. While it is off no page offers a run
+ *  of films it cannot deliver; /ideas/film-runs.json still lists each idea's films in order. */
+export const PLAY_LADDER = false;
 export const playHref = (id: string, firstFilmHref: string) => `${firstFilmHref}${firstFilmHref.includes('?') ? '&' : '?'}idea=${id}`;
+
+/** Words in each `##` section of a lesson, by the section's id: how the main idea of a lesson is chosen. */
+export function sectionWords(body: string): Record<string, number> {
+  const heads = headingIds(body).filter((h) => h.depth === 2);
+  const lines = body.split('\n');
+  const out: Record<string, number> = {};
+  heads.forEach((h, i) => { out[h.id] = lines.slice(h.line + 1, heads[i + 1]?.line ?? lines.length).join(' ').split(/\s+/).length; });
+  return out;
+}
 
 const ideaCache = new Map<string, Promise<Idea | undefined>>();
 const maskCache = new Map<string, Promise<number>>();
@@ -125,7 +140,7 @@ export function idea(id: string): Promise<Idea | undefined> {
       mask: maskOf(ranks), rungs, near,
       uses: await Promise.all((await usedBy(id)).map(toRung)),
       films,
-      ...(filmRanks.length > 1 ? { play: { href: playHref(id, films[0].href), n: films.length, minutes: Math.max(1, Math.round(films.reduce((t, f) => t + f.durationSec, 0) / 60)), from: filmRanks[0], to: filmRanks[filmRanks.length - 1] } } : {}),
+      ...(PLAY_LADDER && filmRanks.length > 1 ? { play: { href: playHref(id, films[0].href), n: films.length, minutes: Math.max(1, Math.round(films.reduce((t, f) => t + f.durationSec, 0) / 60)), from: filmRanks[0], to: filmRanks[filmRanks.length - 1] } } : {}),
     };
   })());
   return ideaCache.get(id)!;
@@ -161,6 +176,9 @@ export interface LessonHop {
   more: string;
   /** Hand-picked ladder links the graph does not already show, so none is lost. */
   extra: { label: string; items: { title: string; href: string }[] }[];
+  /** Levels (0 ages 5 to 10, 1 grade 7, 2 high school, 3 college, 4 graduate) where a hand-picked lesson exists,
+   *  so a ladder does not say "no lesson" there. */
+  also: number[];
   /** Titles of the lessons a reader can hop here from, for the arrival line. */
   from: Record<string, string>;
 }
@@ -185,7 +203,10 @@ export function lessonHop(slug: string): Promise<LessonHop | undefined> {
     const d = me.data;
     const course = courseOf(d.course);
     const rank = stageRank(stageOf(course));
-    const mine = orderIdeas(await hops(slug), d.title) as Awaited<ReturnType<typeof hops>>;
+    const lessons = new Map([...facts.entries()].map(([s, f]) => [s, { title: f.data.title as string, rank: f.rank, order: f.data.order as number | undefined, ladder: f.data.ladder, activity: f.data.activity }]));
+    const authored = authoredLinks(slug, lessons);
+    const said = lessonSentence(await hops(slug), { slug, title: d.title, rank, courseTitle: course.title, explainLevels: d.explainLevels, sections: me.sections, authored });
+    const mine = said.ideas as Awaited<ReturnType<typeof hops>>;
     const ideas: LessonHop['ideas'] = [];
     const from: Record<string, string> = {};
     for (const h of mine) {
@@ -198,13 +219,11 @@ export function lessonHop(slug: string): Promise<LessonHop | undefined> {
       });
       ideas.push({ ...v, sideways });
     }
-    const kept = mine.filter((h) => ideas.some((i) => i.id === h.id));
-    const said = lessonSentence(kept, { slug, title: d.title, rank, courseTitle: course.title, explainLevels: d.explainLevels });
     const quickDown = quick(d.explainLevels, said.quickDown);
     const more = said.more;
     const lines = said.lines as LessonHop['lines'];
 
-    const rest = [QUICK_UP[rank], rank === 1 ? 'bio2' : null, 'eli5']
+    const rest = [said.quickDown ? null : QUICK_DOWN[rank], QUICK_UP[rank], rank === 1 ? 'bio2' : null, 'eli5']
       .filter((k, i, a) => k && k !== quickDown?.key && a.indexOf(k) === i)
       .map((k) => quick(d.explainLevels, k))
       .filter((q): q is Quick => Boolean(q));
@@ -218,18 +237,15 @@ export function lessonHop(slug: string): Promise<LessonHop | undefined> {
       }
       return items.length ? [{ label, items }] : [];
     };
-    const lad = d.ladder;
-    const extra = [
-      ...titled('Also at grade 7', [...(lad?.grade7 ?? []), ...(d.activity?.stepUp ?? [])]),
-      ...titled('Also at high school', lad?.biology),
-      ...titled('Also at college', lad?.college),
-    ];
-    // College lessons that a high school lesson names in its ladder keep the way back to it.
-    if (rank >= 3) {
-      const back = [...facts.entries()].filter(([, f]) => (f.data.ladder?.college ?? []).includes(slug)).map(([s]) => s);
-      extra.unshift(...titled('Also at high school or grade 7', back));
+    // Hand-picked links that are not on these ladders: close to the idea, not claimed as the same idea.
+    const extra: LessonHop['extra'] = [];
+    const also: number[] = [];
+    for (const [label, band, ranks] of [['at grade 7', 1, [1]], ['at high school', 2, [2]], ['at college', 3, [3, 4, 5]]] as const) {
+      const list = [...authored.down, ...authored.up].filter((x) => (ranks as readonly number[]).includes(x.rank));
+      if (list.length) also.push(band);
+      extra.push(...titled(`Close to this, ${label}`, list.map((x) => x.slug)));
     }
-    return { slug, title: d.title, rank, ideas, lines, quickDown, quickRest: rest, more, extra, from };
+    return { slug, title: d.title, rank, ideas, lines, quickDown, quickRest: rest, more, extra, also, from };
   })());
   return hopCache.get(slug)!;
 }

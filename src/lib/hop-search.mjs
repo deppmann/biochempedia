@@ -125,6 +125,7 @@ export function search(index, query, limit = 8) {
     if (it.fName === q || it.wName.join(' ') === qw.join(' ')) take(100, { kind: 'name', text: it.name });
     else if (q.length >= 3 && (it.fName.startsWith(`${q} `) || it.fName.includes(` ${q} `) || it.fName.endsWith(` ${q}`))) take(82, { kind: 'name', text: it.name });
     else if (it.fName.length >= 4 && ` ${q} `.includes(` ${it.fName} `)) take(80, { kind: 'name', text: it.name });
+    else if (q.length >= 3 && !q.includes(' ') && it.fName.split(' ').some((w) => w.startsWith(q))) take(64, { kind: 'name', text: it.name });
     else { const c = coverage(qw, it.wName); if (c >= 0.5) take(c >= 0.99 ? 78 : 30 + c * 30, { kind: 'name', text: it.name }); }
 
     // An everyday phrase someone might type.

@@ -22,7 +22,7 @@
    `variant="line"` prints the sentence alone (the skim page). */
 import '../../styles/hop.css';
 import { lessonHop } from '../../lib/hop';
-import { LEVEL_SHORT } from '../../lib/hop-words.mjs';
+import { LEVEL_SHORT, numWord } from '../../lib/hop-words.mjs';
 import Ladder from './Ladder.astro';
 import { taughtAt } from '../../lib/hop-words.mjs';
 
@@ -35,27 +35,19 @@ const hop = await lessonHop(slug);
 const lines = hop ? [hop.lines.teaches, hop.lines.simpler, hop.lines.deeper, hop.lines.next].filter((l): l is NonNullable<typeof l> => Boolean(l)) : [];
 const full = variant === 'full';
 const q = hop?.quickDown;
-const edge = (i: NonNullable<typeof hop>['ideas'][number]) => {
-  const ranks = i.rungs.map((r) => r.rank);
-  const lo = Math.min(...ranks), hi = Math.max(...ranks);
-  return [
-    lo > 0 && lo >= hop!.rank ? `Nothing simpler on the site yet. The first place it is taught is ${LEVEL_SHORT[lo]}.` : '',
-    hi < 6 && hi <= hop!.rank ? 'Nothing deeper on the site yet.' : '',
-  ].filter(Boolean).join(' ');
-};
 ---
 {hop && hop.ideas.length > 0 && (
   <section class="hop" aria-labelledby="hop-h" data-hop data-hop-from={full ? JSON.stringify(hop.from) : undefined}>
     <h2 class="hop-vh" id="hop-h">This idea at other levels</h2>
     {full && (
-      <p class="hop-arrive" data-hop-arrive hidden>
-        <span>You hopped here from <span data-hop-arrive-title></span>.</span>
-        <a class="hop-back" data-hop-arrive-link href="/">Back to <span data-hop-arrive-title></span></a>
+      <p class="hop-arrive" data-hop-arrive role="status" hidden>
+        <span data-hop-arrive-text></span>
+        <a class="hop-back" data-hop-arrive-link href="/"></a>
       </p>
     )}
     <p class="hop-sentence">
-      {lines.map((line) => (
-        <span class="hop-line">{line.map((s) =>
+      {lines.map((line, i) => (
+        <span class="hop-line">{i > 0 && ' '}{line.map((s) =>
           s.href ? <a href={s.href}>{s.t}</a>
           : s.quick ? (full ? <a class="hop-quick-open" href="#hop-quick" data-hop-quick-open>{s.t}</a> : <a href={`/lessons/${slug}/#hop-quick`}>{s.t.replace(' here', ' in the lesson')}</a>)
           : s.k === 'dir' ? <span class="hop-dir">{s.t}</span>
@@ -66,7 +58,7 @@ const edge = (i: NonNullable<typeof hop>['ideas'][number]) => {
     {full && q && (
       <details class="hop-quick" id="hop-quick" data-hop-quick>
         <summary>{q.label}<span class="hop-quick-time"> · {q.time}</span></summary>
-        <div class="hop-quick-text">
+        <div class="hop-quick-text" tabindex="-1" data-hop-quick-text>
           {q.paras.map((p) => <p>{p}</p>)}
           <button type="button" class="hop-back" data-hop-quick-back>Back to the lesson</button>
         </div>
@@ -76,36 +68,40 @@ const edge = (i: NonNullable<typeof hop>['ideas'][number]) => {
     {full && q && <noscript><style is:inline>.hop-quick{display:block!important}</style></noscript>}
     {full && (
       <details class="hop-all">
-        <summary><span class="hop-when-closed">{hop.more}</span><span class="hop-when-open">{hop.more === 'See every level' ? 'Hide the levels' : 'Hide nearby ideas'}</span></summary>
+        <summary><Ladder size="compact" mask={hop.ideas[0].mask} hereRank={hop.rank} /><span class="hop-when-closed">{hop.more}</span><span class="hop-when-open">{hop.more === 'See every level' ? 'Hide the levels' : 'Hide nearby ideas'}</span></summary>
         <div class="hop-all-body">
-          {hop.ideas.map((i, n) => (
-            <div class="hop-idea">
-              <h3 class="hop-idea-h">{i.name}</h3>
-              <p class="hop-idea-blurb">{i.blurb}</p>
-              <p class="hop-idea-at">{taughtAt(i.mask)}</p>
-              <Ladder idea={i} here={slug} hex={n === 0} />
-              {edge(i) && <p class="hop-edge">{edge(i)}</p>}
-              {i.sideways.length > 0 && (
-                <div class="hop-near">
-                  <h4 class="hop-sub">Next door to {i.short}</h4>
-                  <ul>
-                    {i.sideways.map((n) => (
-                      <li>
-                        <a class="hop-near-name" href={`/ideas/${n.id}/`}>{n.name}</a>
-                        <span class="hop-why">{n.why}</span>
-                        {n.lesson && <span class="hop-near-lesson">Nearest lesson: <a href={n.lesson.href}>{n.lesson.title}</a> ({LEVEL_SHORT[n.lesson.rank]})</span>}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-              <p class="hop-idea-more"><a href={`/ideas/${i.id}/`}>{i.name}: films and everything else on this idea</a></p>
-            </div>
-          ))}
+          {hop.ideas.length > 1 && <p class="hop-also-teaches">This lesson also teaches {numWord(hop.ideas.length - 1)} more {hop.ideas.length === 2 ? 'idea' : 'ideas'}; {hop.ideas.length === 2 ? 'its ladder is' : 'their ladders are'} below.</p>}
+          {hop.ideas.map((i, n) => {
+            const body = (
+              <>
+                <p class="hop-idea-blurb">{i.blurb}</p>
+                <p class="hop-idea-at">{taughtAt(i.mask)}</p>
+                <Ladder idea={i} here={slug} hex={n === 0} also={hop.also} />
+                {i.sideways.length > 0 && (
+                  <div class="hop-near">
+                    <h4 class="hop-sub">Next door to {i.short}</h4>
+                    <ul>
+                      {i.sideways.slice(0, 2).map((x) => (
+                        <li>
+                          <a class="hop-near-name" href={`/ideas/${x.id}/`}>{x.name}</a>
+                          <span class="hop-why">{x.why}</span>
+                          {x.lesson && <span class="hop-near-lesson">Nearest lesson: <a href={x.lesson.href}>{x.lesson.title}</a> ({LEVEL_SHORT[x.lesson.rank]})</span>}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                <p class="hop-idea-more"><a href={`/ideas/${i.id}/`}>{i.name}: films{i.sideways.length > 2 && ', more ideas next door'} and everything else on this idea</a></p>
+              </>
+            );
+            return n === 0
+              ? <div class="hop-idea"><h3 class="hop-idea-h">{i.name}</h3>{body}</div>
+              : <details class="hop-idea hop-idea-fold"><summary><h3 class="hop-idea-h">{i.name}</h3></summary>{body}</details>;
+          })}
           {hop.extra.length > 0 && (
             <div class="hop-extra">
               {hop.extra.map((e) => (
-                <p><span class="hop-k">{e.label}:</span> {e.items.map((it, n) => <>{n > 0 && ' · '}<a href={it.href}>{it.title}</a></>)}</p>
+                <p><span class="hop-k">{e.label}:</span>{' '}{e.items.map((it, n) => <>{n > 0 && ' · '}<a href={it.href}>{it.title}</a></>)}</p>
               ))}
             </div>
           )}
@@ -120,7 +116,8 @@ const edge = (i: NonNullable<typeof hop>['ideas'][number]) => {
               ))}
             </div>
           )}
-          <p class="hop-find"><a href="/ideas/">Find another idea</a><span> · The notes on each level were written by AI models from the lessons, then checked. <a href="/about/#how-ai-is-used">How we use AI</a></span></p>
+          <p class="hop-find"><a href="/ideas/">Find an idea: every idea, searchable</a></p>
+          <p class="hop-ai">Which lessons teach an idea, and the notes on each level, were written by AI models from the lessons and checked by a second model. A person has not yet read every one. <a href="/about/#how-ai-is-used">How we use AI</a></p>
         </div>
       </details>
     )}
@@ -144,25 +141,38 @@ const edge = (i: NonNullable<typeof hop>['ideas'][number]) => {
       btn.setAttribute('aria-expanded', 'false');
       btn.setAttribute('aria-controls', 'hop-quick');
       link.replaceWith(btn);
+      const text = panel.querySelector<HTMLElement>('[data-hop-quick-text]');
+      const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
       const set = (open: boolean, focus: boolean) => {
         panel.open = open;
         btn.setAttribute('aria-expanded', String(open));
-        if (open) panel.querySelector('summary')?.focus({ preventScroll: true });
-        else if (focus) btn.focus();
+        if (open) {
+          // Bring the short version into view under the sticky header, and put focus on its text
+          // (not on a control that would hide itself).
+          text?.focus({ preventScroll: true });
+          const top = btn.getBoundingClientRect().top;
+          if (panel.getBoundingClientRect().bottom > innerHeight || top < 90) scrollBy({ top: top - 96, behavior: calm ? 'auto' : 'smooth' });
+        } else if (focus) btn.focus();
       };
       btn.addEventListener('click', () => set(!panel.open, false));
       panel.querySelector('[data-hop-quick-back]')?.addEventListener('click', () => set(false, true));
       panel.addEventListener('keydown', (e) => { if (e.key === 'Escape' && panel.open) set(false, true); });
-      panel.addEventListener('toggle', () => btn.setAttribute('aria-expanded', String(panel.open)));
+      // Closed by its own heading: the heading hides with it, so focus goes back to the control.
+      panel.addEventListener('toggle', () => {
+        btn.setAttribute('aria-expanded', String(panel.open));
+        if (!panel.open && (panel.contains(document.activeElement) || document.activeElement === document.body)) btn.focus();
+      });
       if (location.hash === '#hop-quick') set(true, false);
     }
 
     const arrive = root.querySelector<HTMLElement>('[data-hop-arrive]');
     const from = new URLSearchParams(location.search).get('from');
-    if (arrive && from && /^[a-z0-9][a-z0-9-]{0,80}$/.test(from)) {
+    if (arrive && from && /^[a-z0-9][a-z0-9-]{0,80}$/.test(from) && !location.pathname.endsWith(`/${from}/`)) {
       const show = (title: string) => {
-        arrive.querySelectorAll('[data-hop-arrive-title]').forEach((el) => { el.textContent = title; });
-        arrive.querySelector<HTMLAnchorElement>('[data-hop-arrive-link]')!.href = `/lessons/${from}/`;
+        arrive.querySelector('[data-hop-arrive-text]')!.textContent = `You hopped here from ${title}.`;
+        const back = arrive.querySelector<HTMLAnchorElement>('[data-hop-arrive-link]')!;
+        back.textContent = `Back to ${title}`;
+        back.href = `/lessons/${from}/`;
         arrive.hidden = false;
         // Said once: a reload or a shared link does not repeat it.
         try {

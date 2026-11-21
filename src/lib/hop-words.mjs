@@ -73,26 +73,6 @@ export function inSentence(id, name) {
 
 // ------------------------------------------------------------------ levels and steps
 
-/** The ideas a lesson teaches, as the sentence names them: two at most, then "and one more idea".
- *  A name with "and" inside it ("pH and buffers") gets a clearer join. */
-export function ideaList(ideas) {
-  // A name with a comma inside it ("cells, tissues, organs and organ systems") cannot share a list.
-  const shown = ideas.slice(0, 2).some((x) => x.includes(',')) ? ideas.slice(0, 1) : ideas.slice(0, 2);
-  const rest = ideas.length - shown.length;
-  const inner = shown.some((x) => / and /.test(x));
-  if (rest > 0) return `${shown.join(', ')}${shown.length > 1 || inner || shown[0].includes(',') ? ',' : ''} and ${numWord(rest)} more ${rest === 1 ? 'idea' : 'ideas'}`;
-  if (shown.length === 2) return inner ? `${shown[0]}, and also ${shown[1]}` : `${shown[0]} and ${shown[1]}`;
-  return shown.join('');
-}
-
-/** The first line of the hop sentence. `ideas` are in-sentence names, main idea first. */
-export function teachesLine({ rank, courseTitle, ideas }) {
-  const what = ideaList(ideas);
-  if (rank === 0) return `This activity is about ${what} for ages 5 to 10.`;
-  if (rank <= 2) return `This lesson teaches ${what} at ${LEVEL_SHORT[rank]} level.`;
-  return `This lesson teaches ${what} in ${courseTitle}, ${COURSE_KIND[rank]}.`;
-}
-
 /** Levels strictly between two ranks. */
 export function between(a, b) {
   const lo = Math.min(a, b), hi = Math.max(a, b);
@@ -180,97 +160,123 @@ export const readTime = (words) => { const m = Math.max(1, Math.round(words / 20
      { t, href }           a lesson link
      { t, quick }          the control that opens a short version in place (quick = its key)
      { t, k: 'dir' }       "Simpler:" / "Deeper:"
-     { t, k: 'note' }      a bracketed level note */
+     { t, k: 'note' }      a bracketed level note
+   The three lines are set as one short paragraph: at most four lines on a 390 px phone. */
+
+/** The closed sentence may not run past this many characters (about four phone lines). */
+export const SENTENCE_MAX = 215;
 
 /**
- * @param {{ rank: number, courseTitle: string, slug: string,
- *   ideas: { short: string, down?: Near, up?: Near, downMore?: number, upMore?: number }[],
- *   quickDown?: string, more: 'See every level' | 'See nearby ideas' }} l
- *   Near = { title, href, rank }
- * @returns {{ teaches: Seg[], simpler?: Seg[], deeper?: Seg[], next?: Seg[] }}
+ * The links a person chose by hand for a lesson, which the sentence uses before anything the
+ * graph suggests: a school lesson's ladder (frontmatter `ladder`), an ages 5 to 10 guide's step up
+ * (`activity.stepUp`), and for a college lesson the high school lessons that name it.
+ * @param {string} slug
+ * @param {Map<string, { title: string, rank: number, order?: number, ladder?: any, activity?: any }>} lessons live lessons
+ * @returns {{ down: Near[], up: Near[] }}  Near = { slug, title, rank }
  */
-export function hopSentence(l) {
-  const names = l.ideas.map((i) => i.short);
-  const out = { teaches: [{ t: teachesLine({ rank: l.rank, courseTitle: l.courseTitle, ideas: names }) }] };
-  if (!l.ideas.length) return out;
-
-  // One lesson a side: the main idea's neighbour, or the first idea that has one.
-  const pick = (dir) => {
-    const i = l.ideas.findIndex((x) => x[dir]);
-    if (i < 0) return undefined;
-    return { near: l.ideas[i][dir], tag: i > 0 && l.ideas.length > 1 ? l.ideas[i].short : '' };
-  };
-  const note = (p) => {
-    let n = levelNote(l.rank, p.near.rank);
-    if (p.tag) n = `${n.slice(0, -1)}, for ${p.tag})`;
-    return n;
-  };
-  // Other lessons on that side are one tap away under "See every level"; the sentence names one.
-  const more = () => [];
-
-  // Ages 5 to 10: the page is for a grown-up running an activity. Only a school lesson is offered.
-  if (l.rank === 0) {
-    const up = pick('up');
-    if (up && up.near.rank <= 2) out.next = [{ t: 'Next, for an older child:', k: 'dir' }, { t: ' ' }, { t: up.near.title, href: up.near.href }, { t: ' ' }, { t: `(${LEVEL_SHORT[up.near.rank]})`, k: 'note' }, { t: '.' }];
-    return out;
+export function authoredLinks(slug, lessons) {
+  const me = lessons.get(slug);
+  if (!me) return { down: [], up: [] };
+  const near = (slugs = []) => slugs.map((s) => (lessons.get(s) && s !== slug ? { slug: s, title: lessons.get(s).title, rank: lessons.get(s).rank } : null)).filter(Boolean);
+  const lad = me.ladder ?? {};
+  let down = near(lad.grade7).filter((x) => x.rank < me.rank);
+  const up = [...near(me.activity?.stepUp), ...near(lad.biology), ...near(lad.college)].filter((x) => x.rank > me.rank);
+  if (me.rank >= 3) {
+    const back = [...lessons.entries()].filter(([, l]) => l.rank === 2 && (l.ladder?.college ?? []).includes(slug)).sort((a, b) => (a[1].order ?? 99) - (b[1].order ?? 99));
+    down = [...down, ...back.map(([s, l]) => ({ slug: s, title: l.title, rank: l.rank }))];
   }
-
-  const down = pick('down');
-  const quick = l.quickDown ? { t: `read a short ${QUICK_NAME[l.quickDown][1]} version here`, quick: l.quickDown } : undefined;
-  // A college reader whose only simpler lesson is an activity for young children gets the short
-  // version here; the activity is on the ladder under "See every level".
-  const showDown = down && !(down.near.rank === 0 && l.rank >= 3 && quick);
-  if (showDown) {
-    const lead = down.near.rank === 0 ? [{ t: 'a hands-on activity for ages 5 to 10, ' }, { t: down.near.title, href: down.near.href }, ...(stepNote(l.rank, 0) ? [{ t: ' ' }, { t: `(${stepNote(l.rank, 0)})`, k: 'note' }] : [])]
-      : [{ t: down.near.title, href: down.near.href }, { t: ' ' }, { t: note(down), k: 'note' }];
-    out.simpler = [{ t: 'Simpler:', k: 'dir' }, { t: ' ' }, ...lead, ...more(down), ...(quick ? [{ t: ', or ' }, quick] : []), { t: '.' }];
-  } else if (quick) {
-    out.simpler = [{ t: 'Simpler:', k: 'dir' }, { t: ' ' }, quick, { t: '.' }];
-  }
-  const up = pick('up');
-  if (up) out.deeper = [{ t: 'Deeper:', k: 'dir' }, { t: ' ' }, { t: up.near.title, href: up.near.href }, { t: ' ' }, { t: note(up), k: 'note' }, ...more(up), { t: '.' }];
-  return out;
+  return { down, up };
 }
 
 /**
- * The ideas a lesson teaches, main idea first. The graph lists them in no order of importance, so:
- * an idea named in the lesson's own title comes first, then the idea taught at the most levels
- * (the one with somewhere to hop to).
+ * The ideas a lesson teaches, main idea first. The rule: the idea named in the lesson's own title
+ * (by the share of the idea's words found there); when the title names none, or two equally, the
+ * idea whose section of the lesson is the longest (the graph names the section that teaches each
+ * idea; `sections` gives each section's length in words); then the graph's own order.
  */
-export function orderIdeas(hops, title) {
-  const t = ` ${String(title).toLowerCase().replace(/[^a-z0-9]+/g, ' ')} `;
+export function orderIdeas(hops, lesson = {}) {
+  const t = ` ${String(lesson.title ?? '').toLowerCase().replace(/[^a-z0-9]+/g, ' ')} `;
   const words = (name) => inSentence('', name).toLowerCase().replace(/[^a-z0-9]+/g, ' ').split(' ').filter((w) => w.length > 3 && !/^(what|that|with|from|their|into|your|this|have|make|makes|does)$/.test(w));
-  const score = (h) => {
-    const w = words(h.name);
-    const inTitle = w.length ? w.filter((x) => t.includes(` ${x}`) || t.includes(` ${x.replace(/s$/, '')}`)).length / w.length : 0;
-    const levels = (h.down ? 1 : 0) + (h.up ? 1 : 0);
-    return inTitle * 10 + levels;
-  };
-  return hops.map((h, i) => ({ h, i, s: score(h) })).sort((a, b) => b.s - a.s || a.i - b.i).map((x) => x.h);
+  const inTitle = (h) => { const w = words(h.name); return w.length ? w.filter((x) => t.includes(` ${x}`) || t.includes(` ${x.replace(/s$/, '')}`)).length / w.length : 0; };
+  const size = (h) => (h.anchor && lesson.sections ? lesson.sections[h.anchor] ?? 0 : 0);
+  return hops.map((h, i) => ({ h, i, size: size(h), title: inTitle(h) })).sort((a, b) => b.title - a.title || b.size - a.size || a.i - b.i).map((x) => x.h);
 }
 
 /**
- * The hop sentence for one lesson, straight from the graph's hops(slug). The page (src/lib/hop.ts)
- * and scripts/test-hop.mjs both come through here, so what is tested is what is shown.
+ * The hop sentence for one lesson. The page (src/lib/hop.ts) and scripts/test-hop.mjs both come
+ * through here, so what is tested is what is shown.
+ *
+ * Which lesson a side names, in order: a link chosen by hand (authored), nearest level first;
+ * otherwise, across the ideas the lesson teaches, the lesson nearest in level, the main idea
+ * winning a tie. When that lesson is on another idea than the one named, the line says which.
+ * A side with no lesson is left out.
+ *
  * @param {any[]} hops api.hops(slug): one entry per idea the lesson teaches
- * @param {{ slug: string, title?: string, rank: number, courseTitle: string, explainLevels?: { level: string }[] }} lesson
+ * @param {{ slug: string, title?: string, rank: number, courseTitle: string, explainLevels?: { level: string }[],
+ *   sections?: Record<string, number>, authored?: { down: Near[], up: Near[] } }} lesson
  */
 export function lessonSentence(hops, lesson) {
+  const ideas = orderIdeas(hops, lesson);
   const key = QUICK_DOWN[lesson.rank];
   const quickDown = key && (lesson.explainLevels ?? []).some((x) => x.level === key) ? key : undefined;
-  const oneLevel = hops.length > 0 && hops.every((h) => !h.down && !h.up);
-  const more = oneLevel ? 'See nearby ideas' : 'See every level';
-  hops = orderIdeas(hops, lesson.title ?? '');
-  const to = (r) => ({ title: r.title, href: `/lessons/${r.slug}/?from=${lesson.slug}`, rank: r.rank });
-  const lines = hopSentence({
-    rank: lesson.rank, courseTitle: lesson.courseTitle, slug: lesson.slug, more, quickDown,
-    ideas: hops.map((h) => ({
-      short: inSentence(h.id, h.name),
-      ...(h.down ? { down: to(h.down), downMore: h.downAll.length - 1 } : {}),
-      ...(h.up ? { up: to(h.up), upMore: h.upAll.length - 1 } : {}),
-    })),
-  });
-  return { lines, more, quickDown };
+  const authored = lesson.authored ?? { down: [], up: [] };
+  const more = ideas.some((h) => h.down || h.up) || authored.down.length || authored.up.length ? 'See every level' : 'See nearby ideas';
+  const href = (slug) => `/lessons/${slug}/?from=${lesson.slug}`;
+  // A long lesson title gives up its subtitle before the sentence gives up anything else of use.
+  const name = (near, tight) => (tight >= 4 ? near.title.split(/: | \u2014 /)[0] : near.title);
+  const dist = (r) => Math.abs(r.rank - lesson.rank);
+
+  const pick = (dir) => {
+    const mine = authored[dir] ?? [];
+    if (mine.length) return { near: mine.slice().sort((a, b) => dist(a) - dist(b))[0], tag: '', byHand: true };
+    let best = null;
+    ideas.forEach((h, i) => { if (h[dir] && (!best || dist(h[dir]) < dist(best.near))) best = { near: h[dir], tag: i > 0 ? inSentence(h.id, h.name) : '', byHand: false }; });
+    return best;
+  };
+  const dirSeg = (word, p) => ({ t: p.tag ? `${word}, for ${p.tag}:` : `${word}:`, k: 'dir' });
+
+  const build = (tight) => {
+    const main = ideas.length ? inSentence(ideas[0].id, ideas[0].name) : '';
+    const out = {};
+    if (!ideas.length) return out;
+    if (lesson.rank === 0) {
+      out.teaches = [{ t: `This activity is about ${main} for ages 5 to 10.` }];
+      const up = pick('up');
+      // Only a school lesson is offered from a guide for young children.
+      if (up && up.near.rank <= 2) out.next = [{ t: 'Next, for an older child:', k: 'dir' }, { t: ' ' }, { t: name(up.near, tight), href: href(up.near.slug) }, { t: ' ' }, { t: `(${LEVEL_SHORT[up.near.rank]})`, k: 'note' }, { t: '.' }];
+      return out;
+    }
+    out.teaches = [{ t: lesson.rank <= 2 ? `This lesson teaches ${main} at ${LEVEL_SHORT[lesson.rank]} level.` : (tight >= 5 ? `This lesson teaches ${main}.` : `This lesson teaches ${main} in ${lesson.courseTitle}${tight >= 2 ? '' : `, ${COURSE_KIND[lesson.rank]}`}.`) }];
+    const quick = quickDown ? { t: tight >= 3 ? 'read a short version here' : `read a short ${QUICK_NAME[quickDown][1]} version here`, quick: quickDown } : undefined;
+    const down = pick('down');
+    // A college reader whose only simpler lesson is an activity for young children gets the short
+    // version here; the activity is on the ladder.
+    if (down && !(down.near.rank === 0 && lesson.rank >= 3 && quick)) {
+      const lvl = down.near.rank === 0 ? '(a hands-on activity)' : `(${LEVEL_SHORT[down.near.rank]})`;
+      out.simpler = [dirSeg('Simpler', down), { t: ' ' }, { t: name(down.near, tight), href: href(down.near.slug) }, ...(tight < 7 ? [{ t: ' ' }, { t: lvl, k: 'note' }] : []), ...(quick && tight < 6 ? [{ t: ', or ' }, quick] : []), { t: '.' }];
+    } else if (quick) {
+      out.simpler = [{ t: 'Simpler:', k: 'dir' }, { t: ' ' }, quick, { t: '.' }];
+    }
+    const up = pick('up');
+    if (up) {
+      // The size of the step is said only for a lesson the graph chose, and only when it is true
+      // of the whole lesson (the nearest lesson on any of its ideas).
+      const step = !up.byHand && tight < 1 ? stepNote(lesson.rank, up.near.rank) : '';
+      out.deeper = [dirSeg('Deeper', up), { t: ' ' }, { t: name(up.near, tight), href: href(up.near.slug) }, ...(tight < 7 ? [{ t: ' ' }, { t: `(${LEVEL_SHORT[up.near.rank]}${step ? (step.startsWith('a big') ? ', ' : '; ') + step : ''})`, k: 'note' }] : []), { t: '.' }];
+    }
+    return out;
+  };
+  const length = (l) => ['teaches', 'simpler', 'deeper', 'next'].reduce((n, k) => n + (l[k] ? plain(l[k]).length + 1 : 0), 0);
+  // Say less, in a fixed order, until the paragraph fits four phone lines: the step note goes
+  // first, then the kind of course, the level word in "a short … version", the subtitles of the
+  // lessons named, the course, and last the short version's own control (it is then listed with
+  // the other short versions when the levels are opened).
+  let lines = build(0), tight = 0;
+  // (after those: the short version's own control, which is then listed with the other short
+  // versions when the levels are opened, and last the levels in brackets)
+  while (tight < 7 && length(lines) > SENTENCE_MAX) lines = build(++tight);
+  const quickInSentence = ['simpler'].some((k) => (lines[k] ?? []).some((x) => x.quick));
+  return { lines, more, quickDown: quickInSentence ? quickDown : undefined, ideas, length: length(lines), tight };
 }
 
 export const plain = (segs) => (segs ?? []).map((s) => s.t).join('');

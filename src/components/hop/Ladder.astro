@@ -31,17 +31,21 @@ interface Props {
   window?: boolean;
   /** full: show course, minutes, film and practice questions under each lesson. */
   facts?: boolean;
+  /** full: levels the page links by hand elsewhere (0 ages 5 to 10, 1 grade 7, 2 high school, 3 college, 4 graduate); no gap is claimed there. */
+  also?: number[];
+  /** full: words after the level's name on the marked rung when there is no lesson, e.g. "the level you chose". */
+  hereLabel?: string;
   /** full: show the "Play the ladder" link when the idea has films at two or more levels. */
   play?: boolean;
 }
-const { size = 'full', idea, here = null, hereRank = null, hex = true, window: win, facts = true, play = true } = Astro.props;
+const { size = 'full', idea, here = null, hereRank = null, hex = true, window: win, facts = true, play = true, also = [], hereLabel = '' } = Astro.props;
 const mask = Astro.props.mask ?? idea?.mask ?? 0;
 const html = size === 'full'
-  ? (idea ? ladderHtml(idea, { here, hereRank, hex, window: win, facts, play: play ? idea.play ?? null : null }) : '')
+  ? (idea ? ladderHtml(idea, { here, hereRank, hereLabel, hex, window: win, facts, also, play: play ? idea.play ?? null : null }) : '')
   : ladderGlyph(mask, { here: hereRank, size });
 ---
 <Fragment set:html={html} />
-{/* Without scripts the "Show all levels" button cannot work, so every rung is shown. */}
+{/* Without scripts the "Show all levels" button cannot work, so every rung is shown and the button is not. */}
 {size === 'full' && html.includes('hl-windowed') && <noscript><style is:inline>.hl-windowed .hl-far{display:grid!important}.hl-all{display:none!important}</style></noscript>}
 {size === 'full' && (
 <script>
