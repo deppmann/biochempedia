@@ -29,6 +29,20 @@ export function guidingIdeaOf(lesson: { summary: string; hook?: string }) {
   return { idea: lesson.summary.split(SENTENCE_END)[0], hook: lesson.hook };
 }
 
+/** The lesson's main idea for the Skim and Stories stops: the first sentence of the summary that
+ *  states something. Some summaries open with a question; a label that says "The main idea." must
+ *  not be followed by one. When every sentence is a question, `question` is true and the caller
+ *  labels the text as a question. */
+export function mainIdeaOf(lesson: { summary: string }): { text: string; question: boolean; describes: boolean } {
+  const SENTENCE_END = /(?:(?<=[.?!])(?<![\s(][A-Z]\.)|(?<=[\s(][A-Z]\.)(?=\s+[^a-z]))\s+/;
+  const sentences = lesson.summary.trim().split(SENTENCE_END).filter(Boolean);
+  const said = sentences.find((s) => !s.trim().endsWith('?'));
+  // A sentence that describes the lesson ("This lesson builds ...", "You stand celery ...") is not an
+  // idea either; `describes` lets the caller label it "In this lesson."
+  const describes = !!said && /^(This (lesson|activity|page)|You\b|Your\b|In this (lesson|activity))/.test(said.trim());
+  return said ? { text: said, question: false, describes } : { text: sentences[0] ?? '', question: true, describes: false };
+}
+
 export interface SkimFilm { title: string; takeaways: string[]; position: number }
 
 /** The lesson's films that carry take-home bullets, in lesson order (the lesson film first, then

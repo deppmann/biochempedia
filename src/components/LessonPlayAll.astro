@@ -12,10 +12,15 @@
  * "Continue to the next film" button takes its place. "Stop after this film" cancels the chain, and
  * so does starting any other film by hand. Pausing and seeking leave the chain alone. Watched marks and
  * progress come from trackFilms() (src/lib/film-progress.ts), which listens to every video on the page.
+ *
+ * `minutes` is the films' length from src/lib/lesson-time.ts, so the button and the sentence beside it
+ * can never disagree; without it the button adds up the players it finds.
  */
+interface Props { minutes?: number }
+const { minutes } = Astro.props;
 ---
 
-<div class="pa" data-play-all hidden>
+<div class="pa" data-play-all data-pa-min={minutes} hidden>
   <div class="pa-row">
     <button type="button" class="pa-btn pa-go" data-pa-go>
       <span aria-hidden="true">▶</span> Play all films <span class="pa-sub" data-pa-sub></span>
@@ -35,7 +40,7 @@
     const status = $('[data-pa-status]'), sub = $('[data-pa-sub]');
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
     const secs = films.reduce((n, v) => n + (Number(v.dataset.listenFilmSec) || 0), 0);
-    sub.textContent = `(${films.length} films, ${Math.max(1, Math.round(secs / 60))} min)`;
+    sub.textContent = `(${films.length} films, ${Number(box.dataset.paMin) || Math.max(1, Math.round(secs / 60))} min)`;
     box.hidden = false;
 
     let cur = -1; // the film the chain is on; -1 when no chain is running
@@ -46,7 +51,10 @@
     const start = (i: number) => {
       const v = films[i];
       cur = i;
+      // The button just pressed is about to be hidden: keep keyboard focus on the row.
+      const held = document.activeElement === go;
       view(true);
+      if (held) stop.focus({ preventScroll: true });
       cont.hidden = true;
       status.textContent = label(i);
       // The opening film sits in a closed <details> until opened.
@@ -98,8 +106,9 @@
   .pa-btn:hover { border-color: var(--ddp-color-accent); }
   .pa-btn:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
   .pa-go, .pa-cont { background: var(--ddp-color-accent-soft); border-color: var(--ddp-color-accent); }
-  .pa-sub { font-weight: 400; color: var(--ddp-color-muted); }
+  .pa-sub { font-weight: 400; color: var(--ddp-color-ink-soft); }
   .pa-status { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); }
-  .pa-status:empty { display: none; }
+  /* Empty, the status line stays in the page (a live region must exist before it speaks) but takes no room. */
+  .pa-status:empty { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip-path: inset(50%); }
   .pa [hidden] { display: none; }
 </style>
