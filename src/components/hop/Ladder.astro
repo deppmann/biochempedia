@@ -1,0 +1,49 @@
+---
+/* The ladder: the site's picture of hopping (see README.md beside this file).
+
+   size="full"     an upright ladder that houses the material: a rung per level where the idea is
+                   taught, each with its lesson and the note on what that level adds; Hex stands
+                   on the reader's rung. Up is deeper, down is simpler.
+   size="compact"  the ladder as a small mark (20×44) beside a line of text, for a film card or a result.
+   size="tiny"     the same mark at 14×31, inline in a list.
+
+   The drawing is made by src/lib/hop-ladder.mjs, a pure function a client script can also call
+   with graph data. The marks are pictures only (aria-hidden): say the same thing in words beside
+   them. A full ladder is real text and links; only its rails, rungs and Hex are hidden from
+   screen readers. */
+import '../../styles/hop.css';
+import type { Idea } from '../../lib/hop';
+import { ladderHtml, ladderGlyph } from '../../lib/hop-ladder.mjs';
+
+interface Props {
+  size?: 'full' | 'compact' | 'tiny';
+  /** full: the idea, from idea(id) in src/lib/hop.ts. */
+  idea?: Idea;
+  /** compact and tiny: levels with a lesson, as a bit mask (bit 0 = ages 5 to 10). Defaults to idea.mask. */
+  mask?: number;
+  /** full: slug of the lesson the reader is on. */
+  here?: string | null;
+  /** The level (0 to 6) to mark when there is no lesson slug: a film's level, say. */
+  hereRank?: number | null;
+  /** full: draw Hex on the reader's rung (default). Pass false on a second ladder in one view. */
+  hex?: boolean;
+  /** full: open on the reader's rung and its neighbours, with a button for the rest. Default: on when `here` is set. */
+  window?: boolean;
+  /** full: show course, minutes, film and practice questions under each lesson. */
+  facts?: boolean;
+  /** full: show the "Play the ladder" link when the idea has films at two or more levels. */
+  play?: boolean;
+}
+const { size = 'full', idea, here = null, hereRank = null, hex = true, window: win, facts = true, play = true } = Astro.props;
+const mask = Astro.props.mask ?? idea?.mask ?? 0;
+const html = size === 'full'
+  ? (idea ? ladderHtml(idea, { here, hereRank, hex, window: win, facts, play: play ? idea.play ?? null : null }) : '')
+  : ladderGlyph(mask, { here: hereRank, size });
+---
+<Fragment set:html={html} />
+{size === 'full' && (
+<script>
+  import { wireLadders } from '../../lib/hop-ladder.mjs';
+  wireLadders();
+</script>
+)}

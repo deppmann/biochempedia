@@ -1,0 +1,124 @@
+---
+/* One idea, on one page with its own address (/ideas/osmosis/): what it is, the questions people
+   ask that it answers, its ladder (a rung for each level it is taught at, each with its lesson and
+   what that level adds), its films, the ideas next door and the lessons that lean on it.
+
+   A static page per idea, not a query parameter: it reads with JavaScript off, a search engine
+   can index "why does salt make cucumbers wet", and the address can be shared or cited. The only
+   script marks the level a reader has already chosen elsewhere on the site, if any; it never asks. */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Ladder from '../../components/hop/Ladder.astro';
+import '../../styles/hop.css';
+import { allIdeas, type Idea } from '../../lib/hop';
+import { edgeLines, taughtAt, LEVEL_SHORT, LEVEL_KEYS, andList } from '../../lib/hop-words.mjs';
+
+export async function getStaticPaths() {
+  return (await allIdeas()).map((idea) => ({ params: { id: idea.id }, props: { idea } }));
+}
+interface Props { idea: Idea }
+const { idea } = Astro.props;
+const edge = edgeLines(idea.mask);
+const mmss = (s: number) => { const t = Math.round(s); return `${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`; };
+const levels = [...new Set(idea.rungs.map((r) => r.rank))];
+const desc = `${idea.blurb} ${levels.length === 1 ? `One lesson level so far: ${LEVEL_SHORT[levels[0]]}.` : `Lessons at ${andList(levels.map((r) => LEVEL_SHORT[r]))}, simplest first, with what each level adds.`}`;
+// For a reader who has told the site their level: the nearest lesson each way, by level.
+const nearest = LEVEL_KEYS.map((_, rank) => {
+  const below = idea.rungs.filter((r) => r.rank < rank).pop();
+  const above = idea.rungs.find((r) => r.rank > rank);
+  return idea.rungs.some((r) => r.rank === rank) ? null : { below: below ? [below.title, below.href, below.rank] : null, above: above ? [above.title, above.href, above.rank] : null };
+});
+const ld = {
+  '@context': 'https://schema.org', '@type': 'DefinedTerm', name: idea.name, description: idea.blurb,
+  inDefinedTermSet: { '@type': 'DefinedTermSet', name: 'Ideas taught on STEMhop', url: new URL('/ideas/', Astro.site ?? 'https://stemhop.com').href },
+};
+---
+<BaseLayout title={`${idea.name}, at every level — STEMhop`} description={desc} jsonLd={ld}>
+  <article class="wrap ideas" data-idea={idea.id}>
+    <div class="ideas-col">
+      <p class="ideas-crumb"><a href="/ideas/">Find an idea</a> / {idea.areaName}</p>
+      <h1>{idea.name}</h1>
+      <p class="ideas-lede">{idea.blurb}</p>
+      {idea.aliases.length > 0 && <p class="ideas-ask">People ask: {idea.aliases.join(' · ')}</p>}
+
+      <p class="ideas-pref" data-idea-pref data-nearest={JSON.stringify(nearest)} data-short={idea.short} hidden></p>
+
+      <h2 class="ideas-sec">The ladder</h2>
+      <p class="ideas-note">{taughtAt(idea.mask)} Each rung is a level; up is deeper.{edge.above && ` ${edge.above}`}</p>
+      <Ladder idea={idea} />
+      {edge.below && <p class="ideas-note" style="margin-top: var(--ddp-space-3)">{edge.below}</p>}
+
+      {idea.films.length > 0 && (
+        <>
+          <h2 class="ideas-sec">Films on {idea.short}</h2>
+          <ul class="ideas-films">
+            {idea.films.map((f) => (
+              <li><a href={f.href}>{f.title}</a><span>{f.kind === 'activity' ? 'activity film for the grown-up' : LEVEL_SHORT[f.rank]} · {mmss(f.durationSec)}</span></li>
+            ))}
+          </ul>
+        </>
+      )}
+
+      {idea.near.length > 0 && (
+        <>
+          <h2 class="ideas-sec">Next door to {idea.short}</h2>
+          <ul class="ideas-near">
+            {idea.near.map((n) => (
+              <li>
+                <span class="ideas-near-top"><Ladder size="tiny" mask={n.mask} /><a class="ideas-near-name" href={`/ideas/${n.id}/`}>{n.name}</a></span>
+                <span class="ideas-near-why">{n.why}</span>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+
+      {idea.uses.length > 0 && (
+        <>
+          <h2 class="ideas-sec">Also comes up in</h2>
+          <p class="ideas-note">These lessons lean on {idea.short} without teaching it.</p>
+          <ul class="ideas-uses">
+            {idea.uses.map((r) => <li><a href={r.href}>{r.title}</a><span>{LEVEL_SHORT[r.rank]} · {r.courseTitle}</span></li>)}
+          </ul>
+        </>
+      )}
+
+      <p class="ideas-foot">
+        <a href={`/ideas/#area-${idea.area}`}>Every idea in {idea.areaName}</a> · <a href="/ideas/">Find another idea</a><br />
+        Which lessons teach this idea, the note on what each level adds and the ideas next door were written by AI models from the lessons themselves, then checked by a second one. A person has not yet read every one. <a href="/about/#how-ai-is-used">How we use AI</a>
+      </p>
+    </div>
+  </article>
+
+  <script>
+    // If the reader has already told the site their level (stemhop:prefs:v1, set elsewhere and
+    // kept on this device), mark that level here, or say what is nearest when it has no lesson.
+    // Nothing on this page asks for it or stores anything.
+    const KEYS = ['ages-5-10', 'grade-7', 'high-school', 'starting-college', 'college-core', 'college-further', 'graduate'];
+    const AT = ['for ages 5 to 10', 'at grade 7', 'at high school', 'in a first college course', 'in the college core', 'in upper-level college', 'at graduate level'];
+    const SHORT = ['ages 5 to 10', 'grade 7', 'high school', 'a first college course', 'college core', 'upper-level college', 'graduate level'];
+    let level = '';
+    try { level = JSON.parse(localStorage.getItem('stemhop:prefs:v1') ?? 'null')?.level ?? ''; } catch { /* blocked or absent: nothing to mark */ }
+    const rank = KEYS.indexOf(level);
+    if (rank >= 0) {
+      const row = document.querySelector(`[data-hop-level="${level}"] [data-hop-you]`);
+      const note = document.querySelector<HTMLElement>('[data-idea-pref]');
+      if (row) (row as HTMLElement).hidden = false;
+      else if (note) {
+        type Near = [string, string, number] | null;
+        const n = (JSON.parse(note.dataset.nearest ?? '[]') as ({ below: Near; above: Near } | null)[])[rank];
+        if (n && (n.below || n.above)) {
+          note.append(`No lesson on ${note.dataset.short} ${AT[rank]} yet, the level you chose.`);
+          const add = (lead: string, x: Near) => {
+            if (!x) return;
+            const a = document.createElement('a');
+            a.href = x[1]; a.textContent = x[0];
+            note.append(` ${lead} `, a, ` (${SHORT[x[2]]}).`);
+          };
+          add('The nearest simpler lesson is', n.below);
+          add('The nearest deeper lesson is', n.above);
+          note.hidden = false;
+        }
+      }
+    }
+  </script>
+</BaseLayout>

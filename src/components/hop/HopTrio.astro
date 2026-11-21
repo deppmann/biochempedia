@@ -1,0 +1,42 @@
+---
+/* Simpler / This step / Deeper: one idea at the nearest level each way, for a step of a study path
+   or the panel beside a film. A side with no lesson is left out; nothing says "none yet" here
+   (the idea's own page says it once). No practice links, no counts. */
+import '../../styles/hop.css';
+import { idea as loadIdea } from '../../lib/hop';
+import { LEVEL_SHORT, stepNote } from '../../lib/hop-words.mjs';
+
+interface Props {
+  /** The lesson of this step. */
+  slug: string;
+  /** Which idea, when the lesson teaches several; the default is the first the graph lists. */
+  id: string;
+  /** Label of the middle part. */
+  label?: string;
+}
+const { slug, id, label = 'This step' } = Astro.props;
+const v = await loadIdea(id);
+const here = v?.rungs.find((r) => r.slug === slug);
+const below = v && here ? v.rungs.filter((r) => r.rank < here.rank) : [];
+const down = below.find((r) => r.rank === below[below.length - 1].rank);
+const up = v && here ? v.rungs.find((r) => r.rank > here.rank) : undefined;
+const parts = here ? [
+  down && { k: 'Simpler', r: down, step: stepNote(here.rank, down.rank) },
+  { k: label, r: here, step: '' },
+  up && { k: 'Deeper', r: up, step: stepNote(here.rank, up.rank) },
+].filter((p): p is { k: string; r: NonNullable<typeof here>; step: string } => Boolean(p)) : [];
+---
+{v && here && (
+  <dl class="hop-trio" aria-label={`${v.name}, at the levels next to this one`}>
+    {parts.map((p) => (
+      <div class:list={['hop-trio-part', { 'is-here': p.r.slug === slug }]}>
+        <dt>{p.k}</dt>
+        <dd>
+          <a href={p.r.href}>{p.r.title}</a>
+          <span class="hop-trio-lvl">{LEVEL_SHORT[p.r.rank]}{p.step && `; ${p.step}`}</span>
+          {p.r.adds && <span class="hop-trio-adds">{p.r.adds}</span>}
+        </dd>
+      </div>
+    ))}
+  </dl>
+)}
