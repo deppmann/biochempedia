@@ -17,7 +17,8 @@ export async function getStaticPaths() {
 }
 interface Props { idea: Idea }
 const { idea } = Astro.props;
-const edge = edgeLines(idea.mask);
+const oneLevel = new Set(idea.rungs.map((r) => r.rank)).size === 1;
+const edge = oneLevel ? { below: '', above: '' } : edgeLines(idea.mask);
 const mmss = (s: number) => { const t = Math.round(s); return `${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`; };
 const levels = [...new Set(idea.rungs.map((r) => r.rank))];
 const desc = `${idea.blurb} ${levels.length === 1 ? `One lesson level so far: ${LEVEL_SHORT[levels[0]]}.` : `Lessons at ${andList(levels.map((r) => LEVEL_SHORT[r]))}, simplest first, with what each level adds.`}`;

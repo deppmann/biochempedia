@@ -15,7 +15,7 @@ const loadIndex = () => (indexP ??= Promise.all([
   fetch('/ideas/lessons.json').then((r) => r.json()).catch(() => null),
 ]).then(([g, extra]) => buildIndex(g, extra)).catch((e) => { indexP = undefined; throw e; }));
 const areaCache = new Map<string, Promise<any>>();
-const loadArea = (id: string) => { if (!areaCache.has(id)) areaCache.set(id, fetch(`/graph/${id}.json`).then((r) => r.json())); return areaCache.get(id)!; };
+const loadArea = (id: string) => { if (!areaCache.has(id)) areaCache.set(id, fetch(`/graph/${id}.json`).then((r) => r.json()).catch((e) => { areaCache.delete(id); throw e; })); return areaCache.get(id)!; };
 
 function whyLine(w: { kind: string; text: string; code?: string }): string {
   switch (w.kind) {
@@ -73,7 +73,7 @@ async function openRungs(index: Index, id: string, host: Element, level: number,
       ...(f ? { film: { href: `/watch/${slug}/${f[4] ? `${f[4]}/` : ''}`, seconds: f[3], title: f[1] } } : {}),
     };
   });
-  host.innerHTML = `${ladderHtml({ id, name: it.name, short: inSentence(id, it.name), rungs }, { hereRank: level >= 0 ? level : null, hereLabel: 'the level you chose', hex: true, window: false })}<p class="ideas-res-more"><a href="/ideas/${esc(id)}/">${esc(it.name)}: films, ideas next door and the rest</a></p>`;
+  host.innerHTML = `${ladderHtml({ id, name: it.name, short: inSentence(id, it.label), rungs }, { hereRank: level >= 0 ? level : null, hereLabel: 'the level you chose', hex: true, window: false })}<p class="ideas-res-more"><a href="/ideas/${esc(id)}/">${esc(it.name)}: films, ideas next door and the rest</a></p>`;
   wireLadders(host);
 }
 
@@ -88,9 +88,9 @@ export function start() {
   let level = -1;
   try { level = ['ages-5-10', 'grade-7', 'high-school', 'starting-college', 'college-core', 'college-further', 'graduate'].indexOf(JSON.parse(localStorage.getItem('stemhop:prefs:v1') ?? 'null')?.level); } catch { /* none */ }
 
-  let run = 0, sayTimer = 0;
+  let run = 0, sayTimer = 0, lastOpen = '';
   // The status line is for screen readers as much as for eyes: say it once typing has stopped.
-  const say = (text: string) => { clearTimeout(sayTimer); sayTimer = window.setTimeout(() => { status.textContent = text; }, 500); };
+  const say = (text: string) => { clearTimeout(sayTimer); sayTimer = window.setTimeout(() => { if (status.textContent !== text) status.textContent = text; }, 1000); };
 
   async function go(q: string, push: boolean) {
     const mine = ++run;
@@ -121,7 +121,12 @@ export function start() {
     const top = res.results[0];
     if (!closest && (top.score >= 70 || res.results.length === 1)) {
       const host = out.querySelector(`[data-idea="${CSS.escape(top.id)}"] [data-idea-rungs]`);
-      if (host) openRungs(index, top.id, host, level, () => mine === run);
+      if (host) {
+        // Hex lands once for an idea; typing more of the same query does not make it land again.
+        if (top.id === lastOpen) host.classList.add('hl-noland');
+        lastOpen = top.id;
+        openRungs(index, top.id, host, level, () => mine === run);
+      }
     }
   }
 

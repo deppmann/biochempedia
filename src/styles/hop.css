@@ -69,6 +69,7 @@
 /* Hex lands on its rung when the reader opens a ladder; still under reduced motion. */
 @media (prefers-reduced-motion: no-preference) {
   .hl-hex { animation: hl-land 320ms cubic-bezier(.3, 1.4, .5, 1) both; }
+  .hl-noland .hl-hex { animation: none; }
   @keyframes hl-land { from { transform: translateY(-9px); } to { transform: none; } }
 }
 
@@ -163,7 +164,7 @@ a.hop-quick-open { color: var(--ddp-color-accent); }
 /* ------------------------------------------------------------------ /ideas/ */
 .ideas { padding-top: var(--ddp-space-8); padding-bottom: var(--ddp-space-12); }
 .ideas-col { max-width: 46rem; }
-.ideas h1 { margin: 0 0 var(--ddp-space-2); font-size: var(--ddp-text-3xl); line-height: 1.1; }
+.ideas h1 { overflow-wrap: anywhere; margin: 0 0 var(--ddp-space-2); font-size: var(--ddp-text-3xl); line-height: 1.1; }
 .ideas-lede { margin: 0 0 var(--ddp-space-4); font-size: var(--ddp-text-lg); line-height: 1.5; color: var(--ddp-color-ink-soft); }
 .ideas a { color: var(--ddp-color-ink); text-decoration: underline; text-decoration-color: color-mix(in srgb, currentColor 45%, transparent); text-underline-offset: 3px; }
 .ideas a:hover { color: var(--ddp-color-accent); }
@@ -196,14 +197,14 @@ a.hop-quick-open { color: var(--ddp-color-accent); }
 .ideas-h2 { margin: var(--ddp-space-12) 0 var(--ddp-space-2); font-size: var(--ddp-text-xl); }
 .ideas-note { margin: 0 0 var(--ddp-space-4); font-size: var(--ddp-text-sm); line-height: 1.55; color: var(--ddp-color-ink-soft); }
 .ideas-area { border-top: 1px solid var(--ddp-color-line); }
-.ideas-area > summary { display: flex; align-items: center; gap: 0.5em; min-height: 48px; cursor: pointer; list-style: none; font-weight: 600; color: var(--ddp-color-primary); }
+.ideas-area > summary { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5em; min-height: 48px; cursor: pointer; list-style: none; font-weight: 600; color: var(--ddp-color-primary); }
 .ideas-area > summary::-webkit-details-marker { display: none; }
 .ideas-area > summary::before { content: '▸' / ''; color: var(--ddp-color-accent); }
 .ideas-area[open] > summary::before { content: '▾' / ''; }
 .ideas-area-n { font-weight: 400; font-size: var(--ddp-text-sm); color: var(--ddp-color-muted); }
 .ideas-list { margin: 0 0 var(--ddp-space-4); padding: 0; list-style: none; }
 .ideas-list li { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 0.6rem; min-height: 44px; padding: 0.15rem 0; }
-.ideas-list a { display: inline-flex; align-items: center; min-height: 44px; font-weight: 600; }
+.ideas-list a { display: inline-flex; align-items: center; min-width: 0; min-height: 44px; font-weight: 600; overflow-wrap: anywhere; }
 .ideas-list span { font-size: var(--ddp-text-sm); color: var(--ddp-color-muted); }
 @media (min-width: 760px) { .ideas-list { columns: 2; column-gap: var(--ddp-space-8); } .ideas-list li { break-inside: avoid; } }
 .ideas-crumb { margin: 0 0 var(--ddp-space-3); font-size: var(--ddp-text-sm); }
@@ -217,7 +218,7 @@ a.hop-quick-open { color: var(--ddp-color-accent); }
 .ideas-films a, .ideas-uses a, .ideas-near-name { display: inline-flex; align-items: center; min-height: 44px; font-weight: 600; }
 .ideas-films span, .ideas-uses span { font-size: var(--ddp-text-sm); color: var(--ddp-color-muted); }
 .ideas-near li { padding: 0 0 0.7rem; }
-.ideas-near-top { display: flex; align-items: center; gap: 0.6rem; }
+.ideas-near-top { display: flex; flex-wrap: wrap; align-items: center; gap: 0 0.6rem; }
 .ideas-near-lv { font-size: var(--ddp-text-sm); color: var(--ddp-color-muted); }
 .ideas-near-why { display: block; font-size: var(--ddp-text-sm); line-height: 1.5; color: var(--ddp-color-ink-soft); }
 .ideas-foot { margin: var(--ddp-space-12) 0 0; font-size: var(--ddp-text-sm); line-height: 1.6; color: var(--ddp-color-muted); }
@@ -225,6 +226,6 @@ a.hop-quick-open { color: var(--ddp-color-accent); }
 .ideas-parts-eg { margin: 0 0 var(--ddp-space-6); padding: 0 0 var(--ddp-space-6); border-bottom: 1px solid var(--ddp-color-line); }
 /* Print: the ladder whole, no controls. A closed fold stays closed. */
 @media print {
-  .ideas-form, .ideas-try, .hop-back, .hl-all, .hop-quick-open { display: none; }
+  .ideas-form, .ideas-try, .hop .hop-back, .hop .hop-arrive, .hl-all, .hop-quick-or, .hop-quick-open { display: none; }
   .hl-windowed .hl-far { display: grid; }
 }
