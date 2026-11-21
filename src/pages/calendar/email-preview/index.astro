@@ -1,0 +1,67 @@
+---
+/* /calendar/email-preview/: the calendar's email designs, drawn from real lessons when the site
+   is built. Not linked from anywhere and kept out of search. NOTHING IS SENT: the site has no
+   calendar email yet (see src/lib/calendar/flags.ts and migrations/0010_calendar_email.sql).
+   The people, the class and the dates below are made up for the preview. */
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import '../../../styles/calendar.css';
+import { activities, courses } from '../../../lib/calendar/data';
+import { parentMail, confirmMail, learnerMail, teacherMail, type Mail } from '../../../lib/calendar/email';
+import { SITE_ORIGIN } from '../../../lib/site-host.mjs';
+
+const origin = SITE_ORIGIN;
+const acts = await activities();
+const all = await courses();
+const phys = all.find((c) => c.s === 'physiology') ?? all.find((c) => !c.school)!;
+const bio = all.find((c) => c.s === 'high-school-biology')!;
+const here = '#not-built';
+const pl = phys.lessons;
+const bl = bio.lessons;
+
+const mails: { id: string; name: string; to: string; when: string; mail: Mail }[] = [
+  {
+    id: 'parent', name: 'To a parent', to: 'An adult who typed an address, ticked “18 or over”, and confirmed from their inbox.',
+    when: 'Two days before an activity day (Thursday for a Saturday), so there is time to find things. The other choice is the evening before.',
+    mail: parentMail({ origin, day: 'Saturday', act: acts[0], n: 4, of: 8, askedOn: 'November 1', links: { stop: here, move: here, plan: `${origin}/calendar/parent/` } }),
+  },
+  {
+    id: 'confirm', name: 'The confirming email', to: 'The address a parent typed. It is the only email sent before they say yes.',
+    when: 'Once, when asked. An address that is never confirmed is deleted after a day.',
+    mail: confirmMail({ origin, of: 8, links: { stop: here, confirm: here, plan: `${origin}/calendar/parent/` } }),
+  },
+  {
+    id: 'learner', name: 'To a learner', to: 'A signed-in learner, 13 or over, at the address on their account. Never a student in a class. A later wave: not offered in the first build.',
+    when: 'On the mornings of the days they ticked.',
+    mail: learnerMail({ origin, day: 'Monday', course: phys.t, lesson: pl[7] ?? pl[0], school: phys.school, then: pl[8]?.t, after: pl[9]?.t, week: 3, links: { stop: here, plan: `${origin}/calendar/student/${phys.s}/` } }),
+  },
+  {
+    id: 'teacher', name: 'To a teacher', to: 'A teacher, at the address they confirmed when they made their account. Students never get email.',
+    when: 'Each class morning, once the real class plan exists inside a class.',
+    mail: teacherMail({
+      origin, className: 'Period 3 Biology', day: 'Friday', date: 'Friday, November 20', unit: `Unit ${(bl[8] ?? bl[0]).u + 1}: ${bio.units[(bl[8] ?? bl[0]).u]}`, lesson: bl[8] ?? bl[0],
+      room: here, next: bl[9] ? `Monday, November 23, ${bl[9].t}` : undefined, ends: 'Wednesday, February 3', links: { stop: here, move: here, plan: `${origin}/calendar/teacher/` },
+    }),
+  },
+];
+---
+<BaseLayout title="Calendar email designs — STEMhop" description="Designs for the calendar's opt-in emails. Nothing is sent." noindex>
+  <div class="cal-mail">
+    <h1>Calendar emails: the designs</h1>
+    <p><strong>Nothing is sent.</strong> STEMhop sends no calendar email. These are the designs, drawn from real lessons, so they can be read before anything is switched on. The class, the dates and the counts are made up for this page.</p>
+    <p id="not-built">The links that would stop the emails, move a day or confirm an address lead back to this paragraph, because those pages are not built yet. When they are, each one opens a page with a single button, so nothing happens when a mail scanner follows a link.</p>
+    {mails.map((m) => (
+      <section aria-labelledby={`mail-${m.id}`}>
+        <h2 id={`mail-${m.id}`}>{m.name}</h2>
+        <dl>
+          <dt>Goes to</dt><dd>{m.to}</dd>
+          <dt>When</dt><dd>{m.when}</dd>
+          <dt>Subject</dt><dd>{m.mail.subject}</dd>
+          <dt>Preview line</dt><dd>{m.mail.preheader}</dd>
+        </dl>
+        <iframe title={`${m.name}: the email as it would look`} srcdoc={m.mail.html.replaceAll('href="#not-built"', 'href="#not-built" target="_parent"')} loading="lazy"></iframe>
+        <h3>The same email as plain text</h3>
+        <pre>{m.mail.text}</pre>
+      </section>
+    ))}
+  </div>
+</BaseLayout>
