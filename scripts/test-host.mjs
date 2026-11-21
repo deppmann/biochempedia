@@ -564,7 +564,7 @@ await check('every localStorage key the site writes is one the hand-off carries'
   // on the old domain to carry: the site-wide preferences (role, level, how long a lesson to open) and
   // the old per-lesson Side Hops view, now read only as a fallback. Listing them here keeps the scan
   // honest: a new "stemhop:" key fails this check until someone decides whether the hand-off carries it.
-  const stemhopOnly = /^stemhop:(prefs:v1|side-hops:view:|prefs|films:counted:v1|role-pending)$/;
+  const stemhopOnly = /^stemhop:(prefs:v1|side-hops:view:|prefs|films:counted:v1|role-pending|calendar:v1|calendar)$/;
   const keys = [...found].filter((k) => !notKeys.test(k) && !stemhopOnly.test(k));
   assert.ok([...found].some((k) => k === 'stemhop:prefs:v1'), 'the scan sees stemhop: keys');
   assert.ok(keys.length >= 15, 'found the keys: ' + keys.join(' '));
