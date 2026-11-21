@@ -115,6 +115,8 @@ const filmCourses = courses.filter(({ c }) => catalog.some((f) => f.course === c
   <script>
     import { load, dueNow, queued, exportText, importText, clearAll, onChange, STORAGE_KEY } from '../../lib/progress';
     import { loadFilms, keepWatching, onFilmsChange, clearFilms, resumeHref } from '../../lib/film-progress';
+    import { clearPrefs } from '../../lib/prefs';
+    import { clearCalendar } from '../../lib/calendar/store';
     import { showBadges } from '../../lib/badges';
     import { plannerStatus, planApi, standing, standingText, el, type Plan } from '../../lib/plan-view';
 
@@ -231,6 +233,8 @@ const filmCourses = courses.filter(({ c }) => catalog.some((f) => f.course === c
       if (!window.confirm('Clear all progress saved in this browser? This cannot be undone unless you exported a copy.')) return;
       clearAll();
       clearFilms();
+      clearCalendar();   // the calendar's plans (/calendar/)
+      clearPrefs();      // and who this device said it is
       if (msg) msg.textContent = 'Cleared.';
     });
   </script>
