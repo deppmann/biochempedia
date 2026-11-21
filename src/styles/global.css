@@ -19,6 +19,12 @@
    Base typography + layout. Static-first: these styles carry the whole site;
    Tailwind utilities are available in components for one-offs.
    -------------------------------------------------------------------------- */
+/* The header is sticky (about 77px tall). A control reached by tabbing backward would scroll to the
+   very top of the window and sit hidden under it, so a focused control keeps the header's height
+   clear above itself. This is on the focused control only: anchors keep their own scroll-margin-top,
+   and a root scroll-padding would stack on those and drop every anchor jump 80px. */
+:is(a, button, input, select, textarea, summary, [tabindex]):focus-visible { scroll-margin-top: 5.5rem; }
+
 html {
   font-family: var(--ddp-font-sans);
   color: var(--ddp-color-ink);
@@ -233,6 +239,8 @@ h4 {
   transition: top 0.15s ease;
 }
 .skip-link:focus { top: 0; }
+/* In dark mode the primary colour is pale, so the text on it must be dark. */
+@media (prefers-color-scheme: dark) { .skip-link { color: #0f1522; } }
 
 /* Wide markdown tables in lesson prose scroll inside themselves on narrow screens
    instead of widening the page (added with the Cell Biology course, 2026-10-18). */
