@@ -5,11 +5,11 @@ course: "signaling"
 courseChapter: "Cell Signaling · Unit 3: G-protein-coupled receptors and second messengers"
 order: 117
 summary: >-
-  How does a rod cell turn one photon into a nerve signal, and why does it do so by destroying a
-  messenger that was already there? This lesson traces the cGMP cascade of vision and its
-  recovery, compares it with color vision and smell, and then follows cGMP into the artery wall,
-  where nitric oxide raises it. Afterwards you will be able to predict what a drug does when it
-  acts on either cascade.
+  A signal is a change from baseline, up or down; when rising cGMP carries the signal, blocking
+  breakdown amplifies it. This lesson traces the cGMP cascade of rod vision and its recovery,
+  compares it with color vision and smell, and then follows cGMP into the artery wall, where
+  nitric oxide raises it. Afterwards you will be able to predict what a drug does when it acts
+  on either cascade.
 hook: "Your rods report light by turning a current down. Why would a sense run backwards?"
 
 estMinutes: 24
@@ -24,9 +24,15 @@ explainer:
   captions: "/explainers/senses-and-cgmp/explainer.vtt"
   poster: "/explainers/senses-and-cgmp/poster.jpg"
   title: "A Fall Can Carry a Signal"
-  durationSec: 172.2
-  narration: "an AI narrator voice (ElevenLabs, Sarah) reading narration written from this lesson's text"
+  durationSec: 221.4
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+  takeaways:
+    - "A signal is a change from baseline, up or down."
+    - "In darkness, high cGMP holds some rod cation channels open, driving a steady dark current and continuous glutamate release."
+    - "Light straightens retinal inside rhodopsin, activating transducin and PDE6 to destroy cGMP so channels close and the rod hyperpolarizes."
+    - "Falling calcium speeds up guanylyl cyclase, so cGMP partly recovers and the rod adapts to steady light."
+    - "Olfactory neurons run the plan in reverse: an odorant raises cAMP, which opens a related cation channel."
 
 scientists:
   - name: "George Wald"
@@ -391,99 +397,143 @@ corpusTags:
   - "sildenafil"
 draft: false
 films:
-  - id: "nitric-oxide"
-    src: "/explainers/senses-and-cgmp/nitric-oxide.mp4"
-    captions: "/explainers/senses-and-cgmp/nitric-oxide.vtt"
-    poster: "/explainers/senses-and-cgmp/nitric-oxide-poster.jpg"
-    title: "How an Artery Learned to Relax"
-    durationSec: 107.1
-    narration: "an AI narrator voice (ElevenLabs, Sarah) reading narration written from this lesson's text"
+  - id: "chapter-2"
+    src: "/explainers/senses-and-cgmp/chapter-2.mp4"
+    captions: "/explainers/senses-and-cgmp/chapter-2.vtt"
+    poster: "/explainers/senses-and-cgmp/chapter-2-poster.jpg"
+    title: "When cGMP Rises: Arteries and Drugs"
+    durationSec: 210.1
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
     aiGenerated: true
+    takeaways:
+      - "When rising cGMP carries the signal, blocking breakdown amplifies it."
+      - "Acetylcholine acts on the artery's endothelial lining, which makes short-lived nitric oxide gas that diffuses directly into neighboring smooth muscle."
+      - "Nitric oxide activates soluble guanylyl cyclase to raise cGMP, turning on protein kinase G to relax the muscle while PDE5 ends the signal."
+      - "Nitroglycerin supplies nitric oxide from outside, and sildenafil blocks PDE5 so each burst of cGMP lasts longer."
 ---
 
 import LessonFilm from '../../../components/LessonFilm.astro';
-
 import RodDarkCurrent from '../../../components/RodDarkCurrent.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import Support from '../../../components/Support.astro';
 
-**A rod cell in your retina can register a single photon, and it reports that photon by turning down a current that is already flowing.** In the dark the rod runs a steady inward current and releases transmitter without pause. Light reduces both. Every cascade you have met so far made a messenger. This one destroys a messenger that was already there. How can a fall carry a signal? And why does the same molecule, cGMP, mean "light" in the eye and "relax" in the wall of an artery?
+**A rod cell in your retina can register a single photon, and it reports that photon by turning down a current that is already flowing.** The first film showed that dark-to-light reversal and its contrast with smell; here are the experiments and recovery loops behind it, then how the same molecule relaxes an artery.
 
-## The idea: one bond turns, and everything after it is dark
+## One bond turns, and everything after it is dark
 
-Rhodopsin is a G-protein-coupled receptor (GPCR), the seven-helix architecture from the [receptor field guide](/lessons/receptor-field-guide/). Its ligand does not arrive from outside. A small molecule called retinal, which the body makes from vitamin A, is joined by a covalent bond to a lysine in the pocket where another receptor would bind its hormone. The protein without its retinal is called opsin.
+**Rhodopsin** is a G-protein-coupled receptor (GPCR), the seven-helix architecture from the [receptor field guide](/lessons/receptor-field-guide/). Its ligand does not arrive from outside: **retinal**, made from vitamin A, is covalently bound to a lysine in the pocket. The protein without retinal is **opsin**.
 
-In the dark the retinal is bent. This form is 11-cis retinal, kinked at the double bond between carbons 11 and 12. Think of a mousetrap held cocked: opsin holds retinal in its higher-energy shape, and in that shape retinal holds the receptor off.
+In darkness, retinal sits in its bent, higher-energy isomer, **11-cis retinal**, kinked at the double bond between carbons 11 and 12. Like a cocked mousetrap, opsin holds 11-cis retinal in its pocket, and that bent shape locks the receptor off.
 
-**What does light actually do?** In 1958 Ruth Hubbard and Allen Kropf at Harvard chilled rhodopsin so that its bleaching stalled partway, and asked which steps needed light. Only the first did. A photon turns that one double bond, and 11-cis retinal becomes the straight all-trans form. Every later step went forward in the dark as the sample warmed. George Wald put it this way in his Nobel lecture: "Everything else that happens — chemically, physiologically, indeed psychologically — represents 'dark' consequences of this one light reaction."
+**Predict.** Mix straight **all-trans retinal** with empty opsin in a test tube, with no enzymes and no light. Will light-sensitive rhodopsin form?
 
-Straight retinal does not fit a pocket shaped for bent retinal. The protein is pushed into a new conformation, metarhodopsin II, and that is the active receptor. From here on rhodopsin behaves like any GPCR that has just bound an agonist. Because its ligand was already in the pocket, it never has to wait for a molecule to diffuse to it.
+<details>
+<summary>Check your prediction</summary>
 
-## A cascade that runs backwards: light makes cGMP fall
+No. Only bent 11-cis retinal combines with opsin to make rhodopsin (spontaneously, with no enzyme or added energy); give opsin the straight all-trans form and no pigment appears.
 
-Start in the dark. The outer segment, the part of the rod packed with rhodopsin, contains cGMP, which binds directly to cation channels in its membrane and holds some of them open, with no kinase in between. Sodium and calcium flow in through those channels. This is the **dark current**. When Denis Baylor, Trevor Lamb and King-Wai Yau drew the outer segment of a single toad rod into a glass pipette, they recorded roughly 20 picoamps flowing in darkness and a dip of about 1 picoamp for each rhodopsin that a photon isomerized.
+</details>
+
+**What does light actually do?** In 1958 Ruth Hubbard and Allen Kropf at Harvard chilled rhodopsin so bleaching stalled partway. Only the first step needed light: a photon flips that double bond, straightening 11-cis retinal into **all-trans retinal**; every later step ran in the dark as the sample warmed. George Wald put it in his 1967 Nobel lecture: "Everything else that happens — chemically, physiologically, indeed psychologically — represents 'dark' consequences of this one light reaction."
+
+Straight retinal pushes the protein into its active conformation, **metarhodopsin II**. From here rhodopsin acts like any agonist-bound GPCR, without waiting for ligand diffusion.
+
+<Support>**The one idea.** A signal is a change from baseline, up or down; when rising cGMP carries the signal, blocking breakdown amplifies it. **Scope:** The first half covers this lesson's cyclic-nucleotide cascades (cGMP in rods and vascular smooth muscle, cAMP in olfactory neurons); salt and acid taste bypass them through ion channels. The second half holds only while cGMP is being made, since blocking breakdown makes none. In rods, where falling cGMP is the signal, it does not apply as stated (see the design problem).</Support>
+
+## The rod cascade: measuring and multiplying a fall
+
+In darkness, the rod's **outer segment** (packed with rhodopsin) contains **cGMP**, which binds directly to cation channels in its membrane and holds some of them open, with no kinase in between. Inward Na⁺ and Ca²⁺ form the **dark current**, leaving the rod partly depolarized and releasing **glutamate** continuously. Denis Baylor, Trevor Lamb, and King-Wai Yau drew one toad rod's outer segment into a glass pipette and recorded roughly **20 picoamps** in darkness, dipping by about **1 picoamp** per isomerized rhodopsin.
 
 <RodDarkCurrent />
 
-Because of the dark current the rod sits partly depolarized and releases its transmitter, glutamate, continuously. Now add light.
-
-1. Light turns retinal and rhodopsin becomes active.
-2. Active rhodopsin works as the exchange factor for the rod's G protein, **transducin**. The α subunit of transducin drops GDP and takes up GTP, the switch from the lesson on [GTPase switches](/lessons/gtpase-switches/).
-3. The α subunit with GTP bound binds an inhibitory subunit of a **cGMP phosphodiesterase** called PDE6 and lifts its hold on the catalytic site.
-4. PDE6 hydrolyzes cGMP to GMP.
-5. cGMP falls, channels close, the inward current shrinks and the membrane hyperpolarizes. Glutamate release drops, and the next cell reads that drop.
+Active rhodopsin acts as the exchange factor for the rod's G protein, **transducin**: its α subunit swaps GDP for GTP ([GTPase switches](/lessons/gtpase-switches/)), then binds an inhibitory subunit of **cGMP phosphodiesterase** (**PDE6**) to free its catalytic site. PDE6 hydrolyzes cGMP to GMP; channels close, inward positive current shrinks, the inside grows more negative (the membrane **hyperpolarizes**), and glutamate release drops for the next cell to read.
 
 > **light → active rhodopsin → transducin-GTP → PDE6 on → cGMP falls → channels close → less glutamate**
 
-Compare this with the adrenaline cascade from the [signal transduction overview](/lessons/signal-transduction/). There a G protein switched on a cyclase and a messenger appeared. Here a G protein switches on a phosphodiesterase and a messenger disappears. **A signal is a change from a baseline, and a cell can read a change in either direction.** The cost is that the rod must maintain that baseline all through the dark.
+Unlike the adrenaline cascade ([signal transduction overview](/lessons/signal-transduction/)), where a G protein switches on a cyclase so a messenger appears, transducin switches on a phosphodiesterase so an existing messenger disappears—at the cost of maintaining that baseline all through the dark.
 
-<LessonFigure src="/figures/senses-and-cgmp/rod-dark-vs-light.webp" width={1200} height={800} alt="AI-generated illustration: two close-ups of a rod outer segment. Dark: many cGMP dots, cGMP bound to open channels in the outer membrane, sodium and calcium flowing in, rhodopsin with bent retinal, and transducin and PDE6 idle. Light: a photon straightens the retinal, rhodopsin activates transducin carrying GTP, PDE6 loses its inhibitory lid and breaks cGMP, few cGMP dots remain, and the channels are closed." caption="In the dark, cGMP holds the rod's channels open and a steady current flows in. Light straightens retinal, active rhodopsin switches on transducin, transducin frees PDE6, PDE6 destroys cGMP, and the channels close: the signal is a messenger that falls." />
+<LessonFigure src="/figures/senses-and-cgmp/rod-dark-vs-light.webp" width={1200} height={800} alt="AI-generated illustration: two close-ups of a rod outer segment. Dark: many cGMP dots, cGMP bound to open channels in the outer membrane, sodium and calcium flowing in, rhodopsin with bent retinal, and transducin and PDE6 idle. Light: a photon straightens the retinal, rhodopsin activates transducin carrying GTP, PDE6 loses its inhibitory lid and breaks cGMP, few cGMP dots remain, and the channels are closed." caption="Light switches on rhodopsin, transducin, and PDE6 so cGMP falls and cation channels close, reporting a photon by shrinking the rod's dark current." />
 
-Two steps in this chain multiply: one active rhodopsin switches on many transducins, and one PDE6 destroys many molecules of cGMP. The arithmetic of that gain is worked through in the lesson on [signaling circuits](/lessons/signaling-circuits/).
+**Predict.** In Baylor, Lamb, and Yau's toad-rod recording (20 pA dark current, ~1 pA dip per isomerized rhodopsin), suppose a dim flash isomerizes three rhodopsins and their responses add. Roughly what current flows at the dip, and why can three receptors shift the current so noticeably?
 
-## Recovery: four things have to be undone
+<details>
+<summary>Check your prediction</summary>
 
-A rod that could not shut off would report one flash forever. **What has to be reset?**
+About 17 pA (a 3 pA, or 15%, drop). Two catalytic steps multiply the signal: one active rhodopsin activates many transducins, and each active PDE6 hydrolyzes many cGMP molecules (whereas transducin-to-PDE6 is one-to-one). That gain arithmetic is worked through in [signaling circuits](/lessons/signaling-circuits/).
 
-- **Rhodopsin.** A kinase phosphorylates active rhodopsin, and arrestin then binds it and blocks further contact with transducin. This is the desensitization from the previous lesson.
-- **Transducin.** The α subunit hydrolyzes its GTP, helped by an RGS protein, and releases PDE6. The inhibitory subunit clamps back down.
-- **cGMP.** A guanylyl cyclase remakes cGMP from GTP, and calcium tells it when. In the dark, calcium enters through the open channels and an exchanger carries it back out. When light closes the channels, entry stops while extrusion continues, so calcium falls. Low calcium switches on guanylyl cyclase-activating proteins, cGMP returns and the channels reopen.
-- **Retinal.** All-trans retinal leaves opsin and is turned back into 11-cis retinal by enzymes, most of them in the pigment epithelium next to the rods. Fresh 11-cis retinal then joins opsin with no enzyme needed. This loop takes minutes, which is one reason your eyes adjust slowly to a dark room after bright light.
+</details>
 
-The calcium loop is negative feedback. Under steady background light it pulls cGMP partway back up, so some channels reopen and the rod can still answer an extra flash. That is adaptation, whose general logic is in the signaling circuits lesson.
+## Recovery and adaptation: two timescales of reset
 
-## Color and smell: the same plan with more receptors
+A rod that could not shut off would report one flash forever. Four resets operate on fast and slow timescales.
 
-**How do you get color from a molecule that light can only straighten?** Cones, the photoreceptors you use in daylight, hold the same 11-cis retinal and run the same kind of cascade. What differs is the opsin. The protein around the retinal shifts the wavelength it absorbs best: roughly 420 nm for the blue cone pigment, 530 nm for the green and 560 nm for the red, against about 500 nm for rhodopsin.
+**Fast shutoff stops the cascade.** A kinase phosphorylates active rhodopsin, and **arrestin** binds it to block transducin (desensitization from the previous lesson). Transducin's α subunit hydrolyzes GTP to GDP, helped by an **RGS** protein, releasing PDE6 so its inhibitory subunit clamps back down.
 
-In 1986 Jeremy Nathans, with Thomas and Hogness at Stanford, isolated the three human genes by using the bovine rhodopsin gene as a probe. Each cone pigment is about 41 percent identical to rhodopsin. The red and green pigments are 96 percent identical to each other, and their genes lie side by side on the X chromosome, where sequences so alike are easily mispaired when chromosomes exchange segments. That is why red-green color blindness is common in men.
+**Predict.** If a mutation disables the rod's RGS protein while rhodopsin shutoff and calcium feedback stay intact, how does a flash response change?
 
-Smell takes the same idea much further. In 1991 Linda Buck and Richard Axel reported a very large family of genes, expressed in the olfactory tissue of the rat, that encode seven-helix receptors, and proposed that these are the odorant receptors. Mice carry about 1,000 such genes and humans about 400 working ones. Each sensory neuron in the nose expresses one of them. An odorant binds its receptor, a G protein switches on adenylyl cyclase, **cAMP rises**, and cAMP directly opens a cation channel related to the rod's. Calcium that enters through it opens a second channel, for chloride, and chloride leaving the cell adds to the depolarization. The neuron fires.
+<details>
+<summary>Check your prediction</summary>
 
-So the nose runs in the familiar direction, messenger up and channel open, and the eye runs in reverse. One odorant usually activates several kinds of receptor and one receptor answers to several odorants, so the brain identifies a smell from the combination of neurons that fire. In taste, sweet, bitter and umami compounds are detected by GPCRs, while salt and acid act through ion channels.
+Recovery is much slower. Even after arrestin silences rhodopsin, transducin stays GTP-bound longer and keeps PDE6 destroying cGMP until GTP hydrolysis catches up.
 
-<LessonFigure src="/figures/senses-and-cgmp/eye-vs-nose.webp" width={1200} height={800} alt="AI-generated illustration: two columns. Rod: light hits rhodopsin, which acts through transducin on PDE6; PDE6 breaks down cGMP, so cGMP falls and the ion channel closes. Smell neuron: an odorant binds its receptor, which acts through a G protein on adenylyl cyclase; cAMP rises and the ion channel opens." caption="The eye and the nose use the same plan in opposite directions. In the rod, a G protein switches on PDE6, which breaks cGMP down, so cGMP falls and channels close; in a smell neuron, a G protein switches on adenylyl cyclase, cAMP rises and a related channel opens." />
+</details>
 
-## A gas that relaxes arteries: nitric oxide raises cGMP
+**Falling calcium refills cGMP and drives adaptation.** Extending the first film's calcium loop: in darkness Ca²⁺ enters through open channels while an exchanger pumps it out. When light closes channels, entry stops while extrusion continues, so Ca²⁺ falls. Low Ca²⁺ activates **guanylyl cyclase-activating proteins** (GCAPs), speeding **guanylyl cyclase** to remake cGMP from GTP and reopen channels. Under steady background light, this negative feedback pulls cGMP partway back up so some channels reopen and the rod can still answer an extra flash—**adaptation** (whose general logic is in [signaling circuits](/lessons/signaling-circuits/)).
+
+**Slow regeneration resets retinal.** All-trans retinal leaves opsin and is converted back to 11-cis retinal by enzymes, mostly in the neighboring **pigment epithelium**; fresh 11-cis retinal rejoins opsin with no enzyme needed. This loop takes minutes, one reason your eyes adjust slowly to a dark room after bright light.
+
+## Color and smell: more receptors, opposite sign
+
+**How do you get color from a molecule light can only straighten?** **Cones** (daylight photoreceptors) use the same 11-cis retinal and the same kind of cascade, but different **opsins** shift peak absorption to roughly **420 nm** (blue), **530 nm** (green), and **560 nm** (red), against about **500 nm** for rhodopsin. (*Going deeper* covers how the human cone genes were cloned and why red-green color blindness is common in men.)
+
+Smell scales receptor variety much further. In 1991 **Linda Buck and Richard Axel** reported a large family of seven-helix receptor genes in rat olfactory tissue and proposed them as odorant receptors: mice carry about **1,000** and humans about **400** working ones, with one receptor expressed per sensory neuron. As in the first film, an odorant binds its receptor, a G protein switches on adenylyl cyclase, **cAMP rises**, and cAMP directly opens a cation channel related to the rod's (messenger up, channel open). Two more features complete olfactory signaling:
+
+- **Combinatorial coding:** One odorant activates several receptor types and one receptor answers to several odorants, so the brain reads the combination of firing neurons.
+- **Chloride amplification:** Ca²⁺ entering through the cAMP-gated channel opens a second channel, for chloride.
+
+**Predict.** In most mature central neurons, opening chloride channels holds the cell near rest or hyperpolarizes it. Why does opening chloride channels in an olfactory neuron instead strengthen depolarization?
+
+<details>
+<summary>Check your prediction</summary>
+
+Olfactory sensory neurons keep internal chloride high, so negatively charged Cl⁻ flows *out* when those channels open; losing negative charge makes the inside more positive, amplifying depolarization so the neuron fires.
+
+</details>
+
+<LessonFigure src="/figures/senses-and-cgmp/eye-vs-nose.webp" width={1200} height={800} alt="AI-generated illustration: two columns. Rod: light hits rhodopsin, which acts through transducin on PDE6; PDE6 breaks down cGMP, so cGMP falls and the ion channel closes. Smell neuron: an odorant binds its receptor, which acts through a G protein on adenylyl cyclase; cAMP rises and the ion channel opens." caption="Rods and olfactory neurons wire related cyclic-nucleotide channels in opposite directions: PDE6 lowers cGMP to close rod channels, whereas adenylyl cyclase raises cAMP to open olfactory channels." />
+
+In **taste**, sweet, bitter, and umami compounds use GPCRs, while salt and acid act directly through ion channels.
+
+In the eye, cGMP reports light by falling; outside the eye, that same molecule runs in reverse to control blood flow.
 
 <LessonFilm film={frontmatter.films[0]} />
 
-Outside the eye, cGMP carries its signal by rising.
+## A gas that relaxes arteries: nitric oxide raises cGMP
 
-In 1980 Robert Furchgott and John Zawadzki mounted rings of rabbit aorta in an organ bath. Some rings kept their endothelium, the single layer of cells that lines the vessel. In others it had been rubbed off. Acetylcholine relaxed the intact rings and failed to relax the rubbed ones. So acetylcholine was acting on the lining, and the lining was sending something to the muscle beneath it.
+In 1980 **Robert Furchgott and John Zawadzki** mounted rabbit aortic rings in an organ bath with the **endothelium** (the vessel's single-cell lining) intact or rubbed off. Acetylcholine relaxed only intact rings, showing that the lining sends a signal to the muscle beneath (*Going deeper* traces how Furchgott, Murad, Ignarro, and Palmer, Ferrige, and Moncada identified the signal as nitric oxide).
 
-<LessonFigure src="/figures/senses-and-cgmp/furchgott-aorta-rings.webp" width={1200} height={800} alt="AI-generated illustration: paired schematic views of rabbit aortic rings exposed to acetylcholine. The ring with its lumen lined by endothelium relaxes; the ring with that lining removed does not relax. A vessel-wall inset shows the single endothelial layer on the lumen-facing surface above the smooth muscle." caption="Furchgott and Zawadzki mounted rings of rabbit aorta in an organ bath. Acetylcholine relaxed rings that kept their endothelium and failed to relax rings where it had been rubbed off, so the lining was sending something to the muscle beneath it." />
+<LessonFigure src="/figures/senses-and-cgmp/furchgott-aorta-rings.webp" width={1200} height={800} alt="AI-generated illustration: paired schematic views of rabbit aortic rings exposed to acetylcholine. The ring with its lumen lined by endothelium relaxes; the ring with that lining removed does not relax. A vessel-wall inset shows the single endothelial layer on the lumen-facing surface above the smooth muscle." caption="Acetylcholine relaxes rabbit aortic rings only when the endothelium is intact, proving that the vessel lining sends a relaxing signal to the smooth muscle beneath." />
 
-That something lasted only seconds, which made it hard to identify. Furchgott proposed in 1986 that it is the gas nitric oxide, NO, and Ignarro independently made the same proposal; in 1987 Ignarro's group at UCLA and Palmer, Ferrige and Moncada in England published matching evidence. Ten years earlier Ferid Murad's group at the University of Virginia had found that nitroglycerin and NO gas both switch on guanylyl cyclase, the enzyme that makes cGMP.
+On the endothelial cell, acetylcholine binds a GPCR coupled to the **Gq** branch, raising Ca²⁺; Ca²⁺ bound to **calmodulin** switches on **nitric oxide synthase**, which makes **nitric oxide (NO)** from **arginine**. Small and uncharged, NO crosses membranes freely to neighboring smooth muscle. It is made on demand rather than stored in vesicles, it cannot be aimed, and it reacts away within seconds, so only near neighbors receive it.
 
-1. Acetylcholine binds a GPCR on the endothelial cell, and calcium rises in that cell through the Gq branch.
-2. Calcium, bound to the protein calmodulin, switches on **nitric oxide synthase**, which makes NO from the amino acid arginine.
-3. NO is small and uncharged, so it crosses membranes freely and reaches the smooth muscle cell next door. It is made on demand rather than stored in vesicles, it cannot be aimed, and it reacts away within seconds, so only near neighbors receive it.
-4. In the muscle cell NO binds the iron of a heme group in **soluble guanylyl cyclase**. The enzyme changes shape and makes cGMP from GTP.
-5. cGMP switches on **protein kinase G**. Smooth muscle contracts when calcium is high and its myosin is phosphorylated, and protein kinase G works against both. The muscle relaxes and the vessel widens.
-6. A phosphodiesterase, PDE5, hydrolyzes cGMP and ends the signal.
+In smooth muscle, NO binds the heme iron of **soluble guanylyl cyclase**, which makes **cGMP** from GTP. Rising cGMP activates **protein kinase G (PKG)**; because smooth muscle contracts when Ca²⁺ is high and myosin is phosphorylated, PKG works against both to relax the muscle and widen the vessel. **PDE5** hydrolyzes cGMP to end the signal.
 
-Two drugs act on this pathway. **Nitroglycerin**, used for the chest pain of angina since the nineteenth century, is converted in the tissue to NO. It supplies from outside the gas that the endothelium makes for itself. **Sildenafil** inhibits PDE5. It makes no cGMP; it lets the cGMP made in response to NO last longer.
+**Nitroglycerin** (used for angina chest pain since the nineteenth century) is converted in tissue to NO, supplying the gas from outside. **Sildenafil** inhibits PDE5, letting NO-driven cGMP last longer. Recall the guiding rule: **when rising cGMP carries the signal, blocking breakdown amplifies it.**
 
+**Predict.** If you apply a standard dose of sildenafil to a smooth-muscle strip where no nitric oxide (and no other cGMP-raising signal) is acting, how much relaxation should you expect?
+
+<details>
+<summary>Check your prediction</summary>
+
+Very little. Sildenafil makes no cGMP; it only protects cGMP already being made. Without active synthesis, blocking PDE5 has little effect. Pair the same block with nitroglycerin, which drives synthesis, and cGMP climbs far enough to drop blood pressure dangerously.
+
+</details>
+
+| Cell | Input and receptor | Regulated enzyme | Messenger | Immediate target | Phosphodiesterase role |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| Rod photoreceptor | Light → rhodopsin → transducin | PDE6 on | cGMP **falls** | Cation channels close (hyperpolarizes) | PDE6 creates the light signal |
+| Olfactory neuron | Odorant → odorant GPCR → G protein | Adenylyl cyclase on | cAMP **rises** | Cation channels open + Cl⁻ efflux (depolarizes) | — (not covered here) |
+| Vascular smooth muscle | NO gas → heme site | Soluble guanylyl cyclase on | cGMP **rises** | Protein kinase G (relaxes muscle) | PDE5 ends the relaxation signal |
 
 ### Design problem
 
@@ -501,3 +551,13 @@ Start by asking, for each cell, which direction of change in cGMP is the signal.
 The same inhibitor amplifies one signal and disturbs the other, because the two cells give opposite meanings to the same messenger. A tenfold selectivity is a margin, and a higher dose uses it up.
 
 </details>
+
+## Going deeper
+
+### Cloning the cone pigments and red-green color blindness
+
+In 1986 **Jeremy Nathans**, with Thomas and Hogness at Stanford, isolated the three human cone pigment genes using the bovine rhodopsin gene as a probe. Each cone pigment is about **41 percent** identical to rhodopsin. The red and green pigments are **96 percent** identical to each other, and their genes lie side by side on the X chromosome, where sequences so alike mispair easily when chromosomes exchange segments—explaining why red-green color blindness is common in men.
+
+### How three lines of work identified nitric oxide
+
+The relaxing signal Furchgott and Zawadzki observed in 1980 lasted only seconds, making it hard to identify. Three years before that work (1977), **Ferid Murad's** group at the University of Virginia had found that nitroglycerin and NO gas both switch on guanylyl cyclase, which makes cGMP. In 1986 Furchgott proposed that the relaxing factor is NO, and **Louis Ignarro** independently proposed the same; in 1987 Ignarro's group at UCLA and **Palmer, Ferrige, and Moncada** in England published matching evidence.

@@ -1,703 +1,1030 @@
-"""Sensing the World: a fall can carry a signal  (Biochemistrypedia explainer)
-
-Timed to the SPOKEN words: every self.at("...") cue waits for that phrase in audio/words.json.
-
-COLOR MAP (one color per concept, whole video)
-  YELLOW = the stimulus from outside (a photon of light, an odorant, nitric oxide)
-  BLUE   = the receptor (rhodopsin, the odorant receptor)
-  GOLD   = retinal, the receptor's own built-in ligand
-  PURPLE = the G protein (transducin, the nose's G protein)
-  ORANGE = the enzyme the G protein switches on (PDE6, adenylyl cyclase)
-  TEAL   = the cyclic messenger that holds a channel open (cGMP, cAMP)
-  GREEN  = open / flowing / active (an open gate, the inward current, an active protein)
-  RED    = shut / a fall / off (a closed gate, a drop in level, an inactive receptor)
-  PINK   = the transmitter, glutamate
-  GREY   = membranes, axes, labels, ghosts
-
-No molecular structures: the receptor is a rounded block, retinal is a labelled chip whose name changes
-from bent to straight, a channel is two posts in the membrane with a hinged gate, a messenger is a chip,
-a current is a stream of dots, and every trace is computed from an equation.
-
-Framings (the same rod, rebuilt where the action is):
-  A  (s02)      channels at mid-height, ions falling in from above, the messenger pool below, traces at right
-  B  (s03-s05)  the whole channel row lifted to the top, the chain of events along the bottom or traces below
 """
-import numpy as np
-from bp_style import *  # noqa: F401,F403
+A Fall Can Carry a Signal (senses-and-cgmp)
 
-PURPLE = "#B58CD9"
-ORANGE = "#F29E4C"
-PINK = "#F08BB4"
+COLOUR MAP (one colour per concept for the whole film):
+- #2DD4BF (C_CGMP)      : cGMP (rod second messenger & gauge)
+- #38BDF8 (C_CURRENT)   : Na+ / cation current & schematic current trace
+- #FACC15 (C_LIGHT)     : photon / light / active rhodopsin / GTP highlight
+- #34D399 (C_CYCLASE)   : cyclase (guanylyl cyclase in rod, adenylyl cyclase in nose)
+- #F43F5E (C_PDE)       : PDE6 (cGMP breakdown enzyme)
+- #FB923C (C_CA)        : Ca2+ ions, exchanger & Ca2+ gauge
+- #F59E0B (C_CAMP)      : cAMP (olfactory second messenger & gauge)
+- #A78BFA (C_GLUT)      : glutamate synaptic output
+- #8B93A1 (GREY)        : membranes, inhibitory cap, inactive GMP, schematic tag
+- #E8EAF0 (TEXT)        : crisp off-white primary labels & question card
 
-XS = [-4.5, -2.3, -0.1, 2.1]       # channel centres
-OPEN_IDX = [0, 1, 3]               # the channels cGMP holds open in the dark ("some of them")
-GAP, POST, MT = 0.9, 0.22, 0.6     # gate gap, post width, membrane thickness
-X0, X1 = -6.3, 3.2                 # membrane extent
-YA, YB = 0.6, 2.5                  # membrane height in framings A and B
-DXB = 1.5                          # framing B slides the row right so it is centred
-CHIP = 28                          # text size of messenger chips
+CARRIED WORLD:
+A cross-section of a rod outer segment (left stacked discs holding rhodopsin, central cytosol
+with cyclase, PDE6, transducin, cGMP and Ca2+, right plasma membrane with three cation channels
+and synaptic glutamate release, plus far-left vertical gauges and a bottom schematic current
+trace). S03 zooms into rhodopsin on the disc; S09 compares the rod on the left beside an
+olfactory neuron on the right; S10 foregrounds the two opposite gauges.
 
-POOL1 = [-4.4, -2.2, 0.0, 2.2]     # pool rows (x), y = membrane y - 1.85 and - 3.15
-POOL2 = [-3.3, -1.1, 1.1]
-BOUND_FROM = [0, 1, 3]             # POOL1 index of the chips that go and bind (to channels 0, 1, 3)
+PER-SCENE CHANGES (and what each is computed from):
+- s01_hook: Photon strike triggers a computed Gaussian dip in the sweeping schematic current trace, then recovers to dark baseline.
+- s02_dark_baseline: Cyclase pulses and replenishes cGMP while PDE6 idles; cGMP docks on 2 of 3 channels, Na+/Ca2+ stream in, glutamate exits; 'Make (cyclase): steady' and 'Break (PDE6, idling): slow' build as spoken.
+- s03_retinal_switch: Zoomed rhodopsin pocket; photon straightens bent 11-cis retinal bar (computed angle interpolation) into all-trans retinal, pushing rhodopsin into glowing active shape.
+- s04_cascade_drop: Transducin flips GDP->GTP, lifts cap off PDE6, spinning PDE6 turns cGMP into fading GMP; cGMP gauge drops from 0.82 to 0.12 and channels snap shut.
+- s05_hyperpolarize_reset: Inflow stops, computed current trace plunges continuously, glutamate dwindles; P/arrestin quiet rhodopsin, GTP->GDP resets transducin and PDE6 cap clamps back; cGMP gauge stays at 0.12.
+- s06_predict_q: Exchanger pumps Ca2+ out while closed channels block entry; Ca2+ gauge falls from 0.80 to 0.15; GCAPs dock on cyclase; dim light wash settles; question card appears with no answer shown.
+- s07_predict_pause: Holds s06 picture and question card for 4.5 s with pulsing '?' and countdown ring.
+- s08_predict_reveal: Ca2+->cyclase feedback refills cGMP gauge from 0.12 to 0.48, 1 channel reopens, current trace sweeps up to mid-level ('Current left to shut off') and dips again at an extra flash.
+- s09_nose_contrast: Rod on left beside olfactory neuron on right; odorant binds receptor, activates G protein and adenylyl cyclase; cAMP gauge climbs from 0.15 to 0.85, opening channel and depolarizing membrane.
+- s10_takehome: Side-by-side gauges gently pulse around baselines: Rod cGMP drops from 0.72 to 0.22 below dashed baseline; Nose cAMP climbs from 0.25 to 0.80 above dashed baseline.
+"""
 
+from bp_parts import *
 
-# ---------------------------------------------------------------------------------------------
-# small helpers
-# ---------------------------------------------------------------------------------------------
-def bchip(text, color=BLUE, size=24, pad=0.14, **kw):
-    """chip with an opaque backing so lines drawn behind it do not show through. [back, box, label]"""
-    c = chip(text, color, size=size, pad=pad, **kw)
-    back = RoundedRectangle(corner_radius=0.14, width=c[0].width, height=c[0].height, stroke_width=0,
-                            fill_color=BG, fill_opacity=1).move_to(c[0])
-    return VGroup(back, *c)
-
-
-def bchip2(text, color=BLUE, size=24, pad=0.16):
-    """a two-line chip with an opaque backing. [back, box, label]"""
-    label = T(text, size, color, line_spacing=0.8)
-    box = RoundedRectangle(corner_radius=0.14, width=label.width + 2 * pad, height=label.height + 2 * pad, stroke_color=color,
-                           stroke_width=2.5, fill_color=color, fill_opacity=0.16)
-    back = RoundedRectangle(corner_radius=0.14, width=box.width, height=box.height, stroke_width=0, fill_color=BG, fill_opacity=1)
-    return VGroup(back, box, label).move_to(ORIGIN)
-
-
-def pulse(c, color, s=1.1, **kw):
-    return Indicate(VGroup(*c[1:]), color=color, scale_factor=s, **kw)
-
-
-def arr(a, b, color=GREY, w=5, tip=0.2):
-    return Arrow(a, b, buff=0.05, color=color, stroke_width=w, tip_length=tip,
-                 max_tip_length_to_length_ratio=0.45, max_stroke_width_to_length_ratio=12)
-
-
-def pop(m, s=1.3):
-    return m.animate(rate_func=there_and_back).scale(s)
+# Concept colour map
+C_CGMP = "#2DD4BF"
+C_CURRENT = "#38BDF8"
+C_LIGHT = "#FACC15"
+C_CYCLASE = "#34D399"
+C_PDE = "#F43F5E"
+C_CA = "#FB923C"
+C_CAMP = "#F59E0B"
+C_GLUT = "#A78BFA"
+C_CYTOSOL = "#1E293B"
 
 
-def ghost_of(c):
-    """a dashed outline where a chip used to be."""
-    box = RoundedRectangle(corner_radius=0.14, width=c[1].width, height=c[1].height).move_to(c[1])
-    return DashedVMobject(box, num_dashes=24).set_color(GREY)
+# ------------------------------------------------------------------ shared builders
+def make_gauge(x, y0=-1.1, y1=2.1, width=0.56, color=C_CGMP, label="cGMP",
+               init_val=0.82, baseline=None, label_size=26):
+    """Vertical bar gauge driven by a ValueTracker (0..1)."""
+    tr = ValueTracker(init_val)
+    h = y1 - y0
+    frame = Polygon(
+        [x - width / 2, y0, 0], [x + width / 2, y0, 0],
+        [x + width / 2, y1, 0], [x - width / 2, y1, 0],
+        stroke_color=TEXT, stroke_width=2.5, fill_color=C_CYTOSOL, fill_opacity=0.65
+    )
 
+    def _fill():
+        v = float(np.clip(tr.get_value(), 0.02, 1.0))
+        fh = max(0.06, v * (h - 0.06))
+        cx = x
+        cy_bot = y0 + 0.03
+        cy_top = cy_bot + fh
+        hw = (width - 0.08) / 2
+        return Polygon(
+            [cx - hw, cy_bot, 0], [cx + hw, cy_bot, 0],
+            [cx + hw, cy_top, 0], [cx - hw, cy_top, 0],
+            stroke_width=0, fill_color=color, fill_opacity=0.90
+        )
 
-def photon(x, y):
-    halo = Circle(radius=0.3, stroke_width=0, fill_color=YELLOW, fill_opacity=0.22)
-    core = Dot(radius=0.13, color=YELLOW)
-    return VGroup(halo, core).move_to([x, y, 0])
-
-
-class Stream(VGroup):
-    """dots that fall for ever through a channel: an ion current (or a drip of transmitter)."""
-
-    def __init__(self, x, y_top, y_bot, n=9, color=GREEN, speed=1.5, jitter=0.14, seed=0, r=0.075):
-        super().__init__()
-        rng = np.random.RandomState(seed)
-        self.y_top, self.y_bot, self.speed = y_top, y_bot, speed
-        self.master = 1.0
-        self.mult = np.ones(n)
-        H = y_top - y_bot
-        for i in range(n):
-            self.add(Dot([x + rng.uniform(-jitter, jitter), y_bot + H * (i + rng.uniform(0, 0.5)) / n, 0], radius=r, color=color))
-        self.add_updater(self._step)
-        self._step(self, 0)
-
-    def _step(self, m, dt):
-        H = self.y_top - self.y_bot
-        for i, d in enumerate(self.submobjects):
-            c = d.get_center()
-            ny = c[1] - self.speed * dt
-            if ny < self.y_bot:
-                ny += H
-            d.move_to([c[0], ny, 0])
-            edge = min(ny - self.y_bot, self.y_top - ny)
-            d.set_opacity(float(np.clip(edge / 0.35, 0, 1)) * self.master * self.mult[i])
-
-    def fade(self, target, run_time=0.5):
-        v0 = self.master
-        return UpdateFromAlphaFunc(Mobject(), lambda m, a: setattr(self, "master", v0 + (target - v0) * a), run_time=run_time)
-
-    def thin(self, keep, run_time=0.8):
-        m0 = self.mult.copy()
-        tgt = np.array([1.0 if i < keep else 0.0 for i in range(len(self.submobjects))])
-        return UpdateFromAlphaFunc(Mobject(), lambda m, a: setattr(self, "mult", m0 + (tgt - m0) * a), run_time=run_time)
-
-
-def resp(u):
-    """a rod's response to one photon: rises to its peak at u = 1, then recovers slowly (computed, not drawn by hand)."""
-    u = np.maximum(u, 0.0)
-    return (u * np.exp(1 - u)) ** 3
-
-
-class Panel(VGroup):
-    """A small plot: axes, title and the flat dark trace.  .dip(u_end) is the response to a photon."""
-
-    def __init__(self, x0, x1, y_axis, y_top, title, color, base, depth, t0=0.42, tp=0.1, tsize=22):
-        super().__init__()
-        self.x0, self.x1, self.base, self.dep, self.t0, self.tp, self.col = x0, x1, base, depth, t0, tp, color
-        self.axes = VGroup(Line([x0, y_axis, 0], [x0, y_top, 0], color=GREY, stroke_width=3),
-                           Line([x0, y_axis, 0], [x1, y_axis, 0], color=GREY, stroke_width=3))
-        self.title = T(title, tsize, color).move_to([x0 + 0.12, y_top - 0.22, 0], aligned_edge=LEFT)
-        self.flat = Line([self.xm(0.0), base, 0], [self.xm(t0), base, 0], color=color, stroke_width=5)
-        self.add(self.axes, self.title, self.flat)
-
-    def xm(self, t):
-        return self.x0 + 0.15 + t * (self.x1 - self.x0 - 0.3)
-
-    def dip(self, u_end=None):
-        """the fall after a photon.  u_end=1 stops at the trough; None runs on until the trace has recovered."""
-        u_max = (1 - self.t0) / self.tp
-        u_end = u_max if u_end is None else min(u_end, u_max)
-        us = np.linspace(0, u_end, 90)
-        pts = [[self.xm(self.t0 + self.tp * u), self.base - self.dep * float(resp(u)), 0] for u in us]
-        return VMobject(stroke_color=self.col, stroke_width=5).set_points_as_corners(pts)
-
-    def trough(self):
-        return np.array([self.xm(self.t0 + self.tp), self.base - self.dep, 0])
-
-
-# ---------------------------------------------------------------------------------------------
-# the channel row
-# ---------------------------------------------------------------------------------------------
-class ChanRow:
-    """A membrane with four channels. Each channel is two posts and a hinged gate (green = open, red = shut).
-    dx slides the whole row sideways (framing B centres it)."""
-
-    def __init__(self, ym, open_idx=(), dx=0.0):
-        self.ym, self.dx = ym, dx
-        self.xs = [x + dx for x in XS]
-        self.segs, self.posts, self.flaps = VGroup(), VGroup(), []
-        prev = X0 + dx
-        for x in self.xs:
-            self.segs.add(self._seg(prev, x - GAP / 2 - POST))
-            prev = x + GAP / 2 + POST
-            for s in (-1, 1):
-                px = x + s * (GAP / 2 + POST / 2)
-                self.posts.add(RoundedRectangle(corner_radius=0.06, width=POST, height=MT + 0.5, stroke_color=GREY,
-                                                stroke_width=3, fill_color=GREY, fill_opacity=0.65).move_to([px, ym, 0]))
-        self.segs.add(self._seg(prev, X1 + dx))
-        for i, x in enumerate(self.xs):
-            f = RoundedRectangle(corner_radius=0.05, width=GAP, height=0.16, stroke_color=RED, stroke_width=2,
-                                 fill_color=RED, fill_opacity=0.95).move_to([x, ym, 0])
-            self.flaps.append(f)
-            if i in open_idx:
-                f.rotate(PI / 2, about_point=self.pivot(i)).set_color(GREEN)
-        self.group = VGroup(self.segs, self.posts, *self.flaps)
-
-    def _seg(self, a, b):
-        return RoundedRectangle(corner_radius=0.08, width=b - a, height=MT, stroke_color=GREY, stroke_width=3,
-                                fill_color=GREY, fill_opacity=0.35).move_to([(a + b) / 2, self.ym, 0])
-
-    def pivot(self, i):
-        return np.array([self.xs[i] - GAP / 2 + 0.08, self.ym, 0])
-
-    def bound_xy(self, i):
-        return np.array([self.xs[i] - 0.95, self.ym - (MT + 0.5) / 2 - 0.33, 0])
-
-    def pool_xy(self, row, k):
-        y = self.ym - (1.75 if row == 1 else 3.25)
-        return np.array([(POOL1 if row == 1 else POOL2)[k] + self.dx, y, 0])
-
-    def swing(self, i, opening, run_time=0.5):
-        f, P = self.flaps[i], self.pivot(i)
-        start = f.copy()
-        ang = PI / 2 if opening else -PI / 2
-        c0, c1 = (ManimColor(RED), ManimColor(GREEN)) if opening else (ManimColor(GREEN), ManimColor(RED))
-
-        def upd(m, a):
-            m.become(start.copy().rotate(a * ang, about_point=P).set_color(interpolate_color(c0, c1, a)))
-        return UpdateFromAlphaFunc(f, upd, run_time=run_time)
-
-
-def pool_chips(row, label="cGMP", color=TEAL):
-    """the seven free chips of a pool (rows 1 and 2), as a list in POOL1 then POOL2 order."""
-    out = []
-    for k in range(len(POOL1)):
-        out.append(bchip(label, color, CHIP).move_to(row.pool_xy(1, k)))
-    for k in range(len(POOL2)):
-        out.append(bchip(label, color, CHIP).move_to(row.pool_xy(2, k)))
-    return out
-
-
-def ion(label, x, y, y_end=-0.7, speed=3.0):
-    """a labelled ion that falls on its own (an updater), so the scene does not wait for it."""
-    c = Circle(radius=0.31, stroke_color=GREEN, stroke_width=3, fill_color=GREEN, fill_opacity=0.22)
-    t = T(label, 22, TEXT).move_to(c)
-    g = VGroup(c, t).move_to([x, y, 0])
-
-    def upd(m, dt):
-        m.shift(DOWN * speed * dt)
-        v = float(np.clip((m.get_center()[1] - y_end) / 0.5, 0, 1))
-        c.set_stroke(opacity=v).set_fill(opacity=0.22 * v)
-        t.set_opacity(v)
-        if v <= 0:
-            m.clear_updaters()
-    g.add_updater(upd)
+    bar = always_redraw(_fill)
+    lab = T(label, label_size, color).move_to([x, y1 + 0.34, 0])
+    g = VGroup(frame, bar, lab)
+    if baseline is not None:
+        by = y0 + baseline * h
+        dash = DashedLine([x - width * 0.72, by, 0], [x + width * 0.72, by, 0],
+                          color=TEXT, stroke_width=2.5, dash_length=0.1)
+        g.add(dash)
+    g.tracker = tr
+    g.frame = frame
+    g.lab = lab
+    g.y0, g.y1, g.x = y0, y1, x
     return g
 
 
-def panels_narrow():
-    top = Panel(3.9, 6.25, 0.35, 3.35, "inward current", GREEN, base=2.2, depth=1.1)
-    bot = Panel(3.9, 6.25, -3.3, -0.15, "transmitter", PINK, base=-1.25, depth=1.1)
-    return top, bot
+def make_channel(y, x=3.6, open_frac=1.0, cgmp_bound=False):
+    """Membrane cation channel at x with pivoting gates driven by a ValueTracker."""
+    tr = ValueTracker(open_frac)
+    top_lip = Line([x - 0.28, y + 0.28, 0], [x + 0.28, y + 0.28, 0], color=TEXT, stroke_width=5)
+    bot_lip = Line([x - 0.28, y - 0.28, 0], [x + 0.28, y - 0.28, 0], color=TEXT, stroke_width=5)
+
+    def _gates():
+        f = float(np.clip(tr.get_value(), 0.0, 1.0))
+        gap = 0.02 + 0.20 * f
+        upper = Line([x, y + 0.26, 0], [x, y + gap, 0], color=C_CURRENT, stroke_width=7)
+        lower = Line([x, y - 0.26, 0], [x, y - gap, 0], color=C_CURRENT, stroke_width=7)
+        return VGroup(upper, lower)
+
+    gates = always_redraw(_gates)
+    pocket = Arc(radius=0.12, start_angle=PI / 2, angle=PI, arc_center=[x - 0.30, y - 0.14, 0],
+                 color=C_CGMP, stroke_width=3)
+    dot = Dot([x - 0.32, y - 0.14, 0], radius=0.085, color=C_CGMP)
+    if not cgmp_bound:
+        dot.set_opacity(0.0)
+    g = VGroup(top_lip, bot_lip, gates, pocket, dot)
+    g.tracker = tr
+    g.cgmp_dot = dot
+    g.y_pos = y
+    return g
 
 
-class Film(SpokenScene):
-    def outro(self, *anims, then=None, run_time=0.45):
-        """hold until the narration ends, clear what the next scene does not inherit, then reframe."""
-        rest = self.narration_s - 0.02 - self.elapsed()
-        if rest > 0:
-            self.wait(rest)
-        if anims:
-            self.play(*anims, run_time=run_time)
-        if then:
-            self.play(*then, run_time=0.9)
-            self.wait(0.1)
-        self.finish()
+def make_rod_shell(x_left=-3.5, x_right=3.6, y_bot=-1.05, y_top=2.95, channel_ys=(2.1, 0.9, -0.3)):
+    """Polygon rod outer-segment silhouette with open channel pores on the right membrane."""
+    cytosol = Polygon(
+        [x_left, y_bot, 0], [x_right, y_bot, 0],
+        [x_right, y_top, 0], [x_left, y_top, 0],
+        stroke_width=0, fill_color=C_CYTOSOL, fill_opacity=0.62
+    )
+    cytosol.set_z_index(-6)
+    left_wall = Line([x_left, y_bot, 0], [x_left, y_top, 0], color=GREY, stroke_width=4.5)
+    top_wall = Line([x_left, y_top, 0], [x_right, y_top, 0], color=GREY, stroke_width=4.5)
+    bot_wall = Line([x_left, y_bot, 0], [x_right, y_bot, 0], color=GREY, stroke_width=4.5)
+
+    ys_sorted = sorted(channel_ys, reverse=True)
+    segs = []
+    cur_y = y_top
+    for cy in ys_sorted:
+        segs.append(Line([x_right, cur_y, 0], [x_right, cy + 0.28, 0], color=GREY, stroke_width=4.5))
+        cur_y = cy - 0.28
+    segs.append(Line([x_right, cur_y, 0], [x_right, y_bot, 0], color=GREY, stroke_width=4.5))
+    right_wall = VGroup(*segs)
+
+    # Three stacked disc membranes on the left
+    discs = VGroup()
+    for dy in (2.1, 1.0, -0.1):
+        d = Ellipse(width=1.65, height=0.56, color=GREY, stroke_width=3,
+                    fill_color=GREY, fill_opacity=0.22).move_to([-2.45, dy, 0])
+        discs.add(d)
+
+    return VGroup(cytosol, left_wall, top_wall, bot_wall, right_wall, discs), discs
 
 
+def make_rhodopsin(pos=(-2.25, 2.1, 0), active=False, scale=1.0):
+    """Rhodopsin block sitting on a disc membrane."""
+    col = C_LIGHT if active else GREY
+    op = 0.40 if active else 0.28
+    body = Ellipse(width=0.60 * scale, height=0.40 * scale, color=col, stroke_width=3,
+                   fill_color=col, fill_opacity=op).move_to(pos)
+    return body
+
+
+def make_cyclase(pos=(-0.75, -0.38, 0), bright=False):
+    """Guanylyl cyclase enzyme on the lower cytosol."""
+    col = C_CYCLASE
+    op = 0.52 if bright else 0.28
+    sw = 4.5 if bright else 3.0
+    body = Ellipse(width=1.10, height=0.56, color=col, stroke_width=sw,
+                   fill_color=col, fill_opacity=op).move_to(pos)
+    return body
+
+
+def add_cyclase_pulse(cyclase, amp=0.06, speed=3.5):
+    """Continuous gentle breathing pulse on guanylyl cyclase."""
+    cyclase._pt = 0.0
+    base_w, base_h = cyclase.width, cyclase.height
+
+    def _u(mob, dt):
+        mob._pt += dt
+        s = 1.0 + amp * np.sin(speed * mob._pt)
+        mob.stretch_to_fit_width(base_w * s)
+        mob.stretch_to_fit_height(base_h * s)
+
+    cyclase.add_updater(_u)
+    return cyclase
+
+
+def make_pde6(pos=(2.25, 1.95, 0), capped=True):
+    """Rose PDE6 enzyme with removable grey inhibitory cap."""
+    core = Circle(radius=0.35, color=C_PDE, stroke_width=3.5,
+                  fill_color=C_PDE, fill_opacity=0.28).move_to(pos)
+    spokes = VGroup(*[
+        Line(pos + 0.10 * np.array([np.cos(a), np.sin(a), 0]),
+             pos + 0.31 * np.array([np.cos(a), np.sin(a), 0]),
+             color=C_PDE, stroke_width=3.5)
+        for a in np.linspace(0, TAU, 6, endpoint=False)
+    ])
+    cap = Arc(radius=0.43, start_angle=PI * 0.25, angle=PI * 0.9, arc_center=pos,
+              color=GREY, stroke_width=7)
+    if not capped:
+        cap.shift(UP * 0.42 + LEFT * 0.15).set_opacity(0.0)
+    g = VGroup(core, spokes, cap)
+    g.core = core
+    g.spokes = spokes
+    g.cap = cap
+    return g
+
+
+def make_cytosol_dots(count=14, color=C_CGMP, x_range=(-1.2, 2.7), y_range=(0.22, 1.25),
+                      seed=7, radius=0.09):
+    """Deterministic drifting messenger or Ca2+ dots in a clean cytosol box."""
+    rng = np.random.default_rng(seed)
+    dots = VGroup()
+    for _ in range(count):
+        x = rng.uniform(*x_range)
+        y = rng.uniform(*y_range)
+        vx = rng.uniform(0.28, 0.52) * (1 if rng.random() > 0.5 else -1)
+        vy = rng.uniform(0.18, 0.34) * (1 if rng.random() > 0.5 else -1)
+        d = Dot([x, y, 0], radius=radius, color=color, fill_opacity=0.92)
+        d._vx, d._vy = vx, vy
+        dots.add(d)
+    return dots
+
+
+def add_drift_updater(dots, x_range=(-1.2, 2.7), y_range=(0.22, 1.25), speed_tracker=None):
+    """Keep dots bouncing smoothly inside a confined cytosol box."""
+    x0, x1 = x_range
+    y0, y1 = y_range
+
+    def _u(mob, dt):
+        s = speed_tracker.get_value() if speed_tracker is not None else 1.0
+        for d in mob:
+            p = d.get_center()
+            nx = p[0] + d._vx * dt * s
+            ny = p[1] + d._vy * dt * s
+            if nx < x0 or nx > x1:
+                d._vx = -d._vx
+                nx = float(np.clip(nx, x0, x1))
+            if ny < y0 or ny > y1:
+                d._vy = -d._vy
+                ny = float(np.clip(ny, y0, y1))
+            d.move_to([nx, ny, 0])
+
+    dots.add_updater(_u)
+    return dots
+
+
+def make_ion_stream(ys=(2.1, 0.9), colors=(C_CURRENT, C_CURRENT, C_CA), flow_tracker=None):
+    """Streaming Na+ / Ca2+ beads moving right-to-left through open channels."""
+    beads = VGroup()
+    rng = np.random.default_rng(11)
+    for idx, cy in enumerate(ys):
+        for k in range(4):
+            col = colors[(idx + k) % len(colors)]
+            d = Dot([5.7 - k * 0.72, cy + rng.uniform(-0.07, 0.07), 0], radius=0.085, color=col)
+            d._cy = cy
+            d._speed = 1.45
+            beads.add(d)
+
+    def _u(mob, dt):
+        f = flow_tracker.get_value() if flow_tracker is not None else 1.0
+        for d in mob:
+            if f <= 0.05:
+                d.set_opacity(0.0)
+                continue
+            d.set_opacity(min(1.0, f))
+            d.shift(LEFT * d._speed * dt * (0.45 + 0.55 * f))
+            if d.get_center()[0] < 2.55:
+                d.move_to([5.75, d._cy, 0])
+
+    beads.add_updater(_u)
+    return beads
+
+
+def make_rod_world(cgmp_val=0.82, ch_open=(1.0, 1.0, 0.0), active_rhod=False,
+                   pde_capped=True, cyclase_bright=False, with_ca_gauge=False,
+                   ca_val=0.80, with_cgmp_gauge=True, ion_flow=1.0,
+                   with_labels=True, cgmp_x_range=(-1.2, 2.7), cgmp_y_range=(0.22, 1.22)):
+    """Build the complete carried rod outer-segment world."""
+    shell, discs = make_rod_shell()
+    rhod_top = make_rhodopsin((-2.25, 2.1, 0), active=active_rhod)
+    rhod_mid = make_rhodopsin((-2.25, 1.0, 0), active=False)
+    rhod_bot = make_rhodopsin((-2.25, -0.1, 0), active=False)
+    rhods = VGroup(rhod_top, rhod_mid, rhod_bot)
+
+    cyclase = make_cyclase((-0.75, -0.38, 0), bright=cyclase_bright)
+    pde = make_pde6((2.25, 1.95, 0), capped=pde_capped)
+
+    ch_ys = (2.1, 0.9, -0.3)
+    channels = VGroup(*[
+        make_channel(y, open_frac=op, cgmp_bound=(op > 0.3))
+        for y, op in zip(ch_ys, ch_open)
+    ])
+
+    n_cgmp = max(2, min(12, int(round(12 * cgmp_val / 0.82))))
+    cgmp_op = float(np.clip(0.45 + 0.47 * (cgmp_val / 0.82), 0.45, 0.92))
+    cgmp_dots = make_cytosol_dots(count=n_cgmp, color=C_CGMP, x_range=cgmp_x_range, y_range=cgmp_y_range, seed=7)
+    cgmp_dots.set_opacity(cgmp_op)
+    add_drift_updater(cgmp_dots, x_range=cgmp_x_range, y_range=cgmp_y_range)
+
+    flow_tr = ValueTracker(ion_flow)
+    open_ys = [y for y, op in zip(ch_ys, ch_open) if op > 0.2] or [2.1]
+    ions = make_ion_stream(ys=tuple(open_ys), flow_tracker=flow_tr)
+
+    cgmp_gauge = make_gauge(-5.65, label="cGMP", color=C_CGMP, init_val=cgmp_val, baseline=0.82) if with_cgmp_gauge else None
+    ca_gauge = make_gauge(-4.50, label="Ca2+", color=C_CA, init_val=ca_val) if with_ca_gauge else None
+
+    labels = VGroup()
+    if with_labels:
+        l_rhod = T("rhodopsin", 26, TEXT).move_to([-2.45, 3.25, 0])
+        l_pde = T("PDE6", 26, C_PDE).move_to([2.25, 3.25, 0])
+        l_cyc = T("cyclase", 26, C_CYCLASE).move_to([0.75, -0.38, 0])
+        l_chan = T("channels", 26, C_CURRENT).move_to([4.85, 3.25, 0])
+        labels.add(l_rhod, l_pde, l_cyc, l_chan)
+
+    world = VGroup(shell, rhods, cyclase, pde, channels, cgmp_dots, ions, labels)
+    if cgmp_gauge is not None:
+        world.add(cgmp_gauge)
+    if ca_gauge is not None:
+        world.add(ca_gauge)
+
+    world.shell = shell
+    world.discs = discs
+    world.rhod_top = rhod_top
+    world.rhods = rhods
+    world.cyclase = cyclase
+    world.pde = pde
+    world.channels = channels
+    world.cgmp_dots = cgmp_dots
+    world.ions = ions
+    world.flow_tr = flow_tr
+    world.cgmp_gauge = cgmp_gauge
+    world.ca_gauge = ca_gauge
+    world.labels = labels
+    return world
+
+
+def make_current_plot():
+    """Bottom schematic current trace Plot (x in 0..10, y in 0..1.1)."""
+    P = Plot(
+        box=(-3.4, 3.3, -3.25, -2.04),
+        xr=(0, 10), yr=(0, 1.1),
+        xticks=[],
+        yticks=[(0.20, "low"), (0.85, "dark")],
+        ylabel="current",
+        color=GREY, size=22, label_size=24, stroke=3
+    )
+    return P
+
+
+# ------------------------------------------------------------------ scenes
 class S00Title(TitleCard):
-    LESSON = "Sensing the World"
-    TITLE = "A fall can carry a signal"
+    LESSON = "Sensing the World: Vision, Smell, Nitric Oxide and cGMP"
+    TITLE = "A Fall Can Carry a Signal"
 
 
-# ---------------------------------------------------------------------------------------------
-class S01Dip(Film):
-    """one photon, a current switched off: the puzzle is a fall."""
-
+class S01Hook(SpokenScene):
     def construct(self):
-        RX = -4.7
-        rod = RoundedRectangle(corner_radius=0.8, width=2.0, height=4.8, stroke_color=GREY, stroke_width=4,
-                               fill_color=GREY, fill_opacity=0.12).move_to([RX, 0.4, 0])
-        rod_lbl = T("rod cell", 28, TEXT).move_to([RX, 0.4, 0])
-        self.play(Create(rod), FadeIn(rod_lbl), run_time=0.8)
+        world = make_rod_world(cgmp_val=0.82, ch_open=(1.0, 1.0, 0.0), with_cgmp_gauge=False)
+        P = make_current_plot()
+        stag = scope_tag("schematic")
+        t = ValueTracker(0.05)
 
-        # the photon waits above the rod
-        ph = photon(RX, 3.15)
-        ph_lbl = T("photon", 24, YELLOW).next_to(ph, RIGHT, buff=0.15)
-        self.at("single photon")
-        self.play(FadeIn(ph, scale=0.5), FadeIn(ph_lbl), run_time=0.5)
+        trace_fn = lambda x: 0.85 - 0.60 * np.exp(-((x - 3.2) / 0.85) ** 2)
+        live = P.live_curve(trace_fn, t, color=C_CURRENT, width=5)
+        dot = P.dot(lambda: t.get_value(), lambda: trace_fn(t.get_value()), color=C_CURRENT, ring=TEXT, radius=0.09)
 
-        # the current: arrows crossing into the rod
-        ins = VGroup()
-        for y in (1.6, 0.4, -0.8):
-            ins.add(Arrow([-6.3, y, 0], [-5.75, y, 0], buff=0, color=GREEN, stroke_width=6, tip_length=0.2))
-            ins.add(Arrow([-3.1, y, 0], [-3.65, y, 0], buff=0, color=GREEN, stroke_width=6, tip_length=0.2))
-        top = Panel(-1.9, 6.2, 0.7, 3.35, "inward current", GREEN, base=2.25, depth=1.2)
-        bot = Panel(-1.9, 6.2, -3.3, -0.55, "transmitter", PINK, base=-1.6, depth=1.2)
-        self.at("reports that")
-        self.play(Indicate(ph[1], color=TEXT, scale_factor=1.6), run_time=0.7)
-        self.at("a current")
-        self.play(FadeIn(top.axes), FadeIn(top.title), run_time=0.5)
-        self.at("In the dark")
-        self.play(LaggedStart(*[GrowArrow(a) for a in ins], lag_ratio=0.1), run_time=0.9)
-        self.at("steady inward current")
-        self.play(Create(top.flat), run_time=1.0)
+        self.add(world, P, stag, live, dot)
+        self.play(t.animate(rate_func=linear).set_value(1.5), run_time=self.t_of("a single photon") - 0.2)
 
-        # transmitter: a steady drip from the foot of the rod
-        drip = Stream(RX, -2.05, -3.4, n=6, color=PINK, speed=1.2, jitter=0.12, seed=2, r=0.08)
-        drip_lbl = T("transmitter", 22, PINK).move_to([RX + 1.55, -2.75, 0])
-        self.at("releases transmitter")
-        self.add(drip)
-        self.play(FadeIn(bot.axes), FadeIn(bot.title), FadeIn(drip_lbl), Create(bot.flat), run_time=1.0)
+        # Gold photon arrow flashes onto left disc; label placed clearly left of x=-3.5 wall
+        photon = Arrow([-5.7, 2.1, 0], [-2.75, 2.1, 0], color=C_LIGHT, stroke_width=6, buff=0.0)
+        p_lab = T("photon", 26, C_LIGHT).move_to([-4.65, 2.58, 0])
+        self.play(FadeIn(photon, shift=RIGHT * 0.2), FadeIn(p_lab), run_time=0.45)
 
-        # light: the photon drops in and both traces dip
-        mark_t = DashedLine([top.xm(top.t0), 3.2, 0], [top.xm(top.t0), 0.7, 0], color=YELLOW, stroke_width=3, dash_length=0.12)
-        mark_b = DashedLine([bot.xm(bot.t0), -0.6, 0], [bot.xm(bot.t0), -3.3, 0], color=YELLOW, stroke_width=3, dash_length=0.12)
-        self.at("Light reduces both")
-        d_top, d_bot = top.dip(), bot.dip()
-        self.play(ph.animate.move_to([RX, 2.2, 0]), FadeOut(ph_lbl), run_time=0.3, rate_func=rush_into)
-        self.play(Flash(ph.get_center(), color=YELLOW, line_length=0.3, flash_radius=0.4), FadeOut(ph), FadeIn(mark_t),
-                  FadeIn(mark_b), Create(d_top), Create(d_bot), ins.animate.set_opacity(0.25), drip.thin(2, 1.0),
-                  run_time=1.3, rate_func=linear)
+        self.at("turning an electrical")
+        self.play(
+            t.animate(rate_func=linear).set_value(4.0),
+            world.flow_tr.animate.set_value(0.25),
+            run_time=1.9
+        )
 
-        # the puzzle: a fall, and nothing yet says why it should mean anything
-        tr = top.trough()
-        fall = Arrow([top.xm(top.t0) - 0.4, top.base, 0], [top.xm(top.t0) - 0.4, tr[1], 0], buff=0, color=RED, stroke_width=8, tip_length=0.25)
-        fall_lbl = T("a fall", 28, RED, weight=BOLD).next_to(fall, LEFT, buff=0.15)
-        box = DashedVMobject(RoundedRectangle(corner_radius=0.14, width=2.0, height=0.8), num_dashes=30).set_color(GREY)
-        q = T("signal?", 28, TEXT, weight=BOLD)
-        sig = VGroup(box, q).move_to([4.8, 1.55, 0])
-        self.at("How can a fall")
-        self.play(GrowArrow(fall), FadeIn(fall_lbl), run_time=0.6)
-        self.at("signal")
-        self.play(Create(box), FadeIn(q), run_time=0.7)
-        self.play(pop(q, 1.2), run_time=0.5)
+        self.at("How can destroying")
+        self.play(
+            FadeOut(photon), FadeOut(p_lab),
+            t.animate(rate_func=linear).set_value(6.8),
+            world.flow_tr.animate.set_value(1.0),
+            run_time=2.8
+        )
 
-        # reframe: the rod and its photon go; the two traces move to the right and reset to the dark
-        n_top, n_bot = panels_narrow()
-        self.outro(FadeOut(VGroup(rod, rod_lbl, ins, drip, drip_lbl, mark_t, mark_b, fall, fall_lbl, sig, d_top, d_bot)),
-                   then=[Transform(top.axes, n_top.axes), Transform(top.title, n_top.title), Transform(top.flat, n_top.flat),
-                         Transform(bot.axes, n_bot.axes), Transform(bot.title, n_bot.title), Transform(bot.flat, n_bot.flat)])
+        self.at("Every cascade")
+        self.play(t.animate(rate_func=linear).set_value(8.8), run_time=2.8)
 
-
-# ---------------------------------------------------------------------------------------------
-class S02Hold(Film):
-    """in the dark, cGMP holds channels open; the inflow is the dark current. (framing A)"""
-
-    def construct(self):
-        top, bot = panels_narrow()
-        self.add(top.axes, top.title, top.flat, bot.axes, bot.title, bot.flat)
-        row = ChanRow(YA)
-        chips = pool_chips(row)                                   # 4 on row one, 3 on row two
-        out_lbl = T("outside", 22, GREY).move_to([-5.75, 2.95, 0])
-        in_lbl = T("inside", 22, GREY).move_to([-5.75, -1.9, 0])
-
-        # the messenger, already in the cell
-        self.at("rod contains")
-        self.play(LaggedStart(*[FadeIn(c, scale=0.7) for c in chips], lag_ratio=0.1), FadeIn(in_lbl), run_time=1.3)
-
-        self.at("called")
-        self.play(LaggedStart(*[pulse(c, TEAL, 1.1) for c in chips], lag_ratio=0.08), run_time=0.9)
-
-        # the channels, all shut
-        self.at("binds directly")
-        self.play(FadeIn(row.group), FadeIn(out_lbl), run_time=0.7)
-        ch_lbl = T("cation channels", 26, GREY).move_to([row.xs[2], 1.85, 0])
-        self.at("cation channels")
-        self.play(FadeIn(ch_lbl, shift=DOWN * 0.1), run_time=0.5)
-
-        # three chips fly up and bind directly; then their gates swing open
-        movers = [chips[k] for k in BOUND_FROM]
-        self.at("no kindness")
-        self.play(*[m.animate.move_to(row.bound_xy(i)) for m, i in zip(movers, OPEN_IDX)], run_time=1.0)
-        self.at("holds some")
-        self.play(*[row.swing(i, True, 0.55) for i in OPEN_IDX], run_time=0.55)
-
-        # sodium and calcium
-        na = ion("Na⁺", row.xs[0] + 0.1, 3.2)
-        ca = ion("Ca²⁺", row.xs[1] + 0.1, 3.2)
-        self.at("Sodium")
-        self.add(na)
-        self.at("calcium")
-        self.add(ca)
-        streams = [Stream(row.xs[i], 3.4, -0.55, n=9, speed=1.6, seed=i) for i in OPEN_IDX]
-        for s in streams:
-            s.master = 0.0
-        self.add(*streams)
-        self.at("through those")
-        self.play(*[s.fade(1.0, 0.7) for s in streams], run_time=0.7)
-
-        dc = T("dark current", 30, GREEN, weight=BOLD).move_to([row.xs[2], 1.85, 0])
-        self.at("dark current")
-        self.play(FadeTransform(ch_lbl, dc), Indicate(top.flat, color=TEXT, scale_factor=1.0), run_time=0.7)
-
-        self.at("Because of it")
-        self.play(Indicate(dc, color=TEXT, scale_factor=1.08), run_time=0.6)
-        self.at("partly depolarized")
-        self.play(Indicate(row.segs, color=GREEN, scale_factor=1.0), run_time=0.8)
-        gl = T("glutamate", 22, PINK).move_to(bot.title, aligned_edge=LEFT)
-        self.at("releases glutamate")
-        self.play(FadeTransform(bot.title, gl), Indicate(bot.flat, color=TEXT, scale_factor=1.0), run_time=0.7)
-
-        # continuously: a cursor runs along each flat trace
-        dots = [Dot([tp.flat.get_left()[0], tp.base, 0], radius=0.09, color=TEXT) for tp in (top, bot)]
-        self.at("continuously")
-        self.add(*dots)
-        self.play(*[d.animate.move_to([tp.flat.get_right()[0], tp.base, 0]) for d, tp in zip(dots, (top, bot))],
-                  run_time=1.0, rate_func=linear)
-        self.play(FadeOut(dots[0]), FadeOut(dots[1]), run_time=0.2)
-
-        # the baseline
-        bl_t = DashedLine([top.flat.get_right()[0], top.base, 0], [top.x1 - 0.05, top.base, 0], color=GREY, stroke_width=3, dash_length=0.12)
-        bl_b = DashedLine([bot.flat.get_right()[0], bot.base, 0], [bot.x1 - 0.05, bot.base, 0], color=GREY, stroke_width=3, dash_length=0.12)
-        bl_lbl = T("baseline", 22, GREY).next_to(bl_t, UP, buff=0.1)
-        self.at("this baseline")
-        self.play(Create(bl_t), Create(bl_b), FadeIn(bl_lbl), run_time=0.8)
-
-        # reframe to B: lift the channel row; the cation current and the traces make room for the cascade
-        shift_up = UP * (YB - YA) + RIGHT * DXB
-        self.outro(FadeOut(VGroup(*streams, top.axes, top.title, top.flat, bot.axes, bot.flat, gl, bl_t, bl_b, bl_lbl, dc, out_lbl, in_lbl)),
-                   then=[row.group.animate.shift(shift_up), *[c.animate.shift(shift_up) for c in chips]])
-
-
-# ---------------------------------------------------------------------------------------------
-class S03Light(Film):
-    """light turns retinal; rhodopsin, transducin, PDE6; PDE6 destroys the cGMP that was already there. (framing B)"""
-
-    def construct(self):
-        row = ChanRow(YB, open_idx=OPEN_IDX, dx=DXB)
-        chips = pool_chips(row)
-        for k, i in zip(BOUND_FROM, OPEN_IDX):
-            chips[k].move_to(row.bound_xy(i))
-        streams = [Stream(row.xs[i], 3.4, 1.3, n=5, speed=1.4, seed=i) for i in OPEN_IDX]
-        self.add(row.group, *chips, *streams)
-
-        YC = -2.45
-        blob = RoundedRectangle(corner_radius=0.35, width=3.9, height=1.9, stroke_color=BLUE, stroke_width=4,
-                                fill_color=BLUE, fill_opacity=0.18).move_to([-3.9, YC, 0])
-        rho = T("rhodopsin", 28, BLUE, weight=BOLD).move_to([-5.6, YC + 0.5, 0], aligned_edge=LEFT)
-        off = T("off", 26, RED, weight=BOLD).move_to([-2.3, YC + 0.5, 0], aligned_edge=RIGHT)
-        ret = bchip("bent retinal", GOLD, CHIP).move_to([-3.9, YC - 0.35, 0])
-        self.play(FadeIn(VGroup(blob, rho)), run_time=0.5)
-        self.at("bent molecule")
-        self.play(FadeIn(ret, shift=UP * 0.12), run_time=0.5)
-        self.at("While")
-        self.play(pulse(ret, GOLD, 1.08), run_time=0.6)
-        self.at("stays off")
-        self.play(FadeIn(off, scale=0.8), run_time=0.4)
-
-        # light straightens the retinal
-        ph = photon(-7.0, YC - 0.35)
-        self.at("A photon")
-        self.add(ph)
-        self.play(ph.animate.move_to([-5.95, YC - 0.35, 0]), run_time=0.6, rate_func=rush_into)
-        self.play(Flash(ph.get_center(), color=YELLOW, line_length=0.3, flash_radius=0.4), FadeOut(ph), run_time=0.35)
-        straight = bchip("straight retinal", GOLD, CHIP).move_to(ret)
-        self.at("straightens")
-        self.play(FadeTransform(ret, straight), run_time=0.7)
-        ret = straight
-        act = T("active", 26, GREEN, weight=BOLD).move_to(off, aligned_edge=RIGHT)
-        self.at("becomes active")
-        self.play(blob.animate.set_stroke(GREEN, 7), FadeTransform(off, act), pop(rho, 1.12), run_time=0.7)
-
-        # the chain of switches
-        trans = bchip("transducin", PURPLE, 28).move_to([-0.1, YC, 0])
-        gp = T("G protein", 22, GREY).move_to([-0.1, YC - 0.62, 0])
-        a1 = arr([-1.9, YC, 0], [-1.25, YC, 0], GREEN, w=6)
-        self.at("switches on transducin")
-        self.play(GrowArrow(a1), FadeIn(trans), run_time=0.6)
-        self.at("G protein")
-        self.play(FadeIn(gp), pulse(trans, PURPLE, 1.08), run_time=0.5)
-        pde = bchip("PDE6", ORANGE, 28).move_to([4.3, YC, 0])
-        a2 = arr([1.05, YC, 0], [3.6, YC, 0], GREEN, w=6)
-        pde_lbl = T("phosphodiesterase", 22, GREY).move_to([4.3, YC - 0.62, 0])
-        self.at("transducin switches on")
-        self.play(trans[1].animate.set_stroke(GREEN, 5), GrowArrow(a2), FadeIn(pde), run_time=0.7)
-        self.play(pde[1].animate.set_stroke(GREEN, 5), run_time=0.3)
-        self.at("a phosphodiesteris")
-        self.play(FadeIn(pde_lbl), run_time=0.4)
-
-        # PDE6 reaches the cGMP and destroys it
-        self.at("This enzyme")
-        self.play(pde.animate.move_to([4.3, 0.0, 0]), FadeOut(VGroup(a2, gp, pde_lbl)), trans[1].animate.set_stroke(PURPLE, 3), run_time=0.7)
-        self.at("destroys")
-        ghosts = VGroup(*[ghost_of(c) for c in chips])
-        order = sorted(range(len(chips)), key=lambda k: -chips[k].get_center()[0])
-        kills = []
-        for k in order:
-            kills.append(Succession(AnimationGroup(chips[k][1].animate.set_stroke(RED), chips[k][2].animate.set_color(RED), run_time=0.15),
-                                    FadeOut(chips[k], scale=0.3, run_time=0.3)))
-        self.play(LaggedStart(*kills, lag_ratio=0.18), FadeIn(ghosts, run_time=1.6), run_time=2.0)
-        self.at("already there")
-        self.play(pulse(pde, ORANGE, 1.1), run_time=0.6)
-
-        self.outro(FadeOut(VGroup(ghosts, pde, trans, a1, blob, rho, act, ret, *streams)))
-
-
-# ---------------------------------------------------------------------------------------------
-class S04Close(Film):
-    """cGMP falls, the gates shut, the current and the glutamate fall. (framing B, traces below)"""
-
-    def construct(self):
-        row = ChanRow(YB, open_idx=OPEN_IDX, dx=DXB)
-        streams = [Stream(row.xs[i], 3.4, 1.3, n=5, speed=1.4, seed=i) for i in OPEN_IDX]
-        self.add(row.group, *streams)
-
-        cur = Panel(-6.2, -0.4, -3.3, 0.95, "inward current", GREEN, base=-0.2, depth=1.9)
-        glu = Panel(0.5, 6.2, -3.3, 0.95, "glutamate", PINK, base=-0.2, depth=1.9)
-        self.play(FadeIn(cur), FadeIn(glu), run_time=0.7)
-
-        # the level of cGMP
-        gx = -5.6
-        gauge_o = Rectangle(width=0.5, height=1.5, stroke_color=TEAL, stroke_width=3).move_to([gx, 2.0, 0])
-        gauge_f = Rectangle(width=0.5, height=1.5, stroke_width=0, fill_color=TEAL, fill_opacity=0.85).move_to(gauge_o)
-        g_lbl = T("cGMP", 26, TEAL, weight=BOLD).move_to([gx, 3.15, 0])
-        self.at("falls")
-        self.play(FadeIn(gauge_o), FadeIn(gauge_f), FadeIn(g_lbl), run_time=0.3)
-        shrunk = Rectangle(width=0.5, height=0.04, stroke_width=0, fill_color=RED, fill_opacity=0.85).move_to(gauge_o.get_bottom() + UP * 0.02)
-        self.play(Transform(gauge_f, shrunk), run_time=0.7)
-
-        # the gates shut and the ions stop
-        self.at("channels close")
-        self.play(*[s.fade(0.0, 0.7) for s in streams],
-                  LaggedStart(*[row.swing(i, False, 0.5) for i in OPEN_IDX], lag_ratio=0.25), run_time=1.3)
-        self.remove(*streams)
-
-        # the current falls
-        d_cur = cur.dip(1.0)
-        self.at("current shrinks")
-        self.play(Create(d_cur), run_time=1.3, rate_func=linear)
-        self.at("membrane")
-        self.play(Indicate(row.segs, color=TEXT, scale_factor=1.0), run_time=0.8)
-
-        d_glu = glu.dip(1.0)
-        self.at("release drops")
-        self.play(Create(d_glu), run_time=1.3, rate_func=linear)
-        nxt = bchip("next cell", GREY, 26).move_to([5.1, -1.0, 0])
-        tg = glu.trough()
-        link = arr([tg[0] + 0.15, tg[1] - 0.05, 0], [nxt.get_left()[0] - 0.05, nxt.get_center()[1], 0], GREY)
-        self.at("next cell")
-        self.play(GrowArrow(link), FadeIn(nxt, shift=LEFT * 0.1), run_time=0.6)
-
-        # the sizes, from the toad rod recording
-        trod = T("toad rod", 22, GREY).next_to(cur.title, RIGHT, buff=0.35)
-        self.at("toad rod")
-        self.play(FadeIn(trod, shift=LEFT * 0.1), run_time=0.4)
-        n20 = M("roughly 20 pA", 22, GREEN).move_to([cur.xm(0.0), -0.2 + 0.4, 0], aligned_edge=LEFT)
-        self.at("roughly")
-        self.play(FadeIn(n20, shift=DOWN * 0.1), Indicate(cur.flat, color=TEXT, scale_factor=1.0), run_time=0.8)
-        tc = cur.trough()
-        shut = T("bright light", 22, GREY).move_to([tc[0] + 0.3, tc[1] + 0.35, 0], aligned_edge=LEFT)
-        nx = cur.xm(0.2)
-        notch = VMobject(stroke_color=RED, stroke_width=5).set_points_as_corners(
-            [[nx + 0.5 * u, cur.base - 0.095 * float(resp(u * 1.0 + 0.0)) , 0] for u in np.linspace(0, 1.4, 40)])
-        brk = Arrow([nx + 0.7, cur.base, 0], [nx + 0.7, cur.base - 0.095, 0], buff=0, color=RED, stroke_width=3, tip_length=0.06)
-        n1 = M("about 1 pA", 22, RED).move_to([nx, cur.base - 0.6, 0], aligned_edge=LEFT)
-        ptr = Line([nx + 0.7, cur.base - 0.12, 0], [nx + 0.7, cur.base - 0.42, 0], color=RED, stroke_width=2)
-        ns = T("not to scale", 24, TEXT, weight=BOLD).move_to([cur.x1 - 0.1, -3.0, 0], aligned_edge=RIGHT)
-        self.at("Each rhodopsin")
-        self.play(FadeIn(shut), FadeIn(ns), run_time=0.5)
-        self.play(Create(notch), GrowArrow(brk), Create(ptr), FadeIn(n1), run_time=0.8)
-
-        self.outro(FadeOut(VGroup(cur, glu, d_cur, d_glu, gauge_o, gauge_f, g_lbl, nxt, link, trod, n20, brk, n1, ns, shut, notch, ptr)))
-
-
-# ---------------------------------------------------------------------------------------------
-class S05Nose(Film):
-    """the nose: one receptor, an odorant, a G protein, a cyclase; cAMP rises and opens the same kind of channel. (framing B)"""
-
-    def construct(self):
-        row = ChanRow(YB, dx=DXB)
-        self.add(row.group)
-        chips = pool_chips(row, "cAMP", TEAL)
-        YC = -2.45
-
-        nose = T("nose", 28, GREY).move_to([row.xs[2], 3.15, 0])
-        self.play(FadeIn(nose, shift=DOWN * 0.1), run_time=0.6)
-        sens = T("sensory neuron", 26, GREY).move_to(nose)
-
-        # one receptor, chosen from a very large family
-        fam = [bchip("receptor", GREY, 22).move_to(row.pool_xy(1, k)) for k in range(4)] + \
-              [bchip("receptor", GREY, 22).move_to(row.pool_xy(2, k)) for k in range(3)]
-        pick = fam[1]
-        self.at("sensory neuron")
-        self.play(FadeTransform(nose, sens), LaggedStart(*[FadeIn(c, scale=0.8) for c in fam], lag_ratio=0.1), run_time=1.1)
-        self.at("one receptor")
-        self.play(pick[1].animate.set_stroke(BLUE, 4).set_fill(BLUE, 0.2), pick[2].animate.set_color(BLUE), run_time=0.5)
-        self.at("very large family")
-        others = [c for c in fam if c is not pick]
-        self.play(LaggedStart(*[pulse(c, GREY, 1.12) for c in others], lag_ratio=0.1), run_time=1.0)
-        rec = bchip("receptor", BLUE, 28).move_to([-3.15, YC, 0])
-        self.play(FadeOut(VGroup(*others)), ReplacementTransform(pick, rec), run_time=0.8)
-
-        # odorant binds
-        odo = bchip("odorant", YELLOW, 28).move_to([-5.4, YC, 0])
-        self.at("An odorant")
-        self.play(FadeIn(odo, shift=RIGHT * 0.15), run_time=0.5)
-        self.at("binds its receptor")
-        self.play(odo.animate.move_to([-4.87, YC, 0]), rec[1].animate.set_stroke(GREEN, 5), run_time=0.6)
-
-        # G protein, then the cyclase
-        gp = bchip("G protein", PURPLE, 28).move_to([-0.5, YC, 0])
-        a1 = arr([-2.25, YC, 0], [-1.5, YC, 0], GREEN, w=6)
-        self.at("G protein then")
-        self.play(GrowArrow(a1), FadeIn(gp), run_time=0.6)
-        cyc = bchip2("adenylyl\ncyclase", ORANGE, 28).move_to([2.1, YC, 0])
-        a2 = arr([0.5, YC, 0], [1.2, YC, 0], GREEN, w=6)
-        self.at("an enzyme")
-        self.play(gp[1].animate.set_stroke(GREEN, 5), GrowArrow(a2), FadeIn(cyc), run_time=0.7)
-        self.play(cyc[1].animate.set_stroke(GREEN, 5), run_time=0.3)
-
-        # cAMP rises: chips pour up from the cyclase into the cell
-        ups = []
-        for c in chips:
-            target = c.get_center().copy()
-            c.move_to([2.1, YC + 0.9, 0])
-            ups.append(Succession(FadeIn(c, scale=0.6, run_time=0.25), c.animate(run_time=0.9, path_arc=0.5).move_to(target)))
-        self.at("The messenger")
-        self.play(LaggedStart(*ups, lag_ratio=0.12), run_time=2.2)
-
-        # it opens the channel directly
-        movers = [chips[k] for k in BOUND_FROM]
-        self.at("directly opens")
-        self.play(*[m.animate.move_to(row.bound_xy(i)) for m, i in zip(movers, OPEN_IDX)], run_time=0.9)
-        self.play(*[row.swing(i, True, 0.5) for i in OPEN_IDX], run_time=0.5)
-        streams = [Stream(row.xs[i], 3.4, 1.3, n=5, speed=1.4, seed=i) for i in OPEN_IDX]
-        for s in streams:
-            s.master = 0.0
-        self.add(*streams)
-        self.play(*[s.fade(1.0, 0.6) for s in streams], run_time=0.6)
-
-        self.at("related to")
-        self.play(*[Indicate(row.flaps[i], color=TEXT, scale_factor=1.15) for i in OPEN_IDX], run_time=0.8)
-
-        # the neuron depolarizes and fires
-        vp = Panel(3.5, 6.25, -3.3, -0.75, "voltage", GREEN, base=-2.8, depth=0.0, t0=0.3)
-        rise = VMobject(stroke_color=GREEN, stroke_width=5).set_points_as_corners(
-            [[vp.xm(0.3 + 0.2 * s), -2.8 + 0.8 / (1 + np.exp(-(s - 0.5) * 9)), 0] for s in np.linspace(0, 1, 40)])
-        self.at("depolarizes")
-        self.play(FadeIn(vp.axes), FadeIn(vp.title), Create(vp.flat), run_time=0.4)
-        self.play(Create(rise), run_time=1.0)
-        spikes = VGroup()
-        x_end = vp.xm(0.5)
-        for dx in (0.0, 0.5, 1.0):
-            spikes.add(Line([x_end + dx * 0.55, -2.0, 0], [x_end + dx * 0.55, -1.35, 0], color=YELLOW, stroke_width=5))
-        self.at("fires")
-        self.play(LaggedStart(*[Create(s) for s in spikes], lag_ratio=0.3), run_time=0.9)
-        self.outro(FadeOut(VGroup(row.group, *chips, *streams, sens, rec, odo, gp, cyc, a1, a2, vp, rise, spikes)))
-
-
-# ---------------------------------------------------------------------------------------------
-class S06Rule(Film):
-    """three cells, one rule: a signal is a change from a baseline, in either direction."""
-
-    def construct(self):
-        ys = [2.35, 0.1, -2.15]
-        specs = [("rod", "light", "cGMP", -1), ("nose", "smell", "cAMP", +1), ("artery wall", "nitric oxide", "cGMP", +1)]
-        GX0, GX1 = -1.3, 4.3
-        rows = []
-        for y, (cell, stim, name, sgn) in zip(ys, specs):
-            lab = T(cell, 28, TEXT).move_to([-6.2, y, 0], aligned_edge=LEFT)
-            ch = bchip(stim, YELLOW, 26).move_to([-4.15, y, 0], aligned_edge=LEFT)
-            base = DashedLine([GX0, y, 0], [GX1, y, 0], color=GREY, stroke_width=3, dash_length=0.12)
-            xs = np.linspace(GX0, GX1, 90)
-            pts = [[x, y + sgn * 0.8 / (1 + np.exp(-(x - 1.8) / 0.25)), 0] for x in xs]
-            tr = VMobject(stroke_color=TEAL, stroke_width=6).set_points_as_corners(pts)
-            nm = T(name, 26, TEAL, weight=BOLD).move_to([GX0, y + 0.55, 0], aligned_edge=LEFT)
-            aro = Arrow([GX1 + 0.35, y, 0], [GX1 + 0.35, y + sgn * 0.8, 0], buff=0, color=GREEN if sgn > 0 else RED, stroke_width=8, tip_length=0.25)
-            link = arr([ch.get_right()[0] + 0.05, y, 0], [GX0 - 0.1, y, 0], YELLOW)
-            rows.append(dict(lab=lab, ch=ch, base=base, tr=tr, nm=nm, aro=aro, link=link))
-
-        # rod
-        r = rows[0]
-        self.play(FadeIn(r["lab"]), FadeIn(r["ch"], shift=RIGHT * 0.15), GrowArrow(r["link"]), Create(r["base"]), FadeIn(r["nm"]), run_time=0.7)
-        self.at("light makes")
-        self.play(Create(r["tr"]), run_time=1.1)
-        self.play(GrowArrow(r["aro"]), run_time=0.4)
-
-        # nose
-        r = rows[1]
-        self.at("In the nose")
-        self.play(FadeIn(r["lab"]), FadeIn(r["ch"], shift=RIGHT * 0.15), GrowArrow(r["link"]), Create(r["base"]), FadeIn(r["nm"]), run_time=0.8)
-        self.at("smell makes")
-        self.play(Create(r["tr"]), run_time=1.0)
-        self.play(GrowArrow(r["aro"]), run_time=0.4)
-
-        # artery
-        r = rows[2]
-        self.at("In an artery")
-        self.play(FadeIn(r["lab"]), FadeIn(r["ch"], shift=RIGHT * 0.15), GrowArrow(r["link"]), Create(r["base"]), FadeIn(r["nm"]), run_time=0.8)
-        self.at("nitric oxide makes")
-        self.play(Create(r["tr"]), run_time=1.0)
-        self.play(GrowArrow(r["aro"]), run_time=0.4)
-        self.at("that same")
-        boxes = VGroup(*[SurroundingRectangle(rows[k]["nm"], color=TEAL, buff=0.1, corner_radius=0.1) for k in (0, 2)])
-        self.play(Create(boxes), run_time=0.6)
-        rel = T("muscle\nrelaxes", 26, GREEN, line_spacing=0.8).move_to([5.6, ys[2] + 0.1, 0])
-        self.at("muscle")
-        self.play(FadeIn(rel, shift=LEFT * 0.1), run_time=0.6)
-
-        # the rule
-        self.at("Keep this rule")
-        self.play(FadeOut(boxes), *[rows[k]["base"].animate.set_stroke(TEXT, 4) for k in range(3)], run_time=0.6)
-        bl = T("baseline", 24, TEXT).next_to(rows[0]["base"], UP, buff=0.1).align_to(rows[0]["base"], RIGHT)
-        self.at("a baseline")
-        self.play(FadeIn(bl), *[Indicate(rows[k]["base"], color=TEXT, scale_factor=1.0) for k in range(3)], run_time=0.9)
-        self.at("either direction")
-        self.play(*[pop(rows[k]["aro"], 1.35) for k in range(3)], run_time=1.0)
+        self.at("Start with a rod")
+        dark_lab = T("Dark state", 28, TEXT).move_to([4.9, -2.1, 0])
+        self.play(
+            FadeIn(dark_lab, shift=UP * 0.1),
+            t.animate(rate_func=linear).set_value(9.9),
+            run_time=1.3
+        )
         self.finish()
 
 
-class S07End(EndCard):
-    LINE = "A signal is a change from a baseline, in either direction."
+class S02DarkBaseline(SpokenScene):
+    def construct(self):
+        world = make_rod_world(cgmp_val=0.82, ch_open=(1.0, 1.0, 0.0), with_cgmp_gauge=True)
+        na_lab = T("Na+", 26, C_CURRENT).move_to([5.45, 2.55, 0])
+        ca_lab = T("Ca2+", 26, C_CA).move_to([5.45, 1.38, 0])
+
+        glut_lab = T("glutamate", 26, C_GLUT).move_to([5.25, -0.55, 0])
+        glut_dots = make_cytosol_dots(count=8, color=C_GLUT, x_range=(4.0, 5.85), y_range=(-1.95, -0.95), seed=19, radius=0.095)
+
+        def _glut_det(mob, dt):
+            for idx, d in enumerate(mob):
+                d.shift([0.75 * dt, -0.35 * dt, 0])
+                p = d.get_center()
+                if p[0] > 5.95 or p[1] < -2.15:
+                    d.move_to([3.95 + 0.14 * (idx % 3), -1.00 - 0.14 * (idx % 2), 0])
+
+        glut_dots.add_updater(_glut_det)
+
+        add_cyclase_pulse(world.cyclase, amp=0.10, speed=4.4)
+        world.pde.spokes.add_updater(lambda m, dt: m.rotate(0.75 * dt, about_point=world.pde.core.get_center()))
+
+        make_lbl = T("Make (cyclase): steady", 28, C_CYCLASE).move_to([-3.2, -2.85, 0])
+        break_lbl = T("Break (PDE6, idling): slow", 28, C_PDE).move_to([2.4, -2.85, 0])
+
+        self.add(world, glut_dots)
+        self.at("cyclase keeps making")
+        self.play(FadeIn(make_lbl, shift=UP * 0.1), run_time=0.8)
+
+        self.at("while its breakdown")
+        self.play(FadeIn(break_lbl, shift=UP * 0.1), run_time=0.8)
+
+        self.at("stays high")
+        g_hi = T("high", 26, C_CGMP).next_to(world.cgmp_gauge.frame, DOWN, buff=0.16)
+        self.play(FadeIn(g_hi), run_time=0.6)
+
+        self.at("binds directly")
+        bind_note = T("direct binding (no kinase)", 26, C_CGMP).move_to([0.9, -1.60, 0])
+        self.play(
+            Indicate(world.channels[0].cgmp_dot, color=C_CGMP, scale_factor=1.5),
+            Indicate(world.channels[1].cgmp_dot, color=C_CGMP, scale_factor=1.5),
+            FadeIn(bind_note),
+            run_time=1.2
+        )
+
+        self.at("Sodium and calcium")
+        self.play(FadeIn(na_lab), FadeIn(ca_lab), run_time=0.8)
+
+        self.at("steady dark current")
+        dep_lab = T("partly depolarized", 26, TEXT).move_to([0.9, -2.18, 0])
+        self.play(FadeIn(dep_lab), run_time=0.8)
+
+        self.at("releasing glutamate")
+        self.play(FadeIn(glut_lab), Indicate(glut_lab, color=C_GLUT), run_time=0.8)
+        self.finish()
+
+
+class S03RetinalSwitch(SpokenScene):
+    def construct(self):
+        faint_rod, _ = make_rod_shell()
+        faint_rod.set_opacity(0.18).set_z_index(-8)
+        faint_rod.layout_ok = True
+
+        center = np.array([-0.2, 0.2, 0])
+        morph_t = ValueTracker(0.0)
+        glow_t = ValueTracker(0.0)
+        glow_t.add_updater(lambda m, dt: m.increment_value(dt))
+
+        def _pocket():
+            f = morph_t.get_value()
+            g = glow_t.get_value()
+            col = interpolate_color(ManimColor(GREY), ManimColor(C_LIGHT), f)
+            w = 6.5 + 0.70 * f + 0.14 * np.sin(3.0 * g) * (0.35 + 0.65 * f)
+            h = 4.5 + 0.35 * f + 0.10 * np.sin(3.0 * g) * (0.35 + 0.65 * f)
+            outer = RoundedRectangle(corner_radius=0.55, width=w, height=h,
+                                     stroke_color=col, stroke_width=5.5,
+                                     fill_color=BG, fill_opacity=0.96).move_to(center)
+            inner = RoundedRectangle(corner_radius=0.35, width=w - 1.2, height=h - 1.3,
+                                     stroke_color=col, stroke_width=3.0,
+                                     fill_color=col, fill_opacity=0.14 + 0.14 * f).move_to(center)
+            return VGroup(outer, inner)
+
+        pocket = always_redraw(_pocket)
+
+        def _retinal_bar():
+            f = morph_t.get_value()
+            g = glow_t.get_value()
+            kink = (0.64 - 0.64 * f) + 0.04 * (1.0 - f) * np.sin(4.0 * g)
+            p_left = center + np.array([-1.65, -0.30 + 0.30 * f, 0])
+            p_mid = center + np.array([0.0, kink, 0])
+            p_right = center + np.array([1.65, -0.30 + 0.30 * f, 0])
+            col = interpolate_color(ManimColor(TEXT), ManimColor(C_LIGHT), f)
+            seg1 = Line(p_left, p_mid, color=col, stroke_width=13)
+            seg2 = Line(p_mid, p_right, color=col, stroke_width=13)
+            joint = Dot(p_mid, radius=0.10, color=col)
+            return VGroup(seg1, seg2, joint)
+
+        retinal = always_redraw(_retinal_bar)
+
+        state_off = T("rhodopsin: OFF", 30, TEXT).move_to([center[0], 3.10, 0])
+        state_on = T("rhodopsin: ON (active)", 30, C_LIGHT).move_to([center[0], 3.10, 0])
+        ret_cis = T("11-cis retinal", 30, TEXT).move_to([center[0], -2.62, 0])
+        ret_trans = T("all-trans retinal", 30, C_LIGHT).move_to([center[0], -2.62, 0])
+        stag = scope_tag("schematic")
+
+        self.add(faint_rod, stag, glow_t)
+        self.play(FadeIn(pocket), run_time=0.9)
+        self.at("a receptor holding")
+        self.play(FadeIn(retinal), FadeIn(ret_cis), run_time=0.9)
+
+        self.at("That bent shape")
+        self.play(FadeIn(state_off), run_time=0.8)
+
+        self.at("When a photon")
+        wave_xs = np.linspace(-5.9, -3.5, 45)
+        wave = VMobject(color=C_LIGHT, stroke_width=5)
+        wave.set_points_as_corners([[x, 0.2 + 0.28 * np.sin(5.0 * x), 0] for x in wave_xs])
+        tip = Arrow([-3.65, 0.2, 0], [-2.55, 0.2, 0], color=C_LIGHT, stroke_width=5, buff=0.0)
+        p_wave = VGroup(wave, tip)
+        p_lbl = T("photon", 26, C_LIGHT).next_to(wave, UP, buff=0.22)
+        self.play(Create(wave), FadeIn(tip), FadeIn(p_lbl), run_time=0.9)
+
+        self.at("it straightens")
+        self.play(
+            morph_t.animate.set_value(1.0),
+            FadeOut(p_wave), FadeOut(p_lbl),
+            run_time=1.8
+        )
+        self.play(swap(ret_cis, ret_trans, run_time=0.65), swap(state_off, state_on, run_time=0.65))
+
+        self.at("every later step")
+        no_light = T("later steps run without light", 28, TEXT).move_to([center[0], -3.18, 0])
+        self.play(FadeIn(no_light, shift=UP * 0.1), run_time=1.2)
+        self.finish()
+
+
+class S04CascadeDrop(SpokenScene):
+    def construct(self):
+        world = make_rod_world(cgmp_val=0.82, ch_open=(1.0, 1.0, 0.0), active_rhod=True, pde_capped=True,
+                               cgmp_y_range=(0.22, 0.95))
+
+        # Compact two-line chips placed cleanly in the open cytosol lane (-1.45 .. +1.70)
+        td1 = chip("transducin\nGDP", TEXT, size=22, pad=0.10).move_to([-0.35, 2.30, 0])
+        td2 = chip("transducin\nGDP", TEXT, size=22, pad=0.10).move_to([-0.35, 1.48, 0])
+        td1_gtp = chip("transducin\nGTP", C_LIGHT, size=22, pad=0.10).move_to([-0.20, 2.30, 0])
+        td2_gtp = chip("transducin\nGTP", C_LIGHT, size=22, pad=0.10).move_to([-0.20, 1.48, 0])
+
+        gmp_dots = make_cytosol_dots(count=10, color=GREY, x_range=(-1.0, 2.6), y_range=(0.22, 0.95), seed=31, radius=0.08)
+        gmp_dots.set_opacity(0.0)
+        add_drift_updater(gmp_dots, x_range=(-1.0, 2.6), y_range=(0.22, 0.95))
+
+        spin_rate = ValueTracker(0.0)
+        world.pde.spokes.add_updater(lambda m, dt: m.rotate(spin_rate.get_value() * dt,
+                                                            about_point=world.pde.core.get_center()))
+
+        self.add(world, gmp_dots)
+        self.at("switches on many")
+        self.play(FadeIn(td1), FadeIn(td2), run_time=0.9)
+
+        self.at("swapping GDP for GTP")
+        self.play(swap(td1, td1_gtp, run_time=0.65), swap(td2, td2_gtp, run_time=0.65))
+
+        self.at("Activated transducin")
+        self.play(
+            td1_gtp.animate.move_to([0.65, 2.30, 0]),
+            td2_gtp.animate.move_to([0.65, 1.48, 0]),
+            run_time=1.0
+        )
+        # Slide grey inhibitory cap off PDE6 cleanly inside the rod
+        self.play(
+            world.pde.cap.animate.shift(UP * 0.35 + LEFT * 0.35).set_stroke(opacity=0.28),
+            spin_rate.animate.set_value(2.5),
+            run_time=1.0
+        )
+        cap_lbl = T("cap lifted", 22, GREY).move_to([2.90, 2.68, 0])
+        self.play(FadeIn(cap_lbl), run_time=0.6)
+
+        self.at("The freed enzyme")
+        self.play(spin_rate.animate.set_value(6.5), run_time=0.7)
+        gmp_lbl = T("cGMP -> GMP", 26, C_PDE).move_to([0.8, -1.65, 0])
+        self.play(
+            FadeIn(gmp_lbl),
+            world.cgmp_dots.animate.set_opacity(0.18),
+            gmp_dots.animate.set_opacity(0.75),
+            run_time=2.0
+        )
+        self.play(gmp_dots.animate.set_opacity(0.18), run_time=1.6)
+
+        self.at("As messenger levels")
+        self.play(
+            world.cgmp_gauge.tracker.animate.set_value(0.12),
+            world.channels[0].cgmp_dot.animate.shift(LEFT * 0.6).set_opacity(0.0),
+            world.channels[1].cgmp_dot.animate.shift(LEFT * 0.6).set_opacity(0.0),
+            run_time=1.3
+        )
+
+        self.at("channels snap shut")
+        self.play(
+            world.channels[0].tracker.animate.set_value(0.0),
+            world.channels[1].tracker.animate.set_value(0.0),
+            world.flow_tr.animate.set_value(0.0),
+            run_time=0.75
+        )
+        self.finish()
+
+
+class S05HyperpolarizeReset(SpokenScene):
+    def construct(self):
+        world = make_rod_world(cgmp_val=0.12, ch_open=(0.0, 0.0, 0.0), active_rhod=True,
+                               pde_capped=False, ion_flow=0.0)
+        td_gtp = chip("transducin\nGTP", C_LIGHT, size=22, pad=0.10).move_to([0.20, 1.95, 0])
+        td_gdp = chip("transducin\nGDP", TEXT, size=22, pad=0.10).move_to([0.20, 1.95, 0])
+
+        P = make_current_plot()
+        stag = scope_tag("schematic")
+        t = ValueTracker(0.5)
+        trace_fn = lambda x: 0.85 - 0.65 / (1.0 + np.exp(-2.8 * (x - 3.2)))
+        live = P.live_curve(trace_fn, t, color=C_CURRENT, width=5)
+        dot = P.dot(lambda: t.get_value(), lambda: trace_fn(t.get_value()), color=C_CURRENT, ring=TEXT, radius=0.09)
+
+        glut_lab = T("glutamate\ndrops", 26, C_GLUT).move_to([5.25, -0.55, 0])
+        glut_dots = make_cytosol_dots(count=5, color=C_GLUT, x_range=(4.1, 5.5), y_range=(-1.6, -1.05), seed=23, radius=0.08)
+        add_drift_updater(glut_dots, x_range=(4.1, 5.5), y_range=(-1.6, -1.05))
+
+        self.add(world, td_gtp, P, stag, live, dot, glut_dots)
+        self.at("positive inflow shrinks")
+        self.play(t.animate(rate_func=linear).set_value(3.0), run_time=1.5)
+
+        self.at("the membrane hyperpolarizes")
+        hyp_lbl = T("hyperpolarized", 26, C_CURRENT).move_to([5.20, 0.88, 0])
+        self.play(t.animate(rate_func=linear).set_value(5.0), FadeIn(hyp_lbl), run_time=1.5)
+
+        self.at("glutamate release drops")
+        self.play(FadeIn(glut_lab), glut_dots.animate.set_opacity(0.15), t.animate(rate_func=linear).set_value(6.0), run_time=1.0)
+
+        self.at("The next neuron")
+        next_lbl = T("next neuron: light!", 26, TEXT).move_to([5.15, -2.08, 0])
+        self.play(FadeIn(next_lbl), t.animate(rate_func=linear).set_value(7.2), run_time=2.0)
+
+        self.at("To reset")
+        p_tags = VGroup(
+            T("P", 22, C_LIGHT).move_to([-2.55, 2.60, 0]),
+            T("P", 22, C_LIGHT).move_to([-1.95, 2.60, 0]),
+        )
+        arr_cap = chip("arrestin", TEXT, size=22, pad=0.09).move_to([-2.25, 1.54, 0])
+        self.play(
+            FadeIn(p_tags), FadeIn(arr_cap),
+            world.rhod_top.animate.set_color(GREY).set_fill(GREY, opacity=0.28),
+            t.animate(rate_func=linear).set_value(8.4),
+            run_time=2.2
+        )
+
+        self.at("while GTP hydrolysis")
+        self.play(
+            swap(td_gtp, td_gdp, run_time=0.8),
+            world.pde.cap.animate.shift(DOWN * 0.42 + RIGHT * 0.15).set_stroke(opacity=1.0).set_fill(opacity=0.0),
+            t.animate(rate_func=linear).set_value(9.3),
+            run_time=2.0
+        )
+
+        self.at("Still, the rod")
+        low_lbl = T("cGMP still low", 26, C_CGMP).move_to([-5.30, -1.65, 0])
+        self.play(
+            FadeIn(low_lbl),
+            Indicate(world.cgmp_gauge.frame, color=C_CGMP, scale_factor=1.05),
+            t.animate(rate_func=linear).set_value(9.9),
+            run_time=1.8
+        )
+        self.finish()
+
+
+def build_predict_world():
+    """Shared world state at the end of s06 and throughout s07_predict_pause (NO answer shown)."""
+    world = make_rod_world(cgmp_val=0.12, ch_open=(0.0, 0.0, 0.0), active_rhod=False,
+                           pde_capped=True, cyclase_bright=True, with_ca_gauge=True,
+                           ca_val=0.15, ion_flow=0.0,
+                           cgmp_x_range=(0.15, 2.65), cgmp_y_range=(0.55, 1.25))
+    add_cyclase_pulse(world.cyclase, amp=0.08, speed=4.2)
+
+    light_wash = Ellipse(width=2.5, height=3.5, stroke_width=0,
+                         fill_color=C_LIGHT, fill_opacity=0.15).move_to([-2.45, 1.0, 0])
+    light_wash.set_z_index(-4)
+    light_wash.layout_ok = True
+
+    gcaps = chip("GCAPs", C_CA, size=24, pad=0.12).move_to([-0.75, 0.25, 0])
+    exchanger = Arrow([3.1, -0.75, 0], [4.45, -0.75, 0], color=C_CA, stroke_width=5, buff=0.0)
+    ex_lbl = T("Ca2+ exchanger", 24, C_CA).move_to([5.30, -0.32, 0])
+    ca_dots = make_cytosol_dots(count=4, color=C_CA, x_range=(0.15, 2.65), y_range=(0.55, 1.25), seed=41, radius=0.085)
+    add_drift_updater(ca_dots, x_range=(0.15, 2.65), y_range=(0.55, 1.25))
+
+    dim_lbl = T("dim light", 24, C_LIGHT).move_to([-2.45, -1.42, 0])
+    return VGroup(world, light_wash, gcaps, exchanger, ex_lbl, ca_dots, dim_lbl)
+
+
+class S06PredictQ(SpokenScene):
+    def construct(self):
+        world = make_rod_world(cgmp_val=0.82, ch_open=(1.0, 1.0, 0.0), active_rhod=False,
+                               pde_capped=True, cyclase_bright=False, with_ca_gauge=True,
+                               ca_val=0.80, ion_flow=1.0,
+                               cgmp_x_range=(0.15, 2.65), cgmp_y_range=(0.55, 1.25))
+        ca_dots = make_cytosol_dots(count=12, color=C_CA, x_range=(0.15, 2.65), y_range=(0.55, 1.25), seed=41, radius=0.09)
+        add_drift_updater(ca_dots, x_range=(0.15, 2.65), y_range=(0.55, 1.25))
+        exchanger = Arrow([3.1, -0.75, 0], [4.45, -0.75, 0], color=C_CA, stroke_width=5, buff=0.0)
+        ex_lbl = T("Ca2+ exchanger", 24, C_CA).move_to([5.30, -0.32, 0])
+        ex_dots = VGroup(*[Dot([3.25 + k * 0.48, -0.75, 0], radius=0.08, color=C_CA) for k in range(3)])
+        ex_dots.add_updater(lambda mob, dt: [
+            d.shift(RIGHT * 0.9 * dt) if d.get_center()[0] < 4.75 else d.move_to([3.15, -0.75, 0])
+            for d in mob
+        ])
+
+        self.add(world, ca_dots)
+        self.at("calcium entered steadily")
+        self.play(FadeIn(exchanger), FadeIn(ex_lbl), FadeIn(ex_dots), run_time=1.2)
+
+        self.at("Light closed the channels")
+        self.play(
+            world.channels[0].tracker.animate.set_value(0.0),
+            world.channels[1].tracker.animate.set_value(0.0),
+            world.channels[0].cgmp_dot.animate.set_opacity(0.0),
+            world.channels[1].cgmp_dot.animate.set_opacity(0.0),
+            world.flow_tr.animate.set_value(0.0),
+            world.cgmp_gauge.tracker.animate.set_value(0.12),
+            world.cgmp_dots[2:].animate.set_opacity(0.0),
+            world.cgmp_dots[:2].animate.set_opacity(0.52),
+            run_time=1.8
+        )
+
+        self.at("and calcium fell")
+        self.play(
+            world.ca_gauge.tracker.animate.set_value(0.15),
+            ca_dots[4:].animate.set_opacity(0.0),
+            run_time=1.6
+        )
+
+        self.at("Low calcium switches")
+        gcaps = chip("GCAPs", C_CA, size=24, pad=0.12).move_to([-0.75, 0.95, 0])
+        self.play(FadeIn(gcaps), run_time=0.6)
+        self.play(
+            gcaps.animate.move_to([-0.75, 0.25, 0]),
+            world.cyclase.animate.set_fill(C_CYCLASE, opacity=0.52).set_stroke(width=4.5),
+            run_time=1.4
+        )
+        add_cyclase_pulse(world.cyclase, amp=0.08, speed=4.2)
+
+        self.at("Now keep a dim")
+        light_wash = Ellipse(width=2.5, height=3.5, stroke_width=0,
+                             fill_color=C_LIGHT, fill_opacity=0.15).move_to([-2.45, 1.0, 0])
+        light_wash.set_z_index(-4)
+        light_wash.layout_ok = True
+        dim_lbl = T("dim light", 24, C_LIGHT).move_to([-2.45, -1.42, 0])
+        self.play(FadeIn(light_wash), FadeIn(dim_lbl), run_time=1.0)
+
+        self.at("Will the channels")
+        q = question_card("Steady light: do the channels stay shut?", color=TEXT)
+        self.play(FadeIn(q.question), run_time=0.8)
+        self.finish()
+
+
+class S07PredictPause(PredictPause):
+    QUESTION = "Steady light: do the channels stay shut?"
+    CARD = {"color": TEXT}
+    SECONDS = 4.5
+
+    def backdrop(self):
+        bg = build_predict_world()
+        qmark = T("?", 44, C_LIGHT, weight=BOLD).move_to([4.35, 1.5, 0])
+        qmark._qt = 0.0
+        qmark.add_updater(lambda m, dt: (setattr(m, "_qt", m._qt + dt),
+                                         m.set_opacity(0.55 + 0.45 * np.sin(3.5 * m._qt))))
+        return VGroup(bg, qmark)
+
+
+class S08PredictReveal(SpokenScene):
+    def construct(self):
+        world = make_rod_world(cgmp_val=0.12, ch_open=(0.0, 0.0, 0.0), active_rhod=False,
+                               pde_capped=True, cyclase_bright=True, with_ca_gauge=True,
+                               ca_val=0.15, ion_flow=0.0,
+                               cgmp_x_range=(0.15, 2.65), cgmp_y_range=(0.55, 1.25))
+        add_cyclase_pulse(world.cyclase, amp=0.08, speed=4.2)
+        light_wash = Ellipse(width=2.5, height=3.5, stroke_width=0,
+                             fill_color=C_LIGHT, fill_opacity=0.15).move_to([-2.45, 1.0, 0])
+        light_wash.set_z_index(-4)
+        light_wash.layout_ok = True
+        gcaps = chip("GCAPs", C_CA, size=24, pad=0.12).move_to([-0.75, 0.25, 0])
+        # Placed inside light_wash in the open gap between the top and middle discs
+        dim_lbl = T("dim light", 24, C_LIGHT).move_to([-2.45, 1.55, 0])
+        q = question_card("Steady light: do the channels stay shut?", color=TEXT)
+
+        P = make_current_plot()
+        stag = scope_tag("schematic")
+        t = ValueTracker(0.5)
+
+        trace_fn = lambda x: (
+            0.20 + 0.32 / (1.0 + np.exp(-2.5 * (x - 3.0)))
+            - 0.32 * np.exp(-((x - 8.2) / 0.55) ** 2)
+        )
+        live = P.live_curve(trace_fn, t, color=C_CURRENT, width=5)
+        dot = P.dot(lambda: t.get_value(), lambda: trace_fn(t.get_value()), color=C_CURRENT, ring=TEXT, radius=0.09)
+
+        self.add(world, light_wash, gcaps, dim_lbl, q)
+        self.play(FadeOut(q), run_time=0.35)
+        self.play(FadeIn(P), FadeIn(stag), run_time=0.45)
+        self.add(live, dot)
+
+        self.at("the faster cyclase")
+        fb_arrow = CurvedArrow([-4.15, -0.55, 0], [-1.35, -0.38, 0], angle=0.45, color=C_CA, stroke_width=4.5)
+        self.play(
+            Create(fb_arrow),
+            world.cgmp_gauge.tracker.animate.set_value(0.48),
+            t.animate(rate_func=linear).set_value(3.2),
+            run_time=2.5
+        )
+
+        self.at("some channels reopen")
+        self.play(
+            world.channels[0].tracker.animate.set_value(0.75),
+            world.channels[0].cgmp_dot.animate.set_opacity(1.0),
+            world.flow_tr.animate.set_value(0.55),
+            t.animate(rate_func=linear).set_value(5.6),
+            run_time=2.0
+        )
+
+        self.at("This negative feedback")
+        fb_lbl = T("negative feedback", 24, C_CA).move_to([-2.55, -1.32, 0])
+        self.play(FadeIn(fb_lbl), t.animate(rate_func=linear).set_value(7.1), run_time=2.5)
+
+        rest_t = self.t_of("has current left") - 0.2 - self.elapsed()
+        if rest_t > 0.1:
+            self.play(t.animate(rate_func=linear).set_value(7.6), run_time=rest_t)
+
+        cur_lbl = T("Current left to shut off", 26, C_CURRENT).move_to([1.35, -1.45, 0])
+        self.play(FadeIn(cur_lbl, shift=UP * 0.08), run_time=0.7)
+
+        self.at("an extra flash")
+        flash = Arrow([-3.95, 2.1, 0], [-2.75, 2.1, 0], color=C_LIGHT, stroke_width=7, buff=0.0)
+        flash_lbl = T("extra flash", 24, C_LIGHT).move_to([-2.45, 2.65, 0])
+        self.play(
+            FadeIn(flash), FadeIn(flash_lbl),
+            t.animate(rate_func=linear).set_value(9.8),
+            world.flow_tr.animate.set_value(0.15),
+            run_time=2.0
+        )
+        self.finish()
+
+
+class S09NoseContrast(SpokenScene):
+    def construct(self):
+        tp = TwoPanel("Eye: rod cell", "Nose: olfactory neuron", colors=(C_CGMP, C_CAMP),
+                      top=3.2, bottom=-2.7, gap=0.45, width=12.8, size=30)
+
+        def _panel_shell(x0, x1, y0, y1, ch_y):
+            cyto = Polygon([x0, y0, 0], [x1, y0, 0], [x1, y1, 0], [x0, y1, 0],
+                           stroke_width=0, fill_color=C_CYTOSOL, fill_opacity=0.55)
+            cyto.set_z_index(-6)
+            walls = VGroup(
+                Line([x0, y0, 0], [x0, y1, 0], color=GREY, stroke_width=3),
+                Line([x0, y1, 0], [x1, y1, 0], color=GREY, stroke_width=3),
+                Line([x0, y0, 0], [x1, y0, 0], color=GREY, stroke_width=3),
+                Line([x1, y1, 0], [x1, ch_y + 0.28, 0], color=GREY, stroke_width=3),
+                Line([x1, ch_y - 0.28, 0], [x1, y0, 0], color=GREY, stroke_width=3),
+            )
+            shell = VGroup(cyto, walls)
+            shell.walls = walls
+            return shell
+
+        # Left panel: rod world with live drifting cGMP dots & turning PDE6
+        rod_shell = _panel_shell(-5.9, -0.9, -1.8, 1.9, 0.2)
+        rod_disc = Ellipse(width=1.4, height=0.45, color=GREY, stroke_width=2.5,
+                           fill_color=C_LIGHT, fill_opacity=0.22).move_to([-4.9, 1.1, 0])
+        rod_pde_c = Circle(radius=0.28, color=C_PDE, stroke_width=3, fill_color=C_PDE, fill_opacity=0.25).move_to([-2.9, 1.1, 0])
+        rod_spokes = VGroup(*[
+            Line([-2.9, 1.1, 0] + 0.08 * np.array([np.cos(a), np.sin(a), 0]),
+                 [-2.9, 1.1, 0] + 0.24 * np.array([np.cos(a), np.sin(a), 0]),
+                 color=C_PDE, stroke_width=3)
+            for a in np.linspace(0, TAU, 6, endpoint=False)
+        ])
+        rod_spokes.add_updater(lambda m, dt: m.rotate(1.8 * dt, about_point=[-2.9, 1.1, 0]))
+        rod_dots = make_cytosol_dots(count=6, color=C_CGMP, x_range=(-4.5, -1.6), y_range=(-0.1, 0.7), seed=61, radius=0.075)
+        add_drift_updater(rod_dots, x_range=(-4.5, -1.6), y_range=(-0.1, 0.7))
+
+        rod_gauge = make_gauge(-5.3, y0=-1.45, y1=0.25, width=0.42, color=C_CGMP, label="cGMP",
+                               init_val=0.20, label_size=24)
+        rod_ch = make_channel(0.2, x=-0.9, open_frac=0.0)
+        rod_lbl_light = T("light -> cGMP falls", 24, C_CGMP).move_to([-2.95, -0.55, 0])
+        rod_lbl_shut = T("channel shuts", 24, C_CURRENT).move_to([-2.55, -1.30, 0])
+        left_group = VGroup(rod_shell, rod_disc, rod_pde_c, rod_spokes, rod_dots, rod_gauge, rod_ch, rod_lbl_light, rod_lbl_shut)
+
+        # Right panel: olfactory sensory neuron (cleanly spaced labels)
+        nose_shell = _panel_shell(0.9, 5.9, -1.8, 1.9, 0.95)
+        rec = RoundedRectangle(corner_radius=0.14, width=0.65, height=0.85, stroke_color=C_CAMP,
+                               stroke_width=3, fill_color=C_CAMP, fill_opacity=0.22).move_to([0.9, 1.0, 0])
+        rec_lbl = T("odorant receptor", 24, C_CAMP).move_to([2.4, 2.25, 0])
+        odorant = Dot([0.45, -0.2, 0], radius=0.13, color=C_CAMP)
+
+        g_prot = chip("G protein", TEXT, size=24, pad=0.12).move_to([2.90, 1.25, 0])
+        g_prot_on = chip("G protein", C_LIGHT, size=24, pad=0.12).move_to([2.90, 1.25, 0])
+
+        ac = Ellipse(width=1.10, height=0.54, color=C_CYCLASE, stroke_width=3,
+                     fill_color=C_CYCLASE, fill_opacity=0.28).move_to([4.15, 0.35, 0])
+        ac_lbl = T("adenylyl cyclase", 24, C_CYCLASE).move_to([4.15, -0.25, 0])
+
+        camp_gauge = make_gauge(1.70, y0=-1.45, y1=0.15, width=0.45, color=C_CAMP, label="cAMP",
+                                init_val=0.15, label_size=24)
+        camp_dots = make_cytosol_dots(count=9, color=C_CAMP, x_range=(2.6, 5.4), y_range=(-1.45, -0.6), seed=53, radius=0.075)
+        camp_dots.set_opacity(0.0)
+        add_drift_updater(camp_dots, x_range=(2.6, 5.4), y_range=(-1.45, -0.6))
+
+        nose_ch = make_channel(0.95, x=5.9, open_frac=0.0)
+        nose_flow = ValueTracker(0.0)
+        nose_ions = make_ion_stream(ys=(0.95,), colors=(C_CURRENT,), flow_tracker=nose_flow)
+        nose_ions.clear_updaters()
+        for k, d in enumerate(nose_ions):
+            d.move_to([6.15 - k * 0.25, 0.95, 0])
+
+        def _nose_ion_u(mob, dt):
+            f = nose_flow.get_value()
+            for d in mob:
+                if f <= 0.05:
+                    d.set_opacity(0.0)
+                    continue
+                d.set_opacity(1.0)
+                d.shift(LEFT * 0.95 * dt)
+                if d.get_center()[0] < 4.9:
+                    d.move_to([6.18, 0.95, 0])
+
+        nose_ions.add_updater(_nose_ion_u)
+        stag = scope_tag("schematic")
+
+        self.add(tp, left_group, stag)
+        self.at("Each olfactory neuron")
+        self.play(
+            FadeIn(nose_shell), FadeIn(rec), FadeIn(rec_lbl),
+            FadeIn(g_prot), FadeIn(ac), FadeIn(ac_lbl),
+            FadeIn(camp_gauge), FadeIn(nose_ch),
+            run_time=1.4
+        )
+        self.add(camp_dots, nose_ions)
+        # Drift odorant into position while narrator describes receptor family
+        self.play(FadeIn(odorant), odorant.animate(rate_func=linear).move_to([0.45, 1.0, 0]), run_time=3.5)
+
+        self.at("When an odorant")
+        self.play(odorant.animate.move_to([0.62, 1.0, 0]), run_time=0.8)
+
+        self.at("a G protein activates")
+        self.play(
+            swap(g_prot, g_prot_on, run_time=0.6),
+            ac.animate.set_fill(C_CYCLASE, opacity=0.55).set_stroke(width=4.5),
+            run_time=1.3
+        )
+
+        self.at("rises")
+        self.play(
+            camp_gauge.tracker.animate.set_value(0.85),
+            camp_dots.animate.set_opacity(0.92),
+            run_time=1.4
+        )
+
+        self.at("opens a related")
+        self.play(
+            nose_ch.tracker.animate.set_value(1.0),
+            nose_flow.animate.set_value(1.0),
+            run_time=1.0
+        )
+
+        self.at("depolarizes and fires")
+        dep_lbl = T("depolarizes & fires!", 26, C_CAMP).move_to([4.15, -2.22, 0])
+        self.play(
+            nose_shell.walls.animate.set_stroke(C_CAMP, width=5),
+            FadeIn(dep_lbl),
+            run_time=0.9
+        )
+        self.finish()
+
+
+class S10Takehome(SpokenScene):
+    def construct(self):
+        head = T("Related cyclic-nucleotide channels, opposite wiring", 28, TEXT).move_to([0, 3.18, 0])
+
+        rod_title = T("Rod: cGMP falls", 32, C_CGMP).move_to([-3.3, 2.38, 0])
+        rod_g = make_gauge(-3.85, y0=-1.65, y1=1.75, width=1.45, color=C_CGMP,
+                           label="", init_val=0.72, baseline=0.72)
+        rod_base_lbl = T("dark baseline", 24, TEXT).next_to([-2.95, 0.80, 0], RIGHT, buff=0.22)
+        rod_arrow = Arrow([-5.15, 0.80, 0], [-5.15, -0.95, 0], color=C_CGMP, stroke_width=8, buff=0.0)
+        rod_arrow_lbl = T("light", 26, C_LIGHT).next_to(rod_arrow, LEFT, buff=0.20)
+
+        nose_title = T("Nose: cAMP rises", 32, C_CAMP).move_to([3.3, 2.38, 0])
+        nose_g = make_gauge(2.35, y0=-1.65, y1=1.75, width=1.45, color=C_CAMP,
+                            label="", init_val=0.25, baseline=0.25)
+        nose_base_lbl = T("rest baseline", 24, TEXT).next_to([3.25, -0.80, 0], RIGHT, buff=0.22)
+        nose_arrow = Arrow([1.05, -0.80, 0], [1.05, 1.05, 0], color=C_CAMP, stroke_width=8, buff=0.0)
+        nose_arrow_lbl = T("odorant", 26, C_CAMP).next_to(nose_arrow, LEFT, buff=0.22)
+
+        rod_center = ValueTracker(0.72)
+        nose_center = ValueTracker(0.25)
+        t_clock = ValueTracker(0.0)
+        t_clock.add_updater(lambda m, dt: m.increment_value(dt))
+
+        def _pulse_gauges(mob, dt):
+            s = t_clock.get_value()
+            rod_g.tracker.set_value(rod_center.get_value() + 0.04 * np.sin(3.6 * s))
+            nose_g.tracker.set_value(nose_center.get_value() + 0.04 * np.sin(3.6 * s + 1.2))
+
+        rod_g.add_updater(_pulse_gauges)
+        self.add(t_clock, head, rod_title, rod_g, rod_base_lbl, nose_title, nose_g, nose_base_lbl)
+
+        self.at("opposite directions")
+        self.play(Indicate(rod_title, color=C_CGMP), Indicate(nose_title, color=C_CAMP), run_time=1.0)
+
+        self.at("Light drives")
+        self.play(
+            rod_center.animate.set_value(0.22),
+            GrowArrow(rod_arrow),
+            FadeIn(rod_arrow_lbl),
+            run_time=1.4
+        )
+
+        self.at("An odorant drives")
+        self.play(
+            nose_center.animate.set_value(0.80),
+            GrowArrow(nose_arrow),
+            FadeIn(nose_arrow_lbl),
+            run_time=1.4
+        )
+
+        self.at("Keep this rule")
+        rule = caption("A signal is a change from baseline, up or down.", size=32, color=C_LIGHT, y=-2.85)
+        self.play(FadeIn(rule, shift=UP * 0.1), run_time=0.8)
+
+        self.at("A signal is")
+        self.play(Indicate(rule, color=TEXT, scale_factor=1.03), run_time=1.0)
+        self.finish()
+
+
+class S11End(EndCard):
+    LINE = "A signal is a change from baseline, up or down."
