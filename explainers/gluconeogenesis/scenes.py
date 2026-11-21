@@ -366,7 +366,7 @@ class S03Shuttle(SpokenScene):
         pc = T("Pyruvate\ncarboxylase", 24, ORANGE, weight=BOLD, line_spacing=0.6).move_to([-2.2, 1.1, 0])
         a_pc = arr(pyr.get_bottom() + DOWN * 0.06, [pyr.get_center()[0], oaa_in.get_top()[1] + 0.06, 0], ORANGE, 6, 0.2)
 
-        self.at("Here is a logistics problem")
+        self.at("a logistics problem")
         self.play(Create(mito), run_time=1.2)
         self.play(FadeIn(matrix), FadeIn(cyto), run_time=0.6)
         self.at("Pyruvate carboxylase lives")
