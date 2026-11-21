@@ -20,6 +20,9 @@
    Tailwind utilities are available in components for one-offs.
    -------------------------------------------------------------------------- */
 html {
+  /* The header is sticky (about 77px tall). Without this, a control reached by tabbing backward
+     scrolls to the very top of the window and sits hidden under it. */
+  scroll-padding-top: 5rem;
   font-family: var(--ddp-font-sans);
   color: var(--ddp-color-ink);
   background: var(--ddp-color-bg);
@@ -233,6 +236,8 @@ h4 {
   transition: top 0.15s ease;
 }
 .skip-link:focus { top: 0; }
+/* In dark mode the primary colour is pale, so the text on it must be dark. */
+@media (prefers-color-scheme: dark) { .skip-link { color: #0f1522; } }
 
 /* Wide markdown tables in lesson prose scroll inside themselves on narrow screens
    instead of widening the page (added with the Cell Biology course, 2026-10-18). */

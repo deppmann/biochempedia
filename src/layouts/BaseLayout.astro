@@ -44,6 +44,7 @@ const websiteLd = {
   // the footer's copyright line makes, in the form search engines read.
   publisher: { '@type': 'Person', name: 'Christopher Deppmann' },
 };
+import { IDEAS_LINK } from '../data/site-flags';
 ---
 
 <!doctype html>
@@ -174,6 +175,7 @@ const websiteLd = {
           links: [
             { label: 'Courses', href: '/courses/' },
             { label: 'Paths', href: '/paths/' },
+            ...(IDEAS_LINK ? [{ label: 'Find an idea', href: '/ideas/' }] : []),
             { label: 'MCAT practice', href: '/mcat/' },
             { label: 'Films', href: '/films/' },
             { label: 'Methods library', href: '/methods/' },
@@ -183,7 +185,7 @@ const websiteLd = {
           ],
         },
         {
-          heading: 'Teach',
+          heading: 'Teachers and parents',
           links: [
             { label: 'For teachers', href: '/teachers/' },
             /* The parents' door on the homepage; the address opens it with JavaScript on or off. */
