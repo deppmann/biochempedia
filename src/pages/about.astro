@@ -17,13 +17,14 @@ const courseCount = cards.length;
 const bioCount = (await getCollection('lessons', ({ data }) => !data.draft && data.course === 'biochemistry')).length;
 const fmt = (n: number) => n.toLocaleString('en-US');
 /* The one-minute film about the site, moved here from the homepage on 2026-11-15 (Chris: "Ditch the
-   hero film. It can go on the about page"). Its poster and narration still carry the old name. */
+   hero film. It can go on the about page"). Remade for the STEMhop name and the current site on 2026-11-20
+   (source: explainers/home-sizzle). */
 const siteFilm = {
   src: '/explainers/home/sizzle/explainer.mp4',
   captions: '/explainers/home/sizzle/explainer.vtt',
   poster: '/explainers/home/sizzle/poster.jpg',
   title: 'What is here, in about a minute',
-  durationSec: 62.10,
+  durationSec: 62.0,
 };
 const renamed = new Date(STEMHOP_SWITCH_DATE + 'T12:00:00Z').toLocaleDateString('en-US', { month: 'long', year: 'numeric', timeZone: 'UTC' });
 const latest = [...MILESTONES].sort((a, b) => (a.date < b.date ? 1 : -1)).slice(0, 3);
@@ -65,7 +66,7 @@ const latest = [...MILESTONES].sort((a, b) => (a.date < b.date ? 1 : -1)).slice(
       down a level when you need to and climb back up.
     </p>
 
-    {/* Moved from the homepage, 2026-11-08: photosynthesis at six levels, its film, and the three promises. */}
+    {/* Moved from the homepage, 2026-11-08: one idea at four levels (natural selection since 2026-11-20), its film, and the three promises. */}
     <OneIdeaLadder />
 
     <h2 id="who">Who makes it</h2>
