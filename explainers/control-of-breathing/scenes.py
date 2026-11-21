@@ -265,7 +265,7 @@ class S02Rhythm(SpokenScene):
 
 # ---------------------------------------------------------------------------------------------
 class S03Sensors(SpokenScene):
-    """left: CO2 crosses into brain fluid and is sensed as H+; right: the carotid body senses arterial oxygen."""
+    """left: CO2 crosses into brain fluid, hydrates via H2CO3 to H+, excites retrotrapezoid -> pre-Botzinger; right: carotid body."""
 
     def construct(self):
         blood = Rectangle(width=5.6, height=0.7, stroke_color=GREY, stroke_width=3, fill_color=GREY, fill_opacity=0.12).move_to([-3.3, -3.0, 0])
@@ -275,35 +275,66 @@ class S03Sensors(SpokenScene):
         brain = Rectangle(width=5.6, height=4.4, stroke_color=GREY, stroke_width=3).move_to([-3.3, 0.65, 0])
         brain_l = T("brain fluid", 22, GREY).move_to([-5.3, 2.6, 0])
         co2 = bchip("carbon dioxide", TEAL, 24).move_to([-3.3, -3.0, 0])
+
+        eq_co2 = M("CO₂", 24, TEAL)
+        eq_p1 = M("+", 22, GREY)
+        eq_h2o = M("H₂O", 24, TEXT)
+        eq_a1 = M("→", 24, GREY)
+        eq_acid = M("H₂CO₃", 24, TEXT)
+        eq_a2 = M("→", 24, GREY)
+        eq_h = chip("H⁺", PURPLE, 24, pad=0.12)
+        eq_p2 = M("+", 22, GREY)
+        eq_bicarb = M("HCO₃⁻", 24, GREY)
+        VGroup(eq_co2, eq_p1, eq_h2o, eq_a1, eq_acid, eq_a2, eq_h, eq_p2, eq_bicarb).arrange(RIGHT, buff=0.075).move_to([-3.3, -0.85, 0])
+        acid_lbl = T("carbonic acid", 22, TEXT).next_to(eq_acid, DOWN, buff=0.20)
+        lbl_h = T("hydrogen ions", 22, PURPLE).move_to([-4.25, -0.24, 0])
+
         self.at("Carbon dioxide crosses")
         self.play(FadeIn(blood), FadeIn(blood_l), FadeIn(barrier), FadeIn(barrier_l), Create(brain), FadeIn(brain_l),
                   FadeIn(co2), run_time=1.0)
-        self.play(co2.animate.move_to([-3.3, -0.75, 0]), run_time=1.3)
+        self.play(co2.animate.move_to([-3.3, -0.85, 0]), run_time=1.3)
 
-        self.at("releases hydrogen ions")
-        hs = [bchip("H⁺", PURPLE, 28).move_to([x, -0.75, 0]) for x in (-4.4, -3.3, -2.2)]
-        lbl_h = T("hydrogen ions", 22, PURPLE).move_to([-3.3, -1.33, 0])
-        self.play(ReplacementTransform(co2, hs[1]), FadeIn(hs[0], shift=LEFT * 0.3), FadeIn(hs[2], shift=RIGHT * 0.3), run_time=0.9)
-        self.at("mainly senses")
-        self.play(*[Indicate(h, color=PURPLE, scale_factor=1.12) for h in hs], FadeIn(lbl_h), run_time=0.9)
+        self.at("joins water")
+        self.play(ReplacementTransform(co2, eq_co2), FadeIn(eq_p1), FadeIn(eq_h2o, shift=LEFT * 0.12), run_time=0.75)
+        self.at("form carbonic acid")
+        self.play(FadeIn(eq_a1), FadeIn(eq_acid, shift=LEFT * 0.12), FadeIn(acid_lbl, shift=UP * 0.08), run_time=0.75)
+
+        self.at("gives up")
+        self.play(FadeIn(eq_a2), FadeIn(eq_h, shift=LEFT * 0.12), FadeIn(eq_p2), FadeIn(eq_bicarb, shift=LEFT * 0.12), run_time=0.8)
+        self.play(eq_h[0].animate.set_fill(PURPLE, opacity=0.45).set_stroke(YELLOW, width=4),
+                  Indicate(eq_h[1], color=YELLOW, scale_factor=1.2), FadeIn(lbl_h, shift=UP * 0.08), run_time=0.6)
+
+        self.at("brain mainly senses")
+        self.play(Indicate(eq_h[1], color=YELLOW, scale_factor=1.18), Indicate(lbl_h, color=PURPLE, scale_factor=1.06), run_time=0.9)
         self.at("not the molecule")
-        ghost = bchip("CO₂", TEAL, 22).move_to([-1.1, -0.75, 0])
-        x = T("not mainly", 22, GREY).move_to([-1.1, -0.2, 0])
-        self.play(FadeIn(ghost.set_opacity(0.55)), FadeIn(x), run_time=0.7)
+        ghost = chip("CO₂", TEAL, 22, fill_opacity=0.08).move_to([-3.3, 0.45, 0])
+        ghost[0].set_stroke(opacity=0.5)
+        ghost[1].set_opacity(0.55)
+        x = T("not mainly", 22, GREY).move_to([-3.3, 1.0, 0])
+        self.play(FadeIn(ghost), FadeIn(x), run_time=0.7)
 
         self.at("In mice")
-        rtn = bchip("retrotrapezoid\nnucleus", BLUE, 24).move_to([-3.3, 0.5, 0])
-        mice = T("in mice", 22, GREY).move_to([-5.3, 0.5, 0])
-        ar = [arr(h.get_top(), [h.get_center()[0], rtn.get_bottom()[1], 0], PURPLE, 4, 0.18) for h in hs]
-        self.play(FadeIn(rtn, shift=DOWN * 0.15), FadeIn(mice), LaggedStart(*[GrowArrow(a) for a in ar], lag_ratio=0.2),
-                  FadeOut(ghost), FadeOut(x), run_time=1.2)
+        rtn = bchip("retrotrapezoid\nnucleus", BLUE, 24).move_to([-3.3, 0.52, 0])
+        mice = T("in mice", 22, GREY).move_to([-5.35, 0.52, 0])
+        self.play(FadeOut(ghost), FadeOut(x), run_time=0.3)
+        self.play(FadeIn(rtn, shift=DOWN * 0.15), FadeIn(mice), run_time=0.7)
+        self.at("proton")
+        h_to_rtn = arr(eq_h.get_top() + UP * 0.02, [eq_h.get_center()[0], rtn.get_bottom()[1] - 0.02, 0], PURPLE, 5, 0.18)
+        self.play(GrowArrow(h_to_rtn), Indicate(eq_h[1], color=PURPLE, scale_factor=1.16), run_time=0.7)
+
         self.at("and project to")
-        pre = bchip("pre-Botzinger\ncomplex", BLUE, 24).move_to([-3.3, 2.0, 0])
+        pre = bchip("pre-Botzinger\ncomplex", BLUE, 24).move_to([-3.3, 2.22, 0])
         pa = arr(rtn.get_top(), pre.get_bottom(), BLUE, 6)
         self.play(FadeIn(pre, shift=DOWN * 0.15), GrowArrow(pa), run_time=0.9)
+        self.at("to the pre")
+        pulse_dot = Dot(rtn.get_top(), radius=0.1, color=BLUE)
+        self.play(FadeIn(pulse_dot, run_time=0.15))
+        self.play(pulse_dot.animate.move_to(pre.get_bottom()).set_opacity(0), run_time=0.8)
+        self.remove(pulse_dot)
+
         self.at("still open")
-        q = T("?", 56, YELLOW, weight=BOLD).move_to([-1.3, 0.5, 0])
-        which = T("which cells?", 22, YELLOW).move_to([-1.5, 1.15, 0])
+        q = T("?", 56, YELLOW, weight=BOLD).move_to([-1.40, 0.52, 0])
+        which = T("which cells?", 22, YELLOW).move_to([-1.45, 1.35, 0])
         self.play(FadeIn(q, scale=0.6), FadeIn(which), run_time=0.7)
 
         # peripheral arm
@@ -330,6 +361,7 @@ class S03Sensors(SpokenScene):
         self.play(FadeIn(o2), GrowArrow(oa), run_time=0.7)
         self.at("carbon dioxide", nth=1)
         self.play(FadeIn(co), run_time=0.4)
+        self.at("and pH")
         self.play(FadeIn(ph), run_time=0.4)
         self.finish()
 

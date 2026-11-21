@@ -196,31 +196,117 @@ class S01Title(TitleCard):
 
 class S02TwoPaths(SpokenScene):
     def construct(self):
-        left = body_cell([-3.7, 0.15, 0], width=4.8, height=4.5, scale=0.72)
-        right = body_cell([3.7, 0.15, 0], width=4.8, height=4.5, scale=0.72)
-        pulse(left[0], base=5.0, amp=0.7, speed=1.3)
-        pulse(right[0], base=5.0, amp=0.7, speed=1.5)
-        self.play(FadeIn(left), FadeIn(right), run_time=1.2)
+        g = garden(show_runner=True, rooted=True)
+        self.add(g)
+        left_pos = np.array([-3.6, 0.0, 0.0])
+        right_pos = np.array([3.6, 0.0, 0.0])
+        left_outline = cell_outline(left_pos, width=4.6, height=4.2, color=GREY, fill=0.16)
+        right_outline = cell_outline(right_pos, width=4.6, height=4.2, color=GREY, fill=0.16)
+        left_nuc = cell_outline(left_pos, width=1.8, height=1.6, color=TEXT, fill=0.22).set_stroke(width=3)
+        right_nuc = cell_outline(right_pos, width=1.8, height=1.6, color=TEXT, fill=0.22).set_stroke(width=3)
+        left_shell = VGroup(left_outline, left_nuc)
+        right_shell = VGroup(right_outline, right_nuc)
+        self.play(
+            FadeOut(VGroup(g[0], g[1], g[2], g.runner)),
+            ReplacementTransform(g.parent, left_shell),
+            ReplacementTransform(g.child, right_shell),
+            run_time=1.8,
+        )
+        breathe_fill(left_outline, base=0.18, amp=0.08, speed=3.5)
+        breathe_fill(right_outline, base=0.18, amp=0.08, speed=3.8)
+
         self.at("Two sex cells join")
-        target = Dot([0, 0.15, 0], radius=0.17, color=TEXT)
-        self.play(left.animate.shift(RIGHT * 1.0), right.animate.shift(LEFT * 1.0), FadeIn(target), run_time=1.5)
-        sway(left[1], 0.13, 1.25)
-        sway(right[1], 0.13, 1.45, 0.9)
+        join_pt = Dot([0, 0.0, 0], radius=0.16, color=TEXT)
+        self.play(
+            left_shell.animate.shift(RIGHT * 0.9),
+            right_shell.animate.shift(LEFT * 0.9),
+            FadeIn(join_pt),
+            run_time=1.4,
+        )
+
         self.at("one from each")
-        p1 = T("parent 1", 28, BLUE).move_to([-3.7, 3.15, 0])
-        p2 = T("parent 2", 28, GOLD).move_to([3.7, 3.15, 0])
+        p1 = T("parent 1", 28, BLUE).move_to([-2.7, 2.65, 0])
+        p2 = T("parent 2", 28, GOLD).move_to([2.7, 2.65, 0])
         self.play(FadeIn(p1), FadeIn(p2), run_time=0.8)
+
         self.at("sperm and egg")
-        self.play(swap(p1, T("sperm", 30, GREEN).move_to(p1)),
-                  swap(p2, T("egg", 30, GREEN).move_to(p2)), run_time=0.9)
+        sperm_lbl = T("sperm", 30, GREEN).move_to(p1)
+        egg_lbl = T("egg", 30, GREEN).move_to(p2)
+        self.play(swap(p1, sperm_lbl), swap(p2, egg_lbl), run_time=0.8)
+
         self.at("a problem must be solved")
-        stop = T("?", 72, RED, weight=BOLD).move_to([0, 2.65, 0])
-        self.play(FadeIn(stop, scale=0.5), run_time=0.8)
-        self.at("chromosomes in pairs")
-        self.play(Indicate(left[1], color=TEXT), Indicate(right[1], color=TEXT), run_time=1.3)
-        self.at("would double")
-        doubled = VGroup(M("4 + 4", 42, RED), T("would double", 32, RED)).arrange(DOWN, buff=0.14).move_to([0, -2.75, 0])
-        self.play(FadeIn(doubled), Indicate(VGroup(left[1], right[1]), color=RED), run_time=1.3)
+        qmark = T("?", 64, RED, weight=BOLD).move_to([0, 2.65, 0])
+        self.play(FadeIn(qmark, scale=0.6), Indicate(join_pt, color=RED), run_time=0.9)
+
+        self.at("Chromosomes are long strands")
+        self.play(FadeOut(sperm_lbl), FadeOut(egg_lbl), run_time=0.35)
+        left_bars = pair_bars(left_nuc.get_center(), scale=0.72, gap=0.60)
+        right_bars = pair_bars(right_nuc.get_center(), scale=0.72, gap=0.60)
+        self.play(
+            left_nuc.animate.stretch_to_fit_width(3.6).stretch_to_fit_height(3.1).set_fill(GREY, opacity=0.08).set_stroke(GREY, width=2.5, opacity=0.65),
+            right_nuc.animate.stretch_to_fit_width(3.6).stretch_to_fit_height(3.1).set_fill(GREY, opacity=0.08).set_stroke(GREY, width=2.5, opacity=0.65),
+            LaggedStart(*[FadeIn(b, scale=0.45) for b in [*left_bars, *right_bars]], lag_ratio=0.08),
+            run_time=1.2,
+        )
+        for i, b in enumerate(left_bars):
+            sway(b, 0.08, 1.25, i * 0.2)
+        for i, b in enumerate(right_bars):
+            sway(b, 0.08, 1.45, i * 0.2 + 0.5)
+
+        self.at("inside the nucleus")
+        nuc_lbl = T("nucleus", 24, TEXT).move_to([-2.7, -2.42, 0])
+        nuc_arr = Arrow([-2.7, -2.22, 0], [-2.7, -1.58, 0], color=TEXT, stroke_width=3, buff=0.02)
+        self.play(FadeIn(nuc_lbl), GrowArrow(nuc_arr),
+                  Indicate(left_nuc, color=TEXT, scale_factor=1.08),
+                  Indicate(right_nuc, color=TEXT, scale_factor=1.08), run_time=0.8)
+
+        self.at("carry genetic information")
+        chrom_def = T("chromosome: carries genetic information", 28, TEXT).move_to([0, -3.15, 0])
+        self.play(FadeIn(chrom_def), Indicate(VGroup(left_bars, right_bars), color=BLUE), run_time=1.0)
+
+        self.at("Body cells carry")
+        left_body = T("body cell", 28, TEXT).move_to(sperm_lbl)
+        right_body = T("body cell", 28, TEXT).move_to(egg_lbl)
+        pair_braces = VGroup(
+            Brace(VGroup(left_bars[0], left_bars[1]), DOWN, color=GREY),
+            Brace(VGroup(left_bars[2], left_bars[3]), DOWN, color=GREY),
+            Brace(VGroup(right_bars[0], right_bars[1]), DOWN, color=GREY),
+            Brace(VGroup(right_bars[2], right_bars[3]), DOWN, color=GREY),
+        )
+        self.play(
+            FadeOut(VGroup(nuc_lbl, nuc_arr)),
+            FadeIn(left_body),
+            FadeIn(right_body),
+            FadeIn(pair_braces),
+            Indicate(VGroup(left_bars[0], left_bars[1], right_bars[0], right_bars[1]), color=TEXT),
+            Indicate(VGroup(left_bars[2], left_bars[3], right_bars[2], right_bars[3]), color=TEXT),
+            run_time=1.4,
+        )
+
+        self.at("Joining two")
+        eq = VGroup(
+            M("4", 38, TEXT),
+            M("+", 38, TEXT),
+            M("4", 38, TEXT),
+            M("=", 38, RED),
+            M("8", 38, RED),
+            T("?", 46, RED, weight=BOLD),
+        ).arrange(RIGHT, buff=0.14).move_to([0, 2.70, 0])
+        self.play(
+            FadeIn(eq[:3], shift=UP * 0.12),
+            qmark.animate.move_to(eq[5].get_center()),
+            run_time=0.7,
+        )
+
+        self.at("would double", lead=0.45)
+        dbl_lbl = T("would double", 28, RED, weight=BOLD).move_to([0, 3.30, 0])
+        self.play(
+            FadeIn(eq[3:5]),
+            ReplacementTransform(qmark, eq[5]),
+            FadeIn(dbl_lbl),
+            Indicate(VGroup(left_bars, right_bars), color=RED),
+            run_time=0.4,
+        )
         self.finish()
 
 

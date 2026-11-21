@@ -631,36 +631,95 @@ class S10Reveal(SpokenScene):
             pts.append(Pt(LAG + DT * (k + 1), L_START + k * LG2))
             pts.append(Pt(LAG + DT * (k + 1), L_START + (k + 1) * LG2))
         stair = VMobject().set_points_as_corners(pts).set_stroke(PALE, 3)
-        self.at("About ten fewer")
-        self.play(Create(stair), run_time=2.2, rate_func=linear)
-        self.at("a thousand fold")
-        p1 = sup("2", "10", 31, TEXT)
-        e1 = lab("= 1,024", 24, TEXT)
-        e1.next_to(p1, RIGHT, buff=0.15)
-        l1 = VGroup(p1, e1)
+
+        step_pts = [Pt(LAG, L_START)]
+        step_segs = []
+        for k in range(10):
+            p0 = Pt(LAG + DT * k, L_START + k * LG2)
+            p1 = Pt(LAG + DT * (k + 1), L_START + k * LG2)
+            p2 = Pt(LAG + DT * (k + 1), L_START + (k + 1) * LG2)
+            step_segs.append(VMobject().set_points_as_corners([p0, p1, p2]).set_stroke(YELLOW, 6).set_z_index(3))
+            step_pts.append(p2)
+
+        step_val = ValueTracker(0)
+        step_box_rect = RoundedRectangle(
+            corner_radius=0.12, width=3.5, height=0.68, stroke_color=GOLD,
+            stroke_width=2.5, fill_color=BG, fill_opacity=0.95,
+        ).move_to([4.55, 2.25, 0])
+        step_bg = BackgroundRectangle(step_box_rect, color=BG, fill_opacity=0.95, buff=0, stroke_width=0)
+        step_lbl = lab("cells:", 22, LIGHT).move_to([3.55, 2.25, 0])
+        step_num = always_redraw(
+            lambda: M(f"{2 ** min(10, max(0, int(round(step_val.get_value())))):,}", 32, GOLD, weight=BOLD)
+            .move_to([6.0, 2.25, 0], aligned_edge=RIGHT)
+        )
+        step_panel = VGroup(step_bg, step_box_rect, step_lbl, step_num)
+        step_dot = Dot(step_pts[0], radius=0.11, color=YELLOW).set_z_index(4)
+
+        base_2 = T("2", size=34, color=TEXT)
+        exp_10 = T("10", size=22, color=TEXT)
+        exp_10.next_to(base_2, RIGHT, buff=0.06).shift(UP * base_2.height * 0.42)
+        p1 = VGroup(base_2, exp_10)
+        eq_1024 = lab("= 1,024", 24, TEXT)
+        eq_1024.next_to(p1, RIGHT, buff=0.15).align_to(base_2, DOWN)
+        l1 = VGroup(p1, eq_1024)
         l2 = lab("about 1,000", 24, TEXT)
         l3 = lab("so x 1,000 =", 24, YELLOW)
         l4 = lab("about 10 doublings", 24, YELLOW)
-        pan = VGroup(l1, l2, l3, l4).arrange(DOWN, buff=0.22, aligned_edge=LEFT).move_to([4.55, 0.7, 0])
-        box = SurroundingRectangle(pan, buff=0.25, color=PALE, stroke_width=3)
-        self.play(FadeIn(l1, shift=LEFT * 0.2), Create(box), run_time=1.0)
-        self.play(FadeIn(l2, shift=LEFT * 0.2), run_time=0.8)
-        self.at("covers only about ten")
+        pan = VGroup(l1, l2, l3, l4).arrange(DOWN, buff=0.22, aligned_edge=LEFT).move_to([4.55, 0.35, 0])
+        box = SurroundingRectangle(pan, buff=0.25, color=PALE, stroke_width=3, fill_color=BG, fill_opacity=0.95)
+        box_bg = BackgroundRectangle(box, color=BG, fill_opacity=0.95, buff=0, stroke_width=0)
+
         poly_pts = [Pt(LAG, L_START)]
         for k in range(10):
             poly_pts.append(Pt(LAG + DT * k, L_START + k * LG2))
             poly_pts.append(Pt(LAG + DT * (k + 1), L_START + k * LG2))
         poly_pts.append(Pt(LAG + DT * 10, L_START))
         shade = Polygon(*poly_pts).set_stroke(TEAL, 0).set_fill(TEAL, 0.45)
-        sk = lab("skipped", 32, TEAL).move_to([-0.9, -0.7, 0])
+        sk = bk(lab("skipped", 32, TEAL).move_to([-0.9, -0.7, 0]), 0.07, 0.95)
         guide = DashedLine(Pt(LAG + DT * 10, L_START + 10 * LG2), Pt(16, L_MEM), dash_length=0.18).set_stroke(GOLD, 4)
-        self.play(FadeIn(shade), FadeIn(sk), run_time=1.0)
-        self.play(FadeIn(l3, shift=LEFT * 0.2), Create(guide), run_time=1.0)
-        self.at("saves those rounds")
-        self.play(FadeIn(l4, shift=LEFT * 0.2), Indicate(shade, color=YELLOW, scale_factor=1.03), run_time=1.0)
-        self.at("not a thousand fold")
-        nope = lab("not 1,000 x faster", 26, RED).move_to([4.4, -1.4, 0])
-        self.play(FadeIn(nope, shift=UP * 0.15), run_time=0.8)
+        nope = bk(lab("not 1,000 x faster", 26, RED).move_to([4.55, -1.45, 0]), 0.07, 0.95)
+
+        self.at("About ten fewer")
+        self.play(Create(stair), run_time=1.8, rate_func=linear)
+        self.at("One cell", lead=0.05)
+        self.play(FadeIn(step_dot, scale=1.4), FadeIn(step_panel), run_time=0.35)
+        self.at("doubled", lead=0.05)
+        self.play(
+            FadeIn(box_bg),
+            Create(box),
+            FadeIn(base_2, shift=RIGHT * 0.1),
+            Create(step_segs[0]),
+            step_dot.animate.move_to(step_pts[1]),
+            step_val.animate.set_value(1),
+            run_time=0.35,
+        )
+        self.at("ten times", lead=0.05)
+        self.play(FadeIn(exp_10, scale=1.3), run_time=0.30)
+        for k in range(1, 9):
+            self.play(
+                Create(step_segs[k]),
+                step_dot.animate.move_to(step_pts[k + 1]),
+                step_val.animate.set_value(k + 1),
+                run_time=0.11,
+                rate_func=linear,
+            )
+        self.play(
+            Create(step_segs[9]),
+            step_dot.animate.move_to(step_pts[10]),
+            step_val.animate.set_value(10),
+            FadeIn(eq_1024, shift=RIGHT * 0.1),
+            run_time=0.55,
+        )
+        self.at("about a thousand", lead=0.05)
+        self.play(FadeIn(l2, shift=LEFT * 0.15), run_time=0.6)
+        self.at("a thousand fold head", lead=0.05)
+        self.play(FadeIn(l3, shift=LEFT * 0.15), Create(guide), run_time=0.9)
+        self.at("skips", lead=0.1)
+        self.play(FadeIn(shade), FadeIn(sk), run_time=0.5)
+        self.at("about ten doublings", lead=0.05)
+        self.play(FadeIn(l4, shift=LEFT * 0.15), Indicate(shade, color=YELLOW, scale_factor=1.03), run_time=0.65)
+        self.at("not a thousand fold", lead=0.1)
+        self.play(FadeIn(nope, shift=UP * 0.15), run_time=0.45)
         self.finish()
 
 
