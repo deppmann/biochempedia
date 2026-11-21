@@ -1049,53 +1049,131 @@ class S10Numbers(SpokenScene):
         )
         self.add(cw["world"], gauge, blood_lbl, ca_gap, k_loop, tag)
 
-        bar_h = 2.15
-        bar_w = 0.70
-        by0 = -1.25
+        # Bars beside the gap (x = 1.94..4.01, y = -2.18..-0.40)
+        bar_h = 1.78
+        bar_w = 0.72
+        by0 = -2.18
         x_b1, x_b2 = 2.30, 3.65
+        panel_cx = (x_b1 + x_b2) / 2
 
-        bars_title = T("lumen level relative\nto blood level", size=24, color=TEXT, line_spacing=0.85).move_to([(x_b1 + x_b2) / 2, by0 + bar_h + 0.92, 0])
-        blood_top = T("blood level", size=22, color=TEXT).move_to([(x_b1 + x_b2) / 2, by0 + bar_h + 0.28, 0])
+        bars_title = T("lumen level relative\nto blood level", size=24, color=TEXT, line_spacing=0.85).move_to([panel_cx, 3.05, 0])
+        blood_top = T("blood level", size=22, color=TEXT).move_to([panel_cx, by0 + bar_h + 0.24, 0])
         out1 = Rectangle(width=bar_w, height=bar_h, stroke_color=GREY, stroke_width=3, fill_opacity=0).move_to([x_b1, by0 + bar_h / 2, 0])
         out2 = Rectangle(width=bar_w, height=bar_h, stroke_color=GREY, stroke_width=3, fill_opacity=0).move_to([x_b2, by0 + bar_h / 2, 0])
 
-        f1 = ValueTracker(0.0)
-        f2 = ValueTracker(0.0)
+        self.play(FadeIn(bars_title), FadeIn(blood_top), FadeIn(out1), FadeIn(out2), run_time=0.6)
+
+        # "plus 7"
+        self.at("plus 7")
+        self.play(Indicate(gauge.readout, color=GOLD, scale_factor=1.18), run_time=0.8)
+
+        # Formula built piece by piece above the bars (y = 1.25..2.22, centered at panel_cx)
+        # "lumen over blood"
+        self.at("lumen over blood")
+        eq_lhs = M("lumen / blood =", size=22, color=TEXT).move_to([panel_cx, 2.10, 0])
+        self.play(FadeIn(eq_lhs), run_time=0.55)
+
+        # "e to the"
+        self.at("e to the")
+        frac_y = 1.54
+        frac_w = 1.70
+        exp_open = M("exp(", size=22, color=TEXT).move_to([panel_cx - frac_w / 2 - 0.46, frac_y, 0])
+        exp_close = M(")", size=22, color=TEXT).move_to([panel_cx + frac_w / 2 + 0.24, frac_y, 0])
+        self.play(FadeIn(exp_open), FadeIn(exp_close), run_time=0.4)
+
+        # "minus charge" -> show -z in numerator (pre-centered as a pair over frac_line)
+        self.at("minus charge")
+        num_pair = VGroup(M("−z", size=22, color=TEXT), M("× V", size=22, color=TEXT)).arrange(RIGHT, buff=0.10)
+        num_pair.move_to([panel_cx, frac_y + 0.28, 0])
+        num_z, num_v = num_pair[0], num_pair[1]
+        self.play(FadeIn(num_z), run_time=0.4)
+
+        # "times voltage" -> show x V in numerator
+        self.at("times voltage")
+        self.play(FadeIn(num_v), run_time=0.45)
+
+        # "26" -> show fraction line and 26.7 mV in denominator (never before spoken)
+        self.at("26")
+        frac_line = Line([panel_cx - frac_w / 2, frac_y, 0], [panel_cx + frac_w / 2, frac_y, 0], color=TEXT, stroke_width=2.5)
+        den_rt = M("26.7 mV", size=22, color=TEXT).move_to([panel_cx, frac_y - 0.28, 0])
+        self.play(Create(frac_line), FadeIn(den_rt), run_time=0.75)
+
+        # "put in" -> substitute V -> 7 mV (compute cleanly centered numerator)
+        self.at("put in")
+        num_old = VGroup(num_z, num_v)
+        num_new = M("−z × 7 mV", size=22, color=GOLD).move_to([panel_cx, frac_y + 0.28, 0])
+        self.play(
+            Indicate(gauge.readout, color=GOLD, scale_factor=1.15),
+            swap(num_old, num_new, run_time=0.7),
+            run_time=0.75,
+        )
+
+        # Helper for downward arrow inside each bar outline as lumen level falls
+        def make_down_arrow(x, tracker):
+            def mk():
+                top_y = by0 + bar_h - 0.07
+                bot_y = by0 + bar_h * tracker.get_value() + 0.06
+                if top_y - bot_y < 0.16:
+                    return VGroup()
+                return Arrow([x, top_y, 0], [x, bot_y, 0], color=TEXT, stroke_width=3.2, buff=0, tip_length=0.12)
+            return always_redraw(mk)
+
+        # Case 1: "for one charge" -> yellow bar starts at blood level (1.0), no % number yet
+        self.at("for one charge")
+        f1 = ValueTracker(1.0)
         fill1 = always_redraw(lambda: Rectangle(
             width=bar_w - 0.06, height=max(0.02, bar_h * f1.get_value()),
-            fill_color=YELLOW, fill_opacity=0.82, stroke_width=0
+            fill_color=YELLOW, fill_opacity=0.84, stroke_width=0
         ).move_to([x_b1, by0 + max(0.02, bar_h * f1.get_value()) / 2, 0]))
+        arr1 = make_down_arrow(x_b1, f1)
+        lbl1 = T("one\ncharge", size=22, color=YELLOW, line_spacing=0.85).move_to([x_b1, by0 - 0.40, 0])
+        z1_row = VGroup(
+            M("z = 1 →", size=22, color=YELLOW),
+            M("0.77 (77%)", size=22, color=YELLOW),
+        ).arrange(RIGHT, buff=0.14).move_to([panel_cx, 0.58, 0])
+        z1_lhs, z1_rhs = z1_row[0], z1_row[1]
+        self.add(fill1, arr1)
+        self.play(FadeIn(fill1), FadeIn(lbl1), FadeIn(z1_lhs), run_time=0.6)
+
+        # "the lumen can fall" -> bar falls from 1.0 down to EQ_Z1 while downward arrow grows inside outline
+        self.at("the lumen can fall")
+        self.play(f1.animate.set_value(EQ_Z1), run_time=1.5, rate_func=smooth)
+
+        # "77" -> reveal 0.77 (77%) and 77% inside bar 1
+        self.at("77")
+        pct1 = M("77%", size=22, color=BG, weight=BOLD).move_to([x_b1, by0 + bar_h * EQ_Z1 * 0.5, 0])
+        self.play(FadeIn(z1_rhs), FadeIn(pct1), run_time=0.45)
+
+        # Case 2: "for two charges" -> green bar starts at blood level (1.0), no % number yet
+        self.at("for two charges")
+        f2 = ValueTracker(1.0)
         fill2 = always_redraw(lambda: Rectangle(
             width=bar_w - 0.06, height=max(0.02, bar_h * f2.get_value()),
-            fill_color=GREEN, fill_opacity=0.82, stroke_width=0
+            fill_color=GREEN, fill_opacity=0.84, stroke_width=0
         ).move_to([x_b2, by0 + max(0.02, bar_h * f2.get_value()) / 2, 0]))
+        arr2 = make_down_arrow(x_b2, f2)
+        lbl2 = T("two\ncharges", size=22, color=GREEN, line_spacing=0.85).move_to([x_b2, by0 - 0.40, 0])
+        z2_row = VGroup(
+            M("z = 2 →", size=22, color=GREEN),
+            M("0.59 (59%)", size=22, color=GREEN),
+        ).arrange(RIGHT, buff=0.14).move_to([panel_cx, 0.24, 0])
+        z2_lhs, z2_rhs = z2_row[0], z2_row[1]
+        self.add(fill2, arr2)
+        self.play(FadeIn(fill2), FadeIn(lbl2), FadeIn(z2_lhs), run_time=0.6)
 
-        pct1 = always_redraw(lambda: M(f"{f1.get_value() * 100:.0f}%", size=24, color=YELLOW).move_to(
-            [x_b1, by0 + bar_h * f1.get_value() + 0.22, 0] if f1.get_value() < 0.86 else [x_b1, by0 + bar_h - 0.22, 0]
-        ))
-        pct2 = always_redraw(lambda: M(f"{f2.get_value() * 100:.0f}%", size=24, color=GREEN).move_to(
-            [x_b2, by0 + bar_h * f2.get_value() + 0.22, 0]
-        ))
+        # "as low as" (second occurrence) -> bar 2 falls from 1.0 down to EQ_Z2
+        self.at("as low as", nth=1)
+        self.play(f2.animate.set_value(EQ_Z2), run_time=0.65, rate_func=smooth)
 
-        lbl1 = T("one\ncharge", size=22, color=YELLOW, line_spacing=0.85).move_to([x_b1, by0 - 0.44, 0])
-        lbl2 = T("two\ncharges", size=22, color=GREEN, line_spacing=0.85).move_to([x_b2, by0 - 0.44, 0])
+        # "59" -> reveal 0.59 (59%) and 59% inside bar 2
+        self.at("59")
+        pct2 = M("59%", size=22, color=BG, weight=BOLD).move_to([x_b2, by0 + bar_h * EQ_Z2 * 0.5, 0])
+        self.play(FadeIn(z2_rhs), FadeIn(pct2), run_time=0.45)
 
-        self.play(FadeIn(bars_title), FadeIn(blood_top), FadeIn(out1), FadeIn(out2),
-                  FadeIn(lbl1), FadeIn(lbl2), run_time=0.5)
-        self.add(fill1, fill2, pct1, pct2)
-
-        # "near 77"
-        self.at("near 77")
-        self.play(f1.animate.set_value(EQ_Z1), run_time=1.3, rate_func=smooth)
-
-        # "about 59"
-        self.at("about 59")
-        self.play(f2.animate.set_value(EQ_Z2), run_time=1.3, rate_func=smooth)
-
-        # "not a measurement"
-        self.at("not a measurement")
-        lim_tag = T("equilibrium limit, not measured", size=24, color=GOLD).move_to([0.2, -3.15, 0])
-        self.play(FadeIn(lim_tag), run_time=0.5)
+        # "equilibrium limit"
+        self.at("equilibrium limit")
+        lim_tag = T("equilibrium limit, not measured", size=24, color=GOLD).move_to([1.50, -3.18, 0])
+        self.play(FadeIn(lim_tag), run_time=0.45)
         self.finish()
 
 

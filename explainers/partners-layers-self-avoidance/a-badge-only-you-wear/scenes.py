@@ -495,18 +495,96 @@ class S12bOne(SpokenScene):
 
 class S13Count(SpokenScene):
     def construct(self):
-        back,gb,gs=final_row()
+        back, gb, gs = final_row()
         for k in range(4):
-            gs[k][PICK[k]].set_fill(PURPLE,1).set_stroke(PURPLE)
-        gene=VGroup(back,gb,*gs).scale(0.72).move_to([0,1.8,0])
-        self.add(gene,rna_row(True).shift(UP*2.5))
-        a=T("12 × 48 × 33 = 19,008  outer surfaces",36,TEAL).move_to([0,-1.8,0])
-        b=T("19,008 × 2 = 38,016  isoforms in all",36,TEAL).move_to([0,-2.9,0])
-        self.at("that gives")
-        self.play(FadeIn(a),run_time=0.2)
-        # Complete integers only; the two results remain together for over three seconds.
-        self.at("outer surfaces")
-        self.play(FadeIn(b),run_time=0.2)
+            gs[k][PICK[k]].set_fill(PURPLE, 1).set_stroke(PURPLE)
+        gene = VGroup(back, gb, *gs).scale(0.68).move_to([0, 2.25, 0])
+        rna = rna_row(True).shift(UP * 2.80)
+        self.add(gene, rna)
+
+        cnums = [M(str(n), 30, TEAL).move_to([gs[k].get_center()[0], 0.85, 0]) for k, (n, _) in enumerate(CL)]
+        hilites = [SurroundingRectangle(gs[k], buff=0.06, color=GOLD, stroke_width=3) for k in range(4)]
+
+        f12, op1, f48, op2, f33, eq1, p1 = [M(s, 34, TEAL) for s in ("12", "×", "48", "×", "33", "=", "19,008")]
+        u1 = T("outer surfaces", 32, TEAL)
+        row1 = VGroup(f12, op1, f48, op2, f33, eq1, p1, u1).arrange(RIGHT, buff=0.20).move_to([0, -1.30, 0])
+
+        op3, f2, eq2, p2 = [M(s, 34, TEAL) for s in ("×", "2", "=", "38,016")]
+        u2 = T("isoforms", 32, TEAL)
+        row2 = VGroup(op3, f2, eq2, p2, u2).arrange(RIGHT, buff=0.20).move_to([0, -2.10, 0])
+        row2.shift(RIGHT * (eq1.get_center()[0] - eq2.get_center()[0]))
+
+        from bp_parts import Readout
+        total = ValueTracker(12.0)
+        box = Readout([("total", lambda: total.get_value(), "{:6,.0f}", GOLD)],
+                      at=[0, -3.05, 0], size=30, widest=[38016], color=TEAL, pad=0.22)
+
+        # Sentence 1: reveal each cluster count only as it is spoken
+        self.at("twelve", lead=0.05)
+        cnums[0].set_color(GOLD)
+        self.play(FadeIn(cnums[0]), Create(hilites[0]), run_time=0.25)
+
+        self.at("forty eight", lead=0.05)
+        cnums[1].set_color(GOLD)
+        self.play(cnums[0].animate.set_color(TEAL), FadeOut(hilites[0]),
+                  FadeIn(cnums[1]), Create(hilites[1]), run_time=0.25)
+
+        self.at("thirty three", lead=0.05)
+        cnums[2].set_color(GOLD)
+        self.play(cnums[1].animate.set_color(TEAL), FadeOut(hilites[1]),
+                  FadeIn(cnums[2]), Create(hilites[2]), run_time=0.25)
+
+        self.at("two", lead=0.05)
+        cnums[3].set_color(GOLD)
+        self.play(cnums[2].animate.set_color(TEAL), FadeOut(hilites[2]),
+                  FadeIn(cnums[3]), Create(hilites[3]), run_time=0.25)
+
+        # Sentence 2: build 12 x 48 x 33 = 19,008 outer surfaces in time with words
+        self.at("twelve", lead=0.05, nth=1)
+        f12.set_color(GOLD)
+        self.play(cnums[3].animate.set_color(TEAL), FadeOut(hilites[3]),
+                  cnums[0].animate.set_color(GOLD), FadeIn(f12), FadeIn(box), run_time=0.25)
+
+        self.play(FadeIn(op1), run_time=0.15)
+        self.at("forty eight", lead=0.05, nth=1)
+        f48.set_color(GOLD)
+        self.play(cnums[0].animate.set_color(TEAL), f12.animate.set_color(TEAL),
+                  cnums[1].animate.set_color(GOLD), FadeIn(f48), run_time=0.25)
+
+        self.play(FadeIn(op2), run_time=0.15)
+        self.at("thirty three", lead=0.05, nth=1)
+        f33.set_color(GOLD)
+        self.play(cnums[1].animate.set_color(TEAL), f48.animate.set_color(TEAL),
+                  cnums[2].animate.set_color(GOLD), FadeIn(f33), run_time=0.25)
+
+        self.at("gives", lead=0.05)
+        self.play(cnums[2].animate.set_color(TEAL), f33.animate.set_color(TEAL),
+                  FadeIn(eq1), run_time=0.20)
+
+        self.at("nineteen thousand", lead=0.05)
+        p1.set_color(GOLD)
+        self.play(FadeIn(p1), total.animate.set_value(19008.0), run_time=1.10)
+
+        self.at("outer surfaces", lead=0.05)
+        self.play(FadeIn(u1), run_time=0.25)
+
+        # Sentence 3: double for the last cluster -> 38,016 isoforms
+        self.at("doubling", lead=0.05)
+        op3.set_color(GOLD)
+        f2.set_color(GOLD)
+        self.play(p1.animate.set_color(TEAL), cnums[3].animate.set_color(GOLD),
+                  FadeIn(op3), FadeIn(f2), run_time=0.30)
+
+        self.at("gives", lead=0.05, nth=1)
+        self.play(cnums[3].animate.set_color(TEAL), op3.animate.set_color(TEAL),
+                  f2.animate.set_color(TEAL), FadeIn(eq2), run_time=0.20)
+
+        self.at("thirty eight thousand", lead=0.05)
+        p2.set_color(GOLD)
+        self.play(FadeIn(p2), total.animate.set_value(38016.0), run_time=1.05)
+
+        self.at("isoforms", lead=0.05)
+        self.play(FadeIn(u2), run_time=0.25)
         self.finish()
 
 
@@ -921,8 +999,3 @@ class S31Take(SpokenScene):
 
 class S32End(EndCard):
     LINE = "A label unique to one cell, read as retreat, keeps that cell's own branches apart."
-
-    def construct(self):
-        line=T("A label unique to one cell,\nread as retreat,\nkeeps that cell's own branches apart.",42,font=TITLE_FONT,line_spacing=1.1)
-        self.add(line,T("biochemistrypedia.com",28,TEAL).move_to([0,-2.6,0]))
-        self.finish()

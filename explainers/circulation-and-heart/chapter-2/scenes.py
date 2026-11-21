@@ -320,12 +320,12 @@ CLK = (5.4, 2.2)
 CTR = (2.7, 1.9)
 
 
-def tank_world(sc, tr, vmax, c0=0.0, with_scoops=True):
+def tank_world(sc, tr, vmax, c0=0.0, with_scoops=True, run_s=7.0):
     """cup + tank + body + clock + counter, driven by one tracker c (0..1 = the half hour).
     vmax = body-fulls pumped by the end of the half hour (31.5 for the 70 mL guess, 15.75 for 35 mL)."""
     c = ValueTracker(c0)
     c.run = False
-    c.add_updater(lambda m, dt: m.increment_value(dt / 7.0) if (m.run and m.get_value() < 1) else None)
+    c.add_updater(lambda m, dt: m.set_value(min(1.0, m.get_value() + dt / run_s)) if (m.run and m.get_value() < 1) else None)
     sc.add(c)
     cup = make_cup(tr, CUP_X, CUP_Y)
     tank = Rectangle(width=TANK_W, height=TANK_H, color=TEXT, stroke_width=4).move_to([TANK_X, TANK_Y0 + TANK_H / 2, 0])
@@ -358,7 +358,7 @@ def tank_world(sc, tr, vmax, c0=0.0, with_scoops=True):
     hand.add_updater(hu)
     hu(hand)
     clab = T("half an hour", 24, TEXT).move_to([CLK[0], 1.05, 0])
-    ctr = live_counter(lambda: f"{int(vf())} x body", "pumped", CTR, 3.0, 28, 24)
+    ctr = live_counter(lambda: f"{vf():.1f} x body", "pumped", CTR, 3.0, 28, 24)
     d = dict(c=c, cup=cup, tank=tank, fill=fillr, spill=spill, body=body, ref=ref, blab=blab,
              clock=VGroup(clk, hand, clab), ctr=ctr, vf=vf)
     if with_scoops:
@@ -711,26 +711,73 @@ class S09Reveal(SpokenScene):
     def construct(self):
         tr = start_clock(self)
         pg = paper()
-        w = tank_world(self, tr, 15.75, c0=0.0)
+        w = tank_world(self, tr, 15.75, c0=0.0, run_s=4.0)
+        cf = card("conclusion\nfalls").move_to([5.3, -0.2, 0])
         cs = card("conclusion\nstands", YELLOW).move_to([5.3, -1.7, 0])
-        self.add(pg, w["cup"], w["tank"], w["fill"], w["spill"], w["body"], w["ref"], w["clock"], w["ctr"], w["blab"])
+        self.add(pg, w["cup"], w["tank"], w["fill"], w["spill"], w["body"], w["ref"], w["clock"], w["ctr"], w["blab"], cf, cs)
         sc = scoop_arc(tr, [CUP_X, CUP_Y - 0.5, 0], [TANK_X, TANK_Y0 + TANK_H + 0.1, 0], r=0.15, Tb=0.5, apex=1.0)
         self.add(sc)
-        self.play(FadeIn(cs), run_time=0.5)
         glow = SurroundingRectangle(cs, color=YELLOW, buff=0.12, stroke_width=6)
         glow.add_updater(lambda m: m.set_stroke(opacity=0.55 + 0.45 * np.sin(tr.get_value() * 4)))
-        self.add(glow)
-        self.at("even with half")
-        eq = M("35 mL × 75 per min × 30 min ≈ 79 L, nearly 16 × 5 L", 26, YELLOW)
-        fit(eq, max_w=12.4)
-        eq.move_to([0, 3.4, 0])
-        self.play(FadeIn(eq), run_time=0.8)
-        self.at("half an hour still")
+        self.at("it stands")
+        self.play(FadeOut(cf), FadeIn(glow), run_time=0.5)
+
+        # Build word formula in the bottom band, then align numbers directly under each term.
+        w_vol = T("volume per beat", 24, TEXT)
+        w_op1 = M("×", 24, TEXT)
+        w_rate = T("rate", 24, TEXT)
+        w_op2 = M("×", 24, TEXT)
+        w_time = T("time", 24, TEXT)
+        w_eq = M("=", 24, TEXT)
+        w_tot = T("total", 24, TEXT)
+
+        n_vol = M("35 mL", 24, YELLOW)
+        n_op1 = M("×", 24, YELLOW)
+        n_rate = M("75 per min", 24, YELLOW)
+        n_op2 = M("×", 24, YELLOW)
+        n_time = M("30 min", 24, YELLOW)
+        n_eq = M("≈", 24, YELLOW)
+        n_tot = M("79 L", 24, YELLOW)
+
+        cols = [(w_vol, n_vol), (w_op1, n_op1), (w_rate, n_rate), (w_op2, n_op2),
+                (w_time, n_time), (w_eq, n_eq), (w_tot, n_tot)]
+        widths = [max(wt.width, nt.width) for wt, nt in cols]
+        buff = 0.18
+        total_w = sum(widths) + buff * (len(cols) - 1)
+        x = -total_w / 2 - 0.2
+        for (wt, nt), cw in zip(cols, widths):
+            cx = x + cw / 2
+            wt.move_to([cx, -2.97, 0])
+            nt.move_to([cx, -3.43, 0])
+            x += cw + buff
+
+        num_16 = M("nearly 16", 24, YELLOW).move_to([1.12, -1.25, 0])
+        num_5 = M("× 5 L", 24, YELLOW).move_to([1.12, -1.72, 0])
+
+        self.at("total pumped")
+        self.play(FadeIn(VGroup(w_eq, w_tot)), run_time=0.45)
+        self.at("volume per beat")
+        self.play(FadeIn(w_vol), run_time=0.5)
+        self.at("times beats per")
+        self.play(FadeIn(VGroup(w_op1, w_rate)), run_time=0.5)
+        self.at("times minutes")
+        self.play(FadeIn(VGroup(w_op2, w_time)), run_time=0.5)
+
+        self.at("35 milliliters", lead=0.0)
+        self.play(FadeIn(n_vol), run_time=0.4)
+        self.at("75 beats", lead=0.0)
         w["c"].run = True
-        self.at("overflows the body")
-        self.play(Indicate(w["body"], color=YELLOW, scale_factor=1.12), run_time=1.2)
-        self.at("far more than")
-        self.play(Indicate(w["tank"], color=YELLOW, scale_factor=1.03), run_time=1.2)
+        self.play(FadeIn(VGroup(n_op1, n_rate)), run_time=0.4)
+        self.at("30 minutes", lead=0.0)
+        self.play(FadeIn(VGroup(n_op2, n_time)), run_time=0.4)
+        self.at("79 liters", lead=0.0)
+        self.play(FadeIn(VGroup(n_eq, n_tot)), run_time=0.4)
+        self.play(Indicate(w["tank"], color=YELLOW, scale_factor=1.03), run_time=0.9)
+        self.at("nearly 16", lead=0.0)
+        self.play(FadeIn(num_16), run_time=0.4)
+        self.at("5 liters", lead=0.0)
+        self.play(FadeIn(num_5), run_time=0.35)
+        self.play(Indicate(w["body"], color=YELLOW, scale_factor=1.10), run_time=0.8)
         self.finish()
 
 
@@ -738,7 +785,7 @@ class S10Circulates(SpokenScene):
     def construct(self):
         tr = start_clock(self)
         pg = paper()
-        w = tank_world(self, tr, 15.75, c0=0.9)
+        w = tank_world(self, tr, 15.75, c0=1.0)
         self.add(pg, w["cup"], w["tank"], w["fill"], w["body"], w["ref"], w["clock"], w["ctr"], w["blab"])
         self.wait(0.4)
         rg = ring_k()

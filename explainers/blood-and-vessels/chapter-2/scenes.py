@@ -165,14 +165,22 @@ def balance(cx, cy, half, wp, wq, sway=None, push_label="push", pull_label="pull
         g.add(Line(lt, rt).set_stroke(TEXT, 8))
         g.add(Dot([cx, cy, 0], radius=0.14, color=GOLD))
         for e, w, col, lab in ((lt, wp, ORANGE, push_label), (rt, wq, BLUE, pull_label)):
-            pan = e + DOWN * 1.0
-            g.add(Line(e, pan + LEFT * (ww / 2)).set_stroke(GREY, 3), Line(e, pan + RIGHT * (ww / 2)).set_stroke(GREY, 3))
-            g.add(Line(pan + LEFT * (ww / 2 + 0.1), pan + RIGHT * (ww / 2 + 0.1)).set_stroke(TEXT, 7))
+            pan = e + DOWN * 1.2
             if with_weights:
-                hh = 0.42 + 0.26 * max(0.0, w.get_value())
+                hh = 0.62 + 0.20 * max(0.0, w.get_value())
                 bx = RoundedRectangle(corner_radius=0.08, width=ww, height=hh, stroke_color=col, stroke_width=3,
                                       fill_color=col, fill_opacity=0.7).move_to(pan + UP * (hh / 2 + 0.04))
+                top_y = pan[1] + hh + 0.08
+                dx = ww / 2 + 0.06
+                for s in (-1, 1):
+                    p_mid = np.array([pan[0] + s * dx, top_y, 0.0])
+                    p_bot = np.array([pan[0] + s * dx, pan[1], 0.0])
+                    g.add(VMobject().set_points_as_corners([e, p_mid, p_bot]).set_stroke(GREY, 3))
+                g.add(Line(pan + LEFT * (ww / 2 + 0.12), pan + RIGHT * (ww / 2 + 0.12)).set_stroke(TEXT, 7))
                 g.add(bx, T(lab, fs, TEXT, weight=BOLD).move_to(bx))
+            else:
+                g.add(Line(e, pan + LEFT * (ww / 2)).set_stroke(GREY, 3), Line(e, pan + RIGHT * (ww / 2)).set_stroke(GREY, 3))
+                g.add(Line(pan + LEFT * (ww / 2 + 0.1), pan + RIGHT * (ww / 2 + 0.1)).set_stroke(TEXT, 7))
         return g
     return always_redraw(build)
 
@@ -376,6 +384,7 @@ class S04Pull(SpokenScene):
         w = wall()
         flow = ValueTracker(1.0)
         rate = ValueTracker(1.0)
+        seep_dir = ValueTracker(1.0)
         rc = cells(0.0, lambda: flow.get_value(), seed=1, n=11)
         big = push_arrows()
         big.set_opacity(0.4)
@@ -383,19 +392,26 @@ class S04Pull(SpokenScene):
         lab.move_to([-0.3, 3.45, 0])
         lab.set_opacity(0.5)
         tis = L("tissue", 30, TEXT).move_to([-5.9, 2.75, 0])
-        sp = seep(0.0, CH, [-4.4, -2.4, -0.4, 1.6, 3.6], lambda: rate.get_value(), lambda: 1.0, seed=3)
-        self.add(flow, rate, w, rc, sp, big, lab, tis)
+        sp = seep(0.0, CH, [-4.4, -2.4, -0.4, 1.6, 3.6], lambda: rate.get_value(), lambda: seep_dir.get_value(), seed=3)
+        self.add(flow, rate, seep_dir, w, rc, sp, big, lab, tis)
         self.wait(0.4)
         self.at("plasma proteins")
         alb = cells(0.0, lambda: 0.6 * flow.get_value(), seed=8, n=13, r=0.16, color=BLUE, hh=0.85)
         self.play(FadeIn(alb), run_time=0.8)
         self.at("mostly albumin")
-        al = L("albumin", 34, BLUE).move_to([-5.3, 2.2, 0])
+        al = L("albumin", 34, BLUE).move_to([-5.6, 1.85, 0])
         self.play(FadeIn(al), run_time=0.6)
-        self.at("Few cross")
+        self.at("osmosis")
+        seep_dir.set_value(-1.0)
+        bl = VGroup(*[arr(x, s * 2.8, s * 0.8, BLUE, 8) for x in (-2.4, 0.0, 2.4) for s in (1, -1)])
+        osm = L("osmosis", 32, BLUE).move_to([-1.3, 2.58, 0])
+        self.play(LaggedStart(*[GrowArrow(a) for a in bl], lag_ratio=0.1), FadeIn(osm), run_time=1.3)
+        breathe(bl)
+        self.at("trapped particles")
         coat = VGroup(*[DashedLine([CX0, s * (CH / 2 - 0.1), 0], [CX1, s * (CH / 2 - 0.1), 0], dash_length=0.12, dashed_ratio=0.5).set_stroke(TAN, 9) for s in (1, -1)])
         coat.set_opacity(0.55)
         self.play(FadeIn(coat), run_time=0.6)
+        self.at("few proteins")
         # two albumin molecules slip through; a few sit in the tissue already
         slip = VGroup(*[Dot(radius=0.13, color=BLUE) for _ in range(2)])
         for k, d in enumerate(slip):
@@ -409,25 +425,30 @@ class S04Pull(SpokenScene):
                 m.set_opacity(math.sin(PI * min(1.0, p * 1.0)) * 0.9 + 0.1)
             d.add_updater(up)
             up(d, 0)
-        tp = VGroup(Dot([-2.9, 2.6, 0], radius=0.16, color=BLUE), Dot([3.9, 2.7, 0], radius=0.16, color=BLUE),
-                    Dot([-3.3, -2.7, 0], radius=0.16, color=BLUE))
+        tp = VGroup(Dot([-2.9, 2.6, 0], radius=0.16, color=BLUE), Dot([4.1, 2.7, 0], radius=0.16, color=BLUE),
+                    Dot([-3.1, -2.7, 0], radius=0.16, color=BLUE))
         few = L("few cross", 32, BLUE).move_to([5.4, 2.9, 0])
         self.play(FadeIn(slip), FadeIn(tp), FadeIn(few), run_time=0.9)
         self.at("pull water")
-        bl = VGroup(*[arr(x, s * 3.0, s * 0.8, BLUE, 8) for x in (-2.4, 0.0, 2.4) for s in (1, -1)])
-        self.play(FadeOut(few), LaggedStart(*[GrowArrow(a) for a in bl], lag_ratio=0.1), big.animate.set_opacity(0.9), run_time=1.5)
-        breathe(bl)
+        self.play(FadeOut(few), big.animate.set_opacity(0.9), run_time=1.0)
+        breathe(big, base=0.9)
         self.at("Protein outside")
-        self.play(Indicate(tp, color=BLUE, scale_factor=1.5), run_time=1.3)
-        small = VGroup(*[Arrow([x, s * 1.7, 0], [x, s * 2.2, 0], color=BLUE, buff=0, stroke_width=5, tip_length=0.18) for x in (-3.6,) for s in (1,)])
+        self.play(*[Indicate(d, color=BLUE, scale_factor=1.5) for d in tp], run_time=0.7)  # each dot pulses in place (2026-11-21)
+        self.at("pulls the other way")
+        small = VGroup(
+            Arrow([-2.9, 1.4, 0], [-2.9, 2.25, 0], color=BLUE, buff=0, stroke_width=5, tip_length=0.18),
+            Arrow([4.1, 1.4, 0], [4.1, 2.25, 0], color=BLUE, buff=0, stroke_width=5, tip_length=0.18),
+            Arrow([-3.1, -1.4, 0], [-3.1, -2.25, 0], color=BLUE, buff=0, stroke_width=5, tip_length=0.18),
+        )
+        self.play(LaggedStart(*[GrowArrow(a) for a in small], lag_ratio=0.15), run_time=0.9)
         self.at("difference counts")
         pl = VGroup(T("pull:", 36, BLUE, weight=BOLD), sub("π", "c", 36, BLUE), T("− π outside", 36, BLUE)).arrange(RIGHT, buff=0.14, aligned_edge=DOWN)
-        pl.move_to([0.0, -3.5, 0])
+        pl.move_to([0.0, -3.4, 0])
         self.play(FadeIn(pl, shift=UP * 0.1), run_time=0.8)
         self.at("oncotic pressure")
-        oc = chip("oncotic pressure", BLUE, 34, fill_opacity=0.2).move_to([-0.3, 3.45, 0])
-        self.play(FadeOut(lab), FadeIn(oc, shift=DOWN * 0.1), run_time=0.8)
-        self.play(Indicate(bl, color=GOLD, scale_factor=1.0), run_time=1.2)
+        oc = chip("oncotic pressure", BLUE, 34, fill_opacity=0.2).move_to([-0.3, 3.30, 0])
+        self.play(Succession(FadeOut(lab, run_time=0.35), FadeIn(oc, shift=DOWN * 0.1, run_time=0.45)))
+        self.play(Indicate(bl, color=GOLD, scale_factor=1.0), run_time=1.0)
         self.finish()
 
 

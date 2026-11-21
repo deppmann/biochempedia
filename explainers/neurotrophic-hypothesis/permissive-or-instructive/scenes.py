@@ -219,11 +219,40 @@ class S14Flat(SpokenScene):
         self.finish()
 class S15Res(SpokenScene):
     def construct(self):
-        w=wiring(False); self.add(w,DashedLine([-5.05,0,0],ENTRY,color=BLUE,stroke_opacity=.25),head('Neuron-made NGF'))
-        self.at('Axons still'); self.play(Create(branch([-5.05,0,0],ENTRY)),run_time=1)
-        reached=VGroup(chip('Reached\nthe target',TEXT,28,fill_opacity=.08).move_to([-4.9,1.85,0]),Arrow([-4.0,1.35,0],[-3.0,.12,0],buff=0,color=TEXT,stroke_width=4,max_tip_length_to_length_ratio=.25))
-        self.play(FadeIn(reached),Create(arbor(False)),FadeIn(density_tag()),run_time=.7)
-        self.play(FadeIn(foot('Sparse branching within the target')),run_time=.35)
+        w=wiring(False)
+        ax_guide=DashedLine([-5.05,0,0],ENTRY,color=BLUE,stroke_opacity=.25)
+        target_glow=Circle(radius=.85,color=YELLOW,stroke_width=0,fill_color=YELLOW,fill_opacity=.26).move_to([3.2,0,0]).set_z_index(-2)
+        axon_glows=VGroup(*[Circle(radius=.32,color=YELLOW,stroke_width=0,fill_color=YELLOW,fill_opacity=.12).move_to(d.get_center()).set_z_index(-2) for d in w[2][:3]])
+        extra_glows=VGroup(*[Circle(radius=.58,color=YELLOW,stroke_width=0,fill_color=YELLOW,fill_opacity=.22).move_to([x,0,0]).set_z_index(-2) for x in [-2.5,-1.7]])
+        target_ngf_lbl=label('Target NGF',3.32,.62,26,YELLOW)
+        self.add(target_glow,axon_glows,w,ax_guide,head('Neuron-made NGF'),target_ngf_lbl)
+
+        ax_main=branch([-5.05,0,0],ENTRY)
+        keep_branches=arbor(False)
+        extra_branches=VGroup(*[branch(ENTRY,[x,y,0]) for x,y in [(1.4,1.45),(2.0,.22),(1.4,-1.45)]])
+        reached=VGroup(chip('Reached\nthe target',TEXT,28,fill_opacity=.08).move_to([-4.9,1.85,0]),
+                       Arrow([-4.2,1.32,0],[-3.7,.14,0],buff=0,color=TEXT,stroke_width=4,max_tip_length_to_length_ratio=.25))
+
+        self.at('Axons still')
+        self.play(Create(ax_main),run_time=1.3)
+
+        self.at('without needing')
+        self.play(FadeIn(reached),Create(keep_branches),Create(extra_branches),run_time=1.6)
+
+        self.at('Yet with extra')
+        foot_alt=foot('Altered distribution (not uniform)')
+        self.play(*[g.animate.scale(1.8).set_fill(opacity=.24) for g in axon_glows],FadeIn(extra_glows),FadeIn(foot_alt),run_time=1.9)
+
+        self.at("the target's own")
+        low_contrast_lbl=label('Target NGF\nno longer\nstands out',3.25,.70,24,TEXT)
+        self.play(target_glow.animate.scale(.7).set_fill(opacity=.06),w[2][3].animate.set_opacity(.45),Succession(FadeOut(target_ngf_lbl,run_time=.45),FadeIn(low_contrast_lbl,run_time=.55)),run_time=1.5)
+
+        self.at('So inside those')
+        self.play(Indicate(w[5],color=BLUE,scale_factor=1.02),run_time=.8)
+
+        self.at('they branch sparsely')
+        foot_sparse=foot('Sparse branching within the target')
+        self.play(extra_branches.animate.scale(.12,about_point=ENTRY).set_opacity(0),FadeIn(density_tag()),Succession(FadeOut(foot_alt,run_time=.4),FadeIn(foot_sparse,run_time=.5)),run_time=1.0)
         self.finish()
 class S16Rest(SpokenScene):
     def construct(self):
@@ -331,6 +360,3 @@ class S25Take(SpokenScene):
         self.finish()
 class S26End(EndCard):
     LINE='NGF permits survival; within tested targets, it also instructs branching.'
-    def construct(self):
-        self.add(label('For survival, NGF is permissive.',0,1,40),label('Within tested targets, it also instructs branching.',0,-.3,34,YELLOW),label('biochemistrypedia.com',0,-2,26,TEAL))
-        self.finish()
