@@ -13,7 +13,7 @@
  *                              merge: [{ from, into, why }],
  *                              rungs: [{ id, lesson, role: core | uses | drop, anchor, adds, films, why }],
  *                              near: { <id>: [{ id, why }] }   (added to what the concept has),
- *                              fields: { <id>: { name, short, blurb } }   (reworded copy),
+ *                              fields: { <id>: { name, short, blurb, aliases } }   (reworded copy),
  *                              order: { <lesson>: [<id>, ...] }   (main idea first, overruling the rule) }
  * Every file and every item in it is checked against the lessons and the wording rules. A bad item
  * is rejected with its reason and the rest is kept; nothing is dropped silently. A rung the blind
@@ -527,6 +527,12 @@ export function ingest({ base, site, staging, maxUses = LIMITS.usesPerProposal, 
           if (pr) { R(`${from} ${k}`, `${pr}: "${e[k]}"`); continue; }
           if (k !== 'short' || c.short) change('review', `${id}: ${k} changed from ${JSON.stringify(c[k])} to ${JSON.stringify(e[k])}${e.why ? `: ${e.why}` : ''} (${f.file})`);
           c[k] = e[k];
+        }
+        if (Array.isArray(e.aliases)) {
+          const ok = [];
+          for (const al of e.aliases) { const ap = typeof al !== 'string' ? 'not a string' : aliasProblem(al) || (fold(al) === fold(c.name) ? 'repeats the name' : ok.some((x) => fold(x) === fold(al)) ? 'listed twice' : ok.length >= LIMITS.aliasMax ? `over the limit of ${LIMITS.aliasMax}` : ''); if (ap) R(`${from} alias "${al}"`, ap); else ok.push(al); }
+          if (ok.length >= LIMITS.aliasMin) { if (JSON.stringify(ok) !== JSON.stringify(c.aliases)) change('review', `${id}: aliases changed from ${JSON.stringify(c.aliases)} to ${JSON.stringify(ok)}${e.why ? `: ${e.why}` : ''} (${f.file})`); c.aliases = ok; }
+          else R(`${from} aliases`, `fewer than ${LIMITS.aliasMin} valid aliases; kept the existing ones`);
         }
       }
       for (const [slug, ids] of Object.entries(isObj(d.order) ? d.order : {})) { if (site.lessons.has(slug) && Array.isArray(ids)) orderOverride[slug] = ids.map((x) => resolve(String(x))); else R(`order ${slug}`, 'not a live lesson, or not a list'); }
