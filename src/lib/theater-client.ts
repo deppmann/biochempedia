@@ -10,7 +10,8 @@
        carries aria-current instead. One sentence is announced, when the film ends;
      - nothing is stored. The watched record is trackFilms() in BaseLayout.
 
-   Reviewer hooks: ?t=<seconds> puts the page in the state it has at that second without playing;
+   Reviewer hooks: ?t=<seconds> puts the page in the state it has at that second (the film itself is
+   left alone);
    ?state=end shows the end of the film. ?film=<key>&at=<seconds> is the site's resume link
    (resumeFromLink in film-progress.ts does the seek; this adds "Press play to start at m:ss."). */
 
@@ -35,13 +36,13 @@ export function theater(): void {
   const figs = $<HTMLDetailsElement>('[data-th-figs]');
   const terms = $$('[data-at]');
   const lines = $$('[data-th-lines] > li');
-  const segs = $$<HTMLButtonElement>('.th-seg');
+  const segs = $$('.th-seg');
   const bar = $('[data-th-bar]');
   const next = $('[data-th-next]')!;
   const status = $('[data-th-status]')!;
   const transcript = $<HTMLDetailsElement>('[data-th-transcript]');
 
-  root.classList.add('th-live');
+  root.classList.add('th-live', 'th-ready');
   // The site's header stays at the top of the window; the pinned screen sits under it.
   const header = document.querySelector<HTMLElement>('.site-header');
   if (header && getComputedStyle(header).position === 'sticky') root.style.setProperty('--th-top', `${header.offsetHeight}px`);
@@ -65,9 +66,10 @@ export function theater(): void {
   const showPart = (i: number) => {
     part = i;
     panels.forEach((p, k) => p.classList.toggle('is-now', k === i));
-    rows.forEach((r, k) => { if (k === i) r.setAttribute('aria-current', 'true'); else r.removeAttribute('aria-current'); });
   };
   const setPart = (i: number) => {
+    // The list of parts always says where the film is, even while the panel is being held.
+    if (i !== wanted) rows.forEach((r, k) => { if (k === i) r.setAttribute('aria-current', 'true'); else r.removeAttribute('aria-current'); });
     wanted = i;
     if (i === part) return;
     // Someone is on a link in the panel: leave it where it is until they move on.
@@ -141,7 +143,6 @@ export function theater(): void {
 
   /* ---- controls made from the printed list */
   for (const r of rows) r.addEventListener('click', () => playFrom(num(r, 't')));
-  for (const b of segs) b.addEventListener('click', () => playFrom(num(b, 't')));
   for (const li of lines) {
     const time = li.querySelector('.th-time');
     if (time) {
@@ -152,7 +153,8 @@ export function theater(): void {
       b.setAttribute('aria-label', `Play from ${time.textContent}`);
       time.replaceWith(b);
     }
-    li.addEventListener('click', () => playFrom(num(li, 't')));
+    // Not when the click ends a text selection: someone copying a sentence is not asking to seek.
+    li.addEventListener('click', () => { if (window.getSelection()?.isCollapsed !== false) playFrom(num(li, 't')); });
   }
 
   /* ---- the film */
@@ -172,8 +174,15 @@ export function theater(): void {
     sync(duration);
     const take = $<HTMLDetailsElement>('details[data-th-take]');
     if (take) take.open = true;
-    status.textContent = 'The film has ended. Where next is under the film.';
+    status.textContent = 'The film has ended. Where next is showing now.';
   });
+
+  /* ---- "Pause and decide" comes with a way to pause that is right there. */
+  const pauses = $$<HTMLButtonElement>('[data-th-pause]');
+  const paintPause = () => { for (const b of pauses) b.textContent = v.paused ? 'Carry on' : 'Pause the film'; };
+  for (const b of pauses) b.addEventListener('click', () => { if (v.paused) void v.play().catch(() => {}); else v.pause(); });
+  v.addEventListener('play', paintPause);
+  v.addEventListener('pause', paintPause);
 
   /* ---- "Cards ready" (CardsPrompt.astro) appears after the player; it belongs in Where next. */
   const slot = $('[data-th-cards]');
@@ -184,28 +193,28 @@ export function theater(): void {
     }).observe(document.body, { childList: true, subtree: true });
   }
 
-  /* ---- hops keep the way back: "Back to <film>, at 1:02". Carried in the link, stored nowhere. */
-  const title = $('[data-th-title]')?.textContent ?? '';
+  /* ---- hops keep the way back: "Back to the film you were watching, at 1:02". Carried in the link
+     (the page's address, the film's key and the second), stored nowhere. No words are taken from the
+     address: a link could otherwise put any text on the page. */
   for (const a of $$<HTMLAnchorElement>('a[data-th-hop]')) {
     a.addEventListener('click', () => {
       const t = Math.floor(v.currentTime || 0);
       if (t < 5 || !a.pathname.startsWith('/watch/')) return;
       const u = new URL(a.href);
       u.searchParams.set('back', location.pathname);
+      u.searchParams.set('backF', root.dataset.film ?? '');
       u.searchParams.set('backAt', String(t));
-      u.searchParams.set('backT', title);
       a.href = u.pathname + u.search;
     });
   }
   const back = params.get('back') ?? '';
+  const backF = params.get('backF') ?? '';
   const backAt = Math.floor(Number(params.get('backAt')));
   const backBox = $('[data-th-back]');
-  const m = /^\/watch\/([a-z0-9-]+)\/(?:([a-z0-9-]+)\/)?$/.exec(back);
-  if (backBox && m && backAt > 0 && backAt < 3600) {
+  if (backBox && /^\/watch\/[a-z0-9-]+\/(?:[a-z0-9-]+\/)?$/.test(back) && /^[a-z0-9-]+\/[a-z0-9-]+$/.test(backF) && backAt > 0 && backAt < 3600) {
     const a = document.createElement('a');
-    a.href = `${back}?film=${encodeURIComponent(`${m[1]}/${m[2] ?? 'explainer'}`)}&at=${backAt}`;
-    const name = (params.get('backT') ?? '').slice(0, 120).trim();
-    a.textContent = `Back to ${name || 'the film you were watching'}, at ${clock(backAt)}`;
+    a.href = `${back}?film=${encodeURIComponent(backF)}&at=${backAt}`;
+    a.textContent = `Back to the film you were watching, at ${clock(backAt)}`;
     backBox.append(a);
     backBox.hidden = false;
   }
@@ -213,12 +222,12 @@ export function theater(): void {
   /* ---- where the page starts */
   const at = Number(params.get('at'));
   const hook = Number(params.get('t'));
-  if (params.get('film') === root.dataset.film && at > 0 && at < duration) {
+  if (params.get('film') === root.dataset.film && at > 0 && at < duration - 2) {
     if (startAt) { startAt.querySelector('[data-th-startat-time]')!.textContent = clock(at); startAt.hidden = false; }
     sync(at);
   } else if (params.has('t') && hook >= 0 && hook <= duration) {
-    const seek = () => { try { v.currentTime = hook; } catch { /* stays at the start */ } };
-    if (v.readyState >= 1) seek(); else { v.addEventListener('loadedmetadata', seek, { once: true }); v.preload = 'metadata'; }
+    // The reviewer's hook shows the page as it is at that second. It does not touch the film, so it
+    // cannot leave a "where you stopped" behind.
     sync(hook);
   } else sync(ended ? duration : 0);
 }

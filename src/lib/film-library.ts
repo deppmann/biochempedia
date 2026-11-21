@@ -38,6 +38,7 @@ export function library(): void {
   const none = $('[data-fl-none]');
   const moreRow = $('[data-fl-more-row]');
   const rest = $('[data-fl-rest]');
+  const wait = $('[data-fl-wait]');
   const cap = $('[data-fl-strip-cap]');
   const capAll = cap.textContent ?? '';
   const field = (n: string) => form.elements.namedItem(n) as HTMLInputElement | HTMLSelectElement;
@@ -62,7 +63,7 @@ export function library(): void {
   const ensure = () => (loading ??= fetch('/films/list.json')
     .then((r) => { if (!r.ok) throw new Error(String(r.status)); return r.json() as Promise<FilmList>; })
     .then((d) => (list = d))
-    .catch(() => { loading = null; status.textContent = 'Could not load the full list. Each level’s page has every film.'; return null; }));
+    .catch(() => { loading = null; return null; }));
   const ensureIdeas = () => (ideasLoading ??= fetch('/films/ideas.json')
     .then((r) => (r.ok ? r.json() : null))
     .then((d) => { if (d) { ideas = d as Ideas; if (view.q) void render(false); } })
@@ -92,7 +93,7 @@ export function library(): void {
       if (on && hex && hex.parentElement !== k) k.prepend(hex);
     }
   };
-  const chooseLevel = (level: string, focus = false) => {
+  const chooseLevel = (level: string, focus = false, push = true) => {
     performance.mark('fl-tap');
     view.level = level;
     // A course belongs to one level: choosing another level lets go of it.
@@ -101,7 +102,7 @@ export function library(): void {
     toForm();
     paintKeys();
     if (focus) keys.find((k) => k.dataset.level === level)?.focus();
-    commit(true);
+    commit(push);
   };
   for (const k of keys) {
     k.addEventListener('click', (e) => {
@@ -118,7 +119,8 @@ export function library(): void {
       : e.key === 'Home' ? 0 : e.key === 'End' ? keys.length - 1 : e.key === ' ' ? i : -1;
     if (to === -1) return;
     e.preventDefault();
-    chooseLevel(keys[to].dataset.level ?? '', true);
+    // Arrowing through the keys is one visit to them: Back should not replay every key passed.
+    chooseLevel(keys[to].dataset.level ?? '', true, false);
   });
 
   /* ---- drawing */
@@ -127,13 +129,15 @@ export function library(): void {
     if (budget && current && list) {
       const run = fit(runnable(current, view), budget, loadFilms());
       strip.set({ on: run.films.map((f) => f.i), budget, numbered: true });
-      cap.textContent = 'These films in true minutes, in the order they play. The line is your time.';
+      cap.textContent = `Your ${budget} minutes, film by film. The line marks ${budget} minutes.`;
       return run;
     }
     if (isDefault({ ...view, sort: 'course' })) { strip.set({ on: null }); cap.textContent = capAll; return null; }
     const on = current ? current.map((f) => f.i) : stripFilms.map((f, i) => (f.level === view.level ? i : -1)).filter((i) => i !== -1);
+    if (!on.length) { strip.set({ on: null }); cap.textContent = capAll; return null; }
     strip.set({ on });
-    cap.textContent = `${filmsWord(on.length)} brought forward, with the rest of the ${total.toLocaleString('en-US')} beneath.`;
+    const what = levelOnly() && view.level ? `${keys.find((k) => k.dataset.level === view.level)?.querySelector('.fl-key-t')?.textContent ?? ''}: ` : '';
+    cap.textContent = `${what}${on.length.toLocaleString('en-US')} of the library’s ${filmsWord(total)}.`;
     return null;
   };
   // One sentence per change, and only when it changes (the same words written twice are read twice).
@@ -215,9 +219,30 @@ export function library(): void {
       if (!budget) drawStrip(null);
     }
     if (!list && isDefault(view) && limit === PAGE && !budget) { paintRun(null); return; } // the page as served
-    const d = list ?? await ensure();
-    if (!d || mine !== drawn) return;
+    let d = list;
+    if (!d) {
+      // The count and the strip have already changed; say plainly that the cards have not yet.
+      listEl.setAttribute('aria-busy', 'true');
+      wait.hidden = false;
+      rest.hidden = true;
+      d = await ensure();
+      listEl.removeAttribute('aria-busy');
+      wait.hidden = true;
+      if (!d) {
+        // Without the list this page cannot show the view; the level's own page can.
+        if (mine === drawn && view.level && levelOnly()) location.href = `/films/${view.level}/`;
+        else if (mine === drawn) status.textContent = 'Could not load the full list. Each level’s page has every film.';
+        return;
+      }
+    }
+    if (mine !== drawn) return;
     view = { ...readView(viewQuery(view), d) };
+    // A course belongs to one level: a link that names both, and disagrees, keeps the level.
+    if (view.course && view.level && d.films.find((f) => f.c === view.course)?.s !== view.level) {
+      view.course = '';
+      toForm();
+      history.replaceState(null, '', `${location.pathname}${viewQuery(view)}`);
+    }
     const current = select(d, view, ideas);
     const before = animate ? cardRects() : new Map<string, DOMRect>();
     say(current.length, current.reduce((s, f) => s + f.d, 0));
@@ -252,6 +277,11 @@ export function library(): void {
   runBox.hidden = false;
   function paintRun(current: ListFilm[] | null, run?: ReturnType<typeof fit> | null): void {
     const q = viewQuery(view);
+    // Nothing to play in a row (no film matches, or only profiles and method films): offer nothing.
+    const can = !current || runnable(current, view).length > 0;
+    runBox.hidden = !can;
+    // The whole library in order is 45 hours; "in order" is offered once a view has been chosen.
+    play.hidden = isDefault({ ...view, sort: 'course' });
     // One course, unsearched by level: its own play-in-order page, as before.
     play.href = view.course ? `/films/play/${encodeURIComponent(view.course)}/${viewQuery({ ...view, level: '', course: '', sort: 'course' })}` : `/films/run/${q}`;
     if (!budget || !current) { runSum.hidden = true; return; }
@@ -287,6 +317,7 @@ export function library(): void {
   form.addEventListener('input', (e) => {
     if ((e.target as HTMLElement).getAttribute('name') !== 'q') return;
     window.clearTimeout(typing);
+    if (!ideas) void ensureIdeas();
     typing = window.setTimeout(() => { performance.mark('fl-tap'); fromForm(); commit(false); }, 140);
   });
   form.addEventListener('change', (e) => {

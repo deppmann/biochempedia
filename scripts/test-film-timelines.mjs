@@ -56,7 +56,7 @@ const CUES = parseVtt(vtt([
   eq([t.spoken, t.matched], [4, 4], 'four spoken scenes, four found');
   eq(timingStatus(t), 'timed', 'status is timed');
   eq(t.scenes.map((s) => s.kind), ['title', 'spoken', 'question', 'pause', 'spoken', 'spoken', 'end'], 'kinds: the scene before a pause is the question');
-  eq(t.questions, [{ scene: 's02_predict', pause: 's03_pause', reveal: 's04_reveal', start: 10, revealStart: 20.2, text: 'Which way will more dots cross? Pause and decide.' }], 'the question and where its answer starts');
+  eq(t.questions, [{ scene: 's02_predict', pause: 's03_pause', reveal: 's04_reveal', start: 10, sceneStart: 10, revealStart: 20.2, text: 'Which way will more dots cross? Pause and decide.' }], 'the question and where its answer starts');
   eq(t.scenes[5].end, 30, 'a scene ends where the next starts');
   eq(t.scenes[6].end, 34, 'the last scene ends with the film');
 }
@@ -109,6 +109,20 @@ const CUES = parseVtt(vtt([
   eq(t.questions[0]?.revealStart, 12, 'so the question stays up until the film answers');
   const n = sceneTimes({ scenes: [{ id: 'a', tts: 'You need six to ten earthworms.', narration: 'You need six to ten earthworms.' }] }, parseVtt(vtt([[1, 4, 'You need 6 to 10 earthworms.']])), 5);
   eq(n.scenes[0].start, 1, 'small numbers match whether spelled or printed');
+}
+{
+  // A question with a lead-in: the panel waits for the line that asks. And a short hold after an answer
+  // is not a thinking pause, so the answer is never shown as a question.
+  const t = sceneTimes({ scenes: [
+    { id: 's1_predict', narration: 'Water dots hop both ways. So which way will more cross? Pause and decide.' },
+    { id: 's2_pause', silent: 5, narration: '' },
+    { id: 's3_reveal', narration: 'Yes. More cross from the left.' },
+    { id: 's3b_pause', silent: 1.5, narration: '' },
+    { id: 's4_rule', narration: 'So follow the water.' },
+  ] }, parseVtt(vtt([[1, 3, 'Water dots hop both ways.'], [4, 6, 'So which way will more cross?'], [6.2, 7, 'Pause and decide.'], [12, 14, 'Yes.'], [14.2, 16, 'More cross from the left.'], [18, 20, 'So follow the water.']])), 21);
+  eq(t.questions.length, 1, 'a short hold after an answer is not a question');
+  eq([t.questions[0].start, t.questions[0].sceneStart, t.questions[0].revealStart], [4, 1, 12], 'the question starts at the line that asks, not at its lead-in');
+  eq(t.questions[0].text, 'So which way will more cross? Pause and decide.', 'and its text runs from that line');
 }
 eq(timingStatus({ spoken: 10, matched: 9 }), 'partial', 'nine in ten is a partial timeline');
 eq(saidAt(CUES, 'more cross from left to right'), 20.2, 'saidAt finds the cue in which the film says a phrase');

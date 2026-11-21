@@ -146,7 +146,12 @@ export function filmStrip(canvas: HTMLCanvasElement, films: StripFilm[]) {
     return true;
   };
   const settle = () => { from = to; markFrom = { ...mark }; };
+  const same = (a: StripState, b: StripState) => (a.budget ?? 0) === (b.budget ?? 0) && !!a.numbered === !!b.numbered
+    && (a.on === b.on || (!!a.on && !!b.on && a.on.length === b.on.length && a.on.every((x, i) => x === b.on![i])));
   const set = (s: StripState, animate = true) => {
+    // The same view asked for again (the full list arriving a moment after a level tap): let the
+    // re-lay that is running finish, rather than cut it off.
+    if (animate && to.length && same(s, state)) return;
     cancelAnimationFrame(raf);
     state = s;
     if (!W && !size()) return;

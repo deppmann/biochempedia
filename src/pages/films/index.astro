@@ -128,7 +128,7 @@ const courseFilms = (key: string) => courses.find((c) => c.key === key)?.films ?
       <div class="fl-row">
         <label class="fl-field fl-q">
           <span>Search</span>
-          <input type="search" name="q" placeholder="A title, or an idea: why do cells swell in water" autocomplete="off" spellcheck="false" enterkeyhint="search" />
+          <input type="search" name="q" placeholder="A title or a question" autocomplete="off" spellcheck="false" enterkeyhint="search" />
         </label>
         <label class="fl-field">
           <span>Order</span>
@@ -174,7 +174,7 @@ const courseFilms = (key: string) => courses.find((c) => c.key === key)?.films ?
     <div class="fl-run" data-fl-run hidden>
       <a class="fl-btn" href="/films/run/" data-fl-play>Play them in order</a>
       <fieldset class="fl-budget">
-        <legend>or for</legend>
+        <legend>Play for a set time</legend>
         {[10, 20, 30].map((m) => <label><input type="radio" name="fl-t" value={m} /><span>{m} minutes</span></label>)}
       </fieldset>
       <div class="fl-run-sum" data-fl-run-sum hidden>
@@ -186,9 +186,10 @@ const courseFilms = (key: string) => courses.find((c) => c.key === key)?.films ?
 
   <section class="wrap fl-all" aria-label="Films">
     <div class="fl-none" data-fl-none hidden>
-      <p>No film matches that. Try fewer words, or <button type="button" class="fl-link" data-fl-clear>every level</button>.</p>
+      <p>Try fewer words, or <button type="button" class="fl-link" data-fl-clear>show every film</button>.</p>
     </div>
 
+    <p class="fl-wait" data-fl-wait hidden>Bringing up these films…</p>
     <div data-fl-list>
       {groups.map((g) => {
         const all = courseFilms(g.key);

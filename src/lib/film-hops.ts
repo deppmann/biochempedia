@@ -1,24 +1,27 @@
 /* Where a film's idea lives at other levels, and what sits next door (2026-11-20).
 
-   The theater on /watch/ shows this under every film. It asks one question, hopsFor(lesson), and
-   draws whatever comes back, so the source behind the answer can change without the page changing.
+   The theater on /watch/ shows this under every film. It asks one question, hopsFor(lesson, film),
+   and draws whatever comes back.
 
-   Today's source is what is already written and checked on main:
-     - the authored depth ladder in the lesson frontmatter (activity.stepUp, ladder.grade7,
-       ladder.biology, ladder.college), read in both directions, so a college lesson named by a high
-       school lesson offers that high school lesson back as the simpler one;
-     - src/data/lesson-links.json (before, after, and films elsewhere on the site), each with its
-       one-line reason.
-   When the shared concept graph is merged, replace the body of hopsFor() with a lookup in it; the
-   returned shape is what the graph's ladder and sideways hops already are.
+   Source, in order:
+     1. the hop graph (src/lib/topic-graph.ts), when it has an idea for the lesson: the idea's ladder
+        gives Simpler and Deeper, with each rung's note on what that level adds; its sideways hops give
+        the ideas next door, each with its reason; its films, in level order, give "play this idea
+        at every level";
+     2. otherwise what was on main before the graph: the authored depth ladder in the lesson
+        frontmatter (read in both directions) and src/data/lesson-links.json (before, after, films
+        elsewhere).
 
    Rules that do not depend on the source: a level is never a prerequisite and never a rank. The two
-   directions are called "Simpler" and "Deeper"; nothing here orders the viewer. */
+   directions are called "Simpler" and "Deeper"; nothing here orders the viewer. An ages 5 to 10
+   lesson's film shows a grown-up how to set up an activity; it is never offered as a film that
+   teaches the idea, so that rung links the activity itself. */
 import { getCollection } from 'astro:content';
 import { courseOf } from '../data/courses';
 import { STAGES, stageOf } from '../data/stages';
 import { watchHref } from './films';
 import links from '../data/lesson-links.json';
+import { hops as graphHops, ladder as graphLadder, filmsFor, conceptsOf, type LadderRung } from './topic-graph';
 
 export interface Hop {
   lesson: string;
@@ -31,6 +34,10 @@ export interface Hop {
   lessonHref: string;
   /** One line on why this hop, when the source gives one. */
   why?: string;
+  /** From the graph: what this level adds to the idea. */
+  adds?: string;
+  /** For a neighbouring idea from the graph: the idea's name. */
+  idea?: string;
 }
 export interface FilmHops {
   /** The lesson the film belongs to. */
@@ -39,8 +46,14 @@ export interface FilmHops {
   simpler: Hop[];
   /** The same idea taken further, nearest level first. */
   deeper: Hop[];
-  /** Neighbouring ideas. */
-  sideways: { before: Hop[]; after: Hop[]; elsewhere: Hop[] };
+  /** Neighbouring ideas. From the graph they are in `near`; from the older data in the other three. */
+  sideways: { near: Hop[]; before: Hop[]; after: Hop[]; elsewhere: Hop[] };
+  /** The idea this film is about, when the graph has one, and every idea its lesson teaches. */
+  idea?: { id: string; name: string };
+  ideas: string[];
+  /** The idea's films from the simplest level to the deepest, when they span two or more levels:
+   *  what /films/run/?idea=<id> plays. */
+  everyLevel?: { href: string; films: number; minutes: number; levels: number };
 }
 
 type LinkRec = { before: { slug: string; why: string }[]; after: { slug: string; why: string }[]; elsewhere: { id: string; why: string }[] };
@@ -64,7 +77,8 @@ function nodes(): Promise<Map<string, Node>> {
       const stage = stageOf(courseOf(d.course));
       map.set(d.slug, {
         slug: d.slug, title: d.title, stage, rank: STAGES.findIndex((s) => s.key === stage),
-        film: d.explainer ? { key: filmKey(d.explainer.src), title: d.explainer.title, href: watchHref(d.slug), durationSec: d.explainer.durationSec } : undefined,
+        // (not for an ages 5 to 10 activity, whose film is the grown-up's set-up)
+        film: d.explainer && stage !== 'ages-5-10' ? { key: filmKey(d.explainer.src), title: d.explainer.title, href: watchHref(d.slug), durationSec: d.explainer.durationSec } : undefined,
         ladder: [...(d.activity?.stepUp ?? []), ...(d.ladder?.grade7 ?? []), ...(d.ladder?.biology ?? []), ...(d.ladder?.college ?? [])],
       });
     }
@@ -84,8 +98,8 @@ const hop = (n: Node, why?: string): Hop => ({
   film: n.film, lessonHref: `/lessons/${n.slug}/`, ...(why ? { why } : {}),
 });
 
-/** Simpler, deeper and sideways for the lesson a film belongs to. Null when the lesson is not published. */
-export async function hopsFor(lesson: string): Promise<FilmHops | null> {
+/* The data that was on main before the graph. */
+async function authored(lesson: string): Promise<FilmHops | null> {
   const map = await nodes();
   const me = map.get(lesson);
   if (!me) return null;
@@ -110,6 +124,56 @@ export async function hopsFor(lesson: string): Promise<FilmHops | null> {
     here: { lesson: me.slug, lessonTitle: me.title, stage: me.stage, stageTitle: stageTitle(me.stage) },
     simpler,
     deeper,
-    sideways: { before, after, elsewhere: side(elsewhere).filter((h) => !taken.has(h.lesson) && h.film) },
+    sideways: { near: [], before, after, elsewhere: side(elsewhere).filter((h) => !taken.has(h.lesson) && h.film) },
+    ideas: [],
+  };
+}
+
+/** The films of an idea that teach it, simplest level first (set-up films for grown-ups left out). */
+export async function ideaFilms(id: string) {
+  return (await filmsFor(id)).filter((f) => f.kind !== 'activity' && f.href.startsWith('/watch/')).sort((a, b) => a.rank - b.rank);
+}
+
+const fromRung = (r: LadderRung, extra: Partial<Hop> = {}): Hop => {
+  const f = r.films.find((x) => x.kind !== 'activity' && x.href.startsWith('/watch/'));
+  return {
+    lesson: r.slug, lessonTitle: r.title, stage: r.stage, stageTitle: r.stageTitle,
+    film: f ? { key: f.key, title: f.title, href: f.href, durationSec: f.durationSec } : undefined,
+    lessonHref: r.href, ...(r.adds ? { adds: r.adds } : {}), ...extra,
+  };
+};
+
+/**
+ * Simpler, deeper and sideways for a film. `lesson` is the film's lesson; `film` is its key (the file
+ * under /explainers/ without ".mp4"), used to pick which of the lesson's ideas the film is about.
+ * Null when the lesson is not published.
+ */
+export async function hopsFor(lesson: string, film?: string): Promise<FilmHops | null> {
+  const old = await authored(lesson);
+  if (!old) return null;
+  const mine = await graphHops(lesson);
+  const ideas = (await conceptsOf(lesson)).map((c) => c.id);
+  if (!mine.length) return { ...old, ideas };
+  // The idea this film shows: the first of the lesson's ideas whose films include it; else the lesson's first idea.
+  let pick = mine[0];
+  if (film) for (const h of mine) if ((await filmsFor(h.id)).some((f) => f.key === film)) { pick = h; break; }
+  const rungs = (await graphLadder(pick.id)).filter((r) => r.role === 'core' && r.slug !== lesson);
+  const me = old.here;
+  const rank = (k: string) => STAGES.findIndex((s) => s.key === k);
+  const near = (a: LadderRung, b: LadderRung) => Math.abs(a.rank - rank(me.stage)) - Math.abs(b.rank - rank(me.stage)) || a.order - b.order;
+  const simpler = rungs.filter((r) => r.rank < rank(me.stage)).sort(near).map((r) => fromRung(r));
+  const deeper = rungs.filter((r) => r.rank > rank(me.stage)).sort(near).map((r) => fromRung(r));
+  const sideways = pick.sideways.filter((n) => n.to).map((n) => fromRung(n.to!, { idea: n.name, why: n.why }));
+  const films = await ideaFilms(pick.id);
+  const levels = new Set(films.map((f) => f.stage)).size;
+  return {
+    here: me,
+    // Where the graph has no rung on one side, the authored ladder still may.
+    simpler: simpler.length ? simpler : old.simpler,
+    deeper: deeper.length ? deeper : old.deeper,
+    sideways: { near: sideways, before: sideways.length ? [] : old.sideways.before, after: sideways.length ? [] : old.sideways.after, elsewhere: sideways.length ? [] : old.sideways.elsewhere },
+    idea: { id: pick.id, name: pick.name },
+    ideas,
+    ...(levels >= 2 ? { everyLevel: { href: `/films/run/?idea=${encodeURIComponent(pick.id)}`, films: films.length, minutes: Math.max(1, Math.round(films.reduce((s, f) => s + f.durationSec, 0) / 60)), levels } } : {}),
   };
 }

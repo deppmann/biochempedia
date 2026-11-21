@@ -60,13 +60,14 @@ export function markCards(root: ParentNode): void {
   }
 }
 
-/** "7 of 26 watched" beside each element with data-seen-of="key key key". */
+/** "7 films watched on this device" beside each element with data-seen-of="key key key": what was
+ *  done, never a share of what is left, and nothing at all at zero. */
 export function countSeen(root: ParentNode): void {
   const r = loadFilms();
   for (const el of root.querySelectorAll<HTMLElement>('[data-seen-of]')) {
     const keys = el.dataset.seenOf!.split(' ').filter(Boolean);
     const n = keys.filter((k) => isWatched(r, k)).length;
-    el.textContent = n ? `${n} of ${keys.length} watched` : '';
+    el.textContent = n ? `${n} ${n === 1 ? 'film' : 'films'} watched on this device` : '';
     el.hidden = n === 0;
   }
 }

@@ -1,7 +1,9 @@
 ---
 /* /films/run/ (2026-11-20): a view of the library played in order. /films/ sends the visitor here
    with the view in the query string (the same names: q, sort, level, course, kind) and, for a time
-   budget, t=10|20|30. One player; the film in it changes when the viewer asks for the next one.
+   budget, t=10|20|30. Or with ?idea=<id>: that idea's films from the simplest level to the deepest
+   (/films/idea/<id>.json, from the hop graph), which is what "Play this idea at every level" on a
+   film's page opens. One player; the film in it changes when the viewer asks for the next one.
 
    Rules (the play-in-order page's, applied to any view): whole films, from the first one not yet
    watched on this device, never more than a minute past the budget, stop at the first film that
@@ -21,7 +23,7 @@ import '../../../styles/film-lib.css';
 <BaseLayout title="Films in order — STEMhop" description="A set of films from the library, played in order, with a stated end." noindex>
 <div class="film-lib fl">
   <article class="wrap fr-wrap" data-fr data-pagefind-ignore>
-    <p class="eyebrow"><a href="/films/" data-fr-back>Films</a> · in order</p>
+    <p class="fr-crumb"><a href="/films/" data-fr-back>Films</a></p>
     <h1>Films in order</h1>
     <p class="fr-sum" data-fr-sum role="status">Putting your films in order…</p>
     <noscript>
@@ -37,7 +39,8 @@ import '../../../styles/film-lib.css';
         </video>
       </div>
       <h2 class="fr-now" data-fr-title tabindex="-1"></h2>
-      <p class="fr-meta"><span data-fr-meta></span> · <a href="/films/" data-fr-page>Film page, transcript and lesson</a></p>
+      <p class="fr-meta" data-fr-meta></p>
+      <p class="fr-page"><a href="/films/" data-fr-page>Film page, transcript and lesson</a></p>
       <p class="fr-take" data-fr-take hidden></p>
 
       <div class="fr-next" data-fr-next hidden>
@@ -50,6 +53,7 @@ import '../../../styles/film-lib.css';
       </div>
 
       <ol class="fr-queue" data-fr-queue aria-label="The films in this run"></ol>
+      <p class="fr-rest" data-fr-rest hidden></p>
     </div>
   </article>
 </div>

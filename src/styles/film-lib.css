@@ -255,7 +255,7 @@
 /* ==== The library rebuilt (2026-11-20): one line, one film, the strip, the level keys ============
    Calm rules kept here: a border means "you can do something here" (keys, fields, buttons); what is
    only information gets space and type. Field and button edges reach 3:1 against the page. */
-.film-lib.fl { --fl-edge: color-mix(in srgb, var(--ddp-color-ink) 48%, var(--ddp-color-bg)); }
+.film-lib.fl { --fl-edge: color-mix(in srgb, var(--ddp-color-ink) 58%, var(--ddp-color-bg)); }
 .film-lib .fl-top { padding-top: var(--ddp-space-8); }
 .film-lib .fl-top h1 { margin: 0; font-size: var(--ddp-text-3xl); line-height: 1.1; }
 .film-lib .fl-lede { margin: var(--ddp-space-2) 0 0; max-width: 60ch; font-size: var(--ddp-text-base); line-height: 1.55; color: var(--ddp-color-ink-soft); }
@@ -264,8 +264,10 @@
 .film-lib.fl .fl-btn { border-color: var(--fl-edge); }
 
 /* A film to start with: the poster takes two fifths, so the level keys stay on the first phone screen. */
-.film-lib .fl-start { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 3fr); gap: var(--ddp-space-4); align-items: start; margin-top: var(--ddp-space-4); }
-@media (min-width: 700px) { .film-lib .fl-start { grid-template-columns: 260px minmax(0, 52ch); } }
+/* Side by side only where there is room at the reader's text size (a width in rem follows it). */
+.film-lib .fl-start { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--ddp-space-4); align-items: start; margin-top: var(--ddp-space-4); }
+@media (min-width: 22rem) { .film-lib .fl-start { grid-template-columns: minmax(0, 2fr) minmax(0, 3fr); } }
+@media (min-width: 44rem) { .film-lib .fl-start { grid-template-columns: 260px minmax(0, 52ch); } }
 .film-lib .fl-start-pic { display: block; border-radius: 8px; overflow: hidden; background: #0f1117; aspect-ratio: 16 / 9; }
 .film-lib .fl-start-pic img { display: block; width: 100%; height: 100%; object-fit: cover; }
 .film-lib .fl-start h2 { margin: 0; font-family: var(--ddp-font-sans); font-size: var(--ddp-text-sm); font-weight: 400; color: var(--ddp-color-muted); }
@@ -290,6 +292,7 @@
 .film-lib .fl-key { position: relative; display: flex; flex-direction: column; justify-content: center; gap: 0.1em; min-height: 64px; padding: 0.45em 0.7em; border: 1.5px solid var(--fl-edge); border-radius: 10px; background: var(--ddp-color-surface); color: var(--ddp-color-ink); text-decoration: none; line-height: 1.25; }
 .film-lib .fl-key-t { font-size: var(--ddp-text-sm); font-weight: 600; }
 .film-lib .fl-key-n { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+.film-lib .fl-key.is-on .fl-key-n { color: var(--ddp-color-ink-soft); }
 .film-lib .fl-key:hover { border-color: var(--ddp-color-accent); }
 .film-lib .fl-key.is-on { border-color: var(--ddp-color-primary); box-shadow: inset 0 0 0 1.5px var(--ddp-color-primary); background: color-mix(in srgb, var(--ddp-color-accent) 14%, var(--ddp-color-surface)); }
 .film-lib .fl-key:active { transform: translateY(1px); }
@@ -323,6 +326,8 @@
 .film-lib .fl-run-go { margin-top: var(--ddp-space-2) !important; display: flex; align-items: center; gap: var(--ddp-space-2); }
 
 .film-lib .fl-all { margin-top: var(--ddp-space-6); }
+.film-lib [data-fl-list][aria-busy="true"] { opacity: 0.35; }
+.film-lib .fl-wait { margin: 0 0 var(--ddp-space-3); color: var(--ddp-color-ink-soft); }
 .film-lib.fl .course { margin-top: var(--ddp-space-6); }
 .film-lib.fl .course-h h2 { margin: 0; font-size: var(--ddp-text-lg); }
 .film-lib.fl .course-h .n { font-family: inherit; font-size: var(--ddp-text-sm); }
@@ -347,6 +352,12 @@
 .film-lib .fr-queue button::before { content: counter(fr); min-width: 1.4em; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
 .film-lib .fr-queue button[aria-current] { font-weight: 700; box-shadow: inset 3px 0 0 var(--ddp-color-accent); }
 .film-lib .fr-queue .is-seen button { color: var(--ddp-color-muted); }
+.film-lib .fr-seen { font-size: var(--ddp-text-xs); }
+.film-lib .fr-rest { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-sm); color: var(--ddp-color-muted); }
+.film-lib .fr-crumb { margin: 0 0 var(--ddp-space-2); font-size: var(--ddp-text-sm); color: var(--ddp-color-muted); }
+.film-lib .fr-crumb a, .film-lib .fr-page a { color: var(--ddp-color-accent); display: inline-flex; min-height: 44px; align-items: center; }
+.film-lib .fr-page { margin: 0; font-size: var(--ddp-text-sm); }
+.film-lib .pl-next-w { margin: 0 0 var(--ddp-space-2); font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); }
 .film-lib .fr-novideo, .film-lib .fr-novideo a { color: #e7e9f0; }
 
 @media (max-width: 420px) {

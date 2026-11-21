@@ -80,7 +80,9 @@ export const norm = (w) => {
 };
 const words = (text) => String(text ?? '').split(/\s+/).map(norm).filter(Boolean);
 
-const isPause = (s) => /pause/i.test(s.id ?? '');
+/* A thinking pause: a silent scene named as a pause and at least three seconds long. A shorter hold
+   (a beat after an answer) is not one. */
+const isPause = (s) => /pause/i.test(s.id ?? '') && !(typeof s.silent === 'number' && s.silent < 3);
 const sceneTexts = (s) => [s.caption, s.narration, s.tts].filter((t) => typeof t === 'string' && t.trim());
 const isSpoken = (s) => sceneTexts(s).length > 0;
 
@@ -89,7 +91,7 @@ const isSpoken = (s) => sceneTexts(s).length > 0;
  *
  * `script` is a parsed script.json, `cues` come from parseVtt, `duration` is the film's length in seconds.
  * Returns { scenes: [{ id, start, end, kind, matched, text }], spoken, matched, questions: [{ scene, pause,
- * reveal, start, revealStart, text }] } where kind is 'title' | 'spoken' | 'question' | 'pause' | 'end' | 'silent'.
+ * reveal, start, sceneStart, revealStart, text }] } where kind is 'title' | 'spoken' | 'question' | 'pause' | 'end' | 'silent'.
  *
  * Matching. The caption file is written from the same script, so a scene's opening words are the opening
  * words of one cue. Three things make that inexact, and each is handled:
@@ -213,16 +215,30 @@ export function sceneTimes(script, cues, duration) {
   timed.forEach((o, k) => { o.end = k + 1 < timed.length ? timed[k + 1].start : Math.max(duration ?? 0, o.start); });
 
   // The film's own questions: a spoken scene followed by a thinking pause. The answer starts with the
-  // first spoken scene after the pause.
+  // first spoken scene after the pause. A scene that is itself an answer (named reveal or answer) is
+  // never a question, whatever follows it.
+  // When the scene opens with a lead-in ("Water dots hop at random, both ways. So which way ...?"), the
+  // question starts at the caption line that asks (the first with a question mark, or that begins
+  // "Predict"), and its text runs from that line on.
   const questions = [];
   out.forEach((o, i) => {
     if (o.kind !== 'pause' || i === 0) return;
     const q = out[i - 1];
-    if (q.kind !== 'spoken' || q.start === null) return;
+    if (q.kind !== 'spoken' || q.start === null || /reveal|answer/i.test(q.id)) return;
     const reveal = out.slice(i + 1).find((x) => x.kind === 'spoken' && x.start !== null);
     if (!reveal) return;
     q.kind = 'question';
-    questions.push({ scene: q.id, pause: o.id, reveal: reveal.id, start: q.start, revealStart: reveal.start, text: q.text });
+    const until = Math.min(o.start ?? reveal.start, reveal.start);
+    const mine = cues.filter((c) => c.start >= q.start - 0.05 && c.start < until);
+    const k = mine.findIndex((c) => c.text.includes('?') || /^predict\b/i.test(c.text));
+    const late = k > 0;
+    questions.push({
+      scene: q.id, pause: o.id, reveal: reveal.id,
+      start: late ? Math.floor(mine[k].start * 10 + 1e-6) / 10 : q.start,
+      sceneStart: q.start,
+      revealStart: reveal.start,
+      text: late ? mine.slice(k).map((c) => c.text).join(' ') : q.text,
+    });
   });
   for (const o of out) delete o.j;
   return { scenes: out, spoken, matched, questions };
@@ -432,7 +448,8 @@ export function applyMap(map, times, outline, key, cues = []) {
     const q = questionAt.get(p.from);
     if (p.question && !q) bad(`${where}: marked as a question, but the film does not pause after this scene`);
     if (q && !p.question) bad(`${where}: the film asks a question here and pauses; mark the part "question": true`);
-    const part = { from: p.from, start: n === 0 ? 0 : s.start };
+    // A question part starts when the film asks (which can be a sentence or two into its scene).
+    const part = { from: p.from, start: n === 0 ? 0 : q && p.question ? q.start : s.start };
     if (p.question) {
       for (const k of ['figure', 'term', 'section', 'title']) if (p[k] !== undefined) bad(`${where}: a question part carries only the film's question; remove "${k}"`);
       if (q) Object.assign(part, { question: q.text, revealStart: q.revealStart });

@@ -72,8 +72,9 @@ export function select(list: FilmList, v: View, ideas?: Ideas | null): ListFilm[
     if (!words.length) return true;
     const title = fold(`${f.t} ${f.l ?? ''}`);
     if (words.every((w) => title.includes(w))) { byTitle.add(f); return true; }
-    const idea = f.l && ideas ? `${title} ${ideas[f.l] ?? ''}` : '';
-    return !!idea && words.every((w) => idea.includes(w));
+    // Against the questions people ask, a word must start a word ("atp" is not found inside "adaptation").
+    const idea = f.l && ideas ? ` ${title.replace(/[^a-z0-9]+/g, ' ')} ${ideas[f.l] ?? ''}` : '';
+    return !!idea && words.every((w) => idea.includes(` ${w}`));
   });
   out.sort(COMPARE[v.sort] ?? COMPARE.course);
   if (words.length && byTitle.size && byTitle.size < out.length) return [...out.filter((f) => byTitle.has(f)), ...out.filter((f) => !byTitle.has(f))];
@@ -123,5 +124,7 @@ export const filmsWord = (k: number) => n(k, 'film');
  *  title that ends its own sentence). */
 export function runSentence(films: ListFilm[], seconds: number): string {
   const last = films[films.length - 1]?.t ?? '';
-  return `${filmsWord(films.length)}, ${n(Math.max(1, Math.round(seconds / 60)), 'minute')}. It ends after ${last}${/[.?!]$/.test(last) ? '' : '.'}`;
+  // Past an hour, minutes stop being a length anyone can read.
+  const length = seconds > 3600 ? about(seconds) : n(Math.max(1, Math.round(seconds / 60)), 'minute');
+  return `${filmsWord(films.length)}, ${length}. It ends after ${last}${/[.?!]$/.test(last) ? '' : '.'}`;
 }
