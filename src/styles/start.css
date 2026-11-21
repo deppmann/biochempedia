@@ -1,0 +1,106 @@
+/* The mini syllabus (/start/). Results are drawn by a client script, so these rules are global;
+   every selector starts with .st. One bordered surface (the question box and its two choices);
+   the result is type and space. */
+.st { padding-top: var(--ddp-space-8); padding-bottom: var(--ddp-space-12); }
+.st-col { max-width: 44rem; }
+.st h1 { margin: 0 0 var(--ddp-space-2); font-size: var(--ddp-text-3xl); line-height: 1.1; overflow-wrap: anywhere; }
+.st-lede { margin: 0 0 var(--ddp-space-4); font-size: var(--ddp-text-lg); line-height: 1.5; color: var(--ddp-color-ink-soft); }
+.st-label { display: block; margin-bottom: 0.35rem; font-size: var(--ddp-text-sm); font-weight: 600; color: var(--ddp-color-primary); }
+.st-box { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.st-box input { flex: 1 1 14rem; min-width: 0; min-height: 48px; padding: 0 0.9rem; border: 1.5px solid var(--ddp-color-primary); border-radius: var(--ddp-radius-sm); background: var(--ddp-color-surface); color: var(--ddp-color-ink); font: inherit; font-size: 1rem; }
+.st-box input::placeholder { color: var(--ddp-color-muted); opacity: 1; }
+.st-box button { flex: 0 0 auto; min-height: 48px; padding: 0 1.1rem; border: 0; border-radius: var(--ddp-radius-sm); background: var(--ddp-color-primary); color: var(--ddp-color-bg); font: inherit; font-weight: 600; cursor: pointer; }
+.st-box input:focus-visible, .st-box button:focus-visible, .st-level select:focus-visible, .st-link:focus-visible, .st-chip:focus-visible { outline: 3px solid var(--ddp-color-accent); outline-offset: 2px; }
+
+.st-opts { display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--ddp-space-3) var(--ddp-space-6); margin-top: var(--ddp-space-4); }
+.st-time { border: 0; padding: 0; margin: 0; min-width: 0; display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.st-time legend, .st-level { font-size: var(--ddp-text-sm); font-weight: 600; color: var(--ddp-color-primary); }
+.st-time legend { padding: 0; margin-bottom: 0.35rem; }
+.st-time label { position: relative; display: block; cursor: pointer; }
+.st-time input { position: absolute; opacity: 0; inset: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; }
+.st-time span { display: flex; flex-direction: column; justify-content: center; min-height: 48px; padding: 0.3rem 0.85rem 0.3rem 2.1rem; position: relative; border: 1.5px solid var(--ddp-color-muted); border-radius: var(--ddp-radius-sm); background: var(--ddp-color-surface); line-height: 1.25; }
+.st-time b { font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink); }
+.st-time i { font-style: normal; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+.st-time i:empty { display: none; }
+/* The choice is marked by a drawn radio dot as well as the border, so it does not rest on colour alone. */
+.st-time span::before { content: ''; position: absolute; left: 0.7rem; top: 50%; width: 0.95rem; height: 0.95rem; margin-top: -0.475rem; box-sizing: border-box; border: 1.5px solid var(--ddp-color-muted); border-radius: 50%; }
+.st-time input:checked + span { border-color: var(--ddp-color-primary); box-shadow: inset 0 0 0 1px var(--ddp-color-primary); }
+.st-time input:checked + span::before { border: 0.3rem solid var(--ddp-color-primary); }
+.st-time input:focus-visible + span { outline: 3px solid var(--ddp-color-accent); outline-offset: 2px; }
+.st-level { display: flex; flex-direction: column; gap: 0.35rem; }
+.st-level select { min-height: 48px; max-width: 100%; padding: 0 0.6rem; border: 1.5px solid var(--ddp-color-muted); border-radius: var(--ddp-radius-sm); background: var(--ddp-color-surface); color: var(--ddp-color-ink); font: inherit; font-size: 1rem; font-weight: 400; }
+
+.st-link { display: inline-flex; align-items: center; min-height: 44px; padding: 0; border: 0; background: none; color: var(--ddp-color-accent); font: inherit; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.st-try { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-sm); line-height: 1.4; color: var(--ddp-color-ink-soft); }
+.st-private, .st-note, .st-foot, .st-quiet { font-size: var(--ddp-text-sm); line-height: 1.55; color: var(--ddp-color-muted); }
+.st-private { margin: 0.2rem 0 0; }
+/* The permanent help line: quiet type, always there, the link a full-size target. */
+.st-help { margin: var(--ddp-space-4) 0 0; font-size: var(--ddp-text-base); line-height: 1.55; color: var(--ddp-color-ink); }
+.st-help a { display: inline-block; padding: 0.7rem 0; margin: -0.7rem 0; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
+.st-result .st-help, .st-none .st-help { margin-top: var(--ddp-space-6); padding-top: var(--ddp-space-4); border-top: 1px solid var(--ddp-color-line); }
+/* The help message: shown first and alone. One rule beside it, no alarm colour. */
+.st-urgent { padding-left: var(--ddp-space-4); border-left: 4px solid var(--ddp-color-primary); }
+.st-urgent h2 { margin: 0 0 var(--ddp-space-3); font-family: var(--ddp-font-serif); font-weight: 500; font-size: var(--ddp-text-2xl); line-height: 1.2; color: var(--ddp-color-primary); }
+.st-urgent p { margin: 0 0 var(--ddp-space-3); font-size: var(--ddp-text-lg); line-height: 1.5; color: var(--ddp-color-ink); }
+.st-urgent a { display: inline-block; padding: 0.6rem 0; margin: -0.6rem 0; font-weight: 700; }
+.st-helppage h2 { margin: var(--ddp-space-6) 0 0.3rem; font-family: var(--ddp-font-serif); font-weight: 500; font-size: var(--ddp-text-xl); color: var(--ddp-color-primary); }
+.st-helppage section p { margin: 0; font-size: var(--ddp-text-lg); line-height: 1.55; }
+.st-helppage section a { display: inline-block; padding: 0.6rem 0; margin: -0.6rem 0; font-weight: 700; }
+.st-helpfoot { margin: var(--ddp-space-8) 0 0; font-size: var(--ddp-text-lg); color: var(--ddp-color-ink-soft); }
+.st-note { margin: var(--ddp-space-3) 0 0; color: var(--ddp-color-ink-soft); }
+.st-status { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.st-out { margin-top: var(--ddp-space-8); }
+.st-out:empty { margin-top: 0; }
+.st-foot { margin: var(--ddp-space-8) 0 0; }
+.st-out[data-help] ~ .st-foot { display: none; }
+
+.st-result h2 { margin: 0; font-family: var(--ddp-font-serif); font-weight: 500; font-size: var(--ddp-text-2xl); line-height: 1.15; color: var(--ddp-color-primary); overflow-wrap: anywhere; }
+.st-result h2:focus { outline: none; }
+.st-result h3 { margin: var(--ddp-space-6) 0 var(--ddp-space-2); font-size: var(--ddp-text-base); color: var(--ddp-color-primary); }
+.st-blurb { margin: 0.4rem 0 0; line-height: 1.55; color: var(--ddp-color-ink-soft); }
+.st-sum { margin: var(--ddp-space-4) 0 var(--ddp-space-2); font-weight: 600; color: var(--ddp-color-ink); }
+.st-steps { list-style: none; margin: 0; padding: 0; counter-reset: st; border-top: 1px solid var(--ddp-color-line); }
+.st-step { counter-increment: st; display: grid; grid-template-columns: 1.6rem 3.4rem minmax(0, 1fr) auto; gap: 0 0.6rem; align-items: baseline; padding: 0.75rem 0; border-bottom: 1px solid var(--ddp-color-line); }
+.st-step::before { content: counter(st); font-family: var(--ddp-font-serif); font-size: var(--ddp-text-lg); color: var(--ddp-color-muted); }
+.st-kind { font-size: var(--ddp-text-sm); font-weight: 600; color: var(--ddp-color-secondary-ink); }
+.st-what { min-width: 0; line-height: 1.4; overflow-wrap: anywhere; }
+.st-what > a:first-child { font-weight: 600; display: inline-block; padding: 0.7rem 0; margin: -0.7rem 0; }
+.st-filmlink { display: inline-block; padding: 0.6rem 0; margin: -0.6rem 0; white-space: nowrap; }
+.st .hl-facts a { white-space: nowrap; }
+.st-box button:disabled, .st-link:disabled { opacity: 0.6; cursor: default; }
+[data-st-top] { scroll-margin-top: 6rem; }
+.st-none:focus { outline: none; }
+.st-hint, .st-adds, .st-part { display: block; font-size: var(--ddp-text-sm); color: var(--ddp-color-muted); }
+.st-part { color: var(--ddp-color-accent); padding: 0.35rem 0; }
+.st-len { font-variant-numeric: tabular-nums; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); white-space: nowrap; }
+.st-of { font-size: var(--ddp-text-sm); color: var(--ddp-color-muted); }
+.st-quiet { margin: 0.6rem 0 0; }
+.st-beside { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.7rem; }
+.st-beside li { line-height: 1.45; overflow-wrap: anywhere; }
+.st-dir { font-weight: 600; color: var(--ddp-color-primary); margin-right: 0.15rem; }
+.st-ladder { margin-top: var(--ddp-space-4); }
+.st-ladder[hidden] { display: none; }
+.st-ladder > summary { cursor: pointer; padding: 0.7rem 0; font-weight: 600; color: var(--ddp-color-accent); }
+.st-ladder > summary:focus-visible { outline: 3px solid var(--ddp-color-accent); outline-offset: 2px; }
+.st-chips { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0; }
+.st-chip { min-height: 44px; padding: 0 0.9rem; border: 1.5px solid var(--ddp-color-muted); border-radius: 999px; background: var(--ddp-color-surface); color: var(--ddp-color-ink); font: inherit; font-size: var(--ddp-text-sm); font-weight: 600; cursor: pointer; }
+.st-chip:hover { border-color: var(--ddp-color-accent); }
+.st-other { margin: var(--ddp-space-6) 0 0; font-size: var(--ddp-text-sm); line-height: 2; color: var(--ddp-color-ink-soft); }
+.st-none { line-height: 1.6; }
+.st-none p { margin: 0 0 var(--ddp-space-3); }
+
+@media (max-width: 30rem) {
+  .st-box button { flex: 1 1 100%; }
+  .st-time { width: 100%; }
+  .st-time label { flex: 1 1 8rem; }
+  .st-level, .st-level select { width: 100%; }
+  .st-step { grid-template-columns: 1.3rem minmax(0, 1fr) auto; }
+  .st-kind { grid-column: 2; grid-row: 1; }
+  .st-what { grid-column: 2 / 4; grid-row: 2; }
+  .st-len { grid-column: 3; grid-row: 1; }
+}
+@media (forced-colors: active) {
+  .st-box button { border: 1px solid ButtonText; }
+  .st-time input:checked + span::before { border-color: Highlight; }
+}
+@media print { .site-header, header, footer, .st-help, .st-form, .st-try, .st-private, .st-other, .st-chips, .st-next, .st-foot, .st-where, .st-ladder:not([open]) { display: none; } }
