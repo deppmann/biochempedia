@@ -2,11 +2,11 @@
 /* Play a course's films in order (Chris, 2026-11-14): /films/play/<course>/.
 
    One player, the course's films back to back in course order (the order of /films/ and the course
-   page): when one ends, a five-second "Up next" that can be cancelled, then the next. A queue with
+   page): when one ends, an "Up next" offer that waits for the viewer (nothing starts by itself), then the next. A queue with
    the current film marked, previous and next, the current film's title, a link to its lesson and its
    take-homes underneath, captions from the same caption files. The page remembers on this device
    which film and second the viewer stopped at (src/lib/film-progress.ts) and opens there next time,
-   paused: a film only starts when the viewer presses play, and the following ones start on their own.
+   paused: a film only starts when the viewer presses play or Play next; nothing starts on its own.
 
    ?kind=first and ?q=words narrow the queue, so "Play these in order" on a filtered /films/ list
    plays what the list showed. Without JavaScript the player shows the first film and the queue is a
@@ -53,7 +53,7 @@ const queue = films.map((f) => ({
     <p class="eyebrow"><a href="/films/">Film library</a> · <a href={filmLevelHref(course.stage)}>{course.stageTitle}</a></p>
     <h1 class="lvl-title">{course.title}, every film in order</h1>
     <p class="lede pl-lede">
-      {fmt(films.length)} films, about {hm(mins)}. Press play and each film starts when the one before it ends.
+      {fmt(films.length)} films, about {mins < 60 ? `${mins} minutes` : `${Math.floor(mins / 60)} ${Math.floor(mins / 60) === 1 ? 'hour' : 'hours'}${Math.round((mins % 60) / 5) * 5 ? ` ${Math.round((mins % 60) / 5) * 5} minutes` : ''}`}. When one ends, the next waits until you press Play next.
       <span class="seen-n" data-seen-of={queue.map((q) => q.f).join(' ')} hidden></span>
     </p>
     <p class="small pl-filter" data-pl-filter hidden></p>
@@ -71,11 +71,12 @@ const queue = films.map((f) => ({
       <div class="pl-player" data-pl-player data-cards-anchor>
         <LessonFilm film={{ src: first.src, captions: first.captions, poster: first.poster, title: first.title, durationSec: first.durationSec, id: 'play' }} transcript={false} />
         <div class="pl-next" data-pl-next role="status" hidden>
-          <p class="pl-next-k">Up next <span data-pl-count></span></p>
+          <p class="pl-next-k">Up next</p>
           <p class="pl-next-t" data-pl-next-t></p>
+          <p class="pl-next-w" data-pl-count></p>
           <p class="pl-next-btns">
-            <button type="button" class="fl-btn primary" data-pl-now>Play now</button>
-            <button type="button" class="fl-btn" data-pl-cancel>Cancel</button>
+            <button type="button" class="fl-btn primary" data-pl-now>Play next</button>
+            <button type="button" class="fl-btn" data-pl-cancel>Stop here</button>
           </p>
         </div>
       </div>
@@ -91,7 +92,7 @@ const queue = films.map((f) => ({
 
       <section class="pl-now" aria-labelledby="pl-now-h">
         <p class="spot-k" data-pl-badge>{kindBadge(first)}</p>
-        <h2 id="pl-now-h" data-pl-title>{first.title}</h2>
+        <h2 id="pl-now-h" data-pl-title tabindex="-1">{first.title}</h2>
         <p class="pl-resume small" data-pl-resume hidden></p>
         <p class="spot-btns">
           <a class="fl-btn primary" href={lessonPage(first)} data-pl-lesson>Read the lesson{first.lessonTitle && <span class="pl-lt">: {first.lessonTitle}</span>}</a>
@@ -261,10 +262,8 @@ const queue = films.map((f) => ({
     });
     video.addEventListener('play', () => { cancelNext(); if (!started) { started = true; remember(video.currentTime); } });
 
-    /* ---- "Up next": five seconds after a film ends, then the next one, unless cancelled. */
-    let timer = 0;
+    /* ---- "Up next": offered when a film ends; the next one starts when the viewer asks. */
     const cancelNext = () => {
-      if (timer) { clearInterval(timer); timer = 0; }
       nextBox.hidden = true;
     };
     video.addEventListener('ended', () => {
@@ -278,19 +277,14 @@ const queue = films.map((f) => ({
       // Save the next film as the place to come back to.
       saveQueue(course, { f: next.f, t: 0, title: next.t, poster: next.o, courseTitle, d: next.d });
       $('[data-pl-next-t]').textContent = next.t;
-      let left = 5;
-      const count = $('[data-pl-count]');
-      count.textContent = `in ${left}`;
+      // Offered, never started (2026-11-20): no clock, seen or unseen. The place is already saved above.
+      $('[data-pl-count]').textContent = 'When you are ready.';
       nextBox.hidden = false;
-      timer = window.setInterval(() => {
-        left -= 1;
-        count.textContent = `in ${left}`;
-        if (left <= 0) select(cur + 1, true);
-      }, 1000);
     });
-    // "Review the cards" under the player (CardsPrompt.astro) stops the countdown.
+    // "Review the cards" under the player (CardsPrompt.astro) withdraws the offer.
     root.addEventListener('bp-cards-open', () => cancelNext());
-    $('[data-pl-now]').addEventListener('click', () => select(cur + 1, true));
+    // The button goes away with its box: move focus to the new film's title first.
+    $('[data-pl-now]').addEventListener('click', () => { $<HTMLElement>('[data-pl-title]').focus(); select(cur + 1, true); });
     $('[data-pl-cancel]').addEventListener('click', () => { cancelNext(); $<HTMLButtonElement>('[data-pl-nextbtn]').focus(); });
     $('[data-pl-prev]').addEventListener('click', () => select(cur - 1, true));
     $('[data-pl-nextbtn]').addEventListener('click', () => select(cur + 1, true));

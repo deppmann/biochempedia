@@ -43,7 +43,7 @@ const osmosis = await idea('osmosis');
 | `also` | full | Levels the page links by hand elsewhere (0 ages 5 to 10, 1 grade 7, 2 high school, 3 college, 4 graduate). The ladder does not say "no lesson" at those. |
 | `hereLabel` | full | Words after the level's name on the marked rung when there is no lesson, such as "the level you chose". |
 | `facts` | full | Course, minutes, film and practice questions under each lesson (default on). Turn off where space is tight. |
-| `play` | full | Show "Play the ladder" when `idea.play` exists. It does not exist while `PLAY_LADDER` in `src/lib/hop.ts` is off. |
+| `play` | full | Show "Play the ladder" when `idea.play` exists: the idea has films a run can play at two or more levels. |
 
 ### From a client script
 
@@ -80,9 +80,11 @@ Load `src/styles/hop.css` on any page that draws a ladder (the Astro components 
 
 ## Play the ladder
 
-**Off for now.** `PLAY_LADDER` in `src/lib/hop.ts` is `false` until the film run page reads
-`?idea=<id>`; while it is off no page shows the link and `link` in the file below is `null`. Turn
-it on by setting the constant to `true` and pointing `playHref()` at `/films/run/?idea=${id}`.
+**On** (`PLAY_LADDER` in `src/lib/hop.ts`). The link opens `/films/run/?idea=<id>`, the film
+library's run page: the idea's films one at a time from the simplest level to the deepest, with the
+number of films, the minutes and the last film stated before anything plays, and "Play next"
+between films (nothing advances by itself). A run plays the films of `runOf()` in `src/lib/hop.ts`:
+those that teach the idea and have a page of their own, so not the ages 5 to 10 set-up films.
 
 When on, for an idea with films at two or more levels, `idea.play` is `{ href, n, minutes, from, to }` and the
 full ladder shows "Play the ladder · 4 films, about 13 min, from grade 7 to upper-level college."
@@ -95,10 +97,7 @@ The films, in order from the simplest level to the deepest, are in `/ideas/film-
 ```
 
 Each film row is `[film key, title, film page, level 0 to 6, seconds, lesson slug]`. The run page
-belongs to the film library. Until it reads `?idea=`, the link opens the first film's own page with
-`?idea=<id>` in the address. To point every link at the run page, change `playHref()` in
-`src/lib/hop.ts`. A run must say how many films it holds and where it ends, and must wait for the
-viewer between films.
+itself reads `/films/idea/<id>.json` (one small file per idea, the same films in the same order).
 
 ## The other pieces
 

@@ -1,15 +1,39 @@
 ---
 import { SITE_ORIGIN } from '../../lib/site-host.mjs';
-/* One page per film, so a link shared on social media has somewhere to land:
+/* The theater (2026-11-20): one page per film, and still the page a shared link lands on.
    /watch/<lesson>/ is the lesson's opening film, /watch/<lesson>/<film-id>/ each further film.
-   The player, captions and transcript are the same component the lesson uses (LessonFilm). */
+
+   What is here with scripts off: the film with its captions, every part or question printed in
+   order, the take-homes, the transcript with times, the same idea at other levels, what sits next
+   door, the lesson's other films, the disclosure and the JSON-LD. Scripts add one thing: the page
+   follows the film. The part being played comes up beside the screen, the film's own question
+   stands alone while the film waits for an answer, a lesson figure arrives only where a
+   hand-checked map places it (never before the film has given the answer it shows), and the
+   transcript keeps its place and plays from any sentence.
+
+   Nothing plays until the viewer presses play. Nothing is stored here: the watched record is kept by
+   trackFilms() in BaseLayout, as for every other player on the site.
+
+   Data: src/lib/film-theater.ts (scene times and maps, see scripts/film-timelines/README.md) and
+   src/lib/film-hops.ts (other levels and neighbours). Client: src/lib/theater-client.ts. */
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import LessonFilm from '../../components/LessonFilm.astro';
+import LessonFigure from '../../components/LessonFigure.astro';
 import CardsPrompt from '../../components/CardsPrompt.astro';
+import Ladder from '../../components/hop/Ladder.astro';
+import { idea as hopIdea } from '../../lib/hop';
 import { allFilms, filmClock, filmIsoDuration, type FilmEntry } from '../../lib/films';
+import { theaterFor, questionText } from '../../lib/film-theater';
+import { hopsFor, type Hop } from '../../lib/film-hops';
 import { courseOf, courseHref } from '../../data/courses';
+import { stageOf, STAGES } from '../../data/stages';
 import { metaDescription } from '../../lib/meta';
 import { feedbackUrl } from '../../lib/feedback';
+import '../../styles/film-theater.css';
+
+/* Chris's standing rule (2026-11-10): the take-homes stay visible under the film. The other reading
+   of "question before answer" is built and switched off: true folds them shut and the page opens the
+   fold when the film ends. */
+const TAKEHOMES_AFTER_FILM = false;
 
 export async function getStaticPaths() {
   return (await allFilms()).map((film) => ({
@@ -20,14 +44,53 @@ export async function getStaticPaths() {
 
 const { film } = Astro.props as { film: FilmEntry };
 const course = courseOf(film.course);
+const stage = STAGES.find((s) => s.key === stageOf(course));
 const site = (Astro.site?.href ?? `${SITE_ORIGIN}/`).replace(/\/$/, '');
 const abs = (p: string) => `${site}${p}`;
 const lessonHref = `/lessons/${film.lesson}/`;
-const others = (await allFilms()).filter((f) => f.lesson === film.lesson && f.href !== film.href);
+const siblings = (await allFilms()).filter((f) => f.lesson === film.lesson);
+const place = siblings.findIndex((f) => f.href === film.href);
+const others = siblings.filter((f) => f.href !== film.href);
+const nextFilm = siblings[place + 1];
 const description = metaDescription(film.hook);
-// Does the lesson have a flashcard deck? Then the end of the film offers its cards (CardsPrompt).
 const DECK_FILES = Object.keys(import.meta.glob('../../data/flashcards/*.json'));
 const hasDeck = DECK_FILES.some((f) => f.endsWith(`/${film.lesson}.json`));
+
+const index = film.id === null ? null : siblings.filter((f) => f.id !== null).findIndex((f) => f.id === film.id);
+const th = theaterFor(film, index);
+const hops = await hopsFor(film.lesson, th.key);
+const mapped = th.status === 'mapped';
+const tenth = (n: number) => Math.floor(n * 10) / 10;
+const transcriptId = film.id ?? 'explainer';
+const lastReveal = th.questions.length ? Math.max(...th.questions.map((q) => q.revealStart)) : 0;
+const sectionHref = (id: string) => `${lessonHref}#${id}`;
+/* A school lesson's headings carry their 5E step ("Explain: water crosses a choosy membrane"); the
+   link names the section without it. */
+const sectionName = (text: string) => { const t = text.replace(/^(Engage|Explore|Explain|Elaborate|Evaluate):\s*/i, ''); return t.charAt(0).toUpperCase() + t.slice(1); };
+/* The parts bar: the named parts of a mapped film; otherwise the film's questions, when it asks any. */
+const segments = mapped
+  ? th.parts.map((p) => ({ start: p.start, q: p.question !== undefined }))
+  : th.questions.flatMap((q) => [{ start: q.start, q: true }, { start: q.revealStart, q: false }]);
+if (segments.length && segments[0].start > 0) segments.unshift({ start: 0, q: false });
+const segs = segments.map((s, i) => ({ ...s, width: (((segments[i + 1]?.start ?? film.durationSec) - s.start) / film.durationSec) * 100 }));
+
+const hopHref = (h: Hop) => h.film?.href ?? h.lessonHref;
+const hopVerb = (h: Hop) => (h.film ? `Watch ${h.film.title} · ${filmClock(h.film.durationSec)}` : h.stage === 'ages-5-10' ? `Try it with a grown-up: ${h.lessonTitle}` : `Read ${h.lessonTitle}`);
+const hopName = (h: Hop) => (h.film ? `${h.film.title} · ${filmClock(h.film.durationSec)}` : h.stage === 'ages-5-10' ? `Try it with a grown-up: ${h.lessonTitle}` : h.lessonTitle);
+const hasLadder = !!hops && (hops.simpler.length > 0 || hops.deeper.length > 0);
+const nextDoor = hops?.sideways.near[0] ?? hops?.sideways.after[0];
+/* The shared ladder (src/components/hop/Ladder.astro), for the idea this film is about: Hex on the
+   rung of the film being watched. When the film's lesson is not itself a rung of that idea, Hex
+   stands at the film's level instead. */
+const ladderIdea = hops?.idea ? await hopIdea(hops.idea.id) : undefined;
+const onLadder = !!ladderIdea?.rungs.some((r) => r.slug === film.lesson);
+const hereRank = STAGES.findIndex((s) => s.key === stage?.key);
+const side = hops ? [
+  { label: '', items: hops.sideways.near },
+  { label: 'Builds on', items: hops.sideways.before },
+  { label: 'Leads to', items: hops.sideways.after },
+  { label: 'Elsewhere on the site', items: hops.sideways.elsewhere },
+].filter((g) => g.items.length) : [];
 
 const videoLd = {
   '@context': 'https://schema.org',
@@ -59,30 +122,220 @@ const videoLd = {
     ['name', 'twitter:image:alt', `Poster for the film “${film.title}”`],
   ]}
 >
-  <article class="wrap watch" data-pagefind-ignore data-course-title={course.title} data-cards-lesson={hasDeck ? film.lesson : undefined}>
-    <p class="eyebrow"><a href="/films/">Films</a> · <a href={courseHref(course.slug)}>{course.title}</a></p>
-    <h1>{film.title}</h1>
+  <article
+    class="wrap th"
+    data-th
+    data-film={th.key}
+    data-duration={film.durationSec}
+    data-last-reveal={lastReveal}
+    data-takehomes-after={TAKEHOMES_AFTER_FILM ? '' : undefined}
+    data-pagefind-ignore
+    data-course-title={course.title}
+    data-cards-lesson={hasDeck ? film.lesson : undefined}
+  >
+    {/* Before anything is drawn: with scripts on, only the part being played is shown, so a figure
+        for a later part is never fetched (or seen) early. */}
+    <script is:inline>(function (a) { a.classList.add('th-live'); setTimeout(function () { if (!a.classList.contains('th-ready')) a.classList.remove('th-live'); }, 4000); })(document.currentScript.parentElement);</script>
+    <p class="th-crumb"><a href="/films/">Films</a> · <a href={courseHref(course.slug)}>{course.title}</a></p>
+    <p class="th-back" data-th-back hidden></p>
 
-    <LessonFilm film={{ ...film, id: film.id ?? 'explainer' }} />
+    <div class="th-stage">
+      <div class="th-main">
+        <div class="th-screen" data-th-screen>
+          <video controls preload="none" playsinline poster={film.poster} width="1920" height="1080" data-listen-film={film.title} data-listen-film-sec={film.durationSec} data-film-title={film.title} aria-label={`Film: ${film.title}`}>
+            <source src={film.src} type="video/mp4" />
+            <track kind="captions" src={film.captions} srclang="en" label="English" />
+            <span class="th-novideo">Your browser cannot play this video. <a href={film.src}>Download the film (MP4)</a>.</span>
+          </video>
+        </div>
+        {segs.length > 1 && (
+          <div class="th-bar" data-th-bar aria-hidden="true">
+            {segs.map((s) => <span class:list={['th-seg', { 'is-q': s.q }]} style={`flex-grow:${s.width.toFixed(2)}`} data-t={tenth(s.start)}></span>)}
+          </div>
+        )}
+        <p class="th-startat" data-th-startat hidden>Press play to start at <span data-th-startat-time></span>.</p>
+        <h1 data-th-title tabindex="-1">{film.title}</h1>
+        <p class="th-meta">
+          {siblings.length > 1 ? `Film ${place + 1} of ${siblings.length} in the lesson ` : 'From the lesson '}<a href={lessonHref}>{film.lessonTitle}</a>
+          <span class="th-meta-more"> · <span class={`th-chip lv-${stage?.key}`}></span>{stage?.title} · {filmClock(film.durationSec)}</span>
+        </p>
+        {film.predatesCorrection && (
+          <p class="th-predates"><strong>This film was made before a correction to the lesson text.</strong> {film.predatesCorrection}</p>
+        )}
+      </div>
+
+      <aside class="th-side" aria-label="With the film">
+        <div class="th-companion" data-th-companion>
+          {mapped ? (
+            <>
+              <h2 class="th-h th-live-quiet">In this film</h2>
+              <ol class="th-panels">
+                {th.parts.map((p, i) => (
+                  <li class:list={['th-panel', { 'is-q': p.question !== undefined, 'is-now': i === 0 }]} data-th-panel={i} data-t={tenth(p.start)}>
+                    {p.question !== undefined ? (
+                      <>
+                        <p class="th-k"><span class="th-time">{filmClock(p.start)}</span> The film asks</p>
+                        <p class="th-q">{questionText(p.question)}</p>
+                        <p class="th-wait">Pause and decide. The film gives the answer a few seconds later.</p>
+                        <p class="th-pause-row th-js-only"><button type="button" class="th-btn" data-th-pause>Pause the film</button></p>
+                      </>
+                    ) : (
+                      <>
+                        <p class="th-k"><span class="th-time">{filmClock(p.start)}</span> <span class="th-js-only">Now in the film</span></p>
+                        <h3 class="th-pt">{p.title}</h3>
+                        {p.term && <p class="th-term" data-at={tenth(p.term.at)}><strong>{p.term.word}:</strong> {p.term.def.charAt(0).toLowerCase() + p.term.def.slice(1)}.</p>}
+                        {p.figure && <LessonFigure src={p.figure.src} alt={p.figure.alt} caption={p.figure.caption} keyItems={p.figure.scaffold ? [] : p.figure.keyItems} width={p.figure.width} height={p.figure.height} />}
+                        {p.section && <p class="th-read"><a href={sectionHref(p.section.id)}>Read “{sectionName(p.section.text)}” in the lesson</a></p>}
+                      </>
+                    )}
+                  </li>
+                ))}
+              </ol>
+            </>
+          ) : (
+            <>
+              <div class="th-panel th-lesson-q" data-th-rest>
+                <p class="th-k">{film.hook.includes('?') ? 'The lesson’s question' : 'From the lesson'}</p>
+                <p class="th-q">{film.hook}</p>
+                <p class="th-read">
+                  {th.region.section
+                    ? <a href={sectionHref(th.region.section.id)}>Read “{sectionName(th.region.section.text)}” in the lesson</a>
+                    : <a href={lessonHref}>Read the lesson: {film.lessonTitle}</a>}
+                </p>
+              </div>
+              {th.questions.map((q) => (
+                <div class="th-panel is-q" data-th-question data-t={tenth(q.start)} data-until={tenth(q.revealStart)}>
+                  <p class="th-k"><span class="th-time th-js-hide">{filmClock(q.start)}</span> The film asks</p>
+                  <p class="th-q">{questionText(q.text)}</p>
+                  <p class="th-wait">Pause and decide. The film gives the answer a few seconds later.</p>
+                        <p class="th-pause-row th-js-only"><button type="button" class="th-btn" data-th-pause>Pause the film</button></p>
+                </div>
+              ))}
+              {th.region.figures.length > 0 && (
+                <details class="th-figs" data-th-figs>
+                  <summary>{th.region.figures.length === 1 ? 'A figure from this part of the lesson' : 'Figures from this part of the lesson'}</summary>
+                  <p class="th-figs-note">These are the lesson’s figures for the part this film goes with. They are in lesson order, not film order.</p>
+                  {th.region.figures.map((f) => <LessonFigure src={f.src} alt={f.alt} caption={f.caption} keyItems={f.scaffold ? [] : f.keyItems} width={f.width} height={f.height} />)}
+                </details>
+              )}
+            </>
+          )}
+        </div>
+
+        <section class="th-next" data-th-next aria-labelledby="th-next-h">
+          <h2 id="th-next-h" class="th-h">Where next</h2>
+          <p class="th-next-note">Nothing plays until you choose.</p>
+          <ul>
+            {nextFilm && <li><span class="th-nk">The next film in this lesson</span> <a href={nextFilm.href}>{nextFilm.title} · {filmClock(nextFilm.durationSec)}</a></li>}
+            {hops?.deeper[0] && <li><span class="th-nk">Deeper, the same idea taken further ({hops.deeper[0].stageTitle})</span> <a href={hopHref(hops.deeper[0])} data-th-hop>{hopName(hops.deeper[0])}</a></li>}
+            {hops?.simpler[0] && <li><span class="th-nk">Simpler, the same idea with less machinery ({hops.simpler[0].stageTitle})</span> <a href={hopHref(hops.simpler[0])} data-th-hop>{hopName(hops.simpler[0])}</a></li>}
+            {nextDoor && <li><span class="th-nk">Next door{nextDoor.idea ? `: ${nextDoor.idea}` : ''}</span> <a href={hopHref(nextDoor)} data-th-hop>{hopName(nextDoor)}</a></li>}
+            <li><span class="th-nk">Or read it</span> <a href={lessonHref}>{film.lessonTitle}, the whole lesson</a></li>
+          </ul>
+          <div data-th-cards></div>
+        </section>
+      </aside>
+    </div>
     {hasDeck && <CardsPrompt />}
 
-    <p class="hook">{film.hook}</p>
-    <p class="go"><a class="go-btn" href={lessonHref}>Continue in the lesson: {film.lessonTitle} →</a></p>
-    <p class="note">
-      {filmClock(film.durationSec)} · Free, with captions and a transcript. The lesson has the full text, the
-      questions and the sources.
-    </p>
+    {mapped && (
+      <nav class="th-list th-js-only" aria-label="In this film" data-th-list>
+        <h2 class="th-h">In this film</h2>
+        <ol>
+          {th.parts.map((p, i) => (
+            <li><button type="button" data-th-go={i} data-t={tenth(p.start)}><span class="th-time">{filmClock(p.start)}</span> {p.question !== undefined ? 'The film asks a question' : p.title}</button></li>
+          ))}
+        </ol>
+      </nav>
+    )}
+
+    {film.takeaways && film.takeaways.length > 0 && (
+      TAKEHOMES_AFTER_FILM ? (
+        <details class="th-take" data-th-take>
+          <summary>What the film says</summary>
+          <ul>{film.takeaways.map((t) => <li>{t}</li>)}</ul>
+        </details>
+      ) : (
+        <div class="th-take" aria-label="Key points from the film">
+          <h2 class="th-h">From the film</h2>
+          <ul>{film.takeaways.map((t) => <li>{t}</li>)}</ul>
+        </div>
+      )
+    )}
+
+    {th.lines.length > 0 && (
+      <details class="film-transcript th-transcript" id={`sx-film-${transcriptId}`} data-th-transcript>
+        <summary>Read the transcript <span class="th-of">of “{film.title}”</span></summary>
+        <h2 class="th-h" id={`sx-film-${transcriptId}-h`}>Film transcript: {film.title}</h2>
+        <p class="th-tip th-js-only">Tap a sentence to play from there.</p>
+        <ol class="th-lines" data-th-lines>
+          {th.lines.map((l) => <li data-t={tenth(l.start)}><span class="th-time">{filmClock(l.start)}</span> <span class="th-line">{l.text}</span></li>)}
+        </ol>
+      </details>
+    )}
+
+    {/* The hop area: one bounded place for "same idea, other levels" and "next door". When the hop
+        graph has an idea for this film, [data-hop-graphic] holds the shared ladder, drawn at build
+        time (so it is there with scripts off), with the idea's "Play the ladder" link. Films whose
+        lesson has no idea in the graph keep the older text list in [data-hop-text]. */}
+    {hops && (hasLadder || side.length > 0 || ladderIdea) && (
+      <section class="th-hops" aria-labelledby="th-hops-h" data-hop-area data-lesson={film.lesson} data-film={th.key} data-level={hops.here.stage} data-idea={hops.idea?.id} data-ideas={hops.ideas.join(' ')}>
+        <h2 id="th-hops-h" class="th-h">{hops.idea ? `${hops.idea.name}: the same idea, other levels` : 'Same idea, other levels'}</h2>
+        <div data-hop-graphic hidden={!ladderIdea}>
+          {ladderIdea && (
+            <>
+              <p class="th-ladder-note">A level is a place to start, not a rank. If this loses you, the rung below teaches the same idea with less machinery.</p>
+              <Ladder idea={ladderIdea} here={onLadder ? film.lesson : null} hereRank={onLadder ? null : hereRank} hereLabel={onLadder ? '' : 'this film'} />
+            </>
+          )}
+        </div>
+        <div data-hop-text>
+          {hasLadder && !ladderIdea && (
+            <div class="th-ladder">
+              <p class="th-ladder-note">A level is a place to start, not a rank. If this loses you, the rung below teaches the same idea with less machinery.</p>
+              <ul>
+                {[...hops.simpler].reverse().map((h) => (
+                  <li><span class="th-dir">Simpler</span> <span class="th-lv"><span class={`th-chip lv-${h.stage}`}></span>{h.stageTitle}</span> <a href={hopHref(h)} data-th-hop>{hopVerb(h)}</a>{h.adds && <span class="th-adds">{h.adds}</span>}</li>
+                ))}
+                <li class="is-here" aria-current="true"><span class="th-dir">This film</span> <span class="th-lv"><span class={`th-chip lv-${hops.here.stage}`}></span>{hops.here.stageTitle}</span> <span>{film.title}</span></li>
+                {hops.deeper.map((h) => (
+                  <li><span class="th-dir">Deeper</span> <span class="th-lv"><span class={`th-chip lv-${h.stage}`}></span>{h.stageTitle}</span> <a href={hopHref(h)} data-th-hop>{hopVerb(h)}</a>{h.adds && <span class="th-adds">{h.adds}</span>}</li>
+                ))}
+              </ul>
+              {hops.everyLevel && (
+                <p class="th-every"><a class="th-btn" href={hops.everyLevel.href}>Play this idea, simplest first · {hops.everyLevel.films} films, {hops.everyLevel.minutes} minutes</a></p>
+              )}
+            </div>
+          )}
+          {side.length > 0 && (
+            <div class="th-door">
+              <h3 class="th-h">Next door</h3>
+              {side.map((g) => (
+                <div class="th-door-g">
+                  {g.label && <h4>{g.label}</h4>}
+                  <ul>
+                    {g.items.map((h) => (
+                      <li>{h.idea && <span class="th-door-i">{h.idea}: </span>}<a href={hopHref(h)} data-th-hop>{hopName(h)}</a>{h.stage !== hops.here.stage && <span class="th-door-l"> · <span class={`th-chip lv-${h.stage}`}></span>{h.stageTitle}</span>}{h.film && !h.idea && <span class="th-door-l"> from {h.lessonTitle}</span>}{h.why && <span class="th-why"> {h.why}</span>}</li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
+    )}
 
     {others.length > 0 && (
-      <section class="more" aria-labelledby="more-h">
-        <h2 id="more-h">More films from this lesson</h2>
+      <section class="th-more" aria-labelledby="more-h">
+        <h2 id="more-h" class="th-h">More films from this lesson</h2>
         <ul>
           {others.map((o) => (
             <li>
               <a href={o.href}>
                 <img src={o.poster} alt="" width="320" height="180" loading="lazy" decoding="async" />
-                <span class="more-t">{o.title}</span>
-                <span class="more-len">{filmClock(o.durationSec)}</span>
+                <span class="th-more-t">{o.title}</span>
+                <span class="th-more-len">{filmClock(o.durationSec)}</span>
               </a>
             </li>
           ))}
@@ -90,35 +343,21 @@ const videoLd = {
       </section>
     )}
 
+    <p class="th-go"><a class="th-go-btn" href={lessonHref}>Continue in the lesson: {film.lessonTitle} →</a></p>
+    <p class="th-note">Free, with captions and a transcript. The lesson has the full text, the questions and the sources.</p>
+
     {/* The same disclosure the lesson's Sources & Integrity panel gives for this film. */}
-    <p class="disclosure">
+    <p class="th-disclosure">
       <strong>How this film was made.</strong> Narration: {film.narration}. Animation:
-      <span class="ai-flag">AI-generated</span> in code (Manim) by Claude, a schematic with no drawn molecular
+      <span class="th-ai">AI-generated</span> in code (Manim) by Claude, a schematic with no drawn molecular
       structures{film.factCheckedBy && `; checked by ${film.factCheckedBy}`}. Captions come from the narration
       script. See something wrong? <a href={feedbackUrl(film.lessonTitle)} target="_blank" rel="noopener">Report it</a>.
     </p>
+    <p class="visually-hidden" role="status" data-th-status></p>
   </article>
 
-  <style>
-    .watch { padding-top: var(--ddp-space-8); max-width: 920px; }
-    .eyebrow { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: 0.12em; text-transform: uppercase; color: var(--ddp-color-caution-ink); margin: 0 0 var(--ddp-space-2); }
-    .eyebrow a { color: inherit; }
-    h1 { margin: 0 0 var(--ddp-space-4); }
-    .hook { max-width: 62ch; font-size: var(--ddp-text-lg); line-height: 1.6; color: var(--ddp-color-ink-soft); margin: var(--ddp-space-5) 0 var(--ddp-space-4); }
-    .go { margin: 0; }
-    .go-btn { display: inline-flex; align-items: center; min-height: 48px; padding: 0.5em 1.3em; border-radius: 999px; background: var(--color-navy); color: #fff; font-weight: 700; text-decoration: none; }
-    .go-btn:hover { background: var(--ddp-color-accent); }
-    .note { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-sm); color: var(--ddp-color-muted); }
-    .more { margin-top: var(--ddp-space-12); }
-    .more h2 { font-size: var(--ddp-text-lg); margin: 0 0 var(--ddp-space-3); }
-    .more ul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: var(--ddp-space-4); }
-    .more a { display: grid; gap: 0.3rem; text-decoration: none; color: var(--ddp-color-ink); }
-    .more img { width: 100%; height: auto; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 8px; background: #0f1117; }
-    .more-t { font-weight: 600; font-size: var(--ddp-text-sm); line-height: 1.35; }
-    .more a:hover .more-t { color: var(--ddp-color-accent); }
-    .more-len { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
-    .disclosure { margin-top: var(--ddp-space-12); padding-top: var(--ddp-space-4); border-top: 1px solid var(--ddp-color-line); max-width: 72ch; font-size: var(--ddp-text-xs); line-height: 1.6; color: var(--ddp-color-muted); }
-    .disclosure a { color: var(--ddp-color-accent); }
-    .ai-flag { --ddp-color-caution-ink: #7f6315; color: var(--ddp-color-caution-ink); background: var(--ddp-color-caution-soft); border-radius: 4px; padding: 0 0.3em; font-weight: 600; }
-  </style>
+  <script>
+    import { theater } from '../../lib/theater-client';
+    theater();
+  </script>
 </BaseLayout>
