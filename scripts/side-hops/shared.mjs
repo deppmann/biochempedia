@@ -27,7 +27,7 @@ const onlyKeys = (o, keys, where, bad) => {
 /**
  * Every problem with one data file. `fileSlug` is the file's name without .json; `headings` is the
  * lesson's list (null when the lesson does not exist); `audioFound(file)` says whether the audio is on
- * disk or in media-manifest.json.
+ * disk or in media-manifest.json (used for pictures too).
  */
 export function problemsIn(data, { fileSlug, headings, audioFound }) {
   const out = [];
@@ -44,7 +44,19 @@ export function problemsIn(data, { fileSlug, headings, audioFound }) {
     data.hops.forEach((h, i) => {
       const at = `hop ${i + 1}`;
       if (typeof h !== 'object' || h === null) { bad(`${at}: not an object`); return; }
-      onlyKeys(h, ['afterHeading', 'kind', 'title', 'text', 'sources'], at, bad);
+      onlyKeys(h, ['afterHeading', 'kind', 'title', 'text', 'sources', ...('image' in h ? ['image'] : [])], at, bad);
+      if ('image' in h) {
+        const im = h.image;
+        if (typeof im !== 'object' || im === null) bad(`${at}: image must be an object`);
+        else {
+          onlyKeys(im, ['file', 'alt', 'caption', 'width', 'height'], `${at}, image`, bad);
+          if (!new RegExp(`^side-hops/${fileSlug}-\\d+\\.jpg$`).test(im.file ?? '')) bad(`${at}: image file must be side-hops/${fileSlug}-<n>.jpg`);
+          else if (!audioFound(im.file)) bad(`${at}: ${im.file} is in neither public/ nor media-manifest.json`);
+          if (!text(im.alt) || !im.alt.startsWith('AI-generated illustration:')) bad(`${at}: image alt must start "AI-generated illustration:"`);
+          if (!text(im.caption)) bad(`${at}: image caption is empty`);
+          if (!(im.width > 0) || !(im.height > 0)) bad(`${at}: image width and height must be positive numbers`);
+        }
+      }
       if (!KINDS.includes(h.kind)) bad(`${at}: kind "${h.kind}" is not one of ${KINDS.join(', ')}`);
       if (!text(h.title)) bad(`${at}: title is empty`);
       if (!text(h.text)) bad(`${at}: text is empty`);
