@@ -11,7 +11,7 @@ COLOR MAP (one meaning throughout)
 from bp_parts import *
 
 
-SEQ = "AUGGCUUGGAAACCUGACUAG"
+SEQ = "CAUGGCUUGGAAACCUGACUA"
 TILE_W = 0.60
 TILE_H = 1.0
 RIBBON_X = -6.15
@@ -255,56 +255,173 @@ class S03Frame(SpokenScene):
 
 class S04Capacity(SpokenScene):
     def construct(self):
+        carried = message_ribbon(y=0.15, brackets=False)
+        shimmer_ribbon(carried)
+        self.add(carried.tiles)
+
+        # Top row of the 4 distinct RNA bases transformed from the carried ribbon.
+        base_idx = (0, 1, 2, 4)  # A, U, G, C in SEQ
+        base_xs = (-2.1, -1.4, -0.7, 0.0)
+        base_tiles = VGroup()
+        for letter, bx in zip(("A", "U", "G", "C"), base_xs):
+            box = RoundedRectangle(
+                corner_radius=0.07, width=0.52, height=0.68,
+                stroke_color=BLUE, stroke_width=2.2,
+                fill_color=BLUE, fill_opacity=0.18,
+            ).move_to([bx, 2.88, 0])
+            base_tiles.add(VGroup(box, M(letter, 26, TEXT).move_to(box)))
+        bases_lbl = T("4 bases", 28, BLUE).next_to(base_tiles, LEFT, buff=0.28)
+
+        # Three grid panels on the left/center, leaving x = 3.05..6.25 for the 20 amino acids comparison bar.
+        panel_xs = (-4.85, -1.80, 1.25)
         panels = VGroup(*[
-            RoundedRectangle(corner_radius=0.18, width=3.55, height=3.65, stroke_color=GREY,
-                             stroke_width=2, fill_color=GREY, fill_opacity=0.04).move_to([x, 0.25, 0])
-            for x in (-4.25, 0, 4.25)
+            RoundedRectangle(
+                corner_radius=0.16, width=2.85, height=3.50, stroke_color=GREY,
+                stroke_width=2, fill_color=GREY, fill_opacity=0.04,
+            ).move_to([x, 0.40, 0])
+            for x in panel_xs
         ]).set_z_index(-2)
         panels._shimmer_t = 0.0
 
         def breathe_panels(mob, dt):
             mob._shimmer_t += dt
             for i, panel in enumerate(mob):
-                panel.set_fill(opacity=0.04 + 0.13 * (0.5 + 0.5 * np.sin(0.9 * mob._shimmer_t - i * 1.2)))
+                panel.set_fill(opacity=0.04 + 0.11 * (0.5 + 0.5 * np.sin(0.9 * mob._shimmer_t - i * 1.2)))
         panels.add_updater(breathe_panels)
-        self.add(panels)
-        heads = VGroup(T("single", 30, TEXT), T("pairs", 30, TEXT), T("triplets", 30, TEAL))
-        heads.arrange(RIGHT, buff=2.1).move_to([0, 2.65, 0])
+
+        heads = VGroup(
+            T("single", 28, TEXT).move_to([panel_xs[0], 1.85, 0]),
+            T("pairs", 28, TEXT).move_to([panel_xs[1], 1.85, 0]),
+            T("triplets", 28, TEAL).move_to([panel_xs[2], 1.85, 0]),
+        )
 
         def dot_grid(n, center, color):
-            dots = VGroup(*[Dot(radius=0.07 if n > 16 else 0.12, color=color) for _ in range(n)])
+            dots = VGroup(*[Dot(radius=0.068 if n > 16 else (0.095 if n == 16 else 0.125), color=color) for _ in range(n)])
             cols = 8 if n == 64 else (4 if n == 16 else 2)
             rows = n // cols
-            dots.arrange_in_grid(rows, cols, buff=0.14 if n < 64 else 0.08).move_to(center)
+            dots.arrange_in_grid(rows, cols, buff=0.085 if n == 64 else (0.14 if n == 16 else 0.22)).move_to(center)
             return dots
 
-        grids = [dot_grid(4, [-4.25, 0.6, 0], RED), dot_grid(16, [0, 0.6, 0], RED),
-                 dot_grid(64, [4.25, 0.6, 0], TEAL)]
+        grids = [
+            dot_grid(4, [panel_xs[0], 0.62, 0], RED),
+            dot_grid(16, [panel_xs[1], 0.62, 0], RED),
+            dot_grid(64, [panel_xs[2], 0.62, 0], TEAL),
+        ]
         for i, grid in enumerate(grids):
             shimmer_marks(grid, speed=0.9 + 0.12 * i)
-        nums = VGroup(M("4", 42, RED).move_to([-4.25, -1.05, 0]),
-                      M("16", 42, RED).move_to([0, -1.05, 0]),
-                      M("64", 42, TEAL).move_to([4.25, -1.05, 0]))
-        self.at("One base")
-        self.play(FadeIn(heads[0]), LaggedStart(*[FadeIn(d) for d in grids[0]], lag_ratio=0.1),
-                  FadeIn(nums[0]), run_time=0.8)
-        self.at("two bases")
-        self.play(FadeIn(heads[1]), LaggedStart(*[FadeIn(d) for d in grids[1]], lag_ratio=0.035),
-                  FadeIn(nums[1]), run_time=0.9)
-        few = T("too few", 30, RED).move_to([-2.1, -1.95, 0])
-        self.at("too few words")
-        self.play(FadeIn(few), run_time=0.5)
-        self.play(Indicate(VGroup(grids[0], grids[1]), color=RED, scale_factor=1.035), run_time=2.3)
-        self.at("Triplets make enough")
-        self.play(FadeIn(heads[2]), LaggedStart(*[FadeIn(d) for d in grids[2]], lag_ratio=0.012),
-                  FadeIn(nums[2]), run_time=1.2)
-        enough = T("enough", 30, TEAL).move_to([4.25, -1.95, 0])
-        self.play(FadeIn(enough), run_time=0.45)
+
+        # Formulas & capacity digits positioned beneath each grid inside its panel.
+        f0 = M("4", 34, RED).move_to([panel_xs[0], -0.82, 0])
+        f1_parts = VGroup(M("4", 28, RED), M("×4", 28, RED), M("= 16", 28, RED)).arrange(RIGHT, buff=0.08)
+        f1_parts.move_to([panel_xs[1], -0.82, 0])
+        f2_parts = VGroup(M("4", 26, TEAL), M("×4", 26, TEAL), M("×4", 26, TEAL), M("= 64", 26, TEAL)).arrange(RIGHT, buff=0.06)
+        f2_parts.move_to([panel_xs[2], -0.82, 0])
+
+        # Comparison bar chart on the right (computed heights proportional to capacity / 64).
+        bar_y0, bar_h = -1.05, 2.80
+        bar_xs = (3.85, 4.70, 5.55)
+        bar_axis = VGroup(
+            Line([3.25, bar_y0, 0], [6.05, bar_y0, 0], color=GREY, stroke_width=2.5),
+            Line([3.25, bar_y0, 0], [3.25, bar_y0 + bar_h + 0.12, 0], color=GREY, stroke_width=2.5),
+        )
+
+        def make_bar(val, x, color):
+            h = (val / 64.0) * bar_h
+            rect = Rectangle(width=0.46, height=h, stroke_color=color, stroke_width=2.5,
+                             fill_color=color, fill_opacity=0.65)
+            rect.move_to([x, bar_y0 + h / 2, 0])
+            lbl = M(str(val), 24, color).move_to([x, bar_y0 - 0.30, 0])
+            return VGroup(rect, lbl)
+
+        bar4 = make_bar(4, bar_xs[0], RED)
+        bar16 = make_bar(16, bar_xs[1], RED)
+        bar64 = make_bar(64, bar_xs[2], TEAL).set_z_index(1)
+
+        y20 = bar_y0 + (20.0 / 64.0) * bar_h
+        line20 = DashedLine([3.25, y20, 0], [6.05, y20, 0], color=GREEN, stroke_width=4, dash_length=0.12)
+        line20.set_z_index(-1)
+        lbl20 = T("20 amino\nacids", 24, GREEN, line_spacing=0.85).move_to([4.18, y20 + 0.50, 0])
+
+        # 1. "With 4 bases," (4 at 0.44)
+        self.at("4 bases", lead=0.0)
+        extra_tiles = VGroup(*[carried.tiles[i] for i in range(len(carried.tiles)) if i not in base_idx])
+        self.play(
+            *[Transform(carried.tiles[idx], base_tiles[k]) for k, idx in enumerate(base_idx)],
+            FadeOut(extra_tiles),
+            FadeIn(bases_lbl),
+            run_time=0.80,
+        )
+
+        # 2. "singles give 4 words," (singles at 1.70, 4 at 2.20)
+        self.at("singles give")
+        base_boxes = VGroup(*[b[0] for b in base_tiles])
+        self.play(
+            FadeIn(panels[0]), FadeIn(heads[0]),
+            ReplacementTransform(base_boxes.copy(), grids[0]),
+            run_time=0.65,
+        )
+        self.at("4 words", lead=0.0)
+        self.play(FadeIn(f0, shift=UP * 0.1), FadeIn(bar_axis), FadeIn(bar4), run_time=0.45)
+        self.play(Indicate(f0, color=GOLD, scale_factor=1.08), run_time=0.35)
+
+        # 3. "and pairs give 4 times 4 or 16." (pairs at 3.34, 4 at 3.82, times 4 at 4.16, 16 at 5.02)
+        self.at("pairs give")
+        self.play(
+            FadeIn(panels[1]), FadeIn(heads[1]),
+            ReplacementTransform(base_boxes.copy(), grids[1]),
+            run_time=0.60,
+        )
+        self.at("4 times", lead=0.0)
+        self.play(FadeIn(f1_parts[0]), run_time=0.30)
+        self.at("times 4", lead=0.0)
+        self.play(FadeIn(f1_parts[1]), run_time=0.40)
+        self.at("16", lead=0.0)
+        self.play(FadeIn(f1_parts[2], shift=UP * 0.1), FadeIn(bar16), run_time=0.45)
+        self.play(Indicate(f1_parts, color=GOLD, scale_factor=1.06), run_time=0.55)
+
+        # 4. "Both are fewer than 20 amino acids." (Both at 6.84, 20 at 7.76)
+        self.at("Both are fewer")
+        few0 = T("too few", 28, RED).move_to([panel_xs[0], -1.78, 0])
+        few1 = T("too few", 28, RED).move_to([panel_xs[1], -1.78, 0])
+        self.play(
+            FadeIn(few0), FadeIn(few1),
+            Indicate(VGroup(grids[0], grids[1]), color=RED, scale_factor=1.03),
+            run_time=0.75,
+        )
+        self.at("20 amino", lead=0.0)
+        self.play(Create(line20), FadeIn(lbl20), run_time=0.75)
+
+        # 5. "Triplets give 4 times 4 times 4, or 64, which is enough."
+        self.at("Triplets give")
+        self.play(
+            FadeIn(panels[2]), FadeIn(heads[2]),
+            ReplacementTransform(base_boxes.copy(), grids[2]),
+            run_time=0.60,
+        )
+        self.at("4 times", lead=0.0, nth=1)
+        self.play(FadeIn(f2_parts[0]), run_time=0.28)
+        self.at("times 4", lead=0.0, nth=1)
+        self.play(FadeIn(f2_parts[1]), run_time=0.35)
+        self.at("times 4", lead=0.0, nth=2)
+        self.play(FadeIn(f2_parts[2]), run_time=0.38)
+        self.at("64", lead=0.0)
+        self.play(
+            FadeIn(f2_parts[3], shift=UP * 0.1),
+            GrowFromEdge(bar64[0], DOWN), FadeIn(bar64[1]),
+            run_time=0.55,
+        )
+        self.at("which is enough")
+        enough = T("enough", 28, TEAL).move_to([panel_xs[2], -1.78, 0])
+        self.play(FadeIn(enough), Indicate(VGroup(f2_parts, bar64[0]), color=GOLD, scale_factor=1.05), run_time=0.65)
+
+        # 6. "So fixed-length words must be at least triplets."
         self.at("at least triplets")
-        self.play(Indicate(VGroup(heads[2], grids[2], nums[2]), color=TEAL, scale_factor=1.04), run_time=0.9)
+        self.play(Indicate(VGroup(heads[2], grids[2], f2_parts), color=TEAL, scale_factor=1.04), run_time=0.95)
+
+        # 7. "Only experiments could test the real reading unit."
         self.at("Only experiments")
-        actual = VGroup(T("actual unit?", 30, GREY), T("?", 48, GREY)).arrange(DOWN, buff=0.15).move_to([0, -2.7, 0])
-        self.play(FadeOut(few), FadeIn(actual), run_time=0.7)
+        actual = VGroup(T("?", 40, GREY), T("actual unit?", 28, GREY)).arrange(DOWN, buff=0.08).move_to([0, -2.75, 0])
+        self.play(FadeIn(actual), run_time=0.75)
         self.finish()
 
 

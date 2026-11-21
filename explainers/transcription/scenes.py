@@ -695,24 +695,106 @@ class S04Growth(SpokenScene):
         )
         self.add(rna)
 
-        self.at("RNA polymerase now matches")
-        self.play(xp.animate.set_value(XS[4] + 0.10), run_time=4.4, rate_func=linear)
+        # Green RNA direction arrow that travels with polymerase inside the open bubble
+        rna_travel_arr = Arrow(
+            [-0.58, 0.76, 0],
+            [0.58, 0.76, 0],
+            buff=0,
+            color=GREEN,
+            stroke_width=4.5,
+            max_tip_length_to_length_ratio=0.26,
+        ).set_z_index(4)
+        rna_travel_arr.add_updater(lambda m: m.move_to([xp.get_value(), 0.76, 0]))
+        self.add(rna_travel_arr)
 
-        self.at("It joins each new letter")
-        self.play(xp.animate.set_value(XS[5] + 0.10), run_time=3.1, rate_func=linear)
+        # Glowing halo around the active 3' RNA attachment end
+        glow_amp = ValueTracker(0.0)
+        glow_ring = RoundedRectangle(
+            corner_radius=0.18,
+            width=TILE_W + 0.26,
+            height=TILE_H + 0.26,
+            color=GREEN,
+            stroke_width=7.5,
+            fill_opacity=0.0,
+        ).set_z_index(3)
 
-        self.at("That growing end")
-        grow_lbl = T("growing 3′ end", size=28, color=GREEN).move_to([2.6, -2.85, 0])
-        glide_and_show(self, xp, XS[6] + 0.10, 2.8, FadeIn(grow_lbl), anim_t=0.45)
+        def _glow_u(m):
+            op_tip = rna.tip_ring.get_stroke_opacity()
+            m.move_to(rna.tip_ring.get_center())
+            m.set_stroke(opacity=op_tip * 0.45 * glow_amp.get_value())
 
-        self.at("RNA therefore extends")
-        rna_dir = T("RNA grows: 5′ → 3′", size=28, color=GREEN).move_to([2.2, 3.05, 0])
-        glide_and_show(self, xp, XS[7] + 0.10, 2.9, FadeOut(grow_lbl), FadeIn(rna_dir), anim_t=0.45)
+        glow_ring.add_updater(_glow_u)
+        self.add(glow_ring)
 
-        self.at("The polymerase moves")
-        poly_dir = T("polymerase reads template: 3′ → 5′", size=28, color=BLUE).move_to([0.0, -2.85, 0])
+        # Beat 1 (0.00 - 3.82 s): "RNA polymerase matches RNA letters to the template,"
+        self.at("RNA polymerase matches")
+        self.play(xp.animate.set_value(XS[4] + 0.10), run_time=4.05, rate_func=linear)
+
+        # Beat 2 (4.32 - 7.00 s): "joining each new letter to the growing 3' end."
+        self.at("joining each new letter")
+        self.play(
+            glow_amp.animate.set_value(1.0),
+            xp.animate.set_value(XS[5] - 0.15),
+            run_time=1.15,
+            rate_func=linear,
+        )
+
+        self.at("to the growing")
+        grow_lbl = T("growing 3′ end", size=28, color=GREEN).move_to([1.2, -2.95, 0])
+        glide_and_show(self, xp, XS[5] + 0.25, 2.65, FadeIn(grow_lbl), anim_t=0.40)
+
+        # Beat 3 (8.28 - 15.04 s): "The RNA pairs antiparallel with the template, running in the opposite direction, like the two DNA strands."
+        self.at("The RNA pairs")
+        row_rna_lbl = T("RNA", size=26, color=GREEN).move_to([-4.45, -2.70, 0])
+        row_rna_arr = Arrow([-2.35, -2.70, 0], [1.75, -2.70, 0], buff=0, color=GREEN, stroke_width=4.5, max_tip_length_to_length_ratio=0.12)
+        row_tmpl_lbl = T("template", size=26, color=BLUE).move_to([-4.45, -3.40, 0])
+        row_tmpl_arr = Arrow([1.75, -3.40, 0], [-2.35, -3.40, 0], buff=0, color=BLUE, stroke_width=4.5, max_tip_length_to_length_ratio=0.12)
+        anti_ticks = VGroup(*[Line([xt, -2.93, 0], [xt, -3.17, 0], color=TEAL, stroke_width=3.0) for xt in np.linspace(-1.95, 1.35, 7)])
+        anti_base = VGroup(row_rna_lbl, row_rna_arr, row_tmpl_lbl, row_tmpl_arr, anti_ticks)
+        glide_and_show(self, xp, XS[6] - 0.15, 1.10, Succession(FadeOut(grow_lbl, run_time=0.30), FadeIn(anti_base, run_time=0.45)), anim_t=0.75)
+
+        self.at("anti parallel")
+        l_5 = M("5′", size=26, color=GREEN).move_to([-2.75, -2.70, 0])
+        l_3 = M("3′", size=26, color=BLUE).move_to([-2.75, -3.40, 0])
+        r_3 = M("3′", size=26, color=GREEN).move_to([2.15, -2.70, 0])
+        r_5 = M("5′", size=26, color=BLUE).move_to([2.15, -3.40, 0])
+        anti_tag = T("antiparallel", size=26, color=TEAL).move_to([3.55, -3.05, 0])
+        anti_ends = VGroup(l_5, l_3, r_3, r_5, anti_tag)
+        glide_and_show(self, xp, XS[6] + 0.25, 2.20, FadeIn(anti_ends), anim_t=0.45)
+
+        self.at("running in the opposite")
+        glide_and_show(
+            self,
+            xp,
+            XS[7] + 0.15,
+            4.70,
+            Indicate(row_rna_arr, color=GREEN, scale_factor=1.05),
+            Indicate(row_tmpl_arr, color=BLUE, scale_factor=1.05),
+            Indicate(VGroup(l_5, l_3), color=TEAL, scale_factor=1.12),
+            Indicate(VGroup(r_3, r_5), color=TEAL, scale_factor=1.12),
+            anim_t=1.2,
+        )
+
+        # Beat 4 (15.92 - 22.74 s): "So as RNA grows 5' to 3', polymerase reads the template 3' to 5'."
+        self.at("as RNA grows")
+        rna_lbl_a = T("RNA grows:", size=28, color=GREEN)
+        rna_lbl_b = T("5′ → 3′", size=28, color=GREEN)
+        VGroup(rna_lbl_a, rna_lbl_b).arrange(RIGHT, buff=0.14).move_to([2.1, 3.12, 0])
+        glide_and_show(self, xp, XS[7] + 0.35, 1.00, FadeIn(rna_lbl_a), anim_t=0.40)
+
+        self.at("5' to 3'")
+        glide_and_show(self, xp, XS[8] - 0.10, 1.70, FadeIn(rna_lbl_b), anim_t=0.40)
+
+        self.at("polymerase reads")
+        anti_all = VGroup(anti_base, anti_ends)
+        poly_lbl_a = T("polymerase reads template:", size=28, color=BLUE)
+        poly_lbl_b = T("3′ → 5′", size=28, color=BLUE)
+        VGroup(poly_lbl_a, poly_lbl_b).arrange(RIGHT, buff=0.14).move_to([-0.3, -3.00, 0])
+        glide_and_show(self, xp, XS[8] + 0.25, 1.35, Succession(FadeOut(anti_all, run_time=0.35), FadeIn(poly_lbl_a, run_time=0.40)), anim_t=0.75)
+
+        self.at("template 3' to 5'")
         rem = max(0.8, self.narration_s + 0.15 - self.elapsed())
-        glide_and_show(self, xp, XS[9] + 0.10, rem, FadeIn(poly_dir), anim_t=0.45)
+        glide_and_show(self, xp, XS[9] + 0.10, rem, FadeIn(poly_lbl_b), anim_t=0.40)
         self.finish()
 
 

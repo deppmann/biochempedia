@@ -264,31 +264,46 @@ class S04PermanentMark(SpokenScene):
     def construct(self):
         world, cells, flow = crypt_world()
         self.add(world)
-        proof = T("shape or Lgr5 now", 31, TEXT, weight=BOLD).move_to([3.55, 2.35, 0])
-        alone = T("cannot prove ancestry", 31, RED, weight=BOLD).next_to(proof, DOWN, buff=0.25)
-        self.play(FadeIn(proof), FadeIn(alone), run_time=0.65)
+        self.at("LGR5 is")
+        lgr5_tag = chip("Lgr5: gene on in\ncandidate stem cells", BLUE, 26).move_to([3.55, -1.65, 0])
+        lgr5_arrow = Arrow(lgr5_tag.get_left() + LEFT * 0.08, [CX + 2.25, -1.75, 0],
+                           buff=0, color=BLUE, stroke_width=4, tip_length=0.2)
+        self.play(FadeIn(lgr5_tag, shift=LEFT * 0.15), GrowArrow(lgr5_arrow), run_time=0.75)
+        self.at("suspected to be stem")
+        self.play(Indicate(cells, color=BLUE, scale_factor=1.06), run_time=0.8)
+        self.at("Shape or that marker")
+        proof = T("shape or marker alone", 30, TEXT, weight=BOLD).move_to([3.55, 2.35, 0])
+        alone = T("cannot prove those jobs", 30, RED, weight=BOLD).next_to(proof, DOWN, buff=0.25)
+        self.play(FadeIn(proof), FadeIn(alone), run_time=0.7)
         self.at("Scientists give")
-        target = cells[2]
-        tag = chip("Lgr5 now", BLUE, 28).move_to([3.55, 0.75, 0])
+        target = cells[1]
+        tag = chip("Lgr5 now", BLUE, 28).move_to([3.55, 0.35, 0])
         pulse = Ellipse(width=0.7, height=5.7, color=YELLOW, stroke_width=0,
                         fill_color=YELLOW, fill_opacity=0.34).move_to([-4.7, -0.2, 0])
-        self.play(FadeIn(tag), FadeIn(pulse), run_time=0.35)
-        self.play(pulse.animate.shift(RIGHT * 4.7), run_time=0.75)
-        self.play(FadeOut(pulse), target.animate.set_color(GREEN).set_fill(GREEN, 0.72), run_time=0.45)
+        self.play(FadeOut(VGroup(lgr5_tag, lgr5_arrow)), FadeIn(tag), FadeIn(pulse), run_time=0.45)
+        self.play(pulse.animate.shift(RIGHT * 4.7), run_time=0.85)
+        self.play(FadeOut(pulse), target.animate.set_color(GREEN).set_fill(GREEN, 0.72), run_time=0.5)
+        self.at("permanent green lineage")
+        self.play(Indicate(target, color=GREEN, scale_factor=1.08), run_time=0.65)
         self.at("Every daughter inherits")
-        d1, d2 = target.copy(), target.copy()
-        self.play(target.animate.scale(0.78), run_time=0.3)
-        self.play(d1.animate.move_to(base_positions()[1]),
-                  d2.animate.move_to([CX + 0.35, -0.15, 0]), run_time=0.85)
+        d1 = cell(GREEN, radius=0.35, opacity=0.72, stroke=3.5).move_to(target.get_center())
+        d2 = cell(GREEN, radius=0.35, opacity=0.72, stroke=3.5).move_to(target.get_center())
+        self.play(target.animate.scale(0.82), run_time=0.25)
+        self.remove(target)
         self.add(d1, d2)
+        self.play(d1.animate.move_to(base_positions()[1]),
+                  d2.animate.move_to([CX + 0.35, -0.15, 0]),
+                  tag.animate.set_opacity(0.45), run_time=0.85)
         self.at("even after it stops")
-        family = VGroup(d1, d2)
-        self.play(FadeOut(tag, shift=UP * 0.15), d2.animate.shift(UP * 1.15), run_time=0.8)
-        self.at("mark follows ancestry")
-        brace = Brace(family, RIGHT, color=GREEN)
+        self.play(d2.animate.shift(UP * 1.15), tag.animate.set_opacity(0.28), run_time=0.85)
+        self.at("The mark follows", lead=0.25)
+        family_line = DashedLine(d1.get_center(), d2.get_center(), color=GREEN,
+                                 stroke_width=3, dash_length=0.14).set_z_index(-1)
+        span = Line([0.0, d1.get_bottom()[1], 0], [0.0, d2.get_top()[1], 0])
+        brace = Brace(span, RIGHT, color=GREEN)
         ancestry = T("ancestry", 32, GREEN, weight=BOLD).next_to(brace, RIGHT, buff=0.18)
-        ancestry.move_to([0.45 + ancestry.width / 2, ancestry.get_y(), 0])
-        self.play(FadeOut(VGroup(proof, alone)), GrowFromCenter(brace), FadeIn(ancestry), run_time=0.7)
+        self.play(FadeOut(VGroup(proof, alone)), Create(family_line),
+                  ReplacementTransform(tag, VGroup(brace, ancestry)), run_time=0.7)
         self.finish()
 
 

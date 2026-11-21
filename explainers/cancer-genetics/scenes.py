@@ -370,41 +370,154 @@ class S07Inherited(SpokenScene):
 class S08SecondHit(SpokenScene):
     def construct(self):
         retina = retina_world()
-        for i, c in enumerate(retina.cells):
-            bob(c, amp=0.03, speed=1.0 + i * 0.04, seed=i)
-        bob(retina, amp=0.09, speed=1.25)
-        self.add(retina, T("retina", 34, TEXT).move_to([4.55, 2.35, 0]))
+        retina_label = T("retina", 34, TEXT).move_to([4.55, 2.35, 0])
+        tag = scope_tag("schematic")
+        self.add(retina, retina_label)
+
         target = retina.cells[7]
-        self.at("removes the working copy")
-        self.play(target.bar.animate.set_fill(RED, 1), run_time=0.65)
-        self.at("Only that cell's descendants expand")
-        cluster = VGroup(*[retinal_cell([x, y, 0], True, True, r=0.34)
-                           for x, y in [(-1.35, -0.45), (-0.75, -0.55), (-1.15, -1.05), (-0.55, -1.08)]])
-        self.play(*[TransformFromCopy(target, c) for c in cluster], run_time=1.1)
+        others = VGroup(*[c for i, c in enumerate(retina.cells) if i != 7])
+        focus_ring = Circle(radius=1.22, color=GOLD, stroke_width=4).move_to([-1.2, 0.0, 0])
+        self.play(
+            FadeOut(retina_label, run_time=0.45),
+            FadeOut(retina.outline, run_time=0.6),
+            FadeOut(others, run_time=0.6),
+            target.animate.move_to([-1.2, 0.0, 0]).scale(2.0),
+            run_time=1.0,
+        )
+        self.play(FadeIn(focus_ring), run_time=0.35)
+        pulse(focus_ring, base=4.0, amp=1.5, speed=2.2)
+
+        # Build the huge field of gold-marked retinal cells for the zoom-out.
+        huge_center = np.array([-1.1, -0.05, 0.0])
+        huge_outline = Ellipse(
+            width=9.6, height=5.5, stroke_color=GREY, stroke_width=4,
+            fill_color=GREY, fill_opacity=0.22,
+        ).move_to(huge_center)
+        pts = []
+        for row_idx, y in enumerate(np.arange(-2.05, 2.15, 0.78)):
+            x_off = 0.44 if row_idx % 2 else 0.0
+            for x in np.arange(-4.85 + x_off, 2.85, 0.88):
+                nx = (x - huge_center[0]) / 4.25
+                ny = (y - huge_center[1]) / 2.35
+                if nx * nx + ny * ny <= 0.92:
+                    pts.append((float(x), float(y)))
+        huge_cells = VGroup(*[retinal_cell([x, y, 0], first_hit=True, second_hit=False, r=0.28) for x, y in pts])
+
+        hit_idx = min(range(len(pts)), key=lambda i: (pts[i][0] + 1.2) ** 2 + (pts[i][1] - 0.05) ** 2)
+        extra_1 = min(range(len(pts)), key=lambda i: (pts[i][0] + 3.4) ** 2 + (pts[i][1] - 1.1) ** 2)
+        extra_2 = min(range(len(pts)), key=lambda i: (pts[i][0] - 1.2) ** 2 + (pts[i][1] + 1.15) ** 2)
+        hit_cell = huge_cells[hit_idx]
+        other_huge = [c for i, c in enumerate(huge_cells) if i != hit_idx]
+        other_huge.sort(key=lambda c: np.linalg.norm(c.get_center() - hit_cell.get_center()))
+        retina_label2 = T("retina", 34, TEXT).move_to([4.95, 2.35, 0])
+
+        self.at("retina holds very many cells")
+        focus_ring.clear_updaters()
+        self.play(
+            FadeOut(focus_ring, run_time=0.35),
+            ReplacementTransform(target, hit_cell, run_time=1.0),
+            FadeIn(huge_outline, run_time=0.9),
+            LaggedStart(*[FadeIn(c, scale=0.65) for c in other_huge], lag_ratio=0.02, run_time=1.2),
+        )
+        self.play(FadeIn(retina_label2), FadeIn(tag), run_time=0.4)
+        huge_retina = VGroup(huge_outline, huge_cells)
+
+        for i, c in enumerate(huge_cells):
+            bob(c, amp=0.018, speed=1.0 + (i % 7) * 0.08, seed=i)
+
+        self.at("at least one cell")
+        self.play(Indicate(hit_cell, color=RED, scale_factor=1.18), run_time=0.65)
+
+        self.at("loses its working copy")
+        self.play(hit_cell.bar.animate.set_fill(RED, 1).set_stroke(RED), run_time=0.65)
+
+        self.at("descendants expand")
+        hit_cell.clear_updaters()
+        hc = hit_cell.get_center()
+        cluster_offsets = [(-0.28, 0.24), (0.28, 0.24), (-0.28, -0.24), (0.28, -0.24)]
+        cluster = VGroup(*[
+            retinal_cell([hc[0] + dx, hc[1] + dy, 0], first_hit=True, second_hit=True, r=0.19)
+            for dx, dy in cluster_offsets
+        ])
+        self.play(*[TransformFromCopy(hit_cell, c) for c in cluster], run_time=1.0)
+        for i, c in enumerate(cluster):
+            bob(c, amp=0.015, speed=1.2 + 0.1 * i, seed=i + 3)
+
+        self.at("Most carriers therefore")
+        e1, e2 = huge_cells[extra_1], huge_cells[extra_2]
+        e1.clear_updaters()
+        e2.clear_updaters()
+        e1_sub = retinal_cell(e1.get_center() + np.array([0.26, 0.2, 0]), first_hit=True, second_hit=True, r=0.18)
+        e2_sub = retinal_cell(e2.get_center() + np.array([-0.26, -0.2, 0]), first_hit=True, second_hit=True, r=0.18)
+        self.play(
+            e1.bar.animate.set_fill(RED, 1).set_stroke(RED),
+            e2.bar.animate.set_fill(RED, 1).set_stroke(RED),
+            run_time=0.65,
+        )
+        self.play(TransformFromCopy(e1, e1_sub), TransformFromCopy(e2, e2_sub), run_time=0.75)
+
         self.at("Without an inherited first hit")
-        panels = TwoPanel("inherited first hit", "two somatic hits", colors=(GOLD, CLAY),
-                          top=3.0, bottom=-2.55, size=30)
-        left, right = route_panel_cells(True), route_panel_cells(False)
-        panels.put(left, "left"), panels.put(right, "right")
-        bob(left, amp=0.045, speed=1.05, seed=2)
-        bob(right, amp=0.045, speed=1.15, seed=4)
-        old_labels = VGroup(*[m for m in self.mobjects if isinstance(m, Text)])
-        self.play(FadeOut(VGroup(retina, cluster, old_labels)), run_time=0.3)
-        self.play(FadeIn(panels), FadeIn(left), FadeIn(right), run_time=0.7)
-        self.at("both hits must arise")
-        self.play(Indicate(right[3], color=CLAY, scale_factor=1.08), run_time=0.8)
+        for c in huge_cells:
+            c.clear_updaters()
+        for c in cluster:
+            c.clear_updaters()
+        panels = TwoPanel(
+            "inherited first hit", "two somatic hits",
+            colors=(GOLD, CLAY), top=3.0, bottom=-2.45, size=30,
+        )
+        panel_pts = [(-1.45, 0.8), (0.0, 0.8), (1.45, 0.8), (-0.55, -0.8), (0.95, -0.8)]
+        left_cells = VGroup(*[retinal_cell([x, y, 0], first_hit=True, second_hit=False, r=0.42) for x, y in panel_pts])
+        right_cells = VGroup(*[retinal_cell([x, y, 0], first_hit=False, second_hit=False, r=0.42) for x, y in panel_pts])
+        left_arrow = Arrow(
+            left_cells[1].get_bottom() + DOWN * 0.04,
+            left_cells[3].get_top() + UP * 0.04,
+            buff=0.05, color=GREY, stroke_width=4, tip_length=0.18,
+        )
+        right_arrow = Arrow(
+            right_cells[1].get_bottom() + DOWN * 0.04,
+            right_cells[3].get_top() + UP * 0.04,
+            buff=0.05, color=GREY, stroke_width=4, tip_length=0.18,
+        )
+        left_group = VGroup(left_cells, left_arrow)
+        right_group = VGroup(right_cells, right_arrow)
+        panels.put(left_group, "left")
+        panels.put(right_group, "right")
+
+        self.play(FadeOut(VGroup(huge_retina, cluster, e1_sub, e2_sub, retina_label2)), run_time=0.35)
+        self.play(FadeIn(panels), FadeIn(left_group), FadeIn(right_group), run_time=0.65)
+        self.play(left_cells[3].bar.animate.set_fill(RED, 1).set_stroke(RED), run_time=0.55)
+        for i, c in enumerate(left_cells):
+            bob(c, amp=0.025, speed=1.05 + i * 0.08, seed=i + 1)
+
+        self.at("both hits must strike")
+        clay1 = badge(CLAY, 0.075).move_to(right_cells[1].get_center() + np.array([-0.14, 0.09, 0]))
+        clay1_copy = badge(CLAY, 0.075).move_to(right_cells[3].get_center() + np.array([-0.14, 0.09, 0]))
+        clay2 = badge(CLAY, 0.075).move_to(right_cells[3].get_center() + np.array([-0.14, -0.09, 0]))
+        self.play(FadeIn(clay1, scale=0.4), run_time=0.35)
+        self.play(TransformFromCopy(clay1, clay1_copy), run_time=0.45)
+        self.play(
+            FadeIn(clay2, scale=0.4),
+            right_cells[3].bar.animate.set_fill(RED, 1).set_stroke(RED),
+            run_time=0.55,
+        )
+        right_cells[1].add(clay1)
+        right_cells[3].add(clay1_copy, clay2)
+        for i, c in enumerate(right_cells):
+            bob(c, amp=0.025, speed=1.1 + i * 0.08, seed=i + 6)
+
         self.at("dominant in a family")
-        fam = boxed_label("family: risk looks dominant", GOLD, 26).move_to([-3.2, -3.3, 0])
-        self.play(FadeIn(fam), run_time=0.55)
+        fam = boxed_label("family: risk looks dominant", GOLD, 26).move_to([-3.3, -3.05, 0])
+        self.play(FadeIn(fam), Indicate(panels.left_frame, color=GOLD, scale_factor=1.01), run_time=0.6)
+
         self.at("recessive within a cell")
-        cellrule = boxed_label("cell: two losses", RED, 27).move_to([3.25, -2.95, 0])
-        self.play(FadeIn(cellrule), run_time=0.55)
+        cellrule = boxed_label("cell: two losses", RED, 26).move_to([2.65, -3.05, 0])
+        self.play(FadeIn(cellrule), Indicate(right_cells[3], color=RED, scale_factor=1.08), run_time=0.6)
         self.finish()
 
 
 class S09Rule(SpokenScene):
     def construct(self):
-        tree = selection_tree(passenger=True).shift(RIGHT * 1.0)
+        tree = selection_tree(passenger=False).shift(RIGHT * 3.2)
         bob(tree.root, amp=0.13, speed=1.35)
         pulse(tree.links1, base=5, amp=2.5, speed=1.45)
         pulse(tree.links2, base=6, amp=3, speed=1.3)
@@ -412,9 +525,9 @@ class S09Rule(SpokenScene):
         brake = boxed_label("brake lost", RED, 29).move_to([-4.7, -2.35, 0])
         bob(accelerator, amp=0.12, speed=1.35, seed=1)
         bob(brake, amp=0.12, speed=1.45, seed=4)
-        a1 = Arrow(accelerator.get_right() + RIGHT * 0.24, tree.root.get_left() + UP * 0.12, buff=0.1,
+        a1 = Arrow(accelerator.get_right(), tree.root.get_left() + UP * 0.12, buff=0.15,
                    color=BLUE, stroke_width=6, tip_length=0.25)
-        a2 = Arrow(brake.get_right() + RIGHT * 0.24, tree.root.get_left() + DOWN * 0.12, buff=0.1,
+        a2 = Arrow(brake.get_right(), tree.root.get_left() + DOWN * 0.12, buff=0.15,
                    color=RED, stroke_width=6, tip_length=0.25)
         self.play(FadeIn(accelerator), FadeIn(brake), run_time=0.6)
         self.at("altered DNA passes")
@@ -433,11 +546,14 @@ class S09Rule(SpokenScene):
         self.at("driver or passenger")
         passenger = Dot(tree.level1[0].get_center() + RIGHT * 0.15, radius=0.075, color=TEXT)
         self.play(FadeIn(passenger), run_time=0.45)
+        tree.level1[0].add(passenger)
         self.at("spreads with it")
         pd = VGroup(*[Dot(c.get_center() + RIGHT * 0.14, radius=0.06, color=TEXT) for c in tree.clay])
         self.play(*[TransformFromCopy(passenger, q) for q in pd],
                   Indicate(tree.clay, color=CLAY, scale_factor=1.03), run_time=1.1)
-        for i, c in enumerate(tree.clay):
+        for i, (c, q) in enumerate(zip(tree.clay, pd)):
+            self.remove(q)
+            c.add(q)
             bob(c, amp=0.1, speed=1.2 + i * 0.1, seed=i)
         self.finish()
 

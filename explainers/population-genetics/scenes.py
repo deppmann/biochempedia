@@ -347,39 +347,177 @@ class S07Proportions(SpokenScene):
 
 class S08Recount(SpokenScene):
     def construct(self):
-        cards = genotype_cards(center=(-2.35, 1.35, 0), scale=0.95)
-        bob(cards, amp=0.045, speed=1.45)
+        sq = probability_square(center=(-2.65, 1.85, 0), side=2.45, labels=False)
+        cards = genotype_cards(center=(-2.65, 2.20, 0), scale=0.88)
+        released = VGroup(
+            VGroup(allele_block("A", w=0.52, h=0.46), allele_block("A", w=0.52, h=0.46)).arrange(RIGHT, buff=0.10),
+            VGroup(allele_block("A", w=0.52, h=0.46), allele_block("a", w=0.52, h=0.46)).arrange(RIGHT, buff=0.10),
+            VGroup(allele_block("a", w=0.52, h=0.46), allele_block("a", w=0.52, h=0.46)).arrange(RIGHT, buff=0.10),
+        )
+        for pair, card in zip(released, cards):
+            pair.move_to(card.get_bottom() + DOWN * 0.44)
+
         self.at("Recount blue")
-        self.play(LaggedStart(*[FadeIn(c, shift=DOWN * 0.2) for c in cards], lag_ratio=0.15), run_time=1.1)
-        self.at("Every blue homozygote")
-        f1 = M("p²", 40, BLUE).move_to([3.85, 1.75, 0])
-        self.play(Indicate(cards[0], color=BLUE), FadeIn(f1), run_time=0.8)
-        self.at("Every mixed pair")
-        f2 = M("+  pq", 40, TEAL).next_to(f1, DOWN, buff=0.35).align_to(f1, LEFT)
-        self.play(Indicate(cards[1], color=TEAL), FadeIn(f2), run_time=0.8)
-        self.at("Together")
-        eq1 = M("p² + pq", 42, TEXT).move_to([0, -0.35, 0])
-        self.play(FadeOut(VGroup(f1, f2)), FadeIn(eq1), run_time=0.35)
-        released = VGroup()
-        for i in range(10):
-            source = cards[0] if i < 4 else (cards[1] if i < 9 else cards[2])
-            released.add(allele_block("A" if i < 6 else "a", w=0.42, h=0.36, label=False).move_to(source))
-        self.add(released)
-        targets = [np.array([-3.6 + 0.8 * i, -1.18, 0]) for i in range(10)]
-        self.play(LaggedStart(*[b.animate.move_to(t) for b, t in zip(released, targets)], lag_ratio=0.05),
-                  run_time=0.75)
-        self.at("return exactly")
-        eq2 = M("p(p + q)", 42, TEXT).move_to(eq1)
-        eq3 = M("p", 58, BLUE).move_to(eq1)
-        self.play(swap(eq1, eq2), run_time=0.7)
-        self.play(swap(eq2, eq3), run_time=0.7)
-        before = split_bar(center=(0, -1.65, 0), width=9.6, height=0.62, labels=False, title="before")
-        after = split_bar(center=(0, -3.05, 0), width=9.6, height=0.62, labels=False, title="next generation")
-        self.play(FadeOut(released), FadeIn(before), run_time=0.6)
+        sq_aa = sq.cells["AA"]
+        sq_het = VGroup(sq.cells["Aa_top"], sq.cells["Aa_bottom"])
+        sq_aa_gold = sq.cells["aa"]
+        self.play(FadeIn(sq_aa), FadeIn(sq_het), FadeIn(sq_aa_gold), run_time=0.55)
+        self.play(
+            ReplacementTransform(sq_aa, cards[0]),
+            ReplacementTransform(sq_het, cards[1]),
+            ReplacementTransform(sq_aa_gold, cards[2]),
+            run_time=0.85,
+        )
+        for i, c in enumerate(cards):
+            bob(c, amp=0.03, speed=1.4, seed=i)
+        self.play(
+            LaggedStart(*[FadeIn(p, shift=DOWN * 0.25) for p in released], lag_ratio=0.15),
+            run_time=0.75,
+        )
+
+        # Algebra derivation on the upper-right, built term-by-term with the voice.
+        alg_x = 1.45
+        t_p2 = M("p²", 32, BLUE).move_to([alg_x, 2.78, 0], aligned_edge=LEFT)
+        t_plus = M("+", 32, TEXT).next_to(t_p2, RIGHT, buff=0.18)
+        t_2pq = M("2pq", 32, TEAL).next_to(t_plus, RIGHT, buff=0.18)
+        t_half = M("1/2(2pq)", 32, TEAL).next_to(t_plus, RIGHT, buff=0.18)
+        t_eq_pq = M("= pq", 26, TEAL).next_to(t_half, DOWN, buff=0.16)
+
+        self.at("Blue homozygotes")
+        self.play(Indicate(cards[0], color=BLUE), Indicate(released[0], color=BLUE), run_time=0.7)
+
+        self.at("giving p squared")
+        self.play(FadeIn(t_p2), run_time=0.55)
+
+        self.at("Heterozygotes make up")
+        self.play(Indicate(cards[1], color=TEAL), Indicate(released[1], color=TEAL), run_time=0.55)
+
+        self.at("2pq")
+        self.play(FadeIn(t_plus), FadeIn(t_2pq), run_time=0.5)
+
+        self.at("are half blue")
+        self.play(
+            ReplacementTransform(t_2pq, t_half),
+            Indicate(released[1][0], color=BLUE, scale_factor=1.15),
+            released[1][1].animate.set_opacity(0.35),
+            run_time=0.55,
+        )
+
+        self.at("giving pq")
+        self.play(FadeIn(t_eq_pq), run_time=0.5)
+
+        # Stream blocks into the new bar and show the combined expression p² + pq.
+        bar_x, bar_w, bar_h = -2.35, 7.0, 0.50
+        before = split_bar(center=(bar_x, -0.82, 0), width=bar_w, height=bar_h, labels=False, title="before")
+        after = split_bar(center=(bar_x, -2.55, 0), width=bar_w, height=bar_h, labels=False)
+        after.a.set_fill(BLUE, 0.05)
+        after.b.set_fill(GOLD, 0.05)
+        after_label = T("next generation", 26, TEXT).next_to(after, DOWN, buff=0.16)
+
+        stream = VGroup()
+        blue_targets, gold_targets = [], []
+        a_left = after.a.get_left()[0] + 0.35
+        a_step = (after.a.width - 0.7) / 11.0
+        b_left = after.b.get_left()[0] + 0.35
+        b_step = (after.b.width - 0.7) / 7.0
+        # 12 blue (7 from AA, 5 from Aa) and 8 gold (5 from Aa, 3 from aa) match p=0.60, q=0.40.
+        sources = (
+            [("A", released[0])] * 7
+            + [("A", released[1])] * 5
+            + [("a", released[1])] * 5
+            + [("a", released[2])] * 3
+        )
+        b_idx = g_idx = 0
+        for kind, src in sources:
+            blk = allele_block(kind, w=0.34, h=0.30, label=False).move_to(src)
+            stream.add(blk)
+            if kind == "A":
+                blue_targets.append(np.array([a_left + a_step * b_idx, after.get_center()[1], 0]))
+                b_idx += 1
+            else:
+                gold_targets.append(np.array([b_left + b_step * g_idx, after.get_center()[1], 0]))
+                g_idx += 1
+        all_targets = blue_targets + gold_targets
+
+        eq_sum = M("= p² + pq", 32, TEXT).move_to([alg_x, 1.55, 0], aligned_edge=LEFT)
+
+        pred_title = T("prediction", 25, TEXT).move_to([4.45, -1.05, 0])
+        pred_chips = VGroup(*[chip(o, TEXT, 24, pad=0.16) for o in ("higher", "lower", "unchanged")])
+        pred_chips.arrange(DOWN, buff=0.16, aligned_edge=LEFT).next_to(pred_title, DOWN, buff=0.22)
+
+        self.at("Adding them gives")
+        self.add(stream)
+        self.play(
+            FadeIn(before),
+            FadeIn(after),
+            FadeIn(after_label),
+            FadeIn(eq_sum),
+            FadeIn(pred_title),
+            FadeIn(pred_chips),
+            LaggedStart(*[b.animate.move_to(t) for b, t in zip(stream, all_targets)], lag_ratio=0.03),
+            run_time=1.4,
+        )
+        self.play(
+            FadeOut(stream),
+            after.a.animate.set_fill(BLUE, 0.42),
+            after.b.animate.set_fill(GOLD, 0.42),
+            run_time=0.45,
+        )
+
+        # Factor to p(p + q).
+        eq_factor = M("= p(p + q)", 32, TEXT).move_to([alg_x, 0.85, 0], aligned_edge=LEFT)
+        eq_factor_gold = M("= p(p + q)", 32, TEXT, t2c={"p + q": GOLD}).move_to(eq_factor)
+
+        self.at("factors to")
+        self.play(FadeIn(eq_factor, shift=DOWN * 0.22), run_time=0.8)
+
+        # Highlight p + q = 1 as spoken (do not show 1 until spoken).
+        pq_note_lhs = boxed_label("p + q", GOLD, size=26).move_to([5.15, 0.85, 0])
+        pq_note_full = boxed_label("p + q = 1", GOLD, size=26).move_to([5.15, 0.85, 0])
+
+        self.at("Since p plus q")
+        self.remove(eq_factor)
+        self.add(eq_factor_gold)
+        self.play(FadeIn(pq_note_lhs), Indicate(eq_factor_gold, color=GOLD, scale_factor=1.03), run_time=0.5)
+
+        self.at("equals 1")
+        self.play(ReplacementTransform(pq_note_lhs, pq_note_full), run_time=0.4)
+
+        # Return to p, slide new bar under original, and outline "unchanged".
+        eq_final = M("= p", 38, BLUE).move_to([alg_x, 0.12, 0], aligned_edge=LEFT)
+        shift_up = UP * 0.88
+        after_target_split_x = after.a.get_right()[0]
+        match_line = DashedLine(
+            [after_target_split_x, before.get_bottom()[1], 0],
+            [after_target_split_x, after.get_top()[1] + shift_up[1], 0],
+            color=TEXT,
+            stroke_width=4,
+            dash_length=0.09,
+        )
+        unchanged_outline = SurroundingRectangle(pred_chips[2], color=TEXT, buff=0.09, stroke_width=4)
+
+        self.at("the share returns to p")
+        self.play(
+            FadeIn(eq_final, shift=DOWN * 0.20),
+            VGroup(after, after_label).animate.shift(shift_up),
+            run_time=0.9,
+        )
+        self.play(
+            Create(match_line),
+            pred_chips[0][0].animate.set_stroke(opacity=0.25).set_fill(opacity=0.04),
+            pred_chips[0][1].animate.set_opacity(0.28),
+            pred_chips[1][0].animate.set_stroke(opacity=0.25).set_fill(opacity=0.04),
+            pred_chips[1][1].animate.set_opacity(0.28),
+            Create(unchanged_outline),
+            run_time=0.65,
+        )
+        pulse(unchanged_outline, base=4.0, amp=1.2, speed=2.2)
+
         self.at("Random mating changed")
-        self.play(FadeIn(after), run_time=0.65)
-        outline = SurroundingRectangle(after, color=TEXT, buff=0.09, stroke_width=4)
-        self.play(Create(outline), run_time=0.65)
+        self.play(Indicate(cards, color=TEAL), run_time=0.7)
+
+        self.at("not the allele frequency")
+        self.play(Indicate(VGroup(before, after, unchanged_outline), color=TEXT, scale_factor=1.02), run_time=0.8)
         self.finish()
 
 
