@@ -6,7 +6,7 @@ import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 
 export const POLISHED = new Set([
-  'biochemistry', 'neuroscience', 'physiology', 'developmental-neuroscience', 'sensory-systems', 'cell-biology',
+  'biochemistry', 'neuroscience', 'physiology', 'developmental-neuroscience', 'sensory-systems', 'cell-biology', 'genetics', 'ecology-evolution',
 ]);
 
 // Courses with a level-up under way. Their lessons not yet levelled (production-record stage other than
