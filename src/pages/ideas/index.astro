@@ -1,0 +1,64 @@
+---
+/* Find an idea: type an everyday phrase or a name, get the idea, the levels it is taught at and
+   the lessons on it, simplest first.
+
+   The search runs in the browser over two small static files (/graph.json and /ideas/lessons.json;
+   see src/lib/hop-search.mjs), so a query never leaves the page and nothing is asked of a model.
+   ?q= loads a search directly, so a result can be shared. Every idea also has a page of its own
+   (/ideas/<id>/); with JavaScript off this page is the list of them by area, each a plain link. */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import '../../styles/hop.css';
+import { allIdeas, areas } from '../../lib/hop';
+import { levelCount } from '../../lib/hop-words.mjs';
+import { graph } from '../../lib/topic-graph';
+
+const ideas = await allIdeas();
+const lessons = new Set(ideas.flatMap((i) => i.rungs.map((r) => r.slug))).size;
+const groups = areas.map((a) => ({ ...a, ideas: ideas.filter((i) => i.area === a.id).sort((x, y) => x.name.replace(/^The /, '').localeCompare(y.name.replace(/^The /, ''))) })).filter((g) => g.ideas.length);
+const tries = ['why are leaves green', 'how do vaccines work', 'osmosis'];
+void graph;
+---
+<BaseLayout title="Find an idea — STEMhop" description={`Type a word or a question and get the idea, with every lesson that teaches it from the simplest version to the deepest. ${ideas.length} ideas across ${lessons} biology lessons.`}>
+  <article class="wrap ideas">
+    <div class="ideas-col">
+      <h1>Find an idea</h1>
+      <p class="ideas-lede">Type a word or a question. You get the idea, and every lesson that teaches it, simplest first.</p>
+
+      <form class="ideas-form" role="search" action="/ideas/" method="get" data-ideas-form>
+        <label for="ideas-q">A word, a name or a question</label>
+        <div class="ideas-box">
+          <input id="ideas-q" type="search" name="q" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search" placeholder="osmosis, or why does salt make cucumbers wet" />
+          <button type="submit">Find</button>
+        </div>
+      </form>
+      <p class="ideas-try">Or try {tries.map((t, i) => <>{i > 0 && (i === tries.length - 1 ? ' or ' : ', ')}<a href={`/ideas/?q=${encodeURIComponent(t)}`} data-ideas-try={t}>{t}</a></>)}.</p>
+      <p class="ideas-blind">Everyone has blind spots. When you hit one, go down a level, get the idea with fewer moving parts, and come back up. Scientists do this all the time.</p>
+      <noscript><p class="ideas-note" style="margin-top: var(--ddp-space-4)">The search box needs JavaScript. Every idea is listed below by area, and each has a page of its own.</p></noscript>
+
+      <p class="ideas-status" role="status" aria-live="polite" data-ideas-status></p>
+      <div data-ideas-out></div>
+
+      <h2 class="ideas-h2" id="every-idea">Every idea, by area</h2>
+      <p class="ideas-note">{ideas.length} ideas from {lessons} lessons, all in biology so far. Chemistry, physics and math are not built yet.</p>
+      {groups.map((g) => (
+        <details class="ideas-area" id={`area-${g.id}`}>
+          <summary>{g.name} <span class="ideas-area-n">{g.ideas.length} ideas</span></summary>
+          <ul class="ideas-list">
+            {g.ideas.map((i) => <li><a href={`/ideas/${i.id}/`}>{i.name}</a><span>{levelCount(i.mask)}</span></li>)}
+          </ul>
+        </details>
+      ))}
+
+      <p class="ideas-foot">Which lessons teach each idea, and the note on what each level adds, were written by AI models from the lessons themselves, then checked by a second one. A person has not yet read every one. <a href="/about/#how-ai-is-used">How we use AI</a></p>
+    </div>
+  </article>
+
+  <script>
+    import { start } from '../../lib/hop-find';
+    start();
+    // A link to an area (/ideas/#area-cells) opens that area.
+    const openArea = () => { const d = document.getElementById(location.hash.slice(1)); if (d instanceof HTMLDetailsElement) d.open = true; };
+    if (location.hash.startsWith('#area-')) openArea();
+    addEventListener('hashchange', openArea);
+  </script>
+</BaseLayout>

@@ -1,6 +1,6 @@
 {
  "version": 1,
- "updated": "2026-11-20",
+ "updated": "2026-11-21",
  "about": "Which ideas the site teaches and where. Each concept lists the lessons that teach it at each level (core, with a note on what that level adds), lessons that lean on it (uses), the films that show it and neighbouring ideas (near). Written offline by AI models from the lessons themselves (scripts/topic-graph), merged into one id per idea, read again by a second model that did not write it, and checked in CI by scripts/check-topic-graph.mjs. A lesson record is tied to the lesson's teaching text by hash; refresh with scripts/topic-graph/assign.mjs after a rewrite. Titles, courses and levels are not stored here: the site joins them at build time.",
  "areas": [
   {
@@ -67,6 +67,7 @@
  "concepts": {
   "active-transport": {
    "name": "Active transport and transport proteins",
+   "short": "Active transport",
    "blurb": "Membrane proteins move ions and sugars across: channels and carriers let them run downhill, and pumps spend energy to push them uphill.",
    "area": "cells",
    "subject": "biology",
@@ -94,7 +95,7 @@
      "lesson": "membrane-structure-function",
      "role": "core",
      "anchor": "moving-things-across-channels-carriers-and-paying-for-uphill",
-     "adds": "Channels and carriers run downhill; pumping 3 sodium out costs about 39.6 kJ."
+     "adds": "Channels and carriers run downhill; pumping 3 mol of sodium out costs 39.6 kJ."
     }
    ],
    "films": [
@@ -157,6 +158,7 @@
   },
   "biomolecular-condensates": {
    "name": "Condensates and phase separation",
+   "short": "Condensates",
    "blurb": "Some cell bodies with no membrane form when certain molecules gather into dense droplets that stay apart from the rest.",
    "area": "cells",
    "subject": "biology",
@@ -195,6 +197,7 @@
   },
   "cancer-drug-resistance": {
    "name": "Drug resistance in cancer",
+   "short": "Cancer drug resistance",
    "blurb": "A tumour can change a drug's target so the drug no longer fits, and the change guides the next drug.",
    "area": "cells",
    "subject": "biology",
@@ -236,6 +239,7 @@
   },
   "cell-adhesion": {
    "name": "Cell adhesion (cadherins and integrins)",
+   "short": "Cell adhesion",
    "blurb": "Cells hold on to their neighbours and to the matrix around them through proteins linked to the cell's own filaments.",
    "area": "cells",
    "subject": "biology",
@@ -331,6 +335,7 @@
   },
   "cell-cycle-engine": {
    "name": "The cell cycle engine (cyclins and CDKs)",
+   "short": "The cell cycle engine",
    "blurb": "A kinase switched on by a partner protein that builds up and is destroyed drives a cell through its cycle.",
    "area": "cells",
    "subject": "biology",
@@ -542,6 +547,12 @@
      "adds": "Two rows of phospholipids with proteins: what passes and what is kept out."
     },
     {
+     "lesson": "membrane-organization-topology",
+     "role": "core",
+     "anchor": "two-faces-of-every-membrane",
+     "adds": "The two leaflets differ: flippases keep PS inside, and FRAP times sideways movement."
+    },
+    {
      "lesson": "lipids",
      "role": "core",
      "anchor": "membrane-identity-head-groups-and-leaflets",
@@ -556,6 +567,7 @@
    ],
    "films": [
     "crossing-the-membrane/explainer",
+    "membrane-organization-topology/chapter-2",
     "membrane-structure-function/explainer"
    ],
    "near": [
@@ -579,6 +591,7 @@
   },
   "cell-migration": {
    "name": "How cells crawl (cell migration)",
+   "short": "How cells crawl",
    "blurb": "A cell crawls by pushing its front out with actin, gripping the surface, pulling its body forward and letting go behind.",
    "area": "cells",
    "subject": "biology",
@@ -620,6 +633,7 @@
   },
   "cell-reprogramming": {
    "name": "Turning cells back into stem cells (reprogramming)",
+   "short": "Reprogramming cells",
    "blurb": "A specialized cell can be reset to a state that makes any cell type, by nuclear transfer or a few factors.",
    "area": "cells",
    "subject": "biology",
@@ -728,6 +742,7 @@
   },
   "cell-size-control": {
    "name": "How a cell senses its size",
+   "short": "Cell size control",
    "blurb": "Cells have no ruler, so they judge size from signals that change with growth, such as a brake that growth dilutes.",
    "area": "cells",
    "subject": "biology",
@@ -788,20 +803,17 @@
      "adds": "Six ideas, and the 175 years of evidence it took to earn them."
     },
     {
-     "lesson": "neuron-doctrine",
-     "role": "core",
-     "anchor": "touch-or-fusion-a-question-about-20-nanometres",
-     "adds": "The last holdout: proving the brain is made of separate cells too."
+     "lesson": "levels-of-organization",
+     "role": "uses"
     },
     {
-     "lesson": "levels-of-organization",
+     "lesson": "neuron-doctrine",
      "role": "uses"
     }
    ],
    "films": [
     "cells-everywhere/chapter-2",
-    "cell-theory-evidence/chapter-2",
-    "neuron-doctrine/explainer"
+    "cell-theory-evidence/chapter-2"
    ],
    "near": [
     {
@@ -815,11 +827,16 @@
     {
      "id": "cell-size",
      "why": "Why living things are built from many small cells and not one big one."
+    },
+    {
+     "id": "neuron-doctrine",
+     "why": "Nerve tissue was the last place the theory was tested, and it took an electron microscope."
     }
    ]
   },
   "characteristics-of-life": {
    "name": "What makes something alive (characteristics of life)",
+   "short": "What counts as alive",
    "blurb": "Living things are made of cells, use energy, grow, respond and reproduce, and no single feature settles whether something is alive.",
    "area": "cells",
    "subject": "biology",
@@ -902,6 +919,7 @@
   },
   "clonal-expansion": {
    "name": "Mutant clones in healthy tissue",
+   "short": "Mutant clones",
    "blurb": "In healthy tissue a mutant cell's family can spread by keeping more daughters as dividing cells, until neighbours limit it.",
    "area": "cells",
    "subject": "biology",
@@ -1064,6 +1082,7 @@
   },
   "dynamic-instability": {
    "name": "Dynamic instability and treadmilling",
+   "short": "Dynamic instability",
    "blurb": "Actin and tubulin filaments can grow at one end while shrinking at the other, or switch suddenly between growing and collapsing.",
    "area": "cells",
    "subject": "biology",
@@ -1102,6 +1121,7 @@
   },
   "electrochemical-gradient": {
    "name": "Electrochemical gradient (Nernst potential)",
+   "short": "Electrochemical gradient",
    "blurb": "An ion moves according to two pushes at once: its concentration difference and the voltage across the membrane.",
    "area": "cells",
    "subject": "biology",
@@ -1198,6 +1218,7 @@
   },
   "epithelium": {
    "name": "Epithelia (sheets of cells)",
+   "short": "Epithelia",
    "blurb": "An epithelium is a sheet of cells that covers a surface or lines a tube, with a different face on each side.",
    "area": "cells",
    "subject": "biology",
@@ -1328,6 +1349,7 @@
   },
   "lipid-asymmetry": {
    "name": "Different lipids on each face of a membrane",
+   "short": "Lipid asymmetry",
    "blurb": "The two halves of a membrane hold different lipids, and energy-using pumps keep it that way.",
    "area": "cells",
    "subject": "biology",
@@ -1364,6 +1386,7 @@
   },
   "membrane-protein-topology": {
    "name": "Which way a membrane protein faces (topology)",
+   "short": "Membrane protein topology",
    "blurb": "Each protein in a membrane keeps some parts on the cytosol side and others on the far side, and never flips over.",
    "area": "cells",
    "subject": "biology",
@@ -1447,6 +1470,7 @@
   },
   "nuclear-organization": {
    "name": "How the nucleus is organized",
+   "short": "Nuclear organization",
    "blurb": "Each chromosome keeps to its own region of the nucleus, which also holds bodies such as the nucleolus that have no membrane.",
    "area": "cells",
    "subject": "biology",
@@ -1484,6 +1508,7 @@
   },
   "nuclear-transport": {
    "name": "Nuclear import and export",
+   "short": "Nuclear transport",
    "blurb": "Proteins enter and leave the nucleus through pores, guided by address tags and carriers, while a Ran gradient sets the direction.",
    "area": "cells",
    "subject": "biology",
@@ -1527,6 +1552,7 @@
   },
   "organelle-inheritance": {
    "name": "How organelles are shared at division",
+   "short": "Organelle inheritance",
    "blurb": "A dividing cell gives each daughter a share of its organelles, by chance when there are many and by control when few.",
    "area": "cells",
    "subject": "biology",
@@ -1564,6 +1590,7 @@
   },
   "organelles": {
    "name": "Organelles: the parts of a cell",
+   "short": "Organelles",
    "blurb": "A cell has small parts inside it, each with a job, and they work together.",
    "area": "cells",
    "subject": "biology",
@@ -1603,13 +1630,11 @@
      "lesson": "organelles-as-environments",
      "role": "core",
      "anchor": "the-ph-ladder",
-     "adds": "Mitochondrial matrix near pH 8 down to acid lysosomes, each rung held by pumps."
+     "adds": "Matrix near pH 8 down to acid lysosomes, each compartment's pH set by pumps."
     },
     {
      "lesson": "intro-biochemistry-cell-biology",
-     "role": "core",
-     "anchor": "a-wall-makes-a-room",
-     "adds": "GM2 cannot leave the lysosome, so one missing enzyme fills it: Tay-Sachs."
+     "role": "uses"
     }
    ],
    "films": [
@@ -1618,8 +1643,7 @@
     "organelles-as-a-system/explainer",
     "organelles-as-a-system/chapter-2",
     "measured-eukaryotic-cell/chapter-2",
-    "organelles-as-environments/explainer",
-    "intro-biochemistry-cell-biology/explainer"
+    "organelles-as-environments/explainer"
    ],
    "near": [
     {
@@ -1754,6 +1778,7 @@
   },
   "protein-degradation": {
    "name": "Protein degradation (ubiquitin and the proteasome)",
+   "short": "Protein degradation",
    "blurb": "Cells tag unwanted proteins with ubiquitin and shred them in the proteasome, so they choose which proteins are destroyed and when.",
    "area": "cells",
    "subject": "biology",
@@ -1804,6 +1829,7 @@
   },
   "protein-quality-control": {
    "name": "Protein quality control and ER stress",
+   "short": "Protein quality control",
    "blurb": "A cell holds back misfolded proteins in the ER, destroys those that stay bent, and adds folding help when they pile up.",
    "area": "cells",
    "subject": "biology",
@@ -1853,6 +1879,7 @@
   },
   "protein-sorting": {
    "name": "Protein sorting (signal sequences)",
+   "short": "Protein sorting",
    "blurb": "Short stretches in a protein's own chain act as addresses that send it to the right part of the cell.",
    "area": "cells",
    "subject": "biology",
@@ -2059,6 +2086,7 @@
   },
   "sugar-coat": {
    "name": "The sugar coat and lectins",
+   "short": "The cell's sugar coat",
    "blurb": "Chains of sugars on cell surfaces act as labels, and proteins called lectins read them.",
    "area": "cells",
    "subject": "biology",
@@ -2180,6 +2208,7 @@
   },
   "allostery": {
    "name": "Allostery and cooperativity",
+   "short": "Allostery",
    "blurb": "A protein flips between a weak-grip and a tight-grip shape, so binding at one site changes the others.",
    "area": "molecules",
    "subject": "biology",
@@ -2220,6 +2249,7 @@
   },
   "amino-acids": {
    "name": "Amino acids and their side chains",
+   "short": "Amino acids",
    "blurb": "Twenty amino acids share one backbone and differ in their side chain, which sets charge and how well it mixes with water.",
    "area": "molecules",
    "subject": "biology",
@@ -2292,6 +2322,7 @@
   },
   "carbohydrates": {
    "name": "Carbohydrates (sugars and starch)",
+   "short": "Carbohydrates",
    "blurb": "Sugars join into chains, and the direction of one bond decides whether the chain is fuel or fiber.",
    "area": "molecules",
    "subject": "biology",
@@ -2333,6 +2364,7 @@
   },
   "cholesterol": {
    "name": "Cholesterol: making it and taking it up",
+   "short": "Cholesterol",
    "blurb": "Cells build cholesterol from acetyl-CoA or import it from LDL, and one sensor in the ER membrane controls both.",
    "area": "molecules",
    "subject": "biology",
@@ -2503,6 +2535,7 @@
   },
   "macromolecules": {
    "name": "The molecules of life (macromolecules)",
+   "short": "The molecules of life",
    "blurb": "Living things are built from four kinds of large molecule: carbohydrates, proteins, nucleic acids and lipids, each made of smaller building blocks.",
    "area": "molecules",
    "subject": "biology",
@@ -2551,6 +2584,7 @@
   },
   "nucleotide-metabolism": {
    "name": "Making and recycling nucleotides",
+   "short": "Nucleotide metabolism",
    "blurb": "Cells build nucleotides at high cost, so they recycle free bases and break down the rest.",
    "area": "molecules",
    "subject": "biology",
@@ -2628,6 +2662,7 @@
   },
   "properties-of-water": {
    "name": "Water's special properties (polarity and hydrogen bonds)",
+   "short": "Properties of water",
    "blurb": "Water molecules have charged ends that tug on each other, so water dissolves salt, sticks together and clings to surfaces.",
    "area": "molecules",
    "subject": "biology",
@@ -2666,6 +2701,7 @@
   },
   "protein-binding": {
    "name": "Binding strength (affinity and Kd)",
+   "short": "Binding strength",
    "blurb": "Proteins grab partner molecules and let go again; the dissociation constant Kd says how tightly they hold on.",
    "area": "molecules",
    "subject": "biology",
@@ -2792,6 +2828,7 @@
   },
   "specific-heat": {
    "name": "Specific heat (why water warms slowly)",
+   "short": "Specific heat",
    "blurb": "Some materials need more energy than others to warm up; water needs a lot, so it warms and cools slowly.",
    "area": "molecules",
    "subject": "biology",
@@ -2866,6 +2903,7 @@
   },
   "weak-interactions": {
    "name": "Weak bonds (noncovalent interactions)",
+   "short": "Weak bonds",
    "blurb": "Hydrogen bonds, ionic attractions and van der Waals contacts are weak enough to break and re-form, and cells run on them.",
    "area": "molecules",
    "subject": "biology",
@@ -2901,6 +2939,7 @@
   },
   "amino-acid-catabolism": {
    "name": "Using amino acids as fuel (amino acid catabolism)",
+   "short": "Amino acids as fuel",
    "blurb": "After the nitrogen is removed, the carbon of each amino acid is burned for energy or turned into glucose or ketones.",
    "area": "energy",
    "subject": "biology",
@@ -2941,6 +2980,7 @@
   },
   "ampk-energy-sensing": {
    "name": "How cells sense low energy (AMPK)",
+   "short": "Sensing low energy",
    "blurb": "When a cell runs low on energy, AMP rises, and the enzyme AMPK switches off costly jobs and turns on fuel use.",
    "area": "energy",
    "subject": "biology",
@@ -2978,6 +3018,7 @@
   },
   "atp": {
    "name": "ATP, the cell's energy carrier",
+   "short": "ATP",
    "blurb": "ATP is a small molecule that cells spend to power their work, then rebuild from ADP and phosphate.",
    "area": "energy",
    "subject": "biology",
@@ -3121,6 +3162,7 @@
   },
   "chemiosmosis": {
    "name": "Chemiosmosis (the proton gradient that makes ATP)",
+   "short": "Chemiosmosis",
    "blurb": "Electron flow pumps protons across a membrane, and protons flowing back through ATP synthase make ATP.",
    "area": "energy",
    "subject": "biology",
@@ -3167,8 +3209,47 @@
     }
    ]
   },
+  "citric-acid-cycle": {
+   "name": "The citric acid cycle (Krebs cycle)",
+   "short": "Citric acid cycle",
+   "blurb": "A loop of eight reactions strips electrons from food carbons, releases carbon dioxide and rebuilds its starting molecule.",
+   "area": "energy",
+   "subject": "biology",
+   "aliases": [
+    "Krebs cycle",
+    "TCA cycle",
+    "where does the carbon dioxide we breathe out come from",
+    "tricarboxylic acid cycle"
+   ],
+   "rungs": [
+    {
+     "lesson": "citric-acid-cycle",
+     "role": "core",
+     "anchor": "add-it-up-oxaloacetate-cancels",
+     "adds": "One turn: 3 NADH, 1 FADH₂, 1 GTP, 2 CO₂, and oxaloacetate comes back."
+    }
+   ],
+   "films": [
+    "citric-acid-cycle/explainer"
+   ],
+   "near": [
+    {
+     "id": "cellular-respiration",
+     "why": "The cycle is the middle stage of releasing the energy in food."
+    },
+    {
+     "id": "chemiosmosis",
+     "why": "The electrons the cycle collects are cashed for ATP by a proton gradient."
+    },
+    {
+     "id": "glycolysis",
+     "why": "Glycolysis supplies the pyruvate that feeds the cycle."
+    }
+   ]
+  },
   "fatty-acid-oxidation": {
    "name": "Burning fat (beta-oxidation)",
+   "short": "Burning fat",
    "blurb": "Cells cut fatty acids into two-carbon pieces and burn them for energy, which is how the body runs on fat.",
    "area": "energy",
    "subject": "biology",
@@ -3214,6 +3295,7 @@
   },
   "fatty-acid-synthesis": {
    "name": "Making fat (fatty acid synthesis)",
+   "short": "Making fat",
    "blurb": "A well-fed cell builds fatty acids two carbons at a time from spare sugar, and stores them as fat.",
    "area": "energy",
    "subject": "biology",
@@ -3270,6 +3352,12 @@
      "role": "core",
      "anchor": "explain-with-oxygen-and-without-it",
      "adds": "Stop partway: 2 ATP per glucose, lactate in muscle, ethanol in yeast."
+    },
+    {
+     "lesson": "glycolysis",
+     "role": "core",
+     "anchor": "why-pyruvates-fate-matters-the-nad-bottleneck",
+     "adds": "Why it exists: lactate dehydrogenase returns NAD+ so step 6 keeps running."
     }
    ],
    "films": [
@@ -3296,6 +3384,7 @@
   },
   "free-energy": {
    "name": "Free energy and equilibrium (ΔG)",
+   "short": "Free energy",
    "blurb": "A reaction runs forward when it lowers free energy, and it stops at equilibrium where the two sides balance.",
    "area": "energy",
    "subject": "biology",
@@ -3337,6 +3426,7 @@
   },
   "gluconeogenesis": {
    "name": "Making new glucose (gluconeogenesis)",
+   "short": "Making new glucose",
    "blurb": "When food runs out, the liver builds glucose from lactate, amino acids and glycerol, because the brain needs it.",
    "area": "energy",
    "subject": "biology",
@@ -3372,6 +3462,43 @@
     {
      "id": "fasting-and-starvation",
      "why": "It takes over from stored sugar after about a day without food, because the brain still needs glucose."
+    }
+   ]
+  },
+  "glycolysis": {
+   "name": "Glycolysis",
+   "blurb": "Ten steps split one glucose into two pyruvate, spending two ATP first and earning four back.",
+   "area": "energy",
+   "subject": "biology",
+   "aliases": [
+    "how is glucose broken down",
+    "investment and payoff phases",
+    "what happens to glucose in a cell",
+    "Embden-Meyerhof pathway"
+   ],
+   "rungs": [
+    {
+     "lesson": "glycolysis",
+     "role": "core",
+     "anchor": "the-two-ledgers",
+     "adds": "Steps 7 and 10 make 4 ATP; steps 1 and 3 spent 2."
+    }
+   ],
+   "films": [
+    "glycolysis/explainer"
+   ],
+   "near": [
+    {
+     "id": "cellular-respiration",
+     "why": "Glycolysis is the first stage of releasing the energy in glucose."
+    },
+    {
+     "id": "fermentation",
+     "why": "Without oxygen, pyruvate is turned to lactate or ethanol so glycolysis can keep running."
+    },
+    {
+     "id": "citric-acid-cycle",
+     "why": "The pyruvate it makes is burned to carbon dioxide in the cycle."
     }
    ]
   },
@@ -3457,6 +3584,7 @@
   },
   "metabolic-scaling": {
    "name": "Body size and metabolic rate (metabolic scaling)",
+   "short": "Metabolic scaling",
    "blurb": "Bigger animals use more energy in total but less per kilogram, following a power of body mass.",
    "area": "energy",
    "subject": "biology",
@@ -3498,6 +3626,7 @@
   },
   "pentose-phosphate-pathway": {
    "name": "The pentose phosphate pathway",
+   "short": "Pentose phosphate path",
    "blurb": "A side path from glucose makes NADPH for building and repair, and the five-carbon sugar used to build nucleotides.",
    "area": "energy",
    "subject": "biology",
@@ -3667,6 +3796,7 @@
   },
   "aneuploidy": {
    "name": "Extra or missing chromosomes (aneuploidy)",
+   "short": "Aneuploidy",
    "blurb": "A cell can end up with one chromosome too many or too few, which changes how much of each gene it makes.",
    "area": "genes",
    "subject": "biology",
@@ -3747,6 +3877,7 @@
   },
   "biochemical-pathway-mutants": {
    "name": "Mutants that reveal a metabolic pathway",
+   "short": "Pathway mutants",
    "blurb": "A mutant that cannot make one compound is missing one step, so feeding tests can show which step is blocked.",
    "area": "genes",
    "subject": "biology",
@@ -3784,6 +3915,7 @@
   },
   "cancer": {
    "name": "Cancer as a genetic disease",
+   "short": "Cancer",
    "blurb": "Cancer starts when DNA changes in one body cell let its descendants grow where they should not.",
    "area": "genes",
    "subject": "biology",
@@ -3799,11 +3931,19 @@
      "role": "core",
      "anchor": "two-kinds-of-cancer-gene-accelerators-and-brakes",
      "adds": "Two hits in retinoblastoma, loss of heterozygosity, and variant fractions in tumor sequencing."
+    },
+    {
+     "lesson": "oncogenes",
+     "role": "core",
+     "anchor": "the-idea-five-ways-to-stick-a-switch",
+     "adds": "Five ways a growth switch sticks: Ras G12V, v-Src, extra HER2, BCR-ABL, lost PTEN."
     }
    ],
    "films": [
     "cancer-genetics/explainer",
-    "cancer-genetics/chapter-2"
+    "cancer-genetics/chapter-2",
+    "oncogenes/explainer",
+    "oncogenes/chicken-gene"
    ],
    "near": [
     {
@@ -3826,6 +3966,7 @@
   },
   "chromosome-rearrangements": {
    "name": "Chromosome rearrangements",
+   "short": "Chromosome changes",
    "blurb": "Pieces of a chromosome can be lost, copied, flipped or swapped, which changes genes even when the total DNA stays the same.",
    "area": "genes",
    "subject": "biology",
@@ -3904,6 +4045,7 @@
   },
   "complex-traits": {
    "name": "Complex traits (polygenic traits)",
+   "short": "Complex traits",
    "blurb": "Traits like height come from many genes of small effect plus the environment, which gives a smooth curve.",
    "area": "genes",
    "subject": "biology",
@@ -4042,6 +4184,7 @@
   },
   "dna-structure": {
    "name": "DNA, the molecule of heredity",
+   "short": "DNA",
    "blurb": "DNA is a long, twisted ladder whose order of four letters carries the instructions for a living thing.",
    "area": "genes",
    "subject": "biology",
@@ -4101,6 +4244,7 @@
   },
   "dosage-compensation": {
    "name": "Dosage compensation (X inactivation)",
+   "short": "Dosage compensation",
    "blurb": "In mammals and flies, females have two X chromosomes and males one, so cells silence one X or boost the single X.",
    "area": "genes",
    "subject": "biology",
@@ -4140,6 +4284,7 @@
   },
   "double-strand-break-repair": {
    "name": "Mending a broken chromosome (double-strand break repair)",
+   "short": "Mending broken DNA",
    "blurb": "A cell with a double-strand break either joins the two ends or copies a matching template to restore the missing DNA.",
    "area": "genes",
    "subject": "biology",
@@ -4218,6 +4363,7 @@
   },
   "epistasis": {
    "name": "Gene interaction (epistasis)",
+   "short": "Gene interaction",
    "blurb": "When two genes act on one trait, one gene can hide the effect of the other and change the ratios.",
    "area": "genes",
    "subject": "biology",
@@ -4331,6 +4477,7 @@
   },
   "gene-regulation": {
    "name": "Switching genes on and off (gene regulation)",
+   "short": "Gene regulation",
    "blurb": "Cells with the same DNA turn different genes on or off, so each cell makes only the products it needs.",
    "area": "genes",
    "subject": "biology",
@@ -4463,6 +4610,7 @@
   },
   "genes-and-environment": {
    "name": "Genes and environment (nature and nurture)",
+   "short": "Genes and environment",
    "blurb": "Genes set which traits are possible, and the surroundings help decide which one shows.",
    "area": "genes",
    "subject": "biology",
@@ -4503,6 +4651,7 @@
   },
   "genetic-engineering": {
    "name": "Genetic engineering and gene editing",
+   "short": "Genetic engineering",
    "blurb": "Scientists use lab tools to cut, join and change DNA, so a living thing makes something new or stops making something.",
    "area": "genes",
    "subject": "biology",
@@ -4560,6 +4709,7 @@
   },
   "genetic-linkage": {
    "name": "Linked genes and genetic maps",
+   "short": "Linked genes",
    "blurb": "Genes close together on a chromosome tend to be inherited together, and how often they separate shows how far apart they are.",
    "area": "genes",
    "subject": "biology",
@@ -4610,6 +4760,7 @@
   },
   "genome-size": {
    "name": "Genome size (how much DNA)",
+   "short": "Genome size",
    "blurb": "The amount of DNA a living thing carries says little about how complex it is.",
    "area": "genes",
    "subject": "biology",
@@ -4647,6 +4798,7 @@
   },
   "genomic-imprinting": {
    "name": "Genomic imprinting and parent of origin",
+   "short": "Genomic imprinting",
    "blurb": "For some genes only the copy from one parent is switched on, so which parent gave it matters.",
    "area": "genes",
    "subject": "biology",
@@ -5095,6 +5247,7 @@
   },
   "rna-processing": {
    "name": "RNA processing and splicing",
+   "short": "RNA processing",
    "blurb": "Before it is read, a copied gene gets a cap and a tail, and its extra stretches are cut out.",
    "area": "genes",
    "subject": "biology",
@@ -5133,6 +5286,7 @@
   },
   "sex-linkage": {
    "name": "Sex linkage (X-linked inheritance)",
+   "short": "Sex linkage",
    "blurb": "Genes on the X chromosome pass differently to sons and daughters, so swapping the parents changes the offspring.",
    "area": "genes",
    "subject": "biology",
@@ -5170,6 +5324,7 @@
   },
   "sexual-and-asexual-reproduction": {
    "name": "Asexual and sexual reproduction",
+   "short": "Ways to reproduce",
    "blurb": "Some animals make young from one parent; most join two sex cells, at a cost, to make new gene combinations.",
    "area": "genes",
    "subject": "biology",
@@ -5403,6 +5558,7 @@
   },
   "artificial-selection": {
    "name": "Artificial selection (selective breeding)",
+   "short": "Artificial selection",
    "blurb": "People choose which plants or animals breed, so the inherited traits they want become more common over generations.",
    "area": "evolution",
    "subject": "biology",
@@ -5480,6 +5636,7 @@
   },
   "dna-comparison": {
    "name": "Comparing DNA and proteins to find relatives",
+   "short": "Comparing DNA",
    "blurb": "Comparing the same gene or protein in two living things shows how closely related they are: more matches, closer relatives.",
    "area": "evolution",
    "subject": "biology",
@@ -5495,10 +5652,17 @@
      "role": "core",
      "anchor": "elaborate-compare-one-protein-in-five-organisms",
      "adds": "Protein EF-1 alpha: fungi match animals better than plants, by about 8 points."
+    },
+    {
+     "lesson": "evidence-for-evolution",
+     "role": "core",
+     "anchor": "what-a-dna-percentage-doesand-does-notmeasure",
+     "adds": "Human and chimpanzee: 1.23 of every 100 bases differ, and what that count omits."
     }
    ],
    "films": [
-    "domains-kingdoms-and-dna/chapter-2"
+    "domains-kingdoms-and-dna/chapter-2",
+    "evidence-for-evolution/chapter-2"
    ],
    "near": [
     {
@@ -5517,6 +5681,7 @@
   },
   "effective-population-size": {
    "name": "Effective population size",
+   "short": "Effective population",
    "blurb": "The number of individuals whose genes reach the next generation is often far smaller than the head count.",
    "area": "evolution",
    "subject": "biology",
@@ -5551,6 +5716,7 @@
   },
   "endosymbiosis": {
    "name": "Endosymbiosis: where mitochondria and chloroplasts came from",
+   "short": "Endosymbiosis",
    "blurb": "Mitochondria and chloroplasts began as free-living bacteria that came to live inside larger cells.",
    "area": "evolution",
    "subject": "biology",
@@ -5588,6 +5754,7 @@
   },
   "evidence-for-evolution": {
    "name": "Fossils and the evidence for evolution",
+   "short": "Evidence for evolution",
    "blurb": "Fossils, matching bones and DNA all show that living things have changed over time and are related.",
    "area": "evolution",
    "subject": "biology",
@@ -5799,6 +5966,7 @@
   },
   "hardy-weinberg": {
    "name": "Hardy-Weinberg and allele frequencies",
+   "short": "Hardy-Weinberg",
    "blurb": "If nothing acts on a population, its gene version frequencies stay the same, and genotypes follow p squared, 2pq and q squared.",
    "area": "evolution",
    "subject": "biology",
@@ -5873,6 +6041,7 @@
   },
   "life-history-trade-offs": {
    "name": "Life histories and trade-offs",
+   "short": "Life histories",
    "blurb": "A living thing has one energy budget to split among growing, surviving and breeding, so it cannot do everything at once.",
    "area": "evolution",
    "subject": "biology",
@@ -6089,6 +6258,7 @@
   },
   "neanderthal-ancestry": {
    "name": "Neanderthal and Denisovan DNA in living people",
+   "short": "Neanderthal DNA",
    "blurb": "Some of our ancestors had children with Neanderthals and Denisovans, so many living people carry a little of their DNA.",
    "area": "evolution",
    "subject": "biology",
@@ -6126,6 +6296,7 @@
   },
   "origin-of-modern-humans": {
    "name": "Where modern humans came from",
+   "short": "Origin of modern humans",
    "blurb": "Our species arose in Africa from connected populations, not at one birthplace on one date.",
    "area": "evolution",
    "subject": "biology",
@@ -6162,6 +6333,7 @@
   },
   "phylogenetic-trees": {
    "name": "Evolutionary trees (phylogenetic trees)",
+   "short": "Evolutionary trees",
    "blurb": "A branching diagram shows how living things are related; the closest relatives share the most recent common ancestor.",
    "area": "evolution",
    "subject": "biology",
@@ -6208,6 +6380,7 @@
   },
   "proximate-and-ultimate-causes": {
    "name": "How questions and why questions in biology",
+   "short": "How and why questions",
    "blurb": "A trait has a how answer, the body mechanism that builds it, and a why answer, the evolutionary history behind it.",
    "area": "evolution",
    "subject": "biology",
@@ -6243,6 +6416,7 @@
   },
   "regulatory-evolution": {
    "name": "Evolution of gene switches (enhancers)",
+   "short": "Evolving gene switches",
    "blurb": "A body part can change when a gene's on-off switch changes, while the protein the gene makes stays the same.",
    "area": "evolution",
    "subject": "biology",
@@ -6281,6 +6455,7 @@
   },
   "selection-in-genes": {
    "name": "Finding selection in gene sequences (dN/dS)",
+   "short": "Selection in genes",
    "blurb": "Comparing DNA changes that alter a protein with changes that do not shows where selection has acted on a gene.",
    "area": "evolution",
    "subject": "biology",
@@ -6318,6 +6493,7 @@
   },
   "speciation": {
    "name": "Speciation (how new species form)",
+   "short": "Speciation",
    "blurb": "One species splits into two when separated groups build up barriers and stop interbreeding and producing fertile offspring.",
    "area": "evolution",
    "subject": "biology",
@@ -6364,6 +6540,7 @@
   },
   "variation": {
    "name": "Variation within a population",
+   "short": "Variation",
    "blurb": "Members of one kind of living thing differ in many traits, because of their genes, their surroundings and chance.",
    "area": "evolution",
    "subject": "biology",
@@ -6390,11 +6567,18 @@
      "role": "core",
      "anchor": "explain-why-variation-matters",
      "adds": "Chestnuts with little blight resistance: variation helps only if the trait is already there."
+    },
+    {
+     "lesson": "variation-and-survival",
+     "role": "core",
+     "anchor": "explain-where-variation-comes-from",
+     "adds": "Mutation makes new alleles, gene flow moves them, sexual reproduction reshuffles them."
     }
    ],
    "films": [
     "mutations-and-variation/explainer",
-    "extinction-and-survival/explainer"
+    "extinction-and-survival/explainer",
+    "variation-and-survival/explainer"
    ],
    "near": [
     {
@@ -6459,6 +6643,7 @@
   },
   "biodiversity": {
    "name": "Biodiversity (species diversity)",
+   "short": "Biodiversity",
    "blurb": "Biodiversity is the variety of living things in a place: how many kinds there are and how evenly they are shared.",
    "area": "diversity",
    "subject": "biology",
@@ -6512,6 +6697,7 @@
   },
   "classification": {
    "name": "Classifying living things (taxonomy)",
+   "short": "Classification",
    "blurb": "Scientists sort living things into nested groups, from three domains down to species, by shared traits and how they are related.",
    "area": "diversity",
    "subject": "biology",
@@ -6670,6 +6856,7 @@
   },
   "scientific-names": {
    "name": "Scientific names (binomial nomenclature)",
+   "short": "Scientific names",
    "blurb": "Each species has a two-part name, genus first, that scientists use the same way in every country.",
    "area": "diversity",
    "subject": "biology",
@@ -6750,6 +6937,7 @@
   },
   "biodiversity-ecosystem-function": {
    "name": "Biodiversity and ecosystem function",
+   "short": "Diversity and function",
    "blurb": "Fields with more kinds of plants usually grow more and change less from year to year.",
    "area": "ecosystems",
    "subject": "biology",
@@ -6951,6 +7139,7 @@
   },
   "competition": {
    "name": "Competition between species",
+   "short": "Competition",
    "blurb": "Living things that need the same scarce resource hold each other back, and sometimes one kind drives the other out.",
    "area": "ecosystems",
    "subject": "biology",
@@ -7000,6 +7189,7 @@
   },
   "conservation": {
    "name": "Conservation and restoration",
+   "short": "Conservation",
    "blurb": "People protect living things and their habitats, remove what harms them, and help damaged places recover, often slowly and partly.",
    "area": "ecosystems",
    "subject": "biology",
@@ -7120,6 +7310,7 @@
   },
   "demography": {
    "name": "Demography and life tables",
+   "short": "Demography",
    "blurb": "Survival and births at each age decide whether a population replaces itself from one generation to the next.",
    "area": "ecosystems",
    "subject": "biology",
@@ -7158,6 +7349,7 @@
   },
   "disturbance-and-diversity": {
    "name": "Disturbance and diversity",
+   "short": "Disturbance",
    "blurb": "Storms, waves and fires reset communities, and how often and how hard they strike changes how many species live there.",
    "area": "ecosystems",
    "subject": "biology",
@@ -7243,6 +7435,7 @@
   },
   "ecosystem": {
    "name": "Ecosystems: living and nonliving parts",
+   "short": "Ecosystems",
    "blurb": "An ecosystem is the living things in a place together with the nonliving things around them, such as water, soil and sunlight.",
    "area": "ecosystems",
    "subject": "biology",
@@ -7287,6 +7480,7 @@
   },
   "erosion": {
    "name": "Erosion (soil washing away)",
+   "short": "Erosion",
    "blurb": "Rain and wind carry soil away from bare ground, and plant roots and leaves slow it down.",
    "area": "ecosystems",
    "subject": "biology",
@@ -7324,6 +7518,7 @@
   },
   "extinction-risk-small-populations": {
    "name": "Why small populations go extinct",
+   "short": "Small populations",
    "blurb": "Chance events can wipe out a small population, so safety is a chance of lasting a set time, not a fixed number.",
    "area": "ecosystems",
    "subject": "biology",
@@ -7360,6 +7555,7 @@
   },
   "food-webs": {
    "name": "Food webs and energy flow",
+   "short": "Food webs",
    "blurb": "Energy passes from the sun to plants to the animals that eat them, with less left at each step.",
    "area": "ecosystems",
    "subject": "biology",
@@ -7470,6 +7666,7 @@
   },
   "human-impact-on-ecosystems": {
    "name": "How people change ecosystems",
+   "short": "Human impact",
    "blurb": "Farming, building, pollution and taking resources change habitats, so some populations rise and others fall.",
    "area": "ecosystems",
    "subject": "biology",
@@ -7817,6 +8014,7 @@
   },
   "nutrient-pollution": {
    "name": "Watersheds and dead zones",
+   "short": "Dead zones",
    "blurb": "Rain carries fertilizer downhill into bays and lakes, where it feeds algae whose decay uses up the oxygen.",
    "area": "ecosystems",
    "subject": "biology",
@@ -7884,6 +8082,7 @@
   },
   "population-growth": {
    "name": "Population growth and carrying capacity",
+   "short": "Population growth",
    "blurb": "A population grows when births and arrivals outnumber deaths and departures, and slows as crowding uses up food and space.",
    "area": "ecosystems",
    "subject": "biology",
@@ -7984,6 +8183,7 @@
   },
   "primary-production": {
    "name": "Primary production (GPP and NPP)",
+   "short": "Primary production",
    "blurb": "Plants capture energy at a rate, and what they keep after their own respiration is the food for everything else.",
    "area": "ecosystems",
    "subject": "biology",
@@ -8024,6 +8224,7 @@
   },
   "seasonal-responses": {
    "name": "How living things meet the seasons",
+   "short": "Meeting the seasons",
    "blurb": "Animals and plants use cues like day length and temperature to migrate, hibernate or go dormant through hard seasons.",
    "area": "ecosystems",
    "subject": "biology",
@@ -8069,6 +8270,7 @@
   },
   "seasonal-rhythms": {
    "name": "Seasonal rhythms (phenology)",
+   "short": "Seasonal rhythms",
    "blurb": "Living things change through the year, cued by day length and temperature, and warming can shift when those changes happen.",
    "area": "ecosystems",
    "subject": "biology",
@@ -8162,6 +8364,7 @@
   },
   "species-range-shifts": {
    "name": "Species on the move (range shifts)",
+   "short": "Species on the move",
    "blurb": "As the climate warms, many living things shift where they live, toward the poles and up mountains.",
    "area": "ecosystems",
    "subject": "biology",
@@ -8199,7 +8402,8 @@
   },
   "stream-health-indicators": {
    "name": "Creek animals as clues to water health",
-   "blurb": "Some small creek animals live only in clean water, so the kinds you find show how healthy a stream is.",
+   "short": "Creek animals as clues",
+   "blurb": "The kinds of small animals living in a creek are a clue to how healthy the water is for wildlife.",
    "area": "ecosystems",
    "subject": "biology",
    "aliases": [
@@ -8236,6 +8440,7 @@
   },
   "symbiosis": {
    "name": "Symbiosis: mutualism, commensalism and parasitism",
+   "short": "Symbiosis",
    "blurb": "In symbiosis, two different species live closely together, and each partner gains, loses or is unaffected.",
    "area": "ecosystems",
    "subject": "biology",
@@ -8330,6 +8535,7 @@
   },
   "alternation-of-generations": {
    "name": "Alternation of generations",
+   "short": "Plant generations",
    "blurb": "A land plant lives as two bodies in turn: a haploid one that makes gametes and a diploid one that makes spores.",
    "area": "plants",
    "subject": "biology",
@@ -8443,6 +8649,7 @@
   },
   "meristems": {
    "name": "How plants grow longer (meristems)",
+   "short": "How plants grow longer",
    "blurb": "Plants grow from patches of cells that keep dividing, mostly at the tips of roots and shoots.",
    "area": "plants",
    "subject": "biology",
@@ -8480,6 +8687,7 @@
   },
   "nitrogen-fixation": {
    "name": "Nitrogen fixation and root nodules",
+   "short": "Nitrogen fixation",
    "blurb": "Some bacteria turn nitrogen gas from the air into ammonia, and legumes house them in root nodules.",
    "area": "plants",
    "subject": "biology",
@@ -8517,6 +8725,7 @@
   },
   "phloem-transport": {
    "name": "How sugar moves in a plant (phloem)",
+   "short": "Sugar transport in plants",
    "blurb": "Sugar made in leaves is pushed through living tubes toward the parts of the plant that use it.",
    "area": "plants",
    "subject": "biology",
@@ -8554,6 +8763,7 @@
   },
   "photoperiodism": {
    "name": "Day length and flowering (photoperiodism)",
+   "short": "Day length and flowering",
    "blurb": "Plants use a light-switching pigment and the length of the night to tell the season and time flowering.",
    "area": "plants",
    "subject": "biology",
@@ -8661,6 +8871,7 @@
   },
   "plant-mineral-nutrition": {
    "name": "Mineral nutrients for plants",
+   "short": "Plant mineral nutrients",
    "blurb": "Besides carbon dioxide and water, a plant needs mineral elements from the soil, and a shortage shows in its leaves.",
    "area": "plants",
    "subject": "biology",
@@ -8702,6 +8913,7 @@
   },
   "plant-parts": {
    "name": "Parts of a plant and their jobs",
+   "short": "Plant parts",
    "blurb": "Roots, stems, leaves, flowers and fruits each do a job that keeps a plant alive and making seeds.",
    "area": "plants",
    "subject": "biology",
@@ -8739,6 +8951,7 @@
   },
   "plant-tropisms": {
    "name": "How plants bend (tropisms)",
+   "short": "How plants bend",
    "blurb": "A shoot or root bends toward or away from light or gravity because one side grows faster than the other.",
    "area": "plants",
    "subject": "biology",
@@ -8777,6 +8990,7 @@
   },
   "plant-water-transport": {
    "name": "How water moves through a plant",
+   "short": "Water in plants",
    "blurb": "Water is pulled up thin tubes from roots to leaves as it evaporates from the leaves.",
    "area": "plants",
    "subject": "biology",
@@ -8919,6 +9133,7 @@
   },
   "secondary-growth": {
    "name": "How a trunk gets wider (wood and bark)",
+   "short": "How a trunk gets wider",
    "blurb": "A thin layer of dividing cells under the bark adds wood inward and bark outward, so stems thicken.",
    "area": "plants",
    "subject": "biology",
@@ -8996,6 +9211,7 @@
   },
   "seed-germination": {
    "name": "Seeds waking up (germination)",
+   "short": "Seeds waking up",
    "blurb": "A dry seed is alive but resting; water and warmth wake it, and the root comes out first.",
    "area": "plants",
    "subject": "biology",
@@ -9033,6 +9249,7 @@
   },
   "seeds-and-fruits": {
    "name": "How seeds and fruits form",
+   "short": "Seeds and fruits",
    "blurb": "After fertilization the ovule becomes a seed and the ovary becomes a fruit, which can wait and travel.",
    "area": "plants",
    "subject": "biology",
@@ -9070,6 +9287,7 @@
   },
   "stomata-and-water-loss": {
    "name": "Stomata and water loss in leaves",
+   "short": "Stomata",
    "blurb": "A leaf takes in carbon dioxide through tiny pores that also let water vapour out, so every gain of carbon costs water.",
    "area": "plants",
    "subject": "biology",
@@ -9112,6 +9330,7 @@
   },
   "acid-base-balance": {
    "name": "Acid-base balance (blood pH)",
+   "short": "Acid-base balance",
    "blurb": "Blood stays near pH 7.4 because buffers, the lungs and the kidneys keep bicarbonate and carbon dioxide in a steady ratio.",
    "area": "body",
    "subject": "biology",
@@ -9221,6 +9440,7 @@
   },
   "blood-clotting": {
    "name": "Blood clotting (hemostasis)",
+   "short": "Blood clotting",
    "blurb": "A cut vessel is sealed by a plug of platelets and a net of protein threads, while brakes keep clots from spreading.",
    "area": "body",
    "subject": "biology",
@@ -9263,6 +9483,7 @@
   },
   "blood-flow-resistance": {
    "name": "Blood flow and resistance in vessels",
+   "short": "Blood flow resistance",
    "blurb": "Blood flows from high pressure to low, and the narrow small arteries hold most of the resistance and steer each organ's share.",
    "area": "body",
    "subject": "biology",
@@ -9361,6 +9582,7 @@
   },
   "body-temperature": {
    "name": "Keeping warm and keeping cool",
+   "short": "Body temperature",
    "blurb": "Animals stay at a working temperature by balancing the heat they make and gain against the heat they lose.",
    "area": "body",
    "subject": "biology",
@@ -9429,6 +9651,7 @@
   },
   "body-water-compartments": {
    "name": "Body water and its compartments",
+   "short": "Body water",
    "blurb": "Body water sits in two places, inside cells and outside them, and the outside part splits into tissue fluid and plasma.",
    "area": "body",
    "subject": "biology",
@@ -9497,6 +9720,7 @@
   },
   "breathing": {
    "name": "Breathing and its control",
+   "short": "Breathing",
    "blurb": "Muscles enlarge the chest to pull air into the lungs, and the carbon dioxide in your blood sets how hard you breathe.",
    "area": "body",
    "subject": "biology",
@@ -9541,6 +9765,7 @@
   },
   "calcium-balance": {
    "name": "Calcium and phosphate balance",
+   "short": "Calcium balance",
    "blurb": "The body keeps the free calcium in blood in a narrow range using parathyroid hormone, vitamin D, the gut, kidneys and bone.",
    "area": "body",
    "subject": "biology",
@@ -9578,6 +9803,7 @@
   },
   "capillary-exchange": {
    "name": "Fluid exchange across capillaries (Starling forces)",
+   "short": "Capillary exchange",
    "blurb": "Blood pressure pushes fluid out through capillary walls, plasma proteins pull some back, and lymph vessels return the rest.",
    "area": "body",
    "subject": "biology",
@@ -9622,6 +9848,7 @@
   },
   "carbon-dioxide-transport": {
    "name": "How blood carries carbon dioxide",
+   "short": "Carrying carbon dioxide",
    "blurb": "Blood carries carbon dioxide back to the lungs mostly as bicarbonate, with a little dissolved and a little on hemoglobin.",
    "area": "body",
    "subject": "biology",
@@ -9656,6 +9883,7 @@
   },
   "cardiac-cycle": {
    "name": "The cardiac cycle (pressure-volume loop)",
+   "short": "The cardiac cycle",
    "blurb": "Each heartbeat fills, squeezes, ejects and relaxes in four steps, set by when the heart valves open and close.",
    "area": "body",
    "subject": "biology",
@@ -9693,6 +9921,7 @@
   },
   "cardiac-output": {
    "name": "Cardiac output and venous return",
+   "short": "Cardiac output",
    "blurb": "The heart can pump out only the blood that returns to it, so output settles where the heart and veins balance.",
    "area": "body",
    "subject": "biology",
@@ -9731,6 +9960,7 @@
   },
   "circadian-rhythm": {
    "name": "Daily body clocks (circadian rhythm)",
+   "short": "Daily body clocks",
    "blurb": "Living things have an inner clock that repeats about every 24 hours and is kept in step by light and dark.",
    "area": "body",
    "subject": "biology",
@@ -9776,6 +10006,7 @@
   },
   "circulation": {
    "name": "The heart and circulation",
+   "short": "Circulation",
    "blurb": "A heart pumps blood around the body; in mammals and birds it passes through the lungs and the body in turn.",
    "area": "body",
    "subject": "biology",
@@ -9809,11 +10040,16 @@
     {
      "id": "fetal-circulation",
      "why": "Before birth the same heart sends most blood past the lungs, and the first breaths change the route."
+    },
+    {
+     "id": "cardiac-output",
+     "why": "How much blood the heart moves each minute, and what sets it."
     }
    ]
   },
   "concentrating-urine": {
    "name": "How the kidney concentrates urine",
+   "short": "Concentrating urine",
    "blurb": "The loop of Henle builds a salty zone deep in the kidney, which lets the kidney make urine more concentrated than blood.",
    "area": "body",
    "subject": "biology",
@@ -9936,6 +10172,7 @@
   },
   "digestive-control": {
    "name": "How nerves and hormones control the gut",
+   "short": "Control of the gut",
    "blurb": "Nerves and hormones switch on the stomach, pancreas and gallbladder as a meal arrives and moves along.",
    "area": "body",
    "subject": "biology",
@@ -10008,6 +10245,7 @@
   },
   "electrocardiogram": {
    "name": "The electrocardiogram (ECG)",
+   "short": "The electrocardiogram",
    "blurb": "Electrodes on the skin record the heart's electrical activity as a trace with waves named P, QRS and T.",
    "area": "body",
    "subject": "biology",
@@ -10041,6 +10279,7 @@
   },
   "enterohepatic-circulation": {
    "name": "Bile acid recycling (enterohepatic circulation)",
+   "short": "Bile acid recycling",
    "blurb": "Bile acids made by the liver help digest fat in the gut, are taken back near its end and sent round again.",
    "area": "body",
    "subject": "biology",
@@ -10076,6 +10315,7 @@
   },
   "fasting-and-starvation": {
    "name": "Fed, fasting and starving",
+   "short": "Fasting",
    "blurb": "As hours without food pass, the body shifts from meal sugar to stored sugar, then new glucose, fat and ketones.",
    "area": "body",
    "subject": "biology",
@@ -10112,6 +10352,7 @@
   },
   "fetal-circulation": {
    "name": "Blood flow in the fetus and at birth",
+   "short": "Fetal circulation",
    "blurb": "Before birth, blood bypasses the lungs through three shortcuts; at the first breaths they close and the lungs take over.",
    "area": "body",
    "subject": "biology",
@@ -10190,6 +10431,7 @@
   },
   "gut-motility": {
    "name": "Gut movement and its pacemaker",
+   "short": "Gut movement",
    "blurb": "The gut wall keeps its own rhythm and runs its own nerve reflexes to mix food and push it along.",
    "area": "body",
    "subject": "biology",
@@ -10341,6 +10583,7 @@
   },
   "hunger-and-appetite": {
    "name": "Hunger and the control of appetite",
+   "short": "Hunger and appetite",
    "blurb": "Fat stores send the hormone leptin to the brain, where opposing groups of nerve cells push appetite up or down.",
    "area": "body",
    "subject": "biology",
@@ -10408,6 +10651,7 @@
   },
   "hypothalamic-pituitary-axes": {
    "name": "Hormone chains from the hypothalamus and pituitary",
+   "short": "Pituitary hormone chains",
    "blurb": "The brain signals the pituitary, the pituitary signals a gland, and that gland's hormone feeds back to turn the chain down.",
    "area": "body",
    "subject": "biology",
@@ -10506,6 +10750,7 @@
   },
   "kidney": {
    "name": "The kidney and how urine is made",
+   "short": "The kidney",
    "blurb": "The kidney filters blood, takes back what the body needs, and sends the rest out as urine.",
    "area": "body",
    "subject": "biology",
@@ -10559,6 +10804,7 @@
   },
   "lactation": {
    "name": "Making and releasing milk (lactation)",
+   "short": "Lactation",
    "blurb": "Prolactin makes the breast produce milk, and oxytocin squeezes it out when the baby suckles.",
    "area": "body",
    "subject": "biology",
@@ -10589,6 +10835,7 @@
   },
   "levels-of-organization": {
    "name": "Cells, tissues, organs and organ systems",
+   "short": "Cells to organ systems",
    "blurb": "Similar cells form tissues, tissues form organs, and organs work together in systems, so a body shares out its jobs.",
    "area": "body",
    "subject": "biology",
@@ -10640,6 +10887,7 @@
   },
   "local-blood-flow-control": {
    "name": "How tissues control their own blood flow",
+   "short": "Local blood flow",
    "blurb": "A working tissue widens its own small arteries, so blood flow rises to match what the tissue needs.",
    "area": "body",
    "subject": "biology",
@@ -10675,6 +10923,7 @@
   },
   "menstrual-cycle": {
    "name": "The menstrual cycle and its hormones",
+   "short": "The menstrual cycle",
    "blurb": "Each month brain and pituitary hormones ripen one follicle, a hormone surge releases its egg, and ovary hormones feed back.",
    "area": "body",
    "subject": "biology",
@@ -10721,6 +10970,7 @@
   },
   "muscle-contraction": {
    "name": "Muscle contraction (sliding filaments)",
+   "short": "Muscle contraction",
    "blurb": "Myosin heads pull actin filaments past them, using calcium as the switch and ATP as fuel, so a muscle shortens.",
    "area": "body",
    "subject": "biology",
@@ -10743,11 +10993,18 @@
      "role": "core",
      "anchor": "crowds-i-muscle-where-filaments-slide-and-do-not-shrink",
      "adds": "Filaments slide, not shrink: I band and H zone narrow, A band stays."
+    },
+    {
+     "lesson": "smooth-muscle",
+     "role": "core",
+     "anchor": "the-switch-on-myosin",
+     "adds": "No troponin: calcium-calmodulin switches on MLCK, which phosphorylates myosin's LC20 light chain."
     }
    ],
    "films": [
     "muscle-and-movement/explainer",
-    "muscle-and-movement/chapter-2"
+    "muscle-and-movement/chapter-2",
+    "smooth-muscle/explainer"
    ],
    "near": [
     {
@@ -10796,6 +11053,7 @@
   },
   "muscle-force-and-speed": {
    "name": "Muscle force, speed and power",
+   "short": "Muscle force and speed",
    "blurb": "A muscle pulls hardest near one best length, and it shortens faster the lighter its load.",
    "area": "body",
    "subject": "biology",
@@ -10865,6 +11123,7 @@
   },
   "nitrogenous-waste": {
    "name": "Nitrogen waste: ammonia, urea and uric acid",
+   "short": "Nitrogen waste",
    "blurb": "Animals get rid of the nitrogen from protein as ammonia, urea or uric acid, trading poison risk against water use.",
    "area": "body",
    "subject": "biology",
@@ -10900,6 +11159,7 @@
   },
   "osmoregulation": {
    "name": "Water and salt balance (osmoregulation)",
+   "short": "Water and salt balance",
    "blurb": "Animals match every gain and loss of water and salt, so their body fluids stay steady in sea, river or on land.",
    "area": "body",
    "subject": "biology",
@@ -10946,6 +11206,7 @@
   },
   "oxygen-transport": {
    "name": "How blood carries oxygen (hemoglobin)",
+   "short": "How blood carries oxygen",
    "blurb": "Hemoglobin in red blood cells carries nearly all the oxygen in blood, loading it in the lungs and releasing it in tissues.",
    "area": "body",
    "subject": "biology",
@@ -11067,6 +11328,7 @@
   },
   "pressure-natriuresis": {
    "name": "The kidney and long-term blood pressure",
+   "short": "Kidney and blood pressure",
    "blurb": "Over days the kidney sets blood pressure at the level where the salt it sends out equals the salt taken in.",
    "area": "body",
    "subject": "biology",
@@ -11105,6 +11367,7 @@
   },
   "red-blood-cells": {
    "name": "Red blood cells and hematocrit",
+   "short": "Red blood cells",
    "blurb": "Red blood cells carry oxygen, and the kidney senses oxygen and tells the bone marrow how many to make.",
    "area": "body",
    "subject": "biology",
@@ -11140,6 +11403,7 @@
   },
   "regulators-and-conformers": {
    "name": "Regulators and conformers",
+   "short": "Regulators, conformers",
    "blurb": "A regulator holds something like body temperature steady as the outside changes; a conformer lets its inside follow the outside.",
    "area": "body",
    "subject": "biology",
@@ -11247,6 +11511,7 @@
   },
   "skin": {
    "name": "Skin and its water barrier",
+   "short": "Skin",
    "blurb": "Skin is layered: dead cells sealed with fat keep water in, and living cells below keep making new ones.",
    "area": "body",
    "subject": "biology",
@@ -11282,6 +11547,7 @@
   },
   "smooth-muscle-contraction": {
    "name": "How smooth muscle contracts",
+   "short": "Smooth muscle",
    "blurb": "In smooth muscle, calcium switches on an enzyme that tags myosin so it can pull, and a second enzyme removes the tag.",
    "area": "body",
    "subject": "biology",
@@ -11319,6 +11585,7 @@
   },
   "spermatogenesis": {
    "name": "Making sperm (spermatogenesis)",
+   "short": "Making sperm",
    "blurb": "Sperm develop over about two and a half months inside the testis, supported by helper cells in separate compartments.",
    "area": "body",
    "subject": "biology",
@@ -11425,6 +11692,7 @@
   },
   "thyroid-hormone": {
    "name": "Thyroid hormone (T4 and T3)",
+   "short": "Thyroid hormone",
    "blurb": "The thyroid makes mostly T4, and body tissues turn it into the active T3 that sets metabolic rate and development.",
    "area": "body",
    "subject": "biology",
@@ -11501,6 +11769,7 @@
   },
   "zymogen-activation": {
    "name": "Zymogens: enzymes made switched off",
+   "short": "Zymogens",
    "blurb": "Some enzymes are made in an inactive form and switched on only where they are needed, to protect the cell.",
    "area": "body",
    "subject": "biology",
@@ -11538,6 +11807,7 @@
   },
   "antibiotic-resistance": {
    "name": "Antibiotics and resistance",
+   "short": "Antibiotic resistance",
    "blurb": "Antibiotics kill bacteria but not viruses, and resistant survivors can multiply and take over.",
    "area": "microbes-immunity",
    "subject": "biology",
@@ -11630,6 +11900,7 @@
   },
   "cancer-immunotherapy": {
    "name": "Cancer immunotherapy (checkpoint blockade and CAR T cells)",
+   "short": "Cancer immunotherapy",
    "blurb": "A patient's own T cells can attack a tumour when drugs block their brakes or the cells get a built receptor.",
    "area": "microbes-immunity",
    "subject": "biology",
@@ -11820,6 +12091,7 @@
   },
   "t-cell-receptor-signaling": {
    "name": "How a T cell switches on (T-cell receptor signaling)",
+   "short": "How a T cell switches on",
    "blurb": "When a T cell's receptor finds its target, partner chains and enzymes pass the signal inward and switch the cell on.",
    "area": "microbes-immunity",
    "subject": "biology",
@@ -11910,6 +12182,7 @@
   },
   "action-potential": {
    "name": "Nerve signals (the action potential)",
+   "short": "Nerve signals",
    "blurb": "A nerve cell sends a message as a brief electrical pulse that travels down its length without fading.",
    "area": "nervous-system",
    "subject": "biology",
@@ -11933,12 +12206,6 @@
      "adds": "Hodgkin and Huxley's squid voltage clamp: sodium activation, inactivation, slower potassium."
     },
     {
-     "lesson": "cardiac-electrophysiology-ecg",
-     "role": "core",
-     "anchor": "one-ventricular-cell-a-long-plateau",
-     "adds": "A ventricular cell stays depolarized about a hundred times longer than a nerve spike."
-    },
-    {
      "lesson": "nociceptors-and-sodium-channels",
      "role": "core",
      "anchor": "three-channels-one-spike",
@@ -11957,6 +12224,10 @@
      "role": "uses"
     },
     {
+     "lesson": "cardiac-electrophysiology-ecg",
+     "role": "uses"
+    },
+    {
      "lesson": "ion-channels-as-receptors",
      "role": "uses"
     },
@@ -11969,7 +12240,6 @@
     "nervous-control/explainer",
     "action-potential/explainer",
     "action-potential/three-gates",
-    "cardiac-electrophysiology-ecg/explainer",
     "nociceptors-and-sodium-channels/availability-budget",
     "nociceptors-and-sodium-channels/more-current-breaks"
    ],
@@ -11990,6 +12260,7 @@
   },
   "activity-dependent-competition": {
    "name": "Competition between inputs (activity-dependent competition)",
+   "short": "Competing inputs",
    "blurb": "Inputs onto one cell compete, and inputs less active than their neighbours, or out of step with them, tend to be lost.",
    "area": "nervous-system",
    "subject": "biology",
@@ -12087,6 +12358,7 @@
   },
   "aphasia": {
    "name": "Aphasia and the route to speech",
+   "short": "Aphasia",
    "blurb": "Damage along the route from sound to meaning or to speech causes different language problems.",
    "area": "nervous-system",
    "subject": "biology",
@@ -12199,6 +12471,7 @@
   },
   "autonomic-nervous-system": {
    "name": "The autonomic nervous system",
+   "short": "Autonomic nerves",
    "blurb": "Two sets of nerves, sympathetic and parasympathetic, control the heart, gut, glands and blood vessels without conscious choice.",
    "area": "nervous-system",
    "subject": "biology",
@@ -12242,6 +12515,7 @@
   },
   "axon-degeneration": {
    "name": "Axon degeneration after injury (Wallerian degeneration)",
+   "short": "Axon degeneration",
    "blurb": "When an axon is cut, the piece cut off from its cell body breaks itself apart by an active program.",
    "area": "nervous-system",
    "subject": "biology",
@@ -12280,6 +12554,7 @@
   },
   "axon-guidance": {
    "name": "How axons find their way (axon guidance)",
+   "short": "How axons find their way",
    "blurb": "A growing axon steers by reading signals around its tip, and long routes are built as short legs.",
    "area": "nervous-system",
    "subject": "biology",
@@ -12361,6 +12636,7 @@
   },
   "basal-ganglia": {
    "name": "The basal ganglia and the movement brake",
+   "short": "Basal ganglia",
    "blurb": "Deep brain nuclei hold a steady brake on movement, and two routes release it or tighten it.",
    "area": "nervous-system",
    "subject": "biology",
@@ -12404,6 +12680,7 @@
   },
   "brain-atlases-and-connectomes": {
    "name": "Brain cell atlases and connectomes",
+   "short": "Brain atlases",
    "blurb": "An atlas sorts brain cells into types by their genes; a connectome maps which cells are wired to which.",
    "area": "nervous-system",
    "subject": "biology",
@@ -12484,6 +12761,7 @@
   },
   "central-pattern-generator": {
    "name": "Spinal rhythm generators (central pattern generators)",
+   "short": "Spinal rhythm generators",
    "blurb": "Networks inside the spinal cord can make the alternating rhythm of walking without any beat from the brain.",
    "area": "nervous-system",
    "subject": "biology",
@@ -12591,6 +12869,7 @@
   },
   "cortical-areas": {
    "name": "Areas of the cerebral cortex",
+   "short": "Cortical areas",
    "blurb": "The cortex is divided into areas for movement, touch, hearing and vision, and the borders are drawn during development.",
    "area": "nervous-system",
    "subject": "biology",
@@ -12636,6 +12915,7 @@
   },
   "cortical-layers": {
    "name": "Layers of the cortex (inside-out order)",
+   "short": "Layers of the cortex",
    "blurb": "The cortex is built in layers: neurons born earlier settle deeper, and later ones climb past them.",
    "area": "nervous-system",
    "subject": "biology",
@@ -12682,6 +12962,7 @@
   },
   "corticospinal-tract": {
    "name": "The corticospinal tract and which side is hit",
+   "short": "Corticospinal tract",
    "blurb": "Movement commands cross the midline on the way down, so each side of the brain moves the opposite side of the body.",
    "area": "nervous-system",
    "subject": "biology",
@@ -12775,6 +13056,7 @@
   },
   "efference-copy": {
    "name": "Cancelling your own movement (efference copy)",
+   "short": "Efference copy",
    "blurb": "The brain predicts the sensations its own movement will cause and subtracts them, so outside surprises stand out.",
    "area": "nervous-system",
    "subject": "biology",
@@ -12823,6 +13105,7 @@
   },
   "evidence-accumulation": {
    "name": "Making a decision by adding up evidence",
+   "short": "Adding up evidence",
    "blurb": "Noisy evidence is added up over time until it is strong enough to choose.",
    "area": "nervous-system",
    "subject": "biology",
@@ -12861,6 +13144,7 @@
   },
   "glia": {
    "name": "Glial cells (astrocytes, oligodendrocytes, microglia)",
+   "short": "Glial cells",
    "blurb": "Glial cells are the nervous system's other cells: they clear waste, wrap axons and watch for damage.",
    "area": "nervous-system",
    "subject": "biology",
@@ -12991,6 +13275,7 @@
   },
   "hemispheric-lateralization": {
    "name": "Which hemisphere speaks (lateralization)",
+   "short": "Which hemisphere speaks",
    "blurb": "Language sits mostly in the left hemisphere, but which side speaks is a probability, not a rule.",
    "area": "nervous-system",
    "subject": "biology",
@@ -13060,6 +13345,7 @@
   },
   "layer-targeting": {
    "name": "Layer targeting by sticky labels",
+   "short": "Layer targeting",
    "blurb": "Cells that should connect make the same sticky protein, so their processes settle in the same thin layer.",
    "area": "nervous-system",
    "subject": "biology",
@@ -13096,6 +13382,7 @@
   },
   "lissencephaly": {
    "name": "Lissencephaly and misplaced neurons",
+   "short": "Lissencephaly",
    "blurb": "Neurons are made but fail to travel to their layer, leaving a smooth or double cortex.",
    "area": "nervous-system",
    "subject": "biology",
@@ -13134,6 +13421,7 @@
   },
   "localization-of-function": {
    "name": "Localization of function (where a job lives in the brain)",
+   "short": "Localization of function",
    "blurb": "Lesions, recordings, brain imaging and stimulation each show something different about which brain region does a job.",
    "area": "nervous-system",
    "subject": "biology",
@@ -13174,6 +13462,7 @@
   },
   "long-term-potentiation": {
    "name": "Long-term potentiation and depression",
+   "short": "Long-term potentiation",
    "blurb": "A synapse becomes stronger when its input and the receiving cell are active together, and the change lasts hours.",
    "area": "nervous-system",
    "subject": "biology",
@@ -13215,6 +13504,7 @@
   },
   "memory-consolidation": {
    "name": "Memory consolidation and replay",
+   "short": "Memory consolidation",
    "blurb": "After learning, the brain stabilizes a memory and replays it in sleep so it lasts.",
    "area": "nervous-system",
    "subject": "biology",
@@ -13373,6 +13663,7 @@
   },
   "motor-neuron-specification": {
    "name": "How a motor neuron is built",
+   "short": "Motor neuron identity",
    "blurb": "A stripe of spinal cord progenitors makes motor neurons, and further codes decide which muscle each one will reach.",
    "area": "nervous-system",
    "subject": "biology",
@@ -13413,6 +13704,7 @@
   },
   "motor-unit-recruitment": {
    "name": "Motor units and graded muscle force",
+   "short": "Motor units",
    "blurb": "A muscle pulls harder as more motor neurons join, smallest first, and as the active ones fire faster.",
    "area": "nervous-system",
    "subject": "biology",
@@ -13530,6 +13822,7 @@
   },
   "nervous-system-organization": {
    "name": "How the nervous system is organized",
+   "short": "Nervous system layout",
    "blurb": "The brain and spinal cord form one hollow tube, and nerves link it to the rest of the body.",
    "area": "nervous-system",
    "subject": "biology",
@@ -13680,6 +13973,43 @@
     }
    ]
   },
+  "neuron-doctrine": {
+   "name": "The neuron doctrine",
+   "blurb": "The brain is built from separate nerve cells that meet at tiny gaps, not one continuous net.",
+   "area": "nervous-system",
+   "subject": "biology",
+   "aliases": [
+    "are neurons separate cells",
+    "Golgi and Cajal",
+    "reticular theory",
+    "who discovered neurons"
+   ],
+   "rungs": [
+    {
+     "lesson": "neuron-doctrine",
+     "role": "core",
+     "anchor": "touch-or-fusion-a-question-about-20-nanometres",
+     "adds": "The last holdout: proving the brain is made of separate cells too."
+    }
+   ],
+   "films": [
+    "neuron-doctrine/explainer"
+   ],
+   "near": [
+    {
+     "id": "cell-theory",
+     "why": "The cell theory said every tissue is made of cells; nerve tissue was the last to be shown."
+    },
+    {
+     "id": "synapse",
+     "why": "If neurons are separate cells, the gap between two of them needs explaining."
+    },
+    {
+     "id": "microscopy",
+     "why": "The question was settled only when the electron microscope showed two membranes at a contact."
+    }
+   ]
+  },
   "neuron-structure": {
    "name": "Parts of a neuron",
    "blurb": "A neuron has branches that listen, a body that adds up, and a long axon that sends.",
@@ -13771,6 +14101,7 @@
   },
   "neuronal-polarity": {
    "name": "Axon and dendrites (neuronal polarity)",
+   "short": "Axon and dendrites",
    "blurb": "A neuron grows one axon and several dendrites, then keeps them different with a gate at the start of the axon.",
    "area": "nervous-system",
    "subject": "biology",
@@ -13856,6 +14187,7 @@
   },
   "passive-membrane-signals": {
    "name": "Passive signals: time constant and length constant",
+   "short": "Passive signals",
    "blurb": "A small voltage change in a cell builds up gradually and fades with distance along the cell.",
    "area": "nervous-system",
    "subject": "biology",
@@ -13895,6 +14227,7 @@
   },
   "pattern-completion": {
    "name": "Pattern completion in networks",
+   "short": "Pattern completion",
    "blurb": "Linked cells that fired together can bring back a whole stored pattern from a small part.",
    "area": "nervous-system",
    "subject": "biology",
@@ -13927,6 +14260,7 @@
   },
   "resting-membrane-potential": {
    "name": "The resting membrane potential",
+   "short": "Resting potential",
    "blurb": "A resting nerve cell sits at a steady voltage where ions leaking in and out cancel.",
    "area": "nervous-system",
    "subject": "biology",
@@ -13968,6 +14302,7 @@
   },
   "retrograde-axon-signaling": {
    "name": "Signals carried back along an axon (retrograde signaling)",
+   "short": "Retrograde signals",
    "blurb": "A nerve cell takes in a survival signal at the tip of its axon and must get the message to its nucleus.",
    "area": "nervous-system",
    "subject": "biology",
@@ -14014,6 +14349,7 @@
   },
   "reward-prediction-error": {
    "name": "Reward prediction error (dopamine and learning)",
+   "short": "Reward prediction error",
    "blurb": "Dopamine neurons fire more when things turn out better than predicted and less when worse, which drives learning.",
    "area": "nervous-system",
    "subject": "biology",
@@ -14051,6 +14387,7 @@
   },
   "self-avoidance": {
    "name": "Self-avoidance of branches",
+   "short": "Self-avoidance",
    "blurb": "A neuron's own branches push apart, because each neuron carries a surface identity its neighbours do not share.",
    "area": "nervous-system",
    "subject": "biology",
@@ -14084,6 +14421,7 @@
   },
   "semaphorins": {
    "name": "Semaphorins (repulsive cues)",
+   "short": "Semaphorins",
    "blurb": "Semaphorins are signals that make growth cones fold up and turn away, keeping axons out of places they must not enter.",
    "area": "nervous-system",
    "subject": "biology",
@@ -14123,6 +14461,7 @@
   },
   "short-term-plasticity": {
    "name": "Short-term synaptic plasticity",
+   "short": "Short-term plasticity",
    "blurb": "After a signal, a synapse can respond a little more or less strongly for milliseconds to seconds.",
    "area": "nervous-system",
    "subject": "biology",
@@ -14158,6 +14497,7 @@
   },
   "sleep-regulation": {
    "name": "What decides when we sleep",
+   "short": "Sleep regulation",
    "blurb": "Sleep pressure builds while awake and drains in sleep, and the body clock shifts the levels where sleep starts and ends.",
    "area": "nervous-system",
    "subject": "biology",
@@ -14194,6 +14534,7 @@
   },
   "sleep-stages": {
    "name": "Sleep stages (reading a night of sleep)",
+   "short": "Sleep stages",
    "blurb": "Sleep has stages that show in brain waves, eye movements and muscle tone, and orexin neurons help keep waking steady.",
    "area": "nervous-system",
    "subject": "biology",
@@ -14262,6 +14603,7 @@
   },
   "spontaneous-activity": {
    "name": "Spontaneous activity (retinal waves)",
+   "short": "Spontaneous activity",
    "blurb": "Before the senses work, developing nerve cells fire on their own in patterns that help sort out the wiring.",
    "area": "nervous-system",
    "subject": "biology",
@@ -14298,6 +14640,7 @@
   },
   "stretch-reflex": {
    "name": "The stretch reflex (knee jerk)",
+   "short": "The stretch reflex",
    "blurb": "A sudden stretch makes the same muscle contract, while its opposing muscle is told to relax.",
    "area": "nervous-system",
    "subject": "biology",
@@ -14308,6 +14651,12 @@
    ],
    "rungs": [
     {
+     "lesson": "nervous-control",
+     "role": "core",
+     "anchor": "the-reflex-arc-what-the-second-film-left-out",
+     "adds": "Knee jerk, timed along its route: one cord synapse, about 19 ms in total."
+    },
+    {
      "lesson": "motor-units-reflexes",
      "role": "core",
      "anchor": "one-stretch-two-commands",
@@ -14315,6 +14664,7 @@
     }
    ],
    "films": [
+    "nervous-control/chapter-2",
     "motor-units-reflexes/stretch-reflex"
    ],
    "near": [
@@ -14472,6 +14822,7 @@
   },
   "synaptic-integration": {
    "name": "Synaptic integration (summation)",
+   "short": "Synaptic integration",
    "blurb": "A neuron adds up its many inputs over time and space, and the sum decides whether it fires.",
    "area": "nervous-system",
    "subject": "biology",
@@ -14510,6 +14861,7 @@
   },
   "threat-conditioning": {
    "name": "Threat conditioning and the amygdala",
+   "short": "Threat conditioning",
    "blurb": "An animal learns that a tone predicts harm, and the amygdala sends the learned reactions out by separate routes.",
    "area": "nervous-system",
    "subject": "biology",
@@ -14590,6 +14942,7 @@
   },
   "touch-and-pain-pathways": {
    "name": "Touch and pain pathways in the spinal cord",
+   "short": "Touch and pain pathways",
    "blurb": "Touch and pain signals climb the spinal cord by separate routes that cross to the other side at different levels.",
    "area": "nervous-system",
    "subject": "biology",
@@ -14791,6 +15144,7 @@
   },
   "direction-selectivity": {
    "name": "Direction selectivity in the retina",
+   "short": "Direction selectivity",
    "blurb": "Some cells in the eye fire for motion in one direction and stay quiet for motion in the opposite direction.",
    "area": "senses",
    "subject": "biology",
@@ -14830,6 +15184,7 @@
   },
   "flavour": {
    "name": "Flavour: taste plus smell",
+   "short": "Flavour",
    "blurb": "Flavour is taste from the tongue plus smell from the nose, so food tastes dull when your nose is blocked.",
    "area": "senses",
    "subject": "biology",
@@ -14863,6 +15218,7 @@
   },
   "force-gated-channels": {
    "name": "Force-gated channels (Piezo)",
+   "short": "Force-gated channels",
    "blurb": "Some channels open when the membrane around them is stretched, letting ions in and turning force into an electrical signal.",
    "area": "senses",
    "subject": "biology",
@@ -14909,6 +15265,7 @@
   },
   "gut-brain-sensing": {
    "name": "How the gut senses nutrients",
+   "short": "Gut nutrient sensing",
    "blurb": "Cells in the intestinal lining detect sugar and fat and signal vagal nerves, so the brain learns what was eaten.",
    "area": "senses",
    "subject": "biology",
@@ -15042,6 +15399,10 @@
     {
      "id": "attention",
      "why": "In a noisy room you pick out one voice because attention makes the cells carrying it respond more strongly."
+    },
+    {
+     "id": "cochlear-amplifier",
+     "why": "A living inner ear boosts quiet sounds before the nerve reports them."
     }
    ]
   },
@@ -15086,6 +15447,7 @@
   },
   "interoception": {
    "name": "Sensing the inside of the body (interoception)",
+   "short": "Interoception",
    "blurb": "Sensory nerves report from the lungs, heart, blood vessels and gut to the brain, mainly through the vagus nerve.",
    "area": "senses",
    "subject": "biology",
@@ -15167,6 +15529,7 @@
   },
   "light-adaptation": {
    "name": "How photoreceptors adapt to light",
+   "short": "Light adaptation",
    "blurb": "Photoreceptors turn their own sensitivity down as the light gets brighter, so they keep responding instead of maxing out.",
    "area": "senses",
    "subject": "biology",
@@ -15209,6 +15572,7 @@
   },
   "melanopsin-cells": {
    "name": "Melanopsin cells (ipRGCs)",
+   "short": "Melanopsin cells",
    "blurb": "A few cells in the eye sense brightness with their own pigment and report it to the body clock and the pupils.",
    "area": "senses",
    "subject": "biology",
@@ -15251,6 +15615,7 @@
   },
   "multisensory-integration": {
    "name": "Combining the senses (multisensory integration)",
+   "short": "Combining the senses",
    "blurb": "When two senses report the same thing, the brain trusts the more reliable one more and blends them.",
    "area": "senses",
    "subject": "biology",
@@ -15355,6 +15720,7 @@
   },
   "proprioception": {
    "name": "Proprioception (sensing your body's position)",
+   "short": "Proprioception",
    "blurb": "Sensors in muscles and tendons tell the brain where your body parts are and how hard your muscles work.",
    "area": "senses",
    "subject": "biology",
@@ -15398,6 +15764,7 @@
   },
   "retinal-degeneration": {
    "name": "When photoreceptors die (retinal degeneration)",
+   "short": "When photoreceptors die",
    "blurb": "In inherited eye disease photoreceptors die, rods first and then cones, and researchers ask why and what can be rescued.",
    "area": "senses",
    "subject": "biology",
@@ -15439,6 +15806,7 @@
   },
   "retinal-ganglion-cell-types": {
    "name": "Retinal ganglion cell types",
+   "short": "Ganglion cell types",
    "blurb": "The eye's output cells come in many types, and each type sends the brain its own filtered map of the scene.",
    "area": "senses",
    "subject": "biology",
@@ -15482,6 +15850,7 @@
   },
   "sense-of-balance": {
    "name": "The sense of balance (vestibular system)",
+   "short": "The sense of balance",
    "blurb": "Canals and tiny stones in the inner ear sense head turns and tilts, which helps you keep your eyes and body steady.",
    "area": "senses",
    "subject": "biology",
@@ -15625,6 +15994,7 @@
   },
   "sensory-prostheses": {
    "name": "Restoring a sense with implants",
+   "short": "Sensory implants",
    "blurb": "Devices can replace a damaged sense by sending electrical or light signals straight to nerve cells that still work.",
    "area": "senses",
    "subject": "biology",
@@ -15827,6 +16197,7 @@
   },
   "temperature-sensing": {
    "name": "Sensing temperature (hot, warm, cool, cold)",
+   "short": "Sensing temperature",
    "blurb": "Nerve endings in skin use temperature-sensitive channels and several kinds of fibre to report how hot or cold something is.",
    "area": "senses",
    "subject": "biology",
@@ -15956,6 +16327,7 @@
   },
   "touch-over-reactivity-in-autism": {
    "name": "Touch over-reactivity in autism",
+   "short": "Touch in autism",
    "blurb": "Some people react strongly to touch, and in mouse models of autism part of that begins in the nerves of the skin.",
    "area": "senses",
    "subject": "biology",
@@ -16136,6 +16508,7 @@
   },
   "cell-signaling": {
    "name": "Cell signaling (signal transduction)",
+   "short": "Cell signaling",
    "blurb": "A signal molecule outside a cell sets off a chain of switches inside it that changes what the cell does.",
    "area": "signaling",
    "subject": "biology",
@@ -16180,6 +16553,7 @@
   },
   "cell-stress-response": {
    "name": "Cell stress responses (p53, JNK, unfolded proteins)",
+   "short": "Cell stress responses",
    "blurb": "A cell under stress frees a responder it makes all the time and normally holds back, such as p53.",
    "area": "signaling",
    "subject": "biology",
@@ -16218,6 +16592,7 @@
   },
   "dose-response": {
    "name": "Drug binding and dose-response (receptor occupancy)",
+   "short": "Dose-response",
    "blurb": "A drug or hormone acts by filling receptors; how many it fills depends on its dose and how tightly it binds.",
    "area": "signaling",
    "subject": "biology",
@@ -16263,6 +16638,7 @@
   },
   "extracellular-vesicles": {
    "name": "Extracellular vesicles and exosomes",
+   "short": "Extracellular vesicles",
    "blurb": "Cells release small membrane bubbles that carry proteins and RNA, and these can deliver a message to other cells.",
    "area": "signaling",
    "subject": "biology",
@@ -16301,6 +16677,7 @@
   },
   "gpcr-signaling": {
    "name": "G protein-coupled receptors (GPCRs)",
+   "short": "GPCRs",
    "blurb": "A receptor that crosses the membrane seven times passes a message to a G protein, a switch inside the cell.",
    "area": "signaling",
    "subject": "biology",
@@ -16350,6 +16727,7 @@
   },
   "gtpase-cycle": {
    "name": "GTPase switches (G proteins and Ras)",
+   "short": "GTPase switches",
    "blurb": "A protein holding GTP is on and slowly cuts it to turn off, so cutting speed sets signal length.",
    "area": "signaling",
    "subject": "biology",
@@ -16392,6 +16770,7 @@
   },
   "hedgehog-signaling": {
    "name": "Hedgehog signaling (Sonic hedgehog)",
+   "short": "Hedgehog signaling",
    "blurb": "A secreted signal tells embryo cells where they are by switching off Patched, a brake that holds Smoothened off.",
    "area": "signaling",
    "subject": "biology",
@@ -16438,6 +16817,7 @@
   },
   "jak-stat-pathway": {
    "name": "Cytokine receptors and JAK-STAT",
+   "short": "JAK-STAT",
    "blurb": "A receptor with no enzyme carries JAK kinases that tag STAT proteins, which pair up, enter the nucleus and switch on genes.",
    "area": "signaling",
    "subject": "biology",
@@ -16477,6 +16857,7 @@
   },
   "lipid-anchors": {
    "name": "Lipid anchors on proteins",
+   "short": "Lipid anchors",
    "blurb": "Fatty groups attached to a protein hold it at a membrane, and removing one releases it.",
    "area": "signaling",
    "subject": "biology",
@@ -16514,6 +16895,7 @@
   },
   "mtor-growth-control": {
    "name": "mTOR: the cell's decision to grow",
+   "short": "mTOR",
    "blurb": "The kinase mTORC1 switches on growth only when growth factors and amino acids both say yes.",
    "area": "signaling",
    "subject": "biology",
@@ -16553,6 +16935,7 @@
   },
   "nerve-growth-factor": {
    "name": "Nerve growth factor and survival signals",
+   "short": "Nerve growth factor",
    "blurb": "Young nerve cells stay alive only if the tissue they connect to sends them enough of a survival signal.",
    "area": "signaling",
    "subject": "biology",
@@ -16793,6 +17176,12 @@
    ],
    "rungs": [
     {
+     "lesson": "cancer-genetics",
+     "role": "core",
+     "anchor": "two-kinds-of-cancer-gene-accelerators-and-brakes",
+     "adds": "HRAS Val12 ignores the GAP that switches it off; MYC is amplified or moved."
+    },
+    {
      "lesson": "oncogenes",
      "role": "core",
      "anchor": "the-idea-five-ways-to-stick-a-switch",
@@ -16800,6 +17189,7 @@
     }
    ],
    "films": [
+    "cancer-genetics/explainer",
     "oncogenes/explainer",
     "oncogenes/chicken-gene"
    ],
@@ -16820,6 +17210,7 @@
   },
   "phosphoinositides": {
    "name": "Phosphoinositides (membrane lipid addresses)",
+   "short": "Phosphoinositides",
    "blurb": "Membrane lipids carry phosphates that enzymes add and remove, and proteins read them to find where to go.",
    "area": "signaling",
    "subject": "biology",
@@ -16857,6 +17248,7 @@
   },
   "pi3k-akt-pathway": {
    "name": "The PI 3-kinase and Akt pathway",
+   "short": "PI3K and Akt",
    "blurb": "A receptor makes a lipid on the inner membrane that holds the kinase Akt in place, and Akt acts on several targets.",
    "area": "signaling",
    "subject": "biology",
@@ -16894,6 +17286,7 @@
   },
   "positive-feedback": {
    "name": "Positive feedback and switches",
+   "short": "Positive feedback",
    "blurb": "When a response reinforces itself, a smooth dial can become an all-or-none switch that stays on.",
    "area": "signaling",
    "subject": "biology",
@@ -16932,6 +17325,7 @@
   },
   "protein-binding-domains": {
    "name": "Protein binding domains (SH2, SH3, PH)",
+   "short": "Protein binding domains",
    "blurb": "Small protein folds recognize a short sequence or lipid, so moving one onto a protein gives it a new partner.",
    "area": "signaling",
    "subject": "biology",
@@ -16979,6 +17373,7 @@
   },
   "protein-phosphorylation": {
    "name": "Protein phosphorylation (kinases and phosphatases)",
+   "short": "Protein phosphorylation",
    "blurb": "A cell adds or removes a phosphate on a protein to change what it does, using separate enzymes for each direction.",
    "area": "signaling",
    "subject": "biology",
@@ -17064,6 +17459,7 @@
   },
   "receptor-tyrosine-kinase": {
    "name": "Receptor tyrosine kinases",
+   "short": "Receptor kinases",
    "blurb": "Some cell-surface receptors have an enzyme inside that switches on when a signal brings two receptors together.",
    "area": "signaling",
    "subject": "biology",
@@ -17103,6 +17499,7 @@
   },
   "receptors": {
    "name": "Receptors: how a cell detects a signal",
+   "short": "Receptors",
    "blurb": "A receptor catches a signal molecule and answers by opening a channel, starting an enzyme or switching genes on.",
    "area": "signaling",
    "subject": "biology",
@@ -17188,6 +17585,12 @@
    ],
    "rungs": [
     {
+     "lesson": "signal-transduction",
+     "role": "core",
+     "anchor": "the-camp-relay-a-chain-of-switches",
+     "adds": "Sutherland's broken liver cells: cAMP relays epinephrine to PKA, and phosphodiesterase clears it."
+    },
+    {
      "lesson": "camp-and-pka",
      "role": "core",
      "anchor": "finding-the-messenger-in-broken-cells",
@@ -17205,6 +17608,7 @@
     }
    ],
    "films": [
+    "signal-transduction/explainer",
     "camp-and-pka/explainer",
     "camp-and-pka/chapter-2",
     "plc-ip3-dag-pkc/explainer",
@@ -17227,6 +17631,7 @@
   },
   "signal-amplification": {
    "name": "Signal amplification (gain)",
+   "short": "Signal amplification",
    "blurb": "A cascade of steps can turn one molecule's signal into a large response, and each step multiplies the gain.",
    "area": "signaling",
    "subject": "biology",
@@ -17264,6 +17669,7 @@
   },
   "signal-shape": {
    "name": "The shape of a signal (size, duration, frequency, place)",
+   "short": "The shape of a signal",
    "blurb": "A cell reads how much of a signal there is, how long it lasts, how often it comes and where.",
    "area": "signaling",
    "subject": "biology",
@@ -17301,6 +17707,7 @@
   },
   "signal-termination": {
    "name": "Turning a signal off (desensitization)",
+   "short": "Turning a signal off",
    "blurb": "Every cell signal needs an off switch, so a response can fade even while the hormone is still present.",
    "area": "signaling",
    "subject": "biology",
@@ -17419,6 +17826,7 @@
   },
   "tgf-beta-smad-signaling": {
    "name": "TGF-beta and Smad signaling",
+   "short": "TGF-beta and Smads",
    "blurb": "TGF-beta brings two receptor kinases together; they tag Smad proteins, which enter the nucleus and change which genes are read.",
    "area": "signaling",
    "subject": "biology",
@@ -17467,6 +17875,12 @@
    ],
    "rungs": [
     {
+     "lesson": "cancer-genetics",
+     "role": "core",
+     "anchor": "retinoblastoma-and-the-two-hit-arithmetic",
+     "adds": "Two hits on RB1: carriers average about three tumors, so penetrance is near 95%."
+    },
+    {
      "lesson": "oncogenes",
      "role": "core",
      "anchor": "one-copy-or-two-gain-acts-alone-loss-needs-both",
@@ -17474,6 +17888,7 @@
     }
    ],
    "films": [
+    "cancer-genetics/explainer",
     "oncogenes/explainer"
    ],
    "near": [
@@ -17493,6 +17908,7 @@
   },
   "two-component-system": {
    "name": "Two-component systems in bacteria",
+   "short": "Two-component systems",
    "blurb": "A bacterial sensor protein detects a signal and passes a phosphate to a second protein that changes what the cell does.",
    "area": "signaling",
    "subject": "biology",
@@ -17530,6 +17946,7 @@
   },
   "wnt-signaling": {
    "name": "Wnt signaling (β-catenin)",
+   "short": "Wnt signaling",
    "blurb": "A secreted Wnt signal stops a cell from destroying β-catenin, which then switches on genes that steer cell fate.",
    "area": "signaling",
    "subject": "biology",
@@ -17567,6 +17984,7 @@
   },
   "cell-fate": {
    "name": "How embryo cells get their fates",
+   "short": "Cell fate",
    "blurb": "What an embryo cell becomes is set by molecules it inherits from the egg and by signals from its neighbours.",
    "area": "development",
    "subject": "biology",
@@ -17617,6 +18035,7 @@
   },
   "cortical-expansion": {
    "name": "Why the human cortex is big",
+   "short": "Cortex expansion",
    "blurb": "The human cortex grew by spreading out, not thickening, because its stem cells double many more times before making neurons.",
    "area": "development",
    "subject": "biology",
@@ -17659,6 +18078,7 @@
   },
   "early-embryo": {
    "name": "How an embryo begins (cleavage and gastrulation)",
+   "short": "How an embryo begins",
    "blurb": "A fertilized egg divides into many smaller cells without growing, then cells move inside to form three layers.",
    "area": "development",
    "subject": "biology",
@@ -17783,6 +18203,7 @@
   },
   "interkinetic-nuclear-migration": {
    "name": "Interkinetic nuclear migration",
+   "short": "Nuclear migration",
    "blurb": "In a dividing brain stem cell, the nucleus moves up and down the long cell in step with its cell cycle.",
    "area": "development",
    "subject": "biology",
@@ -17823,6 +18244,7 @@
   },
   "lateral-inhibition": {
    "name": "Lateral inhibition between equal neighbours",
+   "short": "Lateral inhibition",
    "blurb": "Neighbouring cells that start alike hold each other back, until one takes a different fate, such as becoming a neuron.",
    "area": "development",
    "subject": "biology",
@@ -18000,6 +18422,7 @@
   },
   "neural-induction": {
    "name": "Neural induction (the default model)",
+   "short": "Neural induction",
    "blurb": "In frog embryos, the outer layer of cells becomes nervous system wherever the skin signal BMP is blocked.",
    "area": "development",
    "subject": "biology",
@@ -18044,6 +18467,7 @@
   },
   "neural-stem-cells": {
    "name": "Neural stem cells (radial glia)",
+   "short": "Neural stem cells",
    "blurb": "Stem cells in the developing brain divide to renew themselves and to make the neurons the brain needs.",
    "area": "development",
    "subject": "biology",
@@ -18124,6 +18548,7 @@
   },
   "neurulation": {
    "name": "Neurulation (forming the neural tube)",
+   "short": "Neurulation",
    "blurb": "A flat plate of cells on the embryo's back narrows, folds and seals into the tube that becomes brain and spinal cord.",
    "area": "development",
    "subject": "biology",
@@ -18165,6 +18590,7 @@
   },
   "organizer": {
    "name": "Organizers (signaling centers in the embryo)",
+   "short": "Organizers",
    "blurb": "An organizer is a small group of embryo cells whose signals tell nearby cells which body parts to build, and where.",
    "area": "development",
    "subject": "biology",
@@ -18371,6 +18797,7 @@
   },
   "reelin": {
    "name": "Reelin and the reeler mouse",
+   "short": "Reelin",
    "blurb": "Reelin is a protein secreted by cells at the top of the cortex that neurons need to take their places.",
    "area": "development",
    "subject": "biology",
@@ -18409,6 +18836,7 @@
   },
   "retinoic-acid-signaling": {
    "name": "Retinoic acid as a body-axis signal",
+   "short": "Retinoic acid",
    "blurb": "A vitamin A product made toward the back of the embryo shifts cells toward a more tail-like identity.",
    "area": "development",
    "subject": "biology",
@@ -18446,6 +18874,7 @@
   },
   "sexual-differentiation": {
    "name": "Becoming male or female (sexual differentiation)",
+   "short": "Becoming male or female",
    "blurb": "A gene on the Y chromosome makes the gonad a testis, which sends signals that shape the rest of the body.",
    "area": "development",
    "subject": "biology",
@@ -18485,6 +18914,7 @@
   },
   "temporal-identity": {
    "name": "Birth time sets neuron identity (temporal identity)",
+   "short": "Birth-time identity",
    "blurb": "A brain stem cell makes different neurons at different times, so the moment a neuron is born helps set its type.",
    "area": "development",
    "subject": "biology",
@@ -18528,6 +18958,7 @@
   },
   "transcription-factor-code": {
    "name": "Transcription factor codes",
+   "short": "Factor codes",
    "blurb": "A cell's type is set by which combination of gene-switching proteins it carries, not by any single one.",
    "area": "development",
    "subject": "biology",
@@ -18570,6 +19001,7 @@
   },
   "birth-dating-cells": {
    "name": "Birth dating cells (BrdU labelling)",
+   "short": "Birth dating cells",
    "blurb": "A label built into DNA at a known time marks the cells that were copying their DNA, and so were born, then.",
    "area": "methods",
    "subject": "biology",
@@ -18767,6 +19199,7 @@
   },
   "colocalization": {
    "name": "Colour overlap in a microscope image (colocalization)",
+   "short": "Colocalization",
    "blurb": "When two colours overlap in a microscope image, the two molecules are close together, which does not show they touch or bind.",
    "area": "methods",
    "subject": "biology",
@@ -18886,6 +19319,7 @@
   },
   "experimental-unit": {
    "name": "Counting samples: the experimental unit",
+   "short": "Counting samples",
    "blurb": "The sample size is the number of things treated independently, such as dishes or animals, not the cells measured in them.",
    "area": "methods",
    "subject": "biology",
@@ -18979,6 +19413,7 @@
   },
   "forward-and-reverse-genetics": {
    "name": "Forward and reverse genetics",
+   "short": "Forward, reverse genetics",
    "blurb": "Genetics can start from a trait and hunt for its gene, or start from a gene and see what changes.",
    "area": "methods",
    "subject": "biology",
@@ -19021,6 +19456,7 @@
   },
   "genome-assembly": {
    "name": "Genome assembly and the reference genome",
+   "short": "Genome assembly",
    "blurb": "Millions of short DNA reads are fitted back together into one genome, and repeated stretches make the fitting hard.",
    "area": "methods",
    "subject": "biology",
@@ -19058,6 +19494,7 @@
   },
   "gwas": {
    "name": "Genome-wide association studies (GWAS)",
+   "short": "GWAS",
    "blurb": "Scientists compare DNA across many people to find places in the genome that go with a trait.",
    "area": "methods",
    "subject": "biology",
@@ -19180,6 +19617,7 @@
   },
   "imperfect-detection": {
    "name": "Imperfect detection (when a negative is not absence)",
+   "short": "Imperfect detection",
    "blurb": "A survey can miss a species that is there, so repeated negatives lower the chance it is present but never to zero.",
    "area": "methods",
    "subject": "biology",
@@ -19218,6 +19656,7 @@
   },
   "kinase-substrates": {
    "name": "Finding a kinase's substrates",
+   "short": "Kinase substrates",
    "blurb": "An engineered kinase that alone accepts a bulky ATP look-alike labels its own targets, so they can be identified.",
    "area": "methods",
    "subject": "biology",
@@ -19255,6 +19694,7 @@
   },
   "lineage-tracing": {
    "name": "Lineage tracing (which cells came from which)",
+   "short": "Lineage tracing",
    "blurb": "Scientists mark one cell so that every cell it later makes carries the mark, showing which cells came from which.",
    "area": "methods",
    "subject": "biology",
@@ -19297,6 +19737,7 @@
   },
   "mark-recapture": {
    "name": "Counting hidden animals (mark and recapture)",
+   "short": "Counting hidden animals",
    "blurb": "Ecologists mark some animals, catch a second sample, and use the share already marked to estimate how many there are.",
    "area": "methods",
    "subject": "biology",
@@ -19334,6 +19775,7 @@
   },
   "microscopy": {
    "name": "Microscopes: magnification and resolution",
+   "short": "Microscopes",
    "blurb": "A microscope enlarges small things, but shows a detail only if it is wider than the smallest gap the tool can separate.",
    "area": "methods",
    "subject": "biology",
@@ -19390,6 +19832,7 @@
   },
   "needed-versus-enough": {
    "name": "Needed versus enough (necessity and sufficiency)",
+   "short": "Needed versus enough",
    "blurb": "Taking a part away shows whether it is needed; switching it on by itself shows whether it is enough.",
    "area": "methods",
    "subject": "biology",
@@ -19423,13 +19866,20 @@
      "role": "core",
      "anchor": "from-a-manipulation-to-a-claim",
      "adds": "Gain of function tests sufficiency, loss tests necessity; name cells, projection, timing, behaviour."
+    },
+    {
+     "lesson": "neurotrophic-hypothesis",
+     "role": "core",
+     "anchor": "add-it-take-it-away",
+     "adds": "NGF injected enlarges ganglia; antiserum to NGF destroys them in newborn mice."
     }
    ],
    "films": [
     "memory-systems/needed-not-stored",
     "memory-consolidation/enough-not-needed",
     "attention-and-decisions/visible-not-needed",
-    "circuit-experiment-design/explainer"
+    "circuit-experiment-design/explainer",
+    "neurotrophic-hypothesis/add-it-take-it-away"
    ],
    "near": [
     {
@@ -19500,6 +19950,7 @@
   },
   "organoids": {
    "name": "Organoids (brains in a dish)",
+   "short": "Organoids",
    "blurb": "Stem cells grown in a dish organize themselves into small tissue that resembles part of an organ.",
    "area": "methods",
    "subject": "biology",
@@ -19539,6 +19990,7 @@
   },
   "pcr": {
    "name": "PCR (polymerase chain reaction)",
+   "short": "PCR",
    "blurb": "A tube of DNA, two primers and a heat-stable enzyme copy one chosen region, doubling it each cycle.",
    "area": "methods",
    "subject": "biology",
@@ -19576,6 +20028,7 @@
   },
   "perturbation-and-rescue": {
    "name": "Remove it, then put it back (rescue experiments)",
+   "short": "Remove and rescue",
    "blurb": "To show a protein causes an effect, remove it, then restore it and see if the effect returns.",
    "area": "methods",
    "subject": "biology",
@@ -19700,6 +20153,7 @@
   },
   "radioimmunoassay": {
    "name": "Measuring a hormone by competition (radioimmunoassay)",
+   "short": "Radioimmunoassay",
    "blurb": "A hormone in a sample competes with a labelled copy for scarce antibody, so less label bound means more hormone.",
    "area": "methods",
    "subject": "biology",
@@ -19741,6 +20195,7 @@
   },
   "single-cell-rna-seq": {
    "name": "Single-cell RNA sequencing",
+   "short": "Single-cell RNA-seq",
    "blurb": "Counting the RNA of each cell separately shows the mix of cell types and states that a bulk sample averages.",
    "area": "methods",
    "subject": "biology",
@@ -19782,6 +20237,7 @@
   },
   "transgenic-and-knockout-mice": {
    "name": "Transgenic and knockout mice (Cre and lox)",
+   "short": "Knockout mice",
    "blurb": "Scientists add, remove or change a gene in a mouse, and with Cre and lox they do it only in chosen cells.",
    "area": "methods",
    "subject": "biology",
@@ -19834,8 +20290,8 @@
   "absorption-and-liver": {
    "hash": "c1c4a5910a9f0118",
    "concepts": [
-    "digestion",
-    "enterohepatic-circulation"
+    "enterohepatic-circulation",
+    "digestion"
    ]
   },
   "acid-base-balance": {
@@ -19874,8 +20330,8 @@
   "adhesion-and-ecm": {
    "hash": "49b3c22321483f98",
    "concepts": [
-    "cell-adhesion",
-    "extracellular-matrix"
+    "extracellular-matrix",
+    "cell-adhesion"
    ]
   },
   "adopt-a-tree": {
@@ -19913,25 +20369,25 @@
   "animal-body-plans": {
    "hash": "3a66dc5b854b311f",
    "concepts": [
-    "grades-and-clades",
     "animal-body-plans",
+    "grades-and-clades",
     "hydrostatic-skeleton"
    ]
   },
   "animal-development": {
    "hash": "698cf7a4be2b9f64",
    "concepts": [
-    "cell-fate",
     "early-embryo",
     "fertilization",
+    "cell-fate",
     "cell-division"
    ]
   },
   "animal-reproduction": {
    "hash": "218ba23bec7df7c7",
    "concepts": [
-    "meiosis",
     "sexual-and-asexual-reproduction",
+    "meiosis",
     "menstrual-cycle"
    ]
   },
@@ -19939,8 +20395,8 @@
    "hash": "714bece2aa6c1cf6",
    "concepts": [
     "cancer-immunotherapy",
-    "immunity",
-    "t-cell-receptor-signaling"
+    "t-cell-receptor-signaling",
+    "immunity"
    ]
   },
   "asymmetric-division": {
@@ -19953,8 +20409,8 @@
   "attention-and-decisions": {
    "hash": "27a0aa1bfe2ac8b5",
    "concepts": [
-    "attention",
     "evidence-accumulation",
+    "attention",
     "needed-versus-enough"
    ]
   },
@@ -20007,8 +20463,8 @@
   "binding-and-dose-response": {
    "hash": "10ca1ca13139bc14",
    "concepts": [
-    "protein-binding",
-    "dose-response"
+    "dose-response",
+    "protein-binding"
    ]
   },
   "biodiversity-ecosystem-function": {
@@ -20028,24 +20484,24 @@
   "blood-and-vessels": {
    "hash": "c11c3686ab236c81",
    "concepts": [
-    "blood-clotting",
     "blood-flow-resistance",
+    "blood-clotting",
     "capillary-exchange"
    ]
   },
   "blood-cells-and-hemostasis": {
    "hash": "4e65885a90b38a6f",
    "concepts": [
-    "blood-clotting",
-    "red-blood-cells"
+    "red-blood-cells",
+    "blood-clotting"
    ]
   },
   "blood-pressure-regulation": {
    "hash": "44cfb1ef9a4b6972",
    "concepts": [
+    "pressure-natriuresis",
     "baroreflex",
-    "homeostasis",
-    "pressure-natriuresis"
+    "homeostasis"
    ]
   },
   "blubber-glove": {
@@ -20058,8 +20514,8 @@
   "body-fluid-compartments": {
    "hash": "cbef2d54d0427a46",
    "concepts": [
-    "osmosis",
-    "body-water-compartments"
+    "body-water-compartments",
+    "osmosis"
    ]
   },
   "building-a-tree-of-life": {
@@ -20072,8 +20528,8 @@
   "calcium-phosphate-bone": {
    "hash": "e7a2b68061373576",
    "concepts": [
-    "bone-remodeling",
-    "calcium-balance"
+    "calcium-balance",
+    "bone-remodeling"
    ]
   },
   "calcium-signaling": {
@@ -20107,6 +20563,8 @@
    "hash": "15a429eb2e089080",
    "concepts": [
     "cancer",
+    "oncogene",
+    "tumour-suppressor",
     "mutation"
    ]
   },
@@ -20120,8 +20578,8 @@
   "carbohydrates": {
    "hash": "2a34953c2f1ddec4",
    "concepts": [
-    "sugar-coat",
-    "carbohydrates"
+    "carbohydrates",
+    "sugar-coat"
    ]
   },
   "carbon-and-water-cycles": {
@@ -20175,8 +20633,8 @@
   "cell-state-and-disease": {
    "hash": "e03c3793ebf8b628",
    "concepts": [
-    "clonal-expansion",
-    "single-cell-rna-seq"
+    "single-cell-rna-seq",
+    "clonal-expansion"
    ]
   },
   "cell-theory-evidence": {
@@ -20227,8 +20685,8 @@
   "chromosome-changes": {
    "hash": "339a1fd283dbdc9a",
    "concepts": [
-    "aneuploidy",
     "chromosome-rearrangements",
+    "aneuploidy",
     "meiosis"
    ]
   },
@@ -20249,9 +20707,9 @@
   "circuit-experiment-design": {
    "hash": "c4456167abcbc58f",
    "concepts": [
+    "optogenetics",
     "experimental-unit",
-    "needed-versus-enough",
-    "optogenetics"
+    "needed-versus-enough"
    ]
   },
   "circulation-and-heart": {
@@ -20264,6 +20722,7 @@
   "citric-acid-cycle": {
    "hash": "84edc25c53f52c76",
    "concepts": [
+    "citric-acid-cycle",
     "cellular-respiration"
    ]
   },
@@ -20314,8 +20773,8 @@
   "complementation-and-pathways": {
    "hash": "93114a23b1d5819b",
    "concepts": [
-    "biochemical-pathway-mutants",
-    "complementation-test"
+    "complementation-test",
+    "biochemical-pathway-mutants"
    ]
   },
   "complex-traits-and-gwas": {
@@ -20329,9 +20788,9 @@
   "conservation": {
    "hash": "72ef515bcec1fddc",
    "concepts": [
-    "effective-population-size",
     "conservation",
-    "extinction-risk-small-populations"
+    "extinction-risk-small-populations",
+    "effective-population-size"
    ]
   },
   "control-of-breathing": {
@@ -20350,16 +20809,16 @@
   "creek-critters": {
    "hash": "9af5e36e53ce3a10",
    "concepts": [
-    "ecosystem",
     "stream-health-indicators",
+    "ecosystem",
     "food-webs"
    ]
   },
   "crispr-and-functional-genomics": {
    "hash": "75c254574e25f9a3",
    "concepts": [
-    "genetic-engineering",
-    "forward-and-reverse-genetics"
+    "forward-and-reverse-genetics",
+    "genetic-engineering"
    ]
   },
   "critical-period-control": {
@@ -20371,9 +20830,9 @@
   "crossing-the-membrane": {
    "hash": "424f79f514cf7a28",
    "concepts": [
-    "active-transport",
     "cell-membrane",
     "osmosis",
+    "active-transport",
     "diffusion"
    ]
   },
@@ -20386,23 +20845,23 @@
   "cytokinesis": {
    "hash": "07dd56c8d6cf0142",
    "concepts": [
-    "cell-division",
-    "organelle-inheritance"
+    "organelle-inheritance",
+    "cell-division"
    ]
   },
   "cytoskeleton-dynamics": {
    "hash": "a150554a0a33e8a3",
    "concepts": [
-    "cytoskeleton",
-    "dynamic-instability"
+    "dynamic-instability",
+    "cytoskeleton"
    ]
   },
   "daily-and-seasonal-rhythms": {
    "hash": "f3bea8eb4a88f168",
    "concepts": [
-    "seasonal-responses",
     "seasonal-rhythms",
     "circadian-rhythm",
+    "seasonal-responses",
     "climate-change"
    ]
   },
@@ -20429,15 +20888,15 @@
    "hash": "16565404fc47a9dc",
    "concepts": [
     "identifying-proteins",
-    "kinase-substrates",
-    "radioimmunoassay"
+    "radioimmunoassay",
+    "kinase-substrates"
    ]
   },
   "diffusion-and-osmosis": {
    "hash": "4938e757a78c4dad",
    "concepts": [
-    "diffusion",
-    "osmosis"
+    "osmosis",
+    "diffusion"
    ]
   },
   "digestion": {
@@ -20450,8 +20909,8 @@
   "digestive-systems": {
    "hash": "7c7ce68977d6e801",
    "concepts": [
-    "digestion",
     "digestive-control",
+    "digestion",
     "gut-microbes",
     "enzymes"
    ]
@@ -20472,8 +20931,8 @@
   "diversity-and-succession": {
    "hash": "fb957a3ac7fb32df",
    "concepts": [
-    "biodiversity",
     "disturbance-and-diversity",
+    "biodiversity",
     "ecological-succession"
    ]
   },
@@ -20494,16 +20953,16 @@
   "dna-structure-and-copying": {
    "hash": "5ac8886ca469d7c4",
    "concepts": [
-    "dna-replication",
-    "dna-structure"
+    "dna-structure",
+    "dna-replication"
    ]
   },
   "dna-the-code-of-life": {
    "hash": "2f8bb6823140ca56",
    "concepts": [
     "dna-structure",
-    "gene-to-protein",
-    "genome-size"
+    "genome-size",
+    "gene-to-protein"
    ]
   },
   "dna-the-genetic-material": {
@@ -20556,8 +21015,8 @@
   "ecoevo-evidence-workshop": {
    "hash": "a62747ce90e8b7d9",
    "concepts": [
-    "environmental-dna",
-    "imperfect-detection"
+    "imperfect-detection",
+    "environmental-dna"
    ]
   },
   "emotion-and-stress": {
@@ -20577,9 +21036,9 @@
   "endocrine-system": {
    "hash": "f55df679107d3f86",
    "concepts": [
-    "blood-sugar",
     "hypothalamic-pituitary-axes",
     "metamorphosis",
+    "blood-sugar",
     "homeostasis"
    ]
   },
@@ -20592,8 +21051,8 @@
   "endocytosis-and-signaling-endosomes": {
    "hash": "c064a39b468361bd",
    "concepts": [
-    "endocytosis",
-    "signaling-endosome"
+    "signaling-endosome",
+    "endocytosis"
    ]
   },
   "energy-flow": {
@@ -20601,8 +21060,8 @@
    "concepts": [
     "food-webs",
     "primary-production",
-    "photosynthesis",
-    "decomposers"
+    "decomposers",
+    "photosynthesis"
    ]
   },
   "energy-in-ecosystems": {
@@ -20614,8 +21073,8 @@
   "enzyme-action-basics": {
    "hash": "5589390e54712301",
    "concepts": [
-    "enzymes",
-    "free-energy"
+    "free-energy",
+    "enzymes"
    ]
   },
   "enzyme-kinetics": {
@@ -20640,16 +21099,16 @@
   "eukaryotic-regulation": {
    "hash": "7de9c37e9b2c0e14",
    "concepts": [
-    "epigenetics",
-    "gene-regulation"
+    "gene-regulation",
+    "epigenetics"
    ]
   },
   "eutrophication-and-big-changes": {
    "hash": "c51a62398858c390",
    "concepts": [
-    "biodiversity",
-    "climate-change",
     "nutrient-pollution",
+    "climate-change",
+    "biodiversity",
     "decomposers"
    ]
   },
@@ -20662,7 +21121,8 @@
   "evidence-for-evolution": {
    "hash": "0f53b3a3eb6b930c",
    "concepts": [
-    "evidence-for-evolution"
+    "evidence-for-evolution",
+    "dna-comparison"
    ]
   },
   "evolution-of-development": {
@@ -20675,8 +21135,8 @@
    "hash": "975ec31153083087",
    "concepts": [
     "oxygen-uptake",
-    "cellular-respiration",
-    "body-temperature"
+    "body-temperature",
+    "cellular-respiration"
    ]
   },
   "exosomes-and-extracellular-vesicles": {
@@ -20689,8 +21149,8 @@
   "experiments-that-distinguish": {
    "hash": "770d21787d0aa374",
    "concepts": [
-    "cell-fractionation",
     "perturbation-and-rescue",
+    "cell-fractionation",
     "pulse-chase"
    ]
   },
@@ -20765,9 +21225,9 @@
   "gas-exchange": {
    "hash": "8327479d88082d97",
    "concepts": [
-    "diffusion",
     "breathing",
-    "gas-exchange"
+    "gas-exchange",
+    "diffusion"
    ]
   },
   "genetic-code-and-translation": {
@@ -20802,9 +21262,9 @@
   "global-change": {
    "hash": "1f0a0c7ce52ae15d",
    "concepts": [
+    "species-range-shifts",
     "climate-change",
-    "seasonal-rhythms",
-    "species-range-shifts"
+    "seasonal-rhythms"
    ]
   },
   "glomerular-filtration": {
@@ -20823,7 +21283,9 @@
   "glycolysis": {
    "hash": "070f7dfdf7f66a14",
    "concepts": [
-    "cellular-respiration"
+    "glycolysis",
+    "cellular-respiration",
+    "fermentation"
    ]
   },
   "gpcrs-and-g-proteins": {
@@ -20874,9 +21336,9 @@
   "hacking-the-cell": {
    "hash": "e79e6193640fc4a4",
    "concepts": [
+    "transgenic-and-knockout-mice",
     "fluorescent-reporters",
-    "optogenetics",
-    "transgenic-and-knockout-mice"
+    "optogenetics"
    ]
   },
   "hair-cell-transduction-channel": {
@@ -20894,9 +21356,9 @@
   "hearing-and-balance": {
    "hash": "d3797564801c1a5f",
    "concepts": [
-    "hair-cells",
     "hearing",
-    "sense-of-balance"
+    "sense-of-balance",
+    "hair-cells"
    ]
   },
   "hearing-loss-and-repair": {
@@ -20923,8 +21385,8 @@
   "history-of-life": {
    "hash": "b4e8c21fc20995ce",
    "concepts": [
-    "adaptive-radiation",
     "mass-extinction",
+    "adaptive-radiation",
     "evidence-for-evolution"
    ]
   },
@@ -20938,23 +21400,23 @@
   "how-microbes-multiply": {
    "hash": "35e837f240297d0f",
    "concepts": [
-    "bacteria",
-    "viruses"
+    "viruses",
+    "bacteria"
    ]
   },
   "how-signaling-evolved": {
    "hash": "a530c109980dcb34",
    "concepts": [
-    "gene-duplication",
     "two-component-system",
+    "gene-duplication",
     "mutation"
    ]
   },
   "hox-and-hindbrain": {
    "hash": "ecfff163744397f7",
    "concepts": [
-    "hox-genes",
-    "retinoic-acid-signaling"
+    "retinoic-acid-signaling",
+    "hox-genes"
    ]
   },
   "human-brain-expansion": {
@@ -20974,9 +21436,9 @@
   "hypothalamus-autonomic": {
    "hash": "57fcc4d4976e2401",
    "concepts": [
-    "homeostasis",
     "hypothalamic-pituitary-axes",
-    "autonomic-nervous-system"
+    "autonomic-nervous-system",
+    "homeostasis"
    ]
   },
   "inherited-or-acquired": {
@@ -21016,25 +21478,25 @@
   "integration-of-metabolism": {
    "hash": "c4f05ab556f86256",
    "concepts": [
-    "blood-sugar",
-    "fasting-and-starvation"
+    "fasting-and-starvation",
+    "blood-sugar"
    ]
   },
   "integrins-and-rho-gtpases": {
    "hash": "ff1d9e85d09f637a",
    "concepts": [
-    "cell-adhesion",
-    "rho-gtpases"
+    "rho-gtpases",
+    "cell-adhesion"
    ]
   },
   "intro-biochemistry-cell-biology": {
    "hash": "6c0e8e732874ebf3",
    "concepts": [
     "cell-size",
-    "organelles",
     "macromolecules",
     "dna-replication",
-    "gene-to-protein"
+    "gene-to-protein",
+    "organelles"
    ]
   },
   "ion-channels-as-receptors": {
@@ -21085,8 +21547,8 @@
   "land-and-water-ecosystems": {
    "hash": "58a069bd14475093",
    "concepts": [
-    "climate",
-    "ecosystem"
+    "ecosystem",
+    "climate"
    ]
   },
   "language": {
@@ -21114,8 +21576,8 @@
   "levels-of-organization": {
    "hash": "eac092e30aab82f2",
    "concepts": [
-    "cell-size",
     "levels-of-organization",
+    "cell-size",
     "cell-theory"
    ]
   },
@@ -21162,8 +21624,8 @@
   "lipids": {
    "hash": "2ecd80cd81be35c5",
    "concepts": [
-    "cell-membrane",
-    "lipids"
+    "lipids",
+    "cell-membrane"
    ]
   },
   "listening-walk": {
@@ -21176,9 +21638,9 @@
   "living-or-not": {
    "hash": "c0e5acf4d27e2c11",
    "concepts": [
-    "characteristics-of-life",
+    "viruses",
     "bacteria",
-    "viruses"
+    "characteristics-of-life"
    ]
   },
   "living-together-symbiosis": {
@@ -21210,8 +21672,8 @@
   "lung-mechanics-surfactant": {
    "hash": "c8ee91996bb409d4",
    "concepts": [
-    "breathing",
-    "surfactant"
+    "surfactant",
+    "breathing"
    ]
   },
   "lymphoid-organs-immune-traffic": {
@@ -21244,8 +21706,8 @@
   "measured-eukaryotic-cell": {
    "hash": "b82c98c91e429932",
    "concepts": [
-    "cell-size",
     "cell-size-control",
+    "cell-size",
     "organelles"
    ]
   },
@@ -21266,16 +21728,17 @@
   "membrane-organization-topology": {
    "hash": "f3a0458b2d502239",
    "concepts": [
-    "lipid-asymmetry",
     "membrane-protein-topology",
+    "lipid-asymmetry",
+    "cell-membrane",
     "diffusion"
    ]
   },
   "membrane-structure-function": {
    "hash": "e404f89e8a63ea9a",
    "concepts": [
-    "active-transport",
     "cell-membrane",
+    "active-transport",
     "ion-channels"
    ]
   },
@@ -21283,8 +21746,8 @@
    "hash": "848c4d426fd9a0a6",
    "concepts": [
     "active-transport",
-    "diffusion",
-    "electrochemical-gradient"
+    "electrochemical-gradient",
+    "diffusion"
    ]
   },
   "memory-consolidation": {
@@ -21317,24 +21780,24 @@
   "metabolism-basic-concepts": {
    "hash": "2e7d1bc194f93064",
    "concepts": [
-    "atp",
-    "cellular-respiration"
+    "cellular-respiration",
+    "atp"
    ]
   },
   "microbes-in-ecosystems": {
    "hash": "711cb019b5fc736e",
    "concepts": [
-    "decomposers",
     "gut-microbes",
+    "decomposers",
     "nitrogen-cycle"
    ]
   },
   "microbes-protists-fungi": {
    "hash": "2d0288fdd1d7ea52",
    "concepts": [
-    "classification",
     "fungi",
-    "bacteria"
+    "bacteria",
+    "classification"
    ]
   },
   "microcephaly-and-malformations": {
@@ -21354,15 +21817,15 @@
   "microscopy-and-images": {
    "hash": "e825320613281c16",
    "concepts": [
-    "colocalization",
-    "microscopy"
+    "microscopy",
+    "colocalization"
    ]
   },
   "migration-and-cilia": {
    "hash": "222ebd50946ef3e2",
    "concepts": [
-    "cell-migration",
     "cilia",
+    "cell-migration",
     "cytoskeleton",
     "motor-proteins"
    ]
@@ -21391,25 +21854,25 @@
   "motivation-and-reward": {
    "hash": "2bae10f0cd81ab25",
    "concepts": [
-    "hunger-and-appetite",
     "reward-prediction-error",
+    "hunger-and-appetite",
     "wanting-vs-liking"
    ]
   },
   "motor-neuron-code": {
    "hash": "0e7efa53955336ac",
    "concepts": [
-    "motor-neuron-specification",
     "transcription-factor-code",
+    "motor-neuron-specification",
     "hox-genes"
    ]
   },
   "motor-units-reflexes": {
    "hash": "d78a7abe4038cd2e",
    "concepts": [
-    "central-pattern-generator",
     "motor-unit-recruitment",
-    "stretch-reflex"
+    "stretch-reflex",
+    "central-pattern-generator"
    ]
   },
   "mtor-and-ampk": {
@@ -21422,15 +21885,15 @@
   "multisensory-and-prediction": {
    "hash": "b030e532b505fd01",
    "concepts": [
-    "efference-copy",
-    "multisensory-integration"
+    "multisensory-integration",
+    "efference-copy"
    ]
   },
   "muscle-and-movement": {
    "hash": "cb8033bbfc6b5b1b",
    "concepts": [
-    "muscle-contraction",
     "skeletons-and-support",
+    "muscle-contraction",
     "action-potential",
     "synapse"
    ]
@@ -21452,8 +21915,8 @@
   "mutualism-parasitism-coevolution": {
    "hash": "cab9cb9eb5022cca",
    "concepts": [
-    "coevolution",
-    "symbiosis"
+    "symbiosis",
+    "coevolution"
    ]
   },
   "myelination": {
@@ -21472,15 +21935,15 @@
   "natural-selection-and-speciation": {
    "hash": "e0c864e8ccadd645",
    "concepts": [
-    "natural-selection",
-    "speciation"
+    "speciation",
+    "natural-selection"
    ]
   },
   "natural-selection-in-action": {
    "hash": "d85f45afb28e6379",
    "concepts": [
-    "artificial-selection",
     "natural-selection",
+    "artificial-selection",
     "adaptation"
    ]
   },
@@ -21493,17 +21956,18 @@
   "nervous-control": {
    "hash": "d63ac1cba6f86df9",
    "concepts": [
-    "action-potential",
     "autonomic-nervous-system",
+    "stretch-reflex",
+    "action-potential",
     "synapse"
    ]
   },
   "nervous-system-map": {
    "hash": "142fc37d03b042b0",
    "concepts": [
-    "cerebrospinal-fluid",
+    "nervous-system-organization",
     "localization-of-function",
-    "nervous-system-organization"
+    "cerebrospinal-fluid"
    ]
   },
   "netrin-and-dcc": {
@@ -21542,6 +22006,7 @@
   "neuron-doctrine": {
    "hash": "d8ffa63195ca1869",
    "concepts": [
+    "neuron-doctrine",
     "cell-theory",
     "synapse"
    ]
@@ -21555,22 +22020,23 @@
   "neurons-and-glia-at-work": {
    "hash": "fe62934c9b6e79a3",
    "concepts": [
-    "glia",
     "neuron-structure",
+    "glia",
     "action-potential"
    ]
   },
   "neurotrophic-hypothesis": {
    "hash": "69d5a272522fc498",
    "concepts": [
+    "needed-versus-enough",
     "nerve-growth-factor"
    ]
   },
   "neurulation-and-tube-defects": {
    "hash": "72dc3e6043986e2b",
    "concepts": [
-    "neural-tube-defects",
-    "neurulation"
+    "neurulation",
+    "neural-tube-defects"
    ]
   },
   "niches-and-distributions": {
@@ -21623,25 +22089,25 @@
   "nucleotide-metabolism": {
    "hash": "194399b790cea1b7",
    "concepts": [
-    "antimetabolite-drugs",
     "nucleotide-metabolism",
-    "uric-acid-and-gout"
+    "uric-acid-and-gout",
+    "antimetabolite-drugs"
    ]
   },
   "nutrient-cycling": {
    "hash": "affa670302499f1b",
    "concepts": [
-    "carbon-cycle",
-    "nitrogen-cycle",
     "nutrient-pollution",
+    "nitrogen-cycle",
+    "carbon-cycle",
     "decomposers"
    ]
   },
   "ocular-dominance": {
    "hash": "c9da83bd86dfd62b",
    "concepts": [
-    "activity-dependent-competition",
-    "critical-period"
+    "critical-period",
+    "activity-dependent-competition"
    ]
   },
   "olfactory-bulb-and-cortex": {
@@ -21660,6 +22126,7 @@
    "hash": "5e17c25eee34a3c5",
    "concepts": [
     "oncogene",
+    "cancer",
     "tumour-suppressor",
     "mutation"
    ]
@@ -21667,8 +22134,8 @@
   "one-cell-or-many": {
    "hash": "f99cdc7ecd80a322",
    "concepts": [
-    "gene-regulation",
-    "levels-of-organization"
+    "levels-of-organization",
+    "gene-regulation"
    ]
   },
   "organelles-as-a-system": {
@@ -21688,16 +22155,16 @@
   "organism-problems": {
    "hash": "bd5bd7218968620c",
    "concepts": [
-    "proximate-and-ultimate-causes",
     "stomata-and-water-loss",
+    "proximate-and-ultimate-causes",
     "adaptation"
    ]
   },
   "organoids": {
    "hash": "8e5f947d1d75adec",
    "concepts": [
-    "cell-reprogramming",
-    "organoids"
+    "organoids",
+    "cell-reprogramming"
    ]
   },
   "origins-of-glia": {
@@ -21709,9 +22176,9 @@
   "osmoregulation": {
    "hash": "4561338e688c0b35",
    "concepts": [
-    "osmosis",
     "nitrogenous-waste",
-    "osmoregulation"
+    "osmoregulation",
+    "osmosis"
    ]
   },
   "ovarian-cycle-fertility": {
@@ -21723,8 +22190,8 @@
   "oxidative-phosphorylation": {
    "hash": "5275c111fa6e6644",
    "concepts": [
-    "cellular-respiration",
-    "chemiosmosis"
+    "chemiosmosis",
+    "cellular-respiration"
    ]
   },
   "oxygen-transport": {
@@ -21737,8 +22204,8 @@
   "partners-layers-self-avoidance": {
    "hash": "619829fef1c12660",
    "concepts": [
-    "layer-targeting",
     "self-avoidance",
+    "layer-targeting",
     "smell"
    ]
   },
@@ -21771,8 +22238,8 @@
   "photoreceptor-adaptation-and-degeneration": {
    "hash": "04d09f4dd2882ebc",
    "concepts": [
-    "light-adaptation",
-    "retinal-degeneration"
+    "retinal-degeneration",
+    "light-adaptation"
    ]
   },
   "photosynthesis-and-respiration-partners": {
@@ -21798,8 +22265,8 @@
   "pi3k-akt-insulin": {
    "hash": "b963981a8179518f",
    "concepts": [
-    "blood-sugar",
-    "pi3k-akt-pathway"
+    "pi3k-akt-pathway",
+    "blood-sugar"
    ]
   },
   "plant-and-animal-cells": {
@@ -21812,23 +22279,23 @@
   "plant-body-and-growth": {
    "hash": "8122283067587bc1",
    "concepts": [
-    "meristems",
-    "secondary-growth"
+    "secondary-growth",
+    "meristems"
    ]
   },
   "plant-diversity-life-cycles": {
    "hash": "26181fe6f7d3d9d2",
    "concepts": [
-    "alternation-of-generations",
     "plants-on-land",
+    "alternation-of-generations",
     "meiosis"
    ]
   },
   "plant-nutrition": {
    "hash": "75ad138f5f1d4053",
    "concepts": [
-    "nitrogen-fixation",
     "plant-mineral-nutrition",
+    "nitrogen-fixation",
     "plant-water-transport"
    ]
   },
@@ -21842,25 +22309,25 @@
    "hash": "4d51717da246af41",
    "concepts": [
     "double-fertilization",
-    "pollination",
     "seeds-and-fruits",
+    "pollination",
     "meiosis"
    ]
   },
   "plant-signals": {
    "hash": "3ad169b58669ac4d",
    "concepts": [
-    "photoperiodism",
+    "plant-tropisms",
     "plant-hormones",
-    "plant-tropisms"
+    "photoperiodism"
    ]
   },
   "plant-transport": {
    "hash": "44f5534bfa2a4daf",
    "concepts": [
-    "osmosis",
     "phloem-transport",
     "plant-water-transport",
+    "osmosis",
     "photosynthesis"
    ]
   },
@@ -21874,8 +22341,8 @@
   "population-genetics": {
    "hash": "10e95ef1540dc4f8",
    "concepts": [
-    "genetic-drift",
     "hardy-weinberg",
+    "genetic-drift",
     "mutation",
     "natural-selection"
    ]
@@ -21889,15 +22356,15 @@
   "populations-rise-and-fall": {
    "hash": "2382521747eb6201",
    "concepts": [
-    "limiting-factors",
-    "population-growth"
+    "population-growth",
+    "limiting-factors"
    ]
   },
   "predation": {
    "hash": "1f6ac0e051395e10",
    "concepts": [
-    "keystone-species",
-    "predation"
+    "predation",
+    "keystone-species"
    ]
   },
   "predators-and-prey": {
@@ -21915,9 +22382,9 @@
   "pregnancy-birth-lactation": {
    "hash": "5f021466a1a4e7e1",
    "concepts": [
+    "pregnancy",
     "fetal-circulation",
-    "lactation",
-    "pregnancy"
+    "lactation"
    ]
   },
   "pressure-volume-loops": {
@@ -21929,8 +22396,8 @@
   "probability-and-crosses": {
    "hash": "f57ed0279224df49",
    "concepts": [
-    "inheritance",
-    "chi-square-test"
+    "chi-square-test",
+    "inheritance"
    ]
   },
   "producers-consumers-decomposers": {
@@ -21957,17 +22424,17 @@
   "protein-3d-structure": {
    "hash": "cc825a19ec916c3b",
    "concepts": [
-    "protein-folding",
     "protein-structure",
+    "protein-folding",
     "hydrophobic-effect"
    ]
   },
   "protein-binding-allostery": {
    "hash": "f8cd914c6c907fde",
    "concepts": [
-    "allostery",
     "protein-binding",
-    "oxygen-transport"
+    "oxygen-transport",
+    "allostery"
    ]
   },
   "protein-interaction-modules": {
@@ -21980,8 +22447,8 @@
   "protein-purification-techniques": {
    "hash": "8036c85195618290",
    "concepts": [
-    "identifying-proteins",
-    "protein-purification"
+    "protein-purification",
+    "identifying-proteins"
    ]
   },
   "protein-sorting": {
@@ -22000,8 +22467,8 @@
   "protein-turnover-amino-acid-catabolism": {
    "hash": "8bf87de5715a3d10",
    "concepts": [
-    "protein-degradation",
     "amino-acid-catabolism",
+    "protein-degradation",
     "urea-cycle"
    ]
   },
@@ -22026,15 +22493,15 @@
   "quality-control-and-autophagy": {
    "hash": "6311359726690bd1",
    "concepts": [
-    "autophagy",
-    "protein-quality-control"
+    "protein-quality-control",
+    "autophagy"
    ]
   },
   "radial-glia-progenitors": {
    "hash": "21e251d5e1dab57a",
    "concepts": [
-    "interkinetic-nuclear-migration",
-    "neural-stem-cells"
+    "neural-stem-cells",
+    "interkinetic-nuclear-migration"
    ]
   },
   "radial-migration": {
@@ -22052,8 +22519,8 @@
   "reading-phylogenetic-trees": {
    "hash": "21117bec50025fc2",
    "concepts": [
-    "homology-and-convergence",
-    "phylogenetic-trees"
+    "phylogenetic-trees",
+    "homology-and-convergence"
    ]
   },
   "receptor-field-guide": {
@@ -22071,15 +22538,15 @@
   "recombinant-dna-and-pcr": {
    "hash": "2620150a29d8d5af",
    "concepts": [
-    "genetic-engineering",
-    "pcr"
+    "pcr",
+    "genetic-engineering"
    ]
   },
   "reelin-and-reeler": {
    "hash": "8100997b967d8296",
    "concepts": [
-    "cortical-layers",
     "reelin",
+    "cortical-layers",
     "neuronal-migration"
    ]
   },
@@ -22092,8 +22559,8 @@
   "reproduction-and-meiosis": {
    "hash": "4f51a6839a61ebe4",
    "concepts": [
-    "meiosis",
-    "sexual-and-asexual-reproduction"
+    "sexual-and-asexual-reproduction",
+    "meiosis"
    ]
   },
   "resistance-compliance-local-flow": {
@@ -22106,8 +22573,8 @@
   "respiration-and-atp": {
    "hash": "9be47e9d7a6060f0",
    "concepts": [
-    "atp",
     "cellular-respiration",
+    "atp",
     "fermentation"
    ]
   },
@@ -22121,15 +22588,15 @@
   "restoring-ecosystems": {
    "hash": "3ac904a786829a58",
    "concepts": [
-    "conservation",
-    "human-impact-on-ecosystems"
+    "human-impact-on-ecosystems",
+    "conservation"
    ]
   },
   "retina": {
    "hash": "076d63e8bcc59ee2",
    "concepts": [
-    "colour-vision",
-    "vision"
+    "vision",
+    "colour-vision"
    ]
   },
   "retinal-cell-types": {
@@ -22198,8 +22665,8 @@
   "senses-and-cgmp": {
    "hash": "e8a9535487e76cee",
    "concepts": [
-    "vision",
     "nitric-oxide-signaling",
+    "vision",
     "smell"
    ]
   },
@@ -22231,23 +22698,23 @@
   "sequencing-and-genomes": {
    "hash": "1e3a6bfa4536191e",
    "concepts": [
-    "dna-sequencing",
-    "genome-assembly"
+    "genome-assembly",
+    "dna-sequencing"
    ]
   },
   "sex-linkage-and-beyond": {
    "hash": "9c0d78fa0b278c3a",
    "concepts": [
+    "sex-linkage",
     "dosage-compensation",
-    "genomic-imprinting",
-    "sex-linkage"
+    "genomic-imprinting"
    ]
   },
   "sexual-differentiation-testis": {
    "hash": "f59b0e0bb5fdbe01",
    "concepts": [
-    "spermatogenesis",
-    "sexual-differentiation"
+    "sexual-differentiation",
+    "spermatogenesis"
    ]
   },
   "shape-of-a-signal": {
@@ -22267,6 +22734,7 @@
    "hash": "c874309284b25d7c",
    "concepts": [
     "cell-signaling",
+    "second-messengers",
     "gpcr-signaling"
    ]
   },
@@ -22288,32 +22756,32 @@
   "signals-and-distance": {
    "hash": "b574c3a76a9e70a1",
    "concepts": [
-    "diffusion",
     "cell-signaling",
+    "diffusion",
     "synapse"
    ]
   },
   "size-and-scaling": {
    "hash": "c3e52decbf0f3ea2",
    "concepts": [
-    "diffusion",
     "metabolic-scaling",
+    "diffusion",
     "cell-size"
    ]
   },
   "skeletal-muscle-mechanics": {
    "hash": "87a5bf95dafaf96c",
    "concepts": [
-    "muscle-fatigue",
     "muscle-force-and-speed",
+    "muscle-fatigue",
     "cellular-respiration"
    ]
   },
   "skin-and-human-heat": {
    "hash": "79e848193ce2811d",
    "concepts": [
-    "body-temperature",
-    "skin"
+    "skin",
+    "body-temperature"
    ]
   },
   "sleep-and-rhythms": {
@@ -22334,9 +22802,9 @@
   "smell-and-taste": {
    "hash": "e9cfdb4340153db9",
    "concepts": [
-    "sensory-coding",
+    "taste",
     "smell",
-    "taste"
+    "sensory-coding"
    ]
   },
   "smell-detectives": {
@@ -22350,7 +22818,8 @@
    "hash": "2245064407a03c49",
    "concepts": [
     "myogenic-response",
-    "smooth-muscle-contraction"
+    "smooth-muscle-contraction",
+    "muscle-contraction"
    ]
   },
   "soil-shake": {
@@ -22370,8 +22839,8 @@
   "spatial-populations": {
    "hash": "13383b46f4db7b4e",
    "concepts": [
-    "metapopulation",
-    "mark-recapture"
+    "mark-recapture",
+    "metapopulation"
    ]
   },
   "speciation": {
@@ -22391,23 +22860,23 @@
   "spontaneous-activity": {
    "hash": "20bca415caa9b203",
    "concepts": [
-    "activity-dependent-competition",
-    "spontaneous-activity"
+    "spontaneous-activity",
+    "activity-dependent-competition"
    ]
   },
   "stem-cells": {
    "hash": "d64a0aeb94840dcb",
    "concepts": [
     "cell-reprogramming",
-    "stem-cell-niche",
-    "stem-cells"
+    "stem-cells",
+    "stem-cell-niche"
    ]
   },
   "stress-signals": {
    "hash": "7c4cebc0bdc75c51",
    "concepts": [
-    "protein-quality-control",
     "cell-stress-response",
+    "protein-quality-control",
     "cell-death"
    ]
   },
@@ -22420,33 +22889,33 @@
   "synapse-disorders": {
    "hash": "e9d201dc30b3f5e2",
    "concepts": [
+    "autism-genes",
     "fragile-x-syndrome",
     "rett-syndrome",
-    "autism-genes",
     "synapse"
    ]
   },
   "synapse-elimination": {
    "hash": "562b400908b4877b",
    "concepts": [
-    "activity-dependent-competition",
     "synapse-pruning",
+    "activity-dependent-competition",
     "synapse"
    ]
   },
   "synaptic-integration": {
    "hash": "915a59455320759f",
    "concepts": [
-    "inhibition",
+    "synaptic-integration",
     "neuromodulation",
-    "synaptic-integration"
+    "inhibition"
    ]
   },
   "synaptic-plasticity": {
    "hash": "4885cdda9bd7e317",
    "concepts": [
-    "long-term-potentiation",
-    "short-term-plasticity"
+    "short-term-plasticity",
+    "long-term-potentiation"
    ]
   },
   "synaptic-transmission": {
@@ -22484,16 +22953,16 @@
   "the-organizer": {
    "hash": "b351e7d61d68640c",
    "concepts": [
-    "cell-fate",
-    "organizer"
+    "organizer",
+    "cell-fate"
    ]
   },
   "thermoregulation": {
    "hash": "a506238bd222e667",
    "concepts": [
-    "metabolic-rate",
     "body-temperature",
     "hibernation-and-torpor",
+    "metabolic-rate",
     "homeostasis"
    ]
   },
@@ -22525,8 +22994,8 @@
   "tissues-and-homeostasis": {
    "hash": "f6b889fcee964419",
    "concepts": [
-    "homeostasis",
     "levels-of-organization",
+    "homeostasis",
     "regulators-and-conformers",
     "body-temperature"
    ]
@@ -22542,8 +23011,8 @@
   "tools-for-development": {
    "hash": "c7902166f4d3ff44",
    "concepts": [
-    "lineage-tracing",
-    "transgenic-and-knockout-mice"
+    "transgenic-and-knockout-mice",
+    "lineage-tracing"
    ]
   },
   "topographic-maps": {
@@ -22582,8 +23051,8 @@
   "transmitter-systems": {
    "hash": "65540322470a755c",
    "concepts": [
-    "neurotransmitters",
     "dose-response",
+    "neurotransmitters",
     "synapse"
    ]
   },
@@ -22623,6 +23092,7 @@
   "variation-and-survival": {
    "hash": "51b7d1b669688a02",
    "concepts": [
+    "variation",
     "natural-selection",
     "mutation"
    ]
@@ -22642,9 +23112,9 @@
   "vestibular-system": {
    "hash": "63563f8cac5e7179",
    "concepts": [
+    "sense-of-balance",
     "efference-copy",
-    "synapse",
-    "sense-of-balance"
+    "synapse"
    ]
   },
   "vibration-corpuscles": {
@@ -22675,8 +23145,8 @@
    "hash": "09c955e34efc6f1e",
    "concepts": [
     "properties-of-water",
-    "specific-heat",
-    "plant-water-transport"
+    "plant-water-transport",
+    "specific-heat"
    ]
   },
   "water-sodium-potassium": {
@@ -22684,16 +23154,16 @@
    "concepts": [
     "osmoregulation",
     "potassium-balance",
-    "osmosis",
-    "homeostasis"
+    "homeostasis",
+    "osmosis"
    ]
   },
   "water-weak-bonds": {
    "hash": "be02c94507706216",
    "concepts": [
-    "hydrophobic-effect",
+    "weak-interactions",
     "ph-and-buffers",
-    "weak-interactions"
+    "hydrophobic-effect"
    ]
   },
   "watershed-in-a-pan": {

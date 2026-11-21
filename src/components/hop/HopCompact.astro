@@ -1,0 +1,20 @@
+---
+/* The hop in one line, for a film card, a search result or a side panel:
+   "Osmosis, high school. Also at: grade 7 and a first college course."
+   The idea's name links to its page; the levels are plain words (the small ladder is the glance).
+   Give `here` the rank of the film or lesson the line sits beside, or leave it off. */
+import '../../styles/hop.css';
+import Ladder from './Ladder.astro';
+import { compactLine } from '../../lib/hop-words.mjs';
+
+interface Props {
+  id: string;
+  name: string;
+  mask: number;
+  here?: number | null;
+}
+const { id, name, mask, here = null } = Astro.props;
+const line = compactLine({ name, mask, here });
+const rest = line.slice(name.length);
+---
+<p class="hop-compact"><Ladder size="compact" mask={mask} hereRank={here} /><span class="hop-compact-t"><a href={`/ideas/${id}/`}>{name}</a>{rest}</span></p>
