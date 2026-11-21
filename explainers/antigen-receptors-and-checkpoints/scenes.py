@@ -1,588 +1,1096 @@
-"""Antigen receptors and checkpoints: two phosphates, two signals  (Biochemistrypedia explainer)
+"""Two Phosphates on Partner Tails — Antigen Receptors and Checkpoints.
 
-Timed to the SPOKEN words: every self.at("...") cue waits for that phrase in audio/words.json.
+COLOUR MAP (one colour per concept for the whole film)
+  APC_COL     = #6E7F94   presenting cell membrane & MHC protein
+  PEPTIDE_COL = #E8EAF0   peptide held in MHC groove (TEXT)
+  TCR_COL     = #58C4DD   alpha-beta T-cell receptor recognition chains (BLUE)
+  PARTNER_COL = #3FB8C0   CD3 and zeta partner chains (TEAL)
+  CORECEP_COL = #83C167   CD4 / CD8 co-receptor (GREEN)
+  LCK_COL     = #F0A23B   Lck tyrosine kinase (amber)
+  PHOS_COL    = #F5D547   phosphate tags & tyrosine ITAM rings (YELLOW)
+  CD45_COL    = #9AA5B4   CD45 phosphatase (cool grey)
+  ZAP_COL     = #FC6255   ZAP-70 kinase & tandem SH2 claws (RED / coral)
+  LAT_COL     = #B07CFF   LAT membrane scaffold (violet)
+  CA_COL      = #46E8B5   Ca2+ -> NFAT branch (mint-aqua)
+  PKC_COL     = #F472B6   DAG / PKC -> NF-kB branch (rose-magenta)
+  RAS_COL     = #B8EC42   Ras / ERK -> AP-1 branch (chartreuse-lime)
+  NUC_COL     = #3B5998   nuclear envelope & IL-2 gene region
 
-COLOR MAP (one color per concept, whole video)
-  BLUE   = recognition chains: the alpha and beta chains of the T-cell receptor
-  PURPLE = signalling partner chains (CD3, zeta), their tails and tyrosines (the ITAM)
-  ORANGE = kinases: Lck, ZAP-70 and the SH2 cups that grip a phosphate
-  GOLD   = a phosphate group (the little "P" badge)
-  YELLOW = the antigen peptide, and signal one
-  TEAL   = the second signal: CD28 and B7
-  PINK   = transcription factors (NFAT, NF-kB, AP-1)
-  GREEN  = on / tight / switched on
-  RED    = absent, weak, anergic
-  GREY   = membranes, MHC, the co-receptor, LAT, outlines, quiet labels
+CARRIED WORLD
+  Two parallel horizontal membranes — presenting cell above, T cell below — with the MHC-peptide
+  complex at the top centre, the alpha-beta TCR gripping it with a stubby inner tail, flanked by
+  CD3 and zeta partner tails carrying 10 ITAMs into the T-cell cytosol, membrane-anchored and
+  co-receptor-bound Lck, tall CD45 stalks in the gap, and downstream LAT fanning three pathways
+  into the nuclear arc below.
+
+WHAT CHANGES IN EACH SPOKEN SCENE (and what it is computed from)
+  s01_hook          TCR rises to grip peptide-MHC; view zooms onto the stubby tail; an empty enzyme
+                    slot is rejected with X and a kinase (+P) fails to dock; ? ring traces around gap.
+  s02_partners      View pulls back; CD3 and zeta partner chains slide in and grow long inner tails;
+                    10 ITAMs (4 CD3 + 6 zeta, paired tyrosines at fixed spacing) appear sequentially.
+  s03_lck           Free Lck glides along inner membrane; CD4/CD8 slides in carrying Lck to grip MHC;
+                    both Lck active-site indicators cycle and sample near tails at resting turnover.
+  s04_predict_setup Lck repeatedly adds gold P onto an ITAM ring while tall unlabelled grey stalks sweep
+                    across and strip each P back to hollow; live lasting-P readout stays at 0.
+  s06_reveal_cd45   Tall stalks are labelled CD45 and strip P; membranes press closer (gap tracker
+                    2.30 -> 1.22), physically pushing tall CD45 outward so paired gold Ps hold inside.
+  s07_coincidence   Zoom onto one horizontal ITAM pair; Lck tags 1 ring -> ZAP-70's single SH2 claw
+                    wobbles and slips off; Lck tags both -> both claws clamp, body hinges open, Lck activates it.
+  s08_lat_scaffold  View pans right keeping active TCR-ZAP-70 on left; ZAP-70 fires P onto violet LAT's
+                    docking bays one by one; 3 branch stubs emerge downward.
+  s09_three_branches Computed 0->7 s clock runs continuously as 3 signal streams (Ca2+->NFAT,
+                    DAG/PKC->NF-kB, Ras/ERK->AP-1) flow from LAT bays into the nuclear arc (4-7 s).
+  s10_convergence   NFAT, NF-kB, and AP-1 dock together on IL-2 gene bar launching an activation wave;
+                    view zooms back out to frame the whole active synapse and highlights the 2-P lock.
 """
-import numpy as np
-from bp_style import *  # noqa: F401,F403
 
-PURPLE = "#B58CD9"
-ORANGE = "#F29E4C"
-PINK = "#E58FB5"
+from bp_parts import *
 
-# ---------------------------------------------------------------------------------------------
-# wide-view geometry (presenting cell on top, T cell below)
-# ---------------------------------------------------------------------------------------------
-YP = 3.05            # presenting-cell membrane
-YT = 0.9             # T-cell membrane
-BX0, BX1 = -5.4, 4.0
-LBL_X = 5.15         # x of the membrane labels
-X_CD3L, X_CD3R, X_Z = -1.7, 1.7, 3.0
-X_CO = -3.6          # co-receptor
-TAIL_Y0 = 0.6        # y where a partner tail starts
-TAIL_L = 3.0
+# ---- Concept palette ----
+APC_COL     = "#6E7F94"
+APC_FILL    = "#2A3958"
+TMEM_COL    = "#7D8FA6"
+TCELL_FILL  = "#172033"
+PEPTIDE_COL = TEXT
+TCR_COL     = BLUE
+PARTNER_COL = TEAL
+CORECEP_COL = GREEN
+LCK_COL     = "#F0A23B"
+PHOS_COL    = YELLOW
+CD45_COL    = "#9AA5B4"
+ZAP_COL     = RED
+LAT_COL     = "#B07CFF"
+CA_COL      = "#46E8B5"
+PKC_COL     = "#F472B6"
+RAS_COL     = "#B8EC42"
+NUC_FILL    = "#18294A"
+NUC_STROKE  = "#5A82C4"
+DNA_COL     = "#98B8F0"
 
-# big-view geometry (one tail, drawn sideways)
-TY = -1.0
-BYX = (-1.7, 1.7)
-CUP_R = 0.8
-CUP_Y = TY + 0.62
-BAR_Y = 2.35
-
-
-# ---------------------------------------------------------------------------------------------
-# helpers
-# ---------------------------------------------------------------------------------------------
-def bchip(text, color=BLUE, size=26, **kw):
-    """chip with an opaque backing so lines drawn behind it do not show through."""
-    c = chip(text, color, size=size, **kw)
-    back = RoundedRectangle(corner_radius=0.14, width=c[0].width, height=c[0].height, stroke_width=0,
-                            fill_color=BG, fill_opacity=1).move_to(c[0])
-    return VGroup(back, *c)
+# Canonical synapse coordinates (full view)
+GAP_TOP_Y = 2.40
+GAP_BOT_Y = 0.10
+GAP_NARROW_TOP = 1.32
 
 
-def ghost_chip(text, color, size=26):
-    c = chip(text, color, size=size)
-    box = DashedVMobject(RoundedRectangle(corner_radius=0.14, width=c[0].width, height=c[0].height), num_dashes=36)
-    box.set_color(color).move_to(c[0])
-    return VGroup(box, c[1])
+# ------------------------------------------------------------------ shared geometry builders
+def build_cell_bands(gap_top=GAP_TOP_Y, gap_bot=GAP_BOT_Y):
+    """Presenting cell above (top) and T cell below (bottom) as filled regions + lipid bilayers."""
+    apc_bg = Rectangle(width=15.0, height=3.2, fill_color=APC_FILL, fill_opacity=1.0, stroke_width=0)
+    apc_bg.move_to([0, gap_top + 1.68, 0])
+    apc_mem = RoundedRectangle(corner_radius=0.05, width=15.0, height=0.18,
+                               fill_color=APC_COL, fill_opacity=0.90, stroke_color="#94A6BC", stroke_width=2)
+    apc_mem.move_to([0, gap_top + 0.09, 0])
+
+    t_bg = Rectangle(width=15.0, height=5.2, fill_color=TCELL_FILL, fill_opacity=1.0, stroke_width=0)
+    t_bg.move_to([0, gap_bot - 2.68, 0])
+    t_mem = RoundedRectangle(corner_radius=0.05, width=15.0, height=0.18,
+                             fill_color=TMEM_COL, fill_opacity=0.90, stroke_color="#A3B4C8", stroke_width=2)
+    t_mem.move_to([0, gap_bot - 0.09, 0])
+
+    apc_bg.set_z_index(-5)
+    t_bg.set_z_index(-5)
+    apc_mem.set_z_index(-2)
+    t_mem.set_z_index(-2)
+    return VGroup(apc_bg, t_bg, apc_mem, t_mem), apc_mem, t_mem
 
 
-def arr(a, b, color=GREY, w=5, tip=0.22):
-    return Arrow(a, b, buff=0.08, color=color, stroke_width=w, tip_length=tip,
-                 max_tip_length_to_length_ratio=0.45, max_stroke_width_to_length_ratio=12)
+def build_mhc_peptide(anchor_y=GAP_TOP_Y, cx=0.0):
+    """Slate MHC block with an open groove holding the warm-white peptide pill."""
+    base = RoundedRectangle(corner_radius=0.10, width=1.65, height=0.48,
+                            fill_color=APC_COL, fill_opacity=0.95, stroke_color="#9EB0C6", stroke_width=2.5)
+    base.move_to([cx, anchor_y - 0.24, 0])
+    left_arm = RoundedRectangle(corner_radius=0.08, width=0.40, height=0.54,
+                                fill_color=APC_COL, fill_opacity=0.95, stroke_color="#9EB0C6", stroke_width=2.5)
+    left_arm.move_to([cx - 0.56, anchor_y - 0.64, 0])
+    right_arm = RoundedRectangle(corner_radius=0.08, width=0.40, height=0.54,
+                                 fill_color=APC_COL, fill_opacity=0.95, stroke_color="#9EB0C6", stroke_width=2.5)
+    right_arm.move_to([cx + 0.56, anchor_y - 0.64, 0])
+    mhc = VGroup(base, left_arm, right_arm)
+
+    pep = RoundedRectangle(corner_radius=0.12, width=0.76, height=0.24,
+                           fill_color=PEPTIDE_COL, fill_opacity=1.0, stroke_color=GOLD, stroke_width=2)
+    pep.move_to([cx, anchor_y - 0.64, 0])
+    return VGroup(mhc, pep), mhc, pep
 
 
-def pbadge(r=0.3, size=26):
-    c = Circle(radius=r, stroke_color=GOLD, stroke_width=3, fill_color=GOLD, fill_opacity=1)
-    return VGroup(c, T("P", size, BG, weight=BOLD).move_to(c))
+def build_tcr(anchor_y=GAP_BOT_Y, cx=0.0, top_y=1.55):
+    """Alpha-beta TCR: two steel-blue recognition chains gripping peptide-MHC, with stubby inner tails."""
+    h_ext = max(0.4, top_y - anchor_y)
+    chains = VGroup()
+    for dx in (-0.22, 0.22):
+        stem = RoundedRectangle(corner_radius=0.09, width=0.28, height=h_ext,
+                                fill_color=TCR_COL, fill_opacity=0.92, stroke_color=TCR_COL, stroke_width=2.5)
+        stem.move_to([cx + dx, anchor_y + h_ext / 2, 0])
+        tip = RoundedRectangle(corner_radius=0.08, width=0.32, height=0.32,
+                               fill_color=TCR_COL, fill_opacity=0.98, stroke_color=TEXT, stroke_width=2)
+        tip.move_to([cx + dx * 1.15, top_y + 0.04, 0])
+        stub = RoundedRectangle(corner_radius=0.05, width=0.16, height=0.36,
+                                fill_color=TCR_COL, fill_opacity=0.92, stroke_color=TCR_COL, stroke_width=2)
+        stub.move_to([cx + dx, anchor_y - 0.28, 0])
+        chains.add(stem, tip, stub)
+    return chains
 
 
-def tyr(r=0.26, size=24):
-    c = Circle(radius=r, stroke_color=PURPLE, stroke_width=3, fill_color=PURPLE, fill_opacity=1)
-    return VGroup(c, T("Y", size, BG, weight=BOLD).move_to(c))
+def make_itam_pair(cx, y_top, dy=0.24, filled=False, radius=0.085, horizontal=False):
+    """One ITAM: two tyrosine rings at fixed spacing connected by a partner spacer bar."""
+    if horizontal:
+        p1 = np.array([cx - dy / 2, y_top, 0.0])
+        p2 = np.array([cx + dy / 2, y_top, 0.0])
+    else:
+        p1 = np.array([cx, y_top, 0.0])
+        p2 = np.array([cx, y_top - dy, 0.0])
+    bar = Line(p1, p2, color=PARTNER_COL, stroke_width=4.5)
+    rings = VGroup()
+    for p in (p1, p2):
+        r = Circle(radius=radius, stroke_color=PHOS_COL, stroke_width=3,
+                   fill_color=PHOS_COL if filled else TCELL_FILL, fill_opacity=1.0).move_to(p)
+        rings.add(r)
+    return VGroup(bar, rings)
 
 
-def chain(x, y0, y1, color, w=18):
-    return Line([x, y0, 0], [x, y1, 0], color=color, stroke_width=w, cap_style=CapStyleType.ROUND)
+def build_partners(anchor_y=GAP_BOT_Y, cx=0.0, filled=False):
+    """Four CD3 chains (1 ITAM each) + two zeta chains (3 ITAMs each) = 10 ITAMs total."""
+    specs = [
+        (-1.95, 1.35, [0.72]),
+        (-1.35, 1.35, [0.72]),
+        (-0.52, 2.70, [0.66, 1.46, 2.26]),
+        ( 0.52, 2.70, [0.66, 1.46, 2.26]),
+        ( 1.35, 1.35, [0.72]),
+        ( 1.95, 1.35, [0.72]),
+    ]
+    tails_grp = VGroup()
+    itams_grp = VGroup()
+    for dx, tlen, offsets in specs:
+        x = cx + dx
+        ect = RoundedRectangle(corner_radius=0.07, width=0.22, height=0.28,
+                               fill_color=PARTNER_COL, fill_opacity=0.88, stroke_color=PARTNER_COL, stroke_width=2)
+        ect.move_to([x, anchor_y + 0.14, 0])
+        tail = Line([x, anchor_y - 0.08, 0], [x, anchor_y - tlen, 0], color=PARTNER_COL, stroke_width=6)
+        tails_grp.add(VGroup(ect, tail))
+        for off in offsets:
+            itams_grp.add(make_itam_pair(x, anchor_y - off, dy=0.24, filled=filled, radius=0.085))
+    return tails_grp, itams_grp
 
 
-def mem_h(y, x0=BX0, x1=BX1, color=GREY):
-    return RoundedRectangle(corner_radius=0.1, width=x1 - x0, height=0.32, stroke_color=color, stroke_width=3,
-                            fill_color=color, fill_opacity=0.35).move_to([(x0 + x1) / 2, y, 0])
+def build_lck_block(cx, y, active=True):
+    """Amber Lck kinase block tethered to the inner membrane leaflet, with external active-site ring."""
+    tether = Line([cx, y + 0.32, 0], [cx, y + 0.14, 0], color=LCK_COL, stroke_width=4)
+    body = RoundedRectangle(corner_radius=0.10, width=0.78, height=0.44,
+                            fill_color=LCK_COL, fill_opacity=0.95, stroke_color="#FFD28A", stroke_width=2)
+    body.move_to([cx, y - 0.06, 0])
+    lab = T("Lck", size=24, color=BG, weight=BOLD).move_to(body)
+    g = VGroup(tether, body, lab)
+    if active:
+        # Active-site arc clearly outside the right edge of body so it never touches 'Lck' or box
+        arc = Arc(radius=0.14, start_angle=-1.1, angle=2.2,
+                  arc_center=[cx + 0.54, y - 0.06, 0], color=PHOS_COL, stroke_width=3.5)
+        g.add(arc)
+        g.arc = arc
+    return g
 
 
-def tcr(x=0.0):
-    return VGroup(chain(x - 0.22, YT - 0.55, 1.78, BLUE, 24), chain(x + 0.22, YT - 0.55, 1.78, BLUE, 24))
+def build_coreceptor_lck(anchor_y=GAP_BOT_Y, base_x=-2.85, grip_pt=(-0.72, 1.82), active=True):
+    """Olive CD4/CD8 co-receptor gripping MHC and carrying an amber Lck on its inner tail."""
+    gx, gy = grip_pt
+    stem = CubicBezier(
+        [base_x, anchor_y - 0.05, 0],
+        [base_x, anchor_y + 0.85, 0],
+        [gx - 0.70, gy - 0.35, 0],
+        [gx, gy, 0],
+        color=CORECEP_COL, stroke_width=9,
+    )
+    head = RoundedRectangle(corner_radius=0.07, width=0.32, height=0.26,
+                            fill_color=CORECEP_COL, fill_opacity=0.98, stroke_color=TEXT, stroke_width=2)
+    head.move_to([gx, gy, 0])
+    tail = Line([base_x, anchor_y - 0.05, 0], [base_x, anchor_y - 0.42, 0], color=CORECEP_COL, stroke_width=6)
+    lck = build_lck_block(base_x, anchor_y - 0.58, active=active)
+    return VGroup(stem, head, tail, lck), lck
 
 
-def mhc(x=0.0, w=3.2):
-    blk = RoundedRectangle(corner_radius=0.16, width=w, height=0.64, stroke_color=GREY, stroke_width=3,
-                           fill_color=GREY, fill_opacity=0.3).move_to([x, 2.55, 0])
-    return VGroup(blk, T("MHC", 26, GREY).move_to(blk))
+def build_cd45(x, anchor_y=GAP_BOT_Y, ecto_h=1.95):
+    """Tall cool-grey CD45 phosphatase spanning most of the resting inter-membrane gap."""
+    stalk = Line([x, anchor_y - 0.52, 0], [x, anchor_y + ecto_h, 0], color=CD45_COL, stroke_width=7)
+    cap_top = RoundedRectangle(corner_radius=0.14, width=0.64, height=0.95,
+                               fill_color=CD45_COL, fill_opacity=0.45, stroke_color=CD45_COL, stroke_width=3)
+    cap_top.move_to([x, anchor_y + ecto_h - 0.48, 0])
+    cap_mid = RoundedRectangle(corner_radius=0.10, width=0.42, height=0.52,
+                               fill_color=CD45_COL, fill_opacity=0.40, stroke_color=CD45_COL, stroke_width=2.5)
+    cap_mid.move_to([x, anchor_y + ecto_h - 1.24, 0])
+    blade = RoundedRectangle(corner_radius=0.10, width=0.62, height=0.40,
+                             fill_color=CD45_COL, fill_opacity=0.90, stroke_color=TEXT, stroke_width=2)
+    blade.move_to([x, anchor_y - 0.72, 0])
+    return VGroup(stalk, cap_top, cap_mid, blade)
 
 
-def peptide(x=0.0):
-    return Circle(radius=0.15, stroke_color=YELLOW, stroke_width=2, fill_color=YELLOW, fill_opacity=1).move_to([x, 2.02, 0])
+def build_zap70(center, claw_sep=2.6, open_frac=0.0, activated=False, p_label=True):
+    """Coral ZAP-70 with two curved SH2 claws spaced at `claw_sep` and a hinged kinase body."""
+    cx, cy, _ = np.array(center, dtype=float)
+    cup_r = min(0.25, claw_sep * 0.40)
+    neck_off = min(0.48, claw_sep * 0.30)
+    bridge_w = min(1.32, max(0.66, claw_sep * 0.95))
+    hinge_x = cx + min(0.45, bridge_w * 0.36)
+    claws = VGroup()
+    for sgn in (-1, 1):
+        kx = cx + sgn * (claw_sep / 2.0)
+        cup = Arc(radius=cup_r, start_angle=PI * 1.05, angle=PI * 0.90,
+                  arc_center=[kx, cy + 0.58, 0], color=ZAP_COL, stroke_width=10)
+        neck = Line([kx, cy + 0.58 - cup_r + 0.01, 0], [cx + sgn * neck_off, cy + 0.08, 0], color=ZAP_COL, stroke_width=8)
+        claws.add(cup, neck)
+
+    bridge = RoundedRectangle(corner_radius=0.10, width=bridge_w, height=0.34,
+                              fill_color=ZAP_COL, fill_opacity=0.95, stroke_color="#FFAAA3", stroke_width=2.2)
+    bridge.move_to([cx, cy + 0.08, 0])
+
+    # Hinged catalytic kinase domain: folded under bridge at open_frac=0, swings DOWNWARD at open_frac=1
+    hinge_pt = np.array([hinge_x, cy - 0.06, 0.0])
+    angle = 0.08 + 1.15 * open_frac  # positive rotation swings left-extending lobe DOWNWARD
+    lobe = RoundedRectangle(corner_radius=0.18, width=1.45, height=0.66,
+                            fill_color=ZAP_COL, fill_opacity=0.96,
+                            stroke_color=PHOS_COL if activated else "#FFAAA3",
+                            stroke_width=4 if activated else 2.5)
+    dx_lobe = -0.62 * np.cos(angle) - (-0.26) * np.sin(angle)
+    dy_lobe = -0.62 * np.sin(angle) + (-0.26) * np.cos(angle)
+    lobe.rotate(angle).move_to([hinge_pt[0] + dx_lobe, hinge_pt[1] + dy_lobe, 0])
+    hinge_dot = Dot(hinge_pt, radius=0.07, color=TEXT)
+    g = VGroup(claws, bridge, lobe, hinge_dot)
+    if activated:
+        p_badge = Circle(radius=0.19, fill_color=PHOS_COL, fill_opacity=1.0, stroke_color=TEXT, stroke_width=2)
+        p_badge.move_to(lobe.get_center())
+        g.add(p_badge)
+        if p_label:
+            p_txt = T("P", size=24, color=BG, weight=BOLD).move_to(p_badge)
+            g.add(p_txt)
+    g.lobe = lobe
+    return g
 
 
-def partner(x):
-    return chain(x, YT - 0.25, YT + 0.5, PURPLE, 18)
+def build_synapse_state(gap_top=GAP_TOP_Y, gap_bot=GAP_BOT_Y, filled_itams=False, cd45_xs=(-4.3, 4.3)):
+    """Rebuild the canonical full synapse at rest or compressed (used across s03-s06)."""
+    cells, apc_mem, t_mem = build_cell_bands(gap_top=gap_top, gap_bot=gap_bot)
+    mhc_all, mhc, pep = build_mhc_peptide(anchor_y=gap_top, cx=0.0)
+    tcr = build_tcr(anchor_y=gap_bot, cx=0.0, top_y=gap_top - 0.85)
+    tails, itams = build_partners(anchor_y=gap_bot, cx=0.0, filled=filled_itams)
+    corecep_all, cd4_lck = build_coreceptor_lck(
+        anchor_y=gap_bot, base_x=-2.85, grip_pt=(-0.72, gap_top - 0.58), active=True
+    )
+    free_lck = build_lck_block(3.20, gap_bot - 0.42, active=True)
+    cd4_lck.set_z_index(4)
+    free_lck.set_z_index(4)
+    cd45s = VGroup(*[build_cd45(x, anchor_y=gap_bot, ecto_h=1.95) for x in cd45_xs])
+    cd45s.set_z_index(1)
+    return VGroup(cells, mhc_all, tcr, tails, itams, corecep_all, free_lck, cd45s), {
+        "cells": cells, "mhc_all": mhc_all, "mhc": mhc, "pep": pep,
+        "tcr": tcr, "tails": tails, "itams": itams,
+        "corecep": corecep_all, "cd4_lck": cd4_lck, "free_lck": free_lck, "cd45s": cd45s,
+    }
 
 
-def tail_xy(x, t, ph=0.0):
-    return np.array([x + 0.1 * np.sin(3.2 * t + ph), TAIL_Y0 - t, 0.0])
+def make_p_packet(pos, radius=0.14):
+    """Bright gold phosphate packet (no tiny text inside)."""
+    return Circle(radius=radius, fill_color=PHOS_COL, fill_opacity=1.0, stroke_color=TEXT, stroke_width=2).move_to(pos)
 
 
-def tail_v(x, ph=0.0, L=TAIL_L):
-    return ParametricFunction(lambda t: tail_xy(x, t, ph), t_range=[0, L], color=PURPLE, stroke_width=7)
-
-
-ITAM_H = 1.15        # height of the frame round one ITAM (two tyrosines)
-
-
-def itam_frame(x, t_mid):
-    return RoundedRectangle(corner_radius=0.3, width=0.95, height=ITAM_H, stroke_color=PURPLE,
-                            stroke_width=2.5).move_to([x, TAIL_Y0 - t_mid, 0])
-
-
-# the three partner tails: (x, wave phase, tail length, ITAMs as (t of first tyrosine, t of second)).
-# The lesson gives one ITAM on each CD3 tail and three on each zeta tail.
-PARTNERS = [(X_CD3L, 0.0, 2.0, [(0.4, 1.0)]),
-            (X_CD3R, 1.7, 2.0, [(0.4, 1.0)]),
-            (X_Z, 3.1, 3.95, [(0.4, 1.0), (1.7, 2.3), (3.0, 3.6)])]
-
-
-def stage_base():
-    """presenting cell + T cell membranes, MHC with its peptide, and the receptor."""
-    d = {}
-    d["pm"] = mem_h(YP)
-    d["tm"] = mem_h(YT)
-    d["pm_lbl"] = T("infected cell", 26, GREY).move_to([LBL_X, YP, 0])
-    d["tm_lbl"] = T("T cell", 26, GREY).move_to([LBL_X, YT, 0])
-    d["mhc"] = mhc()
-    d["pep"] = peptide()
-    d["pep_lbl"] = T("peptide", 24, YELLOW).move_to([0.95, 2.02, 0])
-    d["tcr"] = tcr()
-    return d
-
-
-def partner_set():
-    d = {"chains": VGroup(*[partner(x) for x, *_ in PARTNERS])}
-    d["tails"] = VGroup(*[tail_v(x, ph, L) for x, ph, L, _ in PARTNERS])
-    d["ys"] = VGroup(*[VGroup(*[tyr(0.22, 22).move_to(tail_xy(x, t, ph)) for pr in prs for t in pr])
-                       for x, ph, L, prs in PARTNERS])
-    d["frames"] = VGroup(*[VGroup(*[itam_frame(x, sum(pr) / 2) for pr in prs]) for x, ph, L, prs in PARTNERS])
-    l1 = T("CD3", 24, PURPLE)
-    l2 = T("CD3", 24, PURPLE)
-    l3 = T("zeta", 24, PURPLE)
-    l1.move_to([X_CD3L - 0.2 - l1.width / 2, YT + 0.45, 0])
-    l2.move_to([X_CD3R - 0.2 - l2.width / 2, YT + 0.45, 0])
-    l3.move_to([X_Z + 0.2 + l3.width / 2, YT + 0.45, 0])
-    d["lbls"] = VGroup(l1, l2, l3)
-    itam = []
-    for x, ph, L, prs in PARTNERS:
-        if len(prs) == 1:      # CD3: the label sits under the tail
-            itam.append(VGroup(T("ITAM", 24, PURPLE, weight=BOLD).move_to([x, TAIL_Y0 - L - 0.4, 0])))
-        else:                  # zeta: one label beside each of the three
-            itam.append(VGroup(*[T("ITAM", 24, PURPLE, weight=BOLD).move_to([x + 0.5 + 0.55, TAIL_Y0 - sum(pr) / 2, 0])
-                                 for pr in prs]))
-    d["itam"] = VGroup(*itam)
-    return d
-
-
-def tcr_label(text):
-    t = T(text, 26, BLUE)
-    return t.move_to([-0.65 - t.width / 2, 1.85, 0])
-
-
-# ---- big (one tail, sideways) --------------------------------------------------------------
-def big_membrane():
-    return RoundedRectangle(corner_radius=0.1, width=0.32, height=3.4, stroke_color=GREY, stroke_width=3,
-                            fill_color=GREY, fill_opacity=0.35).move_to([-5.6, TY, 0])
-
-
-def big_tail():
-    return ParametricFunction(lambda x: np.array([x, TY + 0.08 * np.sin(2 * np.pi * (x - BYX[0]) / 3.4), 0.0]),
-                              t_range=[-5.4, 5.2], color=PURPLE, stroke_width=7)
-
-
-def big_ys():
-    return VGroup(*[tyr(0.32, 28).move_to([x, TY, 0]) for x in BYX])
-
-
-def big_ps():
-    return VGroup(*[pbadge(0.3, 26).move_to([x, CUP_Y, 0]) for x in BYX])
-
-
-def cup(x, gap, color=ORANGE):
-    a = Arc(radius=CUP_R, start_angle=np.radians(-90 + gap / 2), angle=np.radians(360 - gap),
-            stroke_color=color, stroke_width=9)
-    return a.move_to([x, CUP_Y, 0])
-
-
-OPEN, SHUT = 150, 52
-
-
-class Zap:
-    """ZAP-70: a kinase bar on two legs, each ending in an SH2 cup. Built at the docked pose."""
-
-    def __init__(self, left_gap=SHUT, right_gap=SHUT, color=ORANGE):
-        box = RoundedRectangle(corner_radius=0.18, width=4.7, height=1.0, stroke_color=color, stroke_width=3,
-                               fill_color=color, fill_opacity=0.18)
-        back = RoundedRectangle(corner_radius=0.18, width=4.7, height=1.0, stroke_width=0, fill_color=BG, fill_opacity=1)
-        label = T("ZAP-70 kinase", 32, color)
-        self.bar = VGroup(back, box, label).move_to([0, BAR_Y, 0])
-        self.legs = [Line([x, CUP_Y + CUP_R, 0], [x, BAR_Y - 0.5, 0], color=ORANGE, stroke_width=8) for x in BYX]
-        self.cups = [cup(BYX[0], left_gap), cup(BYX[1], right_gap)]
-        self.parts = VGroup(self.bar, *self.legs, *self.cups)
-
-    def set_color(self, color):
-        return [self.bar[1].animate.set_stroke(color).set_fill(color, 0.2), self.bar[2].animate.set_color(color)]
-
-
-def lck_big():
-    return bchip("Lck", ORANGE, 30).move_to([0, 1.0, 0])
-
-
-def hook_pieces():
-    """the co-receptor: a chain through the membrane that hooks onto the MHC protein."""
-    base = chain(X_CO, YT - 0.55, YT + 0.5, GREY, 22)
-    hook = VMobject(joint_type=LineJointType.ROUND, cap_style=CapStyleType.ROUND)
-    hook.set_points_as_corners([[X_CO, YT + 0.5, 0], [X_CO, 2.55, 0], [-1.65, 2.55, 0]])
-    hook.set_stroke(GREY, width=22)
-    return base, hook
-
-
-# =============================================================================================
+# ------------------------------------------------------------------ Scenes
 class S00Title(TitleCard):
-    LESSON = "Antigen receptors and checkpoints"
-    TITLE = "Two phosphates, two signals"
+    LESSON = "Antigen Receptors and Checkpoints"
+    TITLE = "Two Phosphates on Partner Tails"
 
 
-# =============================================================================================
-def puzzle_items():
-    """what S01 builds up for the puzzle (rebuilt, finished, at the start of S02)."""
-    enz = ghost_chip("enzyme", ORANGE, 28).move_to([3.0, -1.3, 0])
-    x1 = Line(enz.get_corner(UL) + [0.1, -0.05, 0], enz.get_corner(DR) + [-0.1, 0.05, 0], color=RED, stroke_width=8)
-    x2 = Line(enz.get_corner(DL) + [0.1, 0.05, 0], enz.get_corner(UR) + [-0.1, -0.05, 0], color=RED, stroke_width=8)
-    qbox = DashedVMobject(RoundedRectangle(corner_radius=0.2, width=3.0, height=1.0), num_dashes=40).set_color(GREY)
-    qbox.move_to([0, -2.4, 0])
-    q = T("?", 56, GREY, weight=BOLD).move_to(qbox)
-    dl = DashedLine([0, 0.2, 0], [0, -1.62, 0], color=GREY, stroke_width=4, dash_length=0.14)
-    tip = Triangle(color=GREY, fill_opacity=1, stroke_width=0).scale(0.13).rotate(PI).move_to([0, -1.72, 0])
-    qlbl = T("a message to the cell", 26, GREY).move_to([0, -3.3, 0])
-    tick = Line([0.5, 0.35, 0], [0.8, 0.35, 0], color=GREY, stroke_width=3)
-    tail_lbl = T("tail: a few amino acids", 26, GREY).next_to(tick, RIGHT, buff=0.15)
-    return dict(enz=enz, x1=x1, x2=x2, qbox=qbox, q=q, dl=dl, tip=tip, qlbl=qlbl, tail_lbl=tail_lbl, tick=tick)
-
-
-class S01Puzzle(SpokenScene):
-    """a receptor with a stub of a tail and no enzyme: how does it send a message?"""
-
+class S01Hook(SpokenScene):
     def construct(self):
-        DROP = 1.5   # the stage starts lower, centred in the frame, and lifts when the puzzle needs room
-        tm = mem_h(YT)
-        tm_lbl = T("T cell", 26, GREY).move_to([LBL_X, YT, 0])
-        rec = tcr()
-        rec_lbl = tcr_label("T cell receptor")
-        pm = mem_h(YP)
-        pm_lbl = T("infected cell", 26, GREY).move_to([LBL_X, YP, 0])
-        mh = mhc()
-        pep = peptide()
-        pep_lbl = T("peptide", 24, YELLOW).move_to([0.95, 2.02, 0])
-        stage = [tm, tm_lbl, rec, rec_lbl, pm, pm_lbl, mh, pep, pep_lbl]
-        for m in stage:
-            m.shift(DOWN * DROP)
-        it = puzzle_items()
+        cells, _, _ = build_cell_bands(gap_top=GAP_TOP_Y, gap_bot=GAP_BOT_Y)
+        mhc_all, mhc, pep = build_mhc_peptide(anchor_y=GAP_TOP_Y, cx=0.0)
+        tcr = build_tcr(anchor_y=GAP_BOT_Y, cx=0.0, top_y=1.12)
+        tcr.shift(DOWN * 0.45)
 
-        self.at("This is the")
-        self.play(Create(tm), FadeIn(tm_lbl), run_time=0.5)
-        self.play(FadeIn(rec, shift=UP * 0.3), FadeIn(rec_lbl), run_time=0.8)
+        lbl_apc = T("Infected cell", size=28, color=TEXT).move_to([-4.6, 3.05, 0])
+        lbl_tcell = T("T cell", size=28, color=TEXT).move_to([-5.1, -3.05, 0])
+        lbl_mhc = T("MHC + peptide", size=26, color=PEPTIDE_COL).move_to([2.65, 1.85, 0])
+        lbl_tcr = T("αβ TCR", size=28, color=TCR_COL).move_to([-1.75, 0.85, 0])
+        tag = scope_tag("schematic", color=TEXT)
 
-        self.at("It tells a")
-        self.play(FadeIn(pm, shift=DOWN * 0.3), FadeIn(mh, shift=DOWN * 0.3), FadeIn(pep, shift=DOWN * 0.3),
-                  FadeIn(pep_lbl, shift=DOWN * 0.3), run_time=0.9)
-        self.at("found an infected")
-        self.play(FadeIn(pm_lbl), Indicate(pep, color=YELLOW, scale_factor=1.6), run_time=0.8)
+        self.play(FadeIn(cells), FadeIn(lbl_apc), FadeIn(lbl_tcell), FadeIn(tag), run_time=0.8)
+        self.play(FadeIn(mhc_all), FadeIn(lbl_mhc), FadeIn(tcr), run_time=0.6)
 
-        self.at("But inside")
-        self.play(*[m.animate.shift(UP * DROP) for m in stage], run_time=0.9)
-        self.at("its tail")
-        self.play(FadeIn(it["tail_lbl"]), Create(it["tick"]), Indicate(rec, color=YELLOW, scale_factor=1.0), run_time=0.9)
+        self.at("spots an infected cell")
+        tcr_docked = build_tcr(anchor_y=GAP_BOT_Y, cx=0.0, top_y=GAP_TOP_Y - 0.85)
+        self.play(Transform(tcr, tcr_docked), FadeIn(lbl_tcr, run_time=0.45), run_time=1.8)
 
-        self.at("no enzyme")
-        self.play(FadeIn(it["enz"], shift=UP * 0.15), run_time=0.7)
-        self.at("not even")
-        self.play(Create(it["x1"]), Create(it["x2"]), run_time=0.5)
+        self.at("inner tail is tiny")
+        # Fade out upper APC & MHC cleanly as we zoom onto the T-cell membrane & tiny inner tail
+        self.play(
+            FadeOut(lbl_apc), FadeOut(lbl_tcell), FadeOut(lbl_mhc), FadeOut(lbl_tcr),
+            FadeOut(cells[0]), FadeOut(cells[2]), FadeOut(mhc_all),
+            run_time=0.45,
+        )
+        zoom_grp = VGroup(cells[1], cells[3], tcr)
+        self.play(
+            zoom_grp.animate.shift(UP * 0.75).scale(1.38, about_point=ORIGIN),
+            run_time=1.4,
+        )
+        slot_center = np.array([0.0, -0.35, 0.0])
+        empty_slot = DashedVMobject(
+            RoundedRectangle(corner_radius=0.18, width=2.6, height=1.20, color=TCR_COL, stroke_width=3.5)
+        ).move_to(slot_center)
+        stub_bracket = Line([-0.55, 0.46, 0], [0.55, 0.46, 0], color=PHOS_COL, stroke_width=3.5)
+        lbl_tiny = T("tiny inner tail", size=30, color=TCR_COL).move_to([-2.95, 0.48, 0])
+        self.play(Create(empty_slot), Create(stub_bracket), FadeIn(lbl_tiny), run_time=0.85)
 
-        self.at("how does it")
-        self.play(Create(it["dl"]), FadeIn(it["tip"]), run_time=0.6)
-        self.play(Create(it["qbox"]), FadeIn(it["q"]), run_time=0.6)
-        self.at("a message")
-        self.play(FadeIn(it["qlbl"]), Indicate(it["q"], color=TEXT, scale_factor=1.3), run_time=0.8)
+        self.at("holds no enzyme")
+        x_mark = VGroup(
+            Line(slot_center + [-0.55, -0.35, 0], slot_center + [0.55, 0.35, 0], color=RED, stroke_width=8),
+            Line(slot_center + [-0.55, 0.35, 0], slot_center + [0.55, -0.35, 0], color=RED, stroke_width=8),
+        )
+        lbl_no_enz = T("no enzyme", size=30, color=RED).next_to(empty_slot, RIGHT, buff=0.40)
+        self.play(Create(x_mark), FadeIn(lbl_no_enz, run_time=0.4), run_time=0.9)
+
+        self.at("not even a kinase")
+        kin_box = RoundedRectangle(corner_radius=0.14, width=2.6, height=0.74,
+                                   fill_color=LCK_COL, fill_opacity=0.28, stroke_color=LCK_COL, stroke_width=3)
+        kin_txt = T("kinase (+P)", size=28, color=LCK_COL).move_to(kin_box)
+        kin = VGroup(kin_box, kin_txt).move_to([0.0, -2.25, 0])
+        self.play(FadeIn(kin, shift=UP * 0.2), run_time=0.55)
+
+        self.at("adds phosphate groups")
+        p_dot = make_p_packet([-0.6, -1.75, 0], radius=0.16)
+        self.play(
+            kin.animate.move_to([0.0, -1.48, 0]),
+            FadeIn(p_dot),
+            p_dot.animate.move_to([0.0, -1.02, 0]),
+            run_time=1.0,
+        )
+        self.play(
+            kin.animate.shift(DOWN * 0.90).set_opacity(0.35),
+            FadeOut(p_dot),
+            run_time=0.9,
+        )
+        self.play(FadeOut(kin), run_time=0.35)
+
+        self.at("How does it fire")
+        q_ring_t = ValueTracker(0.0)
+        q_arc = always_redraw(lambda: Arc(
+            radius=0.46, start_angle=PI / 2, angle=max(0.05, q_ring_t.get_value()) * TAU,
+            arc_center=slot_center, color=PHOS_COL, stroke_width=5
+        ))
+        q_mark = T("?", size=58, color=PHOS_COL, weight=BOLD).move_to(slot_center)
+        q_text = caption("How does it fire without firing by accident?", size=30, color=PHOS_COL)
+        self.play(FadeOut(x_mark), FadeOut(lbl_no_enz), FadeIn(q_mark), FadeIn(q_text), run_time=0.55)
+        self.add(q_arc)
+        self.play(q_ring_t.animate.set_value(1.0), run_time=2.6, rate_func=linear)
         self.finish()
 
 
-# =============================================================================================
 class S02Partners(SpokenScene):
-    """partner chains and their tails; two tyrosines on each; the pair is an ITAM."""
-
     def construct(self):
-        st = stage_base()
-        lbl = tcr_label("T cell receptor")
-        it = puzzle_items()
-        puzzle = VGroup(*it.values())
-        self.add(st["tm"], st["pm"], st["pm_lbl"], st["tm_lbl"], st["mhc"], st["pep"], st["pep_lbl"], st["tcr"], lbl, puzzle)
-        ps = partner_set()
+        cells, _, _ = build_cell_bands(gap_top=GAP_TOP_Y, gap_bot=GAP_BOT_Y)
+        mhc_all, mhc, pep = build_mhc_peptide(anchor_y=GAP_TOP_Y, cx=0.0)
+        tcr = build_tcr(anchor_y=GAP_BOT_Y, cx=0.0, top_y=GAP_TOP_Y - 0.85)
+        zoom_grp = VGroup(cells[1], cells[3], tcr)
+        zoom_grp.save_state()
+        zoom_grp.shift(UP * 0.75).scale(1.38, about_point=ORIGIN)
+        upper_grp = VGroup(cells[0], cells[2], mhc_all)
+        upper_grp.set_opacity(0)
 
-        new_lbl = tcr_label("alpha and beta chains")
-        self.at("The alpha")
-        self.play(FadeOut(puzzle), ReplacementTransform(lbl, new_lbl), run_time=0.6)
-        self.at("do the")
-        self.play(Indicate(st["tcr"], color=BLUE, scale_factor=1.0), Indicate(st["pep"], color=YELLOW, scale_factor=1.6), run_time=0.9)
+        tag = scope_tag("schematic", color=TEXT)
+        self.add(zoom_grp, upper_grp, tag)
+
+        self.at("splits the job in two")
+        self.play(Restore(zoom_grp), upper_grp.animate.set_opacity(1.0), run_time=1.4)
+        lbl_rec = T("1. Recognition", size=28, color=TCR_COL).move_to([-4.2, 1.35, 0])
+        lbl_sig = T("2. Signalling", size=28, color=PARTNER_COL).move_to([-5.0, -1.35, 0])
+        self.play(FadeIn(lbl_rec, run_time=0.5), FadeIn(lbl_sig, run_time=0.5))
+
+        self.at("alpha and beta chains")
+        lbl_ab = T("αβ TCR", size=26, color=TCR_COL).move_to([1.65, 1.05, 0])
+        self.play(FadeIn(lbl_ab, run_time=0.4), Indicate(tcr, color=TEXT, scale_factor=1.06), run_time=1.2)
+
+        self.at("short peptide")
+        lbl_pep = T("peptide", size=26, color=PEPTIDE_COL).move_to([1.85, 1.52, 0])
+        pep_arr = Arrow(lbl_pep.get_left() + LEFT * 0.10, [0.20, GAP_TOP_Y - 0.64, 0],
+                        buff=0, color=PEPTIDE_COL, stroke_width=3, max_tip_length_to_length_ratio=0.18).set_z_index(3)
+        self.play(FadeIn(lbl_pep, run_time=0.4), GrowArrow(pep_arr), run_time=0.8)
+
+        self.at("MHC groove")
+        lbl_mhc = T("MHC", size=26, color=TEXT).move_to([1.60, 2.15, 0])
+        self.play(FadeIn(lbl_mhc, run_time=0.4), Indicate(mhc, color=PEPTIDE_COL, scale_factor=1.04), run_time=1.0)
 
         self.at("partner chains")
-        self.play(LaggedStart(*[GrowFromEdge(c, DOWN) for c in ps["chains"]], lag_ratio=0.25), run_time=1.0)
-        self.at("and zeta")
-        self.play(FadeIn(ps["lbls"], shift=DOWN * 0.1), run_time=0.6)
+        tails, itams = build_partners(anchor_y=GAP_BOT_Y, cx=0.0, filled=False)
+        left_chains = VGroup(tails[0], tails[1])
+        mid_chains = VGroup(tails[2], tails[3])
+        right_chains = VGroup(tails[4], tails[5])
+        left_chains.shift(LEFT * 1.1).set_opacity(0)
+        right_chains.shift(RIGHT * 1.1).set_opacity(0)
+        mid_chains.set_opacity(0)
+        self.play(
+            left_chains.animate.shift(RIGHT * 1.1).set_opacity(1),
+            right_chains.animate.shift(LEFT * 1.1).set_opacity(1),
+            mid_chains.animate.set_opacity(1),
+            run_time=1.4,
+        )
 
-        self.at("Their tails")
-        self.play(LaggedStart(*[Create(t) for t in ps["tails"]], lag_ratio=0.2), run_time=1.5)
+        self.at("CD3 and Zeta")
+        lbl_cd3 = T("CD3", size=28, color=PARTNER_COL).move_to([2.95, -0.65, 0])
+        lbl_zeta = T("ζ chains", size=28, color=PARTNER_COL).move_to([1.55, -2.50, 0])
+        self.play(FadeIn(lbl_cd3, run_time=0.4), FadeIn(lbl_zeta, run_time=0.4))
 
-        self.at("two tyrosines")
-        self.play(LaggedStart(*[LaggedStart(*[FadeIn(y, scale=0.4) for y in pair], lag_ratio=0.3) for pair in ps["ys"]],
-                              lag_ratio=0.2), run_time=1.5)
-        self.at("fixed short")
-        self.play(LaggedStart(*[Create(f) for f in ps["frames"]], lag_ratio=0.2), run_time=1.0)
-        self.at("called an")
-        self.play(LaggedStart(*[FadeIn(t, shift=UP * 0.1) for t in ps["itam"]], lag_ratio=0.2), run_time=0.9)
+        self.at("long inner tails")
+        self.play(
+            *[Indicate(tails[i][1], color=PARTNER_COL, scale_factor=1.04) for i in range(6)],
+            run_time=1.2,
+        )
+
+        self.at("paired tyrosines")
+        self.play(LaggedStart(*[FadeIn(it, scale=1.15) for it in itams], lag_ratio=0.14), run_time=2.0)
+
+        self.at("called ITAMs")
+        lbl_itam = T("ITAM (paired Y–Y)", size=28, color=PHOS_COL).move_to([-3.85, -2.25, 0])
+        arr_itam = Arrow(lbl_itam.get_right() + RIGHT * 0.10, itams[4].get_left() + LEFT * 0.14,
+                         buff=0, color=PHOS_COL, stroke_width=3, max_tip_length_to_length_ratio=0.15)
+        badge_box = boxed_label("10 ITAMs per complex (schematic)", color=PHOS_COL, size=24)
+        badge_box.move_to([-3.75, -3.10, 0])
+        self.play(FadeIn(lbl_itam, run_time=0.4), GrowArrow(arr_itam), FadeIn(badge_box, run_time=0.4), run_time=0.8)
         self.finish()
 
 
-# =============================================================================================
-class S03Borrowed(SpokenScene):
-    """Lck is membrane-anchored; a share rides on a co-receptor that grips MHC; it phosphorylates both tyrosines."""
-
+class S03Lck(SpokenScene):
     def construct(self):
-        st = stage_base()
-        ps = partner_set()
-        lbl = tcr_label("alpha and beta chains")
-        self.add(st["tm"], st["pm"], st["pm_lbl"], st["tm_lbl"], st["mhc"], st["pep"], st["pep_lbl"], st["tcr"], lbl,
-                 ps["chains"], ps["tails"], ps["ys"], ps["frames"], ps["lbls"], ps["itam"])
-        qk = ghost_chip("kinase?", ORANGE, 28).move_to([0, -3.0, 0])
+        cells, _, _ = build_cell_bands(gap_top=GAP_TOP_Y, gap_bot=GAP_BOT_Y)
+        mhc_all, mhc, pep = build_mhc_peptide(anchor_y=GAP_TOP_Y, cx=0.0)
+        tcr = build_tcr(anchor_y=GAP_BOT_Y, cx=0.0, top_y=GAP_TOP_Y - 0.85)
+        tails, itams = build_partners(anchor_y=GAP_BOT_Y, cx=0.0, filled=False)
+        lbl_mhc = T("MHC", size=26, color=TEXT).move_to([1.60, 2.15, 0])
+        lbl_tcr = T("αβ TCR", size=26, color=TCR_COL).move_to([1.65, 1.05, 0])
+        lbl_partners = T("CD3 & ζ", size=26, color=PARTNER_COL).move_to([3.05, -1.45, 0])
+        tag = scope_tag("schematic", color=TEXT)
+        self.add(cells, mhc_all, tcr, tails, itams, lbl_mhc, lbl_tcr, lbl_partners, tag)
+
         self.at("where is the kinase")
-        self.play(FadeOut(VGroup(lbl, ps["lbls"], ps["itam"], ps["frames"], st["pep_lbl"])),
-                  FadeIn(qk, shift=UP * 0.15), run_time=0.7)
+        q_kin = T("? kinase", size=30, color=LCK_COL).move_to([3.55, -0.35, 0])
+        self.play(
+            FadeIn(q_kin, shift=UP * 0.1),
+            *[
+                r.animate(rate_func=there_and_back).scale(1.22).set_stroke(color=TEXT, width=5)
+                for pair in itams for r in pair[1]
+            ],
+            run_time=1.8,
+        )
 
-        base, hook = hook_pieces()
-        co_lbl = T("co-receptor", 26, GREY).move_to([X_CO - 0.3 - 0.95, 1.75, 0])
-        lck = bchip("Lck", ORANGE, 30).move_to([X_CO, -1.05, 0])
-        membrane_anchor = Line([X_CO, YT - 0.16, 0], [X_CO, -0.65, 0], color=ORANGE, stroke_width=7)
-        self.at("already in")
-        self.play(ReplacementTransform(qk, lck), Create(membrane_anchor), run_time=1.1)
-        self.at("grips the display")
-        self.play(GrowFromEdge(base, DOWN), FadeIn(co_lbl), Create(hook), run_time=1.2)
+        self.at("tyrosine kinase LCK")
+        free_lck = build_lck_block(5.4, GAP_BOT_Y - 0.42, active=True)
+        lbl_lck = T("Lck kinase", size=28, color=LCK_COL).move_to([4.55, -1.05, 0])
+        self.play(FadeOut(q_kin), FadeIn(free_lck), run_time=0.6)
 
-        co_tail = Line([X_CO, YT - 0.6, 0], [X_CO, -0.65, 0], color=GREY, stroke_width=7)
-        self.at("A share of")
-        self.play(ReplacementTransform(membrane_anchor, co_tail), Indicate(lck, color=ORANGE), run_time=1.3)
-        self.at("beside the")
-        tether = always_redraw(lambda: Line([X_CO, -0.65, 0], lck.get_left() + [0.12, 0.15, 0], color=GREY, stroke_width=6))
-        self.add(tether)
-        self.play(lck.animate.move_to([-2.95, -0.8, 0]), run_time=0.8)
+        self.at("anchored in the")
+        self.play(free_lck.animate.move_to([3.35, GAP_BOT_Y - 0.42, 0]), FadeIn(lbl_lck, run_time=0.4), run_time=2.5)
 
-        # zoom: the nearest tail turns sideways and fills the frame
-        big_m, bt, bys = big_membrane(), big_tail(), big_ys()
-        lck_b = lck_big()
-        wide_tail, wide_ys = ps["tails"][0], ps["ys"][0]
-        rest = VGroup(st["tm"], st["pm"], st["pm_lbl"], st["tm_lbl"], st["mhc"], st["pep"], st["tcr"], ps["chains"],
-                      ps["tails"][1], ps["tails"][2], ps["ys"][1], ps["ys"][2], base, hook, co_lbl, co_tail)
-        self.at("partner tails")
-        self.remove(tether)
-        self.play(FadeOut(rest), FadeIn(big_m),
-                  ReplacementTransform(wide_tail, bt),
-                  ReplacementTransform(wide_ys[0], bys[0]), ReplacementTransform(wide_ys[1], bys[1]),
-                  ReplacementTransform(lck, lck_b), run_time=1.2)
-        pbs = big_ps()
-        start = lck_b.get_bottom() + DOWN * 0.32
-        p1, p2 = pbs[0].copy().move_to(start), pbs[1].copy().move_to(start)
-        self.at("a phosphate")
-        self.add(p1)
-        self.play(p1.animate.move_to(pbs[0].get_center()), run_time=0.7)
-        self.at("both tyrosines")
-        self.add(p2)
-        self.play(p2.animate.move_to(pbs[1].get_center()), run_time=0.7)
+        self.at("A share of it")
+        corecep_all, cd4_lck = build_coreceptor_lck(
+            anchor_y=GAP_BOT_Y, base_x=-2.85, grip_pt=(-0.72, GAP_TOP_Y - 0.58), active=True
+        )
+        corecep_all.shift(LEFT * 3.0)
+        self.play(corecep_all.animate.shift(RIGHT * 3.0), free_lck.animate.shift(LEFT * 0.25), run_time=2.4)
+
+        self.at("CD4 or CD8")
+        lbl_cd4 = T("CD4 / CD8", size=28, color=CORECEP_COL).move_to([-4.2, 1.35, 0])
+        lbl_cd4_lck = T("Lck (on tail)", size=26, color=LCK_COL).move_to([-4.35, -1.05, 0])
+        self.play(FadeIn(lbl_cd4, run_time=0.4), FadeIn(lbl_cd4_lck, run_time=0.4), free_lck.animate.shift(RIGHT * 0.25), run_time=2.2)
+
+        self.at("grips the same MHC")
+        grip_ring = Circle(radius=0.34, color=CORECEP_COL, stroke_width=5).move_to([-0.72, GAP_TOP_Y - 0.58, 0])
+        self.play(Create(grip_ring), run_time=0.9)
+        self.play(FadeOut(grip_ring), Indicate(corecep_all[0], color=CORECEP_COL, scale_factor=1.04), free_lck.animate.shift(LEFT * 0.25), run_time=2.0)
+
+        self.at("partly active even at rest")
+        lbl_rest = caption("Lck is already partly active at rest", size=28, color=LCK_COL)
+        p1 = make_p_packet(cd4_lck[1].get_right() + RIGHT * 0.28, radius=0.14)
+        p2 = make_p_packet(free_lck[1].get_left() + LEFT * 0.28, radius=0.14)
+        self.play(FadeIn(lbl_rest, run_time=0.4), FadeIn(p1), FadeIn(p2), run_time=0.6)
+        self.play(
+            free_lck.animate.shift(RIGHT * 0.25),
+            p1.animate.move_to(itams[0][1][0].get_center()),
+            p2.animate.move_to(itams[8][1][0].get_center()),
+            run_time=1.3,
+        )
+        self.play(FadeOut(p1), FadeOut(p2), run_time=0.5)
         self.finish()
 
 
-# =============================================================================================
-def big_base():
-    return big_membrane(), big_tail(), big_ys(), big_ps()
-
-
-class S04Reader(SpokenScene):
-    """ZAP-70: two SH2 cups spaced like the two tyrosines. One phosphate: weak. Two: tight."""
-
+class S04PredictSetup(SpokenScene):
     def construct(self):
-        bm, bt, bys, bps = big_base()
-        lck = lck_big()
-        self.add(bm, bt, bys, bps, lck)
-        self.play(FadeOut(lck), run_time=0.5)
+        world, objs = build_synapse_state(gap_top=GAP_TOP_Y, gap_bot=GAP_BOT_Y, filled_itams=False, cd45_xs=(-4.3, 4.3))
+        cd45s = objs["cd45s"]
+        cd45s.set_opacity(0)
+        lbl_tails = T("ITAMs", size=26, color=PHOS_COL).move_to([-1.95, -1.85, 0])
+        tag = scope_tag("schematic", color=TEXT)
+        self.add(world, lbl_tails, tag)
 
-        z = Zap(OPEN, OPEN)
-        z.parts.shift(UP * 0.5)
-        self.at("reader arrives")
-        self.play(FadeIn(z.parts, shift=DOWN * 0.5), run_time=0.9)
+        self.at("active LCK sits right")
+        target_ring = objs["itams"][0][1][0]
+        p_pkt = make_p_packet(objs["cd4_lck"][1].get_right() + RIGHT * 0.12, radius=0.12)
+        self.add(p_pkt)
+        self.play(p_pkt.animate.move_to(target_ring.get_center()), run_time=0.9)
+        self.remove(p_pkt)
+        target_ring.set_fill(PHOS_COL, opacity=1.0)
 
-        sh_l = T("SH2", 26, ORANGE).move_to(z.cups[0].get_left() + [-0.55, 0, 0])
-        sh_r = T("SH2", 26, ORANGE).move_to(z.cups[1].get_right() + [0.55, 0, 0])
-        self.at("domains")
-        self.play(FadeIn(sh_l), FadeIn(sh_r), Indicate(z.cups[0], color=ORANGE, scale_factor=1.12),
-                  Indicate(z.cups[1], color=ORANGE, scale_factor=1.12), run_time=0.9)
+        self.at("paired tyrosines")
+        stalk_l, stalk_r = cd45s[0], cd45s[1]
+        stalk_l.shift(LEFT * 0.35)
+        stalk_r.shift(RIGHT * 0.35)
+        self.play(
+            stalk_l.animate.set_opacity(1.0).shift(RIGHT * 0.35),
+            stalk_r.animate.set_opacity(1.0).shift(LEFT * 0.35),
+            run_time=1.8,
+        )
 
-        self.at("Each domain")
-        self.play(Indicate(bps[0], color=GOLD, scale_factor=1.35), run_time=0.5)
-        self.play(Indicate(bps[1], color=GOLD, scale_factor=1.35), run_time=0.5)
+        self.at("resting T cell stays quiet")
+        status = boxed_label("lasting P: 0", color=TEXT, size=26).move_to([-4.65, -2.55, 0])
+        self.play(
+            FadeIn(status, run_time=0.45),
+            stalk_l.animate.shift(LEFT * 0.25),
+            stalk_r.animate.shift(RIGHT * 0.25),
+            run_time=1.0,
+        )
+        self.play(
+            target_ring.animate.set_fill(TCELL_FILL, opacity=1.0),
+            stalk_l.animate.shift(RIGHT * 0.25),
+            stalk_r.animate.shift(LEFT * 0.25),
+            run_time=0.9,
+        )
 
-        dim_t = DoubleArrow([BYX[0], TY - 0.85, 0], [BYX[1], TY - 0.85, 0], color=GREY, stroke_width=4, buff=0,
-                            tip_length=0.18)
-        dim_c = DoubleArrow([BYX[0], 1.3, 0], [BYX[1], 1.3, 0], color=ORANGE, stroke_width=4, buff=0, tip_length=0.18)
-        self.at("spaced to fit")
-        self.play(GrowFromCenter(dim_t), GrowFromCenter(dim_c), run_time=0.7)
-        self.play(z.parts.animate.shift(DOWN * 0.5), sh_l.animate.shift(DOWN * 0.5), sh_r.animate.shift(DOWN * 0.5), run_time=0.9)
-        self.play(FadeOut(dim_t), FadeOut(dim_c), run_time=0.4)
+        self.at("no lasting phosphate")
+        target_r = objs["itams"][9][1][0]
+        p_pkt2 = make_p_packet(objs["free_lck"][1].get_left() + LEFT * 0.12, radius=0.12)
+        self.add(p_pkt2)
+        self.play(p_pkt2.animate.move_to(target_r.get_center()), run_time=0.7)
+        self.remove(p_pkt2)
+        target_r.set_fill(PHOS_COL, opacity=1.0)
+        self.play(
+            stalk_l.animate.shift(LEFT * 0.25),
+            stalk_r.animate.shift(RIGHT * 0.25),
+            run_time=0.7,
+        )
+        self.play(
+            target_r.animate.set_fill(TCELL_FILL, opacity=1.0),
+            stalk_l.animate.shift(RIGHT * 0.25),
+            stalk_r.animate.shift(LEFT * 0.25),
+            run_time=0.7,
+        )
 
-        weak = T("one phosphate: weak binding", 30, RED).move_to([0, -2.6, 0])
-        self.at("With one phosphate")
-        self.play(bps[1].animate.set_opacity(0.18), run_time=0.5)
-        self.at("binds weakly")
-        self.play(Transform(z.cups[0], cup(BYX[0], SHUT)), FadeIn(weak), run_time=0.6)
-        self.play(Wiggle(z.parts, scale_value=1.0, rotation_angle=0.025 * TAU), run_time=0.8)
-
-        tight = T("two phosphates: tight binding", 30, GREEN).move_to([0, -2.6, 0])
-        self.at("binds tightly")
-        self.play(bps[1].animate.set_opacity(1), run_time=0.4)
-        self.play(Transform(z.cups[1], cup(BYX[1], SHUT)), ReplacementTransform(weak, tight), run_time=0.7)
-        self.at("both tyrosines")
-        self.play(Indicate(bys, color=PURPLE, scale_factor=1.25), run_time=0.8)
+        self.at("What holds the switch off")
+        q = question_card("Active Lck is right there. Why is a resting T cell quiet?", y=3.25, max_w=11.5)
+        self.play(FadeIn(q.question, run_time=0.5), run_time=0.9)
         self.finish()
 
 
-# =============================================================================================
-class S05Branches(SpokenScene):
-    """Lck switches on docked ZAP-70, which phosphorylates LAT; three branches leave LAT and meet on a gene."""
+class S05Pause(PredictPause):
+    QUESTION = "Active Lck is right there. Why is a resting T cell quiet?"
+    CARD = {"y": 3.25, "max_w": 11.5}
+    RING_AT = (5.85, -2.35, 0)
+    SECONDS = 4.5
 
+    def backdrop(self):
+        world, _ = build_synapse_state(gap_top=GAP_TOP_Y, gap_bot=GAP_BOT_Y, filled_itams=False, cd45_xs=(-4.3, 4.3))
+        lbl_tails = T("ITAMs", size=26, color=PHOS_COL).move_to([-1.95, -1.85, 0])
+        status = boxed_label("lasting P: 0", color=TEXT, size=26).move_to([-4.65, -2.55, 0])
+        tag = scope_tag("schematic", color=TEXT)
+        return VGroup(world, lbl_tails, status, tag)
+
+
+def _apc_profile_y(x, center_y, edge_y=GAP_TOP_Y, x_flat=3.2, x_edge=4.8):
+    ax = abs(x)
+    if ax <= x_flat:
+        return center_y
+    if ax >= x_edge:
+        return edge_y
+    t = (ax - x_flat) / (x_edge - x_flat)
+    s = t * t * (3.0 - 2.0 * t)
+    return center_y + (edge_y - center_y) * s
+
+
+def build_apc_bowed(center_y, edge_y=GAP_TOP_Y):
+    xs = np.linspace(-7.5, 7.5, 81)
+    bot_pts = [[x, _apc_profile_y(x, center_y, edge_y), 0.0] for x in xs]
+    top_pts = [[x, _apc_profile_y(x, center_y, edge_y) + 0.18, 0.0] for x in reversed(xs)]
+    apc_mem = Polygon(*(bot_pts + top_pts), fill_color=APC_COL, fill_opacity=0.90,
+                      stroke_color="#94A6BC", stroke_width=2).set_z_index(-2)
+    bg_bot = [[x, _apc_profile_y(x, center_y, edge_y) + 0.09, 0.0] for x in xs]
+    bg_top = [[7.5, 5.2, 0.0], [-7.5, 5.2, 0.0]]
+    apc_bg = Polygon(*(bg_bot + bg_top), fill_color=APC_FILL, fill_opacity=1.0,
+                     stroke_width=0).set_z_index(-5)
+    return apc_bg, apc_mem
+
+
+class S06RevealCd45(SpokenScene):
     def construct(self):
-        bm, bt, bys, bps = big_base()
-        z = Zap()
-        sh_l = T("SH2", 26, ORANGE).move_to(z.cups[0].get_left() + [-0.55, 0, 0])
-        sh_r = T("SH2", 26, ORANGE).move_to(z.cups[1].get_right() + [0.55, 0, 0])
-        tight = T("two phosphates: tight binding", 30, GREEN).move_to([0, -2.6, 0])
-        self.add(bm, bt, bys, bps, z.parts, sh_l, sh_r, tight)
+        world, objs = build_synapse_state(gap_top=GAP_TOP_Y, gap_bot=GAP_BOT_Y, filled_itams=False, cd45_xs=(-4.3, 4.3))
+        lbl_tails = T("ITAMs", size=26, color=PHOS_COL).move_to([-1.95, -1.85, 0])
+        q = question_card("Active Lck is right there. Why is a resting T cell quiet?", y=3.25, max_w=11.5)
+        tag = scope_tag("schematic", color=TEXT)
+        self.add(world, lbl_tails, q.question, tag)
 
-        self.at("Docking lets")
-        self.play(FadeOut(tight), *z.set_color(GREEN), run_time=0.7)
+        cd45_l, cd45_r = objs["cd45s"][0], objs["cd45s"][1]
 
-        # ZAP-70 and LAT meet in the middle, then slide left to make room for the branches
-        chip_z = bchip("ZAP-70", GREEN, 30).move_to([-2.5, 0.0, 0])
-        lat = RoundedRectangle(corner_radius=0.14, width=0.5, height=3.2, stroke_color=GREY, stroke_width=3,
-                               fill_color=GREY, fill_opacity=0.35).move_to([0.2, 0.0, 0])
-        lat_lbl = T("LAT", 32, TEXT, weight=BOLD).move_to([0.2, 2.1, 0])
-        self.at("phosphorylates")
-        self.play(FadeOut(VGroup(bm, bt, bys, bps, sh_l, sh_r, *z.legs, *z.cups)),
-                  ReplacementTransform(z.bar, chip_z), FadeIn(lat, shift=RIGHT * 0.2), FadeIn(lat_lbl), run_time=1.1)
-        p = pbadge(0.26, 22).move_to(chip_z.get_right() + [0.35, 0.3, 0])
-        self.at("a scaffold")
-        self.play(FadeIn(p, scale=0.5), run_time=0.2)
-        self.play(p.animate.move_to(lat.get_left() + [0.0, 0.3, 0]), run_time=0.6)
-        self.at("membrane")
-        self.play(Indicate(lat, color=TEXT, scale_factor=1.05), run_time=0.7)
+        self.at("phosphatase called CD45")
+        lbl_cd45 = T("CD45\nphosphatase", size=26, color=TEXT).move_to([2.05, 1.58, 0])
+        arr_cd45 = Arrow(lbl_cd45.get_right() + RIGHT * 0.12, cd45_r[1].get_left() + LEFT * 0.12,
+                         buff=0, color=TEXT, stroke_width=3, max_tip_length_to_length_ratio=0.16)
+        self.play(FadeOut(q.question), FadeIn(lbl_cd45, run_time=0.35), GrowArrow(arr_cd45), run_time=0.75)
 
-        left = VGroup(chip_z, lat, lat_lbl, p)
-        rows = [2.1, 0.0, -2.1]
-        mids = ["calcium", "DAG, PKC", "Ras, ERK"]
-        tfs = ["NFAT", "NF-κB", "AP-1"]
-        mid_x, tf_x = -0.2, 2.5
-        lat_x = -2.9          # where LAT ends up
-        mid_chips = [bchip(m, TEXT, 28).move_to([mid_x, y, 0]) for m, y in zip(mids, rows)]
-        tf_chips = [bchip(t, PINK, 28).move_to([tf_x, y, 0]) for t, y in zip(tfs, rows)]
-        lat_right = lat_x + 0.25
-        a_lat = [arr([lat_right + 0.02, y * 0.45, 0], [mc.get_left()[0], y, 0], GREY, 4, 0.2) for y, mc in zip(rows, mid_chips)]
-        a_tf = [arr(mc.get_right(), tc.get_left(), GREY, 4, 0.2) for mc, tc in zip(mid_chips, tf_chips)]
+        self.at("keeps erasing them")
+        ring_ex = objs["itams"][9][1][0]
+        p_pkt = make_p_packet(objs["free_lck"][1].get_left() + LEFT * 0.12, radius=0.12)
+        self.add(p_pkt)
+        self.play(
+            FadeOut(arr_cd45, run_time=0.3),
+            lbl_cd45.animate.move_to([4.3, 3.18, 0]),
+            p_pkt.animate.move_to(ring_ex.get_center()),
+            run_time=0.6,
+        )
+        self.remove(p_pkt)
+        ring_ex.set_fill(PHOS_COL, opacity=1.0)
+        self.play(cd45_r.animate.move_to([2.15, cd45_r.get_center()[1], 0]), run_time=0.9)
 
-        self.at("one branch")
-        self.play(left.animate.shift(LEFT * (0.2 - lat_x)), GrowArrow(a_lat[0]), run_time=0.6)
+        self.at("strips phosphate groups off")
+        ring_ex.set_fill(TCELL_FILL, opacity=1.0)
+        self.play(cd45_r.animate.move_to([4.3, cd45_r.get_center()[1], 0]), run_time=0.9)
+
+        self.at("outer part is tall")
+        # Height bracket placed cleanly to the LEFT of right CD45 (x = 3.70) with label at x = 2.15
+        top_pt = [3.70, GAP_BOT_Y + 1.95, 0]
+        bot_pt = [3.70, GAP_BOT_Y + 0.05, 0]
+        tall_line = Line(bot_pt, top_pt, color=PHOS_COL, stroke_width=3.5)
+        tall_caps = VGroup(
+            Line([3.58, bot_pt[1], 0], [3.82, bot_pt[1], 0], color=PHOS_COL, stroke_width=3.5),
+            Line([3.58, top_pt[1], 0], [3.82, top_pt[1], 0], color=PHOS_COL, stroke_width=3.5),
+        )
+        lbl_tall = T("tall outer part", size=26, color=PHOS_COL).move_to([2.25, 0.88, 0])
+        self.play(FadeOut(lbl_cd45), Create(tall_line), Create(tall_caps), FadeIn(lbl_tall, run_time=0.45), run_time=0.9)
+
+        self.at("two cells press close")
+        dy = GAP_TOP_Y - GAP_NARROW_TOP  # 1.08
+        apc_bg_flat, apc_mem_flat = build_apc_bowed(GAP_TOP_Y, GAP_TOP_Y)
+        apc_bg_bow, apc_mem_bow = build_apc_bowed(GAP_NARROW_TOP, GAP_TOP_Y)
+        objs["cells"].remove(objs["cells"][0], objs["cells"][2])
+        self.add(apc_bg_flat, apc_mem_flat)
+        tcr_pressed = build_tcr(anchor_y=GAP_BOT_Y, cx=0.0, top_y=GAP_NARROW_TOP - 0.85)
+        corecep_pressed, _ = build_coreceptor_lck(
+            anchor_y=GAP_BOT_Y, base_x=-2.85, grip_pt=(-0.72, GAP_NARROW_TOP - 0.58), active=True
+        )
+        self.play(
+            FadeOut(tall_line), FadeOut(tall_caps), FadeOut(lbl_tall),
+            Transform(apc_bg_flat, apc_bg_bow),
+            Transform(apc_mem_flat, apc_mem_bow),
+            objs["mhc_all"].animate.shift(DOWN * dy),
+            Transform(objs["tcr"], tcr_pressed),
+            Transform(objs["corecep"], corecep_pressed),
+            run_time=1.8,
+        )
+
+        self.at("no longer fits")
+        lbl_excl = T("CD45 pushed out", size=26, color=TEXT).move_to([3.10, 0.82, 0])
+        arr_excl = Arrow(lbl_excl.get_right() + RIGHT * 0.10, [5.15, 1.30, 0],
+                         buff=0, color=TEXT, stroke_width=3, max_tip_length_to_length_ratio=0.16)
+        self.play(
+            cd45_l.animate.move_to([-5.55, cd45_l.get_center()[1], 0]),
+            cd45_r.animate.move_to([ 5.55, cd45_r.get_center()[1], 0]),
+            FadeIn(lbl_excl, run_time=0.45), GrowArrow(arr_excl),
+            run_time=1.3,
+        )
+
+        self.at("one leading model")
+        hedge = boxed_label("one leading model — still debated", color=TEXT, size=24).move_to([-3.25, 3.05, 0])
+        pkts = []
+        anims = []
+        target_pairs = [objs["itams"][4], objs["itams"][5], objs["itams"][6], objs["itams"][7]]
+        for idx, pair in enumerate(target_pairs):
+            src = objs["cd4_lck"][1].get_right() if idx % 2 == 0 else objs["free_lck"][1].get_left()
+            for r in pair[1]:
+                pk = make_p_packet(src, radius=0.10)
+                self.add(pk)
+                pkts.append((pk, r))
+                anims.append(pk.animate.move_to(r.get_center()))
+        self.play(FadeIn(hedge, run_time=0.45), LaggedStart(*anims, lag_ratio=0.05), run_time=0.6)
+        for pk, r in pkts:
+            self.remove(pk)
+            r.set_fill(PHOS_COL, opacity=1.0)
+
+        self.at("lets phosphate stay")
+        self.finish()
+
+
+class S07Coincidence(SpokenScene):
+    def construct(self):
+        tail_y = 1.55
+        tail_bg = Rectangle(width=15.0, height=8.5, fill_color=TCELL_FILL, fill_opacity=1.0, stroke_width=0).set_z_index(-5)
+        left_x, right_x = -1.30, 1.30
+        # Draw tail line and ITAM bar cleanly behind rings
+        tail_line = Line([-5.6, tail_y, 0], [5.6, tail_y, 0], color=PARTNER_COL, stroke_width=9).set_z_index(0)
+        itam_bar = Line([left_x, tail_y, 0], [right_x, tail_y, 0], color=PHOS_COL, stroke_width=6).set_z_index(1)
+        ring_l = Circle(radius=0.24, stroke_color=PHOS_COL, stroke_width=4.5, fill_color=TCELL_FILL, fill_opacity=1.0).move_to([left_x, tail_y, 0]).set_z_index(2)
+        ring_r = Circle(radius=0.24, stroke_color=PHOS_COL, stroke_width=4.5, fill_color=TCELL_FILL, fill_opacity=1.0).move_to([right_x, tail_y, 0]).set_z_index(2)
+
+        lbl_tail = T("partner tail (ITAM)", size=28, color=PARTNER_COL).move_to([4.55, tail_y + 0.56, 0])
+        lbl_y1 = T("Y", size=26, color=TEXT).move_to([left_x, tail_y + 0.52, 0])
+        lbl_y2 = T("Y", size=26, color=TEXT).move_to([right_x, tail_y + 0.52, 0])
+
+        lck = build_lck_block(-3.8, tail_y + 1.05, active=True)
+        tag = scope_tag("schematic", color=TEXT)
+        self.add(tail_bg, tail_line, itam_bar, ring_l, ring_r, lck, tag)
+
+        self.at("reads those marks")
+        self.play(FadeIn(lbl_tail, run_time=0.45), FadeIn(lbl_y1, run_time=0.45), FadeIn(lbl_y2, run_time=0.45))
+
+        self.at("ZAP70 is a second kinase")
+        zap_home = np.array([0.0, -1.65, 0.0])
+        zap = build_zap70(zap_home, claw_sep=2.60, open_frac=0.0, activated=False)
+        lbl_zap = T("ZAP-70 (folded)", size=28, color=ZAP_COL).move_to([0.0, -2.95, 0])
+        self.play(FadeIn(zap, shift=UP * 0.25, run_time=0.6), FadeIn(lbl_zap, run_time=0.45))
+
+        self.at("two SH2 claws")
+        lbl_claws = T("two SH2 claws", size=26, color=ZAP_COL).move_to([3.55, -0.95, 0])
+        arr_claw = Arrow(lbl_claws.get_left() + LEFT * 0.10, [1.55, -1.08, 0],
+                         buff=0, color=ZAP_COL, stroke_width=3, max_tip_length_to_length_ratio=0.18)
+        self.play(FadeIn(lbl_claws, run_time=0.4), GrowArrow(arr_claw), run_time=0.7)
+
+        self.at("spaced to fit one pair")
+        brace_line = DashedLine([left_x, 0.50, 0], [right_x, 0.50, 0], color=PHOS_COL, stroke_width=3, dash_length=0.14)
+        lbl_space = T("fixed spacing", size=24, color=PHOS_COL).move_to([0.0, 0.78, 0])
+        self.play(Create(brace_line), FadeIn(lbl_space, run_time=0.4), run_time=0.8)
+
+        self.at("One phosphate holds a single claw")
+        self.play(
+            FadeOut(brace_line), FadeOut(lbl_space), FadeOut(lbl_claws), FadeOut(arr_claw),
+            lck.animate.move_to([left_x, tail_y + 1.15, 0]),
+            run_time=0.75,
+        )
+        pkt_l = make_p_packet([left_x, tail_y + 0.75, 0], radius=0.16)
+        self.add(pkt_l)
+        self.play(pkt_l.animate.move_to(ring_l.get_center()), run_time=0.45)
+        self.remove(pkt_l)
+        ring_l.set_fill(PHOS_COL, opacity=1.0)
+        lbl_yp1 = T("Y–P", size=26, color=PHOS_COL, weight=BOLD).move_to([left_x, tail_y + 0.52, 0])
+        self.play(swap(lbl_y1, lbl_yp1, run_time=0.4))
+
+        dock_y = tail_y - 0.84
+        pivot_l = np.array([left_x, tail_y - 0.15, 0.0])
+        zap_tilted = zap.copy().move_to([0.0, dock_y, 0.0]).rotate(-0.22, about_point=pivot_l)
+        self.play(Transform(zap, zap_tilted), run_time=0.85)
+
+        self.at("ZAP70 slips off")
+        weak_lbl = T("1 phosphate: weak grip — slips off", size=28, color=RED).move_to([0.0, -3.15, 0])
+        self.play(swap(lbl_zap, weak_lbl, run_time=0.45))
+        self.play(Rotate(zap, angle=-0.08, about_point=pivot_l), run_time=0.40)
+        self.play(Rotate(zap, angle=0.06, about_point=pivot_l), run_time=0.40)
+        self.play(zap.animate.rotate(0.24).move_to(zap_home), run_time=0.85)
+
+        self.at("keeps a stray mark")
+        stray_badge = boxed_label("stray mark ignored", color=RED, size=24).move_to([3.95, 0.45, 0])
+        self.play(FadeIn(stray_badge, run_time=0.35), run_time=0.5)
+
+        self.at("both tyrosines tagged")
+        self.play(FadeOut(weak_lbl), FadeOut(stray_badge), lck.animate.move_to([right_x, tail_y + 1.15, 0]), run_time=0.75)
+        pkt_r = make_p_packet([right_x, tail_y + 0.75, 0], radius=0.16)
+        self.add(pkt_r)
+        self.play(pkt_r.animate.move_to(ring_r.get_center()), run_time=0.45)
+        self.remove(pkt_r)
+        ring_r.set_fill(PHOS_COL, opacity=1.0)
+        lbl_yp2 = T("Y–P", size=26, color=PHOS_COL, weight=BOLD).move_to([right_x, tail_y + 0.52, 0])
+        self.play(swap(lbl_y2, lbl_yp2, run_time=0.4))
+
+        self.at("both claws clamp tight")
+        clamp_lbl = T("2 phosphates: both claws clamp tight", size=28, color=PHOS_COL).move_to([0.0, -3.15, 0])
+        self.play(
+            zap.animate.move_to([0.0, dock_y, 0.0]),
+            FadeIn(clamp_lbl, run_time=0.4),
+            run_time=0.8,
+        )
+
+        self.at("Docking opens ZAP70")
+        open_t = ValueTracker(0.0)
+        zap_open_anim = always_redraw(lambda: build_zap70(
+            [0.0, dock_y, 0.0], claw_sep=2.60, open_frac=open_t.get_value(), activated=False
+        ))
+        lck_path = VMobject().set_points_as_corners([
+            [right_x, tail_y + 1.15, 0],
+            [2.45, tail_y + 1.15, 0],
+            [2.45, -0.35, 0],
+            [2.95, -0.35, 0],
+        ])
+        lck_move = MoveAlongPath(lck, lck_path)
+        self.remove(zap)
+        self.add(zap_open_anim)
+        self.play(open_t.animate.set_value(1.0), lck_move, run_time=1.3)
+
+        self.at("and LCK")
+        self.remove(zap_open_anim)
+        zap_open = build_zap70([0.0, dock_y, 0.0], claw_sep=2.60, open_frac=1.0, activated=False)
+        self.add(zap_open)
+        act_pkt = make_p_packet(lck[1].get_left() + LEFT * 0.12, radius=0.16)
+        self.add(act_pkt)
+        self.play(act_pkt.animate.move_to(zap_open.lobe.get_center()), run_time=0.35)
+        self.remove(act_pkt)
+        zap_active = build_zap70([0.0, dock_y, 0.0], claw_sep=2.60, open_frac=1.0, activated=True)
+        lbl_active = T("ZAP-70 active", size=28, color=PHOS_COL).move_to([0.0, -2.25, 0])
+        self.play(Transform(zap_open, zap_active), FadeOut(clamp_lbl), FadeIn(lbl_active, run_time=0.35), run_time=0.35)
+        self.finish()
+
+
+class S08LatScaffold(SpokenScene):
+    def construct(self):
+        mem_y = 1.15
+        t_bg = Rectangle(width=15.0, height=5.8, fill_color=TCELL_FILL, fill_opacity=1.0, stroke_width=0).move_to([0, mem_y - 2.9, 0]).set_z_index(-5)
+        t_mem = RoundedRectangle(corner_radius=0.05, width=15.0, height=0.18,
+                                 fill_color=TMEM_COL, fill_opacity=0.90, stroke_color="#A3B4C8", stroke_width=2).move_to([0, mem_y - 0.09, 0]).set_z_index(-2)
+
+        cx_l = -3.6
+        tcr_l = build_tcr(anchor_y=mem_y, cx=cx_l, top_y=mem_y + 0.90)
+        tail_l = Line([cx_l, mem_y - 0.05, 0], [cx_l, mem_y - 2.15, 0], color=PARTNER_COL, stroke_width=6)
+        itam_l = make_itam_pair(cx_l, mem_y - 0.95, dy=0.84, filled=True, radius=0.13, horizontal=True)
+        zap_l = build_zap70([cx_l, mem_y - 1.55, 0], claw_sep=0.84 / 0.85, open_frac=1.0, activated=True, p_label=False).scale(0.85, about_point=[cx_l, mem_y - 1.55, 0])
+        lbl_rec = T("active receptor + ZAP-70", size=26, color=ZAP_COL).move_to([-3.6, -2.55, 0])
+
+        tag = scope_tag("schematic", color=TEXT)
+        self.add(t_bg, t_mem, tcr_l, tail_l, itam_l, zap_l, lbl_rec, tag)
+
+        self.at("first core rule")
+        rule_card = boxed_label("Core rule: Two phosphates on partner ITAMs switch on the receptor",
+                                color=PHOS_COL, size=26).move_to([0.0, 3.10, 0])
+        self.play(FadeIn(rule_card, run_time=0.5), run_time=0.8)
+
+        self.at("Two phosphates on partner ITAMs")
+        self.play(Indicate(itam_l, color=PHOS_COL, scale_factor=1.18), run_time=1.6)
+        self.play(Indicate(zap_l, color=PHOS_COL, scale_factor=1.06), run_time=1.8)
+
+        self.at("Once active")
+        lat_x = 1.65
+        lat_ect = RoundedRectangle(corner_radius=0.07, width=0.30, height=0.44,
+                                   fill_color=LAT_COL, fill_opacity=0.92, stroke_color=TEXT, stroke_width=2).move_to([lat_x, mem_y + 0.16, 0])
+        lat_bar = RoundedRectangle(corner_radius=0.12, width=0.40, height=3.20,
+                                   fill_color=LAT_COL, fill_opacity=0.90, stroke_color="#D7BFFF", stroke_width=2.5).move_to([lat_x, mem_y - 1.60, 0])
+        slot_ys = [0.45, -0.35, -1.15, -1.95]
+        lat_slots = VGroup(*[
+            Circle(radius=0.16, stroke_color=PHOS_COL, stroke_width=3.5, fill_color=BG, fill_opacity=1.0).move_to([lat_x + 0.38, y, 0])
+            for y in slot_ys
+        ])
+        lat_grp = VGroup(lat_ect, lat_bar, lat_slots).shift(RIGHT * 4.8)
+        lbl_lat = T("LAT scaffold", size=28, color=LAT_COL).move_to([lat_x, mem_y + 0.85, 0])
+        self.play(lat_grp.animate.shift(LEFT * 4.8), run_time=1.2)
+
+        self.at("phosphorylates LAT")
+        self.play(FadeIn(lbl_lat, run_time=0.4), run_time=0.5)
+
+        self.at("a membrane scaffold")
+        zap_src = zap_l.get_right() + RIGHT * 0.08
+        for slot in lat_slots:
+            pkt = make_p_packet(zap_src, radius=0.16)
+            ring_pulse = Circle(radius=0.30, stroke_color=PHOS_COL, stroke_width=3).move_to(slot.get_center())
+            self.add(pkt)
+            self.play(pkt.animate.move_to(slot.get_center()), run_time=0.65)
+            self.remove(pkt)
+            slot.set_fill(PHOS_COL, opacity=1.0)
+            self.play(Create(ring_pulse), run_time=0.25)
+            self.play(FadeOut(ring_pulse), run_time=0.25)
+
+        self.at("become docking bays")
+        lbl_bays = T("docking bays", size=26, color=PHOS_COL).move_to([4.55, 0.45, 0])
+        arr_bay = Arrow(lbl_bays.get_left() + LEFT * 0.10, lat_slots[0].get_right() + RIGHT * 0.12,
+                        buff=0, color=PHOS_COL, stroke_width=3, max_tip_length_to_length_ratio=0.16)
+        self.play(FadeIn(lbl_bays, run_time=0.4), GrowArrow(arr_bay), run_time=0.7)
+
+        self.at("split the signal three ways")
+        stubs = VGroup(
+            Arrow(lat_slots[1].get_right() + RIGHT * 0.12, [3.35, -0.65, 0], buff=0, color=CA_COL, stroke_width=6),
+            Arrow(lat_slots[2].get_right() + RIGHT * 0.12, [3.55, -1.45, 0], buff=0, color=PKC_COL, stroke_width=6),
+            Arrow(lat_slots[3].get_right() + RIGHT * 0.12, [3.35, -2.25, 0], buff=0, color=RAS_COL, stroke_width=6),
+        )
+        b_labs = VGroup(
+            T("Ca²⁺", size=24, color=CA_COL).next_to(stubs[0].get_end(), RIGHT, buff=0.16),
+            T("DAG / PKC", size=24, color=PKC_COL).next_to(stubs[1].get_end(), RIGHT, buff=0.16),
+            T("Ras / ERK", size=24, color=RAS_COL).next_to(stubs[2].get_end(), RIGHT, buff=0.16),
+        )
+        self.play(LaggedStart(*[GrowArrow(s) for s in stubs], lag_ratio=0.18), FadeIn(b_labs, run_time=0.45), run_time=1.3)
+        self.finish()
+
+
+class S09ThreeBranches(SpokenScene):
+    def construct(self):
+        mem_y = 2.65
+        t_bg = Rectangle(width=15.0, height=7.2, fill_color=TCELL_FILL, fill_opacity=1.0, stroke_width=0).move_to([0, mem_y - 3.6, 0]).set_z_index(-5)
+        t_mem = RoundedRectangle(corner_radius=0.05, width=15.0, height=0.18,
+                                 fill_color=TMEM_COL, fill_opacity=0.90, stroke_color="#A3B4C8", stroke_width=2).move_to([0, mem_y - 0.09, 0]).set_z_index(-2)
+
+        tcr_ref = build_tcr(anchor_y=mem_y, cx=-4.6, top_y=mem_y + 0.65).scale(0.8, about_point=[-4.6, mem_y, 0])
+        tail_ref = Line([-4.6, mem_y - 0.05, 0], [-4.6, mem_y - 1.10, 0], color=PARTNER_COL, stroke_width=5)
+        zap_badge = boxed_label("ZAP-70 active", color=ZAP_COL, size=24).move_to([-4.6, mem_y - 1.45, 0])
+
+        lat_bar = RoundedRectangle(corner_radius=0.12, width=3.0, height=0.40,
+                                   fill_color=LAT_COL, fill_opacity=0.92, stroke_color="#D7BFFF", stroke_width=2.5).move_to([0.0, mem_y - 0.45, 0])
+        bay_xs = [-1.05, 0.0, 1.05]
+        bays = VGroup(*[
+            Circle(radius=0.14, fill_color=PHOS_COL, fill_opacity=1.0, stroke_color=TEXT, stroke_width=2).move_to([bx, mem_y - 0.72, 0])
+            for bx in bay_xs
+        ])
+        lbl_lat = T("LAT (phosphorylated)", size=26, color=LAT_COL).move_to([0.0, mem_y + 0.35, 0])
+
+        nuc_arc = Arc(radius=7.4, start_angle=PI * 0.28, angle=PI * 0.44,
+                      arc_center=[0.0, -9.15, 0], color=NUC_STROKE, stroke_width=5)
+        nuc_fill = Sector(radius=7.4, start_angle=PI * 0.28, angle=PI * 0.44,
+                          arc_center=[0.0, -9.15, 0], fill_color=NUC_FILL, fill_opacity=0.95, stroke_width=0).set_z_index(-3)
+        lbl_nuc = T("Nucleus", size=28, color=TEXT).move_to([0.0, -3.32, 0])
+
+        t_clock = ValueTracker(0.0)
+        clock_readout = counter("{:4.1f} s (schematic)", t_clock, at=[4.55, 3.15, 0], size=26, color=PHOS_COL)
+        tag = scope_tag("schematic", color=TEXT)
+
+        self.add(t_bg, t_mem, tcr_ref, tail_ref, zap_badge, lat_bar, bays, lbl_lat, nuc_fill, nuc_arc, lbl_nuc, clock_readout, tag)
+
+        # Paths terminate cleanly on the nuclear envelope arc (arc top at x=0 is -1.75, at x=+-3.8 is -2.80)
+        p_ca = CubicBezier([-1.05, mem_y - 0.86, 0], [-2.5, 0.85, 0], [-3.8, -0.35, 0], [-3.8, -2.80, 0], color=CA_COL, stroke_width=6)
+        p_pkc = CubicBezier([0.0, mem_y - 0.86, 0], [0.0, 0.90, 0], [0.0, 0.05, 0], [0.0, -1.75, 0], color=PKC_COL, stroke_width=6)
+        p_ras = CubicBezier([1.05, mem_y - 0.86, 0], [2.5, 0.85, 0], [3.8, -0.35, 0], [3.8, -2.80, 0], color=RAS_COL, stroke_width=6)
+
+        # Continuous stream tracker running across the whole scene so active pathways flow visibly
+        stream_t = ValueTracker(0.0)
+        stream_t.add_updater(lambda m, dt: m.increment_value(0.55 * dt))
+        self.add(stream_t)
+
+        def make_stream(path, color, count=4):
+            grp = VGroup()
+            for k in range(count):
+                off = k / count
+                grp.add(always_redraw(lambda o=off: VGroup(
+                    Dot(path.point_from_proportion((stream_t.get_value() + o) % 1.0),
+                        radius=0.26, color=color).set_opacity(0.32),
+                    Dot(path.point_from_proportion((stream_t.get_value() + o) % 1.0),
+                        radius=0.17, color=color, stroke_color=TEXT, stroke_width=2.5),
+                )))
+            return grp
+
+        self.at("three branches fan out")
+        self.play(
+            t_clock.animate.set_value(4.0),
+            Create(p_ca), Create(p_pkc), Create(p_ras),
+            run_time=2.8,
+        )
+
         self.at("raises calcium")
-        self.play(FadeIn(mid_chips[0], shift=RIGHT * 0.2), run_time=0.5)
-        self.at("enters the")
-        self.play(GrowArrow(a_tf[0]), FadeIn(tf_chips[0], shift=RIGHT * 0.2), run_time=0.6)
+        lbl_ca_path = T("Ca²⁺", size=26, color=CA_COL).move_to([-4.65, 0.35, 0])
+        ca_stream = make_stream(p_ca, CA_COL)
+        self.add(ca_stream)
+        self.play(FadeIn(lbl_ca_path, run_time=0.4), t_clock.animate.set_value(6.5), run_time=1.2)
 
-        self.at("A second")
-        self.play(GrowArrow(a_lat[1]), run_time=0.4)
-        self.at("protein kinase")
-        self.play(FadeIn(mid_chips[1], shift=RIGHT * 0.2), run_time=0.5)
-        self.at("C to")
-        self.play(GrowArrow(a_tf[1]), FadeIn(tf_chips[1], shift=RIGHT * 0.2), run_time=0.6)
+        self.at("NFAT into the nucleus")
+        nfat_tok = boxed_label("NFAT", color=CA_COL, size=26).move_to([-2.40, -3.05, 0])
+        self.play(FadeIn(nfat_tok, shift=DOWN * 0.25, run_time=0.6), t_clock.animate.set_value(7.0), run_time=1.8)
 
-        self.at("via third")
-        self.play(GrowArrow(a_lat[2]), run_time=0.4)
-        self.at("loads Ras")
-        self.play(FadeIn(mid_chips[2], shift=RIGHT * 0.2), run_time=0.5)
-        self.at("helps build")
-        self.play(GrowArrow(a_tf[2]), FadeIn(tf_chips[2], shift=RIGHT * 0.2), run_time=0.6)
+        self.at("A second runs")
+        lbl_pkc_path = T("DAG / PKC", size=26, color=PKC_COL).move_to([1.35, 0.35, 0])
+        pkc_stream = make_stream(p_pkc, PKC_COL)
+        self.add(pkc_stream)
+        self.play(FadeIn(lbl_pkc_path, run_time=0.4), run_time=1.8)
 
-        gene = RoundedRectangle(corner_radius=0.14, width=0.5, height=3.2, stroke_color=TEXT, stroke_width=3,
-                                fill_color=TEXT, fill_opacity=0.2).move_to([5.3, 0.0, 0])
-        gene_lbl = T("interleukin-2\ngene", 26, TEXT, line_spacing=0.8).move_to([5.3, -2.5, 0])
-        a_gene = [arr(tc.get_right(), [gene.get_left()[0], y * 0.45, 0], PINK, 4, 0.2) for tc, y in zip(tf_chips, rows)]
-        self.at("The three meet")
-        self.play(FadeIn(gene, shift=LEFT * 0.2), run_time=0.5)
-        self.play(LaggedStart(*[GrowArrow(a) for a in a_gene], lag_ratio=0.2), run_time=0.9)
-        self.at("interleukin")
-        self.play(FadeIn(gene_lbl), run_time=0.5)
+        self.at("to NF kappa B")
+        nfkb_tok = boxed_label("NF-κB", color=PKC_COL, size=26).move_to([0.0, -2.42, 0])
+        self.play(FadeIn(nfkb_tok, shift=DOWN * 0.25, run_time=0.6), run_time=1.5)
+
+        self.at("A third")
+        lbl_ras_path = T("Ras / ERK", size=26, color=RAS_COL).move_to([4.75, 0.35, 0])
+        ras_stream = make_stream(p_ras, RAS_COL)
+        self.add(ras_stream)
+        self.play(FadeIn(lbl_ras_path, run_time=0.4), run_time=1.1)
+
+        self.at("to drive ERK")
+        ap1_tok = boxed_label("AP-1", color=RAS_COL, size=26).move_to([2.40, -3.05, 0])
+        self.play(FadeIn(ap1_tok, shift=DOWN * 0.25, run_time=0.6))
         self.finish()
 
 
-# =============================================================================================
-class S06Two(SpokenScene):
-    """signal one alone leaves the cell anergic; CD28 binding B7 is signal two; two phosphates and two signals."""
-
+class S10Convergence(SpokenScene):
     def construct(self):
-        XR = -3.4   # receptor column
-        XC = 1.9    # CD28 / B7 column
-        x0, x1 = -5.8, 3.7
-        pm, tm = mem_h(YP, x0, x1), mem_h(YT, x0, x1)
-        pm_lbl = T("presenting cell", 26, GREY).move_to([5.15, YP, 0])
-        tm_lbl = T("T cell", 26, GREY).move_to([5.15, YT, 0])
-        body = RoundedRectangle(corner_radius=0.3, width=x1 - x0, height=YT - 0.16 + 3.3, stroke_color=GREY,
-                                stroke_width=3).move_to([(x0 + x1) / 2, (YT - 0.16 - 3.3) / 2, 0])
-        mh, pep, rec = mhc(XR, 3.2), peptide(XR), tcr(XR)
-        pep_lbl = T("own peptide", 26, YELLOW).move_to([XR + 0.35 + 1.15, 2.02, 0])
-        sig1 = T("signal 1", 30, YELLOW, weight=BOLD).move_to([XR, -0.75, 0])
-        slot = DashedVMobject(RoundedRectangle(corner_radius=0.2, width=1.1, height=1.5), num_dashes=36).set_color(GREY)
-        slot.move_to([XC, 1.95, 0])
-        slot_q = T("?", 48, GREY, weight=BOLD).move_to(slot)
+        nuc_bg = Rectangle(width=15.0, height=8.5, fill_color=NUC_FILL, fill_opacity=1.0, stroke_width=0).set_z_index(-5)
+        dna_bar = RoundedRectangle(corner_radius=0.10, width=9.4, height=0.34,
+                                   fill_color=DNA_COL, fill_opacity=0.88, stroke_color=TEXT, stroke_width=2).move_to([0.0, -0.95, 0])
+        lbl_gene = T("IL-2 gene", size=30, color=TEXT, weight=BOLD).move_to([0.0, -1.68, 0])
 
-        self.at("Even this")
-        self.play(Create(pm), Create(tm), FadeIn(pm_lbl), FadeIn(tm_lbl), Create(body), run_time=0.9)
-        self.play(FadeIn(mh, shift=DOWN * 0.2), FadeIn(pep, shift=DOWN * 0.2), FadeIn(rec, shift=UP * 0.2),
-                  FadeIn(sig1), run_time=0.8)
-        self.play(Create(slot), FadeIn(slot_q), run_time=0.6)
+        nfat_tok = boxed_label("NFAT", color=CA_COL, size=28).move_to([-3.6, 1.35, 0])
+        nfkb_tok = boxed_label("NF-κB", color=PKC_COL, size=28).move_to([0.0, 1.55, 0])
+        ap1_tok = boxed_label("AP-1", color=RAS_COL, size=28).move_to([3.6, 1.35, 0])
+        tag = scope_tag("schematic", color=TEXT)
 
-        self.at("vary almost")
-        self.play(Wiggle(rec, scale_value=1.0, rotation_angle=0.04 * TAU), run_time=0.9)
-        self.at("own peptides")
-        self.play(FadeIn(pep_lbl), Indicate(pep, color=YELLOW, scale_factor=1.6), run_time=0.8)
+        self.add(nuc_bg, dna_bar, lbl_gene, nfat_tok, nfkb_tok, ap1_tok, tag)
 
-        cx = (x0 + x1) / 2
-        worse = T("worse than nothing", 40, RED, weight=BOLD).move_to([cx, -2.0, 0])
-        self.at("alone did worse")
-        self.play(body.animate.set_stroke(RED, 5), FadeIn(worse, shift=UP * 0.15), run_time=0.7)
-        anergy = T("anergy", 56, RED, weight=BOLD).move_to([cx, -1.85, 0])
-        sub = T("a lasting unresponsive state", 28, RED).move_to([cx, -2.75, 0])
-        self.at("lasting unresponsive")
-        self.play(ReplacementTransform(worse, anergy), FadeIn(sub), run_time=0.8)
+        self.at("meet on target genes")
+        self.play(
+            nfat_tok.animate.move_to([-2.3, -0.36, 0]),
+            nfkb_tok.animate.move_to([0.0, -0.36, 0]),
+            ap1_tok.animate.move_to([2.3, -0.36, 0]),
+            run_time=1.6,
+        )
 
-        # signal two: B7 on the presenting cell, CD28 on the T cell, each with a round head
-        def b7_pic():
-            return VGroup(chain(XC, 2.9, 2.3, TEAL, 24), Dot([XC, 2.25, 0], radius=0.24, color=TEAL))
+        self.at("interleukin")
+        self.play(Indicate(dna_bar, color=PHOS_COL, scale_factor=1.06), run_time=1.0)
 
-        def cd28_pic(top):
-            return VGroup(chain(XC, YT - 0.55, top - 0.05, TEAL, 24), Dot([XC, top, 0], radius=0.24, color=TEAL))
+        self.at("T cell to divide")
+        wave1 = Arc(radius=1.25, start_angle=PI * 0.18, angle=PI * 0.64, arc_center=[0, -0.8, 0], color=PHOS_COL, stroke_width=5)
+        wave2 = Arc(radius=2.15, start_angle=PI * 0.18, angle=PI * 0.64, arc_center=[0, -0.8, 0], color=PHOS_COL, stroke_width=4)
+        lbl_div = T("T cell divides", size=30, color=PHOS_COL).move_to([0.0, 2.05, 0])
+        self.play(Create(wave1), Create(wave2), FadeIn(lbl_div, run_time=0.45), run_time=1.4)
 
-        b7, cd28 = b7_pic(), cd28_pic(1.3)
-        b7_lbl = T("B7", 26, TEAL).move_to([XC + 0.75, 2.6, 0])
-        cd28_lbl = T("CD28", 26, TEAL).move_to([XC + 0.95, 1.5, 0])
-        self.at("second signal needs")
-        fresh = T("a fresh T cell, both signals", 28, TEXT, weight=BOLD).move_to([cx, -2.85, 0])
-        self.play(FadeOut(VGroup(anergy, sub, pep_lbl, slot, slot_q)), body.animate.set_stroke(GREY, 3), run_time=0.5)
-        self.play(FadeIn(fresh, shift=UP * 0.15), FadeIn(b7, shift=DOWN * 0.2), FadeIn(cd28, shift=UP * 0.2),
-                  FadeIn(b7_lbl), FadeIn(cd28_lbl), run_time=0.9)
-        sig2 = T("signal 2", 30, TEAL, weight=BOLD).move_to([XC, -0.75, 0])
-        on = T("switched on", 56, GREEN, weight=BOLD).move_to([cx, -1.85, 0])
-        self.at("to bind")
-        self.play(Transform(cd28, cd28_pic(1.8)), FadeIn(sig2), run_time=0.8)
-        self.play(body.animate.set_stroke(GREEN, 5), FadeIn(on, shift=UP * 0.15), run_time=0.8)
+        self.at("never needed its own enzyme")
+        nuc_view = VGroup(nuc_bg, dna_bar, lbl_gene, nfat_tok, nfkb_tok, ap1_tok, wave1, wave2, lbl_div)
 
-        p1, p2 = pbadge(0.24, 22).move_to([XR - 0.32, -0.1, 0]), pbadge(0.24, 22).move_to([XR + 0.32, -0.1, 0])
-        self.at("two phosphates")
-        self.play(FadeIn(p1, scale=0.4), FadeIn(p2, scale=0.4), Indicate(sig1, color=YELLOW, scale_factor=1.15), run_time=0.8)
-        self.at("two signals")
-        self.play(Indicate(sig1, color=YELLOW, scale_factor=1.2), Indicate(sig2, color=TEAL, scale_factor=1.2), run_time=0.9)
+        cells, _, _ = build_cell_bands(gap_top=2.45, gap_bot=0.95)
+        mhc_all, _, _ = build_mhc_peptide(anchor_y=2.45, cx=-2.0)
+        tcr = build_tcr(anchor_y=0.95, cx=-2.0, top_y=1.60)
+        corecep, _ = build_coreceptor_lck(anchor_y=0.95, base_x=-4.95, grip_pt=(-2.72, 1.88), active=True)
+        tails, itams = build_partners(anchor_y=0.95, cx=-2.0, filled=True)
+        zap_center = np.array([-1.19, -1.43, 0.0])
+        zap = build_zap70(zap_center, claw_sep=0.48, open_frac=1.0, activated=True, p_label=False)
+        zap.scale(0.50, about_point=zap_center).rotate(PI / 2, about_point=zap_center)
+
+        lat_bar = RoundedRectangle(corner_radius=0.10, width=0.36, height=2.05,
+                                   fill_color=LAT_COL, fill_opacity=0.92, stroke_color="#D7BFFF", stroke_width=2).move_to([2.2, -0.05, 0])
+        lat_bays = VGroup(*[
+            Circle(radius=0.12, fill_color=PHOS_COL, fill_opacity=1.0, stroke_color=TEXT, stroke_width=1.5).move_to([2.50, y, 0])
+            for y in (0.45, -0.05, -0.55)
+        ])
+        mini_nuc = RoundedRectangle(corner_radius=0.22, width=2.2, height=1.25,
+                                    fill_color=NUC_FILL, fill_opacity=0.95, stroke_color=NUC_STROKE, stroke_width=3).move_to([4.95, -2.00, 0])
+        b1 = Arrow([2.64, 0.45, 0], [3.78, -1.55, 0], buff=0, color=CA_COL, stroke_width=4.5)
+        b2 = Arrow([2.64, -0.05, 0], [3.78, -2.00, 0], buff=0, color=PKC_COL, stroke_width=4.5)
+        b3 = Arrow([2.64, -0.55, 0], [3.78, -2.45, 0], buff=0, color=RAS_COL, stroke_width=4.5)
+        zap_to_lat = DashedLine(zap.get_right() + RIGHT * 0.12, [1.95, -0.05, 0], color=PHOS_COL, stroke_width=3)
+
+        lbl_ov_tcr = T("αβ TCR", size=24, color=TCR_COL).move_to([-0.35, 1.95, 0])
+        lbl_ov_cd4 = T("CD4/CD8 + Lck", size=24, color=CORECEP_COL).move_to([-4.65, 2.05, 0])
+        lbl_ov_tails = T("partner tails (ITAMs)", size=24, color=PARTNER_COL).move_to([-4.65, -1.05, 0])
+        lbl_ov_zap = T("ZAP-70", size=24, color=ZAP_COL).move_to([-0.25, -2.35, 0])
+        lbl_ov_lat = T("LAT", size=24, color=LAT_COL).move_to([2.2, 1.38, 0])
+        lbl_ov_il2 = T("IL-2 gene", size=24, color=TEXT).move_to([4.95, -2.00, 0])
+
+        overview = VGroup(
+            cells, mhc_all, tcr, corecep, tails, itams, zap, zap_to_lat,
+            lat_bar, lat_bays, mini_nuc, b1, b2, b3,
+            lbl_ov_tcr, lbl_ov_cd4, lbl_ov_tails, lbl_ov_zap, lbl_ov_lat, lbl_ov_il2,
+        )
+        self.play(FadeOut(nuc_view), run_time=0.55)
+        self.play(FadeIn(overview), run_time=0.75)
+
+        self.at("Partner tails carry the switch")
+        self.play(Indicate(itams, color=PHOS_COL, scale_factor=1.08), run_time=1.3)
+
+        self.at("demanding two phosphates")
+        lock_box = RoundedRectangle(corner_radius=0.14, width=1.60, height=1.18,
+                                    stroke_color=PHOS_COL, stroke_width=4, fill_opacity=0).move_to([-1.15, -1.43, 0])
+        lbl_lock = T("Two phosphates required — noise filtered out", size=26, color=PHOS_COL).move_to([-1.2, -3.18, 0])
+        self.play(Create(lock_box), FadeIn(lbl_lock, run_time=0.45), run_time=1.2)
+
+        self.at("keeps noise")
+        self.play(Indicate(lock_box, color=TEXT, scale_factor=1.05), run_time=1.0)
         self.finish()
 
 
-class S07End(EndCard):
-    LINE = "A fresh T cell needs two phosphates and two signals."
+class S11End(EndCard):
+    LINE = "Two phosphates on partner ITAMs switch on the antigen receptor."
