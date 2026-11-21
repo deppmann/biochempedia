@@ -449,17 +449,134 @@ class S18Rev1(Speech):
 
 class S19Rev2(Speech):
     def construct(self):
-        self.add(row(),txt('10 kDa dextran, nearly 5 nm',0,3.35,c=MAGENTA,size=32))
-        dots=VGroup(*[Dot([x,y,0],radius=.28,color=MAGENTA) for x,y in [(-.8,.6),(.7,.55),(-.7,-1.25),(.65,-1.2),(0,-.15)]])
-        self.at('10 kilodalton'); self.add(dots)
-        self.at('nearly 5')
-        self.add(txt('vertebrate connexin pore: about 1.5 nm',0,2.75,c=TEAL,size=26),
-                 arrow((2.6,2.45),(2,-.2),TEAL))
-        self.at('stays in the injected cell')
-        stop=VGroup(line((-1.7,-.6),(-1.7,.2),RED,7),line((1.7,-.6),(1.7,.2),RED,7))
-        self.add(stop,txt('stopped',0,-2.35,c=RED,size=28))
-        self.play(dots[-1].animate.move_to([1.05,-.2,0]),run_time=.45)
-        self.play(dots[-1].animate.move_to([.7,-.2,0]),run_time=.45)
+        cells, chans, labels, pip = row()
+        self.add(cells, chans, labels, pip)
+
+        # Carry the three-cell row onto the left and open a to-scale pore zoom on the right.
+        self.at('gap junction pore')
+        world = VGroup(cells, chans, pip)
+        self.play(
+            FadeOut(labels),
+            world.animate.scale(0.50).move_to([-3.3, -0.25, 0]),
+            run_time=0.55,
+        )
+
+        left_labels = VGroup(
+            txt('neighbour', -5.3, -1.95, c=YELLOW, size=24),
+            txt('injected cell', -3.3, -1.95, c=BLUE, size=24),
+            txt('neighbour', -1.3, -1.95, c=YELLOW, size=24),
+        )
+        title = txt('vertebrate connexin pore', 0, 3.35, c=TEAL, size=30)
+
+        # Right zoom panel (x in [0.1, 6.2], y in [-2.75, 2.30]): 1 nm = 0.44 scene units.
+        nm = 0.44
+        pore_w = 1.5 * nm       # 0.66 units
+        ball_r = 5.0 * nm / 2   # 1.10 units (5 nm diameter = 2.20 units)
+        yp = -0.15
+
+        panel = box(3.15, -0.225, 6.1, 5.05, GREY, 0.04)
+        tint_l = Rectangle(width=3.20, height=4.95, stroke_width=0, fill_color=BLUE, fill_opacity=0.10).move_to([1.75, -0.225, 0])
+        tint_r = Rectangle(width=2.20, height=4.95, stroke_width=0, fill_color=YELLOW, fill_opacity=0.10).move_to([5.05, -0.225, 0])
+        mem_top = VGroup(
+            line((3.35, yp + pore_w / 2), (3.35, 2.25), GREEN, 6),
+            line((3.95, yp + pore_w / 2), (3.95, 2.25), GREEN, 6),
+        )
+        mem_bot = VGroup(
+            line((3.35, -2.70), (3.35, yp - pore_w / 2), GREEN, 6),
+            line((3.95, -2.70), (3.95, yp - pore_w / 2), GREEN, 6),
+        )
+        chan_top = RoundedRectangle(width=1.40, height=0.52, corner_radius=0.10, stroke_color=TEAL, stroke_width=2.5, fill_color=TEAL, fill_opacity=0.45).move_to([3.65, yp + pore_w / 2 + 0.26, 0])
+        chan_bot = RoundedRectangle(width=1.40, height=0.52, corner_radius=0.10, stroke_color=TEAL, stroke_width=2.5, fill_color=TEAL, fill_opacity=0.45).move_to([3.65, yp - pore_w / 2 - 0.26, 0])
+        zoom_box = DashedVMobject(Rectangle(width=0.65, height=0.55, stroke_color=TEAL, stroke_width=2.5).move_to([-2.3, -0.25, 0]), num_dashes=16)
+        zoom_link = DashedVMobject(path([(-2.3, 0.025), (-2.3, 1.35), (0.1, 1.35)], TEAL, 2.5), num_dashes=20)
+        scale_note = txt('pore & tracers to scale', 3.15, -3.20, c=TEXT, size=24)
+
+        self.play(
+            FadeIn(left_labels),
+            FadeIn(title),
+            FadeIn(VGroup(panel, tint_l, tint_r, mem_top, mem_bot, chan_top, chan_bot, zoom_box, zoom_link, scale_note)),
+            run_time=0.5,
+        )
+
+        # Reveal 1.5 nm pore width only when "one and a half" is spoken.
+        self.at('one and a half', lead=0.0)
+        title_pore = txt('vertebrate connexin pore: about 1.5 nm', 0, 3.35, c=TEAL, size=30)
+        pore_ticks = VGroup(
+            line((4.40, yp + pore_w / 2), (4.76, yp + pore_w / 2), TEAL, 2.5),
+            line((4.40, yp - pore_w / 2), (4.76, yp - pore_w / 2), TEAL, 2.5),
+            DoubleArrow([4.65, yp - pore_w / 2, 0], [4.65, yp + pore_w / 2, 0], buff=0, color=TEAL, stroke_width=3, tip_length=0.10),
+        )
+        pore_num = txt('1.5 nm', 5.40, yp, c=TEAL, size=26)
+        self.play(
+            Succession(FadeOut(title, run_time=0.20), FadeIn(title_pore, run_time=0.25)),
+            FadeIn(pore_ticks),
+            FadeIn(pore_num),
+            run_time=0.45,
+        )
+
+        # Reveal 10 kDa dextran in injected cell and as a scaled ball when "10 kilodalton" is spoken.
+        self.at('10 kilodalton', lead=0.0)
+        dex_title = txt('10 kDa dextran', 0, 2.78, c=MAGENTA, size=30)
+        cell_dots = VGroup(*[
+            Dot([x, y, 0], radius=0.14, color=MAGENTA)
+            for x, y in [(-3.75, 0.40), (-2.85, 0.35), (-3.30, -0.25), (-3.75, -0.90), (-2.85, -0.85), (-3.80, -0.25), (-2.80, -0.25)]
+        ])
+        ball = Circle(radius=ball_r, stroke_color=MAGENTA, stroke_width=4, fill_color=MAGENTA, fill_opacity=0.28).move_to([1.65, yp, 0])
+        self.play(FadeIn(dex_title), FadeIn(cell_dots), FadeIn(ball), run_time=0.45)
+
+        # Reveal 5 nm size only when "five nanometers" is spoken.
+        self.at('five nanometers', lead=0.0)
+        dex_title_5 = txt('10 kDa dextran: nearly 5 nm', 0, 2.78, c=MAGENTA, size=30)
+        ball_arrow = DoubleArrow([1.65, yp - ball_r, 0], [1.65, yp + ball_r, 0], buff=0, color=MAGENTA, stroke_width=3, tip_length=0.14)
+        ball_num = txt('nearly 5 nm', 1.65, 1.38, c=MAGENTA, size=26)
+        self.play(
+            Succession(FadeOut(dex_title, run_time=0.20), FadeIn(dex_title_5, run_time=0.25)),
+            GrowFromCenter(ball_arrow),
+            FadeIn(ball_num),
+            run_time=0.45,
+        )
+
+        # Show 5 nm dextran ball failing to enter the 1.5 nm pore while small Neurobiotin slips through.
+        self.at('cannot fit', lead=0.0)
+        ball_grp = VGroup(ball, ball_arrow)
+        stop_zoom = line((2.95, -0.95), (2.95, 0.65), RED, 7)
+        cannot_lbl = txt('cannot fit', 1.65, -1.75, c=RED, size=26)
+        nb_lbl = txt('Neurobiotin', 5.05, -1.75, c=TEAL, size=24)
+        nb_path = path([(0.60, -1.38), (2.65, -1.10), (2.90, yp), (4.45, yp), (5.20, -1.05)], TEAL, 2)
+        nb_prog = ValueTracker(0.0)
+        nb_dot = always_redraw(lambda: Dot(nb_path.point_from_proportion(nb_prog.get_value()), radius=0.10, color=TEAL))
+        self.add(nb_dot, nb_lbl)
+        self.play(
+            ball_grp.animate.shift(RIGHT * 0.20),
+            nb_prog.animate(rate_func=linear).set_value(0.35),
+            run_time=0.32,
+        )
+        self.add(stop_zoom, cannot_lbl)
+        self.play(
+            ball_grp.animate.shift(LEFT * 0.20),
+            nb_prog.animate(rate_func=linear).set_value(0.60),
+            run_time=0.24,
+        )
+
+        # Keep Neurobiotin slipping through while showing dextran stopped at both membranes in the cell row.
+        self.at('stays in the injected cell', lead=0.05)
+        stop_cell = VGroup(
+            line((-4.15, -0.50), (-4.15, 0.00), RED, 6),
+            line((-2.45, -0.50), (-2.45, 0.00), RED, 6),
+        )
+        stays_lbl = txt('stays in injected cell', -3.3, -2.55, c=RED, size=24)
+        self.add(stop_cell, stays_lbl)
+        self.play(
+            cell_dots[-2].animate.shift(LEFT * 0.16),
+            cell_dots[-1].animate.shift(RIGHT * 0.16),
+            nb_prog.animate(rate_func=linear).set_value(1.0),
+            run_time=0.65,
+        )
+        self.play(
+            cell_dots[-2].animate.shift(RIGHT * 0.16),
+            cell_dots[-1].animate.shift(LEFT * 0.16),
+            run_time=0.45,
+        )
         self.finish()
 
 

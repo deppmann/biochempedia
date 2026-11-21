@@ -523,25 +523,78 @@ class S05Logic(SpokenScene):
         dots = red_dots()
         self.add(dots, *parts)
         rock(fl)
+        bubbles = VGroup()
+        for i in range(4):
+            b = Circle(radius=0.065, stroke_color=SOFT, stroke_width=2.5, fill_color=SOFT, fill_opacity=0.45)
+            b.move_to([-2.45 + (i % 2 - 0.5) * 0.14, 2.1 - i * 0.35, 0]).set_z_index(4)
+            b.phase = i * 0.35
+
+            def _drop(m, dt):
+                m.shift(DOWN * 0.65 * dt)
+                if m.get_y() < 0.55:
+                    m.move_to([-2.45 + (m.phase - 0.5) * 0.18, 2.1, 0])
+            b.add_updater(_drop)
+            bubbles.add(b)
         self.at("raised the carbon")
-        self.play(*[FadeIn(e) for e in extra], run_time=0.9)
-        self.play(co.animate.set_value(0.92), run_time=2.4)
+        self.play(*[FadeIn(e) for e in extra], FadeIn(bubbles), run_time=0.8)
+        self.play(co.animate.set_value(0.92), run_time=2.0)
         self.at("same oxygen pressures")
         rings = VGroup(*[DashedVMobject(Circle(radius=0.24, stroke_color=TEXT, stroke_width=3).move_to(d.get_center()), num_dashes=12)
                          for d in dots])
-        self.play(LaggedStart(*[Create(r) for r in rings], lag_ratio=0.2, run_time=1.6))
+        self.play(LaggedStart(*[Create(r) for r in rings], lag_ratio=0.18, run_time=1.6))
         self.at("simply rode along")
-        lab = T("rides along: no change", 30, SOFT).move_to([1.9, -1.3, 0])
+        lab = T("rides along: no change", 30, SOFT).move_to([2.4, -1.45, 0])
         self.play(FadeIn(lab, shift=UP * 0.1), run_time=0.7)
         self.at("nothing should change")
-        self.play(Indicate(rings, color=TEXT, scale_factor=1.15), run_time=1.2)
+        self.play(*[Indicate(r, color=TEXT, scale_factor=1.12) for r in rings], run_time=1.1)
+
+        # Reaction equation beside the flask/curve + small pH needle dial
+        eq_co2 = T("CO2", 28, SOFT)
+        eq_h2o = T("+ H2O", 28, TEXT)
+        eq_h2co3 = T("⇌ H2CO3", 28, TEXT)
+        row1 = VGroup(eq_co2, eq_h2o, eq_h2co3).arrange(RIGHT, buff=0.14).move_to([2.15, 0.48, 0])
+        eq_arr2 = T("⇌", 28, TEXT)
+        eq_hp = T("H+", 28, ORANGE)
+        eq_plus = T("+", 28, TEXT)
+        eq_hco3 = T("HCO3-", 28, TEXT)
+        eq_ions = VGroup(eq_arr2, eq_hp, eq_plus, eq_hco3).arrange(RIGHT, buff=0.14)
+        eq_ions.next_to(row1, DOWN, buff=0.24).align_to(row1, RIGHT)
+
+        ph_tr = ValueTracker(0.78)
+        ph_c = np.array([5.15, 0.15, 0.0])
+        ph_track = Arc(radius=0.52, start_angle=PI, angle=-PI, arc_center=ph_c, stroke_color=GREY, stroke_width=6)
+        ph_arc = always_redraw(lambda: Arc(radius=0.52, start_angle=PI, angle=-PI * float(np.clip(ph_tr.get_value(), 0.02, 1.0)),
+                                           arc_center=ph_c, stroke_color=ORANGE, stroke_width=6))
+        ph_ptr = always_redraw(lambda: Line(ph_c, ph_c + 0.43 * np.array([np.cos(PI - PI * ph_tr.get_value()),
+                                                                          np.sin(PI - PI * ph_tr.get_value()), 0]),
+                                            color=TEXT, stroke_width=5))
+        ph_lbl = T("pH", 26, TEXT).move_to([5.15, -0.18, 0])
+        ph_falls = T("pH falls", 26, ORANGE).move_to([5.15, -0.18, 0])
+        ph_dial = VGroup(ph_track, ph_arc, ph_ptr, ph_lbl)
+
+        self.at("in blood")
+        self.play(FadeOut(lab), FadeIn(ph_dial), run_time=0.7)
+        self.at("carbon dioxide reacts")
+        self.play(FadeIn(eq_co2, shift=UP * 0.08), run_time=0.6)
+        self.at("with water")
+        self.play(FadeIn(eq_h2o, shift=UP * 0.08), run_time=0.5)
+        self.at("form carbonic acid")
+        self.play(FadeIn(eq_h2co3, shift=UP * 0.08), run_time=0.9)
+        self.at("releases hydrogen ions")
+        self.play(FadeIn(eq_ions, shift=UP * 0.08), run_time=1.0)
+        self.at("the ph falls")
+        self.play(ph_tr.animate.set_value(0.22),
+                  Succession(FadeOut(ph_lbl, run_time=0.3), FadeIn(ph_falls, run_time=0.4)),
+                  Indicate(eq_hp, color=ORANGE, scale_factor=1.15),
+                  run_time=1.2)
+
         self.at("only carbon dioxide")
-        lab2 = T("only CO2 changed", 30, SOFT).move_to([1.9, -1.3, 0])
-        self.play(ReplacementTransform(lab, lab2), Indicate(extra[0], color=SOFT, scale_factor=1.25), run_time=1.2)
+        lab2 = T("only CO2 changed", 30, SOFT).move_to([2.4, -1.45, 0])
+        self.play(FadeIn(lab2, shift=UP * 0.1), Indicate(extra[0], color=SOFT, scale_factor=1.25), run_time=1.0)
         self.at("any difference")
-        lab3 = T("difference: CO2 or its acid", 30, ORANGE).move_to([1.9, -1.3, 0])
-        self.play(ReplacementTransform(lab2, lab3), run_time=0.8)
-        self.play(Indicate(lab3, color=ORANGE, scale_factor=1.06), run_time=1.2)
+        lab3 = T("difference: CO2 or its acid", 30, ORANGE).move_to([2.4, -1.45, 0])
+        self.play(Succession(FadeOut(lab2, run_time=0.35), FadeIn(lab3, run_time=0.45)), run_time=0.8)
+        self.play(Indicate(lab3, color=ORANGE, scale_factor=1.06), run_time=1.0)
         self.finish()
 
 

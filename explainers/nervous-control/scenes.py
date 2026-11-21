@@ -116,8 +116,8 @@ def rect(x0, x1, y, h, color, op=0.85):
 K = W(1.5, 0.6)
 S_PT = W(0.5, 0.98)
 SENS = [W(0.5, 0.98), W(-0.2, 1.7), W(-3.95 + 0.0, 1.7)]
-SENS = [P(S_PT[0], S_PT[1]), W(-0.2, 1.7), W(-4.0, 1.7)]
-MOTOR = [W(-3.95, 0.1), W(-2.9, 0.1), W(-1.6, 0.4)]
+SENS = [P(S_PT[0], S_PT[1]), W(-0.2, 1.7), W(-4.95, 1.7)]
+MOTOR = [W(-4.95, 0.1), W(-2.9, 0.1), W(-1.6, 0.4)]
 STN = [S_PT, W(-2.2, 1.7), W(-4.4, 0.9) + P(0.0, 0.0), W(-3.4, 0.1), W(-1.0, 0.45)]
 STN[2] = W(-5.4, 0.9)
 CORD_C = W(-5.4, 0.7)
@@ -786,40 +786,105 @@ class S13Total(SpokenScene):
         bar = leg_bar()
         self.add(world, bar)
         BY = 0.9
-        self.play(FadeOut(world), bar.animate.shift(UP * (BY - BAR_Y)), run_time=1.3)
+        self.play(FadeOut(world), bar.animate.shift(UP * (BY - BAR_Y)), run_time=1.0)
         self.add(runner([P(SX0, BY), P(EX1, BY)], GOLD, 4.0, 0.0, r=0.17))
         mid = lambda a, b: (a + b) / 2
-        l1 = T("sensory 8.3 ms", 28, BLUE).move_to(P(mid(SX0, SX1), BY + 0.7))
-        l2 = T("synapse 1 ms", 28, WHITE).move_to(P(mid(SX1, TX1) + 0.1, BY + 1.45))
-        l2l = Line(P(mid(SX1, TX1), BY + 0.3), P(mid(SX1, TX1) + 0.1, BY + 1.15), color=WHITE, stroke_width=3)
-        l3 = T("motor 8.3 ms", 28, ORANGE).move_to(P(mid(TX1, MX1) + 0.3, BY + 0.7))
-        l4 = T("junction + muscle\nabout 1.5 ms", 28, GREY, line_spacing=0.8).move_to(P(5.0, BY - 0.8))
-        self.at("legs add up")
-        self.play(FadeIn(l1), FadeIn(l2), Create(l2l), FadeIn(l3), FadeIn(l4), run_time=1.0)
-        self.at("just under")
-        tot = T("total about 19 ms", 34, TEXT).move_to(P(-0.2, -0.45))
-        self.play(FadeIn(tot), run_time=0.6)
-        self.at("measured")
-        ms = T("measured: tap to muscle's electrical\nresponse, about 20 ms", 30, YELLOW, line_spacing=0.8).move_to(P(0.0, -1.5))
-        self.play(FadeIn(ms), run_time=0.8)
-        self.at("tap")
-        sl = Rectangle(width=0.45, height=0.5, stroke_color=GREY, stroke_width=3, fill_opacity=0).move_to(P(SX0 - 0.23, BY))
-        sl.set_stroke(GREY, 3)
-        nd = T("not drawn: tap to spindle firing (small)", 28, GREY)
-        nd.move_to(P(-6.6 + nd.width / 2, -2.6))
-        ndl = Line(P(SX0 - 0.23, BY - 0.3), P(-6.2, -2.3), color=GREY, stroke_width=3)
-        self.play(Create(sl), run_time=0.5)
-        self.play(FadeIn(nd), Create(ndl), run_time=0.8)
-        self.at("kick")
-        self.play(FadeOut(nd), FadeOut(ndl), FadeOut(sl), run_time=0.5)
-        ka = Arrow(P(EX1 + 0.05, BY), P(6.75, BY), buff=0, color=GREY, stroke_width=5, tip_length=0.2)
-        kt = T("visible kick:\nlater", 28, GREY, line_spacing=0.8).move_to(P(5.6, BY + 0.95))
-        self.play(Create(ka), FadeIn(kt), run_time=0.8)
-        self.at("Nearly all")
-        ax = T("axons: about 87% of the model sum", 32, TEXT).move_to(P(0.0, -2.5))
-        self.play(FadeOut(ka), FadeOut(kt), FadeOut(tot), bar[1].animate.set_opacity(0.3), bar[3].animate.set_opacity(0.3),
-                  FadeOut(l2), FadeOut(l2l), FadeOut(l4), FadeIn(ax), run_time=0.9)
-        self.play(Indicate(bar[0], color=WHITE, scale_factor=1.05), Indicate(bar[2], color=WHITE, scale_factor=1.05), run_time=1.2)
+
+        # Segment labels above the bar (no numbers shown until spoken)
+        l1 = T("sensory 8.3 ms", 28, BLUE).move_to(P(mid(SX0, SX1), BY + 0.62))
+        s_pre = T("sensory", 28, BLUE).move_to(l1)
+        l2 = T("synapse", 24, WHITE).move_to(P(mid(SX1, TX1), BY + 0.62))
+        l3 = T("motor 8.3 ms", 28, ORANGE).move_to(P(mid(TX1, MX1), BY + 0.62))
+        m_pre = T("motor", 28, ORANGE).move_to(l3)
+        l4 = T("junction +\nmuscle", 24, GREY, line_spacing=0.8).move_to(P(mid(MX1, EX1) + 0.08, BY + 0.66))
+        self.play(FadeIn(s_pre), FadeIn(l2), FadeIn(m_pre), FadeIn(l4), run_time=0.45)
+
+        # Formulas built piece-by-piece under each axon segment: 0.5 m / 60 m/s = 8.3 ms
+        def axon_formula(x_mid, col):
+            p1 = T("0.5 m", 28, col)
+            p2 = T("/ 60 m/s", 28, col)
+            p3 = T("= 8.3 ms", 28, col)
+            g = VGroup(p1, p2, p3).arrange(RIGHT, buff=0.12).move_to(P(x_mid, BY - 0.65))
+            return g, p1, p2, p3
+
+        f1, f1_a, f1_b, f1_c = axon_formula(mid(SX0, SX1), BLUE)
+        f2, f2_a, f2_b, f2_c = axon_formula(mid(TX1, MX1), ORANGE)
+
+        self.at("half a", lead=0.05)
+        self.play(FadeIn(f1_a), FadeIn(f2_a), run_time=0.35)
+        self.at("60", lead=0.05)
+        self.play(FadeIn(f1_b), FadeIn(f2_b), run_time=0.4)
+        self.at("8", lead=0.22)
+        self.play(FadeOut(s_pre), FadeOut(m_pre), run_time=0.2)
+        self.play(FadeIn(l1), FadeIn(l3), FadeIn(f1_c), FadeIn(f2_c), run_time=0.4)
+
+        # Bracket over both axons: ~17 of ~19 ms; axons brighten, tick and end block dim
+        self.at("two axons", lead=0.15)
+        br_y0, br_y1 = BY + 1.08, BY + 1.28
+        bracket = pline([P(SX0, br_y0), P(SX0, br_y1), P(MX1, br_y1), P(MX1, br_y0)], GOLD, 3.5)
+        b_17 = T("~17", 30, GOLD)
+        b_19 = T("of ~19 ms", 30, TEXT)
+        b_lab = VGroup(b_17, b_19).arrange(RIGHT, buff=0.12).move_to(P(mid(SX0, MX1), br_y1 + 0.36))
+        self.play(
+            Create(bracket),
+            bar[0].animate.set_fill(opacity=1.0).set_stroke(WHITE, 3),
+            bar[2].animate.set_fill(opacity=1.0).set_stroke(WHITE, 3),
+            bar[1].animate.set_opacity(0.25),
+            bar[3][0].animate.set_fill(opacity=0.08).set_stroke(opacity=0.25),
+            bar[3][1:].animate.set_stroke(opacity=0.25),
+            l2.animate.set_opacity(0.3),
+            l4.animate.set_opacity(0.3),
+            run_time=0.7,
+        )
+        self.at("17", lead=0.05)
+        self.play(FadeIn(b_17), run_time=0.35)
+        self.at("19", lead=0.05)
+        tot = T("total about 19 ms", 32, TEXT).move_to(P(-0.2, -0.35))
+        self.play(FadeIn(b_19), FadeIn(tot), run_time=0.45)
+
+        self.at("nearly all", lead=0.1)
+        ax = T("axons: nearly all of the model sum", 30, TEXT).move_to(P(0.0, -1.35))
+        self.play(FadeIn(ax), run_time=0.4)
+
+        # Total sits just under the measured time
+        self.at("That total", lead=0.1)
+        self.play(
+            FadeOut(f1), FadeOut(f2),
+            bar[0].animate.set_fill(opacity=0.85).set_stroke(BLUE, 2),
+            bar[2].animate.set_fill(opacity=0.85).set_stroke(ORANGE, 2),
+            bar[1].animate.set_opacity(1.0),
+            bar[3][0].animate.set_fill(opacity=0.25).set_stroke(opacity=1.0),
+            bar[3][1:].animate.set_stroke(opacity=1.0),
+            l2.animate.set_opacity(1.0),
+            l4.animate.set_opacity(1.0),
+            run_time=0.6,
+        )
+        self.at("measured time", lead=0.1)
+        mx0, mx1, my = SX0 - 0.35, EX1 + 0.30, -0.95
+        meas_line = Line(P(mx0, my), P(mx1, my), color=YELLOW, stroke_width=4)
+        meas_t0 = Line(P(mx0, my - 0.14), P(mx0, my + 0.14), color=YELLOW, stroke_width=4)
+        meas_t1 = Line(P(mx1, my - 0.14), P(mx1, my + 0.14), color=YELLOW, stroke_width=4)
+        meas_bar = VGroup(meas_line, meas_t0, meas_t1)
+        ms = T("measured: tap to muscle's electrical signal", 30, YELLOW).move_to(P(0.0, -1.50))
+        self.play(FadeOut(ax), run_time=0.25)
+        self.play(FadeIn(ms), Create(meas_t0), Create(meas_line), run_time=2.2)
+        self.play(Create(meas_t1), run_time=0.3)
+
+        # Dashed sliver at the bar's start: not drawn: tap to spindle firing (small)
+        self.at("leaves out", lead=0.1)
+        sl_rect = Rectangle(width=0.35, height=0.5, stroke_color=GREY, stroke_width=3, fill_opacity=0)
+        sl = DashedVMobject(sl_rect, num_dashes=16).move_to(P(SX0 - 0.175, BY))
+        nd = T("not drawn: tap to spindle firing (small)", 26, GREY)
+        nd.move_to(P(-6.20 + nd.width / 2, -2.50))
+        ndl = pline([P(SX0 - 0.35, BY), P(-6.30, BY), P(-6.30, -2.50), P(-6.24, -2.50)], GREY, 3)
+        self.play(Create(sl), run_time=0.4)
+        self.play(FadeIn(nd), Create(ndl), run_time=0.6)
+
+        # Small grey arrow beyond the bar's end: visible kick: later
+        self.at("The kick", lead=0.2)
+        ka = Arrow(P(EX1 + 0.05, BY), P(6.55, BY), buff=0, color=GREY, stroke_width=5, tip_length=0.2)
+        kt = T("visible kick:\nlater", 26, GREY, line_spacing=0.8).move_to(P(5.45, BY - 0.72))
+        self.play(Create(ka), FadeIn(kt), run_time=0.45)
         self.finish()
 
 

@@ -638,32 +638,61 @@ class S10Pause(NarratedScene):
 class S11Reveal(Base):
     def construct(self):
         t1, t2 = ValueTracker(0.99), ValueTracker(0.98)
-        self.add(dial(-3.4, t1, ""), dial(3.4, t2, ""))
+        d1, d2 = dial(-3.4, t1, ""), dial(3.4, t2, "")
+        self.add(d1, d2)
         b1, b2 = urine_bar(-3.4), urine_bar(3.4)
         c1 = chip("about 1% more urine", TEXT, 30).move_to([-3.0, -2.7, 0])
         c2 = chip("much more", TEXT, 30).move_to([2.2, -2.7, 0])
         self.add(b1, b2, c1, c2)
+
+        filtered_l = 180.0
+        u1_val = filtered_l * (1.0 - 0.99)
+        u2_val = filtered_l * (1.0 - 0.98)
         u1, u2 = ValueTracker(0), ValueTracker(0)
-        f1 = always_redraw(lambda: Rectangle(width=max(u1.get_value() * 4.0 / 3.6, 0.01), height=0.55, stroke_width=0,
-                                             fill_color=YELLOW, fill_opacity=0.9).move_to([-5.4 + max(u1.get_value() * 4.0 / 3.6, 0.01) / 2, -0.75, 0]))
-        f2 = always_redraw(lambda: Rectangle(width=max(u2.get_value() * 4.0 / 3.6, 0.01), height=0.55, stroke_width=0,
-                                             fill_color=YELLOW, fill_opacity=0.9).move_to([1.4 + max(u2.get_value() * 4.0 / 3.6, 0.01) / 2, -0.75, 0]))
-        n1 = always_redraw(lambda: T(f"{u1.get_value():.1f} L", 34, YELLOW).move_to([-3.4, -1.45, 0]))
-        n2 = always_redraw(lambda: T(f"{u2.get_value():.1f} L", 34, YELLOW).move_to([3.4, -1.45, 0]))
-        self.add(f1, f2, n1, n2)
+        f1 = always_redraw(lambda: Rectangle(width=max(u1.get_value() * 4.0 / u2_val, 0.01), height=0.55, stroke_width=0,
+                                             fill_color=YELLOW, fill_opacity=0.9).move_to([-5.4 + max(u1.get_value() * 4.0 / u2_val, 0.01) / 2, -0.75, 0]))
+        f2 = always_redraw(lambda: Rectangle(width=max(u2.get_value() * 4.0 / u2_val, 0.01), height=0.55, stroke_width=0,
+                                             fill_color=YELLOW, fill_opacity=0.9).move_to([1.4 + max(u2.get_value() * 4.0 / u2_val, 0.01) / 2, -0.75, 0]))
+        dbl = T("× 2", 48, GOLD, weight=BOLD).move_to([0, -0.75, 0])
+
+        eq1_a, eq1_b, eq1_c = M("1%", 28, TEXT), M(f"of {filtered_l:.0f} L", 28, BLUE), M(f"= {u1_val:.1f} L", 28, YELLOW)
+        VGroup(eq1_a, eq1_b, eq1_c).arrange(RIGHT, buff=0.14).move_to([-3.4, -0.10, 0])
+        eq2_a, eq2_b, eq2_c = M("2%", 28, TEXT), M(f"of {filtered_l:.0f} L", 28, BLUE), M(f"= {u2_val:.1f} L", 28, YELLOW)
+        VGroup(eq2_a, eq2_b, eq2_c).arrange(RIGHT, buff=0.14).move_to([3.4, -0.10, 0])
+
+        lab1 = VGroup(T("take-back 99%:", 28, BLUE), M(f"{u1_val:.1f} L", 28, YELLOW)).arrange(RIGHT, buff=0.12).move_to([-3.4, -1.55, 0])
+        lab2 = VGroup(T("take-back 98%:", 28, BLUE), M(f"{u2_val:.1f} L", 28, YELLOW)).arrange(RIGHT, buff=0.12).move_to([3.4, -1.55, 0])
+
         self.at("much more")
-        self.play(u1.animate.set_value(1.8), u2.animate.set_value(3.6), c2[0].animate.set_stroke(GOLD, 6).set_fill(GOLD, 0.3),
-                  run_time=2.0)
-        dbl = T("x 2", 54, GOLD, weight=BOLD).move_to([0, -0.75, 0])
-        self.play(FadeIn(dbl, scale=0.6), run_time=0.6)
-        sl = T("a thin sliver of 180 L", 30, BLUE).move_to([0, -3.5, 0])
-        self.at("thin sliver")
-        self.play(FadeIn(sl, shift=UP * 0.1), run_time=0.6)
-        self.at("shift the take back")
-        self.play(t1.animate.set_value(0.985), t2.animate.set_value(0.975), run_time=1.0)
-        self.play(t1.animate.set_value(0.99), t2.animate.set_value(0.98), run_time=1.0)
-        self.at("that sliver changes")
-        self.play(Indicate(f1, color=GOLD), Indicate(f2, color=GOLD), Indicate(dbl, color=GOLD), run_time=1.4)
+        self.play(c2[0].animate.set_stroke(GOLD, 6).set_fill(GOLD, 0.3), c1.animate.set_opacity(0.45), run_time=0.6)
+        self.at("urine doubles")
+        self.add(f1, f2)
+        self.play(u1.animate.set_value(u1_val), u2.animate.set_value(u2_val), run_time=1.1)
+        self.play(FadeIn(dbl, scale=0.7), run_time=0.4)
+
+        self.at("at 99")
+        self.play(Indicate(d1[0], color=GOLD), Indicate(d1[4], color=GOLD), run_time=0.8)
+        self.at("1")
+        self.play(FadeIn(eq1_a, shift=UP * 0.08), run_time=0.4)
+        self.at("of 180 liters")
+        self.play(FadeIn(eq1_b, shift=UP * 0.08), run_time=0.6)
+        self.at("1", nth=1)
+        self.play(FadeIn(eq1_c, shift=UP * 0.08), FadeIn(lab1, shift=UP * 0.08), run_time=0.4)
+
+        self.at("at 98")
+        self.play(Indicate(d2[0], color=GOLD), Indicate(d2[4], color=GOLD), run_time=0.8)
+        self.at("2")
+        self.play(FadeIn(eq2_a, shift=UP * 0.08), run_time=0.4)
+        self.at("leaves", nth=1)
+        self.play(FadeIn(eq2_b, shift=UP * 0.08), run_time=0.5)
+        self.at("3")
+        self.play(FadeIn(eq2_c, shift=UP * 0.08), FadeIn(lab2, shift=UP * 0.08), run_time=0.4)
+
+        self.at("shift that huge")
+        self.play(Indicate(d1[0], color=GOLD), Indicate(d2[0], color=GOLD),
+                  Indicate(d1[4], color=GOLD), Indicate(d2[4], color=GOLD), run_time=1.2)
+        self.at("leftover sliver")
+        self.play(Indicate(b1, color=GOLD), Indicate(b2, color=GOLD), Indicate(dbl, color=GOLD), run_time=1.4)
         self.finish()
 
 

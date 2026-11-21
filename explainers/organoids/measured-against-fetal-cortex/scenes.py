@@ -321,8 +321,117 @@ def estimate(sc, rule=False):
 
 class S05Size(SpokenScene):
     def construct(self):
-        sph=estimate(self)
-        self.at('In this model'); self.play(Indicate(sph.group[-1],color=RED,scale_factor=1),run_time=.5)
+        c = np.array([-3.35, -0.25, 0.0])
+        R = 2.15
+        sph = Sph(c, R, case=None)
+        r_core = R * CORE_FRAC["thick"]
+        oxy = oxy_rings(c, R, "thick")
+        shade = core_hatch(c, r_core)
+        core_ring = shade[-1]
+
+        # Sphere and diameter line (no numbers shown before they are spoken)
+        self.play(FadeIn(sph.base), FadeIn(sph.outline), run_time=0.6)
+        diam = DoubleArrow(c + [-R, R + 0.35, 0], c + [R, R + 0.35, 0], buff=0, color=TEXT, stroke_width=3, tip_length=0.2)
+        self.play(Create(diam), run_time=0.6)
+
+        self.at("4", nth=0, lead=0.0)
+        diam_lbl = T("up to about 4 mm across", size=27, color=TEXT).move_to([c[0], c[1] + R + 0.90, 0])
+        self.play(FadeIn(diam_lbl), run_time=0.35)
+
+        # Sphere radius = 2 mm (upper-right ray at 48 deg)
+        self.at("its radius", lead=0.05)
+        u48 = np.array([np.cos(np.radians(48)), np.sin(np.radians(48)), 0.0])
+        rad_line = Arrow(c, c + R * u48, buff=0, color=TEXT, stroke_width=4, tip_length=0.18,
+                         max_tip_length_to_length_ratio=0.15).set_z_index(7)
+        rad_dot = Dot(c, radius=0.06, color=TEXT).set_z_index(8)
+        self.play(Create(rad_line), FadeIn(rad_dot), run_time=0.45)
+
+        self.at("2", nth=0, lead=0.0)
+        rad_lbl = VGroup(T("sphere radius", size=25, color=TEXT), M("2 mm", size=25, color=TEXT)).arrange(DOWN, buff=0.08).move_to([0.45, 1.45, 0])
+        rad_lead = Line([rad_lbl.get_left()[0] - 0.10, 1.45, 0], c + 0.72 * R * u48, color=TEXT, stroke_width=2).set_z_index(7)
+        self.play(FadeIn(rad_lbl), Create(rad_lead), run_time=0.35)
+
+        # Oxygenated shell = 0.6 mm (horizontal ray from r_core to R)
+        self.at("oxygen reaches", lead=0.05)
+        self.play(FadeIn(oxy), run_time=0.6)
+
+        self.at("0", nth=0, lead=0.0)
+        p_in = c + RIGHT * r_core
+        p_out = c + RIGHT * R
+        shell_seg = Line(p_in, p_out, color=YELLOW, stroke_width=6).set_z_index(7)
+        t_in = Line(p_in + UP * 0.12, p_in + DOWN * 0.12, color=YELLOW, stroke_width=3).set_z_index(7)
+        t_out = Line(p_out + UP * 0.12, p_out + DOWN * 0.12, color=YELLOW, stroke_width=3).set_z_index(7)
+        shell_lbl = VGroup(T("oxygenated shell", size=24, color=YELLOW), M("0.6 mm", size=25, color=YELLOW)).arrange(DOWN, buff=0.08).move_to([0.55, -0.15, 0])
+        shell_lead = Line([shell_lbl.get_left()[0] - 0.10, -0.15, 0], (p_in + p_out) / 2, color=YELLOW, stroke_width=2).set_z_index(7)
+        self.play(Create(shell_seg), Create(t_in), Create(t_out), FadeIn(shell_lbl), Create(shell_lead), run_time=0.4)
+
+        # Oxygen-free core radius = 1.4 mm (lower-right ray at -42 deg)
+        self.at("core", nth=0, lead=0.05)
+        um42 = np.array([np.cos(np.radians(-42)), np.sin(np.radians(-42)), 0.0])
+        core_line = Arrow(c, c + r_core * um42, buff=0, color=RED, stroke_width=5, tip_length=0.18,
+                          max_tip_length_to_length_ratio=0.18).set_z_index(7)
+        core_txt = T("oxygen-free core", size=27, color=RED).move_to([c[0], c[1] - R - 0.55, 0])
+        self.play(FadeIn(shade), Create(core_line), FadeIn(core_txt), run_time=0.55)
+
+        self.at("1", nth=0, lead=0.0)
+        core_lbl = VGroup(T("core radius", size=25, color=RED), M("1.4 mm", size=25, color=RED)).arrange(DOWN, buff=0.08).move_to([0.45, -1.75, 0])
+        core_lead = Line([core_lbl.get_left()[0] - 0.10, -1.75, 0], c + 0.65 * r_core * um42, color=RED, stroke_width=2).set_z_index(7)
+        self.play(FadeIn(core_lbl), Create(core_lead), run_time=0.35)
+
+        # Math panel on the right
+        card = RoundedRectangle(width=4.15, height=5.4, corner_radius=0.18, stroke_color=GREY, stroke_width=2,
+                                fill_color=BG, fill_opacity=0.88).move_to([4.20, 0.0, 0.0])
+        v_base = M("volume ∝ radius", size=24, color=TEXT)
+        v_cube = M("³", size=24, color=TEXT)
+        v_grp = VGroup(v_base, v_cube).arrange(RIGHT, buff=0.07, aligned_edge=UP).move_to([4.20, 2.10, 0])
+
+        self.at("Volume goes", lead=0.05)
+        self.play(FadeIn(card), FadeIn(v_base), run_time=0.45)
+
+        self.at("cubed", nth=0, lead=0.05)
+        self.play(FadeIn(v_cube), run_time=0.3)
+
+        # Build (1.4 / 2)³ ≈ 0.34 piece by piece in sync with the words
+        f_lp = M("(", size=28, color=TEXT)
+        f_num = M("1.4", size=28, color=RED)
+        f_slash = M("/", size=28, color=TEXT)
+        f_den = M("2", size=28, color=TEXT)
+        f_rp = M(")³", size=28, color=TEXT)
+        f_approx = M("≈ 0.34", size=28, color=AMBER)
+        f_grp = VGroup(f_lp, f_num, f_slash, f_den, f_rp, f_approx).arrange(RIGHT, buff=0.07).move_to([4.20, 0.90, 0])
+        # Keep digits centered on the same baseline as "/"
+        for mob in (f_num, f_den, f_approx):
+            mob.set_y(f_slash.get_y())
+        f_rp.align_to(f_lp, DOWN)
+        f_approx.shift(RIGHT * 0.04)
+        f_grp.move_to([4.20, 0.90, 0])
+        f_third = T("about a third", size=27, color=AMBER).move_to([4.20, 0.20, 0])
+
+        self.at("1", nth=1, lead=0.0)
+        self.play(FadeIn(f_num), run_time=0.3)
+
+        self.at("over", lead=0.0)
+        self.play(FadeIn(f_slash), FadeIn(f_den), run_time=0.3)
+
+        self.at("cubed", nth=1, lead=0.0)
+        self.play(FadeIn(f_lp), FadeIn(f_rp), run_time=0.3)
+
+        self.at("is about a third", lead=0.0)
+        self.play(FadeIn(f_approx), FadeIn(f_third), run_time=0.4)
+
+        # Final model takeaway
+        divider = Line([2.40, -0.45, 0], [6.00, -0.45, 0], color=GREY, stroke_width=2)
+        m_model = T("no oxygen in this model:", size=24, color=AMBER).move_to([4.20, -0.95, 0])
+        m_res = VGroup(
+            T("a third or more", size=27, color=RED),
+            T("of the volume", size=27, color=RED),
+        ).arrange(DOWN, buff=0.10).move_to([4.20, -1.80, 0])
+
+        self.at("in this model", lead=0.05)
+        self.play(FadeIn(divider), FadeIn(m_model), run_time=0.35)
+
+        self.at("a third or more", lead=0.05)
+        self.play(FadeIn(m_res), Indicate(core_ring, color=RED, scale_factor=1.03), run_time=0.55)
         self.finish()
 
 
@@ -617,6 +726,3 @@ class S24Beat(NarratedScene):
 
 class S25End(EndCard):
     LINE='Measure every feature; the rule only says where to look first.'
-    def construct(self):
-        self.add(label(['Measure every feature;','the rule only says where to look first.'],0,.4,40),label('biochemistrypedia.com',0,-1.5,28,TEAL))
-        self.finish()
