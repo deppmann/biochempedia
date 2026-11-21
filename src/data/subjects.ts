@@ -22,7 +22,7 @@ export const SUBJECTS: Subject[] = [
     name: 'Mathematics and statistics',
     live: false,
     note: 'Not built yet.',
-    link: { before: 'The ', text: 'math toolkit', href: '/math-toolkit', after: ' covers the math inside the biology lessons.' },
+    link: { before: 'The ', text: 'math toolkit', href: '/math-toolkit/', after: ' covers the math inside the biology lessons.' },
   },
   { key: 'psychology', name: 'Psychology and sociology', live: false, note: 'Not built yet. Brain and behaviour start in Neuroscience, under Biology.' },
 ];

@@ -1,0 +1,77 @@
+---
+/* The teachers' "paste your syllabus" box. SWITCHED OFF (SYLLABUS_BOX in flags.ts): the matcher it
+   calls, src/lib/syllabus-match.ts, is not built. Everything here is ready for it: the sample fills
+   real text above the box so a first press never refuses, the caution sits above the results, the
+   result is a statement and never a fraction, and the list of results is outside the live region
+   (only the one-line summary is announced). */
+import { STAGES } from '../../data/stages';
+
+const SAMPLE = ['Properties of water', 'Cell structure and organelles', 'Osmosis and membrane transport', 'Photosynthesis', 'Cellular respiration', 'Mitosis and the cell cycle', 'Mendel and Punnett squares'].join('\n');
+---
+
+<div class="home-box">
+  <h3 class="home-h3">Paste your syllabus. Get the lessons that match.</h3>
+  <p class="home-p">
+    Paste a syllabus or a list of topics and choose your class’s level. Nothing you paste leaves this device,
+    and no AI reads it.
+  </p>
+  <p class="home-small home-nojs">The box needs JavaScript. Without it, the standards maps list the lessons for every Virginia standard.</p>
+  <form class="home-match" data-home-match>
+    <button type="button" class="home-quiet" data-home-sample={SAMPLE}>Fill in a sample unit</button>
+    <label for="home-syllabus">Your syllabus, or topics, one per line</label>
+    <textarea id="home-syllabus" name="syllabus" rows="6" spellcheck="false" autocomplete="off"></textarea>
+    <div class="home-match-row">
+      <div class="home-match-level">
+        <label for="home-level">Class level</label>
+        <select id="home-level" name="level">
+          {STAGES.map((s) => <option value={s.key} selected={s.key === 'high-school'}>{s.title}</option>)}
+        </select>
+      </div>
+      <button type="submit" class="home-go">Find lessons</button>
+    </div>
+  </form>
+  <p class="home-small home-match-care" data-home-match-care hidden>Read each match before you assign it. Checking is the job.</p>
+  <p class="home-match-said" data-home-match-said role="status"></p>
+  <div class="home-results" data-home-results></div>
+</div>
+
+<script>
+  import { matchSyllabus } from '../../lib/syllabus-match';
+
+  const form = document.querySelector<HTMLFormElement>('[data-home-match]');
+  if (form) {
+    const area = form.querySelector('textarea')!;
+    const level = form.querySelector('select')!;
+    const sample = form.querySelector<HTMLButtonElement>('[data-home-sample]')!;
+    const said = document.querySelector<HTMLElement>('[data-home-match-said]')!;
+    const care = document.querySelector<HTMLElement>('[data-home-match-care]')!;
+    const out = document.querySelector<HTMLElement>('[data-home-results]')!;
+    const el = (tag: string, cls: string, text = '') => Object.assign(document.createElement(tag), { className: cls, textContent: text });
+
+    sample.addEventListener('click', () => { area.value = sample.dataset.homeSample ?? ''; area.focus(); });
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      out.textContent = '';
+      care.hidden = true;
+      if (!area.value.trim()) { said.textContent = 'Paste a few topics first, one per line, or fill in the sample unit.'; return; }
+      const r = await matchSyllabus(area.value, level.value).catch(() => ({ ready: false }) as const);
+      if (!r.ready) { said.textContent = 'The matcher is not built yet. The standards maps list the lessons for each Virginia standard.'; return; }
+      care.hidden = false;
+      said.textContent = `Lessons for these ${r.topics.length} topics, at ${r.levelTitle}.`;
+      const list = el('ul', 'home-res');
+      for (const t of r.topics) {
+        const li = el('li', 'home-res-topic');
+        li.append(el('p', 'home-res-t', t.topic));
+        if (!t.lessons.length) li.append(el('p', 'home-res-none', 'No lesson here for this yet.'));
+        else if (t.hop) li.append(el('p', 'home-res-none', `Nothing at this level. The nearest is a hop ${t.hop.direction}, in ${t.hop.levelTitle}:`));
+        for (const l of t.lessons) {
+          const p = el('p', 'home-res-l');
+          p.append(Object.assign(el('a', '', l.title), { href: `/lessons/${l.slug}/` }), el('span', 'home-res-m', ` ${[l.course, l.standard].filter(Boolean).join(' · ')}`));
+          li.append(p);
+        }
+        list.append(li);
+      }
+      out.append(list);
+    });
+  }
+</script>

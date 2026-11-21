@@ -1,0 +1,25 @@
+---
+/* One idea at each level it is taught, lowest first: a plain ordered list. Nothing is selected and
+   nothing is ranked. The lesson's title is the link; the line under it says what that level adds,
+   as text, so link names stay short. */
+import type { Rung } from './data';
+
+interface Props {
+  rungs: Rung[];
+  /** Accessible name for the list. */
+  label: string;
+}
+const { rungs, label } = Astro.props;
+const film = (r: Rung) => (r.filmParts > 1 ? `film in ${r.filmParts === 2 ? 'two' : r.filmParts} parts, about ${r.filmMin} min` : `film, about ${r.filmMin} min`);
+---
+
+{/* role="list": some screen readers drop list semantics when the bullets are styled away. */}
+<ol class="home-rungs" role="list" aria-label={label}>
+  {rungs.map((r) => (
+    <li class="home-rung">
+      <span class="home-rung-level">{r.stageTitle}{r.filmMin && <> · {film(r)}</>}</span>
+      <a class="home-rung-link" href={r.href}>{r.title}</a>
+      {r.note && <span class="home-rung-note">{r.note}</span>}
+    </li>
+  ))}
+</ol>
