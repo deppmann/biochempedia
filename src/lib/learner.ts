@@ -19,6 +19,7 @@ import { loadNotebook, mergeItems, NOTEBOOK_KEY, NOTEBOOK_EVENT } from './notebo
 import { load as loadProgress, STORAGE_KEY as PROGRESS_KEY, CHANGE_EVENT as PROGRESS_EVENT, type Progress } from './progress';
 import { mergeProgress, sameJson } from './learner-merge.mjs';
 import { isRole, type Role } from './prefs';
+import { switchAccount, hasSetAside, clearAside } from './set-aside.mjs';
 
 const CACHE_KEY = 'biochempedia:learner:v1';
 export const LEARNER_EVENT = 'bp-learner';
@@ -41,7 +42,8 @@ export interface Me {
   role?: Role | null;
 }
 
-interface Cache { name?: string; lastSync?: number }
+/** `acct` is the server's non-secret tag for the account this device's notebook and progress were last synced with. */
+interface Cache { name?: string; lastSync?: number; acct?: string; asideFull?: boolean }
 
 function readCache(): Cache {
   try { return JSON.parse(window.localStorage.getItem(CACHE_KEY) || '{}') || {}; } catch { return {}; }
@@ -62,6 +64,14 @@ export function signedInHint(): boolean {
 /** The name to show in the header, from the last /me answer on this device. */
 export const cachedName = (): string | undefined => readCache().name;
 export const lastSyncAt = (): number | undefined => readCache().lastSync;
+/** What the person is told when another account's notes could not be set aside (storage full or blocked). */
+export const SET_ASIDE_FAILED = 'This browser holds notes from another account, and there was no room to set them aside. Nothing was synced. To keep the two apart, sign out with “Also remove my notes and progress from this device” ticked, then sign in again.';
+/** True while the last sync stopped for that reason. */
+export const setAsideFailed = (): boolean => readCache().asideFull === true;
+/** True when notes from another account are set aside on this browser (the account page says so in one sentence). */
+export function otherAccountsNotesHere(): boolean {
+  try { return hasSetAside(window.localStorage, readCache().acct ?? ''); } catch { return false; }
+}
 
 async function api(path: string, init: RequestInit = {}): Promise<{ status: number; data: any }> {
   const res = await fetch(`/api/learner${path}`, {
@@ -103,11 +113,32 @@ export function syncNow(): Promise<SyncResult> {
   inFlight = (async (): Promise<SyncResult> => {
     const localItems = loadNotebook().items;
     const localProgress = loadProgress();
-    const body = JSON.stringify({ notebook: { items: localItems }, progress: localProgress });
+    const known = readCache().acct;
+    const body = JSON.stringify({ notebook: { items: localItems }, progress: localProgress, ...(known ? { acct: known } : {}) });
     if (body.length > MAX_BYTES) return { ok: false, status: 413, error: 'Your notebook is too big to sync (over 1 MB).' };
     let r;
     try { r = await api('/sync', { method: 'PUT', body }); } catch { return { ok: false, status: 0, error: 'No connection. Your work is saved on this device.' }; }
     if (r.status === 401) { writeCache(null); return { ok: false, status: 401, error: 'Not signed in.' }; }
+    if (r.status === 409 && r.data?.accountChanged && typeof r.data.acct === 'string') {
+      // A different account is signed in than the one this device's notes and progress belong to.
+      // The server merged nothing. Nothing is deleted here either: the outgoing account's notebook
+      // and progress are MOVED to a set-aside entry under its tag (src/lib/set-aside.mjs) and come
+      // back when that account signs in on this browser again. The calendar and the preferences are
+      // the device's own and are not touched. If the copy cannot be set aside, we stop: no sync.
+      let moved = false;
+      applying = true;
+      try { moved = switchAccount(window.localStorage, known || 'unknown', r.data.acct, [NOTEBOOK_KEY, PROGRESS_KEY]); } catch { moved = false; } finally { applying = false; }
+      if (!moved) {
+        // Remembered, so the account page and the header can say so after an automatic sync too.
+        if (!readCache().asideFull) writeCache({ ...readCache(), asideFull: true });
+        return { ok: false, status: 409, error: SET_ASIDE_FAILED };
+      }
+      window.dispatchEvent(new CustomEvent(NOTEBOOK_EVENT));
+      window.dispatchEvent(new CustomEvent(PROGRESS_EVENT));
+      writeCache({ ...readCache(), acct: r.data.acct, asideFull: false });   // the name shown stays; only the tag changes
+      // Sync again as this account, with its own copy if one was set aside here earlier.
+      try { r = await api('/sync', { method: 'PUT', body: JSON.stringify({ notebook: { items: loadNotebook().items }, progress: loadProgress(), acct: r.data.acct }) }); } catch { return { ok: false, status: 0, error: 'No connection.' }; }
+    }
     if (r.status !== 200 || !r.data) return { ok: false, status: r.status, error: r.data?.error || 'Sync failed. Your work is saved on this device.' };
 
     // Merge the server's merged state into this device (another device may have added things).
@@ -119,7 +150,7 @@ export function syncNow(): Promise<SyncResult> {
       if (!sameJson(merged, loadProgress())) { writeProgress(merged as Progress); changed = true; }
     } finally { applying = false; }
     const at = Date.now();
-    writeCache({ ...readCache(), lastSync: at });
+    writeCache({ ...readCache(), lastSync: at, ...(typeof r.data.acct === 'string' ? { acct: r.data.acct } : {}) });
     return { ok: true, at, changed };
   })();
   inFlight.finally(() => { inFlight = null; });
@@ -176,7 +207,7 @@ export async function signInWithPasskey(): Promise<Outcome> {
   try { response = await startAuthentication({ optionsJSON: o.data.options }); } catch (e) { return { ok: false, error: passkeyError(e) }; }
   const v = await post('/passkey/login/verify', { response });
   if (v.status !== 200) return { ok: false, error: v.data?.error || 'Sign-in failed.' };
-  writeCache({ name: v.data.name });
+  writeCache({ name: v.data.name, ...(readCache().acct ? { acct: readCache().acct } : {}) });   // keep the tag of the account this device's data belongs to
   return { ok: true, name: v.data.name };
 }
 
@@ -223,9 +254,10 @@ export function takeHeldRole(): Role | null {
 import { clearCalendar } from './calendar/store';
 import { clearPrefs } from './prefs';
 
-/** Remove this device's own copy of the notebook and progress, the calendar's plans, and the saved role. */
+/** Remove this device's own copy of the notebook and progress, anything set aside for another account, the calendar's plans, and the saved role. */
 function clearDevice() {
   try { window.localStorage.removeItem(NOTEBOOK_KEY); window.localStorage.removeItem(PROGRESS_KEY); } catch { /* blocked */ }
+  try { clearAside(window.localStorage); } catch { /* blocked */ }   // and any other account's notes set aside here
   clearCalendar();
   clearPrefs();
   window.dispatchEvent(new CustomEvent(NOTEBOOK_EVENT));
@@ -242,5 +274,6 @@ export async function deleteAccount(confirm: string): Promise<Outcome> {
   const r = await post('/delete', { confirm });
   if (r.status !== 200) return { ok: false, error: r.data?.error || 'Could not delete. Please try again.' };
   writeCache(null);
+  try { clearAside(window.localStorage); } catch { /* blocked */ }   // nothing set aside outlives a deleted account on this device
   return { ok: true };
 }
