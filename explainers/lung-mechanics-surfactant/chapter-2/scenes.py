@@ -33,14 +33,15 @@ PER-SCENE COMPUTED CHANGE:
   schematic zone, stacked ORANGE+CYAN bar grows to show alveolar pressure = recoil + pleural,
   and alveolus deflates rapidly as thick WHITE arrows stream out.
 - s04_squeeze: Lung view zooms smoothly onto the airway tube; CYAN band presses inward, computed
-  pressure-drop tiles shade along the lumen from alveolus to mouth, WHITE ring marks the tile
-  matching pleural pressure, and the downstream airway pinches narrow in RED.
-- s05_dynamic: Zoomed airway demonstrates how weakening ORANGE recoil or narrowing the upstream
-  lumen lowers pressure tiles, shifts compression, and thins WHITE maximal flow arrows, then
-  reverses and zooms back out to the full dual-panel world.
+  pressure-drop tiles shade along the lumen from alveolus to mouth, WHITE arrow runs along tiles
+  ('pressure inside falls'), WHITE ring marks the tile matching pleural pressure, and the
+  downstream airway pinches narrow in RED.
+- s05_dynamic: Zoomed airway defines maximal flow, then demonstrates how weakening ORANGE recoil
+  or narrowing the upstream lumen lowers pressure tiles, shifts compression, and thins WHITE
+  maximal flow arrows, then reverses and zooms back out to the full dual-panel world.
 - s06_spirogram: Forced blow empties alveolus in sync with pen tracing V(t) = 3.0 * (1 - 0.5^t)
-  to 6 s (marking FEV1 1.5 L at 1 s and FVC 3.0 L); ratio bar grows to 0.50 below 0.68 limit
-  and turns RED ('obstructive').
+  to 6 s (marking FEV1 then FVC, adding 1.5 L and 3.0 L as spoken); ratio bar grows to 0.50
+  below 0.68 limit and turns RED ('obstructive: too little out in 1 s').
 - s07_idea: Spirogram dims to 30% (stroke-only, no chord fill); lung returns to quiet breathing
   while CYAN gauge drives ORANGE recoil branch (arrows grow/shrink) and resistance branch
   (lumen narrows/widens).
@@ -79,12 +80,15 @@ GAUGE_X = -5.78
 
 VOL1_V = lambda t: 3.0 * (1.0 - 0.5 ** t)
 VOL2_V = lambda t: 2.6 * (1.0 - 0.154 ** t)
+TYP_V = lambda t: 3.3 * (1.0 - 0.2 ** t)
 
 
-def make_spirogram(y_shift=0.0):
+def make_spirogram(y_shift=0.0, y0=None, y1=None):
     """Build the right-hand spirogram Plot in a fixed position across all scenes."""
+    yb = (-0.85 + y_shift) if y0 is None else y0
+    yt = (2.05 + y_shift) if y1 is None else y1
     return Plot(
-        box=(2.40, 6.05, -0.85 + y_shift, 2.05 + y_shift),
+        box=(2.40, 6.05, yb, yt),
         xr=(0, 6),
         yr=(0, 3.5),
         xticks=[0, 1, 2, 3, 4, 5, 6],
@@ -136,17 +140,26 @@ def mchip(text, color=BLUE, size=22, pad=0.18, fill_opacity=0.18):
 class PleuralGauge(VGroup):
     """Vertical CYAN gauge (-10 to +10 cmH2O) on the far left with live needle driven by p_trk."""
 
-    def __init__(self, p_trk, x=GAUGE_X):
+    def __init__(self, p_trk, x=GAUGE_X, ext_neg=False):
         super().__init__()
         self.p_trk = p_trk
         self.gx = x
+        self.ext_neg = ext_neg
         y_bot, y_top = -1.9, 1.9
-        self._y_of = lambda p: float(np.clip(p, -10.0, 10.0)) * 0.19
+        p_min = -15.0 if ext_neg else -10.0
+        self._y_of = lambda p: float(np.clip(p, p_min, 10.0)) * 0.19
 
         spine_neg = Line([x, y_bot, 0], [x, 0.0, 0], color=CYAN, stroke_width=6.5)
         spine_pos = DashedLine([x, 0.0, 0], [x, y_top, 0], color=CYAN, stroke_width=6.5, dash_length=0.10)
         bar_bg = Rectangle(width=0.26, height=y_top - y_bot, stroke_width=0, fill_color=CYAN, fill_opacity=0.14).move_to([x, 0, 0])
         self.add(bar_bg, spine_neg, spine_pos)
+
+        if ext_neg:
+            y_ext = -2.85
+            ext_bg = Rectangle(width=0.26, height=y_bot - y_ext, stroke_width=0, fill_color=CYAN, fill_opacity=0.08).move_to([x, 0.5 * (y_bot + y_ext), 0])
+            spine_ext = DashedLine([x, y_bot, 0], [x, y_ext, 0], color=CYAN, stroke_width=6.5, dash_length=0.10)
+            sch_neg = T("schematic", size=22, color=GREY).move_to([x + 0.24, -2.42, 0], aligned_edge=LEFT)
+            self.add(ext_bg, spine_ext, sch_neg)
 
         for val, lbl in [(-10, "-10"), (-5, "-5"), (0, "0"), (10, "+10")]:
             yy = self._y_of(val)
@@ -157,7 +170,7 @@ class PleuralGauge(VGroup):
         atm = T("atmospheric", size=22, color=TEXT).move_to([x + 0.24, 0.0, 0], aligned_edge=LEFT)
         sch = T("schematic", size=22, color=GREY).move_to([x + 0.24, 1.15, 0], aligned_edge=LEFT)
         ttl = T("pleural\npressure", size=24, color=CYAN, line_spacing=0.85).move_to([x, 2.52, 0])
-        unit = T("cmH2O", size=22, color=GREY).move_to([x, -2.30, 0])
+        unit = T("cmH2O", size=22, color=GREY).move_to([x, -3.18 if ext_neg else -2.30, 0])
         self.add(atm, sch, ttl, unit)
 
         def mk_needle():
@@ -234,9 +247,9 @@ class LungWorld(VGroup):
         cx = LUNG_CX
         cy = LUNG_CY * (1.0 - z) + (-1.95) * z
         r_raw = float(self.r_trk.get_value()) * sc
-        col = float(np.clip(self.collapse_trk.get_value(), 0.0, 0.85))
+        col = float(np.clip(self.collapse_trk.get_value(), 0.0, 1.0))
         rx = r_raw * (1.0 - 0.12 * col) * (1.0 - 0.22 * z)
-        ry = r_raw * (1.0 - 0.70 * col) * (1.0 - 0.48 * z)
+        ry = r_raw * (1.0 - 0.90 * col) * (1.0 - 0.48 * z)
         w_air = (0.26 * (1.0 - z) + 0.38 * z) * sc
         y_air_bot = cy + ry * 0.72
         y_air_top = (2.32 * (1.0 - z) + 2.35 * z) * (1.0 if sc >= 0.9 else 0.85)
@@ -257,8 +270,8 @@ class LungWorld(VGroup):
             hw -= pinch * (0.58 * w_air) * s * s_end
         if up_n > 0.01:
             u_mid = max(0.22, pf * 0.55)
-            u_bell = np.exp(-((frac - u_mid) / 0.16) ** 2)
-            hw -= up_n * (0.44 * w_air) * u_bell
+            u_bell = np.exp(-((frac - u_mid) / 0.18) ** 2)
+            hw -= up_n * (0.50 * w_air) * u_bell
         if y > y_pl_top:
             m_f = np.clip((y - y_pl_top) / max(y_top - y_pl_top, 1e-4), 0.0, 1.0)
             hw += 0.16 * w_air * (m_f ** 1.5)
@@ -413,12 +426,12 @@ class LungWorld(VGroup):
                     if pinch > 0.25 and y_pinch <= ym <= y_pl_top + 0.05:
                         col = RED
                         sw = 6.0
-                    elif up_n > 0.25 and (y_bot + 0.1 * (y_pl_top - y_bot)) <= ym < y_pinch - 0.05:
+                    elif up_n > 0.25 and (y_bot + 0.08 * (y_pl_top - y_bot)) <= ym < y_pinch - 0.02:
                         col = RED
-                        sw = 6.0
+                        sw = 7.0
                     g.add(Line(p0, p1, color=col, stroke_width=sw))
 
-            if pinch > 0.25 or t_op > 0.3:
+            if pinch > 0.25:
                 hw_p = self._airway_half_width(y_pinch, y_bot, y_top, y_pl_top, w_air, z)
                 ring = RoundedRectangle(
                     width=2 * hw_p + 0.16,
@@ -450,9 +463,9 @@ class LungWorld(VGroup):
 
             # 6. ORANGE inward recoil arrows
             rec_scale = float(np.clip(self.recoil_trk.get_value(), 0.2, 1.7))
-            max_len = min(rx * 0.45, ry * 0.46)
-            rec_len = min(max_len, (0.26 + 0.10 * sc) * rec_scale)
-            angles = [PI * 0.82, PI * 1.18, PI * 1.82, PI * 2.18] if z < 0.4 else [PI * 0.78, PI * 0.22]
+            max_len = (rx * 0.48) if z >= 0.4 else min(rx * 0.45, ry * 0.46)
+            rec_len = min(max_len, (0.26 + 0.10 * sc + 0.08 * z) * rec_scale)
+            angles = [PI * 0.82, PI * 1.18, PI * 1.82, PI * 2.18] if z < 0.4 else [PI * 0.88, PI * 0.12]
             for th in angles:
                 rim_pt = np.array([cx + rx * np.cos(th), cy + ry * np.sin(th), 0.0])
                 inward = np.array([-np.cos(th), -np.sin(th), 0.0])
@@ -535,6 +548,36 @@ class LungWorld(VGroup):
         pl_pad_r = (0.24 + 0.05 * z - 0.05 * sq) * sc
         return np.array([cx + rx + pl_pad_r * 0.92, cy - 0.1, 0.0])
 
+    def airway_mid_inside(self):
+        cx, cy, rx, ry, w_air, y_bot, y_top, y_pl_top, z, sc = self._geom()
+        ym = 0.5 * (y_bot + y_pl_top)
+        hw = self._airway_half_width(ym, y_bot, y_top, y_pl_top, w_air, z)
+        return np.array([cx + hw * 0.45, ym, 0.0])
+
+    def airway_mid_left(self):
+        cx, cy, rx, ry, w_air, y_bot, y_top, y_pl_top, z, sc = self._geom()
+        ym = 0.5 * (y_bot + y_pl_top)
+        return np.array([cx - 0.12, ym, 0.0])
+
+    def recoil_anchor_left(self):
+        cx, cy, rx, ry, w_air, y_bot, y_top, y_pl_top, z, sc = self._geom()
+        th = PI * 1.18
+        return np.array([cx + rx * np.cos(th), cy + ry * np.sin(th), 0.0])
+
+    def chest_dent_right(self):
+        cx, cy, rx, ry, w_air, y_bot, y_top, y_pl_top, z, sc = self._geom()
+        sq = float(self.squeeze_trk.get_value())
+        ret = float(self.retract_trk.get_value())
+        pl_pad_r = (0.24 + 0.05 * z - 0.05 * sq) * sc
+        cw_off = (0.14 - 0.04 * sq) * sc
+        cw_side_x = (rx + pl_pad_r + cw_off) * (1.0 - z) + (w_air + (0.18 + 0.14 * z - 0.04 * sq) * sc + 0.20) * z
+        yy = cy + 0.50 * sc
+        blend_bot = float(np.clip((yy - cy) / max(y_pl_top - cy, 0.4), 0.0, 1.0))
+        frac_d = np.exp(-((yy - (cy + 0.5)) / 0.7) ** 2) * np.sin(PI * blend_bot)
+        x_wall = cw_side_x * blend_bot + (rx + pl_pad_r + cw_off) * (1.0 - blend_bot)
+        dent = ret * 0.24 * sc
+        return np.array([cx + x_wall - dent * frac_d, yy, 0.0])
+
     def airway_mid_right(self):
         cx, cy, rx, ry, w_air, y_bot, y_top, y_pl_top, z, sc = self._geom()
         ym = 0.5 * (y_bot + y_pl_top)
@@ -578,13 +621,26 @@ def attach_quiet_breathing(world, gauge, theta_start=0.0, speed=1.45, r_base=1.0
 def build_base_world(**world_kw):
     """Build standard gauge + LungWorld + spirogram axes."""
     p_trk = ValueTracker(world_kw.pop("p_init", -5.0))
-    gauge = PleuralGauge(p_trk)
+    ext_neg = world_kw.pop("ext_neg", False)
+    gauge = PleuralGauge(p_trk, ext_neg=ext_neg)
     world = LungWorld(**world_kw)
     plot = make_spirogram()
     return gauge, world, plot
 
 
-def make_ratio_bar(x0=2.40, x1=6.05, y=-2.35, val_trk=None, limit=0.68, max_v=1.0, limit_label="limit 0.68 (made-up)", bar_label_fn=None):
+def make_ratio_bar(
+    x0=2.40,
+    x1=6.05,
+    y=-2.35,
+    val_trk=None,
+    limit=0.68,
+    max_v=1.0,
+    limit_label="limit 0.68 (made-up)",
+    bar_label_fn=None,
+    settled_trk=None,
+    show_end_ticks=False,
+    opacity_trk=None,
+):
     """Horizontal computed bar from 0 to max_v with a limit tick and live value readout."""
     w = x1 - x0
     track = Line([x0, y, 0], [x1, y, 0], color=GREY, stroke_width=6)
@@ -594,21 +650,33 @@ def make_ratio_bar(x0=2.40, x1=6.05, y=-2.35, val_trk=None, limit=0.68, max_v=1.
     if lim_txt.get_right()[0] > 6.20:
         lim_txt.shift(LEFT * (lim_txt.get_right()[0] - 6.20))
 
+    extras = []
+    if show_end_ticks:
+        extras.extend([
+            Line([x0, y - 0.12, 0], [x0, y + 0.12, 0], color=GREY, stroke_width=3.0),
+            Line([x1, y - 0.12, 0], [x1, y + 0.12, 0], color=GREY, stroke_width=3.0),
+            M("0", size=22, color=GREY).move_to([x0 - 0.18, y, 0]),
+            M(f"{max_v:g}", size=22, color=GREY).move_to([x1 + 0.18, y, 0]),
+        ])
+
     def mk_bar():
         v = float(np.clip(val_trk.get_value(), 0.001, max_v))
-        col = RED if v < limit - 1e-4 else GREEN
+        is_settled = settled_trk is None or float(settled_trk.get_value()) >= 0.5
+        col = (RED if v < limit - 1e-4 else GREEN) if is_settled else GREY
+        lbl_col = col if is_settled else TEXT
+        op = 1.0 if opacity_trk is None else float(np.clip(opacity_trk.get_value(), 0.0, 1.0))
         bx = x0 + (v / max_v) * w
-        bar = Line([x0, y, 0], [bx, y, 0], color=col, stroke_width=18)
-        dot = Dot([bx, y, 0], radius=0.08, color=col)
+        bar = Line([x0, y, 0], [bx, y, 0], color=col, stroke_width=18, stroke_opacity=op)
+        dot = Dot([bx, y, 0], radius=0.08, color=col).set_opacity(op)
         g = VGroup(bar, dot)
         if bar_label_fn is not None:
-            lbl = M(bar_label_fn(v), size=22, color=col).move_to([(x0 + x1) / 2, y - 0.33, 0])
+            lbl = M(bar_label_fn(v), size=22, color=lbl_col).set_opacity(op).move_to([(x0 + x1) / 2, y - 0.33, 0])
             if lbl.get_right()[0] > 6.20:
                 lbl.shift(LEFT * (lbl.get_right()[0] - 6.20))
             g.add(lbl)
         return g
 
-    return VGroup(track, tick, lim_txt, always_redraw(mk_bar))
+    return VGroup(track, *extras, tick, lim_txt, always_redraw(mk_bar))
 
 
 def spiro_tag(text, color=GREY):
@@ -713,21 +781,22 @@ class S02TwoDrops(SpokenScene):
         self.add(gauge, world, plot, drv)
 
         def mk_tp_arrow():
-            p_in = world.wall_anchor_right() + LEFT * 0.08
-            p_out = world.pleural_anchor_right() + RIGHT * 0.02
-            return DoubleArrow(p_in, p_out, buff=0, color=ORANGE, stroke_width=4.5, tip_length=0.14)
+            p_in = world.wall_anchor_right() + LEFT * 0.18
+            p_out = world.pleural_anchor_right() + RIGHT * 0.03
+            return DoubleArrow(p_in, p_out, buff=0, color=ORANGE, stroke_width=5.5, tip_length=0.14)
 
         tp_arrow = always_redraw(mk_tp_arrow)
         lbl_tp = T("transpulmonary\n= recoil", size=24, color=ORANGE, line_spacing=0.85).move_to([-0.15, -1.65, 0], aligned_edge=LEFT)
         tp_leader = always_redraw(
-            lambda: Line(world.chest_right_x() * RIGHT + (LUNG_CY - 0.1) * UP + RIGHT * 0.04, lbl_tp.get_left() + LEFT * 0.10, color=ORANGE, stroke_width=2.5)
+            lambda: Line(world.pleural_anchor_right() + RIGHT * 0.03, lbl_tp.get_left() + LEFT * 0.10, color=ORANGE, stroke_width=2.5)
         )
         tp_leader.layout_ok = "covered"
 
         lbl_aw = T("airway drop:\nmoves air", size=24, color=WHITE, line_spacing=0.85).move_to([-0.15, 1.15, 0], aligned_edge=LEFT)
         aw_leader = always_redraw(
-            lambda: Line(world.airway_mid_right(), lbl_aw.get_left() + LEFT * 0.10, color=WHITE, stroke_width=2.5)
+            lambda: Line(world.airway_mid_inside(), lbl_aw.get_left() + LEFT * 0.10, color=WHITE, stroke_width=2.5)
         )
+        aw_dot = always_redraw(lambda: Dot(world.airway_mid_inside(), radius=0.045, color=WHITE))
         aw_leader.layout_ok = "covered"
 
         self.at("Every breath")
@@ -740,7 +809,7 @@ class S02TwoDrops(SpokenScene):
         self.play(FadeIn(tp_leader), FadeIn(lbl_tp), run_time=0.7)
 
         self.at("Along")
-        self.play(FadeIn(aw_leader), FadeIn(lbl_aw), run_time=0.7)
+        self.play(FadeIn(aw_leader), FadeIn(aw_dot), FadeIn(lbl_aw), run_time=0.7)
 
         self.at("pays for both")
         c_line1 = always_redraw(lambda: Line(gauge.gauge_right_point(), lbl_tp.get_left() + LEFT * 0.12, color=CYAN, stroke_width=2.4))
@@ -833,7 +902,29 @@ class S04Squeeze(SpokenScene):
             run_time=1.4,
         )
 
-        self.at("pressure inside falls")
+        self.at("keeps dropping")
+        u_drop = ValueTracker(0.0)
+        cx_w, cy_w, rx_w, ry_w, w_aw, y_bot_w, y_top_w, y_pl_top_w, _, _ = world._geom()
+
+        def mk_drop_arrow():
+            u = float(u_drop.get_value())
+            yy = (y_bot_w + 0.30) + u * ((y_pl_top_w - 0.35) - (y_bot_w + 0.30))
+            return Arrow(
+                [cx_w + 0.22, yy - 0.22, 0.0],
+                [cx_w + 0.22, yy + 0.22, 0.0],
+                buff=0,
+                color=WHITE,
+                stroke_width=4.5,
+                max_tip_length_to_length_ratio=0.45,
+            )
+
+        drop_arr = always_redraw(mk_drop_arrow)
+        lbl_falls = T("pressure inside falls", size=24, color=WHITE).move_to([-0.50, -1.72, 0], aligned_edge=LEFT)
+        self.play(FadeIn(drop_arr), FadeIn(lbl_falls), run_time=0.35)
+        self.play(u_drop.animate.set_value(1.0), run_time=1.15, rate_func=linear)
+        self.play(FadeOut(drop_arr), run_time=0.25)
+
+        self.at("drops to")
         lbl_eq = T("inside = pleural", size=26, color=WHITE).move_to([-0.50, 0.35, 0], aligned_edge=LEFT)
         eq_line = always_redraw(lambda: Line(world.pinch_point_right() + LEFT * 0.14, lbl_eq.get_left() + LEFT * 0.12, color=WHITE, stroke_width=2.5))
         eq_line.layout_ok = "covered"
@@ -845,7 +936,7 @@ class S04Squeeze(SpokenScene):
             run_time=1.0,
         )
 
-        self.at("airway beyond is squeezed")
+        self.at("is squeezed")
         lbl_sq = T("squeezed", size=28, color=RED).move_to([-0.50, 1.40, 0], aligned_edge=LEFT)
         sq_line = always_redraw(lambda: Line(world.pinch_zone_right() + LEFT * 0.05, lbl_sq.get_left() + LEFT * 0.12, color=RED, stroke_width=2.5))
         sq_line.layout_ok = "covered"
@@ -854,7 +945,7 @@ class S04Squeeze(SpokenScene):
             world.r_trk.animate.set_value(0.78),
             FadeIn(sq_line),
             FadeIn(lbl_sq),
-            run_time=1.2,
+            run_time=0.95,
         )
         self.finish()
 
@@ -872,36 +963,43 @@ class S05Dynamic(SpokenScene):
         self.at("dynamic compression")
         self.play(swap(lbl_sq, lbl_dyn, run_time=0.55), world.r_trk.animate.set_value(1.00), run_time=0.75)
 
-        self.at("weak recoil")
+        self.at("Maximal flow is")
+        lbl_max = T("maximal flow =\nfastest flow out", size=24, color=WHITE, line_spacing=0.85).move_to([-0.50, 2.38, 0], aligned_edge=LEFT)
+        self.play(FadeIn(lbl_max), run_time=0.55)
+
+        self.at("weak recoil", lead=0.9)
+        lbl_weak = T("weak recoil", size=24, color=ORANGE).move_to([-0.45, -1.60, 0], aligned_edge=LEFT)
         self.play(
-            world.recoil_trk.animate.set_value(0.35),
+            world.recoil_trk.animate.set_value(0.28),
             world.pinch_y_trk.animate.set_value(0.34),
             world.flow_trk.animate.set_value(0.45),
             world.r_trk.animate.set_value(0.86),
-            run_time=0.85,
+            FadeIn(lbl_weak),
+            run_time=0.40,
         )
+        self.wait(1.20)
         self.play(
             world.recoil_trk.animate.set_value(1.0),
             world.pinch_y_trk.animate.set_value(0.55),
             world.flow_trk.animate.set_value(1.6),
             world.r_trk.animate.set_value(1.02),
-            run_time=0.55,
+            FadeOut(lbl_weak),
+            run_time=0.35,
         )
 
-        self.at("narrowed airways upstream")
+        self.at("narrowed airways between")
         self.play(
             world.up_narrow_trk.animate.set_value(1.0),
             world.flow_trk.animate.set_value(0.42),
             world.r_trk.animate.set_value(0.88),
-            run_time=1.35,
+            run_time=1.00,
         )
+        lbl_low = T("low maximal flow", size=24, color=WHITE).move_to([-0.50, 0.25, 0], aligned_edge=LEFT)
+        self.play(FadeIn(lbl_low), world.r_trk.animate.set_value(0.82), run_time=0.45)
 
-        self.at("low maximal flow")
-        lbl_low = T("low maximal flow", size=24, color=WHITE).move_to([-0.55, 2.20, 0], aligned_edge=LEFT)
-        self.play(FadeIn(lbl_low), world.r_trk.animate.set_value(0.78), run_time=0.8)
-        self.wait(0.25)
-
-        self.play(FadeOut(lbl_dyn), FadeOut(lbl_low), run_time=0.35)
+        self.at("lowers it")
+        self.wait(0.85)
+        self.play(FadeOut(lbl_dyn), FadeOut(lbl_max), FadeOut(lbl_low), run_time=0.28)
         self.play(
             world.up_narrow_trk.animate.set_value(0.0),
             world.tiles_op_trk.animate.set_value(0.0),
@@ -911,7 +1009,7 @@ class S05Dynamic(SpokenScene):
             world.zoom_trk.animate.set_value(0.0),
             world.flow_trk.animate.set_value(0.5),
             world.r_trk.animate.set_value(0.98),
-            run_time=1.1,
+            run_time=0.62,
         )
         self.finish()
 
@@ -947,17 +1045,17 @@ class S06Spirogram(SpokenScene):
             rate_func=linear,
         )
 
-        self.at("FEV1")
+        self.at("FEV")
         p1 = plot.pt(1.0, 1.5)
         v1_line = DashedLine(plot.pt(1.0, 0.0), p1, color=YELLOW, stroke_width=3.5, dash_length=0.12)
         d1 = Dot(p1, radius=0.08, color=YELLOW)
-        lbl_fev1 = T("FEV1 1.5 L", size=24, color=YELLOW).move_to([4.05, 0.15, 0])
-        fev_arrow = Line(lbl_fev1.get_left() + LEFT * 0.08, p1 + RIGHT * 0.10, color=YELLOW, stroke_width=2.4)
+        lbl_fev1_only = T("FEV1", size=24, color=YELLOW).move_to([3.38, 0.36, 0], aligned_edge=LEFT)
+        fev_arrow = Line(lbl_fev1_only.get_left() + LEFT * 0.08, p1 + RIGHT * 0.10, color=YELLOW, stroke_width=2.4)
         self.play(
             Create(v1_line),
             FadeIn(d1),
             FadeIn(fev_arrow),
-            FadeIn(lbl_fev1),
+            FadeIn(lbl_fev1_only),
             t_spi.animate.set_value(4.5),
             run_time=3.5,
             rate_func=linear,
@@ -965,14 +1063,20 @@ class S06Spirogram(SpokenScene):
 
         self.at("FVC")
         fvc_line = DashedLine(plot.pt(0.0, 3.0), plot.pt(6.0, 3.0), color=CYAN, stroke_width=3.5, dash_length=0.12)
-        lbl_fvc = T("FVC 3.0 L", size=24, color=CYAN).move_to([5.25, 1.98, 0])
-        self.play(Create(fvc_line), FadeIn(lbl_fvc), t_spi.animate.set_value(6.0), run_time=2.5, rate_func=linear)
+        lbl_fvc_only = T("FVC", size=24, color=CYAN).move_to([6.00, 1.98, 0], aligned_edge=RIGHT)
+        self.play(Create(fvc_line), FadeIn(lbl_fvc_only), t_spi.animate.set_value(6.0), run_time=2.5, rate_func=linear)
 
-        self.at("volunteer")
-        self.wait(0.2)
+        self.at("they are 1")
+        lbl_fev1 = T("FEV1 1.5 L", size=24, color=YELLOW).move_to([3.38, 0.36, 0], aligned_edge=LEFT)
+        self.play(swap(lbl_fev1_only, lbl_fev1, run_time=0.45), run_time=0.45)
 
-        self.at("The ratio")
+        self.at("and 3")
+        lbl_fvc = T("FVC 3.0 L", size=24, color=CYAN).move_to([6.00, 1.98, 0], aligned_edge=RIGHT)
+        self.play(swap(lbl_fvc_only, lbl_fvc, run_time=0.45), run_time=0.45)
+
+        self.at("The ratio", lead=0.6)
         r_val = ValueTracker(0.01)
+        r_settled = ValueTracker(0.0)
         r_bar = make_ratio_bar(
             x0=2.40,
             x1=6.05,
@@ -982,12 +1086,16 @@ class S06Spirogram(SpokenScene):
             max_v=1.0,
             limit_label="limit 0.68 (made-up)",
             bar_label_fn=lambda v: f"FEV1/FVC = {v:.2f}",
+            settled_trk=r_settled,
         )
-        self.play(FadeIn(r_bar), run_time=0.4)
-        self.play(r_val.animate.set_value(0.50), run_time=4.2, rate_func=smooth)
+        self.play(FadeIn(r_bar), run_time=0.25)
+        self.play(r_val.animate.set_value(0.50), run_time=0.75, rate_func=smooth)
 
-        self.at("Obstructive")
-        obs = boxed_label("obstructive", RED, size=24).move_to([5.05, 0.85, 0])
+        self.at("below")
+        self.play(r_settled.animate.set_value(1.0), run_time=0.1)
+
+        self.at("obstructive", lead=0.4)
+        obs = mchip("obstructive:\ntoo little out in 1 s", RED, size=22, pad=0.13).move_to([4.65, -0.30, 0])
         self.play(FadeIn(obs, scale=1.06), run_time=0.55)
         self.finish()
 
@@ -1011,10 +1119,24 @@ class S07Idea(SpokenScene):
         self.play(FadeIn(head), run_time=0.55)
 
         self.at("pays for")
-        lbl_rec = T("recoil", size=28, color=ORANGE).move_to([0.05, -1.55, 0], aligned_edge=LEFT)
-        lbl_res = T("resistance", size=28, color=WHITE).move_to([0.05, 1.05, 0], aligned_edge=LEFT)
-        b1 = always_redraw(lambda: Line(gauge.gauge_right_point(), lbl_rec.get_left() + LEFT * 0.14, color=CYAN, stroke_width=2.8))
-        b2 = always_redraw(lambda: Line(gauge.gauge_right_point(), lbl_res.get_left() + LEFT * 0.14, color=CYAN, stroke_width=2.8))
+        lbl_rec = T("recoil", size=28, color=ORANGE).move_to([-3.65, -2.28, 0], aligned_edge=RIGHT)
+        lbl_res = T("resistance", size=28, color=WHITE).move_to([-2.95, 2.08, 0], aligned_edge=RIGHT)
+
+        def _make_b1():
+            p0 = gauge.gauge_right_point()
+            p_mid = np.array([-4.35, -1.85, 0.0])
+            p1 = world.recoil_anchor_left()
+            return VMobject(color=CYAN, stroke_width=2.8).set_points_as_corners([p0, p_mid, p1])
+
+        def _make_b2():
+            p0 = gauge.gauge_right_point()
+            p_mid1 = np.array([-3.65, -0.45, 0.0])
+            p_mid2 = np.array([-3.65, 1.05, 0.0])
+            p1 = world.airway_mid_left()
+            return VMobject(color=CYAN, stroke_width=2.8).set_points_as_corners([p0, p_mid1, p_mid2, p1])
+
+        b1 = always_redraw(_make_b1)
+        b2 = always_redraw(_make_b2)
         b1.layout_ok = "covered"
         b2.layout_ok = "covered"
 
@@ -1040,13 +1162,19 @@ class S08Emphysema(SpokenScene):
     def construct(self):
         gauge, world, plot = build_base_world(r=1.06, p_init=-5.0, flow=0.6, surf=1.0)
         v1_curve = plot.curve(VOL1_V, color=WHITE, width=6)
+        typ_curve = DashedVMobject(plot.curve(TYP_V, color=GREY, width=4), num_dashes=28)
+        lbl_typ = T("typical", size=22, color=GREY).move_to(plot.pt(4.6, 3.35) + UP * 0.22)
+        typ_grp = VGroup(typ_curve, lbl_typ)
+        set_open_curve_opacity(typ_grp, 0.22)
         v1_fev = DashedLine(plot.pt(1.0, 0.0), plot.pt(1.0, 1.5), color=YELLOW, stroke_width=3.5)
         v1_fvc = DashedLine(plot.pt(0.0, 3.0), plot.pt(6.0, 3.0), color=CYAN, stroke_width=3.5)
         tag_old = spiro_tag("volunteer 1 (made-up)")
         r_val = ValueTracker(0.50)
+        r_op = ValueTracker(0.30)
         r_bar = make_ratio_bar(
             x0=2.40, x1=6.05, y=-2.52, val_trk=r_val, limit=0.68, max_v=1.0,
             limit_label="limit 0.68 (made-up)", bar_label_fn=lambda v: f"FEV1/FVC = {v:.2f}",
+            opacity_trk=r_op,
         )
         spi_all = VGroup(plot, v1_curve, v1_fev, v1_fvc, tag_old, r_bar)
         set_open_curve_opacity(spi_all, 0.30)
@@ -1065,7 +1193,7 @@ class S08Emphysema(SpokenScene):
             gauge.p_trk.set_value(-5.5 + 1.2 * np.cos(th) - 0.8 * np.sin(th))
 
         drv = VMobject().add_updater(breath_step)
-        self.add(spi_all, gauge, world, head, drv)
+        self.add(typ_grp, spi_all, gauge, world, head, drv)
 
         self.at("destroys alveolar walls")
         self.play(
@@ -1102,13 +1230,15 @@ class S08Emphysema(SpokenScene):
         tag_new = spiro_tag("obstructive pattern", color=RED)
         self.play(
             UpdateFromAlphaFunc(spi_all, lambda m, a: set_open_curve_opacity(m, 0.30 + 0.70 * a)),
+            UpdateFromAlphaFunc(typ_grp, lambda m, a: set_open_curve_opacity(m, 0.22 + 0.33 * a)),
+            r_op.animate.set_value(1.0),
             swap(tag_old, tag_new, run_time=0.6),
             run_time=1.2,
         )
 
         self.at("the ratio falls")
-        self.play(r_val.animate.set_value(0.38), run_time=0.65)
-        self.play(r_val.animate.set_value(0.50), run_time=0.65)
+        r_bar[-1].clear_updaters()
+        self.play(Indicate(r_bar, color=RED, scale_factor=1.06), run_time=1.0)
         self.finish()
 
 
@@ -1218,29 +1348,43 @@ class S11Answer(SpokenScene):
         self.at("FEV1 and FVC")
         self.play(FadeOut(plot), run_time=0.45)
         bar_scale = ValueTracker(1.0)
-        base_y = -1.15
+        base_y = -0.50
 
         def mk_bars():
             s = float(bar_scale.get_value())
             h_fev = 2.1 * s
             h_fvc = 2.6 * s
-            b1 = Rectangle(width=0.72, height=h_fev, stroke_color=YELLOW, stroke_width=3.5, fill_color=YELLOW, fill_opacity=0.40).move_to([2.95, base_y + h_fev / 2, 0])
-            b2 = Rectangle(width=0.72, height=h_fvc, stroke_color=CYAN, stroke_width=3.5, fill_color=CYAN, fill_opacity=0.40).move_to([4.15, base_y + h_fvc / 2, 0])
+            b1 = Rectangle(width=0.76, height=h_fev, stroke_color=YELLOW, stroke_width=3.5, fill_color=YELLOW, fill_opacity=0.40).move_to([3.45, base_y + h_fev / 2, 0])
+            b2 = Rectangle(width=0.76, height=h_fvc, stroke_color=CYAN, stroke_width=3.5, fill_color=CYAN, fill_opacity=0.40).move_to([4.95, base_y + h_fvc / 2, 0])
             return VGroup(b1, b2)
 
         bars = always_redraw(mk_bars)
-        l1 = T("FEV1", size=26, color=YELLOW).move_to([2.95, base_y - 0.35, 0])
-        l2 = T("FVC", size=26, color=CYAN).move_to([4.15, base_y - 0.35, 0])
-        sch = T("schematic", size=22, color=GREY).move_to([3.55, base_y - 0.85, 0])
+        l1 = T("FEV1", size=26, color=YELLOW).move_to([3.45, base_y - 0.35, 0])
+        l2 = T("FVC", size=26, color=CYAN).move_to([4.95, base_y - 0.35, 0])
+        sch = T("schematic", size=22, color=GREY).move_to([4.20, base_y - 0.78, 0])
         self.add(bars, l1, l2, sch)
 
         self.at("fall together")
         self.play(bar_scale.animate.set_value(0.62), run_time=1.5)
 
         self.at("ratio is normal or high")
-        rat_bar = Rectangle(width=0.68, height=2.25, stroke_color=GREEN, stroke_width=3.5, fill_color=GREEN, fill_opacity=0.40).move_to([5.40, base_y + 1.125, 0])
-        l3 = T("ratio:\nnormal\nor high", size=24, color=GREEN, line_spacing=0.85).move_to([5.40, base_y - 0.72, 0])
-        self.play(FadeIn(rat_bar), FadeIn(l3), run_time=0.85)
+        r_val = ValueTracker(0.01)
+        r_settled = ValueTracker(0.0)
+        r_bar = make_ratio_bar(
+            x0=2.55,
+            x1=5.95,
+            y=-2.25,
+            val_trk=r_val,
+            limit=0.68,
+            max_v=1.0,
+            limit_label="limit 0.68 (made-up)",
+            bar_label_fn=lambda v: "ratio: normal or high" if r_settled.get_value() >= 0.5 else "ratio",
+            settled_trk=r_settled,
+            show_end_ticks=True,
+        )
+        self.play(FadeIn(r_bar), run_time=0.30)
+        self.play(r_val.animate.set_value(0.81), run_time=0.70)
+        self.play(r_settled.animate.set_value(1.0), run_time=0.10)
         self.finish()
 
 
@@ -1254,10 +1398,11 @@ class S12Restrictive(SpokenScene):
         self.add(gauge, world, head_old)
 
         self.at("restrictive pattern")
-        self.play(swap(head_old, stamp, run_time=0.65), world.r_trk.animate.set_value(0.70), run_time=3.5)
+        self.play(swap(head_old, stamp, run_time=0.65), world.r_trk.animate.set_value(0.83), run_time=0.65)
+        self.play(world.r_trk.animate.set_value(0.70), run_time=2.85)
 
         self.at("gas that never leaves")
-        lbl_core = T("never leaves", size=24, color=BLUE).move_to([-0.15, -1.70, 0], aligned_edge=LEFT)
+        lbl_core = T("never leaves", size=24, color=BLUE).move_to([-0.15, -1.25, 0], aligned_edge=LEFT)
         core_line = always_redraw(lambda: Line([LUNG_CX + 0.25, LUNG_CY - 0.15, 0], lbl_core.get_left() + LEFT * 0.10, color=BLUE, stroke_width=2.4))
         core_line.layout_ok = "covered"
         self.play(
@@ -1266,49 +1411,73 @@ class S12Restrictive(SpokenScene):
             world.flow_trk.animate.set_value(0.0),
             FadeIn(core_line),
             FadeIn(lbl_core),
-            run_time=2.2,
+            run_time=1.55,
         )
 
-        self.at("volunteer")
-        plot = make_spirogram(y_shift=0.30)
+        self.at("One", lead=0.95)
+        plot = make_spirogram(y0=-0.15, y1=2.35)
         t_spi = ValueTracker(0.0)
         tag = spiro_tag("volunteer 2 (made-up)").shift(UP * 0.14)
         live = plot.live_curve(VOL2_V, t_spi, color=WHITE, width=6)
         dot = plot.dot(lambda: t_spi.get_value(), lambda: VOL2_V(t_spi.get_value()), color=WHITE, ring=CYAN, radius=0.07)
-        self.play(FadeIn(plot), FadeIn(tag), run_time=0.35)
+        self.play(FadeIn(plot), FadeIn(tag), run_time=0.30)
         self.add(live, dot)
-        self.play(t_spi.animate.set_value(6.0), run_time=1.35, rate_func=linear)
+        self.play(t_spi.animate.set_value(6.0), run_time=0.95, rate_func=linear)
 
         d1 = Dot(plot.pt(1.0, 2.2), radius=0.08, color=YELLOW)
-        lbl_f1 = T("FEV1 2.2 L", size=24, color=YELLOW).move_to([3.80, 0.75, 0])
+        lbl_f1 = T("FEV1 2.2 L", size=24, color=YELLOW).move_to([3.95, 0.95, 0])
         fvc_ln = DashedLine(plot.pt(0.0, 2.6), plot.pt(6.0, 2.6), color=CYAN, stroke_width=3.5)
         lbl_f2 = T("FVC 2.6 L", size=24, color=CYAN).move_to([5.30, 1.98, 0])
 
         r_val = ValueTracker(0.01)
+        r_settled = ValueTracker(0.0)
         r_bar = make_ratio_bar(
-            x0=2.40, x1=6.05, y=-2.18, val_trk=r_val, limit=0.68, max_v=1.0,
-            limit_label="limit 0.68", bar_label_fn=lambda v: f"FEV1/FVC = {v:.2f}" + (" (within limits)" if v >= 0.68 else ""),
+            x0=2.40,
+            x1=6.05,
+            y=-1.62,
+            val_trk=r_val,
+            limit=0.68,
+            max_v=1.0,
+            limit_label="limit 0.68 (made-up)",
+            bar_label_fn=lambda v: f"ratio {v:.2f}" + (" (within limits)" if r_settled.get_value() >= 0.5 else ""),
+            settled_trk=r_settled,
         )
-        self.play(FadeIn(d1), FadeIn(lbl_f1), Create(fvc_ln), FadeIn(lbl_f2), FadeIn(r_bar), run_time=0.40)
-        self.play(r_val.animate.set_value(0.85), run_time=0.65)
+        self.play(FadeIn(d1), FadeIn(lbl_f1), Create(fvc_ln), FadeIn(lbl_f2), FadeIn(r_bar), run_time=0.35)
+        self.play(r_val.animate.set_value(0.85), run_time=0.80)
+        self.play(r_settled.animate.set_value(1.0), run_time=0.10)
 
         self.at("body box")
         box_rect = Rectangle(width=2.95, height=4.85, stroke_color=GREY, stroke_width=4.5, fill_opacity=0).move_to([LUNG_CX, 0.0, 0])
-        lbl_box = T("body box", size=26, color=GREY).move_to([LUNG_CX - 1.05, 2.76, 0])
+        lbl_box = T("body box", size=26, color=GREY).move_to([LUNG_CX, -2.80, 0])
         tlc_val = ValueTracker(0.1)
+        tlc_settled = ValueTracker(0.0)
         tlc_bar = make_ratio_bar(
-            x0=2.40, x1=6.05, y=-3.26, val_trk=tlc_val, limit=4.6, max_v=6.0,
-            limit_label="limit 4.6 L (made-up)", bar_label_fn=lambda v: f"TLC = {v:.1f} L",
+            x0=2.40,
+            x1=6.05,
+            y=-2.82,
+            val_trk=tlc_val,
+            limit=4.6,
+            max_v=6.0,
+            limit_label="limit 4.6 L (made-up)",
+            bar_label_fn=lambda v: f"TLC = {v:.1f} L",
+            settled_trk=tlc_settled,
         )
-        self.play(Create(box_rect), FadeIn(lbl_box), FadeIn(tlc_bar), run_time=0.6)
-        self.play(tlc_val.animate.set_value(3.9), run_time=1.35)
+        self.play(Create(box_rect), FadeIn(lbl_box), run_time=0.45)
+
+        self.at("measures all")
+        lbl_box_full = T("body box: measures all the gas", size=24, color=GREY).move_to([LUNG_CX, -2.80, 0])
+        self.play(swap(lbl_box, lbl_box_full, run_time=0.5), FadeIn(tlc_bar), run_time=0.55)
+        self.play(tlc_val.animate.set_value(3.9), run_time=1.10)
+
+        self.at("found the low")
+        self.play(tlc_settled.animate.set_value(1.0), run_time=0.15)
         self.finish()
 
 
 class S13Rds(SpokenScene):
     def construct(self):
         gauge, world, plot = build_base_world(
-            r=1.06, p_init=-5.0, flow=0.0, surf=1.0, scale=1.0
+            r=1.06, p_init=-5.0, flow=0.0, surf=1.0, scale=1.0, ext_neg=True
         )
         head = T("RDS: too much surface recoil", size=30, color=RED).move_to([-1.2, 3.12, 0])
         self.add(gauge, world, head)
@@ -1339,40 +1508,51 @@ class S13Rds(SpokenScene):
         self.remove(drv)
         self.at("large negative swing")
         lbl_ret = T("retractions", size=28, color=GREY).move_to([-0.15, -0.55, 0], aligned_edge=LEFT)
+        ret_leader = always_redraw(lambda: Line(world.chest_dent_right() + RIGHT * 0.06, lbl_ret.get_left() + LEFT * 0.10, color=GREY, stroke_width=2.5))
+        ret_leader.layout_ok = "covered"
         lbl_cls = T("alveoli close", size=28, color=RED).move_to([-0.15, -1.65, 0], aligned_edge=LEFT)
 
         self.play(
-            gauge.p_trk.animate.set_value(-9.8),
-            world.retract_trk.animate.set_value(1.0),
+            gauge.p_trk.animate.set_value(-14.2),
             world.r_trk.animate.set_value(1.06),
             world.flow_trk.animate.set_value(-1.1),
             run_time=2.0,
         )
 
         self.at("soft chest wall inward")
-        self.play(FadeIn(lbl_ret), run_time=0.6)
+        self.play(
+            world.retract_trk.animate.set_value(1.0),
+            FadeIn(ret_leader),
+            FadeIn(lbl_ret),
+            run_time=0.65,
+        )
+        self.wait(0.75)
         self.play(
             gauge.p_trk.animate.set_value(-3.5),
             world.retract_trk.animate.set_value(0.0),
             world.r_trk.animate.set_value(0.74),
             world.flow_trk.animate.set_value(0.8),
-            run_time=1.8,
+            FadeOut(ret_leader),
+            FadeOut(lbl_ret),
+            run_time=0.54,
         )
 
-        self.at("alveoli close")
+        self.at("at low")
         self.play(
             world.collapse_trk.animate.set_value(1.0),
             world.flow_trk.animate.set_value(0.0),
             FadeIn(lbl_cls),
-            run_time=0.9,
+            run_time=0.55,
         )
+        self.wait(1.35)
+        self.play(FadeOut(lbl_cls), run_time=0.25)
         self.play(
-            gauge.p_trk.animate.set_value(-9.5),
+            gauge.p_trk.animate.set_value(-13.8),
             world.collapse_trk.animate.set_value(0.0),
             world.retract_trk.animate.set_value(0.9),
             world.r_trk.animate.set_value(0.98),
             world.flow_trk.animate.set_value(-1.0),
-            run_time=1.0,
+            run_time=0.80,
         )
         self.finish()
 
@@ -1384,16 +1564,23 @@ class S14Close(SpokenScene):
         self.add(gauge, world, plot, drv)
 
         self.at("pays for")
-        lbl_rec = T("recoil", size=28, color=ORANGE).move_to([0.05, -0.95, 0], aligned_edge=LEFT)
-        lbl_res = T("resistance", size=28, color=WHITE).move_to([0.05, 1.52, 0], aligned_edge=LEFT)
-        b1 = always_redraw(lambda: Line(gauge.gauge_right_point(), lbl_rec.get_left() + LEFT * 0.14, color=CYAN, stroke_width=2.8))
+        lbl_rec = T("recoil", size=28, color=ORANGE).move_to([-3.65, -2.28, 0], aligned_edge=RIGHT)
+        lbl_res = T("resistance", size=28, color=WHITE).move_to([-2.95, 2.08, 0], aligned_edge=RIGHT)
+
+        def _make_b1():
+            p0 = gauge.gauge_right_point()
+            p_mid = np.array([-4.35, -1.85, 0.0])
+            p1 = world.recoil_anchor_left()
+            return VMobject(color=CYAN, stroke_width=2.8).set_points_as_corners([p0, p_mid, p1])
 
         def _make_b2():
             p0 = gauge.gauge_right_point()
-            p_mid = np.array([-3.45, -0.58, 0.0])
-            p1 = lbl_res.get_left() + LEFT * 0.14
-            return VMobject(color=CYAN, stroke_width=2.8).set_points_as_corners([p0, p_mid, p1])
+            p_mid1 = np.array([-3.65, -0.45, 0.0])
+            p_mid2 = np.array([-3.65, 1.05, 0.0])
+            p1 = world.airway_mid_left()
+            return VMobject(color=CYAN, stroke_width=2.8).set_points_as_corners([p0, p_mid1, p_mid2, p1])
 
+        b1 = always_redraw(_make_b1)
         b2 = always_redraw(_make_b2)
         b1.layout_ok = "covered"
         b2.layout_ok = "covered"
@@ -1402,10 +1589,12 @@ class S14Close(SpokenScene):
         t_emp = mchip("emphysema", ORANGE, size=22)
         t_fib = mchip("fibrosis", ORANGE, size=22)
         t_rds = mchip("RDS", ORANGE, size=22)
-        rec_tags = VGroup(t_emp, t_fib, t_rds).arrange(DOWN, buff=0.14, aligned_edge=LEFT).move_to([0.05, -2.42, 0], aligned_edge=LEFT)
+        rec_tags = VGroup(t_emp, t_fib, t_rds).arrange(DOWN, buff=0.14, aligned_edge=LEFT).move_to([-0.05, -2.05, 0], aligned_edge=LEFT)
+        rec_branch = Line(world.wall_anchor_right() + RIGHT * 0.30, rec_tags.get_left() + LEFT * 0.12, color=ORANGE, stroke_width=2.5)
+        rec_branch.layout_ok = "covered"
 
         self.at("Emphysema")
-        self.play(FadeIn(t_emp, shift=LEFT * 0.15), run_time=0.45)
+        self.play(Create(rec_branch), FadeIn(t_emp, shift=LEFT * 0.15), run_time=0.45)
         self.at("fibrosis")
         self.play(FadeIn(t_fib, shift=LEFT * 0.15), run_time=0.45)
         self.at("change the recoil")
@@ -1414,15 +1603,18 @@ class S14Close(SpokenScene):
 
         t_ast = mchip("asthma", RED, size=22)
         t_cb = mchip("chronic\nbronchitis", RED, size=22)
-        res_tags = VGroup(t_ast, t_cb).arrange(DOWN, buff=0.14, aligned_edge=LEFT).move_to([0.05, 0.35, 0], aligned_edge=LEFT)
+        res_tags = VGroup(t_ast, t_cb).arrange(DOWN, buff=0.14, aligned_edge=LEFT).move_to([0.10, 0.85, 0], aligned_edge=LEFT)
+        res_branch = Line([LUNG_CX + 0.48, 0.85, 0], res_tags.get_left() + LEFT * 0.12, color=RED, stroke_width=2.5)
+        res_branch.layout_ok = "covered"
 
         self.at("Asthma")
-        self.play(FadeIn(t_ast, shift=LEFT * 0.15), run_time=0.30)
+        self.play(Create(res_branch), FadeIn(t_ast, shift=LEFT * 0.15), run_time=0.30)
         self.at("chronic bronchitis")
         self.play(FadeIn(t_cb, shift=LEFT * 0.15), run_time=0.35)
-        self.at("narrow the airways")
-        self.play(world.up_narrow_trk.animate.set_value(1.0), run_time=0.6)
-        self.play(world.up_narrow_trk.animate.set_value(0.0), run_time=0.6)
+        self.at("narrow the airways", lead=0.4)
+        self.play(world.up_narrow_trk.animate.set_value(1.0), run_time=0.65)
+        self.wait(0.85)
+        self.play(world.up_narrow_trk.animate.set_value(0.0), run_time=0.45)
         self.finish()
 
 

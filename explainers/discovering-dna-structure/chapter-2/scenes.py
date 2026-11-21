@@ -21,11 +21,10 @@ BASES = "ATGCCGTAACGT"
 
 def diagram_field():
     """Shared chapter-one diagram ground; decorative, behind every teaching object."""
-    field = RoundedRectangle(corner_radius=0.28, width=13.0, height=6.75,
+    field = RoundedRectangle(corner_radius=0.28, width=13.95, height=7.85,
                              stroke_color=GREY, stroke_width=2,
                              fill_color=GREY, fill_opacity=0.20)
     field.set_z_index(-20)
-    field.layout_ok = True
     return field
 
 
@@ -51,14 +50,13 @@ class FilmScene(SpokenScene):
         self.add(diagram_field())
 
 
-def base_block(letter="", w=0.66, h=0.58, size=28, color=BLUE):
+def base_block(letter="", w=0.66, h=0.58, size=28, color=BLUE, corner_radius=0.09):
     """The shared base tile. Text deliberately sits inside its own labelled block."""
-    box = RoundedRectangle(corner_radius=0.09, width=w, height=h, stroke_color=color,
+    box = RoundedRectangle(corner_radius=corner_radius, width=w, height=h, stroke_color=color,
                            stroke_width=3, fill_color=color, fill_opacity=0.22)
     if not letter:
         return VGroup(box)
     label = T(letter, size, TEXT, weight=BOLD).move_to(box)
-    label.layout_ok = True
     return VGroup(box, label)
 
 
@@ -71,11 +69,15 @@ def labelled_box(text, color=GREY, width=2.3, height=0.72, size=28, fill=0.12):
     return VGroup(box, label)
 
 
-def strip(n, end="", color=BLUE, block_w=0.42, block_h=0.34, gap=0.025):
+def strip(n, end="", color=BLUE, block_w=0.42, block_h=0.34, gap=0.025,
+          cap_w=None, cap_h=None, cap_size=22, cap_radius=0.05):
     blocks = VGroup(*[base_block("", w=block_w, h=block_h, color=color) for _ in range(n)])
     blocks.arrange(RIGHT, buff=gap)
     if end:
-        cap = base_block(end, w=block_w, h=block_h, size=22, color=ORANGE)
+        cw = cap_w if cap_w is not None else max(block_w, 0.38)
+        ch = cap_h if cap_h is not None else max(block_h, 0.36)
+        cap = base_block(end, w=cw, h=ch, size=cap_size, color=ORANGE,
+                         corner_radius=min(cap_radius, ch / 2))
         blocks.add(cap)
         blocks.arrange(RIGHT, buff=gap)
     return blocks
@@ -176,14 +178,17 @@ def sorting_world(include_pair=False):
                                 fill_color=GREY, fill_opacity=0.10).move_to([x, -0.05, 0])
         lab = T(letter, 32, BLUE, weight=BOLD).move_to([x, 3.08, 0])
         lanes.add(VGroup(lane, lab))
+        if include_pair and letter in "TG":
+            continue
         for k, n in enumerate((3 + j % 2, 5 + (j + 1) % 2)):
             s = strip(n, letter, block_w=0.22, block_h=0.22)
-            s.move_to([x + (-0.32 if k == 0 else 0.32), 2.1 - 0.38 * k, 0])
+            dx = -0.32 if k == 0 else (0.16 if n >= 6 else 0.28)
+            s.move_to([x + dx, 2.1 - 0.44 * k, 0])
             entrance.add(s)
     pair = VGroup()
     if include_pair:
-        short = strip(3, "A", block_w=0.31, block_h=0.3).move_to([-1.3, 2.1, 0])
-        long = strip(8, "A", block_w=0.31, block_h=0.3).move_to([1.45, 2.1, 0])
+        short = strip(3, "T", block_w=0.20, block_h=0.24, gap=0.02).move_to([-1.55, 2.1, 0])
+        long = strip(8, "G", block_w=0.20, block_h=0.24, gap=0.02).move_to([1.55, 2.1, 0])
         pair = VGroup(short, long)
     return VGroup(lanes, entrance, pair, scope_tag("schematic")), lanes, entrance, pair
 
@@ -371,45 +376,129 @@ class S06Pause(PredictPause):
 
 class S07Reveal(FilmScene):
     def construct(self):
-        world, lanes, entrance, pair = sorting_world(False)
-        shimmer = scan_band(12.2, 0.48, BLUE, [0, 0, 0], axis="y", span=5.2, seconds=5.5)
-        self.add(shimmer, lanes)
+        seq = BASES[:8]  # "ATGCCGTA"
+        lane_xs = [-4.65 + j * 3.1 for j in range(4)]
+        lanes = VGroup()
+        for j, ch in enumerate("ATGC"):
+            x = lane_xs[j]
+            lane = RoundedRectangle(corner_radius=0.12, width=2.45, height=4.35,
+                                    stroke_color=GREY, stroke_width=3,
+                                    fill_color=GREY, fill_opacity=0.10).move_to([x, 0.50, 0])
+            lab = T(ch, 32, BLUE, weight=BOLD).move_to([x, 3.05, 0])
+            lanes.add(VGroup(lane, lab))
+        shimmer = scan_band(12.2, 0.48, BLUE, [0, 0.50, 0], axis="y", span=4.1, seconds=5.5)
+        self.add(shimmer, lanes, scope_tag("schematic"))
+
+        # Two copies per lane, ordered 1..8 across "ATGCCGTA" (pairs sum to 9 blocks per lane)
+        y_start, y_end = 2.15, -1.30
+        dist = y_start - y_end
+        t_arrivals = [5.05, 5.75, 6.35, 7.15, 7.65, 8.15, 8.65, 9.15]
+        race_t = ValueTracker(0.0)
+
         moving = VGroup()
-        lengths = [3, 5, 4, 6, 5, 7, 6, 8]
-        for i, (letter, n) in enumerate(zip("ATGCATGC", lengths)):
-            lane_i = i // 2
-            x = -4.65 + lane_i * 3.1 + (-0.3 if i % 2 == 0 else 0.3)
-            s = strip(n, letter, block_w=0.22, block_h=0.22).move_to([x, 2.05 - 0.35 * (i % 2), 0])
+        lane_counts = {ch: 0 for ch in "ATGC"}
+        for pos, ch in enumerate(seq, start=1):
+            j = "ATGC".index(ch)
+            is_short_in_lane = (lane_counts[ch] == 0)
+            lane_counts[ch] += 1
+            s = strip(pos - 1, ch, block_w=0.165, block_h=0.22, gap=0.02)
+            # Short copy on left side of lane, long copy on right side, both starting at y_start
+            left_edge = lane_xs[j] - 2.45 / 2 + 0.16
+            right_edge = lane_xs[j] + 2.45 / 2 - 0.16
+            sx = left_edge + s.width / 2 if is_short_in_lane else right_edge - s.width / 2
+            s.move_to([sx, y_start, 0])
+            t_arr = t_arrivals[pos - 1]
+            s.add_updater(lambda mob, dt, sx=sx, t_arr=t_arr: mob.move_to(
+                [sx, y_start - min(1.0, race_t.get_value() / t_arr) * dist, 0]
+            ))
             moving.add(s)
         self.add(moving)
+
+        letters = letter_strip(seq, block_w=0.58, block_h=0.50, size=25)
+        letters.arrange(RIGHT, buff=0.055).move_to([0, -2.42, 0])
+        covers = VGroup(*[
+            RoundedRectangle(corner_radius=0.09, width=0.60, height=0.54,
+                             stroke_color=ORANGE, stroke_width=3,
+                             fill_color=ORANGE, fill_opacity=0.24).move_to(b)
+            for b in letters
+        ])
+        cover_lab = T("readout covered", 25, ORANGE).move_to([0, -3.04, 0])
+        readout_lab = T("readout", 26, BLUE, weight=BOLD).move_to([-4.0, -2.42, 0])
+        self.add(covers, cover_lab)
+
+        def reveal_slot(idx, target_rt, dt_anim):
+            ch = seq[idx]
+            fly = base_block(ch, w=0.38, h=0.36, size=22, color=BLUE).move_to(moving[idx][-1])
+            anims = [
+                race_t.animate.set_value(target_rt),
+                covers[idx].animate.shift(UP * 0.35).set_opacity(0),
+                ReplacementTransform(fly, letters[idx]),
+            ]
+            if idx == 0:
+                anims.extend([FadeOut(cover_lab), FadeIn(readout_lab)])
+            self.play(*anims, run_time=dt_anim, rate_func=linear)
+            self.remove(covers[idx])
+
         self.at("copies start moving together")
-        animations = []
-        for s, n in zip(moving, lengths):
-            target_y = -2.35 + 0.31 * (n - min(lengths))
-            animations.append(s.animate.move_to([s.get_x(), target_y, 0]))
-        self.play(*animations, run_time=3.2, rate_func=linear)
-        shortest = moving[lengths.index(min(lengths))]
+        self.play(race_t.animate.set_value(4.80), run_time=4.80, rate_func=linear)
+
         self.at("shortest reaches")
-        self.play(Indicate(shortest, color=GREEN, scale_factor=1.12), run_time=0.7)
-        ordered = sorted(range(len(lengths)), key=lambda i: lengths[i])
+        self.play(race_t.animate.set_value(5.05), run_time=0.25, rate_func=linear)
+        reveal_slot(0, 5.60, 0.55)
+        self.play(race_t.animate.set_value(5.75), run_time=0.15, rate_func=linear)
+        reveal_slot(1, 6.25, 0.50)
+        self.play(race_t.animate.set_value(6.35), run_time=0.10, rate_func=linear)
+        reveal_slot(2, 6.85, 0.50)
+
         self.at("longer copies follow")
-        self.play(LaggedStart(*[Indicate(moving[i], color=GREEN, scale_factor=1.05)
-                                for i in ordered[1:]], lag_ratio=0.12), run_time=1.5)
-        cover = Rectangle(width=11.4, height=1.15, stroke_color=ORANGE, stroke_width=3,
-                          fill_color=BG, fill_opacity=1).move_to([0, -2.85, 0])
-        self.add(cover)
-        letters = letter_strip("ATGCCGTA", block_w=0.62, block_h=0.54, size=25).move_to([0, -2.85, 0])
-        self.at("Reading each stop base")
-        self.play(FadeOut(lanes), cover.animate.shift(DOWN * 1.25),
-                  LaggedStart(*[FadeIn(b, shift=UP * 0.1) for b in letters], lag_ratio=0.1), run_time=2.3)
+        self.play(race_t.animate.set_value(7.15), run_time=0.30, rate_func=linear)
+        for idx in range(3, 8):
+            reveal_slot(idx, t_arrivals[idx] + 0.50, 0.50)
+
+        for s in moving:
+            s.clear_updaters()
+
+        # Sort strips into left-aligned staircase aligned with the readout columns
+        staircase = VGroup()
+        pos_nums = VGroup()
+        left_x = letters.get_left()[0]
+        for idx, ch in enumerate(seq):
+            row = strip(idx, ch, block_w=0.58, block_h=0.34, gap=0.055)
+            row_y = 2.45 - idx * 0.45
+            row.move_to([left_x + row.width / 2, row_y, 0])
+            staircase.add(row)
+            num = M(str(idx + 1), 26, YELLOW).next_to(row[-1], RIGHT, buff=0.22)
+            pos_nums.add(num)
+
+        self.at("length tells you")
+        self.play(
+            FadeOut(lanes),
+            FadeOut(shimmer),
+            *[ReplacementTransform(moving[i], staircase[i]) for i in range(8)],
+            run_time=1.0,
+        )
+
+        self.at("position it stopped")
+        self.play(LaggedStart(*[FadeIn(n, shift=LEFT * 0.1) for n in pos_nums], lag_ratio=0.14), run_time=1.35)
+
+        self.at("sorting copies by length")
+        self.play(LaggedStart(*[Indicate(staircase[i][-1], color=YELLOW, scale_factor=1.10) for i in range(8)],
+                              lag_ratio=0.14), run_time=1.8)
+
         checks = VGroup(*[T("✓", 26, GREEN, weight=BOLD).next_to(b, UP, buff=0.08) for b in letters])
-        self.at("one position after another")
-        self.play(LaggedStart(*[FadeIn(c, scale=0.8) for c in checks], lag_ratio=0.1), run_time=1.2)
+        self.at("stop bases in order")
+        self.play(LaggedStart(*[FadeIn(c, scale=0.8) for c in checks], lag_ratio=0.12), run_time=1.3)
+
+        comp_lab = T("complementary sequence", 26, BLUE, weight=BOLD).move_to([0, -3.04, 0])
+        self.at("revealing the complementary")
+        self.play(FadeOut(readout_lab), FadeIn(comp_lab, shift=UP * 0.1),
+                  Indicate(letters, color=BLUE, scale_factor=1.02), run_time=0.6)
         self.finish()
 
 
 class S08SequenceModel(FilmScene):
     def construct(self):
+        self.add(scope_tag("schematic"))
         letters = letter_strip(BASES, block_w=0.72, block_h=0.62, size=27).move_to([0, 0.7, 0])
         shape = labelled_box("coiled shape", GREY, width=3.2, height=1.15, size=32).move_to([-4.5, 2.65, 0])
         self.at("Sequencing changes")
@@ -427,7 +516,6 @@ class S08SequenceModel(FilmScene):
         self.at("while hiding")
         self.play(FadeIn(hidden), run_time=0.6)
         self.play(FadeIn(curtain, shift=DOWN * 0.15), run_time=0.8)
-        self.add(scope_tag("schematic"))
         self.finish()
 
 

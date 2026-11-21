@@ -19,14 +19,14 @@ WORLD CARRIED FROM SCENE TO SCENE (16:9 frame, x in [-6.3, 6.3], y in [-3.5, 3.5
 WHAT CHANGES IN EACH SPOKEN SCENE (and what it is computed from):
 - s00_link_and_question: Lungs swell at resting rate and 24 BLUE dots drift; lungs/lower tank and kidney/upper tank pulse on cue; RED plug pops open and HCO3- twitches down (24 -> 20 -> 24) with computed pH needle twitching (7.40 -> 7.32 -> 7.40).
 - s02_kinds: RED plug opens and HCO3- drains steadily from 24 to 12 mmol/L; 12 BLUE dots exit as fluid falls; ratio updates live (20 : 1 -> 10 : 1) and needle drops computed from 6.1 + log10(HCO3-/1.2) to 7.10.
-- s03_no_help: Equation '0.03 x 40 = 1.2' joins pCO2 40 to the 1.2 mmol/L ORANGE layer; clamp sits on lung tube holding pCO2 at 40; ratio expands to '12 : 1.2 = 10 : 1'; needle settles at 7.10 with faint ghost tick.
+- s03_no_help: Equation '0.03 x 40 = 1.2' builds word by word joining pCO2 40 to the 1.2 mmol/L ORANGE layer; clamp sits on lung tube holding pCO2 at 40; ratio expands to '12 : 1.2 = 10 : 1'; needle settles at 7.10 with faint ghost tick.
 - s04_lungs: Clamp lifts; stopwatch ('minutes') morphs to clock ('12 to 24 hours'); lungs swell deeper/faster; ORANGE bubbles stream from lower tank through lungs; pCO2 counts down (40 -> 28) while dCO2 = 0.03*pCO2 thins and computed pH climbs off 7.10.
-- s05_measured: pCO2 finishes settling from 28 to 27 mmHg and stops; dCO2 settles at 0.81 (0.03 x 27); ratio settles at '12 : 0.81 = 14.8 : 1'; needle settles at computed 7.27.
+- s05_measured: pCO2 finishes settling from 28 to 27 mmHg and stops; dCO2 settles at 0.81 (0.03 x 27); ratio settles at '12 : 0.81 = 14.8 : 1'; '6.1 + 1.17 = 7.27' builds under gauge as needle settles at computed 7.27.
 - s06_predict: Target line at 7.40 ('full repair') and 'target 20 : 1' appear; '?' blinks beside pCO2 27; question 'For 20 : 1, pCO2 = ?' appears across top.
-- s08_answer: Dashed ORANGE ghost level appears at 0.60 (0.03 x 20, 'needs 20 mmHg') below real 0.81 ('27'); WHITE bracket measures 7.10 -> 7.27 ('0.17 bought back'); dashed bracket measures 7.27 -> 7.40 ('not all').
+- s08_answer: Dashed ORANGE ghost level appears at 0.60 (0.03 x 20, 'needs 20 mmHg') below real 0.81 ('27'); working '12 ÷ 20 = 0.6' and '0.6 ÷ 0.03 = 20 mmHg' build beside lower tank; WHITE bracket measures 7.10 -> 7.27 ('0.17 bought back'); dashed bracket measures 7.27 -> 7.40 ('not all').
 - s09_idea: BLUE and ORANGE down-arrows pulse together ('same way'); needle glows at 7.27; ghost needle rises to 7.37 ('some chronic cases') and fades; 7.40 dashed line becomes solid WHITE wall ('never past 7.40').
-- s10_winter: Vertical pCO2 scale (20 to 40) slides in beside readout; Winter's fit '1.5 x 12 + 8 = 26' builds; band 24-28 lights ('expected'); marker drops at 27 inside band while 20 sits below; seeded scatter cloud (rng=7) appears ('schematic scatter', 'a fit, not a law').
-- s11_respiratory: Resets to rest (24 / 1.2, pCO2 40, pH 7.40); lungs slow/shallow and pCO2 climbs 40 -> 50 (dCO2 -> 1.50, computed needle drops to 7.30); buffering raises HCO3- 24 -> 25 ('+1 at once'); kidney glows PURPLE, BLUE dots flow into upper tank raising HCO3- to 29 ('+5 over days', computed needle 7.39 < 7.40); dashed ghost at 30 ('+6 for full').
+- s10_winter: Vertical pCO2 scale (20 to 40) slides in beside readout; general formula '1.5 x HCO3- + 8 ± 2' builds, then '1.5 x 12 + 8 = 26' and '26 ± 2' build; band 24-28 lights ('expected'); marker drops at 27 inside band while 20 sits below; seeded scatter cloud (rng=7) appears ('schematic scatter', 'a fit, not a law').
+- s11_respiratory: Resets to rest (24 / 1.2, pCO2 40, pH 7.40); lungs slow/shallow and pCO2 climbs 40 -> 50 (dCO2 -> 1.50, computed needle drops to 7.30); buffering raises HCO3- 24 -> 25 ('+1 at once: other blood buffers'); kidney glows PURPLE, BLUE dots flow into upper tank raising HCO3- to 29 ('+5 over days', computed needle 7.39 < 7.40); '0.03 x 50 = 1.5' and '20 x 1.5 = 30' build as dashed ghost at 30 ('+6 for full') appears.
 - s12_two_things: Arrows beside tanks flip opposite ('two processes') then return same way; ghost Winter band appears with marker sliding well outside ('off the fit'); both labels pulse and fade.
 - s13_close: World shifts to metabolic compensation case (12 / 0.81, pH 7.27), then morphs to respiratory compensation case (29 / 1.50, pH 7.39); solid 7.40 wall pulses while both positions remain below it.
 """
@@ -680,9 +680,9 @@ class S02Kinds(SpokenScene):
         self.at("metabolic acidosis")
         self.play(FadeOut(resp_lbl, run_time=0.8), FadeIn(w.patient_tag, run_time=1.0))
 
-        self.at("falls from")
+        self.at("falls from", lead=0.45)
         self.play(w.plug_open_t.animate.set_value(1.0), run_time=0.3)
-        self.play(w.hco3_t.animate.set_value(12.0), run_time=1.8, rate_func=linear)
+        self.play(w.hco3_t.animate.set_value(12.0), run_time=1.2, rate_func=linear)
         self.play(w.plug_open_t.animate.set_value(0.0), run_time=0.25)
         self.finish()
 
@@ -693,32 +693,46 @@ class S03NoHelp(SpokenScene):
         meta_lbl = T("metabolic", 28, BICARB_COLOR, weight=BOLD).move_to([2.15, 1.85, 0.0])
         self.add(w.base_group(), meta_lbl)
 
+        c1 = M("0.03", 22, GAUGE_COLOR)
+        c2 = M("×", 22, GAUGE_COLOR)
+        c3 = M("40", 22, GAUGE_COLOR)
+        c4 = M("= 1.2", 22, GAUGE_COLOR)
+        VGroup(c1, c2, c3, c4).arrange(RIGHT, buff=0.14).move_to([-1.66, -1.66, 0.0], aligned_edge=RIGHT)
+        conn = Line([-4.35, -2.30, 0.0], [TANK_X - TANK_W / 2.0 - 0.10, LOWER_BOT + 0.08, 0.0], color=GAUGE_COLOR, stroke_width=2.5)
+
         self.at("dissolved carbon dioxide")
-        self.play(Indicate(w.lower_outline, color=CO2_COLOR, scale_factor=1.06), run_time=3.0)
+        self.play(Indicate(w.lower_outline, color=CO2_COLOR, scale_factor=1.06), run_time=2.0)
+
+        self.at("0")
+        self.play(Create(conn), FadeIn(c1), run_time=0.8)
 
         self.at("times its pressure")
-        calc = make_calc_line(w.pco2_t)
-        self.play(FadeIn(calc), run_time=2.4)
-        flash_highlight(self, w.pco2_readout, color=CO2_COLOR, run_time=1.8)
+        self.play(FadeIn(c2), run_time=0.4)
+        flash_highlight(self, w.pco2_readout, color=CO2_COLOR, run_time=1.3)
 
-        self.at("that is")
-        flash_highlight(self, w.dco2_num, color=CO2_COLOR, run_time=2.0)
+        self.at("40")
+        self.play(FadeIn(c3), run_time=0.7)
+
+        self.at("that is", lead=-0.2)
+        self.play(FadeIn(c4), run_time=0.5)
+        flash_highlight(self, w.dco2_num, color=CO2_COLOR, run_time=1.4)
 
         self.at("hold it there")
         clamp = make_clamp(np.array([-2.85, -0.76, 0.0]))
-        self.play(FadeIn(clamp, shift=DOWN * 0.2), run_time=1.0)
+        self.play(FadeIn(clamp, shift=DOWN * 0.2), run_time=0.9)
 
         self.at("ratio drops to")
         w.ratio_mode = "full_12_int"
         self.wait(0.05)
-        flash_highlight(self, w.fraction_bar, color=GAUGE_COLOR, run_time=2.4)
+        flash_highlight(self, w.fraction_bar, color=GAUGE_COLOR, run_time=2.2)
 
         self.at("would fall to")
         y71 = ph_to_y(7.10)
         ghost = Line([GAUGE_X - 0.12, y71, 0], [GAUGE_X + 0.44, y71, 0], color=GAUGE_COLOR, stroke_width=2.5).set_opacity(0.55)
         no_help = T("7.10, no help", 22, GAUGE_COLOR, weight=BOLD).move_to([GAUGE_X + 0.56, y71, 0.0], aligned_edge=LEFT)
         self.add(ghost)
-        self.play(FadeIn(no_help), run_time=1.8)
+        self.wait(0.45)
+        self.play(FadeIn(no_help), run_time=0.9)
         self.finish()
 
 
@@ -776,18 +790,29 @@ class S05Measured(SpokenScene):
         self.play(FadeOut(clk, run_time=0.4), FadeOut(arr_u, run_time=0.4), FadeOut(arr_d, run_time=0.4), FadeOut(meta_lbl, run_time=0.4))
 
         self.at("settles at")
-        self.play(w.pco2_t.animate.set_value(27.0), run_time=2.0)
+        self.play(w.pco2_t.animate.set_value(27.0), run_time=1.8)
 
         self.at("that leaves")
         flash_highlight(self, w.dco2_num, color=CO2_COLOR, run_time=1.4)
 
-        self.at("the ratio is")
-        flash_highlight(self, w.fraction_bar, color=GAUGE_COLOR, run_time=1.4)
+        self.at("12")
+        flash_highlight(self, w.fraction_bar, color=GAUGE_COLOR, run_time=1.6)
 
-        self.at("pH is")
+        e1 = M("6.1 +", 22, GAUGE_COLOR)
+        e2 = M("1.17", 22, GAUGE_COLOR)
+        e3 = M("= 7.27", 22, GAUGE_COLOR)
+        VGroup(e1, e2, e3).arrange(RIGHT, buff=0.14).move_to([GAUGE_X + 0.15, -2.82, 0.0])
+
+        self.at("its log")
+        self.play(FadeIn(e1), run_time=0.45)
+
+        self.at("is 1", lead=-0.15)
+        self.play(FadeIn(e2), run_time=0.5)
+
+        self.at("pH is", lead=-0.45)
         y27 = ph_to_y(ph_of(12.0, 27.0))
         lbl27 = M("7.27", 24, GAUGE_COLOR, weight=BOLD).move_to([GAUGE_X - 0.22, y27, 0.0], aligned_edge=RIGHT)
-        self.play(FadeIn(lbl27), run_time=0.8)
+        self.play(FadeIn(e3), FadeIn(lbl27), run_time=0.55)
         self.finish()
 
 
@@ -818,14 +843,15 @@ class S06Predict(SpokenScene):
         calc = make_calc_line(w.pco2_t)
         y27 = ph_to_y(ph_of(12.0, 27.0))
         lbl27 = M("7.27", 24, GAUGE_COLOR, weight=BOLD).move_to([GAUGE_X - 0.22, y27, 0.0], aligned_edge=RIGHT)
-        self.add(w.base_group(), calc, lbl27)
+        eq_under = M("6.1 + 1.17 = 7.27", 22, GAUGE_COLOR).move_to([GAUGE_X + 0.15, -2.82, 0.0])
+        self.add(w.base_group(), calc, lbl27, eq_under)
 
         self.at("full repair")
         y74 = ph_to_y(7.40)
         d74 = DashedLine([GAUGE_X - 0.30, y74, 0], [GAUGE_X + 0.54, y74, 0], color=GAUGE_COLOR, stroke_width=3.2, dash_length=0.10)
         full_lbl = T("full repair", 22, GAUGE_COLOR).move_to([GAUGE_X + 0.16, y74 + 0.28, 0.0], aligned_edge=LEFT)
         target_ratio = M("20 : 1", 24, GAUGE_COLOR).move_to([2.18, 0.0, 0.0], aligned_edge=LEFT)
-        self.play(FadeOut(w.lbl74, run_time=0.25), Create(d74), FadeIn(full_lbl), FadeIn(target_ratio), run_time=1.0)
+        self.play(FadeOut(w.lbl74, run_time=0.25), FadeOut(eq_under, run_time=0.35), Create(d74), FadeIn(full_lbl), FadeIn(target_ratio), run_time=1.0)
 
         self.at("bicarbonate at")
         flash_highlight(self, w.hco3_num, color=BICARB_COLOR, run_time=1.0)
@@ -852,15 +878,29 @@ class S07Pause(PredictPause):
         return grp
 
 
+def make_s08_working():
+    w1a = M("12", 22, GAUGE_COLOR)
+    w1b = M("÷ 20", 22, GAUGE_COLOR)
+    w1c = M("= 0.6", 22, GAUGE_COLOR)
+    line1 = VGroup(w1a, w1b, w1c).arrange(RIGHT, buff=0.14).move_to([1.02, -0.60, 0.0], aligned_edge=LEFT)
+    w2a = M("0.6 ÷", 22, GAUGE_COLOR)
+    w2b = M("0.03", 22, GAUGE_COLOR)
+    w2c = M("= 20 mmHg", 22, GAUGE_COLOR)
+    row2a = VGroup(w2a, w2b).arrange(RIGHT, buff=0.14).move_to([1.02, -0.98, 0.0], aligned_edge=LEFT)
+    w2c.move_to([1.02, -1.30, 0.0], aligned_edge=LEFT)
+    line2 = VGroup(row2a, w2c)
+    return line1, line2, (w1a, w1b, w1c, w2a, w2b, w2c)
+
+
 class S08Answer(SpokenScene):
     def construct(self):
         w, grp, full_lbl, target_ratio, q_mark, lbl27 = build_predict_world(q_mark_alpha=None)
         q_card = question_card("For 20 : 1, pCO2 = ?", y=3.30, color=GAUGE_COLOR, size=34)
         self.add(grp, q_card)
 
-        self.play(FadeOut(q_card, run_time=0.35), FadeOut(q_mark, run_time=0.35))
+        self.play(FadeOut(q_card, run_time=0.30), FadeOut(q_mark, run_time=0.30))
 
-        self.at("to 20")
+        self.at("to 20", lead=-0.2)
         y_ghost = LOWER_BOT + 0.03 + 0.60 * H_SCALE
         ghost_line = DashedLine(
             [TANK_X - TANK_W / 2.0 + 0.08, y_ghost, 0],
@@ -872,7 +912,25 @@ class S08Answer(SpokenScene):
         ghost_ptr = Line([TANK_X + 0.28, y_ghost, 0], [TANK_X + 0.28, -1.62, 0], color=CO2_COLOR, stroke_width=2.0)
         ghost_lbl = T("needs\n20 mmHg", 22, CO2_COLOR, weight=BOLD, line_spacing=0.85).move_to([TANK_X + 0.28, -1.22, 0.0])
         real_lbl = T("27", 24, CO2_COLOR, weight=BOLD).move_to([TANK_X + TANK_W / 2.0 + 0.22, LOWER_BOT + 0.72, 0.0], aligned_edge=LEFT)
-        self.play(Create(ghost_line), Create(ghost_ptr), FadeIn(ghost_lbl), FadeIn(real_lbl), run_time=1.4)
+        self.play(Create(ghost_line), Create(ghost_ptr), FadeIn(ghost_lbl), FadeIn(real_lbl), run_time=1.3)
+
+        _, _, (w1a, w1b, w1c, w2a, w2b, w2c) = make_s08_working()
+
+        self.at("20 to 1")
+        self.play(FadeIn(w1b), run_time=0.4)
+
+        self.at("12 on top")
+        self.play(FadeIn(w1a), run_time=0.4)
+
+        self.at("needs", lead=-0.10)
+        self.play(FadeIn(w1c), run_time=0.5)
+
+        self.at("Divide by")
+        self.play(FadeIn(w2a), run_time=0.35)
+        self.play(FadeIn(w2b), run_time=0.45)
+
+        self.at("20", nth=2, lead=0.05)
+        self.play(FadeIn(w2c), run_time=0.5)
 
         self.at("stopped at")
         flash_highlight(self, w.pco2_readout, color=CO2_COLOR, run_time=1.2)
@@ -916,6 +974,7 @@ class S09Idea(SpokenScene):
         ghost_ptr = Line([TANK_X + 0.28, y_ghost, 0], [TANK_X + 0.28, -1.62, 0], color=CO2_COLOR, stroke_width=2.0)
         ghost_lbl = T("needs\n20 mmHg", 22, CO2_COLOR, weight=BOLD, line_spacing=0.85).move_to([TANK_X + 0.28, -1.22, 0.0])
         real_lbl = T("27", 24, CO2_COLOR, weight=BOLD).move_to([TANK_X + TANK_W / 2.0 + 0.22, LOWER_BOT + 0.72, 0.0], aligned_edge=LEFT)
+        line1, line2, _ = make_s08_working()
 
         br_x = GAUGE_X + 0.45
         br1 = VGroup(
@@ -927,10 +986,11 @@ class S09Idea(SpokenScene):
         br2 = DashedLine([br_x, y27 + 0.04, 0], [br_x, y74 - 0.04, 0], color=GAUGE_COLOR, stroke_width=2.5, dash_length=0.07)
         br2_lbl = T("not all", 22, GAUGE_COLOR).move_to([br_x + 0.14, (y27 + y74) / 2.0, 0.0], aligned_edge=LEFT)
 
-        self.add(w.base_group(), calc, lbl27, full_lbl, target_ratio, ghost_line, ghost_ptr, ghost_lbl, real_lbl, br1, br1_lbl, br2, br2_lbl)
+        self.add(w.base_group(), calc, lbl27, full_lbl, target_ratio, ghost_line, ghost_ptr, ghost_lbl, real_lbl, line1, line2, br1, br1_lbl, br2, br2_lbl)
 
         self.play(
             FadeOut(ghost_line), FadeOut(ghost_ptr), FadeOut(ghost_lbl), FadeOut(real_lbl),
+            FadeOut(line1), FadeOut(line2),
             FadeOut(br1), FadeOut(br1_lbl), FadeOut(br2), FadeOut(br2_lbl), FadeOut(target_ratio),
             run_time=1.2,
         )
@@ -950,8 +1010,8 @@ class S09Idea(SpokenScene):
         )
 
         self.at("usually part way")
-        glow = Circle(radius=0.22, color=GOLD, stroke_width=3.5).move_to(w.needle.get_center())
-        self.play(FadeIn(glow, run_time=0.5), Indicate(lbl27, color=GOLD, scale_factor=1.18, run_time=1.8))
+        glow = Circle(radius=0.16, color=GOLD, stroke_width=3.5).move_to([GAUGE_X + 0.18, y27, 0.0])
+        self.play(FadeIn(glow, run_time=0.5), Indicate(lbl27, color=GOLD, scale_factor=1.08, run_time=1.8))
         self.play(FadeOut(glow, run_time=0.6))
 
         self.at("chronic respiratory disorders")
@@ -990,25 +1050,55 @@ class S10Winter(SpokenScene):
         same_lbl = T("same way", 24, GAUGE_COLOR, weight=BOLD).move_to([2.08, 0.0, 0.0], aligned_edge=LEFT)
         self.add(w.base_group(), calc, lbl27, arr_u, arr_d, same_lbl)
 
-        self.play(FadeOut(arr_u), FadeOut(arr_d), FadeOut(same_lbl), FadeOut(calc), run_time=0.5)
+        self.play(FadeOut(arr_u), FadeOut(arr_d), FadeOut(same_lbl), FadeOut(calc), run_time=0.45)
 
         spine, ticks, band, band_lbl, py = make_winter_scale(x_pos=-3.45, y_bot=-2.45, y_top=-1.25)
         scale_hdr = M("pCO2", 22, TEXT).move_to([-2.85, -1.06, 0.0])
-        self.play(FadeIn(spine, shift=RIGHT * 0.2), FadeIn(ticks), FadeIn(scale_hdr), run_time=1.2)
+        self.play(FadeIn(spine, shift=RIGHT * 0.2), FadeIn(ticks), FadeIn(scale_hdr), run_time=1.0)
 
-        self.at("Winter's formula")
-        formula = M("1.5 × 12 + 8\n= 26", 22, GAUGE_COLOR, weight=BOLD, line_spacing=0.85).move_to([-2.95, 0.86, 0.0])
-        self.play(FadeIn(formula), run_time=1.6)
+        g1 = M("1.5", 22, GAUGE_COLOR)
+        g2 = M("× HCO3-", 22, GAUGE_COLOR)
+        g3 = M("+ 8", 22, GAUGE_COLOR)
+        g4 = M("± 2", 22, GAUGE_COLOR)
+        gen_r1 = VGroup(g1, g2).arrange(RIGHT, buff=0.13)
+        gen_r2 = VGroup(g3, g4).arrange(RIGHT, buff=0.13)
+        gen_grp = VGroup(gen_r1, gen_r2).arrange(DOWN, buff=0.08, aligned_edge=LEFT).move_to([-2.95, 0.96, 0.0])
 
+        self.at("expects one")
+        self.play(FadeIn(g1), run_time=0.4)
+        self.at("times bicarbonate")
+        self.play(FadeIn(g2), run_time=0.5)
+        self.at("plus 8")
+        self.play(FadeIn(g3), run_time=0.45)
         self.at("give or take")
-        self.play(FadeIn(band), FadeIn(band_lbl), run_time=1.8)
+        self.play(FadeIn(g4), run_time=0.5)
+
+        f1 = M("1.5", 22, GAUGE_COLOR, weight=BOLD)
+        f2 = M("× 12", 22, GAUGE_COLOR, weight=BOLD)
+        f3 = M("+ 8", 22, GAUGE_COLOR, weight=BOLD)
+        f4 = M("= 26", 22, GAUGE_COLOR, weight=BOLD)
+        f_top = VGroup(f1, f2, f3).arrange(RIGHT, buff=0.13)
+        VGroup(f_top, f4).arrange(DOWN, buff=0.07).move_to([-2.95, 0.98, 0.0])
+        band_26_2 = M("26 ± 2", 22, GAUGE_COLOR, weight=BOLD).move_to([-2.95, 0.56, 0.0])
+
+        self.at("one and a half", nth=1)
+        self.play(FadeOut(gen_grp, run_time=0.25), FadeIn(f1, run_time=0.35))
+        self.at("times 12", lead=-0.1)
+        self.play(FadeIn(f2), run_time=0.4)
+        self.at("plus 8", nth=1)
+        self.play(FadeIn(f3), run_time=0.4)
+        self.at("is 26", lead=-0.1)
+        self.play(FadeIn(f4), FadeIn(band_26_2), run_time=0.55)
+
+        self.at("24 to 28")
+        self.play(FadeIn(band), FadeIn(band_lbl), run_time=1.4)
 
         self.at("27 fits")
         marker27 = Dot(point=[-3.45 + 0.23, py(27), 0.0], radius=0.075, color=CO2_COLOR, stroke_color=GAUGE_COLOR, stroke_width=2.0)
         tick27 = M("27 ✓", 22, CO2_COLOR, weight=BOLD).move_to([-2.78, -1.52, 0.0], aligned_edge=LEFT)
         ptr27 = Line([-2.84, -1.58, 0.0], [-3.14, py(27) + 0.04, 0.0], color=CO2_COLOR, stroke_width=2.0)
         mark20 = Dot(point=[-3.45 + 0.23, py(20), 0.0], radius=0.06, color=GAUGE_COLOR)
-        self.play(FadeIn(marker27, shift=DOWN * 0.2), FadeIn(tick27), Create(ptr27), FadeIn(mark20), run_time=1.6)
+        self.play(FadeIn(marker27, shift=DOWN * 0.2), FadeIn(tick27), Create(ptr27), FadeIn(mark20), run_time=1.4)
 
         self.at("fitted to people")
         rng = np.random.default_rng(7)
@@ -1017,7 +1107,7 @@ class S10Winter(SpokenScene):
             dx = rng.uniform(0.05, 0.41)
             pv = np.clip(rng.normal(26.0, 2.2), 20.8, 37.5)
             dots.add(Dot(point=[-3.45 + dx, py(pv), 0.0], radius=0.032, color=GAUGE_COLOR, fill_opacity=0.75))
-        scat_lbl = T("a fit, not a law", 22, GAUGE_COLOR, weight=BOLD).move_to([-3.05, 0.30, 0.0])
+        scat_lbl = T("a fit, not a law", 22, GAUGE_COLOR, weight=BOLD).move_to([-3.40, 0.24, 0.0])
         scat_tag = T("schematic scatter", 22, TEXT).move_to([-3.00, -2.76, 0.0])
         self.play(LaggedStart(*[FadeIn(d) for d in dots], lag_ratio=0.06, run_time=1.8), FadeIn(scat_lbl), FadeIn(scat_tag))
         self.finish()
@@ -1032,13 +1122,14 @@ class S11Respiratory(SpokenScene):
         lbl27 = M("7.27", 24, GAUGE_COLOR, weight=BOLD).move_to([GAUGE_X - 0.22, ph_to_y(ph_of(12.0, 27.0)), 0.0], aligned_edge=RIGHT)
         spine, ticks, band, band_lbl, py = make_winter_scale()
         scale_hdr = M("pCO2", 22, TEXT).move_to([-2.85, -1.06, 0.0])
-        formula = M("1.5 × 12 + 8\n= 26", 22, GAUGE_COLOR, weight=BOLD, line_spacing=0.85).move_to([-2.95, 0.86, 0.0])
+        formula = M("1.5 × 12 + 8\n= 26", 22, GAUGE_COLOR, weight=BOLD, line_spacing=0.85).move_to([-2.95, 0.98, 0.0])
+        band_26_2 = M("26 ± 2", 22, GAUGE_COLOR, weight=BOLD).move_to([-2.95, 0.56, 0.0])
         marker27 = Dot(point=[-3.45 + 0.23, py(27), 0.0], radius=0.075, color=CO2_COLOR, stroke_color=GAUGE_COLOR, stroke_width=2.0)
         tick27 = M("27 ✓", 22, CO2_COLOR, weight=BOLD).move_to([-2.78, -1.52, 0.0], aligned_edge=LEFT)
         ptr27 = Line([-2.84, -1.58, 0.0], [-3.14, py(27) + 0.04, 0.0], color=CO2_COLOR, stroke_width=2.0)
-        scat_lbl = T("a fit, not a law", 22, GAUGE_COLOR, weight=BOLD).move_to([-3.05, 0.30, 0.0])
+        scat_lbl = T("a fit, not a law", 22, GAUGE_COLOR, weight=BOLD).move_to([-3.40, 0.24, 0.0])
         scat_tag = T("schematic scatter", 22, TEXT).move_to([-3.00, -2.76, 0.0])
-        winter_grp = Group(spine, ticks, band, band_lbl, scale_hdr, formula, marker27, tick27, ptr27, scat_lbl, scat_tag)
+        winter_grp = Group(spine, ticks, band, band_lbl, scale_hdr, formula, band_26_2, marker27, tick27, ptr27, scat_lbl, scat_tag)
         self.add(w.base_group(), lbl27, winter_grp)
 
         new_tag = T("illustrative: pCO2 40 to 50", 24, TEXT).move_to([-6.20, -3.26, 0.0], aligned_edge=LEFT)
@@ -1061,43 +1152,82 @@ class S11Respiratory(SpokenScene):
         self.play(
             w.breath_amp_t.animate.set_value(0.035),
             w.breath_speed_t.animate.set_value(1.0),
-            w.pco2_t.animate.set_value(50.0),
             FadeIn(arr_co2),
-            run_time=2.8,
+            run_time=1.2,
         )
 
-        self.at("at once buffering")
-        buff_lbl = T("+1 at once", 26, BICARB_COLOR, weight=BOLD).move_to([2.25, 1.85, 0.0])
-        self.play(w.hco3_t.animate.set_value(25.0), FadeIn(buff_lbl), run_time=2.8)
+        self.at("the kidney")
+        self.play(Indicate(w.kidney, color=KIDNEY_COLOR, scale_factor=1.10), run_time=1.6)
 
-        self.at("over days")
+        self.at("Take a rise")
+        self.play(w.pco2_t.animate.set_value(50.0), run_time=1.6)
+
+        plus1_top = T("+1 at once:", 24, BICARB_COLOR, weight=BOLD)
+        plus1_sub = T("other blood buffers", 22, BICARB_COLOR)
+        buff_lbl = VGroup(plus1_top, plus1_sub).arrange(DOWN, buff=0.06, aligned_edge=LEFT).move_to([1.02, 1.92, 0.0], aligned_edge=LEFT)
+
+        self.at("at once the blood's other buffers")
+        self.play(FadeIn(plus1_sub), run_time=0.6)
+
+        self.at("add about", lead=-0.2)
+        self.play(w.hco3_t.animate.set_value(25.0), FadeIn(plus1_top), run_time=2.0)
+
+        self.at("over days as the kidney")
         cal = make_calendar(np.array([-2.85, 0.68, 0.0]), "days")
-        self.play(FadeIn(cal), run_time=0.6)
+        self.play(FadeIn(cal), run_time=0.5)
 
         flow_dots = VGroup(*[Dot(radius=0.06, color=BICARB_COLOR).move_to(KIDNEY_POS + RIGHT * 0.4) for _ in range(4)])
         self.add(flow_dots)
         self.play(
             w.kidney.animate.set_fill(opacity=0.68),
-            LaggedStart(*[d.animate.move_to([TANK_X, UPPER_BOT + 0.85, 0.0]) for d in flow_dots], lag_ratio=0.25, run_time=2.4),
+            LaggedStart(*[d.animate.move_to([TANK_X, UPPER_BOT + 0.85, 0.0]) for d in flow_dots[:2]], lag_ratio=0.3, run_time=1.1),
+        )
+        self.play(
+            LaggedStart(*[d.animate.move_to([TANK_X, UPPER_BOT + 0.85, 0.0]) for d in flow_dots[2:]], lag_ratio=0.3, run_time=1.35),
+            w.hco3_t.animate.set_value(27.0),
+            run_time=1.35,
+            rate_func=linear,
         )
         self.remove(flow_dots)
 
-        days_lbl = T("+5 over days", 26, BICARB_COLOR, weight=BOLD).move_to([2.25, 1.85, 0.0])
+        days_lbl = T("+5 over days", 26, BICARB_COLOR, weight=BOLD).move_to([1.02, 1.85, 0.0], aligned_edge=LEFT)
         arr_hco3 = make_dir_arrow(np.array([1.70, 1.15, 0.0]), UP, BICARB_COLOR)
         same_lbl = T("same way", 24, GAUGE_COLOR, weight=BOLD).move_to([1.95, 0.0, 0.0], aligned_edge=LEFT)
-        self.play(swap(buff_lbl, days_lbl, run_time=0.5))
+        self.at("the rise")
         self.play(
-            w.hco3_t.animate.set_value(29.0),
+            w.hco3_t.animate.set_value(28.1),
             FadeIn(arr_hco3),
             FadeIn(same_lbl),
-            run_time=2.2,
+            run_time=0.9,
+            rate_func=linear,
         )
+        self.play(FadeOut(buff_lbl), w.hco3_t.animate.set_value(28.4), run_time=0.20, rate_func=linear)
+        self.play(FadeIn(days_lbl), w.hco3_t.animate.set_value(29.0), run_time=0.30, rate_func=linear)
 
-        self.at("full repair would need")
+        self.at("Full repair needs")
+        calc_50 = make_calc_line(w.pco2_t)
+        self.play(FadeIn(calc_50), run_time=0.5)
+
+        u1 = M("20", 22, GAUGE_COLOR, weight=BOLD)
+        u2 = M("×", 22, GAUGE_COLOR, weight=BOLD)
+        u3 = M("1.5", 22, GAUGE_COLOR, weight=BOLD)
+        u4 = M("= 30", 22, GAUGE_COLOR, weight=BOLD)
+        VGroup(u1, u2, u3, u4).arrange(RIGHT, buff=0.13).move_to([-1.66, 1.95, 0.0], aligned_edge=RIGHT)
+
+        self.at("20 times")
+        self.play(FadeIn(u1), FadeIn(u2), run_time=0.35)
+
+        self.at("times 1", lead=-0.1)
+        self.play(FadeIn(u3), run_time=0.4)
+
+        self.at("30")
         y30 = UPPER_BOT + 0.03 + 30.0 * H_SCALE
         ghost30 = DashedLine([TANK_X - TANK_W / 2.0 + 0.08, y30, 0], [TANK_X + TANK_W / 2.0 - 0.08, y30, 0], color=BICARB_COLOR, stroke_width=2.8, dash_length=0.10)
-        full6 = T("+6 for full", 24, BICARB_COLOR, weight=BOLD).move_to([2.25, 2.35, 0.0])
-        self.play(Create(ghost30), FadeIn(full6), run_time=1.1)
+        self.play(FadeIn(u4), Create(ghost30), run_time=0.45)
+
+        self.at("six more")
+        full6 = T("+6 for full", 24, BICARB_COLOR, weight=BOLD).move_to([1.02, 2.38, 0.0], aligned_edge=LEFT)
+        self.play(FadeIn(full6), run_time=0.5)
         self.finish()
 
 
@@ -1116,7 +1246,6 @@ class S12TwoThings(SpokenScene):
         two_proc = T("two\nprocesses", 24, GAUGE_COLOR, weight=BOLD, line_spacing=0.85).move_to([1.95, 0.0, 0.0], aligned_edge=LEFT)
         self.play(Rotate(arr_d, PI), FadeIn(two_proc), run_time=0.7)
         self.play(Indicate(arr_u, color=RED), Indicate(arr_d, color=RED), run_time=0.8)
-        self.play(Rotate(arr_d, PI), run_time=0.5)
 
         self.at("far off the fit")
         spine, _, band, _, py = make_winter_scale(x_pos=-3.45, y_bot=-2.45, y_top=-1.25)
@@ -1129,7 +1258,7 @@ class S12TwoThings(SpokenScene):
 
         self.at("two things")
         self.play(Indicate(two_proc, color=GOLD), Indicate(off_lbl, color=GOLD), run_time=0.8)
-        self.play(FadeOut(two_proc), FadeOut(off_lbl), FadeOut(ghost_winter), FadeOut(off_dot), run_time=0.6)
+        self.play(FadeOut(two_proc), FadeOut(off_lbl), FadeOut(ghost_winter), FadeOut(off_dot), Rotate(arr_d, PI), run_time=0.6)
         self.finish()
 
 

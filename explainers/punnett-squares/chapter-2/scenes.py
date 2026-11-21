@@ -157,7 +157,7 @@ def punnett_grid(show_genotypes=True, show_seeds=False, opacity=1.0):
                 if show_genotypes:
                     lab = T(gt, 16, TEXT).next_to(s, DOWN, buff=0.02)
                     lab.layout_ok = True
-                    contents.add(VGroup(s, lab))
+                    contents.add(VGroup(s, lab).move_to(pos))
                 else:
                     contents.add(s)
             elif show_genotypes:
@@ -360,15 +360,13 @@ class S09Group(FilmScene):
         seed_grid = punnett_grid(show_genotypes=True, show_seeds=True)
         self.play(Transform(grid.contents, seed_grid.contents), run_time=1.8)
         self.at("dominant shape")
-        round_marks = VGroup(*[SurroundingRectangle(seed_grid.contents[i][0], color=PURPLE, buff=0.04)
+        round_marks = VGroup(*[SurroundingRectangle(seed_grid.contents[i], color=PURPLE, buff=0.05)
                                for i in range(16) if phenotype(cross_genotype(GAMETES[i%4],GAMETES[i//4]))[0]=="round"])
-        for mark in round_marks: mark.layout_ok = True  # deliberate phenotype highlight around seed + faint genotype
         self.play(LaggedStart(*[Create(x) for x in round_marks], lag_ratio=0.03), run_time=1.0)
         self.at("dominant color")
         self.play(FadeOut(round_marks), run_time=0.4)
-        yellow_marks = VGroup(*[SurroundingRectangle(seed_grid.contents[i][0], color=CHANCE, buff=0.04)
+        yellow_marks = VGroup(*[SurroundingRectangle(seed_grid.contents[i], color=CHANCE, buff=0.05)
                                 for i in range(16) if phenotype(cross_genotype(GAMETES[i%4],GAMETES[i//4]))[1]=="yellow"])
-        for mark in yellow_marks: mark.layout_ok = True  # deliberate phenotype highlight around seed + faint genotype
         self.play(LaggedStart(*[Create(x) for x in yellow_marks], lag_ratio=0.03), run_time=1.0)
         self.finish()
 
@@ -392,15 +390,100 @@ def phenotype_bins():
 
 class S10Ratio(FilmScene):
     def construct(self):
-        bins = phenotype_bins()
-        self.play(FadeIn(bins[0]), run_time=0.8)
-        self.at("Two smaller")
-        self.play(FadeIn(bins[1]), FadeIn(bins[2]), run_time=0.9)
-        self.at("The smallest")
-        self.play(FadeIn(bins[3]), run_time=0.6)
-        ratio = M("9 : 3 : 3 : 1", 42, CHANCE).move_to([0,-3.15,0])
-        self.play(FadeIn(ratio), run_time=0.7)
-        for i,b in enumerate(bins): bob(b[2], amp=0.05, seed=i)
+        specs = [("round", "yellow"), ("round", "green"),
+                 ("wrinkled", "yellow"), ("wrinkled", "green")]
+        xs = [-4.8, -1.6, 1.6, 4.8]
+        grid = punnett_grid(show_genotypes=False, show_seeds=True)
+        self.add(grid)
+
+        # Group the 16 grid cells into the 4 phenotype bins
+        bin_indices = [[] for _ in specs]
+        for j, row in enumerate(GAMETES):
+            for i, col in enumerate(GAMETES):
+                ph = phenotype(cross_genotype(col, row))
+                bin_indices[specs.index(ph)].append(j * 4 + i)
+        counts = [len(idxs) for idxs in bin_indices]
+        total = sum(counts)
+
+        frames, labels, bin_seeds, nums, fracs = VGroup(), VGroup(), [], VGroup(), VGroup()
+        seed_anims = []
+        for b, (x, (sh, col), idxs) in enumerate(zip(xs, specs, bin_indices)):
+            n = len(idxs)
+            frame = RoundedRectangle(corner_radius=0.18, width=2.65, height=4.4,
+                                     color=GRID, stroke_width=3).move_to([x, 0.25, 0])
+            lab = fit_text(f"{sh} {col}", max_w=2.35, size=28, color=TEXT,
+                           max_lines=2).move_to([x, 2.0, 0])
+            frames.add(frame)
+            labels.add(lab)
+            nums.add(M(str(n), 46, CHANCE).move_to([x, -0.35, 0]))
+            fracs.add(M(f"{n}/{total}", 28, TEXT).move_to([x, -1.25, 0]))
+
+            group_seeds = VGroup()
+            for k, cell_idx in enumerate(idxs):
+                if n == 9:
+                    r, c = divmod(k, 3)
+                    pos = [x + (c - 1) * 0.52, 0.8 + (1 - r) * 0.46, 0]
+                    h = 0.36
+                elif n == 3:
+                    pos = [x + (k - 1) * 0.65, 0.8, 0]
+                    h = 0.48
+                else:
+                    pos = [x, 0.8, 0]
+                    h = 0.78
+                target_seed = seed(sh, col, h).move_to(pos)
+                src_seed = grid.contents[cell_idx]
+                seed_anims.append(Transform(src_seed, target_seed))
+                group_seeds.add(src_seed)
+            bin_seeds.append(group_seeds)
+
+        # Beat 0: Boxes flow from the grid into the four labeled bins (no numerals yet)
+        self.play(FadeOut(grid.lines), FadeOut(grid.top), FadeOut(grid.side),
+                  FadeIn(frames), FadeIn(labels), *seed_anims, run_time=0.85)
+        for b, gs in enumerate(bin_seeds):
+            for k, s in enumerate(gs):
+                bob(s, amp=0.04, seed=b * 4 + k)
+
+        # Pre-lay out the ratio so pieces land in exact alignment
+        r_nums = [M(str(n), 42, CHANCE) for n in counts]
+        r_colons = [M(":", 42, TEXT) for _ in range(3)]
+        ratio_base = VGroup(r_nums[0], r_colons[0], r_nums[1], r_colons[1],
+                            r_nums[2], r_colons[2], r_nums[3]).arrange(RIGHT, buff=0.18).move_to([0, -2.55, 0])
+        of_total = M(f"of {total}", 42, TEXT)
+        full_preview = VGroup(ratio_base.copy(), of_total).arrange(RIGHT, buff=0.28).move_to([0, -2.55, 0])
+        target_shift = full_preview[0].get_center() - ratio_base.get_center()
+
+        # Reveal each bin count, highlight its bin, and build the ratio as each count is spoken
+        cues = ["9 round yellow", "3 round green", "3 wrinkled yellow", "1 wrinkled green"]
+        for b, phrase in enumerate(cues):
+            self.at(phrase, lead=0.05)
+            anims = [frames[b].animate.set_stroke(CHANCE, 5), FadeIn(nums[b], scale=1.15)]
+            if b > 0:
+                anims.append(frames[b - 1].animate.set_stroke(GRID, 3))
+            if b == 0:
+                anims.append(FadeIn(r_nums[0], shift=UP * 0.1))
+            else:
+                anims.extend([FadeIn(r_colons[b - 1]), FadeIn(r_nums[b], shift=UP * 0.1)])
+            self.play(*anims, run_time=0.5)
+
+        self.at("That is", lead=0.1)
+        self.play(frames[3].animate.set_stroke(GRID, 3), run_time=0.3)
+
+        # Re-highlight each bin in time with "9 to 3 to 3 to 1"
+        repeat_cues = ["9 to", "3 to 3", "3 to 1", "1 out"]
+        for b, phrase in enumerate(repeat_cues):
+            self.at(phrase, lead=0.05)
+            anims = [frames[b].animate.set_stroke(CHANCE, 5)]
+            if b > 0:
+                anims.append(frames[b - 1].animate.set_stroke(GRID, 3))
+            self.play(*anims, run_time=0.28)
+
+        # "out of 16": shift ratio left before fading in "of 16" so they never collide, and reveal fractions
+        self.at("16", lead=0.05)
+        self.play(frames[3].animate.set_stroke(GRID, 3),
+                  Succession(ratio_base.animate(run_time=0.22).shift(target_shift),
+                             FadeIn(of_total, shift=UP * 0.08, run_time=0.33)),
+                  LaggedStart(*[FadeIn(f, shift=UP * 0.1) for f in fracs], lag_ratio=0.08, run_time=0.55))
+        self.wait(2.1)
         self.finish()
 
 

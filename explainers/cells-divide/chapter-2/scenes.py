@@ -635,12 +635,15 @@ class S11Prophase(SpokenScene):
         allt = T("36 cells in all", 32, TEXT).move_to([-3.0, -2.2, 0])
         self.at("photographed onion cells")
         self.play(FadeIn(allt), run_time=0.7)
-        self.at("ten were in prophase")
+        self.at("ten were in prophase", lead=0.85)
         n = ValueTracker(0)
         cnt = always_redraw(lambda: M(str(int(round(n.get_value()))), 110, TEAL, weight=BOLD).move_to([4.0, 1.8, 0]))
         self.add(cnt)
-        for i in range(10):
-            self.play(blocks[i].animate.set_fill(TEAL, 0.85).set_stroke(TEAL), n.animate.set_value(i + 1), run_time=0.13)
+        self.play(
+            LaggedStart(*[blocks[i].animate.set_fill(TEAL, 0.85).set_stroke(TEAL) for i in range(10)], lag_ratio=1.0),
+            n.animate(rate_func=linear).set_value(10),
+            run_time=0.8,
+        )
         self.at("the coiled stage")
         self.play(Indicate(lab, color=YELLOW, scale_factor=1.1), run_time=1.0)
         self.finish()
@@ -655,24 +658,48 @@ class S12Percent(SpokenScene):
         lab = T("prophase", 44, TEAL, weight=BOLD).move_to([4.0, 0.5, 0])
         allt = T("36 cells in all", 32, TEXT).move_to([-3.0, -2.2, 0])
         self.add(blocks, cnt, lab, allt)
-        self.wait(0.3)
         pie = VGroup()
         PC, PR = np.array([-3.5, 0.2, 0]), 2.7
         for i in range(36):
             on = i < 10
             pie.add(Sector(radius=PR, start_angle=PI / 2 - i * TAU / 36, angle=-TAU / 36, arc_center=PC,
                            stroke_color=BG, stroke_width=2, fill_color=TEAL if on else GREY, fill_opacity=0.85 if on else 0.2))
+
         self.at("turn that count")
-        self.play(FadeOut(cnt), FadeOut(allt), FadeOut(lab), ReplacementTransform(blocks, pie), run_time=2.4)
-        self.at("follow the steps")
-        lines = [M("10 / 36", 44, TEXT), M("≈ 0.28", 44, TEXT), M("≈ 28 percent", 44, TEAL, weight=BOLD)]
-        for i, l in enumerate(lines):
-            l.move_to([3.9, 1.6 - i * 1.2, 0])
-        self.play(Write(lines[0]), run_time=1.1)
+        self.play(FadeOut(cnt), FadeOut(allt), FadeOut(lab), run_time=0.6)
+        self.play(ReplacementTransform(blocks, pie), run_time=1.7)
+
+        n10 = M("10", 44, TEXT)
+        slash = M("/", 44, TEXT)
+        n36 = M("36", 44, TEXT)
+        VGroup(n10, slash, n36).arrange(RIGHT, buff=0.22).move_to([3.9, 1.6, 0])
+
+        approx1 = M("≈", 44, TEXT)
+        num_028 = M("0.28", 44, TEXT)
+        VGroup(approx1, num_028).arrange(RIGHT, buff=0.22).move_to([3.9, 0.4, 0])
+
+        approx2 = M("≈", 44, TEAL, weight=BOLD)
+        num_28pct = M("28 percent", 44, TEAL, weight=BOLD)
+        VGroup(approx2, num_28pct).arrange(RIGHT, buff=0.22).move_to([3.9, -0.8, 0])
+
+        self.at("10")
+        self.play(Write(n10), run_time=0.35)
+        self.at("by")
+        self.play(Write(slash), run_time=0.22)
+        self.at("36")
+        self.play(Write(n36), run_time=0.5)
+
         self.at("about", nth=0)
-        self.play(Write(lines[1]), run_time=1.0)
+        self.play(Write(approx1), run_time=0.3)
+        self.at("0")
+        self.play(Write(num_028), run_time=0.65)
+
+        self.at("about", nth=1)
+        self.play(Write(approx2), run_time=0.25)
+        self.at("28", nth=1)
+        self.play(Write(num_28pct), run_time=0.65)
+
         self.at("of the cells")
-        self.play(Write(lines[2]), run_time=1.3)
         self.play(Indicate(VGroup(*pie[:10]), color=YELLOW, scale_factor=1.04), run_time=1.0)
         self.finish()
 
@@ -708,7 +735,7 @@ class S13Time(SpokenScene):
         asm = T("assumed: 24 hours", 36, YELLOW, weight=BOLD).move_to([3.9, 2.9, 0])
         self.play(FadeIn(asm, shift=LEFT * 0.3), run_time=0.8)
         tr = ValueTracker(0)
-        hand = always_redraw(lambda: Line(C, C + (R - 0.2) * np.array([np.sin(tr.get_value()), np.cos(tr.get_value()), 0])).set_stroke(YELLOW, 7))
+        hand = always_redraw(lambda: Line(C, C + (R - 0.95) * np.array([np.sin(tr.get_value()), np.cos(tr.get_value()), 0])).set_stroke(YELLOW, 7))
         wedge = always_redraw(lambda: Sector(radius=R - 0.05, start_angle=PI / 2, angle=-max(tr.get_value(), 0.001), arc_center=C,
                                               stroke_width=0, fill_color=TEAL, fill_opacity=0.8))
         self.add(wedge, hand)

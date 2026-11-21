@@ -25,12 +25,13 @@ WHAT CHANGES IN EACH SPOKEN SCENE (and what computes it):
     s02_what_changed      : 21% ORANGE/GREY pie holds fixed as dial finishes winding to 500 and RED cross
                             marks no change; inspired O2 bar & counter drop from 149.7 to 95.1; bellows
                             and controller pulse unchanged.
-    s03_model_values      : Three arithmetic steps (500-47=453, 0.21*453, =95.1 mmHg) build in order and
-                            settle the inspired O2 bar at 95.1 with a YELLOW tick.
+    s03_model_values      : Three arithmetic steps (500-47=453, 0.21*453, =95.1 mmHg) build word-by-word
+                            in GREY with ORANGE numbers as spoken, settling inspired O2 bar at 95.1 + tick.
     s04_predict           : Sea-level ghost column (99.7) builds beside the 95.1 bar; CO2=40 chip settles
                             above the bar; question & YELLOW '?' pose the prediction.
-    s06_answer            : CO2 chip grows downward into a 50.0 TEAL block (40/0.80=50), leaving 45.1 ORANGE
-                            remainder marked by YELLOW ring; GREY 'half' bracket spans 45.1 to 99.7.
+    s06_answer            : Ratio chip ('10 O2 in : 8 CO2 out (ratio 0.80)') builds as spoken; CO2 chip grows
+                            into 50.0 TEAL block (40 / 0.80 = 50), leaving 45.1 ORANGE remainder + YELLOW ring;
+                            GREY 'half' bracket spans 45.1 to 99.7.
     s07_hyperventilation  : Bellows speeds up, climber chest rises, TEAL dots stream out as PaCO2 tracker
                             drops 40->30; TEAL block shrinks 50.0->37.5 and alveolar PO2 climbs 45.1->57.6.
     s08_gain_hedge        : YELLOW bracket spans 45.1->57.6 (+12.5 mmHg) with check (40-30)/0.80; empty
@@ -383,9 +384,10 @@ def make_col_co2_label(paco2_fn, pb=500.0):
     """Compact 2-line CO2/0.80 label centered inside the TEAL block."""
     def mk():
         c = paco2_fn()
-        term = co2_term(c)
-        y = y_mmhg(inspired_po2(pb) - term * 0.5)
-        return M(f"{c:.0f} ÷ 0.80\n= {term:.1f}", 22, TEXT, line_spacing=0.82).move_to([COL_X, y, 0])
+        c_disp = round(c)
+        term_disp = co2_term(c_disp)
+        y = y_mmhg(inspired_po2(pb) - co2_term(c) * 0.5)
+        return M(f"{c_disp:d} ÷ 0.80\n= {term_disp:.1f}", 22, TEXT, line_spacing=0.82).move_to([COL_X, y, 0])
     return always_redraw(mk)
 
 
@@ -540,7 +542,7 @@ class S01Title(NarratedScene):
 class S02WhatChanged(SpokenScene):
     def construct(self):
         pb = ValueTracker(760.0)
-        climb = ValueTracker(1.0)
+        climb = ValueTracker(0.0)
         b_phase = ValueTracker(0.0)
         b_amp = ValueTracker(0.65)
 
@@ -596,7 +598,12 @@ class S02WhatChanged(SpokenScene):
         self.play(Create(cross), run_time=0.6)
 
         self.at("Barometric pressure falls")
-        self.play(pb.animate.set_value(500.0), run_time=4.8, rate_func=linear)
+        self.play(
+            pb.animate.set_value(500.0),
+            climb.animate.set_value(1.0),
+            run_time=4.8,
+            rate_func=linear,
+        )
         self.play(FadeOut(pie_group), FadeOut(cross), run_time=0.6)
 
         self.at("loop is untouched")
@@ -633,7 +640,7 @@ class S03ModelValues(SpokenScene):
         climber = make_climber(climb, b_amp, b_phase)
         dial_g = make_baro_dial(pb)
         ruler = make_ruler()
-        bar_val = ValueTracker(149.7)
+        bar_val = ValueTracker(95.1)
 
         def mk_bar():
             v = max(1.0, bar_val.get_value())
@@ -647,7 +654,7 @@ class S03ModelValues(SpokenScene):
                 fill_opacity=0.22,
             ).move_to([COL_X, Y_ZERO + h / 2, 0])
 
-        col = always_redraw(mk_bar)
+        col = mk_bar()
         dots = make_o2_dots(pb, None, n=18, seed=7)
         vent_lab = T("ventilation", 26, VENT_COL).next_to([COL_X - 0.90, -2.26, 0], LEFT, buff=0.22)
         tag = scope_tag("model values", size=24, color=STRUCT_COL)
@@ -658,33 +665,56 @@ class S03ModelValues(SpokenScene):
         self.add(mtn, climber, dial_g, ruler, col, dots, bellows, vent_lab, tag, insp_lab)
 
         self.at("model values")
-        self.play(Transform(tag, scope_tag("model values", size=24, color=FOCUS_COL)), run_time=1.8)
-        self.play(Transform(tag, scope_tag("model values", size=24, color=STRUCT_COL)), run_time=1.6)
+        self.play(Transform(tag, scope_tag("model values", size=24, color=FOCUS_COL)), run_time=1.4)
+        self.play(Transform(tag, scope_tag("model values", size=24, color=STRUCT_COL)), run_time=1.2)
 
-        step1 = M("500 - 47 = 453", 26, TEXT).move_to([3.55, 2.05, 0], aligned_edge=LEFT)
-        step2 = M("0.21 × 453", 26, TEXT).next_to(step1, DOWN, buff=0.35, aligned_edge=LEFT)
-        step3 = M("= 95.1 mmHg", 26, O2_COL).next_to(step2, DOWN, buff=0.35, aligned_edge=LEFT)
+        # Build arithmetic in GREY text with numbers in ORANGE, word by word as spoken
+        s1_500 = M("500", 26, O2_COL)
+        s1_minus = M("-", 26, STRUCT_COL)
+        s1_47 = M("47", 26, O2_COL)
+        s1_eq = M("=", 26, STRUCT_COL)
+        s1_453 = M("453", 26, O2_COL)
+        step1 = VGroup(s1_500, s1_minus, s1_47, s1_eq, s1_453).arrange(RIGHT, buff=0.12)
+        step1.move_to([3.55, 2.05, 0], aligned_edge=LEFT)
+
+        s2_021 = M("0.21", 26, O2_COL)
+        s2_mul = M("×", 26, STRUCT_COL)
+        s2_453 = M("453", 26, O2_COL)
+        step2 = VGroup(s2_021, s2_mul, s2_453).arrange(RIGHT, buff=0.12)
+        step2.next_to(step1, DOWN, buff=0.35, aligned_edge=LEFT)
+
+        s3_eq = M("=", 26, STRUCT_COL)
+        s3_95 = M("95.1", 26, O2_COL)
+        s3_unit = M("mmHg", 26, STRUCT_COL)
+        step3 = VGroup(s3_eq, s3_95, s3_unit).arrange(RIGHT, buff=0.12)
+        step3.next_to(step2, DOWN, buff=0.35, aligned_edge=LEFT)
 
         self.at("Barometric pressure")
-        self.play(
-            Indicate(dial_g[4], color=FOCUS_COL, scale_factor=1.10),
-            bar_val.animate.set_value(120.0),
-            run_time=3.5,
-            rate_func=linear,
-        )
+        self.play(Indicate(dial_g[4], color=FOCUS_COL, scale_factor=1.10), run_time=1.2)
+
+        self.at("500")
+        self.play(FadeIn(s1_500, shift=RIGHT * 0.08), run_time=1.0)
 
         self.at("Subtract water vapor")
-        self.play(
-            FadeIn(step1, shift=RIGHT * 0.1),
-            bar_val.animate.set_value(108.0),
-            run_time=2.8,
-            rate_func=linear,
-        )
+        self.play(FadeIn(s1_minus), run_time=0.8)
+
+        self.at("47")
+        self.play(FadeIn(s1_47), FadeIn(s1_eq), FadeIn(s1_453), run_time=1.0)
+
+        self.at("21")
+        self.play(FadeIn(s2_021, shift=RIGHT * 0.08), run_time=0.5)
 
         self.at("of the rest")
-        self.play(FadeIn(step2, shift=RIGHT * 0.1), bar_val.animate.set_value(95.1), run_time=1.6)
+        self.play(FadeIn(s2_mul), FadeIn(s2_453), run_time=0.6)
+
+        self.at("about 95")
         tick = Line([RULER_X - 0.16, y_mmhg(95.1), 0], [RULER_X + 0.18, y_mmhg(95.1), 0], color=FOCUS_COL, stroke_width=5)
-        self.play(FadeIn(step3, shift=RIGHT * 0.1), Create(tick), run_time=1.2)
+        self.play(FadeIn(step3, shift=RIGHT * 0.08), Create(tick), run_time=0.7)
+        self.play(
+            Indicate(col, color=FOCUS_COL, scale_factor=1.04),
+            Indicate(tick, color=FOCUS_COL, scale_factor=1.25),
+            run_time=0.9,
+        )
         self.finish()
 
 
@@ -711,8 +741,8 @@ class S04Predict(SpokenScene):
 
         ghost = make_ghost_sea_level(x=5.05)
         co2_chip = boxed_label("CO2 40", CO2_COL, size=26, pad=0.16).move_to([COL_X, y_mmhg(95.1) + 0.46, 0])
-        q = T("Alveolar oxygen here?", 36, TEXT).move_to([0.0, 3.45, 0])
-        qmark = M("?", 40, FOCUS_COL).move_to([RULER_X - 0.58, y_mmhg(45.0), 0])
+        q = T("Alveolar oxygen here?", 36, TEXT).move_to([-0.5, 3.45, 0])
+        qmark = M("?", 40, FOCUS_COL).move_to([RULER_X - 0.58, y_mmhg(75.0), 0])
 
         self.add(mtn, climber, dial_g, ruler, col, dots, bellows, vent_lab, tag, tick, insp_num)
 
@@ -725,11 +755,11 @@ class S04Predict(SpokenScene):
         self.play(Create(sweep), Indicate(tick, color=FOCUS_COL, scale_factor=1.35), run_time=1.8)
         self.play(FadeOut(sweep), run_time=0.6)
 
-        self.at("Carbon dioxide is still")
-        self.play(FadeIn(co2_chip, shift=DOWN * 0.35), run_time=2.2)
+        self.at("still 40")
+        self.play(FadeIn(co2_chip, shift=DOWN * 0.35), run_time=1.2)
 
         self.at("where does the alveolus")
-        self.play(FadeIn(q), FadeIn(qmark), run_time=1.4)
+        self.play(FadeIn(q), FadeIn(qmark), run_time=1.2)
         self.finish()
 
 
@@ -768,7 +798,7 @@ class S05Pause(PredictPause):
         insp_num = M("95.1", 26, O2_COL).next_to(tick, LEFT, buff=0.14).shift(UP * 0.18)
         ghost = make_ghost_sea_level(x=5.05)
         co2_chip = boxed_label("CO2 40", CO2_COL, size=26, pad=0.16).move_to([COL_X, y_mmhg(95.1) + 0.46, 0])
-        qmark = M("?", 40, FOCUS_COL).move_to([RULER_X - 0.58, y_mmhg(45.0), 0])
+        qmark = M("?", 40, FOCUS_COL).move_to([RULER_X - 0.58, y_mmhg(75.0), 0])
 
         return VGroup(
             mtn, climber, dial_g, ruler, col, dots, bellows, vent_lab, tag,
@@ -799,28 +829,64 @@ class S06Answer(SpokenScene):
         insp_num = M("95.1", 26, O2_COL).next_to(tick, LEFT, buff=0.14).shift(UP * 0.18)
         ghost = make_ghost_sea_level(x=5.05)
         co2_chip = boxed_label("CO2 40", CO2_COL, size=26, pad=0.16).move_to([COL_X, y_mmhg(95.1) + 0.46, 0])
-        q = T("Alveolar oxygen here?", 36, TEXT).move_to([0.0, 3.45, 0])
-        qmark = M("?", 40, FOCUS_COL).move_to([RULER_X - 0.58, y_mmhg(45.0), 0])
+        q = T("Alveolar oxygen here?", 36, TEXT).move_to([-0.5, 3.45, 0])
+        qmark = M("?", 40, FOCUS_COL).move_to([RULER_X - 0.58, y_mmhg(75.0), 0])
 
         self.add(mtn, climber, dial_g, ruler, col, dots, bellows, vent_lab, tag, tick, insp_num, ghost, co2_chip, q, qmark)
 
-        self.at("Carbon dioxide")
-        self.play(FadeOut(q), FadeOut(qmark), FadeOut(co2_chip), run_time=0.8)
-        self.play(paco2.animate.set_value(40.0), run_time=4.6, rate_func=linear)
+        # Dissolve question card and '?' immediately as the answer begins
+        self.play(FadeOut(q), FadeOut(qmark), run_time=0.8)
 
-        self.at("takes 50 away")
-        co2_eq = M("40 ÷ 0.80\n= 50", 22, TEXT, line_spacing=0.82).move_to([COL_X, y_mmhg(70.1), 0])
-        self.play(FadeIn(co2_eq), run_time=1.4)
+        # Ratio chip above the column area (clear of ruler x=1.15, ghost x>=4.53, and CO2 chip y=1.47)
+        r_in = T("10 O2 in :", 22, O2_COL)
+        r_out = T("8 CO2 out", 22, CO2_COL)
+        r_bot = T("(ratio 0.80)", 22, STRUCT_COL)
+        r_content = VGroup(r_in, r_out, r_bot).arrange(DOWN, buff=0.06)
+        r_box = RoundedRectangle(
+            corner_radius=0.14,
+            width=r_content.width + 0.36,
+            height=r_content.height + 0.24,
+            stroke_color=STRUCT_COL,
+            stroke_width=2.0,
+            fill_color=STRUCT_COL,
+            fill_opacity=0.12,
+        )
+        r_content.move_to(r_box)
+        VGroup(r_box, r_content).move_to([2.65, 2.55, 0])
 
-        self.at("leaves about 45")
+        self.at("8 carbon dioxides")
+        self.play(FadeIn(r_box), FadeIn(r_out), run_time=0.7)
+
+        self.at("10 oxygens")
+        self.play(FadeIn(r_in), run_time=0.7)
+
+        self.at("40 of carbon dioxide")
+        self.play(FadeOut(co2_chip), run_time=0.5)
+        self.play(paco2.animate.set_value(40.0), run_time=2.6, rate_func=linear)
+
+        # Build '40 / 0.80 = 50' inside TEAL block piece by piece as spoken
+        eq_40 = M("40 /", 22, TEXT)
+        eq_08 = M("0.80", 22, TEXT)
+        eq_top = VGroup(eq_40, eq_08).arrange(RIGHT, buff=0.14)
+        eq_50 = M("= 50", 22, TEXT)
+        co2_eq = VGroup(eq_top, eq_50).arrange(DOWN, buff=0.06).move_to([COL_X, y_mmhg(70.1), 0])
+
+        self.at("40 over")
+        self.play(FadeIn(eq_40), run_time=0.4)
+
+        self.at("0 .8")
+        self.play(FadeIn(eq_08), FadeIn(r_bot), run_time=0.6)
+        self.play(FadeIn(eq_50), run_time=0.6)
+
+        self.at("45")
         ring = Circle(radius=0.11, color=FOCUS_COL, stroke_width=4).move_to([RULER_X, y_mmhg(45.1), 0])
-        rem_lab = M("PO2\n45.1", 24, TEXT, line_spacing=0.82).move_to([COL_X, y_mmhg(22.5), 0])
-        self.play(Create(ring), FadeIn(rem_lab), run_time=1.4)
+        rem_lab = M("alveolar\nPO2 45.1", 22, TEXT, line_spacing=0.82).move_to([COL_X, y_mmhg(22.5), 0])
+        self.play(Create(ring), FadeIn(rem_lab), run_time=0.9)
 
         self.at("less than half")
         br = BraceBetweenPoints([3.30, y_mmhg(45.1), 0], [3.30, y_mmhg(99.7), 0], direction=RIGHT, color=STRUCT_COL)
         half_lab = T("half", 24, STRUCT_COL).next_to(br, RIGHT, buff=0.10)
-        self.play(GrowFromCenter(br), FadeIn(half_lab), run_time=1.4)
+        self.play(GrowFromCenter(br), FadeIn(half_lab), run_time=1.2)
         self.finish()
 
 
@@ -885,10 +951,10 @@ class S07Hyperventilation(SpokenScene):
 
         self.at("washes out")
         stream_on.set_value(1.0)
-        self.play(paco2.animate.set_value(30.0), run_time=5.4, rate_func=linear)
+        self.play(paco2.animate.set_value(30.0), run_time=2.4, rate_func=linear)
 
         self.at("takes only")
-        self.play(Indicate(co2_eq, color=CO2_COL, scale_factor=1.08), run_time=2.2)
+        self.play(Indicate(co2_eq, color=CO2_COL, scale_factor=1.08), run_time=1.6)
 
         self.at("alveolus rises")
         stream_on.set_value(0.0)
@@ -925,14 +991,23 @@ class S08GainHedge(SpokenScene):
         self.at("The gain is")
         br = BraceBetweenPoints([3.32, y_mmhg(45.1), 0], [3.32, y_mmhg(57.6), 0], direction=RIGHT, color=FOCUS_COL)
         gain_lab = M("+12.5 mmHg", 24, FOCUS_COL).next_to(br, RIGHT, buff=0.14)
-        self.play(GrowFromCenter(br), FadeIn(gain_lab), run_time=2.2)
+        self.play(GrowFromCenter(br), run_time=0.9)
+
+        self.at("twelve and a half")
+        self.play(FadeIn(gain_lab), run_time=0.9)
+
+        chk_num = M("(40 - 30)", 24, STRUCT_COL)
+        chk_div = M("/ 0.80", 24, STRUCT_COL)
+        chk = VGroup(chk_num, chk_div).arrange(RIGHT, buff=0.12).move_to([3.65, y_mmhg(76.35), 0], aligned_edge=LEFT)
 
         self.at("ten divided by")
-        chk = M("(40 - 30) ÷ 0.80", 24, TEXT).move_to([3.65, y_mmhg(76.35), 0], aligned_edge=LEFT)
-        self.play(FadeIn(chk), run_time=2.2)
+        self.play(FadeIn(chk_num), run_time=0.8)
+
+        self.at("zero point eight")
+        self.play(FadeIn(chk_div), run_time=0.8)
 
         self.at("alveolar not arterial")
-        alv_pin = T("alveolar", 24, TEXT).move_to([0.05, y_mmhg(15.0), 0])
+        alv_pin = T("alveolar", 24, STRUCT_COL).move_to([0.05, y_mmhg(15.0), 0])
         alv_line = Line(alv_pin.get_right() + RIGHT * 0.08, [COL_X - COL_W / 2 - 0.02, y_mmhg(15.0), 0], color=STRUCT_COL, stroke_width=3)
         v_top = Line([4.0, -1.20, 0], [5.7, -1.20, 0], color=STRUCT_COL, stroke_width=3)
         v_bot = Line([4.0, -1.60, 0], [5.7, -1.60, 0], color=STRUCT_COL, stroke_width=3)
@@ -942,7 +1017,10 @@ class S08GainHedge(SpokenScene):
             Line(art_tag.get_corner(UL) + LEFT * 0.08, art_tag.get_corner(DR) + RIGHT * 0.08, color=STOP_COL, stroke_width=4),
         )
         art_cross.layout_ok = True   # deliberate strike-through on 'arterial'
-        self.play(FadeIn(alv_pin), Create(alv_line), Create(v_top), Create(v_bot), FadeIn(art_tag), Create(art_cross), run_time=2.0)
+        self.play(FadeIn(alv_pin), Create(alv_line), Create(v_top), Create(v_bot), run_time=0.8)
+
+        self.at("not arterial")
+        self.play(FadeIn(art_tag), Create(art_cross), run_time=0.9)
 
         self.at("model output")
         self.play(Transform(tag, scope_tag("model values", size=24, color=FOCUS_COL)), run_time=1.0)
@@ -1009,8 +1087,8 @@ class S09OxygenArm(SpokenScene):
         self.add(curve)
 
         self.at("shallow above")
-        self.play(FadeIn(dot1), FadeIn(drop_line), FadeIn(vent_bar), run_time=0.6)
-        self.play(po2_dot_t.animate.set_value(62.0), run_time=3.2, rate_func=linear)
+        self.play(FadeIn(dot1), FadeIn(drop_line), FadeIn(vent_bar), run_time=0.5)
+        self.play(po2_dot_t.animate.set_value(62.0), run_time=1.0, rate_func=linear)
 
         self.at("and steepens")
         self.play(FadeIn(band), FadeIn(band_lab), po2_dot_t.animate.set_value(45.1), run_time=3.6, rate_func=linear)
@@ -1081,13 +1159,12 @@ class S10Idea(SpokenScene):
         self.play(po2_dot_t.animate.set_value(45.1), run_time=2.0, rate_func=linear)
 
         self.at("lever finally buys")
-        self.play(paco2.animate.set_value(40.0), run_time=1.8)
-        self.play(paco2.animate.set_value(30.0), run_time=2.0)
-        self.play(paco2.animate.set_value(38.0), run_time=1.6)
+        self.play(paco2.animate.set_value(40.0), run_time=1.0)
+        self.play(paco2.animate.set_value(30.0), run_time=1.1)
+        self.play(paco2.animate.set_value(38.0), run_time=1.0)
 
-        self.at("asked below")
-        hb_tag = T("oxygen carried:\nasked below", 24, STRUCT_COL).move_to([5.15, -0.95, 0])
-        self.play(FadeIn(hb_tag), paco2.animate.set_value(30.0), run_time=1.2)
+        self.at("hemoglobin curve")
+        self.play(paco2.animate.set_value(30.0), run_time=1.5)
         self.finish()
 
 
@@ -1148,7 +1225,7 @@ class S11Brake(SpokenScene):
         self.add(mtn, climber, dial_g, ruler, col, dots, bellows, vent_lab, tag, ctrl, carotid, band_box, h_dots, co2_stream)
 
         self.at("Washing out carbon dioxide")
-        self.play(paco2.animate.set_value(30.0), run_time=2.4, rate_func=linear)
+        self.play(paco2.animate.set_value(30.0), run_time=1.8, rate_func=linear)
 
         self.at("raises pH")
         self.play(
@@ -1227,7 +1304,7 @@ class S12Days(SpokenScene):
             strip_labs.add(T(name, 22, STRUCT_COL).next_to([mx, strip_y + 0.10, 0], UP, buff=0.08))
         time_x = ValueTracker(-5.0)
         time_dot = always_redraw(lambda: Dot([time_x.get_value(), strip_y, 0], radius=0.10, color=FOCUS_COL))
-        time_dot.add_updater(lambda m, dt: time_x.set_value(min(0.0, time_x.get_value() + (5.0 / 11.5) * dt)))
+        time_dot.add_updater(lambda m, dt: time_x.set_value(min(0.0, time_x.get_value() + (5.0 / 9.5) * dt)))
 
         # Kidney icon cleanly separated at bottom-right above scope_tag
         kidney_c = np.array([5.30, -1.05, 0.0])
@@ -1260,9 +1337,7 @@ class S12Days(SpokenScene):
             run_time=2.6,
         )
 
-        self.at("asks for each")
-        clocks_tag = T("clocks: asked below", 24, STRUCT_COL).move_to([5.05, -2.42, 0])
-        self.play(FadeIn(clocks_tag), run_time=1.0)
+        self.at("different clocks")
         self.finish()
 
 
@@ -1307,8 +1382,8 @@ class S13Close(SpokenScene):
         self.play(paco2.animate.set_value(40.0), run_time=2.0)
 
         self.at("same single lever")
-        self.play(paco2.animate.set_value(30.0), run_time=2.2)
-        self.play(paco2.animate.set_value(40.0), run_time=2.2)
+        self.play(paco2.animate.set_value(30.0), run_time=1.8)
+        self.play(paco2.animate.set_value(40.0), run_time=1.8)
         self.finish()
 
 

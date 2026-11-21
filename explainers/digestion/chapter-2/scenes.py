@@ -27,11 +27,11 @@ WHAT CHANGES IN EACH SPOKEN SCENE (and what it is computed from):
 - s02_surface: WATER particles compute radial deflection off the drop continuously; BLUE lipase cutters dock and step along the rim, snipping the 3 rim YELLOW bonds while the 9 interior bonds remain out of reach.
 - s03_bile: ORANGE bile salts swirl in and coat the drop; drop splits in computed volume-conserving stages (1 -> 8 -> 24 droplets) carrying the 9 intact YELLOW bonds to droplet edges; ghost original circle compares geometry.
 - s04_predict: left 1 mm drop vs right 48-droplet patch (1 um each, seeded non-overlapping grid), with BLUE surface outlines tracing both continuously.
-- s06_answer: broken-axis bar pair grows dynamically from 1 to 1,000x (computed from D_drop / D_droplet = 1 mm / 1 um = 1000) via ValueTracker + synced counter; BLUE lipase floods droplet edges and lights reachable YELLOW bonds.
+- s06_answer: broken-axis bar pair grows dynamically from 1 to 1,000x (computed from D_drop / D_droplet = 1 mm / 1 um = 1000) via ValueTracker + synced counter; '1 mm ÷ 1 µm = 1,000' and 'surface per amount of fat ∝ 1 / width' build word by word as spoken; BLUE lipase floods droplet edges and lights reachable YELLOW bonds.
 - s07_cut: zoomed triacylglycerol block cartoon (glycerol spine + 3 tail blocks + 3 YELLOW links); lipase+colipase docks and spends 2 WATER drops to snap the two outer ester links sequentially, separating 1 monoacylglycerol + 2 free fatty acids.
 - s08_idea: pullback to droplet cloud; ghost 'pro' tab gets RED cross and fades; large drop (unreached interior) vs small droplets (lipase stepping/snipping edges) compared; ORANGE bile coats pulse on exposure.
 - s09_micelle: camera pans down to gut cells + WHITE brush border; ORANGE bile salts gather loose GREEN pieces into 4 micelles that ferry across the WATER layer, release cargo into the gut cell, and return empty.
-- s10_rebuild: zoomed gut cell; incoming GREEN pieces attach to spines with new YELLOW links; live ValueTracker gauge ('free pieces inside') stays low as arrivals rebuild; detergent-ghost tail nudging membrane snaps onto a third spine.
+- s10_rebuild: zoomed gut cell; incoming GREEN pieces attach to spines with new YELLOW links; live ValueTracker gauge ('free pieces inside') stays low as arrivals rebuild; soap-acting ghost tail nudging membrane flashes soap bubbles before snapping onto a third spine.
 - s11_chylomicron: rebuilt blocks pack into a WHITE-shelled chylomicron that exits the cell, drifts to the CRIMSON capillary (narrow gaps), bounces off, and triggers the RED padlock.
 - s12_lacteal: PURPLE lacteal flaps flex open; chylomicrons slip through and flow along a curving PURPLE lymph path while GREEN cholesterol/vitamin cargo specks highlight inside.
 - s13_sort: WHITE sugar/amino-acid dots and GREEN short/medium stubs exit the cell straight through CRIMSON capillary gaps to portal blood and liver, side-by-side with PURPLE lymph chylomicrons.
@@ -257,8 +257,10 @@ def make_lacteal_vessel(x_c=-2.3, y_top=-2.05, y_bot=-3.55, width=1.18, open_gap
         stroke_width=0, fill_color=col, fill_opacity=fill_op,
     ).move_to([x_c, (y_top + y_bot) / 2, 0])
     left_wall = Line([x_c - width / 2, y_top, 0], [x_c - width / 2, y_bot, 0], color=col, stroke_width=4.5, stroke_opacity=op)
-    flap1 = Line([x_c + width / 2, y_top, 0], [x_c + width / 2 - 0.12, (y_top + y_bot) / 2 + 0.15, 0], color=col, stroke_width=4.5, stroke_opacity=op)
-    flap2 = Line([x_c + width / 2 + 0.12 + open_gap * 0.35, (y_top + y_bot) / 2 - 0.05, 0], [x_c + width / 2, y_bot, 0], color=col, stroke_width=4.5, stroke_opacity=op)
+    y_mid = (y_top + y_bot) / 2
+    half_gap = min(0.10 + open_gap * 0.75, (y_top - y_bot) * 0.34)
+    flap1 = Line([x_c + width / 2, y_top, 0], [x_c + width / 2 - 0.12, y_mid + half_gap, 0], color=col, stroke_width=4.5, stroke_opacity=op)
+    flap2 = Line([x_c + width / 2 + 0.12 + open_gap * 0.35, y_mid - half_gap, 0], [x_c + width / 2, y_bot, 0], color=col, stroke_width=4.5, stroke_opacity=op)
     cap = Arc(radius=width / 2, start_angle=0, angle=PI, arc_center=[x_c, y_top, 0], color=col, stroke_width=4.5, stroke_opacity=op)
     return VGroup(bg_tube, left_wall, flap1, flap2, cap)
 
@@ -343,12 +345,17 @@ class S00LinkAndQuestion(SpokenScene):
         ghost_group = VGroup(last_tag, z1, z2, tryp).set_opacity(0.90)
 
         self.play(FadeIn(ghost_group), run_time=0.5)
+        wait_until = max(0.1, self.t_of("reached the gut") - 0.25 - self.elapsed())
+        if wait_until > 0.2:
+            self.play(tryp.animate.shift(RIGHT * 0.20), run_time=wait_until, rate_func=linear)
+
+        self.at("reached the gut")
         self.play(
             tryp.animate.move_to([-1.35, 0.5, 0]),
             z1.core.animate.set_color(BLUE).set_fill(BLUE, opacity=0.30),
             z2.core.animate.set_color(BLUE).set_fill(BLUE, opacity=0.30),
             FadeOut(z1.pro), FadeOut(z2.pro),
-            run_time=1.8,
+            run_time=1.35,
         )
         z1.remove(z1.pro)
         z2.remove(z2.pro)
@@ -730,7 +737,7 @@ class S06Answer(SpokenScene):
 
         # On 'thousand times more', scale ONLY picture shapes (never labels!) to left, rebuild labels at >=24pt
         self.at("thousand times more")
-        ans_card = T("1,000 × the surface", size=40, color=GOLD).move_to([0.0, 3.15, 0.0])
+        ans_card = T("1,000 times the surface", size=40, color=GOLD).move_to([0.0, 3.15, 0.0])
         pic_shapes = VGroup(drop, drop_outline, arrow, droplets, outlines)
         new_lbl_l = T("1 mm across", size=24, color=TEXT).move_to([-4.95, -1.65, 0])
         new_lbl_r = T("1 µm each", size=24, color=TEXT).move_to([-0.85, -1.65, 0])
@@ -742,20 +749,30 @@ class S06Answer(SpokenScene):
             ReplacementTransform(lbl_l, new_lbl_l),
             ReplacementTransform(lbl_r, new_lbl_r),
             ReplacementTransform(same_tag, new_same),
-            run_time=1.0,
+            run_time=0.95,
         )
 
-        # Computed broken-axis bar chart at right (x: 1.8..5.8, y: -2.0..2.0)
-        x_ax = Line([1.8, -2.0, 0], [5.8, -2.0, 0], color=TEXT, stroke_width=3)
-        y_bot = Line([1.8, -2.0, 0], [1.8, -0.65, 0], color=TEXT, stroke_width=3)
-        y_top = Line([1.8, -0.25, 0], [1.8, 2.0, 0], color=TEXT, stroke_width=3)
-        brk1 = Line([1.65, -0.72, 0], [1.95, -0.56, 0], color=GOLD, stroke_width=3)
-        brk2 = Line([1.65, -0.42, 0], [1.95, -0.26, 0], color=GOLD, stroke_width=3)
-        y_lbl = T("surface area", size=24, color=TEXT).move_to([2.55, 2.35, 0])
-        bar_l_lbl = T("one drop", size=24, color=TEXT).move_to([2.85, -2.38, 0])
-        bar_r_lbl = T("droplets", size=24, color=TEXT).move_to([4.75, -2.38, 0])
+        # Two WHITE relation lines above the bars, built in time with the narration
+        eq1_a = T("1 mm", size=26, color=TEXT)
+        eq1_b = T("÷ 1 µm", size=26, color=TEXT)
+        eq1_c = T("= 1,000", size=26, color=TEXT)
+        eq1 = VGroup(eq1_a, eq1_b, eq1_c).arrange(RIGHT, buff=0.12).move_to([3.70, 2.42, 0])
 
-        bar1 = Rectangle(width=0.95, height=0.28, color=BLUE, fill_color=BLUE, fill_opacity=0.85, stroke_width=2).move_to([2.85, -2.0 + 0.14, 0])
+        eq2_a = T("surface per amount of fat", size=24, color=TEXT)
+        eq2_b = T("∝ 1 / width", size=24, color=TEXT)
+        eq2 = VGroup(eq2_a, eq2_b).arrange(RIGHT, buff=0.12).move_to([3.70, 1.92, 0])
+
+        # Computed broken-axis bar chart at right (x: 1.85..5.80, y: -2.15..1.15)
+        x_ax = Line([1.85, -2.15, 0], [5.80, -2.15, 0], color=TEXT, stroke_width=3)
+        y_bot = Line([1.85, -2.15, 0], [1.85, -1.05, 0], color=TEXT, stroke_width=3)
+        y_top = Line([1.85, -0.70, 0], [1.85, 1.15, 0], color=TEXT, stroke_width=3)
+        brk1 = Line([1.70, -1.12, 0], [2.00, -0.96, 0], color=GOLD, stroke_width=3)
+        brk2 = Line([1.70, -0.82, 0], [2.00, -0.66, 0], color=GOLD, stroke_width=3)
+        y_lbl = T("surface area", size=24, color=TEXT).move_to([2.45, 1.45, 0])
+        bar_l_lbl = T("one drop", size=24, color=TEXT).move_to([2.95, -2.50, 0])
+        bar_r_lbl = T("droplets", size=24, color=TEXT).move_to([4.85, -2.50, 0])
+
+        bar1 = Rectangle(width=0.95, height=0.26, color=BLUE, fill_color=BLUE, fill_opacity=0.85, stroke_width=2).move_to([2.95, -2.15 + 0.13, 0])
         val1 = M("1×", size=24, color=TEXT).next_to(bar1, UP, buff=0.14)
 
         ratio_t = ValueTracker(1.0)
@@ -763,12 +780,12 @@ class S06Answer(SpokenScene):
         def _tall_bar():
             v = ratio_t.get_value()
             if v <= 10.0:
-                h = 0.28 + (v - 1.0) / 9.0 * 0.9
+                h = 0.26 + (v - 1.0) / 9.0 * 0.78
             else:
-                h = 1.18 + (v - 10.0) / (SURFACE_RATIO - 10.0) * 2.52
+                h = 1.04 + (v - 10.0) / (SURFACE_RATIO - 10.0) * 1.91
             return Rectangle(
                 width=0.95, height=h, color=BLUE, fill_color=BLUE, fill_opacity=0.90, stroke_width=2,
-            ).move_to([4.75, -2.0 + h / 2.0, 0])
+            ).move_to([4.85, -2.15 + h / 2.0, 0])
 
         bar2 = always_redraw(_tall_bar)
         val2 = always_redraw(lambda: M(f"{ratio_t.get_value():,.0f}×", size=26, color=GOLD).next_to(bar2, UP, buff=0.14))
@@ -777,29 +794,74 @@ class S06Answer(SpokenScene):
             Create(x_ax), Create(y_bot), Create(y_top), Create(brk1), Create(brk2),
             FadeIn(y_lbl), FadeIn(bar_l_lbl), FadeIn(bar_r_lbl),
             FadeIn(bar1), FadeIn(val1),
-            run_time=0.8,
+            run_time=0.75,
         )
+
+        # Build '1 mm ÷ 1 µm = 1,000' as spoken ("A millimeter is a thousand micrometers")
+        self.at("millimeter")
+        self.play(FadeIn(eq1_a, shift=UP * 0.08), run_time=0.55)
+
+        self.at("micrometers", lead=0.05)
+        self.play(FadeIn(eq1_b, shift=UP * 0.08), run_time=0.45)
+        self.play(FadeIn(eq1_c, shift=UP * 0.08), run_time=0.45)
+
+        # Grow the 1,000x bar during "so each droplet is a thousandth as wide"
+        self.at("each droplet")
         self.add(bar2, val2)
+        self.play(ratio_t.animate.set_value(SURFACE_RATIO), run_time=2.6, rate_func=smooth)
 
-        self.at("spreads over")
-        self.play(ratio_t.animate.set_value(SURFACE_RATIO), run_time=2.8, rate_func=smooth)
+        # Build 'surface per amount of fat ∝ 1 / width' on "surface rises as width falls"
+        self.at("surface rises")
+        self.play(FadeIn(eq2_a, shift=UP * 0.08), run_time=0.6)
 
+        self.at("width falls")
+        self.play(FadeIn(eq2_b, shift=UP * 0.08), run_time=0.6)
+
+        # Pulse the 1 um droplet outlines and highlight the 1,000x bar during "a thousandth the width, a thousand times the surface"
+        self.at("thousandth the width")
+        self.play(
+            Indicate(new_lbl_r, scale_factor=1.12, color=BLUE),
+            droplets.animate.scale(1.10),
+            outlines.animate.scale(1.10).set_stroke(width=6.5),
+            run_time=0.75,
+        )
+        self.play(
+            droplets.animate.scale(1.0 / 1.10),
+            outlines.animate.scale(1.0 / 1.10).set_stroke(width=3.2),
+            run_time=0.65,
+        )
+
+        self.at("thousand times the surface")
+        self.play(
+            Indicate(bar_r_lbl, scale_factor=1.12, color=GOLD),
+            outlines.animate.set_stroke(width=6.5),
+            drop_outline.animate.set_stroke(width=3.5),
+            run_time=0.9,
+        )
         wait_lip = max(0.1, self.t_of("where lipase works") - 0.25 - self.elapsed())
         if wait_lip > 0.2:
-            self.play(outlines.animate.set_stroke(width=4.0), run_time=wait_lip, rate_func=linear)
+            self.play(
+                outlines.animate.set_stroke(width=3.0),
+                drop_outline.animate.set_stroke(width=6.0),
+                run_time=wait_lip,
+                rate_func=linear,
+            )
 
         # On 'where lipase works', spread-out BLUE lipase cutters dock across droplet patch + YELLOW bonds light up
         self.at("where lipase works")
         rng = np.random.default_rng(29)
-        lip_starts = [[-6.0, 2.2, 0], [-6.1, 0.8, 0], [-6.0, -0.6, 0], [-5.9, -2.0, 0], [0.6, 2.1, 0], [0.6, -1.9, 0]]
-        target_indices = [1, 14, 17, 29, 34, 46]
+        lip_starts = [
+            [-6.0, 2.2, 0], [-6.1, 0.8, 0], [-6.0, -0.6, 0], [-5.9, -2.0, 0],
+            [-2.5, 2.3, 0], [-0.5, 2.3, 0], [0.6, 1.5, 0], [0.6, -0.2, 0], [0.6, -1.8, 0],
+        ]
+        target_indices = [1, 7, 14, 17, 22, 29, 34, 41, 46]
         lip_targets = [
             droplets[idx].get_center() + np.array([0.16, 0.10, 0])
             for idx in target_indices
         ]
-        lip_swarm = VGroup(*[make_lipase(scale=0.55).move_to(p) for p in lip_starts])
+        lip_swarm = VGroup(*[make_lipase(scale=0.68).move_to(p) for p in lip_starts])
         edge_bonds = VGroup(*[
-            Dot(droplets[idx].get_center() + np.array([rng.uniform(-0.07, 0.07), -0.08, 0]), radius=0.052, color=YELLOW)
+            Dot(droplets[idx].get_center() + np.array([rng.uniform(-0.07, 0.07), -0.08, 0]), radius=0.072, color=YELLOW)
             for idx in range(0, 48, 3)
         ])
         self.play(
@@ -809,8 +871,8 @@ class S06Answer(SpokenScene):
             run_time=2.0,
         )
         self.play(
-            *[b.animate.scale(1.35) for b in edge_bonds],
-            *[m.animate.shift(LEFT * 0.08) for m in lip_swarm],
+            *[b.animate.scale(1.4) for b in edge_bonds],
+            *[m.animate.shift(LEFT * 0.12) for m in lip_swarm],
             run_time=max(0.4, self.narration_s + 0.35 - self.elapsed()),
             rate_func=linear,
         )
@@ -853,42 +915,62 @@ class S07Cut(SpokenScene):
             run_time=0.48,
         )
 
-        # On 'lipase cuts' and 'colipase', place labels cleanly to LEFT of enzyme (never touching spine!)
+        # On 'lipase cuts' and 'colipase', dock enz directly at each outer ester bond with labels clear of spine & tails
         self.at("lipase cuts")
-        enz = make_lipase(with_colipase=True, scale=1.2).move_to([-4.2, 2.2, 0])
-        enz_lbl = T("lipase", size=26, color=BLUE).next_to(enz[1], LEFT, buff=0.22)
-        colip_lbl = T("colipase", size=24, color=LIGHT_BLUE).next_to(enz[0], LEFT, buff=0.22)
+        enz = make_lipase(with_colipase=True, scale=1.2).rotate(-PI / 2)
+        enz.shift(np.array([-2.35, 2.32, 0]) - enz[1].get_center())
+        enz_lbl = T("lipase", size=26, color=BLUE).next_to(enz[1], RIGHT, buff=0.22).shift(UP * 0.06)
+        colip_lbl = T("colipase", size=24, color=LIGHT_BLUE).next_to(enz[0], LEFT, buff=0.20).shift(UP * 0.08)
         enz_group = VGroup(enz, enz_lbl, colip_lbl)
         self.play(FadeIn(enz), FadeIn(enz_lbl), run_time=0.55)
 
-        self.at("colipase")
-        self.play(FadeIn(colip_lbl), enz_group.animate.move_to([-4.25, 1.32, 0]), run_time=1.3)
+        self.at("collipase")
+        top_shift = np.array([-0.47, 1.98, 0]) - enz[1].get_center()
+        self.play(FadeIn(colip_lbl), enz_group.animate.shift(top_shift), run_time=1.15)
 
         # On 'two outer ester bonds', snap top and bottom YELLOW links one after another with water drops
         self.at("two outer ester bonds")
-        w1 = make_water_drop([-0.47, 2.25, 0], scale=1.1)
+        w1 = make_water_drop([1.45, 1.92, 0], scale=1.1)
         self.play(links[0].animate.scale(1.25), FadeIn(w1), run_time=0.55)
-        self.play(w1.animate.move_to(links[0].get_center()), run_time=0.5)
+        self.play(w1.animate.move_to(links[0].get_center()), run_time=0.45)
         self.play(
             FadeOut(w1),
             FadeOut(links[0], scale=0.3),
             tails[0].animate.shift(RIGHT * 0.95 + UP * 0.2),
-            run_time=0.8,
+            run_time=0.70,
         )
 
-        w2 = make_water_drop([-0.47, -2.55, 0], scale=1.1)
+        # Swing enz around left of spine and rotate PI to face UP at [-0.47, -2.28] for links[2]
+        self.play(FadeOut(enz_lbl), FadeOut(colip_lbl), run_time=0.20)
+        enz_start = enz.copy()
+        enz_bot_ref = enz.copy().rotate(PI)
+        enz_bot_ref.shift(np.array([-0.47, -2.28, 0]) - enz_bot_ref[1].get_center())
+        c0 = enz_start.get_center().copy()
+        c1 = enz_bot_ref.get_center().copy()
+        ctrl1 = np.array([-4.2, 1.5, 0.0])
+        ctrl2 = np.array([-4.2, -1.8, 0.0])
+
+        def _move_enz_to_bot(mob, alpha):
+            a = smooth(alpha)
+            pos = ((1 - a) ** 3) * c0 + 3 * ((1 - a) ** 2) * a * ctrl1 + 3 * (1 - a) * (a ** 2) * ctrl2 + (a ** 3) * c1
+            mob.become(enz_start.copy().rotate(PI * a).move_to(pos))
+
+        self.play(UpdateFromAlphaFunc(enz, _move_enz_to_bot), run_time=0.85, rate_func=linear)
+        enz_lbl2 = T("lipase", size=26, color=BLUE).next_to(enz_bot_ref[1], LEFT, buff=0.22).shift(DOWN * 0.24)
+        colip_lbl2 = T("colipase", size=24, color=LIGHT_BLUE).next_to(enz_bot_ref[0], RIGHT, buff=0.20)
+        w2 = make_water_drop([2.05, -2.35, 0], scale=1.1)
         self.play(
-            enz_group.animate.move_to([-4.25, -1.58, 0]),
+            FadeIn(enz_lbl2), FadeIn(colip_lbl2),
             links[2].animate.scale(1.25),
             FadeIn(w2),
-            run_time=0.95,
+            run_time=0.50,
         )
-        self.play(w2.animate.move_to(links[2].get_center()), run_time=0.5)
+        self.play(w2.animate.move_to(links[2].get_center()), run_time=0.45)
         self.play(
             FadeOut(w2),
             FadeOut(links[2], scale=0.3),
             tails[2].animate.shift(RIGHT * 0.95 + DOWN * 0.2),
-            run_time=0.8,
+            run_time=0.70,
         )
 
         # On 'one monoacylglycerol' and 'two free fatty acids', pieces drift apart and relabel
@@ -896,7 +978,7 @@ class S07Cut(SpokenScene):
         mono_lbl = T("monoacylglycerol", size=30, color=GREEN).move_to([-1.1, 2.95, 0])
         self.play(
             swap(mol_lbl, mono_lbl, run_time=0.65),
-            FadeOut(enz_group),
+            FadeOut(enz), FadeOut(enz_lbl2), FadeOut(colip_lbl2),
             run_time=0.8,
         )
 
@@ -1134,7 +1216,7 @@ class S10Rebuild(SpokenScene):
         why_txt = T("why undo it?", size=36, color=TEXT).move_to([-1.4, 3.05, 0])
         self.play(Write(why_txt), run_time=0.9)
 
-        self.at("uses the pieces up")
+        self.at("keeps free pieces scarce inside")
         self.play(FadeIn(gauge_box), FadeIn(gauge_lbl), FadeIn(gauge_track), FadeIn(gauge_note), run_time=0.5)
         self.add(gauge_bar)
 
@@ -1160,17 +1242,27 @@ class S10Rebuild(SpokenScene):
         if wait_det > 0.2:
             self.play(free_val.animate.set_value(2.1), run_time=wait_det, rate_func=linear)
 
-        # On 'stops free fatty acids', detergent ghost nudges membrane, then snaps onto a waiting third spine
+        # On 'stops free fatty acids', soap-acting ghost nudges membrane; on 'acting like soap', soap bubbles flash before tail snaps onto third spine
         self.at("stops free fatty acids")
         spine3 = RoundedRectangle(corner_radius=0.06, width=0.45, height=0.75, color=GREEN, stroke_width=2.4, fill_color=GREEN, fill_opacity=0.45).move_to([-0.2, -1.55, 0])
         det_tail = RoundedRectangle(corner_radius=0.05, width=1.1, height=0.28, color=GREEN, stroke_width=2.4, fill_color=GREEN, fill_opacity=0.85).move_to([-0.5, 1.55, 0])
         det_ghost = RoundedRectangle(corner_radius=0.05, width=1.1, height=0.28, color=RED, stroke_width=3, fill_opacity=0).move_to([-0.5, 2.02, 0])
-        det_lbl = T("no detergent damage", size=26, color=RED).move_to([0.4, 2.95, 0])
+        det_lbl = T("no soap damage", size=26, color=RED).move_to([0.4, 2.95, 0])
+        soap_bubbles = VGroup(
+            Circle(radius=0.11, color=LIGHT_BLUE, stroke_width=2.2, fill_color=LIGHT_BLUE, fill_opacity=0.25).move_to([0.32, 1.82, 0]),
+            Circle(radius=0.075, color=LIGHT_BLUE, stroke_width=2.0, fill_color=LIGHT_BLUE, fill_opacity=0.25).move_to([0.52, 1.98, 0]),
+            Circle(radius=0.06, color=WHITE, stroke_width=1.8, fill_color=WHITE, fill_opacity=0.20).move_to([0.48, 1.66, 0]),
+        )
         link3 = RoundedRectangle(corner_radius=0.03, width=0.35, height=0.14, color=YELLOW, fill_color=YELLOW, fill_opacity=0.95, stroke_width=0).move_to([0.3, -1.55, 0])
-        self.play(FadeOut(why_txt), FadeIn(det_tail), FadeIn(spine3), run_time=0.45)
-        self.play(det_tail.animate.shift(UP * 0.42), FadeIn(det_ghost), FadeIn(det_lbl), run_time=0.9)
+        self.play(FadeOut(why_txt), FadeIn(det_tail), FadeIn(spine3), run_time=0.4)
+        self.play(det_tail.animate.shift(UP * 0.42), FadeIn(det_ghost), FadeIn(det_lbl), run_time=0.7)
+
+        self.at("acting like soap")
+        self.play(FadeIn(soap_bubbles, scale=0.7), run_time=0.45)
+        self.play(soap_bubbles.animate.scale(1.18), run_time=0.45)
         self.play(
             FadeOut(det_ghost),
+            FadeOut(soap_bubbles),
             det_tail.animate.move_to([1.02, -1.55, 0]),
             FadeIn(link3),
             free_val.animate.set_value(1.2),
@@ -1250,8 +1342,8 @@ class S12Lacteal(SpokenScene):
         ).move_to([0.0, 2.25, 0])
         lacteal = make_lacteal_vessel(x_c=-2.6, y_top=-0.25, y_bot=-3.4, width=1.25, open_gap=0.0, brightened=False)
         capillary = make_capillary_vessel(x_c=3.0, y_top=-0.25, y_bot=-3.4, width=0.95, brightened=False)
-        chylo1 = make_chylomicron(center=np.array([0.45, -1.05, 0]), radius=0.56)
-        chylo2 = make_chylomicron(center=np.array([-0.3, 2.25, 0]), radius=0.56)
+        chylo1 = make_chylomicron(center=np.array([0.45, -1.05, 0]), radius=0.50)
+        chylo2 = make_chylomicron(center=np.array([-0.3, 2.25, 0]), radius=0.50)
         self.add(tag, cell, lacteal, capillary, chylo1, chylo2)
 
         # Gentle approach while intro line runs (keep chylo2 inside cell y >= 1.75)
@@ -1263,23 +1355,33 @@ class S12Lacteal(SpokenScene):
         self.play(ReplacementTransform(lacteal, lacteal_bright), FadeIn(lac_lbl), run_time=1.0)
 
         self.at("loose junctions")
-        lacteal_open = make_lacteal_vessel(x_c=-2.6, y_top=-0.25, y_bot=-3.4, width=1.25, open_gap=0.75, brightened=True)
+        lacteal_open = make_lacteal_vessel(x_c=-2.6, y_top=-0.25, y_bot=-3.4, width=1.25, open_gap=0.85, brightened=True)
         self.play(ReplacementTransform(lacteal_bright, lacteal_open), run_time=0.9)
+
+        # Route chylo1 down to the open flap gap y-level (-1.82) before moving left into the lacteal
+        wait_slip = max(0.1, self.t_of("Chylomicrons slip through") - 0.25 - self.elapsed())
+        if wait_slip > 0.2:
+            self.play(
+                chylo1.animate.move_to([-0.55, -1.82, 0]),
+                chylo2.animate.move_to([0.15, -0.55, 0]),
+                run_time=wait_slip,
+                rate_func=linear,
+            )
 
         self.at("Chylomicrons slip through")
         self.play(
-            chylo1.animate.move_to([-2.6, -1.15, 0]),
-            chylo2.animate.move_to([0.0, -0.75, 0]),
-            run_time=1.4,
+            chylo1.animate.move_to([-2.6, -1.82, 0]),
+            chylo2.animate.move_to([-0.55, -1.82, 0]),
+            run_time=1.5,
         )
 
         self.at("scenic route")
         lymph_lbl = T("lymph", size=30, color=PURPLE).move_to([-4.6, -2.85, 0])
         self.play(
             FadeIn(lymph_lbl, run_time=0.45),
-            chylo1.animate.move_to([-2.6, -2.55, 0]),
-            chylo2.animate.move_to([-2.6, -1.15, 0]),
-            run_time=2.1,
+            chylo1.animate.move_to([-2.6, -2.90, 0]),
+            chylo2.animate.move_to([-2.6, -1.82, 0]),
+            run_time=2.2,
             rate_func=linear,
         )
 
@@ -1289,8 +1391,8 @@ class S12Lacteal(SpokenScene):
             FadeIn(ride_lbl, run_time=0.45),
             chylo1.cargo.animate.scale(1.6),
             chylo2.cargo.animate.scale(1.6),
-            chylo1.animate.move_to([-2.6, -2.85, 0]),
-            chylo2.animate.move_to([-2.6, -1.45, 0]),
+            chylo1.animate.move_to([-2.6, -2.96, 0]),
+            chylo2.animate.move_to([-2.6, -1.88, 0]),
             run_time=max(0.8, self.narration_s + 0.35 - self.elapsed()),
             rate_func=linear,
         )
@@ -1314,7 +1416,7 @@ class S13Sort(SpokenScene):
             Line([0.92, -2.42, 0], [0.92, -3.35, 0], color=CRIMSON, stroke_width=4.8),
         )
         cap_cap = Arc(radius=0.475, start_angle=0, angle=PI, arc_center=[1.4, -0.25, 0], color=CRIMSON, stroke_width=4.8)
-        portal_line = Line([1.88, -1.95, 0], [4.1, -1.95, 0], color=CRIMSON, stroke_width=14, stroke_opacity=0.55)
+        portal_line = Line([1.88, -1.95, 0], [4.1, -1.95, 0], color=CRIMSON, stroke_width=22, stroke_opacity=0.55)
         liver = Polygon(
             [4.05, -0.9, 0], [5.95, -1.2, 0], [5.85, -2.55, 0], [4.15, -2.55, 0],
             color=CRIMSON, stroke_width=3.8, fill_color=CRIMSON, fill_opacity=0.35,
@@ -1338,7 +1440,7 @@ class S13Sort(SpokenScene):
 
         # Place both labels clearly to the right of the particle path, between cell bottom and capillary cap
         self.at("Sugars")
-        sugars = VGroup(*[Dot([x, 1.55, 0], radius=0.08, color=WHITE) for x in [-0.7, -0.2, 0.3]])
+        sugars = VGroup(*[Dot([x, 1.55, 0], radius=0.08, color=WHITE) for x in [-0.50, -0.20, 0.10]])
         sug_lbl = T("sugars, amino acids", size=26, color=TEXT).move_to([1.25, 0.90, 0], aligned_edge=LEFT)
         self.play(
             FadeIn(sugars), FadeIn(sug_lbl),
@@ -1350,7 +1452,7 @@ class S13Sort(SpokenScene):
         self.at("short and medium")
         stubs = VGroup(*[
             RoundedRectangle(corner_radius=0.03, width=0.26, height=0.10, color=GREEN, fill_color=GREEN, fill_opacity=0.95, stroke_width=0).move_to([x, 1.18, 0])
-            for x in [-0.6, 0.1]
+            for x in [-0.50, 0.0]
         ])
         stub_lbl = T("short, medium chains", size=24, color=GREEN).move_to([1.25, 0.46, 0], aligned_edge=LEFT)
         self.play(
@@ -1363,19 +1465,20 @@ class S13Sort(SpokenScene):
 
         wait_port = max(0.1, self.t_of("leave for the portal blood") - 0.25 - self.elapsed())
         if wait_port > 0.2:
+            sug_path = VMobject().set_points_as_corners([[0.2, -0.88, 0], [1.4, -0.88, 0], [1.4, -1.95, 0]])
+            stub_path = VMobject().set_points_as_corners([stubs.get_center(), [0.35, -2.28, 0], [1.4, -2.28, 0], [1.4, -1.95, 0]])
             self.play(
-                stubs.animate.move_to([0.35, -1.65, 0]),
-                sugars.animate.move_to([1.35, -1.95, 0]),
+                MoveAlongPath(sugars, sug_path, rate_func=linear),
+                MoveAlongPath(stubs, stub_path, rate_func=linear),
                 run_time=wait_port,
-                rate_func=linear,
             )
 
-        # Route sugars & stubs into lower portal blood & lower liver edge (never covering 'liver' at y = -1.35!)
+        # Route sugars & stubs into portal blood centerline (y = -1.95) & lower liver edge (never covering 'liver' at y = -1.35!)
         self.at("leave for the portal blood")
         self.play(
             FadeOut(sug_lbl), FadeOut(stub_lbl),
-            sugars.animate.move_to([4.55, -2.08, 0]),
-            stubs.animate.move_to([3.35, -2.08, 0]),
+            sugars.animate.move_to([4.55, -1.95, 0]),
+            stubs.animate.move_to([3.35, -1.95, 0]),
             c_ly1.animate.shift(DOWN * 0.25),
             c_ly2.animate.shift(DOWN * 0.20),
             run_time=max(1.2, self.narration_s + 0.35 - self.elapsed()),
@@ -1389,14 +1492,14 @@ class S14Close(SpokenScene):
         lumen = make_lumen_bg(y_min=0.55, y_max=3.8, opacity=0.10)
         tag = scope_tag("schematic")
         cells, bb = make_brush_border_row(y_top=0.55, cell_h=1.25, highlight_center=False)
-        lacteal = make_lacteal_vessel(x_c=-2.6, y_top=-1.35, y_bot=-3.45, width=1.18, open_gap=0.55, brightened=True)
+        lacteal = make_lacteal_vessel(x_c=-2.6, y_top=-1.35, y_bot=-3.45, width=1.18, open_gap=0.75, brightened=True)
         capillary = make_capillary_vessel(x_c=2.4, y_top=-1.35, y_bot=-3.45, width=0.92, brightened=True)
 
         clouds, coats, _, _ = make_droplet_cloud(np.array([-2.8, 1.95, 0.0]), n=10, radius=0.25, spread=(2.2, 0.6), seed=3)
         lipases = VGroup(*[make_lipase(scale=0.68).move_to(p) for p in [[-4.7, 2.35, 0], [-1.0, 2.25, 0], [-2.7, 1.25, 0]]])
         mic1 = make_micelle(center=np.array([0.8, 1.85, 0]), radius=0.35, seed=4)
         mic2 = make_micelle(center=np.array([2.4, 1.65, 0]), radius=0.35, seed=5)
-        chylo = make_chylomicron(center=np.array([-1.05, -1.55, 0]), radius=0.45)
+        chylo = make_chylomicron(center=np.array([-0.90, -1.65, 0]), radius=0.45)
         sugars = VGroup(*[Dot([2.4, -1.30 - 0.42 * i, 0], radius=0.075, color=WHITE) for i in range(3)])
 
         self.add(lumen, tag, cells, bb, lacteal, capillary, clouds, coats, lipases, mic1, mic2, chylo, sugars)
@@ -1438,6 +1541,7 @@ class S14Close(SpokenScene):
             mic1.animate.shift(DOWN * 0.50),
             mic2.animate.shift(DOWN * 0.20),
             sugars.animate.shift(DOWN * 0.25),
+            chylo.animate.move_to([-1.00, -2.35, 0]),
             run_time=1.0,
         )
 
@@ -1445,13 +1549,13 @@ class S14Close(SpokenScene):
         s3_lbl = T("3. wide door", size=28, color=PURPLE).move_to([-5.0, -2.1, 0])
         self.play(
             FadeIn(s3_lbl, run_time=0.35),
-            chylo.animate.move_to([-2.6, -1.75, 0]),
+            chylo.animate.move_to([-2.6, -2.35, 0]),
             sugars.animate.shift(DOWN * 0.30),
             run_time=1.2,
             rate_func=linear,
         )
         self.play(
-            chylo.animate.shift(DOWN * 0.75),
+            chylo.animate.shift(DOWN * 0.50),
             sugars.animate.shift(DOWN * 0.20),
             run_time=max(0.4, self.narration_s + 0.35 - self.elapsed()),
             rate_func=linear,
