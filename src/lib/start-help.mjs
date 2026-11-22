@@ -1,9 +1,9 @@
 /* The help words on /start/ and /start/help/, in one place.
 
    Wording approved by the site's owner on 2026-11-22 in its calmer form: the line under the box
-   names no harm, and the help page's headings name the help, not the harm. /start/ and
-   /start/help/ stay noindex and unlinked until he says where the box is linked from. Change the
-   words here and nowhere else.
+   names no harm, and the help page's headings name the help, not the harm. /start/ is linked from
+   /ideas/, /courses/ and the nothing-found state of the site search; /start/help/ stays noindex.
+   Change the words here and nowhere else.
 
    Why the page has them at all: children use the box, and a search box cannot tell when a
    sentence is a call for help. So the help does not depend on detecting one: `line` is on the page
