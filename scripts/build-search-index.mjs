@@ -64,13 +64,21 @@ export async function buildSearchIndex(site) {
     const byType = {};
     if (existsSync(recFile)) {
       const { records } = JSON.parse(await readFile(recFile, 'utf8'));
+      // Pagefind keeps one entry per URL (the hash does not count): a record must not share one with a
+      // page or another record, or it silently replaces it (a Side Hop at /lessons/x/ would hide the lesson).
+      const seen = new Set();
+      for (const rec of records) {
+        const key = rec.url.split('#')[0];
+        if (seen.has(key) || /^\/lessons\/[^/?]+\/$/.test(key) || key === '/math-toolkit/') throw new Error(`search record URL ${rec.url} is not unique (it would replace a page or another record)`);
+        seen.add(key);
+      }
       for (const rec of records) {
         const r = await index.addHTMLFile({ url: rec.url, content: recordHtml(rec) });
         if (r.errors?.length) throw new Error(`search record ${rec.url}: ${r.errors.join('; ')}`);
         added++;
         byType[rec.type] = (byType[rec.type] ?? 0) + 1;
       }
-      await rm(recFile);
+      if (!process.env.KEEP_SEARCH_RECORDS) await rm(recFile);
     } else {
       console.warn('search: dist/search-records.json is missing; only pages are indexed.');
     }

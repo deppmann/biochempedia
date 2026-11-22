@@ -17,6 +17,7 @@
  *              itself has no typo tolerance: for a word it does not know, it shortens the word until
  *              something starts with what is left, so matchedWords/realMatches below keep only the
  *              records whose matched words are really close to the ones typed (as the lesson search does).
+ *              When that leaves nothing, shorter starts of each word are tried here before giving up.
  *   "a phrase" in quotes: those words next to each other, exactly.
  * When nothing has every word of a two- to four-word query, records with all but one are offered,
  * marked as partial.
@@ -134,6 +135,8 @@ export function createTypedSearch(loadPagefind: () => Promise<Pf | null>) {
     const d = await fetchData(r);
     const m = d.meta ?? {};
     const url = d.url.replace(/^.*?(?=\/(?:lessons|watch|methods|math-toolkit|films)\/)/, '');
+    // The word highlighter runs on lesson pages only; elsewhere the extra parameters are noise.
+    const tidy = (u: string) => (/^\/(?:lessons)\//.test(u) ? u : u.replace(/([?&])pagefind-highlight=[^&#]*/g, '$1').replace(/[?&]+(?=#|$)/, '').replace(/\?&+/, '?').replace(/&&+/g, '&'));
     const marks = (h: string) => new Set((h.match(/<mark>.*?<\/mark>/g) ?? []).map((x) => x.toLowerCase())).size;
     const subs = (d.sub_results ?? []).filter((s) => /<mark>/.test(s.excerpt));
     const lines: Line[] = [...subs]
@@ -143,16 +146,18 @@ export function createTypedSearch(loadPagefind: () => Promise<Pf | null>) {
         const id = s.anchor?.id ?? /#([^#]+)$/.exec(s.url)?.[1] ?? '';
         const at = secondsOfId(id);
         const subUrl = s.url.replace(/^.*?(?=\/(?:lessons|watch|methods|math-toolkit|films)\/)/, '');
-        const link = at != null && m.filmKey ? filmAt(url, m.filmKey, at) : subUrl;
+        const link = tidy(at != null && m.filmKey ? filmAt(url, m.filmKey, at) : subUrl);
         const label = at != null ? `at ${s.title}` : s.title === m.title ? '' : s.title;
-        return { label, url: link, html: s.excerpt, at };
+        // The run's heading is its clock ("0:33."): it is in the label already, so not in the excerpt.
+        const html = at != null ? s.excerpt.replace(/^(?:<mark>)?\d+:\d\d\.?(?:<\/mark>)?\s*/, '') : s.excerpt;
+        return { label, url: link, html, at };
       });
-    if (!lines.length && d.excerpt) lines.push({ label: '', url, html: d.excerpt, at: null });
+    if (!lines.length && d.excerpt) lines.push({ label: '', url: tidy(url), html: d.excerpt, at: null });
     const where = [m.courseTitle, m.levelTitle, m.lesson && m.lesson !== m.title ? m.lesson : ''].filter(Boolean).join(' · ');
     return {
       type,
       title: m.title ?? url,
-      url,
+      url: tidy(url),
       kicker: m.kicker ?? typeOf(type)?.one ?? '',
       where,
       ...(m.ladder ? { ladder: m.ladder } : {}),
@@ -173,6 +178,18 @@ export function createTypedSearch(loadPagefind: () => Promise<Pf | null>) {
     if (scope !== 'all') filters.course = scope;
     const real = (rs: PfResult[], ts: string[]) => (phrase ? Promise.resolve(rs) : realMatches(rs, ts));
     let results = await real((await pf.search(q, { filters })).results, terms);
+    // A misspelt word Pagefind could not place: try shorter starts of each word ourselves
+    // ("photosyntesis" -> "photosyn"), keeping only records with a word one or two letters off.
+    if (!results.length && !phrase && terms.length <= 4) {
+      for (let i = 0; i < terms.length && !results.length; i++) {
+        const t = terms[i];
+        for (let cut = t.length - 1; cut >= Math.max(4, Math.ceil(t.length * 0.6)) && !results.length; cut--) {
+          const tried = terms.map((x, j) => (j === i ? t.slice(0, cut) : x));
+          const got = (await pf.search(tried.join(' '), { filters })).results;
+          if (got.length) results = await realMatches(got, terms);
+        }
+      }
+    }
     let partial = false;
     if (!results.length && !phrase && terms.length >= 2 && terms.length <= 4) {
       const subsets = terms.map((_, i) => terms.filter((_x, j) => j !== i));
