@@ -243,10 +243,47 @@ class S14Turn(SpokenScene):
 class S15Reserve(SpokenScene):
     def construct(self):
         f=split_frame(); self.add(f)
-        self.at('Calcium feedback'); self.play(Indicate(f[2][2],scale_factor=1.03),run_time=.35)
-        self.at('While the light stays on'); self.play(Indicate(f[3],scale_factor=1.03),run_time=.3)
-        c=VGroup(*[Rectangle(width=.22,height=.45,color=TEAL,fill_opacity=.8).move_to([1.45+sign*.11,1.4,0]) for sign in [-1,1]])
-        self.at('reopens some channels'); self.add(c); self.play(c[0].animate.shift(LEFT*.18),c[1].animate.shift(RIGHT*.18),Transform(f[2][1],gauge(.55,5,y=.15,h=3.7,w=1)),FadeIn(reserve_label()),run_time=.6); self.finish()
+        # Four channels on the outer-segment left membrane (x=1.04): 1 open, 3 closed initially.
+        ch_ys=[1.68,1.24,.80,.36]
+        chans=VGroup(*[
+            VGroup(
+                Rectangle(width=.24,height=.09,color=TEAL,fill_color=TEAL,fill_opacity=.85).move_to([1.04,y+.045+(.09 if i==0 else 0),0]),
+                Rectangle(width=.24,height=.09,color=TEAL,fill_color=TEAL,fill_opacity=.85).move_to([1.04,y-.045-(.09 if i==0 else 0),0]),
+            )
+            for i,y in enumerate(ch_ys)
+        ])
+        self.add(chans)
+        ca_lbl=T('Ca²⁺',28,ORANGE).move_to([.52,2.25,0])
+        def make_stream(y,n=3):
+            dots=VGroup(*[Dot([.35+k*(1.2/n),y,0],radius=.055,color=ORANGE,fill_opacity=1) for k in range(n)])
+            def flow(mob,dt):
+                for d in mob:
+                    d.shift(RIGHT*.75*dt)
+                    if d.get_x()>1.55: d.set_x(.35)
+            dots.add_updater(flow)
+            return dots
+        ca_stream1=make_stream(ch_ys[0])
+        ca_extra=VGroup(make_stream(ch_ys[1]),make_stream(ch_ys[2]))
+        self.at('Calcium enters')
+        self.add(ca_stream1); self.play(FadeIn(ca_lbl),run_time=.4)
+        fb_up=CurvedArrow([1.68,1.72,0],[3.15,1.52,0],angle=-.45,color=ORANGE,stroke_width=5,tip_length=.2)
+        fb_down=CurvedArrow([2.62,.92,0],[1.88,1.02,0],angle=.3,color=ORANGE,stroke_width=5,tip_length=.2)
+        fb_lbl=T('feedback loop',28,ORANGE).move_to([2.95,2.35,0])
+        self.at('feeding a feedback loop')
+        self.play(Create(fb_up),FadeIn(fb_lbl),Create(fb_down),run_time=.8)
+        self.at('While the light stays on')
+        self.play(Indicate(f[3],scale_factor=1.03),run_time=.55)
+        self.at('reopens some channels')
+        self.play(
+            chans[1][0].animate.shift(UP*.09),chans[1][1].animate.shift(DOWN*.09),
+            chans[2][0].animate.shift(UP*.09),chans[2][1].animate.shift(DOWN*.09),
+            Transform(f[2][1],gauge(.55,5,y=.15,h=3.7,w=1)),
+            FadeIn(ca_extra),
+            run_time=.8,
+        )
+        self.at('keeping current in reserve',lead=.3)
+        self.play(FadeIn(reserve_label()),run_time=.25)
+        self.finish()
 
 
 class S16Trim(SpokenScene):
@@ -366,5 +403,3 @@ class S24Take(SpokenScene):
 
 class S23End(EndCard):
     LINE='Calcium feedback helps keep some current in reserve.'
-    def construct(self):
-        self.add(label('Calcium feedback helps keep',y=.8,size=40),label('some current in reserve.',y=-.05,size=40),label('biochemistrypedia.com',y=-1.3,size=30,color=TEAL)); self.finish()

@@ -5,12 +5,12 @@ course: "signaling"
 courseChapter: "Cell Signaling · Unit 6: Channels, the nucleus, and life or death"
 order: 133
 summary: >-
-  How does a cell notice broken DNA, a reactive chemical or a backlog of unfolded protein, and
-  answer quickly? Several stress sensors share one design: the responder is made all the time
-  and held off or destroyed, and the stress removes the restraint. After this lesson you can
-  trace that design through p53 and MDM2, Nrf2 and Keap1, and the unfolded protein response,
-  describe the p38 and JNK cascades, and explain why the timing of a stress signal carries
-  information.
+  Many stress pathways hold responders back until stress removes the restraint; how a stress
+  signal unfolds over time helps decide cell fate. Follow that design through p53 and MDM2,
+  Nrf2 and Keap1, and the endoplasmic reticulum unfolded protein response, alongside the
+  three-tier p38 and JNK kinase cascades. Afterwards you can connect turnover rates to rapid
+  accumulation, explain how signal timing separates repair from permanent arrest or death, and
+  interpret single-cell p53 pulses.
 hook: "Your cells build p53 all day and destroy it almost as fast. Why make a guardian only to shred it?"
 
 estMinutes: 24
@@ -24,10 +24,15 @@ explainer:
   src: "/explainers/stress-signals/explainer.mp4"
   captions: "/explainers/stress-signals/explainer.vtt"
   poster: "/explainers/stress-signals/poster.jpg"
-  title: "Made All Day, Held Back Until Needed"
-  durationSec: 159.2
-  narration: "an AI narrator voice (ElevenLabs, Sarah) reading narration written from this lesson's text"
+  title: "Made All Day, Held Back Until Stress"
+  durationSec: 202.6
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+  takeaways:
+    - "Many stress pathways hold responders back until stress removes the restraint."
+    - "At balance, a responder's level equals synthesis rate divided by destruction rate constant, so slowing destruction raises the level without waiting for transcription."
+    - "After DNA double-strand breaks, ATM and downstream kinases phosphorylate p53 and MDM2, loosening MDM2's grip so p53 climbs quickly."
+    - "Keap1 senses electrophiles when they react with its reactive cysteines, stopping Nrf2 delivery for destruction so newly made Nrf2 reaches the nucleus."
 
 scientists:
   - name: "Jiahuai Han and Richard Ulevitch"
@@ -405,96 +410,164 @@ corpusTags:
   - "signal-timing"
 draft: false
 films:
-  - id: "folding-sensor"
-    src: "/explainers/stress-signals/folding-sensor.mp4"
-    captions: "/explainers/stress-signals/folding-sensor.vtt"
-    poster: "/explainers/stress-signals/folding-sensor-poster.jpg"
-    title: "A Cut That Shifts the Frame"
-    durationSec: 95.9
-    narration: "an AI narrator voice (ElevenLabs, Sarah) reading narration written from this lesson's text"
+  - id: "chapter-2"
+    src: "/explainers/stress-signals/chapter-2.mp4"
+    captions: "/explainers/stress-signals/chapter-2.vtt"
+    poster: "/explainers/stress-signals/chapter-2-poster.jpg"
+    title: "Pulses and Persistence: How Timing Sets Fate"
+    durationSec: 203.9
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
     aiGenerated: true
+    takeaways:
+      - "How a stress signal unfolds over time helps decide cell fate."
+      - "After gamma irradiation, single cells fire p53 in discrete pulses of fixed average size, more of them at higher doses, which out-of-step averaging blurs into a smooth wave on a blot."
+      - "In one cell line, holding p53 steady with an MDM2 blocker shifted cells from recovery toward senescence, and at equal total p53 steady p53 still drove senescence genes harder."
+      - "In the endoplasmic reticulum, stress sensors first favour repair by lowering load and adding chaperones, then shift toward death-promoting signals if stress persists."
 ---
 
 import LessonFilm from '../../../components/LessonFilm.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import Support from '../../../components/Support.astro';
 
-**Your cells make a protein called p53 all day long, and half of any newly made batch is destroyed within about twenty minutes. Why build a guardian only to shred it?** Because a cell in danger cannot wait for a gene to be read and a protein to be built. If the responder already exists and something is holding it back, the cell only has to let go.
+**Your cells build p53 all day and destroy half of any new batch within about twenty minutes. Why make a guardian only to shred it?** Because a cell in danger cannot wait for a gene to be read and a protein to be built: if the responder already exists and is held back, the cell only has to let go. The first film showed how lifting a restraint lets p53 and Nrf2 climb fast; below are the turnover math, molecular details, and how signal timing steers cell fate.
 
-## The idea: the responder is made all the time and held back
+<Support>**The one idea.** Many stress pathways hold responders back until stress removes the restraint; how a stress signal unfolds over time helps decide cell fate. **Scope:** Release of restraint covers degraded responders (p53, Nrf2, HIFα) and partner-held kinases or sensors (ASK1, ER sensors); p38 and JNK mostly relay signals by phosphorylation. Timing acts alongside signal level, stress strength and cell state.</Support>
 
-You have met this design before: the α subunit of HIF is made constantly and destroyed while oxygen is present (the lesson on ubiquitin), β-catenin is destroyed until Wnt arrives, and NF-κB waits in the cytoplasm until IκB is destroyed. Think of a car at a red light with the engine running and a foot on the brake. Lifting the foot is faster than starting the engine.
+## Built to turn on fast: p53–MDM2 and Keap1–Nrf2
 
-p53 is a transcription factor, a protein that binds DNA and switches genes on. Its restraint is MDM2, an E3 ubiquitin ligase. MDM2 grips a short helix at the front end of p53. The grip covers the part of p53 that activates genes, and MDM2 tags p53 with ubiquitin, which sends it to the proteasome.
+Think of a car at a red light with the engine running and a foot on the brake: lifting the foot beats starting the engine. You have met two versions before. Either the responder itself is made constantly and destroyed until a signal protects it—like HIFα while oxygen is present (the lesson on ubiquitin) and β-catenin until Wnt arrives—or an intact responder waits quietly until its partner is removed or occupied, like NF-κB held in the cytoplasm until IκB is destroyed.
 
-One of the genes p53 switches on is the gene for MDM2. p53 orders its own destroyer: negative feedback, as in the lesson on signaling circuits.
+Under constant synthesis and first-order destruction, a responder's steady-state pool obeys:
 
-DNA damage breaks the pair apart. A break across both strands switches on a kinase called ATM. ATM and the kinases beneath it add phosphates to the stretch of p53 that MDM2 grips, and to MDM2 itself. The grip loosens and destruction slows sharply, so p53 piles up without any new gene being read. It then switches on the gene for p21, a protein that blocks the kinases driving cell division, along with genes for DNA repair. If the damage is severe it also switches on genes that kill the cell, the subject of the next lesson.
+> **steady-state level = synthesis rate ÷ destruction rate constant**
 
-<LessonFigure src="/figures/stress-signals/held-back-until-damage.webp" width={1200} height={800} alt="AI-generated illustration: two cells. In the calm cell, the responder protein is made steadily, gripped by its destroyer, tagged and sent to be shredded. In the damaged cell, a kinase beside a break in the DNA adds phosphates to both, the grip falls away, the responder piles up and sits on genes that block cell division and make more of its own destroyer." caption="The responder is made all the time and held back, so the cell only has to let go. Damage switches on a kinase that marks both proteins, the grip loosens, and the responder piles up without any new gene being read." />
+Because half-life varies inversely with that constant (half-life = ln 2 ÷ k_d), lengthening half-life raises steady state by the same factor with no new transcription. At 60 units per hour and a rate constant of 2 per hour (half-life ~21 min), steady state is 30 units; slowing destruction fourfold to 0.5 per hour (half-life ~83 min) lifts it to 120 units. From p53's ~20-minute half-life, halting destruction lets steady synthesis double the pool in under half an hour.
 
-A cell without working p53 can keep dividing with broken chromosomes, which is why TP53, the gene for p53, is the most frequently mutated gene in human cancer. Most of those mutations fall in the domain that touches DNA. Some tumors, sarcomas among them, keep p53 intact and carry extra copies of the MDM2 gene instead, so the brake stays pressed down hard.
+### DNA breaks: p53 and MDM2
 
-## Pulses, not a dial: the timing of a signal carries information
+**p53** is a **transcription factor**, a protein that binds DNA and activates genes. Its restraint is **MDM2**, an **E3 ubiquitin ligase** that grips a short helix at p53's front end, covering its gene-activating region and tagging p53 with ubiquitin for the proteasome. Crucially, p53 switches on the *MDM2* gene itself—ordering its own destroyer in a negative feedback loop (as in the lesson on signaling circuits).
 
-Grind up millions of irradiated cells, measure p53 on a blot, and you see it rise and then fade, at most with a damped wave or two. The natural reading is a dial: more damage, more p53.
+A break across both DNA strands activates the kinase **ATM**. ATM and the kinases beneath it phosphorylate both p53's MDM2-binding stretch and MDM2 itself, loosening their grip so destruction slows sharply. Accumulated p53 activates **p21** (blocking kinases that drive cell division), DNA repair genes, and—under severe damage—cell-death genes (the next lesson).
 
-Galit Lahav tested that reading by watching one cell at a time. Working with Uri Alon at the Weizmann Institute, she built human cells in which p53 carried a cyan fluorescent tag and MDM2 a yellow one, irradiated them, and filmed them for hours. In single cells p53 rose and fell in separate pulses. The average height and width of a pulse did not depend on the dose. What rose with the dose was the average number of pulses, and genetically identical cells in one dish gave none, one, two or more.
+**Predict.** You add a small molecule that plugs MDM2's p53-binding cleft to healthy cells with intact DNA. What happens to p53 levels over the next hour?
 
-Why had blots hidden this? The cells pulse out of step, so the peaks of some fill the troughs of others. Average a thousand strobe lights flashing at different moments and you record a steady glow.
+<details>
+<summary>Check your prediction</summary>
 
-The pattern depends on the stress. Pulses of fixed size belong to gamma rays, which break both DNA strands. After ultraviolet light, p53 rises in a single pulse whose height and length grow with the dose. And in cancer cells given chemotherapy, whether a cell dies depends on how high p53 climbs and how soon, so the level of p53 carries information too.
+p53 climbs sharply without DNA damage: synthesis continues while MDM2 cannot grip or tag p53 for the proteasome—the mechanism of nutlin-3, which returns below.
 
-Does the shape of the signal matter? In 2012 Lahav's laboratory used timed doses of nutlin-3, a small molecule that blocks MDM2, to hold p53 steady at about the height of one natural pulse. In the cell line they studied, irradiated cells left to pulse tended to recover and divide again. Cells held steady more often entered senescence, a permanent exit from division. The protein and its peak level were the same. Holding p53 up also meant more p53 in total, but when the group compared cells at equal total p53, sustained p53 still switched on senescence genes more strongly. The shape of the signal over time mattered.
+</details>
+
+<LessonFigure src="/figures/stress-signals/held-back-until-damage.webp" width={1200} height={800} alt="AI-generated illustration: two cells. In the calm cell, the responder protein is made steadily, gripped by its destroyer, tagged and sent to be shredded. In the damaged cell, a kinase beside a break in the DNA adds phosphates to both, the grip falls away, the responder piles up and sits on genes that block cell division and make more of its own destroyer." caption="MDM2 tags constitutively made p53 for destruction, so DNA-damage phosphorylation lets p53 accumulate without waiting for new transcription." />
+
+Cells without working p53 keep dividing with broken chromosomes, making *TP53*, the gene for p53, the most frequently mutated gene in human cancer, mostly in its DNA-binding domain. Some tumors, sarcomas among them, keep p53 intact and carry extra copies of *MDM2* instead, keeping the brake pressed down.
+
+### Chemical threats: Keap1 and Nrf2
+
+Oxidants and **electrophiles**—molecules short of electrons that react with DNA and protein—threaten cells chemically. Their responder, **Nrf2**, is a transcription factor that activates protective enzyme genes, including those joining an electrophile to glutathione for excretion. Made constantly, Nrf2 is gripped by **Keap1** (part of a ubiquitin ligase), keeping its half-life well under an hour in calm cells.
+
+Keap1 senses electrophiles by getting hit. Cysteine side chains end in sulfur atoms that give up electrons easily, and mouse Keap1 has 25 cysteines among 624 amino acids, several unusually reactive. Electrophiles such as **sulforaphane** (from broccoli) react with them. On the current view, altered Keap1 stops passing Nrf2 on for destruction, so Keap1 catchers fill up and newly made Nrf2 enters the nucleus.
+
+**Predict.** On that model, modified Keap1 keeps holding older Nrf2 without delivering it for destruction. If you also block all new protein synthesis when an electrophile arrives, will much Nrf2 reach the nucleus?
+
+<details>
+<summary>Check your prediction</summary>
+
+Very little: because altered Keap1 still grips the older Nrf2, nuclear entry depends on newly made Nrf2 escaping once Keap1 is occupied.
+
+</details>
+
+<LessonFigure src="/figures/stress-signals/sensor-attacked.webp" width={1200} height={800} alt="AI-generated illustration: two cells. In the calm cell a responder protein is made steadily, held by a catcher with reactive knobs on its surface, and passed on to be destroyed. When electrophiles arrive they stick to those knobs, the catcher can no longer pass the responder on, and newly made responder reaches the DNA and switches on protective enzymes." caption="Electrophiles modify reactive cysteines on Keap1 so it stops delivering Nrf2 for destruction, allowing newly made Nrf2 to activate protective genes." />
+
+Unlike a shaped receptor pocket, Keap1 reads hunger for electrons, sensing a broad family of unrelated chemicals. Which cysteine responds depends on the compound: in mice with serine replacing cysteine 151, sulforaphane does much less to Nrf2 while other inducers still work. Dimethyl fumarate, used for relapsing multiple sclerosis, is an electrophile that activates Nrf2, though how much of its benefit comes that way is debated. *(See Going deeper for how Talalay, Itoh and Yamamoto traced sulforaphane to Keap1.)*
+
+## Three-tier stress relays: p38 and JNK
+
+Stress pathways also co-opt the three-tier MAPK plan (Raf, MEK, ERK from the lesson on Ras and MAPK), ending in **p38** and **JNK**. Above p38 sit the MAP2Ks **MKK3** and **MKK6**, above JNK sit **MKK4** and **MKK7**, and above those sit many MAP3Ks wired to distinct stresses. In the standard route, p38 and JNK—like ERK—require a MAP2K to phosphorylate both a threonine and a tyrosine one residue apart.
+
+Triggers include ultraviolet light, heat, sudden salt changes, oxidants, bacterial products, TNF and interleukin-1. One MAP3K, **ASK1**, repeats partner restraint: **thioredoxin** holds ASK1 off until oxidants make thioredoxin let go.
+
+**Predict.** If a mutation stops thioredoxin from binding ASK1, what happens to p38 and JNK in an unstressed cell?
+
+<details>
+<summary>Check your prediction</summary>
+
+Freed from thioredoxin, ASK1 would be expected to switch on its MAP2Ks without oxidants, so p38 and JNK would gain phosphates in an unstressed cell.
+
+</details>
+
+- **p38** resembles yeast **HOG1**, which helps yeast survive high salt *(see Going deeper for its 1994 discovery)*. Remember two jobs: in immune cells p38 raises TNF and interleukin-1 output partly through **MK2**, and MK2 phosphorylates **Hsp27**, a small chaperone protecting stressed proteins.
+- **JNK** (**c-Jun N-terminal kinase**, found in the early 1990s as a UV- and stress-activated kinase) phosphorylates serines 63 and 73 of **c-Jun**, the AP-1 partner from the previous lesson, strengthening gene activation. Persistent stress pushes JNK toward cell death (the next lesson). In neurons **DLK** feeds JNK: Ghosh and colleagues (2011) reported that cultured sensory neurons from mouse embryos lacking DLK resist both axon degeneration and cell death after losing nerve growth factor.
+
+Starting a stress pathway fast is only half the problem; how a cell reads a signal's pattern over time to choose between repair and permanent arrest or death is the subject of the second film.
+
+<LessonFilm film={frontmatter.films[0]} />
+
+## Pulses, not a dial: reading the timing of p53
+
+The second film showed why dish blots blur single-cell pulses—like averaging a thousand out-of-step strobe lights into a steady glow. Working with Uri Alon at the Weizmann Institute, Galit Lahav tagged p53 cyan and MDM2 yellow in human cells and filmed single cells for hours after gamma irradiation. Individual cells fired discrete p53 pulses of fixed average height and width; higher doses raised the average pulse count, while genetically identical neighbours gave none, one, two or more.
+
+**Predict.** Since p53 activates the *MDM2* gene and MDM2 destroys p53, should yellow MDM2 peak before, with, or slightly after cyan p53 during each pulse?
+
+<details>
+<summary>Check your prediction</summary>
+
+Slightly after cyan p53: p53 must rise first to drive new MDM2 synthesis, and after that lag yellow MDM2 builds up and knocks cyan p53 down.
+
+</details>
+
+The pattern depends on the stress. Fixed-size pulses belong to gamma rays (double-strand breaks). Ultraviolet light gives one pulse whose height and length grow with dose, and in chemotherapy-treated cancer cells death depends on how high p53 climbs and how soon—so level carries information too.
+
+In 2012 Lahav's laboratory used timed doses of the MDM2 blocker **nutlin-3** to hold p53 steady at about the height of one natural pulse. In that cell line, pulsing cells tended to recover and divide, while steady cells more often entered **senescence**, a permanent exit from division. The protein and its peak level were the same. Holding p53 up also meant more p53 in total, but at equal total p53, sustained p53 still switched on senescence genes more strongly: signal shape mattered.
 
 ### Design problem
 
-After a dose of radiation, the amount of p53 in a single cell rises and falls in pulses of about the same size. More damage gives more pulses, not bigger ones. Design a circuit of two proteins that gives pulses and not a steady rise. Then say how a cell could use the number of pulses to choose between recovering and leaving the cell cycle for good.
+After radiation, p53 in a single cell fires pulses of roughly fixed size, with more damage adding more pulses. Design a two-protein circuit that pulses instead of rising steadily, and explain how a cell could use pulse count to choose between recovery and permanent exit from division.
 
 <details>
 <summary>One way to do it</summary>
 
-Use an activator A and a destroyer D. A switches on the gene for D, and D marks A for destruction. That is negative feedback, and enough delay, with a steep enough response, turns it from a thermostat into a pulse generator. Making D takes time, so A keeps climbing and overshoots. When D arrives in bulk it knocks A down. With A gone no new D is made, the old D decays, and A can climb again.
+Pair activator A with destroyer D: A activates the gene for D, and D marks A for destruction. With enough delay and a steep response, negative feedback oscillates: making D takes time so A overshoots, arriving D knocks A down, D decays with A gone, and A climbs again.
 
-To let damage set the number of pulses, make the damage signal a gate: while breaks remain, a damage kinase keeps loosening D's grip so each cycle can start. The loop sets the height of a pulse and the damage sets how many there are.
-
-To count, give A two kinds of target gene. Arrest and repair genes make short-lived products that rise and fall with A. A gene for permanent arrest makes a long-lived product, a little with each pulse. A few pulses leave it below a threshold. Many pulses, which mean the damage is still there, push it over.
+To let damage set pulse count, gate the loop with a damage kinase that loosens D's grip while breaks remain. To count pulses, give A short-lived arrest-and-repair targets that rise and fall with A, plus a long-lived permanent-arrest target that accumulates bit by bit across pulses until many pulses push it over threshold.
 
 </details>
 
-## The stress kinases: the three-tier plan again
+## Three sensors in the folding compartment: the unfolded protein response
 
-In the lesson on Ras and MAPK you followed three kinases in a row: Raf, MEK, ERK. Stress pathways have co-opted this plan, ending in p38 and JNK. Above p38 sit the MAP2Ks MKK3 and MKK6, above JNK sit MKK4 and MKK7, and above those sit many MAP3Ks, each wired to a different kind of trouble. In the standard route, p38 and JNK, like ERK, are fully switched on only when a MAP2K adds two phosphates, to a threonine and a tyrosine one residue apart.
+The **unfolded protein response (UPR)** applies both halves of this lesson's rule inside one organelle: lifting a restraint starts the alarm, and backlog duration helps steer repair toward death.
 
-What starts them? Ultraviolet light, heat, a sudden change in salt concentration, oxidants, bacterial products, and the inflammatory signals TNF and interleukin-1. One MAP3K, ASK1, repeats this lesson's design: it is held off by the small protein thioredoxin until an oxidant makes thioredoxin let go.
+Surface and secreted proteins fold in the **endoplasmic reticulum (ER)** with chaperones like **BiP**. When unfolded chains outpace folding, three ER-membrane sensors—each with one end inside the ER—respond. On the leading accounts, BiP holds them quiet until unfolded chains pull BiP away, and unfolded chains also bind IRE1 directly.
 
-p38 was reached from several directions in 1994. At Scripps, Jiahuai Han in Richard Ulevitch's laboratory cloned a protein that gained phosphate on tyrosine when macrophages met lipopolysaccharide, a piece of bacterial outer wall. It also gained phosphate when cells were put in a solution with too much solute, and its sequence resembled HOG1, the kinase yeast use to survive high salt. At SmithKline Beecham, John C. Lee's group used labeled versions of their own anti-inflammatory compounds as bait and recovered the same kinase. Two more groups reported it that year as a kinase switched on by stress and by interleukin-1.
+Going past the second film's repair-then-death overview, each sensor uses a distinct mechanism:
 
-Remember two jobs of p38. In immune cells it raises the output of TNF and interleukin-1, partly through a kinase beneath it called MK2. MK2 also phosphorylates Hsp27, a small chaperone that protects a stressed cell's proteins.
+- **IRE1 (cytoplasmic RNA splicing):** Clustering switches on IRE1's cytoplasmic RNase, which cuts a segment out of one mRNA—*HAC1* in yeast, *XBP1* in animals—before a ligase rejoins the ends; only the spliced message yields an active transcription factor ordering chaperones *(see Going deeper for the 1993 screens)*.
+- **PERK (slowing translation):** PERK phosphorylates **eIF2α**, a ribosome initiation factor, slowing global protein synthesis so fewer new chains enter the ER.
+- **ATF6 (regulated cleavage):** Like Notch, stressed ATF6 moves to the Golgi, where proteases release a fragment that enters the nucleus to activate chaperone genes.
 
-JNK is named for its substrate: c-Jun N-terminal kinase. It was found in the early 1990s as a kinase that ultraviolet light and other stresses switch on. It adds phosphates to serines 63 and 73 of c-Jun, the AP-1 partner from the previous lesson, making c-Jun a stronger activator of genes. When stress persists, JNK also pushes a cell toward death, a link the next lesson takes up. In neurons a MAP3K called DLK feeds JNK, and in 2011 Ghosh and colleagues reported that cultured sensory neurons from mouse embryos lacking DLK resist both the axon degeneration and the cell death that follow loss of nerve growth factor.
+**Predict.** In mammalian *XBP1* mRNA, IRE1 removes 26 nucleotides before ligation. Why does that change the protein's entire downstream tail instead of simply deleting eight or nine amino acids?
 
-## A sensor that works by being attacked: Keap1 and Nrf2
+<details>
+<summary>Check your prediction</summary>
 
-Some threats are chemicals: oxidants, and electrophiles, molecules short of electrons that react with DNA and protein. The responder is Nrf2, a transcription factor that switches on genes for protective enzymes, including those that join an electrophile to glutathione so it can be excreted. Nrf2 is made constantly. A protein called Keap1 catches it. Keap1 is the part of a ubiquitin ligase that grips Nrf2, so the ligase tags Nrf2 for destruction, and in a calm cell Nrf2 lasts well under an hour.
+Codons are read in threes, and 26 is not a multiple of three (remainder 2). Removing 26 nucleotides shifts the reading frame, giving the protein a new tail that makes it an active transcription factor.
 
-How does Keap1 learn that an electrophile has arrived? It gets hit by one. A cysteine side chain ends in a sulfur atom that gives up electrons easily, and mouse Keap1 has 25 cysteines among its 624 amino acids, a few of them unusually reactive. An electrophile such as sulforaphane, a compound from broccoli, reacts with them. The current view is that the altered Keap1 can no longer pass Nrf2 on for destruction, so newly made Nrf2 goes to the nucleus instead.
+</details>
 
-<LessonFigure src="/figures/stress-signals/sensor-attacked.webp" width={1200} height={800} alt="AI-generated illustration: two cells. In the calm cell a responder protein is made steadily, held by a catcher with reactive knobs on its surface, and passed on to be destroyed. When electrophiles arrive they stick to those knobs, the catcher can no longer pass the responder on, and newly made responder reaches the DNA and switches on protective enzymes." caption="The sensor works by being attacked: an electrophile reacts with reactive side chains on the catcher, which can then no longer pass the responder on for destruction, so newly made responder goes to the nucleus instead." />
+<LessonFigure src="/figures/stress-signals/upr-three-sensors.webp" width={1200} height={752} alt="AI-generated illustration: a horizontal ER membrane with three labelled sensor blocks, IRE1, PERK and ATF6, each with BiP on its lumen end and unfolded chains nearby. Two insets show that each sensor first drives repair, and that PERK and IRE1 branches can turn toward death-promoting outputs under long or severe stress, depending on cell state." caption="IRE1, PERK and ATF6 first cut load and add chaperones, then can favour death-promoting outputs via CHOP and ASK1–JNK under long or severe stress." />
 
-Unlike a receptor that fits its ligand in a shaped pocket, Keap1 reads a chemical property, hunger for electrons, so one protein can report on a large family of unrelated compounds. Which cysteine does the sensing depends on the compound. In mice whose Keap1 has serine in place of cysteine 151, sulforaphane does much less to Nrf2, while some other inducers work as before.
+All three branches repair first. If the backlog lasts, PERK's branch switches on **CHOP**, a death-promoting transcription factor, and IRE1 recruits an adaptor feeding **ASK1 and JNK**. As with p53, timing carries part of the information: brief stress mainly calls for repair, while long or severe stress suggests repair is failing, though stress strength and cell state matter too and adaptive and death signals can overlap. Heavy secretors depend critically on this balance: children born without working PERK develop diabetes within months of birth, and mice lacking PERK develop diabetes with too few insulin-producing pancreatic cells.
 
-Paul Talalay's laboratory in Baltimore isolated sulforaphane in 1992, and Ken Itoh and Masayuki Yamamoto in Tsukuba reported Keap1 in 1999. Together the groups then showed that inducers react with Keap1's cysteines. One medicine, dimethyl fumarate for relapsing multiple sclerosis, is an electrophile that turns on Nrf2, though how much of its benefit comes that way is debated.
+## Going deeper
 
-## A sensor inside the folding compartment: repair first, then death
+### How p38 was found from four directions in 1994
 
-<LessonFilm film={frontmatter.films[0]} />
+At Scripps, Jiahuai Han in Richard Ulevitch's laboratory cloned a protein gaining tyrosine phosphate after macrophages met bacterial lipopolysaccharide or high-solute medium, resembling yeast HOG1. At SmithKline Beecham, John C. Lee's group used labeled anti-inflammatory compounds as bait and recovered the same kinase. Two more groups reported it that year as a stress- and interleukin-1-activated kinase.
 
-Proteins headed for the cell surface or for export fold inside the endoplasmic reticulum (ER), helped by chaperones such as BiP. If unfolded chains arrive faster than they can be folded, the cell needs to know. The unfolded protein response does this with three sensors, each spanning the ER membrane with one end inside. The leading accounts: BiP sits on the sensors and is pulled away when unfolded chains need it, and unfolded chains also bind IRE1 directly.
+### Tracing broccoli sprouts to Keap1's cysteines
 
-IRE1 was tied to this response twice in 1993, by Kazutoshi Mori in Dallas and by Peter Walter's laboratory in San Francisco, in yeast screens for mutants that could not report a folding backlog. It looked like an ordinary kinase, and both groups first expected it to pass the signal on by phosphorylation. When unfolded protein builds up, IRE1 molecules cluster, and clustering switches on an RNA-cutting activity in their cytoplasmic ends. In its best-known job, IRE1 cuts a segment out of one messenger RNA, HAC1 in yeast and XBP1 in animals, and a ligase joins the ends. Only the spliced message yields an active transcription factor, which orders more chaperones. In mammalian XBP1 the piece removed is 26 nucleotides, not a multiple of three, so the reading frame shifts and the protein gains a new tail.
+Paul Talalay's laboratory in Baltimore isolated sulforaphane from broccoli in 1992, and Ken Itoh and Masayuki Yamamoto in Tsukuba reported Keap1 in 1999. Collaborating, the groups showed that inducers react directly with reactive cysteines on Keap1.
 
-PERK is a kinase that phosphorylates eIF2α, a factor ribosomes need to begin translation, so protein synthesis slows and fewer new chains enter the ER. ATF6 works like Notch: under stress it moves to the Golgi, proteases cut it, and the freed piece enters the nucleus to switch on chaperone genes.
+### The 1993 yeast screens behind IRE1
 
-<LessonFigure src="/figures/stress-signals/upr-three-sensors.webp" width={1200} height={752} alt="AI-generated illustration: a horizontal ER membrane with three labelled sensor blocks, IRE1, PERK and ATF6, each with BiP on its lumen end and unfolded chains nearby. Two insets show that each sensor first drives repair, and that PERK and IRE1 branches can turn toward death-promoting outputs under long or severe stress, depending on cell state." caption="Three sensors span the ER membrane. At first each lowers the load or raises folding capacity. Long or severe stress can favour death-promoting outputs through the PERK branch and CHOP, and through IRE1 signalling to ASK1 and JNK; duration, stress strength and cell state all matter, and adaptive and death-promoting signals can overlap." />
-
-All three first repair, by lowering the load and raising folding capacity. If the backlog lasts, the same sensors change their message. PERK's branch switches on CHOP, a transcription factor that promotes death, and IRE1 recruits an adaptor that feeds ASK1 and JNK. As with p53, timing carries part of the information: a brief stress mainly calls for repair, while a long or severe one suggests repair is failing. How strong the stress is and the state of the cell matter too. Heavy secretors depend on this especially: children born without working PERK develop diabetes within months of birth, and mice lacking PERK develop diabetes with too few insulin-producing cells in the pancreas.
+Kazutoshi Mori in Dallas and Peter Walter's laboratory in San Francisco independently found IRE1 in 1993 yeast screens for mutants unable to report ER folding stress. Because IRE1 looked like a membrane-spanning kinase, both first expected phosphorylation before cytoplasmic RNA cutting was discovered.
