@@ -1,0 +1,125 @@
+---
+/* The playlist tray (2026-11-22). Put it once on a page that shows film cards or film search
+   results: every card gets "Add to playlist", and a small tray at the foot of the screen lists what
+   is queued. The tray stays out of sight until something is added. Reorder with the arrow buttons,
+   remove with ✕, press a film to play from it, or Play for all of them in order. Play opens
+   /films/run/?list=...: nothing plays until the viewer presses play there.
+   Logic: src/lib/film-playlist.ts. Kept on this device; no account. */
+import '../styles/film-playlist.css';
+---
+
+<div class="fp" data-fp hidden>
+  <button type="button" class="fp-toggle" aria-expanded="false" aria-controls="fp-panel" data-fp-toggle>
+    <span class="fp-toggle-i" aria-hidden="true">▶</span>
+    <span>Playlist</span>
+    <span class="fp-n" data-fp-n>0</span>
+  </button>
+  <section class="fp-panel" id="fp-panel" aria-labelledby="fp-h" hidden data-fp-panel>
+    <div class="fp-head">
+      <h2 id="fp-h">Your playlist</h2>
+      <button type="button" class="fp-x" data-fp-close aria-label="Close the playlist">✕</button>
+    </div>
+    <p class="fp-sum" data-fp-sum></p>
+    <ol class="fp-list" data-fp-list></ol>
+    <div class="fp-go">
+      <a class="fp-btn primary" href="/films/run/" data-fp-play>▶ Play</a>
+      <button type="button" class="fp-btn" data-fp-clear>Clear</button>
+    </div>
+    <p class="fp-note">Kept on this device. Nothing plays until you press play.</p>
+  </section>
+  <p class="visually-hidden" role="status" aria-live="polite" data-fp-say></p>
+</div>
+
+<script>
+  import { clearPlaylist, decorateCards, moveFilm, onPlaylistChange, playHref, readPlaylist, removeFilm } from '../lib/film-playlist';
+
+  const root = document.querySelector<HTMLElement>('[data-fp]');
+  if (root) {
+    const $ = <T extends HTMLElement>(s: string) => root.querySelector<T>(s)!;
+    const toggle = $<HTMLButtonElement>('[data-fp-toggle]');
+    const panel = $('[data-fp-panel]');
+    const listEl = $('[data-fp-list]');
+    const sum = $('[data-fp-sum]');
+    const n = $('[data-fp-n]');
+    const play = $<HTMLAnchorElement>('[data-fp-play]');
+    const sayEl = $('[data-fp-say]');
+    const say = (t: string) => { sayEl.textContent = ''; window.setTimeout(() => { sayEl.textContent = t; }, 30); };
+    const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
+    const clock = (s: number) => `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, '0')}`;
+
+    const open = (on: boolean, focus = true) => {
+      panel.hidden = !on;
+      toggle.setAttribute('aria-expanded', String(on));
+      root.classList.toggle('is-open', on);
+      if (on && focus) panel.querySelector<HTMLElement>('h2')?.focus();
+      if (!on && focus) toggle.focus();
+    };
+    panel.querySelector('h2')!.tabIndex = -1;
+
+    let pending: { key: string; act: string } | null = null;
+    const draw = () => {
+      const list = readPlaylist();
+      root.hidden = list.length === 0;
+      if (!list.length && !panel.hidden) open(false, false);
+      n.textContent = String(list.length);
+      const secs = list.reduce((s, x) => s + x.d, 0);
+      const min = Math.max(1, Math.round(secs / 60));
+      sum.textContent = `${list.length} ${list.length === 1 ? 'film' : 'films'}, about ${min} ${min === 1 ? 'minute' : 'minutes'}.`;
+      play.href = playHref(list);
+      listEl.innerHTML = list.map((x, i) => `
+        <li data-key="${esc(x.f)}">
+          <button type="button" class="fp-item" data-act="play" aria-label="Play from here: ${esc(x.t)}">
+            ${x.o ? `<img src="${esc(x.o)}" alt="" width="64" height="36" loading="lazy" decoding="async">` : ''}
+            <span class="fp-item-t">${esc(x.t)}</span>
+            <span class="fp-item-d">${clock(x.d)}</span>
+          </button>
+          <span class="fp-tools">
+            <button type="button" data-act="up" ${i === 0 ? 'disabled' : ''} aria-label="Move up: ${esc(x.t)}">↑</button>
+            <button type="button" data-act="down" ${i === list.length - 1 ? 'disabled' : ''} aria-label="Move down: ${esc(x.t)}">↓</button>
+            <button type="button" data-act="remove" aria-label="Remove: ${esc(x.t)}">✕</button>
+          </span>
+        </li>`).join('');
+      // After a move or a removal, keep keyboard focus where the viewer was working.
+      if (pending) {
+        const li = listEl.querySelector<HTMLElement>(`li[data-key="${CSS.escape(pending.key)}"]`);
+        const target = li?.querySelector<HTMLButtonElement>(`[data-act="${pending.act}"]:not(:disabled)`) ?? li?.querySelector<HTMLButtonElement>('[data-act="play"]')
+          ?? listEl.querySelector<HTMLButtonElement>('[data-act="play"]') ?? play;
+        target.focus();
+        pending = null;
+      }
+    };
+    listEl.addEventListener('click', (e) => {
+      const b = (e.target as Element).closest<HTMLButtonElement>('button[data-act]');
+      const li = b?.closest<HTMLElement>('li[data-key]');
+      if (!b || !li) return;
+      const key = li.dataset.key!;
+      const list = readPlaylist();
+      const i = list.findIndex((x) => x.f === key);
+      const item = list[i];
+      if (!item) return;
+      const act = b.dataset.act;
+      if (act === 'play') { location.href = playHref(list, key); return; }
+      if (act === 'up' || act === 'down') {
+        pending = { key, act };
+        moveFilm(key, act === 'up' ? -1 : 1);
+        say(`${item.t} is now number ${i + (act === 'up' ? 0 : 2)} of ${list.length}.`);
+        return;
+      }
+      if (act === 'remove') {
+        const next = list[i + 1] ?? list[i - 1];
+        pending = next ? { key: next.f, act: 'play' } : null;
+        removeFilm(key);
+        say(`Removed ${item.t}.`);
+        if (!next) toggle.focus();
+      }
+    });
+    toggle.addEventListener('click', () => open(panel.hidden));
+    $('[data-fp-close]').addEventListener('click', () => open(false));
+    $('[data-fp-clear]').addEventListener('click', () => { clearPlaylist(); say('Your playlist is empty.'); });
+    root.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !panel.hidden) { e.stopPropagation(); open(false); } });
+
+    onPlaylistChange(draw);
+    draw();
+    decorateCards(document, (t) => { say(t); n.parentElement?.classList.remove('fp-bump'); void (n.parentElement as HTMLElement)?.offsetWidth; n.parentElement?.classList.add('fp-bump'); });
+  }
+</script>
