@@ -105,18 +105,26 @@ def question():
         formula('k_B T_abs = 4.1 × 10⁻²¹ J',y=-1.2,size=34),formula('ΔA = ?',y=-2.6,size=50,color=PURPLE))
 
 def area_frame():
-    a=VGroup(txt('Effective two-state area',y=3.1,size=36,color=PURPLE),
-        formula('ΔA = k_B T_abs / k',y=2.15,size=40),
-        formula('= (4.1 × 10⁻²¹ J)/(0.8 × 10⁻³ N/m)  (fit values)',y=1.1,size=27),
-        formula('= 5.1 × 10⁻¹⁸ m² ≈ 5 nm²',y=.1,size=36,color=GREEN),
-        formula('J ÷ (N/m) = m²',x=-3,y=-.85,size=28))
-    # Areas, rather than side lengths, differ by sixty-fold. Geometric comparison only.
-    big=Square(side_length=2.2,color=GREY,fill_color=GREY,fill_opacity=.12).move_to([2.6,-2,0])
-    small=Square(side_length=2.2/np.sqrt(60),color=PURPLE,fill_color=PURPLE,fill_opacity=.8).move_to([-3.0,-2,0])
-    a.add(VGroup(big,small,txt('5 nm²',-3,-3.45,32,PURPLE),
-                 txt('≈ 300 nm², about 60 times larger',2.6,-3.45,26),
-                 txt('Structural area comparison',2.6,-.65,24,GREY)))
-    return a
+    tag=txt('Effective two-state area',y=3.2,size=36,color=PURPLE)
+    switch_lbl=txt('Two-state switch  (closed ↔ open)',y=2.58,size=26,color=BLUE)
+    eq2=formula('ΔA = k_B T_abs / k',y=1.8,size=42)
+    term_kt=formula('k_B T_abs : thermal energy',size=26,color=TEXT)
+    term_k=formula('k : slope factor',size=26,color=YELLOW)
+    terms=VGroup(term_kt,term_k).arrange(RIGHT,buff=.7).move_to([0,1.12,0])
+    lhs=formula('ΔA =',x=-4.15,y=.05,size=36,color=PURPLE)
+    bar=Line([-3.25,.05,0],[.95,.05,0],color=TEXT,stroke_width=3)
+    num=formula('4.1 × 10⁻²¹ J',x=-1.15,y=.45,size=32,color=TEXT)
+    den2=formula('0.8 × 10⁻³ N/m',x=-1.15,y=-.35,size=32,color=YELLOW)
+    res_m2=formula('= 5.1 × 10⁻¹⁸ m²',x=2.95,y=.05,size=34,color=GREEN)
+    u0=txt('Units cancel:',size=26,color=TEAL)
+    u1=formula('J ÷ (N/m)',size=28,color=TEXT)
+    u2=formula('= (N · m) × (m / N)',size=28,color=TEXT)
+    u3=formula('= m²',size=30,color=GREEN)
+    units=VGroup(u0,u1,u2,u3).arrange(RIGHT,buff=.22).move_to([0,-1.35,0])
+    ans_txt=formula('ΔA ≈ 5 nm²',y=-2.55,size=42,color=GREEN)
+    ans_box=RoundedRectangle(corner_radius=.14,width=ans_txt.width+.6,height=ans_txt.height+.4,
+                             stroke_color=GREEN,stroke_width=3,fill_color=GREEN,fill_opacity=.12).move_to(ans_txt)
+    return VGroup(tag,switch_lbl,eq2,terms,lhs,bar,num,den2,res_m2,units,ans_box,ans_txt)
 
 def estimates():
     left=VGroup(txt('Mouse Piezo1',-3.1,2.25,32,BLUE),formula('≈ 5 nm²',-3.1,1.35,44,PURPLE),
@@ -246,9 +254,63 @@ class S12Pause(Scene):
         self.add(question(),txt('Pause and try it',4.2,-2.8,28,TEAL)); self.wait(5)
 class S13Reveal(SpokenScene):
     def construct(self):
-        a=area_frame(); self.add(a[0],a[1])
-        self.at('run the fit backwards'); self.play(FadeIn(a[2]),FadeIn(a[4]),run_time=.5)
-        self.at('The effective area'); self.play(FadeIn(a[3]),GrowFromCenter(a[5]),run_time=.7)
+        tag=txt('Effective two-state area',y=3.2,size=36,color=PURPLE)
+        switch_lbl=txt('Two-state switch  (closed ↔ open)',y=2.58,size=26,color=BLUE)
+        eq=formula('k = k_B T_abs / ΔA',y=1.8,size=42)
+        self.add(tag,eq)
+        self.play(FadeIn(switch_lbl,shift=UP*.08),run_time=.5)
+
+        self.at('area equals')
+        eq2=formula('ΔA = k_B T_abs / k',y=1.8,size=42)
+        self.play(FadeOut(eq,run_time=.22))
+        self.play(FadeIn(eq2,shift=UP*.05,run_time=.35))
+
+        term_kt=formula('k_B T_abs : thermal energy',size=26,color=TEXT)
+        term_k=formula('k : slope factor',size=26,color=YELLOW)
+        terms=VGroup(term_kt,term_k).arrange(RIGHT,buff=.7).move_to([0,1.12,0])
+        self.at('thermal energy',nth=0)
+        self.play(FadeIn(term_kt,shift=UP*.06),run_time=.4)
+        self.at('the slope factor')
+        self.play(FadeIn(term_k,shift=UP*.06),run_time=.4)
+
+        self.at('Thermal energy',nth=1)
+        lhs=formula('ΔA =',x=-4.15,y=.05,size=36,color=PURPLE)
+        bar=Line([-3.25,.05,0],[.95,.05,0],color=TEXT,stroke_width=3)
+        self.play(FadeIn(lhs),Create(bar),run_time=.45)
+
+        self.at('4',lead=0.0)
+        num=formula('4.1 × 10⁻²¹ J',x=-1.15,y=.45,size=32,color=TEXT)
+        self.play(FadeIn(num,shift=DOWN*.06),run_time=.55)
+
+        self.at('Divide by')
+        self.play(Indicate(bar,scale_factor=1.03,color=YELLOW),run_time=.35)
+
+        self.at('0',lead=0.0)
+        den1=formula('0.8 mN/m',x=-1.15,y=-.35,size=32,color=YELLOW)
+        self.play(FadeIn(den1,shift=UP*.06),run_time=.45)
+
+        self.at('millinewtons',lead=0.0)
+        den2=formula('0.8 × 10⁻³ N/m',x=-1.15,y=-.35,size=32,color=YELLOW)
+        self.play(FadeOut(den1,run_time=.2))
+        self.play(FadeIn(den2,run_time=.25))
+
+        u0=txt('Units cancel:',size=26,color=TEAL)
+        u1=formula('J ÷ (N/m)',size=28,color=TEXT)
+        u2=formula('= (N · m) × (m / N)',size=28,color=TEXT)
+        u3=formula('= m²',size=30,color=GREEN)
+        units=VGroup(u0,u1,u2,u3).arrange(RIGHT,buff=.22).move_to([0,-1.35,0])
+        self.play(FadeIn(u0),FadeIn(u1),run_time=.4)
+        self.play(FadeIn(u2,shift=RIGHT*.08),run_time=.45)
+
+        self.at('effective area')
+        self.play(FadeIn(u3,shift=RIGHT*.08),run_time=.4)
+
+        self.at('about',lead=0.0)
+        res_m2=formula('= 5.1 × 10⁻¹⁸ m²',x=2.95,y=.05,size=34,color=GREEN)
+        ans_txt=formula('ΔA ≈ 5 nm²',y=-2.55,size=42,color=GREEN)
+        ans_box=RoundedRectangle(corner_radius=.14,width=ans_txt.width+.6,height=ans_txt.height+.4,
+                                 stroke_color=GREEN,stroke_width=3,fill_color=GREEN,fill_opacity=.12).move_to(ans_txt)
+        self.play(FadeIn(res_m2),FadeIn(ans_box),FadeIn(ans_txt),run_time=.27)
         self.finish()
 class S14Hold(Scene):
     def construct(self): self.add(area_frame()); self.wait(3)
@@ -356,7 +418,3 @@ class S22Takeaway(SpokenScene):
         self.at('The slope factor implies an area'); self.play(Indicate(self.mobjects[1],scale_factor=1.04),run_time=.6); self.finish()
 class S23End(EndCard):
     LINE='Read as a two-state switch, the slope factor implies an area.'
-    def construct(self):
-        self.add(txt('Read as a two-state switch,',y=1.1,size=54),txt('the slope factor implies an area.',y=-.2,size=54),
-            txt('biochemistrypedia.com',y=-1.7,size=28,color=TEAL))
-        self.wait(self.narration_s)

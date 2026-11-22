@@ -544,13 +544,13 @@ class S09Ledger(SpokenScene):
         self.at("round numbers")
         self.play(Create(geo["axis"]), FadeIn(zero), FadeIn(key), FadeIn(units), run_time=0.75)
         self.at("lost freedom costs")
-        lr = T("chain's lost freedom  +550", 30, RED).next_to(geo["red"], UP, buff=0.12)
+        lr = T("chain's lost freedom  +550", 30, RED).next_to(geo["red"], UP, buff=0.18).align_to(geo["red"], LEFT).shift(RIGHT * 0.10)
         self.play(Create(geo["red"]), FadeIn(lr), run_time=1.0)
         self.at("Freed water")
         lb = T("freed water  −500", 30, BLUE).next_to(geo["blue"], UP, buff=0.12)
         self.play(Create(geo["connectors"][0]), Create(geo["blue"]), FadeIn(lb), run_time=1.0)
         self.at("Bonds and packing")
-        lg = T("bonds, packing  −90", 30, GREEN).next_to(geo["green"], UP, buff=0.12)
+        lg = T("bonds, packing  −90", 30, GREEN).next_to(geo["green"], RIGHT, buff=0.20)
         self.play(Create(geo["connectors"][1]), Create(geo["green"]), FadeIn(lg), run_time=0.9)
         self.finish()
 
@@ -559,44 +559,106 @@ class S10Margin(SpokenScene):
     def construct(self):
         glass, folded = small_glass_and_folded()
         geo = ledger_geometry()
-        labels = VGroup(
-            T("chain  +550", 30, RED).next_to(geo["red"], UP, buff=0.12),
-            T("water  −500", 30, BLUE).next_to(geo["blue"], UP, buff=0.12),
-            T("packing  −90", 30, GREEN).next_to(geo["green"], UP, buff=0.12),
+        zero_lab = T("0", 28, TEXT).next_to(geo["axis"], DOWN, buff=0.10)
+        red_lab = T("chain  +550", 30, RED).next_to(geo["red"], UP, buff=0.14)
+        blue_lab = T("water  −500", 30, BLUE).next_to(geo["blue"], UP, buff=0.14)
+        pack_lab = T("packing  −90", 30, GREEN).next_to(geo["green"], RIGHT, buff=0.20)
+        self.add(
+            glass, folded, geo["axis"], zero_lab, geo["connectors"],
+            geo["red"], geo["blue"], geo["green"], red_lab, blue_lab, pack_lab,
         )
-        self.add(glass, folded, geo["axis"], geo["connectors"], geo["red"], geo["blue"], geo["green"], labels)
+
+        # Beat 1: "The total is about minus 40."
         self.at("total is")
-        total = Line([geo["zero"], -2.0, 0], [geo["end"], -2.0, 0], color=GOLD, stroke_width=16)
-        total_lab = T("total about −40", 32, GOLD).move_to([0.35, -2.0, 0])
-        self.play(Create(total), FadeIn(total_lab), run_time=0.65)
+        total = Line([geo["zero"], -2.0, 0], [geo["end"], -2.0, 0], color=GOLD, stroke_width=18)
+        total_word = T("total", 32, GOLD).move_to([-0.69, -2.0, 0], aligned_edge=LEFT)
+        self.play(Create(total), FadeIn(total_word), run_time=0.55)
+        self.at("minus 40")
+        total_val = T("about −40", 32, GOLD).next_to(total_word, RIGHT, buff=0.14)
+        self.play(FadeIn(total_val), run_time=0.45)
+
+        # Beat 2: "Folding is favored by a small difference between big numbers."
         self.at("small difference")
         big = BraceBetweenPoints([geo["zero"], 1.95, 0], [geo["end_red"], 1.95, 0], direction=UP, color=GOLD)
+        self.play(GrowFromCenter(big), run_time=0.6)
+        self.at("big numbers")
         big_lab = T("big numbers", 30, GOLD).next_to(big, UP, buff=0.08)
-        self.play(GrowFromCenter(big), FadeIn(big_lab), run_time=0.65)
-        self.at("10 percent")
+        self.play(FadeIn(big_lab), run_time=0.5)
+
+        # Beat 3: "Burying the oily groups gives the freed water's minus 500, so a 10 % loss is 50."
+        self.at("Burying the oily")
+        self.play(Indicate(folded[1], color=YELLOW, scale_factor=1.12), run_time=0.75)
+        self.at("freed waters")
+        self.play(Indicate(VGroup(geo["blue"], blue_lab), color=BLUE, scale_factor=1.04), run_time=0.8)
+
+        self.at("a 10")
         changed = ledger_geometry(water=-450)
-        old = DashedLine(geo["blue"].get_start(), geo["blue"].get_end(), color=BLUE,
-                         stroke_width=3, dash_length=0.1).set_opacity(0.45)
-        new_total = Line([changed["zero"], -2.0, 0], [changed["end"], -2.0, 0], color=RED, stroke_width=16)
-        new_lab = T("total +10", 32, RED).move_to([0.35, -2.0, 0])
+        old = DashedLine(
+            geo["blue"].get_start(), geo["blue"].get_end(),
+            color=BLUE, stroke_width=4, dash_length=0.1,
+        ).set_opacity(0.5)
+        loss_note = T("10% loss", 28, BLUE).move_to([3.60, 0.0, 0], aligned_edge=LEFT)
+        water_only = T("water", 30, BLUE).next_to(changed["blue"], UP, buff=0.14)
         self.add(old)
-        self.play(Transform(geo["blue"], changed["blue"]), Transform(geo["green"], changed["green"]),
-                  Transform(total, new_total), Transform(total_lab, new_lab), run_time=1.0)
-        self.at("more than its own size")
         self.play(
-            Indicate(VGroup(geo["blue"], labels[1]), color=RED, scale_factor=1.03),
-            Indicate(VGroup(total, total_lab), color=RED, scale_factor=1.08),
-            run_time=0.75,
+            Transform(geo["blue"], changed["blue"]),
+            Transform(geo["connectors"][1], changed["connectors"][1]),
+            Transform(geo["green"], changed["green"]),
+            pack_lab.animate.next_to(changed["green"], RIGHT, buff=0.20),
+            Succession(FadeOut(blue_lab, run_time=0.2), FadeIn(water_only, run_time=0.35)),
+            FadeIn(loss_note, run_time=0.45),
+            run_time=0.85,
         )
+
+        self.at("is 50")
+        math_note = T("−500 → −450\n(10% = 50)", 28, BLUE, line_spacing=0.9).move_to([3.60, 0.0, 0], aligned_edge=LEFT)
+        self.play(FadeOut(loss_note, run_time=0.18))
+        self.play(FadeIn(math_note, run_time=0.35))
+
+        # Beat 4: "50 is more than the whole 40 kilojoule margin, pushing minus 40 past 0 to plus 10."
+        self.at("50 is more")
+        loss_stub = Line([changed["end_water"], 0.0, 0], [geo["end_water"], 0.0, 0], color=RED, stroke_width=10)
+        self.play(Create(loss_stub), Indicate(math_note, color=RED, scale_factor=1.05), run_time=0.75)
+        self.at("40 kilojoule")
+        self.play(Indicate(VGroup(total, total_word, total_val), color=GOLD, scale_factor=1.08), run_time=0.75)
+
+        self.at("pushing minus 40")
+        total_prefix = T("total: −40", 32, GOLD).move_to([-0.69, -2.0, 0], aligned_edge=LEFT)
+        self.play(FadeOut(VGroup(total_word, total_val), run_time=0.18), FadeOut(loss_stub, run_time=0.18))
+        self.play(FadeIn(total_prefix, run_time=0.22))
+        zero_bar = Line([geo["zero"], -2.0, 0], [geo["zero"] + 0.01, -2.0, 0], color=ORANGE, stroke_width=18)
+        self.play(Transform(total, zero_bar), run_time=1.05)
+        new_total = Line([changed["zero"], -2.0, 0], [changed["end"], -2.0, 0], color=RED, stroke_width=18)
+        self.play(Transform(total, new_total), run_time=0.75)
+        self.at("plus 10")
+        plus10 = T("→ +10", 32, RED).next_to(total_prefix, RIGHT, buff=0.14)
+        self.play(total_prefix.animate.set_color(RED), FadeIn(plus10), run_time=0.5)
+
+        # Beat 5: "That is why one bad mutation can unfold a protein."
         self.at("one bad mutation")
         open_chain = chain_open(0.34, LEFT * 4.85)
-        self.play(ReplacementTransform(folded, open_chain), run_time=0.75)
+        self.play(ReplacementTransform(folded, open_chain), run_time=0.8)
+        self.at("protein")
         restored = ledger_geometry()
-        restored_total = Line([restored["zero"], -2.0, 0], [restored["end"], -2.0, 0], color=GOLD, stroke_width=16)
-        restored_lab = T("total about −40", 32, GOLD).move_to([0.35, -2.0, 0])
-        self.play(Transform(geo["blue"], restored["blue"]), Transform(geo["green"], restored["green"]),
-                  Transform(total, restored_total), Transform(total_lab, restored_lab), FadeOut(old),
-                  ReplacementTransform(open_chain, chain_folded(0.72, LEFT * 4.85)), run_time=1.0)
+        restored_total = Line([restored["zero"], -2.0, 0], [restored["end"], -2.0, 0], color=GOLD, stroke_width=18)
+        restored_blue_lab = T("water  −500", 30, BLUE).next_to(restored["blue"], UP, buff=0.14)
+        restored_total_lab = T("total about −40", 32, GOLD).move_to([-0.69, -2.0, 0], aligned_edge=LEFT)
+        self.play(
+            FadeOut(old), FadeOut(math_note), FadeOut(water_only),
+            FadeOut(total_prefix), FadeOut(plus10),
+            run_time=0.25,
+        )
+        self.play(
+            Transform(geo["blue"], restored["blue"]),
+            Transform(geo["connectors"][1], restored["connectors"][1]),
+            Transform(geo["green"], restored["green"]),
+            pack_lab.animate.next_to(restored["green"], RIGHT, buff=0.20),
+            Transform(total, restored_total),
+            FadeIn(restored_blue_lab),
+            FadeIn(restored_total_lab),
+            ReplacementTransform(open_chain, chain_folded(0.72, LEFT * 4.85)),
+            run_time=0.7,
+        )
         self.finish()
 
 
@@ -605,10 +667,10 @@ class S11SecondLaw(SpokenScene):
         glass, folded = small_glass_and_folded()
         geo = ledger_geometry(water=-480, packing=0)
         header = T("near 25 °C, round numbers", 28, TEXT).move_to(RIGHT * 0.9 + UP * 2.85)
-        red_lab = T("chain entropy cost  +550", 30, RED).next_to(geo["red"], UP, buff=0.12)
-        blue_lab = T("water entropy gain  −480", 30, BLUE).next_to(geo["blue"], UP, buff=0.12)
+        red_lab = T("chain entropy cost  +550", 30, RED).next_to(geo["red"], UP, buff=0.18).align_to(geo["red"], LEFT).shift(RIGHT * 0.12)
+        blue_lab = T("water entropy gain  −480", 26, BLUE).next_to(geo["blue"], UP, buff=0.18).set_x(1.15)
         gap = Line([geo["end_water"], -0.72, 0], [geo["zero"], -0.72, 0], color=RED, stroke_width=10)
-        gap_lab = T("a little short", 30, RED).next_to(gap, UP, buff=0.12)
+        gap_lab = T("a little short", 30, RED).next_to(gap, RIGHT, buff=0.20)
         self.add(glass, folded, header, geo["axis"], geo["red"], red_lab)
         self.at("water's entropy gain")
         self.play(Create(geo["connectors"][0]), Create(geo["blue"]), FadeIn(blue_lab), run_time=1.35)
@@ -619,7 +681,7 @@ class S11SecondLaw(SpokenScene):
         self.play(Create(gap), FadeIn(gap_lab), run_time=0.75)
         self.at("bonds inside release heat")
         surround = chip("surroundings", ORANGE, 30).move_to(RIGHT * 4.6 + DOWN * 2.25)
-        waves = heat_waves([-3.65, -1.65, 0], [3.65, -2.15, 0], 3)
+        waves = heat_waves([-3.65, -1.65, 0], [surround.get_left()[0] - 0.15, -2.15, 0], 3)
         self.play(Create(waves), FadeIn(surround), run_time=1.0)
         self.at("raises the entropy")
         gold_start = geo["end_water"]
@@ -666,12 +728,3 @@ class S12Return(SpokenScene):
 
 class S13End(EndCard):
     LINE = "In this ledger, water pays most of the bill."
-
-    def construct(self):
-        world, _, _ = glass_world(opacity=0.30, include_gauge=False)
-        line = T(self.LINE, 40, GOLD, font=TITLE_FONT).shift(UP * 0.45)
-        fit(line, max_w=11.5)
-        sub = T("biochemistrypedia.com", 24, TEAL).next_to(line, DOWN, buff=0.45)
-        self.add(world)
-        self.play(FadeIn(line, shift=UP * 0.15), FadeIn(sub, shift=UP * 0.1), run_time=0.65)
-        self.finish()

@@ -61,7 +61,7 @@ def readings(ax,answer=False):
     read=T('F155A 0.063 (model)' if answer else 'F155A ?',26,ORANGE).move_to([2.8,-2.25,0] if answer else [2.2,-2.23,0])
     g=VGroup(DashedLine(ax.c2p(x,0),ax.c2p(x,1),color=YELLOW),Dot(p,color=BLUE,radius=.08),wt,lead(wt.get_bottom(),p,BLUE),M('0.824 mM',26,YELLOW).next_to(ax.c2p(x,0),DOWN,buff=.13),read)
     if answer: g.add(Dot(low,color=ORANGE,radius=.085),lead(read.get_left(),low,ORANGE))
-    else: g.add(T('?',32,ORANGE).move_to(low))
+    else: g.add(T('?',32,ORANGE).move_to(low+RIGHT*.3))
     return g
 
 def ec_span(ax):
@@ -202,9 +202,48 @@ class S14Pause(Scene):
 
 class S15(SpokenScene):
     def construct(self):
-        q=question_frame(); self.add(q)
-        self.at('about 6'); a=question_frame(True); self.play(Transform(q,a),run_time=.6)
-        self.at('its EC50'); self.play(Transform(q,question_frame(True,True)),run_time=.55); self.finish()
+        base,c,ax=graph(cursor_ticks=True)
+        q=T('At the WT EC50, what fraction does F155A give?',28).move_to([0,3.0,0])
+        r0=readings(ax,False)
+        self.add(base,c[0],r0,q)
+
+        r1=readings(ax,True)
+        self.at('about 6',lead=0.15)
+        self.play(FadeOut(r0[5]),FadeOut(r0[6]),run_time=.2)
+        self.play(Create(c[1]),FadeIn(r1[6]),Create(r1[7]),FadeIn(r1[5]),run_time=.55)
+
+        self.at('hill slope')
+        self.play(Indicate(base[7],color=YELLOW),run_time=.55)
+
+        ref_eq=M('R(c) = c / (EC50 + c)',24,TEXT).move_to([-4.90,1.42,0],aligned_edge=LEFT)
+        eq_lhs=M('R(c) =',24,TEXT).move_to(ref_eq[0:5])
+        eq_num=M('c',24,TEXT).move_to(ref_eq[5:6])
+        eq_div=M('/',24,TEXT).move_to(ref_eq[6:7])
+        eq_den=M('(EC50 + c)',24,TEXT).move_to(ref_eq[7:15])
+        self.at('response'); self.play(FadeIn(eq_lhs),run_time=.25)
+        self.at('dose'); self.play(FadeIn(eq_num),run_time=.18)
+        self.at('divided by'); self.play(FadeIn(eq_div),run_time=.22)
+        self.at('EC50 and dose'); self.play(FadeIn(eq_den),run_time=.45)
+
+        span_g=ec_span(ax)
+        at_wt=T('at WT EC50:',24,YELLOW).move_to([-4.90,0.22,0],aligned_edge=LEFT)
+        sub_eq=M('response = 1/(1 + 15)',24,TEXT).move_to([-4.90,-0.24,0],aligned_edge=LEFT)
+        res_ref=M('= 1/16 ≈ 0.06',24,ORANGE).move_to([-3.95,-0.72,0],aligned_edge=LEFT)
+        res_1=M('= 1/',24,ORANGE).move_to(res_ref[0:3])
+        res_2=M('16 ≈ 0.06',24,ORANGE).move_to(res_ref[3:10])
+
+        self.at('Its EC50')
+        self.play(FadeOut(base[2][2]),run_time=.15)
+        self.play(GrowFromPoint(span_g[0],ax.c2p(np.log10(.824),.5)),FadeIn(span_g[1]),FadeIn(span_g[3]),run_time=.55)
+
+        self.at('about 15',lead=0.05)
+        self.play(FadeIn(span_g[2]),FadeIn(at_wt),FadeIn(sub_eq),run_time=.45)
+
+        self.at('one part')
+        self.play(FadeIn(res_1),run_time=.25)
+        self.at('16',lead=0.10)
+        self.play(FadeIn(res_2),run_time=.25)
+        self.finish()
 
 class S16Beat(Scene):
     def construct(self):
@@ -302,6 +341,3 @@ class S22(SpokenScene):
 
 class S23End(EndCard):
     LINE="The chosen receptor's pocket decides which molecules the neuron responds to."
-    def construct(self):
-        lines=VGroup(*[T(s,38,font=TITLE_FONT) for s in ["The chosen receptor's pocket decides",'which molecules the neuron responds to.']]).arrange(DOWN,buff=.2)
-        sub=T('biochemistrypedia.com',26,TEAL).move_to([0,-1.5,0]); self.play(FadeIn(lines),run_time=.6); self.play(FadeIn(sub),run_time=.4); self.finish()

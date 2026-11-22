@@ -345,19 +345,155 @@ class S25(SpokenScene):
 
 class S26(SpokenScene):
     def construct(self):
-        self.add(head("Postnatal day 2",GREY))
-        zero=-2.05; unit=1.85
-        self.add(Line([-3.5,zero,0],[5.3,zero,0],color=GREY),Line([-3.5,zero,0],[-3.5,2.1,0],color=GREY))
-        for v in [0,1,2]:
-            y=zero+unit*v
-            self.add(T(str(v),28,GREY).move_to([-3.9,y,0]),Line([-3.6,y,0],[-3.4,y,0],color=GREY))
-        self.add(DashedLine([-3.5,zero+unit,0],[5.3,zero+unit,0],color=GREY),T("MOR28 lineage ratio\nsingly / doubly labelled",28,GREY).rotate(PI/2).move_to([-5.65,0,0]))
-        bars=VGroup(*[Rectangle(width=1.65,height=unit*v,color=c,fill_color=c,fill_opacity=.7).move_to([x,zero+unit*v/2,0]) for x,v,c in [(-1.4,1,BLUE),(2.2,2,PURPLE)]])
-        self.add(bars[0],T("control",30,BLUE).move_to([-1.4,-2.55,0]),T("Adcy3-null",30,PURPLE).move_to([2.2,-2.55,0]),T("control normalized to 1",28,GREY).move_to([.2,2.5,0]))
-        self.add(T("singly labelled = switched; doubly labelled = held",28,GREY).move_to([0,-3.35,0]))
-        self.at("the ratio of"); self.play(GrowFromEdge(bars[1],DOWN),run_time=.6)
-        bracket=VGroup(Line([3.4,zero+unit,0],[3.4,zero+2*unit,0],color=PURPLE),Line([3.2,zero+unit,0],[3.6,zero+unit,0],color=PURPLE),Line([3.2,zero+2*unit,0],[3.6,zero+2*unit,0],color=PURPLE))
-        self.at("about twice the control"); self.play(Create(bracket),FadeIn(T("2 vs 1\n(≈2×)",28,PURPLE).move_to([4.85,.7,0])),run_time=.4)
+        heading = head("Lineage tracking", GREY)
+        self.add(heading)
+
+        # Left panel: key built in time with the spoken definitions.
+        key_frame = RoundedRectangle(
+            width=6.2, height=5.3, corner_radius=0.18,
+            stroke_color=GREY, stroke_width=2, fill_color=GREY, fill_opacity=0.05,
+        ).move_to([-3.25, -0.25, 0])
+        key_title = T("Key", 26, GREY).move_to([-5.9, 2.05, 0], aligned_edge=LEFT)
+        self.add(key_frame, key_title)
+
+        def mini_neuron(marked, receptor_color):
+            ring = Circle(
+                radius=0.30,
+                color=GOLD if marked else GREY,
+                stroke_width=5 if marked else 2.5,
+                fill_color=GREY,
+                fill_opacity=0.06,
+            )
+            tag = RoundedRectangle(
+                width=0.34, height=0.20, corner_radius=0.05,
+                color=receptor_color, fill_color=receptor_color, fill_opacity=0.8,
+            )
+            return VGroup(ring, tag)
+
+        def rec_chip(s, color):
+            lbl = T(s, 26, color)
+            w = max(2.4, lbl.width + 0.42)
+            return VGroup(
+                RoundedRectangle(
+                    width=w, height=0.88, corner_radius=0.14,
+                    stroke_color=color, fill_color=color, fill_opacity=0.14,
+                ),
+                lbl,
+            )
+
+        # Right stage (0-14 s): showcase neuron carried from S23-S25.
+        stage_center = np.array([3.3, 0.28, 0.0])
+        outline = Circle(radius=1.90, color=GREY, stroke_width=3, fill_color=GREY, fill_opacity=0.05).move_to(stage_center)
+        stem = Line([3.3, 0.28 - 1.90, 0], [3.3, 0.28 - 2.38, 0], color=GREY, stroke_width=5)
+        rec_box = rec_chip("receptor?", GREY).move_to(stage_center)
+        status = T("one receptor locus", 26, GREY).move_to([3.3, -2.65, 0])
+        self.add(outline, stem, rec_box, status)
+
+        self.at("mor28")
+        new_head = head("Track: MOR28", GREEN)
+        mor_box = rec_chip("MOR28", GREEN).move_to(stage_center)
+        new_status = T("MOR28 expressed", 26, GREEN).move_to([3.3, -2.65, 0])
+        self.play(
+            Succession(FadeOut(heading, run_time=0.18), FadeIn(new_head, run_time=0.22)),
+            Succession(FadeOut(rec_box, run_time=0.18), FadeIn(mor_box, run_time=0.22)),
+            Succession(FadeOut(status, run_time=0.18), FadeIn(new_status, run_time=0.22)),
+            run_time=0.45,
+        )
+        heading, rec_box, status = new_head, mor_box, new_status
+
+        self.at("doubly labeled")
+        doubly_hdr = T("doubly =", 26, GOLD, weight=BOLD).move_to([-5.9, 1.38, 0], aligned_edge=LEFT)
+        doubly_icon = mini_neuron(True, GREEN).move_to([-5.5, 0.65, 0])
+        doubly_txt = T("marked and still MOR28", 24, TEXT).move_to([-4.95, 0.65, 0], aligned_edge=LEFT)
+        new_status = T("doubly: mark + MOR28", 26, GOLD).move_to([3.3, -2.65, 0])
+        self.play(
+            outline.animate.set_stroke(GOLD, width=7),
+            FadeIn(doubly_hdr, shift=RIGHT * 0.15),
+            FadeIn(doubly_icon),
+            FadeIn(doubly_txt, shift=RIGHT * 0.15),
+            Succession(FadeOut(status, run_time=0.18), FadeIn(new_status, run_time=0.22)),
+            run_time=0.6,
+        )
+        status = new_status
+
+        self.at("singly labeled")
+        singly_hdr = T("singly =", 26, BLUE, weight=BOLD).move_to([-5.9, -0.22, 0], aligned_edge=LEFT)
+        self.play(FadeIn(singly_hdr, shift=RIGHT * 0.15), run_time=0.4)
+
+        self.at("the mark alone")
+        s1_icon = mini_neuron(True, BLUE).move_to([-5.5, -1.02, 0])
+        s1_txt = T("marked without MOR28\n(switched)", 24, TEXT, line_spacing=0.85).move_to([-4.95, -1.02, 0], aligned_edge=LEFT)
+        diff_box = rec_chip("different receptor", BLUE).move_to(stage_center)
+        new_status = T("singly: mark only (switched)", 26, BLUE).move_to([3.3, -2.65, 0])
+        self.play(
+            Succession(FadeOut(rec_box, run_time=0.18), FadeIn(diff_box, run_time=0.22)),
+            FadeIn(s1_icon),
+            FadeIn(s1_txt, shift=RIGHT * 0.15),
+            Succession(FadeOut(status, run_time=0.18), FadeIn(new_status, run_time=0.22)),
+            run_time=0.6,
+        )
+        rec_box, status = diff_box, new_status
+
+        self.at("or the receptor alone")
+        s2_icon = mini_neuron(False, GREEN).move_to([-5.5, -2.12, 0])
+        s2_txt = T("or MOR28 without the mark", 24, TEXT).move_to([-4.95, -2.12, 0], aligned_edge=LEFT)
+        mor_box2 = rec_chip("MOR28", GREEN).move_to(stage_center)
+        new_status = T("singly: MOR28 only (no mark)", 26, GREEN).move_to([3.3, -2.65, 0])
+        self.play(
+            outline.animate.set_stroke(GREY, width=3),
+            Succession(FadeOut(rec_box, run_time=0.18), FadeIn(mor_box2, run_time=0.22)),
+            FadeIn(s2_icon),
+            FadeIn(s2_txt, shift=RIGHT * 0.15),
+            Succession(FadeOut(status, run_time=0.18), FadeIn(new_status, run_time=0.22)),
+            run_time=0.6,
+        )
+        rec_box, status = mor_box2, new_status
+
+        # Right stage (14.2 s onward): postnatal day 2 bar chart.
+        x0, x1 = 1.15, 5.45
+        zero, unit = -1.95, 1.55
+        axes = VGroup(
+            Line([x0, zero, 0], [x1, zero, 0], color=GREY, stroke_width=3),
+            Line([x0, zero, 0], [x0, zero + 2.25 * unit, 0], color=GREY, stroke_width=3),
+        )
+        ticks_01 = VGroup(
+            T("0", 24, GREY).move_to([x0 - 0.35, zero, 0]),
+            Line([x0 - 0.1, zero, 0], [x0, zero, 0], color=GREY, stroke_width=3),
+            T("1", 24, GREY).move_to([x0 - 0.35, zero + unit, 0]),
+            Line([x0 - 0.1, zero + unit, 0], [x0, zero + unit, 0], color=GREY, stroke_width=3),
+        )
+        tick_2 = VGroup(
+            T("2", 24, GREY).move_to([x0 - 0.35, zero + 2 * unit, 0]),
+            Line([x0 - 0.1, zero + 2 * unit, 0], [x0, zero + 2 * unit, 0], color=GREY, stroke_width=3),
+        )
+        ref_line = DashedLine([x0, zero + unit, 0], [x1, zero + unit, 0], color=GREY, stroke_width=2.5)
+        ylabel = T("singly to doubly labelled\nMOR28 lineage ratio", 24, GREY, line_spacing=0.85).move_to([0.75, 2.08, 0], aligned_edge=LEFT)
+        ctrl_bar = Rectangle(width=1.25, height=unit, color=BLUE, fill_color=BLUE, fill_opacity=0.7).move_to([2.25, zero + unit / 2, 0])
+        null_bar = Rectangle(width=1.25, height=2 * unit, color=PURPLE, fill_color=PURPLE, fill_opacity=0.7).move_to([4.15, zero + unit, 0])
+        ctrl_lbl = T("control", 26, BLUE).move_to([2.25, -2.35, 0])
+        null_lbl = T("Adcy3-null", 26, PURPLE).move_to([4.15, -2.35, 0])
+
+        self.at("in 2")
+        p2_head = head("Postnatal day 2", GREY)
+        self.play(FadeOut(outline, stem, rec_box, status, heading), run_time=0.25)
+        self.play(FadeIn(p2_head, axes, ticks_01, ref_line, ylabel, ctrl_bar, ctrl_lbl, null_lbl), run_time=0.45)
+
+        self.at("that singly to doubly ratio")
+        self.play(Indicate(ylabel, color=TEXT, scale_factor=1.06), run_time=0.6)
+
+        self.at("about twice the control")
+        bracket = VGroup(
+            Line([5.02, zero + unit, 0], [5.02, zero + 2 * unit, 0], color=PURPLE, stroke_width=3),
+            Line([4.88, zero + unit, 0], [5.16, zero + unit, 0], color=PURPLE, stroke_width=3),
+            Line([4.88, zero + 2 * unit, 0], [5.16, zero + 2 * unit, 0], color=PURPLE, stroke_width=3),
+        )
+        twice_lbl = T("≈ 2×", 28, PURPLE, weight=BOLD).move_to([5.82, zero + 1.5 * unit, 0])
+        self.play(GrowFromEdge(null_bar, DOWN), FadeIn(tick_2), run_time=0.65)
+        self.play(Create(bracket), FadeIn(twice_lbl), run_time=0.4)
+
+        self.at("meaning more switching")
+        more_lbl = T("more switching", 28, GOLD).move_to([3.3, -3.08, 0])
+        self.play(FadeIn(more_lbl, shift=UP * 0.1), Indicate(s1_txt, color=GOLD, scale_factor=1.05), run_time=0.5)
         self.finish()
 
 class S27(SpokenScene):
@@ -399,6 +535,3 @@ class S30(SpokenScene):
 
 class S31End(EndCard):
     LINE="Receptor protein sets off a stress relay that turns down the key and helps lock in the winner."
-    def construct(self):
-        lines=VGroup(*[T(s,36,font=TITLE_FONT) for s in ["Receptor protein sets off a stress relay", "that turns down the key", "and helps lock in the winner."]]).arrange(DOWN,buff=.3)
-        self.add(lines,T("biochemistrypedia.com",28,TEAL).move_to([0,-2.3,0])); self.finish()
