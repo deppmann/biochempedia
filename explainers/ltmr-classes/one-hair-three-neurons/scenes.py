@@ -257,18 +257,56 @@ class S18Race(Timed):
         self.clear();race(self,0,4,5.9);self.add(label('clock paused for comparison',0,-2.45,26,GREY));self.finish()
 class S19Race2(Timed):
     def construct(self):
-        # Complete C's crossing before holding the final result.
-        clock=race(self,4,4,.067)
-        paused=label('clock paused for comparison',0,1.85,24,GREY);self.add(paused)
-        self.at('2 milliseconds apart')
-        # Brackets join the finish dots on their actual lanes.
-        a=VGroup(DoubleArrow([3.7,1.4,0],[3.7,0,0],buff=.16,color=GOLD,tip_length=.10),label('≈ 2 ms',5,.7,28,GOLD))
-        self.play(FadeIn(a),run_time=.3)
-        self.at('The C report')
+        clock=ValueTracker(4.0)
+        self.add(heading('2 cm • equal paths • t = L / v'))
+        self.add(label('Illustrative • conduction only • mean velocities',0,-3.3,26,GREY))
+        counter=always_redraw(lambda:M(f'{clock.get_value():04.1f} ms',30,TEXT).move_to([-2.95,2.25,0]))
+        paused=label('clock paused for comparison',-2.95,-2.5,24,GREY)
+        self.add(counter,paused,Line([-1.6,1.7,0],[-1.6,-2.1,0],color=TEXT))
+
+        ys=(1.2,-0.2,-1.6)
+        vel_labs,subs,res,dots=VGroup(),VGroup(),VGroup(),VGroup()
+        for k,y,v,t in zip(('RA','AD','C'),ys,VELOCITIES,ARRIVALS):
+            self.add(label(CNAME[k],-5.4,y+.25,30,CLS[k]),Line([-4.3,y,0],[-1.6,y,0],color=CLS[k],stroke_width=3))
+            d=Dot(radius=.13,color=CLS[k])
+            d.add_updater(lambda m,y=y,t=t:m.move_to([-4.3+2.7*min(clock.get_value()/t,1),y,0]))
+            self.add(d);d.update();dots.add(d)
+            vel_labs.add(label(f'{v:g} m/s',-5.4,y-.3,26,CLS[k]))
+            subs.add(M(f't = 2 cm ÷ {v:g} m/s',24,CLS[k]).move_to([-0.95,y,0],aligned_edge=LEFT))
+
+        res_x=max(s.get_right()[0] for s in subs)+0.28
+        for k,y,t in zip(('RA','AD','C'),ys,ARRIVALS):
+            r_txt='≈ 34 ms' if k=='C' else f'≈ {t:.1f} ms'
+            res.add(M(r_txt,24,CLS[k]).move_to([res_x,y,0],aligned_edge=LEFT))
+
+        eq=VGroup(M('t',28,TEXT),M('=',28,TEXT),M('L',28,GOLD),M('/',28,TEXT),M('v',28,TEAL),M('•',28,GREY),M('L = 2 cm',28,TEXT)).arrange(RIGHT,buff=0.16).move_to([2.35,2.25,0])
+
+        self.at('Time equals');self.play(FadeIn(eq[0]),FadeIn(eq[1]),run_time=.35)
+        self.at('path length');self.play(FadeIn(eq[2]),FadeIn(eq[5]),FadeIn(eq[6]),run_time=.4)
+        self.at('divided by velocity');self.play(FadeIn(eq[3]),FadeIn(eq[4]),run_time=.4)
+
+        for i,cue in enumerate(('13 6','5 8','0 58')):
+            self.at(cue);self.play(FadeIn(vel_labs[i]),FadeIn(subs[i]),run_time=.4)
+
+        self.at('about 1 5');self.play(FadeIn(res[0]),run_time=.35)
+        self.at('3 4');self.play(FadeIn(res[1]),run_time=.35)
+        self.at('and 34',lead=1.1)
         self.remove(paused)
-        self.play(clock.animate.set_value(ARRIVALS[2]+.2),run_time=.8,rate_func=linear)
-        b=VGroup(DoubleArrow([3.7,0,0],[3.7,-1.4,0],buff=.16,color=ORANGE,tip_length=.10),label('≈ 30 ms',5,-.7,28,ORANGE))
-        self.play(FadeIn(b),run_time=.3);self.finish()
+        self.play(clock.animate.set_value(ARRIVALS[2]),run_time=.8,rate_func=linear)
+        self.at('and 34',lead=.2)
+        self.play(FadeIn(res[2]),run_time=.28)
+
+        arr_x=max(r.get_right()[0] for r in res)+0.28
+        a_arr=DoubleArrow([arr_x,ys[0],0],[arr_x,ys[1],0],buff=.16,color=GOLD,tip_length=.10)
+        a_lab=M('≈ 2 ms',24,GOLD).next_to(a_arr,RIGHT,buff=0.12)
+        self.at('arrive about 2');self.play(Create(a_arr),Indicate(VGroup(dots[0],dots[1]),color=GOLD,scale_factor=1.35),run_time=.4)
+        self.at('about 2');self.play(FadeIn(a_lab),run_time=.3)
+
+        b_arr=DoubleArrow([arr_x,ys[1],0],[arr_x,ys[2],0],buff=.16,color=ORANGE,tip_length=.10)
+        b_lab=M('≈ 30 ms',24,ORANGE).next_to(b_arr,RIGHT,buff=0.12)
+        self.at('and C arrives');self.play(Create(b_arr),Indicate(VGroup(dots[1],dots[2]),color=ORANGE,scale_factor=1.35),run_time=.4)
+        self.at('about 30',lead=.15);self.play(FadeIn(b_lab),run_time=.3)
+        self.finish()
 class S20Hold(Timed):
     def construct(self):
         self.add(heading('Bend → hold'))
@@ -347,5 +385,3 @@ class S23Takeaway(Timed):
         self.play(AnimationGroup(*[MoveAlongPath(Dot(p.get_start(),color=CLS[k],radius=.13),p,rate_func=linear,run_time=float(t)) for p,k,t in zip(paths,('RA','AD','C'),travel)]));self.finish()
 class S24End(EndCard):
     LINE='The skin splits even a single hair movement into parallel reports.'
-    def construct(self):
-        self.add(T('The skin splits even a single hair\nmovement into parallel reports.',36,font=TITLE_FONT,line_spacing=1.25));self.play(FadeIn(label('biochemistrypedia.com',0,-1.6,26,TEAL)),run_time=.4);self.finish()

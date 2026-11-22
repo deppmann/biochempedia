@@ -367,11 +367,79 @@ class S17Pause(Scene):
 
 class S18Reveal(SpokenScene):
     def construct(self):
-        ax,base,marks,labels,_=prediction(); self.add(base,marks,labels,subtitle('V½ = −65 mV • k = 7 mV'))
-        self.at('The low one'); self.play(FadeIn(Dot(ax.c2p(-70,h(-70)),color=GREEN)),run_time=.4)
-        self.at('About two'); labels[0].become(band(['Low rest: −70 mV','h = 0.67 ≈ ⅔'],GREEN,1.3))
-        self.at('against about'); labels[1].become(band(['High rest: −55 mV','h = 0.19 ≈ ⅕'],TEAL_C,-.2))
-        self.play(FadeIn(Dot(ax.c2p(-55,h(-55)),color=TEAL_C)),run_time=.4); self.finish()
+        ax, base, marks, labels, _ = prediction()
+        l0, l1 = labels[0], labels[1]
+        line_70 = T('−70 mV', 24, GREEN).next_to(ax.c2p(-70, 0.08), LEFT, buff=0.12)
+        line_55 = T('−55 mV', 24, TEAL_C).next_to(ax.c2p(-55, 0.90), RIGHT, buff=0.12)
+        self.add(base, marks, l0, l1, line_70, line_55)
+
+        self.at('The low one')
+        self.play(Indicate(marks[0], scale_factor=1.05, color=GREEN),
+                  Indicate(l0, scale_factor=1.06, color=GREEN), run_time=0.6)
+
+        # Midpoint appears as "illustrative midpoint" is spoken; -65 appears only when spoken.
+        mid_pt = ax.c2p(-65, 0.50)
+        mid_line = DashedLine(ax.c2p(-65, 0), mid_pt, color=ORANGE, stroke_width=2.5)
+        mid_dot = Dot(mid_pt, color=ORANGE, radius=0.10)
+        mid_tag = T('V½', 24, ORANGE).move_to([1.05, 0.55, 0])
+        mid_arrow = Arrow(mid_tag.get_left() + LEFT * 0.06, mid_pt + RIGHT * 0.10,
+                          buff=0, color=ORANGE, stroke_width=3, max_tip_length_to_length_ratio=0.15)
+        sub_mid = T('Illustrative (Nav1.7-like): midpoint V½', 26, ORANGE).move_to([0, 2.68, 0])
+        self.at('Take an illustrative')
+        self.play(Create(mid_line), FadeIn(mid_dot), FadeIn(mid_tag), GrowArrow(mid_arrow),
+                  FadeIn(sub_mid), run_time=0.6)
+
+        self.at('minus 65')
+        mid_tag_val = T('V½ = −65 mV', 24, ORANGE).move_to([1.05, 0.55, 0])
+        mid_arrow_val = Arrow(mid_tag_val.get_left() + LEFT * 0.06, mid_pt + RIGHT * 0.10,
+                              buff=0, color=ORANGE, stroke_width=3, max_tip_length_to_length_ratio=0.15)
+        sub_mid_val = T('Illustrative (Nav1.7-like): V½ = −65 mV', 26, ORANGE).move_to([0, 2.68, 0])
+        self.play(FadeOut(mid_tag, run_time=0.12), FadeOut(mid_arrow, run_time=0.12),
+                  FadeOut(sub_mid, run_time=0.12))
+        self.play(FadeIn(mid_tag_val), FadeIn(mid_arrow_val), FadeIn(sub_mid_val), run_time=0.35)
+
+        # Slope bracket appears before "7", then reveals k = 7 mV on "7 millivolt".
+        p, q = ax.c2p(-65, 0.78), ax.c2p(-58, 0.78)
+        bracket = VGroup(Line(p, q, color=ORANGE),
+                         Line(p + DOWN * 0.12, p + UP * 0.12, color=ORANGE),
+                         Line(q + DOWN * 0.12, q + UP * 0.12, color=ORANGE))
+        k_tag = T('k', 24, ORANGE).next_to(bracket, UP, buff=0.12)
+        self.at('and a')
+        self.play(Create(bracket), FadeIn(k_tag), run_time=0.45)
+
+        self.at('7 millivolt')
+        k_tag_val = T('k = 7 mV', 24, ORANGE).next_to(bracket, UP, buff=0.12)
+        sub_full = T('Illustrative (Nav1.7-like): V½ = −65 mV • k = 7 mV', 26, ORANGE).move_to([0, 2.68, 0])
+        self.play(FadeOut(k_tag, run_time=0.12), FadeOut(sub_mid_val, run_time=0.12))
+        self.play(FadeIn(k_tag_val), FadeIn(sub_full), run_time=0.32)
+
+        # Low rest (-70 mV): point on curve, then availability value when spoken.
+        pt70 = ax.c2p(-70, h(-70))
+        guide70 = DashedLine(ax.c2p(-90, h(-70)), pt70, color=GREEN, stroke_width=2)
+        dot70 = Dot(pt70, color=GREEN, radius=0.10)
+        self.at('At minus 70')
+        self.play(Create(guide70), FadeIn(dot70), run_time=0.5)
+
+        self.at('about two')
+        h70_tag = T('h = 0.67', 24, GREEN).next_to(dot70, DL, buff=0.14)
+        new_l0 = band(['Low rest: −70 mV', 'h = 0.67 ≈ ⅔'], GREEN, 1.3)
+        self.play(FadeOut(l0, run_time=0.12))
+        self.play(FadeIn(h70_tag), FadeIn(new_l0), run_time=0.35)
+
+        # High rest (-55 mV): point on curve, then availability value when spoken.
+        pt55 = ax.c2p(-55, h(-55))
+        guide55 = DashedLine(ax.c2p(-90, h(-55)), pt55, color=TEAL_C, stroke_width=2)
+        dot55 = Dot(pt55, color=TEAL_C, radius=0.10)
+        self.at('At minus 55')
+        self.play(Create(guide55), FadeIn(dot55), run_time=0.5)
+
+        self.at('about one')
+        h55_tag = T('h = 0.19', 24, TEAL_C).next_to(dot55, UR, buff=0.14)
+        new_l1 = band(['High rest: −55 mV', 'h = 0.19 ≈ ⅕'], TEAL_C, -0.2)
+        self.play(FadeOut(l1, run_time=0.12))
+        self.play(FadeIn(h55_tag), FadeIn(new_l1), run_time=0.35)
+        self.wait(2.1)
+        self.finish()
 
 
 class S19Step(SpokenScene):
@@ -464,5 +532,3 @@ class S24Takeaway(SpokenScene):
 
 class S25End(EndCard):
     LINE='Availability is a reversible budget: it shows what a step costs, not whether the neuron fires.'
-    def construct(self):
-        self.add(lines(['Availability is a reversible budget:','it shows what a step costs,','not whether the neuron fires.'],TEXT,38).move_to([0,.4,0]),T('biochemistrypedia.com',26,TEAL).move_to([0,-1.7,0])); self.finish()

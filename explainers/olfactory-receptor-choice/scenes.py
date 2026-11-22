@@ -409,17 +409,97 @@ class S13Pause(Scene):
 
 class S14(SpokenScene):
     def construct(self):
-        m=ValueTracker(.1)
-        g=always_redraw(lambda:chart(m.get_value(),live=True,reference=True))
-        s=always_redraw(lambda:slider(m.get_value()));self.add(g,s,formula())
+        m = ValueTracker(0.1)
+        left, right, base, top = -4.8, 2.1, -1.6, 2.55
+        ref_y = base + (top - base) / math.e
+        ref_line = VGroup(
+            DashedLine([left, ref_y, 0], [right, ref_y, 0], color=GREEN, stroke_opacity=0.55),
+            T("37%", 26, GREEN).move_to([2.7, ref_y, 0]),
+        )
+
+        g = always_redraw(lambda: chart(m.get_value(), live=False, reference=False))
+        s = always_redraw(lambda: slider(m.get_value()))
+        self.add(g, s)
+
+        # Build P(exactly one) = m × e^(−m) piece by piece at formula()'s position.
+        f_lhs = T("P(exactly one)", 28, GREEN)
+        f_m = T("= m", 28, GREEN)
+        f_te = T("× e", 28, GREEN)
+        f_exp = T("^(−m)", 28, GREEN)
+        f_te.next_to(f_m, RIGHT, buff=0.12).align_to(f_m, DOWN)
+        f_exp.next_to(f_te, RIGHT, buff=0.06).align_to(f_te, UP).shift(UP * 0.04)
+        f_row2 = VGroup(f_m, f_te, f_exp)
+        VGroup(f_lhs, f_row2).arrange(DOWN, buff=0.14).move_to([4.65, 1.9, 0])
+
+        # Peak banner pieces matching peak_banner() at [4.65, -0.5, 0].
+        pb_max = T("Maximum", 30, GREEN)
+        pb_val = T("1/e ≈ 37%", 30, GREEN)
+        pb_m1 = T("at m = 1", 30, GREEN)
+        VGroup(pb_max, pb_val, pb_m1).arrange(DOWN, buff=0.14).move_to([4.65, -0.5, 0])
+        pb_m1_cur = pb_m1.copy().next_to(pb_max, DOWN, buff=0.14)
+
+        self.at("37", lead=0.0)
+        self.play(FadeIn(ref_line), run_time=0.3)
+
         self.at("In this model")
-        # Reach m=1 on “peaks at”; the narration’s answer precedes its causal explanation.
-        self.play(m.animate.set_value(1),run_time=max(.5,self.t_of("peaks at")-.2-self.elapsed()),rate_func=linear)
-        self.at("peaks at")
-        self.play(FadeIn(peak_banner()),run_time=.25)
-        self.wait(.35)
-        self.play(m.animate.set_value(3),run_time=.65,rate_func=linear)
-        self.play(m.animate.set_value(1),run_time=.65,rate_func=linear);self.finish()
+        # Sweep m smoothly from 0.1 to 3.0 while building the formula as each piece is spoken.
+        sweep_dur = 4.8
+        m._t = 0.0
+
+        def sweep_up(mob, dt):
+            mob._t += dt
+            mob.set_value(0.1 + 2.9 * min(1.0, mob._t / sweep_dur))
+
+        m.add_updater(sweep_up)
+        self.add(m)
+
+        self.at("that share", lead=0.0)
+        self.play(FadeIn(f_lhs), run_time=0.3)
+        self.at("the average", lead=0.0)
+        self.play(FadeIn(f_m), run_time=0.25)
+        self.at("times", lead=0.0)
+        self.play(FadeIn(f_te), run_time=0.3)
+        self.at("minus average", lead=0.0)
+        self.play(FadeIn(f_exp), run_time=0.3)
+
+        rem = max(0.0, sweep_dur - m._t)
+        if rem > 0.02:
+            self.wait(rem)
+        m.clear_updaters()
+        m.set_value(3.0)
+        self.wait(0.15)
+
+        # Sweep back to m = 1 as the peak is named.
+        ret_dur = max(0.45, self.t_of("one escape") - self.elapsed())
+        m._t = 0.0
+
+        def sweep_back(mob, dt):
+            mob._t += dt
+            mob.set_value(3.0 - 2.0 * min(1.0, mob._t / ret_dur))
+
+        m.add_updater(sweep_back)
+        self.at("peaks at", lead=0.05)
+        self.play(FadeIn(pb_max), run_time=0.25)
+        rem_ret = max(0.0, ret_dur - m._t)
+        if rem_ret > 0.02:
+            self.wait(rem_ret)
+        m.clear_updaters()
+        m.set_value(1.0)
+
+        self.at("one escape", lead=0.0)
+        self.play(FadeIn(pb_m1_cur), run_time=0.25)
+
+        self.at("one over e", lead=0.0)
+        probs1 = poisson(1.0)
+        bar_labels = VGroup(*[
+            T(f"{100 * probs1[k]:.0f}%", 28, GREEN if k == 1 else TEXT).move_to(
+                [x, base + (top - base) * probs1[k] + 0.24, 0]
+            )
+            for k, x in ((0, -3.85), (1, -2.15))
+        ])
+        self.play(pb_m1_cur.animate.move_to(pb_m1), run_time=0.15)
+        self.play(FadeIn(pb_val), FadeIn(bar_labels), run_time=0.25)
+        self.finish()
 
 
 class S15Beat(Scene):
@@ -632,7 +712,7 @@ class S25(SpokenScene):
 
 class S26(SpokenScene):
     def construct(self):
-        self.add(label("The chapters ahead",3.2,TEXT,38))
+        self.add(label("The sections ahead",3.2,TEXT,38))
         road=VGroup(Line([-4.3,.3,0],[4.3,.3,0],color=GREY),*[Circle(radius=.2,color=GREY).move_to([x,.3,0]) for x in (-4.3,0,4.3)])
         self.add(road)
         self.at("the silence")
