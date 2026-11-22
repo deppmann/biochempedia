@@ -13,7 +13,7 @@ export const POLISHED = new Set([
 // "shipped") are about to get new text, so they wait: listen-render skips them unless named with --only,
 // and check-listen warns instead of failing. The level-up voices each lesson as it ships. Remove a
 // course from this set when its level-up is finished.
-export const LEVEL_UP_UNDERWAY = new Set(['signaling']);
+export const LEVEL_UP_UNDERWAY = new Set([]);
 
 /** Slugs waiting for their level-up before they are voiced (read from production/record). */
 export function waitingForLevelUp(root = '.') {

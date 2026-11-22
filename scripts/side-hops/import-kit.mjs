@@ -21,7 +21,15 @@ import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from
 import { dirname, join } from 'node:path';
 import { lessonHeadings } from './shared.mjs';
 
-const NARRATION = 'an AI narrator voice (ElevenLabs, Jessica)';
+/** Narration credit, read from the recording's <slug>.record.json (written by record.py next to the mp3). */
+const VOICES = { kokoro: 'an AI narrator voice (Kokoro, af_heart)', elevenlabs: 'an AI narrator voice (ElevenLabs, Jessica)' };
+function narrationFor(audio) {
+  const rec = audio.replace(/\.mp3$/, '.record.json');
+  if (!existsSync(rec)) return VOICES.elevenlabs; // older recordings carry no record file
+  const r = JSON.parse(readFileSync(rec, 'utf8'));
+  if (r.engine === 'kokoro') return `an AI narrator voice (Kokoro, ${r.voice || 'af_heart'})`;
+  return VOICES[r.engine] ?? VOICES.elevenlabs;
+}
 /** Characters of script per second of finished audio. The recordings so far run from 13.0 to 14.2. */
 const PACE = { low: 12.3, high: 14.3 };
 
@@ -120,7 +128,7 @@ const now = new Date();
 const updated = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 const data = {
   slug, updated, hops,
-  audio: { title: kit.audio.title, file: `side-hops/${slug}.mp3`, durationSec, narration: NARRATION, transcript },
+  audio: { title: kit.audio.title, file: `side-hops/${slug}.mp3`, durationSec, narration: narrationFor(audioPath), transcript },
 };
 
 mkdirSync('src/data/side-hops', { recursive: true });
