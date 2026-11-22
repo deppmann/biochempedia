@@ -835,8 +835,8 @@ class S14Diagram(AmbScene):
         ch = Chart(0, 0.1, 10, 5.2)
         sq = VGroup(*[Square(side_length=0.8, stroke_color=BG, stroke_width=2).set_fill(BLUE if WET_MONTHS[i] else GOLD, 0.85).move_to([-4.4 + i * 0.8, 0.5, 0]) for i in range(12)])
         ltr = VGroup(*[T(m, 28, BG, weight=BOLD).move_to(sq[i]) for i, m in enumerate(MONTHS)])
-        wl = lab("wet months", 32, BLUE).move_to([-3.0, -0.5, 0])
-        dl = lab("dry months", 32, GOLD).move_to([3.0, -0.5, 0])
+        wl = lab("wet months", 32, BLUE).move_to([0.8, -0.5, 0])
+        dl = lab("dry months", 32, GOLD).move_to([-2.8, -0.5, 0])
         self.at("Ecologists draw that")
         self.play(FadeIn(sq, lag_ratio=0.1), FadeIn(ltr, lag_ratio=0.1), run_time=1.2)
         self.play(FadeIn(wl), FadeIn(dl), run_time=0.5)
@@ -868,33 +868,129 @@ class S15Rule2(AmbScene):
         ch = Chart(0, 0.1, 10, 5.2)
         axes, mo, red, blue = ch.axes(), ch.months(), ch.red(), ch.blue()
         self.add(axes, mo, red, blue)
-        self.at("The scales are linked")
-        tn = lab("Temperature (°C)", 26, RED).move_to([-4.3, 3.4, 0])
-        rn = lab("Rain (mm)", 26, BLUE).move_to([4.7, 3.4, 0])
-        tk = ch.ticks()
-        self.play(FadeIn(tn), FadeIn(rn), FadeIn(tk), run_time=1.0)
-        self.at("10 degrees sits level")
-        yl = ch.YT(10)
-        c1 = Circle(radius=0.3, color=YELLOW, stroke_width=5).move_to([ch.X(0) - 0.45, yl, 0])
-        dash = DashedLine([ch.X(0), yl, 0], [ch.X(12), yl, 0], color=YELLOW, stroke_width=4)
-        self.play(Create(c1), run_time=0.5)
-        self.play(Create(dash), run_time=1.0)
-        dot = Dot([ch.X(0), yl, 0], radius=0.1, color=YELLOW)
+
+        # Before the axes lock together: Sun, wet soil, leaves, vapour arrows growing as RED line rises
+        tr = ValueTracker(0.0)
+        warm = ValueTracker(0.0)
+        ch_s = Chart(2.3, 0.15, 7.2, 4.4, tr=tr)
+        axes_s, mo_s, red_s0, blue_s = ch_s.axes(), ch_s.months(24), ch_s.red(), ch_s.blue()
+
+        vx = -3.9
+        sun = sun_glyph([vx, 1.95, 0], r=0.32)
+        rays = VGroup(*[Line([vx + dx * 0.25, 1.4, 0], [vx + dx * 0.85, -0.3, 0],
+                             color=YELLOW, stroke_width=2.5, stroke_opacity=0.45) for dx in (-1, 0, 1)])
+        soil = RoundedRectangle(corner_radius=0.1, width=3.2, height=0.48, stroke_color=TAN, stroke_width=2.5,
+                                fill_color=TAN, fill_opacity=0.55).move_to([vx, -1.65, 0])
+        wet_film = Line([vx - 1.45, -1.41, 0], [vx + 1.45, -1.41, 0], color=BLUE, stroke_width=5)
+        soil_drops = VGroup(*[Dot([vx - 1.0 + i * 0.65, -1.35, 0], radius=0.05, color=BLUE) for i in range(4)])
+        stem = Line([vx, -1.41, 0], [vx, -0.75, 0], color=GREEN, stroke_width=4)
+        leaf_l = Ellipse(width=0.9, height=0.38, stroke_color=GREEN, stroke_width=2,
+                         fill_color=GREEN, fill_opacity=0.85).rotate(0.45).move_to([vx - 0.42, -0.82, 0])
+        leaf_r = Ellipse(width=0.9, height=0.38, stroke_color=GREEN, stroke_width=2,
+                         fill_color=GREEN, fill_opacity=0.85).rotate(-0.45).move_to([vx + 0.42, -0.82, 0])
+        leaf_t = Ellipse(width=0.75, height=0.34, stroke_color=GREEN, stroke_width=2,
+                         fill_color=GREEN, fill_opacity=0.9).rotate(PI / 2).move_to([vx, -0.52, 0])
+        leaf_drops = VGroup(Dot([vx - 0.45, -0.78, 0], radius=0.045, color=BLUE),
+                            Dot([vx + 0.48, -0.80, 0], radius=0.045, color=BLUE))
+        evap_base = VGroup(sun, rays, soil, wet_film, soil_drops, stem, leaf_l, leaf_r, leaf_t, leaf_drops)
+
+        def make_arrows():
+            w = warm.get_value()
+            h = 0.30 + 0.85 * w
+            op = 0.35 + 0.65 * w
+            sw = 3.0 + 4.0 * w
+            xs = [vx - 0.95, vx - 0.3, vx + 0.35, vx + 0.95]
+            yb = [-1.2, -0.2, -0.2, -1.2]
+            return VGroup(*[Arrow([x, y, 0], [x, y + h, 0], color=PALE, buff=0, stroke_width=sw,
+                                  tip_length=0.18 + 0.08 * w).set_opacity(op) for x, y in zip(xs, yb)])
+
+        arrows = always_redraw(make_arrows)
+        rl_s = lab("temperature", 26, RED, halo=True).move_to([0.0, 2.22, 0])
+        bl_s = lab("rain", 26, BLUE, halo=True).move_to([0.0, -0.98, 0])
+
+        lbl_loss = lab("warmer = faster water loss", 28, RED)
+        lbl_thumb = lab("(rule of thumb)", 28, YELLOW)
+        lbl_rule = VGroup(lbl_loss, lbl_thumb).arrange(RIGHT, buff=0.16).move_to([0, 3.28, 0])
+
+        self.at("Warmer air")
+        self.play(Transform(axes, axes_s), Transform(mo, mo_s), Transform(red, red_s0), Transform(blue, blue_s),
+                  FadeIn(evap_base), FadeIn(arrows), run_time=0.7)
+        self.remove(red)
+        red_live = always_redraw(ch_s.red)
+        self.add(red_live)
+
+        self.at("drives")
+        self.play(tr.animate.set_value(4.0), warm.animate.set_value(0.5), FadeIn(rl_s), FadeIn(bl_s),
+                  run_time=1.0, rate_func=linear)
+        self.at("evaporation")
+        self.play(tr.animate.set_value(8.0), warm.animate.set_value(1.0), FadeIn(lbl_loss),
+                  run_time=1.4, rate_func=smooth)
+        self.at("As a rule of thumb")
+        self.play(FadeIn(lbl_thumb), run_time=0.2)
+
+        self.at("the scales are linked")
+        # Light up left & right axes while returning chart to centre
+        self.remove(red_live)
+        red_cur = ch_s.red()
+        self.add(red_cur)
+        ch_full = Chart(0, 0.1, 10, 5.2)
+        axes_f, mo_f, red_f, blue_f = ch_full.axes(), ch_full.months(), ch_full.red(), ch_full.blue()
+        axes_f[1].set_stroke(RED, 7)
+        axes_f[2].set_stroke(BLUE, 7)
+        self.play(FadeOut(evap_base), FadeOut(arrows), FadeOut(rl_s), FadeOut(bl_s),
+                  Transform(axes, axes_f), Transform(mo, mo_f), Transform(red_cur, red_f), Transform(blue, blue_f),
+                  run_time=0.68)
+        red = red_cur
+
+        tn = lab("temperature, °C", 26, RED).move_to([-4.3, 3.25, 0])
+        rn = lab("rain, mm", 26, BLUE).move_to([4.7, 3.25, 0])
+        self.play(FadeOut(lbl_rule, run_time=0.18))
+        self.play(FadeIn(tn, run_time=0.24), FadeIn(rn, run_time=0.24))
+
+        self.at("10 degrees")
+        yl = ch_full.YT(10)
+        t10_lab = T("10", 24, RED).move_to([ch_full.X(0) - 0.45, yl, 0])
+        t10_tick = Line([ch_full.X(0), yl, 0], [ch_full.X(0) - 0.1, yl, 0], color=RED, stroke_width=3)
+        c1 = Circle(radius=0.3, color=YELLOW, stroke_width=5).move_to([ch_full.X(0) - 0.45, yl, 0])
+        self.play(FadeIn(t10_lab), Create(t10_tick), Create(c1), run_time=0.45)
+
+        self.at("sits level")
+        dash = DashedLine([ch_full.X(0), yl, 0], [ch_full.X(12), yl, 0], color=YELLOW, stroke_width=4)
+        self.play(Create(dash), run_time=0.80)
+
         self.at("20 millimeters")
-        c2 = Circle(radius=0.3, color=YELLOW, stroke_width=5).move_to([ch.X(12) + 0.45, ch.YR(20), 0])
-        self.play(Create(c2), run_time=0.5)
+        r20_lab = T("20", 24, BLUE).move_to([ch_full.X(12) + 0.45, ch_full.YR(20), 0])
+        r20_tick = Line([ch_full.X(12), ch_full.YR(20), 0], [ch_full.X(12) + 0.1, ch_full.YR(20), 0], color=BLUE, stroke_width=3)
+        c2 = Circle(radius=0.3, color=YELLOW, stroke_width=5).move_to([ch_full.X(12) + 0.45, ch_full.YR(20), 0])
+        dot = Dot([ch_full.X(0), yl, 0], radius=0.1, color=YELLOW)
+        self.play(FadeIn(r20_lab), Create(r20_tick), Create(c2), run_time=0.40)
         self.add(dot)
-        self.play(dot.animate.move_to([ch.X(12), yl, 0]), run_time=1.2)
-        self.play(dot.animate.move_to([ch.X(0), yl, 0]), run_time=1.0)
+        self.play(dot.animate.move_to([ch_full.X(12), yl, 0]), run_time=0.60)
+        other_ticks = VGroup()
+        for t in (0, 20, 30, 40):
+            other_ticks.add(Line([ch_full.X(0), ch_full.YT(t), 0], [ch_full.X(0) - 0.1, ch_full.YT(t), 0], color=RED, stroke_width=3))
+            other_ticks.add(T(str(t), 24, RED).move_to([ch_full.X(0) - 0.45, ch_full.YT(t), 0]))
+        for r in (0, 40, 60, 80):
+            other_ticks.add(Line([ch_full.X(12), ch_full.YR(r), 0], [ch_full.X(12) + 0.1, ch_full.YR(r), 0], color=BLUE, stroke_width=3))
+            other_ticks.add(T(str(r), 24, BLUE).move_to([ch_full.X(12) + 0.45, ch_full.YR(r), 0]))
+        self.play(FadeIn(other_ticks), dot.animate.move_to([ch_full.X(0), yl, 0]), run_time=0.60)
+
         self.at("When the blue line")
-        self.play(FadeOut(c1), FadeOut(c2), FadeOut(dot), dash.animate.set_stroke(opacity=0.35), run_time=0.4)
-        fills = ch.fills()
-        self.play(FadeIn(fills), run_time=2.0)
-        self.at("month is")
-        lbl = lab("dry month: rain (mm) < 2 × temperature (°C)", 26, GOLD).move_to([0, -3.55, 0])
-        self.play(FadeIn(lbl, shift=UP * 0.1), run_time=0.7)
-        self.play(fills.animate.set_fill(GOLD, 0.7), run_time=0.7)
-        self.play(fills.animate.set_fill(GOLD, 0.5), run_time=0.7)
+        fills = ch_full.fills()
+        self.play(FadeOut(c1), FadeOut(c2), FadeOut(dot), dash.animate.set_stroke(opacity=0.35),
+                  axes[1].animate.set_stroke(RED, 3), axes[2].animate.set_stroke(BLUE, 3),
+                  FadeIn(fills), run_time=0.65)
+
+        self.at("drops below")
+        lbl_pre = lab("dry month:", 26, GOLD)
+        lbl_eq = lab("rain (mm) < 2 × temperature (°C)", 26, GOLD)
+        lbl = VGroup(lbl_pre, lbl_eq).arrange(RIGHT, buff=0.14).move_to([0, -3.42, 0])
+        self.play(FadeIn(lbl_eq, shift=UP * 0.1), run_time=0.45)
+
+        self.at("the month is")
+        self.play(FadeIn(lbl_pre, shift=UP * 0.1), run_time=0.25)
+        self.play(fills.animate.set_fill(GOLD, 0.7), run_time=0.6)
+        self.play(fills.animate.set_fill(GOLD, 0.5), run_time=0.6)
         self.finish()
 
 
@@ -912,7 +1008,7 @@ class S16Rule2b(AmbScene):
         fills = always_redraw(ch.fills)
         self.add(red, fills)
         rl = lab("temperature", 28, RED, halo=True).move_to([-4.9, 2.55, 0])
-        bl = lab("rain", 28, BLUE, halo=True).move_to([-0.4, 1.7, 0])
+        bl = lab("rain", 28, BLUE, halo=True).move_to([-0.5, 2.55, 0])
         self.play(FadeIn(rl), FadeIn(bl), run_time=0.4)
 
         def row(y, arrow, color, text):

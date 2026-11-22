@@ -687,40 +687,64 @@ def best_pairs():
 class S12Reveal(SpokenScene):
     def construct(self):
         R = lead_stack()
-        R.yr.set_value(0.0)
+        R.yr.set_value(2.0)
         st = stack(R)
         self.add(R.yr, baseline(), st, name("4 species", XS, TEXT))
-        L = -1.6
-        l1 = T("swing: 25 to 50 (×2)", 34).move_to([0, 2.9, 0])
-        l2 = T("mean: 50 to 200 (×4)", 34).move_to([0, 2.0, 0])
-        l3 = T("mean / swing: 2 to 4", 34, YELLOW).move_to([0, 1.1, 0])
-        for l in (l1, l2, l3):
-            l.align_to([L, 0, 0], LEFT)
-        self.at("twice as much")
-        self.play(FadeIn(l1, shift=LEFT * 0.2), run_time=0.8)
-        self.at("four times larger")
-        self.play(FadeIn(l2, shift=LEFT * 0.2), run_time=0.8)
-        self.play(FadeIn(l3, shift=LEFT * 0.2), run_time=0.8)
+        L = -1.8
+        # Formula line 1: swing of sum = swing x sqrt(n), plus (sqrt(4) = 2)
+        f_lhs = T("swing of sum", 28, TEXT).move_to([0, 3.05, 0]).align_to([L, 0, 0], LEFT)
+        f_rhs1 = M("= swing × √n", 28, GOLD).next_to(f_lhs, RIGHT, buff=0.16)
+        f_root4 = M("√4", 28, TEAL).next_to(f_rhs1, RIGHT, buff=0.45)
+        f_eq2 = M("= 2", 28, TEAL).next_to(f_root4, RIGHT, buff=0.12)
+        # Formula line 2: = 25 x sqrt(4) = 25 x 2 = 50
+        f_sub1 = M("= 25 × √4", 28, TEXT).move_to([0, 2.38, 0]).align_to([L + 0.6, 0, 0], LEFT)
+        f_sub2 = M("= 25 × 2", 28, TEXT).next_to(f_sub1, RIGHT, buff=0.18)
+        f_ans = M("= 50", 28, GOLD).next_to(f_sub2, RIGHT, buff=0.18)
+
+        self.at("independent swings")
+        self.play(FadeIn(f_lhs, shift=LEFT * 0.15), run_time=0.6)
+        self.at("square root")
+        self.play(FadeIn(f_rhs1, shift=LEFT * 0.15), run_time=0.7)
+        self.at("4 is 2", lead=0.0)
+        self.play(FadeIn(f_root4, shift=LEFT * 0.1), run_time=0.25)
+        self.at("2", lead=0.0)
+        self.play(FadeIn(f_eq2, shift=LEFT * 0.1), run_time=0.25)
+        self.at("25", lead=0.0)
+        self.play(FadeIn(f_sub1, shift=LEFT * 0.1), run_time=0.4)
+        self.at("becomes", lead=0.05)
+        self.play(FadeIn(f_sub2, shift=LEFT * 0.1), run_time=0.35)
+        self.at("50", lead=0.0)
+        self.play(FadeIn(f_ans, shift=LEFT * 0.1), run_time=0.4)
+
+        l1 = T("swing: 25 to 50 (×2)", 32).move_to([0, 1.45, 0]).align_to([L, 0, 0], LEFT)
+        l2 = T("mean: 50 to 200 (×4)", 32).move_to([0, 0.75, 0]).align_to([L, 0, 0], LEFT)
+        l3 = T("mean / swing: 2 to 4", 32, YELLOW).move_to([0, 0.05, 0]).align_to([L, 0, 0], LEFT)
+        self.at("twice as much", lead=0.1)
+        self.play(FadeIn(l1, shift=LEFT * 0.2), run_time=0.7)
+        self.at("four times larger", lead=0.05)
+        self.play(FadeIn(l2, shift=LEFT * 0.2), run_time=0.6)
+        self.play(FadeIn(l3, shift=LEFT * 0.2), run_time=0.6)
+
         self.at("Good and bad years")
         pairs = best_pairs()
         j = pairs[0] if pairs else 2
         R.speed = 0
         R.cyc = False
         self.play(R.yr.animate.set_value(float(j)), run_time=0.8)
-        lab = T("swings partly cancel", 34, TEAL).move_to([0, -0.3, 0]).align_to([L, 0, 0], LEFT)
+        lab = T("swings partly cancel", 32, TEAL).move_to([0, -0.85, 0]).align_to([L, 0, 0], LEFT)
         k = R.kk.get_value()
         c_y = BASE + sum(year_val(j, i, 0) for i in range(2)) * k + year_val(j, 2, 0) * k / 2
         t_y = BASE + year_val(j, 0, 0) * k + year_val(j, 1, 0) * k / 2
-        ac = Arrow([-3.3, c_y + 0.4, 0], [-3.3, c_y - 0.4, 0], color=CORAL, buff=0, stroke_width=8)
-        at_ = Arrow([-3.3, t_y - 0.4, 0], [-3.3, t_y + 0.4, 0], color=TEAL, buff=0, stroke_width=8)
+        ac = Arrow([-3.1, c_y + 0.4, 0], [-3.1, c_y - 0.4, 0], color=CORAL, buff=0, stroke_width=8)
+        at_ = Arrow([-3.45, t_y - 0.4, 0], [-3.45, t_y + 0.4, 0], color=TEAL, buff=0, stroke_width=8)
         top = BASE + sum(year_val(j, i, 0) for i in range(4)) * k
-        lvl = DashedLine([-6.4, top, 0], [-3.4, top, 0], color=OUT, stroke_width=3)
+        lvl = DashedLine([-6.4, top, 0], [-3.0, top, 0], color=OUT, stroke_width=3)
         self.play(FadeIn(lab), FadeIn(ac), FadeIn(at_), Create(lvl), run_time=0.6)
         self.play(R.yr.animate.set_value(float(j + 1)), run_time=1.8)
         self.play(Indicate(lab, color=TEAL), run_time=0.6)
         self.at("statistical averaging")
-        sa = T("statistical averaging", 34, GREEN).move_to([0, -1.4, 0]).align_to([L, 0, 0], LEFT)
-        self.play(Write(sa), run_time=1.2)
+        sa = T("statistical averaging", 32, GREEN).move_to([0, -1.75, 0]).align_to([L, 0, 0], LEFT)
+        self.play(Write(sa), run_time=0.9)
         R.cyc = True
         R.speed = 0.6
         self.add(tag("computed from independent draws", x=2.5))
@@ -748,7 +772,7 @@ class S13Sync(SpokenScene):
         self.at("no steadier")
         l3 = T("mean / swing stays 2", 34, YELLOW).move_to([0, -0.8, 0]).align_to([L, 0, 0], LEFT)
         self.play(FadeIn(l3, shift=LEFT * 0.2), run_time=0.8)
-        self.add(tag("computed from independent draws", x=2.5))
+        self.add(tag("computed from synchronized draws", x=2.5))
         self.finish()
 
 

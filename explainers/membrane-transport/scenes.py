@@ -256,6 +256,7 @@ class S03Hill(SpokenScene):
         self.play(FadeIn(b2), b2.animate.move_to(teal.line.point_from_proportion(0.78)+UP*0.26), run_time=0.9)
         self.at("the total")
         total = ramp(8.59-6.75, center=(0, -0.25, 0), width=5.3, color=TEXT, label="total at -70 mV")
+        total[-1].next_to(total.line, UP, buff=0.65)
         ball = ball_on(total.line, 0.65)
         self.play(FadeOut(VGroup(orange, teal, b1, b2)), FadeIn(total), FadeIn(ball), run_time=0.8)
         self.at("runs downhill")
@@ -268,68 +269,173 @@ class S04Balance(SpokenScene):
         bg = fluid_background()
         title = T("energy to enter K+  •  computed", 28, GREY).to_edge(UP, buff=0.35)
         rl = voltage_ruler()
-        voltage = ValueTracker(-70)
-        total_line = always_redraw(lambda: ramp(8.59 + 0.096485*voltage.get_value(),
-                                                  center=(-2.15, 0.25, 0), width=4.5,
-                                                  color=TEXT, label="total")[0])
-        orange = ramp(8.59, center=(-2.15, 0.25, 0), width=4.5, color=ORANGE)
-        teal_line = always_redraw(lambda: ramp(0.096485*voltage.get_value(),
-                                               center=(-2.15, 0.25, 0), width=4.5,
-                                               color=TEAL)[0])
+        rc, rw = (-3.65, 0.95, 0), 3.6
+        voltage = ValueTracker(-70.0)
+        ball_u = ValueTracker(0.62)
+        total_line = always_redraw(lambda: ramp(8.59 + 0.096485 * voltage.get_value(),
+                                                  center=rc, width=rw, color=TEXT)[0])
+        orange = ramp(8.59, center=rc, width=rw, color=ORANGE)
+        teal_line = always_redraw(lambda: ramp(0.096485 * voltage.get_value(),
+                                               center=rc, width=rw, color=TEAL)[0])
         voltage_wedge = always_redraw(lambda: Polygon(
-            [-4.4, 0.25, 0], [0.1, 0.25, 0],
-            [0.1, 0.25 + np.clip((0.096485*voltage.get_value()) / 8.59 * 2.0, -2.25, 2.25)/2, 0],
-            [-4.4, 0.25 - np.clip((0.096485*voltage.get_value()) / 8.59 * 2.0, -2.25, 2.25)/2, 0],
+            [rc[0] - rw / 2, rc[1], 0], [rc[0] + rw / 2, rc[1], 0],
+            [rc[0] + rw / 2, rc[1] + np.clip((0.096485 * voltage.get_value()) / 8.59 * 2.0, -2.25, 2.25) / 2, 0],
+            [rc[0] - rw / 2, rc[1] - np.clip((0.096485 * voltage.get_value()) / 8.59 * 2.0, -2.25, 2.25) / 2, 0],
             stroke_width=0, fill_color=TEAL, fill_opacity=0.12).set_z_index(-1))
-        ptr = always_redraw(lambda: pointer(voltage.get_value(), text=f"{voltage.get_value():.1f}", side=LEFT))
-        ball = ion("K+", POTASSIUM, 0.22, 17).move_to([-2.15, 0.55, 0])
-        # Start on the complete, full-opacity panel: the narration begins immediately,
-        # so fading this dense diagram up left an almost empty spoken frame.
+        ptr = always_redraw(lambda: Triangle(
+            color=TEAL, fill_color=TEAL, fill_opacity=1, stroke_width=0
+        ).scale(0.13).rotate(-PI / 2).move_to([RX - 0.3, vy(voltage.get_value()), 0]))
+        ball = always_redraw(lambda: Dot(radius=0.18, color=POTASSIUM, stroke_color=TEXT, stroke_width=2).move_to(
+            ramp(8.59 + 0.096485 * voltage.get_value(), center=rc, width=rw, color=TEXT)[0]
+            .point_from_proportion(ball_u.get_value()) + UP * 0.24))
+
         self.add(bg, title, rl, orange, voltage_wedge, teal_line, total_line, ptr, ball)
-        # Show the two slopes approaching balance before naming the cancellation.
-        self.play(voltage.animate.set_value(-84), run_time=2.4, rate_func=linear)
+
+        # Carry the membrane channel and gently drifting K+ ions in the lower-left world.
+        cx, cy = -2.05, -2.10
+        cross_band_l = RoundedRectangle(corner_radius=0.08, width=1.05, height=0.48, color=GREY,
+                                        stroke_width=2.5, fill_color=GREY, fill_opacity=0.42).move_to([cx - 1.00, cy, 0])
+        cross_band_r = RoundedRectangle(corner_radius=0.08, width=1.05, height=0.48, color=GREY,
+                                        stroke_width=2.5, fill_color=GREY, fill_opacity=0.42).move_to([cx + 1.00, cy, 0])
+        cross_gate = VGroup(*[
+            RoundedRectangle(corner_radius=0.08, width=0.22, height=0.84, color=BLUE,
+                             fill_color=BLUE, fill_opacity=0.8).move_to([cx + s * 0.36, cy, 0])
+            for s in (-1, 1)])
+        ambient_pts = [
+            (-3.10, -1.35, 0), (-1.20, -1.25, 0), (-0.70, -1.48, 0),
+            (-3.25, -2.72, 0), (-2.90, -3.12, 0), (-2.45, -2.78, 0),
+            (-2.00, -3.18, 0), (-1.55, -2.74, 0), (-1.10, -3.10, 0),
+            (-0.65, -2.72, 0), (-2.70, -2.95, 0), (-1.30, -2.95, 0),
+        ]
+        ambient_dots = VGroup()
+        for idx, pt in enumerate(ambient_pts):
+            d = Dot(radius=0.11, color=POTASSIUM).move_to(pt)
+            d.phase = 0.63 * idx
+            d.anchor = np.array(pt, dtype=float)
+
+            def _drift(mob, dt, idx=idx):
+                mob.phase += dt
+                mob.move_to(mob.anchor + np.array([
+                    0.06 * math.sin(1.4 * mob.phase + idx),
+                    0.045 * math.cos(1.1 * mob.phase + 0.7 * idx), 0]))
+            d.add_updater(_drift)
+            ambient_dots.add(d)
+        lbl_out = T("OUTSIDE", 24, GREY).move_to([-6.15, -1.35, 0], aligned_edge=LEFT)
+        lbl_in = T("INSIDE", 24, GREY).move_to([-6.15, -2.95, 0], aligned_edge=LEFT)
+        self.add(cross_band_l, cross_band_r, cross_gate, ambient_dots, lbl_out, lbl_in)
+
+        self.play(voltage.animate.set_value(-84.0), ball_u.animate.set_value(0.44),
+                  run_time=2.3, rate_func=linear)
         self.at("slopes cancel")
-        self.play(voltage.animate.set_value(-89.1), ball.animate.move_to([-2.15, 0.52, 0]), run_time=0.8)
+        self.play(voltage.animate.set_value(-89.1), ball_u.animate.set_value(0.50), run_time=0.8)
         self.remove(ptr)
-        ek = equilibrium_mark()
-        self.play(FadeIn(ek, shift=LEFT*0.2), run_time=0.5)
+        ek_tick = Line([RX - 0.27, vy(-89.1), 0], [RX + 0.27, vy(-89.1), 0], color=GREEN, stroke_width=8)
+        ek_label = M("E_K", 28, GREEN).next_to(ek_tick, LEFT, buff=0.24).shift(UP * 0.34)
+        self.play(FadeIn(ek_tick, shift=LEFT * 0.2), FadeIn(ek_label, shift=LEFT * 0.2), run_time=0.5)
         self.at("equilibrium potential")
-        self.play(Indicate(ek, color=GREEN), run_time=0.9)
-        self.at("For potassium")
-        k_values = chip("K+ teaching values", ORANGE, 32).move_to([0.9, -2.25, 0])
-        self.play(FadeIn(k_values, shift=LEFT*0.5), run_time=0.8)
-        self.at("teaching values")
-        conc_chip = chip("+8.59 kJ/mol", ORANGE, 30).move_to([-3.7, -2.15, 0])
-        volt_chip = chip("-8.59 kJ/mol", TEAL, 30).move_to([1.35, -2.15, 0])
-        self.play(ReplacementTransform(k_values, VGroup(conc_chip, volt_chip)), run_time=0.9)
-        self.play(Indicate(conc_chip, color=ORANGE),
-                  Indicate(volt_chip, color=TEAL), run_time=1.1)
+        self.play(Indicate(ek_tick, color=GREEN), Indicate(ek_label, color=GREEN), run_time=0.9)
+
+        # Build the Nernst equation beside the ruler step by step as each number is spoken.
+        eq_x = -0.35
+        eq_ind = 0.0
+        nernst_hdr = T("Nernst equation", 26, GREY, weight=BOLD).move_to([eq_x, 2.42, 0], aligned_edge=LEFT)
         self.at("Nernst equation")
-        balance_band = Rectangle(width=9.1, height=0.38, stroke_width=0,
-                                 fill_color=GREEN, fill_opacity=0.14).move_to([0.75, vy(-89.1), 0])
-        self.play(GrowFromEdge(balance_band, RIGHT), run_time=1.2)
-        calc = VGroup(M("concentration  +8.59", 27, ORANGE),
-                      M("voltage        -8.59", 27, TEAL),
-                      M("total            0", 29, GREEN)).arrange(DOWN, aligned_edge=LEFT, buff=0.18).move_to([-2.2, -2.1, 0])
-        self.play(LaggedStart(*[FadeIn(row, shift=UP*0.1) for row in calc], lag_ratio=0.32),
-                  FadeOut(balance_band), FadeOut(VGroup(conc_chip, volt_chip)), run_time=2.2)
+        self.play(FadeIn(nernst_hdr, shift=UP * 0.1), run_time=0.6)
+
+        eq_ek = M("E_K =", 24, GREEN)
+        eq_615 = M("61.5 mV", 24, TEXT)
+        VGroup(eq_ek, eq_615).arrange(RIGHT, buff=0.14).move_to([eq_x, 1.85, 0], aligned_edge=LEFT)
+        self.play(FadeIn(eq_ek), run_time=0.4)
+
+        self.at("61")
+        self.play(FadeIn(eq_615, shift=UP * 0.08), run_time=0.8)
+
+        eq_times = M("×", 24, TEXT)
+        eq_log = M("log₁₀(", 24, TEXT)
+        eq_ratio_words = M("outside / inside)", 24, ORANGE)
+        VGroup(eq_times, eq_log, eq_ratio_words).arrange(RIGHT, buff=0.12).move_to([eq_ind, 1.28, 0], aligned_edge=LEFT)
+        self.at("times")
+        self.play(FadeIn(eq_times), run_time=0.35)
+        self.at("base")
+        self.play(FadeIn(eq_log), run_time=0.45)
+        self.at("outside over inside")
+        self.play(FadeIn(eq_ratio_words), Indicate(lbl_out, color=ORANGE), Indicate(lbl_in, color=ORANGE),
+                  run_time=0.8)
+
+        eq_5_slash = M("5 /", 24, ORANGE).next_to(eq_log, RIGHT, buff=0.06)
+        eq_140_p = M("140)", 24, ORANGE).next_to(eq_5_slash, RIGHT, buff=0.10)
+        lbl_out_5 = T("OUTSIDE 5 mM", 24, ORANGE).move_to(lbl_out.get_left(), aligned_edge=LEFT)
+        lbl_in_140 = T("INSIDE 140 mM", 24, ORANGE).move_to(lbl_in.get_left(), aligned_edge=LEFT)
+        self.at("5 over 140")
+        self.play(FadeOut(eq_ratio_words, run_time=0.22), FadeIn(eq_5_slash, run_time=0.32),
+                  Succession(FadeOut(lbl_out, run_time=0.2), FadeIn(lbl_out_5, run_time=0.25)))
+        self.at("140")
+        self.play(FadeIn(eq_140_p, run_time=0.4),
+                  Succession(FadeOut(lbl_in, run_time=0.2), FadeIn(lbl_in_140, run_time=0.25)))
+
+        eq_step2_pre = M("= 61.5 × (", 24, TEXT)
+        eq_neg145 = M("−1.45)", 24, TEAL)
+        VGroup(eq_step2_pre, eq_neg145).arrange(RIGHT, buff=0.08).move_to([eq_ind, 0.72, 0], aligned_edge=LEFT)
+        self.at("about minus")
+        self.play(FadeIn(eq_step2_pre), run_time=0.3)
+        self.at("minus 1")
+        self.play(FadeIn(eq_neg145, shift=UP * 0.08), run_time=0.65)
+
+        eq_approx = M("≈", 26, GREEN)
+        eq_res = M("−89 mV", 27, GREEN)
+        VGroup(eq_approx, eq_res).arrange(RIGHT, buff=0.14).move_to([eq_ind, 0.14, 0], aligned_edge=LEFT)
+        ek_full = equilibrium_mark()[1]
+        self.at("giving")
+        self.play(FadeIn(eq_approx), run_time=0.35)
+        self.at("minus 89")
+        self.play(FadeIn(eq_res, shift=UP * 0.08),
+                  Succession(FadeOut(ek_label, run_time=0.2), FadeIn(ek_full, run_time=0.45)))
+        self.play(Indicate(eq_res, color=GREEN), run_time=0.6)
+
+        # Independent random crossings & separate counters settling at 12 out • 12 in, net 0.
         self.at("ions still cross")
-        cross_band = RoundedRectangle(corner_radius=0.1, width=2.2, height=0.58, color=GREY,
-                                      stroke_width=2.5, fill_color=GREY, fill_opacity=0.42).move_to([1.35, 0.0, 0])
-        cross_gate = VGroup(*[RoundedRectangle(corner_radius=0.08, width=0.25, height=0.94,
-                                              color=BLUE, fill_color=BLUE, fill_opacity=0.8).move_to([1.35+s*0.4, 0, 0])
-                              for s in (-1, 1)])
-        up = VGroup(*[ion("K+", POTASSIUM, 0.23, 16).move_to([0.9+0.6*i, -1.2, 0]) for i in range(2)])
-        down = VGroup(*[ion("K+", POTASSIUM, 0.23, 16).move_to([0.9+0.6*i, 1.2, 0]) for i in range(2)])
-        self.play(FadeIn(cross_band), FadeIn(cross_gate), FadeIn(up), FadeIn(down), run_time=0.5)
-        self.play(*[m.animate.shift(UP*2.4) for m in up],
-                  *[m.animate.shift(DOWN*2.4) for m in down], run_time=1.4)
+        rng = np.random.default_rng(7)
+        cross_dur = 0.34
+        out_starts = np.sort(rng.uniform(0.01, 0.64, size=12))
+        in_starts = np.sort(rng.uniform(0.02, 0.65, size=12))
+        out_xs = cx + rng.uniform(-0.18, 0.18, size=12)
+        in_xs = cx + rng.uniform(-0.18, 0.18, size=12)
+        out_mids = out_starts + cross_dur * 0.5
+        in_mids = in_starts + cross_dur * 0.5
+        cross_t = ValueTracker(0.0)
+
+        def make_cross_dot(t0, x_pos, direction):
+            def mk():
+                u = (cross_t.get_value() - t0) / cross_dur
+                if u <= 0.0 or u >= 1.0:
+                    return Dot(radius=0.01, fill_opacity=0, stroke_opacity=0).move_to([x_pos, cy, 0])
+                y_pos = (cy - 0.90 + 1.80 * u) if direction > 0 else (cy + 0.90 - 1.80 * u)
+                alpha = min(1.0, u / 0.18, (1.0 - u) / 0.18)
+                return Dot(radius=0.11, color=POTASSIUM, fill_opacity=alpha).move_to([x_pos, y_pos, 0])
+            return always_redraw(mk)
+
+        cross_dots = VGroup(
+            *[make_cross_dot(t0, xp, +1) for t0, xp in zip(out_starts, out_xs)],
+            *[make_cross_dot(t0, xp, -1) for t0, xp in zip(in_starts, in_xs)],
+        )
+
+        cnt_center = np.array([1.35, -1.88, 0.0])
+        out_cnt = always_redraw(lambda: M(
+            f"{sum(1 for tm in out_mids if cross_t.get_value() >= tm):2d} out", 28, ORANGE
+        ).move_to(cnt_center + LEFT * 0.95))
+        cnt_sep = M("•", 28, GREY).move_to(cnt_center)
+        in_cnt = always_redraw(lambda: M(
+            f"{sum(1 for tm in in_mids if cross_t.get_value() >= tm):2d} in", 28, ORANGE
+        ).move_to(cnt_center + RIGHT * 0.85))
+        net_label = T("net 0", 28, GREEN, weight=BOLD).move_to([1.35, -2.45, 0])
+        sch = T("schematic", 24, GREY).move_to([1.35, -2.95, 0])
+
+        self.play(FadeIn(cnt_sep), FadeIn(sch), run_time=0.35)
+        self.add(cross_dots, out_cnt, in_cnt)
+        self.play(cross_t.animate.set_value(0.38), run_time=1.0, rate_func=linear)
         self.at("equal numbers")
-        counts = VGroup(M("12 out  •  12 in", 30, GREEN),
-                        T("net 0", 30, GREEN, weight=BOLD)).arrange(DOWN, buff=0.16).move_to([2.3, 2.25, 0])
-        self.play(FadeIn(counts), run_time=0.6)
-        self.play(*[m.animate.shift(DOWN*2.4) for m in up],
-                  *[m.animate.shift(UP*2.4) for m in down], run_time=1.4)
+        self.play(cross_t.animate.set_value(1.0), run_time=1.2, rate_func=linear)
+        self.play(FadeIn(net_label, shift=UP * 0.08), run_time=0.35)
         self.finish()
 
 
@@ -348,7 +454,8 @@ class S05Predict(SpokenScene):
         q = question_layout()
         self.play(FadeIn(q[0]), run_time=0.7)
         self.at("green mark")
-        self.play(FadeIn(q[2]), Indicate(q[2], color=GREEN), run_time=0.8)
+        self.play(FadeIn(q[2]), run_time=0.45)
+        self.play(Indicate(q[2], color=GREEN), run_time=0.5)
         self.at("minus 70")
         self.play(FadeIn(q[1]), FadeIn(q[3]), run_time=0.7)
         self.at("minus 100")

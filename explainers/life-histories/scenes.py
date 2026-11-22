@@ -455,51 +455,167 @@ def gauge(cx, v, y=-2.6, w=4.6):
 class S06Worlds(SB):
     def construct(self):
         c1, c2 = PX
-        p1, p2 = panel(c1, "World 1"), panel(c2, "World 2")
-        a1, a2 = adults(c1), adults(c2)
-        k1, k2 = chicks(c1), chicks(c2)
-        self.play(FadeIn(p1), FadeIn(p2), run_time=0.8)
-        self.play(FadeIn(a1), FadeIn(k1), FadeIn(a2), FadeIn(k2), run_time=1.0)
+        fr1 = RoundedRectangle(corner_radius=0.2, width=6.5, height=6.0, stroke_color=GREY, stroke_width=2).move_to(P(c1, 0.60))
+        fr2 = RoundedRectangle(corner_radius=0.2, width=6.5, height=6.0, stroke_color=GREY, stroke_width=2).move_to(P(c2, 0.60))
+        ht1 = T("World 1", 32, TEXT, weight=BOLD).move_to(P(c1, 3.30))
+        ht2 = T("World 2", 32, TEXT, weight=BOLD).move_to(P(c2, 3.30))
+        a1 = adults(c1, y=2.25)
+        a2 = adults(c2, y=2.25)
+        k1 = VGroup(*[Circle(radius=0.23, stroke_color=GOLD, stroke_width=3, fill_color=GOLD, fill_opacity=0.9).move_to(P(c1 - 2.0 + i * 1.0, 0.45)) for i in range(5)])
+        k2 = VGroup(*[Circle(radius=0.23, stroke_color=GOLD, stroke_width=3, fill_color=GOLD, fill_opacity=0.9).move_to(P(c2 - 2.0 + i * 1.0, 0.45)) for i in range(5)])
+        sch = T("schematic", 22, GREY).move_to(P(5.6, -3.55))
+
+        self.add(fr1, ht1, fr2, ht2, sch)
+        self.play(FadeIn(a1), FadeIn(k1), FadeIn(a2), FadeIn(k2), run_time=0.9)
         for m in list(a1) + list(a2):
             idle(m, 0.04, phase=np.random.RandomState(int(m.get_x() * 10 + 99)).rand() * 6)
+
         self.at("In the first")
         sn1 = snowflake(0.45).move_to(P(c1 - 3.0, 3.0))
         self.add(sn1)
         sn1.add_updater(lambda m, dt: m.rotate(dt * 1.5))
-        self.play(sn1.animate.move_to(P(c1 + 3.0, 0.3)), run_time=1.0, rate_func=linear)
+        self.play(sn1.animate.move_to(P(c1 + 3.0, 0.3)), run_time=0.85, rate_func=linear)
         self.play(FadeOut(sn1), run_time=0.2)
-        pl1 = T("adult survival p: low", 28, TEXT).move_to(P(c1, 1.0))
-        cl1 = T("young survival c: high", 28, GOLD).move_to(P(c1, -1.3))
-        g1 = gauge(c1, 0.85)
-        # adults fade (we ride the narration "adults rarely survive")
-        self.at("adults rarely survive") if False else None
-        self.until(self.t_of("adults rarely") - 0.2)
-        self.play(FadeIn(pl1), *[a1[i].animate.set_opacity(0.12) for i in (0, 1, 3, 4)], run_time=1.4)
+
+        pl1 = T("adult survival p: low", 25, TEXT).move_to(P(c1, 1.35))
+        cl1 = T("young survival c: high", 25, GOLD).move_to(P(c1, -0.45))
+        g1_box = Rectangle(width=4.4, height=0.38, stroke_color=GREY, stroke_width=3).move_to(P(c1, -1.35))
+        g1_fill = Rectangle(width=4.4 * 0.85, height=0.38, stroke_width=0, fill_color=GOLD, fill_opacity=0.9).move_to(P(c1 - 2.2 + 4.4 * 0.85 / 2, -1.35))
+        g1 = VGroup(g1_box, g1_fill)
+
+        self.at("adults rarely survive")
+        self.play(FadeIn(pl1), *[a1[i].animate.set_opacity(0.12) for i in (0, 1, 3, 4)], run_time=1.2)
         self.at("but their young")
-        self.play(FadeIn(cl1), FadeIn(g1), *[Indicate(k, color=GOLD, scale_factor=1.15) for k in k1], run_time=1.5)
+        self.play(FadeIn(cl1), FadeIn(g1), *[Indicate(k, color=GOLD, scale_factor=1.15) for k in k1], run_time=1.3)
+
         self.at("In the second")
         sn2 = snowflake(0.45).move_to(P(c2 - 3.0, 3.0))
         self.add(sn2)
         sn2.add_updater(lambda m, dt: m.rotate(dt * 1.5))
-        self.play(sn2.animate.move_to(P(c2 + 3.0, 0.3)), run_time=0.9, rate_func=linear)
+        self.play(sn2.animate.move_to(P(c2 + 3.0, 0.3)), run_time=0.85, rate_func=linear)
         self.play(FadeOut(sn2), run_time=0.2)
-        pl2 = T("adult survival p: high", 28, TEXT).move_to(P(c2, 1.0))
-        cl2 = T("young survival c: low or variable", 26, GOLD).move_to(P(c2, -1.3))
-        self.until(self.t_of("adults usually") - 0.2)
-        self.play(FadeIn(pl2), *[Indicate(a, color=TEXT, scale_factor=1.12) for a in a2], run_time=1.4)
+
+        pl2 = T("p: high", 25, TEXT).move_to(P(c2, 1.35))
+        cl2 = T("c: low or variable", 25, GOLD).move_to(P(c2, -0.45))
+        self.at("adults usually survive")
+        self.play(FadeIn(pl2), *[Indicate(a, color=TEXT, scale_factor=1.12) for a in a2], run_time=1.2)
+
         self.at("while many young die")
-        self.play(FadeIn(cl2), *[k2[i].animate.set_opacity(0.12) for i in (0, 2, 3)], run_time=1.6)
+        fade_idx = (0, 2, 3)
+        self.play(*[k2[i].animate.set_opacity(0.25) for i in fade_idx], run_time=0.25)
+        self.play(*[k2[i].animate.set_opacity(0.95) for i in fade_idx], run_time=0.2)
+        self.play(FadeIn(cl2), *[k2[i].animate.set_opacity(0.12) for i in fade_idx], run_time=0.75)
+
         self.at("survival swings")
         w = ValueTracker(0.0)
-        box = Rectangle(width=4.6, height=0.5, stroke_color=GREY, stroke_width=3).move_to(P(c2, -2.6))
+        bar_y = ValueTracker(-1.52)
+        ys_lbl = T("young survival", 24, GOLD).move_to(P(c2, -0.98))
+        box = Rectangle(width=4.4, height=0.36, stroke_color=GREY, stroke_width=3).move_to(P(c2, -1.52))
 
         def gfill():
             v = 0.5 + 0.38 * np.sin(w.get_value() * 2.2) * np.cos(w.get_value() * 0.7 + 1)
-            f = Rectangle(width=4.6 * v, height=0.5, stroke_width=0, fill_color=GOLD, fill_opacity=0.9)
-            return f.move_to(P(c2 - 2.3 + 4.6 * v / 2, -2.6))
+            f = Rectangle(width=4.4 * v, height=0.36, stroke_width=0, fill_color=GOLD, fill_opacity=0.9)
+            return f.move_to(P(c2 - 2.2 + 4.4 * v / 2, bar_y.get_value()))
         gf = always_redraw(gfill)
-        self.add(box, gf)
-        self.play(w.animate.set_value(8.0), run_time=max(1.0, self.narration_s + 0.4 - self.elapsed()), rate_func=linear)
+        self.play(FadeIn(ys_lbl), FadeIn(box), run_time=0.35)
+        self.add(gf)
+        w.add_updater(lambda m, dt: m.increment_value(dt * 1.6))
+
+        self.at("One big bout")
+        for m in list(a1) + list(a2):
+            m.clear_updaters()
+
+        PIVOT = P(0.0, -2.35)
+        R_BEAM = 3.2
+        tilt = ValueTracker(0.0)
+
+        def pan_pos(side):
+            th = tilt.get_value()
+            s = -1.0 if side == "L" else 1.0
+            tip = PIVOT + np.array([s * R_BEAM * np.cos(th), s * R_BEAM * np.sin(th), 0.0])
+            return tip + UP * 0.22
+
+        fulcrum = Polygon(PIVOT, P(-0.42, -3.02), P(0.42, -3.02),
+                          stroke_color=GREY, stroke_width=3, fill_color=INK, fill_opacity=0.9)
+
+        def mk_scale():
+            th = tilt.get_value()
+            tipL = PIVOT + np.array([-R_BEAM * np.cos(th), -R_BEAM * np.sin(th), 0.0])
+            tipR = PIVOT + np.array([R_BEAM * np.cos(th), R_BEAM * np.sin(th), 0.0])
+            pL, pR = tipL + UP * 0.22, tipR + UP * 0.22
+            beam = Line(tipL, tipR, color=TEXT, stroke_width=5)
+            pdot = Dot(PIVOT, radius=0.07, color=GOLD)
+            stemL = Line(tipL, pL, color=GREY, stroke_width=4)
+            stemR = Line(tipR, pR, color=GREY, stroke_width=4)
+            trayL = VGroup(
+                Line(pL + LEFT * 1.15 + UP * 0.10, pL + LEFT * 1.05, color=GOLD, stroke_width=4),
+                Line(pL + LEFT * 1.05, pL + RIGHT * 1.05, color=GOLD, stroke_width=4),
+                Line(pL + RIGHT * 1.05, pL + RIGHT * 1.15 + UP * 0.10, color=GOLD, stroke_width=4),
+            )
+            trayR = VGroup(
+                Line(pR + LEFT * 1.15 + UP * 0.10, pR + LEFT * 1.05, color=GREY, stroke_width=4),
+                Line(pR + LEFT * 1.05, pR + RIGHT * 1.05, color=GREY, stroke_width=4),
+                Line(pR + RIGHT * 1.05, pR + RIGHT * 1.15 + UP * 0.10, color=GREY, stroke_width=4),
+            )
+            return VGroup(beam, pdot, stemL, stemR, trayL, trayR)
+
+        scale_init = mk_scale()
+        scale_arm = always_redraw(mk_scale)
+        self.play(
+            fr1.animate.stretch_to_fit_height(3.95).move_to(P(c1, 1.675)),
+            fr2.animate.stretch_to_fit_height(3.95).move_to(P(c2, 1.675)),
+            a1.animate.move_to(P(c1, 2.66)),
+            a2.animate.move_to(P(c2, 2.66)),
+            pl1.animate.move_to(P(c1, 2.08)),
+            pl2.animate.move_to(P(c2, 2.08)),
+            k1.animate.move_to(P(c1, 1.48)),
+            k2.animate.move_to(P(c2, 1.48)),
+            cl1.animate.move_to(P(c1, 0.94)),
+            cl2.animate.move_to(P(c2, 0.94)),
+            g1.animate.move_to(P(c1, 0.16)),
+            ys_lbl.animate.move_to(P(c2, 0.42)),
+            box.animate.move_to(P(c2, 0.01)),
+            bar_y.animate.set_value(0.01),
+            FadeIn(fulcrum),
+            FadeIn(scale_init),
+            run_time=0.8,
+        )
+        self.add(scale_arm)
+        self.remove(scale_init)
+        for m in list(a1) + list(a2):
+            idle(m, 0.03, phase=np.random.RandomState(int(m.get_x() * 10 + 99)).rand() * 6)
+
+        self.at("future breeding")
+        chicksR = VGroup(*[
+            Circle(radius=0.11, stroke_color=GREY, stroke_width=2, fill_color=GOLD, fill_opacity=0.25)
+            .move_to(pan_pos("R") + P(dx, 0.14))
+            for dx in (-0.34, 0.0, 0.34)
+        ])
+        lblR = T("future young lost", 25, TEXT).move_to(pan_pos("R") + UP * 0.62)
+        chicksR.add_updater(lambda m: m.move_to(pan_pos("R") + UP * 0.14))
+        lblR.add_updater(lambda m: m.move_to(pan_pos("R") + UP * 0.62))
+        self.play(FadeIn(chicksR), FadeIn(lblR), tilt.animate.set_value(-0.06), run_time=0.75)
+
+        pay_pre = T("one big bout pays if", 27, TEXT)
+        pay_op = T("left > right", 27, GOLD)
+        pay_grp = VGroup(pay_pre, pay_op).arrange(RIGHT, buff=0.14).move_to(P(0.0, -3.42))
+
+        self.at("It pays")
+        self.play(FadeIn(pay_pre), run_time=0.5)
+
+        self.at("extra young now")
+        chicksL = VGroup(*[
+            Circle(radius=0.11, stroke_color=GOLD, stroke_width=2, fill_color=GOLD, fill_opacity=0.95)
+            .move_to(pan_pos("L") + P(dx, 0.14))
+            for dx in (-0.56, -0.28, 0.0, 0.28, 0.56)
+        ])
+        lblL = T("extra young this year", 25, GOLD).move_to(pan_pos("L") + UP * 0.62)
+        chicksL.add_updater(lambda m: m.move_to(pan_pos("L") + UP * 0.14))
+        lblL.add_updater(lambda m: m.move_to(pan_pos("L") + UP * 0.62))
+        self.play(FadeIn(chicksL), FadeIn(lblL), run_time=0.6)
+
+        self.at("outnumber")
+        self.play(tilt.animate.set_value(0.10), FadeIn(pay_op), run_time=0.75)
         self.finish()
 
 

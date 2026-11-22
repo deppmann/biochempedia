@@ -741,23 +741,46 @@ class S12Small(FS):
     def construct(self):
         st = Stage(self, S=33, dx=0.6, b=5.0, blue=True, red=True, gold=True, blab=True, rlab=True)
         pl, isl, main = st.pl, st.isl, st.main
+        self.remove(st.ctr, st.gold_parts[2])
+        ctr = always_redraw(lambda: M(f"S = {len(isl.present)}", st.csize.get_value(), TEXT).move_to(
+            [isl.body.get_center()[0], max(isl.body.get_top()[1] + 0.32, 2.00), 0]))
+        glab = always_redraw(lambda: M("S*", 32, GOLD).move_to(pl.p(*pl.xs()) + UP * 0.58 + LEFT * 0.08))
+        self.add(ctr, glab)
         fb = pl.faint_blue(10.0)
         self.add(fb)
         ST = ValueTracker(33)
         isl.follow = ST
-        # reset to the original distance
-        self.play(pl.bt.animate.set_value(10.0), ApplyMethod(isl.shift, LEFT * 0.6, suspend_mobject_updating=False), ST.animate.set_value(50), FadeOut(fb), run_time=1.6)
-        self.at("shrink the island instead", lead=0.5)
-        self.play(ApplyMethod(isl.scale, 0.62, suspend_mobject_updating=False), run_time=2.0)
-        self.at("A small island loses residents faster")
-        isl.blink_rate = 0.05
+        # reset to the original distance and original BLUE line
+        self.play(pl.bt.animate.set_value(10.0), ApplyMethod(isl.shift, LEFT * 0.6, suspend_mobject_updating=False),
+                  ST.animate.set_value(50), FadeOut(fb), run_time=1.4)
+        self.at("shrink the island instead", lead=0.2)
+        self.play(ApplyMethod(isl.scale, 0.62, suspend_mobject_updating=False), run_time=1.8)
+        c1 = T("small island", 24, TEXT)
+        a1 = Arrow(LEFT * 0.22, RIGHT * 0.22, color=TEXT, buff=0, stroke_width=4, max_tip_length_to_length_ratio=0.35)
+        c2 = T("fewer individuals", 24, TEXT)
+        row1 = VGroup(c1, a1, c2).arrange(RIGHT, buff=0.14)
+        a2 = Arrow(LEFT * 0.22, RIGHT * 0.22, color=RED, buff=0, stroke_width=4, max_tip_length_to_length_ratio=0.35)
+        c3 = T("more blink out", 24, RED)
+        row2 = VGroup(a2, c3).arrange(RIGHT, buff=0.14)
+        row1.move_to([2.6, 3.28, 0])
+        row2.next_to(row1, DOWN, buff=0.18).align_to(a1, LEFT)
+        self.at("small island", lead=0.2)
+        self.play(FadeIn(c1, shift=RIGHT * 0.1), run_time=0.6)
+        self.at("fewer individuals", lead=0.2)
+        self.play(GrowArrow(a1), FadeIn(c2, shift=RIGHT * 0.1), run_time=0.7)
+        self.at("wiped out", lead=0.2)
+        isl.blink_rate = 0.08
+        self.at("loses residents faster", lead=0.2)
+        self.play(GrowArrow(a2), FadeIn(c3, shift=RIGHT * 0.1), run_time=0.7)
+        self.at("The red line rises", lead=0.2)
         fr = pl.faint_red(0.1)
-        self.wait(max(0.1, self.span("The red line rises", 1.0)))
-        self.add(fr)
-        self.play(pl.et.animate.set_value(0.2), run_time=2.0, rate_func=smooth)
-        self.at("S star moves left", lead=0.5)
+        self.add(fr, ST)
+        ST.add_updater(lambda m: m.set_value(pl.xs()[0]))
+        self.play(pl.et.animate.set_value(0.145), run_time=1.2, rate_func=rush_into)
+        self.at("and S star", lead=0.1)
         sm = T("smaller: S* 50 to 33", 28, GOLD).move_to([PX, -2.4, 0])
-        self.play(FadeIn(sm), ST.animate.set_value(33.3), run_time=max(1.2, self.narration_s - self.elapsed() - 0.5), rate_func=smooth)
+        self.play(FadeIn(sm), pl.et.animate.set_value(0.165), run_time=0.45, rate_func=linear)
+        self.play(pl.et.animate.set_value(0.2), run_time=1.0, rate_func=rush_from)
         self.finish()
 
 
