@@ -213,15 +213,93 @@ class S11Reveal(SpokenScene):
 
 class S12Numbers(SpokenScene):
     def construct(self):
-        self.add(head('Illustrative passive model · not measurements'),label('Leak 1 at −65 mV · inhibition 1 · touch 0.4 at 0 mV',0,2.4,30),label('Threshold −50 mV',0,1.8,30))
-        self.add(label('E_anion',-4.8,.95,32),label('Steady voltage',-1.5,.95,32),label('Result',2,.95,32),Line([4.65,-2.4,0],[4.65,.05,0],color=GREY),label('mV',5.5,.65,30))
-        # Unique word cues avoid the earlier repeated “it sits” alignment ambiguity.
-        for phrase,e,y,state,c in [('this touch leaves',-70,-.1,'below',TEXT),('With the reversal',-55,-1.1,'at boundary',GOLD),('At minus',-50,-2.1,'above',TEAL)]:
-            row=VGroup(label(f'−{abs(e)} mV',-4.8,y,44),label(f'−{abs((-65+e)/2.4):.1f} mV',-1.5,y,44),label(state,2,y,40,c))
-            gy=-2.3+(e+70)/20*2.3
-            tick=VGroup(Line([4.45,gy,0],[4.85,gy,0],color=c,stroke_width=5),label(f'−{abs(e)}',5.6,gy,30,c))
-            self.at(phrase,nth=1 if e==-50 else 0); self.play(FadeIn(row),FadeIn(tick),run_time=.4)
-            if e==-50: self.add(label('Equilibrium values; threshold crossing needs sustained input.',0,-3.1,30))
+        # Compute steady-state voltages V = Σ(g × E) / Σg from the lesson's passive model.
+        g_leak, e_leak = 1.0, -65.0
+        g_inh = 1.0
+        g_touch, e_touch = 0.4, 0.0
+        e_thresh = -50.0
+        steady_v = lambda e: (g_leak * e_leak + g_inh * e + g_touch * e_touch) / (g_leak + g_inh + g_touch)
+
+        gy = lambda v: -1.85 + (v - (-59.0)) / 14.0 * 3.0
+
+        title = head('Illustrative passive model · steady voltages · not measurements')
+        rule = T('Conductance-weighted average:  V = Σ(g × E) / Σg', size=28, color=GOLD).move_to([0, 2.52, 0])
+        params = T('Leak 1 at −65 mV · inhibition 1 · touch 0.4 → 0 mV', size=28, color=TEXT).move_to([-1.75, 1.98, 0])
+        thresh_param = T('Threshold: −50 mV', size=28, color=GOLD).move_to([4.55, 1.98, 0])
+
+        cols = VGroup(
+            T('E_anion', 30, TEXT).move_to([-5.0, 1.25, 0]),
+            T('Steady voltage', 30, TEXT).move_to([-2.2, 1.25, 0]),
+            T('Result', 30, TEXT).move_to([0.85, 1.25, 0]),
+            Line([-6.1, 0.92, 0], [2.2, 0.92, 0], color=GREY, stroke_width=2.5),
+        )
+        rail = VGroup(
+            Line([4.15, -1.95, 0], [4.15, 1.15, 0], color=GREY, stroke_width=5),
+            T('Steady V (mV)', 28, TEXT).move_to([4.35, 1.45, 0]),
+        )
+        footnote = T('Equilibrium values; crossing threshold in time needs a sustained input.', size=26, color=TEXT).move_to([0, -2.95, 0])
+
+        self.add(title, cols, rail, footnote)
+
+        self.at('conductances pull')
+        self.play(FadeIn(params), run_time=0.6)
+
+        self.at('giving a')
+        self.play(FadeIn(rule), run_time=0.6)
+
+        thresh_line = DashedLine([4.0, gy(e_thresh), 0], [6.2, gy(e_thresh), 0], color=GOLD, stroke_width=4)
+        thresh_tag = T('threshold', 26, GOLD).move_to([5.25, gy(e_thresh) - 0.28, 0])
+        thresh_num = T('−50 mV', 26, GOLD).move_to([5.25, gy(e_thresh) - 0.62, 0])
+
+        self.at('Threshold is')
+        self.play(Create(thresh_line), FadeIn(thresh_tag), run_time=0.5)
+
+        self.at('minus 50')
+        self.play(FadeIn(thresh_num), FadeIn(thresh_param), Indicate(thresh_line, color=GOLD, scale_factor=1.06), run_time=0.6)
+
+        # Row 1: healthy E_anion = -70 mV -> -56.2 mV
+        v_healthy = steady_v(-70.0)
+        r0_e = T('−70 mV', 34, TEXT).move_to([-5.0, 0.32, 0])
+        r0_v = T(f'−{abs(v_healthy):.1f} mV', 34, TEXT).move_to([-2.2, 0.32, 0])
+        r0_res = T('below threshold', 30, TEXT).move_to([0.85, 0.32, 0])
+        r0_dot = Dot([4.15, gy(v_healthy), 0], radius=0.12, color=TEXT).set_z_index(2)
+        r0_tick = T(f'−{abs(v_healthy):.1f}', 28, TEXT).move_to([3.35, gy(v_healthy), 0])
+        healthy_box = SurroundingRectangle(r0_v, buff=0.12, color=GOLD, stroke_width=3, corner_radius=0.1)
+
+        self.at('Healthy')
+        self.play(FadeIn(r0_e), run_time=0.4)
+
+        self.at('minus 56')
+        self.play(FadeIn(r0_v), FadeIn(r0_res), FadeIn(r0_dot), FadeIn(r0_tick), Create(healthy_box), run_time=0.5)
+        self.play(Indicate(r0_dot, color=GOLD, scale_factor=1.4), Indicate(healthy_box, color=GOLD, scale_factor=1.05), run_time=0.5)
+
+        # Row 2: E_anion = -55 mV -> -50.0 mV
+        v_55 = steady_v(-55.0)
+        r1_e = T('−55 mV', 34, GOLD).move_to([-5.0, -0.68, 0])
+        r1_v = T(f'−{abs(v_55):.1f} mV', 34, GOLD).move_to([-2.2, -0.68, 0])
+        r1_res = T('at threshold', 30, GOLD).move_to([0.85, -0.68, 0])
+        r1_dot = Dot([4.15, gy(v_55), 0], radius=0.12, color=GOLD).set_z_index(2)
+        r1_tick = T(f'−{abs(v_55):.1f}', 28, GOLD).move_to([3.35, gy(v_55), 0])
+
+        self.at('at minus 55')
+        self.play(FadeIn(r1_e), run_time=0.4)
+
+        self.at('it hits threshold')
+        self.play(FadeIn(r1_v), FadeIn(r1_res), FadeIn(r1_dot), FadeIn(r1_tick), run_time=0.5)
+
+        # Row 3: E_anion = -50 mV -> -47.9 mV
+        v_50 = steady_v(-50.0)
+        r2_e = T('−50 mV', 34, TEAL).move_to([-5.0, -1.68, 0])
+        r2_v = T(f'−{abs(v_50):.1f} mV', 34, TEAL).move_to([-2.2, -1.68, 0])
+        r2_res = T('above threshold', 30, TEAL).move_to([0.85, -1.68, 0])
+        r2_dot = Dot([4.15, gy(v_50), 0], radius=0.12, color=TEAL).set_z_index(2)
+        r2_tick = T(f'−{abs(v_50):.1f}', 28, TEAL).move_to([3.35, gy(v_50), 0])
+
+        self.at('At minus 50')
+        self.play(FadeIn(r2_e), FadeIn(r2_v), FadeIn(r2_res), FadeIn(r2_dot), FadeIn(r2_tick), run_time=0.5)
+
+        self.at('sits above')
+        self.play(Indicate(r2_dot, color=TEAL, scale_factor=1.4), run_time=0.5)
         self.finish()
 
 class S13Notflip(SpokenScene):
