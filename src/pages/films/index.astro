@@ -29,7 +29,20 @@ import Hex from '../../components/Hex.astro';
 import { filmCatalog, filmLevelHref, KIND_LABELS, KIND_ORDER, type CatalogFilm } from '../../lib/film-catalog';
 import { filmClock } from '../../lib/films';
 import { STAGES } from '../../data/stages';
+import { filmLadders, type FilmLadder } from '../../lib/film-ladders';
+import { LEVEL_SHORT } from '../../lib/hop-words.mjs';
 import '../../styles/film-lib.css';
+import '../../styles/hop.css';
+
+/* "Play a ladder" (2026-11-22): every idea with films at two or more levels, grouped by area. */
+const ladders = await filmLadders();
+const ladderAreas: { name: string; items: FilmLadder[] }[] = [];
+for (const l of ladders) {
+  let a = ladderAreas.find((x) => x.name === l.area);
+  if (!a) ladderAreas.push((a = { name: l.area, items: [] }));
+  a.items.push(l);
+}
+const ladderMin = (l: FilmLadder) => Math.max(1, Math.round(l.films.reduce((t, f) => t + f[4], 0) / 60));
 
 const films = await filmCatalog();
 const usedStages = STAGES.filter((s) => films.some((f) => f.stage === s.key));
@@ -102,6 +115,57 @@ const stacks = [
         <button type="button" class="fl-link" data-fl-surprise hidden>Surprise me</button>
       </p>
       <p class="visually-hidden" role="status" data-fl-say></p>
+    </div>
+  </section>
+
+  {/* Play a ladder: one idea at every level it is taught, its films on the shared ladder drawing.
+      Client: src/lib/film-ladder.ts. Without scripts the picker opens the run page for the idea. */}
+  <section class="wrap flx" aria-labelledby="flx-h" data-flx>
+    <div class="flx-head">
+      <span class="flx-hex" aria-hidden="true"><Hex pose="stand" size={40} /></span>
+      <div>
+        <h2 id="flx-h">Play a ladder</h2>
+        <p class="flx-lede">One idea, every level it is taught at. Pick one and its films climb onto the ladder, simplest at the foot. Tap any film, or play the whole ladder from wherever you like.</p>
+      </div>
+    </div>
+    <form class="flx-pick" action="/films/run/" method="get" data-flx-pick>
+      <label class="fl-field">
+        <span>Ladder</span>
+        <select name="idea" autocomplete="off">
+          <option value="">Choose an idea ({ladders.length} ladders)</option>
+          {ladderAreas.map((a) => (
+            <optgroup label={a.name}>
+              {a.items.map((l) => {
+                const ranks = [...new Set(l.films.map((f) => f[3]))].sort((x, y) => x - y);
+                return <option value={l.id}>{l.name} · {l.films.length} films, {ladderMin(l)} min, {LEVEL_SHORT[ranks[0]]} to {LEVEL_SHORT[ranks[ranks.length - 1]]}</option>;
+              })}
+            </optgroup>
+          ))}
+        </select>
+      </label>
+      <button type="submit" class="fl-btn primary" data-flx-go>Open the ladder</button>
+    </form>
+    <p class="flx-sum" data-flx-sum role="status"></p>
+
+    <div class="flx-stage" data-flx-stage hidden>
+      <div class="flx-player">
+        <div class="flx-screen">
+          <video controls preload="none" playsinline width="1920" height="1080" data-listen-film="">
+            <track kind="captions" srclang="en" label="English" />
+          </video>
+        </div>
+        <h3 class="flx-now" data-flx-title></h3>
+        <p class="flx-meta"><span data-flx-meta></span> · <a href="/films/" data-flx-page>Film page and transcript</a></p>
+        <p class="flx-btns">
+          <button type="button" class="fl-btn primary" data-flx-all>▶ Play the ladder</button>
+          <button type="button" class="fl-btn soft" data-flx-here hidden>Play on from here</button>
+          <button type="button" class="fl-btn" data-flx-prev>Previous</button>
+          <button type="button" class="fl-btn" data-flx-next>Next</button>
+          <button type="button" class="fl-btn" data-flx-stop hidden>Stop</button>
+        </p>
+        <p class="flx-say" data-flx-say role="status"></p>
+      </div>
+      <div class="flx-rail" data-flx-ladder></div>
     </div>
   </section>
 
@@ -237,6 +301,8 @@ const stacks = [
 
 <script>
   import { library } from '../../lib/film-library';
+  import { filmLadder } from '../../lib/film-ladder';
   library();
+  filmLadder();
 </script>
 </BaseLayout>
