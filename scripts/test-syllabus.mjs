@@ -436,6 +436,7 @@ check('the question box never repeats the typed words, always carries the help l
   assert.ok(/<BaseLayout[^>]*\bnoindex\b/.test(readFileSync('src/pages/start/help/index.astro', 'utf8')));
   for (const f of ['src/pages/ideas/index.astro', 'src/pages/courses/index.astro', 'src/components/SiteSearch.astro', 'src/pages/sitemap.xml.ts']) assert.ok(/["'`]\/start\//.test(readFileSync(f, 'utf8')), `${f} does not link /start/`);
   for (const f of ['src/pages/index.astro', 'src/pages/teach/index.astro']) assert.ok(!/["'`]\/start\//.test(readFileSync(f, 'utf8')), `${f} links /start/`);
+  assert.ok(/<SiteSearch[^>]*startLink=\{false\}/.test(readFileSync('src/pages/index.astro', 'utf8')), 'the homepage search must not show the /start/ line');
   // The help words: one constant, plain, with no single adult named as the only one, and US numbers said to be US.
   const all = [HELP.line, HELP.urgent.heading, ...HELP.urgent.lines, HELP.urgent.status, HELP.page.intro, ...HELP.page.steps.flat(), HELP.page.foot];
   for (const t of all) { assert.ok(t.length <= 240, t); assert.ok(!/should not have|shouldn't have|not allowed|wrong to|your fault\b(?<!not your fault)/i.test(t), t); assert.ok(!/—/.test(t), t); }
