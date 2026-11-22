@@ -188,15 +188,49 @@ class S05Pause(Scene):
 
 class S06Reveal(SpokenScene):
     def construct(self):
-        g=packing(); self.add(g[0],g[2],g[4])
+        g=packing()
+        stage=g[0]
+        illus=g[2]
+        single_cloud=g[3]
+        spread_175=g[6]
+        span_bar=VGroup(Line([-5.25,-2.26,0],[5.25,-2.26,0],color=GREY),Line([-5.25,-2.35,0],[-5.25,-2.17,0],color=GREY),Line([5.25,-2.35,0],[5.25,-2.17,0],color=GREY))
+        span_lbl=txt('16 mm',0,-2.56,24,TEXT)
+        self.add(stage,illus,span_bar)
+
+        f_16=T('16 mm',26,GOLD)
+        f_div=T('÷',26,GREY)
+        f_175=T('1.75 mm per contact',26,YELLOW)
+        f_eq=T('=',26,GREY)
+        f_9=T('about 9 non-overlapping stretches',26,TEAL)
+        VGroup(f_16,f_div,f_175,f_eq,f_9).arrange(RIGHT,buff=0.14).move_to([0,3.25,0])
+
+        self.at('current spreads'); self.play(Create(single_cloud),run_time=.5)
+        self.at('1',lead=.05); self.play(FadeIn(spread_175),run_time=.45)
+
+        hl_16=SurroundingRectangle(f_16,color=GOLD,buff=0.06,stroke_width=2,fill_color=GOLD,fill_opacity=0.12)
+        self.at('16',lead=.05); self.play(FadeIn(span_lbl),FadeIn(f_16),FadeIn(hl_16),run_time=.45)
+
+        hl_175=SurroundingRectangle(f_175,color=YELLOW,buff=0.06,stroke_width=2,fill_color=YELLOW,fill_opacity=0.12)
+        self.at('divided by',lead=.1); self.play(FadeOut(hl_16,run_time=.12),f_16.animate.set_color(TEXT),FadeIn(f_div),FadeIn(f_175),FadeIn(hl_175),Indicate(spread_175,color=YELLOW),run_time=.5)
+
+        self.at('is about',lead=.15); self.play(FadeOut(single_cloud),FadeOut(spread_175),FadeOut(hl_175),run_time=.22)
+
         brackets=VGroup(*[dimension(-5.25+i*10.5/9,-5.25+(i+1)*10.5/9,.35,str(i+1),TEAL,True) for i in range(9)])
-        self.at('About 9'); self.play(LaggedStart(*[FadeIn(b) for b in brackets],lag_ratio=.08),FadeIn(txt('16 mm ÷ 1.75 mm ≈ 9 stretches',0,3.2,32,TEAL)),run_time=1.15)
-        caveat=txt('Toy 1-D packing · not a measured or predicted channel count',0,-3.35,26,GREY); self.add(caveat)
+        caveat=T('Toy 1-D packing exercise · about 9 non-overlapping stretches\nNot a measured or predicted channel count',24,GREY,line_spacing=0.82).move_to([0,-3.24,0])
+        hl_9=SurroundingRectangle(f_9,color=TEAL,buff=0.06,stroke_width=2,fill_color=TEAL,fill_opacity=0.12)
+        self.at('9',lead=.05); self.play(FadeIn(f_eq),FadeIn(f_9),FadeIn(hl_9),LaggedStart(*[FadeIn(b) for b in brackets],lag_ratio=.05),FadeIn(caveat),run_time=.8)
+
+        fewer_22=txt('Far fewer than 22 contacts',0,2.55,28,BLUE)
+        self.at('22',lead=.05); self.play(FadeOut(hl_9,run_time=.15),Succession(FadeOut(illus,run_time=.14),FadeIn(fewer_22,run_time=.18)),Indicate(stage[1],color=BLUE,scale_factor=1.12),run_time=.4)
+
         clouds=VGroup(*[cloud(x) for x in np.linspace(-5.25,5.25,22)])
-        self.at('Neighboring fields overlap'); self.play(FadeOut(brackets),FadeIn(clouds),run_time=.5)
+        self.at('Neighboring fields overlap'); self.play(FadeOut(brackets),run_time=.25); self.play(FadeIn(clouds),run_time=.45)
+
         ns=VGroup(*[cell(x,.4,.24) for x in (-.5,0,.5)])
-        self.at('same neurons'); self.play(FadeIn(ns),*[clouds[i].animate.set_stroke(YELLOW,4).set_fill(YELLOW,.2) for i in (9,10,11,12)],run_time=.4)
-        self.at('This is called'); self.play(FadeOut(g[2]),FadeIn(txt('Channel interaction',0,2.55,32,YELLOW)),run_time=.3)
+        self.at('same neurons'); self.play(FadeIn(ns),*[clouds[i].animate.set_stroke(YELLOW,4).set_fill(YELLOW,.2) for i in (9,10,11,12)],run_time=.45)
+
+        channel_lbl=txt('Channel interaction',0,2.55,32,YELLOW)
+        self.at('This is called',lead=.25); self.play(Succession(FadeOut(fewer_22,run_time=.13),FadeIn(channel_lbl,run_time=.17)))
         self.finish()
 
 
@@ -351,5 +385,3 @@ class S18Takeaway(SpokenScene):
 
 class S19End(EndCard):
     LINE='Contacts are not channels: test what listeners can tell apart.'
-    def construct(self):
-        self.add(txt('Contacts are not channels:\ntest what listeners can tell apart.',0,.25,40),txt('biochemistrypedia.com',0,-1.3,26,TEAL)); self.finish()

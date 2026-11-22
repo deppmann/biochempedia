@@ -233,12 +233,70 @@ class S09Fast(SpokenScene):
 
 class S11Paradox(SpokenScene):
     def construct(self):
-        g=prediction_cards()
-        g.remove(g[0],*g[3:])
-        self.add(title('Lower gain, better detection?'),g,
-            label('Small, slow turns',0,-2.1,size=32),foot('Gain alone does not set the detection threshold'))
+        ttl=title('Lower gain, better detection?')
+        reg_box=RoundedRectangle(width=5.6,height=3.15,corner_radius=.2,color=BLUE,fill_opacity=.08).move_to([-3.15,1.0,0])
+        irr_box=RoundedRectangle(width=5.6,height=3.15,corner_radius=.2,color=PURPLE,fill_opacity=.08).move_to([3.15,1.0,0])
+        reg_name=label('Regular',-3.15,2.22,BLUE,34)
+        irr_name=label('Irregular',3.15,2.22,PURPLE,34)
+        reg_gain=label('lower gain',-3.15,1.74,BLUE,28)
+        irr_gain=label('higher gain',3.15,1.74,PURPLE,28)
+        reg_pos=gamma_spikes(.05,seed=4,n=16)
+        irr_pos=gamma_spikes(.5,seed=4,n=16)
+        reg_train=spike_train(-5.45,-.85,.80,reg_pos,BLUE,.55)
+        irr_train=spike_train(.85,5.45,.80,irr_pos,PURPLE,.55)
+        def interval_bars(x0,x1,positions,color):
+            bars=VGroup()
+            for i,(a,b) in enumerate(zip(positions[:-1],positions[1:])):
+                xa,xb=x0+(x1-x0)*a,x0+(x1-x0)*b
+                yy=.63 if i%2==0 else .53
+                pad=min(.025,(xb-xa)*.2)
+                bars.add(Line([xa+pad,yy,0],[xb-pad,yy,0],color=color,stroke_width=3.5),
+                         Line([xa+pad,yy-.04,0],[xa+pad,yy+.04,0],color=color,stroke_width=2.5),
+                         Line([xb-pad,yy-.04,0],[xb-pad,yy+.04,0],color=color,stroke_width=2.5))
+            return bars
+        def rate_curve(cv,x0,x1,y_base,color,seed=4):
+            rng=np.random.default_rng(seed)
+            ts=np.cumsum(rng.gamma(1/cv**2,cv**2/100,260))
+            ts=ts[ts<1.4]
+            us=np.linspace(.15,1.15,180)
+            sig=.04
+            rates=np.array([np.exp(-.5*((u-ts)/sig)**2).sum()/(np.sqrt(2*np.pi)*sig) for u in us])
+            pts=[[x0+(x1-x0)*(u-.15),y_base+np.clip((r-100)*.005,-.20,.20),0] for u,r in zip(us,rates)]
+            return VMobject(color=color,stroke_width=4).set_points_as_corners(pts)
+        reg_iv=interval_bars(-5.45,-.85,reg_pos,BLUE)
+        irr_iv=interval_bars(.85,5.45,irr_pos,PURPLE)
+        reg_iv_lab=label('even intervals',-3.15,.23,BLUE,28)
+        irr_iv_lab=label('uneven intervals',3.15,.23,PURPLE,28)
+        reg_base=DashedLine([-5.45,-.24,0],[-.85,-.24,0],color=GREY,stroke_width=2,dash_length=.12)
+        irr_base=DashedLine([.85,-.24,0],[5.45,-.24,0],color=GREY,stroke_width=2,dash_length=.12)
+        reg_rate=rate_curve(.05,-5.45,-.85,-.24,BLUE)
+        irr_rate=rate_curve(.5,.85,5.45,-.24,PURPLE)
+        small_lab=label('detects small motions',-3.15,-1.05,BLUE,28)
+        cv_sym=T('CV',34,TEXT,weight=BOLD)
+        cv_eq=T('= coefficient of variation',34,TEXT)
+        VGroup(cv_sym,cv_eq).arrange(RIGHT,buff=.16).move_to([0,-1.85,0])
+        cv_uneven=T('(unevenness of spike intervals',30,TEXT)
+        cv_noise=T('= rate noise)',30,TEXT)
+        VGroup(cv_uneven,cv_noise).arrange(RIGHT,buff=.14).move_to([0,-2.55,0])
+        self.add(ttl,reg_box,irr_box,reg_name,irr_name,reg_gain,irr_gain,
+                 reg_train,irr_train,foot('Made-up gamma spike trains'))
+        self.at('regular')
+        self.play(Indicate(reg_box,color=BLUE,scale_factor=1.02),run_time=.7)
+        self.at('small motions')
+        self.play(FadeIn(small_lab,shift=UP*.1),run_time=.5)
         self.at('lower gain')
-        self.play(Indicate(g[0],color=BLUE),run_time=.6)
+        self.play(Indicate(reg_gain,color=BLUE,scale_factor=1.06),
+                  Indicate(ttl,color=TEXT,scale_factor=1.02),run_time=.7)
+        self.at('CV')
+        self.play(FadeIn(cv_sym,shift=UP*.1),run_time=.45)
+        self.at('coefficient of variation')
+        self.play(FadeIn(cv_eq,shift=RIGHT*.1),run_time=.6)
+        self.at('how uneven')
+        self.play(FadeIn(cv_uneven,shift=UP*.1),Create(reg_iv),Create(irr_iv),
+                  FadeIn(reg_iv_lab),FadeIn(irr_iv_lab),run_time=.9)
+        self.at('means')
+        self.play(FadeIn(cv_noise,shift=RIGHT*.1),Create(reg_base),Create(irr_base),
+                  Create(reg_rate),Create(irr_rate),run_time=.6)
         self.finish()
 
 class S12Predict(SpokenScene):
@@ -431,6 +489,3 @@ class S29Takeaway(SpokenScene):
 
 class S23End(EndCard):
     LINE='Two overlapping channels report every head turn.'
-    def construct(self):
-        self.add(closing())
-        self.finish()
