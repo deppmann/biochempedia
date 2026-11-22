@@ -4,14 +4,14 @@ slug: "exosomes-and-extracellular-vesicles"
 course: "signaling"
 courseChapter: "Cell Signaling · Unit 7: Space, time and distance"
 order: 138
-summary: 'Cells release small membrane vesicles, and these extracellular vesicles can carry a signal from one cell
-  to another, either as a ligand on their surface or as protein and RNA inside. The clearest case is antigen presentation:
-  vesicles from B cells carry peptide-loaded MHC class II and stimulate only the matching T cells. One kind of vesicle,
-  the exosome, is made inside a multivesicular body and let out when that body fuses with the cell surface. You
-  will be able to explain how a vesicle can signal, say how an exosome is made, name three ways a vesicle could
-  act on a target cell, and design the controls that separate a vesicle from whatever else comes down in the centrifuge.'
-hook: B cells release vesicles that carry their peptide-loaded MHC molecules, and those vesicles switch on only
-  the T cells that recognise that peptide. A scrap of membrane can carry a signal.
+summary: >-
+  Extracellular vesicles keep cell orientation: ligands face out, internal cargo stays sealed;
+  proving vesicle signalling requires separating vesicles, locating cargo, and counting copies.
+  Follow the clearest worked case—B-cell vesicles carrying peptide-loaded MHC class II that
+  stimulate only matching T cells—then trace how exosomes form inside a multivesicular body,
+  compare them with microvesicles, weigh three ways a vesicle could act, and design the controls
+  that separate a vesicle effect from everything else in a centrifuge pellet.
+hook: 'How can a tiny scrap of membrane from a B cell switch on only the matching T cells—and how do you prove the vesicle, not a stray protein, did it?'
 estMinutes: 22
 objectives:
 - Explain how an extracellular vesicle can carry a signal from one cell to another, using vesicles from B cells
@@ -26,10 +26,15 @@ explainer:
   src: "/explainers/exosomes-and-extracellular-vesicles/explainer.mp4"
   captions: "/explainers/exosomes-and-extracellular-vesicles/explainer.vtt"
   poster: "/explainers/exosomes-and-extracellular-vesicles/poster.jpg"
-  title: "A Vesicle Can Carry A Signal"
-  durationSec: 170.6
-  narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+  title: "Right-Side Out: How Vesicles Form and Signal"
+  durationSec: 205.5
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+  takeaways:
+    - "Extracellular vesicles keep cell orientation: ligands face out, internal cargo stays sealed."
+    - "An exosome forms when a multivesicular body buds inward, away from the cytosol, then fuses with the plasma membrane instead of a lysosome."
+    - "Microvesicles bud straight outward from the plasma membrane with the same orientation and overlapping size, so vesicles of unproven origin are called extracellular vesicles."
+    - "A surface ligand can signal on contact, whereas sealed internal cargo must escape to the cytosol or be sensed after uptake, which otherwise usually ends at the lysosome."
 
 scientists:
   - name: "Rose Johnstone"
@@ -374,74 +379,134 @@ corpusTags:
   - "pd-l1"
 draft: false
 films:
-  - id: "pellet"
-    src: "/explainers/exosomes-and-extracellular-vesicles/pellet.mp4"
-    captions: "/explainers/exosomes-and-extracellular-vesicles/pellet.vtt"
-    poster: "/explainers/exosomes-and-extracellular-vesicles/pellet-poster.jpg"
-    title: "The Pellet Is Defined By The Centrifuge"
-    durationSec: 119.0
-    narration: "an AI narrator voice (Gemini, Charon) reading narration written from this lesson's text"
+  - id: "chapter-2"
+    src: "/explainers/exosomes-and-extracellular-vesicles/chapter-2.mp4"
+    captions: "/explainers/exosomes-and-extracellular-vesicles/chapter-2.vtt"
+    poster: "/explainers/exosomes-and-extracellular-vesicles/chapter-2-poster.jpg"
+    title: "Proof Beyond the Pellet: Controls and Counts"
+    durationSec: 210.6
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
     aiGenerated: true
+    takeaways:
+      - "Proving vesicle signalling requires separating vesicles, locating cargo, and counting copies."
+      - "A 100,000 g centrifuge pellet collects any particle of similar size and density, including protein clumps, lipoproteins, RNA-protein complexes and calf-serum vesicles."
+      - "Bottom-loaded density gradients separate lighter vesicles from denser free proteins, and protease or ribonuclease protection with and without detergent tests whether cargo is exposed or inside a membrane."
+      - "A 100 nanometre sphere encloses at most about 5 x 10^-19 litres, so passive trapping gives well under one copy of a micromolar cargo, and measured counts of a given microRNA sit far below one copy per vesicle on average."
 ---
 
 import LessonFilm from '../../../components/LessonFilm.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import Support from '../../../components/Support.astro';
 
-**Cells release small membrane vesicles, and these extracellular vesicles can carry a signal from one cell to another.** The clearest case comes from the immune system: B lymphocytes release vesicles that carry peptide-loaded MHC class II, and those vesicles stimulate only the T cells that recognise that peptide. This lesson starts from that case. Then it asks how such vesicles are made, the ways they could act, and how you would tell a real signal from an artefact of the centrifuge.
+**A scrap of membrane shed by a B cell can switch on only the T cells that match its peptide.** The first film animated how those vesicles form right-side out; here we examine the proof behind that case, trace the membrane inversions and volume math, and build the controls that separate real signalling from centrifuge artefacts.
 
 ## Vesicles can carry a signal: the clearest case
 
-Extracellular vesicles are small sacs of membrane that cells release into the fluid around them. A vesicle is a piece of membrane wrapped around a little of the cell's interior, so it can carry two kinds of message: membrane proteins on its surface, and protein and RNA inside.
+**Extracellular vesicles** are small membrane sacs released into surrounding fluid. Wrapped around a drop of cell interior, each sac can carry membrane proteins on its surface and cytosolic protein and RNA inside.
 
-The clearest case comes from the immune system. B lymphocytes load peptides onto MHC class II molecules, the proteins that display peptides to T cells, in compartments packed with small internal vesicles. In 1996 Graça Raposo and colleagues showed that B cells release those internal vesicles. The vesicles carried peptide-loaded MHC class II and stimulated T cells in culture, but only T cells whose receptor recognised that peptide on that MHC molecule. The specificity is the control, since a stray growth factor would not care which T cell it met.
+The cleanest proof comes from the immune system. B lymphocytes load peptides onto **MHC class II** molecules—the membrane proteins that display peptides to T cells—inside compartments packed with small internal vesicles. In 1996 Graça Raposo and colleagues showed that B cells release those vesicles carrying peptide-loaded MHC class II. Added to cultured T cells, the vesicles stimulated only T cells whose receptor recognised that exact peptide on that MHC molecule.
 
-<LessonFigure src="/figures/exosomes-and-extracellular-vesicles/bcell-vesicles-specificity.webp" width={1200} height={800} alt="AI-generated illustration: a B cell releases small vesicles studded on their outer surface with MHC class II molecules holding a peptide. A vesicle docks on a T cell whose receptors match the peptide, and that T cell is stimulated; a second T cell with non-matching receptors does not respond. An inset shows the contact: the MHC-peptide on the vesicle meets the T cell receptor, and nothing enters the T cell." caption="The clearest case: vesicles released by B cells carry peptide-loaded MHC class II on their surface and stimulate only T cells whose receptor recognises that peptide on that MHC molecule. The signal is a ligand meeting a receptor, so nothing has to enter the T cell." />
+**Predict.** If a stray soluble growth factor had pelleted alongside the B-cell vesicles, how would the matching and non-matching T-cell lines respond?
 
-Nothing had to enter the T cell. The vesicle acted as a whole B cell does when it presents antigen, by showing a ligand to a receptor. Two years later a group that included Raposo reported that vesicles from dendritic cells loaded with tumour peptides suppressed or eliminated established tumours in mice. How much such vesicles add to an immune response in the body is less clear.
+<details>
+<summary>Check your prediction</summary>
 
-Vesicles from other cells have since been reported to act in immune responses, tissue repair and cancer, and what they do depends on the cell that sent them and the cell that receives them.
+A stray growth factor would not distinguish the two T-cell receptors, so it would affect both lines or neither specifically. Peptide-and-MHC specificity is the control: it ties the signal to the vesicle's surface complex without anything entering the T cell.
+
+</details>
+
+<LessonFigure src="/figures/exosomes-and-extracellular-vesicles/bcell-vesicles-specificity.webp" width={1200} height={800} alt="AI-generated illustration: a B cell releases small vesicles studded on their outer surface with MHC class II molecules holding a peptide. A vesicle docks on a T cell whose receptors match the peptide, and that T cell is stimulated; a second T cell with non-matching receptors does not respond. An inset shows the contact: the MHC-peptide on the vesicle meets the T cell receptor, and nothing enters the T cell." caption="B-cell vesicles display peptide-loaded MHC class II on their outer surface, switching on only matching T cells without entering them." />
+
+The vesicle acted like a whole B cell presenting antigen, showing a ligand to a surface receptor. Vesicles from other cells have since been reported in immune responses, tissue repair and cancer, with effects depending on sender and recipient. Yet if those B-cell vesicles formed *inside* a cell, why does MHC class II face *outward* instead of inward?
+
+<Support>**The one idea.** Extracellular vesicles keep cell orientation: ligands face out, internal cargo stays sealed; proving vesicle signalling requires separating vesicles, locating cargo, and counting copies. **Scope:** This rule covers intact extracellular vesicles budding away from the cytosol (exosomes and microvesicles), not intracellular synaptic or secretory vesicles. Internal cargo can still signal if it escapes to the cytosol or is sensed in an endosome, and proving a claim also needs mock, dose and specificity controls.</Support>
 
 ## Where the vesicles come from: one compartment, two exits
 
-You met the multivesicular body, also called the multivesicular endosome or MVE, earlier in this unit as the road to the lysosome. The membrane of an endosome buds inward, away from the cytosol, and pinches off small vesicles into its own interior, carrying ubiquitin-tagged receptors. If the compartment fuses with a lysosome, vesicles and cargo are digested.
+You met the **multivesicular body** (multivesicular endosome, or MVE) earlier in this unit on the road to the lysosome. To see why its vesicles keep the cell's orientation, trace one receptor through the two membrane inversions behind the first film:
 
-The same kind of compartment has a second exit. It can move to the cell surface and fuse with the plasma membrane. Its internal vesicles are then outside the cell, intact, and those are exosomes. Picture a sorting room with two doors, one to the incinerator and one to the street. The word exosome therefore names an origin: a vesicle that formed inside a multivesicular body. The working description is short: one membrane, usually quoted as about 30 to 100 nanometres across (authors differ on the limits). That is too small to resolve in a light microscope.
+1. **Endocytosis (first inversion).** Plasma membrane pinches inward to form an endosome, turning the receptor's ligand-binding domain *inward* into the endosome fluid while its tail stays in the cytosol.
+2. **Inward budding (second inversion).** The endosome membrane buds *inward*, away from the cytosol, pinching off internal vesicles carrying ubiquitin-tagged receptors. Pushing cytosol into each bud flips the membrane back: the ligand-binding domain again faces *outward*, and cytosol is sealed inside.
 
-<LessonFigure src="/figures/exosomes-and-extracellular-vesicles/two-exits.webp" width={1200} height={800} alt="AI-generated illustration: a cut-away cell with a multivesicular body whose membrane buds inward, away from the cytosol, forming internal vesicles. One arrow leads to a lysosome where contents are digested; another leads to a multivesicular body fused with the plasma membrane, releasing its internal vesicles outside as exosomes. Separately, a microvesicle buds outward from the plasma membrane. An inset shows a released vesicle with a receptor whose head faces out." caption="One compartment, two exits: a multivesicular body forms internal vesicles by budding inward, then either fuses with a lysosome, where they are digested, or fuses with the plasma membrane and releases them as exosomes. Because budding is away from the cytosol, a receptor on an exosome faces out as it did on the cell surface; microvesicles that bud straight from the surface have the same orientation." />
+The compartment is a sorting room with two doors: one to the incinerator and one to the street. Fusing with a **lysosome** digests the internal vesicles; moving to the surface and fusing with the plasma membrane releases them intact as **exosomes**. The word exosome therefore names an origin: a vesicle that formed inside a multivesicular body. Exosomes are single-membrane sacs usually quoted as about 30 to 100 nanometres across (authors differ on the limits), too small to resolve in a light microscope.
 
-The route was first seen in reticulocytes, red blood cells in their last stage of maturing. A reticulocyte still makes haemoglobin and takes in iron through the transferrin receptor, but a mature red cell makes no haemoglobin and carries essentially no transferrin receptors. In 1983 two laboratories reported that the receptors leave the cell on vesicles about 50 nanometres across; rat images from that year and sheep micrographs from 1985 showed multivesicular bodies fusing with the cell surface and releasing them, and in 1987 Rose Johnstone's group named those vesicles exosomes and read them as a way to discard proteins the cell no longer needed. The B-cell compartments where MHC class II is loaded are multivesicular too, and they release their internal vesicles the same way.
+<LessonFigure src="/figures/exosomes-and-extracellular-vesicles/two-exits.webp" width={1200} height={800} alt="AI-generated illustration: a cut-away cell with a multivesicular body whose membrane buds inward, away from the cytosol, forming internal vesicles. One arrow leads to a lysosome where contents are digested; another leads to a multivesicular body fused with the plasma membrane, releasing its internal vesicles outside as exosomes. Separately, a microvesicle buds outward from the plasma membrane. An inset shows a released vesicle with a receptor whose head faces out." caption="A multivesicular body either sends internal vesicles to a lysosome for digestion or fuses with the plasma membrane to release them right-side out as exosomes." />
 
-The inward budding is done by protein complexes called ESCRT, with partners such as ALIX. Some cargo can be loaded by other routes, one of which depends on the lipid ceramide, and in some cells small GTPases of the Rab family are needed for the compartment to dock at the surface. Which of these a cell needs varies with the cell, and what chooses the door is only partly known.
+**Microvesicles** (or **ectosomes**) bud straight outward from the plasma membrane, skipping the endosome. That bud also forms away from the cytosol, with zero inversions instead of two, so a microvesicle has the same orientation as an exosome.
 
-The direction of budding fixes the geometry. Because the bud forms away from the cytosol, the inside of an exosome is a sample of cytosol, and its outer face is the face that was the outside of the cell. A receptor on an exosome points its ligand-binding domain outward, as it did on the plasma membrane. That is why a vesicle can present an MHC molecule, or any other surface ligand, to another cell the right way out.
+**Predict.** Could a protease-protection test on a mixed preparation tell an exosome from a microvesicle?
 
-Cells also release vesicles that bud straight outward from the plasma membrane, called microvesicles or ectosomes. They have the same orientation and overlap in size, so once both kinds are in the medium no agreed test reliably tells them apart. The usual markers of small vesicles are tetraspanins such as CD9, CD63 and CD81, membrane proteins with four membrane-spanning helices, and they are found on both kinds. For that reason the field's own society, ISEV, urges authors to use "extracellular vesicle", or a descriptive term such as "small extracellular vesicle", unless they can show where a vesicle was made. Synaptic vesicles are a different thing: they stay inside the neuron, release a soluble transmitter when they fuse with the surface, and are recycled.
+<details>
+<summary>Check your prediction</summary>
+
+No. Both kinds carry their ectodomains outside and cytosol inside, so a protease cuts the same surface proteins on both and spares the same lumenal ones. Telling them apart needs evidence of origin, such as images of a multivesicular body fusing with the surface.
+
+</details>
+
+Because the two kinds share orientation, size range and common markers—**tetraspanins** such as CD9, CD63 and CD81, membrane proteins with four membrane-spanning helices—no agreed test reliably separates them once mixed in medium. The International Society for Extracellular Vesicles (ISEV) therefore urges "extracellular vesicle" or "small extracellular vesicle" unless origin is proved. **Synaptic vesicles** differ completely: they remain inside neurons, fuse to release soluble transmitter, and are recycled.
+
+This route was first seen in maturing red blood cells (**reticulocytes**), which still make haemoglobin and import iron via transferrin receptors, whereas mature red cells make neither and carry essentially none. In 1983 two groups found those receptors leaving on roughly 50 nanometre vesicles; rat (1983) and sheep (1985) micrographs caught multivesicular bodies fusing with the surface, and in 1987 Rose Johnstone's group named the released vesicles exosomes, viewing them as protein disposal (see Going deeper). B-cell MHC class II compartments release internal vesicles the same way.
+
+Inward budding uses **ESCRT** protein complexes with partners such as **ALIX**; alternative routes exist (one depending on the lipid **ceramide**), and **Rab** small GTPases help dock multivesicular bodies at the surface in some cells. Which machinery operates varies by cell type, and what chooses the exit door is only partly known (details in Going deeper).
 
 ## What is inside, and three ways it could act
 
-Vesicles carry membrane proteins, receptors among them, cytosolic proteins, the lipids of their own membrane, and RNA. The proteins follow from the geometry. Messenger RNA and microRNA drew the most attention. In 2007 Jan Lötvall's laboratory found messenger RNA and microRNA (a short RNA that lowers the output of matching messenger RNAs) in exosome preparations from mast cells, a kind of immune cell, and when vesicles from mouse mast cells were added to human mast cells, mouse proteins were detected in the human cells. But in carefully purified small vesicles most of the RNA is transfer RNA and other small non-coding RNAs. Later counting set a limit on the picture: a 2014 study found far less than one copy of any given microRNA per vesicle on average.
+By geometry, vesicles carry membrane proteins (including receptors), cytosolic proteins, membrane lipids and RNA. Messenger RNA and **microRNA** (short RNAs that lower output of matching messenger RNAs) drew wide attention after Jan Lötvall's group reported both in exosome preparations from mast cells (a kind of immune cell) in 2007 and detected mouse proteins after adding those vesicles to human mast cells. Yet carefully purified small vesicles hold mostly transfer RNA and other small non-coding RNAs, and a 2014 counting study found far less than one copy of any given microRNA per vesicle on average.
 
-A vesicle could act on another cell in three ways, and each needs different evidence.
+Sphere geometry sets that ceiling. A 100 nanometre sphere encloses at most about $5 \times 10^{-19}$ litres (less inside its bilayer). At 1 micromolar in cytosol, passive trapping captures only about 0.3 molecules per vesicle unless cargo is concentrated. Meanwhile, a vesicle's outer surface can display many copies of a membrane protein without anything crossing a bilayer.
 
-1. **By a ligand on its surface.** A protein on the vesicle binds a receptor on the target cell. Nothing has to get in: this is ordinary receptor signalling with the ligand held on a membrane. The B-cell vesicles work this way. One vesicle can display many copies of a membrane protein, so this route does not run into the copy-number limit that applies to RNA.
-2. **By fusing.** The vesicle membrane merges with a membrane of the target cell, at the surface or from inside an endosome, and the contents enter the cytosol. This is the best-studied route by which an RNA or a cytosolic enzyme could act there; escape from a leaky endosome has also been proposed.
-3. **By being taken up.** The target cell swallows the vesicle by endocytosis. On its own this shows little, because the usual fate of what a cell swallows is the lysosome. A vesicle that has been eaten has signalled only if something it carries is sensed on the way or escapes.
+**Predict.** If an exosome is 50 nanometres across (as in reticulocytes) instead of 100 nanometres, by roughly what factor does its total sphere volume drop, and what happens to the passive average at 1 micromolar?
 
-<LessonFigure src="/figures/exosomes-and-extracellular-vesicles/three-ways-to-act.webp" width={1200} height={770} alt="AI-generated illustration: three panels show a small vesicle acting on a target cell by a surface ligand binding a receptor, by fusing and releasing its contents into the cytosol, and by being taken up into an endosome that leads to a lysosome." caption="Three ways a vesicle could act on another cell. A ligand on its surface needs nothing to get in; fusion is the main proposed route that puts contents in the cytosol; uptake alone usually ends at the lysosome." />
+<details>
+<summary>Check your prediction</summary>
 
-## How would you know? The pellet is defined by the centrifuge
+Volume scales with diameter cubed, so halving diameter cuts volume eightfold ($2^3 = 8$), dropping the passive average from about 0.3 to roughly 0.04 molecules per vesicle (less inside the bilayer).
+
+</details>
+
+A vesicle could therefore act in three ways, each requiring different evidence:
+
+1. **Surface ligand.** An outer membrane protein binds a target receptor directly—nothing enters, avoiding the copy-number limit (as in B-cell vesicles).
+2. **Membrane fusion.** The vesicle merges with the plasma membrane or an endosome membrane, releasing cargo into the cytosol—the main proposed route for RNA or cytosolic enzymes (leaky-endosome escape is also proposed).
+3. **Endocytic uptake.** The target swallows the vesicle. Uptake alone proves little, because swallowed material usually reaches the lysosome; it signals only if cargo is sensed on the way or escapes.
+
+<LessonFigure src="/figures/exosomes-and-extracellular-vesicles/three-ways-to-act.webp" width={1200} height={770} alt="AI-generated illustration: three panels show a small vesicle acting on a target cell by a surface ligand binding a receptor, by fusing and releasing its contents into the cytosol, and by being taken up into an endosome that leads to a lysosome." caption="Surface ligands signal on contact, whereas internal cargo must reach the cytosol by fusion or escape; uptake alone usually ends at the lysosome." />
+
+Because surface display works easily while internal cargo faces steep volume and delivery hurdles, proving a vesicle—not a stray particle in the tube—drove an effect takes strict controls, shown in the second film.
 
 <LessonFilm film={frontmatter.films[0]} />
 
-Vesicles are isolated by spinning. Slow spins remove cells and debris, a faster spin removes large vesicles, and about 100,000 times gravity for an hour or more brings down the small ones. What comes down is everything of the right size and density, whatever it is: protein aggregates, lipoprotein particles, complexes of RNA and protein, viruses, vesicles from the calf serum in the culture medium, and soluble growth factors stuck to any of these.
+## How would you know? The pellet is defined by the centrifuge
 
-The contaminants have changed conclusions. In 2019 Robert Coffey's laboratory separated such pellets further on density gradients, and separately captured vesicles on antibodies from medium that had not been spun at high speed, and found that Argonaute proteins, which carry microRNA, were not detected in the exosomes, and that small vesicles were not vehicles of active DNA release.
+The second film showed why spinning mixes vesicles with debris; here are the isolation protocol, the landmark contaminant test and the full control checklist.
 
-So a claim needs controls. Purify further, for example by floating the pellet on a density gradient, where small vesicles in sucrose usually rise to about 1.13 to 1.19 grams per millilitre and free protein stays below, and ask whether the activity moves with the vesicles. Test the supernatant left after the spin, and a pellet from medium that never saw cells. Ask whether the cargo is inside: a protein or RNA within a vesicle survives protease or RNase until detergent opens the membrane. And count.
+Standard isolation uses **differential ultracentrifugation**: a slow spin clears cells and debris, a faster spin removes large vesicles, and about 100,000 times gravity for an hour or more pellets small vesicles. Everything of similar size and density sediments too: protein aggregates, lipoproteins, RNA–protein complexes, viruses, vesicles from calf serum in the medium, and stuck soluble growth factors.
+
+The contaminants have changed conclusions. In 2019 Robert Coffey's laboratory separated such pellets on density gradients and independently captured vesicles on antibodies without high-speed spinning; **Argonaute** proteins (which carry microRNA) were not detected in exosomes, and small vesicles were not vehicles of active DNA release.
+
+In practice, proving vesicle signalling comes back to separating vesicles, locating cargo and counting copies:
+
+| Artefact to rule out | Control or assay | Clean-signal result (and key caveat) |
+| --- | --- | --- |
+| **Dense protein / aggregate** | **Density-gradient flotation** (load pellet at *bottom* of sucrose gradient) | Small vesicles in sucrose usually rise to about 1.13–1.19 g/mL and free protein stays below; activity should float with the membrane markers (some lipoproteins can still co-isolate) |
+| **Soluble factor / serum** | Post-spin **supernatant** and cell-free **mock pellet** | Neither reproduces the pellet's activity (even vesicle-depleted serum keeps much of its RNA) |
+| **Surface or loose cargo** | **Protease / RNase protection** ± detergent | Lumenal cargo survives enzyme alone and vanishes only with detergent (bound proteins like Argonaute can shield loose RNA from RNase) |
+| **Unrealistic stoichiometry** | Count cargo and particles; check donor release rate | Enough copies and realistic dose (though a rare subset could carry most copies) |
+
+The central measurement is:
 
 > **copies per vesicle = copies of the cargo measured ÷ particles counted**
 
-If that number is far below one, or if the effect needs many more vesicles than the donor cells release, the case for signalling is weak however clean the pellet.
+If that ratio sits far below one, or if the effect needs far more vesicles than donor cells release, the signalling claim remains weak however clean the pellet looks.
+
+**Predict.** In a density-purified preparation, RNase alone removes 90% of the copies of one RNA. What does that say about where most of that RNA sat, and about a copies-per-vesicle number calculated before the treatment?
+
+<details>
+<summary>Check your prediction</summary>
+
+Most of it was outside sealed vesicles, loose or stuck to their surface, because RNase without detergent cannot reach lumenal cargo. Dividing the untreated count by particles therefore overstated the vesicle cargo about tenfold; only the protected copies belong in the numerator.
+
+</details>
 
 ### Design problem
 
@@ -450,29 +515,34 @@ You spin the medium from cell type A, add the pellet to cell type B, and B chang
 <details>
 <summary>One way to do it</summary>
 
-**The serum did it.** Calf serum in the medium brings its own vesicles and growth factors. Grow A without serum, or in serum depleted of vesicles (a long spin leaves much of the serum's own RNA behind), and make a mock pellet from medium that sat in a dish with no cells. If the mock pellet changes B as much as the real one, the medium and not A is the source.
+**The serum did it.** Calf serum brings vesicles and growth factors. Grow A without serum, or in vesicle-depleted serum (a long spin still leaves much serum RNA behind), and test a mock pellet from cell-free medium. If the mock matches the real pellet, the medium—not A—is the source.
 
-**A soluble factor came down with the pellet.** A cytokine from A may have aggregated or stuck to vesicles. Float the pellet on a density gradient and test every fraction on B. The activity should peak where the vesicle markers and the particle count peak.
+**A soluble factor pelleted too.** A cytokine from A may have aggregated or stuck to vesicles. Float the pellet on a density gradient and test every fraction on B; activity should peak with vesicle markers and particle counts.
 
-**A contaminant did it.** If B is an immune cell, a trace of bacterial lipopolysaccharide will switch on Toll-like receptor 4. Test the pellet for lipopolysaccharide and repeat with cells of type B that lack the receptor.
+**A contaminant did it.** If B is an immune cell, trace bacterial lipopolysaccharide switches on Toll-like receptor 4. Assay for lipopolysaccharide and repeat with B cells lacking that receptor.
 
-**The vesicles did it, at a dose no cell would meet.** Count the particles you add, compare with what A releases in the same time, and titrate down. Then make the claim specific: a pellet from A cells that lack the candidate cargo should fail, though deleting a gene can change the donor cell and the rest of its vesicles, so check those too.
+**Unrealistic dose or non-specific cargo.** Count added particles, compare with A's release rate and titrate down. A pellet from A cells lacking the candidate cargo should fail—checking also whether deleting the gene altered A or its other vesicles.
 
-With all four done you have a strong case for a signal carried on vesicles from A. To say exosomes, you must also show that the vesicles came from a multivesicular body.
+With all four done you have a strong case for vesicle signalling from A. To call them exosomes, you must also prove multivesicular-body origin.
 
 </details>
 
 ## Where the evidence is good, and where it is argued
 
-**Antigen presentation.** This is the strongest case, set out at the top of this lesson. The T cell response followed the peptide and the MHC molecule, which a stray soluble factor would not do, and the signal is a ligand on a surface, so nothing has to get in. How much such vesicles add to an immune response in the body is still less clear.
+- **Antigen presentation.** The strongest case, set out at the top of this lesson: T-cell activation followed peptide and MHC class II and acted at the surface with nothing entering. Two years after 1996, a group including Raposo reported that dendritic-cell vesicles loaded with tumour peptides suppressed or eliminated established tumours in mice; how much such vesicles add in vivo remains less clear.
+- **Disposal.** Reticulocyte transferrin-receptor shedding stands cleanly without needing any message.
+- **Axon repair.** **Schwann cells** (the glia wrapping peripheral axons) release vesicles that sensory axons take up, speeding regrowth in culture and after nerve injury. Because this rests on adding prepared vesicles, count it as supported rather than closed.
+- **"Cancer uses exosomes to evade therapy."** Tumour vesicles can display **PD-L1**, the ligand for the checkpoint receptor **PD-1**. In a mouse prostate-cancer model, deleting **Rab27a** sharply cut exosome release and stopped tumour growth in mice with a working immune system, while tumours still grew in immunodeficient mice. The same study also deleted PD-L1 itself, and exosomal PD-L1 injected into the mice restored growth of tumours that could not secrete their own. Tumour vesicles have also been reported as antibody-drug decoys, and circulating vesicle PD-L1 has been tracked in melanoma patients, though patient effect size remains uncertain.
+- **As tools.** Blood and urine vesicles carry proteins and RNA from source tissues, motivating biomarker tests and drug- or RNA-loading efforts; both depend on knowing exactly what is in the tube.
 
-**Disposal.** The reticulocyte case stands, and no message is needed to explain it.
+**Predict.** In the prostate-cancer study above, what alternative explanation did tumour growth in immunodeficient mice rule out?
 
-**Axon repair.** Schwann cells are the glia that wrap peripheral axons. Vesicles from cultured Schwann cells are taken up by sensory axons and speed their regrowth, in culture and after nerve injury. The evidence is direct, but it rests on adding prepared vesicles, so count it as supported and not yet closed.
+<details>
+<summary>Check your prediction</summary>
 
-**"Cancer uses exosomes to evade therapy."** Weigh this as a claim. Tumour vesicles can carry PD-L1, the ligand for the checkpoint receptor PD-1. In one mouse model of prostate cancer, tumour cells with Rab27a deleted, which release far fewer exosomes, failed to grow in mice with a working immune system but grew in mice without one. The same study also deleted PD-L1 itself, and exosomal PD-L1 injected into the mice restored growth of tumours that could not secrete their own. Tumour vesicles have also been reported to act as decoys for antibody drugs, and PD-L1 on circulating vesicles has been followed in people with melanoma during treatment. The size of the effect in patients is uncertain.
+It ruled out that deleting Rab27a simply crippled tumour-cell proliferation directly; the growth block required a working immune system (and because Rab27a affects other secretion, the PD-L1 deletion and exosomal PD-L1 rescue carried the specific proof).
 
-**As tools.** Vesicles in blood and urine carry proteins and RNA from the tissues that made them, so they are being tested as markers of disease that a blood sample can reach. Groups are also loading vesicles with drugs or RNA. Both uses depend on knowing exactly what is in the tube.
+</details>
 
 ## Going deeper
 
@@ -496,7 +566,7 @@ The laboratory of Felipe Court proposed in 2012, and reported with data in 2013,
 
 ### Cancer: decoys, a marker in blood, and the Rab27a question
 
-Tumour vesicles have been reported to carry the target of an antibody drug, such as HER2 or CD20, and to bind the antibody before it reaches the cell. The decoy experiments were done mostly in culture, where the experimenter chooses the dose. In one study of people with melanoma, the size of the early rise in PD-L1 on circulating vesicles during anti-PD-1 treatment separated responders from non-responders. A correlation in blood cannot show whether vesicle PD-L1 alters the response or reflects the amount of tumour; the authors themselves read the early rise as the tumour responding to reactivated T cells. In the prostate cancer study, Rab27a, one of the genes deleted to block release, has other jobs in secretion, which is why the deletion of PD-L1 itself and the rescue with injected exosomal PD-L1 carry the argument.
+Tumour vesicles have been reported to carry the target of an antibody drug, such as HER2 or CD20, and to bind the antibody before it reaches the cell. The decoy experiments were done mostly in culture, where the experimenter chooses the dose. In one study of people with melanoma, the size of the early rise in PD-L1 on circulating vesicles during anti-PD-1 treatment separated responders from non-responders. A correlation in blood cannot show whether vesicle PD-L1 alters the response or reflects the amount of tumour; the authors themselves read the early rise as the tumour responding to reactivated T cells. In the prostate cancer study, Rab27a has other jobs in secretion, which is why the PD-L1 deletion and exosomal PD-L1 rescue carry the argument.
 
 ### Loading vesicles with RNA
 
