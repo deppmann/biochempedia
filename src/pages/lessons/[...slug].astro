@@ -351,7 +351,7 @@ const lessonLd = {
             holds it. The nav, rail, 3D viewers, sources and footer are not indexed. Worked
             answers (bare <details>) and the answer boxes are skipped by exclude_selectors in pagefind.yml. */}
         <div class="prose-col" data-pagefind-body data-pagefind-meta="title[data-lesson-title]" data-pagefind-filter="course[data-lesson-course]"
-          data-lesson-title={lesson.title} data-lesson-course={lesson.course}><Content /></div>{sideHops && <LessonStories data={sideHops} headings={headings} idea={idea} ideaIsQuestion={ideaIsQuestion} />}
+          data-lesson-title={lesson.title} data-lesson-course={lesson.course}><span hidden data-pagefind-filter="type:lesson"></span><Content /></div>{sideHops && <LessonStories data={sideHops} headings={headings} idea={idea} ideaIsQuestion={ideaIsQuestion} />}
         <div data-lt-only="lesson"><HighlightLayer slug={entry.data.slug} title={lesson.title} /></div>
         {/* Study helpers for signed-in learners (worker/helper.js); never on Biology Together or grade 7 Life Science. */}
         {!lesson.draft && helperAllowed(course) && <div data-lt-only="lesson"><LessonHelpers slug={lesson.slug} hasDeck={!!deck} levels={lesson.explainLevels.map((l) => ({ level: l.level, label: l.label }))} /></div>}

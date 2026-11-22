@@ -29,6 +29,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import FilmPlaylist from '../../components/FilmPlaylist.astro';
 import Hex from '../../components/Hex.astro';
 import { filmCatalog, filmLevelHref, KIND_LABELS, KIND_ORDER, type CatalogFilm } from '../../lib/film-catalog';
+import FilmScriptSearch from '../../components/FilmScriptSearch.astro'; // "Said in the films" (2026-11-22)
 import { filmClock } from '../../lib/films';
 import { STAGES } from '../../data/stages';
 import { filmLadders, type FilmLadder } from '../../lib/film-ladders';
@@ -237,6 +238,7 @@ const stacks = [
       <p class="fl-status" data-fl-status role="status">{plural(films.length, 'film')}, about {hours}.</p>
       <p class="fl-seen" data-fl-seen hidden></p>
     </div>
+    <FilmScriptSearch />
 
     <div class="fl-run" data-fl-run hidden>
       <a class="fl-btn" href="/films/run/" data-fl-play>Play them in order</a>
