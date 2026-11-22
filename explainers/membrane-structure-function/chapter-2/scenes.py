@@ -801,14 +801,39 @@ class S05Idea(SpokenScene):
 class S06HowExact(SpokenScene):
     def construct(self):
         ft, phase, t_na = add_small_left_filter(self, show_na_hover=True)
+        # Carry the two bar pairs from s05_idea and transform them into the computed 0-80 Plot
+        k_bar_init = make_toll_bar_pair(1.3, -1.6, 2.9, toll_frac=K_TOLL_REL, pay_frac=0.93)
+        na_bar_init = make_toll_bar_pair(4.6, -1.6, 2.9, toll_frac=NA_TOLL_REL, pay_frac=0.56)
+        bars_init = VGroup(k_bar_init, na_bar_init)
         P = make_exact_plot()
         tag = scope_tag("schematic")
-        self.add(P, tag)
+        self.add(bars_init, tag)
 
-        # Keep small filter moving until "toll is about"
-        t_70 = self.t_of("toll is about") - 0.2
-        if t_70 > self.elapsed():
-            dt = t_70 - self.elapsed()
+        # "How exact must that payback be?" (0.0..2.12s): bar pairs clear as computed Plot builds
+        self.play(
+            FadeOut(bars_init),
+            phase.animate.set_value(phase.get_value() + 0.6 * 0.35),
+            t_na.animate.set_value(t_na.get_value() + 0.6),
+            run_time=0.6,
+            rate_func=linear,
+        )
+        self.play(
+            Create(P.axes),
+            FadeIn(P.ticks),
+            FadeIn(P.tick_labels),
+            FadeIn(P.ylabel),
+            phase.animate.set_value(phase.get_value() + 1.0 * 0.35),
+            t_na.animate.set_value(t_na.get_value() + 1.0),
+            run_time=1.0,
+            rate_func=linear,
+        )
+        self.remove(P.axes, P.ticks, P.tick_labels, P.ylabel)
+        self.add(P)
+
+        # Keep small filter moving until "Sodium's toll"
+        t_toll = self.t_of("Sodium's toll") - 0.2
+        if t_toll > self.elapsed():
+            dt = t_toll - self.elapsed()
             self.play(
                 phase.animate.set_value(phase.get_value() + dt * 0.35),
                 t_na.animate.set_value(t_na.get_value() + dt),
@@ -817,7 +842,7 @@ class S06HowExact(SpokenScene):
             )
 
         # "Sodium's toll is about 70 kJ per mole larger than potassium's."
-        self.at("toll is about")
+        self.at("Sodium's toll")
         bar_val = ValueTracker(0.5)
         x_l, x_r = 0.55, 1.95
 
@@ -837,12 +862,12 @@ class S06HowExact(SpokenScene):
         self.add(red_bar, val_lbl)
         self.play(
             bar_val.animate.set_value(DELTA_TOLL),
-            phase.animate.set_value(phase.get_value() + 2.2 * 0.35),
-            t_na.animate.set_value(t_na.get_value() + 2.2),
-            run_time=2.2,
+            phase.animate.set_value(phase.get_value() + 1.2 * 0.35),
+            t_na.animate.set_value(t_na.get_value() + 1.2),
+            run_time=1.2,
             rate_func=linear,
         )
-        top_lbl = T("extra toll: Na⁺", 26, RED).next_to(val_lbl, UP, buff=0.14)
+        top_lbl = T("extra toll: sodium", 26, RED).next_to(val_lbl, UP, buff=0.14)
         self.play(
             FadeIn(top_lbl),
             phase.animate.set_value(phase.get_value() + 0.6 * 0.35),
@@ -851,10 +876,10 @@ class S06HowExact(SpokenScene):
             rate_func=linear,
         )
 
-        # Wait until "preference needs"
-        t_pref = self.t_of("preference needs") - 0.2
-        if t_pref > self.elapsed():
-            dt = t_pref - self.elapsed()
+        # Wait until "every 6"
+        t_6 = self.t_of("every 6") - 0.2
+        if t_6 > self.elapsed():
+            dt = t_6 - self.elapsed()
             self.play(
                 phase.animate.set_value(phase.get_value() + dt * 0.35),
                 t_na.animate.set_value(t_na.get_value() + dt),
@@ -862,8 +887,75 @@ class S06HowExact(SpokenScene):
                 rate_func=linear,
             )
 
-        # "A thousand-fold preference needs a gap of only about 18."
-        self.at("preference needs")
+        # "At body temperature, every 6 kJ buys about a ten-fold preference."
+        note_x = P.pt(x_r + 0.14, 0)[0] + 0.16
+        note_1a = M("~5.9 kJ/mol", 24, TEXT).move_to([note_x, 0.35, 0]).align_to([note_x, 0, 0], LEFT)
+        note_1b = M("per 10× at 37 °C", 24, TEXT).next_to(note_1a, DOWN, buff=0.12, aligned_edge=LEFT)
+        note_2a = M("10 × 10 × 10 = 1000", 24, TEXT).next_to(note_1b, DOWN, buff=0.22, aligned_edge=LEFT)
+        note_2b_lhs = M("3 × 5.9", 24, TEXT).next_to(note_2a, DOWN, buff=0.12, aligned_edge=LEFT)
+        note_2b_rhs = M("≈ 18", 24, TEXT).next_to(note_2b_lhs, RIGHT, buff=0.14)
+
+        self.at("every 6")
+        self.play(
+            FadeIn(note_1a),
+            phase.animate.set_value(phase.get_value() + 0.8 * 0.35),
+            t_na.animate.set_value(t_na.get_value() + 0.8),
+            run_time=0.8,
+            rate_func=linear,
+        )
+
+        t_ten = self.t_of("ten") - 0.2
+        if t_ten > self.elapsed():
+            dt = t_ten - self.elapsed()
+            self.play(
+                phase.animate.set_value(phase.get_value() + dt * 0.35),
+                t_na.animate.set_value(t_na.get_value() + dt),
+                run_time=dt,
+                rate_func=linear,
+            )
+
+        self.at("ten")
+        self.play(
+            FadeIn(note_1b),
+            phase.animate.set_value(phase.get_value() + 0.8 * 0.35),
+            t_na.animate.set_value(t_na.get_value() + 0.8),
+            run_time=0.8,
+            rate_func=linear,
+        )
+
+        # Wait until "three" ("A thousand-fold is three ten-folds, about 18.")
+        t_three = self.t_of("three") - 0.2
+        if t_three > self.elapsed():
+            dt = t_three - self.elapsed()
+            self.play(
+                phase.animate.set_value(phase.get_value() + dt * 0.35),
+                t_na.animate.set_value(t_na.get_value() + dt),
+                run_time=dt,
+                rate_func=linear,
+            )
+
+        self.at("three")
+        self.play(
+            FadeIn(note_2a),
+            FadeIn(note_2b_lhs),
+            phase.animate.set_value(phase.get_value() + 0.9 * 0.35),
+            t_na.animate.set_value(t_na.get_value() + 0.9),
+            run_time=0.9,
+            rate_func=linear,
+        )
+
+        # "about 18." -> reveal ≈ 18 and the computed 17.82 kJ/mol bracket at top of red bar
+        t_18 = self.t_of("about 18") - 0.2
+        if t_18 > self.elapsed():
+            dt = t_18 - self.elapsed()
+            self.play(
+                phase.animate.set_value(phase.get_value() + dt * 0.35),
+                t_na.animate.set_value(t_na.get_value() + dt),
+                run_time=dt,
+                rate_func=linear,
+            )
+
+        self.at("about 18")
         p_bot = P.pt(x_r + 0.14, SLACK_PAYBACK)
         p_top = P.pt(x_r + 0.14, DELTA_TOLL)
         bracket = VGroup(
@@ -873,14 +965,15 @@ class S06HowExact(SpokenScene):
         )
         gap_lbl = VGroup(
             T("about 18", 28, TEXT),
-            T("needed for 1000:1", 24, TEXT),
+            T("needed for 1000 to 1", 24, TEXT),
         ).arrange(DOWN, buff=0.06, aligned_edge=LEFT).next_to(bracket, RIGHT, buff=0.18)
         self.play(
+            FadeIn(note_2b_rhs),
             Create(bracket),
             FadeIn(gap_lbl),
-            phase.animate.set_value(phase.get_value() + 1.5 * 0.35),
-            t_na.animate.set_value(t_na.get_value() + 1.5),
-            run_time=1.5,
+            phase.animate.set_value(phase.get_value() + 0.9 * 0.35),
+            t_na.animate.set_value(t_na.get_value() + 0.9),
+            run_time=0.9,
             rate_func=linear,
         )
 
@@ -905,7 +998,7 @@ class S07Slack(SpokenScene):
             fill_color=RED, fill_opacity=0.82, stroke_color=RED, stroke_width=2.5,
         ).move_to([(p0[0] + p1[0]) / 2.0, (p0[1] + p1[1]) / 2.0, 0])
         val_lbl = M("70", 28, RED).move_to(P.pt((x_l + x_r) / 2.0, DELTA_TOLL) + UP * 0.26)
-        top_lbl = T("extra toll: Na⁺", 26, RED).next_to(val_lbl, UP, buff=0.14)
+        top_lbl = T("extra toll: sodium", 26, RED).next_to(val_lbl, UP, buff=0.14)
 
         p_bot = P.pt(x_r + 0.14, SLACK_PAYBACK)
         p_top = P.pt(x_r + 0.14, DELTA_TOLL)
@@ -916,16 +1009,16 @@ class S07Slack(SpokenScene):
         )
         gap_lbl = VGroup(
             T("about 18", 28, TEXT),
-            T("needed for 1000:1", 24, TEXT),
+            T("needed for 1000 to 1", 24, TEXT),
         ).arrange(DOWN, buff=0.06, aligned_edge=LEFT).next_to(bracket, RIGHT, buff=0.18)
         tag = scope_tag("schematic")
 
         self.add(P, red_bar, val_lbl, top_lbl, bracket, gap_lbl, tag)
 
-        # Wait until "give sodium"
-        t_give = self.t_of("give sodium") - 0.2
-        if t_give > self.elapsed():
-            dt = t_give - self.elapsed()
+        # Wait until "70 minus" ("So the filter could even pay sodium back more than potassium. 70 minus 18 leaves 52 to spare.")
+        t_minus = self.t_of("70 minus") - 0.2
+        if t_minus > self.elapsed():
+            dt = t_minus - self.elapsed()
             self.play(
                 phase.animate.set_value(phase.get_value() + dt * 0.35),
                 t_na.animate.set_value(t_na.get_value() + dt),
@@ -933,8 +1026,40 @@ class S07Slack(SpokenScene):
                 rate_func=linear,
             )
 
-        # "So the filter could even give sodium, about 52, more than potassium."
-        self.at("give sodium")
+        # Build "70 − 18 = 52" in time with the spoken words
+        self.at("70 minus")
+        lbl_x = P.pt(x_r + 0.14, 0)[0] + 0.30
+        eq_70 = M("70", 26, TEXT).move_to([lbl_x, -0.35, 0]).align_to([lbl_x, 0, 0], LEFT)
+        eq_18 = M("− 18", 26, TEXT).next_to(eq_70, RIGHT, buff=0.14)
+        eq_52 = M("= 52", 26, TEXT).next_to(eq_18, RIGHT, buff=0.14)
+        self.play(
+            FadeIn(eq_70),
+            phase.animate.set_value(phase.get_value() + 0.30 * 0.55),
+            t_na.animate.set_value(t_na.get_value() + 0.30),
+            run_time=0.30,
+            rate_func=linear,
+        )
+
+        self.at("18")
+        self.play(
+            FadeIn(eq_18),
+            phase.animate.set_value(phase.get_value() + 0.45 * 0.55),
+            t_na.animate.set_value(t_na.get_value() + 0.45),
+            run_time=0.45,
+            rate_func=linear,
+        )
+
+        # Start growing TEAL bar from 0 to 52.18 before "52" so it finishes as "52" is spoken
+        t_slack = self.t_of("leaves") - 0.3
+        if t_slack > self.elapsed():
+            dt = t_slack - self.elapsed()
+            self.play(
+                phase.animate.set_value(phase.get_value() + dt * 0.55),
+                t_na.animate.set_value(t_na.get_value() + dt),
+                run_time=dt,
+                rate_func=linear,
+            )
+
         slack_val = ValueTracker(0.5)
         sx_l, sx_r = 0.60, 1.20
 
@@ -947,34 +1072,48 @@ class S07Slack(SpokenScene):
             ).move_to([(q0[0] + q1[0]) / 2.0, (q0[1] + q1[1]) / 2.0, 0])
 
         slack_bar = always_redraw(mk_slack)
-        lbl_x = P.pt(x_r + 0.14, 0)[0] + 0.35
         slack_lbl = always_redraw(lambda: VGroup(
             M(f"about {slack_val.get_value():.0f}", 26, TEAL),
             T("extra payback allowed", 24, TEAL),
-        ).arrange(DOWN, buff=0.10, aligned_edge=LEFT).move_to([lbl_x + 1.45, P.pt(0, 42)[1], 0]).align_to([lbl_x, 0, 0], LEFT))
+        ).arrange(DOWN, buff=0.08, aligned_edge=LEFT).move_to([lbl_x + 1.45, 0.48, 0]).align_to([lbl_x, 0, 0], LEFT))
         self.add(slack_bar, slack_lbl)
+
+        t_52 = self.t_of("52") - 0.2
+        dt_pre = max(0.1, t_52 - self.elapsed())
+        dt_eq = 0.35
+        mid_slack = 0.5 + (SLACK_PAYBACK - 0.5) * (dt_pre / (dt_pre + dt_eq))
         self.play(
+            slack_val.animate.set_value(mid_slack),
+            phase.animate.set_value(phase.get_value() + dt_pre * 0.75),
+            t_na.animate.set_value(t_na.get_value() + dt_pre),
+            run_time=dt_pre,
+            rate_func=linear,
+        )
+
+        self.at("52")
+        self.play(
+            FadeIn(eq_52),
             slack_val.animate.set_value(SLACK_PAYBACK),
-            phase.animate.set_value(phase.get_value() + 3.4 * 0.85),
-            t_na.animate.set_value(t_na.get_value() + 3.4),
-            run_time=3.4,
+            phase.animate.set_value(phase.get_value() + dt_eq * 0.75),
+            t_na.animate.set_value(t_na.get_value() + dt_eq),
+            run_time=dt_eq,
             rate_func=linear,
         )
         slack_line = DashedLine(P.pt(sx_r, SLACK_PAYBACK), P.pt(x_r + 0.10, SLACK_PAYBACK), color=TEAL, stroke_width=2.5)
         self.play(
             Create(slack_line),
-            phase.animate.set_value(phase.get_value() + 0.9 * 0.85),
-            t_na.animate.set_value(t_na.get_value() + 0.9),
-            run_time=0.9,
+            phase.animate.set_value(phase.get_value() + 0.8 * 0.75),
+            t_na.animate.set_value(t_na.get_value() + 0.8),
+            run_time=0.8,
             rate_func=linear,
         )
 
-        # Wait until "simulations suggest"
+        # Wait until "simulations suggest" (holds "70 − 18 = 52" and "about 52" > 2s)
         t_sim = self.t_of("simulations suggest") - 0.2
         if t_sim > self.elapsed():
             dt = t_sim - self.elapsed()
             self.play(
-                phase.animate.set_value(phase.get_value() + dt * 0.85),
+                phase.animate.set_value(phase.get_value() + dt * 0.75),
                 t_na.animate.set_value(t_na.get_value() + dt),
                 run_time=dt,
                 rate_func=linear,
@@ -997,16 +1136,16 @@ class S07Slack(SpokenScene):
         self.add(sim_bar)
         self.play(
             sim_val.animate.set_value(35.0),  # unnumbered schematic height below 52
-            phase.animate.set_value(phase.get_value() + 2.6 * 0.65),
-            t_na.animate.set_value(t_na.get_value() + 2.6),
-            run_time=2.6,
+            phase.animate.set_value(phase.get_value() + 2.4 * 0.65),
+            t_na.animate.set_value(t_na.get_value() + 2.4),
+            run_time=2.4,
             rate_func=linear,
         )
         sim_lbl = VGroup(
             T("simulations", 24, TEXT),
             T("(schematic)", 24, GREY),
-        ).arrange(DOWN, buff=0.10, aligned_edge=LEFT).move_to([lbl_x + 0.9, P.pt(0, 14)[1], 0]).align_to([lbl_x, 0, 0], LEFT)
-        sim_ptr = Arrow(sim_lbl.get_left() + LEFT * 0.08, P.pt(gx_r + 0.04, 14), buff=0.04, color=TEXT, stroke_width=3,
+        ).arrange(DOWN, buff=0.08, aligned_edge=LEFT).move_to([lbl_x + 0.9, P.pt(0, 12)[1], 0]).align_to([lbl_x, 0, 0], LEFT)
+        sim_ptr = Arrow(sim_lbl.get_left() + LEFT * 0.08, P.pt(gx_r + 0.04, 12), buff=0.04, color=TEXT, stroke_width=3,
                         max_tip_length_to_length_ratio=0.18)
         self.play(
             FadeIn(sim_lbl),
@@ -1069,7 +1208,7 @@ class S08Predict(SpokenScene):
         self.add(k_held)
 
         # "Yet around 100 million potassium ions can cross each second."
-        self.at("around 100 million")
+        self.at("Yet", lead=0.0)
         rate = ValueTracker(0.0)
         flow_hdr = T("observed flow:", 26, GREY).move_to([2.4, 0.75, 0]).align_to([1.25, 0, 0], LEFT)
         flow_num = always_redraw(lambda: M(f"about {rate.get_value():,.0f} per s", 28, VIOLET).next_to(
@@ -1083,7 +1222,7 @@ class S08Predict(SpokenScene):
             fill_color=VIOLET, fill_opacity=0.88, stroke_width=0,
         ).align_to(flow_bar_bg, LEFT).match_y(flow_bar_bg))
         self.add(flow_hdr, flow_num, flow_bar_bg, flow_bar_fill)
-        self.play(rate.animate.set_value(100_000_000.0), run_time=4.5, rate_func=linear)
+        self.play(rate.animate.set_value(100_000_000.0), run_time=1.0, rate_func=linear)
 
         # "What lets a tightly held ion leave?"
         self.at("what lets")

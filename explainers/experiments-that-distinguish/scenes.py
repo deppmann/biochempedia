@@ -492,58 +492,137 @@ class S10WhenSame(SpokenScene):
 
 class S11CauseSetup(SpokenScene):
     def construct(self):
-        cells=VGroup(twin_cell(-3.15,TEAL,1.25),twin_cell(3.15,ORANGE,1.25))
-        self.play(FadeIn(cells),run_time=.6)
+        cell_y = 1.38
+        cells = VGroup(twin_cell(-3.15, TEAL, 1.25), twin_cell(3.15, ORANGE, 1.25))
+        cells.shift(UP * (cell_y - 0.15))
+        self.play(FadeIn(cells), run_time=.6)
         self.at("cancer cells growing")
-        daughters=VGroup(Circle(.34,color=TEAL).move_to([-4.55,1.25,0]),Circle(.34,color=ORANGE).move_to([4.55,1.25,0]))
-        self.play(FadeIn(daughters,shift=OUT),cells.animate.scale(1.04),run_time=.7)
+        daughters = VGroup(Circle(.34, color=TEAL).move_to([-4.55, 2.48, 0]), Circle(.34, color=ORANGE).move_to([4.55, 2.48, 0]))
+        self.play(FadeIn(daughters, shift=OUT), cells.animate.scale(1.04), run_time=.7)
         self.at("block one kinase")
-        kin=VGroup(chip("the kinase",PURPLE,28).move_to([-3.15,.25,0]),chip("the kinase",PURPLE,28).move_to([3.15,.25,0]))
-        self.play(FadeIn(kin),run_time=.6)
+        kin = VGroup(chip("the kinase", PURPLE, 24).move_to([-3.15, 1.60, 0]), chip("the kinase", PURPLE, 24).move_to([3.15, 1.60, 0]))
+        self.play(FadeIn(kin), run_time=.6)
         self.at("adds phosphate")
-        phosph=VGroup(chip("phosphate",GOLD,28).move_to([-3.15,2.0,0]),chip("phosphate",GOLD,28).move_to([3.15,2.0,0]))
-        self.play(FadeIn(phosph),run_time=.55)
-        drug1=Dot([-4.5,.45,0],radius=.15,color=GOLD); drug2=drug1.copy().move_to([1.8,.45,0])
-        alt=RoundedRectangle(width=.7,height=.45,corner_radius=.1,color=GREY,fill_opacity=.25).move_to([4.05,-.2,0])
-        self.play(FadeOut(phosph),FadeIn(drug1),FadeIn(drug2),FadeIn(alt),drug1.animate.move_to([-3.75,.45,0]),drug2.animate.move_to([4.05,-.2,0]),run_time=.9)
+        phosph = VGroup(chip("phosphate", GOLD, 28).move_to([-3.15, 3.12, 0]), chip("phosphate", GOLD, 28).move_to([3.15, 3.12, 0]))
+        self.play(FadeIn(phosph), run_time=.55)
+        drug1 = Dot([-4.35, 1.90, 0], radius=.15, color=GOLD); drug2 = drug1.copy().move_to([1.95, 0.90, 0])
+        alt = RoundedRectangle(width=.56, height=.36, corner_radius=.1, color=GREY, stroke_width=3, fill_opacity=.25).move_to([3.62, 0.78, 0])
+        self.play(FadeOut(phosph), FadeIn(drug1), FadeIn(drug2), FadeIn(alt),
+                  drug1.animate.move_to(kin[0].get_top() + UP * 0.16),
+                  drug2.animate.move_to(alt.get_center()), run_time=.9)
         self.at("curve shows")
-        left=dose_axes(-3.15,-1.65,4.7,2.0); right=dose_axes(3.15,-1.65,4.7,2.0)
-        self.play(Create(left[0]),Create(right[0]),run_time=.75)
-        curves=VGroup(dose_curve(*left[1:],color=TEAL),dose_curve(*right[1:],color=ORANGE))
-        self.play(Create(curves),run_time=1.0)
+        left = dose_axes(-3.15, -1.65, 4.7, 2.0); right = dose_axes(3.15, -1.65, 4.7, 2.0)
+        self.play(Create(left[0]), Create(right[0]), run_time=.75)
+        curves = VGroup(dose_curve(*left[1:], color=TEAL), dose_curve(*right[1:], color=ORANGE))
+        self.play(Create(curves), run_time=1.0)
         self.finish()
 
 
 class S12CausePredict(SpokenScene):
     def construct(self):
-        cells=VGroup(twin_cell(-3.15,TEAL,1.25),twin_cell(3.15,ORANGE,1.25))
-        kin=VGroup(chip("the kinase",PURPLE,28).move_to([-3.15,.25,0]),chip("the kinase",PURPLE,28).move_to([3.15,.25,0]))
-        left=dose_axes(-3.15,-1.65,4.7,2.0); right=dose_axes(3.15,-1.65,4.7,2.0)
-        orig=VGroup(dose_curve(*left[1:],color=GREY,dashed=True,opacity=.6),dose_curve(*right[1:],color=GREY,dashed=True,opacity=.6))
-        self.add(cells,kin,left[0],right[0],orig)
-        self.at("kinase out")
-        flashes=VGroup(Circle(.7,color=TEXT).move_to(kin[0]),Circle(.7,color=TEXT).move_to(kin[1]))
-        labs=VGroup(label("kinase removed",-3.15,2.0,PURPLE,28),label("kinase removed",3.15,2.0,PURPLE,28))
-        self.play(FadeIn(flashes),FadeOut(kin),run_time=.35); self.play(FadeOut(flashes),FadeIn(labs),run_time=.45)
-        self.at("still grow")
-        daughters=VGroup(Circle(.32,color=TEAL).move_to([-4.55,1.2,0]),Circle(.32,color=ORANGE).move_to([4.55,1.2,0]))
-        self.play(FadeIn(daughters),cells.animate.scale(1.035),run_time=.7)
+        cell_y = 1.38
+        cells = VGroup(twin_cell(-3.15, TEAL, 1.24), twin_cell(3.15, ORANGE, 1.24))
+        cells.shift(UP * (cell_y - 0.15))
+        kin = VGroup(
+            chip("the kinase", PURPLE, 24).move_to([-3.15, 1.60, 0]),
+            chip("the kinase", PURPLE, 24).move_to([3.15, 1.60, 0]),
+        )
+        empty_slots = VGroup(*[
+            DashedVMobject(
+                RoundedRectangle(width=k[0].width, height=k[0].height, corner_radius=0.14,
+                                 stroke_color=PURPLE, stroke_width=2.5),
+                num_dashes=16, dashed_ratio=0.55,
+            ).move_to(k)
+            for k in kin
+        ])
+        alt = RoundedRectangle(width=0.56, height=0.36, corner_radius=0.1,
+                               color=GREY, stroke_width=3, fill_opacity=0.25).move_to([3.62, 0.78, 0])
+        left = dose_axes(-3.15, -1.78, 4.7, 1.96)
+        right = dose_axes(3.15, -1.78, 4.7, 1.96)
+        orig = VGroup(
+            dose_curve(*left[1:], color=GREY, dashed=True, opacity=0.6),
+            dose_curve(*right[1:], color=GREY, dashed=True, opacity=0.6),
+        )
+        self.add(cells, alt, kin, left[0], right[0], orig)
+
+        self.at("Take the kinase out")
+        flashes = VGroup(Circle(0.65, color=TEXT).move_to(kin[0]), Circle(0.65, color=TEXT).move_to(kin[1]))
+        labs = VGroup(
+            label("kinase removed", -3.15, -0.22, PURPLE, 26),
+            label("kinase removed", 3.15, -0.22, PURPLE, 26),
+        )
+        self.play(FadeIn(flashes), FadeOut(kin), FadeIn(empty_slots), run_time=0.35)
+        self.play(FadeOut(flashes), FadeIn(labs), run_time=0.55)
+
+        self.at("cells still grow")
+        d1 = VGroup(
+            Circle(0.24, color=TEAL, stroke_width=4).move_to([-4.68, 1.78, 0]),
+            Circle(0.24, color=ORANGE, stroke_width=4).move_to([4.68, 1.78, 0]),
+        )
+        self.play(FadeIn(d1, shift=OUT), cells.animate.scale(1.03), run_time=0.75)
+
         self.at("Give the drug again")
-        drug=VGroup(Dot([-4.55,.8,0],radius=.14,color=GOLD),Dot([1.75,.8,0],radius=.14,color=GOLD))
-        self.play(FadeIn(drug),drug.animate.shift(RIGHT*.6),run_time=.7)
-        self.at("shifts the curve right")
-        teal=dose_curve(*left[1:],shift=.65,color=TEAL)
-        self.play(Create(teal),daughters[0].animate.shift(LEFT*.18),run_time=1.0)
-        self.at("leaves it put")
-        orange=dose_curve(*right[1:],shift=0,color=ORANGE)
-        self.play(Create(orange),daughters[1].animate.shift(RIGHT*.18),run_time=1.0)
+        drug_l = Dot([-4.10, 1.15, 0], radius=0.13, color=GOLD)
+        drug_r = Dot([2.20, 1.15, 0], radius=0.13, color=GOLD)
+        d2 = VGroup(
+            Circle(0.22, color=TEAL, stroke_width=4).move_to([-4.70, 1.02, 0]),
+            Circle(0.22, color=ORANGE, stroke_width=4).move_to([4.70, 1.02, 0]),
+        )
+        self.play(
+            FadeIn(drug_l), FadeIn(drug_r),
+            drug_l.animate.move_to([-3.70, 1.50, 0]),
+            drug_r.animate.move_to([2.85, 1.00, 0]),
+            FadeIn(d2, shift=OUT),
+            run_time=0.85,
+        )
+
+        self.at("works only through")
+        self.play(
+            Indicate(empty_slots[0], color=TEXT, scale_factor=1.06),
+            drug_l.animate.move_to(empty_slots[0].get_center()),
+            run_time=1.0,
+        )
+
+        self.at("nothing to hit")
+        miss_ring = Circle(0.45, color=TEXT, stroke_width=3).move_to(empty_slots[0].get_center())
+        d3_l = Circle(0.20, color=TEAL, stroke_width=4).move_to([-1.60, 1.65, 0])
+        self.play(
+            FadeIn(miss_ring),
+            drug_l.animate.move_to([-3.15, 0.78, 0]),
+            FadeIn(d3_l, shift=OUT),
+            run_time=0.8,
+        )
+        self.play(FadeOut(miss_ring), run_time=0.35)
+
+        self.at("stopping growth")
+        teal = dose_curve(*left[1:], shift=0.0, color=TEAL)
+        self.play(Create(teal), run_time=0.65)
+
+        self.at("shifting the curve right")
+        need_more = label("needs more drug", -1.58, -0.88, TEAL, 24)
+        self.play(
+            Transform(teal, dose_curve(*left[1:], shift=0.65, color=TEAL)),
+            FadeIn(need_more),
+            run_time=1.1,
+        )
+
+        self.at("another target")
+        orange = dose_curve(*right[1:], shift=0.0, color=ORANGE)
+        d3_r = Circle(0.20, color=ORANGE, stroke_width=4).move_to([1.60, 1.65, 0])
+        self.play(
+            drug_r.animate.move_to(alt.get_center()),
+            Create(orange),
+            FadeIn(d3_r, shift=OUT),
+            run_time=0.95,
+        )
+
         self.at("Mixed effects")
-        mid=dose_curve(*left[1:],shift=.32,color=GOLD).set_opacity(.45)
-        self.play(Create(mid),run_time=.75)
+        mid = dose_curve(*left[1:], shift=0.32, color=GOLD, opacity=0.75)
+        self.play(Create(mid), run_time=0.8)
         self.finish()
 
 
-class S13CauseReveal(ActiveScene):
+class S13CauseReveal(SpokenScene):
     def construct(self):
         left=dose_axes(-3.15,-.3,5.2,4.55); right=dose_axes(3.15,-.3,5.2,4.55)
         orig=VGroup(dose_curve(*left[1:],color=GREY,dashed=True,opacity=.55),dose_curve(*right[1:],color=GREY,dashed=True,opacity=.55))
@@ -553,9 +632,9 @@ class S13CauseReveal(ActiveScene):
         self.at("measured curve")
         measured=VGroup(dose_curve(*left[1:],shift=.04,color=GOLD),dose_curve(*right[1:],shift=.04,color=GOLD))
         self.play(Create(measured),run_time=1.1)
-        self.active_readout = measured
         self.at("barely moves")
-        gap=Polygon(*[np.array([-2.4,-1.7,0]),np.array([-1.25,-1.1,0]),np.array([-1.25,1.0,0]),np.array([-2.4,.25,0])],stroke_width=0,fill_color=TEAL,fill_opacity=.16)
+        gap_pts=[measured[0].point_from_proportion(t) for t in np.linspace(0,1,60)]+[teal.point_from_proportion(t) for t in np.linspace(1,0,60)]
+        gap=Polygon(*gap_pts,stroke_width=0,fill_color=TEAL,fill_opacity=.16)
         self.play(FadeIn(gap),Indicate(measured[0],scale_factor=1.02),run_time=.8)
         self.at("about the same dose")
         tick=label("✓",3.15,2.55,GOLD,44,weight=BOLD)
