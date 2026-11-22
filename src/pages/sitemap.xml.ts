@@ -6,6 +6,7 @@ import { SETS as MCAT_SETS } from '../lib/mcat';
 import { allFilms } from '../lib/films';
 import { SITE_ORIGIN } from '../lib/site-host.mjs';
 import { allIdeas } from '../lib/hop';
+import { learnerCourses } from '../lib/calendar/data';
 
 /**
  * Hand-rolled sitemap (no @astrojs/sitemap — Astro deps are pinned). Lists the
@@ -30,6 +31,9 @@ export async function GET(context: APIContext): Promise<Response> {
     ...lessons.map((l) => `/lessons/${l.data.slug}/`),
     '/methods/', ...METHODS.map((m) => `/methods/${m.slug}/`),
     '/films/', ...(await allFilms()).map((f) => f.href),
+    // The calendar (approved 2026-11-22). Its email-design preview stays out: it is a design page, not a tool.
+    '/calendar/', '/calendar/parent/', '/calendar/student/', '/calendar/student/mcat/', '/calendar/teacher/',
+    ...(await learnerCourses()).flatMap((c) => [`/calendar/student/${c.s}/`, `/calendar/teacher/${c.s}/`]),
     // Find an idea, and one page per idea the hop graph holds.
     '/ideas/', ...(await allIdeas()).map((i) => `/ideas/${i.id}/`),
   ];

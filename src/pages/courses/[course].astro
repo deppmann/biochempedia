@@ -122,6 +122,12 @@ const tierLabel = { families: 'activities for ages 5–10', highschool: course.l
   <section class="wrap lessons" id="lessons">
     <p class="sec-label">{units.length} units · {lessons.length === 1 ? 'one lesson' : `${lessons.length} lessons`}</p>
     <p class="course-skim"><a href={courseSkimHref(course.slug)}><span aria-hidden="true">≡</span> Skim the whole course</a><span class="course-skim-note">: the guiding idea of every {course.tier === 'families' ? 'activity' : 'lesson'} on one page, with film take-homes</span></p>
+    {/* The calendar (approved 2026-11-22): the activity guides go to the parents' page, every other course to its own plan. */}
+    {course.tier === 'families' ? (
+      <p class="course-skim"><a href="/calendar/parent/"><span aria-hidden="true">▤</span> Put it on a calendar</a><span class="course-skim-note">: one activity on the days that suit you, with one list of what to gather</span></p>
+    ) : (
+      <p class="course-skim"><a href={`/calendar/student/${course.slug}/`}><span aria-hidden="true">▤</span> Keep up with this course</a><span class="course-skim-note">: your next lesson and its true length, on the days you choose</span></p>
+    )}
     {/* The study planner (worker/planner.js): shown only once it is on, and never on the under-13 courses. */}
     {!['biology-together', 'life-science'].includes(course.slug) && (
       <p class="course-skim" data-plan-link hidden><a href={`/plan/?course=${course.slug}`}><span aria-hidden="true">▦</span> Make a study plan</a><span class="course-skim-note">: this course, or any goal, fitted to your weeks</span></p>

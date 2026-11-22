@@ -4,7 +4,7 @@
    rows. The only requests it makes are GETs for the site's own static index files. The syllabus
    text is never part of any request, never put in the address and never stored.
 
-   "Add ticked lessons to a class" is OFF (ADD_TO_CLASS below). When it is on, pressing it asks the
+   "Add ticked lessons to a class" is ON (ADD_TO_CLASS below). Pressing it asks the
    classes API who is signed in, reads that class's assignments and sends the list back with the
    ticked lesson slugs added: still never the syllabus. */
 import { buildMatcher, matchSyllabus, LEVEL_AT, LEVEL_CLASS } from './syllabus-match.mjs';
@@ -13,10 +13,11 @@ import { docxText } from './docx-text.mjs';
 import { LEVEL_SHORT, LEVEL_KEYS, andList, inSentence, gapLine } from './hop-words.mjs';
 import { readPrefs } from './prefs';
 
-/* OFF until it has been tried on a real class: it has not yet run against the live server, and it
-   reads a class's list and writes it back, so an edit made in another tab in between would be lost.
-   Copy and Print do not depend on it. */
-export const ADD_TO_CLASS = false;
+/* ON since 2026-11-22, after an end-to-end run against a local worker and local D1 with a test
+   class (existing assignments, due dates and flashcards settings kept; new lessons added after them).
+   It reads a class's list and writes it back, so an edit made in another tab in between would be
+   lost; the box says so. Copy and Print do not depend on it. */
+export const ADD_TO_CLASS = true;
 
 type Matcher = ReturnType<typeof buildMatcher>;
 interface Lesson { slug: string; title: string; rank: number; ideas?: string[]; main?: boolean }
