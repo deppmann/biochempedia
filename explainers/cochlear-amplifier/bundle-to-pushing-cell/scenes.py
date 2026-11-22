@@ -108,7 +108,7 @@ def reveal():
             g.add(Line(p+UP*.10,p+DOWN*.10,color=col))
         txt=label(f'{round(width)} mV',0,0,26,col)
         if z==.7:
-            txt.next_to(p1,LEFT,buff=.16)
+            txt.next_to(p1,LEFT,buff=.18).shift(UP*.24)
         else:
             txt.next_to((p1+p2)/2,DOWN,buff=.16)
         g.add(txt)
@@ -385,7 +385,7 @@ class S13Pause(Scene):
 class S14Reveal(TimedScene):
     def construct(self):
         a,b,s,c,l=pair_plots();self.add(a,b,s,c,l,model_note())
-        self.at('Nervower');self.add(label('Narrower',-4.5,3.15,30,GREEN))
+        self.at('Narrower');self.add(label('Narrower',-4.5,3.15,30,GREEN))
         self.at('A larger')
         self.play(s.animate.set_color(SECONDARY),c.animate.set_color(SECONDARY),Create(curve(a,lambda v:occ(v,1.4),color=GREEN)),Create(curve(b,lambda v:nlc(v,1.4))),run_time=1.2)
         self.at('The width of');self.clear();self.add(reveal());self.finish()
@@ -395,19 +395,69 @@ class S15Beat(Scene):
 
 class S16Worked(TimedScene):
     def construct(self):
-        a,g=worked_axes();self.add(g)
+        a=axes(10.3,4.1,center=(.45,.1))
+        g=VGroup(a,curve(a,nlc),model_note(),label('normalized NLC',-4.85,2.64,26,GREEN),
+            label('membrane voltage',.45,-2.78,26,YELLOW),
+            label('Linear capacitance excluded',-3.8,-3.27,26,SECONDARY))
+        p_1=a.c2p(-260,1)
+        g.add(Line(p_1+LEFT*.1,p_1+RIGHT*.1,color=TEXT),label('1.0',p_1[0]-.5,p_1[1],26))
+        g.add(DashedLine(a.c2p(VH,0),a.c2p(VH,1),color=SECONDARY),
+            label('Vh = −112 mV',-2,-2.32,26,SECONDARY))
+        self.add(g)
+
         self.at('Take the gerbil fit')
-        self.add(label('Gerbil fit · z = 0.70',-3.9,3.16,30))
-        self.at('At 50 millivolts')
+        self.play(FadeIn(label('Gerbil fit · z = 0.70',-3.9,3.16,30)),run_time=.4)
+
+        self.at('50 millivolts')
         p=Dot(a.c2p(-62,nlc(-62)),color=YELLOW,radius=.13)
-        self.add(p,DashedLine(a.c2p(-62,0),p.get_center(),color=YELLOW),label('−62 mV',1.9,-2.32,26,YELLOW))
+        vline_62=DashedLine(a.c2p(-62,0),p.get_center(),color=YELLOW)
+        lbl_62=label('−62 mV',2.19,-2.32,26,YELLOW)
         p1,p2=a.c2p(VH,1.06),a.c2p(-62,1.06)
-        self.add(Line(p1,p2,color=YELLOW),Line(p1+UP*.1,p1+DOWN*.1,color=YELLOW),Line(p2+UP*.1,p2+DOWN*.1,color=YELLOW),
-            label('+50 mV',.9,2.65,28,YELLOW))
-        self.at('about 80')
-        self.add(label('f = 0.798 (about 80 %)',3.9,1.1,28,GREEN),label('contracted',4.2,.55,26,GREEN))
-        self.at('The bell there')
-        self.add(DashedLine(a.c2p(-260,nlc(-62)),p.get_center(),color=GREEN),label('NLC = 4f(1 − f) = 0.64 of peak',2.8,-3.27,27,GREEN))
+        bracket=VGroup(Line(p1,p2,color=YELLOW),Line(p1+UP*.1,p1+DOWN*.1,color=YELLOW),Line(p2+UP*.1,p2+DOWN*.1,color=YELLOW))
+        lbl_50=label('+50 mV',1.32,2.52,28,YELLOW)
+        self.play(Create(bracket),FadeIn(lbl_50),Create(vline_62),FadeIn(lbl_62),FadeIn(p),run_time=.8)
+
+        self.at('About 80')
+        about80=label('about 80 % contracted',4.45,2.82,27,GREEN)
+        self.play(FadeIn(about80),run_time=.45)
+
+        f_eq=VGroup(M('f',28,GREEN),M('=',28,GREEN),M('0.798',28,GREEN),M('≈ 0.8',28,GREEN)).arrange(RIGHT,buff=.11).move_to([4.45,2.30,0])
+        self.at('a share f')
+        self.play(FadeIn(f_eq[0]),run_time=.35)
+        self.at('0 .8',nth=0)
+        self.play(FadeIn(f_eq[1:]),run_time=.4)
+
+        eq1=VGroup(M('NLC',38,GREEN),M('=',38,TEXT),M('4',38,TEXT),M('f',38,GREEN),M('(1 − f)',38,TEXT)).arrange(RIGHT,buff=.05)
+        eq1[1:].shift(RIGHT*.09);eq1[2:].shift(RIGHT*.09);eq1.move_to([4.45,1.68,0])
+        self.at('The bell follows')
+        self.play(FadeIn(eq1[:2]),run_time=.35)
+        self.at('4 times f')
+        self.play(Write(eq1[2]),run_time=.3)
+        self.at('f times 1')
+        self.play(Write(eq1[3]),run_time=.3)
+        self.at('1 minus f')
+        self.play(Write(eq1[4]),run_time=.45)
+
+        eq2=VGroup(M('4',30,TEXT),M('×',30,TEXT),M('0.8',30,GREEN),M('×',30,TEXT),M('0.2',30,TEXT),M('=',30,TEXT),M('0.64',30,YELLOW)).arrange(RIGHT,buff=.09).move_to([4.45,1.08,0])
+        self.at('4 times 0')
+        self.play(Write(eq2[0]),run_time=.3)
+        self.at('0 .8',nth=1)
+        self.play(Write(eq2[1:3]),run_time=.45)
+        self.at('times 0 .2')
+        self.play(Write(eq2[3:5]),run_time=.5)
+        self.at('is 0')
+        self.play(FadeIn(eq2[5]),run_time=.25)
+
+        self.at('0 .64')
+        p_64=a.c2p(-260,.64)
+        tick_64=Line(p_64+LEFT*.1,p_64+RIGHT*.1,color=TEXT)
+        lbl_064=label('0.64',p_64[0]-.5,p_64[1],26)
+        hline_64=DashedLine(a.c2p(-260,nlc(-62)),p.get_center(),color=GREEN)
+        ring=Circle(radius=.26,color=YELLOW,stroke_width=4).move_to(p)
+        self.play(FadeIn(eq2[6]),Create(hline_64),FadeIn(tick_64),FadeIn(lbl_064),Create(ring),Indicate(p,color=YELLOW,scale_factor=1.4),run_time=.5)
+
+        self.at('64 % of its peak')
+        self.play(FadeIn(label('64 % of its own peak',3.2,-3.27,27,GREEN)),run_time=.35)
         self.finish()
 class S17Limit(TimedScene):
     def construct(self):
@@ -505,6 +555,3 @@ class S22Take(TimedScene):
 
 class S23End(EndCard):
     LINE='The bell is the motor’s electrical fingerprint.'
-    def construct(self):
-        self.add(label(self.LINE,0,.3,36),label('biochemistrypedia.com',0,-.6,28,TEAL))
-        self.wait(self.narration_s)

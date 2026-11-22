@@ -85,16 +85,30 @@ def area_old():
 
 
 def gain_labels():
+    g_eq=VGroup(T('gain ≈',28,GREEN),T('930 − 616',28,GREEN),T('≈ 310 nm²',28,GREEN)).arrange(RIGHT,buff=.15).move_to([-3.3,-1.0,0])
     return VGroup(T('616 nm²',28,PURPLE).move_to([3.2,-.15,0]),
-        T('930 nm²',28,PURPLE).move_to([3.2,2.9,0]),
-        Line([3.2,2.65,0],[3.2,2.4,0],color=PURPLE),
-        T('gain ≈ 310 nm²',30,GREEN).move_to([-3.3,-1.8,0]),
-        T('(πh² = 314 nm²)',28,GREEN).move_to([-3.3,-2.4,0]))
+        T('930 nm²',28,PURPLE).move_to([3.2,2.98,0]),
+        Line([3.2,2.76,0],[3.2,2.45,0],color=PURPLE),
+        g_eq)
 
 
 def flat_result():
+    f1_s=T('surface =',28,BLUE)
+    f1_pi=T('π(',28,BLUE).next_to(f1_s,RIGHT,buff=.14)
+    f1_a=T('a²',28,BLUE).next_to(f1_pi,RIGHT,buff=.07).align_to(f1_pi,UP)
+    f1_h=T('+ h²)',28,BLUE).next_to(f1_a,RIGHT,buff=.11).align_to(f1_pi,UP)
+    f1=VGroup(f1_s,f1_pi,f1_a,f1_h).move_to([-3.3,2.90,0])
+
+    f2_pi=T('= π(',28,BLUE)
+    f2_a=T('14²',28,BLUE).next_to(f2_pi,RIGHT,buff=.07).align_to(f2_pi,UP)
+    f2_h=T('+ 10²)',28,BLUE).next_to(f2_a,RIGHT,buff=.11).align_to(f2_pi,UP)
+    f2=VGroup(f2_pi,f2_a,f2_h).move_to([-3.3,2.38,0])
+
+    f3=T('≈ 930 nm²',28,BLUE).move_to([-3.3,1.86,0])
+
+    gain_ring=Annulus(inner_radius=14*.16,outer_radius=np.sqrt(296)*.16,color=GREEN,fill_color=GREEN,fill_opacity=.85,stroke_color=GREEN,stroke_width=3).move_to([3.2,-.15,0])
     return VGroup(area_cap(0),area_disc(np.sqrt(296)),area_old(),gain_labels(),
-        T('surface: 930 nm²',28,BLUE).move_to([-3.3,2,0]),note('idealized cap · side view (left), top view (right)'))
+        f1,f2,f3,gain_ring,note('idealized cap · side view (left), top view (right)'))
 
 
 def beam_stage():
@@ -311,8 +325,6 @@ class S15Reveal(SpokenScene):
         self.add(area_cap(),note('idealized cap · side view (left), top view (right)'))
         self.at('it grows')
         self.play(FadeIn(label('It grows.',color=GREEN,size=36)),run_time=.3)
-        self.at('the curved cap')
-        self.play(FadeIn(T('surface = π(a² + h²)\n= π(14² + 10²)\n≈ 930 nm²',28,BLUE).move_to([-3.3,2.2,0])),run_time=.4)
         self.at('a shadow of about')
         self.play(FadeIn(area_disc()),FadeIn(T('πa² = π × 14²\n≈ 616 nm²',30,PURPLE).move_to([3.2,-.15,0])),run_time=.5)
         self.finish()
@@ -321,13 +333,71 @@ class S15Reveal(SpokenScene):
 class S16Flat(SpokenScene):
     def construct(self):
         h=ValueTracker(10)
-        self.add(always_redraw(lambda:area_cap(h.get_value())),always_redraw(lambda:area_disc(np.sqrt(296-h.get_value()**2))),area_old(),T('616 nm²',28,PURPLE).move_to([3.2,-.15,0]),note('idealized cap · side view (left), top view (right)'))
+        cap_mob=always_redraw(lambda:area_cap(h.get_value()))
+        disc_mob=always_redraw(lambda:area_disc(np.sqrt(296-h.get_value()**2)))
+        old_ring=area_old()
+        old_lab=T('616 nm²',28,PURPLE).move_to([3.2,-.15,0])
+        btm=note('idealized cap · side view (left), top view (right)')
+        self.add(cap_mob,disc_mob,old_ring,old_lab,btm)
+
+        f1_s=T('surface =',28,BLUE)
+        f1_pi=T('π(',28,BLUE).next_to(f1_s,RIGHT,buff=.14)
+        f1_a=T('a²',28,BLUE).next_to(f1_pi,RIGHT,buff=.07).align_to(f1_pi,UP)
+        f1_h=T('+ h²)',28,BLUE).next_to(f1_a,RIGHT,buff=.11).align_to(f1_pi,UP)
+        VGroup(f1_s,f1_pi,f1_a,f1_h).move_to([-3.3,2.90,0])
+
+        f2_pi=T('= π(',28,BLUE)
+        f2_a=T('14²',28,BLUE).next_to(f2_pi,RIGHT,buff=.07).align_to(f2_pi,UP)
+        f2_h=T('+ 10²)',28,BLUE).next_to(f2_a,RIGHT,buff=.11).align_to(f2_pi,UP)
+        VGroup(f2_pi,f2_a,f2_h).move_to([-3.3,2.38,0])
+
+        f3=T('≈ 930 nm²',28,BLUE).move_to([-3.3,1.86,0])
+
+        a_line=DoubleArrow([-3.3,1.10,0],[-1.06,1.10,0],buff=0,color=YELLOW,stroke_width=3,tip_length=.14)
+        a_sym=T('a',26,YELLOW).move_to([-2.18,.78,0])
+        a_val=T('a = 14 nm',24,YELLOW).move_to([-2.18,.78,0])
+
+        h_line=DoubleArrow([-3.3,1.10,0],[-3.3,-.50,0],buff=0,color=YELLOW,stroke_width=3,tip_length=.14)
+        h_sym=T('h',26,YELLOW).move_to([-3.3,-.82,0])
+        h_val=T('h = 10 nm',24,YELLOW).move_to([-3.3,-.82,0])
+
+        self.at('cap surface')
+        self.play(FadeIn(f1_s),run_time=.4)
+        self.at('pi times')
+        self.play(FadeIn(f1_pi),run_time=.35)
+        self.at('radius squared')
+        self.play(FadeIn(f1_a),Create(a_line),FadeIn(a_sym),run_time=.45)
+        self.at('depth squared')
+        self.play(FadeIn(f1_h),Create(h_line),FadeIn(h_sym),run_time=.45)
+
+        self.at('with radius')
+        self.play(FadeIn(f2_pi),run_time=.3)
+        self.at('14')
+        self.play(FadeIn(f2_a),Succession(FadeOut(a_sym,run_time=.18),FadeIn(a_val,run_time=.22)))
+        self.at('10')
+        self.play(FadeIn(f2_h),Succession(FadeOut(h_sym,run_time=.18),FadeIn(h_val,run_time=.22)))
+        self.at('930')
+        self.play(FadeIn(f3),run_time=.4)
+
+        disc_lab=T('930 nm²',28,PURPLE).move_to([3.2,2.98,0])
+        disc_ptr=Line([3.2,2.76,0],[3.2,2.45,0],color=PURPLE)
         self.at('flattened')
-        self.play(h.animate.set_value(0),run_time=2)
-        self.at('about 930')
-        self.play(FadeIn(T('surface: 930 nm²',28,BLUE).move_to([-3.3,2,0])),FadeIn(T('930 nm²',28,PURPLE).move_to([3.2,2.9,0])),Create(Line([3.2,2.65,0],[3.2,2.4,0],color=PURPLE)),run_time=.4)
-        self.at('the gain is')
-        self.play(FadeIn(T('gain ≈ 310 nm²',30,GREEN).move_to([-3.3,-1.8,0])),FadeIn(T('(πh² = 314 nm²)',28,GREEN).move_to([-3.3,-2.4,0])),run_time=.4)
+        self.play(FadeOut(VGroup(a_line,a_val,h_line,h_val)),run_time=.25)
+        self.play(h.animate.set_value(0),run_time=2.0)
+        self.play(FadeIn(disc_lab),Create(disc_ptr),run_time=.4)
+
+        g_lhs=T('gain ≈',28,GREEN)
+        g_sub=T('930 − 616',28,GREEN)
+        g_res=T('≈ 310 nm²',28,GREEN)
+        VGroup(g_lhs,g_sub,g_res).arrange(RIGHT,buff=.15).move_to([-3.3,-1.0,0])
+        gain_ring=Annulus(inner_radius=14*.16,outer_radius=np.sqrt(296)*.16,color=GREEN,fill_color=GREEN,fill_opacity=.85,stroke_color=GREEN,stroke_width=3).move_to([3.2,-.15,0])
+
+        self.at('minus 616')
+        self.play(FadeIn(g_sub),Indicate(old_lab,color=YELLOW,scale_factor=1.08),run_time=.5)
+        self.at('the gain')
+        self.play(FadeIn(g_lhs),FadeIn(gain_ring),run_time=.5)
+        self.at('310')
+        self.play(FadeIn(g_res),run_time=.4)
         self.finish()
 
 
@@ -412,6 +482,3 @@ class S22Takeaway(SpokenScene):
 
 class S23End(EndCard):
     LINE='A dome is a device for gaining area.'
-    def construct(self):
-        self.add(VGroup(T('A dome is a device',48,font=TITLE_FONT),T('for gaining area.',48,font=TITLE_FONT)).arrange(DOWN,buff=.15),label('In the leading model',2,BLUE,32),label('biochemistrypedia.com',-2,TEAL,26))
-        self.finish()

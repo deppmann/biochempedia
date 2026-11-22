@@ -287,15 +287,36 @@ class S14Auc(SpokenScene):
 
 class S15Meaning(SpokenScene):
     def construct(self):
-        p=person(TEAL).scale(1.15).move_to([-3.25,-.1,0]); q=person(ORANGE).scale(1.15).move_to([3.25,-.1,0])
+        p=person(TEAL).scale(.95).move_to([-4.4,-.35,0])
+        q=person(ORANGE).scale(.95).move_to([-1.4,-.35,0])
+        lt_sign=label('<',[-2.9,-.25,0],56,TEXT)
+        lab_rec=label('recovering',[-4.4,-2.12,0],28,TEAL)
+        lab_per=label('persisting',[-1.4,-2.12,0],28,ORANGE)
+        lab_pair=label('illustrative pair',[-2.9,-2.72,0],26,TEXT)
+        lab_score=label('connectivity score',[-2.9,2.38,0],28,TEXT)
         # One illustrative pair, not patient measurements or individual risk scores.
-        bars=VGroup(Rectangle(width=2,height=.35,color=TEAL,fill_color=TEAL,fill_opacity=.6).move_to([-3.25,1.9,0]),Rectangle(width=2,height=.85,color=ORANGE,fill_color=ORANGE,fill_opacity=.6).move_to([3.25,2.15,0]))
-        self.add(head('ROC area 0.83: pair ordering'),p,q,bars,
-                 label('connectivity\nscore',[0,2.1,0],26,GREY),label('illustrative\npair',[0,-.8,0],26,GREY),
-                 label('recovering',[-3.25,-1.9,0],28,TEAL),label('persisting',[3.25,-1.9,0],28,ORANGE),label('<',[0,.4,0],64),
-                 label('Persisting scores higher in 83% of pairs',[0,-2.5,0],28))
-        self.at('not a cause'); self.play(FadeIn(label('not a cause',[-3.25,-3.25,0],28,RED)),run_time=.2)
-        self.at("not one person's risk"); self.play(FadeIn(label("not one person's risk",[3.25,-3.25,0],28,RED)),run_time=.2); self.finish()
+        bar_l=Rectangle(width=1.6,height=.38,color=TEAL,fill_color=TEAL,fill_opacity=.6).move_to([-4.4,1.34,0])
+        bar_r=Rectangle(width=1.6,height=.85,color=ORANGE,fill_color=ORANGE,fill_opacity=.6).move_to([-1.4,1.575,0])
+        self.add(head('What the score means'),p,q,lt_sign,lab_rec,lab_per,lab_pair,lab_score)
+        self.play(GrowFromEdge(bar_l,DOWN),GrowFromEdge(bar_r,DOWN),run_time=.7)
+        card=RoundedRectangle(width=5.4,height=4.1,corner_radius=.2,stroke_color=TEAL,stroke_width=2.5,fill_color=TEAL,fill_opacity=.06).move_to([3.3,.35,0])
+        roc_title=label('ROC area',[3.3,1.9,0],34,TEAL)
+        self.at('ROC area')
+        self.play(FadeIn(card),FadeIn(roc_title),run_time=.3)
+        roc_num=M('0.83',size=76,color=TEXT).move_to([3.3,.9,0])
+        self.at('0',lead=0.0)
+        self.play(FadeIn(roc_num,scale=.85),run_time=.3)
+        pair_tag=chip('pair-ordering',TEAL,28).move_to([3.3,-.1,0])
+        chance_lab=label('chance that the persisting\none scores higher',[3.3,-1.08,0],28,TEXT)
+        self.at('pair ordering')
+        self.play(FadeIn(pair_tag,shift=UP*.1),FadeIn(chance_lab,shift=UP*.1),run_time=.35)
+        not_cause=label('not a cause',[3.3,-2.35,0],30,RED)
+        self.at('not a cause')
+        self.play(FadeIn(not_cause,shift=UP*.1),run_time=.25)
+        not_risk=label("not one person's risk",[3.3,-3.05,0],30,RED)
+        self.at("not one person's risk")
+        self.play(FadeIn(not_risk,shift=UP*.1),run_time=.25)
+        self.finish()
 
 class S16Take(SpokenScene):
     def construct(self):
@@ -320,6 +341,3 @@ class S16Take(SpokenScene):
 
 class S17End(EndCard):
     LINE='A reflex and the hurt are two measurements, and they can come apart.'
-    def construct(self):
-        self.add(label('A reflex and the hurt\nare two measurements,\nand they can come apart.',[0,.3,0],42),label('biochemistrypedia.com',[0,-2.4,0],26,TEAL))
-        self.wait(max(3.5,self.narration_s)); self.finish()
