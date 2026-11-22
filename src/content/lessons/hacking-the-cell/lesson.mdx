@@ -5,12 +5,13 @@ course: "signaling"
 courseChapter: "Cell Signaling · Unit 8: Evolution, disease and tools"
 order: 144
 summary: >-
-  How do you watch a signal inside a living cell, and how do you start one in a cell of your
-  choosing? This lesson follows green fluorescent protein from a jellyfish to the reporters built
-  from it, explains light-gated channels and other actuators, and shows how transgenes, gene
-  targeting and the Cre and lox system put these tools into one cell type in a mouse. Afterwards
-  you can design a mouse that reports and controls the activity of a chosen neuron type, and say
-  how microscopes got past the limit set by the wavelength of light.
+  Reporters turn signals into light, and actuators control them on command; promoters and
+  recombinases place each tool in chosen cells. This lesson follows green fluorescent protein
+  from a jellyfish to the biosensors built from it, compares light-gated and drug-gated
+  actuators, and shows how transgenes, gene targeting, CRISPR, and the Cre and lox system
+  direct tools to chosen cell types in a mouse. Afterwards you can design a mouse that reports
+  and controls one neuron type, and explain how super-resolution microscopes such as PALM get
+  past the diffraction limit of light.
 hook: "How do you watch a signal inside a living cell, and how do you start one in a cell of your choosing?"
 
 estMinutes: 24
@@ -24,10 +25,15 @@ explainer:
   src: "/explainers/hacking-the-cell/explainer.mp4"
   captions: "/explainers/hacking-the-cell/explainer.vtt"
   poster: "/explainers/hacking-the-cell/poster.jpg"
-  title: "Tools Behind a Stop, Chosen by Cre"
-  durationSec: 149.4
-  narration: "an AI narrator voice (ElevenLabs, Sarah) reading narration written from this lesson's text"
+  title: "Watch It or Push It: Reporters and Actuators"
+  durationSec: 203.7
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+  takeaways:
+    - "Reporters turn signals into light, and actuators control them on command."
+    - "In GCaMP, calcium makes calmodulin wrap its peptide and plug a gap in the GFP barrel, shutting water out so the protein brightens."
+    - "Watching a reporter shows when a signal happens, not whether it causes an effect; testing causation takes an actuator."
+    - "Channelrhodopsin-2 is a light-gated cation channel, so blue light opens its pore directly without a G-protein relay."
 
 scientists:
   - name: "Osamu Shimomura"
@@ -375,106 +381,175 @@ corpusTags:
   - "palm"
 draft: false
 films:
-  - id: "actuator"
-    src: "/explainers/hacking-the-cell/actuator.mp4"
-    captions: "/explainers/hacking-the-cell/actuator.vtt"
-    poster: "/explainers/hacking-the-cell/actuator-poster.jpg"
-    title: "Light In, Current Out"
-    durationSec: 101.3
-    narration: "an AI narrator voice (ElevenLabs, Sarah) reading narration written from this lesson's text"
+  - id: "chapter-2"
+    src: "/explainers/hacking-the-cell/chapter-2.mp4"
+    captions: "/explainers/hacking-the-cell/chapter-2.vtt"
+    poster: "/explainers/hacking-the-cell/chapter-2-poster.jpg"
+    title: "Putting the Tool in One Cell Type"
+    durationSec: 187.7
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
     aiGenerated: true
+    takeaways:
+      - "Promoters and recombinases place each tool in chosen cells."
+      - "In a transgene, the promoter decides where and when a gene is read, and the coding sequence decides what is made."
+      - "Cre turns a gene on by cutting out a stop block between two same-direction loxP sites, and the cut is permanent across descendants."
+      - "Because brief early Cre expression can cut DNA elsewhere, every Cre line must be checked with a reporter; adding Flp lets you address a second cell type."
 ---
 
 import LessonFilm from '../../../components/LessonFilm.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import Support from '../../../components/Support.astro';
 
-**Two kinds of engineered protein let you work on a signal inside a living cell: a reporter shows you where and when it happens, and an actuator starts or stops it on command.** Genetic methods then put either kind into one cell type in a mouse. The reporters began with a jellyfish: a gene copied out of it and put into gut bacteria in 1992 made the bacteria glow green, with nothing else from the jellyfish. A cell that builds its own fluorescent tag can be watched while it is alive.
+**Two engineered protein classes let you work on a signal in a living cell: a reporter watches where and when it happens, and an actuator pushes or stops it on command.** The first film paired a calcium reporter with a light-gated channel; here we examine why GFP needs no jellyfish enzyme, expand the toolkit to lipids, pH, kinases and drugs, and then turn to genetic targeting and super-resolution microscopy.
 
-## The idea: watch a signal, or push one
+<Support>**The one idea.** Reporters turn signals into light, and actuators control them on command; promoters and recombinases place each tool in chosen cells. **Scope:** Applies to genetically encoded optical and chemical tools, including simple fluorescent tags that mark location. Reporters can buffer or blur fast signals, actuators can shift extra ions or need drug controls, Cre cuts are permanent across descendants and can leak, and resolving molecules closer than about 200 nanometers requires super-resolution methods such as PALM.</Support>
 
-Two words sort the tools. A **reporter** is an engineered protein that changes its light when a signal happens, so you can watch it in a living cell. An **actuator** is an engineered protein that changes a cell's activity on command, usually with a flash of light: it can start a signal or shut one down. Using light and a gene to control cells is called optogenetics, and the word is often stretched to cover reporters used alongside it.
+## GFP and the reporter toolkit
 
-Think of a voltmeter and a switch. A reporter can show that calcium rises in a neuron each time a mouse turns left. A reporter cannot tell you whether firing that neuron is enough to turn the mouse. For that you have to drive those neurons yourself, with an actuator or an electrode, and watch what the mouse does.
+A **reporter** is an engineered protein whose light changes with a signal; an **actuator** changes a cell's activity on command, starting or stopping a signal (like a voltmeter versus a switch, or an electrode). Using light and a gene to control cells is called **optogenetics**, a word often stretched to cover reporters used alongside it.
 
-"How does fluorescence work?" A molecule absorbs a photon, which lifts an electron to a higher energy level. A little of that energy is lost as heat before the electron falls back and emits a photon. So the light that comes out has a longer wavelength than the light that went in: blue in, green out.
+In **fluorescence**, absorbing a photon lifts an electron; some energy leaves as heat before a longer-wavelength photon is emitted (blue in, green out). In 1992, moving only the protein-coding stretch of jellyfish **green fluorescent protein (GFP)** into *E. coli* made the bacteria glow green—ruling out the assumption that a jellyfish enzyme had to finish it.
 
-The GFP gene alone turned out to be enough. Put into *E. coli*, its coding stretch made the bacteria fluoresce green, which showed that no jellyfish enzyme was needed to finish the protein.
+Structure explains why: GFP folds into a barrel with a central helix whose three neighboring amino acids react, lose water, and are oxidized by oxygen from the air into a rigid ring absorbing violet and blue light and emitting green. Because the recipe is the sequence itself, many cells with the gene and oxygen build their own lamp—though the first version folded poorly in warm cells—and fusing another gene to GFP tags that protein directly.
 
-The structure explains why. GFP is a barrel with a helix through its middle. Once the protein folds, three neighboring amino acids on that helix react with one another, lose water, and are oxidized by oxygen from the air. That leaves a rigid ring system that absorbs violet and blue light and emits green. The recipe is the sequence itself, so many kinds of cell with the gene and oxygen make their own fluorescent tag, though the first version folded poorly in warm cells, and another gene joined to GFP gives a protein with the lamp attached.
+**Predict.** You express the GFP gene in human cells kept at 37 °C in an oxygen-free chamber. Will they glow green?
 
-## Building a reporter: a glowing protein joined to a detector
+<details>
+<summary>Check your prediction</summary>
 
-"What would a synaptic protein look like?" Fuse GFP to gephyrin, a scaffold protein found under inhibitory synapses, and a neuron's dendrites show rows of bright dots. That is the simplest reporter: it tells you where a protein is.
+No. No jellyfish enzyme is needed, but forming GFP's light-emitting ring requires molecular oxygen—and the original jellyfish protein also folded poorly in warm mammalian cells before improved variants were engineered.
 
-To make the light depend on a signal, join GFP to a detector you have already met.
+</details>
 
-- **A lipid reporter.** A PH domain that binds PIP3 (see the lesson on lipid anchors and addresses), fused to GFP, moves from the cytosol to the membrane when PI 3-kinase makes PIP3.
-- **A pH reporter.** A GFP that dims in acid, placed inside a synaptic vesicle (pH about 5.5), brightens when the vesicle fuses and the reporter meets fluid at pH 7.4.
-- **A calcium reporter.** In the GCaMP family, GFP's original ends are joined and new ends are cut beside the light-emitting group. Calmodulin (from the calcium lesson) is attached to one new end and a peptide that it grips to the other. When calcium rises, calmodulin wraps around the peptide and plugs the gap in the barrel, which shuts water out from the light-emitting group, and the GFP brightens.
-- **A kinase reporter.** Put a peptide that the kinase phosphorylates, and a domain that binds the phosphorylated peptide (an SH2 domain, for a tyrosine kinase), between a cyan and a yellow fluorescent protein. Phosphorylation folds the chain. Two fluorescent proteins within a few nanometers pass energy from one to the other without a photon (FRET), so the balance of cyan and yellow light changes as the kinase works.
+### Four ways to wire a reporter
 
-<LessonFigure src="/figures/hacking-the-cell/gcamp-calcium-reporter.webp" width={1200} height={800} alt="AI-generated illustration: two panels of a calcium reporter. With low calcium, a GFP barrel has an open gap with water reaching its light-emitting spot and glows faintly; with high calcium, calmodulin wraps a peptide and plugs the gap, and the barrel glows brightly." caption="In a GCaMP calcium reporter, calcium makes calmodulin wrap its peptide and plug a gap in the GFP barrel, which keeps water off the light-emitting group so the protein brightens." />
+The simplest fusion marks **location**: GFP fused to gephyrin, a scaffold under inhibitory synapses, lights up a neuron's dendrites in rows of bright dots.
 
-A reporter also takes part in what it reports. A calcium reporter soaks up some of the calcium it measures, and its own binding and shape changes are slow, so a fast train of spikes can blur into one slow rise.
+To track an active **signal**, fuse GFP to a signaling detector so the signal alters **location**, **brightness**, or **color ratio**:
 
-## An actuator: light in, current out
+- **Location — lipid reporter.** A PH domain binding PIP3 (see the lesson on lipid anchors and addresses), fused to GFP, shifts from cytosol to membrane when PI 3-kinase makes PIP3.
+- **Brightness — pH reporter.** An acid-dimming GFP facing inside a synaptic vesicle (pH about 5.5) brightens on fusion when it meets extracellular fluid at pH 7.4 (a roughly 80-fold drop in proton concentration).
+- **Brightness — calcium reporter (GCaMP).** Expanding on the first film: engineers join GFP's original ends and cut new ends beside the chromophore so water dims the barrel. Calmodulin (from the calcium lesson) on one new end and its target peptide on the other wrap together when calcium rises, plugging the gap and shutting water out.
+- **Color ratio — kinase reporter (FRET).** Place a kinase substrate peptide and a phospho-binding domain (an SH2 domain for a tyrosine kinase) between cyan (donor) and yellow (acceptor) fluorescent proteins. Phosphorylation folds the chain so the pair sit within a few nanometers, letting cyan pass energy to yellow without a photon (**Förster resonance energy transfer, FRET**) and raising the yellow-to-cyan ratio; phosphatases reverse it.
+
+<LessonFigure src="/figures/hacking-the-cell/gcamp-calcium-reporter.webp" width={1200} height={800} alt="AI-generated illustration: two panels of a calcium reporter. With low calcium, a GFP barrel has an open gap with water reaching its light-emitting spot and glows faintly; with high calcium, calmodulin wraps a peptide and plugs the gap, and the barrel glows brightly." caption="In GCaMP, calcium makes calmodulin wrap its peptide and plug a gap in the GFP barrel, shutting water away from the light-emitting group so fluorescence brightens." />
+
+**Predict.** In a cell with a tyrosine-kinase FRET reporter, a drug blocks phosphatases while basal kinase activity continues. Does the yellow-to-cyan ratio rise or fall?
+
+<details>
+<summary>Check your prediction</summary>
+
+It rises. The reporter tracks the kinase-phosphatase balance; blocking phosphatases lets phosphorylated, folded molecules accumulate, keeping donor and acceptor close and increasing transfer to yellow.
+
+</details>
+
+A reporter also perturbs what it reads: a calcium reporter buffers some of the calcium it measures, and its binding and shape changes take time, so in slower variants a fast spike train can blur into one slow rise.
+
+## Actuators: light or drugs in, signal out
+
+In the lesson on the senses and cGMP, retinal **rhodopsin** uses seven helices and retinal to trigger a G protein. As the first film showed, green-algal **channelrhodopsin-2** skips that relay—it is itself a cation channel opened within milliseconds by blue light. Already shown to work in mammalian cells, it was used in 2005 by Edward Boyden, Feng Zhang, Ernst Bamberg, Georg Nagel and Karl Deisseroth to make cultured hippocampal neurons fire action potentials in step with millisecond blue flashes; other laboratories reported similar results about the same time.
+
+| Actuator | Mechanism | Light | Effect and key limit |
+| :--- | :--- | :--- | :--- |
+| **Channelrhodopsin-2** (and relatives) | Direct non-selective cation channel | Blue (other variants use other colors) | Cations enter, firing the neuron; some relatives pass anions instead. |
+| **Halorhodopsins** | Chloride pump (1 Cl⁻/photon) | Yellow | Drives Cl⁻ in to suppress firing; needs bright light, and Cl⁻ loading makes the chloride gradient shallower, weakening inhibition. Light-gated Cl⁻ channels are now used more often for silencing. |
+| **OptoXRs** | Chimeric GPCR (inner loops from another GPCR) | Green | Starts that chosen receptor's G-protein pathway instead of opening a pore. |
+
+A virus can deliver an opsin to one brain region—though the **adeno-associated virus (AAV)** vectors used most hold only a short promoter—with light supplied through an optical fiber.
+
+For wireless control over minutes to hours without a fiber, **chemogenetics** substitutes a drug:
+
+- **DREADDs (Designer Receptors Exclusively Activated by Designer Drugs):** engineered GPCRs that barely answer their natural ligand and answer a synthetic drug instead, so in the main only cells with the receptor react. A drug control is essential: **clozapine-N-oxide (CNO)**, used most, converts into clozapine in the body, which acts on the animal's own receptors.
+- **TRPV1** (from the lesson on ion channels): expressing TRPV1 in one neuron type of a TRPV1 knock-out mouse lets capsaicin open a cation channel in those neurons alone (Güler and colleagues, 2012).
+
+**Predict.** To silence one neuron population for two hours in a freely moving mouse without an implanted fiber, which actuator fits best, and what control does CNO require?
+
+<details>
+<summary>Check your prediction</summary>
+
+An inhibitory Gi-coupled DREADD fits best: opsins require a fiber, and halorhodopsin also loads chloride over long exposures. Give the same CNO dose to control mice lacking the DREADD to separate receptor effects from clozapine.
+
+</details>
+
+Every reporter, opsin, or DREADD above is a protein encoded by DNA, which raises the second half of the problem: how to put its gene into one chosen cell type in a living mouse.
 
 <LessonFilm film={frontmatter.films[0]} />
 
-In the lesson on the senses and cGMP you met rhodopsin: seven helices holding retinal, which changes shape when it absorbs a photon and sets off a G protein. Some microbes have opsins on a similar plan that skip the relay. **Channelrhodopsin-2**, from a green alga, is itself an ion channel. Blue light changes its retinal, the pore opens within milliseconds, and cations flow into the neuron. That depolarizes the membrane, and at threshold the neuron fires.
+## Genetic addressing: putting a tool into one cell type
 
-Channelrhodopsin-2 had already been shown to work in mammalian cells. In 2005 Edward Boyden, Feng Zhang, Ernst Bamberg, Georg Nagel and Karl Deisseroth reported that hippocampal neurons in culture, given the channelrhodopsin-2 gene, fired action potentials in step with millisecond flashes of blue light. Other laboratories reported similar results at about the same time.
+The second film showed why a ubiquitous promoter lights up every cell and how Cre removes a stop block; here are the genome-editing routes that build those mice and the logic for targeting two cell types.
 
-Opsins are sorted by what light does through them:
+### Transgenes, gene targeting, and CRISPR
 
-- **Channelrhodopsin-2** and its relatives: blue light opens a channel that passes cations with little choice among them. The neuron switches on. Other channelrhodopsins answer to other colors, and some pass anions instead.
-- **Halorhodopsins**: yellow light drives chloride into the cell, which can stop the neuron firing. These are pumps, moving one chloride per photon, so they need bright light, and the chloride they load can weaken the inhibition. Light-gated chloride channels are now used more often for silencing.
-- **OptoXRs**: green light activates a rhodopsin whose inner loops come from another G-protein-coupled receptor, so light starts that receptor's pathway.
+A **transgene** pairs a **promoter** (where and when a gene is read) with a **coding sequence** (what is made). Injected into a fertilized mouse egg, it sometimes integrates at a random chromosomal site and is inherited if it reaches the germ line. In 1982 Richard Palmiter and colleagues paired a metallothionein promoter with a growth hormone gene to produce giant mice; a ubiquitous promoter with GFP yields a green mouse.
 
-A virus can carry the gene into one brain region, though the AAV vectors used most have room for only a short promoter, and light arrives through an optical fiber.
+To edit one chosen gene instead, work in **embryonic stem cells** (early-embryo cells able to form any tissue): flanking DNA swaps your edit into the target locus by homologous recombination. Destroying the gene is a **knock-out**; inserting something new (such as GFP or Cre) is a **knock-in**. Altered cells injected into an early embryo form a chimera whose germ-line offspring can inherit the edit (see Going deeper for selection and breeding). **CRISPR** now shortens this path: an RNA guide directs a DNA-cutting enzyme to a matching sequence in a fertilized egg, so many knock-outs and knock-ins no longer need stem cells or chimeras.
 
-A drug can do the job of light. In one chemogenetic approach the cell gets an engineered G-protein-coupled receptor, called a DREADD, that barely answers its natural ligand and answers a synthetic drug instead, so in the main only cells with the receptor react. The drug still needs a control of its own: clozapine-N-oxide, the one used most, turns into clozapine in the body, and clozapine acts on the animal's own receptors. A channel from the lesson on ion channels works too: put the TRPV1 gene into one neuron type of a mouse whose own TRPV1 gene has been knocked out, and capsaicin opens a cation channel in those neurons alone (Güler and colleagues, 2012).
+### Conditional control with Cre, loxP, and Flp
 
-## How can we make a green animal?
+**Cre**, from a bacterial virus, cuts and rejoins DNA at a 34-base-pair **loxP** site. Two same-direction loxP sites turn that single cutting reaction into an **off** or **on** switch:
 
-Start with a **transgene**: DNA built from a promoter (the stretch that sets where and when a gene is read) and a coding sequence. Injected into a fertilized mouse egg, it sometimes joins a chromosome at a random place, and if it reaches the germ line it is inherited from then on. In 1982 Palmiter and colleagues did this with a metallothionein promoter joined to a growth hormone gene, and the mice grew much larger than their littermates. Use a promoter active in every cell and the coding sequence for GFP, and you have a green mouse.
+- **Conditional knock-out (off):** Flank an essential part of a gene with loxP sites. Cre removes it where Cre is made—so the gene is lost there and, in the main, nowhere else.
+- **Conditional expression (on):** Place a stop signal between two loxP sites ahead of the tool. Cre cuts the stop out permanently, so that cell and its descendants read the gene wherever the tool's promoter is active (**lineage tracing**). Give Cre several fluorescent proteins to pick among at random, and neighboring cells take different colors.
 
-To change one chosen gene you work in **embryonic stem cells**, cells from an early embryo that can still become any tissue. Give them DNA that matches the target gene on both sides of your change, and in a few cells the matching stretches swap your version into the gene's own place. Destroying the gene this way is a **knock-out**; writing something new into it, such as GFP, is a **knock-in**. The altered cells are injected into an early embryo, the pup is a chimera, and if the stem cells formed its sperm or eggs, its offspring can carry the change. CRISPR now shortens this path, as the paragraph after the Cre and lox text describes.
+**Predict.** You flank a coding exon of a kinase gene (not a stop block) with two same-direction loxP sites and express Cre in neuron type A. What happens in type A versus other cells?
 
-"How do you get expression in 2 different neuron types?" The tool is **Cre and lox**. Cre is an enzyme from a bacterial virus that cuts and rejoins DNA at a 34-base-pair site called loxP. Put two loxP sites around part of a gene, pointing the same way, and Cre removes what lies between them. Make Cre from a promoter that is active in one cell type, and the gene is lost there and, in the main, nowhere else. Every Cre line has to be checked with a reporter, because brief expression during development or in the germ line can cut the DNA in other cells too. To switch a gene on, put a stop signal between two loxP sites in front of it. Where Cre is made the stop is cut out, and the cut is permanent, so that cell and its descendants read the gene wherever the reporter's own promoter is active, which is how cell lineages are traced. With several fluorescent proteins for Cre to pick among at random, neighboring cells take different colors. For the second neuron type, add a second enzyme of the same kind with its own sites (Flp, from yeast): Cre switches on one gene in one type and Flp another gene in the other.
+<details>
+<summary>Check your prediction</summary>
 
-CRISPR shortens the path: an RNA guide brings a DNA-cutting enzyme to a matching sequence in a fertilized egg, so many knock-outs and knock-ins no longer need stem cells or chimeras.
+Cre excises the exon, knocking out the kinase in neuron type A and its descendants, while cells without Cre keep the exon and make the kinase normally.
+
+</details>
+
+Because the cut is permanent, **every Cre line must be checked with a reporter**: brief developmental or germ-line expression can cut DNA in unintended cells too.
+
+For two tools in two neuron types of one mouse, pair Cre with yeast **Flp**, which cuts only its own sites:
+
+| Cell type | Recombinase | Tool 1 (loxP-stop-loxP) | Tool 2 (Flp-flanked stop) |
+| :--- | :--- | :--- | :--- |
+| Neuron type A | Cre only | **On** (stop cut) | Off |
+| Neuron type B | Flp only | Off | **On** (stop cut) |
+| Other cells | Neither | Off | Off |
 
 ## Past the limit of light
 
-A lens cannot focus light to a point. The glow of one molecule spreads into a blur, and two molecules closer than about half a wavelength merge. Ernst Abbe put the limit as a formula in the 1870s:
+Even with a reporter in the right cell type, a lens cannot focus light to a point: one molecule spreads into a blur, and two molecules closer than about half a wavelength merge. Ernst Abbe wrote the limit in the 1870s:
 
 > **smallest separable distance ≈ wavelength ÷ (2 × numerical aperture)**
 
-Numerical aperture measures how wide a cone of light the lens collects, about 1.4 for a very good lens. For green light the limit is about 200 nanometers; a synaptic vesicle is about 40 across.
+**Numerical aperture** measures how wide a light cone the lens collects—about 1.4 for a very good lens—giving a limit near 200 nanometers for green light, compared with about 40 nanometers across a synaptic vesicle.
 
-One way past it came through Jennifer Lippincott-Schwartz's laboratory at the NIH. In 2002 her postdoc George Patterson made a GFP that starts dark and switches on after a flash of violet light. In 2005 the physicist Eric Betzig described to her a microscope that needed such a molecule, and she gave him and Harald Hess room in her laboratory. The method is **PALM**. Switch on a few scattered molecules, so that no two blurs overlap, and find the center of each blur, which can be done far more precisely than the blur is wide. Let those molecules bleach and repeat thousands of times. The stacked positions make a picture with detail down to tens of nanometers. The paper appeared in 2006, as did two related methods, STORM from Xiaowei Zhuang and FPALM from Samuel Hess.
+**Predict.** Using 520 nm green light and a lens of numerical aperture 1.4, can a standard microscope separate two GFP-tagged proteins 50 nm apart on a synaptic vesicle?
 
-Other methods take other routes: STED (proposed by Stefan Hell in 1994, first shown to work in 1999) switches off fluorescence around the rim of the spot with a ring-shaped second beam, and structured illumination computes finer detail from striped lighting.
+<details>
+<summary>Check your prediction</summary>
+
+No: 520 ÷ (2 × 1.4) ≈ 186 nm, far wider than 50 nm, so their blurs merge.
+
+</details>
+
+One bypass came through Jennifer Lippincott-Schwartz's NIH laboratory. In 2002 postdoc George Patterson built a photoactivatable GFP that starts dark and switches on with violet light. In 2005 physicist Eric Betzig proposed a microscope needing such a probe, and she gave Betzig and Harald Hess lab space. Their **PALM** method (published in 2006 alongside Xiaowei Zhuang's **STORM** and Samuel Hess's **FPALM**) turns on a sparse few molecules so blurs never overlap, locates each blur's center, lets them bleach, and repeats thousands of times.
+
+In the shot-noise approximation (neglecting background and pixel size), **center uncertainty ≈ blur standard deviation ÷ √(photons collected)**: a 100 nm blur giving 100 photons is centered to about 100 ÷ 10 = 10 nm, yielding tens-of-nanometers detail. Other routes include **STED** (Stefan Hell, proposed 1994, shown 1999: a ring beam switches off fluorescence around the rim) and **structured illumination** (computing finer detail from striped lighting).
 
 ### Design problem
 
-"How can I make a mouse that does this?" First, how can we make a green animal? Then go one step further: design a mouse in which only one type of neuron glows when its calcium rises, and in which you can switch that same type of neuron on with light. Say which reporter, which actuator, and how you make sure that both are made in that cell type and nowhere else.
+Put both halves of the rule to work: pick a reporter and an actuator, then use promoters and recombinases to place them in chosen cells. First, how can you make a green animal? Second, design a mouse in which only one neuron type glows when calcium rises and can be switched on with light—naming the reporter, actuator, and targeting strategy.
 
 <details>
 <summary>One way to do it</summary>
 
-The green animal is a transgene: a promoter active in every cell, joined to the GFP coding sequence and injected into fertilized eggs.
+The green animal is a transgene: a ubiquitous promoter joined to GFP, injected into fertilized eggs.
 
-For the second mouse, breed together three parts.
+For the second mouse, breed three parts together:
 
-1. **An address.** Cre knocked into a gene that only your neuron type reads.
-2. **A reporter.** A GCaMP gene behind a lox-flanked stop.
-3. **An actuator.** A channelrhodopsin gene behind its own lox-flanked stop.
+1. **Address:** Cre knocked into a gene read only by your neuron type.
+2. **Reporter:** A calcium reporter behind a lox-flanked stop.
+3. **Actuator:** A channelrhodopsin behind its own lox-flanked stop.
 
-Only cells that make Cre remove the stops, so in the main only they and their descendants make both proteins. Check the line with a reporter before trusting it.
+Only Cre-expressing cells remove the stops, so in the main only they and their descendants make both proteins; verify the line with a reporter first.
 
-One trap: GCaMP is read with blue light and channelrhodopsin-2 is opened by blue light, so looking would also be pushing. Switching to a red-shifted channelrhodopsin does not fix this, because retinal itself absorbs blue light. Change the reporter instead: keep channelrhodopsin-2 and use a red calcium reporter, such as RCaMP or jRGECO, which is read with red light that leaves the channel shut. Then test the pair, and check that your imaging light alone drives no current.
+One trap: GCaMP is excited with blue light and channelrhodopsin-2 is opened by blue light, so looking also pushes. A red-shifted channelrhodopsin does not fix this, because retinal itself still absorbs blue light. Keep channelrhodopsin-2 and switch to a red-emitting calcium reporter such as RCaMP or jRGECO, excited with longer-wavelength (green-to-yellow) light that leaves the channel shut; then test that imaging light alone drives no current.
 
 </details>
 
@@ -496,5 +571,4 @@ Georg Nagel, Peter Hegemann, Ernst Bamberg and colleagues had shown in 2002 and 
 
 Drugs select the rare correct cells (random insertions keep an added herpes thymidine-kinase gene, and ganciclovir kills the cells that keep it). The chosen cells, from a strain with a brown 'agouti' coat, are injected into an early embryo of a black strain. The pup is a chimera, a patchwork of both, and if the stem cells formed its sperm or eggs, its agouti offspring can carry the change.
 
-<LessonFigure src="/figures/hacking-the-cell/knockout-knockin-chimera.webp" width={1200} height={575} alt="AI-generated illustration: selected gene-targeted agouti-strain ES cells are injected into the cavity of a black-strain blastocyst. A black-and-agouti chimera pup develops. After the adult chimera is bred with a black-strain mate, agouti offspring may inherit the change if donor cells contributed to the germ line; genotyping is needed to confirm the targeted allele." caption="Selected gene-targeted mouse ES cells from an agouti strain are injected into a black-strain blastocyst. The resulting chimera contains both cell lineages. After breeding, agouti offspring may carry the change if donor ES cells contributed to sperm or eggs; genotyping confirms inheritance of the targeted allele." />
-
+<LessonFigure src="/figures/hacking-the-cell/knockout-knockin-chimera.webp" width={1200} height={575} alt="AI-generated illustration: selected gene-targeted agouti-strain ES cells are injected into the cavity of a black-strain blastocyst. A black-and-agouti chimera pup develops. After the adult chimera is bred with a black-strain mate, agouti offspring may inherit the change if donor cells contributed to the germ line; genotyping is needed to confirm the targeted allele." caption="Injecting drug-selected agouti ES cells into a black-strain blastocyst produces a chimera whose agouti offspring can inherit the targeted allele, confirmed by genotyping." />
