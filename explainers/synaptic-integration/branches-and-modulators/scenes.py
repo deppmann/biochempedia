@@ -271,23 +271,120 @@ class S17Pause(Scene):
     def construct(self): self.camera.background_color=BG; self.add(question_frame()); self.wait(5)
 class S18Reveal(SpokenScene):
     def construct(self):
-        # Continue the removed-rope state: the bottom line and voltage now respond.
-        g=gauge(k=False); g[1].move_to([vx(OPEN),-.8,0]); bottom=gauge()[2]; g.remove(g[2]); self.add(g,bottom,heading('fixed-conductance passive approximation'),label('bottom line: total conductance',0,-3.25,28,GREY))
-        self.at('raises the resting voltage'); self.play(g[1].animate.move_to([vx(-67),-.8,0]),run_time=1.5)
-        self.at('shrinks the bottom line'); self.play(bottom.animate.put_start_and_end_on([-4.8,-2.65,0],[3.2,-2.65,0]).set_stroke(width=10),g[1].animate.move_to([vx(-65),-.8,0]),run_time=1.1)
-        self.at('The same sustained'); self.play(*[FadeOut(m) for m in list(self.mobjects)],run_time=.3)
-        p=lambda t,v:np.array([-4.65+t/80*9.6,-2.25+v*.44,0])
-        ax=VGroup(Line(p(0,0),p(80,0),color=GREY),Line(p(0,0),p(0,11),color=GREY),label('time after current step (ms)',.3,-3.08,26),label('voltage change\nfrom own rest',-5.3,3.1,26),label('fixed-conductance passive approximation',1,3.55,26))
-        for t in [0,20,40,60,80]: ax.add(label(str(t),p(t,0)[0],-2.65,26))
-        for v in [0,5,10]: ax.add(label(str(v),-5.05,p(0,v)[1],26))
-        ax.add(label('mV',-5.6,2,26))
-        self.play(FadeIn(ax),Create(curve(lambda t:100/12*(1-np.exp(-t/(200/12))),p,0,80,TEXT)),FadeIn(label('KCNQ open',3,.65,26)),run_time=.6)
-        self.at('larger steady change'); self.play(Create(curve(lambda t:10*(1-np.exp(-t/20)),p,0,80,YELLOW)),FadeIn(label('KCNQ closed',3,2.65,26,YELLOW)),run_time=.7)
-        marks=VGroup()
-        for tau,amp,col,dx,dy in [(200/12,100/12,TEXT,-.85,.7),(20,10,YELLOW,.8,1.1)]:
-            pos=p(tau,amp*(1-np.exp(-1))); marks.add(Dot(pos,color=col,radius=.1),DashedLine(p(tau,0),pos,color=col),label('63%',pos[0]+dx,pos[1]+dy,26,col))
-        self.at('takes longer'); self.play(FadeIn(marks),run_time=.5)
-        self.play(FadeIn(label('Synaptic EPSP need not grow: less excitatory driving force',0,-3.6,26)),run_time=.3); self.wait(1.5); self.finish()
+        # Part 1: voltage scale + balance-point formula with bottom line (sum of g) shrinking as KCNQ fades.
+        top_lbl=label('fixed-conductance passive approximation',0,3.4,28,TEXT)
+        g=gauge(v=OPEN,k=True); k_rope=g[4]; bottom=g[2]; k_lbl=label('KCNQ',-4.75,2.25,28,PURPLE)
+        bot_bar_lbl=label('bottom line',0,-3.22,28,GREY)
+
+        # Balance-point formula in the upper-right open area.
+        num_leak=M('gL × EL',26,TEXT)
+        num_plus=M('+',26,TEXT)
+        num_k=M('gKCNQ × EK',26,PURPLE)
+        num_row=VGroup(num_leak,num_plus,num_k).arrange(RIGHT,buff=0.14).move_to([2.65,1.9,0])
+        fbar=Line([num_row.get_left()[0]-0.15,1.45,0],[num_row.get_right()[0]+0.15,1.45,0],color=TEXT,stroke_width=3)
+        lhs=T('balance point =',26,TEXT).next_to(fbar,LEFT,buff=0.22)
+        den_leak=M('gL',26,TEXT)
+        den_plus=M('+',26,TEXT)
+        den_k=M('gKCNQ',26,PURPLE)
+        den_row=VGroup(den_leak,den_plus,den_k).arrange(RIGHT,buff=0.14).move_to([2.65,0.98,0])
+        circ=Ellipse(width=den_row.width+0.85,height=den_row.height+0.52,color=GOLD,stroke_width=3).move_to(den_row)
+        bot_lbl=T('bottom line (total conductance)',24,GOLD).next_to(circ,DOWN,buff=0.16)
+        sum_note=T('Σ g = every open rope added together',24,TEXT).next_to(bot_lbl,DOWN,buff=0.14)
+
+        self.add(top_lbl,g,k_lbl,bot_bar_lbl)
+        formula_init=VGroup(lhs,num_row,fbar,den_row,circ,bot_lbl)
+        self.play(FadeIn(formula_init),run_time=0.8)
+
+        self.at('closing these potassium')
+        self.play(FadeOut(k_rope),FadeOut(k_lbl),FadeOut(num_plus),FadeOut(num_k),FadeOut(den_plus),FadeOut(den_k),run_time=0.9)
+
+        self.at('raises rests slightly')
+        self.play(g[1].animate.move_to([vx(-65),-.8,0]),run_time=0.9)
+
+        self.at('shrinks the bottom line')
+        fx_center=2.2
+        num_target=np.array([fx_center,1.9,0])
+        den_target=np.array([fx_center,0.98,0])
+        fbar_small=Line([fx_center-num_leak.width/2-0.25,1.45,0],[fx_center+num_leak.width/2+0.25,1.45,0],color=TEXT,stroke_width=3)
+        circ_small=Ellipse(width=den_leak.width+0.75,height=den_leak.height+0.48,color=GOLD,stroke_width=3).move_to(den_target)
+        self.play(
+            bottom.animate.put_start_and_end_on([-4.8,-2.65,0],[3.2,-2.65,0]).set_stroke(width=10),
+            num_leak.animate.move_to(num_target),
+            den_leak.animate.move_to(den_target),
+            Transform(fbar,fbar_small),
+            lhs.animate.next_to(fbar_small,LEFT,buff=0.22),
+            Transform(circ,circ_small),
+            bot_lbl.animate.next_to(circ_small,DOWN,buff=0.16),
+            run_time=0.9,
+        )
+
+        self.at('The bottom line is')
+        self.play(Indicate(circ,color=GOLD),Indicate(bottom,color=TEXT),run_time=0.7)
+
+        self.at('every open rope',lead=0.3)
+        sum_note.next_to(bot_lbl,DOWN,buff=0.14)
+        self.play(FadeIn(sum_note),run_time=0.5)
+
+        # Part 2: two current-step responses measured from each cell's own resting baseline.
+        self.at('With fewer ropes',lead=0.0)
+        part1=VGroup(g[0],g[1],bottom,bot_bar_lbl,lhs,num_leak,fbar,den_leak,circ,bot_lbl,sum_note)
+        p=lambda t,v:np.array([-4.55+t/80*9.5,-2.05+v*0.41,0])
+        ax=VGroup(
+            Line(p(0,0),p(80,0),color=GREY),
+            Line(p(0,0),p(0,11),color=GREY),
+            label('time after current step (ms)',0.2,-2.85,26),
+            label('voltage change\nfrom own rest',-4.35,2.85,24),
+            label('mV',-5.6,1.6,24),
+        )
+        for t in [0,20,40,60,80]:
+            ax.add(label(str(t),p(t,0)[0],-2.42,24))
+        for v in [0,5,10]:
+            ax.add(label(str(v),-5.0,p(0,v)[1],24))
+        step_icon=VGroup(
+            path([[2.2,-1.35,0],[2.7,-1.35,0],[2.7,-0.95,0],[4.5,-0.95,0],[4.5,-1.35,0],[5.0,-1.35,0]],GREY,3),
+            label('current step',3.6,-1.65,24,GREY),
+        )
+        self.play(FadeOut(part1),top_lbl.animate.move_to([1.0,3.4,0]),FadeIn(ax),FadeIn(step_icon),run_time=0.6)
+
+        v_open=lambda t:100/12*(1-np.exp(-t/(200/12)))
+        v_closed=lambda t:10*(1-np.exp(-t/20))
+        open_curve=DashedVMobject(curve(v_open,p,0,80,PURPLE,5),num_dashes=36).set_stroke(opacity=0.8)
+        open_lbl=label('KCNQ open (ghost)',3.5,0.75,26,PURPLE)
+        self.at('same sustained current')
+        self.play(Create(open_curve),FadeIn(open_lbl),run_time=0.8)
+
+        closed_curve=curve(v_closed,p,0,80,YELLOW,6)
+        closed_lbl=label('KCNQ closed',3.5,2.45,26,YELLOW)
+        slope_line=DashedLine(p(0,0),p(10,5),color=TEAL,stroke_width=3,dash_length=0.1)
+        slope_lbl=label('same initial\nslope',-3.35,1.5,24,TEAL)
+        slope_ptr=Line([-3.35,1.02,0],p(7,3.5)+UP*0.14,color=TEAL,stroke_width=2)
+        self.at('gives a larger')
+        self.play(Create(closed_curve),FadeIn(closed_lbl),Create(slope_line),FadeIn(slope_lbl),Create(slope_ptr),run_time=1.0)
+
+        small_print=T('a synaptic EPSP need not grow, since the cell has less driving force for excitation',24,TEXT).move_to([0,-3.38,0])
+        self.play(FadeIn(small_print),run_time=0.4)
+
+        tau_o,amp_o=200/12,100/12
+        tau_c,amp_c=20,10
+        pos_o=p(tau_o,amp_o*(1-np.exp(-1)))
+        pos_c=p(tau_c,amp_c*(1-np.exp(-1)))
+        mark_o=VGroup(
+            Dot(pos_o,color=PURPLE,radius=0.1),
+            DashedLine(p(tau_o,0),pos_o,color=PURPLE,stroke_width=3),
+            label('63%',-1.4,-0.55,24,PURPLE),
+            Line([-1.75,-0.45,0],pos_o,color=PURPLE,stroke_width=2),
+        )
+        mark_c=VGroup(
+            Dot(pos_c,color=YELLOW,radius=0.1),
+            DashedLine(p(tau_c,0),pos_c,color=YELLOW,stroke_width=3),
+            label('63%',-1.6,1.35,24,YELLOW),
+            Line([-1.75,1.15,0],pos_c,color=YELLOW,stroke_width=2),
+        )
+        later_lbl=label('later\n(longer time constant)',-0.1,-1.45,22,YELLOW)
+        later_ptr=Arrow([later_lbl.get_left()[0]-0.14,-1.45,0],[p(tau_c,0)[0]+0.06,-1.45,0],buff=0,color=YELLOW,stroke_width=2.5,max_tip_length_to_length_ratio=0.3)
+        self.at('takes longer')
+        self.play(FadeIn(mark_o),FadeIn(mark_c),FadeIn(later_lbl),Create(later_ptr),run_time=0.6)
+        self.finish()
 class S19More(SpokenScene):
     def construct(self):
         g=rasters('before','muscarinic\nagonist'); g[1].move_to([1.4,1.35,0]); self.add(*g[:5],g[-1])
@@ -329,5 +426,3 @@ class S23Takeaway(SpokenScene):
         self.at('The rule tells'); self.play(FadeIn(label('The rule tells you what kind of change to look for.',0,-3.15,30)),run_time=.6); self.finish()
 class S24End(EndCard):
     LINE='NMDA ropes can grow with voltage; modulators change the ropes themselves.'
-    def construct(self):
-        self.add(label('NMDA ropes can grow with voltage;\nmodulators change the ropes themselves.',0,.4,38),label('biochemistrypedia.com',0,-1.3,26,TEAL)); self.finish()

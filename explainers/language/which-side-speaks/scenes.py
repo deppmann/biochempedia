@@ -203,11 +203,31 @@ class S09Mix(SpokenScene):
 class S10Flipped(SpokenScene):
     def construct(self):
         b,y,l=mix_layout();self.add(b,y,l,footer())
-        self.at('Now fewer');self.play(*[light(b[k],BLUE) for k in MIX_RIGHT_LIT],*[light(y[k],YELLOW) for k in LEFT_LIT],run_time=.35)
-        counts=VGroup(T('36 blue',28,BLUE).move_to([-1.6,-2.5,0]),T('27 yellow',26,YELLOW).move_to([5.15,-2.5,0]))
-        self.play(FadeIn(counts),FadeIn(T('36 blue + 27 yellow = 63',29).move_to([-1.3,3.55,0])),run_time=.35)
-        self.at('half of the');self.play(FadeIn(T('27 of 63 ≈ 43% left-handed',32).move_to([0,-2.95,0])),run_time=.35)
-        self.at('are so many');self.play(Indicate(VGroup(*[b[k] for k in MIX_RIGHT_LIT]),scale_factor=1.03,color=BLUE),run_time=.7);self.finish()
+        eq_blue=VGroup(
+            M('900',28,BLUE),
+            VGroup(M('×',28,BLUE),M('4%',28,BLUE)).arrange(RIGHT,buff=.12),
+            VGroup(M('=',28,BLUE),M('36',28,BLUE)).arrange(RIGHT,buff=.12),
+        ).arrange(RIGHT,buff=.12).move_to([-1.4,-2.48,0])
+        eq_yellow=VGroup(
+            M('100',28,YELLOW),
+            VGroup(M('×',28,YELLOW),M('27%',28,YELLOW)).arrange(RIGHT,buff=.12),
+            VGroup(M('=',28,YELLOW),M('27',28,YELLOW)).arrange(RIGHT,buff=.12),
+        ).arrange(RIGHT,buff=.12).move_to([4.15,-2.48,0])
+        res_line=VGroup(
+            M('27',30,YELLOW),
+            VGroup(M('/',30,TEXT),M('63',30,TEXT)).arrange(RIGHT,buff=.12),
+            VGroup(M('≈',30,TEXT),M('43%',30,TEXT),T('left-handed',30,TEXT)).arrange(RIGHT,buff=.12),
+        ).arrange(RIGHT,buff=.12).move_to([0,-2.96,0])
+        self.at('900',lead=0.0);self.play(FadeIn(eq_blue[0]),run_time=.25)
+        self.at('4',lead=0.0);self.play(FadeIn(eq_blue[1]),run_time=.25)
+        self.at('36',lead=0.0);self.play(FadeIn(eq_blue[2]),*[light(b[k],BLUE) for k in MIX_RIGHT_LIT],run_time=.35)
+        self.at('100',lead=0.0);self.play(FadeIn(eq_yellow[0]),run_time=.25)
+        self.at('at 27',lead=-0.18);self.play(FadeIn(eq_yellow[1]),run_time=.25)
+        self.at('27',nth=1,lead=0.0);self.play(FadeIn(eq_yellow[2]),*[light(y[k],YELLOW) for k in LEFT_LIT],run_time=.35)
+        self.at('27',nth=2,lead=0.0);self.play(FadeIn(res_line[0]),run_time=.25)
+        self.at('63',lead=0.0);self.play(FadeIn(res_line[1]),run_time=.25)
+        self.at('fewer than half',lead=0.0);self.play(FadeIn(res_line[2]),run_time=.3)
+        self.at('are so many',lead=0.0);self.play(Indicate(VGroup(*[b[k] for k in MIX_RIGHT_LIT]),scale_factor=1.03,color=BLUE),run_time=.7);self.finish()
 
 class S11Same(SpokenScene):
     def construct(self):
@@ -264,9 +284,3 @@ class S13Takeaway(SpokenScene):
 
 class S14End(EndCard):
     LINE='Left-handedness shifts the odds without reversing them.'
-    def construct(self):
-        line=T(self.LINE,40,font=TITLE_FONT);fit(line,max_w=11.5)
-        sub=T('biochemistrypedia.com',26,TEAL)
-        VGroup(line,sub).arrange(DOWN,buff=.4)
-        self.play(FadeIn(line),run_time=.5)
-        self.play(FadeIn(sub),run_time=.3);self.finish()

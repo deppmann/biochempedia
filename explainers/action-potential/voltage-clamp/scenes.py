@@ -322,8 +322,8 @@ class S06Crack(SpokenScene):
         crack=VMobject(color=TEXT,stroke_width=5).set_points_as_corners([[2.94,.3,0],[2.6,.1,0],[2.9,-.12,0],[2.55,-.35,0],[2.76,-.65,0]])
         incoming=arrow([4.3,-.25,0],[2.1,-.25,0],TEXT)
         self.at('If water pours')
-        self.play(FadeOut(b.outflow),Create(gap),Create(crack),GrowArrow(incoming),FadeIn(txt('crack',3.75,-1.1,26)),run_time=.65)
-        self.at('the tap must')
+        self.play(FadeOut(b.outflow),FadeOut(b.drain),Create(gap),Create(crack),GrowArrow(incoming),FadeIn(txt('crack',3.75,-1.1,26)),run_time=.65)
+        self.at('the tap runs')
         self.play(ReplacementTransform(b.inflow,arrow([-2,.65,0],[-2,1.9,0],TEXT)),Transform(n,meter(True)[1]),run_time=.7)
         self.at('like a pump'); self.play(FadeIn(txt('pump',-2.4,3.3,28)),run_time=.4)
         self.finish()
@@ -452,28 +452,35 @@ class S14Real(SpokenScene):
 
 class S15Blip(SpokenScene):
     def construct(self):
-        self.add(*stage(),current(end=1.15)); c=captrace(); self.add(c)
+        a,v=stage()
+        self.add(a,v,current(end=1.15)); c=captrace(); self.add(c)
         self.at('a brief blip'); self.play(Indicate(c,color=TEXT),run_time=.6)
         self.at('the membrane charging'); label=txt('Charging the membrane',0,3.25,28); self.play(FadeIn(label),run_time=.5)
+        self.at('It stops once'); self.play(ShowPassingFlash(v.copy().set_color(VOLT).set_stroke(width=8),time_width=.5),run_time=.7)
         self.at('set it aside')
         self.play(c.animate.set_color(GREY).set_stroke(opacity=.35),FadeOut(label),run_time=.25)
-        self.play(FadeIn(txt('Charging · set aside',0,3.25,28,GREY)),run_time=.25)
+        self.play(FadeIn(txt('Charging the membrane, set aside',0,3.25,28,GREY)),run_time=.25)
         self.finish()
 
 class S16Inward(SpokenScene):
     def construct(self):
-        self.add(*stage(),captrace(GREY).set_stroke(opacity=.35),current(end=1.15))
-        self.at('an early inward'); self.play(Create(current(end=1.7)),run_time=.7)
-        self.at('It grows fast'); self.play(Create(current(end=2.05)),run_time=.6)
-        self.at('then dies away'); self.play(Create(current(end=3.4)),run_time=.7)
-        self.at('though the voltage'); self.play(FadeIn(txt('Early inward current',0,3.25,30)),run_time=.5)
+        a,v=stage()
+        self.add(a,v,captrace(GREY).set_stroke(opacity=.35),current(end=1.15))
+        m1=(CT>=1.14)&(CT<=1.65)
+        m2=(CT>=1.63)&(CT<=3.4)
+        self.at('an early inward'); self.play(FadeIn(txt('Early inward current',0,3.25,30)),run_time=.4)
+        self.at('current grows fast'); self.play(Create(curve(PA,CT[m1],TOTAL[m1],color=TEXT,stride=2)),run_time=.7)
+        self.at('then dies away'); self.play(Create(curve(PA,CT[m2],TOTAL[m2],color=TEXT,stride=2)),run_time=.8)
+        self.at('though voltage stays'); self.play(ShowPassingFlash(v.copy().set_color(VOLT).set_stroke(width=8),time_width=.5),run_time=.7)
         self.finish()
 
 class S17Outward(SpokenScene):
     def construct(self):
         self.add(*stage(),captrace(GREY).set_stroke(opacity=.35),current(end=3.4))
         self.at('a delayed outward'); self.play(FadeIn(txt('Delayed outward current',0,3.25,30)),run_time=.5)
-        self.at('It rises slowly'); self.play(Create(current()),run_time=1.6)
+        self.at('rises slowly')
+        m=CT>=3.38
+        self.play(Create(curve(PA,CT[m],TOTAL[m],color=TEXT,stride=2)),run_time=1.8,rate_func=linear)
         self.finish()
 
 class S18Inference(SpokenScene):
@@ -506,11 +513,11 @@ class S20Which(SpokenScene):
     def construct(self):
         bath=RoundedRectangle(width=11.8,height=5.1,corner_radius=.4,color=NA,fill_color=NA,fill_opacity=.12).move_to([0,-.1,0])
         membrane=RoundedRectangle(width=9.8,height=2.1,corner_radius=.5,color=GREY,fill_color=BG,fill_opacity=1).move_to([0,-1.15,0])
-        ions=VGroup(*[chip('Na+',NA,28).move_to([x,1.25,0]) for x in [-4,-2,0,2,4]])
+        ions=VGroup(*[chip('Na+',NA,28,pad=0.18).move_to([x,1.25,0]) for x in [-4.4,-2.2,0,2.2,4.4]])
         self.add(bath,membrane,ions,txt('outside bath',-4,2.0,28,NA),txt('axon',0,-1.15,32))
         self.at('which ions carry'); self.play(FadeIn(txt('Which ions carry these currents?',0,3.2,32)),run_time=.4)
         self.at('replaced most outside')
-        replacements=VGroup(*[chip('choline',GREY,26).move_to(ions[i]) for i in range(1,5)])
+        replacements=VGroup(*[chip('choline',GREY,28,pad=0.25).move_to(ions[i]) for i in range(1,5)])
         self.play(*[FadeOut(ions[i],shift=UP*.15) for i in range(1,5)],run_time=.3)
         self.play(bath.animate.set_color(GREY).set_fill(GREY,opacity=.17),FadeIn(replacements,shift=DOWN*.15),run_time=.75)
         self.at('the membrane passes'); self.play(FadeIn(txt('choline passes poorly',0,-3.1,30)),run_time=.4)
@@ -566,17 +573,37 @@ class S24WhyReverse(SpokenScene):
 
 class S25Shift(SpokenScene):
     def construct(self):
-        ax,b=scale_stage(); mark=ena(ax,35); self.add(b,mark)
-        self.at('In the cold'); self.play(FadeIn(txt('Cold squid axon · 6.3 °C',0,3.2,32)),run_time=.4)
-        self.at('a tenfold drop')
-        self.play(FadeIn(txt('Tenfold fall · about 55 mV shift',0,-2.9,30,NA)),run_time=.4)
-        self.at('moves it from')
-        self.play(FadeOut(mark[1]),run_time=.15)
-        moving=txt('E_Na',ax.X(35)-.3,2.15,32,NA); self.add(moving)
-        dx=ax.X(-5)-ax.X(35)
-        self.play(mark[0].animate.shift(RIGHT*dx),moving.animate.shift(RIGHT*dx),run_time=2.1,rate_func=smooth)
-        self.play(FadeOut(moving),run_time=.15)
-        self.play(FadeIn(ena(ax,-5)[1]),run_time=.2)
+        ax,b=scale_stage(); mark=ena(ax,50); self.add(b,mark)
+        self.at('In the cold')
+        self.play(FadeIn(txt('Cold squid axon',0,3.2,32)),run_time=.4)
+        self.at('each tenfold drop')
+        sub=txt('tenfold fall in outside Na+',2.2,-1.75,26,TEXT)
+        self.play(FadeIn(sub),run_time=.4)
+        self.at('about 55',lead=0.0)
+        v_ena=ValueTracker(50.0)
+        bar=always_redraw(lambda: Line([ax.X(v_ena.get_value()),-.35,0],[ax.X(v_ena.get_value()),1.65,0],color=NA,stroke_width=11))
+        moving=always_redraw(lambda: txt('E_Na',ax.X(v_ena.get_value())-.3,2.35,30,NA))
+        shift_arrow=Arrow([ax.X(50)-.12,1.05,0],[ax.X(-5)+.12,1.05,0],buff=0,color=NA,stroke_width=5)
+        shift_arrow.layout_ok=True
+        shift_lbl=txt('−55 mV',2.72,1.88,28,NA)
+        sub2=txt('(tenfold less Na+ outside, 6.3 °C)',2.2,-1.75,24,TEXT)
+        self.remove(mark[0]); self.add(bar)
+        self.play(FadeOut(mark[1]),run_time=.12)
+        self.add(moving)
+        self.play(GrowArrow(shift_arrow),FadeIn(shift_lbl),FadeOut(sub),run_time=.25)
+        self.play(FadeIn(sub2),v_ena.animate(rate_func=linear).set_value(28.0),run_time=1.4)
+        t50=M('+50 mV',32,NA); t55=M('− 55 mV',32,TEXT); tres=M('≈ −5 mV',32,NA)
+        eq_row=VGroup(t50,t55,tres).arrange(RIGHT,buff=.3).move_to([2.2,-2.75,0])
+        self.at('50 minus',lead=0.0)
+        self.play(FadeIn(t50),v_ena.animate(rate_func=linear).set_value(22.0),run_time=.35)
+        self.at('55',nth=1,lead=0.0)
+        self.play(FadeIn(t55),v_ena.animate(rate_func=linear).set_value(4.0),run_time=.85)
+        self.at('about minus',lead=0.0)
+        self.play(v_ena.animate(rate_func=linear).set_value(-5.0),run_time=.3)
+        bar.clear_updaters(); moving.clear_updaters()
+        self.at('minus 5',lead=0.0)
+        self.play(FadeOut(moving),run_time=.12)
+        self.play(FadeIn(ena(ax,-5)[1]),FadeIn(tres),run_time=.35)
         self.finish()
 
 
@@ -669,15 +696,16 @@ class S28Sodium(SpokenScene):
 class S29Potassium(SpokenScene):
     def construct(self):
         self.add(*stage(),current(),early_bracket())
-        self.at('The delayed current')
+        self.at('the delayed current')
         self.play(FadeIn(txt('Delayed current assigned to K+',0,3.25,32,K)),run_time=.4)
-        self.at('assigned to potassium'); self.play(FadeIn(delayed_bracket()),run_time=.4)
+        self.at('to potassium')
+        self.play(FadeIn(delayed_bracket()),FadeIn(txt('K+',PA.X(9),PA.Y(300),28,K)),run_time=.4)
         self.at('including tracer')
         self.clear()
         membrane=VGroup(Line([-5.7,0,0],[-1.3,0,0],color=GREY,stroke_width=22),Line([1.3,0,0],[5.7,0,0],color=GREY,stroke_width=22),
             Line([-1.3,-.45,0],[-1.3,.45,0],color=K,stroke_width=12),Line([1.3,-.45,0],[1.3,.45,0],color=K,stroke_width=12))
-        self.add(membrane,txt('inside axon',-4,-1.6,28,GREY),txt('outside',-4,1.7,28,GREY),txt('K+ channel',2.6,.7,28,K),
-            txt('Potassium leaving stimulated axons',0,3.2,32,K))
+        self.add(membrane,txt('inside axon',-4.9,-1.5,28,GREY),txt('outside',-4,1.7,28,GREY),txt('K+ channel',2.6,.7,28,K),
+            txt('Tracer K+ leaving stimulated axons',0,3.2,32,K))
         stimulus=chip('stimulus',TEXT,28).move_to([-3.6,-2.85,0])
         self.add(stimulus)
         signal=VMobject(color=TEXT,stroke_width=5).set_points_as_corners([stimulus.get_top(),[-3.6,-1,0],[-1.3,0,0]])
@@ -689,8 +717,8 @@ class S29Potassium(SpokenScene):
         for i,dot in enumerate(dots):
             dot.add_updater(lambda m,i=i: m.move_to([[-.65,0,.65][i%3],-2.5+(i*5/18+phase.get_value())%5,0]))
             dot.update()
-        self.add(dots)
-        self.play(phase.animate.set_value(5),run_time=3.2,rate_func=linear)
+        self.add(dots,txt('tracer K+',2.5,1.7,26,K))
+        self.play(phase.animate.set_value(5),run_time=2.8,rate_func=linear)
         for dot in dots: dot.clear_updaters()
         self.finish()
 
@@ -699,9 +727,10 @@ class S30Takeaway(SpokenScene):
     def construct(self):
         self.add(*stage(),current())
         self.at('Early inward current')
-        self.play(FadeIn(early_bracket()),FadeIn(txt('Early inward current → Na+',0,3.25,30,NA)),run_time=.4)
+        hdr=txt('Early inward current → Na+',0,3.25,30,NA)
+        self.play(FadeIn(early_bracket()),FadeIn(hdr),run_time=.4)
         self.at('Delayed outward current')
-        self.play(FadeIn(delayed_bracket()),FadeIn(txt('K+',PA.X(9),PA.Y(300),28,K)),run_time=.4)
+        self.play(FadeOut(hdr),FadeIn(txt('Delayed outward current → K+',0,3.25,30,K)),FadeIn(delayed_bracket()),FadeIn(txt('K+',PA.X(9),PA.Y(300),28,K)),run_time=.4)
         self.at('Both change with')
         self.clear()
         card=VGroup(T('Early inward current = Na+',34,NA),T('Delayed outward current = K+',34,K),T('Both change with time',32),T('at a fixed voltage.',32,VOLT)).arrange(DOWN,buff=.55)
