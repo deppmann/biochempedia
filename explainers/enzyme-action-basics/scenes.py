@@ -504,8 +504,9 @@ class S10Think(Scene):
         fwd, rev = route_arrow(-5,5,YELLOW,1.8), route_arrow(5,-5,GREEN,1.8)
         fl = chip("× 1,000,000", YELLOW, 30).scale(.8).move_to([-2.6,.55,0])
         rl = chip("× ?", GREEN, 38).scale(.8).move_to([2.8,-.2,0])
-        q = chip("Backward: faster, slower, unchanged?", TEXT, 34, fill_opacity=.12).move_to([0,-2.82,0])
+        q = chip("Backward: faster, slower, unchanged?", TEXT, 34, fill_opacity=.12)
         fit(q, 11.8)
+        q.move_to([0, 3.3, 0])
         self.add(ground_fill(1.8),old,low,dots,schematic_tag(),fwd,rev,fl,rl,q)
         self.play(rl.animate.scale(1.06), run_time=1.0, rate_func=there_and_back)
         self.wait(1.2)
@@ -516,59 +517,180 @@ class S10Think(Scene):
 class S11Answer(SpokenScene):
     def construct(self):
         old, low = dashed_profile(4.2, RED), profile(1.8, TEAL, 7)
-        dots = VGroup(valley_dots(5), valley_dots(4,"right",GREEN,1.8))
-        fwd, rev = route_arrow(-5,5,YELLOW,1.8), route_arrow(5,-5,GREEN,1.8)
-        fl = chip("× 1,000,000", YELLOW, 30).scale(.8).move_to([-2.6,.55,0])
-        rl = chip("× ?", GREEN, 38).scale(.8).move_to([2.8,-.2,0])
-        self.add(ground_fill(1.8),old,low,dots,schematic_tag(),fwd,rev,fl,rl)
+        dots = VGroup(valley_dots(5), valley_dots(4, "right", GREEN, 1.8))
+        fwd, rev = route_arrow(-5, 5, YELLOW, 1.8), route_arrow(5, -5, GREEN, 1.8)
+        fl = chip("× 1,000,000", YELLOW, 30).scale(.8).move_to([-2.6, .55, 0])
+        rl = chip("× ?", GREEN, 38).scale(.8).move_to([2.8, -.2, 0])
+        self.add(ground_fill(1.8), old, low, dots, schematic_tag(), fwd, rev, fl, rl)
+
         self.at("Also a million")
-        ans = chip("× 1,000,000", GREEN, 30).scale(.8).move_to(rl)
-        self.play(ReplacementTransform(rl,ans), run_time=.6)
-        yl, yr, pp = energy_y(-5.2,1.8), energy_y(5.2,1.8), peak_point(1.8)
+        ans = chip("× 1,000,000", GREEN, 32).scale(.85).move_to(rl)
+        self.play(FadeOut(rl, run_time=.22), FadeIn(ans, run_time=.38))
+
+        yl, yr = energy_y(-5.2, 1.8), energy_y(5.2, 1.8)
+        pp = peak_point(1.8)
+        y_old = peak_point(4.2)[1]
         self.at("two valleys")
-        pins = VGroup(pin(np.array([-5.2,yl,0])),pin(np.array([5.2,yr,0])))
-        self.play(FadeIn(pins), Flash([-5.2,yl,0],color=TEAL), Flash([5.2,yr,0],color=TEAL), run_time=.6)
-        self.at("same lowered top")
-        brs = VGroup(vbracket(-.6,yl,pp[1],YELLOW), vbracket(.65,yr,pp[1],GREEN),
-                     Dot(pp,radius=.13,color=PURPLE))
-        self.play(GrowFromCenter(brs[0]), GrowFromCenter(brs[1]), FadeIn(brs[2]), run_time=.75)
+        pins = VGroup(pin(np.array([-5.2, yl, 0])), pin(np.array([5.2, yr, 0])))
+        self.play(FadeIn(pins), Flash([-5.2, yl, 0], color=TEAL),
+                  Flash([5.2, yr, 0], color=TEAL), run_time=.6)
+
+        self.at("lowering the top")
+        x_f, x_b = -0.85, 0.85
+        guide_old = DashedLine([x_f - 0.25, y_old, 0], [x_b + 0.25, y_old, 0],
+                               color=RED, stroke_width=2.5, dash_length=0.12).set_opacity(.65)
+        guide_low = DashedLine([x_f - 0.25, pp[1], 0], [x_b + 0.25, pp[1], 0],
+                               color=TEAL, stroke_width=2.5, dash_length=0.12).set_opacity(.75)
+        pp_dot = Dot(pp, radius=.13, color=PURPLE)
+        br_fwd = vbracket(x_f, yl, pp[1], YELLOW)
+        br_rev = vbracket(x_b, yr, pp[1], GREEN)
+        drop_fwd = vbracket(x_f, pp[1], y_old, YELLOW)
+        drop_rev = vbracket(x_b, pp[1], y_old, GREEN)
+        self.play(Create(guide_old), Create(guide_low), FadeIn(pp_dot),
+                  GrowFromCenter(br_fwd), GrowFromCenter(br_rev),
+                  GrowFromCenter(drop_fwd), GrowFromCenter(drop_rev), run_time=.65)
+
+        self.at("shortens both climbs")
+        drop_fwd_teal = vbracket(x_f, pp[1], y_old, TEAL)
+        drop_rev_teal = vbracket(x_b, pp[1], y_old, TEAL)
+        sd_left = T("same drop", 26, TEAL).move_to([-1.92, 1.45, 0])
+        sd_right = T("same drop", 26, TEAL).move_to([1.92, 1.45, 0])
+        ghost_fwd = DashedLine([x_f, pp[1], 0], [x_f, y_old, 0], color=TEAL, stroke_width=3, dash_length=0.12).set_opacity(.45)
+        ghost_rev = DashedLine([x_b, pp[1], 0], [x_b, y_old, 0], color=TEAL, stroke_width=3, dash_length=0.12).set_opacity(.45)
+        self.play(ReplacementTransform(drop_fwd, drop_fwd_teal),
+                  ReplacementTransform(drop_rev, drop_rev_teal),
+                  FadeIn(sd_left), FadeIn(sd_right), run_time=.55)
+        self.add(ghost_fwd, ghost_rev)
+        self.play(drop_fwd_teal.animate.scale(0.01, about_point=np.array([x_f, pp[1], 0])).set_opacity(0),
+                  drop_rev_teal.animate.scale(0.01, about_point=np.array([x_b, pp[1], 0])).set_opacity(0),
+                  run_time=1.05, rate_func=smooth)
+        self.remove(drop_fwd_teal, drop_rev_teal)
+
+        self.at("both speed up")
+        self.play(Indicate(br_fwd, color=YELLOW, scale_factor=1.04),
+                  Indicate(br_rev, color=GREEN, scale_factor=1.04),
+                  Indicate(fl, color=YELLOW, scale_factor=1.06),
+                  Indicate(ans, color=GREEN, scale_factor=1.06), run_time=.75)
+
         self.at("their ratio")
-        keq = chip("Keq: unchanged", TEXT, 34).move_to([0,2.65,0])
-        self.play(ReplacementTransform(VGroup(fl,ans),keq), run_time=.75)
+        fx, fy = 4.45, 2.50
+        num_c = M("× 1,000,000", 26, YELLOW).move_to([-4.20, 1.25, 0])
+        den_c = M("× 1,000,000", 26, GREEN).move_to([3.85, 0.42, 0])
+        bar = Line([fx - 1.15, fy, 0], [fx + 1.15, fy, 0], color=TEXT, stroke_width=3.5)
+        arc_path = VMobject().set_points_smoothly([
+            np.array([-4.20, 1.25, 0]),
+            np.array([-4.20, 2.95, 0]),
+            np.array([0.0, 3.08, 0]),
+            np.array([fx, fy + .34, 0]),
+        ])
+        self.play(FadeIn(num_c, run_time=.15), FadeIn(den_c, run_time=.15))
+        self.play(MoveAlongPath(num_c, arc_path),
+                  den_c.animate.move_to([fx, fy - .34, 0]),
+                  Create(bar), run_time=.65)
+        slash_n = Line(num_c.get_corner(DL) + LEFT * .08, num_c.get_corner(UR) + RIGHT * .08, color=RED, stroke_width=4)
+        slash_d = Line(den_c.get_corner(DL) + LEFT * .08, den_c.get_corner(UR) + RIGHT * .08, color=RED, stroke_width=4)
+        slash_n.layout_ok = True   # deliberate cancellation strike-through on numerator
+        slash_d.layout_ok = True   # deliberate cancellation strike-through on denominator
+        self.play(Create(slash_n), Create(slash_d), run_time=.35)
+
+        self.at("equilibrium constant")
+        frac_grp = VGroup(num_c, den_c, bar, slash_n, slash_d)
+        keq = chip("Keq: unchanged", TEXT, 34).move_to([fx, fy, 0])
+        self.play(FadeOut(frac_grp, run_time=.22), FadeIn(keq, run_time=.35))
         self.finish()
 
 
 class S12Uphill(SpokenScene):
     def construct(self):
+        def y_at(x, height=1.8, rev=0.0):
+            step = -1.3 + (2.0 * rev - 1.0) * 0.7 * np.tanh(x / 1.6)
+            raw = step + height * np.exp(-((x / 1.1) ** 2))
+            return Y_SCALE * raw + Y_SHIFT
+
         h = ValueTracker(1.8)
-        revflag = ValueTracker(0)
-        curve = always_redraw(lambda: profile(h.get_value(),TEAL,7,revflag.get_value()>.5))
-        old = always_redraw(lambda: dashed_profile(4.2,RED,4,revflag.get_value()>.5))
-        left = VGroup(*[Dot(radius=.11,color=YELLOW).move_to([-5.3+i*.34,energy_y(-5.3+i*.34,1.8)+.17,0]) for i in range(6)])
-        right = VGroup(*[Dot(radius=.11,color=GREEN).move_to([3.8+i*.34,energy_y(3.8+i*.34,1.8)+.17,0]) for i in range(2)])
-        counts = VGroup(M("6",32,YELLOW),T(":",30),M("2",32,GREEN)).arrange(RIGHT,.18).move_to([0,-3.05,0])
-        ground = always_redraw(lambda: ground_fill(h.get_value(),revflag.get_value()>.5))
-        self.add(ground,old,curve,schematic_tag(),left,right)
+        revflag = ValueTracker(0.0)
+        n_left = ValueTracker(6.0)
+        counts_op = ValueTracker(0.0)
+
+        curve = always_redraw(lambda: ParametricFunction(
+            lambda x: np.array([x, y_at(x, h.get_value(), revflag.get_value()), 0]),
+            t_range=[X0, X1, 0.025], color=TEAL, stroke_width=7,
+        ))
+        old = always_redraw(lambda: DashedVMobject(ParametricFunction(
+            lambda x: np.array([x, y_at(x, 4.2, revflag.get_value()), 0]),
+            t_range=[X0, X1, 0.025], color=RED, stroke_width=4,
+        ), num_dashes=42))
+        ground = always_redraw(lambda: Polygon(
+            *[np.array([x, y_at(x, h.get_value(), revflag.get_value()), 0]) for x in np.linspace(X0, X1, 180)],
+            [X1, -3.42, 0], [X0, -3.42, 0], stroke_width=0,
+            fill_color=GREY, fill_opacity=0.18,
+        ))
+        left = always_redraw(lambda: VGroup(*[
+            Dot(radius=0.11, color=YELLOW).move_to(
+                [-5.3 + i * 0.34, y_at(-5.3 + i * 0.34, h.get_value(), revflag.get_value()) + 0.17, 0]
+            )
+            for i in range(int(round(n_left.get_value())))
+        ]))
+        right = always_redraw(lambda: VGroup(*[
+            Dot(radius=0.11, color=GREEN).move_to(
+                [3.6 + i * 0.34, y_at(3.6 + i * 0.34, h.get_value(), revflag.get_value()) + 0.17, 0]
+            )
+            for i in range(8 - int(round(n_left.get_value())))
+        ]))
+
+        def make_counts():
+            k = int(round(n_left.get_value()))
+            g = VGroup(
+                M(str(k), 32, YELLOW),
+                T(":", 30),
+                M(str(8 - k), 32, GREEN),
+            ).arrange(RIGHT, 0.18).move_to([0, -3.05, 0])
+            g.set_opacity(counts_op.get_value())
+            return g
+
+        counts = always_redraw(make_counts)
+        self.add(ground, old, curve, schematic_tag(), left, right, counts)
+
         self.at("same equilibrium")
-        self.play(FadeIn(counts), run_time=.4)
-        movers = VGroup(*[Dot(radius=.23,color=YELLOW) for _ in range(7)])
+        self.play(counts_op.animate.set_value(1.0), run_time=0.4)
+        movers = VGroup(*[
+            Dot(radius=0.11, color=YELLOW).move_to([-5.35, y_at(-5.35, 1.8, 0.0) + 0.22, 0])
+            for _ in range(4)
+        ])
         self.add(movers)
-        self.play(stream_animation(movers, run_time=2.25), run_time=2.25)
-        self.remove(movers)
-        noenz = VGroup(dashed_profile(4.2,RED).scale(.22), T("no enzyme: same end, later",28,RED)).arrange(DOWN,.1)
-        noenz.move_to([-4.55,2.55,0])
-        self.play(FadeIn(noenz), run_time=.4)
+        self.play(
+            stream_animation(movers, height=1.8, reverse=False, run_time=2.25),
+            n_left.animate(rate_func=linear, run_time=2.25).set_value(2.0),
+        )
+        self.remove(movers, *movers)
+
+        noenz = VGroup(dashed_profile(4.2, RED).scale(0.22), T("no enzyme: same end, later", 28, RED)).arrange(DOWN, 0.1)
+        noenz.move_to([-4.20, 2.55, 0])
+        self.play(FadeIn(noenz), run_time=0.4)
+
         self.at("cannot push")
-        blocked = CurvedArrow([4.8, energy_y(4.8,1.8)+.25, 0],
-                              [-1.3, energy_y(-1.3,1.8)+.45, 0], angle=-.18,
+        blocked = CurvedArrow([4.8, y_at(4.8, 1.8, 0.0) + 0.25, 0],
+                              [-1.3, y_at(-1.3, 1.8, 0.0) + 0.45, 0], angle=-0.18,
                               color=RED, stroke_width=11)
-        self.play(FadeOut(noenz), Create(blocked), Indicate(old,color=RED,scale_factor=1.01), run_time=2.15)
-        self.play(Uncreate(blocked), run_time=.6)
+        self.play(FadeOut(noenz), Create(blocked), Indicate(old, color=RED, scale_factor=1.01), run_time=2.15)
+        self.play(Uncreate(blocked), run_time=0.6)
+
         self.at("far valley is higher")
-        self.play(revflag.animate.set_value(1), run_time=1.15)
-        self.at("other way")
-        flows = VGroup(*[route_arrow(4.7-i*.3,-4.7+i*.3,GREEN,1.8,True)[0] for i in range(3)])
-        self.play(LaggedStart(*[Create(p) for p in flows],lag_ratio=.18), run_time=1.0)
+        self.play(revflag.animate.set_value(1.0), run_time=1.15)
+
+        self.at("runs the other way")
+        flows = VGroup(*[route_arrow(4.7 - i * 0.3, -4.7 + i * 0.3, GREEN, 1.8, True) for i in range(3)])
+        rev_movers = VGroup(*[
+            Dot(radius=0.11, color=GREEN).move_to([5.35, y_at(5.35, 1.8, 1.0) + 0.22, 0])
+            for _ in range(4)
+        ])
+        self.add(rev_movers)
+        self.play(
+            LaggedStart(*[AnimationGroup(Create(f[0]), FadeIn(f[1])) for f in flows], lag_ratio=0.18, run_time=1.0),
+            stream_animation(rev_movers, height=1.8, reverse=True, run_time=1.5),
+            n_left.animate(rate_func=linear, run_time=1.5).set_value(6.0),
+        )
+        self.remove(rev_movers, *rev_movers)
         self.finish()
 
 
@@ -690,18 +812,3 @@ class S16Return(SpokenScene):
 
 class S17End(EndCard):
     LINE = "An enzyme lowers the ridge. It never moves the valleys."
-
-    def construct(self):
-        old, low = dashed_profile(4.2,RED), profile(1.8,TEAL,7)
-        old.set_stroke(opacity=.2); low.set_stroke(opacity=.2)
-        ld, rd, tag = valley_dots(5), valley_dots(3,"right",GREEN,1.8), schematic_tag()
-        ld.set_opacity(.2); rd.set_opacity(.2); tag.set_opacity(.2)
-        ground = ground_fill(1.8, opacity=.045)
-        living=VGroup(ground,old,low,ld,rd,tag)
-        self.add(living)
-        line=T(self.LINE,40,font=TITLE_FONT)
-        fit(line,11.6)
-        sub=T("biochemistrypedia.com",22,TEAL)
-        card=VGroup(line,sub).arrange(DOWN,.42)
-        self.play(FadeIn(line,shift=UP*.15),FadeIn(sub),run_time=.8)
-        self.finish()

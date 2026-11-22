@@ -170,14 +170,14 @@ def oxygen_off_icon(target):
 
 
 def prompt_group(answer="?"):
-    prompt = T("How many loading steps?", 36, TEXT, weight=BOLD)
+    prompt = T("How many\nloading steps?", 28, TEXT, weight=BOLD, line_spacing=0.85)
     box = RoundedRectangle(
         corner_radius=0.18, width=1.5, height=1.15,
         stroke_color=GOLD, stroke_width=5,
         fill_color=BG, fill_opacity=0.95,
     )
     ans = T(answer, 52, GOLD, weight=BOLD).move_to(box)
-    return VGroup(prompt, VGroup(box, ans)).arrange(DOWN, buff=0.28).move_to(CYCLE_C)
+    return VGroup(prompt, VGroup(box, ans)).arrange(DOWN, buff=0.25).move_to(CYCLE_C)
 
 
 class S00Hook(SpokenScene, TitleCard):
@@ -240,26 +240,131 @@ class S02Budget(SpokenScene):
         driver, dots = orbiting_electrons(8, phase=135, speed=18)
         self.add(road, station, cart, driver, dots)
 
+        panel_cx = 4.45
+        header = T("ELECTRON BUDGET", 28, GOLD, weight=BOLD).move_to([panel_cx, 2.25, 0])
+        sub = T("by oxidation state", 26, BLUE)
+
+        r1_name = M("CH₃:", 26, YELLOW)
+        r1_start = M("-3", 26, TEXT)
+        r1_arrow = M("→", 26, TEXT)
+        r1_end = M("+4", 26, TEXT)
+        r1_e = M("(7 e⁻)", 26, GOLD)
+        r1_group = VGroup(r1_name, r1_start, r1_arrow, r1_end, r1_e).arrange(RIGHT, buff=0.14)
+
+        r2_name = M("C=O:", 26, YELLOW)
+        r2_start = M("+3", 26, TEXT)
+        r2_arrow = M("→", 26, TEXT)
+        r2_end = M("+4", 26, TEXT)
+        r2_e = M("(1 e⁻)", 26, GOLD)
+        r2_group = VGroup(r2_name, r2_start, r2_arrow, r2_end, r2_e).arrange(RIGHT, buff=0.14)
+        r2_name.align_to(r1_name, LEFT)
+        r2_start.align_to(r1_start, LEFT)
+        r2_arrow.match_x(r1_arrow)
+        r2_end.align_to(r1_end, LEFT)
+        r2_e.align_to(r1_e, RIGHT)
+
+        sum_7 = M("7", 28, GOLD)
+        sum_plus = M("+", 28, GOLD)
+        sum_1 = M("1", 28, GOLD)
+        sum_eq = M("= 8 electrons", 28, GOLD)
+        sum_row = VGroup(sum_7, sum_plus, sum_1, sum_eq).arrange(RIGHT, buff=0.18)
+        sum_eq.shift(RIGHT * 0.04)
+
+        rule_w = max(r1_group.width, sum_row.width)
+        sum_rule = Line(LEFT * (rule_w / 2), RIGHT * (rule_w / 2), color=GOLD, stroke_width=2.5)
+
+        body = VGroup(sub, r1_group, r2_group, sum_rule, sum_row).arrange(DOWN, buff=0.28)
+        r1_group.align_to(body, LEFT)
+        r2_group.align_to(r1_group, LEFT)
+        body.next_to(header, DOWN, buff=0.35).set_x(panel_cx)
+
+        full_card = VGroup(header, body)
+        panel_box = RoundedRectangle(
+            corner_radius=0.18,
+            width=full_card.width + 0.64,
+            height=full_card.height + 0.64,
+            stroke_color=GOLD,
+            stroke_width=2.5,
+            fill_color=BG,
+            fill_opacity=0.90,
+        ).move_to(full_card).set_z_index(1)
+        full_card.set_z_index(2)
+
         self.at("electron budget")
-        counter = VGroup(T("ELECTRON BUDGET", 28, TEXT, weight=BOLD), M("8 electrons", 42, GOLD)).arrange(DOWN, buff=0.12).move_to(CYCLE_C)
-        self.play(FadeIn(counter, scale=0.8), cart.animate.scale(1.08), run_time=0.65)
+        self.play(FadeIn(header, shift=DOWN * 0.15), cart.animate.scale(1.08), run_time=0.65)
 
-        self.at("two carbons eventually")
-        old1 = block("CO₂", GREY, 28).move_to([2.0, 1.0, 0])
-        self.play(FadeIn(old1, shift=RIGHT * 0.4), cart.animate.move_to(cart_stop(45)), run_time=0.8)
+        self.at("both carbons eventually")
+        self.play(cart.animate.move_to(cart_stop(80)), run_time=0.8)
 
-        self.at("not during that same turn")
-        old2 = block("CO₂", GREY, 28).move_to([1.95, -1.5, 0])
-        self.play(FadeIn(old2, shift=RIGHT * 0.4), Indicate(cart, color=YELLOW), run_time=0.75)
-        self.play(FadeOut(VGroup(old1, old2)), run_time=0.35)
+        self.at("become carbon dioxide")
+        old1 = block("CO₂", GREY, 28).move_to([1.60, 0.55, 0])
+        self.play(FadeIn(old1, shift=RIGHT * 0.35), cart.animate.move_to(cart_stop(60)), run_time=0.85)
 
-        self.at("releases eight electrons")
-        self.play(LaggedStart(*[Indicate(d, color=GOLD, scale_factor=1.5) for d in dots], lag_ratio=0.05), run_time=1.1)
+        self.at("not in that same turn")
+        old2 = block("CO₂", GREY, 28).move_to([1.60, -1.55, 0])
+        self.play(FadeIn(old2, shift=RIGHT * 0.35), Indicate(cart, color=YELLOW), run_time=0.75)
+        self.wait(0.55)
+        self.play(FadeOut(VGroup(old1, old2)), run_time=0.4)
 
-        self.at("four pairs")
-        pairs = VGroup(*[electron_pair(1.15) for _ in range(4)]).arrange(RIGHT, buff=0.42).move_to([0.0, 2.85, 0])
-        self.play(ReplacementTransform(dots.copy(), pairs), FadeOut(counter), run_time=1.0)
-        self.play(pairs.animate.shift(RIGHT * 0.3), run_time=0.7, rate_func=there_and_back)
+        self.at("By oxidation state")
+        self.play(FadeIn(panel_box), FadeIn(sub, shift=DOWN * 0.1), run_time=0.6)
+
+        self.at("the methyl carbon")
+        self.play(FadeIn(r1_name, shift=RIGHT * 0.1), run_time=0.45)
+
+        self.at("minus 3", lead=0.0)
+        self.play(FadeIn(r1_start, shift=RIGHT * 0.1), run_time=0.35)
+
+        self.at("the carbonyl carbon", lead=0.1)
+        self.play(FadeIn(r2_name, shift=RIGHT * 0.1), run_time=0.45)
+
+        self.at("plus 3", lead=0.0)
+        self.play(FadeIn(r2_start, shift=RIGHT * 0.1), run_time=0.35)
+
+        self.at("Each ends", lead=0.05)
+        self.play(FadeIn(r1_arrow), FadeIn(r2_arrow), run_time=0.35)
+
+        self.at("plus 4", lead=0.0)
+        self.play(FadeIn(r1_end, shift=RIGHT * 0.1), FadeIn(r2_end, shift=RIGHT * 0.1), run_time=0.4)
+
+        self.at("7", lead=0.0)
+        self.play(FadeIn(r1_e, scale=1.05), FadeIn(sum_7), run_time=0.32)
+
+        self.at("plus 1", lead=0.0)
+        self.play(Create(sum_rule), FadeIn(sum_plus), run_time=0.2)
+
+        self.at("1 gives", lead=0.0)
+        self.play(FadeIn(r2_e, scale=1.05), FadeIn(sum_1), run_time=0.35)
+
+        self.at("8 electrons", lead=0.0)
+        self.play(
+            FadeIn(sum_eq, shift=RIGHT * 0.1),
+            LaggedStart(*[Indicate(d, color=GOLD, scale_factor=1.45) for d in dots], lag_ratio=0.04),
+            run_time=0.6,
+        )
+
+        self.at("They leave", lead=0.0)
+        for d in dots:
+            d.clear_updaters()
+        pair_targets = VGroup(*[electron_pair(1.05) for _ in range(4)]).arrange(RIGHT, buff=0.24).move_to([-3.65, 2.95, 0])
+        pair_anims = [
+            AnimationGroup(
+                dots[2 * k].animate.move_to(pair_targets[k][0]),
+                dots[2 * k + 1].animate.move_to(pair_targets[k][1]),
+            )
+            for k in range(4)
+        ]
+        self.play(LaggedStart(*pair_anims, lag_ratio=0.22), run_time=1.1)
+        paired_groups = VGroup(*[VGroup(dots[2 * k], dots[2 * k + 1]) for k in range(4)])
+        for k, pg in enumerate(paired_groups):
+            base_pt = pg.get_center().copy()
+            state = [k * 0.7]
+
+            def _bob(m, dt, base_pt=base_pt, state=state):
+                state[0] += dt
+                m.move_to(base_pt + UP * 0.06 * np.sin(2.6 * state[0]))
+
+            pg.add_updater(_bob)
         self.finish()
 
 
@@ -270,10 +375,6 @@ class S03Predict(SpokenScene):
         cart = acetyl_cart().move_to(cart_stop(110))
         driver, dots = orbiting_electrons(8, phase=165, speed=19)
         self.add(road, station, cart, driver, dots)
-
-        self.at("predict the machinery")
-        questions = VGroup(*[gate_at(a, "?") for a in (155, 55, -35, -135)])
-        self.play(LaggedStart(*[FadeIn(q, scale=0.7) for q in questions], lag_ratio=0.12), run_time=1.0)
 
         self.at("Eight electrons must leave")
         self.play(LaggedStart(*[Indicate(d, color=GOLD) for d in dots], lag_ratio=0.05), run_time=0.8)
@@ -635,21 +736,3 @@ class S12Return(SpokenScene):
 
 class S13End(EndCard):
     LINE = "The cycle loads carriers; the electron transport chain empties them."
-
-    def construct(self):
-        road = cycle_road()
-        station = platform_station()
-        chain = chain_lane(label=False)
-        driver, dots = orbiting_electrons(2, phase=120, speed=24)
-        shade = Rectangle(width=13.6, height=3.15, fill_color=BG, fill_opacity=0.9, stroke_width=0)
-        line = T(self.LINE, 37, TEXT, font=TITLE_FONT, weight=BOLD)
-        fit(line, max_w=10.9)
-        hexm = hex_mascot(1.15).move_to([-5.65, -0.9, 0])
-        pair = electron_pair(1.2).move_to([CHAIN_X, 1.9, 0])
-        self.add(road, station, chain, driver, dots)
-        self.play(FadeIn(shade), FadeIn(line, shift=UP * 0.15), FadeIn(hexm), run_time=0.65)
-        self.add(pair)
-        shoulder = hexm.arm.get_start()
-        self.play(pair.animate.move_to([CHAIN_X, -2.0, 0]), Rotate(hexm.arm, angle=-0.55, about_point=shoulder), run_time=0.75)
-        self.play(Rotate(hexm.arm, angle=0.55, about_point=shoulder), run_time=0.35)
-        self.wait(1.75)
