@@ -239,30 +239,65 @@ class S07Sensors(SpokenScene):
         e=engine(); w=wire(); s=sensor()
         mess=VGroup(protein('Chk2',RED,0,0),protein('Chk1',RED,0,0)).set_z_index(5)
         self.play(FadeOut(rpa),FadeOut(atr),FadeOut(top),Transform(self.chrom,dna(True)),FadeIn(e),FadeIn(s),Create(w),run_time=.7)
+        m_path=CubicBezier([-1.45,1.5,0],[-.35,2.1,0],[.45,2.1,0],[1.15,1.72,0])
         for messenger in mess:
-            messenger.move_to(w.get_start());self.add(messenger)
-            self.play(MoveAlongPath(messenger,w),run_time=.65)
+            messenger.move_to(m_path.get_start());self.add(messenger)
+            self.play(MoveAlongPath(messenger,m_path),run_time=.65)
             self.play(FadeOut(messenger),run_time=.15)
         self.finish()
 
 class S08Brake(SpokenScene):
     def construct(self):
-        world(self,True);e=engine();p=VGroup(phosphate(2.4,.8),phosphate(3.6,.8));c=protein('Cdc25',GREEN,.3,-.1);w=wire();self.chrom.shift(LEFT*.7);self.add(e,p,c,w,sensor())
+        world(self,True);self.chrom.shift(LEFT*.7)
+        e=engine();p=VGroup(phosphate(2.02,.35),phosphate(3.98,.35))
+        c=protein('Cdc25',GREEN,-.2,-.1);w=wire();s=sensor()
+        self.add(e,p,c,w,s)
+        self.at('cdk1')
+        self.play(Indicate(e,color=TEXT,scale_factor=1.06),run_time=.9)
+        self.at('driving mitosis')
+        drive_arr=Arrow([2.75,-.08,0],[2.25,-1.95,0],buff=.05,color=TEXT,stroke_width=5)
+        drive_lab=T('drives mitosis',size=28,color=TEXT).move_to([3.95,-.75,0])
+        self.play(GrowArrow(drive_arr),FadeIn(drive_lab,shift=DOWN*.1),run_time=.8)
+        self.at('inhibitory phosphates')
+        self.play(Indicate(p,color=GOLD,scale_factor=1.18),run_time=.8)
+        self.at('hold it off')
+        keep_lab=T('keep it off',size=28,color=GOLD).move_to([4.15,-.38,0])
+        self.play(FadeOut(drive_arr),FadeOut(drive_lab),FadeIn(keep_lab),
+                  e[1][0].animate.set_stroke(GREY).set_fill(GREY,.1),run_time=.65)
+        self.at('until cdc25')
+        self.play(c.animate.move_to([1.05,.18,0]),run_time=1.0)
+        self.at('removes them')
+        rem_lab=T('removes them',size=28,color=GREEN).next_to(c,DOWN,buff=.22)
+        self.play(FadeIn(rem_lab),run_time=.35)
+        self.play(c.animate.shift(RIGHT*.08),rate_func=there_and_back,run_time=.5)
         self.at('these messengers inhibit')
-        m=VGroup(protein('Chk1',RED,0,0),protein('Chk2',RED,0,0)).set_z_index(5);tag=phosphate(.7,.4)
+        m=VGroup(protein('Chk1',RED,0,0),protein('Chk2',RED,0,0)).set_z_index(5)
+        m_path=CubicBezier([-1.45,1.3,0],[-.35,2.05,0],[.45,2.05,0],[1.15,1.72,0])
         for messenger in m:
-            messenger.move_to(w.get_start());self.add(messenger)
-            self.play(MoveAlongPath(messenger,w),run_time=.55)
+            messenger.move_to(m_path.get_start());self.add(messenger)
+            self.play(MoveAlongPath(messenger,m_path),run_time=.55)
             self.remove(messenger)
-        self.play(FadeIn(tag),c.animate.set_color(GREY).shift(LEFT*.5),run_time=.4)
-        self.at('keeps its inhibitory phosphates')
-        self.play(Indicate(p,color=GOLD),e[1][0].animate.set_stroke(GREY).set_fill(GREY,.1),FadeOut(m),run_time=.7)
+        tag=phosphate(1.55,.68)
+        self.play(FadeIn(tag,scale=.7),FadeOut(rem_lab),run_time=.4)
+        self.play(c.animate.set_color(GREY).shift(LEFT*1.25+DOWN*.28),
+                  tag.animate.shift(LEFT*1.25+DOWN*.28),run_time=.8)
+        self.at('keeps those phosphates')
+        self.play(Indicate(p,color=GOLD,scale_factor=1.18),
+                  Indicate(keep_lab,color=GOLD,scale_factor=1.08),run_time=.8)
         self.at('the cell waits')
-        self.play(FadeIn(brake()),run_time=.5);self.finish()
+        b=brake()
+        self.marker.clear_updaters()
+        self.play(FadeIn(b,shift=DOWN*.2),self.marker.animate.set_x(.2),run_time=.6)
+        self.marker.t_clock=0.0
+        def tremble(m_obj,dt):
+            m_obj.t_clock+=dt
+            m_obj.set_x(.2+.03*math.sin(m_obj.t_clock*28.0))
+        self.marker.add_updater(tremble)
+        self.finish()
 
 class S09Lift(SpokenScene):
     def construct(self):
-        world(self,True);e=engine();p=VGroup(phosphate(2.4,.8),phosphate(3.6,.8));c=protein('Cdc25',GREY,-.2,-.1);tag=phosphate(.3,.4);w=wire();b=brake();self.chrom.shift(LEFT*.7);self.add(e,p,c,tag,w,b)
+        world(self,True);e=engine();p=VGroup(phosphate(2.02,.35),phosphate(3.98,.35));c=protein('Cdc25',GREY,-.2,-.1);tag=phosphate(.3,.4);w=wire();b=brake();self.chrom.shift(LEFT*.7);self.add(e,p,c,tag,w,b)
         self.at('nothing was destroyed')
         self.play(Indicate(e,color=TEXT),run_time=.7)
         self.at('once the signal is silenced')

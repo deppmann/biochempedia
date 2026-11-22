@@ -23,15 +23,17 @@ WHAT CHANGES IN EACH SPOKEN SCENE (and what it is computed from):
 - s00_link_and_question : Recap ledger coins slide out/in (2 spent, 4 earned, net +2), swap to top
                           strip while the 3C sugar half with 1 YELLOW phosphate and 2 empty ADP slots
                           rise with oscillating carbon dots and ghost arrows + "?" (arithmetic balance).
-- s02_ladder            : Ladder built to scale from lesson ΔG°′ values (−10 to −65 kJ/mol); rungs
-                          light at −30.5 and −13.8; GREEN downhill arrow enters ADP, RED uphill arrow
+- s02_ladder            : Ladder built to scale from lesson ΔG°′ values (−10 to −65 kJ/mol); "more
+                          negative = higher rung" up-arrow cue appears at top of axis; rungs light at
+                          −30.5 and −13.8; GREEN downhill arrow enters ADP, RED uphill arrow
                           bounces at ATP; YELLOW token links to −13.8 and bobs.
 - s03_step6_oxidation   : Step 6 GREY clamp closes on C1; TEAL NAD+ receives 2 hopping electron dots
                           to become PURPLE NADH; ghost heat lines rise & rewind; clamp link glows as
                           activated bond while −49.3 rung begins to glow.
 - s04_new_rung          : MAGENTA Pi token rises from bottom pool, breaks activated bond and releases
-                          1,3-BPG; −49.3 rung lights in MAGENTA above ATP; at step 7 MAGENTA token slides
-                          down past ATP into slot 1 -> MAGENTA-rimmed ATP coin (+1).
+                          1,3-BPG; −49.3 rung lights in MAGENTA above ATP while "more negative =
+                          higher rung" pulses; at step 7 MAGENTA token slides down past ATP into
+                          slot 1 -> MAGENTA-rimmed ATP coin (+1).
 - s05_guiding_idea      : New MAGENTA-rimmed ATP coin glides to ledger under net +2 ("new") while NADH
                           pulses; remaining YELLOW token on sugar half pulses ("paid back").
 - s06_predict           : Sugar half becomes 3-phosphoglycerate with YELLOW token tethered to −13.8
@@ -174,7 +176,7 @@ def attach_carbon_jiggle(dots, amp=0.04, speed=2.6):
         d.add_updater(u)
 
 
-def make_ladder(lit=("atp", "est"), faint=("bpg", "pep")):
+def make_ladder(lit=("atp", "est"), faint=("bpg", "pep"), show_more_neg=True):
     """Build the phosphoryl-transfer ladder to scale from ΔG°′ = −10 to −65 kJ/mol."""
     left_rail = Line([LAD_X0, LAD_Y0, 0], [LAD_X0, LAD_Y1, 0], color=GREY, stroke_width=4.0)
     right_rail = Line([LAD_X1, LAD_Y0, 0], [LAD_X1, LAD_Y1, 0], color=GREY, stroke_width=3.0)
@@ -187,7 +189,10 @@ def make_ladder(lit=("atp", "est"), faint=("bpg", "pep")):
         ticks.add(tk)
         tlabels.add(tl)
 
-    axis_title = T("ΔG°′ of hydrolysis (kJ/mol)", size=24, color=TEXT).move_to([-3.55, 3.15, 0])
+    axis_title = T("ΔG°′ of hydrolysis (kJ/mol)", size=24, color=TEXT).move_to([-3.55, 3.22, 0])
+    up_arr = Arrow([0, -0.16, 0], [0, 0.16, 0], color=TEXT, stroke_width=4.0, buff=0, max_tip_length_to_length_ratio=0.45)
+    more_neg_txt = T("more negative = higher rung", size=22, color=TEXT, weight=BOLD)
+    more_neg_tag = VGroup(up_arr, more_neg_txt).arrange(RIGHT, buff=0.12).move_to([-3.80, 2.82, 0])
 
     rungs = {}
     rung_group = VGroup()
@@ -209,9 +214,13 @@ def make_ladder(lit=("atp", "est"), faint=("bpg", "pep")):
             rungs[key] = rg
             rung_group.add(rg)
 
-    g = VGroup(left_rail, right_rail, ticks, tlabels, axis_title, rung_group)
+    g = VGroup(left_rail, right_rail, ticks, tlabels, axis_title)
+    if show_more_neg:
+        g.add(more_neg_tag)
+    g.add(rung_group)
     g.rungs = rungs
     g.axis_title = axis_title
+    g.more_neg_tag = more_neg_tag
     return g
 
 
@@ -415,7 +424,7 @@ class S01Title(TitleCard):
 class S02Ladder(SpokenScene):
     def construct(self):
         ledger = make_compact_ledger()
-        ladder = make_ladder(lit=(), faint=())
+        ladder = make_ladder(lit=(), faint=(), show_more_neg=False)
         sugar = make_sugar_half()
         attach_carbon_jiggle(sugar.dots)
         p_tok = make_phosphate_token(YELLOW).move_to([BAR_CENTER[0] + BAR_W / 2 + 0.45, BAR_CENTER[1], 0])
@@ -427,23 +436,32 @@ class S02Ladder(SpokenScene):
             Create(ladder),
             FadeIn(sugar), FadeIn(p_tok),
             FadeIn(slot1), FadeIn(slot2),
-            run_time=self.beat(0.09),
+            run_time=self.beat(0.07),
         )
 
         self.at("ranked by")
         bpg_faint = DashedLine([LAD_X0, dg_to_y(-49.3), 0], [LAD_X1, dg_to_y(-49.3), 0], color=GREY, stroke_width=3.0, dash_length=0.16)
         pep_faint = DashedLine([LAD_X0, dg_to_y(-61.9), 0], [LAD_X1, dg_to_y(-61.9), 0], color=GREY, stroke_width=3.0, dash_length=0.16)
-        self.play(Create(bpg_faint), Create(pep_faint), run_time=self.beat(0.12))
+        self.play(Create(bpg_faint), Create(pep_faint), run_time=self.beat(0.06))
 
-        self.at("sits at minus")
+        self.at("more negative means higher")
+        self.play(FadeIn(ladder.more_neg_tag, shift=UP * 0.10), run_time=self.beat(0.05))
+
+        self.at("leaves more eagerly")
+        self.play(ladder.more_neg_tag.animate.scale(1.06), rate_func=there_and_back, run_time=0.6)
+
+        self.at("sits at")
         atp_bar = Line([LAD_X0, dg_to_y(-30.5), 0], [LAD_X1, dg_to_y(-30.5), 0], color=YELLOW, stroke_width=6.0)
-        atp_lab = T("ATP −30.5", size=24, color=YELLOW, weight=BOLD).next_to(atp_bar, UP, buff=0.10)
-        self.play(Create(atp_bar), FadeIn(atp_lab), run_time=self.beat(0.12))
+        self.play(Create(atp_bar), run_time=0.55)
 
-        self.at("standard ladder")
+        self.at("minus 30", lead=0.1)
+        atp_lab = T("ATP −30.5", size=24, color=YELLOW, weight=BOLD).next_to(atp_bar, UP, buff=0.10)
+        self.play(FadeIn(atp_lab), run_time=0.65)
+
+        self.at("a kinase")
         est_bar = Line([LAD_X0, dg_to_y(-13.8), 0], [LAD_X1, dg_to_y(-13.8), 0], color=TEXT, stroke_width=5.5)
         est_lab = T("ordinary ester −13.8", size=22, color=TEXT, weight=BOLD).next_to(est_bar, UP, buff=0.10)
-        self.play(Create(est_bar), FadeIn(est_lab), run_time=self.beat(0.10))
+        self.play(Create(est_bar), FadeIn(est_lab), run_time=0.75)
 
         self.at("only from a higher rung")
         g_start = np.array([LAD_X1 + 0.12, dg_to_y(-45.0), 0])
@@ -458,15 +476,18 @@ class S02Ladder(SpokenScene):
             Line([-0.16, -0.16, 0], [0.16, 0.16, 0], color=RED, stroke_width=5.0),
             Line([-0.16, 0.16, 0], [0.16, -0.16, 0], color=RED, stroke_width=5.0),
         ).move_to([LAD_X1 + 0.65, dg_to_y(-22.0), 0])
-        self.play(Create(g_path), FadeIn(g_tip), Create(r_arr), run_time=self.beat(0.12))
-        self.play(r_arr.animate.shift(DOWN * 0.35), FadeIn(cross), run_time=self.beat(0.08))
+        self.play(Create(g_path), FadeIn(g_tip), Create(r_arr), run_time=self.beat(0.08))
+        self.play(r_arr.animate.shift(DOWN * 0.35), FadeIn(cross), run_time=self.beat(0.05))
 
-        self.at("far below")
+        self.at("is an ordinary")
         tether = make_elbow_tether(lambda: p_tok.get_bottom() + DOWN * 0.05, dg_to_y(-13.8), color=YELLOW)
         g6p_tag = T("like glucose-6-phosphate", size=24, color=YELLOW).move_to([0.95, -0.95, 0])
         self.add(tether)
-        self.play(FadeIn(g6p_tag), run_time=self.beat(0.06))
+        self.play(FadeIn(g6p_tag), run_time=0.7)
         bob(p_tok, amp=0.06, speed=2.6)
+
+        self.at("far below", lead=0.1)
+        self.play(g6p_tag.animate.scale(1.05), rate_func=there_and_back, run_time=0.6)
         self.finish()
 
 
@@ -568,11 +589,14 @@ class S04NewRung(SpokenScene):
                  clamp, clamp_lab, bond, bond_lab, nadh, pi_pool, pool_lab)
 
         self.at("inorganic phosphate")
-        pi_tok = make_phosphate_token(MAGENTA).move_to([-0.85, -2.95, 0])
-        self.play(FadeIn(pi_tok), run_time=self.beat(0.04))
+        pi_tok = make_phosphate_token(MAGENTA).move_to([0.35, -2.95, 0])
+        self.play(FadeIn(pi_tok), run_time=0.4)
         pi_target = np.array([-0.85, -1.75, 0])
         pi_lab = T("inorganic phosphate", size=22, color=MAGENTA, weight=BOLD).move_to([1.15, -1.75, 0])
-        self.play(pi_tok.animate.move_to(pi_target), FadeIn(pi_lab), run_time=self.beat(0.08))
+        self.play(pi_tok.animate.move_to(pi_target), FadeIn(pi_lab), run_time=0.9)
+
+        self.at("the cell's pool")
+        self.play(pool_lab.animate.scale(1.08), rate_func=there_and_back, run_time=0.6)
 
         self.at("attacks that bond")
         bpg_name = T("1,3-BPG", size=26, color=BLUE, weight=BOLD).move_to([BAR_CENTER[0], -0.85, 0])
@@ -582,20 +606,27 @@ class S04NewRung(SpokenScene):
             pi_tok.animate.move_to(left_end),
             FadeOut(pi_lab),
             FadeIn(bpg_name),
-            run_time=self.beat(0.11),
+            run_time=self.beat(0.08),
         )
 
         self.at("new phosphate")
-        bpg_lab = T("1,3-BPG −49.3", size=24, color=MAGENTA, weight=BOLD).next_to(bpg_glow, UP, buff=0.10)
         bpg_glow.clear_updaters()
         bpg_glow.set_stroke(width=6.0)
         tether_new = make_elbow_tether(lambda: pi_tok.get_left() + LEFT * 0.05, dg_to_y(-49.3), color=MAGENTA, mid_x=-1.15)
         self.add(tether_new)
-        self.play(FadeIn(bpg_lab), run_time=self.beat(0.10))
+        bpg_short = T("1,3-BPG", size=24, color=MAGENTA, weight=BOLD).next_to(bpg_glow, UP, buff=0.10)
+        self.play(FadeIn(bpg_short), run_time=0.6)
+
+        self.at("minus 49", lead=0.1)
+        bpg_lab = T("1,3-BPG −49.3", size=24, color=MAGENTA, weight=BOLD).next_to(bpg_glow, UP, buff=0.10)
+        self.play(swap(bpg_short, bpg_lab, run_time=0.7))
+
+        self.at("more negative")
+        self.play(ladder.more_neg_tag.animate.scale(1.10), rate_func=there_and_back, run_time=0.8)
 
         self.at("at step 7")
         arr_7 = make_transfer_arrow([LAD_X1 + 0.08, dg_to_y(-49.3), 0], slot1.get_left() + LEFT * 0.08, via_x=3.95, via_y=1.35, color=GREEN)
-        self.play(Create(arr_7), run_time=self.beat(0.06))
+        self.play(Create(arr_7), run_time=0.8)
 
         self.at("a kinase hands")
         self.remove(tether_new)
@@ -605,13 +636,13 @@ class S04NewRung(SpokenScene):
         self.play(FadeOut(arr_7), run_time=0.20)
         self.play(
             pi_tok.animate.move_to(slot1.get_left() + LEFT * 0.42),
-            swap(bpg_name, pg_name, run_time=self.beat(0.06)),
-            run_time=self.beat(0.08),
+            swap(bpg_name, pg_name, run_time=0.65),
+            run_time=0.75,
         )
         self.play(
             FadeOut(pi_tok), FadeOut(slot1),
             FadeIn(new_atp), FadeIn(plus1, shift=UP * 0.15),
-            run_time=self.beat(0.07),
+            run_time=0.60,
         )
         self.finish()
 
@@ -640,10 +671,14 @@ class S05GuidingIdea(SpokenScene):
         self.at("the net gain")
         new_tag = T("new", size=22, color=MAGENTA, weight=BOLD).move_to([3.95, 1.72, 0])
         self.play(
-            new_atp.animate.move_to([3.95, 2.45, 0]),
-            FadeIn(new_tag),
-            run_time=self.beat(0.14),
+            new_atp.animate.move_to([3.95, 0.65, 0]),
+            run_time=self.beat(0.05),
         )
+        self.play(
+            new_atp.animate.move_to([3.95, 2.45, 0]),
+            run_time=self.beat(0.07),
+        )
+        self.play(FadeIn(new_tag), run_time=self.beat(0.03))
 
         self.at("this oxidation captures")
         self.play(

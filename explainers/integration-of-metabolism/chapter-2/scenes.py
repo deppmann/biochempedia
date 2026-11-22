@@ -32,15 +32,16 @@ WHAT CHANGES IN EACH SPOKEN SCENE (AND WHAT IT IS COMPUTED FROM):
     s04_alanine_kidney: RED+WHITE alanine tokens split in liver (PINK glucose to blood, WHITE nitrogen to
         urea); kidney enters below liver and thickens its glucose stream until equal at 5 weeks.
     s05_bill: Brain's 0–120 g/day bar fills 0->120 g, splits into 17.5 g PALE TEAL glycerol and 102.5 g RED
-        protein; a day counter runs 0 to 18.5 days (3.33 kg / 180 g/day) draining 1/3 of the 10 kg protein block.
+        protein, builds '~100 g glucose × ~1.8 ≈ 180 g protein/day' in sync with speech; a day counter runs
+        0 to 18.5 days (3.33 kg / 180 g/day) draining 1/3 of the 10 kg body protein block.
     s06_idea: Muscle resets to full; a horizontal YELLOW 'nearly level' line crosses the 4 mM glucose mark
         while glycogen, glycerol, protein payers and the brain bar highlight in turn.
     s07_predict: GREEN ketone dots enter the brain and fill the top 2/3 of the 0–120 g bar down to 40 g,
         leaving the remaining 40 g glucose need unsplit as the prediction question appears.
     s09_answer: PALE TEAL glycerol refills 17.5 g inside the 40 g glucose slot, leaving 22.5 g RED protein
-        beside a 102.5 g ghost (computed ratio 22.5/102.5 ≈ 1/5) as muscle's RED stream thins to ~1/5.
-    s10_fat_and_hedge: A day tracker runs 0 to 75 days driving side-by-side drain bars (fat 75 days vs
-        muscle ~29.6% spent at 39.5 g/day); muscle's stream then thins further toward measured ~20 g/day.
+        beside a 102.5 g ghost (22.5/102.5 ≈ 1/5) as muscle's RED stream thins to ~1/5 and '~100 → ~20 = 1/5' builds.
+    s10_fat_and_hedge: Fat returns (~75 days of energy); a day tracker runs 0 to 75 days driving side-by-side
+        drain bars (fat empties first while muscle holds >half); 'rough sums' brightens; muscle stream thins to ~20 g/day.
     s11_five_weeks: Scrubber returns to 5 weeks (3.75 mM glucose, 7.5 mM ketones); brain pie fills to 2/3
         GREEN / 1/3 YELLOW, kidney matches liver glucose output, and muscle stream pulses beside its old ghost.
     s12_close: Scrubber sweeps 12 h to 5 weeks, replaying glycogen drain -> muscle swell/thin -> fat-to-ketone
@@ -121,7 +122,7 @@ def build_scrubber(t_tracker, opacity=1.0):
     return VGroup(base, marker)
 
 
-def build_blood_tube(t_tracker, flow_tracker):
+def build_blood_tube(t_tracker, flow_tracker, ketone_opacity=1.0):
     """Tall blood tube on the left with 0–8 mM scale, live glucose & ketone columns, and blood carrier dots."""
     tube_w = TUBE_X1 - TUBE_X0
     tube_h = TUBE_Y1 - TUBE_Y0
@@ -145,23 +146,23 @@ def build_blood_tube(t_tracker, flow_tracker):
     def k_val():
         return interp_table(t_tracker.get_value(), KETONES_MM)
 
-    def make_bar(x_center, val_fn, col):
+    def make_bar(x_center, val_fn, col, op=1.0):
         def _draw():
             v = max(float(val_fn()), 0.08)
             h = (v / 8.0) * tube_h
             return Rectangle(
                 width=COL_W, height=h, stroke_color=col, stroke_width=2.5,
-                fill_color=col, fill_opacity=0.82
+                stroke_opacity=op, fill_color=col, fill_opacity=0.82 * op
             ).move_to([x_center, TUBE_Y0 + h / 2, 0])
         return always_redraw(_draw)
 
     g_bar = make_bar(GLUC_COL_X, g_val, YELLOW)
-    k_bar = make_bar(KET_COL_X, k_val, GREEN)
+    k_bar = make_bar(KET_COL_X, k_val, GREEN, op=ketone_opacity)
 
     g_name = T("glucose", size=24, color=YELLOW).move_to([GLUC_COL_X - 0.08, TUBE_Y0 - 0.28, 0])
-    k_name = T("ketones", size=24, color=GREEN).move_to([KET_COL_X + 0.22, TUBE_Y0 - 0.28, 0])
+    k_name = T("ketones", size=24, color=GREEN).set_opacity(ketone_opacity).move_to([KET_COL_X + 0.22, TUBE_Y0 - 0.28, 0])
     g_num = always_redraw(lambda: M(f"{g_val():.1f}", size=24, color=YELLOW).move_to([GLUC_COL_X - 0.08, TUBE_Y0 - 0.62, 0]))
-    k_num = always_redraw(lambda: M(f"{k_val():.1f}", size=24, color=GREEN).move_to([KET_COL_X + 0.22, TUBE_Y0 - 0.62, 0]))
+    k_num = always_redraw(lambda: M(f"{k_val():.1f}", size=24, color=GREEN).set_opacity(ketone_opacity).move_to([KET_COL_X + 0.22, TUBE_Y0 - 0.62, 0]))
 
     rng = np.random.default_rng(7)
     n_dots = 10
@@ -271,7 +272,7 @@ def build_brain_bar(x_center=BAR_X, y0=BAR_Y0, y1=BAR_Y1, width=BAR_W,
     return g
 
 
-def build_liver(glycogen_frac=None, show_new_glucose=False):
+def build_liver(glycogen_frac=None, show_new_glucose=False, tank_spent=False):
     """GREY liver box in centre-upper position with clear non-overlapping sub-zones."""
     box = RoundedRectangle(
         corner_radius=0.16, width=LIVER_W, height=LIVER_H,
@@ -286,7 +287,11 @@ def build_liver(glycogen_frac=None, show_new_glucose=False):
         tw, th = 1.35, 0.38
         tc = LIVER_CENTER + LEFT * 0.72 + DOWN * 0.62
         tank_frame = Rectangle(width=tw, height=th, stroke_color=ORANGE, stroke_width=2.5, fill_color=BG, fill_opacity=0.35).move_to(tc)
-        tank_label = T("glycogen\n~100 g", size=24, color=ORANGE, line_spacing=0.82).move_to(LIVER_CENTER + LEFT * 0.72 + UP * 0.08)
+        t_text = "glycogen\n(spent)" if tank_spent else "glycogen\n~100 g"
+        tank_label = T(t_text, size=24, color=ORANGE, line_spacing=0.82).move_to(LIVER_CENTER + LEFT * 0.72 + UP * 0.08)
+        if tank_spent:
+            tank_label.set_opacity(0.45)
+            tank_frame.set_stroke(opacity=0.45)
         def _tank_fill():
             f = float(np.clip(glycogen_frac.get_value(), 0.04, 1.0))
             fh = th * f
@@ -446,12 +451,12 @@ class S00LinkAndQuestion(SpokenScene):
         self.at("about one millimolar")
         y_hi = TUBE_Y0 + (4.75 / 8.0) * (TUBE_Y1 - TUBE_Y0)
         y_lo = TUBE_Y0 + (3.75 / 8.0) * (TUBE_Y1 - TUBE_Y0)
-        brk_line = Line([-3.05, y_lo, 0], [-3.05, y_hi, 0], color=YELLOW, stroke_width=4)
+        brk_line = Line([GLUC_COL_X, y_lo, 0], [GLUC_COL_X, y_hi, 0], color=YELLOW, stroke_width=4)
         brk_ticks = VGroup(
-            Line([-3.18, y_lo, 0], [-3.05, y_lo, 0], color=YELLOW, stroke_width=3),
-            Line([-3.18, y_hi, 0], [-3.05, y_hi, 0], color=YELLOW, stroke_width=3),
+            Line([GLUC_COL_X - 0.22, y_lo, 0], [GLUC_COL_X + 0.22, y_lo, 0], color=YELLOW, stroke_width=3),
+            Line([GLUC_COL_X - 0.22, y_hi, 0], [GLUC_COL_X + 0.22, y_hi, 0], color=YELLOW, stroke_width=3),
         )
-        brk_lab = T("about 1 mM", size=26, color=YELLOW).next_to(brk_line, RIGHT, buff=0.16)
+        brk_lab = T("about\n1 mM", size=24, color=YELLOW, line_spacing=0.82).next_to(brk_ticks[1], UP, buff=0.10)
         self.play(Create(brk_line), Create(brk_ticks), FadeIn(brk_lab), run_time=1.2)
 
         self.at("ketones climb")
@@ -502,12 +507,20 @@ class S02Savings(SpokenScene):
         self.play(glyc.animate.set_value(0.55), t_idx.animate.set_value(1.4), run_time=4.2, rate_func=linear)
 
         self.at("within a day")
+        spent_lab = T("glycogen\n(spent)", size=24, color=ORANGE, line_spacing=0.82).set_opacity(0.45).move_to(liver.tank_label)
         self.play(
             t_idx.animate.set_value(3.0),
             glyc.animate.set_value(0.08),
-            run_time=3.4,
+            run_time=3.0,
             rate_func=linear
         )
+        self.play(
+            FadeOut(liver.tank_label, run_time=0.25),
+            FadeIn(spent_lab, run_time=0.35),
+            liver.tank_frame.animate.set_stroke(opacity=0.45),
+            run_time=0.45
+        )
+        liver.tank_label = spent_lab
 
         self.at("after that")
         ng_lab = T("new glucose", size=24, color=PINK).move_to(LIVER_CENTER + UP * 0.72 + RIGHT * 0.55)
@@ -531,7 +544,7 @@ class S03RawMaterial(SpokenScene):
         blood = build_blood_tube(t_idx, flow)
         brain = build_brain_box()
         bbar = build_brain_bar(gluc_outline_g=120.0)
-        liver = build_liver(glycogen_frac=glyc, show_new_glucose=True)
+        liver = build_liver(glycogen_frac=glyc, show_new_glucose=True, tank_spent=True)
         fat = build_fat()
         muscle = build_muscle(protein_frac=prot)
 
@@ -543,20 +556,23 @@ class S03RawMaterial(SpokenScene):
         self.play(FadeIn(fat), FadeIn(muscle), run_time=1.0)
 
         self.at("fatty acids")
-        fa_stream = make_dot_stream([1.35, -0.62, 0], [0.55, 0.38, 0], flow, TEAL, n=6, radius=0.075, speed=0.65)
+        fa_stream = make_dot_stream([1.75, -0.62, 0], [0.78, 0.62, 0], flow, TEAL, n=6, radius=0.075, speed=0.60)
         self.add(fa_stream)
 
         self.at("cannot become")
-        bline = Line(LIVER_CENTER + RIGHT * 0.25 + DOWN * 0.55,
-                     LIVER_CENTER + RIGHT * 0.90 + UP * 0.05, color=RED, stroke_width=5)
-        blab = T("no glucose", size=24, color=RED).move_to([2.08, 0.65, 0])
-        self.play(Create(bline), FadeIn(blab), run_time=1.8)
+        bline = Line([-0.30, 0.74, 0], [1.05, 0.74, 0], color=RED, stroke_width=6)
+        blab = T("no glucose", size=24, color=RED).next_to(bline, RIGHT, buff=0.22)
+        self.play(Create(bline), FadeIn(blab), run_time=1.4)
 
         self.at("glycerol backbone")
-        glyc_stream = make_dot_stream([0.90, -0.62, 0], [-0.05, 0.35, 0], flow, PALE_TEAL, n=5, radius=0.065, speed=0.68)
-        glyc_lab = T("glycerol", size=24, color=PALE_TEAL).move_to([1.95, -0.10, 0])
+        glyc_stream = make_dot_stream([0.82, -0.62, 0], [-0.44, 1.44, 0], flow, PALE_TEAL, n=7, radius=0.068, speed=0.52)
+        glyc_lab = T("glycerol", size=24, color=PALE_TEAL).move_to([-0.14, -0.22, 0])
         self.add(glyc_stream)
-        self.play(FadeIn(glyc_lab), run_time=1.8)
+        self.play(FadeIn(glyc_lab), run_time=1.2)
+
+        self.at("15 to 20")
+        glyc_rate = T("15–20 g/day", size=22, color=PALE_TEAL).move_to([0.42, 1.16, 0])
+        self.play(FadeIn(glyc_rate), run_time=0.8)
 
         self.at("main raw material")
         prot_stream = make_dot_stream([-1.05, -0.50, 0], [-1.05, 0.08, 0], flow, RED, n=6,
@@ -578,7 +594,7 @@ class S04AlanineKidney(SpokenScene):
         blood = build_blood_tube(t_idx, flow)
         brain = build_brain_box()
         bbar = build_brain_bar(gluc_outline_g=120.0)
-        liver = build_liver(glycogen_frac=glyc, show_new_glucose=True)
+        liver = build_liver(glycogen_frac=glyc, show_new_glucose=True, tank_spent=True)
         fat = build_fat()
         muscle = build_muscle(protein_frac=prot)
 
@@ -621,20 +637,20 @@ class S04AlanineKidney(SpokenScene):
 
         self.at("kidney joins in")
         kidney = build_kidney()
-        self.play(FadeIn(kidney), run_time=1.0)
-        kid_thin = make_dot_stream([0.42, -0.11, 0], [-3.20, -0.11, 0], flow, YELLOW, n=5,
-                                   radius=0.052, speed=0.58, edge_color=PINK)
+        self.play(FadeIn(kidney), bbar.animate.set_opacity(0.25), run_time=1.0)
+        kid_thin = make_dot_stream([0.42, -0.11, 0], [-3.20, -0.11, 0], flow, YELLOW, n=12,
+                                   radius=0.050, speed=0.19, edge_color=PINK)
         self.add(kid_thin)
 
         self.at("by five weeks")
-        kid_thick = make_dot_stream([0.42, -0.11, 0], [-3.20, -0.11, 0], flow, YELLOW, n=6,
-                                    radius=0.078, speed=0.68, edge_color=PINK)
-        eq_sign = T("=", size=34, color=PINK).move_to([-2.68, 0.865, 0])
-        eq_lab = T("about\nequal", size=22, color=TEXT, line_spacing=0.82).move_to([-2.68, 0.395, 0])
-        self.play(t_idx.animate.set_value(4.0), run_time=2.4, rate_func=linear)
+        kid_thick = make_dot_stream([0.42, -0.11, 0], [-3.20, -0.11, 0], flow, YELLOW, n=20,
+                                    radius=0.078, speed=0.19, edge_color=PINK)
+        eq_sign = T("=", size=34, color=PINK).move_to([-2.68, 0.83, 0])
+        eq_lab = T("about\nequal", size=22, color=TEXT, line_spacing=0.82).move_to([-2.68, 0.38, 0])
         self.remove(kid_thin)
         self.add(kid_thick)
-        self.play(FadeIn(eq_sign), FadeIn(eq_lab), run_time=0.8)
+        self.play(t_idx.animate.set_value(4.0), run_time=1.4, rate_func=linear)
+        self.play(FadeIn(eq_sign), FadeIn(eq_lab), run_time=0.6)
         self.finish()
 
 
@@ -648,7 +664,7 @@ class S05Bill(SpokenScene):
         attach_flow_driver(self, flow)
 
         scrubber = build_scrubber(t_idx, opacity=0.60)
-        blood = build_blood_tube(t_idx, flow)
+        blood = build_blood_tube(t_idx, flow, ketone_opacity=0.22)
         kidney = build_kidney()
         muscle = build_muscle(protein_frac=prot)
 
@@ -676,7 +692,7 @@ class S05Bill(SpokenScene):
         ).move_to([bx, by0 + max((g_fill.get_value() / 120.0) * bh, 0.03) / 2, 0]))
         g_cnt = counter("~{:.0f} g/day", g_fill, at=[4.55, by1 - 0.15, 0], size=26, color=YELLOW)
         self.add(y_fill, g_cnt)
-        self.play(g_fill.animate.set_value(120.0), run_time=4.0, rate_func=linear)
+        self.play(g_fill.animate.set_value(120.0), run_time=3.2, rate_func=linear)
 
         self.at("glycerol covers")
         gh = (17.5 / 120.0) * bh
@@ -684,10 +700,13 @@ class S05Bill(SpokenScene):
             width=bw - 0.04, height=gh, stroke_color=PALE_TEAL, stroke_width=1.5,
             fill_color=PALE_TEAL, fill_opacity=0.90
         ).move_to([bx, by0 + gh / 2, 0])
-        g_lab = T("glycerol 15–20 g", size=24, color=PALE_TEAL).move_to([4.75, by0 + gh / 2, 0])
-        self.play(FadeIn(g_band, shift=UP * 0.15), FadeIn(g_lab), run_time=1.8)
+        self.play(FadeIn(g_band, shift=UP * 0.15), run_time=0.75)
 
-        self.at("the rest")
+        self.at("15 to 20")
+        g_lab = T("glycerol 15–20 g", size=24, color=PALE_TEAL).move_to([4.75, by0 + gh / 2, 0])
+        self.play(FadeIn(g_lab), run_time=0.75)
+
+        self.at("leaving about 100")
         ph = (102.5 / 120.0) * bh
         p_frac = ValueTracker(0.0)
         p_band = always_redraw(lambda: Rectangle(
@@ -697,35 +716,57 @@ class S05Bill(SpokenScene):
         p_lab = T("from protein", size=26, color=RED).move_to([4.55, by0 + gh + ph / 2, 0])
         self.remove(y_fill)
         self.add(g_band, p_band)
-        self.play(p_frac.animate.set_value(1.0), FadeIn(p_lab), run_time=2.0, rate_func=linear)
+        self.play(p_frac.animate.set_value(1.0), FadeIn(p_lab), run_time=1.3, rate_func=linear)
 
-        self.at("180 grams")
+        # Build '~100 g glucose × ~1.8 ≈ 180 g protein/day' step by step in sync with narration
+        f_lhs = T("~100 g glucose", size=24, color=TEXT)
+        f_op = T("× ~1.8", size=24, color=TEXT)
+        f_row1 = VGroup(f_lhs, f_op).arrange(RIGHT, buff=0.10).move_to([-0.35, 0.84, 0])
+        f_rhs = T("≈ 180 g protein/day", size=24, color=TEXT).move_to([-0.35, 0.44, 0])
+
+        self.at("each gram")
+        self.play(FadeIn(f_lhs), run_time=0.8)
+
+        self.at("almost 2 grams")
         arr_p0 = [bx - bw / 2 - 0.55, by0 + gh + ph * 0.35, 0]
         arr_p1 = [MUSCLE_CENTER[0] + MUSCLE_W / 2 + 0.08, MUSCLE_CENTER[1], 0]
         arr = Arrow(arr_p0, arr_p1, color=RED, stroke_width=4, buff=0)
-        cost_lab = T("~180 g protein/day", size=24, color=RED).move_to([MUSCLE_CENTER[0], MUSCLE_CENTER[1] + 1.05, 0])
-        cost_stream = make_dot_stream(arr_p1, arr_p0, flow, RED, n=5, radius=0.072, speed=0.68)
-        self.play(GrowArrow(arr), FadeIn(cost_lab), run_time=2.2)
+        cost_stream = make_dot_stream(arr_p0, arr_p1, flow, RED, n=6, radius=0.075, speed=0.72)
+        self.play(GrowArrow(arr), FadeIn(f_op), run_time=1.0)
         self.add(cost_stream)
-        self.wait(1.6)
 
-        self.at("a third of")
-        body_lab = T("body protein ~10 kg", size=24, color=RED).move_to([MUSCLE_CENTER[0], -2.42, 0])
+        self.at("180 grams")
+        cost_lab = T("~180 g protein/day", size=24, color=RED).move_to([MUSCLE_CENTER[0], MUSCLE_CENTER[1] + 1.12, 0])
+        self.play(FadeIn(f_rhs), FadeIn(cost_lab), run_time=1.4)
+        self.play(muscle.box.animate.set_stroke(RED, width=4.5), run_time=0.6)
+        self.play(muscle.box.animate.set_stroke(GREY, width=3), run_time=0.6)
+
+        self.at("10 kilograms")
+        relabel = T("body protein", size=24, color=TEXT).move_to([MUSCLE_CENTER[0], -1.04, 0])
+        body_lab = T("~10 kg", size=24, color=RED).move_to([MUSCLE_CENTER[0], -2.42, 0])
         y_third = muscle.block_center[1] + muscle.block_h / 2 - muscle.block_h / 3.0
         dline = DashedLine([muscle.block_center[0] - muscle.block_w / 2, y_third, 0],
                            [muscle.block_center[0] + muscle.block_w / 2, y_third, 0], color=TEXT, stroke_width=2.5)
-        day_cnt = counter("day {:.0f}", days, at=[MUSCLE_CENTER[0], MUSCLE_CENTER[1] + 1.56, 0], size=28, color=TEXT)
         rtag = scope_tag("rough sums")
-        self.play(FadeOut(muscle.block_label, run_time=0.45), FadeIn(body_lab), Create(dline), FadeIn(rtag), run_time=0.8)
+        self.play(
+            swap(VGroup(muscle.label, muscle.block_label), relabel, run_time=0.65),
+            FadeIn(body_lab),
+            Create(dline),
+            FadeIn(rtag),
+            run_time=0.75
+        )
+
+        self.at("a third would be gone")
+        day_cnt = counter("day {:.0f}", days, at=[MUSCLE_CENTER[0], 1.56, 0], size=28, color=TEXT)
         self.add(day_cnt)
         self.play(
             days.animate.set_value(18.5),
             prot.animate.set_value(0.667),
-            run_time=3.2,
+            run_time=1.65,
             rate_func=linear
         )
-        gone_lab = T("1/3 gone, ~2.5 weeks", size=24, color=TEXT).move_to([MUSCLE_CENTER[0], -2.82, 0])
-        self.play(FadeIn(gone_lab), run_time=0.5)
+        gone_lab = T("1/3 gone, ~2.5 weeks", size=24, color=TEXT).move_to([MUSCLE_CENTER[0], -2.84, 0])
+        self.play(FadeIn(gone_lab), run_time=0.45)
         self.finish()
 
 
@@ -740,7 +781,7 @@ class S06Idea(SpokenScene):
         blood = build_blood_tube(t_idx, flow)
         brain = build_brain_box()
         bbar = build_brain_bar(glyc_g=17.5, prot_g=102.5)
-        liver = build_liver(glycogen_frac=glyc, show_new_glucose=True)
+        liver = build_liver(glycogen_frac=glyc, show_new_glucose=True, tank_spent=True)
         muscle = build_muscle()
 
         g_stream = make_dot_stream([-3.15, 2.40, 0], [3.10, 2.16, 0], flow, YELLOW, n=7, radius=0.075, speed=0.48)
@@ -753,7 +794,7 @@ class S06Idea(SpokenScene):
 
         self.at("blood glucose")
         y4 = TUBE_Y0 + (4.0 / 8.0) * (TUBE_Y1 - TUBE_Y0)
-        lvl_line = Line([TUBE_X0 + 0.08, y4, 0], [TUBE_X1 - 0.08, y4, 0], color=YELLOW, stroke_width=4)
+        lvl_line = Line([GLUC_COL_X - COL_W / 2 - 0.14, y4, 0], [GLUC_COL_X + COL_W / 2 + 0.14, y4, 0], color=YELLOW, stroke_width=4)
         lvl_lab = T("nearly\nlevel", size=22, color=YELLOW, line_spacing=0.82).move_to([-2.68, y4 + 0.30, 0])
         self.play(
             blood.g_bar.animate.set_stroke(YELLOW, width=5),
@@ -781,7 +822,7 @@ def build_s07_world(flow_tracker, ket_g_tracker):
     scrubber = build_scrubber(t_idx)
     blood = build_blood_tube(t_idx, flow_tracker)
     brain = build_brain_box()
-    liver = build_liver(glycogen_frac=ValueTracker(0.08), show_new_glucose=True)
+    liver = build_liver(glycogen_frac=ValueTracker(0.08), show_new_glucose=True, tank_spent=True)
     muscle = build_muscle()
 
     g_stream = make_dot_stream([-3.15, 2.40, 0], [3.10, 2.16, 0], flow_tracker, YELLOW, n=5, radius=0.065, speed=0.48)
@@ -882,20 +923,31 @@ class S09Answer(SpokenScene):
         self.at("about a fifth")
         bh = BAR_Y1 - BAR_Y0
         ghost_h = (102.5 / 120.0) * bh
-        ghost_x = 1.95
+        ph_new = (22.5 / 120.0) * bh
+        ghost_x = 1.74
+        new_cmp_x = 3.04
         ghost = Rectangle(
-            width=0.44, height=ghost_h, stroke_color=RED, stroke_width=2.5,
+            width=0.42, height=ghost_h, stroke_color=RED, stroke_width=2.5,
             fill_color=RED, fill_opacity=0.22
         ).move_to([ghost_x, BAR_Y0 + ghost_h / 2, 0])
-        ghost_tag = T("old\n102.5 g", size=22, color=RED, line_spacing=0.85).next_to(ghost, UP, buff=0.14)
+        ghost_tag = T("old", size=24, color=RED).next_to(ghost, UP, buff=0.14)
+        p_cmp = Rectangle(
+            width=0.42, height=ph_new, stroke_color=RED, stroke_width=2.0,
+            fill_color=RED, fill_opacity=0.88
+        ).move_to([new_cmp_x, BAR_Y0 + ph_new / 2, 0])
+        new_tag = T("new", size=24, color=RED).next_to(p_cmp, UP, buff=0.10)
+        fifth_lab = T("about 1/5", size=24, color=RED).move_to([2.39, BAR_Y0 - 0.36, 0])
         thin_prot = make_dot_stream([-1.05, -0.50, 0], [-1.05, 0.08, 0], flow, RED, n=3, radius=0.048, speed=0.55)
-        self.play(FadeIn(ghost), FadeIn(ghost_tag), run_time=1.4)
+        self.play(FadeIn(ghost), FadeIn(ghost_tag), FadeIn(p_cmp), FadeIn(new_tag), FadeIn(fifth_lab), run_time=1.0)
         world.remove(world.prot_stream)
         self.add(thin_prot)
 
+        self.at("rough sums")
+        rtag = scope_tag("rough sums", color=GREY)
+        self.play(FadeIn(rtag), run_time=0.5)
+
         self.at("glycerol still covers")
         gh = (17.5 / 120.0) * bh
-        ph_new = (22.5 / 120.0) * bh
         g_band = Rectangle(
             width=BAR_W - 0.04, height=gh, stroke_color=PALE_TEAL, stroke_width=1.5,
             fill_color=PALE_TEAL, fill_opacity=0.90
@@ -904,17 +956,43 @@ class S09Answer(SpokenScene):
             width=BAR_W - 0.04, height=ph_new, stroke_color=RED, stroke_width=1.5,
             fill_color=RED, fill_opacity=0.88
         ).move_to([BAR_X, BAR_Y0 + gh + ph_new / 2, 0])
-        g_lab = T("glycerol\n15–20 g", size=22, color=PALE_TEAL, line_spacing=0.85).move_to([BAR_X + 1.06, BAR_Y0 + gh / 2, 0])
-        fifth_lab = T("about 1/5", size=24, color=RED).move_to([ghost_x, BAR_Y0 - 0.36, 0])
-        self.play(FadeOut(g40_lab, run_time=0.35))
-        self.play(FadeIn(g_band), FadeIn(p_new), FadeIn(g_lab), FadeIn(fifth_lab), run_time=1.5)
+        self.play(FadeOut(g40_lab, run_time=0.3))
+        self.play(FadeIn(g_band), FadeIn(p_new), run_time=0.9)
 
-        self.at("whole cut")
-        cut_arr = Arrow([BAR_X - BAR_W / 2 - 0.06, -0.62, 0],
-                        [ghost_x + 0.28, -0.62, 0],
-                        color=GREEN, stroke_width=4, buff=0)
-        cut_lab = T("−80 g\ncut", size=24, color=GREEN, line_spacing=0.85).move_to([2.90, -1.06, 0])
-        self.play(GrowArrow(cut_arr), FadeIn(cut_lab), run_time=1.0)
+        self.at("15 to 20")
+        g_lab = T("glycerol\n15–20 g", size=22, color=PALE_TEAL, line_spacing=0.85).move_to([BAR_X + 1.06, BAR_Y0 + gh / 2, 0])
+        self.play(FadeIn(g_lab), run_time=0.7)
+
+        self.at("the whole cut")
+        y_cut_bot = BAR_Y0 + ph_new
+        y_cut_top = BAR_Y0 + ghost_h
+        cut_brk_x = ghost_x - 0.34
+        cut_line = Line([cut_brk_x, y_cut_bot, 0], [cut_brk_x, y_cut_top, 0], color=GREEN, stroke_width=4)
+        cut_ticks = VGroup(
+            Line([cut_brk_x, y_cut_bot, 0], [ghost_x - 0.22, y_cut_bot, 0], color=GREEN, stroke_width=3),
+            Line([cut_brk_x, y_cut_top, 0], [ghost_x - 0.22, y_cut_top, 0], color=GREEN, stroke_width=3),
+        )
+        cut_ref = DashedLine([ghost_x + 0.22, y_cut_bot, 0], [new_cmp_x - 0.22, y_cut_bot, 0],
+                             color=GREEN, stroke_width=2.5, dash_length=0.06)
+        cut_lab = T("whole\ncut", size=24, color=GREEN, line_spacing=0.85).next_to(cut_line, LEFT, buff=0.12)
+        self.play(Create(cut_line), Create(cut_ticks), Create(cut_ref), FadeIn(cut_lab), run_time=0.9)
+
+        # Build '~100 g', '~20 g', and '~100 → ~20 = 1/5' in sync with speech
+        op_100 = T("~100", size=22, color=TEXT)
+        op_arr = T("→ ~20", size=22, color=TEXT)
+        op_row1 = VGroup(op_100, op_arr).arrange(RIGHT, buff=0.08).move_to([2.84, 0.14, 0])
+        op_eq = T("= 1/5", size=22, color=TEXT).move_to([2.84, -0.16, 0])
+
+        self.at("about 100")
+        g100_lab = T("~100 g", size=24, color=TEXT).next_to(ghost, UP, buff=0.14)
+        self.play(swap(ghost_tag, g100_lab, run_time=0.6), FadeIn(op_100, run_time=0.6))
+
+        self.at("about 20")
+        g20_lab = T("~20 g", size=24, color=TEXT).next_to(p_cmp, UP, buff=0.08)
+        self.play(swap(new_tag, g20_lab, run_time=0.6), FadeIn(op_arr, run_time=0.6))
+
+        self.at("that is a fifth")
+        self.play(FadeIn(op_eq, run_time=0.5), fifth_lab.animate.set_color(GOLD))
         self.finish()
 
 
@@ -929,7 +1007,7 @@ class S10FatAndHedge(SpokenScene):
         blood = build_blood_tube(t_idx, flow)
         brain = build_brain_box()
         bbar = build_brain_bar(ket_g=80.0, glyc_g=17.5, prot_g=22.5, title_text="brain fuel\n(g/day)")
-        liver = build_liver(glycogen_frac=ValueTracker(0.08), show_new_glucose=True)
+        liver = build_liver(glycogen_frac=ValueTracker(0.08), show_new_glucose=True, tank_spent=True)
 
         mx = -1.45
         fx = 1.65
@@ -942,51 +1020,59 @@ class S10FatAndHedge(SpokenScene):
         k_stream = make_dot_stream([-3.15, 2.20, 0], [3.10, 1.96, 0], flow, GREEN, n=7, radius=0.072, speed=0.48)
         pink_stream = make_dot_stream([-2.20, 1.05, 0], [-3.20, 1.05, 0], flow, YELLOW, n=5, radius=0.075, speed=0.68, edge_color=PINK)
         thin_prot = make_dot_stream([mx + 0.15, -0.42, 0], [mx + 0.15, 0.08, 0], flow, RED, n=3, radius=0.05, speed=0.55)
+        rtag = scope_tag("rough sums", color=GREY).set_opacity(0.45)
 
-        self.add(scrubber, blood, brain, bbar, liver, muscle, g_stream, k_stream, pink_stream, thin_prot)
+        self.add(scrubber, blood, brain, bbar, liver, muscle, g_stream, k_stream, pink_stream, thin_prot, rtag)
 
-        self.at("the fat")
+        self.at("protein is no longer")
+        bw = 2.00
+        m_frame = Rectangle(width=bw, height=0.34, stroke_color=RED, stroke_width=2.5).move_to([mx, -2.05, 0])
+        m_fill = always_redraw(lambda: Rectangle(
+            width=bw * max(1.0 - (days.get_value() * 39.5) / 10000.0, 0.05),
+            height=0.30, stroke_width=0, fill_color=RED, fill_opacity=0.85
+        ).move_to([mx - bw / 2 + (bw * max(1.0 - (days.get_value() * 39.5) / 10000.0, 0.05)) / 2, -2.05, 0]))
+        self.play(FadeIn(m_frame), FadeIn(m_fill), m_box.animate.set_stroke(RED, width=4), run_time=0.8)
+        self.play(m_box.animate.set_stroke(GREY, width=3), run_time=0.4)
+
+        self.at("fat")
         f_box = RoundedRectangle(corner_radius=0.16, width=2.25, height=1.10, stroke_color=GREY, stroke_width=3, fill_color=GREY, fill_opacity=0.13).move_to([fx, -1.00, 0])
         f_lab = T("fat", size=26, color=TEXT).move_to([fx, -0.68, 0])
         f_blk = Rectangle(width=1.70, height=0.40, stroke_color=TEAL, stroke_width=2, fill_color=TEAL, fill_opacity=0.75).move_to([fx, -1.20, 0])
+        fat = VGroup(f_box, f_lab, f_blk)
+        self.play(FadeIn(fat, shift=LEFT * 0.4), run_time=0.5)
+
+        self.at("75 days")
         f_days = T("~75 days of energy", size=24, color=TEAL).move_to([fx, -0.22, 0])
-        fat = VGroup(f_box, f_lab, f_blk, f_days)
-        self.play(FadeIn(fat, shift=LEFT * 0.4), run_time=1.0)
+        self.play(FadeIn(f_days), run_time=0.7)
 
-        self.at("runs out before")
-        bw = 2.00
-        m_frame = Rectangle(width=bw, height=0.34, stroke_color=RED, stroke_width=2.5).move_to([mx, -2.05, 0])
+        self.at("runs out first")
         f_frame = Rectangle(width=bw, height=0.34, stroke_color=TEAL, stroke_width=2.5).move_to([fx, -2.05, 0])
-
-        def _m_bar():
-            rem = max(1.0 - (days.get_value() * 39.5) / 10000.0, 0.05)
-            w = bw * rem
-            return Rectangle(width=w, height=0.30, stroke_width=0, fill_color=RED, fill_opacity=0.85).move_to([mx - bw / 2 + w / 2, -2.05, 0])
-
-        def _f_bar():
-            rem = max(1.0 - days.get_value() / 75.0, 0.02)
-            w = bw * rem
-            return Rectangle(width=w, height=0.30, stroke_width=0, fill_color=TEAL, fill_opacity=0.85).move_to([fx - bw / 2 + w / 2, -2.05, 0])
-
-        m_fill = always_redraw(_m_bar)
-        f_fill = always_redraw(_f_bar)
+        f_fill = always_redraw(lambda: Rectangle(
+            width=bw * max(1.0 - days.get_value() / 75.0, 0.02),
+            height=0.30, stroke_width=0, fill_color=TEAL, fill_opacity=0.85
+        ).move_to([fx - bw / 2 + (bw * max(1.0 - days.get_value() / 75.0, 0.02)) / 2, -2.05, 0]))
         day_lbl = counter("day {:.0f} (schematic)", days, at=[0.10, -2.50, 0], size=24, color=TEXT)
-        self.play(FadeIn(m_frame), FadeIn(f_frame), run_time=0.4)
-        self.add(m_fill, f_fill, day_lbl)
-        self.play(days.animate.set_value(75.0), run_time=2.5, rate_func=linear)
-        out_tag = T("fat runs out first", size=24, color=TEAL).move_to([fx, -2.96, 0])
-        self.play(FadeIn(out_tag), run_time=0.5)
+        self.play(FadeIn(f_frame), run_time=0.3)
+        self.add(f_fill, day_lbl)
+        self.play(days.animate.set_value(75.0), run_time=1.15, rate_func=linear)
+        out_tag = T("fat runs out first", size=24, color=TEAL).move_to([fx, -2.92, 0])
+        self.play(FadeIn(out_tag), run_time=0.35)
+
+        self.at("sets the limit")
+        limit_tag = T("fat sets the limit, not protein", size=24, color=TEAL).move_to([0.20, -3.30, 0])
+        self.play(FadeIn(limit_tag), run_time=0.6)
 
         self.at("direction and size")
-        rtag = scope_tag("rough sums", color=GOLD)
-        self.play(FadeIn(rtag), run_time=0.8)
+        self.play(rtag.animate.set_color(GOLD).set_opacity(1.0), run_time=0.8)
 
-        self.at("measured protein loss")
+        self.at("runs lower")
         meas_stream = make_dot_stream([mx + 0.15, -0.42, 0], [mx + 0.15, 0.08, 0], flow, RED, n=2, radius=0.038, speed=0.45)
-        meas_lab = T("measured: ~20 g/day", size=24, color=RED).move_to([mx - 0.15, -2.96, 0])
         self.remove(thin_prot)
         self.add(meas_stream)
-        self.play(FadeIn(meas_lab), run_time=2.0)
+
+        self.at("20 grams")
+        meas_lab = T("measured: ~20 g/day", size=24, color=RED).move_to([mx - 0.25, -2.92, 0])
+        self.play(FadeIn(meas_lab), run_time=0.7)
         self.finish()
 
 
@@ -994,14 +1080,14 @@ class S11FiveWeeks(SpokenScene):
     def construct(self):
         t_idx = ValueTracker(3.5)
         flow = ValueTracker(0.0)
-        pie_k = ValueTracker(0.0)
+        pie_k = ValueTracker(2.0 / 3.0)
         attach_flow_driver(self, flow)
 
         scrubber = build_scrubber(t_idx)
         blood = build_blood_tube(t_idx, flow)
         brain = build_brain_box(ketone_share_tracker=pie_k)
         bbar = build_brain_bar(ket_g=80.0, glyc_g=17.5, prot_g=22.5, title_text="brain fuel\n(g/day)")
-        liver = build_liver(glycogen_frac=ValueTracker(0.06), show_new_glucose=True)
+        liver = build_liver(glycogen_frac=ValueTracker(0.06), show_new_glucose=True, tank_spent=True)
         muscle = build_muscle()
 
         g_stream = make_dot_stream([-3.15, 2.40, 0], [3.10, 2.16, 0], flow, YELLOW, n=5, radius=0.06, speed=0.48)
@@ -1014,20 +1100,21 @@ class S11FiveWeeks(SpokenScene):
 
         self.at("barely moved")
         y4 = TUBE_Y0 + (4.0 / 8.0) * (TUBE_Y1 - TUBE_Y0)
-        lvl_line = Line([TUBE_X0 + 0.08, y4, 0], [TUBE_X1 - 0.08, y4, 0], color=YELLOW, stroke_width=4)
+        lvl_line = Line([GLUC_COL_X - COL_W / 2 - 0.14, y4, 0], [GLUC_COL_X + COL_W / 2 + 0.14, y4, 0], color=YELLOW, stroke_width=4)
         self.play(blood.g_bar.animate.set_stroke(YELLOW, width=5), Create(lvl_line), run_time=1.8)
 
         self.at("brain runs")
         pie_lab = T("~2/3 ketones", size=24, color=GREEN).move_to([BRAIN_CENTER[0], BRAIN_CENTER[1] + 0.80, 0])
-        self.play(pie_k.animate.set_value(2.0 / 3.0), FadeIn(pie_lab), run_time=2.4)
+        self.play(brain.box.animate.set_stroke(GREEN, width=5), FadeIn(pie_lab), run_time=1.0)
+        self.play(brain.box.animate.set_stroke(PERIWINKLE, width=3), run_time=0.8)
 
         self.at("the kidney")
         kidney = build_kidney()
-        kid_stream = make_dot_stream([0.42, -0.14, 0], [-3.20, -0.14, 0], flow, YELLOW, n=6,
-                                     radius=0.078, speed=0.68, edge_color=PINK)
-        eq_sign = T("=", size=34, color=PINK).move_to([-2.68, 0.865, 0])
-        eq_lab = T("about\nequal", size=22, color=TEXT, line_spacing=0.82).move_to([-2.68, 0.395, 0])
-        self.play(FadeIn(kidney), FadeIn(eq_sign), FadeIn(eq_lab), run_time=1.5)
+        kid_stream = make_dot_stream([0.42, -0.14, 0], [-3.20, -0.14, 0], flow, YELLOW, n=20,
+                                     radius=0.078, speed=0.19, edge_color=PINK)
+        eq_sign = T("=", size=34, color=PINK).move_to([-2.68, 0.83, 0])
+        eq_lab = T("about\nequal", size=22, color=TEXT, line_spacing=0.82).move_to([-2.68, 0.38, 0])
+        self.play(FadeIn(kidney), FadeIn(eq_sign), FadeIn(eq_lab), run_time=1.0)
         self.add(kid_stream)
 
         self.at("muscle pays")
@@ -1071,12 +1158,12 @@ class S12Close(SpokenScene):
             return parts
 
         bbar = VGroup(bbar_base, always_redraw(_bbar_fills))
-        liver = build_liver(glycogen_frac=glyc, show_new_glucose=True)
+        liver = build_liver(glycogen_frac=glyc, show_new_glucose=True, tank_spent=False)
         muscle = build_muscle()
         fat = build_fat()
 
         y4 = TUBE_Y0 + (4.0 / 8.0) * (TUBE_Y1 - TUBE_Y0)
-        lvl_line = Line([TUBE_X0 + 0.08, y4, 0], [TUBE_X1 - 0.08, y4, 0], color=YELLOW, stroke_width=4)
+        lvl_line = Line([GLUC_COL_X - COL_W / 2 - 0.14, y4, 0], [GLUC_COL_X + COL_W / 2 + 0.14, y4, 0], color=YELLOW, stroke_width=4)
         lvl_lab = T("nearly\nlevel", size=22, color=YELLOW, line_spacing=0.82).move_to([-2.68, y4 + 0.30, 0])
 
         g_stream = make_dot_stream([-3.15, 2.40, 0], [3.10, 2.16, 0], flow, YELLOW, n=6, radius=0.068, speed=0.48)
@@ -1099,7 +1186,10 @@ class S12Close(SpokenScene):
         self.play(blood.g_bar.animate.set_stroke(YELLOW, width=5), run_time=2.4)
 
         self.at("glycogen pays")
+        spent_lab = T("glycogen\n(spent)", size=24, color=ORANGE, line_spacing=0.82).set_opacity(0.45).move_to(liver.tank_label)
         self.play(t_idx.animate.set_value(2.0), glyc.animate.set_value(0.08), run_time=1.0, rate_func=linear)
+        self.play(FadeOut(liver.tank_label, run_time=0.2), FadeIn(spent_lab, run_time=0.25), liver.tank_frame.animate.set_stroke(opacity=0.45), run_time=0.3)
+        liver.tank_label = spent_lab
 
         self.at("then muscle protein")
         self.play(t_idx.animate.set_value(3.0), m_size.animate.set_value(0.10), run_time=1.8, rate_func=linear)

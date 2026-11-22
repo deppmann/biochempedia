@@ -311,17 +311,76 @@ class S05Rule(SpokenScene):
 class S06Predict(SpokenScene):
     def construct(self):
         b, light, sep, ray, question, placeholders = prediction_frame()
+        b.sources[0].set_opacity(.22)
         self.add(b, light)
         self.at("restore both vesicles")
         self.play(b.sources[0].animate.set_opacity(1), run_time=.7)
-        self.at("separation is 150")
+        self.at("150 nanometers", lead=0.0)
         self.play(Create(sep), run_time=.8)
-        self.at("displayed Rayleigh distance")
-        self.play(Create(ray), run_time=.8)
+
+        # Build 'd = 0.61 × 520 nm / 1.40 = 317.2 / 1.40 ≈ 227 nm' beside the d bracket.
+        r1_eq = M("d =", 24, YELLOW)
+        r1_061 = M("0.61", 24, YELLOW)
+        r1_061.next_to(r1_eq, RIGHT, buff=.13).align_to(r1_eq, DOWN)
+        row1 = VGroup(r1_eq, r1_061)
+
+        r1_mul = M("×", 24, YELLOW)
+        r1_520 = M("520 nm", 24, YELLOW)
+        r1_520.next_to(r1_061, DOWN, buff=.14, aligned_edge=LEFT)
+        r1_mul.next_to(r1_520, LEFT, buff=.13)
+
+        r2_div = M("/", 24, YELLOW)
+        r2_140 = M("1.40", 24, YELLOW)
+        r2_140.next_to(r1_520, DOWN, buff=.14, aligned_edge=LEFT)
+        r2_div.next_to(r2_140, LEFT, buff=.13)
+
+        r3_eq = M("=", 24, YELLOW)
+        r3_val = M("317.2 / 1.40", 24, YELLOW)
+        r3_val.next_to(r2_140, DOWN, buff=.14, aligned_edge=LEFT)
+        r3_eq.next_to(r3_val, LEFT, buff=.13)
+        r3 = VGroup(r3_eq, r3_val)
+        r3.shift(LEFT * .28)
+
+        r4_apx = M("≈", 24, YELLOW)
+        r4_val = M("227 nm", 24, YELLOW)
+        r4_val.next_to(r3_val, DOWN, buff=.14, aligned_edge=LEFT)
+        r4_apx.next_to(r4_val, LEFT, buff=.13)
+        r4 = VGroup(r4_apx, r4_val)
+
+        formula = VGroup(row1, r1_mul, r1_520, r2_div, r2_140, r3, r4)
+        formula.move_to([-2.78, -2.07, 0])
+        row1.shift(RIGHT * .22)
+        VGroup(r1_mul, r1_520, r2_div, r2_140).shift(RIGHT * .15)
+
+        self.at("Take", lead=0.0)
+        self.play(FadeIn(r1_eq), run_time=.16)
+        self.at("0 .6", lead=0.0)
+        self.play(FadeIn(r1_061), run_time=.6)
+        self.at("times the", lead=0.0)
+        self.play(FadeIn(r1_mul), run_time=.3)
+        self.at("520 nanometer", lead=0.0)
+        self.play(FadeIn(r1_520), run_time=.6)
+
+        self.at("Divide by", lead=0.0)
+        self.play(FadeIn(r2_div), run_time=.4)
+        self.at("numerical aperture", lead=0.0)
+        self.play(Indicate(b.lens, color=BLUE, scale_factor=1.03), run_time=.6)
+        self.at("1 .4", lead=0.0)
+        self.play(FadeIn(r2_140), run_time=.5)
+
+        if self.elapsed() < 14.36:
+            self.wait(14.36 - self.elapsed())
+        self.play(FadeIn(r3), run_time=.5)
+
+        self.at("Rayleigh distance", lead=0.0)
+        self.play(Create(VGroup(ray[0], ray[1])), run_time=.5)
+        self.at("227 nanometers", lead=0.0)
+        self.play(FadeIn(r4), FadeIn(ray[2]), run_time=.6)
+
         self.at("Will the detector show")
-        self.play(FadeIn(question,shift=DOWN*.12),run_time=.7)
+        self.play(FadeIn(question, shift=DOWN * .12), run_time=.7)
         self.at("two peaks or one")
-        self.play(LaggedStart(*[Create(p) for p in placeholders],lag_ratio=.25),Indicate(question,color=YELLOW),run_time=1.0)
+        self.play(LaggedStart(*[Create(p) for p in placeholders], lag_ratio=.25), Indicate(question, color=YELLOW), run_time=1.0)
         self.finish()
 
 
