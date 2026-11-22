@@ -53,6 +53,7 @@ const setsByTopic = Object.fromEntries(Object.keys(CATEGORY).map((t) => [t, SETS
 
   <script>
     import { recordFirstTry } from '../../lib/progress';
+    import { recordMcatAnswer } from '../../lib/mcat-stats';
 
     interface Q { id: string; slug: string; title: string; topic: string; stem: string; choices: string[]; answer: number; rationale: string }
     const root = document.querySelector<HTMLElement>('[data-diag]')!;
@@ -159,6 +160,7 @@ const setsByTopic = Object.fromEntries(Object.keys(CATEGORY).map((t) => [t, SETS
         (byTopic[q.topic] ??= { n: 0, r: 0 }).n++;
         if (ok) byTopic[q.topic].r++;
         recordFirstTry(q.id, q.slug, ok);
+        recordMcatAnswer(q.topic, ok);
       });
       modeToggle.disabled = true;
       finish.hidden = true;

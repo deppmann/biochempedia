@@ -37,6 +37,7 @@ for (const st of SETS) {
     <p class="tc-eyebrow"><a href="/mcat/">MCAT practice</a> · Topic practice</p>
     <h1>Topic practice</h1>
     <p class="tc-lede">Pick a topic for ten questions. These are the stand-alone kind; for passages with data, use the <a href="/mcat/">passage sets</a>.</p>
+    <p class="mpr-stats-link"><a href="/mcat/stats/">View your practice stats →</a></p>
     <p class="tc-row" style="margin-top: var(--ddp-space-4)">
       <label>Topic <select data-topic>{topics.map((t) => <option value={t}>{t} · {names[t]}</option>)}</select></label>
       <button type="button" class="tc-btn" data-start>Start ten questions</button>
@@ -55,6 +56,7 @@ for (const st of SETS) {
 
   <script>
     import { recordFirstTry } from '../../lib/progress';
+    import { recordMcatAnswer } from '../../lib/mcat-stats';
 
     interface Item { id: string; mcat: boolean; stem: string; choices: string[]; answer: number; rationale: string; anchor: { id: string; text: string } | null }
     const root = document.querySelector<HTMLElement>('[data-mpr]')!;
@@ -214,6 +216,8 @@ for (const st of SETS) {
           const ok = picks[i] === q.answer;
           if (ok) right++;
           recordFirstTry(q.id, q.slug, ok);
+          const topic = lessonsIdx[q.slug]?.topic;
+          if (topic && !beyond.includes(topic)) recordMcatAnswer(topic, ok);
         });
         status.textContent = `${right} of ${picked.length} right. Misses are in your review queue. Use Back and Next to review the explanations.`;
         render();
@@ -253,6 +257,8 @@ for (const st of SETS) {
     .mpr .mpr-beyond label { display: inline-flex; align-items: center; gap: 0.6rem; min-height: 44px; cursor: pointer; }
     .mpr .mpr-beyond input { width: 1.15rem; height: 1.15rem; accent-color: var(--ddp-color-accent); }
     .mpr .mpr-lesson-h { margin: 0; font-weight: 600; }
+    .mpr .mpr-stats-link { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-sm); }
+    .mpr .mpr-stats-link a { color: var(--ddp-color-accent); font-weight: 600; }
     .mpr .mpr-lesson a { color: var(--ddp-color-accent); }
     .mpr .mpr-crossout-toggle { display: flex; align-items: center; gap: var(--ddp-space-2); min-height: 44px; cursor: pointer; }
     .mpr .mpr-crossout-toggle input { width: 1.15rem; height: 1.15rem; accent-color: var(--ddp-color-primary); }

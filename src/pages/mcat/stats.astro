@@ -1,0 +1,309 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { CATEGORY } from '../../lib/mcat';
+---
+
+<BaseLayout title="MCAT practice stats — STEMhop" description="Track your MCAT practice accuracy over time and by subject.">
+  <article class="wrap mstats" data-mcat-stats data-names={JSON.stringify(CATEGORY)}>
+    <p class="ms-eyebrow"><a href="/mcat/">MCAT practice</a> · Your progress</p>
+    <h1>Your MCAT progress</h1>
+    
+    <section class="ms-score" aria-label="Overall accuracy">
+      <div class="ms-ring" data-ring><strong data-overall>—</strong></div>
+      <div><h2>Overall accuracy</h2><span class="ms-muted" data-total></span></div>
+    </section>
+
+    <section class="ms-section" aria-labelledby="ms-trend-heading">
+      <div class="ms-section-heading">
+        <div>
+          <h2 id="ms-trend-heading">Accuracy over time</h2>
+          <p class="ms-muted" data-range-label></p>
+        </div>
+        <div class="ms-tools"><details class="ms-picker">
+          <summary data-filter-label>All subjects</summary>
+          <div class="ms-options" role="group" aria-label="Filter chart by subject"></div>
+        </details>
+        <div class="ms-periods" role="group" aria-label="Accuracy graph interval">
+          <button type="button" data-period="day" aria-pressed="true">Daily</button>
+          <button type="button" data-period="week" aria-pressed="false">Weekly</button>
+          <button type="button" data-period="month" aria-pressed="false">Monthly</button>
+        </div>
+      </div></div>
+      <figure class="ms-chart-card">
+        <svg class="ms-chart" data-chart role="img" aria-label="Accuracy over time"></svg>
+        <figcaption class="ms-chart-caption">Correct answers as a percentage of answers in each period.</figcaption>
+      </figure>
+      <p class="ms-empty" data-empty hidden>No answers recorded yet. Try <a href="/mcat/practice/">topic practice</a>, a <a href="/mcat/diagnostic/">diagnostic</a>, or a <a href="/mcat/">passage set</a> to start building your history.</p>
+    </section>
+
+    <section class="ms-section" aria-labelledby="ms-subject-heading">
+      <h2 id="ms-subject-heading">By subject</h2>
+      <div class="ms-subjects" data-subjects></div>
+      <p class="ms-muted" data-subject-empty hidden>Subject results will appear after you answer practice questions.</p>
+    </section>
+
+    <p class="ms-footnote">Stats are kept on this device. Clearing this browser’s site data will clear this history.</p>
+    <p class="ms-back"><a href="/mcat/">← Back to MCAT practice</a></p>
+  </article>
+
+  <script>
+    import { readMcatStats } from '../../lib/mcat-stats';
+
+    const root = document.querySelector<HTMLElement>('[data-mcat-stats]')!;
+    const names: Record<string, string> = JSON.parse(root.dataset.names || '{}');
+    const records = readMcatStats();
+    const el = <K extends keyof HTMLElementTagNameMap>(tag: K, cls = '', content = '') => {
+      const node = document.createElement(tag);
+      if (cls) node.className = cls;
+      if (content) node.textContent = content;
+      return node;
+    };
+    const percent = (correct: number, total: number) => total ? Math.round(correct / total * 100) : 0;
+    const right = records.filter((r) => r.correct).length;
+    root.querySelector<HTMLElement>('[data-overall]')!.textContent = records.length ? `${percent(right, records.length)}%` : '—';
+    root.querySelector<HTMLElement>('[data-total]')!.textContent = records.length ? `${right} of ${records.length} correct` : 'No practice answers yet';
+
+    // Saved answers identify the MCAT content category. Both the chart filter and
+    // the expandable rows use this mapping to group those categories into subjects.
+    const disciplines: Record<string, string> = {
+      '1A': 'Biochemistry', '1D': 'Biochemistry', '5D': 'Biochemistry',
+      '1B': 'Biology', '1C': 'Biology', '2A': 'Biology', '2B': 'Biology',
+      '2C': 'Biology', '3A': 'Biology', '3B': 'Biology',
+      '5A': 'Chemistry', '5C': 'Chemistry', '5E': 'Chemistry', '6A': 'Psychology',
+    };
+    const discipline = (topic: string) => disciplines[topic] ?? 'Other';
+    const picker = root.querySelector<HTMLDetailsElement>('.ms-picker')!;
+    const filterLabel = picker.querySelector<HTMLElement>('summary')!;
+    const options = picker.querySelector<HTMLElement>('.ms-options')!;
+    let selectedSubject = '';
+    const subjects = [...new Set(records.map(r => discipline(r.subject)))].sort();
+    for (const subject of ['', ...subjects]) {
+      const button = el('button', '', subject || 'All subjects');
+      button.type = 'button';
+      button.setAttribute('aria-pressed', String(subject === selectedSubject));
+      button.addEventListener('click', () => {
+        selectedSubject = subject;
+        filterLabel.textContent = button.textContent;
+        for (const option of options.querySelectorAll('button')) {
+          option.setAttribute('aria-pressed', String(option === button));
+        }
+        picker.open = false;
+        filterLabel.focus();
+        redraw();
+      });
+      options.append(button);
+    }
+    picker.addEventListener('keydown', event => {
+      if (event.key === 'Escape' && picker.open) {
+        picker.open = false;
+        filterLabel.focus();
+      }
+      if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return;
+      event.preventDefault();
+      picker.open = true;
+      const buttons = Array.from(options.querySelectorAll('button'));
+      const index = buttons.findIndex(button => button === document.activeElement);
+      const step = event.key === 'ArrowDown' ? 1 : -1;
+      const next = index < 0 ? (step > 0 ? 0 : buttons.length - 1) : (index + step + buttons.length) % buttons.length;
+      buttons[next].focus();
+    });
+    document.addEventListener('pointerdown', event => {
+      if (!event.composedPath().includes(picker)) picker.open = false;
+    });
+    // Some browsers blur the summary without focusing the pressed button.
+    // Wait for focus to actually land outside so its click can complete.
+    document.addEventListener('focusin', event => {
+      if (!event.composedPath().includes(picker)) picker.open = false;
+    });
+    root.querySelector<HTMLElement>('[data-ring]')!.style.setProperty('--score', percent(right, records.length) + '%');
+    const chart = root.querySelector<SVGSVGElement>('[data-chart]')!;
+    const rangeLabel = root.querySelector<HTMLElement>('[data-range-label]')!;
+    const NS = 'http://www.w3.org/2000/svg';
+    type Bucket = { start: Date; end: Date; total: number; correct: number };
+    const startOfWeek = (date: Date) => {
+      const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+      d.setDate(d.getDate() - ((d.getDay() + 6) % 7));
+      return d;
+    };
+    // Include every calendar period in the window, even when it has no answers.
+    // Daily and weekly boundaries use local midnight, including across clock changes.
+    const bucketsFor = (period: string): Bucket[] => {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      let starts: Date[] = [];
+      if (period === 'day') {
+        starts = Array.from({ length: 30 }, (_, i) => { const d = new Date(today); d.setDate(d.getDate() - 29 + i); return d; });
+      } else if (period === 'week') {
+        const current = startOfWeek(today);
+        starts = Array.from({ length: 12 }, (_, i) => { const d = new Date(current); d.setDate(d.getDate() - 77 + i * 7); return d; });
+      } else {
+        const current = new Date(today.getFullYear(), today.getMonth(), 1);
+        starts = Array.from({ length: 12 }, (_, i) => new Date(current.getFullYear(), current.getMonth() - 11 + i, 1));
+      }
+      return starts.map((start) => {
+        const end = period === 'day' ? new Date(start.getFullYear(), start.getMonth(), start.getDate() + 1)
+          : period === 'week' ? new Date(start.getFullYear(), start.getMonth(), start.getDate() + 7)
+          : new Date(start.getFullYear(), start.getMonth() + 1, 1);
+        const sample = records.filter((r) => (!selectedSubject || discipline(r.subject) === selectedSubject) && r.t >= start.getTime() && r.t < end.getTime());
+        return { start, end, total: sample.length, correct: sample.filter((r) => r.correct).length };
+      });
+    };
+    const dateLabel = (date: Date, period: string) => period === 'day'
+      ? new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric' }).format(date)
+      : period === 'week'
+        ? new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric' }).format(date)
+        : new Intl.DateTimeFormat(undefined, { month: 'short' }).format(date);
+    const renderChart = (period: string) => {
+      const buckets = bucketsFor(period);
+      rangeLabel.textContent = period === 'day' ? 'Daily accuracy · last 30 days' : period === 'week' ? 'Weekly accuracy · last 12 weeks' : 'Monthly accuracy · last 12 months';
+      chart.replaceChildren();
+      const { width, height } = chart.getBoundingClientRect();
+      if (!width || !height) return;
+      chart.setAttribute('viewBox', `0 0 ${width} ${height}`);
+      const make = (tag: string, attrs: Record<string, string>, text?: string) => {
+        const node = document.createElementNS(NS, tag);
+        for (const [name, value] of Object.entries(attrs)) node.setAttribute(name, value);
+        if (text) node.textContent = text;
+        return node;
+      };
+      const left = 42, right = width - 12, top = 14, bottom = height - 34;
+      for (const tick of [0, 25, 50, 75, 100]) {
+        const y = bottom - (tick / 100) * (bottom - top);
+        chart.append(make('line', { x1: String(left), y1: String(y), x2: String(right), y2: String(y), class: 'ms-gridline' }));
+        chart.append(make('text', { x: String(left - 10), y: String(y + 4), 'text-anchor': 'end', class: 'ms-axis-label' }, `${tick}%`));
+      }
+      const values = buckets.map((b) => b.total ? (b.correct / b.total) * 100 : null);
+      chart.setAttribute('aria-label', `${rangeLabel.textContent}. ${values.filter((v) => v !== null).length} periods with answers on a scale from zero to one hundred percent.`);
+      const xAt = (i: number) => left + (i / (buckets.length - 1)) * (right - left);
+      const yAt = (value: number) => bottom - (value / 100) * (bottom - top);
+      // Draw a separate line for each run of periods with answers. An empty
+      // period breaks the line, while a period with all incorrect answers plots at 0%.
+      let segment: string[] = [];
+      const flush = () => {
+        if (segment.length > 1) chart.append(make('path', { d: segment.join(' '), class: 'ms-trend-line' }));
+        segment = [];
+      };
+      values.forEach((value, i) => {
+        if (value === null) { flush(); return; }
+        segment.push(`${segment.length ? 'L' : 'M'} ${xAt(i)} ${yAt(value)}`);
+      });
+      flush();
+      values.forEach((value, i) => {
+        if (value === null) return;
+        const label = `${dateLabel(buckets[i].start, period)}: ${Math.round(value)}% correct, ${buckets[i].correct} of ${buckets[i].total}`;
+        const point = make('circle', { cx: String(xAt(i)), cy: String(yAt(value)), r: '4.5', class: 'ms-point' });
+        point.append(make('title', {}, label));
+        chart.append(point);
+      });
+      // Keep the first and last dates visible. Only the number of labels changes
+      // with screen width; every period keeps its position on the axis.
+      const labelCount = Math.max(2, Math.min(7, Math.floor((right - left) / 72)));
+      for (let tick = 0; tick < labelCount; tick++) {
+        const index = Math.round(tick * (buckets.length - 1) / (labelCount - 1));
+        const anchor = tick === labelCount - 1 ? 'end' : 'middle';
+        chart.append(make('text', { x: String(xAt(index)), y: String(height - 10), 'text-anchor': anchor, class: 'ms-axis-label' }, dateLabel(buckets[index].start, period)));
+      }
+    };
+    root.querySelectorAll<HTMLButtonElement>('[data-period]').forEach((button) => button.addEventListener('click', () => {
+      root.querySelectorAll<HTMLButtonElement>('[data-period]').forEach((b) => b.setAttribute('aria-pressed', String(b === button)));
+      renderChart(button.dataset.period || 'day');
+    }));
+    const redraw = () => renderChart(root.querySelector<HTMLElement>('[data-period][aria-pressed=true]')?.dataset.period || 'day');
+    // The observer triggers the first draw and keeps SVG coordinates in CSS pixels
+    // as the chart resizes, so text and point markers keep their proportions.
+    new ResizeObserver(redraw).observe(chart);
+    if (!records.length) root.querySelector<HTMLElement>('[data-empty]')!.hidden = false;
+
+    // The breakdown uses the full saved history. Sum the topic counts before
+    // calculating each subject's percentage so every answer carries equal weight.
+    const bySubject = new Map<string, { total: number; correct: number }>();
+    for (const record of records) {
+      const bucket = bySubject.get(record.subject) ?? { total: 0, correct: 0 };
+      bucket.total++;
+      if (record.correct) bucket.correct++;
+      bySubject.set(record.subject, bucket);
+    }
+    const breakdown = root.querySelector<HTMLElement>('[data-subjects]')!;
+    for (const subject of subjects) {
+      const topics = [...bySubject].filter(([code]) => discipline(code) === subject)
+        .sort(([a], [b]) => a.localeCompare(b));
+      const total = topics.reduce((sum, [, t]) => sum + t.total, 0);
+      const correct = topics.reduce((sum, [, t]) => sum + t.correct, 0);
+      const accuracy = percent(correct, total);
+      const details = el('details', 'ms-detail');
+      const summary = el('summary');
+      const bar = el('span', 'ms-track');
+      bar.style.setProperty('--score', accuracy + '%');
+      bar.setAttribute('aria-hidden', 'true');
+      summary.append(el('strong', '', subject), bar, el('strong', '', accuracy + '%'), el('small', '', correct + ' of ' + total + ' correct'));
+      details.append(summary);
+      for (const [code, count] of topics) {
+        const row = el('div', 'ms-topic');
+        row.append(el('span', '', names[code] || code), el('span', '', percent(count.correct, count.total) + '%'));
+        details.append(row);
+      }
+      breakdown.append(details);
+    }
+    if (!records.length) root.querySelector<HTMLElement>('[data-subject-empty]')!.hidden = false;
+  </script>
+
+  <style>
+    .mstats { max-width: 1160px; padding-block: var(--ddp-space-10, 2.5rem) var(--ddp-space-12); }
+    .ms-eyebrow { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: .1em; text-transform: uppercase; color: var(--ddp-color-caution-ink); margin: 0 0 var(--ddp-space-2); }
+    .ms-eyebrow a { color: inherit; }
+    h1, h2 { font-family: var(--ddp-font-serif); font-weight: 500; color: var(--ddp-color-primary); }
+    h1 { font-size: var(--ddp-text-3xl); margin: 0; }
+    h2 { font-size: var(--ddp-text-xl, 1.4rem); margin: 0 0 var(--ddp-space-2); }
+    .ms-lede { max-width: 64ch; color: var(--ddp-color-ink-soft); line-height: 1.55; margin: var(--ddp-space-2) 0 var(--ddp-space-6); }
+    .ms-overview { display: grid; grid-template-columns: minmax(0, 1fr); }
+    .ms-accuracy { display: flex; flex-direction: column; align-items: flex-start; gap: var(--ddp-space-1); padding: var(--ddp-space-5); border: 1px solid var(--ddp-color-line); border-radius: var(--ddp-radius-sm, 8px); background: var(--ddp-color-surface); }
+    .ms-label { color: var(--ddp-color-muted); font: var(--ddp-text-xs) var(--ddp-font-mono); letter-spacing: .06em; text-transform: uppercase; }
+    .ms-accuracy strong { color: var(--ddp-color-primary); font: 500 var(--ddp-text-3xl) var(--ddp-font-serif); }
+    .ms-muted { color: var(--ddp-color-muted); font-size: var(--ddp-text-sm); }
+    .ms-section { margin-top: var(--ddp-space-8); }
+    .ms-section-heading { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: var(--ddp-space-3); }
+    .ms-periods { display: inline-flex; flex-wrap: wrap; gap: 2px; padding: 3px; border: 1px solid var(--ddp-color-line); border-radius: var(--ddp-radius-sm, 8px); background: var(--ddp-color-surface); }
+    .ms-periods button { min-height: 36px; padding: var(--ddp-space-1) var(--ddp-space-3); border: 0; border-radius: 5px; background: transparent; color: var(--ddp-color-ink-soft); font: inherit; font-size: var(--ddp-text-xs); cursor: pointer; }
+    .ms-periods button:hover { color: var(--ddp-color-primary); }
+    .ms-periods button[aria-pressed="true"] { background: var(--ddp-color-primary); color: var(--ddp-color-surface); }
+    .ms-periods button:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+    .ms-chart-card { margin: var(--ddp-space-4) 0 0; padding: var(--ddp-space-3) var(--ddp-space-3) var(--ddp-space-2); border: 1px solid var(--ddp-color-line); border-radius: var(--ddp-radius-sm, 8px); background: var(--ddp-color-surface); }
+    .ms-chart { display: block; width: 100%; height: clamp(200px, 26vw, 280px); }
+    :global(.ms-gridline) { stroke: var(--ddp-color-line); stroke-width: 1; stroke-dasharray: 4 4; }
+    :global(.ms-axis-label) { fill: var(--ddp-color-muted); font-family: var(--ddp-font-mono); font-size: 11px; }
+    :global(.ms-trend-line) { fill: none; stroke: var(--ddp-color-accent); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+    :global(.ms-point) { fill: var(--ddp-color-primary); stroke: var(--ddp-color-surface); stroke-width: 2; }
+    .ms-chart-caption { padding: 0 var(--ddp-space-2) var(--ddp-space-1); color: var(--ddp-color-muted); font-size: var(--ddp-text-xs); }
+    .ms-empty { padding: var(--ddp-space-4); border: 1px dashed var(--ddp-color-line); border-radius: var(--ddp-radius-sm, 8px); color: var(--ddp-color-ink-soft); }
+    .ms-empty a, .ms-back a { color: var(--ddp-color-accent); }
+    .ms-tools { display:flex; align-items:center; flex-wrap:wrap; gap:.65rem; }
+    .ms-picker { position:relative; display:inline-flex; }
+    .ms-picker summary::after { content:''; position:absolute; right:.9rem; top:44%; width:.4rem; height:.4rem; border:solid var(--ddp-color-muted); border-width:0 1.5px 1.5px 0; transform:rotate(45deg); pointer-events:none; }
+    .ms-picker summary::-webkit-details-marker { display:none; }
+    .ms-picker[open] summary { border-color:var(--ddp-color-accent); }
+    .ms-picker[open] summary::after { transform:rotate(225deg); top:49%; }
+    .ms-options { position:absolute; z-index:5; inset:calc(100% + .35rem) auto auto 0; min-width:max(100%,10rem); padding:.3rem; background:var(--ddp-color-surface); border:1px solid var(--ddp-color-line); border-radius:8px; box-shadow:0 6px 18px rgb(0 0 0 / .14); }
+    .ms-options :global(button) { display:flex; justify-content:space-between; gap:1rem; width:100%; padding:.65rem .75rem; border:0; border-radius:5px; background:transparent; color:var(--ddp-color-ink); font:inherit; font-size:var(--ddp-text-sm); cursor:pointer; }
+    .ms-options :global(button:hover), .ms-options :global(button:focus-visible), .ms-options :global(button[aria-pressed="true"]) { background:var(--ddp-color-accent-soft); }
+    .ms-options :global(button[aria-pressed="true"])::after { content:'✓'; color:var(--ddp-color-accent); }
+    .ms-picker summary:focus-visible { outline:2px solid var(--ddp-color-accent); outline-offset:2px; }
+    .ms-picker summary { display:flex; align-items:center; list-style:none; box-sizing:border-box; cursor:pointer; min-height:44px; background:var(--ddp-color-surface); color:var(--ddp-color-ink); border:1px solid var(--ddp-color-line); border-radius:var(--ddp-radius-sm,8px); font:inherit; font-size:var(--ddp-text-sm); padding:.5rem 2.25rem .5rem .85rem; }
+    .ms-score { display:flex; align-items:center; gap:1.5rem; margin-top:2rem; padding:1.5rem; background:var(--ddp-color-surface); border:1px solid var(--ddp-color-line); border-radius:8px; }
+    .ms-ring { width:6rem; aspect-ratio:1; display:grid; place-items:center; border-radius:50%; background:conic-gradient(var(--ddp-color-verified) var(--score,0%),var(--ddp-color-line) 0); }
+    .ms-ring strong { width:85%; aspect-ratio:1; display:grid; place-items:center; border-radius:50%; background:var(--ddp-color-surface); font-size:1.5rem; }
+    .ms-subjects { margin-top:1rem; }
+    /* Rows created in the browser lack Astro's scope attribute. The scoped
+       wrapper limits these global descendant selectors to this breakdown. */
+    .ms-subjects :global(details) { border:1px solid var(--ddp-color-line); background:var(--ddp-color-surface); }
+    .ms-subjects :global(details + details) { border-top:0; }
+    .ms-subjects :global(summary) { display:grid; grid-template-columns:1rem minmax(7em,1fr) 2fr 4ch 8em; align-items:center; gap:.75rem; padding:1rem; cursor:pointer; }
+    .ms-subjects :global(summary)::before { content:'+'; color:var(--ddp-color-accent); }
+    .ms-subjects :global(details[open] summary)::before { content:'−'; }
+    .ms-subjects :global(.ms-track) { height:.8rem; border-radius:1rem; background:linear-gradient(to right,var(--ddp-color-verified) var(--score),var(--ddp-color-line) var(--score)); }
+    .ms-subjects :global(.ms-topic) { display:flex; justify-content:space-between; gap:1rem; border-top:1px solid var(--ddp-color-line); padding:.65rem 2.75rem; font-size:var(--ddp-text-sm); }
+    @media(max-width:600px) { .ms-subjects :global(summary) {grid-template-columns:1rem 1fr auto;} .ms-subjects :global(.ms-track) {display:none;} .ms-subjects :global(small) {grid-column:2 / -1;} }
+    .ms-footnote { margin-top: var(--ddp-space-8); font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+    .ms-back { margin-top: var(--ddp-space-5); }
+    @media (max-width: 620px) { .ms-section-heading { align-items: flex-start; flex-direction: column; } .ms-periods { max-width: 100%; } .ms-periods button { padding-inline: var(--ddp-space-2); } }
+  </style>
+</BaseLayout>

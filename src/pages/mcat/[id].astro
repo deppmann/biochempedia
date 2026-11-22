@@ -27,7 +27,7 @@ const letters = ['A', 'B', 'C', 'D'];
 
       <section class="mset-questions" aria-label="Questions">
         {set.questions.map((q, i) => (
-          <div class="mq" data-mq data-item={itemId(slug, q.stem)} data-answer={q.answer}>
+          <div class="mq" data-mq data-item={itemId(slug, q.stem)} data-answer={q.answer} data-category={q.category}>
             <p class="mq-stem"><span class="mq-n">{i + 1}.</span> {q.stem}</p>
             <ul class="mq-choices">
               {q.choices.map((c, ci) => (
@@ -51,6 +51,7 @@ const letters = ['A', 'B', 'C', 'D'];
 
   <script>
     import { recordFirstTry, setDone } from '../../lib/progress';
+    import { recordMcatAnswer } from '../../lib/mcat-stats';
 
     const root = document.querySelector<HTMLElement>('[data-mset]')!;
     const slug = root.dataset.mset!;
@@ -82,6 +83,7 @@ const letters = ['A', 'B', 'C', 'D'];
         v.className = `mq-verdict ${ok ? 'is-correct' : 'is-wrong'}`;
         q.querySelector<HTMLElement>('[data-feedback]')!.hidden = false;
         recordFirstTry(q.dataset.item!, slug, ok);
+        recordMcatAnswer(q.dataset.category!, ok);
         answered++; if (ok) right++;
         if (answered === qs.length) {
           clearInterval(iv);
