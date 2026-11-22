@@ -1,52 +1,90 @@
 {
  "lesson": "detecting-a-signal",
- "title": "More Hormone, Less Label",
+ "title": "Finding One Signal in a Crowd",
+ "pace": {
+  "speed": 0.9,
+  "gap": 0.35
+ },
  "scenes": [
   {
    "id": "s00_title",
-   "silent": 3.0,
+   "silent": 2.0,
+   "visual": "Full-frame 16:9 dark charcoal lab bench with three persistent zones that stay in place all film: left zone 'Sample crowd' (drifting slate-grey circles for water and albumin with a few glowing gold dots), center zone 'Selector', right zone 'Readout'. Title 'Finding One Signal in a Crowd' fades in cleanly over the live drifting particles. Shared colour map used across both films: slate grey = bystanders, gold = target molecule, violet = antibody, emerald green = phosphate (+80 Da), cyan = traceable tag, coral red = inhibitor (used in film 2).",
    "narration": ""
   },
   {
-   "id": "s01_scarce",
-   "tts": "Fasting blood holds insulin at a few tens of picomolar. That is about one insulin molecule for every trillion molecules of water. Every pathway in this course rests on measuring something that scarce. How can anyone do it? Rozz-uh-lynn Yalow and Solomon Berson found a way, and it began as an unexpected by-product of a different experiment.",
-   "visual": "A crowd of grey dots fills the frame with one yellow insulin dot hidden in it; a question mark. Then the two names appear.",
-   "narration": "Fasting blood holds insulin at a few tens of picomolar. That is about one insulin molecule for every trillion molecules of water. Every pathway in this course rests on measuring something that scarce. How can anyone do it? Rosalyn Yalow and Solomon Berson found a way, and it began as an unexpected by-product of a different experiment.",
-   "caption": "Fasting blood holds insulin at a few tens of picomolar. That is about one insulin molecule for every trillion molecules of water. Every pathway in this course rests on measuring something that scarce. How can anyone do it? Rosalyn Yalow and Solomon Berson found a way, and it began as an unexpected by-product of a different experiment."
+   "id": "s01_hook",
+   "tts": "Fasting blood holds about one insulin molecule for every trillion water molecules. How do you detect a signal that scarce, or locate one phosphate inside a cell? Albumin outnumbers insulin ten million to one. Inside cells, thousands of proteins crowd together.",
+   "caption": "Fasting blood holds about one insulin molecule for every trillion water molecules. How do you detect a signal that scarce, or locate one phosphate inside a cell? Albumin outnumbers insulin 10 million to 1. Inside cells, thousands of proteins crowd together.",
+   "visual": "Left zone fills with hundreds of slowly drifting slate-grey bystander dots labelled 'Blood sample (schematic)'; one gold insulin dot glints in the crowd. Counters appear cleanly: '1 : 10^12 water' and '1 : 10^7 albumin'. A lower preview strip hints at dense slate cell proteins with one gold protein bearing an emerald phosphate dot. Question banner holds at top: 'How do you find one signal in a crowd?'",
+   "narration": "Fasting blood holds about one insulin molecule for every trillion water molecules. How do you detect a signal that scarce, or locate one phosphate inside a cell? Albumin outnumbers insulin 10 million to 1. Inside cells, thousands of proteins crowd together."
   },
   {
-   "id": "s02_holder",
-   "tts": "They were testing whether people with adult-onset diabetes destroy insulin too fast. So they tagged insulin with radioactive iodine, injected it, and followed the radioactivity as it left the blood. In people already treated with insulin, it left more slowly, because something in their blood was holding it. They argued that this something was an antibody. Immunologists of the day doubted that a protein as small as insulin could raise antibodies. Then they used it as a scale.",
-   "visual": "Two blood lanes. Tagged insulin dots flow through the top lane but catch on cups in the bottom lane; the cups are labelled antibody and carried into the next scene.",
-   "narration": "They were testing whether people with adult-onset diabetes destroy insulin too fast. So they tagged insulin with radioactive iodine, injected it, and followed the radioactivity as it left the blood. In people already treated with insulin, it left more slowly, because something in their blood was holding it. They argued that this something was an antibody. Immunologists of the day doubted that a protein as small as insulin could raise antibodies. Then they used it as a scale."
+   "id": "s02_ria_setup",
+   "tts": "Start with a blood hormone, and let it compete for an antibody. Put the same small amount of antibody and radioactive hormone in every tube. With few antibody sites, unlabelled sample hormone fights labelled hormone for space. Surprisingly, more sample hormone leaves less radioactivity on the antibody.",
+   "caption": "Start with a blood hormone, and let it compete for an antibody. Put the same small amount of antibody and radioactive hormone in every tube. With few antibody sites, unlabelled sample hormone fights labelled hormone for space. Surprisingly, more sample hormone leaves less radioactivity on the antibody.",
+   "visual": "Center zone 'Selector' slides in four violet Y-shaped antibody cartoons (8 tips, labelled 'Limiting antibody, schematic'). Cyan-ringed gold circles ('Labelled tracer') drift from left and fill every violet tip while slate albumin dots bounce off ignored. Plain gold circles ('Sample hormone') enter and displace cyan tracers from the tips. Right zone gauge 'Bound radioactivity' visibly drops as plain gold circles rise.",
+   "narration": "Start with a blood hormone, and let it compete for an antibody. Put the same small amount of antibody and radioactive hormone in every tube. With few antibody sites, unlabelled sample hormone fights labelled hormone for space. Surprisingly, more sample hormone leaves less radioactivity on the antibody."
   },
   {
-   "id": "s03_tube",
-   "tts": "Take a tube. Put in a fixed, small amount of antibody. Add a fixed, small amount of radioactive insulin. Every tube gets the same amounts. The label is radioactive, so a counter can find it. The antibody has only a few binding sites, and the labelled insulin fills them.",
-   "visual": "A tube grows around the antibody bar; labelled insulin drops in and seats in every cup; a gauge of label held by the antibody fills.",
-   "narration": "Take a tube. Put in a fixed, small amount of antibody. Add a fixed, small amount of radioactive insulin. Every tube gets the same amounts. The label is radioactive, so a counter can find it. The antibody has only a few binding sites, and the labelled insulin fills them."
+   "id": "s03_ria_math",
+   "tts": "Here is the math when high-affinity sites stay nearly full. Labelled fraction equals tracer divided by tracer plus sample. Put one hundred picomolar of tracer in every tube, giving four thousand bound counts. Add one hundred picomolar of sample. One hundred over two hundred is one half, about two thousand counts.",
+   "caption": "Here is the math when high-affinity sites stay nearly full. Labelled fraction equals tracer divided by tracer plus sample. Put 100 pM of tracer in every tube, giving 4,000 bound counts. Add 100 pM of sample. 100 / 200 is 1/2, about 2,000 counts.",
+   "visual": "Right zone opens a computed mass-action RIA curve (R_tot = 40 pM, T = 100 pM, Kd = 0.5 pM; x-axis 'Sample hormone (pM)' 0 to 500, y-axis 'Bound counts (cpm)' 0 to 4,000; labelled 'Computed binding model'). Formula builds above plot as spoken: 'Labelled fraction = T / (T + U)'. Dot at (0, 4,000) glows cyan; then '100 / (100 + 100) = 1/2' traces the curve down to (100, 2,010 ~ 2,000). Center zone shows half the violet tips holding plain gold and half holding cyan tracer.",
+   "narration": "Here is the math when high-affinity sites stay nearly full. Labelled fraction equals tracer divided by tracer plus sample. Put 100 pM of tracer in every tube, giving 4,000 bound counts. Add 100 pM of sample. 100 / 200 is 1/2, about 2,000 counts."
   },
   {
-   "id": "s04_compete",
-   "tts": "Now add the blood sample. Its own insulin carries no label, so it competes with the labelled insulin for the same few sites. A little sample insulin displaces a few labelled molecules, and a lot displaces many. The more insulin the patient had, the less radioactivity ends up on the antibody.",
-   "visual": "Unlabelled sample insulin enters and pushes labelled insulin out of the cups; the gauge falls, a little then a lot, with a reset between.",
-   "narration": "Now add the blood sample. Its own insulin carries no label, so it competes with the labelled insulin for the same few sites. A little sample insulin displaces a few labelled molecules, and a lot displaces many. The more insulin the patient had, the less radioactivity ends up on the antibody."
+   "id": "s04_predict_q",
+   "tts": "Test a richer sample. Suppose the sample adds three hundred picomolar of unlabelled hormone to the one hundred picomolar tracer. Tracer over tracer plus sample: what fraction stays labelled, and how many counts stay bound?",
+   "caption": "Test a richer sample. Suppose the sample adds 300 pM of unlabelled hormone to the 100 pM tracer. Tracer over tracer plus sample: what fraction stays labelled, and how many counts stay bound?",
+   "visual": "Left zone streams a denser 3-to-1 crowd of plain gold sample circles alongside cyan tracers. Formula on right shows '100 / (100 + 300) = ?' while a pulsing dashed guide marks x = 300 pM with '?' on the counts axis. Question banner holds cleanly at top: '300 pM sample + 100 pM tracer: fraction labelled & bound counts?'",
+   "narration": "Test a richer sample. Suppose the sample adds 300 pM of unlabelled hormone to the 100 pM tracer. Tracer over tracer plus sample: what fraction stays labelled, and how many counts stay bound?"
   },
   {
-   "id": "s05_curve",
-   "tts": "Now repeat the test with known amounts of insulin. Each tube holds the same antibody and the same labelled insulin. Those results build a curve. Separate the bound label from the free label, count each, and read the patient's concentration from the curve. This is the radioimmunoassay. Its range depends on the antibody and tracer.",
-   "visual": "A plot is built point by point: more insulin, less label bound. The patient's count is read across to the curve and down to a concentration.",
-   "narration": "Now repeat the test with known amounts of insulin. Each tube holds the same antibody and the same labelled insulin. Those results build a curve. Separate the bound label from the free label, count each, and read the patient's concentration from the curve. This is the radioimmunoassay. Its range depends on the antibody and tracer."
+   "id": "s05_pause",
+   "silent": 4.5,
+   "visual": "Hold the question banner, '100 / (100 + 300) = ?', and the dashed guide at 300 pM on screen. A gentle cyan progress bar sweeps along the bottom for 4.5 seconds while particles drift slowly in the left zone.",
+   "narration": ""
   },
   {
-   "id": "s06_rule",
-   "tts": "An antibody can tell cortisol from corticosterone, two steroids that differ by one hydroxyl group. So the assay is only as selective as its antibody. Bioassays measured what a hormone does. This counts what the antibody recognises. Keep this rule: more hormone in the sample means less label on the antibody.",
-   "visual": "Two similar chips either side of an antibody cup; then what a bioassay measures against what this counts; then the rule as an arrow.",
-   "narration": "An antibody can tell cortisol from corticosterone, two steroids that differ by one hydroxyl group. So the assay is only as selective as its antibody. Bioassays measured what a hormone does. This counts what the antibody recognises. Keep this rule: more hormone in the sample means less label on the antibody."
+   "id": "s06_ria_reveal",
+   "tts": "One hundred over four hundred is one quarter, so about one quarter of four thousand, one thousand counts, stays bound. Known standards build a falling curve that reads unknowns at picomolar levels. That is the radioimmunoassay. Its blind spot: the count is only as selective as the antibody.",
+   "caption": "100 / 400 is 1/4, so about 1/4 of 4,000, 1,000 counts, stays bound. Known standards build a falling curve that reads unknowns at picomolar levels. That is the radioimmunoassay. Its blind spot: the count is only as selective as the antibody.",
+   "visual": "Equation completes: '100 / 400 = 1/4 -> 1/4 x 4,000 = ~1,000 cpm'. The computed curve sweeps through (300, 1,007) to 500 pM. Center zone shows 3 of 4 violet antibody sites holding plain gold and 1 holding cyan tracer. A violet antibody tip pulses with a clear tag: 'Only as selective as the antibody'.",
+   "narration": "100 / 400 is 1/4, so about 1/4 of 4,000, 1,000 counts, stays bound. Known standards build a falling curve that reads unknowns at picomolar levels. That is the radioimmunoassay. Its blind spot: the count is only as selective as the antibody."
   },
   {
-   "id": "s07_end",
+   "id": "s07_western",
+   "tts": "Move inside the cell. Heating a cell extract in the detergent S D S unfolds proteins and coats them with negative charge in proportion to length. An electric field pulls them through a gel, and smaller proteins travel farther. Transfer the bands to a membrane for a western blot. A phosphospecific antibody, which binds only when one site carries phosphate, lights up that band.",
+   "caption": "Move inside the cell. Heating a cell extract in the detergent SDS unfolds proteins and coats them with negative charge in proportion to length. An electric field pulls them through a gel, and smaller proteins travel farther. Transfer the bands to a membrane for a western blot. A phosphospecific antibody, which binds only when one site carries phosphate, lights up that band.",
+   "visual": "The same three zones transform smoothly: left zone holds folded slate and gold proteins ('Cell extract, schematic'). Detergent badges ('SDS + heat') straighten them into negatively charged rods of varying length. Center zone turns into a vertical polyacrylamide gel lane where shorter rods migrate farther down. Gel transfers sideways onto a membrane in the right zone ('Western blot'); violet phosphospecific antibodies bind one gold band carrying an emerald phosphate dot, making it glow, and float past the same protein without the dot ('Binds only with phosphate').",
+   "narration": "Move inside the cell. Heating a cell extract in the detergent SDS unfolds proteins and coats them with negative charge in proportion to length. An electric field pulls them through a gel, and smaller proteins travel farther. Transfer the bands to a membrane for a western blot. A phosphospecific antibody, which binds only when one site carries phosphate, lights up that band."
+  },
+  {
+   "id": "s08_western_limits",
+   "tts": "Always blot the same samples for total protein too. Otherwise a darker band cannot separate more phosphate per molecule from more protein. An antibody also has a blind spot: raised against a known site, it cannot find an unsuspected one.",
+   "caption": "Always blot the same samples for total protein too. Otherwise a darker band cannot separate more phosphate per molecule from more protein. An antibody also has a blind spot: raised against a known site, it cannot find an unsuspected one.",
+   "visual": "Right zone displays two lanes ('Resting', 'Stimulated', schematic) on the membrane: top strip 'Phospho-specific' darkens in Stimulated. Bottom strip 'Total protein' fades in showing two cases briefly: steady total ('More phosphate/protein') vs darker total ('More protein'). Then a second emerald phosphate glows elsewhere on the gold protein while the violet antibody floats past unbinding ('Unsuspected site missed').",
+   "narration": "Always blot the same samples for total protein too. Otherwise a darker band cannot separate more phosphate per molecule from more protein. An antibody also has a blind spot: raised against a known site, it cannot find an unsuspected one."
+  },
+  {
+   "id": "s09_msms",
+   "tts": "To find an unknown site, weigh the pieces instead. Cut the protein into peptides with trypsin, and weigh each in a mass spectrometer. One phosphate adds about eighty daltons. Tandem mass spectrometry adds a second round: break that heavier peptide along its backbone and weigh the fragments. Fragments carrying the extra eighty daltons place it on one residue.",
+   "caption": "To find an unknown site, weigh the pieces instead. Cut the protein into peptides with trypsin, and weigh each in a mass spectrometer. One phosphate adds about 80 Da. Tandem mass spectrometry adds a second round: break that heavier peptide along its backbone and weigh the fragments. Fragments carrying the extra 80 Da place it on one residue.",
+   "visual": "Left zone gold protein chain is snipped by animated scissor icons ('Trypsin') into 5-bead peptides; one carries an emerald phosphate bead. Center zone becomes a tandem mass spectrometer ('MS/MS, schematic'): Stage 1 shows a peak shifting right by '+80 Da' (emerald highlight, 1,000 Da -> 1,080 Da). Stage 2 fragments the 1,080 Da peptide bead by bead; on the right-zone fragment ladder, only fragments containing the emerald residue shift by +80 Da, placing it.",
+   "narration": "To find an unknown site, weigh the pieces instead. Cut the protein into peptides with trypsin, and weigh each in a mass spectrometer. One phosphate adds about 80 Da. Tandem mass spectrometry adds a second round: break that heavier peptide along its backbone and weigh the fragments. Fragments carrying the extra 80 Da place it on one residue."
+  },
+  {
+   "id": "s10_close",
+   "tts": "Mass spectrometry has a blind spot too: if no break falls between two candidate residues, the site stays ambiguous. Competition, antibodies, and mass spectrometry detect scarce signals, each with blind spots.",
+   "caption": "Mass spectrometry has a blind spot too: if no break falls between two candidate residues, the site stays ambiguous. Competition, antibodies, and mass spectrometry detect scarce signals, each with blind spots.",
+   "visual": "On the right-zone fragment ladder, two adjacent residues share a bracket because no fragment breaks between them ('No break here -> 2 residues possible'). Then the three readout icons—falling RIA curve, paired western blot, and +80 Da fragment ladder—settle cleanly across the bench, each carrying a compact blind-spot badge.",
+   "narration": "Mass spectrometry has a blind spot too: if no break falls between two candidate residues, the site stays ambiguous. Competition, antibodies, and mass spectrometry detect scarce signals, each with blind spots."
+  },
+  {
+   "id": "s11_end",
    "silent": 3.5,
+   "visual": "Clean dark charcoal end card with one centered high-contrast line only (no subtitle, no second line): 'Competition, antibodies, and mass spectrometry detect scarce signals, each with blind spots.'",
    "narration": ""
   }
  ]

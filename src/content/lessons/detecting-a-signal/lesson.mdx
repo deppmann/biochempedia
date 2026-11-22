@@ -7,7 +7,12 @@ order: 143
 underReview:
   - "One citation detail, a gel-shift result attributed to a 2003 BATF paper, is being checked against the original figure."
 summary: >-
-  Every claim in this course rests on a measurement, and each method can prove only so much. This lesson explains how a hormone is measured at picomolar concentration, how a phosphate on one protein among thousands is found and placed, and how a kinase is matched to its substrates. Afterwards you will be able to say what an antibody, a mass spectrometer, an engineered kinase and an inhibitor can each prove, and what they cannot. The rule that ties them together: a claim about cause earns belief when two methods that fail in different ways agree.
+  Competition, antibodies, and mass spectrometry detect scarce signals, each with blind spots;
+  causal claims earn belief when two methods that fail differently agree. This lesson explains how a hormone is
+  measured at picomolar concentration, how a phosphate on one protein among thousands is found and
+  placed, and how a kinase is matched to its substrates. Afterwards you will be able to say what an
+  antibody, a mass spectrometer, an engineered kinase and an inhibitor can each prove, and what
+  they cannot.
 hook: "How do you measure one molecule among a trillion, and then show which kinase did the work?"
 
 estMinutes: 24
@@ -21,10 +26,15 @@ explainer:
   src: "/explainers/detecting-a-signal/explainer.mp4"
   captions: "/explainers/detecting-a-signal/explainer.vtt"
   poster: "/explainers/detecting-a-signal/poster.jpg"
-  title: "More Hormone, Less Label"
-  durationSec: 138.8
-  narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+  title: "Finding One Signal in a Crowd"
+  durationSec: 211.6
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+  takeaways:
+    - "Competition, antibodies, and mass spectrometry detect scarce signals, each with blind spots."
+    - "In a radioimmunoassay, unlabelled sample hormone competes with a fixed radioactive tracer for limiting antibody sites, so more hormone leaves less bound radioactivity."
+    - "SDS-PAGE and western blotting sort proteins by size and detect a known phosphorylated site, which must be paired with a total-protein blot."
+    - "Tandem mass spectrometry weighs tryptic peptides and fragments to locate an unknown phosphate (+80 Da) without an antibody, though missing fragment breaks can leave the site ambiguous."
 
 scientists:
   - name: "Rosalyn Yalow"
@@ -373,88 +383,146 @@ corpusTags:
   - "necessary-and-sufficient"
 draft: false
 films:
-  - id: "which-kinase"
-    src: "/explainers/detecting-a-signal/which-kinase.mp4"
-    captions: "/explainers/detecting-a-signal/which-kinase.vtt"
-    poster: "/explainers/detecting-a-signal/which-kinase-poster.jpg"
-    title: "Give One Kinase an ATP of Its Own"
-    durationSec: 87.7
-    narration: "an AI narrator voice (Gemini, Charon) reading narration written from this lesson's text"
+  - id: "chapter-2"
+    src: "/explainers/detecting-a-signal/chapter-2.mp4"
+    captions: "/explainers/detecting-a-signal/chapter-2.vtt"
+    poster: "/explainers/detecting-a-signal/chapter-2-poster.jpg"
+    title: "Proving Which Kinase Did the Work"
+    durationSec: 208.5
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
     aiGenerated: true
-  - id: "western"
-    src: "/explainers/detecting-a-signal/western.mp4"
-    captions: "/explainers/detecting-a-signal/western.vtt"
-    poster: "/explainers/detecting-a-signal/western-poster.jpg"
-    title: "Sort by Size, Then Ask an Antibody"
-    durationSec: 117.7
-    narration: "an AI narrator voice (Gemini, Charon) reading narration written from this lesson's text"
-    aiGenerated: true
+    takeaways:
+      - "Causal claims earn belief when two methods that fail differently agree."
+      - "Mutating a kinase's bulky gatekeeper residue to glycine or alanine lets it use a bulky ATP analog that other kinases use poorly, labelling candidate direct substrates."
+      - "Because hundreds of kinases share a similar ATP pocket, an unselective inhibitor can rule a kinase out if the response survives, but a blocked response needs a drug-resistant mutant or independent test."
+      - "Necessary (removing a step stops the response) and sufficient (activating it alone triggers the response) are distinct claims that require different experiments."
 ---
 
 import LessonFilm from '../../../components/LessonFilm.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import Support from '../../../components/Support.astro';
 
-**Fasting blood holds insulin at a few tens of picomolar: about one insulin molecule for every trillion molecules of water, with the blood protein albumin outnumbering it roughly ten million to one.** Every pathway in this course rests on someone measuring a thing that scarce, or picking one modified protein out of the thousands in a cell. This lesson is about how that is done and how much each kind of result is allowed to prove. The main point is the last one: each method answers one kind of question, and a claim about cause earns belief only when two methods that fail in different ways agree.
+**Fasting blood holds insulin at a few tens of picomolar: about one insulin molecule for every trillion molecules of water, with albumin outnumbering it roughly ten million to one.** Every pathway in this course rests on measuring signals that scarce, picking one modified protein from thousands, and proving which enzyme acted. The first film animated the three detection strategies; here are the controls and limits behind each, then how you prove cause.
+
+<Support>**The one idea.** Competition, antibodies, and mass spectrometry detect scarce signals, each with blind spots; causal claims earn belief when two methods that fail differently agree. **Scope:** Applies to bulk biochemical, mass-spectrometric, chemical-genetic and pharmacological assays; single-cell reporters come next, and agreeing methods still need controls and leave unexamined steps open.</Support>
 
 ## Measuring almost nothing: let the hormone compete with a labelled copy
 
-The radioimmunoassay measures a hormone by competition. Put a fixed, small amount of antibody in a tube with a fixed, small amount of radioactive insulin, and add the blood sample. The sample's own insulin carries no label, and it competes with the labelled insulin for the same few binding sites. The more insulin the patient had, the less radioactivity ends up on the antibody. Separate bound from free, count each, and read the concentration from a curve built with known amounts.
+A **radioimmunoassay** measures a scarce hormone by letting unlabelled sample hormone compete with a fixed radiolabelled tracer for a fixed, limiting amount of antibody, separating bound from free label and reading the concentration off known standards. The antibody sites must be limiting, fewer than the labelled hormone molecules, or every labelled molecule would find a site and a little sample hormone would barely change the count.
 
-Rosalyn Yalow and Solomon Berson built this radioimmunoassay from an antibody they found by accident. Depending on the antibody and the tracer, it can measure a hormone from nanomolar down to a fraction of a picomolar, and the binding obeys the rules in [binding and dose-response](/lessons/binding-and-dose-response). Its selectivity is the antibody's: Yalow pointed out in her Nobel lecture that an antibody can tell cortisol from corticosterone, two steroids that differ by one hydroxyl group. The bioassays in [finding a signal](/lessons/finding-a-signal) measured what a hormone does. This one counts how much hormone the antibody recognises, which is usually, but not always, the same as how much active hormone is there.
+The first film showed the high-affinity saturation limit, where bound label tracks tracer divided by total hormone. Because affinity and concentration rarely keep sites completely full across the whole range, real assays always read unknowns against an empirical standard curve; binding obeys [binding and dose-response](/lessons/binding-and-dose-response).
 
-The antibody came from an unexpected by-product of a different experiment. In the mid-1950s, at the Veterans Administration hospital in the Bronx, Yalow and Berson found that people already treated with insulin carried a serum globulin that held injected radioactive insulin. The full story is under Going deeper.
+Rosalyn Yalow and Solomon Berson built this assay from an insulin-binding serum globulin found by accident in the mid-1950s at the Bronx Veterans Administration hospital (Going deeper). Depending on antibody and tracer, it reaches from nanomolar to a fraction of a picomolar. Selectivity is the antibody's: Yalow noted in her Nobel lecture that an antibody distinguishes cortisol from corticosterone, two steroids differing by one hydroxyl group.
+
+**Predict.** A blood sample holds an inactive hormone fragment that keeps the short surface the antibody recognises. Will a radioimmunoassay detect it, and will it match a bioassay?
+
+<details>
+<summary>Check your prediction</summary>
+
+Yes, the fragment competes for antibody sites and lowers bound radioactivity. Bioassays ([finding a signal](/lessons/finding-a-signal)) measure what a hormone *does*; a radioimmunoassay counts what the antibody *recognises*, which is usually, but not always, active hormone.
+
+</details>
 
 ## Seeing one protein among thousands: sort by size, then ask an antibody
 
-<LessonFilm film={frontmatter.films[1]} />
+The first film animated size sorting and blotting; three methods follow one protein in a cell extract, and they treat protein structure in opposite ways.
 
-A cell extract holds thousands of different proteins. Try this: describe three methods that follow one of them.
+**SDS-PAGE** (sodium dodecyl sulfate–polyacrylamide gel electrophoresis) sorts: heating the extract in SDS unfolds each protein and coats it with negative charge roughly in proportion to length, so an electric field pulls smaller proteins farther through the gel.
 
-**SDS-PAGE** sorts. Heat the extract in SDS, a detergent that unfolds each protein and coats it with negative charge roughly in proportion to its length. Pull the mixture through a polyacrylamide gel with an electric field, and small proteins travel farther than large ones.
+**The western blot** finds: transfer the sorted bands to a membrane, add an antibody to your protein, then a second enzyme-linked antibody that makes light or colour, giving a band at one size.
 
-**The western blot** finds. Move the sorted proteins from the gel onto a membrane, then soak the membrane in an antibody against your protein. A second antibody, which carries an enzyme that makes light or colour, marks where the first one stuck. You see a band at one size.
+**Immunoprecipitation** fishes from an unheated, native extract: an antibody on beads pulls out its target together with bound partners. Blotting the catch for a partner shows the two were associated in the extract, most likely as one complex; a parallel tube with an unrelated antibody rules out sticking to the beads.
 
-**Immunoprecipitation** fishes. Here the extract is not heated. An antibody fixed to beads pulls its protein out of the mixture, and partners bound to that protein come out with it. Blot the catch for a suspected partner and you learn that the two were bound together in the extract, most likely as one complex. A tube with an unrelated antibody is the control that shows the partner did not stick to the beads on its own.
+<LessonFigure src="/figures/detecting-a-signal/immunoprecipitation-fishing.webp" width={1200} height={623} alt="AI-generated illustration: three steps. Beads coated with Y-shaped antibodies drop into a tube of mixed proteins; an antibody catches the gold protein with its partner still attached; the bead is lifted out carrying both while the other proteins stay behind." caption="Immunoprecipitation captures a native protein and its bound partners on antibody beads, so the extract cannot be heated in SDS." />
 
-<LessonFigure src="/figures/detecting-a-signal/immunoprecipitation-fishing.webp" width={1200} height={623} alt="AI-generated illustration: three steps. Beads coated with Y-shaped antibodies drop into a tube of mixed proteins; an antibody catches the gold protein with its partner still attached; the bead is lifted out carrying both while the other proteins stay behind." caption="Immunoprecipitation uses an extract that has not been heated. An antibody fixed to beads pulls its protein out of the mixture, and a partner bound to that protein comes out with it." />
+**Predict.** To test whether protein A binds protein B by immunoprecipitating A, what happens if you heat the extract in SDS first?
 
-Among what he calls "other ways to detect phosphorylation events" is the tool behind much of this course's evidence: the phosphospecific antibody. It is raised against a short piece of a protein with a phosphate on one residue, and chosen so that it binds only when the phosphate is present. A blot with it reads one site, from cells, minutes after a signal arrives. Blot the same samples with an antibody to the whole protein as well, or you cannot tell more phosphate from more protein.
+<details>
+<summary>Check your prediction</summary>
 
-An antibody has limits. It answers the question you built it for, so it cannot find a site nobody suspected. It reports that a band got darker, not what fraction of the molecules carry the phosphate. It can bind the wrong protein, which is why a careful blot includes a sample in which the protein or the phosphate is missing. And a blot averages millions of cells; watching one living cell takes the reporters of the next lesson.
+SDS and heat unfold the proteins and break non-covalent interactions, separating A from B before the beads touch them. Protein B stays behind, so the interaction is missed.
 
-## "How do we determine where the protein is modified?" Weigh the pieces
+</details>
 
-Prediction tools such as Scansite search a sequence for the patterns that known kinases prefer, and databases such as UniProt list sites that have been reported. They are a start. A predicted site is a guess until someone finds the phosphate on it.
+A **phosphospecific antibody**, raised against a short phosphorylated peptide and chosen to bind only when that phosphate is present, reads one known site minutes after a signal arrives. Always blot the same samples for total protein too, or you cannot tell more phosphate per molecule from more protein.
 
-Mass spectrometry finds it by weighing. Cut the protein into peptides with trypsin, an enzyme that cuts after lysine and arginine, usually not when proline follows. The instrument weighs each peptide (strictly, it measures mass divided by charge) closely enough that one phosphate shows.
+Antibody blots have four limits: they cannot discover an unsuspected site; a darker band does not tell you what fraction of molecules carry phosphate; antibodies can bind the wrong protein (requiring a sample lacking the protein or phosphate as a control); and blots average millions of cells, whereas single living cells need the reporters of the next lesson.
+
+## Where is the protein modified? Weigh the pieces
+
+Finding an unknown site takes a method that needs no antibody. Prediction tools such as Scansite scan sequences for kinase motifs and UniProt lists reported sites, yet a predicted site stays a guess until the phosphate is physically detected.
+
+**Mass spectrometry** cuts the protein into peptides with trypsin (after lysine and arginine, usually not before proline) and weighs each peptide (strictly mass divided by charge) closely enough that one phosphate stands out:
 
 > **mass of a phosphopeptide = mass of the peptide + about 80 daltons for each phosphate**
 
-In tandem mass spectrometry (MS/MS) the instrument then selects one peptide, breaks it along its backbone and weighs the fragments. The fragments spell out the sequence, and the ones carrying the extra 80 daltons show which residue holds the phosphate, provided enough fragments break between the candidate residues. Sometimes they do not, and the site can only be narrowed to two or three residues. No antibody is needed and no site has to be known in advance. Once the rare phosphopeptides have been enriched, one experiment on a whole extract can report thousands of sites. A site that is not reported may still exist, because some peptides are never detected.
+In **tandem mass spectrometry (MS/MS)** the instrument selects one peptide, breaks its backbone and weighs the fragments. Fragments spell out the sequence, and those carrying the extra 80 daltons pinpoint the residue—provided cuts fall between candidate residues; otherwise the site narrows only to two or three residues. After enriching rare phosphopeptides, one run on a whole extract can report thousands of sites with no prior guess.
 
-<LessonFigure src="/figures/detecting-a-signal/weigh-the-phosphopeptide.webp" width={1200} height={480} alt="AI-generated illustration: three numbered steps. A protein is cut by trypsin into peptides; a phosphopeptide of six beads outweighs the same peptide without a phosphate; the peptide is broken into pieces and, in this idealised example, only the piece holding the gold phosphate is heavier, placing it on one residue. Balances are a metaphor for mass." caption="Cut the protein with trypsin, weigh a peptide, then break it and weigh the fragments. A phosphate adds about 80 daltons. When the fragments distinguish the candidate residues the site can be placed; otherwise two or three residues may remain possible." />
+<LessonFigure src="/figures/detecting-a-signal/weigh-the-phosphopeptide.webp" width={1200} height={480} alt="AI-generated illustration: three numbered steps. A protein is cut by trypsin into peptides; a phosphopeptide of six beads outweighs the same peptide without a phosphate; the peptide is broken into pieces and, in this idealised example, only the piece holding the gold phosphate is heavier, placing it on one residue. Balances are a metaphor for mass." caption="Tandem mass spectrometry adds about 80 daltons per phosphate to a tryptic peptide and uses backbone fragments to place the site when cuts fall between candidate residues." />
 
-A worked case in which these methods were used to map and test phosphorylation sites on one transcription factor, BATF, is under Going deeper.
+**Predict.** A whole-extract MS/MS scan reports two thousand phosphorylation sites, but a suspected site on your protein is missing. Does that prove the site is unphosphorylated?
 
-## Which kinase? Give one kinase an ATP of its own
+<details>
+<summary>Check your prediction</summary>
+
+No. Some peptides are never detected because of cleavage, enrichment, ionisation or fragmentation, so an unreported site may still exist.
+
+</details>
+
+A worked case mapping and testing sites on the transcription factor BATF is under Going deeper.
+
+Locating a phosphate shows what changed, not which of the cell's roughly five hundred kinases put it there or whether that step causes the response.
 
 <LessonFilm film={frontmatter.films[0]} />
 
-"What if you have a kinase but don’t know the substrates?" The approaches he lists each have a weakness. A purified kinase in a test tube shows what it can phosphorylate, which is more than it does in a cell. Prediction from sequence gives candidates. Finding the kinase bound to a protein shows contact, which is not catalysis. Removing the kinase with an inhibitor, RNA interference or a knockout changes many proteins, and the direct substrates look the same as those three steps downstream.
+## Which kinase? Give one kinase an ATP of its own
 
-Kevan Shokat's laboratory found a way through, where organic chemistry meets protein manipulation. Kinases share an ATP pocket, and one bulky residue in it, the gatekeeper, limits what fits. Replace the gatekeeper with glycine or alanine and the pocket gains a hole. An ATP with a bulky group added to its adenine fits the enlarged pocket and fits normal kinases poorly. Such a kinase is called analog-sensitive. The laboratory introduced the approach in 1997 with the tyrosine kinase v-Src.
+The second film showed why ordinary radioactive ATP and a knockout fail to isolate direct substrates; removing the kinase with an inhibitor or RNA interference fails the same way. Sequence prediction gives only candidates.
+
+**Predict.** A purified kinase phosphorylates protein Y in a test tube, and the same kinase comes down with protein Z when it is immunoprecipitated from cells. Why does neither prove a direct substrate in cells?
+
+<details>
+<summary>Check your prediction</summary>
+
+A test tube shows what a kinase *can* phosphorylate, which is more than it does in a cell: concentrations are high and the cell's scaffolds and compartments are gone. Finding the kinase bound to a protein shows contact, which is not catalysis.
+
+</details>
+
+Kevan Shokat's laboratory solved this where organic chemistry meets protein engineering, introducing the method in 1997 with the tyrosine kinase v-Src. In the shared ATP pocket, a bulky **gatekeeper** residue limits what fits; replacing it with glycine or alanine opens a hole, making an **analog-sensitive** kinase. An ATP analog with a bulky benzyl group on its adenine fits this enlarged pocket and fits normal kinases poorly. Because the bulky group stays on adenine and only the radioactive gamma phosphate transfers, labelled proteins are candidates for direct substrates of that kinase.
 
 ## What an inhibitor proves, and what "necessary" and "sufficient" mean
 
-"How do we determine what effect a phosphorylation event is having on a protein?" The answer has two parts: mutate the site to imitate the gain or the loss of the phosphate, and inhibit or activate the kinase. The second part has misled many laboratories.
+Testing what phosphorylation *does* has two parts: mutate the site to mimic loss or gain of phosphate, and inhibit or activate the kinase. The second part has misled many laboratories.
 
-Most kinase inhibitors work by plugging the ATP pocket, and about five hundred kinases share that pocket. Staurosporine, a natural product, binds most of the kinases it has been tested against. In 2000 Philip Cohen's group in Dundee tested compounds sold as selective inhibitors of named kinases against panels of purified kinases, and apart from rapamycin and PD 184352 even the most selective inhibited at least one other kinase. Larger surveys followed, and the 2007 paper judged many widely used compounds too non-specific for any conclusion except one: ruling a kinase out.
+Most kinase inhibitors plug the ATP pocket shared by about five hundred kinases. The natural product staurosporine binds most kinases tested against it. In 2000 Philip Cohen's group in Dundee tested "selective" inhibitors against purified kinase panels; apart from rapamycin and PD 184352, even the best hit at least one other kinase. Larger surveys followed (Going deeper), and the 2007 paper judged many widely used compounds too non-specific for any conclusion except ruling a kinase out.
 
-So an inhibitor result has a direction. If a dose that shuts off kinase X leaves the response intact, the activity of X is not needed. If the response stops, X or any other target of the compound may be the cause. To pin it on X, use two inhibitors of unlike structure, which are unlikely to share their other targets. Better, express a mutant of X that the drug cannot bind: if the response returns while every other target stays blocked, the drug was acting through X. Then add genetics, a knockout or a knockdown, which goes wrong in different ways.
+As the second film showed, an inhibitor's logic is one-sided: if shutting off kinase X leaves the response intact, X is not needed; if the response stops, X or any off-target may be responsible.
 
-<LessonFigure src="/figures/detecting-a-signal/drug-resistant-mutant-rescue.webp" width={1200} height={796} alt="AI-generated illustration: two panels with the same signal and drug. With normal kinase X, the drug sits on X and on another target and the response stops. With a drug-resistant mutant of X, the drug cannot bind X, the other target stays blocked, and the response returns. Arrows are schematic and do not establish pathway order." caption="A mutant of X that the drug cannot bind tests the drug's effect. If the response returns while other targets stay blocked, the drug was acting through X. Arrows are schematic; the rescue does not order the other targets or show a direct link from X to the response." />
+**Predict.** Two structurally unrelated inhibitors both block kinase X in vitro and both stop a hormone response. Why is that stronger than doubling one inhibitor's dose, and what could still mislead you?
 
-Two words organise all of this. A step is **necessary** if removing it removes the response: the knockout, the controlled inhibitor, the site changed to alanine. A step is **sufficient** if turning it on by itself produces the response without the signal: a kinase that is always active, or, more weakly, a site changed to aspartate, which imitates the phosphate only in part. A step can be one without being the other. Every method has its own way of misleading you, so a claim earns belief when two methods that fail differently agree.
+<details>
+<summary>Check your prediction</summary>
+
+Doubling one dose only widens its off-target list, whereas unlike structures rarely share the same off-targets. Still, shared off-targets remain possible, so a drug-resistant mutant of X—plus independent genetics—gives a cleaner test.
+
+</details>
+
+Expressing a drug-resistant mutant of X sharpens the proof: if the response returns while other targets stay blocked, the drug acted through X. Adding genetics—a knockout or knockdown—tests the claim with a method that fails differently.
+
+<LessonFigure src="/figures/detecting-a-signal/drug-resistant-mutant-rescue.webp" width={1200} height={796} alt="AI-generated illustration: two panels with the same signal and drug. With normal kinase X, the drug sits on X and on another target and the response stops. With a drug-resistant mutant of X, the drug cannot bind X, the other target stays blocked, and the response returns. Arrows are schematic and do not establish pathway order." caption="If a drug-resistant mutant of kinase X restores the response while other targets stay blocked, the drug acted through X—though rescue alone does not order other targets or prove a direct link." />
+
+Two words organise these tests. A step is **necessary** if removing it removes the response: a knockout, controlled inhibitor, or mutating the site to **alanine** (no hydroxyl to accept phosphate). A step is **sufficient** if turning it on alone triggers the response without the signal: an always-active kinase, or—more weakly—mutating the site to **aspartate**, which mimics phosphate only in part. A step can be one without the other.
+
+| Test | Outcome | Proves | Does *not* prove |
+| :--- | :--- | :--- | :--- |
+| Unselective inhibitor (X + off-targets) | Response intact | X is not necessary (rules X out) | Anything about kinases the dose left active |
+| Unselective inhibitor (X + off-targets) | Response stops | Ambiguous (X or off-target) | That X caused the block |
+| Inhibitor + drug-resistant X | Response returns | Drug acted through X (necessary) | Pathway order, direct link or sufficiency |
+| Site mutated to alanine | Response stops | Site phosphorylation is necessary | That the site alone is sufficient |
+| Always-active kinase (no signal) | Response occurs | Kinase activity is sufficient | That X is necessary for the signal |
+| Site mutated to aspartate (no signal) | Active (or silent) | Weak evidence of sufficiency if active | Negative result is weak (partial mimic) |
+
+Keep the rule in view: each detection method has its own blind spots, and causal claims earn belief when two methods that fail differently agree.
 
 ### Design problem
 
@@ -486,4 +554,3 @@ A 2003 paper in the *Biochemical Journal* by Christopher Deppmann, Tina Thornton
 ### The inhibitor surveys
 
 In 2000 Philip Cohen's group in Dundee took compounds sold as selective inhibitors of named kinases and tested each against a panel of purified kinases. Apart from rapamycin and PD 184352, even the most selective inhibited at least one other kinase. Jenny Bain led further rounds in 2003 and 2007. In 2008 Mazen Karaman, Patrick Zarrinkar and colleagues at the company Ambit Biosciences measured thirty-eight inhibitors against 317 kinases and concluded that "small assay panels do not provide a robust measure of selectivity."
-

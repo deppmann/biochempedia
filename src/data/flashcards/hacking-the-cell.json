@@ -1,0 +1,585 @@
+{
+ "slug": "hacking-the-cell",
+ "title": "Hacking the Cell: Reporters, Actuators and Genetic Tools",
+ "generated": {
+  "date": "2026-11-21",
+  "pipeline": "extract → Gemini draft → Claude Sonnet accuracy gate → Sonnet fixes",
+  "models": {
+   "draft": "gemini-4-neon-high",
+   "gate": "claude-sonnet-5-5",
+   "fix": "claude-sonnet-5-5"
+  }
+ },
+ "lessonHash": "7a920f175a48",
+ "sectionHashes": {
+  "(opening)": "bd20893cdf0b",
+  "GFP and the reporter toolkit": "9917393405e8",
+  "Four ways to wire a reporter": "5eb6ea56900f",
+  "Actuators: light or drugs in, signal out": "ac2ebfadfa38",
+  "Transgenes, gene targeting, and CRISPR": "a46f3fb2f714",
+  "Conditional control with Cre, loxP, and Flp": "46f95298dc2a",
+  "Past the limit of light": "92f7cfb9503e",
+  "Design problem": "6309b8e8b26c",
+  "Selecting and breeding targeted mice": "2cdfabf65b56"
+ },
+ "cards": [
+  {
+   "id": "hacking-the-cell-c01",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In living-cell signaling experiments, what distinguishes a reporter from an actuator?",
+   "back": "A reporter monitors where and when a signal happens, whereas an actuator starts or stops a signal on command.",
+   "quote": "a reporter watches where and when it happens, and an actuator pushes or stops it on command."
+  },
+  {
+   "id": "hacking-the-cell-c02",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Using light and a genetically encoded tool to control a cell's activity is called {{c1::optogenetics}}.",
+   "back": "The word is often stretched to include optical reporters used alongside light-gated actuators.",
+   "quote": "Using light and a gene to control cells is called optogenetics, a word often stretched to cover reporters used alongside it.",
+   "section": "GFP and the reporter toolkit"
+  },
+  {
+   "id": "hacking-the-cell-c03",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In fluorescence, why is the emitted photon longer in wavelength than the absorbed photon (blue in, green out)?",
+   "back": "Absorbing a photon lifts an electron, and some of that energy leaves as heat before a lower-energy, longer-wavelength photon is emitted.",
+   "quote": "In fluorescence, absorbing a photon lifts an electron; some energy leaves as heat before a longer-wavelength photon is emitted (blue in, green out).",
+   "section": "GFP and the reporter toolkit"
+  },
+  {
+   "id": "hacking-the-cell-c04",
+   "type": "experiment",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Transferring only the protein-coding stretch of jellyfish GFP into E. coli made the bacteria glow green. What hypothesis did this result rule out?",
+   "back": "It ruled out the idea that a jellyfish enzyme must modify GFP before it can fluoresce.",
+   "why": "Because E. coli lacks jellyfish enzymes, GFP's own amino acid sequence, plus oxygen from the air, is enough to form its light-emitting ring.",
+   "quote": "jellyfish green fluorescent protein (GFP) into E. coli made the bacteria glow green—ruling out the assumption that a jellyfish enzyme had to finish it.",
+   "section": "GFP and the reporter toolkit"
+  },
+  {
+   "id": "hacking-the-cell-c05",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "How does GFP's structure enable it to form a green light-emitting ring without another enzyme?",
+   "back": "GFP folds into a barrel with a central helix whose three neighboring amino acids react, lose water, and are oxidized by molecular oxygen into a rigid ring.",
+   "quote": "GFP folds into a barrel with a central helix whose three neighboring amino acids react, lose water, and are oxidized by oxygen from the air into a rigid ring",
+   "section": "GFP and the reporter toolkit"
+  },
+  {
+   "id": "hacking-the-cell-c06",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "You express the jellyfish GFP gene in human cells kept at 37 °C inside a strictly oxygen-free chamber. Will the cells glow green, and why?",
+   "back": "No. Forming GFP's light-emitting ring requires molecular oxygen, and original jellyfish GFP also folded poorly in warm mammalian cells before improved variants were engineered.",
+   "quote": "forming GFP's light-emitting ring requires molecular oxygen—and the original jellyfish protein also folded poorly in warm mammalian cells before improved variants were engineered.",
+   "section": "GFP and the reporter toolkit"
+  },
+  {
+   "id": "hacking-the-cell-c07",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "What pattern appears along a neuron's dendrites when GFP is fused to gephyrin?",
+   "back": "Rows of bright dots marking gephyrin scaffolds beneath inhibitory synapses.",
+   "quote": "GFP fused to gephyrin, a scaffold under inhibitory synapses, lights up a neuron's dendrites in rows of bright dots.",
+   "section": "Four ways to wire a reporter"
+  },
+  {
+   "id": "hacking-the-cell-c08",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "A cell expresses GFP fused to a PIP3-binding PH domain. When PI 3-kinase becomes active, where does the green fluorescence move, and why?",
+   "back": "It moves from the cytosol to the membrane, because PI 3-kinase produces PIP3 at the membrane, which recruits the PH-domain-GFP fusion.",
+   "quote": "A PH domain binding PIP3 (see the lesson on lipid anchors and addresses), fused to GFP, shifts from cytosol to membrane when PI 3-kinase makes PIP3.",
+   "section": "Four ways to wire a reporter"
+  },
+  {
+   "id": "hacking-the-cell-c09",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "An acid-dimming GFP (bright at pH 7.4, dim at pH 5.5) faces the inside of synaptic vesicles. Nerve stimulation brightens the terminal within a second, and light fades over a minute—unless a drug blocks the vesicle's proton pump, preventing the fade. What does this show?",
+   "back": "Vesicle fusion exposes the reporter to neutral extracellular fluid (pH 7.4, an ~80-fold drop in proton concentration), brightening it; the fade reflects retrieved vesicles re-acidifying via the proton pump.",
+   "quote": "An acid-dimming GFP facing inside a synaptic vesicle (pH about 5.5) brightens on fusion when it meets extracellular fluid at pH 7.4",
+   "section": "Four ways to wire a reporter"
+  },
+  {
+   "id": "hacking-the-cell-c10",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "In a GCaMP calcium reporter, how does a rise in calcium brighten the modified GFP?",
+   "back": "Engineers cut new ends beside the chromophore and attach calmodulin to one and its target peptide to the other. When calcium rises they wrap together, plugging the gap and shutting out the water that dims the barrel.",
+   "quote": "Calmodulin (from the calcium lesson) on one new end and its target peptide on the other wrap together when calcium rises, plugging the gap and shutting water out.",
+   "section": "Four ways to wire a reporter"
+  },
+  {
+   "id": "hacking-the-cell-c11",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In a FRET kinase reporter, phosphorylation brings cyan and yellow fluorescent proteins within a few nanometers so cyan passes energy to yellow without emitting a {{c1::photon}}.",
+   "back": "Förster resonance energy transfer (FRET) raises the yellow-to-cyan ratio; phosphatases reverse the fold.",
+   "quote": "Phosphorylation folds the chain so the pair sit within a few nanometers, letting cyan pass energy to yellow without a photon (Förster resonance energy transfer, FRET)",
+   "section": "Four ways to wire a reporter"
+  },
+  {
+   "id": "hacking-the-cell-c12",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In a cell expressing a tyrosine-kinase FRET reporter (cyan donor, yellow acceptor) with steady basal kinase activity, a drug blocks phosphatases. What happens to the yellow-to-cyan ratio, and why?",
+   "back": "The yellow-to-cyan ratio rises. Blocking phosphatases lets phosphorylated, folded reporter molecules accumulate, keeping donor and acceptor close and increasing energy transfer to yellow.",
+   "quote": "The reporter tracks the kinase-phosphatase balance; blocking phosphatases lets phosphorylated, folded molecules accumulate, keeping donor and acceptor close and increasing transfer to yellow.",
+   "section": "Four ways to wire a reporter"
+  },
+  {
+   "id": "hacking-the-cell-c13",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In what two ways can a genetically encoded calcium reporter distort the cellular signal it measures?",
+   "back": "It buffers some of the calcium it measures, and its binding and shape changes take time, which in slower variants can blur a fast spike train into one slow rise.",
+   "quote": "buffers some of the calcium it measures, and its binding and shape changes take time, so in slower variants a fast spike train can blur into one slow rise.",
+   "section": "Four ways to wire a reporter"
+  },
+  {
+   "id": "hacking-the-cell-c14",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Both retinal rhodopsin and green-algal channelrhodopsin-2 use seven helices and retinal to detect light. How do their mechanisms of action differ?",
+   "back": "Retinal rhodopsin triggers a G-protein relay, whereas channelrhodopsin-2 skips that relay and directly opens its own non-selective cation channel within milliseconds of blue light.",
+   "quote": "As the first film showed, green-algal channelrhodopsin-2 skips that relay—it is itself a cation channel opened within milliseconds by blue light.",
+   "section": "Actuators: light or drugs in, signal out"
+  },
+  {
+   "id": "hacking-the-cell-c15",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "Why are light-gated chloride channels now used more often than halorhodopsins to silence neurons?",
+   "back": "Halorhodopsins pump only one Cl⁻ per photon, requiring bright yellow light, and Cl⁻ loading makes the chloride gradient shallower, weakening inhibition.",
+   "quote": "Drives Cl⁻ in to suppress firing; needs bright light, and Cl⁻ loading makes the chloride gradient shallower, weakening inhibition. Light-gated Cl⁻ channels are now used more often for silencing.",
+   "section": "Actuators: light or drugs in, signal out"
+  },
+  {
+   "id": "hacking-the-cell-c16",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "How does an OptoXR actuator turn green light into a specific intracellular signaling pathway?",
+   "back": "It is a chimeric GPCR with inner loops taken from another GPCR, so green light starts that chosen receptor's G-protein pathway instead of opening an ion pore.",
+   "quote": "Starts that chosen receptor's G-protein pathway instead of opening a pore.",
+   "section": "Actuators: light or drugs in, signal out"
+  },
+  {
+   "id": "hacking-the-cell-c17",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "What is a major genetic packaging limitation of the adeno-associated virus (AAV) vectors most commonly used to deliver opsins?",
+   "back": "They can hold only a short promoter.",
+   "quote": "the adeno-associated virus (AAV) vectors used most hold only a short promoter",
+   "section": "Actuators: light or drugs in, signal out"
+  },
+  {
+   "id": "hacking-the-cell-c18",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Engineered GPCRs that barely answer their natural ligand and instead respond to a synthetic drug for wireless chemogenetic control are called {{c1::DREADDs}}.",
+   "back": "Designer Receptors Exclusively Activated by Designer Drugs.",
+   "quote": "engineered GPCRs that barely answer their natural ligand and answer a synthetic drug instead, so in the main only cells with the receptor react.",
+   "section": "Actuators: light or drugs in, signal out"
+  },
+  {
+   "id": "hacking-the-cell-c19",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "When using clozapine-N-oxide (CNO) to activate a DREADD in a mouse, what control group is essential, and what confound does it address?",
+   "back": "Give the same CNO dose to control mice lacking the DREADD. In the body, CNO converts into clozapine, which acts on the animal's own endogenous receptors.",
+   "quote": "A drug control is essential: clozapine-N-oxide (CNO), used most, converts into clozapine in the body, which acts on the animal's own receptors.",
+   "section": "Actuators: light or drugs in, signal out"
+  },
+  {
+   "id": "hacking-the-cell-c20",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "You express the ion channel TRPV1 in only one neuron type of a TRPV1 knock-out mouse and apply capsaicin. What happens, and why?",
+   "back": "Capsaicin opens a cation channel only in that chosen neuron type, because the TRPV1 knock-out background lacks endogenous TRPV1 in other cells.",
+   "quote": "expressing TRPV1 in one neuron type of a TRPV1 knock-out mouse lets capsaicin open a cation channel in those neurons alone",
+   "section": "Actuators: light or drugs in, signal out"
+  },
+  {
+   "id": "hacking-the-cell-c21",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "You want to silence one neuron population for two hours in a freely moving mouse without an implanted optical fiber. Which actuator fits best, why are light-gated options unsuitable, and what control is required?",
+   "back": "An inhibitory Gi-coupled DREADD fits best. Opsins require an implanted fiber, and halorhodopsin also loads Cl⁻ over long exposures (making the chloride gradient shallower); give the same CNO dose to control mice lacking the DREADD to separate receptor effects from clozapine.",
+   "why": "Combines actuator hardware rules (fiber vs wireless drug), halorhodopsin Cl⁻-loading limits, and CNO-to-clozapine drug-control rules.",
+   "quote": "An inhibitory Gi-coupled DREADD fits best: opsins require a fiber, and halorhodopsin also loads chloride over long exposures. Give the same CNO dose to control mice lacking the DREADD",
+   "section": "Actuators: light or drugs in, signal out"
+  },
+  {
+   "id": "hacking-the-cell-c22",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A transgene pairs a {{c1::promoter}} (setting where and when a gene is read) with a coding sequence (specifying what is made).",
+   "back": "",
+   "quote": "A transgene pairs a promoter (where and when a gene is read) with a coding sequence (what is made).",
+   "section": "Transgenes, gene targeting, and CRISPR"
+  },
+  {
+   "id": "hacking-the-cell-c23",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "How does chromosomal integration of an injected transgene differ from gene targeting in embryonic stem cells?",
+   "back": "An injected transgene integrates at a random chromosomal site, whereas gene targeting uses flanking DNA to swap an edit into one chosen target locus by homologous recombination.",
+   "quote": "flanking DNA swaps your edit into the target locus by homologous recombination.",
+   "section": "Transgenes, gene targeting, and CRISPR"
+  },
+  {
+   "id": "hacking-the-cell-c24",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In gene targeting, how does a knock-out differ from a knock-in?",
+   "back": "A knock-out destroys the target gene, whereas a knock-in inserts a new sequence (such as GFP or Cre) into the target locus.",
+   "quote": "Destroying the gene is a knock-out; inserting something new (such as GFP or Cre) is a knock-in.",
+   "section": "Transgenes, gene targeting, and CRISPR"
+  },
+  {
+   "id": "hacking-the-cell-c25",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A ubiquitous-promoter GFP transgene is injected into a fertilized mouse egg. The resulting mouse glows green, yet none of its offspring inherit the glow. What is the simplest explanation?",
+   "back": "The transgene integrated randomly in body cells but did not reach the germ line; an injected transgene is inherited only if it reaches the germ line.",
+   "quote": "Injected into a fertilized mouse egg, it sometimes integrates at a random chromosomal site and is inherited if it reaches the germ line.",
+   "section": "Transgenes, gene targeting, and CRISPR"
+  },
+  {
+   "id": "hacking-the-cell-c26",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "How does CRISPR shorten the creation of knock-out or knock-in mice compared with classical gene targeting?",
+   "back": "An RNA guide directs a DNA-cutting enzyme to a matching sequence directly in a fertilized egg, so many knock-outs and knock-ins no longer need embryonic stem cells or chimeras.",
+   "quote": "an RNA guide directs a DNA-cutting enzyme to a matching sequence in a fertilized egg, so many knock-outs and knock-ins no longer need stem cells or chimeras.",
+   "section": "Transgenes, gene targeting, and CRISPR"
+  },
+  {
+   "id": "hacking-the-cell-c27",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "The bacterial-virus recombinase Cre cuts and rejoins DNA at a 34-base-pair sequence called a {{c1::loxP}} site.",
+   "back": "",
+   "quote": "Cre, from a bacterial virus, cuts and rejoins DNA at a 34-base-pair loxP site.",
+   "section": "Conditional control with Cre, loxP, and Flp"
+  },
+  {
+   "id": "hacking-the-cell-c28",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "How can two same-direction loxP sites turn Cre's single cutting reaction into either a conditional off switch or a conditional on switch?",
+   "back": "Flanking an essential gene region turns the gene off where Cre removes it; flanking a stop signal ahead of a tool turns the tool on where Cre excises the stop.",
+   "quote": "Two same-direction loxP sites turn that single cutting reaction into an off or on switch:",
+   "section": "Conditional control with Cre, loxP, and Flp"
+  },
+  {
+   "id": "hacking-the-cell-c29",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "A coding exon of a kinase gene (not a stop block) is flanked by two same-direction loxP sites, and Cre is expressed only in neuron type A. What happens in neuron type A versus other cells?",
+   "back": "Cre excises the exon, knocking out the kinase in neuron type A and its descendants, whereas cells without Cre retain the exon and make the kinase normally.",
+   "quote": "Cre excises the exon, knocking out the kinase in neuron type A and its descendants, while cells without Cre keep the exon and make the kinase normally.",
+   "section": "Conditional control with Cre, loxP, and Flp"
+  },
+  {
+   "id": "hacking-the-cell-c30",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "Because Cre removes a loxP-flanked stop permanently so a cell and all its descendants read the gene wherever its promoter is active, Cre enables {{c1::lineage tracing}}.",
+   "back": "Giving Cre several fluorescent proteins to pick among at random also labels neighboring cells in different colors.",
+   "quote": "Cre cuts the stop out permanently, so that cell and its descendants read the gene wherever the tool's promoter is active (lineage tracing).",
+   "section": "Conditional control with Cre, loxP, and Flp"
+  },
+  {
+   "id": "hacking-the-cell-c31",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "A Cre mouse line intended for one adult neuron type expresses Cre briefly during early development or in the germ line. Predict how a loxP-stop-loxP reporter will behave, and state the rule this rests on.",
+   "back": "Unintended cells—all descendants of any cell where Cre turned on—will permanently express the reporter. This rests on the rule that Cre cuts DNA permanently across descendants, which is why every Cre line must be checked with a reporter first.",
+   "quote": "Because the cut is permanent, every Cre line must be checked with a reporter: brief developmental or germ-line expression can cut DNA in unintended cells too.",
+   "section": "Conditional control with Cre, loxP, and Flp"
+  },
+  {
+   "id": "hacking-the-cell-c32",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "How do you express Tool 1 exclusively in neuron type A and Tool 2 exclusively in neuron type B within the same mouse?",
+   "back": "Express Cre in neuron type A and yeast Flp in neuron type B, with Tool 1 behind a loxP-flanked stop and Tool 2 behind a Flp-flanked stop.",
+   "why": "Cre cuts only loxP sites and Flp cuts only its own sites, leaving both tools off in other cell types.",
+   "quote": "For two tools in two neuron types of one mouse, pair Cre with yeast Flp, which cuts only its own sites:",
+   "section": "Conditional control with Cre, loxP, and Flp"
+  },
+  {
+   "id": "hacking-the-cell-c33",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "According to Ernst Abbe's diffraction limit, the smallest separable distance between two molecules is approximately wavelength divided by {{c1::2 × numerical aperture}}.",
+   "back": "Numerical aperture measures how wide a light cone the lens collects (about 1.4 for a very good lens).",
+   "quote": "Ernst Abbe wrote the limit in the 1870s: smallest separable distance ≈ wavelength ÷ (2 × numerical aperture)",
+   "section": "Past the limit of light"
+  },
+  {
+   "id": "hacking-the-cell-c34",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A standard microscope uses 520 nm green light and a lens with numerical aperture 1.3. What is its approximate diffraction limit, and can it separate two proteins 40 nm apart across a synaptic vesicle?",
+   "back": "Limit ≈ 520 nm ÷ (2 × 1.3) = 200 nm. No: 200 nm is far wider than 40 nm, so their blurs merge.",
+   "quote": "giving a limit near 200 nanometers for green light, compared with about 40 nanometers across a synaptic vesicle.",
+   "section": "Past the limit of light"
+  },
+  {
+   "id": "hacking-the-cell-c35",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "How does PALM microscopy resolve molecules closer than the ~200 nm diffraction limit?",
+   "back": "Using photoactivatable GFP, it switches on a sparse few molecules so their blurs never overlap, locates each blur's center, lets them bleach, and repeats thousands of times.",
+   "quote": "turns on a sparse few molecules so blurs never overlap, locates each blur's center, lets them bleach, and repeats thousands of times.",
+   "section": "Past the limit of light"
+  },
+  {
+   "id": "hacking-the-cell-c36",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In a PALM measurement under the shot-noise approximation (neglecting background and pixel size), one fluorophore creates a blur with standard deviation 120 nm and yields 900 photons before bleaching. About how precisely can its center be located?",
+   "back": "To about 4 nm. Center uncertainty ≈ 120 nm ÷ √900 = 120 nm ÷ 30 = 4 nm.",
+   "quote": "In the shot-noise approximation (neglecting background and pixel size), center uncertainty ≈ blur standard deviation ÷ √(photons collected):",
+   "section": "Past the limit of light"
+  },
+  {
+   "id": "hacking-the-cell-c37",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Under the shot-noise approximation (neglecting background and pixel size), a 100 nm blur giving 100 photons is centered to about 10 nm. How many photons are needed to tighten center uncertainty fourfold, to about 2.5 nm?",
+   "back": "1,600 photons (16 times as many). Because uncertainty scales as 1 ÷ √(photons), cutting uncertainty by 4 requires 4² = 16 times more photons: 100 nm ÷ √1600 = 100 ÷ 40 = 2.5 nm.",
+   "quote": "a 100 nm blur giving 100 photons is centered to about 100 ÷ 10 = 10 nm, yielding tens-of-nanometers detail.",
+   "section": "Past the limit of light"
+  },
+  {
+   "id": "hacking-the-cell-c38",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "In a PALM experiment on proteins spaced 50 nm apart, an operator turns up the violet activation light so many photoactivatable GFP molecules switch on simultaneously. What happens to the reconstruction, and why?",
+   "back": "Resolution breaks down and closely spaced molecules can no longer be separated. This rests on the Abbe limit (~200 nm for green light) and PALM's sparse-activation rule: when molecules closer than ~200 nm glow at once, their blurs merge and individual centers cannot be located.",
+   "quote": "In 2002 postdoc George Patterson built a photoactivatable GFP that starts dark and switches on with violet light.",
+   "section": "Past the limit of light"
+  },
+  {
+   "id": "hacking-the-cell-c39",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "Besides PALM, how do STED and structured illumination bypass standard optical resolution limits?",
+   "back": "STED uses a ring beam to switch off fluorescence around the rim, while structured illumination computes finer detail from striped lighting.",
+   "quote": "Other routes include STED (Stefan Hell, proposed 1994, shown 1999: a ring beam switches off fluorescence around the rim) and structured illumination (computing finer detail from striped lighting).",
+   "section": "Past the limit of light"
+  },
+  {
+   "id": "hacking-the-cell-c40",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Design a mouse in which only one neuron type reports calcium rises and can be switched on with light, naming the targeting strategy, tool cassettes, and verification step.",
+   "back": "Breed three parts: Cre knocked into a gene read only by that neuron type, a calcium reporter behind a lox-flanked stop, and a channelrhodopsin behind its own lox-flanked stop; verify the Cre line with a reporter first.",
+   "why": "Rests on knock-in addressing and permanent Cre stop-removal, so in the main only Cre-expressing cells and their descendants make both tools.",
+   "quote": "Only Cre-expressing cells remove the stops, so in the main only they and their descendants make both proteins; verify the line with a reporter first.",
+   "section": "Design problem"
+  },
+  {
+   "id": "hacking-the-cell-c41",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "Co-expressing GCaMP and channelrhodopsin-2 in the same neuron causes imaging light to trigger spikes. Why does switching to a red-shifted channelrhodopsin fail to fix this, and what pairing solves it?",
+   "back": "A red-shifted channelrhodopsin still fails because retinal itself absorbs blue light used to excite GCaMP. Keep channelrhodopsin-2 and switch to a red-emitting calcium reporter (RCaMP or jRGECO) excited by green-to-yellow light, then verify imaging light alone drives no current.",
+   "why": "Rests on the spectral rules that GCaMP and retinal both absorb blue light, whereas longer-wavelength green-to-yellow light leaves channelrhodopsin-2 shut.",
+   "quote": "A red-shifted channelrhodopsin does not fix this, because retinal itself still absorbs blue light.",
+   "section": "Design problem"
+  },
+  {
+   "id": "hacking-the-cell-c42",
+   "type": "experiment",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "In embryonic stem cell gene targeting, how does adding a herpes thymidine-kinase gene and treating cells with ganciclovir enrich for correctly targeted cells?",
+   "back": "Random insertions keep the added herpes thymidine-kinase gene, so ganciclovir kills those cells, enriching for rare cells that underwent targeted homologous recombination.",
+   "quote": "Drugs select the rare correct cells (random insertions keep an added herpes thymidine-kinase gene, and ganciclovir kills the cells that keep it).",
+   "section": "Selecting and breeding targeted mice"
+  },
+  {
+   "id": "hacking-the-cell-c43",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "Targeted embryonic stem cells from a brown (agouti) strain are injected into a black-strain early embryo, yielding a patchwork chimera. When bred, which offspring coat color can carry the genetic edit, and why?",
+   "back": "Agouti (brown) offspring can carry the edit. This rests on the rule that a chimera is a patchwork of both strains: agouti pups show that the agouti embryonic stem cells formed the chimera's sperm or eggs and can therefore transmit the edit.",
+   "quote": "The pup is a chimera, a patchwork of both, and if the stem cells formed its sperm or eggs, its agouti offspring can carry the change.",
+   "section": "Selecting and breeding targeted mice"
+  }
+ ]
+}
