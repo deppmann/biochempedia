@@ -41,20 +41,21 @@ export function viewQuery(v: View, extra: Record<string, string> = {}): string {
   return qs ? `?${qs}` : '';
 }
 
-/** What a search reads for each lesson besides titles: the questions people ask about it
- *  (/films/ideas.json, loaded the first time someone uses the search box). */
-export type Ideas = Record<string, string>;
+/** What a search reads besides the cards: /films/search.json (src/lib/film-search-data.ts: fields,
+ *  ideas, methods, take-homes, transcript words), loaded the first time someone uses the search box.
+ *  Read by src/lib/film-search.mjs. */
+export type Ideas = { v: 1; fields: Record<string, string>; lessons: unknown[]; films: Record<string, unknown> };
 
 /** The films a view selects, in its order, and the films of it a run plays. Both are decided in
  *  film-logic.mjs (one matcher, tested), and both take the same three arguments. */
-export const select = (list: FilmList, v: View, ideas?: Ideas | null): ListFilm[] => matchFilms(list.films, v, ideas ?? null);
+export const select = (list: FilmList, v: View, ideas?: Ideas | null): ListFilm[] & { full: number } => matchFilms(list.films, v, ideas ?? null, list);
 export const runnable = (films: ListFilm[], v: View): ListFilm[] => runnableFilms(films, v);
-export const runQueue = (list: FilmList, v: View, ideas?: Ideas | null): ListFilm[] => queueOf(list.films, v, ideas ?? null);
+export const runQueue = (list: FilmList, v: View, ideas?: Ideas | null): ListFilm[] => queueOf(list.films, v, ideas ?? null, list);
 
-/** /films/ideas.json, once. Null if it cannot be had (a search then matches titles only, in the
- *  library and in the run alike). */
+/** /films/search.json, once. Null if it cannot be had (a search then reads titles, lessons, courses
+ *  and levels only, in the library and in the run alike). */
 let ideasOnce: Promise<Ideas | null> | undefined;
-export const loadIdeas = (): Promise<Ideas | null> => (ideasOnce ??= fetch('/films/ideas.json')
+export const loadIdeas = (): Promise<Ideas | null> => (ideasOnce ??= fetch('/films/search.json')
   .then((r) => (r.ok ? (r.json() as Promise<Ideas>) : null))
   .catch(() => null)
   .then((d) => { if (!d) ideasOnce = undefined; return d; }));

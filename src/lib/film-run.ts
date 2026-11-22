@@ -1,7 +1,8 @@
 /* /films/run/ in the browser (2026-11-20): plays a view of the library in order, or one idea at every
    level (?idea=<id>, 2026-11-21). See the page's header comment for the rules. Nothing is stored; the
    plan is the query string, which also keeps the film a run started at (from=), so a reload gives the
-   same run and the same stated end. */
+   same run and the same stated end. A playlist (?list=key,key&from=key, 2026-11-22) plays its films in
+   the order given, from the one chosen. */
 import type { FilmList, ListFilm } from './film-cards';
 import { isWatched, loadFilms, onFilmsChange } from './film-progress';
 import { BUDGETS, SLACK, about, clock, filmsWord, fit, isDefault, loadIdeas, readView, runQueue, runSentence, select, viewQuery } from './film-view';
@@ -53,7 +54,19 @@ export async function run(): Promise<void> {
   let seconds = 0;
   let lead = '';
   const idea = params.get('idea') ?? '';
-  if (idea) {
+  // A playlist made on this device (src/lib/film-playlist.ts, 2026-11-22): ?list=key,key,...&from=key.
+  // It plays in the order given, from the film chosen, whatever has been watched.
+  const listed = (params.get('list') ?? '').split(',').filter((k) => /^[a-z0-9][a-z0-9/._-]{0,160}$/i.test(k) && !k.includes('..')).slice(0, 100);
+  let startKey = '';
+  if (listed.length) {
+    const byKey = new Map(list.films.map((f) => [f.f, f]));
+    films = listed.map((k) => byKey.get(k)).filter((f): f is ListFilm => !!f);
+    if (!films.length) return nothingLink('None of the films in this playlist is on the site any more. Every film is on the films page.');
+    seconds = films.reduce((s, f) => s + f.d, 0);
+    startKey = params.get('from') ?? '';
+    root.querySelector('h1')!.textContent = 'Your playlist';
+    document.title = 'Your playlist — STEMhop';
+  } else if (idea) {
     // One idea, from the simplest level to the deepest: the whole ladder, whatever has been watched.
     if (!/^[a-z0-9-]{1,80}$/.test(idea)) return nothing('There is no idea by that name.');
     let found: { name: string; films: string[] } | null = null;
@@ -78,7 +91,7 @@ export async function run(): Promise<void> {
     const ideas = view.q ? await loadIdeas() : null;
     if (!select(list, view, ideas).length) return nothing('No film matches this view.');
     const queue = runQueue(list, view, ideas);
-    if (!queue.length) return nothing('Nothing in this view plays in a row. Scientist profiles and method films open on their own pages.');
+    if (!queue.length) return nothing('Nothing in this view plays in a row. Scientist profiles open in their lessons.');
     // A run keeps the film it started at in its address, so a reload plays the same run to the same end.
     const from = queue.findIndex((f) => f.f === params.get('from'));
     if (from >= 0) {
@@ -211,7 +224,8 @@ export async function run(): Promise<void> {
   /* Where the run opens: its first film not yet watched on this device, and, if that film was left
      part-way, at that second, paused. A reload or a return therefore carries on, not starts over. */
   const record = loadFilms();
-  const place = runPlace(films, { has: (k: string) => isWatched(record, k) }, record.p);
+  const chosen = startKey ? films.findIndex((f) => f.f === startKey) : -1;
+  const place = chosen >= 0 ? { index: chosen, at: 0 } : runPlace(films, { has: (k: string) => isWatched(record, k) }, record.p);
   $('[data-fr-stage]').hidden = false;
   show(place.index);
   if (place.at > 0) {
