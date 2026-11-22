@@ -410,3 +410,55 @@
   .film-lib .fl-budget input:checked + span { background: Highlight; color: HighlightText; forced-color-adjust: none; }
   .film-lib .fl-key.is-on { outline: 3px solid Highlight; outline-offset: -3px; }
 }
+
+/* ---- Play a ladder (2026-11-22; src/lib/film-ladder.ts) --------------------------------------
+   The shared ladder drawing (hop.css) beside a player; each film sits on its rung as a small
+   thumbnail. On a phone the player is on top and each rung's films are a strip that scrolls sideways. */
+.film-lib .flx { margin-top: var(--ddp-space-10, 2.5rem); padding: var(--ddp-space-4); border: 1px solid var(--ddp-color-line); border-radius: var(--ddp-radius); background: var(--ddp-color-surface); }
+.film-lib .flx-head { display: flex; gap: var(--ddp-space-3); align-items: flex-start; }
+.film-lib .flx-hex { flex: none; margin-top: 0.1rem; }
+.film-lib .flx h2 { margin: 0; font-size: var(--ddp-text-2xl); }
+.film-lib .flx-lede { margin: var(--ddp-space-2) 0 0; max-width: 62ch; line-height: 1.55; color: var(--ddp-color-ink-soft); }
+.film-lib .flx-pick { display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--ddp-space-2) var(--ddp-space-3); margin-top: var(--ddp-space-4); }
+.film-lib .flx-pick .fl-field { flex: 1 1 22rem; min-width: 0; }
+.film-lib .flx-pick select { width: 100%; max-width: 100%; }
+.film-lib .flx-sum { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-sm); color: var(--ddp-color-muted); max-width: 72ch; }
+.film-lib .flx-sum:empty { display: none; }
+.film-lib .flx-stage { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: var(--ddp-space-6); align-items: start; margin-top: var(--ddp-space-4); }
+.film-lib .flx-stage[hidden] { display: none; }
+.film-lib .flx-player { position: sticky; top: 5rem; min-width: 0; }
+.film-lib .flx-screen { aspect-ratio: 16 / 9; background: #000; border-radius: var(--ddp-radius); overflow: hidden; }
+.film-lib .flx-screen video { display: block; width: 100%; height: 100%; }
+.film-lib .flx-now { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-lg); line-height: 1.3; }
+.film-lib .flx-meta { margin: var(--ddp-space-1, 0.25rem) 0 0; font-size: var(--ddp-text-sm); color: var(--ddp-color-muted); }
+.film-lib .flx-meta a { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
+.film-lib .flx-btns { display: flex; flex-wrap: wrap; gap: var(--ddp-space-2); margin: var(--ddp-space-3) 0 0; }
+.film-lib .flx-btns .fl-btn[hidden] { display: none; }
+.film-lib .flx-btns .fl-btn:disabled { opacity: 0.45; cursor: default; }
+.film-lib .flx-say { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); min-height: 1.5em; }
+.film-lib .flx-rail { min-width: 0; }
+.film-lib .flx-rail .hl-full { max-width: none; }
+/* The thumbnails on a rung: small, in order, the film in the player ringed in the ladder's gold. */
+.film-lib .flx-thumbs { list-style: none; display: flex; flex-wrap: wrap; gap: 6px; margin: 0.4rem 0 0; padding: 0; }
+.film-lib .flx-th { position: relative; display: block; width: 76px; aspect-ratio: 16 / 9; padding: 0; border: 2px solid var(--ddp-color-line); border-radius: 6px; overflow: hidden; background: var(--ddp-color-bg); cursor: pointer; transition: transform 140ms ease, border-color 140ms ease; }
+.film-lib .flx-th img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.film-lib .flx-th-n { position: absolute; left: 3px; bottom: 3px; min-width: 1.35em; padding: 0 0.3em; border-radius: 4px; background: color-mix(in srgb, var(--ddp-color-primary) 85%, transparent); color: #fff; font: 600 0.6875rem/1.45 var(--ddp-font-mono); text-align: center; }
+.film-lib .flx-th:hover { border-color: var(--ddp-color-accent); transform: translateY(-2px); }
+.film-lib .flx-th:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+.film-lib .flx-th[aria-current='true'] { border-color: var(--ddp-color-secondary); box-shadow: 0 0 0 2px var(--ddp-color-primary); }
+.film-lib .flx-th[aria-current='true'] .flx-th-n { background: var(--ddp-color-secondary); color: var(--ddp-color-primary); }
+.film-lib .flx-th.is-seen img { opacity: 0.72; }
+.film-lib .flx-th.is-seen::after { content: '✓' / ''; position: absolute; right: 3px; top: 2px; font-size: 0.6875rem; font-weight: 700; color: #fff; text-shadow: 0 0 3px #000; }
+@media (max-width: 760px) {
+  .film-lib .flx { padding: var(--ddp-space-3); }
+  .film-lib .flx-stage { grid-template-columns: 1fr; gap: var(--ddp-space-4); }
+  .film-lib .flx-player { position: static; }
+  /* Each rung's films become a strip that scrolls sideways. */
+  .film-lib .flx-thumbs { flex-wrap: nowrap; overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x proximity; padding-bottom: 4px; }
+  .film-lib .flx-thumbs li { flex: none; scroll-snap-align: start; }
+  .film-lib .flx-th { width: 88px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .film-lib .flx-th { transition: none; }
+  .film-lib .flx-th:hover { transform: none; }
+}

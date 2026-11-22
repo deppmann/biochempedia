@@ -24,6 +24,14 @@ import { readPrefs } from './prefs';
 import { BUDGETS, FIELDS, about, clock, filmsWord, fit, isDefault, loadIdeas, readView, runQueue, runSentence, select, viewQuery, type Ideas, type View } from './film-view';
 
 const PAGE = 60;
+/* "Play a ladder" (film-ladder.ts) keeps its ladder and place in the same address: keep them when the view changes. */
+function withLadder(q: string): string {
+  const p = new URLSearchParams(location.search);
+  const keep = new URLSearchParams();
+  for (const k of ['ladder', 'at']) { const v = p.get(k); if (v) keep.set(k, v); }
+  const k = keep.toString();
+  return k ? `${q ? `${q}&` : '?'}${k}` : q;
+}
 const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
 
 export function library(): void {
@@ -386,7 +394,7 @@ export function library(): void {
     if (view.course && view.level && d.films.find((f) => f.c === view.course)?.s !== view.level) {
       view.course = '';
       toForm();
-      history.replaceState(null, '', `${location.pathname}${viewQuery(view)}`);
+      history.replaceState(null, '', `${location.pathname}${withLadder(viewQuery(view))}`);
     }
     const current = select(d, view, ideas);
     say(current.length, current.reduce((s, f) => s + f.d, 0));
@@ -472,7 +480,7 @@ export function library(): void {
 
   /* ---- changes */
   function commit(push: boolean): void {
-    const url = `${location.pathname}${viewQuery(view)}`;
+    const url = `${location.pathname}${withLadder(viewQuery(view))}`;
     if (url !== location.pathname + location.search) history[push ? 'pushState' : 'replaceState'](null, '', url);
     void render(true);
     startCard();
