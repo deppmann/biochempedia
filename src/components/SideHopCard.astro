@@ -14,12 +14,14 @@ interface Props {
   hop: SideHop;
   /** The id of the ## heading after this card's section, if there is a later one. */
   before?: string;
+  /** The card's place among the lesson's Side Hops, from 1: its id is sh-<n>, which site search links to. */
+  n?: number;
 }
-const { hop, before } = Astro.props;
+const { hop, before, n } = Astro.props;
 const look = KIND_LOOK[hop.kind];
 ---
 
-<aside class="sh-card" data-sh-card data-sh-before={before} data-no-hl aria-label={`Side Hop: ${hop.title}`}>
+<aside class="sh-card" id={n ? `sh-${n}` : undefined} data-sh-card data-sh-before={before} data-no-hl aria-label={`Side Hop: ${hop.title}`}>
   <div class="sh-card-head">
     <button type="button" class="sh-hex" data-sh-hex aria-label="Make Hex hop again" aria-hidden="true" tabindex="-1" disabled>
       <Hex pose={look.pose} size={56} />

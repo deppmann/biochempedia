@@ -26,7 +26,8 @@ globalThis.fetch = async (u) => {
 };
 const pf = await import(pathToFileURL(resolve(dir, 'pagefind.js')).href);
 await pf.options({ basePath: pathToFileURL(dir + '/').href, baseUrl: '/' });
-const all = await pf.search(null);
+// Lesson pages only: the typed records (films, Side Hops...) can have /lessons/ URLs too.
+const all = await pf.search(null, { filters: { type: 'lesson' } });
 const map = {};
 for (const r of all.results) {
   const d = await r.data();

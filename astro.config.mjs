@@ -27,8 +27,10 @@ const pagefindIndex = () => ({
   hooks: {
     'astro:build:done': ({ dir, logger }) => {
       const site = fileURLToPath(dir);
-      logger.info('indexing lesson text with Pagefind');
-      const r = spawnSync('npx', ['--no-install', 'pagefind', '--site', site], { stdio: 'inherit', cwd: process.cwd() });
+      // Lesson pages plus the typed records (films with their narration, methods, Side Hops,
+      // flashcards, simulations): scripts/build-search-index.mjs, through Pagefind's Node API.
+      logger.info('building the site search index with Pagefind');
+      const r = spawnSync(process.execPath, ['scripts/build-search-index.mjs', site], { stdio: 'inherit', cwd: process.cwd() });
       if (r.status !== 0) throw new Error('Pagefind failed to build the search index (see output above).');
       // Which lesson each Pagefind result is, so the ranking can use a result before downloading its page.
       // Optional: without the map the search fetches the top results' pages instead (slower, same answers).

@@ -1,0 +1,107 @@
+---
+/**
+ * "Said in the films" (2026-11-22): the films page's search, read against every film's narration.
+ *
+ * The film library's own search box (src/lib/film-library.ts) filters the cards by title, lesson and
+ * course. This sits under it and answers the same box from the site search index instead
+ * (src/lib/typed-search.ts, types ladder, film and method): films whose title OR narration has the words,
+ * and the ladders (one idea, films at every level) whose name or films match; a ladder the query names comes first,
+ * best first, each with the sentence that says them, linked to play from that second. It touches
+ * nothing of the library: it only listens to the box (input[name="q"] in [data-fl-controls]).
+ * Pagefind loads the first time the box gets focus.
+ */
+---
+
+<section class="fss" data-fss hidden aria-labelledby="fss-h">
+  <div class="fss-head">
+    <h2 id="fss-h">Said in the films</h2>
+    <p class="fss-n" data-fss-n role="status" aria-live="polite"></p>
+    <a class="fss-all" data-fss-all hidden>Every match on the search page</a>
+  </div>
+  <ol class="fss-list" data-fss-list></ol>
+</section>
+
+<script>
+  import { createTypedSearch, browserPagefind, clockOf, titleHas, type TypedHit } from '../lib/typed-search';
+
+  const SHOWN = 6;
+  const esc = (s: string) => String(s).replace(/[&<>"]/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]!));
+  const href = (u: string) => ['href', `"${esc(u)}"`].join('=');
+  const box = document.querySelector<HTMLElement>('[data-fss]');
+  const input = document.querySelector<HTMLInputElement>('[data-fl-controls] input[name="q"]');
+  if (box && input) {
+    const engine = createTypedSearch(browserPagefind);
+    const n = box.querySelector<HTMLElement>('[data-fss-n]')!;
+    const list = box.querySelector<HTMLElement>('[data-fss-list]')!;
+    const all = box.querySelector<HTMLAnchorElement>('[data-fss-all]')!;
+    let seq = 0;
+
+    const item = (h: TypedHit) => {
+      const l = h.lines.find((x) => x.at != null) ?? h.lines[0];
+      return `
+        <li class="fss-hit">
+          <a class="fss-pic" ${href(h.url)} tabindex="-1" aria-hidden="true">${h.poster ? `<img src="${esc(h.poster)}" alt="" width="160" height="90" loading="lazy" decoding="async">` : ''}${h.dur ? `<span>${clockOf(h.dur)}</span>` : ''}</a>
+          <div class="fss-txt">
+            <a class="fss-t" ${href(h.url)}>${esc(h.title)}</a>
+            <span class="fss-m">${esc([h.kicker, h.where].filter(Boolean).join(' · '))}</span>
+            ${h.type === 'ladder' ? `<a class="fss-line fss-play" ${href(h.url)}><span class="fss-at">▶ Play the ladder</span> ${h.films ?? ''} films, from the simplest level up</a>` : ''}
+            ${l && h.type !== 'ladder' ? `<a class="fss-line" ${href(l.url)}>${l.at != null ? `<span class="fss-at">▶ ${clockOf(l.at)}</span> ` : ''}<span>${l.html}</span></a>` : ''}
+          </div>
+        </li>`;
+    };
+
+    const run = async () => {
+      const q = input.value.trim();
+      const my = ++seq;
+      if (q.length < 3) { box.hidden = true; list.innerHTML = ''; return; }
+      try {
+        const groups = await engine.search(q, ['ladder', 'film', 'method']);
+        if (my !== seq) return;
+        // A ladder the query names comes first; other ladders after the films. Full matches before partial ones.
+        const rankOf = (h: TypedHit, partial: boolean) => (partial ? 0 : 2) + (h.type === 'ladder' ? (titleHas(h.title, q) ? 1 : -0.5) : 0);
+        const hits = (groups ?? []).flatMap((g) => g.hits.map((h, i) => ({ h, score: rankOf(h, g.partial), i })));
+        const count = (groups ?? []).filter((g) => g.type !== 'ladder').reduce((t, g) => t + (g.partial ? 0 : g.count), 0);
+        const shown = hits.sort((a, b) => b.score - a.score || a.i - b.i).slice(0, SHOWN).map((x) => x.h);
+        if (!shown.length) { box.hidden = true; list.innerHTML = ''; return; }
+        box.hidden = false;
+        const ladders = shown.filter((h) => h.type === 'ladder').length;
+        n.textContent = count ? `${count} ${count === 1 ? 'film has' : 'films have'} these words in the title or the narration${count > shown.length ? `; the best here` : ''}${ladders ? `, and ${ladders === 1 ? 'a ladder matches' : `${ladders} ladders match`}` : ''}.` : ladders ? 'Ladders that match.' : 'No film has every word; these have all but one.';
+        all.hidden = false;
+        all.setAttribute('href', `/search/?${new URLSearchParams({ q, types: 'ladder,film,method' })}`);
+        list.innerHTML = shown.map(item).join('');
+      } catch (err) {
+        console.warn('Film script search failed', err);
+      }
+    };
+    let timer = 0;
+    input.addEventListener('input', () => { window.clearTimeout(timer); timer = window.setTimeout(run, 250); });
+    input.addEventListener('focus', () => { void engine.load(); }, { once: true });
+    // The library restores ?q= into the box; answer it once the box is shown.
+    if (new URLSearchParams(location.search).get('q')) window.setTimeout(run, 400);
+  }
+</script>
+
+<style>
+  .fss { margin: var(--ddp-space-4) 0 0; padding: var(--ddp-space-4); background: var(--ddp-color-surface); border: 1px solid var(--ddp-color-line); border-radius: var(--ddp-radius); }
+  .fss[hidden] { display: none; }
+  .fss-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.25rem var(--ddp-space-3); }
+  .fss-head h2 { margin: 0; font-family: var(--ddp-font-serif); font-size: var(--ddp-text-lg); font-weight: 600; color: var(--ddp-color-primary); }
+  .fss-n { margin: 0; font-size: var(--ddp-text-sm); color: var(--ddp-color-muted); }
+  .fss-all { margin-left: auto; font-size: var(--ddp-text-sm); font-weight: 600; color: var(--ddp-color-accent); text-underline-offset: 3px; min-height: 32px; display: inline-flex; align-items: center; }
+  .fss-all[hidden] { display: none; }
+  .fss-list { list-style: none; margin: var(--ddp-space-3) 0 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); gap: var(--ddp-space-3); }
+  .fss-hit { display: grid; grid-template-columns: 104px 1fr; gap: var(--ddp-space-3); min-width: 0; animation: fss-in 0.25s ease both; }
+  @keyframes fss-in { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) { .fss-hit { animation: none; } }
+  .fss-pic { position: relative; display: block; align-self: start; aspect-ratio: 16 / 9; border-radius: 6px; overflow: hidden; background: #0f1117; }
+  .fss-pic img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .fss-pic span { position: absolute; right: 4px; bottom: 4px; padding: 0 0.35em; border-radius: 4px; background: rgba(15, 17, 23, 0.8); color: #fff; font-family: var(--ddp-font-mono); font-size: 0.65rem; }
+  .fss-txt { display: flex; flex-direction: column; gap: 0.15rem; min-width: 0; }
+  .fss-t { font-weight: 600; line-height: 1.25; color: var(--ddp-color-primary); text-decoration: none; overflow-wrap: anywhere; }
+  .fss-t:hover, .fss-t:focus-visible { text-decoration: underline; text-underline-offset: 3px; }
+  .fss-m { font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .fss-line { margin-top: 0.2rem; font-size: var(--ddp-text-sm); line-height: 1.45; color: var(--ddp-color-ink-soft); text-decoration: none; overflow-wrap: anywhere; }
+  .fss-at { font-weight: 700; color: var(--ddp-color-accent); white-space: nowrap; }
+  .fss-line:hover .fss-at { text-decoration: underline; }
+  .fss :global(mark) { background: color-mix(in srgb, var(--ddp-color-accent) 22%, transparent); color: inherit; border-radius: 2px; padding: 0 0.1em; font-weight: 600; }
+</style>

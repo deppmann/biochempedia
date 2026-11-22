@@ -470,7 +470,8 @@ export function createLessonSearch(engine: Engine, defaults: { excerptLength?: n
     const terms = q.replace(/"/g, ' ').split(/\s+/).filter(Boolean);
     const pf = await pagefind();
     if (!pf) return { state: 'off', terms, cands: [], rest: [] };
-    const opts = scope === 'all' ? {} : { filters: { course: scope } };
+    // The index also holds films, Side Hops and other typed records (src/lib/search-records.mjs): lessons only here.
+    const opts = { filters: scope === 'all' ? { type: 'lesson' } : { type: 'lesson', course: scope } };
     // An exact phrase is never shortened by Pagefind, so it needs no check.
     const real = (results: PfResult[], ts: string[]) => (raw.includes('"') ? Promise.resolve(results) : realMatches(results, ts));
     const full = await pf.search(q, opts);

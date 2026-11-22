@@ -1,0 +1,269 @@
+---
+/**
+ * Tick boxes for what to search, and the results that are not lessons (2026-11-22).
+ *
+ * Goes inside <SiteSearch> (its slot sits under the course chips), on /search/:
+ *   <SiteSearch ...><SearchTypes /></SiteSearch>
+ * SiteSearch keeps the box and the lessons, ranked as before. This adds, for the same query:
+ *   - a tick box per type (Lessons, Ladders, Films, Side Hops; then Methods, Flashcards, Simulations,
+ *     Math toolkit), all on unless the address says otherwise;
+ *   - one group per ticked type that has matches, best first, each hit with the line where the words
+ *     are: for a film, the sentence of the narration that says them, linked to that second;
+ *   - a row of counts that jumps to each group, and a "Lessons" heading over SiteSearch's own list.
+ * The query and the ticks live in the address (?q=…&types=film,sidehop), so a search can be shared
+ * and comes back on reload. Engine: src/lib/typed-search.ts. Pagefind loads the first time the box
+ * gets focus, then only the index pieces a query needs.
+ */
+import { TYPES } from '../lib/typed-search';
+const groups = [
+  { name: 'Find', items: TYPES.filter((t) => t.group === 'main') },
+  { name: 'Also', items: TYPES.filter((t) => t.group === 'more') },
+];
+---
+
+<div class="st" data-st>
+  <fieldset class="st-types">
+    <legend class="st-legend">Search in</legend>
+    {groups.map((g) => (
+      <div class="st-row" role="group" aria-label={g.name === 'Find' ? 'Lessons, ladders, films and Side Hops' : 'Other things to find'}>
+        {g.items.map((t) => (
+          <label class={`st-tick st-t-${t.key}`}>
+            <input type="checkbox" name="types" value={t.key} checked />
+            <span>{t.label}</span>
+          </label>
+        ))}
+      </div>
+    ))}
+    <p class="st-quick">
+      <button type="button" class="st-link" data-st-all>Tick all</button>
+      <button type="button" class="st-link" data-st-only="film,ladder">Only films and ladders</button>
+    </p>
+  </fieldset>
+  <p class="st-tip">Typos are fine; put words in "quotes" to find them side by side.</p>
+  <nav class="st-jump" aria-label="Results by kind" data-st-jump hidden></nav>
+  <p class="st-status" role="status" aria-live="polite" data-st-status></p>
+  <div class="st-groups" data-st-groups></div>
+  <h2 class="st-h st-lessons-h" id="st-g-lesson" data-st-lessons-h hidden>Lessons</h2>
+</div>
+
+<script>
+  import { createTypedSearch, browserPagefind, readState, writeState, typeOf, clockOf, titleHas, GROUP_PAGE, type Group, type TypedHit, type TypeKey } from '../lib/typed-search';
+
+  const esc = (s: string) => String(s).replace(/[&<>"]/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]!));
+  /* Links are assembled, not written as href="/…" in the template: the asset guard reads quoted hrefs in built pages. */
+  const href = (u: string) => ['href', `"${esc(u)}"`].join('=');
+  const engine = createTypedSearch(browserPagefind);
+
+  document.querySelectorAll<HTMLElement>('[data-st]').forEach((st) => {
+    const root = st.closest<HTMLElement>('[data-site-search]');
+    const input = root?.querySelector<HTMLInputElement>('.ss-input');
+    if (!root || !input) return;
+    const boxes = [...st.querySelectorAll<HTMLInputElement>('input[name="types"]')];
+    const jump = st.querySelector<HTMLElement>('[data-st-jump]')!;
+    const status = st.querySelector<HTMLElement>('[data-st-status]')!;
+    const out = st.querySelector<HTMLElement>('[data-st-groups]')!;
+    const lessonsH = st.querySelector<HTMLElement>('[data-st-lessons-h]')!;
+    const lessonList = root.querySelector<HTMLElement>('.ss-results');
+
+    const ticked = (): TypeKey[] => boxes.filter((b) => b.checked).map((b) => b.value as TypeKey);
+    const scope = () => root.querySelector<HTMLElement>('.ss-chip[aria-pressed="true"]')?.dataset.scope ?? root.dataset.scope ?? 'all';
+
+    /* The address carries the ticks. (SiteSearch reads ?q= itself.) */
+    const start = readState(location.search);
+    for (const b of boxes) b.checked = start.types.includes(b.value as TypeKey);
+
+    let seq = 0;
+    let groups: Group[] = [];
+
+    const lessonsOn = () => ticked().includes('lesson');
+    const syncLessons = () => {
+      root.classList.toggle('ss-no-lessons', !lessonsOn());
+      lessonsH.hidden = !lessonsOn() || !input.value.trim() || !lessonList?.children.length;
+    };
+    if (lessonList) new MutationObserver(syncLessons).observe(lessonList, { childList: true });
+
+    const line = (l: TypedHit['lines'][number], film: boolean) => `
+      <li class="st-line"><a ${href(l.url)}>
+        ${l.label ? `<span class="st-line-k">${film && l.at != null ? '<span aria-hidden="true">▶ </span>' : ''}${esc(l.label)}</span>` : ''}
+        <span class="st-line-x">${l.html}</span>
+      </a></li>`;
+
+    const card = (h: TypedHit) => {
+      const film = h.type === 'film' || (h.type === 'method' && h.lines.some((l) => l.at != null));
+      const pic = h.poster
+        ? `<span class="st-pic" aria-hidden="true"><img src="${esc(h.poster)}" alt="" width="160" height="90" loading="lazy" decoding="async">${h.dur ? `<span class="st-len">${clockOf(h.dur)}</span>` : ''}</span>`
+        : '';
+      return `
+        <li class="st-hit st-k-${h.type}${pic ? ' has-pic' : ''}">
+          ${pic}
+          <div class="st-hit-txt">
+            <span class="st-kicker">${esc(h.kicker)}${h.partial ? ' · <em>some of your words</em>' : ''}</span>
+            <a class="st-title" ${href(h.url)}>${esc(h.title)}</a>
+            ${h.where ? `<span class="st-where">${esc(h.where)}</span>` : ''}
+            ${h.type === 'ladder' ? `<a class="st-play" ${href(h.url)}><span aria-hidden="true">▶</span> Play the ladder: ${h.films ?? ''} films${h.dur ? `, ${Math.max(1, Math.round(h.dur / 60))} min` : ''}</a>` : ''}
+            ${h.lines.length ? `<ul class="st-lines">${h.lines.map((l) => line(l, film)).join('')}</ul>` : ''}
+          </div>
+        </li>`;
+    };
+
+    const draw = () => {
+      const shown = groups.filter((g) => g.count > 0);
+      // Ladders sit above the films when the query names the ladder; otherwise after them.
+      const li = shown.findIndex((g) => g.type === 'ladder');
+      const fi = shown.findIndex((g) => g.type === 'film');
+      if (li > -1 && fi > -1 && !shown[li].hits.some((h) => titleHas(h.title, input.value))) shown.splice(fi, 0, ...shown.splice(li, 1));
+      out.innerHTML = shown.map((g) => {
+        const t = typeOf(g.type)!;
+        return `
+          <section class="st-group st-k-${g.type}" aria-labelledby="st-g-${g.type}">
+            <h2 class="st-h" id="st-g-${g.type}">${esc(t.label)} <span class="st-n">${g.count}</span></h2>
+            ${g.partial ? `<p class="st-partial">No ${esc(t.one)} has every word; these have all but one.</p>` : ''}
+            <ol class="st-list">${g.hits.map(card).join('')}</ol>
+            ${g.rest.length ? `<button type="button" class="st-more" data-st-more="${g.type}">Show ${Math.min(GROUP_PAGE, g.rest.length)} more ${esc(g.rest.length === 1 ? t.one : t.many)}</button>` : ''}
+          </section>`;
+      }).join('');
+      const links = shown.map((g) => `<a href="#st-g-${g.type}">${esc(typeOf(g.type)!.label)} <span>${g.count}</span></a>`);
+      if (lessonsOn() && input.value.trim()) links.push('<a href="#st-g-lesson">Lessons <span aria-hidden="true">↓</span></a>');
+      jump.innerHTML = links.join('');
+      jump.hidden = links.length < 2;
+      syncLessons();
+    };
+
+    const say = (n: number) => {
+      const found = groups.filter((g) => g.count > 0).map((g) => `${g.count} ${g.count === 1 ? typeOf(g.type)!.one : typeOf(g.type)!.many}`);
+      const lessons = lessonsOn() ? ' Lessons are listed below.' : '';
+      status.textContent = n ? `Also found: ${found.join(', ')}.${lessons}` : (groups.length ? `No films, Side Hops or other matches.${lessons}` : '');
+    };
+
+    const run = async () => {
+      const q = input.value.trim();
+      const my = ++seq;
+      const url = `${location.pathname}${writeState(location.search, q, ticked())}${location.hash}`;
+      if (url !== `${location.pathname}${location.search}${location.hash}`) history.replaceState(history.state, '', url);
+      syncLessons();
+      if (!q) { groups = []; out.innerHTML = ''; jump.hidden = true; status.textContent = ''; return; }
+      const others = ticked().filter((t) => t !== 'lesson');
+      if (!others.length) { groups = []; draw(); status.textContent = ''; return; }
+      st.setAttribute('aria-busy', 'true');
+      try {
+        const got = await engine.search(q, ticked(), scope());
+        if (my !== seq) return;
+        if (got === null) { groups = []; out.innerHTML = ''; status.textContent = 'Films, Side Hops and the rest are searchable on the built site (the index is made with it).'; return; }
+        groups = got;
+        draw();
+        say(groups.filter((g) => g.count > 0).length);
+      } catch (err) {
+        console.warn('Typed search failed', err);
+        if (my === seq) status.textContent = 'That search did not finish. Try again.';
+      } finally {
+        if (my === seq) st.removeAttribute('aria-busy');
+      }
+    };
+
+    let timer = 0;
+    const soon = (ms = 160) => { window.clearTimeout(timer); timer = window.setTimeout(run, ms); };
+    input.addEventListener('input', () => soon());
+    input.addEventListener('focus', () => { void engine.load(); }, { once: true });
+    root.querySelector('.ss-form')?.addEventListener('submit', () => soon(0));
+    // A course chip narrows these too (SiteSearch redraws the chips first).
+    root.querySelector('.ss-scope')?.addEventListener('click', (e) => { if ((e.target as HTMLElement).closest('button[data-scope]')) soon(0); });
+    for (const b of boxes) b.addEventListener('change', () => soon(0));
+    st.querySelector('[data-st-all]')!.addEventListener('click', () => { for (const b of boxes) b.checked = true; soon(0); });
+    st.querySelector('[data-st-only]')!.addEventListener('click', (e) => {
+      const only = (e.currentTarget as HTMLElement).dataset.stOnly;
+      for (const b of boxes) b.checked = (only ?? '').split(',').includes(b.value);
+      soon(0);
+    });
+    out.addEventListener('click', async (e) => {
+      const b = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-st-more]');
+      if (!b) return;
+      const g = groups.find((x) => x.type === b.dataset.stMore);
+      if (!g) return;
+      b.disabled = true;
+      const before = g.hits.length;
+      await engine.more(g);
+      draw();
+      // Keep the reader's place: focus the first new result.
+      out.querySelectorAll<HTMLAnchorElement>(`.st-group.st-k-${g.type} .st-title`)[before]?.focus();
+    });
+
+    if (input.value.trim() || start.q) { if (!input.value.trim()) input.value = start.q; soon(0); }
+    else syncLessons();
+  });
+</script>
+
+<style is:global>
+  .st { margin: var(--ddp-space-3) 0 0; }
+  .st-types { border: 0; margin: 0; padding: 0; min-width: 0; display: flex; flex-direction: column; gap: var(--ddp-space-2); }
+  .st-legend { padding: 0; margin-bottom: var(--ddp-space-2); font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: 0.12em; text-transform: uppercase; color: var(--ddp-color-muted); }
+  .st-row { display: flex; flex-wrap: wrap; gap: var(--ddp-space-2); }
+  .st-tick {
+    position: relative;
+    display: inline-flex; align-items: center; gap: 0.45em;
+    min-height: 40px; padding: 0.3em 0.85em 0.3em 0.6em;
+    font-size: var(--ddp-text-sm); font-weight: 600; color: var(--ddp-color-ink-soft);
+    background: var(--ddp-color-surface); border: 1px solid var(--ddp-color-line); border-radius: 999px;
+    cursor: pointer; user-select: none;
+    transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+  }
+  .st-tick input { width: 1.05em; height: 1.05em; margin: 0; accent-color: var(--ddp-color-accent); cursor: pointer; }
+  .st-tick:hover { border-color: var(--ddp-color-accent); }
+  .st-tick:has(input:checked) { color: var(--ddp-color-primary); border-color: var(--ddp-color-accent); background: color-mix(in srgb, var(--ddp-color-accent) 10%, var(--ddp-color-surface)); }
+  .st-tick:has(input:focus-visible) { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .st-tick:active { transform: scale(0.96); }
+  .st-quick { margin: 0; display: flex; gap: var(--ddp-space-3); }
+  .st-link { font: inherit; font-size: var(--ddp-text-xs); font-weight: 600; color: var(--ddp-color-accent); background: none; border: 0; padding: 0.4em 0; min-height: 32px; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+  .st-tip { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .st-jump { display: flex; flex-wrap: wrap; gap: var(--ddp-space-2); margin: var(--ddp-space-3) 0 0; }
+  .st-jump[hidden] { display: none; }
+  .st-jump a { font-size: var(--ddp-text-sm); font-weight: 600; color: var(--ddp-color-primary); text-decoration: none; border-bottom: 2px solid color-mix(in srgb, var(--ddp-color-accent) 45%, transparent); padding: 0.2em 0.1em; min-height: 32px; display: inline-flex; align-items: center; gap: 0.3em; }
+  .st-jump a:hover { border-color: var(--ddp-color-accent); }
+  .st-jump a span { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .st-status { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-sm); color: var(--ddp-color-muted); }
+  .st-status:empty { display: none; }
+  .st[aria-busy='true'] .st-groups { opacity: 0.6; }
+  .st-h { margin: var(--ddp-space-6) 0 var(--ddp-space-2); font-family: var(--ddp-font-serif); font-size: var(--ddp-text-xl); font-weight: 600; color: var(--ddp-color-primary); scroll-margin-top: 5rem; }
+  .st-h[hidden] { display: none; }
+  .st-n { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); font-weight: 600; color: var(--ddp-color-accent); margin-left: 0.25em; }
+  .st-partial { margin: 0 0 var(--ddp-space-2); font-size: var(--ddp-text-xs); font-style: italic; color: var(--ddp-color-muted); }
+  .st-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr)); gap: var(--ddp-space-3); }
+  .st-hit {
+    display: grid; grid-template-columns: 1fr; gap: var(--ddp-space-3);
+    background: var(--ddp-color-surface); border: 1px solid var(--ddp-color-line); border-radius: var(--ddp-radius);
+    padding: var(--ddp-space-3) var(--ddp-space-4); min-width: 0;
+    animation: st-in 0.28s ease both;
+  }
+  .st-hit:nth-child(2) { animation-delay: 40ms; }
+  .st-hit:nth-child(3) { animation-delay: 80ms; }
+  .st-hit:nth-child(4) { animation-delay: 120ms; }
+  .st-hit:nth-child(5) { animation-delay: 160ms; }
+  @keyframes st-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) { .st-hit { animation: none; } .st-tick { transition: none; } .st-tick:active { transform: none; } }
+  .st-hit.has-pic { grid-template-columns: 112px 1fr; }
+  .st-hit:hover { border-color: var(--ddp-color-accent); }
+  .st-pic { position: relative; display: block; align-self: start; aspect-ratio: 16 / 9; border-radius: 6px; overflow: hidden; background: #0f1117; }
+  .st-pic img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .st-len { position: absolute; right: 4px; bottom: 4px; padding: 0 0.35em; border-radius: 4px; background: rgba(15, 17, 23, 0.8); color: #fff; font-family: var(--ddp-font-mono); font-size: 0.65rem; }
+  .st-hit-txt { display: flex; flex-direction: column; gap: 0.2rem; min-width: 0; }
+  .st-kicker { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ddp-color-accent); }
+  .st-kicker em { text-transform: none; letter-spacing: 0; font-family: var(--ddp-font-sans, inherit); color: var(--ddp-color-muted); }
+  .st-k-sidehop .st-kicker { color: var(--ddp-color-secondary-ink, var(--ddp-color-accent)); }
+  .st-title { font-family: var(--ddp-font-serif); font-weight: 600; font-size: var(--ddp-text-lg); line-height: 1.2; color: var(--ddp-color-primary); text-decoration: none; overflow-wrap: anywhere; }
+  .st-title:hover, .st-title:focus-visible { text-decoration: underline; text-underline-offset: 3px; }
+  .st-play { align-self: flex-start; margin-top: 0.2rem; font-size: var(--ddp-text-sm); font-weight: 700; color: var(--ddp-color-accent); text-underline-offset: 3px; min-height: 32px; display: inline-flex; align-items: center; gap: 0.35em; }
+  .st-where { font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .st-lines { list-style: none; margin: var(--ddp-space-2) 0 0; padding: var(--ddp-space-2) 0 0; border-top: 1px solid var(--ddp-color-line); display: flex; flex-direction: column; gap: var(--ddp-space-2); }
+  .st-line a { display: flex; flex-direction: column; gap: 0.1rem; text-decoration: none; color: inherit; }
+  .st-line-k { font-size: var(--ddp-text-xs); font-weight: 700; color: var(--ddp-color-accent); }
+  .st-line a:hover .st-line-k { text-decoration: underline; text-underline-offset: 3px; }
+  .st-line-x { font-size: var(--ddp-text-sm); line-height: 1.5; color: var(--ddp-color-ink-soft); overflow-wrap: anywhere; }
+  .st mark { background: color-mix(in srgb, var(--ddp-color-accent) 22%, transparent); color: inherit; border-radius: 2px; padding: 0 0.1em; font-weight: 600; }
+  .st-more { margin-top: var(--ddp-space-3); font: inherit; font-size: var(--ddp-text-sm); font-weight: 600; color: var(--ddp-color-primary); background: var(--ddp-color-surface); border: 1px solid var(--ddp-color-line); border-radius: 999px; padding: 0.5em 1.1em; min-height: 44px; cursor: pointer; }
+  .st-more:hover { border-color: var(--ddp-color-accent); }
+  .st-more:disabled { opacity: 0.6; cursor: progress; }
+  /* Lessons unticked: SiteSearch's own list (and its status line) is set aside. */
+  .ss.ss-no-lessons :is(.ss-status, .ss-results, .ss-more, .ss-none) { display: none !important; }
+  @media (max-width: 30rem) {
+    .st-hit.has-pic { grid-template-columns: 84px 1fr; gap: var(--ddp-space-2); padding: var(--ddp-space-3); }
+  }
+</style>
