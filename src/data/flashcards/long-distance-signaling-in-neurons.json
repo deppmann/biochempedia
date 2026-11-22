@@ -1,0 +1,566 @@
+{
+ "slug": "long-distance-signaling-in-neurons",
+ "title": "Long-Distance Signaling in Neurons",
+ "generated": {
+  "date": "2026-11-21",
+  "pipeline": "extract → Gemini draft → Claude Sonnet accuracy gate → Sonnet fixes",
+  "models": {
+   "draft": "gemini-4-neon-high",
+   "gate": "claude-sonnet-5-5",
+   "fix": "claude-sonnet-5-5"
+  }
+ },
+ "lessonHash": "e1727281397e",
+ "sectionHashes": {
+  "A problem: the signal and the genes are far apart": "f004c5e3fa80",
+  "The evidence: NGF at the far end is enough": "03dd070a5149",
+  "The model: the endosome as a parcel": "076d4b415954",
+  "Carried, or relayed? Why blocking the motor does not settle it": "e6a9b6e11e48",
+  "Two more answers to distance, and a road that fails": "7f963cfe3b34",
+  "See where the endosome ends up": "598e61b4500e",
+  "Make it where you need it": "3438b38ec03c",
+  "When the road fails": "eb32484e1e4a",
+  "Design problem": "b7b2d9599420",
+  "The relay proposal and the timing evidence": "d9e8dc37dac8",
+  "Loa and Cra1": "f4905995faf3"
+ },
+ "cards": [
+  {
+   "id": "long-distance-signaling-in-neurons-c01",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Along a narrow axon, the characteristic one-dimensional diffusion time to travel a distance x is approximately {{c1::x² / 2D}}.",
+   "back": "Where D is the diffusion coefficient.",
+   "quote": "Along a narrow axon, the characteristic one-dimensional diffusion time grows with distance squared: time to diffuse a distance x ≈ x² / 2D",
+   "section": "A problem: the signal and the genes are far apart"
+  },
+  {
+   "id": "long-distance-signaling-in-neurons-c02",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "When a sympathetic neuron's axon reaches an NGF-secreting target organ, what genes does the cell body switch on?",
+   "back": "Survival genes, the gene for the NGF receptor TrkA itself, and genes for tubulin and actin needed by a growing axon.",
+   "quote": "It answers with gene expression: the neuron stays alive and switches on genes including the one for TrkA itself, plus the tubulin and actin a growing axon needs.",
+   "section": "A problem: the signal and the genes are far apart"
+  },
+  {
+   "id": "long-distance-signaling-in-neurons-c03",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why does passive diffusion move a cytoplasmic protein across a 30 µm neuronal cell body in under a minute yet fail across a 1 cm axon?",
+   "back": "One-dimensional diffusion time grows with distance squared (x² / 2D), taking 45 seconds across 30 µm but about 58 days across 1 cm (for D ≈ 10 µm²/s).",
+   "why": "By contrast, active motor transport at roughly 1 µm/s scales linearly (t = x / v), crossing 1 cm in 10,000 seconds (under three hours).",
+   "quote": "diffusion takes 45 seconds across a 30 µm cell body yet 5 million seconds — about 58 days — across 1 cm (10,000 µm).",
+   "section": "A problem: the signal and the genes are far apart"
+  },
+  {
+   "id": "long-distance-signaling-in-neurons-c04",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "An axon is 10 cm long instead of 1 cm. By what factor do 1D diffusion time (D ≈ 10 µm²/s) and active motor transport time (v ≈ 1 µm/s) each increase, and roughly how long does each take over 10 cm?",
+   "back": "Diffusion increases 100-fold (10²) to roughly 5,800 days (nearly 16 years); motor transport increases 10-fold (linearly) to about 28 hours.",
+   "why": "Setup: x = 100,000 µm. Diffusion t ≈ x² / 2D = (10⁵)² / 20 = 5 × 10⁸ s ≈ 5,787 days. Motor t = x / v = 10⁵ / 1 = 10⁵ s ≈ 27.8 hours.",
+   "quote": "Diffusion scales with x², so 10× distance means 10² = 100× time: roughly 5,800 days (nearly 16 years).",
+   "section": "A problem: the signal and the genes are far apart"
+  },
+  {
+   "id": "long-distance-signaling-in-neurons-c05",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In a compartmented neuron culture, axon tips sit 2 mm (2,000 µm) from the cell bodies. Using D = 10 µm²/s (t ≈ x² / 2D) and motor speed v = 1 µm/s (t = x / v), compare both travel times. If a nuclear response appears at 45 minutes, which mechanism fits?",
+   "back": "Diffusion takes 200,000 s (about 2.3 days) and a motor takes 2,000 s (about 33 minutes), so only active motor transport fits a 45-minute nuclear response.",
+   "why": "Setup: t_diff ≈ (2,000 µm)² / (2 × 10 µm²/s) = 4 × 10⁶ / 20 = 200,000 s ≈ 2.31 days; t_motor = 2,000 µm / (1 µm/s) = 2,000 s = 33.3 minutes.",
+   "quote": "By contrast, a motor at ~1 µm/s (t = x / v) covers 1 cm in 10,000 seconds, under three hours.",
+   "section": "A problem: the signal and the genes are far apart"
+  },
+  {
+   "id": "long-distance-signaling-in-neurons-c06",
+   "type": "calc",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Using the 1D diffusion time rule (t ≈ x² / 2D, D ≈ 10 µm²/s) and linear motor transport rule (t = x / v, v ≈ 1 µm/s), at what distance x do diffusion and motor transport take equal time, and what does this imply for a 30 µm cell body versus a 1 cm axon?",
+   "back": "They tie at x = 20 µm (both take 20 s). Resting on the quadratic diffusion versus linear motor scaling rules, diffusion is faster below 20 µm and still quick across a 30 µm cell body (45 s), whereas motor transport dominates over centimeter axons (under 3 hours versus ~58 days).",
+   "why": "Setup: set x² / 2D = x / v, so x = 2D / v = (2 × 10 µm²/s) / (1 µm/s) = 20 µm, giving t = 20 s.",
+   "quote": "Something must be carried actively, or passed along the axon.",
+   "section": "A problem: the signal and the genes are far apart"
+  },
+  {
+   "id": "long-distance-signaling-in-neurons-c07",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Signaling that travels inside an axon from the distal axon terminal back to the cell body is called {{c1::retrograde}} signaling.",
+   "back": "",
+   "quote": "whatever saved the cell bodies had to travel inside the axon, carried or relayed — retrograde signaling, from axon terminal back to cell body.",
+   "section": "The evidence: NGF at the far end is enough"
+  },
+  {
+   "id": "long-distance-signaling-in-neurons-c08",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In axonal long-distance signaling, how does a courier model differ from a relay model?",
+   "back": "A courier carries the receptor the whole way to the cell body, whereas a relay hands the message from one stretch of axon to the next.",
+   "quote": "A courier carries the receptor the whole way; a relay hands the message from one stretch of axon to the next.",
+   "section": "The evidence: NGF at the far end is enough"
+  },
+  {
+   "id": "long-distance-signaling-in-neurons-c09",
+   "type": "experiment",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Why could an ordinary culture dish not test which part of a sympathetic neuron needs NGF, and what did Robert Campenot's barrier-chamber survival run establish?",
+   "back": "An ordinary dish bathes the whole neuron in one fluid. With separated chambers, cell bodies lacking NGF survived when their axons reached NGF, proving a survival signal travels inside the axon.",
+   "quote": "many cell bodies given no NGF of their own still survived when their axons reached NGF.",
+   "section": "The evidence: NGF at the far end is enough"
+  },
+  {
+   "id": "long-distance-signaling-in-neurons-c10",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "In a compartmented culture of sympathetic neurons, NGF is kept around the cell bodies but removed from the far axon chamber. What happens to those distal axons, and why?",
+   "back": "They stop growing and later appear to degenerate. Distal axons require NGF directly at the target terminal, so NGF bathing the cell bodies cannot maintain axon growth at the far end.",
+   "quote": "Without NGF in the far chamber, those axons stopped growing and later appeared to degenerate, even though their cell bodies sat in NGF the whole time.",
+   "section": "The evidence: NGF at the far end is enough"
+  },
+  {
+   "id": "long-distance-signaling-in-neurons-c11",
+   "type": "experiment",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "When Riccio and colleagues applied NGF solely to distal sympathetic axons and detected nuclear CREB activation, what did that observation show by itself, and what did it leave open?",
+   "back": "It showed where the retrograde signal ends—activating a transcription factor in the nucleus—but not how the signal traveled along the axon.",
+   "why": "In the same paper, they also reported that internalizing NGF and TrkA and carrying them to the cell body were required for the signal.",
+   "quote": "CREB activation alone shows where the signal ends, not how it traveled.",
+   "section": "The evidence: NGF at the far end is enough"
+  },
+  {
+   "id": "long-distance-signaling-in-neurons-c12",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Axonal microtubules are polarized protein filaments aligned with their plus ends toward the axon tip and their {{c1::minus ends}} toward the cell body.",
+   "back": "",
+   "quote": "Endosomes ride microtubules, polarized protein filaments aligned with plus ends toward the tip and minus ends toward the cell body.",
+   "section": "The model: the endosome as a parcel"
+  },
+  {
+   "id": "long-distance-signaling-in-neurons-c13",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Retrograde axonal transport of signaling endosomes toward microtubule minus ends (the cell body) is powered by {{c1::cytoplasmic dynein}} with its partner complex dynactin at roughly 1 µm/s.",
+   "back": "",
+   "quote": "cytoplasmic dynein, with its partner complex dynactin, walks toward minus ends (homeward) at roughly 1 µm/s.",
+   "section": "The model: the endosome as a parcel"
+  },
+  {
+   "id": "long-distance-signaling-in-neurons-c14",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In an axon, how does the walking direction of cargo-hauling kinesins compare with that of cytoplasmic dynein?",
+   "back": "Axonal cargo-hauling kinesins walk outward toward microtubule plus ends (the axon tip), whereas cytoplasmic dynein walks homeward toward minus ends (the cell body).",
+   "quote": "Axonal cargo-hauling kinesins walk toward plus ends (outward); cytoplasmic dynein, with its partner complex dynactin, walks toward minus ends (homeward) at roughly 1 µm/s.",
+   "section": "The model: the endosome as a parcel"
+  },
+  {
+   "id": "long-distance-signaling-in-neurons-c15",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "After a growth factor–receptor tyrosine kinase complex enters an axon tip by endocytosis, how does vesicle membrane topology allow the signaling endosome to keep signaling during transport?",
+   "back": "Membrane folding traps the ligand inside the vesicle lumen bound to the receptor's formerly outward-facing domain, while the receptor's kinase domain projects into the cytoplasm to keep phosphorylating partners.",
+   "quote": "membrane folding keeps NGF inside the vesicle lumen — still held by TrkA's formerly outward-facing domain — while TrkA's kinase domain projects into the cytoplasm",
+   "section": "The model: the endosome as a parcel"
+  },
+  {
+   "id": "long-distance-signaling-in-neurons-c16",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "In sympathetic neurons, why do NGF-driven local axon growth and NGF-driven neuron survival depend on different parts of the cell?",
+   "back": "Local axon growth is driven right at the tip by signaling proteins beside TrkA where NGF binds, whereas survival requires signaling endosomes to reach the nucleus.",
+   "quote": "local axon growth is driven right where NGF binds, by signaling proteins beside TrkA at the tip, while survival requires the nucleus.",
+   "section": "The model: the endosome as a parcel"
+  },
+  {
+   "id": "long-distance-signaling-in-neurons-c17",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Suppose a perturbation reverses the polarity of axonal microtubules so that minus ends face the axon tip and plus ends face the cell body, while motor proteins remain normal. What happens to dynein-driven transport of signaling endosomes, and why?",
+   "back": "Retrograde delivery to the cell body fails, and dynein carries endosomes back toward the axon tip instead. Because cytoplasmic dynein walks strictly toward microtubule minus ends, flipping track polarity reverses its transport direction.",
+   "quote": "Endosomes ride microtubules, polarized protein filaments aligned with plus ends toward the tip and minus ends toward the cell body.",
+   "section": "The model: the endosome as a parcel"
+  },
+  {
+   "id": "long-distance-signaling-in-neurons-c18",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why does showing that disabling cytoplasmic dynein kills target-dependent neurons fail to settle whether a retrograde signal travels as a courier or a relay?",
+   "back": "A relay whose local steps along each stretch of axon also require dynein would fail in the same way, so cell death is predicted by both models.",
+   "quote": "real evidence for a courier, yet inconclusive if local steps of a relay also use dynein.",
+   "section": "Carried, or relayed? Why blocking the motor does not settle it"
+  },
+  {
+   "id": "long-distance-signaling-in-neurons-c19",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "What two alternatives to a carried NGF–TrkA signaling endosome did Ye, Kuruvilla, Zweifel, and Ginty (2003) design their compartmented-culture experiments to test?",
+   "back": "A relay propagating TrkA kinase activity along the axon, and a retrograde signal reaching the cell body while NGF stays behind at the tip.",
+   "quote": "a relay propagating TrkA kinase activity along the axon, and a retrograde signal reaching the cell body while NGF stays behind.",
+   "section": "Carried, or relayed? Why blocking the motor does not settle it"
+  },
+  {
+   "id": "long-distance-signaling-in-neurons-c20",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "In a compartmented culture of sympathetic neurons with NGF at the axon tips, blocking TrkA kinase activity at either the axon tip or the cell body kills the neurons. Why does this result not separate a carried signaling endosome from a propagated TrkA relay?",
+   "back": "Both models require active TrkA at both ends—to initiate the signal at the axon tip and to trigger survival signaling at the cell body—so survival fails under either model.",
+   "quote": "In 2003 Ye, Kuruvilla, Zweifel and Ginty tested both in compartmented cultures, blocking TrkA at the axon tips, in the cell bodies, or only in the middle stretch",
+   "section": "Carried, or relayed? Why blocking the motor does not settle it"
+  },
+  {
+   "id": "long-distance-signaling-in-neurons-c21",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "In a compartmented culture of sympathetic neurons with NGF on distal axons, TrkA kinase activity is blocked only in the middle stretch of the axon near the cell body (leaving tips and cell bodies drug-free). What happens to cell-body TrkA signaling and survival, and why?",
+   "back": "Cell-body TrkA signaling and neuron survival are spared. Dynein carries the NGF-bound endosome through the inhibited middle stretch so TrkA can signal again in the drug-free cell body, whereas a propagated TrkA relay would break in the middle.",
+   "quote": "In 2003 Ye, Kuruvilla, Zweifel and Ginty tested both in compartmented cultures, blocking TrkA at the axon tips, in the cell bodies, or only in the middle stretch",
+   "section": "Carried, or relayed? Why blocking the motor does not settle it"
+  },
+  {
+   "id": "long-distance-signaling-in-neurons-c22",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "In a compartmented sympathetic neuron culture where only distal axons receive NGF, NGF is neutralized exclusively inside the cell-body chamber. What happens to survival, and which alternative model does this argue against?",
+   "back": "Survival fails, arguing against an NGF-free retrograde signal. Because neutralizing NGF at the cell body blocks survival, carried NGF is needed at the cell body rather than being left behind at the axon tip.",
+   "quote": "Together with neutralizing NGF at the cell body, these results argued against both a propagated TrkA wave and an NGF-free retrograde signal.",
+   "section": "Carried, or relayed? Why blocking the motor does not settle it"
+  },
+  {
+   "id": "long-distance-signaling-in-neurons-c23",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "In a sympathetic neuron whose distal axon receives NGF, a perturbation prevents NGF internalization at the axon tip while leaving surface NGF–TrkA binding intact. Based on Ye and colleagues' findings, what happens to retrograde survival signaling, and why?",
+   "back": "Retrograde survival signaling fails. NGF must be internalized at the axon tip to enter a carried signaling endosome, so surface binding without endocytosis cannot deliver the survival parcel to the cell body.",
+   "quote": "Ye and colleagues also showed that NGF had to be internalized at the tip.",
+   "section": "Carried, or relayed? Why blocking the motor does not settle it"
+  },
+  {
+   "id": "long-distance-signaling-in-neurons-c24",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In a compartmented culture, surface receptors on the distal axon are labeled and exposed to ligand; hours later, labeled receptors appear in the cell body. Why does that observation alone not prove the carried receptors keep the neuron alive?",
+   "back": "Physical arrival proves only that the receptor made the trip, not that it is necessary for survival. Proving necessity requires blocking what arrives at the cell body and showing that survival then fails.",
+   "quote": "Arrival shows that the trip happens, not that it is necessary for survival. Proving necessity requires blocking what arrives",
+   "section": "Carried, or relayed? Why blocking the motor does not settle it"
+  },
+  {
+   "id": "long-distance-signaling-in-neurons-c25",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "In the current evidence on retrograde NGF signaling, what two key mechanistic questions remain unsettled?",
+   "back": "Whether the carried receptor is the only retrograde route, and whether one kind of signaling parcel performs every job NGF asks for.",
+   "quote": "Not settled: whether the carried receptor is the only route, and whether one kind of parcel does every job NGF asks for.",
+   "section": "Carried, or relayed? Why blocking the motor does not settle it"
+  },
+  {
+   "id": "long-distance-signaling-in-neurons-c26",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Beyond sending endosomes to the cell body, neurons address long distances by carrying signaling endosomes into {{c1::dendrites}} or by making proteins locally at synapses from local mRNA.",
+   "back": "",
+   "quote": "neurons also carry signaling endosomes on past the cell body into dendrites, or make protein at the synapse from local mRNA",
+   "section": "Two more answers to distance, and a road that fails"
+  },
+  {
+   "id": "long-distance-signaling-in-neurons-c27",
+   "type": "experiment",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Why did simply knocking out the NGF gene in mice fail to test whether target-derived NGF controls sympathetic synapses, and what second deletion rescued the experiment?",
+   "back": "Without NGF, sympathetic neurons die by apoptosis before synapses can be inspected. Co-deleting BAX kept them alive without NGF, showing NGF is required for sympathetic synapses to form.",
+   "quote": "Deleting BAX (the death protein from the lesson on apoptosis) alongside NGF lets the neurons live without NGF so their synapses can be tested.",
+   "section": "See where the endosome ends up"
+  },
+  {
+   "id": "long-distance-signaling-in-neurons-c28",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "In a microfluidic chamber separating axon and somatodendritic fluids, sympathetic neurons expressing Flag-tagged TrkA receive NGF only on their axons; over six hours, tagged TrkA dots appear in dendrites alongside postsynaptic protein clustering. What does this demonstrate?",
+   "back": "TrkA receptors internalized at the distal axon are carried past the cell body all the way into dendrites, linking target-derived NGF signaling to assembly of postsynaptic inputs.",
+   "quote": "the group gave NGF to axons only and watched tagged TrkA appear as dots in dendrites over the next six hours",
+   "section": "See where the endosome ends up"
+  },
+  {
+   "id": "long-distance-signaling-in-neurons-c29",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A target-derived growth factor is suspected to drive both cell survival and later synapse assembly, but knocking out the factor kills the neurons by apoptosis before synapses can develop. How can you test whether synapse assembly directly requires the factor, and how do you interpret both outcomes?",
+   "back": "Co-delete a pro-apoptotic gene so the neurons survive without the factor, resting on the NGF/BAX double-deletion rule that blocking apoptosis separates survival from downstream phenotypes. If synapses still fail to form, the factor directly supports synapse assembly; if synapses form normally, its role was only preventing cell death.",
+   "quote": "In mice lacking both NGF and BAX, NGF was required for sympathetic synapses to form.",
+   "section": "See where the endosome ends up"
+  },
+  {
+   "id": "long-distance-signaling-in-neurons-c30",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "The mesh of dendrites and axons where synapses lie, in which transcriptome studies found many different mRNAs, is called the {{c1::neuropil}}.",
+   "back": "",
+   "quote": "transcriptome studies found many different mRNAs in the dendrites and axons of the neuropil (the mesh of fibers where synapses lie).",
+   "section": "Make it where you need it"
+  },
+  {
+   "id": "long-distance-signaling-in-neurons-c31",
+   "type": "experiment",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "In Kang and Schuman's hippocampal slice experiment, BDNF still strengthened synapses even after the synaptic layer was cut off from its neuronal cell bodies. What did this severing experiment establish?",
+   "back": "That BDNF-induced synaptic strengthening does not depend on signals or newly made proteins transported from the cell body—the required components are already present in the severed synaptic strip.",
+   "quote": "They then cut the slices to separate those synapses from their own cell bodies, and BDNF still strengthened them.",
+   "section": "Make it where you need it"
+  },
+  {
+   "id": "long-distance-signaling-in-neurons-c32",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A hippocampal slice is cut so a layer of synapses is separated from its neuronal cell bodies. A drug that stops ribosomes is added before applying BDNF. What happens to synaptic strengthening, and why does this rule out modifying preexisting synaptic proteins alone?",
+   "back": "BDNF no longer strengthens the severed synapses. Because blocking ribosomes abolishes strengthening in tissue isolated from cell bodies, the change requires new proteins translated locally rather than solely modifying proteins already at the synapse.",
+   "quote": "When Kang and Schuman blocked protein synthesis, BDNF no longer strengthened the cut strip — showing the required protein was translated locally.",
+   "section": "Make it where you need it"
+  },
+  {
+   "id": "long-distance-signaling-in-neurons-c33",
+   "type": "qa",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "Why do neurons rely on retrograde microtubule-motor transport for target-derived NGF signaling yet rely on local mRNA translation at synapses for rapid BDNF-driven synaptic strengthening?",
+   "back": "Resting on the quadratic diffusion failure rule (t ≈ x² / 2D) and linear motor-speed rule (~1 µm/s), target-derived NGF starts centimeters away at the axon tip and must ride dynein to inform the nucleus or dendrites (taking hours), whereas a synapse needing new protein quickly bypasses round-trip nuclear delay by translating local mRNAs on site.",
+   "quote": "Dendrites face their own distance problem when a synapse needs new protein quickly.",
+   "section": "Make it where you need it"
+  },
+  {
+   "id": "long-distance-signaling-in-neurons-c34",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "Mutations in which dynactin-subunit gene appear in people whose motor neurons degenerate?",
+   "back": "DCTN1.",
+   "quote": "Mutations in DCTN1 (a dynactin subunit) appear in people whose motor neurons (neurons that drive muscle) degenerate.",
+   "section": "When the road fails"
+  },
+  {
+   "id": "long-distance-signaling-in-neurons-c35",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A genetic mutation weakens dynactin, the partner complex required for cytoplasmic dynein transport. Which neurons are most at risk of degeneration, and why?",
+   "back": "Neurons with the longest axons (such as motor neurons). Relying on microtubule motors over long distances where diffusion fails leaves the longest-axon neurons the smallest safety margin when motor transport falters.",
+   "quote": "Relying on microtubule motors leaves neurons with the longest axons the least margin.",
+   "section": "When the road fails"
+  },
+  {
+   "id": "long-distance-signaling-in-neurons-c36",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Axonal transport defects are reported in ALS, Huntington's, Parkinson's, and Alzheimer's diseases. What causal limitation must be kept in mind when interpreting these reports?",
+   "back": "Accompanying a disease is not proof of cause—observed transport defects do not by themselves prove that failed axonal transport caused the neurodegeneration.",
+   "quote": "Transport defects are reported in ALS (a motor-neuron disease) and in Huntington's, Parkinson's and Alzheimer's diseases, although accompanying a disease is not proof of cause.",
+   "section": "When the road fails"
+  },
+  {
+   "id": "long-distance-signaling-in-neurons-c37",
+   "type": "experiment",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "In a mouse model of Down's syndrome carrying an extra copy of App (amyloid precursor protein), what specific axonal-transport effect did Salehi and colleagues identify?",
+   "back": "Raised expression of App disrupted retrograde NGF transport, identifying a specific survival cargo impaired by increased App gene dosage.",
+   "quote": "in a mouse model of Down's syndrome carrying an extra copy of App (amyloid precursor protein), Salehi and colleagues found that raised expression of App disrupts NGF transport.",
+   "section": "When the road fails"
+  },
+  {
+   "id": "long-distance-signaling-in-neurons-c38",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A newly discovered growth factor binds a receptor tyrosine kinase at the tip of a long axon and activates survival genes in the nucleus. Explain why stopping dynein cannot distinguish a carried vesicle from a kinase-chain relay, and design two compartmented-chamber tests that separate them.",
+   "back": "Stopping dynein fails because both models can need it (whole trip for a courier; local steps for a relay). Resting on the rule to test what only one model predicts: (1) apply a kinase inhibitor only to the middle axon stretch (a relay breaks there; a courier passes through with ligand bound and signals in the drug-free cell body); (2) label axon-surface receptors to test arrival and block the arriving ligand at the cell body to prove necessity.",
+   "quote": "A kinase relay dies there; a courier passes through with ligand bound and signals again in the drug-free cell body",
+   "section": "Design problem"
+  },
+  {
+   "id": "long-distance-signaling-in-neurons-c39",
+   "type": "calc",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In a compartmented culture with 6 mm (6,000 µm) axons, adding a growth factor to distal axons triggers nuclear transcription-factor phosphorylation at 15 minutes, while live cargo tracking shows tagged receptors moving homeward at 1 µm/s. What do these two measurements together imply?",
+   "back": "They imply that something faster than a carried vesicle, such as a propagated relay, drove the initial 15-minute response even though receptors are also being carried. Resting on the motor-speed rule (t = x / v) and the speed-comparison test, a 1 µm/s vesicle needs 6,000 s (100 minutes) to cross 6 mm, too slow to explain a 15-minute nuclear response.",
+   "why": "Setup: t_motor = 6,000 µm / (1 µm/s) = 6,000 s = 100 minutes, which is 85 minutes after the nuclear response appears.",
+   "quote": "Check whether the nuclear response appears when a motor vesicle would arrive or sooner, paired with live cargo tracking.",
+   "section": "Design problem"
+  },
+  {
+   "id": "long-distance-signaling-in-neurons-c40",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "Senger and Campenot (1997) saw cell-body TrkA phosphorylation 1 minute after distal NGF application, and MacInnis and Campenot (2002) reported survival without retrograde NGF transport, yet Ye et al. (2003) titled their signaling-endosome paper modestly ('Evidence in support of...'). How do these results fit together without overclaiming?",
+   "back": "Resting on the linear motor-speed rule (~1 µm/s takes hours across centimeters), the 1-minute phosphorylation led Senger and Campenot to suggest that part of the signal travels by propagation, and survival without NGF transport shows NGF need not make the trip without saying what carried the signal. Together with tracked Trk and Ye et al.'s tests, signaling endosomes are the leading model without ruling out other retrograde routes.",
+   "quote": "That result says NGF need not make the trip; it does not say what carried the signal instead.",
+   "section": "The relay proposal and the timing evidence"
+  },
+  {
+   "id": "long-distance-signaling-in-neurons-c41",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "What molecular defect do the Loa and Cra1 mouse mutants share, and how did later studies refine their nerve-loss phenotype?",
+   "back": "Both carry dynein heavy-chain point mutations. First reported to lose motor neurons, later studies found mainly sensory-axon loss, with motor-neuron and neuromuscular-junction findings differing by mutation and mouse strain.",
+   "quote": "Loa and Cra1 were first reported to lose motor neurons, although later studies found mainly sensory-axon loss",
+   "section": "Loa and Cra1"
+  }
+ ]
+}

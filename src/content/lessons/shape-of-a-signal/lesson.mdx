@@ -4,8 +4,13 @@ slug: "shape-of-a-signal"
 course: "signaling"
 courseChapter: "Cell Signaling · Unit 7: Space, time and distance"
 order: 135
-summary: "One messenger can carry several messages because a cell reads how much of it there is, how long it lasts, how often it comes and where it is. This lesson shows the parts that do the reading: a late-arriving product that times ERK, a kinase that holds its activity between calcium spikes, feedback loops with a delay that make pulses, and anchors and clusters that fix a signal in place. Afterwards you can look at a pathway and say what pattern it would answer. "
-hook: "EGF and NGF both switch on ERK in the same cell. How does the cell tell them apart? It reads the shape of the signal: how much, how long, how often and where."
+summary: >-
+  Cells read duration and frequency against the timing of a decoder; delayed negative feedback
+  makes pulses, and location restricts which targets answer. Follow how a delayed, short-lived
+  protein times ERK, how slow-off decoders count calcium spikes while continuous GnRH shuts the
+  pituitary down, how feedback loops with a delay generate pulses in NF-κB, p53 and a synthetic
+  ring, and how anchors and reconstituted protein clusters confine signals in space.
+hook: "EGF and NGF both switch on the same kinase, ERK, in the same cell, yet one says divide and the other says differentiate. How does the cell tell them apart?"
 
 estMinutes: 22
 objectives:
@@ -18,10 +23,15 @@ explainer:
   src: "/explainers/shape-of-a-signal/explainer.mp4"
   captions: "/explainers/shape-of-a-signal/explainer.vtt"
   poster: "/explainers/shape-of-a-signal/poster.jpg"
-  title: "A Late Part Reads Signal Length"
-  durationSec: 139.5
-  narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+  title: "Reading a Signal in Time"
+  durationSec: 190.8
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+  takeaways:
+    - "Cells read duration and frequency against the timing of a decoder."
+    - "Beyond molecule identity, a cell reads four features of a signal: how much, how long, how often and where."
+    - "In fibroblasts, newly made c-Fos breaks down quickly unless ERK stays active long enough to phosphorylate and protect it."
+    - "A fast-on, slow-off decoder retains (1/2)^(gap ÷ half-time) of its activity between spikes, so closely spaced spikes stack higher than widely spaced ones."
 
 scientists:
   - name: "Michael Rosen"
@@ -362,89 +372,135 @@ corpusTags:
   - "erk"
 draft: false
 films:
-  - id: "how-often"
-    src: "/explainers/shape-of-a-signal/how-often.mp4"
-    captions: "/explainers/shape-of-a-signal/how-often.vtt"
-    poster: "/explainers/shape-of-a-signal/how-often-poster.jpg"
-    title: "Why a Slow Off Switch Can Count"
-    durationSec: 111.8
-    narration: "an AI narrator voice (Gemini, Charon) reading narration written from this lesson's text"
+  - id: "chapter-2"
+    src: "/explainers/shape-of-a-signal/chapter-2.mp4"
+    captions: "/explainers/shape-of-a-signal/chapter-2.vtt"
+    poster: "/explainers/shape-of-a-signal/chapter-2-poster.jpg"
+    title: "Making Pulses and Fixing Place"
+    durationSec: 192.6
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
     aiGenerated: true
+    takeaways:
+      - "Delayed negative feedback makes pulses, and location restricts which targets answer."
+      - "When negative feedback acts after a delay, is strong enough and its proteins are short-lived enough, a steady stimulus can produce repeating pulses, as in NF-κB and IκBα."
+      - "Anchoring proteins such as AKAPs hold PKA beside selected membrane targets so a local rise in cAMP can activate nearby kinase without reaching distant pools."
+      - "On an artificial membrane with no cell, LAT clusters concentrate kinases and exclude phosphatases, while whether bright spots in living cells are liquid droplets remains debated."
 ---
 
 import LessonFilm from '../../../components/LessonFilm.astro';
-
 import SignalLengthDecoder from '../../../components/SignalLengthDecoder.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import Support from '../../../components/Support.astro';
 
-**A cell reads four things in a signal besides which molecule it is: how much, how long, how often and where.** Take a PC12 cell, a line of rat adrenal tumour cells that grow nerve-like processes when given nerve growth factor. One growth factor says "divide" and another says "become neuron-like", and both say it through the same kinase, ERK. If the molecule that carries both orders is the same, the difference must lie in something else about the signal. This lesson is about what that something else can be, and about the parts that do the reading.
+**A cell reads four things in a signal besides which molecule it is: how much, how long, how often and where.** In PC12 cells—a line of rat adrenal tumour cells that grow nerve-like processes with nerve growth factor—one growth factor orders division and another orders differentiation, both through the same kinase, ERK. The first film introduced how a downstream clock decodes duration and spike rate; here are the wiring, proteins and evidence behind it.
 
 ## The idea: a signal has a shape, and the cell reads it
 
-A cell has a limited set of signalling parts to work with and a great many things to say, so it reuses them. Calcium, cyclic AMP, ERK and NF-κB turn up in pathway after pathway, with a different result each time. A row of arrows cannot explain that. We need a new vocabulary for signaling, and its first four words are how much, how long, how often and where.
+Calcium, cyclic AMP, ERK and NF-κB recur across pathways with different outcomes. Like a one-button doorbell sending different messages with a short press, a long press or rapid taps, a cell reads four features:
 
-Think of a doorbell with one button. A short press, a long press and a run of quick taps are different messages sent down the same wire. A cell reads its signals in a similar way:
-
-- **How much.** The size of the signal. You know this one from dose-response curves and from the all-or-none switch in [signaling circuits](/lessons/signaling-circuits/).
+- **How much.** Signal size, as in dose-response curves and the switches of [signaling circuits](/lessons/signaling-circuits/).
 - **How long.** Minutes, or hours.
-- **How often.** Many signals arrive as repeated spikes, and the gap between spikes can change.
-- **Where.** At the cell surface, on an internal membrane, or beside one target and far from another.
+- **How often.** Repeated spikes with varying gaps.
+- **Where.** Cell surface, internal membrane, or beside one target rather than another.
 
 Reading the last three takes a **decoder**: a downstream part whose own timing or position makes it answer one pattern and ignore another.
 
+<Support>**The one idea.** Cells read duration and frequency against the timing of a decoder; delayed negative feedback makes pulses, and location restricts which targets answer. **Scope:** This covers how cells decode and shape signals beyond molecule identity and dose. Delayed negative feedback oscillates only when feedback is strong enough and turnover is fast enough; liquid-like protein clusters are established in reconstituted membranes and still debated in living cells.</Support>
+
 ## How long: a part that arrives late can time a signal
 
-[The lesson on Ras and MAPK](/lessons/ras-to-mapk/) gave you the PC12 result. Epidermal growth factor (EGF) switches ERK on briefly, and the cell divides. Nerve growth factor (NGF) keeps ERK on much longer, and the cell stops dividing and grows processes. The length matters, and it comes from wiring: in PC12 cells NGF adds a positive feedback loop to the pathway that EGF does not, and that loop keeps ERK on. PC12 cells engineered to carry extra EGF receptors keep ERK active for longer when they meet EGF, and they differentiate.
+[The lesson on Ras and MAPK](/lessons/ras-to-mapk/) gave the PC12 result: epidermal growth factor (EGF) activates ERK briefly and cells divide, whereas nerve growth factor (NGF) keeps ERK active much longer and cells stop dividing and grow processes. Wiring sets that length: in PC12 cells, NGF engages a positive feedback loop that EGF does not. As a direct test, PC12 cells engineered to carry extra EGF receptors keep ERK active longer with EGF and differentiate.
 
-A cell has no stopwatch. What it can do is compare the signal with a delayed product of that same signal.
-
-ERK switches on the immediate early genes you met in [signaling to the nucleus](/lessons/signaling-to-the-nucleus/), and one of them is c-fos. The c-Fos protein takes time to make, and once made it is quickly destroyed. If ERK is still active when c-Fos appears, ERK and a kinase it activates add phosphates near the C-terminal end of c-Fos, and those phosphates protect it. After a brief signal ERK is already off, so c-Fos is made and lost. After a long signal c-Fos builds up, and as a transcription factor it can switch on later genes.
+PC12 cells proved that ERK duration changes cell fate; the clearest molecular mechanism was worked out for **c-Fos** in fibroblasts. ERK turns on immediate early genes from [signaling to the nucleus](/lessons/signaling-to-the-nucleus/), including *c-fos*. As the first film showed, ERK reaches c-Fos by a slow route (transcribing and translating short-lived c-Fos protein) and a fast route (ERK and an ERK-activated kinase phosphorylating near c-Fos's C-terminal end to protect it from breakdown). Picture a clinic calling your name twenty minutes after sign-in: only people still waiting are seen. After a brief signal ERK is off when c-Fos arrives, so c-Fos is made and lost; after a long signal c-Fos builds up and, as a transcription factor, activates later genes.
 
 <SignalLengthDecoder />
 
-Picture a clinic that calls your name twenty minutes after you sign in. Only the people still in the waiting room are seen. In the cell, the signal reaches c-Fos by a slow route (making the protein) and a fast route (phosphorylating it), and c-Fos builds up only when both arrive.
+**Predict.** A fibroblast gets a sustained ERK signal, but you block ERK with a drug ten minutes later—after *c-fos* transcription has started, yet before new c-Fos protein appears. What happens to c-Fos levels?
 
-Leon Murphy, John Blenis and their colleagues showed this for c-Fos in fibroblasts in 2002, and later for several other early gene products. Do not assume every long signal is read this way.
+<details>
+<summary>Check your prediction</summary>
+
+c-Fos fails to build up. ERK is already off when the new protein appears, so newly made c-Fos is not phosphorylated and breaks down quickly—just as after a brief signal.
+
+</details>
+
+Leon Murphy, John Blenis and colleagues showed this for c-Fos in fibroblasts in 2002, and later for several other early gene products. Do not assume every long signal is read this way.
 
 ## How often: a decoder that holds on between spikes can count
 
-<LessonFilm film={frontmatter.films[0]} />
-
-[Calcium signaling](/lessons/calcium-signaling/) showed you that calcium often rises in brief spikes. In many cell types a stronger stimulus gives more frequent spikes of about the same height. One way to read that is with a part that switches on fast and off slowly.
-
-Picture a bucket with a small hole, topped up by one cup of water at each spike. Fill it rarely and it drains between cups. Fill it often and the level climbs. For a decoder that loses its activity with a fixed half-time:
+[Calcium signaling](/lessons/calcium-signaling/) showed that calcium often arrives as brief spikes; in many cell types a stronger stimulus gives more frequent spikes of about the same height. Building on the first film's leaky-bucket picture, a fast-on decoder that loses activity with a fixed half-time multiplies its remaining activity by 1/2 each half-time, so decay is exponential:
 
 > **fraction left at the next spike = (1/2) ^ (gap between spikes ÷ half-time of the decoder)**
 
-With a half-time of 20 seconds, spikes a minute apart leave one eighth of the activity. Spikes 10 seconds apart leave about 70 percent to build on.
+With a 20-second half-time, spikes 60 seconds apart span three half-times (1/2 × 1/2 × 1/2), leaving one eighth (12.5%). Spikes 10 seconds apart span half a half-time, leaving about 70 percent to build on.
 
-One such part is calcium/calmodulin-dependent kinase II (CaMKII), an assembly of twelve kinase subunits. Calcium-bound calmodulin switches a subunit on. An active subunit can then phosphorylate its neighbour, but only while the neighbour also holds calmodulin, and a phosphorylated subunit stays active after calcium has gone. Fast spikes catch more neighbours loaded at the same moment. In 1998 Paul De Koninck and Howard Schulman gave CaMKII fixed to a surface timed pulses of calcium and calmodulin and found that this calcium-independent activity rose with the pulse rate. That is a test-tube result.
+**Predict.** A decoder has a 40-second half-time and spikes arrive every 80 seconds. What fraction stays behind before the next spike—and if a mutation halves the half-time to 20 seconds, what fraction stays at the same 80-second gap?
 
-Transcription factors can be sorted by the same rule. In 1998 Ricardo Dolmetsch, Keli Xu and Richard Lewis imposed calcium spikes of chosen spacing on a line of human T cells. Closely spaced spikes activated three transcription factors, NFAT and NF-κB among them. Widely spaced spikes activated only NF-κB. A likely reason is how fast each one switches off. NFAT leaves the nucleus within minutes once calcium falls. In B cells, NF-κB stayed in the nucleus long after a brief calcium spike had ended.
+<details>
+<summary>Check your prediction</summary>
 
-Medicine uses this. The brain releases gonadotropin-releasing hormone (GnRH) in pulses. In rhesus monkeys whose hypothalamic lesions had cut off their own GnRH supply, one pulse an hour restored the pituitary's release of its two reproductive hormones, and the same hormone given continuously shut the release down. Leuprolide is a synthetic relative of GnRH given as a slow-release dose, so that its level stays steady. After a first surge the pituitary goes quiet and testosterone falls, which is the aim in prostate cancer. A drug can change the shape of a signal as well as its size.
+At 40 s, 80 s is 2 half-times, leaving (1/2)² = 1/4 (25%). At 20 s, 80 s is 4 half-times, leaving (1/2)⁴ = 1/16 (6.25%)—four times less, not half, because decay is exponential.
+
+</details>
+
+One molecular decoder is **calcium/calmodulin-dependent kinase II (CaMKII)**, twelve kinase subunits folded shut at rest. Calcium-bound calmodulin binds a subunit, unfolds it and activates it. An active subunit can phosphorylate its neighbour—locking it into a calcium-independent active state after calcium falls—*only while the neighbour also holds calmodulin* to keep its site exposed. Rare spikes let calmodulin leave before adjacent subunits are loaded together; fast spikes catch more neighbours loaded at once, so autonomous activity climbs in steps. In 1998 Paul De Koninck and Howard Schulman delivered timed pulses of calcium and calmodulin to surface-fixed CaMKII and saw calcium-independent activity rise with pulse rate. That is a test-tube result.
+
+Transcription factors follow the same off-rate rule. In 1998 Ricardo Dolmetsch, Keli Xu and Richard Lewis clamped calcium spikes at chosen spacings in a human T-cell line. Closely spaced spikes activated three factors, NFAT and NF-κB among them; widely spaced spikes activated only NF-κB. A likely reason is off-rate: NFAT exits the nucleus within minutes once calcium drops, whereas in B cells NF-κB stayed in the nucleus long after a brief spike ended.
+
+**Predict.** If a mutation slowed NFAT's nuclear export tenfold without changing how fast calcium drives it in, how would NFAT's response to widely spaced spikes change?
+
+<details>
+<summary>Check your prediction</summary>
+
+NFAT would answer widely spaced spikes too: slower export lengthens its nuclear persistence so active NFAT bridges longer gaps.
+
+</details>
+
+Not every frequency-sensitive system peaks under continuous stimulation; some need quiet gaps to recover. The brain releases gonadotropin-releasing hormone (**GnRH**) in pulses. In rhesus monkeys whose hypothalamic lesions cut off their own GnRH, one pulse an hour restored pituitary release of LH and FSH, whereas continuous GnRH shut release down via pituitary desensitization (down-regulation). Medicine uses this inversion: **leuprolide**, a slow-release GnRH relative, holds levels steady so that after an initial surge the pituitary goes quiet and testosterone falls, which is the aim in prostate cancer. A drug can change a signal's shape as well as its size.
+
+Having seen how cells read timing, turn to the second film to see how a steady stimulus makes repeating pulses and how place restricts which targets answer.
+
+<LessonFilm film={frontmatter.films[0]} />
 
 ## Pulses from feedback: a loop with a delay keeps its own time
 
-Where do pulses come from when the stimulus is steady? In [signaling circuits](/lessons/signaling-circuits/) you saw negative feedback pull a pathway back toward baseline. Add a delay and the correction arrives late. Think of a shower with a long pipe between tap and head: you turn the tap, nothing changes, you turn it further, and you end up too hot and then too cold. A loop like that can oscillate.
+In [signaling circuits](/lessons/signaling-circuits/) negative feedback pulled pathways back to baseline. As the second film showed, adding a delay makes the correction land late so activity overshoots, and it can oscillate when feedback is strong and switch-like enough and proteins are short-lived enough.
 
-NF-κB sits in such a loop. One of the genes it switches on encodes its own inhibitor, IκBα. Once IκB has been destroyed, as in [Toll-like receptors and NF-κB](/lessons/tlr-and-nf-kb/), NF-κB enters the nucleus, new IκBα is made after a delay, and it carries NF-κB back out. If the stimulus is still present, the new IκBα is destroyed and the round can repeat, as films of single cells carrying fluorescent NF-κB have shown in some cell lines (Nelson and colleagues, 2004). A 2002 study that combined a computer model with cells that lacked particular IκB proteins concluded that IκBα drives the oscillation and that the other two IκB proteins damp it.
+The same **NF-κB** that bridges widely spaced calcium spikes drives its own pulses under a steady inflammatory cue. Once IκB is destroyed, as in [Toll-like receptors and NF-κB](/lessons/tlr-and-nf-kb/), nuclear NF-κB induces IκBα, which after a delay exports NF-κB back out; while the stimulus persists, new IκBα is destroyed and the cycle repeats, as single-cell films of fluorescent NF-κB showed in some cell lines (Nelson and colleagues, 2004). Knockout cells with a computer model showed that IκBα drives the oscillation while IκBβ and IκBε damp it (see Going deeper).
 
-<LessonFigure src="/figures/shape-of-a-signal/nfkb-ikba-delay-loop.webp" width={1200} height={792} alt="AI-generated illustration: a cell with a nucleus showing a four-step loop. The inhibitor IκB is destroyed so NF-κB is free, NF-κB enters the nucleus and switches on the IκBα gene after a delay, and new IκBα carries NF-κB back out, after which the round can repeat. A small inset marks IκBα driving the oscillation and two other IκB proteins damping it." caption="NF-κB switches on the gene for its own inhibitor. After a delay, new IκBα binds nuclear NF-κB and promotes its export to the cytoplasm. If the stimulus remains, IκBα can be destroyed and the cycle can repeat. Hoffmann and colleagues concluded that IκBα drives the oscillation and IκBβ and IκBε damp it." />
+<LessonFigure src="/figures/shape-of-a-signal/nfkb-ikba-delay-loop.webp" width={1200} height={792} alt="AI-generated illustration: a cell with a nucleus showing a four-step loop. The inhibitor IκB is destroyed so NF-κB is free, NF-κB enters the nucleus and switches on the IκBα gene after a delay, and new IκBα carries NF-κB back out, after which the round can repeat. A small inset marks IκBα driving the oscillation and two other IκB proteins damping it." caption="Delayed transcription of IκBα turns a steady stimulus into repeating nuclear NF-κB pulses, while IκBβ and IκBε damp the oscillation." />
 
-p53 and MDM2 also form a negative feedback loop, and [stress signals](/lessons/stress-signals/) covered what Galit Lahav's films of single cells, made in Uri Alon's laboratory, showed in 2004: p53 arrives in pulses of about the same size, and a larger dose of radiation gives more pulses on average. The MDM2 loop does not explain them alone: a 2008 study from Lahav's laboratory found that the pulses are driven by repeated restarts from the upstream kinases ATM and Chk2, and that a second feedback loop, through Wip1, keeps them uniform. Her laboratory later used nutlin-3, a small molecule that blocks MDM2, on a planned schedule to hold p53 steady at the height of one pulse. In the human cancer cells they studied, cells left to pulse after a moderate radiation dose recovered and returned to dividing. Cells held steady often stopped dividing for good.
+**p53** and **MDM2** also form a negative feedback loop. [Stress signals](/lessons/stress-signals/) covered Galit Lahav's 2004 single-cell films in Uri Alon's lab: p53 arrives in pulses of similar size, with larger radiation doses giving more pulses on average. MDM2 alone is not enough: a 2008 study from Lahav's lab found the pulses are driven by repeated restarts from upstream kinases ATM and Chk2 and kept uniform by a second feedback loop through Wip1.
 
-Is a ring of negative feedback with a delay enough to make a clock? Michael Elowitz and Stanislas Leibler tested that by building one. In the bacterium *E. coli* they wired three repressors, proteins that switch a gene off, into a ring, each silencing the gene for the next. Each protein takes time to make, so every order to switch off lands late and the three chase one another around the ring. A green fluorescent readout rose and fell with a period of hours in at least 40 percent of the single cells filmed. The clock was noisy, and it ran.
+**Predict.** After moderate radiation, human cancer cells left to pulse p53 recovered and resumed dividing. Lahav's lab then used **nutlin-3** (which blocks MDM2) on a schedule to hold p53 steady at the height of one pulse. Should steady-p53 cells recover the same way, or choose a different fate?
+
+<details>
+<summary>Check your prediction</summary>
+
+A different fate: cells held steady at one-pulse height often stopped dividing for good. Even at equal peak size, steady versus pulsing p53 altered cell fate.
+
+</details>
+
+Is a delayed negative-feedback ring enough on its own to make a clock? Michael Elowitz and Stanislas Leibler tested that in *E. coli* by wiring three repressors—proteins that switch genes off—into a ring, each silencing the next. Because protein synthesis takes time, each off-order lands late and the three chase one another around the ring; a green fluorescent readout oscillated with a period of hours in at least 40 percent of filmed cells. The clock was noisy, and it ran.
 
 ## Where: the same kinase means something else in another place
 
-A message can also depend on its address. In [cAMP and PKA](/lessons/camp-and-pka/) and [adaptors and scaffolds](/lessons/adaptors-and-scaffolds/) you met A-kinase anchoring proteins, which hold PKA beside particular targets. A local rise in cAMP then reaches the PKA parked nearby and may never reach PKA parked elsewhere. A receptor can likewise signal from the cell surface and again from an endosome after it has been taken inside, which is the subject of the next lesson.
+By our guiding rule, timing is half the story: **location also restricts which targets answer.** As the second film showed for [cAMP and PKA](/lessons/camp-and-pka/) and [adaptors and scaffolds](/lessons/adaptors-and-scaffolds/), **A-kinase anchoring proteins (AKAPs)** park PKA beside specific targets so a local rise in cAMP reaches the PKA parked nearby and may never reach PKA parked elsewhere. A receptor can likewise signal from the cell surface and again from an endosome after internalization, the subject of the next lesson.
 
-A cell can also make a place on demand. In 2016 the laboratories of Michael Rosen and Ronald Vale put twelve purified components from the start of T-cell signalling, the pathway in [antigen receptors and checkpoints](/lessons/antigen-receptors-and-checkpoints/), on an artificial membrane with no cell present. When a kinase phosphorylated the receptor tail, the downstream proteins gathered into clusters that behaved like liquid droplets. What holds such droplets together is a large number of weak contacts between repeated binding sites of the kind you met in [protein interaction modules](/lessons/protein-interaction-modules/). The droplets also sorted what entered them. Kinases were concentrated and phosphatases were kept out, which favours a signal that stays on inside.
+A cell can also build a place on demand—on a slide. In 2016 Michael Rosen's and Ronald Vale's laboratories placed twelve purified components from early T-cell signaling ([antigen receptors and checkpoints](/lessons/antigen-receptors-and-checkpoints/)) on an artificial membrane with no cell. Once a kinase phosphorylated the receptor tail, membrane-bound **LAT** and its partners gathered into liquid-like clusters via many weak contacts between repeated binding sites ([protein interaction modules](/lessons/protein-interaction-modules/)). Inside, kinases such as ZAP70 were concentrated and phosphatases such as CD45 excluded, favouring a signal that stays on.
 
-<LessonFigure src="/figures/shape-of-a-signal/tcell-droplets-on-a-slide.webp" width={1200} height={639} alt="AI-generated illustration: a flat membrane on a glass slide with a receptor tail carrying a phosphate and a kinase, and a soft droplet of clustered downstream proteins with the kinase inside and two phosphatases kept outside. A dashed inset shows a living cell with a bright spot and a question mark." caption="On an artificial membrane supported by glass, with no cell present, membrane-bound LAT and its binding partners formed liquid-like clusters that enriched the kinase ZAP70 and excluded the phosphatase CD45. The drawing is schematic. Whether bright spots in living T cells are a separate liquid phase is still debated." />
+<LessonFigure src="/figures/shape-of-a-signal/tcell-droplets-on-a-slide.webp" width={1200} height={639} alt="AI-generated illustration: a flat membrane on a glass slide with a receptor tail carrying a phosphate and a kinase, and a soft droplet of clustered downstream proteins with the kinase inside and two phosphatases kept outside. A dashed inset shows a living cell with a bright spot and a question mark." caption="On an artificial membrane with no cell, LAT clusters concentrate ZAP70 and exclude CD45; whether bright spots in living T cells are liquid droplets remains debated." />
 
-That sorting was shown on a glass slide. In a human T-cell line, LAT mutants that clustered more switched on more ERK, but proving that a bright spot in a living cell is a separate liquid is harder. The usual test bleaches a spot with a laser and watches the brightness return, and proteins that bind a fixed scaffold and let go again would look the same as a liquid. For anchored kinases, place is an established part of the signal. For droplets it is established in the test tube and still argued over in the cell.
+**Predict.** On that artificial membrane, if you mutate LAT so it keeps only one binding site for its partners instead of several repeated sites, what happens to clustering and local signaling?
+
+<details>
+<summary>Check your prediction</summary>
+
+Clustering breaks down, because liquid-like clusters need multivalent weak contacts linking partners into a network. Without clusters sorting kinases from phosphatases, the local signaling boost is lost.
+
+</details>
+
+Separate test tube from cell. In a human T-cell line, LAT mutants that clustered more activated more ERK, yet proving a bright cellular spot is a liquid phase is harder. **Fluorescence recovery after photobleaching (FRAP)** bleaches one spot with a laser and times brightness returning as unbleached molecules enter. Because FRAP measures molecular exchange, proteins binding and leaving a fixed scaffold recover just like a liquid droplet. For anchored kinases, place is established; for droplets, it is established in the test tube and still argued over in the cell.
 
 ### Design problem
 
@@ -469,13 +525,12 @@ Dolmetsch, Lewis and their colleagues saw this split in B cells in 1997. A large
 
 ### The GnRH experiment
 
-The pulse-versus-continuous experiment described above was done in 1978 by Ernst Knobil's laboratory.
+The rhesus monkey pulse-versus-continuous experiment was done in 1978 by Ernst Knobil's laboratory (Belchetz, Plant, Nakai, Keogh and Knobil, *Science* 202:631–633), showing pituitary desensitization and down-regulation under continuous infusion.
 
 ### Who modelled NF-κB oscillations
 
-In 2002 Alexander Hoffmann, Andre Levchenko, Martin Scott and David Baltimore combined a computer model with cells that lacked particular IκB proteins. They concluded that IκBα drives the oscillation and that the other two IκB proteins damp it.
+In 2002 Alexander Hoffmann, Andre Levchenko, Martin Scott and David Baltimore paired a computer model with IκB-knockout cells, concluding that IκBα drives the oscillation while IκBβ and IκBε damp it.
 
 ### Testing whether a bright spot is a liquid
 
-In 2019 David McSwiggen, Mustafa Mir, Xavier Darzacq and Robert Tjian examined the bleaching test and wrote: "Even proteins that engage in stable, high-affinity binding interactions can show recovery."
-
+In 2019 David McSwiggen, Mustafa Mir, Xavier Darzacq and Robert Tjian reviewed FRAP in living cells and wrote: "Even proteins that engage in stable, high-affinity binding interactions can show recovery."
