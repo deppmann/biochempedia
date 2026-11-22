@@ -46,6 +46,8 @@ export interface TypedHit {
   dur?: number;
   /** A ladder: how many films it plays. */
   films?: number;
+  /** A film: its key (path under /explainers/ without .mp4), as the films group's cards carry it. */
+  filmKey?: string;
   lines: Line[];
   partial: boolean;
 }
@@ -164,6 +166,7 @@ export function createTypedSearch(loadPagefind: () => Promise<Pf | null>) {
       ...(m.poster ? { poster: m.poster } : {}),
       ...(m.dur ? { dur: Number(m.dur) } : {}),
       ...(m.films ? { films: Number(m.films) } : {}),
+      ...(m.filmKey ? { filmKey: m.filmKey } : {}),
       lines,
       partial,
     };

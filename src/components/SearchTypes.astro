@@ -8,8 +8,13 @@
  *   - a tick box per type (Lessons, Ladders, Films, Side Hops; then Methods, Flashcards, Simulations,
  *     Math toolkit), all on unless the address says otherwise;
  *   - one group per ticked type that has matches, best first, each hit with the line where the words
- *     are: for a film, the sentence of the narration that says them, linked to that second;
- *   - a row of counts that jumps to each group, and a "Lessons" heading over SiteSearch's own list.
+ *     are (ladders above the films when the query names the ladder, the rest after the films);
+ *   - FILMS: there is one films group, SiteSearch's own (.ss-films, the film library's matcher over
+ *     titles, lessons, fields and ideas: src/lib/film-find.ts). This adds the narration to it: under
+ *     each film card whose narration has the words, the sentence that says them, linked to that
+ *     second; and films found only in their narration are added to the end of the row;
+ *   - a row of counts that jumps to each group, and a "Lessons" heading over SiteSearch's own list
+ *     (its status line moved under the heading, so each group reads top to bottom).
  * The query and the ticks live in the address (?q=…&types=film,sidehop), so a search can be shared
  * and comes back on reload. Engine: src/lib/typed-search.ts. Pagefind loads the first time the box
  * gets focus, then only the index pieces a query needs.
@@ -42,6 +47,7 @@ const groups = [
   <p class="st-tip">Typos are fine; put words in "quotes" to find them side by side.</p>
   <nav class="st-jump" aria-label="Results by kind" data-st-jump hidden></nav>
   <p class="st-status" role="status" aria-live="polite" data-st-status></p>
+  <div class="st-groups" data-st-top></div>
   <div class="st-groups" data-st-groups></div>
   <h2 class="st-h st-lessons-h" id="st-g-lesson" data-st-lessons-h hidden>Lessons</h2>
 </div>
@@ -64,6 +70,17 @@ const groups = [
     const out = st.querySelector<HTMLElement>('[data-st-groups]')!;
     const lessonsH = st.querySelector<HTMLElement>('[data-st-lessons-h]')!;
     const lessonList = root.querySelector<HTMLElement>('.ss-results');
+    const top = st.querySelector<HTMLElement>('[data-st-top]')!;
+    const filmsBox = root.querySelector<HTMLElement>('.ss-films');
+    const filmsList = filmsBox?.querySelector<HTMLElement>('.ss-films-list') ?? null;
+    /* Reading order: ladders, films (SiteSearch's group), the other groups, then the lessons under
+       their heading with SiteSearch's status line and nothing-found Hex. Elements are moved, not copied. */
+    if (filmsBox && lessonList) {
+      filmsBox.id ||= 'st-g-film';
+      filmsBox.before(top);
+      filmsBox.after(out);
+      for (const el of [lessonsH, root.querySelector('.ss-none'), root.querySelector('.ss-status')]) if (el) lessonList.before(el);
+    }
 
     const ticked = (): TypeKey[] => boxes.filter((b) => b.checked).map((b) => b.value as TypeKey);
     const scope = () => root.querySelector<HTMLElement>('.ss-chip[aria-pressed="true"]')?.dataset.scope ?? root.dataset.scope ?? 'all';
@@ -106,13 +123,77 @@ const groups = [
         </li>`;
     };
 
+    /* ---- the narration, added to SiteSearch's films group. `said` is the films whose narration has
+       the words, for the query it was found for; reapplied whenever that group redraws its cards. */
+    let said: { q: string; hits: TypedHit[]; count: number } = { q: '', hits: [], count: 0 };
+    const EXTRA_MAX = 8;
+    const filmLine = (h: TypedHit) => {
+      const l = h.lines.find((x) => x.at != null);
+      return l ? `<a class="ssf-said" data-st-said ${href(l.url)}><span class="ssf-said-k">▶ ${esc(clockOf(l.at!))}</span> <span class="ssf-said-x">${l.html}</span></a>` : '';
+    };
+    const filmCard = (h: TypedHit) => `<li class="ssf" data-st-extra data-fp-film="${esc(h.filmKey ?? '')}" data-fp-t="${esc(h.title)}" data-fp-o="${esc(h.poster ?? '')}" data-fp-d="${h.dur ?? 0}" data-fp-h="${esc(h.url)}">
+        <a class="ssf-main" ${href(h.url)}>
+          <span class="ssf-pic">${h.poster ? `<img src="${esc(h.poster)}" alt="" width="320" height="180" loading="lazy" decoding="async">` : ''}<span class="ssf-play" aria-hidden="true">▶</span>${h.dur ? `<span class="ssf-len"><span class="visually-hidden">Length </span>${clockOf(h.dur)}</span>` : ''}</span>
+          <span class="ssf-kind">${esc(h.kicker)}</span>
+          <span class="ssf-t"><span class="visually-hidden">Play: </span>${esc(h.title)}</span>
+          <span class="ssf-m">${esc(h.where)}</span>
+        </a>${filmLine(h)}</li>`;
+    let applying = false;
+    const applySaid = () => {
+      if (!filmsBox || !filmsList || applying) return;
+      applying = true;
+      try {
+        filmsList.querySelectorAll('[data-st-said], [data-st-extra]').forEach((el) => el.remove());
+        filmsBox.querySelector('[data-st-said-n]')?.remove();
+        const q = input.value.trim();
+        if (!q || said.q !== q || !ticked().includes('film')) return;
+        const keys = new Set([...filmsList.querySelectorAll<HTMLElement>('[data-fp-film]')].map((x) => x.dataset.fpFilm));
+        for (const h of said.hits) {
+          const li = h.filmKey ? filmsList.querySelector<HTMLElement>(`li[data-fp-film="${CSS.escape(h.filmKey)}"]`) : null;
+          if (li) li.insertAdjacentHTML('beforeend', filmLine(h));
+        }
+        const extra = said.hits.filter((h) => h.filmKey && !keys.has(h.filmKey)).slice(0, EXTRA_MAX);
+        if (extra.length) {
+          filmsList.insertAdjacentHTML('beforeend', extra.map(filmCard).join(''));
+          if (filmsBox.hidden) {
+            filmsBox.hidden = false;
+            const n = filmsBox.querySelector<HTMLElement>('.ss-films-n');
+            if (n) n.textContent = '';
+            filmsBox.querySelector<HTMLElement>('.ss-films-play')?.setAttribute('hidden', '');
+          }
+          filmsBox.querySelector('.ss-films-head')?.insertAdjacentHTML('beforeend', `<p class="ss-films-said" data-st-said-n>${said.count} ${said.count === 1 ? 'film says' : 'films say'} these words in the narration; the sentence is under each.</p>`);
+        }
+      } finally {
+        // Our own changes to the row are not a redraw: drop them before the observer sees them.
+        filmsObs?.takeRecords();
+        applying = false;
+      }
+    };
+    const filmsObs = filmsList ? new MutationObserver(() => { if (!applying) applySaid(); }) : null;
+    filmsObs?.observe(filmsList!, { childList: true });
+
     const draw = () => {
-      const shown = groups.filter((g) => g.count > 0);
+      const shown = groups.filter((g) => g.count > 0 && g.type !== 'film');
+      const film = groups.find((g) => g.type === 'film');
+      said = { q: input.value.trim(), hits: film?.partial ? [] : film?.hits ?? [], count: film?.partial ? 0 : film?.count ?? 0 };
+      applySaid();
       // Ladders sit above the films when the query names the ladder; otherwise after them.
-      const li = shown.findIndex((g) => g.type === 'ladder');
-      const fi = shown.findIndex((g) => g.type === 'film');
-      if (li > -1 && fi > -1 && !shown[li].hits.some((h) => titleHas(h.title, input.value))) shown.splice(fi, 0, ...shown.splice(li, 1));
-      out.innerHTML = shown.map((g) => {
+      const ladder = shown.find((g) => g.type === 'ladder');
+      const above = ladder && ladder.hits.some((h) => titleHas(h.title, input.value)) ? [ladder] : [];
+      top.innerHTML = above.map(groupHtml).join('');
+      out.innerHTML = shown.filter((g) => !above.includes(g)).map(groupHtml).join('');
+      const filmShown = !!filmsBox && !filmsBox.hidden && ticked().includes('film');
+      const order = [...above, ...(filmShown ? ['film' as const] : []), ...shown.filter((g) => !above.includes(g))];
+      const links = order.map((g) => (g === 'film'
+        ? `<a href="#${filmsBox!.id}">Films</a>`
+        : `<a href="#st-g-${g.type}">${esc(typeOf(g.type)!.label)} <span>${g.count}</span></a>`));
+      if (lessonsOn() && input.value.trim()) links.push('<a href="#st-g-lesson">Lessons <span aria-hidden="true">↓</span></a>');
+      jump.innerHTML = links.join('');
+      jump.hidden = links.length < 2;
+      syncLessons();
+    };
+
+    const groupHtml = (g: Group) => {
         const t = typeOf(g.type)!;
         return `
           <section class="st-group st-k-${g.type}" aria-labelledby="st-g-${g.type}">
@@ -121,17 +202,12 @@ const groups = [
             <ol class="st-list">${g.hits.map(card).join('')}</ol>
             ${g.rest.length ? `<button type="button" class="st-more" data-st-more="${g.type}">Show ${Math.min(GROUP_PAGE, g.rest.length)} more ${esc(g.rest.length === 1 ? t.one : t.many)}</button>` : ''}
           </section>`;
-      }).join('');
-      const links = shown.map((g) => `<a href="#st-g-${g.type}">${esc(typeOf(g.type)!.label)} <span>${g.count}</span></a>`);
-      if (lessonsOn() && input.value.trim()) links.push('<a href="#st-g-lesson">Lessons <span aria-hidden="true">↓</span></a>');
-      jump.innerHTML = links.join('');
-      jump.hidden = links.length < 2;
-      syncLessons();
     };
 
     const say = (n: number) => {
-      const found = groups.filter((g) => g.count > 0).map((g) => `${g.count} ${g.count === 1 ? typeOf(g.type)!.one : typeOf(g.type)!.many}`);
+      const found = groups.filter((g) => g.count > 0 && !(g.type === 'film' && g.partial)).map((g) => `${g.count} ${g.count === 1 ? typeOf(g.type)!.one : typeOf(g.type)!.many}`);
       const lessons = lessonsOn() ? ' Lessons are listed below.' : '';
+      // (a film count here is of films whose title or narration has the words)
       status.textContent = n ? `Also found: ${found.join(', ')}.${lessons}` : (groups.length ? `No films, Side Hops or other matches.${lessons}` : '');
     };
 
@@ -141,14 +217,15 @@ const groups = [
       const url = `${location.pathname}${writeState(location.search, q, ticked())}${location.hash}`;
       if (url !== `${location.pathname}${location.search}${location.hash}`) history.replaceState(history.state, '', url);
       syncLessons();
-      if (!q) { groups = []; out.innerHTML = ''; jump.hidden = true; status.textContent = ''; return; }
+      root.classList.toggle('ss-no-films', !ticked().includes('film'));
+      if (!q) { groups = []; out.innerHTML = ''; top.innerHTML = ''; jump.hidden = true; status.textContent = ''; return; }
       const others = ticked().filter((t) => t !== 'lesson');
       if (!others.length) { groups = []; draw(); status.textContent = ''; return; }
       st.setAttribute('aria-busy', 'true');
       try {
         const got = await engine.search(q, ticked(), scope());
         if (my !== seq) return;
-        if (got === null) { groups = []; out.innerHTML = ''; status.textContent = 'Films, Side Hops and the rest are searchable on the built site (the index is made with it).'; return; }
+        if (got === null) { groups = []; out.innerHTML = ''; top.innerHTML = ''; status.textContent = 'Films, Side Hops and the rest are searchable on the built site (the index is made with it).'; return; }
         groups = got;
         draw();
         say(groups.filter((g) => g.count > 0).length);
@@ -174,7 +251,7 @@ const groups = [
       for (const b of boxes) b.checked = (only ?? '').split(',').includes(b.value);
       soon(0);
     });
-    out.addEventListener('click', async (e) => {
+    st.addEventListener('click', async (e) => {
       const b = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-st-more]');
       if (!b) return;
       const g = groups.find((x) => x.type === b.dataset.stMore);
@@ -184,7 +261,7 @@ const groups = [
       await engine.more(g);
       draw();
       // Keep the reader's place: focus the first new result.
-      out.querySelectorAll<HTMLAnchorElement>(`.st-group.st-k-${g.type} .st-title`)[before]?.focus();
+      root.querySelectorAll<HTMLAnchorElement>(`.st-group.st-k-${g.type} .st-title`)[before]?.focus();
     });
 
     if (input.value.trim() || start.q) { if (!input.value.trim()) input.value = start.q; soon(0); }
@@ -257,12 +334,20 @@ const groups = [
   .st-line-k { font-size: var(--ddp-text-xs); font-weight: 700; color: var(--ddp-color-accent); }
   .st-line a:hover .st-line-k { text-decoration: underline; text-underline-offset: 3px; }
   .st-line-x { font-size: var(--ddp-text-sm); line-height: 1.5; color: var(--ddp-color-ink-soft); overflow-wrap: anywhere; }
-  .st mark { background: color-mix(in srgb, var(--ddp-color-accent) 22%, transparent); color: inherit; border-radius: 2px; padding: 0 0.1em; font-weight: 600; }
+  :is(.st, .st-groups) mark { background: color-mix(in srgb, var(--ddp-color-accent) 22%, transparent); color: inherit; border-radius: 2px; padding: 0 0.1em; font-weight: 600; }
   .st-more { margin-top: var(--ddp-space-3); font: inherit; font-size: var(--ddp-text-sm); font-weight: 600; color: var(--ddp-color-primary); background: var(--ddp-color-surface); border: 1px solid var(--ddp-color-line); border-radius: 999px; padding: 0.5em 1.1em; min-height: 44px; cursor: pointer; }
   .st-more:hover { border-color: var(--ddp-color-accent); }
   .st-more:disabled { opacity: 0.6; cursor: progress; }
-  /* Lessons unticked: SiteSearch's own list (and its status line) is set aside. */
+  /* Lessons unticked: SiteSearch's own list (and its status line) is set aside; Films unticked: its films group. */
   .ss.ss-no-lessons :is(.ss-status, .ss-results, .ss-more, .ss-none) { display: none !important; }
+  .ss.ss-no-films .ss-films { display: none !important; }
+  /* The narration line added under a card of SiteSearch's films group. */
+  .ssf-said { display: block; margin-top: 0.35rem; font-size: var(--ddp-text-xs); line-height: 1.45; color: var(--ddp-color-ink-soft); text-decoration: none; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+  .ssf-said-k { font-weight: 700; color: var(--ddp-color-accent); white-space: nowrap; }
+  .ssf-said:hover .ssf-said-k, .ssf-said:focus-visible .ssf-said-k { text-decoration: underline; text-underline-offset: 3px; }
+  .ssf-said mark { background: color-mix(in srgb, var(--ddp-color-accent) 22%, transparent); color: inherit; border-radius: 2px; padding: 0 0.1em; font-weight: 600; }
+  .ss-films-said { flex-basis: 100%; margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .ss-films { scroll-margin-top: 5rem; }
   @media (max-width: 30rem) {
     .st-hit.has-pic { grid-template-columns: 84px 1fr; gap: var(--ddp-space-2); padding: var(--ddp-space-3); }
   }
