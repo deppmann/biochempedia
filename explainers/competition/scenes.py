@@ -749,12 +749,18 @@ class S14Reveal(PS):
         pls = [Plane(-6.3, -3.1, W, H), Plane(0.7, -3.1, W, H)]
         cx, cy = cross(0.5, 0.5)
         grp = VGroup()
+        t_lines, o_lines, rings = [], [], []
         for pl in pls:
             ax, _, _ = pl.frame()
-            grp.add(shade_teal(pl, 0.5, 0.2), shade_orange(pl, 0.5, 0.2), ax, pl.seg(*teal_pts(0.5), TC, 6), pl.seg(*orange_pts(0.5), OC, 6),
-                    Circle(radius=0.2, color=RING, stroke_width=5).move_to(pl.P(cx, cy)))
-        t1 = T("original", 30, TEXT).move_to([-3.5, 2.0, 0])
-        t2 = T("orange growth ×2", 30, OC).move_to([3.5, 2.0, 0])
+            tl = pl.seg(*teal_pts(0.5), TC, 6)
+            ol = pl.seg(*orange_pts(0.5), OC, 6)
+            rg = ring_pulse(Circle(radius=0.2, color=RING, stroke_width=5).move_to(pl.P(cx, cy)))
+            t_lines.append(tl)
+            o_lines.append(ol)
+            rings.append(rg)
+            grp.add(shade_teal(pl, 0.5, 0.2), shade_orange(pl, 0.5, 0.2), ax, tl, ol, rg)
+        t1 = T("original", 30, TEXT).move_to([-3.5, 2.05, 0])
+        t2 = T("orange growth rate ×2", 30, OC).move_to([3.5, 2.05, 0])
         starts = [(10, 100), (15, 12), (150, 20)]
         P1 = [sim(0.5, 0.5, *s, r2=R2, T=40, dt=0.02, step=5) for s in starts]
         P2 = [sim(0.5, 0.5, *s, r2=2 * R2, T=40, dt=0.02, step=5) for s in starts]
@@ -774,23 +780,44 @@ class S14Reveal(PS):
         trs2 = mk(pls[1], P2, OC)
         starts_d = VGroup(*[Dot(pl.P(*s), radius=0.1, color=TEXT) for pl in pls for s in starts])
         self.add(starts_d)
+
+        # Build the "set by K and α" + "not r" labels with pointers to both isoclines in each panel
+        ka_groups, not_r_labels = VGroup(), VGroup()
+        for pl in pls:
+            ka = T("set by K and α", 24, TEXT).move_to([pl.ox + 3.85, 0.65, 0])
+            pt_t = arrow(ka.get_left() + LEFT * 0.08, pl.P(63, 74) + RIGHT * 0.08, TC, 4, 0.16)
+            pt_o = arrow(ka.get_bottom() + DOWN * 0.10, pl.P(135, 12.5) + UP * 0.08, OC, 4, 0.16)
+            nr = T("not r", 24, RED).next_to(ka, DOWN, buff=0.25, aligned_edge=RIGHT).shift(RIGHT * 0.15)
+            ka_groups.add(VGroup(ka, pt_t, pt_o))
+            not_r_labels.add(nr)
+
         self.at("the ending stays put")
+        self.play(*[Indicate(r, color=GREEN, scale_factor=1.8) for r in rings], run_time=1.2)
+        self.at("each zero growth line")
         ni = T("isoclines do not move", 28, TEXT).move_to([0, 3.3, 0])
-        self.play(FadeIn(ni), run_time=0.8)
+        self.play(FadeIn(ni), *[Indicate(l, color=YELLOW, scale_factor=1.02) for l in t_lines + o_lines], run_time=1.0)
+        self.at("set by k and alpha")
+        self.play(FadeIn(ka_groups), run_time=1.0)
+        self.at("not by growth rate")
+        self.play(FadeIn(not_r_labels), run_time=0.9)
+        self.at("so the crossing cannot move")
+        self.play(*[Indicate(r, color=YELLOW, scale_factor=1.8) for r in rings], run_time=1.2)
         self.at("orange moves faster")
         self.remove(starts_d)
         self.add(trs, trs2)
-        self.play(sim_t.animate.set_value(30), run_time=3.0, rate_func=linear)
-        self.at("but they still finish at the same crossing")
-        for pl in pls:
-            pass
-        self.play(*[Indicate(grp[5 + 6 * i], color=YELLOW, scale_factor=2.0) for i in range(2)], run_time=1.0)
+        self.play(sim_t.animate.set_value(30), run_time=2.5, rate_func=linear)
+        self.at("yet they still reach that same crossing")
+        self.play(*[Indicate(r, color=YELLOW, scale_factor=2.0) for r in rings], run_time=1.2)
         self.at("here growth rate changes the route")
         lab = T("r changes speed and path, not the ending", 32, YELLOW).move_to([0, 3.3, 0])
-        self.play(FadeOut(ni), FadeIn(lab), run_time=0.8)
+        self.play(Succession(
+            AnimationGroup(FadeOut(ni), FadeOut(ka_groups), FadeOut(not_r_labels), run_time=0.35),
+            FadeIn(lab, run_time=0.45),
+        ))
         self.at("not the outcome")
         sim_t.set_value(0)
-        self.play(sim_t.animate.set_value(30), run_time=4.4, rate_func=linear)
+        self.play(sim_t.animate.set_value(30), run_time=4.2, rate_func=linear)
+        self.play(*[Indicate(r, color=YELLOW, scale_factor=1.8) for r in rings], run_time=0.8)
         self.finish()
 
 
