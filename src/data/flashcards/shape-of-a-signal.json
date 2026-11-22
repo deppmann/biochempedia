@@ -1,0 +1,564 @@
+{
+ "slug": "shape-of-a-signal",
+ "title": "The Shape of a Signal: Size, Duration, Frequency and Place",
+ "generated": {
+  "date": "2026-11-21",
+  "pipeline": "extract → Gemini draft → Claude Sonnet accuracy gate → Sonnet fixes",
+  "models": {
+   "draft": "gemini-4-neon-high",
+   "gate": "claude-sonnet-5-5",
+   "fix": "claude-sonnet-5-5"
+  }
+ },
+ "lessonHash": "555b69be548c",
+ "sectionHashes": {
+  "(opening)": "7ec77e4b4d79",
+  "The idea: a signal has a shape, and the cell reads it": "04d3d80595ed",
+  "How long: a part that arrives late can time a signal": "5d4b1b0f38a3",
+  "How often: a decoder that holds on between spikes can count": "7565c93015ab",
+  "Pulses from feedback: a loop with a delay keeps its own time": "5d44c626d4de",
+  "Where: the same kinase means something else in another place": "3b8f83ab83fb",
+  "Design problem": "ad159895a6bc"
+ },
+ "cards": [
+  {
+   "id": "shape-of-a-signal-c01",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Besides which molecule a signal is, what four features of a signal can a cell read?",
+   "back": "How much (size), how long (duration), how often (frequency), and where (location).",
+   "quote": "A cell reads four things in a signal besides which molecule it is: how much, how long, how often and where."
+  },
+  {
+   "id": "shape-of-a-signal-c02",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A downstream signaling part whose own timing or position makes it answer one signal pattern and ignore another is called a {{c1::decoder}}.",
+   "back": "",
+   "quote": "Reading the last three takes a decoder: a downstream part whose own timing or position makes it answer one pattern and ignore another.",
+   "section": "The idea: a signal has a shape, and the cell reads it"
+  },
+  {
+   "id": "shape-of-a-signal-c03",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "How can one recurring signaling molecule such as calcium, cAMP, or ERK trigger different outcomes?",
+   "back": "Downstream decoders read differences in signal duration, spike frequency, and spatial location rather than molecule identity and size alone.",
+   "quote": "Cells read duration and frequency against the timing of a decoder; delayed negative feedback makes pulses, and location restricts which targets answer.",
+   "section": "The idea: a signal has a shape, and the cell reads it"
+  },
+  {
+   "id": "shape-of-a-signal-c04",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "In PC12 cells, brief ERK activation by EGF leads to cell division, whereas prolonged ERK activation by NGF leads to {{c1::differentiation}}.",
+   "back": "Cells stop dividing and grow nerve-like processes.",
+   "quote": "epidermal growth factor (EGF) activates ERK briefly and cells divide, whereas nerve growth factor (NGF) keeps ERK active much longer and cells stop dividing and grow processes.",
+   "section": "How long: a part that arrives late can time a signal"
+  },
+  {
+   "id": "shape-of-a-signal-c05",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "Why does NGF keep ERK active much longer than EGF in PC12 cells?",
+   "back": "Wiring sets the duration: in PC12 cells, NGF engages a positive feedback loop that EGF does not.",
+   "quote": "Wiring sets that length: in PC12 cells, NGF engages a positive feedback loop that EGF does not.",
+   "section": "How long: a part that arrives late can time a signal"
+  },
+  {
+   "id": "shape-of-a-signal-c06",
+   "type": "experiment",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "What direct test in PC12 cells showed that ERK duration—not just which growth factor receptor was triggered—controls differentiation?",
+   "back": "PC12 cells engineered to carry extra EGF receptors kept ERK active longer with EGF and differentiated instead of dividing.",
+   "quote": "As a direct test, PC12 cells engineered to carry extra EGF receptors keep ERK active longer with EGF and differentiate.",
+   "section": "How long: a part that arrives late can time a signal"
+  },
+  {
+   "id": "shape-of-a-signal-c07",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "How does c-Fos let a fibroblast distinguish a long ERK signal from a brief one?",
+   "back": "ERK slowly drives synthesis of short-lived c-Fos protein and rapidly phosphorylates it to prevent breakdown; c-Fos builds up only if ERK is still active when the protein arrives.",
+   "quote": "ERK reaches c-Fos by a slow route (transcribing and translating short-lived c-Fos protein) and a fast route",
+   "section": "How long: a part that arrives late can time a signal"
+  },
+  {
+   "id": "shape-of-a-signal-c08",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "A fibroblast receives a sustained ERK signal, but a drug blocks ERK 10 minutes later—after c-fos transcription has started, yet before new c-Fos protein appears. What happens to c-Fos levels, and why?",
+   "back": "c-Fos fails to build up. ERK is already off when the newly translated c-Fos arrives, so it is not phosphorylated and breaks down quickly, just as after a brief signal.",
+   "quote": "ERK is already off when the new protein appears, so newly made c-Fos is not phosphorylated and breaks down quickly—just as after a brief signal.",
+   "section": "How long: a part that arrives late can time a signal"
+  },
+  {
+   "id": "shape-of-a-signal-c09",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "Suppose a mutation stabilizes c-Fos protein in fibroblasts so it resists breakdown even without C-terminal phosphorylation, while keeping c-fos transcription ERK-dependent. What happens after a brief ERK signal, and why?",
+   "back": "c-Fos builds up even after a brief ERK signal. Because newly translated c-Fos no longer requires lingering ERK phosphorylation to survive, transcription started during the brief signal is enough for accumulation.",
+   "quote": "a fast route (ERK and an ERK-activated kinase phosphorylating near c-Fos's C-terminal end to protect it from breakdown).",
+   "section": "How long: a part that arrives late can time a signal"
+  },
+  {
+   "id": "shape-of-a-signal-c10",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "For a fast-on decoder with a fixed half-time, the fraction left at the next spike equals {{c1::(1/2) ^ (gap between spikes ÷ half-time of the decoder)}}.",
+   "back": "Remaining activity multiplies by 1/2 each half-time.",
+   "quote": "fraction left at the next spike = (1/2) ^ (gap between spikes ÷ half-time of the decoder)",
+   "section": "How often: a decoder that holds on between spikes can count"
+  },
+  {
+   "id": "shape-of-a-signal-c11",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A fast-on calcium decoder has a half-time of 15 s. What fraction and percentage of full activity remain just before the next spike if spikes arrive every 45 s versus every 60 s?",
+   "back": "At 45 s (45 ÷ 15 = 3 half-times): (1/2)^3 = 1/8 (12.5%). At 60 s (60 ÷ 15 = 4 half-times): (1/2)^4 = 1/16 (6.25%).",
+   "why": "Decay is exponential, so remaining activity is multiplied by 1/2 once for every half-time in the gap.",
+   "quote": "a fast-on decoder that loses activity with a fixed half-time multiplies its remaining activity by 1/2 each half-time, so decay is exponential:",
+   "section": "How often: a decoder that holds on between spikes can count"
+  },
+  {
+   "id": "shape-of-a-signal-c12",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A fast-on decoder with a 30 s half-time receives spikes every 90 s. If a mutation halves its half-time to 15 s at the same 90 s gap, by what factor does the remaining fraction drop?",
+   "back": "It drops by a factor of 8, from 1/8 (12.5%) to 1/64 (1.5625%). Setup: at 30 s, (1/2)^(90/30) = (1/2)^3 = 1/8; at 15 s, (1/2)^(90/15) = (1/2)^6 = 1/64.",
+   "why": "Because decay is exponential, halving the half-time doubles the number of half-times per gap, squaring the remaining fraction rather than halving it.",
+   "quote": "At 20 s, 80 s is 4 half-times, leaving (1/2)⁴ = 1/16 (6.25%)—four times less, not half, because decay is exponential.",
+   "section": "How often: a decoder that holds on between spikes can count"
+  },
+  {
+   "id": "shape-of-a-signal-c13",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A fast-on decoder has a 20 s half-time and receives calcium spikes every 10 s. Roughly what percentage of activity remains just before the next spike?",
+   "back": "About 70% (more precisely 70.7%). Setup: 10 s ÷ 20 s = 0.5 half-times, leaving (1/2)^0.5 ≈ 0.707.",
+   "quote": "Spikes 10 seconds apart span half a half-time, leaving about 70 percent to build on.",
+   "section": "How often: a decoder that holds on between spikes can count"
+  },
+  {
+   "id": "shape-of-a-signal-c14",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "CaMKII is an assembly of {{c1::twelve}} kinase subunits folded shut at rest that unfold and activate when calcium-bound calmodulin binds.",
+   "back": "",
+   "quote": "One molecular decoder is calcium/calmodulin-dependent kinase II (CaMKII), twelve kinase subunits folded shut at rest.",
+   "section": "How often: a decoder that holds on between spikes can count"
+  },
+  {
+   "id": "shape-of-a-signal-c15",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Why does high-frequency calcium spiking make CaMKII's calcium-independent activity climb in steps while rare spikes do not?",
+   "back": "An active subunit can phosphorylate and lock its neighbour active only while the neighbour also holds calmodulin; fast spikes catch adjacent subunits loaded together more often.",
+   "quote": "An active subunit can phosphorylate its neighbour—locking it into a calcium-independent active state after calcium falls—only while the neighbour also holds calmodulin to keep its site exposed.",
+   "section": "How often: a decoder that holds on between spikes can count"
+  },
+  {
+   "id": "shape-of-a-signal-c16",
+   "type": "experiment",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "What did De Koninck and Schulman's 1998 pulse experiment demonstrate about CaMKII, and what caveat goes with it?",
+   "back": "Timed calcium and calmodulin pulses delivered to surface-fixed CaMKII made calcium-independent activity rise with pulse rate, but this was a test-tube result rather than a living-cell measurement.",
+   "quote": "delivered timed pulses of calcium and calmodulin to surface-fixed CaMKII and saw calcium-independent activity rise with pulse rate. That is a test-tube result.",
+   "section": "How often: a decoder that holds on between spikes can count"
+  },
+  {
+   "id": "shape-of-a-signal-c17",
+   "type": "experiment",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "When Dolmetsch, Xu, and Lewis clamped calcium spikes at chosen spacings in a human T-cell line, how did NFAT and NF-κB respond, and what likely explains the difference?",
+   "back": "Closely spaced spikes activated both (and a third factor), whereas widely spaced spikes activated only NF-κB. A likely reason is off-rate: NFAT exits the nucleus within minutes once calcium drops, whereas in B cells NF-κB stayed in the nucleus long after a brief spike ended.",
+   "quote": "Closely spaced spikes activated three factors, NFAT and NF-κB among them; widely spaced spikes activated only NF-κB.",
+   "section": "How often: a decoder that holds on between spikes can count"
+  },
+  {
+   "id": "shape-of-a-signal-c18",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A transcription factor enters the nucleus rapidly on each calcium spike and normally responds only to closely spaced spikes. If a mutation slows its nuclear export tenfold without changing import speed, how does its response to widely spaced spikes change, and why?",
+   "back": "It begins responding to widely spaced spikes as well. Slower export lengthens its nuclear persistence after each spike, so active protein bridges longer gaps between spikes.",
+   "quote": "NFAT would answer widely spaced spikes too: slower export lengthens its nuclear persistence so active NFAT bridges longer gaps.",
+   "section": "How often: a decoder that holds on between spikes can count"
+  },
+  {
+   "id": "shape-of-a-signal-c19",
+   "type": "experiment",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In rhesus monkeys whose hypothalamic lesions cut off native GnRH, how did pulsatile versus continuous GnRH affect pituitary LH and FSH release?",
+   "back": "One pulse an hour restored LH and FSH release, whereas continuous GnRH shut release down via pituitary desensitization (down-regulation).",
+   "quote": "one pulse an hour restored pituitary release of LH and FSH, whereas continuous GnRH shut release down via pituitary desensitization (down-regulation).",
+   "section": "How often: a decoder that holds on between spikes can count"
+  },
+  {
+   "id": "shape-of-a-signal-c20",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "How does leuprolide, a slow-release GnRH relative, lower testosterone in prostate cancer treatment?",
+   "back": "It holds levels steady instead of pulsatile, so after an initial surge the pituitary goes quiet through desensitization and testosterone falls.",
+   "quote": "leuprolide, a slow-release GnRH relative, holds levels steady so that after an initial surge the pituitary goes quiet and testosterone falls, which is the aim in prostate cancer.",
+   "section": "How often: a decoder that holds on between spikes can count"
+  },
+  {
+   "id": "shape-of-a-signal-c21",
+   "type": "qa",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Contrast how a fast-on, slow-off calcium decoder and the pituitary GnRH system behave as input shifts from spaced pulses to continuous stimulation.",
+   "back": "A fast-on, slow-off decoder retains more activity across shorter gaps and builds toward peak output under continuous stimulation, whereas the pituitary GnRH system needs quiet gaps to recover and shuts down via desensitization under continuous stimulation.",
+   "why": "Contrasts the exponential-persistence decoder rule with the recovery-gap desensitization rule shown for GnRH.",
+   "quote": "Not every frequency-sensitive system peaks under continuous stimulation; some need quiet gaps to recover.",
+   "section": "How often: a decoder that holds on between spikes can count"
+  },
+  {
+   "id": "shape-of-a-signal-c22",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "While immediate negative feedback pulls a pathway back to baseline, {{c1::negative feedback with a delay}} can make activity overshoot and oscillate under a steady stimulus.",
+   "back": "Requires feedback that is strong and switch-like enough and proteins that are short-lived enough.",
+   "quote": "adding a delay makes the correction land late so activity overshoots, and it can oscillate when feedback is strong and switch-like enough and proteins are short-lived enough.",
+   "section": "Pulses from feedback: a loop with a delay keeps its own time"
+  },
+  {
+   "id": "shape-of-a-signal-c23",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Under a steady inflammatory cue, how does NF-κB drive repeating pulses of nuclear activity in some cell lines?",
+   "back": "Once IκB is destroyed, nuclear NF-κB induces new IκBα, which after a delay exports NF-κB out; the persistent stimulus then destroys the new IκBα and the cycle repeats.",
+   "quote": "nuclear NF-κB induces IκBα, which after a delay exports NF-κB back out; while the stimulus persists, new IκBα is destroyed and the cycle repeats",
+   "section": "Pulses from feedback: a loop with a delay keeps its own time"
+  },
+  {
+   "id": "shape-of-a-signal-c24",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "Knockout cells paired with a computer model showed that {{c1::IκBα}} drives NF-κB oscillations while IκBβ and IκBε damp them.",
+   "back": "",
+   "quote": "Knockout cells with a computer model showed that IκBα drives the oscillation while IκBβ and IκBε damp it",
+   "section": "Pulses from feedback: a loop with a delay keeps its own time"
+  },
+  {
+   "id": "shape-of-a-signal-c25",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "In single-cell films after radiation, how does the p53 response reflect a larger radiation dose?",
+   "back": "p53 arrives in pulses of similar size, with larger radiation doses producing more pulses on average.",
+   "quote": "p53 arrives in pulses of similar size, with larger radiation doses giving more pulses on average.",
+   "section": "Pulses from feedback: a loop with a delay keeps its own time"
+  },
+  {
+   "id": "shape-of-a-signal-c26",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "Besides the p53–MDM2 negative feedback loop, what other components generate and shape radiation-induced p53 pulses?",
+   "back": "Upstream kinases ATM and Chk2 repeatedly restart the pulses, and a second feedback loop through Wip1 keeps pulse size uniform.",
+   "quote": "the pulses are driven by repeated restarts from upstream kinases ATM and Chk2 and kept uniform by a second feedback loop through Wip1.",
+   "section": "Pulses from feedback: a loop with a delay keeps its own time"
+  },
+  {
+   "id": "shape-of-a-signal-c27",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "After moderate radiation, human cancer cells that pulse p53 recover and resume dividing. If nutlin-3 (an MDM2 blocker) is given on a schedule to hold p53 steady at the height of one pulse, what happens to cell fate, and why is this striking?",
+   "back": "Cells often stop dividing for good instead of recovering. Even at equal peak p53 height, switching from pulsing to steady p53 alters cell fate.",
+   "quote": "cells held steady at one-pulse height often stopped dividing for good. Even at equal peak size, steady versus pulsing p53 altered cell fate.",
+   "section": "Pulses from feedback: a loop with a delay keeps its own time"
+  },
+  {
+   "id": "shape-of-a-signal-c28",
+   "type": "experiment",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "How did Elowitz and Leibler test in E. coli whether a delayed negative-feedback ring alone can make a clock, and what did they observe?",
+   "back": "They wired three repressors into a ring where each silences the next; protein-synthesis delay produced noisy oscillations with a period of hours in at least 40 percent of filmed cells.",
+   "quote": "a green fluorescent readout oscillated with a period of hours in at least 40 percent of filmed cells.",
+   "section": "Pulses from feedback: a loop with a delay keeps its own time"
+  },
+  {
+   "id": "shape-of-a-signal-c29",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Suppose a delayed negative-feedback circuit oscillating under a steady stimulus is mutated so its inhibitory protein degrades much more slowly. What happens to the oscillations, and why?",
+   "back": "Oscillations weaken or stop. By the delayed-feedback condition, oscillations require both strong enough feedback and fast enough protein turnover; a long-lived inhibitor clears too slowly for activity to rebound into the next pulse.",
+   "why": "Applies the lesson's turnover-rate condition for delayed negative-feedback oscillations to a new perturbation.",
+   "quote": "Delayed negative feedback oscillates only when feedback is strong enough and turnover is fast enough;",
+   "section": "The idea: a signal has a shape, and the cell reads it"
+  },
+  {
+   "id": "shape-of-a-signal-c30",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "{{c1::A-kinase anchoring proteins (AKAPs)}} park PKA beside specific targets so a local rise in cAMP reaches nearby PKA and may never reach PKA parked elsewhere.",
+   "back": "",
+   "quote": "A-kinase anchoring proteins (AKAPs) park PKA beside specific targets so a local rise in cAMP reaches the PKA parked nearby and may never reach PKA parked elsewhere.",
+   "section": "Where: the same kinase means something else in another place"
+  },
+  {
+   "id": "shape-of-a-signal-c31",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A peptide detaches PKA from its anchoring proteins while total PKA and the hormone-evoked rise in cAMP stay unchanged, yet one membrane channel is no longer phosphorylated. What accounts for this loss?",
+   "back": "PKA is no longer held beside that channel. Without anchoring to park PKA next to its target, the local cAMP rise near the channel fails to activate PKA right beside it.",
+   "quote": "By our guiding rule, timing is half the story: location also restricts which targets answer.",
+   "section": "Where: the same kinase means something else in another place"
+  },
+  {
+   "id": "shape-of-a-signal-c32",
+   "type": "experiment",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "In Rosen and Vale's 2016 artificial-membrane experiment with 12 purified T-cell signaling components, what happened after receptor-tail phosphorylation, and how did it favour signaling?",
+   "back": "LAT and its partners formed liquid-like clusters via many weak contacts between repeated binding sites, concentrating kinases like ZAP70 and excluding phosphatases like CD45 to keep signaling on.",
+   "quote": "Inside, kinases such as ZAP70 were concentrated and phosphatases such as CD45 excluded, favouring a signal that stays on.",
+   "section": "Where: the same kinase means something else in another place"
+  },
+  {
+   "id": "shape-of-a-signal-c33",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "On Rosen and Vale's reconstituted artificial membrane, LAT is mutated so it keeps only one binding site for its partners instead of several repeated sites. What happens to clustering and local signaling, and why?",
+   "back": "Clustering breaks down and the local signaling boost is lost. Liquid-like clusters require multivalent weak contacts to link partners into a network that sorts kinases from phosphatases.",
+   "quote": "Clustering breaks down, because liquid-like clusters need multivalent weak contacts linking partners into a network. Without clusters sorting kinases from phosphatases, the local signaling boost is lost.",
+   "section": "Where: the same kinase means something else in another place"
+  },
+  {
+   "id": "shape-of-a-signal-c34",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "What does fluorescence recovery after photobleaching (FRAP) do and measure?",
+   "back": "It bleaches one fluorescent spot with a laser and times brightness returning as unbleached molecules enter, measuring molecular exchange.",
+   "quote": "Fluorescence recovery after photobleaching (FRAP) bleaches one spot with a laser and times brightness returning as unbleached molecules enter.",
+   "section": "Where: the same kinase means something else in another place"
+  },
+  {
+   "id": "shape-of-a-signal-c35",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A fluorescently tagged signaling protein forms a bright spot at a living cell's membrane, and brightness returns within seconds after laser bleaching. Why does this FRAP result fail to prove the spot is a liquid droplet?",
+   "back": "FRAP measures only molecular exchange, so it does not rule out proteins binding and leaving a fixed scaffold, which recovers fluorescence just like a liquid droplet.",
+   "quote": "Because FRAP measures molecular exchange, proteins binding and leaving a fixed scaffold recover just like a liquid droplet.",
+   "section": "Where: the same kinase means something else in another place"
+  },
+  {
+   "id": "shape-of-a-signal-c36",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Two genes in one cell are driven by fast-on, slow-off calcium decoders with different half-times. Why can spike rate alone not activate gene A exclusively under hormone 1 and gene B exclusively under hormone 2?",
+   "back": "Fast spikes switch on every fast-on, slow-off decoder that slow spikes switch on, plus shorter-memory ones, so the two responses overlap instead of excluding each other.",
+   "quote": "With decoders that switch on fast and off slowly, spike rate alone will not do it.",
+   "section": "Design problem"
+  },
+  {
+   "id": "shape-of-a-signal-c37",
+   "type": "qa",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Two hormones both signal through calcium alone in the same cell; hormone 1 must switch on only gene A and hormone 2 only gene B. How should the two calcium waveforms and two activators be designed?",
+   "back": "Make the waveforms differ in height and duration: hormone 1 gives a tall, brief spike read by a high-threshold, long-memory activator; hormone 2 gives a low, sustained plateau read by a low-threshold, short-memory activator.",
+   "why": "Combines signal-height threshold and off-rate memory rules so each waveform fails to satisfy the other activator's requirement.",
+   "quote": "To get two answers that exclude each other, make the signals differ in length and in height together.",
+   "section": "Design problem"
+  },
+  {
+   "id": "shape-of-a-signal-c38",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "In B cells, a large, brief rise in calcium activates NF-κB whereas a low, sustained rise activates NFAT. What happens to NF-κB and NFAT after a low, brief rise in calcium, and why?",
+   "back": "Neither is effectively activated. The low peak stays below NF-κB's high threshold, and the brief rise ends before low-threshold NFAT can collect in the nucleus before reversing within minutes.",
+   "quote": "A large, brief rise in calcium activated NF-κB, and a low, sustained rise activated NFAT.",
+   "section": "Design problem"
+  },
+  {
+   "id": "shape-of-a-signal-c39",
+   "type": "calc",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Two fast-on calcium decoders, X (10 s half-time) and Y (60 s half-time), each require at least 25% of full activity remaining at the next spike to sustain gene expression. At a 60 s spike interval, which decoder(s) meet the threshold?",
+   "back": "Only Y meets the threshold. For X: 60 ÷ 10 = 6 half-times, leaving (1/2)^6 = 1/64 (1.56%, below 25%). For Y: 60 ÷ 60 = 1 half-time, leaving (1/2)^1 = 1/2 (50%, above 25%).",
+   "why": "Combines the exponential half-time decay rule with the off-rate rule explaining how widely spaced spikes selectively activate slower-off transcription factors.",
+   "quote": "With a 20-second half-time, spikes 60 seconds apart span three half-times (1/2 × 1/2 × 1/2), leaving one eighth (12.5%).",
+   "section": "How often: a decoder that holds on between spikes can count"
+  },
+  {
+   "id": "shape-of-a-signal-c40",
+   "type": "qa",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Compare the strength of living-cell evidence for AKAP-anchored PKA versus liquid-like signaling droplets, and explain what experimental limitation creates the difference.",
+   "back": "Spatial restriction by anchored kinases is established in cells, whereas liquid-like droplets are established on reconstituted membranes and still argued over in living cells because FRAP recovery cannot distinguish droplets from proteins exchanging on a fixed scaffold.",
+   "why": "Combines the test-tube versus living-cell evidence distinction with the FRAP molecular-exchange limitation.",
+   "quote": "For anchored kinases, place is established; for droplets, it is established in the test tube and still argued over in the cell.",
+   "section": "Where: the same kinase means something else in another place"
+  },
+  {
+   "id": "shape-of-a-signal-c41",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "Suppose a delayed negative-feedback loop drives brief, widely spaced ERK pulses into the fibroblast c-Fos duration decoder. Predict c-Fos levels during pulsing versus after blocking the feedback inhibitor so ERK stays continuously active.",
+   "back": "Brief ERK pulses fail to build up c-Fos because ERK turns off before newly translated c-Fos arrives to be phosphorylated; blocking the feedback inhibitor holds ERK steady so it stabilizes newly made c-Fos and levels accumulate.",
+   "why": "Combines delayed negative-feedback pulsing (analogous to blocking MDM2 to hold p53 steady) with the slow-synthesis/fast-stabilization duration decoder rule for c-Fos.",
+   "quote": "After a brief signal ERK is off when c-Fos arrives, so c-Fos is made and lost",
+   "section": "How long: a part that arrives late can time a signal"
+  }
+ ]
+}
