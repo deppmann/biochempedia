@@ -282,7 +282,7 @@ function topCard(s: Sitting, date: Iso | undefined, ui: Ui, mcat: boolean): stri
   const name = many ? 'this sitting' : it.t;
   const rest = many ? `<p class="cal-also">Also in this sitting:</p><ol class="cal-sit-list">${s.items.slice(1).map((x) => `<li><a href="${esc(x.href)}">${esc(x.t)}</a> <span class="cal-meta">${itemMinutes(x)} min</span></li>`).join('')}</ol>` : '';
   const film = !many && it.watch && it.filmSec ? `<p class="cal-film"><a href="${esc(it.watch)}">Watch the ${it.films > 1 ? 'films' : 'film'} first</a> <span class="cal-meta">(${filmMin(it.filmSec)} min)</span></p>` : '';
-  const rung = !many && it.down ? `<p class="cal-rung">The same idea with less machinery, if you want it first: <a href="/lessons/${esc(it.down.s)}/">${esc(it.down.t)}</a> (${esc(it.down.level)}).</p>` : '';
+  const rung = !many && it.down ? `<p class="cal-rung">The same idea, told more simply, if you want it first: <a href="/lessons/${esc(it.down.s)}/">${esc(it.down.t)}</a> (${esc(it.down.level)}).</p>` : '';
   return `<section class="cal-card" aria-labelledby="cal-top-t">
   <p class="cal-when">${when} <span class="cal-meta"><span aria-hidden="true">·</span> ${esc(it.where)}</span></p>
   <h2 class="cal-card-t" id="cal-top-t"><a href="${esc(it.href)}" data-fid="title">${esc(it.t)}</a></h2>

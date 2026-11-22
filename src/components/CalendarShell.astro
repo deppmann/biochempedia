@@ -19,10 +19,10 @@ interface Props {
   /** A page with no plan in its address (student list, teacher default): the plans a saved choice may lead to, and the one shown here. */
   known?: string[];
   current?: string;
-  /** Kept out of search until the calendar has been reviewed. Pass false to let a page be indexed. */
+  /** Indexed since the calendar was approved (2026-11-22). Pass true to keep one page out of search. */
   noindex?: boolean;
 }
-const { title, description, role, html, data, isDefault = false, known = [], current = '', noindex = true } = Astro.props;
+const { title, description, role, html, data, isDefault = false, known = [], current = '', noindex = false } = Astro.props;
 const json = data ? JSON.stringify(data).replace(/</g, '\\u003c') : '';
 ---
 <BaseLayout title={`${title} — STEMhop`} description={description} noindex={noindex}>

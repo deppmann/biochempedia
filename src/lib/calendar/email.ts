@@ -171,7 +171,7 @@ export function learnerMail(m: LearnerMail): Mail {
     p(esc(size)),
     button(href, `Open the lesson: ${l.t}`),
     l.watch && film ? p(link(m.origin + l.watch, `Watch the ${l.fc > 1 ? 'films' : 'film'} first (${film} min)`)) : '',
-    l.down ? p(`The same idea with less machinery, if you want it first: ${link(`${m.origin}/lessons/${l.down.s}/`, l.down.t)} (${esc(l.down.level)}).`) : '',
+    l.down ? p(`The same idea, told more simply, if you want it first: ${link(`${m.origin}/lessons/${l.down.s}/`, l.down.t)} (${esc(l.down.level)}).`) : '',
     next ? p(esc(next), `color:${SOFT};`) : '',
     p(esc(calm)),
   ].join('\n');
@@ -179,7 +179,7 @@ export function learnerMail(m: LearnerMail): Mail {
   const text = [
     `${m.day}, if you want it. ${m.course}, lesson ${l.n}`, '', l.t, ...(l.hook ? [l.hook] : []), '', size, '', `Open the lesson: ${href}`,
     ...(l.watch && film ? [`Watch the ${l.fc > 1 ? 'films' : 'film'} first (${film} min): ${m.origin + l.watch}`] : []),
-    ...(l.down ? [`The same idea with less machinery, if you want it first: ${l.down.t} (${l.down.level}): ${m.origin}/lessons/${l.down.s}/`] : []),
+    ...(l.down ? [`The same idea, told more simply, if you want it first: ${l.down.t} (${l.down.level}): ${m.origin}/lessons/${l.down.s}/`] : []),
     ...(next ? ['', next] : []), '', calm, '', '--', ends, `Change the days: ${m.links.plan}`, `Stop these emails (one click, no questions): ${m.links.stop}`, who, FREE,
   ].join('\n');
   return { subject, preheader, html: page({ subject, preheader, body, foot }), text };

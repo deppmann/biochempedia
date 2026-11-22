@@ -416,7 +416,8 @@ check('what is typed or pasted is never put in a request or in the address', () 
   for (const u of urls(teach)) assert.ok(/^['`]\/(graph\.json|ideas\/lessons\.json|start\/lessons\.json|graph\/all\.json|api\/teacher\/me|api\/classes\/\$\{encodeURIComponent\(id\)\}\/(brief|assignments))['`]$/.test(u), `teach-match.ts requests ${u}`);
   assert.ok(!channels.test(teach), 'teach-match.ts touches the address, storage or another channel');
   assert.ok(/\{ assignments: merged\.list \}/.test(teach) && !/text\.value[^;]*api\(|api\([^;]*typed/.test(teach), 'only the assignment list is sent');
-  assert.ok(/export const ADD_TO_CLASS = false;/.test(teach), 'adding to a class is off until it has been tried on a real class');
+  // ON since 2026-11-22 (tried end to end on a local worker and D1); the privacy page then says what it sends.
+  if (/export const ADD_TO_CLASS = true;/.test(teach)) assert.ok(/only the names of the lessons you ticked/.test(readFileSync('src/pages/teach/privacy/index.astro', 'utf8')), 'the teacher privacy page says what "Add to a class" sends');
   assert.ok(/noAnalytics/.test(readFileSync('src/pages/teach/match/index.astro', 'utf8')), 'no third-party script where a syllabus is pasted');
   assert.ok(/const SHOW_AI_PLANNER_LINK = false;/.test(readFileSync('src/pages/teach/match/index.astro', 'utf8')), 'the link to the AI planner is off');
   // The privacy pages say what these tools do, and tell the two syllabus tools apart.

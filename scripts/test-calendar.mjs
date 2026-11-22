@@ -591,14 +591,21 @@ check('"Clear everything", the account page\'s "remove from this device" and "Fo
   const forget = client.slice(client.indexOf("case 'forget'"), client.indexOf('/* parent */'));
   assert.ok(/model\.state = \{ v: 1 \}/.test(forget) && /localStorage\.removeItem\(KEY\)/.test(forget) && /writePrefs\(\{ role: null \}\)/.test(forget), 'Forget clears the calendar and who it is for, and leaves other saved choices alone');
 });
-check('the calendar stays out of search and out of the sitemap until it has been reviewed', () => {
-  assert.match(readFileSync(path('../src/components/CalendarShell.astro'), 'utf8'), /noindex = true/);
-  assert.ok(!readFileSync(path('../src/pages/sitemap.xml.ts'), 'utf8').includes('/calendar'));
+check('the calendar is in search and in the sitemap since it was approved (2026-11-22); its email preview stays out', () => {
+  assert.match(readFileSync(path('../src/components/CalendarShell.astro'), 'utf8'), /noindex = false/);
+  const map = readFileSync(path('../src/pages/sitemap.xml.ts'), 'utf8');
+  assert.ok(map.includes("'/calendar/'") && map.includes("'/calendar/parent/'") && !map.includes('email-preview'));
+  assert.match(readFileSync(path('../src/pages/calendar/email-preview/index.astro'), 'utf8'), /<BaseLayout[^>]*\bnoindex\b/);
+  // Linked from the parents' door and from every course page.
+  assert.match(readFileSync(path('../src/components/home/flags.ts'), 'utf8'), /CALENDAR_LINK = true/);
+  assert.ok(/\/calendar\//.test(readFileSync(path('../src/pages/courses/[course].astro'), 'utf8')), 'course pages link the calendar');
   if (existsSync(path('../dist/calendar/index.html'))) {
-    for (const f of ['calendar/index.html', 'calendar/parent/index.html', 'calendar/student/index.html', 'calendar/student/mcat/index.html', 'calendar/teacher/index.html', 'calendar/email-preview/index.html']) {
-      assert.match(readFileSync(path('../dist/' + f), 'utf8'), /<meta name="robots" content="noindex"/, f);
+    for (const f of ['calendar/index.html', 'calendar/parent/index.html', 'calendar/student/index.html', 'calendar/student/mcat/index.html', 'calendar/teacher/index.html']) {
+      assert.doesNotMatch(readFileSync(path('../dist/' + f), 'utf8'), /<meta name="robots" content="noindex"/, f);
     }
-    assert.ok(!readFileSync(path('../dist/sitemap.xml'), 'utf8').includes('/calendar'));
+    assert.match(readFileSync(path('../dist/calendar/email-preview/index.html'), 'utf8'), /<meta name="robots" content="noindex"/);
+    const sm = readFileSync(path('../dist/sitemap.xml'), 'utf8');
+    assert.ok(sm.includes('/calendar/parent/') && sm.includes('/calendar/student/mcat/') && !sm.includes('/calendar/email-preview/'));
   }
 });
 check('a typed date is taken once, on Enter or on leaving the field; the lists that lead to another page wait for their button', () => {

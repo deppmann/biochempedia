@@ -43,7 +43,7 @@ export interface Hop {
 export interface FilmHops {
   /** The lesson the film belongs to. */
   here: { lesson: string; lessonTitle: string; stage: string; stageTitle: string };
-  /** The same idea with less machinery, nearest level first. */
+  /** The same idea, told more simply, nearest level first. */
   simpler: Hop[];
   /** The same idea taken further, nearest level first. */
   deeper: Hop[];
