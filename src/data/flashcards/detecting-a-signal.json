@@ -1,0 +1,601 @@
+{
+ "slug": "detecting-a-signal",
+ "title": "How We Know: Detecting a Signal",
+ "generated": {
+  "date": "2026-11-21",
+  "pipeline": "extract → Gemini draft → Claude Sonnet accuracy gate → Sonnet fixes",
+  "models": {
+   "draft": "gemini-4-neon-high",
+   "gate": "claude-sonnet-5-5",
+   "fix": "claude-sonnet-5-5"
+  }
+ },
+ "lessonHash": "8705bd5370b1",
+ "sectionHashes": {
+  "(opening)": "c8a3b9568fd2",
+  "Measuring almost nothing: let the hormone compete with a labelled copy": "d66fb2b415c1",
+  "Seeing one protein among thousands: sort by size, then ask an antibody": "30e57c111459",
+  "Where is the protein modified? Weigh the pieces": "a1b166a3a000",
+  "Which kinase? Give one kinase an ATP of its own": "fff4dd29910e",
+  "What an inhibitor proves, and what \"necessary\" and \"sufficient\" mean": "fd3c0c3ee51f",
+  "Design problem": "320d73e94b10",
+  "How the insulin antibody was found": "7475470faf65",
+  "A worked case: BATF": "bec602513520",
+  "The inhibitor surveys": "fb1ce11ac620"
+ },
+ "cards": [
+  {
+   "id": "detecting-a-signal-c01",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "In biochemical signaling, causal claims earn belief when two methods that {{c1::fail differently}} agree.",
+   "back": "",
+   "why": "Every detection method has blind spots, so agreement across methods with different failure modes strengthens causal evidence.",
+   "quote": "Competition, antibodies, and mass spectrometry detect scarce signals, each with blind spots; causal claims earn belief when two methods that fail differently agree."
+  },
+  {
+   "id": "detecting-a-signal-c02",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A radioimmunoassay measures a scarce hormone by letting unlabelled sample hormone compete with a fixed radiolabelled tracer for a fixed, {{c1::limiting}} amount of antibody.",
+   "back": "",
+   "why": "Bound and free label are then separated and the concentration is read against known standards.",
+   "quote": "letting unlabelled sample hormone compete with a fixed radiolabelled tracer for a fixed, limiting amount of antibody",
+   "section": "Measuring almost nothing: let the hormone compete with a labelled copy"
+  },
+  {
+   "id": "detecting-a-signal-c03",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In a radioimmunoassay, how does antibody-bound radioactivity change as unlabelled hormone in the sample increases, and why?",
+   "back": "Bound radioactivity falls because unlabelled hormone from the sample competes with the fixed radiolabelled tracer for the limited antibody binding sites.",
+   "quote": "letting unlabelled sample hormone compete with a fixed radiolabelled tracer for a fixed, limiting amount of antibody",
+   "section": "Measuring almost nothing: let the hormone compete with a labelled copy"
+  },
+  {
+   "id": "detecting-a-signal-c04",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "Why must the antibody binding sites in a radioimmunoassay be fewer than the radiolabelled hormone molecules?",
+   "back": "If antibody sites were not limiting, every labelled molecule would find a site and a small amount of unlabelled sample hormone would barely change the bound count.",
+   "quote": "The antibody sites must be limiting, fewer than the labelled hormone molecules, or every labelled molecule would find a site",
+   "section": "Measuring almost nothing: let the hormone compete with a labelled copy"
+  },
+  {
+   "id": "detecting-a-signal-c05",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "Why do real radioimmunoassays read unknown hormone levels from an empirical standard curve instead of relying only on the high-affinity saturation limit?",
+   "back": "Affinity and concentration rarely keep antibody sites completely full across the whole measurement range, so unknowns must be read against known standards.",
+   "quote": "Because affinity and concentration rarely keep sites completely full across the whole range, real assays always read unknowns against an empirical standard curve",
+   "section": "Measuring almost nothing: let the hormone compete with a labelled copy"
+  },
+  {
+   "id": "detecting-a-signal-c06",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In an insulin radioimmunoassay with fixed antibody and tracer, 0 pM unlabelled insulin gives 8,000 cpm bound, while standards of 15, 45, and 135 pM leave 6,000, 4,000, and 2,000 cpm bound. A plasma sample mixed with two equal volumes of buffer (a 1:3 dilution) leaves 4,000 cpm bound. What is the insulin concentration in the undiluted plasma?",
+   "back": "135 pM. The diluted sample gives 4,000 cpm bound, matching the 45 pM standard. Because mixing 1 volume of plasma with 2 volumes of buffer diluted it 3-fold, undiluted insulin = 45 pM × 3 = 135 pM.",
+   "quote": "separating bound from free label and reading the concentration off known standards.",
+   "section": "Measuring almost nothing: let the hormone compete with a labelled copy"
+  },
+  {
+   "id": "detecting-a-signal-c07",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "In the high-affinity saturation limit of a radioimmunoassay, bound label tracks tracer divided by total hormone. If a tube holds 20 pM radiolabelled hormone and yields 6,000 cpm bound with no sample, what bound radioactivity is expected when 60 pM unlabelled hormone is added?",
+   "back": "1,500 cpm. Total hormone = 20 pM + 60 pM = 80 pM. Bound label scales by tracer / total hormone = 20 / 80 = 0.25, giving 6,000 cpm × 0.25 = 1,500 cpm.",
+   "quote": "The first film showed the high-affinity saturation limit, where bound label tracks tracer divided by total hormone.",
+   "section": "Measuring almost nothing: let the hormone compete with a labelled copy"
+  },
+  {
+   "id": "detecting-a-signal-c08",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A blood sample contains a biologically inactive hormone fragment that keeps the short surface the assay antibody recognises. What happens in a radioimmunoassay, and will it agree with a bioassay?",
+   "back": "The radioimmunoassay detects the fragment as hormone (lowering bound radioactivity) and disagrees with a bioassay. Radioimmunoassays count whatever surface the antibody binds, whereas bioassays measure biological activity.",
+   "quote": "Bioassays (finding a signal) measure what a hormone does; a radioimmunoassay counts what the antibody recognises, which is usually, but not always, active hormone.",
+   "section": "Measuring almost nothing: let the hormone compete with a labelled copy"
+  },
+  {
+   "id": "detecting-a-signal-c09",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In SDS-PAGE, heating a cell extract in SDS unfolds each protein and coats it with negative charge roughly in proportion to {{c1::length}}, so an electric field pulls smaller proteins farther.",
+   "back": "",
+   "quote": "heating the extract in SDS unfolds each protein and coats it with negative charge roughly in proportion to length, so an electric field pulls smaller proteins farther",
+   "section": "Seeing one protein among thousands: sort by size, then ask an antibody"
+  },
+  {
+   "id": "detecting-a-signal-c10",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In a western blot, after transferring sorted bands to a membrane and adding an antibody to the target protein, detection uses a second {{c1::enzyme-linked antibody}} that makes light or colour.",
+   "back": "",
+   "quote": "add an antibody to your protein, then a second enzyme-linked antibody that makes light or colour, giving a band at one size.",
+   "section": "Seeing one protein among thousands: sort by size, then ask an antibody"
+  },
+  {
+   "id": "detecting-a-signal-c11",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "A {{c1::phosphospecific antibody}}, raised against a short phosphorylated peptide, is chosen to bind only when that specific phosphate is present.",
+   "back": "",
+   "why": "It reads one known phosphorylation site minutes after a signal arrives.",
+   "quote": "A phosphospecific antibody, raised against a short phosphorylated peptide and chosen to bind only when that phosphate is present, reads one known site minutes after a signal arrives.",
+   "section": "Seeing one protein among thousands: sort by size, then ask an antibody"
+  },
+  {
+   "id": "detecting-a-signal-c12",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "How do SDS-PAGE and immunoprecipitation treat protein structure in opposite ways?",
+   "back": "SDS-PAGE heats extracts in SDS to unfold proteins and sort them by size, whereas immunoprecipitation uses an unheated, native extract to pull out a target with bound partners.",
+   "quote": "Immunoprecipitation fishes from an unheated, native extract: an antibody on beads pulls out its target together with bound partners.",
+   "section": "Seeing one protein among thousands: sort by size, then ask an antibody"
+  },
+  {
+   "id": "detecting-a-signal-c13",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "Why must a co-immunoprecipitation include a parallel tube with an unrelated antibody?",
+   "back": "It rules out non-specific sticking of the target or partner protein to the beads rather than true association with the immunoprecipitated protein.",
+   "quote": "a parallel tube with an unrelated antibody rules out sticking to the beads.",
+   "section": "Seeing one protein among thousands: sort by size, then ask an antibody"
+  },
+  {
+   "id": "detecting-a-signal-c14",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "When a phosphospecific western blot shows a darker band after stimulation, why must you also blot the same samples for total protein?",
+   "back": "Without a total-protein blot, you cannot distinguish more phosphate per protein molecule from a larger amount of the protein itself.",
+   "quote": "Always blot the same samples for total protein too, or you cannot tell more phosphate per molecule from more protein.",
+   "section": "Seeing one protein among thousands: sort by size, then ask an antibody"
+  },
+  {
+   "id": "detecting-a-signal-c15",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "To test whether protein A binds protein B by immunoprecipitating A, you heat the cell extract in SDS first. What happens, and why?",
+   "back": "The interaction is missed and protein B stays behind. Heat and SDS unfold proteins and break non-covalent interactions, separating A from B before the antibody beads capture A.",
+   "quote": "SDS and heat unfold the proteins and break non-covalent interactions, separating A from B before the beads touch them.",
+   "section": "Seeing one protein among thousands: sort by size, then ask an antibody"
+  },
+  {
+   "id": "detecting-a-signal-c16",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "A phosphospecific western blot shows a much darker band after hormone treatment while total protein stays unchanged. Can you conclude that most molecules of the protein carry phosphate, and what control checks antibody specificity?",
+   "back": "No; a darker band does not show what fraction of molecules carry phosphate. You also need a sample lacking the protein or that phosphate to rule out binding the wrong protein.",
+   "quote": "a darker band does not tell you what fraction of molecules carry phosphate; antibodies can bind the wrong protein",
+   "section": "Seeing one protein among thousands: sort by size, then ask an antibody"
+  },
+  {
+   "id": "detecting-a-signal-c17",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A patient's blood gives a high hormone reading in a radioimmunoassay but weak activity in a bioassay, suggesting a cleaved, inactive fragment that retains the antibody's binding surface. How could SDS-PAGE and a western blot with the same antibody test this?",
+   "back": "Run the blood sample alongside intact hormone on SDS-PAGE and blot with the antibody; a cleaved fragment migrates farther and produces a smaller-size band than intact hormone. This rests on the rules that radioimmunoassays count antibody-recognised surfaces regardless of activity while SDS-PAGE sorts unfolded proteins by length.",
+   "quote": "heating the extract in SDS unfolds each protein and coats it with negative charge roughly in proportion to length",
+   "section": "Seeing one protein among thousands: sort by size, then ask an antibody"
+  },
+  {
+   "id": "detecting-a-signal-c18",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In mass spectrometry, the mass of a phosphopeptide equals the mass of the unmodified peptide plus about {{c1::80 daltons}} for each phosphate.",
+   "back": "",
+   "quote": "mass of a phosphopeptide = mass of the peptide + about 80 daltons for each phosphate",
+   "section": "Where is the protein modified? Weigh the pieces"
+  },
+  {
+   "id": "detecting-a-signal-c19",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Before mass spectrometry, trypsin cuts a protein into peptides after {{c1::lysine and arginine}}, usually not before proline.",
+   "back": "",
+   "quote": "Mass spectrometry cuts the protein into peptides with trypsin (after lysine and arginine, usually not before proline)",
+   "section": "Where is the protein modified? Weigh the pieces"
+  },
+  {
+   "id": "detecting-a-signal-c20",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "How does tandem mass spectrometry (MS/MS) pinpoint which residue carries a phosphate, and when does localization stay ambiguous?",
+   "back": "MS/MS breaks one peptide's backbone and tracks the extra ~80 daltons across sequenced fragments; if no cut falls between candidate residues, localization narrows only to two or three residues.",
+   "quote": "those carrying the extra 80 daltons pinpoint the residue—provided cuts fall between candidate residues; otherwise the site narrows only to two or three residues.",
+   "section": "Where is the protein modified? Weigh the pieces"
+  },
+  {
+   "id": "detecting-a-signal-c21",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "Once mass spectrometry locates a newly phosphorylated residue after a signal arrives, what two causal questions remain open?",
+   "back": "It does not tell you which of the cell's roughly five hundred kinases added the phosphate, nor whether that step causes the response.",
+   "quote": "Locating a phosphate shows what changed, not which of the cell's roughly five hundred kinases put it there or whether that step causes the response.",
+   "section": "Where is the protein modified? Weigh the pieces"
+  },
+  {
+   "id": "detecting-a-signal-c22",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "An unphosphorylated tryptic peptide has a mass of 1,320.6 Da. After stimulation, mass spectrometry detects the same peptide at 1,480.6 Da. How many phosphates were added, and what mass would the singly phosphorylated form have?",
+   "back": "2 phosphates; singly phosphorylated mass is about 1,400.6 Da. Mass shift = 1,480.6 − 1,320.6 = 160.0 Da, so 160.0 / 80 = 2 phosphates. Adding one phosphate gives 1,320.6 + 80 = 1,400.6 Da.",
+   "quote": "mass of a phosphopeptide = mass of the peptide + about 80 daltons for each phosphate",
+   "section": "Where is the protein modified? Weigh the pieces"
+  },
+  {
+   "id": "detecting-a-signal-c23",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "A whole-extract MS/MS screen reports two thousand phosphorylation sites after stimulation, but a suspected site on protein Q is missing. Does this prove the site is unphosphorylated, and why?",
+   "back": "No; the site may still be phosphorylated. Some peptides are never detected because of cleavage, enrichment, ionisation, or fragmentation, so an unreported site is not proof of absence.",
+   "quote": "Some peptides are never detected because of cleavage, enrichment, ionisation or fragmentation, so an unreported site may still exist.",
+   "section": "Where is the protein modified? Weigh the pieces"
+  },
+  {
+   "id": "detecting-a-signal-c24",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "A phosphospecific blot against Ser30 of protein P shows no change after stimulation, and you want to check for unknown phosphorylation sites elsewhere on P. Why does phosphopeptide-enriched MS/MS overcome the blot's blind spot, and what happens if no MS/MS backbone cut falls between two adjacent serines?",
+   "back": "Antibody blots cannot discover unsuspected sites, whereas enriched MS/MS needs no prior guess and spots ~80 dalton shifts across peptides. If no backbone cut falls between two adjacent serines, MS/MS narrows the phosphate only to that pair rather than one residue. This rests on the antibody blind-spot rule and the MS/MS fragmentation rule.",
+   "quote": "After enriching rare phosphopeptides, one run on a whole extract can report thousands of sites with no prior guess.",
+   "section": "Where is the protein modified? Weigh the pieces"
+  },
+  {
+   "id": "detecting-a-signal-c25",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Replacing the bulky {{c1::gatekeeper}} residue in a kinase's shared ATP pocket with glycine or alanine opens a hole, creating an analog-sensitive kinase.",
+   "back": "",
+   "quote": "In the shared ATP pocket, a bulky gatekeeper residue limits what fits; replacing it with glycine or alanine opens a hole, making an analog-sensitive kinase.",
+   "section": "Which kinase? Give one kinase an ATP of its own"
+  },
+  {
+   "id": "detecting-a-signal-c26",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Why does an ATP analog with a benzyl group on its adenine and a radioactive gamma phosphate selectively label direct substrate candidates of an analog-sensitive kinase?",
+   "back": "The bulky benzyl group fits normal kinase pockets poorly, so only the enlarged pocket accepts the analog and transfers the radioactive gamma phosphate to its direct substrates.",
+   "quote": "An ATP analog with a bulky benzyl group on its adenine fits this enlarged pocket and fits normal kinases poorly.",
+   "section": "Which kinase? Give one kinase an ATP of its own"
+  },
+  {
+   "id": "detecting-a-signal-c27",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A purified kinase phosphorylates protein Y in a test tube, and the same kinase co-immunoprecipitates with protein Z from cell extracts. Why does neither result prove a direct substrate in cells?",
+   "back": "Neither proves an in-cell direct substrate. Test tubes use high concentrations without cellular scaffolds or compartments (showing only what the kinase can phosphorylate), while co-immunoprecipitation shows binding contact, not catalysis.",
+   "quote": "concentrations are high and the cell's scaffolds and compartments are gone. Finding the kinase bound to a protein shows contact, which is not catalysis.",
+   "section": "Which kinase? Give one kinase an ATP of its own"
+  },
+  {
+   "id": "detecting-a-signal-c28",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "MS/MS finds a ~80 Da shift at Ser210 of protein R after stimulation, and a sequence motif tool predicts kinase K acts there. Why does neither prove K directly phosphorylates R in cells, and how does an analog-sensitive K assay address the gap?",
+   "back": "Sequence tools give only candidates, and MS/MS locates a phosphate without identifying which of ~500 kinases added it. Mutating K's gatekeeper to glycine or alanine lets only engineered K transfer radioactive gamma phosphate from a benzyl-ATP analog, identifying direct substrate candidates. This rests on the prediction/MS/MS attribution limits and the enlarged-pocket selectivity rule.",
+   "quote": "Because the bulky group stays on adenine and only the radioactive gamma phosphate transfers, labelled proteins are candidates for direct substrates of that kinase.",
+   "section": "Which kinase? Give one kinase an ATP of its own"
+  },
+  {
+   "id": "detecting-a-signal-c29",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "Most small-molecule kinase inhibitors hit off-target enzymes because they plug the {{c1::ATP pocket}} shared by about five hundred kinases.",
+   "back": "",
+   "quote": "Most kinase inhibitors plug the ATP pocket shared by about five hundred kinases.",
+   "section": "What an inhibitor proves, and what \"necessary\" and \"sufficient\" mean"
+  },
+  {
+   "id": "detecting-a-signal-c30",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Mutating a phosphorylation site to {{c1::alanine}} tests whether phosphorylation is necessary, because it has no hydroxyl group to accept phosphate.",
+   "back": "",
+   "quote": "A step is necessary if removing it removes the response: a knockout, controlled inhibitor, or mutating the site to alanine (no hydroxyl to accept phosphate).",
+   "section": "What an inhibitor proves, and what \"necessary\" and \"sufficient\" mean"
+  },
+  {
+   "id": "detecting-a-signal-c31",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A signaling step is {{c1::sufficient}} if turning it on alone triggers the response without the signal.",
+   "back": "",
+   "why": "Examples include an always-active kinase or—more weakly—mutating a phosphorylation site to aspartate.",
+   "quote": "A step is sufficient if turning it on alone triggers the response without the signal: an always-active kinase, or—more weakly—mutating the site to aspartate",
+   "section": "What an inhibitor proves, and what \"necessary\" and \"sufficient\" mean"
+  },
+  {
+   "id": "detecting-a-signal-c32",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why is the causal logic of an unselective kinase inhibitor one-sided?",
+   "back": "If shutting off kinase X leaves the response intact, X is ruled out as unnecessary; if the response stops, either X or an off-target kinase could be responsible.",
+   "quote": "if shutting off kinase X leaves the response intact, X is not needed; if the response stops, X or any off-target may be responsible.",
+   "section": "What an inhibitor proves, and what \"necessary\" and \"sufficient\" mean"
+  },
+  {
+   "id": "detecting-a-signal-c33",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "Two structurally unrelated inhibitors both block kinase X in vitro and both stop a hormone response in cells. Why is this stronger than doubling one inhibitor's dose, and what could still mislead you?",
+   "back": "Unlike structures rarely share the same off-targets, whereas doubling one dose only widens its off-target list. Shared off-targets still remain possible, so a drug-resistant mutant of X plus independent genetics is cleaner.",
+   "quote": "Doubling one dose only widens its off-target list, whereas unlike structures rarely share the same off-targets.",
+   "section": "What an inhibitor proves, and what \"necessary\" and \"sufficient\" mean"
+  },
+  {
+   "id": "detecting-a-signal-c34",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Inhibitor C blocks kinase K plus eleven other kinases in cells and prevents phosphorylation of protein S. When cells express an active, C-resistant mutant of K in place of normal K, inhibitor C no longer blocks S phosphorylation. What does this prove, and what does it not prove?",
+   "back": "It proves inhibitor C acted through K (so K is necessary), because the off-target kinases remained blocked while S phosphorylation returned. It does not prove pathway order, a direct link, or sufficiency.",
+   "quote": "Expressing a drug-resistant mutant of X sharpens the proof: if the response returns while other targets stay blocked, the drug acted through X.",
+   "section": "What an inhibitor proves, and what \"necessary\" and \"sufficient\" mean"
+  },
+  {
+   "id": "detecting-a-signal-c35",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Expressing an always-active mutant of kinase M triggers a cellular response without any hormone. What does this prove, and does it show that M is needed for the hormone's normal response?",
+   "back": "It proves that kinase M activity is sufficient to trigger the response, but it does not prove M is necessary for the hormone's normal response; a step can be sufficient without being necessary.",
+   "quote": "an always-active kinase, or—more weakly—mutating the site to aspartate, which mimics phosphate only in part. A step can be one without the other.",
+   "section": "What an inhibitor proves, and what \"necessary\" and \"sufficient\" mean"
+  },
+  {
+   "id": "detecting-a-signal-c36",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "Inhibitor Z blocks kinase K and nine off-target kinases, weakening the phosphospecific blot band for substrate S after insulin. What two controls—one for the blot readout and one for inhibitor specificity—are needed to show K is necessary for insulin-stimulated S phosphorylation?",
+   "back": "Blot the same samples for total S to confirm less phosphate per molecule rather than less S protein, and express a Z-resistant mutant of K (or add independent genetics) so you know Z acted through K while off-targets stayed blocked. This rests on the total-protein blot rule and the drug-resistant rescue rule.",
+   "quote": "Adding genetics—a knockout or knockdown—tests the claim with a method that fails differently.",
+   "section": "What an inhibitor proves, and what \"necessary\" and \"sufficient\" mean"
+  },
+  {
+   "id": "detecting-a-signal-c37",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Mutating Ser50 of protein T to alanine blocks a hormone response, mutating Ser50 to aspartate gives no response without hormone, and an always-active upstream kinase K triggers the response without hormone. What does this combination prove and leave unproven?",
+   "back": "Ser50 phosphorylation is necessary (alanine removes the response) and K activity is sufficient (always-active K triggers it without hormone). The silent aspartate mutant does not rule out Ser50 sufficiency because aspartate mimics phosphate only in part, and always-active K does not prove K is necessary. This rests on the necessity/sufficiency rules and the partial-mimic limit.",
+   "quote": "A step is necessary if removing it removes the response: a knockout, controlled inhibitor, or mutating the site to alanine (no hydroxyl to accept phosphate).",
+   "section": "What an inhibitor proves, and what \"necessary\" and \"sufficient\" mean"
+  },
+  {
+   "id": "detecting-a-signal-c38",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "Why cannot adding ordinary radioactive ATP to a cell extract identify the direct substrates of one kinase?",
+   "back": "Every active kinase in the extract uses ordinary ATP, labelling substrates of all active kinases at once with nothing marking which kinase transferred each phosphate.",
+   "quote": "Every kinase in the extract uses ordinary ATP, so radioactive ATP labels the substrates of every active kinase at once.",
+   "section": "Design problem"
+  },
+  {
+   "id": "detecting-a-signal-c39",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "In an analog-sensitive kinase substrate screen using N6-benzyl radioactive ATP in a cell extract, what negative control must you run, and how do you handle a band that appears there?",
+   "back": "Run the same extract with the normal kinase in place of the mutant, which should yield no labelled bands. Any band appearing there comes from a kinase using the analog unaided and is discarded.",
+   "quote": "The control is the same extract with the normal kinase in place of the mutant. It should give no labelled bands.",
+   "section": "Design problem"
+  },
+  {
+   "id": "detecting-a-signal-c40",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "After an analog-sensitive gatekeeper mutant of kinase K labels protein V in a cell extract (with no band in the wild-type control), how can the same engineered kinase test whether K is necessary for V phosphorylation in living cells, and why pair it with a knockout or knockdown?",
+   "back": "Use a bulky inhibitor built for the enlarged gatekeeper pocket in cells expressing mutant K—shutting off mutant K while sparing normal kinases—and check V phosphorylation. Pair it with a knockout or knockdown so two methods that fail differently agree. This rests on the bulky-inhibitor specificity rule and the converging-methods rule.",
+   "quote": "The enlarged pocket helps there too: a bulky inhibitor built for it shuts off the mutant kinase and spares the normal ones.",
+   "section": "Design problem"
+  },
+  {
+   "id": "detecting-a-signal-c41",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "Yalow and Berson injected radioactive iodine-tagged insulin expecting faster destruction in diabetic patients, yet radioactivity left the blood more slowly in insulin-treated patients and migrated with serum globulins on paper electrophoresis. What did this reveal?",
+   "back": "Previously treated patients had serum antibodies (globulins) that bound the injected insulin and held it in the blood, overturning doubts that a 51-amino-acid protein could raise antibodies.",
+   "quote": "When their serum was sorted by paper electrophoresis, the radioactivity travelled with a globulin, the class of serum protein that includes antibodies.",
+   "section": "How the insulin antibody was found"
+  },
+  {
+   "id": "detecting-a-signal-c42",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "In the BATF transcription factor study, endogenous BATF ran on a gel as shifted bands that disappeared after treatment with calf intestinal alkaline phosphatase. What did this show?",
+   "back": "It showed that BATF is phosphorylated in vivo, because enzymatic removal of phosphate groups eliminated the gel mobility shift.",
+   "quote": "BATF from cells ran on a gel as shifted bands that calf intestinal alkaline phosphatase removed, which showed phosphorylation in vivo.",
+   "section": "A worked case: BATF"
+  },
+  {
+   "id": "detecting-a-signal-c43",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Why is mutating a serine phosphorylation site to aspartate only an imperfect phosphomimetic?",
+   "back": "Aspartate carries less negative charge than a phosphate group and has a different shape, so a mutant that does nothing is weak evidence.",
+   "quote": "Such phosphomimetic mutants are imperfect: aspartate carries less charge than a phosphate and has a different shape, so a mutant that does nothing is weak evidence.",
+   "section": "A worked case: BATF"
+  },
+  {
+   "id": "detecting-a-signal-c44",
+   "type": "experiment",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "When Karaman, Zarrinkar, and colleagues tested 38 kinase inhibitors against 317 kinases, what general conclusion did they reach about measuring inhibitor selectivity?",
+   "back": "They concluded that small assay panels do not provide a robust measure of selectivity.",
+   "quote": "measured thirty-eight inhibitors against 317 kinases and concluded that \"small assay panels do not provide a robust measure of selectivity.\"",
+   "section": "The inhibitor surveys"
+  }
+ ]
+}

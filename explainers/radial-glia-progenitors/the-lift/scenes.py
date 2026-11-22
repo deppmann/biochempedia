@@ -1152,34 +1152,81 @@ class S21Pack(SpokenScene):
 class S22Pack2(SpokenScene):
     def construct(self):
         U = 0.3   # one micrometre drawn as 0.3 units, for both shapes
-        tag = T("illustrative numbers", 28, GOLD).move_to([3.7, 3.45, 0])
-        asm = T("12 h cycle, 0.5 h in mitosis,\nspread evenly through the cycle:\n1 cell in 24 is dividing", 28, TEXT,
-                line_spacing=0.9).move_to([3.7, 1.95, 0])
-        self.add(tag, asm)
-        circ = Circle(radius=5 * U, stroke_color=BLUE, stroke_width=3.5, fill_color=BLUE, fill_opacity=0.2).move_to([-4.5, 0.55, 0])
-        cl = T("round cell\n10 µm across", 28, TEXT, line_spacing=0.9).move_to([-4.5, 2.9, 0])
-        ca = M("π × 5² ≈ 80 µm²", 28, TEXT).move_to([-4.5, -1.35, 0])
-        self.at("A round cell")
-        self.play(FadeIn(circ, scale=0.6), FadeIn(cl), run_time=0.7)
-        self.play(FadeIn(ca), run_time=0.5)
-        sq = Square(side_length=2 * U, stroke_color=BLUE, stroke_width=3, fill_color=BLUE, fill_opacity=0.75).move_to([-1.4, 0.55, 0])
-        fl = T("thin foot\n2 × 2 µm", 28, TEXT, line_spacing=0.9).move_to([-1.4, 2.9, 0])
-        fa = M("= 4 µm²", 28, TEXT).move_to([-1.4, -1.35, 0])
-        self.at("the room of a thin foot")
-        self.play(FadeIn(sq, scale=0.6), FadeIn(fl), run_time=0.6)
-        self.play(FadeIn(fa), run_time=0.4)
-        ratio = M("80 ÷ 4 = 20 times", 36, TEAL).move_to([-3.0, -2.55, 0])
-        self.at("thin foot")
+        tag = T("illustrative numbers", 28, GOLD).move_to([3.6, 3.25, 0])
+        asm1 = T("12 h cycle, 0.5 h in mitosis,\nspread evenly through the cycle:", 25, TEXT,
+                 line_spacing=0.9).move_to([3.6, 2.25, 0])
+        asm2 = T("1 cell in 24 is dividing", 27, TEAL).move_to([3.6, 1.35, 0])
+        self.play(FadeIn(tag), FadeIn(asm1), run_time=0.45)
+        self.at("one cell in 24")
+        self.play(FadeIn(asm2, shift=UP * 0.08), run_time=0.5)
+
+        circ = Circle(radius=5 * U, stroke_color=BLUE, stroke_width=3.5, fill_color=BLUE, fill_opacity=0.2).move_to([-4.5, 0.7, 0])
+        cl = T("round cell\n10 µm across", 28, TEXT, line_spacing=0.9).move_to([-4.5, 2.95, 0])
+        ca = M("π × 5² ≈ 80 µm²", 28, TEXT).move_to([-4.5, -1.25, 0])
+        self.at("is round")
+        self.play(FadeIn(circ, scale=0.8), FadeIn(cl), FadeIn(ca), run_time=0.6)
+
+        sq = Square(side_length=2 * U, stroke_color=BLUE, stroke_width=3, fill_color=BLUE, fill_opacity=0.75).move_to([-1.3, 0.7, 0])
+        fl = T("thin foot\n2 × 2 µm", 28, TEXT, line_spacing=0.9).move_to([-1.3, 2.95, 0])
+        fa = M("= 4 µm²", 28, TEXT).move_to([-1.3, -1.25, 0])
+        self.at("taking")
+        self.play(FadeIn(sq, scale=0.8), FadeIn(fl), FadeIn(fa), run_time=0.45)
+
+        ratio = M("80 ÷ 4 = 20 times", 34, TEAL).move_to([-2.9, -2.55, 0])
+        self.at("20 times", lead=0.05)
         self.play(FadeIn(ratio, shift=UP * 0.1), run_time=0.5)
-        f1 = M("(80 + 23 × 4) / 24", 32, TEXT).move_to([3.7, 0.35, 0])
-        self.at("So on average")
-        self.play(FadeIn(f1, shift=UP * 0.1), run_time=0.5)
-        f2 = M("≈ 7 µm² per cell", 36, TEXT).move_to([3.7, -0.55, 0])
-        self.at("each cell needs")
-        self.play(FadeIn(f2, shift=UP * 0.1), run_time=0.5)
-        tenth = chip("about a tenth of a dividing cell", TEAL, size=30).move_to([3.7, -2.0, 0])
+
+        # Build (80 + 23 × 4) / 24 piece by piece in time with the words, highlighting each term in sequence
+        f_open = M("(", 30, TEAL)
+        f_80 = M("80", 30, GOLD)
+        f_plus = M("+", 30, GOLD)
+        f_23x4 = M("23 × 4", 30, GOLD)
+        f_close = M(")", 30, TEAL)
+        f_div = M("/ 24", 30, TEAL)
+        f_80.next_to(f_open, RIGHT, buff=0.06)
+        f_plus.next_to(f_80, RIGHT, buff=0.16)
+        f_23x4.next_to(f_plus, RIGHT, buff=0.16)
+        f_close.next_to(f_23x4, RIGHT, buff=0.06)
+        f_div.next_to(f_close, RIGHT, buff=0.16)
+        formula_row = VGroup(f_open, f_80, f_plus, f_23x4, f_close, f_div).move_to([3.6, 0.25, 0])
+
+        circ_hi = Circle(radius=5 * U + 0.12, stroke_color=GOLD, stroke_width=5, fill_opacity=0).move_to(circ)
+        self.at("One round cell")
+        self.play(Create(circ_hi), ca.animate.set_color(GOLD), FadeIn(f_80, shift=UP * 0.08), run_time=0.55)
+
+        sq_hi = Square(side_length=2 * U + 0.22, stroke_color=GOLD, stroke_width=5, fill_opacity=0).move_to(sq)
+        feet23 = T("23 thin feet\n4 µm² each", 24, GOLD, line_spacing=0.85).move_to([-1.3, -0.32, 0])
+        self.at("plus 23")
+        self.play(
+            FadeOut(circ_hi), ca.animate.set_color(TEXT), f_80.animate.set_color(TEXT),
+            Create(sq_hi), fa.animate.set_color(GOLD), FadeIn(feet23, shift=UP * 0.08),
+            FadeIn(f_plus, shift=UP * 0.08), FadeIn(f_23x4, shift=UP * 0.08),
+            run_time=0.6,
+        )
+
+        self.at("divided by 24")
+        self.play(
+            FadeOut(sq_hi), fa.animate.set_color(TEXT), feet23.animate.set_color(TEXT),
+            f_plus.animate.set_color(TEXT), f_23x4.animate.set_color(TEXT),
+            FadeIn(f_open), FadeIn(f_close), FadeIn(f_div, shift=UP * 0.08),
+            run_time=0.55,
+        )
+
+        f2 = M("≈ 7 µm² per cell", 34, GOLD).move_to([3.6, -0.7, 0])
+        self.at("averages")
+        self.play(
+            formula_row.animate.set_color(GOLD),
+            FadeIn(f2, shift=UP * 0.1),
+            run_time=0.5,
+        )
+
+        tenth = chip("about a tenth of a dividing cell", TEAL, size=26).move_to([3.6, -2.0, 0])
         self.at("about a tenth")
-        self.play(FadeIn(tenth, shift=UP * 0.1), run_time=0.6)
+        self.play(
+            formula_row.animate.set_color(TEXT),
+            FadeIn(tenth, shift=UP * 0.1),
+            run_time=0.45,
+        )
         self.finish()
 
 

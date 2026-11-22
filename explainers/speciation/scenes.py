@@ -406,22 +406,86 @@ class S09Reveal(SpokenScene):
         xs = [-1.3, 1.3, 3.9]
         vals = ["300", "90", "27"]
         ns = [M(v, 44, GOLD).move_to([x, -2.3, 0]) for v, x in zip(vals, xs)]
+        arrs = [M("→", 34, GOLD).move_to([ax, -2.3, 0]) for ax in (-2.42, 0.09, 2.60)]
+        pass_labs = [
+            VGroup(M("× 0.3", 26, TEAL), T("(30% pass)", 24, TEAL))
+            .arrange(DOWN, buff=0.06)
+            .move_to([x, 3.16, 0])
+            for x in (-2.6, 0, 2.6)
+        ]
+
         self.at("Watch the counter")
-        self.play(Indicate(cnt, color=YELLOW), run_time=1.2)
-        self.at("Each gate leaves less")
-        self.play(FadeIn(ns[0], shift=UP * .2), run_time=.8)
-        self.at("for the next one")
-        self.play(FadeIn(ns[1], shift=UP * .2), run_time=.8)
-        self.at("In the end")
-        self.play(FadeIn(ns[2], shift=UP * .2), run_time=.8)
+        self.play(Indicate(cnt, color=YELLOW), run_time=1.1)
+
+        self.at("Each gate stops 70")
+        self.play(*[Indicate(p, color=YELLOW) for p in pl], run_time=1.2)
+
+        self.at("30 percent gets through")
+        self.play(
+            LaggedStart(*[FadeIn(lab, shift=DOWN * 0.1) for lab in pass_labs], lag_ratio=0.15),
+            run_time=1.2,
+        )
+
+        self.at("Of a thousand dots")
+        self.play(Indicate(cnt, color=YELLOW, scale_factor=1.2), run_time=1.0)
+
+        self.at("300 pass gate 1")
+        self.play(
+            pass_labs[0].animate.set_color(YELLOW),
+            Indicate(st.gm[0], color=YELLOW, scale_factor=1.06),
+            FadeIn(arrs[0]),
+            FadeIn(ns[0], shift=UP * 0.2),
+            run_time=1.0,
+        )
+
+        self.at("90 pass gate 2")
+        self.play(
+            pass_labs[0].animate.set_color(TEAL),
+            pass_labs[1].animate.set_color(YELLOW),
+            Indicate(st.gm[1], color=YELLOW, scale_factor=1.06),
+            FadeIn(arrs[1]),
+            FadeIn(ns[1], shift=UP * 0.2),
+            run_time=1.0,
+        )
+
+        self.at("27 pass gate 3")
+        self.play(
+            pass_labs[1].animate.set_color(TEAL),
+            pass_labs[2].animate.set_color(YELLOW),
+            Indicate(st.gm[2], color=YELLOW, scale_factor=1.06),
+            FadeIn(arrs[2]),
+            FadeIn(ns[2], shift=UP * 0.2),
+            run_time=1.0,
+        )
+
+        self.at("27 left of a thousand")
+        self.play(
+            pass_labs[2].animate.set_color(TEAL),
+            Indicate(ns[2], color=YELLOW),
+            Indicate(cnt, color=YELLOW),
+            FadeOut(cs[0]),
+            FadeOut(cs[1]),
+            run_time=1.1,
+        )
+
+        calc = M("973 / 1,000 = 97.3% stopped", 28, TEXT).move_to([-2.3, -3.2, 0])
         fin = bchip("stopped: 97.3%", GREEN, 30).move_to([3.3, -3.2, 0])
         self.at("about 97")
-        self.play(FadeOut(cs[2]), FadeIn(fin), run_time=.8)
-        bad = bchip("210% is impossible", RED, 30).move_to([-1.0, -3.2, 0])
-        self.at("That stops more than")
-        self.play(FadeOut(cs[0]), Transform(cs[1], bad), run_time=1.0)
-        self.at("still pass")
-        self.play(Indicate(ns[2], color=YELLOW, scale_factor=1.4), run_time=1.5)
+        self.play(
+            FadeIn(calc, shift=UP * 0.15),
+            Succession(FadeOut(cs[2], run_time=0.45), FadeIn(fin, run_time=0.55)),
+            run_time=1.0,
+        )
+
+        self.at("beats any single gate")
+        self.play(
+            Indicate(fin[1:], color=YELLOW, scale_factor=1.1),
+            *[Indicate(p, color=YELLOW) for p in pl],
+            run_time=1.1,
+        )
+
+        self.at("still pass all three")
+        self.play(Indicate(ns[2], color=YELLOW, scale_factor=1.35), run_time=1.1)
         self.finish()
 
 

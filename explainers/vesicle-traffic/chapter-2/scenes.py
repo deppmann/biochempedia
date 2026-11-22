@@ -117,11 +117,18 @@ class C2(TrafficScene):
         return l1, l2, n1, n2
 
     # ---- NSF units (s06 to s08) ----
-    def nsf_unit(self, x, red=False):
+    def _prep_nsf_world(self):
+        self.er.shift(DOWN * .25)
+        self.wobble(self.er, .04)
+        for m in self.mobjects:
+            if isinstance(m, Text) and m.text == 'ER':
+                m.shift(DOWN * .25)
+
+    def nsf_unit(self, x, red=False, y=1.45):
         col = RED if red else TEXT
-        chip_ = chip('NSF', col, size=28).move_to([x, 1.75, 0])
+        chip_ = chip('NSF', col, size=28).move_to([x, y, 0])
         chip_[0].set_fill(interpolate_color(ManimColor(BG), ManimColor(col), .16), opacity=1)  # solid, so the outline never crosses the letters
-        rope = VGroup(*[Line([x - .5, 1.3 + dy, 0], [x + .5, 1.3 + dy, 0], color=PURPLE, stroke_width=6) for dy in (-.12, -.04, .04, .12)])
+        rope = VGroup(*[Line([x - .5, y - .54 + dy, 0], [x + .5, y - .54 + dy, 0], color=PURPLE, stroke_width=6) for dy in (-.12, -.04, .04, .12)])
         return chip_, rope
 
     def er_dots(self, n=6):
@@ -135,8 +142,8 @@ class S00Link(C2):
     def construct(self):
         self.world(hot=False, pile=False, lamps=True)
         v = packet(-.4, 0)
-        self.play(FadeIn(v, scale=.4), run_time=.5)
-        self.play(v.animate.move_to([1.3, 0, 0]), run_time=2.4)
+        self.play(FadeIn(v, scale=.4), run_time=.4)
+        self.play(v.animate.move_to([1.3, 0, 0]), run_time=1.6)
         self.at('bud')
         self.play(lit(self.lamps[0]), v.animate.move_to([1.9, 0, 0]), run_time=.35)
         v2 = packet(-3.55, 0)
@@ -145,17 +152,17 @@ class S00Link(C2):
         self.play(lit(self.lamps[1]), v.animate.move_to([3.3, 0, 0]), Create(tether), FadeIn(v2), run_time=.4)
         self.at('fuse')
         self.play(v.animate.move_to([4.25, 0, 0]), FadeOut(tether), v2.animate.move_to([-1.65, 0, 0]), run_time=.5)
-        self.play(FadeOut(v[0]), v[1].animate.shift(RIGHT * .8), lit(self.lamps[2]), v2.animate.move_to([-.4, 0, 0]), run_time=.6)
-        self.play(FadeOut(v[1]), FadeOut(v2), run_time=.6)
+        self.play(FadeOut(v[0]), v[1].animate.shift(RIGHT * .8), lit(self.lamps[2]), v2.animate.move_to([-.4, 0, 0]), run_time=.5)
+        self.play(FadeOut(v[1]), FadeOut(v2), run_time=.5)
         self.at('how did anyone put')
-        self.play(*[unlit(l) for l in self.lamps], run_time=.7)
+        self.play(*[unlit(l) for l in self.lamps], run_time=.5)
         self.temperature(True)
         self.at('those handoffs')
         self.play(LaggedStart(*[FadeIn(p, shift=LEFT * .5) for p in self.pile], lag_ratio=.18),
                   self.level.animate.set_value(6), run_time=1.8)
         self.at('what can a pile')
         card = chip('What does a pile tell you?', TEXT, size=30).move_to([.3, 3.2, 0])
-        self.play(FadeIn(card, shift=DOWN * .2), Indicate(self.pile, color=YELLOW), run_time=1.0)
+        self.play(FadeIn(card, shift=DOWN * .2), Indicate(self.pile, color=YELLOW), run_time=.6)
         self.finish()
 
 
@@ -323,32 +330,30 @@ class S05Order(Cell4):
     def construct(self):
         self.thermo = chip('37 °C', RED, size=28).move_to([-5.25, 2.55, 0])
         self.add(self.thermo)
-        tube = RoundedRectangle(width=2.0, height=6.5, corner_radius=.25, stroke_color=GREY, stroke_width=5, fill_color=GREY, fill_opacity=.05).move_to([-3.2, -.35, 0])
         cart = [self.cartoon('er', -.4, .8), self.cartoon('golgi', 2.4, .8), self.cartoon('ves', 5.4, .8)]
         names = [label('ER', -.4, -1.1, TEXT, 28), label('Golgi-like stacks', 2.4, -1.1, TEXT, 28), label('vesicles', 5.4, -1.1, YELLOW, 28)]
         self.add(*cart, *names)
         # the tube and screen leave; the three pictures keep their places for a moment, then slide onto the route
-        route = Arrow([-6.3, -1.9, 0], [6.4, -1.9, 0], color=GREY, stroke_width=5, buff=0, stroke_opacity=.9)
         route = DashedLine([-6.3, -1.9, 0], [6.0, -1.9, 0], color=GREY, stroke_width=5)
         tip = Triangle(color=GREY, fill_color=GREY, fill_opacity=1, stroke_width=1).scale(.16).rotate(-PI / 2).move_to([6.3, -1.9, 0])
         self.play(FadeOut(self.thermo), Create(route), FadeIn(tip), run_time=1.0)
         self.at('on a linear route')
         tx = [-4.3, 0.0, 4.3]
-        self.play(*[VGroup(cart[i], names[i]).animate.shift([tx[i] - [-.4, 2.4, 5.4][i], 0, 0]) for i in range(3)], run_time=1.6)
+        self.play(*[VGroup(cart[i], names[i]).animate.shift([tx[i] - [-.4, 2.4, 5.4][i], 0, 0]) for i in range(3)], run_time=1.0)
         # new names for the route
         newn = [label('ER', -4.3, -1.1, TEXT, 28), label('Golgi', 0, -1.1, TEXT, 28), label('vesicles', 4.3, -1.1, YELLOW, 28)]
-        self.play(Transform(names[1], newn[1]), run_time=.5)
+        self.play(Transform(names[1], newn[1]), run_time=.4)
         for cc in cart:
             self.wobble([cc[1]], .04, 1.0)
         self.at('cargo piles up')
         rule = label('pile = last place reached', -1.6, -2.75, TEXT, 30)
-        self.play(FadeIn(rule, shift=UP * .15), run_time=.8)
-        self.play(*[Indicate(c[1], color=ORANGE) for c in cart], run_time=1.2)
-        self.at('in 1981')
+        self.play(FadeIn(rule, shift=UP * .15), run_time=.6)
+        self.play(*[Indicate(c[1], color=ORANGE) for c in cart], run_time=1.0)
+        self.at('1981', lead=0.05)
         card = chip('1981: double mutants', TEXT, size=28).move_to([4.2, -2.75, 0])
-        self.play(FadeIn(card, shift=DOWN * .15), run_time=.8)
+        self.play(FadeIn(card, shift=DOWN * .15), run_time=.6)
         self.at('put the blocks')
-        self.play(LaggedStart(*[Indicate(c[0], color=TEXT, scale_factor=1.06) for c in cart], lag_ratio=.4), run_time=2.0)
+        self.play(LaggedStart(*[Indicate(c[0], color=TEXT, scale_factor=1.06) for c in cart], lag_ratio=.35), run_time=1.8)
         self.finish()
 
 
@@ -356,9 +361,10 @@ class NsfScene(C2):
     def nsf_state(self, with_card=True, dots=6):
         self.world(hot=True, pile=False, lamps=False)
         self.remove(self.lamps)
+        self._prep_nsf_world()
         self.units = []
-        for x in (-4.1, -1.4, 3.1):
-            c, r = self.nsf_unit(x, red=True)
+        for x, y in ((-3.45, 1.45), (-1.0, 1.65), (3.35, 0.05)):
+            c, r = self.nsf_unit(x, red=True, y=y)
             self.units.append((c, r))
             self.add(c, r)
         self.dots = self.er_dots(dots)
@@ -378,19 +384,20 @@ class S06Predict(C2):
     def construct(self):
         self.world(hot=False, pile=False, lamps=False)
         self.remove(self.lamps)
+        self._prep_nsf_world()
         v0 = packet(-3.55, 0)
         self.play(FadeIn(v0, scale=.4), v0.animate.move_to([-1.65, 0, 0]), run_time=1.2)
         self.play(FadeOut(v0), run_time=.2)
         self.at('an enzyme called')
-        c, r = self.nsf_unit(-1.4)
+        c, r = self.nsf_unit(-1.0, y=1.65)
         self.play(FadeIn(r, shift=UP * .2), FadeIn(c, shift=DOWN * .2), run_time=.9)
         self.at('resets snares')
-        splay = VGroup(*[Line([-1.9, 1.3 + dy, 0], [-.9, 1.3 + dy * 4, 0], color=PURPLE, stroke_width=6) for dy in (-.12, -.04, .04, .12)])
-        self.play(Transform(r, splay), c.animate.shift(DOWN * .2), run_time=.9)
-        self.play(Transform(r, self.nsf_unit(-1.4)[1]), c.animate.shift(UP * .2), run_time=.9)
+        splay = VGroup(*[Line([-1.5, 1.05 + dy, 0], [-.5, 1.05 + dy * 1.8, 0], color=PURPLE, stroke_width=6) for dy in (-.12, -.04, .04, .12)])
+        self.play(Transform(r, splay), c.animate.shift(DOWN * .08), run_time=.9)
+        self.play(Transform(r, self.nsf_unit(-1.0, y=1.65)[1]), c.animate.shift(UP * .08), run_time=.9)
         self.at('at many steps')
-        c2, r2 = self.nsf_unit(-4.1)
-        c3, r3 = self.nsf_unit(3.1)
+        c2, r2 = self.nsf_unit(-3.45, y=1.45)
+        c3, r3 = self.nsf_unit(3.35, y=0.05)
         self.play(FadeIn(c2, shift=DOWN * .2), FadeIn(r2, shift=UP * .2), run_time=.7)
         self.play(FadeIn(c3, shift=DOWN * .2), FadeIn(r3, shift=UP * .2), run_time=.7)
         self.at('where would')
@@ -419,35 +426,42 @@ class S08Reveal(NsfScene):
     def construct(self):
         self.nsf_state()
         self.at('earliest block')
-        self.play(Indicate(self.units[0][0], color=RED, scale_factor=1.15), run_time=1.2)
+        self.play(Indicate(self.units[0][0][1], color=YELLOW, scale_factor=1.15), run_time=1.2)
+        self.at('sec18', lead=0.05)
+        lab = chip('sec18 = yeast NSF', RED, size=26).move_to([-1.0, 1.65, 0])
+        lab[0].set_fill(interpolate_color(ManimColor(BG), ManimColor(RED), .16), opacity=1)
+        lab.ph = self.units[1][0].ph
+        self.units[1][0].clear_updaters()
+        self.play(ReplacementTransform(self.units[1][0], lab), run_time=.7)
+        self.units[1] = (lab, self.units[1][1])
+        lab.add_updater(lambda m, dt: (setattr(m, 'ph', m.ph + dt), m.set_stroke(opacity=.55 + .45 * np.sin(m.ph * 2.2))))
         self.at('classical sec18')
-        lab = label('sec18 = yeast NSF', -.9, -3.3, TEXT, 30)
-        self.play(FadeIn(lab, shift=UP * .15), run_time=.7)
+        self.play(Indicate(lab[1], color=YELLOW, scale_factor=1.08), run_time=.9)
         self.at('er and small')
         more = self.er_dots(15)[6:]
         for d in more:
             d.set_opacity(0)
         ves = VGroup(*[Circle(radius=.14, color=YELLOW, stroke_width=3, fill_color=YELLOW, fill_opacity=.12).move_to([x, y, 0])
-                       for x, y in [(-3.4, .9), (-3.2, .3), (-3.45, -.35), (-3.1, -.9), (-3.0, .8)]])
+                       for x, y in [(-3.55, .45), (-3.2, .15), (-3.45, -.35), (-3.1, -.9), (-3.0, -.25)]])
         for v in ves:
             v.add(Dot(v.get_center(), radius=.045, color=ORANGE))
         self.add(*more)
-        self.play(*[d.animate.set_opacity(1) for d in more], LaggedStart(*[FadeIn(v, scale=.3) for v in ves], lag_ratio=.15), run_time=2.0)
+        self.play(*[d.animate.set_opacity(1) for d in more], LaggedStart(*[FadeIn(v, scale=.3) for v in ves], lag_ratio=.15), run_time=1.8)
         self.wobble(list(more), .06, 1.6)
         self.wobble(list(ves), .05, 1.3)
         self.at('piled up')
-        self.play(Indicate(VGroup(self.dots, *more, ves), color=ORANGE, scale_factor=1.08), run_time=1.0)
+        self.play(Indicate(VGroup(self.dots, *more, ves), color=ORANGE, scale_factor=1.08), run_time=.9)
         self.at('not late')
         ghost = VGroup(*[Circle(radius=.24, color=GREY, stroke_width=3, stroke_opacity=.7) for _ in PILE])
         for g, (x, y) in zip(ghost, PILE):
             g.move_to([x, y, 0])
-        self.play(FadeIn(ghost), run_time=.8)
+        self.play(FadeIn(ghost), run_time=.7)
         cr = Cross(ghost, stroke_color=RED, stroke_width=7)
         no = label('not here', 1.2, -1.9, RED, 28)
-        self.play(Create(cr), FadeIn(no), run_time=.9)
+        self.play(Create(cr), FadeIn(no), run_time=.8)
         self.at('a pile shows')
         new = chip('earliest block wins', GREEN, size=30).move_to(self.card)
-        self.play(ReplacementTransform(self.card, new), run_time=.9)
+        self.play(ReplacementTransform(self.card, new), run_time=.8)
         self.at('not when')
         self.play(Indicate(new, color=GREEN), run_time=1.0)
         self.finish()
@@ -531,58 +545,72 @@ class S10Hops(C2):
         flags = self.flags(-2.9, .1)
         self.at('a tether')
         hops = self.hops_tether('HOPS')
-        self.play(FadeIn(hops, shift=UP * .15), run_time=.7)
-        self.at('binds the rab')
-        self.play(FadeIn(flags), run_time=.7)
+        self.play(FadeIn(hops, shift=UP * .15), run_time=.6)
+        self.at('the rab')
+        self.play(FadeIn(flags), run_time=.6)
         snares = self.snares()
-        self.play(lit(self.l1), Create(snares), run_time=.8)
+        self.play(lit(self.l1), Create(snares), run_time=.7)
         merged = Ellipse(width=2.2, height=1.3, color=GREY, stroke_width=5, fill_color=GREY, fill_opacity=.12).move_to([-1.4, Y, 0])
         left.clear_updaters(); right.clear_updaters()
-        self.play(ReplacementTransform(VGroup(left, right), merged), FadeOut(snares), FadeOut(hops), lit(self.l2), run_time=1.0)
-        self.at('separate forms')
+        self.play(ReplacementTransform(VGroup(left, right), merged),
+                  flags[0].animate.shift(RIGHT * .85 + DOWN * .08), flags[1].animate.shift(LEFT * .85 + DOWN * .08),
+                  FadeOut(snares), FadeOut(hops), lit(self.l2), run_time=.9)
+        self.at('separate mutant')
         left, right = sph(-2.9), sph(.1)
-        self.play(FadeOut(merged), FadeIn(left), FadeIn(right), unlit(self.l1), unlit(self.l2), run_time=.8)
+        self.play(FadeOut(merged), FadeIn(left), FadeIn(right),
+                  flags[0].animate.shift(LEFT * .85 + UP * .08), flags[1].animate.shift(RIGHT * .85 + UP * .08),
+                  unlit(self.l1), unlit(self.l2), run_time=.6)
         self.wobble([left, right], .04, 1.1)
         t1 = VGroup(label('Vps11 beta propeller', 4.65, 2.75, TEXT, 28), label('missing', 4.65, 2.3, TEXT, 28))
-        self.at('propeller of')
-        self.play(FadeIn(t1, shift=DOWN * .15), run_time=.5)
-        self.at('vps 11')
-        h1 = self.hops_tether('HOPS')
-        self.play(FadeIn(h1, shift=UP * .15), lit(self.l1), run_time=.6)
+        h1 = self.hops_tether('HOPS', missing=0)
         sn = self.snares(stub=True)
-        self.play(Create(sn), lit(self.l2, RED), run_time=.6)
-        self.at('or vps 18')
+        self.play(FadeIn(t1, shift=DOWN * .15), FadeIn(h1, shift=UP * .15), lit(self.l1), run_time=.5)
+        self.play(Create(sn), run_time=.5)
+        self.at('each missing')
         t2 = VGroup(label('Vps18 beta propeller', 4.65, 2.75, TEXT, 28), label('missing', 4.65, 2.3, TEXT, 28))
-        self.play(FadeOut(h1), FadeOut(sn), unlit(self.l1), unlit(self.l2), Transform(t1, t2), run_time=.6)
-        h2 = self.hops_tether('HOPS')
-        self.play(FadeIn(h2, shift=UP * .15), lit(self.l1), run_time=.6)
+        left.clear_updaters(); right.clear_updaters()
+        self.play(FadeOut(h1), FadeOut(sn), FadeOut(left), FadeOut(right), unlit(self.l1), Transform(t1, t2), run_time=.5)
+        left, right = sph(-2.9), sph(.1)
+        self.play(FadeIn(left), FadeIn(right), run_time=.35)
+        self.wobble([left, right], .04, 1.1)
+        h2 = self.hops_tether('HOPS', missing=3)
+        self.play(FadeIn(h2, shift=UP * .15), lit(self.l1), run_time=.5)
         sn2 = self.snares(stub=True)
-        self.play(Create(sn2), lit(self.l2, RED), run_time=.6)
+        self.play(Create(sn2), run_time=.5)
         self.at('still tethered')
-        self.play(Indicate(h2, color=TEAL), run_time=.8)
+        self.play(Indicate(h2[0], color=TEAL), run_time=.7)
         self.at('lipid spheres')
         self.play(Indicate(VGroup(left, right), color=TEXT, scale_factor=1.08), run_time=.8)
-        self.wait(.4)
         self.at('but they failed')
         cn = label('caught is not fused', 4.65, -1.3, RED, 30)
-        self.play(FadeIn(cn, shift=UP * .15), Indicate(self.l2, color=RED, scale_factor=1.6), run_time=1.0)
+        self.play(FadeIn(cn, shift=UP * .15), lit(self.l2, RED), run_time=.5)
         self.finish()
 
     def flags(self, xa, xb):
         Y = self.Y
         g = VGroup()
         for x in (xa, xb):
-            pole = Line([x, Y + .6, 0], [x, Y + 1.2, 0], color=TEAL, stroke_width=6)
-            gtp = chip('GTP', GREEN, size=28).move_to([x, Y + 1.55, 0])
-            rab = chip('Ypt7', TEAL, size=28).move_to([x, Y + 2.15, 0])
-            g.add(pole, gtp, rab)
+            pole = Line([x, Y + .6, 0], [x, Y + 1.04, 0], color=TEAL, stroke_width=6)
+            gtp = chip('GTP', GREEN, size=28).move_to([x, Y + 1.38, 0])
+            rab = chip('Ypt7', TEAL, size=28).move_to([x, Y + 2.24, 0])
+            g.add(VGroup(pole, gtp, rab))
         return g
 
-    def hops_tether(self, name):
+    def hops_tether(self, name, missing=None, label_y=None):
         Y = self.Y
-        blocks = VGroup(*[RoundedRectangle(width=.4, height=.25, corner_radius=.06, color=TEAL, fill_color=TEAL, fill_opacity=.55).move_to([x, Y, 0])
-                          for x in (-2.0, -1.6, -1.2, -.8)])
-        lab = label(name, -1.4, Y - 1.2, TEAL, 28)
+        blocks = VGroup()
+        for i, x in enumerate((-2.0, -1.6, -1.2, -.8)):
+            col = GREY if i == missing else TEAL
+            op = .22 if i == missing else .55
+            blocks.add(RoundedRectangle(width=.4, height=.25, corner_radius=.06, color=col, fill_color=col, fill_opacity=op).move_to([x, Y, 0]))
+        if label_y is None:
+            label_y = Y - 1.2
+        if '\n' in name:
+            lines = name.split('\n')
+            lab = VGroup(label(lines[0], -1.4, label_y + .22, TEAL, 26),
+                         label(lines[1], -1.4, label_y - .22, TEAL, 26))
+        else:
+            lab = label(name, -1.4, label_y, TEAL, 28)
         return VGroup(blocks, lab)
 
     def snares(self, stub=False):
@@ -616,7 +644,6 @@ class S11Return(C2):
         self.at('gives the order')
         self.play(*[FadeOut(p, shift=RIGHT * .4) for p in self.pile], FadeOut(route), run_time=.6)
         self.temperature(False)
-        self.lamp_names[0].set_opacity(0)
         self.at('test tubes')
         br = self.bracket()
         self.play(Create(br), run_time=.5)
@@ -626,7 +653,6 @@ class S11Return(C2):
         b = VGroup(Line([2.8, -3.45, 0], [4.8, -3.45, 0], color=RED), Line([2.8, -3.45, 0], [2.8, -3.25, 0], color=RED),
                    Line([4.8, -3.45, 0], [4.8, -3.25, 0], color=RED), label('?', 3.8, -3.64, RED, 28))
         self.play(ReplacementTransform(br, VGroup(a, b)), run_time=1.2)
-        self.lamp_names[0].set_opacity(1)
         self.finish()
 
 

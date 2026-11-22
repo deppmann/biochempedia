@@ -4,7 +4,7 @@ slug: "long-distance-signaling-in-neurons"
 course: "signaling"
 courseChapter: "Cell Signaling · Unit 7: Space, time and distance"
 order: 137
-summary: "A neuron receives its survival signal, NGF, at the tip of an axon that can be centimeters from the nucleus that must respond. In the leading model, the signal travels as a signaling endosome: a vesicle that carries NGF and its active receptor TrkA, moved along microtubules by the motor dynein. This lesson follows the evidence for that model and then two further solutions to distance, the endosome that travels into dendrites and protein made at the synapse, and what happens when transport fails. Afterwards you will be able to design an experiment that separates a carried signal from a relayed one."
+summary: "Over long axons, dynein carries active signaling endosomes where diffusion fails; to separate courier from relay, test what only one model predicts. A sympathetic neuron collects its survival signal, NGF, at an axon tip centimeters from its nucleus. This lesson follows the evidence for the signaling-endosome model, shows why blocking the motor cannot settle courier versus relay while blocking TrkA in the middle of the axon and neutralizing NGF at the cell body favor the carried endosome, and then examines two further solutions to distance — endosomes entering dendrites and protein made at the synapse — and what happens when axonal transport fails. Afterwards you will be able to design an experiment that separates a carried signal from a relayed one."
 hook: "How does a neuron that takes in its survival signal at the tip of its axon get that message to a nucleus centimeters away?"
 
 estMinutes: 22
@@ -18,10 +18,15 @@ explainer:
   src: "/explainers/long-distance-signaling-in-neurons/explainer.mp4"
   captions: "/explainers/long-distance-signaling-in-neurons/explainer.vtt"
   poster: "/explainers/long-distance-signaling-in-neurons/poster.jpg"
-  title: "A neuron can take its survival signal in at the far end of its axon"
-  durationSec: 145.0
-  narration: "an AI narrator voice (Gemini, Charon) reading a passage Chris Deppmann wrote for his graduate course on neurotrophic signaling"
+  title: "Beating Diffusion: The Signaling Endosome"
+  durationSec: 217.8
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+  takeaways:
+    - "Over long axons, dynein carries active signaling endosomes where diffusion fails."
+    - "Diffusion time grows with distance squared (about 58 days across 1 cm), while motor transport grows linearly (under three hours)."
+    - "Endocytosis traps NGF inside the vesicle while leaving TrkA's active kinase facing the cytoplasm."
+    - "In the leading model, dynein and dynactin carry that active endosome toward microtubule minus ends at the cell body to signal the nucleus."
 
 scientists:
   - name: "Erin M. Schuman"
@@ -378,109 +383,169 @@ corpusTags:
   - "neurotrophins"
 draft: false
 films:
-  - id: "carried-or-relayed"
-    src: "/explainers/long-distance-signaling-in-neurons/carried-or-relayed.mp4"
-    captions: "/explainers/long-distance-signaling-in-neurons/carried-or-relayed.vtt"
-    poster: "/explainers/long-distance-signaling-in-neurons/carried-or-relayed-poster.jpg"
-    title: "Carried, or relayed?"
-    durationSec: 118.3
-    narration: "an AI narrator voice (Gemini, Charon) reading narration written from this lesson's text"
+  - id: "chapter-2"
+    src: "/explainers/long-distance-signaling-in-neurons/chapter-2.mp4"
+    captions: "/explainers/long-distance-signaling-in-neurons/chapter-2.vtt"
+    poster: "/explainers/long-distance-signaling-in-neurons/chapter-2-poster.jpg"
+    title: "Courier or Relay? Testing What Travels"
+    durationSec: 190.2
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
     aiGenerated: true
+    takeaways:
+      - "To separate courier from relay, test what only one model predicts."
+      - "Blocking dynein kills target-dependent neurons, but it cannot separate a courier from a relay whose local steps also use dynein."
+      - "Inhibiting TrkA kinase only in the middle stretch of the axon would break a TrkA relay but not a passing endosome, and survival was spared."
+      - "Neutralizing NGF arriving in the cell body removes survival, supporting a carried NGF-TrkA complex without ruling out other routes."
 ---
 
 import LessonFilm from '../../../components/LessonFilm.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import Support from '../../../components/Support.astro';
 
-**A sympathetic neuron collects its survival signal at the tip of an axon that can be a thousand times longer than its cell body is wide, and the genes that must answer are back in the nucleus.** The signal gets home inside the axon. In the leading model, NGF and its receptor are taken into a vesicle at the tip, and the motor dynein carries that signaling endosome along microtubules to the cell body.
+**A sympathetic neuron collects its survival signal at the tip of an axon that can be a thousand times longer than its cell body is wide, while the genes that answer sit back in the nucleus.** The first film worked out why diffusion fails across centimeters and how a motor-driven vesicle beats it; here are the scaling math, the chamber experiments, and the tests that separate a carried parcel from a relay.
 
-You met the signal, nerve growth factor (NGF), in the lesson on finding a signal, and its receptor TrkA in the lesson on receptor tyrosine kinases. Here the question is how a message received at one end of a cell reaches the other end, and how you would know which way it went.
+You met the signal, **nerve growth factor (NGF)**, in the lesson on finding a signal, and its receptor **TrkA** in the lesson on receptor tyrosine kinases.
 
-## A Problem: the signal and the genes are far apart
+## A problem: the signal and the genes are far apart
 
-Sympathetic neurons are the nerve cells that control organs such as the heart and blood vessels. The cell body of one, where the nucleus is, measures a few hundredths of a millimeter across. Its axon, the single long fiber that carries its output, runs out to a target organ, which makes NGF, and the axon's terminals collect it there. Those terminals can be centimeters from the cell body.
+**Sympathetic neurons** control organs such as the heart and blood vessels. A sympathetic cell body, where the nucleus sits, measures only a few hundredths of a millimeter across (roughly 30 µm). Its **axon**, the single long fiber carrying its output, runs to a target organ that secretes NGF, and the axon's terminals collect it centimeters away.
 
-What does the cell body need to learn? That its axon has reached a target that makes NGF. It answers with gene expression. The neuron stays alive, and it switches on genes that include the one for TrkA itself and the ones for the tubulin and actin a growing axon is built from.
+The cell body must learn that its axon reached an NGF-making target. It answers with gene expression: the neuron stays alive and switches on genes including the one for TrkA itself, plus the tubulin and actin a growing axon needs.
 
-How does this happen? Rule out the easy answer first. A molecule that spreads by diffusion is slow over long distances, because the time grows with the square of the distance.
+Along a narrow axon, the characteristic one-dimensional diffusion time grows with distance squared:
 
 > **time to diffuse a distance x ≈ x² / 2D**
 
-Take D as about 10 µm² per second, a typical figure for a protein in cytoplasm. For x = 1 cm, which is 10,000 µm, the time is 5 million seconds, or about 58 days. The survival signal arrives far sooner than that. Something has to be carried, or passed along.
+With a typical cytoplasmic protein diffusion coefficient D ≈ 10 µm²/s, diffusion takes 45 seconds across a 30 µm cell body yet 5 million seconds — about 58 days — across 1 cm (10,000 µm). By contrast, a motor at ~1 µm/s (`t = x / v`) covers 1 cm in 10,000 seconds, under three hours.
+
+**Predict.** If an axon is 10 times longer — 10 cm instead of 1 cm — how much longer does diffusion take, and how much longer does a 1 µm/s motor take?
+
+<details>
+<summary>Check your prediction</summary>
+
+Diffusion scales with x², so 10× distance means 10² = 100× time: roughly 5,800 days (nearly 16 years). Motor transport scales linearly with x, growing only 10-fold to about 28 hours.
+
+</details>
+
+Something must be carried actively, or passed along the axon.
 
 ## The evidence: NGF at the far end is enough
 
-In an ordinary culture dish one fluid bathes the whole neuron, so you cannot ask which part of the cell needs NGF. In 1977 Robert Campenot published a dish that could ask. A barrier sealed to the floor of the dish divides it into chambers. The cell bodies sit in one chamber, their axons grow under the barrier into the next, and the fluid in each chamber can be changed separately.
+In an ordinary culture dish one fluid bathes the whole neuron, so you cannot ask which part needs NGF. In 1977 Robert Campenot sealed a barrier to the dish floor to divide it into chambers: cell bodies sit in one chamber, axons grow under the barrier into the next, and each fluid changes independently.
 
-<LessonFigure src="/figures/long-distance-signaling-in-neurons/campenot-chamber-two-runs.webp" width={1200} height={766} alt="AI-generated illustration: a culture dish divided by a barrier into a cell-body chamber and a far chamber, with axons growing under the barrier. Two insets show NGF removed from the far chamber, where axon tips stop growing, and NGF removed from the cell-body chamber, where axons still grow into NGF." caption="Campenot's divided dish lets the fluid around the cell bodies and the fluid around the axon tips be changed separately. Without NGF at the far end the axons stopped growing and later appeared to degenerate; without NGF at the cell bodies, many neurons survived as long as their axons reached NGF." />
+<LessonFigure src="/figures/long-distance-signaling-in-neurons/campenot-chamber-two-runs.webp" width={1200} height={766} alt="AI-generated illustration: a culture dish divided by a barrier into a cell-body chamber and a far chamber, with axons growing under the barrier. Two insets show NGF removed from the far chamber, where axon tips stop growing, and NGF removed from the cell-body chamber, where axons still grow into NGF." caption="In Campenot's divided dish, many cell bodies survive without local NGF if their axons reach NGF, while axons deprived of local NGF stop growing even when their cell bodies sit in NGF." />
 
-Two runs made the case. When NGF was removed from the far chamber, the axons there stopped growing and later appeared to degenerate, even though the cell bodies behind them were in NGF the whole time. When NGF was removed from the cell bodies instead, many neurons survived, as long as their axons reached a chamber that still had it.
+The first film showed the survival run: many cell bodies given no NGF of their own still survived when their axons reached NGF. Now test the reverse run.
 
-So the part of the neuron that needs NGF is the part at the target. And whatever kept those cell bodies alive had to reach them through the axon, whether carried or relayed, because the barrier kept the fluids apart. This is retrograde signaling: signaling from the axon terminal back to the cell body.
+**Predict.** Keep NGF around the cell bodies, but remove NGF from the far axon chamber. Do those axons keep growing because their cell bodies have NGF, or do they stop?
 
-Where does the signal end up? In David Ginty's laboratory, Antonella Riccio and colleagues applied NGF only to the distal axon, its far end. That activated CREB in the nucleus, the transcription factor you met in the lesson on signaling to the nucleus.
+<details>
+<summary>Check your prediction</summary>
 
-Be exact about what this shows. It shows where the signal ends. On its own it does not show how the signal traveled. In the same paper Riccio and colleagues reported that taking in NGF and TrkA and carrying them to the cell body were required for the signal.
+They stop. Without NGF in the far chamber, those axons stopped growing and later appeared to degenerate, even though their cell bodies sat in NGF the whole time.
+
+</details>
+
+So the part of the neuron that needs NGF is the part at the target. Because the barrier kept fluids apart, whatever saved the cell bodies had to travel inside the axon, carried or relayed — **retrograde signaling**, from axon terminal back to cell body.
+
+Where does that signal end? In David Ginty's laboratory, Antonella Riccio and colleagues applied NGF only to the **distal axon** (its far end) and activated **CREB** in the nucleus, the transcription factor from the lesson on signaling to the nucleus. CREB activation alone shows where the signal ends, not how it traveled. In the same paper, Riccio and colleagues also reported that taking in NGF and TrkA and carrying them to the cell body were required for the signal.
+
+<Support>**The one idea.** Over long axons, dynein carries active signaling endosomes where diffusion fails; to separate courier from relay, test what only one model predicts. A courier carries the receptor the whole way; a relay hands the message from one stretch of axon to the next. **Scope:** This describes the leading model for target-derived NGF in sympathetic neurons; some NGF effects stay local at the tip, other retrograde routes are not ruled out, and synapses also make some proteins on the spot from local mRNA.</Support>
 
 ## The model: the endosome as a parcel
 
-The leading model is the signaling endosome. NGF binds TrkA at the axon tip, and the pair is taken into the cell by endocytosis, the subject of the previous lesson. Look at how the receptor now sits. NGF is inside the vesicle, still held by the part of TrkA that used to face outward. The kinase part of TrkA is on the other side of the vesicle's membrane, in the cytoplasm, where it can go on phosphorylating its partners. The vesicle is a patch of active membrane that can be shipped.
+In the leading model, the carrier is a **signaling endosome**. At the axon tip, NGF binds TrkA and the pair enters by **endocytosis**, the subject of the previous lesson. As the first film showed, membrane folding keeps NGF inside the vesicle lumen — still held by TrkA's formerly outward-facing domain — while TrkA's kinase domain projects into the cytoplasm to keep phosphorylating its partners. The vesicle is a shippable patch of active membrane.
 
-<LessonFigure src="/figures/long-distance-signaling-in-neurons/signaling-endosome-parcel.webp" width={1200} height={544} alt="AI-generated illustration: three steps at an axon tip. NGF binds the TrkA receptor in the membrane, the membrane pinches in around the pair, and a free vesicle carries NGF inside while the kinase part of TrkA faces the cytoplasm and phosphorylates a partner." caption="At the axon tip NGF binds TrkA and the pair is taken in by endocytosis. In the vesicle NGF is inside and the kinase part of TrkA faces the cytoplasm, where it can go on phosphorylating its partners, so the vesicle is a patch of active membrane that can be shipped." />
+<LessonFigure src="/figures/long-distance-signaling-in-neurons/signaling-endosome-parcel.webp" width={1200} height={544} alt="AI-generated illustration: three steps at an axon tip. NGF binds the TrkA receptor in the membrane, the membrane pinches in around the pair, and a free vesicle carries NGF inside while the kinase part of TrkA faces the cytoplasm and phosphorylates a partner." caption="Endocytosis keeps NGF bound inside the vesicle while leaving TrkA's active kinase domain facing the cytoplasm, turning the endosome into a shippable signaling unit." />
 
-Endosomes need motors and roads. The roads are microtubules, long protein filaments whose two ends differ and are called plus and minus. In an axon they all lie the same way round, with their plus ends toward the tip. The kinesins that haul axonal cargo walk toward plus ends, so they carry it out, away from the cell body. Cytoplasmic dynein walks toward minus ends, so it carries cargo back, with the help of a partner complex called dynactin.
+Endosomes ride **microtubules**, polarized protein filaments aligned with **plus** ends toward the tip and **minus** ends toward the cell body. Axonal cargo-hauling **kinesins** walk toward plus ends (outward); **cytoplasmic dynein**, with its partner complex **dynactin**, walks toward minus ends (homeward) at roughly 1 µm/s. In this model the parcel reaches the cell body still signaling, so kinases there can activate transcription factors such as CREB.
 
-A motor-driven vesicle moves at roughly a micrometer per second. At that pace, the centimeter that would take diffusion 58 days takes a motor under three hours.
+Not everything goes home. In Campenot's dish, axons grew only where NGF touched them regardless of cell-body fluid: local axon growth is driven right where NGF binds, by signaling proteins beside TrkA at the tip, while survival requires the nucleus.
 
-In this model the parcel reaches the cell body still signaling, and kinases there pass the message on to transcription factors such as CREB.
-
-Not everything is sent home. In Campenot's dish, axons grew only where NGF touched them, whatever the cell bodies were sitting in. Local mediators? Some of NGF's work is done where it binds, by signaling proteins beside the receptor at the tip. The survival decision is the part that needs the nucleus.
-
-## Carried, or relayed? Why blocking the motor does not settle it
+So over long axons, dynein carries active signaling endosomes where diffusion fails. Yet fast arrival alone cannot tell whether the receptor makes the whole trip or triggers a relay down the axon; to separate courier from relay, test what only one model predicts.
 
 <LessonFilm film={frontmatter.films[0]} />
 
-There is a second way to move a message down an axon. Think of a courier against a bucket brigade. The courier carries one parcel the whole way. In the brigade nobody walks far: each stretch of the axon hands the message to the next stretch, and nothing physical makes the whole journey.
+## Carried, or relayed? Why blocking the motor does not settle it
 
-The popular test is to block dynein. In 2004 Heerssen, Pazyra and Segal found that dynein motors transport activated Trk receptors, and that this transport is needed for the survival of neurons that depend on their target. That is real evidence for a courier.
+There is a second way to move a message down an axon. Think of a courier against a bucket brigade. The courier carries one parcel the whole way. In the brigade nobody walks far: each stretch of the axon hands the message to the next stretch, and nothing physical makes the whole journey. The second film showed why disabling dynein stops both; here is the evidence behind that logic.
 
-A brigade would fail the same test, though. Suppose each stretch of the axon needs dynein-driven transport for its own local step. Then blocking dynein stops the brigade as completely as it stops the courier.
+In 2004 Heerssen, Pazyra and Segal found that dynein transports activated Trk receptors and is required for the survival of target-dependent neurons — real evidence for a courier, yet inconclusive if local steps of a relay also use dynein.
 
-Two alternatives to a carried NGF-TrkA complex had been proposed: a relay along the axon, and a signal that reaches the cell body while NGF itself stays behind. In 2003 Ye, Kuruvilla, Zweifel and Ginty tested these alternatives directly. Survival needed TrkA kinase activity at the axon tip and in the cell body, but blocking TrkA only in the middle stretch of the axon changed neither TrkA signaling in the cell body nor survival, which a relay along the axon would not survive. NGF had to be internalized, and neutralizing the NGF that arrived in the cell bodies took survival away. Together these results argued against a propagated wave and against a signal that leaves NGF behind, and supported a carried NGF-TrkA complex. Later work, which followed single NGF-carrying endosomes along axons and the steps that ready TrkA endosomes for transport, built on it, and the signaling endosome is the leading account. The design problem below asks which experiments could do that.
+Two alternatives to a carried NGF–TrkA complex had been proposed: a relay propagating TrkA kinase activity along the axon, and a retrograde signal reaching the cell body while NGF stays behind. In 2003 Ye, Kuruvilla, Zweifel and Ginty tested both in compartmented cultures, blocking TrkA at the axon tips, in the cell bodies, or only in the middle stretch of the axon near the cell body:
 
-Here is the score. Settled: NGF at the terminal is enough to support the neuron, a signal from the terminal reaches the nucleus, and dynein carries activated receptors that survival depends on. Not settled: whether the carried receptor is the only route, and whether one kind of parcel does every job NGF asks for.
+| Perturbation | Carried NGF–TrkA endosome predicts | Propagated TrkA relay predicts | Observed (Heerssen et al., 2004; Ye et al., 2003) |
+|---|---|---|---|
+| Disable dynein | Survival fails | Survival fails (if local steps need dynein) | Survival fails — inconclusive |
+| Block TrkA at tip or cell body | Survival fails | Survival fails | Survival fails — needed at both ends |
+| Block TrkA only in middle axon | Dynein carries endosome through with NGF bound; TrkA can signal again in drug-free cell body (survives) | TrkA-activity chain breaks in middle (fails) | Cell-body TrkA signaling and survival spared |
+| Neutralize NGF in cell body | Carried NGF is needed at cell body (fails) | Signal left NGF behind (survives) | Survival fails |
+
+Ye and colleagues also showed that NGF had to be internalized at the tip. Together with neutralizing NGF at the cell body, these results argued against both a propagated TrkA wave and an NGF-free retrograde signal. Later work tracked single NGF-carrying endosomes and the steps readying TrkA endosomes for transport, making the signaling endosome the leading account.
+
+**Predict.** Suppose you label TrkA on the axon surface only, add NGF, and hours later see labeled TrkA in the cell body. Why does that observation alone not prove the carried receptor keeps the neuron alive?
+
+<details>
+<summary>Check your prediction</summary>
+
+Arrival shows that the trip happens, not that it is necessary for survival. Proving necessity requires blocking what arrives — as Ye and colleagues did by neutralizing NGF in the cell bodies.
+
+</details>
+
+Here is the score. **Settled:** NGF at the terminal supports the neuron, a signal reaches the nucleus, and dynein carries activated receptors that survival depends on. **Not settled:** whether the carried receptor is the only route, and whether one kind of parcel does every job NGF asks for.
 
 ## Two more answers to distance, and a road that fails
 
+Because diffusion fails over neuronal distances, neurons also carry signaling endosomes on past the cell body into dendrites, or make protein at the synapse from local mRNA — and they suffer when the motor roads fail.
+
 ### See where the endosome ends up
 
-A sympathetic neuron is also a listener. Neurons in the spinal cord make synapses, the contacts where one neuron signals to the next, on the sympathetic neuron's dendrites, the short branches that collect input. In 2010 Sharma, Deppmann, Harrington and colleagues asked whether NGF from the distant target controls those synapses too. They studied mice that lack NGF and also lack BAX, the death protein from the lesson on apoptosis, so that the neurons live without their survival signal and their synapses can be examined. NGF turned out to be needed for those synapses to form.
+A sympathetic neuron is also a listener: spinal cord neurons form **synapses** (contacts where one neuron signals to the next) on its **dendrites** (short branches that collect input). In 2010 Sharma, Deppmann, Harrington and colleagues asked whether target-derived NGF controls those synapses too.
 
-How does NGF-TrkA control this? The group grew neurons in a microfluidic chamber, a small relative of Campenot's dish developed by Noo Li Jeon, using TrkA that carries a tag called Flag. After NGF was given to the axons, tagged TrkA appeared as dots in the dendrites over the next six hours, and the group compared that with the clustering there of postsynaptic proteins, the ones on the receiving side of a synapse. A long-distance relationship? The message that the axon has found its target reaches the side of the cell that receives input.
+**Predict.** Simply knocking out the NGF gene in mice fails before you can inspect the synapses. Why, and what second deletion rescues the experiment?
+
+<details>
+<summary>Check your prediction</summary>
+
+Without NGF, sympathetic neurons die by apoptosis before their synapses can be examined. Deleting **BAX** (the death protein from the lesson on apoptosis) alongside NGF lets the neurons live without NGF so their synapses can be tested.
+
+</details>
+
+In mice lacking both NGF and BAX, NGF was required for sympathetic synapses to form. Using a **microfluidic chamber** (a small relative of Campenot's dish developed by Noo Li Jeon) and **Flag**-tagged TrkA, the group gave NGF to axons only and watched tagged TrkA appear as dots in dendrites over the next six hours, and compared that with the clustering there of **postsynaptic proteins** (on the receiving side of a synapse). Target news from the axon reaches the neuron's input side.
 
 ### Make it where you need it
 
-A dendrite has its own distance problem. A synapse can sit a long way from the nucleus, and some changes at a synapse need new protein soon after the signal arrives. Erin Schuman found that the neuron does not ship everything. With Hyejin Kang she applied the growth factor BDNF to slices of hippocampus, a region of the brain, and synapses strengthened. Then they cut the slices so that the synapses were separated from the cell bodies of their own neurons. BDNF still strengthened them, and the effect still depended on protein synthesis. Imaging has since shown a new protein appearing in dendrites, and transcriptome studies have found many different mRNAs in the dendrites and axons of the neuropil, the mesh of fibers where the synapses lie.
+Dendrites face their own distance problem when a synapse needs new protein quickly. Erin Schuman and Hyejin Kang applied **BDNF** to slices of **hippocampus** (a brain region), strengthening synapses. They then cut the slices to separate those synapses from their own cell bodies, and BDNF still strengthened them.
+
+**Predict.** In that cut strip, how could you test whether strengthening needs *newly made* protein rather than modifying proteins already at the synapse?
+
+<details>
+<summary>Check your prediction</summary>
+
+Add a drug that stops ribosomes before BDNF. When Kang and Schuman blocked protein synthesis, BDNF no longer strengthened the cut strip — showing the required protein was translated locally.
+
+</details>
+
+Imaging has since watched a new protein appear in dendrites, and transcriptome studies found many different mRNAs in the dendrites and axons of the **neuropil** (the mesh of fibers where synapses lie).
 
 ### When the road fails
 
-A cell built this way depends on its motors. Mutations in DCTN1, the gene for a subunit of dynactin, are found in people whose motor neurons, the neurons that drive muscle, degenerate. Two mouse mutants, Loa and Cra1, carry point mutations in the dynein heavy chain and show nerve loss whose pattern differs with the mutation and the mouse strain. Transport defects have been reported in ALS, a disease of motor neurons, and in Huntington's, Parkinson's and Alzheimer's diseases, although a defect that accompanies a disease is not proof that it causes it. One case names the cargo. In a mouse model of Down's syndrome that carries an extra copy of App, the gene for the amyloid precursor protein, Salehi and colleagues found that the raised expression of App disrupts the transport of NGF.
+Relying on microtubule motors leaves neurons with the longest axons the least margin. Mutations in **DCTN1** (a dynactin subunit) appear in people whose **motor neurons** (neurons that drive muscle) degenerate. Two mouse mutants, **Loa** and **Cra1**, carry dynein heavy-chain point mutations and show nerve loss whose pattern differs with mutation and strain (see *Going deeper*). Transport defects are reported in **ALS** (a motor-neuron disease) and in Huntington's, Parkinson's and Alzheimer's diseases, although accompanying a disease is not proof of cause. One case names the cargo: in a mouse model of Down's syndrome carrying an extra copy of **App** (amyloid precursor protein), Salehi and colleagues found that raised expression of App disrupts NGF transport.
 
 ### Design problem
 
-Two models explain how a survival signal gets from the axon tip to the nucleus. In the first, the receptor itself travels the whole way inside a vesicle. In the second, the receptor stays at the tip and a chain of kinases passes the message along. Design an experiment that could tell them apart. Say first why a drug that stops the dynein motor cannot do it.
+Suppose a newly discovered growth factor binds a receptor tyrosine kinase at the tip of a long axon and activates survival genes in the nucleus. Two models could explain transport: either the receptor travels the whole way in a vesicle, or it stays at the tip and a kinase chain relays the signal. Design an experiment to separate them, and say first why stopping dynein cannot do it.
 
 <details>
 <summary>One way to do it</summary>
 
-Why the drug fails: both models can need the motor. A courier vesicle needs dynein for the whole trip. A relay could need dynein for each short local step. Stop dynein and both stop, so the result cannot choose.
+Stopping dynein fails because both models can need it: a courier for the whole trip, or a relay for each local step. Both stop, so death cannot choose.
 
-Ask instead what only one model predicts.
+Test what only one model predicts:
 
-1. Mark the receptor at the tip. In a compartmented culture, label TrkA on the axon side only, then look for the label in the cell body. The courier model says it arrives. The relay model says it stays at the tip.
-2. Compare speeds. See whether a response near the nucleus appears when a motor-driven vesicle would arrive, or sooner. Timing alone is hard to read. It needs the cargo tracked at the same time.
-3. Break the middle of the chain. Add an inhibitor of the TrkA kinase only to the stretch of axon between the tip and the cell body. A relay that passes TrkA activity along the axon has to go through that stretch, so it should fail. A courier only passes through on its way home. Ye and colleagues (2003) did this, and survival and TrkA signaling in the cell bodies were unaffected. They also found that survival needed TrkA kinase activity at the tip and in the cell bodies, and that neutralizing NGF in the cell-body chamber took survival away.
-
-A caution on step 1: a labeled receptor arriving shows that the trip happens. It does not show that the trip matters. For that you have to block what arrives, as Ye and colleagues did when they neutralized NGF at the cell bodies.
+1. **Mark the receptor at the tip.** Label the receptor on the axon side only in a compartmented dish, then look for the label in the cell body (courier: arrives; relay: stays at tip). Caution: arrival shows the trip happens, not that it matters — for necessity, block what arrives (as Ye et al. did by neutralizing NGF in the cell bodies).
+2. **Compare speeds while tracking cargo.** Check whether the nuclear response appears when a motor vesicle would arrive or sooner, paired with live cargo tracking.
+3. **Break the middle of the chain.** Add a kinase inhibitor only to the middle axon stretch. A kinase relay dies there; a courier passes through with ligand bound and signals again in the drug-free cell body (as Ye et al., 2003, showed for TrkA and NGF, alongside tip/cell-body TrkA requirement and cell-body NGF neutralization).
 
 </details>
 
@@ -488,7 +553,7 @@ A caution on step 1: a labeled receptor arriving shows that the trip happens. It
 
 ### The relay proposal and the timing evidence
 
-In 1997 Senger and Campenot found TrkA phosphorylated in the cell bodies within a minute of NGF reaching the distal axons, long before labeled NGF arrived, and suggested that part of the signal travels by propagation. In 2002 MacInnis and Campenot reported in Science that retrograde signals can support neuron survival without retrograde transport of NGF itself. That result says NGF need not make the trip. It does not say what carried the signal instead. Watson and colleagues (1999) then followed a tagged Trk receptor in living sensory neurons and concluded that the fast signal was the receptor itself, moving along microtubules. The 2003 paper by Ye and colleagues is titled "Evidence in support of signaling endosome-based retrograde survival of sympathetic neurons", which states its conclusion modestly.
+In 1997 Senger and Campenot found TrkA phosphorylated in the cell bodies within a minute of NGF reaching the distal axons, long before labeled NGF arrived, and suggested that part of the signal travels by propagation. In 2002 MacInnis and Campenot reported in Science that retrograde signals can support neuron survival without retrograde transport of NGF itself. That result says NGF need not make the trip; it does not say what carried the signal instead. Watson and colleagues (1999) then followed a tagged Trk receptor in living sensory neurons and concluded that the fast signal was the receptor itself, moving along microtubules. The 2003 paper by Ye and colleagues is titled "Evidence in support of signaling endosome-based retrograde survival of sympathetic neurons", which states its conclusion modestly.
 
 ### Dates and counts for local synthesis
 
@@ -497,4 +562,3 @@ Kang and Schuman published the slice result in 1996. In 2001 her laboratory watc
 ### Loa and Cra1
 
 Loa and Cra1 were first reported to lose motor neurons, although later studies found mainly sensory-axon loss, with motor-neuron and neuromuscular-junction findings that differ with the mutation and the mouse strain.
-

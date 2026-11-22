@@ -941,9 +941,12 @@ class S14Late(SpokenScene):
         self.finish()
 
 
-LQ0 = -5.5      # lever plot: x of cycle 1
-LQD = 0.55      # lever plot: x step per cycle
-BASE = -2.0
+LQ0 = -5.4      # lever plot: x of cycle 1
+LQD = 0.56      # lever plot: x step per cycle
+Q_BASE = 0.65   # lever Q-plot baseline y
+Q_TOP = 2.85    # lever Q-plot top y (Q = 1)
+P_BASE = -2.35  # lever pool-plot & bar-chart baseline y
+P_TOP = -0.15   # lever pool-plot top y (65 cells)
 
 
 def lx(c):
@@ -951,7 +954,11 @@ def lx(c):
 
 
 def ly(q):
-    return BASE + 4.9 * q
+    return Q_BASE + (Q_TOP - Q_BASE) * q
+
+
+def lyp(v):
+    return P_BASE + (P_TOP - P_BASE) * (v / 65.0)
 
 
 def lever_curve(shift):
@@ -960,66 +967,149 @@ def lever_curve(shift):
 
 
 def lever_dots(shift):
-    return VGroup(*[Dot([lx(c), ly(qfun(c, shift)), 0], radius=0.09, color=GREEN) for c in range(1, 12)])
+    return VGroup(*[Dot([lx(c), ly(qfun(c, shift)), 0], radius=0.075, color=GREEN) for c in range(1, 12)])
 
 
-BX0, BX1, BW, BH0 = 2.9, 5.5, 1.5, 2.2
+def pool_lever_curve(series, color=BLUE, width=5):
+    return poly([[lx(c), lyp(series[c - 1]), 0] for c in range(1, 12)], color, width)
+
+
+def pool_lever_dots(series, color=BLUE):
+    return VGroup(*[Dot([lx(c), lyp(series[c - 1]), 0], radius=0.075, color=color) for c in range(1, 12)])
+
+
+BX0, BX1, BW, BH0 = 2.85, 5.15, 1.35, 2.35
 
 
 def bar(x, h, color=GREEN, w=BW):
     return Rectangle(width=w, height=h, stroke_color=color, stroke_width=3, fill_color=color,
-                     fill_opacity=0.5).move_to([x, BASE + h / 2, 0])
+                     fill_opacity=0.5).move_to([x, P_BASE + h / 2, 0])
 
 
 def two_lines(a, b, size, color, x, y):
     return VGroup(T(a, size, color), T(b, size, color)).arrange(DOWN, buff=0.06).move_to([x, y, 0])
 
 
+POOL1, _, _, _ = run_model(1)
+
+
 class S15Lever(SpokenScene):
     def construct(self):
-        ax = Line([-6.0, ly(0), 0], [-6.0, ly(1) + 0.05, 0], color=GREY, stroke_width=3)
-        base = Line([-6.0, ly(0), 0], [0.4, ly(0), 0], color=GREY, stroke_width=3)
-        halfl = DashedVMobject(Line([-6.0, ly(0.5), 0], [0.4, ly(0.5), 0], color=GREY, stroke_width=2.5), num_dashes=24)
-        ticks = VGroup(*[Line([lx(c), ly(0), 0], [lx(c), ly(0) - 0.12, 0], color=GREY, stroke_width=3) for c in range(1, 12)])
-        labs = VGroup(T("0", 26, GREY).move_to([-6.4, ly(0), 0]), T("0.5", 26, GREY).move_to([-6.45, ly(0.5), 0]),
-                      T("1", 26, GREY).move_to([-6.4, ly(1), 0]),
-                      T("1", 26, GREY).move_to([lx(1), ly(0) - 0.45, 0]), T("6", 26, GREY).move_to([lx(6), ly(0) - 0.45, 0]),
-                      T("11", 26, GREY).move_to([lx(11), ly(0) - 0.45, 0]),
-                      T("cycle", 26, GREY).move_to([lx(6), ly(0) - 0.9, 0]))
-        qn = T("Q", 34, GREEN, weight=BOLD).move_to([-6.0, ly(1) + 0.5, 0])
-        curve, dts = lever_curve(0), lever_dots(0)
-        cross = DashedVMobject(Line([lx(7.5), ly(0), 0], [lx(7.5), ly(1) + 0.1, 0], color=GOLD, stroke_width=4), num_dashes=18)
-        cl = T("Q = 0.5", 26, GOLD).move_to([lx(7.5), ly(1) + 0.5, 0])
+        # Top-left: Q schedule plot (cycles 1..11)
+        q_ax = Line([-5.8, ly(0), 0], [-5.8, ly(1) + 0.05, 0], color=GREY, stroke_width=3)
+        q_base = Line([-5.8, ly(0), 0], [0.45, ly(0), 0], color=GREY, stroke_width=3)
+        q_half = DashedVMobject(Line([-5.8, ly(0.5), 0], [0.45, ly(0.5), 0], color=GREY, stroke_width=2.5), num_dashes=24)
+        q_ticks = VGroup(*[Line([lx(c), ly(0), 0], [lx(c), ly(0) - 0.09, 0], color=GREY, stroke_width=2.5) for c in range(1, 12)])
+        q_labs = VGroup(T("0", 24, GREY).move_to([-6.2, ly(0), 0]),
+                        T("0.5", 24, GREY).move_to([-6.25, ly(0.5), 0]),
+                        T("1", 24, GREY).move_to([-6.2, ly(1), 0]))
+        qn = T("Q", 32, GREEN, weight=BOLD).move_to([-5.8, ly(1) + 0.42, 0])
+
+        # Bottom-left: Pool curve plot (cycles 1..11, y = 0..65)
+        p_ax = Line([-5.8, lyp(0), 0], [-5.8, lyp(65), 0], color=GREY, stroke_width=3)
+        p_base = Line([-5.8, lyp(0), 0], [0.45, lyp(0), 0], color=GREY, stroke_width=3)
+        p_grid = VGroup(*[Line([-5.8, lyp(v), 0], [0.45, lyp(v), 0], color=GREY, stroke_width=1.5, stroke_opacity=0.28)
+                          for v in (30, 60)])
+        p_ticks = VGroup(*[Line([lx(c), lyp(0), 0], [lx(c), lyp(0) - 0.1, 0], color=GREY, stroke_width=2.5) for c in range(1, 12)])
+        p_labs = VGroup(T("0", 24, GREY).move_to([-6.2, lyp(0), 0]),
+                        T("30", 24, GREY).move_to([-6.25, lyp(30), 0]),
+                        T("60", 24, GREY).move_to([-6.25, lyp(60), 0]),
+                        T("1", 24, GREY).move_to([lx(1), lyp(0) - 0.38, 0]),
+                        T("6", 24, GREY).move_to([lx(6), lyp(0) - 0.38, 0]),
+                        T("11", 24, GREY).move_to([lx(11), lyp(0) - 0.38, 0]),
+                        T("cycle", 24, GREY).move_to([lx(6), lyp(0) - 0.72, 0]))
+        p_title = left_at(T("dividing pool", 28, BLUE), -5.65, 0.22)
+
+        # Baseline curves & crossing
+        q_curve = lever_curve(0)
+        q_dts = lever_dots(0)
+        p_curve = pool_lever_curve(POOL, BLUE, 5)
+        p_dts = pool_lever_dots(POOL, BLUE)
+        cross = DashedVMobject(Line([lx(7.5), ly(0), 0], [lx(7.5), ly(1) + 0.08, 0], color=GOLD, stroke_width=4), num_dashes=12)
+        cl = T("Q = 0.5", 26, GOLD).move_to([lx(7.5), ly(1) + 0.42, 0])
         crossg = VGroup(cross, cl)
-        self.play(FadeIn(VGroup(ax, base, halfl, ticks, labs, qn)), run_time=0.5)
-        self.play(Create(curve), FadeIn(dts), run_time=0.8)
-        self.play(FadeIn(crossg), run_time=0.4)
-        hd = T("total neurons", 32, GREEN).move_to([4.2, 3.3, 0])
+
+        # Right: Total neurons bar chart
+        bar_base = Line([1.85, P_BASE, 0], [6.15, P_BASE, 0], color=GREY, stroke_width=3)
+        hd = T("total neurons", 30, GREEN).move_to([4.0, 3.15, 0])
         b0 = bar(BX0, BH0)
-        v0 = T("about 150", 28, GREEN).move_to([BX0, BASE + BH0 + 0.4, 0])
-        l0 = two_lines("crossing at", "cycle 7.5", 26, GREY, BX0, BASE - 0.75)
-        self.at("In this model")
-        self.play(FadeIn(hd), GrowFromEdge(b0, DOWN), FadeIn(v0), FadeIn(l0), run_time=0.9)
-        l1 = two_lines("crossing one", "cycle later", 26, GREY, BX1, BASE - 0.75)
+        l0 = two_lines("earlier", "crossing", 24, GREY, BX0, P_BASE - 0.48)
+
+        self.play(
+            FadeIn(VGroup(q_ax, q_base, q_half, q_ticks, q_labs, qn)),
+            FadeIn(VGroup(p_ax, p_base, p_grid, p_ticks, p_labs, p_title)),
+            Create(q_curve), FadeIn(q_dts),
+            Create(p_curve), FadeIn(p_dts),
+            FadeIn(crossg),
+            FadeIn(VGroup(bar_base, hd, l0)), GrowFromEdge(b0, DOWN),
+            run_time=0.7,
+        )
+
+        # Beat 1: Moving the crossing one cycle later
+        q_curve2, q_dts2 = lever_curve(1), lever_dots(1)
+        q_ghost = DashedVMobject(lever_curve(0).copy(), num_dashes=26).set_stroke(color=GREEN, opacity=0.35)
+        cross_ghost = cross.copy().set_stroke(opacity=0.35)
         b1 = bar(BX1, BH0)
-        self.at("moving the crossing")
-        self.play(FadeIn(l1), GrowFromEdge(b1, DOWN), run_time=0.6)
+        l1 = two_lines("1 cycle", "later", 24, GREY, BX1, P_BASE - 0.48)
+
         self.at("one cycle later")
-        curve2, dts2 = lever_curve(1), lever_dots(1)
+        self.add(q_ghost, cross_ghost)
+        self.play(
+            Transform(q_curve, q_curve2),
+            Transform(q_dts, q_dts2),
+            crossg.animate.shift(RIGHT * LQD),
+            FadeIn(l1), GrowFromEdge(b1, DOWN),
+            run_time=0.85,
+        )
+
+        # Beat 2: adds an early round where nearly every daughter stays
+        band = Rectangle(
+            width=LQD, height=Q_TOP - Q_BASE, stroke_width=0, fill_color=GOLD, fill_opacity=0.18
+        ).move_to([(lx(7.5) + lx(8.5)) / 2, (Q_BASE + Q_TOP) / 2, 0])
+        shift_arr = arr([lx(7.5), ly(0.86), 0], [lx(8.5), ly(0.86), 0], GOLD, 4, 0.16)
+        plus_tag = tb("+1 cycle", 24, GOLD).move_to([lx(6.3), ly(0.86), 0])
+        early_hl = SurroundingRectangle(VGroup(*p_dts[:5]), color=GOLD, buff=0.08, stroke_width=2.5, corner_radius=0.1)
+        early_tag = tb("extra doubling round", 24, GOLD).move_to([-3.85, -0.92, 0])
+
+        self.at("adds an early round")
+        self.play(FadeIn(band), GrowArrow(shift_arr), FadeIn(plus_tag), Create(early_hl), FadeIn(early_tag), run_time=0.9)
+
+        stay_tag = tb("nearly all stay", 26, GOLD).move_to([lx(3.1), ly(0.30), 0])
+        self.at("nearly every daughter stays")
+        self.play(FadeIn(stay_tag), *[Indicate(d, color=GOLD, scale_factor=1.35) for d in q_dts[:5]], run_time=0.9)
+
+        # Beat 3: In this model, that roughly doubles the pool
+        p_ghost = DashedVMobject(pool_lever_curve(POOL, BLUE, 4), num_dashes=26).set_stroke(color=BLUE, opacity=0.4)
+        p_curve2 = pool_lever_curve(POOL1, BLUE, 5)
+        p_dts2 = pool_lever_dots(POOL1, BLUE)
+
+        self.at("In this model")
+        self.add(p_ghost)
+        self.play(FadeOut(early_hl), FadeOut(early_tag), Transform(p_curve, p_curve2), Transform(p_dts, p_dts2), run_time=1.05)
+
+        y_pk0 = lyp(max(POOL))
+        y_pk1 = lyp(max(POOL1))
+        pk0_ln = DashedVMobject(Line([lx(8), y_pk0, 0], [-3.0, y_pk0, 0], color=GOLD, stroke_width=2.5), num_dashes=14)
+        pk1_ln = DashedVMobject(Line([lx(9), y_pk1, 0], [-3.0, y_pk1, 0], color=GOLD, stroke_width=2.5), num_dashes=16)
+        pk_arr = arr([-3.1, y_pk0, 0], [-3.1, y_pk1, 0], GOLD, 5, 0.18)
+        pk_lab = tb("about 2×", 28, GOLD).move_to([-4.35, (y_pk0 + y_pk1) / 2, 0])
+
+        self.at("roughly doubles")
+        self.play(Create(pk0_ln), Create(pk1_ln), GrowArrow(pk_arr), FadeIn(pk_lab, shift=UP * 0.08), run_time=0.75)
+
+        # Beat 4: nearly doubling the neurons
         h1 = BH0 * RATIO
         b1t = bar(BX1, h1)
-        ghost = crossg.copy()
-        ghost.set_stroke(opacity=0.35)
-        ghost[1].set_opacity(0)
-        self.add(ghost)
-        self.play(Transform(curve, curve2), Transform(dts, dts2), crossg.animate.shift(RIGHT * LQD), Transform(b1, b1t),
-                  run_time=1.2)
-        v1 = T("about 1.8×", 28, GREEN).move_to([BX1, BASE + h1 + 0.4, 0])
-        self.at("nearly doubles")
-        self.play(FadeIn(v1, shift=UP * 0.1), run_time=0.6)
-        tg = T("same eleven cycles · about a dozen cells still dividing", 26, LGREY).move_to([0.2, -3.5, 0])
+        v1 = T("about 1.8×", 28, GREEN).move_to([BX1, P_BASE + h1 + 0.35, 0])
+
+        self.at("nearly doubling")
+        self.play(Transform(b1, b1t), run_time=0.65)
+        self.play(FadeIn(v1, shift=UP * 0.08), run_time=0.4)
+
+        # Beat 5: over the same 11 cycles
+        tg = T("same eleven cycles · about a dozen cells still dividing", 24, LGREY).move_to([0.0, -3.52, 0])
         self.at("over the same")
-        self.play(FadeIn(tg), run_time=0.6)
+        self.play(FadeIn(tg), run_time=0.4)
         self.finish()
 
 

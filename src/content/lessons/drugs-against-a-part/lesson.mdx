@@ -5,11 +5,12 @@ course: "signaling"
 courseChapter: "Cell Signaling · Unit 8: Evolution, disease and tools"
 order: 142
 summary: >-
-  A targeted drug acts on one named part of a signalling pathway. This lesson sorts such drugs by
-  where on the part they land: in a receptor's own site, on a receptor's outer face, in a kinase's
-  ATP pocket, beside an active site, or bonded to a residue that only a mutant protein has. You
-  will be able to say why selectivity was hard, how a tumour escapes a drug, and how the next drug
-  is designed from the escape.
+  Where a drug binds shapes selectivity, and escape guides the next drug; new sites and covalent
+  bonds bypass competition, yet networks push back. This lesson sorts targeted drugs by where on a
+  signalling part they land: in a receptor's own site, on a receptor's outer face, in a kinase's
+  ATP pocket, beside an active site, or covalently bonded to a mutant residue. You will be able to
+  explain why kinase selectivity was hard, how a tumour escapes a drug and specifies the next one,
+  how K-Ras G12C was reached, and why the surrounding network still responds.
 hook: "About five hundred human kinases hold ATP in nearly the same pocket. How do you drug just one?"
 
 estMinutes: 24
@@ -23,10 +24,15 @@ explainer:
   src: "/explainers/drugs-against-a-part/explainer.mp4"
   captions: "/explainers/drugs-against-a-part/explainer.vtt"
   poster: "/explainers/drugs-against-a-part/poster.jpg"
-  title: "Read the Escape, Design the Next Drug"
-  durationSec: 134.1
-  narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+  title: "Selectivity and Escape at One Pocket"
+  durationSec: 198.1
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+  takeaways:
+    - "Where a drug binds shapes selectivity, and escape guides the next drug."
+    - "Imatinib achieves selectivity in two layers: fitting an idle shape shared by a short list of kinases, and hitting BCR-ABL in leukaemia cells that depend on it."
+    - "Normal cells also use ABL, the PDGF receptor and KIT, so therapeutic selectivity rests on target dependence, and normal-tissue injury can still occur."
+    - "A gatekeeper mutation such as T315I blocks imatinib while leaving ATP catalysis intact, which is strong evidence of the target and guides a redesigned drug such as ponatinib."
 
 scientists:
   - name: "James Black"
@@ -379,56 +385,80 @@ corpusTags:
   - "covalent-inhibitors"
 draft: false
 films:
-  - id: "covalent"
-    src: "/explainers/drugs-against-a-part/covalent.mp4"
-    captions: "/explainers/drugs-against-a-part/covalent.vtt"
-    poster: "/explainers/drugs-against-a-part/covalent-poster.jpg"
-    title: "A Bond to the Mutation Itself"
-    durationSec: 114.3
-    narration: "an AI narrator voice (ElevenLabs, Sarah) reading narration written from this lesson's text"
+  - id: "chapter-2"
+    src: "/explainers/drugs-against-a-part/chapter-2.mp4"
+    captions: "/explainers/drugs-against-a-part/chapter-2.vtt"
+    poster: "/explainers/drugs-against-a-part/chapter-2-poster.jpg"
+    title: "Beyond the Pocket, Against the Network"
+    durationSec: 205.7
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
     aiGenerated: true
+    takeaways:
+      - "New sites and covalent bonds bypass competition, yet networks push back."
+      - "Reversible drugs fail in Ras's GTP pocket because GTP sits near half a millimolar and binds picomolar-tight, an overwhelming concentration-to-Kd advantage."
+      - "Sotorasib avoids competition by filling an induced pocket beside the nucleotide site in GDP-bound K-Ras G12C and bonding covalently to mutant cysteine 12."
+      - "Signalling networks answer any block by reloading GTP onto Ras, relieving negative feedback, or amplifying a bypass receptor such as MET."
 ---
 
 import LessonFilm from '../../../components/LessonFilm.astro';
-
 import DrugAndEscape from '../../../components/DrugAndEscape.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
 
-**In 2001 a capsule aimed at one enzyme, out of about five hundred human enzymes that share its pocket, was approved for a leukaemia. That same year a laboratory read, from the blood of patients who had relapsed, how the leukaemia was getting around it.**
-
-Every pathway in this course is a chain of parts: a receptor, a switch, a kinase, a docking site. A targeted drug is a molecule made to act on one of those parts. This lesson sorts such drugs by where on the part they land, because the landing place shapes how selective a drug can be and how a disease will escape it. Dependence on the target, drug exposure and the rest of the network matter too.
+**In 2001 a capsule aimed at one enzyme, out of about five hundred human enzymes that share its pocket, was approved for a leukaemia—and that same year a laboratory read, from relapsed patients' blood, how the leukaemia got around it.** Every pathway in this course is a chain of parts: a receptor, a switch, a kinase, a docking site. A **targeted drug** acts on one named part, and where it lands shapes both selectivity and escape.
 
 ## A decoy in the receptor: fit without the push
 
-Some of the first drugs designed against a signalling part were aimed at something nobody had seen. In 1948 Raymond Ahlquist sorted the actions of adrenaline-like compounds into two families by their order of potency on tissues, and named two receptor types, alpha and beta. No hormone receptor had been purified. James Black joined ICI Pharmaceuticals in 1958 with a plan for angina, the chest pain of a heart whose arteries have narrowed: make the heart respond less to adrenaline, so that it asks for less oxygen.
+Some of the first designed signalling drugs aimed at a receptor nobody had purified. In 1948 Raymond Ahlquist sorted adrenaline-like compounds by their order of potency across tissues and defined two receptor types, alpha and beta. In 1958 James Black joined ICI Pharmaceuticals with a plan for angina, the chest pain of a heart with narrowed arteries: blunt the heart's response to adrenaline so it asks for less oxygen.
 
-A known compound, dichloroisoprenaline, showed the difficulty. In some of the group's tests it blocked the heart's response to adrenaline, and in others it acted as a stimulant itself, depending on the tissue. The chemist John Stephenson proposed swapping its ring for a naphthyl group. In the group's tests the new compound, pronethalol, blocked the receptor without stimulating it. A safer successor, propranolol, followed.
+An existing compound, dichloroisoprenaline, showed the catch: in some tests it blocked adrenaline at the heart, yet in others it acted as a stimulant itself, depending on the tissue. John Stephenson proposed swapping its catechol ring for a naphthyl group. The new compound, **pronethalol**, blocked without stimulating; a safer successor, **propranolol**, followed. Black later applied the same idea to histamine receptors in the stomach lining, yielding the ulcer drug **cimetidine**.
 
-The result means that fitting a receptor and switching it on are separable properties. The lesson on binding and dose-response calls them affinity and efficacy, and calls a molecule with the first and without the second an antagonist. Picture a key that goes into a lock and will not turn: while it sits there, the right key cannot get in. Black later did the same at the histamine receptor of the stomach lining, which led to the ulcer drug cimetidine.
+That separated two properties from the lesson on binding and dose-response: **affinity** (how tightly a molecule fits the site) and **efficacy** (how strongly it switches the receptor on). A molecule with affinity and without agonist efficacy is an **antagonist**—a key that enters a lock and will not turn, keeping adrenaline out (see *Going deeper* for propranolol's resting-state activity).
 
-<LessonFigure src="/figures/drugs-against-a-part/fit-without-push.webp" width={1200} height={800} alt="AI-generated illustration: two copies of a receptor in a membrane. Left, adrenaline sits in the binding site, the inside part of the receptor changes shape, and an arrow leads to 'Signal'. Right, propranolol sits in the same site, the receptor keeps its resting shape, adrenaline floats above unable to enter, and a dashed empty box reads 'No signal'." caption="Fitting a receptor and switching it on are separable. An antagonist such as propranolol sits in the receptor's own site without switching it on, and while it is there adrenaline cannot get in." />
+**Predict.** A compound binds the beta receptor tightly, blocking adrenaline, yet shifts it partway active on its own. In a resting heart with little adrenaline, does it slow or speed the heart?
 
-That is the first class: **a molecule that sits in a receptor's own site and does not switch it on.**
+<details>
+<summary>Check your prediction</summary>
 
-## One pocket, five hundred kinases: "Highly Conserved-- target for lots of drugs"
+Speeds it: partial efficacy stimulates receptors when adrenaline is scarce, as dichloroisoprenaline did in some tissues.
 
-Many human kinases have been linked to disease. That is the case for kinase drugs. The case against was the first half of this section's heading. Every protein kinase runs the same reaction, moving the end phosphate of ATP onto a protein, so the pocket that holds ATP looks much alike across about five hundred human kinases. Around 1990 the reasonable expectation was that a molecule shaped to jam that pocket in one kinase would jam it in dozens.
+</details>
 
-The test case was chronic myeloid leukaemia, a cancer of white blood cells. Its cause is a fusion of two genes whose product, BCR-ABL, is a tyrosine kinase that is always on and that healthy blood cells do not normally have. At Ciba-Geigy in Basel a group that included the chemist Juerg Zimmermann was changing single groups on one core structure to shift its preference from kinase to kinase. One added methyl group removed its activity against protein kinase C while keeping it active against ABL. Elisabeth Buchdunger's pharmacology showed what the resulting compound hit: ABL and the PDGF receptor, and later KIT, with the EGF and insulin receptors barely touched. In Brian Druker's cultures in Oregon it blocked the growth of BCR-ABL leukaemia cells and left normal colonies alive. The compound became imatinib.
+<LessonFigure src="/figures/drugs-against-a-part/fit-without-push.webp" width={1200} height={800} alt="AI-generated illustration: two copies of a receptor in a membrane. Left, adrenaline sits in the binding site, the inside part of the receptor changes shape, and an arrow leads to 'Signal'. Right, propranolol sits in the same site, the receptor keeps its resting shape, adrenaline floats above unable to enter, and a dashed empty box reads 'No signal'." caption="An antagonist such as propranolol separates affinity from efficacy, occupying the hormone's site without switching the receptor on." />
 
-Two kinds of selectivity are in that story. One belongs to the molecule: a short list of kinases among those tested, measured on purified enzymes and in cells. The other belongs to the disease. Normal cells also use ABL, the PDGF receptor and KIT, and in these experiments they got through a period without them. In a patient, inhibiting them can still injure normal tissue. Most leukaemia cells do not get through a period without BCR-ABL. That second selectivity can only be measured in a living cell or a patient.
+That is the first class: **a decoy in a receptor's own binding site that does not switch it on.**
 
-A structural account of the molecule's selectivity came after the fact. As the lesson on the phosphorylation switch shows, imatinib binds ABL in its switched-off shape, and switched-off shapes are thought to differ between kinases more than working shapes do, though how much of the selectivity this explains is still studied. That is how the second half of the heading came true. The second class is **a small molecule in the ATP pocket of a kinase**: imatinib (approved 2001), gefitinib (2003), erlotinib (2004), and the JAK inhibitors from the JAK-STAT lesson.
+> **The one idea.** Where a drug binds shapes selectivity, and escape guides the next drug; new sites and covalent bonds bypass competition, yet networks push back. **Scope:** Targeted drugs act on one named pathway part, but what happens in a patient also depends on target dependence, drug exposure, and the surrounding signalling network.
+
+## One pocket, five hundred kinases: how imatinib became selective
+
+The first film showed imatinib's two layers of selectivity at a shared ATP pocket; here are the chemistry and experiments behind them.
+
+Around 1990 a selective kinase drug looked implausible because ~500 human protein kinases catalyse the same transfer of ATP's end phosphate onto a protein, so their active pockets fold into nearly the same shape. Chronic myeloid leukaemia offered a clean test: one fused, always-on tyrosine kinase, **BCR-ABL**, causes it, and healthy blood cells do not normally have it. At Ciba-Geigy in Basel, Juerg Zimmermann and colleagues altered single groups on a phenylaminopyrimidine core; one added methyl group removed activity against protein kinase C while keeping ABL inhibition. Elisabeth Buchdunger's pharmacology panel showed what the lead compound hit: ABL and the PDGF receptor, and later KIT, with the EGF and insulin receptors barely touched. In Brian Druker's cultures in Oregon, that compound—**imatinib**—blocked BCR-ABL leukaemia growth while sparing normal colonies.
+
+Two distinct layers of selectivity are at work:
+- **Biochemical selectivity** belongs to the molecule: its short target list on purified enzymes and in cells. As the lesson on the phosphorylation switch shows, imatinib binds ABL in an idle (switched-off) shape, and switched-off shapes are thought to diverge across kinases more than working shapes do, though how much of the selectivity this explains is still studied.
+- **Cellular (therapeutic) selectivity** belongs to the disease: dividing leukaemia cells die without BCR-ABL, whereas normal cells get through a period without ABL, the PDGF receptor, and KIT. Normal cells do use all three, so in a patient inhibiting them can still injure normal tissue (see *Going deeper*); this layer can only be measured in a living cell or a patient.
+
+That is the second class: **a small molecule in a kinase's ATP pocket**—imatinib (2001), gefitinib (2003), erlotinib (2004), and the JAK inhibitors from the JAK-STAT lesson.
 
 ## When the drug stops working: one residue changed
 
-Some patients in the early imatinib trials, mostly those with advanced disease, got well and then relapsed. In Charles Sawyers's laboratory at UCLA, Mercedes Gorre sequenced BCR-ABL from their blood. In several patients one DNA letter had changed, ACT to ATT, which replaces threonine 315 with isoleucine.
+The first film traced how relapse wrote a blueprint; here is the molecular evidence. When patients in early imatinib trials—mostly with advanced disease—relapsed, Mercedes Gorre in Charles Sawyers's UCLA laboratory sequenced BCR-ABL from their blood. Several carried a single DNA change, `ACT` to `ATT`, swapping threonine 315 for isoleucine (**T315I**); others carried extra copies of BCR-ABL.
 
-Threonine 315 is one of the contacts that hold imatinib in its pocket. Isoleucine is bulkier and cannot make that contact. The enzyme does not need this residue for the phosphate transfer itself, so the kinase keeps working while the drug fails to bind. The change is not neutral for the enzyme: mutating this gatekeeper shifts the kinase toward its active shape and can raise its activity.
+Position 315 is ABL's **gatekeeper residue**, guarding a deeper alcove beside the ATP pocket. Imatinib reaches into that alcove and hydrogen-bonds with threonine 315. Bulkier isoleucine breaks that contact and sterically blocks imatinib, yet ATP does not need the alcove, so the kinase keeps working—in fact, mutating the gatekeeper shifts ABL toward its active shape and can raise its activity.
 
-A relapse looks like a failure of the idea. Read it as an experiment instead. The cells that survived were the ones already carrying a change at the one position the drug depended on, with the rest of the enzyme untouched; the drug selected them. That is strong evidence that the drug had been working through BCR-ABL, and that the leukaemia still needed BCR-ABL. It also wrote the specification for the next drug: grip ABL without needing residue 315. Dasatinib, a second-generation inhibitor, kills cells with other resistance mutations such as G250E, but T315I resists it too. Ponatinib was then built with a slim carbon-carbon triple bond where the isoleucine side chain sticks out, and it inhibits the T315I kinase.
+Selecting a change at one drug contact while leaving catalysis intact is strong evidence that imatinib worked through BCR-ABL and that the tumour still depended on it. Second-generation **dasatinib** kills cells with other mutations such as G250E, yet T315I resists it too. **Ponatinib** passes isoleucine 315 with a slim carbon-carbon triple bond; **asciminib** bypasses the pocket by binding a separate site on ABL.
 
 <DrugAndEscape />
+
+**Predict.** In relapsed cells treated with imatinib in culture, phosphorylation of a direct BCR-ABL substrate stays *low*, yet the cells divide. Is this T315I or a bypass outside BCR-ABL?
+
+<details>
+<summary>Check your prediction</summary>
+
+A bypass. T315I or extra BCR-ABL copies restart BCR-ABL and restore direct-substrate phosphorylation; a low signal means BCR-ABL stays blocked.
+
+</details>
 
 ### Design problem
 
@@ -447,31 +477,69 @@ Gorre and colleagues found the first two in patients: a mutation in some, extra 
 
 </details>
 
-## The target nobody could hit: a bond to the mutation itself
+Kinase inhibitors prove a reversible drug can win an ATP pocket—but what if a switch holds its nucleotide too tightly for competition, and how does the wider network answer any block?
 
 <LessonFilm film={frontmatter.films[0]} />
 
-Ras, the GTP switch from the lesson on GTPase switches, was the standard example of an undruggable target. Ras holds its nucleotide with picomolar affinity while the cell keeps GTP near the millimolar range, so a competitor for that site must beat a ligand that binds very tightly and is present in vast excess. And the known structures of Ras showed no obvious pocket for a drug-like molecule to fill.
+## The target nobody could hit: a bond to the mutation itself
 
-A first plan went around the protein. Ras normally gets a farnesyl lipid to reach the membrane, as the lesson on lipid anchors explains, so chemists made inhibitors of the enzyme that adds it. In clinical trials these drugs did not control cancers in which K-Ras is commonly mutated. One reason is that when that enzyme is blocked, a related enzyme gives K-Ras a different lipid, geranylgeranyl, and K-Ras reaches the membrane anyway.
+The second film compared competitive binding in a kinase and in **Ras** (the GTPase switch from the lesson on GTPase switches). Side by side, the `[ligand] / Kd` ratio explains why cellular ATP is beatable while cellular GTP is not:
 
-Kevan Shokat's laboratory went at the mutation itself. Glycine 12 has no side chain. One cancer mutation replaces it with cysteine, which puts a thiol, a reactive sulphur-hydrogen group, on the surface of the protein. The group held purified K-Ras G12C in its GDP-bound shape, passed 480 fragments over it that could form an exchangeable disulphide bond, and weighed the protein to see what had attached. The drugs that followed were built with chemistry that does not come undone. Two fragments attached to most of the protein. Normal K-Ras, which has three cysteines elsewhere, showed no detectable reaction.
+| Target & pocket | Natural ligand (`[L] / Kd` or `Km`) | Reversible drug (`[D] / Kd`) | Drug's share |
+| --- | --- | --- | --- |
+| Typical kinase (ATP) | ~1 mM / ~10 µM = **100** | 1 µM / 1 nM = **1,000** | **~91%** |
+| K-Ras (GTP) | ~0.5 mM / ~10 pM = **50,000,000** | 5 µM / 1 nM = **5,000** | **~1 in 10,000** |
 
-The crystal structure showed something new. The compound lay in a pocket beneath the switch II loop that no earlier Ras structure had shown. Once bonded, it tilts Ras toward holding GDP and gets in the way of Raf. The compound sits beside the nucleotide site rather than in it, and its bond lasts for the life of that protein molecule, so it never has to out-compete GTP. In 2019 Canon and colleagues reported sotorasib, a drug for patients that bonds to the same cysteine. This is a class of its own: **a molecule that bonds to a residue only the mutant has.** Its limit is in its definition: a drug built around a thiol needs that thiol. Other mutations at position 12, such as aspartate or valine, leave no sulphur for this chemistry, so reaching them took other reactions, including one that bonds to aspartate 12 itself.
+That huge affinity gap—plus early structures showing no obvious groove—made Ras the standard "undruggable" target. An earlier attempt to block Ras's lipid anchor failed in K-Ras clinical trials via a backup lipid enzyme (see *Going deeper*).
 
-## Outside, inside, beside: the sorting, and what the network does next
+Kevan Shokat's laboratory went at the mutation itself. Normal K-Ras has glycine (no side chain) at position 12; **G12C** puts a **cysteine** there, exposing a reactive sulphur-hydrogen group (**thiol**). Because K-Ras G12C still hydrolyses GTP slowly, it cycles briefly through its GDP-bound shape. Holding purified GDP-bound K-Ras G12C, the group passed 480 fragments carrying exchangeable disulphides over it and weighed the protein by mass spectrometry. Two fragments modified most of the mutant; normal K-Ras, with three cysteines elsewhere, showed no detectable reaction.
 
-You have three classes so far. Two more complete the sorting.
+Crystal structures revealed a hidden pocket beneath the **switch II** loop, beside the nucleotide site. Clinical drugs—including **sotorasib** (Canon et al., 2019)—use permanent covalent chemistry. Bonded to cysteine 12, sotorasib tilts Ras toward GDP and impairs Raf binding for the protein's life, never fighting GTP.
 
-- **Outside.** An antibody is a large protein that does not cross the membrane, so it works on the outer face of a receptor. Trastuzumab (1998) and cetuximab (2004), from the lesson on receptor tyrosine kinases, are examples. The checkpoint antibodies in the lesson on antigen receptors land outside too.
-- **Beside.** Some small molecules bind next to the active site and hold the enzyme in a shape that cannot work. The MEK inhibitors in the lesson on Ras and MAPK sit in a pocket beside the ATP site whose shape is particular to MEK.
+**Predict.** A tumour carries K-Ras G12V, with valine at position 12, and the switch II pocket can still open. Would a clinical G12C drug gain its permanent bond?
 
-The part need not be an enzyme. Venetoclax, from the lesson on cell death, fills the groove on BCL-2 where a partner protein would bind.
+<details>
+<summary>Check your prediction</summary>
 
-<LessonFigure src="/figures/drugs-against-a-part/five-landing-places.webp" width={1200} height={446} alt="AI-generated illustration: five numbered panels in a row, each with a labeled callout and a gold drug on a blue-gray protein. 1, a small drug in a membrane receptor's own binding site. 2, a Y-shaped antibody on the outside face of a membrane receptor. 3, a drug in a kinase's ATP pocket, with ATP shown beside it. 4, a drug beside an enzyme's empty active site. 5, a drug bonded through a short linker to a single mutant residue on Ras." caption="Five ways targeted drugs bind: a receptor's ligand site, a receptor's outer surface, a kinase's ATP pocket, a site beside the active site, and covalent attachment to a mutant residue. The categories overlap: sotorasib binds a pocket beside the nucleotide site of K-Ras G12C and also bonds cysteine 12." />
+No. Valine's side chain is plain hydrocarbon with no reactive thiol, so an open pocket alone gives the drug nothing to bond to.
 
-Wherever a drug lands, it lands in a network, and the lesson on signalling circuits tells you what to expect. ERK normally sends negative feedback to steps above it. Block MEK and that feedback is relieved, so the upstream steps push harder and the pathway can partly switch itself back on. A bypass is the other route. In some lung cancers treated with an EGF receptor inhibitor, extra copies of the gene for a different receptor, MET, switch the same downstream pathways on again.
+</details>
 
-<LessonFigure src="/figures/drugs-against-a-part/network-pushes-back.webp" width={1200} height={800} alt="AI-generated illustration: two panels. Feedback relieved: a receptor, Ras, Raf, MEK and ERK in a column, with a MEK inhibitor on MEK, a faint dashed arrow from MEK to ERK, ERK's dashed brake line back to the receptor and Ras, and burst marks around the upstream steps. A bypass: an EGF receptor with an inhibitor in it, beside three MET receptors whose arrows drive Ras, Raf, MEK and ERK." caption="Wherever a drug lands, the network answers. Blocking MEK relieves ERK's negative feedback, so upstream steps push harder and the pathway can partly switch itself back on; in some lung cancers treated with an EGF receptor inhibitor, extra copies of MET switch the same pathways on again." />
+This is a class of its own: **a molecule bonded covalently to a residue only the mutant has.** Its limit is its chemistry: G12D (aspartate) and G12V (valine) carry no thiol and require other strategies (see *Going deeper*).
 
-For the K-Ras G12C drugs the feedback has a particular bite. Sotorasib and the other first-generation G12C drugs can bond only to Ras in its GDP-bound shape, and in cell experiments, signals from receptors that load Ras with GTP leave less of the protein in the shape those drugs need. Later compounds bond to the same cysteine on GTP-bound Ras instead, and are now in trials.
+## Outside, inside, beside: five landing places, and what the network does next
+
+Two classes complete the sorting:
+- **Outside.** An **antibody** cannot cross the membrane, so it binds a receptor's outer face—**trastuzumab** (1998) and **cetuximab** (2004) (receptor tyrosine kinases lesson), and checkpoint antibodies (antigen receptors lesson).
+- **Beside.** An **allosteric inhibitor** binds next to the active site and locks the enzyme off—**MEK inhibitors** (Ras and MAPK lesson) fit a pocket particular to MEK.
+
+A target need not be an enzyme: **venetoclax** (cell death lesson) fills BCL-2's protein-docking groove.
+
+| Landing place | Mechanism | Selectivity lever | Examples |
+| --- | --- | --- | --- |
+| 1. Receptor's own site | Competitive decoy without push | Subtype binding pocket | Propranolol, cimetidine |
+| 2. Receptor's outer face | Antibody on extracellular face | Surface epitope | Trastuzumab, cetuximab |
+| 3. Kinase's ATP pocket | Small molecule in nucleotide cleft | Idle shape + target reliance | Imatinib, gefitinib, erlotinib, JAK inhibitors |
+| 4. Beside the active site | Allosteric lock holding enzyme off | Adjacent non-conserved pocket | MEK inhibitors |
+| 5. Mutant residue (covalent) | Permanent bond beside active site | Mutant-only residue | Sotorasib (K-Ras G12C) |
+
+<LessonFigure src="/figures/drugs-against-a-part/five-landing-places.webp" width={1200} height={446} alt="AI-generated illustration: five numbered panels in a row, each with a labeled callout and a gold drug on a blue-gray protein. 1, a small drug in a membrane receptor's own binding site. 2, a Y-shaped antibody on the outside face of a membrane receptor. 3, a drug in a kinase's ATP pocket, with ATP shown beside it. 4, a drug beside an enzyme's empty active site. 5, a drug bonded through a short linker to a single mutant residue on Ras." caption="Sorting targeted drugs by landing site predicts how they gain selectivity—and classes overlap, as sotorasib fills a side pocket and bonds cysteine 12." />
+
+Even when a drug wins its target, remember our guiding rule: **new sites and covalent bonds bypass competition, yet networks push back.** As the lesson on signalling circuits shows, blocking one part alters the whole loop.
+
+ERK normally sends negative feedback to the steps above it. Block MEK, and that feedback is relieved, so the upstream steps push harder and the pathway can partly switch itself back on.
+
+A **bypass** is the other network answer: in some lung cancers treated with an EGF receptor inhibitor, extra copies of **MET** reactivate the same downstream pathways. And for GDP-state K-Ras G12C drugs, upstream receptor signals that reload Ras with GTP shrink the GDP-bound pool sotorasib needs; newer covalent compounds targeting **GTP-bound** K-Ras G12C are now in trials.
+
+<LessonFigure src="/figures/drugs-against-a-part/network-pushes-back.webp" width={1200} height={800} alt="AI-generated illustration: two panels. Feedback relieved: a receptor, Ras, Raf, MEK and ERK in a column, with a MEK inhibitor on MEK, a faint dashed arrow from MEK to ERK, ERK's dashed brake line back to the receptor and Ras, and burst marks around the upstream steps. A bypass: an EGF receptor with an inhibitor in it, beside three MET receptors whose arrows drive Ras, Raf, MEK and ERK." caption="Every targeted drug lands in a network that pushes back through relieved negative feedback or a bypass receptor such as MET." />
+
+## Going deeper
+
+### Inverse agonism at the beta receptor
+Treating propranolol as a silent key is a clean first model; more precisely, unstimulated beta receptors retain low basal activity, and propranolol acts as an **inverse agonist**, lowering signalling below rest.
+
+### Limits of kinase selectivity in patients
+Imatinib's window has two clinical limits: inhibiting non-fused ABL, PDGFR, or KIT can occasionally injure normal tissue (heart-muscle ABL is a studied, though debated, case), and quiescent leukaemia stem cells survive full BCR-ABL inhibition, so the drug controls CML without curing it.
+
+### Lipid-anchor bypass and newer Ras drugs
+Earlier Ras drugs inhibited farnesyltransferase, which adds the farnesyl lipid Ras needs to reach the membrane (lesson on lipid anchors). They failed in K-Ras trials partly because a related enzyme attaches **geranylgeranyl** instead, restoring membrane delivery. Reaching mutants without cysteine 12 now relies on non-covalent switch II binders (such as K-Ras G12D inhibitors) and chemistry bonding directly to aspartate 12, alongside GTP-state G12C drugs—all still tested against feedback and bypass reactivation.

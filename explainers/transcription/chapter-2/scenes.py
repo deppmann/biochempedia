@@ -1596,6 +1596,7 @@ class S12PolTwoStop(SpokenScene):
         pol_x = ValueTracker(-3.2)
         pol_speed = ValueTracker(1.00)
         cut_t = ValueTracker(0.0)
+        stub_hi = ValueTracker(0.0)
         chase_t = ValueTracker(0.0)
         rel_t = ValueTracker(0.0)
 
@@ -1603,15 +1604,76 @@ class S12PolTwoStop(SpokenScene):
             px = pol_x.get_value()
             sp = pol_speed.get_value()
             ct = cut_t.get_value()
+            sh = stub_hi.get_value()
             ch = chase_t.get_value()
             rl = rel_t.get_value()
 
             yc = -0.45
             bg = _lane_backdrop(-6.0, 6.0, -1.20, 1.35, color=GOLD, opacity=0.18)
             tr = _duplex_track(-5.5, 5.5, yc, s=1.10, prom_x=(-1.8, -0.6), start_x=None,
-                               bubble_x=px, bubble_w=1.60, bubble_open=1.0 - 0.8 * rl, show_notches=False)
+                               bubble_x=px, bubble_w=1.60, bubble_open=1.0 - 0.90 * rl, show_notches=False)
             g = VGroup(bg, tr)
 
+            pol_y = yc + 0.48 * rl
+            p_col = WHITE_POL if sp > 0.45 else GOLD
+            pol = _pol_body(px, pol_y, s=1.08, color=p_col, fill_op=0.35)
+
+            if ct < 0.05:
+                rna_len = max(0.5, (px - (-3.6)) * 0.85)
+                rna = _rna_ribbon(px, pol_y, rna_len, s=1.08, arch_up=True)
+                g.add(rna, pol)
+            else:
+                free_x = -0.95 - 1.25 * ct
+                free_y = yc + 0.58 + 0.30 * ct
+                free_rna = Line([free_x - 1.9, free_y + 0.10, 0], [free_x, free_y, 0],
+                                stroke_color=GREEN, stroke_width=7.5)
+                pa_badge = Polygon([free_x - 0.60, free_y - 0.14, 0], [free_x - 0.10, free_y - 0.14, 0],
+                                   [free_x - 0.10, free_y + 0.14, 0], [free_x - 0.60, free_y + 0.14, 0],
+                                   stroke_color=TEAL, stroke_width=2.5, fill_color=TEAL, fill_opacity=0.55)
+                cut_mark = VGroup(
+                    Line([free_x + 0.16, free_y - 0.20, 0], [free_x + 0.40, free_y + 0.20, 0], stroke_color=RED, stroke_width=4.5),
+                    Line([free_x + 0.16, free_y + 0.20, 0], [free_x + 0.40, free_y - 0.20, 0], stroke_color=RED, stroke_width=4.5),
+                )
+                g.add(free_rna, pa_badge, cut_mark)
+
+                stub_base_x = -0.35 + 0.22 * max(0.0, px - 1.15)
+                target_fx = px - 1.12
+                fx = stub_base_x * (1.0 - ch) + target_fx * ch
+                stub_x = fx + 0.08 if ch > 0.01 else stub_base_x
+
+                p_start = [stub_x, pol_y + 0.34, 0]
+                p_entry = [max(stub_x + 0.06, px - 0.65), pol_y + 0.12, 0]
+                p_active = [px - 0.05, pol_y - 0.10, 0]
+
+                if sh > 0.01:
+                    glow = VMobject(stroke_color=GOLD, stroke_width=15.0, stroke_opacity=0.40 * sh, fill_opacity=0)
+                    glow.set_points_as_corners([p_start, p_entry, p_active])
+                    g.add(glow)
+
+                g.add(pol)
+
+                stub = VMobject(stroke_color=GREEN, stroke_width=7.2, fill_opacity=0)
+                stub.set_points_as_corners([p_start, p_entry, p_active])
+                stub_end = Dot(p_start, radius=0.075, color=GREEN)
+                g.add(stub, stub_end)
+
+                if ch > 0.01:
+                    fy = pol_y + 0.34
+                    mouth = 0.08 + 0.16 * abs(np.sin(20.0 * ch))
+                    follower = Polygon(
+                        [fx - 0.44, fy - 0.24, 0], [fx + 0.26, fy - mouth, 0],
+                        [fx + 0.02, fy, 0], [fx + 0.26, fy + mouth, 0],
+                        [fx - 0.44, fy + 0.24, 0],
+                        stroke_color=ORANGE, stroke_width=3.8, fill_color=ORANGE, fill_opacity=0.60
+                    )
+                    g.add(follower)
+
+            return g
+
+        world = always_redraw(build_pol2_stop)
+
+        def build_speed_bar():
+            sp = pol_speed.get_value()
             bar_w = 2.6
             bar_bg = Polygon([3.05, 1.62, 0], [3.05 + bar_w, 1.62, 0],
                              [3.05 + bar_w, 1.84, 0], [3.05, 1.84, 0],
@@ -1621,52 +1683,13 @@ class S12PolTwoStop(SpokenScene):
                                [3.05 + fill_w, 1.84, 0], [3.05, 1.84, 0],
                                stroke_width=0, fill_color=GOLD if sp > 0.5 else RED, fill_opacity=0.85)
             bar_dot = Dot([3.05 + fill_w, 1.73, 0], radius=0.10, color=TEXT)
-            g.add(bar_bg, bar_fill, bar_dot)
+            bar_bg.set_z_index(1)
+            bar_fill.set_z_index(2)
+            bar_dot.set_z_index(3)
+            return VGroup(bar_bg, bar_fill, bar_dot)
 
-            pol_y = yc + 0.35 * rl
-            if ct < 0.05:
-                rna_len = max(0.5, (px - (-3.6)) * 0.85)
-                rna = _rna_ribbon(px, pol_y, rna_len, s=1.08, arch_up=True)
-                g.add(rna)
-            else:
-                free_x = -1.6 - 0.9 * ct
-                free_y = yc + 0.55 + 0.25 * ct
-                free_rna = Line([free_x - 1.8, free_y + 0.12, 0], [free_x, free_y, 0],
-                                stroke_color=GREEN, stroke_width=7.5)
-                pa_badge = Polygon([free_x - 0.55, free_y - 0.14, 0], [free_x - 0.05, free_y - 0.14, 0],
-                                   [free_x - 0.05, free_y + 0.14, 0], [free_x - 0.55, free_y + 0.14, 0],
-                                   stroke_color=TEAL, stroke_width=2.5, fill_color=TEAL, fill_opacity=0.55)
-                cut_mark = VGroup(
-                    Line([free_x + 0.18, free_y - 0.20, 0], [free_x + 0.42, free_y + 0.20, 0], stroke_color=RED, stroke_width=4.5),
-                    Line([free_x + 0.18, free_y + 0.20, 0], [free_x + 0.42, free_y - 0.20, 0], stroke_color=RED, stroke_width=4.5),
-                )
-                g.add(free_rna, pa_badge, cut_mark)
-
-                stub_start_x = (-0.9) * (1.0 - ch) + (px - 0.55) * ch
-                if px - 0.25 > stub_start_x + 0.08:
-                    stub = Line([stub_start_x, pol_y + 0.32, 0], [px - 0.25, pol_y + 0.10, 0],
-                                stroke_color=GREEN, stroke_width=7.0)
-                    g.add(stub)
-
-                if ch > 0.01:
-                    fx = stub_start_x
-                    fy = pol_y + 0.34
-                    follower = Polygon(
-                        [fx - 0.44, fy - 0.24, 0], [fx + 0.26, fy - 0.24, 0],
-                        [fx + 0.05, fy, 0], [fx + 0.26, fy + 0.24, 0],
-                        [fx - 0.44, fy + 0.24, 0],
-                        stroke_color=ORANGE, stroke_width=3.8, fill_color=ORANGE, fill_opacity=0.55
-                    )
-                    g.add(follower)
-
-            p_col = WHITE_POL if sp > 0.45 else GOLD
-            pol = _pol_body(px, pol_y, s=1.08, color=p_col, fill_op=0.40)
-            g.add(pol)
-
-            return g
-
-        world = always_redraw(build_pol2_stop)
-        self.add(world)
+        speed_bar = always_redraw(build_speed_bar)
+        self.add(world, speed_bar)
 
         speed_panel = Readout(
             [("Pol II speed", lambda: pol_speed.get_value(), "{:4.2f}x", TEXT)],
@@ -1675,61 +1698,86 @@ class S12PolTwoStop(SpokenScene):
         pa_lbl = T("poly(A) signal", size=25, color=TEAL).move_to([-1.2, -1.68, 0])
         self.add(speed_panel, pa_lbl)
 
-        # Beat 1 (0.0 -> 5.4s)
-        self.play(pol_x.animate.set_value(-0.9), run_time=5.3, rate_func=linear)
+        # Beat 1 (0.0 -> 5.3s): Pol II approaches poly(A) signal
+        self.play(pol_x.animate.set_value(-1.6), run_time=5.3, rate_func=linear)
 
-        # Beat 2 (5.64 -> 7.6s)
+        # Beat 2 (5.44 -> 7.44s): Pol II copies / passes through poly(A) signal
         self.at("copies a polyadenylation signal")
-        self.play(pol_x.animate.set_value(0.4), run_time=2.0, rate_func=linear)
+        self.play(pol_x.animate.set_value(0.35), run_time=2.0, rate_func=linear)
 
-        # Beat 3 (7.74 -> 9.9s)
+        # Beat 3 (7.52 -> 9.72s): RNA is cut downstream
         self.at("the rna is cut")
         cut_lbl = boxed_label("RNA cut downstream of poly(A) signal", RED,
                               size=25, pad=0.14, fill_opacity=0.26).move_to([-2.4, 2.25, 0])
-        self.add(cut_lbl)
+        self.play(FadeIn(cut_lbl), run_time=0.35)
         self.play(
             cut_t.animate.set_value(1.0),
-            pol_x.animate.set_value(1.2),
-            pol_speed.animate.set_value(0.75),
-            run_time=2.2,
+            pol_x.animate.set_value(1.15),
+            pol_speed.animate.set_value(0.85),
+            run_time=1.85,
             rate_func=linear
         )
 
-        # Beat 4 (10.24 -> 14.9s)
-        self.at("following enzyme degrades")
-        foll_lbl = boxed_label("following enzyme degrades attached RNA", ORANGE,
+        # Beat 4 (9.84 -> 14.34s): Highlight the green RNA piece still threaded through Pol II
+        self.at("the cut leaves")
+        stub_lbl = boxed_label("RNA piece still threaded through Pol II", GREEN,
                                size=25, pad=0.14, fill_opacity=0.26).move_to([-2.2, 2.25, 0])
-        self.remove(cut_lbl)
-        self.add(foll_lbl)
+        self.play(swap(cut_lbl, stub_lbl, run_time=0.6))
         self.play(
-            chase_t.animate.set_value(0.60),
-            pol_x.animate.set_value(2.4),
-            pol_speed.animate.set_value(0.45),
-            run_time=4.6,
+            stub_hi.animate.set_value(1.0),
+            pol_x.animate.set_value(1.75),
+            pol_speed.animate.set_value(0.75),
+            run_time=3.5,
             rate_func=linear
         )
 
-        # Beat 5 (15.20 -> 19.3s)
-        self.at("evidence supports this pursuit")
-        cap = caption("Pursuit works together with changes that slow Pol II after the poly(A) site.",
-                      size=26, color=GOLD, y=-2.95)
-        self.add(cap)
+        # Beat 5a (14.74 -> 17.64s): Following enzyme chews along that piece
+        self.at("a following enzyme")
+        foll_lbl = boxed_label("following enzyme chews along RNA piece", ORANGE,
+                               size=25, pad=0.14, fill_opacity=0.26).move_to([-2.2, 2.25, 0])
+        self.play(swap(stub_lbl, foll_lbl, run_time=0.5))
         self.play(
-            chase_t.animate.set_value(0.90),
-            pol_x.animate.set_value(3.0),
+            stub_hi.animate.set_value(0.25),
+            chase_t.animate.set_value(0.72),
+            pol_x.animate.set_value(2.45),
+            pol_speed.animate.set_value(0.48),
+            run_time=2.4,
+            rate_func=linear
+        )
+
+        # Beat 5b (17.66 -> 21.1s): Catches polymerase and helps knock it off DNA
+        self.at("catches polymerase")
+        self.play(
+            stub_hi.animate.set_value(0.0),
+            chase_t.animate.set_value(1.0),
+            pol_x.animate.set_value(2.75),
+            pol_speed.animate.set_value(0.30),
+            run_time=1.4,
+            rate_func=linear
+        )
+        self.at("helps knock it")
+        self.play(
+            rel_t.animate.set_value(0.55),
             pol_speed.animate.set_value(0.22),
-            run_time=4.1,
-            rate_func=linear
+            run_time=1.8,
+            rate_func=smooth
         )
 
-        # Beat 6 (19.48 -> 20.875s)
-        self.at("ready to stop")
+        # Beat 6 (22.42 -> 28.325s): Evidence supports pursuit + changes that slow Pol II & ready it to stop
+        self.at("evidence supports this pursuit")
+        cap = caption("Pursuit works with changes that slow Pol II and ready it to stop.",
+                      size=26, color=GOLD, y=-2.68)
+        self.play(FadeIn(cap), run_time=0.6)
+        self.play(
+            pol_speed.animate.set_value(0.16),
+            run_time=1.8,
+            rate_func=linear
+        )
+        self.at("slow polymerase")
         stop_lbl = boxed_label("Pol II slows & stops → release", GOLD,
                                size=25, pad=0.14, fill_opacity=0.28).move_to([-2.2, 2.25, 0])
-        self.remove(foll_lbl)
-        self.add(stop_lbl)
         self.play(
-            chase_t.animate.set_value(1.0),
+            swap(foll_lbl, stop_lbl, run_time=0.5),
             pol_speed.animate.set_value(0.10),
             rel_t.animate.set_value(1.0),
             run_time=1.3,

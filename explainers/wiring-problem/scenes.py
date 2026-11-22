@@ -7,6 +7,7 @@ All quantitative traces are calculated from the lesson's threshold model.
 """
 import numpy as np
 from math import erf, sqrt
+from types import SimpleNamespace
 from bp_style import *
 from bp_style import SpokenScene as _SpokenScene, chip as _chip
 
@@ -218,28 +219,92 @@ YY=XX+np.random.default_rng(12).normal(0,.1/np.log(10),200)
 RHO=float(np.corrcoef(np.argsort(np.argsort(XX)),np.argsort(np.argsort(YY)))[0,1])
 PPAIR=.5*(1+erf((1/199)/(.1/np.log(10)*2)))
 
+def _scatter_parts():
+    """Shared geometry and labels for S24 and S25Beat."""
+    corner = T('simple model, not measured anatomy', 24, TEAL).move_to([-6.2, 3.35, 0], aligned_edge=LEFT)
+    model_tag = T('illustrative model', 24, GREY).move_to([6.2, 3.35, 0], aligned_edge=RIGHT)
+    ax = Axes(
+        x_range=[-.06, 1.06, .5], y_range=[-.1, 1.1, .5],
+        x_length=5.4, y_length=4.4, tips=False,
+        axis_config={'include_ticks': False, 'stroke_color': GREY},
+    ).move_to([-2.7, -0.1, 0])
+    xlab = T('retinal position, nasal → temporal', 24).move_to([-2.7, -2.75, 0])
+    ylab = T('landing position in target', 24).rotate(PI / 2).move_to([-5.95, -0.1, 0])
+
+    # Pre-position parameter display on top right so each number appears only when spoken.
+    p_n = M('N = 200', 26, TEXT)
+    p_f = M('F = 10', 26, ORANGE)
+    p_s = M('σ = 0.1', 26, RED)
+    VGroup(p_n, p_f, p_s).arrange(RIGHT, buff=0.35).move_to([3.5, 2.75, 0])
+
+    ideal_dots = VGroup(*[Dot(ax.c2p(x, x), radius=.035, color=poscolor(x)) for x in XX])
+    noisy_dots = VGroup(*[Dot(ax.c2p(x, y), radius=.035, color=poscolor(x)) for x, y in zip(XX, YY)])
+    ideal_line = DashedLine(ax.c2p(0, 0), ax.c2p(1, 1), color=GREY, stroke_width=2)
+
+    spread_note = T(
+        'spread: possible positions across\nrepeated trials, not arbor width',
+        24, RED, line_spacing=0.85,
+    ).move_to([-2.7, 2.58, 0])
+    overall_lbl = T('overall order: high', 26, TEAL).move_to([3.5, 2.15, 0])
+    trend = Line(ax.c2p(0.02, 0.02), ax.c2p(0.98, 0.98), color=TEAL, stroke_width=4).set_opacity(0.65)
+
+    inds = np.arange(96, 100)
+    xmin, xmax = XX[96] - .003, XX[99] + .003
+    ymin, ymax = min(YY[inds]) - .008, max(YY[inds]) + .008
+    inset_title = T('neighbours magnified · swapped circled', 24, TEXT).move_to([3.5, 1.38, 0])
+    box = Rectangle(width=4.4, height=2.2, color=GREY).move_to([3.5, -0.05, 0])
+    inset_items = VGroup(inset_title, box)
+    pts = {}
+    for i in inds:
+        p = np.array([2.0 + (XX[i] - xmin) / (xmax - xmin) * 3.0, -0.75 + (YY[i] - ymin) / (ymax - ymin) * 1.4, 0])
+        pts[i] = p
+        inset_items.add(Dot(p, radius=.085, color=poscolor(XX[i])))
+    for i in inds[:-1]:
+        if YY[i] > YY[i + 1]:
+            a, b = pts[i], pts[i + 1]
+            inset_items.add(Ellipse(width=abs(b[0] - a[0]) + .42, height=abs(b[1] - a[1]) + .42, color=RED, stroke_width=2.5).move_to((a + b) / 2))
+    zoom = Rectangle(width=.55, height=.9, color=RED).move_to(ax.c2p(.49, .5))
+    conn = DashedLine(zoom.get_right(), box.get_left(), color=RED)
+
+    bar_x0, bar_w, bar_y = 1.3, 4.4, -2.25
+    pair_hdr = T('neighbouring pairs in order:', 24, TEXT)
+    pct53 = M('≈ 53%', 28, RED)
+    VGroup(pair_hdr, pct53).arrange(RIGHT, buff=0.22).move_to([3.5, -1.65, 0])
+    track = Rectangle(width=bar_w, height=0.36, stroke_width=0, fill_color=GREY, fill_opacity=0.25).move_to([bar_x0 + bar_w / 2, bar_y, 0])
+    make_bar_fill = lambda v: Rectangle(
+        width=max(0.02, v * bar_w),
+        height=0.36, stroke_width=0, fill_color=RED, fill_opacity=0.85,
+    ).move_to([bar_x0 + v * bar_w / 2, bar_y, 0])
+
+    x50 = bar_x0 + 0.50 * bar_w
+    chance_line = DashedLine([x50, bar_y - 0.32, 0], [x50, bar_y + 0.32, 0], color=GOLD, stroke_width=3.5)
+    chance_lbl = T('50% random chance', 24, GOLD).move_to([3.5, -2.95, 0])
+
+    return SimpleNamespace(
+        corner=corner, model_tag=model_tag, ax=ax, xlab=xlab, ylab=ylab,
+        p_n=p_n, p_f=p_f, p_s=p_s,
+        ideal_dots=ideal_dots, noisy_dots=noisy_dots, ideal_line=ideal_line,
+        spread_note=spread_note, overall_lbl=overall_lbl, trend=trend,
+        zoom=zoom, conn=conn, inset_items=inset_items,
+        pair_hdr=pair_hdr, pct53=pct53, track=track, make_bar_fill=make_bar_fill,
+        chance_line=chance_line, chance_lbl=chance_lbl,
+    )
+
 def scatter_stage(noisy=True,stats=True,inset=True):
-    g=VGroup(T('simple model · not measured anatomy',28,TEAL).move_to([0,3.35,0]))
-    ax=Axes(x_range=[-.06,1.06,.5],y_range=[-.1,1.1,.5],x_length=6.4,y_length=5.2,tips=False,axis_config={'include_ticks':False,'stroke_color':GREY}).move_to([-2.45,-.15,0])
-    labels=VGroup(T('retinal position, nasal → temporal',26).move_to([-2.3,-3.5,0]),T('landing position in target',26).rotate(PI/2).move_to([-6.3,0,0]))
-    for v in [0,1]:
-        labels.add(T(str(v),26).move_to(ax.c2p(v,-.16)),T(str(v),26).move_to(ax.c2p(-.11,v)))
-    dots=VGroup(*[Dot(ax.c2p(x,y),radius=.035,color=poscolor(x)) for x,y in zip(XX,YY if noisy else XX)])
-    params=T('N = 200 axons · F = 10 (tenfold)',26).move_to([-2.4,2.65,0])
-    g.add(ax,labels,params,dots)
-    if noisy:g.add(T('σ = 0.1 · 10% reading error',26,RED).move_to([3.85,1.45,0]))
-    if stats:g.add(T(f'overall rank order: {RHO:.2f}',28,TEAL).move_to([3.85,2.55,0]),T('adjacent pairs: ≈ 53%',28,RED).move_to([3.85,1.95,0]))
+    """Build the final S24 scatter state held in S25Beat."""
+    p = _scatter_parts()
+    g = VGroup(
+        p.corner, p.model_tag, p.ax, p.xlab, p.ylab,
+        p.p_n, p.noisy_dots if noisy else p.ideal_dots, p.p_f,
+    )
+    if noisy:
+        g.add(p.p_s, p.spread_note)
+    if stats:
+        g.add(p.overall_lbl, p.trend)
     if inset:
-        # Four actual adjacent model points, expanded with both coordinates.
-        inds=np.arange(96,100);xmin=XX[96]-.003;xmax=XX[99]+.003;ymin=min(YY[inds])-.008;ymax=max(YY[inds])+.008
-        box=Rectangle(width=4.1,height=3.65,color=GREY).move_to([3.85,-.8,0]);g.add(box,T('neighbours, magnified',26).move_to([3.85,.8,0]))
-        for i in inds:
-            p=np.array([2.35+(XX[i]-xmin)/(xmax-xmin)*2.9,-2.2+(YY[i]-ymin)/(ymax-ymin)*2.25,0])
-            g.add(Dot(p,radius=.08,color=poscolor(XX[i])),T(str(i+1),26,poscolor(XX[i])).next_to(p,UP,buff=.13))
-        for i in inds[:-1]:
-            if YY[i]>YY[i+1]:
-                a=np.array([2.35+(XX[i]-xmin)/(xmax-xmin)*2.9,-2.2+(YY[i]-ymin)/(ymax-ymin)*2.25,0]);b=np.array([2.35+(XX[i+1]-xmin)/(xmax-xmin)*2.9,-2.2+(YY[i+1]-ymin)/(ymax-ymin)*2.25,0]);g.add(Ellipse(width=abs(b[0]-a[0])+.45,height=abs(b[1]-a[1])+.75,color=RED,stroke_width=2).move_to((a+b)/2))
-        zoom=Rectangle(width=.65,height=1,color=RED).move_to(ax.c2p(.49,.5));g.add(zoom,DashedLine(zoom.get_right(),box.get_left(),color=RED),T('circles: swapped pairs',26,RED).move_to([3.85,-3,0]))
+        g.add(p.zoom, p.conn, p.inset_items)
+    if stats:
+        g.add(p.pair_hdr, p.track, p.make_bar_fill(0.53), p.pct53, p.chance_line, p.chance_lbl)
     return g
 
 class S00Title(TitleCard):
@@ -403,12 +468,52 @@ class S23(SpokenScene):
 
 class S24(SpokenScene):
     def construct(self):
-        initial=scatter_stage(False,False,False);self.add(*initial[:4]);dots=initial[4]
-        self.at('Now take');self.play(LaggedStart(*[FadeIn(VGroup(*dots[i:i+40])) for i in range(0,200,40)],lag_ratio=.2),run_time=1.3)
-        self.at('Suppose each reading');noisy=scatter_stage(True,False,False);self.play(FadeIn(noisy[5]),Transform(dots,noisy[4]),run_time=1.1)
-        self.at('overall order stays high');final=scatter_stage();self.play(FadeIn(final[6]),run_time=.4)
-        self.at('neighboring pairs');self.play(*[FadeIn(m) for m in final[8:]],run_time=.7)
-        self.at('only about');self.play(FadeIn(final[7]),run_time=.4);self.finish()
+        p = _scatter_parts()
+        self.add(p.corner, p.model_tag, p.ax, p.xlab, p.ylab)
+
+        # 0.52s: "200 evenly spaced axons"
+        self.at('200')
+        self.play(
+            FadeIn(p.p_n),
+            LaggedStart(*[FadeIn(VGroup(*p.ideal_dots[i:i+40])) for i in range(0, 200, 40)], lag_ratio=.2),
+            run_time=1.3,
+        )
+
+        # 3.04s: "10-fold gradient"
+        self.at('10')
+        self.play(FadeIn(p.p_f), Create(p.ideal_line), run_time=0.6)
+
+        # 5.18s: "random errors"
+        self.at('random errors')
+        self.play(Transform(p.ideal_dots, p.noisy_dots), run_time=1.2)
+
+        # 6.68s: "about 10 percent"
+        self.at('10', nth=1)
+        self.play(FadeIn(p.p_s), FadeIn(p.spread_note), run_time=0.6)
+
+        # 9.50s: "overall order stays high"
+        self.at('overall order')
+        self.play(FadeIn(p.overall_lbl), FadeOut(p.ideal_line), Create(p.trend), run_time=0.9)
+
+        # 11.80s: "neighboring pairs"
+        self.at('neighboring pairs')
+        self.play(FadeIn(p.zoom), Create(p.conn), FadeIn(p.inset_items), FadeIn(p.pair_hdr), FadeIn(p.track), run_time=1.1)
+
+        # 14.38s: "53 percent"
+        self.at('53')
+        bar_tracker = ValueTracker(0.01)
+        bar_fill = always_redraw(lambda: p.make_bar_fill(bar_tracker.get_value()))
+        self.add(bar_fill)
+        self.play(bar_tracker.animate.set_value(0.53), FadeIn(p.pct53), run_time=0.85)
+
+        # 18.06s: "50 percent"
+        self.at('50')
+        self.play(Create(p.chance_line), FadeIn(p.chance_lbl), run_time=0.8)
+
+        # 20.06s: "barely better than chance"
+        self.at('barely better')
+        self.play(Indicate(p.pct53, color=GOLD, scale_factor=1.15), Indicate(p.chance_line, color=TEXT, scale_factor=1.15), run_time=0.7)
+        self.finish()
 
 class S25Beat(Scene):
     def construct(self):
@@ -531,9 +636,3 @@ class S42(SpokenScene):
 
 class S43End(EndCard):
     LINE='The genome stores rules, and the tissue measures the rest.'
-    def construct(self):
-        line=T(self.LINE,40,font=TITLE_FONT);fit(line,max_w=11.5)
-        sub=T('biochemistrypedia.com',26,TEAL)
-        group=VGroup(line,sub).arrange(DOWN,buff=.5);self.add(line)
-        self.play(FadeIn(sub),run_time=.4);self.finish()
-
