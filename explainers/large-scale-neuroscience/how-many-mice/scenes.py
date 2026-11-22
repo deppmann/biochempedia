@@ -236,13 +236,25 @@ class S06bHold(Scene):
 
 class S07N(SpokenScene):
     def construct(self):
+        title=T('A claim about mice',38).move_to([0,2.9,0])
+        mice=VGroup(mouse(ORANGE,w=2.5),mouse(PINK,w=2.5)).arrange(RIGHT,buff=1.3).move_to([0,-2.3,0])
+        ref1=M('n = 2 mice',64,GREEN).move_to([0,1.15,0])
+        n_eq=M('n =',64,GREEN).move_to(ref1[:2]).align_to(ref1[0],DOWN)
+        two_mice=M('2 mice',64,GREEN).move_to(ref1[2:]).align_to(ref1[0],DOWN)
+        ref2=M('not 6 units',48,RED).move_to([0,-.35,0])
+        not_word=M('not',48,RED).move_to(ref2[:3]).align_to(ref2[0],DOWN)
+        six_units=M('6 units',48,RED).move_to(ref2[3:]).align_to(ref2[0],DOWN)
         self.at('For a claim')
-        self.add(T('A claim about mice',38).move_to([0,2.9,0]),M('n = 2 mice',68,GREEN).move_to([0,1.35,0]))
-        old=M('6 units × 4 presentations = 24',32,RED).move_to([0,-1.1,0])
-        self.add(old,VGroup(mouse(ORANGE,w=2.5),mouse(PINK,w=2.5)).arrange(RIGHT,buff=1.3).move_to([0,-2.9,0]))
-        self.at('the sample is'); self.play(Indicate(self.mobjects[1],color=GREEN),run_time=.5)
-        self.at('not 24'); self.play(ReplacementTransform(old,T('24 unit-trials ≠ 2 independent mice',32,RED).move_to(old)),run_time=.5)
-        self.finish(); self.wait(2)
+        self.add(title)
+        self.play(FadeIn(mice,shift=UP*.15),run_time=.6)
+        self.at('the sample is')
+        self.play(FadeIn(n_eq,shift=RIGHT*.1),run_time=.35)
+        self.at('two mice',lead=0.0)
+        self.play(FadeIn(two_mice,shift=UP*.1),Indicate(mice,color=GREEN,scale_factor=1.05),run_time=.45)
+        self.at('not six units',lead=0.0)
+        self.play(FadeIn(not_word,shift=UP*.08),run_time=.14)
+        self.play(FadeIn(six_units,shift=UP*.08),run_time=.35)
+        self.finish(); self.wait(1.2)
 
 
 class S08N(SpokenScene):
@@ -413,10 +425,3 @@ class S21N(SpokenScene):
 
 class S22End(EndCard):
     LINE='Count your sample at the level of the claim.'
-    def construct(self):
-        line=fit(T(self.LINE,40,font=TITLE_FONT),11.5)
-        sub=T('biochemistrypedia.com',26,TEAL)
-        VGroup(line,sub).arrange(DOWN,buff=.4)
-        self.play(FadeIn(line),run_time=self.beat(.3))
-        self.play(FadeIn(sub),run_time=self.beat(.15))
-        self.finish()

@@ -471,24 +471,101 @@ class S15(SpokenScene):
 
 class S16(SpokenScene):
     def construct(self):
-        self.add(head('Invented example · questionnaire'),note('Patient 40% · controls 80% · chance 25%'))
-        a=Axes(x_range=[0,3,1],y_range=[0,100,25],x_length=6.3,y_length=4.85,axis_config={'color':GREY,'include_tip':False}).move_to([-2,-.15,0])
-        for v in (0,25,50,80,100):
-            self.add(T(str(v),28,GREY).next_to(a.c2p(0,v),LEFT,buff=.15))
+        self.add(label('Invented example · questionnaire',[0,3.55,0],28),
+                 note('Invented numbers · raw score vs gain above chance'))
+        a=Axes(x_range=[0,3,1],y_range=[0,100,25],x_length=5.4,y_length=4.85,
+               axis_config={'color':GREY,'include_tip':False}).move_to([-2.3,-.15,0])
+        ticks={v:T(str(v),26,GREY).next_to(a.c2p(0,v),LEFT,buff=.15) for v in (0,25,40,80,100)}
+        ylab=T('% correct',24,GREY).next_to(a.c2p(0,100),UP,buff=.26)
         def bar(x,lo,hi,col):
-            return Rectangle(width=1.2,height=4.85*(hi-lo)/100,color=col,fill_opacity=.7).move_to(a.c2p(x,(hi+lo)/2))
+            return Rectangle(width=.95,height=4.85*(hi-lo)/100,color=col,fill_opacity=.7).move_to(a.c2p(x,(hi+lo)/2))
         p,c=bar(1,0,40,BLUE),bar(2,0,80,GREY)
-        reading=label('40 / 80 = 50%',[3.5,1.6,0],34,BLUE)
-        self.add(a,p,c,reading,label('Patient',a.c2p(1,0)+DOWN*.4,28,BLUE),label('Controls',a.c2p(2,0)+DOWN*.4,28,GREY))
-        self.at('looks like half')
-        self.play(Indicate(reading,color=BLUE,scale_factor=1.02),run_time=.3)
-        self.at('shrinks')
-        b=baseline(a,25,'25% = chance')
-        self.play(FadeIn(b),Transform(p,bar(1,25,40,BLUE)),Transform(c,bar(2,25,80,GREY)),
-                  FadeOut(reading),run_time=.8)
-        self.play(FadeIn(label('15 / 55 = 27%',[3.5,1.6,0],34,BLUE)),run_time=.2)
-        self.add(label('Gains above chance',[3.5,.65,0],28),label('(40 − 25) / (80 − 25)',[3.5,-.15,0],27))
-        self.finish();self.wait(1.5)
+        p_name=label('Patient',a.c2p(1,0)+DOWN*.4,28,BLUE)
+        c_name=label('Controls',a.c2p(2,0)+DOWN*.4,28,GREY)
+        self.add(a,ticks[0],ticks[100],ylab,p_name,c_name)
+
+        p_lbl=label('40%',a.c2p(1,40)+UP*.25,28,BLUE)
+        c_lbl=label('80%',a.c2p(2,80)+UP*.25,28,GREY)
+        chance_line=DashedLine(a.c2p(0,25),a.c2p(3,25),color=TEXT,stroke_width=2)
+        chance_shade=Polygon(a.c2p(0,0),a.c2p(3,0),a.c2p(3,25),a.c2p(0,25),
+                             stroke_width=0,fill_color=GREY,fill_opacity=.045).set_z_index(-1)
+        chance_lbl=VGroup(DashedLine(LEFT*.22,RIGHT*.22,color=TEXT,stroke_width=2),
+                          T('25% = chance',26,TEXT)).arrange(RIGHT,buff=.14).move_to([-2.0,2.48,0])
+
+        rx=3.65
+        raw_head=label('Raw comparison',[rx,2.48,0],26,GREY)
+        raw_frac=M('40 / 80',30,BLUE)
+        raw_eq=M('= 50%',30,BLUE)
+        VGroup(raw_frac,raw_eq).arrange(RIGHT,buff=.14).move_to([rx,1.95,0])
+        raw_sub=label('of normal',[rx,1.48,0],26,BLUE)
+        raw_group=VGroup(raw_head,raw_frac,raw_eq,raw_sub)
+
+        div_line=Line([1.1,1.05,0],[6.2,1.05,0],color=GREY,stroke_width=2)
+        gain_head=label('Gains above chance',[rx,.65,0],26,GREY)
+        pg_expr=M('40 − 25',28,BLUE)
+        pg_eq=M('= 15',28,BLUE)
+        VGroup(pg_expr,pg_eq).arrange(RIGHT,buff=.14).move_to([rx,.05,0])
+        cg_expr=M('80 − 25',28,GREY)
+        cg_eq=M('= 55',28,TEXT)
+        VGroup(cg_expr,cg_eq).arrange(RIGHT,buff=.14).move_to([rx,-.50,0])
+
+        p_arrow=DoubleArrow(a.c2p(.52,25),a.c2p(.52,40),buff=0,color=BLUE,tip_length=.1,stroke_width=4)
+        p_gain_lbl=T('15%',26,BLUE).next_to(p_arrow,LEFT,buff=.12)
+        c_arrow=DoubleArrow(a.c2p(2.48,25),a.c2p(2.48,80),buff=0,color=TEXT,tip_length=.1,stroke_width=4)
+        c_gain_lbl=T('55%',26,TEXT).next_to(c_arrow,RIGHT,buff=.12)
+
+        full_expr=M('(40 − 25) / (80 − 25) =',26,TEXT).move_to([rx,-1.22,0])
+        f_15=M('15',32,BLUE)
+        f_sl=M('/',32,TEXT)
+        f_55=M('55',32,TEXT)
+        f_res=M('≈ 27%',34,BLUE)
+        res_row=VGroup(f_15,f_sl,f_55,f_res).arrange(RIGHT,buff=.14).move_to([rx,-1.90,0])
+        res_box=RoundedRectangle(corner_radius=.12,width=res_row.width+.4,height=res_row.height+.28,
+                                 stroke_color=BLUE,stroke_width=2,fill_color=BLUE,fill_opacity=.08).move_to(res_row)
+        quarter_lbl=label('roughly a quarter',[rx,-2.58,0],26,BLUE)
+
+        self.at('patients score')
+        self.play(GrowFromEdge(p,DOWN),run_time=.65)
+        self.at('40',lead=.02)
+        self.play(FadeIn(p_lbl),FadeIn(ticks[40]),run_time=.25)
+        self.at('controls')
+        self.play(GrowFromEdge(c,DOWN),run_time=.60)
+        self.at('80',lead=.02)
+        self.play(FadeIn(c_lbl),FadeIn(ticks[80]),run_time=.25)
+        self.at('chance',lead=.15)
+        self.play(Create(chance_line),run_time=.35)
+        self.at('25',lead=.02)
+        self.play(FadeIn(chance_shade),FadeIn(chance_lbl),FadeIn(ticks[25]),run_time=.35)
+
+        self.at('looks like',lead=.15)
+        self.play(FadeIn(raw_head),FadeIn(raw_frac),Indicate(p,color=BLUE,scale_factor=1.02),
+                  Indicate(c,color=GREY,scale_factor=1.02),run_time=.45)
+        self.at('half',lead=.02)
+        self.play(FadeIn(raw_eq),FadeIn(raw_sub),run_time=.30)
+
+        self.at('above chance',lead=.15)
+        self.play(FadeIn(div_line),FadeIn(gain_head),
+                  Transform(p,bar(1,25,40,BLUE)),Transform(c,bar(2,25,80,GREY)),run_time=.80)
+        self.at('patients gain',lead=.15)
+        self.play(raw_group.animate.set_opacity(.55),Create(p_arrow),FadeIn(pg_expr),run_time=.45)
+        self.at('15',nth=0,lead=.02)
+        self.play(FadeIn(pg_eq),FadeIn(p_gain_lbl),run_time=.30)
+        self.at('controls',nth=1,lead=.15)
+        self.play(Create(c_arrow),FadeIn(cg_expr),run_time=.45)
+        self.at('55',nth=0,lead=.02)
+        self.play(FadeIn(cg_eq),FadeIn(c_gain_lbl),run_time=.30)
+
+        self.at('15',nth=1,lead=.02)
+        self.play(FadeIn(full_expr),FadeIn(f_15),run_time=.35)
+        self.at('over',lead=.02)
+        self.play(FadeIn(f_sl),run_time=.20)
+        self.at('55',nth=1,lead=.02)
+        self.play(FadeIn(f_55),run_time=.30)
+        self.at('27',lead=.02)
+        self.play(FadeIn(f_res),FadeIn(res_box),run_time=.30)
+        self.at('roughly a quarter',lead=.02)
+        self.play(FadeIn(quarter_lbl),run_time=.35)
+        self.finish()
 
 
 class S17(SpokenScene):
@@ -625,9 +702,3 @@ class S26(SpokenScene):
 
 class S27End(EndCard):
     LINE='In these studies, reportable memory and memory shown in performance failed separately, after damage to different structures.'
-
-    def construct(self):
-        self.add(head('In these studies'))
-        line=T('Reportable memory and memory\nshown in performance failed separately,\nafter damage to different structures.',size=36,font=TITLE_FONT,line_spacing=1.3)
-        self.add(line,label('Single patients and group averages;\nsuggestive, not proof',[0,-2.15,0],28,GREY),label('biochemistrypedia.com',[0,-3.2,0],26,TEAL))
-        self.finish();self.wait(3)

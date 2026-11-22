@@ -223,10 +223,64 @@ class S08Share(SpokenScene):
         self.at('as a share'); self.play(FadeIn(gap[1]),run_time=.3); self.finish()
 class S09Quarter(SpokenScene):
     def construct(self):
-        whole,_,_=comparison(); gap=lifted_gap(); self.add(whole,gap)
-        split,_,_=comparison(True); notes,formula=split_notes()
-        self.at('The gap'); self.play(ReplacementTransform(whole,split),FadeOut(gap),FadeIn(notes),run_time=.65)
-        self.at('That share'); self.play(FadeIn(formula),run_time=.5); self.finish()
+        comp_whole, low, top = comparison()
+        head, whole_bar, plc_lab = comp_whole[0], comp_whole[1], comp_whole[2]
+        gap_bar = lifted_gap()[0]
+        self.add(head, whole_bar, plc_lab, gap_bar)
+
+        x_br, topy, mid = -2.85, Y0 + K * PLC, Y0 + K * DRUG
+
+        def bracket(y1, y2):
+            return VGroup(
+                Line([x_br, y1, 0], [x_br + 0.22, y1, 0], color=GREY),
+                Line([x_br + 0.22, y1, 0], [x_br + 0.22, y2, 0], color=GREY),
+                Line([x_br, y2, 0], [x_br + 0.22, y2, 0], color=GREY),
+            )
+
+        lbl_166 = label('+1.66', -3.9, 1.8, 30, YELLOW)
+        br_low, br_top = bracket(Y0, mid), bracket(mid, topy)
+        lbl_121 = label('+1.21 still worsened\n(drug group)', 0.45, (Y0 + mid) / 2, 29, BLUE).align_to([-2.2, 0, 0], LEFT)
+        lbl_045 = label('gap 0.45', -0.95, (topy + mid) / 2, 30, GREEN).align_to([-2.2, 0, 0], LEFT)
+
+        f_num = T('0.45', 32, GREEN)
+        f_div = T('÷', 32, TEXT)
+        f_den = T('1.66', 32, YELLOW)
+        f_res = T('≈ 0.27', 32, TEXT)
+        VGroup(f_num, f_div, f_den, f_res).arrange(RIGHT, buff=0.14).move_to([0, -2.15, 0]).align_to([-2.2, 0, 0], LEFT)
+
+        pct_lab = T('about 27%', 30, GREEN).move_to([0, -2.95, 0]).align_to([-2.2, 0, 0], LEFT)
+        rel_lab = T('relative slowing', 30, GREEN).next_to(pct_lab, RIGHT, buff=0.14).align_to(pct_lab, UP)
+
+        self.at('1', nth=0)
+        self.play(FadeIn(lbl_166), run_time=0.35)
+
+        self.at('and the drug')
+        self.play(ReplacementTransform(whole_bar, low), ReplacementTransform(gap_bar, top), run_time=0.65)
+
+        self.at('1', nth=1)
+        self.play(Create(br_low), FadeIn(lbl_121), run_time=0.4)
+
+        self.at('The gap')
+        self.play(Create(br_top), run_time=0.35)
+
+        self.at('0', nth=0)
+        self.play(FadeIn(lbl_045), run_time=0.35)
+
+        self.at('0 45', nth=1)
+        self.play(FadeIn(f_num), run_time=0.35)
+
+        self.at('over 1')
+        self.play(FadeIn(f_div), FadeIn(f_den), run_time=0.45)
+
+        self.at('about 27')
+        self.play(FadeIn(f_res), FadeIn(pct_lab), run_time=0.4)
+
+        self.at('just over a quarter')
+        self.play(Indicate(top, color=GREEN, scale_factor=1.06), run_time=0.6)
+
+        self.at('That share')
+        self.play(FadeIn(rel_lab), run_time=0.4)
+        self.finish()
 class S10Not(SpokenScene):
     def construct(self):
         cards=VGroup(*[chip(t,GREY,size=36).move_to([0,y,0]) for t,y in [('Gain in memory',2),('Share of patients helped',0),('Prognosis',-2)]])
@@ -333,6 +387,3 @@ class S22Takeaway(SpokenScene):
         self.at('apart from'); self.play(FadeIn(human),Create(Line([3.15,-.1,0],[3.55,.3,0],color=TEXT,stroke_width=5)),Create(Line([3.45,-.1,0],[3.85,.3,0],color=TEXT,stroke_width=5)),FadeIn(label('A marker is not the person',3.25,-2.35,30)),run_time=.5); self.finish()
 class S23End(EndCard):
     LINE='Slower worsening is still worsening; a marker is not the person.'
-    def construct(self):
-        self.add(VGroup(T('Slower worsening is still worsening;',40),T('a marker is not the person.',40)).arrange(DOWN,buff=.2).move_to([0,.4,0]),label('biochemistrypedia.com',0,-1.25,30,'#76E3EB'))
-        self.wait(self.narration_s)

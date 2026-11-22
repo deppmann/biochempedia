@@ -174,13 +174,29 @@ class S06Field(SpokenScene):
     def construct(self):
         g=eyes_paths(); self.add(g)
         field=Rectangle(width=4.4,height=.7,color=YELLOW,fill_color=YELLOW,fill_opacity=.2).move_to([-2.2,3,0])
-        fixation=VGroup(Dot([0,3,0],radius=.07),label('fixation',1.05,3,26))
-        rays=VGroup(Arrow([-1.4,2.6,0],[-2.25,.8,0],color=YELLOW,buff=0,stroke_width=3),Arrow([-1.4,2.6,0],[2.95,.87,0],color=YELLOW,buff=0,stroke_width=3))
-        self.at('So everything'); self.play(FadeIn(field),FadeIn(fixation),run_time=.3)
-        self.at('left of the point'); self.play(FadeIn(label('left visual field',-2.2,3,26,YELLOW)),Create(rays),run_time=.6)
-        self.at('reaches the right'); self.play(g[2][0].animate.set_color(YELLOW),g[3][1].animate.set_color(YELLOW),g[4][1][0].animate.set_fill(YELLOW,.3),run_time=.6)
-        self.at('from both eyes'); self.play(Indicate(g[0][0],color=YELLOW),Indicate(g[0][1],color=YELLOW),run_time=.5)
-        self.at('The hemifield matters'); self.play(FadeIn(label('hemifield, not eye',0,-3.3,32)),run_time=.4); self.finish()
+        left_field_lab=label('left visual field',-2.2,3,26,YELLOW)
+        gaze_line=DashedLine([0,2.55,0],[0,3.45,0],color=GREY,stroke_width=2,dash_length=.08)
+        fixation=VGroup(Dot([0,3,0],radius=.075,color=TEXT),label('gaze',.65,3,26,TEXT))
+        rays=VGroup(Arrow([-3.1,2.6,0],[-2.25,.78,0],color=YELLOW,buff=0,stroke_width=3.5),
+                    Arrow([-.4,2.6,0],[2.95,.87,0],color=YELLOW,buff=0,stroke_width=3.5))
+        ends_top=g[4][1].get_top()[1]
+        left_nasal_route=path([(-2.25,.78),(0,-.6),(2.8,-2.1),(2.8,ends_top)],YELLOW,6.5)
+        right_temporal_route=path([(2.95,.87),(3.8,-.7),(3.8,-2.1),(3.8,ends_top)],YELLOW,6.5)
+        nasal_lab=label('nasal half',-.8,.95,26,YELLOW)
+        nasal_ptr=Line(nasal_lab.get_left()+LEFT*.08,[-1.98,.85,0],color=YELLOW,stroke_width=2.5)
+        temporal_lab=label('temporal half',4.85,.55,26,YELLOW)
+        temporal_ptr=Line(temporal_lab.get_left()+LEFT*.08,[3.08,.88,0],color=YELLOW,stroke_width=2.5)
+        self.at('Light from the left'); self.play(FadeIn(field),FadeIn(left_field_lab),FadeIn(gaze_line),FadeIn(fixation),run_time=.45)
+        self.at('lands on'); self.play(Create(rays),run_time=.8)
+        self.at('right half'); self.play(g[1][2].animate.set_color(YELLOW),g[1][3].animate.set_color(YELLOW),run_time=.5)
+        self.at("left eye's nasal half"); self.play(FadeIn(nasal_lab),Create(nasal_ptr),run_time=.45)
+        self.at('crosses'); self.play(Create(left_nasal_route),run_time=.85)
+        self.at("right eye's temporal half"); self.play(FadeIn(temporal_lab),Create(temporal_ptr),run_time=.45)
+        self.at('stays'); self.play(Create(right_temporal_route),run_time=.85)
+        self.at('left of his gaze'); self.play(Indicate(field,color=YELLOW,scale_factor=1.04),run_time=.6)
+        self.at('right hemisphere'); self.play(g[4][1][0].animate.set_fill(YELLOW,.32),run_time=.55)
+        self.at('from both eyes'); self.play(Indicate(g[0][0],color=YELLOW),Indicate(g[0][1],color=YELLOW),run_time=.55)
+        self.at('The hemifield matters'); self.play(FadeIn(label('hemifield, not eye',0,-3.3,32)),run_time=.45); self.finish()
 
 
 class S07Flash(SpokenScene):
@@ -338,11 +354,3 @@ class S19Takeaway(SpokenScene):
 
 class S20End(EndCard):
     LINE='He cannot say what never reaches\nthe speaking hemisphere.'
-
-    def construct(self):
-        line=T(self.LINE,size=44,font=TITLE_FONT,line_spacing=1.2)
-        sub=T('biochemistrypedia.com',size=26,color=TEAL)
-        VGroup(line,sub).arrange(DOWN,buff=.6)
-        self.play(FadeIn(line),run_time=.5)
-        self.play(FadeIn(sub),run_time=.3)
-        self.finish()
