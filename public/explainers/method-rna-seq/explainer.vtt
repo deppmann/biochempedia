@@ -1,0 +1,181 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:04.200
+Every cell carries almost the same genome, so which genes are active?
+
+2
+00:00:05.480 --> 00:00:10.800
+What makes a keratinocyte, a skin cell, differ from a macrophage, an immune cell, is
+
+3
+00:00:10.800 --> 00:00:12.220
+which genes it transcribes.
+
+4
+00:00:13.660 --> 00:00:16.660
+Transcription copies a stretch of DNA into RNA.
+
+5
+00:00:18.180 --> 00:00:21.960
+Transcription factors and chromatin hold each cell's pattern in place.
+
+6
+00:00:23.000 --> 00:00:27.120
+Single-cell RNA sequencing is one way to read that pattern.
+
+7
+00:00:30.050 --> 00:00:34.690
+First, the tissue is separated into single cells, usually with enzymes.
+
+8
+00:00:36.190 --> 00:00:40.130
+Each captured RNA is copied into DNA so it can be sequenced.
+
+9
+00:00:41.390 --> 00:00:45.870
+Before cells are mixed, every copy from one cell gets the same cell barcode.
+
+10
+00:00:46.710 --> 00:00:50.950
+That barcode is a short sequence tag marking its cell of origin.
+
+11
+00:00:52.100 --> 00:00:54.980
+Next, the pooled DNA is sequenced together.
+
+12
+00:00:56.440 --> 00:00:59.320
+Cell barcodes sort every read back to its starting cell.
+
+13
+00:01:00.800 --> 00:01:05.260
+Counts fill a count matrix: one row per gene, one column per sampled cell.
+
+14
+00:01:06.580 --> 00:01:11.540
+Each entry counts reads, or molecules when each copy carries a unique molecular
+
+15
+00:01:11.540 --> 00:01:17.440
+identifier. Sequencing RNA counts which genes each cell uses right now.
+
+16
+00:01:18.433 --> 00:01:23.833
+A count matrix holds many genes across many cells, so software groups cells with
+
+17
+00:01:23.833 --> 00:01:25.373
+similar expression profiles.
+
+18
+00:01:26.753 --> 00:01:27.933
+Each group is a cluster.
+
+19
+00:01:29.293 --> 00:01:34.073
+Comparing a cluster's genes with known profiles to propose an identity is
+
+20
+00:01:34.073 --> 00:01:37.333
+annotation. Notice the word propose.
+
+21
+00:01:38.433 --> 00:01:39.893
+Counts can still mislead.
+
+22
+00:01:41.067 --> 00:01:47.007
+Suppose you want the genes that nerve growth factor, NGF, controls in sympathetic
+
+23
+00:01:47.007 --> 00:01:48.607
+neurons of living animals.
+
+24
+00:01:49.867 --> 00:01:52.047
+Those neurons sit in groups called ganglia.
+
+25
+00:01:53.327 --> 00:01:56.367
+Here is the catch: without NGF, the neurons die.
+
+26
+00:01:57.627 --> 00:02:03.247
+If you compare RNA from normal ganglia and ganglia lacking NGF, what misleads your
+
+27
+00:02:03.247 --> 00:02:04.247
+counts?
+
+28
+00:02:09.150 --> 00:02:12.810
+Without living neurons, every neuron gene drops together.
+
+29
+00:02:14.070 --> 00:02:17.810
+Your counts measure cell loss, not which genes NGF controls.
+
+30
+00:02:19.230 --> 00:02:21.170
+So both groups must keep living neurons.
+
+31
+00:02:22.550 --> 00:02:23.790
+A second limit is time.
+
+32
+00:02:25.090 --> 00:02:28.230
+An RNA profile is a snapshot of active genes.
+
+33
+00:02:29.430 --> 00:02:33.950
+A hidden fate bias, a leaning toward one future cell type, can escape it.
+
+34
+00:02:34.933 --> 00:02:37.273
+That control worked in living animals.
+
+35
+00:02:38.693 --> 00:02:43.613
+Deppmann, Ginty and colleagues used mice lacking Bax, a protein these neurons need
+
+36
+00:02:43.613 --> 00:02:48.753
+to die. Without Bax, sympathetic neurons survive without NGF.
+
+37
+00:02:50.073 --> 00:02:54.413
+They compared those ganglia with ganglia lacking both Bax and NGF.
+
+38
+00:02:55.613 --> 00:03:01.873
+That gave NGF-dependent genes: transcription factors, synaptic genes, metabolism,
+
+39
+00:03:02.353 --> 00:03:03.933
+cell size, and axon growth.
+
+40
+00:03:05.067 --> 00:03:07.107
+A snapshot can also miss things.
+
+41
+00:03:08.547 --> 00:03:13.447
+Weinreb, Klein, Camargo and colleagues gave mouse blood progenitors, the parent
+
+42
+00:03:13.447 --> 00:03:17.607
+cells of blood, inherited DNA barcodes expressed as RNA.
+
+43
+00:03:18.907 --> 00:03:22.627
+They sequenced some cells early and followed their sisters' progeny.
+
+44
+00:03:24.027 --> 00:03:28.767
+Sister cells shared fate biases that the RNA profiles had not detected.
+
+45
+00:03:29.627 --> 00:03:33.767
+RNA counts capture active genes now, not a cell's whole story.
