@@ -293,7 +293,7 @@ export function start() {
         const put = await api(`/api/classes/${encodeURIComponent(id)}/assignments`, { assignments: merged.list }, 'PUT');
         if (!put.ok) { err.textContent = put.data.error || 'Could not save. Nothing was changed.'; btn.removeAttribute('aria-disabled'); return; }
         const name = classes.find((c) => c.id === id)?.name ?? 'the class';
-        tell(`<p class="tc-ok">Added ${count(merged.added.length, 'lesson', 'lessons')} to ${esc(name)}${merged.already.length ? `; ${merged.already.length} were already assigned` : ''}${merged.dropped.length ? `; ${merged.dropped.length} did not fit (a class holds 400)` : ''}. <a href="/teach/class/?id=${encodeURIComponent(id)}&tab=assign">Open the class to set due dates</a></p>`);
+        tell(`<p class="tc-ok">Added ${count(merged.added.length, 'lesson', 'lessons')} to ${esc(name)}${merged.already.length ? `; ${merged.already.length} ${merged.already.length === 1 ? 'was' : 'were'} already assigned` : ''}${merged.dropped.length ? `; ${merged.dropped.length} did not fit (a class holds 400)` : ''}. <a href="/teach/class/?id=${encodeURIComponent(id)}&tab=assign">Open the class to set due dates</a></p>`);
       });
     });
   }
