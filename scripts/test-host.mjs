@@ -562,9 +562,9 @@ await check('every localStorage key the site writes is one the hand-off carries'
   const notKeys = /^bp-(cards-open|class|films|learner|mycards|notebook|progress|reading|section|hl|lp|listen)\b|^biochempedia:(cards-prompt|films:budget|handoff)|^biochempedia-/;
   // Keys under the new "stemhop:" prefix were first written on stemhop.com itself, so there is nothing
   // on the old domain to carry: the site-wide preferences (role, level, how long a lesson to open) and
-  // the old per-lesson Side Hops view, now read only as a fallback. Listing them here keeps the scan
+  // the old per-lesson Side Hops view, now read only as a fallback, and the film playlist (2026-11-22). Listing them here keeps the scan
   // honest: a new "stemhop:" key fails this check until someone decides whether the hand-off carries it.
-  const stemhopOnly = /^stemhop:(prefs:v1|side-hops:view:|prefs|films:counted:v1|role-pending|calendar:v1|calendar|set-aside:v1)$/;
+  const stemhopOnly = /^stemhop:(prefs:v1|side-hops:view:|prefs|films:counted:v1|role-pending|calendar:v1|calendar|set-aside:v1|playlist:v1)$/;
   const keys = [...found].filter((k) => !notKeys.test(k) && !stemhopOnly.test(k));
   assert.ok([...found].some((k) => k === 'stemhop:prefs:v1'), 'the scan sees stemhop: keys');
   assert.ok(keys.length >= 15, 'found the keys: ' + keys.join(' '));

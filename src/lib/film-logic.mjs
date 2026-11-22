@@ -3,6 +3,7 @@
    say what should be in view.
 
    Used by src/lib/theater-client.ts (the theater on /watch/) and src/lib/film-run.ts (/films/run/). */
+import { prepare, searchFilms, tokens } from './film-search.mjs';
 
 /**
  * What the companion shows at second `t`.
@@ -90,8 +91,6 @@ export const endWith = (title) => `${title}${/[.?!]$/.test(title) ? '' : '.'}`;
    matchFilms() returns and the run plays runQueue() of the same arguments, so the two cannot
    disagree (they once did: the library searched the questions people ask and the run did not). */
 
-const fold = (s) => String(s).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
-const LITTLE = new Set('a an and are as at be by can do does for from how in into is it its of on or so that the their then there this to was what when where which who why will with your you'.split(' '));
 const collator = new Intl.Collator('en', { sensitivity: 'base', numeric: true });
 const COMPARE = {
   course: (a, b) => a.i - b.i,
@@ -104,42 +103,65 @@ const COMPARE = {
 
 /**
  * The films a view selects, in its order. `films` are the entries of /films/list.json; `view` is
- * { q, sort, level, course, kind }; `ideas` maps a lesson title to the words of the questions people
- * ask about it (/films/ideas.json), or is null when that file is not loaded.
- * A search matches when every word is in the film's title or its lesson's title, or starts a word
- * among the lesson's questions; films matched by title come first.
- * @template {{ t: string, l?: string, s: string, c: string, k: string, d: number, i: number, r?: string }} T
+ * { q, sort, level, course, kind }; `data` is /films/search.json (src/lib/film-search.mjs reads it),
+ * or null when it is not loaded (a search then reads titles, lessons, courses and levels only). An
+ * older map of lesson title -> question words is still accepted.
+ * A search is read by src/lib/film-search.mjs: kind and level words act as filters, every other word
+ * must be found somewhere in the film's record, best match first; films with all but one word follow.
+ * With an order chosen ("Shortest first"), the full matches take that order and the partial ones follow.
+ * The returned array carries `full`: how many of its films have every word (the rest are partial).
+ * @template {{ f?: string, t: string, l?: string, s: string, c: string, k: string, d: number, i: number, r?: string }} T
  * @param {T[]} films
  * @param {{ q: string, sort: string, level: string, course: string, kind: string }} view
- * @param {Record<string, string> | null} [ideas]
- * @returns {T[]}
+ * @param {any} [data]
+ * @param {{ courses?: Record<string, string>, levels?: Record<string, string> }} [names] course and level titles, so they can be searched
+ * @returns {T[] & { full: number }}
  */
-export function matchFilms(films, view, ideas = null) {
-  // Little words carry no idea ("why do cells swell in water" is cells, swell, water), unless the
-  // search is nothing but little words.
-  const typed = fold(view.q).split(/[^a-z0-9]+/).filter((w) => w.length > 1 || /\d/.test(w));
-  const kept = typed.filter((w) => !LITTLE.has(w));
-  const words = kept.length ? kept : typed;
-  const byTitle = new Set();
-  const out = films.filter((f) => {
-    if (view.level && f.s !== view.level) return false;
-    if (view.course && f.c !== view.course) return false;
-    if (view.kind && f.k !== view.kind) return false;
-    if (!words.length) return true;
-    const title = fold(`${f.t} ${f.l ?? ''}`);
-    if (words.every((w) => title.includes(w))) { byTitle.add(f); return true; }
-    // Against the questions people ask, a word must start a word ("atp" is not found inside "adaptation").
-    const idea = f.l && ideas ? ` ${title.replace(/[^a-z0-9]+/g, ' ')} ${ideas[f.l] ?? ''}` : '';
-    return !!idea && words.every((w) => idea.includes(` ${w}`));
+export function matchFilms(films, view, data = null, names = {}) {
+  const keep = (f) => (!view.level || f.s === view.level) && (!view.course || f.c === view.course);
+  const q = String(view.q ?? '').trim();
+  if (!q || !tokens(q).length) {
+    const out = films.filter((f) => keep(f) && (!view.kind || f.k === view.kind));
+    out.sort(COMPARE[view.sort] ?? COMPARE.course);
+    return Object.assign(out, { full: out.length });
+  }
+  const index = prepare(listFor(films, names), searchDataFor(films, data));
+  const r = searchFilms(index, q, { kind: view.kind, level: view.level, course: view.course });
+  let out = r.films;
+  if (view.sort && view.sort !== 'course' && COMPARE[view.sort]) out = [...out.slice(0, r.full).sort(COMPARE[view.sort]), ...out.slice(r.full)];
+  return Object.assign([...out], { full: r.full });
+}
+
+/* The index is built once per film list: the same array (and names) gets the same wrapper. */
+const lists = new WeakMap();
+function listFor(films, names) {
+  let l = lists.get(films);
+  if (!l || l.courses !== names.courses || l.levels !== names.levels) lists.set(films, (l = { films, courses: names.courses, levels: names.levels }));
+  return l;
+}
+/* An older ideas map ({ lesson title: words }) as search data. */
+const legacy = new WeakMap();
+function searchDataFor(films, data) {
+  if (!data || data.v) return data;
+  let d = legacy.get(data);
+  if (d) return d;
+  const lessons = [];
+  const at = new Map();
+  const out = {};
+  films.forEach((f) => {
+    if (!f.l || !data[f.l]) return;
+    if (!at.has(f.l)) { at.set(f.l, lessons.length); lessons.push({ w: data[f.l] }); }
+    out[f.f] = { L: at.get(f.l) };
   });
-  out.sort(COMPARE[view.sort] ?? COMPARE.course);
-  if (words.length && byTitle.size && byTitle.size < out.length) return [...out.filter((f) => byTitle.has(f)), ...out.filter((f) => !byTitle.has(f))];
-  return out;
+  d = { v: 1, fields: {}, lessons, films: out };
+  legacy.set(data, d);
+  return d;
 }
 
 /**
- * The films of a view that a run plays, in the view's order: those with a page of their own under
- * /watch/ (scientist profiles and method films open elsewhere), and without the ages 5 to 10 films,
+ * The films of a view that a run plays, in the view's order: lesson films (with a page of their own
+ * under /watch/) and method films (since 2026-11-22: "neuroscience methods" plays), not scientist
+ * profiles, which open in their lesson, and without the ages 5 to 10 films,
  * which show a grown-up how to set up an activity, unless that level or kind was asked for or the
  * view holds nothing else.
  * @template {{ h: string, k: string }} T
@@ -149,14 +171,19 @@ export function matchFilms(films, view, ideas = null) {
  */
 export function runnableFilms(matched, view) {
   const young = view.level === 'ages-5-10' || view.kind === 'activity' || matched.every((f) => f.k === 'activity');
-  return matched.filter((f) => f.h.startsWith('/watch/') && (young || f.k !== 'activity'));
+  return matched.filter((f) => (f.h.startsWith('/watch/') || f.k === 'method') && (young || f.k !== 'activity'));
 }
 
 /** What a run of a view plays: runnableFilms(matchFilms(...)). The library's offer and /films/run/ both call this.
  * @template {{ t: string, l?: string, s: string, c: string, k: string, d: number, i: number, r?: string, h: string }} T
  * @param {T[]} films
  * @param {{ q: string, sort: string, level: string, course: string, kind: string }} view
- * @param {Record<string, string> | null} [ideas]
+ * @param {any} [ideas] /films/search.json (or an older lesson-title map), or null
+ * @param {{ courses?: Record<string, string>, levels?: Record<string, string> }} [names]
  * @returns {T[]}
  */
-export const runQueue = (films, view, ideas = null) => runnableFilms(matchFilms(films, view, ideas), view);
+export const runQueue = (films, view, ideas = null, names = {}) => {
+  const m = matchFilms(films, view, ideas, names);
+  // A run plays the films with every word; partial matches only when nothing has them all.
+  return runnableFilms(m.full ? m.slice(0, m.full) : m, view);
+};

@@ -49,12 +49,22 @@ import { IDEAS_LINK } from '../data/site-flags';
     {IDEAS_LINK && <p class="ss-ideas">One idea at every level: <a href="/ideas/">Find an idea</a></p>}
   </div>
   <p class="ss-status" role="status" aria-live="polite"></p>
+  {/* Films, as their own group (2026-11-22): src/lib/film-find.ts, the film library's matcher. */}
+  <section class="ss-films" aria-label="Films" hidden>
+    <div class="ss-films-head">
+      <h2 class="ss-films-h">Films</h2>
+      <p class="ss-films-n"></p>
+      <p class="ss-films-go"><a class="ss-films-play" href="/films/run/">▶ Play these films</a><a class="ss-films-all" href="/films/">All on the films page</a></p>
+    </div>
+    <ul class="ss-films-list"></ul>
+  </section>
   <ol class="ss-results"></ol>
   <button type="button" class="ss-more" hidden>Show more lessons</button>
 </div>
 
 <script>
   import { browserEngine, createLessonSearch, TEXT_MIN, type LessonHit, type Ranked, type TextResult, type TitleHit } from '../lib/lesson-search';
+  import { findFilms, loadFilmFinder, type FilmFinder } from '../lib/film-find';
 
   const esc = (s: string) => s.replace(/[&<>"]/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]!));
   const PAGE = 12;       // lessons drawn (and their page fragments fetched) at a time
@@ -75,6 +85,54 @@ import { IDEAS_LINK } from '../data/site-flags';
     const moreBtn = root.querySelector<HTMLButtonElement>('.ss-more')!;
     let scope = root.dataset.scope || 'all';
     let ready = false;
+
+    /* ---- films, their own group: up to FILMS_SHOWN cards, a link to all of them on /films/ and a run of them. */
+    const FILMS_SHOWN = 8;
+    const filmsBox = root.querySelector<HTMLElement>('.ss-films')!;
+    const filmsList = filmsBox.querySelector<HTMLElement>('.ss-films-list')!;
+    const filmsN = filmsBox.querySelector<HTMLElement>('.ss-films-n')!;
+    const filmsPlay = filmsBox.querySelector<HTMLAnchorElement>('.ss-films-play')!;
+    const filmsAll = filmsBox.querySelector<HTMLAnchorElement>('.ss-films-all')!;
+    let finder: FilmFinder | null = null;
+    let filmsQuery = '';
+    const filmClock = (sec: number) => `${Math.floor(sec / 60)}:${String(Math.round(sec % 60)).padStart(2, '0')}`;
+    const drawFilms = () => {
+      const raw = input.value.trim();
+      if (!raw || !finder) { filmsBox.hidden = true; filmsList.innerHTML = ''; filmsQuery = ''; return; }
+      const key = `${scope}|${raw}`;
+      if (key === filmsQuery) return;
+      filmsQuery = key;
+      const r = findFilms(finder, raw, scope);
+      if (!r.films.length) { filmsBox.hidden = true; filmsList.innerHTML = ''; return; }
+      const d = finder.list;
+      const shown = (r.full ? r.films.slice(0, r.full) : r.films).slice(0, FILMS_SHOWN);
+      filmsBox.hidden = false;
+      const n = r.full || r.films.length;
+      filmsN.textContent = r.full
+        ? `${n} ${n === 1 ? 'film has' : 'films have'} every word${n > shown.length ? `; the best ${shown.length} here` : ''}.`
+        : `No film has every word; ${n === 1 ? 'this one has' : 'these have'} all but one.`;
+      const p = new URLSearchParams({ q: raw });
+      if (scope !== 'all') p.set('course', scope);
+      filmsAll.href = `/films/?${p}`;
+      filmsPlay.href = `/films/run/?${p}`;
+      filmsPlay.hidden = !r.full;
+      filmsList.innerHTML = shown.map((f) => {
+        const where = f.c ? d.courses[f.c] : 'Methods library';
+        const level = f.s ? ` · ${esc(d.levels[f.s] ?? '')}` : '';
+        return `<li class="ssf" data-fp-film="${esc(f.f)}" data-fp-t="${esc(f.t)}" data-fp-o="${esc(f.o)}" data-fp-d="${f.d}" data-fp-h="${esc(f.h)}">
+          <a class="ssf-main" ${rawLink(f.h)}>
+            <span class="ssf-pic"><img src="${esc(f.o)}" alt="" width="320" height="180" loading="lazy" decoding="async"><span class="ssf-play" aria-hidden="true">▶</span><span class="ssf-len"><span class="visually-hidden">Length </span>${filmClock(f.d)}</span></span>
+            <span class="ssf-kind">${esc(f.b)}</span>
+            <span class="ssf-t"><span class="visually-hidden">Play: </span>${esc(f.t)}</span>
+            <span class="ssf-m">${esc(where)}${level}${f.l ? ` · ${esc(f.l)}` : ''}</span>
+          </a>
+        </li>`;
+      }).join('');
+    };
+    const startFilms = () => {
+      if (finder) { drawFilms(); return; }
+      void loadFilmFinder().then((f) => { if (f) { finder = f; filmsQuery = ''; drawFilms(); } });
+    };
 
     /* State of the current query. `seq` is bumped by every new query; an answer that comes back for
        an older one is dropped. */
@@ -199,6 +257,7 @@ import { IDEAS_LINK } from '../data/site-flags';
 
     const run = () => {
       const raw = input.value.trim();
+      startFilms();
       if (!raw) { window.clearTimeout(textTimer); seq++; cur = null; status.textContent = ''; list.innerHTML = ''; moreBtn.hidden = true; return; }
       if (!ready) return;
       const key = `${scope}|${raw}`;
@@ -226,7 +285,7 @@ import { IDEAS_LINK } from '../data/site-flags';
 
     let timer = 0;
     input.addEventListener('input', () => { window.clearTimeout(timer); timer = window.setTimeout(start, 90); });
-    input.addEventListener('focus', () => { if (!ready) search.load().catch(() => {}); }, { once: true });
+    input.addEventListener('focus', () => { if (!ready) search.load().catch(() => {}); void loadFilmFinder(); }, { once: true });
     // With JS the results appear in place; the form only navigates without it.
     form.addEventListener('submit', (e) => { e.preventDefault(); start(); });
 
@@ -318,6 +377,29 @@ import { IDEAS_LINK } from '../data/site-flags';
     padding: 0 0.1em;
     font-weight: 600;
   }
+  .ss-films[hidden] { display: none; }
+  .ss-films { margin: var(--ddp-space-4) 0 0; }
+  .ss-films-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.25rem var(--ddp-space-3); }
+  .ss-films-h { margin: 0; font-family: var(--ddp-font-serif); font-size: var(--ddp-text-xl); font-weight: 600; color: var(--ddp-color-primary); }
+  .ss-films-n { margin: 0; font-size: var(--ddp-text-sm); color: var(--ddp-color-muted); }
+  .ss-films-go { margin: 0 0 0 auto; display: flex; flex-wrap: wrap; gap: var(--ddp-space-3); font-size: var(--ddp-text-sm); font-weight: 600; }
+  .ss-films-go a { color: var(--ddp-color-accent); text-underline-offset: 3px; display: inline-flex; align-items: center; min-height: 36px; }
+  .ss-films-go a[hidden] { display: none; }
+  .ss-films-list { list-style: none; margin: var(--ddp-space-2) 0 0; padding: 0 0 var(--ddp-space-2); display: grid; grid-auto-flow: column; grid-auto-columns: minmax(200px, 240px); gap: var(--ddp-space-3); overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x proximity; }
+  .ssf { position: relative; scroll-snap-align: start; min-width: 0; }
+  .ssf-main { display: flex; flex-direction: column; gap: 0.2rem; color: inherit; text-decoration: none; border-radius: 8px; }
+  .ssf-main:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .ssf-pic { position: relative; display: block; aspect-ratio: 16 / 9; border-radius: 8px; overflow: hidden; background: #0f1117; }
+  .ssf-pic img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .ssf-play { position: absolute; inset: 0; margin: auto; width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; padding-left: 3px; box-sizing: border-box; background: rgba(15, 17, 23, 0.72); color: #fff; font-size: 1rem; }
+  .ssf-main:hover .ssf-play { background: var(--ddp-color-accent); }
+  .ssf-len { position: absolute; right: 6px; bottom: 6px; padding: 0.1em 0.45em; border-radius: 6px; background: rgba(15, 17, 23, 0.78); color: #fff; font-family: var(--ddp-font-mono); font-size: 0.7rem; }
+  .ssf-kind { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ddp-color-accent); }
+  .ssf-t { font-weight: 600; line-height: 1.25; color: var(--ddp-color-primary); }
+  .ssf-main:hover .ssf-t { text-decoration: underline; text-underline-offset: 3px; }
+  .ssf-m { font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  /* The playlist's add button (src/lib/film-playlist.ts), where the page has the tray. */
+  .ssf .fp-add { top: 6px; left: 6px; }
   .ss-more[hidden] { display: none; }
   .ss-more {
     align-self: flex-start;
