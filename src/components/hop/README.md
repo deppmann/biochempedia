@@ -99,6 +99,16 @@ The films, in order from the simplest level to the deepest, are in `/ideas/film-
 Each film row is `[film key, title, film page, level 0 to 6, seconds, lesson slug]`. The run page
 itself reads `/films/idea/<id>.json` (one small file per idea, the same films in the same order).
 
+### On the film library: Play a ladder
+
+`/films/` has a ladder picker ("Play a ladder", `src/lib/film-ladder.ts`, data `/films/ladders.json`
+from `src/lib/film-ladders.ts`). It draws this same ladder with `ladderHtml()` and puts each film,
+both chapters of each lesson, on its rung as a small thumbnail that flies in from the picker (not
+under reduced motion). Hex stands on the rung of the film in the player. "Play the ladder" there
+plays every film in order, from the first or from the film picked, and goes on to the next film by
+itself until "Stop": the viewer asked for the whole ladder. `/films/?ladder=<id>&at=<n>` opens a
+ladder at its n-th film, paused.
+
 ## The other pieces
 
 | File | What it is |
