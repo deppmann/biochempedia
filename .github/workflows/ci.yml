@@ -7,10 +7,14 @@ on:
   push:
     branches: [main]
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
   workflow_dispatch:
 
 jobs:
   build:
+    # Film PRs open as drafts before their films reach R2, so the build is expected to fail until
+    # ship_pr.sh uploads them (check-assets). Skip drafts; the build runs when the PR is marked ready.
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
