@@ -226,22 +226,58 @@ class S04(SpokenScene):
 class S05(SpokenScene):
     def construct(self):
         g,p,k=occ_add(self,50,[.5])
-        self.at('nine in ten')
-        self.play(Transform(g,grid(90)),Create(occ_marker(p,.9)),k.animate.set_x(-5.9+4.2*(np.log10(.72)+3)/5),run_time=.6)
-        self.add(label('90%: 0.72 nM',1.1,1.6,28,GOLD))
-        self.at('takes nine times')
-        self.play(Create(ratio(p,.5,.9,'9× KD')),run_time=.4)
+        l_def=T('L: free drug',size=24,color=PURPLE).move_to([4.75,1.3,0])
+        k_def=T('K: half-fill (KD)',size=24,color=GOLD).move_to([4.75,.75,0])
+        eq_f=VGroup(M('f =',26,TEXT),M('L',26,PURPLE),M('/ (K + L)',26,TEXT)).arrange(RIGHT,buff=.11).move_to([4.75,.05,0])
+        eq_9=VGroup(M('0.9',26,GOLD),T('→',26,GOLD),M('L = 9K',26,GOLD)).arrange(RIGHT,buff=.13).move_to([4.75,-.7,0])
+        self.at('L',nth=0)
+        self.play(FadeIn(l_def),run_time=.35)
+        self.at('K',nth=0)
+        self.play(FadeIn(k_def),run_time=.35)
+        self.at('The share filled')
+        self.play(FadeIn(eq_f[0]),run_time=.3)
+        self.at('L over K plus L')
+        self.play(FadeIn(eq_f[1]),run_time=.25)
+        self.play(FadeIn(eq_f[2]),run_time=.45)
+        f_tr=ValueTracker(.5)
+        climb=always_redraw(lambda:occ_marker(p,f_tr.get_value()))
+        self.at('9 tenths',lead=.05)
+        self.add(climb)
+        self.play(FadeIn(eq_9[:2]),f_tr.animate.set_value(.9),Transform(g,grid(90)),
+                  k.animate.set_x(-5.9+4.2*(np.log10(.72)+3)/5),run_time=.95)
+        self.remove(climb)
+        self.add(occ_marker(p,.9))
+        self.at('9 K',lead=.05)
+        self.play(FadeIn(eq_9[2]),FadeIn(label('90%: 0.72 nM',1.1,1.85,28,GOLD)),
+                  Create(ratio(p,.5,.9,'9× KD')),run_time=.45)
         self.finish()
+        self.wait(.8)
 
 
 class S06(SpokenScene):
     def construct(self):
         g,p,k=occ_add(self,90,[.5,.9])
-        self.at('99 in 100')
-        self.play(Transform(g,grid(99)),Create(occ_marker(p,.99)),k.animate.set_x(-5.9+4.2*(np.log10(7.92)+3)/5),run_time=.7)
-        self.add(label('99%: 7.92 nM',1.1,1.6,28,GOLD))
-        self.at('takes eleven times')
-        self.play(Create(ratio(p,.9,.99,'11× 0.72 nM')),run_time=.4)
+        eq_top=VGroup(M('0.99',26,GOLD),T('→',26,GOLD),M('L = 99K',26,GOLD)).arrange(RIGHT,buff=.10).move_to([1.12,2.25,0])
+        div_eq=VGroup(M('99',26,GOLD),M('÷',26,TEXT),M('9',26,GOLD),M('=',26,TEXT),M('11',26,GOLD)).arrange(RIGHT,buff=.10).move_to([1.05,1.72,0])
+        eq_bot=M('= 11 × 9K',26,GOLD).move_to([.98,1.20,0])
+        f_tr=ValueTracker(.9)
+        climb=always_redraw(lambda:occ_marker(p,f_tr.get_value()))
+        self.at('99 hundredths',lead=.05)
+        self.add(climb)
+        self.play(FadeIn(eq_top[:2]),f_tr.animate.set_value(.99),Transform(g,grid(99)),
+                  k.animate.set_x(-5.9+4.2*(np.log10(7.92)+3)/5),run_time=1.15)
+        self.remove(climb)
+        self.add(occ_marker(p,.99))
+        self.at('99k',lead=.05)
+        self.play(FadeIn(eq_top[2]),FadeIn(label('99%:\n7.92 nM',5.42,1.25,24,GOLD)),run_time=.4)
+        self.at('99',nth=1,lead=.05)
+        self.play(FadeIn(div_eq[0]),run_time=.25)
+        self.at('divided by',lead=.05)
+        self.play(FadeIn(div_eq[1:3]),run_time=.45)
+        self.at('is 11',lead=.05)
+        self.play(FadeIn(div_eq[3:]),run_time=.35)
+        self.at('11 times',lead=.05)
+        self.play(FadeIn(eq_bot),Create(ratio(p,.9,.99,'11× 90% conc.')),run_time=.5)
         self.finish()
 
 
@@ -267,14 +303,49 @@ class S08(SpokenScene):
 
 class S09(SpokenScene):
     def construct(self):
-        a,c,l,p=decay_base(1);card=assumptions(True);self.add(a,c,l,card)
+        a,c,l,p=decay_base(1)
+        card=assumptions(False)
+        self.add(card)
+        self.play(Transform(card,assumptions(True)),FadeIn(a),FadeIn(c),FadeIn(l),run_time=.85)
+        self.at('only way out')
+        self.play(card[1][0].animate.set_color(TEAL),run_time=.4)
         self.at('far from busy')
-        self.play(card[1][1].animate.set_color(TEAL),run_time=.5)
-        self.at('Block half')
+        self.play(card[1][1].animate.set_color(TEAL),run_time=.4)
+        bar_x,bar_w=-.65,2.2
+        rate_tr=ValueTracker(1.0)
+        time_tr=ValueTracker(1.0)
+        r_lbl=label('clearance rate',bar_x,2.38,24,GREY)
+        r_box=Rectangle(width=bar_w,height=.32,color=GREY,stroke_width=2).move_to([bar_x,1.98,0])
+        r_fill=always_redraw(lambda:Rectangle(width=max(.02,bar_w*rate_tr.get_value()),height=.30,stroke_width=0,
+            fill_color=TEAL if rate_tr.get_value()<.9 else GREY,fill_opacity=.75).align_to(r_box,LEFT).set_y(1.98))
+        r_val=label('1',bar_x+bar_w/2+.45,1.98,24,GREY)
+        t_lbl=label('decay time',bar_x,1.38,24,TEAL)
+        t_box=Rectangle(width=bar_w,height=.32,color=GREY,stroke_width=2).move_to([bar_x,.98,0])
+        t_fill=always_redraw(lambda:Rectangle(width=max(.02,bar_w*(time_tr.get_value()/2.0)),height=.30,stroke_width=0,
+            fill_color=TEAL if time_tr.get_value()>1.1 else GREY,fill_opacity=.75).align_to(t_box,LEFT).set_y(.98))
+        t_val=label('1×',bar_x+bar_w/2+.45,.98,24,GREY)
+        self.play(FadeIn(VGroup(r_lbl,r_box,r_fill,r_val,t_lbl,t_box,t_fill,t_val)),run_time=.45)
+        frac_lbl=label('fraction left = 1/2',bar_x,2.78,24,TEAL)
+        self.at('half',nth=0,lead=.05)
+        self.play(FadeIn(frac_lbl),run_time=.4)
+        r_half=label('1/2',bar_x+bar_w/2+.45,1.98,24,TEAL)
+        self.at('half the rate',nth=0,lead=.05)
+        self.play(FadeOut(r_val,run_time=.15))
+        self.play(rate_tr.animate.set_value(.5),FadeIn(r_half),run_time=.65)
+        eq_time=M('time = 1 / (fraction left)',24,TEXT).move_to([bar_x,.25,0])
+        self.at('Half the rate means',lead=.1)
+        self.play(FadeIn(eq_time),run_time=.45)
+        eq_sub=M('= 1 / (1/2) = 2×',26,GOLD).move_to([bar_x,-.3,0])
+        t_two=label('2×',bar_x+bar_w/2+.45,.98,24,TEAL)
+        self.at('twice the time',lead=.05)
+        self.play(FadeOut(t_val,run_time=.15))
+        self.play(time_tr.animate.set_value(2.0),FadeIn(t_two),FadeIn(eq_sub),run_time=.65)
         _,cs,ls,_=decay_base(2)
+        self.at('serotonin lingers twice as long')
         self.remove(l);self.add(ls)
-        self.play(Create(cs[-1]),run_time=1)
+        self.play(Create(cs[-1]),run_time=1.0)
         self.finish()
+        self.wait(.25)
 
 
 class S10(SpokenScene):
@@ -476,8 +547,3 @@ class S23(SpokenScene):
 
 class S24End(EndCard):
     LINE='In this model, the last few percent blocked stretch the signal most.'
-    def construct(self):
-        self.add(label('If the transporter is the only way out,',0,1.5,30,TEAL),
-                 label('the last few percent blocked\nstretch the signal most.',0,-.1,40,GOLD),
-                 label('in this model',0,-1.65,28,GREY),label('biochemistrypedia.com',0,-2.65,22,TEAL))
-        self.finish()
