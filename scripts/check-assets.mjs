@@ -5,7 +5,7 @@
  * build if any points at a file that does not exist in dist/. Catches missing figure WebP,
  * narration MP3, scientist portraits, OG image, and broken internal links before they ship.
  *
- * Films (/explainers/**.mp4) and Side Hops audio (/side-hops/*.mp3) are not in the repository: one
+ * Films (/explainers/**.mp4), Side Hops audio (/side-hops/*.mp3) and Side Hops pictures (/side-hops/*.jpg) are not in the repository: one
  * missing from dist/ passes when media-manifest.json lists it (the Worker serves it from R2).
  * Caption files must be present.
  *
@@ -74,7 +74,7 @@ const MEDIA = existsSync(MANIFEST_FILE) ? JSON.parse(await readFile(MANIFEST_FIL
 const cleanRef = (u) => decodeURI(u.split('#')[0].split('?')[0]);
 const inR2 = (urlPath) => {
   const clean = cleanRef(urlPath);
-  return /^\/(explainers\/.+\.mp4|side-hops\/[^/]+\.mp3)$/.test(clean) && Boolean(MEDIA[clean.slice(1)]);
+  return /^\/(explainers\/.+\.mp4|side-hops\/[^/]+\.(?:mp3|jpg))$/.test(clean) && Boolean(MEDIA[clean.slice(1)]);
 };
 
 const missing = new Map(); // urlPath -> Set(pages)
@@ -101,9 +101,9 @@ if (films.length) {
   console.error(`  Films are served from R2. Upload each one (node scripts/upload-media.mjs) and commit`);
   console.error(`  media-manifest.json, or fix the film path in the lesson frontmatter.`);
 }
-const hopAudio = [...missing.keys()].filter((r) => /^\/side-hops\/.+\.mp3$/.test(cleanRef(r)));
+const hopAudio = [...missing.keys()].filter((r) => /^\/side-hops\/.+\.(?:mp3|jpg)$/.test(cleanRef(r)));
 if (hopAudio.length) {
-  console.error(`\n✗ check-assets: ${hopAudio.length} Side Hops audio file(s) are in neither dist/ nor media-manifest.json.`);
+  console.error(`\n✗ check-assets: ${hopAudio.length} Side Hops audio or picture file(s) are in neither dist/ nor media-manifest.json.`);
   console.error(`  Side Hops audio is served from R2. Upload it (node scripts/upload-media.mjs) and commit media-manifest.json.`);
 }
 if (captions.length) {

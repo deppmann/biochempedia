@@ -8,12 +8,17 @@
  * public/side-hops/<slug>.mp3 (git-ignored; scripts/upload-media.mjs sends it to R2), refreshes the
  * production record and runs scripts/check-side-hops.mjs. Run it again after any fix to the kit.
  *
+ * Pictures (2026-11-21): a Side Hop whose kit entry has an `image` ({caption, alt}) takes its picture
+ * from images/<n>.jpg next to kit.json, where n is its place in the kit's list (1, 2, 3). The file is
+ * copied to public/side-hops/<slug>-<n>.jpg (git-ignored, sent to R2 like the audio).
+ *
  * Source links that point at a machine-readable API are replaced by the page a reader can open.
  * A warning is printed when the recording's length does not fit the script, which usually means the
  * script changed after the audio was recorded.
  */
 import { spawnSync } from 'node:child_process';
 import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
 import { lessonHeadings } from './shared.mjs';
 
 const NARRATION = 'an AI narrator voice (ElevenLabs, Jessica)';
@@ -69,8 +74,34 @@ if (kit.slug !== slug) { console.error(`import-kit: the kit is for "${kit.slug}"
 const headings = lessonHeadings(readFileSync(lessonPath, 'utf8'));
 const place = (h) => { const n = headings.indexOf(h.afterHeading); return n < 0 ? headings.length : n; };
 
+/** Width and height of a JPEG, from its first start-of-frame marker. */
+function jpegSize(buf) {
+  let i = 2;
+  while (i + 9 < buf.length) {
+    if (buf[i] !== 0xff) { i++; continue; }
+    const m = buf[i + 1], len = buf.readUInt16BE(i + 2);
+    if (m >= 0xc0 && m <= 0xcf && ![0xc4, 0xc8, 0xcc].includes(m)) return { height: buf.readUInt16BE(i + 5), width: buf.readUInt16BE(i + 7) };
+    i += 2 + len;
+  }
+  return null;
+}
+
+const kitDir = dirname(kitPath);
+const pictures = [];
+function picture(a, n) {
+  if (!a.image) return {};
+  const src = join(kitDir, 'images', `${n}.jpg`);
+  if (!existsSync(src)) { console.error(`import-kit: Side Hop ${n} has an image entry but ${src} is missing`); process.exit(1); }
+  const size = jpegSize(readFileSync(src));
+  if (!size) { console.error(`import-kit: ${src} is not a JPEG`); process.exit(1); }
+  const file = `side-hops/${slug}-${n}.jpg`;
+  pictures.push([src, `public/${file}`]);
+  const alt = a.image.alt.startsWith('AI-generated illustration:') ? a.image.alt : `AI-generated illustration: ${a.image.alt}`;
+  return { image: { file, alt, caption: a.image.caption, ...size } };
+}
+
 let relinked = 0;
-const hops = kit.asides.map((a) => ({
+const hops = kit.asides.map((a, i) => ({
   afterHeading: a.after_heading,
   kind: a.kind,
   title: a.title,
@@ -80,6 +111,7 @@ const hops = kit.asides.map((a) => ({
     if (url !== s.url) relinked++;
     return { citation: s.citation, url };
   }),
+  ...picture(a, i + 1),
 })).sort((a, b) => place(a) - place(b));
 
 const durationSec = Math.round(mp3Seconds(readFileSync(audioPath)) * 10) / 10;
@@ -95,7 +127,8 @@ mkdirSync('src/data/side-hops', { recursive: true });
 mkdirSync('public/side-hops', { recursive: true });
 writeFileSync(`src/data/side-hops/${slug}.json`, JSON.stringify(data, null, 1) + '\n');
 copyFileSync(audioPath, `public/side-hops/${slug}.mp3`);
-console.log(`import-kit: ${slug}: ${hops.length} Side Hops, ${durationSec} s of audio${relinked ? `, ${relinked} source link(s) changed to the reader's page` : ''}`);
+for (const [from, to] of pictures) copyFileSync(from, to);
+console.log(`import-kit: ${slug}: ${hops.length} Side Hops, ${pictures.length} picture(s), ${durationSec} s of audio${relinked ? `, ${relinked} source link(s) changed to the reader's page` : ''}`);
 
 const pace = transcript.length / durationSec;
 if (pace < PACE.low || pace > PACE.high) {

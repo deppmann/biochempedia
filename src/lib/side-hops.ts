@@ -13,6 +13,9 @@ export interface SideHop {
   title: string;
   text: string;
   sources: { citation: string; url: string }[];
+  /** Optional picture (2026-11-21). The file is side-hops/<slug>-<n>.jpg, kept in R2 like the audio.
+   *  alt starts "AI-generated illustration:"; caption is the one-line take-home shown under it. */
+  image?: { file: string; alt: string; caption: string; width: number; height: number };
 }
 
 export interface SideHopsData {
