@@ -440,10 +440,37 @@ class S12Voltage(SpokenScene):
 
 class S13High(SpokenScene):
     def construct(self):
+        def ek(size=26):
+            e,k=T('E',size,KC),T('K',22,KC)
+            k.next_to(e,RIGHT,buff=.04).shift(DOWN*.1)
+            return VGroup(e,k)
         p=voltage_panel(); self.add(network(),outside(),p,heading('One active spot'))
         self.at('one spot fire hard')
-        self.play(FadeIn(cluster()),FadeIn(VGroup(T('high K+ outside',26,KC).move_to([-1.65,.98,0]), Line([-2.9,.98,0],[-3.2,.98,0],color=KC))),run_time=.5)
-        self.at('more positive'); self.play(Transform(p,voltage_panel(True,False)),run_time=.65); self.finish()
+        hk_lab=T('high K+ outside',26,KC).move_to([-1.45,.98,0])
+        hk_ptr=Line([hk_lab.get_left()[0]-.1,.98,0],[-3.2,.98,0],color=KC)
+        self.play(FadeIn(cluster()),FadeIn(VGroup(hk_lab,hk_ptr)),run_time=.5)
+        self.play(Transform(p,voltage_panel(True,False)),run_time=.75)
+        rule_a=T('K+ flows to pull voltage toward',26,KC)
+        rule_b=ek()
+        rule=VGroup(rule_a,rule_b).arrange(RIGHT,buff=.12).move_to([0,-3.4,0])
+        self.at('Potassium flows')
+        self.play(FadeIn(rule_a),run_time=.45)
+        self.at('equilibrium potential')
+        self.play(FadeIn(rule_b),Indicate(p[2][0][0],color=KC),run_time=.5)
+        v_y=1.7; ek_y=1.7+(float(EK(4.))-float(EK(3.)))*.075
+        push_arr=arr([-3.82,v_y,0],[-3.82,ek_y,0],KC)
+        line1=VGroup(T('voltage below',24,TEXT),ek(24)).arrange(RIGHT,buff=.09)
+        line2=T('→ K+ pushed in',24,KC)
+        push_lab=VGroup(line1,line2).arrange(DOWN,buff=.1,aligned_edge=LEFT).move_to([-1.55,2.18,0])
+        ptr=VMobject(color=KC,stroke_width=1.5).set_points_as_corners(
+            [[-3.70,(v_y+ek_y)/2,0],[-2.95,(v_y+ek_y)/2,0],[line1.get_left()[0]-.10,line1.get_center()[1],0]])
+        self.at('voltage sits below')
+        self.play(GrowArrow(push_arr),Create(ptr),FadeIn(line1),run_time=.7)
+        self.at('driven in')
+        self.play(FadeIn(line2),run_time=.45)
+        self.at("network's voltage sits below")
+        self.play(Indicate(push_arr,color=KC),Indicate(p[2][0][0],color=KC),run_time=.7)
+        self.finish()
 
 
 class S14In(SpokenScene):
@@ -640,7 +667,3 @@ class S28Takeaway(SpokenScene):
 
 class S29End(EndCard):
     LINE='Glia sense and spread potassium; pumps take it back inside cells.'
-    def construct(self):
-        line=T('Glia sense and spread potassium;\npumps take it back inside cells.',38,font=TITLE_FONT)
-        self.add(T('biochemistrypedia.com',26,TEAL).move_to([0,-1.7,0]))
-        self.play(FadeIn(line),run_time=.6); self.finish()

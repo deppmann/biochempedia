@@ -407,19 +407,33 @@ class S15(TimedScene):
 
 class S16(TimedScene):
     def construct(self):
-        cs=VGroup(*[cell((x,.6),.8) for x in (-4.7,0,4.7)])
-        self.add(timeline(),cs,label('prefrontal cells',0,2.2,28,GREEN))
+        cs=VGroup(*[cell((x,.35),.55) for x in (-4.7,0,4.7)])
+        self.add(timeline(),cs,label('prefrontal cells',0,1.5,28,GREEN))
+        hip=chip('hippocampus',GREY,28).move_to([-3.8,2.38,0])
+        hip[1].set_color(TEXT)
+        ctx=chip('cortex',GREY,28).move_to([3.8,2.38,0])
+        ctx[1].set_color(TEXT)
+        xfer_arrow=Arrow(hip.get_right()+RIGHT*.15,ctx.get_left()+LEFT*.15,color=TEXT,buff=0,stroke_width=5)
+        xfer_label=label('standard model: transfer over time',0,3.18,28,TEXT)
         self.at('The standard model')
-        self.play(FadeIn(heading('The standard model predicted this order')),run_time=.4)
-        # Day numbers are not spoken in this final narration; reveal its prediction
-        # at "predicted that order" rather than inventing non-existent word cues.
-        self.at('predicted that order')
-        self.play(FadeIn(label('not needed',0,-.85,30,TEAL)),FadeIn(label('needed',4.7,-.85,30,RED)),run_time=.45)
+        self.play(FadeIn(hip),FadeIn(ctx),run_time=.5)
+        self.at('hippocampus first')
+        self.play(hip.animate.set_color(YELLOW),Indicate(hip,color=YELLOW,scale_factor=1.06),run_time=.55)
+        self.at('then transfer')
+        self.play(GrowArrow(xfer_arrow),FadeIn(xfer_label),hip[0].animate.set_stroke(GREY).set_fill(GREY,.16),hip[1].animate.set_color(TEXT),ctx.animate.set_color(YELLOW),run_time=.95)
+        self.at('That predicts')
+        self.play(FadeIn(label('not needed',0,-1.0,28,TEAL)),run_time=.45)
+        self.at('cortex matters later')
+        self.play(FadeIn(label('needed',4.7,-1.0,28,RED)),run_time=.5)
         self.at('But these cells')
-        self.play(Create(tag_group(cs)),run_time=.4)
+        tags=tag_group(cs)
+        self.play(Create(tags),run_time=.55)
         self.at('tagged at learning')
-        badge=chip('tag',GREEN,30).move_to([-4.7,-.85,0])
-        self.play(FadeIn(badge),Indicate(cs[0],color=GREEN,scale_factor=1.12),run_time=.65)
+        badge=chip('tag',GREEN,28).move_to([-4.7,-1.0,0])
+        badge[0].set_fill(GREEN,.32).set_stroke(width=4)
+        glow=ring(cs[0],GREEN,1.72).set_stroke(width=8,opacity=.85)
+        self.play(FadeIn(badge),FadeIn(glow),state(cs[0],GREEN,.45),run_time=.4)
+        self.play(Indicate(glow,color=GREEN,scale_factor=1.08),Indicate(badge,color=GREEN,scale_factor=1.08),run_time=.6)
         self.finish()
 
 
@@ -510,6 +524,3 @@ class S22(TimedScene):
 
 class S23End(EndCard):
     LINE='Sufficiency does not prove necessity. Ask which control each claim needs.'
-    def construct(self):
-        self.add(takeaway())
-        self.finish()

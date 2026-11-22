@@ -329,6 +329,8 @@ class S04BuildGrid(W):
     def construct(self):
         clk = self.clk
         bd = Board(clk)
+        for r in (0, 1):
+            bd.cells[(r, 1)].set_fill("#05060a", 0.6)
         band = RoundedRectangle(corner_radius=0.3, width=9.4, height=1.6, stroke_color=GREY, stroke_width=4,
                                 fill_color=TEXT, fill_opacity=0.05)
         a, b = ValueTracker(0.15), ValueTracker(0.2)
@@ -337,27 +339,44 @@ class S04BuildGrid(W):
         self.add(band, ma, mb)
         self.play(FadeIn(band), FadeIn(ma), FadeIn(mb), run_time=0.4)
         self.at("to separate the two causes")
-        self.play(FadeOut(ma), FadeOut(mb), Transform(band, bd.frame), run_time=2.0)
+        self.play(FadeOut(ma), FadeOut(mb), Transform(band, bd.frame), run_time=1.6)
         self.at("cross construct")
         self.remove(band)
-        self.play(Create(bd.frame, lag_ratio=0.3), run_time=2.0)
+        self.play(Create(bd.frame, lag_ratio=0.3), run_time=1.8)
         self.at("opsin and fluorophore")
-        self.play(FadeIn(bd.rowlabs[0], shift=RIGHT * 0.6), run_time=0.7)
-        self.wait(0.3)
-        self.play(FadeIn(bd.rowlabs[1], shift=RIGHT * 0.6), run_time=0.7)
-        self.at("light off and light on")
-        self.play(FadeIn(bd.heads[0], shift=DOWN * 0.2), run_time=0.7)
-        bar = light_bar(clk)
-        self.play(FadeIn(bd.heads[1], shift=DOWN * 0.2), FadeIn(bar), run_time=0.8)
-        self.at("now every effect")
-        for k, key in enumerate([(0, 0), (0, 1), (1, 0), (1, 1)]):
-            self.play(FadeIn(bd.mice[key], scale=0.6), run_time=0.5)
-        self.at("matched place")
+        self.play(FadeIn(bd.rowlabs[0], shift=RIGHT * 0.6), run_time=0.6)
+        self.wait(0.2)
+        self.play(FadeIn(bd.rowlabs[1], shift=RIGHT * 0.6), run_time=0.6)
+        self.at("in two rows")
+        self.play(FadeIn(bd.mice[(0, 0)], scale=0.6), FadeIn(bd.mice[(0, 1)], scale=0.6), run_time=0.7)
+        lbl_opsin = T("opsin + tag", size=24, color=OPSIN).next_to(bd.rowlabs[0], DOWN, buff=0.22)
+        self.play(FadeIn(lbl_opsin, shift=DOWN * 0.1), run_time=0.5)
+        self.play(FadeIn(bd.mice[(1, 0)], scale=0.6), FadeIn(bd.mice[(1, 1)], scale=0.6), run_time=0.7)
+        self.at("fluorophore only animals", nth=1)
+        self.play(Indicate(bd.rowlabs[1], color=FLUOR, scale_factor=1.05), run_time=0.8)
+        self.at("glowing tag")
+        lbl_tag = T("tag only", size=24, color=FLUOR)
+        lbl_no_op = T("(no opsin)", size=24, color=FLUOR)
+        lbl_fluor = VGroup(lbl_tag, lbl_no_op).arrange(DOWN, buff=0.08).next_to(bd.rowlabs[1], DOWN, buff=0.22)
+        self.play(FadeIn(lbl_tag, shift=DOWN * 0.1),
+                  Indicate(bd.mice[(1, 0)], color=FLUOR, scale_factor=1.08),
+                  Indicate(bd.mice[(1, 1)], color=FLUOR, scale_factor=1.08), run_time=0.8)
+        self.at("no light")
+        self.play(FadeIn(lbl_no_op, shift=DOWN * 0.1), run_time=0.6)
+        self.at("light can affect them")
         for key in bd.meters:
-            bd.vals[key].set_value(0.5)
-        self.play(*[FadeIn(m) for m in bd.meters.values()], run_time=1.0)
+            bd.vals[key].set_value(0.05)
         tag = T("schematic meters", size=24, color=TEXT).move_to([-4.5, -3.45, 0])
-        self.play(FadeIn(tag), run_time=0.4)
+        self.play(*[FadeIn(m) for m in bd.meters.values()], FadeIn(tag), run_time=0.5)
+        self.play(*[bd.vals[k].animate.set_value(0.5) for k in bd.vals], run_time=1.3)
+        self.at("put light off")
+        self.play(FadeIn(bd.heads[0], shift=DOWN * 0.2), run_time=0.6)
+        self.at("light on")
+        bar = light_bar(clk)
+        self.play(FadeIn(bd.heads[1], shift=DOWN * 0.2),
+                  bd.cells[(0, 1)].animate.set_fill(LIGHT, 0.10),
+                  bd.cells[(1, 1)].animate.set_fill(LIGHT, 0.10),
+                  FadeIn(bar), run_time=0.8)
         self.finish()
 
 
