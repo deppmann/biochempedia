@@ -102,13 +102,13 @@ class S01ThreeSteps(SpokenScene):
         tpp = tok("TPP", PINK).move_to([xs[0], 0.2, 0])
         self.play(FadeIn(tpp, shift=UP * 0.2), run_time=0.8)
         self.at("carbon dioxide leaves")
-        co2 = T("CO₂", 28, GREY).move_to([xs[0], ROW, 0])
+        co2 = T("CO₂", 28, GREY).move_to([xs[0], ROW + 0.48, 0])
         self.add(co2)
         self.play(co2.animate.move_to([-5.15, 2.45, 0]), run_time=1.1)
         self.play(FadeOut(co2), run_time=0.4)
         self.at("remaining two carbon")
         frag = tok("2-C unit", YELLOW).move_to([xs[0], ROW, 0])
-        self.play(ReplacementTransform(pyr, frag), run_time=0.8)
+        self.play(Succession(FadeOut(pyr, run_time=0.35), FadeIn(frag, run_time=0.45)))
         pyr = frag
 
         # ---- step 2 -------------------------------------------------------------------------
@@ -118,18 +118,18 @@ class S01ThreeSteps(SpokenScene):
                   boxes[1].animate.set_stroke(YELLOW).set_fill(YELLOW, 0.1), pyr.animate.move_to([xs[1], ROW, 0]),
                   run_time=1.0)
         self.at("two electrons leave")
-        etok = solid_tok("2 e−", ORANGE).move_to([xs[1], ROW, 0])
+        etok = solid_tok("2 e−", ORANGE).move_to([xs[1], ROW - 0.6, 0])
         etok.set_z_index(5)
         self.play(FadeIn(etok, scale=0.6), run_time=0.4)
         gx = xs[1] + BW / 2 + GAP / 2
-        path = VMobject().set_points_as_corners([[xs[1], ROW, 0], [gx, 0.95, 0], [gx, -2.7, 0]])
+        path = VMobject().set_points_as_corners([[xs[1], ROW - 0.6, 0], [gx, 0.7, 0], [gx, -2.7, 0]])
         self.play(MoveAlongPath(etok, path), run_time=1.3)
-        self.at("handed to the lipoamide")
+        self.at("handed to the")
         lip = tok("lipoamide", PINK).move_to([xs[1], 0.2, 0])
         self.play(FadeIn(lip, shift=UP * 0.2), Indicate(pyr, color=YELLOW, scale_factor=1.12), run_time=0.9)
 
         # ---- step 3 -------------------------------------------------------------------------
-        self.at("Third is transfer")
+        self.at("Third is")
         t3 = step_label(names[2], xs[2], 2.73)
         self.play(FadeIn(t3, shift=DOWN * 0.1), boxes[1].animate.set_stroke(GREY).set_fill(GREY, 0.07),
                   boxes[2].animate.set_stroke(YELLOW).set_fill(YELLOW, 0.1), pyr.animate.move_to([xs[2], ROW, 0]),
@@ -169,7 +169,7 @@ class S01ThreeSteps(SpokenScene):
         self.play(Indicate(tpp, color=PINK, scale_factor=1.25), run_time=0.7)
         self.play(Indicate(lip, color=PINK, scale_factor=1.25), run_time=0.7)
         self.play(Indicate(coa, color=PINK, scale_factor=1.25), run_time=0.7)
-        self.at("trace back to B vitamins")
+        self.at("trace back to")
         v1 = T("from vitamin B1", 22, GREY).move_to([xs[0], -0.55, 0])
         v5 = T("from vitamin B5", 22, GREY).move_to([xs[2], -0.55, 0])
         v3 = T("NAD⁺ comes from niacin (B3)", 22, GREY).move_to([3.7, -3.3, 0])
@@ -260,11 +260,11 @@ class S02Arm(SpokenScene):
         self.at("it pivots")
         self.play(th.animate.set_value(90), FadeIn(e2s_lbl), run_time=1.3, rate_func=smooth)
         self.at("delivers that acetyl unit")
-        coa = tok("CoA", PINK).move_to([1.8, 2.66, 0])
+        coa = tok("CoA", PINK).move_to([2.1, 2.66, 0])
         self.play(FadeIn(coa, shift=LEFT * 0.15), run_time=0.6)
         cargo.clear_updaters()
         self.play(cargo.animate.next_to(coa, LEFT, buff=0.04), run_time=0.8)
-        self.at("releasing acetyl CoA")
+        self.at("releases acetyl CoA")
         acoa = tok("acetyl-CoA", GREEN).move_to(coa)
         self.play(FadeOut(cargo, scale=0.4), FadeTransform(coa, acoa), run_time=0.6)
         self.play(acoa.animate.move_to([4.7, 2.7, 0]), run_time=1.0)
@@ -290,9 +290,9 @@ class S02Arm(SpokenScene):
         self.at("on a mobile")
         t = tip_at(150)
         nrm = np.array([0.5, 0.866, 0.0])
-        dim_lbl = T("mobile\nlipoyl domain", 24, PINK, line_spacing=0.8).move_to((B + t) / 2 + nrm * 0.95)
+        dim_lbl = T("mobile\nlipoyl domain", 24, PINK, line_spacing=0.8).move_to((B + t) / 2 + nrm * 1.12)
         self.play(FadeIn(dim_lbl), run_time=0.9)
-        self.at("many copies")
+        self.at("E2 core has")
         self.play(copies.animate.set_opacity(1.0), run_time=0.6)
         self.at("24 or 60")
         n_lbl = M("24 or 60 copies", 26, BLUE).move_to([3.7, -2.0, 0])
@@ -300,7 +300,7 @@ class S02Arm(SpokenScene):
         self.at("all three active sites")
         self.play(FadeOut(dim_lbl), FadeOut(acoa), FadeOut(state_hd), FadeOut(cur["state"]),
                   th.animate.set_value(90), run_time=0.5)
-        arc = ArcBetweenPoints(tip_at(150), tip_at(30), angle=-PI / 3.1, color=GREY, stroke_width=3)
+        arc = ArcBetweenPoints(tip_at(150), tip_at(30), angle=-2 * PI / 3, color=GREY, stroke_width=3)
         arc = DashedVMobject(arc, num_dashes=28)
         rings = VGroup(*[Circle(radius=0.32, stroke_color=PINK, stroke_width=4).move_to(tip_at(a)) for a in (150, 90, 30)])
         self.play(Create(arc), LaggedStart(*[GrowFromCenter(r) for r in rings], lag_ratio=0.5), run_time=2.0)
@@ -325,7 +325,7 @@ class S03Nadh(SpokenScene):
         CW, GAP = 2.85, 0.28
         xs = [-6.12 + CW / 2 + i * (CW + GAP) for i in range(4)]
         CYc, CH = 0.55, 3.0
-        names = ["Decarboxylation", "Oxidative\ntransfer", "Acetyl\ntransfer", "Regeneration"]
+        names = ["Decarboxylation", "Oxidative\ntransfer", "Acetyl\ntransfer", "Reset arm"]
         enz = ["E1", "E1", "E2", "E3"]
         LC, LE = -1.7, -2.8
 
@@ -343,6 +343,20 @@ class S03Nadh(SpokenScene):
                         stroke_width=3, buff=0, max_tip_length_to_length_ratio=0.9, tip_length=0.2) for i in range(3)]
         self.play(LaggedStart(*[FadeIn(c) for c in cards], lag_ratio=0.15), *[FadeIn(s) for s in steps],
                   *[FadeIn(a) for a in arrows], run_time=1.4)
+
+        self.at("Three steps build")
+        brace1 = Brace(VGroup(cards[0], cards[2]), UP, color=GREEN, buff=0.12)
+        lbl1 = T("build acetyl-CoA", 26, GREEN).next_to(brace1, UP, buff=0.1)
+        self.play(FadeOut(heading), GrowFromCenter(brace1), FadeIn(lbl1), run_time=0.9)
+        self.at("fourth step resets")
+        brace2 = Brace(cards[3], UP, color=ORANGE, buff=0.12)
+        lbl2 = T("reset arm (E3): NADH", 24, ORANGE)
+        if lbl2.width > 3.1:
+            lbl2 = T("reset arm (E3):\nNADH", 24, ORANGE, line_spacing=0.8)
+        lbl2.next_to(brace2, UP, buff=0.1)
+        if lbl2.get_right()[0] > 6.3:
+            lbl2.shift(LEFT * (lbl2.get_right()[0] - 6.3))
+        self.play(GrowFromCenter(brace2), FadeIn(lbl2), run_time=0.9)
 
         def reveal(i):
             nm = VGroup(*[T(ln, 24, TEXT) for ln in names[i].split("\n")]).arrange(DOWN, buff=0.1).move_to([xs[i], CYc + 0.55, 0])
@@ -374,10 +388,10 @@ class S03Nadh(SpokenScene):
         lg.move_to([0, -3.4, 0])
         self.play(FadeIn(carbon, shift=UP * 0.2), FadeIn(lg), run_time=0.6)
         self.at("releases carbon dioxide")
-        co2 = T("CO₂", 28, GREY).move_to([xs[0], LC, 0])
+        co2 = T("CO₂", 28, GREY).move_to([xs[0], LC + 0.45, 0])
         self.add(co2)
         hyd = tok("hydroxyethyl", YELLOW).move_to([xs[0], LC, 0])
-        self.play(co2.animate.move_to([-5.95, -1.15, 0]), ReplacementTransform(carbon, hyd), run_time=1.1)
+        self.play(co2.animate.move_to([-5.95, -2.25, 0]), Succession(FadeOut(carbon, run_time=0.45), FadeIn(hyd, run_time=0.65)))
         carbon = hyd
         etok = tok("2 e− in fragment", ORANGE).move_to([xs[0], LE, 0])
         self.play(FadeIn(etok, shift=UP * 0.2), FadeOut(co2), run_time=0.6)
@@ -388,14 +402,14 @@ class S03Nadh(SpokenScene):
         self.at("Step 2")
         nm2, ec2 = reveal(1)
         self.play(unhighlight(0), highlight(1, YELLOW), FadeIn(nm2), FadeIn(ec2), run_time=0.9)
-        self.at("hands the hydroxyethyl group")
-        etok2 = tok("2 e− on lipoamide", ORANGE).move_to([xs[1], LE, 0])
-        self.play(carbon.animate.move_to([xs[1], LC, 0]), ReplacementTransform(etok, etok2), run_time=1.2)
-        etok = etok2
-        self.at("oxidized to an acetyl group")
+        self.at("oxidizes the fragment")
         ac = tok("acetyl", YELLOW).move_to([xs[1], LC, 0])
-        self.play(ReplacementTransform(carbon, ac), run_time=0.7)
+        self.play(ReplacementTransform(carbon, ac), run_time=0.9)
         carbon = ac
+        self.at("loads it onto")
+        etok2 = tok("2 e− on lipoamide", ORANGE).move_to([xs[1], LE, 0])
+        self.play(ReplacementTransform(etok, etok2), run_time=0.9)
+        etok = etok2
         self.at("still no NADH")
         self.play(no_nadh(1), run_time=0.6)
 
@@ -405,38 +419,28 @@ class S03Nadh(SpokenScene):
         self.play(unhighlight(1), highlight(2, YELLOW), FadeIn(nm3), FadeIn(ec3), run_time=0.9)
         self.at("acetyl transfer on E2")
         self.play(carbon.animate.move_to([xs[2], LC, 0]), run_time=1.0)
-        self.at("produces acetyl CoA")
+        self.at("produces acetyl")
         acoa = tok("acetyl-CoA", GREEN).move_to([xs[2], LC, 0])
         self.play(ReplacementTransform(carbon, acoa), cards[2].animate.set_stroke(GREEN).set_fill(GREEN, 0.1), run_time=0.8)
-        self.at("leaves dihydrolipoamide")
+        self.at("leaves reduced")
         etok3 = tok("2 e− on the arm", ORANGE).move_to([xs[2], LE, 0])
         self.play(ReplacementTransform(etok, etok3), run_time=0.9)
         etok = etok3
-        self.at("again no NADH")
+        self.at("again with no NADH")
         self.play(no_nadh(2), run_time=0.6)
 
         # ---- step 4 -------------------------------------------------------------------------
-        self.at("Only in Step 4")
+        self.at("fourth step on E3")
         nm4, ec4 = reveal(3)
         self.play(unhighlight(2), highlight(3, ORANGE), FadeIn(nm4), FadeIn(ec4), run_time=0.9)
-        self.at("oxidized by FAD")
+        self.at("FAD reoxidizes")
         etok4 = tok("2 e− → FAD", ORANGE).move_to([xs[3], LE, 0])
         self.play(ReplacementTransform(etok, etok4), run_time=0.9)
-        self.at("electrons flow onward")
+        self.at("passes electrons onward")
         nadh = tok("NADH", ORANGE, size=28).move_to([xs[3], LE, 0])
-        self.play(ReplacementTransform(etok4, nadh), run_time=0.9)
         yes = tok("NADH here!", ORANGE).move_to([xs[3], CYc - 1.05, 0])
-        self.play(FadeIn(yes, scale=0.7), run_time=0.6)
-
-        # ---- the punchline ------------------------------------------------------------------------
-        self.at("So 3 steps")
-        brace1 = Brace(VGroup(cards[0], cards[2]), UP, color=GREEN, buff=0.12)
-        lbl1 = T("build the product", 26, GREEN).next_to(brace1, UP, buff=0.1)
-        self.play(FadeOut(heading), GrowFromCenter(brace1), FadeIn(lbl1), run_time=1.0)
-        self.at("exactly one step")
-        brace2 = Brace(cards[3], UP, color=ORANGE, buff=0.12)
-        lbl2 = T("reducing power", 26, ORANGE).next_to(brace2, UP, buff=0.1)
-        self.play(GrowFromCenter(brace2), FadeIn(lbl2), Indicate(yes, color=ORANGE), run_time=1.0)
+        self.play(ReplacementTransform(etok4, nadh), FadeIn(yes, scale=0.7), run_time=1.0)
+        self.play(Indicate(yes, color=ORANGE), run_time=0.8)
         self.finish()
 
 
@@ -451,7 +455,8 @@ class S04Gate(SpokenScene):
                                fill_color=BLUE, fill_opacity=0.18).move_to([-2.2, ROW, 0])
         pdc_lbl = T("PDC", 34, BLUE, weight=BOLD).move_to(pdc.get_center() + UP * 0.3)
         e1c = tok("E1", BLUE).move_to(pdc.get_center() + DOWN * 0.38)
-        ace = tok("acetyl-CoA", GREEN).move_to([1.3, ROW, 0])
+        ace = solid_tok("acetyl-CoA", GREEN).move_to([1.3, ROW, 0])
+        ace.set_z_index(2)
         tca = T("citric acid\ncycle", 26, GREY, line_spacing=0.8)
         tcabox = RoundedRectangle(corner_radius=0.18, width=2.5, height=1.4, stroke_color=GREY, stroke_width=3,
                                   fill_opacity=0).move_to([4.7, ROW, 0])
@@ -465,12 +470,10 @@ class S04Gate(SpokenScene):
         self.play(Indicate(e1c, color=BLUE, scale_factor=1.35), pdc.animate.set_stroke(BLUE, 6), run_time=1.1)
 
         # ---- the switch -------------------------------------------------------------------------
-        self.at("on off switch")
         SW = np.array([-2.2, 2.55, 0])
         pill = RoundedRectangle(corner_radius=0.25, width=1.1, height=0.5, stroke_color=GREEN, stroke_width=3, fill_color=GREEN, fill_opacity=0.35).move_to(SW)
         knob = Circle(radius=0.2, stroke_width=0, fill_color=TEXT, fill_opacity=1).move_to(SW + RIGHT * 0.3)
         sw_lbl = T("ON", 26, GREEN, weight=BOLD).move_to(SW + UP * 0.55)
-        self.play(FadeIn(pill), FadeIn(knob), FadeIn(sw_lbl), run_time=0.8)
 
         def flip(on):
             c = GREEN if on else RED
@@ -486,10 +489,12 @@ class S04Gate(SpokenScene):
         l1 = DashedLine(kin.get_bottom(), pdc.get_corner(UL) + RIGHT * 0.25, color=BLUE, stroke_width=3, dash_length=0.1)
         l2 = DashedLine(pho.get_bottom(), pdc.get_corner(UR) + LEFT * 0.1, color=BLUE, stroke_width=3, dash_length=0.1)
         self.play(Create(l1), Create(l2), run_time=0.9)
+        self.at("on off switch")
+        self.play(FadeIn(pill), FadeIn(knob), FadeIn(sw_lbl), run_time=0.8)
 
         # ---- kinase OFF / phosphatase ON ---------------------------------------------------------
         self.at("A kinase phosphorylates E1")
-        P = VGroup(Circle(radius=0.21, stroke_width=0, fill_color=PURPLE, fill_opacity=1), T("P", 24, BG, weight=BOLD)).move_to(kin.get_center() + DOWN * 0.1)
+        P = VGroup(Circle(radius=0.21, stroke_width=0, fill_color=PURPLE, fill_opacity=1), T("P", 24, BG, weight=BOLD)).move_to(kin.get_bottom() + DOWN * 0.28)
         blocked = Line([-0.55, ROW - 0.5, 0], [-0.55, ROW + 0.5, 0], color=RED, stroke_width=10)
         self.play(FadeIn(P, scale=0.5), run_time=0.4)
         self.play(P.animate.move_to(pdc.get_corner(UL) + np.array([0.45, -0.08, 0])), run_time=0.9)
@@ -526,12 +531,13 @@ class S04Gate(SpokenScene):
         P2 = VGroup(Circle(radius=0.21, stroke_width=0, fill_color=PURPLE, fill_opacity=1), T("P", 24, BG, weight=BOLD)).move_to(pdc.get_corner(UL) + np.array([0.45, -0.08, 0]))
         self.play(pdc.animate.set_stroke(RED, 5).set_fill(RED, 0.18), *flip(False), Create(blocked), FadeIn(P2, scale=0.5), run_time=0.9)
 
-        self.at("When ADP and pyruvate")
-        self.play(FadeOut(grp1), FadeOut(cap1), FadeOut(inhib), FadeOut(tbar), run_time=0.6)
+        self.at("When ATP and pyruvate")
         adp = tok("ADP", GREY).move_to([2.6, -1.3, 0])
         pyr2 = tok("pyruvate", GREY).move_to([4.6, -1.3, 0])
         grp2 = VGroup(adp, pyr2)
-        self.play(LaggedStart(*[FadeIn(c, shift=UP * 0.2) for c in grp2], lag_ratio=0.5), ptr.animate.move_to([3.6, BAR_Y + 0.2, 0]), run_time=1.6)
+        self.play(FadeOut(grp1, cap1, inhib, tbar),
+                  LaggedStart(*[FadeIn(c, shift=UP * 0.2) for c in grp2], lag_ratio=0.3),
+                  ptr.animate.move_to([3.6, BAR_Y + 0.2, 0]), run_time=1.2)
         self.at("demand and available substrate")
         cap2 = T("accumulate: demand + substrate", 24, GREEN).move_to([3.7, -1.95, 0])
         self.play(FadeIn(cap2), run_time=0.6)
@@ -547,6 +553,7 @@ class S04Gate(SpokenScene):
         self.play(LaggedStart(*[dots[i].animate.move_to([-3.55, ROW, 0]) for i in range(3)], lag_ratio=0.3), run_time=1.0, rate_func=linear)
         self.play(FadeOut(dots), run_time=0.15)
         gdots = VGroup(*[Dot(radius=0.11, color=GREEN).move_to([-0.85, ROW, 0]) for _ in range(3)])
+        gdots.set_z_index(1)
         self.add(gdots)
         self.play(LaggedStart(*[gdots[i].animate.move_to([3.3, ROW, 0]) for i in range(3)], lag_ratio=0.3), run_time=1.9, rate_func=linear)
         self.play(FadeOut(gdots), run_time=0.2)

@@ -157,48 +157,73 @@ class S03Reveal(TimedSpoken):
 
 class S04Complex(TimedSpoken):
     def construct(self):
-        g=complex_stage(); self.add(g,T('vertical bar = preferred angle',28,YELLOW).move_to([3.8,2.5,0]))
+        field=Rectangle(width=5.8,height=5.7,color=GREY,fill_color=GREY,fill_opacity=.12).move_to([-3,0,0])
+        bx=ValueTracker(-4.9)
+        bar=always_redraw(lambda: Rectangle(width=.3,height=4.6,color=YELLOW,fill_color=YELLOW,fill_opacity=.9).move_to([bx.get_value(),0,0]))
+        q_text=T('Does any cell keep firing\nas the bar slides?',32,GOLD).move_to([3.3,1.4,0])
+        self.add(field,bar)
+        self.play(FadeIn(q_text,shift=UP*.1),run_time=.35)
+        self.at('hubel')
+        cx_lab=T('complex cell',32,PURPLE).move_to([-3,3.2,0])
+        pref_lab=T('vertical bar = preferred angle',28,YELLOW).move_to([3.4,2.3,0])
+        r_init=raster(complex_rate(-4.9))
+        self.play(FadeOut(q_text),FadeIn(cx_lab),FadeIn(pref_lab),FadeIn(r_init),run_time=.4)
+        self.remove(r_init)
+        r=always_redraw(lambda: raster(complex_rate(bx.get_value())))
+        self.add(r)
         self.at('a correctly oriented')
-        self.play(g[1].animate.move_to([-3,0,0]),Transform(g[2],raster(complex_rate(-3))),run_time=.5)
-        self.add(T('Responds across\nmuch of the field',28,PURPLE).move_to([3.8,1.2,0]))
-        self.at('over much'); self.play(g[1].animate.move_to([-1.2,0,0]),Transform(g[2],raster(complex_rate(-1.2))),run_time=.5)
-        self.wait(1.5); self.finish()
+        self.play(bx.animate.set_value(-.9),run_time=1.6,rate_func=linear)
+        tol_lab=T('relative position tolerance',28,PURPLE).move_to([3.4,1.0,0])
+        self.play(FadeIn(tol_lab),bx.animate.set_value(-3.0),run_time=.8,rate_func=smooth)
+        bar.clear_updaters(); r.clear_updaters()
+        self.finish()
 
 class S05Angle(TimedSpoken):
     def construct(self):
-        g=complex_stage(-3,0); self.add(g,T('wrong angle',30,YELLOW).move_to([3.8,2.5,0]))
-        wrong=self.mobjects[-1]
+        field=Rectangle(width=5.8,height=5.7,color=GREY,fill_color=GREY,fill_opacity=.12).move_to([-3,0,0])
+        cx_lab=T('complex cell',32,PURPLE).move_to([-3,3.2,0])
+        ang=ValueTracker(90)
+        bar=always_redraw(lambda: Rectangle(width=.3,height=4.6,color=YELLOW,fill_color=YELLOW,fill_opacity=.9).rotate((ang.get_value()-90)*DEGREES).move_to([-3,0,0]))
+        r=always_redraw(lambda: raster(complex_rate(-3,ang.get_value())))
+        wrong=T('wrong angle',30,YELLOW).move_to([3.8,2.5,0])
+        self.add(field,cx_lab,bar,r)
+        self.play(ang.animate.set_value(0),FadeIn(wrong),run_time=1.0)
+        bar.clear_updaters(); r.clear_updaters()
         self.at('answered spots')
-        self.play(FadeOut(g[1]),FadeOut(wrong),Transform(g[2],raster(0)),run_time=.25)
-        note=T('Overlapping ON / OFF responses\nExample, not every complex cell',26).move_to([0,-3.3,0]); self.add(note)
-        # Two spatial examples shown together; each event has its own permanent
-        # label and tick underneath, preventing detached after-response frames.
+        note=T('Example of overlapping ON and OFF responses\nNot every complex cell',24).move_to([0,-3.28,0])
+        self.play(FadeOut(bar),FadeOut(wrong),Transform(r,raster(0)),FadeIn(note),run_time=.35)
         spots=VGroup(Dot([-4.3,.6,0],radius=.25,color=YELLOW),Dot([-1.7,-.6,0],radius=.25,color=YELLOW))
-        events=VGroup()
+        events=VGroup(*[VGroup(T('spot ON',26,YELLOW).move_to([x,1.1,0]),raster(spot_event(0,1),x=x,y=-.1,width=1.8)[:2]) for x in (2.6,5)])
         self.at('turning a spot on')
-        for x in (2.6,5):
-            events.add(VGroup(T('spot ON',26,YELLOW).move_to([x,1.1,0]),raster(spot_event(0,1),x=x,y=-.1,width=1.8)[:2]))
-        self.play(FadeIn(spots),FadeIn(events),FadeOut(g[2]),run_time=.2)
-        self.at('turning it off')
+        self.play(FadeIn(spots),FadeIn(events),FadeOut(r),run_time=.25)
         off=VGroup(*[VGroup(T('spot OFF',26,YELLOW).move_to([x,-1,0]),raster(spot_event(1,0),x=x,y=-2.15,width=1.8)[:2]) for x in (2.6,5)])
-        # Hollow markers retain the two tested locations after light offset.
         hollow=VGroup(*[Circle(.25,color=YELLOW,stroke_width=2).move_to(p) for p in spots])
-        self.play(FadeOut(spots),FadeIn(hollow),FadeIn(off),run_time=.2)
-        self.at("a simple cell's")
+        self.at('or off')
+        self.play(FadeOut(spots),FadeIn(hollow),FadeIn(off),run_time=.25)
+        self.at('excited the same')
+        self.play(Indicate(hollow,color=YELLOW,scale_factor=1.12),run_time=.45)
+        self.at('that differs')
         inset=grid(3.8,.55,False)
         labels=VGroup(T('simple cell',30,BLUE).move_to([3.8,2.35,0]),T('OFF',26,RED).move_to([2.7,-2.1,0]),T('ON',26,GREEN).move_to([3.8,-2.1,0]),T('OFF',26,RED).move_to([4.9,-2.1,0]))
-        self.play(FadeOut(events),FadeOut(off),run_time=.13)
-        self.play(FadeIn(inset),FadeIn(labels),run_time=.2)
+        self.play(FadeOut(events),FadeOut(off),run_time=.2)
+        self.play(FadeIn(inset),FadeIn(labels),run_time=.25)
         self.at('other complex cells')
-        self.play(FadeOut(inset),FadeOut(labels),FadeOut(hollow),FadeOut(note),run_time=.15)
-        self.play(FadeIn(spots),FadeIn(g[2]),FadeIn(T('Other complex cells: no small-spot response',28).move_to([0,-3.3,0])),run_time=.15)
+        self.play(FadeOut(inset),FadeOut(labels),FadeOut(hollow),FadeOut(note),run_time=.25)
+        spots2=VGroup(Dot([-4.3,.6,0],radius=.25,color=YELLOW),Dot([-1.7,-.6,0],radius=.25,color=YELLOW))
+        no_resp=T('Other complex cells: no small-spot response',28).move_to([0,-3.28,0])
+        r0=raster(0)
+        self.play(FadeIn(spots2),FadeIn(r0),FadeIn(no_resp),run_time=.25)
+        self.at('did not answer')
+        self.play(Indicate(spots2,color=YELLOW,scale_factor=1.12),run_time=.4)
         self.finish()
 
 class S05bOnesum(TimedSpoken):
     def construct(self):
         g=simple(); polarity=T('bright bar',30,YELLOW).move_to([-3,3.25,0])
         self.add(g,polarity,T('Reverse the contrast, flip the sign',32).move_to([0,-3.3,0]))
-        self.at('a dark one'); self.play(g[1].animate.set_fill('#020309',opacity=1).set_stroke(YELLOW),Transform(polarity,T('dark bar',30,YELLOW).move_to(polarity)),Transform(g[3],raster(0)),run_time=.35)
+        self.at('a dark one')
+        for cell in g[0][1]: cell[1].set_z_index(2)
+        self.play(g[1].animate.set_fill('#020309',opacity=0.65).set_stroke(YELLOW),Transform(polarity,T('dark bar',30,YELLOW).move_to(polarity)),Transform(g[3],raster(0)),run_time=.35)
         self.at('the sum flips'); self.play(ReplacementTransform(g[2],meter(-6)),run_time=.3); self.finish()
 
 class S06Pool(TimedSpoken):
@@ -339,7 +364,3 @@ class S16Takeaway(TimedSpoken):
 
 class S17End(EndCard):
     LINE='One sum tunes a simple cell; a complex cell needs more.'
-    def construct(self):
-        line=VGroup(T('One sum tunes a simple cell;',38,font=TITLE_FONT),T('a complex cell needs more.',38,font=TITLE_FONT)).arrange(DOWN,buff=.3)
-        sub=T('biochemistrypedia.com',26,TEAL).move_to([0,-1.7,0])
-        self.add(line,sub); self.finish()

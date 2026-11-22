@@ -91,10 +91,12 @@ def membrane(label=True):
 
 
 def chain_block():
+    bg = RoundedRectangle(corner_radius=0.16, width=3.5, height=1.3, stroke_width=0,
+                          fill_color=BG, fill_opacity=1.0).move_to([CX, MEM_Y, 0])
     r = RoundedRectangle(corner_radius=0.16, width=3.5, height=1.3, stroke_color=BLUE, stroke_width=3,
                          fill_color=BLUE, fill_opacity=0.2).move_to([CX, MEM_Y, 0])
     t = T("electron\ntransport chain", 24, BLUE, line_spacing=0.8).move_to(r).shift(LEFT * 0.3)
-    return VGroup(r, t)
+    return VGroup(bg, r, t)
 
 
 def synth_block():
@@ -233,28 +235,28 @@ class S01Uncoupling(Sp):
         self.play(MoveToTarget(left_ln), MoveToTarget(right_ln),
                   Transform(lab_c, T("uncoupled", 28, RED).move_to(lab_c)), run_time=0.8)
 
-        # "Protons find another way back across the membrane"
-        self.at("Protons find another way")
+        # "Protons slip back across the membrane without going through ATP synthase"
+        self.at("Protons slip back")
         leak_ch = RoundedRectangle(corner_radius=0.1, width=0.5, height=0.62, stroke_color=RED, stroke_width=3,
                                    fill_color=RED, fill_opacity=0.5).move_to([LX, MEM_Y, 0])
         leak_lab = T("leak", 24, RED).move_to([LX, -1.55, 0])
         self.play(FadeIn(leak_ch, scale=1.4), FadeIn(leak_lab), run_time=0.6)
         leak_r.set_value(1.3)
-        self.play(g.animate.set_value(0.4), run_time=self.room("instead of going through", lo=0.8), rate_func=smooth)
-        # "instead of going through ATP synthase": the synthase goes quiet
-        self.at("instead of going through")
+        self.play(g.animate.set_value(0.4), run_time=self.room("without going through", lo=0.8), rate_func=smooth)
+        # "without going through ATP synthase": the synthase goes quiet
+        self.at("without going through")
         self.play(syn_r.animate.set_value(0), spin.animate.set_value(0), atp_r.animate.set_value(0),
                   synth.animate.set_opacity(0.35), atp_lab.animate.set_opacity(0.35),
-                  run_time=self.room("so the energy", lo=0.6))
-        # "so the energy of the gradient is released as heat"
-        self.at("released as heat")
+                  run_time=self.room("escapes as heat", lo=0.6))
+        # "The gradient's energy escapes as heat"
+        self.at("escapes as heat")
         heat = VGroup(*[
             FunctionGraph(lambda x: 0.07 * np.sin(9 * x), x_range=[-0.5, 0.5], color=RED, stroke_width=4).shift(
                 [LX, -1.95 - 0.2 * k, 0]) for k in range(3)])
         heat_lab = T("heat", 24, RED).move_to([LX + 1.1, -2.15, 0])
-        self.play(Create(heat), FadeIn(heat_lab), run_time=self.room("rather than captured", lo=0.6))
-        # "rather than captured as ATP"
-        self.at("captured")
+        self.play(Create(heat), FadeIn(heat_lab), run_time=self.room("instead of making", lo=0.6))
+        # "instead of making ATP"
+        self.at("instead of making")
         self.play(atpv.animate.set_value(0.0), run_time=0.9)
 
         # "The chain keeps pumping furiously, oxygen consumption climbs"
@@ -356,19 +358,75 @@ class S02Table(Sp):
         self.play(FadeIn(c[0, 1], shift=DOWN * 0.1), run_time=0.5)
         self.at("the proton gradient")
         self.play(FadeIn(c[0, 2], shift=DOWN * 0.1), run_time=0.5)
-        # "An ATP synthase inhibitor, oligomycin, blocks the exit for protons"
+        # "An ATP synthase inhibitor, oligomycin, plugs the proton exit"
         self.at("An ATP synthase inhibitor")
         self.play(FadeIn(r2[0]), FadeIn(r2[1][0]), Create(seps[1]), run_time=0.7)
         self.at("oligomycin")
         self.play(FadeIn(r2[1][1]), run_time=0.5)
-        self.at("blocks the exit")
+        self.at("plugs the proton exit")
         self.play(FadeIn(r2[2], scale=1.4), run_time=0.4)
-        self.at("so synthesis falls")
+        self.at("Synthesis falls")
         self.play(FadeIn(c[1, 1], shift=DOWN * 0.1), run_time=0.5)
-        self.at("and consumption falls")
-        self.play(FadeIn(c[1, 0], shift=DOWN * 0.1), run_time=0.5)
         self.at("the gradient backs up")
         self.play(FadeIn(c[1, 2], shift=UP * 0.1), Create(hi1), run_time=0.7)
+        # "That steep gradient pushes back on the pumps. They slow, so electrons and oxygen use slow too."
+        partial_table = VGroup(heads, agent_h, rule, seps[0], seps[1], r1, r2, hi1,
+                               c[0, 0], c[0, 1], c[0, 2], c[1, 1], c[1, 2])
+        self.at("That steep gradient")
+        omem = membrane()
+        ochain = chain_block()
+        osynth = synth_block()
+        og = ValueTracker(0.0)
+        opool = Pool(og, n=30, seed=5)
+        opump_r = ValueTracker(0.0)
+        opump = pumpstream(opump_r)
+        o2_oligo = ValueTracker(0.55)
+        m_o2_oligo = meter("oxygen use", BLUE, o2_oligo, -3.1, 3.15)
+        grad_lab_o = T("H⁺ gradient", 24, YELLOW).move_to([3.6, 2.4, 0])
+        plug = RoundedRectangle(corner_radius=0.08, width=0.5, height=0.38, stroke_color=RED, stroke_width=3,
+                                fill_color=RED, fill_opacity=0.85).move_to([SX + 0.38, 0.42, 0])
+        plug_lab = T("plugged", 24, RED).next_to(plug, RIGHT, buff=0.14)
+        pump_arrows = VGroup(*[
+            Arrow([-1.45 + 0.45 * k, -0.55, 0], [-1.45 + 0.45 * k, 0.65, 0],
+                  color=BLUE, buff=0, stroke_width=7, max_tip_length_to_length_ratio=0.35)
+            for k in range(2)
+        ])
+        pump_lab = T("pumps", 24, BLUE).next_to(pump_arrows, DOWN, buff=0.16)
+        self.add(opool, opump)
+        self.play(LaggedStart(
+            FadeOut(partial_table, run_time=0.3),
+            AnimationGroup(
+                FadeIn(omem), FadeIn(ochain), FadeIn(osynth), FadeIn(plug), FadeIn(plug_lab),
+                FadeIn(pump_arrows), FadeIn(pump_lab), FadeIn(m_o2_oligo), FadeIn(grad_lab_o),
+                og.animate.set_value(1.0), opump_r.animate.set_value(1.0),
+                run_time=0.55, rate_func=linear,
+            ),
+            lag_ratio=0.5,
+        ))
+        self.at("pushes back")
+        push_arrow = Arrow([-1.225, 1.85, 0], [-1.225, 0.80, 0], color=RED, buff=0, stroke_width=8,
+                           max_tip_length_to_length_ratio=0.32)
+        push_lab = T("steep gradient\npushes back", 24, YELLOW, line_spacing=0.8).move_to([0.55, 2.4, 0])
+        self.play(GrowArrow(push_arrow), FadeIn(push_lab), run_time=0.45)
+        self.at("They slow")
+        self.play(pump_arrows.animate.scale(0.35, about_edge=DOWN), opump_r.animate.set_value(0.15),
+                  run_time=0.85)
+        self.at("oxygen use")
+        self.play(o2_oligo.animate.set_value(0.12), run_time=0.85, rate_func=smooth)
+        rem = self.room("The uncoupler", lo=0.2)
+        if rem > 1.0:
+            self.wait(rem - 0.85)
+        oligo_stage = Group(omem, ochain, osynth, plug, plug_lab, pump_arrows, pump_lab,
+                            push_arrow, push_lab, m_o2_oligo, grad_lab_o, opool, opump)
+        for m in (opool, opump):
+            m.clear_updaters()
+        self.play(LaggedStart(
+            FadeOut(oligo_stage, run_time=0.3),
+            FadeIn(partial_table, run_time=0.3),
+            lag_ratio=0.5,
+        ))
+        self.remove(oligo_stage)
+        self.play(FadeIn(c[1, 0], shift=DOWN * 0.1), run_time=0.35)
         # "The uncoupler is the counterintuitive case."
         self.at("The uncoupler")
         self.play(FadeIn(r3[0]), FadeIn(r3[1]), FadeIn(r3[2], scale=1.4), run_time=0.7)
@@ -469,8 +527,8 @@ class S03Acceptor(Sp):
         self.play(FadeIn(mem), FadeIn(chain), FadeIn(synth), FadeIn(spinner), FadeIn(queue), FadeIn(e_lab),
                   run_time=0.7)
         brake = Rectangle(width=0.16, height=0.42, stroke_width=0, fill_color=RED, fill_opacity=1).move_to(
-            [-4.75, -1.24, 0])
-        brake_lab = T("brake", 24, RED).next_to(brake, RIGHT, buff=0.2)
+            [-4.75, -1.6, 0])
+        brake_lab = T("brake", 24, RED).next_to(brake, UP, buff=0.14)
         self.at("only slowly", lead=0.45)
         e_r.set_value(0.16); pump_r.set_value(0.16)
         self.play(FadeIn(brake, scale=1.5), FadeIn(brake_lab), FadeOut(queue), run_time=0.5)
@@ -478,15 +536,14 @@ class S03Acceptor(Sp):
         self.at("through the transport chain")
         self.wait(0.7)
         # "unless ADP is available to be turned into ATP"
-        adp = chip("ADP", GOLD, 26).move_to([0.9, -1.4, 0])
+        adp = chip("ADP", GOLD, 24).move_to([0.5, -1.2, 0])
         self.at("unless")
-        self.play(FadeIn(adp, shift=LEFT * 0.2), run_time=0.6)
+        self.play(FadeIn(adp, shift=LEFT * 0.2), run_time=0.5)
         self.at("to be turned into")
-        atp_chip = chip("ATP", GREEN, 26)
-        self.play(adp.animate.move_to([SX, -1.2, 0]).scale(0.6), run_time=0.5)
-        atp_chip.move_to([SX, -1.2, 0]).scale(0.6)
-        self.play(ReplacementTransform(adp, atp_chip), run_time=0.3)
-        self.play(atp_chip.animate.move_to([5.3, -1.2, 0]).scale(1 / 0.6), run_time=0.5)
+        atp_chip = chip("ATP", GREEN, 24).move_to([SX + 1.45, -1.2, 0])
+        self.play(adp.animate.move_to([SX - 1.45, -1.2, 0]), run_time=0.45)
+        self.play(ReplacementTransform(adp, atp_chip), run_time=0.35)
+        self.play(atp_chip.animate.move_to([5.4, -1.2, 0]), run_time=0.45)
         # the brake lifts, the electrons flow, the chain pumps and the synthase turns
         self.play(FadeOut(brake, shift=UP * 0.4), FadeOut(brake_lab), FadeOut(atp_chip),
                   run_time=0.35)
@@ -545,30 +602,30 @@ class S03Acceptor(Sp):
 
         curve_m, head_m, gfill_m, gnum_m = always_redraw(curve), always_redraw(head), always_redraw(gfill), \
             always_redraw(gnum)
-        self.at("oxygen consumption")
-        self.play(Create(ax), FadeIn(deco), FadeIn(ill), run_time=self.room("trace", lo=0.7))
+        self.at("oxygen trace")
+        self.play(Create(ax), FadeIn(deco), FadeIn(ill), run_time=self.room("trace", lo=0.3))
         self.at("trace")
         self.play(FadeIn(gtrack), FadeIn(glab), FadeIn(gnum_m), FadeIn(gfill_m), FadeIn(curve_m), FadeIn(head_m),
-                  run_time=0.5)
-        # idle phase up to 1.0 min while "respiration idles until ADP is added"
+                  run_time=0.45)
+        # idle phase up to 1.0 min while "respiration idles until ADP arrives"
         self.at("respiration idles")
-        self.play(tt.animate.set_value(1.0), run_time=self.room("added", lo=0.8), rate_func=linear)
-        self.at("added")
+        self.play(tt.animate.set_value(1.0), run_time=self.room("arrives", lo=0.8), rate_func=linear)
+        self.at("arrives")
         adp_arrow = Arrow(ax.c2p(1.0, 31), ax.c2p(1.0, 12), color=GOLD, buff=0, stroke_width=7)
         adp_lab = T("ADP added", 26, GOLD).next_to(adp_arrow, UP, buff=0.12)
-        self.play(GrowArrow(adp_arrow), FadeIn(adp_lab), run_time=0.6)
-        # "then the rate jumps"
-        self.at("then the rate jumps")
+        self.play(GrowArrow(adp_arrow), FadeIn(adp_lab), run_time=0.5)
+        # "then jumps"
+        self.at("then jumps")
         t_knee = float(ts[np.argmax((ts > 1.05) & (rates < 22.0))])
-        self.play(tt.animate.set_value(1.5), run_time=self.room("and it falls again", lo=0.7), rate_func=linear)
-        # "and it falls again once the supply of ADP is nearly exhausted"
-        self.at("and it falls again")
-        self.play(tt.animate.set_value(1.85), run_time=self.room("nearly exhausted", lo=1.0), rate_func=linear)
+        self.play(tt.animate.set_value(1.5), run_time=self.room("It falls again", lo=0.7), rate_func=linear)
+        # "It falls again as ADP runs out"
+        self.at("It falls again")
+        self.play(tt.animate.set_value(1.85), run_time=self.room("runs out", lo=0.8), rate_func=linear)
         k_o2 = float(o2[int(round(t_knee * 1000))])
         ex_lab = T("ADP nearly used up", 24, GOLD).move_to(ax.c2p(2.35, 20))
         ex_arrow = Arrow(ex_lab.get_top() + UP * 0.08, ax.c2p(t_knee + 0.04, k_o2 - 3), color=GOLD, buff=0,
                          stroke_width=6, max_tip_length_to_length_ratio=0.25)
-        self.at("nearly exhausted")
+        self.at("runs out")
         self.play(FadeIn(ex_arrow), FadeIn(ex_lab), tt.animate.set_value(3.0), run_time=self.room("This is acceptor control", lo=1.0),
                   rate_func=linear)
 
@@ -583,50 +640,78 @@ class S03Acceptor(Sp):
         self.at("also called respiratory control")
         name2 = T("= respiratory control", 40, TEXT, font=TITLE_FONT).move_to([0, -0.5, 0])
         self.play(FadeIn(name2, shift=UP * 0.1), run_time=0.6)
-        # "the cell's way of matching fuel burning to demand"
-        self.at("the cell's way")
-        self.play(FadeOut(name2), name1.animate.scale(0.55).move_to([0, 2.95, 0]), run_time=0.7)
+        # "matching fuel burning to demand"
+        self.at("matching fuel burning")
+        self.play(FadeOut(name2), name1.animate.scale(0.55).move_to([0, 2.95, 0]), run_time=0.4)
         dem, fuel = ValueTracker(0.2), ValueTracker(0.2)
         bar_d = meter("ATP demand", GREEN, dem, 0, 1.2, w=5.0)
         bar_f = meter("fuel burning (O₂)", BLUE, fuel, 0, 0.1, w=5.0)
         # line the two tracks up
         bar_f.shift(RIGHT * (bar_d[0][1].get_left()[0] - bar_f[0][1].get_left()[0]))
-        self.at("matching fuel burning")
-        self.play(FadeIn(bar_d), FadeIn(bar_f), run_time=0.6)
-        self.play(dem.animate.set_value(0.85), fuel.animate.set_value(0.85), run_time=0.8)
+        self.play(FadeIn(bar_d), FadeIn(bar_f), run_time=0.35)
+        self.play(dem.animate.set_value(0.85), fuel.animate.set_value(0.85), run_time=0.45)
         self.at("to demand")
         self.play(dem.animate.set_value(0.35), fuel.animate.set_value(0.35), run_time=0.5)
-        # "ADP is the signal for need."
-        self.at("signal")
-        self.play(FadeOut(VGroup(bar_d, bar_f, name1)), run_time=0.5)
+        # "ADP signals need when the cell has spent ATP."
+        self.at("signals")
+        self.play(FadeOut(VGroup(bar_d, bar_f, name1)), run_time=0.45)
         self.remove(bar_d, bar_f)
-        adp_c = chip("ADP", GOLD, 44).move_to([0, 0.2, 0])
-        sig = T("the signal for need", 36, GOLD).next_to(adp_c, DOWN, buff=0.45)
-        self.play(FadeIn(adp_c, scale=0.8), run_time=0.6)
-        self.at("for")
-        self.play(FadeIn(sig, shift=UP * 0.1), run_time=0.6)
-        # "When the cell has spent its ATP, the ADP it generates lifts the brake on the chain."
-        self.at("When the cell has spent")
-        self.play(FadeOut(sig), adp_c.animate.move_to([0, 0.5, 0]), run_time=0.6)
-        spend = chip("cell spends ATP", GREEN, 30).move_to([-4.4, 0.5, 0])
-        self.play(FadeIn(spend, shift=RIGHT * 0.2), run_time=0.6)
-        self.at("the ADP it generates")
+        adp_c = chip("ADP", GOLD, 44).move_to([1.5, 0.4, 0])
+        sig = T("signals need", 34, GOLD).next_to(adp_c, DOWN, buff=0.35)
+        spend = chip("cell spends ATP", GREEN, 30).move_to([-3.2, 0.4, 0])
         a1 = Arrow(spend.get_right(), adp_c.get_left(), color=TEXT, buff=0.15, stroke_width=6)
-        self.play(GrowArrow(a1), Indicate(adp_c, color=GOLD, scale_factor=1.15), run_time=0.8)
-        self.at("lifts the brake")
-        ch = chip("chain", BLUE, 34).move_to([4.7, 0.5, 0])
-        brk = Rectangle(width=0.14, height=0.95, stroke_width=0, fill_color=RED, fill_opacity=1).move_to(
-            ch.get_left() + LEFT * 0.12)
-        a2 = Arrow(adp_c.get_right(), brk.get_left() + LEFT * 0.1, color=TEXT, buff=0.15, stroke_width=6)
-        self.play(FadeIn(ch), FadeIn(brk), GrowArrow(a2), run_time=0.7)
-        self.play(FadeOut(brk, shift=UP * 0.9), run_time=self.room("on the chain", lo=0.4))
-        self.at("on the chain")
-        fast = T("runs faster", 30, BLUE).next_to(ch, DOWN, buff=0.35)
-        self.play(FadeIn(fast, shift=UP * 0.1), run_time=0.5)
+        self.play(FadeIn(adp_c, scale=0.8), FadeIn(sig, shift=UP * 0.1), run_time=0.5)
+        self.at("cell has spent")
+        self.play(FadeIn(spend, shift=RIGHT * 0.2), GrowArrow(a1), run_time=0.6)
+
+        # "The brake on the chain is the backed-up gradient. ADP lets the synthase drain protons, so the pumps can run again."
+        self.at("The brake")
+        mem2 = membrane()
+        chain2, synth2 = chain_block(), synth_block()
+        g2 = ValueTracker(0.0)
+        pool2 = Pool(g2, seed=7)
+        pump_r2, syn_r2, atp_r2, spin2, e_r2 = (ValueTracker(0), ValueTracker(0), ValueTracker(0),
+                                                ValueTracker(0), ValueTracker(0))
+        spinner2 = Spinner(spin2)
+        syn2, atp2 = synthstream(syn_r2), atpstream(atp_r2)
+        pump2 = pumpstream(pump_r2)
+        efl2 = Flow(epath, 4, e_r2, TEXT, size=0.08, speed=0.5)
+        brk2 = Rectangle(width=0.16, height=0.42, stroke_width=0, fill_color=RED, fill_opacity=1).move_to(
+            [-4.75, -1.6, 0])
+        brk2_lab = T("brake", 24, RED).next_to(brk2, UP, buff=0.14)
+        grad_brk = T("backed-up gradient", 26, YELLOW).move_to([1.2, 2.4, 0])
+        brk_arrow = Arrow([-1.9, 1.35, 0], [-2.2, 0.6, 0], color=RED, buff=0, stroke_width=7)
+        self.add(pool2, pump2, syn2, atp2, efl2)
+        self.play(LaggedStart(
+            FadeOut(VGroup(spend, a1, adp_c, sig), run_time=0.3),
+            AnimationGroup(
+                FadeIn(mem2), FadeIn(chain2), FadeIn(synth2), FadeIn(spinner2),
+                FadeIn(brk2), FadeIn(brk2_lab), FadeIn(grad_brk), GrowArrow(brk_arrow),
+                g2.animate.set_value(0.92), pump_r2.animate.set_value(0.15), e_r2.animate.set_value(0.15),
+                run_time=0.55,
+            ),
+            lag_ratio=0.5,
+        ))
+        self.at("lets the synthase")
+        adp2 = chip("ADP", GOLD, 24).move_to([0.5, -1.2, 0])
+        self.play(FadeIn(adp2, shift=LEFT * 0.2), run_time=0.35)
+        self.play(adp2.animate.move_to([SX - 1.45, -1.2, 0]), run_time=0.45)
+        self.play(FadeOut(adp2), run_time=0.2)
+        self.at("drain protons")
+        syn_r2.set_value(1.2); spin2.set_value(0.6); atp_r2.set_value(1.0)
+        self.play(g2.animate.set_value(0.45), run_time=self.room("so the pumps", lo=0.6), rate_func=smooth)
+        self.at("so the pumps")
+        self.play(FadeOut(brk2, shift=UP * 0.4), FadeOut(brk2_lab), FadeOut(brk_arrow),
+                  Transform(grad_brk, T("pumps speed up", 26, BLUE).move_to([1.2, 2.4, 0])),
+                  pump_r2.animate.set_value(1.5), e_r2.animate.set_value(1.5), run_time=0.7)
 
         # ---------- part D: the take-home
         self.at("This is a clean example")
-        self.play(FadeOut(Group(spend, a1, adp_c, a2, ch, fast)), run_time=0.6)
+        stageC = Group(mem2, chain2, synth2, spinner2, pool2, pump2, syn2, atp2, efl2, grad_brk)
+        for m in (pool2, pump2, syn2, atp2, efl2, spinner2):
+            m.clear_updaters()
+        self.play(FadeOut(stageC), run_time=0.5)
+        self.remove(stageC)
         l1 = T("metabolism governed by", 36, TEXT).move_to([0, 0.9, 0])
         l2 = T("energy charge", 64, GOLD, font=TITLE_FONT).move_to([0, -0.15, 0])
         l3 = T("rather than by substrate alone", 32, GREY).move_to([0, -1.3, 0])
@@ -688,7 +773,7 @@ class S04If1(Sp):
         self.play(o2v.animate.set_value(0.08), run_time=self.room("the chain stalls", lo=0.8))
         # "the chain stalls, and the gradient collapses"
         self.at("the chain stalls")
-        self.play(pump_r.animate.set_value(0), chain.animate.set_opacity(0.4), run_time=0.6)
+        self.play(pump_r.animate.set_value(0), chain[1].animate.set_opacity(0.4), chain[2].animate.set_opacity(0.4), run_time=0.6)
         self.at("and the gradient collapses")
         self.play(g.animate.set_value(0.03), run_time=self.room("Now the enzyme", lo=1.0), rate_func=linear)
         self.play(syn_r.animate.set_value(0), spin.animate.set_value(0), atp_r.animate.set_value(0), run_time=0.01)
@@ -699,9 +784,9 @@ class S04If1(Sp):
         eq2 = eq("ATP   →   ADP + Pi", RED)
         atp_r.set_value(-1)
         self.play(Transform(eq1, eq2), run_time=0.6)
-        self.play(atpv.animate.set_value(0.6), run_time=self.room("hold up", lo=0.6), rate_func=linear)
-        # "to hold up the gradient"
-        self.at("hold up")
+        self.play(atpv.animate.set_value(0.6), run_time=self.room("prop up", lo=0.6), rate_func=linear)
+        # "to prop up the gradient"
+        self.at("prop up")
         syn_r.set_value(-0.8)
         self.play(g.animate.set_value(0.2), atpv.animate.set_value(0.5), run_time=self.room("precious energy", lo=0.8),
                   rate_func=linear)

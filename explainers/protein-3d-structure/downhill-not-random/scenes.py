@@ -373,15 +373,59 @@ class S03(SpokenScene):
 
 class S04(SpokenScene):
     def construct(self):
-        cap = T("3 shapes per residue, 100 residues", size=34, color=GREY).move_to([0, 2.95, 0])
-        a = ex(["3", ("100",)], size=170).move_to([0, 0.9, 0])
-        self.play(FadeIn(cap), FadeIn(a, shift=UP * 0.1), run_time=0.7)
-        self.at("47 zeros")
-        b = ex(["≈", 0.2, "5", 0.15, "×", 0.15, "10", ("47",)], size=84)
-        sh = T("shapes", size=60)
-        VGroup(b, sh).arrange(RIGHT, buff=0.35, aligned_edge=DOWN).move_to([0, -1.5, 0])
-        self.play(FadeIn(b, shift=UP * 0.15), FadeIn(sh, shift=UP * 0.15), run_time=0.8)
+        head = T("The choices multiply", size=38, font=TITLE_FONT, color=TEXT).move_to([0, 3.15, 0])
+        backbone = Line([-5.8, 1.75, 0], [-1.05, 1.75, 0], stroke_color=BLUE, stroke_width=4)
+        res1 = Circle(radius=0.24, stroke_color=BLUE, stroke_width=4, fill_color=BLUE, fill_opacity=0.6).move_to([-4.8, 1.75, 0])
+        res2 = Circle(radius=0.24, stroke_color=BLUE, stroke_width=4, fill_color=BLUE, fill_opacity=0.6).move_to([-2.4, 1.75, 0])
+        chain_dots = T("···", size=44, color=BLUE).move_to([-0.25, 1.75, 0])
+
+        def mini_icons(cx):
+            xs = [cx - 0.62, cx, cx + 0.62]
+            ics = VGroup(*[icon(k, 0.44, sw=4).move_to([x, 2.42, 0]) for k, x in zip(("strand", "left", "helix"), xs)])
+            stems = VGroup(*[Line([cx, 1.99, 0], [x, 2.26, 0], color=GREY, stroke_width=2) for x in xs])
+            return VGroup(stems, ics)
+
+        icons1 = mini_icons(-4.8)
+        icons2 = mini_icons(-2.4)
+        lab1 = T("first residue", size=28, color=BLUE).move_to([-4.8, 1.12, 0])
+        lab2 = T("next", size=28, color=BLUE).move_to([-2.4, 1.12, 0])
+
+        t_three1 = M("3", size=72, color=TEXT).move_to([-4.8, 0.25, 0])
+        t_times1 = M("×", size=58, color=ORANGE).move_to([-3.6, 0.25, 0])
+        t_three2 = M("3", size=72, color=TEXT).move_to([-2.4, 0.25, 0])
+        t_times2 = M("×", size=58, color=ORANGE).move_to([-1.2, 0.25, 0])
+        t_dots = M("···", size=58, color=TEXT).move_to([-0.25, 0.25, 0])
+        t_eq = M("=", size=64, color=TEXT).move_to([1.15, 0.25, 0])
+        t_pow = ex(["3", 0.05, ("100",)], size=92, color=TEXT).next_to(t_eq, RIGHT, buff=0.35)
+        t_pow.shift(UP * (t_three1.get_y() - t_pow[0].get_y()))
+
+        brace = Brace(Line([-5.15, -0.22, 0], [0.25, -0.22, 0]), DOWN, color=YELLOW)
+        brace_lab = T("100 times", size=30, color=YELLOW).next_to(brace, DOWN, buff=0.14)
+
+        approx_sym = M("≈", size=68, color=TEXT)
+        five_ten47 = ex(["5", 0.2, "×", 0.2, "10", 0.05, ("47",)], size=72, color=YELLOW)
+        shapes_word = T("shapes", size=52, color=TEXT)
+        res_row = VGroup(approx_sym, five_ten47, shapes_word).arrange(RIGHT, buff=0.35, aligned_edge=DOWN).move_to([0, -2.0, 0])
+        approx_sym.set_y(five_ten47[0].get_y())
+        shapes_word.align_to(five_ten47[0], DOWN)
+        q_mark = M("?", size=72, color=YELLOW).move_to(five_ten47.get_center()).align_to(five_ten47[0], DOWN)
+        zeros_note = T("47 zeros", size=30, color=YELLOW).move_to([0, -3.05, 0])
+
+        self.play(FadeIn(head, shift=DOWN * 0.1), Create(backbone), FadeIn(res1), FadeIn(res2), FadeIn(chain_dots), run_time=1.0)
+        self.at("for the first residue")
+        self.play(FadeIn(icons1), Indicate(res1, color=YELLOW, scale_factor=1.15), FadeIn(lab1), FadeIn(t_three1, shift=DOWN * 0.1), run_time=0.7)
+        self.at("times 3 for the next", lead=0.15)
+        self.play(FadeIn(t_times1), run_time=0.3)
+        self.play(FadeIn(icons2), Indicate(res2, color=YELLOW, scale_factor=1.15), FadeIn(lab2), FadeIn(t_three2, shift=DOWN * 0.1), run_time=0.65)
+        self.at("a hundred times over", lead=0.05)
+        self.play(FadeIn(t_times2), FadeIn(t_dots), GrowFromCenter(brace), FadeIn(brace_lab), run_time=0.7)
+        self.play(FadeIn(t_eq), FadeIn(t_pow, shift=LEFT * 0.1), run_time=0.55)
+        self.at("gives a number of shapes", lead=0.15)
+        self.play(FadeIn(approx_sym), FadeIn(q_mark), FadeIn(shapes_word), run_time=0.55)
+        self.at("47 zeros", lead=0.0)
+        self.play(Succession(FadeOut(q_mark, run_time=0.2), FadeIn(five_ten47, run_time=0.25)), FadeIn(zeros_note, shift=UP * 0.1, run_time=0.45))
         self.finish()
+        self.wait(0.45)
 
 
 class S05(SpokenScene):
@@ -1219,14 +1263,3 @@ class S30(SpokenScene):
 
 class S31End(EndCard):
     LINE = "Folding is downhill, not random: native-like contacts tilt the landscape."
-
-    def construct(self):
-        a = T("Folding is downhill, not random:", size=48, font=TITLE_FONT)
-        b = T("native-like contacts tilt the landscape.", size=48, font=TITLE_FONT, color=GREEN)
-        sub = T("biochemistrypedia.com", size=26, color=TEAL)
-        g = VGroup(a, b).arrange(DOWN, buff=0.3)
-        VGroup(g, sub).arrange(DOWN, buff=0.6)
-        self.play(FadeIn(a, shift=UP * 0.15), run_time=self.beat(0.2))
-        self.play(FadeIn(b, shift=UP * 0.15), run_time=self.beat(0.2))
-        self.play(FadeIn(sub), run_time=self.beat(0.1))
-        self.finish()

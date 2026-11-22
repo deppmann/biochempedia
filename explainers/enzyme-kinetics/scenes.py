@@ -143,9 +143,9 @@ def fraction_booths(busy, center=(4.6, 0.5, 0), label=None):
     return VGroup(boxes, summary)
 
 
-def low_s_comparison(center=(4.75, 0.15, 0)):
+def low_s_comparison(center=(4.75, 0.15, 0), width=3.35):
     """Readable computed comparison for the crowded low-[S] end of the main graph."""
-    panel = RoundedRectangle(width=3.35, height=3.45, corner_radius=0.16,
+    panel = RoundedRectangle(width=width, height=3.45, corner_radius=0.16,
                              stroke_color=GREY, stroke_width=2,
                              fill_color=GREY, fill_opacity=0.16)
     title = T("LOW [S] (mM)", 28, YELLOW, weight=BOLD)
@@ -187,29 +187,49 @@ def graph_world(vmax=V_MAX, y_max=70, origin=(-5.0, -2.55), width=10.5, height=5
     return ax, cv, xl, yl
 
 
-def moving_curve_dot(scene, ax, vmax=V_MAX, lo=1.0, hi=30.0, period=4.0):
+def moving_curve_dot(scene, ax, vmax=V_MAX, lo=1.0, hi=30.0, period=4.0,
+                     show_tag=True, gate=False, stem_to_bottom=False, opaque=False):
     # The travelling booth is intentionally large enough to read as the carried plaza icon,
     # rather than as a decorative pulse on a mostly still graph.
+    get_vmax = vmax.get_value if isinstance(vmax, ValueTracker) else (lambda v=vmax: v)
     box = RoundedRectangle(width=1.12, height=0.86, corner_radius=0.12,
                            stroke_color=BLUE, stroke_width=4,
-                           fill_color=BLUE, fill_opacity=0.38)
-    tag = T("E", 28, TEXT, weight=BOLD).move_to(box)
-    dot = VGroup(box, tag).move_to(ax.c2p(lo, mm(lo, vmax)))
+                           fill_color="#13222E" if opaque else BLUE,
+                           fill_opacity=0.96 if opaque else 0.38)
+    parts = [box]
+    if show_tag:
+        parts.append(T("E", 28, TEXT, weight=BOLD).move_to(box))
+    if gate:
+        parts.append(Line(LEFT * 0.28, RIGHT * 0.28, color=RED, stroke_width=5).move_to(box.get_bottom() + UP * 0.18))
+    dot = VGroup(*parts).move_to(ax.c2p(lo, mm(lo, get_vmax())))
+    if opaque:
+        dot.set_z_index(4)
     dot.clock = 0.0
-    stem = DashedLine(ax.c2p(lo, 0), ax.c2p(lo, mm(lo, vmax)),
-                      color=YELLOW, stroke_width=5, dash_length=0.12).set_opacity(0.58)
 
     def travel(m, dt):
         m.clock += dt
         u = 0.5 + 0.5 * np.sin(TAU * m.clock / period - PI / 2)
         s = lo + (hi - lo) * u
-        m.move_to(ax.c2p(s, mm(s, vmax)))
-
-    def follow(m, dt):
-        m.put_start_and_end_on([dot.get_x(), ax.c2p(0, 0)[1], 0], dot.get_center())
+        m.move_to(ax.c2p(s, mm(s, get_vmax())))
 
     dot.add_updater(travel)
-    stem.add_updater(follow)
+    if stem_to_bottom:
+        def mk_stem():
+            y0 = ax.c2p(0, 0)[1]
+            y_top = dot.get_bottom()[1]
+            if y_top <= y0 + 0.05:
+                return VMobject()
+            return DashedLine([dot.get_x(), y0, 0], [dot.get_x(), y_top, 0],
+                              color=YELLOW, stroke_width=5, dash_length=0.12).set_opacity(0.58)
+        stem = always_redraw(mk_stem)
+    else:
+        stem = DashedLine(ax.c2p(lo, 0), ax.c2p(lo, mm(lo, get_vmax())),
+                          color=YELLOW, stroke_width=5, dash_length=0.12).set_opacity(0.58)
+
+        def follow(m, dt):
+            m.put_start_and_end_on([dot.get_x(), ax.c2p(0, 0)[1], 0], dot.get_center())
+
+        stem.add_updater(follow)
     scene.add(stem, dot)
     return dot
 
@@ -482,99 +502,226 @@ class S09Km(SpokenScene):
 
 class S10Vmax(SpokenScene):
     def construct(self):
-        ax, cv, xl, yl = graph_world(origin=(-5.25, -2.65), width=8.0, height=4.15, y_max=130)
+        ax, cv, xl, yl = graph_world(origin=(-5.25, -2.45), width=6.8, height=4.15, y_max=130)
         # graph_world computes the curve at the requested Vmax; here start at 60 on a 130 scale
         cv60 = ax.plot(lambda x: mm(x, 60), x_range=[0, 32], color=BLUE, stroke_width=7)
         cv.become(cv60)
         ceiling = DashedLine(ax.c2p(0, 60), ax.c2p(32, 60), color=RED, stroke_width=4)
         self.add(ax, cv, xl, yl, ceiling)
-        moving_curve_dot(self, ax, 60, lo=14, hi=31, period=5.0)
+        vmax_tr = ValueTracker(60.0)
+        moving_curve_dot(self, ax, vmax_tr, lo=14, hi=31, period=5.0,
+                         show_tag=False, gate=True, stem_to_bottom=True, opaque=True)
         self.at("nearly every enzyme is busy")
-        row = fraction_booths(4, center=(4.55, 1.85, 0))
+        row = fraction_booths(4, center=(4.85, 1.85, 0))
         self.play(FadeIn(row), run_time=0.7)
         self.at("It equals")
-        equation = T("Vmax = kcat ×\ntotal enzyme", 32, TEXT, weight=BOLD,
+        equation = T("Vmax = kcat ×\ntotal enzyme", 30, TEXT, weight=BOLD,
                      line_spacing=0.82,
                      t2c={"Vmax": RED, "kcat": GREEN, "enzyme": BLUE})
-        equation.move_to([4.55, 0.75, 0])
+        equation.move_to([4.85, 0.75, 0])
         self.play(FadeIn(equation), run_time=0.75)
         self.at("More substrate")
-        cars = VGroup(*[car(label=None, scale=0.55).move_to([3.05 + i * 0.78, -0.35, 0]) for i in range(5)])
+        cars = VGroup(*[car(label=None, scale=0.55).move_to([3.29 + i * 0.78, -0.35, 0]) for i in range(5)])
         self.play(LaggedStart(*[FadeIn(c, shift=RIGHT * 0.3) for c in cars], lag_ratio=0.10), run_time=0.8)
         self.at("cannot raise that ceiling")
         self.play(Indicate(ceiling, color=RED, scale_factor=1.0), run_time=0.7)
         self.at("adding enzyme can")
         cv120 = ax.plot(lambda x: mm(x, 120), x_range=[0, 32], color=BLUE, stroke_width=7)
         ceiling120 = DashedLine(ax.c2p(0, 120), ax.c2p(32, 120), color=RED, stroke_width=4)
-        gauge = counter_box("enzyme amount", "1×  →  2×", BLUE, (4.55, -1.65, 0), width=3.4)
-        self.play(FadeOut(cars), FadeOut(row), FadeIn(gauge), Transform(cv, cv120), Transform(ceiling, ceiling120), run_time=1.3)
+        gauge_box = RoundedRectangle(width=2.55, height=0.68, corner_radius=0.14,
+                                     stroke_color=BLUE, stroke_width=3,
+                                     fill_color=BLUE, fill_opacity=0.10)
+        gauge_num = M("1×  →  2×", 30, TEXT).move_to(gauge_box)
+        gauge_lab = T("enzyme amount", 28, BLUE, weight=BOLD).next_to(gauge_box, UP, buff=0.14)
+        gauge = VGroup(gauge_box, gauge_lab, gauge_num).move_to((4.85, -1.65, 0))
+        self.play(FadeOut(cars), FadeOut(row), FadeIn(gauge),
+                  Transform(cv, cv120), Transform(ceiling, ceiling120),
+                  vmax_tr.animate.set_value(120.0), run_time=1.3)
         self.finish()
 
 
 class S11Calculation(SpokenScene):
     def construct(self):
-        ax, cv, xl, yl = graph_world(origin=(-5.35, -2.60), width=7.75, height=4.0)
-        vmax = DashedLine(ax.c2p(0, 60), ax.c2p(32, 60), color=RED, stroke_width=3)
-        self.add(ax, cv, xl, yl, vmax)
-        moving_curve_dot(self, ax, lo=12, hi=24, period=3.5)
-        self.at("Vmax is 60")
-        constants = VGroup(T("Vmax = 60", 30, RED, weight=BOLD), T("Km = 4 mM", 30, GOLD_KM, weight=BOLD)).arrange(DOWN, aligned_edge=LEFT, buff=0.20).move_to([4.65, 2.45, 0])
-        self.play(FadeIn(constants), run_time=0.7)
+        ax, cv, xl, yl = graph_world(origin=(-5.15, -1.25), width=6.75, height=3.20)
+        vmax_line = DashedLine(ax.c2p(0, 60), ax.c2p(32, 60), color=RED, stroke_width=3)
+        booths = fraction_booths(0, center=(4.65, 1.35, 0), label="enzyme booths")
+        pulse_gates(booths[0])
+        self.add(ax, cv, xl, yl, vmax_line, booths)
+
+        s_tr = ValueTracker(2.0)
+        marker_box = RoundedRectangle(width=0.66, height=0.48, corner_radius=0.10,
+                                      stroke_color=BLUE, stroke_width=4,
+                                      fill_color=BLUE, fill_opacity=0.40)
+        marker_gate = Line(LEFT * 0.20, RIGHT * 0.20, color=RED, stroke_width=4)
+        marker_gate.move_to(marker_box.get_bottom() + UP * 0.11)
+        marker = VGroup(marker_box, marker_gate)
+        marker.add_updater(lambda m: m.move_to(ax.c2p(s_tr.get_value(), mm(s_tr.get_value()))))
+        stem = DashedLine(ax.c2p(2.0, 0), ax.c2p(2.0, mm(2.0)),
+                          color=YELLOW, stroke_width=4, dash_length=0.12).set_opacity(0.65)
+        stem.add_updater(lambda m: m.put_start_and_end_on(
+            ax.c2p(s_tr.get_value(), 0),
+            ax.c2p(s_tr.get_value(), mm(s_tr.get_value())),
+        ))
+        self.add(stem, marker)
+
+        self.at("60")
+        vmax_lab = T("Vmax = 60 µmol/min", 28, RED, weight=BOLD).move_to([-3.65, 3.15, 0])
+        self.play(FadeIn(vmax_lab), Indicate(vmax_line, color=RED, scale_factor=1.0), run_time=0.6)
+
+        self.at("4 millimolar")
+        km_lab = T("Km = 4 mM", 28, GOLD_KM, weight=BOLD).move_to([0.35, 3.15, 0])
+        sub_strip = M("v = 60 × [S]/(4+[S])", 26, TEXT, t2c={"60": RED}).move_to([4.65, -1.40, 0])
+        self.play(FadeIn(km_lab), FadeIn(sub_strip), run_time=0.55)
+
         self.at("At 12")
-        p12 = Dot(ax.c2p(12, mm(12)), radius=0.14, color=GREEN)
-        l12 = T("12 mM → 45", 30, GREEN, weight=BOLD).move_to([-0.25, 2.65, 0])
-        row = fraction_booths(3, center=(4.65, 0.75, 0), label="3/4 busy")
-        strip = M("60 × 12 /\n(4 + 12) = 45", 28, TEXT, line_spacing=0.75).move_to([4.65, -1.25, 0])
-        self.play(FadeIn(p12), FadeIn(l12), FadeIn(row), FadeIn(strip), run_time=1.0)
-        self.at("three")
-        self.play(Indicate(row, color=BLUE, scale_factor=1.03), run_time=0.55)
-        self.at("At 24")
-        p24 = Dot(ax.c2p(24, mm(24)), radius=0.14, color=YELLOW)
-        l24 = T("24 mM → about 51", 30, YELLOW, weight=BOLD).move_to([-0.10, 2.65, 0])
-        strip24 = M("60 × 24 /\n(4 + 24) ≈ 51", 28, TEXT, line_spacing=0.75).move_to(strip)
-        gauge = busy_gauge(6/7, center=(5.15, 0.55, 0), height=2.15, label=False)
-        self.remove(row)
-        l12.become(l24)
-        self.play(FadeIn(p24), FadeIn(gauge), Transform(strip, strip24), run_time=1.1)
-        self.at("six")
-        six = T("about 6/7\nbusy", 30, BLUE, weight=BOLD,
-                line_spacing=0.82).move_to([3.65, 0.55, 0])
-        self.play(FadeIn(six), run_time=0.55)
-        self.at("roughly 51")
-        self.play(Indicate(l12, color=GREEN, scale_factor=1.04), run_time=0.7)
+        p12 = Dot(ax.c2p(12, mm(12)), radius=0.13, color=GREEN).set_z_index(5)
+        s_lab = T("[S] = 12 mM", 28, YELLOW, weight=BOLD).move_to([4.65, 3.15, 0])
+        v_readout = T("v = ?", 34, GREEN, weight=BOLD).move_to([4.65, -0.35, 0])
+        sub_12 = M("v = 60 × 12/(4+12)", 26, TEXT, t2c={"60": RED}).move_to(sub_strip)
+        self.play(
+            s_tr.animate.set_value(12.0),
+            FadeIn(p12),
+            FadeIn(s_lab),
+            FadeIn(v_readout),
+            Succession(FadeOut(sub_strip, run_time=0.22), FadeIn(sub_12, run_time=0.28)),
+            run_time=0.8,
+        )
+        sub_strip = sub_12
+
+        s12_1 = M("12/(4+12)", 28, YELLOW)
+        s12_2 = M("= 12/16", 28, TEXT)
+        s12_3 = M("= 3/4", 28, BLUE)
+        s12_4 = M("→ 45", 28, GREEN)
+        VGroup(s12_1, s12_2, s12_3, s12_4).arrange(RIGHT, buff=0.22).move_to([0, -3.12, 0])
+
+        self.at("12 over 4")
+        self.play(FadeIn(s12_1), run_time=0.5)
+
+        self.at("12 sixteenths")
+        self.play(FadeIn(s12_2), run_time=0.5)
+
+        self.at("three quarters")
+        booths_3 = fraction_booths(3, center=(4.65, 1.35, 0), label="3/4 busy")
+        self.play(FadeIn(s12_3), Transform(booths, booths_3), run_time=0.65)
+
+        self.at("Three quarters of 60")
+        self.play(Indicate(s12_3, color=BLUE, scale_factor=1.06),
+                  Indicate(sub_strip, color=RED, scale_factor=1.03), run_time=0.6)
+
+        self.at("is 45")
+        v_45 = T("v = 45", 34, GREEN, weight=BOLD).move_to(v_readout)
+        self.play(
+            FadeIn(s12_4),
+            Succession(FadeOut(v_readout, run_time=0.18), FadeIn(v_45, run_time=0.27)),
+            run_time=0.45,
+        )
+        v_readout = v_45
+
+        self.at("24", lead=0.1)
+        p24 = Dot(ax.c2p(24, mm(24)), radius=0.13, color=YELLOW).set_z_index(5)
+        s_lab_24 = T("[S] = 24 mM", 28, YELLOW, weight=BOLD).move_to(s_lab)
+        sub_24 = M("v = 60 × 24/(4+24)", 26, TEXT, t2c={"60": RED}).move_to(sub_strip)
+        v_q2 = T("v = ?", 34, GREEN, weight=BOLD).move_to(v_readout)
+
+        g_box = RoundedRectangle(width=0.72, height=1.75, corner_radius=0.10,
+                                 stroke_color=GREY, stroke_width=3).move_to([5.45, 1.25, 0])
+        g_frac = ValueTracker(0.0)
+        g_fill = always_redraw(lambda: Rectangle(
+            width=0.60,
+            height=max(0.02, (1.75 - 0.12) * g_frac.get_value()),
+            stroke_width=0, fill_color=BLUE, fill_opacity=0.9,
+        ).move_to(g_box.get_bottom() + UP * (0.06 + max(0.02, (1.75 - 0.12) * g_frac.get_value()) / 2)))
+        g_lab = T("? busy", 28, BLUE, weight=BOLD).next_to(g_box, LEFT, buff=0.28)
+        for b in booths[0]:
+            b[1].clear_updaters()
+        self.play(
+            s_tr.animate.set_value(24.0),
+            FadeIn(p24),
+            Succession(FadeOut(s_lab, run_time=0.25), FadeIn(s_lab_24, run_time=0.35)),
+            Succession(FadeOut(sub_strip, run_time=0.25), FadeIn(sub_24, run_time=0.35)),
+            Succession(FadeOut(v_readout, run_time=0.25), FadeIn(v_q2, run_time=0.35)),
+            Succession(FadeOut(booths, run_time=0.25), AnimationGroup(FadeIn(g_box), FadeIn(g_lab), run_time=0.35)),
+            FadeOut(VGroup(s12_1, s12_2, s12_3, s12_4)),
+            run_time=0.85,
+        )
+        self.add(g_fill)
+        s_lab = s_lab_24
+        sub_strip = sub_24
+        v_readout = v_q2
+
+        s24_1 = M("24/(4+24)", 28, YELLOW)
+        s24_2 = M("= 24/28", 28, TEXT)
+        s24_3 = M("= 6/7", 28, BLUE)
+        s24_4 = M("→ about 51", 28, GREEN)
+        VGroup(s24_1, s24_2, s24_3, s24_4).arrange(RIGHT, buff=0.22).move_to([0, -3.12, 0])
+
+        self.at("4 plus 24")
+        self.play(FadeIn(s24_1), run_time=0.5)
+
+        self.at("28")
+        self.play(FadeIn(s24_2), run_time=0.55)
+
+        self.at("six sevenths")
+        g_lab_67 = T("6/7 busy", 28, BLUE, weight=BOLD).next_to(g_box, LEFT, buff=0.28)
+        self.play(
+            FadeIn(s24_3),
+            g_frac.animate.set_value(6 / 7),
+            Succession(FadeOut(g_lab, run_time=0.2), FadeIn(g_lab_67, run_time=0.3)),
+            run_time=0.65,
+        )
+        g_lab = g_lab_67
+
+        self.at("sevenths of 60")
+        self.play(Indicate(s24_3, color=BLUE, scale_factor=1.06),
+                  Indicate(sub_strip, color=RED, scale_factor=1.03), run_time=0.6)
+
+        self.at("about 51")
+        v_51 = T("v ≈ 51", 34, GREEN, weight=BOLD).move_to(v_readout)
+        self.play(
+            FadeIn(s24_4),
+            Succession(FadeOut(v_readout, run_time=0.18), FadeIn(v_51, run_time=0.27)),
+            Indicate(p24, color=YELLOW, scale_factor=1.3),
+            run_time=0.5,
+        )
         self.finish()
 
 
 class S12Payoff(SpokenScene):
     def construct(self):
-        ax, cv, xl, yl = graph_world(origin=(-5.35, -2.55), width=8.15, height=4.55)
+        ax, cv, xl, yl = graph_world(origin=(-5.35, -2.45), width=6.8, height=4.55)
         self.add(ax, cv, xl, yl)
-        moving_curve_dot(self, ax, lo=0.2, hi=24, period=3.5)
+        moving_curve_dot(self, ax, lo=0.2, hi=24, period=3.5,
+                         show_tag=False, gate=True, stem_to_bottom=True, opaque=True)
         low_a, low_b = 0.2, 0.4
         self.at("Doubling substrate")
-        p12 = Dot(ax.c2p(12, mm(12)), radius=0.14, color=YELLOW)
-        p24 = Dot(ax.c2p(24, mm(24)), radius=0.14, color=YELLOW)
+        p12 = Dot(ax.c2p(12, mm(12)), radius=0.14, color=YELLOW).set_z_index(5)
+        p24 = Dot(ax.c2p(24, mm(24)), radius=0.14, color=YELLOW).set_z_index(5)
         bracket = DoubleArrow(ax.c2p(12, 8), ax.c2p(24, 8), color=YELLOW, stroke_width=5, buff=0)
         self.play(FadeIn(p12), FadeIn(p24), GrowArrow(bracket), run_time=0.8)
         self.at("only about 14 percent")
-        gain = T("45 → 51\n+14%", 38, GREEN, weight=BOLD, line_spacing=0.85).move_to([4.65, 2.15, 0])
+        gain = T("45 → 51\n+14%", 38, GREEN, weight=BOLD, line_spacing=0.85).move_to([4.95, 2.15, 0])
         self.play(FadeIn(gain, shift=UP * 0.1), run_time=0.65)
         self.at("one quarter")
-        gauge = busy_gauge(0.75, center=(5.25, -0.25, 0), height=2.7, label=False)
-        empty = T("1/4 empty", 30, BLUE, weight=BOLD).move_to([3.85, -0.25, 0])
+        gauge = busy_gauge(0.75, center=(5.45, -0.25, 0), height=2.7, label=False)
+        empty = T("1/4 empty", 30, BLUE, weight=BOLD).next_to(gauge[0], LEFT, buff=0.22)
         self.play(FadeIn(gauge), FadeIn(empty), run_time=0.7)
         self.at("Far below Km")
-        pa = Dot(ax.c2p(low_a, mm(low_a)), radius=0.14, color=GREEN)
-        pb = Dot(ax.c2p(low_b, mm(low_b)), radius=0.14, color=GREEN)
-        low = low_s_comparison(center=(4.65, 0.15, 0))
-        self.play(FadeOut(bracket), FadeOut(gain), FadeOut(gauge), FadeOut(empty), FadeIn(pa), FadeIn(pb), FadeIn(low), run_time=0.9)
+        pa = Dot(ax.c2p(low_a, mm(low_a)), radius=0.14, color=GREEN).set_z_index(5)
+        pb = Dot(ax.c2p(low_b, mm(low_b)), radius=0.14, color=GREEN).set_z_index(5)
+        low = low_s_comparison(center=(4.95, 0.15, 0), width=3.1)
+        self.play(
+            Succession(
+                AnimationGroup(FadeOut(bracket), FadeOut(gain), FadeOut(gauge), FadeOut(empty), run_time=0.35),
+                AnimationGroup(FadeIn(pa), FadeIn(pb), FadeIn(low), run_time=0.55),
+            )
+        )
         self.at("nearly doubles velocity")
-        almost = T("NEARLY 2×", 32, GREEN, weight=BOLD).move_to([4.65, -2.05, 0])
+        almost = T("NEARLY 2×", 32, GREEN, weight=BOLD).move_to([4.95, -2.05, 0])
         self.play(FadeIn(almost), run_time=0.6)
         self.at("Near saturation")
         self.play(FadeOut(VGroup(pa, pb, low, almost)), FadeIn(p12), FadeIn(p24), run_time=0.7)
         self.at("barely helps")
-        small = T("45 → 51\nsmall gain", 34, GREEN, weight=BOLD, line_spacing=0.85).move_to([4.65, 0.25, 0])
+        small = T("45 → 51\nsmall gain", 34, GREEN, weight=BOLD, line_spacing=0.85).move_to([4.95, 0.25, 0])
         self.play(FadeIn(small), run_time=0.6)
         self.finish()
 
@@ -609,15 +756,3 @@ class S13Return(SpokenScene):
 
 class S14End(EndCard):
     LINE = "More substrate adds speed only by filling empty enzymes."
-
-    def construct(self):
-        booths = booth_row(y=-1.0, scale=0.72, busy=3, x0=-4.0, spacing=2.65)
-        pulse_gates(booths)
-        line = T(self.LINE, 43, TEXT, font=TITLE_FONT)
-        fit(line, max_w=11.8)
-        line.move_to([0, 1.6, 0])
-        sub = T("biochemistrypedia.com", 28, TEAL).next_to(line, DOWN, buff=0.35)
-        self.add(booths)
-        add_flow(self, y_values=(-2.9,), speed=1.05)
-        self.play(FadeIn(line, shift=UP * 0.15), FadeIn(sub), run_time=0.8)
-        self.finish()

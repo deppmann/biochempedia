@@ -207,35 +207,112 @@ class S02Map(SpokenScene):
     def construct(self):
         track = potential_track(False)
         e = electron(P(-4.75, -2.57), .18)
-        mem = Rectangle(width=7.2, height=.72, stroke_width=0, fill_color=GREY,
-                        fill_opacity=.24).move_to(P(2.6, -.35))
-        rails = VGroup(Line(P(-1, .01), P(6.2, .01), color=GREY, stroke_width=3),
-                       Line(P(-1, -.71), P(6.2, -.71), color=GREY, stroke_width=3))
-        regions = VGroup(T("STROMA", 28, GREY).move_to(P(5.25, 2.95)),
-                         T("LUMEN", 28, GREY).move_to(P(5.35, -3.1)))
-        self.play(FadeIn(track), FadeIn(e), FadeIn(mem), Create(rails), FadeIn(regions), run_time=.9)
+        mem = Rectangle(width=6.4, height=.72, stroke_width=0, fill_color=GREY,
+                        fill_opacity=.24).move_to(P(3.0, -.35))
+        rails = VGroup(Line(P(-.2, .01), P(6.2, .01), color=GREY, stroke_width=3),
+                       Line(P(-.2, -.71), P(6.2, -.71), color=GREY, stroke_width=3))
+        stroma_lab = T("STROMA", 28, GREY).move_to(P(1.20, 2.95))
+        lumen_lab = T("LUMEN", 28, GREY).move_to(P(1.20, -3.05))
+        schem_lab = T("schematic", 26, GREY).move_to(P(5.65, -3.32))
+
+        lumen_motes = VGroup(*[
+            Dot(P(.1 + i * .62, -2.15 + .18 * np.sin(i * 1.4)), radius=.055,
+                color=RED).set_opacity(.35)
+            for i in range(10)
+        ]).set_z_index(-5)
+
+        def drift_lumen(group, dt):
+            group.shift(RIGHT * .65 * dt)
+            for d in group:
+                if d.get_x() > 6.15:
+                    d.shift(LEFT * 6.1)
+
+        lumen_motes.add_updater(drift_lumen)
+
+        self.play(FadeIn(track), FadeIn(e), FadeIn(mem), Create(rails),
+                  FadeIn(stroma_lab), FadeIn(lumen_lab), FadeIn(schem_lab),
+                  FadeIn(lumen_motes), run_time=.95)
+
+        self.at("more positive potential")
+        grip = Circle(.30, color=BLUE, stroke_width=3).move_to(e)
+        self.play(Indicate(track[2], color=BLUE, scale_factor=1.15),
+                  Create(grip), run_time=.65)
+        self.play(FadeOut(grip), run_time=.25)
+
+        self.at("tightly")
+        tight_1 = T("held tightly:", 24, TEXT).move_to(P(-2.5, -2.92))
+        tight_2 = T("low energy (positive V)", 24, BLUE).next_to(tight_1, DOWN, buff=.10)
+        tight_group = VGroup(tight_1, tight_2)
+        tight_group.move_to(P(-2.45, -3.12))
+        self.play(FadeIn(tight_1, shift=UP * .08), run_time=.5)
+
+        self.at("low energy")
+        self.play(FadeIn(tight_2, shift=UP * .08), run_time=.5)
+
         self.at("more negative potential")
-        uphill = Arrow(P(-3.8, -1.8), P(-3.8, 2.2), color=TEXT, stroke_width=5)
-        ulab = T("UPHILL", 28, TEXT, weight=BOLD).rotate(PI / 2).next_to(uphill, RIGHT, buff=.15)
-        self.play(LaggedStart(*[Indicate(t, color=TEXT, scale_factor=1.5) for t in track[1]], lag_ratio=.08),
-                  GrowArrow(uphill), FadeIn(ulab), run_time=1.15)
+        uphill = Arrow(P(-5.55, -2.0), P(-5.55, 2.0), buff=0, color=TEXT, stroke_width=5)
+        ulab = T("uphill", 28, TEXT, weight=BOLD).rotate(PI / 2).next_to(uphill, LEFT, buff=.16)
+        scroll_ticks = VGroup(*[
+            Line(P(-4.91, y), P(-4.59, y), color=TEXT, stroke_width=3.5).set_opacity(.85)
+            for y in np.linspace(-2.4, 1.8, 6)
+        ])
+        self.play(FadeIn(scroll_ticks, run_time=.25),
+                  scroll_ticks.animate(run_time=1.0).shift(UP * .7),
+                  GrowArrow(uphill, run_time=1.0),
+                  FadeIn(ulab, run_time=.8))
+        self.play(FadeOut(scroll_ticks, run_time=.2))
+
+        self.at("loosely")
+        loose_1 = T("held loosely:", 24, TEXT)
+        loose_2 = T("high energy (negative V)", 24, GREEN).next_to(loose_1, DOWN, buff=.10)
+        loose_group = VGroup(loose_1, loose_2).move_to(P(-2.10, 3.05))
+        self.play(e.animate.move_to(P(-4.75, 1.05)),
+                  FadeIn(loose_1, shift=DOWN * .08), run_time=.7)
+
+        self.at("higher energy")
+        self.play(FadeIn(loose_2, shift=DOWN * .08), run_time=.55)
+
+        self.at("moving toward negative")
+        self.play(e.animate.move_to(P(-4.75, 2.38)),
+                  Indicate(uphill, color=YELLOW, scale_factor=1.05),
+                  Indicate(ulab, color=YELLOW, scale_factor=1.06), run_time=1.2)
+
         self.at("water starts")
-        water = solid_chip("water", BLUE, 30).move_to(P(.05, -.35))
-        lowlab = T("about +0.82 V", 28, BLUE).move_to(P(-2.75, -2.38))
-        self.play(FadeIn(water, shift=UP * .2), FadeIn(lowlab), e.animate.scale(1.12), run_time=.85)
-        self.at("dP plus", lead=.15)
-        nadp = solid_chip("NADP+", GREEN, 30).move_to(P(4.85, 2.2))
-        highlab = T("about -0.32 V", 28, GREEN).move_to(P(-2.7, 2.18))
-        self.play(FadeIn(nadp, shift=DOWN * .2), FadeIn(highlab), run_time=.85)
-        motes = VGroup(*[hplus(P(x, -2.0 + .22 * np.sin(x)), RED).scale(.7) for x in (0, 1.3, 2.6, 3.9, 5.2)])
-        self.play(LaggedStart(*[FadeIn(m) for m in motes], lag_ratio=.08), run_time=.6)
-        self.play(motes.animate.shift(RIGHT * .45), run_time=1.0, rate_func=linear)
+        w_lab = T("water", 28, BLUE, weight=BOLD)
+        w_slot = Dot(radius=.16, fill_opacity=0, stroke_opacity=0)
+        w_inner = VGroup(w_lab, w_slot).arrange(RIGHT, buff=.22)
+        w_box = RoundedRectangle(corner_radius=.14, width=w_inner.width + .44,
+                                 height=w_inner.height + .30, stroke_color=BLUE,
+                                 stroke_width=2.5, fill_color=BG, fill_opacity=.96)
+        w_box.move_to(P(1.0, -1.24))
+        w_inner.move_to(w_box)
+        w_box.set_z_index(1)
+        w_lab.set_z_index(2)
+        e.set_z_index(5)
+        self.play(FadeIn(w_box, shift=UP * .15), FadeIn(w_lab, shift=UP * .15),
+                  e.animate.move_to(w_slot.get_center()),
+                  Indicate(track[2], color=BLUE, scale_factor=1.12), run_time=.95)
+
+        self.at("0 .82", lead=0.0)
+        lowlab = T("about +0.82 V", 28, BLUE).move_to(P(-2.80, -2.25))
+        self.play(FadeIn(lowlab, shift=RIGHT * .1), run_time=.5)
+
+        self.at("n a d p plus")
+        nadp_ledge = Line(P(3.85, 1.95), P(5.75, 1.95), color=GREEN, stroke_width=5)
+        nadp = solid_chip("NADP+", GREEN, 30).next_to(nadp_ledge, UP, buff=.08)
+        self.play(Create(nadp_ledge), FadeIn(nadp, shift=DOWN * .25), run_time=.9)
+
+        self.at("minus 0 .32", lead=0.0)
+        highlab = T("about -0.32 V", 28, GREEN).move_to(P(-2.80, 2.18))
+        self.play(FadeIn(highlab, shift=RIGHT * .1), run_time=.4)
         self.finish()
 
 
 class S03Gap(SpokenScene):
     def construct(self):
         track = potential_track()
+        track[4].set_x(-1.35)
+        track[5].set_x(-1.35)
         e = electron(P(-4.75, -2.57), .18)
         self.add(track, e)
         self.at("the gap")
@@ -243,18 +320,19 @@ class S03Gap(SpokenScene):
         count = ValueTracker(0)
         read = always_redraw(lambda: M(f"{count.get_value():.2f} V", 34, YELLOW)
                              .rotate(PI / 2).move_to(P(-6.38, 0)))
-        self.play(Create(br), FadeIn(read), count.animate.set_value(1.14), run_time=1.3)
+        self.add(read)
+        self.play(Create(br), count.animate.set_value(1.14), run_time=0.8)
         self.at("a red photon")
-        ph = wave(P(-.5, 2.8), P(.8, 1.7), color="#F6A33B", amp=.15, cycles=6)
-        barbox = RoundedRectangle(corner_radius=.14, width=1.1, height=5.2, color=GREY).move_to(P(3.2, -.05))
-        fill = Rectangle(width=.72, height=.01, stroke_width=0, fill_color=YELLOW, fill_opacity=.72).move_to(P(3.2, -2.53))
-        lab = T("about 1.8 eV", 30, YELLOW, weight=BOLD).move_to(P(4.75, 2.2))
+        ph = wave(P(0.9, 2.8), P(2.2, 1.7), color="#F6A33B", amp=.15, cycles=6)
+        barbox = RoundedRectangle(corner_radius=.14, width=1.1, height=5.2, color=GREY).move_to(P(2.7, -.05))
+        fill = Rectangle(width=.72, height=.01, stroke_width=0, fill_color=YELLOW, fill_opacity=.72).move_to(P(2.7, -2.53))
+        lab = T("about 1.8 eV", 30, YELLOW, weight=BOLD).next_to(barbox, RIGHT, buff=0.28).align_to(barbox, UP).shift(DOWN * 0.25)
         schem = T("energy comparison — schematic", 28, GREY).move_to(P(3.55, -3.25))
         self.play(Create(ph), Create(barbox), FadeIn(fill), run_time=.65)
-        self.play(fill.animate.stretch_to_fit_height(5.0).move_to(P(3.2, -.05)),
+        self.play(fill.animate.stretch_to_fit_height(5.0).move_to(P(2.7, -.05)),
                   FadeIn(lab), Transform(track[-1], schem), run_time=1.3)
         self.at("on paper")
-        attempt = Arrow(P(-3.5, -2.55), P(-3.5, 2.85), buff=0, color=YELLOW, stroke_width=8)
+        attempt = Arrow(P(-4.05, -2.55), P(-4.05, 2.85), buff=0, color=YELLOW, stroke_width=8)
         self.play(GrowArrow(attempt), e.animate.move_to(P(-4.75, 2.76)), run_time=1.25)
         self.at("looks sufficient")
         self.play(Indicate(lab, color=YELLOW, scale_factor=1.08), e.animate.shift(UP * .12), run_time=.65)
@@ -575,22 +653,3 @@ class S13Return(SpokenScene):
 
 class S14End(EndCard):
     LINE = "Stable transfer from water to NADPH needs two light-driven lifts."
-
-    def construct(self):
-        arrows = VGroup(Arrow(P(-5.7, -2.5), P(-5.0, 1.5), color=YELLOW, stroke_width=8),
-                        Arrow(P(4.25, -2.5), P(4.85, 1.5), color=YELLOW, stroke_width=8)).set_opacity(.28)
-        hexm = hex_mascot(1.45).move_to(P(0, 2.25))
-        line = T("Stable transfer from water to NADPH\nneeds two light-driven lifts.",
-                 38, TEXT, font=TITLE_FONT, line_spacing=.9)
-        line.move_to(P(0, .35))
-        sub = T("biochemistrypedia.com", 28, TEAL).move_to(P(0, -1.15))
-        gauge = RoundedRectangle(corner_radius=.12, width=.65, height=2.3, color=RED).move_to(P(5.65, -1.8))
-        fill = Rectangle(width=.38, height=.12, stroke_width=0, fill_color=RED, fill_opacity=.72).align_to(gauge, DOWN).shift(UP*.1)
-        self.play(LaggedStart(*[GrowArrow(a) for a in arrows], lag_ratio=.25), FadeIn(hexm), run_time=.75)
-        self.play(FadeIn(line), FadeIn(sub), Create(gauge), FadeIn(fill), run_time=.55)
-        shoulder = hexm.arm.get_start()
-        self.play(Rotate(hexm.arm, -.5, about_point=shoulder),
-                  fill.animate.stretch_to_fit_height(1.85).move_to(gauge),
-                  rate_func=there_and_back, run_time=.75)
-        self.play(Rotate(hexm.arm, -.5, about_point=shoulder), rate_func=there_and_back, run_time=.55)
-        self.finish()
