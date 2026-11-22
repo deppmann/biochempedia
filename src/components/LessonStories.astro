@@ -33,8 +33,10 @@ interface Props {
 }
 const { data, headings, idea, ideaIsQuestion = false } = Astro.props;
 const sections = headings.filter((h) => h.depth === 2);
+// render() applies smart quotes to heading text (Parkinson's -> Parkinson’s); the data keeps the lesson's plain quotes.
+const plain = (s: string) => s.replace(/[‘’]/g, "'").replace(/[“”]/g, '"');
 const hops = data.hops.map((hop) => {
-  const at = sections.findIndex((h) => h.text === hop.afterHeading);
+  const at = sections.findIndex((h) => plain(h.text) === plain(hop.afterHeading));
   if (at < 0) throw new Error(`Side Hops for ${data.slug}: no ## heading "${hop.afterHeading}" in the lesson`);
   return { hop, before: sections[at + 1]?.slug };
 });

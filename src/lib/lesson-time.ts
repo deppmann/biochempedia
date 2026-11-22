@@ -182,7 +182,9 @@ export function lessonTime(i: TimeInput) {
     if (!fence && /^##\s+\S/.test(line)) chunks.push({ heading: true, body: '' });
     else chunks[chunks.length - 1].body += line + '\n';
   }
-  const hopAfter = new Map((i.stories?.hops ?? []).map((h) => [h.afterHeading, h.title]));
+  // Heading text from render() has smart quotes; Side Hops data keeps the lesson's plain ones.
+  const plainQuotes = (t: string) => t.replace(/[‘’]/g, "'").replace(/[“”]/g, '"');
+  const hopAfter = new Map((i.stories?.hops ?? []).map((h) => [plainQuotes(h.afterHeading), h.title]));
   let simsLeft = w.handSet ? 0 : i.simulations;
   let run = i.explainer ? i.explainer.durationSec : 0;
   const parts: (Part & { sec: number })[] = [];
@@ -201,7 +203,7 @@ export function lessonTime(i: TimeInput) {
     const sec = (wordsOf(c.body) / WPM) * 60 + (w.handSet ? 0 : predictsIn(c.body) * PER_PREDICT + sims * PER_SIM)
       + inFilms.reduce((n, f) => n + f.sec, 0);
     if (!optional) run += sec;
-    parts.push({ slug: h?.slug ?? null, text, min: minutesOf(sec), sec, films: inFilms, story: hopAfter.get(text), optional, upTo: minutesOf(run), landing: false });
+    parts.push({ slug: h?.slug ?? null, text, min: minutesOf(sec), sec, films: inFilms, story: hopAfter.get(plainQuotes(text)), optional, upTo: minutesOf(run), landing: false });
   }
   // Sittings: only where the lesson is long enough to need them, and never on a hand-set lesson
   // (a class period is one sitting by design).
