@@ -5,10 +5,12 @@ course: "signaling"
 courseChapter: "Cell Signaling · Unit 6: Channels, the nucleus, and life or death"
 order: 130
 summary: >-
-  How does a cell answer a signal in a thousandth of a second? This lesson treats the ion channel
-  as a receptor whose output is a flow of ions and a change of voltage. You will be able to say
-  which way an ion moves through an open channel, how a pore picks potassium over sodium, what
-  opens a gate, and what a toxin or a drug does to it.
+  An open channel pulls membrane voltage toward its ion’s equilibrium potential; signals open the
+  gate, and pore blocks control whether ions pass. This lesson treats the ion channel as a
+  receptor whose effector is its own pore, shifting voltage in about a millisecond. You will be
+  able to predict which way ions move from the electrochemical gradient, explain how a potassium
+  pore excludes smaller sodium ions, compare three ways to open a gate, and predict how NMDA
+  coincidence detection, toxins and drugs control ion flow.
 hook: "A chilli pepper and a hot stove open the same protein. How does its message reach your brain in milliseconds?"
 
 estMinutes: 24
@@ -22,10 +24,15 @@ explainer:
   src: "/explainers/ion-channels-as-receptors/explainer.mp4"
   captions: "/explainers/ion-channels-as-receptors/explainer.vtt"
   poster: "/explainers/ion-channels-as-receptors/poster.jpg"
-  title: "The Signal Opens a Hole"
-  durationSec: 138.4
-  narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+  title: "Open a Hole, Spend the Gradient"
+  durationSec: 211.0
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+  takeaways:
+    - "An open channel pulls membrane voltage toward its ion’s equilibrium potential."
+    - "Pumps build ion gradients slowly using ATP, while open channels spend them downhill at millions of ions per second."
+    - "Driving force is the gap between membrane voltage and an ion’s equilibrium potential; multi-ion channels pull voltage toward a value between their ions’ equilibrium potentials."
+    - "Single channels switch between shut and open at a fixed step height, and stronger signals raise the share of time spent open."
 
 scientists:
   - name: "Erwin Neher"
@@ -385,106 +392,165 @@ corpusTags:
   - "tetrodotoxin"
 draft: false
 films:
-  - id: "selectivity"
-    src: "/explainers/ion-channels-as-receptors/selectivity.mp4"
-    captions: "/explainers/ion-channels-as-receptors/selectivity.vtt"
-    poster: "/explainers/ion-channels-as-receptors/selectivity-poster.jpg"
-    title: "A Pore That Pays for Potassium"
-    durationSec: 123.5
-    narration: "an AI narrator voice (Gemini, Charon) reading narration written from this lesson's text"
+  - id: "chapter-2"
+    src: "/explainers/ion-channels-as-receptors/chapter-2.mp4"
+    captions: "/explainers/ion-channels-as-receptors/chapter-2.vtt"
+    poster: "/explainers/ion-channels-as-receptors/chapter-2-poster.jpg"
+    title: "Gates, Two Locks, and Plugs"
+    durationSec: 210.6
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
     aiGenerated: true
+    takeaways:
+      - "Signals open the gate, and pore blocks control whether ions pass."
+      - "Channel gates answer three main keys: chemical ligands (outside or inside the cell), membrane voltage acting on charged S4 helices, or physical stimuli such as heat."
+      - "The NMDA receptor requires glutamate (with a co-agonist) to open its gate and depolarisation to drive Mg2+ out of its pore, so strong conduction needs two coincident events."
+      - "Tetrodotoxin plugs the outer mouth of nerve and muscle voltage-gated sodium channels, while ketamine enters and blocks open NMDA pores and also reduces how often they open."
 ---
 
 import LessonFilm from '../../../components/LessonFilm.astro';
-
 import NernstCalculator from '../../../components/NernstCalculator.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
 
-**One open ion channel lets about ten million ions cross a membrane every second. What can a cell do with a receptor like that?**
+**One open ion channel passes about ten million ions a second, and open channels shift membrane voltage in about a millisecond.** The first film showed why an **ion channel**—a gated pore that skips G proteins and kinases—acts so fast; here we quantify flow, inspect single-channel and structural evidence, and see how gates and pore blocks govern signaling. Channels work in every cell type, well beyond neurons: you already met Orai in the T cell and the IP3 receptor on the calcium store.
 
-Most receptors in this course hand their message to something else, such as a G protein or a kinase. A channel hands it to nothing. The signal opens a hole, ions pour through, and the voltage across the membrane changes in about a millisecond. So what decides which way the ions go, how does a hole tell one ion from another, and what opens the gate?
+> **The one idea.** An open channel pulls membrane voltage toward its ion’s equilibrium potential; signals open the gate, and pore blocks control whether ions pass. **Scope:** This rule covers passive ion flow through channels along pump-built electrochemical gradients. A multi-ion channel pulls voltage toward a value between its ions’ equilibrium potentials; Ca2+ entry also carries a chemical signal, and blockers such as ketamine can reduce opening as well as plug the pore.
 
-## The idea: the signal opens a hole and the gradient does the rest
+## Putting numbers on flow: equilibrium potential and driving force
 
-The first point is that there are lots of ion channels and that they are in every cell type, well beyond neurons. You have met two far from any nerve already: Orai in the T cell and the IP3 receptor on the calcium store.
+Transporters such as the Na+/K+ pump bind ions, change shape and spend ATP to move a few hundred uphill each second (lesson `membrane-structure-function`), whereas an open channel lets millions run downhill through a pore.
 
-Two kinds of protein move ions across a membrane (lesson `membrane-structure-function`). A transporter such as the Na+/K+ pump binds its ions and changes shape to carry them, uphill if it spends ATP, at a few hundred a second. A channel is a pore with a gate, and while the gate is open ions run downhill through it at around ten million a second. Pumps build the gradients slowly and channels spend them fast.
-
-"Downhill" has two parts, and the phrase to remember is "Electro-chemical gradient". An ion is pushed by its difference in concentration and pulled by the voltage across the membrane, and the inside of a resting neuron sits near −70 mV (other cells differ). For each ion there is one voltage at which push and pull balance. That is its equilibrium potential, E, and the Nernst equation gives it:
+Flow follows the **electrochemical gradient**, the combined push of concentration difference and membrane voltage. Inside a resting neuron voltage sits near −70 mV (other cells differ). Where concentration push and electrical pull cancel is an ion's **equilibrium potential**, E, given by the Nernst equation:
 
 > **E = (61.5 mV ÷ z) × log10 (concentration outside ÷ concentration inside), at 37 °C**
 
-Here z is the charge of the ion. With typical concentrations, E is about −90 mV for K+, about +60 mV for Na+ and above +120 mV for Ca2+. An open channel drags the membrane voltage toward the E of the ion it passes (or, for a channel that passes several ions, toward a value between their E's), so the direction of flow follows from one subtraction:
+Here z is the ion's charge (+1 for Na+ and K+, +2 for Ca2+, −1 for Cl−). Typical E values sit near −90 mV for K+, near +60 mV for Na+ and above +120 mV for Ca2+. The electrical push follows from one subtraction, the **driving force**:
 
 > **driving force = membrane voltage − E**
 
-At −70 mV, sodium is 130 mV away from its E, so it rushes in and the cell depolarises, meaning that its voltage becomes less negative. Potassium is only 20 mV from its E, so it leaks out gently and pulls the voltage back down. Try the calculator: change the concentrations on the two sides and watch E move.
+Use a two-step check so charge sign never misleads you. First, an open channel pulls membrane voltage toward E (or, for a multi-ion channel, between its ions' E's), with strength set by the gap between membrane voltage and E. Second, match the ion's charge: cations enter to make the inside less negative and leave to make it more negative; anions move the opposite way.
+
+At −70 mV, Na+ sits 130 mV from its E (+60 mV), so opening Na+ channels drives a strong inward rush that **depolarises** the cell (makes voltage less negative). K+ sits 20 mV from its E (−90 mV): at rest its gentle outward leak balances small inward leaks to hold −70 mV, while opening extra K+ channels pulls voltage toward −90 mV.
+
+**Predict.** A mature neuron sits at −70 mV and a GABA-A channel opens for Cl−, whose E is −80 mV. Which way do voltage and Cl− ions move?
+
+<details>
+<summary>Check your prediction</summary>
+
+Voltage moves downward toward −80 mV (more negative). Because Cl− is negatively charged, making the inside more negative requires Cl− to move **into** the cell, even though `Vm − E` is positive (+10 mV).
+
+</details>
+
+Adjust the concentrations below and watch E move.
 
 <NernstCalculator />
 
-Very few ions need to cross to change the voltage, so the concentrations barely shift and nothing has to be made. The voltage is the message, and when the ion is calcium the ion is a messenger too (lesson `calcium-signaling`).
+Very few ions need to cross to swing voltage, so bulk concentrations barely shift and nothing has to be made. Voltage is the message, and when the ion is calcium it is an intracellular messenger too (lesson `calcium-signaling`).
 
-## One protein, watched opening and closing
+## Watching one channel switch: patch-clamp evidence
 
-How does anybody know what a single channel does? The current through one is a few picoamps, a few trillionths of an amp. In Göttingen, Erwin Neher and Bert Sakmann pressed the tip of a glass pipette against a frog muscle fibre and recorded the current through the small patch of membrane under it. The trace they published in 1976 sat at zero, stepped up to a fixed level and stepped back, as one acetylcholine-gated channel opened and shut.
+Current through one open channel is a few picoamps (trillionths of an amp; 1.6 pA is about 10⁷ monovalent ions per second). In Göttingen, Erwin Neher and Bert Sakmann pressed a glass pipette tip against a frog muscle fibre and recorded current through the membrane patch under it—the **patch clamp**. Their 1976 trace stepped cleanly between zero and one fixed level as a single acetylcholine-gated channel opened and shut.
 
-The weak point was the seal between glass and membrane. Current that leaked around the rim reached the amplifier along with the signal and buried it in noise. By Neher's account in his Nobel lecture, around 1980 they noticed by chance that slight suction on the pipette made the seal more than a hundred times tighter. Its resistance went from millions of ohms to billions, and single openings stood clear of the background. The method is the patch clamp.
+To a good approximation a channel is either shut or open, and signal strength is set by **open probability**, the share of time spent open. (Going deeper covers their gigohm seal and Bernard Katz's transmitter packets.)
 
-To a good approximation a channel is either shut or open, and a stronger signal raises the share of time it spends open.
+**Predict.** In a patch holding one acetylcholine-gated channel, you leave the acetylcholine unchanged but shift the held voltage so the driving force on the ions is halved. What happens to the height of each square step, and to the time the channel spends open?
 
-At the junction of nerve and muscle, Bernard Katz and his colleagues had found in the 1950s that acetylcholine is released in packets of roughly constant size. Each packet opens many channels at once.
+<details>
+<summary>Check your prediction</summary>
 
-## How a pore passes potassium and keeps out the smaller sodium
+Each step is about half as tall, because the current through one open pore is its conductance times the driving force. The share of time spent open stays roughly the same, because acetylcholine, not the driving force, mostly sets it.
+
+</details>
+
+## How a pore passes potassium and excludes smaller sodium
+
+A potassium channel passes up to about a hundred million K+ ions a second yet admits fewer than one Na+ per thousand K+, even though Na+ is smaller (radius 0.95 Å versus 1.33 Å for K+).
+
+**Predict.** If a potassium channel were a rigid sieve wide enough for K+, what would happen to Na+?
+
+<details>
+<summary>Check your prediction</summary>
+
+Smaller Na+ would slip through at least as easily as K+, so a size sieve fails.
+
+</details>
+
+Selectivity is an energy trade. In water, K+ and Na+ wear coats of water molecules with oxygens turned inward; stripping that coat costs energy, so an ion enters a narrow pore only if the pore repays it.
+
+In 1998 Roderick MacKinnon's laboratory solved KcsA, a potassium channel from a soil bacterium. Four identical subunits surround one pore narrowing near its outer end to a **selectivity filter** 12 Å long, too tight for hydrated ions. Rings of backbone carbonyl oxygens line the filter, replacing K+'s water shell at almost no net cost.
+
+In the 1998 account, a stiff filter could not close around smaller Na+, so Na+ could not touch all oxygens of a ring and paid too high a dehydration cost. Later work refined that model: the filter flexes, and selectivity rests on the electrical character of its carbonyl oxygens plus four sites in a row. Na+ can enter and bind, still partly wet, without being passed along as K+ is.
+
+The same four sites explain speed: K+ ions sit in single file, and repulsion pushes one out as the next arrives. (Going deeper notes the open debate on occupancy and water, and that Na+ and Ca2+ filters differ.)
+
+Once a pore selects its ion, what opens the gate—and what can still block the pore—is the subject of the second film.
 
 <LessonFilm film={frontmatter.films[0]} />
 
-A potassium channel can pass up to about a hundred million K+ ions a second, yet fewer than one Na+ gets through for every thousand K+. Sodium is the smaller ion, with a radius of 0.95 Å against 1.33 Å, so the pore cannot be a simple sieve.
+## Three keys for one gate
 
-Think of it as a trade. In water, a positive ion such as K+ or Na+ wears a coat of water molecules with their oxygen atoms turned toward it, and stripping that coat costs energy. An ion will enter a narrow pore only if the pore pays the cost back.
+Recall the second half of the guiding rule: signals open the gate, and pore blocks control whether ions pass. The second film outlined three gating keys—ligands, voltage and physical stimuli; here are the receptor families and circuits they run.
 
-In 1998 Roderick MacKinnon's laboratory showed how, with the structure of KcsA, a potassium channel from a soil bacterium. Four identical subunits surround one pore. Near the outer end it narrows to a selectivity filter 12 Å long, too tight for an ion to keep its water. The filter is lined with carbonyl oxygen atoms from the protein's backbone, set in rings that surround a K+ ion much as the oxygens of water did. Potassium swaps water for protein and loses almost nothing. Sodium is too small to touch all the oxygens of a ring at once, and in the 1998 account the filter is held too stiffly to close in on it, so for Na+ leaving water costs more than the filter repays. Later work changed that picture. The filter flexes, and what favours K+ is the electrical character of its oxygens and the need for four sites in a row. Sodium can enter the filter and bind there, still partly wet, but it is not passed along the way potassium is.
+**Chemical ligands, outside and inside.** Both **ionotropic** and **metabotropic** receptors use ion channels. An ionotropic receptor *is* the channel: muscle acetylcholine receptors (lesson `receptor-field-guide`) and neuronal glutamate channels let Na+ in and excite, whereas GABA-A receptors pass Cl− and, in most mature neurons, hold voltage down. A metabotropic receptor is a G-protein-coupled receptor that acts on a channel via an intracellular messenger. Four channels from earlier lessons open from inside: the heart's K+ channel by Gβγ (lesson `gpcrs-and-g-proteins`), the rod's channel by cGMP (lesson `senses-and-cgmp`), and the IP3 receptor and Orai (lesson `calcium-signaling`).
 
-The same structure explains the speed. K+ ions sit in the filter in single file, and the repulsion between them pushes one out as the next arrives. How many ions are in the filter at once, and whether water sits between them, is still argued. Sodium and calcium channels build their filters differently.
+**Voltage and the action potential.** Voltage-gated Na+, K+ and Ca2+ channels each have four voltage sensors whose S4 helix carries a positive charge at about every third position; a voltage across a membrane is an electric field, which pushes on charge, so depolarisation shifts S4 outward to open the gate. In neurons this drives the **action potential** (nerve impulse). Depolarisation past **threshold** triggers positive feedback (lesson `signaling-circuits`): Na+ enters, depolarises further and opens more Na+ channels, driving voltage toward E of sodium within about a millisecond. An inner loop on each Na+ channel then shuts the pore (**inactivation**), while slower K+ channels open and restore voltage. Inward Na+ current spreads along the **axon** (the nerve cell's long fibre), while inactivated channels behind keep the impulse from turning back.
 
-## Three keys for one gate: a ligand, a voltage, the outside world
+**Predict.** If a mutation keeps the inner inactivation loop of voltage-gated Na+ channels from shutting after opening, how does an action potential change?
 
-The gate is what makes a channel a receptor, and gates answer to three kinds of key.
+<details>
+<summary>Check your prediction</summary>
 
-**A ligand from outside.** The acetylcholine receptor of muscle is the model (lesson `receptor-field-guide`): transmitter binds and the pore opens. Glutamate-gated channels let Na+ in and excite a neuron, while GABA-A receptors pass Cl− and, in most mature neurons, hold its voltage down. Remember that "Both ionotropic and metabotropic can use ion channels." An ionotropic receptor is the channel. A metabotropic receptor is a G-protein-coupled receptor that reaches a channel through a messenger inside the cell. You know four channels opened from inside: the heart's potassium channel by Gβγ (lesson `gpcrs-and-g-proteins`), the rod's channel by cGMP (lesson `senses-and-cgmp`), and the IP3 receptor and Orai (lesson `calcium-signaling`).
+Depolarisation starts normally, but Na+ keeps flowing in, so the spike is prolonged and repolarisation is slowed. The membrane behind the impulse also lacks its inactivated channels, so it is less protected from being re-excited.
 
-**A voltage.** Voltage-gated channels read the membrane itself. The sodium, potassium and calcium channels of this kind each have four voltage sensors, and in each one a helix called S4 carries a positive charge at about every third position. A voltage across a membrane is an electric field, and a field pushes on charge. Depolarise the membrane and S4 shifts outward and pulls the gate open.
+</details>
 
-This drives the action potential, the nerve impulse. A small depolarisation opens some sodium channels, Na+ enters, the membrane depolarises further and more channels open. That positive feedback (lesson `signaling-circuits`) carries the voltage toward the E of sodium within about a millisecond. Then a loop on the inner side of each sodium channel shuts the pore (inactivation), while slower potassium channels open and bring the voltage back. Current carried in by sodium at one spot spreads and depolarises the next stretch of membrane, so the impulse travels along the axon, the nerve cell's long fibre, and the inactivated channels behind it keep it from turning back.
+**Physical stimuli from the world.** TRP-family channels sense surroundings such as heat directly. Work out the skin's heat sensor before reading its name.
 
-**A stimulus from the world.** "How does the skin detect heat??" With a channel of the TRP family, which cells use for sensing their surroundings. Before you read its name, work out what it has to be.
-
-<LessonFigure src="/figures/ion-channels-as-receptors/three-keys-one-gate.webp" width={1200} height={562} alt="AI-generated illustration: three schematic channels side by side in a membrane, each with an open gate. A transmitter binds outside the left channel; the middle example represents a voltage-gated sodium channel with four voltage sensors that move; heat opens the right channel. Arrows show ions entering in each example." caption="Three examples of channel gating: an extracellular transmitter opens a ligand-gated channel; depolarisation moves the four voltage sensors of a voltage-gated sodium channel; and heat opens a heat-sensitive TRP channel. In each example, the channel itself is the receptor. The inward arrows illustrate ion entry in these examples, not a universal direction of flow." />
+<LessonFigure src="/figures/ion-channels-as-receptors/three-keys-one-gate.webp" width={1200} height={562} alt="AI-generated illustration: three schematic channels side by side in a membrane, each with an open gate. A transmitter binds outside the left channel; the middle example represents a voltage-gated sodium channel with four voltage sensors that move; heat opens the right channel. Arrows show ions entering in each example." caption="Three gating keys make ion channels receptors: an extracellular ligand, depolarisation shifting S4 voltage sensors, or heat can open a pore directly (inward arrows illustrate ion entry in these examples, not a universal flow direction)." />
 
 ### Design problem
 
-Design a detector for dangerous heat in a nerve ending in the skin. It must turn a temperature above about 43 °C into a nerve impulse within milliseconds. What kind of protein do you need, which ions flow and in which direction, and how does that small local change become an impulse that travels? Then explain why a chilli pepper feels hot.
+Design a skin nerve-ending detector that turns heat above about 43 °C into a nerve impulse within milliseconds. What protein do you need, which ions move and which way, and how does a small local shift become a travelling impulse? Then explain why a chilli pepper feels hot.
 
 <details>
 <summary>One way to do it</summary>
 
-Milliseconds favour a direct route over a chain of enzymes, so make the detector itself a channel with a gate that heat opens. Let the pore pass cations of several kinds, calcium most readily. At a resting voltage near −70 mV, Na+ and Ca2+ are both far from their equilibrium potentials, so both flow in and the ending depolarises. That change is small and local and fades with distance, so put voltage-gated sodium channels in the membrane nearby. If the depolarisation reaches their threshold they open, and an action potential carries the message along the axon at full height.
-
-One real version, and one of the skin's detectors of painful heat, is TRPV1, cloned in David Julius's laboratory in 1997 by looking for the protein that answers to capsaicin, the hot molecule of chilli peppers. Capsaicin binds in a pocket in the membrane-spanning part of the channel and opens the gate that heat opens. The nerve sends the same impulses either way, and the brain reads them as burning heat. Your mouth is no hotter.
+Milliseconds favour a direct channel gated by heat that passes cations, calcium most readily. Near −70 mV, Na+ and Ca2+ sit far from their E's, so both flow in and depolarise the ending. Because that local change fades with distance, place voltage-gated Na+ channels nearby: crossing threshold fires a full-height action potential along the axon. Capsaicin opens the same heat-gated channel, sending identical impulses that the brain reads as burning heat even though your mouth is no hotter.
 
 </details>
 
-## A channel that needs two things at once, and what plugs a pore
+One real version, and one of the skin's detectors of painful heat, is **TRPV1**, cloned in David Julius's laboratory in 1997 by screening sensory-neuron DNA libraries for capsaicin sensitivity. Capsaicin binds a pocket in TRPV1's membrane-spanning region to open the same gate heat opens.
 
-The NMDA receptor is a glutamate-gated channel with a second lock, found at synapses, the junctions between nerve cells. At the resting voltage a magnesium ion from outside is drawn into the open pore and sticks there, so glutamate opens the gate and almost nothing flows. If the membrane is already depolarised, usually because AMPA-type glutamate receptors beside it have let Na+ in, the magnesium is driven out. The channel conducts strongly only when two things happen together: the cell before the synapse has released glutamate, and the cell after it is already active. (Glycine or D-serine must also be bound.) What enters is Ca2+ along with Na+, and calcium is a messenger (lesson `calcium-signaling`). From there a path runs to the nucleus and to memory, the subject of a later lesson.
+## Coincidence detection and plugging a pore
 
-<LessonFigure src="/figures/ion-channels-as-receptors/nmda-two-locks.webp" width={1200} height={723} alt="AI-generated illustration: two schematic views of an NMDA receptor in a membrane, with the cell exterior above and interior below. At rest, glutamate is bound but a magnesium ion plugs the pore and the flow arrow is crossed out, representing a strong block with very little current. In the depolarised cell the magnesium has been driven out and sodium and calcium enter through the pore." caption="Strong NMDA receptor conduction needs glutamate bound and the cell depolarised, with glycine or D-serine also bound. At rest, extracellular Mg2+ blocks the open pore much of the time, so very little current flows (the X marks a near-complete block, not exactly zero). Depolarisation relieves the block, allowing strong Na+ and Ca2+ entry. Outside the cell is above the membrane in both views." />
+As the second film showed, at synapses (junctions between nerve cells) the **NMDA receptor** has a second lock: at rest a Mg2+ ion from outside is drawn into its open pore and sticks there. So it conducts strongly only when two things happen together: the cell before the synapse has released glutamate, and the cell after it is already depolarised. It carries three further features. First, glutamate opens its gate only when glycine or D-serine is also bound. Second, once the cell is depolarised, usually because nearby AMPA receptors have let Na+ in, Mg2+ is expelled and the pore admits Ca2+ with Na+; Ca2+ acts as an intracellular messenger (lesson `calcium-signaling`) linking coincident activity to the nucleus and memory (a later lesson). Third, scaffolds anchor synaptic receptors in place: **PSD-95** grips NMDA receptor tails via PDZ domains (lesson `protein-interaction-modules`), holding them opposite glutamate release.
 
-Receptors at a synapse are "Anchored in place by a bunch of different scaffolds." At glutamate synapses the scaffold PSD-95 holds the tails of NMDA receptors with its PDZ domains (lesson `protein-interaction-modules`), which helps keep them opposite the site of glutamate release.
+<LessonFigure src="/figures/ion-channels-as-receptors/nmda-two-locks.webp" width={1200} height={723} alt="AI-generated illustration: two schematic views of an NMDA receptor in a membrane, with the cell exterior above and interior below. At rest, glutamate is bound but a magnesium ion plugs the pore and the flow arrow is crossed out, representing a strong block with very little current. In the depolarised cell the magnesium has been driven out and sodium and calcium enter through the pore." caption="Strong NMDA conduction needs glutamate (with glycine or D-serine) to open the gate and depolarisation to expel extracellular Mg2+, admitting Na+ and Ca2+ (the X marks a near-complete block at rest, not strictly zero; outside is above)." />
 
-Because a channel is a hole, the simplest way to stop it is to plug it. "Pufferfish=tetrodotoxin (TTX)." Tetrodotoxin is a small molecule that lodges in the outer mouth of the voltage-gated sodium channels of nerve and skeletal muscle. Sodium cannot enter, no action potential starts, and the result is paralysis. A "UVa moment" belongs here: Edmund "Butch" Brodie of the University of Virginia studies newts that carry the toxin and the garter snakes that eat them. Resistant snakes have changed amino acids at the mouth of their sodium channel, so the toxin binds poorly.
+Because a channel is a hole, toxins and drugs silence it by plugging it. **Tetrodotoxin (TTX)**, carried by pufferfish, lodges in the outer mouth of nerve and skeletal-muscle voltage-gated Na+ channels; Na+ cannot enter, no action potential starts, and paralysis follows. Edmund "Butch" Brodie at the University of Virginia studies rough-skinned newts carrying tetrodotoxin and the garter snakes that eat them: resistant snakes have altered amino acids at the outer pore mouth where the toxin grips poorly.
 
-Drugs plug pores as well. Ketamine, an anaesthetic that is also a drug of abuse, enters the open NMDA receptor channel and blocks it from within, and it also makes the channel open less often.
+**Ketamine**, an anaesthetic and drug of abuse, enters the open NMDA pore to block it from within and also makes the channel open less often.
 
-<LessonFigure src="/figures/ion-channels-as-receptors/two-ways-to-plug-a-pore.webp" width={1200} height={800} alt="AI-generated illustration: on the left, a toxin blob lodged in the outer mouth of a sodium channel stops sodium entering; on the right, a drug blob sits inside the open pore of an NMDA receptor and blocks it." caption="Because a channel is a hole, it can be plugged. Tetrodotoxin lodges in the outer mouth of the voltage-gated sodium channel; ketamine enters the open NMDA receptor pore and blocks it from within." />
+**Predict.** You apply ketamine to a resting neuron without glutamate, then wash ketamine completely away before adding glutamate and depolarising the cell. Does ketamine block the response? What if ketamine is present during glutamate plus depolarisation?
 
-Channels can also be borrowed as tools: "Hacking Trp Channels". Güler and colleagues (2012) made mice that express TRPV1 in chosen neurons, so that a dose of capsaicin switches those neurons on.
+<details>
+<summary>Check your prediction</summary>
+
+Washout at rest leaves the later response intact: with NMDA gates closed, ketamine cannot enter the pore. Present during glutamate and depolarisation, ketamine enters the open, unblocked pore to stop conduction (and reduces opening).
+
+</details>
+
+<LessonFigure src="/figures/ion-channels-as-receptors/two-ways-to-plug-a-pore.webp" width={1200} height={800} alt="AI-generated illustration: on the left, a toxin blob lodged in the outer mouth of a sodium channel stops sodium entering; on the right, a drug blob sits inside the open pore of an NMDA receptor and blocks it." caption="Toxins and drugs stop channel signaling by plugging the pore: tetrodotoxin wedges into the outer mouth of a voltage-gated sodium channel, whereas ketamine blocks the open NMDA pore from within." />
+
+## Going deeper
+
+### Gigohm seals and transmitter packets
+
+Early patch recordings were buried in noise from current leaking around the rim between glass and membrane. By Neher's account in his Nobel lecture, around 1980 he and Sakmann "noticed by chance" that slight suction tightened the seal more than a hundredfold—from millions of ohms to billions (gigohms)—so picoamp steps stood clear (fast K+ channels reach ~10⁸ ions/s, ten times a typical 1.6 pA channel). Earlier, in the 1950s, Bernard Katz and colleagues showed at the nerve-muscle junction that acetylcholine is released in packets of roughly constant size, each opening many channels at once.
+
+### Open questions in selectivity filters
+
+How many K+ ions occupy the KcsA filter at once, and whether water sits between them, is still argued. Sodium and calcium channels build their selectivity filters differently.
+
+### Borrowing channels as tools
+
+Güler and colleagues (2012) engineered mice expressing TRPV1 in chosen neurons, so a dose of capsaicin switches those neurons on.

@@ -5,11 +5,13 @@ course: "signaling"
 courseChapter: "Cell Signaling · Unit 6: Channels, the nucleus, and life or death"
 order: 134
 summary: >-
-  How does a cell keep a machine for its own destruction ready to fire within hours, and never
-  fire it by accident? You will tell apoptosis from necrosis, explain how caspases are stored and
-  switched on, and trace the route from a death receptor and the route through the mitochondrion.
-  You will then predict what happens when the BCL-2 brake is too strong or the machinery is missing.
-hook: "The protein that carries electrons in your mitochondria is also the order for a cell to destroy itself."
+  Caspase cuts cannot be undone, so assembly platforms control initiator activation; the BCL-2
+  family balance decides whether mitochondria release cytochrome c. You will tell apoptosis from
+  necrosis, trace how worm genetics ordered the core pathway, explain how caspases are stored and
+  switched on, and follow both the death-receptor and mitochondrial routes. You will then predict
+  what happens when the BCL-2 brake is too strong, a BH3-shaped drug is added, or the machinery
+  is missing.
+hook: "How does the protein that carries electrons in your mitochondria become a cell's order to destroy itself?"
 
 estMinutes: 24
 objectives:
@@ -22,10 +24,15 @@ explainer:
   src: "/explainers/death-receptors-bcl2-caspases/explainer.mp4"
   captions: "/explainers/death-receptors-bcl2-caspases/explainer.vtt"
   poster: "/explainers/death-receptors-bcl2-caspases/poster.jpg"
-  title: "The Safeguard Comes Before the Cut"
-  durationSec: 171.2
-  narration: "an AI narrator voice (ElevenLabs, Sarah) reading narration written from this lesson's text"
+  title: "Why Control Comes Before the Cut"
+  durationSec: 202.3
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+  takeaways:
+    - "Caspase cuts cannot be undone, so assembly platforms control initiator activation."
+    - "Caspases are stored ahead of time as inactive precursors: single-chain initiators and linker-locked executioner dimers."
+    - "In the outside route, trimeric Fas ligand clusters Fas receptors so FADD gathers caspase-8 into the DISC, where pairs activate and cut executioners."
+    - "Unlike necrotic bursting, apoptotic dismantling packs the cell into intact, membrane-wrapped parcels that neighbours eat."
 
 scientists:
   - name: "H. Robert Horvitz"
@@ -374,76 +381,129 @@ corpusTags:
   - "necroptosis"
 draft: false
 films:
-  - id: "from-inside"
-    src: "/explainers/death-receptors-bcl2-caspases/from-inside.mp4"
-    captions: "/explainers/death-receptors-bcl2-caspases/from-inside.vtt"
-    poster: "/explainers/death-receptors-bcl2-caspases/from-inside-poster.jpg"
-    title: "Cytochrome c, Found in a Test Tube"
-    durationSec: 94.2
-    narration: "an AI narrator voice (ElevenLabs, Sarah) reading narration written from this lesson's text"
+  - id: "chapter-2"
+    src: "/explainers/death-receptors-bcl2-caspases/chapter-2.mp4"
+    captions: "/explainers/death-receptors-bcl2-caspases/chapter-2.vtt"
+    poster: "/explainers/death-receptors-bcl2-caspases/chapter-2-poster.jpg"
+    title: "The Mitochondrial Gate: BCL-2 and Cytochrome c"
+    durationSec: 200.7
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
     aiGenerated: true
+    takeaways:
+      - "The BCL-2 family balance decides whether mitochondria release cytochrome c."
+      - "In healthy cells, APAF-1 stays in the cytosol while cytochrome c stays behind the outer mitochondrial membrane."
+      - "BH3-only sensors promote death by blocking the BCL-2 guards that restrain BAX and BAK (and some activate BAX and BAK directly), setting a threshold against minor noise."
+      - "Once cytochrome c escapes, it joins dATP and seven copies of APAF-1 to build the apoptosome wheel that gathers caspase-9, and caspase-8 can link in by cutting BID."
 ---
 
 import LessonFilm from '../../../components/LessonFilm.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import Support from '../../../components/Support.astro';
 
-**Cytochrome c, the small protein you met carrying electrons to complex IV, has a second job: once it leaves the mitochondrion, it is the order for the cell to take itself apart.** A cell that can destroy itself within hours must be certain never to do so by mistake. This lesson asks what the killing enzyme is and what holds it off, and then how a signal from outside the cell or from inside it lets it go.
+**Cytochrome c, the small protein you met carrying electrons to complex IV, has a second job: once it leaves the mitochondrion, it orders the cell to take itself apart.** The first film showed why irreversible cuts place control at assembly platforms; here we trace the genetic evidence, caspase enzymology, and both death routes.
 
 ## The idea: a cell can die by accident or by program
 
-In the early 1960s John Kerr, a doctoral student in London, tied off blood vessels to part of a rat's liver and studied how the starved cells died. Over the following years he found two deaths in one tissue. In the first, sheets of cells swelled, burst and spilled their contents. That is **necrosis**, death by injury, and the spill often causes inflammation. In the second, single cells scattered through working liver shrank, grew dense and broke into parcels wrapped in unbroken membrane. Neighbouring cells ate the parcels, and no inflammation followed.
+In the early 1960s John Kerr, a doctoral student in London, tied off blood vessels to part of a rat's liver and, over the following years, found two deaths in one tissue. In **necrosis**, death by injury, sheets of cells swelled, burst and spilled their contents, often causing inflammation. In the second death, single cells shrank, grew dense and broke into parcels wrapped in unbroken membrane; neighbours ate the parcels, and usually no inflammation followed.
 
-<LessonFigure src="/figures/death-receptors-bcl2-caspases/necrosis-vs-apoptosis.webp" width={1200} height={590} alt="AI-generated illustration: two panels of three neighbouring cells. In necrosis the middle cell swells, bursts and spills its contents. In apoptosis the middle cell shrinks, dense, and breaks into small parcels wrapped in intact membrane, one of which a neighbour has eaten." caption="Two deaths in one tissue. A necrotic cell swells, bursts and spills, and the spill often causes inflammation. An apoptotic cell shrinks, grows dense and breaks into membrane-wrapped parcels that neighbours eat, and usually no inflammation follows." />
+<LessonFigure src="/figures/death-receptors-bcl2-caspases/necrosis-vs-apoptosis.webp" width={1200} height={590} alt="AI-generated illustration: two panels of three neighbouring cells. In necrosis the middle cell swells, bursts and spills its contents. In apoptosis the middle cell shrinks, dense, and breaks into small parcels wrapped in intact membrane, one of which a neighbour has eaten." caption="Necrosis bursts injured cells and spills their contents, whereas apoptosis packs dying cells into intact, membrane-wrapped parcels that neighbours eat, usually without inflammation." />
 
-Kerr published the second death in 1971 as "shrinkage necrosis". In 1972, with Andrew Wyllie and Alastair Currie in Aberdeen, he gave it its own name: **apoptosis**, from a Greek word for the falling of leaves. The name made a claim: this death is something a cell does, as an ordinary part of a tissue's life.
+Kerr published that death in 1971 as "shrinkage necrosis", and in 1972, with Andrew Wyllie and Alastair Currie in Aberdeen, named it **apoptosis**, Greek for the falling of leaves—claiming it as something a cell does routinely. Animals sculpt embryos, match losses to births in adult tissues, and clear infected or self-reactive immune cells. Diseases split accordingly: too little death in cancers and autoimmune disease, and too much in some forms of neurodegeneration, where apoptosis is one of several ways neurons die.
 
-Why would a cell carry a program for its own death? An animal has to remove cells as well as make them. Development builds cells that are later taken away, and an adult tissue keeps its size only if losses match births. An infected cell, or an immune cell aimed at the body's own tissues, is safer gone. So there are two groups of apoptosis-involving diseases: too little cell death, as in cancers and autoimmune disease, and too much, as in some forms of neurodegeneration, where apoptosis is one of several ways neurons die.
+Proof of a genetic program came from the self-fertilising hermaphrodite worm *Caenorhabditis elegans*, which makes 1,090 body cells and loses the same 131 every time. Robert Horvitz's laboratory isolated four core mutants:
 
-The proof that such deaths are planned came from a worm. A hermaphrodite, the self-fertilising form of the nematode *Caenorhabditis elegans*, makes 1,090 body cells as it develops, and the same 131 of them die every time. Robert Horvitz's laboratory hunted for mutants in which the deaths fail. It found two genes needed for nearly all 131 deaths, *ced-3* and *ced-4*, then a brake on them, *ced-9*, and a gene that releases the brake, *egl-1*. Putting two mutations into one animal and seeing which effect won set the genes in order: EGL-1 blocks CED-9, CED-9 holds back CED-4, and CED-4 switches on CED-3. Each has human relatives, which the rest of this lesson follows.
+| Loss-of-function mutant | Effect on the 131 deaths | Normal role |
+| :--- | :--- | :--- |
+| Wild type | All 131 deaths occur | Balanced program |
+| *ced-3* or *ced-4* | Nearly all fail | Killer machinery |
+| *ced-9* | Massive excess death; lethal | Brake blocking death |
+| *egl-1* | Nearly all fail | Releases the *ced-9* brake |
 
-<LessonFigure src="/figures/death-receptors-bcl2-caspases/worm-death-order.webp" width={1200} height={507} alt="AI-generated illustration: a left-to-right chain of four worm gene products, EGL-1 blocking CED-9, CED-9 holding back CED-4 and CED-4 switching on CED-3, ending in a cell breaking into parcels. Small ticks below name the human relatives BCL-2, APAF-1 and caspases." caption="In the worm, EGL-1 blocks CED-9, CED-9 holds back CED-4, and CED-4 switches on CED-3. Double mutants set that order, and each gene has human relatives." />
+In **double-mutant epistasis**, combining two loss-of-function mutations with opposite effects in one linear pathway usually reveals their order: the mutation that acts later shows through, because an upstream change cannot alter a broken downstream step.
+
+**Predict.** A worm loses both *ced-9* (brake) and *ced-4* (killer). Does it suffer massive excess death, or almost none?
+
+<details>
+<summary>Check your prediction</summary>
+
+Almost none, and it survives. Losing CED-9 kills cells only when CED-4 is intact, placing *ced-4* downstream of *ced-9*.
+
+</details>
+
+Opposite-phenotype double mutants placed *egl-1* before *ced-9*, and *ced-9* before *ced-4* and *ced-3*; further work showed CED-4 switches on CED-3. Each has human relatives: BCL-2 (CED-9), APAF-1 (CED-4) and caspases (CED-3).
+
+<LessonFigure src="/figures/death-receptors-bcl2-caspases/worm-death-order.webp" width={1200} height={507} alt="AI-generated illustration: a left-to-right chain of four worm gene products, EGL-1 blocking CED-9, CED-9 holding back CED-4 and CED-4 switching on CED-3, ending in a cell breaking into parcels. Small ticks below name the human relatives BCL-2, APAF-1 and caspases." caption="In C. elegans, EGL-1 blocks CED-9, CED-9 restrains CED-4, and CED-4 switches on CED-3—an outline conserved in human BCL-2, APAF-1 and caspases." />
+
+<Support>**The one idea.** Caspase cuts cannot be undone, so assembly platforms control initiator activation; the BCL-2 family balance decides whether mitochondria release cytochrome c. **Scope:** Applies to canonical extrinsic and intrinsic apoptosis. XIAP can still restrain active caspases until SMAC relieves it, the BCL-2 threshold reflects amounts, binding preferences and locations, and caspase-independent backups (necroptosis; APAF-1 knockout deaths) exist.</Support>
 
 ## The killer is an enzyme kept as a precursor
 
-CED-3 is a protease, and its relatives in your cells are the **caspases**, short for "cysteine-dependent aspartate-specific proteases". A caspase uses a cysteine in its active site to cut other proteins just after an aspartate.
+CED-3's human relatives are **caspases** ("cysteine-dependent aspartate-specific proteases"): each uses an active-site cysteine to cut target proteins just after an aspartate.
 
-Every caspase is made as an inactive precursor, a zymogen, like the digestive proteases you know. The caspases that carry out apoptosis come in two kinds. (A third group, the inflammatory caspases such as caspase-1, drives a different, inflammatory death.) **Initiator caspases**, such as caspase-8 and caspase-9, are single inactive chains that become active when a platform gathers several copies and they pair up. **Executioner caspases**, which are caspases 3, 6 and 7, are already paired but stay inactive until an initiator, or another active caspase, cuts them. The first step is a gathering, and every step after it is a cut.
+The first film showed why caspases are stored as inactive precursors (**zymogens**, like digestive proteases) in two apoptotic classes. (A third group, inflammatory caspases such as caspase-1, drives a different, inflammatory death.) **Initiator caspases** (caspase-8, caspase-9) are monomers too dilute in cytosol to pair stably until an oligomeric platform crowds them to dimerize. **Executioner caspases** (caspases 3, 6 and 7) are pre-paired dimers locked shut by an uncleaved linker between their large and small subunits until an initiator—or another active caspase—cuts that linker.
 
-Active executioners cut hundreds of the cell's proteins, in what is called the demolition phase. One target is the inhibitor of a DNA-cutting enzyme. Freed, that enzyme cuts DNA between nucleosomes, the protein spools that DNA is wound on, and leaves a ladder of fragments about 200 base pairs apart. Other targets support the nucleus and the cytoskeleton, so the chromatin condenses, the cell rounds up and its surface bubbles into blebs.
+Active executioners drive the **demolition phase**, cleaving hundreds of proteins. Cutting the inhibitor of a DNA-cutting enzyme frees it to cleave DNA between nucleosomes (the protein spools DNA is wound on) into a ladder roughly 200 base pairs apart; dismantling nuclear and cytoskeletal supports condenses chromatin, rounds the cell and blebs its surface.
 
-Compare this with a kinase cascade. A phosphate that a kinase adds, [a phosphatase removes](/lessons/phosphorylation-switch). No enzyme rejoins a peptide bond that a caspase has cut. Inhibitor proteins such as XIAP can restrain an active caspase, and the mitochondrion, when it opens, releases a protein called SMAC that frees caspases from XIAP. But nothing undoes a cut. That is why the main safeguards act earlier, on whether initiators are gathered at all.
+Unlike a kinase cascade—where a phosphate added by a kinase is removed by [a phosphatase](/lessons/phosphorylation-switch)—no enzyme rejoins a cut peptide bond. Inhibitor proteins such as **XIAP** can restrain an active caspase, yet nothing undoes a cut already made, putting primary control upstream at initiator gathering.
 
 ## Killed from outside: a death receptor gathers caspase-8
 
-The outside route, called the extrinsic pathway, starts at a **death receptor**: a membrane protein whose tail inside the cell carries a death domain, a small fold that binds other death domains. The best studied is Fas. A killer T cell that has found an infected cell can present Fas ligand, which comes as a trimer and pulls Fas receptors into a cluster.
+The first film animated the outside route (**extrinsic pathway**); here are its binding domains and genetic proof.
 
-The clustered tails bind an adaptor, **FADD**. Like [Grb2](/lessons/adaptors-and-scaffolds), FADD has no enzyme activity and two binding ends. Its death domain holds Fas, and its death effector domain holds a matching domain on the precursor of caspase-8. Receptor, adaptor and caspase together make the death-inducing signaling complex, or DISC. In it, copies of caspase-8 sit side by side, pair up and become active, and then cut the executioners. The receptor needs no second messenger and no kinase.
+It starts at a **death receptor**, a membrane protein whose cytosolic tail carries a **death domain**, a fold that binds other death domains. On **Fas**, trimeric **Fas ligand** presented by a killer T cell clusters receptors so the adaptor **FADD** can dock. Like [Grb2](/lessons/adaptors-and-scaffolds), FADD has no enzyme activity and two ends: its death domain holds Fas, and its **death effector domain** holds procaspase-8. Together they form the **death-inducing signaling complex (DISC)**, where crowded procaspase-8 copies pair up, become active and cut executioners, with no kinase or second messenger.
 
-<LessonFigure src="/figures/death-receptors-bcl2-caspases/fas-disc-gathers-caspase-8.webp" width={1200} height={772} alt="AI-generated illustration: a three-lobed Fas ligand outside a cell pulls three Fas receptors together in the membrane. Below the membrane, adaptor proteins called FADD link each receptor tail to a caspase-8 precursor, and the stack is bracketed as the DISC. An inset shows two caspase-8 copies paired and active." caption="A trimeric Fas ligand clusters Fas. FADD, with a death-domain end and a death-effector-domain end, joins the clustered tails to the precursor of caspase-8, and copies of caspase-8 side by side pair up and become active. Counts here are schematic." />
+<LessonFigure src="/figures/death-receptors-bcl2-caspases/fas-disc-gathers-caspase-8.webp" width={1200} height={772} alt="AI-generated illustration: a three-lobed Fas ligand outside a cell pulls three Fas receptors together in the membrane. Below the membrane, adaptor proteins called FADD link each receptor tail to a caspase-8 precursor, and the stack is bracketed as the DISC. An inset shows two caspase-8 copies paired and active." caption="Trimeric Fas ligand clusters Fas so FADD links receptor tails to procaspase-8 in the DISC, crowding caspase-8 copies to pair and activate (counts are schematic)." />
 
-Mice showed that animals use this route. Shigekazu Nagata's laboratory in Osaka cloned human Fas in 1991, starting from an antibody that killed the cells it bound. In 1992 the laboratory found that mice of the lpr strain, kept since the 1970s for their swollen lymph nodes and lupus-like disease, have a defective Fas gene. A second strain with the same disease, gld, proved in 1994 to have a mutation in Fas ligand. Lymphocytes that should have been cleared after an immune response were staying alive.
+**Predict.** A mutation lets Fas bind Fas ligand tightly but stops receptors from clustering. Does FADD activate caspase-8?
 
-The receptor for TNF, TNFR1, has a death domain too, but its usual output is NF-κB and survival, and it kills only when that arm fails. That is "the anti-death, death pathway" of [the NF-κB lesson](/lessons/tlr-and-nf-kb).
+<details>
+<summary>Check your prediction</summary>
 
-## Killed from inside: a series of checks and balances
+No. Without clustering, isolated receptor tails cannot pack FADD and procaspase-8 close enough for dimerization.
+
+</details>
+
+Shigekazu Nagata's Osaka laboratory cloned human Fas in 1991 from a killing antibody, then linked two autoimmune mouse strains—swollen lymph nodes and lupus-like disease—to both ends of the pair: *lpr*, kept since the 1970s (Fas defect, 1992) and *gld* (Fas ligand mutation, 1994), where surplus lymphocytes stayed alive after immune responses. Another death-domain receptor, **TNFR1** (for TNF), usually activates NF-κB for survival and kills only when that arm fails—"the anti-death, death pathway" of [the NF-κB lesson](/lessons/tlr-and-nf-kb).
+
+An outside order uses a surface receptor to gather caspase-8, but danger starting inside the cell—such as damaged DNA or lost survival signals—needs an internal platform; the second film shows how the mitochondrion and BCL-2 family decide.
 
 <LessonFilm film={frontmatter.films[0]} />
 
-Many deaths start inside the cell, with damaged DNA acting through p53, as in the previous lesson, or with the loss of a survival signal. This inside route, the intrinsic pathway, is decided at the outer membrane of the mitochondrion by a family of proteins named for its first member, BCL-2.
+## Killed from inside: a series of checks and balances
 
-BCL-2 was found at a chromosome break. In follicular lymphoma, a cancer of antibody-making B cells, a piece of chromosome 18 is joined to chromosome 14 next to an antibody gene. Yoshihide Tsujimoto in Carlo Croce's laboratory, and then Stanley Korsmeyer's laboratory, cloned the junction in 1984 and 1985 and found a gene beside it. In 1988 David Vaux, Suzanne Cory and Jerry Adams in Melbourne showed what the gene does. It does not make cells divide. It keeps them from dying.
+The inside route, the **intrinsic pathway**, is decided at the outer mitochondrial membrane: the BCL-2 family balance decides whether mitochondria release cytochrome c—and **BCL-2** turned up first in human cancer. In follicular lymphoma (a B-cell cancer), a piece of chromosome 18 joined to chromosome 14 places BCL-2 beside an antibody gene; Yoshihide Tsujimoto in Carlo Croce's lab (1984) and Stanley Korsmeyer's lab (1985) cloned the junction, and David Vaux, Suzanne Cory and Jerry Adams in Melbourne (1988) proved BCL-2 keeps cells from dying rather than making them divide.
 
-In 1993 Korsmeyer's laboratory found the opposition: BAX, which resembles BCL-2, binds to it, and speeds death. The family is a series of checks and balances with three classes.
+In 1993 Korsmeyer's laboratory found the opposition: **BAX**, which resembles BCL-2, binds to it and speeds death. The family works at the outer mitochondrial membrane in three classes:
 
-- **BAX and BAK** are the effectors. Once activated, they open the outer mitochondrial membrane.
-- **BCL-2 and relatives such as BCL-xL** are the guards. They hold BAX and BAK in check.
-- **BH3-only proteins**, such as BIM, BID, PUMA, NOXA and BAD, are the sensors of stress. After DNA damage, p53 switches on the genes for PUMA and NOXA. They share with the family only one short helix, the BH3 helix, which fits into a groove on a guard and occupies it. Some, such as BIM and cut BID, can also switch on BAX and BAK directly.
+| Class | Examples | Role at outer membrane | Effect |
+| :--- | :--- | :--- | :--- |
+| **Effectors** | BAX, BAK | Open the outer membrane once activated | Pro-death |
+| **Guards** | BCL-2, BCL-xL | Hold BAX and BAK in a hydrophobic groove | Pro-survival |
+| **Sensors (BH3-only)** | BIM, BID, PUMA, NOXA, BAD | Fill a guard's groove via one short **BH3 helix**; some (BIM, cut BID) also activate BAX/BAK directly | Pro-death |
 
-Each sensor has its own control: BAD is switched off when a survival kinase such as [Akt](/lessons/pi3k-akt-insulin) phosphorylates it. Korsmeyer read the family as a rheostat: guards and effectors are both present in a healthy cell, and their proportion sets how hard the cell must be pushed.
+Each sensor reads its own cue: after DNA damage, p53 (previous lesson) switches on PUMA and NOXA, whereas the survival kinase [Akt](/lessons/pi3k-akt-insulin) phosphorylates BAD and switches it off. Korsmeyer read the family as a **rheostat**: guards and effectors coexist in healthy cells, and their proportion, binding preferences and locations set the death threshold (see *Going deeper* on direct vs. indirect activation).
 
-When BAX and BAK open the membrane, [cytochrome c](/lessons/oxidative-phosphorylation) escapes. Xiaodong Wang's laboratory found what it does next, in 1996, by making apoptosis run in a tube. They took the soluble contents of HeLa cells, added the nucleotide dATP, and saw caspase-3 switch on. Fractionation narrowed the requirement to one small protein. An antibody that removed it stopped the reaction, and adding the pure protein back restored it. It was cytochrome c. The next year the laboratory purified its partner, **APAF-1**, a relative of the worm's CED-4. Cytochrome c and dATP make seven copies of APAF-1 assemble into a wheel, the **apoptosome**, which gathers caspase-9 as the DISC gathers caspase-8.
+**Predict.** Growth factor is removed from a dependent cell, dropping Akt activity. Tracing Akt → BAD → guards → BAX/BAK, is the outer mitochondrial membrane more or less likely to open?
 
-The two routes meet. Active caspase-8 cuts the sensor BID, and the cut piece goes to the mitochondrion and releases cytochrome c, as the laboratories of Junying Yuan and Xiaodong Wang reported in 1998. Later work showed that it does so by setting off BAX and BAK.
+<details>
+<summary>Check your prediction</summary>
+
+More likely. This is a chain of three inhibitions: Akt normally inhibits BAD, BAD inhibits the guards, and guards inhibit BAX and BAK; lower Akt frees BAD to occupy guards and release BAX/BAK.
+
+</details>
+
+When BAX and BAK open that membrane, [cytochrome c](/lessons/oxidative-phosphorylation) escapes alongside **SMAC**, which frees active caspases from inhibitors such as XIAP. Xiaodong Wang's laboratory proved cytochrome c's role in 1996 in a tube: adding dATP to HeLa cytosol (spun free of nuclei, mitochondria and membranes, though hypotonic lysis had leaked cytochrome c from ruptured mitochondria) switched on caspase-3; antibody depletion stopped it and pure cytochrome c restored it. In 1997 they purified **APAF-1** (CED-4's relative), showing that cytochrome c and dATP assemble seven APAF-1 copies into the **apoptosome** wheel that gathers caspase-9.
+
+The two routes meet: active caspase-8 cuts **BID**, whose cut piece goes to the mitochondrion and releases cytochrome c (Junying Yuan and Xiaodong Wang labs, 1998); later work showed it does so by setting off BAX and BAK.
+
+**Predict.** Fas ligand triggers a modest pulse of caspase-8 in a cell making excess BCL-2. How does excess BCL-2 affect the cut-BID branch?
+
+<details>
+<summary>Check your prediction</summary>
+
+Excess BCL-2 can soak up cut BID and restrain BAX/BAK, blocking or blunting outer-membrane opening and cytochrome c release.
+
+</details>
 
 ### Design problem
 
@@ -452,18 +512,37 @@ A cell must be able to destroy itself within hours, and must never do so by acci
 <details>
 <summary>One way to do it</summary>
 
-Speed means the enzyme must already be made, so store it as a zymogen: an executioner that is inert until it is cut. Give the cut to an initiator that works only when gathered on a platform, and keep the platform's parts apart: APAF-1 in the cytosol, cytochrome c behind the outer mitochondrial membrane.
+For speed, store executioners as zymogens cut only by an initiator gathered on a platform whose parts sit apart: APAF-1 in cytosol, cytochrome c behind the outer mitochondrial membrane.
 
-Then require two separate events. A stress must switch on BH3-only sensors, and there must be enough of them to tie up the guards, whose level is set separately by survival signals. Suppose noise alone produces each condition in one cell in a thousand. If the two are independent, both arise by chance in one cell in a million. Once the membrane opens in most of the mitochondria, caspases switch on and no cut can be reversed, so the outcome is usually all or none.
+Require two separate events: stress must induce BH3-only sensors, and there must be enough to tie up guards set separately by survival signals. If noise produces each in one cell in a thousand independently, both arise by chance in one cell in a million. Once most mitochondria open, irreversible cuts make the outcome usually all or none.
 
-A tumour with extra BCL-2 has extra guards. The BH3-only proteins made by damage that would kill a normal cell are soaked up, and the cell lives. A small molecule shaped like a BH3 helix fills the groove on BCL-2 and displaces them. BAX and BAK are freed, and the tumour cell dies of the stress it was already under.
+Extra BCL-2 in a tumour soaks up damage-induced BH3-only sensors so the cell lives. A BH3-shaped small molecule fills BCL-2's groove, displacing them so BAX and BAK open the membrane and kill the stressed tumour cell.
 
 </details>
 
 ## When the brakes are too strong, or the machinery is missing
 
-The lymphoma has too strong a brake. A B cell with the translocation makes too much BCL-2 and outlives its time, and further mutations can then make it a cancer. The drug venetoclax, approved in the United States in 2016 for a form of chronic lymphocytic leukaemia, is the small molecule of the design problem. It sits in the BH3 groove of BCL-2 and spares the related guard BCL-xL.
+Follicular lymphoma carries too strong a brake: the t(14;18) translocation drives excess BCL-2, so B cells outlive their time, and further mutations can then make one a cancer. **Venetoclax**—approved in the United States in 2016 for a form of chronic lymphocytic leukaemia, not follicular lymphoma—fills BCL-2's BH3 groove while sparing BCL-xL (see *Going deeper*).
 
-Now take the machinery away, in a knockout mouse, one in which a chosen gene has been deleted. Most mice without APAF-1 die before or around birth, and their cells resist many kinds of death signal. Mice without caspase-9 have badly malformed brains with too many cells. So the inside route matters. Yet these embryos get through gastrulation, the early stage at which the body's layers form, and go on to build organs, and many cells that should die still die. In the webbing between the toes of mice without APAF-1, cells die without the look of apoptosis, by a death that needs no known caspase.
+Deleting genes in **knockout mice** tests the reverse. Most mice lacking APAF-1 die before or around birth and their cells resist many death signals; mice lacking caspase-9 develop malformed brains with too many cells. So the inside route matters. Yet these embryos still pass **gastrulation** (when body layers form) and build organs, and many cells that should die still die: in the toe webbing of APAF-1 knockouts, cells die without the look of apoptosis, by a death that needs no known caspase.
 
-A second backup, separate from that one, sits on the outside route. When TNFR1 is engaged and caspase-8 is blocked, as some viruses arrange, two kinases named RIPK1 and RIPK3 assemble, and RIPK3 phosphorylates a protein called MLKL. MLKL moves to the plasma membrane and breaks it. The cell swells and bursts like a necrotic cell, but on instruction, and the process is called **necroptosis**. Caspase-8 normally restrains it, in part by cutting RIPK1. A mouse embryo without caspase-8 dies, and it survives if RIPK3 is removed as well.
+A separate backup sits on the outside route. When TNFR1 is engaged and caspase-8 is blocked (as some viruses arrange), kinases **RIPK1** and **RIPK3** assemble, RIPK3 phosphorylates **MLKL**, and MLKL breaks the plasma membrane so the cell swells and bursts on instruction: **necroptosis**. Caspase-8 normally restrains it, in part by cutting RIPK1.
+
+**Predict.** A mouse embryo lacking the killer caspase-8 dies in development. What happens if RIPK3 is deleted too, and why?
+
+<details>
+<summary>Check your prediction</summary>
+
+It survives. Without caspase-8 cutting RIPK1, unchecked necroptosis kills the embryo; removing RIPK3 shuts that backup off—the same double-mutant logic as in the worm.
+
+</details>
+
+## Going deeper
+
+### Direct or indirect activation of BAX and BAK?
+
+In the **direct model** (Letai and colleagues, 2002), some BH3-only proteins briefly bind and switch on BAX or BAK directly while others only occupy guards. In the **indirect model** (a Melbourne group, 2007), BH3-only proteins act mainly by neutralizing guards, leaving freed BAX and BAK active. Later evidence supports elements of both, and the exact structure of the BAX/BAK membrane pore remains unsettled.
+
+### Guard selectivity and DISC stoichiometry
+
+An earlier compound that blocked both BCL-xL and BCL-2 depleted platelets, which depend on BCL-xL to survive; venetoclax avoids this by sparing BCL-xL. Separately, crystal structures of Fas–FADD death domains (Scott et al., 2009) define the fold contact while a later structure showed a different arrangement, so DISC diagrams illustrate domain contacts rather than fixed copy numbers.

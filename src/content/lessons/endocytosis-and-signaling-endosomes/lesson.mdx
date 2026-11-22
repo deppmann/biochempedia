@@ -4,13 +4,16 @@ slug: "endocytosis-and-signaling-endosomes"
 course: "signaling"
 courseChapter: "Cell Signaling · Unit 7: Space, time and distance"
 order: 136
-summary: Taking a receptor into the cell can end its signal or move it to a new place, and where the receptor is
-  sorted decides which. This lesson follows a receptor through a coated pit into the early endosome, where it is
-  sorted back to the surface or on toward the lysosome. Afterwards you will be able to explain why being taken in
-  can end a signal or move it, how Rab GTPases label each compartment, and what happens when a receptor is sorted
-  the wrong way.
+summary: >-
+  Early endosomes sort internalized receptors, returning untagged ones to the surface; active
+  receptors can signal from endosomes until sealed inside internal vesicles. This lesson follows a
+  receptor through a coated pit into the Rab5 early endosome, where mild acid and thin tubules
+  drive default recycling, and then tracks how ubiquitin and ESCRT seal receptors inside
+  multivesicular endosomes as Rab5 converts to Rab7 on the road to the lysosome. Afterwards you
+  will be able to explain why endocytosis can silence a signal or move it to a new platform, how
+  Rab GTPases label each compartment, and what happens when sorting fails.
 
-hook: When a receptor is pulled into the cell, does its signal end, or does it move somewhere new?
+hook: "When a receptor is pulled into the cell, does its signal end, or does it move somewhere new?"
 
 estMinutes: 22
 objectives:
@@ -27,10 +30,16 @@ explainer:
   src: "/explainers/endocytosis-and-signaling-endosomes/explainer.mp4"
   captions: "/explainers/endocytosis-and-signaling-endosomes/explainer.vtt"
   poster: "/explainers/endocytosis-and-signaling-endosomes/poster.jpg"
-  title: "Sealed Inside, a Receptor Goes Silent"
-  durationSec: 164.5
-  narration: "an AI narrator voice (ElevenLabs, Sarah) reading narration written from this lesson's text"
+  title: "Pulled In, Sorted Back Out"
+  durationSec: 197.6
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+  takeaways:
+    - "Early endosomes sort internalized receptors, returning untagged ones to the surface."
+    - "Macrophages pull in about 3 percent of their plasma membrane each minute, so membrane must recycle rapidly to keep surface area steady."
+    - "Adaptors link receptor tails and membrane lipids to a curving clathrin cage, and dynamin hydrolyzes GTP to cut the vesicle free."
+    - "Folding membrane inward leaves a receptor's cytoplasmic tail pointing into the cytosol on the Rab5 early endosome."
+    - "Mild acid (pH 6 to 6.5) releases many ligands, and thin tubules (Rab4 fast, Rab4 and Rab11 slow) return untagged receptors while freed ligands stay mostly in the round body."
 
 scientists:
   - name: "Suzanne Pfeffer"
@@ -370,89 +379,152 @@ corpusTags:
   - "receptor-downregulation"
 draft: false
 films:
-  - id: "coat-and-cut"
-    src: "/explainers/endocytosis-and-signaling-endosomes/coat-and-cut.mp4"
-    captions: "/explainers/endocytosis-and-signaling-endosomes/coat-and-cut.vtt"
-    poster: "/explainers/endocytosis-and-signaling-endosomes/coat-and-cut-poster.jpg"
-    title: "A Coat, a Reader, and a Cut"
-    durationSec: 88.7
-    narration: "an AI narrator voice (ElevenLabs, Sarah) reading narration written from this lesson's text"
+  - id: "chapter-2"
+    src: "/explainers/endocytosis-and-signaling-endosomes/chapter-2.mp4"
+    captions: "/explainers/endocytosis-and-signaling-endosomes/chapter-2.vtt"
+    poster: "/explainers/endocytosis-and-signaling-endosomes/chapter-2-poster.jpg"
+    title: "Still Talking, Until Sealed Inside"
+    durationSec: 214.0
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
     aiGenerated: true
+    takeaways:
+      - "Active receptors can signal from endosomes until sealed inside internal vesicles."
+      - "On the outer endosome membrane, an active receptor's tail still reaches cytosolic partners and can switch adaptors (as TLR4 switches from MyD88 to TRIF)."
+      - "Ubiquitin tags recruit ESCRT to bud tagged receptors inward into internal vesicles of a multivesicular endosome, sealing their tails off from the cytosol before digestion."
+      - "Rab conversion swaps Rab5 for Rab7 as the compartment acidifies toward lysosomal fusion and breakdown."
+      - "Losing a ubiquitin docking site (as in MET exon 14 skipping) lets a receptor escape ESCRT and keep signaling; mild acid releasing a ligand can also silence a receptor earlier."
 ---
 
 import LessonFilm from '../../../components/LessonFilm.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import Support from '../../../components/Support.astro';
 
-**Taking a receptor into the cell can end its signal or move it somewhere new, and where the receptor is sorted decides which.** Toll-like receptor 4 is one example: at the plasma membrane it signals through the adaptor MyD88, and after it is taken in it signals through a second adaptor, TRIF, which switches on interferon genes. The traffic behind this is heavy. A macrophage takes in about 3 percent of its surface membrane every minute. It swallows the equivalent of its whole surface about every half hour, and it does not shrink. The membrane must come back as fast as it goes in, and the receptors sitting in that membrane make the trip too, some often and some rarely. So for any receptor you have met in this course, ask where it goes once it is inside the cell, and what the trip does to its signal.
+**A macrophage pulls in about 3 percent of its surface membrane each minute—its whole surface roughly every half hour—without shrinking.** Membrane returns just as fast, and embedded receptors make the trip too, some often and some rarely. The first film followed that loop; here we add the sorting signals, experimental proof, and what the trip does to a receptor's signal.
 
 ## What's endocytosis used for?
 
-Endocytosis is the pinching of a patch of plasma membrane inward to make a vesicle, a small closed bag of membrane, that carries in whatever was bound to the patch. It does three jobs.
+**Endocytosis** pinches a patch of plasma membrane inward to form a **vesicle**, a small closed membrane bag carrying whatever bound that patch. It serves three jobs:
 
-The first is food. Cholesterol travels in the blood packed into particles of low-density lipoprotein (LDL), which are far too large for any channel or carrier. Michael Brown and Joseph Goldstein found that cells bind LDL to a surface receptor and carry the pair inside, a process that came to be called receptor-mediated endocytosis. Iron enters the same way, bound to the protein transferrin.
+- **Food.** Blood cholesterol rides in **low-density lipoprotein (LDL)** particles, far too large for channels or carriers. Michael Brown and Joseph Goldstein showed that surface receptors bind LDL and carry it inside (**receptor-mediated endocytosis**); iron enters the same way bound to **transferrin**.
+- **Membrane upkeep.** Secretion adds membrane to the surface and endocytosis takes it back, pulling worn membrane proteins in for disposal.
+- **Signaling.** Endocytosis can **end** a signal by removing and destroying the receptor, or **move** it to an intracellular platform where the active receptor keeps signaling or signals differently—decided mostly after uptake.
 
-The second is membrane upkeep. Secretion adds membrane to the surface and endocytosis takes it back, and worn membrane proteins are pulled in for disposal.
+<Support>**The one idea.** Early endosomes sort internalized receptors, returning untagged ones to the surface; active receptors can signal from endosomes until sealed inside internal vesicles. **Scope:** This describes typical transmembrane receptors passing through the early endosome. Receptors can also go silent earlier if acid releases their ligand, some cargo sorts to the Golgi or uses active recycling motifs, and a few receptors (such as TLR3, TLR7 and TLR9) signal only after reaching endosomes.</Support>
 
-The third is why this lesson sits in a signaling course. For a signal, endocytosis can mean two things. It can end the signal, by taking the receptor off the surface and destroying it. Or it can move the signal, by carrying an active receptor to a new platform inside the cell, where it keeps signaling or signals differently. Which one happens is decided mostly after the receptor is in.
+## Getting inside: a coat, a reader, and a cut
 
-## It all starts with endocytosis: a coat, then a cut
+The first film animated pit formation and fission; here are the links that choose which receptors enter.
 
-<LessonFilm film={frontmatter.films[0]} />
+In a **clathrin-coated pit**, three-legged pinwheel **clathrin** units assemble into a curved cage on the inner face of the plasma membrane. Clathrin touches neither membrane nor cargo; adaptor proteins bridge them. The main plasma-membrane adaptor, **AP2**, binds the lipid **PIP2** (from the lesson on lipid anchors), short tail sequences, and clathrin. A receptor enters when its cytoplasmic tail carries a sequence an adaptor can read, or binds a linker such as **arrestin**.
 
-The best understood way in is the clathrin-coated pit. Clathrin is a protein shaped like a three-legged pinwheel, and many copies lock together into a curved cage on the inner face of the membrane. Clathrin touches neither the membrane nor the cargo. Adaptor proteins do that. The main adaptor at the plasma membrane, AP2, holds the lipid PIP2 (an address from the lesson on lipid anchors), short sequences in receptor tails, and clathrin. So a receptor enters a pit when its cytoplasmic tail carries a sequence that an adaptor can read, or when it binds a protein, such as arrestin, that links it to the coat.
+Brown and Goldstein met the proof in patient J.D., whose receptors could bind LDL yet the cells could not take it in—a fault later traced to one tyrosine in the LDL receptor's cytoplasmic tail replaced by cysteine.
 
-Brown and Goldstein met the proof in a patient known as J.D. This patient's LDL receptors could bind LDL but stayed scattered over the surface instead of gathering in pits, and the cells could not take LDL in. The fault was later traced to one tyrosine in the receptor's tail, replaced by cysteine.
+**Predict.** When ferritin-labeled LDL is added to J.D.'s cells and viewed by electron microscopy, where should the dark LDL dots lie compared with normal cells?
 
-A pit deepens until it hangs from the surface by a thin neck. Dynamin, a large GTPase, assembles into a collar around the neck, and when it hydrolyzes GTP the neck is cut. The coat is then stripped off and the bare vesicle can fuse with its target.
+<details>
+<summary>Check your prediction</summary>
 
-There are other doors. Caveolae are small flask-shaped pits built around a protein called caveolin, macropinocytosis gulps large volumes of fluid, and several more routes that need no clathrin have been described and are less well mapped.
+Normal cells cluster the dots inside coated pits; J.D.'s cells leave them scattered across flat membrane outside pits, showing that entry requires an adaptor-readable signal in the receptor tail.
 
-**A receptor's signaling can influence which internalization pathway it takes.** How hard a receptor is signaling can change how it enters and where it ends up. The best-studied case, the EGF receptor, is under Going deeper.
+</details>
+
+When the pit hangs by a thin neck, **dynamin**—a large GTPase—forms a collar around it and hydrolyzes GTP to cut the vesicle free; the coat then strips off so the bare vesicle can fuse. Other doors exist: **caveolae** (flask-shaped pits built around **caveolin**), **macropinocytosis** (gulping fluid), and less-mapped clathrin-independent routes. How hard a receptor signals can also alter its route and fate (see EGF receptor under Going deeper).
 
 ## The early endosome is a sorting station
 
-The early endosome is the first stop for almost all endocytosed cargo. It lies near the plasma membrane, and it sorts cargo into separate patches of its own membrane that set the cargo's fate: back to the surface, back to the Golgi, or on to the lysosome to be destroyed.
+Almost all endocytosed cargo first enters the **early endosome** beneath the plasma membrane, which sorts cargo into separate domains headed back to the surface, back to the Golgi, or toward the lysosome. Folding membrane inward leaves the ligand-binding end facing the interior fluid (**lumen**) and the cytoplasmic tail still pointing into the cytosol.
 
-Two physical features do much of the sorting. One is acid. A proton pump in the endosome membrane holds the inside at about pH 6 to 6.5, and at that pH many ligands let go. LDL falls off its receptor, and iron falls off transferrin. The other is shape. An early endosome has a round body with thin tubes growing out of it. A tube is nearly all membrane and almost no volume, so membrane proteins spread into the tubes while dissolved contents stay in the body. The tubes pinch off and go back to the surface, so a receptor with no other instruction mostly goes back too.
+Two physical features drive default recycling:
 
-There is a fast way back, taking a few minutes, straight from tubes rich in the protein Rab4. There is a slow way, taking tens of minutes, that passes through a second compartment and uses Rab4 and Rab11. An LDL receptor makes the round trip about every ten minutes, again and again.
+- **Mild acid.** A proton pump holds the lumen near **pH 6 to 6.5** (three- to tenfold more protons than pH 7), releasing many ligands: LDL falls off its receptor, and iron falls off transferrin.
+- **Tubular shape.** A sphere of radius *R* has surface-to-volume ratio 3/*R*; a thin cylinder of radius *r* has 2/*r*. A tubule with one-tenth the radius of the round body holds nearly seven times more membrane per unit volume—so equal membrane encloses only ~15% of the sphere's fluid. Untagged membrane proteins diffuse into the tubules while dissolved cargo stays mostly in the round body.
 
-**Rab proteins define and drive the maturation state.** Rabs are small GTPase switches of the kind in the lesson on GTPase switches: on with GTP, off with GDP, flipped by GEFs and GAPs. Human cells have more than sixty, and most mark a particular compartment, a domain within one, or a step of traffic. Rab5 marks the early endosome. In its GTP form it sits on the membrane and recruits effectors, proteins that bind only the on state, which tether incoming vesicles and help them fuse.
+**Predict.** At pH 6 inside an early endosome, Ligand A detaches from its receptor while Ligand B stays tightly bound. Neither receptor carries ubiquitin, and both drift into thin tubules. Where does Ligand B end up?
 
-A Rab's lipid tail would stick to any membrane, so cells keep GDP-bound Rabs soluble with a protein called GDI, and later work points to a Rab's own GEF as a main part of its address, since a Rab is switched on, and so held, on the membrane where its GEF sits. The details are under Going deeper.
+<details>
+<summary>Check your prediction</summary>
+
+Ligand B rides back to the surface attached to its receptor in the tubule membrane, because it is held in membrane rather than dissolved; freed Ligand A stays mostly in the fluid-filled round body.
+
+</details>
+
+As the first film showed, pinched-off tubules recycle receptors rapidly via **Rab4** (a few minutes) or more slowly through a second compartment via **Rab4** and **Rab11** (tens of minutes). An LDL receptor makes that round trip roughly every ten minutes.
+
+**Rab GTPases label compartments and drive maturation.** Rabs are small GTPase switches (on with GTP, off with GDP, flipped by GEFs and GAPs, from the lesson on GTPase switches). Human cells have more than sixty, and most mark a compartment, a domain within one, or a traffic step. **Rab5** marks the early endosome; in its GTP form it sits on the membrane and recruits **effectors**, proteins that bind only the on state, which tether incoming vesicles and help them fuse. (Going deeper explains how GDI, a displacement factor, and GEFs target lipid-tailed Rabs to the right membrane.)
+
+If untagged receptors recycle by default, what sends an active receptor toward destruction—and what happens to its signal on the way?
+
+<LessonFilm film={frontmatter.films[0]} />
 
 ## Headed to the lysosome: the receptor is sealed inside
 
-A receptor leaves the default route when it carries a tag, and the tag is one you know: ubiquitin. For an active EGF receptor the ligase Cbl adds it, as the lesson on receptor tyrosine kinases describes. This ubiquitin is not read by the proteasome. A set of proteins on the endosome called ESCRT binds it, gathers tagged receptors into a patch, and pushes the patch inward until it pinches off as a small vesicle inside the endosome. An endosome filled with such vesicles is a multivesicular endosome (MVE), also called a multivesicular body.
+The second film showed the topological flip that silences a receptor; here are the enzymes, competition, and live-cell evidence behind it.
 
-What is the purpose of MVEs? Think about which way the receptor faces. On the outer membrane of an endosome, the receptor's tail still points into the cytosol and can still reach its partners. On an internal vesicle, the tail is sealed inside and cannot reach the cytosol at all. That step ends the signal before anything is destroyed. It also puts the whole receptor where the lysosome's enzymes can reach it.
+A receptor leaves the default route when tagged with **ubiquitin**—added to active **EGF receptors** by the ligase **Cbl** (from the lesson on receptor tyrosine kinases). Rather than targeting the proteasome, endosomal ubiquitin is bound by **ESCRT**, which gathers tagged receptors and pushes the patch *inward* (away from the cytosol) into internal vesicles, forming a **multivesicular endosome (MVE)** or **multivesicular body**. Because endosomal deubiquitinating enzymes can clip ubiquitin back off, sorting is a reversible competition until sealing completes.
 
-Meanwhile the compartment itself changes. Marino Zerial's laboratory filmed single endosomes in living cells and saw Rab5 leave as Rab7 arrived, which they called Rab conversion. With Rab7 come new effectors, stronger acid (about pH 5.5 in late endosomes) and a growing load of internal vesicles. The late endosome then fuses with a lysosome, a bag of digestive enzymes at about pH 4.5 to 5, and the receptor is broken down.
+**Predict.** If a cell overproduces a deubiquitinating enzyme that strips ubiquitin from active EGF receptors on early endosomes, how do their destination and signaling duration change?
 
-<LessonFigure src="/figures/endocytosis-and-signaling-endosomes/endosome-maturation.webp" width={1200} height={514} alt="AI-generated illustration: a three-panel strip. Panel 1, an early endosome marked Rab5 with tubular extensions and a lumen at pH 6 to 6.5. Panel 2, Rab conversion: the endosome now carries Rab7, has a lumen at about pH 5.5, and holds inner vesicles that contain receptors. Panel 3, the late endosome, packed with inner vesicles, fuses with a lysosome at pH 4.5 to 5, where the receptor is broken down." caption="An endosome stays the same compartment but changes identity: Rab5 leaves and Rab7 arrives, the lumen grows more acid (about pH 5.5 in late endosomes) and fills with internal vesicles, and the late endosome fuses with a lysosome (pH 4.5 to 5), where the receptor is broken down. Receptor symbols are schematic." />
+<details>
+<summary>Check your prediction</summary>
+
+Most likely, without ubiquitin ESCRT does not sequester them into internal vesicles; they stay on the outer membrane, recycle to the surface, and signal longer instead of entering lysosomes.
+
+</details>
+
+Sealing the receptor inside an internal vesicle cuts its cytoplasmic tail off from cytosolic partners—ending the signal *before* digestion—and places the whole receptor inside for lysosomal enzymes. Meanwhile, Marino Zerial's laboratory filmed single endosomes in living cells and watched **Rab5** leave as **Rab7** arrived (**Rab conversion**). With Rab7 come new effectors, stronger acid (**~pH 5.5** in **late endosomes**), and more internal vesicles, before fusion with a **lysosome** (digestive enzymes at **pH 4.5 to 5**) breaks the receptor down.
+
+<LessonFigure src="/figures/endocytosis-and-signaling-endosomes/endosome-maturation.webp" width={1200} height={514} alt="AI-generated illustration: a three-panel strip. Panel 1, an early endosome marked Rab5 with tubular extensions and a lumen at pH 6 to 6.5. Panel 2, Rab conversion: the endosome now carries Rab7, has a lumen at about pH 5.5, and holds inner vesicles that contain receptors. Panel 3, the late endosome, packed with inner vesicles, fuses with a lysosome at pH 4.5 to 5, where the receptor is broken down." caption="One endosome changes identity by Rab conversion: Rab5 yields to Rab7 as the lumen acidifies from pH 6–6.5 to ~5.5, fills with internal vesicles, and fuses with a pH 4.5–5 lysosome for degradation. Receptor symbols are schematic." />
+
+| Early endosome state | Tail orientation & location | Rab / compartment | Outcome |
+| --- | --- | --- | --- |
+| Untagged; ligand freed at pH 6–6.5 | Tail in cytosol; enters tubules | Rab5 → Rab4 or Rab4/Rab11 | Recycles empty (~10 min for LDLR) |
+| Active; ligand bound; not sealed | Tail in cytosol; outer membrane | Rab5 early endosome | Signals or switches partners (TLR4 → TRIF) |
+| Active + ubiquitin-tagged | Tail sealed inside MVE vesicles | Rab5 → Rab7 → lysosome | Silenced on sealing; degraded in lysosome |
 
 ## A receptor that keeps talking, and one that escapes
 
-Between the coated pit and the internal vesicle, a receptor spends time on the outer membrane of an endosome with its tail in the cytosol. Is it still signaling? In 1996 Sandra Schmid's laboratory tested this by blocking endocytosis in HeLa cells with a dynamin mutant defective in GTP binding and hydrolysis. If endocytosis only ended signals, every response to EGF should have gone up. The cells did divide more, but some responses fell, including full activation of the MAP kinase ERK. On this evidence part of the EGF signal needs the receptor to be inside, although later experiments that blocked endocytosis in other ways did not all find the same fall in ERK.
+Recall the second half of our rule: **active receptors can signal from endosomes until sealed inside internal vesicles.**
 
-Other receptors change what they say when they move. Toll-like receptor 4 signals through the adaptor MyD88 at the plasma membrane. After it is taken in, it signals through a second adaptor, TRIF, which switches on interferon genes. The Toll-like receptors that detect nucleic acids, such as TLR3, TLR7 and TLR9, work only in endosomes, where the remains of digested microbes arrive. And some G-protein-coupled receptors, taken in with arrestin as the lesson on turning signals off describes, go on activating G proteins from endosomes.
+In 1996 Sandra Schmid's laboratory tested this in HeLa cells by blocking endocytosis with a dominant-negative **dynamin** mutant defective in GTP binding and hydrolysis, leaving active EGF receptors on the surface.
 
-Now break the sorting. In roughly 3 percent of non-small-cell lung cancers, a splicing error removes exon 14 from the messenger RNA for MET, a receptor tyrosine kinase. The missing stretch holds tyrosine 1003, the docking site for Cbl. The receptor is poorly tagged with ubiquitin, escapes the lysosome and keeps signaling for longer than it should. The fault is not an overactive kinase. It is a receptor that misses its turn to the lysosome. Two MET kinase inhibitors, capmatinib and tepotinib, are approved for lung cancers with this change.
+**Predict.** If endocytosis *only* ended signals, what should blocking dynamin do to every EGF output—both cell division and MAP kinase ERK activation?
 
-A neuron poses the hardest version of the keep-talking problem, because its endosomes must carry a signal the length of an axon. That is the next lesson.
+<details>
+<summary>Check your prediction</summary>
+
+Every output should rise or persist. Instead, the result split: cells divided more, yet full ERK activation fell.
+
+</details>
+
+That split argued that part of the EGF signal required uptake—though cautiously, because dynamin has other cellular effects and later studies blocking uptake by other methods did not all see the same fall in ERK.
+
+Other receptors clearly change output upon uptake. **Toll-like receptor 4 (TLR4)** signals via **MyD88** at the plasma membrane and via **TRIF** on endosomes to switch on interferon genes. Nucleic-acid sensors **TLR3, TLR7, and TLR9** work only in endosomes, where microbial remains arrive. Some **G-protein-coupled receptors**, internalized with **arrestin** (from the lesson on turning signals off), also keep activating G proteins from endosomes.
+
+Break degradative sorting and signaling persists. In roughly 3 percent of non-small-cell lung cancers, a splicing error deletes **exon 14** from mRNA for the receptor tyrosine kinase **MET**, removing **tyrosine 1003** (the Cbl docking site). Poorly ubiquitinated, mutant MET escapes the lysosome and keeps signaling for longer than it should—not an overactive kinase, just a receptor missing its turn. Two MET kinase inhibitors, **capmatinib** and **tepotinib**, are approved for these tumors.
+
+**Predict.** Suppose a normal receptor recycles 50% and degrades 50% on each 10-minute endosomal pass, while a sorting mutant recycles 90% and degrades 10%. Starting with equal pools and no new synthesis, what fraction remains after two passes (20 minutes)?
+
+<details>
+<summary>Check your prediction</summary>
+
+Normal: 0.5 × 0.5 = 25%. Mutant: 0.9 × 0.9 = 81%—more than three times as many surviving receptors after just two passes.
+
+</details>
+
+A neuron faces the hardest version of this problem, carrying an active signaling endosome the length of an axon—our next lesson.
 
 ### Design problem
 
-Two receptors on the same cell bind their ligands at the same moment. One must signal for about ten minutes and then be silent for hours. The other must keep signaling for hours. Using only the sorting decisions made at the early endosome, design the difference. Say what tag or sequence each receptor would need.
+Two receptors on one cell bind ligand simultaneously. One must signal for ~10 minutes and then stay silent for hours; the other must signal for hours. Using only early-endosome sorting decisions, specify what tags or sequences each needs.
 
 <details>
 <summary>One way to do it</summary>
 
-Give the brief receptor a docking site for a ubiquitin ligase that appears only when the receptor is active, for example a tyrosine the receptor phosphorylates on its own tail, plus lysines for the ligase to tag. Give it a ligand that stays bound at pH 6, so the receptor stays active and tagged all the way in. ESCRT then seals it inside internal vesicles and the signal stops. The silence lasts for hours because the cell has to make new receptors to replace the ones it destroyed.
+Give the brief receptor an activity-dependent ubiquitin-ligase docking site (such as a self-phosphorylated tail tyrosine), lysines for tagging, and a ligand that stays bound at pH 6 so it remains active and tagged. ESCRT seals it into internal vesicles, stopping the signal for hours until new receptors are synthesized.
 
-Give the lasting receptor no ligase site, so it is never tagged, and a ligand that falls off at pH 6. It takes the tubes back to the surface in minutes, empty and ready to bind again, and it keeps signaling for as long as ligand is outside. To make the return more certain, add a tail sequence that recycling machinery reads. The β2-adrenergic receptor has one at its very end, a sequence that binds PDZ domains.
+Give the lasting receptor no ligase site and a ligand that dissociates at pH 6. Empty receptors recycle via tubules in minutes to bind again; adding a recycling-machinery tail motif—like the PDZ-binding sequence at the end of the β2-adrenergic receptor—makes return even surer.
 
-Cells do use this logic. The EGF receptor has two ligands with different fates. EGF tends to stay bound in the endosome and takes the receptor to the lysosome, while transforming growth factor alpha lets go in the acid and the receptor recycles.
+Cells use this logic: on the EGF receptor, EGF tends to stay bound in endosomes and drives lysosomal destruction, whereas transforming growth factor alpha lets go in mild acid and the receptor recycles.
 
 </details>
 
@@ -460,15 +532,14 @@ Cells do use this logic. The EGF receptor has two ligands with different fates. 
 
 ### How a Rab finds its membrane
 
-How does a Rab find its membrane? Most Rabs carry one or two geranylgeranyl groups, 20-carbon lipids, on their tail, and a greasy tail would stick to any membrane it met. Suzanne Pfeffer's laboratory worked on this with Rab9. A protein called GDI wraps the GDP-bound Rab and hides the tail, so the Rab stays dissolved in the cytosol. Her group found an activity on endosome membranes, a displacement factor, that frees the Rab from GDI, and showed that GDP is exchanged for GTP once the Rab reaches the membrane. Later work points to the Rab's own GEF as a main part of the address: a Rab is switched on, and so held, on the membrane where its GEF sits. GDI does not pull off the GTP form, so the Rab stays put until a GAP switches it off.
+Most Rabs carry one or two 20-carbon **geranylgeranyl** lipids on their tail, which would stick to any membrane. Working on **Rab9**, Suzanne Pfeffer's laboratory showed that soluble **GDI** wraps GDP-bound Rab to hide its tail, a membrane **displacement factor** on endosomes frees it from GDI, and GDP is exchanged for GTP on arrival. Later work points to each Rab's **GEF** as a main part of the address: a Rab is switched on, and so held, on the membrane where its GEF sits. GDI does not pull off the GTP form, so the Rab stays put until a **GAP** switches it off.
 
-<LessonFigure src="/figures/endocytosis-and-signaling-endosomes/rab-switch-and-gdi.webp" width={1200} height={591} alt="AI-generated illustration: a loop showing a GDP-bound Rab held in the cytosol by GDI, freed at an endosome membrane by a displacement factor, switched to GTP (by a membrane GEF, not drawn) and bound by an effector, then switched off by a GAP." caption="GDI keeps GDP-bound Rab soluble by hiding its lipid tail. A membrane displacement factor helps release it, and a membrane GEF then swaps GDP for GTP, helping fix where Rab is active. Active Rab recruits effectors until a GAP switches it off. The GEF is not drawn." />
+<LessonFigure src="/figures/endocytosis-and-signaling-endosomes/rab-switch-and-gdi.webp" width={1200} height={591} alt="AI-generated illustration: a loop showing a GDP-bound Rab held in the cytosol by GDI, freed at an endosome membrane by a displacement factor, switched to GTP (by a membrane GEF, not drawn) and bound by an effector, then switched off by a GAP." caption="GDI hides a GDP-bound Rab's lipid tail in the cytosol until a membrane displacement factor and GEF release and activate it on its target membrane, where it recruits effectors until a GAP switches it off. The GEF is not drawn." />
 
 ### A lipid of late endosomes
 
-In late endosomes, the internal vesicles are rich in an unusual lipid, lysobisphosphatidic acid, which is scarce in early endosomes.
+Late-endosome internal vesicles are rich in an unusual lipid, **lysobisphosphatidic acid**, which is scarce in early endosomes.
 
 ### Dose and route for the EGF receptor
 
-The best studied case is the EGF receptor. In HeLa cells, Sara Sigismund, Pier Paolo Di Fiore and their colleagues reported that at low doses of EGF the receptor enters almost entirely through coated pits and is mostly recycled. At high doses the receptor also becomes tagged with ubiquitin, and a share of it enters by a route without clathrin and is mostly destroyed. Treat that as a result in one cell line, since other laboratories find clathrin carrying most of the receptor at high doses too. The modest version is safe: how hard a receptor is signaling can change how it enters and where it ends up.
-
+In HeLa cells, Sara Sigismund, Pier Paolo Di Fiore, and colleagues reported that low EGF doses drive EGF receptor uptake almost entirely via coated pits toward recycling, whereas high doses add ubiquitin, shift a share to a clathrin-independent route, and favor destruction. Treat that as one cell line's result, since other labs see clathrin carrying most receptors at high doses too; the safe conclusion is that signaling strength can influence both entry route and fate.
