@@ -86,13 +86,15 @@ eq(endWith('The Size Test'), 'The Size Test.', 'a full stop after a plain title'
   eq(titles(runQueue(list, view({ q: 'sodium pump' }), ideas)), [4], 'the run plays the films of that view that have their own page');
   eq(titles(matchFilms(list, view({ q: 'osmosis' }), ideas)), [1, 2, 0, 3], 'title matches come first, then matches by question, each in course order');
   eq(titles(runQueue(list, view({ q: 'osmosis' }), ideas)), [1, 2, 3], 'the run is that list, in that order, without the grown-up\'s set-up film');
-  eq(titles(runQueue(list, view({ q: 'osmosis', sort: 'long' }), ideas)), [2, 1, 3], 'the run follows the order the library shows (title matches first, longest first within each)');
+  // Since 2026-11-22 (src/lib/film-search.mjs) a chosen order applies to every film with all the words.
+  eq(titles(runQueue(list, view({ q: 'osmosis', sort: 'long' }), ideas)), [3, 2, 1], 'the run follows the order the library shows (longest first)');
   eq(titles(runQueue(list, view({ level: 'ages-5-10' }), ideas)), [0], 'set-up films play when their level is asked for');
   eq(titles(matchFilms(list, view({ q: 'atp' }), ideas)), [4, 5], 'a word must start a word among the questions: "atp" is not found in "Adaptation"');
   eq(titles(matchFilms(list, view({ q: 'why does water' }), ideas)), [2, 0, 3], 'little words are dropped from a search');
   // The property that matters: for every view, the run is exactly the playable part of what the library shows.
   for (const v of [view(), view({ q: 'osmosis' }), view({ q: 'pump', course: 'cell' }), view({ level: 'grade-7', sort: 'short' }), view({ kind: 'profile' }), view({ q: 'zzz' })]) {
-    eq(titles(runQueue(list, v, ideas)), titles(runnableFilms(matchFilms(list, v, ideas), v)), `the run is the view: ${JSON.stringify(v)}`);
+    const m = matchFilms(list, v, ideas);
+    eq(titles(runQueue(list, v, ideas)), titles(runnableFilms(m.full ? m.slice(0, m.full) : m, v)), `the run is the view (its films with every word): ${JSON.stringify(v)}`);
   }
   eq(titles(runQueue(list, view({ kind: 'profile' }), ideas)), [], 'a view of profiles only has nothing to play in a row');
 }

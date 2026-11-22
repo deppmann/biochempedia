@@ -409,7 +409,12 @@ export function library(): void {
     const built = document.createElement('template');
     // Inside one stack (a course, or the methods library): the way back to all of them comes first.
     const back = view.course || view.kind === 'method' ? '<p class="fl-back"><button type="button" class="fl-btn" data-fl-back><span aria-hidden="true">←</span> All courses</button></p>' : '';
-    built.innerHTML = back + (view.sort === 'course' && !view.q ? groupHTML(shown, d) : `<ul class="grid">${shown.map((f) => cardHTML(f, d)).join('')}</ul>`);
+    // A search lists the films with every word first; films with all but one follow under a note (2026-11-22).
+    const full = (current as { full?: number }).full ?? current.length;
+    const flat = full < shown.length
+      ? `${full ? `<ul class="grid">${shown.slice(0, full).map((f) => cardHTML(f, d)).join('')}</ul>` : ''}<p class="fl-partial">${full ? 'These have some of your words, not all:' : 'No film has every word. These have all but one:'}</p><ul class="grid fl-partial-grid">${shown.slice(full).map((f) => cardHTML(f, d)).join('')}</ul>`
+      : `<ul class="grid">${shown.map((f) => cardHTML(f, d)).join('')}</ul>`;
+    built.innerHTML = back + (view.sort === 'course' && !view.q ? groupHTML(shown, d) : flat);
     for (const img of built.content.querySelectorAll('img')) { img.dataset.src = img.getAttribute('src') ?? ''; img.removeAttribute('src'); img.removeAttribute('loading'); }
     listEl.replaceChildren(built.content);
     const from = origin;
@@ -444,18 +449,19 @@ export function library(): void {
   runBox.hidden = false;
   function paintRun(current: ListFilm[] | null, run?: ReturnType<typeof fit> | null): void {
     const q = viewQuery(view);
-    // Nothing to play in a row (no film matches, or only profiles and method films): offer nothing.
+    // Nothing to play in a row (no film matches, or only scientist profiles): offer nothing.
     const can = !current || !list || runQueue(list, view, ideas).length > 0;
     runBox.hidden = !can;
     // The whole library in order is 45 hours; "in order" is offered once a view has been chosen.
     play.hidden = isDefault({ ...view, sort: 'course' });
+    play.textContent = view.q ? 'Play these results' : 'Play them in order';
     // One course in course order, not searched: its own play-in-order page, as before. A search always
     // plays on /films/run/, where the same matcher and the same search data decide the films.
     play.href = view.course && view.sort === 'course' && !view.q ? `/films/play/${encodeURIComponent(view.course)}/${viewQuery({ ...view, level: '', course: '', sort: 'course' })}` : `/films/run/${q}`;
     if (!budget || !current) { runSum.hidden = true; return; }
     runSum.hidden = false;
     if (!run || !run.films.length) {
-      runText.textContent = 'Nothing in this view plays in a row: scientist profiles and method films open on their own pages.';
+      runText.textContent = 'Nothing in this view plays in a row: scientist profiles open in their lessons.';
       runList.hidden = true;
       startBtn.hidden = true;
       return;

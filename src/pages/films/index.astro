@@ -23,8 +23,10 @@
    gallery scrolls into view. None of it under reduced motion.
    Nothing here counts what is left. "3 films watched on this device." appears after the first.
 
-   Client: src/lib/film-library.ts (with film-view.ts and film-strip.ts). */
+   Client: src/lib/film-library.ts (with film-view.ts and film-strip.ts). Search: src/lib/film-search.mjs
+   over /films/list.json and /films/search.json. Every card can go on a playlist (FilmPlaylist.astro). */
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import FilmPlaylist from '../../components/FilmPlaylist.astro';
 import Hex from '../../components/Hex.astro';
 import { filmCatalog, filmLevelHref, KIND_LABELS, KIND_ORDER, type CatalogFilm } from '../../lib/film-catalog';
 import { filmClock } from '../../lib/films';
@@ -298,6 +300,7 @@ const stacks = [
   </section>
 
 </div>
+<FilmPlaylist />
 
 <script>
   import { library } from '../../lib/film-library';

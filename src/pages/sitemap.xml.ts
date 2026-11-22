@@ -35,7 +35,7 @@ export async function GET(context: APIContext): Promise<Response> {
     '/calendar/', '/calendar/parent/', '/calendar/student/', '/calendar/student/mcat/', '/calendar/teacher/',
     ...(await learnerCourses()).flatMap((c) => [`/calendar/student/${c.s}/`, `/calendar/teacher/${c.s}/`]),
     // Find an idea, and one page per idea the hop graph holds.
-    '/ideas/', ...(await allIdeas()).map((i) => `/ideas/${i.id}/`),
+    '/ideas/', '/start/', ...(await allIdeas()).map((i) => `/ideas/${i.id}/`),
   ];
   const body =
     '<?xml version="1.0" encoding="UTF-8"?>\n' +

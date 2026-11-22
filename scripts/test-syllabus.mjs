@@ -426,16 +426,18 @@ check('what is typed or pasted is never put in a request or in the address', () 
   assert.ok(/never sent to us/.test(pp) && /remembers it/.test(pp) && /Start simple/.test(pp));
   assert.ok(!/Nothing on the site for this yet/.test(teach), 'the teacher page claims the site has nothing, which it cannot know');
 });
-check('the question box never repeats the typed words, always carries the help line, and stays unlinked until its help words are approved', () => {
+check('the question box never repeats the typed words, always carries the help line, and is linked only from the places its owner chose', () => {
   const page = readFileSync('src/pages/start/index.astro', 'utf8');
   const code = readFileSync('src/lib/start-page.ts', 'utf8').replace(/\/\*[\s\S]*?\*\/|^\s*\/\/.*$/gm, '');
   // No reply is built from what was typed: not the no-match line, not the closest line, not the status.
   assert.ok(!/esc\(\s*(q|typed|input\.value)\s*\)|\$\{\s*(q|typed|input\.value)\s*\}|“\$\{/.test(code), 'start-page.ts writes the typed words onto the page');
   assert.ok(!/stomach, nerves|one or two plain/.test(code), 'a tip under a failed question can read as flippant');
   assert.ok(/\{HELP\.line\}/.test(page) && /href=\{HELP\.href\}/.test(page), 'the permanent help line is on the page');
-  assert.ok(/<BaseLayout[^>]*\bnoindex\b/.test(page), '/start/ is noindex until the help words are approved');
+  assert.ok(!/<BaseLayout[^>]*\bnoindex\b/.test(page), '/start/ was approved on 2026-11-22 and should be indexed');
   assert.ok(/<BaseLayout[^>]*\bnoindex\b/.test(readFileSync('src/pages/start/help/index.astro', 'utf8')));
-  for (const f of ['src/pages/ideas/index.astro', 'src/pages/teach/index.astro', 'src/pages/sitemap.xml.ts']) assert.ok(!/["'`]\/start\//.test(readFileSync(f, 'utf8')), `${f} links /start/`);
+  for (const f of ['src/pages/ideas/index.astro', 'src/pages/courses/index.astro', 'src/components/SiteSearch.astro', 'src/pages/sitemap.xml.ts']) assert.ok(/["'`]\/start\//.test(readFileSync(f, 'utf8')), `${f} does not link /start/`);
+  for (const f of ['src/pages/index.astro', 'src/pages/teach/index.astro']) assert.ok(!/["'`]\/start\//.test(readFileSync(f, 'utf8')), `${f} links /start/`);
+  assert.ok(/<SiteSearch[^>]*startLink=\{false\}/.test(readFileSync('src/pages/index.astro', 'utf8')), 'the homepage search must not show the /start/ line');
   // The help words: one constant, plain, with no single adult named as the only one, and US numbers said to be US.
   const all = [HELP.line, HELP.urgent.heading, ...HELP.urgent.lines, HELP.urgent.status, HELP.page.intro, ...HELP.page.steps.flat(), HELP.page.foot];
   for (const t of all) { assert.ok(t.length <= 240, t); assert.ok(!/should not have|shouldn't have|not allowed|wrong to|your fault\b(?<!not your fault)/i.test(t), t); assert.ok(!/—/.test(t), t); }
