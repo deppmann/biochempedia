@@ -1,8 +1,9 @@
 /* The help words on /start/ and /start/help/, in one place.
 
-   NOT YET APPROVED. The wording, the phone numbers and the choice of services are the site
-   owner's to approve, with advice from someone trained in child safety. Until then /start/ and
-   /start/help/ are noindex and nothing links to them. Change the words here and nowhere else.
+   Wording approved by the site's owner on 2026-11-22 in its calmer form: the line under the box
+   names no harm, and the help page's headings name the help, not the harm. /start/ is linked from
+   /ideas/, /courses/ and the nothing-found state of the site search; /start/help/ stays noindex.
+   Change the words here and nowhere else.
 
    Why the page has them at all: children use the box, and a search box cannot tell when a
    sentence is a call for help. So the help does not depend on detecting one: `line` is on the page
@@ -14,7 +15,7 @@
 export const HELP = {
   href: '/start/help/',
   /** Always on the page, quiet, under the box. */
-  line: 'This box finds biology lessons. It is a search box, not a person. If something is wrong or scary, talk to an adult you trust.',
+  line: 'This is a search box, not a person. It can\'t talk with you. If you ever need help with something, ask an adult you trust.',
   linkText: 'Ways to get help',
   /** Shown first when the words are plainly about self-harm, abuse or danger. */
   urgent: {
@@ -29,13 +30,13 @@ export const HELP = {
   },
   /** The help page. */
   page: {
-    title: 'If something is wrong or scary',
+    title: 'Ways to get help',
     intro: 'STEMhop is a place to learn science. It cannot talk with you, and nobody here reads what you type. People can help, though, and you deserve that help.',
     steps: [
       ['Tell an adult you trust', 'A teacher, a school counselor or nurse, a coach, a grandparent, or someone else in your family you feel safe with. If the first person does not help, tell another one.'],
-      ['If you are in danger right now', 'In the United States, call 911.'],
-      ['If you are thinking about hurting yourself, or you feel very sad or scared', 'In the United States you can call or text 988 at any time, day or night. It is free. A person will answer and listen.'],
-      ['If someone is hurting you, or touching you in a way that is not okay', 'It is not your fault. In the United States you can call 1-800-422-4453 at any time to talk with someone whose job is to help children.'],
+      ['If you need help right away', 'In the United States, call 911.'],
+      ['If you feel very sad or worried', 'In the United States you can call or text 988 at any time, day or night. It is free. A person will answer and listen.'],
+      ['If someone is not treating you well', 'It is not your fault. In the United States you can call 1-800-422-4453 at any time to talk with someone whose job is to help children.'],
       ['If you are not in the United States', 'Ask an adult you trust to help you find the number for children where you live.'],
     ],
     numbers: [['911', 'tel:911'], ['988', 'tel:988'], ['1-800-422-4453', 'tel:18004224453']],

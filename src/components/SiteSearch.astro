@@ -20,14 +20,17 @@
  *
  * `scope` preselects a course; the chips let the reader widen it again.
  * `autofocus` is for the search page, where the box is the point of the page.
+ * `startLink` adds a line to the question box (/start/) when nothing is found. The homepage turns
+ * it off: its owner chose (2026-11-22) not to link the question box from the homepage.
  */
 interface Props {
   scope?: string;
   autofocus?: boolean;
   label?: string;
   placeholder?: string;
+  startLink?: boolean;
 }
-const { scope = 'all', autofocus = false, label = 'Search the lessons', placeholder = 'Try “allostery”, “Ras”, “western blot”…' } = Astro.props;
+const { scope = 'all', autofocus = false, label = 'Search the lessons', placeholder = 'Try “allostery”, “Ras”, “western blot”…', startLink = true } = Astro.props;
 import Hex from './Hex.astro';
 import { IDEAS_LINK } from '../data/site-flags';
 ---
@@ -47,6 +50,7 @@ import { IDEAS_LINK } from '../data/site-flags';
   <div class="ss-none" hidden>
     <Hex pose="think" size={64} alive />
     {IDEAS_LINK && <p class="ss-ideas">One idea at every level: <a href="/ideas/">Find an idea</a></p>}
+    {startLink && <p class="ss-ideas">Or say it in your own words: <a href="/start/">What are you trying to understand?</a></p>}
   </div>
   <p class="ss-status" role="status" aria-live="polite"></p>
   {/* Films, as their own group (2026-11-22): src/lib/film-find.ts, the film library's matcher. */}

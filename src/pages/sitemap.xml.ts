@@ -31,7 +31,7 @@ export async function GET(context: APIContext): Promise<Response> {
     '/methods/', ...METHODS.map((m) => `/methods/${m.slug}/`),
     '/films/', ...(await allFilms()).map((f) => f.href),
     // Find an idea, and one page per idea the hop graph holds.
-    '/ideas/', ...(await allIdeas()).map((i) => `/ideas/${i.id}/`),
+    '/ideas/', '/start/', ...(await allIdeas()).map((i) => `/ideas/${i.id}/`),
   ];
   const body =
     '<?xml version="1.0" encoding="UTF-8"?>\n' +
