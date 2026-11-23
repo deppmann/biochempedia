@@ -539,12 +539,14 @@ class S09bUnlocked1b(SpokenScene):
         footer_label = footer("Microfluidic chamber", BLUE)
         name = heading("Noo Li Jeon", GOLD)
         self.add(footer_label, name)
-        self.at("Axons there got")
-        self.play(FadeOut(name), run_time=0.32)
+        self.at("Natasha Sharma")
+        users = heading("Sharma and colleagues, Ginty laboratory", GOLD)
+        self.play(swap(name, users), run_time=0.60)
+        self.at("Their axons got")
         field = micro.ngf()
         self.play(FadeIn(field, shift=LEFT * 0.14),
                   micro.wells[1].animate.set_fill("#2F7781"), run_time=0.88)
-        self.at("their receptor")
+        self.at("the receptor for")
         terminal = micro.receptor()
         self.play(GrowFromCenter(terminal), micro.wells[1].animate.set_fill(RIGHT_BATH),
                   run_time=0.92)
