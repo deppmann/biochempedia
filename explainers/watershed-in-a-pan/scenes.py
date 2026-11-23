@@ -1,522 +1,1019 @@
-"""A watershed in a pan: we all live downstream  (Biochemistrypedia, Biology Together film)
+"""A Watershed in a Pan, a parent guide drawn as paper and ink.
 
-Timed to the SPOKEN words: every self.at("...") cue waits for that phrase in audio/words.json.
-Everything drawn is a schematic: side views and from-above sketches, none to scale.
-
-COLOR MAP (one color per concept, whole film)
-  BLUE   = water (rain, runoff, streams, rivers, the bay, a puddle)
-  TAN    = a ridge (the high ground that splits one watershed from the next)
-  GREEN  = a watershed (the land that drains to one place)
-  ORANGE = things the water picks up and carries (soil, litter, pet waste, lawn fertilizer)
-  GREY   = land, outlines, labels, de-emphasized
-  GOLD   = the title rule only
+Color map from the earlier film: blue is water, tan is high ground, green is
+watershed land, orange is material water can carry, and gray is the built world.
+The terrain is schematic. Its facets, creases and runoff all share one mesh.
 """
-import numpy as np
-from bp_style import *  # noqa: F401,F403
+from bp_parts import *
+from bp_style import EndCard
+
 
 TAN = "#C9A27A"
 ORANGE = "#F29E4C"
 LAND = "#8B93A1"
-FLOOR = -3.4          # bottom of the land blocks
-XL, XR = -6.3, 6.3    # left and right edge of the land blocks
+INK = "#283342"
+PAPER = "#F2EEE6"
+STEEL = "#657385"
+DARK_BLUE = "#1784AF"
+DARK_GREEN = "#357B58"
+PURPLE = "#8068B0"
+LESSON_TITLE = "A Watershed in a Pan"
+FILM_TITLE = "A Watershed in a Pan: Parent Guide"
 
 
-# ---------------------------------------------------------------------------------------------
-# helpers
-# ---------------------------------------------------------------------------------------------
-def P(x, y):
+def pt(x, y):
     return np.array([x, y, 0.0])
 
 
-def land_poly(f, n=61, color=LAND, op=0.25):
-    xs = np.linspace(XL, XR, n)
-    pts = [P(x, f(x)) for x in xs] + [P(XR, FLOOR), P(XL, FLOOR)]
-    return Polygon(*pts, stroke_width=0, fill_color=color, fill_opacity=op)
+def shape(points, fill, edge=None, width=2, opacity=1):
+    return Polygon(*points, fill_color=fill, fill_opacity=opacity,
+                   stroke_color=edge or fill, stroke_width=width if edge else 0)
 
 
-def surf_line(f, n=61, color="#B8BFCC", w=5):
-    xs = np.linspace(XL, XR, n)
-    return VMobject().set_points_as_corners([P(x, f(x)) for x in xs]).set_stroke(color, w).set_fill(opacity=0)
+def linework(points, color, width=4):
+    path = VMobject().set_points_as_corners(points)
+    path.set_stroke(color, width).set_fill(opacity=0)
+    path.set_cap_style(CapStyleType.ROUND)
+    return path
 
 
-def region(f, xa, xb, color=GREEN, op=0.28, n=40):
-    xs = np.linspace(xa, xb, n)
-    pts = [P(x, f(x)) for x in xs] + [P(xb, FLOOR), P(xa, FLOOR)]
-    return Polygon(*pts, stroke_width=0, fill_color=color, fill_opacity=op)
+def slab(w, h, color, x=0, y=0, radius=0.09, edge=None):
+    return RoundedRectangle(width=w, height=h, corner_radius=radius,
+                            fill_color=color, fill_opacity=1, stroke_color=edge or color,
+                            stroke_width=2 if edge else 0).move_to(pt(x, y))
 
 
-def pool(f, xa, xb, level, color=BLUE, op=0.75, n=60):
-    """water sitting in a low spot: between the surface and a flat level."""
-    xs = [x for x in np.linspace(xa, xb, n) if f(x) < level]
-    xl, xr = xs[0], xs[-1]
-    pts = [P(x, f(x)) for x in xs] + [P(xr, level), P(xl, level)]
-    return Polygon(*pts, stroke_width=0, fill_color=color, fill_opacity=op)
+def oval(w, h, color, x=0, y=0):
+    return Ellipse(width=w, height=h, stroke_width=0, fill_color=color,
+                   fill_opacity=1).move_to(pt(x, y))
 
 
-def path_on(f, xa, xb, lift=0.14, n=50):
-    xs = np.linspace(xa, xb, n)
-    return VMobject().set_points_as_corners([P(x, f(x) + lift) for x in xs])
+def arrow(start, end, color=INK):
+    return Arrow(start, end, buff=0.06, color=color, stroke_width=4,
+                 tip_length=0.19, max_tip_length_to_length_ratio=0.32)
 
 
-def trail(f, xa, xb, color=BLUE, w=6, lift=0.2):
-    """a blue line along the surface with an arrowhead at its far end."""
-    xs = np.linspace(xa, xb, 40)
-    pts = [P(x, f(x) + lift) for x in xs]
-    ln = VMobject().set_points_as_corners(pts).set_stroke(color, w).set_fill(opacity=0)
-    d = pts[-1] - pts[-4]
-    ang = np.arctan2(d[1], d[0])
-    tip = Triangle(fill_color=color, fill_opacity=1, stroke_width=0).scale(0.2).rotate(ang - PI / 2)
-    tip.move_to(pts[-1])
-    return VGroup(ln, tip)
+def dropshape(color=BLUE):
+    points = [pt(0, .27), pt(-.14, .02), pt(-.13, -.12), pt(0, -.19),
+              pt(.13, -.12), pt(.14, .02)]
+    return VMobject(fill_color=color, fill_opacity=1, stroke_width=0).set_points_smoothly(
+        [*points, points[0]])
 
 
-def drop(pos, r=0.11):
-    return Dot(pos, radius=r, color=BLUE)
+def label(words, x, y, color=TEXT, size=32):
+    return T(words, size, color, weight=BOLD).move_to(pt(x, y))
 
 
-def bchip(text, color=BLUE, size=26, **kw):
-    """chip with an opaque backing so lines behind it do not show through."""
-    c = chip(text, color, size=size, **kw)
-    back = RoundedRectangle(corner_radius=0.14, width=c[0].width, height=c[0].height, stroke_width=0,
-                            fill_color=BG, fill_opacity=1).move_to(c[0])
-    return VGroup(back, *c)
+def heading(words, y=3.13, x=0, size=46):
+    return T(words, size, TEXT, font=TITLE_FONT).move_to(pt(x, y))
 
 
-def arr(a, b, color=GREY, w=5, tip=0.22):
-    return Arrow(a, b, buff=0.08, color=color, stroke_width=w, tip_length=tip,
-                 max_tip_length_to_length_ratio=0.45, max_stroke_width_to_length_ratio=12)
+def stream_marks(path, count=5, rate=.22, color=BLUE, size=.10):
+    """Moving glints follow an existing drawn flow path."""
+    marks = VGroup()
+    for i in range(count):
+        mark = oval(size * 4, size, color)
+
+        def drift(mob, dt, phase=[i / count]):
+            phase[0] = (phase[0] + dt * rate) % 1
+            p = phase[0]
+            here = path.point_from_proportion(p)
+            ahead = path.point_from_proportion(min(1, p + .006))
+            delta = ahead - here
+            angle = np.arctan2(delta[1], delta[0])
+            mob.rotate(angle - getattr(mob, "flow_angle", 0))
+            mob.flow_angle = angle
+            mob.move_to(here)
+            mob.set_opacity(min(1, p * 14, (1 - p) * 14))
+
+        mark.add_updater(drift, call_updater=True)
+        marks.add(mark)
+    return marks
 
 
-def note(text, pos, size=22):
-    return T(text, size, GREY).move_to(pos)
+# The paper tray is drawn in shallow perspective. Column 3 is the main divide.
+HEIGHTS = np.array([
+    [.20, .48, .73, 1.35, .82, .55, .27],
+    [.56, .73, .45, 2.05, .54, .78, .36],
+    [.47, .60, .15, 1.65, .36, .54, .21],
+    [.30, .32, -.13, .92, .16, .21, .01],
+    [.20, .10, .02, .52, .05, -.03, -.17],
+])
+FACES = ("#F6F1E8", "#DFDAD1", "#F0EBE3", "#D1D0CD", "#E7E3DC",
+         "#C1C4C7", "#D9DBDB", "#F3EFE6")
 
 
-# --- the paper landscape (side view) used in scenes 2 and 3 ------------------------------------
-def _g(x, c, w):
-    return np.exp(-((x - c) / w) ** 2)
+def vertex(u, v, lift=1, tilt=0):
+    return pt((u - 3) * 1.56 + (v - 2) * .24,
+              1.06 - .84 * v + HEIGHTS[v, u] * .91 * lift + tilt * (3 - u) * .095)
 
 
-def H(x):
-    return -0.9 + 2.6 * _g(x, 0.2, 1.3) + 1.2 * _g(x, -5.8, 1.6) + 0.35 * _g(x, 2.9, 0.7) - 0.10 * x
+def surface(u, v, tilt=1):
+    """Interpolate coordinates on the same two triangles used to fold each cell."""
+    i, j = min(int(u), 5), min(int(v), 3)
+    a, b = u - i, v - j
+    p, q, r, s = (vertex(i, j, tilt=tilt), vertex(i+1, j, tilt=tilt),
+                  vertex(i+1, j+1, tilt=tilt), vertex(i, j+1, tilt=tilt))
+    if b <= a:
+        return p + a * (q - p) + b * (r - q)
+    return p + a * (r - s) + b * (s - p)
 
 
-def HILL(x):
-    return 1.45 * H(x) - 0.2
+def paper_mesh(lift=1, tilt=0, watersheds=False, flat=False):
+    faces = VGroup()
+    for v in range(4):
+        for u in range(6):
+            p, q, r, s = (vertex(u, v, lift, tilt), vertex(u+1, v, lift, tilt),
+                          vertex(u+1, v+1, lift, tilt), vertex(u, v+1, lift, tilt))
+            for tri, shade in (([p, q, r], (v * 6 + u * 3) % 8),
+                               ([p, r, s], (v * 3 + u * 5 + 3) % 8)):
+                color = PAPER if flat else FACES[shade]
+                if watersheds:
+                    tint = GREEN if u >= 3 else "#D2BA83"
+                    color = interpolate_color(ManimColor(color), ManimColor(tint), .66)
+                faces.add(shape(tri, color, color, width=.8))
+    return faces
 
 
-def FLAT(x):
-    return -0.8 + 0.0 * x
+def tray_parts(tilt=0):
+    back_l, back_r = pt(-5.53, 1.90 + .28 * tilt), pt(4.80, 1.90 - .28 * tilt)
+    front_l, front_r = pt(-4.85, -2.51 + .28 * tilt), pt(5.51, -2.51 - .28 * tilt)
+    lip_l, lip_r = front_l + pt(.18, -.36), front_r + pt(-.12, -.36)
+    rim = shape([back_l, back_r, front_r, front_l], STEEL, "#A9B7C5", 2.5)
+    bed = shape([back_l + pt(.23, -.20), back_r + pt(-.19, -.20),
+                 front_r + pt(-.24, .18), front_l + pt(.19, .18)], "#435166")
+    lip = shape([front_l, front_r, lip_r, lip_l], "#8596A9", "#ADBBCA", 2)
+    return VGroup(rim, bed, lip)
 
 
-_xs = np.linspace(XL, XR, 2001)
-RIDGE_X = float(_xs[(_xs > -1) & (_xs < 1.5)][np.argmax(HILL(_xs[(_xs > -1) & (_xs < 1.5)]))])
-_lv = _xs[(_xs > -5) & (_xs < -0.8)]
-VALLEY_X = float(_lv[np.argmin(HILL(_lv))])
-VALLEY_Y = float(HILL(VALLEY_X))
-BAY_LEVEL = float(HILL(XR)) + 0.55
+def towel():
+    top = shape([pt(-1.2, .19), pt(-.8, .55), pt(1.15, .55), pt(1.0, .19)], PAPER)
+    edge = slab(2.2, .32, "#C3CDD5", -.10, .02)
+    seam = linework([pt(-1.04, .02), pt(.80, .02)], "#94A5B5", 2)
+    return VGroup(edge, top, seam)
 
 
-def paper_pools(valley_level=None, bay_level=None):
-    out = []
-    if valley_level is not None:
-        out.append(pool(HILL, -5.0, -0.8, VALLEY_Y + valley_level))
-    if bay_level is not None:
-        out.append(pool(HILL, 2.5, XR, float(HILL(XR)) + bay_level))
-    return out
+def plate(tilt=0):
+    stand = towel().scale(.76).move_to(pt(-3.72, -2.74))
+    stand.set_opacity(float(tilt))
+    return VGroup(stand, tray_parts(tilt))
 
 
-# ---------------------------------------------------------------------------------------------
-class S00Title(TitleCard):
-    LESSON = "A Watershed in a Pan"
-    TITLE = "We all live downstream"
+def ridges(tilt=0):
+    main = linework([vertex(3, v, tilt=tilt) for v in range(5)], TAN, 8)
+    other = linework([vertex(u, v, tilt=tilt) for u, v in [(0, 1), (1, 1), (1, 0)]], TAN, 6)
+    return VGroup(main, other)
 
 
-# ---------------------------------------------------------------------------------------------
-class S01Rain(SpokenScene):
-    """a sloping street, a question mark, drops fall; some soak in; the rest runs downhill into a puddle."""
+def local_line(coords, color, width):
+    return linework([surface(u, v) for u, v in coords], color, width)
+
+
+def bay(tilt=1):
+    corners = [(4.7, 3.9), (5.07, 3.53), (5.48, 3.63), (5.61, 3.34),
+               (6, 3.38), (6, 4), (5.15, 4)]
+    return shape([surface(u, v, tilt=tilt) for u, v in corners], DARK_BLUE)
+
+
+def house():
+    base = slab(.66, .46, DARK_GREEN, 0, -.13)
+    roof = shape([pt(-.43, .06), pt(0, .39), pt(.43, .06)], "#478464")
+    door = slab(.13, .24, PAPER, .09, -.22, .025)
+    window = slab(.14, .13, "#BCDFA8", -.17, -.1, .02)
+    return VGroup(base, roof, door, window)
+
+
+def town():
+    houses = VGroup(house().scale(.78).move_to(surface(1.10, 1.18)),
+                    house().scale(.69).move_to(surface(2.12, 2.82)),
+                    house().scale(.82).move_to(surface(4.92, 1.11)))
+    rear_left, rear_right, front_right, front_left = [
+        surface(u, v) for u, v in [(3.7, .64), (4.53, .64), (4.65, 1.35), (3.74, 1.35)]
+    ]
+    field = shape([rear_left, rear_right, front_right, front_left], "#9CC478")
+    rows = VGroup()
+    for fraction in np.linspace(.15, .85, 4):
+        rear = interpolate(rear_left, rear_right, fraction)
+        front = interpolate(front_left, front_right, fraction)
+        rows.add(linework([interpolate(rear, front, .14),
+                              interpolate(rear, front, .84)], DARK_GREEN, 3))
+    farm = VGroup(field, rows)
+    road_points = [(0, 2.26), (1, 2.06), (2, 2.10), (2.6, 2.28), (3, 2.18),
+                   (3.58, 2.26), (4, 2.38), (5, 2.28), (6, 2.19)]
+    road = VGroup(local_line(road_points, STEEL, 12),
+                  DashedVMobject(local_line(road_points, PAPER, 2), num_dashes=28))
+    return VGroup(houses, farm, road)
+
+
+def landscape(tilt=1, marked=True, colored=True, built=True, watersheds=False):
+    """Return layers in drawing order so a scene can reveal any one independently."""
+    layers = VGroup(plate(tilt), paper_mesh(tilt=tilt, watersheds=watersheds))
+    if marked:
+        layers.add(ridges(tilt))
+    if colored:
+        layers.add(bay())
+    if built:
+        layers.add(town())
+    return layers
+
+
+def side_tray(with_paper=True):
+    if with_paper:
+        tray = landscape(tilt=0, marked=False, colored=False, built=False)
+    else:
+        tray = plate()
+    return tray.scale(.66, about_point=ORIGIN).shift(pt(2.66, -.25))
+
+
+# Water takes the lower creases on its own side of the main divide. These are
+# schematic routes over the paper, with a local pool on the left and bay on the right.
+ROUTES = (
+    [(2.77, 1.45), (2.42, 1.68), (2.12, 1.92), (2, 2.26), (2, 2.74), (2, 3.21)],
+    [(3.23, 1.48), (3.57, 1.75), (4, 2.10), (4.24, 2.49), (4.80, 3.02),
+     (5.10, 3.40), (5.57, 3.76)],
+    [(5.14, 1.39), (5.08, 1.85), (5.10, 2.37), (5.05, 2.89),
+     (5.10, 3.40), (5.57, 3.76)],
+)
+GUESS_ENDS = [(2.18, 1.52), (3.93, 1.68), (5.78, 1.60)]
+
+
+def rain_path(index, color=DARK_BLUE, width=8):
+    return local_line(ROUTES[index], color, width)
+
+
+def pencils():
+    starts = [surface(*route[0]) for route in ROUTES]
+    dots = VGroup(*[Dot(p, radius=.10, color=INK) for p in starts])
+    arrows = VGroup(*[arrow(p, surface(*end), INK) for p, end in zip(starts, GUESS_ENDS)])
+    return dots, arrows
+
+
+def local_pool():
+    return oval(.88, .22, DARK_BLUE).move_to(surface(2, 3.17))
+
+
+def wet_details():
+    return VGroup(*[rain_path(i) for i in range(3)], local_pool())
+
+
+def wet_glints(paths):
+    return VGroup(*[stream_marks(path, count=3, size=.10, rate=.34) for path in paths])
+
+
+# Street and paper icons share a cut-paper silhouette style.
+def street():
+    sidewalk = shape([pt(-6, 1.62), pt(-4.52, 2.30), pt(6.15, -.73),
+                      pt(5.98, -1.38)], "#AFB9C4")
+    curb = shape([pt(-6, 1.62), pt(5.98, -1.38), pt(5.98, -1.68),
+                  pt(-6, 1.38)], "#677685")
+    asphalt = shape([pt(-6, 1.38), pt(5.98, -1.68), pt(5.98, -2.90),
+                     pt(-6, -2.90)], "#3C4657")
+    seam = linework([pt(-5.55, -1.50), pt(3.9, -2.76)], "#77899B", 2)
+    puddle = oval(2.65, .46, DARK_BLUE, -4.54, .76).rotate(-.21)
+    flow = linework([pt(-4.57, .74), pt(-3.38, .48), pt(-2.18, .13), pt(-.6, -.29),
+                     pt(1.1, -.78), pt(2.9, -1.22), pt(4.78, -1.79)], DARK_BLUE, 10)
+    drain = VGroup(slab(1.26, .49, "#202936", edge="#8192A6"),
+                   *[slab(.075, .31, "#8192A6", x, 0, .018) for x in np.linspace(-.46, .46, 6)])
+    drain.rotate(-.25).move_to(pt(4.86, -1.83))
+    world = VGroup(asphalt, sidewalk, curb, seam, puddle, flow, drain)
+    return world, flow
+
+
+def sheet():
+    return shape([pt(-3.55, -1.05), pt(2.70, -1.34), pt(3.34, 1.43),
+                  pt(-2.98, 1.79)], PAPER, "#A9B7C5")
+
+
+def paper_ball():
+    # Keep every facet's vertex correspondence as the sheet is squeezed inward.
+    mesh = paper_mesh(lift=.75).move_to(ORIGIN)
+
+    def squeeze(p):
+        x, y = p[0] / 5.20, p[1] / 2.42
+        return pt(.98 * x * (1 - .26 * y * y), .92 * y * (1 - .27 * x * x))
+
+    return mesh.apply_function(squeeze).rotate(.34).shift(DOWN * .25)
+
+
+def spray_bottle(color=BLUE):
+    bottle = slab(.86, 1.02, color, 0, -.30, .24, "#B5D1DB")
+    stripe = slab(.63, .31, "#E4F0F0", 0, -.35, .07)
+    neck = slab(.32, .32, "#A4B4C0", -.04, .35)
+    handle = slab(.81, .26, "#8497A8", -.24, .62)
+    nozzle = slab(.24, .21, "#D4DFE3", -.68, .62, .04)
+    trigger = linework([pt(-.39, .50), pt(-.39, .27), pt(-.54, .18)], "#B8C9D5", 7)
+    return VGroup(bottle, stripe, neck, handle, nozzle, trigger)
+
+
+def marker(color):
+    return VGroup(slab(1.52, .24, "#E2E8EC"), slab(.47, .28, color, .59),
+                  slab(.20, .24, color, -.75, radius=.05))
+
+
+def pin(color=ORANGE):
+    head = Circle(radius=.26, stroke_width=0, fill_color=color, fill_opacity=1)
+    tip = shape([pt(-.20, -.10), pt(0, -.54), pt(.20, -.10)], color)
+    return VGroup(tip, head, Dot(radius=.086, color=INK))
+
+
+def eye():
+    shell = VMobject(fill_color=PAPER, fill_opacity=1, stroke_width=0)
+    shell.set_points_smoothly([pt(-.54, 0), pt(0, .27), pt(.54, 0), pt(0, -.27), pt(-.54, 0)])
+    return VGroup(shell, Dot(radius=.16, color=DARK_BLUE), Dot(pt(.04, .05), radius=.055, color=PAPER))
+
+
+def cocoa_dish():
+    mound = shape([pt(-.57, .09), pt(-.35, .30), pt(.01, .40), pt(.37, .29),
+                   pt(.58, .08)], "#A86746")
+    return VGroup(oval(1.65, .52, "#D5DCE2"), oval(1.42, .30, "#8F9EAC", 0, .07), mound)
+
+
+def cross(target, scale=1):
+    center = target.get_center()
+    return VGroup(Line(pt(-.48, -.48), pt(.48, .48)),
+                  Line(pt(-.48, .48), pt(.48, -.48))).set_stroke(RED, 8).scale(scale).move_to(center)
+
+
+def person(shirt, skin="#E8BD9A"):
+    head = Dot(pt(0, .68), radius=.34, color=skin)
+    torso = slab(.95, .91, shirt, 0, -.04, .26)
+    legs = VGroup(slab(.26, .58, "#99A6B6", -.24, -.64),
+                  slab(.26, .58, "#99A6B6", .24, -.64))
+    return VGroup(legs, torso, head)
+
+
+def pet(kind):
+    head = oval(1.17, .87, "#BE946F" if kind == "dog" else "#9DAFC3")
+    if kind == "dog":
+        ears = VGroup(oval(.28, .64, "#8F634C", -.52, .10).rotate(-.28),
+                      oval(.28, .64, "#8F634C", .52, .10).rotate(.28))
+    else:
+        ears = VGroup(*[shape([pt(x-.22, .22), pt(x, .66), pt(x+.22, .22)], "#9DAFC3")
+                        for x in (-.38, .38)])
+    face = VGroup(Dot(pt(-.20, .08), radius=.063, color=INK), Dot(pt(.20, .08), radius=.063, color=INK),
+                  oval(.20, .12, INK, 0, -.10))
+    return VGroup(ears, head, face)
+
+
+def trash_bin():
+    body = shape([pt(-.48, .28), pt(.48, .28), pt(.36, -.70),
+                  pt(-.36, -.70)], "#7393A4")
+    slots = VGroup(*[slab(.058, .60, "#ABC6CB", x, -.20, .025) for x in (-.18, 0, .18)])
+    lid = VGroup(slab(1.12, .17, "#AFC2CF", 0, .29), slab(.28, .15, "#AFC2CF", 0, .43))
+    return VGroup(body, slots, lid)
+
+
+def tap():
+    pipe = linework([pt(-.58, .38), pt(.30, .38), pt(.54, .19), pt(.54, -.07)], "#9AB1C1", 24)
+    valve = VGroup(slab(.15, .30, "#B6C6D3", -.24, .63),
+                   slab(.65, .12, "#B6C6D3", -.24, .78))
+    return VGroup(pipe, valve)
+
+
+def hand():
+    palm = slab(.77, .47, "#E8BD9A", 0, -.13, .20)
+    fingers = VGroup(*[slab(.15, length, "#E8BD9A", x, .04 + length / 2, .065)
+                      for x, length in zip((-.27, -.09, .09, .27), (.39, .51, .44, .32))])
+    thumb = slab(.16, .40, "#E8BD9A", -.39, -.03, .070).rotate(.64)
+    return VGroup(palm, fingers, thumb)
+
+
+def badge(icon, x=-3.52, y=.12):
+    pictogram = icon.scale_to_fit_width(3.0).scale_to_fit_height(
+        min(2.18, icon.height)).move_to(pt(x, y))
+    panel = slab(4.60, 3.12, "#263447", x, y, .28, "#53677F")
+    return VGroup(panel, pictogram)
+
+
+def spray_fan(origin, targets, period=1.10):
+    """Short sprays start at a point or a moving point and vanish on contact."""
+    source = origin.get_center if isinstance(origin, Mobject) else lambda: origin
+    fan = VGroup()
+    for i, target in enumerate(targets):
+        for j in range(2):
+            fleck = oval(.086, .22, BLUE)
+
+            def fall(mob, dt, end=target, age=[0.015 * i + .14 * j]):
+                age[0] = (age[0] + dt) % period
+                fraction = min(1, age[0] / .42)
+                mob.move_to(interpolate(source(), end, fraction))
+                mob.set_opacity(0 if fraction >= 1 else min(.94, fraction * 12))
+
+            fleck.add_updater(fall, call_updater=True)
+            fan.add(fleck)
+    return fan
+
+
+class S01Hook(SpokenScene, TitleCard):
+    LESSON = LESSON_TITLE
+    TITLE = FILM_TITLE
 
     def construct(self):
-        def SY(x):
-            return 1.9 - 0.4177 * (x - XL) if x < 1.6 else -1.4
-
-        land = land_poly(SY)
-        surf = surf_line(SY)
-        street = path_on(SY, -5.4, 1.2, lift=0.0).set_stroke("#5B6270", 16).set_fill(opacity=0)
-        street_lbl = note("your street", P(-3.3, -0.35), 26)
-        q = T("?", 110, BLUE, weight=BOLD).move_to(P(3.9, -0.55))
-        title = T("Where does the rain go?", 34, font=TITLE_FONT).move_to(P(3.2, 2.5))
-
-        self.at("Where does rain go")
-        self.play(FadeIn(land), Create(surf), FadeIn(street), FadeIn(street_lbl), run_time=0.6)
-        self.play(Write(title), FadeIn(q, scale=0.8), run_time=0.7)
-
-        # rain lands on the street
-        self.at("lands on your street")
-        xs = [-5.0, -4.2, -3.4, -2.6, -1.8, -1.0, -0.2]
-        falls = [drop(P(x, 3.0)) for x in xs]
-        self.add(*falls)
-        self.play(LaggedStart(*[d.animate.move_to(P(x, SY(x) + 0.14)) for d, x in zip(falls, xs)], lag_ratio=0.1),
-                  run_time=1.0, rate_func=linear)
-        self.play(*[FadeOut(d) for d in falls], run_time=0.2)
-
-        # the puddle replaces the question
-        puddle0 = Ellipse(width=1.3, height=0.22, fill_color=BLUE, fill_opacity=0.8, stroke_width=0).move_to(P(3.9, -1.3))
-        self.at("Watch a puddle")
-        self.play(FadeOut(title), ReplacementTransform(q, puddle0), run_time=0.7)
-
-        # water moving downhill
-        down = trail(SY, -5.0, 3.1, lift=0.3)
-        runners = [drop(P(x, SY(x) + 0.14)) for x in (-4.6, -3.2, -1.8)]
-        self.at("moving downhill")
-        self.add(*runners)
-        self.play(Create(down[0]), FadeIn(down[1]), *[MoveAlongPath(r, path_on(SY, x, 3.5)) for r, x in zip(runners, (-4.6, -3.2, -1.8))],
-                  run_time=1.0, rate_func=linear)
-        puddle1 = Ellipse(width=2.2, height=0.3, fill_color=BLUE, fill_opacity=0.8, stroke_width=0).move_to(P(3.9, -1.3))
-        self.play(*[FadeOut(r) for r in runners], Transform(puddle0, puddle1), run_time=0.25)
-
-        # some soaks in
-        self.at("Some rain soaks")
-        self.play(FadeOut(down), run_time=0.3)
-        sx = [-5.0, -4.3, -3.6]
-        sd = [drop(P(x, 3.0)) for x in sx]
-        self.add(*sd)
-        self.play(LaggedStart(*[d.animate.move_to(P(x, SY(x) + 0.14)) for d, x in zip(sd, sx)], lag_ratio=0.15),
-                  run_time=0.9, rate_func=linear)
-        soak = note("some soaks into the ground", P(-3.9, -1.5), 24)
-        self.play(*[d.animate.shift(DOWN * 0.8).set_opacity(0) for d in sd], FadeIn(soak), run_time=0.9)
-
-        # ground full or hard -> the rest runs off
-        self.at("full or hard")
-        full = note("ground full or hard", P(-3.9, -1.5), 24)
-        self.play(ReplacementTransform(soak, full), run_time=0.5)
-        rx = [-5.0, -4.2, -3.4, -2.6, -1.8, -1.0]
-        self.at("the rest runs")
-        rd = [drop(P(x, 3.0)) for x in rx]
-        self.add(*rd)
-        self.play(LaggedStart(*[d.animate.move_to(P(x, SY(x) + 0.14)) for d, x in zip(rd, rx)], lag_ratio=0.1),
-                  run_time=0.9, rate_func=linear)
-        down2 = trail(SY, -5.0, 3.1, lift=0.3)
-        self.play(Create(down2[0]), FadeIn(down2[1]),
-                  *[MoveAlongPath(d, path_on(SY, x, 3.6)) for d, x in zip(rd, rx)], run_time=1.6, rate_func=linear)
-        puddle2 = Ellipse(width=3.4, height=0.42, fill_color=BLUE, fill_opacity=0.8, stroke_width=0).move_to(P(3.9, -1.25))
-        self.play(*[FadeOut(d) for d in rd], Transform(puddle0, puddle2), run_time=0.5)
+        world, flow = street()
+        question = heading("Where does the rain go?", size=53)
+        self.add(world, stream_marks(flow, count=7, size=.235, rate=.19))
+        self.at("where does rain go")
+        self.play(FadeIn(question, shift=UP * .12), run_time=.55)
+        self.at("it runs downhill")
+        parcel = oval(1.53, .37, "#9AE0EA").rotate(-.26)
+        self.play(MoveAlongPath(parcel, flow), run_time=2.05, rate_func=linear)
+        self.remove(parcel)
+        self.at("a paper landscape")
+        self.play(FadeOut(question), run_time=.40)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S02Paper(SpokenScene):
-    """flat paper crumples into hills and valleys; a low corner becomes the bay; a ridge; drops run both ways."""
+class S02Title(TitleCard):
+    LESSON = LESSON_TITLE
+    TITLE = FILM_TITLE
 
     def construct(self):
-        flat_land, flat_surf = land_poly(FLAT), surf_line(FLAT)
-        land, surf = land_poly(HILL), surf_line(HILL)
-        scale_note = note("the paper from the side: a sketch, not to scale", P(-3.7, -3.2), 22)
+        world, _ = street()
+        tray = side_tray()
+        title = heading(self.LESSON, y=3.00, size=56)
+        guide = label("Parent Guide", 0, 2.28, BLUE)
+        self.add(world)
+        self.play(ReplacementTransform(world, tray), FadeIn(title), run_time=.66)
+        self.play(FadeIn(guide), run_time=.26)
+        self.wait(.83)
+        self.play(FadeOut(title), FadeOut(guide), run_time=.25)
 
-        self.at("In the activity")
-        self.play(FadeIn(flat_land), Create(flat_surf), FadeIn(scale_note), run_time=0.8)
-        self.at("crumples paper")
-        self.play(Transform(flat_land, land), Transform(flat_surf, surf), run_time=1.6)
-        hv = note("hill", P(-5.3, float(HILL(-5.6)) + 0.45), 26)
-        vv = note("valley", P(VALLEY_X, VALLEY_Y - 0.55), 26)
-        self.at("hills and")
-        self.play(FadeIn(hv), run_time=0.3)
-        self.at("valleys")
-        self.play(FadeIn(vv), run_time=0.3)
 
-        # the bay
-        bay = pool(HILL, 2.5, XR, float(HILL(XR)) + 0.1)
-        bay_big = pool(HILL, 2.5, XR, float(HILL(XR)) + 0.55)
-        self.at("One low corner")
-        self.play(FadeIn(bay), run_time=0.4)
-        self.at("blue and called")
-        self.play(Transform(bay, bay_big), run_time=0.8)
-        bay_lbl = T("the bay", 28, BLUE).move_to(P(5.0, float(HILL(XR)) + 1.1))
-        self.at("called the bay")
-        self.play(FadeIn(bay_lbl, shift=DOWN * 0.1), run_time=0.4)
-
-        # the ridge
-        ridge = path_on(HILL, RIDGE_X - 0.9, RIDGE_X + 0.9, lift=0.05).set_stroke(TAN, 12).set_fill(opacity=0)
-        ridge_lbl = T("ridge", 30, TAN, weight=BOLD).move_to(P(RIDGE_X - 1.75, float(HILL(RIDGE_X)) - 0.05))
-        self.at("The high ground")
-        self.play(FadeOut(hv), FadeOut(vv), Create(ridge), run_time=0.6)
-        self.at("called a ridge")
-        self.play(FadeIn(ridge_lbl, shift=DOWN * 0.1), run_time=0.4)
-
-        # one side, then the other
-        lx, rx = RIDGE_X - 0.5, RIDGE_X + 0.5
-        d1 = drop(P(lx, 3.3))
-        self.at("on one side")
-        self.add(d1)
-        self.play(d1.animate.move_to(P(lx, float(HILL(lx)) + 0.14)), run_time=0.8, rate_func=linear)
-        self.at("flows one way")
-        t1 = trail(HILL, lx, VALLEY_X + 0.35)
-        self.play(MoveAlongPath(d1, path_on(HILL, lx, VALLEY_X)), Create(t1[0]), FadeIn(t1[1]), run_time=1.1, rate_func=linear)
-        vp = pool(HILL, -5.0, -0.8, VALLEY_Y + 0.3)
-        self.play(FadeOut(d1), FadeIn(vp), run_time=0.4)
-
-        d2 = drop(P(rx, 3.3))
-        self.at("on the other side")
-        self.add(d2)
-        self.play(d2.animate.move_to(P(rx, float(HILL(rx)) + 0.14)), run_time=0.8, rate_func=linear)
-        self.at("the other way")
-        t2 = trail(HILL, rx, 4.2)
-        self.play(MoveAlongPath(d2, path_on(HILL, rx, 4.6)), Create(t2[0]), FadeIn(t2[1]), run_time=1.3, rate_func=linear)
-        self.play(FadeOut(d2), run_time=0.3)
+class S03Payoff(SpokenScene):
+    def construct(self):
+        self.add(side_tray())
+        duration = label("About 25 minutes", -2.89, 2.88, BLUE, 33)
+        rows = [
+            (arrow(pt(-.44, 0), pt(.43, 0), BLUE), "Guess, then check", 1.64),
+            (eye(), "Look closely", .21),
+            (pin(), "Our watershed", -1.24),
+        ]
+        self.at("it takes about")
+        self.play(FadeIn(duration, shift=UP * .12), run_time=.55)
+        for cue, (icon, words, y) in zip(("practices guessing", "and checking", "a watershed map"), rows):
+            icon.move_to(pt(-5.34, y))
+            text = label(words, 0, y, size=34).align_to(pt(-4.48, y), LEFT)
+            self.at(cue, lead=.45)
+            self.play(FadeIn(icon, shift=RIGHT * .25), run_time=.43)
+            self.play(FadeIn(text), run_time=.36)
+            bob(icon, amp=.10, speed=2.1)
+        self.at("also trace")
+        self.play(FadeOut(duration), run_time=.45)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S03Watershed(SpokenScene):
-    """the same paper: land draining to one place is green; the ridge splits two; two low spots, each collecting from its own patch."""
-
+class S04Gather(SpokenScene):
     def construct(self):
-        land, surf = land_poly(HILL), surf_line(HILL)
-        scale_note = note("the paper from the side: a sketch, not to scale", P(-3.7, -3.2), 22)
-        vp = pool(HILL, -5.0, -0.8, VALLEY_Y + 0.3)
-        bay = pool(HILL, 2.5, XR, float(HILL(XR)) + 0.55)
-        ridge = path_on(HILL, RIDGE_X - 0.9, RIDGE_X + 0.9, lift=0.05).set_stroke(TAN, 12).set_fill(opacity=0)
-        ridge_lbl = T("ridge", 30, TAN, weight=BOLD).move_to(P(RIDGE_X - 1.75, float(HILL(RIDGE_X)) - 0.05))
-        self.add(land, surf, scale_note, vp, bay, ridge, ridge_lbl)
+        tray = side_tray(with_paper=False)
+        start_tray = side_tray()
+        self.add(start_tray)
+        page = sheet().scale(.32).move_to(pt(-4.64, .99))
+        markers = VGroup(*[marker(c) for c in (BLUE, TAN, GREEN, PURPLE)]).arrange(DOWN, buff=.18)
+        markers.rotate(-.19).move_to(pt(-2.35, .85))
+        towels = VGroup(towel(), towel().shift(pt(.05, .24))).move_to(pt(-4.53, -1.16))
+        cocoa = cocoa_dish().move_to(pt(-2.14, -1.2))
+        supply = VGroup(page, markers, towels, cocoa)
+        self.at("gather white")
+        self.play(ReplacementTransform(start_tray, tray), FadeIn(page, shift=RIGHT * .60), run_time=.80)
+        self.at("washable markers")
+        self.play(FadeIn(markers, shift=UP * .44), run_time=.77)
+        self.at("paper towels")
+        self.play(FadeIn(towels, shift=RIGHT * .40), run_time=.69)
+        self.at("a shallow metal tray")
+        pan_name = caption("Shallow tray or tub", 30, y=-3.10).set_x(2.66)
+        self.play(FadeIn(pan_name), run_time=.45)
+        self.play(FadeIn(cocoa, shift=UP * .25), run_time=.56)
 
-        # land that drains to one place
-        right = region(HILL, RIDGE_X, XR)
-        left = region(HILL, XL, RIDGE_X)
-        wr = T("one watershed", 30, GREEN, weight=BOLD).move_to(P(3.4, 2.6))
-        wl = T("the next watershed", 30, GREEN, weight=BOLD).move_to(P(-4.1, 2.9))
-        flows = VGroup(*[trail(HILL, a, b, w=4, lift=0.2) for a, b in ((RIDGE_X + 0.6, 2.2), (2.6, 4.4))])
-        self.at("All the land that drains")
-        self.play(FadeIn(right), run_time=0.6)
-        self.at("to the same stream")
-        self.play(*[Create(f[0]) for f in flows], *[FadeIn(f[1]) for f in flows], run_time=0.9)
-        self.at("is called a watershed")
-        self.play(FadeIn(wr, shift=DOWN * 0.1), run_time=0.5)
-
-        # a ridge splits
-        split = DashedLine(P(RIDGE_X, float(HILL(RIDGE_X)) - 0.1), P(RIDGE_X, FLOOR), color=TAN, stroke_width=5)
-        self.at("A ridge splits")
-        self.play(FadeOut(flows), Create(split), run_time=0.7)
-        self.at("one watershed from the next")
-        self.play(FadeIn(left), FadeIn(wl, shift=DOWN * 0.1), run_time=0.7)
-
-        # two low spots
-        ls1 = bchip("low spot", BLUE, 24).move_to(P(VALLEY_X, VALLEY_Y + 1.15))
-        ls2 = bchip("low spot", BLUE, 24).move_to(P(4.6, float(HILL(XR)) + 1.3))
-        a1 = arr(ls1.get_bottom(), P(VALLEY_X, VALLEY_Y + 0.4), BLUE, w=4, tip=0.18)
-        a2 = arr(ls2.get_bottom(), P(4.6, float(HILL(XR)) + 0.55), BLUE, w=4, tip=0.18)
-        self.at("pools in more than")
-        self.play(FadeIn(ls1), GrowArrow(a1), run_time=0.5)
-        self.at("one low spot")
-        self.play(FadeIn(ls2), GrowArrow(a2), run_time=0.5)
-        self.at("its own small patch")
-        self.play(Indicate(ls1, color=BLUE, scale_factor=1.15), Indicate(ls2, color=BLUE, scale_factor=1.15), run_time=1.0)
+        self.at("use plain water", lead=.78)
+        self.play(FadeOut(supply), FadeOut(pan_name), run_time=.42)
+        clean = spray_bottle().scale(1.23).move_to(pt(-4.87, .73))
+        old = spray_bottle("#88998C").scale(1.14).move_to(pt(-1.88, .73))
+        water_only = label("Plain water only", -4.87, -.76, BLUE, 28)
+        old_name = label("Old cleaner", -1.95, -.76, RED, 28)
+        self.play(FadeIn(clean, shift=UP * .35), run_time=.47)
+        self.play(FadeIn(water_only), run_time=.45)
+        self.at("one that has only")
+        old_cross = cross(old, 1.36)
+        self.play(FadeIn(old), FadeIn(old_name), Create(old_cross), run_time=.54)
+        self.at("if you use a hole", lead=.50)
+        self.play(FadeOut(clean), FadeOut(water_only), FadeOut(old), FadeOut(old_cross),
+                  FadeOut(old_name), run_time=.47)
+        punch = VGroup(slab(1.55, .22, LAND, 0, -.40),
+                       slab(1.64, .22, "#B7C2CF", 0, -.11).rotate(.28),
+                       Dot(pt(-.61, -.26), radius=.19, color="#AFBCC9")).scale(1.39)
+        punch.move_to(pt(-3.63, .86))
+        small_dots = VGroup(*[Dot(pt(-4.06+i*.43, -.17), radius=.105, color=PAPER) for i in range(3)])
+        self.play(FadeIn(punch, shift=DOWN * .25), run_time=.42)
+        self.play(LaggedStart(*[FadeIn(d, shift=DOWN * .21) for d in small_dots], lag_ratio=.33), run_time=.62)
+        self.at("handle it yourself")
+        self.play(FadeIn(label("Adults handle the punch", -3.43, -1.40), shift=UP * .12), run_time=.42)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S04Downstream(SpokenScene):
-    """from above: little streams join bigger streams and a river to the bay; things ride the water; a storm drain."""
-
+class S14Safety(SpokenScene):
     def construct(self):
-        J1, J2, J3 = P(-2.1, 0.55), P(0.6, -0.45), P(1.7, -1.3)
-        A = [P(-5.1, 2.6), P(-3.6, 1.7), J1]
-        B = [P(-5.1, 0.9), P(-3.6, 0.8), J1]
-        D = [P(-5.1, -0.9), P(-3.7, -0.5), J1]
-        C = [P(0.4, 2.6), P(0.2, 1.2), J2]
-        BIG = [J1, J2]
-        RIV = [J2, J3, P(2.2, -1.65)]
-        E = [P(-3.3, -2.45), P(-1.0, -2.3), P(1.15, -0.9)]
-        # the E creek joins the river at the first third of the river line
+        self.add(side_tray())
+        adult = person(BLUE).scale(1.04)
+        child = person(GREEN).scale(.72).shift(pt(.94, -.12))
+        adult.shift(LEFT * .66)
+        current = badge(VGroup(adult, child))
+        rule = label("Stay beside your child", -3.43, -2.03)
+        self.at("stay beside your child")
+        self.add(current)
+        self.play(FadeIn(rule), run_time=.53)
+        self.play(adult.animate.shift(RIGHT * .15), run_time=.79)
 
-        def line(pts, w, color=BLUE):
-            return VMobject().set_points_as_corners(pts).set_stroke(color, w).set_fill(opacity=0)
+        self.at("spray only at", lead=.60)
+        sprayer = spray_bottle().rotate(PI / 2.8).move_to(pt(-4.12, .51))
+        target = slab(1.45, .17, PAPER, -4.02, -.64)
+        face = Dot(pt(-2.65, .45), radius=.36, color="#E8BD9A")
+        icon = VGroup(sprayer, target, face, cross(face, .68))
+        next_badge = VGroup(current[0].copy(), icon)
+        spray_rule = label("Aim at the paper", -3.43, -2.03, BLUE)
+        self.play(FadeOut(current[1]), FadeOut(rule), run_time=.30)
+        self.remove(current)
+        self.add(next_badge[0])
+        self.play(FadeIn(icon), run_time=.44)
+        mist = spray_fan(pt(-4.35, .17), [pt(x, -.50) for x in np.linspace(-4.6, -3.52, 7)])
+        self.add(mist)
+        self.play(FadeIn(spray_rule), run_time=.42)
 
-        bay = Ellipse(width=5.2, height=2.3, fill_color=BLUE, fill_opacity=0.55, stroke_color=BLUE, stroke_width=3).move_to(P(3.6, -2.3))
-        bay_lbl = T("the low corner", 26, BLUE).move_to(P(4.8, -0.62))
-        small = [line(p, 3) for p in (A, B, D, C)]
-        big = line(BIG, 6)
-        river = line(RIV, 10)
-
-        self.at("Little streams join")
-        self.play(*[Create(s) for s in small], run_time=1.0)
-        lbl1 = note("little streams", P(-4.1, 3.3), 24)
-        self.play(FadeIn(lbl1), run_time=0.3)
-        self.at("bigger streams")
-        self.play(Create(big), run_time=0.7)
-        lbl2 = note("bigger stream", P(-1.2, 0.95), 24)
-        self.play(FadeIn(lbl2), run_time=0.3)
-        self.at("join rivers")
-        self.play(Create(river), FadeIn(bay), FadeIn(bay_lbl), run_time=0.9)
-        lbl3 = note("river", P(-0.3, -1.0), 24)
-        self.play(FadeIn(lbl3), run_time=0.3)
-
-        sk = note("schematic, from above, not to scale", P(-2.6, -3.4), 22)
-        self.play(FadeIn(sk), run_time=0.3)
-
-        # it picks things up
-        self.at("it picks things up")
-        self.play(FadeOut(VGroup(lbl1, lbl2, lbl3)), run_time=0.4)
-        specs = [("soil", A[0], A + [RIV[0], RIV[1], P(2.7, -2.0)]),
-                 ("litter", B[0], B + [RIV[0], RIV[1], P(3.5, -2.0)]),
-                 ("lawn fertilizer", D[0], D + [RIV[0], RIV[1], P(4.4, -2.0)]),
-                 ("pet waste", C[0], C + [RIV[1], P(3.2, -2.9)])]
-        chips = []
-        for text, pos, _ in specs:
-            c = bchip(text, ORANGE, 22)
-            c.move_to(pos).shift(RIGHT * (c.width / 2 - 0.05) if text != "pet waste" else ORIGIN)
-            chips.append(c)
-        self.at("Soil litter")
-        self.play(FadeIn(chips[0], scale=0.8), run_time=0.35)
-        self.wait(0.15)
-        self.play(FadeIn(chips[1], scale=0.8), run_time=0.35)
-        self.at("pet waste")
-        self.play(FadeIn(chips[3], scale=0.8), run_time=0.35)
-        self.at("lawn fertilizer")
-        self.play(FadeIn(chips[2], scale=0.8), run_time=0.35)
-
-        # ride downstream
-        self.at("can all go along")
-        t_end = self.t_of("end up downstream") - self.elapsed() - 0.3
-        t_end = max(2.0, t_end)
-        # end positions inside the bay, in two rows
-        ends = [P(2.2, -1.95), P(3.3, -1.95), P(3.7, -2.7), P(4.7, -1.95)]
-        moves = []
-        for (text, pos, pts), c, e in zip(specs, chips, ends):
-            pth = VMobject().set_points_as_corners([pos] + pts[1:-1] + [e])
-            moves.append(MoveAlongPath(c, pth))
-        self.play(*moves, run_time=t_end, rate_func=smooth)
-        self.at("downstream")
-        self.play(*[c.animate.scale(1.1) for c in chips], run_time=0.3)
-        self.play(*[c.animate.scale(1 / 1.1) for c in chips], run_time=0.3)
-
-        # storm drain
-        drain = bchip("storm drain", GREY, 24).move_to(P(-5.0, -2.45))
-        pipe = line([drain.get_right() + RIGHT * 0.03, P(-3.3, -2.45)], 8, GREY)
-        creek = line(E, 4)
-        self.at("storm drains carry")
-        self.play(FadeIn(drain), Create(pipe), run_time=0.5)
-        self.at("straight to a creek")
-        creek_lbl = note("creek", P(-1.9, -1.95), 24)
-        self.play(Create(creek), FadeIn(creek_lbl), run_time=1.0)
-        drop_ = drop(E[0], r=0.14)
-        self.at("without cleaning it")
-        self.play(MoveAlongPath(drop_, VMobject().set_points_as_corners(E)), run_time=1.0, rate_func=linear)
-        self.play(FadeOut(drop_), run_time=0.2)
+        self.at("keep paper dots", lead=.40)
+        pieces = VGroup(*[Dot(pt(x, -.01), radius=.22, color=PAPER) for x in (-4.45, -3.80, -3.15)],
+                        slab(.37, .66, GREEN, -2.52, -.04, .08).rotate(-.35))
+        choke_rule = label("Under 4 • choking risk", -3.43, -2.03)
+        self.play(FadeOut(icon), FadeOut(spray_rule), FadeOut(mist), run_time=.35)
+        self.play(LaggedStart(*[FadeIn(p, shift=UP * .24) for p in pieces], lag_ratio=.24), run_time=1.35)
+        self.at("children under 4", lead=.30)
+        self.play(FadeIn(choke_rule), run_time=.52)
+        self.at("count the dots out", lead=.35)
+        self.play(FadeOut(pieces[3]), run_time=.24)
+        numbers = VGroup(*[label(str(i), x, .61, BLUE, 33)
+                           for i, x in enumerate((-4.45, -3.80, -3.15), 1)])
+        self.play(LaggedStart(*[FadeIn(n, shift=UP * .12) for n in numbers], lag_ratio=.36), run_time=.77)
+        self.play(LaggedStart(*[d.animate.shift(DOWN * .40) for d in pieces[:3]], lag_ratio=.25), run_time=.80)
+        self.at("child is choking", lead=.25)
+        emergency = label("If choking, call 911", -3.43, -2.03, RED, 35)
+        self.play(swap(choke_rule, emergency, run_time=.80))
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S05Virginia(SpokenScene):
-    """schematic bar of where Virginia's land drains: more than half to the Bay, the rest south or west."""
-
+class S15SafetyMore(SpokenScene):
     def construct(self):
-        title = T("Where Virginia's land drains", 40, font=TITLE_FONT).move_to(P(0, 3.3))
-        W, Hh = 11.4, 1.7
-        yb = 1.5
-        wb = W * 0.55   # drawn visibly over half; only the words "more than half" are shown, no number
-        outline = RoundedRectangle(corner_radius=0.2, width=W, height=Hh, stroke_color=GREY, stroke_width=3).move_to(P(0, yb))
-        x0 = -W / 2
-        bar_bay = Rectangle(width=wb, height=Hh - 0.1, stroke_width=0, fill_color=BLUE, fill_opacity=0.4).move_to(P(x0 + wb / 2 + 0.05, yb))
-        bar_rest = Rectangle(width=W - wb - 0.1, height=Hh - 0.1, stroke_width=0, fill_color=LAND, fill_opacity=0.3).move_to(P(x0 + wb + (W - wb) / 2 - 0.05, yb))
-        lbl_all = T("all the land in Virginia", 26, GREY).move_to(P(0, yb + 1.05))
-        lbl_bay = T("more than half", 36, BLUE, weight=BOLD).move_to(bar_bay)
-        lbl_rest = T("the rest", 36, TEXT).move_to(bar_rest)
-        sch = note("a sketch, not to scale", P(0, -3.15), 24)
+        self.add(side_tray())
+        lips = oval(1.38, .35, "#D9A58D", 0, .51)
+        mouth = VGroup(lips, oval(1.10, .13, INK, 0, .51), cross(lips, .85),
+                       cocoa_dish().shift(DOWN * .50))
+        current = badge(mouth)
+        safety = label("Keep supplies out of mouths", -3.40, -2.05, size=29)
+        self.at("keep all supplies")
+        self.add(current)
+        self.play(FadeIn(safety), run_time=.50)
+        self.play(mouth[-1].animate.shift(DOWN * .18), run_time=1.13)
+        panel = current[0]
+        self.remove(current)
+        self.add(panel, mouth)
 
-        self.at("More than half")
-        self.play(FadeIn(title), Create(outline), FadeIn(lbl_all), FadeIn(sch), run_time=0.8)
-        self.play(FadeIn(bar_bay), FadeIn(lbl_bay), run_time=0.7)
-        bay_chip = bchip("Chesapeake Bay", BLUE, 30).move_to(P(bar_bay.get_center()[0], -0.85))
-        self.at("Chesapeake Bay")
-        self.play(GrowArrow(arr(bar_bay.get_bottom() + DOWN * 0.1, bay_chip.get_top(), BLUE)), FadeIn(bay_chip), run_time=0.7)
+        self.at("cocoa is toxic", lead=.50)
+        pets = VGroup(pet("dog"), pet("cat")).arrange(RIGHT, buff=.38).scale(1.14).move_to(pt(-3.52, .14))
+        keep_away = label("Keep pets away from cocoa", -3.40, -2.05, size=29)
+        self.play(FadeOut(mouth), FadeOut(safety), run_time=.32)
+        self.play(FadeIn(pets, shift=LEFT * .25), run_time=.62)
+        self.play(FadeIn(keep_away), run_time=.49)
+        self.at("keep pets away")
+        self.play(pets.animate.shift(LEFT * .53), run_time=.93)
 
-        # the rest
-        xr = bar_rest.get_center()[0]
-        south = bchip("south: the sounds of North Carolina", BLUE, 22).move_to(P(2.4, -0.85))
-        west = bchip("west: toward the Gulf of Mexico", BLUE, 22).move_to(P(2.4, -2.0))
-        self.at("Most of the rest")
-        self.play(FadeIn(bar_rest), FadeIn(lbl_rest), run_time=0.6)
-        self.at("south to the")
-        self.play(GrowArrow(arr(P(2.4, yb - 0.95), south.get_top(), BLUE)), FadeIn(south), run_time=0.7)
-        self.at("or west toward")
-        elbow = Line(P(5.35, yb - 0.95), P(5.35, -2.0), color=BLUE, stroke_width=5)
-        self.play(Create(elbow), run_time=0.4)
-        self.play(GrowArrow(arr(P(5.35, -2.0), west.get_right(), BLUE)), FadeIn(west), run_time=0.5)
+        self.at("wipe up cocoa", lead=.30)
+        puddle = oval(1.27, .43, DARK_BLUE, -3.62, -.15)
+        splash = VGroup(puddle, *[Dot(pt(x, y), radius=.093, color=ORANGE)
+                                  for x, y in [(-3.84, -.08), (-3.08, -.27), (-3.59, -.36)]])
+        cloth = towel().scale(.73).move_to(pt(-4.64, -.07))
+        self.play(FadeOut(pets), FadeOut(keep_away), run_time=.29)
+        self.play(FadeIn(splash), FadeIn(cloth, shift=RIGHT * .22), run_time=.65)
+        self.play(cloth.animate.shift(RIGHT * 1.60), FadeOut(splash), run_time=1.23)
 
-        # a map helps
-        mp = bchip("a map of Virginia's watersheds", GREY, 28).move_to(P(-2.4, -3.1))
-        town = bchip("your town", TEXT, 26).move_to(P(2.9, -3.1))
-        self.at("A map of")
-        self.play(FadeOut(sch), FadeIn(mp, shift=UP * 0.15), run_time=0.6)
-        self.at("find your town")
-        self.play(GrowArrow(arr(mp.get_right(), town.get_left(), GREY)), FadeIn(town), run_time=0.6)
+        self.at("cocoa -covered paper", lead=.60)
+        bin_icon = trash_bin().scale(1.23).move_to(pt(-3.60, -.07))
+        scrap = sheet().scale(.15).move_to(pt(-4.32, 1.04))
+        scrap.add(oval(.33, .15, ORANGE).move_to(scrap))
+        shut_bin = label("Use a pet-proof bin", -3.40, -2.05)
+        self.play(FadeOut(cloth), FadeIn(bin_icon), run_time=.41)
+        self.play(FadeIn(scrap), bin_icon[2].animate.shift(UP * .49), run_time=.48)
+        self.play(scrap.animate.move_to(pt(-3.57, .25)), run_time=.60)
+        self.remove(scrap)
+        self.play(bin_icon[2].animate.shift(DOWN * .49), FadeIn(shut_bin), run_time=.51)
+
+        self.at("wash everyone's hands", lead=.48)
+        faucet = tap().scale(.83).move_to(pt(-3.70, .83))
+        hands = VGroup(hand().rotate(.89), hand().rotate(-.77)).arrange(RIGHT, buff=-.10)
+        hands.scale(.74).move_to(pt(-3.41, -.46))
+        suds = VGroup(*[Dot(pt(x, y), radius=.074, color="#D4EFF0") for x, y in
+                        [(-3.8, -.29), (-3.59, -.25), (-3.42, -.16), (-3.24, -.30)]])
+        self.play(FadeOut(bin_icon), FadeOut(shut_bin), run_time=.30)
+        self.play(FadeIn(faucet), FadeIn(hands), run_time=.44)
+        water = linework([pt(-3.23, .48), pt(-3.34, -.39)], DARK_BLUE, 6)
+        self.add(water, stream_marks(water, count=4, rate=1.18, size=.064))
+        self.play(FadeIn(suds), run_time=.50)
+        bob(hands, amp=.13, speed=3.2)
+        bob(suds, amp=.13, speed=3.2)
+        self.play(FadeIn(label("Wash with soap and water", -3.40, -2.05, BLUE, 30)), run_time=.55)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S06Rule(SpokenScene):
-    """your yard, creek, river, bay: the path of the rain; we all live downstream; safety notes on the page."""
-
+class S05Crumple(SpokenScene):
     def construct(self):
-        yard = bchip("your yard", GREY, 36).move_to(P(-4.5, 2.0))
-        creek = bchip("creek", BLUE, 36).move_to(P(-1.4, 0.5))
-        river = bchip("river", BLUE, 36).move_to(P(1.9, -1.0))
-        bay = bchip("the Bay", BLUE, 36).move_to(P(5.0, -2.4))
-        std = bchip("Virginia grade 4 standard", GREY, 34).move_to(P(0, 2.4))
-        quote = T("we all live downstream", 60, font=TITLE_FONT).move_to(P(0, 0.0))
-        saf = bchip("the safety notes are on the page", GREY, 30).move_to(P(-2.6, -2.9))
-
-        cond = bchip("if your home is in\nthe Bay watershed", BLUE, 28).move_to(P(3.8, 0.75))
-        m1 = bchip("model a watershed", GREY, 28).move_to(P(-3.0, 1.2))
-        m2 = bchip("name the one they live in", GREY, 28).move_to(P(2.6, 1.2))
-        self.at("standard asks")
-        self.play(FadeIn(std, shift=DOWN * 0.1), run_time=0.5)
-        self.at("model a watershed")
-        self.play(FadeIn(m1, shift=DOWN * 0.1), run_time=0.4)
-        self.at("name the one")
-        self.play(FadeIn(m2, shift=DOWN * 0.1), run_time=0.4)
-        self.at("we all live downstream")
-        self.play(Write(quote), run_time=1.4)
-
-        # the path
-        a1 = arr(yard.get_right(), creek.get_top() + LEFT * 0.3, BLUE)
-        a2 = arr(creek.get_right(), river.get_top() + LEFT * 0.3, BLUE)
-        a3 = arr(river.get_right(), bay.get_top() + LEFT * 0.3, BLUE)
-        self.at("Bay watershed")
-        self.play(FadeOut(VGroup(std, m1, m2)), quote.animate.scale(0.65).move_to(P(3.4, 2.45)), run_time=0.6)
-        self.play(FadeIn(cond), run_time=0.4)
-        self.at("runs off your yard")
-        self.play(FadeIn(yard, shift=DOWN * 0.1), run_time=0.5)
-        self.at("can reach it")
-        ghost = DashedVMobject(bay[1].copy().set_fill(opacity=0), num_dashes=30).set_color(BLUE)
-        self.play(Create(ghost), run_time=0.5)
-        self.at("through creeks")
-        self.play(GrowArrow(a1), FadeIn(creek), run_time=0.7)
-        self.at("and rivers")
-        self.play(GrowArrow(a2), FadeIn(river), run_time=0.7)
-        self.play(GrowArrow(a3), FadeOut(ghost), FadeIn(bay), run_time=0.7)
-
-        # trace it on a map
-        self.at("can trace")
-        dot = Dot(yard.get_right(), radius=0.16, color=GOLD)
-        self.play(FadeIn(dot), run_time=0.2)
-        for pt in (creek.get_top() + LEFT * 0.3, river.get_top() + LEFT * 0.3, bay.get_top() + LEFT * 0.3):
-            self.play(dot.animate.move_to(pt), run_time=0.7, rate_func=linear)
-        self.play(FadeOut(dot), run_time=0.2)
-
-        # one idea for a younger child
-        put = bchip("what we put on the land", ORANGE, 26).move_to(P(-4.0, -0.55))
-        pdot = Dot(P(-4.5, 2.0), radius=0.2, color=ORANGE)
-        self.at("what we put")
-        self.play(FadeIn(put, shift=UP * 0.1), run_time=0.5)
-        self.at("reach the water")
-        pth = VMobject().set_points_as_corners([yard.get_right(), a1.get_end(), a2.get_start(), a2.get_end(), a3.get_start(), a3.get_end()])
-        pdot.move_to(yard.get_right())
-        self.play(FadeIn(pdot), run_time=0.15)
-        self.play(MoveAlongPath(pdot, pth), run_time=1.6, rate_func=linear)
-        self.at("The safety notes")
-        self.play(FadeOut(put), FadeOut(pdot), FadeIn(saf, shift=UP * 0.1), run_time=0.5)
+        base = plate()
+        mesh = paper_mesh(lift=0, flat=True).scale(.76).shift(UP * .45)
+        self.add(base, mesh)
+        self.at("crumple the paper")
+        self.play(Transform(mesh, paper_ball()), run_time=2.34)
+        self.at("open it gently")
+        self.play(Transform(mesh, paper_mesh(lift=.56)), run_time=2.41)
+        self.at("you want hills")
+        self.play(Transform(mesh, paper_mesh()), run_time=1.45)
+        self.at("ask your child")
+        question = question_card("Where is the highest ground?", y=-3.37, size=37)
+        self.play(FadeIn(question), run_time=.54)
+        main, other = ridges()
+        finger = hand().scale(.81).rotate(PI + .24)
+        finger.move_to(main.get_start() + pt(.12, .49))
+        self.at("the highest ground", lead=.32)
+        self.play(FadeIn(finger, shift=LEFT * .72), run_time=.68)
+        self.at("then trace each ridge", lead=.40)
+        self.play(FadeOut(question), run_time=.31)
+        route = main.copy().shift(pt(.12, .49))
+        ridge_name = label("Ridge = high ground", 2.25, 3.06, TAN, 36)
+        self.play(Create(main, rate_func=linear), MoveAlongPath(finger, route, rate_func=linear),
+                  FadeIn(ridge_name, rate_func=squish_rate_func(smooth, .20, .62)), run_time=1.06)
+        self.play(Create(other), FadeOut(finger), run_time=.47)
         self.finish()
 
 
-class S07End(EndCard):
-    LINE = "We all live downstream."
+class S06Town(SpokenScene):
+    def construct(self):
+        base, mesh, crest = landscape(tilt=0, colored=False, built=False)
+        before_bay = bay(tilt=0)
+        self.add(base, mesh, crest)
+        self.at("color one low corner")
+        self.play(FadeIn(before_bay, scale=.56), run_time=1.08)
+        self.at("call it the bay")
+        bay_name = label("The bay", 4.27, -3.43, BLUE, 33)
+        self.play(FadeIn(bay_name), run_time=.50)
+
+        self.at("tuck a folded towel")
+        stand = towel().scale(.76).move_to(pt(-5.57, -2.81))
+        self.play(FadeIn(stand, shift=RIGHT * .43), run_time=.65)
+        self.play(stand.animate.move_to(pt(-3.72, -2.74)),
+                  Transform(base[1], tray_parts(1)), Transform(mesh, paper_mesh(tilt=1)),
+                  Transform(crest, ridges(1)), Transform(before_bay, bay()), run_time=1.73)
+        self.remove(stand)
+        self.bring_to_back(plate(1)[0])
+        self.at("then draw houses", lead=.38)
+        houses, farm, road = town()
+        self.play(LaggedStart(*[DrawBorderThenFill(h) for h in houses], lag_ratio=.24), run_time=1.37)
+        self.at("a farm and", lead=.12)
+        self.play(DrawBorderThenFill(farm), run_time=.52)
+        self.at("and a road", lead=.02)
+        pencil = marker(PURPLE).scale(.79).rotate(.70)
+        drawing = road[0].copy().shift(pt(.47, .31))
+        pencil.move_to(drawing.get_start())
+        self.add(pencil)
+        self.play(Create(road), MoveAlongPath(pencil, drawing), run_time=1.69, rate_func=linear)
+        self.play(FadeOut(bay_name), FadeOut(pencil), run_time=.50)
+        self.finish()
+
+
+class S07ChildGuess(SpokenScene):
+    def construct(self):
+        self.add(landscape())
+        dots, guesses = pencils()
+        pointer = hand().scale(1.12).rotate(PI)
+        offsets = [d.get_center() + pt(.08, .76) for d in dots]
+        halos = VGroup(*[Circle(radius=.60, color="#AA713E", stroke_width=8,
+                                fill_color=ORANGE, fill_opacity=.52).move_to(d) for d in dots])
+        pointer.move_to(offsets[0] + pt(-.84, .36))
+        self.at("point to three spots")
+        self.add(pointer)
+        self.play(pointer.animate.move_to(offsets[0]), run_time=.72)
+        self.play(FadeIn(halos[0], scale=.35), FadeIn(dots[0], scale=.35), run_time=.44)
+        self.at("on each side")
+        self.play(pointer.animate.move_to(offsets[1]), FadeOut(halos[0]), run_time=.69)
+        self.play(FadeIn(halos[1], scale=.35), FadeIn(dots[1], scale=.35), run_time=.44)
+        self.at("one by a house", lead=.32)
+        self.play(pointer.animate.move_to(offsets[2]), FadeOut(halos[1]), run_time=.82)
+        self.play(FadeIn(halos[2], scale=.35), FadeIn(dots[2], scale=.35), run_time=.55)
+        self.play(FadeOut(pointer, shift=RIGHT * .48), FadeOut(halos[2]), run_time=.53)
+        self.at("if rain lands here", lead=.31)
+        question = question_card("If rain lands here, where will it go?", y=3.08, size=42)
+        self.play(FadeIn(question), run_time=.58)
+        self.at("draws a small arrow", lead=.34)
+        nib = shape([pt(-1.18, 0), pt(-.78, .27), pt(-.78, -.27)], INK)
+        pencil = VGroup(slab(1.70, .53, "#665597", .05, 0, .12),
+                        slab(.24, .44, "#AD9ECC", .80, 0, .07), nib).rotate(.60)
+        tip_offset = pencil.get_center() - nib.get_vertices()[0]
+        for guess in guesses:
+            cursor = linework([guess.get_start() + tip_offset, guess.get_end() + tip_offset], INK)
+            pencil.move_to(cursor.get_start())
+            self.add(pencil)
+            self.play(GrowArrow(guess), MoveAlongPath(pencil, cursor), run_time=.63, rate_func=linear)
+            self.remove(pencil)
+        self.finish()
+
+
+PREDICT = "Same place,\nor not?"
+PREDICT_CARD = {"left": -6.07, "y": 1.25, "max_w": 3.36, "size": 42}
+
+
+def ridge_closeup():
+    # Crop around the same ridge using an inset made from the shared mesh.
+    faces = VGroup()
+    for v in range(3):
+        for u in range(1, 5):
+            p, q, r, s = (vertex(u, v, tilt=1), vertex(u+1, v, tilt=1),
+                          vertex(u+1, v+1, tilt=1), vertex(u, v+1, tilt=1))
+            for tri, i in (([p, q, r], (v*6+u*3) % 8),
+                           ([p, r, s], (v*3+u*5+3) % 8)):
+                faces.add(shape(tri, FACES[i], FACES[i], .8))
+    crest = linework([vertex(3, v, tilt=1) for v in range(4)], TAN, 10)
+    water = VGroup(*[dropshape(DARK_BLUE).scale(1.59).move_to(surface(*r[0]) + pt(dx, .71))
+                     for r, dx in zip(ROUTES[:2], (-.45, .15))])
+    group = VGroup(faces, crest, water).scale(1.22, about_point=ORIGIN).shift(pt(2.52, -.26))
+    return group
+
+
+class S08PredictQuestion(SpokenScene):
+    def construct(self):
+        top = ridge_closeup()
+        self.add(*top[:2])
+        card = question_card(PREDICT, **PREDICT_CARD)
+        self.at("here is a question")
+        self.play(FadeIn(card), run_time=.60)
+        self.at("take two drops", lead=.32)
+        drops = top[2]
+        settled = [d.get_center().copy() for d in drops]
+        for d, x in zip(drops, (-.59, .62)):
+            d.shift(pt(x, .63))
+        self.play(LaggedStart(*[FadeIn(d, shift=DOWN * .29) for d in drops], lag_ratio=.38), run_time=1.14)
+        self.play(*[d.animate.shift(DOWN * .44) for d in drops], run_time=1.54)
+        self.at("opposite sides", lead=.36)
+        divide = top[1].copy().set_stroke("#9D623D", 15)
+        self.add(divide)
+        self.bring_to_front(*drops)
+        self.play(Create(divide), *[d.animate.move_to(p + UP * .53) for d, p in zip(drops, settled)],
+                  run_time=1.91)
+        self.at("will they end up")
+        self.play(FadeOut(divide), *[d.animate.move_to(p) for d, p in zip(drops, settled)],
+                  run_time=2.62)
+        self.finish()
+
+
+class S09PredictPause(PredictPause):
+    QUESTION = PREDICT
+    CARD = PREDICT_CARD
+    RING_AT = (-4.66, -.34, 0)
+    SECONDS = 4.5
+
+    def backdrop(self):
+        return ridge_closeup()
+
+    def construct(self):
+        # A larger ring is legible beside the ridge even in the low-resolution draft.
+        ring, sweep = countdown(self.SECONDS, center=self.RING_AT, radius=.80)
+        ring[1].add_updater(lambda arc: arc.set_stroke(width=17))
+        self.add(self.backdrop(), question_card(self.QUESTION, **self.CARD), ring)
+        self.play(sweep)
+
+
+class S10Rain(SpokenScene):
+    def construct(self):
+        world = landscape()
+        dots, guesses = pencils()
+        hover = VGroup(*[dropshape(DARK_BLUE).move_to(surface(*r[0]) + pt(0, .45)) for r in ROUTES[:2]])
+        self.add(world, hover)
+        bottle = spray_bottle()
+        spray_from = VectorizedPoint(bottle[4].get_left())
+        bottle.add(spray_from).flip(UP).scale(.72).rotate(-.58).move_to(pt(-3.21, 3.10))
+        fan = spray_fan(spray_from, [surface(u, 1.96) for u in np.linspace(1.45, 5.4, 19)], period=.82)
+        for fleck in fan:
+            fleck.scale(1.35)
+        self.at("the paper from", lead=.72)
+        self.play(FadeIn(bottle, shift=UP * .12), run_time=.58)
+        self.add(fan)
+        measure = DashedLine(pt(-5.75, spray_from.get_y()), pt(-5.75, vertex(0, 0, tilt=1)[1]),
+                             dash_length=.14, color=BLUE, stroke_width=4)
+        distance = label("About 1 foot", -5.17, 3.52, BLUE, 30)
+        self.at("about a foot", lead=.24)
+        self.play(Create(measure), run_time=.38)
+        self.play(FadeIn(distance), run_time=.38)
+        self.at("10 to 20 squirts")
+        sprays = caption("10–20 squirts", 33, BLUE, y=-3.45).set_x(0)
+        self.play(FadeIn(sprays), run_time=.49)
+        self.at("several squirts")
+        self.play(FadeOut(sprays), bottle.animate.rotate(-.10).shift(DOWN * .08), run_time=.54)
+        self.play(bottle.animate.rotate(.10).shift(UP * .08), run_time=1.22)
+        fan.clear_updaters(recursive=True)
+        self.play(FadeOut(fan), FadeOut(bottle), FadeOut(distance), FadeOut(measure), run_time=.43)
+
+        paths = [rain_path(i) for i in range(3)]
+        self.at("the marker bleeds", lead=.37)
+        ink = VGroup(*[rain_path(i, "#85B5BC", 24) for i in range(3)])
+        self.play(LaggedStart(*[Create(trail) for trail in ink], lag_ratio=.24), run_time=2.24)
+        self.play(LaggedStart(*[Create(trail) for trail in paths], lag_ratio=.10), run_time=1.06)
+        self.at("drops on each side", lead=.55)
+        for d, route in zip(hover, paths[:2]):
+            d.scale(1.77).move_to(route.get_start())
+        self.bring_to_front(hover)
+        self.play(*(MoveAlongPath(d, route) for d, route in zip(hover, paths)),
+                  run_time=1.78, rate_func=linear)
+        self.play(GrowFromCenter(local_pool()), FadeOut(hover), FadeOut(ink), run_time=.65)
+        self.add(wet_glints(paths))
+        self.finish()
+
+
+class S11Check(SpokenScene):
+    def construct(self):
+        world = landscape()
+        trails = wet_details()
+        dots, guesses = pencils()
+        self.add(world, trails, dots, guesses, wet_glints(trails[:3]))
+        self.at("check the arrows")
+        for a in guesses:
+            self.play(a.animate.set_color(ORANGE), run_time=.39)
+            self.play(a.animate.set_color(INK), run_time=.34)
+        self.at("did the rain go")
+        question = question_card("Did the rain go where you guessed?", y=3.11, size=37)
+        self.play(FadeIn(question), run_time=.52)
+        self.at("then name it")
+        self.play(FadeOut(question), FadeOut(dots), FadeOut(guesses), run_time=.45)
+
+        self.at("all the land", lead=.30)
+        colored = paper_mesh(tilt=1, watersheds=True)
+        old_mesh = world[1]
+        for index in range(0, 48, 12):
+            self.play(*[Transform(a, b) for a, b in zip(old_mesh[index:index+12], colored[index:index+12])],
+                      run_time=.54)
+        watershed = label("Watershed", 4.04, -3.47, GREEN, 37)
+        self.at("one watershed", lead=.32)
+        self.play(FadeIn(watershed), run_time=.61)
+        self.at("the ridges split", lead=.20)
+        ridge_glow = linework([vertex(3, v, tilt=1) for v in range(5)], "#9A633D", 14)
+        # A second pass brightens the two catchments as their common edge is traced.
+        sharp_washes = paper_mesh(tilt=1, watersheds=True)
+        for face in sharp_washes[:]:
+            face.set_fill(interpolate_color(face.get_fill_color(), ManimColor("#748A65"), .29))
+        self.play(Create(ridge_glow), Transform(old_mesh, sharp_washes), run_time=1.78)
+        self.finish()
+
+
+def fertilizer_spot():
+    where = surface(4.02, 1.51)
+    return VGroup(*[Dot(where + pt(x, y), radius=.052, color=ORANGE) for x, y in
+                    [(-.20, .04), (-.11, -.02), (-.08, .12), (.02, -.08),
+                     (.09, .05), (.16, .11), (.19, -.02), (.27, .05)]])
+
+
+class S12Pollution(SpokenScene):
+    def construct(self):
+        world = landscape()
+        trails = wet_details()
+        self.add(world, trails, wet_glints(trails[:3]))
+        cocoa = fertilizer_spot()
+        fertilizer = label("Pretend fertilizer", 3.33, 2.99, ORANGE, 34)
+        self.at("a pinch of cocoa", lead=.35)
+        self.play(LaggedStart(*[FadeIn(d, shift=DOWN * .35) for d in cocoa], lag_ratio=.16), run_time=1.52)
+        self.play(FadeIn(fertilizer), run_time=.60)
+        bob(cocoa, amp=.05, speed=2.0)
+        self.at("if allergies or asthma")
+        self.play(FadeOut(fertilizer), run_time=.46)
+        option = label("Colored water, if suitable", 3.00, 2.98, BLUE, 32)
+        sample = VGroup(*[dropshape(ORANGE).scale(.65).move_to(pt(1.63+i*.33, 2.25-.14*(i%2)))
+                          for i in range(3)])
+        self.at("use colored water", lead=.45)
+        self.play(FadeIn(sample, shift=DOWN * .28), run_time=.64)
+        self.play(FadeIn(option), run_time=.50)
+        for i, d in enumerate(sample):
+            bob(d, amp=.12, seed=i)
+        self.at("you can skip both")
+        self.play(FadeOut(sample), FadeOut(option), run_time=.51)
+        litter = VGroup(*[Dot(surface(x, y), radius=.097, color=ORANGE) for x, y in
+                          [(1.28, 2.08), (1.54, 2.11), (4.03, 2.38)]])
+        self.at("put a few paper dots")
+        self.play(LaggedStart(*[FadeIn(d, shift=DOWN * .49) for d in litter], lag_ratio=.34), run_time=1.25)
+        litter_name = label("Paper litter", -3.92, 2.93, ORANGE, 33)
+        self.at("as litter")
+        self.play(FadeIn(litter_name), run_time=.51)
+        runoff = local_line([(4.02, 1.51), (4.07, 1.90), (4.24, 2.49), (4.80, 3.02),
+                             (5.10, 3.40), (5.57, 3.76)], ORANGE, 10)
+        source = pt(-.65, 2.82)
+        self.at("spray again")
+        fan = spray_fan(source, [surface(u, 2.13) for u in np.linspace(1, 5.4, 15)])
+        self.add(fan)
+        self.play(FadeOut(litter_name), run_time=.47)
+        self.at("watch where everything", lead=.30)
+        self.play(Create(runoff), litter[2].animate.shift(pt(.29, -.24)), run_time=1.65, rate_func=linear)
+        self.add(stream_marks(runoff, count=3, color="#FFCA7B", rate=.48, size=.10))
+        self.finish()
+
+
+def map_picture():
+    outline = shape([pt(-6, -.89), pt(-5.16, -.26), pt(-4.44, .05), pt(-3.95, .67),
+                     pt(-3.14, .60), pt(-2.82, 1.25), pt(-2.33, 1.53), pt(-1.98, 2.09),
+                     pt(-1.35, 2.39), pt(-1.08, 1.82), pt(-.60, 1.53), pt(-.23, 1.07),
+                     pt(.31, .91), pt(.04, .63), pt(.72, .32), pt(.54, -.21),
+                     pt(.85, -.66), pt(.94, -1.17), pt(-5.77, -1.17)],
+                    "#CFDAB8", "#92B591", 3)
+    river = linework([pt(-3.35, .14), pt(-2.68, -.05), pt(-2.25, .10), pt(-1.75, -.20),
+                      pt(-1.26, .06), pt(-.80, -.24), pt(-.37, -.27), pt(.55, -.81)], DARK_BLUE, 9)
+    mouth = oval(.55, .26, DARK_BLUE).move_to(river.get_end())
+    return VGroup(outline, river, mouth)
+
+
+def seedling():
+    soil = oval(1.10, .24, "#AA7958", 0, -.45)
+    trunk = linework([pt(0, -.43), pt(0, .42)], DARK_GREEN, 7)
+    leaves = VGroup(oval(.58, .26, GREEN, -.19, .20).rotate(-.50),
+                    oval(.61, .28, "#75B768", .25, .47).rotate(.53))
+    return VGroup(soil, trunk, leaves)
+
+
+class S13Home(SpokenScene):
+    def construct(self):
+        outline, river, mouth = map_picture()
+        self.add(outline)
+        title = heading("Virginia’s watersheds", x=-2.55, y=3.04, size=43)
+        tag = scope_tag(size=29, color=TEXT).move_to(pt(-2.35, -2.08))
+        self.at("a map of virginia's")
+        self.play(FadeIn(title), FadeIn(tag), run_time=.57)
+        self.at("find your town", lead=.41)
+        town_pin = pin().scale(.75).move_to(river.get_start() + pt(0, .34))
+        name = label("Our town", -4.24, 1.14, ORANGE, 33)
+        self.play(FadeIn(town_pin, shift=DOWN * .30), run_time=.50)
+        self.play(FadeIn(name), run_time=.23)
+        self.at("follow the river", lead=.12)
+        self.play(Create(river), run_time=1.52, rate_func=linear)
+        self.play(FadeIn(mouth), run_time=.48)
+        self.add(stream_marks(river, count=5, rate=.26))
+
+        activities = [
+            (trash_bin().scale(.97), 3.47, 1.54),
+            (seedling().scale(1.14), 3.47, -.05),
+            (tap().scale(.94), 3.47, -1.79),
+        ]
+        self.at("pick three things")
+        action = label("Draw three family actions", 3.42, 2.83, size=29)
+        self.play(FadeIn(action), run_time=.48)
+        for icon, x, y in activities:
+            icon.move_to(pt(x, y))
+            self.play(DrawBorderThenFill(icon), run_time=.79)
+        self.play(activities[1][0].animate.shift(DOWN * .28), run_time=.60)
+        icon_bin, tree, faucet = (item[0] for item in activities)
+        self.at("put trash in the bin", lead=.19)
+        trash = shape([pt(-.17, -.13), pt(-.20, .06), pt(.07, .16),
+                       pt(.19, .01), pt(.11, -.14)], ORANGE)
+        trash.move_to(icon_bin.get_top() + pt(.62, .27))
+        self.add(trash)
+        self.play(icon_bin[2].animate.shift(UP * .21), run_time=.29)
+        self.play(trash.animate.move_to(icon_bin[0].get_top()), run_time=.39)
+        self.remove(trash)
+        self.play(icon_bin[2].animate.shift(DOWN * .21), run_time=.26)
+        self.at("turn off the tap", lead=.25)
+        drip = dropshape().scale(.46).move_to(faucet[0].get_end() + pt(0, -.14))
+        self.add(drip)
+        self.play(faucet[1][1].animate.rotate(PI / 4), FadeOut(drip, shift=DOWN * .27), run_time=.74)
+        self.finish()
+
+
+class S16Return(SpokenScene):
+    def construct(self):
+        world, flow = street()
+        self.add(world, stream_marks(flow, count=7, size=.235, rate=.19))
+        litter = shape([pt(-.17, -.07), pt(-.11, .16), pt(.12, .13),
+                        pt(.21, -.07), pt(.04, -.15)], ORANGE, "#FFD19E", 2)
+        litter.move_to(flow.point_from_proportion(.19))
+        path = flow.copy().pointwise_become_partial(flow, .19, 1)
+        self.at("rain can carry", lead=.36)
+        self.play(FadeIn(litter, shift=DOWN * .17), run_time=.46)
+        surge = oval(1.58, .36, "#8DD7E7").rotate(-.27)
+        litter.set_z_index(1)
+        surge_path = path.copy().shift(UP * .05)
+        self.play(MoveAlongPath(litter, path), MoveAlongPath(surge, surge_path),
+                  run_time=2.57, rate_func=linear)
+        self.remove(surge)
+        self.play(FadeOut(litter, scale=.40), run_time=.29)
+        drain_name = label("Storm drain", 4.62, .58, BLUE, 33)
+        self.play(FadeIn(drain_name), run_time=.41)
+        self.at("your pan shows", lead=.25)
+        creek = linework([pt(4.86, -1.84), pt(4.16, -2.26), pt(3.23, -2.50),
+                          pt(2.55, -2.74), pt(1.28, -2.93), pt(.38, -3.03)], BLUE, 9)
+        creek_name = label("Creek", -1.10, -3.37, BLUE, 32)
+        self.play(Create(creek), run_time=1.36)
+        self.play(FadeIn(creek_name), run_time=.36)
+        parcel = litter.copy().move_to(creek.get_start())
+        self.add(parcel, stream_marks(creek, count=4, size=.18))
+        self.at("carry them downstream", lead=.40)
+        self.play(MoveAlongPath(parcel, creek), run_time=1.32, rate_func=linear)
+        self.finish()
+
+
+class S17End(EndCard):
+    LINE = "Rain runs downhill and carries what it picks up downstream."
