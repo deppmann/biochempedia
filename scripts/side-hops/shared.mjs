@@ -1,8 +1,10 @@
 // Rules shared by scripts/check-side-hops.mjs and scripts/side-hops/import-kit.mjs.
 
-export const KINDS = ['real-world-case', 'true-story', 'see-or-do', 'myth', 'analogy'];
+export const KINDS = ['real-world-case', 'true-story', 'see-or-do', 'myth', 'analogy',
+  // Biology Together (ages 5-10): parent tips instead of stories (Chris 2026-11-22).
+  'say-it', 'compare-it', 'ask-it', 'point-at-it'];
 /** A story or a claim needs a source; a comparison or a thing to try may stand alone. */
-export const SOURCE_OPTIONAL = ['analogy', 'see-or-do'];
+export const SOURCE_OPTIONAL = ['analogy', 'see-or-do', 'ask-it'];
 
 /** The text of each ## heading in a lesson.mdx, as the page shows it. */
 export function lessonHeadings(mdx) {
