@@ -19,6 +19,7 @@ import LessonFilm from '../../../components/LessonFilm.astro';
 import CardsPrompt from '../../../components/CardsPrompt.astro';
 import { filmCatalog, filmKey, filmLevelHref, kindBadge, type CatalogFilm } from '../../../lib/film-catalog';
 import { filmClock } from '../../../lib/films';
+import { lengthWords } from '../../../lib/film-logic.mjs';
 import { courseHref } from '../../../data/courses';
 import '../../../styles/film-lib.css';
 
@@ -32,7 +33,7 @@ const { films } = Astro.props as { films: CatalogFilm[] };
 const first = films[0];
 const course = { slug: first.course!, title: first.courseTitle, stage: first.stage!, stageTitle: first.stageTitle };
 const fmt = (n: number) => n.toLocaleString('en-US');
-const mins = Math.round(films.reduce((n, f) => n + f.durationSec, 0) / 60);
+const totalSec = films.reduce((n, f) => n + f.durationSec, 0);
 const hm = (m: number) => (m < 90 ? `${m} min` : `${Math.floor(m / 60)} h ${m % 60} min`);
 // Lessons with a flashcard deck: the end of their films offers the cards (CardsPrompt.astro).
 const DECK_FILES = Object.keys(import.meta.glob('../../../data/flashcards/*.json'));
@@ -53,7 +54,7 @@ const queue = films.map((f) => ({
     <p class="eyebrow"><a href="/films/">Film library</a> · <a href={filmLevelHref(course.stage)}>{course.stageTitle}</a></p>
     <h1 class="lvl-title">{course.title}, every film in order</h1>
     <p class="lede pl-lede">
-      {fmt(films.length)} films, about {mins < 60 ? `${mins} minutes` : `${Math.floor(mins / 60)} ${Math.floor(mins / 60) === 1 ? 'hour' : 'hours'}${Math.round((mins % 60) / 5) * 5 ? ` ${Math.round((mins % 60) / 5) * 5} minutes` : ''}`}. When one ends, the next waits until you press Play next.
+      {fmt(films.length)} films, about {lengthWords(totalSec)}. When one ends, the next waits until you press Play next.
       <span class="seen-n" data-seen-of={queue.map((q) => q.f).join(' ')} hidden></span>
     </p>
     <p class="small pl-filter" data-pl-filter hidden></p>

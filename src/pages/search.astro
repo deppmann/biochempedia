@@ -10,6 +10,10 @@ import SearchTypes from '../components/SearchTypes.astro';
     <p class="eyebrow"><a href="/courses/">All courses</a> · search</p>
     <h1>Search everything</h1>
     <p class="lede">Type a word, a phrase or a question. The search reads every lesson, every film’s narration, the ladders (one idea at every level, played as films), the Side Hops stories and their audio, the methods, the flashcards, the simulations and the math toolkit. Untick what you do not want. A film result shows the sentence that says your words and plays from that moment. Pick a course below the box to narrow it.</p>
+    {/* With scripts off the box cannot answer, so say so and point at the pages that work without them. */}
+    <noscript>
+      <p class="search-nojs">Search needs JavaScript. Without it, you can browse <a href="/courses/">Courses</a>, <a href="/ideas/">Find an idea</a> and the <a href="/films/">Films page</a>.</p>
+    </noscript>
     <SiteSearch autofocus label="Search everything"><SearchTypes /></SiteSearch>
     <p style="margin: 0; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft)">Looking for one idea at every level, from the simplest lesson to the deepest? <a href="/ideas/" style="font-weight: 600">Find an idea</a></p>
   </section>
@@ -20,6 +24,8 @@ import SearchTypes from '../components/SearchTypes.astro';
     .eyebrow { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: 0.14em; text-transform: uppercase; color: var(--ddp-color-caution-ink); margin: 0; }
     .eyebrow a { color: inherit; text-underline-offset: 3px; }
     h1 { font-family: var(--ddp-font-serif); font-weight: 500; color: var(--ddp-color-primary); font-size: var(--ddp-text-3xl); line-height: 1.1; margin: 0; }
+    .search-nojs { margin: 0; padding: var(--ddp-space-3) var(--ddp-space-4); border-left: 4px solid var(--ddp-color-caution); background: var(--ddp-color-caution-soft); color: #2d2d2d; border-radius: 6px; max-width: 60ch; line-height: 1.9; }
+    .search-nojs a { font-weight: 600; color: #2d2d2d; }
     .lede { font-size: var(--ddp-text-lg); line-height: 1.6; color: var(--ddp-color-ink-soft); max-width: 60ch; margin: 0 0 var(--ddp-space-4); }
   </style>
 </BaseLayout>

@@ -2,9 +2,14 @@
 /**
  * "Builds on: A · B · C" (2026-11-15): one plain line under the Overview naming the lessons to review
  * first, read at build time from the same src/data/lesson-links.json "before" list that the end-of-lesson
- * "Where this lesson fits" block uses (same order, first three). Static HTML, no client script. A lesson
+ * "Where this lesson fits" block uses (same order, first three). Static HTML. A lesson
  * with no record, or whose links no longer resolve, renders nothing. The reasons stay in the end block;
  * a title attribute carries each reason, and "Why these?" jumps down to that block.
+ *
+ * Read marks (2026-11-23): a small script reads this device's progress (src/lib/progress.ts, the
+ * same "done" record the course cards and the finish line use) and shows a check and the word
+ * "read" beside a lesson already finished here. With scripts off, or nothing finished, the line is
+ * the plain links it always was.
  */
 import { getCollection } from 'astro:content';
 import links from '../data/lesson-links.json';
@@ -15,16 +20,29 @@ type Rec = { before: { slug: string; why: string }[] };
 const rec = (links.lessons as Record<string, Rec>)[slug];
 const live = new Map((await getCollection('lessons', ({ data }) => !data.draft)).map((l) => [l.data.slug, l.data]));
 const items = rec && live.has(slug)
-  ? rec.before.filter((x) => live.has(x.slug)).slice(0, 3).map((x) => ({ href: `/lessons/${x.slug}/`, title: live.get(x.slug)!.title, why: x.why }))
+  ? rec.before.filter((x) => live.has(x.slug)).slice(0, 3).map((x) => ({ slug: x.slug, href: `/lessons/${x.slug}/`, title: live.get(x.slug)!.title, why: x.why }))
   : [];
 ---
 {items.length > 0 && (
   <p class="wrap builds-on">
     <span class="bo-k">Builds on:</span>
-    {items.map((it, i) => (<>{i > 0 && <span class="bo-sep" aria-hidden="true"> · </span>}<a href={it.href} title={it.why}>{it.title}</a></>))}
+    {items.map((it, i) => (<>{i > 0 && <span class="bo-sep" aria-hidden="true"> · </span>}<span class="bo-item" data-bo-slug={it.slug}><a href={it.href} title={it.why}>{it.title}</a><span class="bo-read" data-bo-read hidden><span aria-hidden="true"> ✓</span><span class="visually-hidden"> (read)</span></span></span></>))}
     <a class="bo-why" href="#ll-h-lesson">Why these?</a>
   </p>
 )}
+
+<script>
+  import { load, onChange } from '../lib/progress';
+
+  // A check beside each "Builds on" lesson this device has finished; hidden again if it is un-finished.
+  onChange(() => {
+    const lessons = load().lessons;
+    document.querySelectorAll<HTMLElement>('[data-bo-slug]').forEach((item) => {
+      const mark = item.querySelector<HTMLElement>('[data-bo-read]');
+      if (mark) mark.hidden = !lessons[item.getAttribute('data-bo-slug')!]?.d;
+    });
+  });
+</script>
 
 <style>
   .builds-on { margin: 0 auto var(--ddp-space-4); font-size: var(--ddp-text-sm); line-height: 1.5; color: var(--ddp-color-ink-soft); overflow-wrap: anywhere; }
@@ -32,6 +50,8 @@ const items = rec && live.has(slug)
   .builds-on a { color: var(--ddp-color-ink); text-underline-offset: 2px; }
   .builds-on a:hover { color: var(--ddp-color-accent); }
   .bo-sep { color: var(--ddp-color-muted); }
+  .bo-read { font-weight: 700; color: var(--ddp-color-verified-ink); white-space: nowrap; }
+  .bo-read[hidden] { display: none; }
   .builds-on .bo-why { margin-left: 0.75em; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
   @media print { .bo-why { display: none; } }
 </style>

@@ -9,7 +9,8 @@
  *  - the hero search, the wordmark as the h1, and one link to the catalog in the page body;
  *  - no link to a feature that is switched off (the study planner, the AI syllabus page); the calendar
  *    link (approved 2026-11-22) only while its flag is on; the syllabus matcher is a link, not a box;
- *  - no count of what is left or due in the page or its script.
+ *  - no count of what is left or due in the page or its script;
+ *  - a level row with more than one course gives each course its own first-lesson link.
  */
 import { readFile, readdir } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
@@ -42,6 +43,15 @@ ok(main.includes("'stemhop:prefs:v1'"), 'the inline script must read the shared 
 for (const role of ['student', 'parent', 'teacher']) ok(count(new RegExp(`data-door="${role}"`, 'g')) === 1, `there must be exactly one ${role} door`);
 
 ok(/<p[^>]*data-resume[^>]*\shidden/.test(main), '"Welcome back" must be in the page and hidden until its script fills it');
+// Level rows: one course keeps "First lesson"; more than one course names each course's own first lesson.
+for (const row of students.match(/<li class="home-lv"[\s\S]*?(?=<li class="home-lv"|<p class="home-small">Every level)/g) ?? []) {
+  const courses = (row.match(/class="home-bc"/g) ?? []).length;
+  const starts = (row.match(/class="home-lv-start"/g) ?? []).length;
+  const name = row.match(/home-lv-t[^>]*>([^<]*)</)?.[1] ?? '?';
+  if (courses > 1) ok(starts === courses && !row.includes('class="home-lv-first"'), `row "${name}" has ${courses} courses, so it must give ${courses} first-lesson links (found ${starts})`);
+  else ok(starts === 0, `row "${name}" has one course, so it keeps the single "First lesson" link`);
+}
+ok((students.match(/<li class="home-lv"/g) ?? []).length > 0, 'the students\u2019 door must have its level rows');
 ok(/<h1[^>]*id="home-h1"/.test(main) && /aria-label="STEMhop"|>STEMhop</.test(main.match(/<h1[\s\S]*?<\/h1>/)?.[0] ?? ''), 'the wordmark must be the page h1, named STEMhop');
 ok(/role="search"[^>]*action="\/search\/"/.test(main) && main.includes('Search every lesson'), 'the hero must carry the search box, labelled "Search every lesson"');
 ok(count(/href="\/courses\/"/g) === 1, `the page body must link the catalog (/courses/) exactly once (found ${count(/href="\/courses\/"/g)})`);

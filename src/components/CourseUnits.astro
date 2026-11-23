@@ -9,6 +9,7 @@ import LessonIcon from './LessonIcon.astro';
 import { unitsFor, type Course } from '../data/courses';
 import { wholeMinutes, minutesLabel } from '../lib/reading-time';
 import { unitReviewByUnit, unitReviewHref } from '../data/lesson-games';
+import { sideHopsFor } from '../lib/side-hops';
 
 interface Props {
   course: Course;
@@ -16,6 +17,8 @@ interface Props {
 }
 const { course, lessons } = Astro.props;
 const units = unitsFor(course, lessons);
+/* Lessons with Side Hops (stories and an audio segment beside the text) get a small tag on their card. */
+const hasHops = new Set(lessons.filter((l) => (sideHopsFor(l.data.slug)?.hops.length ?? 0) > 0).map((l) => l.data.slug));
 
 /* An authored hook is printed whole. Only the fallback (the summary's first
    sentence) is clamped to two lines by CSS. */
@@ -70,6 +73,7 @@ const metaFor = (l: any) => {
                   items and never splits "6 / questions". */}
               <span class="lc-meta">
                 {l.data.ladder?.sol.map((c: string) => <span class="lc-sol">SOL {c}</span>)}
+                {hasHops.has(l.data.slug) && <span class="lc-sol lc-hops" title="Short stories beside this lesson, also told aloud">Side Hops</span>}
                 {metaFor(l).map((m, i) => <>{i > 0 && ' · '}<span>{m}</span></>)}
               </span>
             </span>
@@ -335,6 +339,11 @@ const metaFor = (l: any) => {
     border: 1px solid color-mix(in srgb, var(--ddp-color-accent) 45%, var(--ddp-color-line));
     border-radius: 999px;
     background: color-mix(in srgb, var(--ddp-color-accent) 8%, var(--ddp-color-surface));
+  }
+  /* Side Hops: the same pill in the story cards' warm colour. */
+  .lc-meta .lc-hops {
+    border-color: color-mix(in srgb, var(--ddp-color-secondary) 55%, var(--ddp-color-line));
+    background: color-mix(in srgb, var(--ddp-color-secondary) 12%, var(--ddp-color-surface));
   }
   @media (prefers-reduced-motion: reduce) {
     .lesson-card, .lesson-card::before, .lc-order { transition: none; }

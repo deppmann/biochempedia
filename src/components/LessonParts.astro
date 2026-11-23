@@ -7,7 +7,7 @@
  * Used twice: inside "About this lesson", and at the top of the rail on a wide screen.
  */
 import { clock, type LessonTime } from '../lib/lesson-time';
-import { plural } from '../lib/lesson-copy';
+import { plural, say } from '../lib/lesson-copy';
 
 interface Props {
   time: LessonTime;
@@ -43,6 +43,11 @@ const withOf = (p: LessonTime['parts'][number]) => [
 {notes && time.period > 0 && time.period - time.sumMin >= 5 && (
   <p class="lp-note">{[ 'Reading', time.filmCount === 1 ? 'the film' : time.filmCount > 1 ? 'films' : '', time.storyCount > 0 ? 'stories' : '' ].filter(Boolean).join(', ').replace(/, ([^,]*)$/, ' and $1')} come{time.storyCount > 0 || time.filmCount > 0 ? '' : 's'} to about {time.sumMin} minutes. The {time.period} is {time.guide ? 'the hands-on time this activity was planned for' : 'the class period this lesson was planned for'}.</p>
 )}
+{/* Side Hops (2026-11-23): each part above says "a story"; this says how many there are and that
+    they are also told aloud, with a link to the audio. */}
+{notes && time.storyCount > 0 && (
+  <p class="lp-note lp-hops">{say(time.storyCount).replace(/^./, (c) => c.toUpperCase())} Side {plural(time.storyCount, 'Hop')} and <a href="#sh-panel-h">an audio story of about {time.storyMin} {plural(time.storyMin, 'minute')}</a> go with this {time.noun}.</p>
+)}
 {notes && time.quiz > 0 && (
   <p class="lp-note">{time.guide
     ? `Then ${time.quiz} ${plural(time.quiz, 'question')} to talk over, when you want ${time.quiz === 1 ? 'it' : 'them'}.`
@@ -62,5 +67,6 @@ const withOf = (p: LessonTime['parts'][number]) => [
   .lp-with { grid-column: 1 / -1; margin-top: -0.5rem; padding-bottom: 0.3rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
   .lp-stop { display: flex; align-items: center; gap: var(--ddp-space-3); padding: 0.3rem 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
   .lp-stop::after { content: ''; flex: 1; height: 1px; background: var(--ddp-color-line); }
+  .lp-hops a { color: var(--ddp-color-primary); text-underline-offset: 3px; }
   .lp-note { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-sm); line-height: 1.5; color: var(--ddp-color-ink-soft); }
 </style>

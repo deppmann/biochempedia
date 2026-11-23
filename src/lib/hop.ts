@@ -11,8 +11,9 @@ import { COURSES, courseOf } from '../data/courses';
 import { stageOf } from '../data/stages';
 import { SETS as MCAT_SETS } from './mcat';
 import { lessonMinutes } from './reading-time';
+import { simplerCheck } from './readability';
 import { concept, concepts, hops, ladder, usedBy, filmsFor, areaName, areas, stageRank, type LadderRung, type JoinedFilm } from './topic-graph';
-import { lessonSentence, authoredLinks, inSentence, maskOf, QUICK_UP, QUICK_NAME, readTime } from './hop-words.mjs';
+import { lessonSentence, authoredLinks, inSentence, maskOf, QUICK_DOWN, QUICK_UP, RELABEL_NOT_SIMPLER, QUICK_NAME, readTime } from './hop-words.mjs';
 
 export interface Rung {
   slug: string;
@@ -53,7 +54,7 @@ export interface Idea {
   play?: { href: string; n: number; minutes: number; from: number; to: number };
 }
 
-interface Facts { minutes?: number; questions: number; sol: string[]; unit: string; rank: number; data: any }
+interface Facts { minutes?: number; questions: number; sol: string[]; unit: string; rank: number; data: any; body: string }
 
 let factsCache: Promise<Map<string, Facts>> | undefined;
 /** Per live lesson: reading time, practice questions, standards codes, unit and frontmatter. */
@@ -75,6 +76,7 @@ export function lessonFacts(): Promise<Map<string, Facts>> {
         unit: unitOf.get(d.slug) ?? '',
         rank: stageRank(stageOf(courseOf(d.course))),
         data: d,
+        body: (l as any).body ?? '',
       });
     }
     return out;
@@ -156,7 +158,7 @@ export interface Quick {
   time: string;
   paras: string[];
 }
-type Seg = { t: string; href?: string; quick?: string; k?: string };
+type Seg = { t: string; href?: string; quick?: string; k?: string; short?: boolean };
 export interface LessonHop {
   slug: string;
   title: string;
@@ -200,7 +202,12 @@ export function lessonHop(slug: string): Promise<LessonHop | undefined> {
     const rank = stageRank(stageOf(course));
     const lessons = new Map([...facts.entries()].map(([s, f]) => [s, { title: f.data.title as string, rank: f.rank, order: f.data.order as number | undefined, ladder: f.data.ladder, activity: f.data.activity }]));
     const authored = authoredLinks(slug, lessons);
-    const said = lessonSentence(await hops(slug), { slug, title: d.title, rank, courseTitle: course.title, explainLevels: d.explainLevels, authored });
+    // Is the short version one level down really easier to read than this lesson? Two short texts
+    // scored once per lesson, when its page is built. Unmeasurable (too little text) keeps "Simpler".
+    const downText = (d.explainLevels as { level: string; text: string }[] | undefined)?.find((x) => x.level === QUICK_DOWN[rank])?.text;
+    // Switched off (RELABEL_NOT_SIMPLER in hop-words.mjs): nothing is scored and the wording is unchanged.
+    const check = RELABEL_NOT_SIMPLER && downText ? simplerCheck(downText, me.body) : undefined;
+    const said = lessonSentence(await hops(slug), { slug, title: d.title, rank, courseTitle: course.title, explainLevels: d.explainLevels, authored, quickNotSimpler: check ? !check.simpler : false });
     const mine = said.ideas as Awaited<ReturnType<typeof hops>>;
     const ideas: LessonHop['ideas'] = [];
     const from: Record<string, string> = {};

@@ -7,6 +7,11 @@
      Deeper: Osmoregulation and Nitrogenous Waste (a first college course).
      ▸ See every level
 
+   Switched off for now (RELABEL_NOT_SIMPLER in src/lib/hop-words.mjs, waiting on Chris): when the
+   short version does not read at least two grades easier than the lesson (src/lib/readability.ts
+   simplerCheck), the line would read "Short version: read the high school version here." instead
+   of offering it under "Simpler". scripts/list-not-simpler.mjs lists those lessons.
+
    "read a short … version here" opens the lesson's own short version in place (frontmatter
    explainLevels, on every lesson) and "Back to the lesson" closes it and gives the reader their
    place back: down a level and back up with no page load. "See every level" is one native
@@ -24,7 +29,7 @@ import '../../styles/hop.css';
 import { lessonHop } from '../../lib/hop';
 import { LEVEL_SHORT, numWord } from '../../lib/hop-words.mjs';
 import Ladder from './Ladder.astro';
-import { taughtAt } from '../../lib/hop-words.mjs';
+import { shownAt, maskOf } from '../../lib/hop-words.mjs';
 
 interface Props {
   slug: string;
@@ -51,7 +56,7 @@ const q = hop?.quickDown;
           s.href ? <a href={s.href}>{s.t}</a>
           : s.t === ', or ' ? <span class="hop-quick-or">{s.t}</span>
           : s.quick ? (full ? <a class="hop-quick-open" href="#hop-quick" data-hop-quick-open>{s.t}</a> : <a href={`/lessons/${slug}/#hop-quick`}>{s.t.replace(' here', ' in the lesson')}</a>)
-          : s.k === 'dir' ? <span class="hop-dir">{s.t}</span>
+          : s.k === 'dir' ? <span class={s.short ? 'hop-dir hop-quick-or' : 'hop-dir'}>{s.t}</span>
           : s.k === 'note' ? <span class="hop-note">{s.t}</span>
           : s.t)}</span>
       ))}
@@ -69,14 +74,15 @@ const q = hop?.quickDown;
     {full && q && <noscript><style is:inline>.hop-quick{display:block!important}</style></noscript>}
     {full && (
       <details class="hop-all">
-        <summary><Ladder size="compact" mask={hop.ideas[0].mask} hereRank={hop.rank} /><span class="hop-when-closed">{hop.more}</span><span class="hop-when-open">{hop.more === 'See every level' ? 'Hide the levels' : 'Hide nearby ideas'}</span></summary>
+        <summary><Ladder size="compact" mask={maskOf([...new Set(hop.ideas[0].rungs.map((r) => r.rank))])} hereRank={hop.rank} /><span class="hop-when-closed">{hop.more}</span><span class="hop-when-open">{hop.more === 'See every level' ? 'Hide the levels' : 'Hide nearby ideas'}</span></summary>
         <div class="hop-all-body">
           {hop.ideas.length > 1 && <p class="hop-also-teaches">This lesson also teaches {numWord(hop.ideas.length - 1)} more {hop.ideas.length === 2 ? 'idea' : 'ideas'}; {hop.ideas.length === 2 ? 'its ladder is' : 'their ladders are'} below.</p>}
           {hop.ideas.map((i, n) => {
             const body = (
               <>
                 <p class="hop-idea-blurb">{i.blurb}</p>
-                <p class="hop-idea-at">{taughtAt(i.mask)}</p>
+                {/* Counts the rungs drawn below, hand-picked ones included, so it agrees with "Show all … levels". */}
+                <p class="hop-idea-at">{shownAt(i.mask, i.rungs.filter((r) => r.also).map((r) => r.rank))}</p>
                 <Ladder idea={i} here={slug} hex={n === 0} also={hop.also} />
                 {i.sideways.length > 0 && (
                   <div class="hop-near">

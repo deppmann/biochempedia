@@ -118,6 +118,22 @@ export function taughtAt(mask) {
   if (ranks.length === 1) return `Taught at one level so far: ${LEVEL_SHORT[ranks[0]]}.`;
   return `Taught at ${numWord(ranks.length)} levels: ${andList(ranks.map((r) => LEVEL_SHORT[r]))}.`;
 }
+/**
+ * The same sentence over a ladder drawn for one lesson. That ladder can carry a rung the idea's own
+ * record does not have: a lesson picked by hand for the lesson being read (`picked`, as ranks). The
+ * sentence then counts every rung the reader sees, so it agrees with the ladder's "Show all three
+ * levels" button, and says which rung was picked by hand. With nothing picked it is taughtAt(mask).
+ * @param {number} mask levels where the idea is taught
+ * @param {number[]} [picked] levels of the hand-picked rungs
+ */
+export function shownAt(mask, picked = []) {
+  const extra = [...new Set(picked)].filter((r) => r >= 0 && r < LEVEL_KEYS.length && !(mask & (1 << r))).sort((a, b) => a - b);
+  if (!extra.length) return taughtAt(mask);
+  const ranks = ranksOf(mask | maskOf(extra));
+  const one = extra.length === 1;
+  return `${cap(numWord(ranks.length))} levels here: ${andList(ranks.map((r) => LEVEL_SHORT[r]))}. `
+    + `The ${one ? 'lesson' : 'lessons'} ${andList(extra.map((r) => LEVEL_AT[r]))} ${one ? 'was' : 'were'} picked by hand for this lesson.`;
+}
 /** For a browse list: "Taught at 4 levels" in words, short. */
 export function levelCount(mask) {
   const ranks = ranksOf(mask);
@@ -140,6 +156,11 @@ export function edgeLines(mask) {
 /* Every lesson carries short explanations of itself at other levels (frontmatter explainLevels,
    written once, offline). Which one is "one level simpler" and "one level deeper" for a lesson at
    each level; the simpler one opens in place under the hop sentence. */
+/* OFF: waits on Chris. When true, a short version that does not read at least two grades easier than
+   its lesson is offered as "Short version" instead of under "Simpler" (src/lib/hop.ts passes
+   quickNotSimpler to lessonSentence). On 2026-11-23 that was 337 of 349 lessons, so it is a
+   site-wide wording change; the list is production/short-versions-not-simpler.json. */
+export const RELABEL_NOT_SIMPLER = false;
 export const QUICK_DOWN = [null, null, 'grade7', 'highschool', 'highschool', 'highschool', 'college'];
 export const QUICK_UP = ['grade7', 'highschool', 'bio2', 'grad', 'grad', 'grad', null];
 export const QUICK_NAME = {
@@ -206,7 +227,9 @@ export function authoredLinks(slug, lessons) {
  *
  * @param {any[]} hops api.hops(slug): one entry per idea the lesson teaches, main idea first
  * @param {{ slug: string, title?: string, rank: number, courseTitle: string, explainLevels?: { level: string }[],
- *   authored?: { down: Near[], up: Near[] } }} lesson
+ *   authored?: { down: Near[], up: Near[] }, quickNotSimpler?: boolean }} lesson
+ *   quickNotSimpler: the short version does not read at least two grades easier than the lesson
+ *   (simplerCheck in src/lib/readability.ts). It is then offered as a "Short version", never under "Simpler".
  */
 export function lessonSentence(hops, lesson) {
   const ideas = hops;
@@ -254,14 +277,20 @@ export function lessonSentence(hops, lesson) {
     out.teaches = [{ t: tight >= 4 ? `${cap(what)}, ${LEVEL_SHORT[lesson.rank].replace(/^a /, '')}${lesson.rank <= 2 ? ' level' : ''}.`
       : lesson.rank <= 2 ? `This lesson teaches ${what} at ${LEVEL_SHORT[lesson.rank]} level.`
       : tight >= 3 ? `This lesson teaches ${what} (${LEVEL_SHORT[lesson.rank]}).` : `This lesson teaches ${what} in ${lesson.courseTitle}, ${COURSE_KIND[lesson.rank]}.` }];
-    const quick = quickDown ? { t: tight >= 5 ? 'read a short version here' : `read a short ${QUICK_NAME[quickDown][1]} version here`, quick: quickDown } : undefined;
+    const plainShort = Boolean(lesson.quickNotSimpler);
+    const quick = !quickDown ? undefined
+      : plainShort ? { t: tight >= 5 ? 'read it here' : `read the ${QUICK_NAME[quickDown][1]} version here`, quick: quickDown }
+      : { t: tight >= 5 ? 'read a short version here' : `read a short ${QUICK_NAME[quickDown][1]} version here`, quick: quickDown };
+    // A short version that is no easier to read than the lesson is short, not simpler: it gets its
+    // own label, after the simpler lesson when there is one.
+    const shortSegs = quick && plainShort ? [{ t: 'Short version:', k: 'dir', short: true }, { t: ' ' }, quick, { t: '.' }] : null;
     // A college reader whose only simpler lesson is an activity for young children gets the short
     // version here; the activity is on the ladder.
     if (down && !(down.near.rank === 0 && lesson.rank >= 3 && quick)) {
       const lvl = down.near.rank === 0 ? '(a hands-on activity)' : `(${LEVEL_SHORT[down.near.rank]})`;
-      out.simpler = [{ t: 'Simpler:', k: 'dir' }, { t: ' ' }, { t: name(down.near), href: href(down.near.slug) }, { t: ' ' }, { t: lvl, k: 'note' }, ...(quick ? [{ t: ', or ' }, quick] : []), { t: '.' }];
+      out.simpler = [{ t: 'Simpler:', k: 'dir' }, { t: ' ' }, { t: name(down.near), href: href(down.near.slug) }, { t: ' ' }, { t: lvl, k: 'note' }, ...(quick && !shortSegs ? [{ t: ', or ' }, quick] : []), { t: '.' }, ...(shortSegs ? [{ t: ' ' }, ...shortSegs] : [])];
     } else if (quick) {
-      out.simpler = [{ t: 'Simpler:', k: 'dir' }, { t: ' ' }, quick, { t: '.' }];
+      out.simpler = shortSegs ?? [{ t: 'Simpler:', k: 'dir' }, { t: ' ' }, quick, { t: '.' }];
     }
     if (up) {
       const step = !up.byHand && tight < 1 ? stepNote(lesson.rank, up.near.rank) : '';

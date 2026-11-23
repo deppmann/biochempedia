@@ -17,6 +17,17 @@ const names = Object.fromEntries([
   ...BEYOND_COURSES.map((c) => [beyondTopic(c), courseOf(c).title]),
 ]);
 const beyondCount = items.filter((d) => d.beyond).length;
+// A round is ten questions, but some topics hold fewer. Count them here, at build time, so the
+// list can say "Short set: N questions" and point to the lessons that teach the topic.
+const ROUND = 10;
+const counts: Record<string, number> = {};
+for (const d of items) counts[d.topic] = (counts[d.topic] ?? 0) + 1;
+const isShort = (t: string) => counts[t] < ROUND;
+const shortTag = (t: string) => `Short set: ${counts[t]} ${counts[t] === 1 ? 'question' : 'questions'}`;
+const topicLessons = (t: string) => index[t]
+  .map((slug) => ({ slug, title: items.find((d) => d.slug === slug)!.lessonTitle }))
+  .sort((a, b) => a.title.localeCompare(b.title));
+const shortTopics = topics.filter(isShort);
 const beyondNames = BEYOND_COURSES.map((c) => courseOf(c).title).join(' and ');
 // ?lesson=<slug> (linked from the end of each lesson): that lesson's own questions, and the
 // passage sets with questions on it. Built here at deploy time; no model, nothing to run.
@@ -33,13 +44,13 @@ for (const st of SETS) {
 ---
 
 <BaseLayout title="MCAT topic practice — STEMhop" description="Ten original MCAT-style questions at a time from one topic, each linked to the lesson that teaches it.">
-  <article class="wrap tc mpr" data-mpr data-index={JSON.stringify(index)} data-names={JSON.stringify(names)} data-beyond={JSON.stringify(beyondTopics)} data-beyond-label={BEYOND_LABEL} data-lessons={JSON.stringify(lessons)}>
+  <article class="wrap tc mpr" data-mpr data-index={JSON.stringify(index)} data-names={JSON.stringify(names)} data-beyond={JSON.stringify(beyondTopics)} data-beyond-label={BEYOND_LABEL} data-lessons={JSON.stringify(lessons)} data-counts={JSON.stringify(counts)}>
     <p class="tc-eyebrow"><a href="/mcat/">MCAT practice</a> · Topic practice</p>
     <h1>Topic practice</h1>
-    <p class="tc-lede">Pick a topic for ten questions. These are the stand-alone kind; for passages with data, use the <a href="/mcat/">passage sets</a>.</p>
+    <p class="tc-lede">Pick a topic for ten questions. A topic with fewer than ten is marked as a short set. These are the stand-alone kind; for passages with data, use the <a href="/mcat/">passage sets</a>.</p>
     <p class="mpr-stats-link"><a href="/mcat/stats/">View your practice stats →</a></p>
     <p class="tc-row" style="margin-top: var(--ddp-space-4)">
-      <label>Topic <select data-topic>{topics.map((t) => <option value={t}>{t} · {names[t]}</option>)}</select></label>
+      <label>Topic <select data-topic>{topics.map((t) => <option value={t}>{t} · {names[t]}{isShort(t) ? ` (${shortTag(t)})` : ''}</option>)}</select></label>
       <button type="button" class="tc-btn" data-start>Start ten questions</button>
     </p>
     <p class="mpr-beyond" id="mpr-beyond-id">
@@ -49,6 +60,21 @@ for (const st of SETS) {
         not counted as MCAT practice. Turn this on to see them as their own topics.
       </span>
     </p>
+    {shortTopics.length > 0 && (
+      <section class="mpr-short" aria-labelledby="mpr-short-h">
+        <h2 id="mpr-short-h">Short sets</h2>
+        <p class="tc-muted">These topics have fewer than ten questions so far. When you finish one, these lessons teach the topic.</p>
+        <ul>
+          {shortTopics.map((t) => (
+            <li>
+              <a href={`/mcat/practice/?topic=${t}`}><strong>{t} · {names[t]}</strong></a>
+              <span class="tc-pill">{shortTag(t)}</span>
+              <span class="mpr-short-lessons">Lessons: {topicLessons(t).map((l, i) => <>{i > 0 && ' · '}<a href={`/lessons/${l.slug}/`}>{l.title}</a></>)}</span>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )}
     <div class="mpr-lesson" data-lesson-box hidden></div>
     <p class="tc-muted" data-status role="status"></p>
     <div data-round></div>
@@ -72,6 +98,12 @@ for (const st of SETS) {
     const BEYOND_KEY = 'bcp:mcat-beyond';
     const beyond: string[] = JSON.parse(root.dataset.beyond || '[]');
     const names: Record<string, string> = JSON.parse(root.dataset.names || '{}');
+    const counts: Record<string, number> = JSON.parse(root.dataset.counts || '{}');
+    const ROUND = 10;
+    const shortNote = (t: string) => (counts[t] < ROUND ? ` (Short set: ${counts[t]} ${counts[t] === 1 ? 'question' : 'questions'})` : '');
+    const startBtn = root.querySelector<HTMLButtonElement>('[data-start]')!;
+    // The button says how many questions the chosen topic will give.
+    const labelStart = () => { const n = counts[sel.value] ?? ROUND; startBtn.textContent = n < ROUND ? `Start ${n} ${n === 1 ? 'question' : 'questions'}` : 'Start ten questions'; };
     const toggle = root.querySelector<HTMLInputElement>('[data-beyond-toggle]')!;
     const readBeyond = () => { try { return localStorage.getItem(BEYOND_KEY) === '1'; } catch { return false; } };
     const writeBeyond = (on: boolean) => { try { if (on) localStorage.setItem(BEYOND_KEY, '1'); else localStorage.removeItem(BEYOND_KEY); } catch { /* storage blocked: the choice lasts for this page */ } };
@@ -80,7 +112,7 @@ for (const st of SETS) {
       if (on && !group && beyond.length) {
         group = document.createElement('optgroup');
         group.label = root.dataset.beyondLabel || 'Beyond the exam';
-        for (const t of beyond) { const o = document.createElement('option'); o.value = t; o.textContent = names[t] ?? t; group.append(o); }
+        for (const t of beyond) { const o = document.createElement('option'); o.value = t; o.textContent = (names[t] ?? t) + shortNote(t); group.append(o); }
         sel.append(group);
       } else if (!on && group) {
         if (beyond.includes(sel.value)) sel.selectedIndex = 0;
@@ -89,9 +121,11 @@ for (const st of SETS) {
     }
     toggle.checked = readBeyond();
     showBeyond(toggle.checked);
-    toggle.addEventListener('change', () => { writeBeyond(toggle.checked); showBeyond(toggle.checked); });
+    toggle.addEventListener('change', () => { writeBeyond(toggle.checked); showBeyond(toggle.checked); labelStart(); });
+    sel.addEventListener('change', labelStart);
     const offered = (t: string | null): t is string => !!t && !!index[t] && (!beyond.includes(t) || toggle.checked);
     if (offered(want)) sel.value = want;
+    labelStart();
     type LessonInfo = { title: string; topic: string; n: number; sets: { id: string; title: string; n: number }[] };
     const lessonsIdx: Record<string, LessonInfo> = JSON.parse(root.dataset.lessons || '{}');
     const wantLesson = params.get('lesson');
@@ -102,7 +136,8 @@ for (const st of SETS) {
     async function start() {
       round.textContent = '';
       status.textContent = 'Loading…';
-      const slugs = lessonMode ? [only!] : shuffle([...index[sel.value]]).slice(0, 8);
+      // A short set uses every lesson in the topic, so the round has all of its questions.
+      const slugs = lessonMode ? [only!] : shuffle([...index[sel.value]]).slice(0, (counts[sel.value] ?? ROUND) < ROUND ? undefined : 8);
       const files = await Promise.all(slugs.map((s) => fetch(`/quiz/${s}.json`).then((r) => r.json()).catch(() => null)));
       const pool = files.flatMap((f) => (f ? f.items.filter((i: Item) => i.mcat).map((i: Item) => ({ ...i, slug: f.slug, title: f.title })) : []));
       const picked = shuffle(pool).slice(0, 10);
@@ -231,7 +266,7 @@ for (const st of SETS) {
     root.querySelector('[data-start]')!.addEventListener('click', () => { lessonMode = false; start(); });
     if (only) {
       const info = lessonsIdx[only];
-      if (offered(info.topic)) sel.value = info.topic;
+      if (offered(info.topic)) { sel.value = info.topic; labelStart(); }
       const box = root.querySelector<HTMLElement>('[data-lesson-box]')!;
       box.hidden = false;
       const h = el('p', 'mpr-lesson-h');
@@ -256,6 +291,13 @@ for (const st of SETS) {
     .mpr .mpr-beyond { display: flex; flex-direction: column; gap: var(--ddp-space-1); max-width: 760px; margin-top: var(--ddp-space-4); padding: var(--ddp-space-3) var(--ddp-space-4); border: 1px dashed var(--ddp-color-line); border-radius: var(--ddp-radius-sm, 8px); }
     .mpr .mpr-beyond label { display: inline-flex; align-items: center; gap: 0.6rem; min-height: 44px; cursor: pointer; }
     .mpr .mpr-beyond input { width: 1.15rem; height: 1.15rem; accent-color: var(--ddp-color-accent); }
+    .mpr .mpr-short { max-width: 760px; margin-top: var(--ddp-space-6); }
+    .mpr .mpr-short h2 { margin-top: 0; }
+    .mpr .mpr-short ul { list-style: none; margin: 0; padding: 0; }
+    .mpr .mpr-short li { padding: var(--ddp-space-2) 0; border-top: 1px solid var(--ddp-color-line); }
+    .mpr .mpr-short li > a { display: inline-flex; align-items: center; min-height: 44px; margin-right: var(--ddp-space-2); }
+    .mpr .mpr-short-lessons { display: block; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); line-height: 2; }
+    .mpr .mpr-short a { color: var(--ddp-color-accent); }
     .mpr .mpr-lesson-h { margin: 0; font-weight: 600; }
     .mpr .mpr-stats-link { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-sm); }
     .mpr .mpr-stats-link a { color: var(--ddp-color-accent); font-weight: 600; }
