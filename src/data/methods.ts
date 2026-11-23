@@ -430,6 +430,9 @@ export const METHODS: Method[] = [
     summary: 'Rejecting out-of-focus light with a pinhole to get sharp optical sections and 3D reconstructions.',
     lessons: ['blood-and-vessels', 'ltmr-classes', 'microglia-complement-pruning', 'plant-body-and-growth', 'synaptic-integration'],
     terms: ['confocal'],
+    film: libFilm('confocal-microscopy', "Slicing Thick Tissue With Light", 222.0, KOKORO),
+    unlocked: [{"text": "Polsky, Mel and Schiller (2004) used confocal imaging to locate thin dendrites of rat neocortical pyramidal neurons in slices and stimulated inputs at two sites, alone and together: nearby inputs on the same thin branch summed sigmoidally, while inputs far apart or on different branches summed linearly.", "lesson": "synaptic-integration"}, {"text": "Baluk and colleagues (2007) imaged whole mounts of mouse trachea with confocal microscopy, finding discontinuous VE-cadherin buttons about 3.2 micrometres long in initial lymphatics and continuous, zipper-like junctions in collecting lymphatics.", "lesson": "blood-and-vessels"}, {"text": "Schafer and colleagues (2012) rebuilt confocal image stacks of mouse visual thalamus microglia in three dimensions, showing retinal material inside microglial lysosomes with relatively more taken from a silenced eye.", "lesson": "microglia-complement-pruning"}],
+    sources: [{"label": "Polsky A, Mel BW, Schiller J. Computational subunits in thin dendrites of pyramidal cells. Nat Neurosci 2004.", "url": "https://pubmed.ncbi.nlm.nih.gov/15156147/"}, {"label": "Baluk P, Fuxe J, Hashizume H, Romano T, Lashnits E, Butz S, et al. Functionally specialized junctions between endothelial cells of lymphatic vessels. J Exp Med 2007.", "url": "https://pubmed.ncbi.nlm.nih.gov/17846148/"}, {"label": "Schafer DP, Lehrman EK, Kautzman AG, Koyama R, Mardinly AR, Yamasaki R, et al. Microglia sculpt postnatal neural circuits in an activity and complement-dependent manner. Neuron 2012.", "url": "https://pubmed.ncbi.nlm.nih.gov/22632727/"}],
   },
   {
     slug: 'controlled-genetic-crosses',
@@ -526,6 +529,9 @@ export const METHODS: Method[] = [
     summary: 'Recording summed electrical activity of brain or retina from surface electrodes, including sleep stages and evoked responses.',
     lessons: ['nervous-system-map', 'photoreceptor-adaptation-and-degeneration', 'retina', 'sensitive-periods-behavior', 'sleep-and-rhythms'],
     terms: ['EEG', 'electroencephalogram', 'electroretinogram', 'ERG', 'evoked potential', 'evoked potentials', 'polysomnography'],
+    film: libFilm('eeg-and-evoked-potentials', "Reading Brain and Retina from the Surface", 216.9, KOKORO),
+    unlocked: [{"text": "Vinberg and colleagues (2015) recorded transretinal ERGs from isolated mouse retina at 37 degrees Celsius with downstream synaptic responses blocked, compared wild-type rods with rods lacking the GCAPs, recoverin, or all three proteins, and found that calcium-dependent light adaptation persisted in the rods lacking both sensors.", "lesson": "photoreceptor-adaptation-and-degeneration"}, {"text": "Fultz and colleagues (2019) recorded EEG in 13 sleeping people and showed that slow EEG rhythms were followed by pulses of CSF flow, a correlation while mouse tracer studies disagree about whether clearance rises or falls during sleep.", "lesson": "nervous-system-map"}],
+    sources: [{"label": "Vinberg F, Turunen TT, Heikkinen H, Pitkänen M, Koskelainen A. A novel Ca2+-feedback mechanism extends the operating range of mammalian rods to brighter light. J Gen Physiol 2015.", "url": "https://pubmed.ncbi.nlm.nih.gov/26415569/"}, {"label": "Fultz NE, Bonmassar G, Setsompop K, Stickgold RA, Rosen BR, Polimeni JR, et al. Coupled electrophysiological, hemodynamic, and cerebrospinal fluid oscillations in human sleep. Science 2019.", "url": "https://pubmed.ncbi.nlm.nih.gov/31672896/"}],
   },
   {
     slug: 'electrical-microstimulation',
