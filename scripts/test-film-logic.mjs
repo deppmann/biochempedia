@@ -4,7 +4,7 @@
    Each case here was a fault a reviewer found in a browser.
 
    Run: node scripts/test-film-logic.mjs   (in `npm test` and in CI) */
-import { companionAt, swapRule, pauseLabel, runFilms, runPlace, endWith, matchFilms, runnableFilms, runQueue } from '../src/lib/film-logic.mjs';
+import { companionAt, swapRule, pauseLabel, runFilms, runPlace, endWith, lengthWords, matchFilms, runnableFilms, runQueue } from '../src/lib/film-logic.mjs';
 
 let failed = 0;
 let passed = 0;
@@ -98,6 +98,19 @@ eq(endWith('The Size Test'), 'The Size Test.', 'a full stop after a plain title'
   }
   eq(titles(runQueue(list, view({ kind: 'profile' }), ideas)), [], 'a view of profiles only has nothing to play in a row');
 }
+
+/* ---- a running time in words. The fault: /films/ read "about 56 hours 60 minutes", because the
+   leftover minutes were rounded to the nearest five without carrying into the hours. */
+eq(lengthWords(56 * 3600 + 58 * 60), '57 hours', '56 h 58 min rounds up to the hour, never "60 minutes"');
+eq(lengthWords(56 * 3600 + 57 * 60), '56 hours 55 minutes', '56 h 57 min rounds down to 55 minutes');
+eq(lengthWords(48 * 3600 + 31 * 60), '48 hours 30 minutes', 'hours and minutes, to the nearest five');
+eq(lengthWords(58 * 60), '58 minutes', 'under an hour the minutes are exact');
+eq(lengthWords(59 * 60 + 40), '1 hour', 'one hour is singular, with no "0 minutes"');
+eq(lengthWords(118 * 60), '2 hours', '1 h 58 min carries to 2 hours');
+eq(lengthWords(62 * 60), '1 hour', '1 h 2 min is about 1 hour');
+eq(lengthWords(68 * 60), '1 hour 10 minutes', '1 h 8 min is about 1 hour 10 minutes');
+eq(lengthWords(60), '1 minute', 'one minute is singular');
+eq(lengthWords(5), '1 minute', 'never "0 minutes"');
 
 if (failed) { console.error(`✗ test-film-logic: ${failed} failed, ${passed} passed`); process.exit(1); }
 console.log(`✓ test-film-logic: ${passed} checks passed.`);

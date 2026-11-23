@@ -11,6 +11,19 @@ const titles = Object.fromEntries(lessons.map((l) => {
   try { course = courseOf(l.data.course)?.title ?? ''; } catch { /* unknown course */ }
   return [l.data.slug, { t: l.data.title, c: course }];
 }));
+
+/* The example an empty notebook shows (2026-11-23): one yellow highlight with a note, from a real
+   lesson, marked "Example". The quote is checked against the lesson's own text at build time; if the
+   lesson is gone or the sentence changed, the example is left out and never shows words the lesson no longer says. */
+const EXAMPLE = {
+  slug: 'diffusion-and-osmosis',
+  quote: 'Sprinkle salt on cucumber slices, and within about 15 minutes drops of water bead up on top.',
+  note: 'Water drifts toward the saltier side. That is why the slices get wet.',
+};
+const exLesson = lessons.find((l) => l.data.slug === EXAMPLE.slug);
+const example = exLesson && (exLesson.body ?? '').includes(EXAMPLE.quote)
+  ? { ...EXAMPLE, title: exLesson.data.title, course: titles[EXAMPLE.slug]?.c ?? '' }
+  : null;
 ---
 
 <BaseLayout
@@ -71,6 +84,21 @@ const titles = Object.fromEntries(lessons.map((l) => {
         “Your notes” box at the end of the lesson.</p>
       <p>Everything you save shows up here. <a href="/courses/">Find a lesson →</a></p>
     </section>
+    {/* Plain HTML, so it also shows with JavaScript off. With scripts on, the small script under it
+        hides it at once and render() shows it again only while the notebook is empty. */}
+    {example && (<>
+      <section class="example" data-example aria-labelledby="nb-example-h">
+        <h2 id="nb-example-h"><span class="example-tag">Example</span> What a saved highlight looks like</h2>
+        <p class="example-lesson">From <a href={`/lessons/${example.slug}/`}>{example.title}</a>{example.course && <span> · {example.course}</span>}</p>
+        <div class="item item-yellow">
+          <p class="meta">Highlight · with a note</p>
+          <p class="quote quote-yellow"><span>{example.quote}</span></p>
+          <p class="note">{example.note}</p>
+        </div>
+        <p class="example-foot">This one is not saved. It goes away when you save your first highlight or note.</p>
+      </section>
+      <script is:inline>document.currentScript.previousElementSibling.hidden = true;</script>
+    </>)}
     <p class="none" data-none hidden>Nothing matches. Try other words or show everything.</p>
   </article>
 
@@ -131,6 +159,8 @@ const titles = Object.fromEntries(lessons.map((l) => {
       const empty = items.length === 0;
       $<HTMLElement>('[data-empty]').hidden = !empty;
       $<HTMLElement>('[data-tools]').hidden = empty;
+      const ex = root.querySelector<HTMLElement>('[data-example]');
+      if (ex) ex.hidden = !empty;
       list.replaceChildren();
       countEl.textContent = '';
       if (empty) { $<HTMLElement>('[data-none]').hidden = true; return; }
@@ -348,6 +378,16 @@ const titles = Object.fromEntries(lessons.map((l) => {
     .empty { margin-top: var(--ddp-space-8); padding: var(--ddp-space-4) var(--ddp-space-6); border: 1px dashed var(--ddp-color-line); border-radius: 10px; }
     .empty p { margin: 0 0 0.6rem; }
     .empty h2 { margin-top: 0; font-size: var(--ddp-text-xl); }
+    /* The example entry: the same card as a real one, greyed and dashed, and labelled. */
+    .example { margin-top: var(--ddp-space-6); padding: var(--ddp-space-4) var(--ddp-space-6); border: 1px dashed var(--ddp-color-line); border-radius: 10px; }
+    .example h2 { margin: 0; font-size: var(--ddp-text-base); font-weight: 600; color: var(--ddp-color-ink-soft); }
+    .example-tag { display: inline-block; margin-right: 0.4rem; padding: 0.05em 0.6em; border-radius: 999px; background: var(--ddp-color-line); color: var(--ddp-color-ink); font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: 0.08em; text-transform: uppercase; }
+    .example-lesson { margin: 0.35rem 0 var(--ddp-space-3); font-size: var(--ddp-text-sm); color: var(--ddp-color-muted); }
+    .example-lesson a { display: inline-block; padding: 0.6rem 0; font-weight: 600; }
+    .example .item { opacity: 0.8; }
+    .example .quote, .example .note { margin: 0; }
+    .example .note { margin-top: 0.5rem; }
+    .example-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-sm); color: var(--ddp-color-muted); }
     .none { color: var(--ddp-color-muted); }
     @media (prefers-color-scheme: dark) {
       :global(:root:not([data-theme="light"]) .nb .quote-yellow span) { background: rgba(240, 205, 70, 0.38); }

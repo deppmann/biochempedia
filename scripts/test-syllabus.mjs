@@ -21,6 +21,7 @@ import { buildMatcher, matchQuestion, matchTopic, matchSyllabus, parseSyllabus, 
 import { SYNONYMS } from '../src/lib/syllabus-synonyms.mjs';
 import { ideaFromArea, buildPath, levelFor, timeFrom, MAX_STEPS } from '../src/lib/start-path.mjs';
 import { docxText, documentXmlToText } from '../src/lib/docx-text.mjs';
+import { linesFromItems } from '../src/lib/pdf-text.mjs';
 import { mergeAssignments, MAX_ASSIGNMENTS } from '../src/lib/syllabus-assign.mjs';
 import { QUESTIONS, HELD_OUT, SYLLABI, SYLLABI_HELD_OUT, PANEL_QUESTIONS, PANEL_SENSITIVE, PANEL_SYLLABI, R2_HELP, R2_BIOLOGY, R2_QUESTIONS, R2_SYLLABI, R3_HELP, R3_NOT_HELP, R3_LINES } from './test-syllabus-fixtures.mjs';
 import { HELP, withNumbers } from '../src/lib/start-help.mjs';
@@ -389,6 +390,21 @@ check('a Word file is read on the device: paragraphs to lines, table rows to one
   assert.equal(await docxText(new Uint8Array([1, 2, 3, 4])), null, 'not a zip');
   assert.equal(await docxText(zip('other.xml', Buffer.from(xml), 8)), null, 'a zip with no document');
   const res = matchSyllabus(m, await docxText(zip('word/document.xml', Buffer.from(xml), 8)), 2);
+  assert.deepEqual(res.rows.map((r) => r.ideas.map((x) => x.id)).flat().includes('osmosis'), true);
+});
+check('a PDF page\'s scattered words are put back into lines: by height, left to right, columns marked', async () => {
+  // What PDF.js hands over: a piece of text with its place on the page (x, y from the bottom) and size.
+  const it = (str, x, y, width, height = 12) => ({ str, transform: [height, 0, 0, height, x, y], width, height });
+  const items = [
+    it('Osmosis', 150, 680, 45), it('Week 2', 72, 680.4, 40), it('Ch. 2', 400, 680, 30),   // a table row, out of order
+    it('Week 1:', 72, 700, 42), it('Cells', 118, 700, 28), it('&', 150, 700, 8), it('membranes', 162, 700, 60),
+    it('Photo', 72, 660, 30), it('synthesis', 102, 660, 50),                                 // one word in two pieces
+    it('   ', 72, 640, 10), it('', 72, 620, 0),                                              // nothing to read
+  ];
+  const lines = linesFromItems(items);
+  assert.deepEqual(lines, ['Week 1: Cells & membranes', 'Week 2 | Osmosis | Ch. 2', 'Photosynthesis']);
+  assert.deepEqual(linesFromItems([]), []);
+  const res = matchSyllabus(m, lines.join('\n'), 2);
   assert.deepEqual(res.rows.map((r) => r.ideas.map((x) => x.id)).flat().includes('osmosis'), true);
 });
 check('adding to a class keeps what is assigned, adds each lesson once, in order, with no due date', () => {

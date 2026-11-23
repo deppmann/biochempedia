@@ -8,7 +8,7 @@
    plus, for a run: t = 10 | 20 | 30 (minutes). */
 import type { FilmList, ListFilm } from './film-cards';
 import { isWatched, type FilmRecord } from './film-progress';
-import { matchFilms, runnableFilms, runQueue as queueOf } from './film-logic.mjs';
+import { lengthWords, matchFilms, runnableFilms, runQueue as queueOf } from './film-logic.mjs';
 
 export const FIELDS = ['q', 'sort', 'level', 'course', 'kind'] as const;
 export type Field = (typeof FIELDS)[number];
@@ -83,11 +83,7 @@ export const clock = (sec: number) => `${Math.floor(sec / 60)}:${String(Math.rou
 const n = (k: number, w: string) => `${k.toLocaleString('en-US')} ${w}${k === 1 ? '' : 's'}`;
 /** "about 3 hours 45 minutes", "about 9 minutes". */
 export function about(seconds: number): string {
-  const m = Math.max(1, Math.round(seconds / 60));
-  if (m < 60) return `about ${n(m, 'minute')}`;
-  const h = Math.floor(m / 60);
-  const r = Math.round((m % 60) / 5) * 5;
-  return r === 60 ? `about ${n(h + 1, 'hour')}` : `about ${n(h, 'hour')}${r ? ` ${r} minutes` : ''}`;
+  return `about ${lengthWords(seconds)}`;
 }
 export const filmsWord = (k: number) => n(k, 'film');
 /** "3 films, 10 minutes. It ends after Which Way Does the Water Go?" (no second full stop after a

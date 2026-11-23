@@ -28,12 +28,13 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import FilmPlaylist from '../../components/FilmPlaylist.astro';
 import Hex from '../../components/Hex.astro';
-import { filmCatalog, filmLevelHref, KIND_LABELS, KIND_ORDER, type CatalogFilm } from '../../lib/film-catalog';
+import { filmCatalog, filmLevelHref, methodFilmCounts, KIND_LABELS, KIND_ORDER, type CatalogFilm } from '../../lib/film-catalog';
 import FilmScriptSearch from '../../components/FilmScriptSearch.astro'; // "Said in the films" (2026-11-22)
 import { filmClock } from '../../lib/films';
 import { STAGES } from '../../data/stages';
 import { filmLadders, type FilmLadder } from '../../lib/film-ladders';
 import { LEVEL_SHORT } from '../../lib/hop-words.mjs';
+import { lengthWords } from '../../lib/film-logic.mjs';
 import '../../styles/film-lib.css';
 import '../../styles/hop.css';
 
@@ -54,9 +55,8 @@ const fmt = (n: number) => n.toLocaleString('en-US');
 const plural = (n: number, w: string) => `${fmt(n)} ${w}${n === 1 ? '' : 's'}`;
 const seconds = (list: CatalogFilm[]) => list.reduce((n, f) => n + f.durationSec, 0);
 const median = [...films].sort((a, b) => a.durationSec - b.durationSec)[Math.floor(films.length / 2)].durationSec;
-/* "about 48 hours 30 minutes": the same rounding the script uses (film-view.ts, about()). */
-const allMinutes = Math.round(seconds(films) / 60);
-const hours = `${Math.floor(allMinutes / 60)} hours${Math.round((allMinutes % 60) / 5) * 5 ? ` ${Math.round((allMinutes % 60) / 5) * 5} minutes` : ''}`;
+/* "about 48 hours 30 minutes": the same words the script uses (lengthWords in film-logic.mjs). */
+const hours = lengthWords(seconds(films));
 const levelCount = (key: string) => films.filter((f) => f.stage === key).length;
 
 const courses: { key: string; title: string; stage: string; stageTitle: string; films: CatalogFilm[] }[] = [];
@@ -91,6 +91,9 @@ const strip = films.map((f) => `${stageIndex(f.stage)}${Math.min(1295, Math.roun
 /* The gallery as served: one stack per course, in course order, and one for the methods library. */
 const about = (list: CatalogFilm[]) => { const m = Math.round(seconds(list) / 60); return m < 90 ? `${m} min` : `${Math.round(m / 6) / 10} hours`; };
 const methodFilms = films.filter((f) => !f.course);
+/* The methods library (/methods/) has more films than this stack: some method films are a lesson's
+   own film and sit in that course's stack. The stack says so, so the two pages do not seem to disagree. */
+const methodCounts = await methodFilmCounts();
 const stacks = [
   ...courses.map((c) => ({ key: c.key, title: c.title, level: c.stage, levelTitle: c.stageTitle, films: c.films, href: `${filmLevelHref(c.stage)}#${c.key}` })),
   ...(methodFilms.length ? [{ key: 'methods', title: 'Methods library', level: '', levelTitle: 'Every level', films: methodFilms, href: '/methods/' }] : []),
@@ -276,6 +279,7 @@ const stacks = [
                 <span class="fs-t">{k.title}</span>
                 <span class="fs-m"><span class="fl-chip"></span>{k.levelTitle}</span>
                 <span class="fs-n">{plural(k.films.length, 'film')} · {about(k.films)}</span>
+                {k.key === 'methods' && methodCounts.shared > 0 && <span class="fs-n">{fmt(methodCounts.shared)} more method {methodCounts.shared === 1 ? 'film is' : 'films are'} in the course stacks, with {methodCounts.shared === 1 ? 'its lesson' : 'their lessons'}</span>}
               </a>
             </li>
           ))}

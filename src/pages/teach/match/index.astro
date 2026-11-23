@@ -1,14 +1,15 @@
 ---
 /* Match a syllabus to the site, on the teacher's own computer.
 
-   A teacher pastes a syllabus (or opens a text or Word file) and picks the class's level. The page
+   A teacher pastes a syllabus (or opens a text, Word or PDF file) and picks the class's level. The page
    lists the syllabus's own topics in the syllabus's own order, each with the lessons and films
    that teach it at that level, a simpler one for review and a deeper one for stretch, and says
    plainly where the site has nothing yet. The teacher unticks what they will not use, then copies
    the list or prints it.
 
    Nothing pasted is sent anywhere: the matching is src/lib/syllabus-match.mjs running in the
-   browser over static files, and no model is asked. That has to hold with scripts off, blocked or
+   browser over static files, and no model is asked. A PDF is read by PDF.js (src/lib/pdf-text.mjs),
+   which is bundled with the site and fetched from this site only when a PDF is opened. That has to hold with scripts off, blocked or
    not yet loaded too, so there is no <form> here and the box has no name: nothing on this page can
    submit the text. The buttons are switched on by the script. This page loads no analytics script,
    so no third-party code runs where a syllabus is typed. No account is needed.
@@ -53,11 +54,11 @@ Week 8: Thanksgiving break`;
       </div>
       <div class="tm-row tm-more">
         <label class="tm-file">Or open a syllabus file
-          <input type="file" data-tm-file aria-describedby="tm-file-hint" disabled accept=".txt,.md,.csv,.docx,text/plain,text/markdown,text/csv,application/vnd.openxmlformats-officedocument.wordprocessingml.document" />
+          <input type="file" data-tm-file aria-describedby="tm-file-hint" disabled accept=".txt,.md,.csv,.docx,.pdf,text/plain,text/markdown,text/csv,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/pdf" />
         </label>
         <button class="tc-btn ghost" type="button" data-tm-sample disabled>Try a sample</button>
       </div>
-      <p class="tm-hint" id="tm-file-hint">Plain text or Word (.docx). For a PDF, open it, copy the schedule and paste it in the box.</p>
+      <p class="tm-hint" id="tm-file-hint">Plain text, Word (.docx) or PDF. The file is read on this computer. A scanned PDF has no text to read: paste the schedule instead.</p>
       <p class="tc-error" data-tm-file-err role="alert"></p>
       <p class="tm-private"><strong>Your syllabus stays on this computer.</strong> The matching runs in your browser. What you paste or open is never sent, no AI reads it, and you need no account. <a href="/teach/privacy/#matcher">How this differs from the AI planner</a></p>
     </div>

@@ -84,6 +84,22 @@ export function runPlace(films, watched, partials = []) {
   return { index, at };
 }
 
+/**
+ * A running time in words, for after "about": "9 minutes", "1 hour", "3 hours 45 minutes".
+ * Under an hour the minutes are exact. From an hour up, the whole length is rounded to the nearest
+ * five minutes first and then split, so the minutes never read "60" (the fault: 56 h 58 min was
+ * printed as "56 hours 60 minutes"). The one place this is worked out: /films/, a course's play
+ * page and the library's status line all call it.
+ * @param {number} seconds
+ */
+export function lengthWords(seconds) {
+  const m = Math.max(1, Math.round(seconds / 60));
+  if (m < 60) return `${m} ${m === 1 ? 'minute' : 'minutes'}`;
+  const r = Math.round(m / 5) * 5;
+  const h = Math.floor(r / 60);
+  return `${h.toLocaleString('en-US')} ${h === 1 ? 'hour' : 'hours'}${r % 60 ? ` ${r % 60} minutes` : ''}`;
+}
+
 /** A sentence that ends with a title: no second full stop after a title that ends its own sentence. */
 export const endWith = (title) => `${title}${/[.?!]$/.test(title) ? '' : '.'}`;
 

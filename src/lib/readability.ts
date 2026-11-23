@@ -167,3 +167,33 @@ export function readingRange(bodies: (string | undefined)[]): ReadingRange | und
   if (!grades.length) return undefined;
   return { low: quantile(grades, 0.25), high: quantile(grades, 0.75), median: quantile(grades, 0.5), lessons: grades.length };
 }
+
+/* ---- is a lesson's short version really simpler? (2026-11-23)
+
+   Every lesson carries short versions of itself at other levels (frontmatter explainLevels). The
+   hop sentence offers one of them under "Simpler:". On some lessons that short version reads no
+   easier than the lesson, so the word was a promise the text did not keep. The rule: the short
+   version must score at least SIMPLER_MARGIN grades below the lesson body to be called simpler.
+   Otherwise the page calls it a "Short version", and scripts/list-not-simpler.mjs lists the lesson
+   for a rewrite. The same caution applies as above: the grade measures sentence and word length,
+   not how hard the ideas are. */
+export const SIMPLER_MARGIN = 2;
+/** A short version is a few paragraphs: fewer words than a lesson are enough to measure it. */
+export const SHORT_MIN_WORDS = 60;
+
+export interface SimplerCheck {
+  /** Reading grade of the short version and of the lesson body, to one decimal place. */
+  short: number;
+  lesson: number;
+  /** True when the short version is at least SIMPLER_MARGIN grades easier. */
+  simpler: boolean;
+}
+
+/** undefined when either text is too short to measure; the page then keeps its usual wording. */
+export function simplerCheck(shortText: string, lessonBody: string): SimplerCheck | undefined {
+  const s = fleschKincaidGrade(shortText, SHORT_MIN_WORDS);
+  const l = fleschKincaidGrade(lessonBody);
+  if (s === undefined || l === undefined) return undefined;
+  const r = (n: number) => Math.round(n * 10) / 10;
+  return { short: r(s), lesson: r(l), simpler: l - s >= SIMPLER_MARGIN };
+}

@@ -88,6 +88,16 @@ const clips: string[] = (manifest as Record<string, string[]>)[slug] ?? [];
       <button type="button" class="bp-lp-choice" data-lp="keep">Keep listening</button>
     </div>
   </div>
+  {/* The end of the reading, on a lesson with Side Hops (2026-11-23): one offer to go on to the
+      stories' audio. The audio starts only on this press, never by itself. */}
+  <div class="bp-lp-pop bp-lp-prompt" role="group" aria-labelledby="bp-lp-stories-h" data-lp="stories" hidden>
+    <p class="bp-lp-prompt-h" id="bp-lp-stories-h">That is the end of the reading</p>
+    <p class="bp-lp-prompt-film" data-lp="stories-title"></p>
+    <div class="bp-lp-prompt-btns">
+      <button type="button" class="bp-lp-choice bp-lp-choice-main" data-lp="stories-play">Play the Side Hops stories next</button>
+      <button type="button" class="bp-lp-choice" data-lp="stories-no">Not now</button>
+    </div>
+  </div>
   <p class="bp-lp-sr" aria-live="polite" data-lp="live"></p>
 </div>
 
@@ -228,6 +238,42 @@ const clips: string[] = (manifest as Record<string, string[]>)[slug] ?? [];
       announce(`Paused at a film${film.title ? `: ${film.title}` : ''}. Watch the film now, or keep listening.`);
       if (hadFocus) watchBtn.focus({ preventScroll: true });
     };
+    // ---- the Side Hops stories, offered when the reading ends ---------------------------------------
+    // LessonStories.astro puts one <audio> in .sh-player on a lesson that has Side Hops.
+    const storiesEl = $('stories'), storiesTitle = $('stories-title');
+    const storiesPlay = $('stories-play') as HTMLButtonElement;
+    const storiesAudio = () => {
+      const a = document.querySelector<HTMLAudioElement>('[data-sh-panel] .sh-player audio');
+      return a && a.offsetParent !== null ? a : null;
+    };
+    const hideStories = () => {
+      if (storiesEl.hidden) return;
+      const hadFocus = storiesEl.contains(document.activeElement);
+      storiesEl.hidden = true;
+      if (hadFocus) toggleBtn.focus({ preventScroll: true });
+    };
+    const offerStories = () => {
+      const a = storiesAudio();
+      if (!a) return false;
+      const name = a.closest('.sh-player')?.querySelector('.sh-player-h')?.textContent?.trim() || '';
+      const d = a.closest('.sh-player')?.querySelector('.sh-note')?.textContent?.match(/\d+:\d\d/)?.[0] || '';
+      storiesTitle.textContent = [name, d].filter(Boolean).join(' · ');
+      const hadFocus = player.contains(document.activeElement) || document.activeElement === document.body;
+      storiesEl.hidden = false;
+      announce('That is the end of the reading. You can play the Side Hops stories next.');
+      if (hadFocus) storiesPlay.focus({ preventScroll: true });
+      return true;
+    };
+    const playStories = () => {
+      const a = storiesAudio();
+      hideStories();
+      if (!a) return;
+      close();
+      a.scrollIntoView({ block: 'center', behavior: reduced() ? 'auto' : 'smooth' });
+      a.focus({ preventScroll: true });
+      a.play().catch(() => { /* the audio's own controls still work */ });
+    };
+
     /** Read paragraph i next, unless a film comes first and Listen is set to stop there. */
     const advance = (i: number) => {
       const film = filmBefore(i);
@@ -261,7 +307,8 @@ const clips: string[] = (manifest as Record<string, string[]>)[slug] ?? [];
       silence();
       clearFilmState();
       if (i < 0) i = 0;
-      if (i >= list.length) { idx = -1; mark(null); setPlaying(false); setStatus('Finished. Press play to start again.'); return; }
+      hideStories();
+      if (i >= list.length) { idx = -1; mark(null); setPlaying(false); setStatus('Finished. Press play to start again.'); offerStories(); return; }
       idx = i;
       const el = list[i];
       const h = el.dataset.say || '';
@@ -327,6 +374,7 @@ const clips: string[] = (manifest as Record<string, string[]>)[slug] ?? [];
       const hadFocus = player.contains(document.activeElement);
       silence();
       clearFilmState();
+      storiesEl.hidden = true;
       setPlaying(false);
       idx = -1;
       mark(null);
@@ -353,6 +401,7 @@ const clips: string[] = (manifest as Record<string, string[]>)[slug] ?? [];
       settingsBtn.addEventListener('click', () => {
         if (!panel.hidden) { closePanel(); return; }
         if (stopAtFilm) promptEl.hidden = true;   // one card above the bar at a time; the stop itself stays
+        hideStories();
         panel.hidden = false;
         settingsBtn.setAttribute('aria-expanded', 'true');
         stopsBox.focus({ preventScroll: true });
@@ -391,6 +440,7 @@ const clips: string[] = (manifest as Record<string, string[]>)[slug] ?? [];
       e.preventDefault();
       e.stopPropagation();
       if (!panel.hidden) closePanel();
+      else if (!storiesEl.hidden) hideStories();
       else if (stopAtFilm) keepListening();
       else close();
     });
@@ -402,6 +452,8 @@ const clips: string[] = (manifest as Record<string, string[]>)[slug] ?? [];
       e.preventDefault();
       keepListening();
     });
+    storiesPlay.addEventListener('click', playStories);
+    $('stories-no').addEventListener('click', hideStories);
     watchBtn.addEventListener('click', watchFilm);
     keepBtn.addEventListener('click', keepListening);
     speedSel.addEventListener('change', () => {

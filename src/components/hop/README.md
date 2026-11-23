@@ -75,6 +75,12 @@ Load `src/styles/hop.css` on any page that draws a ladder (the Astro components 
   `compactLine()` or `taughtAt()` in `src/lib/hop-words.mjs`.
 - The markup is written as it is drawn, deepest rung first, so the eye, the Tab key and a screen
   reader move the same way. The list's label says the order.
+- Not live yet (`RELABEL_NOT_SIMPLER = false` in `src/lib/hop-words.mjs`, waiting on Chris): a
+  lesson's own short version would be offered under "Simpler" only when it reads at least two
+  grades easier than the lesson (`simplerCheck()` in `src/lib/readability.ts`); otherwise the line
+  would say "Short version: read the high school version here." Today every short version is still
+  offered under "Simpler". `node scripts/list-not-simpler.mjs` lists the lessons that fail the rule
+  (`production/short-versions-not-simpler.json`).
 - The words are "Simpler" and "Deeper". Never "easier", "harder", "level up", or a step number.
 - A level with no lesson is one short line with broken rails. Do not stretch it.
 

@@ -79,7 +79,15 @@ export async function homeData(now = new Date()) {
   };
   const rows = STAGES.map((s) => ({ ...s, cards: cards.filter((k) => stageOf(k.c) === s.key) }))
     .filter((s) => s.cards.length > 0)
-    .map((b) => ({ ...b, first: firstLesson(b.cards[0].c.slug) }));
+    .map((b) => ({
+      ...b,
+      first: firstLesson(b.cards[0].c.slug),
+      /* On a row with more than one course, each course's own first lesson (2026-11-23): a reader who
+         came for the second course can see where it starts. A course with no live lesson is left out. */
+      starts: b.cards.length > 1
+        ? b.cards.map((k) => ({ course: k.c.title, first: firstLesson(k.c.slug) })).filter((x): x is { course: string; first: { slug: string; title: string } } => !!x.first)
+        : [],
+    }));
   const lessonsIn = (slug: string) => cards.find((k) => k.c.slug === slug)?.lessons ?? 0;
 
   /** One idea at every level it is taught, from the hop graph (src/data/topic-graph.json). */

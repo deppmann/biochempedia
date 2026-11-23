@@ -1,0 +1,103 @@
+---
+/* =============================================================================
+   PrintDiary: a one-page record sheet for an activity a family repeats over
+   time (visit a tree every month, measure a plant every week). A grid of boxes,
+   one per visit; each box has a label, room to draw, and short prompts with a
+   line to write on. Plain HTML and CSS: it works with JavaScript off, and it
+   prints on one US Letter page (the page that uses it sets nothing else).
+     <PrintDiary title="My tree diary" kicker="Adopt a Tree"
+       intro="Visit your tree about once a month. Fill in one box each time."
+       labels={['January', ...]} columns={3}
+       draw="Draw my tree" prompts={['Leaves or buds:', 'One thing that changed:']} />
+   Twelve boxes in three columns with two prompts fill a Letter page. For other
+   counts, keep rows × box height to about 8.4 inches (see --pd-box-h below).
+   ============================================================================ */
+import { PRIMARY_HOST } from '../lib/site-host.mjs';
+interface Props {
+  title: string;
+  /** Small line above the title, e.g. the activity's name. */
+  kicker?: string;
+  intro?: string;
+  /** One box per label. */
+  labels: string[];
+  /** Boxes across the page. */
+  columns?: number;
+  /** The words in the corner of each box's drawing space. */
+  draw?: string;
+  /** Short prompts under the drawing space, each with a line to write on. Two fit. */
+  prompts?: string[];
+  /** Blank fields under the title. */
+  fields?: string[];
+  /** Footer, after the site's address. */
+  foot?: string;
+}
+const { title, kicker, intro, labels, columns = 3, draw = 'Draw', prompts = [], fields = ['Name', 'Year'], foot } = Astro.props;
+const rows = Math.ceil(labels.length / columns);
+---
+<section class="pd" style={`--pd-cols:${columns};--pd-rows:${rows}`} aria-label={title}>
+  <header class="pd-head">
+    {kicker && <p class="pd-kicker">{kicker}</p>}
+    <h1 class="pd-title">{title}</h1>
+    {fields.length > 0 && <p class="pd-fields">{fields.map((f) => <span>{f} <i></i></span>)}</p>}
+    {intro && <p class="pd-intro">{intro}</p>}
+  </header>
+  <ol class="pd-grid">
+    {labels.map((label) => (
+      <li class="pd-box">
+        <p class="pd-label"><strong>{label}</strong><span>Date <i></i></span></p>
+        <div class="pd-draw"><span>{draw}</span></div>
+        {prompts.map((p) => <p class="pd-prompt"><span>{p}</span><i></i></p>)}
+      </li>
+    ))}
+  </ol>
+  <p class="pd-foot">{PRIMARY_HOST}{foot ? ` · ${foot}` : ''}</p>
+</section>
+
+<style is:global>
+  /* The sheet is always black on white, on screen and on paper: it is a picture of the printed page. */
+  .pd { background: #fff; color: #1a1a1a; border: 1px solid var(--ddp-color-line); border-radius: var(--ddp-radius-sm, 8px); padding: var(--ddp-space-5); }
+  .pd i { display: inline-block; border-bottom: 1.5px solid #333; }
+  .pd .pd-kicker { margin: 0; font-size: var(--ddp-text-xs); text-transform: uppercase; letter-spacing: 0.08em; color: #555; }
+  .pd .pd-title { margin: 0 0 var(--ddp-space-2); font-size: 1.6rem; line-height: 1.15; color: #1a1a1a; }
+  .pd .pd-fields { display: flex; flex-wrap: wrap; gap: 0.4rem 1.5rem; margin: 0 0 var(--ddp-space-2); font-size: 1rem; }
+  .pd .pd-fields span { display: inline-flex; align-items: flex-end; gap: 0.4em; flex: 1 1 9rem; }
+  .pd .pd-fields i { flex: 1; min-width: 4rem; height: 1.2em; }
+  .pd .pd-intro { margin: 0 0 var(--ddp-space-3); font-size: 0.95rem; line-height: 1.4; }
+  .pd .pd-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(var(--pd-cols), minmax(0, 1fr)); gap: 0.5rem; }
+  .pd .pd-box { display: flex; flex-direction: column; min-height: 13rem; border: 1.5px solid #333; border-radius: 6px; padding: 0.35rem 0.45rem; break-inside: avoid; }
+  .pd .pd-label { display: flex; align-items: flex-end; justify-content: space-between; gap: 0.5rem; margin: 0; font-size: 0.95rem; }
+  .pd .pd-label span { display: inline-flex; align-items: flex-end; gap: 0.3em; font-size: 0.75rem; color: #444; }
+  .pd .pd-label i { width: 3.2rem; height: 1em; border-bottom-width: 1px; }
+  .pd .pd-draw { flex: 1; min-height: 5rem; margin: 0.3rem 0; border: 1px dashed #777; border-radius: 4px; padding: 0.15rem 0.3rem; font-size: 0.7rem; color: #555; }
+  .pd .pd-prompt { margin: 0 0 0.3rem; font-size: 0.72rem; line-height: 1.2; color: #333; }
+  .pd .pd-prompt span { display: block; }
+  .pd .pd-prompt i { display: block; height: 1.25rem; border-bottom-width: 1px; }
+  .pd .pd-foot { margin: var(--ddp-space-2) 0 0; font-size: 0.7rem; color: #666; text-align: right; }
+  @media (max-width: 640px) {
+    .pd { padding: var(--ddp-space-3); }
+    .pd .pd-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+
+  /* Print: one US Letter page, no site chrome. The page that holds the sheet marks what to hide with .pd-screen. */
+  @page { size: letter; margin: 0.45in; }
+  @media print {
+    html, body { background: #fff !important; color: #000 !important; }
+    .skip-link, .site-header, body > footer, .pd-screen { display: none !important; }
+    main { padding: 0 !important; }
+    .pd-page { max-width: none !important; padding: 0 !important; margin: 0 !important; }
+    .pd { border: 0; border-radius: 0; padding: 0; }
+    .pd .pd-kicker { font-size: 8pt; }
+    .pd .pd-title { font-size: 18pt; margin-bottom: 3pt; }
+    .pd .pd-fields { font-size: 10pt; margin-bottom: 3pt; }
+    .pd .pd-intro { font-size: 9.5pt; margin-bottom: 5pt; }
+    .pd .pd-grid { grid-template-columns: repeat(var(--pd-cols), minmax(0, 1fr)); gap: 0.08in; }
+    /* Letter less the margins is 10.1in tall; the heading takes about 1.2in and the footer 0.2in. */
+    .pd .pd-box { --pd-box-h: calc((8.5in - (var(--pd-rows) - 1) * 0.08in) / var(--pd-rows)); height: var(--pd-box-h); min-height: 0; padding: 3pt 5pt; box-sizing: border-box; }
+    .pd .pd-label { font-size: 10pt; }
+    .pd .pd-label span { font-size: 7.5pt; }
+    .pd .pd-draw { min-height: 0; margin: 3pt 0; font-size: 7pt; }
+    .pd .pd-prompt { font-size: 7.5pt; margin-bottom: 2pt; }
+    .pd .pd-prompt i { height: 13pt; }
+    .pd .pd-foot { font-size: 7.5pt; margin-top: 3pt; color: #000; }
+  }
+</style>

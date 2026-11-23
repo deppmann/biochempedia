@@ -10,7 +10,7 @@
  */
 import assert from 'node:assert/strict';
 import { loadGraphSite, coreSite, readGraph, makeTopicGraph } from './topic-graph/lib.mjs';
-import { inSentence, lessonSentence, authoredLinks, plain, stepNote, levelNote, gapLine, taughtAt, levelCount, edgeLines, compactLine, maskOf, ranksOf, SENTENCE_MAX, LEVEL_SHORT, LEVEL_LABEL, QUICK_NAME, andList } from '../src/lib/hop-words.mjs';
+import { inSentence, lessonSentence, authoredLinks, plain, stepNote, levelNote, gapLine, taughtAt, shownAt, levelCount, edgeLines, compactLine, maskOf, ranksOf, SENTENCE_MAX, LEVEL_SHORT, LEVEL_LABEL, QUICK_NAME, andList } from '../src/lib/hop-words.mjs';
 import { ladderHtml, ladderGlyph, ladderRows } from '../src/lib/hop-ladder.mjs';
 import { buildIndex, search, stem, oneSlip, solCode } from '../src/lib/hop-search.mjs';
 
@@ -211,6 +211,28 @@ check('the short version offered in place exists in that lesson', () => {
     if (x.l.rank >= 2) assert.ok(q, `${x.l.slug}: a lesson from high school up offers its short simpler version in place`);
   }
 });
+/* The fault (antigen-receptors-and-checkpoints): "Simpler: … read a short college version here"
+   opened a short version as dense as the lesson. A short version that does not read easier is
+   offered as a "Short version", never under "Simpler". The page does this only when
+   RELABEL_NOT_SIMPLER (hop-words.mjs) is on; it is off, waiting on Chris. The wording is tested
+   here with the flag passed by hand, so it is ready either way. */
+check('with the flag passed, a short version that is not easier to read is a "Short version", never "Simpler"; without it the wording is unchanged', () => {
+  for (const x of sentences) assert.ok(!x.lines.some(([, , text]) => /Short version:/.test(text)), `${x.l.slug}: no relabel without the flag`);
+  for (const x of sentences) {
+    const s = lessonSentence(api.hops(x.l.slug), { slug: x.l.slug, title: x.l.title, rank: x.l.rank, courseTitle: x.l.courseTitle, explainLevels: x.l.fm.explainLevels, authored: x.authored, quickNotSimpler: true });
+    assert.ok(s.length <= SENTENCE_MAX, `${x.l.slug}: ${s.length} characters`);
+    const segs = s.lines.simpler ?? [];
+    const at = segs.findIndex((g) => g.quick);
+    if (at < 0) { assert.ok(!x.lines.flatMap(([, g]) => g).some((g) => g.quick), `${x.l.slug}: the short version is still offered`); continue; }
+    const text = plain(segs);
+    assert.deepEqual(faults(text), [], `${x.l.slug}: ${text}`);
+    assert.ok(!/read a short|, or /.test(text), `${x.l.slug}: ${text}`);
+    assert.ok(segs[at - 2]?.t === 'Short version:' && segs[at - 2].k === 'dir', `${x.l.slug}: the short version has its own label: ${text}`);
+    // "Simpler:" stays only when a simpler lesson is linked.
+    assert.equal(text.startsWith('Simpler:'), segs.some((g) => g.href), `${x.l.slug}: ${text}`);
+    assert.ok(/^(Simpler: .+\. )?Short version: read (it|the [a-z0-9 ]+ version) here\.$/.test(text), `${x.l.slug}: ${text}`);
+  }
+});
 check('one idea is named: the lesson\u2019s main idea, the first in the graph\u2019s record, by its short name', () => {
   for (const x of sentences) {
     assert.equal(x.s.ideas[0].id, graph.lessons[x.l.slug].concepts.find((id) => graph.concepts[id].rungs.some((r) => r.lesson === x.l.slug && r.role === 'core')), x.l.slug);
@@ -228,6 +250,21 @@ check('school lessons name their level; college lessons name their course', () =
 check(`the closed sentence fits four phone lines: at most ${SENTENCE_MAX} characters in all`, () => {
   const long = sentences.filter((x) => x.s.length > SENTENCE_MAX).map((x) => `${x.l.slug} (${x.s.length}): ${x.lines.map((l) => l[2]).join(' ')}`);
   assert.deepEqual(long, []);
+});
+
+/* The fault (alive-or-not): the sentence said "Taught at two levels" above a ladder whose button
+   said "Show all three levels", because a hand-picked grade 7 rung was drawn but not counted. */
+check('the sentence over a lesson\'s ladder counts the rungs the ladder draws, hand-picked ones included', () => {
+  assert.equal(shownAt(maskOf([0, 2])), taughtAt(maskOf([0, 2])));
+  assert.equal(shownAt(maskOf([0, 2]), [2]), taughtAt(maskOf([0, 2])), 'a pick at a level the idea already has adds nothing');
+  assert.equal(shownAt(maskOf([0, 2]), [1]), 'Three levels here: ages 5 to 10, grade 7 and high school. The lesson at grade 7 was picked by hand for this lesson.');
+  assert.equal(shownAt(maskOf([2]), [1, 4]), 'Three levels here: grade 7, high school and college core. The lessons at grade 7 and in the college core were picked by hand for this lesson.');
+  // The same count as the ladder's button, for a ladder with a picked rung.
+  const rung = (rank, slug, also) => ({ rank, slug, title: slug, href: `/lessons/${slug}/`, courseTitle: 'C', ...(also ? { also: true } : {}) });
+  const idea = { id: 'x', name: 'X', short: 'x', rungs: [rung(0, 'a'), rung(1, 'b', true), rung(2, 'c')] };
+  const html = ladderHtml(idea, { here: 'c' });
+  assert.ok(html.includes('Show all three levels'), 'the button counts three rungs');
+  assert.ok(shownAt(maskOf([0, 2]), idea.rungs.filter((r) => r.also).map((r) => r.rank)).startsWith('Three levels here:'), 'and so does the sentence');
 });
 
 console.log(`ideas: ${api.concepts.length}`);
