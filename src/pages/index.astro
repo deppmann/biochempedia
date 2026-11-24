@@ -139,6 +139,23 @@ const comingLinks = COMING_SUBJECTS.filter((s) => s.link);
       <p class="home-soon-note">None of these is built yet.{comingLinks.map((s) => <>{' '}{s.link!.before}<a href={s.link!.href}>{s.link!.text}</a>{s.link!.after}</>)}</p>
     </section>
 
+    {/* Recently rewritten (back 2026-11-24): the newest lessons through the level-up pass, under every
+        door, from the production record. Static: works with JavaScript off. */}
+    {d.shelf.length > 0 && (
+      <section class="home-rw" aria-labelledby="home-rw-h">
+        <div class="home-rw-top">
+          <h2 class="home-sec-h" id="home-rw-h">Recently rewritten</h2>
+          <Hex pose="wave" size={40} class="home-rw-hex" />
+        </div>
+        <p class="home-rw-note">Fresh off the workbench: new text, and often a new film. <a href="/updates/">{fmt(d.rewrittenCount)} lessons rewritten so far</a>.</p>
+        <ul class="home-rw-list" role="list">
+          {d.shelf.map((r) => (
+            <li><a href={r.href}><b>{r.title}</b><span>{r.course} · {r.date}</span><span class="home-rw-what">{r.what}</span></a></li>
+          ))}
+        </ul>
+      </section>
+    )}
+
     <section class="home-try-sec" aria-labelledby="home-try-h">
       <h2 class="home-sec-h" id="home-try-h">Things to try</h2>
       <ul class="home-try" role="list">
