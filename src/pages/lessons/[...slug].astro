@@ -22,6 +22,7 @@ import ListenPlayer from '../../components/ListenPlayer.astro';
 import LessonShare from '../../components/LessonShare.astro';
 import FilmTranscript from '../../components/FilmTranscript.astro';
 import LessonPlayAll from '../../components/LessonPlayAll.astro';
+import LessonFilmNav from '../../components/LessonFilmNav.astro';
 import FlashcardDeck from '../../components/FlashcardDeck.astro';
 import CardsPrompt from '../../components/CardsPrompt.astro';
 import HighlightLayer from '../../components/HighlightLayer.astro';
@@ -77,6 +78,12 @@ const navOf = (l: (typeof allLessons)[number] | undefined) =>
 const lessonIdx = allLessons.findIndex((l) => l.data.slug === entry.data.slug);
 const prevNav = navOf(allLessons[lessonIdx - 1]);
 const nextNav = navOf(allLessons[lessonIdx + 1]);
+// "Next lesson's film" under this lesson's last film (LessonFilmNav.astro, 2026-11-24): the first later
+// lesson in this course with an opening film, in the same order as previous and next.
+const nextFilmLesson = allLessons.slice(lessonIdx + 1).find((l) => l.data.explainer);
+const nextFilm = nextFilmLesson
+  ? { href: `/lessons/${nextFilmLesson.data.slug}/#explainer`, lesson: nextFilmLesson.data.title, film: nextFilmLesson.data.explainer!.title }
+  : undefined;
 // After a course's last lesson, hand off to the next course in COURSES (its order is the
 // suggested path). Only a course with a published lesson counts, and Biology Together does
 // not hand off: its pages are for the grown-up, and the next course is written for students.
@@ -688,6 +695,7 @@ const lessonLd = {
 
     {deck && <FlashcardDeck deck={deck} />}
     {deck && <CardsPrompt />}
+    {(ex || lesson.films.length > 0) && <LessonFilmNav next={nextFilm} />}
 
     <dialog id="lb-sources" class="lightbox lock-scroll" aria-label="Sources and integrity">
       <div class="lightbox-head"><span>Sources &amp; Integrity</span><button type="button" class="lightbox-close" data-close aria-label="Close">✕</button></div>

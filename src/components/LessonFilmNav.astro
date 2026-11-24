@@ -1,0 +1,111 @@
+---
+/**
+ * Chapter buttons under a lesson's films (Chris, 2026-11-24: "a next film button (or previous film)").
+ * A lesson's films are its chapters (the opening film, then each <LessonFilm> in the text). Under each
+ * one the script adds: "Next chapter" while another follows, "Previous chapter" from the second on, and
+ * under the last, a link to the next lesson's film in course order (the first later lesson in the same
+ * course that has a film), which opens that lesson at its opening film, paused. The row sits at the
+ * foot of the film's <figure>.
+ *
+ * The films are the same set "Play all films" (LessonPlayAll.astro) chains: <video data-listen-film>
+ * outside a pop-up. A chapter button is a press, so the chapter it goes to starts playing, with the
+ * speed and captions of the one before; nothing starts on its own. Without JavaScript nothing shows.
+ * The buttons are built by the script, so their styles are global, under .lfn.
+ */
+interface Props { next?: { href: string; lesson: string; film: string } }
+const { next } = Astro.props;
+---
+
+<script type="application/json" data-lfn-next set:html={JSON.stringify(next ?? null).replace(/</g, '\\u003c')} />
+<script>
+  type Next = { href: string; lesson: string; film: string } | null;
+  const dataEl = document.querySelector('[data-lfn-next]');
+  const next: Next = dataEl ? JSON.parse(dataEl.textContent || 'null') : null;
+  const films = Array.from(document.querySelectorAll<HTMLVideoElement>('video[data-listen-film]')).filter((v) => !v.closest('dialog'));
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const name = (v: HTMLVideoElement) => v.dataset.listenFilm ?? '';
+
+  // Arriving from another lesson's "Next lesson's film" (#explainer): open the opening film's row, paused.
+  if (location.hash === '#explainer') {
+    const row = document.querySelector<HTMLDetailsElement>('[data-ex-row]');
+    if (row && !row.open) row.open = true;
+  }
+
+  const go = (from: HTMLVideoElement, to: HTMLVideoElement) => {
+    // A chapter folded out of this stop (the Skim stop shows only the opening film): open the Films stop.
+    const fold = to.closest('details');
+    if (fold && !fold.open) fold.open = true;
+    if (!to.getClientRects().length) { location.href = `${location.pathname}?time=films`; return; }
+    if (!from.paused) from.pause();
+    // Carry the viewer's choices forward: playback speed, and captions if they were showing.
+    to.playbackRate = from.playbackRate;
+    const showing = [...from.textTracks].some((t) => t.mode === 'showing');
+    for (const t of to.textTracks) t.mode = showing ? 'showing' : t.mode === 'showing' ? 'disabled' : t.mode;
+    (to.closest('figure') ?? to).scrollIntoView({ block: 'center', behavior: reduce.matches ? 'auto' : 'smooth' });
+    to.focus({ preventScroll: true });
+    void to.play().catch(() => { /* the browser wants a press on the film itself: its controls are there */ });
+  };
+
+  const btn = (text: string, label: string, onClick: () => void, cls = '') => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = `lfn-btn ${cls}`.trim();
+    b.innerHTML = text;
+    b.setAttribute('aria-label', label);
+    b.addEventListener('click', onClick);
+    return b;
+  };
+
+  const n = films.length;
+  films.forEach((v, i) => {
+    const prev = films[i - 1];
+    const nx = films[i + 1];
+    const last = i === n - 1;
+    if (!prev && !nx && !(last && next)) return;
+    const nav = document.createElement('nav');
+    nav.className = 'lfn';
+    nav.setAttribute('aria-label', n > 1 ? `Chapter ${i + 1} of ${n}` : 'Next film');
+    if (prev) nav.append(btn('<span aria-hidden="true">◀</span> Previous chapter', `Previous chapter: ${name(prev)}`, () => go(v, prev)));
+    if (n > 1) {
+      const pos = document.createElement('span');
+      pos.className = 'lfn-pos';
+      pos.textContent = `Chapter ${i + 1} of ${n}`;
+      pos.setAttribute('aria-hidden', 'true');
+      nav.append(pos);
+    }
+    if (nx) nav.append(btn('Next chapter <span aria-hidden="true">▶</span>', `Next chapter: ${name(nx)}`, () => go(v, nx), 'lfn-next'));
+    if (last && next) {
+      const a = document.createElement('a');
+      a.className = 'lfn-btn lfn-next';
+      a.href = next.href;
+      a.setAttribute('aria-label', `Next lesson's film: ${next.film}, in ${next.lesson}`);
+      const t = document.createElement('span');
+      t.className = 'lfn-t';
+      t.textContent = next.lesson;
+      a.append("Next lesson's film: ", t, ' ');
+      a.insertAdjacentHTML('beforeend', '<span aria-hidden="true">▶</span>');
+      nav.append(a);
+    }
+    // Inside the film's figure, so a stop that shows only the films (LessonTime's Films stop) keeps it.
+    const fig = v.closest('figure');
+    if (fig) fig.append(nav); else v.after(nav);
+  });
+</script>
+
+<style is:global>
+  .lfn { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ddp-space-2); max-width: 880px; margin: var(--ddp-space-2) 0 var(--ddp-space-3); }
+  .lfn-pos { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .lfn-next { margin-left: auto; }
+  .lfn-btn {
+    display: inline-flex; align-items: center; gap: 0.4em; min-height: 44px; padding: 0.4rem 1rem; max-width: 100%;
+    border-radius: 999px; border: 1px solid var(--ddp-color-line); background: var(--ddp-color-surface);
+    color: var(--ddp-color-primary); font: inherit; font-size: var(--ddp-text-sm); font-weight: 600;
+    text-decoration: none; cursor: pointer;
+  }
+  .lfn-btn:hover { border-color: var(--ddp-color-accent); }
+  .lfn-btn:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .lfn-t { font-weight: 400; color: var(--ddp-color-ink-soft); overflow-wrap: anywhere; }
+  @media (max-width: 560px) {
+    .lfn-next { margin-left: 0; }
+  }
+</style>
