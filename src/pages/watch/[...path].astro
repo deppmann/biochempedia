@@ -52,6 +52,10 @@ const siblings = (await allFilms()).filter((f) => f.lesson === film.lesson);
 const place = siblings.findIndex((f) => f.href === film.href);
 const others = siblings.filter((f) => f.href !== film.href);
 const nextFilm = siblings[place + 1];
+const prevFilm = siblings[place - 1];
+// Chapter links under the screen (2026-11-24): previous and next film in this lesson, and after the
+// last one the next lesson's first film in course order (the first later lesson in the course with one).
+const nextLessonFilm = nextFilm ? undefined : (await allFilms()).find((f) => f.course === film.course && f.order > film.order && f.lesson !== film.lesson);
 const description = metaDescription(film.hook);
 const DECK_FILES = Object.keys(import.meta.glob('../../data/flashcards/*.json'));
 const hasDeck = DECK_FILES.some((f) => f.endsWith(`/${film.lesson}.json`));
@@ -159,6 +163,13 @@ const videoLd = {
           {siblings.length > 1 ? `Film ${place + 1} of ${siblings.length} in the lesson ` : 'From the lesson '}<a href={lessonHref}>{film.lessonTitle}</a>
           <span class="th-meta-more"> · <span class={`th-chip lv-${stage?.key}`}></span>{stage?.title} · {filmClock(film.durationSec)}</span>
         </p>
+        {(prevFilm || nextFilm || nextLessonFilm) && (
+          <nav class="th-chap" aria-label={siblings.length > 1 ? 'Chapters' : 'Next film'}>
+            {prevFilm && <a class="th-btn" href={prevFilm.href} aria-label={`Previous chapter: ${prevFilm.title}`}><span aria-hidden="true">◀</span>&nbsp;Previous chapter</a>}
+            {nextFilm && <a class="th-btn th-chap-next" href={nextFilm.href} aria-label={`Next chapter: ${nextFilm.title}`}>Next chapter&nbsp;<span aria-hidden="true">▶</span></a>}
+            {nextLessonFilm && <a class="th-btn th-chap-next" href={nextLessonFilm.href} aria-label={`Next lesson's film: ${nextLessonFilm.title}, in ${nextLessonFilm.lessonTitle}`}>Next lesson’s film:&nbsp;<span class="th-chap-t">{nextLessonFilm.lessonTitle}</span>&nbsp;<span aria-hidden="true">▶</span></a>}
+          </nav>
+        )}
         {film.predatesCorrection && (
           <p class="th-predates"><strong>This film was made before a correction to the lesson text.</strong> {film.predatesCorrection}</p>
         )}
