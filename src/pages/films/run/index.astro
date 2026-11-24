@@ -8,7 +8,9 @@
    Rules (the play-in-order page's, applied to any view): whole films, from the first one not yet
    watched on this device, never more than a minute past the budget, stop at the first film that
    does not fit. The run says how long it is and where it ends before it starts. Nothing plays until
-   the viewer presses play; the next film is offered, with no clock, and starts only when asked.
+   the viewer presses play; the next film is offered, with no clock, and starts only when asked,
+   unless the viewer has turned on Play all (2026-11-24), which starts it when the last one ends.
+   Previous and Next under the player move through the run.
    Nothing is stored here; the
    watched record is the site's own (trackFilms in BaseLayout).
 
@@ -38,6 +40,13 @@ import '../../../styles/film-lib.css';
           <span class="fr-novideo">Your browser cannot play this video.</span>
         </video>
       </div>
+      {/* Previous and next film, and the Play all setting (2026-11-24, src/lib/film-autoadvance.ts). */}
+      <div class="pl-ctrl fr-ctrl">
+        <button type="button" class="fl-btn" data-fr-prev><span aria-hidden="true">◀</span> Previous</button>
+        <p class="pl-pos" data-fr-pos></p>
+        <button type="button" class="fl-btn" data-fr-nextbtn>Next <span aria-hidden="true">▶</span></button>
+      </div>
+      <p class="fl-auto-row"><label class="fl-auto"><input type="checkbox" data-fr-auto /> Play all: start the next film when one ends</label></p>
       <p class="fr-meta" data-fr-startat hidden></p>
       <h2 class="fr-now" data-fr-title tabindex="-1"></h2>
       <p class="fr-meta" data-fr-meta></p>
