@@ -4,7 +4,7 @@
     python3 scripts/make-teachers-deck-pdf.py
 
 Needs the talk's local server running (python3 "<workshop folder>/talk/serve.py", port 8765),
-Google Chrome, and Pillow. It screenshots each main step at 1920x1080 in headless Chrome and
+Playwright's chrome-headless-shell, and Pillow. It screenshots each main step at 1920x1080 and
 combines the pictures into one PDF (JPEG pages, so it stays under 10 MB). The number of main steps
 is read from public/teachers/talk/deck.json, so run scripts/refresh-teachers-deck.mjs first.
 Movies show their poster frame. The PDF is pictures, so the same text is on /teachers.
@@ -18,7 +18,12 @@ from pathlib import Path
 
 from PIL import Image
 
-CHROME = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
+# Playwright's headless browser, not /Applications/Google Chrome: every launch of the installed Chrome
+# leaves a ~2.2 GB copy of itself in $TMPDIR/../X that is never cleaned up.
+_shells = sorted(Path.home().glob('Library/Caches/ms-playwright/chromium_headless_shell-*/chrome-headless-shell-mac-*/chrome-headless-shell'))
+if not _shells:
+    sys.exit('no headless browser: node ~/.local/share/headless-browser/node_modules/playwright-core/cli.js install chromium-headless-shell')
+CHROME = str(_shells[-1])
 SERVER = 'http://localhost:8765/slides/talk/'
 OUT = Path('public/teachers/Fast_Tools_Slow_Thinking.pdf')
 N = len(json.load(open('public/teachers/talk/deck.json'))['steps'])   # main steps only (the public deck has no appendix)
