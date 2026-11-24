@@ -131,7 +131,7 @@ export const METHODS: Method[] = [
     aka: ['bump-hole', 'Shokat method'],
     category: 'molecules',
     summary: 'Finding the direct substrates of one kinase by enlarging its ATP pocket so it alone uses a bulky labelled ATP analog.',
-    film: sectionFilm('detecting-a-signal', 'which-kinase', 'Give One Kinase an ATP of Its Own', 87.7),
+    film: { ...sectionFilm('detecting-a-signal', 'which-kinase', 'Give One Kinase an ATP of Its Own', 75.3), narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from the lesson's text" },
     lessons: ['detecting-a-signal', 'drugs-against-a-part', 'phosphorylation-switch'],
     terms: ['analog-sensitive kinase', 'analog-sensitive', 'bump-hole'],
   },
