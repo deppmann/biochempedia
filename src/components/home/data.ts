@@ -8,6 +8,7 @@ import { STAGES, stageOf } from '../../data/stages';
 import { courseCards } from '../../lib/catalog';
 import { filmTotal } from '../../lib/film-catalog';
 import { concept, conceptsOf, ladder, type LadderRung } from '../../lib/topic-graph';
+import rewritten from '../../data/recently-rewritten.json';
 
 type Lesson = CollectionEntry<'lessons'>;
 
@@ -63,6 +64,13 @@ const WEEK = 7 * DAY;
 /* Day 0 of the clock was a Thursday; three days on puts the weekly change on a Monday (UTC), so the
    activity a parent shops for midweek is still the one on the page that weekend. */
 const weekOf = (t: number) => Math.floor((t + 3 * DAY) / WEEK);
+/* "Recently rewritten" (brought back 2026-11-24, Chris: "you can bring back the 'Recently rewritten'
+   shelf to the homepage"): the newest lessons through the level-up pass, from
+   src/data/recently-rewritten.json, which scripts/rewritten-shelf.mjs writes from the production record. */
+const SHELF_SIZE = 8;
+const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const dayOf = (d: string) => `${MON[Number(d.slice(5, 7)) - 1]} ${Number(d.slice(8, 10))}`;
+const NEW_WORD: Record<string, string> = { text: 'new text', figures: 'new figures', flashcards: 'new flashcards', film: 'new film' };
 const SETTING: Record<string, string> = { indoors: 'indoors', outdoors: 'outdoors', either: 'indoors or out' };
 
 export async function homeData(now = new Date()) {
@@ -158,9 +166,24 @@ export async function homeData(now = new Date()) {
     return `${prefix}.${Math.min(...nums)} to ${prefix}.${Math.max(...nums)}`;
   };
 
+  /* Only live lessons; the list is newest first, slug order within a day. */
+  const rewrittenLive = (rewritten as { slug: string; date: string; new: string[] }[]).filter((r) => live.has(r.slug));
+  const shelf = rewrittenLive.slice(0, SHELF_SIZE).map((r) => {
+    const l = live.get(r.slug)!.data;
+    return {
+      href: `/lessons/${r.slug}/`,
+      title: l.title,
+      course: courseOf(l.course).title,
+      date: dayOf(r.date),
+      what: r.new.map((x) => NEW_WORD[x] ?? x).join(' · '),
+    };
+  });
+
   return {
     cards,
     rows,
+    shelf,
+    rewrittenCount: rewrittenLive.length,
     lessonCount,
     courseCount: cards.length,
     films: await filmTotal(),
