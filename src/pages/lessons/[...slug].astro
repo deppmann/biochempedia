@@ -43,7 +43,9 @@ import { COURSES, courseOf, courseHref } from '../../data/courses';
 import { methodsFor, methodHref, filmLength } from '../../data/methods';
 import { LESSON_GAMES, gameHref, unitReviewFor, unitReviewHref } from '../../data/lesson-games';
 import { SETS as MCAT_SETS } from '../../lib/mcat';
-import { metaDescription } from '../../lib/meta';
+import { filmDescription, metaDescription } from '../../lib/meta';
+import { filmIsoDuration } from '../../lib/films';
+import { recordFor } from '../../lib/production-record';
 import { lessonTime } from '../../lib/lesson-time';
 import { linesFor, endingsFor, say, plural } from '../../lib/lesson-copy';
 import { skimOf, mainIdeaOf, filmTakeawaysOf, wordsIn } from '../../lib/skim';
@@ -198,9 +200,36 @@ const lessonLd = {
   timeRequired: `PT${time.whole}M`,
   encoding: { '@type': 'MediaObject', encodingFormat: 'text/markdown', contentUrl: `${SITE_ORIGIN}/lessons/${lesson.slug}.md` },
 };
+const breadcrumbsLd = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { name: 'Home', item: `${SITE_ORIGIN}/` },
+    { name: course.title, item: `${SITE_ORIGIN}${courseHref(course.slug)}` },
+    { name: lesson.title, item: lessonLd.url },
+  ].map((step, i) => ({ '@type': 'ListItem', position: i + 1, ...step })),
+};
+const record = recordFor(lesson.slug);
+const videoLd = (film: { src: string; poster: string; durationSec: number }, name: string, description: string, id?: string) => ({
+  '@context': 'https://schema.org',
+  '@type': 'VideoObject',
+  name,
+  description,
+  thumbnailUrl: new URL(film.poster, SITE_ORIGIN).href,
+  contentUrl: new URL(film.src, SITE_ORIGIN).href,
+  // The record dates the level-up, and records the length of the opening and chapter films.
+  // Profile films have their lengths in the scientist card's frontmatter.
+  uploadDate: record?.levelUp?.shipped,
+  duration: filmIsoDuration(record?.films.find((f) => f.id === id)?.durationSec ?? film.durationSec),
+});
+const videosLd = [
+  ...(ex ? [videoLd(ex, ex.title, filmDescription(ex, lesson.summary), 'explainer')] : []),
+  ...lesson.films.map((f) => videoLd(f, f.title, filmDescription(f, lesson.summary), f.id)),
+  ...lesson.scientists.flatMap((s) => s.film ? [videoLd(s.film, s.name, s.contribution)] : []),
+];
 ---
 
-<BaseLayout title={`${lesson.title} — STEMhop`} description={metaDescription(hookFor(entry))} ogType="article" jsonLd={lessonLd}
+<BaseLayout title={`${lesson.title} — STEMhop`} description={metaDescription(lesson.summary, lesson.hook)} ogType="article" jsonLd={[lessonLd, breadcrumbsLd, ...videosLd]}
   ogImage={ex?.poster ?? lesson.films[0]?.poster}
   alternates={[{ type: 'text/markdown', href: `/lessons/${lesson.slug}.md`, title: 'This lesson as plain Markdown' }]}>
   <article id="top" data-course-title={course.title} data-cards-lesson={deck ? lesson.slug : undefined}>
@@ -233,8 +262,7 @@ const lessonLd = {
           </details>
         </div>
       )}
-      {/* Only the hook shows (2026-11-08, "get to the material quicker"). It is also the share and
-          search-result description, cut to 155 characters; the full summary stays in the JSON-LD. */}
+      {/* Only the hook shows here (2026-11-08, "get to the material quicker"). */}
       <p class="summary">{hookFor(entry)}</p>
 
       {/* One question, one row (2026-11-20). Listen and "Play all films" are unchanged components;

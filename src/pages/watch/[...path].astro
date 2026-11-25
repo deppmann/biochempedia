@@ -26,7 +26,7 @@ import { theaterFor, questionText } from '../../lib/film-theater';
 import { hopsFor, type Hop } from '../../lib/film-hops';
 import { courseOf, courseHref } from '../../data/courses';
 import { stageOf, STAGES } from '../../data/stages';
-import { metaDescription } from '../../lib/meta';
+import { filmDescription } from '../../lib/meta';
 import { feedbackUrl } from '../../lib/feedback';
 import '../../styles/film-theater.css';
 
@@ -56,7 +56,7 @@ const prevFilm = siblings[place - 1];
 // Chapter links under the screen (2026-11-24): previous and next film in this lesson, and after the
 // last one the next lesson's first film in course order (the first later lesson in the course with one).
 const nextLessonFilm = nextFilm ? undefined : (await allFilms()).find((f) => f.course === film.course && f.order > film.order && f.lesson !== film.lesson);
-const description = metaDescription(film.hook);
+const description = filmDescription(film, film.summary);
 const DECK_FILES = Object.keys(import.meta.glob('../../data/flashcards/*.json'));
 const hasDeck = DECK_FILES.some((f) => f.endsWith(`/${film.lesson}.json`));
 
@@ -100,7 +100,7 @@ const videoLd = {
   '@context': 'https://schema.org',
   '@type': 'VideoObject',
   name: film.title,
-  description: film.hook,
+  description,
   thumbnailUrl: abs(film.poster),
   contentUrl: abs(film.src),
   duration: filmIsoDuration(film.durationSec),

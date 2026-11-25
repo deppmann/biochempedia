@@ -17,6 +17,7 @@ export interface FilmEntry {
   order: number;
   /** The lesson's one-line hook. */
   hook: string;
+  summary: string;
   /** Film id; null for the lesson's opening film. */
   id: string | null;
   /** /watch/... address, with a trailing slash. */
@@ -54,6 +55,7 @@ export async function allFilms(): Promise<FilmEntry[]> {
       const base = {
         lesson: d.slug, lessonTitle: d.title, course: d.course, order: d.order ?? 99,
         hook: d.hook ?? d.summary.split(/(?<=[.?!])\s+/)[0],
+        summary: d.summary,
       };
       const pick = (f: NonNullable<typeof d.explainer>) => ({
         src: f.src, captions: f.captions, poster: f.poster, title: f.title, durationSec: f.durationSec,

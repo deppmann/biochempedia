@@ -14,7 +14,7 @@ interface Props {
   /** og:type — 'website' for hubs, 'article' for lessons. */
   ogType?: string;
   /** Optional page-specific JSON-LD (e.g. a LearningResource for a lesson). */
-  jsonLd?: Record<string, unknown>;
+  jsonLd?: Record<string, unknown> | Record<string, unknown>[];
   /** Keep the page out of search results (account and class pages). */
   noindex?: boolean;
   /** Other forms of this page, e.g. a lesson's plain Markdown copy for AI agents. */
@@ -31,6 +31,7 @@ const SITE_NAME = 'STEMhop';
 const DEFAULT_DESC =
   'Free lessons, films and simulations, starting with biology. Ages 5 to graduate school. No account needed, no ads.';
 const desc = description ?? DEFAULT_DESC;
+const pageLd = Array.isArray(jsonLd) ? jsonLd : jsonLd ? [jsonLd] : [];
 const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : Astro.url.pathname;
 const ogImage = Astro.site ? new URL(ogImageProp ?? '/og.png', Astro.site).href : (ogImageProp ?? '/og.png');
 const siteUrl = Astro.site ? Astro.site.href.replace(/\/$/, '') : '';
@@ -52,6 +53,8 @@ import { IDEAS_LINK } from '../data/site-flags';
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="google-site-verification" content="JNM6sps7TSH98SqzBGi_OJUqVL6_GSsE0ejzjgVxP4Q" />
+    <meta name="msvalidate.01" content="353DCBBFF97AA29BC1317B90969A8A6B" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     {/* Playfair Display + Inter, loaded here rather than via an @import inside the
@@ -72,7 +75,7 @@ import { IDEAS_LINK } from '../data/site-flags';
     <link rel="canonical" href={canonical} />
     {/* The licence page states CC BY-NC-SA 4.0 for lesson text, figures and films, and what it leaves out. */}
     <link rel="license" href="/license/" />
-    {noindex && <meta name="robots" content="noindex" />}
+    {noindex && <meta name="robots" content="noindex, follow" />}
     <meta property="og:type" content={ogType} />
     <meta property="og:site_name" content={SITE_NAME} />
     <meta property="og:title" content={title} />
@@ -89,7 +92,7 @@ import { IDEAS_LINK } from '../data/site-flags';
     {extraMeta.map(([attr, key, content]) => (attr === 'property' ? <meta property={key} content={content} /> : <meta name={key} content={content} />))}
     <meta name="generator" content={Astro.generator} />
     <script type="application/ld+json" set:html={JSON.stringify(websiteLd)} />
-    {jsonLd && <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />}
+    {pageLd.map((item) => <script type="application/ld+json" set:html={JSON.stringify(item).replace(/</g, '\\u003c')} />)}
     {/* Plausible analytics. Cookieless and collects no personal data, which is why
         this site can carry it without putting a consent banner in front of students.
 

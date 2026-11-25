@@ -58,7 +58,7 @@ export async function htmlPage(title, body, script, { status = 200, headers = {}
   const h = new Headers({
     'Content-Type': 'text/html; charset=utf-8',
     'Cache-Control': 'no-store',
-    'X-Robots-Tag': 'noindex',
+    'X-Robots-Tag': 'noindex, follow',
     // Not no-referrer: with it a browser sends "Origin: null" on the form post, and /handoff/receive
     // could no longer tell the old host's post from anyone else's.
     'Referrer-Policy': 'strict-origin-when-cross-origin',
@@ -68,7 +68,7 @@ export async function htmlPage(title, body, script, { status = 200, headers = {}
     ...headers,
   });
   const html = `<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex">
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex, follow">
 <title>${esc(title)}</title><link rel="icon" href="data:,">${extraHead}<style>${STYLE}</style>
 </head><body><main>${body}</main><script>${script}</script></body></html>`;
   return new Response(html, { status, headers: h });

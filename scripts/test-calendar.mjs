@@ -601,9 +601,9 @@ check('the calendar is in search and in the sitemap since it was approved (2026-
   assert.ok(/\/calendar\//.test(readFileSync(path('../src/pages/courses/[course].astro'), 'utf8')), 'course pages link the calendar');
   if (existsSync(path('../dist/calendar/index.html'))) {
     for (const f of ['calendar/index.html', 'calendar/parent/index.html', 'calendar/student/index.html', 'calendar/student/mcat/index.html', 'calendar/teacher/index.html']) {
-      assert.doesNotMatch(readFileSync(path('../dist/' + f), 'utf8'), /<meta name="robots" content="noindex"/, f);
+      assert.doesNotMatch(readFileSync(path('../dist/' + f), 'utf8'), /<meta name="robots" content="noindex\b/, f);
     }
-    assert.match(readFileSync(path('../dist/calendar/email-preview/index.html'), 'utf8'), /<meta name="robots" content="noindex"/);
+    assert.match(readFileSync(path('../dist/calendar/email-preview/index.html'), 'utf8'), /<meta name="robots" content="noindex, follow"/);
     const sm = readFileSync(path('../dist/sitemap.xml'), 'utf8');
     assert.ok(sm.includes('/calendar/parent/') && sm.includes('/calendar/student/mcat/') && !sm.includes('/calendar/email-preview/'));
   }
