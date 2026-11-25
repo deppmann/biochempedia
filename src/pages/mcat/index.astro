@@ -22,73 +22,66 @@ const sections = ['bb', 'cp'].map((s) => ({ s, sets: SETS.filter((x) => x.sectio
 
 <BaseLayout title="MCAT practice — STEMhop" description="Free, original MCAT-style practice: research passages with data, a diagnostic, and topic practice that sends every miss back to the lesson that teaches it.">
   <article class="wrap mhub" data-mhub>
-    <p class="mh-eyebrow"><a href="/paths/mcat/">MCAT path</a> · Practice</p>
-    <h1>MCAT practice<Hex pose={hex.pose} prop={hex.prop} size={60} alive title={hex.label} class="hex-inline" /></h1>
-    <p class="mh-lede">
-      Most science questions on the MCAT come in sets after a short research passage with data. These are
-      written the same way: a study, a figure or table, then questions that ask you to read the data, judge the
-      design and reason from what you know. Every miss links to the lesson section that teaches it and comes back
-      for review.
-    </p>
-    <p class="mh-scope">This page covers biology and biochemistry. {MCAT_SCOPE_NOTE}</p>
-    <p class="mh-scope">
-      Topic practice has {discrete.length} questions from {examCourses} courses.
-      {beyondCount > 0 && <>Another {beyondCount}, from the graduate courses {beyondNames}, go past what the exam asks.
-      They are not counted here. To see them, turn on &ldquo;{BEYOND_LABEL}&rdquo; on the <a href="/mcat/practice/">practice page</a>.</>}
-    </p>
-    <p class="mh-honest">
-      Everything here is original and written for this site; none of it comes from the AAMC or any prep company.
-      Each passage passes a format check, two independent AI solvers from different companies who must agree on
-      the answer, and a separate reviewer who checks it against how the real exam is written.
-      For official practice and a real scaled score, use the AAMC's own materials:
-      <a href="https://students-residents.aamc.org/prepare-mcat-exam/prepare-mcat-exam" rel="noopener">AAMC MCAT prep</a> ·
-      <a href="https://students-residents.aamc.org/fee-assistance-program/fee-assistance-program" rel="noopener">Fee Assistance Program</a>.
-    </p>
+    <header class="hero">
+      <div>
+        <p class="eyebrow"><a href="/paths/mcat/">MCAT path</a> / Practice</p>
+        <h1>MCAT practice</h1>
+        <p class="lede">Build your biology and biochemistry skills with research passages and focused question sets. Each miss points you back to the lesson and comes up again for review.</p>
+        <nav class="jump" aria-label="Browse practice">
+          <a href="#passages">{SETS.length} passages ↓</a>
+          <a href="#topics">{topics.length} topics ↓</a>
+        </nav>
+      </div>
+      <section class="diagnostic">
+        <div class="diag-heading"><h2>Diagnostic</h2><Hex pose={hex.pose} prop={hex.prop} size={64} alive title={hex.label} /></div>
+        <p>Find out which topics to study first.</p>
+        <small>{DIAGNOSTIC_LENGTH} questions · About 30 minutes</small>
+        <a class="start" href="/mcat/diagnostic/">Start diagnostic <span aria-hidden="true">→</span></a>
+      </section>
+    </header>
 
-    <div class="mh-cards">
-      <a class="mh-card" href="/mcat/diagnostic/">
-        <span class="mh-k">Start here · about 30 minutes</span>
-        <span class="mh-t">Diagnostic</span>
-        <span class="mh-d">{DIAGNOSTIC_LENGTH} questions across the biology and biochemistry topics, then a topic-by-topic picture of where to focus.</span>
-      </a>
-      <a class="mh-card" href="/mcat/practice/">
-        <span class="mh-k">{discrete.length} questions</span>
-        <span class="mh-t">Discrete topic practice</span>
-        <span class="mh-d">Ten questions at a time from one topic, each linked to its lesson.</span>
-      </a>
-      <a class="mh-card" href="/mcat/stats/">
-        <span class="mh-k">Your progress</span>
-        <span class="mh-t">Practice stats</span>
-        <span class="mh-d">See your accuracy over time and by MCAT subject.</span>
-      </a>
-      <a class="mh-card" href="/review/">
-        <span class="mh-k">Spaced review</span>
-        <span class="mh-t">Your review queue</span>
-        <span class="mh-d">Misses come back after 1, 3, 7 and 21 days until they stick. <span data-due></span></span>
-      </a>
-    </div>
+    <nav class="tools" aria-label="Study tools">
+      <a href="/mcat/practice/"><strong>Topic practice</strong><span>{discrete.length} questions across {examCourses} courses</span></a>
+      <a href="/mcat/stats/"><strong>Practice stats</strong><span>Accuracy by subject and over time</span></a>
+      <a href="/review/"><strong>Review queue</strong><span>Spaced review <b data-due></b></span></a>
+    </nav>
 
-    <h2>Passages</h2>
-    {sections.length === 0 && <p class="mh-muted">The first passages are on their way.</p>}
-    {sections.map(({ s, sets }) => (
-      <section>
-        <h3 class="mh-sec">{SECTION[s]}</h3>
-        <ul class="mh-sets">
-          {sets.map((set) => (
-            <li data-set={`mcat-${set.id}`}>
-              <a href={`/mcat/${set.id}/`}>{set.title}</a>
-              <span class="mh-muted"> · {set.categories.map((c) => CATEGORY[c] ?? c).join(', ')} · {set.questions.length} questions</span>
-              <span class="mh-done" data-done hidden>✓ done</span>
-            </li>
-          ))}
+    <div class="library">
+      <section id="passages">
+        <h2>Practice passages</h2>
+        <p class="intro">Read a study, interpret its data, then answer the questions.</p>
+        {sections.length === 0 && <p>The first passages are on their way.</p>}
+        {sections.map(({ s, sets }) => (
+          <section class="group">
+            <h3>{SECTION[s]}</h3>
+            <ul>
+              {sets.map((set) => (
+                <li data-set={`mcat-${set.id}`}>
+                  <a class="passage" href={`/mcat/${set.id}/`}>
+                    <strong>{set.title}</strong>
+                    <small>{set.categories.map((c) => CATEGORY[c] ?? c).join(', ')} · {set.questions.length} questions <b class="done" data-done hidden>✓ Done</b></small>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ))}
+      </section>
+      <section id="topics">
+        <h2>Browse topics</h2>
+        <p class="intro">Choose a topic for up to 59 questions.</p>
+        <ul class="topic-list">
+          {topics.map(([t, n]) => <li><a href={`/mcat/practice/?topic=${t}`}><small>{t}</small><strong>{CATEGORY[t] ?? t}</strong><span>{n}<span class="sr-only"> questions available</span></span></a></li>)}
         </ul>
       </section>
-    ))}
-
-    <h2>Topics</h2>
-    <ul class="mh-topics">
-      {topics.map(([t, n]) => <li><a href={`/mcat/practice/?topic=${t}`}>{t} · {CATEGORY[t] ?? t}</a> <span class="mh-muted">{n}</span></li>)}
-    </ul>
+    </div>
+    <details>
+      <summary>About this question bank and official MCAT resources</summary>
+      <p>This bank focuses on biology and biochemistry. {MCAT_SCOPE_NOTE}</p>
+      {beyondCount > 0 && <p>For {beyondCount} additional questions from {beyondNames}, enable “{BEYOND_LABEL}” in <a href="/mcat/practice/">topic practice</a>. These graduate questions are counted separately.</p>}
+      <p>STEMhop writes its own practice materials. Each passage goes through a format check, two independent AI solvers from different companies who must agree on the answer, and a separate review of its fit with the exam.</p>
+      <p>For official practice and scaled scores, visit <a href="https://students-residents.aamc.org/prepare-mcat-exam/prepare-mcat-exam">AAMC MCAT prep</a> or explore the <a href="https://students-residents.aamc.org/fee-assistance-program/fee-assistance-program">Fee Assistance Program</a>.</p>
+    </details>
   </article>
 
   <script>
@@ -106,25 +99,54 @@ const sections = ['bb', 'cp'].map((s) => ({ s, sets: SETS.filter((x) => x.sectio
   </script>
 
   <style>
-    .mhub { padding-block: var(--ddp-space-10, 2.5rem) var(--ddp-space-12); max-width: 980px; }
-    .mh-eyebrow { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: 0.12em; text-transform: uppercase; color: var(--ddp-color-caution-ink); margin: 0 0 var(--ddp-space-2); }
-    .mh-eyebrow a { color: inherit; }
-    h1 { font-family: var(--ddp-font-serif); font-weight: 500; color: var(--ddp-color-primary); font-size: var(--ddp-text-3xl); margin: 0; }
-    h2 { font-family: var(--ddp-font-serif); font-weight: 500; color: var(--ddp-color-primary); margin: var(--ddp-space-8) 0 var(--ddp-space-3); }
-    .mh-lede { font-size: var(--ddp-text-lg); line-height: 1.6; color: var(--ddp-color-ink-soft); max-width: 66ch; }
-    .mh-scope { color: var(--ddp-color-ink-soft); max-width: 66ch; }
-    .mh-honest { font-size: var(--ddp-text-sm); color: #6b6b6b; max-width: 70ch; padding: var(--ddp-space-3) var(--ddp-space-4); border-left: 4px solid var(--ddp-color-caution); background: var(--ddp-color-caution-soft); border-radius: 6px; }
-    .mh-honest a, .mh-scope a, .mh-sets a, .mh-topics a { color: var(--ddp-color-accent); }
-    .mh-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr)); gap: var(--ddp-space-4); margin-top: var(--ddp-space-6); }
-    .mh-card { display: flex; flex-direction: column; gap: var(--ddp-space-2); padding: var(--ddp-space-5); border: 1px solid var(--ddp-color-line); border-radius: var(--ddp-radius-sm, 8px); background: var(--ddp-color-surface); color: var(--ddp-color-ink); text-decoration: none; }
-    .mh-card:hover { border-color: var(--ddp-color-accent); text-decoration: none; }
-    .mh-k { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ddp-color-muted); }
-    .mh-t { font-family: var(--ddp-font-serif); font-size: var(--ddp-text-xl, 1.4rem); color: var(--ddp-color-primary); }
-    .mh-d { font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); line-height: 1.5; }
-    .mh-sec { font-size: var(--ddp-text-base); margin: var(--ddp-space-4) 0 var(--ddp-space-2); }
-    .mh-sets, .mh-topics { padding-left: 1.1rem; line-height: 1.8; }
-    .mh-muted { color: var(--ddp-color-muted); font-size: var(--ddp-text-sm); }
-    .mh-done { color: var(--ddp-color-verified-ink); font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); margin-left: var(--ddp-space-2); }
-    .mh-done[hidden] { display: none; }
+    .mhub { padding-block: clamp(1.75rem, 4vw, 3.5rem); color: var(--ddp-color-ink-soft); }
+    .hero, .library { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: clamp(1.5rem, 5vw, 4rem); }
+    .hero { align-items: center; }
+    h1, h2, h3 { font-weight: 500; margin: 0; }
+    h1 { font-size: clamp(3rem, 6vw, 5rem); letter-spacing: -.045em; }
+    h2 { font-size: clamp(1.8rem, 3vw, 2.4rem); letter-spacing: -.035em; }
+    .eyebrow, small, .jump, .topic-list a > span { font-family: var(--ddp-font-mono); }
+    .eyebrow { font-size: .78rem; letter-spacing: .09em; text-transform: uppercase; color: var(--ddp-color-caution-ink); }
+    .eyebrow a { color: inherit; }
+    .lede { max-width: 51ch; margin: .75rem 0 1.25rem; font-size: var(--ddp-text-lg); line-height: 1.55; }
+    .jump { display: flex; flex-wrap: wrap; gap: 1.5rem; font-size: .85rem; }
+    .jump a { padding-block: .3rem; border-bottom: 1px solid currentColor; }
+    .diagnostic { padding: 1.25rem 1.5rem 1.5rem; border-radius: var(--ddp-radius); border: 1px solid var(--ddp-color-line); border-top: 3px solid var(--ddp-color-secondary); background: var(--ddp-color-surface); }
+    .diag-heading { display: flex; align-items: center; justify-content: space-between; gap: .5rem; }
+    .diagnostic small { display: block; margin-block: .5rem 1rem; }
+    small { color: var(--ddp-color-muted); font-size: .78rem; }
+    .start { display: flex; align-items: center; justify-content: space-between; background: var(--ddp-color-secondary); color: var(--color-navy); font-weight: 700; border-radius: var(--ddp-radius-sm); padding: .7rem 1rem; }
+    .tools { display: grid; grid-template-columns: repeat(3, 1fr); border-block: 1px solid var(--ddp-color-line); padding-block: 1rem; margin-block: 2rem clamp(2rem, 5vw, 4rem); }
+    .tools a { display: grid; align-content: start; gap: .25rem; padding: .4rem 1.1rem; }
+    .tools a:first-child { padding-left: 0; }
+    .tools a + a { border-left: 1px solid var(--ddp-color-line); }
+    .tools strong { font-size: 1.05rem; }
+    .tools strong::after { content: ' →' / ''; }
+    .tools span, .intro { color: var(--ddp-color-ink-soft); font-size: .9rem; }
+    [data-due]:not(:empty)::before { content: ' · '; }
+    .intro { margin-top: .4rem; }
+    ul { list-style: none; padding: 0; margin: 0; }
+    .group, .topic-list { margin-top: 1.5rem; }
+    .group h3 { font-size: 1.2rem; border-bottom: 2px solid var(--ddp-color-line); padding-bottom: .65rem; }
+    .passage { display: grid; gap: .3rem; padding: .85rem .25rem; }
+    .passage small { font-family: var(--ddp-font-sans); font-size: .84rem; }
+    .passage strong, .topic-list strong { font-weight: 550; }
+    li { border-bottom: 1px solid var(--ddp-color-line); }
+    .done { color: var(--ddp-color-verified-ink); margin-left: .4rem; }
+    .topic-list { border-top: 2px solid var(--ddp-color-line); }
+    .topic-list a { display: grid; grid-template-columns: 2ch 1fr auto; align-items: baseline; gap: .75rem; padding: .8rem .25rem; line-height: 1.4; }
+    .topic-list a > span { color: var(--ddp-color-muted); font-size: .8rem; }
+    .passage:hover, .topic-list a:hover, .tools a:hover { background: var(--ddp-color-surface); text-decoration: none; }
+    a:hover strong { text-decoration: underline; }
+    details { margin-top: 3rem; border-block: 1px solid var(--ddp-color-line); padding-block: 1rem; }
+    summary { cursor: pointer; font-weight: 600; color: var(--ddp-color-primary); }
+    details p { max-width: 72ch; margin-top: 1rem; }
+    details a { text-decoration: underline; }
+    @media (max-width: 720px) {
+      .hero, .library { grid-template-columns: 1fr; }
+      .tools { grid-template-columns: 1fr; padding: 0; }
+      .tools a, .tools a:first-child { padding: .75rem 0; }
+      .tools a + a { border-left: 0; border-top: 1px solid var(--ddp-color-line); }
+    }
   </style>
 </BaseLayout>

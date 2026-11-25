@@ -1,4 +1,5 @@
 ---
+import ChoicePicker from '../../components/ChoicePicker.astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { CATEGORY } from '../../lib/mcat';
 ---
@@ -19,10 +20,7 @@ import { CATEGORY } from '../../lib/mcat';
           <h2 id="ms-trend-heading">Accuracy over time</h2>
           <p class="ms-muted" data-range-label></p>
         </div>
-        <div class="ms-tools"><details class="ms-picker">
-          <summary data-filter-label>All subjects</summary>
-          <div class="ms-options" role="group" aria-label="Filter chart by subject"></div>
-        </details>
+        <div class="ms-tools"><ChoicePicker label="All subjects" groupLabel="Filter chart by subject" />
         <div class="ms-periods" role="group" aria-label="Accuracy graph interval">
           <button type="button" data-period="day" aria-pressed="true">Daily</button>
           <button type="button" data-period="week" aria-pressed="false">Weekly</button>
@@ -72,9 +70,9 @@ import { CATEGORY } from '../../lib/mcat';
       '5A': 'Chemistry', '5C': 'Chemistry', '5E': 'Chemistry', '6A': 'Psychology',
     };
     const discipline = (topic: string) => disciplines[topic] ?? 'Other';
-    const picker = root.querySelector<HTMLDetailsElement>('.ms-picker')!;
+    const picker = root.querySelector<HTMLDetailsElement>('.stem-picker')!;
     const filterLabel = picker.querySelector<HTMLElement>('summary')!;
-    const options = picker.querySelector<HTMLElement>('.ms-options')!;
+    const options = picker.querySelector<HTMLElement>('.stem-options')!;
     let selectedSubject = '';
     const subjects = [...new Set(records.map(r => discipline(r.subject)))].sort();
     for (const subject of ['', ...subjects]) {
@@ -83,7 +81,7 @@ import { CATEGORY } from '../../lib/mcat';
       button.setAttribute('aria-pressed', String(subject === selectedSubject));
       button.addEventListener('click', () => {
         selectedSubject = subject;
-        filterLabel.textContent = button.textContent;
+        filterLabel.querySelector('[data-choice-label]')!.textContent = button.textContent;
         for (const option of options.querySelectorAll('button')) {
           option.setAttribute('aria-pressed', String(option === button));
         }
@@ -93,28 +91,6 @@ import { CATEGORY } from '../../lib/mcat';
       });
       options.append(button);
     }
-    picker.addEventListener('keydown', event => {
-      if (event.key === 'Escape' && picker.open) {
-        picker.open = false;
-        filterLabel.focus();
-      }
-      if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return;
-      event.preventDefault();
-      picker.open = true;
-      const buttons = Array.from(options.querySelectorAll('button'));
-      const index = buttons.findIndex(button => button === document.activeElement);
-      const step = event.key === 'ArrowDown' ? 1 : -1;
-      const next = index < 0 ? (step > 0 ? 0 : buttons.length - 1) : (index + step + buttons.length) % buttons.length;
-      buttons[next].focus();
-    });
-    document.addEventListener('pointerdown', event => {
-      if (!event.composedPath().includes(picker)) picker.open = false;
-    });
-    // Some browsers blur the summary without focusing the pressed button.
-    // Wait for focus to actually land outside so its click can complete.
-    document.addEventListener('focusin', event => {
-      if (!event.composedPath().includes(picker)) picker.open = false;
-    });
     root.querySelector<HTMLElement>('[data-ring]')!.style.setProperty('--score', percent(right, records.length) + '%');
     const chart = root.querySelector<SVGSVGElement>('[data-chart]')!;
     const rangeLabel = root.querySelector<HTMLElement>('[data-range-label]')!;
@@ -277,17 +253,6 @@ import { CATEGORY } from '../../lib/mcat';
     .ms-empty { padding: var(--ddp-space-4); border: 1px dashed var(--ddp-color-line); border-radius: var(--ddp-radius-sm, 8px); color: var(--ddp-color-ink-soft); }
     .ms-empty a, .ms-back a { color: var(--ddp-color-accent); }
     .ms-tools { display:flex; align-items:center; flex-wrap:wrap; gap:.65rem; }
-    .ms-picker { position:relative; display:inline-flex; }
-    .ms-picker summary::after { content:''; position:absolute; right:.9rem; top:44%; width:.4rem; height:.4rem; border:solid var(--ddp-color-muted); border-width:0 1.5px 1.5px 0; transform:rotate(45deg); pointer-events:none; }
-    .ms-picker summary::-webkit-details-marker { display:none; }
-    .ms-picker[open] summary { border-color:var(--ddp-color-accent); }
-    .ms-picker[open] summary::after { transform:rotate(225deg); top:49%; }
-    .ms-options { position:absolute; z-index:5; inset:calc(100% + .35rem) auto auto 0; min-width:max(100%,10rem); padding:.3rem; background:var(--ddp-color-surface); border:1px solid var(--ddp-color-line); border-radius:8px; box-shadow:0 6px 18px rgb(0 0 0 / .14); }
-    .ms-options :global(button) { display:flex; justify-content:space-between; gap:1rem; width:100%; padding:.65rem .75rem; border:0; border-radius:5px; background:transparent; color:var(--ddp-color-ink); font:inherit; font-size:var(--ddp-text-sm); cursor:pointer; }
-    .ms-options :global(button:hover), .ms-options :global(button:focus-visible), .ms-options :global(button[aria-pressed="true"]) { background:var(--ddp-color-accent-soft); }
-    .ms-options :global(button[aria-pressed="true"])::after { content:'✓'; color:var(--ddp-color-accent); }
-    .ms-picker summary:focus-visible { outline:2px solid var(--ddp-color-accent); outline-offset:2px; }
-    .ms-picker summary { display:flex; align-items:center; list-style:none; box-sizing:border-box; cursor:pointer; min-height:44px; background:var(--ddp-color-surface); color:var(--ddp-color-ink); border:1px solid var(--ddp-color-line); border-radius:var(--ddp-radius-sm,8px); font:inherit; font-size:var(--ddp-text-sm); padding:.5rem 2.25rem .5rem .85rem; }
     .ms-score { display:flex; align-items:center; gap:1.5rem; margin-top:2rem; padding:1.5rem; background:var(--ddp-color-surface); border:1px solid var(--ddp-color-line); border-radius:8px; }
     .ms-ring { width:6rem; aspect-ratio:1; display:grid; place-items:center; border-radius:50%; background:conic-gradient(var(--ddp-color-verified) var(--score,0%),var(--ddp-color-line) 0); }
     .ms-ring strong { width:85%; aspect-ratio:1; display:grid; place-items:center; border-radius:50%; background:var(--ddp-color-surface); font-size:1.5rem; }

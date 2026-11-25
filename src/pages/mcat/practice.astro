@@ -1,10 +1,14 @@
 ---
+import ChoicePicker from '../../components/ChoicePicker.astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { discreteItems, CATEGORY, SETS, BEYOND_COURSES, BEYOND_LABEL, beyondTopic } from '../../lib/mcat';
+import Hex from '../../components/Hex.astro';
+import { hexFor } from '../../data/hex';
 import { courseOf } from '../../data/courses';
 
 // Which lessons hold MCAT-style questions on each topic; the questions themselves are
 // fetched from each lesson's /quiz/<slug>.json when a practice round starts.
+const hex = hexFor('mcat');
 const items = await discreteItems();
 const index: Record<string, string[]> = {};
 for (const d of items) (index[d.topic] ??= []).includes(d.slug) || index[d.topic].push(d.slug);
@@ -32,25 +36,39 @@ for (const st of SETS) {
 }
 ---
 
-<BaseLayout title="MCAT topic practice — STEMhop" description="Ten original MCAT-style questions at a time from one topic, each linked to the lesson that teaches it.">
-  <article class="wrap tc mpr" data-mpr data-index={JSON.stringify(index)} data-names={JSON.stringify(names)} data-beyond={JSON.stringify(beyondTopics)} data-beyond-label={BEYOND_LABEL} data-lessons={JSON.stringify(lessons)}>
-    <p class="tc-eyebrow"><a href="/mcat/">MCAT practice</a> · Topic practice</p>
-    <h1>Topic practice</h1>
-    <p class="tc-lede">Pick a topic for ten questions. These are the stand-alone kind; for passages with data, use the <a href="/mcat/">passage sets</a>.</p>
-    <p class="mpr-stats-link"><a href="/mcat/stats/">View your practice stats →</a></p>
-    <p class="tc-row" style="margin-top: var(--ddp-space-4)">
-      <label>Topic <select data-topic>{topics.map((t) => <option value={t}>{t} · {names[t]}</option>)}</select></label>
-      <button type="button" class="tc-btn" data-start>Start ten questions</button>
-    </p>
-    <p class="mpr-beyond" id="mpr-beyond-id">
-      <label><input type="checkbox" data-beyond-toggle /> <span><strong>{BEYOND_LABEL}</strong> (off by default)</span></label>
-      <span class="tc-muted">
-        Adds {beyondCount} questions from the graduate courses {beyondNames}. They go past what the MCAT asks, so they are
-        not counted as MCAT practice. Turn this on to see them as their own topics.
-      </span>
-    </p>
+<BaseLayout title="MCAT topic practice — STEMhop" description="Choose your topic and round length for original MCAT-style questions linked to the lessons that teach them.">
+  <article class="wrap tc mpr" data-mpr data-index={JSON.stringify(index)} data-names={JSON.stringify(names)} data-beyond={JSON.stringify(beyondTopics)} data-lessons={JSON.stringify(lessons)}>
+    <div class="mpr-setup">
+      <header>
+        <p class="tc-eyebrow"><a href="/mcat/">MCAT practice</a> / Topics</p>
+        <h1>Topic practice</h1>
+        <p class="tc-lede">Choose how many stand-alone questions to practice on one topic. After you submit, review each explanation and revisit the lesson behind it.</p>
+        <nav class="mpr-links" aria-label="Related practice">
+          <a href="/mcat/#passages">Browse passages →</a>
+          <a href="/mcat/stats/">Practice stats →</a>
+        </nav>
+      </header>
+      <section class="mpr-picker" aria-label="Round setup">
+        <div class="mpr-picker-title"><h2>Choose a topic</h2><Hex pose={hex.pose} prop={hex.prop} size={52} title={hex.label} /></div>
+        <ChoicePicker label={`${topics[0]} · ${names[topics[0]]}`} groupLabel="Choose a topic" fullWidth>
+          {topics.map((t, i) => <button type="button" data-topic={t} aria-pressed={i === 0}>{t} · {names[t]}</button>)}
+          {beyondTopics.length > 0 && <p class="mpr-extra-label" data-extra hidden>{BEYOND_LABEL}</p>}
+          {beyondTopics.map(t => <button type="button" data-topic={t} data-extra hidden aria-pressed="false">{names[t]}</button>)}
+        </ChoicePicker>
+        <label class="mpr-count">Number of questions
+          <input type="number" data-count min="1" max="59" step="1" value="10" required aria-describedby="count-help" />
+        </label>
+        <p class="tc-muted" id="count-help">Choose 1–59. Smaller topics use all available questions.</p>
+        <button type="button" class="tc-btn" data-start>Start practice <span aria-hidden="true">→</span></button>
+        <div class="mpr-beyond">
+          <label><input type="checkbox" data-beyond-toggle aria-describedby="graduate-note" /> {BEYOND_LABEL}</label>
+          <p id="graduate-note" class="tc-muted">Include {beyondCount} graduate questions from {beyondNames}. These topics count separately from MCAT practice.</p>
+        </div>
+      </section>
+    </div>
+    <button class="tc-btn ghost" type="button" data-change hidden>Choose another topic</button>
     <div class="mpr-lesson" data-lesson-box hidden></div>
-    <p class="tc-muted" data-status role="status"></p>
+    <p class="tc-muted" data-status role="status" tabindex="-1"></p>
     <div data-round></div>
   </article>
 
@@ -61,7 +79,22 @@ for (const st of SETS) {
     interface Item { id: string; mcat: boolean; stem: string; choices: string[]; answer: number; rationale: string; anchor: { id: string; text: string } | null }
     const root = document.querySelector<HTMLElement>('[data-mpr]')!;
     const index: Record<string, string[]> = JSON.parse(root.dataset.index!);
-    const sel = root.querySelector<HTMLSelectElement>('[data-topic]')!;
+    const picker = root.querySelector<HTMLDetailsElement>('.stem-picker')!;
+    const summary = picker.querySelector('summary')!;
+    const choices = Array.from(picker.querySelectorAll<HTMLButtonElement>('[data-topic]'));
+    let selectedTopic = choices[0].dataset.topic!;
+    function selectTopic(topic: string) {
+      const choice = choices.find(button => button.dataset.topic === topic);
+      if (!choice || choice.hidden) return;
+      selectedTopic = topic;
+      summary.querySelector('[data-choice-label]')!.textContent = choice.textContent;
+      choices.forEach(button => button.setAttribute('aria-pressed', String(button === choice)));
+    }
+    choices.forEach(button => button.addEventListener('click', () => {
+      selectTopic(button.dataset.topic!);
+      picker.open = false;
+      summary.focus();
+    }));
     const status = root.querySelector<HTMLElement>('[data-status]')!;
     const round = root.querySelector<HTMLElement>('[data-round]')!;
     const params = new URLSearchParams(location.search);
@@ -76,22 +109,14 @@ for (const st of SETS) {
     const readBeyond = () => { try { return localStorage.getItem(BEYOND_KEY) === '1'; } catch { return false; } };
     const writeBeyond = (on: boolean) => { try { if (on) localStorage.setItem(BEYOND_KEY, '1'); else localStorage.removeItem(BEYOND_KEY); } catch { /* storage blocked: the choice lasts for this page */ } };
     function showBeyond(on: boolean) {
-      let group = sel.querySelector('optgroup');
-      if (on && !group && beyond.length) {
-        group = document.createElement('optgroup');
-        group.label = root.dataset.beyondLabel || 'Beyond the exam';
-        for (const t of beyond) { const o = document.createElement('option'); o.value = t; o.textContent = names[t] ?? t; group.append(o); }
-        sel.append(group);
-      } else if (!on && group) {
-        if (beyond.includes(sel.value)) sel.selectedIndex = 0;
-        group.remove();
-      }
+      picker.querySelectorAll<HTMLElement>('[data-extra]').forEach(option => { option.hidden = !on; });
+      if (!on && beyond.includes(selectedTopic)) selectTopic(choices[0].dataset.topic!);
     }
     toggle.checked = readBeyond();
     showBeyond(toggle.checked);
     toggle.addEventListener('change', () => { writeBeyond(toggle.checked); showBeyond(toggle.checked); });
     const offered = (t: string | null): t is string => !!t && !!index[t] && (!beyond.includes(t) || toggle.checked);
-    if (offered(want)) sel.value = want;
+    if (offered(want)) selectTopic(want);
     type LessonInfo = { title: string; topic: string; n: number; sets: { id: string; title: string; n: number }[] };
     const lessonsIdx: Record<string, LessonInfo> = JSON.parse(root.dataset.lessons || '{}');
     const wantLesson = params.get('lesson');
@@ -99,46 +124,68 @@ for (const st of SETS) {
     const shuffle = <T,>(a: T[]) => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
     const el = <K extends keyof HTMLElementTagNameMap>(tag: K, cls = '', text = '') => { const e = document.createElement(tag); if (cls) e.className = cls; if (text) e.textContent = text; return e; };
 
+    const countInput = root.querySelector<HTMLInputElement>('[data-count]')!;
+    const startButton = root.querySelector<HTMLButtonElement>('[data-start]')!;
+    const changeButton = root.querySelector<HTMLButtonElement>('[data-change]')!;
+    changeButton.addEventListener('click', () => {
+      root.classList.remove('in-round');
+      changeButton.hidden = true;
+      summary.focus();
+    });
+
     async function start() {
+      if (startButton.disabled || !countInput.reportValidity()) return;
+      const requested = countInput.valueAsNumber;
+      startButton.disabled = true;
+      const roundTitle = lessonMode ? lessonsIdx[only!].title : names[selectedTopic];
       round.textContent = '';
       status.textContent = 'Loading…';
-      const slugs = lessonMode ? [only!] : shuffle([...index[sel.value]]).slice(0, 8);
-      const files = await Promise.all(slugs.map((s) => fetch(`/quiz/${s}.json`).then((r) => r.json()).catch(() => null)));
-      const pool = files.flatMap((f) => (f ? f.items.filter((i: Item) => i.mcat).map((i: Item) => ({ ...i, slug: f.slug, title: f.title })) : []));
-      const picked = shuffle(pool).slice(0, 10);
-      status.textContent = ``
-
-      //Remove "Beyond exam" toggler if not selected when answering questions
-      const beyondGroup = document.getElementById("mpr-beyond-id");
-      if (beyondGroup && !toggle.checked) {
-        beyondGroup.remove();
+      const slugs = lessonMode ? [only!] : shuffle([...index[selectedTopic]]);
+      const pool: (Item & { slug: string; title: string })[] = [];
+      for (let offset = 0; offset < slugs.length && pool.length < requested; offset += 8) {
+        const batch = slugs.slice(offset, offset + 8);
+        const files = await Promise.all(batch.map(slug => fetch(`/quiz/${slug}.json`).then(r => r.json()).catch(() => null)));
+        for (const file of files) {
+          if (!file) continue;
+          for (const item of file.items) {
+            if (item.mcat) pool.push({ ...item, slug: file.slug, title: file.title });
+          }
+        }
       }
-
+      const picked = shuffle(pool).slice(0, requested);
+      startButton.disabled = false;
+      status.textContent = '';
       if (!picked.length) {
         status.textContent = 'No questions could be loaded. Please try again.';
         return;
       }
+      root.classList.add('in-round');
+      changeButton.hidden = false;
       const picks: (number | null)[] = picked.map(() => null);
       const crossedOut = picked.map(() => new Set<number>());
       let current = 0;
       let finished = false;
-      const progress = el('p', 'tc-muted');
+      const toolbar = el('div', 'mpr-round-head');
+      const heading = el('div');
+      const progress = el('p', 'tc-eyebrow');
+      heading.append(progress, el('h2', '', roundTitle));
       progress.setAttribute('aria-live', 'polite');
       const modeLabel = el('label', 'mpr-crossout-toggle');
       const crossout = el('input');
       crossout.type = 'checkbox';
-      modeLabel.append(crossout, 'Cross out choices mode');
+      modeLabel.append(crossout, 'Cross out choices');
       const question = el('div');
       const nav = el('nav', 'mpr-question-nav');
       nav.setAttribute('aria-label', 'Practice questions');
-      const back = el('button', 'tc-btn', 'Back');
+      const back = el('button', 'tc-btn ghost', 'Back');
       const next = el('button', 'tc-btn', 'Next');
-      const finish = el('button', 'tc-btn', 'Submit / see my results');
+      const finish = el('button', 'tc-btn', 'See results');
       const unanswered = el('span', 'tc-muted');
       unanswered.setAttribute('aria-live', 'polite');
       [back, next, finish].forEach((button) => { button.type = 'button'; });
       nav.append(back, unanswered, next, finish);
-      round.append(progress, modeLabel, question, nav);
+      toolbar.append(heading, modeLabel);
+      round.append(toolbar, question, nav);
 
       function render(focusChoice?: number) {
         const q = picked[current];
@@ -219,19 +266,23 @@ for (const st of SETS) {
           const topic = lessonsIdx[q.slug]?.topic;
           if (topic && !beyond.includes(topic)) recordMcatAnswer(topic, ok);
         });
-        status.textContent = `${right} of ${picked.length} right. Misses are in your review queue. Use Back and Next to review the explanations.`;
+        const score = el('strong', 'mpr-score', `${right} of ${picked.length} correct`);
+        const review = el('a', '', 'Open review queue →');
+        review.href = '/review/';
+        status.replaceChildren(score, 'Use Back and Next to review each explanation. ', review);
         render();
-        status.scrollIntoView({ behavior: 'smooth' });
+        status.focus();
       });
       render();
+      question.querySelector<HTMLElement>('.mq-stem')?.focus();
     }
     // Lesson mode: the first round is this lesson's questions; picking a topic and pressing Start
     // goes back to ordinary topic practice.
     let lessonMode = false;
-    root.querySelector('[data-start]')!.addEventListener('click', () => { lessonMode = false; start(); });
+    startButton.addEventListener('click', () => { lessonMode = false; start(); });
     if (only) {
       const info = lessonsIdx[only];
-      if (offered(info.topic)) sel.value = info.topic;
+      if (offered(info.topic)) selectTopic(info.topic);
       const box = root.querySelector<HTMLElement>('[data-lesson-box]')!;
       box.hidden = false;
       const h = el('p', 'mpr-lesson-h');
@@ -252,17 +303,45 @@ for (const st of SETS) {
 
   <style is:global>
     @import '../../styles/teach.css';
-    .mpr .mpr-lesson { margin-top: var(--ddp-space-4); padding: var(--ddp-space-3) var(--ddp-space-4); border: 1px solid var(--ddp-color-line); border-radius: var(--ddp-radius-sm, 8px); max-width: 760px; }
-    .mpr .mpr-beyond { display: flex; flex-direction: column; gap: var(--ddp-space-1); max-width: 760px; margin-top: var(--ddp-space-4); padding: var(--ddp-space-3) var(--ddp-space-4); border: 1px dashed var(--ddp-color-line); border-radius: var(--ddp-radius-sm, 8px); }
-    .mpr .mpr-beyond label { display: inline-flex; align-items: center; gap: 0.6rem; min-height: 44px; cursor: pointer; }
-    .mpr .mpr-beyond input { width: 1.15rem; height: 1.15rem; accent-color: var(--ddp-color-accent); }
-    .mpr .mpr-lesson-h { margin: 0; font-weight: 600; }
-    .mpr .mpr-stats-link { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-sm); }
-    .mpr .mpr-stats-link a { color: var(--ddp-color-accent); font-weight: 600; }
-    .mpr .mpr-lesson a { color: var(--ddp-color-accent); }
+    .mpr { max-width: 1040px; padding-block: clamp(1.75rem, 4vw, 3.5rem); }
+    .mpr .mpr-setup { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); align-items: center; gap: clamp(1.5rem, 5vw, 4rem); }
+    .mpr h1 { font-size: clamp(3rem, 6vw, 5rem); letter-spacing: -.045em; }
+    .mpr .tc-lede { max-width: 45ch; }
+    .mpr .mpr-links { display: flex; flex-wrap: wrap; gap: 1.25rem; margin-top: 1.25rem; font: .85rem var(--ddp-font-mono); }
+    .mpr .mpr-links a { padding-block: .3rem; border-bottom: 1px solid currentColor; }
+    .mpr .mpr-picker, .mpr [data-round]:not(:empty) { padding: clamp(1rem, 3vw, 1.75rem); border: 1px solid var(--ddp-color-line); border-top: 3px solid var(--ddp-color-secondary); border-radius: var(--ddp-radius); background: var(--ddp-color-surface); }
+    .mpr .mpr-picker-title, .mpr .mpr-round-head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+    .mpr h2 { margin: 0; font-size: clamp(1.45rem, 2.5vw, 2rem); }
+    .mpr .mpr-count { display: flex; align-items: center; justify-content: space-between; gap: .75rem; font-weight: 600; }
+    .mpr .mpr-count input { width: 5rem; }
+    .mpr #count-help { margin: .35rem 0 1rem; }
+    .mpr .mpr-extra-label { padding: .65rem .75rem .25rem; font: var(--ddp-text-xs) var(--ddp-font-mono); color: var(--ddp-color-muted); }
+    .mpr .tc-btn { border-radius: var(--ddp-radius-sm); }
+    .mpr .tc-btn:not(.ghost) { background: var(--ddp-color-secondary); color: var(--color-navy); border-color: transparent; }
+    .mpr .tc-btn:not(.ghost):hover { text-decoration: underline; }
+    .mpr [data-start] { width: 100%; justify-content: space-between; }
+    .mpr .mpr-beyond { margin-top: 1.25rem; border-top: 1px solid var(--ddp-color-line); padding-top: .5rem; }
+    .mpr .mpr-beyond label { display: flex; align-items: center; gap: .6rem; min-height: 44px; font-weight: 600; cursor: pointer; }
+    .mpr .mpr-beyond input { width: 1.1rem; height: 1.1rem; accent-color: var(--ddp-color-accent); }
+    .mpr .mpr-lesson, .mpr [data-status]:not(:empty) { margin-top: 1.25rem; padding: 1rem; border-left: 3px solid var(--ddp-color-accent); background: var(--ddp-color-accent-soft); }
+    .mpr .mpr-score { display: block; font: 500 var(--ddp-text-xl) var(--ddp-font-serif); color: var(--ddp-color-primary); }
+    .mpr [data-status] a { text-decoration: underline; }
+    .mpr .mpr-lesson-h { font-weight: 600; }
+    .mpr.in-round { max-width: 850px; }
+    .mpr.in-round .mpr-setup { display: block; }
+    .mpr.in-round :is(.mpr-picker, .tc-lede, .mpr-links) { display: none; }
+    .mpr.in-round h1 { font-size: clamp(2.25rem, 4vw, 3.25rem); }
+    .mpr [data-change] { margin-top: 1rem; }
+    .mpr [data-round]:not(:empty) { margin-top: 1.5rem; }
+    .mpr .mpr-round-head { flex-wrap: wrap; border-bottom: 1px solid var(--ddp-color-line); padding-bottom: 1rem; }
+    .mpr .mq-stem { font-size: var(--ddp-text-lg); color: var(--ddp-color-ink); scroll-margin-top: 6rem; }
+    .mpr [data-status] { scroll-margin-top: 6rem; }
+    @media (max-width: 720px) {
+      .mpr .mpr-setup { grid-template-columns: 1fr; }
+    }
     .mpr .mpr-crossout-toggle { display: flex; align-items: center; gap: var(--ddp-space-2); min-height: 44px; cursor: pointer; }
     .mpr .mpr-crossout-toggle input { width: 1.15rem; height: 1.15rem; accent-color: var(--ddp-color-primary); }
-    .mpr .mpr-question-nav { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ddp-space-3); margin-block: var(--ddp-space-4); }
+    .mpr .mpr-question-nav { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ddp-space-3); border-top: 1px solid var(--ddp-color-line); padding-top: 1rem; }
     .mpr .mpr-question-nav [hidden] { display: none; }
     .mpr .mpr-question-nav span { margin-inline: auto; }
     .mpr .mq-choice.is-picked { border-color: var(--ddp-color-primary); box-shadow: inset 0 0 0 1px var(--ddp-color-primary); }
@@ -273,12 +352,12 @@ for (const st of SETS) {
     .mpr .mq-choice { width: 100%; display: flex; gap: var(--ddp-space-3); text-align: left; padding: var(--ddp-space-3) var(--ddp-space-4); border: 1px solid var(--ddp-color-line); border-radius: var(--ddp-radius-sm, 8px); background: var(--ddp-color-surface); color: var(--ddp-color-ink); font: inherit; font-size: var(--ddp-text-sm); cursor: pointer; }
     .mpr .mq-choice:hover:not(:disabled) { border-color: var(--ddp-color-accent); }
     .mpr .mq-letter { font-family: var(--ddp-font-mono); font-weight: 700; color: var(--ddp-color-muted); }
-    .mpr .mq-choice.is-correct { border-color: var(--ddp-color-verified); background: var(--ddp-color-verified-soft); color: #6b6b6b; }
-    .mpr .mq-choice.is-wrong { border-color: #c0392b; background: #fcebe9; color: #6b6b6b; }
+    .mpr .mq-choice.is-correct { border-color: var(--ddp-color-verified); background: color-mix(in srgb, var(--ddp-color-verified) 12%, var(--ddp-color-surface)); color: var(--ddp-color-ink); }
+    .mpr .mq-choice.is-wrong { border-color: #c0392b; background: color-mix(in srgb, #c0392b 12%, var(--ddp-color-surface)); color: var(--ddp-color-ink); }
     .mpr .mq-feedback { margin-top: var(--ddp-space-3); padding-top: var(--ddp-space-3); border-top: 1px dashed var(--ddp-color-line); font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); }
     .mpr .mq-verdict { font-weight: 700; }
     .mpr .mq-verdict.is-correct { color: var(--ddp-color-verified-ink); }
-    .mpr .mq-verdict.is-wrong { color: #c0392b; }
+    .mpr .mq-verdict.is-wrong { color: var(--ddp-color-ink); }
     .mpr .mq-meta a { color: var(--ddp-color-accent); font-weight: 600; }
   </style>
 </BaseLayout>
