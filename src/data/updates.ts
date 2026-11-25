@@ -42,6 +42,12 @@ export interface Milestone {
 export const STEMHOP_SWITCH_DATE = '2026-11-16';
 
 export const MILESTONES: Milestone[] = [
+  { date: '2026-11-24', kind: 'media', title: 'Previous, Next and Play all for films', prs: [503],
+    text: 'The Films page playlist has Previous and Next buttons and a Play all switch that starts the next film when one ends; it is off until you turn it on. Under each lesson film there are Previous and Next chapter buttons, and after the last one a link to the next lesson’s film.' },
+  { date: '2026-11-24', kind: 'site', title: 'Recently rewritten, back on the homepage', prs: [504],
+    text: 'The homepage again shows the newest rewritten lessons, each with its course, date and what is new.' },
+  { date: '2026-11-24', kind: 'quality', title: 'The last seven lessons rewritten', prs: [500],
+    text: 'Seven neuroscience and sensory lessons that had been left out of the rewrite, including the lessons on itch, on how the spinal cord gates pain and on touch in autism models, now have it, so every lesson on the site has been rewritten.' },
   { date: STEMHOP_SWITCH_DATE, kind: 'site', title: 'A new name: STEMhop', prs: [337],
     text: 'Biochemistrypedia becomes STEMhop, with a new address, as the site grows beyond biology into the rest of science and math. A new wordmark with Hex as the O, and a front page that starts with the subjects. Old links still work, and it is still free.' },
   { date: '2026-06-12', kind: 'site', title: 'The first lesson', prs: [1, 3],
@@ -130,16 +136,16 @@ export const MILESTONES: Milestone[] = [
     text: 'The homepage’s parent door and every course page now link to the course calendars. On /teach/match/ a teacher can add the ticked lessons straight to a class. Take-homes under a lesson’s opening film stay folded until the film is watched.' },
   { date: '2026-11-22', kind: 'quality', title: 'Cell Signaling rewritten', prs: [243, 335, 340, 343, 391, 439, 440, 441, 442, 447, 448, 449, 453, 454, 455, 456, 463, 465],
     text: 'All 44 Cell Signaling lessons, from how far signals travel to oncogenes and stress signals, are rewritten around one guiding idea, with prediction checks, a flashcard deck, and two short films each with take-homes underneath. Signaling Circuits and Turning Signals Off have since had a further accuracy check, with their flashcards and films corrected to match.' },
-  { date: '2026-11-23', kind: 'tools', title: 'Side Hops', prs: [392, 460, 484, 488, 497],
-    text: 'Forty-one lessons, from Turning the Signal Off to the action potential, meiosis and the basal ganglia, now have Side Hops beside them: short true stories, myth checks and things to try, with a narrated audio segment. The newer cards each carry a picture, labelled as AI-drawn. A switch near the top shows the full lesson, just the films, or just the Side Hops. All 30 Biology Together guides have their own kind: tips for the parent on what to say, compare, ask and point at, each with a picture and a short read-aloud clip.' },
+  { date: '2026-11-24', kind: 'tools', title: 'Side Hops', prs: [392, 460, 484, 488, 497, 501],
+    text: 'Fifty-nine lessons, from Turning the Signal Off to the action potential, meiosis, the retina and sleep, now have Side Hops beside them: short true stories, myth checks and things to try, with a narrated audio segment. The newer cards each carry a picture, labelled as AI-drawn. A switch near the top shows the full lesson, just the films, or just the Side Hops. All 30 Biology Together guides have their own kind: tips for the parent on what to say, compare, ask and point at, each with a picture and a short read-aloud clip.' },
   { date: '2026-11-22', kind: 'tools', title: 'Listen to every lesson', prs: [433, 434, 436, 437, 438, 477],
     text: 'Every lesson in Cell Biology, Genetics, Ecology and Evolution, Organismal Biology, High School Biology, Life Science and Biology Together now has a Listen button that reads it aloud in the site’s narration voice, and so do all 44 Cell Signaling lessons.' },
   { date: '2026-11-21', kind: 'media', title: 'Films stacked by course', prs: [435],
     text: 'The Films page now opens on one stack of posters per course and one for the methods library, each with its level and number of films. Open a stack and it deals out that course’s films; with JavaScript off, each stack links to the course’s films.' },
   { date: '2026-11-22', kind: 'quality', title: 'Films that say the math out loud', prs: [443, 444, 446, 450, 451, 452, 457, 458, 459, 461, 462, 466, 467],
     text: 'Films across the courses now say the arithmetic out loud and explain the words students tend to trip on. Only the scenes that changed are redrawn.' },
-  { date: '2026-11-23', kind: 'media', title: 'Films for the methods library', prs: [445, 464, 468, 496],
-    text: 'Sixty-five more entries in the methods library, from optogenetics and calcium imaging to flow cytometry and genome-wide association studies, now have a narrated film, what the method made possible, and full sources. Confocal microscopy and EEG have since joined them.' },
+  { date: '2026-11-24', kind: 'media', title: 'Films for the methods library', prs: [445, 464, 468, 496, 499, 502],
+    text: 'Sixty-five more entries in the methods library, from optogenetics and calcium imaging to flow cytometry and genome-wide association studies, now have a narrated film, what the method made possible, and full sources. Confocal microscopy, EEG and nineteen more, from Sanger sequencing to super-resolution microscopy, have since joined them.' },
   { date: '2026-11-21', kind: 'media', title: 'A second film for Biochemistry lessons', prs: [421, 422, 423, 425, 426, 428, 429, 430],
     text: 'Twenty-eight Biochemistry lessons, from water and weak bonds to glycolysis, the citric acid cycle and ATP synthase, now have a second short film that plays where the lesson’s second half begins, with take-homes underneath.' },
   { date: '2026-11-21', kind: 'tools', title: 'Hop one level simpler or deeper', prs: [402, 408, 410, 414, 416, 418],
@@ -245,7 +251,6 @@ export const ROADMAP: { when: string; items: { title: string; text: string }[] }
   {
     when: 'Next few weeks',
     items: [
-      { title: 'Expert-teacher rewrites for more courses', text: '' },
       { title: 'A figure in every lesson', text: 'Every course, drawn so a skimming reader gets the point of each section.' },
       { title: 'Flashcards for every rewritten course', text: 'Each rewritten lesson gets its own deck.' },
     ],
