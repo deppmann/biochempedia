@@ -25,6 +25,13 @@ import '../../styles/teach.css';
         accounts are for people 13 and older.
       </p>
 
+      {/* What this browser already holds that an account would keep (2026-11-23). Filled by the
+           script from this device's own records; zero counts are left out, and the line stays
+           hidden when there is nothing to count, without JavaScript, or with storage blocked.
+           Only what an account syncs is counted (the notebook and progress), so the line promises
+           nothing an account does not do. */}
+      <p class="acct-here" data-here hidden></p>
+
       <label class="tc-check acct-age"><input type="checkbox" data-age /> <span>I am 13 or older.</span></label>
 
       <!-- The one optional question. Shown only once the server keeps roles, and only after the
@@ -126,6 +133,8 @@ import '../../styles/teach.css';
   /* Two quiet lines about another account's notes on this browser. Plain text on the page's own ground, so they read in light and dark. */
   .acct .acct-aside { max-width: 64ch; margin: var(--ddp-space-3) 0 var(--ddp-space-4); padding-left: var(--ddp-space-3); border-left: 3px solid var(--ddp-color-secondary); font-size: var(--ddp-text-sm); color: var(--ddp-color-ink); }
   .acct .acct-aside .tc-muted { display: block; margin-top: 0.25rem; }
+  .acct .acct-here { max-width: 64ch; margin: var(--ddp-space-4) 0 0; padding-left: var(--ddp-space-3); border-left: 3px solid var(--ddp-color-secondary); color: var(--ddp-color-ink); }
+  .acct .acct-here[hidden] { display: none; }
   .acct .acct-new { margin-top: var(--ddp-space-5); }
   .acct .acct-age { display: flex; gap: 0.6rem; align-items: center; margin-top: var(--ddp-space-5); font-weight: 600; }
   .acct .acct-age input, .acct .tc-check input { width: 20px; height: 20px; flex: none; }
@@ -149,6 +158,8 @@ import '../../styles/teach.css';
   } from '../../lib/learner';
   import { isRole, type Role } from '../../lib/prefs';
   import { enrolled } from '../../lib/classroom';
+  import { allItems } from '../../lib/notebook';
+  import { load as loadProgress } from '../../lib/progress';
 
   const $ = <T extends HTMLElement = HTMLElement>(s: string) => document.querySelector<T>(s)!;
   const show = (el: HTMLElement, on: boolean) => { el.hidden = !on; };
@@ -177,8 +188,29 @@ import '../../styles/teach.css';
 
   const when = (ms?: number | null) => (ms ? new Date(ms).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' }) : 'not yet');
 
+  /* "On this device": what an account would keep, counted from this browser's own records. */
+  function renderHere() {
+    const here = $('[data-here]');
+    let parts: string[] = [];
+    try {
+      const items = allItems();
+      const highlights = items.filter((i) => i.kind === 'highlight').length;
+      const notes = items.filter((i) => (i.note ?? '').trim()).length;
+      // Lessons opened; MCAT practice sets are kept under "mcat-…" and are not lessons.
+      const lessons = Object.keys(loadProgress().lessons).filter((k) => !k.startsWith('mcat-')).length;
+      const n = (k: number, one: string, many: string) => (k ? `${k} ${k === 1 ? one : many}` : '');
+      parts = [n(highlights, 'highlight', 'highlights'), n(notes, 'note', 'notes'), n(lessons, 'lesson opened', 'lessons opened')].filter(Boolean);
+    } catch { parts = []; }
+    here.textContent = '';
+    if (parts.length) {
+      here.append(Object.assign(document.createElement('strong'), { textContent: 'On this device: ' }), `${parts.join(', ')}. An account keeps them on every device you sign in on.`);
+    }
+    show(here, parts.length > 0);
+  }
+
   function renderOut(me: Me) {
     show($('[data-out]'), true);
+    renderHere();
     const cls = enrolled();
     if (cls) {
       $('[data-class-name]').textContent = ` (${cls.className})`;

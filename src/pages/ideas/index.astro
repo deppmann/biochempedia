@@ -9,12 +9,17 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import '../../styles/hop.css';
 import { allIdeas, areas } from '../../lib/hop';
-import { levelCount } from '../../lib/hop-words.mjs';
+import { levelCount, ranksOf } from '../../lib/hop-words.mjs';
+import Ladder from '../../components/hop/Ladder.astro';
 import { graph } from '../../lib/topic-graph';
 
 const ideas = await allIdeas();
 const lessons = new Set(ideas.flatMap((i) => i.rungs.map((r) => r.slug))).size;
 const groups = areas.map((a) => ({ ...a, ideas: ideas.filter((i) => i.area === a.id).sort((x, y) => x.name.replace(/^The /, '').localeCompare(y.name.replace(/^The /, ''))) })).filter((g) => g.ideas.length);
+/* Within an area the ideas taught at two or more levels come first, each with its small ladder: those
+   are the ones a reader can hop on. The ideas taught at one level so far (about three in four) sit
+   under a plain fold, so the list opens on the hops. Built here; no script is involved. */
+const split = groups.map((g) => ({ ...g, many: g.ideas.filter((i) => ranksOf(i.mask).length > 1), one: g.ideas.filter((i) => ranksOf(i.mask).length <= 1) }));
 const tries = ['why are leaves green', 'how do vaccines work', 'osmosis'];
 void graph;
 ---
@@ -41,12 +46,27 @@ void graph;
 
       <h2 class="ideas-h2" id="every-idea">Every idea, by area</h2>
       <p class="ideas-note">{ideas.length} ideas from {lessons} lessons, all in biology so far. Chemistry, physics and math are not built yet.</p>
-      {groups.map((g) => (
+      {split.map((g) => (
         <details class="ideas-area" id={`area-${g.id}`}>
-          <summary>{g.name} <span class="ideas-area-n">{g.ideas.length} ideas</span></summary>
-          <ul class="ideas-list">
-            {g.ideas.map((i) => <li><a href={`/ideas/${i.id}/`}>{i.name}</a><span>{levelCount(i.mask)}</span></li>)}
-          </ul>
+          <summary>{g.name} <span class="ideas-area-n">{g.ideas.length} {g.ideas.length === 1 ? 'idea' : 'ideas'}{g.many.length > 0 && g.one.length > 0 && `, ${g.many.length} at two or more levels`}</span></summary>
+          {g.many.length > 0 && (
+            <ul class="ideas-list ideas-list-many">
+              {g.many.map((i) => <li><Ladder size="tiny" mask={i.mask} /><a href={`/ideas/${i.id}/`}>{i.name}</a><span>{levelCount(i.mask)}</span></li>)}
+            </ul>
+          )}
+          {g.one.length > 0 && g.many.length > 0 && (
+            <details class="ideas-one">
+              <summary>Also in this area ({g.one.length} taught at one level so far)</summary>
+              <ul class="ideas-list">
+                {g.one.map((i) => <li><a href={`/ideas/${i.id}/`}>{i.name}</a><span>{levelCount(i.mask)}</span></li>)}
+              </ul>
+            </details>
+          )}
+          {g.one.length > 0 && g.many.length === 0 && (
+            <ul class="ideas-list">
+              {g.one.map((i) => <li><a href={`/ideas/${i.id}/`}>{i.name}</a><span>{levelCount(i.mask)}</span></li>)}
+            </ul>
+          )}
         </details>
       ))}
 

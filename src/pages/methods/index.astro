@@ -4,6 +4,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import Hex from '../../components/Hex.astro';
 import { hexFor } from '../../data/hex';
 const hex = hexFor('methods');
+import { methodFilmCounts } from '../../lib/film-catalog';
 import { CATEGORY_LABELS, METHODS, filmLength, listedMethods, methodHref, type MethodCategory } from '../../data/methods';
 
 /* The methods library: every experimental method taught on the site, one film each,
@@ -13,6 +14,9 @@ const methods = listedMethods().map((m) => ({ m, n: m.lessons.filter((s) => publ
 const groups = (Object.keys(CATEGORY_LABELS) as MethodCategory[])
   .map((cat) => ({ cat, items: methods.filter(({ m }) => m.category === cat).sort((a, b) => a.m.name.localeCompare(b.m.name)) }))
   .filter((g) => g.items.length > 0);
+/* The film library (/films/) lists each film file once. A method film that is also a lesson's film
+   is listed there under its course, so its Methods stack is smaller than this page; say so here. */
+const counts = await methodFilmCounts();
 const coming = METHODS.filter((m) => !m.film).sort((a, b) => a.name.localeCompare(b.name));
 ---
 
@@ -26,6 +30,12 @@ const coming = METHODS.filter((m) => !m.film).sort((a, b) => a.name.localeCompar
       made possible. The same film appears in every lesson that uses the method.
     </p>
     <p class="count">{methods.length} films{coming.length > 0 && ` · ${coming.length} more in production`}</p>
+    {counts.shared > 0 && (
+      <p class="count-note">
+        {counts.shared === 1 ? 'One of these films is' : `${counts.shared} of these films are`} also a lesson’s own film. The <a href="/films/">film library</a> lists
+        {counts.shared === 1 ? ' it with its course' : ' those with their courses'}, so its Methods stack shows the other {counts.own}.
+      </p>
+    )}
   </section>
 
   <nav class="wrap cat-nav" aria-label="Jump to a group">
@@ -70,6 +80,7 @@ const coming = METHODS.filter((m) => !m.film).sort((a, b) => a.name.localeCompar
     .eyebrow a { color: inherit; text-underline-offset: 3px; }
     h1 { font-family: var(--ddp-font-serif); font-weight: 500; color: var(--ddp-color-primary); font-size: var(--ddp-text-3xl); line-height: 1.1; margin: 0; }
     .lede { font-size: var(--ddp-text-lg); line-height: 1.6; color: var(--ddp-color-ink-soft); max-width: 62ch; margin: 0; }
+    .count-note { margin: 0; max-width: 60ch; font-size: var(--ddp-text-sm); line-height: 1.5; color: var(--ddp-color-muted); }
     .count { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: 0.12em; text-transform: uppercase; color: var(--ddp-color-muted); margin: 0; }
     .cat-nav { display: flex; flex-wrap: wrap; gap: var(--ddp-space-2); padding-block: var(--ddp-space-2) var(--ddp-space-4); }
     .cat-nav a { padding: 0.3rem 0.8rem; border-radius: 999px; border: 1px solid var(--ddp-color-border, #d6d3cc); text-decoration: none; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink); }

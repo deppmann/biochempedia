@@ -16,6 +16,8 @@ import { skimOf, guidingIdeaOf, filmTakeawaysOf, wordsIn } from '../../../lib/sk
 import { rewrittenFor } from '../../../lib/rewritten';
 import LessonLinks from '../../../components/LessonLinks.astro';
 import HopSentence from '../../../components/hop/HopSentence.astro';
+import PredictAgain from '../../../components/PredictAgain.astro';
+import { predictsOf } from '../../../lib/predicts';
 
 export async function getStaticPaths() {
   // Same rule as the lesson route: drafts only in `astro dev`.
@@ -28,6 +30,8 @@ const lesson = entry.data;
 const course = courseOf(lesson.course);
 const { headings } = await render(entry);
 const skim = skimOf(entry.body ?? '', headings);
+// The lesson's Predict questions, answers folded (2026-11-23); see src/lib/predicts.ts.
+const predicts = course.tier === 'families' ? [] : await predictsOf(entry.body ?? '', headings);
 const { idea, hook } = guidingIdeaOf(lesson);
 // Film take-homes: the lesson film, or each chapter film that has them.
 const films = filmTakeawaysOf(lesson);
@@ -84,6 +88,8 @@ const courseSkim = COURSES.some((c) => c.slug === course.slug) ? courseSkimHref(
         </li>
       ))}
     </ol>
+
+    <PredictAgain items={predicts} lessonHref={full} />
 
     <LessonLinks slug={lesson.slug} variant="skim" />
 

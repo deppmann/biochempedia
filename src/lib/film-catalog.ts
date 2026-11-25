@@ -113,6 +113,16 @@ export async function filmTotal(): Promise<number> {
   return (await filmCatalog()).length;
 }
 
+/** Method films, counted from the catalog so /films/ and /methods/ state the same numbers (2026-11-23).
+ *  The methods library has `total` films. `shared` of them are a lesson's own film: the catalog lists
+ *  each file once, under its course, so the library's Methods stack holds only the `own` ones. */
+export async function methodFilmCounts(): Promise<{ total: number; own: number; shared: number }> {
+  const films = await filmCatalog();
+  const own = films.filter((f) => f.kind === 'method').length;
+  const shared = films.filter((f) => f.kind !== 'method' && f.method).length;
+  return { total: own + shared, own, shared };
+}
+
 async function build(): Promise<CatalogFilm[]> {
   const lessons = await getCollection('lessons', ({ data }) => !data.draft);
   const methods = listedMethods();

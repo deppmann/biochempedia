@@ -1,6 +1,6 @@
 /* The teacher's syllabus matcher, in the browser (/teach/match/).
 
-   Reads the pasted text or a local file, matches it with src/lib/syllabus-match.mjs and draws the
+   Reads the pasted text or a local file (text, Word, or a PDF through src/lib/pdf-text.mjs), matches it with src/lib/syllabus-match.mjs and draws the
    rows. The only requests it makes are GETs for the site's own static index files. The syllabus
    text is never part of any request, never put in the address and never stored.
 
@@ -87,7 +87,34 @@ export function start() {
     try {
       let got: string | null;
       if (name.endsWith('.docx')) got = await docxText(await f.arrayBuffer());
-      else if (name.endsWith('.pdf') || f.type === 'application/pdf') { fileErr.textContent = 'This page cannot read a PDF yet. Open the PDF, select the schedule, copy it and paste it in the box.'; file.value = ''; return; }
+      else if (name.endsWith('.pdf') || f.type === 'application/pdf') {
+        // PDF.js is the site's own file, fetched only now; the PDF is read here and goes nowhere.
+        say('Reading the PDF on this computer…');
+        let pdf: { text: string; pages: number; read: number };
+        try {
+          const { pdfText } = await import('./pdf-text.mjs');
+          pdf = await pdfText(await f.arrayBuffer(), { maxChars: MAX_CHARS });
+        } catch (e) {
+          say('');
+          fileErr.textContent = (e as { name?: string })?.name === 'PasswordException'
+            ? 'That PDF is locked with a password, so it cannot be read here. Open it, copy the schedule and paste it in the box.'
+            : 'That PDF could not be read here. Open it, select the schedule, copy it and paste it in the box.';
+          file.value = '';
+          return;
+        }
+        // A scanned PDF is pictures of pages: there are no words in it to read.
+        if (pdf.text.replace(/\s/g, '').length < 20) {
+          say('');
+          fileErr.textContent = 'This PDF has no text in it that can be read. It may be a scan or a photo of the pages. Type or paste the schedule in the box.';
+          file.value = '';
+          return;
+        }
+        text.value = pdf.text;
+        say(`${f.name} was read on this computer${pdf.read < pdf.pages ? ` (the first ${pdf.read} of ${pdf.pages} pages)` : ''}. A PDF can put words out of order, so check the text, then press Find matching lessons.`);
+        text.focus();
+        file.value = '';
+        return;
+      }
       else if (/\.(doc|pages|rtf|odt)$/.test(name)) got = null;
       else got = await f.text();
       if (!got || !got.trim() || /\u0000/.test(got.slice(0, 2000))) { fileErr.textContent = cannot; file.value = ''; return; }

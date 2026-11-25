@@ -4,7 +4,10 @@
    with no file renders as it always has. The lesson's own text (lesson.mdx) is never edited. */
 import type { HexPose } from '../data/hex';
 
-export type SideHopKind = 'real-world-case' | 'true-story' | 'see-or-do' | 'myth' | 'analogy';
+/* Biology Together (ages 5-10) uses four parent-facing kinds instead of stories (Chris 2026-11-22: "fun different
+   ways parents can explain the concept....phrases they can use, etc..."). */
+export type SideHopKind = 'real-world-case' | 'true-story' | 'see-or-do' | 'myth' | 'analogy'
+  | 'say-it' | 'compare-it' | 'ask-it' | 'point-at-it';
 
 export interface SideHop {
   /** The exact text of the ## heading whose section this card closes. */
@@ -40,6 +43,10 @@ export const KIND_LOOK: Record<SideHopKind, { label: string; pose: HexPose }> = 
   'see-or-do': { label: 'Try this', pose: 'wave' },
   myth: { label: 'Myth check', pose: 'think' },
   analogy: { label: 'Picture this', pose: 'stand' },
+  'say-it': { label: 'Say it', pose: 'wave' },
+  'compare-it': { label: 'Compare it', pose: 'stand' },
+  'ask-it': { label: 'Ask it', pose: 'think' },
+  'point-at-it': { label: 'Point at it', pose: 'lean' },
 };
 
 const FILES = import.meta.glob<{ default: SideHopsData }>('../data/side-hops/*.json', { eager: true });

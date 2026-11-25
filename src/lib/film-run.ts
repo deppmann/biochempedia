@@ -7,9 +7,11 @@ import type { FilmList, ListFilm } from './film-cards';
 import { isWatched, loadFilms, onFilmsChange } from './film-progress';
 import { BUDGETS, SLACK, about, clock, filmsWord, fit, isDefault, loadIdeas, readView, runQueue, runSentence, select, viewQuery } from './film-view';
 import { endWith, runFilms, runPlace } from './film-logic.mjs';
+import { bindPlayAll } from './film-autoadvance';
 
-/* The next film is always offered and never starts by itself (ruling, 2026-11-20): a timer nobody can
-   see is worse than the digits it replaced. */
+/* The next film is offered and does not start by itself (ruling, 2026-11-20): a timer nobody can
+   see is worse than the digits it replaced. The one exception is the viewer's own Play all setting
+   (2026-11-24, film-autoadvance.ts): with it on, the next film starts when the one playing ends. */
 
 export async function run(): Promise<void> {
   const root = document.querySelector<HTMLElement>('[data-fr]');
@@ -120,6 +122,10 @@ export async function run(): Promise<void> {
   const more = $('[data-fr-more]');
   const queue = $('[data-fr-queue]');
   const restNote = $('[data-fr-rest]');
+  const prevBtn = $<HTMLButtonElement>('[data-fr-prev]');
+  const nextBtn = $<HTMLButtonElement>('[data-fr-nextbtn]');
+  const pos = $('[data-fr-pos]');
+  const playAll = bindPlayAll(root.querySelector<HTMLInputElement>('[data-fr-auto]'));
   let at = 0;
 
   const startAt = $('[data-fr-startat]');
@@ -196,9 +202,26 @@ export async function run(): Promise<void> {
     nextText.textContent = '';
     if (i < first || i >= first + SHOWN) first = i;
     startAt.hidden = true;
+    pos.textContent = `Film ${i + 1} of ${films.length}`;
+    prevBtn.disabled = i === 0;
+    nextBtn.disabled = i >= films.length - 1;
+    prevBtn.setAttribute('aria-label', i > 0 ? `Previous film: ${films[i - 1].t}` : 'Previous film');
+    nextBtn.setAttribute('aria-label', i < films.length - 1 ? `Next film: ${films[i + 1].t}` : 'Next film');
     drawQueue();
   }
-  v.addEventListener('ended', () => {
+  // Previous and Next: a press is the viewer's own, so the film starts. A button that has just been
+  // disabled (the first or last film) hands keyboard focus to the film's title.
+  const step = (d: number, btn: HTMLButtonElement) => {
+    const i = at + d;
+    if (i < 0 || i >= films.length) return;
+    nextPressed = performance.now();
+    show(i);
+    if (btn.disabled) title.focus();
+    void v.play().catch(() => {});
+  };
+  prevBtn.addEventListener('click', () => step(-1, prevBtn));
+  nextBtn.addEventListener('click', () => step(1, nextBtn));
+  const offer = () => {
     // The film's take-home first; the offer of the next film sits under it.
     take.hidden = !take.textContent;
     const nx = films[at + 1];
@@ -211,6 +234,15 @@ export async function run(): Promise<void> {
       return;
     }
     nextText.textContent = `Next, when you are ready: ${nx.t}, ${clock(nx.d)}.`;
+  };
+  v.addEventListener('ended', () => {
+    const nx = films[at + 1];
+    if (!nx || !playAll()) { offer(); return; }
+    // Play all: straight on to the next film. If the browser will not start it, the usual offer.
+    const i = at + 1;
+    show(i);
+    nextText.textContent = `Playing all. Now: ${nx.t}, ${clock(nx.d)}.`;
+    v.play().catch(() => { if (at === i) nextText.textContent = `Next: ${nx.t}, ${clock(nx.d)}. Press play to start it.`; });
   });
   playNext.addEventListener('click', () => { nextPressed = performance.now(); show(at + 1); title.focus(); void v.play().catch(() => {}); });
   stop.addEventListener('click', () => {

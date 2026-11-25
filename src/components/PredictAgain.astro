@@ -1,0 +1,73 @@
+---
+/**
+ * "Try the Predict questions again" (2026-11-23): the lesson's Predict questions, listed once more
+ * near the end of the lesson and on its Skim page, each answer folded shut. Asking again after the
+ * reading is the point: a second try at the same question, a little later.
+ *
+ * Built at deploy time by src/lib/predicts.ts from the lesson's own text; nothing is rewritten and
+ * the boxes in the text stay where they are. Plain <details>, no script. It sits outside the
+ * prose column, so search, Listen and highlights do not see the questions twice. A Predict that the
+ * collector leaves out (one with a figure or a component in it) is simply not listed here.
+ */
+import type { Predict } from '../lib/predicts';
+import { say, plural } from '../lib/lesson-copy';
+
+interface Props {
+  items: Predict[];
+  /** Address of the full lesson, for the "From:" links on the Skim page. Empty on the lesson itself. */
+  lessonHref?: string;
+}
+const { items, lessonHref = '' } = Astro.props;
+const n = items.length;
+const Num = say(n).replace(/^./, (c) => c.toUpperCase());
+---
+
+{n > 0 && (
+  <section class="pq" id="predict-again" aria-labelledby="pq-h">
+    <h2 id="pq-h">{n === 1 ? 'Try the Predict question again' : 'Try the Predict questions again'}</h2>
+    <p class="pq-lede">{n === 1
+      ? 'The Predict question from this lesson, on its own. Answer it first, then open the check.'
+      : `${Num} Predict questions from this lesson, on their own. Answer each one first, then open its check.`}</p>
+    <ol class="pq-list">
+      {items.map((p) => (
+        <li>
+          <div class="pq-q" set:html={p.questionHtml} />
+          {p.heading && (
+            <p class="pq-from">From: {p.sectionSlug ? <a href={`${lessonHref}#${p.sectionSlug}`}>{p.heading}</a> : p.heading}</p>
+          )}
+          <details class="pq-a">
+            <summary>{p.check}</summary>
+            <div class="pq-a-body" set:html={p.answerHtml} />
+          </details>
+        </li>
+      ))}
+    </ol>
+  </section>
+)}
+
+<style>
+  .pq { margin-top: var(--ddp-space-12); max-width: 72ch; }
+  .pq h2 { font-size: var(--ddp-text-xl); margin: 0 0 var(--ddp-space-2); }
+  .pq-lede { margin: 0 0 var(--ddp-space-3); font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); }
+  .pq-list { margin: 0; padding-left: 1.4rem; list-style: decimal; }
+  .pq-list > li { padding: var(--ddp-space-3) 0; border-top: 1px solid var(--ddp-color-line); }
+  .pq-list > li::marker { font-weight: 700; color: var(--ddp-color-accent); }
+  .pq-q, .pq-a-body { line-height: 1.55; overflow-wrap: anywhere; }
+  /* The question and answer are rendered Markdown (set:html), so their own tags carry no scope stamp. */
+  .pq-q :global(p), .pq-a-body :global(p) { margin: 0 0 var(--ddp-space-2); }
+  .pq-q :global(:last-child), .pq-a-body :global(:last-child) { margin-bottom: 0; }
+  .pq-q :global(ol), .pq-a-body :global(ol) { margin: 0 0 var(--ddp-space-2); padding-left: 1.4rem; list-style: decimal; }
+  .pq-q :global(ul), .pq-a-body :global(ul) { margin: 0 0 var(--ddp-space-2); padding-left: 1.2rem; list-style: disc; }
+  .pq-q :global(table), .pq-a-body :global(table) { display: block; max-width: 100%; overflow-x: auto; margin: 0 0 var(--ddp-space-2); border-collapse: collapse; font-size: var(--ddp-text-sm); }
+  .pq-q :global(th), .pq-q :global(td), .pq-a-body :global(th), .pq-a-body :global(td) { padding: 0.3rem 0.6rem; border: 1px solid var(--ddp-color-line); text-align: left; vertical-align: top; }
+  .pq-from { margin: var(--ddp-space-1) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .pq-from a { color: var(--ddp-color-ink-soft); text-underline-offset: 2px; }
+  .pq-from a:hover { color: var(--ddp-color-accent); }
+  .pq-a > summary { display: inline-flex; align-items: center; gap: 0.4em; min-height: 44px; cursor: pointer; list-style: none; font-size: var(--ddp-text-sm); font-weight: 600; color: var(--ddp-color-primary); }
+  .pq-a > summary::-webkit-details-marker { display: none; }
+  .pq-a > summary::before { content: '▸'; color: var(--ddp-color-accent); }
+  .pq-a[open] > summary::before { content: '▾'; }
+  .pq-a > summary:hover { color: var(--ddp-color-accent); }
+  .pq-a-body { padding: var(--ddp-space-2) var(--ddp-space-3); border-left: 3px solid var(--ddp-color-accent); background: var(--ddp-color-accent-soft); border-radius: 4px; }
+  @media print { .pq-a > summary { min-height: 0; } }
+</style>

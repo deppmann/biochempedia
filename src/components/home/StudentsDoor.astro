@@ -69,7 +69,7 @@ for (const id of ['mcat', 'curious']) {
     </div>
   </div>
 
-  {/* One row per level, its courses and its first lesson. `courses` and `lessons` stay as anchors:
+  {/* One row per level, its courses and the first lesson of each course. `courses` and `lessons` stay as anchors:
       older links point at /#courses and /#lessons. */}
   <div class="home-levels" id="stage">
     <span class="home-anchor" id="courses"></span><span class="home-anchor" id="lessons"></span>
@@ -91,7 +91,18 @@ for (const id of ['mcat', 'curious']) {
               </li>
             ))}
           </ul>
-          {b.first && (
+          {/* One course: its first lesson. More than one: each course's own first lesson, named. */}
+          {b.starts.length > 1 ? (
+            <ul class="home-lv-starts" role="list" aria-label={`First lessons, ${b.title}`}>
+              {b.starts.map((x) => (
+                <li>
+                  <a class="home-lv-start" href={`/lessons/${x.first.slug}/`}>
+                    <small>{x.course} starts with</small> <b>{x.first.title} <span aria-hidden="true">→</span></b>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          ) : b.first && (
             <a class="home-lv-first" href={`/lessons/${b.first.slug}/`}>
               <small>First lesson</small> <b>{b.first.title} <span aria-hidden="true">→</span></b>
             </a>

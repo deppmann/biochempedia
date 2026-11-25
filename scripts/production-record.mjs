@@ -34,7 +34,8 @@ export const FAMILIES = ['claude', 'openai', 'gemini', 'unknown'];
 export const SUBJECTS = ['biology'];
 export const TIERS = ['families', 'highschool', 'foundation', 'core', 'elective', 'advanced'];
 export const CHANGED = ['text', 'figures', 'flashcards', 'film'];
-/** Open flags. single-film is derived (a shipped level-up still waiting for its film pair); the rest are set. */
+/** Open flags. single-film is derived (a shipped level-up still waiting for its film pair; never on a
+ *  Biology Together guide, which has one parent film by design); the rest are set. */
 export const FLAGS = ['safety-skipped', 'no-notes', 'single-film', 'no-hex-mark', 'lesson-links-stale'];
 const KEYS = ['slug', 'course', 'subject', 'tier', 'stage', 'levelUp', 'text', 'films', 'deck', 'listen', 'sideHops', 'changed', 'flags'];
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
@@ -150,7 +151,9 @@ export function deriveRows(rows, tree) {
     if (!r) { r = { slug, stage: 'live', flags: [] }; added.push(slug); }
     const anim = new Map((r.films || []).map((f) => [f.id, f.animator]));
     const flags = (r.flags || []).filter((f) => f !== 'single-film');
-    if ((r.stage === 'shipped') && t.films.length === 1) flags.push('single-film');
+    /* Biology Together guides get one parent film by design (Chris, 2026-11-22), so a shipped guide
+       with one film is finished, not waiting for its pair. */
+    if ((r.stage === 'shipped') && t.films.length === 1 && t.tier !== 'families') flags.push('single-film');
     out.push(canonical({
       ...r, course: t.course, subject: r.subject || 'biology', tier: t.tier,
       films: t.films.map((f) => ({ ...f, animator: anim.get(f.id) || 'unknown' })),

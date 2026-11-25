@@ -22,6 +22,7 @@ import ListenPlayer from '../../components/ListenPlayer.astro';
 import LessonShare from '../../components/LessonShare.astro';
 import FilmTranscript from '../../components/FilmTranscript.astro';
 import LessonPlayAll from '../../components/LessonPlayAll.astro';
+import LessonFilmNav from '../../components/LessonFilmNav.astro';
 import FlashcardDeck from '../../components/FlashcardDeck.astro';
 import CardsPrompt from '../../components/CardsPrompt.astro';
 import HighlightLayer from '../../components/HighlightLayer.astro';
@@ -48,6 +49,8 @@ import { linesFor, endingsFor, say, plural } from '../../lib/lesson-copy';
 import { skimOf, mainIdeaOf, filmTakeawaysOf, wordsIn } from '../../lib/skim';
 import { rewrittenFor } from '../../lib/rewritten';
 import { sideHopsFor } from '../../lib/side-hops';
+import PredictAgain from '../../components/PredictAgain.astro';
+import { predictsOf } from '../../lib/predicts';
 
 export async function getStaticPaths() {
   // Drafts must not generate a route. The homepage and sitemap already filter
@@ -75,6 +78,12 @@ const navOf = (l: (typeof allLessons)[number] | undefined) =>
 const lessonIdx = allLessons.findIndex((l) => l.data.slug === entry.data.slug);
 const prevNav = navOf(allLessons[lessonIdx - 1]);
 const nextNav = navOf(allLessons[lessonIdx + 1]);
+// "Next lesson's film" under this lesson's last film (LessonFilmNav.astro, 2026-11-24): the first later
+// lesson in this course with an opening film, in the same order as previous and next.
+const nextFilmLesson = allLessons.slice(lessonIdx + 1).find((l) => l.data.explainer);
+const nextFilm = nextFilmLesson
+  ? { href: `/lessons/${nextFilmLesson.data.slug}/#explainer`, lesson: nextFilmLesson.data.title, film: nextFilmLesson.data.explainer!.title }
+  : undefined;
 // After a course's last lesson, hand off to the next course in COURSES (its order is the
 // suggested path). Only a course with a published lesson counts, and Biology Together does
 // not hand off: its pages are for the grown-up, and the next course is written for students.
@@ -104,6 +113,9 @@ const hasSkim = skim.figureCount > 0 || [lesson.explainer, ...lesson.films].some
 const rewritten = rewrittenFor(lesson.slug);
 // Side Hops (2026-11-18): stories and audio beside the lesson, for lessons with a file in src/data/side-hops/.
 const sideHops = sideHopsFor(lesson.slug);
+// The lesson's Predict questions, listed once more after the text (2026-11-23). Not on the hands-on
+// guides, whose Predict is a step for the grown-up to read out.
+const predicts = course.tier === 'families' ? [] : await predictsOf(entry.body ?? '', headings);
 // Method films from the shared library that this lesson teaches or relies on.
 const methods = methodsFor(entry.data.slug);
 const isHighSchool = course.tier === 'highschool';
@@ -211,10 +223,14 @@ const lessonLd = {
       )}
       {lesson.underReview.length > 0 && (
         <div class="under-review" role="note">
-          {/* The notes are in the open (2026-11-09): a reader sees what is being checked without a tap, at every stop. */}
-          <p><span class="under-review-tag">Under review</span> Parts of this lesson are still being checked.</p>
-          <ul>{lesson.underReview.map((r) => <li>{r}</li>)}</ul>
-          <p>The text stays up while the check is done. If you spot a problem, <a href={feedbackUrl(lesson.title)} target="_blank" rel="noopener">report it</a>. <a href="/under-review/">All lessons under review</a>.</p>
+          {/* Folded (2026-11-23): the tag and one line stay in view at every stop; what is being
+              checked, the report link and the full list open in a plain <details>, no script. */}
+          <p><span class="under-review-tag">Under review</span> {lesson.underReview.length === 1 ? 'One part' : `${say(lesson.underReview.length).replace(/^./, (c) => c.toUpperCase())} parts`} of this {time.noun} {lesson.underReview.length === 1 ? 'is' : 'are'} still being checked.</p>
+          <details class="under-review-more">
+            <summary>What is being checked</summary>
+            <ul>{lesson.underReview.map((r) => <li>{r}</li>)}</ul>
+            <p>The text stays up while the check is done. If you spot a problem, <a href={feedbackUrl(lesson.title)} target="_blank" rel="noopener">report it</a>. <a href="/under-review/">All lessons under review</a>.</p>
+          </details>
         </div>
       )}
       {/* Only the hook shows (2026-11-08, "get to the material quicker"). It is also the share and
@@ -353,6 +369,8 @@ const lessonLd = {
         <div class="prose-col" data-pagefind-body data-pagefind-meta="title[data-lesson-title]" data-pagefind-filter="course[data-lesson-course]"
           data-lesson-title={lesson.title} data-lesson-course={lesson.course}><span hidden data-pagefind-filter="type:lesson"></span><Content /></div>{sideHops && <LessonStories data={sideHops} headings={headings} idea={idea} ideaIsQuestion={ideaIsQuestion} />}
         <div data-lt-only="lesson"><HighlightLayer slug={entry.data.slug} title={lesson.title} /></div>
+        {/* The Predict questions once more, answers folded: after the text, before the self-test and flashcards offers. */}
+        {predicts.length > 0 && <div data-lt-only="lesson" data-no-hl><PredictAgain items={predicts} /></div>}
         {/* Study helpers for signed-in learners (worker/helper.js); never on Biology Together or grade 7 Life Science. */}
         {!lesson.draft && helperAllowed(course) && <div data-lt-only="lesson"><LessonHelpers slug={lesson.slug} hasDeck={!!deck} levels={lesson.explainLevels.map((l) => ({ level: l.level, label: l.label }))} /></div>}
 
@@ -677,6 +695,7 @@ const lessonLd = {
 
     {deck && <FlashcardDeck deck={deck} />}
     {deck && <CardsPrompt />}
+    {(ex || lesson.films.length > 0) && <LessonFilmNav next={nextFilm} />}
 
     <dialog id="lb-sources" class="lightbox lock-scroll" aria-label="Sources and integrity">
       <div class="lightbox-head"><span>Sources &amp; Integrity</span><button type="button" class="lightbox-close" data-close aria-label="Close">✕</button></div>
@@ -906,7 +925,12 @@ const lessonLd = {
     .film-takeaways li + li { margin-top: 0.25rem; }
     .film-predates { margin: var(--ddp-space-2) 0 0; max-width: 72ch; padding: var(--ddp-space-2) var(--ddp-space-3); border-left: 3px solid var(--ddp-color-caution); background: var(--ddp-color-caution-soft); border-radius: 4px; font-size: var(--ddp-text-sm); line-height: 1.5; color: var(--ddp-color-ink-soft); }
     .under-review-tag { display: inline-block; margin-right: 0.4rem; padding: 0.1rem 0.5rem; border: 1px dashed var(--ddp-color-caution); border-radius: 999px; background: var(--ddp-color-caution-soft); color: var(--color-navy); font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: 0.06em; text-transform: uppercase; }
-    .under-review ul { margin: var(--ddp-space-2) 0; padding-left: 1.2rem; }
+    .under-review-more > summary { display: inline-flex; align-items: center; gap: 0.4em; min-height: 44px; cursor: pointer; list-style: none; font-weight: 600; color: var(--ddp-color-primary); }
+    .under-review-more > summary::-webkit-details-marker { display: none; }
+    .under-review-more > summary::before { content: '▸'; color: var(--ddp-color-accent); }
+    .under-review-more[open] > summary::before { content: '▾'; }
+    .under-review-more > summary:hover { color: var(--ddp-color-accent); }
+    .under-review ul { margin: 0 0 var(--ddp-space-2); padding-left: 1.2rem; }
     .under-review p { margin: 0; }
     .draft-banner { display: inline-block; margin: 0 0 var(--ddp-space-3); padding: 0.3rem 0.7rem; border: 1px dashed var(--ddp-color-caution); border-radius: 6px; background: var(--ddp-color-caution-soft); color: var(--color-navy); font-size: var(--ddp-text-sm); }
     .lesson-hero { padding: var(--ddp-space-12) var(--ddp-space-6) var(--ddp-space-6); }

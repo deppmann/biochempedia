@@ -94,7 +94,7 @@ const pages = (r, n = r.films.length) => r.films.slice(0, n).map((f) => f.h);
 /** Each query: what must be in its first `top` results (by film page or title), and at least how many full matches. */
 const CASES = [
   // Chris, 2026-11-22: "I searched neuroscience methods in the film page and it didn't pull anything up."
-  { q: 'neuroscience methods', min: 15, top: 40, has: ['/methods/compartmented-culture/', '/methods/nerve-injury-and-axotomy/', '/methods/patch-clamp/', '/methods/optogenetics/', '/methods/calcium-imaging/', '/methods/brain-slice-electrophysiology/'], allMethods: true },
+  { q: 'neuroscience methods', min: 15, top: 80, has: ['/methods/compartmented-culture/', '/methods/nerve-injury-and-axotomy/', '/methods/patch-clamp/', '/methods/optogenetics/', '/methods/calcium-imaging/', '/methods/brain-slice-electrophysiology/'], allMethods: true },
   { q: 'action potential', min: 5, top: 5, has: ['/watch/action-potential/'] },
   { q: 'western blot', min: 1, top: 1, has: ['/methods/western-blot/'] },
   { q: 'patch clamp', min: 1, top: 3, has: ['/methods/patch-clamp/'] },

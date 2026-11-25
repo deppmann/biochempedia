@@ -2,7 +2,9 @@
 /* Play a course's films in order (Chris, 2026-11-14): /films/play/<course>/.
 
    One player, the course's films back to back in course order (the order of /films/ and the course
-   page): when one ends, an "Up next" offer that waits for the viewer (nothing starts by itself), then the next. A queue with
+   page): when one ends, an "Up next" offer that waits for the viewer (nothing starts by itself), then the next.
+   With the viewer's Play all setting on (2026-11-24, src/lib/film-autoadvance.ts) the next one starts
+   when the last ends instead, once the viewer has pressed play. A queue with
    the current film marked, previous and next, the current film's title, a link to its lesson and its
    take-homes underneath, captions from the same caption files. The page remembers on this device
    which film and second the viewer stopped at (src/lib/film-progress.ts) and opens there next time,
@@ -19,6 +21,7 @@ import LessonFilm from '../../../components/LessonFilm.astro';
 import CardsPrompt from '../../../components/CardsPrompt.astro';
 import { filmCatalog, filmKey, filmLevelHref, kindBadge, type CatalogFilm } from '../../../lib/film-catalog';
 import { filmClock } from '../../../lib/films';
+import { lengthWords } from '../../../lib/film-logic.mjs';
 import { courseHref } from '../../../data/courses';
 import '../../../styles/film-lib.css';
 
@@ -32,7 +35,7 @@ const { films } = Astro.props as { films: CatalogFilm[] };
 const first = films[0];
 const course = { slug: first.course!, title: first.courseTitle, stage: first.stage!, stageTitle: first.stageTitle };
 const fmt = (n: number) => n.toLocaleString('en-US');
-const mins = Math.round(films.reduce((n, f) => n + f.durationSec, 0) / 60);
+const totalSec = films.reduce((n, f) => n + f.durationSec, 0);
 const hm = (m: number) => (m < 90 ? `${m} min` : `${Math.floor(m / 60)} h ${m % 60} min`);
 // Lessons with a flashcard deck: the end of their films offers the cards (CardsPrompt.astro).
 const DECK_FILES = Object.keys(import.meta.glob('../../../data/flashcards/*.json'));
@@ -53,7 +56,7 @@ const queue = films.map((f) => ({
     <p class="eyebrow"><a href="/films/">Film library</a> · <a href={filmLevelHref(course.stage)}>{course.stageTitle}</a></p>
     <h1 class="lvl-title">{course.title}, every film in order</h1>
     <p class="lede pl-lede">
-      {fmt(films.length)} films, about {mins < 60 ? `${mins} minutes` : `${Math.floor(mins / 60)} ${Math.floor(mins / 60) === 1 ? 'hour' : 'hours'}${Math.round((mins % 60) / 5) * 5 ? ` ${Math.round((mins % 60) / 5) * 5} minutes` : ''}`}. When one ends, the next waits until you press Play next.
+      {fmt(films.length)} films, about {lengthWords(totalSec)}. When one ends, the next waits until you press Play next, or starts by itself if you turn on Play all.
       <span class="seen-n" data-seen-of={queue.map((q) => q.f).join(' ')} hidden></span>
     </p>
     <p class="small pl-filter" data-pl-filter hidden></p>
@@ -86,6 +89,7 @@ const queue = films.map((f) => ({
         <p class="pl-pos" data-pl-pos aria-live="polite">Film 1 of {fmt(films.length)}</p>
         <button type="button" class="fl-btn" data-pl-nextbtn>Next <span aria-hidden="true">▶</span></button>
       </div>
+      <p class="fl-auto-row" data-pl-autorow hidden><label class="fl-auto"><input type="checkbox" data-pl-auto /> Play all: start the next film when one ends</label></p>
 
       <p class="pb-text" data-pb-text role="status" aria-live="polite"></p>
       <p class="pb-keep" data-pb-keepwrap hidden><button type="button" class="fl-btn primary" data-pb-keep>Keep going</button></p>
@@ -134,6 +138,7 @@ const queue = films.map((f) => ({
     import { liveMarks } from '../../../lib/film-cards';
     import { loadFilms, saveQueue, onFilmsChange, isWatched } from '../../../lib/film-progress';
     import { checkFilmsBadge } from '../../../lib/badges';
+    import { bindPlayAll } from '../../../lib/film-autoadvance';
 
     type Q = { f: string; t: string; h: string; l: string; lt: string; s: string; c: string; o: string; d: number; b: string; k: string; th: string[]; cd: string };
     const root = document.querySelector<HTMLElement>('.pl')!;
@@ -213,8 +218,12 @@ const queue = films.map((f) => ({
       $('[data-pl-pos]').textContent = `Film ${n + 1} of ${order.length}`;
       // Which lesson's flashcards the end of this film offers (CardsPrompt.astro).
       if (q.cd) { root.dataset.cardsLesson = q.cd; root.dataset.cardsTitle = q.lt || q.t; } else { delete root.dataset.cardsLesson; delete root.dataset.cardsTitle; }
-      $<HTMLButtonElement>('[data-pl-prev]').disabled = n === 0;
-      $<HTMLButtonElement>('[data-pl-nextbtn]').disabled = n === order.length - 1;
+      const prevB = $<HTMLButtonElement>('[data-pl-prev]');
+      const nextB = $<HTMLButtonElement>('[data-pl-nextbtn]');
+      prevB.disabled = n === 0;
+      nextB.disabled = n === order.length - 1;
+      prevB.setAttribute('aria-label', n > 0 ? `Previous film: ${all[order[n - 1]].t}` : 'Previous film');
+      nextB.setAttribute('aria-label', n < order.length - 1 ? `Next film: ${all[order[n + 1]].t}` : 'Next film');
       for (const li of items) li.removeAttribute('aria-current');
       const li = items[order[n]];
       li.setAttribute('aria-current', 'true');
@@ -276,6 +285,14 @@ const queue = films.map((f) => ({
       const next = all[order[cur + 1]];
       // Save the next film as the place to come back to.
       saveQueue(course, { f: next.f, t: 0, title: next.t, poster: next.o, courseTitle, d: next.d });
+      // Play all (2026-11-24): straight on to the next film; the offer below only if the browser refuses.
+      if (playAll()) {
+        const n = cur + 1;
+        select(n, false);
+        $('[data-pl-pos]').textContent = `Playing all. Film ${n + 1} of ${order.length}`;
+        video.play().catch(() => { if (cur === n) $('[data-pl-pos]').textContent = `Film ${n + 1} of ${order.length}. Press play to start it.`; });
+        return;
+      }
       $('[data-pl-next-t]').textContent = next.t;
       // Offered, never started (2026-11-20): no clock, seen or unseen. The place is already saved above.
       $('[data-pl-count]').textContent = 'When you are ready.';
@@ -379,6 +396,8 @@ const queue = films.map((f) => ({
     }
 
     $<HTMLElement>('[data-pl-ctrl]').hidden = false;
+    $<HTMLElement>('[data-pl-autorow]').hidden = false;
+    const playAll = bindPlayAll(root.querySelector<HTMLInputElement>('[data-pl-auto]'));
     liveMarks(root);
     // The course's "Watched every film" badge (src/lib/badges.ts), earned when the last film is watched.
     onFilmsChange(() => { checkFilmsBadge(course, courseTitle, all.map((q) => q.f)); });
