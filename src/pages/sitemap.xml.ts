@@ -7,6 +7,9 @@ import { allFilms } from '../lib/films';
 import { SITE_ORIGIN } from '../lib/site-host.mjs';
 import { allIdeas } from '../lib/hop';
 import { learnerCourses } from '../lib/calendar/data';
+import { recordFor } from '../lib/production-record';
+import { MILESTONES } from '../data/updates';
+import updatesPRs from '../data/updates-prs.json';
 
 /**
  * Hand-rolled sitemap (no @astrojs/sitemap — Astro deps are pinned). Lists the
@@ -18,13 +21,26 @@ export async function GET(context: APIContext): Promise<Response> {
   const lessons = (await getCollection('lessons')).filter((l) => !l.data.draft);
   // A course page exists only once the course has a published lesson.
   const courses = [...new Set(lessons.map((l) => l.data.course))];
+  const lastmod = new Map<string, string>();
+  for (const { data } of lessons) {
+    const record = recordFor(data.slug);
+    const date = record?.levelUp?.shipped ?? record?.sideHops?.updated;
+    if (!date) continue;
+    lastmod.set(`/lessons/${data.slug}/`, date);
+    // Course pages list these lessons and their times. The course catalog and home list the courses.
+    for (const path of [`/courses/${data.course}/`, '/courses/', '/']) {
+      if (date > (lastmod.get(path) ?? '')) lastmod.set(path, date);
+    }
+  }
+  const updatesDate = [updatesPRs.at(-1)?.d, ...MILESTONES.map((m) => m.date)].filter(Boolean).sort().at(-1);
+  if (updatesDate) lastmod.set('/updates/', updatesDate);
   const paths = [
-    '/', '/courses/', '/about/', '/updates/', '/fun/', '/play/', '/contact/', '/search/', '/license/', '/under-review/',
+    '/', '/courses/', '/about/', '/updates/', '/fun/', '/play/', '/contact/', '/license/',
     '/math-toolkit/', '/privacy/', '/hex/', '/contributors/',
     '/teachers/', '/teachers/talk-notes/', '/teachers/demo/', '/teachers/how-its-built/',
     '/teachers/do-it-yourself/', '/teachers/checklist/', '/teachers/sources/', '/teachers/talk/',
     '/teachers/life-science/', '/teachers/biology/',
-    '/teach/', '/teach/privacy/', '/join/',
+    '/teach/', '/teach/privacy/',
     '/mcat/', '/mcat/diagnostic/', '/mcat/practice/', ...MCAT_SETS.map((s) => `/mcat/${s.id}/`),
     '/paths/', ...PATHS.map((p) => `/paths/${p.id}/`),
     ...courses.map((c) => `/courses/${c}/`),
@@ -40,7 +56,11 @@ export async function GET(context: APIContext): Promise<Response> {
   const body =
     '<?xml version="1.0" encoding="UTF-8"?>\n' +
     '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
-    paths.map((p) => `  <url><loc>${base}${p}</loc></url>`).join('\n') +
+    paths.map((p) => {
+      const date = lastmod.get(p);
+      const loc = new URL(p, base).href.replace(/&/g, '&amp;');
+      return `  <url><loc>${loc}</loc>${date ? `<lastmod>${date}</lastmod>` : ''}</url>`;
+    }).join('\n') +
     '\n</urlset>\n';
   return new Response(body, { headers: { 'Content-Type': 'application/xml; charset=utf-8' } });
 }
