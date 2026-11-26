@@ -1,496 +1,873 @@
-"""Reading selection in a population.
+"""Reading Selection in a Population.
 
-COLOR MAP (kept across the film)
-  TEAL  = tuskless inherited variant
-  GOLD  = tusked inherited variant
-  RED   = ivory-poaching pressure / paths that stop
-  GREEN = survival and evidence supporting selection
-  ORANGE = crab egg mass
-  GREY  = neutral structure, models, and limits
-
-All percentage bars below are computed from the reported percentages in script.json.
-Animal icons are schematic markers, never counts unless a group size is printed beside a bar.
+COLOR MAP
+  TEAL = inherited tusklessness
+  GOLD = inherited tusks
+  BLUE = blue crab
+  GREEN = successful passage and evidence supporting selection
+  RED = environmental limits and blocked passage
+  GREY = neutral structure, models, and limits
+  ORANGE = crab eggs
 """
+
+from importlib.util import module_from_spec, spec_from_file_location
+from math import comb
+from pathlib import Path
+
+import numpy as np
+
 from bp_parts import *
+from bp_style import EndCard
 
 
-TUSKLESS = TEAL
-TUSKED = GOLD
-PRESSURE = RED
-SUPPORT = GREEN
-EGGS = "#F29E4C"
+# Load the chapter 1 artwork by path because both chapters have a scenes.py.
+chapter_one_spec = spec_from_file_location(
+    "variation_and_survival_chapter_one", Path(__file__).resolve().parents[1] / "scenes.py"
+)
+chapter_one = module_from_spec(chapter_one_spec)
+chapter_one_spec.loader.exec_module(chapter_one)
+
+DATA = (
+    ("Prewar", 54, 18.5),
+    ("War survivors", 108, 50.9),
+    ("Postwar daughters", 91, 33.0),
+)
+BAR_X = (-5.0, 0.0, 4.65)
+BAR_WIDTH = 2.30
+BAR_BOTTOM = -1.70
+BAR_HEIGHT = 4.0
+TRACK_Y = (1.22, -0.83)
+TRACK_X = (-3.16, -1.84)
+EGG_COLOR = "#F29E4C"
+PREDICT = "What changed?"
+RETURN = "Who left the next generation?"
 
 
-# ---------------------------------------------------------------------------
-# Shared lesson pictures. Every continuing scene calls these builders.
+def point(x, y):
+    return np.array([x, y, 0.0])
+
+
+def stage():
+    return RoundedRectangle(
+        width=13.25, height=6.65, corner_radius=0.24, stroke_width=0,
+        fill_color="#2A303C", fill_opacity=1,
+    ).set_z_index(-100)
+
+
 class FilmScene(SpokenScene):
-    """Spoken scene over the chapter's slowly moving data-field texture."""
     def setup(self):
         super().setup()
-        field = VGroup(*[
-            Line([x, -3.6, 0], [x + .7, 3.6, 0], color=GREY, stroke_width=6)
-            for x in np.linspace(-6.8, 6.1, 16)
-        ]).set_opacity(.28).set_z_index(-40)
-        for ln in field:
-            # Deliberate background texture; text is drawn above it and remains high-contrast.
-            ln.layout_ok = True
-
-        def flow(mob, dt):
-            for ln in mob:
-                ln.shift(RIGHT * .38 * dt)
-                if ln.get_left()[0] > 6.9:
-                    ln.shift(LEFT * 13.7)
-        field.add_updater(flow)
-        self.add(field)
+        self.add(stage())
 
 
-def readable(mob, size=24):
-    """Restore readable type after a carried picture has been geometrically reduced."""
-    def visit(m):
-        if isinstance(m, Text) and m.font_size < size:
-            m.font_size = size
-        for child in m.submobjects:
-            visit(child)
-    visit(mob)
-    return mob
+def elephant(color, scale=1.0, outline=False):
+    animal = chapter_one.elephant(color, tusked=color == GOLD, scale=scale)
+    if outline:
+        for part in (animal[0], animal[2], animal[3]):
+            part.set_fill(opacity=0)
+    return animal
 
 
-def elephant(tuskless=False, scale=1.0, color=None, outline=False):
-    """Simple side-view elephant silhouette used as a trait marker."""
-    c = color or (TUSKLESS if tuskless else TUSKED)
-    fill = 0.0 if outline else 0.28
-    body = Ellipse(width=1.35, height=0.78, color=c, stroke_width=4,
-                   fill_color=c, fill_opacity=fill)
-    head = Circle(radius=0.34, color=c, stroke_width=4,
-                  fill_color=c, fill_opacity=fill).move_to([0.73, -0.02, 0])
-    ear = Circle(radius=0.17, color=c, stroke_width=3,
-                 fill_color=c, fill_opacity=0.12 if outline else 0.38).move_to([0.55, 0.06, 0])
-    trunk = VMobject(color=c, stroke_width=6)
-    trunk.set_points_as_corners([[0.98, -0.08, 0], [1.05, -0.48, 0], [0.9, -0.64, 0]])
-    legs = VGroup(*[Line([x, -0.32, 0], [x, -0.67, 0], color=c, stroke_width=7)
-                    for x in (-0.42, 0.22)])
-    tail = Line([-0.66, 0.05, 0], [-0.86, -0.28, 0], color=c, stroke_width=4)
-    parts = [body, head, ear, trunk, legs, tail]
-    if not tuskless:
-        parts.append(ArcBetweenPoints([0.96, -0.18, 0], [1.25, -0.1, 0], angle=-0.8,
-                                      color=TEXT, stroke_width=4))
-    g = VGroup(*parts).scale(scale)
-    g.tuskless = tuskless
-    return g
+def label(text, x, y, size=30, color=TEXT, max_width=12):
+    return fit_text(text, max_w=max_width, size=size, color=color, min_size=28).move_to(point(x, y))
 
 
-def data_bar(label, pct, n, width=7.4, height=0.72, center=ORIGIN, show_counts=True):
-    """Computed stacked bar: teal width=pct; gold width=1-pct."""
-    teal = Rectangle(width=width * pct, height=height, stroke_width=0,
-                     fill_color=TUSKLESS, fill_opacity=0.95)
-    gold = Rectangle(width=width * (1 - pct), height=height, stroke_width=0,
-                     fill_color=TUSKED, fill_opacity=0.95)
-    teal.move_to([-width / 2 + teal.width / 2, 0, 0])
-    gold.next_to(teal, RIGHT, buff=0)
-    outline = Rectangle(width=width, height=height, color=TEXT, stroke_width=2)
-    bar = VGroup(teal, gold, outline).move_to(center)
-    title = T(label, 30, TEXT, weight=BOLD).next_to(bar, UP, buff=0.18).align_to(bar, LEFT)
-    pctlab = M(f"{100*pct:.1f}% teal", 28, TUSKLESS).next_to(bar, DOWN, buff=0.16).align_to(bar, LEFT)
-    if show_counts:
-        count = T(f"n = {n}", 26, GREY).next_to(bar, DOWN, buff=0.16).align_to(bar, RIGHT)
-        g = VGroup(bar, title, pctlab, count)
-    else:
-        g = VGroup(bar, title, pctlab)
-    g.bar, g.teal, g.gold = bar, teal, gold
-    return g
+def empty_bar(x, width=BAR_WIDTH, height=BAR_HEIGHT):
+    return Rectangle(
+        width=width, height=height, stroke_color=GREY, stroke_width=2.5,
+        fill_color=BG, fill_opacity=0.22,
+    ).move_to(point(x, BAR_BOTTOM + height / 2))
 
 
-def two_bars():
-    pre = data_bar("prewar", 0.185, 54, center=[0, 1.45, 0])
-    surv = data_bar("war survivors", 0.509, 108, center=[0, -1.25, 0])
-    return VGroup(pre, surv)
+def share_level(percent, height=BAR_HEIGHT):
+    return BAR_BOTTOM + height * percent / 100
 
 
-def three_bars(compact=False):
-    w = 3.55 if compact else 3.8
-    h = 0.68
-    xs = (-4.25, 0, 4.25)
-    specs = (("prewar", .185, 54), ("survivors", .509, 108), ("daughters", .33, 91))
-    bars = VGroup(*[data_bar(k, p, n, width=w, height=h, center=[x, 0.35, 0])
-                    for x, (k, p, n) in zip(xs, specs)])
-    line = Line([-5.9, -1.1, 0], [5.9, -1.1, 0], color=GREY, stroke_width=3)
-    ticks = VGroup(*[Line([x, -1.0, 0], [x, -1.2, 0], color=GREY, stroke_width=3) for x in xs])
-    return VGroup(bars, line, ticks)
+class ShareBar(VGroup):
+    """Each column encodes a share. Sample sizes are printed separately."""
+
+    def __init__(self, index, x=None, *, compact=False):
+        name, count, percent = DATA[index]
+        if x is None:
+            x = BAR_X[index]
+        width, height = (1.33, 3.28) if compact else (BAR_WIDTH, BAR_HEIGHT)
+        if compact:
+            name = ("Prewar", "Survivors", "Daughters")[index]
+        teal_height = height * percent / 100
+        gold_height = height - teal_height
+        self.shell = empty_bar(x, width, height)
+        self.teal = Rectangle(
+            width=width, height=teal_height, stroke_width=0, fill_color=TEAL,
+            fill_opacity=0.87,
+        ).move_to(point(x, BAR_BOTTOM + teal_height / 2))
+        self.gold = Rectangle(
+            width=width, height=gold_height, stroke_width=0, fill_color=GOLD,
+            fill_opacity=0.83,
+        ).move_to(point(x, BAR_BOTTOM + teal_height + gold_height / 2))
+        self.fills = VGroup(self.teal, self.gold)
+        heading_offset = 0.43 if compact else 0.30
+        self.heading = label(name, x, BAR_BOTTOM + height + heading_offset, 28 if compact else 29 if index == 2 else 33)
+        self.percent = M(f"{percent:g}%", 31 if compact else 38, TEAL).move_to(point(x, -2.12))
+        self.sample = label(f"n = {count}", x, -2.68, 28)
+        self.readings = VGroup(self.percent) if compact else VGroup(self.percent, self.sample)
+        super().__init__(self.shell, self.fills, self.heading, self.readings)
 
 
-def selection_gate(label=True):
-    """Two fixed passages: a narrow gold route and wider teal route."""
-    top = Polygon([-1.1, 2.55, 0], [1.1, 2.55, 0], [0.72, 0.35, 0], [-0.72, 0.35, 0],
-                  color=PRESSURE, fill_color=PRESSURE, fill_opacity=.18, stroke_width=4)
-    bottom = Polygon([-0.72, -0.35, 0], [0.72, -0.35, 0], [1.1, -2.55, 0], [-1.1, -2.55, 0],
-                     color=PRESSURE, fill_color=PRESSURE, fill_opacity=.18, stroke_width=4)
-    teal_gap = Line([-0.62, 0, 0], [-0.16, 0, 0], color=TUSKLESS, stroke_width=12)
-    gold_gap = Line([0.2, 0, 0], [0.38, 0, 0], color=TUSKED, stroke_width=12)
-    g = VGroup(top, bottom, teal_gap, gold_gap)
-    if label:
-        lab = T("ivory poaching", 30, PRESSURE, weight=BOLD).move_to([0, 3.05, 0])
-        g.add(lab)
-    return g
+def share_highlight(bar):
+    return SurroundingRectangle(bar.teal, buff=-0.12, color=TEXT, stroke_width=3)
 
 
-def question_backdrop():
-    bars = readable(two_bars().scale(.78).shift(LEFT * 3.0 + UP * .1))
-    gold = elephant(False, .82, outline=True).move_to([3.2, .9, 0])
-    teal = elephant(True, .82, outline=True).move_to([3.2, -.55, 0])
-    pulse(gold, base=4, amp=1.1, speed=2.0)
-    pulse(teal, base=4, amp=1.1, speed=2.0)
-    opts = VGroup(T("changed individuals?", 28, TUSKED).move_to([3.3, 1.85, 0]),
-                  T("different group shares?", 28, TUSKLESS).move_to([3.3, -1.55, 0]))
-    return VGroup(bars, gold, teal, opts)
+def measured_bars():
+    return VGroup(*(ShareBar(i) for i in range(3)))
 
 
-def crab(scale=.9):
-    shell = Ellipse(width=2.1, height=1.25, color=BLUE, stroke_width=5,
-                    fill_color=BLUE, fill_opacity=.22)
-    eyes = VGroup(*[Dot([x, .65, 0], radius=.07, color=TEXT) for x in (-.38, .38)])
-    claws = VGroup(Arc(radius=.48, start_angle=.2, angle=2.3, color=BLUE, stroke_width=6).shift(LEFT*1.2+UP*.1),
-                   Arc(radius=.48, start_angle=.65, angle=2.3, color=BLUE, stroke_width=6).shift(RIGHT*1.2+UP*.1))
-    legs = VGroup(*[Line([sx*.65, y, 0], [sx*1.35, y-.35, 0], color=BLUE, stroke_width=5)
-                    for sx in (-1, 1) for y in (-.1, -.38)])
-    return VGroup(shell, eyes, claws, legs).scale(scale)
+def trait_legend():
+    return VGroup(
+        label("Tuskless females", -2.05, 3.02, 30, TEAL),
+        label("Tusked females", 2.05, 3.02, 30, GOLD),
+    )
 
 
-def egg_mass(rows=7, cols=11):
-    dots = VGroup(*[Dot(radius=.075, color=EGGS).move_to([(c-(cols-1)/2)*.19, (r-(rows-1)/2)*.17, 0])
-                    for r in range(rows) for c in range(cols)])
-    return dots
+def timeline():
+    return Arrow(point(-5.78, -2.91), point(5.82, -2.91), buff=0, stroke_width=3, color=GREY)
 
 
-# ---------------------------------------------------------------------------
+def segments(points, color, stroke_width=4):
+    return VMobject(stroke_color=color, stroke_width=stroke_width).set_points_as_corners(
+        [point(x, y) for x, y in points]
+    )
+
+
+def elephants_in_tracks(x, outline=False):
+    return VGroup(*(
+        elephant(color, 0.65, outline=outline).move_to(point(x, y))
+        for color, y in zip((GOLD, TEAL), TRACK_Y)
+    ))
+
+
+def predict_details():
+    source = elephants_in_tracks(TRACK_X[0])
+    target = elephants_in_tracks(TRACK_X[1], outline=True)
+    options = VGroup(
+        boxed_label("Did elephants lose\ntheir tusks?", GOLD, 29, fill_opacity=0.24).move_to(point(3.93, 1.40)),
+        boxed_label("Did group shares change?", TEAL, 28, fill_opacity=0.26).move_to(point(3.93, -0.55)),
+    )
+    card = question_card(PREDICT, y=-2.99, size=31).set_x(-2.50)
+    return source, target, options, card
+
+
+def tracked_paths():
+    return VGroup(*(
+        Line(point(x1, y), point(x2, y), buff=0, color=color, stroke_width=4)
+        for x1, x2, y, color in (
+            (-3.64, -1.35, 1.22, GOLD),
+            (-3.64, -2.30, 1.75, GOLD),
+            (-3.64, -2.65, 0.65, GOLD),
+            (-3.64, -1.35, -0.83, TEAL),
+            (-3.64, -1.35, -1.37, TEAL),
+            (-3.64, -2.25, -0.25, TEAL),
+        )
+    )).set_z_index(-1)
+
+
+def schematic_paths_label():
+    return label("Schematic paths", -2.85, 3.00, 28)
+
+
+def poaching_filter(narrowed=False):
+    channels = VGroup()
+    for (color, y), opening in zip(zip((GOLD, TEAL), TRACK_Y), (0.31, 0.93) if narrowed else (1.1, 1.1)):
+        channel = Polygon(
+            point(-3.64, y + 0.58), point(-1.35, y + opening / 2),
+            point(-1.35, y - opening / 2), point(-3.64, y - 0.58),
+            stroke_color=color, stroke_width=3, fill_color=color, fill_opacity=0.38,
+        )
+        channels.add(channel)
+    return channels
+
+
+def typical_chance_range():
+    """Illustrative independent draws at the prewar share, not the study's fitted model."""
+    n, p = DATA[1][1], DATA[0][2] / 100
+    cdf = np.cumsum([comb(n, k) * p**k * (1 - p)**(n - k) for k in range(n + 1)])
+    return tuple(100 * int(np.searchsorted(cdf, q)) / n for q in (0.025, 0.975))
+
+
+def chance_band(x, width, bottom=BAR_BOTTOM, height=BAR_HEIGHT):
+    low, high = typical_chance_range()
+    y = bottom + height * (low + high) / 200
+    band = Rectangle(
+        width=width, height=height * (high - low) / 100, stroke_color=BLUE,
+        stroke_width=3, fill_color=BLUE, fill_opacity=0.25,
+    ).move_to(point(x, y))
+    return band
+
+
+def blue_crab():
+    body = Ellipse(width=1.91, height=1.03, stroke_color=BLUE, stroke_width=4,
+                   fill_color=BLUE, fill_opacity=0.42)
+    legs = VGroup()
+    claws = VGroup()
+    for side in (-1, 1):
+        for y, outer_y in ((0.08, 0.19), (-0.12, -0.22), (-0.29, -0.53)):
+            legs.add(segments([(0.74 * side, y), (1.16 * side, y + 0.13),
+                               (1.52 * side, outer_y)], BLUE, 5))
+        claws.add(segments([(0.63 * side, 0.26), (1.17 * side, 0.48),
+                            (1.34 * side, 0.88)], BLUE, 7))
+        claw = Arc(radius=0.24, start_angle=-PI / 4, angle=3 * PI / 2,
+                   color=BLUE, stroke_width=9).move_to(point(1.36 * side, 0.99))
+        claws.add(claw)
+    eggs = VGroup(*(
+        Dot(point((col - 4) * 0.129 + (row % 2) * 0.036, -0.38 - row * 0.115),
+            radius=0.075, color=interpolate_color(
+                ManimColor(EGG_COLOR), ManimColor(GOLD), ((col + 3 * row) % 5) / 8,
+            ))
+        for row in range(5) for col in range(9) if (col - 4) ** 2 + (row - 2) ** 2 < 21
+    ))
+    eyes = VGroup(*(Dot(point(x, 0.29), radius=0.051, color=TEXT) for x in (-0.31, 0.31)))
+    return VGroup(legs, claws, body, eggs, eyes), eggs
+
+
+def strategy_animals():
+    crab, eggs = blue_crab()
+    crab.scale(1.22).move_to(point(-4.08, 0.84))
+    mother = elephant(GOLD, 1.32)
+    calf = elephant(GOLD, 0.65)
+    calf.next_to(mother, RIGHT, buff=0.17, aligned_edge=DOWN)
+    family = VGroup(mother, calf).move_to(point(4.05, 0.84))
+    return crab, eggs, family
+
+
+def strategy_panels():
+    return TwoPanel(
+        "Blue crab", "Elephant", colors=(BLUE, GOLD), top=2.94, bottom=-2.37,
+        width=12.3, gap=3.53, size=32,
+    )
+
+
+def survival_gate(x=0, y=0, width=2.75, height=1.96, opening=0.34):
+    """The aperture narrows from young at the top to survivors below."""
+    top, bottom = y + height / 2, y - height / 2
+    return VGroup(*(
+        Polygon(
+            point(x + side * width / 2, top),
+            point(x + side * width / 2, bottom),
+            point(x + side * width * opening / 2, bottom),
+            point(x + side * width * 0.43, top),
+            stroke_color=RED, stroke_width=3, fill_color=RED, fill_opacity=0.30,
+        )
+        for side in (-1, 1)
+    ))
+
+
+def offspring_dot(x, y, color, radius=0.16):
+    return Dot(point(x, y), radius=radius, color=color)
+
+
+def middle_species():
+    fish = VGroup(
+        Ellipse(width=0.69, height=0.40),
+        Triangle().scale(0.20).rotate(-PI / 2).move_to(LEFT * 0.41),
+    )
+    bird = Polygon(point(-0.51, 0.17), point(-0.08, 0.08), point(0.16, 0.28),
+                   point(0.51, 0.19), point(0.23, 0.09), point(0.07, -0.22),
+                   point(-0.10, -0.05))
+    hare = VGroup(
+        Ellipse(width=0.61, height=0.40), Circle(radius=0.13).move_to(point(0.25, 0.17)),
+        Ellipse(width=0.10, height=0.30).rotate(-0.27).move_to(point(0.24, 0.33)),
+        Circle(radius=0.10).move_to(point(-0.33, -0.02)),
+    )
+    return VGroup(*(
+        shape.set_stroke(width=0).set_fill(GREY, opacity=1).move_to(point(x, 0.83))
+        for shape, x in zip((fish, bird, hare), (-1.56, 0.0, 1.54))
+    ))
+
+
+def compact_bars():
+    return VGroup(*(ShareBar(i, x, compact=True) for i, x in enumerate((-5.38, -3.42, -1.46))))
+
+
+def evidence_filter(expanded=False):
+    x, y = (0.0 if expanded else 0.76), -0.20
+    width, height = (3.68, 2.20) if expanded else (2.17, 1.55)
+    gate = survival_gate(x=x, y=y, width=width, height=height)
+    scale = 1.46 if expanded else 1.0
+    young = VGroup(*(offspring_dot(x + dx * scale, y + height / 2 + 0.47, color, 0.16 * scale)
+                     for dx, color in ((-0.75, GOLD), (-0.25, GOLD), (0.25, TEAL), (0.75, TEAL))))
+    next_generation = VGroup(*(offspring_dot(x + dx * scale, y - height / 2 - 0.50, color,
+                                            0.16 * scale)
+                               for dx, color in ((-0.50, GOLD), (0.0, TEAL), (0.50, TEAL))))
+    return gate, young, next_generation
+
+
+def evidence_strands():
+    names = ("Trait pattern", "Pressure", "Survival", "Daughters")
+    colors = (TEAL, RED, GREEN, TEAL)
+    labels = VGroup()
+    lines = VGroup()
+    junction = point(5.83, -1.64)
+    for i, (name, color) in enumerate(zip(names, colors)):
+        y = 2.60 - i * 0.79
+        labels.add(label(name, 3.65, y, 29, color))
+        lines.add(CubicBezier(
+            point(4.90, y), point(6.53 - i * 0.26, y),
+            point(5.14 + i * 0.22, -1.02), junction,
+            color=color, stroke_width=4,
+        ))
+    lead = Arrow(junction, point(3.12, -2.05), buff=0, color=GREEN, stroke_width=5)
+    result = boxed_label("Selection supported", GREEN, 32, fill_opacity=0.10).move_to(point(3.06, -2.60))
+    return labels, lines, lead, result
+
+
 class S00Hook(FilmScene):
     def construct(self):
-        # The carried teal/gold population field appears before its labels.
-        markers = VGroup()
-        for i in range(14):
-            e = elephant(i in {2, 6, 10}, .43).move_to([-5.7 + (i % 7)*1.85, 1.6-(i//7)*2.15, 0])
-            markers.add(e)
-        self.play(LaggedStart(*[FadeIn(e, scale=.7) for e in markers], lag_ratio=.06), run_time=2.1)
-        self.at("inherited variants")
-        legend = VGroup(chip("tuskless inherited variant", TUSKLESS, 28),
-                        chip("tusked inherited variant", TUSKED, 28)).arrange(RIGHT, buff=.7).move_to([0,-2.55,0])
-        self.play(FadeIn(legend, shift=UP*.15), run_time=.9)
-        self.at("How can data")
-        q = fit_text("Selection — or chance?", 7.5, 44, GOLD, weight=BOLD).move_to([0, 3.05, 0])
-        self.play(FadeIn(q, shift=DOWN*.2), run_time=.8)
+        herd = chapter_one.herd(teal_n=5, y_shift=-0.2, scale=0.9, moving=False)
+        dots = VGroup(*(
+            Dot(animal.get_center(), radius=0.24, color=TEAL if i < 5 else GOLD)
+            for i, animal in enumerate(herd)
+        ))
+        question = label("Selection or chance?", 0, 3.06, 42)
+        legend = VGroup(
+            label("Inherited tusklessness", -2.72, -2.55, 30, TEAL),
+            label("Inherited tusks", 2.72, -2.55, 30, GOLD),
+        )
+        self.add(dots)
+        self.at("The first film")
+        self.play(LaggedStart(*(ReplacementTransform(d, a) for d, a in zip(dots, herd)),
+                              lag_ratio=0.09), run_time=2.00)
+        self.play(FadeIn(legend), run_time=0.75)
+        self.at("How can data show", lead=1.0)
+        self.play(Write(question), run_time=1.18)
+        self.at("rather than chance")
+        bars = VGroup(*(empty_bar(x) for x in BAR_X))
+        empty = bars.copy().set_stroke(opacity=0).set_fill(GREY, opacity=0.34).set_z_index(-2)
+        self.play(LaggedStart(*(GrowFromEdge(bar, DOWN) for bar in empty), lag_ratio=0.32), run_time=2.55)
         self.at("Return to the same")
-        targets = [[-4.3, 1.25, 0], [0, 1.25, 0], [4.3, 1.25, 0]]
-        groups = [VGroup(*markers[:5]), VGroup(*markers[5:10]), VGroup(*markers[10:])]
-        for g, p in zip(groups, targets):
-            self.play(g.animate.scale(.72).move_to(p), run_time=.55)
-        empty = VGroup(*[Rectangle(width=3.4, height=1.2, color=GREY, stroke_width=3).move_to(p)
-                         for p in targets])
-        self.play(FadeOut(markers), FadeOut(legend), FadeIn(empty), run_time=1.1)
+        self.play(FadeOut(legend), FadeOut(question), run_time=0.54)
+        gorongosa = label("Gorongosa elephants", 0, 3.0, 42)
+        self.at("same teal and gold")
+        # Move the schematic herd into three empty sample columns, without showing counts.
+        groups = (herd[0:2] + herd[6:8], herd[2:4] + herd[8:10], herd[4:6] + herd[10:12])
+        self.play(*(FadeOut(group, target_position=bar.get_center(), scale=0.1)
+                    for group, bar in zip(groups, bars)),
+                  *(Transform(old, new) for old, new in zip(empty, bars)), run_time=1.72)
+        self.at("tied to Gorongosa")
+        self.play(FadeIn(gorongosa), run_time=0.82)
         self.finish()
 
 
 class S01Title(TitleCard):
-    LESSON = "Variation and survival"
+    LESSON = "Variation and Survival"
     TITLE = "Reading Selection in a Population"
+
+    def construct(self):
+        columns = VGroup(*(empty_bar(x) for x in BAR_X))
+        title = fit_text(self.TITLE, max_w=12, size=52, font=TITLE_FONT).move_to(point(0, 0.20))
+        lesson = label(self.LESSON.upper(), 0, 1.35, 28)
+        rule = Line(LEFT * 1.34, RIGHT * 1.34, color=GOLD, stroke_width=4).shift(DOWN * 0.68)
+        teal = elephant(TEAL, 0.56).move_to(point(-5.0, -1.24))
+        gold = elephant(GOLD, 0.56).move_to(point(5.0, -1.24))
+        self.add(stage(), columns.set_opacity(0.25))
+        self.play(FadeOut(columns), run_time=0.23)
+        self.play(Write(title), FadeIn(lesson), GrowFromCenter(rule), run_time=0.94)
+        self.play(FadeIn(teal, shift=RIGHT * 0.40), FadeIn(gold, shift=LEFT * 0.40), run_time=0.60)
+        self.wait(max(1 / config.frame_rate, self.narration_s - self.elapsed()))
 
 
 class S02Groups(FilmScene):
     def construct(self):
-        leg = VGroup(elephant(True, .55), T("tuskless females", 28, TUSKLESS),
-                     elephant(False, .55), T("tusked females", 28, TUSKED)).arrange(RIGHT, buff=.28).move_to([0,3.25,0])
-        self.at("Teal marks")
-        self.play(FadeIn(leg), run_time=1.0)
-        bars = two_bars()
-        pre, surv = bars[0], bars[1]
+        prewar, survivors, daughters = measured_bars()
+        legend = trait_legend()
+        self.add(prewar.shell, survivors.shell, daughters.shell)
+        teal_example = elephant(TEAL, 1.16).move_to(point(-2.49, 0.70))
+        gold_example = elephant(GOLD, 1.16).move_to(point(2.33, 0.70))
+        self.at("Teal marks tuskless")
+        self.play(GrowFromCenter(teal_example), run_time=0.82)
+        self.play(FadeIn(legend[0]), run_time=0.64)
+        self.at("gold marks tusked")
+        self.play(GrowFromCenter(gold_example), run_time=0.84)
+        self.play(FadeIn(legend[1]), run_time=0.62)
         self.at("Historical film")
-        self.play(FadeIn(pre[1], shift=DOWN*.1), GrowFromEdge(pre.bar, LEFT), run_time=1.5)
-        self.play(FadeIn(VGroup(*pre[2:])), run_time=.7)
+        self.play(GrowFromEdge(prewar.fills, DOWN), FadeOut(teal_example), FadeOut(gold_example),
+                  run_time=1.62)
+        self.play(FadeIn(prewar.heading), run_time=0.52)
         self.at("Later sightings")
-        self.play(FadeIn(surv[1], shift=DOWN*.1), GrowFromEdge(surv.bar, LEFT), run_time=1.5)
-        self.play(FadeIn(VGroup(*surv[2:])), run_time=.7)
+        self.play(GrowFromEdge(survivors.fills, DOWN), run_time=1.57)
+        self.play(FadeIn(survivors.heading), run_time=0.55)
+        self.at("The bars use")
+        self.play(FadeOut(daughters.shell), run_time=0.55)
         self.at("reported group sizes")
-        self.play(Indicate(pre.bar, color=TUSKLESS), Indicate(surv.bar, color=TUSKLESS), run_time=1.5)
+        self.play(FadeIn(VGroup(prewar.sample, survivors.sample)), run_time=0.75)
+        self.at("and percentages")
+        self.play(FadeIn(VGroup(prewar.percent, survivors.percent)), FadeOut(legend), run_time=0.85)
         self.finish()
 
 
 class S03Predict(FilmScene):
     def construct(self):
-        bars = readable(two_bars().scale(.78).shift(LEFT*3 + UP*.1))
-        self.add(bars)
-        self.at("teal share is higher")
-        self.play(Indicate(bars[1].teal, color=TUSKLESS), run_time=1.2)
-        gold = elephant(False, .82).move_to([-3.0, 1.5, 0])
-        teal = elephant(True, .82).move_to([-3.0, -1.1, 0])
-        gold_o = elephant(False, .82, outline=True).move_to([3.2, .9, 0])
-        teal_o = elephant(True, .82, outline=True).move_to([3.2, -.55, 0])
+        prewar, survivors, _ = measured_bars()
+        source, target, options, card = predict_details()
+        self.add(prewar, survivors)
+        self.at("The teal share")
+        borders = VGroup(*(
+            share_highlight(bar)
+            for bar in (prewar, survivors)
+        ))
+        self.play(Create(borders[0]), Create(borders[1]),
+                  prewar.gold.animate.set_fill(opacity=0.36),
+                  survivors.gold.animate.set_fill(opacity=0.36), run_time=0.93)
+        self.at("higher among survivors")
+        prewar_level = share_level(DATA[0][2])
+        comparison = DashedLine(point(-3.80, prewar_level), point(-1.20, prewar_level),
+                                color=TEAL, stroke_width=4)
+        self.play(Create(comparison), FadeOut(borders[0]), run_time=1.30)
         self.at("What changed")
-        self.play(TransformFromCopy(gold, gold_o), TransformFromCopy(teal, teal_o), run_time=1.3)
-        a = T("changed individuals?", 28, TUSKED).next_to(gold_o, UP, buff=.22)
-        b = T("different group shares?", 28, TUSKLESS).next_to(teal_o, DOWN, buff=.22)
+        self.play(Write(card.question), FadeOut(borders[1]), FadeOut(comparison),
+                  prewar.gold.animate.set_fill(opacity=0.83),
+                  survivors.gold.animate.set_fill(opacity=0.83), run_time=1.27)
         self.at("Did individual elephants")
-        pulse(gold_o)
-        self.play(FadeIn(a), run_time=.8)
-        self.at("two groups contain")
-        pulse(teal_o)
-        self.play(FadeIn(b), run_time=.8)
-        q = question_card("What changed: individuals or group shares?", y=-3.18, size=30)
-        self.play(FadeIn(q), run_time=.7)
+        self.play(FadeIn(source[0], target_position=point(-5.0, TRACK_Y[0])),
+                  FadeIn(source[1], target_position=point(-5.0, -1.30)), run_time=1.48)
+        self.play(FadeIn(options[0]), run_time=0.62)
+        self.at("the two groups")
+        self.play(FadeIn(target[0], shift=RIGHT * 0.20),
+                  FadeIn(target[1], shift=RIGHT * 0.20), run_time=1.12)
+        self.at("born with each")
+        self.play(FadeIn(options[1], shift=UP * 0.58), run_time=2.49, rate_func=linear)
         self.finish()
 
 
-class S04Pause(PredictPause):
-    QUESTION = "What changed: individuals or group shares?"
-    SECONDS = 4.5
-    CARD = {"y": -3.18, "size": 30}
-
-    def backdrop(self):
-        return question_backdrop()
+class S04Pause(Scene):
+    def construct(self):
+        self.camera.background_color = ManimColor(BG)
+        prewar, survivors, _ = measured_bars()
+        self.add(stage(), prewar, survivors, *predict_details())
+        self.wait(4.5)
 
 
 class S05GroupReveal(FilmScene):
     def construct(self):
-        bars = readable(two_bars().scale(.64).shift(UP*2.0))
-        self.add(bars)
-        left_gold = elephant(False, .75).move_to([-5.3, -.25, 0])
-        left_teal = elephant(True, .75).move_to([-5.3, -1.9, 0])
-        right_gold = elephant(False, .75).move_to([5.2, -.25, 0])
-        right_teal = elephant(True, .75).move_to([5.2, -1.9, 0])
-        self.at("Track two")
-        self.play(FadeIn(left_gold), FadeIn(left_teal), run_time=.7)
-        gp = ArcBetweenPoints(left_gold.get_center(), right_gold.get_center(), angle=-.18)
-        tp = ArcBetweenPoints(left_teal.get_center(), right_teal.get_center(), angle=.18)
-        gp.set_stroke(TUSKED, 5); tp.set_stroke(TUSKLESS, 5)
-        self.play(Create(gp), Create(tp), run_time=1.0)
-        self.at("gold animal stays gold")
-        self.play(TransformFromCopy(left_gold, right_gold), run_time=1.35)
-        self.at("teal animal stays teal")
-        self.play(TransformFromCopy(left_teal, right_teal), run_time=1.35)
-        # Extra paths show unequal survival without claiming exact individual outcomes.
-        gold_paths = VGroup(*[Line([-4.4+i*.65,.35,0],[-1.5+i*.35,.35,0],color=TUSKED,stroke_width=4) for i in range(5)])
-        teal_paths = VGroup(*[Line([-4.4+i*.75,-2.75,0],[3.3+i*.45,-2.75,0],color=TUSKLESS,stroke_width=4) for i in range(4)])
-        self.at("survivor group contains")
-        self.play(LaggedStart(*[Create(x) for x in gold_paths], lag_ratio=.1),
-                  LaggedStart(*[Create(x) for x in teal_paths], lag_ratio=.1), run_time=1.5)
-        self.at("survived poaching more often")
-        self.play(*[FadeOut(x, shift=RIGHT*.2) for x in gold_paths[:3]],
-                  *[x.animate.set_color(SUPPORT) for x in teal_paths], run_time=1.4)
+        prewar, survivors, _ = measured_bars()
+        source, target, options, card = predict_details()
+        self.add(prewar, survivors, source, target, options, card)
+        self.at("Track two schematic")
+        self.play(FadeOut(options), FadeOut(card), run_time=0.50, rate_func=linear)
+        self.play(Write(schematic_paths_label()), run_time=1.18)
+        paths = tracked_paths()
+        self.at("A gold animal")
+        self.play(Create(paths[0]), source[0].animate.move_to(target[0]),
+                  prewar.teal.animate.set_fill(opacity=0.37),
+                  survivors.teal.animate.set_fill(opacity=0.37), run_time=1.85)
+        self.remove(target[0])
+        self.at("a teal animal")
+        self.play(Create(paths[3]), source[1].animate.move_to(target[1]),
+                  prewar.teal.animate.set_fill(opacity=0.87),
+                  survivors.teal.animate.set_fill(opacity=0.87),
+                  prewar.gold.animate.set_fill(opacity=0.39),
+                  survivors.gold.animate.set_fill(opacity=0.39), run_time=1.88)
+        self.remove(target[1])
+        self.at("The survivor group")
+        extra = (paths[1], paths[2], paths[4], paths[5])
+        markers = VGroup(*(
+            offspring_dot(path.get_start()[0], path.get_start()[1], path.get_color(), radius=0.125)
+            for path in extra
+        ))
+        self.play(LaggedStart(*(Create(path) for path in extra), lag_ratio=0.16),
+                  prewar.gold.animate.set_fill(opacity=0.83),
+                  survivors.gold.animate.set_fill(opacity=0.83), run_time=1.85)
+        self.at("tuskless females survived")
+        self.play(*(m.animate.move_to(p.get_end()) for m, p in zip(markers, extra)),
+                  run_time=1.45, rate_func=linear)
+        self.at("poaching more often")
+        self.play(FadeOut(markers), *(path.animate.set_stroke(opacity=0.22)
+                                     for path in (paths[1], paths[2], paths[5])),
+                  survivors.gold.animate.set_fill(opacity=0.53), run_time=1.02)
         self.finish()
 
 
 class S06Pressure(FilmScene):
     def construct(self):
-        gate = selection_gate()
+        prewar, survivors, _ = measured_bars()
+        paths = tracked_paths()
+        for i in (1, 2, 5):
+            paths[i].set_stroke(opacity=0.22)
+        survivors.gold.set_fill(opacity=0.53)
+        tracked = elephants_in_tracks(TRACK_X[1])
+        tag = schematic_paths_label()
+        self.add(prewar, survivors, paths, tracked, tag)
         self.at("Ivory poaching")
-        self.play(FadeIn(gate[:2], scale=.9), run_time=1.0)
-        self.play(FadeIn(gate[4]), run_time=.6)
-        teal = elephant(True, .7).move_to([-3.8, 1.2, 0])
-        gold = elephant(False, .7).move_to([3.8, 1.2, 0])
-        self.at("affected the variants differently")
-        self.play(FadeIn(teal), FadeIn(gold), FadeIn(gate[2:4]), run_time=.8)
-        self.play(teal.animate.move_to([-.4,.05,0]), gold.animate.move_to([.3,.05,0]), run_time=1.4)
-        teal_out = elephant(True,.7).move_to([-3.8,-1.55,0])
-        self.play(TransformFromCopy(teal, teal_out), run_time=1.0)
-        self.at("killed more often")
-        stop = Line([-.15,-.38,0],[.75,.38,0],color=PRESSURE,stroke_width=9)
-        self.play(Create(stop), FadeOut(gold, scale=.6), run_time=.9)
-        supported = chip("supported explanation", SUPPORT, 30).move_to([-3.7,-3.0,0])
-        wrong = chip("elephants chose or transformed", GREY, 27).move_to([3.2,-3.0,0])
-        strike = Line(wrong.get_left()+LEFT*.08, wrong.get_right()+RIGHT*.08, color=PRESSURE, stroke_width=7)
-        strike.layout_ok = True
-        self.at("data support")
-        self.play(FadeIn(supported), FadeIn(wrong), run_time=.8)
-        self.at("not a choice")
-        self.play(Create(strike), run_time=.75)
+        gates = poaching_filter()
+        self.play(ReplacementTransform(paths, gates), FadeOut(tracked), run_time=1.35)
+        pressure = label("Ivory poaching", -2.85, 3.00, 29, RED)
+        self.at("selective pressure")
+        self.play(swap(tag, pressure, 0.92))
+        self.at("affected the variants")
+        narrow = poaching_filter(narrowed=True)
+        self.play(Transform(gates, narrow), run_time=1.78)
+        self.at("elephants were killed")
+        blocked = elephants_in_tracks(-2.82)[0]
+        passing = elephants_in_tracks(-2.82)[1]
+        self.play(FadeIn(blocked), FadeIn(passing), run_time=0.55)
+        obstruction = Rectangle(width=0.57, height=0.30, stroke_width=0,
+                                fill_color=RED, fill_opacity=0.90).move_to(point(-1.69, 1.22))
+        self.play(GrowFromEdge(obstruction, RIGHT), blocked.animate.move_to(point(-2.53, TRACK_Y[0])),
+                  passing.animate.move_to(point(-1.99, TRACK_Y[1])), run_time=0.86)
+        self.play(FadeOut(blocked), survivors.gold.animate.set_fill(opacity=0.83), run_time=0.82)
+        self.at("The data support")
+        supported = boxed_label("Supported explanation", GREEN, 31, fill_opacity=0.13)
+        supported.move_to(point(3.85, 1.40))
+        self.play(FadeIn(supported, shift=UP * 0.12), run_time=1.20)
+        self.at("population's makeup")
+        self.play(FadeOut(passing), run_time=0.45)
+        self.at("a choice or transformation")
+        cartoon = VGroup(
+            elephant(GOLD, 0.84).move_to(point(2.55, -0.55)),
+            Arrow(point(3.18, -0.55), point(4.42, -0.55), color=GREY, buff=0.09),
+            elephant(TEAL, 0.84).move_to(point(5.03, -0.55)),
+        )
+        slash = Cross(cartoon, stroke_color=RED, stroke_width=6, scale_factor=0.74)
+        self.play(FadeIn(VGroup(cartoon, slash)), run_time=1.18)
         self.finish()
 
 
 class S07ChanceModel(FilmScene):
     def construct(self):
-        panels = TwoPanel("equal-survival simulation", "observed survivors", colors=(GREY, TUSKLESS))
-        self.at("population crash")
-        self.play(FadeIn(panels), run_time=1.0)
-        # Schematic equal-survival outcome range (explicitly not a data distribution).
-        axis = Line([-5.5,-1.5,0],[-.9,-1.5,0],color=GREY,stroke_width=5)
-        rng = Rectangle(width=1.8,height=.65,color=GREY,fill_color=GREY,fill_opacity=.28).move_to([-3.7,-.25,0])
-        base = Line([-5.5,-.25,0],[-.9,-.25,0],color=GREY,stroke_width=2)
-        lab = T("usual chance range", 28, GREY).next_to(rng, UP, buff=.2)
-        sim = chip("equal survival", GREY, 30).move_to([-3.2,1.45,0])
-        self.at("modeled the crash")
-        self.play(FadeIn(sim), GrowFromCenter(rng), FadeIn(lab), Create(axis), Create(base), run_time=1.4)
-        real = data_bar("real group", .509, 108, width=4.5, center=[3.25,.65,0])
-        self.at("observed rise")
-        self.play(GrowFromEdge(real.bar, LEFT), FadeIn(VGroup(*real[1:])), run_time=1.3)
-        obs = Line([4.25,-1.6,0],[4.25,-.55,0],color=TUSKLESS,stroke_width=8)
-        ol = M("50.9%", 32, TUSKLESS).next_to(obs, DOWN, buff=.2)
-        self.play(Create(obs), FadeIn(ol), run_time=.7)
-        self.at("far beyond")
-        self.play(Indicate(obs, color=TUSKLESS, scale_factor=1.2), run_time=1.3)
-        self.add(scope_tag("simulation range schematic"))
+        prewar, survivors, _ = measured_bars()
+        self.add(prewar, survivors)
+        tags = VGroup(
+            label("Equal-survival simulation", -3.89, 2.49, 32, max_width=4.55),
+            scope_tag("Schematic model", size=28, color=TEXT).move_to(point(-3.90, -2.87)),
+        )
+        block = RoundedRectangle(width=4.56, height=3.91, corner_radius=0.16,
+                                 stroke_color=GREY, stroke_width=3).move_to(point(-3.89, 0.06))
+        sample = chapter_one.herd(teal_n=2, moving=False).scale(0.39).move_to(point(-3.89, 0.83))
+        self.at("A severe population crash")
+        self.play(FadeOut(prewar), Create(block), run_time=1.20)
+        self.play(FadeIn(sample), FadeIn(tags[1]), run_time=0.68)
+        self.at("change shares by chance")
+        keep = (0, 4, 7, 9, 11)
+        self.play(LaggedStart(*(FadeOut(a, scale=0.35) for i, a in enumerate(sample) if i not in keep),
+                              lag_ratio=0.14), run_time=1.52)
+        self.at("Researchers modeled the crash")
+        self.play(FadeIn(tags[0]), run_time=1.05)
+        self.at("equal survival")
+        band = chance_band(-2.48, 1.48).set_fill(opacity=0.75)
+        arrows = Arrow(point(-4.06, 0.72), point(-3.30, -0.92), color=BLUE, buff=0.05)
+        typical = label("Typical range", -4.65, -1.34, 28, BLUE)
+        remaining = VGroup(*(sample[i] for i in keep))
+        self.play(remaining.animate.scale(0.78).move_to(point(-4.14, 1.25)), run_time=0.82)
+        self.at("tusked and tuskless")
+        self.play(GrowArrow(arrows), run_time=1.00)
+        self.play(GrowFromEdge(band, LEFT), FadeIn(typical), run_time=1.24)
+        self.at("The observed rise")
+        y = share_level(DATA[1][2])
+        rule = DashedLine(point(-3.09, y), point(-1.21, y), color=TEAL, stroke_width=3)
+        marker = Line(point(1.21, y), point(2.59, y), color=TEAL, stroke_width=4)
+        observed = label("Observed 50.9%", 4.62, y, 34, TEAL)
+        self.play(Create(rule), Create(marker), survivors.gold.animate.set_fill(opacity=0.35),
+                  run_time=1.15)
+        self.at("far beyond what")
+        bracket = DoubleArrow(point(-1.82, band.get_top()[1] + 0.08), point(-1.82, y - 0.06),
+                              buff=0, color=TEXT, stroke_width=3, tip_length=0.15)
+        self.play(GrowFromCenter(bracket), FadeIn(observed), run_time=1.28)
+        self.at("that chance model")
+        self.play(band.animate.set_fill(opacity=0.33),
+                  survivors.gold.animate.set_fill(opacity=0.83), run_time=1.48)
         self.finish()
+
+
+def allele_labels():
+    return VGroup(
+        boxed_label("Visible\ntrait", TEAL, 29, pad=0.13, fill_opacity=0.23).move_to(point(-2.50, 0.16)),
+        boxed_label("Exact allele\nunknown", TEXT, 28, pad=0.10, fill_opacity=0.12).move_to(point(2.33, 0.16)),
+    )
 
 
 class S08Daughters(FilmScene):
     def construct(self):
-        world = three_bars()
-        bars, line, ticks = world
+        prewar, survivors, daughters = measured_bars()
+        self.add(prewar, survivors, daughters.shell)
         self.at("Daughters born later")
-        self.play(Create(line), Create(ticks), run_time=.8)
-        for i, cue in enumerate(("Daughters born later", "kept tusklessness", "pre war share")):
-            if i:
-                self.at(cue)
-            b = bars[i]
-            self.play(FadeIn(b[1]), GrowFromEdge(b.bar, LEFT), FadeIn(VGroup(*b[2:])), run_time=1.0)
-        fitlab = chip("fits inheritance + selection", SUPPORT, 28).move_to([-2.6,-2.25,0])
-        self.at("pattern fits")
-        self.play(FadeIn(fitlab), run_time=.7)
-        trait = chip("visible trait", TUSKLESS, 28).move_to([3.3,-2.05,0])
-        unknown = chip("exact allele unknown", GREY, 28).next_to(trait, DOWN, buff=.25)
-        self.at("exact allele")
-        self.play(FadeIn(trait), FadeIn(unknown), run_time=.9)
-        self.at("every elephant")
-        self.play(Indicate(unknown, color=GREY), run_time=1.1)
+        self.play(GrowFromEdge(daughters.fills, DOWN), run_time=1.65)
+        self.play(FadeIn(daughters.heading), FadeIn(daughters.readings), run_time=0.68)
+        self.at("above the pre")
+        compare = VGroup(share_highlight(prewar), share_highlight(daughters))
+        self.play(Create(compare[0]), Create(compare[1]),
+                  prewar.gold.animate.set_fill(opacity=0.45),
+                  daughters.gold.animate.set_fill(opacity=0.45), run_time=1.35)
+        self.at("That pattern fits")
+        time_arrow = timeline().shift(DOWN * 0.24)
+        self.play(GrowArrow(time_arrow), FadeOut(compare),
+                  prewar.gold.animate.set_fill(opacity=0.83),
+                  daughters.gold.animate.set_fill(opacity=0.83), run_time=1.56)
+        trait, unknown = allele_labels()
+        self.play(FadeIn(trait, shift=UP * 0.17), run_time=1.12)
+        self.at("response to selection")
+        self.play(survivors.gold.animate.set_fill(opacity=0.50),
+                  daughters.gold.animate.set_fill(opacity=0.50), run_time=1.30)
+        self.at("identify the exact")
+        self.play(FadeIn(unknown, shift=UP * 0.17), run_time=1.23)
+        self.at("what happened to every")
+        self.play(survivors.gold.animate.set_fill(opacity=0.83),
+                  daughters.gold.animate.set_fill(opacity=0.83), run_time=1.10)
         self.finish()
 
 
 class S10Surplus(FilmScene):
     def construct(self):
-        head = T("more young than environments can support", 36, TEXT, weight=BOLD).move_to([0,3.25,0])
-        self.at("widen the picture")
-        self.play(FadeIn(head, shift=DOWN*.15), run_time=.8)
-        c = crab(1.05).move_to([-4.5,.75,0])
-        eggs = egg_mass().move_to([-4.5,-.65,0])
-        self.at("female blue crab")
-        self.play(FadeIn(c, scale=.8), run_time=.8)
-        self.play(LaggedStart(*[FadeIn(d, scale=.4) for d in eggs], lag_ratio=.012), run_time=1.5)
-        mom = elephant(True,1.2,color=GREY).move_to([4.25,.55,0])
-        calf = elephant(True,.68,color=GREY).move_to([5.35,-.55,0])
-        self.at("elephant mother")
-        self.play(FadeIn(mom), FadeIn(calf), run_time=1.0)
-        gate = Polygon([-1.1,1.75,0],[1.1,1.75,0],[.55,-.15,0],[1.1,-2.2,0],[-1.1,-2.2,0],[-.55,-.15,0],
-                       color=GREY,fill_color=GREY,fill_opacity=.18,stroke_width=4)
-        gl = T("environment",28,GREY).move_to([0,2.15,0])
-        self.at("Most crab young die")
-        self.play(FadeIn(gate), FadeIn(gl), run_time=.7)
-        survivors = VGroup(*[eggs[i].copy() for i in (8, 34, 62)])
-        self.play(FadeOut(eggs), survivors.animate.move_to([0,-.1,0]).scale(1.7), run_time=1.4)
-        adults = VGroup(*[Dot(radius=.12,color=SUPPORT).move_to([-.35+i*.35,-2.55,0]) for i in range(3)])
-        self.play(Transform(survivors, adults), run_time=1.0)
+        bars = measured_bars()
+        last_scene = VGroup(
+            bars, timeline().shift(DOWN * 0.24),
+            allele_labels(),
+        )
+        self.add(last_scene)
+        self.at("Now widen the picture")
+        panels = strategy_panels()
+        crab, eggs, family = strategy_animals()
+        crab.remove(eggs)
+        mother, calf = family
+        self.play(FadeOut(last_scene), run_time=0.56)
+        self.play(Create(panels.left_frame), GrowFromCenter(crab), run_time=0.97)
+        self.play(Create(panels.right_frame), GrowFromCenter(mother), run_time=0.92)
+        self.at("Populations usually produce")
+        gate = survival_gate()
+        young = VGroup(*(
+            offspring_dot(x, y, EGG_COLOR, 0.143)
+            for y in (1.77, 1.35) for x in (-0.88, -0.44, 0.0, 0.44, 0.88)
+        ))
+        self.play(LaggedStart(*(GrowFromCenter(d) for d in young), lag_ratio=0.10), run_time=1.71)
+        self.at("their environments can support")
+        self.play(Create(gate), run_time=1.35)
+        limit = label("Environment", 0, -1.48, 28, RED)
+        self.play(FadeIn(limit), run_time=0.66)
+        self.at("A female blue crab")
+        self.play(FadeIn(panels.left_head), run_time=0.63)
+        self.at("an enormous egg mass")
+        self.play(LaggedStart(*(GrowFromCenter(d) for d in eggs), lag_ratio=0.045), run_time=1.65)
+        self.at("An elephant mother")
+        self.play(FadeIn(panels.right_head), run_time=0.78)
+        self.at("invests years in")
+        herd_path = calf.copy().scale(0.47).shift(LEFT * 0.50)
+        self.play(FadeIn(herd_path), run_time=0.37)
+        self.play(ReplacementTransform(herd_path, calf), run_time=1.61, rate_func=smooth)
+        self.at("Most crab young")
+        survivors = (young[1], young[7])
+        self.play(LaggedStart(
+            *(FadeOut(d, target_position=point(d.get_x() * 0.7, 0.18)) for d in young if d not in survivors),
+            lag_ratio=0.08,
+        ), *(d.animate.move_to(point(x, -1.11)) for d, x in zip(survivors, (-0.20, 0.20))),
+            gate.animate.set_fill(opacity=0.63), run_time=1.60)
+        self.play(FadeOut(VGroup(*survivors)), gate.animate.set_fill(opacity=0.30), run_time=0.67)
         self.finish()
 
 
 class S11Range(FilmScene):
     def construct(self):
-        c = crab(.8).move_to([-5.2,.6,0]); e = elephant(True,.9,color=GREY).move_to([5.2,.6,0])
-        arrow = DoubleArrow([-5.0,-1.5,0],[5.0,-1.5,0],color=TEXT,stroke_width=5,tip_length=.25)
-        self.at("endpoints on a range")
-        self.play(FadeIn(c), FadeIn(e), GrowFromCenter(arrow), run_time=1.2)
-        left = VGroup(T("many young",30,EGGS,weight=BOLD),T("less per young",26,TEXT)).arrange(DOWN,buff=.12).move_to([-4.5,-2.3,0])
-        right = VGroup(T("fewer young",30,GREY,weight=BOLD),T("more care",26,TEXT)).arrange(DOWN,buff=.12).move_to([4.5,-2.3,0])
-        self.at("many young")
-        self.play(FadeIn(left), run_time=.7)
-        self.at("fewer young")
-        self.play(FadeIn(right), run_time=.7)
-        mids = VGroup(Circle(.42,color=BLUE),Triangle(color=TUSKLESS).scale(.52),Square(.72,color=GOLD)).arrange(RIGHT,buff=1.0).move_to([0,.45,0])
-        self.at("Many species")
-        self.play(LaggedStart(*[FadeIn(x,shift=UP*.15) for x in mids],lag_ratio=.25), run_time=1.4)
-        label = T("reproductive strategies",32,TEXT).next_to(arrow,UP,buff=.25)
-        self.play(FadeIn(label), run_time=.6)
-        self.add(scope_tag("schematic"))
+        panels = strategy_panels()
+        crab, eggs, family = strategy_animals()
+        gate = survival_gate()
+        environment = label("Environment", 0, -1.48, 28, RED)
+        self.add(panels, crab, family, gate, environment)
+        self.at("These are endpoints")
+        self.play(FadeOut(gate), FadeOut(environment),
+                  FadeOut(panels.left_head), FadeOut(panels.right_head), run_time=0.72)
+        arrow = DoubleArrow(point(-5.90, -1.12), point(5.90, -1.12), buff=0,
+                            color=GREY, stroke_width=5)
+        self.play(ReplacementTransform(VGroup(panels.left_frame, panels.right_frame), arrow),
+                  run_time=1.37)
+        title = label("Reproductive strategies", 0, -1.77, 35)
+        tag = scope_tag("Schematic", size=28, color=TEXT).move_to(point(5.48, -3.03))
+        self.play(FadeIn(title), FadeIn(tag), run_time=0.60)
+        self.at("One strategy makes")
+        many = label("Many young\nLess care per young", -4.08, -2.45, 29, BLUE)
+        clutch = eggs.copy().arrange_in_grid(5, 9, buff=0.088).scale(1.30)
+        clutch.move_to(point(-0.63, 0.59))
+        self.play(TransformFromCopy(eggs, clutch), run_time=1.67)
+        self.at("less investment")
+        self.play(FadeIn(many), run_time=0.93)
+        self.at("The other makes")
+        fewer = label("Fewer young\nMore care per young", 4.05, -2.45, 29, GOLD)
+        mother, calf = family
+        self.play(FadeOut(clutch), calf.animate.shift(LEFT * 0.08), run_time=1.01)
+        self.at("with more care")
+        self.play(FadeIn(fewer), mother.animate.shift(RIGHT * 0.05), run_time=0.85)
+        self.at("Many species fall")
+        self.play(LaggedStart(*(GrowFromCenter(s) for s in middle_species()), lag_ratio=0.35), run_time=1.70)
         self.finish()
 
 
 class S12Fitness(FilmScene):
     def construct(self):
-        gate = selection_gate(label=False).scale(.8).shift(UP*.35)
-        young = VGroup(*[elephant(i%2==0,.48).move_to([-5.4+i*1.35,2.1,0]) for i in range(9)])
+        gate = survival_gate(y=-0.20, width=3.68, height=2.20, opening=0.52)
+        input_markers = VGroup(
+            elephant(GOLD, 1.04).move_to(point(-1.00, 1.97)),
+            elephant(TEAL, 1.04).move_to(point(1.00, 1.97)),
+        )
+        gate_tag = label("Survival and reproduction", 0, 2.88, 35)
+        self.add(gate, input_markers)
+        self.at("For selection")
+        self.play(FadeIn(gate_tag), run_time=0.97)
+        children = VGroup(*(offspring_dot(x, 1.24, color, 0.18)
+                            for x, color in ((-0.56, GOLD), (0.50, TEAL))))
         self.at("count offspring")
-        self.play(FadeIn(young), FadeIn(gate), run_time=1.0)
-        nextgen = VGroup(*[elephant(i%3!=0,.48).move_to([-2.8+i*1.4,-2.05,0]) for i in range(5)])
+        self.play(LaggedStart(*(GrowFromCenter(d) for d in children), lag_ratio=0.22), run_time=0.70)
         self.at("survive and reproduce")
-        self.play(LaggedStart(*[TransformFromCopy(young[i],nextgen[j]) for j,i in enumerate((0,2,4,6,8))],lag_ratio=.18),run_time=1.8)
-        ng = T("offspring in the next generation",30,SUPPORT,weight=BOLD).move_to([0,-3.1,0])
-        self.play(FadeIn(ng),run_time=.6)
-        decoys = VGroup(*[chip(s,GREY,27) for s in ("strength","effort","need")]).arrange(RIGHT,buff=.35).move_to([0,3.15,0])
-        self.at("Strength")
-        self.play(FadeIn(decoys),run_time=.6)
-        self.at("not the score")
-        self.play(FadeOut(decoys,shift=UP*.5),run_time=.8)
-        cond = chip("conditions",PRESSURE,30).move_to([4.7,.3,0])
-        self.at("conditions decide")
-        self.play(FadeIn(cond),Indicate(gate,color=PRESSURE),run_time=1.0)
+        self.play(*(MoveAlongPath(d, segments([(d.get_x(), d.get_y()), (side * 0.26, -1.46),
+                                              (side * 0.78, -1.66)], d.get_color()))
+                    for d, side in zip(children, (-1, 1))), run_time=1.39, rate_func=linear)
+        left = caption("Offspring left", size=36, color=GREEN, y=-2.42).move_to(point(0, -2.42))
+        self.play(FadeIn(left), run_time=0.71)
+        self.at("Strength effort")
+        distractions = VGroup(*(boxed_label(name, TEXT, 34, fill_opacity=0.15)
+                                for name in ("Strength", "Effort", "Need")))
+        distractions.arrange(DOWN, buff=0.22).move_to(point(4.15, 0.47))
+        self.play(LaggedStart(*(FadeIn(word) for word in distractions), lag_ratio=0.35), run_time=0.93)
+        self.at("are not the score")
+        self.play(FadeOut(distractions, shift=RIGHT * 0.43), run_time=1.28)
+        self.at("The conditions decide")
+        narrowed = survival_gate(y=-0.20, width=3.68, height=2.20, opening=0.34)
+        narrowed.set_fill(opacity=0.60)
+        self.play(Transform(gate, narrowed), run_time=1.22)
+        self.at("an inherited variant")
+        next_young = VGroup(*(offspring_dot(x, 1.24, color, 0.18)
+                              for x, color in ((-0.88, GOLD), (-0.10, TEAL), (0.42, TEAL))))
+        self.play(FadeIn(next_young), run_time=0.22)
+        passing = (
+            MoveAlongPath(d, segments([(d.get_x(), d.get_y()), (side * 0.09, -1.46),
+                                       (side * 0.26, -1.66)], TEAL), rate_func=linear)
+            for d, side in zip(next_young[1:], (-1, 1))
+        )
+        self.play(FadeOut(next_young[0], target_position=point(-0.85, -0.45)),
+                  LaggedStart(*passing, lag_ratio=0.52), run_time=0.93, rate_func=linear)
+        self.at("changes reproductive success")
+        generation = boxed_label("Next generation", GREEN, 31, fill_opacity=0.13).move_to(point(4.53, -2.40))
+        survivors = VGroup(children[0], next_young[1], next_young[2], children[1])
+        new_row = survivors.copy().move_to(point(4.53, -1.61))
+        self.play(TransformFromCopy(survivors, new_row), FadeIn(generation), run_time=0.80)
         self.finish()
 
 
 class S13Rule(FilmScene):
     def construct(self):
-        specs = (("prewar  18.5%", .185), ("survivors  50.9%", .509), ("daughters  33.0%", .33))
-        bars = VGroup()
-        for y, (lab, pct) in zip((1.9, .35, -1.2), specs):
-            b = data_bar(lab, pct, 0, width=3.9, height=.5, center=[-4.25, y, 0], show_counts=False)
-            # In this compact evidence recap, keep one combined computed label per bar.
-            b.remove(b[2])
-            bars.add(b)
-        gate = selection_gate(False).scale(.55).shift(RIGHT*3.8+UP*.25)
-        self.at("inherited variations")
-        self.play(FadeIn(bars),FadeIn(gate),run_time=1.2)
-        rule = caption("Inherited variation + reproductive success → population change",size=30,color=GOLD,y=-3.15)
-        self.at("populations change")
-        self.play(FadeIn(rule),run_time=.8)
-        labels = ("trait pattern","pressure","survival","daughters")
-        strands = VGroup()
-        for i,(lab,col) in enumerate(zip(labels,(TUSKLESS,PRESSURE,SUPPORT,TUSKLESS))):
-            y=2.3-i*.75
-            ln = Line([.2,y,0],[2.75,-1.95+(i-1.5)*.06,0],color=col,stroke_width=5)
-            ln.layout_ok = True  # deliberate evidence strands converge beside the conclusion
-            strand=VGroup(T(lab,27,col).move_to([0,y,0],aligned_edge=RIGHT), ln)
-            strands.add(strand)
-        self.at("trait pattern")
-        self.play(LaggedStart(*[FadeIn(s,shift=RIGHT*.15) for s in strands],lag_ratio=.25),run_time=2.0)
-        support=chip("selection supported",SUPPORT,31).move_to([4.45,-2.0,0])
-        self.at("support that rule")
-        self.play(FadeIn(support),*[s[1].animate.set_color(SUPPORT) for s in strands],run_time=1.0)
+        bars = compact_bars()
+        gate, young, next_generation = evidence_filter()
+        opening, input_row, output_row = evidence_filter(expanded=True)
+        names, lines, lead, result = evidence_strands()
+        self.add(opening)
+        self.at("When inherited variations")
+        self.play(LaggedStart(*(GrowFromCenter(d) for d in input_row), lag_ratio=0.24), run_time=1.11)
+        self.at("affect reproductive success")
+        self.play(LaggedStart(
+            *(TransformFromCopy(d, target) for d, target in zip(input_row[1:], output_row)),
+            FadeOut(input_row[0].copy(), target_position=point(-0.92, -0.72)),
+            lag_ratio=0.11,
+        ), run_time=1.88)
+        self.at("populations change across")
+        self.play(ReplacementTransform(opening, gate), ReplacementTransform(input_row, young),
+                  ReplacementTransform(output_row, next_generation),
+                  LaggedStart(*(GrowFromEdge(bar.fills, DOWN) for bar in bars), lag_ratio=0.25),
+                  run_time=1.71)
+        self.play(LaggedStart(*(FadeIn(VGroup(bar.shell, bar.heading, bar.readings)) for bar in bars),
+                              lag_ratio=0.18), run_time=1.03)
+        self.at("In Gorongosa")
+        self.play(FadeIn(label("Gorongosa", -3.53, 2.78, 35)), run_time=0.72)
+        for cue, name, line in zip(
+            ("the trait pattern", "selective pressure", "survival difference", "and daughters"),
+            names, lines,
+        ):
+            self.at(cue)
+            self.play(FadeIn(name), Create(line), run_time=0.71)
+        self.at("all support that")
+        self.play(GrowArrow(lead), run_time=0.66)
+        self.play(FadeIn(result), run_time=0.80)
         self.finish()
 
 
 class S14Limits(FilmScene):
     def construct(self):
-        bars=readable(three_bars().scale(.72).shift(UP*.65), 22)
+        bars = compact_bars()
+        gate, young, next_generation = evidence_filter()
+        names, lines, lead, result = evidence_strands()
+        region_title = label("Gorongosa", -3.53, 2.78, 35)
+        self.add(bars, gate, young, next_generation, names, lines, lead, result, region_title)
+        frame = segments([(6.35, -2.64), (6.35, -3.18), (-6.35, -3.18), (-6.35, 3.18),
+                          (6.35, 3.18), (6.35, -1.40)], GREY, 3)
         self.at("before and after data")
-        self.play(FadeIn(bars),run_time=1.0)
-        frame=VGroup(Line([-6.1,2.75,0],[5.0,2.75,0],color=SUPPORT,stroke_width=4),
-                     Line([-6.1,2.75,0],[-6.1,-2.25,0],color=SUPPORT,stroke_width=4),
-                     Line([-6.1,-2.25,0],[3.9,-2.25,0],color=SUPPORT,stroke_width=4))
-        evidence=T("evidence",30,SUPPORT,weight=BOLD).move_to([-5.15,3.15,0])
-        self.at("selective pressure")
-        self.play(Create(frame),FadeIn(evidence),run_time=1.3)
-        items=VGroup(*[chip(x,c,25) for x,c in (("pressure",PRESSURE),("survival estimate",SUPPORT),("chance comparison",GREY),("later daughters",TUSKLESS))]).arrange(RIGHT,buff=.22).move_to([0,-1.65,0])
-        self.play(LaggedStart(*[FadeIn(x) for x in items],lag_ratio=.18),run_time=1.4)
-        gap=T("limits stay open",28,GREY).move_to([5.25,-2.25,0])
+        highlights = VGroup(*(share_highlight(b) for b in bars[:2]))
+        self.play(Create(highlights[0]), Create(highlights[1]),
+                  *(b.gold.animate.set_fill(opacity=0.42) for b in bars[:2]), run_time=1.35)
+        self.at("show a pattern")
+        self.play(FadeOut(highlights), *(b.gold.animate.set_fill(opacity=0.83) for b in bars[:2]),
+                  run_time=1.02)
+        self.at("The selective pressure")
+        self.play(gate.animate.set_fill(opacity=0.76), run_time=1.04)
+        self.at("survival estimate")
+        model_trials = VGroup(*(d.copy() for d in young[1:]))
+        self.play(ReplacementTransform(model_trials, next_generation.copy().set_opacity(0.0)),
+                  gate.animate.set_fill(opacity=0.30), run_time=1.39)
+        self.at("chance comparison")
+        comparison_label = label("Chance comparison", 0.60, 2.84, 28, BLUE)
+        chance = chance_band(0.80, 1.95, bottom=1.47, height=2.80).set_fill(opacity=0.63)
+        self.play(GrowFromEdge(chance, LEFT), FadeIn(comparison_label), run_time=0.86)
+        self.at("and later daughters")
+        daughter_outline = share_highlight(bars[2])
+        self.play(Create(daughter_outline), bars[2].gold.animate.set_fill(opacity=0.37), run_time=0.87)
+        self.at("selection explanation stronger")
+        self.play(FadeOut(daughter_outline), lead.animate.set_stroke(width=7),
+                  bars[2].gold.animate.set_fill(opacity=0.83),
+                  result.box.animate.set_stroke(width=4).set_fill(opacity=0.33), run_time=1.64)
+        self.at("Good evidence supports")
+        self.play(Create(frame), run_time=1.44)
+        evidence = label("Evidence", -5.19, 2.80, 31)
+        self.play(swap(region_title, evidence, 0.77))
         self.at("keeping its limits")
-        self.play(FadeIn(gap),run_time=.7)
-        supported=chip("selection supported",SUPPORT,32).move_to([0,3.2,0])
-        self.play(FadeIn(supported),run_time=.7)
+        limits = label("Limits", 5.86, -2.00, 31)
+        self.play(FadeIn(limits, shift=LEFT * 0.17), run_time=0.90)
         self.finish()
 
 
 class S15Return(FilmScene):
     def construct(self):
-        world=three_bars()
-        bars,line,ticks=world
-        self.at("population snapshots")
-        self.play(Create(line),Create(ticks),LaggedStart(*[FadeIn(b,scale=.85) for b in bars],lag_ratio=.22),run_time=1.6)
-        snaps=VGroup(*[Rectangle(width=4.0,height=3.25,color=GREY,stroke_width=3).move_to([x,.25,0]) for x in (-4.25,0,4.25)])
-        self.play(Create(snaps),run_time=.9)
-        filt=selection_gate(False).scale(.15).move_to([-2.1,-1.9,0])
-        self.at("filter as a comparison")
-        self.play(FadeIn(filt),run_time=.7)
-        paths=VGroup(Arrow([-2.8,-2.0,0],[-1.4,-2.0,0],color=TUSKLESS,stroke_width=4,buff=0),
-                     Arrow([-2.8,-1.75,0],[-1.8,-1.75,0],color=TUSKED,stroke_width=4,buff=0))
-        self.play(Create(paths),run_time=.8)
-        q=question_card("Who left the next generation?",y=-3.15,size=34,color=GOLD)
-        self.at("Then ask")
-        self.play(FadeIn(q,shift=UP*.15),run_time=.8)
-        self.at("inherited differences")
-        self.play(Indicate(bars,color=GOLD,scale_factor=1.03),run_time=1.2)
+        old = compact_bars()
+        bars = measured_bars()
+        self.add(old)
+        self.at("Read the bars")
+        self.play(*(FadeOut(VGroup(bar.heading, bar.readings)) for bar in old), run_time=0.40)
+        self.play(*(ReplacementTransform(VGroup(a.shell, a.fills), VGroup(b.shell, b.fills))
+                    for a, b in zip(old, bars)), run_time=0.86)
+        time_arrow = timeline().shift(DOWN * 0.23)
+        self.at("snapshots")
+        self.play(*(FadeIn(VGroup(bar.heading, bar.readings)) for bar in bars),
+                  GrowArrow(time_arrow), run_time=1.35)
+        gates = poaching_filter(narrowed=True)
+        self.at("Read the filter")
+        self.play(Create(gates), run_time=0.75)
+        self.at("as a comparison")
+        paths = tracked_paths()
+        self.play(Create(paths[0]), Create(paths[3]), run_time=1.12)
+        self.at("not a promise")
+        stopped = Line(point(-3.64, 1.02), point(-2.35, 1.12), buff=0, color=GOLD,
+                       stroke_width=4, stroke_opacity=0.45)
+        self.play(Create(stopped), run_time=0.80)
+        self.at("Then ask whether")
+        connectors = VGroup(*(
+            Arrow(point(x, -2.54), point(x + 2.60, -2.54), buff=0, color=GREY, stroke_width=3)
+            for x in (-3.78, 1.18)
+        ))
+        self.play(FadeOut(time_arrow), run_time=0.22)
+        self.play(*(GrowArrow(arrow) for arrow in connectors),
+                  *(bar.sample.animate.set_y(-2.54) for bar in bars), run_time=0.36)
+        self.at("inherited differences changed")
+        animals = VGroup(
+            elephant(GOLD, 0.46).move_to(stopped.point_from_proportion(0.36)),
+            elephant(TEAL, 0.46).move_to(point(TRACK_X[0], TRACK_Y[1])),
+        )
+        self.play(FadeIn(animals), run_time=0.60)
+        self.play(FadeOut(animals[0], target_position=stopped.get_end(), scale=0.45),
+                  animals[1].animate.move_to(point(TRACK_X[1], TRACK_Y[1])), run_time=1.18)
+        self.at("who left the next")
+        card = question_card(RETURN, y=-2.98, color=TEXT, size=33)
+        self.play(FadeIn(card.question, shift=UP * 0.21), run_time=0.98)
         self.finish()
 
 
