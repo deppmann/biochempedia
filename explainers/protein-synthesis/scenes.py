@@ -1,515 +1,628 @@
 """From Gene Copy to Protein Chain.
 
-COLOR MAP (one color per concept, whole film)
-  BLUE   = DNA
-  GREEN  = messenger RNA
-  GOLD   = ribosome
-  PURPLE = transfer RNA
-  RED    = amino acids / protein chain
-  TEAL   = transcription enzyme and pore
-  GREY   = cell and nucleus structure
+BLUE = DNA, GREEN = messenger RNA, GOLD = ribosome, PURPLE = transfer RNA,
+RED = amino acids and protein, TEAL = transcription enzyme and nuclear pore,
+GREY = cell and nucleus boundaries, TEXT = stop signal and neutral labels.
 """
-from bp_parts import *  # noqa: F401,F403
+from bp_parts import *  # noqa: F403
+from bp_style import EndCard
 
 
 PURPLE = "#B58CD9"
-BLOCK = 0.72
+CYTOPLASM = "#303A46"
+NUCLEUS = "#1D303D"
+DNA_TO_RNA = str.maketrans("ATCG", "UAGC")
+DNA_COMPLEMENT = str.maketrans("ATCG", "TAGC")
+RNA_COMPLEMENT = str.maketrans("AUCG", "UAGC")
+TEMPLATE = "TACGATCGGACT"
+MESSAGE = TEMPLATE.translate(DNA_TO_RNA)
+CODONS = tuple(MESSAGE[i:i + 3] for i in range(0, len(MESSAGE), 3))
+AMINO_ACIDS = ("Met", "Leu", "Ala")
+PAIRING_BASES = "ATCG"
+QUESTION = "Which mRNA group pairs with TAC?"
+PORE_Y = -0.48
+RELEASED_RNA_Y = -1.33
 
 
-def letter_block(letter, color, w=BLOCK, size=34, filled=True):
-    """A letter as a cartoon information block, never a molecular structure."""
-    box = RoundedRectangle(
-        corner_radius=0.09, width=w, height=w,
-        stroke_color=color, stroke_width=3,
-        fill_color=color, fill_opacity=0.24 if filled else 0.0,
-    )
-    label = M(letter, size, color).move_to(box) if letter else VGroup()
-    g = VGroup(box, label)
-    g.layout_ok = True  # the letter is deliberately centred inside its own information block
-    return g
+def point(x, y):
+    return np.array([x, y, 0.0])
 
 
-def letter_row(letters, color, w=BLOCK, size=34, gap=0.06, filled=True):
-    return VGroup(*[letter_block(c, color, w, size, filled) for c in letters]).arrange(RIGHT, buff=gap)
+def base(letter, color, width=0.64, size=30, filled=True, stroke=2.5):
+    if letter:
+        block = boxed_label(letter, color, size=size, min_size=size, box=(width, width),
+                            pad=0.045, stroke=stroke, fill_opacity=0.23, corner_radius=0.11)
+        block.label.set_z_index(1)
+        return block
+    return RoundedRectangle(width=width, height=width, corner_radius=0.11,
+                            stroke_color=color, stroke_width=2.5,
+                            fill_color=color, fill_opacity=0.28 if filled else 0)
 
 
-def label_above(text, target, color, size=28):
-    return T(text, size, color).next_to(target, UP, buff=0.18)
+def base_row(sequence, color, *, width=0.64, gap=0.1, size=30, at=ORIGIN, stroke=2.5):
+    return VGroup(*(base(letter, color, width, size, stroke=stroke) for letter in sequence)).arrange(
+        RIGHT, buff=gap
+    ).move_to(at)
 
 
-def ribosome(center=(3.8, -0.25, 0), scale=1.0, open_gap=0.0):
-    """Gold two-lobed ribosome cartoon."""
-    c = np.array(center, dtype=float)
-    top = ArcBetweenPoints(c + [-1.35, 0.20 + open_gap, 0], c + [1.35, 0.20 + open_gap, 0], angle=-PI)
-    top.set_stroke(GOLD, 8).set_fill(GOLD, 0.12)
-    bottom = ArcBetweenPoints(c + [-1.15, -0.16 - open_gap, 0], c + [1.15, -0.16 - open_gap, 0], angle=PI)
-    bottom.set_stroke(GOLD, 8).set_fill(GOLD, 0.12)
-    return VGroup(top, bottom).scale(scale)
+def cell_field(*, closeup=False, transcribing=False):
+    if closeup:
+        color = NUCLEUS if transcribing else CYTOPLASM
+        frame = RoundedRectangle(width=13.5, height=6.85, corner_radius=1.05,
+                                 stroke_width=0, fill_color=color, fill_opacity=1)
+    else:
+        frame = Ellipse(width=13.0, height=6.78, stroke_color=GREY, stroke_width=3,
+                        fill_color=CYTOPLASM, fill_opacity=1)
+    return frame.set_z_index(-10)
 
 
-def cell_world(copy_letters="", faint=False):
-    """The whole-cell picture shared by the hook and title."""
-    cell = Ellipse(width=12.1, height=6.15, stroke_color=GREY, stroke_width=4,
-                   fill_color=GREY, fill_opacity=0.14).move_to(DOWN * 0.15)
-    nucleus = Ellipse(width=6.25, height=4.7, stroke_color=BLUE, stroke_width=4,
-                      fill_color=BLUE, fill_opacity=0.15).move_to([-2.55, 0.0, 0])
-    dna = letter_row("TACGGT", BLUE, w=0.68, size=31).move_to([-2.55, 0.45, 0])
-    nuc_label = T("nucleus", 28, TEXT).move_to([-2.55, 2.05, 0])
-    dna_label = T("DNA", 28, BLUE).next_to(dna, UP, buff=0.16)
-    rib = ribosome((3.9, -0.25, 0), 1.05)
-    rib_label = T("ribosome", 28, GOLD).next_to(rib, DOWN, buff=0.2).shift(UP * 0.16)
-    path = DashedLine(dna.get_right() + RIGHT * 0.25, rib.get_left() + LEFT * 0.25,
-                      dash_length=0.16, color=TEAL, stroke_width=3)
-    copy = letter_row(copy_letters, GREEN, w=0.68, size=31).move_to([-2.55, -0.65, 0]) if copy_letters else VGroup()
-    g = VGroup(cell, nucleus, dna, nuc_label, dna_label, rib, rib_label, path, copy)
-    if faint:
-        g.set_opacity(0.20)
-        g.layout_ok = True  # deliberate title-card backdrop, not reading content
-    return g
+def ribosome(at, *, scale=1, opened=False):
+    """The cartoon's upper lobes leave an opening for the incoming tRNA."""
+    gold_fill = interpolate_color(ManimColor(GOLD), ManimColor(BG), 0.63)
+    lower = RoundedRectangle(width=2.68, height=0.8, corner_radius=0.38,
+                             color=GOLD, stroke_width=3, fill_color=gold_fill, fill_opacity=1)
+    lower.move_to(DOWN * (1.08 if opened else 1.0))
+    upper = VGroup()
+    for side in (-1, 1):
+        lobe = RoundedRectangle(width=0.66, height=0.81, corner_radius=0.31,
+                                color=GOLD, stroke_width=3, fill_color=gold_fill, fill_opacity=1)
+        lobe.move_to(point(side * (1.58 if opened else 1.49), 1.37 if opened else 0.85))
+        upper.add(lobe)
+    return VGroup(lower, upper).set_z_index(-2).scale(scale, about_point=ORIGIN).shift(at)
 
 
-def gene_world(rna_letters="", open_gene=True):
-    """The zoomed gene picture rebuilt identically through transcription scenes."""
-    nucleus = Ellipse(width=12.2, height=5.75, stroke_color=BLUE, stroke_width=3,
-                      fill_color=BLUE, fill_opacity=0.14).move_to(DOWN * 0.1)
-    top = letter_row("GCTTACGGTAAC", BLUE, w=0.69, size=29).move_to([0, 1.23, 0])
-    bottom = letter_row("CGAATGCCATTG", BLUE, w=0.69, size=29).move_to([0, 0.37, 0])
-    selected = VGroup(*top[3:9], *bottom[3:9])
-    for i, b in enumerate(top):
-        if i < 3 or i > 8:
-            b.set_opacity(0.28)
-            bottom[i].set_opacity(0.28)
-    if open_gene:
-        for b in top[3:9]:
-            b.shift(UP * 0.27)
-        for b in bottom[3:9]:
-            b.shift(DOWN * 0.27)
-    gene_box = SurroundingRectangle(selected, color=TEAL, buff=0.18, stroke_width=3, corner_radius=0.12)
-    clamp = VGroup(
-        Arc(radius=1.05, start_angle=0.15 * PI, angle=0.7 * PI, color=TEAL, stroke_width=10),
-        Arc(radius=1.05, start_angle=1.15 * PI, angle=0.7 * PI, color=TEAL, stroke_width=10),
-    ).move_to([0, 0.8, 0])
-    rna = letter_row(rna_letters, GREEN, w=0.69, size=29).move_to([0, -1.06, 0]) if rna_letters else VGroup()
-    return VGroup(nucleus, top, bottom, gene_box, clamp, rna), {
-        "nucleus": nucleus, "top": top, "bottom": bottom, "gene": gene_box,
-        "clamp": clamp, "rna": rna,
-    }
+def cell_message(sequence, x=-2.72):
+    return base_row(sequence, GREEN, width=0.43, gap=0.05, size=28, at=point(x, PORE_Y), stroke=0)
 
 
-def pairing_key(at=(4.75, -1.8, 0), compact=True):
-    pairs = [("A", "U"), ("T", "A"), ("C", "G"), ("G", "C")]
-    rows = VGroup(*[
-        VGroup(letter_block(a, BLUE, 0.48, 23), T("→", 26, TEXT), letter_block(b, GREEN, 0.48, 23))
-        .arrange(RIGHT, buff=0.12)
-        for a, b in pairs
-    ])
-    rows.arrange(DOWN if compact else RIGHT, buff=0.12).move_to(at)
-    title = T("DNA → mRNA", 26, TEXT).next_to(rows, UP, buff=0.16)
+def hook_copy(dna):
+    return cell_message(MESSAGE[:3], x=dna[:3].get_x())
+
+
+def cell_world():
+    """A fixed nucleus gap and a horizontal export route through its centre."""
+    center = point(-2.72, PORE_Y)
+    rx, ry, gap_angle = 3.13, 2.34, 0.22
+    fill = Ellipse(width=2 * rx, height=2 * ry, fill_color=NUCLEUS,
+                   fill_opacity=1, stroke_width=0).move_to(center).set_z_index(-9)
+    outline = Arc(radius=1, start_angle=gap_angle, angle=TAU - 2 * gap_angle,
+                  color=BLUE, stroke_width=3)
+    outline.stretch(rx, 0, about_point=ORIGIN).stretch(ry, 1, about_point=ORIGIN).shift(center)
+    lips = VGroup()
+    for side in (-1, 1):
+        y = PORE_Y + side * ry * np.sin(gap_angle)
+        x = center[0] + rx * np.cos(gap_angle)
+        lips.add(Line(point(x - 0.19, y), point(x + 0.29, y), color=TEAL, stroke_width=8))
+    nucleus = VGroup(fill, outline, lips)
+    dna = base_row(TEMPLATE, BLUE, width=0.40, gap=0.04, size=28, at=point(-2.72, 0.31), stroke=0)
+    reader = ribosome(point(3.78, PORE_Y), scale=0.86, opened=True)
+    return cell_field(), nucleus, dna, reader
+
+
+def enzyme_clamp(width, top, bottom, x=0):
+    rails = VGroup()
+    for y, inward in ((top, DOWN), (bottom, UP)):
+        left, right = point(x - width / 2, y), point(x + width / 2, y)
+        rail = VMobject(color=TEAL, stroke_width=7)
+        rail.set_points_as_corners([left + inward * 0.17, left, right, right + inward * 0.17])
+        rails.add(rail)
+    return rails
+
+
+def gene_world(opened):
+    """Selected DNA remains registered to the closed DNA on either flank."""
+    field = cell_field(closeup=True, transcribing=True)
+    upper = base_row(TEMPLATE.translate(DNA_COMPLEMENT), BLUE, at=point(0, 1.87 if opened else 1.09))
+    template = base_row(TEMPLATE, BLUE, at=point(0, 0.40 if opened else 0.27))
+    flanks = VGroup()
+    for x in (-5.7, 5.7):
+        for y in (1.09, 0.27):
+            flanks.add(RoundedRectangle(width=1.75, height=0.48, corner_radius=0.13,
+                                       color=BLUE, stroke_width=2, stroke_opacity=0.40,
+                                       fill_color=BLUE, fill_opacity=0.12).move_to(point(x, y)))
+    clamp = enzyme_clamp(9.1, 2.4 if opened else 1.62, -1.17)
+    copy = base_row(MESSAGE, GREEN, at=point(0, -0.62))
+    return field, flanks, upper, template, clamp, copy
+
+
+def pairing_key():
+    rows = VGroup(*(
+        VGroup(M(letter, 30, BLUE), T("→", 30), M(letter.translate(DNA_TO_RNA), 30, GREEN))
+        .arrange(RIGHT, buff=0.21)
+        for letter in PAIRING_BASES
+    )).arrange(DOWN, buff=0.27).move_to(point(4.50, 0.12))
+    title = place_label(T("DNA → mRNA", 29), rows, dirs=(UP,), buff=0.30)
     return VGroup(title, rows)
 
 
-def predict_picture(with_question_mark=True):
-    dna = letter_row("TAC", BLUE, w=1.18, size=50, gap=0.18).move_to([-1.55, 1.05, 0])
-    empty = letter_row("   ", GREEN, w=1.18, size=50, gap=0.18, filled=False).move_to([-1.55, -0.48, 0])
-    links = VGroup(*[
-        DashedLine(dna[i].get_bottom(), empty[i].get_top(), color=GREY, stroke_width=3, dash_length=0.12)
-        for i in range(3)
-    ])
-    key = pairing_key((4.75, 0.25, 0))
-    qmark = T("?", 54, GOLD).move_to(empty[0]) if with_question_mark else VGroup()
-    qmark.layout_ok = True  # deliberately travels inside the three empty answer boxes
-    field = Ellipse(width=12.4, height=6.2, stroke_opacity=0,
-                    fill_color=BLUE, fill_opacity=0.14).move_to(UP * 0.05).set_z_index(-5)
-    return VGroup(dna, empty, links, key, qmark, field), {"dna": dna, "empty": empty, "key": key, "qmark": qmark}
+def prediction():
+    field = cell_field(closeup=True, transcribing=True)
+    dna = base_row(TEMPLATE[:3], BLUE, width=1.32, gap=0.24, size=52, at=point(-1.31, 1.36))
+    for block in dna:
+        block.label.set_color(TEXT)
+    slots = VGroup(*(base("", GREEN, 1.32, filled=False) for _ in range(3)))
+    slots.arrange(RIGHT, buff=0.24).move_to(point(-1.31, -0.64))
+    key = pairing_key()
+    card = question_card(QUESTION, size=34, y=-2.84)
+    panel = RoundedRectangle(width=8.1, height=0.78, corner_radius=0.19, stroke_width=0,
+                             fill_color="#374F60", fill_opacity=1).move_to(card)
+    question = VGroup(panel, card)
+    key_panel = RoundedRectangle(width=3.18, height=3.28, corner_radius=0.20, stroke_width=0,
+                                 fill_color="#394E5C", fill_opacity=1).move_to(key).set_z_index(-1)
+    group_panel = RoundedRectangle(width=4.79, height=1.57, corner_radius=0.21,
+                                   stroke_width=0, fill_color="#36574B", fill_opacity=1)
+    group_panel.move_to(slots).set_z_index(-1)
+    mark = T("?", 45, GOLD).move_to(point(slots[2].get_x(), 0.36))
+    return field, dna, slots, key, question, mark, key_panel, group_panel
 
 
-CODONS = ("AUG", "GCU", "AAA", "UUU", "UGA")
-
-
-def translation_world(ribo_index=0, chain_count=0, show_cytoplasm=False):
-    """The carried translation strip, ribosome, dividers, and optional red chain."""
-    strip = letter_row("".join(CODONS), GREEN, w=0.63, size=27, gap=0.035).move_to([0, -0.72, 0])
+def translation_strip():
+    groups = VGroup(*(base_row(codon, GREEN, width=0.72, gap=0.11, size=34)
+                      for codon in CODONS)).arrange(RIGHT, buff=0.76).set_y(-0.63)
     dividers = VGroup()
-    for i in range(1, 5):
-        x = (strip[3 * i - 1].get_right()[0] + strip[3 * i].get_left()[0]) / 2
-        dividers.add(Line([x, -1.18, 0], [x, -0.26, 0], color=TEXT, stroke_width=3))
-    center = VGroup(*strip[3 * ribo_index:3 * ribo_index + 3]).get_center()
-    rib = ribosome((center[0], -0.72, 0), 0.92)
-    chain = VGroup(*[
-        VGroup(Circle(radius=0.4, stroke_color=RED, stroke_width=4, fill_color=RED, fill_opacity=0.22),
-               T(name, 24, RED).move_to(ORIGIN))
-        for name in ("Met", "Ala", "Lys", "Phe")[:chain_count]
-    ])
-    if len(chain):
-        for acid in chain:
-            acid.layout_ok = True  # abbreviation deliberately sits inside its amino-acid circle
-        chain.arrange(RIGHT, buff=0.2).move_to([0, 2.05, 0])
-        links = VGroup(*[Line(chain[i].get_right(), chain[i + 1].get_left(), color=RED, stroke_width=5)
-                         for i in range(len(chain) - 1)])
-    else:
-        links = VGroup()
-    field = Ellipse(width=12.7, height=6.25, stroke_opacity=0,
-                    fill_color=BLUE, fill_opacity=0.14).move_to(DOWN * 0.05).set_z_index(-5)
-    cytoplasm = T("cytoplasm", 28, TEXT).move_to([0, 2.72, 0]) if show_cytoplasm else VGroup()
-    return VGroup(strip, dividers, rib, links, chain, field, cytoplasm), {
-        "strip": strip, "dividers": dividers, "rib": rib, "chain": chain, "links": links,
-    }
+    for left, right in zip(groups, groups[1:]):
+        x = (left.get_right()[0] + right.get_left()[0]) / 2
+        dividers.add(Line(point(x, -1.15), point(x, -0.26), color=TEXT, stroke_width=2.5))
+    return groups, dividers
 
 
-def transfer_rna(anticodon, aa, x=0):
-    """A key-shaped tRNA cartoon carrying one labelled amino acid circle."""
-    stem = Line([x, -2.65, 0], [x, -1.72, 0], color=PURPLE, stroke_width=10)
-    arms = ArcBetweenPoints([x - 0.48, -2.35, 0], [x + 0.48, -2.35, 0], angle=-PI, color=PURPLE, stroke_width=8)
-    anti = letter_row(anticodon, PURPLE, w=0.42, size=22, gap=0.03).move_to([x, -1.46, 0])
-    acid = VGroup(Circle(radius=0.34, color=RED, stroke_width=4, fill_color=RED, fill_opacity=0.22),
-                   T(aa, 24, RED)).move_to([x, -3.05, 0])
-    return VGroup(stem, arms, anti, acid)
+def amino_acid(name):
+    disc = Circle(radius=0.45, stroke_color=RED, stroke_width=3.5,
+                  fill_color=interpolate_color(ManimColor(BG), ManimColor(RED), 0.24), fill_opacity=1)
+    return VGroup(disc, T(name, 28, RED).move_to(disc))
+
+
+def chain_world(count=3, lifted=False):
+    acids = VGroup(*(amino_acid(name).move_to(point(-3.0 + i * 1.19, 2.15 + 0.57 * lifted))
+                     for i, name in enumerate(AMINO_ACIDS[:count])))
+    joins = VGroup(*(chain_link(left, right) for left, right in zip(acids, acids[1:])))
+    return VGroup(joins, acids)
+
+
+def chain_link(left, right):
+    return Line(left.get_right(), right.get_left(), color=RED, stroke_width=6)
+
+
+def translation_world(index=0, *, opened=False, count=0, lifted=False):
+    groups, dividers = translation_strip()
+    rib = ribosome(groups[index].get_center(), opened=opened)
+    return cell_field(closeup=True), groups, dividers, rib, chain_world(count, lifted)
+
+
+def trna_for(codon, x, name):
+    anticodon = base_row(codon.translate(RNA_COMPLEMENT), PURPLE, width=0.49, gap=0.34,
+                         size=28, at=point(x, 0.24))
+    key_head = RoundedRectangle(width=1.75, height=0.40, corner_radius=0.19,
+                                stroke_color=PURPLE, stroke_width=3, fill_color=PURPLE,
+                                fill_opacity=0.62).move_to(point(x, 0.92))
+    stem = Line(point(x, 0.57), point(x, 1.16), color=PURPLE, stroke_width=10)
+    return VGroup(stem, key_head, anticodon), amino_acid(name).move_to(point(x, 1.66))
+
+
+def stop_label(codon):
+    label = boxed_label("STOP", TEXT, size=35, min_size=35, pad=0.16, fill_opacity=0.12)
+    return label.move_to(point(codon.get_x(), 0.30))
 
 
 class S00Hook(SpokenScene):
     def construct(self):
-        world = cell_world()
-        cell, nucleus, dna, nuc_label, dna_label, rib, rib_label, path, _ = world
-        pulse(dna, base=3.0, amp=1.2, speed=2.3)
+        cell, nucleus, dna, rib = cell_world()
+        self.add(cell)
         self.at("A plant or animal cell")
-        self.play(FadeIn(cell), FadeIn(nucleus), run_time=1.25)
-        self.play(FadeIn(dna, shift=DOWN * 0.12), run_time=1.2)
+        self.play(FadeIn(nucleus), run_time=1.25)
+        self.play(LaggedStart(*(FadeIn(b) for b in dna), lag_ratio=0.14), run_time=1.18)
         self.at("inside the nucleus")
-        self.play(FadeIn(nuc_label), FadeIn(dna_label), run_time=0.65)
-        self.at("How can their instructions")
-        self.play(Create(path), FadeIn(rib, scale=1.08), run_time=1.2)
-        self.at("a ribosome outside")
-        self.play(FadeIn(rib_label), Indicate(rib, color=GOLD, scale_factor=1.08), run_time=0.8)
+        nucleus_label = T("nucleus", 33).move_to(point(-2.72, 1.31))
+        dna_label = place_label(T("DNA", 30, BLUE), dna, avoid=(nucleus_label,),
+                                dirs=(UP,), buff=0.21)
+        self.play(FadeIn(nucleus_label), run_time=0.6)
+        self.play(FadeIn(dna_label), run_time=0.55)
+        self.at("How can their instructions", lead=0.42)
+        route = DashedLine(point(-1.8, PORE_Y), point(3.68, PORE_Y),
+                           dash_length=0.15, color=TEAL, stroke_width=4)
+        self.play(Create(route), FadeIn(rib), run_time=1.25)
+        self.at("reach a ribosome", lead=0.26)
+        name = place_label(T("ribosome", 31, GOLD), rib, dirs=(UP,), buff=0.33)
+        self.play(FadeIn(name), run_time=0.66)
         self.at("Watch the blue")
-        copy = letter_row("AUG", GREEN, w=0.68, size=31).move_to([-2.55, -0.65, 0])
-        self.play(LaggedStart(*[FadeIn(b, shift=RIGHT * 0.18) for b in copy], lag_ratio=0.25),
-                  run_time=3.4)
-        self.play(copy.animate.shift(RIGHT * 0.38), run_time=1.0)
-        bob(copy, amp=0.06, speed=1.8)
-        self.add(copy)
+        stay = RoundedRectangle(width=dna.width, height=0.68, corner_radius=0.14,
+                                stroke_color=BLUE, stroke_width=3, fill_color=BLUE, fill_opacity=0.45)
+        stay.move_to(dna).set_z_index(-1)
+        self.play(FadeIn(stay), *(block.label.animate.set_color(TEXT) for block in dna), run_time=1.32)
+        self.at("a green copy")
+        rna = hook_copy(dna)
+        self.play(FadeOut(stay), LaggedStart(*(FadeIn(b, shift=DOWN * 0.12) for b in rna),
+                                           lag_ratio=0.65),
+                  *(block.label.animate.set_color(BLUE) for block in dna), run_time=1.85)
         self.finish()
 
 
 class S01Title(TitleCard):
-    LESSON = "Protein Synthesis"
+    LESSON = "From DNA to Protein"
     TITLE = "From Gene Copy to Protein Chain"
 
     def construct(self):
-        backdrop = cell_world("AUG", faint=True)
-        title = T(self.TITLE, 50, font=TITLE_FONT)
-        fit(title, max_w=11.5)
-        lesson = T(self.LESSON.upper(), 24, TEAL, weight=BOLD)
-        rule = Line(LEFT * 1.4, RIGHT * 1.4, color=GOLD, stroke_width=4)
-        card = VGroup(lesson, title, rule).arrange(DOWN, buff=0.34)
-        self.add(backdrop)
-        self.play(FadeIn(card, shift=UP * 0.12), run_time=0.8)
-        self.wait(0.75)
-        self.play(FadeOut(card), FadeOut(backdrop), run_time=0.45)
-        self.finish()
+        cell, nucleus, dna, rib = cell_world()
+        rna = hook_copy(dna)
+        # Keep the faint cell diagram below the title band.
+        nucleus.set_opacity(0.15)
+        rib.set_opacity(0.16)
+        dna.set_opacity(0.27)
+        rna.set_opacity(0.27)
+        title = fit_text(self.TITLE, max_w=11.5, size=50, min_size=36, font=TITLE_FONT)
+        lesson = T(self.LESSON, 28, TEAL)
+        card = VGroup(lesson, title).arrange(DOWN, buff=0.28).move_to(UP * 2.43)
+        self.add(cell.set_fill(opacity=0.32).set_stroke(opacity=0), nucleus, dna, rib, rna)
+        self.play(FadeIn(card), run_time=0.52)
+        self.wait(0.94)
+        self.play(FadeOut(card), run_time=0.51)
 
 
 class S02Copy(SpokenScene):
     def construct(self):
-        world, p = gene_world()
-        heading = T("protein synthesis", 36, TEXT).move_to([0, 3.25, 0])
+        close_field, flanks, upper, template, clamp, copy = gene_world(opened=False)
+        cell, nucleus, small_dna, _ = cell_world()
+        self.add(cell, nucleus, small_dna)
         self.at("Making a protein")
-        self.play(FadeIn(p["nucleus"]), FadeIn(p["top"]), FadeIn(p["bottom"]), run_time=1.2)
-        self.play(FadeIn(heading), run_time=0.7)
-        self.play(Indicate(VGroup(p["top"], p["bottom"]), color=BLUE, scale_factor=1.015), run_time=1.8)
+        self.play(FadeOut(cell), FadeOut(nucleus), FadeIn(close_field), run_time=0.52)
+        self.play(ReplacementTransform(small_dna, template), run_time=0.96)
+        self.play(FadeIn(upper), FadeIn(flanks), run_time=0.52)
+        heading = T("Protein synthesis", 35).move_to(UP * 2.87)
+        self.at("protein synthesis")
+        self.play(FadeIn(heading), run_time=0.72)
         self.at("The first stage")
-        stage = T("transcription", 36, TEAL).move_to(heading)
-        self.play(swap(heading, stage), run_time=0.8)
-        self.play(Create(p["gene"]), run_time=1.3)
+        stage = T("Transcription", 35, TEAL).move_to(heading)
+        self.play(swap(heading, stage), run_time=1.0)
+        self.play(Create(clamp), run_time=1.45)
         self.at("An enzyme opens")
-        self.play(FadeIn(p["clamp"], scale=1.12), run_time=1.0)
-        self.play(pulse(p["clamp"], base=8, amp=2, speed=2).animate.shift(RIGHT * 0.01), run_time=0.6)
+        _, _, opened_upper, opened_template, open_clamp, _ = gene_world(opened=True)
+        self.play(Transform(upper, opened_upper), Transform(template, opened_template),
+                  Transform(clamp, open_clamp), run_time=2.05)
         self.at("It uses the template strand")
-        template = T("template strand", 28, BLUE).move_to([0, -2.15, 0])
-        self.play(FadeIn(template), Indicate(VGroup(*p["bottom"][3:9]), color=BLUE), run_time=0.9)
+        label = T("DNA template strand", 29, BLUE).move_to(point(0, -1.65))
+        template_line = Line(template.get_left(), template.get_right(), color=BLUE, stroke_width=4)
+        template_line.set_y(-0.10)
+        self.play(Create(template_line), FadeIn(label), run_time=0.68)
         self.at("to build messenger")
-        rna = letter_row("AUGCCA", GREEN, w=0.69, size=29).move_to([0, -1.25, 0])
-        self.play(FadeOut(template),
-                  LaggedStart(*[FadeIn(b, shift=LEFT * 0.16) for b in rna], lag_ratio=0.18), run_time=1.65)
-        rna_label = T("messenger RNA", 28, GREEN).next_to(rna, DOWN, buff=0.2)
-        self.play(FadeIn(rna_label), run_time=0.45)
+        self.play(FadeOut(label), FadeOut(template_line),
+                  LaggedStart(*(FadeIn(b, shift=DOWN * 0.12) for b in copy[:6]), lag_ratio=0.28),
+                  run_time=2.05)
+        self.play(FadeIn(T("Messenger RNA", 29, GREEN).move_to(label)), run_time=0.63)
         self.at("Only the selected gene")
-        self.play(Indicate(p["gene"], color=TEAL, scale_factor=1.03), run_time=0.9)
-        bob(rna, amp=0.04, speed=2.0)
+        self.play(LaggedStart(*(FadeIn(b, shift=DOWN * 0.12) for b in copy[6:]), lag_ratio=0.25),
+                  run_time=1.58)
         self.finish()
 
 
 class S03Pair(SpokenScene):
     def construct(self):
-        field = Ellipse(width=12.4, height=6.2, stroke_opacity=0,
-                        fill_color=BLUE, fill_opacity=0.14).move_to(UP * 0.05).set_z_index(-5)
-        self.add(field)
-        template = letter_row("ATCG", BLUE, w=1.05, size=44, gap=0.16).move_to([-1.25, 1.15, 0])
-        clamp = VGroup(
-            Arc(radius=1.25, start_angle=0.15 * PI, angle=0.7 * PI, color=TEAL, stroke_width=11),
-            Arc(radius=1.25, start_angle=1.15 * PI, angle=0.7 * PI, color=TEAL, stroke_width=11),
-        ).move_to([-1.25, 0.35, 0])
-        clamp.layout_ok = True  # enzyme clamp intentionally surrounds the paired blocks
-        key = pairing_key((4.75, 0.2, 0))
-        answers = letter_row("UAGC", GREEN, w=1.05, size=44, gap=0.16).move_to([-1.25, -0.65, 0])
-        links = VGroup(*[Line(template[i].get_bottom(), answers[i].get_top(), color=GREY, stroke_width=3)
-                         for i in range(4)])
+        field, flanks, upper, template, clamp, copy = gene_world(opened=True)
+        self.add(field, flanks, upper, template, clamp, copy)
         self.at("Each green")
-        self.play(FadeIn(template), FadeIn(clamp), run_time=0.8)
-        self.play(LaggedStart(*[AnimationGroup(Create(links[i]), FadeIn(answers[i], shift=UP * 0.15))
-                                for i in range(4)], lag_ratio=0.23), run_time=1.8)
+        enlarged = base_row(TEMPLATE[4:8], BLUE, width=1.12, gap=0.18, size=45, at=point(-1.8, 1.22))
+        frame = enzyme_clamp(6.18, 2.08, -1.57, x=-1.8)
+        self.play(FadeOut(flanks), FadeOut(upper), FadeOut(copy), FadeOut(template[:4]),
+                  FadeOut(template[8:]), FadeOut(clamp), run_time=0.73)
+        self.play(ReplacementTransform(template[4:8], enlarged), run_time=1.25)
+        self.play(FadeIn(frame), run_time=0.44)
+        key = pairing_key()
+        letters = VGroup()
+        self.play(enlarged.animate.shift(RIGHT * 0.32), run_time=1.5)
+
+        def show_pair(i):
+            dna_base = enlarged[i]
+            rna_base = base(PAIRING_BASES[i].translate(DNA_TO_RNA), GREEN, 1.12, 45)
+            rna_base.move_to(point(dna_base.get_x(), -0.74))
+            bond = DashedLine(dna_base.get_bottom() + DOWN * 0.08, rna_base.get_top() + UP * 0.08,
+                              dash_length=0.15, color=GREY, stroke_width=4)
+            self.play(FadeIn(rna_base, shift=DOWN * 0.28), Create(bond), run_time=0.64)
+            letters.add(VGroup(rna_base, bond))
+            key_parts = (key[0], key[1][i]) if i == 0 else (key[1][i],)
+            self.play(*(FadeIn(part) for part in key_parts), run_time=0.40)
+
         self.at("letter appears with")
-        self.play(FadeIn(key[0]), FadeIn(key[1][0]), run_time=0.7)
+        show_pair(0)
+        self.play(VGroup(enlarged, letters).animate.shift(LEFT * 0.22), run_time=0.75)
         self.at("T pairs with A")
-        self.play(FadeIn(key[1][1]), Indicate(VGroup(template[1], answers[1]), color=GOLD), run_time=0.7)
+        show_pair(1)
+        self.play(VGroup(enlarged, letters).animate.shift(LEFT * 0.22), run_time=0.66)
         self.at("C pairs with G")
-        self.play(FadeIn(key[1][2]), Indicate(VGroup(template[2], answers[2]), color=GOLD), run_time=0.7)
+        show_pair(2)
         self.at("and G pairs with C")
-        self.play(FadeIn(key[1][3]), Indicate(VGroup(template[3], answers[3]), color=GOLD), run_time=0.75)
+        show_pair(3)
         self.at("uses U instead")
-        note = T("RNA uses U, not T", 30, GREEN).move_to([0, -2.35, 0])
-        self.play(FadeIn(note), Indicate(answers[0], color=GREEN, scale_factor=1.12), run_time=0.9)
-        bob(answers, amp=0.035, speed=1.8)
+        note = caption("RNA uses U instead of T", color=GREEN, size=32)
+        row = VGroup(*(pair[0] for pair in letters))
+        emphasis = RoundedRectangle(width=row.width + 0.26, height=1.38, corner_radius=0.17,
+                                    stroke_width=0, fill_color="#2C5041", fill_opacity=1)
+        emphasis.move_to(row).set_z_index(-1)
+        self.play(FadeIn(note), FadeIn(emphasis), letters[0][0][0].animate.set_stroke(width=5),
+                  run_time=1.03)
         self.finish()
 
 
 class S04Predict(SpokenScene):
-    QUESTION = "Which mRNA group pairs with TAC?"
-
     def construct(self):
-        pic, p = predict_picture()
+        field, dna, slots, key, question, mark, key_panel, group_panel = prediction()
+        self.add(field, key)
         self.at("Try the next template group")
-        self.play(FadeIn(p["dna"], shift=DOWN * 0.12), FadeIn(p["empty"]), run_time=1.0)
+        self.play(FadeIn(dna, shift=RIGHT * 0.39), run_time=1.45)
         self.at("The blue")
-        self.play(LaggedStart(*[Indicate(b, color=BLUE, scale_factor=1.08) for b in p["dna"]], lag_ratio=0.25),
-                  FadeIn(p["key"]), run_time=1.25)
+        self.play(LaggedStart(*(b[0].animate.set_fill(opacity=0.66) for b in dna), lag_ratio=0.29),
+                  run_time=1.45)
+        self.play(*(b[0].animate.set_fill(opacity=0.23) for b in dna), run_time=0.6)
         self.at("Which green messenger")
-        self.play(Create(VGroup(*pic[2])), FadeIn(p["qmark"]), run_time=0.9)
-        q = question_card(self.QUESTION, y=-3.12, max_w=9.9)
-        self.play(FadeIn(q), run_time=0.7)
-        self.play(p["qmark"].animate.move_to(p["empty"][2]), run_time=2.3, rate_func=there_and_back)
+        self.play(LaggedStart(*(Create(b) for b in slots), lag_ratio=0.43), run_time=1.48)
+        self.play(FadeIn(question), run_time=0.73)
+        cursor = mark.copy().set_x(slots[0].get_x())
+        self.play(FadeIn(cursor), run_time=0.55)
         self.at("Keep the pairing key")
-        self.play(Indicate(p["key"], color=GOLD, scale_factor=1.02), run_time=0.8)
+        self.play(FadeIn(key_panel), run_time=0.69)
         self.at("choose the full group")
-        self.play(p["qmark"].animate.move_to(p["empty"][2]), run_time=1.1, rate_func=there_and_back)
+        self.play(cursor.animate.move_to(mark), run_time=1.31, rate_func=linear)
+        self.play(FadeIn(group_panel, rate_func=linear), run_time=1.04)
         self.finish()
 
 
-class S05Pause(PredictPause):
-    QUESTION = "Which mRNA group pairs with TAC?"
-    SECONDS = 4.5
+class S05Pause(NarratedScene):
+    """Hold the exact question frame, including the final cursor position."""
 
-    def backdrop(self):
-        pic, p = predict_picture()
-        base = p["qmark"].get_center().copy()
-        p["qmark"]._loop_t = 0.0
-
-        def loop(mob, dt):
-            mob._loop_t += dt
-            mob.move_to(base + [1.25 * np.sin(0.85 * mob._loop_t), 0.16 * np.cos(1.7 * mob._loop_t), 0])
-
-        p["qmark"].add_updater(loop)
-        return pic
+    def construct(self):
+        self.add(*prediction())
+        self.wait(self.narration_s)
 
 
 class S06Reveal(SpokenScene):
     def construct(self):
-        pic, p = predict_picture(with_question_mark=False)
-        self.add(pic)
-        answers = letter_row("AUG", GREEN, w=1.18, size=50, gap=0.18).move_to(p["empty"])
+        field, dna, slots, key, question, mark, key_panel, group_panel = prediction()
+        self.add(field, dna, slots, key, question, mark, key_panel, group_panel)
+        answers = base_row(MESSAGE[:3], GREEN, width=1.32, gap=0.24, size=52, at=slots.get_center())
         self.at("T pairs with A")
-        self.play(ReplacementTransform(p["empty"][0], answers[0]), run_time=0.8)
-        focus = SurroundingRectangle(VGroup(p["dna"][0], answers[0]), color=GOLD, buff=0.14,
-                                     corner_radius=0.1, stroke_width=4)
-        self.play(Create(focus), run_time=1.1)
+        self.play(FadeOut(question), FadeOut(mark), FadeOut(group_panel), run_time=0.27)
+        self.play(Transform(slots[0], answers[0][0]), FadeIn(answers[0][1], shift=UP * 0.2), run_time=1.2)
         self.at("A pairs with U")
-        focus2 = SurroundingRectangle(VGroup(p["dna"][1], answers[1]), color=GOLD, buff=0.14,
-                                      corner_radius=0.1, stroke_width=4)
-        self.play(ReplacementTransform(p["empty"][1], answers[1]), ReplacementTransform(focus, focus2), run_time=0.8)
+        self.play(Transform(slots[1], answers[1][0]), FadeIn(answers[1][1], shift=UP * 0.2), run_time=1.2)
         self.at("C pairs with G")
-        self.play(ReplacementTransform(p["empty"][2], answers[2]), run_time=0.8)
+        self.play(Transform(slots[2], answers[2][0]), FadeIn(answers[2][1], shift=UP * 0.2), run_time=1.2)
         self.at("The messenger group")
-        group_box = SurroundingRectangle(answers, color=GREEN, buff=0.16, corner_radius=0.12, stroke_width=4)
-        self.play(FadeOut(focus2), Create(group_box), run_time=0.75)
+        result = VGroup(*(VGroup(slot, answer[1]) for slot, answer in zip(slots, answers)))
+        group_line = Line(result.get_corner(DL) + DOWN * 0.20, result.get_corner(DR) + DOWN * 0.20,
+                          color=GREEN, stroke_width=5)
+        self.play(Create(group_line), run_time=0.85)
+        _, flanks, upper, template, clamp, full = gene_world(opened=True)
+        self.play(FadeOut(key), FadeOut(key_panel), FadeOut(group_line), ReplacementTransform(dna, VGroup(*template[:3])),
+                  ReplacementTransform(result, VGroup(*full[:3])), run_time=0.95)
+        self.play(FadeIn(flanks), FadeIn(upper), FadeIn(template[3:]), FadeIn(clamp),
+                  LaggedStart(*(FadeIn(b, shift=DOWN * 0.13) for b in full[3:]), lag_ratio=0.15),
+                  run_time=1.19)
         self.at("The enzyme releases")
-        full = letter_row("AUGCCAUGA", GREEN, w=0.72, size=31).move_to([0, -0.65, 0])
-        self.play(FadeOut(p["key"]), FadeOut(pic[2]), ReplacementTransform(VGroup(answers, group_box), full), run_time=1.3)
+        self.play(FadeOut(clamp, shift=RIGHT * 0.22), run_time=1.18)
         self.at("The green strand peels")
-        closed = letter_row("TACGGTACG", BLUE, w=0.72, size=31).move_to([0, 0.82, 0])
-        self.play(full.animate.shift(UP * 1.45 + RIGHT * 0.5), FadeOut(p["dna"]), FadeIn(closed), run_time=1.7)
+        self.play(LaggedStart(*(block.animate.set_y(RELEASED_RNA_Y) for block in reversed(full)),
+                              lag_ratio=0.15), run_time=1.6)
         self.at("blue DNA closes")
-        dna_box = SurroundingRectangle(closed, color=BLUE, buff=0.12, corner_radius=0.1, stroke_width=3)
-        self.play(Create(dna_box), Indicate(closed, color=BLUE, scale_factor=1.02), run_time=1.0)
-        inside = T("DNA stays inside", 28, BLUE).next_to(closed, DOWN, buff=0.24)
-        self.play(FadeIn(inside), run_time=0.55)
-        bob(full, amp=0.05, speed=1.7)
+        _, _, upper_closed, template_closed, _, _ = gene_world(opened=False)
+        self.play(Transform(upper, upper_closed), Transform(template, template_closed), run_time=1.55)
+        inside = T("DNA stays in the nucleus", 30, BLUE).move_to(point(0, 2.64))
+        self.play(FadeIn(inside), run_time=0.78)
         self.finish()
 
 
 class S07Translate(SpokenScene):
     def construct(self):
-        membrane = VGroup(
-            Line([-2.8, -3.0, 0], [-2.8, -0.55, 0], color=BLUE, stroke_width=7),
-            Line([-2.8, 0.55, 0], [-2.8, 3.0, 0], color=BLUE, stroke_width=7),
-        )
-        pore = Circle(radius=0.55, color=TEAL, stroke_width=5).move_to([-2.8, 0, 0])
-        pore.layout_ok = True  # message deliberately passes through the pore
-        strip = letter_row("AUGGCUAAA", GREEN, w=0.62, size=27, gap=0.03).move_to([-3.65, 0, 0])
+        cell, nucleus, dna, reader = cell_world()
+        message = cell_message(MESSAGE)
+        self.add(cell, nucleus, dna, reader, message)
         self.at("The messenger RNA")
-        self.play(FadeIn(membrane), FadeIn(pore), FadeIn(strip), run_time=0.9)
-        self.at("through a pore")
-        self.play(strip.animate.move_to([1.0, 0, 0]), Indicate(pore, color=TEAL), run_time=1.7)
-        world, p = translation_world(0, show_cytoplasm=True)
+        pore_label = T("Nuclear pore", 29, TEAL).move_to(point(1.39, 1.32))
+        pointer = Arrow(point(1.39, 1.00), point(0.66, 0.12), buff=0, color=TEAL, stroke_width=3)
+        self.play(FadeIn(pore_label), GrowArrow(pointer), run_time=0.66)
+        self.at("passes through")
+        self.play(message.animate.set_x(3.43), run_time=1.65, rate_func=linear)
+        self.at("into the cytoplasm")
+        cytoplasm = T("Cytoplasm", 29).move_to(point(3.55, -2.26))
+        self.play(FadeIn(cytoplasm), run_time=0.73)
         self.at("Translation begins")
-        self.play(FadeOut(membrane), FadeOut(pore), ReplacementTransform(strip, p["strip"]),
-                  FadeIn(p["rib"], scale=1.12), run_time=1.2)
-        rib_label = T("ribosome", 28, GOLD).move_to([0, -2.45, 0])
-        self.at("gold ribosome grips")
-        self.play(FadeIn(rib_label), Indicate(p["rib"], color=GOLD, scale_factor=1.05), run_time=0.75)
+        field, groups, dividers, rib, _ = translation_world(opened=True)
+        big_strip = VGroup(*(letter for group in groups for letter in group))
+        self.play(FadeOut(cell), FadeOut(nucleus), FadeOut(dna), FadeOut(pore_label), FadeOut(pointer), FadeOut(cytoplasm),
+                  FadeOut(reader), FadeIn(field), run_time=0.42)
+        self.play(ReplacementTransform(message, big_strip), run_time=0.87)
+        self.play(FadeIn(rib), run_time=0.44)
+        title = T("Translation", 35).move_to(UP * 2.52)
+        self.play(FadeIn(title), run_time=0.57)
+        self.at("grips the message")
+        shut = ribosome(groups[0].get_center())
+        self.play(Transform(rib, shut), run_time=1.18)
         self.at("It reads each codon")
-        self.play(LaggedStart(*[Create(d) for d in p["dividers"]], lag_ratio=0.22), run_time=1.0)
+        self.play(LaggedStart(*(Create(d) for d in dividers), lag_ratio=0.35), run_time=0.61)
         for i in (1, 2):
-            new_center = VGroup(*p["strip"][3 * i:3 * i + 3]).get_center()
-            self.play(p["rib"].animate.move_to([new_center[0], -0.72, 0]), run_time=0.55)
+            self.play(rib.animate.shift(RIGHT * (groups[i].get_x() - groups[i - 1].get_x())), run_time=0.83)
         self.at("A codon is")
-        codon = SurroundingRectangle(VGroup(*p["strip"][6:9]), color=GOLD, buff=0.12,
-                                     corner_radius=0.1, stroke_width=4)
-        label = T("codon = 3 letters", 30, TEXT).move_to([0, 1.35, 0])
-        self.play(Create(codon), FadeIn(label), run_time=0.8)
-        self.at("an amino acid or stop")
-        meanings = VGroup(chip("amino acid", RED, 28), T("or", 28, TEXT), chip("STOP", RED, 28)).arrange(RIGHT, buff=0.35)
-        meanings.move_to([0, 2.35, 0])
-        self.play(FadeIn(meanings, shift=DOWN * 0.12), run_time=0.8)
-        bob(p["rib"], amp=0.035, speed=2.0)
+        label = T("Codon = 3 letters", 35).move_to(title)
+        self.play(swap(title, label), run_time=0.65)
+        underline = Line(groups[2].get_left(), groups[2].get_right(), color=GREEN, stroke_width=5)
+        underline.set_y(-1.06)
+        self.play(Create(underline), run_time=0.69)
+        self.at("means an amino")
+        meaning = T("Amino acid or stop", 30).move_to(UP * 1.71)
+        self.play(FadeIn(meaning), run_time=0.83)
+        self.at("or stop")
+        self.play(rib.animate.shift(RIGHT * (groups[3].get_x() - groups[2].get_x())),
+                  FadeOut(underline), run_time=0.91)
         self.finish()
 
 
 class S08Chain(SpokenScene):
     def construct(self):
-        world, p = translation_world(0)
-        self.add(world)
-        chain = VGroup()
-        chain_links = VGroup()
-        last_acid = None
-        acids = [("UAC", "Met"), ("CGA", "Ala"), ("UUU", "Lys"), ("AAA", "Phe")]
+        field, groups, dividers, rib, _ = translation_world(index=3)
+        self.add(field, groups, dividers, rib)
         self.at("Purple transfer RNA")
-        trna = transfer_rna(*acids[0], x=p["rib"].get_x())
-        self.play(FadeIn(trna, shift=UP * 1.1), run_time=2.4)
-        trna_label = T("transfer RNA", 28, PURPLE).move_to([4.9, -2.75, 0])
-        self.play(FadeIn(trna_label), run_time=0.55)
-        self.play(trna.animate.shift(RIGHT * 0.22), run_time=1.6, rate_func=there_and_back)
-        self.at("Its anticodon pairs")
-        self.play(trna.animate.shift(UP * 1.45), Indicate(VGroup(*p["strip"][:3]), color=PURPLE), run_time=1.15)
-        self.play(FadeOut(trna_label), run_time=0.35)
+        self.play(FadeOut(rib), run_time=0.32)
+        rib = ribosome(groups[0].get_center())
+        self.play(FadeIn(rib), run_time=0.33)
+        carriers = [trna_for(codon, groups[i].get_x(), AMINO_ACIDS[i]) for i, codon in enumerate(CODONS[:3])]
+        trna, cargo = carriers[0]
+        parcel = VGroup(trna, cargo).shift(UP * 0.79 + RIGHT * 2.76)
+        self.play(FadeIn(parcel, shift=DOWN * 0.38), run_time=0.49)
+        name = T("Transfer RNA", 29, PURPLE).move_to(point(0.37, 2.51))
+        self.play(FadeIn(name), run_time=0.30)
+        self.at("brings the amino")
+        self.play(parcel.animate.shift(LEFT * 2.76), run_time=3.08)
+        self.at("Its anticodon")
+        self.play(FadeOut(name), run_time=0.35)
+        self.play(parcel.animate.shift(DOWN * 0.79), run_time=1.66)
+        anticodon = trna[2]
+        anti = T("Anticodon", 29, PURPLE).next_to(rib[1][1], RIGHT, buff=0.26).set_y(anticodon.get_y())
+        alignment = RoundedRectangle(width=2.65, height=1.65, corner_radius=0.15,
+                                     stroke_width=2.5, stroke_color=PURPLE, fill_color="#141E37",
+                                     fill_opacity=1).move_to(point(groups[0].get_x(), -0.25))
+        alignment.set_z_index(-3)
+        self.play(FadeIn(alignment), FadeIn(anti), run_time=0.98)
         self.at("The ribosome joins")
-        self.play(trna[3].animate.move_to([-2.15, 2.05, 0]), FadeOut(VGroup(*trna[:3])), run_time=0.85)
-        chain.add(trna[3])
-        last_acid = trna[3]
-        for i in range(1, 4):
-            center = VGroup(*p["strip"][3 * i:3 * i + 3]).get_center()
-            t = transfer_rna(*acids[i], x=center[0])
-            self.play(p["rib"].animate.move_to([center[0], -0.72, 0]), FadeIn(t, shift=UP * 0.3), run_time=0.65)
-            target = [-2.15 + i * 1.4, 2.05, 0]
-            self.play(t[3].animate.move_to(target), FadeOut(VGroup(*t[:3])), run_time=0.65)
-            link = Line(last_acid.get_right(), np.array(target) + LEFT * 0.34, color=RED, stroke_width=5)
-            chain.add(t[3])
-            last_acid = t[3]
-            chain_links.add(link)
-            self.play(Create(link), run_time=0.35)
+        self.play(FadeOut(anti), FadeOut(alignment), run_time=0.31)
+        chain = chain_world()
+        joins, acids = chain
+        self.play(cargo.animate.move_to(acids[0]), FadeOut(trna, shift=UP * 0.35), run_time=1.20)
+        for i in (1, 2):
+            trna, incoming = carriers[i]
+            self.play(rib.animate.shift(RIGHT * (groups[i].get_x() - groups[i - 1].get_x())), run_time=0.36)
+            self.play(FadeIn(VGroup(trna, incoming), shift=DOWN * 0.55), run_time=0.45)
+            self.play(incoming.animate.move_to(acids[i]), Create(joins[i - 1]),
+                      FadeOut(trna, shift=UP * 0.35), run_time=0.80)
         self.at("At a stop codon")
-        stop = SurroundingRectangle(VGroup(*p["strip"][12:15]), color=RED, buff=0.12,
-                                    corner_radius=0.1, stroke_width=5)
-        no_fit = T("no tRNA fits", 30, RED).move_to([4.8, 1.15, 0])
-        self.play(p["rib"].animate.move_to([VGroup(*p["strip"][12:15]).get_x(), -0.72, 0]),
-                  Create(stop), FadeIn(no_fit), run_time=1.0)
-        self.at("no amino acid is added")
-        self.play(Indicate(stop, color=RED, scale_factor=1.04), run_time=0.75)
-        self.at("chain is released")
-        released = VGroup(chain, chain_links)
-        self.play(released.animate.shift(UP * 0.55), p["rib"].animate.scale(1.12), FadeOut(no_fit), run_time=1.1)
-        bob(released, amp=0.06, speed=1.6)
+        self.play(rib.animate.shift(RIGHT * (groups[3].get_x() - groups[2].get_x())), run_time=0.72)
+        stop = stop_label(groups[3])
+        self.play(FadeIn(stop), run_time=0.57)
+        self.at("no amino acid")
+        self.play(Transform(rib, ribosome(groups[3].get_center(), opened=True)), run_time=1.0)
+        self.at("the chain is released")
+        # The delivered discs are already in the canonical chain positions.
+        self.play(VGroup(cargo, carriers[1][1], carriers[2][1], joins).animate.shift(UP * 0.57), run_time=1.0)
         self.finish()
 
 
 class S09StartStop(SpokenScene):
     def construct(self):
-        world, p = translation_world(0, chain_count=4)
-        p["dividers"].set_opacity(0)
-        self.add(world)
+        field, groups, dividers, rib, chain = translation_world(index=3, opened=True, count=3, lifted=True)
+        stop = stop_label(groups[3])
+        self.add(field, groups, dividers, rib, chain, stop)
         self.at("Reading usually begins")
-        start_box = SurroundingRectangle(VGroup(*p["strip"][:3]), color=GREEN, buff=0.12,
-                                         corner_radius=0.1, stroke_width=5)
-        start = T("START", 30, GREEN).move_to([p["strip"][1].get_x(), 0.35, 0])
-        self.play(Create(start_box), FadeIn(start), run_time=0.9)
-        self.play(p["rib"].animate.scale(1.35), run_time=2.2, rate_func=there_and_back)
-        self.play(start_box.animate.scale(1.14), run_time=1.1, rate_func=there_and_back)
+        self.play(FadeOut(chain), FadeOut(stop), FadeOut(dividers), FadeOut(rib), run_time=0.57)
+        start_codon = groups[0]
+        start_codon.save_state()
+        rib = ribosome(start_codon.get_center())
+        self.play(FadeIn(rib), run_time=0.78)
+        start = T("START", 32, GREEN).move_to(point(start_codon.get_x(), 0.39))
+        self.at("start codon")
+        self.play(FadeIn(start), run_time=0.66)
+        marker = Line(start_codon.get_left(), start_codon.get_right(), color=GREEN, stroke_width=5)
+        marker.set_y(-1.08)
+        self.play(Create(marker), *(block.box.animate.set_fill(opacity=0.70) for block in start_codon),
+                  *(block.label.animate.set_color(TEXT) for block in start_codon), run_time=0.68)
         self.at("It adds methionine")
-        self.play(Indicate(p["chain"][0], color=RED, scale_factor=1.15), run_time=0.75)
+        met = amino_acid("Met").move_to(point(groups[0].get_x(), 1.64))
+        name = T("Methionine", 30, RED).move_to(point(groups[0].get_x(), 2.57))
+        self.play(FadeIn(met, shift=UP * 0.24), run_time=0.77)
+        self.play(FadeIn(name), run_time=0.56)
         self.at("fixes the grouping")
-        self.play(LaggedStart(*[FadeIn(d) for d in p["dividers"]], lag_ratio=0.2),
-                  run_time=2.15)
+        bands = VGroup(*(RoundedRectangle(width=g.width + 0.27, height=1.11, corner_radius=0.14,
+                                          stroke_width=0, fill_color="#192C28", fill_opacity=1)
+                         .move_to(g).set_z_index(-3) for g in groups))
+        self.play(LaggedStart(*(FadeIn(b) for b in bands), lag_ratio=0.36),
+                  LaggedStart(*(Create(d) for d in dividers), lag_ratio=0.54), run_time=1.87)
         self.at("ribosome then moves")
-        for i in range(1, 5):
-            x = VGroup(*p["strip"][3 * i:3 * i + 3]).get_x()
-            self.play(p["rib"].animate.move_to([x, -0.72, 0]), run_time=0.55)
+        joins, acids = chain_world()
+        self.play(FadeOut(start), FadeOut(marker), FadeOut(name), start_codon.animate.restore(),
+                  met.animate.move_to(acids[0]), run_time=0.47)
+        for i in (1, 2, 3):
+            animations = [rib.animate.shift(RIGHT * (groups[i].get_x() - groups[i - 1].get_x()))]
+            if i < 3:
+                animations.extend((FadeIn(acids[i], shift=UP * 0.29), Create(joins[i - 1])))
+            self.play(*animations, run_time=0.83)
         self.at("At UGA")
-        stop_box = SurroundingRectangle(VGroup(*p["strip"][12:15]), color=RED, buff=0.12,
-                                        corner_radius=0.1, stroke_width=5)
-        stop = T("STOP", 32, RED).move_to([p["strip"][13].get_x(), 0.18, 0])
-        self.play(FadeOut(start), FadeOut(start_box), Create(stop_box), FadeIn(stop), run_time=0.9)
+        self.play(FadeIn(stop), FadeOut(bands), run_time=0.86)
+        self.at("stop sign appears")
+        self.play(stop[0].animate.set_stroke(width=4.5), run_time=0.74)
         self.at("reading window opens")
-        open_rib = ribosome((p["rib"].get_x(), -0.72, 0), 0.92, open_gap=0.42)
-        self.play(ReplacementTransform(p["rib"], open_rib), run_time=0.85)
+        self.play(Transform(rib, ribosome(groups[3].get_center(), opened=True)), run_time=0.87)
         self.at("finished chain floats free")
-        self.play(VGroup(p["chain"], p["links"]).animate.shift(UP * 0.62), run_time=1.1)
-        bob(VGroup(p["chain"], p["links"]), amp=0.055, speed=1.6)
+        self.play(VGroup(met, acids[1:], joins).animate.shift(UP * 0.57), run_time=1.25)
         self.finish()
+
+
+def folded_protein(at):
+    blob = VMobject(stroke_color=RED, stroke_width=4,
+                    fill_color=interpolate_color(ManimColor(CYTOPLASM), ManimColor(RED), 0.28), fill_opacity=1)
+    blob.set_points_smoothly([
+        point(-1.14, 0.18), point(-0.66, 0.66), point(-0.25, 0.62),
+        point(0.35, 0.83), point(0.99, 0.42), point(1.14, -0.17),
+        point(0.66, -0.63), point(0.03, -0.53), point(-0.61, -0.70),
+        point(-1.08, -0.39), point(-1.14, 0.18),
+    ])
+    return blob.move_to(at)
 
 
 class S10Rule(SpokenScene):
     def construct(self):
-        field = Ellipse(width=12.7, height=6.25, stroke_opacity=0,
-                        fill_color=BLUE, fill_opacity=0.14).move_to(DOWN * 0.05).set_z_index(-5)
-        self.add(field)
-        chain = VGroup(*[
-            VGroup(Circle(radius=0.38, color=RED, stroke_width=4, fill_color=RED, fill_opacity=0.22),
-                   T(x, 25, RED))
-            for x in ("Met", "Ala", "Lys", "Phe")
-        ]).arrange(RIGHT, buff=0.35).move_to([0, 0.6, 0])
-        links = VGroup(*[Line(chain[i].get_right(), chain[i + 1].get_left(), color=RED, stroke_width=6)
-                         for i in range(3)])
+        field, groups, dividers, rib, chain = translation_world(index=3, opened=True, count=3, lifted=True)
+        stop = stop_label(groups[3])
+        stop[0].set_stroke(width=4.5)
+        self.add(field, groups, dividers, rib, chain, stop)
         self.at("The release chain")
-        self.play(FadeIn(chain), Create(links), run_time=1.0)
+        self.play(FadeOut(groups), FadeOut(dividers), FadeOut(rib), FadeOut(stop),
+                  chain.animate.move_to(point(0, 0.77)), run_time=1.27)
         self.at("fold into a working protein")
-        targets = [[-0.85, 0.65, 0], [0.65, 1.05, 0], [0.85, -0.55, 0], [-0.65, -0.85, 0]]
-        blob = RoundedRectangle(corner_radius=0.75, width=3.7, height=3.35, color=RED, stroke_width=5,
-                                fill_color=RED, fill_opacity=0.09).move_to([0, 0.1, 0])
-        self.play(*[chain[i].animate.move_to(targets[i]) for i in range(4)], FadeOut(links), FadeIn(blob), run_time=1.25)
-        protein = T("protein", 34, RED).move_to([0, 2.35, 0])
-        self.play(FadeIn(protein), run_time=0.45)
+        blob = folded_protein(point(0, 0.73)).scale(1.40)
+        met, leu, ala = chain[1]
+        self.play(FadeOut(chain[0]), ala.animate.move_to(point(1.19, -0.44)), run_time=0.53)
+        self.play(met.animate.move_to(point(-0.63, 1.18)), leu.animate.move_to(point(0.48, 1.20)),
+                  ala.animate.move_to(point(0.02, 0.12)), run_time=0.71)
+        self.play(swap(chain[1], blob), run_time=0.56)
+        protein = place_label(T("Protein", 31, RED), blob, dirs=(UP,), buff=0.32)
+        self.play(FadeIn(protein), run_time=0.70)
         self.at("message changed form")
-        dna = letter_row("TAC", BLUE, w=0.82, size=34).move_to([-4.65, 0.1, 0])
-        rna = letter_row("AUG", GREEN, w=0.82, size=34).move_to([0, 0.1, 0])
-        protein_group = VGroup(blob, chain, protein)
-        self.play(FadeIn(dna, shift=RIGHT * 0.2), FadeIn(rna, shift=RIGHT * 0.2),
-                  protein_group.animate.move_to([4.55, 0.1, 0]), run_time=0.9)
+        cell, nucleus, dna, _ = cell_world()
+        cell_protein = folded_protein(point(4.44, 0.80))
+        self.play(FadeOut(field), FadeIn(cell), FadeIn(nucleus), FadeIn(dna), FadeOut(protein),
+                  Transform(blob, cell_protein), run_time=1.51)
         self.at("order guided every handoff")
-        path1 = Arrow(dna.get_right(), rna.get_left(), buff=0.22, color=TEAL, stroke_width=5)
-        path2 = Arrow(rna.get_right(), blob.get_left(), buff=0.22, color=TEAL, stroke_width=5)
-        self.play(GrowArrow(path1), GrowArrow(path2), run_time=0.9)
-        self.at("protein coding genes")
-        labels = VGroup(T("DNA order", 28, BLUE).next_to(dna, DOWN, buff=0.22),
-                        T("mRNA codons", 28, GREEN).next_to(rna, DOWN, buff=0.22),
-                        T("amino acid order", 28, RED).next_to(blob, DOWN, buff=0.24))
-        self.play(FadeIn(labels), run_time=1.1)
+        messenger = cell_message(MESSAGE)
+        self.play(LaggedStart(*(FadeIn(b, shift=DOWN * 0.08) for b in messenger), lag_ratio=0.14),
+                  run_time=1.58)
+        self.at("protein -coding genes")
+        dna_label = T("DNA order", 32, BLUE).move_to(point(-2.74, 1.45))
+        rna_label = T("mRNA codons", 31, GREEN).move_to(point(-2.72, -1.35))
+        protein_label = T("Amino acid order", 31, RED).move_to(point(3.05, 2.03))
+        self.play(FadeIn(dna_label), run_time=0.74)
         self.at("DN order")
-        self.play(Indicate(dna, color=BLUE, scale_factor=1.08), run_time=0.75)
+        self.play(LaggedStart(*(b[0].animate.set_fill(opacity=0.44) for b in dna), lag_ratio=0.09),
+                  run_time=0.41)
         self.at("sets mRNA codons")
-        self.play(Indicate(rna, color=GREEN, scale_factor=1.08), run_time=1.0)
+        self.play(FadeIn(rna_label), run_time=0.60)
+        underlines = VGroup()
+        for i in range(0, len(MESSAGE), 3):
+            group = messenger[i:i + 3]
+            seg = Line(group.get_left(), group.get_right(), color=GREEN, stroke_width=4)
+            seg.set_y(-0.79)
+            underlines.add(seg)
+        self.play(LaggedStart(*(Create(line) for line in underlines), lag_ratio=0.41), run_time=1.32)
         self.at("amino acid order")
-        self.play(Indicate(blob, color=RED, scale_factor=1.035), run_time=1.0)
+        compact_chain = chain_world().move_to(point(4.42, 0.80))
+        self.play(FadeIn(protein_label), run_time=0.60)
+        self.play(swap(blob, compact_chain), run_time=0.77)
         self.at("That is how instructions")
-        self.play(Indicate(VGroup(dna, rna, blob), color=GOLD, scale_factor=1.025), run_time=1.1)
-        bob(blob, amp=0.045, speed=1.7)
+        self.play(FadeOut(rna_label), run_time=0.35)
+        self.play(VGroup(messenger, underlines).animate.shift(RIGHT * 5.84), run_time=2.18,
+                  rate_func=linear)
+        self.at("reach a protein")
+        through = DashedLine(point(-2.64, PORE_Y), point(0.14, PORE_Y), color=TEAL,
+                             dash_length=0.15, stroke_width=4)
+        handoff = Arrow(point(2.20, -0.09), point(3.24, 0.47), buff=0,
+                        color=TEAL, stroke_width=3, max_tip_length_to_length_ratio=0.19)
+        final_label = T("Protein", 31, RED).move_to(point(4.44, 1.92))
+        self.play(Create(through), swap(compact_chain, blob), swap(protein_label, final_label), run_time=0.88)
+        self.play(GrowArrow(handoff), run_time=0.62)
         self.finish()
 
 
