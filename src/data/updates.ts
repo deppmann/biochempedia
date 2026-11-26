@@ -42,6 +42,8 @@ export interface Milestone {
 export const STEMHOP_SWITCH_DATE = '2026-11-16';
 
 export const MILESTONES: Milestone[] = [
+  { date: '2026-11-26', kind: 'media', title: '22 older films remade', prs: [507, 508, 509, 510],
+    text: 'Twenty-two older films that shook, drifted or moved shapes around for no reason are remade so the picture holds still and every movement shows something, among them the high school DNA copying film, the first Protein Synthesis film (which now highlights the right DNA strand) and Predators and Prey.' },
   { date: '2026-11-24', kind: 'media', title: 'Previous, Next and Play all for films', prs: [503],
     text: 'The Films page playlist has Previous and Next buttons and a Play all switch that starts the next film when one ends; it is off until you turn it on. Under each lesson film there are Previous and Next chapter buttons, and after the last one a link to the next lesson’s film.' },
   { date: '2026-11-24', kind: 'site', title: 'Recently rewritten, back on the homepage', prs: [504],
