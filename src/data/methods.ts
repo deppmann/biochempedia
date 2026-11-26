@@ -165,7 +165,7 @@ export const METHODS: Method[] = [
     aka: ['LC3-II', 'bafilomycin'],
     category: 'cells-imaging',
     summary: 'Measuring autophagy as flux by blocking lysosomal degradation and counting the extra LC3-II that accumulates.',
-    film: openingFilm('quality-control-and-autophagy', 'Count the Flux, Not the Dots', 171.5),
+    film: openingFilm('quality-control-and-autophagy', 'Follow the Flow, Not the Pile', 243.7),
     lessons: ['quality-control-and-autophagy'],
     terms: ['autophagic flux', 'LC3-II'],
   },
