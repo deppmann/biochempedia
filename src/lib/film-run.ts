@@ -18,6 +18,7 @@ export async function run(): Promise<void> {
   if (!root) return;
   const $ = <T extends HTMLElement>(sel: string) => root.querySelector<T>(sel)!;
   const sum = $('[data-fr-sum]');
+  sum.textContent = 'Putting your films in order…';
   const params = new URLSearchParams(location.search);
 
   let list: FilmList;

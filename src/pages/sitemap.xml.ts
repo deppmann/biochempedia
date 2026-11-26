@@ -1,7 +1,8 @@
 import type { APIContext } from 'astro';
 import { PATHS } from '../data/paths';
 import { getCollection } from 'astro:content';
-import { METHODS } from '../data/methods';
+import { METHODS, methodHref } from '../data/methods';
+import { methodCourses } from '../lib/method-courses';
 import { SETS as MCAT_SETS } from '../lib/mcat';
 import { allFilms } from '../lib/films';
 import { SITE_ORIGIN } from '../lib/site-host.mjs';
@@ -45,7 +46,7 @@ export async function GET(context: APIContext): Promise<Response> {
     '/paths/', ...PATHS.map((p) => `/paths/${p.id}/`),
     ...courses.map((c) => `/courses/${c}/`),
     ...lessons.map((l) => `/lessons/${l.data.slug}/`),
-    '/methods/', ...METHODS.map((m) => `/methods/${m.slug}/`),
+    '/methods/', ...METHODS.map((m) => methodHref(m.slug)), ...methodCourses(lessons).map((c) => methodHref(c.slug)),
     '/films/', ...(await allFilms()).map((f) => f.href),
     // The calendar (approved 2026-11-22). Its email-design preview stays out: it is a design page, not a tool.
     '/calendar/', '/calendar/parent/', '/calendar/student/', '/calendar/student/mcat/', '/calendar/teacher/',
