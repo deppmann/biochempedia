@@ -75,6 +75,12 @@ const allLessons = (await getCollection('lessons', ({ data }) =>
 );
 const hookFor = (l: (typeof allLessons)[number]) =>
   (l.data as { hook?: string }).hook ?? l.data.summary.split(/(?<=[.?!])\s+/)[0];
+const hook = hookFor(entry);
+const lastHookSentence = entry.data.hook?.trimEnd().endsWith('?')
+  ? [...new Intl.Segmenter('en', { granularity: 'sentence' }).segment(hook)].at(-1)
+  : undefined;
+const question = lastHookSentence?.segment.trim();
+const finding = lastHookSentence ? hook.slice(0, lastHookSentence.index).trim() : '';
 const navOf = (l: (typeof allLessons)[number] | undefined) =>
   l ? { slug: l.data.slug, title: l.data.title, hook: hookFor(l), n: allLessons.indexOf(l) + 1 } : undefined;
 const lessonIdx = allLessons.findIndex((l) => l.data.slug === entry.data.slug);
@@ -263,7 +269,9 @@ const videosLd = [
         </div>
       )}
       {/* Only the hook shows here (2026-11-08, "get to the material quicker"). */}
-      <p class="summary">{hookFor(entry)}</p>
+      <p class="summary">
+        {question ? <><strong>{question}</strong>{finding && <span class="hook-finding">{finding}</span>}</> : hook}
+      </p>
 
       {/* One question, one row (2026-11-20). Listen and "Play all films" are unchanged components;
           each sits on the line of the stop it plays. */}
@@ -970,6 +978,7 @@ const videosLd = [
     }
     .lesson-hero h1 { font-size: var(--ddp-text-3xl); max-width: 20ch; margin-bottom: var(--ddp-space-3); }
     .summary { max-width: 60ch; font-size: var(--ddp-text-lg); color: var(--ddp-color-ink-soft); }
+    .hook-finding { display: block; margin-top: var(--ddp-space-2); }
     .resume { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-sm); }
     /* "Rewritten on" (2026-11-11): a quiet line under the title, not a banner. */
     .rewritten-note { margin: 0 0 var(--ddp-space-3); max-width: 60ch; font-size: var(--ddp-text-sm); color: var(--ddp-color-muted); }
