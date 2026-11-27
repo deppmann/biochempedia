@@ -225,7 +225,8 @@ const videoLd = (film: { src: string; poster: string; durationSec: number }, nam
   contentUrl: new URL(film.src, SITE_ORIGIN).href,
   // The record dates the level-up, and records the length of the opening and chapter films.
   // Profile films have their lengths in the scientist card's frontmatter.
-  uploadDate: record?.levelUp?.shipped,
+  // Google wants a full ISO 8601 datetime with a timezone (Search Console, 2026-11-27), not a bare date.
+  uploadDate: /^\d{4}-\d{2}-\d{2}$/.test(record?.levelUp?.shipped ?? '') ? `${record?.levelUp?.shipped}T12:00:00+00:00` : undefined,
   duration: filmIsoDuration(record?.films.find((f) => f.id === id)?.durationSec ?? film.durationSec),
 });
 const videosLd = [
