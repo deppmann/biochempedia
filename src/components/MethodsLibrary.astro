@@ -20,9 +20,11 @@ const hex = hexFor('methods');
    grouped by what it works on. A card counts visible lessons in the current view. */
 const lessons = await getCollection('lessons', ({ data }) =>
   (import.meta.env.DEV || !data.draft) && (!course || data.course === course.slug));
-const slugs = new Set(lessons.map(({ data }) => data.slug));
-const entries = METHODS.map((m) => ({ m, n: m.lessons.filter((s) => slugs.has(s)).length }))
-  .filter(({ n }) => !course || n > 0);
+const courseByLesson = new Map(lessons.map(({ data }) => [data.slug, data.course]));
+const entries = METHODS.map((m) => {
+  const taughtIn = m.lessons.map((slug) => courseByLesson.get(slug)).filter((slug) => slug !== undefined);
+  return { m, lessonCount: taughtIn.length, courseCount: new Set(taughtIn).size };
+}).filter(({ lessonCount }) => !course || lessonCount > 0);
 const methods = entries.filter(({ m }) => m.film);
 const groups = (Object.keys(CATEGORY_LABELS) as MethodCategory[])
   .map((cat) => ({ cat, items: methods.filter(({ m }) => m.category === cat).sort((a, b) => a.m.name.localeCompare(b.m.name)) }))
@@ -84,16 +86,26 @@ const description = course
     <section class="wrap cat" id={g.cat} aria-labelledby={`${g.cat}-h`}>
       <h2 id={`${g.cat}-h`}>{CATEGORY_LABELS[g.cat]}</h2>
       <ul class="grid">
-        {g.items.map(({ m, n }) => (
-          <li class="card mcard">
-            <a href={methodHref(m.slug)}>
-              <img src={m.film!.poster} alt="" loading="lazy" decoding="async" width="480" height="270" />
-              <span class="mname">{m.name}</span>
-              <span class="msum">{m.summary}</span>
-              <span class="mmeta">▶ {filmLength(m.film!.durationSec)} · {n === 1 ? 'one lesson' : `${n} lessons`}</span>
-            </a>
-          </li>
-        ))}
+        {g.items.map(({ m, lessonCount, courseCount }) => {
+          const href = methodHref(m.slug);
+          const lessonWord = lessonCount === 1 ? 'lesson' : 'lessons';
+          const label = course
+            ? `${lessonCount} ${course.title} ${lessonWord}`
+            : `${lessonCount} ${lessonWord} across ${courseCount} ${courseCount === 1 ? 'course' : 'courses'}`;
+          return (
+            <li class="card mcard">
+              <a class="mcard-main" href={href}>
+                <img src={m.film!.poster} alt="" loading="lazy" decoding="async" width="480" height="270" />
+                <span class="mname">{m.name}</span>
+                <span class="msum">{m.summary}</span>
+              </a>
+              <div class="mmeta">
+                <span>▶ {filmLength(m.film!.durationSec)}</span>
+                <a class="mcount" href={`${href}#${course?.slug ?? 'where-h'}`} aria-label={`${label} for ${m.name}`}>{label}</a>
+              </div>
+            </li>
+          );
+        })}
       </ul>
     </section>
   ))}
@@ -127,13 +139,14 @@ const description = course
     .cat { padding-bottom: var(--ddp-space-8); }
     h2 { font-family: var(--ddp-font-serif); font-weight: 500; color: var(--ddp-color-primary); font-size: var(--ddp-text-xl); margin: var(--ddp-space-4) 0; }
     .grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr)); gap: var(--ddp-space-4); }
-    .mcard { padding: 0; overflow: hidden; }
-    .mcard a { display: flex; flex-direction: column; gap: var(--ddp-space-1); height: 100%; text-decoration: none; color: var(--ddp-color-ink); padding-bottom: var(--ddp-space-4); }
-    .mcard img { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; object-fit: cover; background: #0f1117; margin-bottom: var(--ddp-space-2); }
+    .mcard { padding: 0; display: flex; flex-direction: column; }
+    .mcard-main { display: flex; flex: 1; flex-direction: column; gap: var(--ddp-space-1); text-decoration: none; color: var(--ddp-color-ink); padding-bottom: var(--ddp-space-2); }
+    .mcard img { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; object-fit: cover; background: #0f1117; margin-bottom: var(--ddp-space-2); border-radius: var(--ddp-radius) var(--ddp-radius) 0 0; }
     .mname, .msum, .mmeta { padding-inline: var(--ddp-space-4); }
     .mname { font-family: var(--ddp-font-serif); font-size: var(--ddp-text-lg); color: var(--ddp-color-primary); }
     .msum { font-size: var(--ddp-text-sm); line-height: 1.5; color: var(--ddp-color-ink-soft); }
-    .mmeta { margin-top: auto; padding-top: var(--ddp-space-2); font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
-    .mcard a:hover .mname { text-decoration: underline; }
+    .mmeta { display: flex; flex-wrap: wrap; align-items: center; gap: 0 var(--ddp-space-2); padding-bottom: var(--ddp-space-2); font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+    .mcount { display: inline-flex; align-items: center; min-height: 44px; min-width: 0; color: var(--ddp-color-accent); text-decoration: underline; text-underline-offset: 3px; }
+    .mcard-main:hover .mname { text-decoration: underline; }
   </style>
 </BaseLayout>
