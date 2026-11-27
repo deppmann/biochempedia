@@ -69,7 +69,9 @@ export async function readTree(root = ROOT) {
     let sideHops = null;
     if (existsSync(hp)) {
       const h = JSON.parse(readFileSync(hp, 'utf8'));
-      sideHops = { hops: (h.hops || []).length, audioSec: num(h.audio?.durationSec), updated: h.updated };
+      const hops = h.hops || [];
+      const audioSec = Math.round(hops.reduce((total, card) => total + (num(card.audio?.durationSec) ?? 0), 0) * 10) / 10;
+      sideHops = { hops: hops.length, audioSec, updated: h.updated };
     }
     const course = fm.course || 'biochemistry';
     lessons.set(slug, {
@@ -215,7 +217,7 @@ export function validateRow(r) {
     const h = r.sideHops || {};
     for (const k of Object.keys(h)) if (!['hops', 'audioSec', 'updated'].includes(k)) bad(`sideHops.${k} unknown`);
     if (!Number.isInteger(h.hops) || h.hops < 1) bad('sideHops.hops must be a count');
-    if (typeof h.audioSec !== 'number' || !(h.audioSec > 0)) bad('sideHops.audioSec must be a length in seconds');
+    if (!Number.isFinite(h.audioSec) || h.audioSec < 0) bad('sideHops.audioSec must be a length in seconds');
     if (!DATE.test(h.updated || '')) bad('sideHops.updated is not YYYY-MM-DD');
   }
   if (r.changed !== undefined && (!Array.isArray(r.changed) || r.changed.some((c) => !CHANGED.includes(c)))) bad(`changed must list ${CHANGED}`);

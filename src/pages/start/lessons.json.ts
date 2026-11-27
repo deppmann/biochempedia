@@ -32,7 +32,7 @@ export const GET: APIRoute = async () => {
       tier: courseOf(d.course).tier, body, estMinutes: d.estMinutes, simulations: d.simulations.length,
       explainer: d.explainer, films: d.films, questions: 0,
       h2: headings.filter((h) => h.depth === 2), skimWords, skimFigures: [...body.matchAll(/<LessonFigure\b/g)].length,
-      stories: hops ? { audioSec: hops.audio.durationSec, hops: hops.hops } : undefined,
+      stories: hops ? { hops: hops.hops } : undefined,
     });
     out[d.slug] = [time.whole, time.stops.find((s) => s.id === 'skim')?.min ?? 0, phrases[d.slug]?.search ?? []];
   }

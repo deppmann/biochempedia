@@ -48,9 +48,9 @@ check('the parts printed under a stop add up to its number', () => {
   // Turning Signals Off in the prototype said "Films 11 min" over 8 + 4.
   // Turning Signals Off in the prototype said "Films 11 min" over 8 + 4, and the first build said
   // "7 minutes" of film beside a "Play all films (8 min)" button. One figure per thing, everywhere.
-  const hop = { afterHeading: 'x', title: 'y' };
-  const t = lessonTime({ ...base, body: words(2800), explainer: film('a', 216), films: [film('b', 234)], stories: { audioSec: 229, hops: [hop] } });
-  assert.equal(t.filmMin, 8); assert.equal(t.storyMin, 4);
+  const hop = { afterHeading: 'x', title: 'y', text: words(299) };
+  const t = lessonTime({ ...base, body: words(2800), explainer: film('a', 216), films: [film('b', 234)], stories: { hops: [hop] } });
+  assert.equal(t.filmMin, 8); assert.equal(t.storyMin, 2);
   assert.equal(minOf(t, 'films'), t.filmMin + t.storyMin);
   assert.equal(minOf(t, 'stories'), t.storyMin);
   assert.equal(t.readMin + t.filmMin + t.storyMin, t.whole);
@@ -86,7 +86,7 @@ check('a long lesson gets places to stop; a short one does not', () => {
 check('stops: every lesson has a skim and the lesson; films and stories only where they exist', () => {
   assert.deepEqual(ids(lessonTime({ ...base, body: words(900) })), ['skim', 'lesson']);
   assert.deepEqual(ids(lessonTime({ ...base, body: words(900), explainer: film('a', 200) })), ['skim', 'films', 'lesson']);
-  const full = lessonTime({ ...base, body: words(900), explainer: film('a', 200), films: [film('b', 200)], stories: { audioSec: 230, hops: [{ afterHeading: 'x', title: 'y' }] } });
+  const full = lessonTime({ ...base, body: words(900), explainer: film('a', 200), films: [film('b', 200)], stories: { hops: [{ afterHeading: 'x', title: 'y', text: words(75) }] } });
   assert.deepEqual(ids(full), ['skim', 'stories', 'films', 'lesson']);
   assert.deepEqual(full.stops.map((s) => s.name), ['Skim', 'Stories', 'Films', 'Lesson']);
   assert.equal(lessonTime({ ...base, body: words(900), explainer: film('a', 200) }).stops[1].name, 'Film');
@@ -101,11 +101,10 @@ check('an ages 5 to 10 guide has Film and Activity, and one stop when it has no 
 
 // ---------------------------------------------------------------- the sentences
 check('sentences: numbers add up, and no sentence counts what is left', () => {
-  const t = lessonTime({ ...base, body: words(2800), explainer: film('a', 230, ['x']), films: [film('b', 238, ['y'])], stories: { audioSec: 229, hops: [{ afterHeading: 'x', title: 'y' }, { afterHeading: 'z', title: 'w' }, { afterHeading: 'q', title: 'r' }] } });
+  const t = lessonTime({ ...base, body: words(2800), explainer: film('a', 230, ['x']), films: [film('b', 238, ['y'])], stories: { hops: ['x', 'z', 'q'].map((afterHeading) => ({ afterHeading, title: 'Side Hop', text: words(75) })) } });
   const l = linesFor(t, { figures: 3 });
-  assert.equal(l.films, `Both films, ${t.filmMin} minutes, then three short stories told aloud, ${t.storyMin} minutes more.`);
-  assert.equal(l.stories, 'Three real-life stories behind this lesson, about 4 minutes aloud, or read them below.');
-  assert.equal(t.stops.find((s) => s.id === 'stories').hint, 'short, told aloud');
+  assert.equal(l.films, `Both films, ${t.filmMin} minutes, with three Side Hops to read in about ${t.storyMin} minutes.`);
+  assert.equal(l.stories, 'Three Side Hops to read alongside this lesson.');
   assert.equal(l.skim, 'The main idea, the figures and what the films show. Under each heading, "Read this part" opens it.');
   assert.match(l.lesson, /^The whole lesson: about \d+ minutes of reading, \d+ of film and \d+ of stories\.$/);
   const long = lessonTime({ ...base, body: [1, 2, 3, 4, 5].map((k) => `## Part ${k}\n\n${words(1500)}\n`).join('\n'), h2: [1, 2, 3, 4, 5].map((k) => ({ slug: `p${k}`, text: `Part ${k}` })) });

@@ -37,9 +37,9 @@ const manifest = JSON.parse(readFileSync('media-manifest.json', 'utf8'));
 const sha = (buf) => createHash('sha256').update(buf).digest('hex');
 
 const isFilm = (k) => k.startsWith('explainers/') && k.endsWith('.mp4');
-const isHopAudio = (k) => /^side-hops\/[^/]+\.mp3$/.test(k);
-const matches = (k, s) => (isFilm(k) ? k.startsWith(`explainers/${s}/`) : s === 'side-hops' || k === `side-hops/${s}.mp3`);
-const wanted = Object.keys(manifest).filter((k) => (isFilm(k) || isHopAudio(k)) && (all || only.some((s) => matches(k, s))));
+const hopAudio = (k) => /^side-hops\/([^/]+)-card[1-9]\d*\.mp3$/.exec(k);
+const matches = (k, s) => (isFilm(k) ? k.startsWith(`explainers/${s}/`) : s === 'side-hops' || hopAudio(k)?.[1] === s);
+const wanted = Object.keys(manifest).filter((k) => (isFilm(k) || hopAudio(k)) && (all || only.some((s) => matches(k, s))));
 const unmatched = only.filter((s) => !wanted.some((k) => matches(k, s)));
 if (unmatched.length) console.error(`fetch-media: no film or Side Hops audio in media-manifest.json under: ${unmatched.join(', ')}`);
 

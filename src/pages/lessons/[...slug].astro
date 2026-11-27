@@ -119,7 +119,7 @@ const skim = skimOf(entry.body ?? '', headings);
 const hasSkim = skim.figureCount > 0 || [lesson.explainer, ...lesson.films].some((f) => f?.takeaways?.length);
 // "Rewritten on …" under the title, from src/data/recently-rewritten.json (scripts/rewritten-shelf.mjs).
 const rewritten = rewrittenFor(lesson.slug);
-// Side Hops (2026-11-18): stories and audio beside the lesson, for lessons with a file in src/data/side-hops/.
+// Side Hops (2026-11-18): cards beside the lesson, for lessons with a file in src/data/side-hops/.
 const sideHops = sideHopsFor(lesson.slug);
 // The lesson's Predict questions, listed once more after the text (2026-11-23). Not on the hands-on
 // guides, whose Predict is a step for the grown-up to read out.
@@ -143,7 +143,7 @@ const quizAnchors = hasQuiz ? anchorsFor(entry.body ?? '', headings, [...lesson.
 // The main (##) section headings, as plain links built at deploy time (the Contents pill).
 const sections = headings.filter((h) => h.depth === 2 && h.slug && h.text.trim());
 // How long the lesson takes, and the stops of "How long have you got?" (src/lib/lesson-time.ts:
-// reading, films and Side Hops audio, summed once; the same whole-lesson figure is on course cards,
+// reading, films and Side Hop reading, summed once; the same whole-lesson figure is on course cards,
 // in /catalog.json and in JSON-LD below).
 // The main idea a skim leads with: the summary's first sentence that states something (a few
 // summaries open with a question).
@@ -156,7 +156,7 @@ const time = lessonTime({
   tier: course.tier, body: entry.body ?? '', estMinutes: lesson.estMinutes, simulations: lesson.simulations.length,
   explainer: lesson.explainer, films: lesson.films, questions: qCount,
   h2: headings.filter((h) => h.depth === 2), skimWords, skimFigures,
-  stories: sideHops ? { audioSec: sideHops.audio.durationSec, hops: sideHops.hops } : undefined,
+  stories: sideHops ? { hops: sideHops.hops } : undefined,
 });
 const lines = linesFor(time, { figures: skimFigures, laterLooks: !!lesson.activity?.followUp });
 const endings = endingsFor(time);
@@ -202,7 +202,7 @@ const lessonLd = {
   // The site's licence page: CC BY-NC-SA 4.0 for the text, figures and films, with what it leaves out (scientist profiles).
   license: `${SITE_ORIGIN}/license/`,
   ...(lesson.objectives.length ? { teaches: lesson.objectives } : {}),
-  // The whole lesson: reading, films and Side Hops audio, the figure the page itself prints.
+  // The whole lesson: reading, films and Side Hop reading, the figure the page itself prints.
   timeRequired: `PT${time.whole}M`,
   encoding: { '@type': 'MediaObject', encodingFormat: 'text/markdown', contentUrl: `${SITE_ORIGIN}/lessons/${lesson.slug}.md` },
 };

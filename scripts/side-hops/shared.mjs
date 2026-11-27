@@ -35,7 +35,7 @@ export function problemsIn(data, { fileSlug, headings, audioFound }) {
   const out = [];
   const bad = (m) => out.push(m);
   if (typeof data !== 'object' || data === null || Array.isArray(data)) return ['the file is not a JSON object'];
-  onlyKeys(data, ['slug', 'updated', 'hops', 'audio'], 'top level', bad);
+  onlyKeys(data, ['slug', 'updated', 'hops'], 'top level', bad);
   if (data.slug !== fileSlug) bad(`slug "${data.slug}" does not match the file name`);
   if (headings === null) bad(`no lesson at src/content/lessons/${data.slug}/lesson.mdx`);
   if (!/^\d{4}-\d{2}-\d{2}$/.test(data.updated ?? '') || Number.isNaN(Date.parse(data.updated))) bad('updated must be a date, YYYY-MM-DD');
@@ -43,10 +43,25 @@ export function problemsIn(data, { fileSlug, headings, audioFound }) {
   if (!Array.isArray(data.hops) || data.hops.length === 0) bad('hops must be a list with at least one Side Hop');
   else {
     const placed = new Set();
+    const clips = new Set();
+    const hasAudio = data.hops.some((hop) => hop && Object.hasOwn(hop, 'audio'));
+    const expectedClips = new Set(data.hops.map((_, i) => `side-hops/${fileSlug}-card${i + 1}.mp3`));
     data.hops.forEach((h, i) => {
       const at = `hop ${i + 1}`;
       if (typeof h !== 'object' || h === null) { bad(`${at}: not an object`); return; }
-      onlyKeys(h, ['afterHeading', 'kind', 'title', 'text', 'sources', ...('image' in h ? ['image'] : [])], at, bad);
+      onlyKeys(h, ['afterHeading', 'kind', 'title', 'text', 'sources', ...('image' in h ? ['image'] : []), ...(hasAudio ? ['audio'] : [])], at, bad);
+      if ('audio' in h) {
+        const a = h.audio;
+        if (!a || typeof a !== 'object' || Array.isArray(a)) bad(`${at}: audio must be an object`);
+        else {
+          onlyKeys(a, ['file', 'durationSec'], `${at}, audio`, bad);
+          if (!expectedClips.has(a.file)) bad(`${at}: audio file must be side-hops/${fileSlug}-card<n>.mp3`);
+          else if (!audioFound(a.file)) bad(`${at}: ${a.file} is in neither public/ nor media-manifest.json`);
+          if (clips.has(a.file)) bad(`${at}: repeated audio file "${a.file}"`);
+          clips.add(a.file);
+          if (!Number.isFinite(a.durationSec) || a.durationSec <= 0) bad(`${at}: audio durationSec must be a positive number`);
+        }
+      }
       if ('image' in h) {
         const im = h.image;
         if (typeof im !== 'object' || im === null) bad(`${at}: image must be an object`);
@@ -83,16 +98,5 @@ export function problemsIn(data, { fileSlug, headings, audioFound }) {
     if (data.hops.filter((h) => h?.kind === 'analogy').length > 1) bad('more than one analogy in this lesson');
   }
 
-  const a = data.audio;
-  if (typeof a !== 'object' || a === null) bad('audio is missing');
-  else {
-    onlyKeys(a, ['title', 'file', 'durationSec', 'narration', 'transcript'], 'audio', bad);
-    if (!text(a.title)) bad('audio: title is empty');
-    if (a.file !== `side-hops/${fileSlug}.mp3`) bad(`audio: file must be side-hops/${fileSlug}.mp3`);
-    else if (!audioFound(a.file)) bad(`audio: ${a.file} is in neither public/ nor media-manifest.json`);
-    if (typeof a.durationSec !== 'number' || !(a.durationSec > 0)) bad('audio: durationSec must be a positive number');
-    if (!text(a.narration) || !/\bAI\b/.test(a.narration)) bad('audio: narration must say the voice is AI');
-    if (!text(a.transcript)) bad('audio: transcript is empty');
-  }
   return out;
 }

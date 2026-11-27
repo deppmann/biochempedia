@@ -20,7 +20,7 @@ export const KEPT = ' Your place is kept.';
 /** The one sentence under the control for each stop: what the stop holds. */
 export function linesFor(t: LessonTime, o: { figures: number; laterLooks?: boolean }): Record<StopId, string> {
   const n = t.filmCount;
-  const stories = t.storyCount ? `${say(t.storyCount)} short ${plural(t.storyCount, 'story', 'stories')}` : '';
+  const stories = t.storyCount ? `${say(t.storyCount)} Side ${plural(t.storyCount, 'Hop')}` : '';
 
   // ---- Skim
   const skimHas = [
@@ -32,7 +32,7 @@ export function linesFor(t: LessonTime, o: { figures: number; laterLooks?: boole
 
   // ---- Stories
   const storiesLine = t.storyCount
-    ? `${cap(say(t.storyCount))} real-life ${plural(t.storyCount, 'story', 'stories')} behind this ${t.noun}, about ${mins(t.storyMin)} aloud, or read them below.`
+    ? `${cap(stories)} to read alongside this ${t.noun}.`
     : '';
 
   // ---- Films. A film under a minute and a half is given in seconds: "1 minute" for 42 seconds is not honest.
@@ -40,11 +40,11 @@ export function linesFor(t: LessonTime, o: { figures: number; laterLooks?: boole
   let films = '';
   if (n === 1) {
     films = t.guide ? `The film, ${filmLen}, and the safety notes, for the grown-up to look at before the activity.`
-      : t.storyCount ? `The film, ${filmLen}, then ${stories} told aloud, ${mins(t.storyMin)} more.`
+      : t.storyCount ? `The film, ${filmLen}, with ${stories} to read in about ${mins(t.storyMin)}.`
       : t.takeCount ? `The film, ${filmLen}, and what to take from it.` : `The film, ${filmLen}.`;
   } else if (n > 1) {
     films = t.storyCount
-      ? `${cap(theFilms(n))}, ${mins(t.filmMin)}, then ${stories} told aloud, ${mins(t.storyMin)} more.`
+      ? `${cap(theFilms(n))}, ${mins(t.filmMin)}, with ${stories} to read in about ${mins(t.storyMin)}.`
       : `${cap(theFilms(n))} in order, ${mins(t.filmMin)}.${t.takeCount === n ? ' Each one ends with what to take from it.' : ''}`;
   }
 

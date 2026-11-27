@@ -2,44 +2,31 @@
 /**
  * Bring an approved Side Hops kit into the site.
  *
- *   node scripts/side-hops/import-kit.mjs <slug> <kit.json> <audio.mp3>
+ *   node scripts/side-hops/import-kit.mjs <slug> <kit.json> [cards-dir]
+ *   node scripts/side-hops/import-kit.mjs <slug> --from-site <cards-dir>
  *
- * Run it from the repository root. It writes src/data/side-hops/<slug>.json, copies the audio to
- * public/side-hops/<slug>.mp3 (git-ignored; scripts/upload-media.mjs sends it to R2), refreshes the
- * production record and runs scripts/check-side-hops.mjs. Run it again after any fix to the kit.
- *
- * Pictures (2026-11-21): a Side Hop whose kit entry has an `image` ({caption, alt}) takes its picture
- * from images/<n>.jpg next to kit.json, where n is its place in the kit's list (1, 2, 3). The file is
- * copied to public/side-hops/<slug>-<n>.jpg (git-ignored, sent to R2 like the audio).
- *
- * Source links that point at a machine-readable API are replaced by the page a reader can open.
- * A warning is printed when the recording's length does not fit the script, which usually means the
- * script changed after the audio was recorded.
+ * Run from the repository root. The kit form reads clips from audio/cards next to kit.json by
+ * default, and copies pictures from images/<n>.jpg. The --from-site form attaches clips to
+ * existing site data in its current card order, preserving the card content and pictures.
+ * Media is copied to public/side-hops/ (git-ignored, uploaded to R2 by ship_pr.sh).
  */
 import { spawnSync } from 'node:child_process';
 import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
-import { lessonHeadings } from './shared.mjs';
+import { lessonHeadings, problemsIn } from './shared.mjs';
 
-/** Narration credit, read from the recording's <slug>.record.json (written by record.py next to the mp3). */
-const VOICES = { kokoro: 'an AI narrator voice (Kokoro, af_heart)', elevenlabs: 'an AI narrator voice (ElevenLabs, Jessica)' };
-function narrationFor(audio) {
-  const rec = audio.replace(/\.mp3$/, '.record.json');
-  if (!existsSync(rec)) return VOICES.elevenlabs; // older recordings carry no record file
-  const r = JSON.parse(readFileSync(rec, 'utf8'));
-  if (r.engine === 'kokoro') return `an AI narrator voice (Kokoro, ${r.voice || 'af_heart'})`;
-  return VOICES[r.engine] ?? VOICES.elevenlabs;
-}
-/** Characters of script per second of finished audio. The recordings so far run from 13.0 to 14.2. */
-const PACE = { low: 12.3, high: 14.3 };
-
-const [slug, kitPath, audioPath] = process.argv.slice(2);
-if (!slug || !kitPath || !audioPath) {
-  console.error('Usage: node scripts/side-hops/import-kit.mjs <slug> <kit.json> <audio.mp3>');
+const [slug, input, clipsDir, ...extra] = process.argv.slice(2);
+const fromSite = input === '--from-site';
+if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug ?? '') || !input || (fromSite && !clipsDir) || extra.length) {
+  console.error('Usage: node scripts/side-hops/import-kit.mjs <slug> <kit.json> [cards-dir] | <slug> --from-site <cards-dir>');
   process.exit(2);
 }
 const lessonPath = `src/content/lessons/${slug}/lesson.mdx`;
-for (const p of [lessonPath, kitPath, audioPath]) {
+const dataPath = `src/data/side-hops/${slug}.json`;
+const inputPath = fromSite ? dataPath : input;
+const kitDir = dirname(inputPath);
+const cardsDir = clipsDir ?? join(kitDir, 'audio', 'cards');
+for (const p of [lessonPath, inputPath]) {
   if (!existsSync(p)) { console.error(`import-kit: ${p} not found (run from the repository root)`); process.exit(1); }
 }
 
@@ -77,7 +64,7 @@ function readerUrl(url) {
   return url;
 }
 
-const kit = JSON.parse(readFileSync(kitPath, 'utf8'));
+const kit = JSON.parse(readFileSync(inputPath, 'utf8'));
 if (kit.slug !== slug) { console.error(`import-kit: the kit is for "${kit.slug}", not "${slug}"`); process.exit(1); }
 const headings = lessonHeadings(readFileSync(lessonPath, 'utf8'));
 const place = (h) => { const n = headings.indexOf(h.afterHeading); return n < 0 ? headings.length : n; };
@@ -94,7 +81,6 @@ function jpegSize(buf) {
   return null;
 }
 
-const kitDir = dirname(kitPath);
 const pictures = [];
 function picture(a, n) {
   if (!a.image) return {};
@@ -108,41 +94,61 @@ function picture(a, n) {
   return { image: { file, alt, caption: a.image.caption, ...size } };
 }
 
-let relinked = 0;
-const hops = kit.asides.map((a, i) => ({
-  afterHeading: a.after_heading,
-  kind: a.kind,
-  title: a.title,
-  text: a.text,
-  sources: (a.sources ?? []).map((s) => {
-    const url = readerUrl(s.url);
-    if (url !== s.url) relinked++;
-    return { citation: s.citation, url };
-  }),
-  ...picture(a, i + 1),
-})).sort((a, b) => place(a) - place(b));
-
-const durationSec = Math.round(mp3Seconds(readFileSync(audioPath)) * 10) / 10;
-const transcript = kit.audio.script.trim();
-const now = new Date();
-const updated = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-const data = {
-  slug, updated, hops,
-  audio: { title: kit.audio.title, file: `side-hops/${slug}.mp3`, durationSec, narration: narrationFor(audioPath), transcript },
-};
-
-mkdirSync('src/data/side-hops', { recursive: true });
-mkdirSync('public/side-hops', { recursive: true });
-writeFileSync(`src/data/side-hops/${slug}.json`, JSON.stringify(data, null, 1) + '\n');
-copyFileSync(audioPath, `public/side-hops/${slug}.mp3`);
-for (const [from, to] of pictures) copyFileSync(from, to);
-console.log(`import-kit: ${slug}: ${hops.length} Side Hops, ${pictures.length} picture(s), ${durationSec} s of audio${relinked ? `, ${relinked} source link(s) changed to the reader's page` : ''}`);
-
-const pace = transcript.length / durationSec;
-if (pace < PACE.low || pace > PACE.high) {
-  console.log(`WARNING: ${slug}: ${transcript.length} characters over ${durationSec} s is ${pace.toFixed(1)} per second (usual: ${PACE.low} to ${PACE.high}). The recording may not match this script; re-record it before shipping.`);
+const clips = [];
+function audio(card, n) {
+  const name = `${slug}-card${n}`;
+  const file = `side-hops/${name}.mp3`;
+  const source = join(cardsDir, `${name}.mp3`);
+  const record = join(cardsDir, `${name}.record.json`);
+  if (!existsSync(source)) throw new Error(`import-kit: missing clip ${source}`);
+  if (existsSync(record)) {
+    const r = JSON.parse(readFileSync(record, 'utf8'));
+    if (r.slug !== slug || r.card !== n || r.title !== card.title || r.text !== card.text ||
+        r.engine !== 'kokoro' || r.voice !== 'af_heart' || !r.check?.complete) {
+      throw new Error(`import-kit: ${record} does not describe a verified Kokoro af_heart recording of this card`);
+    }
+  }
+  const durationSec = Math.round(mp3Seconds(readFileSync(source)) * 10) / 10;
+  if (!durationSec) throw new Error(`import-kit: no audio frames in ${source}`);
+  clips.push([source, `public/${file}`]);
+  return { file, durationSec };
 }
 
-const record = spawnSync('node', ['scripts/production-record.mjs', 'derive'], { stdio: 'inherit' });
-const check = spawnSync('node', ['scripts/check-side-hops.mjs'], { stdio: 'inherit' });
-process.exit(record.status || check.status || 0);
+const hops = fromSite
+  ? kit.hops.map((h, i) => ({ ...h, audio: audio(h, i + 1) }))
+  : kit.asides.map((a, i) => ({
+      afterHeading: a.after_heading,
+      kind: a.kind,
+      title: a.title,
+      text: a.text,
+      sources: (a.sources ?? []).map((s) => ({ citation: s.citation, url: readerUrl(s.url) })),
+      ...picture(a, i + 1),
+      audio: audio(a, i + 1),
+    })).sort((a, b) => place(a) - place(b));
+const now = new Date();
+const updated = fromSite ? kit.updated : `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+const data = { slug, updated, hops };
+
+const media = [...pictures, ...clips];
+const manifest = JSON.parse(readFileSync('media-manifest.json', 'utf8'));
+const incoming = new Set(media.map(([, destination]) => destination));
+const problems = problemsIn(data, {
+  fileSlug: slug,
+  headings,
+  audioFound: (file) => incoming.has(`public/${file}`) || existsSync(`public/${file}`) || Boolean(manifest[file]),
+});
+if (problems.length) {
+  for (const problem of problems) console.error(`import-kit: ${problem}`);
+  process.exit(1);
+}
+mkdirSync('src/data/side-hops', { recursive: true });
+mkdirSync('public/side-hops', { recursive: true });
+for (const [from, to] of media) copyFileSync(from, to);
+writeFileSync(dataPath, JSON.stringify(data, null, 1) + '\n');
+console.log(`import-kit: ${slug}: ${hops.length} Side Hops, ${clips.length} card clips, ${pictures.length} picture(s) copied`);
+
+for (const args of [['scripts/production-record.mjs', 'derive'], ['scripts/check-side-hops.mjs']]) {
+  const result = spawnSync(process.execPath, args, { stdio: 'inherit' });
+  if (result.error) throw result.error;
+  if (result.status !== 0) process.exit(result.status ?? 1);
+}

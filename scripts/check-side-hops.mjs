@@ -4,7 +4,7 @@
  *
  * Each src/data/side-hops/<slug>.json must follow the schema and fit its lesson: every card names a
  * real ## heading, no two cards share a heading, a story or claim has an https source, a lesson has
- * at most one analogy, and the audio is on disk (public/side-hops/) or uploaded (media-manifest.json).
+ * at most one analogy, and if a card has audio, every card has its own clip on disk or in the media manifest.
  *
  * Run: node scripts/check-side-hops.mjs   (also run by CI on every push)
  *      node scripts/check-side-hops.mjs --dir <folder>   checks another folder of data files

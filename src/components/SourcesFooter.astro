@@ -8,7 +8,7 @@ interface Props {
   figures?: { src: string; alt: string }[];
 }
 const { lesson, figures = [] } = Astro.props;
-const sideHopsAudio = sideHopsFor(lesson.slug)?.audio;
+const hasSideHopsAudio = sideHopsFor(lesson.slug)?.hops.some((hop) => hop.audio);
 
 const rcsb = lesson.structures.filter((s) => s.source === 'rcsb');
 const pubchem = lesson.structures.filter((s) => s.source === 'pubchem');
@@ -166,10 +166,10 @@ const pubchemNote = idEcho('CID');
       </div>
     )}
 
-    {sideHopsAudio && (
+    {hasSideHopsAudio && (
       <div class="src-block">
-        <h3>Side Hops audio</h3>
-        <p class="src-meta"><strong>{sideHopsAudio.title}</strong> · narration: {sideHopsAudio.narration} · the sources for each story are listed on its Side Hop card.</p>
+        <h3>Side Hop recordings</h3>
+        <p class="src-meta">The card titles and text are read by an <span class="ai-flag">AI-generated</span> voice (Kokoro af_heart). Each card lists its sources.</p>
       </div>
     )}<div class="src-block">
       <h3>Images &amp; figures</h3>

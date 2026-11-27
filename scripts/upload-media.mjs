@@ -39,6 +39,7 @@ const seen = existsSync(MANIFEST) ? JSON.parse(readFileSync(MANIFEST, 'utf8')) :
 const todo = [];
 for (const p of files) {
   const key = relative(ROOT, p).split('\\').join('/');
+  if (/^side-hops\/.+\.mp3$/.test(key) && !/-card[1-9]\d*\.mp3$/.test(key)) continue;
   const buf = readFileSync(p);
   const sha = createHash('sha256').update(buf).digest('hex');
   if (!all && seen[key]?.sha256 === sha) continue;

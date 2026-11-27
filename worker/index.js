@@ -81,6 +81,10 @@ export function createWorker(cfg = HOSTS) {
     // Teacher classes API (worker/api.js).
     const { pathname } = new URL(request.url);
     if (pathname.startsWith('/api/')) return handleApi(request, env);
+    const sideHopPath = pathname.startsWith('/side-hops/') ? decodeURIComponent(pathname) : '';
+    if (/^\/side-hops\/[^/]+\.mp3$/.test(sideHopPath) && !/-card[1-9]\d*\.mp3$/.test(sideHopPath)) {
+      return new Response(null, { status: 410 });
+    }
     // Group pages: every /g/<slug>/ is the one static page /g/, which reads the slug itself.
     if (/^\/g(\/[a-z0-9-]+)?\/?$/.test(pathname)) {
       if (!pathname.endsWith('/')) return Response.redirect(new URL(pathname + '/', request.url), 301);
