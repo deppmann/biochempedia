@@ -1,5 +1,5 @@
-/* Side Hops (2026-11-18): short true stories, myths and things to try that sit beside a lesson, plus
-   one narrated audio segment. Each lesson that has them has one file, src/data/side-hops/<slug>.json,
+/* Side Hops: short cards that sit beside a lesson. Each lesson that has them has one file,
+   src/data/side-hops/<slug>.json,
    written by scripts/side-hops/import-kit.mjs and checked by scripts/check-side-hops.mjs. A lesson
    with no file renders as it always has. The lesson's own text (lesson.mdx) is never edited. */
 import type { HexPose } from '../data/hex';
@@ -16,6 +16,8 @@ export interface SideHop {
   title: string;
   text: string;
   sources: { citation: string; url: string }[];
+  /** Optional recording of the title and body. The file is a site-root path without a leading slash. */
+  audio?: { file: string; durationSec: number };
   /** Optional picture (2026-11-21). The file is side-hops/<slug>-<n>.jpg, kept in R2 like the audio.
    *  alt starts "AI-generated illustration:"; caption is the one-line take-home shown under it. */
   image?: { file: string; alt: string; caption: string; width: number; height: number };
@@ -25,15 +27,6 @@ export interface SideHopsData {
   slug: string;
   updated: string;
   hops: SideHop[];
-  audio: {
-    title: string;
-    /** Path under the site root, side-hops/<slug>.mp3. Kept in R2, like the films. */
-    file: string;
-    durationSec: number;
-    /** Where the voice comes from, in plain words (shown on the page). */
-    narration: string;
-    transcript: string;
-  };
 }
 
 /** What a reader sees for each kind, and the pose Hex takes on that card. */

@@ -4,9 +4,8 @@
  * SideHopsPanels.astro; the three-way switch that drove it, SideHopsSwitch.astro, is replaced by the
  * "How long have you got?" control in LessonTime.astro, whose page script now moves the cards.)
  *
- * With scripts off this is a labelled section after the text: the audio, its transcript and every
- * card. With scripts on, the stop decides:
- *   Lesson    each card sits at the end of its section; the audio stays here, after the text
+ * With scripts off this is a labelled section after the text. With scripts on, the stop decides:
+ *   Lesson    each card sits at the end of its section
  *   Films     the cards come back here, after the last film
  *   Stories   the cards come back here, and this section is the page
  *   Skim      hidden
@@ -14,13 +13,10 @@
  * players, so the page holds one copy of each film.
  *
  * The styles are inline so that only lessons with Side Hops carry them. The cards carry data-no-hl,
- * and lesson.mdx is untouched, so highlights, Listen and search are unaffected. AI narration is
- * stated beside the player.
+ * and lesson.mdx is untouched. Listen can use the cards' recordings in the lesson stop.
  */
 import SideHopCard from './SideHopCard.astro';
 import type { SideHopsData } from '../lib/side-hops';
-import { clock } from '../lib/lesson-time';
-import { say } from '../lib/lesson-copy';
 
 interface Props {
   data: SideHopsData;
@@ -40,28 +36,10 @@ const hops = data.hops.map((hop) => {
   if (at < 0) throw new Error(`Side Hops for ${data.slug}: no ## heading "${hop.afterHeading}" in the lesson`);
   return { hop, before: sections[at + 1]?.slug };
 });
-const { audio } = data;
-const paragraphs = audio.transcript.split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean);
-const n = say(data.hops.length);
 ---
 
-<section class="sh-panel" data-sh-panel aria-labelledby="sh-panel-h" data-lt-only="lesson films stories">
-  <h2 class="sh-panel-h" id="sh-panel-h">
-    <span data-lt-only="lesson">The {n} stories, told aloud</span>
-    <span data-lt-only="films nojs">Side Hops: {n} stories that go with this lesson</span>
-    <span data-lt-only="stories">Side Hops</span>
-  </h2>
-  <div class="sh-player">
-    <h3 class="sh-player-h">{audio.title}</h3>
-    <audio controls preload="none" src={`/${audio.file}`}>
-      <a href={`/${audio.file}`}>Download the audio (MP3)</a>
-    </audio>
-    <p class="sh-note">{clock(audio.durationSec)} · Narration: {audio.narration}.</p>
-    <details class="sh-transcript">
-      <summary>Read the transcript</summary>
-      {paragraphs.map((p) => <p>{p}</p>)}
-    </details>
-  </div>
+<section class="sh-panel" data-sh-panel aria-labelledby="sh-panel-h" data-lt-only="films stories nojs">
+  <h2 class="sh-panel-h" id="sh-panel-h" data-lt-only="films stories nojs">Side Hops</h2>
   <div data-sh-cards>
     {hops.map(({ hop, before }, i) => <SideHopCard hop={hop} before={before} n={i + 1} />)}
   </div>
@@ -72,13 +50,6 @@ const n = say(data.hops.length);
   .sh-panel { max-width: 46rem; margin: var(--ddp-space-8) 0; }
   #top[data-time="stories"] .sh-panel { margin-top: 0; }
   .sh-panel-h { margin: 0 0 var(--ddp-space-3); font-size: var(--ddp-text-2xl); }
-  .sh-player { padding: var(--ddp-space-4); background: var(--ddp-color-surface); border: 1px solid var(--ddp-color-line); border-radius: var(--ddp-radius); }
-  .sh-player-h { margin: 0 0 var(--ddp-space-3); font-size: var(--ddp-text-lg); }
-  .sh-player audio { display: block; width: 100%; }
-  .sh-note { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); line-height: 1.5; color: var(--ddp-color-muted); }
-  .sh-transcript { margin-top: var(--ddp-space-3); }
-  .sh-transcript summary { display: flex; align-items: center; min-height: 44px; cursor: pointer; font-size: var(--ddp-text-sm); font-weight: 600; color: var(--ddp-color-primary); }
-  .sh-transcript p { margin: 0 0 var(--ddp-space-3); font-size: var(--ddp-text-sm); line-height: 1.65; color: var(--ddp-color-ink-soft); }
   .sh-under { max-width: 60ch; margin: var(--ddp-space-6) 0 0; line-height: 1.6; }
 
   /* A card. overflow-x: clip keeps Hex behind the card's edge until it hops in, and lets it jump above the top edge. */

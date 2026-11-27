@@ -6,7 +6,7 @@
                + 1 minute for each "Predict." prompt + 3 minutes for each simulation
                ("Going deeper" is counted on its own and stated as optional)
      films     the sum of durationSec from the lesson's frontmatter
-     stories   Side Hops: the length of their audio
+     stories   Side Hops: title and body words / 150
      skim      the main idea, headings, figure captions and film take-homes at 200 words a minute,
                plus 10 seconds to look at each figure
      self-test always stated apart ("when you want it"), never added to a length
@@ -45,7 +45,7 @@ export interface TimeInput {
   skimWords: number;
   /** Figures the skim shows (10 seconds each to look at). */
   skimFigures?: number;
-  stories?: { audioSec: number; hops: { afterHeading: string; title: string }[] };
+  stories?: { hops: { afterHeading: string; title: string; text: string }[] };
 }
 
 export interface Stop {
@@ -144,7 +144,7 @@ export function wholeSeconds(i: Pick<TimeInput, 'tier' | 'body' | 'estMinutes' |
   // A hand-set lesson's tasks and simulations are part of the class period, not extra reading.
   const read = readingSeconds(i.body, i.simulations, !handSet);
   const film = [...(i.explainer ? [i.explainer] : []), ...i.films].reduce((n, f) => n + f.durationSec, 0);
-  const stories = i.stories?.audioSec ?? 0;
+  const stories = (i.stories?.hops ?? []).reduce((sec, hop) => sec + wordsOf(`${hop.title} ${hop.text}`) / WPM * 60, 0);
   const sum = read.core + film + stories;
   const set = handSet && i.estMinutes ? i.estMinutes * 60 : 0;
   return {
@@ -170,7 +170,7 @@ export function lessonTime(i: TimeInput) {
   const filmMin = films.length ? minutesOf(w.film) : 0;
   const storyMin = hasStories ? minutesOf(w.stories) : 0;
   if (!guide) stops.push({ id: 'skim', min: minutesOf(skimSec), name: 'Skim' });
-  if (hasStories) stops.push({ id: 'stories', min: storyMin, name: 'Stories', hint: 'short, told aloud' });
+  if (hasStories) stops.push({ id: 'stories', min: storyMin, name: 'Stories' });
   if (films.length) stops.push({ id: 'films', min: filmMin + storyMin, name: films.length === 1 ? 'Film' : 'Films' });
   stops.push({ id: 'lesson', min: minutesOf(w.whole), name: guide ? 'Activity' : 'Lesson' });
 
@@ -241,7 +241,7 @@ export function lessonTime(i: TimeInput) {
     filmMin,
     filmSec: Math.round(w.film),
     storyCount: i.stories?.hops.length ?? 0,
-    /** Minutes of Side Hops audio, the same figure wherever it is printed. */
+    /** Minutes of Side Hop reading, the same figure wherever it is printed. */
     storyMin,
     quiz: i.questions,
     takeCount: films.filter((f) => f.takeaways?.length).length,

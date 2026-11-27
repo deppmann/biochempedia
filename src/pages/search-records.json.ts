@@ -137,7 +137,7 @@ export const GET: APIRoute = async () => {
     });
   }
 
-  /* Side Hops: each story is its own record, and so is the audio segment's script. */
+  /* Side Hops: one record per card. */
   for (const { default: d } of Object.values(HOPS)) {
     if (!live.has(d.slug)) continue;
     const bits = lessonBits(d.slug);
@@ -152,17 +152,6 @@ export const GET: APIRoute = async () => {
         parts: [{ text: h.text }, ...(h.image?.caption ? [{ text: h.image.caption, w: 2 }] : [])],
       });
     });
-    if (d.audio?.transcript) {
-      out.push({
-        type: 'sidehop',
-        url: `/lessons/${d.slug}/?hop=audio#sh-panel-h`,
-        title: d.audio.title,
-        kicker: 'Side Hops · Audio',
-        ...bits,
-        dur: Math.round(d.audio.durationSec),
-        parts: d.audio.transcript.split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean).map((text) => ({ text })),
-      });
-    }
   }
 
   /* Flashcards: one record per deck, every card's front, back and why. */

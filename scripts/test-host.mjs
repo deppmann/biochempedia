@@ -484,6 +484,24 @@ await check('the production worker: primary pages are the static asset response,
   assert.ok([301, 302].includes(r2.status));
   assert.equal(r2.headers.get('Location'), `https://${S.PRIMARY_HOST}/api/learner/me?a=1`);
 });
+await check('Side Hops card clips use R2 and retired lesson recordings return 410', async () => {
+  const bucketReads = [];
+  const env = {
+    MEDIA: {
+      get: async (key) => {
+        bucketReads.push(key);
+        return { body: 'clip', size: 4, httpEtag: '"clip"', writeHttpMetadata() {} };
+      },
+    },
+  };
+  const url = `https://${S.PRIMARY_HOST}/side-hops/`;
+  assert.equal((await worker.fetch(req(url + 'itch.mp3'), env)).status, 410);
+  assert.equal((await worker.fetch(req(url + 'itch.mp3', { method: 'HEAD' }), env)).status, 410);
+  const card = await worker.fetch(req(url + 'itch-card1.mp3'), env);
+  assert.equal(card.headers.get('X-Served-From'), 'r2');
+  assert.equal(await card.text(), 'clip');
+  assert.deepEqual(bucketReads, ['side-hops/itch-card1.mp3']);
+});
 
 console.log('merging what came across');
 const J = (x) => JSON.stringify(x);

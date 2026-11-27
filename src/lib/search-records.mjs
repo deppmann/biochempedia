@@ -2,7 +2,7 @@
 
    The site search has one full-text index, Pagefind's, in /pagefind/. Lesson pages go in as they
    always have (Pagefind reads the built HTML). Everything else goes in as RECORDS: one small HTML
-   document per film, method, Side Hop story or audio segment, flashcard deck and simulation, written
+   document per film, method, Side Hop card, flashcard deck and simulation, written
    by src/pages/search-records.json.ts at build time and added to the same index by
    scripts/build-search-index.mjs. Each page and record carries a `type` filter, so one search can be
    narrowed to any set of types (the tick boxes on /search/) and each type ranked on its own.

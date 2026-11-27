@@ -9,7 +9,7 @@
    are not included.
 
    Since 2026-11-20 the recipe itself lives in src/lib/lesson-time.ts, which also counts films and
-   Side Hops audio. lessonMinutes() below is the reading part alone; wholeMinutes() is the whole
+   Side Hop reading. lessonMinutes() below is the reading part alone; wholeMinutes() is the whole
    lesson, and is what the site prints.
 
    Ages 5–10 activity guides and the grade 7 and high school lessons keep their hand-set figure:
@@ -49,7 +49,7 @@ interface WholeLike {
 }
 
 /**
- * The whole lesson in minutes: reading, every film and the Side Hops audio, or the hand-set class
+ * The whole lesson in minutes: reading, every film and the Side Hop reading, or the hand-set class
  * period when that is longer. This is the figure the lesson page's control prints on its last stop,
  * and the one course cards, /catalog.json, the Markdown copies and JSON-LD timeRequired print too
  * (src/lib/lesson-time.ts has the recipe).
@@ -61,7 +61,7 @@ export function wholeMinutes(l: WholeLike): number | undefined {
   return minutesOf(wholeSeconds({
     tier: courseOf(d.course).tier, body: l.body ?? '', estMinutes: d.estMinutes, simulations: d.simulations.length,
     explainer: d.explainer, films: d.films,
-    stories: hops ? { audioSec: hops.audio.durationSec, hops: hops.hops } : undefined,
+    stories: hops ? { hops: hops.hops } : undefined,
   }).whole);
 }
 
