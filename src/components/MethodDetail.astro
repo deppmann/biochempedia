@@ -71,7 +71,7 @@ const related = listedMethods().filter((o) => o.slug !== m.slug && o.category ==
       <p class="sub">{lessons.length === 1 ? 'One lesson uses' : `${lessons.length} lessons use`} this method.</p>
       {byCourse.map(({ c, ls }) => (
         <div class="course-group">
-          <h3><a href={courseHref(c.slug)}>{c.title}</a></h3>
+          <h3 id={c.slug}><a href={courseHref(c.slug)}>{c.title}</a></h3>
           <ul class="lesson-list">
             {ls.map((l) => <li><a href={`/lessons/${l.data.slug}/`}>{l.data.title}</a></li>)}
           </ul>
@@ -117,6 +117,8 @@ const related = listedMethods().filter((o) => o.slug !== m.slug && o.category ==
     h2 { font-family: var(--ddp-font-serif); font-weight: 500; color: var(--ddp-color-primary); font-size: var(--ddp-text-xl); margin: 0 0 var(--ddp-space-3); }
     h3 { font-size: var(--ddp-text-base); margin: var(--ddp-space-4) 0 var(--ddp-space-2); }
     h3 a { color: var(--ddp-color-ink); }
+    #where-h, .course-group h3 { scroll-margin-top: 5.5rem; }
+    .course-group h3:target { background: var(--ddp-color-accent-soft); outline: 2px solid var(--ddp-color-accent); outline-offset: 3px; border-radius: 2px; }
     .sub { margin: 0; color: var(--ddp-color-muted); font-size: var(--ddp-text-sm); }
     .unlocked, .lesson-list, .sources { margin: 0; padding-left: 1.2rem; display: grid; gap: var(--ddp-space-2); line-height: 1.55; }
     .sources { font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); }

@@ -19,9 +19,10 @@ interface Props {
 }
 const { hop, before, n } = Astro.props;
 const look = KIND_LOOK[hop.kind];
+const audioHref = hop.audio?.file ? `/${hop.audio.file}` : undefined;
 ---
 
-<aside class="sh-card" id={n ? `sh-${n}` : undefined} data-sh-card data-sh-before={before} data-sh-audio={hop.audio ? `/${hop.audio.file}` : undefined} data-no-hl aria-label={`Side Hop: ${hop.title}`}>
+<aside class="sh-card" id={n ? `sh-${n}` : undefined} data-sh-card data-sh-before={before} data-sh-audio={audioHref} data-no-hl aria-label={`Side Hop: ${hop.title}`}>
   <div class="sh-card-head">
     <button type="button" class="sh-hex" data-sh-hex aria-label="Make Hex hop again" aria-hidden="true" tabindex="-1" disabled>
       <Hex pose={look.pose} size={56} />
@@ -29,6 +30,7 @@ const look = KIND_LOOK[hop.kind];
     <div class="sh-card-name">
       <p class="sh-kicker">Side Hop · {look.label}</p>
       <h3 class="sh-title">{hop.title}</h3>
+      {audioHref && <a class="sh-listen" href={audioHref} aria-label={`Listen to this card (${hop.title})`}>Listen to this card</a>}
     </div>
   </div>
   {hop.image && (
