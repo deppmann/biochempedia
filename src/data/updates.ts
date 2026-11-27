@@ -42,6 +42,10 @@ export interface Milestone {
 export const STEMHOP_SWITCH_DATE = '2026-11-16';
 
 export const MILESTONES: Milestone[] = [
+  { date: '2026-11-26', kind: 'tools', title: 'Methods for each course', prs: [512, 515],
+    text: 'The methods library now has a page for each course except Biology Together, listing only the methods that course’s lessons use, so a Physiology student no longer has to scan every method on the site.' },
+  { date: '2026-11-26', kind: 'site', title: 'Lessons lead with their question', prs: [512],
+    text: 'When a lesson’s opening ends in a question, the question now comes first, in bold, with the finding behind it underneath.' },
   { date: '2026-11-26', kind: 'media', title: '22 older films remade', prs: [507, 508, 509, 510],
     text: 'Twenty-two older films that shook, drifted or moved shapes around for no reason are remade so the picture holds still and every movement shows something, among them the high school DNA copying film, the first Protein Synthesis film (which now highlights the right DNA strand) and Predators and Prey.' },
   { date: '2026-11-24', kind: 'media', title: 'Previous, Next and Play all for films', prs: [503],
@@ -138,8 +142,8 @@ export const MILESTONES: Milestone[] = [
     text: 'The homepage’s parent door and every course page now link to the course calendars. On /teach/match/ a teacher can add the ticked lessons straight to a class. Take-homes under a lesson’s opening film stay folded until the film is watched.' },
   { date: '2026-11-22', kind: 'quality', title: 'Cell Signaling rewritten', prs: [243, 335, 340, 343, 391, 439, 440, 441, 442, 447, 448, 449, 453, 454, 455, 456, 463, 465],
     text: 'All 44 Cell Signaling lessons, from how far signals travel to oncogenes and stress signals, are rewritten around one guiding idea, with prediction checks, a flashcard deck, and two short films each with take-homes underneath. Signaling Circuits and Turning Signals Off have since had a further accuracy check, with their flashcards and films corrected to match.' },
-  { date: '2026-11-24', kind: 'tools', title: 'Side Hops', prs: [392, 460, 484, 488, 497, 501],
-    text: 'Fifty-nine lessons, from Turning the Signal Off to the action potential, meiosis, the retina and sleep, now have Side Hops beside them: short true stories, myth checks and things to try. The newer cards each carry a picture, labelled as AI-drawn. A switch near the top shows the full lesson, just the films, or just the Side Hops. All 30 Biology Together guides have their own kind: tips for the parent on what to say, compare, ask and point at, each with a picture.' },
+  { date: '2026-11-27', kind: 'tools', title: 'Side Hops', prs: [392, 460, 484, 488, 497, 501, 513, 514, 516, 517, 518, 519],
+    text: 'A hundred and thirty-eight lessons, from Turning the Signal Off to the action potential, meiosis, the retina and every Developmental Neuroscience lesson, now have Side Hops beside them: short true stories, myth checks and things to try. The newer cards each carry a picture, labelled as AI-drawn. A switch near the top shows the full lesson, just the films, or just the Side Hops. Each card can be read aloud, and Listen has an “Include Side Hops” option that plays each card after the section it follows. All 30 Biology Together guides have their own kind: tips for the parent on what to say, compare, ask and point at, each with a picture.' },
   { date: '2026-11-22', kind: 'tools', title: 'Listen to every lesson', prs: [433, 434, 436, 437, 438, 477],
     text: 'Every lesson in Cell Biology, Genetics, Ecology and Evolution, Organismal Biology, High School Biology, Life Science and Biology Together now has a Listen button that reads it aloud in the site’s narration voice, and so do all 44 Cell Signaling lessons.' },
   { date: '2026-11-21', kind: 'media', title: 'Films stacked by course', prs: [435],
